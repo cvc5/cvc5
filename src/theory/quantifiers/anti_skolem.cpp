@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of anti-skolemization
+ ** \brief Implementation of anti-skolemization, e.g.:
  **          ( forall x. P[ f( x ) ] ^ forall x. Q[ f( x ) ]  ) => forall x. exists y. ( P[ y ] ^ Q[ y ] )
  **/
 
@@ -72,6 +72,15 @@ bool QuantAntiSkolem::CDSkQuantCache::add( context::Context* c, std::vector< Nod
       skc = it->second;
     }
     return skc->add( c, quants, index+1 );
+  }
+}
+
+QuantAntiSkolem::CDSkQuantCache::~CDSkQuantCache() {
+  for(std::map< Node, CDSkQuantCache* >::iterator i = d_data.begin(), iend = d_data.end();
+      i != iend; ++i){
+    CDSkQuantCache* current = (*i).second;
+    Assert(current != NULL);
+    delete current;
   }
 }
 

@@ -989,8 +989,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_propEngine(NULL),
   d_proofManager(NULL),
   d_definedFunctions(NULL),
-  d_fmfRecFunctionsAbs(NULL),
-  d_fmfRecFunctionsConcrete(NULL),
+  d_fmfRecFunctionsDefined(NULL),
   d_assertionList(NULL),
   d_assignments(NULL),
   d_modelGlobalCommands(),
@@ -1059,8 +1058,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 
   d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
   if( options::fmfFunWellDefined() || options::fmfFunWellDefinedRelevant() ){
-    d_fmfRecFunctionsAbs = new(true) TypeNodeMap(d_userContext);
-    d_fmfRecFunctionsConcrete = new(true) NodeListMap(d_userContext);
+    d_fmfRecFunctionsDefined = new(true) NodeList(d_userContext);
   }
   d_modelCommands = new(true) smt::CommandList(d_userContext);
 }
@@ -1206,13 +1204,10 @@ SmtEngine::~SmtEngine() throw() {
 
     d_definedFunctions->deleteSelf();
 
-    if( d_fmfRecFunctionsAbs != NULL ){
-      d_fmfRecFunctionsAbs->deleteSelf();
+    if( d_fmfRecFunctionsDefined != NULL ){
+      d_fmfRecFunctionsDefined->deleteSelf();
     }
-    if( d_fmfRecFunctionsConcrete != NULL ){
-      d_fmfRecFunctionsConcrete->deleteSelf();
-    }
-
+    
     delete d_theoryEngine;
     d_theoryEngine = NULL;
     delete d_propEngine;
@@ -3998,27 +3993,28 @@ void SmtEnginePrivate::processAssertions() {
     if( options::fmfFunWellDefined() ){
       quantifiers::FunDefFmf fdf;
       //must carry over current definitions (for incremental)
-      for( SmtEngine::TypeNodeMap::const_iterator fit = d_smt.d_fmfRecFunctionsAbs->begin(); fit != d_smt.d_fmfRecFunctionsAbs->end(); ++fit ){
-        Node f = (*fit).first;
-        TypeNode ft = (*fit).second;
+      for( context::CDList<Node>::const_iterator fit = d_smt.d_fmfRecFunctionsDefined->begin(); 
+           fit != d_smt.d_fmfRecFunctionsDefined->end(); ++fit ) {
+        Node f = (*fit);
+        Assert( d_smt.d_fmfRecFunctionsAbs.find( f )!=d_smt.d_fmfRecFunctionsAbs.end() );
+        TypeNode ft = d_smt.d_fmfRecFunctionsAbs[f];
         fdf.d_sorts[f] = ft;
-        SmtEngine::NodeListMap::const_iterator fcit = d_smt.d_fmfRecFunctionsConcrete->find( f );
-        Assert( fcit!=d_smt.d_fmfRecFunctionsConcrete->end() );
-        SmtEngine::NodeList* cl = (*fcit).second;
-        for( SmtEngine::NodeList::const_iterator cit = cl->begin(); cit != cl->end(); ++cit ){
-          fdf.d_input_arg_inj[f].push_back( *cit );
+        std::map< Node, std::vector< Node > >::iterator fcit = d_smt.d_fmfRecFunctionsConcrete.find( f );
+        Assert( fcit!=d_smt.d_fmfRecFunctionsConcrete.end() );
+        for( unsigned j=0; j<fcit->second.size(); j++ ){
+          fdf.d_input_arg_inj[f].push_back( fcit->second[j] );
         }
       }
       fdf.simplify( d_assertions.ref() );
       //must store new definitions (for incremental)
       for( unsigned i=0; i<fdf.d_funcs.size(); i++ ){
         Node f = fdf.d_funcs[i];
-        d_smt.d_fmfRecFunctionsAbs->insert( f, fdf.d_sorts[f] );
-        SmtEngine::NodeList* cl = new(true) SmtEngine::NodeList( d_smt.d_userContext );
+        d_smt.d_fmfRecFunctionsAbs[f] = fdf.d_sorts[f];
+        d_smt.d_fmfRecFunctionsConcrete[f].clear();
         for( unsigned j=0; j<fdf.d_input_arg_inj[f].size(); j++ ){
-          cl->push_back( fdf.d_input_arg_inj[f][j] );
+          d_smt.d_fmfRecFunctionsConcrete[f].push_back( fdf.d_input_arg_inj[f][j] );
         }
-        d_smt.d_fmfRecFunctionsConcrete->insert( f, cl );
+        d_smt.d_fmfRecFunctionsDefined->push_back( f );
       }
     }
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-quant-preprocess" << endl;

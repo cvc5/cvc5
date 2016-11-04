@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief dynamic quantifiers splitting
+ ** \brief anti-skolemization
  **/
 
 #include "cvc4_private.h"
@@ -71,6 +71,7 @@ public:
   class CDSkQuantCache {
   public:
     CDSkQuantCache( context::Context* c ) : d_valid( c, false ){}
+    ~CDSkQuantCache();
     std::map< Node, CDSkQuantCache* > d_data;
     context::CDO< bool > d_valid;
     bool add( context::Context* c, std::vector< Node >& quants, unsigned index = 0 );

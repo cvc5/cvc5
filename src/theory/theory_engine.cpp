@@ -739,7 +739,7 @@ void TheoryEngine::propagate(Theory::Effort effort) {
 
 Node TheoryEngine::getNextDecisionRequest() {
   // Definition of the statement that is to be run by every theory
-  unsigned min_priority;
+  unsigned min_priority = 0;
   Node dec;
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
