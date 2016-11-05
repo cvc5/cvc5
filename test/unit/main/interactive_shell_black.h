@@ -47,8 +47,12 @@ private:
   void countCommands(InteractiveShell& shell, 
                      int minCommands, 
                      int maxCommands) {
+    Command* cmd;
     int n = 0;
-    while( n <= maxCommands && shell.readCommand() != NULL ) { ++n; }
+    while( n <= maxCommands && (cmd = shell.readCommand()) != NULL ) {
+      ++n;
+      delete cmd;
+    }
     TS_ASSERT( n <= maxCommands );
     TS_ASSERT( n >= minCommands );
   }
