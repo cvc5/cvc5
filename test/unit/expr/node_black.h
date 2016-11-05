@@ -56,6 +56,7 @@ public:
   }
 
   void tearDown() {
+    delete d_realType;
     delete d_booleanType;
     delete d_scope;
     delete d_nodeManager;
