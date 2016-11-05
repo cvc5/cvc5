@@ -100,6 +100,7 @@ public:
     TS_ASSERT(collection->empty());
     std::string expected[4] = {"a", "b", "c", "c"};
     TS_ASSERT_EQUALS(d_events, mkMultiset(expected, 4));
+    TS_ASSERT_THROWS_NOTHING( delete collection );
   }
 
   void testRegisterMiddleTearDown() {
