@@ -150,13 +150,6 @@ static const unsigned MAX_CHILDREN =
 namespace expr {
 
 // Comparison predicate
-struct NodeValueEq {
-  inline bool operator()(const NodeValue* nv1, const NodeValue* nv2) const {
-    return ::CVC4::kind::metakind::NodeValueCompare::compare<false>(nv1, nv2);
-  }
-};
-
-// Comparison predicate
 struct NodeValuePoolEq {
   inline bool operator()(const NodeValue* nv1, const NodeValue* nv2) const {
     return ::CVC4::kind::metakind::NodeValueCompare::compare<true>(nv1, nv2);
@@ -345,7 +338,7 @@ ${metakind_operatorKinds}
 
 }/* CVC4::kind namespace */
 
-#line 349 "${template}"
+#line 341 "${template}"
 
 namespace theory {
 
