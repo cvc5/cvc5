@@ -22,14 +22,11 @@
 
 #include <limits.h>
 
-#include "memory.h"
-
 #include "context/context.h"
 #include "context/cdvector.h"
 
 using namespace std;
 using namespace CVC4::context;
-using namespace CVC4::test;
 
 struct DtorSensitiveObject {
   bool& d_dtorCalled;
