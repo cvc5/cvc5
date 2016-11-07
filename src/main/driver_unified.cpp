@@ -26,6 +26,7 @@
 #include "cvc4autoconfig.h"
 
 #include "base/configuration.h"
+#include "base/cvc4_unique_ptr.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/expr_manager.h"
@@ -241,7 +242,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 # endif
 
-  Parser* replayParser = NULL;
+  UniquePtr<Parser> replayParser;
   if( opts.getReplayInputFilename() != "" ) {
     std::string replayFilename = opts.getReplayInputFilename();
     ParserBuilder replayParserBuilder(exprMgr, replayFilename, opts);
@@ -252,8 +253,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       }
       replayParserBuilder.withStreamInput(cin);
     }
-    replayParser = replayParserBuilder.build();
-    pExecutor->setReplayStream(new Parser::ExprStream(replayParser));
+    replayParser.reset(replayParserBuilder.build());
+    pExecutor->setReplayStream(new Parser::ExprStream(replayParser.get()));
   }
 
   int returnValue = 0;
@@ -297,7 +298,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                   << (Configuration::isAssertionBuild() ? "on" : "off")
                   << endl;
       }
-      if(replayParser != NULL) {
+      if(replayParser) {
         // have the replay parser use the declarations input interactively
         replayParser->useDeclarationsFrom(shell.getParser());
       }
@@ -347,10 +348,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
       vector< vector<Command*> > allCommands;
       allCommands.push_back(vector<Command*>());
-      Parser *parser = parserBuilder.build();
-      if(replayParser != NULL) {
+      UniquePtr<Parser> parser(parserBuilder.build());
+      if(replayParser) {
         // have the replay parser use the file's declarations
-        replayParser->useDeclarationsFrom(parser);
+        replayParser->useDeclarationsFrom(parser.get());
       }
       int needReset = 0;
       // true if one of the commands was interrupted
@@ -484,8 +485,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         }
         delete cmd;
       }
-      // Remove the parser
-      delete parser;
     } else {
       if(!opts.wasSetByUserIncrementalSolving()) {
         cmd = new SetOptionCommand("incremental", SExpr(false));
@@ -504,10 +503,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 #endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
       }
 
-      Parser *parser = parserBuilder.build();
-      if(replayParser != NULL) {
+      UniquePtr<Parser> parser(parserBuilder.build());
+      if(replayParser) {
         // have the replay parser use the file's declarations
-        replayParser->useDeclarationsFrom(parser);
+        replayParser->useDeclarationsFrom(parser.get());
       }
       bool interrupted = false;
       while(status || opts.getContinuedExecution()) {
@@ -536,8 +535,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         }
         delete cmd;
       }
-      // Remove the parser
-      delete parser;
     }
 
     Result result;
