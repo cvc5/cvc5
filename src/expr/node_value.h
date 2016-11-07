@@ -372,6 +372,18 @@ struct NodeValueIDHashFunction {
   }
 };/* struct NodeValueIDHashFunction */
 
+
+/**
+ * An equality predicate that is applicable between pointers to fully
+ * constructed NodeValues.
+ */
+struct NodeValueIDEquality {
+  inline bool operator()(const NodeValue* a, const NodeValue* b) const {
+    return a->getId() == b->getId();
+  }
+};
+
+
 inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
 
 }/* CVC4::expr namespace */

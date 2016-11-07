@@ -96,7 +96,7 @@ class NodeManager {
                               expr::NodeValuePoolEq> NodeValuePool;
   typedef __gnu_cxx::hash_set<expr::NodeValue*,
                               expr::NodeValueIDHashFunction,
-                              expr::NodeValueEq> ZombieSet;
+                              expr::NodeValueIDEquality> ZombieSet;
 
   static CVC4_THREADLOCAL(NodeManager*) s_current;
 
@@ -268,7 +268,7 @@ class NodeManager {
       Debug("gc") << (d_inReclaimZombies ? " [CURRENTLY-RECLAIMING]" : "")
                   << std::endl;
     }
-    d_zombies.insert(nv);// FIXME multithreading
+    d_zombies.insert(nv);  // FIXME multithreading
 
     if(safeToReclaimZombies()) {
       if(d_zombies.size() > 5000) {
