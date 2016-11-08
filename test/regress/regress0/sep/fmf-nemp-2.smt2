@@ -5,6 +5,6 @@
 (declare-fun u1 () U)
 (declare-fun u2 () U)
 (assert (not (= u1 u2)))
-(assert (forall ((x U)) (=> (not (= x (as sep.nil U))) (sep (not (emp u1)) (pto x 0)))))
+(assert (forall ((x U)) (=> (not (= x (as sep.nil U))) (sep (not (emp u1 0)) (pto x 0)))))
 ; satisfiable with heap of size 2, model of U of size 3
 (check-sat)

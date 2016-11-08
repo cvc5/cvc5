@@ -43,7 +43,10 @@ public:
 
   static inline void init() {}
   static inline void shutdown() {}
-
+private:
+  static Node preSkolemEmp( Node n, bool pol, std::map< bool, std::map< Node, Node > >& visited );
+public:
+  static Node preprocess( Node n );
 };/* class TheorySepRewriter */
 
 }/* CVC4::theory::sep namespace */

@@ -5,7 +5,7 @@
 
 (declare-const u Int)
 
-(assert (emp 0))
+(assert (emp 0 0))
 
 (assert 
 (forall ((y Int)) 

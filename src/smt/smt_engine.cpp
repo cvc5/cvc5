@@ -102,6 +102,7 @@
 #include "util/hash.h"
 #include "util/proof.h"
 #include "util/resource_manager.h"
+#include "options/sep_options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -3962,6 +3963,17 @@ void SmtEnginePrivate::processAssertions() {
     bvToBool();
     dumpAssertions("post-bv-to-bool", d_assertions);
     Trace("smt") << "POST bvToBool" << endl;
+  }
+  if(options::sepPreSkolemEmp()) {
+    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+      Node prev = d_assertions[i];
+      Node next = sep::TheorySepRewriter::preprocess( prev );
+      if( next!=prev ){
+        d_assertions.replace( i, Rewriter::rewrite( next ) );
+        Trace("sep-preprocess") << "*** Preprocess sep " << prev << endl;
+        Trace("sep-preprocess") << "   ...got " << d_assertions[i] << endl;
+      }
+    }
   }
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
