@@ -324,7 +324,8 @@ void ExtTheory::collectVars( Node n, std::vector< Node >& vars, std::map< Node, 
   if( !n.isConst() ){
     if( visited.find( n )==visited.end() ){
       visited[n] = true;
-      //treat terms not belonging to this theory as leaf
+      //treat terms not belonging to this theory as leaf  
+      //  AJR TODO : should include terms not belonging to this theory (commented below)
       if( n.getNumChildren()>0 ){//&& Theory::theoryOf(n)==d_parent->getId() ){
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
           collectVars( n[i], vars, visited );
@@ -349,6 +350,7 @@ void ExtTheory::getSubstitutedTerms( int effort, std::vector< Node >& terms, std
       //do substitution, rewrite
       Node n = terms[i];
       std::map< Node, ExtfInfo >::iterator iti = d_extf_info.find( n );
+      Trace("extt-debug") << "Check extf : " << n << std::endl;
       Assert( iti!=d_extf_info.end() );
       for( unsigned i=0; i<iti->second.d_vars.size(); i++ ){
         if( std::find( vars.begin(), vars.end(), iti->second.d_vars[i] )==vars.end() ){
@@ -544,6 +546,8 @@ void ExtTheory::registerTermRec( Node n, std::map< Node, bool >& visited ) {
 
 //mark reduced
 void ExtTheory::markReduced( Node n, bool contextDepend ) {
+  registerTerm( n );
+  Assert( d_ext_func_terms.find( n )!=d_ext_func_terms.end() );
   d_ext_func_terms[n] = false;
   if( !contextDepend ){
     d_ci_inactive.insert( n );
@@ -563,14 +567,19 @@ void ExtTheory::markReduced( Node n, bool contextDepend ) {
 
 //mark congruent
 void ExtTheory::markCongruent( Node a, Node b ) {
+  Trace("extt-debug") << "Mark congruent : " << a << " " << b << std::endl;
+  registerTerm( a );
+  registerTerm( b );
   NodeBoolMap::const_iterator it = d_ext_func_terms.find( b );
   if( it!=d_ext_func_terms.end() ){
-    if( d_ext_func_terms.find( a )==d_ext_func_terms.end() ){
-      d_ext_func_terms[a] = (*it).second;
-    }else{
+    if( d_ext_func_terms.find( a )!=d_ext_func_terms.end() ){
       d_ext_func_terms[a] = d_ext_func_terms[a] && (*it).second;
+    }else{
+      Assert( false );
     }
     d_ext_func_terms[b] = false;
+  }else{
+    Assert( false );
   }
 }
 

@@ -1133,7 +1133,7 @@ void TheoryStrings::checkInit() {
                   }
                   //infer the equality
                   sendInference( exp, n.eqNode( nc ), "I_Norm" );
-                }else{
+                }else if( d_extt->hasFunctionKind( n.getKind() ) ){
                   //mark as congruent : only process if neither has been reduced
                   d_extt->markCongruent( nc, n );
                 }

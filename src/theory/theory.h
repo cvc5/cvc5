@@ -1027,6 +1027,7 @@ public:
   virtual ~ExtTheory(){}
   //add extf kind
   void addFunctionKind( Kind k ) { d_extf_kind[k] = true; }
+  bool hasFunctionKind( Kind k ) { return d_extf_kind.find( k )!=d_extf_kind.end(); }
   //register term
   //  adds n to d_ext_func_terms if addFunctionKind( n.getKind() ) was called
   void registerTerm( Node n );
