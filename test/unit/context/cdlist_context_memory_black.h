@@ -16,19 +16,18 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include <vector>
 #include <iostream>
+#include <vector>
 
 #include <limits.h>
 
 #include "memory.h"
 
-#include "context/context.h"
 #include "context/cdchunk_list.h"
+#include "context/context.h"
 
 using namespace std;
 using namespace CVC4::context;
-using namespace CVC4::test;
 
 struct DtorSensitiveObject {
   bool& d_dtorCalled;
@@ -37,19 +36,13 @@ struct DtorSensitiveObject {
 };
 
 class CDListContextMemoryBlack : public CxxTest::TestSuite {
-private:
-
+ private:
   Context* d_context;
 
-public:
+ public:
+  void setUp() { d_context = new Context(); }
 
-  void setUp() {
-    d_context = new Context();
-  }
-
-  void tearDown() {
-    delete d_context;
-  }
+  void tearDown() { delete d_context; }
 
   // test at different sizes.  this triggers grow() behavior differently.
   // grow() was completely broken in revision 256
@@ -66,34 +59,32 @@ public:
   }
 
   void listTest(int N, bool callDestructor) {
-    CDChunkList<int>
-      list(d_context, callDestructor, ContextMemoryAllocator<int>(d_context->getCMM()));
+    CDChunkList<int> list(d_context, callDestructor,
+                          ContextMemoryAllocator<int>(d_context->getCMM()));
 
     TS_ASSERT(list.empty());
-    for(int i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i) {
       TS_ASSERT_EQUALS(list.size(), unsigned(i));
       list.push_back(i);
       TS_ASSERT(!list.empty());
       TS_ASSERT_EQUALS(list.back(), i);
       int i2 = 0;
-      for(CDChunkList<int>::const_iterator j = list.begin();
-          j != list.end();
-          ++j) {
+      for (CDChunkList<int>::const_iterator j = list.begin(); j != list.end();
+           ++j) {
         TS_ASSERT_EQUALS(*j, i2++);
       }
     }
     TS_ASSERT_EQUALS(list.size(), unsigned(N));
 
-    for(int i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i) {
       TS_ASSERT_EQUALS(list[i], i);
     }
   }
 
   void testEmptyIterator() {
-    CDChunkList< int>* list =
-      new(d_context->getCMM())
-        CDChunkList< int >(true, d_context, false,
-                                                   ContextMemoryAllocator<int>(d_context->getCMM()));
+    CDChunkList<int>* list = new (d_context->getCMM())
+        CDChunkList<int>(true, d_context, false,
+                         ContextMemoryAllocator<int>(d_context->getCMM()));
     TS_ASSERT_EQUALS(list->begin(), list->end());
   }
 
@@ -104,8 +95,12 @@ public:
     bool shouldAlsoRemainFalse = false;
     bool aThirdFalse = false;
 
-    CDChunkList<DtorSensitiveObject> listT(d_context, true, ContextMemoryAllocator<DtorSensitiveObject>(d_context->getCMM()));
-    CDChunkList<DtorSensitiveObject> listF(d_context, false, ContextMemoryAllocator<DtorSensitiveObject>(d_context->getCMM()));
+    CDChunkList<DtorSensitiveObject> listT(
+        d_context, true,
+        ContextMemoryAllocator<DtorSensitiveObject>(d_context->getCMM()));
+    CDChunkList<DtorSensitiveObject> listF(
+        d_context, false,
+        ContextMemoryAllocator<DtorSensitiveObject>(d_context->getCMM()));
 
     DtorSensitiveObject shouldRemainFalseDSO(shouldRemainFalse);
     DtorSensitiveObject shouldFlipToTrueDSO(shouldFlipToTrue);
@@ -140,25 +135,26 @@ public:
     TS_ASSERT_EQUALS(aThirdFalse, false);
   }
 
-  /* setrlimit() totally broken on Mac OS X */
   void testOutOfMemory() {
-#ifdef __APPLE__
+#ifdef CVC4_MEMORY_LIMITING_DISABLED
 
-    TS_WARN("can't run memory tests on Mac OS X");
+    CVC4::test::WarnWithLimitedMemoryDisabledReason();
 
-#else /* __APPLE__ */
+#else /* CVC4_MEMORY_LIMITING_DISABLED */
 
     CDChunkList<unsigned> list(d_context);
-    WithLimitedMemory wlm(1);
+    CVC4::test::WithLimitedMemory wlm(1);
 
-    TS_ASSERT_THROWS({
-        // We cap it at UINT_MAX, preferring to terminate with a
-        // failure than run indefinitely.
-        for(unsigned i = 0; i < UINT_MAX; ++i) {
-          list.push_back(i);
-        }
-      }, bad_alloc);
+    TS_ASSERT_THROWS(
+        {
+          // We cap it at UINT_MAX, preferring to terminate with a
+          // failure than run indefinitely.
+          for (unsigned i = 0; i < UINT_MAX; ++i) {
+            list.push_back(i);
+          }
+        },
+        bad_alloc);
 
-#endif /* __APPLE__ */
+#endif /* CVC4_MEMORY_LIMITING_DISABLED */
   }
 };

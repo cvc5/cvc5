@@ -16,18 +16,17 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include <iostream>
 #include <limits.h>
+#include <iostream>
 #include <vector>
 
 #include "base/exception.h"
-#include "context/context.h"
 #include "context/cdlist.h"
+#include "context/context.h"
 #include "memory.h"
 
 using namespace std;
 using namespace CVC4::context;
-using namespace CVC4::test;
 using namespace CVC4;
 
 struct DtorSensitiveObject {
@@ -37,19 +36,13 @@ struct DtorSensitiveObject {
 };
 
 class CDListBlack : public CxxTest::TestSuite {
-private:
-
+ private:
   Context* d_context;
 
-public:
+ public:
+  void setUp() { d_context = new Context(); }
 
-  void setUp() {
-    d_context = new Context();
-  }
-
-  void tearDown() {
-    delete d_context;
-  }
+  void tearDown() { delete d_context; }
 
   // test at different sizes.  this triggers grow() behavior differently.
   // grow() was completely broken in revision 256
@@ -69,21 +62,19 @@ public:
     CDList<int> list(d_context, callDestructor);
 
     TS_ASSERT(list.empty());
-    for(int i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i) {
       TS_ASSERT_EQUALS(list.size(), unsigned(i));
       list.push_back(i);
       TS_ASSERT(!list.empty());
       TS_ASSERT_EQUALS(list.back(), i);
       int i2 = 0;
-      for(CDList<int>::const_iterator j = list.begin();
-          j != list.end();
-          ++j) {
+      for (CDList<int>::const_iterator j = list.begin(); j != list.end(); ++j) {
         TS_ASSERT_EQUALS(*j, i2++);
       }
     }
     TS_ASSERT_EQUALS(list.size(), unsigned(N));
 
-    for(int i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i) {
       TS_ASSERT_EQUALS(list[i], i);
     }
   }
@@ -132,30 +123,31 @@ public:
   }
 
   void testEmptyIterator() {
-    CDList<int>* list = new(true) CDList<int>(d_context);
+    CDList<int>* list = new (true) CDList<int>(d_context);
     TS_ASSERT_EQUALS(list->begin(), list->end());
     list->deleteSelf();
   }
 
-  /* setrlimit() totally broken on Mac OS X */
   void testOutOfMemory() {
-#ifdef __APPLE__
+#ifdef CVC4_MEMORY_LIMITING_DISABLED
 
-    TS_WARN("can't run memory tests on Mac OS X");
+    test::WarnWithLimitedMemoryDisabledReason();
 
-#else /* __APPLE__ */
+#else /* CVC4_MEMORY_LIMITING_DISABLED */
 
     CDList<unsigned> list(d_context);
-    WithLimitedMemory wlm(1);
+    test::WithLimitedMemory wlm(1);
 
-    TS_ASSERT_THROWS({
-        // We cap it at UINT_MAX, preferring to terminate with a
-        // failure than run indefinitely.
-        for(unsigned i = 0; i < UINT_MAX; ++i) {
-          list.push_back(i);
-        }
-      }, bad_alloc);
+    TS_ASSERT_THROWS(
+        {
+          // We cap it at UINT_MAX, preferring to terminate with a
+          // failure than run indefinitely.
+          for (unsigned i = 0; i < UINT_MAX; ++i) {
+            list.push_back(i);
+          }
+        },
+        bad_alloc);
 
-#endif /* __APPLE__ */
+#endif /* CVC4_MEMORY_LIMITING_DISABLED */
   }
 };
