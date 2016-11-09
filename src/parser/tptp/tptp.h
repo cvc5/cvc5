@@ -47,6 +47,8 @@ class Tptp : public Parser {
   // The set of expression that already have a bridge
   std::hash_set<Expr, ExprHashFunction> d_r_converted;
   std::hash_map<std::string, Expr, StringHashFunction> d_distinct_objects;
+  
+  std::vector< pANTLR3_INPUT_STREAM > d_in_created;
 
   // TPTP directory where to find includes;
   // empty if none could be determined
@@ -143,6 +145,7 @@ protected:
   Tptp(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
 
 public:
+  ~Tptp();
   /**
    * Add theory symbols to the parser state.
    *

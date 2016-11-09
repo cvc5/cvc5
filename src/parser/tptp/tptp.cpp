@@ -56,6 +56,12 @@ Tptp::Tptp(ExprManager* exprManager, Input* input, bool strictMode, bool parseOn
   d_hasConjecture = false;
 }
 
+Tptp::~Tptp() {
+  for( unsigned i=0; i<d_in_created.size(); i++ ){
+    d_in_created[i]->free(d_in_created[i]);
+  }
+}
+
 void Tptp::addTheory(Theory theory) {
   ExprManager * em = getExprManager();
   switch(theory) {
@@ -93,7 +99,7 @@ void Tptp::addTheory(Theory theory) {
 /* The include are managed in the lexer but called in the parser */
 // Inspired by http://www.antlr3.org/api/C/interop.html
 
-bool newInputStream(std::string fileName, pANTLR3_LEXER lexer) {
+bool newInputStream(std::string fileName, pANTLR3_LEXER lexer, std::vector< pANTLR3_INPUT_STREAM >& inc ) {
   Debug("parser") << "Including " << fileName << std::endl;
   // Create a new input stream and take advantage of built in stream stacking
   // in C target runtime.
@@ -122,6 +128,7 @@ bool newInputStream(std::string fileName, pANTLR3_LEXER lexer) {
   // back to the input stream and trying to get the text for it will abort if you
   // close the input stream too early.
   //
+  inc.push_back( in );
 
   //TODO what said before
   return true;
@@ -170,7 +177,7 @@ void Tptp::includeFile(std::string fileName) {
       currentDirFileName = std::string(inputName, 0, pos + 1);
     }
     currentDirFileName.append(fileName);
-    if(newInputStream(currentDirFileName,lexer)) {
+    if(newInputStream(currentDirFileName,lexer, d_in_created)) {
       return;
     }
   } else {
@@ -183,7 +190,7 @@ void Tptp::includeFile(std::string fileName) {
   };
 
   std::string tptpDirFileName = d_tptpDir + fileName;
-  if(! newInputStream(tptpDirFileName,lexer)) {
+  if(! newInputStream(tptpDirFileName,lexer, d_in_created)) {
     parseError("Couldn't open included file: " + fileName
                + " at " + currentDirFileName + " or " + tptpDirFileName);
   }
