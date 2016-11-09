@@ -20,14 +20,14 @@ libbase_la_SOURCES = \
 	configuration_private.h \
 	cvc4_assert.cpp \
 	cvc4_assert.h \
-	cvc4_unique_ptr.h \
 	exception.cpp \
 	exception.h \
 	listener.cpp \
 	listener.h \
 	modal_exception.h \
 	output.cpp \
-	output.h
+	output.h \
+	ptr_closer.h
 
 
 

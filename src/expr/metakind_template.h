@@ -338,7 +338,7 @@ ${metakind_operatorKinds}
 
 }/* CVC4::kind namespace */
 
-#line 341 "${template}"
+#line 342 "${template}"
 
 namespace theory {
 
