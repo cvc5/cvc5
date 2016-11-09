@@ -231,7 +231,7 @@ int ModelEngine::checkModel(){
 }
 
 bool ModelEngine::considerQuantifiedFormula( Node q ) {
-  if( !d_quantEngine->getModelBuilder()->isQuantifierActive( q ) ){ //!d_quantEngine->getModel()->isQuantifierActive( q );
+  if( !d_quantEngine->getModelBuilder()->isQuantifierActive( q ) || !d_quantEngine->getModel()->isQuantifierActive( q ) ){
     return false;
   }else{
     if( options::fmfEmptySorts() ){
@@ -328,7 +328,7 @@ void ModelEngine::debugPrint( const char* c ){
   for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     Trace( c ) << "   ";
-    if( !d_quantEngine->getModelBuilder()->isQuantifierActive( q ) ){
+    if( !considerQuantifiedFormula( q ) ){
       Trace( c ) << "*Inactive* ";
     }else{
       Trace( c ) << "           ";

@@ -46,19 +46,18 @@ class PropEngine;
  * @author Tim King <taking@cs.nyu.edu>
  */
 class CnfStream {
-
-public:
-
+ public:
   /** Cache of what nodes have been registered to a literal. */
-  typedef context::CDInsertHashMap<SatLiteral, TNode, SatLiteralHashFunction> LiteralToNodeMap;
+  typedef context::CDInsertHashMap<SatLiteral, TNode, SatLiteralHashFunction>
+      LiteralToNodeMap;
 
   /** Cache of what literals have been registered to a node. */
-  typedef context::CDInsertHashMap<Node, SatLiteral, NodeHashFunction> NodeToLiteralMap;
+  typedef context::CDInsertHashMap<Node, SatLiteral, NodeHashFunction>
+      NodeToLiteralMap;
 
-protected:
-
+ protected:
   /** The SAT solver we will be using */
-  SatSolver *d_satSolver;
+  SatSolver* d_satSolver;
 
   /** Boolean variables that we translated */
   context::CDList<TNode> d_booleanVariables;
@@ -107,7 +106,8 @@ protected:
    * detection," when BIG FORMULA is later asserted, it is clausified
    * separately, and "lit" is never asserted as a unit clause.
    */
-  //KEEP_STATISTIC(IntStat, d_fortunateLiterals, "prop::CnfStream::fortunateLiterals", 0);
+  // KEEP_STATISTIC(IntStat, d_fortunateLiterals,
+  //               "prop::CnfStream::fortunateLiterals", 0);
 
   /** Remove nots from the node */
   TNode stripNot(TNode node) {
@@ -160,12 +160,15 @@ protected:
    * Acquires a new variable from the SAT solver to represent the node
    * and inserts the necessary data it into the mapping tables.
    * @param node a formula
-   * @param isTheoryAtom is this a theory atom that needs to be asserted to theory
+   * @param isTheoryAtom is this a theory atom that needs to be asserted to
+   * theory.
    * @param preRegister whether to preregister the atom with the theory
-   * @param canEliminate whether the sat solver can safely eliminate this variable
+   * @param canEliminate whether the sat solver can safely eliminate this
+   * variable.
    * @return the literal corresponding to the formula
    */
-  SatLiteral newLiteral(TNode node, bool isTheoryAtom = false, bool preRegister = false, bool canEliminate = true);
+  SatLiteral newLiteral(TNode node, bool isTheoryAtom = false,
+                        bool preRegister = false, bool canEliminate = true);
 
   /**
    * Constructs a new literal for an atom and returns it.  Calls
@@ -177,31 +180,28 @@ protected:
    */
   SatLiteral convertAtom(TNode node, bool noPreprocessing = false);
 
-public:
-
+ public:
   /**
    * Constructs a CnfStream that sends constructs an equi-satisfiable
-   * set of clauses and sends them to the given sat solver.
-   * @param satSolver the sat solver to use
-   * @param registrar the entity that takes care of preregistration of Nodes
-   * @param context the context that the CNF should respect
-   * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
+   * set of clauses and sends them to the given sat solver. This does not take
+   * ownership of satSolver, registrar, or context.
+   * @param satSolver the sat solver to use.
+   * @param registrar the entity that takes care of preregistration of Nodes.
+   * @param context the context that the CNF should respect.
+   * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping.
    * @param name string identifier to distinguish between different instances
-   * even for non-theory literals
+   * even for non-theory literals.
    */
-  CnfStream(SatSolver* satSolver,
-            Registrar* registrar,
-            context::Context* context,
-            bool fullLitToNodeMap = false,
-            std::string name="");
+  CnfStream(SatSolver* satSolver, Registrar* registrar,
+            context::Context* context, bool fullLitToNodeMap = false,
+            std::string name = "");
 
   /**
    * Destructs a CnfStream.  This implementation does nothing, but we
    * need a virtual destructor for safety in case subclasses have a
    * destructor.
    */
-  virtual ~CnfStream() {
-  }
+  virtual ~CnfStream() {}
 
   /**
    * Converts and asserts a formula.
@@ -209,7 +209,9 @@ public:
    * @param removable whether the sat solver can choose to remove the clauses
    * @param negated whether we are asserting the node negated
    */
-  virtual void convertAndAssert(TNode node, bool removable, bool negated, ProofRule proof_id, TNode from = TNode::null()) = 0;
+  virtual void convertAndAssert(TNode node, bool removable, bool negated,
+                                ProofRule proof_id,
+                                TNode from = TNode::null()) = 0;
 
   /**
    * Get the node that is represented by the given SatLiteral.
@@ -219,17 +221,17 @@ public:
   TNode getNode(const SatLiteral& literal);
 
   /**
-   * Returns true iff the node has an assigned literal (it might not be translated).
+   * Returns true iff the node has an assigned literal (it might not be
+   * translated).
    * @param node the node
    */
   bool hasLiteral(TNode node) const;
 
   /**
-   * Ensure that the given node will have a designated SAT literal
-   * that is definitionally equal to it.  The result of this function
-   * is that the Node can be queried via getSatValue().  Essentially,
-   * this is like a "convert-but-don't-assert" version of
-   * convertAndAssert().
+   * Ensure that the given node will have a designated SAT literal that is
+   * definitionally equal to it.  The result of this function is that the Node
+   * can be queried via getSatValue(). Essentially, this is like a "convert-but-
+   * don't-assert" version of convertAndAssert().
    */
   virtual void ensureLiteral(TNode n, bool noPreregistration = false) = 0;
 
@@ -250,13 +252,10 @@ public:
     return d_nodeToLiteralMap;
   }
 
-  const LiteralToNodeMap& getNodeCache() const {
-    return d_literalToNodeMap;
-  }
+  const LiteralToNodeMap& getNodeCache() const { return d_literalToNodeMap; }
 
   void setProof(CnfProof* proof);
-};/* class CnfStream */
-
+}; /* class CnfStream */
 
 /**
  * TseitinCnfStream is based on the following recursive algorithm
@@ -269,22 +268,13 @@ public:
  * This implementation does this in a single recursive pass. [??? -Chris]
  */
 class TseitinCnfStream : public CnfStream {
-
-public:
-
+ public:
   /**
-   * Convert a given formula to CNF and assert it to the SAT solver.
-   * @param node the formula to assert
-   * @param removable is this something that can be erased
-   * @param negated true if negated
-   */
-  void convertAndAssert(TNode node, bool removable,
-                        bool negated, ProofRule rule, TNode from = TNode::null());
-
-  /**
-   * Constructs the stream to use the given sat solver.
+   * Constructs the stream to use the given sat solver.  This does not take
+   * ownership of satSolver, registrar, or context.
    * @param satSolver the sat solver to use
    * @param registrar the entity that takes care of pre-registration of Nodes
+   * @param context the context that the CNF should respect.
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
    * even for non-theory literals
    */
@@ -292,8 +282,16 @@ public:
                    context::Context* context, bool fullLitToNodeMap = false,
                    std::string name = "");
 
-private:
+  /**
+   * Convert a given formula to CNF and assert it to the SAT solver.
+   * @param node the formula to assert
+   * @param removable is this something that can be erased
+   * @param negated true if negated
+   */
+  void convertAndAssert(TNode node, bool removable, bool negated,
+                        ProofRule rule, TNode from = TNode::null());
 
+ private:
   /**
    * Same as above, except that removable is remembered.
    */
@@ -334,10 +332,9 @@ private:
 
   void ensureLiteral(TNode n, bool noPreregistration = false);
 
-};/* class TseitinCnfStream */
+}; /* class TseitinCnfStream */
 
-
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+} /* CVC4::prop namespace */
+} /* CVC4 namespace */
 
 #endif /* __CVC4__PROP__CNF_STREAM_H */

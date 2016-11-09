@@ -262,11 +262,11 @@ bool TheorySetsPrivate::isEntailed( Node n, bool polarity ) {
     bool conj = (n.getKind()==kind::AND)==polarity;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       bool isEnt = isEntailed( n[i], polarity );
-      if( isEnt==conj ){
-        return conj;
+      if( isEnt!=conj ){
+        return !conj;
       }
     }
-    return !conj;
+    return conj;
   }else if( n.isConst() ){
     return ( polarity && n==d_true ) || ( !polarity && n==d_false );
   }
@@ -609,36 +609,30 @@ void TheorySetsPrivate::checkDownwardsClosure( std::vector< Node >& lemmas ) {
             Assert( d_equalityEngine.areEqual( mem[1], eq_set ) );
             if( mem[1]!=eq_set ){
               Trace("sets-debug") << "Downwards closure based on " << mem << ", eq_set = " << eq_set << std::endl;
-  #if 1
-              Node nmem = NodeManager::currentNM()->mkNode( kind::MEMBER, mem[0], eq_set );
-              nmem = Rewriter::rewrite( nmem );
-              std::vector< Node > exp;
-              exp.push_back( mem );
-              exp.push_back( mem[1].eqNode( eq_set ) );
-              assertInference( nmem, exp, lemmas, "downc" );
-              if( d_conflict ){
-                return;
-              }
-  #else
-              Node k = getProxy( eq_set );
-              Node pmem = NodeManager::currentNM()->mkNode( kind::MEMBER, mem[0], k );
-              if( ee_areEqual( mem, pmem ) ){
+              if( !options::setsProxyLemmas() ){
                 Node nmem = NodeManager::currentNM()->mkNode( kind::MEMBER, mem[0], eq_set );
                 nmem = Rewriter::rewrite( nmem );
-                d_keep.insert( nmem );
-                d_keep.insert( pmem );
-                assertFactRec( nmem, pmem, lemmas );
+                std::vector< Node > exp;
+                exp.push_back( mem );
+                exp.push_back( mem[1].eqNode( eq_set ) );
+                assertInference( nmem, exp, lemmas, "downc" );
+                if( d_conflict ){
+                  return;
+                }
               }else{
-                Trace("sets-debug") << "...infer proxy membership" << std::endl;
-                Node exp = NodeManager::currentNM()->mkNode( kind::AND, mem, mem[1].eqNode( eq_set ) );
-                d_keep.insert( pmem );
-                d_keep.insert( exp );
-                assertFactRec( pmem, exp, lemmas );
+                //use proxy set
+                Node k = getProxy( eq_set );
+                Node pmem = NodeManager::currentNM()->mkNode( kind::MEMBER, mem[0], k );
+                Node nmem = NodeManager::currentNM()->mkNode( kind::MEMBER, mem[0], eq_set );
+                nmem = Rewriter::rewrite( nmem );
+                std::vector< Node > exp;
+                if( ee_areEqual( mem, pmem ) ){
+                  exp.push_back( pmem );
+                }else{
+                  nmem = NodeManager::currentNM()->mkNode( kind::OR, pmem.negate(), nmem );
+                }
+                assertInference( nmem, exp, lemmas, "downc" );
               }
-              if( d_conflict ){
-                return;
-              }
-  #endif
             }
           }
         }

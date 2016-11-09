@@ -265,7 +265,8 @@ void TheorySep::postProcessModel( TheoryModel* m ){
     Trace("sep-model") << std::endl;
     if( sep_children.empty() ){
       TypeEnumerator te_domain( it->first );
-      m_heap = NodeManager::currentNM()->mkNode( kind::SEP_EMP, *te_domain );
+      TypeEnumerator te_range( d_loc_to_data_type[it->first] );
+      m_heap = NodeManager::currentNM()->mkNode( kind::SEP_EMP, *te_domain, *te_range );
     }else if( sep_children.size()==1 ){
       m_heap = sep_children[0];
     }else{
@@ -311,6 +312,7 @@ void TheorySep::check(Effort e) {
 
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
+    /*
     if( atom.getKind()==kind::SEP_EMP ){
       TypeNode tn = atom[0].getType();
       if( d_emp_arg.find( tn )==d_emp_arg.end() ){
@@ -319,6 +321,7 @@ void TheorySep::check(Effort e) {
         //normalize argument TODO
       }
     }
+    */
     TNode s_atom = atom.getKind()==kind::SEP_LABEL ? atom[0] : atom;
     TNode s_lbl = atom.getKind()==kind::SEP_LABEL ? atom[1] : TNode::null();
     bool is_spatial = s_atom.getKind()==kind::SEP_STAR || s_atom.getKind()==kind::SEP_WAND || s_atom.getKind()==kind::SEP_PTO || s_atom.getKind()==kind::SEP_EMP;
@@ -410,7 +413,6 @@ void TheorySep::check(Effort e) {
               //Node ssn = NodeManager::currentNM()->mkNode( kind::EQUAL, s_atom[0], getNilRef(s_atom[0].getType()) ).negate();
               //conc = conc.isNull() ? ssn : NodeManager::currentNM()->mkNode( kind::AND, conc, ssn );
               
-              /* TODO?
             }else if( s_atom.getKind()==kind::SEP_EMP ){
               //conc = s_lbl.eqNode( NodeManager::currentNM()->mkConst(EmptySet(s_lbl.getType().toType())) );
               Node lem;
@@ -427,7 +429,7 @@ void TheorySep::check(Effort e) {
               }
               Trace("sep-lemma") << "Sep::Lemma : emp : " << lem << std::endl;
               d_out->lemma( lem );
-              */
+
             }else{
               //labeled emp should be rewritten
               Assert( false );
@@ -546,6 +548,12 @@ void TheorySep::check(Effort e) {
           if( d_pto_model.find( vv )==d_pto_model.end() ){
             Trace("sep-process") << "Pto : " << s_atom[0] << " (" << vv << ") -> " << s_atom[1] << std::endl;
             d_pto_model[vv] = s_atom[1];
+            
+            //replace this on pto-model since this term is more relevant
+            TypeNode vtn = vv.getType();
+            if( std::find( d_type_references_all[vtn].begin(), d_type_references_all[vtn].end(), s_atom[0] )!=d_type_references_all[vtn].end() ){
+              d_tmodel[vv] = s_atom[0];
+            }
           }
         }
       }else{
@@ -991,7 +999,7 @@ TypeNode TheorySep::computeReferenceType2( Node atom, int& card, int index, Node
       return tn1;
     }else if( n.getKind()==kind::SEP_EMP ){
       TypeNode tn = n[0].getType();
-      TypeNode tnd;
+      TypeNode tnd = n[1].getType();
       registerRefDataTypes( tn, tnd, atom );
       card = 1;
       visited[n] = card;
@@ -1110,6 +1118,8 @@ void TheorySep::initializeBounds() {
         //must include at least one constant
         n_emp = 1;
       }
+      Trace("sep-bound") << "Card maximums : " << d_card_max[tn] << " " << d_card_max[TypeNode::null()] << std::endl;
+      Trace("sep-bound") << "Type reference size : " << d_type_references[tn].size() << std::endl;
       Trace("sep-bound") << "Constructing " << n_emp << " cardinality constants." << std::endl;
       for( unsigned r=0; r<n_emp; r++ ){
         Node e = NodeManager::currentNM()->mkSkolem( "e", tn, "cardinality bound element for seplog" );
@@ -1321,6 +1331,7 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
         std::vector< Node > children;
         children.resize( n.getNumChildren() );
         Assert( d_label_map[n].find( lbl )!=d_label_map[n].end() );
+        std::map< int, Node > mvals;
         for( std::map< int, Node >::iterator itl = d_label_map[n][lbl].begin(); itl != d_label_map[n][lbl].end(); ++itl ){
           Node sub_lbl = itl->second;
           int sub_index = itl->first;
@@ -1339,6 +1350,7 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
             lbl_mval = d_label_model[sub_lbl].getValue( rtn );
           }
           Trace("sep-inst-debug") << "Sublabel value is " << lbl_mval  << std::endl;
+          mvals[sub_index] = lbl_mval;
           children[sub_index] = instantiateLabel( n[sub_index], o_lbl, sub_lbl, lbl_mval, visited, pto_model, rtn, active_lbl, ind+1 );
           if( children[sub_index].isNull() ){
             return Node::null();
@@ -1346,14 +1358,18 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
         }
         Node empSet = NodeManager::currentNM()->mkConst(EmptySet(rtn.toType()));
         if( n.getKind()==kind::SEP_STAR ){
+
           //disjoint contraints
+          std::vector< Node > conj;
+          std::vector< Node > bchildren;
+          bchildren.insert( bchildren.end(), children.begin(), children.end() );
           Node vsu;
           std::vector< Node > vs;
           for( std::map< int, Node >::iterator itl = d_label_map[n][lbl].begin(); itl != d_label_map[n][lbl].end(); ++itl ){
             Node sub_lbl = itl->second;
             Node lbl_mval = d_label_model[sub_lbl].getValue( rtn );
             for( unsigned j=0; j<vs.size(); j++ ){
-              children.push_back( NodeManager::currentNM()->mkNode( kind::INTERSECTION, lbl_mval, vs[j] ).eqNode( empSet ) );
+              bchildren.push_back( NodeManager::currentNM()->mkNode( kind::INTERSECTION, lbl_mval, vs[j] ).eqNode( empSet ) );
             }
             vs.push_back( lbl_mval );
             if( vsu.isNull() ){
@@ -1362,11 +1378,32 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
               vsu = NodeManager::currentNM()->mkNode( kind::UNION, vsu, lbl_mval );
             }
           }
-          children.push_back( vsu.eqNode( lbl ) );
+          bchildren.push_back( vsu.eqNode( lbl ) );
           
-          //return the lemma
-          Assert( children.size()>1 );
-          return NodeManager::currentNM()->mkNode( kind::AND, children );      
+          Assert( bchildren.size()>1 );
+          conj.push_back( NodeManager::currentNM()->mkNode( kind::AND, bchildren ) );
+
+          if( options::sepChildRefine() ){
+            //child-specific refinements (TODO: use ?)
+            for( unsigned i=0; i<children.size(); i++ ){
+              std::vector< Node > tchildren;
+              Node mval = mvals[i];
+              tchildren.push_back( NodeManager::currentNM()->mkNode( kind::SUBSET, mval, lbl ) );            
+              tchildren.push_back( children[i] );
+              std::vector< Node > rem_children;
+              for( unsigned j=0; j<children.size(); j++ ){
+                if( j!=i ){
+                  rem_children.push_back( n[j] );
+                }
+              }
+              std::map< Node, Node > rvisited;
+              Node rem = rem_children.size()==1 ? rem_children[0] : NodeManager::currentNM()->mkNode( kind::SEP_STAR, rem_children );
+              rem = applyLabel( rem, NodeManager::currentNM()->mkNode( kind::SETMINUS, lbl, mval ), rvisited );
+              tchildren.push_back( rem );
+              conj.push_back( NodeManager::currentNM()->mkNode( kind::AND, tchildren ) );
+            }
+          }
+          return conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( kind::OR, conj );
         }else{
           std::vector< Node > wchildren;
           //disjoint constraints

@@ -4,7 +4,7 @@
 (declare-sort Loc 0)
 (declare-const l Loc)
 
-(assert (not (emp l)))
+(assert (not (emp l l)))
 (assert (forall ((x Loc) (y Loc)) (not (pto x y))))
 
 

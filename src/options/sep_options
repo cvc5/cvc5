@@ -15,4 +15,10 @@ option sepMinimalRefine --sep-min-refine bool :default false
 option sepDisequalC --sep-deq-c bool :default true
  assume cardinality elements are distinct
 
+option sepPreSkolemEmp --sep-pre-skolem-emp bool :default false
+ eliminate emp constraint at preprocess time
+ 
+option sepChildRefine --sep-child-refine bool :default false
+ child-specific refinements of negated star, positive wand
+ 
 endmodule

@@ -6,6 +6,8 @@
 
 (declare-datatypes () ((Node (node (data Int) (left Loc) (right Loc)))))
 
+(declare-fun data0 () Node)
+
 (declare-const dv Int)
 (declare-const v Loc)
 
@@ -15,7 +17,7 @@
 (declare-const r Loc)
 
 (define-fun ten-tree0 ((x Loc) (d Int)) Bool 
-(or (and (emp loc0) (= x (as sep.nil Loc))) (and (sep (pto x (node d l r)) (and (emp loc0) (= l (as sep.nil Loc))) (and (emp loc0) (= r (as sep.nil Loc)))) (= dl (- d 10)) (= dr (+ d 10)))))
+(or (and (emp loc0 data0) (= x (as sep.nil Loc))) (and (sep (pto x (node d l r)) (and (emp loc0 data0) (= l (as sep.nil Loc))) (and (emp loc0 data0) (= r (as sep.nil Loc)))) (= dl (- d 10)) (= dr (+ d 10)))))
 
 (declare-const dy Int)
 (declare-const y Loc)
@@ -23,7 +25,7 @@
 (declare-const z Loc)
 
 (define-fun ord-tree0 ((x Loc) (d Int)) Bool 
-(or (and (emp loc0) (= x (as sep.nil Loc))) (and (sep (pto x (node d y z)) (and (emp loc0) (= y (as sep.nil Loc))) (and (emp loc0) (= z (as sep.nil Loc)))) (<= dy d) (<= d dz))))
+(or (and (emp loc0 data0) (= x (as sep.nil Loc))) (and (sep (pto x (node d y z)) (and (emp loc0 data0) (= y (as sep.nil Loc))) (and (emp loc0 data0) (= z (as sep.nil Loc)))) (<= dy d) (<= d dz))))
 
 ;------- f -------
 (assert (= y (as sep.nil Loc)))
