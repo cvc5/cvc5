@@ -171,6 +171,7 @@ namespace CVC4 {
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
+#include "base/ptr_closer.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
@@ -887,16 +888,18 @@ Node NodeBuilder<nchild_thresh>::constructNode() const {
 
 template <unsigned nchild_thresh>
 Node* NodeBuilder<nchild_thresh>::constructNodePtr() {
-  Node *np = new Node(constructNV());
-  maybeCheckType(*np);
-  return np;
+  // maybeCheckType() can throw an exception. Make sure to call the destructor
+  // on the exception branch.
+  PtrCloser<Node> np(new Node(constructNV()));
+  maybeCheckType(*np.get());
+  return np.release();
 }
 
 template <unsigned nchild_thresh>
 Node* NodeBuilder<nchild_thresh>::constructNodePtr() const {
-  Node *np = new Node(constructNV());
-  maybeCheckType(*np);
-  return np;
+  PtrCloser<Node> np(new Node(constructNV()));
+  maybeCheckType(*np.get());
+  return np.release();
 }
 
 template <unsigned nchild_thresh>
