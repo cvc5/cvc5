@@ -277,7 +277,7 @@ public:
     TS_ASSERT(a_bool->getType(true) == d_em->booleanType());
     TS_ASSERT(b_bool->getType(false) == d_em->booleanType());
     TS_ASSERT(b_bool->getType(true) == d_em->booleanType());
-    TS_ASSERT_THROWS(d_em->mkExpr(MULT,*a_bool,*b_bool).getType(true), 
+    TS_ASSERT_THROWS(d_em->mkExpr(MULT,*a_bool,*b_bool).getType(true),
                      TypeCheckingException);
 // These need better support for operators
 //    TS_ASSERT(and_op->getType().isNull());

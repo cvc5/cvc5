@@ -122,6 +122,9 @@ class NodeValue {
   void inc();
   void dec();
 
+  // Returns true if the reference count is maximized.
+  inline bool HasMaximizedReferenceCount() { return d_rc == MAX_RC; }
+
   /**
    * Uninitializing constructor for NodeBuilder's use.
    */
@@ -294,14 +297,20 @@ public:
 
 private:
 
+  /**
+   * RAII guard that increases the reference count if the reference count to be > 0.
+   * Otherwise, this does nothing. This does not just increment the reference
+   * count to avoid maxing out the d_rc field. This is only for low level functions.
+   */
   class RefCountGuard {
     NodeValue* d_nv;
+    bool d_increased;
   public:
     RefCountGuard(const NodeValue* nv) :
       d_nv(const_cast<NodeValue*>(nv)) {
-      // inc()
-      if(__builtin_expect( ( d_nv->d_rc < MAX_RC ), true )) {
-        ++d_nv->d_rc;
+      d_increased = (d_nv->d_rc == 0);
+      if(d_increased) {
+        d_nv->d_rc = 1;
       }
     }
     ~RefCountGuard() {
@@ -310,7 +319,7 @@ private:
       // E.g., this can happen when debugging code calls the print
       // routines below.  As RefCountGuards are scoped on the stack,
       // this should be fine---but not in multithreaded contexts!
-      if(__builtin_expect( ( d_nv->d_rc < MAX_RC ), true )) {
+      if(d_increased) {
         --d_nv->d_rc;
       }
     }
@@ -415,6 +424,13 @@ inline void NodeValue::inc() {
   // FIXME multithreading
   if(__builtin_expect( ( d_rc < MAX_RC ), true )) {
     ++d_rc;
+    if(__builtin_expect( ( d_rc == MAX_RC ), false )) {
+      Assert(NodeManager::currentNM() != NULL,
+             "No current NodeManager on incrementing of NodeValue: "
+             "maybe a public CVC4 interface function is missing a "
+             "NodeManagerScope ?");
+      NodeManager::currentNM()->markRefCountMaxedOut(this);
+    }
   }
 }
 
@@ -425,7 +441,8 @@ inline void NodeValue::dec() {
     if(__builtin_expect( ( d_rc == 0 ), false )) {
       Assert(NodeManager::currentNM() != NULL,
              "No current NodeManager on destruction of NodeValue: "
-             "maybe a public CVC4 interface function is missing a NodeManagerScope ?");
+             "maybe a public CVC4 interface function is missing a "
+             "NodeManagerScope ?");
       NodeManager::currentNM()->markForDeletion(this);
     }
   }

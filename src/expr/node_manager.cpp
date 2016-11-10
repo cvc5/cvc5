@@ -42,6 +42,8 @@ namespace CVC4 {
 
 CVC4_THREADLOCAL(NodeManager*) NodeManager::s_current = NULL;
 
+namespace {
+
 /**
  * This class sets it reference argument to true and ensures that it gets set
  * to false on destruction. This can be used to make sure a flag gets toggled
@@ -81,6 +83,9 @@ struct NVReclaim {
     d_deletionField = NULL;
   }
 };
+
+} // namespace
+
 
 NodeManager::NodeManager(ExprManager* exprManager) :
   d_options(new Options()),
@@ -169,7 +174,7 @@ NodeManager::~NodeManager() {
   for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
     d_operators[i] = Node::null();
   }
-  
+
   d_unique_vars.clear();
 
   TypeNode dummy;
@@ -178,7 +183,9 @@ NodeManager::~NodeManager() {
   d_rt_cache.d_children.clear();
   d_rt_cache.d_data = dummy;
 
-  for( std::vector<Datatype*>::iterator datatype_iter = d_ownedDatatypes.begin(),	datatype_end = d_ownedDatatypes.end(); 
+  for (std::vector<Datatype*>::iterator
+           datatype_iter = d_ownedDatatypes.begin(),
+           datatype_end = d_ownedDatatypes.end();
        datatype_iter != datatype_end; ++datatype_iter) {
     Datatype* datatype = *datatype_iter;
     delete datatype;
@@ -186,8 +193,25 @@ NodeManager::~NodeManager() {
   d_ownedDatatypes.clear();
 
   Assert(!d_attrManager->inGarbageCollection() );
-  while(!d_zombies.empty()) {
-    reclaimZombies();
+
+  std::vector<NodeValue*> order = TopologicalSort(d_maxedOut);
+  d_maxedOut.clear();
+
+  while (!d_zombies.empty() || !order.empty()) {
+    if (d_zombies.empty()) {
+      // Delete the maxed out nodes in toplogical order once we know
+      // there are no additional zombies, or other nodes to worry about.
+      Assert(!order.empty());
+      // We process these in reverse to reverse the topological order.
+      NodeValue* greatest_maxed_out = order.back();
+      order.pop_back();
+      Assert(greatest_maxed_out->HasMaximizedReferenceCount());
+      Debug("gc") << "Force zombify " << greatest_maxed_out << std::endl;
+      greatest_maxed_out->d_rc = 0;
+      markForDeletion(greatest_maxed_out);
+    } else {
+      reclaimZombies();
+    }
   }
 
   poolRemove( &expr::NodeValue::null() );
@@ -332,6 +356,45 @@ void NodeManager::reclaimZombies() {
     }
   }
 }/* NodeManager::reclaimZombies() */
+
+std::vector<NodeValue*> NodeManager::TopologicalSort(
+    const std::vector<NodeValue*>& roots) {
+  std::vector<NodeValue*> order;
+  std::vector<std::pair<bool, NodeValue*> > stack;
+  NodeValueIDSet visited;
+  const NodeValueIDSet root_set(roots.begin(), roots.end());
+
+  for (size_t index = 0; index < roots.size(); index++) {
+    NodeValue* root = roots[index];
+    if (visited.find(root) == visited.end()) {
+      stack.push_back(std::make_pair(false, root));
+    }
+    while (!stack.empty()) {
+      NodeValue* current = stack.back().second;
+      const bool visited_children = stack.back().first;
+      Debug("gc") << "Topological sort " << current << " " << visited_children
+                  << std::endl;
+      if (visited_children) {
+        if (root_set.find(current) != root_set.end()) {
+          order.push_back(current);
+        }
+        stack.pop_back();
+      } else {
+        stack.back().first = true;
+        Assert(visited.count(current) == 0);
+        visited.insert(current);
+        for (int i = 0; i < current->getNumChildren(); ++i) {
+          expr::NodeValue* child = current->getChild(i);
+          if (visited.find(child) == visited.end()) {
+            stack.push_back(std::make_pair(false, child));
+          }
+        }
+      }
+    }
+  }
+  Assert(order.size() == roots.size());
+  return order;
+} /* NodeManager::TopologicalSort() */
 
 TypeNode NodeManager::getType(TNode n, bool check)
   throw(TypeCheckingExceptionPrivate, AssertionException) {
