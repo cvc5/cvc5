@@ -69,4 +69,7 @@ expert-option bitvectorQuickXplain --bv-quick-xplain bool :default false
 expert-option bvIntroducePow2 --bv-intro-pow2 bool :default false
  introduce bitvector powers of two as a preprocessing pass
 
+option bvLazyRewriteExtf --bv-lazy-rewrite-extf bool :default true :read-write
+ lazily rewrite extended functions like bv2nat and int2bv
+ 
 endmodule

@@ -571,7 +571,7 @@ RewriteResponse TheoryBVRewriter::RewriteRedand(TNode node, bool prerewrite){
 
 RewriteResponse TheoryBVRewriter::RewriteBVToNat(TNode node, bool prerewrite) {
   //do not use lazy rewrite strategy if equality solver is disabled
-  if( node[0].isConst() || !options::bitvectorEqualitySolver() ){
+  if( node[0].isConst() || !options::bvLazyRewriteExtf() ){
     Node resultNode = LinearRewriteStrategy
       < RewriteRule<BVToNatEliminate>
       >::apply(node);
@@ -583,7 +583,7 @@ RewriteResponse TheoryBVRewriter::RewriteBVToNat(TNode node, bool prerewrite) {
 
 RewriteResponse TheoryBVRewriter::RewriteIntToBV(TNode node, bool prerewrite) {
   //do not use lazy rewrite strategy if equality solver is disabled
-  if( node[0].isConst() || !options::bitvectorEqualitySolver() ){
+  if( node[0].isConst() || !options::bvLazyRewriteExtf() ){
     Node resultNode = LinearRewriteStrategy
       < RewriteRule<IntToBVEliminate>
       >::apply(node);

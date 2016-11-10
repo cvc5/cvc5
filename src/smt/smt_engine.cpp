@@ -1594,6 +1594,11 @@ void SmtEngine::setDefaults() {
     Trace("smt") << "enabling eager bit-vector explanations " << endl;
     options::bvEagerExplanations.set(true);
   }
+  
+  if( !options::bitvectorEqualitySolver() ){
+    Trace("smt") << "disabling bvLazyRewriteExtf since equality solver is disabled" << endl;
+    options::bvLazyRewriteExtf.set(false);
+  }
 
   // Turn on arith rewrite equalities only for pure arithmetic
   if(! options::arithRewriteEq.wasSetByUser()) {
