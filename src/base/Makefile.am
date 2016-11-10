@@ -26,7 +26,8 @@ libbase_la_SOURCES = \
 	listener.h \
 	modal_exception.h \
 	output.cpp \
-	output.h
+	output.h \
+	ptr_closer.h
 
 
 
