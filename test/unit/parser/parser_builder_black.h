@@ -99,7 +99,7 @@ public:
 
     remove(filename);
     //    mkfifo(ptr, S_IWUSR | s_IRUSR);
-    delete filename;
+    free(filename);
   }
 
   void testSimpleFileInput() {
@@ -115,7 +115,7 @@ public:
                    );
 
     remove(filename);
-    delete filename;
+    free(filename);
   }
 
   void testEmptyStringInput() {
