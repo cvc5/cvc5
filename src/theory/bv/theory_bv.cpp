@@ -194,6 +194,11 @@ void TheoryBV::collectFunctionSymbols(TNode term, TNodeSet& seen) {
   if (term.getKind() == kind::APPLY_UF) {
     TNode func = term.getOperator();
     storeFunction(func, term);
+  } else if (term.getKind() == kind::SELECT) {
+    TNode func = term[0];
+    storeFunction(func, term);
+  } else if (term.getKind() == kind::STORE) {
+    AlwaysAssert(false, "Cannot use eager bitblasting on QF_ABV formula with stores");
   }
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     collectFunctionSymbols(term[i], seen);
@@ -233,20 +238,30 @@ void TheoryBV::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
       for(NodeSet::const_iterator it2 = it1; it2 != args.end(); ++it2) {
         TNode args1 = *it1;
         TNode args2 = *it2;
+        Node args_eq;
+        
+        if (args1.getKind() == kind::APPLY_UF) {
+          AlwaysAssert (args1.getKind() == kind::APPLY_UF &&
+                        args1.getOperator() == func);
+          AlwaysAssert (args2.getKind() == kind::APPLY_UF &&
+                        args2.getOperator() == func);
+          AlwaysAssert (args1.getNumChildren() == args2.getNumChildren());
 
-        AlwaysAssert (args1.getKind() == kind::APPLY_UF &&
-                args1.getOperator() == func);
-        AlwaysAssert (args2.getKind() == kind::APPLY_UF &&
-                args2.getOperator() == func);
-        AlwaysAssert (args1.getNumChildren() == args2.getNumChildren());
+          std::vector<Node> eqs(args1.getNumChildren());
 
-        std::vector<Node> eqs(args1.getNumChildren());
-
-        for (unsigned i = 0; i < args1.getNumChildren(); ++i) {
-          eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
+          for (unsigned i = 0; i < args1.getNumChildren(); ++i) {
+            eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
+          }
+          args_eq = eqs.size() == 1 ? eqs[0] : nm->mkNode(kind::AND, eqs);
+        } else {
+          AlwaysAssert (args1.getKind() == kind::SELECT &&
+                        args1[0] == func);
+          AlwaysAssert (args2.getKind() == kind::SELECT &&
+                        args2[0] == func);
+          AlwaysAssert (args1.getNumChildren() == 2);
+          AlwaysAssert (args2.getNumChildren() == 2);
+          args_eq = nm->mkNode(kind::EQUAL, args1[1], args2[1]);
         }
-
-        Node args_eq = eqs.size() == 1 ? eqs[0] : nm->mkNode(kind::AND, eqs);
         Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
         Node lemma = nm->mkNode(kind::IMPLIES, args_eq, func_eq);
         assertions.push_back(lemma);
