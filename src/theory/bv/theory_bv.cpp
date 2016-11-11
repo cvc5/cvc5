@@ -66,7 +66,10 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
     d_eagerSolver(NULL),
     d_abstractionModule(new AbstractionModule(getFullInstanceName())),
     d_isCoreTheory(false),
-    d_calledPreregister(false)
+    d_calledPreregister(false),
+    d_needsLastCallCheck(false),
+    d_extf_range_infer(u),
+    d_extf_collapse_infer(c)
 {
   d_extt = new ExtTheory( this );
   d_extt->addFunctionKind( kind::BITVECTOR_TO_NAT );
@@ -329,7 +332,7 @@ void TheoryBV::preRegisterTerm(TNode node) {
     d_subtheories[i]->preRegister(node);
   }
   
-  // AJR : equality solver currently registers all terms, if we want a lazy reduction without the bv equality solver, need to call this
+  // AJR : equality solver currently registers all terms to ExtTheory, if we want a lazy reduction without the bv equality solver, need to call this
   //getExtTheory()->registerTermRec( node );
 }
 
@@ -374,9 +377,18 @@ void TheoryBV::checkForLemma(TNode fact) {
 
 void TheoryBV::check(Effort e)
 {
-  if (done() && !fullEffort(e)) {
+  if (done() && e<Theory::EFFORT_FULL) {
     return;
   }
+  
+  //last call : do reductions on extended bitvector functions
+  if( e==Theory::EFFORT_LAST_CALL ){
+    std::vector< Node > nred;
+    getExtTheory()->getActive( nred );
+    doExtfReductions( nred );
+    return;
+  }
+
   TimerStat::CodeTimer checkTimer(d_checkTime);
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTimer);
@@ -460,12 +472,94 @@ void TheoryBV::check(Effort e)
     if( getExtTheory()->doInferences( 0, nred ) ){
       return;
     }
-    std::vector< Node > nredr;
-    if( getExtTheory()->doReductions( 0, nred, nredr ) ){
-      return;
+    d_needsLastCallCheck = false;
+    if( !nred.empty() ){
+      //other inferences involving bv2nat, int2bv
+      if( options::bvAlgExtf() ){
+        if( doExtfInferences( nred ) ){
+          return;
+        }
+      }
+      if( !options::bvLazyReduceExtf() ){
+        if( doExtfReductions( nred ) ){
+          return;
+        }
+      }else{     
+        d_needsLastCallCheck = true;
+      }
     }
-    Assert( nredr.empty() );
   }
+}
+
+bool TheoryBV::doExtfInferences( std::vector< Node >& terms ) {
+  bool sentLemma = false;
+  eq::EqualityEngine * ee = getEqualityEngine();    
+  std::map< Node, Node > op_map;
+  for( unsigned j=0; j<terms.size(); j++ ){
+    TNode n = terms[j];
+    Assert( n.getKind()==kind::BITVECTOR_TO_NAT || kind::INT_TO_BITVECTOR );
+    if( n.getKind()==kind::BITVECTOR_TO_NAT ){
+      //range lemmas
+      if( d_extf_range_infer.find( n )==d_extf_range_infer.end() ){
+        d_extf_range_infer.insert( n );
+        unsigned bvs = n[0].getType().getBitVectorSize();
+        Node min = NodeManager::currentNM()->mkConst( Rational( 0 ) );
+        Node max = NodeManager::currentNM()->mkConst( Rational( Integer(1).multiplyByPow2(bvs) ) );
+        Node lem = NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, n, min ), NodeManager::currentNM()->mkNode( kind::LT, n, max ) );
+        Trace("bv-extf-lemma") << "BV extf lemma (range) : " << lem << std::endl;
+        d_out->lemma( lem );
+        sentLemma = true;
+      }
+    }
+    Node r = ( ee && ee->hasTerm( n[0] ) ) ? ee->getRepresentative( n[0] ) : n[0];
+    op_map[r] = n;
+  }
+  for( unsigned j=0; j<terms.size(); j++ ){
+    TNode n = terms[j];
+    Node r = ( ee && ee->hasTerm( n[0] ) ) ? ee->getRepresentative( n ) : n;
+    std::map< Node, Node >::iterator it = op_map.find( r );
+    if( it!=op_map.end() ){
+      Node parent = it->second;
+      Node cterm = parent[0]==n ? parent : NodeManager::currentNM()->mkNode( parent.getOperator(), n );
+      Trace("bv-extf-lemma-debug") << "BV extf collapse based on : " << n << std::endl;
+      if( d_extf_collapse_infer.find( cterm )==d_extf_collapse_infer.end() ){
+        d_extf_collapse_infer.insert( cterm );
+      
+        Node t = n[0];
+        if( n.getKind()==kind::INT_TO_BITVECTOR ){
+          Assert( t.getType().isInteger() );
+          //congruent modulo 2^( bv width )
+          unsigned bvs = n.getType().getBitVectorSize();
+          Node coeff = NodeManager::currentNM()->mkConst( Rational( Integer(1).multiplyByPow2(bvs) ) );
+          Node k = NodeManager::currentNM()->mkSkolem( "int_bv_cong", t.getType(), "for int2bv/bv2nat congruence" );
+          t = NodeManager::currentNM()->mkNode( kind::PLUS, t, NodeManager::currentNM()->mkNode( kind::MULT, coeff, k ) );
+        }
+        Node lem = parent.eqNode( t );
+        
+        if( parent[0]!=n ){
+          Assert( ee->areEqual( parent[0], n ) );
+          lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, parent[0].eqNode( n ), lem );
+        }
+        Trace("bv-extf-lemma") << "BV extf lemma (collapse) : " << lem << std::endl;
+        d_out->lemma( lem );
+        sentLemma = true;
+      }
+    }
+  }
+  return sentLemma;
+}
+
+bool TheoryBV::doExtfReductions( std::vector< Node >& terms ) {
+  std::vector< Node > nredr;
+  if( getExtTheory()->doReductions( 0, terms, nredr ) ){
+    return true;
+  }
+  Assert( nredr.empty() );
+  return false;
+}
+
+bool TheoryBV::needsCheckLastEffort() {
+  return d_needsLastCallCheck;
 }
 
 void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
@@ -520,18 +614,23 @@ void TheoryBV::propagate(Effort e) {
 
 
 eq::EqualityEngine * TheoryBV::getEqualityEngine() {
-  return NULL;
+  CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
+  if( core ){
+    return core->getEqualityEngine();
+  }else{
+    return NULL;
+  }
 }
 
 bool TheoryBV::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
-  if( core ){
+  eq::EqualityEngine * ee = getEqualityEngine();
+  if( ee ){
     //get the constant equivalence classes
     bool retVal = false;
     for( unsigned i=0; i<vars.size(); i++ ){
       Node n = vars[i];
-      if( core->getEqualityEngine()->hasTerm( n ) ){
-        Node nr = core->getEqualityEngine()->getRepresentative( n );
+      if( ee->hasTerm( n ) ){
+        Node nr = ee->getRepresentative( n );
         if( nr.isConst() ){
           subs.push_back( nr );
           exp[n].push_back( n.eqNode( nr ) );

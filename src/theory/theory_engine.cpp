@@ -582,6 +582,10 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     // Must consult quantifiers theory for last call to ensure sat, or otherwise add a lemma
     if( effort == Theory::EFFORT_FULL && ! d_inConflict && ! needCheck() ) {
+      Trace("theory::assertions-model") << endl;
+      if (Trace.isOn("theory::assertions-model")) {
+        printAssertions("theory::assertions-model");
+      }
       //checks for theories requiring the model go at last call
       bool builtModel = false;
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
@@ -606,10 +610,6 @@ void TheoryEngine::check(Theory::Effort effort) {
         } else if(options::produceModels()) {
           // must build model at this point
           d_curr_model_builder->buildModel(d_curr_model, true);
-        }
-        Trace("theory::assertions-model") << endl;
-        if (Trace.isOn("theory::assertions-model")) {
-          printAssertions("theory::assertions-model");
         }
       }
     }

@@ -354,7 +354,7 @@ bool Trigger::isAtomicTriggerKind( Kind k ) {
   return k==APPLY_UF || k==SELECT || k==STORE ||
          k==APPLY_CONSTRUCTOR || k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER ||
          k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON ||
-         k==SEP_PTO;
+         k==SEP_PTO || k==BITVECTOR_TO_NAT || k==INT_TO_BITVECTOR;
 }
 
 bool Trigger::isRelationalTrigger( Node n ) {

@@ -72,4 +72,10 @@ expert-option bvIntroducePow2 --bv-intro-pow2 bool :default false
 option bvLazyRewriteExtf --bv-lazy-rewrite-extf bool :default true :read-write
  lazily rewrite extended functions like bv2nat and int2bv
  
+option bvLazyReduceExtf --bv-lazy-reduce-extf bool :default false :read-write
+ reduce extended functions like bv2nat and int2bv at last call instead of full effort
+ 
+option bvAlgExtf --bv-alg-extf bool :default true :read-write
+ algebraic inferences for extended functions
+ 
 endmodule

@@ -70,6 +70,8 @@ public:
   void preRegisterTerm(TNode n);
 
   void check(Effort e);
+  
+  bool needsCheckLastEffort();
 
   void propagate(Effort e);
 
@@ -175,7 +177,14 @@ private:
   AbstractionModule* d_abstractionModule;
   bool d_isCoreTheory;
   bool d_calledPreregister;
-
+  
+  //for extended functions
+  bool d_needsLastCallCheck;
+  context::CDHashSet<Node, NodeHashFunction> d_extf_range_infer;
+  context::CDHashSet<Node, NodeHashFunction> d_extf_collapse_infer;
+  bool doExtfInferences( std::vector< Node >& terms );
+  bool doExtfReductions( std::vector< Node >& terms );
+  
   bool wasPropagatedBySubtheory(TNode literal) const {
     return d_propagatedBy.find(literal) != d_propagatedBy.end();
   }

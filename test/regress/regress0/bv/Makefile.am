@@ -96,7 +96,11 @@ SMT_TESTS = \
 	unsound1-reduced.smt2 \
 	bv2nat-ground.smt2 \
 	bv2nat-ground-c.smt2 \
-	cmu-rdk-3.smt2
+	cmu-rdk-3.smt2 \
+	bv2nat-simp-range.smt2 \
+	bv-int-collapse1.smt2 \
+	bv-int-collapse2.smt2 \
+	bv-int-collapse2-sat.smt2
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS = divtest.smt2
