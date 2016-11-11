@@ -298,9 +298,10 @@ public:
 private:
 
   /**
-   * RAII guard that increases the reference count if the reference count to be > 0.
-   * Otherwise, this does nothing. This does not just increment the reference
-   * count to avoid maxing out the d_rc field. This is only for low level functions.
+   * RAII guard that increases the reference count if the reference count to be
+   * > 0.  Otherwise, this does nothing. This does not just increment the
+   * reference count to avoid maxing out the d_rc field. This is only for low
+   * level functions.
    */
   class RefCountGuard {
     NodeValue* d_nv;
@@ -422,15 +423,15 @@ inline void NodeValue::inc() {
          "NodeValue is currently being deleted "
          "and increment is being called on it. Don't Do That!");
   // FIXME multithreading
-  if(__builtin_expect( ( d_rc < MAX_RC ), true )) {
+  if (__builtin_expect((d_rc < MAX_RC - 1), true)) {
     ++d_rc;
-    if(__builtin_expect( ( d_rc == MAX_RC ), false )) {
-      Assert(NodeManager::currentNM() != NULL,
-             "No current NodeManager on incrementing of NodeValue: "
-             "maybe a public CVC4 interface function is missing a "
-             "NodeManagerScope ?");
-      NodeManager::currentNM()->markRefCountMaxedOut(this);
-    }
+  } else if (__builtin_expect((d_rc == MAX_RC - 1), false)) {
+    ++d_rc;
+    Assert(NodeManager::currentNM() != NULL,
+           "No current NodeManager on incrementing of NodeValue: "
+           "maybe a public CVC4 interface function is missing a "
+           "NodeManagerScope ?");
+    NodeManager::currentNM()->markRefCountMaxedOut(this);
   }
 }
 
