@@ -37,7 +37,8 @@ namespace expr {
 string NodeValue::toString() const {
   stringstream ss;
 
-  OutputLanguage outlang = (this == &null()) ? language::output::LANG_AUTO : options::outputLanguage();
+  OutputLanguage outlang = (this == &null()) ? language::output::LANG_AUTO
+                                             : options::outputLanguage();
   toStream(ss, -1, false, false, outlang);
   return ss.str();
 }
@@ -49,7 +50,8 @@ void NodeValue::toStream(std::ostream& out, int toDepth, bool types, size_t dag,
   // count, even just for printing.
   RefCountGuard guard(this);
 
-  Printer::getPrinter(language)->toStream(out, TNode(this), toDepth, types, dag);
+  Printer::getPrinter(language)->toStream(out, TNode(this), toDepth, types,
+                                          dag);
 }
 
 void NodeValue::printAst(std::ostream& out, int ind) const {
@@ -58,14 +60,14 @@ void NodeValue::printAst(std::ostream& out, int ind) const {
   indent(out, ind);
   out << '(';
   out << getKind();
-  if(getMetaKind() == kind::metakind::VARIABLE) {
+  if (getMetaKind() == kind::metakind::VARIABLE) {
     out << ' ' << getId();
-  } else if(getMetaKind() == kind::metakind::CONSTANT) {
+  } else if (getMetaKind() == kind::metakind::CONSTANT) {
     out << ' ';
     kind::metakind::NodeValueConstPrinter::toStream(out, this);
   } else {
-    if(nv_begin() != nv_end()) {
-      for(const_nv_iterator child = nv_begin(); child != nv_end(); ++child) {
+    if (nv_begin() != nv_end()) {
+      for (const_nv_iterator child = nv_begin(); child != nv_end(); ++child) {
         out << std::endl;
         (*child)->printAst(out, ind + 1);
       }
@@ -76,5 +78,5 @@ void NodeValue::printAst(std::ostream& out, int ind) const {
   out << ')';
 }
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+} /* CVC4::expr namespace */
+} /* CVC4 namespace */

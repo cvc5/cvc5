@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 
+#include "base/output.h"
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
 #include "util/integer.h"
@@ -308,12 +309,16 @@ public:
     std::vector<Node> vars;
     const unsigned int max = metakind::getUpperBoundForKind(AND);
     TypeNode boolType = d_nodeManager->booleanType();
-    Node skolem = d_nodeManager->mkSkolem("i", boolType);
-    for( unsigned int i = 0; i <= max; ++i ) {
-      vars.push_back( skolem );
+    Node skolem_i = d_nodeManager->mkSkolem("i", boolType);
+    Node skolem_j = d_nodeManager->mkSkolem("j", boolType);
+    Node andNode = skolem_i.andNode(skolem_j);
+    Node orNode = skolem_i.orNode(skolem_j);
+    while (vars.size() <= max) {
+      vars.push_back(andNode);
+      vars.push_back(skolem_j);
+      vars.push_back(orNode);
     }
-    TS_ASSERT_THROWS( d_nodeManager->mkNode(AND, vars), AssertionException );
+    TS_ASSERT_THROWS(d_nodeManager->mkNode(AND, vars), AssertionException);
 #endif
   }
-
 };

@@ -58,20 +58,24 @@ namespace expr {
  * to NodeManager events via NodeManager::subscribeEvents(this).
  */
 class NodeManagerListener {
-public:
-  virtual ~NodeManagerListener() { }
-  virtual void nmNotifyNewSort(TypeNode tn, uint32_t flags) { }
-  virtual void nmNotifyNewSortConstructor(TypeNode tn) { }
-  virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort, uint32_t flags) { }
-  virtual void nmNotifyNewDatatypes(const std::vector<DatatypeType>& datatypes) { }
-  virtual void nmNotifyNewVar(TNode n, uint32_t flags) { }
-  virtual void nmNotifyNewSkolem(TNode n, const std::string& comment, uint32_t flags) { }
+ public:
+  virtual ~NodeManagerListener() {}
+  virtual void nmNotifyNewSort(TypeNode tn, uint32_t flags) {}
+  virtual void nmNotifyNewSortConstructor(TypeNode tn) {}
+  virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort,
+                                                  uint32_t flags) {}
+  virtual void nmNotifyNewDatatypes(
+      const std::vector<DatatypeType>& datatypes) {}
+  virtual void nmNotifyNewVar(TNode n, uint32_t flags) {}
+  virtual void nmNotifyNewSkolem(TNode n, const std::string& comment,
+                                 uint32_t flags) {}
   /**
-   * Notify a listener of a Node that's being GCed.  If this function stores a reference
+   * Notify a listener of a Node that's being GCed.  If this function stores a
+   * reference
    * to the Node somewhere, very bad things will happen.
    */
-  virtual void nmNotifyDeleteNode(TNode n) { }
-};/* class NodeManagerListener */
+  virtual void nmNotifyDeleteNode(TNode n) {}
+}; /* class NodeManagerListener */
 
 class NodeManager {
   template <unsigned nchild_thresh> friend class CVC4::NodeBuilder;
@@ -96,7 +100,7 @@ class NodeManager {
                               expr::NodeValuePoolEq> NodeValuePool;
   typedef __gnu_cxx::hash_set<expr::NodeValue*,
                               expr::NodeValueIDHashFunction,
-                              expr::NodeValueIDEquality> ZombieSet;
+                              expr::NodeValueIDEquality> NodeValueIDSet;
 
   static CVC4_THREADLOCAL(NodeManager*) s_current;
 
@@ -146,7 +150,13 @@ class NodeManager {
    * we might like to delete nodes in least-recently-used order.  But
    * we also need to avoid processing a zombie twice.
    */
-  ZombieSet d_zombies;
+  NodeValueIDSet d_zombies;
+
+  /**
+   * NodeValues with maxed out reference counts. These live as long as the
+   * NodeManager. They have a custom deallocation procedure at the very end.
+   */
+  std::vector<expr::NodeValue*> d_maxedOut;
 
   /**
    * A set of operator singletons (w.r.t.  to this NodeManager
@@ -157,7 +167,7 @@ class NodeManager {
    * plusOperator->getConst<CVC4::Kind>(), you get kind::PLUS back.
    */
   Node d_operators[kind::LAST_KIND];
- 
+
   /** unique vars per (Kind,Type) */
   std::map< Kind, std::map< TypeNode, Node > > d_unique_vars;
 
@@ -165,7 +175,7 @@ class NodeManager {
    * A list of subscribers for NodeManager events.
    */
   std::vector<NodeManagerListener*> d_listeners;
-  
+
   /** A list of datatypes owned by this node manager. */
   std::vector<Datatype*> d_ownedDatatypes;
 
@@ -278,6 +288,19 @@ class NodeManager {
   }
 
   /**
+   * Register a NodeValue as having a maxed out reference count. This NodeValue
+   * will live as long as its containing NodeManager.
+   */
+  inline void markRefCountMaxedOut(expr::NodeValue* nv) {
+    Assert(nv->HasMaximizedReferenceCount());
+    if(Debug.isOn("gc")) {
+      Debug("gc") << "marking node value " << nv
+                  << " [" << nv->d_id << "]: as maxed out" << std::endl;
+    }
+    d_maxedOut.push_back(nv);
+  }
+
+  /**
    * Reclaim all zombies.
    */
   void reclaimZombies();
@@ -286,6 +309,14 @@ class NodeManager {
    * It is safe to collect zombies.
    */
   bool safeToReclaimZombies() const;
+
+  /**
+   * Returns a reverse topological sort of a list of NodeValues. The NodeValues
+   * must be valid and have ids. The NodeValues are not modified (including ref
+   * counts).
+   */
+  static std::vector<expr::NodeValue*> TopologicalSort(
+      const std::vector<expr::NodeValue*>& roots);
 
   /**
    * This template gives a mechanism to stack-allocate a NodeValue
