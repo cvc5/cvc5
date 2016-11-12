@@ -163,7 +163,7 @@ class CDOhash_map : public ContextObj {
         d_data = p->d_data;
       }
     }
-    // Explicitly call destructors for the key and the date as they will not
+    // Explicitly call destructors for the key and the data as they will not
     // otherwise get called.
     p->d_key.~Key();
     p->d_data.~Data();
@@ -418,21 +418,6 @@ public:
     }
   }
 
-  // Use this for pointer data d allocated in context memory at this
-  // level.  THIS IS HIGHLY EXPERIMENTAL.  It seems to work if ALL
-  // your data objects are allocated from context memory.
-  void insertDataFromContextMemory(const Key& k, const Data& d) {
-    emptyTrash();
-
-    AlwaysAssert(d_map.find(k) == d_map.end());
-
-    Element* obj = new(d_context->getCMM()) Element(d_context, this, k, d,
-                                                    false /* atLevelZero */,
-                                                    true /* allocatedInCMM */);
-
-    d_map[k] = obj;
-  }
-
   /**
    * Version of insert() for CDHashMap<> that inserts data value d at
    * context level zero.  This is a special escape hatch for inserting
@@ -494,10 +479,9 @@ public:
           } else {
             d_first = elt->d_next;
           }
-        } else {
-          elt->d_prev->d_next = elt->d_next;
-          elt->d_next->d_prev = elt->d_prev;
         }
+        elt->d_prev->d_next = elt->d_next;
+        elt->d_next->d_prev = elt->d_prev;
         d_map.erase(j);//FIXME multithreading
         Debug("gc") << "key " << k << " obliterated zero-scope: " << elt << std::endl;
         if(!elt->d_noTrash) {
