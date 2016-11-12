@@ -146,9 +146,9 @@ public:
 
 
     /* Extreme size tests */
-    NodeBuilder<0> ws_size_0();
+    NodeBuilder<0> ws_size_0;
 
-    NodeBuilder<LARGE_K> ws_size_large();
+    NodeBuilder<LARGE_K> ws_size_large;
 
     /* CopyConstructors */
 

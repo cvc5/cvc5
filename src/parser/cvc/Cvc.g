@@ -533,6 +533,8 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 #include <stdint.h>
 #include <cassert>
+
+#include "base/ptr_closer.h"
 #include "options/set_language.h"
 #include "parser/antlr_tracing.h"
 #include "parser/parser.h"
@@ -593,6 +595,7 @@ namespace CVC4 {
 #include <vector>
 
 #include "base/output.h"
+#include "base/ptr_closer.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
@@ -654,38 +657,49 @@ parseExpr returns [CVC4::Expr expr = CVC4::Expr()]
  * Parses a command (the whole benchmark)
  * @return the command of the benchmark
  */
-parseCommand returns [CVC4::Command* cmd = NULL]
-  : c=command { $cmd = c; }
+parseCommand returns [CVC4::Command* cmd_return = NULL]
+@declarations {
+    CVC4::PtrCloser<CVC4::Command> cmd;
+}
+@after {
+    cmd_return = cmd.release();
+}
+  : c=command[&cmd]
   | LPAREN IDENTIFIER
     { std::string s = AntlrInput::tokenText($IDENTIFIER);
-      if(s == "benchmark") {
-        PARSER_STATE->parseError("In CVC4 presentation language mode, but SMT-LIBv1 format detected.  Use --lang smt1 for SMT-LIBv1 support.");
+    if(s == "benchmark") {
+        PARSER_STATE->parseError(
+            "In CVC4 presentation language mode, but SMT-LIBv1 format "
+            "detected.  Use --lang smt1 for SMT-LIBv1 support.");
       } else if(s == "set" || s == "get" || s == "declare" ||
                 s == "define" || s == "assert") {
-        PARSER_STATE->parseError("In CVC4 presentation language mode, but SMT-LIB format detected.  Use --lang smt for SMT-LIB support.");
+        PARSER_STATE->parseError(
+            "In CVC4 presentation language mode, but SMT-LIB format detected. "
+            "Use --lang smt for SMT-LIB support.");
       } else {
-        PARSER_STATE->parseError("A CVC4 presentation language command cannot begin with a parenthesis; expected command name.");
+        PARSER_STATE->parseError(
+            "A CVC4 presentation language command cannot begin with a "
+            "parenthesis; expected command name.");
       }
     }
-  | EOF { $cmd = NULL; }
+  | EOF
   ;
 
 /**
  * Matches a command of the input. If a declaration, it will return an empty
  * command.
  */
-command returns [CVC4::Command* cmd = NULL]
+command [CVC4::PtrCloser<CVC4::Command>* cmd]
   : ( mainCommand[cmd] SEMICOLON
     | SEMICOLON
     | LET_TOK { PARSER_STATE->pushScope(); }
-      typeOrVarLetDecl[CHECK_DECLARED] ( COMMA typeOrVarLetDecl[CHECK_DECLARED] )*
-      IN_TOK c=command
-      { $cmd = c;
-        PARSER_STATE->popScope();
-      }
+      typeOrVarLetDecl[CHECK_DECLARED] (
+          COMMA typeOrVarLetDecl[CHECK_DECLARED] )*
+      IN_TOK command[cmd]
+      { PARSER_STATE->popScope(); }
     )
-    { if($cmd == NULL) {
-        cmd = new EmptyCommand();
+    { if(!(*cmd)) {
+        cmd->reset(new EmptyCommand());
       }
     }
   | IDENTIFIER SEMICOLON
@@ -702,7 +716,7 @@ options { backtrack = true; }
   : letDecl | typeLetDecl[check]
   ;
 
-mainCommand[CVC4::Command*& cmd]
+mainCommand[CVC4::PtrCloser<CVC4::Command>* cmd]
 @init {
   Expr f;
   SExpr sexpr;
@@ -713,31 +727,31 @@ mainCommand[CVC4::Command*& cmd]
   std::string s;
 }
     /* our bread & butter */
-  : ASSERT_TOK formula[f] { cmd = new AssertCommand(f); }
+  : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f)); }
 
-  | QUERY_TOK formula[f] { cmd = new QueryCommand(f); }
-  | CHECKSAT_TOK formula[f]? { cmd = f.isNull() ? new CheckSatCommand() : new CheckSatCommand(f); }
-
+  | QUERY_TOK formula[f] { cmd->reset(new QueryCommand(f)); }
+  | CHECKSAT_TOK formula[f]?
+    { cmd->reset(f.isNull() ? new CheckSatCommand() : new CheckSatCommand(f)); }
     /* options */
   | OPTION_TOK
     ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
     ( symbolicExpr[sexpr]
       { if(s == "logic") {
-          cmd = new SetBenchmarkLogicCommand(sexpr.getValue());
+          cmd->reset(new SetBenchmarkLogicCommand(sexpr.getValue()));
         } else {
-          cmd = new SetOptionCommand(s, sexpr);
+          cmd->reset(new SetOptionCommand(s, sexpr));
         }
       }
-    | TRUE_TOK { cmd = new SetOptionCommand(s, SExpr("true")); }
-    | FALSE_TOK { cmd = new SetOptionCommand(s, SExpr("false")); }
-    | { cmd = new SetOptionCommand(s, SExpr("true")); }
+    | TRUE_TOK { cmd->reset(new SetOptionCommand(s, SExpr("true"))); }
+    | FALSE_TOK { cmd->reset(new SetOptionCommand(s, SExpr("false"))); }
+    | { cmd->reset(new SetOptionCommand(s, SExpr("true"))); }
     )
 
     /* push / pop */
-  | PUSH_TOK ( k=numeral { cmd = REPEAT_COMMAND(k, PushCommand()); }
-               | { cmd = new PushCommand(); } )
-  | POP_TOK ( k=numeral { cmd = REPEAT_COMMAND(k, PopCommand()); }
-              | { cmd = new PopCommand(); } )
+  | PUSH_TOK ( k=numeral { cmd->reset(REPEAT_COMMAND(k, PushCommand())); }
+               | { cmd->reset(new PushCommand()); } )
+  | POP_TOK ( k=numeral { cmd->reset(REPEAT_COMMAND(k, PopCommand())); }
+              | { cmd->reset(new PopCommand()); } )
   | POPTO_TOK k=numeral?
     { UNSUPPORTED("POPTO command"); }
 
@@ -750,12 +764,12 @@ mainCommand[CVC4::Command*& cmd]
     { UNSUPPORTED("POPTO_SCOPE command"); }
 
   | RESET_TOK
-    { cmd = new ResetCommand();
+    { cmd->reset(new ResetCommand());
       PARSER_STATE->reset();
     }
 
   | RESET_TOK ASSERTIONS_TOK
-    { cmd = new ResetAssertionsCommand();
+    { cmd->reset(new ResetAssertionsCommand());
       PARSER_STATE->reset();
     }
 
@@ -769,7 +783,9 @@ mainCommand[CVC4::Command*& cmd]
     ( COMMA datatypeDef[dts] )*
     END_TOK
     { PARSER_STATE->popScope();
-      cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
+      cmd->reset(new DatatypeDeclarationCommand(
+          PARSER_STATE->mkMutualDatatypeTypes(dts)));
+    }
 
   | CONTEXT_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
@@ -793,10 +809,11 @@ mainCommand[CVC4::Command*& cmd]
     { UNSUPPORTED("GET_OP command"); }
 
   | GET_VALUE_TOK formula[f]
-    { cmd = new GetValueCommand(f); }
+    { cmd->reset(new GetValueCommand(f)); }
 
-  | SUBSTITUTE_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] EQUAL_TOK
-    formula[f] LBRACKET identifier[id,CHECK_NONE,SYM_VARIABLE] ASSIGN_TOK formula[f] RBRACKET
+  | SUBSTITUTE_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON
+    type[t,CHECK_DECLARED] EQUAL_TOK formula[f] LBRACKET
+    identifier[id,CHECK_NONE,SYM_VARIABLE] ASSIGN_TOK formula[f] RBRACKET
     { UNSUPPORTED("SUBSTITUTE command"); }
 
     /* Like the --debug command line option, DBG turns on both tracing
@@ -821,11 +838,12 @@ mainCommand[CVC4::Command*& cmd]
   | HELP_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Message() << "No help available for `" << s << "'." << std::endl; }
-    | { Message() << "Please use --help at the command line for help." << std::endl; }
-    )
+  |   { Message() << "Please use --help at the command line for help."
+                << std::endl; }
+            )
 
   | TRANSFORM_TOK formula[f]
-    { cmd = new SimplifyCommand(f); }
+    { cmd->reset(new SimplifyCommand(f)); }
 
   | PRINT_TOK formula[f]
     { UNSUPPORTED("PRINT command"); }
@@ -837,12 +855,12 @@ mainCommand[CVC4::Command*& cmd]
 
   | ECHO_TOK
     ( simpleSymbolicExpr[sexpr]
-      { cmd = new EchoCommand(sexpr.getValue()); }
-    | { cmd = new EchoCommand(); }
+      { cmd->reset(new EchoCommand(sexpr.getValue())); }
+    | { cmd->reset(new EchoCommand()); }
     )
 
   | EXIT_TOK
-    { cmd = new QuitCommand(); }
+    { cmd->reset(new QuitCommand()); }
 
   | INCLUDE_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
@@ -851,10 +869,10 @@ mainCommand[CVC4::Command*& cmd]
     )
 
   | DUMP_PROOF_TOK
-    { cmd = new GetProofCommand(); }
+    { cmd->reset(new GetProofCommand()); }
 
   | DUMP_UNSAT_CORE_TOK
-    { cmd = new GetUnsatCoreCommand(); }
+    { cmd->reset(new GetUnsatCoreCommand()); }
 
   | ( DUMP_ASSUMPTIONS_TOK
     | DUMP_SIG_TOK
@@ -867,12 +885,12 @@ mainCommand[CVC4::Command*& cmd]
 
     /* these are all synonyms */
   | ( WHERE_TOK | ASSERTIONS_TOK | ASSUMPTIONS_TOK )
-    { cmd = new GetAssertionsCommand(); }
+    { cmd->reset(new GetAssertionsCommand()); }
 
   | COUNTEREXAMPLE_TOK
-    { cmd = new GetModelCommand; }
+    { cmd->reset(new GetModelCommand); }
   | COUNTERMODEL_TOK
-    { cmd = new GetModelCommand; }
+    { cmd->reset(new GetModelCommand); }
 
   | ARITH_VAR_ORDER_TOK LPAREN formula[f] ( COMMA formula[f] )* RPAREN
     { UNSUPPORTED("ARITH_VAR_ORDER command"); }
@@ -916,11 +934,12 @@ symbolicExpr[CVC4::SExpr& sexpr]
 /**
  * Match a top-level declaration.
  */
-toplevelDeclaration[CVC4::Command*& cmd]
+toplevelDeclaration[CVC4::PtrCloser<CVC4::Command>* cmd]
 @init {
   std::vector<std::string> ids;
   Type t;
-  Debug("parser-extra") << "declaration: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  Debug("parser-extra") << "declaration: " << AntlrInput::tokenText(LT(1))
+                        << std::endl;
 }
   : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON
     ( declareVariables[cmd,t,ids,true]
@@ -932,9 +951,10 @@ toplevelDeclaration[CVC4::Command*& cmd]
  */
 boundVarDecl[std::vector<std::string>& ids, CVC4::Type& t]
 @init {
-  Command* local_cmd = NULL;
+  CVC4::PtrCloser<Command> local_cmd;
 }
-  : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON declareVariables[local_cmd,t,ids,false]
+  : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON
+    declareVariables[&local_cmd,t,ids,false]
   ;
 
 /**
@@ -982,16 +1002,16 @@ boundVarDeclReturn[std::vector<CVC4::Expr>& terms,
  * because type declarations are always top-level, except for
  * type-lets, which don't use this rule.
  */
-declareTypes[CVC4::Command*& cmd, const std::vector<std::string>& idList]
+declareTypes[CVC4::PtrCloser<CVC4::Command>* cmd,
+             const std::vector<std::string>& idList]
 @init {
   Type t;
 }
     /* A sort declaration (e.g., "T : TYPE") */
   : TYPE_TOK
-    { DeclarationSequence* seq = new DeclarationSequence();
+    { CVC4::PtrCloser<DeclarationSequence> seq(new DeclarationSequence());
       for(std::vector<std::string>::const_iterator i = idList.begin();
-          i != idList.end();
-          ++i) {
+          i != idList.end(); ++i) {
         // Don't allow a type variable to clash with a previously
         // declared type variable, however a type variable and a
         // non-type variable can clash unambiguously.  Break from CVC3
@@ -1001,7 +1021,7 @@ declareTypes[CVC4::Command*& cmd, const std::vector<std::string>& idList]
         Command* decl = new DeclareTypeCommand(*i, 0, sort);
         seq->addCommand(decl);
       }
-      cmd = seq;
+      cmd->reset(seq.release());
     }
 
     /* A type alias "T : TYPE = foo..." */
@@ -1024,19 +1044,21 @@ declareTypes[CVC4::Command*& cmd, const std::vector<std::string>& idList]
  * permitted and "cmd" is output.  If topLevel is false, bound vars
  * are created
  */
-declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::string>& idList, bool topLevel]
+declareVariables[CVC4::PtrCloser<CVC4::Command>* cmd, CVC4::Type& t,
+                 const std::vector<std::string>& idList, bool topLevel]
 @init {
   Expr f;
   Debug("parser-extra") << "declType: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
     /* A variable declaration (or definition) */
   : type[t,CHECK_DECLARED] ( EQUAL_TOK formula[f] )?
-    { DeclarationSequence* seq = NULL;
+    { CVC4::PtrCloser<DeclarationSequence> seq;
       if(topLevel) {
-        cmd = seq = new DeclarationSequence();
+        seq.reset(new DeclarationSequence());
       }
       if(f.isNull()) {
-        Debug("parser") << "working on " << idList.front() << " : " << t << std::endl;
+        Debug("parser") << "working on " << idList.front() << " : " << t
+                        << std::endl;
         // CVC language allows redeclaration of variables if types are the same
         for(std::vector<std::string>::const_iterator i = idList.begin(),
               i_end = idList.end();
@@ -1087,6 +1109,9 @@ declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::stri
           Command* decl = new DefineFunctionCommand(*i, func, f);
           seq->addCommand(decl);
         }
+      }
+      if(topLevel) {
+        cmd->reset(new DeclarationSequence());
       }
     }
   ;
@@ -2210,34 +2235,33 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
 constructorDef[CVC4::Datatype& type]
 @init {
   std::string id;
-  CVC4::DatatypeConstructor* ctor = NULL;
+  CVC4::PtrCloser<CVC4::DatatypeConstructor> ctor;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
     { // make the tester
       std::string testerId("is_");
       testerId.append(id);
       PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_SORT);
-      ctor = new CVC4::DatatypeConstructor(id, testerId);
+      ctor.reset(new CVC4::DatatypeConstructor(id, testerId));
     }
     ( LPAREN
-      selector[*ctor]
-      ( COMMA selector[*ctor] )*
+      selector[&ctor]
+      ( COMMA selector[&ctor] )*
       RPAREN
     )?
     { // make the constructor
-      type.addConstructor(*ctor);
+      type.addConstructor(*ctor.get());
       Debug("parser-idt") << "constructor: " << id.c_str() << std::endl;
-      delete ctor;
     }
   ;
 
-selector[CVC4::DatatypeConstructor& ctor]
+selector[CVC4::PtrCloser<CVC4::DatatypeConstructor>* ctor]
 @init {
   std::string id;
   Type t, t2;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT] COLON type[t,CHECK_NONE]
-    { ctor.addArg(id, t);
+    { (*ctor)->addArg(id, t);
       Debug("parser-idt") << "selector: " << id.c_str() << std::endl;
     }
   ;
