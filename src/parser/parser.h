@@ -230,6 +230,8 @@ class CVC4_PUBLIC Parser {
    * "Preemption commands": extra commands implied by subterms that
    * should be issued before the currently-being-parsed command is
    * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
+   *
+   * Owns the memory of the Commands in the queue.
    */
   std::list<Command*> d_commandQueue;
 
@@ -254,9 +256,7 @@ protected:
 
 public:
 
-  virtual ~Parser() {
-    delete d_input;
-  }
+  virtual ~Parser();
 
   /** Get the associated <code>ExprManager</code>. */
   inline ExprManager* getExprManager() const {

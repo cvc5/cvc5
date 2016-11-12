@@ -61,6 +61,16 @@ Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode,
   d_input->setParser(*this);
 }
 
+Parser::~Parser() {
+  for (std::list<Command*>::iterator iter = d_commandQueue.begin();
+       iter != d_commandQueue.end(); ++iter) {
+    Command* command = *iter;
+    delete command;
+  }
+  d_commandQueue.clear();
+  delete d_input;
+}
+
 Expr Parser::getSymbol(const std::string& name, SymbolType type) {
   checkDeclaration(name, CHECK_DECLARED, type);
   assert(isDeclared(name, type));
