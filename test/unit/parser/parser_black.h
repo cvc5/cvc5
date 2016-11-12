@@ -79,6 +79,7 @@ protected:
         Command* cmd;
         while((cmd = parser->nextCommand()) != NULL) {
           Debug("parser") << "Parsed command: " << (*cmd) << endl;
+          delete cmd;
         }
 
         TS_ASSERT( parser->done() );
@@ -97,19 +98,24 @@ protected:
 //      cerr << "Testing bad input: '" << badInput << "'\n";
 //      Debug.on("parser");
 
-    Parser *parser =
-      ParserBuilder(d_exprManager,"test")
-        .withStringInput(badInput)
-        .withOptions(d_options)
-        .withInputLanguage(d_lang)
-        .withStrictMode(strictMode)
-        .build();
-      TS_ASSERT_THROWS
-        ( while(parser->nextCommand());
-          cout << "\nBad input succeeded:\n" << badInput << endl;,
-          const ParserException& );
-//      Debug.off("parser");
-      delete parser;
+    Parser* parser = ParserBuilder(d_exprManager, "test")
+                         .withStringInput(badInput)
+                         .withOptions(d_options)
+                         .withInputLanguage(d_lang)
+                         .withStrictMode(strictMode)
+                         .build();
+    TS_ASSERT_THROWS(
+        {
+          Command* cmd;
+          while ((cmd = parser->nextCommand()) != NULL) {
+            Debug("parser") << "Parsed command: " << (*cmd) << endl;
+            delete cmd;
+          }
+          cout << "\nBad input succeeded:\n" << badInput << endl;
+        },
+        const ParserException&);
+    //      Debug.off("parser");
+    delete parser;
   }
 
   void tryGoodExpr(const string goodExpr) {
@@ -365,8 +371,10 @@ public:
     super::tearDown();
   }
 
-  void setupContext(Smt2& parser) {
-    parser.addTheory(Smt2::THEORY_CORE);
+  virtual void setupContext(Parser& parser) {
+    if(dynamic_cast<Smt2*>(&parser) != NULL){
+      dynamic_cast<Smt2*>(&parser)->addTheory(Smt2::THEORY_CORE);
+    }
     super::setupContext(parser);
   }
 
