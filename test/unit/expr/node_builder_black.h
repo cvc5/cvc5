@@ -148,7 +148,10 @@ public:
     /* Extreme size tests */
     NodeBuilder<0> ws_size_0;
 
-    NodeBuilder<LARGE_K> ws_size_large;
+    // Allocating on the heap instead of the stack.
+    NodeBuilder<LARGE_K>* ws_size_large =
+      new NodeBuilder<LARGE_K>;
+    delete ws_size_large;
 
     /* CopyConstructors */
 
