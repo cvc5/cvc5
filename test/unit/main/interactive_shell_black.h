@@ -26,6 +26,7 @@
 #include "options/language.h"
 #include "options/options.h"
 #include "parser/parser_builder.h"
+#include "smt/command.h"
 
 using namespace CVC4;
 using namespace std;
@@ -97,9 +98,10 @@ private:
     InteractiveShell shell(*d_exprManager, d_options);
     /* readCommand may return a sequence, see above. */
     *d_sin << "x : REAL;\n" << flush;
-    shell.readCommand();
+    Command* tmp = shell.readCommand();
     *d_sin << "ASSERT x > 0;\n" << flush;
     countCommands( shell, 1, 1 );
+    delete tmp;
   }
 
   void testEmptyLine() {
