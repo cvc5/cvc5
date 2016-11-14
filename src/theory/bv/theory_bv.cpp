@@ -69,7 +69,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
     d_calledPreregister(false),
     d_needsLastCallCheck(false),
     d_extf_range_infer(u),
-    d_extf_collapse_infer(c)
+    d_extf_collapse_infer(u)
 {
   d_extt = new ExtTheory( this );
   d_extt->addFunctionKind( kind::BITVECTOR_TO_NAT );
@@ -535,8 +535,9 @@ bool TheoryBV::doExtfInferences( std::vector< Node >& terms ) {
     std::map< Node, Node >::iterator it = op_map.find( r );
     if( it!=op_map.end() ){
       Node parent = it->second;
-      Node cterm = parent[0]==n ? parent : NodeManager::currentNM()->mkNode( parent.getOperator(), n );
-      Trace("bv-extf-lemma-debug") << "BV extf collapse based on : " << n << std::endl;
+      //Node cterm = parent[0]==n ? parent : NodeManager::currentNM()->mkNode( parent.getOperator(), n );
+      Node cterm = parent[0].eqNode( n );
+      Trace("bv-extf-lemma-debug") << "BV extf collapse based on : " << cterm << std::endl;
       if( d_extf_collapse_infer.find( cterm )==d_extf_collapse_infer.end() ){
         d_extf_collapse_infer.insert( cterm );
       
