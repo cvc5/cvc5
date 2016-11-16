@@ -295,13 +295,20 @@ public:
       case kind::BITVECTOR_MULT:
       case kind::BITVECTOR_PLUS:
         if(numArgs != 2) {
-          parseError("Operator requires exact 2 arguments in strict SMT-LIB compliance mode: " + kindToString(kind));
+          parseError("Operator requires exact 2 arguments in strict SMT-LIB "
+                     "compliance mode: " + kindToString(kind));
         }
         break;
       default:
         break; /* no problem */
       }
     }
+  }
+
+  // Throw a ParserException with msg appended with the current logic.
+  inline void parseErrorLogic(const std::string& msg) throw(ParserException) {
+    const std::string withLogic = msg + getLogic().getLogicString();
+    parseError(withLogic);
   }
 
 private:
