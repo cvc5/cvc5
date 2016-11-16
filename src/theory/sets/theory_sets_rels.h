@@ -80,7 +80,6 @@ private:
     ~EqcInfo(){}
     static int                  counter;
     NodeSet                     d_mem;
-    NodeSet                     d_not_mem;
     NodeMap                     d_mem_exp;
     NodeListMap                 d_in;
     NodeListMap                 d_out;
@@ -126,14 +125,11 @@ private:
 
   /** Facts and lemmas to be sent to EE */
   std::map< Node, Node >        d_pending_facts;
-  std::map< Node, Node >        d_pending_split_facts;
-  std::vector< Node >           d_lemma_cache;
+  std::vector< Node >           d_lemmas_out;
   NodeList                      d_pending_merge;
 
   /** inferences: maintained to ensure ref count for internally introduced nodes */
-  NodeList                      d_infer;
-  NodeList                      d_infer_exp;
-  NodeSet                       d_lemma;
+  NodeSet                       d_lemmas_produced;
   NodeSet                       d_shared_terms;
 
   /** Relations that have been applied JOIN, PRODUCT, TC composition rules */
@@ -144,11 +140,14 @@ private:
   /** Symbolic tuple variables that has been reduced to concrete ones */
   std::hash_set< Node, NodeHashFunction >       d_symbolic_tuples;
 
-  /** Mapping between relation and its (non)members representatives */
-  std::map< Node, std::vector<Node> >           d_membership_constraints_cache;
+  /** Mapping between relation and its (non)member representatives */
+  std::map< Node, std::vector<Node> >           d_rReps_memberReps_cache;
+  std::map< Node, std::vector<Node> >           d_rReps_nonMemberReps_cache;
 
-  /** Mapping between relation and its (non)members' explanation */
-  std::map< Node, std::vector<Node> >           d_membership_exp_cache;
+
+  /** Mapping between relation and its (non)member representatives explanation */
+  std::map< Node, std::vector<Node> >           d_rReps_memberReps_exp_cache;
+  std::map< Node, std::vector<Node> >           d_rReps_nonMemberReps_exp_cache;
 
   /** Mapping between relation and its member representatives */
   std::map< Node, std::vector<Node> >           d_membership_db;
@@ -170,9 +169,12 @@ private:
 
   /** Mapping between transitive closure relation TC(r) and its TC graph constructed based on the members of r*/
   std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_tc_r_graph;
+  std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_rRep_tcGraph;
+  std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_tcr_tcGraph;
+  std::map< Node, std::map< Node, Node > > d_tcr_tcGraph_exps;
+  std::map< Node, std::vector< Node > > d_tc_lemmas_last;
 
   /** Mapping between transitive closure TC(r)'s representative and TC(r) */
-  std::map< Node, Node > d_tc_rep_term;
   std::map< Node, EqcInfo* > d_eqc_info;
 
 public:
@@ -201,30 +203,31 @@ private:
   void check();
   Node explain(Node);
   void collectRelsInfo();
-  void applyTCRule( Node, Node );
-  void applyJoinRule( Node, Node );
-  void applyProductRule( Node, Node );
-  void composeTupleMemForRel( Node );
-  void assertMembership( Node fact, Node reason, bool polarity );
-  void applyTransposeRule( Node, Node, Node more_reason = Node::null(), bool tp_occur_rule = false );
+  void applyTransposeRule( std::vector<Node> tp_terms );
+  void applyTransposeRule( Node rel, Node rel_rep, Node exp );
+  void applyProductRule( Node rel, Node rel_rep, Node exp );
+  void applyJoinRule( Node rel, Node rel_rep, Node exp);
+  void applyTCRule( Node mem, Node rel, Node rel_rep, Node exp);
+  void buildTCGraphForRel( Node tc_rel );
+  void doTCInference();
+  void doTCInference( std::map< Node, std::hash_set<Node, NodeHashFunction> > rel_tc_graph, std::map< Node, Node > rel_tc_graph_exps, Node tc_rel );
+  void doTCInference(Node tc_rel, std::vector< Node > reasons, std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph,
+                       std::map< Node, Node >& rel_tc_graph_exps, Node start_node_rep, Node cur_node_rep, std::hash_set< Node, NodeHashFunction >& seen );
+
+  void composeMembersForRels( Node );
+  void computeMembersForBinOpRel( Node );
+  void computeMembersForUnaryOpRel( Node );
+
+  bool isTCReachable( Node mem_rep, Node tc_rel );
+  void isTCReachable( Node start, Node dest, std::hash_set<Node, NodeHashFunction>& hasSeen,
+                    std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph, bool& isReachable );
 
 
-
-  void computeMembersForRelofMultArities( Node );
-  void computeMembersForUnaryRel( Node );
-  void finalizeTCInference();
-  void inferTC( Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >& );
-  void inferTC( Node, Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >&,
-                Node, Node, std::hash_set< Node, NodeHashFunction >&);
-  void isTCReachable(Node fst, Node snd, std::hash_set<Node, NodeHashFunction>& hasSeen,
-                      std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph, bool&);
-  std::map< Node, std::hash_set< Node, NodeHashFunction > > constructTCGraph( Node, Node, Node );
-
-
-  void doTCLemmas();
   void addSharedTerm( TNode n );
   void sendInfer( Node fact, Node exp, const char * c );
   void sendLemma( Node fact, Node reason, const char * c );
+  void sendMergeInfer( Node fact, Node reason, const char * c );
+  void doTCLemmas();
 
   // Helper functions
   bool holds( Node );
@@ -235,7 +238,6 @@ private:
   void computeTupleReps( Node );
   bool areEqual( Node a, Node b );
   Node getRepresentative( Node t );
-  Node findMemExp(Node r, Node pair);
   bool insertIntoIdList(IdList&, int);
   bool exists( std::vector<Node>&, Node );
   Node mkAnd( std::vector< TNode >& assumptions );
@@ -244,7 +246,6 @@ private:
   inline Node constructPair(Node tc_rep, Node a, Node b);
   void addToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   bool safelyAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );
-  inline Node getReason(Node tc_rep, Node tc_term, Node tc_r_rep, Node tc_r);
   bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
 
 
