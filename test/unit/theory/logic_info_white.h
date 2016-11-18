@@ -474,7 +474,7 @@ public:
 
     info.lock();
     TS_ASSERT( info.isLocked() );
-    TS_ASSERT_EQUALS( info.getLogicString(), "ALL_SUPPORTED" );
+    TS_ASSERT_EQUALS( info.getLogicString(), "ALL" );
     TS_ASSERT( info.isSharingEnabled() );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BUILTIN ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
