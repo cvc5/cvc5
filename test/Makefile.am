@@ -2,8 +2,8 @@ SUBDIRS = unit system regress .
 
 MAKEFLAGS = -k
 
-.PHONY: units systemtests regress regress0 regress1 regress2 regress3
-units systemtests regress regress0 regress1 regress2 regress3:
+.PHONY: units systemtests regress regress0 regress1 regress2 regress3 regress4
+units systemtests regress regress0 regress1 regress2 regress3 regress4:
 	@$(MAKE) check-pre; \
 	for dir in $(SUBDIRS); do \
 		test $$dir = . || (cd $$dir && $(MAKE) $(AM_MAKEFLAGS) $@); \
@@ -29,42 +29,55 @@ test "X$(AM_COLOR_TESTS)" != Xno \
 }
 
 subdirs_to_check = \
-	unit \
-	system \
 	regress/regress0 \
 	regress/regress0/arith \
 	regress/regress0/arith/integers \
-	regress/regress0/uf \
-	regress/regress0/uflra \
-	regress/regress0/uflia \
-	regress/regress0/bv \
-	regress/regress0/bv/core \
 	regress/regress0/arrays \
 	regress/regress0/aufbv \
 	regress/regress0/auflia \
+	regress/regress0/bv \
+	regress/regress0/bv/core \
 	regress/regress0/datatypes \
-	regress/regress0/quantifiers \
-	regress/regress0/rewriterules \
+	regress/regress0/decision \
+	regress/regress0/fmf \
 	regress/regress0/lemmas \
+	regress/regress0/parser \
+	regress/regress0/precedence \
+	regress/regress0/preprocess \
 	regress/regress0/push-pop \
 	regress/regress0/push-pop/arith \
 	regress/regress0/push-pop/boolean \
-	regress/regress0/precedence \
-	regress/regress0/preprocess \
-	regress/regress0/tptp \
-	regress/regress0/unconstrained \
-	regress/regress0/decision \
-	regress/regress0/fmf \
-	regress/regress0/strings \
-	regress/regress0/sets \
+	regress/regress0/quantifiers \
 	regress/regress0/rels \
-	regress/regress0/parser \
-	regress/regress0/sygus \
+	regress/regress0/rewriterules \
 	regress/regress0/sep \
+	regress/regress0/sets \
+	regress/regress0/strings \
+	regress/regress0/sygus \
+	regress/regress0/tptp \
+	regress/regress0/uf \
+	regress/regress0/uflia \
+	regress/regress0/uflra \
+	regress/regress0/unconstrained \
 	regress/regress1 \
-	regress/regress1/arith \
+	regress/regress1/aufbv \
+	regress/regress1/auflia \
+	regress/regress1/bv \
+	regress/regress1/datatypes \
+	regress/regress1/decision \
+	regress/regress1/fmf \
+	regress/regress1/lemmas \
+	regress/regress1/rewriterules \
+	regress/regress1/sep \
+	regress/regress1/sets \
+	regress/regress1/strings \
+	regress/regress1/sygus \
 	regress/regress2 \
-	regress/regress3
+	regress/regress2/arith \
+	regress/regress3 \
+	regress/regress4 \
+	system \
+	unit
 
 check-recursive: check-pre
 .PHONY: check-pre

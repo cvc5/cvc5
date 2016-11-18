@@ -9,3 +9,6 @@ endif
 ifeq ($(REGRESSION_LEVEL),3)
 SUBDIRS += regress1 regress2 regress3
 endif
+ifeq ($(REGRESSION_LEVEL),4)
+SUBDIRS += regress1 regress2 regress3 regress4
+endif

@@ -115,5 +115,5 @@ export VERBOSE = 1
 test systemtests: check
 
 # no-ops here
-.PHONY: units regress regress0 regress1 regress2 regress3
-units regress regress0 regress1 regress2 regress3:
+.PHONY: units regress regress0 regress1 regress2 regress3 regress4
+units regress regress0 regress1 regress2 regress3 regress4:

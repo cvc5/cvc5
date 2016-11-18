@@ -26,7 +26,7 @@ TESTS = commutative.sy \
         array_sum_2_5.sy \
         parity-AIG-d0.sy \
         twolets1.sy \
-        array_search_2.sy \        
+        array_search_2.sy \
         hd-01-d1-prog.sy \
         icfp_28_10.sy \
         const-var-test.sy \
@@ -74,5 +74,5 @@ EXTRA_DIST = $(TESTS) \
 regress regress0 test: check
 
 # do nothing in this subdir
-.PHONY: regress1 regress2 regress3
-regress1 regress2 regress3:
+.PHONY: regress1 regress2 regress3 regress4
+regress1 regress2 regress3 regress4:
