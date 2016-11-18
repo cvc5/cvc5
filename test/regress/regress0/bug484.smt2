@@ -1,5 +1,5 @@
 ; Preamble  --------------
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-datatypes () ((UNIT (Unit))))
 (declare-datatypes () ((BOOL (Truth) (Falsity))))
