@@ -24,13 +24,13 @@ public:
 
   virtual ~ProofOutputChannel() throw() {}
 
-  void conflict(TNode n, Proof* pf) throw();
-  bool propagate(TNode x) throw();
-  theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) throw();
-  theory::LemmaStatus splitLemma(TNode, bool) throw();
-  void requirePhase(TNode n, bool b) throw();
-  bool flipDecision() throw();
-  void setIncomplete() throw();
+  virtual void conflict(TNode n, Proof* pf) throw();
+  virtual bool propagate(TNode x) throw();
+  virtual theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool);
+  virtual theory::LemmaStatus splitLemma(TNode, bool);
+  virtual void requirePhase(TNode n, bool b) throw();
+  virtual bool flipDecision() throw();
+  virtual void setIncomplete() throw();
 };/* class ProofOutputChannel */
 
 class MyPreRegisterVisitor {

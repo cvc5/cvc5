@@ -279,10 +279,9 @@ class TheoryEngine {
                               ProofRule rule,
                               bool removable = false,
                               bool preprocess = false,
-                              bool sendAtoms = false)
-      throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException);
+                              bool sendAtoms = false);
 
-    theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException);
+    theory::LemmaStatus splitLemma(TNode lemma, bool removable = false);
 
     void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
       NodeManager* curr = NodeManager::currentNM();

@@ -26,18 +26,20 @@ void ProofOutputChannel::conflict(TNode n, Proof* pf) throw() {
 }
 
 bool ProofOutputChannel::propagate(TNode x) throw() {
-  Trace("pf::tp") << "ProofOutputChannel: got a propagation: " << x << std::endl;
+  Trace("pf::tp") << "ProofOutputChannel: got a propagation: " << x
+                  << std::endl;
   d_propagations.insert(x);
   return true;
 }
 
-theory::LemmaStatus ProofOutputChannel::lemma(TNode n, ProofRule rule, bool, bool, bool) throw() {
+theory::LemmaStatus ProofOutputChannel::lemma(TNode n, ProofRule rule, bool,
+                                              bool, bool) {
   Trace("pf::tp") << "ProofOutputChannel: new lemma: " << n << std::endl;
   d_lemma = n;
   return theory::LemmaStatus(TNode::null(), 0);
 }
 
-theory::LemmaStatus ProofOutputChannel::splitLemma(TNode, bool) throw() {
+theory::LemmaStatus ProofOutputChannel::splitLemma(TNode, bool) {
   AlwaysAssert(false);
   return theory::LemmaStatus(TNode::null(), 0);
 }

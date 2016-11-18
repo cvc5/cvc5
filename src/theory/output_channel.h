@@ -101,7 +101,7 @@ public:
    * unit conflict) which is assigned TRUE (and T-conflicting) in the
    * current assignment.
    * @param pf - a proof of the conflict. This is only non-null if proofs
-   * are enabled. 
+   * are enabled.
    */
   virtual void conflict(TNode n, Proof* pf = NULL) throw(AssertionException, UnsafeInterruptException) = 0;
 
@@ -128,17 +128,15 @@ public:
   virtual LemmaStatus lemma(TNode n, ProofRule rule,
                             bool removable = false,
                             bool preprocess = false,
-                            bool sendAtoms = false)
-    throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) = 0;
+                            bool sendAtoms = false) = 0;
 
   /**
    * Variant of the lemma function that does not require providing a proof rule.
    */
-  virtual LemmaStatus lemma(TNode n, 
+  virtual LemmaStatus lemma(TNode n,
                             bool removable = false,
                             bool preprocess = false,
-                            bool sendAtoms = false)
-    throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
+                            bool sendAtoms = false) {
     return lemma(n, RULE_INVALID, removable, preprocess, sendAtoms);
   }
 
@@ -153,8 +151,7 @@ public:
     return splitLemma(n.orNode(n.notNode()));
   }
 
-  virtual LemmaStatus splitLemma(TNode n, bool removable = false)
-    throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) = 0;
+  virtual LemmaStatus splitLemma(TNode n, bool removable = false) = 0;
 
   /**
    * If a decision is made on n, it must be in the phase specified.

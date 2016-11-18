@@ -77,22 +77,18 @@ theory::LemmaStatus TheoryEngine::EngineOutputChannel::lemma(TNode lemma,
                                                              ProofRule rule,
                                                              bool removable,
                                                              bool preprocess,
-                                                             bool sendAtoms)
-  throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
-  Debug("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << ", preprocess = " << preprocess << std::endl;
-  ++ d_statistics.lemmas;
+                                                             bool sendAtoms) {
+  Debug("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
+                         << lemma << ")"
+                         << ", preprocess = " << preprocess << std::endl;
+  ++d_statistics.lemmas;
   d_engine->d_outputChannelUsed = true;
 
-  PROOF({
-      registerLemmaRecipe(lemma, lemma, preprocess, d_theory);
-    });
+  PROOF({ registerLemmaRecipe(lemma, lemma, preprocess, d_theory); });
 
-  theory::LemmaStatus result = d_engine->lemma(lemma,
-                                               rule,
-                                               false,
-                                               removable,
-                                               preprocess,
-                                               sendAtoms ? d_theory : theory::THEORY_LAST);
+  theory::LemmaStatus result =
+      d_engine->lemma(lemma, rule, false, removable, preprocess,
+                      sendAtoms ? d_theory : theory::THEORY_LAST);
   return result;
 }
 
@@ -179,14 +175,17 @@ void TheoryEngine::EngineOutputChannel::registerLemmaRecipe(Node lemma, Node ori
   ProofManager::getCnfProof()->setProofRecipe(&proofRecipe);
 }
 
-theory::LemmaStatus TheoryEngine::EngineOutputChannel::splitLemma(TNode lemma, bool removable)
-  throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
-  Debug("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
-  ++ d_statistics.lemmas;
+theory::LemmaStatus TheoryEngine::EngineOutputChannel::splitLemma(
+    TNode lemma, bool removable) {
+  Debug("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
+                         << lemma << ")" << std::endl;
+  ++d_statistics.lemmas;
   d_engine->d_outputChannelUsed = true;
 
-  Debug("pf::explain") << "TheoryEngine::EngineOutputChannel::splitLemma( " << lemma << " )" << std::endl;
-  theory::LemmaStatus result = d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory);
+  Debug("pf::explain") << "TheoryEngine::EngineOutputChannel::splitLemma( "
+                       << lemma << " )" << std::endl;
+  theory::LemmaStatus result =
+      d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory);
   return result;
 }
 
