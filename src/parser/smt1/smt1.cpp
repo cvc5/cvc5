@@ -62,6 +62,8 @@ std::hash_map<const std::string, Smt1::Logic, CVC4::StringHashFunction> Smt1::ne
   logicMap["UFLRA"] = UFLRA;
   logicMap["QF_ALL_SUPPORTED"] = QF_ALL_SUPPORTED;
   logicMap["ALL_SUPPORTED"] = ALL_SUPPORTED;
+  logicMap["QF_ALL"] = QF_ALL_SUPPORTED;
+  logicMap["ALL"] = ALL_SUPPORTED;
   return logicMap;
 }
 

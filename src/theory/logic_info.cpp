@@ -242,9 +242,9 @@ std::string LogicInfo::getLogicString() const {
     qf_all_supported.disableQuantifiers();
     qf_all_supported.lock();
     if(hasEverything()) {
-      d_logicString = "ALL_SUPPORTED";
+      d_logicString = "ALL";
     } else if(*this == qf_all_supported) {
-      d_logicString = "QF_ALL_SUPPORTED";
+      d_logicString = "QF_ALL";
     } else {
       size_t seen = 0; // make sure we support all the active theories
 
@@ -341,11 +341,21 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
     enableEverything();
     disableQuantifiers();
     p += 16;
+  } else if(!strcmp(p, "QF_ALL")) {
+    // the "all theories included" logic, no quantifiers
+    enableEverything();
+    disableQuantifiers();
+    p += 6;
   } else if(!strcmp(p, "ALL_SUPPORTED")) {
     // the "all theories included" logic, with quantifiers
     enableEverything();
     enableQuantifiers();
     p += 13;
+  } else if(!strcmp(p, "ALL")) {
+    // the "all theories included" logic, with quantifiers
+    enableEverything();
+    enableQuantifiers();
+    p += 3;
   } else {
     if(!strncmp(p, "QF_", 3)) {
       disableQuantifiers();

@@ -646,12 +646,6 @@ void TheoryStrings::check(Effort e) {
   bool polarity;
   TNode atom;
 
-  /*if(getLogicInfo().hasEverything()) {
-    WarningOnce() << "WARNING: strings not supported in default configuration (ALL_SUPPORTED).\n"
-      << "To suppress this warning in the future use proper logic symbol, e.g. (set-logic QF_S)." << std::endl;
-  }
-  }*/
-
   if( !done() && !hasTerm( d_emptyString ) ) {
     preRegisterTerm( d_emptyString );
   }

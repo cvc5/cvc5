@@ -370,7 +370,7 @@ void Smt2::setLogic(std::string name) {
       name = "UFSLIA";
     } else if(name == "SAT") {
       name = "UF";
-    } else if(name == "ALL_SUPPORTED") {
+    } else if(name == "ALL" || name == "ALL_SUPPORTED") {
       //no change
     } else {
       std::stringstream ss;
@@ -456,14 +456,14 @@ void Smt2::checkThatLogicIsSet() {
         setLogic("LIA");
       } else {
         warning("No set-logic command was given before this point.");
-        warning("CVC4 will assume the non-standard ALL_SUPPORTED logic.");
+        warning("CVC4 will make all theories available.");
         warning("Consider setting a stricter logic for (likely) better performance.");
-        warning("To suppress this warning in the future use (set-logic ALL_SUPPORTED).");
+        warning("To suppress this warning in the future use (set-logic ALL).");
 
-        setLogic("ALL_SUPPORTED");
+        setLogic("ALL");
       }
 
-      Command* c = new SetBenchmarkLogicCommand("ALL_SUPPORTED");
+      Command* c = new SetBenchmarkLogicCommand("ALL");
       c->setMuted(true);
       preemptCommand(c);
     }

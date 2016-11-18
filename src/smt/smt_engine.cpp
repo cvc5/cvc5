@@ -1645,7 +1645,7 @@ void SmtEngine::setDefaults() {
   // Set decision mode based on logic (if not set by user)
   if(!options::decisionMode.wasSetByUser()) {
     decision::DecisionMode decMode =
-      // ALL_SUPPORTED
+      // ALL
       d_logic.hasEverything() ? decision::DECISION_STRATEGY_JUSTIFICATION :
       ( // QF_BV
         (not d_logic.isQuantified() &&
@@ -1676,7 +1676,7 @@ void SmtEngine::setDefaults() {
       );
 
     bool stoponly =
-      // ALL_SUPPORTED
+      // ALL
       d_logic.hasEverything() || d_logic.isTheoryEnabled(THEORY_STRINGS) ? false :
       ( // QF_AUFLIA
         (not d_logic.isQuantified() &&

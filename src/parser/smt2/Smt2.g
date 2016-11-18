@@ -272,7 +272,7 @@ command [CVC4::PtrCloser<CVC4::Command>* cmd]
       }
       PARSER_STATE->setLogic(name);
       if( PARSER_STATE->sygus() ){
-        cmd->reset(new SetBenchmarkLogicCommand("ALL_SUPPORTED"));
+        cmd->reset(new SetBenchmarkLogicCommand("ALL"));
       }else{
         cmd->reset(new SetBenchmarkLogicCommand(name));
       }

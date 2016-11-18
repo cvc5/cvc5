@@ -254,7 +254,7 @@ void CommandExecutor::printStatsFilterZeros(std::ostream& out,
     std::getline(iss, statValue, '\n');
 
     double curFloat;
-    bool isFloat = (std::istringstream(statValue) >> curFloat);
+    bool isFloat = static_cast<bool>(std::istringstream(statValue) >> curFloat);
 
     if( (isFloat && curFloat == 0) ||
         statValue == " \"0\"" ||
