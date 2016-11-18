@@ -21,8 +21,8 @@ MAKEFLAGS = -k
 TESTS = \
 	and-xor.cvc \
 	and-not.cvc \
-        bool-cmp.cvc \
-        cmp-plus.cvc \
+	bool-cmp.cvc \
+	cmp-plus.cvc \
 	eq-fun.cvc \
 	iff-assoc.cvc \
 	iff-implies.cvc \
@@ -31,7 +31,7 @@ TESTS = \
 	implies-or.cvc \
 	not-and.cvc \
 	not-eq.cvc \
-        plus-mult.cvc \
+	plus-mult.cvc \
 	or-implies.cvc \
 	or-xor.cvc \
 	xor-or.cvc \
@@ -55,5 +55,5 @@ EXTRA_DIST = $(TESTS)
 regress regress0 test: check
 
 # do nothing in this subdir
-.PHONY: regress1 regress2 regress3
-regress1 regress2 regress3:
+.PHONY: regress1 regress2 regress3 regress4
+regress1 regress2 regress3 regress4:
