@@ -342,7 +342,7 @@ option quantEqualityEngine --quant-ee bool :default false
  
 ### proof options
 
-option trackInstLemmas --track-inst-lemmas bool :default true
-  when proof is enabled, track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)
+option trackInstLemmas --track-inst-lemmas bool :read-write :default false
+  track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)
  
 endmodule

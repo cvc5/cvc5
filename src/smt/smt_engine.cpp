@@ -1723,6 +1723,10 @@ void SmtEngine::setDefaults() {
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << endl;
     options::cbqi.set(false);
   }
+  //track instantiations?
+  if( options::cbqiNestedQE() || ( options::proof() && !options::trackInstLemmas.wasSetByUser() ) ){
+    options::trackInstLemmas.set( true );
+  }
 
   if( ( options::fmfBoundLazy.wasSetByUser() && options::fmfBoundLazy() ) || 
       ( options::fmfBoundInt.wasSetByUser() && options::fmfBoundInt() ) ) {
@@ -5089,6 +5093,8 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   }
   if( d_theoryEngine ){
     d_theoryEngine->printInstantiations( out );
+  }else{
+    Assert( false );
   }
   if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
     out << "% SZS output end Proof for " << d_filename.c_str() << std::endl;
@@ -5099,6 +5105,8 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
   SmtScope smts(this);
   if( d_theoryEngine ){
     d_theoryEngine->printSynthSolution( out );
+  }else{
+    Assert( false );
   }
 }
 
@@ -5155,6 +5163,8 @@ void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
     for( unsigned i=0; i<qs_n.size(); i++ ){
       qs.push_back( qs_n[i].toExpr() );
     }
+  }else{
+    Assert( false );
   }
 }
 
@@ -5166,11 +5176,14 @@ void SmtEngine::getInstantiations( Expr q, std::vector< Expr >& insts ) {
     for( unsigned i=0; i<insts_n.size(); i++ ){
       insts.push_back( insts_n[i].toExpr() );
     }
+  }else{
+    Assert( false );
   }
 }
 
 void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< Expr > >& tvecs ) {
   SmtScope smts(this);
+  Assert(options::trackInstLemmas());
   if( d_theoryEngine ){
     std::vector< std::vector< Node > > tvecs_n;
     d_theoryEngine->getInstantiationTermVectors( Node::fromExpr( q ), tvecs_n );
@@ -5181,6 +5194,8 @@ void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< E
       }
       tvecs.push_back( tvec );
     }
+  }else{
+    Assert( false );
   }
 }
 

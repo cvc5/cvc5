@@ -147,9 +147,6 @@ private:
   quantifiers::QuantAntiSkolem * d_anti_skolem;
   /** quantifiers instantiation propagtor */
   quantifiers::InstPropagator * d_inst_prop;
-private:
-  /** whether we are tracking instantiation lemmas */
-  bool d_trackInstLemmas;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,

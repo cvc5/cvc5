@@ -138,8 +138,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_fs = NULL;
   d_rel_dom = NULL;
   d_builder = NULL;
-  
-  d_trackInstLemmas = options::cbqiNestedQE() || ( options::proof() && options::trackInstLemmas() );
 
   d_total_inst_count_debug = 0;
   //allow theory combination to go first, once initially
@@ -1221,7 +1219,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
         }
       }
     }
-    if( d_trackInstLemmas ){
+    if( options::trackInstLemmas() ){
       bool recorded;
       if( options::incrementalSolving() ){
         recorded = d_c_inst_match_trie[q]->recordInstLemma( q, terms, lem );
@@ -1409,7 +1407,7 @@ void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector
 }
 
 void QuantifiersEngine::getExplanationForInstLemmas( std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) {
-  if( d_trackInstLemmas ){
+  if( options::trackInstLemmas() ){
     if( options::incrementalSolving() ){
       for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
         it->second->getExplanationForInstLemmas( it->first, lems, quant, tvec );
@@ -1433,7 +1431,7 @@ void QuantifiersEngine::getExplanationForInstLemmas( std::vector< Node >& lems, 
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
   bool useUnsatCore = false;
   std::vector< Node > active_lemmas;
-  if( d_trackInstLemmas && getUnsatCoreLemmas( active_lemmas ) ){
+  if( options::trackInstLemmas() && getUnsatCoreLemmas( active_lemmas ) ){
     useUnsatCore = true;
   }
 
@@ -1497,7 +1495,7 @@ void QuantifiersEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& 
 void QuantifiersEngine::getInstantiations( std::map< Node, std::vector< Node > >& insts ) {
   bool useUnsatCore = false;
   std::vector< Node > active_lemmas;
-  if( d_trackInstLemmas && getUnsatCoreLemmas( active_lemmas ) ){
+  if( options::trackInstLemmas() && getUnsatCoreLemmas( active_lemmas ) ){
     useUnsatCore = true;
   }
 
