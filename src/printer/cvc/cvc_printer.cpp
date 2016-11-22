@@ -398,8 +398,13 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
         }
       }
       break;
-    case kind::APPLY_TESTER:
-      toStream(op, n.getOperator(), depth, types, false);
+    case kind::APPLY_TESTER: {
+      Assert( !n.getType().isTuple() && !n.getType().isRecord() );
+      op << "is_";
+      unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
+      const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
+      toStream(op, Node::fromExpr(dt[cindex].getConstructor()), depth, types, false);
+    }
       break;
     case kind::CONSTRUCTOR_TYPE:
     case kind::SELECTOR_TYPE:

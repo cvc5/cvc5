@@ -668,6 +668,11 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
            tmp.replace(pos, 8, "::");
         }
         out << tmp;
+      }else if( n.getKind()==kind::APPLY_TESTER ){
+        unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
+        const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
+        out << "is-";
+        toStream(out, Node::fromExpr(dt[cindex].getConstructor()), toDepth < 0 ? toDepth : toDepth - 1, types);
       }else{
         toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types);
       }
