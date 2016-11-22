@@ -16,7 +16,6 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include <ext/stdio_filebuf.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -29,9 +28,6 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
-
-
-typedef __gnu_cxx::stdio_filebuf<char> filebuf_gnu;
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -85,20 +81,12 @@ public:
   void testEmptyFileInput() {
     char *filename = mkTemp();
 
-    /* FILE *fp = tmpfile(); */
-    /* filebuf_gnu fs( fd, ios_base::out ); */
-
-    /* ptr = tmpnam(filename); */
-    /* std::fstream fs( ptr, fstream::out ); */
-    /* fs.close(); */
-
     checkEmptyInput(
       ParserBuilder(d_exprManager,filename)
         .withInputLanguage(LANG_CVC4)
                     );
 
     remove(filename);
-    //    mkfifo(ptr, S_IWUSR | s_IRUSR);
     free(filename);
   }
 
