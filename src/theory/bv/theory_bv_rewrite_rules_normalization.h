@@ -492,8 +492,10 @@ template<> inline
 Node RewriteRule<MultDistrib>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<MultDistrib>(" << node << ")" << std::endl;
 
-  TNode factor = node[0].getKind() != kind::BITVECTOR_PLUS ? node[0] : node[1];
-  TNode sum = node[0].getKind() == kind::BITVECTOR_PLUS? node[0] : node[1];
+  bool is_rhs_factor = node[0].getKind() == kind::BITVECTOR_PLUS ||
+                       node[0].getKind() == kind::BITVECTOR_SUB;
+  TNode factor = !is_rhs_factor ? node[0] : node[1];
+  TNode sum = is_rhs_factor ? node[0] : node[1];
   Assert (factor.getKind() != kind::BITVECTOR_PLUS &&
           factor.getKind() != kind::BITVECTOR_SUB &&
           (sum.getKind() == kind::BITVECTOR_PLUS ||
