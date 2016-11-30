@@ -802,7 +802,7 @@ bool RewriteRule<ExtractMultLeadingBit>::applies(TNode node) {
     return false;
   unsigned low = utils::getExtractLow(node);
   node = node[0];
-  
+
   if (node.getKind() != kind::BITVECTOR_MULT ||
       node.getNumChildren() != 2 ||
       utils::getSize(node) <= 64)
@@ -818,15 +818,14 @@ bool RewriteRule<ExtractMultLeadingBit>::applies(TNode node) {
   // count number of leading zeroes
   const Integer& int1 = node[0][0].getConst<BitVector>().toInteger();
   const Integer& int2 = node[1][0].getConst<BitVector>().toInteger();
-  unsigned zeroes1 = int1.isZero()? utils::getSize(node[0][0]) :
-                                    int1.length();
-
-  unsigned zeroes2 = int2.isZero()? utils::getSize(node[1][0]) :
-                                    int2.length();
+  size_t int1_size = utils::getSize(node[0][0]);
+  size_t int2_size = utils::getSize(node[1][0]);
+  unsigned zeroes1 = int1.isZero() ? int1_size : int1_size - int1.length();
+  unsigned zeroes2 = int2.isZero() ? int2_size : int2_size - int2.length();
 
   // first k bits are not zero in the result
   unsigned k = 2 * n - (zeroes1 + zeroes2);
-  
+
   if (k > low)
     return false; 
 

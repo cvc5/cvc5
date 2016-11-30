@@ -112,7 +112,8 @@ CVC_TESTS = bvsimple.cvc sizecheck.cvc
 BUG_TESTS = \
 	bug260a.smt \
 	bug260b.smt \
-	bug440.smt
+	bug440.smt \
+	bug_extract_mult_leading_bit.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
