@@ -1,0 +1,31 @@
+% COMMAND-LINE: --incremental
+
+% EXPECT: valid
+QUERY 0bin0000111101010000  = 0hex0f50;
+
+% EXPECT: valid
+QUERY 0bin01@0bin0          = 0bin010;
+
+% EXPECT: valid
+QUERY 0bin0011[3:1]         = 0bin001;
+
+% EXPECT: valid
+QUERY 0bin0011 << 3         = 0bin0011000;
+
+% EXPECT: valid
+QUERY 0bin1000 >> 3         = 0bin0001;
+
+% EXPECT: valid
+QUERY SX(0bin100, 5)        = 0bin11100;
+
+% EXPECT: valid
+QUERY BVZEROEXTEND(0bin1,3) = 0bin0001;
+
+% EXPECT: valid
+QUERY BVREPEAT(0bin10,3)    = 0bin101010;
+
+% EXPECT: valid
+QUERY BVROTL(0bin101,1)     = 0bin011;
+
+% EXPECT: valid
+QUERY BVROTR(0bin101,1)     = 0bin110;

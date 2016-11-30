@@ -1,0 +1,13 @@
+% COMMAND-LINE: --incremental
+
+x, y : BITVECTOR(8);
+z, t : BITVECTOR(12);
+
+ASSERT x = 0hexff;
+ASSERT z = 0hexff0;
+
+% EXPECT: valid
+QUERY  z = x << 4;
+
+% EXPECT: valid
+QUERY (z >> 4)[7:0] = x;

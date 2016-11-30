@@ -1,0 +1,14 @@
+x, y : BITVECTOR(4);
+
+ASSERT x = 0hex5;
+ASSERT y = 0bin0101;
+
+% EXPECT: valid
+QUERY
+ BVMULT(8,x,y)=BVMULT(8,y,x)
+ AND
+ NOT(BVLT(x,y))
+ AND
+ BVLE(BVSUB(8,x,y), BVPLUS(8, x, BVUMINUS(x)))
+ AND
+ x = BVSUB(4, BVUMINUS(x), BVPLUS(4, x,0hex1)) ;

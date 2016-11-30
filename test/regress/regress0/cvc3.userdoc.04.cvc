@@ -1,0 +1,9 @@
+x, y, z, t, q : BITVECTOR(1024);
+
+ASSERT x = ~x;
+ASSERT x&y&t&z&q = x;
+ASSERT x|y = t;
+ASSERT BVXOR(x,~x) = t;
+
+% EXPECT: valid
+QUERY  FALSE;

@@ -111,7 +111,13 @@ CVC_TESTS = \
 	wiki.21.cvc \
 	queries0.cvc \
 	trim.cvc \
-	print_lambda.cvc 
+	print_lambda.cvc \
+	cvc3.userdoc.01.cvc \
+	cvc3.userdoc.02.cvc \
+	cvc3.userdoc.03.cvc \
+	cvc3.userdoc.04.cvc \
+	cvc3.userdoc.05.cvc \
+	cvc3.userdoc.06.cvc
 
 # Regression tests for TPTP inputs
 TPTP_TESTS =

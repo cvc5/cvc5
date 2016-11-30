@@ -1,0 +1,8 @@
+bv : BITVECTOR(10);
+a : BOOLEAN;
+
+% EXPECT: valid
+QUERY
+ 0bin01100000[5:3]=(0bin1111001@bv[0:0])[4:2]
+ AND
+ 0bin1@(IF a THEN 0bin0 ELSE 0bin1 ENDIF) = (IF a THEN 0bin110 ELSE 0bin011 ENDIF)[1:0] ;
