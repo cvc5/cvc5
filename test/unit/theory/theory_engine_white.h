@@ -32,6 +32,7 @@
 #include "options/options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
@@ -45,6 +46,7 @@ using namespace CVC4::expr;
 using namespace CVC4::context;
 using namespace CVC4::kind;
 using namespace CVC4::smt;
+using namespace CVC4::theory::bv;
 
 using namespace std;
 
@@ -422,5 +424,24 @@ public:
 
     // assert that the rewritten node is what we expect
 //    TS_ASSERT_EQUALS(nOut, nExpected);
+  }
+
+  void testRewriterRules() {
+    TypeNode t = d_nm->mkBitVectorType(8);
+    Node x = d_nm->mkVar("x", t);
+    Node y = d_nm->mkVar("y", t);
+    Node z = d_nm->mkVar("z", t);
+
+    // (x - y) * z --> (x * z) - (y * z)
+    Node expr =
+        d_nm->mkNode(BITVECTOR_MULT, d_nm->mkNode(BITVECTOR_SUB, x, y), z);
+    Node result = expr;
+    if (RewriteRule<MultDistrib>::applies(expr)) {
+      result = RewriteRule<MultDistrib>::apply(expr);
+    }
+    Node expected =
+        d_nm->mkNode(BITVECTOR_SUB, d_nm->mkNode(BITVECTOR_MULT, x, z),
+                     d_nm->mkNode(BITVECTOR_MULT, y, z));
+    TS_ASSERT(result == expected);
   }
 };
