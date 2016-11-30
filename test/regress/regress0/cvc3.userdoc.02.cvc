@@ -1,0 +1,7 @@
+x : BITVECTOR(5);
+y : BITVECTOR(4);
+yy : BITVECTOR(3);
+
+% EXPECT: valid
+QUERY
+ BVPLUS(9, x@0bin0000, (0bin000@(~y)@0bin11))[8:4] = BVPLUS(5, x, ~(y[3:2])) ;

@@ -1945,7 +1945,7 @@ bvTerm[CVC4::Expr& f]
     { f = MK_EXPR(MK_CONST(BitVectorRepeat(k)), f); }
     /* BV rotate right */
   | BVROTR_TOK LPAREN formula[f] COMMA k=numeral RPAREN
-    { f = MK_EXPR(MK_CONST(BitVectorSignExtend(k)), f); }
+    { f = MK_EXPR(MK_CONST(BitVectorRotateRight(k)), f); }
     /* BV rotate left */
   | BVROTL_TOK LPAREN formula[f] COMMA k=numeral RPAREN
     { f = MK_EXPR(MK_CONST(BitVectorRotateLeft(k)), f); }
