@@ -25,7 +25,7 @@ operator SEP_EMP 2 "separation empty heap"
 operator SEP_PTO 2 "points to relation"
 operator SEP_STAR 2: "separation star"
 operator SEP_WAND 2 "separation magic wand"
-operator SEP_LABEL 2 "separation label"
+operator SEP_LABEL 2 "separation label (internal use only)"
 
 typerule SEP_NIL_REF ::CVC4::theory::sep::SepNilRefTypeRule
 typerule SEP_EMP ::CVC4::theory::sep::SepEmpTypeRule

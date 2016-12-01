@@ -83,7 +83,8 @@ TESTS = \
   csp-prefix-exp-bug.smt2 \
   cmu-substr-rw.smt2 \
   gm-inc-071516-2.smt2 \
-  cmu-inc-nlpp-071516.smt2
+  cmu-inc-nlpp-071516.smt2 \
+  strings-index-empty.smt2
 
 FAILING_TESTS =
 

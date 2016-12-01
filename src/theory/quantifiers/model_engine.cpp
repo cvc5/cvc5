@@ -231,7 +231,11 @@ int ModelEngine::checkModel(){
 }
 
 bool ModelEngine::considerQuantifiedFormula( Node q ) {
-  if( !d_quantEngine->getModelBuilder()->isQuantifierActive( q ) || !d_quantEngine->getModel()->isQuantifierActive( q ) ){
+  if( !d_quantEngine->getModelBuilder()->isQuantifierActive( q ) ){ 
+    Trace("model-engine-debug") << "Model builder inactive : " << q << std::endl;
+    return false;
+  }else if( !d_quantEngine->getModel()->isQuantifierActive( q ) ){
+    Trace("model-engine-debug") << "Model inactive : " << q << std::endl;
     return false;
   }else{
     if( options::fmfEmptySorts() ){

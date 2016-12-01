@@ -116,25 +116,23 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       skk = NodeManager::currentNM()->mkSkolem( "iok", NodeManager::currentNM()->integerType(), "created for indexof" );
     }
     Node st = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, t[0], t[2], NodeManager::currentNM()->mkNode( kind::MINUS, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), t[2] ) );
+    //TODO: simplify this (only applies when idof != -1)
     Node eq = st.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk2, sk3, sk4 ) );
     new_nodes.push_back( eq );
+    
+    //learn range of idof?
     Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
     Node krange = NodeManager::currentNM()->mkNode( kind::GEQ, skk, negone );
     new_nodes.push_back( krange );
     krange = NodeManager::currentNM()->mkNode( kind::GT, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), skk);
     new_nodes.push_back( krange );
-    krange = NodeManager::currentNM()->mkNode( kind::GT, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[1] ), d_zero);
-    new_nodes.push_back( krange );
-    Node start_valid = NodeManager::currentNM()->mkNode( kind::GEQ, t[2], d_zero);
 
-    //str.len(s1) < y + str.len(s2)
-    Node c1 = NodeManager::currentNM()->mkNode( kind::GT,
-                                                NodeManager::currentNM()->mkNode( kind::PLUS, t[2], NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[1] )),
-                                                NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ));
+    // s2 = ""
+    Node c1 = t[1].eqNode( NodeManager::currentNM()->mkConst( ::CVC4::String("") ) );
     //~contain(t234, s2)
     Node c3 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, st, t[1] ).negate();
     //left
-    Node left = NodeManager::currentNM()->mkNode( kind::OR, c1, c3, start_valid.negate() );
+    Node left = NodeManager::currentNM()->mkNode( kind::OR, c1, c3 );
     //t3 = s2
     Node c4 = t[1].eqNode( sk3 );
     //~contain(t2, s2)
@@ -149,7 +147,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node c6 = skk.eqNode( NodeManager::currentNM()->mkNode( kind::PLUS, t[2],
                             NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 )) );
     //right
-    Node right = NodeManager::currentNM()->mkNode( kind::AND, c4, c5, c6, start_valid );
+    Node right = NodeManager::currentNM()->mkNode( kind::AND, c4, c5, c6, c1.negate() );
     Node cond = skk.eqNode( negone );
     Node rr = NodeManager::currentNM()->mkNode( kind::ITE, cond, left, right );
     new_nodes.push_back( rr );
