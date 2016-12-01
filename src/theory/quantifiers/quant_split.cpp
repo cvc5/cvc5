@@ -85,46 +85,48 @@ void QuantDSplit::check( Theory::Effort e, unsigned quant_e ) {
     std::vector< Node > lemmas;
     for(std::map< Node, int >::iterator it = d_quant_to_reduce.begin(); it != d_quant_to_reduce.end(); ++it) {
       Node q = it->first;
-      if( d_added_split.find( q )==d_added_split.end() ){
-        d_added_split.insert( q );
-        std::vector< Node > bvs;
-        for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-          if( (int)i!=it->second ){
-            bvs.push_back( q[0][i] );
-          }
-        }
-        std::vector< Node > disj;
-        disj.push_back( q.negate() );
-        TNode svar = q[0][it->second];
-        TypeNode tn = svar.getType();
-        if( tn.isDatatype() ){
-          std::vector< Node > cons;
-          const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-          for( unsigned j=0; j<dt.getNumConstructors(); j++ ){
-            std::vector< Node > vars;
-            for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
-              TypeNode tns = TypeNode::fromType( dt[j][k].getRangeType() );
-              Node v = NodeManager::currentNM()->mkBoundVar( tns );
-              vars.push_back( v );
+      if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
+        if( d_added_split.find( q )==d_added_split.end() ){
+          d_added_split.insert( q );
+          std::vector< Node > bvs;
+          for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+            if( (int)i!=it->second ){
+              bvs.push_back( q[0][i] );
             }
-            std::vector< Node > bvs_cmb;
-            bvs_cmb.insert( bvs_cmb.end(), bvs.begin(), bvs.end() );
-            bvs_cmb.insert( bvs_cmb.end(), vars.begin(), vars.end() );
-            vars.insert( vars.begin(), Node::fromExpr( dt[j].getConstructor() ) );
-            Node c = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, vars );
-            TNode ct = c;
-            Node body = q[1].substitute( svar, ct );
-            if( !bvs_cmb.empty() ){
-              body = NodeManager::currentNM()->mkNode( kind::FORALL, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, bvs_cmb ), body );
-            }
-            cons.push_back( body );
           }
-          Node conc = cons.size()==1 ? cons[0] : NodeManager::currentNM()->mkNode( kind::AND, cons );
-          disj.push_back( conc );
-        }else{
-          Assert( false );
+          std::vector< Node > disj;
+          disj.push_back( q.negate() );
+          TNode svar = q[0][it->second];
+          TypeNode tn = svar.getType();
+          if( tn.isDatatype() ){
+            std::vector< Node > cons;
+            const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+            for( unsigned j=0; j<dt.getNumConstructors(); j++ ){
+              std::vector< Node > vars;
+              for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
+                TypeNode tns = TypeNode::fromType( dt[j][k].getRangeType() );
+                Node v = NodeManager::currentNM()->mkBoundVar( tns );
+                vars.push_back( v );
+              }
+              std::vector< Node > bvs_cmb;
+              bvs_cmb.insert( bvs_cmb.end(), bvs.begin(), bvs.end() );
+              bvs_cmb.insert( bvs_cmb.end(), vars.begin(), vars.end() );
+              vars.insert( vars.begin(), Node::fromExpr( dt[j].getConstructor() ) );
+              Node c = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, vars );
+              TNode ct = c;
+              Node body = q[1].substitute( svar, ct );
+              if( !bvs_cmb.empty() ){
+                body = NodeManager::currentNM()->mkNode( kind::FORALL, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, bvs_cmb ), body );
+              }
+              cons.push_back( body );
+            }
+            Node conc = cons.size()==1 ? cons[0] : NodeManager::currentNM()->mkNode( kind::AND, cons );
+            disj.push_back( conc );
+          }else{
+            Assert( false );
+          }
+          lemmas.push_back( disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( kind::OR, disj ) );
         }
-        lemmas.push_back( disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( kind::OR, disj ) );
       }
     }
 
@@ -133,7 +135,7 @@ void QuantDSplit::check( Theory::Effort e, unsigned quant_e ) {
       Trace("quant-dsplit") << "QuantDSplit lemma : " << lemmas[i] << std::endl;
       d_quantEngine->addLemma( lemmas[i], false );
     }
-    d_quant_to_reduce.clear();
+    //d_quant_to_reduce.clear();
   }
 }
 
