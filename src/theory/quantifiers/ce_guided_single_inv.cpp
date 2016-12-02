@@ -16,7 +16,6 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/ce_guided_single_inv_ei.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -147,7 +146,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
         d_has_ites = false;
       }
     }
-    Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
+    Assert( tn.isDatatype() );
     const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
     Assert( dt.isSygus() );
     if( !dt.getSygusAllowAll() ){

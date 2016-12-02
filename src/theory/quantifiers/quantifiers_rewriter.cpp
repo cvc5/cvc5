@@ -15,7 +15,6 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
 

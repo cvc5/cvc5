@@ -819,7 +819,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       bool isCorecursive = false;
       if( t.isDatatype() ){
         const Datatype& dt = ((DatatypeType)(t).toType()).getDatatype();
-        isCorecursive = dt.isCodatatype() && ( !dt.isFinite() || dt.isRecursiveSingleton() );
+        isCorecursive = dt.isCodatatype() && ( !dt.isFinite( t.toType() ) || dt.isRecursiveSingleton( t.toType() ) );
       }
 #ifdef CVC4_ASSERTIONS
       bool isUSortFiniteRestricted = false;

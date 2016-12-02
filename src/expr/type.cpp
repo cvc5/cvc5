@@ -250,7 +250,7 @@ bool Type::isFloatingPoint() const {
 /** Is this a datatype type? */
 bool Type::isDatatype() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->isDatatype() || d_typeNode->isParametricDatatype();
+  return d_typeNode->isDatatype();
 }
 
 /** Is this the Constructor type? */
@@ -564,13 +564,7 @@ std::vector<Type> ConstructorType::getArgTypes() const {
 
 const Datatype& DatatypeType::getDatatype() const {
   NodeManagerScope nms(d_nodeManager);
-  if( d_typeNode->isParametricDatatype() ) {
-    PrettyCheckArgument( (*d_typeNode)[0].getKind() == kind::DATATYPE_TYPE, this);
-    const Datatype& dt = (*d_typeNode)[0].getDatatype();
-    return dt;
-  } else {
-    return d_typeNode->getDatatype();
-  }
+  return d_typeNode->getDatatype();
 }
 
 bool DatatypeType::isParametric() const {

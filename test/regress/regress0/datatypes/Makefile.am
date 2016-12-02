@@ -69,7 +69,9 @@ TESTS =	\
 	sc-cdt1.smt2  \
 	conqueue-dt-enum-iloop.smt2 \
 	coda_simp_model.smt2 \
-	Test1-tup-mp.cvc
+	Test1-tup-mp.cvc \
+	dt-param-card4-unsat.smt2 \
+	dt-param-card4-bool-sat.smt2
 
 FAILING_TESTS = \
 	datatype-dump.cvc

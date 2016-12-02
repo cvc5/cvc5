@@ -202,7 +202,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           if( parent[0].getType().isDatatype() ){
             TypeNode tn = parent[0].getType();
             const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-            if( dt.isRecursiveSingleton() ){
+            if( dt.isRecursiveSingleton( tn.toType() ) ){
               //domain size may be 1
               break;
             }

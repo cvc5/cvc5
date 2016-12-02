@@ -134,7 +134,7 @@ public:
         //if( !tn.isSort() ){
         //  useTe = false;
         //}
-        if( isTypeDatatype( tn ) ){
+        if( tn.isDatatype() ){
           const Datatype& dta = ((DatatypeType)(tn).toType()).getDatatype();
           useTe = !dta.isCodatatype();
         }
@@ -375,15 +375,6 @@ public:
       }
     }
     return true;
-  }
-
-  /** is this term a datatype */
-  static bool isTermDatatype( TNode n ){
-    TypeNode tn = n.getType();
-    return tn.isDatatype() || tn.isParametricDatatype();
-  }
-  static bool isTypeDatatype( TypeNode tn ){
-    return tn.isDatatype() || tn.isParametricDatatype();
   }
 private:
   static Node collectRef( Node n, std::vector< Node >& sk, std::map< Node, Node >& rf, std::vector< Node >& rf_pending,

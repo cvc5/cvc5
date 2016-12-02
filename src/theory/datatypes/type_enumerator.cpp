@@ -170,9 +170,9 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    Debug("dt-enum") << "datatype is datatype? " << d_type.isDatatype() << std::endl;
    Debug("dt-enum") << "datatype is kind " << d_type.getKind() << std::endl;
    Debug("dt-enum") << "datatype is " << d_type << std::endl;
-   Debug("dt-enum") << "properties : " << d_datatype.isCodatatype() << " " << d_datatype.isRecursiveSingleton();
-   Debug("dt-enum") << " " << d_datatype.isFinite() << std::endl;
-   Debug("dt-enum") << " " << d_datatype.isInterpretedFinite() << std::endl;
+   Debug("dt-enum") << "properties : " << d_datatype.isCodatatype() << " " << d_datatype.isRecursiveSingleton( d_type.toType() );
+   Debug("dt-enum") << " " << d_datatype.isFinite( d_type.toType() ) << std::endl;
+   Debug("dt-enum") << " " << d_datatype.isInterpretedFinite( d_type.toType() ) << std::endl;
 
    if( d_datatype.isCodatatype() && hasCyclesDt( d_datatype ) ){
      //start with uninterpreted constant

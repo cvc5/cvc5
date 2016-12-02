@@ -16,7 +16,6 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -655,7 +654,7 @@ Node CegConjectureSingleInvSol::reconstructSolution( Node sol, TypeNode stn, int
     if( Trace.isOn("csi-rcons") ){
       for( std::map< TypeNode, std::map< Node, int > >::iterator it = d_rcons_to_id.begin(); it != d_rcons_to_id.end(); ++it ){
         TypeNode tn = it->first;
-        Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
+        Assert( tn.isDatatype() );
         const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
         Trace("csi-rcons") << "Terms to reconstruct of type " << dt.getName() << " : " << std::endl;
         for( std::map< Node, int >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
@@ -732,7 +731,7 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
     int id = allocate( t, stn );
     d_rcons_to_status[stn][t] = -1;
     TypeNode tn = t.getType();
-    Assert( datatypes::DatatypesRewriter::isTypeDatatype( stn ) );
+    Assert( stn.isDatatype() );
     const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
     Assert( dt.isSygus() );
     Trace("csi-rcons-debug") << "Check reconstruct " << t << ", sygus type " << dt.getName() << ", kind " << t.getKind() << ", id : " << id << std::endl;

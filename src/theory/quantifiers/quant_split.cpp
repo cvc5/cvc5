@@ -43,16 +43,16 @@ void QuantDSplit::preRegisterQuantifier( Node q ) {
     TypeNode tn = q[0][i].getType();
     if( tn.isDatatype() ){
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      if( dt.isRecursiveSingleton() ){
+      if( dt.isRecursiveSingleton( tn.toType() ) ){
         Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is recursive singleton." << std::endl;
       }else{
         int score = -1;
         if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
-          score = dt.isInterpretedFinite() ? 1 : 0;
+          score = dt.isInterpretedFinite( tn.toType() ) ? 1 : 0;
         }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
-          score = dt.isInterpretedFinite() ? 1 : -1;
+          score = dt.isInterpretedFinite( tn.toType() ) ? 1 : -1;
         }
-        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is score " << score << " (" << dt.isInterpretedFinite() << " " << dt.isFinite() << ")" << std::endl;
+        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is score " << score << " (" << dt.isInterpretedFinite( tn.toType() ) << " " << dt.isFinite( tn.toType() ) << ")" << std::endl;
         if( score>max_score ){
           max_index = i;
           max_score = score;

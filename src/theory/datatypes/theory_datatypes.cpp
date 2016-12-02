@@ -185,16 +185,17 @@ void TheoryDatatypes::check(Effort e) {
       while( !eqcs_i.isFinished() ){
         Node n = (*eqcs_i);
         TypeNode tn = n.getType();
-        if( DatatypesRewriter::isTypeDatatype( tn ) ){
+        if( tn.isDatatype() ){
           Trace("datatypes-debug") << "Process equivalence class " << n << std::endl;
           EqcInfo* eqc = getOrMakeEqcInfo( n );
           //if there are more than 1 possible constructors for eqc
           if( !hasLabel( eqc, n ) ){
             Trace("datatypes-debug") << "No constructor..." << std::endl;
-            const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-            Trace("datatypes-debug") << "Datatype " << dt << " is " << dt.isFinite() << " " << dt.isInterpretedFinite() << " " << dt.isRecursiveSingleton() << std::endl;
+            Type tt = tn.toType();
+            const Datatype& dt = ((DatatypeType)tt).getDatatype();
+            Trace("datatypes-debug") << "Datatype " << dt << " is " << dt.isFinite( tt ) << " " << dt.isInterpretedFinite( tt ) << " " << dt.isRecursiveSingleton( tt ) << std::endl;
             bool continueProc = true;
-            if( dt.isRecursiveSingleton() ){
+            if( dt.isRecursiveSingleton( tt ) ){
               Trace("datatypes-debug") << "Check recursive singleton..." << std::endl;
               //handle recursive singleton case
               std::map< TypeNode, Node >::iterator itrs = rec_singletons.find( tn );
@@ -209,8 +210,8 @@ void TheoryDatatypes::check(Effort e) {
                   //  do not infer the equality if at least one sort was processed.
                   //otherwise, if the logic is quantified, under the assumption that all uninterpreted sorts have cardinality one,
                   //  infer the equality.
-                  for( unsigned i=0; i<dt.getNumRecursiveSingletonArgTypes(); i++ ){
-                    TypeNode tn = TypeNode::fromType( dt.getRecursiveSingletonArgType( i ) );
+                  for( unsigned i=0; i<dt.getNumRecursiveSingletonArgTypes( tt ); i++ ){
+                    TypeNode tn = TypeNode::fromType( dt.getRecursiveSingletonArgType( tt, i ) );
                     if( getQuantifiersEngine() ){
                       // under the assumption that the cardinality of this type is one
                       Node a = getSingletonLemma( tn, true );
@@ -253,7 +254,7 @@ void TheoryDatatypes::check(Effort e) {
                   if( consIndex==-1 ){
                     consIndex = j;
                   }
-                  if( !dt[ j ].isInterpretedFinite() ) {
+                  if( !dt[ j ].isInterpretedFinite( tt ) ) {
                     if( !eqc || !eqc->d_selectors ){
                       needSplit = false;
                     }
@@ -773,7 +774,7 @@ void TheoryDatatypes::eqNotifyPreMerge(TNode t1, TNode t2){
 
 /** called when two equivalance classes have merged */
 void TheoryDatatypes::eqNotifyPostMerge(TNode t1, TNode t2){
-  if( DatatypesRewriter::isTermDatatype( t1 ) ){
+  if( t1.getType().isDatatype() ){
     Trace("datatypes-debug") << "NotifyPostMerge : " << t1 << " " << t2 << std::endl;
     d_pending_merge.push_back( t1.eqNode( t2 ) );
   }
@@ -1441,7 +1442,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
   while( !eqccs_i.isFinished() ){
     Node eqc = (*eqccs_i);
     //for all equivalence classes that are datatypes
-    if( DatatypesRewriter::isTermDatatype( eqc ) ){
+    if( eqc.getType().isDatatype() ){
       EqcInfo* ei = getOrMakeEqcInfo( eqc );
       if( ei && !ei->d_constructor.get().isNull() ){
         Node c = ei->d_constructor.get();
@@ -1467,7 +1468,8 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     Node eqc = nodes[index];
     Node neqc;
     bool addCons = false;
-    const Datatype& dt = ((DatatypeType)(eqc.getType()).toType()).getDatatype();
+    Type tt = eqc.getType().toType();
+    const Datatype& dt = ((DatatypeType)tt).getDatatype();
     if( !d_equalityEngine.hasTerm( eqc ) ){
       Assert( false );
       /*
@@ -1533,12 +1535,12 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
         if( neqc.isNull() ){
           for( unsigned i=0; i<pcons.size(); i++ ){
             //must try the infinite ones first
-            bool cfinite = dt[ i ].isInterpretedFinite();
+            bool cfinite = dt[ i ].isInterpretedFinite( tt );
             if( pcons[i] && (r==1)==cfinite ){
               neqc = DatatypesRewriter::getInstCons( eqc, dt, i );
               //for( unsigned j=0; j<neqc.getNumChildren(); j++ ){
-              //  //if( sels[i].find( j )==sels[i].end() && DatatypesRewriter::isTermDatatype( neqc[j] ) ){
-              //  if( !d_equalityEngine.hasTerm( neqc[j] ) && DatatypesRewriter::isTermDatatype( neqc[j] ) ){
+              //  //if( sels[i].find( j )==sels[i].end() && neqc[j].getType().isDatatype() ){
+              //  if( !d_equalityEngine.hasTerm( neqc[j] ) && neqc[j].getType().isDatatype() ){
               //    nodes.push_back( neqc[j] );
               //  }
               //}
@@ -1586,7 +1588,7 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
   if( itv!=vmap.end() ){
     int debruijn = depth - 1 - itv->second;
     return NodeManager::currentNM()->mkConst(UninterpretedConstant(n.getType().toType(), debruijn));
-  }else if( DatatypesRewriter::isTermDatatype( n ) ){
+  }else if( n.getType().isDatatype() ){
     Node nc = eqc_cons[n];
     if( !nc.isNull() ){
       vmap[n] = depth;
@@ -1789,7 +1791,7 @@ void TheoryDatatypes::checkCycles() {
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
     TypeNode tn = eqc.getType();
-    if( DatatypesRewriter::isTypeDatatype( tn ) ) {
+    if( tn.isDatatype() ) {
       if( !tn.isCodatatype() ){
         if( options::dtCyclic() ){
           //do cycle checks
@@ -1895,7 +1897,7 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
       if( !mkExp ){ Trace("dt-cdt-debug") << "  - " << part[j] << " is looping at index " << it_rec->second << std::endl; }
       new_part_rec[ it_rec->second ].push_back( part[j] );
     }else{
-      if( DatatypesRewriter::isTermDatatype( c ) ){
+      if( c.getType().isDatatype() ){
         Node ncons = getEqcConstructor( c );
         if( ncons.getKind()==APPLY_CONSTRUCTOR ) {
           Node cc = ncons.getOperator();
@@ -2021,7 +2023,7 @@ Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
     return Node::null();
   }else{
     TypeNode tn = nn.getType();
-    if( DatatypesRewriter::isTypeDatatype( tn ) ) {
+    if( tn.isDatatype() ) {
       if( !tn.isCodatatype() ){
         return nn;
       }
@@ -2045,7 +2047,7 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
     addLemma = true;    
   }else if( n.getKind()==EQUAL ){
     TypeNode tn = n[0].getType();
-    if( !DatatypesRewriter::isTypeDatatype( tn ) ){
+    if( !tn.isDatatype() ){
       addLemma = true;
     }else{
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
@@ -2109,7 +2111,7 @@ void TheoryDatatypes::printModelDebug( const char* c ){
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
     if( !eqc.getType().isBoolean() ){
-      if( DatatypesRewriter::isTermDatatype( eqc ) ){
+      if( eqc.getType().isDatatype() ){
         Trace( c ) << "DATATYPE : ";
       }
       Trace( c ) << eqc << " : " << eqc.getType() << " : " << std::endl;
@@ -2123,7 +2125,7 @@ void TheoryDatatypes::printModelDebug( const char* c ){
         ++eqc_i;
       }
       Trace( c ) << "}" << std::endl;
-      if( DatatypesRewriter::isTermDatatype( eqc ) ){
+      if( eqc.getType().isDatatype() ){
         EqcInfo* ei = getOrMakeEqcInfo( eqc );
         if( ei ){
           Trace( c ) << "   Instantiated : " << ei->d_inst.get() << std::endl;

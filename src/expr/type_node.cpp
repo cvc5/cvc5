@@ -72,9 +72,10 @@ bool TypeNode::isInterpretedFinite() const {
     if( options::finiteModelFind() ){
       if( isSort() ){
         return true;
-      }else if( isDatatype() || isParametricDatatype() ){
+      }else if( isDatatype() ){
+        TypeNode tn = *this;
         const Datatype& dt = getDatatype();
-        return dt.isInterpretedFinite();
+        return dt.isInterpretedFinite( tn.toType() );
       }else if( isArray() ){
         return getArrayIndexType().isInterpretedFinite() && getArrayConstituentType().isInterpretedFinite();
       }else if( isSet() ) {

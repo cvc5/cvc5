@@ -17,7 +17,6 @@
 #include "expr/datatype.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fun_def_engine.h"
@@ -1088,7 +1087,7 @@ void getSelfSel( const Datatype& dt, const DatatypeConstructor& dc, Node n, Type
       }
     }
     /* TODO: more than weak structural induction
-    else if( datatypes::DatatypesRewriter::isTypeDatatype( tn ) && std::find( visited.begin(), visited.end(), tn )==visited.end() ){
+    else if( tn.isDatatype() && std::find( visited.begin(), visited.end(), tn )==visited.end() ){
       visited.push_back( tn );
       const Datatype& dt = ((DatatypeType)(subs[0].getType()).toType()).getDatatype();
       std::vector< Node > disj;
@@ -1160,7 +1159,7 @@ Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes
     Node nret = ret.substitute( ind_vars[0], k );
     //note : everything is under a negation
     //the following constructs ~( R( x, k ) => ~P( x ) )
-    if( options::dtStcInduction() && datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+    if( options::dtStcInduction() && tn.isDatatype() ){
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       std::vector< Node > disj;
       for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
@@ -1273,7 +1272,7 @@ bool TermDb::isClosedEnumerableType( TypeNode tn ) {
       ret = false;
     }else if( tn.isSet() ){
       ret = isClosedEnumerableType( tn.getSetElementType() );
-    }else if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+    }else if( tn.isDatatype() ){
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
         for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
@@ -1978,8 +1977,9 @@ void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
 }
 
 bool TermDb::isInductionTerm( Node n ) {
-  if( options::dtStcInduction() && datatypes::DatatypesRewriter::isTermDatatype( n ) ){
-    const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
+  TypeNode tn = n.getType();
+  if( options::dtStcInduction() && tn.isDatatype() ){
+    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
     return !dt.isCodatatype();
   }
   if( options::intWfInduction() && n.getType().isInteger() ){
@@ -2295,7 +2295,7 @@ TNode TermDbSygus::getVar( TypeNode tn, int i ) {
   while( i>=(int)d_fv[tn].size() ){
     std::stringstream ss;
     TypeNode vtn = tn;
-    if( datatypes::DatatypesRewriter::isTypeDatatype( tn ) ){
+    if( tn.isDatatype() ){
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       ss << "fv_" << dt.getName() << "_" << i;
       if( !dt.getSygusType().isNull() ){
@@ -2373,7 +2373,7 @@ bool TermDbSygus::getMatch2( Node p, Node n, std::map< int, Node >& s, std::vect
 }
 
 bool TermDbSygus::getMatch( Node t, TypeNode st, int& index_found, std::vector< Node >& args, int index_exc, int index_start ) {
-  Assert( datatypes::DatatypesRewriter::isTypeDatatype( st ) );
+  Assert( st.isDatatype() );
   const Datatype& dt = ((DatatypeType)(st).toType()).getDatatype();
   Assert( dt.isSygus() );
   std::map< Kind, std::vector< Node > > kgens;
@@ -2530,7 +2530,7 @@ Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn, int rcons_depth ) {
     Node sc;
     d_builtin_const_to_sygus[tn][c] = sc;
     Assert( c.isConst() );
-    Assert( datatypes::DatatypesRewriter::isTypeDatatype( tn ) );
+    Assert( tn.isDatatype() );
     const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
     Trace("csi-rcons-debug") << "Try to reconstruct " << c << " in " << dt.getName() << std::endl;
     Assert( dt.isSygus() );
@@ -2839,7 +2839,7 @@ struct sortConstants {
 
 void TermDbSygus::registerSygusType( TypeNode tn ){
   if( d_register.find( tn )==d_register.end() ){
-    if( !datatypes::DatatypesRewriter::isTypeDatatype( tn ) ){
+    if( !tn.isDatatype() ){
       d_register[tn] = TypeNode::null();
     }else{
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
@@ -3234,7 +3234,7 @@ void TermDbSygus::registerEvalTerm( Node n ) {
     if( n.getKind()==APPLY_UF && !n.getType().isBoolean() ){
       Trace("sygus-eager") << "TermDbSygus::eager: Register eval term : " << n << std::endl;
       TypeNode tn = n[0].getType();
-      if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+      if( tn.isDatatype() ){
         const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
         if( dt.isSygus() ){
           Node f = n.getOperator();
@@ -3242,7 +3242,7 @@ void TermDbSygus::registerEvalTerm( Node n ) {
           if( n[0].getKind()!=APPLY_CONSTRUCTOR ){
             d_evals[n[0]].push_back( n );
             TypeNode tn = n[0].getType();
-            Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
+            Assert( tn.isDatatype() );
             const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
             Node var_list = Node::fromExpr( dt.getSygusVarList() );
             Assert( dt.isSygus() );
@@ -3281,7 +3281,7 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& lems 
         unsigned start = d_node_mv_args_proc[n][vn];
         Node antec = n.eqNode( vn ).negate();
         TypeNode tn = n.getType();
-        Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
+        Assert( tn.isDatatype() );
         const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
         Assert( dt.isSygus() );
         Trace("sygus-eager") << "TermDbSygus::eager: Register model value : " << vn << " for " << n << std::endl;

@@ -137,6 +137,46 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as, std::map< TypeNode, 
   TypeNode in_t = in.getType();
   if( processing.find( in_t )==processing.end() ){
     processing[in_t] = true;
+    if(in.getType().isParametricDatatype() &&
+      in.getType().isInstantiatedDatatype()) {
+      // We have something here like (Pair Bool Bool)---need to dig inside
+      // and make it (Pair BV1 BV1)
+      Assert(as.isParametricDatatype() && as.isInstantiatedDatatype());
+      const Datatype* dt2 = &as[0].getDatatype();
+      std::vector<TypeNode> fromParams, toParams;
+      for(unsigned i = 0; i < dt2->getNumParameters(); ++i) {
+        fromParams.push_back(TypeNode::fromType(dt2->getParameter(i)));
+        toParams.push_back(as[i + 1]);
+      }
+      const Datatype* dt1;
+      if(d_datatypeCache.find(dt2) != d_datatypeCache.end()) {
+        dt1 = d_datatypeCache[dt2];
+      } else {
+        dt1 = d_datatypeReverseCache[dt2];
+      }
+      Assert(dt1 != NULL, "expected datatype in cache");
+      Assert(*dt1 == in.getType()[0].getDatatype(), "improper rewriteAs() between datatypes");
+      Node out;
+      for(size_t i = 0; i < dt1->getNumConstructors(); ++i) {
+        DatatypeConstructor ctor = (*dt1)[i];
+        NodeBuilder<> appctorb(kind::APPLY_CONSTRUCTOR);
+        appctorb << (*dt2)[i].getConstructor();
+        for(size_t j = 0; j < ctor.getNumArgs(); ++j) {
+          TypeNode asType = TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType());
+          asType = asType.substitute(fromParams.begin(), fromParams.end(), toParams.begin(), toParams.end());
+          appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, ctor[j].getSelector(), in), asType, processing);
+        }
+        Node appctor = appctorb;
+        if(i == 0) {
+          out = appctor;
+        } else {
+          Node newOut = NodeManager::currentNM()->mkNode(kind::ITE, ctor.getTester(), appctor, out);
+          out = newOut;
+        }
+      }
+      processing.erase( in_t );
+      return out;
+    }
     if(in.getType().isDatatype()) {
       if(as.isBoolean() && in.getType().hasAttribute(BooleanTermAttr())) {
         processing.erase( in_t );
@@ -186,46 +226,6 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as, std::map< TypeNode, 
       Node lam = NodeManager::currentNM()->mkNode(kind::LAMBDA, boundvars, selprime);
       Node out = NodeManager::currentNM()->mkNode(kind::ARRAY_LAMBDA, lam);
       Assert(out.getType() == as);
-      processing.erase( in_t );
-      return out;
-    }
-    if(in.getType().isParametricDatatype() &&
-      in.getType().isInstantiatedDatatype()) {
-      // We have something here like (Pair Bool Bool)---need to dig inside
-      // and make it (Pair BV1 BV1)
-      Assert(as.isParametricDatatype() && as.isInstantiatedDatatype());
-      const Datatype* dt2 = &as[0].getDatatype();
-      std::vector<TypeNode> fromParams, toParams;
-      for(unsigned i = 0; i < dt2->getNumParameters(); ++i) {
-        fromParams.push_back(TypeNode::fromType(dt2->getParameter(i)));
-        toParams.push_back(as[i + 1]);
-      }
-      const Datatype* dt1;
-      if(d_datatypeCache.find(dt2) != d_datatypeCache.end()) {
-        dt1 = d_datatypeCache[dt2];
-      } else {
-        dt1 = d_datatypeReverseCache[dt2];
-      }
-      Assert(dt1 != NULL, "expected datatype in cache");
-      Assert(*dt1 == in.getType()[0].getDatatype(), "improper rewriteAs() between datatypes");
-      Node out;
-      for(size_t i = 0; i < dt1->getNumConstructors(); ++i) {
-        DatatypeConstructor ctor = (*dt1)[i];
-        NodeBuilder<> appctorb(kind::APPLY_CONSTRUCTOR);
-        appctorb << (*dt2)[i].getConstructor();
-        for(size_t j = 0; j < ctor.getNumArgs(); ++j) {
-          TypeNode asType = TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType());
-          asType = asType.substitute(fromParams.begin(), fromParams.end(), toParams.begin(), toParams.end());
-          appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, ctor[j].getSelector(), in), asType, processing);
-        }
-        Node appctor = appctorb;
-        if(i == 0) {
-          out = appctor;
-        } else {
-          Node newOut = NodeManager::currentNM()->mkNode(kind::ITE, ctor.getTester(), appctor, out);
-          out = newOut;
-        }
-      }
       processing.erase( in_t );
       return out;
     }

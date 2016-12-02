@@ -17,7 +17,6 @@
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_engine.h"
@@ -277,7 +276,7 @@ void CegInstantiation::preRegisterQuantifier( Node q ) {
       Node pat = q[2][0][0];
       if( pat.getKind()==APPLY_UF ){
         TypeNode tn = pat[0].getType();
-        if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+        if( tn.isDatatype() ){
           const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
           if( dt.isSygus() ){
             //do unfolding if it induces Boolean structure, 
@@ -696,7 +695,7 @@ Node CegInstantiation::getEagerUnfold( Node n, std::map< Node, Node >& visited )
     if( n.getKind()==APPLY_UF ){
       TypeNode tn = n[0].getType();
       Trace("cegqi-eager-debug") << "check " << n[0].getType() << std::endl;
-      if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+      if( tn.isDatatype() ){
         const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
         if( dt.isSygus() ){ 
           Trace("cegqi-eager") << "Unfold eager : " << n << std::endl;
@@ -769,7 +768,7 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
       std::string f(ss.str());
       f.erase(f.begin());
       TypeNode tn = prog.getType();
-      Assert( datatypes::DatatypesRewriter::isTypeDatatype( tn ) );
+      Assert( tn.isDatatype() );
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       Assert( dt.isSygus() );
       //get the solution
