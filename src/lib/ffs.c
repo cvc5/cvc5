@@ -21,6 +21,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+#ifndef HAVE_FFS
 
 int ffs(int i) {
   long mask = 0x1;
@@ -35,6 +36,7 @@ int ffs(int i) {
   return 0;
 }
 
+#endif /* ifndef HAVE_FFS */
 #ifdef __cplusplus
 }/* extern "C" */
 #endif /* __cplusplus */
