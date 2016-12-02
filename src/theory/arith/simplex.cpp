@@ -43,6 +43,7 @@ SimplexDecisionProcedure::SimplexDecisionProcedure(LinearEqualityModule& linEq, 
   , d_zero(0)
   , d_posOne(1)
   , d_negOne(-1)
+  , d_pivots(0)
 {
   d_heuristicRule = options::arithErrorSelectionRule();
   d_errorSet.setSelectionRule(d_heuristicRule);
