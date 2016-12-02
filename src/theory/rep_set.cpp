@@ -29,7 +29,6 @@ void RepSet::clear(){
   d_type_complete.clear();
   d_tmap.clear();
   d_values_to_terms.clear();
-  d_type_rlv_rep.clear();
 }
 
 bool RepSet::hasRep( TypeNode tn, Node n ) {
@@ -112,15 +111,6 @@ bool RepSet::complete( TypeNode t ){
     }
     Trace("reps-complete") << std::endl;
     return true;
-  }else{
-    return it->second;
-  }
-}
-
-int RepSet::getNumRelevantGroundReps( TypeNode t ) {
-  std::map< TypeNode, int >::iterator it = d_type_rlv_rep.find( t );
-  if( it==d_type_rlv_rep.end() ){
-    return 0;
   }else{
     return it->second;
   }

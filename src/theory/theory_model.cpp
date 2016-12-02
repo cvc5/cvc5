@@ -602,7 +602,6 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   // model-builder specific initialization
   preProcessBuildModel(tm, fullModel);
 
-
   // Loop through all terms and make sure that assignable sub-terms are in the equality engine
   // Also, record #eqc per type (for finite model finding)
   std::map< TypeNode, unsigned > eqc_usort_count;
@@ -959,9 +958,6 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
         tm->d_reps[*i] = *i;
         tm->d_rep_set.add((*i).getType(), *i);
       }
-    }
-    for( std::map< TypeNode, std::vector< Node > >::iterator it = tm->d_rep_set.d_type_reps.begin(); it != tm->d_rep_set.d_type_reps.end(); ++it ){
-      tm->d_rep_set.d_type_rlv_rep[it->first] = (int)it->second.size();
     }
   }
 

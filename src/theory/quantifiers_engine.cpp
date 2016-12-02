@@ -766,7 +766,7 @@ void QuantifiersEngine::propagate( Theory::Effort level ){
 }
 
 Node QuantifiersEngine::getNextDecisionRequest( unsigned& priority ){
-  unsigned min_priority;
+  unsigned min_priority = 0;
   Node dec;  
   for( unsigned i=0; i<d_modules.size(); i++ ){
     Node n = d_modules[i]->getNextDecisionRequest( priority );

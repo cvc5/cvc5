@@ -183,14 +183,16 @@ int ModelEngine::checkModel(){
   if( Trace.isOn("model-engine") ){
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node f = fm->getAssertedQuantifier( i );
-      int totalInst = 1;
-      for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
-        TypeNode tn = f[0][j].getType();
-        if( fm->d_rep_set.hasType( tn ) ){
-          totalInst = totalInst * (int)fm->d_rep_set.d_type_reps[ tn ].size();
+      if( d_quantEngine->getModel()->isQuantifierActive( f ) && d_quantEngine->hasOwnership( f, this ) ){
+        int totalInst = 1;
+        for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
+          TypeNode tn = f[0][j].getType();
+          if( fm->d_rep_set.hasType( tn ) ){
+            totalInst = totalInst * (int)fm->d_rep_set.d_type_reps[ tn ].size();
+          }
         }
+        d_totalLemmas += totalInst;
       }
-      d_totalLemmas += totalInst;
     }
   }
 
@@ -203,7 +205,7 @@ int ModelEngine::checkModel(){
       Node q = fm->getAssertedQuantifier( i, true );
       Trace("fmf-exh-inst") << "-> Exhaustive instantiate " << q << ", effort = " << e << "..." << std::endl;
       //determine if we should check this quantifier
-      if( considerQuantifiedFormula( q ) ){
+      if( d_quantEngine->getModel()->isQuantifierActive( q ) && d_quantEngine->hasOwnership( q, this ) ){
         exhaustiveInstantiate( q, e );
         if( d_quantEngine->inConflict() || ( optOneQuantPerRound() && d_addedLemmas>0 ) ){
           break;
@@ -230,38 +232,7 @@ int ModelEngine::checkModel(){
   return d_addedLemmas;
 }
 
-bool ModelEngine::considerQuantifiedFormula( Node q ) {
-  if( !d_quantEngine->getModelBuilder()->isQuantifierActive( q ) ){ 
-    Trace("model-engine-debug") << "Model builder inactive : " << q << std::endl;
-    return false;
-  }else if( !d_quantEngine->getModel()->isQuantifierActive( q ) ){
-    Trace("model-engine-debug") << "Model inactive : " << q << std::endl;
-    return false;
-  }else{
-    if( options::fmfEmptySorts() ){
-      for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-        TypeNode tn = q[0][i].getType();
-        //we are allowed to assume the type is empty
-        if( tn.isSort() && d_quantEngine->getModel()->d_rep_set.getNumRelevantGroundReps( tn )==0 ){
-          Trace("model-engine-debug") << "Empty domain quantified formula : " << q << std::endl;
-          return false;
-        }
-      }
-    }else if( options::fmfFunWellDefinedRelevant() ){
-      if( q[0].getNumChildren()==1 ){
-        TypeNode tn = q[0][0].getType();
-        if( tn.getAttribute(AbsTypeFunDefAttribute()) ){
-          //we are allowed to assume the introduced type is empty
-          if( d_quantEngine->getModel()->d_rep_set.getNumRelevantGroundReps( tn )==0 ){
-            Trace("model-engine-debug") << "Irrelevant function definition : " << q << std::endl;
-            return false;
-          }
-        }
-      }
-    }
-    return true;
-  }
-}
+
 
 void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   //first check if the builder can do the exhaustive instantiation
@@ -331,13 +302,15 @@ void ModelEngine::debugPrint( const char* c ){
   Trace( c ) << "Quantifiers: " << std::endl;
   for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-    Trace( c ) << "   ";
-    if( !considerQuantifiedFormula( q ) ){
-      Trace( c ) << "*Inactive* ";
-    }else{
-      Trace( c ) << "           ";
+    if( d_quantEngine->hasOwnership( q, this ) ){
+      Trace( c ) << "   ";
+      if( !d_quantEngine->getModel()->isQuantifierActive( q ) ){
+        Trace( c ) << "*Inactive* ";
+      }else{
+        Trace( c ) << "           ";
+      }
+      Trace( c ) << q << std::endl;
     }
-    Trace( c ) << q << std::endl;
   }
   //d_quantEngine->getModel()->debugPrint( c );
 }

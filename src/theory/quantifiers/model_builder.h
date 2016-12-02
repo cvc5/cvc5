@@ -33,11 +33,11 @@ protected:
   context::CDO< FirstOrderModel* > d_curr_model;
   //quantifiers engine
   QuantifiersEngine* d_qe;
+  void preProcessBuildModel(TheoryModel* m, bool fullModel);
+  void preProcessBuildModelStd(TheoryModel* m, bool fullModel);
 public:
   QModelBuilder( context::Context* c, QuantifiersEngine* qe );
   virtual ~QModelBuilder() throw() {}
-  // is quantifier active?
-  virtual bool isQuantifierActive( Node f );
   //do exhaustive instantiation  
   // 0 :  failed, but resorting to true exhaustive instantiation may work
   // >0 : success
@@ -105,7 +105,7 @@ protected:
   virtual void constructModelUf( FirstOrderModel* fm, Node op ) = 0;
 protected:
   //map from quantifiers to if are SAT
-  std::map< Node, bool > d_quant_sat;
+  //std::map< Node, bool > d_quant_sat;
   //which quantifiers have been initialized
   std::map< Node, bool > d_quant_basis_match_added;
   //map from quantifiers to model basis match

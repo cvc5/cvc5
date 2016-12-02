@@ -326,13 +326,15 @@ QModelBuilder( c, qe ){
 }
 
 void FullModelChecker::preProcessBuildModel(TheoryModel* m, bool fullModel) {
+  //standard pre-process
+  preProcessBuildModelStd( m, fullModel );
+  
   FirstOrderModelFmc * fm = ((FirstOrderModelFmc*)m)->asFirstOrderModelFmc();
   if( !fullModel ){
     Trace("fmc") << "---Full Model Check preprocess() " << std::endl;
     d_preinitialized_types.clear();
     //traverse equality engine
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( fm->d_equalityEngine );
-    std::map< TypeNode, int > typ_num;
     while( !eqcs_i.isFinished() ){
       TypeNode tr = (*eqcs_i).getType();
       d_preinitialized_types[tr] = true;
