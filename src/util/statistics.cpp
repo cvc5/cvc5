@@ -52,10 +52,10 @@ StatisticsBase& StatisticsBase::operator=(const StatisticsBase& stats) {
 void Statistics::copyFrom(const StatisticsBase& stats) {
   // This is ugly, but otherwise we have to introduce a "friend" relation for
   // Base to its derived class (really obnoxious).
-  StatSet::const_iterator i_begin = ((const Statistics*) &stats)->d_stats.begin();
-  StatSet::const_iterator i_end = ((const Statistics*) &stats)->d_stats.end();
-  for(StatSet::const_iterator i = i_begin; i != i_end; ++i) {
-    SExprStat* p = new SExprStat((*i)->getName(), (*i)->getValue());
+  const StatisticsBase::const_iterator i_begin = stats.begin();
+  const StatisticsBase::const_iterator i_end = stats.end();
+  for(StatisticsBase::const_iterator i = i_begin; i != i_end; ++i) {
+    SExprStat* p = new SExprStat((*i).first, (*i).second);
     d_stats.insert(p);
   }
 }
