@@ -175,9 +175,15 @@ void Datatype::setRecord() {
 
 Cardinality Datatype::getCardinality( Type t ) const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  Assert( t.isDatatype() && ((DatatypeType)t).getDatatype()==*this );
   std::vector< Type > processing;
   computeCardinality( t, processing );
   return d_card;
+}
+
+Cardinality Datatype::getCardinality() const throw(IllegalArgumentException) {
+  PrettyCheckArgument(!isParametric(), this, "for getCardinality, this datatype cannot be parametric");
+  return getCardinality( d_self );
 }
 
 Cardinality Datatype::computeCardinality( Type t, std::vector< Type >& processing ) const throw(IllegalArgumentException){
@@ -198,7 +204,8 @@ Cardinality Datatype::computeCardinality( Type t, std::vector< Type >& processin
 
 bool Datatype::isRecursiveSingleton( Type t ) const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  if( d_card_rec_singleton[t]==0 ){
+  Assert( t.isDatatype() && ((DatatypeType)t).getDatatype()==*this );
+  if( d_card_rec_singleton.find( t )==d_card_rec_singleton.end() ){
     if( isCodatatype() ){
       Assert( d_card_u_assume[t].empty() );
       std::vector< Type > processing;
@@ -221,11 +228,31 @@ bool Datatype::isRecursiveSingleton( Type t ) const throw(IllegalArgumentExcepti
   return d_card_rec_singleton[t]==1;
 }
 
+bool Datatype::isRecursiveSingleton() const throw(IllegalArgumentException) {
+  PrettyCheckArgument(!isParametric(), this, "for isRecursiveSingleton, this datatype cannot be parametric");
+  return isRecursiveSingleton( d_self );
+}
+
 unsigned Datatype::getNumRecursiveSingletonArgTypes( Type t ) const throw(IllegalArgumentException) {
+  Assert( d_card_rec_singleton.find( t )!=d_card_rec_singleton.end() );
+  Assert( isRecursiveSingleton( t ) );
   return d_card_u_assume[t].size();
 }
+
+unsigned Datatype::getNumRecursiveSingletonArgTypes() const throw(IllegalArgumentException) {
+  PrettyCheckArgument(!isParametric(), this, "for getNumRecursiveSingletonArgTypes, this datatype cannot be parametric");
+  return getNumRecursiveSingletonArgTypes( d_self );
+}
+
 Type Datatype::getRecursiveSingletonArgType( Type t, unsigned i ) const throw(IllegalArgumentException) {
+  Assert( d_card_rec_singleton.find( t )!=d_card_rec_singleton.end() );
+  Assert( isRecursiveSingleton( t ) );
   return d_card_u_assume[t][i];
+}
+
+Type Datatype::getRecursiveSingletonArgType( unsigned i ) const throw(IllegalArgumentException) {
+  PrettyCheckArgument(!isParametric(), this, "for getRecursiveSingletonArgType, this datatype cannot be parametric");
+  return getRecursiveSingletonArgType( d_self, i );
 }
 
 bool Datatype::computeCardinalityRecSingleton( Type t, std::vector< Type >& processing, std::vector< Type >& u_assume ) const throw(IllegalArgumentException){
@@ -277,6 +304,7 @@ bool Datatype::computeCardinalityRecSingleton( Type t, std::vector< Type >& proc
 
 bool Datatype::isFinite( Type t ) const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  Assert( t.isDatatype() && ((DatatypeType)t).getDatatype()==*this );
 
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_self);
@@ -296,9 +324,14 @@ bool Datatype::isFinite( Type t ) const throw(IllegalArgumentException) {
   self.setAttribute(DatatypeFiniteAttr(), true);
   return true;
 }
+bool Datatype::isFinite() const throw(IllegalArgumentException) {
+  PrettyCheckArgument(isResolved() && !isParametric(), this, "this datatype must be resolved and not parametric");
+  return isFinite( d_self );
+}
 
 bool Datatype::isInterpretedFinite( Type t ) const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  Assert( t.isDatatype() && ((DatatypeType)t).getDatatype()==*this );
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_self);
   TypeNode self = TypeNode::fromType(d_self);
@@ -317,6 +350,10 @@ bool Datatype::isInterpretedFinite( Type t ) const throw(IllegalArgumentExceptio
   self.setAttribute(DatatypeUFiniteComputedAttr(), true);
   self.setAttribute(DatatypeUFiniteAttr(), true);
   return true;
+}
+bool Datatype::isInterpretedFinite() const throw(IllegalArgumentException) {
+  PrettyCheckArgument(isResolved() && !isParametric(), this, "this datatype must be resolved and not parametric");
+  return isInterpretedFinite( d_self );
 }
 
 bool Datatype::isWellFounded() const throw(IllegalArgumentException) {

@@ -618,24 +618,31 @@ public:
    * Return the cardinality of this datatype (the sum of the
    * cardinalities of its constructors).  The Datatype must be
    * resolved.
+   * Version taking Type t is required for parametric datatypes.
    */
   Cardinality getCardinality( Type t ) const throw(IllegalArgumentException);
+  Cardinality getCardinality() const throw(IllegalArgumentException);
 
   /**
    * Return  true iff this  Datatype is  finite (all  constructors are
    * finite,  i.e., there  are finitely  many ground  terms).   If the
    * datatype is  not well-founded, this function  returns false.  The
    * Datatype must be resolved or an exception is thrown.
+   * Version taking Type t is required for parametric.
    */
   bool isFinite( Type t ) const throw(IllegalArgumentException);
+  bool isFinite() const throw(IllegalArgumentException);
+  
   /**
    * Return  true iff this  Datatype is  finite (all  constructors are
    * finite,  i.e., there  are finitely  many ground  terms) under the
    * assumption unintepreted sorts are finite.   If the
    * datatype is  not well-founded, this function  returns false.  The
    * Datatype must be resolved or an exception is thrown.
+   * Version taking Type t is required for parametric datatypes.
    */
   bool isInterpretedFinite( Type t ) const throw(IllegalArgumentException);
+  bool isInterpretedFinite() const throw(IllegalArgumentException);
 
   /**
    * Return true iff this datatype is well-founded (there exist ground
@@ -645,13 +652,21 @@ public:
 
   /**
    * Return true iff this datatype is a recursive singleton
+   * Version taking Type t is required for parametric datatypes.
    */
   bool isRecursiveSingleton( Type t ) const throw(IllegalArgumentException);
+  bool isRecursiveSingleton() const throw(IllegalArgumentException);
 
 
-  /** get number of recursive singleton argument types */
+  /** 
+   * Get recursive singleton argument types (uninterpreted sorts that the singleton cardinality 
+   * of this datatype is dependent upon).
+   * Versions taking Type t are required for parametric datatypes.
+  */
   unsigned getNumRecursiveSingletonArgTypes( Type t ) const throw(IllegalArgumentException);
   Type getRecursiveSingletonArgType( Type t, unsigned i ) const throw(IllegalArgumentException);
+  unsigned getNumRecursiveSingletonArgTypes() const throw(IllegalArgumentException);
+  Type getRecursiveSingletonArgType( unsigned i ) const throw(IllegalArgumentException);
 
   /**
    * Construct and return a ground term of this Datatype.  The
