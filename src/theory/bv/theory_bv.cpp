@@ -87,7 +87,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
   }
 
   if (options::bitvectorInequalitySolver()) {
-    SubtheorySolver* ineq_solver = new InequalitySolver(c, this);
+    SubtheorySolver* ineq_solver = new InequalitySolver(c, u, this);
     d_subtheories.push_back(ineq_solver);
     d_subtheoryMap[SUB_INEQUALITY] = ineq_solver;
   }

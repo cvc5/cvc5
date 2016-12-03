@@ -194,7 +194,8 @@ class InequalityGraph : public context::ContextNotifyObj{
   
   /*** The currently asserted disequalities */
   context::CDQueue<TNode> d_disequalities;
-  NodeSet d_disequalitiesAlreadySplit; 
+  typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
+  CDNodeSet d_disequalitiesAlreadySplit; 
   Node makeDiseqSplitLemma(TNode diseq); 
   /** Backtracking mechanisms **/
   std::vector<std::pair<TermId, InequalityEdge> > d_undoStack;
@@ -208,7 +209,7 @@ class InequalityGraph : public context::ContextNotifyObj{
 
 public:
   
-  InequalityGraph(context::Context* c, bool s = false)
+  InequalityGraph(context::Context* c, context::Context* u, bool s = false)
     : ContextNotifyObj(c), 
       d_ineqNodes(),
       d_ineqEdges(),
@@ -216,7 +217,7 @@ public:
       d_conflict(),
       d_modelValues(c),
       d_disequalities(c),
-      d_disequalitiesAlreadySplit(),
+      d_disequalitiesAlreadySplit(u),
       d_undoStack(),
       d_undoStackIndex(c)
   {}

@@ -53,10 +53,10 @@ class InequalitySolver: public SubtheorySolver {
   bool addInequality(TNode a, TNode b, bool strict, TNode fact);
   Statistics d_statistics;
 public:
-  InequalitySolver(context::Context* c, TheoryBV* bv)
+  InequalitySolver(context::Context* c, context::Context* u, TheoryBV* bv)
     : SubtheorySolver(c, bv),
       d_assertionSet(c),
-      d_inequalityGraph(c),
+      d_inequalityGraph(c, u),
       d_explanations(c),
       d_isComplete(c, true),
       d_ineqTerms(),
