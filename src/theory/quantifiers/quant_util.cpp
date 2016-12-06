@@ -404,8 +404,8 @@ void QuantPhaseReq::getPolarity( Node n, int child, bool hasPol, bool pol, bool&
 }
 
 void QuantPhaseReq::getEntailPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol ) {
-  if( n.getKind()==AND || n.getKind()==OR ){
-    newHasPol = hasPol && pol==( n.getKind()==AND );
+  if( n.getKind()==AND || n.getKind()==OR || n.getKind()==SEP_STAR ){
+    newHasPol = hasPol && pol!=( n.getKind()==OR );
     newPol = pol;
   }else if( n.getKind()==IMPLIES ){
     newHasPol = hasPol && !pol;

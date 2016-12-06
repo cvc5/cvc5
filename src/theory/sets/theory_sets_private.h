@@ -73,6 +73,7 @@ private:
   void checkUpwardsClosure( std::vector< Node >& lemmas );
   void checkDisequalities( std::vector< Node >& lemmas );
   bool isMember( Node x, Node s );
+  bool isSetDisequalityEntailed( Node s, Node t );
   
   void flushLemmas( std::vector< Node >& lemmas );
   Node getProxy( Node n );

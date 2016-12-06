@@ -285,6 +285,72 @@ bool TheorySetsPrivate::isMember( Node x, Node s ) {
   }
   return false;
 }
+
+bool TheorySetsPrivate::isSetDisequalityEntailed( Node r1, Node r2 ) {
+  Assert( d_equalityEngine.hasTerm( r1 ) && d_equalityEngine.getRepresentative( r1 )==r1 );
+  Assert( d_equalityEngine.hasTerm( r2 ) && d_equalityEngine.getRepresentative( r2 )==r2 );
+  TypeNode tn = r1.getType();
+  Node eqc_es = d_eqc_emptyset[tn];
+  bool is_sat = false;
+  for( unsigned e=0; e<2; e++ ){
+    Node a = e==0 ? r1 : r2;
+    Node b = e==0 ? r2 : r1;
+    //if there are members in a
+    std::map< Node, std::map< Node, Node > >::iterator itpma = d_pol_mems[0].find( a );
+    if( itpma!=d_pol_mems[0].end() ){
+      Assert( !itpma->second.empty() );
+      //if b is empty
+      if( b==eqc_es ){
+        if( !itpma->second.empty() ){
+          is_sat = true;
+          Trace("sets-deq") << "Disequality is satisfied because members are in " << a << " and " << b << " is empty" << std::endl;
+        }else{
+          //a should not be singleton
+          Assert( d_eqc_singleton.find( a )==d_eqc_singleton.end() );
+        }
+      }else{
+        std::map< Node, Node >::iterator itsb = d_eqc_singleton.find( b );
+        std::map< Node, std::map< Node, Node > >::iterator itpmb = d_pol_mems[1].find( b );
+        std::vector< Node > prev;
+        for( std::map< Node, Node >::iterator itm = itpma->second.begin(); itm != itpma->second.end(); ++itm ){
+          //if b is a singleton
+          if( itsb!=d_eqc_singleton.end() ){
+            if( ee_areDisequal( itm->first, itsb->second[0] ) ){
+              Trace("sets-deq") << "Disequality is satisfied because of " << itm->second << ", singleton eq " << itsb->second[0] << std::endl;
+              is_sat = true;
+            }
+            //or disequal with another member
+            for( unsigned k=0; k<prev.size(); k++ ){
+              if( ee_areDisequal( itm->first, prev[k] ) ){
+                Trace("sets-deq") << "Disequality is satisfied because of disequal members " << itm->first << " " << prev[k] << ", singleton eq " << std::endl;
+                is_sat = true;
+                break;
+              }
+            }
+            //TODO: this can be generalized : maintain map to abstract domain ( set -> cardinality )
+          //if a has positive member that is negative member in b 
+          }else if( itpmb!=d_pol_mems[1].end() ){
+            for( std::map< Node, Node >::iterator itnm = itpmb->second.begin(); itnm != itpmb->second.end(); ++itnm ){
+              if( ee_areEqual( itm->first, itnm->first ) ){
+                Trace("sets-deq") << "Disequality is satisfied because of " << itm->second << " " << itnm->second << std::endl;
+                is_sat = true;
+                break;
+              }
+            }
+          }
+          if( is_sat ){
+            break;
+          }
+          prev.push_back( itm->first );
+        }
+      }
+      if( is_sat ){
+        break;
+      }
+    }
+  }
+  return is_sat;
+}
         
 bool TheorySetsPrivate::assertFact( Node fact, Node exp ){
   Trace("sets-assert") << "TheorySets::assertFact : " << fact << ", exp = " << exp << std::endl;
@@ -757,62 +823,18 @@ void TheorySetsPrivate::checkDisequalities( std::vector< Node >& lemmas ) {
   for(NodeBoolMap::const_iterator it=d_deq.begin(); it !=d_deq.end(); ++it) {
     if( (*it).second ){
       Node deq = (*it).first;
-      bool is_sat = false;
       //check if it is already satisfied
       Assert( d_equalityEngine.hasTerm( deq[0] ) && d_equalityEngine.hasTerm( deq[1] ) );
       Node r1 = d_equalityEngine.getRepresentative( deq[0] );
       Node r2 = d_equalityEngine.getRepresentative( deq[1] );
-      TypeNode tn = r1.getType();
-      Node eqc_es = d_eqc_emptyset[tn];
-      for( unsigned e=0; e<2; e++ ){
-        Node a = e==0 ? r1 : r2;
-        Node b = e==0 ? r2 : r1;
-        //if there are members in a
-        std::map< Node, std::map< Node, Node > >::iterator itpma = d_pol_mems[0].find( a );
-        if( itpma!=d_pol_mems[0].end() ){
-          Assert( !itpma->second.empty() );
-          //if b is empty
-          if( b==eqc_es ){
-            if( !itpma->second.empty() ){
-              is_sat = true;
-              Trace("sets-deq") << "Disequality " << deq << " is satisfied because members are in " << a << " and " << b << " is empty" << std::endl;
-            }
-          }else{
-            std::map< Node, Node >::iterator itsb = d_eqc_singleton.find( b );
-            std::map< Node, std::map< Node, Node > >::iterator itpmb = d_pol_mems[1].find( b );
-            for( std::map< Node, Node >::iterator itm = itpma->second.begin(); itm != itpma->second.end(); ++itm ){
-              //if b is a singleton
-              if( false && itsb!=d_eqc_singleton.end() ){
-                //TODO?
-              //if a has positive member that is negative member in b 
-              }else if( itpmb!=d_pol_mems[1].end() ){
-                for( std::map< Node, Node >::iterator itnm = itpmb->second.begin(); itnm != itpmb->second.end(); ++itnm ){
-                  if( ee_areEqual( itm->first, itnm->first ) ){
-                    Trace("sets-deq") << "Disequality " << deq << " is satisfied because of " << itm->second << " " << itnm->second << std::endl;
-                    is_sat = true;
-                    break;
-                  }
-                }
-              }
-              if( is_sat ){
-                break;
-              }
-            }
-          }
-          if( is_sat ){
-            break;
-          }
-        }
-      }
+      bool is_sat = isSetDisequalityEntailed( r1, r2 );
       /*
       if( !is_sat ){
         //try to make one of them empty
         for( unsigned e=0; e<2; e++ ){
-          
         }
       }
       */
-      
       Trace("sets-debug") << "Check disequality " << deq << ", is_sat = " << is_sat << std::endl;
       //will process regardless of sat/processed/unprocessed
       d_deq[deq] = false;

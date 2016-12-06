@@ -883,10 +883,12 @@ TypeNode TheorySep::getDataType( Node n ) {
 
 //must process assertions at preprocess so that quantified assertions are processed properly
 void TheorySep::ppNotifyAssertions( std::vector< Node >& assertions ) {
-  std::map< Node, bool > visited;
+  std::map< int, std::map< Node, int > > visited;
+  std::map< int, std::map< Node, std::vector< Node > > > references;
+  std::map< int, std::map< Node, bool > > references_strict;
   for( unsigned i=0; i<assertions.size(); i++ ){
     Trace("sep-pp") << "Process assertion : " << assertions[i] << std::endl;
-    processAssertion( assertions[i], visited );
+    processAssertion( assertions[i], visited, references, references_strict, true, true, false );
   }
   //if data type is unconstrained, assume a fresh uninterpreted sort
   if( !d_type_ref.isNull() ){
@@ -898,148 +900,138 @@ void TheorySep::ppNotifyAssertions( std::vector< Node >& assertions ) {
   }
 }
 
-void TheorySep::processAssertion( Node n, std::map< Node, bool >& visited ) {
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    Trace("sep-pp-debug") << "process assertion : " << n << std::endl;
-    if( n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND || n.getKind()==kind::SEP_EMP ){
-      //get the reference type (will compute d_type_references)
-      int card = 0;
-      TypeNode tn = computeReferenceType( n, card );
-      Trace("sep-pp") << "  reference type is " << tn << ", card is " << card << std::endl;
-    }else{
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        processAssertion( n[i], visited );
+//return cardinality
+int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >& visited, 
+                                 std::map< int, std::map< Node, std::vector< Node > > >& references, std::map< int, std::map< Node, bool > >& references_strict,
+                                 bool pol, bool hasPol, bool underSpatial ) {
+  int index = hasPol ? ( pol ? 1 : -1 ) : 0;
+  int card = 0;
+  std::map< Node, int >::iterator it = visited[index].find( n );
+  if( it==visited[index].end() ){
+    Trace("sep-pp-debug") << "process assertion : " << n << ", index = " << index << std::endl;
+    if( n.getKind()==kind::SEP_EMP ){
+      TypeNode tn = n[0].getType();
+      TypeNode tnd = n[1].getType();
+      registerRefDataTypes( tn, tnd, n );
+      if( hasPol && pol ){
+        references[index][n].clear();
+        references_strict[index][n] = true; 
+      }else{
+        card = 1;
       }
-    }
-  }
-}
-
-TypeNode TheorySep::computeReferenceType( Node atom, int& card, int index ) {
-  Trace("sep-pp-debug") << "getReference type " << atom << " " << index << std::endl;
-  Assert( atom.getKind()==kind::SEP_PTO || atom.getKind()==kind::SEP_STAR || atom.getKind()==kind::SEP_WAND || atom.getKind()==kind::SEP_EMP || index!=-1 );
-  std::map< int, TypeNode >::iterator it = d_reference_type[atom].find( index );
-  if( it==d_reference_type[atom].end() ){
-    card = 0;
-    TypeNode tn;
-    if( index==-1 && ( atom.getKind()==kind::SEP_STAR || atom.getKind()==kind::SEP_WAND ) ){
-      for( unsigned i=0; i<atom.getNumChildren(); i++ ){
-        int cardc = 0;
-        TypeNode ctn = computeReferenceType( atom, cardc, i );
-        if( !ctn.isNull() ){
-          tn = ctn;
-        }
-        for( unsigned j=0; j<d_references[atom][i].size(); j++ ){
-          if( std::find( d_references[atom][index].begin(), d_references[atom][index].end(), d_references[atom][i][j] )==d_references[atom][index].end() ){
-            d_references[atom][index].push_back( d_references[atom][i][j] );
+    }else if( n.getKind()==kind::SEP_PTO ){
+      TypeNode tn1 = n[0].getType();
+      TypeNode tn2 = n[1].getType();
+      registerRefDataTypes( tn1, tn2, n );
+      if( quantifiers::TermDb::hasBoundVarAttr( n[0] ) ){
+        if( d_bound_kind[tn1]!=bound_strict && d_bound_kind[tn1]!=bound_invalid ){
+          if( options::quantEpr() && n[0].getKind()==kind::BOUND_VARIABLE ){
+            // still valid : bound on heap models will include Herbrand universe of n[0].getType()
+            d_bound_kind[tn1] = bound_herbrand;
+          }else{
+            d_bound_kind[tn1] = bound_invalid;
+            Trace("sep-bound") << "reference cannot be bound (due to quantified pto)." << std::endl;
           }
         }
-        card = card + cardc;
+      }else{
+        references[index][n].push_back( n[0] );
+      }
+      if( hasPol && pol ){
+        references_strict[index][n] = true; 
+      }else{
+        card = 1;
       }
     }else{
-      Node n = index==-1 ? atom : atom[index];
-      //will compute d_references as well
-      std::map< Node, int > visited;
-      tn = computeReferenceType2( atom, card, index, n, visited );
-    }
-    if( tn.isNull() && index==-1 ){
-      tn = NodeManager::currentNM()->booleanType();
-    }
-    d_reference_type[atom][index] = tn;
-    d_reference_type_card[atom][index] = card;
-    Trace("sep-type") << "...ref type return " << card << " for " << atom << " " << index << std::endl;
-    //add to d_type_references
-    if( index==-1 ){
-      //only contributes if top-level (index=-1)
-      for( unsigned i=0; i<d_references[atom][index].size(); i++ ){
-        Assert( !d_references[atom][index][i].isNull() );
-        if( std::find( d_type_references[tn].begin(), d_type_references[tn].end(), d_references[atom][index][i] )==d_type_references[tn].end() ){
-          d_type_references[tn].push_back( d_references[atom][index][i] );
+      bool isSpatial = n.getKind()==kind::SEP_WAND || n.getKind()==kind::SEP_STAR;
+      bool newUnderSpatial = underSpatial || isSpatial;
+      bool refStrict = isSpatial;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        bool newHasPol, newPol;
+        QuantPhaseReq::getEntailPolarity( n, i, hasPol, pol, newHasPol, newPol );
+        int newIndex = newHasPol ? ( newPol ? 1 : -1 ) : 0;
+        int ccard = processAssertion( n[i], visited, references, references_strict, newPol, newHasPol, newUnderSpatial );
+        //update cardinality
+        if( n.getKind()==kind::SEP_STAR ){
+          card += ccard;
+        }else if( n.getKind()==kind::SEP_WAND ){
+          if( i==1 ){
+            card = ccard;
+          }
+        }else if( ccard>card ){
+          card = ccard;
+        }
+        //track references if we are or below a spatial operator
+        if( newUnderSpatial ){
+          bool add = true;
+          if( references_strict[newIndex].find( n[i] )!=references_strict[newIndex].end() ){
+            if( !isSpatial ){
+              if( references_strict[index].find( n )==references_strict[index].end() ){
+                references_strict[index][n] = true;
+              }else{
+                add = false;
+                //TODO: can derive static equality between sets
+              }
+            }
+          }else{
+            if( isSpatial ){
+              refStrict = false;
+            }
+          }
+          if( add ){
+            for( unsigned j=0; j<references[newIndex][n[i]].size(); j++ ){
+              if( std::find( references[index][n].begin(), references[index][n].end(), references[newIndex][n[i]][j] )==references[index][n].end() ){
+                references[index][n].push_back( references[newIndex][n[i]][j] );
+              }
+            }
+          }
         }
       }
-      // update maximum cardinality value
+      if( isSpatial && refStrict ){
+        if( n.getKind()==kind::SEP_WAND ){
+          //TODO
+        }else{
+          Assert( n.getKind()==kind::SEP_STAR && hasPol && pol );
+          references_strict[index][n] = true;
+        }
+      }
+    }
+    visited[index][n] = card;
+  }else{
+    card = it->second;
+  }
+  
+  if( !underSpatial && ( !references[index][n].empty() || card>0 ) ){
+    TypeNode tn = getReferenceType( n );
+    Assert( !tn.isNull() );
+    // add references to overall type
+    unsigned bt = d_bound_kind[tn];
+    bool add = true;
+    if( references_strict[index].find( n )!=references_strict[index].end() ){
+      Trace("sep-bound") << "Strict bound found based on " << n << ", index = " << index << std::endl;
+      if( bt!=bound_strict ){
+        d_bound_kind[tn] = bound_strict;
+        //d_type_references[tn].clear();
+        d_card_max[tn] = card;
+      }else{
+        //TODO: derive static equality
+        add = false;
+      }
+    }else{
+      add = bt!=bound_strict;
+    }
+    for( unsigned i=0; i<references[index][n].size(); i++ ){
+      if( std::find( d_type_references[tn].begin(), d_type_references[tn].end(), references[index][n][i] )==d_type_references[tn].end() ){
+        d_type_references[tn].push_back( references[index][n][i] );
+      }
+    }
+    if( add ){
+      //add max cardinality
       if( card>(int)d_card_max[tn] ){
         d_card_max[tn] = card;
       }
     }
-    return tn;
-  }else{
-    Assert( d_reference_type_card[atom].find( index )!=d_reference_type_card[atom].end() );
-    card = d_reference_type_card[atom][index];
-    return it->second;
   }
-}
-
-TypeNode TheorySep::computeReferenceType2( Node atom, int& card, int index, Node n, std::map< Node, int >& visited ) {
-  if( visited.find( n )==visited.end() ){
-    Trace("sep-pp-debug") << "visit : " << n << " : " << atom << " " << index << std::endl;
-    visited[n] = -1;
-    if( n.getKind()==kind::SEP_PTO ){
-      //TODO: when THEORY_SETS supports mixed Int/Real sets
-      //TypeNode tn1 = n[0].getType().getBaseType();
-      //TypeNode tn2 = n[1].getType().getBaseType();
-      TypeNode tn1 = n[0].getType();
-      TypeNode tn2 = n[1].getType();
-      if( quantifiers::TermDb::hasBoundVarAttr( n[0] ) ){
-        if( options::quantEpr() && n[0].getKind()==kind::BOUND_VARIABLE ){
-          // still valid : bound on heap models will include Herbrand universe of n[0].getType()
-          d_reference_bound_fv[tn1] = true;
-        }else{
-          d_reference_bound_invalid[tn1] = true;
-          Trace("sep-bound") << "reference cannot be bound (due to quantified pto)." << std::endl;
-        }
-      }else{
-        if( std::find( d_references[atom][index].begin(), d_references[atom][index].end(), n[0] )==d_references[atom][index].end() ){
-          d_references[atom][index].push_back( n[0] );
-        }
-      }
-      registerRefDataTypes( tn1, tn2, atom );
-      card = 1;
-      visited[n] = card;
-      return tn1;
-    }else if( n.getKind()==kind::SEP_EMP ){
-      TypeNode tn = n[0].getType();
-      TypeNode tnd = n[1].getType();
-      registerRefDataTypes( tn, tnd, atom );
-      card = 1;
-      visited[n] = card;
-      return tn;
-    }else if( n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND ){
-      Assert( n!=atom );
-      //get the references 
-      card = 0;
-      TypeNode tn = computeReferenceType( n, card );
-      for( unsigned j=0; j<d_references[n][-1].size(); j++ ){
-        if( std::find( d_references[atom][index].begin(), d_references[atom][index].end(), d_references[n][-1][j] )==d_references[atom][index].end() ){
-          d_references[atom][index].push_back( d_references[n][-1][j] );
-        }
-      }
-      visited[n] = card;
-      return tn;
-    }else if( n.getKind()==kind::SEP_NIL ){
-      TypeNode tn = n.getType();
-      TypeNode tnd;
-      registerRefDataTypes( tn, tnd, n );
-      return tn;
-    }else{
-      card = 0;
-      TypeNode otn;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        int cardc = 0;
-        TypeNode tn = computeReferenceType2( atom, cardc, index, n[i], visited );
-        if( !tn.isNull() ){
-          otn = tn;
-        }
-        card = cardc>card ? cardc : card;
-      }
-      visited[n] = card;
-      return otn;
-    }
-  }else{
-    Trace("sep-type-debug") << "already visit : " << n << " : " << atom << " " << index << std::endl;
-    card = 0;
-    return TypeNode::null();
-  }
+  return card;
 }
 
 void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom ){
@@ -1067,6 +1059,7 @@ void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom ){
     //for now, we only allow heap constraints of one type
     d_type_ref = tn1;
     d_type_data = tn2;
+    d_bound_kind[tn1] = bound_default;
   }else{
     if( !tn2.isNull() ){
       if( itt->second!=tn2 ){
@@ -1095,30 +1088,28 @@ void TheorySep::initializeBounds() {
       Trace("sep-bound")  << "Initialize bounds for " << tn << "..." << std::endl;
       QuantEPR * qepr = getLogicInfo().isQuantified() ? getQuantifiersEngine()->getQuantEPR() : NULL;
       //if pto had free variable reference      
-      if( d_reference_bound_invalid.find( tn )==d_reference_bound_invalid.end() ){
-        if( d_reference_bound_fv.find( tn )!=d_reference_bound_fv.end() ){
-          //include Herbrand universe of tn
-          if( qepr && qepr->isEPR( tn ) ){
-            for( unsigned j=0; j<qepr->d_consts[tn].size(); j++ ){
-              Node k = qepr->d_consts[tn][j];
-              if( std::find( d_type_references[tn].begin(), d_type_references[tn].end(), k )==d_type_references[tn].end() ){
-                d_type_references[tn].push_back( k );
-              }
+      if( d_bound_kind[tn]==bound_herbrand ){
+        //include Herbrand universe of tn
+        if( qepr && qepr->isEPR( tn ) ){
+          for( unsigned j=0; j<qepr->d_consts[tn].size(); j++ ){
+            Node k = qepr->d_consts[tn][j];
+            if( std::find( d_type_references[tn].begin(), d_type_references[tn].end(), k )==d_type_references[tn].end() ){
+              d_type_references[tn].push_back( k );
             }
-          }else{
-            d_reference_bound_invalid[tn] = true;
-            Trace("sep-bound") << "reference cannot be bound (due to non-EPR variable)." << std::endl;
           }
+        }else{
+          d_bound_kind[tn] = bound_invalid;
+          Trace("sep-bound") << "reference cannot be bound (due to non-EPR variable)." << std::endl;
         }
       }
       unsigned n_emp = 0;
-      if( d_reference_bound_invalid.find( tn )==d_reference_bound_invalid.end() ){ 
-        n_emp = d_card_max[tn]>d_card_max[TypeNode::null()] ? d_card_max[tn] : d_card_max[TypeNode::null()];  
+      if( d_bound_kind[tn] != bound_invalid ){
+        n_emp = d_card_max[tn];  
       }else if( d_type_references[tn].empty() ){
-        //must include at least one constant
+        //must include at least one constant TODO: remove?
         n_emp = 1;
       }
-      Trace("sep-bound") << "Card maximums : " << d_card_max[tn] << " " << d_card_max[TypeNode::null()] << std::endl;
+      Trace("sep-bound") << "Cardinality element size : " << d_card_max[tn] << std::endl;
       Trace("sep-bound") << "Type reference size : " << d_type_references[tn].size() << std::endl;
       Trace("sep-bound") << "Constructing " << n_emp << " cardinality constants." << std::endl;
       for( unsigned r=0; r<n_emp; r++ ){
@@ -1183,9 +1174,9 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
     
       d_type_references_all[tn].insert( d_type_references_all[tn].end(), d_type_references_card[tn].begin(), d_type_references_card[tn].end() );
     }
-    Assert( !d_type_references_all[tn].empty() );
+    //Assert( !d_type_references_all[tn].empty() );
     
-    if( d_reference_bound_invalid.find( tn )==d_reference_bound_invalid.end() ){      
+    if( d_bound_kind[tn]!=bound_invalid ){      
       //construct bound
       d_reference_bound_max[tn] = mkUnion( tn, d_type_references_all[tn] );
       Trace("sep-bound") << "overall bound for " << d_base_label[tn] << " : " << d_reference_bound_max[tn] << std::endl;
@@ -1198,20 +1189,23 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
       //d_out->lemma( slem );
       
       //symmetry breaking
-      std::map< unsigned, Node > lit_mem_map;
-      for( unsigned i=0; i<d_type_references_card[tn].size(); i++ ){
-        lit_mem_map[i] = NodeManager::currentNM()->mkNode( kind::MEMBER, d_type_references_card[tn][i], d_reference_bound_max[tn]);
-      }
-      for( unsigned i=0; i<(d_type_references_card[tn].size()-1); i++ ){
-        std::vector< Node > children;
-        for( unsigned j=(i+1); j<d_type_references_card[tn].size(); j++ ){
-          children.push_back( lit_mem_map[j].negate() );
+      if( d_type_references_card[tn].size()>1 ){
+        std::map< unsigned, Node > lit_mem_map;
+        for( unsigned i=0; i<d_type_references_card[tn].size(); i++ ){
+          lit_mem_map[i] = NodeManager::currentNM()->mkNode( kind::MEMBER, d_type_references_card[tn][i], d_reference_bound_max[tn]);
         }
-        Assert( !children.empty() );
-        Node sym_lem = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::AND, children );
-        sym_lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, lit_mem_map[i].negate(), sym_lem );
-        Trace("sep-lemma") << "Sep::Lemma: symmetry breaking lemma : " << sym_lem << std::endl;
-        d_out->lemma( sym_lem );
+        for( unsigned i=0; i<(d_type_references_card[tn].size()-1); i++ ){
+          std::vector< Node > children;
+          for( unsigned j=(i+1); j<d_type_references_card[tn].size(); j++ ){
+            children.push_back( lit_mem_map[j].negate() );
+          }
+          if( !children.empty() ){
+            Node sym_lem = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::AND, children );
+            sym_lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, lit_mem_map[i].negate(), sym_lem );
+            Trace("sep-lemma") << "Sep::Lemma: symmetry breaking lemma : " << sym_lem << std::endl;
+            d_out->lemma( sym_lem );
+          }
+        }
       }
     }
     
@@ -1266,8 +1260,7 @@ Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {
 Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
   std::map< int, Node >::iterator it = d_label_map[atom][lbl].find( child );
   if( it==d_label_map[atom][lbl].end() ){
-    int card;
-    TypeNode refType = computeReferenceType( atom, card );
+    TypeNode refType = getReferenceType( atom );
     std::stringstream ss;
     ss << "__Lc" << child;
     TypeNode ltn = NodeManager::currentNM()->mkSetType(refType);

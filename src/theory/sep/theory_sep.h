@@ -58,7 +58,9 @@ class TheorySep : public Theory {
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
-  void processAssertion( Node n, std::map< Node, bool >& visited );
+  int processAssertion( Node n, std::map< int, std::map< Node, int > >& visited, 
+                        std::map< int, std::map< Node, std::vector< Node > > >& references, std::map< int, std::map< Node, bool > >& references_strict,
+                        bool pol, bool hasPol, bool underSpatial );
 
   public:
 
@@ -200,10 +202,6 @@ class TheorySep : public Theory {
   std::map< Node, std::map< Node, Node > > d_neg_guard;
   std::vector< Node > d_neg_guards;
   std::map< Node, Node > d_guard_to_assertion;
-  //cache for references
-  std::map< Node, std::map< int, TypeNode > > d_reference_type;
-  std::map< Node, std::map< int, int > > d_reference_type_card;
-  std::map< Node, std::map< int, std::vector< Node > > > d_references;
   /** inferences: maintained to ensure ref count for internally introduced nodes */
   NodeList d_infer;
   NodeList d_infer_exp;
@@ -220,9 +218,16 @@ class TheorySep : public Theory {
   //reference bound
   std::map< TypeNode, Node > d_reference_bound;
   std::map< TypeNode, Node > d_reference_bound_max;
-  std::map< TypeNode, bool > d_reference_bound_invalid;
-  std::map< TypeNode, bool > d_reference_bound_fv;
   std::map< TypeNode, std::vector< Node > > d_type_references;
+  //kind of bound for reference types
+  enum {
+    bound_strict,
+    bound_default,
+    bound_herbrand,
+    bound_invalid,
+  };
+  std::map< TypeNode, unsigned > d_bound_kind;
+  
   std::map< TypeNode, std::vector< Node > > d_type_references_card;
   std::map< Node, unsigned > d_type_ref_card_id;
   std::map< TypeNode, std::vector< Node > > d_type_references_all;
@@ -250,9 +255,6 @@ class TheorySep : public Theory {
   //get global reference/data type
   TypeNode getReferenceType( Node n );
   TypeNode getDataType( Node n );
-  //calculate the element type of the heap for spatial assertions
-  TypeNode computeReferenceType( Node atom, int& card, int index = -1 );
-  TypeNode computeReferenceType2( Node atom, int& card, int index, Node n, std::map< Node, int >& visited);
   void registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom );
   //get location/data type
   //get the base label for the spatial assertion
