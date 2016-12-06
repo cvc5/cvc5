@@ -1099,11 +1099,14 @@ void SmtEngine::finishInit() {
 
   // dump out a set-logic command
   if(Dump.isOn("benchmark")) {
-    // Dump("benchmark") << SetBenchmarkLogicCommand(logic.getLogicString());
-    LogicInfo everything;
-    everything.lock();
-    Dump("benchmark") << CommentCommand("CVC4 always dumps the most general, all-supported logic (below), as some internals might require the use of a logic more general than the input.")
-                      << SetBenchmarkLogicCommand(everything.getLogicString());
+    if (Dump.isOn("raw-benchmark")) {
+      Dump("raw-benchmark") << SetBenchmarkLogicCommand(d_logic.getLogicString());
+    } else {
+      LogicInfo everything;
+      everything.lock();
+      Dump("benchmark") << CommentCommand("CVC4 always dumps the most general, all-supported logic (below), as some internals might require the use of a logic more general than the input.")
+                        << SetBenchmarkLogicCommand(everything.getLogicString());
+    }
   }
 
   Trace("smt-debug") << "Dump declaration commands..." << std::endl;
@@ -4496,6 +4499,10 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore) throw(TypeChec
   doPendingPops();
 
   Trace("smt") << "SmtEngine::assertFormula(" << ex << ")" << endl;
+
+  if (Dump.isOn("raw-benchmark")) {
+    Dump("raw-benchmark") << AssertCommand(ex);
+  }
 
   // Substitute out any abstract values in ex
   Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
