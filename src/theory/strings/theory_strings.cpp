@@ -2071,6 +2071,27 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
   }
 }
 
+void trackNfExpDependency( std::vector< Node >& nf_exp_n, std::map< Node, std::map< bool, int > >& nf_exp_depend_n, Node exp, int new_val, int new_rev_val ){
+  if( std::find( nf_exp_n.begin(), nf_exp_n.end(), exp )==nf_exp_n.end() ){
+    nf_exp_n.push_back( exp );
+  }
+  for( unsigned k=0; k<2; k++ ){
+    int val = k==0 ? new_val : new_rev_val;
+    std::map< bool, int >::iterator itned = nf_exp_depend_n[exp].find( k==1 );
+    if( itned==nf_exp_depend_n[exp].end() ){
+      Trace("strings-process-debug") << "Deps : set dependency on " << exp << " to " << val << " isRev=" << (k==0) << std::endl;
+      nf_exp_depend_n[exp][k==1] = val;
+    }else{
+      Trace("strings-process-debug") << "Deps : Multiple dependencies on " << exp << " : " << itned->second << " " << val << " isRev=" << (k==0) << std::endl;
+      //if we already have a dependency (in the case of non-linear string equalities), it is min/max
+      bool cmp = val > itned->second;
+      if( cmp==(k==1) ){
+        nf_exp_depend_n[exp][k==1] = val;
+      }
+    }
+  }
+}
+
 void TheoryStrings::getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                                     std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend ) {
   //constant for equivalence class
@@ -2115,25 +2136,16 @@ void TheoryStrings::getNormalForms( Node &eqc, std::vector< std::vector< Node > 
 
             for( unsigned j=0; j<d_normal_forms_exp[nr].size(); j++ ){
               Node exp = d_normal_forms_exp[nr][j];
-              nf_exp_n.push_back( exp );
               //track depends
-              for( unsigned k=0; k<2; k++ ){
-                int prev_dep = d_normal_forms_exp_depend[nr][exp][k==1];
-                if( k==0 ){
-                  nf_exp_depend_n[exp][false] = orig_size + prev_dep;
-                }else if( k==1 ){
-                  //store forward index (converted back to reverse index below)
-                  nf_exp_depend_n[exp][true] = orig_size + ( add_size - prev_dep );
-                }
-              }
+              trackNfExpDependency( nf_exp_n, nf_exp_depend_n, exp,
+                                    orig_size + d_normal_forms_exp_depend[nr][exp][false], 
+                                    orig_size + ( add_size - d_normal_forms_exp_depend[nr][exp][true] ) );
             }
             if( d_normal_forms_base[nr]!=n[i] ){
               Assert( d_normal_forms_base.find( nr )!=d_normal_forms_base.end() );
               Node eq = n[i].eqNode( d_normal_forms_base[nr] );
-              nf_exp_n.push_back( eq );
-              //track depends
-              nf_exp_depend_n[eq][false] = orig_size;
-              nf_exp_depend_n[eq][true] = orig_size + add_size;
+              //track depends : entire current segment is dependent upon base equality
+              trackNfExpDependency( nf_exp_n, nf_exp_depend_n, eq, orig_size, orig_size + add_size );
             }
           }
           //convert forward indices to reverse indices
