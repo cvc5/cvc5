@@ -62,7 +62,8 @@ TESTS =	\
 	fmf-strange-bounds.smt2 \
 	fmf-strange-bounds-2.smt2 \
 	fmf-bound-2dim.smt2 \
-	memory_model-R_cpp-dd.cvc
+	memory_model-R_cpp-dd.cvc \
+	bug764.smt2
 
 EXTRA_DIST = $(TESTS)
 

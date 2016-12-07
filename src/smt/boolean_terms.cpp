@@ -706,7 +706,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
         goto next_worklist;
       }
       switch(k) {
-      case kind::INST_ATTRIBUTE:
+      //case kind::INST_ATTRIBUTE:
       case kind::BOUND_VAR_LIST:
         result.top() << top;
         worklist.pop();
@@ -819,7 +819,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
         // push children
         for(int i = top.getNumChildren() - 1; i >= 0; --i) {
           Debug("bt") << "rewriting: " << top[i] << endl;
-          worklist.push(triple<TNode, theory::TheoryId, bool>(top[i], top.getKind() == kind::CHAIN ? parentTheory : (isBoolean(top, i) ? theory::THEORY_BOOL : (top.getKind() == kind::APPLY_CONSTRUCTOR ? theory::THEORY_DATATYPES : theory::THEORY_BUILTIN)), false));
+          worklist.push(triple<TNode, theory::TheoryId, bool>(top[i], top.getKind() == kind::CHAIN ? parentTheory : ((isBoolean(top, i) || top.getKind()==kind::INST_ATTRIBUTE) ? theory::THEORY_BOOL : (top.getKind() == kind::APPLY_CONSTRUCTOR ? theory::THEORY_DATATYPES : theory::THEORY_BUILTIN)), false));
           //b << rewriteBooleanTermsRec(top[i], isBoolean(top, i) ? , quantBoolVars);
           //Debug("bt") << "got: " << b[b.getNumChildren() - 1] << endl;
         }
