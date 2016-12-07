@@ -44,34 +44,36 @@ public:
     BOUND_FINITE,
     BOUND_INT_RANGE,
     BOUND_SET_MEMBER,
+    BOUND_FIXED_SET,
     BOUND_NONE
   };
 private:
   //for determining bounds
   bool isBound( Node f, Node v );
+  bool hasNonBoundVar( Node f, Node b, std::map< Node, bool >& visited );
   bool hasNonBoundVar( Node f, Node b );
   //bound type
   std::map< Node, std::map< Node, unsigned > > d_bound_type;
   std::map< Node, std::vector< Node > > d_set;
   std::map< Node, std::map< Node, int > > d_set_nums;
-  //integer lower/upper bounds
-  std::map< Node, std::map< Node, Node > > d_bounds[2];
   std::map< Node, std::map< Node, Node > > d_range;
   std::map< Node, std::map< Node, Node > > d_nground_range;
+  //integer lower/upper bounds
+  std::map< Node, std::map< Node, Node > > d_bounds[2];
   //set membership range
   std::map< Node, std::map< Node, Node > > d_setm_range;
   std::map< Node, std::map< Node, Node > > d_setm_range_lit;
+  //fixed finite set range
+  std::map< Node, std::map< Node, std::vector< Node > > > d_fixed_set_gr_range;
+  std::map< Node, std::map< Node, std::vector< Node > > > d_fixed_set_ngr_range;
   void hasFreeVar( Node f, Node n );
-  void process( Node f, Node n, bool pol,
+  void process( Node q, Node n, bool pol,
                 std::map< Node, unsigned >& bound_lit_type_map,
                 std::map< int, std::map< Node, Node > >& bound_lit_map,
                 std::map< int, std::map< Node, bool > >& bound_lit_pol_map,
-                std::map< int, std::map< Node, Node > >& bound_int_range_term );
-  void processLiteral( Node f, Node lit, bool pol,
-                       std::map< Node, unsigned >& bound_lit_type_map,
-                       std::map< int, std::map< Node, Node > >& bound_lit_map,
-                       std::map< int, std::map< Node, bool > >& bound_lit_pol_map,
-                       std::map< int, std::map< Node, Node > >& bound_int_range_term  );
+                std::map< int, std::map< Node, Node > >& bound_int_range_term,
+                std::map< Node, std::vector< Node > >& bound_fixed_set );
+  bool processEqDisjunct( Node q, Node n, Node& v, std::vector< Node >& v_cases );
   std::vector< Node > d_bound_quants;
 private:
   class RangeModel {
@@ -144,13 +146,15 @@ public:
   void presolve();
   bool needsCheck( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
-  void registerQuantifier( Node f );
+  void registerQuantifier( Node q );
+  void preRegisterQuantifier( Node q );
   void assertNode( Node n );
   Node getNextDecisionRequest( unsigned& priority );
   bool isBoundVar( Node q, Node v ) { return std::find( d_set[q].begin(), d_set[q].end(), v )!=d_set[q].end(); }
   unsigned getBoundVarType( Node q, Node v );
   unsigned getNumBoundVars( Node q ) { return d_set[q].size(); }
   Node getBoundVar( Node q, int i ) { return d_set[q][i]; }
+private:
   //for integer range
   Node getLowerBound( Node q, Node v ){ return d_bounds[0][q][v]; }
   Node getUpperBound( Node q, Node v ){ return d_bounds[1][q][v]; }
@@ -160,11 +164,13 @@ public:
   //for set range
   Node getSetRange( Node q, Node v, RepSetIterator * rsi );
   Node getSetRangeValue( Node q, Node v, RepSetIterator * rsi );
+  
+  bool getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi );
+public:
+  bool getBoundElements( RepSetIterator * rsi, bool initial, Node q, Node v, std::vector< Node >& elements );
 
   /** Identify this module */
   std::string identify() const { return "BoundedIntegers"; }
-private:
-  bool getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi );
 };
 
 }

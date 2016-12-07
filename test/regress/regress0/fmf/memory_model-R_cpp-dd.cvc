@@ -1,0 +1,52 @@
+% EXPECT: sat
+OPTION "produce-models";
+OPTION "fmf-bound";
+
+DATATYPE MOPERATION = R | W | M END;
+DATATYPE ORDER = I | SC | U END;
+DATATYPE ATOM = AT | NA END;
+
+DATATYPE BINT = I0 | I1 | I2 | I3 END;
+
+DATATYPE TEAR_TYPE = TEAR_TRUE | TEAR_FALSE END;
+SDBLOCK_TYPE: TYPE;
+VALUE_TYPE: TYPE;
+ADDRESS_TYPE: TYPE = SET OF BINT;
+
+MEM_OP_TYPE : TYPE = [# O:MOPERATION, T:TEAR_TYPE, R:ORDER, A:ATOM, B:SDBLOCK_TYPE, M:ADDRESS_TYPE, V:VALUE_TYPE #];
+EV_REL: TYPE = SET OF [MEM_OP_TYPE, MEM_OP_TYPE];
+THREAD_TYPE : TYPE = [# E:SET OF MEM_OP_TYPE, PO:EV_REL #];
+
+m1 : SDBLOCK_TYPE;
+
+ow1 : MEM_OP_TYPE;
+or2 : MEM_OP_TYPE;
+
+v1 : VALUE_TYPE;
+v2 : VALUE_TYPE;
+
+ASSERT (ow1.O = W) AND
+       (ow1.T = TEAR_FALSE) AND
+       (ow1.R = U) AND
+       (ow1.A = NA) AND
+       (ow1.B = m1) AND
+       (ow1.M = {I0}) AND
+       (ow1.V = v1);
+
+ASSERT (or2.O = R) AND
+       (or2.T = TEAR_FALSE) AND
+       (or2.R = U) AND
+       (or2.A = NA) AND
+       (or2.B = m1) AND
+       (or2.M = {I0}) AND
+       (or2.V = v2);
+
+ev_set : SET OF MEM_OP_TYPE;
+
+ASSERT ev_set = {ow1, or2};
+
+RF : EV_REL;
+
+ASSERT FORALL (r,w: MEM_OP_TYPE) : (((r IS_IN ev_set) AND (w IS_IN ev_set)) => (((r,w) IS_IN RF) <=> ((r.O = R) AND (w.O = W))));
+
+CHECKSAT;

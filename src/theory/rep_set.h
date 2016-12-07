@@ -56,18 +56,23 @@ public:
 //representative domain
 typedef std::vector< int > RepDomain;
 
+
+class RepBoundExt {
+public:
+  virtual bool setBound( Node owner, int i, TypeNode tn, std::vector< Node >& elements ) = 0;
+};
+
 /** this class iterates over a RepSet */
 class RepSetIterator {
 public:
   enum {
-    ENUM_DOMAIN_ELEMENTS,
-    ENUM_INT_RANGE,
-    ENUM_SET_MEMBERS,
+    ENUM_DEFAULT,
+    ENUM_BOUND_INT,
   };
 private:
   QuantifiersEngine * d_qe;
   //initialize function
-  bool initialize();
+  bool initialize( RepBoundExt* rext = NULL );
   //for int ranges
   std::map< int, Node > d_lower_bounds;
   //for set ranges
@@ -101,9 +106,9 @@ public:
   RepSetIterator( QuantifiersEngine * qe, RepSet* rs );
   ~RepSetIterator(){}
   //set that this iterator will be iterating over instantiations for a quantifier
-  bool setQuantifier( Node f );
+  bool setQuantifier( Node f, RepBoundExt* rext = NULL );
   //set that this iterator will be iterating over the domain of a function
-  bool setFunctionDomain( Node op );
+  bool setFunctionDomain( Node op, RepBoundExt* rext = NULL );
 public:
   //pointer to model
   RepSet* d_rep_set;
@@ -114,9 +119,7 @@ public:
   //types we are considering
   std::vector< TypeNode > d_types;
   //domain we are considering
-  std::vector< RepDomain > d_domain;
-  //intervals
-  std::map< int, Node > d_bounds[2];
+  std::vector< std::vector< Node > > d_domain_elements;
 public:
   /** increment the iterator at index=counter */
   int increment2( int i );

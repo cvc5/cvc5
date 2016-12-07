@@ -171,31 +171,110 @@ bool BoundedIntegers::isBound( Node f, Node v ) {
   return std::find( d_set[f].begin(), d_set[f].end(), v )!=d_set[f].end();
 }
 
-bool BoundedIntegers::hasNonBoundVar( Node f, Node b ) {
-  if( b.getKind()==BOUND_VARIABLE ){
-    if( !isBound( f, b ) ){
-      return true;
-    }
-  }else{
-    for( unsigned i=0; i<b.getNumChildren(); i++ ){
-      if( hasNonBoundVar( f, b[i] ) ){
+bool BoundedIntegers::hasNonBoundVar( Node f, Node b, std::map< Node, bool >& visited ) {
+  if( visited.find( b )==visited.end() ){
+    visited[b] = true;
+    if( b.getKind()==BOUND_VARIABLE ){
+      if( !isBound( f, b ) ){
         return true;
+      }
+    }else{
+      for( unsigned i=0; i<b.getNumChildren(); i++ ){
+        if( hasNonBoundVar( f, b[i], visited ) ){
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+bool BoundedIntegers::hasNonBoundVar( Node f, Node b ) {
+  std::map< Node, bool > visited;
+  return hasNonBoundVar( f, b, visited );
+}
+
+bool BoundedIntegers::processEqDisjunct( Node q, Node n, Node& v, std::vector< Node >& v_cases ) {
+  if( n.getKind()==EQUAL ){
+    for( unsigned i=0; i<2; i++ ){
+      Node t = n[i];
+      if( !hasNonBoundVar( q, n[1-i] ) ){
+        if( t==v ){
+          v_cases.push_back( n[1-i] );
+          return true;
+        }else if( v.isNull() && t.getKind()==BOUND_VARIABLE ){
+          v = t;
+          v_cases.push_back( n[1-i] );
+          return true;
+        }
       }
     }
   }
   return false;
 }
 
-void BoundedIntegers::processLiteral( Node q, Node lit, bool pol,
-                                      std::map< Node, unsigned >& bound_lit_type_map,
-                                      std::map< int, std::map< Node, Node > >& bound_lit_map,
-                                      std::map< int, std::map< Node, bool > >& bound_lit_pol_map,
-                                      std::map< int, std::map< Node, Node > >& bound_int_range_term ) {
-  if( lit.getKind()==GEQ ){
-    if( lit[0].getType().isInteger() ){
+void BoundedIntegers::process( Node q, Node n, bool pol,
+                               std::map< Node, unsigned >& bound_lit_type_map,
+                               std::map< int, std::map< Node, Node > >& bound_lit_map,
+                               std::map< int, std::map< Node, bool > >& bound_lit_pol_map,
+                               std::map< int, std::map< Node, Node > >& bound_int_range_term,
+                               std::map< Node, std::vector< Node > >& bound_fixed_set ){
+  if( n.getKind()==OR || n.getKind()==AND ){
+    if( (n.getKind()==OR)==pol ){
+      for( unsigned i=0; i<n.getNumChildren(); i++) {
+        process( q, n[i], pol, bound_lit_type_map, bound_lit_map, bound_lit_pol_map, bound_int_range_term, bound_fixed_set );
+      }
+    }else{
+      //if we are ( x != t1 ^ ...^ x != tn ), then x can be bound to { t1...tn }
+      Node conj = n;
+      if( !pol ){
+        conj = TermDb::simpleNegate( conj );
+      }
+      Trace("bound-int-debug") << "Process possible finite disequality conjunction : " << conj << std::endl;
+      Assert( conj.getKind()==AND );
+      Node v;
+      std::vector< Node > v_cases;
+      bool success = true;
+      for( unsigned i=0; i<conj.getNumChildren(); i++ ){
+        if( conj[i].getKind()==NOT && processEqDisjunct( q, conj[i][0], v, v_cases ) ){
+          //continue
+        }else{
+          Trace("bound-int-debug") << "...failed due to " << conj[i] << std::endl;
+          success = false;
+          break;
+        }
+      }
+      if( success && !isBound( q, v ) ){
+        Trace("bound-int-debug") << "Success with variable " << v << std::endl;
+        bound_lit_type_map[v] = BOUND_FIXED_SET;
+        bound_lit_map[0][v] = n;
+        bound_lit_pol_map[0][v] = pol;
+        bound_fixed_set[v].clear();
+        bound_fixed_set[v].insert( bound_fixed_set[v].end(), v_cases.begin(), v_cases.end() );
+      }
+    }
+  }else if( n.getKind()==EQUAL ){
+    if( !pol ){
+      // non-applied DER on x != t, x can be bound to { t }
+      Node v;
+      std::vector< Node > v_cases;
+      if( processEqDisjunct( q, n, v, v_cases ) ){
+        if( !isBound( q, v ) ){
+          bound_lit_type_map[v] = BOUND_FIXED_SET;
+          bound_lit_map[0][v] = n;
+          bound_lit_pol_map[0][v] = pol;
+          Assert( v_cases.size()==1 );
+          bound_fixed_set[v].clear();
+          bound_fixed_set[v].push_back( v_cases[0] );
+        }
+      }
+    }  
+  }else if( n.getKind()==NOT ){
+    process( q, n[0], !pol, bound_lit_type_map, bound_lit_map, bound_lit_pol_map, bound_int_range_term, bound_fixed_set );
+  }else if( n.getKind()==GEQ ){
+    if( n[0].getType().isInteger() ){
       std::map< Node, Node > msum;
-      if( QuantArith::getMonomialSumLit( lit, msum ) ){
-        Trace("bound-int-debug") << "Literal (polarity = " << pol << ") " << lit << " is monomial sum : " << std::endl;
+      if( QuantArith::getMonomialSumLit( n, msum ) ){
+        Trace("bound-int-debug") << "literal (polarity = " << pol << ") " << n << " is monomial sum : " << std::endl;
         QuantArith::debugPrintMonomialSum( msum, "bound-int-debug" );
         for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
           if ( !it->first.isNull() && it->first.getKind()==BOUND_VARIABLE && !isBound( q, it->first ) ){
@@ -221,7 +300,7 @@ void BoundedIntegers::processLiteral( Node q, Node lit, bool pol,
                 int loru = n1==it->first ? 0 : 1;
                 bound_lit_type_map[it->first] = BOUND_INT_RANGE;
                 bound_int_range_term[loru][it->first] = t;
-                bound_lit_map[loru][it->first] = lit;
+                bound_lit_map[loru][it->first] = n;
                 bound_lit_pol_map[loru][it->first] = pol;
               }else{
                 Trace("bound-int-debug") << "The term " << t << " has non-bound variable." << std::endl;
@@ -231,32 +310,15 @@ void BoundedIntegers::processLiteral( Node q, Node lit, bool pol,
         }
       }
     }
-  }else if( lit.getKind()==MEMBER ){
-    //TODO: enable this when sets models are fixed
-    if( !pol && lit[0].getKind()==BOUND_VARIABLE && !isBound( q, lit[0] ) && !lit[1].hasBoundVar() ){
-      Trace("bound-int-debug") << "Literal (polarity = " << pol << ") " << lit << " is membership." << std::endl;
-      bound_lit_type_map[lit[0]] = BOUND_SET_MEMBER;
-      bound_lit_map[0][lit[0]] = lit;
-      bound_lit_pol_map[0][lit[0]] = pol;
+  }else if( n.getKind()==MEMBER ){
+    if( !pol && n[0].getKind()==BOUND_VARIABLE && !isBound( q, n[0] ) && !hasNonBoundVar( q, n[1] ) ){
+      Trace("bound-int-debug") << "literal (polarity = " << pol << ") " << n << " is membership." << std::endl;
+      bound_lit_type_map[n[0]] = BOUND_SET_MEMBER;
+      bound_lit_map[0][n[0]] = n;
+      bound_lit_pol_map[0][n[0]] = pol;
     }
-  }else if( lit.getKind()==LEQ || lit.getKind()==LT || lit.getKind()==GT ) {
-    Message() << "BoundedIntegers : Bad kind for literal : " << lit << std::endl;
-  }
-}
-
-void BoundedIntegers::process( Node q, Node n, bool pol,
-                               std::map< Node, unsigned >& bound_lit_type_map,
-                               std::map< int, std::map< Node, Node > >& bound_lit_map,
-                               std::map< int, std::map< Node, bool > >& bound_lit_pol_map,
-                               std::map< int, std::map< Node, Node > >& bound_int_range_term ){
-  if( (n.getKind()==OR && pol) || (n.getKind()==AND && !pol) ){
-    for( unsigned i=0; i<n.getNumChildren(); i++) {
-      process( q, n[i], pol, bound_lit_type_map, bound_lit_map, bound_lit_pol_map, bound_int_range_term );
-    }
-  }else if( n.getKind()==NOT ){
-    process( q, n[0], !pol, bound_lit_type_map, bound_lit_map, bound_lit_pol_map, bound_int_range_term );
-  }else {
-    processLiteral( q, n, pol, bound_lit_type_map, bound_lit_map, bound_lit_pol_map, bound_int_range_term );
+  }else{
+    Assert( n.getKind()!=LEQ && n.getKind()!=LT && n.getKind()!=GT );
   }
 }
 
@@ -294,8 +356,9 @@ void BoundedIntegers::setBoundedVar( Node q, Node v, unsigned bound_type ) {
   Trace("bound-int-var") << "Bound variable #" << d_set_nums[q][v] << " : " << v << std::endl; 
 }
 
-void BoundedIntegers::registerQuantifier( Node f ) {
-  Trace("bound-int") << "Register quantifier " << f << std::endl;
+void BoundedIntegers::preRegisterQuantifier( Node f ) {
+  //this needs to be done at preregister since it affects e.g. QuantDSplit's preregister
+  Trace("bound-int") << "preRegister quantifier " << f << std::endl;
   
   bool success;
   do{
@@ -303,8 +366,9 @@ void BoundedIntegers::registerQuantifier( Node f ) {
     std::map< int, std::map< Node, Node > > bound_lit_map;
     std::map< int, std::map< Node, bool > > bound_lit_pol_map;
     std::map< int, std::map< Node, Node > > bound_int_range_term;
+    std::map< Node, std::vector< Node > > bound_fixed_set;
     success = false;
-    process( f, f[1], true, bound_lit_type_map, bound_lit_map, bound_lit_pol_map, bound_int_range_term );
+    process( f, f[1], true, bound_lit_type_map, bound_lit_map, bound_lit_pol_map, bound_int_range_term, bound_fixed_set );
     //for( std::map< Node, Node >::iterator it = d_bounds[0][f].begin(); it != d_bounds[0][f].end(); ++it ){
     for( std::map< Node, unsigned >::iterator it = bound_lit_type_map.begin(); it != bound_lit_type_map.end(); ++it ){
       Node v = it->first;
@@ -315,7 +379,6 @@ void BoundedIntegers::registerQuantifier( Node f ) {
           if( bound_lit_map[0].find( v )!=bound_lit_map[0].end() && bound_lit_map[1].find( v )!=bound_lit_map[1].end() ){
             setBoundedVar( f, v, BOUND_INT_RANGE );
             setBoundVar = true;
-            success = true;
             for( unsigned b=0; b<2; b++ ){
               //set the bounds
               Assert( bound_int_range_term[b].find( v )!=bound_int_range_term[b].end() );
@@ -330,9 +393,23 @@ void BoundedIntegers::registerQuantifier( Node f ) {
           setBoundVar = true;
           d_setm_range[f][v] = bound_lit_map[0][v][1];
           d_setm_range_lit[f][v] = bound_lit_map[0][v];
+          d_range[f][v] = NodeManager::currentNM()->mkNode( CARD, d_setm_range[f][v] );
           Trace("bound-int") << "Variable " << v << " is bound because of set membership literal " << bound_lit_map[0][v] << std::endl;
+        }else if( it->second==BOUND_FIXED_SET ){
+          setBoundedVar( f, v, BOUND_FIXED_SET );
+          setBoundVar = true;
+          for( unsigned i=0; i<bound_fixed_set[v].size(); i++ ){
+            Node t = bound_fixed_set[v][i];
+            if( t.hasBoundVar() ){
+              d_fixed_set_ngr_range[f][v].push_back( t ); 
+            }else{
+              d_fixed_set_gr_range[f][v].push_back( t ); 
+            }
+          } 
+          Trace("bound-int") << "Variable " << v << " is bound because of disequality conjunction " << bound_lit_map[0][v] << std::endl;
         }
         if( setBoundVar ){
+          success = true;
           //set Attributes on literals
           for( unsigned b=0; b<2; b++ ){
             if( bound_lit_map[b].find( v )!=bound_lit_map[b].end() ){
@@ -342,6 +419,19 @@ void BoundedIntegers::registerQuantifier( Node f ) {
             }else{
               Assert( it->second!=BOUND_INT_RANGE );
             }
+          }
+        }
+      }
+    }
+    if( !success ){
+      //resort to setting a finite bound on a variable
+      for( unsigned i=0; i<f[0].getNumChildren(); i++) {
+        if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
+          TypeNode tn = f[0][i].getType();
+          if( tn.isSort() || getTermDatabase()->mayComplete( tn ) ){
+            success = true;
+            setBoundedVar( f, f[0][i], BOUND_FINITE );
+            break;
           }
         }
       }
@@ -361,12 +451,9 @@ void BoundedIntegers::registerQuantifier( Node f ) {
   bool bound_success = true;
   for( unsigned i=0; i<f[0].getNumChildren(); i++) {
     if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
-      TypeNode tn = f[0][i].getType();
-      if( !tn.isSort() && !getTermDatabase()->mayComplete( tn ) ){
-        Trace("bound-int-warn") << "Warning : Bounded Integers : Due to quantification on " << f[0][i] << ", could not find bounds for " << f << std::endl;
-        bound_success = false;
-        break;
-      }
+      Trace("bound-int-warn") << "Warning : Bounded Integers : Due to quantification on " << f[0][i] << ", could not find bounds for " << f << std::endl;
+      bound_success = false;
+      break;
     }
   }
   
@@ -375,17 +462,13 @@ void BoundedIntegers::registerQuantifier( Node f ) {
     for( unsigned i=0; i<d_set[f].size(); i++) {
       Node v = d_set[f][i];
       if( d_bound_type[f][v]==BOUND_INT_RANGE || d_bound_type[f][v]==BOUND_SET_MEMBER ){
-        Node r;
-        if( d_bound_type[f][v]==BOUND_INT_RANGE ){
-          r = d_range[f][v];
-        }else if( d_bound_type[f][v]==BOUND_SET_MEMBER ){
-          r = NodeManager::currentNM()->mkNode( CARD, d_setm_range[f][v] );
-        }
+        Node r = d_range[f][v];
+        Assert( !r.isNull() );
         bool isProxy = false;
         if( r.hasBoundVar() ){
           //introduce a new bound
           Node new_range = NodeManager::currentNM()->mkSkolem( "bir", r.getType(), "bound for term" );
-          d_nground_range[f][v] = d_range[f][v];
+          d_nground_range[f][v] = r;
           d_range[f][v] = new_range;
           r = new_range;
           isProxy = true;
@@ -401,6 +484,10 @@ void BoundedIntegers::registerQuantifier( Node f ) {
       }
     }
   }
+}
+
+void BoundedIntegers::registerQuantifier( Node q ) {
+
 }
 
 void BoundedIntegers::assertNode( Node n ) {
@@ -490,6 +577,8 @@ bool BoundedIntegers::isGroundRange( Node q, Node v ) {
       return !getLowerBound(q,v).hasBoundVar() && !getUpperBound(q,v).hasBoundVar();
     }else if( d_bound_type[q][v]==BOUND_SET_MEMBER ){
       return !d_setm_range[q][v].hasBoundVar();
+    }else if( d_bound_type[q][v]==BOUND_FIXED_SET ){
+      return !d_fixed_set_ngr_range[q][v].empty();
     }
   }
   return false;
@@ -592,24 +681,107 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
     Assert( q[0][v]==d_set[q][i] );
     Node t = rsi->getCurrentTerm( v );
     Trace("bound-int-rsi") << "term : " << t << std::endl;
+    if( rsi->d_rep_set->d_values_to_terms.find( t )!=rsi->d_rep_set->d_values_to_terms.end() ){
+      t = rsi->d_rep_set->d_values_to_terms[t];
+      Trace("bound-int-rsi") << "term (post-rep) : " << t << std::endl;
+    }
     vars.push_back( d_set[q][i] );
     subs.push_back( t );
   }
   
   //check if it has been instantiated
   if( !vars.empty() && !d_bnd_it[q][v].hasInstantiated(subs) ){
-    if( d_bound_type[q][v]==BOUND_INT_RANGE ){
+    if( d_bound_type[q][v]==BOUND_INT_RANGE || d_bound_type[q][v]==BOUND_SET_MEMBER ){
       //must add the lemma
       Node nn = d_nground_range[q][v];
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       Node lem = NodeManager::currentNM()->mkNode( LEQ, nn, d_range[q][v] );
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
       d_quantEngine->getOutputChannel().lemma(lem, false, true);
-    }else{
-      //TODO : sets
     }
     return false;
   }else{
+    return true;
+  }
+}
+
+bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node q, Node v, std::vector< Node >& elements ) {
+  if( initial || !isGroundRange( q, v ) ){
+    elements.clear();
+    unsigned bvt = getBoundVarType( q, v );
+    if( bvt==BOUND_INT_RANGE ){
+      Node l, u;
+      getBoundValues( q, v, rsi, l, u );
+      if( l.isNull() || u.isNull() ){
+        //failed, abort the iterator
+        return false;
+      }else{
+        Trace("bound-int-rsi") << "Can limit bounds of " << v << " to " << l << "..." << u << std::endl;
+        Node range = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MINUS, u, l ) );
+        Node ra = Rewriter::rewrite( NodeManager::currentNM()->mkNode( LEQ, range, NodeManager::currentNM()->mkConst( Rational( 9999 ) ) ) );
+        Node tl = l;
+        Node tu = u;
+        getBounds( q, v, rsi, tl, tu );
+        Assert( !tl.isNull() && !tu.isNull() );
+        if( ra==d_quantEngine->getTermDatabase()->d_true ){
+          long rr = range.getConst<Rational>().getNumerator().getLong()+1;
+          Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
+          for( unsigned k=0; k<rr; k++ ){
+            Node t = NodeManager::currentNM()->mkNode(PLUS, tl, NodeManager::currentNM()->mkConst( Rational(k) ) );
+            t = Rewriter::rewrite( t );
+            elements.push_back( t );
+          }
+          return true;
+        }else{
+          Trace("fmf-incomplete") << "Incomplete because of integer quantification, bounds are too big for " << v << "." << std::endl;
+          return false;
+        }
+      }
+    }else if( bvt==BOUND_SET_MEMBER  ){ 
+      Node srv = getSetRangeValue( q, v, rsi );
+      if( srv.isNull() ){
+        return false;
+      }else{
+        Trace("bound-int-rsi") << "Bounded by set membership : " << srv << std::endl;
+        if( srv.getKind()!=EMPTYSET ){
+          while( srv.getKind()==UNION ){
+            Assert( srv[1].getKind()==kind::SINGLETON );
+            elements.push_back( srv[1][0] );
+            srv = srv[0];
+          }
+          Assert( srv.getKind()==kind::SINGLETON );
+          elements.push_back( srv[0] );
+        }
+        return true;
+      }
+    }else if( bvt==BOUND_FIXED_SET ){
+      std::map< Node, std::vector< Node > >::iterator it = d_fixed_set_gr_range[q].find( v );
+      if( it!=d_fixed_set_gr_range[q].end() ){
+        for( unsigned i=0; i<it->second.size(); i++ ){
+          elements.push_back( it->second[i] );
+        }
+      }
+      it = d_fixed_set_ngr_range[q].find( v );
+      if( it!=d_fixed_set_ngr_range[q].end() ){
+        std::vector< Node > vars;
+        std::vector< Node > subs;
+        if( getRsiSubsitution( q, v, vars, subs, rsi ) ){
+          for( unsigned i=0; i<it->second.size(); i++ ){
+            Node t = it->second[i].substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+            elements.push_back( t );
+          }
+          return true;
+        }else{
+          return false;
+        }
+      }else{
+        return true;
+      }
+    }else{
+      return false;
+    }
+  }else{
+    //no change required
     return true;
   }
 }

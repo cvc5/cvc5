@@ -325,7 +325,7 @@ option macrosQuant --macros-quant bool :read-write :default false
  perform quantifiers macro expansion
 option macrosQuantMode --macros-quant-mode=MODE CVC4::theory::quantifiers::MacrosQuantMode :default CVC4::theory::quantifiers::MACROS_QUANT_MODE_GROUND_UF :include "options/quantifiers_modes.h" :handler stringToMacrosQuantMode
  mode for quantifiers macro expansion
-option quantDynamicSplit --quant-dsplit-mode=MODE CVC4::theory::quantifiers::QuantDSplitMode :read-write :default CVC4::theory::quantifiers::QUANT_DSPLIT_MODE_DEFAULT :include "options/quantifiers_modes.h" :handler stringToQuantDSplitMode
+option quantDynamicSplit --quant-dsplit-mode=MODE CVC4::theory::quantifiers::QuantDSplitMode :read-write :default CVC4::theory::quantifiers::QUANT_DSPLIT_MODE_NONE :include "options/quantifiers_modes.h" :handler stringToQuantDSplitMode
  mode for dynamic quantifiers splitting
 option quantAntiSkolem --quant-anti-skolem bool :read-write :default false
  perform anti-skolemization for quantified formulas
