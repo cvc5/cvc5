@@ -4273,10 +4273,13 @@ void TheoryStrings::checkMemberships() {
   for( unsigned i=0; i<mems.size(); i++ ){
     Node n = mems[i];
     Assert( d_extf_info_tmp.find( n )!=d_extf_info_tmp.end() );
-    Assert( d_extf_info_tmp[n].d_pol==1 || d_extf_info_tmp[n].d_pol==-1 );
-    bool pol = d_extf_info_tmp[n].d_pol==1;
-    Trace("strings-process-debug") << "  add membership : " << n << ", pol = " << pol << std::endl;
-    addMembership( pol ? n : n.negate() );
+    if( d_extf_info_tmp[n].d_pol==1 || d_extf_info_tmp[n].d_pol==-1 ){
+      bool pol = d_extf_info_tmp[n].d_pol==1;
+      Trace("strings-process-debug") << "  add membership : " << n << ", pol = " << pol << std::endl;
+      addMembership( pol ? n : n.negate() );
+    }else{
+      Trace("strings-process-debug") << "  irrelevant (non-asserted) membership : " << n << std::endl;
+    }
   }
 
   bool addedLemma = false;

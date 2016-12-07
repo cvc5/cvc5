@@ -64,7 +64,8 @@ TESTS =	\
 	union-2.smt2 \
 	dt-simp-mem.smt2 \
 	card3-ground.smt2 \
-	card-3sets.cvc
+	card-3sets.cvc \
+	card.smt2
 
 EXTRA_DIST = $(TESTS)
 
