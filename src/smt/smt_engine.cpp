@@ -1211,7 +1211,7 @@ SmtEngine::~SmtEngine() throw() {
     if( d_fmfRecFunctionsDefined != NULL ){
       d_fmfRecFunctionsDefined->deleteSelf();
     }
-    
+
     delete d_theoryEngine;
     d_theoryEngine = NULL;
     delete d_propEngine;
@@ -1598,7 +1598,7 @@ void SmtEngine::setDefaults() {
     Trace("smt") << "enabling eager bit-vector explanations " << endl;
     options::bvEagerExplanations.set(true);
   }
-  
+
   if( !options::bitvectorEqualitySolver() ){
     Trace("smt") << "disabling bvLazyRewriteExtf since equality solver is disabled" << endl;
     options::bvLazyRewriteExtf.set(false);
@@ -1731,7 +1731,7 @@ void SmtEngine::setDefaults() {
     options::trackInstLemmas.set( true );
   }
 
-  if( ( options::fmfBoundLazy.wasSetByUser() && options::fmfBoundLazy() ) || 
+  if( ( options::fmfBoundLazy.wasSetByUser() && options::fmfBoundLazy() ) ||
       ( options::fmfBoundInt.wasSetByUser() && options::fmfBoundInt() ) ) {
     options::fmfBound.set( true );
   }
@@ -2679,7 +2679,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   spendResource(options::preprocessStep());
   d_smt.finalOptionsAreSet();
 
-  if(options::unsatCores()) {
+  if(options::unsatCores() || options::fewerPreprocessingHoles()) {
     return true;
   }
 
@@ -2717,7 +2717,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                       << "conflict in non-clausal propagation" << endl;
     Node falseNode = NodeManager::currentNM()->mkConst<bool>(false);
-    Assert(!options::unsatCores());
+    Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
     d_assertions.clear();
     addFormula(falseNode, false, false);
     d_propagatorNeedsFinish = true;
@@ -3991,7 +3991,7 @@ void SmtEnginePrivate::processAssertions() {
   }
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
-    
+
     dumpAssertions("pre-skolem-quant", d_assertions);
     //remove rewrite rules, apply pre-skolemization to existential quantifiers
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {
@@ -4019,7 +4019,7 @@ void SmtEnginePrivate::processAssertions() {
     if( options::fmfFunWellDefined() ){
       quantifiers::FunDefFmf fdf;
       //must carry over current definitions (for incremental)
-      for( context::CDList<Node>::const_iterator fit = d_smt.d_fmfRecFunctionsDefined->begin(); 
+      for( context::CDList<Node>::const_iterator fit = d_smt.d_fmfRecFunctionsDefined->begin();
            fit != d_smt.d_fmfRecFunctionsDefined->end(); ++fit ) {
         Node f = (*fit);
         Assert( d_smt.d_fmfRecFunctionsAbs.find( f )!=d_smt.d_fmfRecFunctionsAbs.end() );
@@ -4219,10 +4219,10 @@ void SmtEnginePrivate::processAssertions() {
       m->addSubstitution(eager_atom, atom);
     }
   }
-  
+
   //notify theory engine new preprocessed assertions
   d_smt.d_theoryEngine->notifyPreprocessedAssertions( d_assertions.ref() );
-  
+
   // Push the formula to decision engine
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
@@ -5149,7 +5149,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
       ss << "While performing quantifier elimination, unexpected result : " << r << " for query.";
       InternalError(ss.str().c_str());
     }
-    
+
     Node top_q = Rewriter::rewrite( nn_e ).negate();
     Assert( top_q.getKind()==kind::FORALL );
     Trace("smt-qe") << "Get qe for " << top_q << std::endl;
@@ -5549,4 +5549,3 @@ void SmtEngine::setReplayStream(ExprStream* replayStream) {
 }
 
 }/* CVC4 namespace */
-
