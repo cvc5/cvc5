@@ -242,6 +242,7 @@ tokens {
   //REGEXP_EMPTY_TOK
   //REGEXP_SIGMA_TOK
   
+  SETS_CARD_TOK = 'CARD';
   
   FMF_CARD_TOK = 'HAS_CARD';
 
@@ -328,6 +329,7 @@ int getOperatorPrecedence(int type) {
   case GEQ_TOK:
   case GT_TOK:
   case MEMBER_TOK: 
+  case SETS_CARD_TOK:
   case FMF_CARD_TOK: return 25;
   case EQUAL_TOK:
   case DISEQUAL_TOK: return 26;
@@ -371,6 +373,7 @@ Kind getOperatorKind(int type, bool& negate) {
   case LT_TOK: return kind::LT;
   case LEQ_TOK: return kind::LEQ;
   case MEMBER_TOK: return kind::MEMBER;
+  case SETS_CARD_TOK: return kind::CARD;
   case FMF_CARD_TOK: return kind::CARDINALITY_CONSTRAINT;
 
     // arithmeticBinop
@@ -2012,8 +2015,18 @@ stringTerm[CVC4::Expr& f]
   | str[s]
     { f = MK_CONST(CVC4::String(s)); }
 
+  | setsTerm[f]
+  ;
+  
+setsTerm[CVC4::Expr& f]
+@init {
+}
+    /* Sets prefix operators */
+  : SETS_CARD_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::CARD, f); }
   | simpleTerm[f]
   ;
+  
 
 /** Parses a simple term. */
 simpleTerm[CVC4::Expr& f]

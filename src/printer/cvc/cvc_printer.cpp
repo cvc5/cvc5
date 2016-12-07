@@ -819,9 +819,9 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
     }
     case kind::CARD: {
-      out << "||";
+      out << "CARD(";
       toStream(out, n[0], depth, types, false);
-      out << "||";
+      out << ")";
       return;
       break;
     }

@@ -576,6 +576,13 @@ void TheorySetsPrivate::fullEffortCheck(){
           d_set_eqc_list[eqc].push_back( n );
         }else if( n.getKind()==kind::CARD ){
           d_card_enabled = true;
+          TypeNode tn = n[0].getType().getSetElementType();
+          if( tn.isInterpretedFinite() ){
+            std::stringstream ss;
+            ss << "ERROR: cannot use cardinality on sets with finite element type." << std::endl;
+            throw LogicException(ss.str());
+            //TODO: extend approach for this case
+          }
           Node r = d_equalityEngine.getRepresentative( n[0] );
           if( d_eqc_to_card_term.find( r )==d_eqc_to_card_term.end() ){
             d_eqc_to_card_term[ r ] = n;
