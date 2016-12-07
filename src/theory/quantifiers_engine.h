@@ -271,6 +271,8 @@ public:
   void setOwner( Node q, QuantifiersModule * m, int priority = 0 );
   /** considers */
   bool hasOwnership( Node q, QuantifiersModule * m = NULL );
+  /** is finite bound */
+  bool isFiniteBound( Node q, Node v );
 public:
   /** initialize */
   void finishInit();

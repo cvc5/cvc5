@@ -251,8 +251,7 @@ void QuantifiersEngine::finishInit(){
     d_lte_part_inst = new quantifiers::LtePartialInst( this, c );
     d_modules.push_back( d_lte_part_inst );
   }
-  if( ( options::finiteModelFind() && options::quantDynamicSplit()!=quantifiers::QUANT_DSPLIT_MODE_NONE ) ||
-      options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
+  if( options::quantDynamicSplit()!=quantifiers::QUANT_DSPLIT_MODE_NONE ){
     d_qsplit = new quantifiers::QuantDSplit( this, c );
     d_modules.push_back( d_qsplit );
   }
@@ -326,6 +325,20 @@ void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m, int priority ) 
 bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
   QuantifiersModule * mo = getOwner( q );
   return mo==m || mo==NULL;
+}
+
+bool QuantifiersEngine::isFiniteBound( Node q, Node v ) {
+  if( getBoundedIntegers() && getBoundedIntegers()->isBoundVar( q, v ) ){
+    return true;
+  }else{
+    TypeNode tn = v.getType();
+    if( tn.isSort() && options::finiteModelFind() ){
+      return true;
+    }else if( getTermDatabase()->mayComplete( tn ) ){
+      return true;
+    }
+  }
+  return false;
 }
 
 void QuantifiersEngine::presolve() {

@@ -50,7 +50,11 @@ void QuantDSplit::preRegisterQuantifier( Node q ) {
         if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
           score = dt.isInterpretedFinite( tn.toType() ) ? 1 : 0;
         }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
-          score = dt.isInterpretedFinite( tn.toType() ) ? 1 : -1;
+          //only split if goes from being unhandled -> handled by finite instantiation
+          //  an example is datatypes with uninterpreted sort fields, which are "interpreted finite" but not "finite"
+          if( !d_quantEngine->isFiniteBound( q, q[0][i] ) ){
+            score = dt.isInterpretedFinite( tn.toType() ) ? 1 : -1;
+          }
         }
         Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is score " << score << " (" << dt.isInterpretedFinite( tn.toType() ) << " " << dt.isFinite( tn.toType() ) << ")" << std::endl;
         if( score>max_score ){

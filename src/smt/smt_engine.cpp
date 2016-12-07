@@ -1774,6 +1774,10 @@ void SmtEngine::setDefaults() {
   //now, have determined whether finite model find is on/off
   //apply finite model finding options
   if( options::finiteModelFind() ){
+    //apply conservative quantifiers splitting
+    if( !options::quantDynamicSplit.wasSetByUser() ){
+      options::quantDynamicSplit.set( quantifiers::QUANT_DSPLIT_MODE_DEFAULT );
+    }
     if( !options::eMatching.wasSetByUser() ){
       options::eMatching.set( options::fmfInstEngine() );
     }

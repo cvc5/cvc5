@@ -737,56 +737,37 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   }
 }
 
+class RepBoundFmcEntry : public RepBoundExt {
+public:
+  Node d_entry;
+  FirstOrderModelFmc * d_fm;
+  bool setBound( Node owner, int i, TypeNode tn, std::vector< Node >& elements ) {
+    if( d_fm->isInterval(d_entry[i]) ){
+      //explicitly add the interval TODO?
+    }else if( d_fm->isStar(d_entry[i]) ){
+      //add the full range
+      return false;
+    }else{
+      //only need to consider the single point
+      elements.push_back( d_entry[i] );
+      return true;
+    }
+    return false;
+  }
+};
+
 bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index) {
   RepSetIterator riter( d_qe, &(fm->d_rep_set) );
   Trace("fmc-exh") << "----Exhaustive instantiate based on index " << c_index << " : " << c << " ";
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;
-  Trace("fmc-exh-debug") << "Set interval domains..." << std::endl;
-  //set the bounds on the iterator based on intervals
-  for( unsigned i=0; i<c.getNumChildren(); i++ ){
-    if( c[i].getType().isInteger() ){
-      if( fm->isInterval(c[i]) ){
-        Trace("fmc-exh-debug") << "...set " << i << " based on interval." << std::endl;
-        for( unsigned b=0; b<2; b++ ){
-          if( !fm->isStar(c[i][b]) ){
-            riter.d_bounds[b][i] = c[i][b];
-          }
-        }
-      }else if( !fm->isStar(c[i]) ){
-        Trace("fmc-exh-debug") << "...set " << i << " based on point." << std::endl;
-        riter.d_bounds[0][i] = c[i];
-        riter.d_bounds[1][i] = QuantArith::offset( c[i], 1 );
-      }
-    }
-  }
+  RepBoundFmcEntry rbfe;
+  rbfe.d_entry = c;
+  rbfe.d_fm = fm;
   Trace("fmc-exh-debug") << "Set quantifier..." << std::endl;
   //initialize
-  if( riter.setQuantifier( f ) ){
+  if( riter.setQuantifier( f, &rbfe ) ){
     Trace("fmc-exh-debug") << "Set element domains..." << std::endl;
-    //set the domains based on the entry
-    for (unsigned i=0; i<c.getNumChildren(); i++) {
-      if( riter.d_enum_type[i]==RepSetIterator::ENUM_DOMAIN_ELEMENTS || riter.d_enum_type[i]==RepSetIterator::ENUM_SET_MEMBERS ){
-        TypeNode tn = c[i].getType();
-        if( d_rep_ids.find(tn)!=d_rep_ids.end() ){
-          if( fm->isInterval(c[i]) || fm->isStar(c[i]) ){
-            //add the full range
-          }else{
-            if (d_rep_ids[tn].find(c[i])!=d_rep_ids[tn].end()) {
-              riter.d_domain[i].clear();
-              riter.d_domain[i].push_back(d_rep_ids[tn][c[i]]);
-              riter.d_enum_type[i] = RepSetIterator::ENUM_DOMAIN_ELEMENTS;
-            }else{
-              Trace("fmc-exh") << "---- Does not have rep : " << c[i] << " for type " << tn << std::endl;
-              return false;
-            }
-          }
-        }else{
-          Trace("fmc-exh") << "---- Does not have type : " << tn << std::endl;
-          return false;
-        }
-      }
-    }
     int addedLemmas = 0;
     //now do full iteration
     while( !riter.isFinished() ){
@@ -829,7 +810,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       int index = riter.increment();
       Trace("fmc-exh-debug") << "Incremented index " << index << std::endl;
       if( !riter.isFinished() ){
-        if (index>=0 && riter.d_index[index]>0 && addedLemmas>0 && riter.d_enum_type[index]==RepSetIterator::ENUM_INT_RANGE) {
+        if (index>=0 && riter.d_index[index]>0 && addedLemmas>0 && riter.d_enum_type[index]==RepSetIterator::ENUM_BOUND_INT ) {
           Trace("fmc-exh-debug") << "Since this is a range enumeration, skip to the next..." << std::endl;
           riter.increment2( index-1 );
         }

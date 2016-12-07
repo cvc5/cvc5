@@ -57,7 +57,12 @@ TESTS =	\
 	LeftistHeap.scala-8-ncm.smt2 \
 	sc-crash-052316.smt2 \
 	bound-int-alt.smt2 \
-	bug723-irrelevant-funs.smt2
+	bug723-irrelevant-funs.smt2 \
+	bounded_sets.smt2 \
+	fmf-strange-bounds.smt2 \
+	fmf-strange-bounds-2.smt2 \
+	fmf-bound-2dim.smt2 \
+	memory_model-R_cpp-dd.cvc
 
 EXTRA_DIST = $(TESTS)
 

@@ -139,14 +139,10 @@ RepSetIterator::RepSetIterator( QuantifiersEngine * qe, RepSet* rs ) : d_qe(qe),
 int RepSetIterator::domainSize( int i ) {
   Assert(i>=0);
   int v = d_var_order[i];
-  if( d_enum_type[v]==ENUM_DOMAIN_ELEMENTS ){
-    return d_domain[v].size();
-  }else{
-    return d_domain[v][0];
-  }
+  return d_domain_elements[v].size();
 }
 
-bool RepSetIterator::setQuantifier( Node f ){
+bool RepSetIterator::setQuantifier( Node f, RepBoundExt* rext ){
   Trace("rsi") << "Make rsi for " << f << std::endl;
   Assert( d_types.empty() );
   //store indicies
@@ -154,10 +150,10 @@ bool RepSetIterator::setQuantifier( Node f ){
     d_types.push_back( f[0][i].getType() );
   }
   d_owner = f;
-  return initialize();
+  return initialize( rext );
 }
 
-bool RepSetIterator::setFunctionDomain( Node op ){
+bool RepSetIterator::setFunctionDomain( Node op, RepBoundExt* rext ){
   Trace("rsi") << "Make rsi for " << op << std::endl;
   Assert( d_types.empty() );
   TypeNode tn = op.getType();
@@ -165,10 +161,10 @@ bool RepSetIterator::setFunctionDomain( Node op ){
     d_types.push_back( tn[i] );
   }
   d_owner = op;
-  return initialize();
+  return initialize( rext );
 }
 
-bool RepSetIterator::initialize(){
+bool RepSetIterator::initialize( RepBoundExt* rext ){
   Trace("rsi") << "Initialize rep set iterator..." << std::endl;
   for( unsigned v=0; v<d_types.size(); v++ ){
     d_index.push_back( 0 );
@@ -176,7 +172,8 @@ bool RepSetIterator::initialize(){
     d_index_order.push_back( v );
     d_var_order[v] = v;
     //store default domain
-    d_domain.push_back( RepDomain() );
+    //d_domain.push_back( RepDomain() );
+    d_domain_elements.push_back( std::vector< Node >() );
     TypeNode tn = d_types[v];
     Trace("rsi") << "Var #" << v << " is type " << tn << "..." << std::endl;
     if( tn.isSort() ){
@@ -191,27 +188,27 @@ bool RepSetIterator::initialize(){
         Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn << std::endl;
         d_rep_set->add( tn, var );
       }
-    }else{
-      bool inc = true;
-      //check if it is bound by bounded integer module
-      if( d_owner.getKind()==FORALL && d_qe && d_qe->getBoundedIntegers() ){
+    }
+    bool inc = true;
+    //check if it is externally bound
+    if( rext && rext->setBound( d_owner, v, tn, d_domain_elements[v] ) ){
+      d_enum_type.push_back( ENUM_DEFAULT );
+      inc = false;
+    //builtin: check if it is bound by bounded integer module
+    }else if( d_owner.getKind()==FORALL && d_qe && d_qe->getBoundedIntegers() ){
+      if( d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][v] ) ){
         unsigned bvt = d_qe->getBoundedIntegers()->getBoundVarType( d_owner, d_owner[0][v] );
-        if( bvt==quantifiers::BoundedIntegers::BOUND_INT_RANGE ){
-          Trace("rsi") << "  variable is bounded integer." << std::endl;
-          d_enum_type.push_back( ENUM_INT_RANGE );
+        if( bvt!=quantifiers::BoundedIntegers::BOUND_FINITE ){
+          d_enum_type.push_back( ENUM_BOUND_INT );
           inc = false;
-        }else if( bvt==quantifiers::BoundedIntegers::BOUND_SET_MEMBER ){
-          Trace("rsi") << "  variable is bounded by set membership." << std::endl;
-          d_enum_type.push_back( ENUM_SET_MEMBERS );
-          inc = false;
+        }else{
+          //will treat in default way
         }
       }
+    }
+    if( !tn.isSort() ){
       if( inc ){
-        //check if it is otherwise bound
-        if( d_bounds[0].find( v )!=d_bounds[0].end() && d_bounds[1].find( v )!=d_bounds[1].end() ){
-          Trace("rsi") << "  variable is bounded." << std::endl;
-          d_enum_type.push_back( ENUM_INT_RANGE );
-        }else if( d_qe->getTermDatabase()->mayComplete( tn ) ){
+        if( d_qe->getTermDatabase()->mayComplete( tn ) ){
           Trace("rsi") << "  do complete, since cardinality is small (" << tn.getCardinality() << ")..." << std::endl;
           d_rep_set->complete( tn );
           //must have succeeded
@@ -223,12 +220,14 @@ bool RepSetIterator::initialize(){
         }
       }
     }
+
     //if we have yet to determine the type of enumeration
     if( d_enum_type.size()<=v ){
-      d_enum_type.push_back( ENUM_DOMAIN_ELEMENTS );
       if( d_rep_set->hasType( tn ) ){
+        d_enum_type.push_back( ENUM_DEFAULT );
         for( unsigned j=0; j<d_rep_set->d_type_reps[tn].size(); j++ ){
-          d_domain[v].push_back( j );
+          //d_domain[v].push_back( j );
+          d_domain_elements[v].push_back( d_rep_set->d_type_reps[tn][j] );
         }
       }else{
         Assert( d_incomplete );
@@ -285,92 +284,13 @@ int RepSetIterator::resetIndex( int i, bool initial ) {
   d_index[i] = 0;
   int v = d_var_order[i];
   Trace("bound-int-rsi") << "Reset " << i << ", var order = " << v << ", initial = " << initial << std::endl;
-  //determine the current range
-  if( initial || ( d_owner.getKind()==FORALL && d_qe && d_qe->getBoundedIntegers() && 
-                   d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][v] ) &&
-                   !d_qe->getBoundedIntegers()->isGroundRange( d_owner, d_owner[0][v] ) ) ){
-    Trace("bound-int-rsi") << "Getting range of " << d_owner[0][v] << std::endl;
-    if( d_enum_type[v]==ENUM_INT_RANGE ){
-      Node actual_l;
-      Node l, u;
-      if( d_qe->getBoundedIntegers() ){
-        unsigned bvt = d_qe->getBoundedIntegers()->getBoundVarType( d_owner, d_owner[0][v] );
-        if( bvt==quantifiers::BoundedIntegers::BOUND_INT_RANGE ){
-          d_qe->getBoundedIntegers()->getBoundValues( d_owner, d_owner[0][v], this, l, u );
-        }
-      }
-      for( unsigned b=0; b<2; b++ ){
-        if( d_bounds[b].find(v)!=d_bounds[b].end() ){
-          Trace("bound-int-rsi") << "May further limit bound(" << b << ") based on " << d_bounds[b][v] << std::endl;
-          if( b==0 && (l.isNull() || d_bounds[b][v].getConst<Rational>() > l.getConst<Rational>()) ){
-            if( !l.isNull() ){
-              //bound was limited externally, record that the value lower bound is not equal to the term lower bound
-              actual_l = NodeManager::currentNM()->mkNode( MINUS, d_bounds[b][v], l );
-            }
-            l = d_bounds[b][v];
-          }else if( b==1 && (u.isNull() || d_bounds[b][v].getConst<Rational>() <= u.getConst<Rational>()) ){
-            u = NodeManager::currentNM()->mkNode( MINUS, d_bounds[b][v],
-                                                  NodeManager::currentNM()->mkConst( Rational(1) ) );
-            u = Rewriter::rewrite( u );
-          }
-        }
-      }
-
-      if( l.isNull() || u.isNull() ){
-        //failed, abort the iterator
-        return -1;
-      }else{
-        Trace("bound-int-rsi") << "Can limit bounds of " << d_owner[0][v] << " to " << l << "..." << u << std::endl;
-        Node range = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MINUS, u, l ) );
-        Node ra = Rewriter::rewrite( NodeManager::currentNM()->mkNode( LEQ, range, NodeManager::currentNM()->mkConst( Rational( 9999 ) ) ) );
-        d_domain[v].clear();
-        Node tl = l;
-        Node tu = u;
-        if( d_qe->getBoundedIntegers() && d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][v] ) ){
-          d_qe->getBoundedIntegers()->getBounds( d_owner, d_owner[0][v], this, tl, tu );
-        }
-        d_lower_bounds[v] = tl;
-        if( !actual_l.isNull() ){
-          //if bound was limited externally, must consider the offset
-          d_lower_bounds[v] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( PLUS, tl, actual_l ) );
-        }
-        if( ra==d_qe->getTermDatabase()->d_true ){
-          long rr = range.getConst<Rational>().getNumerator().getLong()+1;
-          Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
-          d_domain[v].push_back( (int)rr );
-          if( rr<=0 ){
-            return 0;
-          }
-        }else{
-          Trace("fmf-incomplete") << "Incomplete because of integer quantification, bounds are too big for " << d_owner[0][v] << "." << std::endl;
-          return -1;
-        }
-      }
-    }else if( d_enum_type[v]==ENUM_SET_MEMBERS ){ 
-      Assert( d_qe->getBoundedIntegers()->getBoundVarType( d_owner, d_owner[0][v] )==quantifiers::BoundedIntegers::BOUND_SET_MEMBER );
-      Node srv = d_qe->getBoundedIntegers()->getSetRangeValue( d_owner, d_owner[0][v], this );
-      if( srv.isNull() ){
-        return -1;
-      }
-      Trace("bound-int-rsi") << "Bounded by set membership : " << srv << std::endl;
-      d_domain[v].clear();
-      d_setm_bounds[v].clear();
-      if( srv.getKind()!=EMPTYSET ){
-        while( srv.getKind()==UNION ){
-          Assert( srv[1].getKind()==kind::SINGLETON );
-          d_setm_bounds[v].push_back( srv[1][0] );
-          srv = srv[0];
-        }
-        Assert( srv.getKind()==kind::SINGLETON );
-        d_setm_bounds[v].push_back( srv[0] );
-        d_domain[v].push_back( d_setm_bounds[v].size() );
-      }else{
-        d_domain[v].push_back( 0 );
-        return 0;
-      }
+  if( d_enum_type[v]==ENUM_BOUND_INT ){
+    Assert( d_owner.getKind()==FORALL );
+    if( !d_qe->getBoundedIntegers()->getBoundElements( this, initial, d_owner, d_owner[0][v], d_domain_elements[v] ) ){
+      return -1;
     }
   }
-  return 1;
+  return d_domain_elements[v].empty() ? 0 : 1;
 }
 
 int RepSetIterator::increment2( int i ){
@@ -436,24 +356,12 @@ bool RepSetIterator::isFinished(){
 }
 
 Node RepSetIterator::getCurrentTerm( int v ){
-  Trace("rsi-debug") << "rsi : get term " << v << ", index order = " << d_index_order[v] << std::endl;
   int ii = d_index_order[v];
   int curr = d_index[ii];
-  if( d_enum_type[v]==ENUM_DOMAIN_ELEMENTS ){
-    TypeNode tn = d_types[v];
-    Assert( d_rep_set->d_type_reps.find( tn )!=d_rep_set->d_type_reps.end() );
-    Assert( 0<=d_domain[v][curr] && d_domain[v][curr]<(int)d_rep_set->d_type_reps[tn].size() );
-    return d_rep_set->d_type_reps[tn][d_domain[v][curr]];
-  }else if( d_enum_type[v]==ENUM_SET_MEMBERS ){
-    Assert( 0<=curr && curr<(int)d_setm_bounds[v].size() );
-    return d_setm_bounds[v][curr];
-  }else{
-    Trace("rsi-debug") << "Get, with offset : " << v << " " << d_lower_bounds[v] << " " << curr << std::endl;
-    Assert( !d_lower_bounds[v].isNull() );
-    Node t = NodeManager::currentNM()->mkNode(PLUS, d_lower_bounds[v], NodeManager::currentNM()->mkConst( Rational(curr) ) );
-    t = Rewriter::rewrite( t );
-    return t;
-  }
+  Trace("rsi-debug") << "rsi : get term " << v << ", index order = " << d_index_order[v] << std::endl;
+  Trace("rsi-debug") << "rsi : curr = " << curr << " / " << d_domain_elements[v].size() << std::endl;
+  Assert( 0<=curr && curr<(int)d_domain_elements[v].size() );
+  return d_domain_elements[v][curr];
 }
 
 void RepSetIterator::debugPrint( const char* c ){
