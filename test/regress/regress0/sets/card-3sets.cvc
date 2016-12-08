@@ -1,0 +1,9 @@
+% EXPECT: sat
+OPTION "logic" "ALL_SUPPORTED";
+x : SET OF INT;
+y : SET OF INT;
+z : SET OF INT;
+
+ASSERT CARD( x ) > CARD( y ) AND CARD( y ) > CARD( z );
+
+CHECKSAT;
