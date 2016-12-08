@@ -65,7 +65,14 @@ TESTS =	\
 	dt-simp-mem.smt2 \
 	card3-ground.smt2 \
 	card-3sets.cvc \
-	card.smt2
+	card.smt2 \
+	card-2.smt2 \
+	card-3.smt2 \
+	card-4.smt2 \
+	card-5.smt2 \
+	card-6.smt2 \
+	card-7.smt2
+
 
 EXTRA_DIST = $(TESTS)
 
