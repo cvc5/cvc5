@@ -528,13 +528,12 @@ Integer Polynomial::numeratorGCD() const {
 
 Integer Polynomial::denominatorLCM() const {
   Integer tmp(1);
-  for(iterator i=begin(), e=end(); i!=e; ++i){
-    const Constant& c = (*i).getConstant();
-    tmp = tmp.lcm(c.getValue().getDenominator());
+  for (iterator i = begin(), e = end(); i != e; ++i) {
+    const Integer denominator = (*i).getConstant().getValue().getDenominator();
+    tmp = tmp.lcm(denominator);
   }
   return tmp;
 }
-
 
 Constant Polynomial::getCoefficient(const VarList& vl) const{
   //TODO improve to binary search...

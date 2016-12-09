@@ -30,7 +30,8 @@ namespace arith {
 
 
 SimplexDecisionProcedure::SimplexDecisionProcedure(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc)
-  : d_conflictVariables()
+    : d_pivots(0),
+      d_conflictVariables()
   , d_linEq(linEq)
   , d_variables(d_linEq.getVariables())
   , d_tableau(d_linEq.getTableau())
@@ -43,7 +44,6 @@ SimplexDecisionProcedure::SimplexDecisionProcedure(LinearEqualityModule& linEq, 
   , d_zero(0)
   , d_posOne(1)
   , d_negOne(-1)
-  , d_pivots(0)
 {
   d_heuristicRule = options::arithErrorSelectionRule();
   d_errorSet.setSelectionRule(d_heuristicRule);
