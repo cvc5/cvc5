@@ -30,8 +30,8 @@ namespace arith {
 
 
 SimplexDecisionProcedure::SimplexDecisionProcedure(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc)
-    : d_pivots(0),
-      d_conflictVariables()
+  : d_pivots(0)
+  , d_conflictVariables()
   , d_linEq(linEq)
   , d_variables(d_linEq.getVariables())
   , d_tableau(d_linEq.getTableau())
