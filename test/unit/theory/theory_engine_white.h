@@ -33,6 +33,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
+#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
@@ -442,6 +443,21 @@ public:
     Node expected =
         d_nm->mkNode(BITVECTOR_SUB, d_nm->mkNode(BITVECTOR_MULT, x, z),
                      d_nm->mkNode(BITVECTOR_MULT, y, z));
-    TS_ASSERT(result == expected);
+    TS_ASSERT_EQUALS(result, expected);
+
+    // Try to apply MultSlice to a multiplication of two and three different
+    // variables, expect different results (x * y and x * y * z should not get
+    // rewritten to the same term).
+    expr = d_nm->mkNode(BITVECTOR_MULT, x, y, z);
+    result = expr;
+    Node expr2 = d_nm->mkNode(BITVECTOR_MULT, x, y);
+    Node result2 = expr;
+    if (RewriteRule<MultSlice>::applies(expr)) {
+      result = RewriteRule<MultSlice>::apply(expr);
+    }
+    if (RewriteRule<MultSlice>::applies(expr2)) {
+      result2 = RewriteRule<MultSlice>::apply(expr2);
+    }
+    TS_ASSERT_DIFFERS(result, result2);
   }
 };
