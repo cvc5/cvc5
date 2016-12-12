@@ -1108,13 +1108,10 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<MultSlice>::applies(TNode node) {
-  if (node.getKind() != kind::BITVECTOR_MULT) {
+  if (node.getKind() != kind::BITVECTOR_MULT || node.getNumChildren() != 2) {
     return false; 
   }
-  if (utils::getSize(node[0]) % 2 != 0) {
-    return false; 
-  }
-  return true; 
+  return utils::getSize(node[0]) % 2 == 0;
 }
 
 /** 
