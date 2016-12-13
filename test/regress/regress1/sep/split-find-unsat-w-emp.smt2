@@ -10,7 +10,7 @@
 (declare-const c Int)
 
 (assert (and
-        (not (sep (not (pto x a)) (not (pto y b)) (not (sep (pto x a) (pto y b))) (not (emp x)) ))
+        (not (sep (not (pto x a)) (not (pto y b)) (not (sep (pto x a) (pto y b))) (not (emp x x)) ))
         (sep (pto x a) (pto y b))
   )
 )
