@@ -320,7 +320,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         delete cmd;
       }
     } else if( opts.getTearDownIncremental() > 0) {
-      if(!opts.getIncrementalSolving()) {
+      if(!opts.getIncrementalSolving() && opts.getTearDownIncremental() > 1) {
+        // For tear-down-incremental values greater than 1, need incremental
+        // on too.
         cmd = new SetOptionCommand("incremental", SExpr(true));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
