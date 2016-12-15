@@ -25,6 +25,7 @@
 #include "expr/node_builder.h"
 #include "options/bv_options.h"
 #include "options/options.h"
+#include "options/proof_options.h"
 #include "options/quantifiers_options.h"
 #include "proof/cnf_proof.h"
 #include "proof/lemma_proof.h"
@@ -1945,7 +1946,7 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
   // This pass does not support dependency tracking yet
   // (learns substitutions from all assertions so just
   // adding addDependence is not enough)
-  if (options::unsatCores()) {
+  if (options::unsatCores() || options::fewerPreprocessingHoles()) {
     return true;
   }
   bool result = true;
