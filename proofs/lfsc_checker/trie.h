@@ -1,9 +1,10 @@
 #ifndef sc2__trie_h
 #define sc2__trie_h
 
-#include <vector>
-#include <string.h>
+#include <assert.h>
 #include <stdlib.h>
+#include <string.h>
+#include <vector>
 
 template<class Data>
 class Trie {
@@ -15,6 +16,7 @@ protected:
 
   // s is assumed to be non-empty (and non-null)
   Data insert_next(const char *s, const Data &x) {
+    assert(s != NULL && s[0] != '\0');
     unsigned c = s[0];
     if (c >= next.size()) {
       using_next = true;
@@ -29,6 +31,7 @@ protected:
 
   // s is assumed to be non-empty (and non-null)
   Data get_next(const char *s) {
+    assert(s != NULL && s[0] != '\0');
     unsigned c = s[0];
     if (c >= next.size())
       return Data();
@@ -51,19 +54,10 @@ public:
 
   static Cleaner *cleaner;
 
-  bool eqstr(const char *s1, const char *s2) {
-    while (*s1 && *s2) {
-      if (*s1++ != *s2++)
-	return false;
-    }
-    return (*s1 == *s2);
-  }
-
   Data get(const char *s) {
     if (!s[0] && (!str || !str[0]))
       return d;
-    if (str && eqstr(str,s))
-      return d;
+    if (str && strcmp(str, s) == 0) return d;
     if (using_next)
       return get_next(s);
     return Data();
