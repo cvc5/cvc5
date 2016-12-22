@@ -205,13 +205,12 @@ Expr* Expr::build_app(Expr *hd, const std::vector<Expr *> &args, int start) {
     return hd;
   else
   {
-    CExpr *ret = new CExpr( APP );
-    ret->kids = new Expr* [args.size()-start+2];
-    ret->kids[0] = hd;
+    Expr **kids = new Expr *[args.size() - start + 2];
+    kids[0] = hd;
     for (int i = start, iend = args.size(); i < iend; i++)
-        ret->kids[i-start+1] = args[i];
-    ret->kids[args.size()-start+1] = NULL;
-    return ret;
+      kids[i - start + 1] = args[i];
+    kids[args.size() - start + 1] = NULL;
+    return new CExpr(APP, true /* dummy */, kids);
   }
 #endif
 }
@@ -229,16 +228,16 @@ Expr* Expr::make_app(Expr* e1, Expr* e2 )
       while( ((CExpr*)e1)->kids[counter] ){
          counter++;
       }
-      ret = new CExpr( APP );
-      ret->kids = new Expr* [counter+2];
+      Expr **kids = new Expr *[counter + 2];
       counter = 0;
       while( ((CExpr*)e1)->kids[counter] ){
-         ret->kids[counter] = ((CExpr*)e1)->kids[counter];
-         ret->kids[counter]->inc();
-         counter++;
+        kids[counter] = ((CExpr *)e1)->kids[counter];
+        kids[counter]->inc();
+        counter++;
       }
-      ret->kids[counter] = e2;
-      ret->kids[counter+1] = NULL;
+      kids[counter] = e2;
+      kids[counter + 1] = NULL;
+      ret = new CExpr(APP, true /* dummy */, kids);
    }else{
       ret = new CExpr( APP, e1, e2 );
    }
@@ -369,14 +368,13 @@ Expr* CExpr::convert_to_flat_app( Expr* e )
   {
     std::vector< Expr* > args;
     Expr* hd = ((CExpr*)e)->collect_args( args );
-    CExpr* nce = new CExpr( APP );
-    nce->kids = new Expr *[(int)args.size()+2];
-    nce->kids[0] = hd;
-    for( int a=0; a<(int)args.size(); a++ )
-    {
-      nce->kids[a+1] = convert_to_flat_app( args[a] );
+    Expr **kids = new Expr *[args.size() + 2];
+    kids[0] = hd;
+    for (size_t a = 0; a < args.size(); a++) {
+      kids[a + 1] = convert_to_flat_app(args[a]);
     }
-    nce->kids[(int)args.size()+1] = 0;
+    kids[args.size() + 1] = 0;
+    CExpr *nce = new CExpr(APP, true /* dummy */, kids);
     nce->inc();
     return nce;
   }
@@ -647,8 +645,7 @@ bool Expr::free_in(Expr *x) {
       Expr *tmp;
       Expr **cur = e->kids;
       while ((tmp = *cur++))
-         if (tmp->free_in(x))
-	         return true;
+        if (tmp->free_in(x)) return true;
       return false;
    }
    }

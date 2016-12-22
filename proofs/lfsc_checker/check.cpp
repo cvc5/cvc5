@@ -87,10 +87,10 @@ char our_getc_c = 0;
 int IDBUF_LEN = 2048;
 char idbuf[2048];
 
-Expr *statType = new CExpr(TYPE, 0);
-Expr *statKind = new CExpr(KIND, 0);
-Expr *statMpz = new CExpr(MPZ,0);
-Expr *statMpq = new CExpr(MPQ,0);
+Expr *statType = new CExpr(TYPE);
+Expr *statKind = new CExpr(KIND);
+Expr *statMpz = new CExpr(MPZ);
+Expr *statMpq = new CExpr(MPQ);
 
 int open_parens = 0;
 
@@ -466,7 +466,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
       SymExpr *sym = new SymExpr(id);
 #endif
       int prev_open = open_parens;
-      Expr *tp_of_trm;
+      Expr *tp_of_trm = NULL;
       Expr *trm = check(true, NULL, &tp_of_trm);
       eat_excess(prev_open);
 
