@@ -47,8 +47,8 @@ class InequalitySolver: public SubtheorySolver {
   InequalityGraph d_inequalityGraph;
   context::CDHashMap<Node, TNode, NodeHashFunction> d_explanations;
   context::CDO<bool> d_isComplete;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
-  TNodeSet d_ineqTerms;
+  typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+  NodeSet d_ineqTerms;
   bool isInequalityOnly(TNode node);
   bool addInequality(TNode a, TNode b, bool strict, TNode fact);
   Statistics d_statistics;
