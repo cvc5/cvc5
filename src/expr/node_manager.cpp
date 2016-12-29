@@ -383,7 +383,7 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
         stack.back().first = true;
         Assert(visited.count(current) == 0);
         visited.insert(current);
-        for (int i = 0; i < current->getNumChildren(); ++i) {
+        for (unsigned i = 0; i < current->getNumChildren(); ++i) {
           expr::NodeValue* child = current->getChild(i);
           if (visited.find(child) == visited.end()) {
             stack.push_back(std::make_pair(false, child));
