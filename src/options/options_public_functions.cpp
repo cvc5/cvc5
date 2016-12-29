@@ -159,7 +159,7 @@ bool Options::getStrictParsing() const{
   return (*this)[options::strictParsing];
 }
 
-bool Options::getTearDownIncremental() const{
+int Options::getTearDownIncremental() const{
   return (*this)[options::tearDownIncremental];
 }
 

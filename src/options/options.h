@@ -222,7 +222,7 @@ public:
   bool getStatsEveryQuery() const;
   bool getStatsHideZeros() const;
   bool getStrictParsing() const;
-  bool getTearDownIncremental() const;
+  int getTearDownIncremental() const;
   bool getVersion() const;
   bool getWaitToJoin() const;
   const std::string& getForceLogicString() const;
