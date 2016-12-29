@@ -58,7 +58,8 @@ typedef std::vector< int > RepDomain;
 
 
 class RepBoundExt {
-public:
+ public:
+  virtual ~RepBoundExt() {}
   virtual bool setBound( Node owner, int i, TypeNode tn, std::vector< Node >& elements ) = 0;
 };
 
