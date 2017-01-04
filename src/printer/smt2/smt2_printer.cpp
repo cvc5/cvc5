@@ -1076,6 +1076,10 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const throw() {
   while( std::getline( c, ln ) ){
     out << "; " << ln << std::endl;
   }
+  //print the model
+  out << "(model" << endl;
+  this->Printer::toStream(out, m);
+  out << ")" << endl;
   //print the heap model, if it exists
   Expr h, neq;
   if( m.getHeapModel( h, neq ) ){
@@ -1085,10 +1089,6 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const throw() {
     out << neq << endl;
     out << ")" << std::endl;
   }
-  //print the model
-  out << "(model" << endl;
-  this->Printer::toStream(out, m);
-  out << ")" << endl;
 }
 
 

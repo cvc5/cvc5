@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-all
+; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)

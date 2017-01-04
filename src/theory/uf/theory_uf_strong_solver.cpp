@@ -436,30 +436,32 @@ void Region::debugPrint( const char* c, bool incClique ) {
       }
     }
   }
-  Debug( c ) << "Total disequal: " << d_total_diseq_external << " external,"
-             << std::endl;
-  Debug( c ) << "                " << d_total_diseq_internal << " internal."
-             << std::endl;
+  Debug( c ) << "Total disequal: " << d_total_diseq_external << " external,";
+  Debug( c ) << " " << d_total_diseq_internal << " internal." << std::endl;
 
   if( incClique ){
-    Debug( c ) << "Candidate clique members: " << std::endl;
-    Debug( c ) << "   ";
-    for( NodeBoolMap::iterator it = d_testClique.begin();
-         it != d_testClique.end(); ++ it ){
-      if( (*it).second ){
-        Debug( c ) << (*it).first << " ";
+    if( !d_testClique.empty() ){
+      Debug( c ) << "Candidate clique members: " << std::endl;
+      Debug( c ) << "   ";
+      for( NodeBoolMap::iterator it = d_testClique.begin();
+           it != d_testClique.end(); ++ it ){
+        if( (*it).second ){
+          Debug( c ) << (*it).first << " ";
+        }
       }
+      Debug( c ) << ", size = " << d_testCliqueSize << std::endl;
     }
-    Debug( c ) << ", size = " << d_testCliqueSize << std::endl;
-    Debug( c ) << "Required splits: " << std::endl;
-    Debug( c ) << "   ";
-    for( NodeBoolMap::iterator it = d_splits.begin(); it != d_splits.end();
-         ++ it ){
-      if( (*it).second ){
-        Debug( c ) << (*it).first << " ";
+    if( !d_splits.empty() ){
+      Debug( c ) << "Required splits: " << std::endl;
+      Debug( c ) << "   ";
+      for( NodeBoolMap::iterator it = d_splits.begin(); it != d_splits.end();
+           ++ it ){
+        if( (*it).second ){
+          Debug( c ) << (*it).first << " ";
+        }
       }
+      Debug( c ) << ", size = " << d_splitsSize << std::endl;
     }
-    Debug( c ) << ", size = " << d_splitsSize << std::endl;
   }
 }
 
@@ -697,6 +699,12 @@ bool SortModel::areDisequal( Node a, Node b ) {
 void SortModel::check( Theory::Effort level, OutputChannel* out ){
   if( level>=Theory::EFFORT_STANDARD && d_hasCard && !d_conflict ){
     Debug("uf-ss") << "StrongSolverTheoryUF: Check " << level << " " << d_type << std::endl;
+    if( level==Theory::EFFORT_FULL ){
+      Debug("fmf-full-check") << std::endl;
+      Debug("fmf-full-check") << "Full check for SortModel " << d_type << ", status : " << std::endl;
+      debugPrint("fmf-full-check");
+      Debug("fmf-full-check") << std::endl;
+    }
     //Notice() << "StrongSolverTheoryUF: Check " << level << std::endl;
     if( d_reps<=(unsigned)d_cardinality ){
       Debug("uf-ss-debug") << "We have " << d_reps << " representatives for type " << d_type << ", <= " << d_cardinality << std::endl;
@@ -772,6 +780,7 @@ void SortModel::check( Theory::Effort level, OutputChannel* out ){
                   Node op = d_regions[i]->frontKey();
                   int sort_id = d_thss->getSortInference()->getSortId(op);
                   if( sortsFound.find( sort_id )!=sortsFound.end() ){
+                    Debug("fmf-full-check") << "Combined regions " << i << " " << sortsFound[sort_id] << std::endl;
                     combineRegions( sortsFound[sort_id], i );
                     recheck = true;
                     break;
@@ -786,6 +795,7 @@ void SortModel::check( Theory::Effort level, OutputChannel* out ){
               for( int i=0; i<(int)d_regions_index; i++ ){
                 if( d_regions[i]->valid() ){
                   int fcr = forceCombineRegion( i, false );
+                  Debug("fmf-full-check") << "Combined regions " << i << " " << fcr << std::endl;
                   Trace("uf-ss-debug") << "Combined regions " << i << " " << fcr << std::endl;
                   if( options::ufssMode()==UF_SS_FULL || fcr!=-1 ){
                     recheck = true;
@@ -1053,8 +1063,10 @@ int SortModel::forceCombineRegion( int ri, bool useDensity ){
     return -1;
   }else{
     //this region must merge with another
-    Debug("uf-ss-check-region") << "We must combine Region #" << ri << ". " << std::endl;
-    d_regions[ri]->debugPrint("uf-ss-check-region");
+    if( Debug.isOn("uf-ss-check-region") ){
+      Debug("uf-ss-check-region") << "We must combine Region #" << ri << ". " << std::endl;
+      d_regions[ri]->debugPrint("uf-ss-check-region");
+    }
     //take region with maximum disequality density
     double maxScore = 0;
     int maxRegion = -1;
@@ -1074,8 +1086,10 @@ int SortModel::forceCombineRegion( int ri, bool useDensity ){
       }
     }
     if( maxRegion!=-1 ){
-      Debug("uf-ss-check-region") << "Combine with region #" << maxRegion << ":" << std::endl;
-      d_regions[maxRegion]->debugPrint("uf-ss-check-region");
+      if( Debug.isOn("uf-ss-check-region") ){
+        Debug("uf-ss-check-region") << "Combine with region #" << maxRegion << ":" << std::endl;
+        d_regions[maxRegion]->debugPrint("uf-ss-check-region");
+      }
       return combineRegions( ri, maxRegion );
     }
     return -1;
@@ -1525,31 +1539,32 @@ bool SortModel::doSendLemma( Node lem ) {
 }
 
 void SortModel::debugPrint( const char* c ){
-  Debug( c ) << "--  Conflict Find:" << std::endl;
-  Debug( c ) << "Number of reps = " << d_reps << std::endl;
-  Debug( c ) << "Cardinality req = " << d_cardinality << std::endl;
-  unsigned debugReps = 0;
-  for( int i=0; i<(int)d_regions_index; i++ ){
-    Region* region = d_regions[i]; 
-    if( region->valid() ){
-      Debug( c ) << "Region #" << i << ": " << std::endl;
-      region->debugPrint( c, true );
-      Debug( c ) << std::endl;
-      for( Region::iterator it = region->begin(); it != region->end(); ++it ){
-        if( it->second->valid() ){
-          if( d_regions_map[ it->first ]!=i ){
-            Debug( c ) << "***Bad regions map : " << it->first
-                       << " " << d_regions_map[ it->first ].get() << std::endl;
+  if( Debug.isOn( c ) ){
+    Debug( c ) << "Number of reps = " << d_reps << std::endl;
+    Debug( c ) << "Cardinality req = " << d_cardinality << std::endl;
+    unsigned debugReps = 0;
+    for( unsigned i=0; i<d_regions_index; i++ ){
+      Region* region = d_regions[i]; 
+      if( region->valid() ){
+        Debug( c ) << "Region #" << i << ": " << std::endl;
+        region->debugPrint( c, true );
+        Debug( c ) << std::endl;
+        for( Region::iterator it = region->begin(); it != region->end(); ++it ){
+          if( it->second->valid() ){
+            if( d_regions_map[ it->first ]!=(int)i ){
+              Debug( c ) << "***Bad regions map : " << it->first
+                         << " " << d_regions_map[ it->first ].get() << std::endl;
+            }
           }
         }
+        debugReps += region->getNumReps();
       }
-      debugReps += region->getNumReps();
     }
-  }
 
-  if( debugReps!=d_reps ){
-    Debug( c ) << "***Bad reps: " << d_reps << ", "
-               << "actual = " << debugReps << std::endl;
+    if( debugReps!=d_reps ){
+      Debug( c ) << "***Bad reps: " << d_reps << ", "
+                 << "actual = " << debugReps << std::endl;
+    }
   }
 }
 

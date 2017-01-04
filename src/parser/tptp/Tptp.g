@@ -803,6 +803,9 @@ parseType[CVC4::Type& type]
 
 // non-function types
 simpleType[CVC4::Type& type]
+@declarations {
+  std::string name;
+}
   : DEFINED_SYMBOL
     { std::string s = AntlrInput::tokenText($DEFINED_SYMBOL);
       if(s == "\$i") type = PARSER_STATE->d_unsorted;
@@ -813,8 +816,8 @@ simpleType[CVC4::Type& type]
       else if(s == "\$tType") PARSER_STATE->parseError("Type of types `\$tType' cannot be used here");
       else PARSER_STATE->parseError("unknown defined type `" + s + "'");
     }
-  | LOWER_WORD
-    { type = PARSER_STATE->getSort(AntlrInput::tokenText($LOWER_WORD)); }
+  | atomicWord[name]
+    { type = PARSER_STATE->getSort(name); }
   ;
 
 /***********************************************/
