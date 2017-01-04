@@ -370,8 +370,9 @@ public:
               indices.pop_back();
               elements.pop_back();
             }
+            Assert(n != node);
             Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << n << std::endl;
-            return RewriteResponse(REWRITE_DONE, n);
+            return RewriteResponse(REWRITE_AGAIN, n);
           }
         }
         break;
