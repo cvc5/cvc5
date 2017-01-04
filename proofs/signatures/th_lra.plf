@@ -14,7 +14,7 @@
 (declare lmonn lmon)
 (declare lmonc (! c mpq (! v var_real (! l lmon lmon))))
 
-(program lmon_neg ((l lmon)) lmon 
+(program lmon_neg ((l lmon)) lmon
   (match l
     (lmonn l)
     ((lmonc c' v' l') (lmonc (mp_neg c') v' (lmon_neg l')))))
@@ -22,11 +22,11 @@
 (program lmon_add ((l1 lmon) (l2 lmon)) lmon
   (match l1
     (lmonn l2)
-    ((lmonc c' v' l') 
+    ((lmonc c' v' l')
       (match l2
         (lmonn l1)
         ((lmonc c'' v'' l'')
-          (compare v' v'' 
+          (compare v' v''
             (lmonc c' v' (lmon_add l' l2))
             (lmonc c'' v'' (lmon_add l1 l''))))))))
 
@@ -35,7 +35,7 @@
     (lmonn l)
     ((lmonc c' v' l') (lmonc (mp_mul c c') v' (lmon_mul_c l' c)))))
 
-;; linear polynomials in the form (a_1*x_1 + a_2*x_2 .... + a_n*x_n) + c 
+;; linear polynomials in the form (a_1*x_1 + a_2*x_2 .... + a_n*x_n) + c
 
 (declare poly type)
 (declare polyc (! c mpq (! l lmon poly)))
@@ -52,11 +52,11 @@
 
 (program poly_sub ((p1 poly) (p2 poly)) poly
   (poly_add p1 (poly_neg p2)))
-  
+
 (program poly_mul_c ((p poly) (c mpq)) poly
   (match p
     ((polyc c' l') (polyc (mp_mul c' c) (lmon_mul_c l' c)))))
-    
+
 ;; code to isolate a variable from a term
 ;; if (isolate v l) returns (c,l'), this means l = c*v + l', where v is not in FV(t').
 
@@ -66,13 +66,13 @@
 (program isolate_h ((v var_real) (l lmon) (e bool)) isol
   (match l
     (lmonn (isolc 0/1 l))
-    ((lmonc c' v' l') 
+    ((lmonc c' v' l')
       (ifmarked v'
-        (match (isolate_h v l' tt) 
+        (match (isolate_h v l' tt)
           ((isolc ci li) (isolc (mp_add c' ci) li)))
-        (match e 
+        (match e
           (tt (isolc 0/1 l))
-          (ff (match (isolate_h v l' ff) 
+          (ff (match (isolate_h v l' ff)
                 ((isolc ci li) (isolc ci (lmonc c' v' li))))))))))
 
 (program isolate ((v var_real) (l lmon)) isol
@@ -87,11 +87,11 @@
     (lmonn tt)
     ((lmonc c v l')
       (match (isolate v l)
-        ((isolc ci li) 
+        ((isolc ci li)
           (mp_ifzero ci (is_lmon_zero li) ff))))))
-                
+
 ;; return the constant that p is equal to.  If p is not constant, fail.
-                
+
 (program is_poly_const ((p poly)) mpq
   (match p
     ((polyc c' l')
@@ -102,7 +102,7 @@
 ;; conversion to use polynomials in term formulas
 
 (declare poly_term (! p poly (term Real)))
-    
+
 ;; create new equality out of inequality
 
 (declare lra_>=_>=_to_=
@@ -112,24 +112,24 @@
   (! f2 (th_holds (>=0_Real (poly_term p2)))
   (! i2 (^ (mp_ifzero (is_poly_const (poly_add p1 p2)) tt ff) tt)
     (th_holds (=0_Real (poly_term p2))))))))))
-    
+
 ;; axioms
 
 (declare lra_axiom_=
    (th_holds (=0_Real (poly_term (polyc 0/1 lmonn)))))
-   
+
 (declare lra_axiom_>
-  (! c mpq 
+  (! c mpq
   (! i (^ (mpq_ifpos c) tt)
     (th_holds (>0_Real (poly_term (polyc c lmonn)))))))
-    
+
 (declare lra_axiom_>=
-  (! c mpq 
+  (! c mpq
   (! i (^ (mp_ifneg c tt ff) ff)
     (th_holds (>=0_Real (poly_term (polyc c lmonn)))))))
-    
+
 (declare lra_axiom_distinct
-  (! c mpq 
+  (! c mpq
   (! i (^ (mp_ifzero c tt ff) ff)
     (th_holds (distinct0_Real (poly_term (polyc c lmonn)))))))
 
@@ -140,19 +140,19 @@
   (! f (th_holds (=0_Real (poly_term p)))
   (! i (^ (mp_ifzero (is_poly_const p) tt ff) ff)
     (holds cln)))))
-    
+
 (declare lra_contra_>
   (! p poly
   (! f (th_holds (>0_Real (poly_term p)))
   (! i2 (^ (mpq_ifpos (is_poly_const p)) ff)
     (holds cln)))))
-    
+
 (declare lra_contra_>=
   (! p poly
   (! f (th_holds (>=0_Real (poly_term p)))
   (! i2 (^ (mp_ifneg (is_poly_const p) tt ff) tt)
     (holds cln)))))
-    
+
 (declare lra_contra_distinct
   (! p poly
   (! f (th_holds (distinct0_Real (poly_term p)))
@@ -176,7 +176,7 @@
   (! f (th_holds (>0_Real (poly_term p)))
   (! i (^ (mp_ifneg c (fail poly) (mp_ifzero c (fail poly) (poly_mul_c p c))) p')
     (th_holds (>0_Real (poly_term p')))))))));)
-    
+
 (declare lra_mul_c_>=
   (! p poly
   (! p' poly
@@ -184,7 +184,7 @@
   (! f (th_holds (>=0_Real (poly_term p)))
   (! i (^ (mp_ifneg c (fail poly) (poly_mul_c p c)) p')
     (th_holds (>=0_Real (poly_term p')))))))));)
-    
+
 (declare lra_mul_c_distinct
   (! p poly
   (! p' poly
@@ -203,7 +203,7 @@
   (! f2 (th_holds (=0_Real (poly_term p2)))
   (! i (^ (poly_add p1 p2) p3)
     (th_holds (=0_Real (poly_term p3)))))))))))
-    
+
 (declare lra_add_>_>
   (! p1 poly
   (! p2 poly
@@ -212,7 +212,7 @@
   (! f2 (th_holds (>0_Real (poly_term p2)))
   (! i (^ (poly_add p1 p2) p3)
     (th_holds (>0_Real (poly_term p3))))))))))
-    
+
 (declare lra_add_>=_>=
   (! p1 poly
   (! p2 poly
@@ -230,7 +230,7 @@
   (! f2 (th_holds (>0_Real (poly_term p2)))
   (! i (^ (poly_add p1 p2) p3)
     (th_holds (>0_Real (poly_term p3))))))))))
-    
+
 (declare lra_add_=_>=
   (! p1 poly
   (! p2 poly
@@ -248,7 +248,7 @@
   (! f2 (th_holds (>=0_Real (poly_term p2)))
   (! i (^ (poly_add p1 p2) p3)
     (th_holds (>0_Real (poly_term p3))))))))))
-    
+
 (declare lra_add_=_distinct
   (! p1 poly
   (! p2 poly
@@ -257,7 +257,7 @@
   (! f2 (th_holds (distinct0_Real (poly_term p2)))
   (! i (^ (poly_add p1 p2) p3)
     (th_holds (distinct0_Real (poly_term p3)))))))))))
-    
+
 ;; substracting equations
 
 (declare lra_sub_=_=
@@ -268,7 +268,7 @@
   (! f2 (th_holds (=0_Real (poly_term p2)))
   (! i (^ (poly_sub p1 p2) p3)
     (th_holds (=0_Real (poly_term p3)))))))))))
-    
+
 (declare lra_sub_>_=
   (! p1 poly
   (! p2 poly
@@ -277,7 +277,7 @@
   (! f2 (th_holds (=0_Real (poly_term p2)))
   (! i (^ (poly_sub p1 p2) p3)
     (th_holds (>0_Real (poly_term p3))))))))))
-    
+
 (declare lra_sub_>=_=
   (! p1 poly
   (! p2 poly
@@ -286,7 +286,7 @@
   (! f2 (th_holds (=0_Real (poly_term p2)))
   (! i (^ (poly_sub p1 p2) p3)
     (th_holds (>=0_Real (poly_term p3))))))))))
-    
+
 (declare lra_sub_distinct_=
   (! p1 poly
   (! p2 poly
@@ -298,9 +298,9 @@
 
  ;; converting between terms and polynomials
 
-(declare poly_norm (! t (term Real) (! p poly type))) 
+(declare poly_norm (! t (term Real) (! p poly type)))
 
-(declare pn_let 
+(declare pn_let
   (! t (term Real)
   (! p poly
   (! pn (poly_norm t p)
@@ -312,7 +312,7 @@
 (declare pn_const
   (! x mpq
     (poly_norm (a_real x) (polyc x lmonn))))
-  
+
 (declare pn_var
   (! v var_real
     (poly_norm (a_var_real v) (polyc 0/1 (lmonc 1/1 v lmonn)))))
@@ -328,7 +328,7 @@
   (! pny (poly_norm y py)
   (! a (^ (poly_add px py) pz)
     (poly_norm (+_Real x y) pz))))))))))
-    
+
 (declare pn_-
   (! x (term Real)
   (! px poly
@@ -339,7 +339,7 @@
   (! pny (poly_norm y py)
   (! a (^ (poly_sub px py) pz)
     (poly_norm (-_Real x y) pz))))))))))
-    
+
 (declare pn_mul_c_L
   (! y (term Real)
   (! py poly
@@ -348,7 +348,7 @@
   (! pny (poly_norm y py)
   (! a (^ (poly_mul_c py x) pz)
     (poly_norm (*_Real (a_real x) y) pz))))))))
-    
+
 (declare pn_mul_c_R
   (! y (term Real)
   (! py poly
@@ -368,7 +368,7 @@
        (! a (term_atom v t)
          (holds cln)))
     (holds cln))))
-    
+
 (declare pn_var_atom
   (! v var_real
   (! t (term Real)
@@ -378,7 +378,7 @@
 
 ;; conversion between term formulas and polynomial formulas
 
-(declare poly_formula_norm (! ft formula (! fp formula type))) 
+(declare poly_formula_norm (! ft formula (! fp formula type)))
 
 ; convert between term formulas and polynomial formulas
 
@@ -388,16 +388,16 @@
   (! p (poly_formula_norm ft fp)
   (! u (th_holds ft)
     (th_holds fp))))))
-    
+
 (declare poly_form_not
   (! ft formula
   (! fp formula
   (! p (poly_formula_norm ft fp)
   (! u (th_holds (not ft))
     (th_holds (not fp)))))))
- 
-; form equivalence between term formula and polynomial formula 
-   
+
+; form equivalence between term formula and polynomial formula
+
 (declare poly_norm_=
   (! x (term Real)
   (! y (term Real)
@@ -407,7 +407,7 @@
   (! u (! pn (th_holds (=0_Real (poly_term p)))
          (holds cln))
     (holds cln))))))))
- 
+
 (declare poly_norm_>
   (! x (term Real)
   (! y (term Real)
@@ -417,7 +417,7 @@
   (! u (! pn (th_holds (>0_Real (poly_term p)))
          (holds cln))
     (holds cln))))))))
-    
+
 (declare poly_norm_<
   (! x (term Real)
   (! y (term Real)
@@ -427,7 +427,7 @@
   (! u (! pn (th_holds (>0_Real (poly_term p)))
          (holds cln))
     (holds cln))))))))
-    
+
 (declare poly_norm_>=
   (! x (term Real)
   (! y (term Real)
@@ -437,7 +437,7 @@
   (! u (! pn (th_holds (>=0_Real (poly_term p)))
          (holds cln))
     (holds cln))))))))
-    
+
 (declare poly_norm_<=
   (! x (term Real)
   (! y (term Real)
@@ -447,5 +447,3 @@
   (! u (! pn (th_holds (>=0_Real (poly_term p)))
          (holds cln))
     (holds cln))))))))
-    
-    
