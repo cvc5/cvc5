@@ -941,15 +941,14 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
   run_scc = a.run_scc;
   tail_calls = !a.no_tail_calls;
 
-
-  char *f;
+  std::string f;
   if (strcmp(_filename,"stdin") == 0) {
     curfile = stdin;
-    f = strdup(_filename);
+    f = std::string(_filename);
   }
   else {
     if (prev_curfile) {
-      f = strdup(prev_filename);
+      f = std::string(prev_filename);
 #ifdef _MSC_VER
 	    std::string str( f );
 	    for( int n=str.length(); n>=0; n-- ){
@@ -960,26 +959,24 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
 	    }
 	    char *tmp = (char*)str.c_str();
 #else
-      char *tmp = dirname(f);
+      // Note: dirname may modify its argument, so we create a non-const copy.
+      char *f_copy = strdup(f.c_str());
+      std::string str = std::string(dirname(f_copy));
+      free(f_copy);
 #endif
-      delete f;
-      f = new char[strlen(tmp) + 10 + strlen(_filename)];
-      strcpy(f,tmp);
-      strcat(f,"/");
-      strcat(f,_filename);
+            f = str + std::string("/") + std::string(_filename);
+    } else {
+      f = std::string(_filename);
     }
-    else
-      f = strdup(_filename);
-    curfile = fopen(f,"r");
+    curfile = fopen(f.c_str(), "r");
     if (!curfile)
-      report_error(string("Could not open file \"")
-		   + string(f)
-		   + string("\" for reading.\n"));
+      report_error(string("Could not open file \"") + f +
+                   string("\" for reading.\n"));
   }
 
   linenum = 1;
   colnum = 1;
-  filename = f;
+  filename = f.c_str();
 
   char c;
   while ((c = non_ws()) && c!=EOF ) {
@@ -1286,7 +1283,6 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
       }
     }
   }
-  free(f);
   if (curfile != stdin)
     fclose(curfile);
   linenum = prev_linenum;
