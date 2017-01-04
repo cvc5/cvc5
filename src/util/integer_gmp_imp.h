@@ -38,7 +38,9 @@ private:
    * Using this instead of mpz_t allows for easier destruction.
    */
   mpz_class d_value;
-
+  
+public:
+  
   /**
    * Gets a reference to the gmp data that backs up the integer.
    * Only accessible to friend classes.
@@ -49,8 +51,6 @@ private:
    * Constructs an Integer by copying a GMP C++ primitive.
    */
   Integer(const mpz_class& val) : d_value(val) {}
-
-public:
 
   /** Constructs a rational with the value 0. */
   Integer() : d_value(0){}
