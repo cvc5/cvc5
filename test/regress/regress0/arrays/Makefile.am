@@ -48,7 +48,8 @@ TESTS =	\
 	constarr.cvc \
 	constarr2.cvc \
 	constarr3.cvc \
-	parsing_ringer.cvc
+	parsing_ringer.cvc \
+	bug637.delta.smt2
 
 EXTRA_DIST = $(TESTS)
 
