@@ -100,8 +100,10 @@ SMT_TESTS = \
 	bv2nat-simp-range.smt2 \
 	bv-int-collapse1.smt2 \
 	bv-int-collapse2.smt2 \
-	bv-int-collapse2-sat.smt2 \
-	bench_38.delta.smt2
+	bv-int-collapse2-sat.smt2
+
+# This benchmark is currently disabled as it uses --check-proof
+# bench_38.delta.smt2
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS = divtest.smt2
