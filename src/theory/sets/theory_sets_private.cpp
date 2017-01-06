@@ -258,7 +258,7 @@ bool TheorySetsPrivate::isEntailed( Node n, bool polarity ) {
         return true;
       }
     }
-  }else if( n.getKind()==kind::AND && n.getKind()==kind::OR ){
+  }else if( n.getKind()==kind::AND || n.getKind()==kind::OR ){
     bool conj = (n.getKind()==kind::AND)==polarity;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       bool isEnt = isEntailed( n[i], polarity );
