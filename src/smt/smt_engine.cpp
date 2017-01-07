@@ -4255,6 +4255,9 @@ void SmtEnginePrivate::processAssertions() {
 
   d_assertions.clear();
   d_iteSkolemMap.clear();
+  #ifdef CVC4_ASSERTIONS
+  Rewriter::clearCaches();
+  #endif
 }
 
 void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
