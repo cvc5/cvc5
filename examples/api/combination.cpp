@@ -28,7 +28,7 @@ void prefixPrintGetValue(SmtEngine& smt, Expr e, int level = 0){
   for(int i = 0; i < level; ++i){ cout << '-'; }
   cout << "smt.getValue(" << e << ") -> " << smt.getValue(e) << endl;
 
-  if(e.hasOperator()){
+  if(e.hasOperator() && e.getOperator().getKind() != kind::BUILTIN){
     prefixPrintGetValue(smt, e.getOperator(), level + 1);
   }
 
