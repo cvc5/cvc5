@@ -84,7 +84,7 @@ struct RewriteStackElement {
   }
 };
 
-Node Rewriter::rewrite(TNode node) throw (UnsafeInterruptException){
+Node Rewriter::rewrite(TNode node) {
   return rewriteTo(theoryOf(node), node);
 }
 

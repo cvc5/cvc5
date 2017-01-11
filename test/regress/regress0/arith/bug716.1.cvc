@@ -1,0 +1,6 @@
+% EXPECT: The POW(^) operator can only be used with a natural number in the exponent.  Exception occured in:
+% EXPECT:   2 ^ x
+% EXIT: 1
+x: INT;
+ASSERT 2^x = 8;
+QUERY x=3;

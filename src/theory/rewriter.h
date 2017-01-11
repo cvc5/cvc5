@@ -107,7 +107,7 @@ public:
    * Rewrites the node using theoryOf() to determine which rewriter to
    * use on the node.
    */
-  static Node rewrite(TNode node) throw (UnsafeInterruptException);
+  static Node rewrite(TNode node);
 
   /**
    * Garbage collects the rewrite caches.

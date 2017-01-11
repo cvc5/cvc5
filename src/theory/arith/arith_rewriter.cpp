@@ -19,7 +19,7 @@
 #include <stack>
 #include <vector>
 
-#include "base/output.h"
+#include "smt/logic_exception.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
@@ -31,7 +31,8 @@ namespace arith {
 
 bool ArithRewriter::isAtom(TNode n) {
   Kind k = n.getKind();
-  return arith::isRelationOperator(k) || k == kind::IS_INTEGER || k == kind::DIVISIBLE;
+  return arith::isRelationOperator(k) || k == kind::IS_INTEGER
+      || k == kind::DIVISIBLE;
 }
 
 RewriteResponse ArithRewriter::rewriteConstant(TNode t){
@@ -211,7 +212,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
         ss << "The POW(^) operator can only be used with a natural number ";
         ss << "in the exponent.  Exception occured in:" << std::endl;
         ss << "  " << t;
-        throw Exception(ss.str());
+        throw LogicException(ss.str());
       }
     default:
       Unreachable();
