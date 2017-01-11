@@ -1,0 +1,7 @@
+; COMMAND-LINE: --cegqi-si=all --no-dump-synth
+(set-logic LIA)
+(declare-var n Int)
+
+(synth-fun f ((n Int)) Int)
+(constraint (= (/ n n) 1))
+(check-synth)

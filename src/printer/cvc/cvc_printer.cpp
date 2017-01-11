@@ -507,14 +507,17 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       opType = PREFIX;
       break;
     case kind::DIVISION:
+    case kind::DIVISION_TOTAL:
       op << '/';
       opType = INFIX;
       break;
     case kind::INTS_DIVISION:
+    case kind::INTS_DIVISION_TOTAL:
       op << "DIV";
       opType = INFIX;
       break;
     case kind::INTS_MODULUS:
+    case kind::INTS_MODULUS_TOTAL:
       op << "MOD";
       opType = INFIX;
       break;
