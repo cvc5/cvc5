@@ -130,6 +130,7 @@ private:
   //cardinality
 private:
   bool d_card_enabled;
+  bool d_rels_enabled;
   std::map< Node, Node > d_eqc_to_card_term;
   NodeSet d_card_processed;
   std::map< Node, std::vector< Node > > d_card_parent;

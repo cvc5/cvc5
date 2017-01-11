@@ -1,0 +1,10 @@
+% EXPECT: invalid
+OPTION "finite-model-find";
+OPTION "fmf-bound-int";
+OPTION "produce-models";
+
+X, Y : SET OF INT;
+
+ASSERT FORALL(x : INT): x IS_IN X => x > 0;
+QUERY ||X|| = 5 AND Y = X | {9} => ||Y|| <= 4;
+

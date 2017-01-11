@@ -64,6 +64,7 @@ public:
   void check(Theory::Effort);
   void doPendingLemmas();
 
+  bool isRelationKind( Kind k );
 private:
   /** equivalence class info
    * d_mem tuples that are members of this equivalence class

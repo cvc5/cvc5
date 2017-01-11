@@ -72,6 +72,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_equalityEngine.addFunctionKind(kind::CARD);
 
   d_card_enabled = false;
+  d_rels_enabled = false;
 
 }/* TheorySetsPrivate::TheorySetsPrivate() */
 
@@ -513,6 +514,7 @@ void TheorySetsPrivate::fullEffortCheck(){
     d_bop_index.clear();
     d_op_list.clear();
     d_card_enabled = false;
+    d_rels_enabled = false;
     d_eqc_to_card_term.clear();
 
     std::vector< Node > lemmas;
@@ -559,7 +561,9 @@ void TheorySetsPrivate::fullEffortCheck(){
             }else{
               d_congruent[n] = d_singleton_index[r];
             }
-          }else if( n.getKind()!=kind::EMPTYSET ){
+          }else if( n.getKind()==kind::EMPTYSET ){
+            d_eqc_emptyset[tn] = eqc;
+          }else{
             Node r1 = d_equalityEngine.getRepresentative( n[0] );
             Node r2 = d_equalityEngine.getRepresentative( n[1] );
             if( d_bop_index[n.getKind()][r1].find( r2 )==d_bop_index[n.getKind()][r1].end() ){
@@ -568,8 +572,6 @@ void TheorySetsPrivate::fullEffortCheck(){
             }else{
               d_congruent[n] = d_bop_index[n.getKind()][r1][r2];
             }
-          }else{
-            d_eqc_emptyset[tn] = eqc;
           }
           d_nvar_sets[eqc].push_back( n );
           Trace("sets-debug2") << "Non-var-set[" << eqc << "] : " << n << std::endl;
@@ -588,8 +590,13 @@ void TheorySetsPrivate::fullEffortCheck(){
             d_eqc_to_card_term[ r ] = n;
             registerCardinalityTerm( n[0], lemmas );
           }
-        }else if( isSet ){
-          d_set_eqc_list[eqc].push_back( n );
+        }else{
+          if( d_rels->isRelationKind( n.getKind() ) ){
+            d_rels_enabled = true;
+          }
+          if( isSet ){
+            d_set_eqc_list[eqc].push_back( n );
+          }
         }
         ++eqc_i;
       }
@@ -1527,6 +1534,11 @@ void TheorySetsPrivate::check(Theory::Effort level) {
   // invoke the relational solver
   if( !d_conflict && !d_sentLemma ){
     d_rels->check(level);  
+    //incomplete if we have both cardinality constraints and relational operators?
+    // TODO: should internally check model, return unknown if fail
+    if( level == Theory::EFFORT_FULL && d_card_enabled && d_rels_enabled ){
+      d_external.d_out->setIncomplete();
+    }
   }
   Trace("sets-check") << "Sets finish Check effort " << level << std::endl;
 }/* TheorySetsPrivate::check() */

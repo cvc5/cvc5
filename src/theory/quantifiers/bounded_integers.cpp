@@ -246,8 +246,8 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
       if( success && !isBound( q, v ) ){
         Trace("bound-int-debug") << "Success with variable " << v << std::endl;
         bound_lit_type_map[v] = BOUND_FIXED_SET;
-        bound_lit_map[0][v] = n;
-        bound_lit_pol_map[0][v] = pol;
+        bound_lit_map[3][v] = n;
+        bound_lit_pol_map[3][v] = pol;
         bound_fixed_set[v].clear();
         bound_fixed_set[v].insert( bound_fixed_set[v].end(), v_cases.begin(), v_cases.end() );
       }
@@ -260,8 +260,8 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
       if( processEqDisjunct( q, n, v, v_cases ) ){
         if( !isBound( q, v ) ){
           bound_lit_type_map[v] = BOUND_FIXED_SET;
-          bound_lit_map[0][v] = n;
-          bound_lit_pol_map[0][v] = pol;
+          bound_lit_map[3][v] = n;
+          bound_lit_pol_map[3][v] = pol;
           Assert( v_cases.size()==1 );
           bound_fixed_set[v].clear();
           bound_fixed_set[v].push_back( v_cases[0] );
@@ -278,32 +278,35 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
         QuantArith::debugPrintMonomialSum( msum, "bound-int-debug" );
         for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
           if ( !it->first.isNull() && it->first.getKind()==BOUND_VARIABLE && !isBound( q, it->first ) ){
-            Node veq;
-            if( QuantArith::isolate( it->first, msum, veq, GEQ )!=0 ){
-              Node n1 = veq[0];
-              Node n2 = veq[1];
-              if(pol){
-                //flip
-                n1 = veq[1];
-                n2 = veq[0];
-                if( n1.getKind()==BOUND_VARIABLE ){
-                  n2 = QuantArith::offset( n2, 1 );
-                }else{
-                  n1 = QuantArith::offset( n1, -1 );
+            //if not bound in another way
+            if( bound_lit_type_map.find( it->first )==bound_lit_type_map.end() || bound_lit_type_map[it->first] == BOUND_INT_RANGE ){
+              Node veq;
+              if( QuantArith::isolate( it->first, msum, veq, GEQ )!=0 ){
+                Node n1 = veq[0];
+                Node n2 = veq[1];
+                if(pol){
+                  //flip
+                  n1 = veq[1];
+                  n2 = veq[0];
+                  if( n1.getKind()==BOUND_VARIABLE ){
+                    n2 = QuantArith::offset( n2, 1 );
+                  }else{
+                    n1 = QuantArith::offset( n1, -1 );
+                  }
+                  veq = NodeManager::currentNM()->mkNode( GEQ, n1, n2 );
                 }
-                veq = NodeManager::currentNM()->mkNode( GEQ, n1, n2 );
-              }
-              Trace("bound-int-debug") << "Isolated for " << it->first << " : (" << n1 << " >= " << n2 << ")" << std::endl;
-              Node t = n1==it->first ? n2 : n1;
-              if( !hasNonBoundVar( q, t ) ) {
-                Trace("bound-int-debug") << "The bound is relevant." << std::endl;
-                int loru = n1==it->first ? 0 : 1;
-                bound_lit_type_map[it->first] = BOUND_INT_RANGE;
-                bound_int_range_term[loru][it->first] = t;
-                bound_lit_map[loru][it->first] = n;
-                bound_lit_pol_map[loru][it->first] = pol;
-              }else{
-                Trace("bound-int-debug") << "The term " << t << " has non-bound variable." << std::endl;
+                Trace("bound-int-debug") << "Isolated for " << it->first << " : (" << n1 << " >= " << n2 << ")" << std::endl;
+                Node t = n1==it->first ? n2 : n1;
+                if( !hasNonBoundVar( q, t ) ) {
+                  Trace("bound-int-debug") << "The bound is relevant." << std::endl;
+                  int loru = n1==it->first ? 0 : 1;
+                  bound_lit_type_map[it->first] = BOUND_INT_RANGE;
+                  bound_int_range_term[loru][it->first] = t;
+                  bound_lit_map[loru][it->first] = n;
+                  bound_lit_pol_map[loru][it->first] = pol;
+                }else{
+                  Trace("bound-int-debug") << "The term " << t << " has non-bound variable." << std::endl;
+                }
               }
             }
           }
@@ -314,8 +317,8 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
     if( !pol && n[0].getKind()==BOUND_VARIABLE && !isBound( q, n[0] ) && !hasNonBoundVar( q, n[1] ) ){
       Trace("bound-int-debug") << "literal (polarity = " << pol << ") " << n << " is membership." << std::endl;
       bound_lit_type_map[n[0]] = BOUND_SET_MEMBER;
-      bound_lit_map[0][n[0]] = n;
-      bound_lit_pol_map[0][n[0]] = pol;
+      bound_lit_map[2][n[0]] = n;
+      bound_lit_pol_map[2][n[0]] = pol;
     }
   }else{
     Assert( n.getKind()!=LEQ && n.getKind()!=LT && n.getKind()!=GT );
@@ -391,10 +394,10 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
         }else if( it->second==BOUND_SET_MEMBER ){
           setBoundedVar( f, v, BOUND_SET_MEMBER );
           setBoundVar = true;
-          d_setm_range[f][v] = bound_lit_map[0][v][1];
-          d_setm_range_lit[f][v] = bound_lit_map[0][v];
+          d_setm_range[f][v] = bound_lit_map[2][v][1];
+          d_setm_range_lit[f][v] = bound_lit_map[2][v];
           d_range[f][v] = NodeManager::currentNM()->mkNode( CARD, d_setm_range[f][v] );
-          Trace("bound-int") << "Variable " << v << " is bound because of set membership literal " << bound_lit_map[0][v] << std::endl;
+          Trace("bound-int") << "Variable " << v << " is bound because of set membership literal " << bound_lit_map[2][v] << std::endl;
         }else if( it->second==BOUND_FIXED_SET ){
           setBoundedVar( f, v, BOUND_FIXED_SET );
           setBoundVar = true;
@@ -406,7 +409,7 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
               d_fixed_set_gr_range[f][v].push_back( t ); 
             }
           } 
-          Trace("bound-int") << "Variable " << v << " is bound because of disequality conjunction " << bound_lit_map[0][v] << std::endl;
+          Trace("bound-int") << "Variable " << v << " is bound because of disequality conjunction " << bound_lit_map[3][v] << std::endl;
         }
         if( setBoundVar ){
           success = true;
@@ -438,13 +441,34 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
     }
   }while( success );
   
-  Trace("bound-int") << "Bounds are : " << std::endl;
-  for( unsigned i=0; i<d_set[f].size(); i++) {
-    Node v = d_set[f][i];
-    if( d_bound_type[f][v]==BOUND_INT_RANGE ){
-      Trace("bound-int") << "  " << d_bounds[0][f][v] << " <= " << v << " <= " << d_bounds[1][f][v] << " (range is " << d_range[f][v] << ")" << std::endl;
-    }else if( d_bound_type[f][v]==BOUND_SET_MEMBER ){
-      Trace("bound-int") << "  " << v << " in " << d_setm_range[f][v] << std::endl;
+  if( Trace.isOn("bound-int") ){
+    Trace("bound-int") << "Bounds are : " << std::endl;
+    for( unsigned i=0; i<f[0].getNumChildren(); i++) {
+      Node v = f[0][i];
+      if( std::find( d_set[f].begin(), d_set[f].end(), v )!=d_set[f].end() ){
+        Assert( d_bound_type[f].find( v )!=d_bound_type[f].end() );
+        if( d_bound_type[f][v]==BOUND_INT_RANGE ){
+          Trace("bound-int") << "  " << d_bounds[0][f][v] << " <= " << v << " <= " << d_bounds[1][f][v] << " (range is " << d_range[f][v] << ")" << std::endl;
+        }else if( d_bound_type[f][v]==BOUND_SET_MEMBER ){
+          Trace("bound-int") << "  " << v << " in " << d_setm_range[f][v] << std::endl;
+        }else if( d_bound_type[f][v]==BOUND_FIXED_SET ){
+          Trace("bound-int") << "  " << v << " in { ";
+          for( unsigned i=0; i<d_fixed_set_ngr_range[f][v].size(); i++ ){ 
+            Trace("bound-int") << d_fixed_set_ngr_range[f][v][i] << " ";
+          }
+          for( unsigned i=0; i<d_fixed_set_gr_range[f][v].size(); i++ ){ 
+            Trace("bound-int") << d_fixed_set_gr_range[f][v][i] << " ";
+          }
+          Trace("bound-int") << "}" << std::endl;
+        }else if( d_bound_type[f][v]==BOUND_FINITE ){
+          Trace("bound-int") << "  " << v << " has small finite type." << std::endl;
+        }else{
+          Trace("bound-int") << "  " << v << " has unknown bound." << std::endl;
+          Assert( false );
+        }
+      }else{
+        Trace("bound-int") << "  " << "*** " << v << " is unbounded." << std::endl;
+      }
     }
   }
   
