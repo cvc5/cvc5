@@ -259,6 +259,8 @@ void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions) {
   std::vector< TNode > tassumptions;
   if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
     if( atom[0]!=atom[1] ){
+      Assert( hasTerm( atom[0] ) );
+      Assert( hasTerm( atom[1] ) );
       d_equalityEngine.explainEquality(atom[0], atom[1], polarity, tassumptions);
     }
   } else {
@@ -276,6 +278,7 @@ void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions) {
 }
 
 Node TheoryStrings::explain( TNode literal ){
+  Debug("strings-explain") << "explain called on " << literal << std::endl;
   std::vector< TNode > assumptions;
   explain( literal, assumptions );
   if( assumptions.empty() ){
@@ -3286,10 +3289,10 @@ void TheoryStrings::sendInference( std::vector< Node >& exp, Node eq, const char
 
 void TheoryStrings::sendLemma( Node ant, Node conc, const char * c ) {
   if( conc.isNull() || conc == d_false ) {
-    d_out->conflict(ant);
     Trace("strings-conflict") << "Strings::Conflict : " << c << " : " << ant << std::endl;
     Trace("strings-lemma") << "Strings::Conflict : " << c << " : " << ant << std::endl;
     Trace("strings-assert") << "(assert (not " << ant << ")) ; conflict " << c << std::endl;
+    d_out->conflict(ant);
     d_conflict = true;
   } else {
     Node lem;
@@ -3533,7 +3536,7 @@ Node TheoryStrings::mkExplain( std::vector< Node >& a, std::vector< Node >& an )
   } else {
     ant = NodeManager::currentNM()->mkNode( kind::AND, antec_exp );
   }
-  ant = Rewriter::rewrite( ant );
+  //ant = Rewriter::rewrite( ant );
   return ant;
 }
 
