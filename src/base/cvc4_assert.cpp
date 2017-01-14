@@ -38,10 +38,10 @@ void AssertionException::construct(const char* header, const char* extra,
   // then with a larger one if sprintf tells us to.
   int n = 512;
   char* buf;
+  buf = new char[n];
 
   for(;;) {
-    buf = new char[n];
-
+ 
     int size;
     if(extra == NULL) {
       size = snprintf(buf, n, "%s\n%s\n%s:%d\n",
@@ -66,6 +66,7 @@ void AssertionException::construct(const char* header, const char* extra,
       // try again with a buffer that's large enough
       n = size + 1;
       delete [] buf;
+      buf = new char[n];
     }
   }
 
