@@ -2151,10 +2151,13 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
                            "last result wasn't unknown!");
     }
   } else if(key == "assertion-stack-levels") {
-    return SExpr(d_userLevels.size());
+    AlwaysAssert(d_userLevels.size() <=
+                 std::numeric_limits<unsigned long int>::max());
+    return SExpr(static_cast<unsigned long int>(d_userLevels.size()));
   } else if(key == "all-options") {
     // get the options, like all-statistics
-    std::vector< std::vector<std::string> > current_options = Options::current()->getOptions();
+    std::vector< std::vector<std::string> > current_options =
+      Options::current()->getOptions();
     return SExpr::parseListOfListOfAtoms(current_options);
   } else {
     throw UnrecognizedOptionException();
