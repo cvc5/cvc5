@@ -190,7 +190,7 @@ Expr *Expr::clone() {
     }
   }
   }
-  return 0; // should never be reached
+  std::abort();  // should never be reached
 }
 
 
@@ -281,7 +281,7 @@ Expr *Expr::collect_args(std::vector<Expr *> &args, bool follow_defs) {
 #endif
 }
 
-Expr *Expr::get_head(bool follow_defs) {
+Expr *Expr::get_head(bool follow_defs) const {
   CExpr *e = (CExpr *)this;
   while( e->getop() == APP ) {
     e = (CExpr *)e->kids[0];
@@ -291,7 +291,7 @@ Expr *Expr::get_head(bool follow_defs) {
   return e;
 }
 
-Expr *Expr::get_body(int op, bool follow_defs) {
+Expr *Expr::get_body(int op, bool follow_defs) const {
   CExpr *e = (CExpr *)this;
   while( e->getop() == op ) {
     e = (CExpr *)e->kids[2];
@@ -385,7 +385,6 @@ Expr* CExpr::convert_to_flat_app( Expr* e )
 }
 
 bool Expr::defeq(Expr *e) {
-
   /* we handle a few special cases up front, where this Expr might
      equal e, even though they have different opclass (i.e., different
      structure). */
@@ -579,7 +578,12 @@ bool Expr::defeq(Expr *e) {
            if( !e2->kids[counter] || !e1->kids[counter]->defeq( e2->kids[counter] ) )
               return false;
            //--- optimization : replace child with equivalent pointer if was defeq
-           if( e1->kids[counter]<e2->kids[counter] ){
+           // Heuristic: prefer symbolic kids because they may be cheaper to
+           // deal with (e.g. in free_in()).
+           if (e2->kids[counter]->isSymbolic() ||
+               (!e1->kids[counter]->isSymbolic() &&
+                e1->kids[counter]->getrefcnt() <
+                    e2->kids[counter]->getrefcnt())) {
              e1->kids[counter]->dec();
              e2->kids[counter]->inc();
              e1->kids[counter] = e2->kids[counter];
@@ -601,33 +605,36 @@ bool Expr::defeq(Expr *e) {
     // already checked that both exprs have the same opclass.
     return true;
   } // switch(op1)
-  
-  return false; // never reached.
+
+  std::abort();  // never reached.
 }
 
 int Expr::fiCounter = 0;
 
-bool Expr::free_in(Expr *x) {
-   //fiCounter++;
-   //if( fiCounter%1==0 )
-   //   std::cout << fiCounter << std::endl;
-   switch(getop()) {
-   case NOT_CEXPR:
+bool Expr::_free_in(Expr *x, expr_ptr_set_t *visited) {
+  // fiCounter++;
+  // if( fiCounter%1==0 )
+  //   std::cout << fiCounter << std::endl;
+  if (visited->find(this) != visited->end()) {
+    return false;
+  }
+
+  switch (getop()) {
+    case NOT_CEXPR:
       switch (getclass()) {
       case HOLE_EXPR: {
          HoleExpr *h = (HoleExpr *)this;
-         if (h->val)
-	         return h->val->free_in(x);
+         if (h->val) return h->val->_free_in(x, visited);
          return (h == x);
       }
       case SYMS_EXPR: 
       case SYM_EXPR: {
          SymExpr *s = (SymExpr *)this;
          if (s->val && s->val->getclass() == HOLE_EXPR)
-	   /* we do not need to follow the "val" pointer except in this
-	      one case, when x is a hole (which we do not bother to check
-	      here) */
-	         return s->val->free_in(x);
+           /* we do not need to follow the "val" pointer except in this
+             one case, when x is a hole (which we do not bother to check
+             here) */
+           return s->val->_free_in(x, visited);
          return (s == x);
       }
       case INT_EXPR:
@@ -641,15 +648,17 @@ bool Expr::free_in(Expr *x) {
       // fall through
    default: {
       // must be a CExpr
+      assert(this->getclass() == CEXPR);
       CExpr *e = (CExpr *)this;
       Expr *tmp;
       Expr **cur = e->kids;
+      visited->insert(this);
       while ((tmp = *cur++))
-        if (tmp->free_in(x)) return true;
+        if (tmp->_free_in(x, visited)) return true;
       return false;
    }
    }
-   return false; // should not be reached
+   std::abort();  // should not be reached
 }
 
 void Expr::calc_free_in(){
