@@ -1387,10 +1387,8 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     if(t1_ei != NULL && t2_ei != NULL) {
       if(!t1_ei->d_tc.get().isNull()) {
         NodeSet::const_iterator     mem_it  = t2_ei->d_mem.begin();
-
         while(mem_it != t2_ei->d_mem.end()) {
-          Assert( !t2_ei->d_tc.get().isNull() );
-          addTCMemAndSendInfer(t1_ei, NodeManager::currentNM()->mkNode(kind::MEMBER,*mem_it, t2_ei->d_tc.get()), (*t2_ei->d_mem_exp.find(*mem_it)).second);
+          addTCMemAndSendInfer(t1_ei, NodeManager::currentNM()->mkNode(kind::MEMBER,*mem_it, t1_ei->d_tc.get()), (*t2_ei->d_mem_exp.find(*mem_it)).second);
           mem_it++;
         }
       } else if(!t2_ei->d_tc.get().isNull()) {
@@ -1400,7 +1398,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
         while(t1_mem_it != t1_ei->d_mem.end()) {
           NodeMap::const_iterator       reason_it       = t1_ei->d_mem_exp.find(*t1_mem_it);
           Assert(reason_it != t1_ei->d_mem_exp.end());
-          Assert( !t1_ei->d_tc.get().isNull() );
           addTCMemAndSendInfer(t1_ei, NodeManager::currentNM()->mkNode(kind::MEMBER,*t1_mem_it, t1_ei->d_tc.get()), (*reason_it).second);
           t1_mem_it++;
         }
@@ -1408,7 +1405,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
         NodeSet::const_iterator     t2_mem_it  = t2_ei->d_mem.begin();
 
         while(t2_mem_it != t2_ei->d_mem.end()) {
-          Assert( !t2_ei->d_tc.get().isNull() );
           addTCMemAndSendInfer(t1_ei, NodeManager::currentNM()->mkNode(kind::MEMBER,*t2_mem_it, t2_ei->d_tc.get()), (*t2_ei->d_mem_exp.find(*t2_mem_it)).second);
           t2_mem_it++;
         }
