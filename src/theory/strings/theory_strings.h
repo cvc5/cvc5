@@ -359,9 +359,7 @@ private:
                                       std::map< Node, std::vector< Node > > &XinR_with_exps);
   void checkMemberships();
   bool checkMemberships2();
-  bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma,
-                         std::vector< Node > &processed, std::vector< Node > &cprocessed,
-                         std::vector< Node > &nf_exp);
+  bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
   //check contains
   void checkPosContains( std::vector< Node >& posContains );
   void checkNegContains( std::vector< Node >& negContains );

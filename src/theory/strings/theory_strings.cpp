@@ -4356,6 +4356,7 @@ void TheoryStrings::checkMemberships() {
     for( unsigned i=0; i<d_regexp_memberships.size(); i++ ) {
       //check regular expression membership
       Node assertion = d_regexp_memberships[i];
+      Trace("regexp-debug") << "Check : " << assertion << " " << (d_regexp_ucached.find(assertion) == d_regexp_ucached.end()) << " " << (d_regexp_ccached.find(assertion) == d_regexp_ccached.end()) << std::endl;
       if( d_regexp_ucached.find(assertion) == d_regexp_ucached.end()
         && d_regexp_ccached.find(assertion) == d_regexp_ccached.end() ) {
         Trace("strings-regexp") << "We have regular expression assertion : " << assertion << std::endl;
@@ -4396,7 +4397,7 @@ void TheoryStrings::checkMemberships() {
         }
 
         if( polarity ) {
-          flag = checkPDerivative(x, r, atom, addedLemma, processed, cprocessed, rnfexp);
+          flag = checkPDerivative(x, r, atom, addedLemma, rnfexp);
           if(options::stringOpt2() && flag) {
             if(d_regexp_opr.checkConstRegExp(r) && x.getKind()==kind::STRING_CONCAT) {
               std::vector< std::pair< Node, Node > > vec_can;
@@ -4591,17 +4592,18 @@ void TheoryStrings::checkMemberships() {
   if( addedLemma ) {
     if( !d_conflict ){
       for( unsigned i=0; i<processed.size(); i++ ) {
+        Trace("strings-regexp") << "...add " << processed[i] << " to u-cache." << std::endl;
         d_regexp_ucached.insert(processed[i]);
       }
       for( unsigned i=0; i<cprocessed.size(); i++ ) {
+        Trace("strings-regexp") << "...add " << cprocessed[i] << " to c-cache." << std::endl;
         d_regexp_ccached.insert(cprocessed[i]);
       }
     }
   }
 }
 
-bool TheoryStrings::checkPDerivative(Node x, Node r, Node atom, bool &addedLemma,
-  std::vector< Node > &processed, std::vector< Node > &cprocessed, std::vector< Node > &nf_exp) {
+bool TheoryStrings::checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp ) {
   
   Node antnf = mkExplain(nf_exp);
 
@@ -4654,7 +4656,7 @@ bool TheoryStrings::checkPDerivative(Node x, Node r, Node atom, bool &addedLemma
     sREant = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, sREant, antnf));
     if(deriveRegExp( x, r, sREant )) {
       addedLemma = true;
-      processed.push_back( atom );
+      d_regexp_ccached.insert(atom);
       return false;
     }
   }
