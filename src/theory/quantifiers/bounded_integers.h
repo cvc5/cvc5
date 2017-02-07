@@ -74,6 +74,7 @@ private:
                 std::map< int, std::map< Node, Node > >& bound_int_range_term,
                 std::map< Node, std::vector< Node > >& bound_fixed_set );
   bool processEqDisjunct( Node q, Node n, Node& v, std::vector< Node >& v_cases );
+  void processMatchBoundVars( Node q, Node n, std::vector< Node >& bvs, std::map< Node, bool >& visited );
   std::vector< Node > d_bound_quants;
 private:
   class RangeModel {
@@ -164,6 +165,7 @@ private:
   //for set range
   Node getSetRange( Node q, Node v, RepSetIterator * rsi );
   Node getSetRangeValue( Node q, Node v, RepSetIterator * rsi );
+  Node matchBoundVar( Node v, Node t, Node e );
   
   bool getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi );
 public:

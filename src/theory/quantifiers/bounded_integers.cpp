@@ -212,6 +212,20 @@ bool BoundedIntegers::processEqDisjunct( Node q, Node n, Node& v, std::vector< N
   return false;
 }
 
+void BoundedIntegers::processMatchBoundVars( Node q, Node n, std::vector< Node >& bvs, std::map< Node, bool >& visited ){
+  if( visited.find( n )==visited.end() ){
+    visited[n] = true;
+    if( n.getKind()==BOUND_VARIABLE && !isBound( q, n ) ){
+      bvs.push_back( n );
+    //injective operators
+    }else if( n.getKind()==kind::APPLY_CONSTRUCTOR ){
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        processMatchBoundVars( q, n[i], bvs, visited );
+      }
+    }    
+  }
+}
+
 void BoundedIntegers::process( Node q, Node n, bool pol,
                                std::map< Node, unsigned >& bound_lit_type_map,
                                std::map< int, std::map< Node, Node > >& bound_lit_map,
@@ -314,11 +328,17 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
       }
     }
   }else if( n.getKind()==MEMBER ){
-    if( !pol && n[0].getKind()==BOUND_VARIABLE && !isBound( q, n[0] ) && !hasNonBoundVar( q, n[1] ) ){
-      Trace("bound-int-debug") << "literal (polarity = " << pol << ") " << n << " is membership." << std::endl;
-      bound_lit_type_map[n[0]] = BOUND_SET_MEMBER;
-      bound_lit_map[2][n[0]] = n;
-      bound_lit_pol_map[2][n[0]] = pol;
+    if( !pol && !hasNonBoundVar( q, n[1] ) ){
+      std::vector< Node > bound_vars;
+      std::map< Node, bool > visited;
+      processMatchBoundVars( q, n[0], bound_vars, visited );
+      for( unsigned i=0; i<bound_vars.size(); i++ ){
+        Node v = bound_vars[i];
+        Trace("bound-int-debug") << "literal (polarity = " << pol << ") " << n << " is membership." << std::endl;
+        bound_lit_type_map[v] = BOUND_SET_MEMBER;
+        bound_lit_map[2][v] = n;
+        bound_lit_pol_map[2][v] = pol;
+      }
     }
   }else{
     Assert( n.getKind()!=LEQ && n.getKind()!=LT && n.getKind()!=GT );
@@ -450,7 +470,11 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
         if( d_bound_type[f][v]==BOUND_INT_RANGE ){
           Trace("bound-int") << "  " << d_bounds[0][f][v] << " <= " << v << " <= " << d_bounds[1][f][v] << " (range is " << d_range[f][v] << ")" << std::endl;
         }else if( d_bound_type[f][v]==BOUND_SET_MEMBER ){
-          Trace("bound-int") << "  " << v << " in " << d_setm_range[f][v] << std::endl;
+          if( d_setm_range_lit[f][v][0]==v ){
+            Trace("bound-int") << "  " << v << " in " << d_setm_range[f][v] << std::endl;
+          }else{
+            Trace("bound-int") << "  " << v << " unifiable in " << d_setm_range_lit[f][v] << std::endl;
+          }
         }else if( d_bound_type[f][v]==BOUND_FIXED_SET ){
           Trace("bound-int") << "  " << v << " in { ";
           for( unsigned i=0; i<d_fixed_set_ngr_range[f][v].size(); i++ ){ 
@@ -729,6 +753,33 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
   }
 }
 
+Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
+  if( t==v ){
+    return e;
+  }else if( t.getKind()==kind::APPLY_CONSTRUCTOR ){
+    if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
+      if( t.getOperator() != e.getOperator() ) {
+        return Node::null();
+      }
+    }
+    const Datatype& dt = Datatype::datatypeOf( t.getOperator().toExpr() );
+    unsigned index = Datatype::indexOf( t.getOperator().toExpr() );
+    for( unsigned i=0; i<t.getNumChildren(); i++ ){
+      Node u;
+      if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
+        u = matchBoundVar( v, t[i], e[i] );
+      }else{
+        Node se = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[index][i].getSelector() ), e );
+        u = matchBoundVar( v, t[i], se );
+      }
+      if( !u.isNull() ){
+        return u;
+      }
+    }
+  }
+  return Node::null();
+}
+
 bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node q, Node v, std::vector< Node >& elements ) {
   if( initial || !isGroundRange( q, v ) ){
     elements.clear();
@@ -768,6 +819,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
       }else{
         Trace("bound-int-rsi") << "Bounded by set membership : " << srv << std::endl;
         if( srv.getKind()!=EMPTYSET ){
+          //collect the elements
           while( srv.getKind()==UNION ){
             Assert( srv[1].getKind()==kind::SINGLETON );
             elements.push_back( srv[1][0] );
@@ -775,6 +827,21 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
           }
           Assert( srv.getKind()==kind::SINGLETON );
           elements.push_back( srv[0] );
+          //check if we need to do matching, for literals like ( tuple( v ) in S )
+          Node t = d_setm_range_lit[q][v][0];
+          if( t!=v ){
+            std::vector< Node > elements_tmp;
+            elements_tmp.insert( elements_tmp.end(), elements.begin(), elements.end() );
+            elements.clear();
+            for( unsigned i=0; i<elements_tmp.size(); i++ ){
+              //do matching to determine v -> u
+              Node u = matchBoundVar( v, t, elements_tmp[i] );
+              Trace("bound-int-rsi-debug") << "  unification : " << elements_tmp[i] << " = " << t << " yields " << v << " -> " << u << std::endl;
+              if( !u.isNull() ){
+                elements.push_back( u );
+              }
+            }
+          }
         }
         return true;
       }

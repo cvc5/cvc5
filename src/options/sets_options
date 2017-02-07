@@ -11,4 +11,7 @@ option setsProxyLemmas --sets-proxy-lemmas bool :default false
 option setsInferAsLemmas --sets-infer-as-lemmas bool :default true
  send inferences as lemmas
  
+option setsRelEager --sets-rel-eager bool :default true
+ standard effort checks for relations
+ 
 endmodule

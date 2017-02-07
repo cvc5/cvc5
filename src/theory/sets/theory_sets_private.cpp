@@ -90,7 +90,9 @@ void TheorySetsPrivate::eqNotifyNewClass(TNode t) {
     EqcInfo * e = getOrMakeEqcInfo( t, true );
     e->d_singleton = t;
   }
-  d_rels->eqNotifyNewClass( t );
+  if( options::setsRelEager() ){
+    d_rels->eqNotifyNewClass( t );
+  }
 }
 
 void TheorySetsPrivate::eqNotifyPreMerge(TNode t1, TNode t2){
@@ -183,7 +185,9 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
       }
       d_members[t1] = n_members;
     }
-    d_rels->eqNotifyPostMerge( t1, t2 );
+    if( options::setsRelEager() ){
+      d_rels->eqNotifyPostMerge( t1, t2 );
+    }
   }
 }
 
@@ -1532,7 +1536,7 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     fullEffortCheck();
   }
   // invoke the relational solver
-  if( !d_conflict && !d_sentLemma ){
+  if( !d_conflict && !d_sentLemma && ( level == Theory::EFFORT_FULL || options::setsRelEager() ) ){
     d_rels->check(level);  
     //incomplete if we have both cardinality constraints and relational operators?
     // TODO: should internally check model, return unknown if fail
