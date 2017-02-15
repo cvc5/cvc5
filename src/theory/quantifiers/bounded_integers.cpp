@@ -407,8 +407,10 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
               Assert( bound_int_range_term[b].find( v )!=bound_int_range_term[b].end() );
               d_bounds[b][f][v] = bound_int_range_term[b][v];
             }
-            Node r = NodeManager::currentNM()->mkNode( MINUS, d_bounds[1][f][v], d_bounds[0][f][v] );
-            d_range[f][v] = Rewriter::rewrite( r );
+            if( options::fmfBoundMinMode()==FMF_BOUND_MIN_ALL || options::fmfBoundMinMode()==FMF_BOUND_MIN_INT_RANGE ){
+              Node r = NodeManager::currentNM()->mkNode( MINUS, d_bounds[1][f][v], d_bounds[0][f][v] );
+              d_range[f][v] = Rewriter::rewrite( r );
+            }
             Trace("bound-int") << "Variable " << v << " is bound because of int range literals " << bound_lit_map[0][v] << " and " << bound_lit_map[1][v] << std::endl;
           }
         }else if( it->second==BOUND_SET_MEMBER ){
@@ -416,7 +418,9 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
           setBoundVar = true;
           d_setm_range[f][v] = bound_lit_map[2][v][1];
           d_setm_range_lit[f][v] = bound_lit_map[2][v];
-          d_range[f][v] = NodeManager::currentNM()->mkNode( CARD, d_setm_range[f][v] );
+          if( options::fmfBoundMinMode()==FMF_BOUND_MIN_ALL || options::fmfBoundMinMode()==FMF_BOUND_MIN_SET_CARD ){
+            d_range[f][v] = NodeManager::currentNM()->mkNode( CARD, d_setm_range[f][v] );
+          }
           Trace("bound-int") << "Variable " << v << " is bound because of set membership literal " << bound_lit_map[2][v] << std::endl;
         }else if( it->second==BOUND_FIXED_SET ){
           setBoundedVar( f, v, BOUND_FIXED_SET );
@@ -509,8 +513,9 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
     d_bound_quants.push_back( f );
     for( unsigned i=0; i<d_set[f].size(); i++) {
       Node v = d_set[f][i];
-      if( d_bound_type[f][v]==BOUND_INT_RANGE || d_bound_type[f][v]==BOUND_SET_MEMBER ){
-        Node r = d_range[f][v];
+      std::map< Node, Node >::iterator itr = d_range[f].find( v );
+      if( itr != d_range[f].end() ){
+        Node r = itr->second;
         Assert( !r.isNull() );
         bool isProxy = false;
         if( r.hasBoundVar() ){

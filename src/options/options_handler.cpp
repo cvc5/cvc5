@@ -515,6 +515,24 @@ depth \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_fmfBoundMinModeModeHelp = "\
+Modes for finite model finding bound minimization, supported by --fmf-bound-min-mode:\n\
+\n\
+none \n\
++ Do not minimize inferred bounds.\n\
+\n\
+int (default) \n\
++ Minimize integer ranges only.\n\
+\n\
+setc \n\
++ Minimize cardinality of set membership ranges only.\n\
+\n\
+all \n\
++ Minimize all inferred bounds.\n\
+\n\
+";
+
+
 theory::quantifiers::InstWhenMode OptionsHandler::stringToInstWhenMode(std::string option, std::string optarg) throw(OptionException) {
   if(optarg == "pre-full") {
     return theory::quantifiers::INST_WHEN_PRE_FULL;
@@ -828,6 +846,25 @@ theory::quantifiers::QuantRepMode OptionsHandler::stringToQuantRepMode(std::stri
   } else {
     throw OptionException(std::string("unknown option for --quant-rep-mode: `") +
                           optarg + "'.  Try --quant-rep-mode help.");
+  }
+}
+
+
+theory::quantifiers::FmfBoundMinMode OptionsHandler::stringToFmfBoundMinMode(std::string option, std::string optarg) throw(OptionException) {
+  if(optarg == "none" ) {
+    return theory::quantifiers::FMF_BOUND_MIN_NONE;
+  } else if(optarg == "int" || optarg == "default") {
+    return theory::quantifiers::FMF_BOUND_MIN_INT_RANGE;
+  } else if(optarg == "setc" || optarg == "default") {
+    return theory::quantifiers::FMF_BOUND_MIN_SET_CARD;
+  } else if(optarg == "all") {
+    return theory::quantifiers::FMF_BOUND_MIN_ALL;
+  } else if(optarg ==  "help") {
+    puts(s_fmfBoundMinModeModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --fmf-bound-min-mode: `") +
+                          optarg + "'.  Try --fmf-bound-min-mode help.");
   }
 }
 

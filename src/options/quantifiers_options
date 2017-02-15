@@ -165,6 +165,8 @@ option fmfBound fmf-bound --fmf-bound bool :default false :read-write
  finite model finding on bounded quantification
 option fmfBoundLazy --fmf-bound-lazy bool :default false :read-write
  enforce bounds for bounded quantification lazily via use of proxy variables
+option fmfBoundMinMode --fmf-bound-min-mode=MODE CVC4::theory::quantifiers::FmfBoundMinMode :default CVC4::theory::quantifiers::FMF_BOUND_MIN_INT_RANGE :include "options/quantifiers_modes.h" :handler stringToFmfBoundMinMode
+ mode for which types of bounds to minimize via first decision heuristics
  
 ### conflict-based instantiation options 
  

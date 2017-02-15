@@ -209,6 +209,17 @@ enum QuantRepMode {
   QUANT_REP_MODE_DEPTH,
 };
 
+enum FmfBoundMinMode {
+  /** do not minimize bounds */
+  FMF_BOUND_MIN_NONE,
+  /** default, minimize integer ranges */
+  FMF_BOUND_MIN_INT_RANGE,
+  /** minimize set cardinality ranges */
+  FMF_BOUND_MIN_SET_CARD,
+  /** minimize all bounds */
+  FMF_BOUND_MIN_ALL,
+};
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 

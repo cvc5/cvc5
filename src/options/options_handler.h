@@ -104,6 +104,7 @@ public:
   theory::quantifiers::MacrosQuantMode stringToMacrosQuantMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::QuantDSplitMode stringToQuantDSplitMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::QuantRepMode stringToQuantRepMode(std::string option, std::string optarg) throw(OptionException);
+  theory::quantifiers::FmfBoundMinMode stringToFmfBoundMinMode(std::string option, std::string optarg) throw(OptionException);
 
   // theory/bv/options_handlers.h
   void abcEnabledBuild(std::string option, bool value) throw(OptionException);
@@ -225,6 +226,7 @@ public:
   static const std::string s_triggerActiveSelModeHelp;
   static const std::string s_ufssModeHelp;
   static const std::string s_userPatModeHelp;
+  static const std::string s_fmfBoundMinModeModeHelp;
   static const std::string s_errorSelectionRulesHelp;
   static const std::string s_arithPropagationModeHelp;
   static const std::string s_arithUnateLemmasHelp;
