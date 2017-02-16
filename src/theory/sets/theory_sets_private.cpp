@@ -1532,16 +1532,25 @@ void TheorySetsPrivate::check(Theory::Effort level) {
   }
   d_sentLemma = false;
   Trace("sets-check") << "Sets finished assertions effort " << level << std::endl;
-  if( level == Theory::EFFORT_FULL && !d_conflict && !d_external.d_valuation.needCheck() ){
-    fullEffortCheck();
-  }
-  // invoke the relational solver
-  if( !d_conflict && !d_sentLemma && ( level == Theory::EFFORT_FULL || options::setsRelEager() ) ){
-    d_rels->check(level);  
-    //incomplete if we have both cardinality constraints and relational operators?
-    // TODO: should internally check model, return unknown if fail
-    if( level == Theory::EFFORT_FULL && d_card_enabled && d_rels_enabled ){
-      d_external.d_out->setIncomplete();
+  //invoke full effort check, relations check
+  if( !d_conflict ){
+    if( level == Theory::EFFORT_FULL ){
+      if( !d_external.d_valuation.needCheck() ){
+        fullEffortCheck();
+        if( !d_conflict && !d_sentLemma ){
+          //invoke relations solver
+          d_rels->check(level);  
+          if( d_card_enabled && d_rels_enabled ){
+            //incomplete if we have both cardinality constraints and relational operators?
+            // TODO: should internally check model, return unknown if fail
+            d_external.d_out->setIncomplete();
+          }
+        }
+      }
+    }else{
+      if( options::setsRelEager() ){
+        d_rels->check(level);  
+      }
     }
   }
   Trace("sets-check") << "Sets finish Check effort " << level << std::endl;

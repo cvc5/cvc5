@@ -724,6 +724,7 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       //if( options::finiteModelFind() ){
       //  ((uf::TheoryUF*)d_te->theoryOf( THEORY_UF ))->getStrongSolver()->registerQuantifier( f );
       //}
+      Trace("quant-debug")  << "...finish." << std::endl;
       d_quants[f] = true;
       return true;
     }

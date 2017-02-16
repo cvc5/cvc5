@@ -34,7 +34,7 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
 int TheorySetsRels::EqcInfo::counter        = 0;
 
   void TheorySetsRels::check(Theory::Effort level) {
-    Trace("rels") << "\n[sets-rels] ******************************* Start the relational solver *******************************\n" << std::endl;
+    Trace("rels") << "\n[sets-rels] ******************************* Start the relational solver, effort = " << level << " *******************************\n" << std::endl;
     if(Theory::fullEffort(level)) {
       collectRelsInfo();
       check();
@@ -862,11 +862,13 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
   void TheorySetsRels::sendInfer( Node fact, Node exp, const char * c ) {
     if( !holds( fact ) ) {
+      Trace("rels-send-lemma") << "[Theory::Rels] **** Generate an infered fact "
+                               << fact << " with reason " << exp << " by "<< c << std::endl;
       d_pending_facts[fact] = exp;
     } else {
-      Trace("rels-send-infer") << "[Theory::Rels] **** Generate an infered fact fact = "
-                               << fact << " with reason = " << exp << " by "<< c
-                               << ", but it holds already, thus skip it!" << std::endl;
+      Trace("rels-send-lemma-debug") << "[Theory::Rels] **** Generate an infered fact "
+                                     << fact << " with reason " << exp << " by "<< c
+                                     << ", but it holds already, thus skip it!" << std::endl;
     }
   }
 
