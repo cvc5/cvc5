@@ -1424,10 +1424,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     EqcInfo* t2_ei = getOrMakeEqcInfo(t2);
 
     if(t1_ei != NULL && t2_ei != NULL) {
-      // PT(t1) = PT(t2) -> t1 = t2;
-      if(!t1_ei->d_pt.get().isNull() && !t2_ei->d_pt.get().isNull()) {
-        sendInferProduct( true, t1_ei->d_pt.get(), t2_ei->d_pt.get(), explain(NodeManager::currentNM()->mkNode(kind::EQUAL,t1, t2)) );
-      }
       // Apply Product rule on (non)members of t2 and t1->pt
       if(!t1_ei->d_pt.get().isNull()) {
         for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {

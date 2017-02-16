@@ -89,7 +89,7 @@ void QuantDSplit::check( Theory::Effort e, unsigned quant_e ) {
     std::vector< Node > lemmas;
     for(std::map< Node, int >::iterator it = d_quant_to_reduce.begin(); it != d_quant_to_reduce.end(); ++it) {
       Node q = it->first;
-      if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
+      if( d_quantEngine->getModel()->isQuantifierAsserted( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
         if( d_added_split.find( q )==d_added_split.end() ){
           d_added_split.insert( q );
           std::vector< Node > bvs;

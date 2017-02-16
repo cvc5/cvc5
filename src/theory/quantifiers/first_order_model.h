@@ -113,6 +113,8 @@ public:
   void setQuantifierActive( TNode q, bool active );
   /** is quantified formula active */
   bool isQuantifierActive( TNode q );
+  /** is quantified formula asserted */
+  bool isQuantifierAsserted( TNode q );
 };/* class FirstOrderModel */
 
 
