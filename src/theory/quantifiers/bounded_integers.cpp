@@ -138,7 +138,7 @@ bool BoundedIntegers::IntRangeModel::proxyCurrentRange() {
     if( d_ranges_proxied.find( curr )==d_ranges_proxied.end() ){
       d_ranges_proxied[curr] = true;
       Assert( d_range_literal.find( curr )!=d_range_literal.end() );
-      Node lem = NodeManager::currentNM()->mkNode( IFF, d_range_literal[curr].negate(),
+      Node lem = NodeManager::currentNM()->mkNode( EQUAL, d_range_literal[curr].negate(),
                    NodeManager::currentNM()->mkNode( LEQ, d_range, NodeManager::currentNM()->mkConst( Rational(curr) ) ) );
       Trace("bound-int-lemma") << "*** bound int : proxy lemma : " << lem << std::endl;
       d_bi->getQuantifiersEngine()->addLemma( lem );

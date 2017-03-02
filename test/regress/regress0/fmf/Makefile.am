@@ -65,7 +65,9 @@ TESTS =	\
 	memory_model-R_cpp-dd.cvc \
 	bug764.smt2 \
 	ko-bound-set.cvc \
-	cons-sets-bounds.smt2
+	cons-sets-bounds.smt2 \
+	bug651.smt2 \
+	bug652.smt2
 
 EXTRA_DIST = $(TESTS)
 

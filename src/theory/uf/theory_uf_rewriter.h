@@ -32,7 +32,7 @@ class TheoryUfRewriter {
 public:
 
   static RewriteResponse postRewrite(TNode node) {
-    if(node.getKind() == kind::EQUAL || node.getKind() == kind::IFF) {
+    if(node.getKind() == kind::EQUAL) {
       if(node[0] == node[1]) {
         return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
       } else if(node[0].isConst() && node[1].isConst()) {
@@ -76,7 +76,7 @@ public:
   }
 
   static RewriteResponse preRewrite(TNode node) {
-    if(node.getKind() == kind::EQUAL || node.getKind() == kind::IFF) {
+    if(node.getKind() == kind::EQUAL) {
       if(node[0] == node[1]) {
         return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
       } else if(node[0].isConst() && node[1].isConst()) {

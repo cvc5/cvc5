@@ -201,7 +201,7 @@ int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind 
 }
 
 Node QuantArith::solveEqualityFor( Node lit, Node v ) {
-  Assert( lit.getKind()==EQUAL || lit.getKind()==IFF );
+  Assert( lit.getKind()==EQUAL );
   //first look directly at sides
   TypeNode tn = lit[0].getType();
   for( unsigned r=0; r<2; r++ ){
@@ -513,7 +513,7 @@ Node QuantEPR::mkEPRAxiom( TypeNode tn ) {
     std::vector< Node > disj;
     Node x = NodeManager::currentNM()->mkBoundVar( tn );
     for( unsigned i=0; i<d_consts[tn].size(); i++ ){
-      disj.push_back( NodeManager::currentNM()->mkNode( tn.isBoolean() ? IFF : EQUAL, x, d_consts[tn][i] ) );
+      disj.push_back( NodeManager::currentNM()->mkNode( EQUAL, x, d_consts[tn][i] ) );
     }
     Assert( !disj.empty() );
     d_epr_axiom[tn] = NodeManager::currentNM()->mkNode( FORALL, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, x ), disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( OR, disj ) );

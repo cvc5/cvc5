@@ -230,27 +230,14 @@ void RewriteEngine::registerQuantifier( Node f ) {
       }
 
       std::vector< Node > cc;
-      //Node head = rr[2][0];
-      //if( head!=d_true ){
-        //Node head_eq = head.getType().isBoolean() ? head.iffNode( head ) : head.eqNode( head );
-        //head_eq = head_eq.negate();
-        //cc.push_back( head_eq );
-        //Trace("rr-register-debug") << "  head eq is " << head_eq << std::endl;
-      //}
       //add patterns
       for( unsigned i=1; i<f[2].getNumChildren(); i++ ){
         std::vector< Node > nc;
         for( unsigned j=0; j<f[2][i].getNumChildren(); j++ ){
           Node nn;
           Node nbv = NodeManager::currentNM()->mkBoundVar( f[2][i][j].getType() );
-          if( f[2][i][j].getType().isBoolean() ){
-            if( f[2][i][j].getKind()!=APPLY_UF ){
-              nn = f[2][i][j].negate();
-            }else{
-              nn = f[2][i][j].iffNode( nbv ).negate();
-              bvl.push_back( nbv );
-            }
-            //nn = f[2][i][j].negate();
+          if( f[2][i][j].getType().isBoolean() && f[2][i][j].getKind()!=APPLY_UF ){
+            nn = f[2][i][j].negate();
           }else{
             nn = f[2][i][j].eqNode( nbv ).negate();
             bvl.push_back( nbv );

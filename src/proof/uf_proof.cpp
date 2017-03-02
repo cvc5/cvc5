@@ -24,7 +24,7 @@
 namespace CVC4 {
 
 inline static Node eqNode(TNode n1, TNode n2) {
-  return NodeManager::currentNM()->mkNode(n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2);
+  return NodeManager::currentNM()->mkNode(kind::EQUAL, n1, n2);
 }
 
 // congrence matching term helper
@@ -472,7 +472,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       //       we look at the node after the equality sequence. If it needs a, we go for a=a; and if it needs
       //       b, we go for b=b. If there is no following node, we look at the goal of the transitivity proof,
       //       and use it to determine which option we need.
-      if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
+      if(n2.getKind() == kind::EQUAL) {
         if (((n1[0] == n2[0]) && (n1[1] == n2[1])) || ((n1[0] == n2[1]) && (n1[1] == n2[0]))) {
           // We are in a sequence of identical equalities
 
@@ -530,8 +530,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
               } else {
                 // We have a "next node". Use it to guide us.
 
-                Assert(nodeAfterEqualitySequence.getKind() == kind::EQUAL ||
-                       nodeAfterEqualitySequence.getKind() == kind::IFF);
+                Assert(nodeAfterEqualitySequence.getKind() == kind::EQUAL);
 
                 if ((n1[0] == nodeAfterEqualitySequence[0]) || (n1[0] == nodeAfterEqualitySequence[1])) {
 
@@ -576,7 +575,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       Debug("pf::uf") << "\ndoing trans proof, got n2 " << n2 << "\n";
       if(tb == 1) {
         Debug("pf::uf") << "\ntrans proof[" << i << "], got n2 " << n2 << "\n";
-        Debug("pf::uf") << (n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) << "\n";
+        Debug("pf::uf") << (n2.getKind() == kind::EQUAL) << "\n";
 
         if ((n1.getNumChildren() >= 2) && (n2.getNumChildren() >= 2)) {
           Debug("pf::uf") << n1[0].getId() << " " << n1[1].getId() << " / " << n2[0].getId() << " " << n2[1].getId() << "\n";
@@ -592,8 +591,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       }
       ss << "(trans _ _ _ _ ";
 
-      if((n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) &&
-         (n1.getKind() == kind::EQUAL || n1.getKind() == kind::IFF))
+      if(n2.getKind() == kind::EQUAL && n1.getKind() == kind::EQUAL)
         // Both elements of the transitivity rule are equalities/iffs
       {
         if(n1[0] == n2[0]) {
@@ -623,24 +621,24 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
           Unreachable();
         }
         Debug("pf::uf") << "++ trans proof[" << i << "], now have " << n1 << std::endl;
-      } else if(n1.getKind() == kind::EQUAL || n1.getKind() == kind::IFF) {
+      } else if(n1.getKind() == kind::EQUAL) {
         // n1 is an equality/iff, but n2 is a predicate
         if(n1[0] == n2) {
-          n1 = n1[1].iffNode(NodeManager::currentNM()->mkConst(true));
+          n1 = n1[1].eqNode(NodeManager::currentNM()->mkConst(true));
           ss << "(symm _ _ _ " << ss1.str() << ") (pred_eq_t _ " << ss2.str() << ")";
         } else if(n1[1] == n2) {
-          n1 = n1[0].iffNode(NodeManager::currentNM()->mkConst(true));
+          n1 = n1[0].eqNode(NodeManager::currentNM()->mkConst(true));
           ss << ss1.str() << " (pred_eq_t _ " << ss2.str() << ")";
         } else {
           Unreachable();
         }
-      } else if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
+      } else if(n2.getKind() == kind::EQUAL) {
         // n2 is an equality/iff, but n1 is a predicate
         if(n2[0] == n1) {
-          n1 = n2[1].iffNode(NodeManager::currentNM()->mkConst(true));
+          n1 = n2[1].eqNode(NodeManager::currentNM()->mkConst(true));
           ss << "(symm _ _ _ " << ss2.str() << ") (pred_eq_t _ " << ss1.str() << ")";
         } else if(n2[1] == n1) {
-          n1 = n2[0].iffNode(NodeManager::currentNM()->mkConst(true));
+          n1 = n2[0].eqNode(NodeManager::currentNM()->mkConst(true));
           ss << ss2.str() << " (pred_eq_t _ " << ss1.str() << ")";
         } else {
           Unreachable();
@@ -705,6 +703,10 @@ void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap&
   if (term.getKind() == kind::VARIABLE ||
       term.getKind() == kind::SKOLEM) {
     os << term;
+    return;
+  }
+  if (term.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
+    os << "(p_app " << term << ")";
     return;
   }
 

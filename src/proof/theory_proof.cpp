@@ -856,9 +856,13 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
 
   case kind::EQUAL:
     os << "(";
-    os << "= ";
-    printSort(term[0].getType(), os);
-    os << " ";
+    if( term[0].getType().isBoolean() ){
+      os << "iff ";
+    }else{
+      os << "= ";
+      printSort(term[0].getType(), os);
+      os << " ";
+    }
     printBoundTerm(term[0], os, map);
     os << " ";
     printBoundTerm(term[1], os, map);
@@ -912,6 +916,12 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
     // LFSC doesn't allow declarations with variable numbers of
     // arguments, so we have to flatten chained operators, like =.
     Kind op = term.getOperator().getConst<Chain>().getOperator();
+    std::string op_str;
+    if( op==kind::EQUAL && term[0].getType().isBoolean() ){
+      op_str = "iff";
+    }else{
+      op_str = utils::toLFSCKind(op);
+    }
     size_t n = term.getNumChildren();
     std::ostringstream paren;
     for(size_t i = 1; i < n; ++i) {
@@ -919,7 +929,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
         os << "(" << utils::toLFSCKind(kind::AND) << " ";
         paren << ")";
       }
-      os << "(" << utils::toLFSCKind(op) << " ";
+      os << "(" << op_str << " ";
       printBoundTerm(term[i - 1], os, map);
       os << " ";
       printBoundTerm(term[i], os, map);
@@ -1096,7 +1106,6 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
     // If letification is off or there were 2 children, same treatment as the other cases.
     // (No break is intentional).
   case kind::XOR:
-  case kind::IFF:
   case kind::IMPLIES:
   case kind::NOT:
     // print the Boolean operators

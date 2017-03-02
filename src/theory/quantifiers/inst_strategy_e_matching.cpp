@@ -361,9 +361,9 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
             Assert( Trigger::isAtomicTrigger( pat ) );
             if( pat.getType().isBoolean() && rpoleq.isNull() ){
               if( options::literalMatchMode()==LITERAL_MATCH_USE ){
-                pat = NodeManager::currentNM()->mkNode( IFF, pat, NodeManager::currentNM()->mkConst( rpol==-1 ) ).negate();
+                pat = NodeManager::currentNM()->mkNode( EQUAL, pat, NodeManager::currentNM()->mkConst( rpol==-1 ) ).negate();
               }else if( options::literalMatchMode()!=LITERAL_MATCH_NONE ){
-                pat = NodeManager::currentNM()->mkNode( IFF, pat, NodeManager::currentNM()->mkConst( rpol==1 ) );
+                pat = NodeManager::currentNM()->mkNode( EQUAL, pat, NodeManager::currentNM()->mkConst( rpol==1 ) );
               }
             }else{
               Assert( !rpoleq.isNull() );

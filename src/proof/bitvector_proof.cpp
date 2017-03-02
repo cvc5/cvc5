@@ -412,7 +412,7 @@ void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
 }
 
 void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const ProofLetMap& map) {
-  std::string op = utils::toLFSCKind(term.getKind());
+  std::string op = utils::toLFSCKindTerm(term);
   std::ostringstream paren;
   std::string holes = term.getKind() == kind::BITVECTOR_CONCAT ? "_ _ " : "";
   unsigned size = term.getKind() == kind::BITVECTOR_CONCAT? utils::getSize(term) :
@@ -431,7 +431,7 @@ void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const Pr
 
 void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const ProofLetMap& map) {
   os <<"(";
-  os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term) <<" ";
+  os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term) <<" ";
   os << " ";
   d_proofEngine->printBoundTerm(term[0], os, map);
   os <<")";
@@ -439,7 +439,7 @@ void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const P
 
 void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const ProofLetMap& map) {
   os <<"(";
-  os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term[0]) <<" ";
+  os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term[0]) <<" ";
   os << " ";
   d_proofEngine->printBoundTerm(term[0], os, map);
   os << " ";
@@ -449,7 +449,7 @@ void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const Proof
 
 void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, const ProofLetMap& map) {
   os <<"(";
-  os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term) <<" ";
+  os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term) <<" ";
   os <<" ";
   if (term.getKind() == kind::BITVECTOR_REPEAT) {
     unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
@@ -872,7 +872,7 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os, bool 
   case kind::EQUAL: {
     Debug("pf::bv") << "Bitblasing kind = " << kind << std::endl;
 
-    os << "(bv_bbl_" << utils::toLFSCKind(atom.getKind());
+    os << "(bv_bbl_" << utils::toLFSCKindTerm(atom);
 
     if (swap) {os << "_swap";}
 

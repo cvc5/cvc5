@@ -290,7 +290,7 @@ Expr Expr::iteExpr(const Expr& thenpart, const Expr& elsepart) const {
 }
 
 Expr Expr::iffExpr(const Expr& right) const {
-  return getEM()->mkExpr(CVC4::kind::IFF, *this, right);
+  return getEM()->mkExpr(CVC4::kind::EQUAL, *this, right);
 }
 
 Expr Expr::impExpr(const Expr& right) const {
@@ -434,9 +434,11 @@ bool Expr::isAtomicFormula() const {
     case CVC4::kind::AND:
     case CVC4::kind::OR:
     case CVC4::kind::ITE:
-    case CVC4::kind::IFF:
     case CVC4::kind::IMPLIES:
       return false;
+   case CVC4::kind::EQUAL:
+      return (*this)[0].getType().isBool();
+      break;
     default:
       ; /* fall through */
   }
@@ -469,10 +471,12 @@ bool Expr::isBoolConnective() const {
   case CVC4::kind::AND:
   case CVC4::kind::OR:
   case CVC4::kind::IMPLIES:
-  case CVC4::kind::IFF:
   case CVC4::kind::XOR:
   case CVC4::kind::ITE:
     return true;
+  case CVC4::kind::EQUAL:
+    return (*this)[0].getType().isBool();
+    break;
   default:
     return false;
   }
@@ -547,7 +551,7 @@ bool Expr::isITE() const {
 }
 
 bool Expr::isIff() const {
-  return getKind() == CVC4::kind::IFF;
+  return getKind() == CVC4::kind::EQUAL && (*this)[0].getType().isBool();;
 }
 
 bool Expr::isImpl() const {
@@ -1663,7 +1667,7 @@ Expr ValidityChecker::impliesExpr(const Expr& hyp, const Expr& conc) {
 }
 
 Expr ValidityChecker::iffExpr(const Expr& left, const Expr& right) {
-  return d_em->mkExpr(CVC4::kind::IFF, left, right);
+  return d_em->mkExpr(CVC4::kind::EQUAL, left, right);
 }
 
 Expr ValidityChecker::eqExpr(const Expr& child0, const Expr& child1) {

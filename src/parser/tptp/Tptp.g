@@ -527,7 +527,7 @@ fofLogicFormula[CVC4::Expr& expr]
       ( fofBinaryNonAssoc[na] fofUnitaryFormula[expr2]
         { switch(na) {
            case tptp::NA_IFF:
-             expr = MK_EXPR(kind::IFF,expr,expr2);
+             expr = MK_EXPR(kind::EQUAL,expr,expr2);
              break;
            case tptp::NA_REVIFF:
              expr = MK_EXPR(kind::XOR,expr,expr2);
@@ -662,7 +662,7 @@ tffLogicFormula[CVC4::Expr& expr]
       ( fofBinaryNonAssoc[na] tffUnitaryFormula[expr2]
         { switch(na) {
            case tptp::NA_IFF:
-             expr = MK_EXPR(kind::IFF,expr,expr2);
+             expr = MK_EXPR(kind::EQUAL,expr,expr2);
              break;
            case tptp::NA_REVIFF:
              expr = MK_EXPR(kind::XOR,expr,expr2);

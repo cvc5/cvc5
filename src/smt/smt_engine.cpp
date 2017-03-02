@@ -185,8 +185,6 @@ public:
 struct SmtEngineStatistics {
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
-  /** time spent in Boolean term rewriting */
-  TimerStat d_rewriteBooleanTermsTime;
   /** time spent in non-clausal simplification */
   TimerStat d_nonclausalSimplificationTime;
   /** time spent in miplib pass */
@@ -233,7 +231,6 @@ struct SmtEngineStatistics {
 
   SmtEngineStatistics() :
     d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
-    d_rewriteBooleanTermsTime("smt::SmtEngine::rewriteBooleanTermsTime"),
     d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
     d_miplibPassTime("smt::SmtEngine::miplibPassTime"),
     d_numMiplibAssertionsRemoved("smt::SmtEngine::numMiplibAssertionsRemoved", 0),
@@ -258,7 +255,6 @@ struct SmtEngineStatistics {
  {
 
     smtStatisticsRegistry()->registerStat(&d_definitionExpansionTime);
-    smtStatisticsRegistry()->registerStat(&d_rewriteBooleanTermsTime);
     smtStatisticsRegistry()->registerStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->registerStat(&d_miplibPassTime);
     smtStatisticsRegistry()->registerStat(&d_numMiplibAssertionsRemoved);
@@ -284,7 +280,6 @@ struct SmtEngineStatistics {
 
   ~SmtEngineStatistics() {
     smtStatisticsRegistry()->unregisterStat(&d_definitionExpansionTime);
-    smtStatisticsRegistry()->unregisterStat(&d_rewriteBooleanTermsTime);
     smtStatisticsRegistry()->unregisterStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->unregisterStat(&d_miplibPassTime);
     smtStatisticsRegistry()->unregisterStat(&d_numMiplibAssertionsRemoved);
@@ -510,9 +505,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** Size of assertions array when preprocessing starts */
   unsigned d_realAssertionsEnd;
 
-  /** The converter for Boolean terms -> BITVECTOR(1). */
-  BooleanTermConverter* d_booleanTermConverter;
-
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
   bool d_propagatorNeedsFinish;
@@ -567,7 +559,7 @@ public:
   IteSkolemMap d_iteSkolemMap;
 
   /** Instance of the ITE remover */
-  RemoveITE d_iteRemover;
+  RemoveTermFormulas d_iteRemover;
 
 private:
 
@@ -676,7 +668,6 @@ public:
     d_listenerRegistrations(new ListenerRegistrationList()),
     d_nonClausalLearnedLiterals(),
     d_realAssertionsEnd(0),
-    d_booleanTermConverter(NULL),
     d_propagator(d_nonClausalLearnedLiterals, true, true),
     d_propagatorNeedsFinish(false),
     d_assertions(),
@@ -755,10 +746,6 @@ public:
     if(d_propagatorNeedsFinish) {
       d_propagator.finish();
       d_propagatorNeedsFinish = false;
-    }
-    if(d_booleanTermConverter != NULL) {
-      delete d_booleanTermConverter;
-      d_booleanTermConverter = NULL;
     }
     d_smt.d_nodeManager->unsubscribeEvents(this);
   }
@@ -857,11 +844,6 @@ public:
   Node expandDefinitions(TNode n, NodeToNodeHashMap& cache,
                          bool expandOnly = false)
       throw(TypeCheckingException, LogicException, UnsafeInterruptException);
-
-  /**
-   * Rewrite Boolean terms in a Node.
-   */
-  Node rewriteBooleanTerms(TNode n);
 
   /**
    * Simplify node "in" by expanding definitions and applying any
@@ -1446,6 +1428,15 @@ void SmtEngine::setDefaults() {
     }
     d_logic = log;
     d_logic.lock();
+  }
+  if(d_logic.isTheoryEnabled(THEORY_ARRAY) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_SETS)) {
+    if(!d_logic.isTheoryEnabled(THEORY_UF)) {
+      LogicInfo log(d_logic.getUnlockedCopy());
+      Trace("smt") << "because a theory that permits Boolean terms is enabled, also enabling UF" << endl;
+      log.enableTheory(THEORY_UF);
+      d_logic = log;
+      d_logic.lock();
+    }
   }
 
   // by default, symmetry breaker is on only for QF_UF
@@ -2918,7 +2909,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     for (; pos != newSubstitutions.end(); ++pos) {
       // Add back this substitution as an assertion
       TNode lhs = (*pos).first, rhs = newSubstitutions.apply((*pos).second);
-      Node n = NodeManager::currentNM()->mkNode(lhs.getType().isBoolean() ? kind::IFF : kind::EQUAL, lhs, rhs);
+      Node n = NodeManager::currentNM()->mkNode(kind::EQUAL, lhs, rhs);
       substitutionsBuilder << n;
       Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): will notify SAT layer of substitution: " << n << endl;
     }
@@ -3775,42 +3766,6 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, 
   return false;
 }
 
-Node SmtEnginePrivate::rewriteBooleanTerms(TNode n) {
-  TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteBooleanTermsTime);
-
-  spendResource(options::preprocessStep());
-
-  if(d_booleanTermConverter == NULL) {
-    // This needs to be initialized _after_ the whole SMT framework is in place, subscribed
-    // to ExprManager notifications, etc.  Otherwise we might miss the "BooleanTerm" datatype
-    // definition, and not dump it properly.
-    d_booleanTermConverter = new BooleanTermConverter(d_smt);
-  }
-  Node retval = d_booleanTermConverter->rewriteBooleanTerms(n);
-  if(retval != n) {
-    switch(booleans::BooleanTermConversionMode mode = options::booleanTermConversionMode()) {
-    case booleans::BOOLEAN_TERM_CONVERT_TO_BITVECTORS:
-    case booleans::BOOLEAN_TERM_CONVERT_NATIVE:
-      if(!d_smt.d_logic.isTheoryEnabled(THEORY_BV)) {
-        d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-        d_smt.d_logic.enableTheory(THEORY_BV);
-        d_smt.d_logic.lock();
-      }
-      break;
-    case booleans::BOOLEAN_TERM_CONVERT_TO_DATATYPES:
-      if(!d_smt.d_logic.isTheoryEnabled(THEORY_DATATYPES)) {
-        d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-        d_smt.d_logic.enableTheory(THEORY_DATATYPES);
-        d_smt.d_logic.lock();
-      }
-      break;
-    default:
-      Unhandled(mode);
-    }
-  }
-  return retval;
-}
-
 void SmtEnginePrivate::processAssertions() {
   TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
   spendResource(options::preprocessStep());
@@ -3903,15 +3858,6 @@ void SmtEnginePrivate::processAssertions() {
     bvAbstraction();
     dumpAssertions("post-bv-abstraction", d_assertions);
   }
-
-  dumpAssertions("pre-boolean-terms", d_assertions);
-  {
-    Chat() << "rewriting Boolean terms..." << endl;
-    for(unsigned i = 0, i_end = d_assertions.size(); i != i_end; ++i) {
-      d_assertions.replace(i, rewriteBooleanTerms(d_assertions[i]));
-    }
-  }
-  dumpAssertions("post-boolean-terms", d_assertions);
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
@@ -4523,6 +4469,7 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore) throw(TypeChec
 }/* SmtEngine::assertFormula() */
 
 Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
+/*
   ModelPostprocessor mpost;
   NodeVisitor<ModelPostprocessor> visitor;
   Node value = visitor.run(mpost, node);
@@ -4534,6 +4481,8 @@ Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
     Debug("boolean-terms") << "postproc: after rewrite " << realValue << endl;
   }
   return realValue;
+  */
+  return node;
 }
 
 Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
@@ -4627,8 +4576,9 @@ Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckin
   // used by the Model classes.  It's not clear to me exactly how these
   // two are different, but they need to be unified.  This ugly hack here
   // is to fix bug 554 until we can revamp boolean-terms and models [MGD]
+  
+  //AJR : necessary?
   if(!n.getType().isFunction()) {
-    n = d_private->rewriteBooleanTerms(n);
     n = Rewriter::rewrite(n);
   }
 
@@ -4732,7 +4682,6 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException, UnsafeInterruptExce
     // Expand, then normalize
     hash_map<Node, Node, NodeHashFunction> cache;
     Node n = d_private->expandDefinitions(*i, cache);
-    n = d_private->rewriteBooleanTerms(n);
     n = Rewriter::rewrite(n);
 
     Trace("smt") << "--- getting value of " << n << endl;

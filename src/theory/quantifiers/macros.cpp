@@ -147,7 +147,7 @@ bool QuantifierMacros::containsBadOp( Node n, Node op, std::vector< Node >& opc,
 }
 
 bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
-  return pol && ( n.getKind()==EQUAL || n.getKind()==IFF );
+  return pol && n.getKind()==EQUAL;
 }
 
 bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
@@ -211,7 +211,7 @@ void QuantifierMacros::getMacroCandidates( Node n, std::vector< Node >& candidat
 }
 
 Node QuantifierMacros::solveInEquality( Node n, Node lit ){
-  if( lit.getKind()==IFF || lit.getKind()==EQUAL ){
+  if( lit.getKind()==EQUAL ){
     //return the opposite side of the equality if defined that way
     for( int i=0; i<2; i++ ){
       if( lit[i]==n ){

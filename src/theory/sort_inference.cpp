@@ -371,7 +371,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
     Trace("sort-inference-debug") << "...Process " << n << std::endl;
 
     int retType;
-    if( n.getKind()==kind::EQUAL ){
+    if( n.getKind()==kind::EQUAL && !n[0].getType().isBoolean() ){
       Trace("sort-inference-debug") << "For equality " << n << ", set equal types from : " << n[0].getType() << " " << n[1].getType() << std::endl;
       //if original types are mixed (e.g. Int/Real), don't commit type equality in either direction
       if( n[0].getType()!=n[1].getType() ){

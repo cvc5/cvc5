@@ -82,27 +82,27 @@ public:
     }
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) {
-      Debug("uf") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
+      Debug("uf-notify") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_uf.conflict(t1, t2);
     }
 
     void eqNotifyNewClass(TNode t) {
-      Debug("uf") << "NotifyClass::eqNotifyNewClass(" << t << std::endl;
+      Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
       d_uf.eqNotifyNewClass(t);
     }
 
     void eqNotifyPreMerge(TNode t1, TNode t2) {
-      Debug("uf") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << std::endl;
+      Debug("uf-notify") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_uf.eqNotifyPreMerge(t1, t2);
     }
 
     void eqNotifyPostMerge(TNode t1, TNode t2) {
-      Debug("uf") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << std::endl;
+      Debug("uf-notify") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_uf.eqNotifyPostMerge(t1, t2);
     }
 
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-      Debug("uf") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
+      Debug("uf-notify") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
       d_uf.eqNotifyDisequal(t1, t2, reason);
     }
 

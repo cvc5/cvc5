@@ -674,7 +674,7 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
       std::vector< Node > tr_terms;
       if( lit.getKind()==APPLY_UF ){
         //only match predicates that are contrary to this one, use literal matching
-        Node eq = NodeManager::currentNM()->mkNode( IFF, lit, !phase ? fm->d_true : fm->d_false );
+        Node eq = NodeManager::currentNM()->mkNode( EQUAL, lit, !phase ? fm->d_true : fm->d_false );
         tr_terms.push_back( eq );
       }else if( lit.getKind()==EQUAL ){
         //collect trigger terms

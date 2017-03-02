@@ -257,7 +257,7 @@ void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions) {
   TNode atom = polarity ? literal : literal[0];
   unsigned ps = assumptions.size();
   std::vector< TNode > tassumptions;
-  if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
+  if (atom.getKind() == kind::EQUAL) {
     if( atom[0]!=atom[1] ){
       Assert( hasTerm( atom[0] ) );
       Assert( hasTerm( atom[1] ) );
@@ -402,7 +402,7 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
           std::vector< Node > new_nodes;
           Node res = d_preproc.simplify( n, new_nodes );
           Assert( res!=n );
-          new_nodes.push_back( NodeManager::currentNM()->mkNode( res.getType().isBoolean() ? kind::IFF : kind::EQUAL, res, n ) );
+          new_nodes.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, res, n ) );
           Node nnlem = new_nodes.size()==1 ? new_nodes[0] : NodeManager::currentNM()->mkNode( kind::AND, new_nodes );
           nnlem = Rewriter::rewrite( nnlem );
           Trace("strings-red-lemma") << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
@@ -820,11 +820,7 @@ void TheoryStrings::conflict(TNode a, TNode b){
     Debug("strings-conflict") << "Making conflict..." << std::endl;
     d_conflict = true;
     Node conflictNode;
-    if (a.getKind() == kind::CONST_BOOLEAN) {
-      conflictNode = explain( a.iffNode(b) );
-    } else {
-      conflictNode = explain( a.eqNode(b) );
-    }
+    conflictNode = explain( a.eqNode(b) );
     Trace("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflictNode << std::endl;
     d_out->conflict( conflictNode );
   }

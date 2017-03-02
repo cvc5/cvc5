@@ -778,7 +778,7 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                       }
                       if( x!=itnm2->second[xr][0] ){
                         Assert( d_equalityEngine.areEqual( x, itnm2->second[xr][0] ) );
-                        exp.push_back( NodeManager::currentNM()->mkNode( x.getType().isBoolean() ? kind::IFF : kind::EQUAL, x, itnm2->second[xr][0] ) );
+                        exp.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, x, itnm2->second[xr][0] ) );
                       }
                       valid = true;
                     }
@@ -866,7 +866,7 @@ void TheorySetsPrivate::checkDisequalities( std::vector< Node >& lemmas ) {
           Node x = NodeManager::currentNM()->mkSkolem("sde_", elementType);
           Node mem1 = NodeManager::currentNM()->mkNode( kind::MEMBER, x, deq[0] );
           Node mem2 = NodeManager::currentNM()->mkNode( kind::MEMBER, x, deq[1] );
-          Node lem = NodeManager::currentNM()->mkNode( kind::OR, deq, NodeManager::currentNM()->mkNode( kind::IFF, mem1, mem2 ).negate() );
+          Node lem = NodeManager::currentNM()->mkNode( kind::OR, deq, NodeManager::currentNM()->mkNode( kind::EQUAL, mem1, mem2 ).negate() );
           lem = Rewriter::rewrite( lem );
           assertInference( lem, d_emp_exp, lemmas, "diseq", 1 );
           flushLemmas( lemmas );
@@ -1901,11 +1901,7 @@ void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 
 void TheorySetsPrivate::conflict(TNode a, TNode b)
 {
-  if (a.getKind() == kind::CONST_BOOLEAN) {
-    d_conflictNode = explain(a.iffNode(b));
-  } else {
-    d_conflictNode = explain(a.eqNode(b));
-  }
+  d_conflictNode = explain(a.eqNode(b));
   d_external.d_out->conflict(d_conflictNode);
   Debug("sets") << "[sets] conflict: " << a << " iff " << b
                 << ", explaination " << d_conflictNode << std::endl;
@@ -1922,7 +1918,7 @@ Node TheorySetsPrivate::explain(TNode literal)
   TNode atom = polarity ? literal : literal[0];
   std::vector<TNode> assumptions;
 
-  if(atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
+  if(atom.getKind() == kind::EQUAL) {
     d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
   } else if(atom.getKind() == kind::MEMBER) {
     if( !d_equalityEngine.hasTerm(atom)) {

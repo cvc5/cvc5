@@ -41,7 +41,6 @@ std::string toLFSCKind(Kind kind) {
   case kind::AND: return "and";
   case kind::XOR: return "xor";
   case kind::EQUAL: return "=";
-  case kind::IFF: return "iff";
   case kind::IMPLIES: return "impl";
   case kind::NOT: return "not";
 
@@ -120,6 +119,19 @@ std::string toLFSCKind(Kind kind) {
     return "sign_extend";
   default:
     Unreachable();
+  }
+}
+
+std::string toLFSCKindTerm(Expr node) {
+  Kind k = node.getKind();
+  if( k==kind::EQUAL ){
+    if( node[0].getType().isBoolean() ){
+      return "iff";
+    }else{
+      return "=";
+    }
+  }else{
+    return toLFSCKind( k );
   }
 }
 

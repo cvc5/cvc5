@@ -327,7 +327,7 @@ int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
     }else{
       return 0;
     }
-  }else if( n.getKind()==IFF ){
+  }else if( n.getKind()==EQUAL && n[0].getType().isBoolean() ){
     int depIndex1;
     int eVal = evaluate( n[0], depIndex1, ri );
     if( eVal!=0 ){

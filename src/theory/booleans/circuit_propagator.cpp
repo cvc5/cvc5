@@ -135,7 +135,8 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
       }
     }
     break;
-  case kind::IFF:
+  case kind::EQUAL:
+    Assert( parent[0].getType().isBoolean() );
     if (parentAssignment) {
       // IFF x y = TRUE: if x [resp y] is assigned, assign(y = x.assignment [resp x = y.assignment])
       if (isAssigned(parent[0])) {
@@ -285,7 +286,8 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
         }
       }
       break;
-    case kind::IFF:
+    case kind::EQUAL:
+      Assert( parent[0].getType().isBoolean() );
       if (isAssigned(parent[0]) && isAssigned(parent[1])) {
         // IFF x y: if x or y is assigned, assign(IFF = (x.assignment <=> y.assignment))
         assignAndEnqueue(parent, getAssignment(parent[0]) == getAssignment(parent[1]));

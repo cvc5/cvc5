@@ -639,7 +639,7 @@ void SortModel::assertDisequal( Node a, Node b, Node reason ){
       int bi = d_regions_map[b];
       if( !d_regions[ai]->isDisequal( a, b, ai==bi ) ){
         Debug("uf-ss") << "Assert disequal " << a << " != " << b << "..." << std::endl;
-        //if( reason.getKind()!=NOT || ( reason[0].getKind()!=EQUAL && reason[0].getKind()!=IFF ) ||
+        //if( reason.getKind()!=NOT || reason[0].getKind()!=EQUAL ||
         //    a!=reason[0][0] || b!=reason[0][1] ){
         //  Notice() << "Assert disequal " << a << " != " << b << ", reason = " << reason << "..." << std::endl;
         //}
@@ -1861,8 +1861,9 @@ void StrongSolverTheoryUF::assertNode( Node n, bool isDecision ){
       //otherwise, make equal via lemma
       if( d_card_assertions_eqv_lemma.find( lit )==d_card_assertions_eqv_lemma.end() ){
         Node eqv_lit = NodeManager::currentNM()->mkNode( CARDINALITY_CONSTRAINT, ct, lit[1] );
-        Trace("uf-ss-lemma") << "*** Cardinality equiv lemma : " << lit.iffNode( eqv_lit ) << std::endl;
-        getOutputChannel().lemma( lit.iffNode( eqv_lit ) );
+        eqv_lit = lit.eqNode( eqv_lit );
+        Trace("uf-ss-lemma") << "*** Cardinality equiv lemma : " << eqv_lit << std::endl;
+        getOutputChannel().lemma( eqv_lit );
         d_card_assertions_eqv_lemma[lit] = true;
       }
     }

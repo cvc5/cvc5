@@ -596,16 +596,16 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
         os << ")";
       }
     }
-  }else if( base_assertion.getKind()==kind::XOR || base_assertion.getKind()==kind::IFF ){
+  }else if( base_assertion.getKind()==kind::XOR || ( base_assertion.getKind()==kind::EQUAL && base_assertion[0].getType().isBoolean() ) ){
     //eliminate negation
     int num_nots_2 = 0;
     int num_nots_1 = 0;
     Kind k;
     if( !base_pol ){
-      if( base_assertion.getKind()==kind::IFF ){
+      if( base_assertion.getKind()==kind::EQUAL ){
         num_nots_2 = 1;
       }
-      k = kind::IFF;
+      k = kind::EQUAL;
     }else{
       k = base_assertion.getKind();
     }
@@ -623,7 +623,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
         if( i==0 ){
           //figure out which way to elim
           elimNum = child_pol==childPol[child_base] ? 2 : 1;
-          if( (elimNum==2)==(k==kind::IFF) ){
+          if( (elimNum==2)==(k==kind::EQUAL) ){
             num_nots_2++;
           }
           if( elimNum==1 ){
@@ -651,9 +651,9 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
         os_base_n << ProofManager::getLitName(lit1, d_name) << " ";
       }
       Assert( elimNum!=0 );
-      os_base_n << "(" << ( k==kind::IFF ? "iff" : "xor" ) << "_elim_" << elimNum << " _ _ ";
+      os_base_n << "(" << ( k==kind::EQUAL ? "iff" : "xor" ) << "_elim_" << elimNum << " _ _ ";
       if( !base_pol ){
-        os_base_n << "(not_" << ( base_assertion.getKind()==kind::IFF ? "iff" : "xor" ) << "_elim _ _ " << os_base.str() << ")";
+        os_base_n << "(not_" << ( base_assertion.getKind()==kind::EQUAL ? "iff" : "xor" ) << "_elim _ _ " << os_base.str() << ")";
       }else{
         os_base_n << os_base.str();
       }

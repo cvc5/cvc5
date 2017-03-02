@@ -992,7 +992,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       }
       Node tuple_reduct = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);
       tuple_reduct = NodeManager::currentNM()->mkNode(kind::MEMBER,tuple_reduct, n[1]);
-      Node tuple_reduction_lemma = NodeManager::currentNM()->mkNode(kind::IFF, n, tuple_reduct);
+      Node tuple_reduction_lemma = NodeManager::currentNM()->mkNode(kind::EQUAL, n, tuple_reduct);
       sendLemma(tuple_reduction_lemma, d_trueNode, "tuple-reduction");
       d_symbolic_tuples.insert(n);
     }
@@ -1097,7 +1097,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     bool                polarity        = literal.getKind() != kind::NOT;
     TNode               atom            = polarity ? literal : literal[0];
 
-    if(atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
+    if(atom.getKind() == kind::EQUAL) {
       d_eqEngine->explainEquality(atom[0], atom[1], polarity, assumptions);
     } else if(atom.getKind() == kind::MEMBER) {
       if( !d_eqEngine->hasTerm(atom)) {

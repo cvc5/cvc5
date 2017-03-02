@@ -93,7 +93,7 @@ void QuantEqualityEngine::assertNode( Node n ) {
     bool success = true;
     Node t1;
     Node t2;
-    if( lit.getKind()==APPLY_UF || lit.getKind()==EQUAL || lit.getKind()==IFF ){
+    if( lit.getKind()==APPLY_UF || lit.getKind()==EQUAL ){
       lit = getTermDatabase()->getCanonicalTerm( lit );
       Trace("qee-debug") << "Canonical :  " << lit << ", pol = " << pol << std::endl;
       if( lit.getKind()==APPLY_UF ){
@@ -102,27 +102,29 @@ void QuantEqualityEngine::assertNode( Node n ) {
         pol = true;
         lit = NodeManager::currentNM()->mkNode( EQUAL, t1, t2 );
       }else if( lit.getKind()==EQUAL ){
-        t1 = lit[0];
-        t2 = lit[1];
-      }else if( lit.getKind()==IFF ){
-        if( lit[0].getKind()==NOT ){
-          t1 = lit[0][0];
-          pol = !pol;
+        if( lit[0].getType().isBoolean() ){
+          if( lit[0].getKind()==NOT ){
+            t1 = lit[0][0];
+            pol = !pol;
+          }else{
+            t1 = lit[0];
+          }
+          if( lit[1].getKind()==NOT ){
+            t2 = lit[1][0];
+            pol = !pol;
+          }else{
+            t2 = lit[1];
+          }
+          if( t1.getKind()==APPLY_UF && t2.getKind()==APPLY_UF ){
+            t1 = getFunctionAppForPredicateApp( t1 );
+            t2 = getFunctionAppForPredicateApp( t2 );
+            lit = NodeManager::currentNM()->mkNode( EQUAL, t1, t2 );
+          }else{
+            success = false;
+          }
         }else{
           t1 = lit[0];
-        }
-        if( lit[1].getKind()==NOT ){
-          t2 = lit[1][0];
-          pol = !pol;
-        }else{
           t2 = lit[1];
-        }
-        if( t1.getKind()==APPLY_UF && t2.getKind()==APPLY_UF ){
-          t1 = getFunctionAppForPredicateApp( t1 );
-          t2 = getFunctionAppForPredicateApp( t2 );
-          lit = NodeManager::currentNM()->mkNode( EQUAL, t1, t2 );
-        }else{
-          success = false;
         }
       }
     }else{

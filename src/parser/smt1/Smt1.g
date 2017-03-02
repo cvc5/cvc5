@@ -379,7 +379,7 @@ builtinOp[CVC4::Kind& kind]
   | AND_TOK      { $kind = CVC4::kind::AND;     }
   | OR_TOK       { $kind = CVC4::kind::OR;      }
   | XOR_TOK      { $kind = CVC4::kind::XOR;     }
-  | IFF_TOK      { $kind = CVC4::kind::IFF;     }
+  | IFF_TOK      { $kind = CVC4::kind::EQUAL;   }
   | EQUAL_TOK    { $kind = CVC4::kind::EQUAL;   }
   | DISTINCT_TOK { $kind = CVC4::kind::DISTINCT; }
   // Arithmetic

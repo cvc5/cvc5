@@ -195,7 +195,6 @@ void Smt2::addTheory(Theory theory) {
     Parser::addOperator(kind::AND);
     Parser::addOperator(kind::DISTINCT);
     Parser::addOperator(kind::EQUAL);
-    Parser::addOperator(kind::IFF);
     Parser::addOperator(kind::IMPLIES);
     Parser::addOperator(kind::ITE);
     Parser::addOperator(kind::NOT);
@@ -823,6 +822,7 @@ void Smt2::processSygusGTerm( CVC4::SygusGTerm& sgt, int index,
       oldKind = kind::MINUS;
       newKind = kind::UMINUS;
     }
+    /*
     //convert to IFF if boolean EQUAL
     if( sgt.d_expr==getExprManager()->operatorOf(kind::EQUAL) ){
       Type ctn = sgt.d_children[0].d_type;
@@ -832,6 +832,7 @@ void Smt2::processSygusGTerm( CVC4::SygusGTerm& sgt, int index,
         newKind = kind::IFF;
       }
     }
+    */
     if( newKind!=kind::UNDEFINED_KIND ){
       Expr newExpr = getExprManager()->operatorOf(newKind);
       Debug("parser-sygus") << "Replace " << sgt.d_expr << " with " << newExpr << std::endl;
@@ -1450,7 +1451,7 @@ Expr Smt2::getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vec
     }
   }
   Debug("parser-sygus") << "...made built term " << builtTerm << std::endl;
-  Expr assertion = getExprManager()->mkExpr(evalApply.getType().isBoolean() ? kind::IFF : kind::EQUAL, evalApply, builtTerm);
+  Expr assertion = getExprManager()->mkExpr(kind::EQUAL, evalApply, builtTerm);
   if( !bvl.isNull() ){
     Expr pattern = getExprManager()->mkExpr(kind::INST_PATTERN, evalApply);
     pattern = getExprManager()->mkExpr(kind::INST_PATTERN_LIST, pattern);
@@ -1502,7 +1503,7 @@ Expr Smt2::getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vec
               Debug("parser-sygus") << "builtApply " << builtApply[k] << std::endl;
               builtTerm = getExprManager()->mkExpr(ops[i][j], builtApply);
               Debug("parser-sygus") << "builtTerm " << builtTerm << std::endl;
-              Expr eassertion = getExprManager()->mkExpr(evalApply.getType().isBoolean() ? kind::IFF : kind::EQUAL, evalApply, builtTerm);
+              Expr eassertion = getExprManager()->mkExpr(kind::EQUAL, evalApply, builtTerm);
               Expr epattern = getExprManager()->mkExpr(kind::INST_PATTERN, evalApply);
               epattern = getExprManager()->mkExpr(kind::INST_PATTERN_LIST, epattern);
               eassertion = getExprManager()->mkExpr(kind::FORALL, nbvl, eassertion, epattern);

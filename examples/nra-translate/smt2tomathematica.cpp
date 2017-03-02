@@ -214,18 +214,19 @@ void translate_to_mathematica(const map<Expr, unsigned>& variables, const Expr& 
         cout << ",";
         translate_to_mathematica(variables, assertion[1]);
         cout << "]";
-        break;
-      case kind::IFF:
+        break;         
+      case kind::EQUAL:
+      if( assertion[0].getType().isBoolean() ){
         cout << "Equivalent[";
         translate_to_mathematica(variables, assertion[0]);
         cout << ",";
         translate_to_mathematica(variables, assertion[1]);
         cout << "]";
-        break;            
-      case kind::EQUAL:
+      }else{
         op = "==";
         theory = true;
-	break;
+      }
+	      break;
       case kind::LT:
         op = "<";
         theory = true;

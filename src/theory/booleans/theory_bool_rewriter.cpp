@@ -173,7 +173,6 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     if (n[1] == ff) return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
     break;
   }
-  case kind::IFF:
   case kind::EQUAL: {
     // rewrite simple cases of IFF
     if(n[0] == tt) {
@@ -318,7 +317,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
 
     int parityTmp;
     if ((parityTmp = equalityParity(n[1], n[2])) != 0) {
-      Node resp = (parityTmp == 1) ? (Node)n[1] : n[0].iffNode(n[1]);
+      Node resp = (parityTmp == 1) ? (Node)n[1] : n[0].eqNode(n[1]);
       Debug("bool-ite") << "equalityParity n[1], n[2] " << parityTmp
                         << " " << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);

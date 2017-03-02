@@ -422,7 +422,7 @@ void TheoryDatatypes::doPendingMerges(){
     //do all pending merges
     int i=0;
     while( i<(int)d_pending_merge.size() ){
-      Assert( d_pending_merge[i].getKind()==EQUAL || d_pending_merge[i].getKind()==IFF );
+      Assert( d_pending_merge[i].getKind()==EQUAL );
       merge( d_pending_merge[i][0], d_pending_merge[i][1] );
       i++;
     }
@@ -507,15 +507,9 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
     d_equalityEngine.addTriggerPredicate(n);
     break;
   default:
-    // Maybe it's a predicate
-    if (n.getType().isBoolean()) {
-      // Get triggered for both equal and dis-equal
-      d_equalityEngine.addTriggerPredicate(n);
-    } else {
-      // Function applications/predicates
-      d_equalityEngine.addTerm(n);
-      //d_equalityEngine.addTriggerTerm(n, THEORY_DATATYPES);
-    }
+    // Function applications/predicates
+    d_equalityEngine.addTerm(n);
+    //d_equalityEngine.addTriggerTerm(n, THEORY_DATATYPES);
     break;
   }
   flushPendingFacts();
@@ -634,11 +628,7 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
 void TheoryDatatypes::addSharedTerm(TNode t) {
   Debug("datatypes") << "TheoryDatatypes::addSharedTerm(): "
                      << t << " " << t.getType().isBoolean() << endl;
-  //if( t.getType().isBoolean() ){
-    //d_equalityEngine.addTriggerPredicate(t, THEORY_DATATYPES);
-  //}else{
   d_equalityEngine.addTriggerTerm(t, THEORY_DATATYPES);
-  //}
   Debug("datatypes") << "TheoryDatatypes::addSharedTerm() finished" << std::endl;
 }
 
@@ -703,7 +693,7 @@ void TheoryDatatypes::explain(TNode literal, std::vector<TNode>& assumptions){
   Debug("datatypes-explain") << "Explain " << literal << std::endl;
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
-  if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
+  if (atom.getKind() == kind::EQUAL) {
     explainEquality( atom[0], atom[1], polarity, assumptions );
   } else if( atom.getKind() == kind::AND && polarity ){
     for( unsigned i=0; i<atom.getNumChildren(); i++ ){
@@ -731,11 +721,7 @@ Node TheoryDatatypes::explain( std::vector< Node >& lits ) {
 
 /** Conflict when merging two constants */
 void TheoryDatatypes::conflict(TNode a, TNode b){
-  if (a.getKind() == kind::CONST_BOOLEAN) {
-    d_conflictNode = explain( a.iffNode(b) );
-  } else {
-    d_conflictNode = explain( a.eqNode(b) );
-  }
+  d_conflictNode = explain( a.eqNode(b) );
   Trace("dt-conflict") << "CONFLICT: Eq engine conflict : " << d_conflictNode << std::endl;
   d_out->conflict( d_conflictNode );
   d_conflict = true;
@@ -812,8 +798,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
             for( unsigned i=0; i<deq_cand.size(); i++ ){
               if( d_equalityEngine.areDisequal( deq_cand[i].first, deq_cand[i].second, true ) ){
                 conf = true;
-                Node eq = NodeManager::currentNM()->mkNode( deq_cand[i].first.getType().isBoolean() ? kind::IFF : kind::EQUAL,
-                                                            deq_cand[i].first, deq_cand[i].second );
+                Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, deq_cand[i].first, deq_cand[i].second );
                 exp.push_back( eq.negate() );
               }
             }
@@ -835,7 +820,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
             //do unification
             for( int i=0; i<(int)cons1.getNumChildren(); i++ ) {
               if( !areEqual( cons1[i], cons2[i] ) ){
-                Node eq = cons1[i].getType().isBoolean() ? cons1[i].iffNode( cons2[i] ) : cons1[i].eqNode( cons2[i] );
+                Node eq = cons1[i].eqNode( cons2[i] );
                 d_pending.push_back( eq );
                 d_pending_exp[ eq ] = unifEq;
                 Trace("datatypes-infer") << "DtInfer : cons-inj : " << eq << " by " << unifEq << std::endl;
@@ -1284,7 +1269,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   if( !r.isNull() ){
     Node rr = Rewriter::rewrite( r );
     if( use_s!=rr ){
-      Node eq = rr.getType().isBoolean() ? use_s.iffNode( rr ) : use_s.eqNode( rr );
+      Node eq = use_s.eqNode( rr );
       Node eq_exp;
       if( options::dtRefIntro() ){
         eq_exp = d_true;
@@ -1697,7 +1682,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
             if( children.empty() ){
               lem = n.negate();
             }else{
-              lem = NodeManager::currentNM()->mkNode( IFF, n, children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( OR, children ) );
+              lem = NodeManager::currentNM()->mkNode( EQUAL, n, children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( OR, children ) );
             }
             Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
             //d_pending.push_back( lem );
@@ -1716,7 +1701,7 @@ void TheoryDatatypes::processNewTerm( Node n ){
   //see if it is rewritten to be something different
   Node rn = Rewriter::rewrite( n );
   if( rn!=n && !areEqual( rn, n ) ){
-    Node eq = n.getType().isBoolean() ? rn.iffNode( n ) : rn.eqNode( n );
+    Node eq = rn.eqNode( n );
     d_pending.push_back( eq );
     d_pending_exp[ eq ] = d_true;
     Trace("datatypes-infer") << "DtInfer : rewrite : " << eq << std::endl;
@@ -2053,7 +2038,7 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       addLemma = dt.involvesExternalType();
     }
-  }else if( n.getKind()==LEQ || n.getKind()==IFF || n.getKind()==OR ){
+  }else if( n.getKind()==LEQ || n.getKind()==OR ){
     addLemma = true;
   }
   if( addLemma ){
@@ -2110,7 +2095,7 @@ void TheoryDatatypes::printModelDebug( const char* c ){
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
-    if( !eqc.getType().isBoolean() ){
+    //if( !eqc.getType().isBoolean() ){
       if( eqc.getType().isDatatype() ){
         Trace( c ) << "DATATYPE : ";
       }
@@ -2155,7 +2140,7 @@ void TheoryDatatypes::printModelDebug( const char* c ){
           Trace( c ) << std::endl;
         }
       }
-    }
+    //}
     ++eqcs_i;
   }
 }

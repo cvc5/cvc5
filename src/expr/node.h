@@ -893,8 +893,6 @@ public:
   NodeTemplate<true> iteNode(const NodeTemplate<ref_count2>& thenpart,
                              const NodeTemplate<ref_count3>& elsepart) const;
   template <bool ref_count2>
-  NodeTemplate<true> iffNode(const NodeTemplate<ref_count2>& right) const;
-  template <bool ref_count2>
   NodeTemplate<true> impNode(const NodeTemplate<ref_count2>& right) const;
   template <bool ref_count2>
   NodeTemplate<true> xorNode(const NodeTemplate<ref_count2>& right) const;
@@ -1198,14 +1196,6 @@ NodeTemplate<ref_count>::iteNode(const NodeTemplate<ref_count2>& thenpart,
                                  const NodeTemplate<ref_count3>& elsepart) const {
   assertTNodeNotExpired();
   return NodeManager::currentNM()->mkNode(kind::ITE, *this, thenpart, elsepart);
-}
-
-template <bool ref_count>
-template <bool ref_count2>
-NodeTemplate<true>
-NodeTemplate<ref_count>::iffNode(const NodeTemplate<ref_count2>& right) const {
-  assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(kind::IFF, *this, right);
 }
 
 template <bool ref_count>

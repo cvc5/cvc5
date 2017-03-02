@@ -528,7 +528,7 @@ Expr Expr::iffExpr(const Expr& e) const {
          "Don't have an expression manager for this expression!");
   PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
                       "Different expression managers!");
-  return d_exprManager->mkExpr(IFF, *this, e);
+  return d_exprManager->mkExpr(EQUAL, *this, e);
 }
 
 Expr Expr::impExpr(const Expr& e) const {

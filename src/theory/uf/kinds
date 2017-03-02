@@ -15,6 +15,8 @@ parameterized APPLY_UF VARIABLE 1: "application of an uninterpreted function; fi
 
 typerule APPLY_UF ::CVC4::theory::uf::UfTypeRule
 
+variable BOOLEAN_TERM_VARIABLE "Boolean term variable"
+
 operator CARDINALITY_CONSTRAINT 2 "cardinality constraint on sort S: first parameter is (any) term of sort S, second is a positive integer constant k that bounds the cardinality of S"
 typerule CARDINALITY_CONSTRAINT ::CVC4::theory::uf::CardinalityConstraintTypeRule
 

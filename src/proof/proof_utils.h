@@ -88,6 +88,7 @@ typedef std::vector<LetOrderElement> Bindings;
 namespace utils {
 
 std::string toLFSCKind(Kind kind);
+std::string toLFSCKindTerm(Expr node);
 
 inline unsigned getExtractHigh(Expr node) {
   return node.getOperator().getConst<BitVectorExtract>().high;

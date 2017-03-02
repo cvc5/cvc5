@@ -78,7 +78,6 @@ void Tptp::addTheory(Theory theory) {
     defineVar("$false", em->mkConst(false));
     addOperator(kind::AND);
     addOperator(kind::EQUAL);
-    addOperator(kind::IFF);
     addOperator(kind::IMPLIES);
     //addOperator(kind::ITE); //only for tff thf
     addOperator(kind::NOT);

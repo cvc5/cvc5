@@ -227,7 +227,7 @@ Node CandidateGeneratorQELitEq::getNextCandidate(){
 CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat ) :
 CandidateGenerator( qe ), d_match_pattern( mpat ){
 
-  Assert( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==IFF );
+  Assert( d_match_pattern.getKind()==EQUAL );
   d_match_pattern_type = d_match_pattern[0].getType();
 }
 

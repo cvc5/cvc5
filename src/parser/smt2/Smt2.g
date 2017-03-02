@@ -1221,8 +1221,7 @@ smt25Command[CVC4::PtrCloser<CVC4::Command>* cmd]
       //set the attribute to denote this is a function definition
       seq->addCommand( new SetUserAttributeCommand( attr_name, func_app ) );
       //assert it
-      Expr equality = MK_EXPR( func_app.getType().isBoolean() ?
-                               kind::IFF : kind::EQUAL, func_app, expr);
+      Expr equality = MK_EXPR( kind::EQUAL, func_app, expr);
       Expr boundVars = EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs);
       Expr as = EXPR_MANAGER->mkExpr(kind::FORALL, boundVars, equality, aexpr);
       seq->addCommand( new AssertCommand(as, false) );
@@ -1290,8 +1289,7 @@ smt25Command[CVC4::PtrCloser<CVC4::Command>* cmd]
       Expr as = EXPR_MANAGER->mkExpr(
                     kind::FORALL,
                     EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs),
-                    MK_EXPR( func_app.getType().isBoolean() ?
-                             kind::IFF : kind::EQUAL, func_app, expr ),
+                    MK_EXPR( kind::EQUAL, func_app, expr ),
                     aexpr);
       seq->addCommand( new AssertCommand(as, false) );
       //set up the next scope 
@@ -1720,13 +1718,6 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
     {
-      if( kind == CVC4::kind::EQUAL &&
-          args.size() > 0 &&
-          args[0].getType() == EXPR_MANAGER->booleanType() ) {
-        /* Use IFF for boolean equalities. */
-        kind = CVC4::kind::IFF;
-      }
-
       if( !PARSER_STATE->strictModeEnabled() &&
           (kind == CVC4::kind::AND || kind == CVC4::kind::OR) &&
           args.size() == 1) {
@@ -1752,7 +1743,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         for(size_t i = args.size() - 1; i > 0;) {
           expr = MK_EXPR(kind, args[--i], expr);
         }
-      } else if( ( kind == CVC4::kind::IFF || kind == CVC4::kind::EQUAL ||
+      } else if( ( kind == CVC4::kind::EQUAL ||
                    kind == CVC4::kind::LT || kind == CVC4::kind::GT ||
                    kind == CVC4::kind::LEQ || kind == CVC4::kind::GEQ ) &&
                  args.size() > 2 ) {
@@ -1993,7 +1984,6 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         Expr guard;
         Expr body;
         if(expr[1].getKind() == kind::IMPLIES ||
-           expr[1].getKind() == kind::IFF ||
            expr[1].getKind() == kind::EQUAL) {
           guard = expr[0];
           body = expr[1];
@@ -2008,11 +1998,13 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
           args.push_back(f2);
         }
 
-        if     ( body.getKind()==kind::IMPLIES )    kind = kind::RR_DEDUCTION;
-        else if( body.getKind()==kind::IFF )        kind = kind::RR_REDUCTION;
-        else if( body.getKind()==kind::EQUAL )      kind = kind::RR_REWRITE;
-        else PARSER_STATE->parseError("Error parsing rewrite rule.");
-
+        if( body.getKind()==kind::IMPLIES ){  
+          kind = kind::RR_DEDUCTION;
+        }else if( body.getKind()==kind::EQUAL ){
+          kind = body[0].getType().isBoolean() ? kind::RR_REDUCTION : kind::RR_REWRITE;
+        }else{
+          PARSER_STATE->parseError("Error parsing rewrite rule.");
+        }
         expr = MK_EXPR( kind, args );
       } else if(! patexprs.empty()) {
         if( !f2.isNull() && f2.getKind()==kind::INST_PATTERN_LIST ){
@@ -2144,8 +2136,7 @@ attribute[CVC4::Expr& expr, CVC4::Expr& retExpr, std::string& attr]
       std::string attr_name = attr;
       attr_name.erase( attr_name.begin() );
       if( attr==":fun-def" ){
-        if( ( expr.getKind()!=kind::EQUAL && expr.getKind()!=kind::IFF ) ||
-            expr[0].getKind()!=kind::APPLY_UF ){
+        if( expr.getKind()!=kind::EQUAL || expr[0].getKind()!=kind::APPLY_UF ){
           success = false;
         }else{
           FunctionType t = (FunctionType)expr[0].getOperator().getType();

@@ -383,12 +383,7 @@ public:
           std::ostringstream os;
           os << "RewriteRule <"<<rule<<">; expect unsat";
 
-          Node condition;
-          if (result.getType().isBoolean()) {
-            condition = node.iffNode(result).notNode();
-          } else {
-            condition = node.eqNode(result).notNode();
-          }
+          Node condition = node.eqNode(result).notNode();
 
           Dump("bv-rewrites")
             << CommentCommand(os.str())

@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --cbqi-all --no-check-models
 ; EXPECT: sat
+;AJR:BROKEN
 (set-logic UFBV)
 (set-info :status sat)
 (declare-fun Verilog__main.impl_PC_valid_64_1_39_!3 (Bool Bool Bool Bool Bool Bool Bool Bool Bool Bool Bool) Bool)

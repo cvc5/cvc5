@@ -267,10 +267,10 @@ void TermDb::computeUfTerms( TNode f ) {
             }else{
               if( at!=n && ee->areDisequal( at, n, false ) ){
                 std::vector< Node > lits;
-                lits.push_back( NodeManager::currentNM()->mkNode( at.getType().isBoolean() ? IFF : EQUAL, at, n ) );
+                lits.push_back( NodeManager::currentNM()->mkNode( EQUAL, at, n ) );
                 for( unsigned i=0; i<at.getNumChildren(); i++ ){
                   if( at[i]!=n[i] ){
-                    lits.push_back( NodeManager::currentNM()->mkNode( at[i].getType().isBoolean() ? IFF : EQUAL, at[i], n[i] ).negate() );
+                    lits.push_back( NodeManager::currentNM()->mkNode( EQUAL, at[i], n[i] ).negate() );
                   }
                 }
                 Node lem = lits.size()==1 ? lits[0] : NodeManager::currentNM()->mkNode( OR, lits );
@@ -484,7 +484,7 @@ bool TermDb::isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep,
   Assert( !qy->extendsEngine() );
   Trace("term-db-entail") << "Check entailed : " << n << ", pol = " << pol << std::endl;
   Assert( n.getType().isBoolean() );
-  if( n.getKind()==EQUAL ){
+  if( n.getKind()==EQUAL && !n[0].getType().isBoolean() ){
     TNode n1 = getEntailedTerm2( n[0], subs, subsRep, hasSubs, qy );
     if( !n1.isNull() ){
       TNode n2 = getEntailedTerm2( n[1], subs, subsRep, hasSubs, qy );
@@ -518,10 +518,11 @@ bool TermDb::isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep,
       }
     }
     return !simPol;
-  }else if( n.getKind()==IFF || n.getKind()==ITE ){
+  //Boolean equality here
+  }else if( n.getKind()==EQUAL || n.getKind()==ITE ){
     for( unsigned i=0; i<2; i++ ){
       if( isEntailed2( n[0], subs, subsRep, hasSubs, i==0, qy ) ){
-        unsigned ch = ( n.getKind()==IFF || i==0 ) ? 1 : 2;
+        unsigned ch = ( n.getKind()==EQUAL || i==0 ) ? 1 : 2;
         bool reqPol = ( n.getKind()==ITE || i==0 ) ? pol : !pol;
         return isEntailed2( n[ch], subs, subsRep, hasSubs, reqPol, qy );
       }
@@ -1956,18 +1957,24 @@ Node TermDb::simpleNegate( Node n ){
 }
 
 bool TermDb::isAssoc( Kind k ) {
-  return k==PLUS || k==MULT || k==AND || k==OR || k==XOR || k==IFF ||
+  return k==PLUS || k==MULT || k==AND || k==OR || 
          k==BITVECTOR_PLUS || k==BITVECTOR_MULT || k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR || k==BITVECTOR_XNOR || k==BITVECTOR_CONCAT ||
          k==STRING_CONCAT;
 }
 
 bool TermDb::isComm( Kind k ) {
-  return k==EQUAL || k==PLUS || k==MULT || k==AND || k==OR || k==XOR || k==IFF ||
+  return k==EQUAL || k==PLUS || k==MULT || k==AND || k==OR || k==XOR || 
          k==BITVECTOR_PLUS || k==BITVECTOR_MULT || k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR || k==BITVECTOR_XNOR;
 }
 
 bool TermDb::isBoolConnective( Kind k ) {
-  return k==OR || k==AND || k==IFF || k==ITE || k==FORALL || k==NOT || k==SEP_STAR;
+  return k==OR || k==AND || k==EQUAL || k==ITE || k==FORALL || k==NOT || k==SEP_STAR;
+}
+
+bool TermDb::isBoolConnectiveTerm( TNode n ) {
+  return isBoolConnective( n.getKind() ) &&
+         ( n.getKind()!=EQUAL || n[0].getType().isBoolean() ) && 
+         ( n.getKind()!=ITE || n.getType().isBoolean() );
 }
 
 void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
@@ -2018,7 +2025,7 @@ bool TermDb::isFunDefAnnotation( Node ipl ) {
 }
 
 Node TermDb::getFunDefHead( Node q ) {
-  //&& ( q[1].getKind()==EQUAL || q[1].getKind()==IFF ) && q[1][0].getKind()==APPLY_UF &&
+  //&& q[1].getKind()==EQUAL && q[1][0].getKind()==APPLY_UF &&
   if( q.getKind()==FORALL && q.getNumChildren()==3 ){
 
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
@@ -2034,7 +2041,7 @@ Node TermDb::getFunDefHead( Node q ) {
 Node TermDb::getFunDefBody( Node q ) {
   Node h = getFunDefHead( q );
   if( !h.isNull() ){
-    if( q[1].getKind()==EQUAL || q[1].getKind()==IFF ){
+    if( q[1].getKind()==EQUAL ){
       if( q[1][0]==h ){
         return q[1][1];
       }else if( q[1][1]==h ){
@@ -2718,7 +2725,7 @@ bool TermDbSygus::isIdempotentArg( Node n, Kind ik, int arg ) {
       return arg==1;
     }
   }else if( n==getTypeMaxValue( tn ) ){
-    if( ik==IFF || ik==BITVECTOR_AND || ik==BITVECTOR_XNOR ){
+    if( ik==EQUAL || ik==BITVECTOR_AND || ik==BITVECTOR_XNOR ){
       return true;
     }
   }
@@ -3063,15 +3070,17 @@ Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
 }
 
 Node TermDbSygus::expandBuiltinTerm( Node t ){
-  if( t.getKind()==EQUAL && ( t[0].getType().isInteger() || t[0].getType().isReal() ) ){
-    return NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( LEQ, t[0], t[1] ),
-                                                  NodeManager::currentNM()->mkNode( LEQ, t[1], t[0] ) );
+  if( t.getKind()==EQUAL ){
+    if( t[0].getType().isReal() ){
+      return NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( LEQ, t[0], t[1] ),
+                                                    NodeManager::currentNM()->mkNode( LEQ, t[1], t[0] ) );
+    }else if( t[0].getType().isBoolean() ){
+      return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, t[0], t[1] ),
+                                                   NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[1].negate() ) );
+    }
   }else if( t.getKind()==ITE && t.getType().isBoolean() ){
     return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, t[0], t[1] ),
                                                  NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[2] ) );
-  }else if( t.getKind()==IFF ){
-    return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, t[0], t[1] ),
-                                                 NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[1].negate() ) );
   }
   return Node::null();
 }
@@ -3248,13 +3257,13 @@ void TermDbSygus::registerEvalTerm( Node n ) {
             Assert( dt.isSygus() );
             d_eval_args[n[0]].push_back( std::vector< Node >() );
             for( unsigned j=1; j<n.getNumChildren(); j++ ){
-              if( var_list[j-1].getType().isBoolean() ){
-                //TODO: remove this case when boolean term conversion is eliminated
-                Node c = NodeManager::currentNM()->mkConst(BitVector(1u, 1u));
-                d_eval_args[n[0]].back().push_back( n[j].eqNode( c ) );
-              }else{
+              //if( var_list[j-1].getType().isBoolean() ){
+              //  //TODO: remove this case when boolean term conversion is eliminated
+              //  Node c = NodeManager::currentNM()->mkConst(BitVector(1u, 1u));
+              //  d_eval_args[n[0]].back().push_back( n[j].eqNode( c ) );
+              //}else{
                 d_eval_args[n[0]].back().push_back( n[j] );
-              }
+              //}
             }
             Node a = getAnchor( n[0] );
             d_subterms[a][n[0]] = true;
@@ -3297,7 +3306,7 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& lems 
         for( unsigned i=start; i<it->second.size(); i++ ){
           Assert( vars.size()==it->second[i].size() );
           Node sBTerm = bTerm.substitute( vars.begin(), vars.end(), it->second[i].begin(), it->second[i].end() );
-          Node lem = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, d_evals[n][i], sBTerm ); 
+          Node lem = NodeManager::currentNM()->mkNode(EQUAL, d_evals[n][i], sBTerm ); 
           lem = NodeManager::currentNM()->mkNode( OR, antec, lem );
           Trace("sygus-eager") << "Lemma : " << lem << std::endl;
           lems.push_back( lem );

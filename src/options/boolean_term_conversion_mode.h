@@ -26,27 +26,8 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-enum BooleanTermConversionMode {
-  /**
-   * Convert Boolean terms to bitvectors of size 1.
-   */
-  BOOLEAN_TERM_CONVERT_TO_BITVECTORS,
-  /**
-   * Convert Boolean terms to enumerations in the Datatypes theory.
-   */
-  BOOLEAN_TERM_CONVERT_TO_DATATYPES,
-  /**
-   * Convert Boolean terms to enumerations in the Datatypes theory IF
-   * used in a datatypes context, otherwise to a bitvector of size 1.
-   */
-  BOOLEAN_TERM_CONVERT_NATIVE
-
-};
-
 }/* CVC4::theory::booleans namespace */
 }/* CVC4::theory namespace */
-
-std::ostream& operator<<(std::ostream& out, theory::booleans::BooleanTermConversionMode mode) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

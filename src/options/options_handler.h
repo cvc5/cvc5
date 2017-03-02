@@ -118,10 +118,6 @@ public:
 
   theory::bv::SatSolverMode stringToSatSolver(std::string option, std::string optarg) throw(OptionException);
     
-
-  // theory/booleans/options_handlers.h
-  theory::booleans::BooleanTermConversionMode stringToBooleanTermConversionMode(std::string option, std::string optarg) throw(OptionException);
-
   // theory/uf/options_handlers.h
   theory::uf::UfssMode stringToUfssMode(std::string option, std::string optarg) throw(OptionException);
 

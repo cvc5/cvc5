@@ -219,14 +219,15 @@ void translate_to_qepcad(const std::map<Expr, unsigned>& variables,
         op = "==>";
         binary =  true;
         break;
-      case kind::IFF:
-        op = "<==>";
-        binary =  true;
-        break;
       case kind::EQUAL:
-        op = "=";
-        theory =  true;
-	break;
+        if( assertion[0].getType().isBoolean() ){
+          op = "<==>";
+          binary =  true;
+        }else{
+          op = "=";
+          theory =  true;
+        }
+	      break;
       case kind::LT:
         op = "<";
         theory =  true;

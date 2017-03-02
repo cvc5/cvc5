@@ -26,8 +26,5 @@ option earlyTypeChecking --eager-type-checking/--lazy-type-checking bool :defaul
 option typeChecking type-checking /--no-type-checking bool :default DO_SEMANTIC_CHECKS_BY_DEFAULT :link /--lazy-type-checking
  never type check expressions
 
-option biasedITERemoval --biased-ites bool :default false
- try the new remove ite pass that is biased against term ites appearing
-
 endmodule
 

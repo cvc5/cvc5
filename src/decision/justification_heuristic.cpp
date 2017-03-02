@@ -142,10 +142,10 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, D
 inline void computeXorIffDesiredValues
 (Kind k, SatValue desiredVal, SatValue &desiredVal1, SatValue &desiredVal2)
 {
-  Assert(k == kind::IFF || k == kind::XOR);
+  Assert(k == kind::EQUAL || k == kind::XOR);
 
   bool shouldInvert =
-    (desiredVal == SAT_VALUE_TRUE && k == kind::IFF) ||
+    (desiredVal == SAT_VALUE_TRUE && k == kind::EQUAL) ||
     (desiredVal == SAT_VALUE_FALSE && k == kind::XOR);
 
   if(desiredVal1 == SAT_VALUE_UNKNOWN &&
@@ -449,6 +449,10 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
   /* What type of node is this */
   Kind k = node.getKind();
   theory::TheoryId tId = theory::kindToTheoryId(k);
+  bool isAtom =
+     (k == kind::BOOLEAN_TERM_VARIABLE ) ||
+     ( (tId != theory::THEORY_BOOL) &&
+       (k != kind::EQUAL || (!node[0].getType().isBoolean())) );
 
   /* Some debugging stuff */
   Debug("decision::jh") << "kind = " << k << std::endl
@@ -459,7 +463,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
   /**
    * If not in theory of booleans, check if this is something to split-on.
    */
-  if(tId != theory::THEORY_BOOL) {
+  if(isAtom) {
     // if node has embedded ites, resolve that first
     if(handleEmbeddedITEs(node) == FOUND_SPLITTER)
       return FOUND_SPLITTER;
@@ -516,7 +520,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
     break;
 
   case kind::XOR:
-  case kind::IFF: {
+  case kind::EQUAL: {
     SatValue desiredVal1 = tryGetSatValue(node[0]);
     SatValue desiredVal2 = tryGetSatValue(node[1]);
     computeXorIffDesiredValues(k, desiredVal, desiredVal1, desiredVal2);

@@ -49,7 +49,8 @@ TESTS =	\
 	constarr2.cvc \
 	constarr3.cvc \
 	parsing_ringer.cvc \
-	bug637.delta.smt2
+	bug637.delta.smt2 \
+	bool-array.smt2
 
 EXTRA_DIST = $(TESTS)
 

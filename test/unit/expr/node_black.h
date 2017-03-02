@@ -346,14 +346,14 @@ public:
   }
 
   void testIffNode() {
-    /*  Node iffNode(const Node& right) const; */
+    /*  Node eqNode(const Node& right) const; */
 
     Node left = d_nodeManager->mkConst(true);
     Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkConst(false)));
-    Node eq = left.iffNode(right);
+    Node eq = left.eqNode(right);
 
 
-    TS_ASSERT(IFF == eq.getKind());
+    TS_ASSERT(EQUAL == eq.getKind());
     TS_ASSERT(2   == eq.getNumChildren());
 
     TS_ASSERT(*(eq.begin()) == left);
@@ -398,8 +398,8 @@ public:
     Node n = d_nodeManager->mkNode(NOT, a);
     TS_ASSERT(NOT == n.getKind());
 
-    n = d_nodeManager->mkNode(IFF, a, b);
-    TS_ASSERT(IFF == n.getKind());
+    n = d_nodeManager->mkNode(EQUAL, a, b);
+    TS_ASSERT(EQUAL == n.getKind());
 
     Node x = d_nodeManager->mkSkolem("x", *d_realType);
     Node y = d_nodeManager->mkSkolem("y", *d_realType);

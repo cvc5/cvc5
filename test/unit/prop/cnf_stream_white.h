@@ -178,7 +178,7 @@ class CnfStreamWhite : public CxxTest::TestSuite {
         d_nodeManager->mkNode(
             kind::IMPLIES, d_nodeManager->mkNode(kind::AND, a, b),
             d_nodeManager->mkNode(
-                kind::IFF, d_nodeManager->mkNode(kind::OR, c, d),
+                kind::EQUAL, d_nodeManager->mkNode(kind::OR, c, d),
                 d_nodeManager->mkNode(kind::NOT,
                                       d_nodeManager->mkNode(kind::XOR, e, f)))),
         false, false, RULE_INVALID, Node::null());
@@ -203,7 +203,7 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     NodeManagerScope nms(d_nodeManager);
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert(d_nodeManager->mkNode(kind::IFF, a, b), false,
+    d_cnfStream->convertAndAssert(d_nodeManager->mkNode(kind::EQUAL, a, b), false,
                                   false, RULE_INVALID, Node::null());
     TS_ASSERT(d_satSolver->addClauseCalled());
   }

@@ -492,10 +492,11 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
           rt.d_req_kind = OR;reqk = NOT;
         }else if( k==OR ){
           rt.d_req_kind = AND;reqk = NOT;
-        }else if( k==IFF ) {
+        //AJR : eliminate this if we eliminate xor
+        }else if( k==EQUAL ) {
           rt.d_req_kind = XOR;
         }else if( k==XOR ) {
-          rt.d_req_kind = IFF;
+          rt.d_req_kind = EQUAL;
         }else if( k==ITE ){
           rt.d_req_kind = ITE;reqkc[1] = NOT;reqkc[2] = NOT;
           rt.d_children[0].d_req_type = d_tds->getArgType( dt[c], 0 );
@@ -1331,7 +1332,7 @@ Node SygusSymBreak::getSeparationTemplate( TypeNode tn,  Node rep_prog, Node anc
 bool SygusSymBreak::processConstantArg( TypeNode tnp, const Datatype & pdt, int pc,
                                         Kind k, int i, Node arg, std::map< unsigned, bool >& rlv ) {
   Assert( d_tds->hasKind( tnp, k ) );
-  if( k==AND || k==OR || k==IFF || k==XOR || k==IMPLIES || ( k==ITE && i==0 ) ){
+  if( k==AND || k==OR || ( k==EQUAL && arg.getType().isBoolean() ) || k==XOR || k==IMPLIES || ( k==ITE && i==0 ) ){
     return false;
   }else if( d_tds->isIdempotentArg( arg, k, i ) ){
     if( pdt[pc].getNumArgs()==2 ){

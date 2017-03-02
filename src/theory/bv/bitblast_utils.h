@@ -119,7 +119,7 @@ Node mkXor<Node>(Node a, Node b) {
 
 template <> inline
 Node mkIff<Node>(Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(kind::IFF, a, b);
+  return NodeManager::currentNM()->mkNode(kind::EQUAL, a, b);
 }
 
 template <> inline

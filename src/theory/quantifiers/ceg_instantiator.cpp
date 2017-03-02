@@ -753,6 +753,12 @@ void CegInstantiator::processAssertions() {
               Trace("cbqi-proc") << "......add substitution : " << itae2->first << " -> " << itae2->second << std::endl;
             }
           }
+        }else if( atom.getKind()==BOOLEAN_TERM_VARIABLE ){
+          if( std::find( d_aux_vars.begin(), d_aux_vars.end(), atom )!=d_aux_vars.end() ){
+            Node val = NodeManager::currentNM()->mkConst( lit.getKind()!=NOT );
+            aux_subs[ atom ] = val;
+            Trace("cbqi-proc") << "......add substitution : " << atom << " -> " << val << std::endl;
+          }
         }
       }
     }
@@ -884,7 +890,7 @@ void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) 
     d_is_nested_quant = true;
   }else if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( TermDb::isBoolConnective( n.getKind() ) ){
+    if( TermDb::isBoolConnectiveTerm( n ) ){
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         collectCeAtoms( n[i], visited );
       }
@@ -940,7 +946,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
 
   //remove ITEs
   IteSkolemMap iteSkolemMap;
-  d_qe->getTheoryEngine()->getIteRemover()->run(lems, iteSkolemMap);
+  d_qe->getTheoryEngine()->getTermFormulaRemover()->run(lems, iteSkolemMap);
   //Assert( d_aux_vars.empty() );
   d_aux_vars.clear();
   d_aux_eq.clear();
@@ -965,6 +971,14 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
         }
       }
     }
+    /*else if( lems[i].getKind()==EQUAL && lems[i][0].getType().isBoolean() ){
+      //Boolean terms
+      if( std::find( d_aux_vars.begin(), d_aux_vars.end(), lems[i][0] )!=d_aux_vars.end() ){
+        Node v = lems[i][0];
+        d_aux_eq[rlem][v] = lems[i][1];
+         Trace("cbqi-debug") << "  " << rlem << " implies " << v << " = " << lems[i][1] << std::endl;
+      } 
+    }*/
     lems[i] = rlem;
   }
   //collect atoms from all lemmas: we will only do bounds coming from original body

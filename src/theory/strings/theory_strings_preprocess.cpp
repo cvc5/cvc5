@@ -176,7 +176,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       new_nodes.push_back(lencond);
     }
 
-    Node lem = NodeManager::currentNM()->mkNode(kind::IFF, nonneg.negate(),
+    Node lem = NodeManager::currentNM()->mkNode(kind::EQUAL, nonneg.negate(),
       pret.eqNode(NodeManager::currentNM()->mkConst( ::CVC4::String("") ))//lenp.eqNode(d_zero)
       );
     new_nodes.push_back(lem);
@@ -300,7 +300,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       str.eqNode(NodeManager::currentNM()->mkConst(::CVC4::String(""))),
       pret.eqNode(negone));
     new_nodes.push_back(lem);
-    /*lem = NodeManager::currentNM()->mkNode(kind::IFF,
+    /*lem = NodeManager::currentNM()->mkNode(kind::EQUAL,
       t[0].eqNode(NodeManager::currentNM()->mkConst(::CVC4::String("0"))),
       t.eqNode(d_zero));
     new_nodes.push_back(lem);*/
@@ -351,7 +351,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     for(unsigned i=0; i<=9; i++) {
       chtmp[0] = i + '0';
       std::string stmp(chtmp);
-      c3cc = NodeManager::currentNM()->mkNode(kind::IFF,
+      c3cc = NodeManager::currentNM()->mkNode(kind::EQUAL,
         ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(i))),
         sx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::String(stmp))));
       vec_c3b.push_back(c3cc);

@@ -121,6 +121,7 @@ void UnconstrainedSimplifier::processUnconstrained()
     parent = d_visitedOnce[current];
     if (!parent.isNull()) {
       swap = isSigned = strict = false;
+      bool checkParent = false;
       switch (parent.getKind()) {
 
         // If-then-else operator - any two unconstrained children makes the parent unconstrained
@@ -170,13 +171,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             if (card.isFinite() && !card.isLargeFinite() && card.getFiniteCardinality() == 2) {
               // Special case: condition is unconstrained, then and else are different, and total cardinality of the type is 2, then the result
               // is unconstrained
-              Node test;
-              if (parent.getType().isBoolean()) {
-                test = Rewriter::rewrite(parent[1].iffNode(parent[2]));
-              }
-              else {
-                test = Rewriter::rewrite(parent[1].eqNode(parent[2]));
-              }
+              Node test = Rewriter::rewrite(parent[1].eqNode(parent[2]));
               if (test == NodeManager::currentNM()->mkConst<bool>(false)) {
                 ++d_numUnconstrainedElim;
                 if (currentSub.isNull()) {
@@ -206,6 +201,10 @@ void UnconstrainedSimplifier::processUnconstrained()
               //domain size may be 1
               break;
             }
+          }
+          if( parent[0].getType().isBoolean() ){
+            checkParent = true;
+            break;
           }
         case kind::BITVECTOR_COMP:
         case kind::LT:
@@ -271,17 +270,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             }
           }
           if (allUnconstrained) {
-            if (d_unconstrained.find(parent) == d_unconstrained.end() &&
-                !d_substitutions.hasSubstitution(parent)) {
-              ++d_numUnconstrainedElim;
-              if (currentSub.isNull()) {
-                currentSub = current;
-              }
-              current = parent;
-            }
-            else {
-              currentSub = Node();
-            }
+            checkParent = true;
           }
         }
         break;
@@ -310,17 +299,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             }
           }
           if (allUnconstrained && allDifferent) {
-            if (d_unconstrained.find(parent) == d_unconstrained.end() &&
-                !d_substitutions.hasSubstitution(parent)) {
-              ++d_numUnconstrainedElim;
-              if (currentSub.isNull()) {
-                currentSub = current;
-              }
-              current = parent;
-            }
-            else {
-              currentSub = Node();
-            }
+            checkParent = true;
           }
           break;
         }
@@ -366,23 +345,12 @@ void UnconstrainedSimplifier::processUnconstrained()
               !parent.getType().isInteger()) {
             break;
           }
-        case kind::IFF:
         case kind::XOR:
         case kind::BITVECTOR_XOR:
         case kind::BITVECTOR_XNOR:
         case kind::BITVECTOR_PLUS:
         case kind::BITVECTOR_SUB:
-          if (d_unconstrained.find(parent) == d_unconstrained.end() &&
-              !d_substitutions.hasSubstitution(parent)) {
-            ++d_numUnconstrainedElim;
-            if (currentSub.isNull()) {
-              currentSub = current;
-            }
-            current = parent;
-          }
-          else {
-            currentSub = Node();
-          }
+          checkParent = true;
           break;
 
         // Multiplication/division: must be non-integer and other operand must be non-zero
@@ -486,17 +454,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (done) {
             break;
           }
-          if (d_unconstrained.find(parent) == d_unconstrained.end() &&
-              !d_substitutions.hasSubstitution(parent)) {
-            ++d_numUnconstrainedElim;
-            if (currentSub.isNull()) {
-              currentSub = current;
-            }
-            current = parent;
-          }
-          else {
-            currentSub = Node();
-          }
+          checkParent = true;
           break;
         }
 
@@ -670,6 +628,20 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         default:
           break;
+      }
+      if( checkParent ){
+        //run for various cases from above
+        if (d_unconstrained.find(parent) == d_unconstrained.end() &&
+            !d_substitutions.hasSubstitution(parent)) {
+          ++d_numUnconstrainedElim;
+          if (currentSub.isNull()) {
+            currentSub = current;
+          }
+          current = parent;
+        }
+        else {
+          currentSub = Node();
+        }
       }
       if (current == parent && d_visited[parent] == 1) {
         d_unconstrained.insert(parent);

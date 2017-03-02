@@ -20,22 +20,5 @@
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& out, theory::booleans::BooleanTermConversionMode mode) {
-  switch(mode) {
-  case theory::booleans::BOOLEAN_TERM_CONVERT_TO_BITVECTORS:
-    out << "BOOLEAN_TERM_CONVERT_TO_BITVECTORS";
-    break;
-  case theory::booleans::BOOLEAN_TERM_CONVERT_TO_DATATYPES:
-    out << "BOOLEAN_TERM_CONVERT_TO_DATATYPES";
-    break;
-  case theory::booleans::BOOLEAN_TERM_CONVERT_NATIVE:
-    out << "BOOLEAN_TERM_CONVERT_NATIVE";
-    break;
-  default:
-    out << "BooleanTermConversionMode!UNKNOWN";
-  }
-
-  return out;
-}
 
 }/* CVC4 namespace */

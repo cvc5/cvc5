@@ -464,7 +464,7 @@ private:
   /**
    * Map from ids to whether they are Boolean.
    */
-  std::vector<bool> d_isBoolean;
+  std::vector<bool> d_isEquality;
 
   /**
    * Map from ids to whether the nods is internal. An internal node is a node

@@ -97,7 +97,7 @@ namespace theory {
 }/* CVC4::theory namespace */
 
 class DecisionEngine;
-class RemoveITE;
+class RemoveTermFormulas;
 class UnconstrainedSimplifier;
 
 /**
@@ -439,7 +439,7 @@ class TheoryEngine {
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
 
-  RemoveITE& d_iteRemover;
+  RemoveTermFormulas& d_tform_remover;
 
   /** sort inference module */
   SortInference d_sortInfer;
@@ -461,7 +461,7 @@ public:
 
   /** Constructs a theory engine */
   TheoryEngine(context::Context* context, context::UserContext* userContext,
-               RemoveITE& iteRemover, const LogicInfo& logic,
+               RemoveTermFormulas& iteRemover, const LogicInfo& logic,
                LemmaChannels* channels);
 
   /** Destroys a theory engine */
@@ -850,7 +850,7 @@ public:
 
   theory::eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
 
-  RemoveITE* getIteRemover() { return &d_iteRemover; }
+  RemoveTermFormulas* getTermFormulaRemover() { return &d_tform_remover; }
 
   SortInference* getSortInference() { return &d_sortInfer; }
 

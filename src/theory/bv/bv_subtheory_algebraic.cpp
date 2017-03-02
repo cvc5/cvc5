@@ -507,7 +507,7 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
     bool changed = subst.addSubstitution(var, new_right, reason);
 
     if (Dump.isOn("bv-algebraic")) {
-      Node query = utils::mkNot(utils::mkNode(kind::IFF, fact, utils::mkNode(kind::EQUAL, var, new_right)));
+      Node query = utils::mkNot(utils::mkNode(kind::EQUAL, fact, utils::mkNode(kind::EQUAL, var, new_right)));
       Dump("bv-algebraic") << EchoCommand("ThoeryBV::AlgebraicSolver::substitution explanation");
       Dump("bv-algebraic") << PushCommand();
       Dump("bv-algebraic") << AssertCommand(query.toExpr());

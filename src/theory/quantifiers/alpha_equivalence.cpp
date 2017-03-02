@@ -72,7 +72,7 @@ Node AlphaEquivalenceNode::registerNode( AlphaEquivalenceNode* aen, QuantifiersE
       Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
       Trace("alpha-eq") << "  " << q << std::endl;
       Trace("alpha-eq") << "  " << aen->d_quant << std::endl;
-      lem = q.iffNode( aen->d_quant );
+      lem = q.eqNode( aen->d_quant );
     }else{
       //do not reduce annotated quantified formulas based on alpha equivalence 
     }

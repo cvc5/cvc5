@@ -94,10 +94,10 @@ public:
     hfc = d_nm->mkNode(kind::APPLY_UF, h, fc);
     gfb = d_nm->mkNode(kind::APPLY_UF, g, fb);
 
-    ac = d_nm->mkNode(kind::IFF, a, c);
-    ffbd = d_nm->mkNode(kind::IFF, ffb, d);
-    efhc = d_nm->mkNode(kind::IFF, e, fhc);
-    dfa = d_nm->mkNode(kind::IFF, d, fa);
+    ac = d_nm->mkNode(kind::EQUAL, a, c);
+    ffbd = d_nm->mkNode(kind::EQUAL, ffb, d);
+    efhc = d_nm->mkNode(kind::EQUAL, e, fhc);
+    dfa = d_nm->mkNode(kind::EQUAL, d, fa);
 
     // this test is designed for >= 10 removal threshold
     TS_ASSERT_LESS_THAN_EQUALS(10u,

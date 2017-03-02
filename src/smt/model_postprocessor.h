@@ -24,28 +24,6 @@
 namespace CVC4 {
 namespace smt {
 
-class ModelPostprocessor {
-  std::hash_map<TNode, Node, TNodeHashFunction> d_nodes;
-
-public:
-  typedef Node return_type;
-
-  Node rewriteAs(TNode n, TypeNode asType);
-
-  bool alreadyVisited(TNode current, TNode parent) {
-    return d_nodes.find(current) != d_nodes.end();
-  }
-
-  void visit(TNode current, TNode parent);
-
-  void start(TNode n) { }
-
-  Node done(TNode n) {
-    Assert(alreadyVisited(n, TNode::null()));
-    TNode retval = d_nodes[n];
-    return retval.isNull() ? n : retval;
-  }
-};/* class ModelPostprocessor */
 
 }/* CVC4::smt namespace */
 }/* CVC4 namespace */

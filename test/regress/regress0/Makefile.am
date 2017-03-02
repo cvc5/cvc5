@@ -177,7 +177,9 @@ BUG_TESTS = \
 	bug595.cvc \
 	bug596.cvc \
 	bug596b.cvc \
-	bug605.cvc
+	bug605.cvc \
+	bt-test-00.smt2 \
+	bt-test-01.smt2
 #bug590.smt2
 
 TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)

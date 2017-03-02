@@ -46,7 +46,9 @@ BUG_TESTS = \
   inc-double-u.smt2 \
   fmf-fun-dbu.smt2 \
   inc-define.smt2 \
-  bug765.smt2
+  bug765.smt2 \
+  bug691.smt2 \
+  bug694-Unapply1.scala-0.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 

@@ -49,7 +49,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
       Trace("fmf-fun-def-debug") << "Process function " << n << ", body = " << bd << std::endl;
       if( !bd.isNull() ){
         d_funcs.push_back( f );
-        bd = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, n, bd );
+        bd = NodeManager::currentNM()->mkNode( EQUAL, n, bd );
 
         //create a sort S that represents the inputs of the function
         std::stringstream ss;
@@ -97,7 +97,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
   for( unsigned i=0; i<assertions.size(); i++ ){
     int is_fd = std::find( fd_assertions.begin(), fd_assertions.end(), i )!=fd_assertions.end() ? 1 : 0;
     //constant boolean function definitions do not add domain constraints
-    if( is_fd==0 || ( is_fd==1 && ( assertions[i][1].getKind()==EQUAL || assertions[i][1].getKind()==IFF ) ) ){
+    if( is_fd==0 || ( is_fd==1 && assertions[i][1].getKind()==EQUAL ) ){
       std::vector< Node > constraints;
       Trace("fmf-fun-def-rewrite") << "Rewriting " << assertions[i] << ", is_fd = " << is_fd << std::endl;
       Node n = simplifyFormula( assertions[i], true, true, constraints, is_fd==1 ? subs_head[i] : Node::null(), is_fd );
@@ -201,11 +201,7 @@ void FunDefFmf::simplifyTerm( Node n, std::vector< Node >& constraints ) {
         std::vector< Node > children;
         for( unsigned j=0; j<n.getNumChildren(); j++ ){
           Node uz = NodeManager::currentNM()->mkNode( APPLY_UF, d_input_arg_inj[f][j], z );
-          if( !n[j].getType().isBoolean() ){
-            children.push_back( uz.eqNode( n[j] ) );
-          }else{
-            children.push_back( uz.iffNode( n[j] ) );
-          }
+          children.push_back( uz.eqNode( n[j] ) );
         }
         Node bd = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( AND, children );
         bd = bd.negate();

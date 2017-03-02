@@ -758,13 +758,13 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
     Assert( d_single_inv_arg_sk.size()==varList.getNumChildren() );
     for( unsigned i=0; i<d_single_inv_arg_sk.size(); i++ ){
       Trace("csi-sol") << d_single_inv_arg_sk[i] << " ";
-      if( varList[i].getType().isBoolean() ){
-        //TODO force boolean term conversion mode
-        Node c = NodeManager::currentNM()->mkConst(BitVector(1u, 1u));
-        vars.push_back( d_single_inv_arg_sk[i].eqNode( c ) );
-      }else{
-        vars.push_back( d_single_inv_arg_sk[i] );
-      }
+      //if( varList[i].getType().isBoolean() ){
+      //  //TODO force boolean term conversion mode
+      //  Node c = NodeManager::currentNM()->mkConst(BitVector(1u, 1u));
+      //  vars.push_back( d_single_inv_arg_sk[i].eqNode( c ) );
+      //}else{
+      vars.push_back( d_single_inv_arg_sk[i] );
+      //}
       d_sol->d_varList.push_back( varList[i] );
     }
     Trace("csi-sol") << std::endl;

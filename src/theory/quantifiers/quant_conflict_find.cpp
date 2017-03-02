@@ -622,7 +622,8 @@ bool QuantInfo::isPropagatingInstance( QuantConflictFind * p, Node n ) {
   if( n.getKind()==FORALL ){
     //TODO?
     return true;
-  }else if( n.getKind()==NOT || n.getKind()==AND || n.getKind()==OR || n.getKind()==EQUAL || n.getKind()==ITE || n.getKind()==IFF ){
+  }else if( n.getKind()==NOT || n.getKind()==AND || n.getKind()==OR || n.getKind()==EQUAL || n.getKind()==ITE || 
+            ( n.getKind()==EQUAL && n[0].getType().isBoolean() ) ){
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( !isPropagatingInstance( p, n[i] ) ){
         return false;
@@ -1098,7 +1099,7 @@ void MatchGen::collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbva
 
 void MatchGen::determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars ) {
   Trace("qcf-qregister-debug") << "Determine variable order " << d_n << ", #bvars = " << bvars.size() << std::endl;
-  bool isComm = d_type==typ_formula && ( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==IFF );
+  bool isComm = d_type==typ_formula && ( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==EQUAL );
   if( isComm ){
     std::map< int, std::vector< int > > c_to_vars;
     std::map< int, std::vector< int > > vars_to_c;
@@ -1563,7 +1564,7 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
               success = true;
             }
           }
-        }else if( d_n.getKind()==IFF ){
+        }else if( d_n.getKind()==EQUAL ){
           //construct match based on both children
           if( d_child_counter%2==0 ){
             if( getChild( 0 )->getNextMatch( p, qi ) ){
@@ -1660,7 +1661,7 @@ bool MatchGen::getExplanation( QuantConflictFind * p, QuantInfo * qi, std::vecto
       }else{
         return getChild( d_child_counter )->getExplanation( p, qi, exp );
       }
-    }else if( d_n.getKind()==IFF ){
+    }else if( d_n.getKind()==EQUAL ){
       for( unsigned i=0; i<2; i++ ){
         if( !getChild( i )->getExplanation( p, qi, exp ) ){
           return false;
@@ -1861,7 +1862,7 @@ void MatchGen::setInvalid() {
 }
 
 bool MatchGen::isHandledBoolConnective( TNode n ) {
-  return TermDb::isBoolConnective( n.getKind() ) && ( n.getKind()!=ITE || n.getType().isBoolean() ) && n.getKind()!=SEP_STAR;
+  return TermDb::isBoolConnectiveTerm( n ) && n.getKind()!=SEP_STAR;
 }
 
 bool MatchGen::isHandledUfTerm( TNode n ) {
@@ -1904,11 +1905,7 @@ d_conflict( c, false ) {
 }
 
 Node QuantConflictFind::mkEqNode( Node a, Node b ) {
-  if( a.getType().isBoolean() ){
-    return a.iffNode( b );
-  }else{
-    return a.eqNode( b );
-  }
+  return a.eqNode( b );
 }
 
 //-------------------------------------------------- registration

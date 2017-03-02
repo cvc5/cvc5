@@ -121,7 +121,7 @@ void TheorySep::explain(TNode literal, std::vector<TNode>& assumptions) {
     // Do the work
     bool polarity = literal.getKind() != kind::NOT;
     TNode atom = polarity ? literal : literal[0];
-    if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
+    if (atom.getKind() == kind::EQUAL) {
       d_equalityEngine.explainEquality( atom[0], atom[1], polarity, assumptions, NULL );
     } else {
       d_equalityEngine.explainPredicate( atom, polarity, assumptions );
@@ -260,7 +260,7 @@ void TheorySep::postProcessModel( TheoryModel* m ){
     }
     Node nil = getNilRef( it->first );
     Node vnil = d_valuation.getModel()->getRepresentative( nil );
-    m_neq = NodeManager::currentNM()->mkNode( nil.getType().isBoolean() ? kind::IFF : kind::EQUAL, nil, vnil );
+    m_neq = NodeManager::currentNM()->mkNode( kind::EQUAL, nil, vnil );
     Trace("sep-model") << "sep.nil = " << vnil << std::endl;
     Trace("sep-model") << std::endl;
     if( sep_children.empty() ){
@@ -451,7 +451,7 @@ void TheorySep::check(Effort e) {
               d_out->requirePhase( lit, true );
               d_neg_guards.push_back( lit );
               d_guard_to_assertion[lit] = s_atom;
-              //Node lem = NodeManager::currentNM()->mkNode( kind::IFF, lit, conc );
+              //Node lem = NodeManager::currentNM()->mkNode( kind::EQUAL, lit, conc );
               Node lem = NodeManager::currentNM()->mkNode( kind::OR, lit.negate(), conc );
               Trace("sep-lemma") << "Sep::Lemma : (neg) reduction : " << lem << std::endl;
               d_out->lemma( lem );
@@ -840,12 +840,7 @@ Node TheorySep::getNextDecisionRequest( unsigned& priority ) {
 
 void TheorySep::conflict(TNode a, TNode b) {
   Trace("sep-conflict") << "Sep::conflict : " << a << " " << b << std::endl;
-  Node conflictNode;
-  if (a.getKind() == kind::CONST_BOOLEAN) {
-    conflictNode = explain(a.iffNode(b));
-  } else {
-    conflictNode = explain(a.eqNode(b));
-  }
+  Node conflictNode = explain(a.eqNode(b));
   d_conflict = true;
   d_out->conflict( conflictNode );
 }
@@ -1164,7 +1159,7 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
         Node e = d_type_references_card[tn][r];
         //ensure that it is distinct from all other references so far
         for( unsigned j=0; j<d_type_references_all[tn].size(); j++ ){
-          Node eq = NodeManager::currentNM()->mkNode( e.getType().isBoolean() ? kind::IFF : kind::EQUAL, e, d_type_references_all[tn][j] );
+          Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, e, d_type_references_all[tn][j] );
           d_out->lemma( eq.negate() );
         }
         d_type_references_all[tn].push_back( e );
@@ -1429,7 +1424,7 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
         std::map< Node, Node >::iterator it = pto_model.find( vr );
         if( it!=pto_model.end() ){
           if( n[1]!=it->second ){
-            children.push_back( NodeManager::currentNM()->mkNode( n[1].getType().isBoolean() ? kind::IFF : kind::EQUAL, n[1], it->second ) );
+            children.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, n[1], it->second ) );
           }
         }else{
           Trace("sep-inst-debug") << "Data for " << vr << " was not specified, do not add condition." << std::endl;

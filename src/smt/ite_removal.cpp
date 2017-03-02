@@ -25,36 +25,36 @@ using namespace std;
 
 namespace CVC4 {
 
-RemoveITE::RemoveITE(context::UserContext* u)
+RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u)
   : d_iteCache(u)
 {
   d_containsVisitor = new theory::ContainsTermITEVisitor();
 }
 
-RemoveITE::~RemoveITE(){
+RemoveTermFormulas::~RemoveTermFormulas(){
   delete d_containsVisitor;
 }
 
-void RemoveITE::garbageCollect(){
+void RemoveTermFormulas::garbageCollect(){
   d_containsVisitor->garbageCollect();
 }
 
-theory::ContainsTermITEVisitor* RemoveITE::getContainsVisitor() {
+theory::ContainsTermITEVisitor* RemoveTermFormulas::getContainsVisitor() {
   return d_containsVisitor;
 }
 
-size_t RemoveITE::collectedCacheSizes() const{
+size_t RemoveTermFormulas::collectedCacheSizes() const{
   return d_containsVisitor->cache_size() + d_iteCache.size();
 }
 
-void RemoveITE::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap, bool reportDeps)
+void RemoveTermFormulas::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap, bool reportDeps)
 {
   size_t n = output.size();
   for (unsigned i = 0, i_end = output.size(); i < i_end; ++ i) {
     // Do this in two steps to avoid Node problems(?)
     // Appears related to bug 512, splitting this into two lines
     // fixes the bug on clang on Mac OS
-    Node itesRemoved = run(output[i], output, iteSkolemMap, false);
+    Node itesRemoved = run(output[i], output, iteSkolemMap, false, false);
     // In some calling contexts, not necessary to report dependence information.
     if (reportDeps &&
         (options::unsatCores() || options::fewerPreprocessingHoles())) {
@@ -69,22 +69,27 @@ void RemoveITE::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap, bool 
   }
 }
 
-bool RemoveITE::containsTermITE(TNode e) const {
+bool RemoveTermFormulas::containsTermITE(TNode e) const {
   return d_containsVisitor->containsTermITE(e);
 }
 
-Node RemoveITE::run(TNode node, std::vector<Node>& output,
-                    IteSkolemMap& iteSkolemMap, bool inQuant) {
+Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
+                    IteSkolemMap& iteSkolemMap, bool inQuant, bool inTerm) {
   // Current node
-  Debug("ite") << "removeITEs(" << node << ")" << endl;
+  Debug("ite") << "removeITEs(" << node << ")" << " " << inQuant << " " << inTerm << endl;
 
-  if(node.isVar() || node.isConst() ||
-     (options::biasedITERemoval() && !containsTermITE(node))){
+  //if(node.isVar() || node.isConst()){
+  //   (options::biasedITERemoval() && !containsTermITE(node))){
+  //if(node.isVar()){
+  //  return Node(node);
+  //}
+  if( node.getKind()==kind::INST_PATTERN_LIST ){
     return Node(node);
   }
 
   // The result may be cached already
-  std::pair<Node, bool> cacheKey(node, inQuant);
+  int cv = cacheVal( inQuant, inTerm );
+  std::pair<Node, int> cacheKey(node, cv);
   NodeManager *nodeManager = NodeManager::currentNM();
   ITECache::const_iterator i = d_iteCache.find(cacheKey);
   if(i != d_iteCache.end()) {
@@ -93,14 +98,10 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
     return cached.isNull() ? Node(node) : cached;
   }
 
-  // Remember that we're inside a quantifier
-  if(node.getKind() == kind::FORALL || node.getKind() == kind::EXISTS) {
-    inQuant = true;
-  }
 
-  // If an ITE replace it
+  // If an ITE, replace it
+  TypeNode nodeType = node.getType();
   if(node.getKind() == kind::ITE) {
-    TypeNode nodeType = node.getType();
     if(!nodeType.isBoolean() && (!inQuant || !node.hasBoundVar())) {
       Node skolem;
       // Make the skolem to represent the ITE
@@ -116,7 +117,7 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
       d_iteCache.insert(cacheKey, skolem);
 
       // Remove ITEs from the new assertion, rewrite it and push it to the output
-      newAssertion = run(newAssertion, output, iteSkolemMap, inQuant);
+      newAssertion = run(newAssertion, output, iteSkolemMap, false, false);
 
       iteSkolemMap[skolem] = output.size();
       output.push_back(newAssertion);
@@ -124,6 +125,40 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
       // The representation is now the skolem
       return skolem;
     }
+  }
+  //if a non-variable Boolean term, replace it
+  if(node.getKind()!=kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean() && inTerm && !inQuant ){//(!inQuant || !node.hasBoundVar())){
+    Node skolem;
+    // Make the skolem to represent the Boolean term
+    //skolem = nodeManager->mkSkolem("termBT", nodeType, "a variable introduced due to Boolean term removal");
+    skolem = nodeManager->mkBooleanTermVariable();
+
+    // The new assertion
+    Node newAssertion = skolem.eqNode( node );
+    Debug("ite") << "removeITEs(" << node << ") => " << newAssertion << endl;
+
+    // Attach the skolem
+    d_iteCache.insert(cacheKey, skolem);
+
+    // Remove ITEs from the new assertion, rewrite it and push it to the output
+    newAssertion = run(newAssertion, output, iteSkolemMap, false, false);
+
+    iteSkolemMap[skolem] = output.size();
+    output.push_back(newAssertion);
+
+    // The representation is now the skolem
+    return skolem;
+  }
+  
+  if(node.getKind() == kind::FORALL || node.getKind() == kind::EXISTS) {
+    // Remember if we're inside a quantifier
+    inQuant = true;
+  }else if( theory::kindToTheoryId(node.getKind())!=theory::THEORY_BOOL && 
+            node.getKind()!=kind::EQUAL && node.getKind()!=kind::SEP_STAR && 
+            node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL ){
+    // Remember if we're inside a term
+    Debug("ite") << "In term because of " << node << " " << node.getKind() << std::endl;
+    inTerm = true;
   }
 
   // If not an ITE, go deep
@@ -134,7 +169,7 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
   }
   // Remove the ITEs from the children
   for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-    Node newChild = run(*it, output, iteSkolemMap, inQuant);
+    Node newChild = run(*it, output, iteSkolemMap, inQuant, inTerm);
     somethingChanged |= (newChild != *it);
     newChildren.push_back(newChild);
   }
@@ -150,24 +185,32 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
   }
 }
 
-Node RemoveITE::replace(TNode node, bool inQuant) const {
-  if(node.isVar() || node.isConst() ||
-     (options::biasedITERemoval() && !containsTermITE(node))){
+Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
+  //if(node.isVar() || node.isConst()){
+  //   (options::biasedITERemoval() && !containsTermITE(node))){
+  //if(node.isVar()){
+  //  return Node(node);
+  //}
+  if( node.getKind()==kind::INST_PATTERN_LIST ){
     return Node(node);
   }
 
   // Check the cache
   NodeManager *nodeManager = NodeManager::currentNM();
-  ITECache::const_iterator i = d_iteCache.find(make_pair(node, inQuant));
+  int cv = cacheVal( inQuant, inTerm );
+  ITECache::const_iterator i = d_iteCache.find(make_pair(node, cv));
   if(i != d_iteCache.end()) {
     Node cached = (*i).second;
     return cached.isNull() ? Node(node) : cached;
   }
 
-  // Remember that we're inside a quantifier
   if(node.getKind() == kind::FORALL || node.getKind() == kind::EXISTS) {
+    // Remember if we're inside a quantifier
     inQuant = true;
-  }
+  }else if( theory::kindToTheoryId(node.getKind())!=theory::THEORY_BOOL && node.getKind()!=kind::EQUAL ){
+    // Remember if we're inside a term
+    inTerm = true;
+  }  
 
   vector<Node> newChildren;
   bool somethingChanged = false;
@@ -176,7 +219,7 @@ Node RemoveITE::replace(TNode node, bool inQuant) const {
   }
   // Replace in children
   for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-    Node newChild = replace(*it, inQuant);
+    Node newChild = replace(*it, inQuant, inTerm);
     somethingChanged |= (newChild != *it);
     newChildren.push_back(newChild);
   }

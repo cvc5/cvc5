@@ -215,7 +215,7 @@ Node CegConjectureSingleInvSol::flattenITEs( Node n, bool rec ) {
       if( n0.getKind()==ITE ){
         n0 = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, n0, n1 ),
                                                    NodeManager::currentNM()->mkNode( AND, n0.negate(), n2 ) );
-      }else if( n0.getKind()==IFF ){
+      }else if( n0.getKind()==EQUAL ){
         n0 = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, n0, n1 ),
                                                    NodeManager::currentNM()->mkNode( AND, n0.negate(), n1.negate() ) );
       }else{
@@ -271,7 +271,7 @@ bool CegConjectureSingleInvSol::getAssign( bool pol, Node n, std::map< Node, boo
       }
     }else if( n.getKind()==NOT ){
       return getAssign( !pol, n[0], assign, new_assign, vars, new_vars, new_subs );
-    }else if( pol && ( n.getKind()==IFF || n.getKind()==EQUAL ) ){
+    }else if( pol && n.getKind()==EQUAL ){
       getAssignEquality( n, vars, new_vars, new_subs );
     }
   }
@@ -279,7 +279,7 @@ bool CegConjectureSingleInvSol::getAssign( bool pol, Node n, std::map< Node, boo
 }
 
 bool CegConjectureSingleInvSol::getAssignEquality( Node eq, std::vector< Node >& vars, std::vector< Node >& new_vars, std::vector< Node >& new_subs ) {
-  Assert( eq.getKind()==IFF || eq.getKind()==EQUAL );
+  Assert( eq.getKind()==EQUAL );
   //try to find valid argument
   for( unsigned r=0; r<2; r++ ){
     if( std::find( d_varList.begin(), d_varList.end(), eq[r] )!=d_varList.end() ){
@@ -492,7 +492,7 @@ Node CegConjectureSingleInvSol::simplifySolutionNode( Node sol, TypeNode stn, st
           std::map< Node, bool >::iterator it = atoms.find( atom );
           if( it==atoms.end() ){
             atoms[atom] = pol;
-            if( status==0 && ( atom.getKind()==IFF || atom.getKind()==EQUAL ) ){
+            if( status==0 && atom.getKind()==EQUAL ){
               if( pol==( sol.getKind()==AND ) ){
                 Trace("csi-simp") << "  ...equality." << std::endl;
                 if( getAssignEquality( atom, vars, new_vars, new_subs ) ){
@@ -567,7 +567,7 @@ Node CegConjectureSingleInvSol::simplifySolutionNode( Node sol, TypeNode stn, st
         bool red = false;
         Node atom = children[i].getKind()==NOT ? children[i][0] : children[i];
         bool pol = children[i].getKind()!=NOT;
-        if( status==0 && ( atom.getKind()==IFF || atom.getKind()==EQUAL ) ){
+        if( status==0 && atom.getKind()==EQUAL ){
           if( pol!=( sol.getKind()==AND ) ){
             std::vector< Node > tmp_vars;
             std::vector< Node > tmp_subs;
@@ -848,15 +848,19 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
                   Node new_t;
                   do{
                     new_t = Node::null();
-                    if( curr.getKind()==EQUAL && ( curr[0].getType().isInteger() || curr[0].getType().isReal() ) ){
-                      new_t = NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( LEQ, curr[0], curr[1] ),
-                                                                    NodeManager::currentNM()->mkNode( LEQ, curr[1], curr[0] ) );
+                    if( curr.getKind()==EQUAL ){
+                      if( curr[0].getType().isInteger() || curr[0].getType().isReal() ){
+                        new_t = NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( LEQ, curr[0], curr[1] ),
+                                                                      NodeManager::currentNM()->mkNode( LEQ, curr[1], curr[0] ) );
+                      }else if( curr[0].getType().isBoolean() ){
+                        new_t = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, curr[0], curr[1] ),
+                                                                      NodeManager::currentNM()->mkNode( AND, curr[0].negate(), curr[1].negate() ) );
+                      }else{
+                        new_t = NodeManager::currentNM()->mkNode( NOT, NodeManager::currentNM()->mkNode( NOT, curr ) );
+                      }
                     }else if( curr.getKind()==ITE ){
                       new_t = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, curr[0], curr[1] ),
                                                                     NodeManager::currentNM()->mkNode( AND, curr[0].negate(), curr[2] ) );
-                    }else if( curr.getKind()==IFF ){
-                      new_t = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, curr[0], curr[1] ),
-                                                                    NodeManager::currentNM()->mkNode( AND, curr[0].negate(), curr[1].negate() ) );
                     }else if( curr.getKind()==OR || curr.getKind()==AND ){
                       new_t = TermDb::simpleNegate( curr ).negate();
                     }else if( curr.getKind()==NOT ){

@@ -101,7 +101,7 @@ Node BvToBoolPreprocessor::convertBvAtom(TNode node) {
   Assert (utils::getSize(node[1]) == 1);
   Node a = convertBvTerm(node[0]);
   Node b = convertBvTerm(node[1]);
-  Node result = utils::mkNode(kind::IFF, a, b); 
+  Node result = utils::mkNode(kind::EQUAL, a, b); 
   Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvAtom " << node <<" => " << result << "\n";
 
   ++(d_statistics.d_numAtomsLifted);

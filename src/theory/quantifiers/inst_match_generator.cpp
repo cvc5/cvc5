@@ -76,7 +76,7 @@ int InstMatchGenerator::getActiveScore( QuantifiersEngine * qe ) {
     unsigned ngtt = qe->getTermDatabase()->getNumTypeGroundTerms( tn );
     Trace("trigger-active-sel-debug") << "Number of ground terms for " << tn << " is " << ngtt << std::endl;
     return ngtt;
-//  }else if( d_match_pattern_getKind()==EQUAL || d_match_pattern.getKind()==IFF ){
+//  }else if( d_match_pattern_getKind()==EQUAL ){
     
   }else{
     return -1;
@@ -90,7 +90,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       //we want to add the children of the NOT
       d_match_pattern = d_pattern[0];
     }
-    if( d_match_pattern.getKind()==IFF || d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==GEQ ){
+    if( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==GEQ ){
       //make sure the matching portion of the equality is on the LHS of d_pattern
       //  and record what d_match_pattern is
       for( unsigned i=0; i<2; i++ ){
@@ -150,7 +150,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       //we will be scanning lists trying to find d_match_pattern.getOperator()
       d_cg = new inst::CandidateGeneratorQE( qe, d_match_pattern );
       //if matching on disequality, inform the candidate generator not to match on eqc
-      if( d_pattern.getKind()==NOT && ( d_pattern[0].getKind()==IFF || d_pattern[0].getKind()==EQUAL ) ){
+      if( d_pattern.getKind()==NOT && d_pattern[0].getKind()==EQUAL ){
         ((inst::CandidateGeneratorQE*)d_cg)->excludeEqc( d_eq_class_rel );
         d_eq_class_rel = Node::null();
       }
@@ -166,7 +166,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       }else{
         d_cg = new CandidateGeneratorQEAll( qe, d_match_pattern );
       }
-    }else if( ( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==IFF ) &&
+    }else if( d_match_pattern.getKind()==EQUAL &&
               d_match_pattern[0].getKind()==INST_CONSTANT && d_match_pattern[1].getKind()==INST_CONSTANT ){
       //we will be producing candidates via literal matching heuristics
       if( d_pattern.getKind()!=NOT ){
@@ -253,10 +253,12 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
         }
       }else{
         if( pat.getKind()==EQUAL ){
-          Assert( t.getType().isReal() );
-          t_match = NodeManager::currentNM()->mkNode(PLUS, t, qe->getTermDatabase()->d_one);
-        }else if( pat.getKind()==IFF ){
-          t_match = NodeManager::currentNM()->mkConst( !q->areEqual( qe->getTermDatabase()->d_true, t ) );
+          if( t.getType().isBoolean() ){
+            t_match = NodeManager::currentNM()->mkConst( !q->areEqual( qe->getTermDatabase()->d_true, t ) );
+          }else{
+            Assert( t.getType().isReal() );
+            t_match = NodeManager::currentNM()->mkNode(PLUS, t, qe->getTermDatabase()->d_one);
+          }
         }else if( pat.getKind()==GEQ ){
           t_match = NodeManager::currentNM()->mkNode(PLUS, t, qe->getTermDatabase()->d_one);
         }else if( pat.getKind()==GT ){
@@ -706,7 +708,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple( Node q, Node pat, Quantifier
   }else{
     d_pol = true;
   }
-  if( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==IFF ){
+  if( d_match_pattern.getKind()==EQUAL ){
     d_eqc = d_match_pattern[1];
     d_match_pattern = d_match_pattern[0];
     Assert( !quantifiers::TermDb::hasInstConstAttr( d_eqc ) );

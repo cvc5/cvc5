@@ -5,7 +5,5 @@
 
 module BOOLEANS "options/booleans_options.h" Boolean theory
 
-option booleanTermConversionMode boolean-term-conversion-mode --boolean-term-conversion-mode=MODE CVC4::theory::booleans::BooleanTermConversionMode :default CVC4::theory::booleans::BOOLEAN_TERM_CONVERT_TO_BITVECTORS :include "options/boolean_term_conversion_mode.h" :handler stringToBooleanTermConversionMode
- policy for converting Boolean terms
 
 endmodule

@@ -24,7 +24,7 @@
 namespace CVC4 {
 
 inline static Node eqNode(TNode n1, TNode n2) {
-  return NodeManager::currentNM()->mkNode(n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2);
+  return NodeManager::currentNM()->mkNode(kind::EQUAL, n1, n2);
 }
 
 // congrence matching term helper
@@ -429,7 +429,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
       //       we look at the node after the equality sequence. If it needs a, we go for a=a; and if it needs
       //       b, we go for b=b. If there is no following node, we look at the goal of the transitivity proof,
       //       and use it to determine which option we need.
-      if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
+      if(n2.getKind() == kind::EQUAL) {
         if (((n1[0] == n2[0]) && (n1[1] == n2[1])) || ((n1[0] == n2[1]) && (n1[1] == n2[0]))) {
           // We are in a sequence of identical equalities
 
@@ -487,8 +487,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
               } else {
                 // We have a "next node". Use it to guide us.
 
-                Assert(nodeAfterEqualitySequence.getKind() == kind::EQUAL ||
-                       nodeAfterEqualitySequence.getKind() == kind::IFF);
+                Assert(nodeAfterEqualitySequence.getKind() == kind::EQUAL);
 
                 if ((n1[0] == nodeAfterEqualitySequence[0]) || (n1[0] == nodeAfterEqualitySequence[1])) {
 
@@ -533,7 +532,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
       Debug("pf::arith") << "\ndoing trans proof, got n2 " << n2 << "\n";
       if(tb == 1) {
         Debug("pf::arith") << "\ntrans proof[" << i << "], got n2 " << n2 << "\n";
-        Debug("pf::arith") << (n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) << "\n";
+        Debug("pf::arith") << (n2.getKind() == kind::EQUAL) << "\n";
 
         if ((n1.getNumChildren() >= 2) && (n2.getNumChildren() >= 2)) {
           Debug("pf::arith") << n1[0].getId() << " " << n1[1].getId() << " / " << n2[0].getId() << " " << n2[1].getId() << "\n";
@@ -549,8 +548,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
       }
       ss << "(trans _ _ _ _ ";
 
-      if((n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) &&
-         (n1.getKind() == kind::EQUAL || n1.getKind() == kind::IFF))
+      if((n2.getKind() == kind::EQUAL) && (n1.getKind() == kind::EQUAL))
         // Both elements of the transitivity rule are equalities/iffs
       {
         if(n1[0] == n2[0]) {
@@ -580,7 +578,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
           Unreachable();
         }
         Debug("pf::arith") << "++ trans proof[" << i << "], now have " << n1 << std::endl;
-      } else if(n1.getKind() == kind::EQUAL || n1.getKind() == kind::IFF) {
+      } else if(n1.getKind() == kind::EQUAL) {
         // n1 is an equality/iff, but n2 is a predicate
         if(n1[0] == n2) {
           n1 = n1[1];
@@ -591,7 +589,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
         } else {
           Unreachable();
         }
-      } else if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
+      } else if(n2.getKind() == kind::EQUAL) {
         // n2 is an equality/iff, but n1 is a predicate
         if(n2[0] == n1) {
           n1 = n2[1];

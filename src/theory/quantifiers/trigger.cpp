@@ -255,7 +255,7 @@ Node Trigger::getIsUsableEq( Node q, Node n ) {
   Assert( isRelationalTrigger( n ) );
   for( unsigned i=0; i<2; i++) {
     if( isUsableEqTerms( q, n[i], n[1-i] ) ){
-      if( i==1 && ( n.getKind()==EQUAL || n.getKind()==IFF ) && !quantifiers::TermDb::hasInstConstAttr(n[0]) ){
+      if( i==1 && n.getKind()==EQUAL && !quantifiers::TermDb::hasInstConstAttr(n[0]) ){
         return NodeManager::currentNM()->mkNode( n.getKind(), n[1], n[0] );  
       }else{
         return n;
@@ -292,7 +292,7 @@ Node Trigger::getIsUsableTrigger( Node n, Node q ) {
     n = n[0];
   }
   if( n.getKind()==INST_CONSTANT ){
-    return pol ? n : NodeManager::currentNM()->mkNode( IFF, n, NodeManager::currentNM()->mkConst( true ) ).notNode();
+    return pol ? n : NodeManager::currentNM()->mkNode( EQUAL, n, NodeManager::currentNM()->mkConst( true ) ).notNode();
   }else if( isRelationalTrigger( n ) ){
     Node rtr = getIsUsableEq( q, n );
     if( rtr.isNull() && n[0].getType().isReal() ){
@@ -331,7 +331,7 @@ Node Trigger::getIsUsableTrigger( Node n, Node q ) {
   }else{
     Trace("trigger-debug") << n << " usable : " << ( quantifiers::TermDb::getInstConstAttr(n)==q ) << " " << isAtomicTrigger( n ) << " " << isUsable( n, q ) << std::endl;
     if( isUsableAtomicTrigger( n, q ) ){
-      return pol ? n : NodeManager::currentNM()->mkNode( IFF, n, NodeManager::currentNM()->mkConst( true ) ).notNode();
+      return pol ? n : NodeManager::currentNM()->mkNode( EQUAL, n, NodeManager::currentNM()->mkConst( true ) ).notNode();
     }
   }
   return Node::null();
@@ -362,7 +362,7 @@ bool Trigger::isRelationalTrigger( Node n ) {
 }
 
 bool Trigger::isRelationalTriggerKind( Kind k ) {
-  return k==EQUAL || k==IFF || k==GEQ;
+  return k==EQUAL || k==GEQ;
 }
   
 bool Trigger::isCbqiKind( Kind k ) {
@@ -377,7 +377,7 @@ bool Trigger::isCbqiKind( Kind k ) {
 
 bool Trigger::isSimpleTrigger( Node n ){
   Node t = n.getKind()==NOT ? n[0] : n;
-  if( t.getKind()==IFF || t.getKind()==EQUAL ){
+  if( t.getKind()==EQUAL ){
     if( !quantifiers::TermDb::hasInstConstAttr( t[1] ) ){
       t = t[0];
     }
@@ -416,7 +416,7 @@ bool Trigger::collectPatTerms2( Node q, Node n, std::map< Node, Node >& visited,
           Assert( nu.getKind()!=NOT );
           Trace("auto-gen-trigger-debug2") << "...found usable trigger : " << nu << std::endl;
           Node reqEq;
-          if( nu.getKind()==IFF || nu.getKind()==EQUAL ){
+          if( nu.getKind()==EQUAL ){
             if( isAtomicTrigger( nu[0] ) && !quantifiers::TermDb::hasInstConstAttr(nu[1]) ){
               if( hasPol ){
                 reqEq = nu[1];

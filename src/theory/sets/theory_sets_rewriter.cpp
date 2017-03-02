@@ -191,8 +191,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                                       B) );
   }//kind::SUBSET
 
-  case kind::EQUAL:
-  case kind::IFF: {
+  case kind::EQUAL: {
     //rewrite: t = t with true (t term)
     //rewrite: c = c' with c different from c' false (c, c' constants)
     //otherwise: sort them
@@ -210,7 +209,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       return RewriteResponse(REWRITE_DONE, newNode);
     }
     break;
-  }//kind::IFF
+  }
 
   case kind::SETMINUS: {
     if(node[0] == node[1]) {

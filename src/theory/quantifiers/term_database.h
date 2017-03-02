@@ -499,6 +499,8 @@ public:
   static bool isComm( Kind k );
   /** is bool connective */
   static bool isBoolConnective( Kind k );
+  /** is bool connective term */
+  static bool isBoolConnectiveTerm( TNode n );
 
 //for sygus
 private:

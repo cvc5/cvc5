@@ -121,13 +121,15 @@ void TheoryEngine::EngineOutputChannel::registerLemmaRecipe(Node lemma, Node ori
     }
     break;
 
-  case kind::IFF:
-    if (!negated) {
-      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0], nnLemma[1].negate()), originalLemma, false, theoryId);
-      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0].negate(), nnLemma[1]), originalLemma, false, theoryId);
-    } else {
-      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0], nnLemma[1]), originalLemma, false, theoryId);
-      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0].negate(), nnLemma[1].negate()), originalLemma, false, theoryId);
+  case kind::EQUAL:
+    if( nnLemma[0].getType().isBoolean() ){
+      if (!negated) {
+        registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0], nnLemma[1].negate()), originalLemma, false, theoryId);
+        registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0].negate(), nnLemma[1]), originalLemma, false, theoryId);
+      } else {
+        registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0], nnLemma[1]), originalLemma, false, theoryId);
+        registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0].negate(), nnLemma[1].negate()), originalLemma, false, theoryId);
+      }
     }
     break;
 
@@ -266,7 +268,7 @@ void TheoryEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
 
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
-                           RemoveITE& iteRemover,
+                           RemoveTermFormulas& iteRemover,
                            const LogicInfo& logicInfo,
                            LemmaChannels* channels)
 : d_propEngine(NULL),
@@ -292,7 +294,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_propagatedLiterals(context),
   d_propagatedLiteralsIndex(context, 0),
   d_atomRequests(context),
-  d_iteRemover(iteRemover),
+  d_tform_remover(iteRemover),
   d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
   d_true(),
   d_false(),
@@ -327,7 +329,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   ProofManager::currentPM()->initTheoryProofEngine();
 #endif
 
-  d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
+  d_iteUtilities = new ITEUtilities(d_tform_remover.getContainsVisitor());
 
   smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
@@ -1754,8 +1756,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   Node ppNode = preprocess ? this->preprocess(node) : Node(node);
 
   // Remove the ITEs
+  Debug("ite") << "Remove ITE from " << ppNode << std::endl;
   additionalLemmas.push_back(ppNode);
-  d_iteRemover.run(additionalLemmas, iteSkolemMap);
+  d_tform_remover.run(additionalLemmas, iteSkolemMap);
+  Debug("ite") << "..done " << additionalLemmas[0] << std::endl;
   additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
 
   if(Debug.isOn("lemma-ites")) {
@@ -1923,7 +1927,7 @@ void TheoryEngine::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
 
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
-  if (!d_iteRemover.containsTermITE(assertion)) {
+  if (!d_tform_remover.containsTermITE(assertion)) {
     return assertion;
   } else {
     Node result = d_iteUtilities->simpITE(assertion);
@@ -1964,7 +1968,7 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
         Chat() << "....node manager contains " << nm->poolSize() << " nodes before cleanup" << endl;
         d_iteUtilities->clear();
         Rewriter::clearCaches();
-        d_iteRemover.garbageCollect();
+        d_tform_remover.garbageCollect();
         nm->reclaimZombiesUntil(options::zombieHuntThreshold());
         Chat() << "....node manager contains " << nm->poolSize() << " nodes after cleanup" << endl;
       }
@@ -1975,7 +1979,7 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
   if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)
      && !options::incrementalSolving() ){
     if(!simpDidALotOfWork){
-      ContainsTermITEVisitor& contains = *d_iteRemover.getContainsVisitor();
+      ContainsTermITEVisitor& contains = *d_tform_remover.getContainsVisitor();
       arith::ArithIteUtils aiteu(contains, d_userContext, getModel());
       bool anyItes = false;
       for(size_t i = 0;  i < assertions.size(); ++i){
@@ -2109,7 +2113,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     }
 
     Debug("theory::explain") << "TheoryEngine::explain(): got explanation " << explanation << " got from " << toExplain.theory << endl;
-    Assert(explanation != toExplain.node, "wasn't sent to you, so why are you explaining it trivially");
+    Assert( explanation != toExplain.node, "wasn't sent to you, so why are you explaining it trivially");
     // Mark the explanation
     NodeTheoryPair newExplain(explanation, toExplain.theory, toExplain.timestamp);
     explanationVector.push_back(newExplain);

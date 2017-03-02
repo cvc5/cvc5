@@ -313,7 +313,7 @@ Node ITECompressor::push_back_boolean(Node original, Node compressed){
     d_compressed[original] = skolem;
     d_compressed[compressed] = skolem;
 
-    Node iff = skolem.iffNode(rewritten);
+    Node iff = skolem.eqNode(rewritten);
     d_assertions->push_back(iff);
     ++(d_statistics.d_skolemsAdded);
     return skolem;

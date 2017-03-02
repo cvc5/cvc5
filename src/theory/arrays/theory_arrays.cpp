@@ -247,16 +247,14 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
         for (j = leftWrites - 1; j > i; --j) {
           index_j = write_j[1];
           if (!ppCheck || !ppDisequal(index_i, index_j)) {
-            Node hyp2(index_i.getType() == nm->booleanType()?
-                      index_i.iffNode(index_j) : index_i.eqNode(index_j));
+            Node hyp2(index_i.eqNode(index_j));
             hyp << hyp2.notNode();
           }
           write_j = write_j[0];
         }
 
         Node r1 = nm->mkNode(kind::SELECT, e1, index_i);
-        conc = (r1.getType() == nm->booleanType())?
-          r1.iffNode(write_i[2]) : r1.eqNode(write_i[2]);
+        conc = r1.eqNode(write_i[2]);
         if (hyp.getNumChildren() != 0) {
           if (hyp.getNumChildren() == 1) {
             conc = hyp.getChild(0).impNode(conc);
@@ -356,8 +354,7 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
     case kind::NOT:
     {
       d_ppFacts.push_back(in);
-      Assert(in[0].getKind() == kind::EQUAL ||
-             in[0].getKind() == kind::IFF );
+      Assert(in[0].getKind() == kind::EQUAL );
       Node a = in[0][0];
       Node b = in[0][1];
       d_ppEqualityEngine.assertEquality(in[0], false, in);
@@ -403,7 +400,7 @@ void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions, eq::E
   TNode atom = polarity ? literal : literal[0];
   //eq::EqProof * eqp = new eq::EqProof;
   // eq::EqProof * eqp = NULL;
-  if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
+  if (atom.getKind() == kind::EQUAL) {
     d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions, proof);
   } else {
     d_equalityEngine.explainPredicate(atom, polarity, assumptions, proof);
@@ -2235,11 +2232,7 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
   eq::EqProof* proof = d_proofsEnabled ? new eq::EqProof() : NULL;
 
-  if (a.getKind() == kind::CONST_BOOLEAN) {
-    d_conflictNode = explain(a.iffNode(b), proof);
-  } else {
-    d_conflictNode = explain(a.eqNode(b), proof);
-  }
+  d_conflictNode = explain(a.eqNode(b), proof);
 
   if (!d_inCheckModel) {
     ProofArray* proof_array = NULL;

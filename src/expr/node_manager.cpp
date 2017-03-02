@@ -780,6 +780,13 @@ Node NodeManager::mkInstConstant(const TypeNode& type) {
   return n;
 }
 
+Node NodeManager::mkBooleanTermVariable() {
+  Node n = NodeBuilder<0>(this, kind::BOOLEAN_TERM_VARIABLE);
+  n.setAttribute(TypeAttr(), booleanType());
+  n.setAttribute(TypeCheckedAttr(), true);
+  return n;
+}
+
 Node NodeManager::mkUniqueVar(const TypeNode& type, Kind k) {
   std::map< TypeNode, Node >::iterator it = d_unique_vars[k].find( type );
   if( it==d_unique_vars[k].end() ){

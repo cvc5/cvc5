@@ -139,8 +139,7 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
       }
       break;
     }
-    case kind::EQUAL:
-    case kind::IFF: {
+    case kind::EQUAL: {
       if(node[0] == node[1]) {
         return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
       }

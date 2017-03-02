@@ -710,13 +710,13 @@ Node CegInstantiation::getEagerUnfold( Node n, std::map< Node, Node >& visited )
           }
           for( unsigned j=1; j<n.getNumChildren(); j++ ){
             Node nc = getEagerUnfold( n[j], visited );
-            if( var_list[j-1].getType().isBoolean() ){   
-              //TODO: remove this case when boolean term conversion is eliminated
-              Node c = NodeManager::currentNM()->mkConst(BitVector(1u, 1u));
-              subs.push_back( nc.eqNode( c ) );
-            }else{
-              subs.push_back( nc );
-            }
+            //if( var_list[j-1].getType().isBoolean() ){   
+            //  //TODO: remove this case when boolean term conversion is eliminated
+            //  Node c = NodeManager::currentNM()->mkConst(BitVector(1u, 1u));
+            //  subs.push_back( nc.eqNode( c ) );
+            //}else{
+            subs.push_back( nc );
+            //}
             Assert( subs[j-1].getType()==var_list[j-1].getType() );
           }
           Assert( vars.size()==subs.size() );

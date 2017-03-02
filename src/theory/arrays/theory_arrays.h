@@ -296,7 +296,13 @@ class TheoryArrays : public Theory {
     }
 
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
-      Unreachable();
+      Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerEquality(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
+      // Just forward to arrays
+      if (value) {
+        return d_arrays.propagate(predicate);
+      } else {
+        return d_arrays.propagate(predicate.notNode());
+      }
     }
 
     bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {

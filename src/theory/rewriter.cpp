@@ -91,7 +91,7 @@ Node Rewriter::rewrite(TNode node) {
 Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
 #ifdef CVC4_ASSERTIONS
-  bool isEquality = node.getKind() == kind::EQUAL;
+  bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
 
   if(s_rewriteStack == NULL) {
     s_rewriteStack = new std::hash_set<Node, NodeHashFunction>();

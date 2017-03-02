@@ -88,7 +88,13 @@ TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
   switch(mode) {
   case THEORY_OF_TYPE_BASED:
     // Constants, variables, 0-ary constructors
-    if (node.isVar() || node.isConst()) {
+    if (node.isVar()) {
+      if( node.getKind() == kind::BOOLEAN_TERM_VARIABLE ){
+        tid = THEORY_UF;
+      }else{
+        tid = Theory::theoryOf(node.getType());
+      }
+    }else if (node.isConst()) {
       tid = Theory::theoryOf(node.getType());
     } else if (node.getKind() == kind::EQUAL) {
       // Equality is owned by the theory that owns the domain
@@ -105,8 +111,13 @@ TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
         // We treat the variables as uninterpreted
         tid = s_uninterpretedSortOwner;
       } else {
-        // Except for the Boolean ones, which we just ignore anyhow
-        tid = theory::THEORY_BOOL;
+        if( node.getKind() == kind::BOOLEAN_TERM_VARIABLE ){
+          //Boolean vars go to UF
+          tid = THEORY_UF;
+        }else{
+          // Except for the Boolean ones
+          tid = THEORY_BOOL;
+        }
       }
     } else if (node.isConst()) {
       // Constants go to the theory of the type
@@ -408,7 +419,7 @@ bool ExtTheory::doInferencesInternal( int effort, std::vector< Node >& terms, st
           nred.push_back( n );
         }else{
           if( !nr.isNull() && n!=nr ){
-            Node lem = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? kind::IFF : kind::EQUAL, n, nr );
+            Node lem = NodeManager::currentNM()->mkNode( kind::EQUAL, n, nr );
             if( sendLemma( lem, true ) ){
               Trace("extt-lemma") << "ExtTheory : Reduction lemma : " << lem << std::endl;
               addedLemma = true;

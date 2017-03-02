@@ -228,18 +228,19 @@ void translate_to_redlog(const map<Expr, unsigned>& variables, const Expr& asser
         cout << " impl ";
         translate_to_redlog(variables, assertion[1]);
         cout << ")";
-        break;
-      case kind::IFF:
-        cout << "(";
-        translate_to_redlog(variables, assertion[0]);
-        cout << " equiv ";
-        translate_to_redlog(variables, assertion[1]);
-        cout << ")";
-        break;            
+        break;          
       case kind::EQUAL:
-        op = "=";
-        theory = true;
-	break;
+        if( assertion[0].getType().isBoolean() ){
+          cout << "(";
+          translate_to_redlog(variables, assertion[0]);
+          cout << " equiv ";
+          translate_to_redlog(variables, assertion[1]);
+          cout << ")";
+        }else{
+          op = "=";
+          theory = true;
+        }
+	      break;
       case kind::LT:
         op = "<";
         theory = true;

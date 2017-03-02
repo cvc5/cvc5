@@ -1061,41 +1061,6 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg) throw(OptionEx
   }
 }
 
-
-// theory/booleans/options_handlers.h
-const std::string OptionsHandler::s_booleanTermConversionModeHelp = "\
-Boolean term conversion modes currently supported by the\n\
---boolean-term-conversion-mode option:\n\
-\n\
-bitvectors [default]\n\
-+ Boolean terms are converted to bitvectors of size 1.\n\
-\n\
-datatypes\n\
-+ Boolean terms are converted to enumerations in the Datatype theory.\n\
-\n\
-native\n\
-+ Boolean terms are converted in a \"natural\" way depending on where they\n\
-  are used.  If in a datatype context, they are converted to an enumeration.\n\
-  Elsewhere, they are converted to a bitvector of size 1.\n\
-";
-
-theory::booleans::BooleanTermConversionMode OptionsHandler::stringToBooleanTermConversionMode(std::string option, std::string optarg) throw(OptionException){
-  if(optarg ==  "bitvectors") {
-    return theory::booleans::BOOLEAN_TERM_CONVERT_TO_BITVECTORS;
-  } else if(optarg ==  "datatypes") {
-    return theory::booleans::BOOLEAN_TERM_CONVERT_TO_DATATYPES;
-  } else if(optarg ==  "native") {
-    return theory::booleans::BOOLEAN_TERM_CONVERT_NATIVE;
-  } else if(optarg ==  "help") {
-    puts(s_booleanTermConversionModeHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --boolean-term-conversion-mode: `") +
-                          optarg + "'.  Try --boolean-term-conversion-mode help.");
-  }
-}
-
-
 // theory/uf/options_handlers.h
 const std::string OptionsHandler::s_ufssModeHelp = "\
 UF strong solver options currently supported by the --uf-ss option:\n\

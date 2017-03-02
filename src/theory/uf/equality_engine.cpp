@@ -230,8 +230,8 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
   d_isConstant.push_back(false);
   // No terms to evaluate by defaul
   d_subtermsToEvaluate.push_back(0);
-  // Mark Boolean nodes
-  d_isBoolean.push_back(false);
+  // Mark equality nodes
+  d_isEquality.push_back(false);
   // Mark the node as internal by default
   d_isInternal.push_back(true);
   // Add the equality node to the nodes
@@ -329,10 +329,10 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
     d_isConstant[result] = !isOperator && t.isConst();
   }
 
-  if (t.getType().isBoolean()) {
+  if (t.getKind() == kind::EQUAL) {
     // We set this here as this only applies to actual terms, not the
     // intermediate application terms
-    d_isBoolean[result] = true;
+    d_isEquality[result] = true;
   } else if (d_constantsAreTriggers && d_isConstant[result]) {
     // Non-Boolean constants are trigger terms for all tags
     EqualityNodeId tId = getNodeId(t);
@@ -613,7 +613,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
 
   // Update class2 table lookup and information if not a boolean
   // since booleans can't be in an application
-  if (!d_isBoolean[class2Id]) {
+  if (!d_isEquality[class2Id]) {
     Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): updating lookups of " << class2Id << std::endl;
     do {
       // Get the current node
@@ -869,7 +869,7 @@ void EqualityEngine::backtrack() {
     d_nodeIndividualTrigger.resize(d_nodesCount);
     d_isConstant.resize(d_nodesCount);
     d_subtermsToEvaluate.resize(d_nodesCount);
-    d_isBoolean.resize(d_nodesCount);
+    d_isEquality.resize(d_nodesCount);
     d_isInternal.resize(d_nodesCount);
     d_equalityGraph.resize(d_nodesCount);
     d_equalityNodes.resize(d_nodesCount);
@@ -1268,7 +1268,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             } else {
               eqp->d_id = MERGED_THROUGH_TRANS;
               eqp->d_children.insert( eqp->d_children.end(), eqp_trans.begin(), eqp_trans.end() );
-              eqp->d_node = NodeManager::currentNM()->mkNode(d_nodes[t1Id].getType().isBoolean() ? kind::IFF : kind::EQUAL, d_nodes[t1Id], d_nodes[t2Id]);
+              eqp->d_node = NodeManager::currentNM()->mkNode(kind::EQUAL, d_nodes[t1Id], d_nodes[t2Id]);
             }
 
             eqp->debug_print("pf::ee", 1);

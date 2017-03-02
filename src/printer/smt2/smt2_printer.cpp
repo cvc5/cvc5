@@ -355,7 +355,6 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     // bool theory
   case kind::NOT:
   case kind::AND:
-  case kind::IFF:
   case kind::IMPLIES:
   case kind::OR:
   case kind::XOR:
@@ -719,7 +718,6 @@ static string smtKindString(Kind k) throw() {
     // bool theory
   case kind::NOT: return "not";
   case kind::AND: return "and";
-  case kind::IFF: return "=";
   case kind::IMPLIES: return "=>";
   case kind::OR: return "or";
   case kind::XOR: return "xor";

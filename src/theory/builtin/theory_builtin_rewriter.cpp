@@ -32,7 +32,7 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in) {
   if(in.getNumChildren() == 2) {
     // if this is the case exactly 1 != pair will be generated so the
     // AND is not required
-    Node eq = NodeManager::currentNM()->mkNode(in[0].getType().isBoolean() ? kind::IFF : kind::EQUAL, in[0], in[1]);
+    Node eq = NodeManager::currentNM()->mkNode(kind::EQUAL, in[0], in[1]);
     Node neq = NodeManager::currentNM()->mkNode(kind::NOT, eq);
     return neq;
   }
@@ -42,7 +42,7 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in) {
   for(TNode::iterator i = in.begin(); i != in.end(); ++i) {
     TNode::iterator j = i;
     while(++j != in.end()) {
-      Node eq = NodeManager::currentNM()->mkNode((*i).getType().isBoolean() ? kind::IFF : kind::EQUAL, *i, *j);
+      Node eq = NodeManager::currentNM()->mkNode(kind::EQUAL, *i, *j);
       Node neq = NodeManager::currentNM()->mkNode(kind::NOT, eq);
       diseqs.push_back(neq);
     }

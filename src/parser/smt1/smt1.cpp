@@ -79,7 +79,6 @@ Smt1::Smt1(ExprManager* exprManager, Input* input, bool strictMode, bool parseOn
   // Boolean symbols are always defined
   addOperator(kind::AND);
   addOperator(kind::EQUAL);
-  addOperator(kind::IFF);
   addOperator(kind::IMPLIES);
   addOperator(kind::ITE);
   addOperator(kind::NOT);
