@@ -31,7 +31,7 @@
 #include "proof/lemma_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
-#include "smt/ite_removal.h"
+#include "smt/term_formula_removal.h"
 #include "smt/logic_exception.h"
 #include "smt_util/lemma_output_channel.h"
 #include "smt_util/node_visitor.h"

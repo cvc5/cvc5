@@ -16,7 +16,7 @@
 #include "theory/quantifiers/ceg_t_instantiator.h"
 
 #include "options/quantifiers_options.h"
-#include "smt/ite_removal.h"
+#include "smt/term_formula_removal.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"

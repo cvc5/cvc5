@@ -20,7 +20,7 @@
 #define __CVC4__DECISION__DECISION_STRATEGY_H
 
 #include "prop/sat_solver_types.h"
-#include "smt/ite_removal.h"
+#include "smt/term_formula_removal.h"
 
 namespace CVC4 {
 

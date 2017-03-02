@@ -27,7 +27,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/sat_solver_types.h"
-#include "smt/ite_removal.h"
+#include "smt/term_formula_removal.h"
 #include "smt/smt_engine_scope.h"
 
 using namespace std;

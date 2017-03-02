@@ -46,8 +46,6 @@
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
 #include "options/base_options.h"
-#include "options/boolean_term_conversion_mode.h"
-#include "options/booleans_options.h"
 #include "options/booleans_options.h"
 #include "options/bv_options.h"
 #include "options/datatypes_options.h"
@@ -72,13 +70,11 @@
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
-#include "smt/boolean_terms.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
-#include "smt/ite_removal.h"
+#include "smt/term_formula_removal.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
-#include "smt/model_postprocessor.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
@@ -4469,19 +4465,6 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore) throw(TypeChec
 }/* SmtEngine::assertFormula() */
 
 Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
-/*
-  ModelPostprocessor mpost;
-  NodeVisitor<ModelPostprocessor> visitor;
-  Node value = visitor.run(mpost, node);
-  Debug("boolean-terms") << "postproc: got " << value << " expect type " << expectedType << endl;
-  Node realValue = mpost.rewriteAs(value, expectedType);
-  Debug("boolean-terms") << "postproc: realval " << realValue << " expect type " << expectedType << endl;
-  if(options::condenseFunctionValues()) {
-    realValue = Rewriter::rewrite(realValue);
-    Debug("boolean-terms") << "postproc: after rewrite " << realValue << endl;
-  }
-  return realValue;
-  */
   return node;
 }
 

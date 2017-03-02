@@ -216,8 +216,6 @@ liboptions_la_SOURCES = \
 	argument_extender_implementation.h \
 	argument_extender.h \
 	base_handlers.h \
-	boolean_term_conversion_mode.cpp \
-	boolean_term_conversion_mode.h \
 	bv_bitblast_mode.cpp \
 	bv_bitblast_mode.h \
 	decision_mode.cpp \

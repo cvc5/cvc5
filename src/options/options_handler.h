@@ -27,7 +27,6 @@
 #include "options/arith_propagation_mode.h"
 #include "options/arith_unate_lemma_mode.h"
 #include "options/base_handlers.h"
-#include "options/boolean_term_conversion_mode.h"
 #include "options/bv_bitblast_mode.h"
 #include "options/decision_mode.h"
 #include "options/language.h"

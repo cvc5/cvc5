@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file ite_removal.cpp
+/*! \file term_formula_removal.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
@@ -9,11 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Removal of term ITEs
+ ** \brief Removal of term formulas
  **
- ** Removal of term ITEs.
+ ** Removal of term formulas.
  **/
-#include "smt/ite_removal.h"
+#include "smt/term_formula_removal.h"
 
 #include <vector>
 

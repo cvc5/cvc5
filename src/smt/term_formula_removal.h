@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file ite_removal.h
+/*! \file term_formula_removal.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Removal of term ITEs
+ ** \brief Removal of term formulas
  **
- ** Removal of term ITEs.
+ ** Removal of term formulas.
  **/
 
 #include "cvc4_private.h"
