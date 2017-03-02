@@ -506,6 +506,7 @@ void TheorySetsPrivate::fullEffortCheck(){
     d_sentLemma = false;
     d_addedFact = false;
     d_set_eqc.clear();
+    d_set_eqc_relevant.clear();
     d_set_eqc_list.clear();
     d_eqc_emptyset.clear();
     d_eqc_singleton.clear();
@@ -540,18 +541,23 @@ void TheorySetsPrivate::fullEffortCheck(){
           Trace("sets-eqc") << n << " ";
         }
         if( n.getKind()==kind::MEMBER ){
-          Node s = d_equalityEngine.getRepresentative( n[1] );
-          Node x = d_equalityEngine.getRepresentative( n[0] );
-          int pindex = eqc==d_true ? 0 : ( eqc==d_false ? 1 : -1 );
-          if( pindex!=-1  ){
-            if( d_pol_mems[pindex][s].find( x )==d_pol_mems[pindex][s].end() ){
-              d_pol_mems[pindex][s][x] = n;
-              Trace("sets-debug2") << "Membership[" << x << "][" << s << "] : " << n << ", pindex = " << pindex << std::endl;
+          if( eqc.isConst() ){
+            Node s = d_equalityEngine.getRepresentative( n[1] );
+            Node x = d_equalityEngine.getRepresentative( n[0] );
+            int pindex = eqc==d_true ? 0 : ( eqc==d_false ? 1 : -1 );
+            if( pindex!=-1  ){
+              if( d_pol_mems[pindex][s].find( x )==d_pol_mems[pindex][s].end() ){
+                d_pol_mems[pindex][s][x] = n;
+                d_set_eqc_relevant[s] = true;
+                Trace("sets-debug2") << "Membership[" << x << "][" << s << "] : " << n << ", pindex = " << pindex << std::endl;
+              }
+              if( d_members_index[s].find( x )==d_members_index[s].end() ){
+                d_members_index[s][x] = n;
+                d_op_list[kind::MEMBER].push_back( n );
+              }
+            }else{
+              Assert( false );
             }
-          }
-          if( d_members_index[s].find( x )==d_members_index[s].end() ){
-            d_members_index[s][x] = n;
-            d_op_list[kind::MEMBER].push_back( n );
           }
         }else if( n.getKind()==kind::SINGLETON || n.getKind()==kind::UNION || n.getKind()==kind::INTERSECTION || n.getKind()==kind::SETMINUS || n.getKind()==kind::EMPTYSET ){
           if( n.getKind()==kind::SINGLETON ){
@@ -570,6 +576,8 @@ void TheorySetsPrivate::fullEffortCheck(){
           }else{
             Node r1 = d_equalityEngine.getRepresentative( n[0] );
             Node r2 = d_equalityEngine.getRepresentative( n[1] );
+            d_set_eqc_relevant[r1] = true;
+            d_set_eqc_relevant[r2] = true;
             if( d_bop_index[n.getKind()][r1].find( r2 )==d_bop_index[n.getKind()][r1].end() ){
               d_bop_index[n.getKind()][r1][r2] = n;
               d_op_list[n.getKind()].push_back( n );
@@ -590,6 +598,7 @@ void TheorySetsPrivate::fullEffortCheck(){
             //TODO: extend approach for this case
           }
           Node r = d_equalityEngine.getRepresentative( n[0] );
+          d_set_eqc_relevant[r] = true;
           if( d_eqc_to_card_term.find( r )==d_eqc_to_card_term.end() ){
             d_eqc_to_card_term[ r ] = n;
             registerCardinalityTerm( n[0], lemmas );
@@ -1735,51 +1744,55 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel) {
   std::map< Node, Node > mvals;
   for( int i=(int)(d_set_eqc.size()-1); i>=0; i-- ){
     Node eqc = d_set_eqc[i];
-    std::vector< Node > els;
-    bool is_base = !d_card_enabled || ( d_nf[eqc].size()==1 && d_nf[eqc][0]==eqc );
-    if( is_base ){
-      Trace("sets-model") << "Collect elements of base eqc " << eqc << std::endl;
-      // members that must be in eqc
-      std::map< Node, std::map< Node, Node > >::iterator itm = d_pol_mems[0].find( eqc );
-      if( itm!=d_pol_mems[0].end() ){
-        for( std::map< Node, Node >::iterator itmm = itm->second.begin(); itmm != itm->second.end(); ++itmm ){
-          Node t = NodeManager::currentNM()->mkNode( kind::SINGLETON, itmm->first );
-          els.push_back( t );
+    if( d_set_eqc_relevant.find( eqc )==d_set_eqc_relevant.end() ){
+      Trace("sets-model") << "* Do not assign value for " << eqc << " since is not relevant." << std::endl;
+    }else{
+      std::vector< Node > els;
+      bool is_base = !d_card_enabled || ( d_nf[eqc].size()==1 && d_nf[eqc][0]==eqc );
+      if( is_base ){
+        Trace("sets-model") << "Collect elements of base eqc " << eqc << std::endl;
+        // members that must be in eqc
+        std::map< Node, std::map< Node, Node > >::iterator itm = d_pol_mems[0].find( eqc );
+        if( itm!=d_pol_mems[0].end() ){
+          for( std::map< Node, Node >::iterator itmm = itm->second.begin(); itmm != itm->second.end(); ++itmm ){
+            Node t = NodeManager::currentNM()->mkNode( kind::SINGLETON, itmm->first );
+            els.push_back( t );
+          }
         }
       }
-    }
-    if( d_card_enabled ){
-      TypeNode elementType = eqc.getType().getSetElementType();
-      if( is_base ){
-        std::map< Node, Node >::iterator it = d_eqc_to_card_term.find( eqc );
-        if( it!=d_eqc_to_card_term.end() ){
-          //slack elements from cardinality value
-          Node v = d_external.d_valuation.getModelValue(it->second);
-          Trace("sets-model") << "Cardinality of " << eqc << " is " << v << std::endl;
-          Assert(v.getConst<Rational>() <= LONG_MAX, "Exceeded LONG_MAX in sets model");
-          unsigned vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
-          Assert( els.size()<=vu );
-          while( els.size()<vu ){
-            els.push_back( NodeManager::currentNM()->mkNode( kind::SINGLETON, NodeManager::currentNM()->mkSkolem( "msde", elementType ) ) );
+      if( d_card_enabled ){
+        TypeNode elementType = eqc.getType().getSetElementType();
+        if( is_base ){
+          std::map< Node, Node >::iterator it = d_eqc_to_card_term.find( eqc );
+          if( it!=d_eqc_to_card_term.end() ){
+            //slack elements from cardinality value
+            Node v = d_external.d_valuation.getModelValue(it->second);
+            Trace("sets-model") << "Cardinality of " << eqc << " is " << v << std::endl;
+            Assert(v.getConst<Rational>() <= LONG_MAX, "Exceeded LONG_MAX in sets model");
+            unsigned vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
+            Assert( els.size()<=vu );
+            while( els.size()<vu ){
+              els.push_back( NodeManager::currentNM()->mkNode( kind::SINGLETON, NodeManager::currentNM()->mkSkolem( "msde", elementType ) ) );
+            }
+          }else{
+            Trace("sets-model") << "No slack elements for " << eqc << std::endl;
           }
         }else{
-          Trace("sets-model") << "No slack elements for " << eqc << std::endl;
-        }
-      }else{
-        Trace("sets-model") << "Build value for " << eqc << " based on normal form, size = " << d_nf[eqc].size() << std::endl;
-        //it is union of venn regions
-        for( unsigned j=0; j<d_nf[eqc].size(); j++ ){
-          Assert( mvals.find( d_nf[eqc][j] )!=mvals.end() );
-          els.push_back( mvals[d_nf[eqc][j]] );
+          Trace("sets-model") << "Build value for " << eqc << " based on normal form, size = " << d_nf[eqc].size() << std::endl;
+          //it is union of venn regions
+          for( unsigned j=0; j<d_nf[eqc].size(); j++ ){
+            Assert( mvals.find( d_nf[eqc][j] )!=mvals.end() );
+            els.push_back( mvals[d_nf[eqc][j]] );
+          }
         }
       }
+      Node rep = NormalForm::mkBop( kind::UNION, els, eqc.getType() );
+      rep = Rewriter::rewrite( rep );
+      Trace("sets-model") << "* Assign representative of " << eqc << " to " << rep << std::endl;
+      mvals[eqc] = rep;
+      m->assertEquality( eqc, rep, true );
+      m->assertRepresentative( rep );
     }
-    Node rep = NormalForm::mkBop( kind::UNION, els, eqc.getType() );
-    rep = Rewriter::rewrite( rep );
-    Trace("sets-model") << "Set representative of " << eqc << " to " << rep << std::endl;
-    mvals[eqc] = rep;
-    m->assertEquality( eqc, rep, true );
-    m->assertRepresentative( rep );
   }
 }
 

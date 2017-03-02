@@ -116,6 +116,7 @@ private:
   NodeMap d_proxy_to_term;  
   NodeSet d_lemmas_produced;
   std::vector< Node > d_set_eqc;
+  std::map< Node, bool > d_set_eqc_relevant;
   std::map< Node, std::vector< Node > > d_set_eqc_list;
   std::map< TypeNode, Node > d_eqc_emptyset;
   std::map< Node, Node > d_eqc_singleton;

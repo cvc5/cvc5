@@ -657,6 +657,10 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   if( !sr.isNull() ){
     Trace("bound-int-rsi") << "Get value in model for..." << sr << std::endl;
     sr = d_quantEngine->getModel()->getCurrentModelValue( sr );
+    //if non-constant, then sr does not occur in the model, we fail
+    if( !sr.isConst() ){
+      return Node::null();
+    }
     Trace("bound-int-rsi") << "Value is " << sr << std::endl;
     //as heuristic, map to term model
     if( sr.getKind()!=EMPTYSET ){
