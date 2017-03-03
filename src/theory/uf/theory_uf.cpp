@@ -246,7 +246,12 @@ Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
 }
 
 void TheoryUF::collectModelInfo( TheoryModel* m, bool fullModel ){
-  m->assertEqualityEngine( &d_equalityEngine );
+  set<Node> termSet;
+
+  // Compute terms appearing in assertions and shared terms
+  computeRelevantTerms(termSet);
+
+  m->assertEqualityEngine( &d_equalityEngine, &termSet );
   // if( fullModel ){
   //   std::map< TypeNode, TypeEnumerator* > type_enums;
   //   //must choose proper representatives

@@ -506,7 +506,6 @@ void TheorySetsPrivate::fullEffortCheck(){
     d_sentLemma = false;
     d_addedFact = false;
     d_set_eqc.clear();
-    d_set_eqc_relevant.clear();
     d_set_eqc_list.clear();
     d_eqc_emptyset.clear();
     d_eqc_singleton.clear();
@@ -532,9 +531,6 @@ void TheorySetsPrivate::fullEffortCheck(){
       if( tn.isSet() ){
         isSet = true;
         d_set_eqc.push_back( eqc );
-        if( d_equalityEngine.isTriggerTerm(eqc, THEORY_SETS) ){
-          d_set_eqc_relevant[eqc] = true;
-        }
       }
       Trace("sets-eqc") << "[" << eqc << "] : ";
       eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
@@ -551,7 +547,6 @@ void TheorySetsPrivate::fullEffortCheck(){
             if( pindex!=-1  ){
               if( d_pol_mems[pindex][s].find( x )==d_pol_mems[pindex][s].end() ){
                 d_pol_mems[pindex][s][x] = n;
-                d_set_eqc_relevant[s] = true;
                 Trace("sets-debug2") << "Membership[" << x << "][" << s << "] : " << n << ", pindex = " << pindex << std::endl;
               }
               if( d_members_index[s].find( x )==d_members_index[s].end() ){
@@ -579,8 +574,6 @@ void TheorySetsPrivate::fullEffortCheck(){
           }else{
             Node r1 = d_equalityEngine.getRepresentative( n[0] );
             Node r2 = d_equalityEngine.getRepresentative( n[1] );
-            d_set_eqc_relevant[r1] = true;
-            d_set_eqc_relevant[r2] = true;
             if( d_bop_index[n.getKind()][r1].find( r2 )==d_bop_index[n.getKind()][r1].end() ){
               d_bop_index[n.getKind()][r1][r2] = n;
               d_op_list[n.getKind()].push_back( n );
@@ -601,7 +594,6 @@ void TheorySetsPrivate::fullEffortCheck(){
             //TODO: extend approach for this case
           }
           Node r = d_equalityEngine.getRepresentative( n[0] );
-          d_set_eqc_relevant[r] = true;
           if( d_eqc_to_card_term.find( r )==d_eqc_to_card_term.end() ){
             d_eqc_to_card_term[ r ] = n;
             registerCardinalityTerm( n[0], lemmas );
@@ -1740,14 +1732,18 @@ EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b) {
 
 
 void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel) {
-  Trace("sets") << "Set collect model info" << std::endl;
+  Trace("sets-model") << "Set collect model info" << std::endl;
+  set<Node> termSet;
+  // Compute terms appearing in assertions and shared terms
+  d_external.computeRelevantTerms(termSet);
+  
   // Assert equalities and disequalities to the model
-  m->assertEqualityEngine(&d_equalityEngine);
+  m->assertEqualityEngine(&d_equalityEngine,&termSet);
   
   std::map< Node, Node > mvals;
   for( int i=(int)(d_set_eqc.size()-1); i>=0; i-- ){
     Node eqc = d_set_eqc[i];
-    if( d_set_eqc_relevant.find( eqc )==d_set_eqc_relevant.end() ){
+    if( termSet.find( eqc )==termSet.end() ){
       Trace("sets-model") << "* Do not assign value for " << eqc << " since is not relevant." << std::endl;
     }else{
       std::vector< Node > els;

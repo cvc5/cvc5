@@ -442,7 +442,16 @@ void TheoryStrings::presolve() {
 void TheoryStrings::collectModelInfo( TheoryModel* m, bool fullModel ) {
   Trace("strings-model") << "TheoryStrings : Collect model info, fullModel = " << fullModel << std::endl;
   Trace("strings-model") << "TheoryStrings : assertEqualityEngine." << std::endl;
+  
+  //AJR : no use doing this since we cannot preregister terms with finite types that don't belong to strings.
+  //      change this if we generalize to sequences.
+  //set<Node> termSet;
+  // Compute terms appearing in assertions and shared terms
+  //computeRelevantTerms(termSet);
+  //m->assertEqualityEngine( &d_equalityEngine, &termSet );
+  
   m->assertEqualityEngine( &d_equalityEngine );
+  
   // Generate model
   std::vector< Node > nodes;
   getEquivalenceClasses( nodes );

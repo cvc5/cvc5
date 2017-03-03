@@ -310,6 +310,8 @@ private:
   bool mustCommunicateFact( Node n, Node exp );
   /** check clash mod eq */
   bool checkClashModEq( TNode n1, TNode n2, std::vector< Node >& exp, std::vector< std::pair< TNode, TNode > >& deq_cand );
+  /** get relevant terms */
+  void getRelevantTerms( std::set<Node>& termSet );
 private:
   //equality queries
   bool hasTerm( TNode a );

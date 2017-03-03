@@ -173,7 +173,7 @@ void TheoryDatatypes::check(Effort e) {
         return;
       }
     }while( d_addedFact );
-
+  
     //check for splits
     Trace("datatypes-debug") << "Check for splits " << e << endl;
     do {
@@ -183,6 +183,7 @@ void TheoryDatatypes::check(Effort e) {
       eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
       while( !eqcs_i.isFinished() ){
         Node n = (*eqcs_i);
+        //TODO : avoid irrelevant (pre-registered but not asserted) terms here?
         TypeNode tn = n.getType();
         if( tn.isDatatype() ){
           Trace("datatypes-debug") << "Process equivalence class " << n << std::endl;
@@ -1414,9 +1415,15 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
   Trace("dt-model") << std::endl;
   printModelDebug( "dt-model" );
   Trace("dt-model") << std::endl;
+  
+  set<Node> termSet;
+  
+  // Compute terms appearing in assertions and shared terms, and in inferred equalities
+  getRelevantTerms(termSet);
 
   //combine the equality engine
-  m->assertEqualityEngine( &d_equalityEngine );
+  m->assertEqualityEngine( &d_equalityEngine, &termSet );
+  
 
   //get all constructors
   eq::EqClassesIterator eqccs_i = eq::EqClassesIterator( &d_equalityEngine );
@@ -1426,18 +1433,22 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
   while( !eqccs_i.isFinished() ){
     Node eqc = (*eqccs_i);
     //for all equivalence classes that are datatypes
-    if( eqc.getType().isDatatype() ){
-      EqcInfo* ei = getOrMakeEqcInfo( eqc );
-      if( ei && !ei->d_constructor.get().isNull() ){
-        Node c = ei->d_constructor.get();
-        cons.push_back( c );
-        eqc_cons[ eqc ] = c;
-      }else{
-        //if eqc contains a symbol known to datatypes (a selector), then we must assign
-        //should assign constructors to EQC if they have a selector or a tester
-        bool shouldConsider = ( ei && ei->d_selectors ) || hasTester( eqc );
-        if( shouldConsider ){
-          nodes.push_back( eqc );
+    if( termSet.find( eqc )==termSet.end() ){
+      Trace("dt-cmi-debug") << "Irrelevant eqc : " << eqc << std::endl;
+    }else{
+      if( eqc.getType().isDatatype() ){
+        EqcInfo* ei = getOrMakeEqcInfo( eqc );
+        if( ei && !ei->d_constructor.get().isNull() ){
+          Node c = ei->d_constructor.get();
+          cons.push_back( c );
+          eqc_cons[ eqc ] = c;
+        }else{
+          //if eqc contains a symbol known to datatypes (a selector), then we must assign
+          //should assign constructors to EQC if they have a selector or a tester
+          bool shouldConsider = ( ei && ei->d_selectors ) || hasTester( eqc );
+          if( shouldConsider ){
+            nodes.push_back( eqc );
+          }
         }
       }
     }
@@ -1456,54 +1467,6 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     const Datatype& dt = ((DatatypeType)tt).getDatatype();
     if( !d_equalityEngine.hasTerm( eqc ) ){
       Assert( false );
-      /*
-      if( !dt.isCodatatype() ){
-        Trace("dt-cmi") << "NOTICE : Datatypes: need to assign constructor for " << eqc << std::endl;
-        Trace("dt-cmi") << "   Type : " << eqc.getType() << std::endl;
-        TypeNode tn = eqc.getType();
-        //if it is infinite, make sure it is fresh
-        //  this ensures that the term that this is an argument of is distinct.
-        if( eqc.getType().getCardinality().isInfinite() ){
-          std::map< TypeNode, int >::iterator it = typ_enum_map.find( tn );
-          int teIndex;
-          if( it==typ_enum_map.end() ){
-            teIndex = (int)typ_enum.size();
-            typ_enum_map[tn] = teIndex;
-            typ_enum.push_back( TypeEnumerator(tn) );
-          }else{
-            teIndex = it->second;
-          }
-          bool success;
-          do{
-            success = true;
-            Assert( !typ_enum[teIndex].isFinished() );
-            neqc = *typ_enum[teIndex];
-            Trace("dt-cmi-debug") << "Try " << neqc << " ... " << std::endl;
-            ++typ_enum[teIndex];
-            for( unsigned i=0; i<cons.size(); i++ ){
-              //check if it is modulo equality the same
-              if( cons[i].getOperator()==neqc.getOperator() ){
-                bool diff = false;
-                for( unsigned j=0; j<cons[i].getNumChildren(); j++ ){
-                  if( !m->areEqual( cons[i][j], neqc[j] ) ){
-                    diff = true;
-                    break;
-                  }
-                }
-                if( !diff ){
-                  Trace("dt-cmi-debug") << "...Already equivalent modulo equality to " << cons[i] << std::endl;
-                  success = false;
-                  break;
-                }
-              }
-            }
-          }while( !success );
-        }else{
-          TypeEnumerator te(tn);
-          neqc = *te;
-        }
-      }
-      */
     }else{
       Trace("dt-cmi") << "NOTICE : Datatypes: no constructor in equivalence class " << eqc << std::endl;
       Trace("dt-cmi") << "   Type : " << eqc.getType() << std::endl;
@@ -2184,6 +2147,34 @@ bool TheoryDatatypes::checkClashModEq( TNode n1, TNode n2, std::vector< Node >& 
     }
   }
   return false;
+}
+
+void TheoryDatatypes::getRelevantTerms( std::set<Node>& termSet ) {
+  // Compute terms appearing in assertions and shared terms
+  computeRelevantTerms(termSet);
+  
+  //also include non-singleton equivalence classes
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
+  while( !eqcs_i.isFinished() ){
+    TNode r = (*eqcs_i);
+    bool addedFirst = false;
+    Node first;
+    eq::EqClassIterator eqc_i = eq::EqClassIterator( r, &d_equalityEngine );
+    while( !eqc_i.isFinished() ){
+      TNode n = (*eqc_i);
+      if( first.isNull() ){
+        first = n;
+      }else{
+        if( !addedFirst ){
+          addedFirst = true;
+          termSet.insert( first );
+        }
+        termSet.insert( n );
+      }
+      ++eqc_i;
+    }
+    ++eqcs_i;
+  }
 }
 
 std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit, const EntailmentCheckParameters* params, EntailmentCheckSideEffects* out) {
