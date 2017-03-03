@@ -532,6 +532,9 @@ void TheorySetsPrivate::fullEffortCheck(){
       if( tn.isSet() ){
         isSet = true;
         d_set_eqc.push_back( eqc );
+        if( d_equalityEngine.isTriggerTerm(eqc, THEORY_SETS) ){
+          d_set_eqc_relevant[eqc] = true;
+        }
       }
       Trace("sets-eqc") << "[" << eqc << "] : ";
       eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );

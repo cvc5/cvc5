@@ -72,7 +72,8 @@ TESTS =	\
 	card-5.smt2 \
 	card-6.smt2 \
 	card-7.smt2 \
-	abt-min.smt2
+	abt-min.smt2 \
+	abt-te-exh.smt2
 
 
 EXTRA_DIST = $(TESTS)
