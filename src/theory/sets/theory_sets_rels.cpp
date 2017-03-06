@@ -1090,27 +1090,9 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     }
   }
 
-  Node TheorySetsRels::explain( Node literal )
-  {
-    Trace("rels-exp") << "[sets-rels] TheorySetsRels::explain(" << literal << ")"<< std::endl;
-    std::vector<TNode>  assumptions;
-    bool                polarity        = literal.getKind() != kind::NOT;
-    TNode               atom            = polarity ? literal : literal[0];
-
-    if(atom.getKind() == kind::EQUAL) {
-      d_eqEngine->explainEquality(atom[0], atom[1], polarity, assumptions);
-    } else if(atom.getKind() == kind::MEMBER) {
-      if( !d_eqEngine->hasTerm(atom)) {
-        d_eqEngine->addTerm(atom);
-      }
-      d_eqEngine->explainPredicate(atom, polarity, assumptions);
-    } else {
-      Trace("rels-exp") << "unhandled: " << literal << "; (" << atom << ", "
-                    << polarity << "); kind" << atom.getKind() << std::endl;
-      Unhandled();
-    }
-    Trace("rels-exp") << "[sets-rels] ****** done with TheorySetsRels::explain(" << literal << ")"<< std::endl;
-    return mkAnd(assumptions);
+  Node TheorySetsRels::explain( Node literal ){
+    //use lazy explanations
+    return literal;
   }
 
   TheorySetsRels::EqcInfo::EqcInfo( context::Context* c ) :

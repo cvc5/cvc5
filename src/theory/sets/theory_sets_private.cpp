@@ -1966,9 +1966,6 @@ Node TheorySetsPrivate::explain(TNode literal)
   if(atom.getKind() == kind::EQUAL) {
     d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
   } else if(atom.getKind() == kind::MEMBER) {
-    if( !d_equalityEngine.hasTerm(atom)) {
-      d_equalityEngine.addTerm(atom);
-    }
     d_equalityEngine.explainPredicate(atom, polarity, assumptions);
   } else {
     Debug("sets") << "unhandled: " << literal << "; (" << atom << ", "
