@@ -602,6 +602,9 @@ private:
   // Lift bit-vectors of size 1 to booleans
   void bvToBool();
 
+  // Convert booleans to bit-vectors of size 1
+  void boolToBv();
+  
   // Abstract common structure over small domains to UF
   // return true if changes were made.
   void bvAbstraction();
@@ -1371,8 +1374,16 @@ void SmtEngine::setDefaults() {
       if(options::bitvectorToBool.wasSetByUser()) {
         throw OptionException("bv-to-bool not supported with unsat cores");
       }
-      Notice() << "SmtEngine: turning off bitvector-to-bool support unsat-cores" << endl;
+      Notice() << "SmtEngine: turning off bitvector-to-bool to support unsat-cores" << endl;
       options::bitvectorToBool.set(false);
+    }
+
+    if(options::boolToBitvector()) {
+      if(options::boolToBitvector.wasSetByUser()) {
+        throw OptionException("bool-to-bv not supported with unsat cores");
+      }
+      Notice() << "SmtEngine: turning off bool-to-bitvector to support unsat-cores" << endl;
+      options::boolToBitvector.set(false);
     }
 
     if(options::bvIntroducePow2()) {
@@ -3016,6 +3027,16 @@ void SmtEnginePrivate::bvToBool() {
   }
 }
 
+void SmtEnginePrivate::boolToBv() {
+  Trace("bool-to-bv") << "SmtEnginePrivate::boolToBv()" << endl;
+  spendResource(options::preprocessStep());
+  std::vector<Node> new_assertions;
+  d_smt.d_theoryEngine->ppBoolToBv(d_assertions.ref(), new_assertions);
+  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+    d_assertions.replace(i, Rewriter::rewrite(new_assertions[i]));
+  }
+}
+
 bool SmtEnginePrivate::simpITE() {
   TimerStat::CodeTimer simpITETimer(d_smt.d_stats->d_simpITETime);
 
@@ -3927,6 +3948,14 @@ void SmtEnginePrivate::processAssertions() {
     dumpAssertions("post-bv-to-bool", d_assertions);
     Trace("smt") << "POST bvToBool" << endl;
   }
+  // Convert non-top-level Booleans to bit-vectors of size 1
+  if(options::boolToBitvector()) {
+    dumpAssertions("pre-bool-to-bv", d_assertions);
+    Chat() << "...doing boolToBv..." << endl;
+    boolToBv();
+    dumpAssertions("post-bool-to-bv", d_assertions);
+    Trace("smt") << "POST boolToBv" << endl;
+  }
   if(options::sepPreSkolemEmp()) {
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {
       Node prev = d_assertions[i];
@@ -3938,6 +3967,7 @@ void SmtEnginePrivate::processAssertions() {
       }
     }
   }
+
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
 

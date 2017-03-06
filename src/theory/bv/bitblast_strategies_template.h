@@ -740,6 +740,50 @@ void DefaultAshrBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
 }
 
 template <class T>
+void DefaultUltbvBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
+  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Assert(node.getKind() == kind::BITVECTOR_ULTBV);
+  std::vector<T> a, b;
+  bb->bbTerm(node[0], a);
+  bb->bbTerm(node[1], b);
+  Assert(a.size() == b.size());
+  
+  // construct bitwise comparison 
+  res.push_back(uLessThanBB(a, b, false));
+}
+
+template <class T>
+void DefaultSltbvBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
+  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Assert(node.getKind() == kind::BITVECTOR_SLTBV);
+  std::vector<T> a, b;
+  bb->bbTerm(node[0], a);
+  bb->bbTerm(node[1], b);
+  Assert(a.size() == b.size());
+  
+  // construct bitwise comparison 
+  res.push_back(sLessThanBB(a, b, false));
+}
+
+template <class T>
+void DefaultIteBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
+  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Assert(node.getKind() == kind::BITVECTOR_ITE);
+  std::vector<T> cond, thenpart, elsepart;
+  bb->bbTerm(node[0], cond);
+  bb->bbTerm(node[1], thenpart);
+  bb->bbTerm(node[2], elsepart);
+  
+  Assert(cond.size() == 1);
+  Assert(thenpart.size() == elsepart.size());
+
+  for (unsigned i = 0; i < thenpart.size(); ++i) {
+    // (~cond OR thenpart) AND (cond OR elsepart)
+    res.push_back(mkAnd(mkOr(mkNot(cond[0]),thenpart[i]),mkOr(cond[0],elsepart[i])));
+  }
+}
+
+template <class T>
 void DefaultExtractBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   Assert (node.getKind() == kind::BITVECTOR_EXTRACT);
   Assert(bits.size() == 0);

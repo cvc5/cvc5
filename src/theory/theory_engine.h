@@ -837,6 +837,7 @@ private:
 public:
   void staticInitializeBVOptions(const std::vector<Node>& assertions);
   void ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+  void ppBoolToBv(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
   bool ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
   void mkAckermanizationAsssertions(std::vector<Node>& assertions);
 

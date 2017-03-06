@@ -295,6 +295,24 @@ Node RewriteRule<EvalUlt>::apply(TNode node) {
 }
 
 template<> inline
+bool RewriteRule<EvalUltBv>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_ULTBV &&
+          utils::isBVGroundTerm(node));
+}
+
+template<> inline
+Node RewriteRule<EvalUltBv>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<EvalUltBv>(" << node << ")" << std::endl;
+  BitVector a = node[0].getConst<BitVector>();
+  BitVector b = node[1].getConst<BitVector>();
+
+  if (a.unsignedLessThan(b)) {
+    return utils::mkConst(1,1);
+  }
+  return utils::mkConst(1, 0);
+}
+
+template<> inline
 bool RewriteRule<EvalSlt>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_SLT &&
           utils::isBVGroundTerm(node));
@@ -311,6 +329,45 @@ Node RewriteRule<EvalSlt>::apply(TNode node) {
   }
   return utils::mkFalse();
 
+}
+
+template<> inline
+bool RewriteRule<EvalSltBv>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_SLTBV &&
+          utils::isBVGroundTerm(node));
+}
+
+template<> inline
+Node RewriteRule<EvalSltBv>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<EvalSltBv>(" << node << ")" << std::endl;
+  BitVector a = node[0].getConst<BitVector>();
+  BitVector b = node[1].getConst<BitVector>();
+
+  if (a.signedLessThan(b)) {
+    return utils::mkConst(1, 1);
+  }
+  return utils::mkConst(1, 0);
+
+}
+
+template<> inline
+bool RewriteRule<EvalITEBv>::applies(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<EvalITEBv>::applies(" << node << ")" << std::endl;
+  return (node.getKind() == kind::BITVECTOR_ITE &&
+          utils::isBVGroundTerm(node));
+}
+
+template<> inline
+Node RewriteRule<EvalITEBv>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<EvalITEBv>(" << node << ")" << std::endl;
+  BitVector cond = node[0].getConst<BitVector>();
+
+  if (node[0] == utils::mkConst(1, 1)) {
+    return node[1];
+  } else {
+    Assert(node[0] == utils::mkConst(1, 0));
+    return node[2];
+  }
 }
 
 template<> inline
@@ -419,6 +476,22 @@ Node RewriteRule<EvalEquals>::apply(TNode node) {
 
 }
 
+template<> inline
+bool RewriteRule<EvalComp>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_COMP &&
+          utils::isBVGroundTerm(node));
+}
+
+template<> inline
+Node RewriteRule<EvalComp>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<EvalComp>(" << node << ")" << std::endl;
+  BitVector a = node[0].getConst<BitVector>();
+  BitVector b = node[1].getConst<BitVector>();
+  if (a == b) {
+    return utils::mkConst(1, 1);
+  }
+  return utils::mkConst(1, 0);
+}
 
 }
 }

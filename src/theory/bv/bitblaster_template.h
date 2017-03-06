@@ -404,6 +404,9 @@ template <class T> void TBitblaster<T>::initTermBBStrategies() {
   d_termBBStrategies [ kind::BITVECTOR_SHL ]          = DefaultShlBB<T>;
   d_termBBStrategies [ kind::BITVECTOR_LSHR ]         = DefaultLshrBB<T>;
   d_termBBStrategies [ kind::BITVECTOR_ASHR ]         = DefaultAshrBB<T>;
+  d_termBBStrategies [ kind::BITVECTOR_ULTBV ]        = DefaultUltbvBB<T>;
+  d_termBBStrategies [ kind::BITVECTOR_SLTBV ]        = DefaultSltbvBB<T>;
+  d_termBBStrategies [ kind::BITVECTOR_ITE ]          = DefaultIteBB<T>;
   d_termBBStrategies [ kind::BITVECTOR_EXTRACT ]      = DefaultExtractBB<T>;
   d_termBBStrategies [ kind::BITVECTOR_REPEAT ]       = DefaultRepeatBB<T>;
   d_termBBStrategies [ kind::BITVECTOR_ZERO_EXTEND ]  = DefaultZeroExtendBB<T>;

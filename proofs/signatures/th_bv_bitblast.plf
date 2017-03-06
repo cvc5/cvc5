@@ -533,6 +533,29 @@
          (! c (^ (bblast_bvslt bx by n) f)
             (th_holds (iff (bvslt n x y) f))))))))))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; BITBLAST BVCOMP
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(program bblast_bvcomp ((x bblt) (y bblt) (n mpz)) bblt
+  (match x ((bbltc bx x') (match y ((bbltc by y')
+  	   	                      (bbltc (bblast_eq_rec x' y' (iff bx by)) bbltn))
+                                   (default (fail bblt))))
+           (default (fail bblt))
+	   ))
+
+(declare bv_bbl_bvcomp (! n mpz
+                       (! x (term (BitVec n))
+		       (! y (term (BitVec n))
+		       (! xb bblt
+		       (! yb bblt
+		       (! rb bblt
+		       (! xbb (bblast_term n x xb)
+		       (! ybb (bblast_term n y yb)
+                       (! c (^ (bblast_bvcomp xb yb n) rb)
+                              (bblast_term 1 (bvcomp n x y) rb)))))))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;           BITBLASTING CONNECTORS

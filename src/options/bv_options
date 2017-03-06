@@ -45,6 +45,9 @@ expert-option bitvectorAlgebraicBudget --bv-algebraic-budget unsigned :default 1
 option bitvectorToBool --bv-to-bool bool :default false :read-write
  lift bit-vectors of size 1 to booleans when possible
 
+option boolToBitvector --bool-to-bv bool :default false :read-write
+ convert booleans to bit-vectors of size 1 when possible
+
 option bitvectorDivByZeroConst --bv-div-zero-const bool :default false :read-write
  always return -1 on division by zero
 

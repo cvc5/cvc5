@@ -1915,6 +1915,10 @@ void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<N
   d_bvToBoolPreprocessor.liftBvToBool(assertions, new_assertions);
 }
 
+void TheoryEngine::ppBoolToBv(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
+  d_bvToBoolPreprocessor.lowerBoolToBv(assertions, new_assertions);
+}
+
 bool  TheoryEngine::ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
   return bv_theory->applyAbstraction(assertions, new_assertions);

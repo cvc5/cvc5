@@ -77,6 +77,16 @@ RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite) {
   return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
+RewriteResponse TheoryBVRewriter::RewriteUltBv(TNode node, bool prerewrite) {
+  // reduce common subexpressions on both sides
+  Node resultNode = LinearRewriteStrategy
+    < RewriteRule<EvalUltBv>
+       >::apply(node);
+  
+  return RewriteResponse(REWRITE_DONE, resultNode); 
+}
+
+
 RewriteResponse TheoryBVRewriter::RewriteSlt(TNode node, bool prerewrite){
   Node resultNode = LinearRewriteStrategy
     < RewriteRule < EvalSlt >
@@ -90,6 +100,14 @@ RewriteResponse TheoryBVRewriter::RewriteSlt(TNode node, bool prerewrite){
   //     >::apply(node);
 
   // return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+}
+
+RewriteResponse TheoryBVRewriter::RewriteSltBv(TNode node, bool prerewrite){
+  Node resultNode = LinearRewriteStrategy
+    < RewriteRule < EvalSltBv >
+       >::apply(node);
+
+  return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
 RewriteResponse TheoryBVRewriter::RewriteUle(TNode node, bool prerewrite){
@@ -144,6 +162,14 @@ RewriteResponse TheoryBVRewriter::RewriteSge(TNode node, bool prerewrite){
     >::apply(node);
   
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+}
+
+RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite){
+  Node resultNode = LinearRewriteStrategy
+    < RewriteRule < EvalITEBv >
+       >::apply(node);
+
+  return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
 RewriteResponse TheoryBVRewriter::RewriteNot(TNode node, bool prerewrite){
@@ -303,10 +329,10 @@ RewriteResponse TheoryBVRewriter::RewriteNor(TNode node, bool prerewrite) {
 
 RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite) {
   Node resultNode = LinearRewriteStrategy
-    < RewriteRule<CompEliminate>
-      >::apply(node);
+    < RewriteRule < EvalComp >
+       >::apply(node);
 
-  return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+  return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
 RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
@@ -678,6 +704,9 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_ROTATE_LEFT ] = RewriteRotateLeft;
   d_rewriteTable [ kind::BITVECTOR_REDOR ] = RewriteRedor;
   d_rewriteTable [ kind::BITVECTOR_REDAND ] = RewriteRedand;
+  d_rewriteTable [ kind::BITVECTOR_ULTBV ] = RewriteUltBv;
+  d_rewriteTable [ kind::BITVECTOR_SLTBV ] = RewriteSltBv;
+  d_rewriteTable [ kind::BITVECTOR_ITE ] = RewriteITEBv;
 
   d_rewriteTable [ kind::BITVECTOR_TO_NAT ] = RewriteBVToNat;
   d_rewriteTable [ kind::INT_TO_BITVECTOR ] = RewriteIntToBV;

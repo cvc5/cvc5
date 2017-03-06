@@ -41,13 +41,16 @@ class TheoryBVRewriter {
   
   static RewriteResponse RewriteEqual(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUlt(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUltBv(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSlt(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSltBv(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUle(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSle(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUgt(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSgt(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUge(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSge(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteITEBv(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteNot(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteConcat(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteAnd(TNode node, bool prerewrite = false);

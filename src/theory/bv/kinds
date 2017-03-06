@@ -61,6 +61,7 @@ operator BITVECTOR_UREM_TOTAL 2 "unsigned remainder from truncating division of 
 operator BITVECTOR_SHL 2 "bit-vector shift left (the two bit-vector parameters must have same width)"
 operator BITVECTOR_LSHR 2 "bit-vector logical shift right (the two bit-vector parameters must have same width)"
 operator BITVECTOR_ASHR 2 "bit-vector arithmetic shift right (the two bit-vector parameters must have same width)"
+
 operator BITVECTOR_ULT 2 "bit-vector unsigned less than (the two bit-vector parameters must have same width)"
 operator BITVECTOR_ULE 2 "bit-vector unsigned less than or equal (the two bit-vector parameters must have same width)"
 operator BITVECTOR_UGT 2 "bit-vector unsigned greater than (the two bit-vector parameters must have same width)"
@@ -69,6 +70,10 @@ operator BITVECTOR_SLT 2 "bit-vector signed less than (the two bit-vector parame
 operator BITVECTOR_SLE 2 "bit-vector signed less than or equal (the two bit-vector parameters must have same width)"
 operator BITVECTOR_SGT 2 "bit-vector signed greater than (the two bit-vector parameters must have same width)"
 operator BITVECTOR_SGE 2 "bit-vector signed greater than or equal (the two bit-vector parameters must have same width)"
+
+operator BITVECTOR_ULTBV 2 "bit-vector unsigned less than but returns bv of size 1 instead of boolean"
+operator BITVECTOR_SLTBV 2 "bit-vector signed less than but returns bv of size 1 instead of boolean"
+operator BITVECTOR_ITE 3 "same semantics as regular ITE, but condition is bv of size 1 instead of Boolean"
 
 operator BITVECTOR_REDOR 1 "bit-vector redor"
 operator BITVECTOR_REDAND 1 "bit-vector redand"
@@ -145,8 +150,6 @@ typerule BITVECTOR_NAND ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_NOR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_XNOR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 
-typerule BITVECTOR_COMP ::CVC4::theory::bv::BitVectorCompTypeRule
-
 typerule BITVECTOR_MULT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_PLUS ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_SUB ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
@@ -173,6 +176,11 @@ typerule BITVECTOR_SLT ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SLE ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SGT ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SGE ::CVC4::theory::bv::BitVectorPredicateTypeRule
+
+typerule BITVECTOR_COMP ::CVC4::theory::bv::BitVectorBVPredTypeRule
+typerule BITVECTOR_ULTBV ::CVC4::theory::bv::BitVectorBVPredTypeRule
+typerule BITVECTOR_SLTBV ::CVC4::theory::bv::BitVectorBVPredTypeRule
+typerule BITVECTOR_ITE ::CVC4::theory::bv::BitVectorITETypeRule
 
 typerule BITVECTOR_REDOR ::CVC4::theory::bv::BitVectorUnaryPredicateTypeRule
 typerule BITVECTOR_REDAND ::CVC4::theory::bv::BitVectorUnaryPredicateTypeRule

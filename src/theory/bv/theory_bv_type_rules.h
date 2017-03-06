@@ -58,7 +58,7 @@ class BitVectorBitOfTypeRule {
   }
 }; /* class BitVectorBitOfTypeRule */
 
-class BitVectorCompTypeRule {
+class BitVectorBVPredTypeRule {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
@@ -72,7 +72,29 @@ class BitVectorCompTypeRule {
     }
     return nodeManager->mkBitVectorType(1);
   }
-}; /* class BitVectorCompTypeRule */
+}; /* class BitVectorBVPredTypeRule */
+
+class BitVectorITETypeRule {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
+    Assert(n.getNumChildren() == 3);
+    TypeNode thenpart = n[1].getType(check);
+    if (check) {
+      TypeNode cond = n[0].getType(check);
+      if (cond != nodeManager->mkBitVectorType(1)) {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting condition to be bit-vector term size 1");
+      }
+      TypeNode elsepart = n[2].getType(check);
+      if (thenpart != elsepart) {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting then and else parts to have same type");
+      }
+    }
+    return thenpart;
+  }
+}; /* class BitVectorITETypeRule */
 
 class BitVectorFixedWidthTypeRule {
  public:

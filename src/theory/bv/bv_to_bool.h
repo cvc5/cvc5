@@ -34,6 +34,9 @@ class BvToBoolPreprocessor {
     IntStat d_numTermsLifted;
     IntStat d_numAtomsLifted;
     IntStat d_numTermsForcedLifted;
+    IntStat d_numTermsLowered;
+    IntStat d_numAtomsLowered;
+    IntStat d_numTermsForcedLowered;
     Statistics();
     ~Statistics();
   };
@@ -57,9 +60,17 @@ class BvToBoolPreprocessor {
   Node convertBvTerm(TNode node);
   Node liftNode(TNode current);
   Statistics d_statistics;
+
+  NodeNodeMap d_lowerCache;
+  void addToLowerCache(TNode term, Node new_term);
+  Node getLowerCache(TNode term) const;
+  bool hasLowerCache(TNode term) const; 
+  Node lowerNode(TNode current, bool topLevel = false);
+
 public:
   BvToBoolPreprocessor();
   void liftBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+  void lowerBoolToBv(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
 }; 
 
 
