@@ -508,6 +508,7 @@ void TheorySetsPrivate::fullEffortCheck(){
     d_set_eqc.clear();
     d_set_eqc_list.clear();
     d_eqc_emptyset.clear();
+    d_eqc_univset.clear();
     d_eqc_singleton.clear();
     d_congruent.clear();
     d_nvar_sets.clear();
@@ -557,7 +558,8 @@ void TheorySetsPrivate::fullEffortCheck(){
               Assert( false );
             }
           }
-        }else if( n.getKind()==kind::SINGLETON || n.getKind()==kind::UNION || n.getKind()==kind::INTERSECTION || n.getKind()==kind::SETMINUS || n.getKind()==kind::EMPTYSET ){
+        }else if( n.getKind()==kind::SINGLETON || n.getKind()==kind::UNION || n.getKind()==kind::INTERSECTION || 
+                  n.getKind()==kind::SETMINUS || n.getKind()==kind::EMPTYSET || n.getKind()==kind::UNIVERSE_SET ){
           if( n.getKind()==kind::SINGLETON ){
             //singleton lemma
             getProxy( n );
@@ -571,6 +573,8 @@ void TheorySetsPrivate::fullEffortCheck(){
             }
           }else if( n.getKind()==kind::EMPTYSET ){
             d_eqc_emptyset[tn] = eqc;
+          }else if( n.getKind()==kind::UNIVERSE_SET ){
+            d_eqc_univset[tn] = eqc;
           }else{
             Node r1 = d_equalityEngine.getRepresentative( n[0] );
             Node r2 = d_equalityEngine.getRepresentative( n[1] );
@@ -641,8 +645,9 @@ void TheorySetsPrivate::fullEffortCheck(){
         checkUpwardsClosure( lemmas );
         flushLemmas( lemmas );
         if( !hasProcessed() ){
+          std::vector< Node > intro_sets;
+          //for cardinality
           if( d_card_enabled ){
-            //for cardinality
             checkCardBuildGraph( lemmas );
             flushLemmas( lemmas );
             if( !hasProcessed() ){
@@ -652,28 +657,27 @@ void TheorySetsPrivate::fullEffortCheck(){
                 checkCardCycles( lemmas );
                 flushLemmas( lemmas );
                 if( !hasProcessed() ){
-                  std::vector< Node > intro_sets;
                   checkNormalForms( lemmas, intro_sets );
                   flushLemmas( lemmas );
-                  if( !hasProcessed() ){
-                    checkDisequalities( lemmas );
-                    flushLemmas( lemmas );
-                    if( !hasProcessed() && !intro_sets.empty() ){
-                      Assert( intro_sets.size()==1 );
-                      Trace("sets-intro") << "Introduce term : " << intro_sets[0] << std::endl;
-                      Trace("sets-intro") << "  Actual Intro : ";
-                      debugPrintSet( intro_sets[0], "sets-nf" );
-                      Trace("sets-nf") << std::endl;
-                      Node k = getProxy( intro_sets[0] );
-                      d_sentLemma = true;
-                    }
-                  }
                 }
               }
             }
-          }else{
+          }
+          if( !hasProcessed() ){
             checkDisequalities( lemmas );
             flushLemmas( lemmas );
+            if( !hasProcessed() ){
+              //introduce splitting on venn regions (absolute last resort)
+              if( d_card_enabled && !hasProcessed() && !intro_sets.empty() ){
+                Assert( intro_sets.size()==1 );
+                Trace("sets-intro") << "Introduce term : " << intro_sets[0] << std::endl;
+                Trace("sets-intro") << "  Actual Intro : ";
+                debugPrintSet( intro_sets[0], "sets-nf" );
+                Trace("sets-nf") << std::endl;
+                Node k = getProxy( intro_sets[0] );
+                d_sentLemma = true;
+              }
+            }
           }
         }
       }
@@ -681,7 +685,6 @@ void TheorySetsPrivate::fullEffortCheck(){
   }while( !d_sentLemma && !d_conflict && d_addedFact );
   Trace("sets") << "----- End full effort check, conflict=" << d_conflict << ", lemma=" << d_sentLemma << std::endl;
 }
-
 
 void TheorySetsPrivate::checkDownwardsClosure( std::vector< Node >& lemmas ) {
   Trace("sets") << "Downwards closure..." << std::endl;
@@ -833,6 +836,26 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
               }
             }   
           }      
+        }
+      }
+    }
+  }
+  if( !hasProcessed() ){
+    //universal sets
+    Trace("sets-debug") << "Check universe sets..." << std::endl;
+    //all elements must be in universal set
+    for( std::map< Node, std::map< Node, Node > >::iterator it = d_pol_mems[0].begin(); it != d_pol_mems[0].end(); ++it ){
+      TypeNode tn = it->first.getType();
+      std::map< TypeNode, Node >::iterator itu = d_eqc_univset.find( tn );
+      if( itu==d_eqc_univset.end() || itu->second!=it->first ){
+        Node u = getUnivSet( tn );
+        for( std::map< Node, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
+          Node mem = it2->second;
+          Node fact = NodeManager::currentNM()->mkNode( kind::MEMBER, mem[0], u );
+          assertInference( fact, mem, lemmas, "upuniv" );
+          if( d_conflict ){
+            return;
+          }
         }
       }
     }
@@ -1488,6 +1511,16 @@ Node TheorySetsPrivate::getEmptySet( TypeNode tn ) {
   if( it==d_emptyset.end() ){
     Node n = NodeManager::currentNM()->mkConst(EmptySet(tn.toType()));
     d_emptyset[tn] = n;
+    return n;
+  }else{
+    return it->second;
+  }
+}
+Node TheorySetsPrivate::getUnivSet( TypeNode tn ) {
+  std::map< TypeNode, Node >::iterator it = d_univset.find( tn );
+  if( it==d_univset.end() ){
+    Node n = NodeManager::currentNM()->mkUniqueVar(tn, kind::UNIVERSE_SET);
+    d_univset[tn] = n;
     return n;
   }else{
     return it->second;

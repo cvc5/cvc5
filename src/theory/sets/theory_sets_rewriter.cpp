@@ -219,7 +219,9 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     } else if(node[0].getKind() == kind::EMPTYSET ||
               node[1].getKind() == kind::EMPTYSET) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node[0] << std::endl;
-      return RewriteResponse(REWRITE_DONE, node[0]);
+      return RewriteResponse(REWRITE_AGAIN, node[0]);
+    }else if( node[1].getKind() == kind::UNIVERSE_SET ){
+      return RewriteResponse(REWRITE_AGAIN, NodeManager::currentNM()->mkConst(EmptySet(node[1].getType().toType())));
     } else if(node[0].isConst() && node[1].isConst()) {
       std::set<Node> left = NormalForm::getElementsFromNormalConstant(node[0]);
       std::set<Node> right = NormalForm::getElementsFromNormalConstant(node[1]);
@@ -237,11 +239,11 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   case kind::INTERSECTION: {
     if(node[0] == node[1]) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node[0] << std::endl;
-      return RewriteResponse(REWRITE_DONE, node[0]);
-    } else if(node[0].getKind() == kind::EMPTYSET) {
-      return RewriteResponse(REWRITE_DONE, node[0]);
-    } else if(node[1].getKind() == kind::EMPTYSET) {
-      return RewriteResponse(REWRITE_DONE, node[1]);
+      return RewriteResponse(REWRITE_AGAIN, node[0]);
+    } else if(node[0].getKind() == kind::EMPTYSET || node[1].getKind() == kind::UNIVERSE_SET) {
+      return RewriteResponse(REWRITE_AGAIN, node[0]);
+    } else if(node[1].getKind() == kind::EMPTYSET || node[0].getKind() == kind::UNIVERSE_SET) {
+      return RewriteResponse(REWRITE_AGAIN, node[1]);
     } else if(node[0].isConst() && node[1].isConst()) {
       std::set<Node> left = NormalForm::getElementsFromNormalConstant(node[0]);
       std::set<Node> right = NormalForm::getElementsFromNormalConstant(node[1]);
@@ -276,11 +278,11 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     // NOTE: case where it is CONST is taken care of at the top
     if(node[0] == node[1]) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node[0] << std::endl;
-      return RewriteResponse(REWRITE_DONE, node[0]);
-    } else if(node[0].getKind() == kind::EMPTYSET) {
-      return RewriteResponse(REWRITE_DONE, node[1]);
-    } else if(node[1].getKind() == kind::EMPTYSET) {
-      return RewriteResponse(REWRITE_DONE, node[0]);
+      return RewriteResponse(REWRITE_AGAIN, node[0]);
+    } else if(node[0].getKind() == kind::EMPTYSET || node[1].getKind() == kind::UNIVERSE_SET) {
+      return RewriteResponse(REWRITE_AGAIN, node[1]);
+    } else if(node[1].getKind() == kind::EMPTYSET || node[0].getKind() == kind::UNIVERSE_SET) {
+      return RewriteResponse(REWRITE_AGAIN, node[0]);
     } else if(node[0].isConst() && node[1].isConst()) {
       std::set<Node> left = NormalForm::getElementsFromNormalConstant(node[0]);
       std::set<Node> right = NormalForm::getElementsFromNormalConstant(node[1]);
@@ -303,7 +305,11 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     break;
   }//kind::UNION
-
+  case kind::COMPLIMENT: {
+    Node univ = NodeManager::currentNM()->mkUniqueVar( node[0].getType(), kind::UNIVERSE_SET );
+    return RewriteResponse( REWRITE_AGAIN, NodeManager::currentNM()->mkNode( kind::SETMINUS, univ, node[0] ) );
+  }
+    break;
   case kind::CARD: {
     if(node[0].isConst()) {
       std::set<Node> elements = NormalForm::getElementsFromNormalConstant(node[0]);

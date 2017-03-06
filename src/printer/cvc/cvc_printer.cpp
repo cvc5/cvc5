@@ -780,6 +780,10 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       op << "IS_IN";
       opType = INFIX;
       break;
+    case kind::COMPLIMENT:
+      op << "NOT";
+      opType = PREFIX;
+      break;
     case kind::PRODUCT:
       op << "PRODUCT";
       opType = INFIX;

@@ -245,6 +245,7 @@ tokens {
   SETS_CARD_TOK = 'CARD';
   
   FMF_CARD_TOK = 'HAS_CARD';
+  UNIVSET_TOK = 'UNIVERSE';
 
   // these are parsed by special NUMBER_OR_RANGEOP rule, below
   DECIMAL_LITERAL;
@@ -440,6 +441,7 @@ Expr createPrecedenceTree(Parser* parser, ExprManager* em,
   Expr rhs = createPrecedenceTree(parser, em, expressions, operators, pivot + 1, stopIndex);
 
   switch(k) {
+  case kind::NOT          : if(lhs.getType().isSet()) { k = kind::COMPLIMENT; } break;
   case kind::LEQ          : if(lhs.getType().isSet()) { k = kind::SUBSET; } break;
   case kind::MINUS        : if(lhs.getType().isSet()) { k = kind::SETMINUS; } break;
   case kind::BITVECTOR_AND: if(lhs.getType().isSet()) { k = kind::INTERSECTION; } break;
@@ -1832,6 +1834,8 @@ postfixTerm[CVC4::Expr& f]
           f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
         } else if(f.getKind() == CVC4::kind::EMPTYSET && t.isSet()) {
           f = MK_CONST(CVC4::EmptySet(t));
+        } else if(f.getKind() == CVC4::kind::UNIVERSE_SET && t.isSet()) {
+          f = EXPR_MANAGER->mkUniqueVar(t, kind::UNIVERSE_SET);
         } else {
           if(f.getType() != t) {
             PARSER_STATE->parseError("Type ascription not satisfied.");
@@ -2065,6 +2069,10 @@ simpleTerm[CVC4::Expr& f]
     /* empty set literal */
   | LBRACE RBRACE
     { f = MK_CONST(EmptySet(Type())); }
+  | UNIVSET_TOK
+    { //booleanType is placeholder
+      f = EXPR_MANAGER->mkUniqueVar(EXPR_MANAGER->booleanType(), kind::UNIVERSE_SET);
+    }
 
     /* finite set literal */
   | LBRACE formula[f] { args.push_back(f); }

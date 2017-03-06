@@ -43,6 +43,7 @@ operator MEMBER        2  "set membership predicate; first parameter a member of
 operator SINGLETON     1  "the set of the single element given as a parameter"
 operator INSERT        2: "set obtained by inserting elements (first N-1 parameters) into a set (the last parameter)"
 operator CARD          1  "set cardinality operator"
+operator COMPLIMENT    1  "set compliment (with respect to finite universe)"
 
 operator JOIN 		   2  "set join"
 operator PRODUCT 	   2  "set cartesian product"
@@ -58,12 +59,14 @@ typerule SINGLETON      ::CVC4::theory::sets::SingletonTypeRule
 typerule EMPTYSET       ::CVC4::theory::sets::EmptySetTypeRule
 typerule INSERT         ::CVC4::theory::sets::InsertTypeRule
 typerule CARD           ::CVC4::theory::sets::CardTypeRule
+typerule COMPLIMENT     ::CVC4::theory::sets::ComplimentTypeRule
 
 typerule JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
 typerule PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule
 typerule TRANSPOSE 		::CVC4::theory::sets::RelTransposeTypeRule
 typerule TCLOSURE 	    ::CVC4::theory::sets::RelTransClosureTypeRule
 
+variable UNIVERSE_SET "(finite) universe set, all set variables must be interpreted as subsets of it."
 
 construle UNION         ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle INTERSECTION  ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
@@ -71,6 +74,7 @@ construle SETMINUS      ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle SINGLETON     ::CVC4::theory::sets::SingletonTypeRule
 construle INSERT        ::CVC4::theory::sets::InsertTypeRule
 construle CARD          ::CVC4::theory::sets::CardTypeRule
+construle COMPLIMENT    ::CVC4::theory::sets::ComplimentTypeRule
 
 construle JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
 construle PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule

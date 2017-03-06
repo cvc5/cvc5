@@ -79,6 +79,7 @@ private:
   Node getProxy( Node n );
   Node getCongruent( Node n );
   Node getEmptySet( TypeNode tn );
+  Node getUnivSet( TypeNode tn );
   bool hasLemmaCached( Node lem );
   bool hasProcessed();
   
@@ -119,8 +120,10 @@ private:
   std::map< Node, bool > d_set_eqc_relevant;
   std::map< Node, std::vector< Node > > d_set_eqc_list;
   std::map< TypeNode, Node > d_eqc_emptyset;
+  std::map< TypeNode, Node > d_eqc_univset;
   std::map< Node, Node > d_eqc_singleton;
   std::map< TypeNode, Node > d_emptyset;
+  std::map< TypeNode, Node > d_univset;
   std::map< Node, Node > d_congruent;
   std::map< Node, std::vector< Node > > d_nvar_sets;
   std::map< Node, std::map< Node, Node > > d_pol_mems[2];

@@ -120,6 +120,9 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     if( n.getKind() == kind::SEP_NIL ){
       out << "(as sep.nil " << n.getType() << ")";
       return;
+    }else if( n.getKind() == kind::UNIVERSE_SET ){
+      out << "(as univset " << n.getType() << ")";
+      return;
     }else{
       string s;
       if(n.getAttribute(expr::VarNameAttr(), s)) {
@@ -514,7 +517,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::SUBSET:
   case kind::MEMBER:
   case kind::SET_TYPE:
-  case kind::SINGLETON: out << smtKindString(k) << " "; break;
+  case kind::SINGLETON: 
+  case kind::COMPLIMENT:out << smtKindString(k) << " "; break;
 
     // fp theory
   case kind::FLOATINGPOINT_FP:
@@ -803,6 +807,7 @@ static string smtKindString(Kind k) throw() {
   case kind::SET_TYPE: return "Set";
   case kind::SINGLETON: return "singleton";
   case kind::INSERT: return "insert";
+  case kind::COMPLIMENT: return "compliment";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";

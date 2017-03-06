@@ -1775,7 +1775,9 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         Debug("parser") << "Empty set encountered: " << f << " "
                           << f2 << " " << type <<  std::endl;
         expr = MK_CONST( ::CVC4::EmptySet(type) );
-      } else if(f.getKind() == CVC4::kind::SEP_NIL_REF) {
+      } else if(f.getKind() == CVC4::kind::UNIVERSE_SET) {
+        expr = EXPR_MANAGER->mkUniqueVar(type, kind::UNIVERSE_SET);
+      } else if(f.getKind() == CVC4::kind::SEP_NIL) {
         //We don't want the nil reference to be a constant: for instance, it
         //could be of type Int but is not a const rational. However, the
         //expression has 0 children. So we convert to a SEP_NIL variable.
@@ -2095,8 +2097,13 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   | EMPTYSET_TOK
     { expr = MK_CONST( ::CVC4::EmptySet(Type())); }
 
+  | UNIVSET_TOK
+    { //booleanType is placeholder here since we don't have type info without type annotation
+      expr = EXPR_MANAGER->mkUniqueVar(EXPR_MANAGER->booleanType(), kind::UNIVERSE_SET); }
+
   | NILREF_TOK
-    { expr = MK_CONST( ::CVC4::NilRef(Type())); }
+    { //booleanType is placeholder here since we don't have type info without type annotation
+      expr = EXPR_MANAGER->mkUniqueVar(EXPR_MANAGER->booleanType(), kind::SEP_NIL); }
     // NOTE: Theory constants go here
   ;
 
@@ -2874,6 +2881,7 @@ FMFCARDVAL_TOK : 'fmf.card.val';
 INST_CLOSURE_TOK : 'inst-closure';
 
 EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
+UNIVSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'univset';
 NILREF_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SEP) }? 'sep.nil';
 // Other set theory operators are not
 // tokenized and handled directly when
