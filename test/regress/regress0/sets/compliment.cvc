@@ -1,0 +1,9 @@
+% EXPECT: sat
+OPTION "logic" "ALL_SUPPORTED";
+Atom: TYPE;
+a : SET OF [Atom];
+b : SET OF [Atom];
+
+ASSERT a = (NOT b);
+
+CHECKSAT;

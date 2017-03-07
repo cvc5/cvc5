@@ -75,7 +75,8 @@ TESTS =	\
 	abt-min.smt2 \
 	abt-te-exh.smt2 \
 	abt-te-exh2.smt2 \
-	univset-simp.smt2
+	univset-simp.smt2 \
+	compliment.cvc
 
 EXTRA_DIST = $(TESTS)
 
