@@ -1,0 +1,11 @@
+% EXPECT: unsat
+OPTION "logic" "ALL_SUPPORTED";
+Atom: TYPE;
+a : SET OF Atom;
+b : SET OF Atom;
+c : Atom;
+
+ASSERT a = NOT(a);
+ASSERT c IS_IN a;
+
+CHECKSAT;

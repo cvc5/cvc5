@@ -90,6 +90,8 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     string s;
     if(n.getAttribute(expr::VarNameAttr(), s)) {
       out << s;
+    }else if( n.getKind() == kind::UNIVERSE_SET ){
+      out << "UNIVERSE :: " << n.getType();
     } else {
       if(n.getKind() == kind::VARIABLE) {
         out << "var_";
@@ -780,7 +782,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       op << "IS_IN";
       opType = INFIX;
       break;
-    case kind::COMPLIMENT:
+    case kind::COMPLEMENT:
       op << "NOT";
       opType = PREFIX;
       break;

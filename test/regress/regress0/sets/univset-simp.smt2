@@ -15,7 +15,7 @@
 (assert (not (member 1 c)))
 (assert (member 2 d))
 (assert (= e (as univset (Set Int))))
-(assert (= f (compliment d)))
+(assert (= f (complement d)))
 (assert (not (member x (as univset (Set Int)))))
 
 (check-sat)

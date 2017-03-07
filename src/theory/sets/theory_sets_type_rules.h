@@ -155,24 +155,24 @@ struct CardTypeRule {
   }
 };/* struct CardTypeRule */
 
-struct ComplimentTypeRule {
+struct ComplementTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
-    Assert(n.getKind() == kind::COMPLIMENT);
+    Assert(n.getKind() == kind::COMPLEMENT);
     TypeNode setType = n[0].getType(check);
     if( check ) {
       if(!setType.isSet()) {
-        throw TypeCheckingExceptionPrivate(n, "compliment operates on a set, non-set object found");
+        throw TypeCheckingExceptionPrivate(n, "COMPLEMENT operates on a set, non-set object found");
       }
     }
     return setType;
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::COMPLIMENT);
+    Assert(n.getKind() == kind::COMPLEMENT);
     return false;
   }
-};/* struct ComplimentTypeRule */
+};/* struct ComplementTypeRule */
 
 
 

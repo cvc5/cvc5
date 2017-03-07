@@ -448,7 +448,7 @@ Expr createPrecedenceTree(Parser* parser, ExprManager* em,
   default: break;
   }
   Expr e = em->mkExpr(k, lhs, rhs);
-  return negate ? em->mkExpr(e.getType().isSet() ? kind::COMPLIMENT : kind::NOT, e) : e;
+  return negate ? em->mkExpr(e.getType().isSet() ? kind::COMPLEMENT : kind::NOT, e) : e;
 }/* createPrecedenceTree() recursive variant */
 
 Expr createPrecedenceTree(Parser* parser, ExprManager* em,
@@ -474,7 +474,7 @@ Expr createPrecedenceTree(Parser* parser, ExprManager* em,
 
 /** Add n NOTs to the front of e and return the result. */
 Expr addNots(ExprManager* em, size_t n, Expr e) {
-  Kind k = e.getType().isSet() ? kind::COMPLIMENT : kind::NOT;
+  Kind k = e.getType().isSet() ? kind::COMPLEMENT : kind::NOT;
   while(n-- > 0) {
     e = em->mkExpr(k, e);
   }
@@ -1689,6 +1689,8 @@ bvNegTerm[CVC4::Expr& f]
     /* BV neg */
   : BVNEG_TOK bvNegTerm[f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
+  | NOT_TOK bvNegTerm[f]
+    { f = MK_EXPR(CVC4::kind::COMPLEMENT, f); } 
   | TRANSPOSE_TOK bvNegTerm[f]
     { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); } 
   | TRANSCLOSURE_TOK bvNegTerm[f]
