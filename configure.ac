@@ -999,7 +999,7 @@ fi
 
 # Checks for libraries.
 
-AC_SEARCH_LIBS([clock_gettime], [rt],
+AC_SEARCH_LIBS([clock_gettime], [rt pthread],
                [AC_DEFINE([HAVE_CLOCK_GETTIME], [1],
                           [Defined to 1 if clock_gettime() is supported by the platform.])],
                [AC_LIBOBJ([clock_gettime])])

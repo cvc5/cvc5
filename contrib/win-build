@@ -8,7 +8,7 @@
 if [ $# -ne 0 ]; then
   echo "usage: `basename $0`" >&2
   echo >&2
-  echo "This script attempts to build CVC4 for Win32 using mingw." >&2
+  echo "This script attempts to build CVC4 for Win32/64 using mingw-w64." >&2
   exit 1
 fi
 
@@ -18,9 +18,9 @@ if [ -z "$HOST" ]; then
   echo "WARNING: Using default HOST value: $HOST"
   echo "WARNING: You should probably run this script like this:"
   echo "WARNING:"
-  echo "WARNING:   HOST=i586-mingw32msvc win32-build"
+  echo "WARNING:   HOST=i686-w64-mingw32 win-build"
   echo "WARNING:"
-  echo "WARNING: (replacing the i586-mingw32msvc with your build host)"
+  echo "WARNING: (replacing the i686-w64-mingw32 with your build host)"
   echo "WARNING: to ensure the script builds correctly."
   echo "WARNING:"
 fi
@@ -99,7 +99,7 @@ echo
 echo =============================================================================
 echo
 echo 'Now just run:'
-echo "  ./configure --enable-static-binary --disable-shared --host=$HOST LDFLAGS=\"-L`pwd`/gmp-$GMPVERSION/lib -L`pwd`/antlr-3.4/lib -L`pwd`/boost-$BOOSTVERSION/lib\" CPPFLAGS=\"-I`pwd`/gmp-$GMPVERSION/include -I`pwd`/antlr-3.4/include -I`pwd`/boost-$BOOSTVERSION/include\" ANTLR_HOME=\"`pwd`/antlr-3.4\""
+echo "  ./configure --enable-static-binary --disable-shared --host=$HOST LDFLAGS=\"-L`pwd`/gmp-$GMPVERSION/lib -L`pwd`/antlr-3.4/lib -L`pwd`/boost-$BOOSTVERSION/lib\" CPPFLAGS=\"-I`pwd`/gmp-$GMPVERSION/include -I`pwd`/antlr-3.4/include -I`pwd`/boost-$BOOSTVERSION/include\" --with-antlr-dir=\"`pwd`/antlr-3.4\" ANTLR=\"`pwd`/antlr-3.4/bin/antlr3\""
 echo '  make'
 echo
 echo =============================================================================
