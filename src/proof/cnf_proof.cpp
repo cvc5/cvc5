@@ -350,8 +350,9 @@ void LFSCCnfProof::printAtomMapping(const std::set<Node>& atoms,
     prop::SatVariable var = getLiteral(atom).getSatVariable();
     //FIXME hideous
     LFSCTheoryProofEngine* pe = (LFSCTheoryProofEngine*)ProofManager::currentPM()->getTheoryProofEngine();
-    // pe->printLetTerm(atom.toExpr(), os);
+    if (pe->printsAsBool(atom.toExpr())) os << "(p_app ";
     pe->printBoundTerm(atom.toExpr(), os, letMap);
+    if (pe->printsAsBool(atom.toExpr())) os << ")";
 
     os << " (\\ " << ProofManager::getVarName(var, d_name);
     os << " (\\ " << ProofManager::getAtomName(var, d_name) << "\n";

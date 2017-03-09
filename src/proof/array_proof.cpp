@@ -1197,8 +1197,11 @@ void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
   Assert ((term.getKind() == kind::SELECT) || (term.getKind() == kind::PARTIAL_SELECT_0) || (term.getKind() == kind::PARTIAL_SELECT_1) || (term.getKind() == kind::STORE));
 
   switch (term.getKind()) {
-  case kind::SELECT:
+  case kind::SELECT: {
     Assert(term.getNumChildren() == 2);
+
+    bool convertToBool = (term[1].getType().isBoolean() && !d_proofEngine->printsAsBool(term[1]));
+
     os << "(apply _ _ (apply _ _ (read ";
     printSort(ArrayType(term[0].getType()).getIndexType(), os);
     os << " ";
@@ -1206,9 +1209,12 @@ void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
     os << ") ";
     printTerm(term[0], os, map);
     os << ") ";
+    if (convertToBool) os << "(f_to_b ";
     printTerm(term[1], os, map);
+    if (convertToBool) os << ")";
     os << ") ";
     return;
+  }
 
   case kind::PARTIAL_SELECT_0:
     Assert(term.getNumChildren() == 1);
@@ -1381,7 +1387,15 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
 }
 
 void LFSCArrayProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
-    // Nothing to do here at this point.
+  // Nothing to do here at this point.
+}
+
+bool LFSCArrayProof::printsAsBool(const Node &n)
+{
+  if (n.getKind() == kind::SELECT)
+    return true;
+
+  return false;
 }
 
 } /* CVC4  namespace */

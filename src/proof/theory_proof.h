@@ -151,9 +151,9 @@ public:
 
   void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap);
 
-  virtual void treatBoolsAsFormulas(bool value) {};
-
   virtual void printTheoryTerm(Expr term, std::ostream& os, const ProofLetMap& map) = 0;
+
+  bool printsAsBool(const Node &n);
 };
 
 class LFSCTheoryProofEngine : public TheoryProofEngine {
@@ -182,7 +182,6 @@ public:
 
   void performExtraRegistrations();
 
-  void treatBoolsAsFormulas(bool value);
   void finalizeBvConflicts(const IdToSatClause& lemmas, std::ostream& os);
 
 private:
@@ -294,7 +293,11 @@ public:
    */
   virtual void printRewriteProof(std::ostream& os, const Node &n1, const Node &n2);
 
-  virtual void treatBoolsAsFormulas(bool value) {}
+  // Return true if node prints as bool, false if it prints as a formula.
+  virtual bool printsAsBool(const Node &n) {
+    // Most nodes print as formulas, so this is the default.
+    return false;
+  }
 };
 
 class BooleanProof : public TheoryProof {
@@ -318,7 +321,7 @@ public:
 class LFSCBooleanProof : public BooleanProof {
 public:
   LFSCBooleanProof(TheoryProofEngine* proofEngine)
-    : BooleanProof(proofEngine), d_treatBoolsAsFormulas(true)
+    : BooleanProof(proofEngine)
   {}
   virtual void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map);
   virtual void printOwnedSort(Type type, std::ostream& os);
@@ -328,12 +331,7 @@ public:
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap);
 
-  void treatBoolsAsFormulas(bool value) {
-    d_treatBoolsAsFormulas = value;
-  }
-
-private:
-  bool d_treatBoolsAsFormulas;
+  bool printsAsBool(const Node &n);
 };
 
 } /* CVC4 namespace */

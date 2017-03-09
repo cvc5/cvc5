@@ -565,6 +565,7 @@ void LFSCProof::toStream(std::ostream& out) {
     Debug("pf::pm") << "\t assertion = " << *it3 << std::endl;
 
   std::set<Node> atoms;
+
   NodePairSet rewrites;
   // collects the atoms in the clauses
   d_cnfProof->collectAtomsAndRewritesForLemmas(used_lemmas, atoms, rewrites);
@@ -779,7 +780,9 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
 
       //TODO
       os << "(trust_f ";
+      if (ProofManager::currentPM()->getTheoryProofEngine()->printsAsBool(*it)) os << "(p_app ";
       ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm((*it).toExpr(), os, globalLetMap);
+      if (ProofManager::currentPM()->getTheoryProofEngine()->printsAsBool(*it)) os << ")";
       os << ") ";
 
       os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";

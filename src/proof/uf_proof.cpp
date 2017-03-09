@@ -701,17 +701,13 @@ void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap&
   Assert (theory::Theory::theoryOf(term) == theory::THEORY_UF);
 
   if (term.getKind() == kind::VARIABLE ||
-      term.getKind() == kind::SKOLEM) {
+      term.getKind() == kind::SKOLEM ||
+      term.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
     os << term;
-    return;
-  }
-  if (term.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
-    os << "(p_app " << term << ")";
     return;
   }
 
   Assert (term.getKind() == kind::APPLY_UF);
-  d_proofEngine->treatBoolsAsFormulas(false);
 
   if(term.getType().isBoolean()) {
     os << "(p_app ";
@@ -722,13 +718,15 @@ void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap&
   }
   os << func << " ";
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+    bool convertToBool = (term[i].getType().isBoolean() && !d_proofEngine->printsAsBool(term[i]));
+    if (convertToBool) os << "(f_to_b ";
     d_proofEngine->printBoundTerm(term[i], os, map);
+    if (convertToBool) os << ")";
     os << ")";
   }
   if(term.getType().isBoolean()) {
     os << ")";
   }
-  d_proofEngine->treatBoolsAsFormulas(true);
 }
 
 void LFSCUFProof::printOwnedSort(Type type, std::ostream& os) {
@@ -801,6 +799,15 @@ void LFSCUFProof::printDeferredDeclarations(std::ostream& os, std::ostream& pare
 
 void LFSCUFProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
   // Nothing to do here at this point.
+}
+
+bool LFSCUFProof::printsAsBool(const Node &n)
+{
+  Debug("gk::temp") << "\nUF printsAsBool: " << n << std::endl;
+  if (n.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+    return true;
+
+  return false;
 }
 
 } /* namespace CVC4 */

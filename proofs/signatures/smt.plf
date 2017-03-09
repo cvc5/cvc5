@@ -20,13 +20,13 @@
 	(! f1 formula
 	(! f2 formula
 	   formula)))
-	
+
 (define formula_op3
 	(! f1 formula
 	(! f2 formula
 	(! f3 formula
 	   formula))))
-	   
+
 (declare not formula_op1)
 (declare and formula_op2)
 (declare or formula_op2)
@@ -76,6 +76,10 @@
  (! u (th_holds (not (p_app x)))
    (th_holds (= Bool x t_false)))))
 
+(declare f_to_b
+  (! f formula
+    (term Bool)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; CNF Clausification
@@ -107,8 +111,8 @@
        (! vbv (bvatom v bv_v)
          (holds cln))))))
     (holds cln))))
-    
-    
+
+
 ; clausify a formula directly
 (declare clausify_form
   (! f formula
@@ -116,14 +120,14 @@
   (! a (atom v f)
   (! u (th_holds f)
     (holds (clc (pos v) cln)))))))
-    
+
 (declare clausify_form_not
   (! f formula
   (! v var
   (! a (atom v f)
   (! u (th_holds (not f))
     (holds (clc (neg v) cln)))))))
-    
+
 (declare clausify_false
   (! u (th_holds false)
     (holds cln)))
@@ -134,7 +138,7 @@
   (! u2 (! v (th_holds f) (holds cln))
     (holds cln)))))
 
-  
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Natural deduction rules : used for CNF
@@ -191,7 +195,7 @@
   (! f2 formula
   (! u2 (th_holds (not (or f1 f2)))
     (th_holds (and (not f1) (not f2)))))))
-    
+
 ;; and elimination
 
 (declare and_elim_1
@@ -211,7 +215,7 @@
   (! f2 formula
   (! u2 (th_holds (not (and f1 f2)))
     (th_holds (or (not f1) (not f2)))))))
-    
+
 ;; impl elimination
 
 (declare impl_intro (! f1 formula
@@ -231,7 +235,7 @@
   (! f2 formula
   (! u (th_holds (not (impl f1 f2)))
     (th_holds (and f1 (not f2)))))))
-    
+
 ;; iff elimination
 
 (declare iff_elim_1
@@ -358,10 +362,10 @@
   (! u (! o (holds (clc (neg bv_v) cln)) ;; l binding to be used in proof
          (holds C))
     (holds (clc (pos v) C))))))))))
-    
+
 (declare bv_ast
   (! v var
-  (! bv_v var	
+  (! bv_v var
   (! f formula
   (! C clause
   (! r (atom v f)       ; this is specified
@@ -397,7 +401,7 @@
 ;;	...
 ;;      (or_elim_1 _ _ l2
 ;; 	(or_elim_1 _ _ l1 A))))) ln)
-;;	
+;;
 ;;))))))) (\ C
 ;;
 ;; We now have the free variable C, which should be the clause (v1 V ... V vn).
@@ -415,9 +419,7 @@
 ;;   (contra _ l3
 ;;      (or_elim_1 _ _ l2
 ;; 	(or_elim_1 _ _ (not_not_intro l1) A))))
-;;	
+;;
 ;;))))))) (\ C
 ;;
 ;; C should be the clause (~v1 V v2 V ~v3 )
-
-

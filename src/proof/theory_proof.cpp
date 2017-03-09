@@ -299,14 +299,6 @@ void LFSCTheoryProofEngine::performExtraRegistrations() {
   }
 }
 
-void LFSCTheoryProofEngine::treatBoolsAsFormulas(bool value) {
-  TheoryProofTable::const_iterator it = d_theoryProofTable.begin();
-  TheoryProofTable::const_iterator end = d_theoryProofTable.end();
-  for (; it != end; ++it) {
-    it->second->treatBoolsAsFormulas(value);
-  }
-}
-
 void LFSCTheoryProofEngine::registerTermsFromAssertions() {
   ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
   ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
@@ -330,7 +322,11 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
 
     // Assertions appear before the global let map, so we use a dummpMap to avoid letification here.
     ProofLetMap dummyMap;
+
+    bool convertFromBool = (it->getType().isBoolean() && printsAsBool(*it));
+    if (convertFromBool) os << "(p_app ";
     printBoundTerm(*it, os, dummyMap);
+    if (convertFromBool) os << ")";
 
     os << ")\n";
     paren << ")";
@@ -843,31 +839,47 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
   Kind k = term.getKind();
 
   switch(k) {
-  case kind::ITE:
+  case kind::ITE: {
     os << (term.getType().isBoolean() ? "(ifte ": "(ite _ ");
 
+    bool booleanCase = term[0].getType().isBoolean();
+    if (booleanCase && printsAsBool(term[0])) os << "(p_app ";
     printBoundTerm(term[0], os, map);
+    if (booleanCase && printsAsBool(term[0])) os << ")";
+
     os << " ";
     printBoundTerm(term[1], os, map);
     os << " ";
     printBoundTerm(term[2], os, map);
     os << ")";
     return;
+  }
 
-  case kind::EQUAL:
+  case kind::EQUAL: {
+    bool booleanCase = term[0].getType().isBoolean();
+
     os << "(";
-    if( term[0].getType().isBoolean() ){
+    if (booleanCase) {
       os << "iff ";
-    }else{
+    } else {
       os << "= ";
       printSort(term[0].getType(), os);
       os << " ";
     }
+
+    if (booleanCase && printsAsBool(term[0])) os << "(p_app ";
     printBoundTerm(term[0], os, map);
+    if (booleanCase && printsAsBool(term[0])) os << ")";
+
     os << " ";
+
+    if (booleanCase && printsAsBool(term[1])) os << "(p_app ";
     printBoundTerm(term[1], os, map);
+    if (booleanCase && printsAsBool(term[1])) os << ") ";
     os << ")";
+
     return;
+  }
 
   case kind::DISTINCT:
     // Distinct nodes can have any number of chidlren.
@@ -917,9 +929,11 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
     // arguments, so we have to flatten chained operators, like =.
     Kind op = term.getOperator().getConst<Chain>().getOperator();
     std::string op_str;
-    if( op==kind::EQUAL && term[0].getType().isBoolean() ){
+    bool booleanCase;
+    if (op==kind::EQUAL && term[0].getType().isBoolean()) {
+      booleanCase = term[0].getType().isBoolean();
       op_str = "iff";
-    }else{
+    } else {
       op_str = utils::toLFSCKind(op);
     }
     size_t n = term.getNumChildren();
@@ -930,9 +944,13 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
         paren << ")";
       }
       os << "(" << op_str << " ";
+      if (booleanCase && printsAsBool(term[i - 1])) os << "(p_app ";
       printBoundTerm(term[i - 1], os, map);
+      if (booleanCase && printsAsBool(term[i - 1])) os << ")";
       os << " ";
+      if (booleanCase && printsAsBool(term[i])) os << "(p_app ";
       printBoundTerm(term[i], os, map);
+      if (booleanCase && printsAsBool(term[i])) os << ")";
       os << ")";
       if(i + 1 < n) {
         os << " ";
@@ -1049,6 +1067,15 @@ bool TheoryProofEngine::supportedTheory(theory::TheoryId id) {
           id == theory::THEORY_BOOL);
 }
 
+bool TheoryProofEngine::printsAsBool(const Node &n) {
+  if (!n.getType().isBoolean()) {
+    return false;
+  }
+
+  theory::TheoryId theory_id = theory::Theory::theoryOf(n);
+  return getTheoryProof(theory_id)->printsAsBool(n);
+}
+
 BooleanProof::BooleanProof(TheoryProofEngine* proofEngine)
   : TheoryProof(NULL, proofEngine)
 {}
@@ -1068,10 +1095,7 @@ void BooleanProof::registerTerm(Expr term) {
 void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
   Assert (term.getType().isBoolean());
   if (term.isVariable()) {
-    if (d_treatBoolsAsFormulas)
-      os << "(p_app " << ProofManager::sanitize(term) <<")";
-    else
-      os << ProofManager::sanitize(term);
+    os << ProofManager::sanitize(term);
     return;
   }
 
@@ -1116,7 +1140,11 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
       std::ostringstream paren;
       os << " ";
       for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+
+        if (printsAsBool(term[i])) os << "(p_app ";
         d_proofEngine->printBoundTerm(term[i], os, map);
+        if (printsAsBool(term[i])) os << ")";
+
         os << " ";
         if(i < term.getNumChildren() - 2) {
           os << "(" << utils::toLFSCKind(k) << " ";
@@ -1128,17 +1156,16 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
       // this is for binary and unary operators
       for (unsigned i = 0; i < term.getNumChildren(); ++i) {
         os << " ";
+        if (printsAsBool(term[i])) os << "(p_app ";
         d_proofEngine->printBoundTerm(term[i], os, map);
+        if (printsAsBool(term[i])) os << ")";
       }
       os << ")";
     }
     return;
 
   case kind::CONST_BOOLEAN:
-    if (d_treatBoolsAsFormulas)
-      os << (term.getConst<bool>() ? "true" : "false");
-    else
-      os << (term.getConst<bool>() ? "t_true" : "t_false");
+    os << (term.getConst<bool>() ? "true" : "false");
     return;
 
   default:
@@ -1180,6 +1207,19 @@ void LFSCBooleanProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                              std::ostream& paren,
                                              const ProofLetMap& map) {
   Unreachable("No boolean lemmas yet!");
+}
+
+bool LFSCBooleanProof::printsAsBool(const Node &n)
+{
+  Kind k = n.getKind();
+  switch (k) {
+  case kind::BOOLEAN_TERM_VARIABLE:
+  case kind::VARIABLE:
+    return true;
+
+  default:
+    return false;
+  }
 }
 
 void TheoryProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
