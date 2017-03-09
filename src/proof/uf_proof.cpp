@@ -644,12 +644,50 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
           Unreachable();
         }
       } else {
-        // Both n1 and n2 are predicates. Don't know what to do...
-        Unreachable();
+        // Both n1 and n2 are predicates.
+        // We want to prove b1 = b2, and we know that ((b1), (b2)) or ((not b1), (not b2))
+        Debug("gk::temp") << "Two-predicate case. pf->d_node = " << pf->d_node
+                          << ", n1 = " << n1 << ", n2 = " << n2 << std::endl;
+
+        if (n1.getKind() == kind::NOT) {
+          Assert(n2.getKind() == kind::NOT);
+          Assert(pf->d_node[0] == n1[0] || pf->d_node[0] == n2[0]);
+          Assert(pf->d_node[1] == n1[0] || pf->d_node[1] == n2[0]);
+          Assert(n1[0].getKind() == kind::BOOLEAN_TERM_VARIABLE);
+          Assert(n2[0].getKind() == kind::BOOLEAN_TERM_VARIABLE);
+
+          if (pf->d_node[0] == n1[0]) {
+            ss << "(false_preds_equal _ _ " << ss1.str() << " " << ss2.str() << ") ";
+            ss << "(pred_refl_neg _ " << ss2.str() << ")";
+          } else {
+            ss << "(false_preds_equal _ _ " << ss2.str() << " " << ss1.str() << ") ";
+            ss << "(pred_refl_neg _ " << ss1.str() << ")";
+          }
+          n1 = pf->d_node;
+
+        } else if (n1.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
+          Assert(n2.getKind() == kind::BOOLEAN_TERM_VARIABLE);
+          Assert(pf->d_node[0] == n1 || pf->d_node[0] == n2);
+          Assert(pf->d_node[1] == n1 || pf->d_node[2] == n2);
+
+          if (pf->d_node[0] == n1) {
+            ss << "(true_preds_equal _ _ " << ss1.str() << " " << ss2.str() << ") ";
+            ss << "(pred_refl_pos _ " << ss2.str() << ")";
+          } else {
+            ss << "(true_preds_equal _ _ " << ss2.str() << " " << ss1.str() << ") ";
+            ss << "(pred_refl_pos _ " << ss1.str() << ")";
+          }
+          n1 = pf->d_node;
+
+        } else {
+
+          Unreachable();
+        }
       }
 
       ss << ")";
     }
+
     out << ss.str();
     Debug("pf::uf") << "\n++ trans proof done, have proven " << n1 << std::endl;
     return n1;

@@ -80,6 +80,30 @@
   (! f formula
     (term Bool)))
 
+(declare true_preds_equal
+  (! x1 (term Bool)
+  (! x2 (term Bool)
+  (! u1 (th_holds (p_app x1))
+  (! u2 (th_holds (p_app x2))
+    (th_holds (= Bool x1 x2)))))))
+
+(declare false_preds_equal
+  (! x1 (term Bool)
+  (! x2 (term Bool)
+  (! u1 (th_holds (not (p_app x1)))
+  (! u2 (th_holds (not (p_app x2)))
+    (th_holds (= Bool x1 x2)))))))
+
+(declare pred_refl_pos
+  (! x1 (term Bool)
+  (! u1 (th_holds (p_app x1))
+    (th_holds (= Bool x1 x1)))))
+
+(declare pred_refl_neg
+  (! x1 (term Bool)
+  (! u1 (th_holds (not (p_app x1)))
+    (th_holds (= Bool x1 x1)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; CNF Clausification
