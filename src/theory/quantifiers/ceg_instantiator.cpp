@@ -556,34 +556,43 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           }
         }
         //make sum with normalized coefficient
-        Assert( !pv_coeff.isNull() );
-        pv_coeff = Rewriter::rewrite( pv_coeff );
-        Trace("cegqi-si-apply-subs-debug") << "Combined coeff : " << pv_coeff << std::endl;
-        std::vector< Node > children;
-        for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
-          Node c_coeff;
-          if( !msum_coeff[it->first].isNull() ){
-            c_coeff = Rewriter::rewrite( NodeManager::currentNM()->mkConst( pv_coeff.getConst<Rational>() / msum_coeff[it->first].getConst<Rational>() ) );
+        if( !pv_coeff.isNull() ){
+          pv_coeff = Rewriter::rewrite( pv_coeff );
+          Trace("cegqi-si-apply-subs-debug") << "Combined coeff : " << pv_coeff << std::endl;
+          std::vector< Node > children;
+          for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
+            Node c_coeff;
+            if( !msum_coeff[it->first].isNull() ){
+              c_coeff = Rewriter::rewrite( NodeManager::currentNM()->mkConst( pv_coeff.getConst<Rational>() / msum_coeff[it->first].getConst<Rational>() ) );
+            }else{
+              c_coeff = pv_coeff;
+            }
+            if( !it->second.isNull() ){
+              c_coeff = NodeManager::currentNM()->mkNode( MULT, c_coeff, it->second );
+            }
+            Assert( !c_coeff.isNull() );
+            Node c;
+            if( msum_term[it->first].isNull() ){
+              c = c_coeff;
+            }else{
+              c = NodeManager::currentNM()->mkNode( MULT, c_coeff, msum_term[it->first] );
+            }
+            children.push_back( c );
+            Trace("cegqi-si-apply-subs-debug") << "Add child : " << c << std::endl;
+          }
+          Node nret = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
+          nret = Rewriter::rewrite( nret );
+          //ensure that nret does not contain vars
+          if( !TermDb::containsTerms( nret, vars ) ){
+            //result is ( nret / pv_coeff )
+            return nret;
           }else{
-            c_coeff = pv_coeff;
+            Trace("cegqi-si-apply-subs-debug") << "Failed, since result " << nret << " contains free variable." << std::endl;
           }
-          if( !it->second.isNull() ){
-            c_coeff = NodeManager::currentNM()->mkNode( MULT, c_coeff, it->second );
-          }
-          Assert( !c_coeff.isNull() );
-          Node c;
-          if( msum_term[it->first].isNull() ){
-            c = c_coeff;
-          }else{
-            c = NodeManager::currentNM()->mkNode( MULT, c_coeff, msum_term[it->first] );
-          }
-          children.push_back( c );
-          Trace("cegqi-si-apply-subs-debug") << "Add child : " << c << std::endl;
+        }else{
+          //implies that we have a monomial that has a free variable
+          Trace("cegqi-si-apply-subs-debug") << "Failed to find coefficient during substitution, implies monomial with free variable." << std::endl;
         }
-        Node nret = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
-        nret = Rewriter::rewrite( nret );
-        //result is ( nret / pv_coeff )
-        return nret;
       }else{
         Trace("cegqi-si-apply-subs-debug") << "Failed to find monomial sum " << n << std::endl;
       }
