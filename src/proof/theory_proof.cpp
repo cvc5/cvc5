@@ -929,7 +929,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
     // arguments, so we have to flatten chained operators, like =.
     Kind op = term.getOperator().getConst<Chain>().getOperator();
     std::string op_str;
-    bool booleanCase;
+    bool booleanCase = false;
     if (op==kind::EQUAL && term[0].getType().isBoolean()) {
       booleanCase = term[0].getType().isBoolean();
       op_str = "iff";
