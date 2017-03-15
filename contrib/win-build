@@ -13,7 +13,7 @@ if [ $# -ne 0 ]; then
 fi
 
 if [ -z "$HOST" ]; then
-  HOST=i586-mingw32msvc
+  HOST=i686-w64-mingw32
   echo "WARNING:"
   echo "WARNING: Using default HOST value: $HOST"
   echo "WARNING: You should probably run this script like this:"
