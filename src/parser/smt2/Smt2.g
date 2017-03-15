@@ -1197,33 +1197,39 @@ smt25Command[CVC4::PtrCloser<CVC4::Command>* cmd]
             ++i) {
           sorts.push_back((*i).second);
         }
-          t = EXPR_MANAGER->mkFunctionType(sorts, t);
+        t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
       Expr func = PARSER_STATE->mkVar(fname, t);
       seq->addCommand(new DeclareFunctionCommand(fname, func, t));
-      std::vector< Expr > f_app;
-      f_app.push_back( func );
-      PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end(); i != iend;
-          ++i) {
-        Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
-        bvs.push_back( v );
-        f_app.push_back( v );
+      if( sortedVarNames.empty() ){
+        func_app = func;
+      }else{
+        std::vector< Expr > f_app;
+        f_app.push_back( func );
+        PARSER_STATE->pushScope(true);
+        for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+              sortedVarNames.begin(), iend = sortedVarNames.end(); i != iend;
+            ++i) {
+          Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
+          bvs.push_back( v );
+          f_app.push_back( v );
+        }
+        func_app = MK_EXPR( kind::APPLY_UF, f_app );
       }
-      func_app = MK_EXPR( kind::APPLY_UF, f_app );
     }
     term[expr, expr2]
     { PARSER_STATE->popScope(); 
-      std::string attr_name("fun-def");
-      aexpr = MK_EXPR(kind::INST_ATTRIBUTE, func_app);
-      aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr);
-      //set the attribute to denote this is a function definition
-      seq->addCommand( new SetUserAttributeCommand( attr_name, func_app ) );
-      //assert it
-      Expr equality = MK_EXPR( kind::EQUAL, func_app, expr);
-      Expr boundVars = EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs);
-      Expr as = EXPR_MANAGER->mkExpr(kind::FORALL, boundVars, equality, aexpr);
+      Expr as = MK_EXPR( kind::EQUAL, func_app, expr);
+      if( !bvs.empty() ){
+        std::string attr_name("fun-def");
+        aexpr = MK_EXPR(kind::INST_ATTRIBUTE, func_app);
+        aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr);
+        //set the attribute to denote this is a function definition
+        seq->addCommand( new SetUserAttributeCommand( attr_name, func_app ) );
+        //assert it
+        Expr boundVars = EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs);
+        as = EXPR_MANAGER->mkExpr(kind::FORALL, boundVars, as, aexpr);
+      }
       seq->addCommand( new AssertCommand(as, false) );
       cmd->reset(seq.release());
     }
@@ -1239,13 +1245,15 @@ smt25Command[CVC4::PtrCloser<CVC4::Command>* cmd]
       sortSymbol[t,CHECK_DECLARED]
       { sortedVarNamesList.push_back( sortedVarNames );
         if( sortedVarNamesList[0].size() > 0 ) {
-          std::vector<CVC4::Type> sorts;
-          for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator
-                  i = sortedVarNames.begin(), iend = sortedVarNames.end();
-              i != iend; ++i) {
-            sorts.push_back((*i).second);
+          if( !sortedVarNames.empty() ){
+            std::vector<CVC4::Type> sorts;
+            for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator
+                    i = sortedVarNames.begin(), iend = sortedVarNames.end();
+                i != iend; ++i) {
+              sorts.push_back((*i).second);
+            }
+            t = EXPR_MANAGER->mkFunctionType(sorts, t);
           }
-          t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }
         sortedVarNames.clear();
         Expr func = PARSER_STATE->mkVar(fname, t);
@@ -1262,52 +1270,60 @@ smt25Command[CVC4::PtrCloser<CVC4::Command>* cmd]
         PARSER_STATE->parseError("Must define at least one function in "
                                  "define-funs-rec");
       }
-      std::vector< Expr > f_app;
-      f_app.push_back( funcs[0] );
       PARSER_STATE->pushScope(true);
       bvs.clear();
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator
-            i = sortedVarNamesList[0].begin(),
-            iend = sortedVarNamesList[0].end(); i != iend; ++i) {
-        Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
-        bvs.push_back( v );
-        f_app.push_back( v );
-      }
-      func_app = MK_EXPR( kind::APPLY_UF, f_app );
-    }
-    (
-    term[expr,expr2]
-    { 
-      func_defs.push_back( expr );
-      
-      std::string attr_name("fun-def");
-      aexpr = MK_EXPR(kind::INST_ATTRIBUTE, func_app);
-      aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr );
-      //set the attribute to denote these are function definitions
-      seq->addCommand( new SetUserAttributeCommand( attr_name, func_app ) );
-      //assert it
-      Expr as = EXPR_MANAGER->mkExpr(
-                    kind::FORALL,
-                    EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs),
-                    MK_EXPR( kind::EQUAL, func_app, expr ),
-                    aexpr);
-      seq->addCommand( new AssertCommand(as, false) );
-      //set up the next scope 
-      PARSER_STATE->popScope();
-      if( func_defs.size()<funcs.size() ){
-        unsigned j = func_defs.size();
+      if( sortedVarNamesList[0].empty() ){
+        func_app = funcs[0];
+      }else{
         std::vector< Expr > f_app;
-        f_app.push_back( funcs[j] );
-        PARSER_STATE->pushScope(true);
-        bvs.clear();
+        f_app.push_back( funcs[0] );
         for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator
-                i = sortedVarNamesList[j].begin(),
-                iend = sortedVarNamesList[j].end(); i != iend; ++i) {
+              i = sortedVarNamesList[0].begin(),
+              iend = sortedVarNamesList[0].end(); i != iend; ++i) {
           Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
           bvs.push_back( v );
           f_app.push_back( v );
         }
         func_app = MK_EXPR( kind::APPLY_UF, f_app );
+      }
+    }
+    (
+    term[expr,expr2]
+    { 
+      func_defs.push_back( expr );
+      Expr as = MK_EXPR( kind::EQUAL, func_app, expr );
+      if( !bvs.empty() ){
+        std::string attr_name("fun-def");
+        aexpr = MK_EXPR(kind::INST_ATTRIBUTE, func_app);
+        aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr );
+        //set the attribute to denote these are function definitions
+        seq->addCommand( new SetUserAttributeCommand( attr_name, func_app ) );
+        //assert it
+        as = EXPR_MANAGER->mkExpr( kind::FORALL,
+                      EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs),
+                      as, aexpr);
+      }
+      seq->addCommand( new AssertCommand(as, false) );
+      //set up the next scope 
+      PARSER_STATE->popScope();
+      if( func_defs.size()<funcs.size() ){
+        PARSER_STATE->pushScope(true);
+        bvs.clear();
+        unsigned j = func_defs.size();
+        if( sortedVarNamesList[j].empty() ){
+          func_app = funcs[j];
+        }else{
+          std::vector< Expr > f_app;
+          f_app.push_back( funcs[j] );
+          for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator
+                  i = sortedVarNamesList[j].begin(),
+                  iend = sortedVarNamesList[j].end(); i != iend; ++i) {
+            Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
+            bvs.push_back( v );
+            f_app.push_back( v );
+          }
+          func_app = MK_EXPR( kind::APPLY_UF, f_app );
+        }
       }
     }
     )+
