@@ -2097,16 +2097,16 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
            }
            // build a lambda
            std::vector<Expr> largs;
-           largs.push_back( MK_EXPR( CVC4::Kind::BOUND_VAR_LIST, args ) );
+           largs.push_back( MK_EXPR( CVC4::kind::BOUND_VAR_LIST, args ) );
            largs.push_back( f3 );
            std::vector< Expr > aargs;
-           aargs.push_back( MK_EXPR( CVC4::Kind::LAMBDA, largs ) );
+           aargs.push_back( MK_EXPR( CVC4::kind::LAMBDA, largs ) );
            for( unsigned i=0; i<dtc.getNumArgs(); i++ ){
              //can apply total version since we will be guarded by ITE condition
-             aargs.push_back( MK_EXPR( CVC4::Kind::APPLY_SELECTOR_TOTAL, dtc[i].getSelector(), expr ) );
+             aargs.push_back( MK_EXPR( CVC4::kind::APPLY_SELECTOR_TOTAL, dtc[i].getSelector(), expr ) );
            }
-           patexprs.push_back( MK_EXPR( CVC4::Kind::APPLY, aargs ) );
-           patconds.push_back( MK_EXPR( CVC4::Kind::APPLY_TESTER, dtc.getTester(), expr ) );
+           patexprs.push_back( MK_EXPR( CVC4::kind::APPLY, aargs ) );
+           patconds.push_back( MK_EXPR( CVC4::kind::APPLY_TESTER, dtc.getTester(), expr ) );
          }
          RPAREN_TOK 
          { PARSER_STATE->popScope(); }
@@ -2120,7 +2120,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
          term[f3, f2] {
            const DatatypeConstructor& dtc = Datatype::datatypeOf(f)[Datatype::indexOf(f)];
            patexprs.push_back( f3 );
-           patconds.push_back( MK_EXPR( CVC4::Kind::APPLY_TESTER, dtc.getTester(), expr ) );
+           patconds.push_back( MK_EXPR( CVC4::kind::APPLY_TESTER, dtc.getTester(), expr ) );
          }
          RPAREN_TOK
     )+
@@ -2152,7 +2152,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
           expr = patexprs[index];
           first_time = false;
         }else{
-          expr = MK_EXPR( CVC4::Kind::ITE, patconds[index], patexprs[index], expr );
+          expr = MK_EXPR( CVC4::kind::ITE, patconds[index], patexprs[index], expr );
         }
       }
     }

@@ -11,4 +11,14 @@
 (declare-fun t () TreeList)
 (assert (<= 100 (match t ((empty (- 1)) ((insert x1 x2) (value x1))))))
 
+
+(declare-datatypes ( ( PTree 1) ( PTreeList 1) ) (
+(par ( X ) ( ( pnode ( pvalue X ) ( pchildren ( PTreeList X )) )))
+(par ( Y ) ( ( pempty ) ( pinsert ( phead ( PTree Y )) ( ptail ( PTreeList Y ))) ))
+))
+
+(declare-fun pt () (PTreeList Int))
+(assert (<= 200 (match pt ((pempty (- 1)) ((pinsert x1 x2) (pvalue x1))))))
+
+
 (check-sat)
