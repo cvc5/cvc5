@@ -1359,6 +1359,8 @@ extendedCommand[CVC4::PtrCloser<CVC4::Command>* cmd]
      * --smtlib2 compliance mode. */
   : DECLARE_DATATYPES_2_5_TOK datatypes_2_5_DefCommand[false, cmd]
   | DECLARE_CODATATYPES_2_5_TOK datatypes_2_5_DefCommand[true, cmd]
+  | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
+  | DECLARE_CODATATYPE_TOK datatypeDefCommand[true, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
   | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
   | rewriterulesCommand[cmd]
@@ -1526,10 +1528,24 @@ datatypes_2_5_DefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]
   }
   ;
   
+datatypeDefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]  
+@declarations {
+  std::vector<CVC4::Datatype> dts;
+  std::string name;
+}
+ : { PARSER_STATE->checkThatLogicIsSet(); }
+ symbol[name,CHECK_UNDECLARED,SYM_SORT] LPAREN_TOK
+ { std::vector<Type> params;
+   dts.push_back(Datatype(name,params,isCo));
+ }
+ ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
+ RPAREN_TOK
+ { cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts))); }
+ ;
+  
 datatypesDefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
-  std::vector<Type> types;
   std::string name;
   std::vector<std::string> dnames;
   std::vector<unsigned> arities;
@@ -1545,8 +1561,8 @@ datatypesDefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]
       //} else {
       //  type = PARSER_STATE->mkSortConstructor(name, arity);
       //}
-      Debug("parser-dt") << "Datatype : " << name << ", arity = " << arity << std::endl;
       //types.push_back(type);
+      Debug("parser-dt") << "Datatype : " << name << ", arity = " << arity << std::endl;
       dnames.push_back(name);
       arities.push_back( arity );
     }
@@ -1793,12 +1809,15 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::string attr;
   Expr attexpr;
   std::vector<Expr> patexprs;
+  std::vector<Expr> patconds;
   std::hash_set<std::string, StringHashFunction> names;
   std::vector< std::pair<std::string, Expr> > binders;
   Type type;
   std::string s;
   bool isBuiltinOperator = false;
   bool readLetSort = false;
+  int match_vindex = -1;
+  std::vector<Type> match_ptypes;
 }
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
@@ -2029,6 +2048,115 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
     term[expr, f2]
     RPAREN_TOK
     { PARSER_STATE->popScope(); }
+  | /* match expression */
+    LPAREN_TOK MATCH_TOK term[expr, f2] {
+      if( !expr.getType().isDatatype() ){
+        PARSER_STATE->parseError("Cannot match on non-datatype term.");
+      }
+    }
+    LPAREN_TOK
+    ( 
+      /* match cases */
+       LPAREN_TOK INDEX_TOK term[f, f2] { 
+          if( match_vindex==-1 ){
+            match_vindex = (int)patexprs.size(); 
+          }
+          patexprs.push_back( f ); 
+          patconds.push_back(MK_CONST(bool(true)));
+        }
+        RPAREN_TOK
+      | LPAREN_TOK LPAREN_TOK term[f, f2] { 
+           args.clear(); 
+           PARSER_STATE->pushScope(true); 
+           //f should be a constructor
+           type = f.getType();
+           Debug("parser-dt") << "Pattern head : " << f << " " << f.getType() << std::endl;
+           if( !type.isConstructor() ){
+             PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
+           }
+           //TODO
+           //if( Datatype::datatypeOf(f).isParametric() ){
+           //  type = Datatype::datatypeOf(f)[Datatype::indexOf(f)].getSpecializedConstructorType(expr.getType());
+           //}
+           match_ptypes = ((ConstructorType)type).getArgTypes();
+         }
+         //arguments
+         ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
+             if( args.size()>=match_ptypes.size() ){
+               PARSER_STATE->parseError("Too many arguments for pattern.");
+             }
+             //make of proper type
+             Expr arg = PARSER_STATE->mkBoundVar(name, match_ptypes[args.size()]);
+             args.push_back( arg );
+           }
+         )*
+         RPAREN_TOK
+         term[f3, f2] { 
+           const DatatypeConstructor& dtc = Datatype::datatypeOf(f)[Datatype::indexOf(f)];
+           if( args.size()!=dtc.getNumArgs() ){
+             PARSER_STATE->parseError("Bad number of arguments for application of constructor in pattern.");
+           }
+           // build a lambda
+           std::vector<Expr> largs;
+           largs.push_back( MK_EXPR( CVC4::Kind::BOUND_VAR_LIST, args ) );
+           largs.push_back( f3 );
+           std::vector< Expr > aargs;
+           aargs.push_back( MK_EXPR( CVC4::Kind::LAMBDA, largs ) );
+           for( unsigned i=0; i<dtc.getNumArgs(); i++ ){
+             //can apply total version since we will be guarded by ITE condition
+             aargs.push_back( MK_EXPR( CVC4::Kind::APPLY_SELECTOR_TOTAL, dtc[i].getSelector(), expr ) );
+           }
+           patexprs.push_back( MK_EXPR( CVC4::Kind::APPLY, aargs ) );
+           patconds.push_back( MK_EXPR( CVC4::Kind::APPLY_TESTER, dtc.getTester(), expr ) );
+         }
+         RPAREN_TOK 
+         { PARSER_STATE->popScope(); }
+       | LPAREN_TOK symbol[name,CHECK_DECLARED,SYM_VARIABLE] {
+           f = PARSER_STATE->getVariable(name);
+           type = f.getType();
+           if( !type.isConstructor() || !((ConstructorType)type).getArgTypes().empty() ){
+             PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
+           }
+         }
+         term[f3, f2] {
+           const DatatypeConstructor& dtc = Datatype::datatypeOf(f)[Datatype::indexOf(f)];
+           patexprs.push_back( f3 );
+           patconds.push_back( MK_EXPR( CVC4::Kind::APPLY_TESTER, dtc.getTester(), expr ) );
+         }
+         RPAREN_TOK
+    )+
+    RPAREN_TOK RPAREN_TOK  { 
+      if( match_vindex==-1 ){
+        const Datatype& dt = ((DatatypeType)expr.getType()).getDatatype();
+        std::map< unsigned, bool > processed;
+        unsigned count = 0;
+        //ensure that all datatype constructors are matched (to ensure exhaustiveness)
+        for( unsigned i=0; i<patconds.size(); i++ ){
+          unsigned curr_index = Datatype::indexOf(patconds[i].getOperator());
+          if( curr_index<0 && curr_index>=dt.getNumConstructors() ){
+            PARSER_STATE->parseError("Pattern is not legal for the head of a match.");
+          }
+          if( processed.find( curr_index )==processed.end() ){
+            processed[curr_index] = true;
+            count++;
+          }
+        }
+        if( count!=dt.getNumConstructors() ){
+          PARSER_STATE->parseError("Patterns are not exhaustive in a match construct.");
+        }
+      }
+      //now, make the ITE
+      int end_index = match_vindex==-1 ? patexprs.size()-1 : match_vindex;
+      bool first_time = true;
+      for( int index = end_index; index>=0; index-- ){
+        if( first_time ){
+          expr = patexprs[index];
+          first_time = false;
+        }else{
+          expr = MK_EXPR( CVC4::Kind::ITE, patconds[index], patexprs[index], expr );
+        }
+      }
+    }
   | symbol[name,CHECK_NONE,SYM_VARIABLE] SYGUS_ENUM_CONS_TOK
     symbol[name2,CHECK_NONE,SYM_VARIABLE]
     { std::string cname = name + "__Enum__" + name2;
@@ -2900,6 +3028,7 @@ AS_TOK : 'as';
 CONST_TOK : 'const';
 
 // extended commands
+DECLARE_CODATATYPE_TOK : { PARSER_STATE->v2_6() }? 'declare-codatatype';
 DECLARE_DATATYPE_TOK : { PARSER_STATE->v2_6() }? 'declare-datatype';
 DECLARE_DATATYPES_2_5_TOK : { !PARSER_STATE->v2_6() }?'declare-datatypes';
 DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() }?'declare-datatypes';
@@ -2907,6 +3036,7 @@ DECLARE_CODATATYPES_2_5_TOK : { !PARSER_STATE->v2_6() }?'declare-codatatypes';
 DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() }?'declare-codatatypes';
 PAR_TOK : { PARSER_STATE->v2_6() }?'par';
 TESTER_TOK : { PARSER_STATE->v2_6() }?'is';
+MATCH_TOK : { PARSER_STATE->v2_6() }?'match';
 GET_MODEL_TOK : 'get-model';
 ECHO_TOK : 'echo';
 REWRITE_RULE_TOK : 'assert-rewrite';
