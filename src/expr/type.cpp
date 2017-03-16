@@ -37,24 +37,25 @@ Type Type::makeType(const TypeNode& typeNode) const {
   return Type(d_nodeManager, new TypeNode(typeNode));
 }
 
-Type::Type(NodeManager* nm, TypeNode* node) :
-  d_typeNode(node),
-  d_nodeManager(nm) {
+Type::Type(NodeManager* nm, TypeNode* node)
+    : d_typeNode(node), d_nodeManager(nm) {
+  // This does not require a NodeManagerScope as this is restricted to be an
+  // internal only pointer initialization call.
+}
+
+Type::Type() : d_typeNode(new TypeNode), d_nodeManager(NULL) {
+  // This does not require a NodeManagerScope as `new TypeNode` is backed by a
+  // static expr::NodeValue::null().
+}
+
+Type::Type(const Type& t) : d_typeNode(NULL), d_nodeManager(t.d_nodeManager) {
+  NodeManagerScope nms(d_nodeManager);
+  d_typeNode = new TypeNode(*t.d_typeNode);
 }
 
 Type::~Type() {
   NodeManagerScope nms(d_nodeManager);
   delete d_typeNode;
-}
-
-Type::Type() :
-  d_typeNode(new TypeNode),
-  d_nodeManager(NULL) {
-}
-
-Type::Type(const Type& t) :
-  d_typeNode(new TypeNode(*t.d_typeNode)),
-  d_nodeManager(t.d_nodeManager) {
 }
 
 bool Type::isNull() const {
