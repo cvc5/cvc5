@@ -272,6 +272,7 @@ bool SExpr::languageQuotesKeywords(OutputLanguage language) {
     case language::output::LANG_SMTLIB_V1:
     case language::output::LANG_SMTLIB_V2_0:
     case language::output::LANG_SMTLIB_V2_5:
+    case language::output::LANG_SMTLIB_V2_6:
     case language::output::LANG_SYGUS:
     case language::output::LANG_TPTP:
     case language::output::LANG_Z3STR:

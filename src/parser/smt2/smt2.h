@@ -108,8 +108,14 @@ public:
   bool v2_0() const {
     return getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_0;
   }
-  bool v2_5() const {
-    return getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_5;
+  // 2.6 is a superset of 2.5, use exact=false to query whether smt lib 2.5 or above
+  bool v2_5( bool exact = true ) const {
+    return exact ? getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_5 : 
+                   ( getInput()->getLanguage() >= language::input::LANG_SMTLIB_V2_5 && 
+                     getInput()->getLanguage() <= language::input::LANG_SMTLIB_V2 );
+  }
+  bool v2_6() const {
+    return getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_6;
   }
   bool sygus() const {
     return getInput()->getLanguage() == language::input::LANG_SYGUS;

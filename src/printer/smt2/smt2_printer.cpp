@@ -671,11 +671,17 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
            tmp.replace(pos, 8, "::");
         }
         out << tmp;
-      }else if( n.getKind()==kind::APPLY_TESTER ){
+      }else if( n.getKind()==kind::APPLY_TESTER ){ 
         unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
         const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
-        out << "is-";
-        toStream(out, Node::fromExpr(dt[cindex].getConstructor()), toDepth < 0 ? toDepth : toDepth - 1, types);
+        if( d_variant==smt2_6_variant ){
+          out << "(_ is ";
+          toStream(out, Node::fromExpr(dt[cindex].getConstructor()), toDepth < 0 ? toDepth : toDepth - 1, types);
+          out << ")";
+        }else{
+          out << "is-";
+          toStream(out, Node::fromExpr(dt[cindex].getConstructor()), toDepth < 0 ? toDepth : toDepth - 1, types);
+        }
       }else{
         toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types);
       }
@@ -1018,7 +1024,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<GetInfoCommand>(out, c) ||
      tryToStream<SetOptionCommand>(out, c) ||
      tryToStream<GetOptionCommand>(out, c) ||
-     tryToStream<DatatypeDeclarationCommand>(out, c) ||
+     tryToStream<DatatypeDeclarationCommand>(out, c, d_variant) ||
      tryToStream<CommentCommand>(out, c, d_variant) ||
      tryToStream<EmptyCommand>(out, c) ||
      tryToStream<EchoCommand>(out, c, d_variant)) {
@@ -1102,9 +1108,12 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
     const std::map< TypeNode, std::vector< Node > >& type_reps = tm.d_rep_set.d_type_reps;
 
     std::map< TypeNode, std::vector< Node > >::const_iterator tn_iterator = type_reps.find( tn );
-    if( options::modelUninterpDtEnum() && tn.isSort() && tn_iterator != type_reps.end() ){
-      out << "(declare-datatypes () ((" << dynamic_cast<const DeclareTypeCommand*>(c)->getSymbol() << " ";
-
+    if( options::modelUninterpDtEnum() && tn.isSort() && tn_iterator != type_reps.end() ){  
+      if(d_variant == smt2_6_variant) {
+        out << "(declare-datatypes ((" << dynamic_cast<const DeclareTypeCommand*>(c)->getSymbol() << " 0)) (";
+      }else{
+        out << "(declare-datatypes () ((" << dynamic_cast<const DeclareTypeCommand*>(c)->getSymbol() << " ";
+      }
       for( size_t i=0, N = tn_iterator->second.size(); i < N; i++ ){
         out << "(" << (*tn_iterator).second[i] << ")";
       }
@@ -1457,32 +1466,60 @@ static void toStream(std::ostream& out, const GetOptionCommand* c) throw() {
   out << "(get-option :" << c->getFlag() << ")";
 }
 
-static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) throw() {
-  const vector<DatatypeType>& datatypes = c->getDatatypes();
-  out << "(declare-datatypes () (";
-  for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
-        i_end = datatypes.end();
-      i != i_end;
-      ++i) {
+static void toStream(std::ostream& out, const Datatype & d) {
+  for(Datatype::const_iterator ctor = d.begin(), ctor_end = d.end();
+      ctor != ctor_end; ++ctor){
+    if( ctor!=d.begin() ) out << " ";
+    out << "(" << maybeQuoteSymbol(ctor->getName());
 
-    const Datatype & d = i->getDatatype();
-
-    out << "(" << maybeQuoteSymbol(d.getName()) << " ";
-    for(Datatype::const_iterator ctor = d.begin(), ctor_end = d.end();
-        ctor != ctor_end; ++ctor){
-      if( ctor!=d.begin() ) out << " ";
-      out << "(" << maybeQuoteSymbol(ctor->getName());
-
-      for(DatatypeConstructor::const_iterator arg = ctor->begin(), arg_end = ctor->end();
-          arg != arg_end; ++arg){
-        out << " (" << arg->getSelector() << " "
-            << static_cast<SelectorType>(arg->getType()).getRangeType() << ")";
-      }
-      out << ")";
+    for(DatatypeConstructor::const_iterator arg = ctor->begin(), arg_end = ctor->end();
+        arg != arg_end; ++arg){
+      out << " (" << arg->getSelector() << " "
+          << static_cast<SelectorType>(arg->getType()).getRangeType() << ")";
     }
-    out << ")" << endl;
+    out << ")";
   }
-  out << "))";
+}
+
+static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c, Variant v) throw() {
+  const vector<DatatypeType>& datatypes = c->getDatatypes();
+  out << "(declare-";
+  Assert( !datatypes.empty() );
+  if( datatypes[0].getDatatype().isCodatatype() ){
+    out << "co";
+  }
+  out << "datatypes";
+  if(v == smt2_6_variant) {
+    out << " (";
+    for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
+          i_end = datatypes.end();
+        i != i_end; ++i) {
+      const Datatype & d = i->getDatatype();
+      out << "(" << maybeQuoteSymbol(d.getName());
+      out << " " << d.getNumParameters() << ")";
+    }
+    out << ") ";
+    for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
+          i_end = datatypes.end();
+        i != i_end; ++i) {
+      const Datatype & d = i->getDatatype();
+      out << "(";
+      toStream( out, d );
+      out << ")" << endl;
+    }
+  }else{
+    out << " () (";
+    for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
+          i_end = datatypes.end();
+        i != i_end; ++i) {
+      const Datatype & d = i->getDatatype();
+      out << "(" << maybeQuoteSymbol(d.getName()) << " ";
+      toStream( out, d );
+      out << ")" << endl;
+    }
+    out << ")";
+  }
+  out << ")";
 }
 
 static void toStream(std::ostream& out, const CommentCommand* c, Variant v) throw() {

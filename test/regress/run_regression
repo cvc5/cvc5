@@ -212,7 +212,7 @@ else
   error "benchmark \`$benchmark' must be *.cvc or *.smt or *.smt2 or *.p or *.sy"
 fi
 
-command_line="${command_line:+$command_line }--lang=$lang"
+command_line="--lang=$lang ${command_line:+$command_line }"
 
 gettemp expoutfile cvc4_expect_stdout.$$.XXXXXXXXXX
 gettemp experrfile cvc4_expect_stderr.$$.XXXXXXXXXX

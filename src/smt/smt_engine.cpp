@@ -2057,7 +2057,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
         value.getValue() == "2.0" ) {
       // supported SMT-LIB version
       if(!options::outputLanguage.wasSetByUser() &&
-         options::outputLanguage() == language::output::LANG_SMTLIB_V2_5) {
+         ( options::outputLanguage() == language::output::LANG_SMTLIB_V2_5 || options::outputLanguage() == language::output::LANG_SMTLIB_V2_6 )) {
         options::outputLanguage.set(language::output::LANG_SMTLIB_V2_0);
         *options::out() << language::SetLanguage(language::output::LANG_SMTLIB_V2_0);
       }
@@ -2069,6 +2069,15 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
          options::outputLanguage() == language::output::LANG_SMTLIB_V2_0) {
         options::outputLanguage.set(language::output::LANG_SMTLIB_V2_5);
         *options::out() << language::SetLanguage(language::output::LANG_SMTLIB_V2_5);
+      }
+      return;
+    } else if( (value.isRational() && value.getRationalValue() == Rational(13, 5)) ||
+               value.getValue() == "2.6" ) {
+      // supported SMT-LIB version
+      if(!options::outputLanguage.wasSetByUser() &&
+         options::outputLanguage() == language::output::LANG_SMTLIB_V2_0) {
+        options::outputLanguage.set(language::output::LANG_SMTLIB_V2_6);
+        *options::out() << language::SetLanguage(language::output::LANG_SMTLIB_V2_6);
       }
       return;
     }

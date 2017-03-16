@@ -49,8 +49,10 @@ enum CVC4_PUBLIC Language {
   LANG_SMTLIB_V2_0,
   /** The SMTLIB v2.5 input language */
   LANG_SMTLIB_V2_5,
+  /** The SMTLIB v2.6 input language */
+  LANG_SMTLIB_V2_6,
   /** Backward-compatibility for enumeration naming */
-  LANG_SMTLIB_V2 = LANG_SMTLIB_V2_5,
+  LANG_SMTLIB_V2 = LANG_SMTLIB_V2_6,
   /** The TPTP input language */
   LANG_TPTP,
   /** The CVC4 input language */
@@ -81,6 +83,9 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
     break;
   case LANG_SMTLIB_V2_5:
     out << "LANG_SMTLIB_V2_5";
+    break;
+  case LANG_SMTLIB_V2_6:
+    out << "LANG_SMTLIB_V2_6";
     break;
   case LANG_TPTP:
     out << "LANG_TPTP";
@@ -123,6 +128,8 @@ enum CVC4_PUBLIC Language {
   LANG_SMTLIB_V2_0 = input::LANG_SMTLIB_V2_0,
   /** The SMTLIB v2.5 output language */
   LANG_SMTLIB_V2_5 = input::LANG_SMTLIB_V2_5,
+  /** The SMTLIB v2.6 output language */
+  LANG_SMTLIB_V2_6 = input::LANG_SMTLIB_V2_6,
   /** Backward-compatibility for enumeration naming */
   LANG_SMTLIB_V2 = input::LANG_SMTLIB_V2,
   /** The TPTP output language */

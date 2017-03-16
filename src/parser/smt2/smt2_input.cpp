@@ -67,7 +67,8 @@ Smt2Input::~Smt2Input() {
 
 void Smt2Input::setLanguage(InputLanguage lang) {
   CheckArgument(lang == language::input::LANG_SMTLIB_V2_0 ||
-                lang == language::input::LANG_SMTLIB_V2_5, lang);
+                lang == language::input::LANG_SMTLIB_V2_5 ||
+                lang == language::input::LANG_SMTLIB_V2_6, lang);
   d_lang = lang;
 }
 

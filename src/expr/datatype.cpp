@@ -395,6 +395,7 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   ExprManagerScope ems(d_self);
 
+  Debug("datatypes") << "mkGroundTerm of type " << t << std::endl;
 
   // is this already in the cache ?
   std::map< Type, Expr >::iterator it = d_ground_term.find( t );
@@ -437,8 +438,8 @@ Expr getSubtermWithType( Expr e, Type t, bool isTop ){
 }
 
 Expr Datatype::computeGroundTerm( Type t, std::vector< Type >& processing ) const throw(IllegalArgumentException) {
-  if( std::find( processing.begin(), processing.end(), d_self )==processing.end() ){
-    processing.push_back( d_self );
+  if( std::find( processing.begin(), processing.end(), t )==processing.end() ){
+    processing.push_back( t );
     for( unsigned r=0; r<2; r++ ){
       for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
         //do nullary constructors first
@@ -462,7 +463,7 @@ Expr Datatype::computeGroundTerm( Type t, std::vector< Type >& processing ) cons
     }
     processing.pop_back();
   }else{
-    Debug("datatypes") << "...already processing " << t << std::endl;
+    Debug("datatypes") << "...already processing " << t << " " << d_self << std::endl;
   }
   return Expr();
 }

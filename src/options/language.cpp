@@ -24,6 +24,7 @@ InputLanguage toInputLanguage(OutputLanguage language) {
   case output::LANG_SMTLIB_V1:
   case output::LANG_SMTLIB_V2_0:
   case output::LANG_SMTLIB_V2_5:
+  case output::LANG_SMTLIB_V2_6:
   case output::LANG_TPTP:
   case output::LANG_CVC4:
   case output::LANG_Z3STR:
@@ -45,6 +46,7 @@ OutputLanguage toOutputLanguage(InputLanguage language) {
   case input::LANG_SMTLIB_V1:
   case input::LANG_SMTLIB_V2_0:
   case input::LANG_SMTLIB_V2_5:
+  case input::LANG_SMTLIB_V2_6:
   case input::LANG_TPTP:
   case input::LANG_CVC4:
   case input::LANG_Z3STR:
@@ -85,6 +87,9 @@ OutputLanguage toOutputLanguage(std::string language) {
   } else if(language == "smtlib2.5" || language == "smt2.5" ||
             language == "LANG_SMTLIB_V2_5") {
     return output::LANG_SMTLIB_V2_5;
+  } else if(language == "smtlib2.6" || language == "smt2.6" ||
+            language == "LANG_SMTLIB_V2_6") {
+    return output::LANG_SMTLIB_V2_6;
   } else if(language == "tptp" || language == "LANG_TPTP") {
     return output::LANG_TPTP;
   } else if(language == "z3str" || language == "z3-str" ||
@@ -117,6 +122,9 @@ InputLanguage toInputLanguage(std::string language) {
   } else if(language == "smtlib2.5" || language == "smt2.5" ||
             language == "LANG_SMTLIB_V2_5") {
     return input::LANG_SMTLIB_V2_5;
+  } else if(language == "smtlib2.6" || language == "smt2.6" ||
+            language == "LANG_SMTLIB_V2_6") {
+    return input::LANG_SMTLIB_V2_6;
   } else if(language == "tptp" || language == "LANG_TPTP") {
     return input::LANG_TPTP;
   } else if(language == "z3str" || language == "z3-str" ||

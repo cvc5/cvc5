@@ -249,6 +249,7 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
 
   case LANG_SMTLIB_V2_0:
   case LANG_SMTLIB_V2_5:
+  case LANG_SMTLIB_V2_6:
     input = new Smt2Input(inputStream, lang);
     break;
 

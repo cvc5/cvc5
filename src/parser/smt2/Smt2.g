@@ -1107,6 +1107,10 @@ metaInfoInternal[CVC4::PtrCloser<CVC4::Command>* cmd]
                     sexpr.getRationalValue() == Rational(5, 2)) ||
                   sexpr.getValue() == "2.5" ) {
           PARSER_STATE->setLanguage(language::input::LANG_SMTLIB_V2_5);
+        } else if( (sexpr.isRational() &&
+                    sexpr.getRationalValue() == Rational(13, 5)) ||
+                  sexpr.getValue() == "2.6" ) {
+          PARSER_STATE->setLanguage(language::input::LANG_SMTLIB_V2_6);
         }
       }
       PARSER_STATE->setInfo(name.c_str() + 1, sexpr);
@@ -1353,7 +1357,9 @@ extendedCommand[CVC4::PtrCloser<CVC4::Command>* cmd]
 }
     /* Extended SMT-LIB set of commands syntax, not permitted in
      * --smtlib2 compliance mode. */
-  : DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
+  : DECLARE_DATATYPES_2_5_TOK datatypes_2_5_DefCommand[false, cmd]
+  | DECLARE_CODATATYPES_2_5_TOK datatypes_2_5_DefCommand[true, cmd]
+  | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
   | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
   | rewriterulesCommand[cmd]
 
@@ -1500,7 +1506,7 @@ extendedCommand[CVC4::PtrCloser<CVC4::Command>* cmd]
   ;
 
 
-datatypesDefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]
+datatypes_2_5_DefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
   std::string name;
@@ -1516,8 +1522,71 @@ datatypesDefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]
   RPAREN_TOK
   LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
   { PARSER_STATE->popScope();
-    cmd->reset(new DatatypeDeclarationCommand(
-        PARSER_STATE->mkMutualDatatypeTypes(dts)));
+    cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)));
+  }
+  ;
+  
+datatypesDefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]
+@declarations {
+  std::vector<CVC4::Datatype> dts;
+  std::vector<Type> types;
+  std::string name;
+  std::vector<std::string> dnames;
+  std::vector<unsigned> arities;
+  std::vector<Type> params;
+}
+  : { PARSER_STATE->checkThatLogicIsSet(); PARSER_STATE->pushScope(true); }
+  LPAREN_TOK /* sorts */
+  ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=INTEGER_LITERAL RPAREN_TOK
+    { unsigned arity = AntlrInput::tokenToUnsigned(n);
+      //Type type;
+      //if(arity == 0) {
+      //  type = PARSER_STATE->mkSort(name);
+      //} else {
+      //  type = PARSER_STATE->mkSortConstructor(name, arity);
+      //}
+      Debug("parser-dt") << "Datatype : " << name << ", arity = " << arity << std::endl;
+      //types.push_back(type);
+      dnames.push_back(name);
+      arities.push_back( arity );
+    }
+  )*
+  RPAREN_TOK 
+  LPAREN_TOK 
+  ( LPAREN_TOK { 
+      params.clear(); 
+      Debug("parser-dt") << "Processing datatype #" << dts.size() << std::endl;
+      if( dts.size()>=dnames.size() ){
+        PARSER_STATE->parseError("Too many datatypes defined in this block.");
+      }
+    }
+    ( PAR_TOK { PARSER_STATE->pushScope(true); } LPAREN_TOK
+      ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
+        { params.push_back( PARSER_STATE->mkSort(name) ); }
+      )*
+      RPAREN_TOK {
+        if( params.size()!=arities[dts.size()] ){
+          PARSER_STATE->parseError("Wrong number of parameters for datatype.");
+        }
+        Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
+        dts.push_back(Datatype(dnames[dts.size()],params,isCo));
+      }
+      LPAREN_TOK
+      ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
+      RPAREN_TOK { PARSER_STATE->popScope(); } 
+    | { if( 0!=arities[dts.size()] ){
+          PARSER_STATE->parseError("No parameters given for datatype.");
+        }
+        Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
+        dts.push_back(Datatype(dnames[dts.size()],params,isCo));
+      }
+      ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
+    )
+    RPAREN_TOK
+    )+
+  RPAREN_TOK
+  { PARSER_STATE->popScope();
+    cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts))); 
   }
   ;
 
@@ -1890,8 +1959,13 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
 
   | LPAREN_TOK
     ( /* An indexed function application */
-      indexedFunctionName[op] termList[args,expr] RPAREN_TOK
-      { expr = MK_EXPR(op, args);
+      indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK
+      { 
+        if( kind!=kind::NULL_EXPR ){
+          expr = MK_EXPR( kind, op, args );
+        }else{
+          expr = MK_EXPR(op, args);
+        }
         PARSER_STATE->checkOperator(expr.getKind(), args.size());
       }
     | /* Array constant (in Z3 syntax) */
@@ -2267,7 +2341,11 @@ attribute[CVC4::Expr& expr, CVC4::Expr& retExpr, std::string& attr]
 /**
  * Matches a bit-vector operator (the ones parametrized by numbers)
  */
-indexedFunctionName[CVC4::Expr& op]
+indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
+@init {
+  Expr expr;
+  Expr expr2;
+}
   : LPAREN_TOK INDEX_TOK
     ( 'extract' n1=INTEGER_LITERAL n2=INTEGER_LITERAL
       { op = MK_CONST(BitVectorExtract(AntlrInput::tokenToUnsigned($n1),
@@ -2344,6 +2422,13 @@ indexedFunctionName[CVC4::Expr& op]
       { op = MK_CONST(FloatingPointToUBV(AntlrInput::tokenToUnsigned($m))); }
     | FP_TO_SBV_TOK m=INTEGER_LITERAL
       { op = MK_CONST(FloatingPointToSBV(AntlrInput::tokenToUnsigned($m))); }
+    | TESTER_TOK term[expr, expr2] { 
+        if( !expr.getType().isConstructor() ){
+          PARSER_STATE->parseError("Bad syntax for test (_ is X), X must be a constructor.");
+        }
+        op = Datatype::datatypeOf(expr)[Datatype::indexOf(expr)].getTester();
+        kind = CVC4::kind::APPLY_TESTER;
+      }
     | badIndexedFunctionName
     )
     RPAREN_TOK
@@ -2795,7 +2880,7 @@ GET_ASSERTIONS_TOK : 'get-assertions';
 GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
 EXIT_TOK : 'exit';
-RESET_TOK : { PARSER_STATE->v2_5() }? 'reset';
+RESET_TOK : { PARSER_STATE->v2_5(false) }? 'reset';
 RESET_ASSERTIONS_TOK : 'reset-assertions';
 ITE_TOK : 'ite';
 LET_TOK : 'let';
@@ -2815,8 +2900,13 @@ AS_TOK : 'as';
 CONST_TOK : 'const';
 
 // extended commands
-DECLARE_DATATYPES_TOK : 'declare-datatypes';
-DECLARE_CODATATYPES_TOK : 'declare-codatatypes';
+DECLARE_DATATYPE_TOK : { PARSER_STATE->v2_6() }? 'declare-datatype';
+DECLARE_DATATYPES_2_5_TOK : { !PARSER_STATE->v2_6() }?'declare-datatypes';
+DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() }?'declare-datatypes';
+DECLARE_CODATATYPES_2_5_TOK : { !PARSER_STATE->v2_6() }?'declare-codatatypes';
+DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() }?'declare-codatatypes';
+PAR_TOK : { PARSER_STATE->v2_6() }?'par';
+TESTER_TOK : { PARSER_STATE->v2_6() }?'is';
 GET_MODEL_TOK : 'get-model';
 ECHO_TOK : 'echo';
 REWRITE_RULE_TOK : 'assert-rewrite';
@@ -3039,7 +3129,7 @@ STRING_LITERAL_2_0
  * will be part of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL_2_5
-  : { PARSER_STATE->v2_5() || PARSER_STATE->sygus() }?=>
+  : { PARSER_STATE->v2_5(false) || PARSER_STATE->sygus() }?=>
     '"' (~('"') | '""')* '"'
   ;
 

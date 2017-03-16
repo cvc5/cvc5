@@ -65,7 +65,8 @@ int main(int argc, char* argv[]) {
     *opts.getOut() << "unknown" << endl;
 #endif
     if(opts.getOutputLanguage() == output::LANG_SMTLIB_V2_0 ||
-       opts.getOutputLanguage() == output::LANG_SMTLIB_V2_5) {
+       opts.getOutputLanguage() == output::LANG_SMTLIB_V2_5 ||
+       opts.getOutputLanguage() == output::LANG_SMTLIB_V2_6) {
       *opts.getOut() << "(error \"" << e << "\")" << endl;
     } else {
       *opts.getErr() << "CVC4 Error:" << endl << e << endl;

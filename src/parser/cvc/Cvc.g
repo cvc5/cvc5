@@ -1689,17 +1689,22 @@ bvNegTerm[CVC4::Expr& f]
     /* BV neg */
   : BVNEG_TOK bvNegTerm[f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
-  | NOT_TOK bvNegTerm[f]
+  | relationTerm[f]
+  ;
+
+relationTerm[CVC4::Expr& f]
+    /* relation terms */
+  : NOT_TOK relationTerm[f]
     { f = MK_EXPR(CVC4::kind::COMPLEMENT, f); } 
-  | TRANSPOSE_TOK bvNegTerm[f]
+  | TRANSPOSE_TOK relationTerm[f]
     { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); } 
-  | TRANSCLOSURE_TOK bvNegTerm[f]
+  | TRANSCLOSURE_TOK relationTerm[f]
     { f = MK_EXPR(CVC4::kind::TCLOSURE, f); }
-  | TUPLE_TOK LPAREN bvNegTerm[f] RPAREN
+  | TUPLE_TOK LPAREN relationTerm[f] RPAREN
     { std::vector<Type> types;
       std::vector<Expr> args;
       args.push_back(f);
-	  types.push_back(f.getType());
+	    types.push_back(f.getType());
       DatatypeType t = EXPR_MANAGER->mkTupleType(types);
       const Datatype& dt = t.getDatatype();
       args.insert( args.begin(), dt[0].getConstructor() );
