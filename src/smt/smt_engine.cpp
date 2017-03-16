@@ -2305,7 +2305,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
       }
 
       // otherwise expand it
-      bool doExpand = ( k == kind::APPLY && n.getOperator().getKind() != kind::LAMBDA );
+      bool doExpand = k == kind::APPLY;
       if( !doExpand ){
         if( options::macrosQuant() ){
           //expand if we have inferred an operator corresponds to a defined function
@@ -2313,35 +2313,47 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
         }
       }
       if (doExpand) {
-        // application of a user-defined symbol
-        TNode func = n.getOperator();
-        SmtEngine::DefinedFunctionMap::const_iterator i = d_smt.d_definedFunctions->find(func);
-        if(i == d_smt.d_definedFunctions->end()) {
-          throw TypeCheckingException(n.toExpr(), string("Undefined function: `") + func.toString() + "'");
-        }
-        DefinedFunction def = (*i).second;
-        vector<Node> formals = def.getFormals();
-
-        if(Debug.isOn("expand")) {
-          Debug("expand") << "found: " << n << endl;
-          Debug("expand") << " func: " << func << endl;
-          string name = func.getAttribute(expr::VarNameAttr());
-          Debug("expand") << "     : \"" << name << "\"" << endl;
-        }
-        if(Debug.isOn("expand")) {
-          Debug("expand") << " defn: " << def.getFunction() << endl
-                          << "       [";
-          if(formals.size() > 0) {
-            copy( formals.begin(), formals.end() - 1,
-                  ostream_iterator<Node>(Debug("expand"), ", ") );
-            Debug("expand") << formals.back();
+        vector<Node> formals;
+        TNode fm;
+        if( n.getOperator().getKind() == kind::LAMBDA ){
+          TNode op = n.getOperator();
+          // lambda
+          for( unsigned i=0; i<op[0].getNumChildren(); i++ ){
+            formals.push_back( op[0][i] );
           }
-          Debug("expand") << "]" << endl
-                          << "       " << def.getFunction().getType() << endl
-                          << "       " << def.getFormula() << endl;
-        }
+          fm = op[1];
+        }else{
+          // application of a user-defined symbol
+          TNode func = n.getOperator();
+          SmtEngine::DefinedFunctionMap::const_iterator i = d_smt.d_definedFunctions->find(func);
+          if(i == d_smt.d_definedFunctions->end()) {
+            throw TypeCheckingException(n.toExpr(), string("Undefined function: `") + func.toString() + "'");
+          }
+          DefinedFunction def = (*i).second;
+          formals = def.getFormals();
 
-        TNode fm = def.getFormula();
+          if(Debug.isOn("expand")) {
+            Debug("expand") << "found: " << n << endl;
+            Debug("expand") << " func: " << func << endl;
+            string name = func.getAttribute(expr::VarNameAttr());
+            Debug("expand") << "     : \"" << name << "\"" << endl;
+          }
+          if(Debug.isOn("expand")) {
+            Debug("expand") << " defn: " << def.getFunction() << endl
+                            << "       [";
+            if(formals.size() > 0) {
+              copy( formals.begin(), formals.end() - 1,
+                    ostream_iterator<Node>(Debug("expand"), ", ") );
+              Debug("expand") << formals.back();
+            }
+            Debug("expand") << "]" << endl
+                            << "       " << def.getFunction().getType() << endl
+                            << "       " << def.getFormula() << endl;
+          }
+
+          fm = def.getFormula();
+        }
+        
         Node instance = fm.substitute(formals.begin(), formals.end(),
                                       n.begin(), n.end());
         Debug("expand") << "made : " << instance << endl;

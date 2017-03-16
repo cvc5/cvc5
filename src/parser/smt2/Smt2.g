@@ -2074,10 +2074,9 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
            if( !type.isConstructor() ){
              PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
            }
-           //TODO
-           //if( Datatype::datatypeOf(f).isParametric() ){
-           //  type = Datatype::datatypeOf(f)[Datatype::indexOf(f)].getSpecializedConstructorType(expr.getType());
-           //}
+           if( Datatype::datatypeOf(f).isParametric() ){
+             type = Datatype::datatypeOf(f)[Datatype::indexOf(f)].getSpecializedConstructorType(expr.getType());
+           }
            match_ptypes = ((ConstructorType)type).getArgTypes();
          }
          //arguments
