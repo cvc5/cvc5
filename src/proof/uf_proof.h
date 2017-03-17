@@ -73,6 +73,8 @@ public:
   virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap);
 
   bool printsAsBool(const Node &n);
+
+  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap);
 };
 
 

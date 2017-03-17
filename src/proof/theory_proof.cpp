@@ -1092,6 +1092,20 @@ void BooleanProof::registerTerm(Expr term) {
   }
 }
 
+void LFSCBooleanProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
+  Node falseNode = NodeManager::currentNM()->mkConst(false);
+  Node trueNode = NodeManager::currentNM()->mkConst(true);
+
+  Assert(c1 == falseNode.toExpr() || c1 == trueNode.toExpr());
+  Assert(c2 == falseNode.toExpr() || c2 == trueNode.toExpr());
+  Assert(c1 != c2);
+
+  if (c1 == trueNode.toExpr())
+    os << "t_t_neq_f";
+  else
+    os << "(negsymm _ _ _ t_t_neq_f)";
+}
+
 void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
   Assert (term.getType().isBoolean());
   if (term.isVariable()) {

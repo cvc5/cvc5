@@ -71,6 +71,7 @@
  (! x (term Bool)
  (! u (th_holds (p_app x))
    (th_holds (= Bool x t_true)))))
+
 (declare pred_eq_f
  (! x (term Bool)
  (! u (th_holds (not (p_app x)))
@@ -103,6 +104,46 @@
   (! x1 (term Bool)
   (! u1 (th_holds (not (p_app x1)))
     (th_holds (= Bool x1 x1)))))
+
+(declare pred_not_iff_f
+  (! x (term Bool)
+  (! u (th_holds (not (iff false (p_app x))))
+    (th_holds (= Bool t_true x)))))
+
+(declare pred_not_iff_f_2
+  (! x (term Bool)
+  (! u (th_holds (not (iff (p_app x) false)))
+    (th_holds (= Bool x t_true)))))
+
+(declare pred_not_iff_t
+  (! x (term Bool)
+  (! u (th_holds (not (iff true (p_app x))))
+    (th_holds (= Bool t_false x)))))
+
+(declare pred_not_iff_t_2
+  (! x (term Bool)
+  (! u (th_holds (not (iff (p_app x) true)))
+    (th_holds (= Bool x t_false)))))
+
+(declare pred_iff_f
+  (! x (term Bool)
+  (! u (th_holds (iff false (p_app x)))
+    (th_holds (= Bool t_false x)))))
+
+(declare pred_iff_f_2
+  (! x (term Bool)
+  (! u (th_holds (iff (p_app x) false))
+    (th_holds (= Bool x t_false)))))
+
+(declare pred_iff_t
+  (! x (term Bool)
+  (! u (th_holds (iff true (p_app x)))
+    (th_holds (= Bool t_true x)))))
+
+(declare pred_iff_t_2
+  (! x (term Bool)
+  (! u (th_holds (iff (p_app x) true))
+    (th_holds (= Bool x t_true)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;

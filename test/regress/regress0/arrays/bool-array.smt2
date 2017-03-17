@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-check-proofs --no-check-unsat-cores
 ; EXPECT: unsat
 (set-logic QF_AX)
 (set-info :status unsat)
@@ -10,4 +9,3 @@
 (assert (= (select a true) (select a false)))
 
 (check-sat)
-

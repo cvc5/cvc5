@@ -243,6 +243,10 @@ std::string ProofManager::getLitName(TNode lit,
   return litName;
 }
 
+bool ProofManager::hasLitName(TNode lit) {
+  return currentPM()->d_cnfProof->hasLiteral(lit);
+}
+
 std::string ProofManager::sanitize(TNode node) {
   Assert (node.isVar() || node.isConst());
 
@@ -875,6 +879,11 @@ void ProofManager::addRewriteFilter(const std::string &original, const std::stri
   d_rewriteFilters[original] = substitute;
 }
 
+bool ProofManager::haveRewriteFilter(TNode lit) {
+  std::string litName = getLitName(currentPM()->d_cnfProof->getLiteral(lit));
+  return d_rewriteFilters.find(litName) != d_rewriteFilters.end();
+}
+
 void ProofManager::clearRewriteFilters() {
   d_rewriteFilters.clear();
 }
@@ -1000,6 +1009,10 @@ void ProofManager::printGlobalLetMap(std::set<Node>& atoms,
   }
 
   out << std::endl << std::endl;
+}
+
+void ProofManager::ensureLiteral(Node node) {
+  d_cnfProof->ensureLiteral(node);
 }
 
 } /* CVC4  namespace */

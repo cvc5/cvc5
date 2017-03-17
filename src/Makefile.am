@@ -104,6 +104,8 @@ libcvc4_la_SOURCES = \
 	proof/unsat_core.h \
 	proof/proof_output_channel.cpp \
 	proof/proof_output_channel.h \
+	proof/simplify_boolean_node.cpp \
+	proof/simplify_boolean_node.h \
 	prop/cnf_stream.cpp \
 	prop/cnf_stream.h \
 	prop/prop_engine.cpp \

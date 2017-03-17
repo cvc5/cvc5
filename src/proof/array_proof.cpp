@@ -15,9 +15,10 @@
 
 **/
 
-#include "proof/theory_proof.h"
-#include "proof/proof_manager.h"
 #include "proof/array_proof.h"
+#include "proof/proof_manager.h"
+#include "proof/simplify_boolean_node.h"
+#include "proof/theory_proof.h"
 #include "theory/arrays/theory_arrays.h"
 #include <stack>
 
@@ -147,6 +148,9 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
     size_t i = 0;
     while (i < pf->d_children.size()) {
+      if (pf->d_children[i]->d_id != theory::eq::MERGED_THROUGH_CONGRUENCE)
+        pf->d_children[i]->d_node = simplifyBooleanNode(pf->d_children[i]->d_node);
+
       // Look for the negative clause, with which we will form a contradiction.
       if(!pf->d_children[i]->d_node.isNull() && pf->d_children[i]->d_node.getKind() == kind::NOT) {
         Assert(neg < 0);
@@ -318,6 +322,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     pf->debug_print("mgd", 0, &d_proofPrinter);
     std::stack<const theory::eq::EqProof*> stk;
     for(const theory::eq::EqProof* pf2 = pf; pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE; pf2 = pf2->d_children[0]) {
+      Debug("mgd") << "Looking at pf2 with d_node: " << pf2->d_node << std::endl;
+
       Assert(!pf2->d_node.isNull());
       Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF ||
              pf2->d_node.getKind() == kind::BUILTIN ||
@@ -601,6 +607,9 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     Debug("mgd") << "\ndoing trans proof[[\n";
     pf->debug_print("mgd", 0, &d_proofPrinter);
     Debug("mgd") << "\n";
+
+    pf->d_children[0]->d_node = simplifyBooleanNode(pf->d_children[0]->d_node);
+
     Node n1 = toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
     Debug("mgd") << "\ndoing trans proof, got n1 " << n1 << "\n";
     if(tb == 1) {
@@ -616,6 +625,13 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     for(size_t i = 1; i < pf->d_children.size(); ++i) {
       std::stringstream ss1(ss.str()), ss2;
       ss.str("");
+
+      // In congruences, we can have something like a[x] - it's important to keep these,
+      // and not turn them into (a[x]=true), because that will mess up the congruence application
+      // later.
+
+      if (pf->d_children[i]->d_id != theory::eq::MERGED_THROUGH_CONGRUENCE)
+        pf->d_children[i]->d_node = simplifyBooleanNode(pf->d_children[i]->d_node);
 
       // It is possible that we've already converted the i'th child to stream. If so,
       // use previously stored result. Otherwise, convert and store.
@@ -1164,6 +1180,13 @@ void ArrayProof::registerTerm(Expr term) {
 
   if (term.isVariable()) {
     d_declarations.insert(term);
+  }
+
+  if (term.getKind() == kind::SELECT && term.getType().isBoolean()) {
+    // Ensure cnf literals
+    Node asNode(term);
+    ProofManager::currentPM()->ensureLiteral(eqNode(term, NodeManager::currentNM()->mkConst(true)));
+    ProofManager::currentPM()->ensureLiteral(eqNode(term, NodeManager::currentNM()->mkConst(false)));
   }
 
   // recursively declare all other terms

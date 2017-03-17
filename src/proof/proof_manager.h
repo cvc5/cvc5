@@ -206,6 +206,8 @@ public:
     return d_inputFormulas.find(assertion) != d_inputFormulas.end();
   }
 
+  void ensureLiteral(Node node);
+
 //---from Morgan---
   Node mkOp(TNode n);
   Node lookupOp(TNode n) const;
@@ -230,6 +232,7 @@ public:
   static std::string getAtomName(TNode atom, const std::string& prefix = "");
   static std::string getLitName(prop::SatLiteral lit, const std::string& prefix = "");
   static std::string getLitName(TNode lit, const std::string& prefix = "");
+  static bool hasLitName(TNode lit);
 
   // for SMT variable names that have spaces and other things
   static std::string sanitize(TNode var);
@@ -265,6 +268,7 @@ public:
 
   void addRewriteFilter(const std::string &original, const std::string &substitute);
   void clearRewriteFilters();
+  bool haveRewriteFilter(TNode lit);
 
   void addAssertionFilter(const Node& node, const std::string& rewritten);
 
