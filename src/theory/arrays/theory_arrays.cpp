@@ -354,10 +354,11 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
     case kind::NOT:
     {
       d_ppFacts.push_back(in);
-      Assert(in[0].getKind() == kind::EQUAL );
-      Node a = in[0][0];
-      Node b = in[0][1];
-      d_ppEqualityEngine.assertEquality(in[0], false, in);
+      if (in[0].getKind() == kind::EQUAL ) {
+        Node a = in[0][0];
+        Node b = in[0][1];
+        d_ppEqualityEngine.assertEquality(in[0], false, in);
+      }
       break;
     }
     default:
