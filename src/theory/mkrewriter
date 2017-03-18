@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # mkrewriter
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4

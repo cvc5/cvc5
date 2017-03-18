@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # mkexpr
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4

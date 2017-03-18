@@ -230,7 +230,7 @@ void cvc4_init() throw(Exception) {
 
 #ifndef __WIN32__
   stack_t ss;
-  ss.ss_sp = malloc(SIGSTKSZ);
+  ss.ss_sp = (char*) malloc(SIGSTKSZ);
   if(ss.ss_sp == NULL) {
     throw Exception("Can't malloc() space for a signal stack");
   }

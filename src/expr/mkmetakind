@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # mkmetakind
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
