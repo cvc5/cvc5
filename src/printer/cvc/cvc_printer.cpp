@@ -783,7 +783,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       opType = INFIX;
       break;
     case kind::COMPLEMENT:
-      op << "NOT";
+      op << "~";
       opType = PREFIX;
       break;
     case kind::PRODUCT:
