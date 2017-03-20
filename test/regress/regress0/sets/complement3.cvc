@@ -1,0 +1,14 @@
+% EXPECT: sat
+OPTION "logic" "ALL_SUPPORTED";
+Atom : TYPE;
+C32 : SET OF [Atom];
+C2 : SET OF [Atom];
+C4 : SET OF [Atom];
+ATOM_UNIV : SET OF [Atom];
+V1 : Atom;
+ASSERT C32 = (~C2) & (~C4);											
+ASSERT TUPLE(V1) IS_IN ~(C32);
+ASSERT ATOM_UNIV = UNIVERSE :: SET OF [Atom];
+ASSERT TUPLE(V1) IS_IN ATOM_UNIV;
+ASSERT TUPLE(V1) IS_IN ~(C2);
+CHECKSAT;

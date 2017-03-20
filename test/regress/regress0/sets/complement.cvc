@@ -4,6 +4,6 @@ Atom: TYPE;
 a : SET OF [Atom];
 b : SET OF [Atom];
 
-ASSERT a = (NOT b);
+ASSERT a = (~ b);
 
 CHECKSAT;
