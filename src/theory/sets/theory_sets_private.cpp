@@ -243,6 +243,18 @@ bool TheorySetsPrivate::ee_areDisequal( Node a, Node b ) {
   }
 }
 
+bool TheorySetsPrivate::ee_areCareDisequal( Node a, Node b ) {
+  if( d_equalityEngine.isTriggerTerm(a, THEORY_SETS) && d_equalityEngine.isTriggerTerm(b, THEORY_SETS) ){
+    TNode a_shared = d_equalityEngine.getTriggerTermRepresentative(a, THEORY_SETS);
+    TNode b_shared = d_equalityEngine.getTriggerTermRepresentative(b, THEORY_SETS);
+    EqualityStatus eqStatus = d_external.d_valuation.getEqualityStatus(a_shared, b_shared);
+    if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
+      return true;
+    }
+  }
+  return false;
+}
+
 bool TheorySetsPrivate::isEntailed( Node n, bool polarity ) {
   if( n.getKind()==kind::NOT ){
     return isEntailed( n[0], !polarity );
@@ -332,7 +344,7 @@ bool TheorySetsPrivate::isSetDisequalityEntailed( Node r1, Node r2 ) {
                 break;
               }
             }
-            //TODO: this can be generalized : maintain map to abstract domain ( set -> cardinality )
+          //TODO: this can be generalized : maintain map to abstract domain ( set -> cardinality )
           //if a has positive member that is negative member in b 
           }else if( itpmb!=d_pol_mems[1].end() ){
             for( std::map< Node, Node >::iterator itnm = itpmb->second.begin(); itnm != itpmb->second.end(); ++itnm ){
@@ -1617,20 +1629,13 @@ void TheorySetsPrivate::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers
           Assert( d_equalityEngine.hasTerm(x) );
           Assert( d_equalityEngine.hasTerm(y) );
           Assert( !ee_areDisequal( x, y ) );
+          Assert( !ee_areCareDisequal( x, y ) );
           if( !d_equalityEngine.areEqual( x, y ) ){
             Trace("sets-cg") << "Arg #" << k << " is " << x << " " << y << std::endl;
             if( d_equalityEngine.isTriggerTerm(x, THEORY_SETS) && d_equalityEngine.isTriggerTerm(y, THEORY_SETS) ){
               TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_SETS);
               TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_SETS);
-              Trace("sets-cg") << "Arg #" << k << " shared term is " << x_shared << " " << y_shared << std::endl;
-              EqualityStatus eqStatus = d_external.d_valuation.getEqualityStatus(x_shared, y_shared);
-              Trace("sets-cg") << "...eq status is " << eqStatus << std::endl;
-              if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
-                //an argument is disequal, we are done
-                return;
-              }else{
-                currentPairs.push_back(make_pair(x_shared, y_shared));
-              }
+              currentPairs.push_back(make_pair(x_shared, y_shared));
             }else if( isCareArg( f1, k ) && isCareArg( f2, k ) ){
               //splitting on sets (necessary for handling set of sets properly)
               if( x.getType().isSet() ){
@@ -1663,8 +1668,10 @@ void TheorySetsPrivate::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers
         std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = it;
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
-          if( !ee_areDisequal(it->first, it2->first) ){
-            addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+          if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
+            if( !ee_areCareDisequal(it->first, it2->first) ){
+              addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+            }
           }
         }
       }
@@ -1672,8 +1679,10 @@ void TheorySetsPrivate::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers
       //add care pairs based on product of indices, non-disequal arguments
       for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
         for( std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = t2->d_data.begin(); it2 != t2->d_data.end(); ++it2 ){
-          if( !ee_areDisequal(it->first, it2->first) ){
-            addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+          if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
+            if( !ee_areCareDisequal(it->first, it2->first) ){
+              addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+            }
           }
         }
       }

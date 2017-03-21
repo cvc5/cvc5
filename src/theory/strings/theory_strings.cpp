@@ -183,6 +183,20 @@ bool TheoryStrings::areDisequal( Node a, Node b ){
   }
 }
 
+bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
+  Assert( d_equalityEngine.hasTerm(x) );
+  Assert( d_equalityEngine.hasTerm(y) );
+  if( d_equalityEngine.isTriggerTerm(x, THEORY_STRINGS) && d_equalityEngine.isTriggerTerm(y, THEORY_STRINGS) ){
+    TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_STRINGS);
+    TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_STRINGS);
+    EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
+    if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
+      return true;
+    }
+  }
+  return false;
+}
+
 Node TheoryStrings::getLengthExp( Node t, std::vector< Node >& exp, Node te ){
   Assert( areEqual( t, te ) );
   Node lt = mkLength( te );
@@ -894,17 +908,12 @@ void TheoryStrings::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::Te
           Assert( d_equalityEngine.hasTerm(x) );
           Assert( d_equalityEngine.hasTerm(y) );
           Assert( !d_equalityEngine.areDisequal( x, y, false ) );
+          Assert( !areCareDisequal( x, y ) );
           if( !d_equalityEngine.areEqual( x, y ) ){
             if( d_equalityEngine.isTriggerTerm(x, THEORY_STRINGS) && d_equalityEngine.isTriggerTerm(y, THEORY_STRINGS) ){
               TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_STRINGS);
               TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_STRINGS);
-              EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
-              if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
-                //an argument is disequal, we are done
-                return;
-              }else{
-                currentPairs.push_back(make_pair(x_shared, y_shared));
-              }
+              currentPairs.push_back(make_pair(x_shared, y_shared));
             }
           }
         }
@@ -928,7 +937,9 @@ void TheoryStrings::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::Te
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
           if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
-            addCarePairs( &it->second, &it2->second, arity, depth+1 );
+            if( !areCareDisequal(it->first, it2->first) ){
+              addCarePairs( &it->second, &it2->second, arity, depth+1 );
+            }
           }
         }
       }
@@ -937,7 +948,9 @@ void TheoryStrings::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::Te
       for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
         for( std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = t2->d_data.begin(); it2 != t2->d_data.end(); ++it2 ){
           if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
-            addCarePairs( &it->second, &it2->second, arity, depth+1 );
+            if( !areCareDisequal(it->first, it2->first) ){
+              addCarePairs( &it->second, &it2->second, arity, depth+1 );
+            }
           }
         }
       }

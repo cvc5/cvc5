@@ -56,6 +56,7 @@ public:
 private:
   bool ee_areEqual( Node a, Node b );
   bool ee_areDisequal( Node a, Node b );
+  bool ee_areCareDisequal( Node a, Node b );
   NodeIntMap d_members;
   std::map< Node, std::vector< Node > > d_members_data;
   bool assertFact( Node fact, Node exp );

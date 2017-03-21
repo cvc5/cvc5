@@ -210,6 +210,7 @@ public:
     return d_thss;
   }
 private:
+  bool areCareDisequal(TNode x, TNode y);
   void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth );
 };/* class TheoryUF */
 

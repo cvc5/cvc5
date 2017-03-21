@@ -141,6 +141,7 @@ private:
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
+  bool areCareDisequal( TNode x, TNode y );
   // t is representative, te = t, add lt = te to explanation exp
   Node getLengthExp( Node t, std::vector< Node >& exp, Node te );
   Node getLength( Node t, std::vector< Node >& exp );

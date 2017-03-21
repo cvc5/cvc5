@@ -438,6 +438,20 @@ void TheoryUF::addSharedTerm(TNode t) {
   d_equalityEngine.addTriggerTerm(t, THEORY_UF);
 }
 
+bool TheoryUF::areCareDisequal(TNode x, TNode y){
+  Assert( d_equalityEngine.hasTerm(x) );
+  Assert( d_equalityEngine.hasTerm(y) );
+  if( d_equalityEngine.isTriggerTerm(x, THEORY_UF) && d_equalityEngine.isTriggerTerm(y, THEORY_UF) ){
+    TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_UF);
+    TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_UF);
+    EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
+    if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
+      return true;
+    }
+  }
+  return false;
+}
+
 //TODO: move quantifiers::TermArgTrie to src/theory/
 void TheoryUF::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth ){
   if( depth==arity ){
@@ -453,17 +467,12 @@ void TheoryUF::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArg
           Assert( d_equalityEngine.hasTerm(x) );
           Assert( d_equalityEngine.hasTerm(y) );
           Assert( !d_equalityEngine.areDisequal( x, y, false ) );
+          Assert( !areCareDisequal( x, y ) );
           if( !d_equalityEngine.areEqual( x, y ) ){
             if( d_equalityEngine.isTriggerTerm(x, THEORY_UF) && d_equalityEngine.isTriggerTerm(y, THEORY_UF) ){
               TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_UF);
               TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_UF);
-              EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
-              if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
-                //an argument is disequal, we are done
-                return;
-              }else{
-                currentPairs.push_back(make_pair(x_shared, y_shared));
-              }
+              currentPairs.push_back(make_pair(x_shared, y_shared));
             }
           }
         }
@@ -487,7 +496,9 @@ void TheoryUF::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArg
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
           if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
-            addCarePairs( &it->second, &it2->second, arity, depth+1 );
+            if( !areCareDisequal(it->first, it2->first) ){
+              addCarePairs( &it->second, &it2->second, arity, depth+1 );
+            }
           }
         }
       }
@@ -496,7 +507,9 @@ void TheoryUF::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArg
       for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
         for( std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = t2->d_data.begin(); it2 != t2->d_data.end(); ++it2 ){
           if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
-            addCarePairs( &it->second, &it2->second, arity, depth+1 );
+            if( !areCareDisequal(it->first, it2->first) ){
+              addCarePairs( &it->second, &it2->second, arity, depth+1 );
+            }
           }
         }
       }

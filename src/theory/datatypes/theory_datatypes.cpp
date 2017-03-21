@@ -1316,20 +1316,13 @@ void TheoryDatatypes::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::
           Assert( d_equalityEngine.hasTerm(x) );
           Assert( d_equalityEngine.hasTerm(y) );
           Assert( !areDisequal( x, y ) );
+          Assert( !areCareDisequal( x, y ) );
           if( !d_equalityEngine.areEqual( x, y ) ){
             Trace("dt-cg") << "Arg #" << k << " is " << x << " " << y << std::endl;
             if( d_equalityEngine.isTriggerTerm(x, THEORY_DATATYPES) && d_equalityEngine.isTriggerTerm(y, THEORY_DATATYPES) ){
               TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_DATATYPES);
               TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_DATATYPES);
-              Trace("dt-cg") << "Arg #" << k << " shared term is " << x_shared << " " << y_shared << std::endl;
-              EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
-              Trace("dt-cg") << "...eq status is " << eqStatus << std::endl;
-              if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
-                //an argument is disequal, we are done
-                return;
-              }else{
-                currentPairs.push_back(make_pair(x_shared, y_shared));
-              }
+              currentPairs.push_back(make_pair(x_shared, y_shared));
             }
           }
         }
@@ -1353,8 +1346,10 @@ void TheoryDatatypes::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::
         std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = it;
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
-          if( !areDisequal(it->first, it2->first) ){
-            addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+          if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
+            if( !areCareDisequal(it->first, it2->first) ){
+              addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+            }
           }
         }
       }
@@ -1362,8 +1357,10 @@ void TheoryDatatypes::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::
       //add care pairs based on product of indices, non-disequal arguments
       for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
         for( std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = t2->d_data.begin(); it2 != t2->d_data.end(); ++it2 ){
-          if( !areDisequal(it->first, it2->first) ){
-            addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+          if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
+            if( !areCareDisequal(it->first, it2->first) ){
+              addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+            }
           }
         }
       }
@@ -2032,8 +2029,23 @@ bool TheoryDatatypes::areDisequal( TNode a, TNode b ){
   }else if( hasTerm( a ) && hasTerm( b ) ){
     return d_equalityEngine.areDisequal( a, b, false );
   }else{
+    //TODO : constants here?
     return false;
   }
+}
+
+bool TheoryDatatypes::areCareDisequal( TNode x, TNode y ) {
+  Assert( d_equalityEngine.hasTerm( x ) );
+  Assert( d_equalityEngine.hasTerm( y ) );
+  if( d_equalityEngine.isTriggerTerm(x, THEORY_DATATYPES) && d_equalityEngine.isTriggerTerm(y, THEORY_DATATYPES) ){
+    TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_DATATYPES);
+    TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_DATATYPES);
+    EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
+    if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
+      return true;
+    }
+  }
+  return false;
 }
 
 TNode TheoryDatatypes::getRepresentative( TNode a ){

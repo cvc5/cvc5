@@ -317,6 +317,7 @@ private:
   bool hasTerm( TNode a );
   bool areEqual( TNode a, TNode b );
   bool areDisequal( TNode a, TNode b );
+  bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
 };/* class TheoryDatatypes */
 
