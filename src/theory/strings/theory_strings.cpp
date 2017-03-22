@@ -3973,10 +3973,10 @@ Node TheoryStrings::getMembership( Node n, bool isPos, unsigned i ) {
 
 Node TheoryStrings::mkRegExpAntec(Node atom, Node ant) {
   if(d_regexp_ant.find(atom) == d_regexp_ant.end()) {
-    return Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, ant, atom) );
+    return NodeManager::currentNM()->mkNode(kind::AND, ant, atom);
   } else {
     Node n = d_regexp_ant[atom];
-    return Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, ant, n) );
+    return NodeManager::currentNM()->mkNode(kind::AND, ant, n);
   }
 }
 
@@ -4490,7 +4490,7 @@ void TheoryStrings::checkMemberships() {
                 }
               }
             }
-            antec = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, antec, mkExplain(rnfexp)) );
+            antec = NodeManager::currentNM()->mkNode(kind::AND, antec, mkExplain(rnfexp));
             Node conc = nvec.size()==1 ? nvec[0] : NodeManager::currentNM()->mkNode(kind::AND, nvec);
             conc = Rewriter::rewrite(conc);
             sendLemma( antec, conc, "REGEXP_Unfold" );
@@ -4630,7 +4630,7 @@ bool TheoryStrings::checkPDerivative( Node x, Node r, Node atom, bool &addedLemm
     switch(d_regexp_opr.delta(r, exp)) {
       case 0: {
         Node antec = mkRegExpAntec(atom, x.eqNode(d_emptyString));
-        antec = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, antec, antnf));
+        antec = NodeManager::currentNM()->mkNode(kind::AND, antec, antnf);
         sendLemma(antec, exp, "RegExp Delta");
         addedLemma = true;
         d_regexp_ccached.insert(atom);
@@ -4642,7 +4642,7 @@ bool TheoryStrings::checkPDerivative( Node x, Node r, Node atom, bool &addedLemm
       }
       case 2: {
         Node antec = mkRegExpAntec(atom, x.eqNode(d_emptyString));
-        antec = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, antec, antnf));
+        antec = NodeManager::currentNM()->mkNode(kind::AND, antec, antnf);
         Node conc = Node::null();
         sendLemma(antec, conc, "RegExp Delta CONFLICT");
         addedLemma = true;
@@ -4671,7 +4671,7 @@ bool TheoryStrings::checkPDerivative( Node x, Node r, Node atom, bool &addedLemm
       }
     }*/
     Node sREant = mkRegExpAntec(atom, d_true);
-    sREant = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, sREant, antnf));
+    sREant = NodeManager::currentNM()->mkNode(kind::AND, sREant, antnf);
     if(deriveRegExp( x, r, sREant )) {
       addedLemma = true;
       d_regexp_ccached.insert(atom);
