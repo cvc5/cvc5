@@ -70,6 +70,7 @@ Node FirstOrderModel::getAssertedQuantifier( unsigned i, bool ordered ) {
   }
 }
 
+//AJR : FIXME : this function is only used by bounded integers, can likely be removed.
 Node FirstOrderModel::getCurrentModelValue( Node n, bool partial ) {
   std::vector< Node > children;
   if( n.getNumChildren()>0 ){
@@ -92,7 +93,8 @@ Node FirstOrderModel::getCurrentModelValue( Node n, bool partial ) {
       return nn;
     }
   }else{
-    return getRepresentative(n);
+    //return getRepresentative(n);
+    return getValue(n);
   }
 }
 

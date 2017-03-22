@@ -797,6 +797,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
       Node l, u;
       getBoundValues( q, v, rsi, l, u );
       if( l.isNull() || u.isNull() ){
+        Trace("bound-int-warn") << "WARNING: Could not find integer bounds in model for " << v << " in " << q << std::endl;
         //failed, abort the iterator
         return false;
       }else{
@@ -824,6 +825,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
     }else if( bvt==BOUND_SET_MEMBER  ){ 
       Node srv = getSetRangeValue( q, v, rsi );
       if( srv.isNull() ){
+        Trace("bound-int-warn") << "WARNING: Could not find set bound in model for " << v << " in " << q << std::endl;
         return false;
       }else{
         Trace("bound-int-rsi") << "Bounded by set membership : " << srv << std::endl;
