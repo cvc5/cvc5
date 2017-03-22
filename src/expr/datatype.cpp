@@ -145,6 +145,23 @@ void Datatype::resolve(ExprManager* em,
     }
     d_record = new Record(fields);
   }
+  
+  //make the sygus evaluation function
+  if( isSygus() ){
+    PrettyCheckArgument(d_params.empty(), this, "sygus types cannot be parametric");
+    NodeManager* nm = NodeManager::fromExprManager(em);
+    std::string name = "eval_" + getName();
+    std::vector<TypeNode> evalType;
+    evalType.push_back(TypeNode::fromType(d_self));
+    if( !d_sygus_bvl.isNull() ){
+      for(size_t j = 0; j < d_sygus_bvl.getNumChildren(); ++j) {
+        evalType.push_back(TypeNode::fromType(d_sygus_bvl[j].getType()));
+      }
+    }
+    evalType.push_back(TypeNode::fromType(d_sygus_type));
+    TypeNode eval_func_type = nm->mkFunctionType(evalType);
+    d_sygus_eval = nm->mkSkolem(name, eval_func_type, "sygus evaluation function").toExpr();    
+  }  
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -156,7 +173,7 @@ void Datatype::addConstructor(const DatatypeConstructor& c) {
 
 void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
   PrettyCheckArgument(!d_resolved, this,
-                "cannot set sygus type to a finalized Datatype");
+                      "cannot set sygus type to a finalized Datatype");        
   d_sygus_type = st;
   d_sygus_bvl = bvl;
   d_sygus_allow_const = allow_const || allow_all;
@@ -394,9 +411,7 @@ bool Datatype::computeWellFounded( std::vector< Type >& processing ) const throw
 Expr Datatype::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   ExprManagerScope ems(d_self);
-
   Debug("datatypes") << "mkGroundTerm of type " << t << std::endl;
-
   // is this already in the cache ?
   std::map< Type, Expr >::iterator it = d_ground_term.find( t );
   if( it != d_ground_term.end() ){
@@ -587,6 +602,10 @@ bool Datatype::getSygusAllowConst() const {
 
 bool Datatype::getSygusAllowAll() const {
   return d_sygus_allow_const;
+}
+
+Expr Datatype::getSygusEvaluationFunc() const {
+  return d_sygus_eval;
 }
 
 bool Datatype::involvesExternalType() const{

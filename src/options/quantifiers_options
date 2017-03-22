@@ -253,6 +253,8 @@ option cegqiSingleInvReconstructConst --cegqi-si-reconstruct-const bool :default
   include constants when reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSingleInvAbort --cegqi-si-abort bool :default false
   abort if synthesis conjecture is not single invocation
+option cegqiUnifCondSol --cegqi-unif-csol bool :default false
+  enable approach which unifies conditional solutions
   
 option sygusNormalForm --sygus-nf bool :default true
   only search for sygus builtin terms that are in normal form

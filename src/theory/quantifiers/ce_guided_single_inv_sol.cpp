@@ -215,7 +215,7 @@ Node CegConjectureSingleInvSol::flattenITEs( Node n, bool rec ) {
       if( n0.getKind()==ITE ){
         n0 = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, n0, n1 ),
                                                    NodeManager::currentNM()->mkNode( AND, n0.negate(), n2 ) );
-      }else if( n0.getKind()==EQUAL ){
+      }else if( n0.getKind()==EQUAL && n0[0].getType().isBoolean() ){
         n0 = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, n0, n1 ),
                                                    NodeManager::currentNM()->mkNode( AND, n0.negate(), n1.negate() ) );
       }else{

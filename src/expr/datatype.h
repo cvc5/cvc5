@@ -491,6 +491,7 @@ private:
   Expr d_sygus_bvl;
   bool d_sygus_allow_const;
   bool d_sygus_allow_all;
+  Expr d_sygus_eval;
 
   // "mutable" because computing the cardinality can be expensive,
   // and so it's computed just once, on demand---this is the cache
@@ -744,6 +745,8 @@ public:
   bool getSygusAllowConst() const;
   /** does it allow constants */
   bool getSygusAllowAll() const;
+  /** get the evaluation function for this datatype for the deep embedding */
+  Expr getSygusEvaluationFunc() const;
 
   /**
    * Get whether this datatype involves an external type.  If so,

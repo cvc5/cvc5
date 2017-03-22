@@ -31,6 +31,37 @@ namespace quantifiers {
 class CegConjecture {
 private:
   QuantifiersEngine * d_qe;
+  /** list of constants for quantified formula */
+  std::vector< Node > d_candidates;
+  /** base instantiation */
+  Node d_base_inst;
+  /** expand base inst to disjuncts */
+  std::vector< Node > d_base_disj;
+  /** list of variables on inner quantification */
+  std::vector< Node > d_inner_vars;
+  std::vector< std::vector< Node > > d_inner_vars_disj;
+  /** current extential quantifeirs whose couterexamples we must refine */
+  std::vector< std::vector< Node > > d_ce_sk;
+  /** the cardinality literals */
+  std::map< int, Node > d_lits;
+  /** current cardinality */
+  context::CDO< int > d_curr_lit;
+  /** active measure term */
+  Node d_active_measure_term;
+  /** refinement lemmas */
+  std::vector< Node > d_refinement_lemmas;
+  std::vector< std::vector< Node > > d_refinement_lemmas_aux_vars;
+private: //for condition solutions
+  /** get candidate list recursively for conditional solutions */
+  void getConditionalCandidateList( std::vector< Node >& clist, Node curr, bool reqAdd );
+  Node constructConditionalCandidate( std::map< Node, Node >& cmv, Node curr );
+  Node getActiveConditional( Node curr );
+  void getContextConditionals( Node curr, Node x, std::vector< Node >& conds, std::vector< Node >& rets, std::map< Node, bool >& cpols );
+  Node mkConditional( Node c, std::vector< Node >& args, bool pol = true );
+  Node purifyConditionalEvaluations( Node n, std::map< Node, Node >& csol_cond, std::map< Node, Node >& psubs, 
+                                     std::map< Node, Node >& visited );
+  /** register candidate conditional */
+  void registerCandidateConditional( Node v );
 public:
   CegConjecture( QuantifiersEngine * qe, context::Context* c );
   ~CegConjecture();
@@ -39,33 +70,41 @@ public:
   Node d_assert_quant;
   /** quantified formula (after processing) */
   Node d_quant;
-  /** base instantiation */
-  Node d_base_inst;
-  /** expand base inst to disjuncts */
-  std::vector< Node > d_base_disj;
-  /** list of constants for quantified formula */
-  std::vector< Node > d_candidates;
-  /** list of variables on inner quantification */
-  std::vector< Node > d_inner_vars;
-  std::vector< std::vector< Node > > d_inner_vars_disj;
-  /** list of terms we have instantiated candidates with */
-  std::map< int, std::vector< Node > > d_candidate_inst;
+
+  class CandidateInfo {
+  public:
+    CandidateInfo() : d_csol_status(-1){}
+    /** list of terms we have instantiated candidates with */
+    std::vector< Node > d_inst;
+    /** conditional solutions */
+    Node d_csol_op;
+    Node d_csol_cond;
+    Node d_csol_var[2];
+    /** solution status */
+    int d_csol_status;
+  };
+  std::map< Node, CandidateInfo > d_cinfo;
+  
   /** measure term */
   Node d_measure_term;
   /** measure sum size */
   int d_measure_term_size;
   /** refine count */
   unsigned d_refine_count;
-  /** current extential quantifeirs whose couterexamples we must refine */
-  std::vector< std::vector< Node > > d_ce_sk;
+  /** incomplete candidate values */
+  bool d_incomplete_candidate_values;
 
   const CegConjectureSingleInv* getCegConjectureSingleInv() const {
     return d_ceg_si;
   }
+  
+  bool needsRefinement();
+  void getCandidateList( std::vector< Node >& clist, bool forceOrig = false );
+  bool constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, std::vector< Node >& candidate_values );
 
-  bool doCegConjectureCheck(std::vector< Node >& lems) {
-    return d_ceg_si->check(lems);
-  }
+  void doCegConjectureSingleInvCheck(std::vector< Node >& lems);
+  void doCegConjectureCheck(std::vector< Node >& lems, std::vector< Node >& model_values);
+  void doCegConjectureRefine(std::vector< Node >& lems);
 
   Node getSingleInvocationSolution(unsigned sol_index, TypeNode stn,
                                    int& reconstructed, bool rconsSygus=true){
@@ -80,21 +119,36 @@ public:
   std::vector<Node>& getProgTempVars(Node prog) {
     return d_ceg_si->d_prog_templ_vars[prog];
   }
+  
+  void recordInstantiation( std::vector< Node >& vs ) {
+    Assert( vs.size()==d_candidates.size() );
+    for( unsigned i=0; i<vs.size(); i++ ){
+      d_cinfo[d_candidates[i]].d_inst.push_back( vs[i] );
+    }
+  }
+  Node getCandidate( unsigned int i ) { return d_candidates[i]; }
+  
+  void debugPrint( const char * c );
 
- private:
+private:
   /** single invocation utility */
   CegConjectureSingleInv * d_ceg_si;
 public: //non-syntax guided (deprecated)
   /** guard */
   bool d_syntax_guided;
   Node d_nsg_guard;
-public:  //for fairness
-  /** the cardinality literals */
-  std::map< int, Node > d_lits;
-  /** current cardinality */
-  context::CDO< int > d_curr_lit;
+public:
+  /** get current term size */
+  int getCurrentTermSize() { return d_curr_lit.get(); }
+  /** increment current term size */
+  void incrementCurrentTermSize() { d_curr_lit.set( d_curr_lit.get() + 1 ); }
+  /** set measure term */
+  void setMeasureTerm( Node mt );
+  /** get measure term */
+  Node getMeasureTermFactor( Node v );
+  Node getMeasureTerm() { return d_measure_term; }
   /** allocate literal */
-  Node getLiteral( QuantifiersEngine * qe, int i );
+  Node getFairnessLiteral( int i );
   /** get guard */
   Node getGuard();
   /** is ground */
@@ -110,11 +164,15 @@ public:  //for fairness
   /** preregister conjecture */
   void preregisterConjecture( Node q );
   /** initialize guard */
-  void initializeGuard( QuantifiersEngine * qe );
+  void initializeGuard();
   /** assign */
   void assign( Node q );
   /** is assigned */
   bool isAssigned() { return !d_quant.isNull(); }
+  /** get model values */
+  bool getModelValues( std::vector< Node >& n, std::vector< Node >& v );
+  /** get model value */
+  Node getModelValue( Node n );
 };
 
 
@@ -146,12 +204,6 @@ private: //for enforcing fairness
 private:
   /** check conjecture */
   void checkCegConjecture( CegConjecture * conj );
-  /** get model values */
-  bool getModelValues( CegConjecture * conj, std::vector< Node >& n, std::vector< Node >& v );
-  /** get model value */
-  Node getModelValue( Node n );
-  /** get model term */
-  Node getModelTerm( Node n );
 public:
   CegInstantiation( QuantifiersEngine * qe, context::Context* c );
   ~CegInstantiation();

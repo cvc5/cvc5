@@ -730,19 +730,7 @@ sygusCommand [CVC4::PtrCloser<CVC4::Command>* cmd]
       for(size_t i = 0; i < datatypeTypes.size(); ++i) {
         DatatypeType dtt = datatypeTypes[i];
         const Datatype& dt = dtt.getDatatype();
-        name = "eval_" + dt.getName();
-        PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
-        std::vector<Type> evalType;
-        evalType.push_back(dtt);
-        if( !terms[0].isNull() ){
-          for(size_t j = 0; j < terms[0].getNumChildren(); ++j) {
-            evalType.push_back(terms[0][j].getType());
-          }
-        }
-        evalType.push_back(sorts[i]);
-        const FunctionType eval_func_type =
-            EXPR_MANAGER->mkFunctionType(evalType);
-        Expr eval = PARSER_STATE->mkVar(name, eval_func_type);
+        Expr eval = dt.getSygusEvaluationFunc();
         Debug("parser-sygus") << "Make eval " << eval << " for " << dt.getName()
                               << std::endl;
         evals.insert(std::make_pair(dtt, eval));
