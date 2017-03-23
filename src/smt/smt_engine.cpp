@@ -1997,7 +1997,7 @@ void SmtEngine::setDefaults() {
   }
 
   if(options::incrementalSolving() && options::proof()) {
-    Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof or --produce-unsat-cores, try --tear-down-incremental instead)" << endl;
+    Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof, try --tear-down-incremental instead)" << endl;
     setOption("incremental", SExpr("false"));
   }
 }
