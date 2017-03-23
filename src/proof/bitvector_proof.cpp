@@ -47,7 +47,7 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proo
 
 void BitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver) {
   Assert (d_resolutionProof == NULL);
-  d_resolutionProof = new LFSCBVSatProof(solver, "bb", true);
+  d_resolutionProof = new LFSCBVSatProof(solver, &d_fakeContext, "bb", true);
 }
 
 void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,

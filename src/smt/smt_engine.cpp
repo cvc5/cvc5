@@ -1012,7 +1012,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   // being parsed from the input file. Because of this, we cannot trust
   // that options::proof() is set correctly yet.
 #ifdef CVC4_PROOF
-  d_proofManager = new ProofManager();
+  d_proofManager = new ProofManager(d_userContext);
 #endif
 
   // We have mutual dependency here, so we add the prop engine to the theory
@@ -1996,7 +1996,7 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if(options::incrementalSolving() && (options::proof() || options::unsatCores())) {
+  if(options::incrementalSolving() && options::proof()) {
     Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof or --produce-unsat-cores, try --tear-down-incremental instead)" << endl;
     setOption("incremental", SExpr("false"));
   }
@@ -5054,7 +5054,7 @@ UnsatCore SmtEngine::getUnsatCore() throw(ModalException, UnsafeInterruptExcepti
   }
 
   d_proofManager->traceUnsatCore();// just to trigger core creation
-  return UnsatCore(this, d_proofManager->begin_unsat_core(), d_proofManager->end_unsat_core());
+  return UnsatCore(this, d_proofManager->extractUnsatCore());
 #else /* IS_PROOFS_BUILD */
   throw ModalException("This build of CVC4 doesn't have proof support (required for unsat cores).");
 #endif /* IS_PROOFS_BUILD */

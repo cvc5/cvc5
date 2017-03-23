@@ -45,8 +45,7 @@ class CVC4_PUBLIC UnsatCore {
 public:
   UnsatCore() : d_smt(NULL) {}
 
-  template <class T>
-  UnsatCore(SmtEngine* smt, T begin, T end) : d_smt(smt), d_core(begin, end) {
+  UnsatCore(SmtEngine* smt, std::vector<Expr> core) : d_smt(smt), d_core(core) {
     initMessage();
   }
 

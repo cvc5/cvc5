@@ -22,6 +22,8 @@
 #include <iosfwd>
 #include <map>
 #include "expr/node.h"
+#include "context/cdhashset.h"
+#include "context/cdhashmap.h"
 #include "proof/clause_id.h"
 #include "proof/proof.h"
 #include "proof/proof_utils.h"
@@ -95,9 +97,11 @@ enum ProofFormat {
 std::string append(const std::string& str, uint64_t num);
 
 typedef __gnu_cxx::hash_map < ClauseId, prop::SatClause* > IdToSatClause;
-typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
+typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
+typedef context::CDHashSet<Expr, ExprHashFunction> CDExprSet;
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction > NodeSet;
 typedef __gnu_cxx::hash_map<Node, std::vector<Node>, NodeHashFunction > NodeToNodes;
+typedef context::CDHashMap<Node, std::vector<Node>, NodeHashFunction > CDNodeToNodes;
 typedef std::hash_set<ClauseId> IdHashSet;
 
 enum ProofRule {
@@ -139,6 +143,8 @@ private:
 };
 
 class ProofManager {
+  context::Context* d_context;
+
   CoreSatProof*  d_satProof;
   CnfProof*      d_cnfProof;
   TheoryProofEngine* d_theoryProof;
@@ -146,8 +152,8 @@ class ProofManager {
   // information that will need to be shared across proofs
   ExprSet    d_inputFormulas;
   std::map<Expr, std::string> d_inputFormulaToName;
-  ExprSet    d_inputCoreFormulas;
-  ExprSet    d_outputCoreFormulas;
+  CDExprSet    d_inputCoreFormulas;
+  CDExprSet    d_outputCoreFormulas;
 
   SkolemizationManager d_skolemizationManager;
 
@@ -156,7 +162,7 @@ class ProofManager {
   Proof* d_fullProof;
   ProofFormat d_format; // used for now only in debug builds
 
-  NodeToNodes d_deps;
+  CDNodeToNodes d_deps;
 
   std::set<Type> d_printedTypes;
 
@@ -169,13 +175,13 @@ protected:
   LogicInfo d_logic;
 
 public:
-  ProofManager(ProofFormat format = LFSC);
+  ProofManager(context::Context* context, ProofFormat format = LFSC);
   ~ProofManager();
 
   static ProofManager* currentPM();
 
   // initialization
-  static void         initSatProof(Minisat::Solver* solver);
+  void         initSatProof(Minisat::Solver* solver);
   static void         initCnfProof(CVC4::prop::CnfStream* cnfStream,
                                    context::Context* ctx);
   static void         initTheoryProofEngine();
@@ -248,10 +254,15 @@ public:
 
   // trace dependences back to unsat core
   void traceDeps(TNode n, ExprSet* coreAssertions);
+  void traceDeps(TNode n, CDExprSet* coreAssertions);
   void traceUnsatCore();
-  assertions_iterator begin_unsat_core() const { return d_outputCoreFormulas.begin(); }
-  assertions_iterator end_unsat_core() const { return d_outputCoreFormulas.end(); }
+
+  typedef CDExprSet::const_iterator output_core_iterator;
+
+  output_core_iterator begin_unsat_core() const { return d_outputCoreFormulas.begin(); }
+  output_core_iterator end_unsat_core() const { return d_outputCoreFormulas.end(); }
   size_t size_unsat_core() const { return d_outputCoreFormulas.size(); }
+  std::vector<Expr> extractUnsatCore();
 
   bool unsatCoreAvailable() const;
   void getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Node> &lemmas);

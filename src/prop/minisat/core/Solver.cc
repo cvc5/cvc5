@@ -131,7 +131,7 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, 
   , propagation_budget (-1)
   , asynch_interrupt   (false)
 {
-  PROOF(ProofManager::initSatProof(this);)
+  PROOF(ProofManager::currentPM()->initSatProof(this);)
 
   // Create the constant variables
   varTrue = newVar(true, false, false);

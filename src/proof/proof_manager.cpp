@@ -56,17 +56,18 @@ std::string append(const std::string& str, uint64_t num) {
   return os.str();
 }
 
-ProofManager::ProofManager(ProofFormat format):
+ProofManager::ProofManager(context::Context* context, ProofFormat format):
+  d_context(context),
   d_satProof(NULL),
   d_cnfProof(NULL),
   d_theoryProof(NULL),
   d_inputFormulas(),
-  d_inputCoreFormulas(),
-  d_outputCoreFormulas(),
+  d_inputCoreFormulas(context),
+  d_outputCoreFormulas(context),
   d_nextId(0),
   d_fullProof(NULL),
   d_format(format),
-  d_deps()
+  d_deps(context)
 {
 }
 
@@ -141,7 +142,7 @@ SkolemizationManager* ProofManager::getSkolemizationManager() {
 void ProofManager::initSatProof(Minisat::Solver* solver) {
   Assert (currentPM()->d_satProof == NULL);
   Assert(currentPM()->d_format == LFSC);
-  currentPM()->d_satProof = new LFSCCoreSatProof(solver, "");
+  currentPM()->d_satProof = new LFSCCoreSatProof(solver, d_context, "");
 }
 
 void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
@@ -293,13 +294,45 @@ void ProofManager::traceDeps(TNode n, ExprSet* coreAssertions) {
   }
 }
 
+void ProofManager::traceDeps(TNode n, CDExprSet* coreAssertions) {
+  Debug("cores") << "trace deps " << n << std::endl;
+  if ((n.isConst() && n == NodeManager::currentNM()->mkConst<bool>(true)) ||
+      (n.getKind() == kind::NOT && n[0] == NodeManager::currentNM()->mkConst<bool>(false))) {
+    return;
+  }
+  if(d_inputCoreFormulas.find(n.toExpr()) != d_inputCoreFormulas.end()) {
+    // originating formula was in core set
+    Debug("cores") << " -- IN INPUT CORE LIST!" << std::endl;
+    coreAssertions->insert(n.toExpr());
+  } else {
+    Debug("cores") << " -- NOT IN INPUT CORE LIST!" << std::endl;
+    if(d_deps.find(n) == d_deps.end()) {
+      if (options::allowEmptyDependencies()) {
+        Debug("cores") << " -- Could not track cause assertion. Failing silently." << std::endl;
+        return;
+      }
+      InternalError("Cannot trace dependence information back to input assertion:\n`%s'", n.toString().c_str());
+    }
+    Assert(d_deps.find(n) != d_deps.end());
+    std::vector<Node> deps = (*d_deps.find(n)).second;
+
+    for(std::vector<Node>::const_iterator i = deps.begin(); i != deps.end(); ++i) {
+      Debug("cores") << " + tracing deps: " << n << " -deps-on- " << *i << std::endl;
+      if( !(*i).isNull() ){
+        traceDeps(*i, coreAssertions);
+      }
+    }
+  }
+}
+
 void ProofManager::traceUnsatCore() {
   Assert (options::unsatCores());
-  constructSatProof();
+  d_satProof->refreshProof();
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
   d_satProof->collectClausesUsed(used_inputs,
                                  used_lemmas);
+
   IdToSatClause::const_iterator it = used_inputs.begin();
   for(; it != used_inputs.end(); ++it) {
     Node node = d_cnfProof->getAssertionForClause(it->first);
@@ -318,6 +351,17 @@ void ProofManager::traceUnsatCore() {
 
 bool ProofManager::unsatCoreAvailable() const {
   return d_satProof->derivedEmptyClause();
+}
+
+std::vector<Expr> ProofManager::extractUnsatCore() {
+  std::vector<Expr> result;
+  output_core_iterator it = begin_unsat_core();
+  output_core_iterator end = end_unsat_core();
+  while ( it != end ) {
+    result.push_back(*it);
+    ++it;
+  }
+  return result;
 }
 
 void ProofManager::constructSatProof() {
@@ -476,8 +520,9 @@ void ProofManager::addDependence(TNode n, TNode dep) {
     if( !dep.isNull() && d_deps.find(dep) == d_deps.end()) {
       Debug("cores") << "WHERE DID " << dep << " come from ??" << std::endl;
     }
-    //Assert(d_deps.find(dep) != d_deps.end());
-    d_deps[n].push_back(dep);
+    std::vector<Node> deps = d_deps[n].get();
+    deps.push_back(dep);
+    d_deps[n].set(deps);
   }
 }
 

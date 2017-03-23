@@ -85,6 +85,7 @@ protected:
   std::map<Expr,std::string> d_constantLetMap;
   bool d_useConstantLetification;
 
+  context::Context d_fakeContext;
 public:
   BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 

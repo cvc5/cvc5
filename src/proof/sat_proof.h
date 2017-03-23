@@ -28,6 +28,7 @@
 #include <sstream>
 #include <vector>
 
+#include "context/cdhashmap.h"
 #include "expr/expr.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
@@ -101,9 +102,9 @@ class TSatProof {
   typedef std::set<typename Solver::TVar> VarSet;
   typedef std::hash_map<ClauseId, typename Solver::TCRef> IdCRefMap;
   typedef std::hash_map<typename Solver::TCRef, ClauseId> ClauseIdMap;
-  typedef std::hash_map<ClauseId, typename Solver::TLit> IdUnitMap;
-  typedef std::hash_map<int, ClauseId> UnitIdMap;
-  typedef std::hash_map<ClauseId, ResolutionChain*> IdResMap;
+  typedef context::CDHashMap<ClauseId, typename Solver::TLit> IdUnitMap;
+  typedef context::CDHashMap<int, ClauseId> UnitIdMap;
+  typedef context::CDHashMap<ClauseId, ResolutionChain*> IdResMap;
   typedef std::hash_map<ClauseId, uint64_t> IdProofRuleMap;
   typedef std::vector<ResolutionChain*> ResStack;
   typedef std::set<ClauseId> IdSet;
@@ -113,7 +114,8 @@ class TSatProof {
   typedef __gnu_cxx::hash_map<ClauseId, LitVector*> IdToConflicts;
 
  public:
-  TSatProof(Solver* solver, const std::string& name, bool checkRes = false);
+  TSatProof(Solver* solver, context::Context* context,
+            const std::string& name, bool checkRes = false);
   virtual ~TSatProof();
   void setCnfProof(CnfProof* cnf_proof);
 
@@ -198,6 +200,8 @@ class TSatProof {
    */
   void constructProof(ClauseId id);
   void constructProof() { constructProof(d_emptyClauseId); }
+  void refreshProof(ClauseId id);
+  void refreshProof() { refreshProof(d_emptyClauseId); }
   bool proofConstructed() const;
   void collectClauses(ClauseId id);
   bool derivedEmptyClause() const;
@@ -298,6 +302,7 @@ class TSatProof {
 
   // Internal data.
   typename Solver::Solver* d_solver;
+  context::Context* d_context;
   CnfProof* d_cnfProof;
 
   // clauses
@@ -389,9 +394,9 @@ template <class SatSolver>
 class LFSCSatProof : public TSatProof<SatSolver> {
  private:
  public:
-  LFSCSatProof(SatSolver* solver, const std::string& name,
-               bool checkRes = false)
-      : TSatProof<SatSolver>(solver, name, checkRes) {}
+  LFSCSatProof(SatSolver* solver, context::Context* context,
+               const std::string& name, bool checkRes = false)
+    : TSatProof<SatSolver>(solver, context, name, checkRes) {}
   virtual void printResolution(ClauseId id, std::ostream& out,
                                std::ostream& paren);
   virtual void printResolutions(std::ostream& out, std::ostream& paren);
