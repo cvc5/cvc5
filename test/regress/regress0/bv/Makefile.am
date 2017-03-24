@@ -98,6 +98,7 @@ SMT_TESTS = \
 	bv2nat-ground-c.smt2 \
 	cmu-rdk-3.smt2 \
 	bv2nat-simp-range.smt2 \
+	bv2nat-simp-range-sat.smt2 \
 	bv-int-collapse1.smt2 \
 	bv-int-collapse2.smt2 \
 	bv-int-collapse2-sat.smt2

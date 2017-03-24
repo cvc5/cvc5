@@ -17,7 +17,8 @@ endif
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	hd-sdiv.sy
+	hd-sdiv.sy \
+	stopwatch-bt.sy
 
 EXTRA_DIST = $(TESTS)
 

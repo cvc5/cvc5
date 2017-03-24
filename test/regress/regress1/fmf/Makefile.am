@@ -17,7 +17,8 @@ endif
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	ForElimination-scala-9.smt2
+	ForElimination-scala-9.smt2 \
+	nunchaku2309663.nun.min.smt2
 
 EXTRA_DIST = $(TESTS)
 

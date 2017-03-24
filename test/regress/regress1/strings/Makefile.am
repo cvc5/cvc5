@@ -18,7 +18,9 @@ endif
 # put it below in "TESTS +="
 TESTS =	\
 	cmu-5042-0707-2.smt2 \
-	cmu-dis-0707-3.smt2
+	cmu-dis-0707-3.smt2 \
+	cmu-prereg-fmf.smt2 \
+	cmu-repl-len-nterm.smt2
 
 EXTRA_DIST = $(TESTS)
 

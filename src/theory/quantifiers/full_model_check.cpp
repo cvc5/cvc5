@@ -681,7 +681,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
                 cond.insert( cond.end(), inst.begin(), inst.end() );
                 //need to do exhaustive instantiate algorithm to set things properly (should only add one instance)
                 Node c = mkCond( cond );
-                int prevInst = d_addedLemmas;
+                unsigned prevInst = d_addedLemmas;
                 exhaustiveInstantiate( fmfmc, f, c, -1 );
                 if( d_addedLemmas==prevInst ){
                   d_star_insts[f].push_back(i);
