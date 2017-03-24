@@ -81,7 +81,7 @@ void CegConjecture::assign( Node q ) {
         }
       }
     }
-    if( options::cegqiUnifCondSol() ){
+    if( options::sygusUnifCondSol() ){
       // for each variable, determine whether we can do conditional counterexamples
       for( unsigned i=0; i<d_candidates.size(); i++ ){
         registerCandidateConditional( d_candidates[i] );
@@ -295,7 +295,7 @@ bool CegConjecture::needsRefinement() {
 }
 
 void CegConjecture::getConditionalCandidateList( std::vector< Node >& clist, Node curr, bool reqAdd ){
-  Assert( options::cegqiUnifCondSol() );
+  Assert( options::sygusUnifCondSol() );
   std::map< Node, CandidateInfo >::iterator it = d_cinfo.find( curr );
   if( it!=d_cinfo.end() ){
     if( !it->second.d_csol_cond.isNull() ){
@@ -323,7 +323,7 @@ void CegConjecture::getConditionalCandidateList( std::vector< Node >& clist, Nod
 }
 
 void CegConjecture::getCandidateList( std::vector< Node >& clist, bool forceOrig ) {
-  if( options::cegqiUnifCondSol() && !forceOrig ){
+  if( options::sygusUnifCondSol() && !forceOrig ){
     for( unsigned i=0; i<d_candidates.size(); i++ ){
       getConditionalCandidateList( clist, d_candidates[i], true );
     }
@@ -333,7 +333,7 @@ void CegConjecture::getCandidateList( std::vector< Node >& clist, bool forceOrig
 }
 
 Node CegConjecture::constructConditionalCandidate( std::map< Node, Node >& cmv, Node curr ) {
-  Assert( options::cegqiUnifCondSol() );
+  Assert( options::sygusUnifCondSol() );
   std::map< Node, Node >::iterator itc = cmv.find( curr );
   if( itc!=cmv.end() ){
     return itc->second;
@@ -366,7 +366,7 @@ Node CegConjecture::constructConditionalCandidate( std::map< Node, Node >& cmv, 
 
 bool CegConjecture::constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, std::vector< Node >& candidate_values ) {
   Assert( clist.size()==model_values.size() );
-  if( options::cegqiUnifCondSol() ){
+  if( options::sygusUnifCondSol() ){
     std::map< Node, Node > cmv;
     for( unsigned i=0; i<clist.size(); i++ ){
       cmv[ clist[i] ] = model_values[i];
@@ -403,7 +403,7 @@ void CegConjecture::doCegConjectureCheck(std::vector< Node >& lems, std::vector<
     //must get a counterexample to the value of the current candidate
     Node inst = d_base_inst.substitute( d_candidates.begin(), d_candidates.end(), c_model_values.begin(), c_model_values.end() );
     bool hasActiveConditionalNode = false;
-    if( options::cegqiUnifCondSol() ){
+    if( options::sygusUnifCondSol() ){
       //TODO
       hasActiveConditionalNode = true;
     }
@@ -446,7 +446,7 @@ void CegConjecture::doCegConjectureCheck(std::vector< Node >& lems, std::vector<
 }
 
 Node CegConjecture::getActiveConditional( Node curr ) {
-  Assert( options::cegqiUnifCondSol() );
+  Assert( options::sygusUnifCondSol() );
   std::map< Node, CandidateInfo >::iterator it = d_cinfo.find( curr );
   Assert( it!=d_cinfo.end() );
   if( !it->second.d_csol_cond.isNull() ){
@@ -541,9 +541,9 @@ void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
   std::map< Node, std::vector< Node > > csol_ccond_ret;
   std::map< Node, std::map< Node, bool > > csol_cpol;
   std::vector< Node > csol_vals;
-  if( options::cegqiUnifCondSol() ){
+  if( options::sygusUnifCondSol() ){
     std::vector< Node > new_active_measure_sum;
-    Trace("cegqi-unif") << "Conditional solution refinement, expand active conditional nodes" << std::endl;
+    Trace("sygus-unif") << "Conditional solution refinement, expand active conditional nodes" << std::endl;
     for( unsigned i=0; i<d_candidates.size(); i++ ){
       Node v = d_candidates[i];
       Node ac = getActiveConditional( v );
@@ -557,11 +557,11 @@ void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
       //if it is a conditional
       if( !d_cinfo[ac].d_csol_cond.isNull() ){
         //activate
-        Trace("cegqi-unif") << "****** For " << v << ", expanding an active conditional node : " << ac << std::endl;
+        Trace("sygus-unif") << "****** For " << v << ", expanding an active conditional node : " << ac << std::endl;
         d_cinfo[ac].d_csol_status = 0;  //TODO
-        Trace("cegqi-unif") << "...expanded to " << d_cinfo[ac].d_csol_op << "( ";
-        Trace("cegqi-unif") << d_cinfo[ac].d_csol_cond << ", " << d_cinfo[ac].d_csol_var[0] << ", ";
-        Trace("cegqi-unif") << d_cinfo[ac].d_csol_var[1] << " )" << std::endl;
+        Trace("sygus-unif") << "...expanded to " << d_cinfo[ac].d_csol_op << "( ";
+        Trace("sygus-unif") << d_cinfo[ac].d_csol_cond << ", " << d_cinfo[ac].d_csol_var[0] << ", ";
+        Trace("sygus-unif") << d_cinfo[ac].d_csol_var[1] << " )" << std::endl;
         registerCandidateConditional( d_cinfo[ac].d_csol_var[1-d_cinfo[ac].d_csol_status] );
         //add to measure sum
         Node acfc = getMeasureTermFactor( d_cinfo[ac].d_csol_cond );
@@ -575,7 +575,7 @@ void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
         csol_cond[v] = d_cinfo[ac].d_csol_cond;
         csol_vals.push_back( d_cinfo[ac].d_csol_var[d_cinfo[ac].d_csol_status] );
       }else{
-        Trace("cegqi-unif") << "* For " << v << ", its active node " << ac << " is not a conditional node." << std::endl;
+        Trace("sygus-unif") << "* For " << v << ", its active node " << ac << " is not a conditional node." << std::endl;
         //if we have not already included this in the measure, do so
         if( d_cinfo[ac].d_csol_status==0 ){
           Node acf = getMeasureTermFactor( ac );
@@ -587,11 +587,23 @@ void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
         csol_vals.push_back( ac );
       }
       if( !csol_ccond[v].empty() ){
-        Trace("cegqi-unif") << "...it is nested under " << csol_ccond[v].size() << " other conditionals" << std::endl;
+        Trace("sygus-unif") << "...it is nested under " << csol_ccond[v].size() << " other conditionals" << std::endl;
       }
     }
     // must add to active measure
     if( !new_active_measure_sum.empty() ){
+      Node mcsum = new_active_measure_sum.size()==1 ? new_active_measure_sum[0] : NodeManager::currentNM()->mkNode( kind::PLUS, new_active_measure_sum );
+      Node mclem = NodeManager::currentNM()->mkNode( kind::LEQ, mcsum, d_active_measure_term );
+      Trace("cegqi-lemma") << "Cegqi::Lemma : Measure component lemma : " << mclem << std::endl;
+      d_qe->getOutputChannel().lemma( mclem );
+/*
+      for( unsigned i=0; i<new_active_measure_sum.size(); i++ ){
+        Node mclem = NodeManager::currentNM()->mkNode( kind::LEQ, new_active_measure_sum[i], d_active_measure_term );
+        Trace("cegqi-lemma") << "Cegqi::Lemma : Measure component lemma : " << mclem << std::endl;
+        d_qe->getOutputChannel().lemma( mclem );
+      }
+      */
+      /*
       Node new_active_measure = NodeManager::currentNM()->mkSkolem( "K", NodeManager::currentNM()->integerType() );
       new_active_measure_sum.push_back( new_active_measure );
       Node namlem = NodeManager::currentNM()->mkNode( kind::GEQ, new_active_measure, NodeManager::currentNM()->mkConst(Rational(0)));
@@ -600,6 +612,7 @@ void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
       Trace("cegqi-lemma") << "Cegqi::Lemma : Measure expansion : " << namlem << std::endl;
       d_qe->getOutputChannel().lemma( namlem );
       d_active_measure_term = new_active_measure;
+      */
     }
   }
   Trace("cegqi-refine") << "Refine " << d_ce_sk.size() << " points." << std::endl;
@@ -635,11 +648,11 @@ void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
         }
       }
       //compute the body, inst_cond
-      if( options::cegqiUnifCondSol() && !c_disj.isNull() ){
-        Trace("cegqi-unif") << "Process " << c_disj << std::endl;
+      if( options::sygusUnifCondSol() && !c_disj.isNull() ){
+        Trace("sygus-unif") << "Process " << c_disj << std::endl;
         c_disj = purifyConditionalEvaluations( c_disj, csol_cond, psubs, psubs_visited );
-        Trace("cegqi-unif") << "Purified to : " << c_disj << std::endl;
-        Trace("cegqi-unif") << "...now with " << psubs.size() << " definitions." << std::endl;
+        Trace("sygus-unif") << "Purified to : " << c_disj << std::endl;
+        Trace("sygus-unif") << "...now with " << psubs.size() << " definitions." << std::endl;
       }else{
         //standard CEGIS refinement : plug in values, assert that d_candidates must satisfy entire specification
       }
@@ -662,9 +675,10 @@ void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
       }
     }
     if( success ){
-      Trace("cegqi-unif") << "Add conditional assumptions for " << psubs.size() << " evaluations." << std::endl;
+      Assert( sk_vars.size()==sk_subs.size() );
+      Trace("sygus-unif") << "Add conditional assumptions for " << psubs.size() << " evaluations." << std::endl;
       //add conditional correctness assumptions
-      std::map< Node, Node > psubs_condc;
+      std::vector< Node > psubs_condc;
       std::map< Node, std::vector< Node > > psubs_apply;
       std::vector< Node > paux_vars;
       for( std::map< Node, Node >::iterator itp = psubs.begin(); itp != psubs.end(); ++itp ){
@@ -676,8 +690,8 @@ void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
         }
         Node c = csol_cond[itp->first[0]];
         psubs_apply[ c ].push_back( itp->first );
-        Trace("cegqi-unif") << "   process assumption " << itp->first << " == " << itp->second << ", with current condition " << c;
-        Trace("cegqi-unif") << ", and " << csol_ccond[itp->first[0]].size() << " context conditionals." << std::endl;
+        Trace("sygus-unif") << "   process assumption " << itp->first << " == " << itp->second << ", with current condition " << c;
+        Trace("sygus-unif") << ", and " << csol_ccond[itp->first[0]].size() << " context conditionals." << std::endl;
         std::vector< Node> assm;
         if( !c.isNull() ){
           assm.push_back( mkConditional( c, args ) );
@@ -688,53 +702,29 @@ void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
         }
         Assert( !assm.empty() );
         Node condn = assm.size()==1 ? assm[0] : NodeManager::currentNM()->mkNode( kind::AND, assm );
-        Node cond = NodeManager::currentNM()->mkNode( kind::IMPLIES, condn, itp->first.eqNode( itp->second ) );
-        psubs_condc[itp->first] = cond;
-        Trace("cegqi-unif") << "   ...made conditional correctness assumption : " << cond << std::endl;
-      }
-      for( std::map< Node, Node >::iterator itp = psubs_condc.begin(); itp != psubs_condc.end(); ++itp ){
-        lem_c.push_back( itp->second );
+        Node cond = NodeManager::currentNM()->mkNode( kind::OR, condn.negate(), itp->first.eqNode( itp->second ) );
+        cond = cond.substitute( d_candidates.begin(), d_candidates.end(), csol_vals.begin(), csol_vals.end() );
+        cond = cond.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
+        psubs_condc.push_back( cond );
+        Trace("sygus-unif") << "   ...made conditional correctness assumption : " << cond << std::endl;
       }
       
-      Node lem = lem_c.size()==1 ? lem_c[0] : NodeManager::currentNM()->mkNode( AND, lem_c );
-      //substitute the actual return values
-      if( options::cegqiUnifCondSol() ){
+      Node base_lem = lem_c.size()==1 ? lem_c[0] : NodeManager::currentNM()->mkNode( AND, lem_c );
+      
+      if( options::sygusUnifCondSol() ){
+        //substitute the actual return values
         Assert( d_candidates.size()==csol_vals.size() );
-        lem = lem.substitute( d_candidates.begin(), d_candidates.end(), csol_vals.begin(), csol_vals.end() );
-      }
-      
-      //previous non-ground conditional refinement lemmas must satisfy the current point
-      for( unsigned i=0; i<d_refinement_lemmas.size(); i++ ){
-        Node prev_lem = d_refinement_lemmas[i];
-        prev_lem = prev_lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
-        //do auxiliary variable substitution
-        std::vector< Node > subs;
-        for( unsigned ii=0; ii<d_refinement_lemmas_aux_vars[i].size(); ii++ ){
-          subs.push_back( NodeManager::currentNM()->mkSkolem( "y", d_refinement_lemmas_aux_vars[i][ii].getType(), 
-                                                              "purification variable for non-ground sygus conditional solution" ) );
-        }
-        prev_lem = prev_lem.substitute( d_refinement_lemmas_aux_vars[i].begin(), d_refinement_lemmas_aux_vars[i].end(), subs.begin(), subs.end() );
-        prev_lem = Rewriter::rewrite( prev_lem );
-        prev_lem = NodeManager::currentNM()->mkNode( OR, getGuard().negate(), prev_lem );
-        Trace("cegqi-unif") << "...previous conditional refinement lemma with new counterexample : " << prev_lem << std::endl;
-        lems.push_back( prev_lem );
-      }
-      if( !isGround() && !csol_cond.empty() ){
-        Trace("cegqi-unif") << "Lemma " << lem << " is a non-ground conditional refinement lemma, store it for future instantiation." << std::endl;
-        d_refinement_lemmas.push_back( lem );
-        d_refinement_lemmas_aux_vars.push_back( paux_vars );
-      }
-      
-      if( options::cegqiUnifCondSol() ){
-        Trace("cegqi-unif") << "We have lemma : " << lem << std::endl;
-        Trace("cegqi-unif") << "Now add progress assertions..." << std::endl;
+        base_lem = base_lem.substitute( d_candidates.begin(), d_candidates.end(), csol_vals.begin(), csol_vals.end() );
+        Trace("sygus-unif") << "We have base lemma : " << base_lem << std::endl;
+        //progress lemmas
+        Trace("sygus-unif") << "Now add progress assertions..." << std::endl;
         std::vector< Node > prgr_conj;
         std::map< Node, bool > cprocessed;
         for( std::map< Node, Node >::iterator itc = csol_cond.begin(); itc !=csol_cond.end(); ++itc ){
           Node x = itc->first;
           Node c = itc->second;          
           if( !c.isNull() ){
-            Trace("cegqi-unif") << "  process conditional " << c << " for " << x << ", which was applied " << psubs_apply[c].size() << " times." << std::endl;
+            Trace("sygus-unif") << "  process conditional " << c << " for " << x << ", which was applied " << psubs_apply[c].size() << " times." << std::endl;
             //make the progress point
             Assert( x.getType().isDatatype() );
             const Datatype& dx = ((DatatypeType)x.getType().toType()).getDatatype();
@@ -764,31 +754,69 @@ void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
               }
             }
             //the condition holds for the point
-            prgr_conj.push_back( mkConditional( c, prgr_pt ) );
+            Node cplem = mkConditional( c, prgr_pt );
             // ...and not for its context, if this return point is different from them
             //for( unsigned j=0; j<csol_ccond[x].size(); j++ ){
             //  Node cc = csol_ccond[x][j];
             //  prgr_conj.push_back( mkConditional( cc, prgr_pt, csol_cpol[x][cc] ) );
             //}
             //FIXME
+            d_refinement_lemmas_cprogress.push_back( cplem );
+            d_refinement_lemmas_cprogress_pts.push_back( prgr_pt );
+            prgr_conj.push_back( cplem );
           }
         }
         if( !prgr_conj.empty() ){
           Node prgr_lem = prgr_conj.size()==1 ? prgr_conj[0] : NodeManager::currentNM()->mkNode( kind::AND, prgr_conj );
           prgr_lem = prgr_lem.substitute( d_candidates.begin(), d_candidates.end(), csol_vals.begin(), csol_vals.end() );
-          Trace("cegqi-unif") << "Progress lemma is " << prgr_lem << std::endl;
-          lem = NodeManager::currentNM()->mkNode( kind::AND, lem, prgr_lem );
+          prgr_lem = prgr_lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
+          prgr_lem = NodeManager::currentNM()->mkNode( OR, getGuard().negate(), prgr_lem );
+          Trace("sygus-unif") << "Progress lemma is " << prgr_lem << std::endl;
+          lems.push_back( prgr_lem );
         }
-        //make in terms of new values
-        Assert( csol_vals.size()==d_candidates.size() );
-        Trace("cegqi-unif") << "Now rewrite in terms of new evaluation branches...got " << lem << std::endl;
+        
+        //previous non-ground conditional refinement lemmas must satisfy the current point
+        if( !isGround() ){
+          for( unsigned i=0; i<d_refinement_lemmas.size(); i++ ){
+            Node prev_lem = d_refinement_lemmas[i];
+            prev_lem = prev_lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
+            //do auxiliary variable substitution
+            std::vector< Node > subs;
+            for( unsigned ii=0; ii<d_refinement_lemmas_aux_vars[i].size(); ii++ ){
+              subs.push_back( NodeManager::currentNM()->mkSkolem( "y", d_refinement_lemmas_aux_vars[i][ii].getType(), 
+                                                                  "purification variable for non-ground sygus conditional solution" ) );
+            }
+            prev_lem = prev_lem.substitute( d_refinement_lemmas_aux_vars[i].begin(), d_refinement_lemmas_aux_vars[i].end(), subs.begin(), subs.end() );
+            prev_lem = Rewriter::rewrite( prev_lem );
+            Trace("sygus-unif") << "...previous conditional refinement lemma with new counterexample : " << prev_lem << std::endl;
+            lems.push_back( prev_lem );
+          }
+        }
       }
-      //apply the substitution
-      Assert( sk_vars.size()==sk_subs.size() );
-      lem = lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
+      
+      //make the base lemma
+      base_lem = base_lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
+      d_refinement_lemmas_base.push_back( base_lem );
+      
+      Node lem = base_lem;
+      
+      if( options::sygusUnifCondSol() ){
+        d_refinement_lemmas_ceval.push_back( psubs_condc );
+        //add the conditional evaluation
+        if( !psubs_condc.empty() ){
+          std::vector< Node > children;
+          children.push_back( base_lem );
+          children.insert( children.end(), psubs_condc.begin(), psubs_condc.end() );
+          lem = NodeManager::currentNM()->mkNode( AND, children );
+        }
+      }
+
       lem = NodeManager::currentNM()->mkNode( OR, getGuard().negate(), lem );
       lem = Rewriter::rewrite( lem );
       lems.push_back( lem );
+      
+      d_refinement_lemmas.push_back( lem );
+      d_refinement_lemmas_aux_vars.push_back( paux_vars );
     }
   }
   d_ce_sk.clear();
@@ -932,7 +960,7 @@ void CegInstantiation::registerQuantifier( Node q ) {
       //fairness
       if( d_conj->getCegqiFairMode()!=CEGQI_FAIR_NONE ){
         std::vector< Node > mc;
-        if( options::cegqiUnifCondSol() || 
+        if( options::sygusUnifCondSol() || 
             d_conj->getCegqiFairMode()==CEGQI_FAIR_DT_HEIGHT_PRED || d_conj->getCegqiFairMode()==CEGQI_FAIR_DT_SIZE_PRED  ){
           //measure term is a fresh constant
           mc.push_back( NodeManager::currentNM()->mkSkolem( "K", NodeManager::currentNM()->integerType() ) );
@@ -1049,24 +1077,50 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       std::vector< Node > model_values;
       if( conj->getModelValues( clist, model_values ) ){
         if( options::sygusDirectEval() ){
-          Trace("cegqi-debug") << "Do direct evaluation..." << std::endl;
-          std::vector< Node > eager_eval_lem;
-          for( unsigned j=0; j<clist.size(); j++ ){
-          Trace("cegqi-debug") << "  register " << clist[j] << " -> " << model_values[j] << std::endl;
-            d_quantEngine->getTermDatabaseSygus()->registerModelValue( clist[j], model_values[j], eager_eval_lem );
+          bool addedEvalLemmas = false;
+          if( options::sygusCRefEval() ){
+            Trace("cegqi-debug") << "Do cref evaluation..." << std::endl;
+            // see if any refinement lemma is refuted by evaluation
+            std::vector< Node > cre_lems;
+            getCRefEvaluationLemmas( conj, clist, model_values, cre_lems );
+            if( !cre_lems.empty() ){
+              Trace("cegqi-engine") << "  *** Do conjecture refinement evaluation..." << std::endl;
+              for( unsigned j=0; j<cre_lems.size(); j++ ){
+                Node lem = cre_lems[j];
+                Trace("cegqi-lemma") << "Cegqi::Lemma : cref evaluation : " << lem << std::endl;
+                if( d_quantEngine->addLemma( lem ) ){
+                  addedEvalLemmas = true;
+                }
+              }
+              if( addedEvalLemmas ){
+                return;
+              }
+            }
           }
-          Trace("cegqi-debug") << "...produced " << eager_eval_lem.size()  << " eager evaluation lemmas." << std::endl;
-          if( !eager_eval_lem.empty() ){
+          Trace("cegqi-debug") << "Do direct evaluation..." << std::endl;
+          std::vector< Node > eager_terms; 
+          std::vector< Node > eager_vals; 
+          std::vector< Node > eager_exps;
+          for( unsigned j=0; j<clist.size(); j++ ){
+            Trace("cegqi-debug") << "  register " << clist[j] << " -> " << model_values[j] << std::endl;
+            d_quantEngine->getTermDatabaseSygus()->registerModelValue( clist[j], model_values[j], eager_terms, eager_vals, eager_exps );
+          }
+          Trace("cegqi-debug") << "...produced " << eager_terms.size()  << " eager evaluation lemmas." << std::endl;
+          if( !eager_terms.empty() ){
             Trace("cegqi-engine") << "  *** Do direct evaluation..." << std::endl;
-            for( unsigned j=0; j<eager_eval_lem.size(); j++ ){
-              Node lem = eager_eval_lem[j];
+            for( unsigned j=0; j<eager_terms.size(); j++ ){
+              Node lem = NodeManager::currentNM()->mkNode( kind::OR, eager_exps[j].negate(), eager_terms[j].eqNode( eager_vals[j] ) );
               if( d_quantEngine->getTheoryEngine()->isTheoryEnabled(THEORY_BV) ){
                 //FIXME: hack to incorporate hacks from BV for division by zero
                 lem = bv::TheoryBVRewriter::eliminateBVSDiv( lem );
               }
               Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << lem << std::endl;
-              d_quantEngine->addLemma( lem );
+              if( d_quantEngine->addLemma( lem ) ){
+                addedEvalLemmas = true;
+              }
             }
+          }
+          if( addedEvalLemmas ){
             return;
           }
         }
@@ -1157,6 +1211,171 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
     if( addedLemma ){
       Trace("cegqi-engine") << "  ...refine candidate." << std::endl;
     }
+  }
+}
+
+void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vector< Node >& vs, std::vector< Node >& ms, std::vector< Node >& lems ) {
+  if( conj->getNumRefinementLemmas()>0 ){
+    Assert( vs.size()==ms.size() );
+    std::map< Node, Node > vtm;
+    for( unsigned i=0; i<vs.size(); i++ ){
+      vtm[vs[i]] = ms[i];
+    }
+    std::map< Node, Node > visited;
+    std::map< Node, std::vector< Node > > exp;
+    for( unsigned i=0; i<conj->getNumRefinementLemmas(); i++ ){
+      Node lem;
+      std::vector< Node > cvars;
+      if( options::sygusUnifCondSol() ){
+        //TODO : progress lemma
+        std::map< Node, Node > visitedc;
+        std::map< Node, std::vector< Node > > expc;
+        for( unsigned j=0; j<conj->getNumConditionalEvaluations( i ); j++ ){
+          Node ce = conj->getConditionalEvaluation( i, j );
+          Node cee = crefEvaluate( ce, vtm, visitedc, expc );
+          Trace("sygus-cref-eval") << "Check conditional evaluation : " << ce << ", evaluates to " << cee << std::endl;
+          if( !cee.isNull() && cee.getKind()==kind::EQUAL ){
+            // the conditional holds, we will apply this as a substitution
+            for( unsigned r=0; r<2; r++ ){
+              if( cee[r].isVar() && cee[1-r].isConst() ){
+                Node v = cee[r];
+                Node c = cee[1-r];
+                cvars.push_back( v );
+                Assert( exp.find( v )==exp.end() );
+                //TODO : should also carry symbolic solution (do not eagerly unfold conclusion of ce)
+                visited[v] = c;
+                exp[v].insert( exp[v].end(), expc[ce].begin(), expc[ce].end() );
+                Trace("sygus-cref-eval") << "   consider " << v << " -> " << c << std::endl;
+                break;
+              }
+            }
+          }
+        }
+        if( !cvars.empty() ){
+          lem = conj->getRefinementBaseLemma( i );
+        }
+      }else{
+        lem = conj->getRefinementBaseLemma( i );
+      }
+      if( !lem.isNull() ){
+        Trace("sygus-cref-eval") << "Check refinement lemma " << lem << " against current model." << std::endl;
+        Node elem = crefEvaluate( lem, vtm, visited, exp );
+        Trace("sygus-cref-eval") << "...evaluated to " << elem << ", exp size = " << exp[lem].size() << std::endl;
+        if( !elem.isNull() ){
+          bool success = false;
+          success = elem==d_quantEngine->getTermDatabase()->d_false;
+          if( success ){
+            elem = conj->getGuard().negate();
+            Node cre_lem;
+            if( !exp[lem].empty() ){
+              Node en = exp[lem].size()==1 ? exp[lem][0] : NodeManager::currentNM()->mkNode( kind::AND, exp[lem] );
+              cre_lem = NodeManager::currentNM()->mkNode( kind::OR, en.negate(), elem );
+            }else{
+              cre_lem = elem;
+            }
+            if( std::find( lems.begin(), lems.end(), cre_lem )==lems.end() ){
+              Trace("sygus-cref-eval") << "...produced lemma : " << cre_lem << std::endl;
+              lems.push_back( cre_lem );
+            }
+          }
+        }
+      }
+      // clean up caches
+      for( unsigned j=0; j<cvars.size(); j++ ){
+        visited.erase( cvars[j] );
+        exp.erase( cvars[j] );
+      }
+    }
+  }
+}
+
+Node CegInstantiation::crefEvaluate( Node n, std::map< Node, Node >& vtm, std::map< Node, Node >& visited, std::map< Node, std::vector< Node > >& exp ){
+  std::map< Node, Node >::iterator itv = visited.find( n );
+  if( itv!=visited.end() ){
+    return itv->second;
+  }else{
+    std::vector< Node > exp_c;
+    Node ret;
+    if( n.getKind()==kind::APPLY_UF ){
+      //it is an evaluation function
+      Trace("sygus-cref-eval-debug") << "Compute evaluation for : " << n << std::endl;
+      //unfold by one step 
+      Node nn = d_quantEngine->getTermDatabaseSygus()->unfold( n, vtm, exp[n] );
+      Trace("sygus-cref-eval-debug") << "...unfolded once to " << nn << std::endl;
+      Assert( nn!=n );
+      //it is the result of evaluating the unfolding
+      ret = crefEvaluate( nn, vtm, visited, exp );
+      //carry explanation
+      exp_c.push_back( nn );
+    }
+    if( ret.isNull() ){
+      if( n.getNumChildren()>0 ){
+        std::vector< Node > children;
+        bool childChanged = false;
+        if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+          children.push_back( n.getOperator() );
+        }
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          Node nc = crefEvaluate( n[i], vtm, visited, exp );
+          childChanged = nc!=n[i] || childChanged;
+          children.push_back( nc );
+          //Boolean short circuiting
+          if( n.getKind()==kind::AND ){
+            if( nc==d_quantEngine->getTermDatabase()->d_false ){
+              ret = nc;
+              exp_c.clear();
+            }
+          }else if( n.getKind()==kind::OR ){
+            if( nc==d_quantEngine->getTermDatabase()->d_true ){
+              ret = nc;
+              exp_c.clear();
+            }
+          }else if( n.getKind()==kind::ITE && i==0 ){
+            int index = -1;
+            if( nc==d_quantEngine->getTermDatabase()->d_true ){
+              index = 1;
+            }else if( nc==d_quantEngine->getTermDatabase()->d_false ){
+              index = 2;
+            }
+            if( index!=-1 ){
+              ret = crefEvaluate( n[index], vtm, visited, exp );
+              exp_c.push_back( n[index] );
+            }
+          }
+          //carry explanation
+          exp_c.push_back( n[i] );
+          if( !ret.isNull() ){
+            break;
+          }
+        }
+        if( ret.isNull() ){
+          if( childChanged ){
+            ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+            ret = Rewriter::rewrite( ret );
+          }else{
+            ret = n;
+          }
+        }
+      }else{
+        ret = n;
+      }
+    }
+    //carry explanation from children
+    for( unsigned i=0; i<exp_c.size(); i++ ){
+      Node nn = exp_c[i];
+      std::map< Node, std::vector< Node > >::iterator itx = exp.find( nn );
+      if( itx!=exp.end() ){
+        for( unsigned j=0; j<itx->second.size(); j++ ){
+          if( std::find( exp[n].begin(), exp[n].end(), itx->second[j] )==exp[n].end() ){
+            exp[n].push_back( itx->second[j] );
+          }
+        }
+      }
+    }
+    Trace("sygus-cref-eval-debug") << "... evaluation of " << n << " is (" << ret.getKind() << ") " << ret << std::endl;
+    Trace("sygus-cref-eval-debug") << "...... exp size = " << exp[n].size() << std::endl;
+    visited[n] = ret;
+    return ret;
   }
 }
 

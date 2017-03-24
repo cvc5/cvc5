@@ -36,7 +36,7 @@ class TheoryModel : public Model
 protected:
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
-  context::CDO<bool> d_modelBuilt;
+  bool d_modelBuilt;
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
   virtual ~TheoryModel() throw();
@@ -74,7 +74,9 @@ protected:
   Node getModelValue(TNode n, bool hasBoundVars = false, bool useDontCares = false) const;
 public:
   /** is built */
-  bool isBuilt() { return d_modelBuilt.get(); }
+  bool isBuilt() { return d_modelBuilt; }
+  /** set need build */
+  void setNeedsBuild() { d_modelBuilt = false; }
   /**
    * Get value function.  This should be called only after a ModelBuilder has called buildModel(...)
    * on this model.
@@ -266,15 +268,17 @@ protected:
   typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_normalizedCache;
   typedef std::hash_set<Node, NodeHashFunction> NodeSet;
+  std::map< Node, Node > d_constantReps;
 
   /** process build model */
-  virtual void preProcessBuildModel(TheoryModel* m, bool fullModel);
-  virtual void processBuildModel(TheoryModel* m, bool fullModel);
+  virtual bool preProcessBuildModel(TheoryModel* m);
+  virtual bool processBuildModel(TheoryModel* m);
+  virtual void debugModel( TheoryModel* m ) {}
   /** normalize representative */
-  Node normalize(TheoryModel* m, TNode r, std::map<Node, Node>& constantReps, bool evalOnly);
+  Node normalize(TheoryModel* m, TNode r, bool evalOnly);
   bool isAssignable(TNode n);
   void checkTerms(TNode n, TheoryModel* tm, NodeSet& cache);
-  void assignConstantRep( TheoryModel* tm, std::map<Node, Node>& constantReps, Node eqc, Node const_rep, bool fullModel );
+  void assignConstantRep( TheoryModel* tm, Node eqc, Node const_rep );
   /** is v an excluded codatatype value */
   bool isExcludedCdtValue( Node v, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc );
   bool isCdtValueMatch( Node v, Node r, Node eqc, Node& eqc_m );
@@ -287,7 +291,8 @@ public:
   /** Build model function.
    *    Should be called only on TheoryModels m
    */
-  void buildModel(Model* m, bool fullModel);
+  bool buildModel(Model* m);
+  void debugCheckModel(Model* m);
 };/* class TheoryEngineModelBuilder */
 
 }/* CVC4::theory namespace */

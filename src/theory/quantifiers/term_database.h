@@ -672,7 +672,8 @@ private:
   std::map< Node, std::map< Node, unsigned > > d_node_mv_args_proc;
 public:
   void registerEvalTerm( Node n );
-  void registerModelValue( Node n, Node v, std::vector< Node >& lems );
+  void registerModelValue( Node n, Node v, std::vector< Node >& exps, std::vector< Node >& terms, std::vector< Node >& vals );
+  Node unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp );
 };
 
 }/* CVC4::theory::quantifiers namespace */

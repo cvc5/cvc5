@@ -51,6 +51,10 @@ private:
   /** refinement lemmas */
   std::vector< Node > d_refinement_lemmas;
   std::vector< std::vector< Node > > d_refinement_lemmas_aux_vars;
+  std::vector< Node > d_refinement_lemmas_base;
+  std::vector< std::vector< Node > > d_refinement_lemmas_ceval;
+  std::vector< Node > d_refinement_lemmas_cprogress;
+  std::vector< std::vector< Node > > d_refinement_lemmas_cprogress_pts;
 private: //for condition solutions
   /** get candidate list recursively for conditional solutions */
   void getConditionalCandidateList( std::vector< Node >& clist, Node curr, bool reqAdd );
@@ -173,6 +177,18 @@ public:
   bool getModelValues( std::vector< Node >& n, std::vector< Node >& v );
   /** get model value */
   Node getModelValue( Node n );
+  /** get number of refinement lemmas */
+  unsigned getNumRefinementLemmas() { return d_refinement_lemmas.size(); }
+  /** get refinement lemma */
+  Node getRefinementLemma( unsigned i ) { return d_refinement_lemmas[i]; }
+  /** get refinement lemma */
+  Node getRefinementBaseLemma( unsigned i ) { return d_refinement_lemmas_base[i]; }
+  /** get num conditional evaluations */
+  unsigned getNumConditionalEvaluations( unsigned i ) { return d_refinement_lemmas_ceval[i].size(); }
+  /** get conditional evaluation */
+  Node getConditionalEvaluation( unsigned i, unsigned j ) { return d_refinement_lemmas_ceval[i][j]; }
+  /** get progress lemma */
+  Node getConditionalProgressLemma( unsigned i ) { return d_refinement_lemmas_cprogress[i]; }
 };
 
 
@@ -199,6 +215,10 @@ private: //for enforcing fairness
   std::map< Node, std::map< int, Node > > d_size_term_lemma;
   /** get measure lemmas */
   void getMeasureLemmas( Node n, Node v, std::vector< Node >& lems );
+private: //for direct evaluation
+  /** get refinement evaluation */
+  void getCRefEvaluationLemmas( CegConjecture * conj, std::vector< Node >& vs, std::vector< Node >& ms, std::vector< Node >& lems );
+  Node crefEvaluate( Node lem, std::map< Node, Node >& vtm, std::map< Node, Node >& visited, std::map< Node, std::vector< Node > >& exp );
   /** get eager unfolding */
   Node getEagerUnfold( Node n, std::map< Node, Node >& visited );
 private:

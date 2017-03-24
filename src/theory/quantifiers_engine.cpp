@@ -97,16 +97,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
-  //the model object
-  if( options::mbqiMode()==quantifiers::MBQI_FMC ||
-      options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL || options::fmfBound() ||
-      options::mbqiMode()==quantifiers::MBQI_TRUST ){
-    d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
-  }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
-    d_model = new quantifiers::FirstOrderModelAbs( this, c, "FirstOrderModelAbs" );
-  }else{
-    d_model = new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" );
-  }
   if( options::relevantTriggers() ){
     d_quant_rel = new QuantRelevance( false );
   }else{
@@ -127,6 +117,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_i_cbqi = NULL;
   d_qsplit = NULL;
   d_anti_skolem = NULL;
+  d_model = NULL;
   d_model_engine = NULL;
   d_bint = NULL;
   d_rr_engine = NULL;
@@ -224,14 +215,14 @@ void QuantifiersEngine::finishInit(){
   if( options::cbqi() ){
     d_i_cbqi = new quantifiers::InstStrategyCegqi( this );
     d_modules.push_back( d_i_cbqi );
-    if( options::cbqiModel() ){
-      needsBuilder = true;
-    }
+    //if( options::cbqiModel() ){
+    //  needsBuilder = true;
+    //}
   }
   if( options::ceGuidedInst() ){
     d_ceg_inst = new quantifiers::CegInstantiation( this, c );
     d_modules.push_back( d_ceg_inst );
-    needsBuilder = true;
+    //needsBuilder = true;
   }  
   //finite model finding
   if( options::finiteModelFind() ){
@@ -241,6 +232,7 @@ void QuantifiersEngine::finishInit(){
     }
     d_model_engine = new quantifiers::ModelEngine( c, this );
     d_modules.push_back( d_model_engine );
+    //finite model finder has special ways of building the model
     needsBuilder = true;
   }
   if( options::quantRewriteRules() ){
@@ -276,27 +268,32 @@ void QuantifiersEngine::finishInit(){
     d_modules.push_back( d_fs );
     needsRelDom = true;
   }
- 
+  
   if( needsRelDom ){
-    d_rel_dom = new quantifiers::RelevantDomain( this, d_model );
+    d_rel_dom = new quantifiers::RelevantDomain( this );
     d_util.push_back( d_rel_dom );
   }
-
+  
+  // if we require specialized ways of building the model
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
     if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
         options::mbqiMode()==quantifiers::MBQI_TRUST || options::fmfBound() ){
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
+      d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
       d_builder = new quantifiers::fmcheck::FullModelChecker( c, this );
     }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
       Trace("quant-engine-debug") << "...make abs mbqi builder." << std::endl;
+      d_model = new quantifiers::FirstOrderModelAbs( this, c, "FirstOrderModelAbs" );
       d_builder = new quantifiers::AbsMbqiBuilder( c, this );
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
+      d_model = new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" );
       d_builder = new quantifiers::QModelBuilderDefault( c, this );
     }
+  }else{
+    d_model = new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" );
   }
-
 }
 
 QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
@@ -405,7 +402,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
   d_conflict = false;
   d_hasAddedLemma = false;
   bool setIncomplete = false;
-  bool usedModelBuilder = false;
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
@@ -505,14 +501,13 @@ void QuantifiersEngine::check( Theory::Effort e ){
       d_curr_effort_level = quant_e;
       bool success = true;
       //build the model if any module requested it
-      if( needsModelE==quant_e ){
-        Assert( d_builder!=NULL );
+      if( needsModelE==quant_e && !d_model->isBuilt() ){
+        // theory engine's model builder is quantifier engine's builder if it has one
+        Assert( !d_builder || d_builder==d_te->getModelBuilder() );
         Trace("quant-engine-debug") << "Build model..." << std::endl;
-        usedModelBuilder = true;
-        d_builder->d_addedLemmas = 0;
-        d_builder->buildModel( d_model, false );
-        //we are done if model building was unsuccessful
-        if( d_builder->d_addedLemmas>0 ){
+        if( !d_te->getModelBuilder()->buildModel( d_model ) ){
+          //we are done if model building was unsuccessful
+          Trace("quant-engine-debug") << "...failed." << std::endl;
           success = false;
         }
       }
@@ -625,13 +620,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
   //SAT case
   if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
     if( options::produceModels() ){
-      if( usedModelBuilder ){
-        Trace("quant-engine-debug") << "Build completed model..." << std::endl;
-        d_builder->buildModel( d_model, true );
-      }else if( !d_model->isModelSet() ){
+      if( d_model->isBuilt() ){
+        Trace("quant-engine-debug") << "Already built model using model builder, finish..." << std::endl;
+      }else{
         //use default model builder when no module built the model
-        Trace("quant-engine-debug") << "Build the model..." << std::endl;
-        d_te->getModelBuilder()->buildModel( d_model, true );
+        Trace("quant-engine-debug") << "Build the default model..." << std::endl;
+        d_te->getModelBuilder()->buildModel( d_model );
         Trace("quant-engine-debug") << "Done building the model." << std::endl;
       }
     }

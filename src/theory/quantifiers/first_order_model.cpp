@@ -45,7 +45,7 @@ struct sortQuantifierRelevance {
 
 FirstOrderModel::FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name ) :
 TheoryModel( c, name, true ),
-d_qe( qe ), d_forall_asserts( c ), d_isModelSet( c, false ){
+d_qe( qe ), d_forall_asserts( c ){
   d_rlv_count = 0;
 }
 
@@ -67,34 +67,6 @@ Node FirstOrderModel::getAssertedQuantifier( unsigned i, bool ordered ) {
   }else{
     Assert( d_forall_rlv_assert.size()==d_forall_asserts.size() );
     return d_forall_rlv_assert[i];
-  }
-}
-
-//AJR : FIXME : this function is only used by bounded integers, can likely be removed.
-Node FirstOrderModel::getCurrentModelValue( Node n, bool partial ) {
-  std::vector< Node > children;
-  if( n.getNumChildren()>0 ){
-    if( n.getKind()!=APPLY_UF && n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-      children.push_back( n.getOperator() );
-    }
-    for (unsigned i=0; i<n.getNumChildren(); i++) {
-      Node nc = getCurrentModelValue( n[i], partial );
-      if (nc.isNull()) {
-        return Node::null();
-      }else{
-        children.push_back( nc );
-      }
-    }
-    if( n.getKind()==APPLY_UF ){
-      return getCurrentUfModelValue( n, children, partial );
-    }else{
-      Node nn = NodeManager::currentNM()->mkNode( n.getKind(), children );
-      nn = Rewriter::rewrite( nn );
-      return nn;
-    }
-  }else{
-    //return getRepresentative(n);
-    return getValue(n);
   }
 }
 
@@ -613,6 +585,7 @@ void FirstOrderModelIG::makeEvalUfIndexOrder( Node n ){
   }
 }
 
+/*
 Node FirstOrderModelIG::getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) {
   std::vector< Node > children;
   children.push_back(n.getOperator());
@@ -627,7 +600,7 @@ Node FirstOrderModelIG::getCurrentUfModelValue( Node n, std::vector< Node > & ar
     return d_eval_uf_model[ nv ].getValue( this, nv, argDepIndex );
   }
 }
-
+*/
 
 
 
@@ -659,6 +632,7 @@ Node FirstOrderModelFmc::getUsedRepresentative(Node n, bool strict) {
   }
 }
 
+/*
 Node FirstOrderModelFmc::getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) {
   Trace("fmc-uf-model") << "Get model value for " << n << " " << n.getKind() << std::endl;
   for(unsigned i=0; i<args.size(); i++) {
@@ -667,6 +641,7 @@ Node FirstOrderModelFmc::getCurrentUfModelValue( Node n, std::vector< Node > & a
   Assert( n.getKind()==APPLY_UF );
   return d_models[n.getOperator()]->evaluate(this, args);
 }
+*/
 
 void FirstOrderModelFmc::processInitialize( bool ispre ) {
   if( ispre ){
@@ -900,6 +875,7 @@ Node FirstOrderModelAbs::getFunctionValue(Node op, const char* argPrefix ) {
   return Node::null();
 }
 
+/*
 Node FirstOrderModelAbs::getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) {
   Debug("qint-debug") << "get curr uf value " << n << std::endl;
   if( d_models_valid[n] ){
@@ -912,6 +888,7 @@ Node FirstOrderModelAbs::getCurrentUfModelValue( Node n, std::vector< Node > & a
     return Node::null();
   }
 }
+*/
 
 void FirstOrderModelAbs::processInitializeModelForTerm( Node n ) {
   if( n.getKind()==APPLY_UF || n.getKind()==VARIABLE || n.getKind()==SKOLEM ){

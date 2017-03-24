@@ -55,12 +55,10 @@ protected:
   std::vector< Node > d_forall_rlv_vec;
   Node d_last_forall_rlv;
   std::vector< Node > d_forall_rlv_assert;
-  /** is model set */
-  context::CDO< bool > d_isModelSet;
   /** get variable id */
   std::map< Node, std::map< Node, int > > d_quant_var_id;
-  /** get current model value */
-  virtual Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) = 0;
+  /** get current model value (deprecated) */
+  //virtual Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) = 0;
 public: //for Theory Quantifiers:
   /** assert quantifier */
   void assertQuantifier( Node n );
@@ -82,12 +80,6 @@ public:
   // initialize the model
   void initialize();
   virtual void processInitialize( bool ispre ) = 0;
-  /** mark model set */
-  void markModelSet() { d_isModelSet = true; }
-  /** is model set */
-  bool isModelSet() { return d_isModelSet; }
-  /** get current model value */
-  Node getCurrentModelValue( Node n, bool partial = false );
   /** get variable id */
   int getVariableId(TNode q, TNode n) {
     return d_quant_var_id.find( q )!=d_quant_var_id.end() ? d_quant_var_id[q][n] : -1;
@@ -133,8 +125,6 @@ private:
   //index ordering to use for each term
   std::map< Node, std::vector< int > > d_eval_term_index_order;
   void makeEvalUfIndexOrder( Node n );
-  /** get current model value */
-  Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial );
 //the following functions are for evaluating quantifier bodies
 public:
   FirstOrderModelIG(QuantifiersEngine * qe, context::Context* c, std::string name);
@@ -179,7 +169,6 @@ private:
   Node intervalOp;
   Node getUsedRepresentative(Node n, bool strict = false);
   /** get current model value */
-  Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial );
   void processInitializeModelForTerm(Node n);
 public:
   FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
@@ -214,7 +203,6 @@ public:
   std::map< Node, std::map< int, int > > d_var_index;
 private:
   /** get current model value */
-  Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial );
   void processInitializeModelForTerm(Node n);
   void processInitializeQuantifier( Node q );
   void collectEqVars( TNode q, TNode n, std::map< int, bool >& eq_vars );

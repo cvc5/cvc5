@@ -1420,7 +1420,6 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
 
   //combine the equality engine
   m->assertEqualityEngine( &d_equalityEngine, &termSet );
-  
 
   //get all constructors
   eq::EqClassesIterator eqccs_i = eq::EqClassesIterator( &d_equalityEngine );
@@ -1430,25 +1429,25 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
   while( !eqccs_i.isFinished() ){
     Node eqc = (*eqccs_i);
     //for all equivalence classes that are datatypes
-    if( termSet.find( eqc )==termSet.end() ){
-      Trace("dt-cmi-debug") << "Irrelevant eqc : " << eqc << std::endl;
-    }else{
-      if( eqc.getType().isDatatype() ){
-        EqcInfo* ei = getOrMakeEqcInfo( eqc );
-        if( ei && !ei->d_constructor.get().isNull() ){
-          Node c = ei->d_constructor.get();
-          cons.push_back( c );
-          eqc_cons[ eqc ] = c;
-        }else{
-          //if eqc contains a symbol known to datatypes (a selector), then we must assign
-          //should assign constructors to EQC if they have a selector or a tester
-          bool shouldConsider = ( ei && ei->d_selectors ) || hasTester( eqc );
-          if( shouldConsider ){
-            nodes.push_back( eqc );
-          }
+    //if( termSet.find( eqc )==termSet.end() ){
+    //  Trace("dt-cmi-debug") << "Irrelevant eqc : " << eqc << std::endl;
+    //}
+    if( eqc.getType().isDatatype() ){
+      EqcInfo* ei = getOrMakeEqcInfo( eqc );
+      if( ei && !ei->d_constructor.get().isNull() ){
+        Node c = ei->d_constructor.get();
+        cons.push_back( c );
+        eqc_cons[ eqc ] = c;
+      }else{
+        //if eqc contains a symbol known to datatypes (a selector), then we must assign
+        //should assign constructors to EQC if they have a selector or a tester
+        bool shouldConsider = ( ei && ei->d_selectors ) || hasTester( eqc );
+        if( shouldConsider ){
+          nodes.push_back( eqc );
         }
       }
     }
+    //}
     ++eqccs_i;
   }
 
@@ -2165,7 +2164,7 @@ void TheoryDatatypes::getRelevantTerms( std::set<Node>& termSet ) {
   // Compute terms appearing in assertions and shared terms
   computeRelevantTerms(termSet);
   
-  //also include non-singleton equivalence classes
+  //also include non-singleton equivalence classes  TODO : revisit this
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   while( !eqcs_i.isFinished() ){
     TNode r = (*eqcs_i);
@@ -2176,6 +2175,11 @@ void TheoryDatatypes::getRelevantTerms( std::set<Node>& termSet ) {
       TNode n = (*eqc_i);
       if( first.isNull() ){
         first = n;
+        //always include all datatypes
+        if( n.getType().isDatatype() ){
+          addedFirst = true;
+          termSet.insert( n );
+        }
       }else{
         if( !addedFirst ){
           addedFirst = true;

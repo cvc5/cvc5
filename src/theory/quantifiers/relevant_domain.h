@@ -43,7 +43,6 @@ private:
   std::map< RDomain *, Node > d_rn_map;
   std::map< RDomain *, int > d_ri_map;
   QuantifiersEngine* d_qe;
-  FirstOrderModel* d_model;
   void computeRelevantDomain( Node q, Node n, bool hasPol, bool pol );
   void computeRelevantDomainOpCh( RDomain * rf, Node n );
   bool d_is_computed;
@@ -63,7 +62,7 @@ private:
   std::map< bool, std::map< bool, std::map< Node, RDomainLit > > > d_rel_dom_lit;
   void computeRelevantDomainLit( Node q, bool hasPol, bool pol, Node n );
 public:
-  RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m );
+  RelevantDomain( QuantifiersEngine* qe );
   virtual ~RelevantDomain();
   /* reset */
   bool reset( Theory::Effort e );

@@ -69,7 +69,7 @@ void RelevantDomain::RDomain::removeRedundantTerms( QuantifiersEngine * qe ) {
 
 
 
-RelevantDomain::RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m ) : d_qe( qe ), d_model( m ){
+RelevantDomain::RelevantDomain( QuantifiersEngine* qe ) : d_qe( qe ){
    d_is_computed = false;
 }
 
@@ -105,8 +105,9 @@ void RelevantDomain::compute(){
         it2->second->reset();
       }
     }
-    for( unsigned i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
-      Node q = d_model->getAssertedQuantifier( i );
+    FirstOrderModel* fm = d_qe->getModel();
+    for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+      Node q = fm->getAssertedQuantifier( i );
       Node icf = d_qe->getTermDatabase()->getInstConstantBody( q );
       Trace("rel-dom-debug") << "compute relevant domain for " << icf << std::endl;
       computeRelevantDomain( q, icf, true, true );
@@ -171,7 +172,7 @@ void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool po
     }
   }
 
-  if( ( n.getKind()==EQUAL || n.getKind()==GEQ ) && TermDb::hasInstConstAttr( n ) ){
+  if( ( ( n.getKind()==EQUAL && !n[0].getType().isBoolean() ) || n.getKind()==GEQ ) && TermDb::hasInstConstAttr( n ) ){
     //compute the information for what this literal does
     computeRelevantDomainLit( q, hasPol, pol, n );
     if( d_rel_dom_lit[hasPol][pol][n].d_merge ){

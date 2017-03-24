@@ -91,7 +91,7 @@ public:
   AbsMbqiBuilder( context::Context* c, QuantifiersEngine* qe );
   ~AbsMbqiBuilder() throw() {}
   //process build model
-  void processBuildModel(TheoryModel* m, bool fullModel);
+  bool processBuildModel(TheoryModel* m);
   //do exhaustive instantiation
   int doExhaustiveInstantiation( FirstOrderModel * fm, Node q, int effort );
 };

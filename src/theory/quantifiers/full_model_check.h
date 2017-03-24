@@ -144,10 +144,8 @@ public:
   Node getFunctionValue(FirstOrderModelFmc * fm, Node op, const char* argPrefix );
 
   /** process build model */  
-  void preProcessBuildModel(TheoryModel* m, bool fullModel); 
-  void processBuildModel(TheoryModel* m, bool fullModel);
-  /** get current model value */
-  Node getCurrentUfModelValue( FirstOrderModelFmc* fm, Node n, std::vector< Node > & args, bool partial );
+  bool preProcessBuildModel(TheoryModel* m); 
+  bool processBuildModel(TheoryModel* m);
 
   bool useSimpleModels();
 };/* class FullModelChecker */

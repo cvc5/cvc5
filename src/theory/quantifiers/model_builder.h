@@ -29,12 +29,13 @@ namespace quantifiers {
 class QModelBuilder : public TheoryEngineModelBuilder
 {
 protected:
-  //the model we are working with
-  context::CDO< FirstOrderModel* > d_curr_model;
   //quantifiers engine
   QuantifiersEngine* d_qe;
-  void preProcessBuildModel(TheoryModel* m, bool fullModel);
-  void preProcessBuildModelStd(TheoryModel* m, bool fullModel);
+  bool preProcessBuildModel(TheoryModel* m); //must call preProcessBuildModelStd
+  bool preProcessBuildModelStd(TheoryModel* m);
+  /** number of lemmas generated while building model */
+  unsigned d_addedLemmas;
+  unsigned d_triedLemmas;
 public:
   QModelBuilder( context::Context* c, QuantifiersEngine* qe );
   virtual ~QModelBuilder() throw() {}
@@ -45,13 +46,13 @@ public:
   virtual int doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) { return false; }
   //whether to construct model
   virtual bool optUseModel();
-  /** number of lemmas generated while building model */
-  int d_addedLemmas;
-  int d_triedLemmas;
   /** exist instantiation ? */
   virtual bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false ) { return false; }
   //debug model
-  void debugModel( FirstOrderModel* fm );
+  virtual void debugModel( TheoryModel* m );
+  //statistics 
+  unsigned getNumAddedLemmas() { return d_addedLemmas; }
+  unsigned getNumTriedLemmas() { return d_triedLemmas; }
 };
 
 
@@ -87,9 +88,7 @@ protected:
   //whether inst gen was done
   bool d_didInstGen;
   /** process build model */
-  virtual void processBuildModel( TheoryModel* m, bool fullModel );
-  /** get current model value */
-  Node getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::vector< Node > & args, bool partial );
+  virtual bool processBuildModel( TheoryModel* m );
 protected:
   //reset
   virtual void reset( FirstOrderModel* fm ) = 0;

@@ -670,6 +670,7 @@ bool FullSaturation::process( Node f, bool fullEffort ){
       }else{
         Trace("inst-alg") << "-> Ground term instantiate " << f << "..." << std::endl;
       }
+      Assert( rd!=NULL );
       rd->compute();
       unsigned final_max_i = 0;
       std::vector< unsigned > maxs;

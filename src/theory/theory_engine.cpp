@@ -212,16 +212,9 @@ void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode, Proof* pf)
 void TheoryEngine::finishInit() {
   // initialize the quantifiers engine
   d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
-
-  //initialize the model
+  
+  //initialize the quantifiers engine, master equality engine, model, model builder
   if( d_logicInfo.isQuantified() ) {
-    d_curr_model = d_quantEngine->getModel();
-  } else {
-    d_curr_model = new theory::TheoryModel(d_userContext, "DefaultModel", true);
-    d_aloc_curr_model = true;
-  }
-
-  if (d_logicInfo.isQuantified()) {
     d_quantEngine->finishInit();
     Assert(d_masterEqualityEngine == 0);
     d_masterEqualityEngine = new eq::EqualityEngine(d_masterEENotify,getSatContext(), "theory::master", false);
@@ -232,6 +225,17 @@ void TheoryEngine::finishInit() {
         d_theoryTable[theoryId]->setMasterEqualityEngine(d_masterEqualityEngine);
       }
     }
+  
+    d_curr_model_builder = d_quantEngine->getModelBuilder();
+    d_curr_model = d_quantEngine->getModel();
+  } else {
+    d_curr_model = new theory::TheoryModel(d_userContext, "DefaultModel", true);
+    d_aloc_curr_model = true;
+  }
+  //make the default builder, e.g. in the case that the quantifiers engine does not have a model builder
+  if( d_curr_model_builder==NULL ){
+    d_curr_model_builder = new theory::TheoryEngineModelBuilder(this);
+    d_aloc_curr_model_builder = true;
   }
 
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
@@ -283,6 +287,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_curr_model(NULL),
   d_aloc_curr_model(false),
   d_curr_model_builder(NULL),
+  d_aloc_curr_model_builder(false),
   d_ppCache(),
   d_possiblePropagations(context),
   d_hasPropagated(context),
@@ -317,10 +322,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
   }
-
-  // build model information if applicable
-  d_curr_model_builder = new theory::TheoryEngineModelBuilder(this);
-
+  
   smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -344,7 +346,9 @@ TheoryEngine::~TheoryEngine() {
     }
   }
 
-  delete d_curr_model_builder;
+  if( d_aloc_curr_model_builder ){
+    delete d_curr_model_builder;
+  }
   if( d_aloc_curr_model ){
     delete d_curr_model;
   }
@@ -583,21 +587,24 @@ void TheoryEngine::check(Theory::Effort effort) {
     }
 
     // Must consult quantifiers theory for last call to ensure sat, or otherwise add a lemma
-    if( effort == Theory::EFFORT_FULL && ! d_inConflict && ! needCheck() ) {
+    if( Theory::fullEffort(effort) && ! d_inConflict && ! needCheck() ) {
       Trace("theory::assertions-model") << endl;
       if (Trace.isOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
       }
       //checks for theories requiring the model go at last call
-      bool builtModel = false;
+      d_curr_model->setNeedsBuild();
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
         if( theoryId!=THEORY_QUANTIFIERS ){
           Theory* theory = d_theoryTable[theoryId];
           if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
             if( theory->needsCheckLastEffort() ){
-              if( !builtModel ){
-                builtModel = true;
-                d_curr_model_builder->buildModel(d_curr_model, false);
+              if( !d_curr_model->isBuilt() ){
+                if( !d_curr_model_builder->buildModel(d_curr_model) ){
+                  //model building should fail only if the model builder adds lemmas
+                  Assert( needCheck() );
+                  break;
+                }
               }
               theory->check(Theory::EFFORT_LAST_CALL);
             }
@@ -609,9 +616,9 @@ void TheoryEngine::check(Theory::Effort effort) {
           // quantifiers engine must pass effort last call check
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
           // if returning incomplete or SAT, we have ensured that d_curr_model has been built with fullModel=true
-        } else if(options::produceModels()) {
+        } else if(options::produceModels() && !d_curr_model->isBuilt()) {
           // must build model at this point
-          d_curr_model_builder->buildModel(d_curr_model, true);
+          d_curr_model_builder->buildModel(d_curr_model);
         }
       }
     }
@@ -619,8 +626,16 @@ void TheoryEngine::check(Theory::Effort effort) {
     Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
     Debug("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
-    if(!d_inConflict && Theory::fullEffort(effort) && d_masterEqualityEngine != NULL && !d_lemmasAdded) {
-      AlwaysAssert(d_masterEqualityEngine->consistent());
+    if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
+      //we will answer SAT
+      if( d_masterEqualityEngine != NULL ){
+        AlwaysAssert(d_masterEqualityEngine->consistent());
+      }
+      if( options::produceModels() ){
+        d_curr_model_builder->debugCheckModel(d_curr_model);  
+        // Do post-processing of model from the theories (used for THEORY_SEP to construct heap model)
+        postProcessModel(d_curr_model);
+      }
     }
   } catch(const theory::Interrupted&) {
     Trace("theory") << "TheoryEngine::check() => interrupted" << endl;
@@ -828,6 +843,7 @@ bool TheoryEngine::properExplanation(TNode node, TNode expl) const {
 }
 
 void TheoryEngine::collectModelInfo( theory::TheoryModel* m, bool fullModel ){
+  Assert( fullModel ); // AJR : FIXME : remove/simplify fullModel argument everywhere
   //have shared term engine collectModelInfo
   //  d_sharedTerms.collectModelInfo( m, fullModel );
   // Consult each active theory to get all relevant information

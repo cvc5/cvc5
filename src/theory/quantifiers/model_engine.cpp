@@ -237,8 +237,8 @@ int ModelEngine::checkModel(){
 void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   //first check if the builder can do the exhaustive instantiation
   quantifiers::QModelBuilder * mb = d_quantEngine->getModelBuilder();
-  mb->d_triedLemmas = 0;
-  mb->d_addedLemmas = 0;
+  unsigned prev_alem = mb->getNumAddedLemmas();
+  unsigned prev_tlem = mb->getNumTriedLemmas();
   int retEi = mb->doExhaustiveInstantiation( d_quantEngine->getModel(), f, effort );
   if( retEi!=0 ){
     if( retEi<0 ){
@@ -247,9 +247,9 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     }else{
       Trace("fmf-exh-inst") << "-> Builder determined instantiation(s)." << std::endl;
     }
-    d_triedLemmas += mb->d_triedLemmas;
-    d_addedLemmas += mb->d_addedLemmas;
-    d_quantEngine->d_statistics.d_instantiations_fmf_mbqi += mb->d_addedLemmas;
+    d_triedLemmas += mb->getNumTriedLemmas()-prev_tlem;
+    d_addedLemmas += mb->getNumAddedLemmas()-prev_alem;
+    d_quantEngine->d_statistics.d_instantiations_fmf_mbqi += mb->getNumAddedLemmas();
   }else{
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";

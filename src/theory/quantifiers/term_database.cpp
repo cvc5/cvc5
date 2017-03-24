@@ -3274,7 +3274,7 @@ void TermDbSygus::registerEvalTerm( Node n ) {
   }
 }
 
-void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& lems ) {
+void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms, std::vector< Node >& vals, std::vector< Node >& exps ) {
   std::map< Node, std::map< Node, bool > >::iterator its = d_subterms.find( a );
   if( its!=d_subterms.end() ){
     Trace("sygus-eager") << "registerModelValue : " << a << ", has " << its->second.size() << " registered subterms." << std::endl;
@@ -3288,7 +3288,7 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& lems 
         Node vn = n.substitute( at, vt );
         vn = Rewriter::rewrite( vn );
         unsigned start = d_node_mv_args_proc[n][vn];
-        Node antec = n.eqNode( vn ).negate();
+        Node antec = n.eqNode( vn );
         TypeNode tn = n.getType();
         Assert( tn.isDatatype() );
         const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
@@ -3306,15 +3306,81 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& lems 
         for( unsigned i=start; i<it->second.size(); i++ ){
           Assert( vars.size()==it->second[i].size() );
           Node sBTerm = bTerm.substitute( vars.begin(), vars.end(), it->second[i].begin(), it->second[i].end() );
-          Node lem = NodeManager::currentNM()->mkNode(EQUAL, d_evals[n][i], sBTerm ); 
-          lem = NodeManager::currentNM()->mkNode( OR, antec, lem );
-          Trace("sygus-eager") << "Lemma : " << lem << std::endl;
-          lems.push_back( lem );
+          sBTerm = Rewriter::rewrite( sBTerm );
+          //Node lem = NodeManager::currentNM()->mkNode(EQUAL, d_evals[n][i], sBTerm ); 
+          //lem = NodeManager::currentNM()->mkNode( OR, antec.negate(), lem );
+          terms.push_back( d_evals[n][i] );
+          vals.push_back( sBTerm );
+          exps.push_back( antec );
+          Trace("sygus-eager") << "Conclude : " << d_evals[n][i] << " == " << sBTerm << std::endl;
+          Trace("sygus-eager") << "   from " << antec << std::endl;
+          //Trace("sygus-eager") << "Lemma : " << lem << std::endl;
+          //lems.push_back( lem );
         }
         d_node_mv_args_proc[n][vn] = it->second.size();
       }
     }
   }
+}
+
+
+Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp ) {
+  if( en.getKind()==kind::APPLY_UF ){
+    std::map< Node, Node >::iterator itv = vtm.find( en[0] );
+    if( itv!=vtm.end() ){
+      Node ev = itv->second;
+      Assert( en[0].getType()==ev.getType() );
+      Assert( ev.isConst() && ev.getKind()==kind::APPLY_CONSTRUCTOR );
+      std::vector< Node > args;
+      for( unsigned i=1; i<en.getNumChildren(); i++ ){
+        args.push_back( en[i] );
+      }
+      const Datatype& dt = ((DatatypeType)(ev.getType()).toType()).getDatatype();
+      unsigned i = Datatype::indexOf( ev.getOperator().toExpr() );
+      //explanation
+      Node ee = NodeManager::currentNM()->mkNode( kind::APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), en[0] );
+      if( std::find( exp.begin(), exp.end(), ee )==exp.end() ){
+        exp.push_back( ee );
+      }
+      std::map< int, Node > pre;
+      for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
+        std::vector< Node > cc;
+        //get the evaluation argument for the selector
+        const Datatype & ad = ((DatatypeType)dt[i][j].getRangeType()).getDatatype();
+        cc.push_back( Node::fromExpr( ad.getSygusEvaluationFunc() ) );
+        Node s = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[i][j].getSelector() ), en[0] );
+        cc.push_back( s );
+        //update vtm map
+        vtm[s] = ev[j];
+        cc.insert( cc.end(), args.begin(), args.end() );
+        pre[j] = NodeManager::currentNM()->mkNode( kind::APPLY_UF, cc );
+      }
+      std::map< TypeNode, int > var_count; 
+      Node ret = mkGeneric( dt, i, var_count, pre );
+      // if it is a variable, apply the substitution
+      if( ret.getKind()==kind::BOUND_VARIABLE ){
+        //replace by argument
+        Node var_list = Node::fromExpr( dt.getSygusVarList() );
+        //TODO : set argument # on sygus variables
+        for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
+          if( var_list[j]==ret ){
+            ret = args[j];
+            break;
+          }
+        }
+        Assert( ret.isConst() );
+      }else if( ret.getKind()==APPLY ){
+        //must expand definitions to account for defined functions in sygus grammars
+        ret = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( ret.toExpr() ) );
+      }
+      return ret;
+    }else{
+      Assert( false );
+    }
+  }else{
+    Assert( en.isConst() );
+  }
+  return en;
 }
 
 }/* CVC4::theory::quantifiers namespace */

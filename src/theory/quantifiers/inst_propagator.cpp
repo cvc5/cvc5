@@ -367,7 +367,7 @@ bool EqualityQueryInstProp::isPropagateLiteral( Node n ) {
   }else{
     Kind ak = n.getKind()==NOT ? n[0].getKind() : n.getKind();
     if( ak==EQUAL ){
-      Node atom = n.getKind() ? n[0] : n;
+      Node atom = n.getKind()==NOT ? n[0] : n;
       return !atom[0].getType().isBoolean();
     }else{
       Assert( ak!=NOT );

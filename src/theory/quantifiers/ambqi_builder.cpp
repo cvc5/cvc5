@@ -586,7 +586,7 @@ bool AbsDef::construct( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,
     //  exit( 10 );
     //}
     return true;
-  }else if( varChCount==1 && n.getKind()==EQUAL ){
+  }else if( varChCount==1 && ( n.getKind()==EQUAL && !n[0].getType().isBoolean() ) ){
     Trace("ambqi-check-debug2") << "Expand variable child..." << std::endl;
     //expand the variable based on its finite domain
     AbsDef a;
@@ -598,7 +598,7 @@ bool AbsDef::construct( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,
     Trace("ambqi-check-debug2") << "Construct compose with variable..." << std::endl;
     construct_compose( m, q, n, f, children, bchildren, vchildren, entry, entry_def );
     return true;
-  }else if( varChCount==2 && n.getKind()==EQUAL ){
+  }else if( varChCount==2 && ( n.getKind()==EQUAL && !n[0].getType().isBoolean() ) ){
     Trace("ambqi-check-debug2") << "Construct variable equality..." << std::endl;
     //efficient expansion of the equality
     construct_var_eq( m, q, vchildren[0], vchildren[1], val_none, val_none );
@@ -721,115 +721,112 @@ QModelBuilder( c, qe ){
 
 //------------------------model construction----------------------------
 
-void AbsMbqiBuilder::processBuildModel(TheoryModel* m, bool fullModel) {
-  Trace("ambqi-debug") << "process build model " << fullModel << std::endl;
+bool AbsMbqiBuilder::processBuildModel(TheoryModel* m) {
+  Trace("ambqi-debug") << "process build model " << std::endl;
   FirstOrderModel* f = (FirstOrderModel*)m;
   FirstOrderModelAbs* fm = f->asFirstOrderModelAbs();
-  if( fullModel ){
-    Trace("ambqi-model") << "Construct model representation..." << std::endl;
-    //make function values
-    for( std::map<Node, AbsDef * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
-      if( it->first.getType().getNumChildren()>1 ){
-        Trace("ambqi-model") << "Construct for " << it->first << "..." << std::endl;
-        m->d_uf_models[ it->first ] = fm->getFunctionValue( it->first, "$x" );
+  fm->initialize();
+  //process representatives
+  fm->d_rep_id.clear();
+  fm->d_domain.clear();
+
+  //initialize boolean sort
+  TypeNode b = d_true.getType();
+  fm->d_rep_set.d_type_reps[b].clear();
+  fm->d_rep_set.d_type_reps[b].push_back( d_false );
+  fm->d_rep_set.d_type_reps[b].push_back( d_true );
+  fm->d_rep_id[d_false] = 0;
+  fm->d_rep_id[d_true] = 1;
+
+  //initialize unintpreted sorts
+  Trace("ambqi-model") << std::endl << "Making representatives..." << std::endl;
+  for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
+       it != fm->d_rep_set.d_type_reps.end(); ++it ){
+    if( it->first.isSort() ){
+      Assert( !it->second.empty() );
+      //set the domain
+      fm->d_domain[it->first] = 0;
+      Trace("ambqi-model") << "Representatives for " << it->first << " : " << std::endl;
+      for( unsigned i=0; i<it->second.size(); i++ ){
+        if( i<32 ){
+          fm->d_domain[it->first] |= ( 1 << i );
+        }
+        Trace("ambqi-model") << i << " : " << it->second[i] << std::endl;
+        fm->d_rep_id[it->second[i]] = i;
+      }
+      if( it->second.size()>=32 ){
+        fm->d_domain.erase( it->first );
       }
     }
-    TheoryEngineModelBuilder::processBuildModel( m, fullModel );
-    //mark that the model has been set
-    fm->markModelSet();
-    //debug the model
-    debugModel( fm );
-  }else{
-    fm->initialize();
-    //process representatives
-    fm->d_rep_id.clear();
-    fm->d_domain.clear();
+  }
 
-    //initialize boolean sort
-    TypeNode b = d_true.getType();
-    fm->d_rep_set.d_type_reps[b].clear();
-    fm->d_rep_set.d_type_reps[b].push_back( d_false );
-    fm->d_rep_set.d_type_reps[b].push_back( d_true );
-    fm->d_rep_id[d_false] = 0;
-    fm->d_rep_id[d_true] = 1;
-
-    //initialize unintpreted sorts
-    Trace("ambqi-model") << std::endl << "Making representatives..." << std::endl;
-    for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
-         it != fm->d_rep_set.d_type_reps.end(); ++it ){
-      if( it->first.isSort() ){
-        Assert( !it->second.empty() );
-        //set the domain
-        fm->d_domain[it->first] = 0;
-        Trace("ambqi-model") << "Representatives for " << it->first << " : " << std::endl;
-        for( unsigned i=0; i<it->second.size(); i++ ){
-          if( i<32 ){
-            fm->d_domain[it->first] |= ( 1 << i );
-          }
-          Trace("ambqi-model") << i << " : " << it->second[i] << std::endl;
-          fm->d_rep_id[it->second[i]] = i;
-        }
-        if( it->second.size()>=32 ){
-          fm->d_domain.erase( it->first );
-        }
-      }
-    }
-
-    Trace("ambqi-model") << std::endl << "Making function definitions..." << std::endl;
-    //construct the models for functions
-    for( std::map<Node, AbsDef * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
-      Node f = it->first;
-      Trace("ambqi-model-debug") << "Building Model for " << f << std::endl;
-      //reset the model
-      it->second->clear();
-      //get all (non-redundant) f-applications
-      std::vector< TNode > fapps;
-      Trace("ambqi-model-debug") << "Initial terms: " << std::endl;
-      for( size_t i=0; i<fm->d_uf_terms[f].size(); i++ ){
-        Node n = fm->d_uf_terms[f][i];
+  Trace("ambqi-model") << std::endl << "Making function definitions..." << std::endl;
+  //construct the models for functions
+  for( std::map<Node, AbsDef * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
+    Node f = it->first;
+    Trace("ambqi-model-debug") << "Building Model for " << f << std::endl;
+    //reset the model
+    it->second->clear();
+    //get all (non-redundant) f-applications
+    std::vector< TNode > fapps;
+    Trace("ambqi-model-debug") << "Initial terms: " << std::endl;
+    std::map< Node, std::vector< Node > >::iterator itut = fm->d_uf_terms.find( f );
+    if( itut!=fm->d_uf_terms.end() ){
+      for( size_t i=0; i<itut->second.size(); i++ ){
+        Node n = itut->second[i];
         if( d_qe->getTermDatabase()->isTermActive( n ) ){
           Trace("ambqi-model-debug") << "  " << n << " -> " << fm->getRepresentativeId( n ) << std::endl;
           fapps.push_back( n );
         }
       }
-      if( fapps.empty() ){
-        //choose arbitrary value
-        Node mbt = d_qe->getTermDatabase()->getModelBasisOpTerm(f);
-        Trace("ambqi-model-debug") << "Initial terms empty, add " << mbt << std::endl;
-        fapps.push_back( mbt );
-      }
-      bool fValid = true;
-      for( unsigned i=0; i<fapps[0].getNumChildren(); i++ ){
-        if( fm->d_domain.find( fapps[0][i].getType() )==fm->d_domain.end() ){
-          Trace("ambqi-model") << "Interpretation of " << f << " is not valid.";
-          Trace("ambqi-model") << " (domain for " << fapps[0][i].getType() << " is too large)." << std::endl;
-          fValid = false;
-          break;
-        }
-      }
-      fm->d_models_valid[f] = fValid;
-      if( fValid ){
-        //construct the ambqi model
-        it->second->construct_func( fm, fapps );
-        Trace("ambqi-model-debug") << "Interpretation of " << f << " : " << std::endl;
-        it->second->debugPrint("ambqi-model-debug", fm, fapps[0] );
-        Trace("ambqi-model-debug") << "Simplifying " << f << "..." << std::endl;
-        it->second->simplify( fm, TNode::null(), fapps[0] );
-        Trace("ambqi-model") << "(Simplified) interpretation of " << f << " : " << std::endl;
-        it->second->debugPrint("ambqi-model", fm, fapps[0] );
-
-/*
-        if( Debug.isOn("ambqi-model-debug") ){
-          for( size_t i=0; i<fm->d_uf_terms[f].size(); i++ ){
-            Node e = it->second->evaluate_n( fm, fm->d_uf_terms[f][i] );
-            Debug("ambqi-model-debug") << fm->d_uf_terms[f][i] << " evaluates to " << e << std::endl;
-            Assert( fm->areEqual( e, fm->d_uf_terms[f][i] ) );
-          }
-        }
-*/
+    }
+    if( fapps.empty() ){
+      //choose arbitrary value
+      Node mbt = d_qe->getTermDatabase()->getModelBasisOpTerm(f);
+      Trace("ambqi-model-debug") << "Initial terms empty, add " << mbt << std::endl;
+      fapps.push_back( mbt );
+    }
+    bool fValid = true;
+    for( unsigned i=0; i<fapps[0].getNumChildren(); i++ ){
+      if( fm->d_domain.find( fapps[0][i].getType() )==fm->d_domain.end() ){
+        Trace("ambqi-model") << "Interpretation of " << f << " is not valid.";
+        Trace("ambqi-model") << " (domain for " << fapps[0][i].getType() << " is too large)." << std::endl;
+        fValid = false;
+        break;
       }
     }
+    fm->d_models_valid[f] = fValid;
+    if( fValid ){
+      //construct the ambqi model
+      it->second->construct_func( fm, fapps );
+      Trace("ambqi-model-debug") << "Interpretation of " << f << " : " << std::endl;
+      it->second->debugPrint("ambqi-model-debug", fm, fapps[0] );
+      Trace("ambqi-model-debug") << "Simplifying " << f << "..." << std::endl;
+      it->second->simplify( fm, TNode::null(), fapps[0] );
+      Trace("ambqi-model") << "(Simplified) interpretation of " << f << " : " << std::endl;
+      it->second->debugPrint("ambqi-model", fm, fapps[0] );
+
+/*
+      if( Debug.isOn("ambqi-model-debug") ){
+        for( size_t i=0; i<fm->d_uf_terms[f].size(); i++ ){
+          Node e = it->second->evaluate_n( fm, fm->d_uf_terms[f][i] );
+          Debug("ambqi-model-debug") << fm->d_uf_terms[f][i] << " evaluates to " << e << std::endl;
+          Assert( fm->areEqual( e, fm->d_uf_terms[f][i] ) );
+        }
+      }
+*/
+    }
   }
+  Trace("ambqi-model") << "Construct model representation..." << std::endl;
+  //make function values
+  for( std::map<Node, AbsDef * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
+    if( it->first.getType().getNumChildren()>1 ){
+      Trace("ambqi-model") << "Construct for " << it->first << "..." << std::endl;
+      m->d_uf_models[ it->first ] = fm->getFunctionValue( it->first, "$x" );
+    }
+  }
+  Assert( d_addedLemmas==0 );
+  return TheoryEngineModelBuilder::processBuildModel( m );
 }
 
 

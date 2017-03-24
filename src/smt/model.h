@@ -75,7 +75,7 @@ class ModelBuilder {
 public:
   ModelBuilder() { }
   virtual ~ModelBuilder() { }
-  virtual void buildModel(Model* m, bool fullModel) = 0;
+  virtual bool buildModel(Model* m) = 0;
 };/* class ModelBuilder */
 
 }/* CVC4 namespace */
