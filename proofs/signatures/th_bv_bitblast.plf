@@ -173,7 +173,7 @@
 		       	(! xb bblt
 		       	(! rb bblt
 		       	(! xbb (bblast_term m x xb)
-			(! c ( ^ (bblast_sextend xb k m) rb)
+			(! c ( ^ (bblast_sextend xb k) rb)
                            (bblast_term n (sign_extend n k m x) rb))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
