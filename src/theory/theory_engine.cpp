@@ -37,6 +37,7 @@
 #include "smt_util/node_visitor.h"
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/care_graph.h"
 #include "theory/ite_utilities.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/model_engine.h"
@@ -662,7 +663,7 @@ void TheoryEngine::combineTheories() {
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
   if (theory::TheoryTraits<THEORY>::isParametric && d_logicInfo.isTheoryEnabled(THEORY)) { \
-    theoryOf(THEORY)->getCareGraph(careGraph); \
+    theoryOf(THEORY)->getCareGraph(&careGraph); \
   }
 
   // Call on each parametric theory to give us its care graph

@@ -36,6 +36,7 @@
 #include "smt/dump.h"
 #include "smt/logic_request.h"
 #include "theory/assertion.h"
+#include "theory/care_graph.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/valuation.h"
@@ -62,37 +63,6 @@ namespace rrinst {
 namespace eq {
   class EqualityEngine;
 }/* CVC4::theory::eq namespace */
-
-
-/**
- * A (ordered) pair of terms a theory cares about.
- */
-struct CarePair {
- public:
-  const TNode a, b;
-  const TheoryId theory;
-
-  CarePair(TNode a, TNode b, TheoryId theory)
-      : a(a < b ? a : b), b(a < b ? b : a), theory(theory) {}
-
-  bool operator==(const CarePair& other) const {
-    return (theory == other.theory) && (a == other.a) && (b == other.b);
-  }
-
-  bool operator<(const CarePair& other) const {
-    if (theory < other.theory) return true;
-    if (theory > other.theory) return false;
-    if (a < other.a) return true;
-    if (a > other.a) return false;
-    return b < other.b;
-  }
-
-}; /* struct CarePair */
-
-/**
- * A set of care pairs.
- */
-typedef std::set<CarePair> CareGraph;
 
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
@@ -186,11 +156,7 @@ protected:
   /**
    * The only method to add suff to the care graph.
    */
-  void addCarePair(TNode t1, TNode t2) {
-    if (d_careGraph) {
-      d_careGraph->insert(CarePair(t1, t2, d_id));
-    }
-  }
+  void addCarePair(TNode t1, TNode t2);
 
   /**
    * The function should compute the care graph over the shared terms.
@@ -207,6 +173,7 @@ protected:
    * Helper function for computeRelevantTerms
    */
   void collectTerms(TNode n, std::set<Node>& termSet) const;
+
   /**
    * Scans the current set of assertions and shared terms top-down
    * until a theory-leaf is reached, and adds all terms found to
@@ -486,7 +453,9 @@ public:
    * Assert a fact in the current context.
    */
   void assertFact(TNode assertion, bool isPreregistered) {
-    Trace("theory") << "Theory<" << getId() << ">::assertFact[" << d_satContext->getLevel() << "](" << assertion << ", " << (isPreregistered ? "true" : "false") << ")" << std::endl;
+    Trace("theory") << "Theory<" << getId() << ">::assertFact["
+                    << d_satContext->getLevel() << "](" << assertion << ", "
+                    << (isPreregistered ? "true" : "false") << ")" << std::endl;
     d_facts.push_back(Assertion(assertion, isPreregistered));
   }
 
@@ -509,22 +478,19 @@ public:
   }
 
   /**
-   * Return the current theory care graph. Theories should overload computeCareGraph to do
-   * the actual computation, and use addCarePair to add pairs to the care graph.
+   * Return the current theory care graph. Theories should overload
+   * computeCareGraph to do the actual computation, and use addCarePair to add
+   * pairs to the care graph.
    */
-  void getCareGraph(CareGraph& careGraph) {
-    Trace("sharing") << "Theory<" << getId() << ">::getCareGraph()" << std::endl;
-    TimerStat::CodeTimer computeCareGraphTime(d_computeCareGraphTime);
-    d_careGraph = &careGraph;
-    computeCareGraph();
-    d_careGraph = NULL;
-  }
+  void getCareGraph(CareGraph* careGraph);
 
   /**
-   * Return the status of two terms in the current context. Should be implemented in
-   * sub-theories to enable more efficient theory-combination.
+   * Return the status of two terms in the current context. Should be
+   * implemented in sub-theories to enable more efficient theory-combination.
    */
-  virtual EqualityStatus getEqualityStatus(TNode a, TNode b) { return EQUALITY_UNKNOWN; }
+  virtual EqualityStatus getEqualityStatus(TNode a, TNode b) {
+    return EQUALITY_UNKNOWN;
+  }
 
   /**
    * Return the model value of the give shared term (or null if not available).
@@ -541,14 +507,11 @@ public:
    * - or call get() until done() is true.
    */
   virtual void check(Effort level = EFFORT_FULL) { }
-  
-  /**
-   * Needs last effort check?
-   */ 
+
+  /** Needs last effort check? */
   virtual bool needsCheckLastEffort() { return false; }
-  /**
-   * T-propagate new literal assignments in the current context.
-   */
+
+  /** T-propagate new literal assignments in the current context. */
   virtual void propagate(Effort level = EFFORT_FULL) { }
 
   /**
@@ -569,9 +532,10 @@ public:
    * class.
    */
   virtual void collectModelInfo( TheoryModel* m, bool fullModel ){ }
+
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
-  
+
   /**
    * Return a decision request, if the theory has one, or the NULL node
    * otherwise.
