@@ -1146,11 +1146,13 @@ Node TheoryEngine::preprocess(TNode assertion) {
   return d_ppCache[assertion];
 }
 
-void TheoryEngine::notifyPreprocessedAssertions( std::vector< Node >& assertions ){
+void TheoryEngine::notifyPreprocessedAssertions(
+    const std::vector<Node>& assertions) {
   // call all the theories
-  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
-    if(d_theoryTable[theoryId]) {
-      theoryOf(theoryId)->ppNotifyAssertions( assertions );
+  for (TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST;
+       ++theoryId) {
+    if (d_theoryTable[theoryId]) {
+      theoryOf(theoryId)->ppNotifyAssertions(assertions);
     }
   }
 }

@@ -582,12 +582,12 @@ public:
    * Don't preprocess subterm of this term
    */
   virtual bool ppDontRewriteSubterm(TNode atom) { return false; }
-  
-  /** notify preprocessed assertions
-   *  Called on new assertions after preprocessing before they are asserted to theory engine.
-   *  Should not modify assertions.
-  */
-  virtual void ppNotifyAssertions( std::vector< Node >& assertions ) {}
+
+  /**
+   * Notify preprocessed assertions. Called on new assertions after
+   * preprocessing before they are asserted to theory engine.
+   */
+  virtual void ppNotifyAssertions(const std::vector<Node>& assertions) {}
 
   /**
    * A Theory is called with presolve exactly one time per user

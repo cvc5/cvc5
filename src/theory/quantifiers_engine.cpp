@@ -355,22 +355,28 @@ void QuantifiersEngine::presolve() {
   }
 }
 
-void QuantifiersEngine::ppNotifyAssertions( std::vector< Node >& assertions ) {
-  Trace("quant-engine-proc") << "ppNotifyAssertions in QE, #assertions = " << assertions.size() << " check epr = " << (d_qepr!=NULL) << std::endl;
-  if( ( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ) || d_qepr!=NULL ){
-    for( unsigned i=0; i<assertions.size(); i++ ) {
-      if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){
-        setInstantiationLevelAttr( assertions[i], 0 );
+void QuantifiersEngine::ppNotifyAssertions(
+    const std::vector<Node>& assertions) {
+  Trace("quant-engine-proc")
+      << "ppNotifyAssertions in QE, #assertions = " << assertions.size()
+      << " check epr = " << (d_qepr != NULL) << std::endl;
+  if ((options::instLevelInputOnly() && options::instMaxLevel() != -1) ||
+      d_qepr != NULL) {
+    for (unsigned i = 0; i < assertions.size(); i++) {
+      if (options::instLevelInputOnly() && options::instMaxLevel() != -1) {
+        setInstantiationLevelAttr(assertions[i], 0);
       }
-      if( d_qepr!=NULL ){
-        d_qepr->registerAssertion( assertions[i] );
+      if (d_qepr != NULL) {
+        d_qepr->registerAssertion(assertions[i]);
       }
     }
-    if( d_qepr!=NULL ){
-      //must handle sources of other new constants e.g. separation logic
-      //FIXME: cleanup
-      ((sep::TheorySep*)getTheoryEngine()->theoryOf( THEORY_SEP ))->initializeBounds();
-      d_qepr->finishInit(); 
+    if (d_qepr != NULL) {
+      // must handle sources of other new constants e.g. separation logic
+      // FIXME: cleanup
+      sep::TheorySep* theory_sep =
+          static_cast<sep::TheorySep*>(getTheoryEngine()->theoryOf(THEORY_SEP));
+      theory_sep->initializeBounds();
+      d_qepr->finishInit();
     }
   }
 }
