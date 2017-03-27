@@ -35,7 +35,7 @@ class UninterpretedSortEnumerator : public TypeEnumeratorBase<UninterpretedSortE
   Integer d_fixed_bound;
 public:
 
-  UninterpretedSortEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw(AssertionException) :
+  UninterpretedSortEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) :
     TypeEnumeratorBase<UninterpretedSortEnumerator>(type),
     d_count(0) {
     Assert(type.getKind() == kind::SORT_TYPE);
@@ -53,7 +53,7 @@ public:
     }
   }
 
-  Node operator*() throw(NoMoreValuesException) {
+  Node operator*() {
     if(isFinished()) {
       throw NoMoreValuesException(getType());
     }

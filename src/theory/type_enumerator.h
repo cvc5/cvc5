@@ -49,10 +49,10 @@ public:
   virtual bool isFinished() throw() = 0;
 
   /** Get the current constant of this type (throws if no such constant exists) */
-  virtual Node operator*() throw(NoMoreValuesException) = 0;
+  virtual Node operator*() = 0;
 
   /** Increment the pointer to the next available constant */
-  virtual TypeEnumeratorInterface& operator++() throw() = 0;
+  virtual TypeEnumeratorInterface& operator++() = 0;
 
   /** Clone this enumerator */
   virtual TypeEnumeratorInterface* clone() const = 0;
