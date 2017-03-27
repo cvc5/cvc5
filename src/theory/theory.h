@@ -35,6 +35,7 @@
 #include "smt/command.h"
 #include "smt/dump.h"
 #include "smt/logic_request.h"
+#include "theory/assertion.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/valuation.h"
@@ -62,53 +63,23 @@ namespace eq {
   class EqualityEngine;
 }/* CVC4::theory::eq namespace */
 
-/**
- * Information about an assertion for the theories.
- */
-struct Assertion {
-
-  /** The assertion */
-  Node assertion;
-  /** Has this assertion been preregistered with this theory */
-  bool isPreregistered;
-
-  Assertion(TNode assertion, bool isPreregistered)
-  : assertion(assertion), isPreregistered(isPreregistered) {}
-
-  /**
-   * Convert the assertion to a TNode.
-   */
-  operator TNode () const {
-    return assertion;
-  }
-
-  /**
-   * Convert the assertion to a Node.
-   */
-  operator Node () const {
-    return assertion;
-  }
-
-};/* struct Assertion */
 
 /**
- * A (oredered) pair of terms a theory cares about.
+ * A (ordered) pair of terms a theory cares about.
  */
 struct CarePair {
-
-  TNode a, b;
-  TheoryId theory;
-
-public:
+ public:
+  const TNode a, b;
+  const TheoryId theory;
 
   CarePair(TNode a, TNode b, TheoryId theory)
-  : a(a < b ? a : b), b(a < b ? b : a), theory(theory) {}
+      : a(a < b ? a : b), b(a < b ? b : a), theory(theory) {}
 
-  bool operator == (const CarePair& other) const {
+  bool operator==(const CarePair& other) const {
     return (theory == other.theory) && (a == other.a) && (b == other.b);
   }
 
-  bool operator < (const CarePair& other) const {
+  bool operator<(const CarePair& other) const {
     if (theory < other.theory) return true;
     if (theory > other.theory) return false;
     if (a < other.a) return true;
@@ -116,7 +87,7 @@ public:
     return b < other.b;
   }
 
-};/* struct CarePair */
+}; /* struct CarePair */
 
 /**
  * A set of care pairs.
@@ -924,7 +895,7 @@ public:
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
-inline std::ostream& operator<<(std::ostream& out, const theory::Assertion& a);
+
 
 inline theory::Assertion Theory::get() {
   Assert( !done(), "Theory::get() called with assertion queue empty!" );
@@ -940,10 +911,6 @@ inline theory::Assertion Theory::get() {
   }
 
   return fact;
-}
-
-inline std::ostream& operator<<(std::ostream& out, const theory::Assertion& a) {
-  return out << a.assertion;
 }
 
 inline std::ostream& operator<<(std::ostream& out,

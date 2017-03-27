@@ -142,6 +142,8 @@ libcvc4_la_SOURCES = \
 	smt/term_formula_removal.cpp \
 	smt/term_formula_removal.h \
 	smt/update_ostream.h \
+	theory/assertion.cpp \
+	theory/assertion.h \
 	theory/atom_requests.cpp \
 	theory/atom_requests.h \
 	theory/interrupted.h \
