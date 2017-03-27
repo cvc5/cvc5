@@ -35,6 +35,8 @@
 #include "smt/command.h"
 #include "smt/dump.h"
 #include "smt/logic_request.h"
+#include "theory/assertion.h"
+#include "theory/care_graph.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/valuation.h"
@@ -63,67 +65,6 @@ namespace eq {
 }/* CVC4::theory::eq namespace */
 
 /**
- * Information about an assertion for the theories.
- */
-struct Assertion {
-
-  /** The assertion */
-  Node assertion;
-  /** Has this assertion been preregistered with this theory */
-  bool isPreregistered;
-
-  Assertion(TNode assertion, bool isPreregistered)
-  : assertion(assertion), isPreregistered(isPreregistered) {}
-
-  /**
-   * Convert the assertion to a TNode.
-   */
-  operator TNode () const {
-    return assertion;
-  }
-
-  /**
-   * Convert the assertion to a Node.
-   */
-  operator Node () const {
-    return assertion;
-  }
-
-};/* struct Assertion */
-
-/**
- * A (oredered) pair of terms a theory cares about.
- */
-struct CarePair {
-
-  TNode a, b;
-  TheoryId theory;
-
-public:
-
-  CarePair(TNode a, TNode b, TheoryId theory)
-  : a(a < b ? a : b), b(a < b ? b : a), theory(theory) {}
-
-  bool operator == (const CarePair& other) const {
-    return (theory == other.theory) && (a == other.a) && (b == other.b);
-  }
-
-  bool operator < (const CarePair& other) const {
-    if (theory < other.theory) return true;
-    if (theory > other.theory) return false;
-    if (a < other.a) return true;
-    if (a > other.a) return false;
-    return b < other.b;
-  }
-
-};/* struct CarePair */
-
-/**
- * A set of care pairs.
- */
-typedef std::set<CarePair> CareGraph;
-
-/**
  * Base class for T-solvers.  Abstract DPLL(T).
  *
  * This is essentially an interface class.  The TheoryEngine has
@@ -144,9 +85,7 @@ private:
   Theory(const Theory&) CVC4_UNDEFINED;
   Theory& operator=(const Theory&) CVC4_UNDEFINED;
 
-  /**
-   * An integer identifying the type of the theory
-   */
+  /** An integer identifying the type of the theory. */
   TheoryId d_id;
 
   /** Name of this theory instance. Along with the TheoryId this should provide
@@ -154,19 +93,13 @@ private:
    * this to ensure unique statistics names over multiple theory instances. */
   std::string d_instanceName;
 
-  /**
-   * The SAT search context for the Theory.
-   */
+  /** The SAT search context for the Theory. */
   context::Context* d_satContext;
 
-  /**
-   * The user level assertion context for the Theory.
-   */
+  /** The user level assertion context for the Theory. */
   context::UserContext* d_userContext;
 
-  /**
-   * Information about the logic we're operating within.
-   */
+  /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
 
   /**
@@ -180,31 +113,26 @@ private:
   /** Index into the head of the facts list */
   context::CDO<unsigned> d_factsHead;
 
-  /**
-   * Add shared term to the theory.
-   */
+  /** Add shared term to the theory. */
   void addSharedTermInternal(TNode node);
 
-  /**
-   * Indices for splitting on the shared terms.
-   */
+  /** Indices for splitting on the shared terms. */
   context::CDO<unsigned> d_sharedTermsIndex;
 
-  /**
-   * The care graph the theory will use during combination.
-   */
+  /** The care graph the theory will use during combination. */
   CareGraph* d_careGraph;
 
   /**
-   * Reference to the quantifiers engine (or NULL, if quantifiers are
-   * not supported or not enabled).
+   * Pointer to the quantifiers engine (or NULL, if quantifiers are not
+   * supported or not enabled). Not owned by the theory.
    */
   QuantifiersEngine* d_quantEngine;
 
-protected:
+  /** Extended theory module or NULL. Owned by the theory. */
+  ExtTheory* d_extTheory;
 
-  /** extended theory */
-  ExtTheory * d_extt;
+ protected:
+
 
   // === STATISTICS ===
   /** time spent in check calls */
@@ -215,11 +143,7 @@ protected:
   /**
    * The only method to add suff to the care graph.
    */
-  void addCarePair(TNode t1, TNode t2) {
-    if (d_careGraph) {
-      d_careGraph->insert(CarePair(t1, t2, d_id));
-    }
-  }
+  void addCarePair(TNode t1, TNode t2);
 
   /**
    * The function should compute the care graph over the shared terms.
@@ -236,6 +160,7 @@ protected:
    * Helper function for computeRelevantTerms
    */
   void collectTerms(TNode n, std::set<Node>& termSet) const;
+
   /**
    * Scans the current set of assertions and shared terms top-down
    * until a theory-leaf is reached, and adds all terms found to
@@ -515,7 +440,9 @@ public:
    * Assert a fact in the current context.
    */
   void assertFact(TNode assertion, bool isPreregistered) {
-    Trace("theory") << "Theory<" << getId() << ">::assertFact[" << d_satContext->getLevel() << "](" << assertion << ", " << (isPreregistered ? "true" : "false") << ")" << std::endl;
+    Trace("theory") << "Theory<" << getId() << ">::assertFact["
+                    << d_satContext->getLevel() << "](" << assertion << ", "
+                    << (isPreregistered ? "true" : "false") << ")" << std::endl;
     d_facts.push_back(Assertion(assertion, isPreregistered));
   }
 
@@ -530,30 +457,26 @@ public:
    */
   virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
 
-  /**
-   * Called to set the quantifiers engine.
-   */
-  virtual void setQuantifiersEngine(QuantifiersEngine* qe) {
-    d_quantEngine = qe;
-  }
+  /** Called to set the quantifiers engine. */
+  virtual void setQuantifiersEngine(QuantifiersEngine* qe);
+
+  /** Setup an ExtTheory module for this Theory. Can only be called once. */
+  void setupExtTheory();
 
   /**
-   * Return the current theory care graph. Theories should overload computeCareGraph to do
-   * the actual computation, and use addCarePair to add pairs to the care graph.
+   * Return the current theory care graph. Theories should overload
+   * computeCareGraph to do the actual computation, and use addCarePair to add
+   * pairs to the care graph.
    */
-  void getCareGraph(CareGraph& careGraph) {
-    Trace("sharing") << "Theory<" << getId() << ">::getCareGraph()" << std::endl;
-    TimerStat::CodeTimer computeCareGraphTime(d_computeCareGraphTime);
-    d_careGraph = &careGraph;
-    computeCareGraph();
-    d_careGraph = NULL;
-  }
+  void getCareGraph(CareGraph* careGraph);
 
   /**
-   * Return the status of two terms in the current context. Should be implemented in
-   * sub-theories to enable more efficient theory-combination.
+   * Return the status of two terms in the current context. Should be
+   * implemented in sub-theories to enable more efficient theory-combination.
    */
-  virtual EqualityStatus getEqualityStatus(TNode a, TNode b) { return EQUALITY_UNKNOWN; }
+  virtual EqualityStatus getEqualityStatus(TNode a, TNode b) {
+    return EQUALITY_UNKNOWN;
+  }
 
   /**
    * Return the model value of the give shared term (or null if not available).
@@ -570,14 +493,11 @@ public:
    * - or call get() until done() is true.
    */
   virtual void check(Effort level = EFFORT_FULL) { }
-  
-  /**
-   * Needs last effort check?
-   */ 
+
+  /** Needs last effort check? */
   virtual bool needsCheckLastEffort() { return false; }
-  /**
-   * T-propagate new literal assignments in the current context.
-   */
+
+  /** T-propagate new literal assignments in the current context. */
   virtual void propagate(Effort level = EFFORT_FULL) { }
 
   /**
@@ -598,9 +518,10 @@ public:
    * class.
    */
   virtual void collectModelInfo( TheoryModel* m, bool fullModel ){ }
+
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
-  
+
   /**
    * Return a decision request, if the theory has one, or the NULL node
    * otherwise.
@@ -647,12 +568,12 @@ public:
    * Don't preprocess subterm of this term
    */
   virtual bool ppDontRewriteSubterm(TNode atom) { return false; }
-  
-  /** notify preprocessed assertions
-   *  Called on new assertions after preprocessing before they are asserted to theory engine.
-   *  Should not modify assertions.
-  */
-  virtual void ppNotifyAssertions( std::vector< Node >& assertions ) {}
+
+  /**
+   * Notify preprocessed assertions. Called on new assertions after
+   * preprocessing before they are asserted to theory engine.
+   */
+  virtual void ppNotifyAssertions(const std::vector<Node>& assertions) {}
 
   /**
    * A Theory is called with presolve exactly one time per user
@@ -894,37 +815,44 @@ public:
    * @return         a pair <b,E> s.t. if b is true, then a formula E such that
    * E |= lit in the theory.
    */
-  virtual std::pair<bool, Node> entailmentCheck(TNode lit, const EntailmentCheckParameters* params = NULL, EntailmentCheckSideEffects* out = NULL);
+  virtual std::pair<bool, Node> entailmentCheck(
+      TNode lit, const EntailmentCheckParameters* params = NULL,
+      EntailmentCheckSideEffects* out = NULL);
 
   /* equality engine TODO: use? */
-  virtual eq::EqualityEngine * getEqualityEngine() { return NULL; }
-  
-  /* get extended theory */
-  virtual ExtTheory * getExtTheory() { return d_extt; }
+  virtual eq::EqualityEngine* getEqualityEngine() { return NULL; }
+
+  /* Get extended theory if one has been installed. */
+  ExtTheory* getExtTheory();
 
   /* get current substitution at an effort
    *   input : vars
-   *   output : subs, exp 
+   *   output : subs, exp
    *   where ( exp[vars[i]] => vars[i] = subs[i] ) holds for all i
-  */
-  virtual bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) { return false; }
-  
-  /* get reduction for node
-       if return value is not 0, then n is reduced. 
-       if return value <0 then n is reduced SAT-context-independently (e.g. by a lemma that persists at this user-context level).
-       if nr is non-null, then ( n = nr ) should be added as a lemma by caller, and return value should be <0.
+   */
+  virtual bool getCurrentSubstitution(int effort, std::vector<Node>& vars,
+                                      std::vector<Node>& subs,
+                                      std::map<Node, std::vector<Node> >& exp) {
+    return false;
+  }
+
+  /**
+   * Get reduction for node
+   * If return value is not 0, then n is reduced.
+   * If return value <0 then n is reduced SAT-context-independently (e.g. by a
+   *  lemma that persists at this user-context level).
+   * If nr is non-null, then ( n = nr ) should be added as a lemma by caller,
+   *  and return value should be <0.
    */
   virtual int getReduction( int effort, Node n, Node& nr ) { return 0; }
 
-  /**
-   * Turn on proof-production mode.
-   */
+  /** Turn on proof-production mode. */
   void produceProofs() { d_proofsEnabled = true; }
 
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
-inline std::ostream& operator<<(std::ostream& out, const theory::Assertion& a);
+
 
 inline theory::Assertion Theory::get() {
   Assert( !done(), "Theory::get() called with assertion queue empty!" );
@@ -940,10 +868,6 @@ inline theory::Assertion Theory::get() {
   }
 
   return fact;
-}
-
-inline std::ostream& operator<<(std::ostream& out, const theory::Assertion& a) {
-  return out << a.assertion;
 }
 
 inline std::ostream& operator<<(std::ostream& out,

@@ -97,18 +97,18 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
       d_cardinality_lits(u),
       d_curr_cardinality(c, 0)
 {
-  d_extt = new ExtTheory( this );
-  d_extt->addFunctionKind( kind::STRING_SUBSTR );
-  d_extt->addFunctionKind( kind::STRING_STRIDOF );
-  d_extt->addFunctionKind( kind::STRING_ITOS );
-  d_extt->addFunctionKind( kind::STRING_U16TOS );
-  d_extt->addFunctionKind( kind::STRING_U32TOS );
-  d_extt->addFunctionKind( kind::STRING_STOI );
-  d_extt->addFunctionKind( kind::STRING_STOU16 );
-  d_extt->addFunctionKind( kind::STRING_STOU32 );
-  d_extt->addFunctionKind( kind::STRING_STRREPL );
-  d_extt->addFunctionKind( kind::STRING_STRCTN );
-  d_extt->addFunctionKind( kind::STRING_IN_REGEXP );
+  setupExtTheory();
+  getExtTheory()->addFunctionKind(kind::STRING_SUBSTR);
+  getExtTheory()->addFunctionKind(kind::STRING_STRIDOF);
+  getExtTheory()->addFunctionKind(kind::STRING_ITOS);
+  getExtTheory()->addFunctionKind(kind::STRING_U16TOS);
+  getExtTheory()->addFunctionKind(kind::STRING_U32TOS);
+  getExtTheory()->addFunctionKind(kind::STRING_STOI);
+  getExtTheory()->addFunctionKind(kind::STRING_STOU16);
+  getExtTheory()->addFunctionKind(kind::STRING_STOU32);
+  getExtTheory()->addFunctionKind(kind::STRING_STRREPL);
+  getExtTheory()->addFunctionKind(kind::STRING_STRCTN);
+  getExtTheory()->addFunctionKind(kind::STRING_IN_REGEXP);
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
@@ -142,7 +142,6 @@ TheoryStrings::~TheoryStrings() {
   for( std::map< Node, EqcInfo* >::iterator it = d_eqc_info.begin(); it != d_eqc_info.end(); ++it ){
     delete it->second;
   }
-  delete d_extt;
 }
 
 Node TheoryStrings::getRepresentative( Node t ) {
@@ -644,7 +643,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           if( options::stringExp() ){
             //collect extended functions here: some may not be asserted to strings (such as those with return type Int),
             //  but we need to record them so they are treated properly
-            d_extt->registerTermRec( n );       
+            getExtTheory()->registerTermRec( n );
           }
         }
         //concat terms do not contribute to theory combination?  TODO: verify
@@ -797,10 +796,10 @@ bool TheoryStrings::needsCheckLastEffort() {
 void TheoryStrings::checkExtfReductions( int effort ) {
   //standardize this?
   //std::vector< Node > nred;
-  //d_extt->doReductions( effort, nred, false );
+  //getExtTheory()->doReductions( effort, nred, false );
 
   std::vector< Node > extf;
-  d_extt->getActive( extf );
+  getExtTheory()->getActive( extf );
   Trace("strings-process") << "checking " << extf.size() << " active extf" << std::endl;
   for( unsigned i=0; i<extf.size(); i++ ){
     Node n = extf[i];
@@ -809,7 +808,7 @@ void TheoryStrings::checkExtfReductions( int effort ) {
     int ret = getReduction( effort, n, nr );
     Assert( nr.isNull() );
     if( ret!=0 ){
-      d_extt->markReduced( extf[i] );
+      getExtTheory()->markReduced( extf[i] );
       if( options::stringOpt1() && hasProcessed() ){
         return;
       }
@@ -859,7 +858,7 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
     //we care about the length of this string
     registerTerm( t[0], 1 );
   }else{
-    //d_extt->registerTerm( t );
+    //getExtTheory()->registerTerm( t );
   }
 }
 
@@ -1017,11 +1016,11 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
       }
     }
     //register the atom here, since it may not create a new equivalence class
-    //d_extt->registerTerm( atom );
+    //getExtTheory()->registerTerm( atom );
   }
   Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
   //collect extended function terms in the atom
-  d_extt->registerTermRec( atom );
+  getExtTheory()->registerTermRec( atom );
   Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
 
@@ -1148,9 +1147,9 @@ void TheoryStrings::checkInit() {
                   }
                   //infer the equality
                   sendInference( exp, n.eqNode( nc ), "I_Norm" );
-                }else if( d_extt->hasFunctionKind( n.getKind() ) ){
+                }else if( getExtTheory()->hasFunctionKind( n.getKind() ) ){
                   //mark as congruent : only process if neither has been reduced
-                  d_extt->markCongruent( nc, n );
+                  getExtTheory()->markCongruent( nc, n );
                 }
                 //this node is congruent to another one, we can ignore it
                 Trace("strings-process-debug") << "  congruent term : " << n << std::endl;
@@ -1310,8 +1309,8 @@ void TheoryStrings::checkExtfEval( int effort ) {
   std::vector< Node > terms; 
   std::vector< Node > sterms; 
   std::vector< std::vector< Node > > exp;
-  d_extt->getActive( terms );
-  d_extt->getSubstitutedTerms( effort, terms, sterms, exp );
+  getExtTheory()->getActive( terms );
+  getExtTheory()->getSubstitutedTerms( effort, terms, sterms, exp );
   for( unsigned i=0; i<terms.size(); i++ ){
     Node n = terms[i];
     Node sn = sterms[i];
@@ -1335,7 +1334,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
       //if rewrites to a constant, then do the inference and mark as reduced
       if( nrc.isConst() ){
         if( effort<3 ){
-          d_extt->markReduced( n );
+          getExtTheory()->markReduced( n );
           Trace("strings-extf-debug") << "  resolvable by evaluation..." << std::endl;
           std::vector< Node > exps;
           Trace("strings-extf-debug") << "  get symbolic definition..." << std::endl;
@@ -1395,7 +1394,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
       //if it reduces to a conjunction, infer each and reduce
       }else if( ( nrc.getKind()==kind::OR && itit->second.d_pol==-1 ) || ( nrc.getKind()==kind::AND && itit->second.d_pol==1 ) ){
         Assert( effort<3 );
-        d_extt->markReduced( n );
+        getExtTheory()->markReduced( n );
         itit->second.d_exp.push_back( itit->second.d_pol==-1 ? n.negate() : n );
         Trace("strings-extf-debug") << "  decomposable..." << std::endl;
         Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc << ", pol = " << itit->second.d_pol << std::endl;
@@ -1425,7 +1424,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
         }
         Trace("strings-extf-list") << std::endl;
       }  
-      if( d_extt->isActive( n ) && itit->second.d_model_active ){
+      if( getExtTheory()->isActive( n ) && itit->second.d_model_active ){
         has_nreduce = true;
       }
     }
@@ -1457,7 +1456,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
             children[index] = nr[index][i];
             Node conc = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, children );
             //can mark as reduced, since model for n => model for conc
-            d_extt->markReduced( conc );
+            getExtTheory()->markReduced( conc );
             sendInference( in.d_exp, in.d_pol==1 ? conc : conc.negate(), "CTN_Decompose" );
           }
           
@@ -1494,7 +1493,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
           }
         }else{
           Trace("strings-extf-debug") << "  redundant." << std::endl;
-          d_extt->markReduced( n );
+          getExtTheory()->markReduced( n );
         }
       }
     }
@@ -4290,7 +4289,7 @@ bool TheoryStrings::checkMemberships2() {
 void TheoryStrings::checkMemberships() {
   //add the memberships
   std::vector< Node > mems;
-  d_extt->getActive( mems, kind::STRING_IN_REGEXP );
+  getExtTheory()->getActive( mems, kind::STRING_IN_REGEXP );
   for( unsigned i=0; i<mems.size(); i++ ){
     Node n = mems[i];
     Assert( d_extf_info_tmp.find( n )!=d_extf_info_tmp.end() );

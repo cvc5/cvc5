@@ -88,10 +88,12 @@ void TheoryQuantifiers::presolve() {
   }
 }
 
-void TheoryQuantifiers::ppNotifyAssertions( std::vector< Node >& assertions ) {
-  Trace("quantifiers-presolve") << "TheoryQuantifiers::ppNotifyAssertions" << std::endl;
-  if( getQuantifiersEngine() ){
-    getQuantifiersEngine()->ppNotifyAssertions( assertions );
+void TheoryQuantifiers::ppNotifyAssertions(
+    const std::vector<Node>& assertions) {
+  Trace("quantifiers-presolve")
+      << "TheoryQuantifiers::ppNotifyAssertions" << std::endl;
+  if (getQuantifiersEngine()) {
+    getQuantifiersEngine()->ppNotifyAssertions(assertions);
   }
 }
 

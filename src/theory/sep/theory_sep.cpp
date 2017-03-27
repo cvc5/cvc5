@@ -881,18 +881,20 @@ TypeNode TheorySep::getDataType( Node n ) {
   return d_type_data;
 }
 
-//must process assertions at preprocess so that quantified assertions are processed properly
-void TheorySep::ppNotifyAssertions( std::vector< Node >& assertions ) {
-  std::map< int, std::map< Node, int > > visited;
-  std::map< int, std::map< Node, std::vector< Node > > > references;
-  std::map< int, std::map< Node, bool > > references_strict;
-  for( unsigned i=0; i<assertions.size(); i++ ){
+// Must process assertions at preprocess so that quantified assertions are
+// processed properly.
+void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
+  std::map<int, std::map<Node, int> > visited;
+  std::map<int, std::map<Node, std::vector<Node> > > references;
+  std::map<int, std::map<Node, bool> > references_strict;
+  for (unsigned i = 0; i < assertions.size(); i++) {
     Trace("sep-pp") << "Process assertion : " << assertions[i] << std::endl;
-    processAssertion( assertions[i], visited, references, references_strict, true, true, false );
+    processAssertion(assertions[i], visited, references, references_strict,
+                     true, true, false);
   }
-  //if data type is unconstrained, assume a fresh uninterpreted sort
-  if( !d_type_ref.isNull() ){
-    if( d_type_data.isNull() ){
+  // if data type is unconstrained, assume a fresh uninterpreted sort
+  if (!d_type_ref.isNull()) {
+    if (d_type_data.isNull()) {
       d_type_data = NodeManager::currentNM()->mkSort("_sep_U");
       Trace("sep-type") << "Sep: assume data type " << d_type_data << std::endl;
       d_loc_to_data_type[d_type_ref] = d_type_data;

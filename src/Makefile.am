@@ -34,48 +34,48 @@ libcvc4_la_SOURCES = \
 	git_versioninfo.cpp \
 	svn_versioninfo.cpp \
 	context/backtrackable.h \
-	context/context.cpp \
-	context/context.h \
-	context/context_mm.cpp \
-	context/context_mm.h \
-	context/cdo.h \
-	context/cdlist.h \
 	context/cdchunk_list.h \
-	context/cdlist_forward.h \
-	context/cdqueue.h \
-	context/cdtrail_queue.h \
-	context/cdtrail_hashmap.h \
-	context/cdtrail_hashmap_forward.h \
-	context/cdinsert_hashmap.h \
-	context/cdinsert_hashmap_forward.h \
+	context/cddense_set.h \
 	context/cdhashmap.h \
 	context/cdhashmap_forward.h \
 	context/cdhashset.h \
 	context/cdhashset_forward.h \
-	context/cdvector.h \
+	context/cdinsert_hashmap.h \
+	context/cdinsert_hashmap_forward.h \
+	context/cdlist.h \
+	context/cdlist_forward.h \
 	context/cdmaybe.h \
+	context/cdo.h \
+	context/cdqueue.h \
+	context/cdtrail_hashmap.h \
+	context/cdtrail_hashmap_forward.h \
+	context/cdtrail_queue.h \
+	context/cdvector.h \
+	context/context.cpp \
+	context/context.h \
+	context/context_mm.cpp \
+	context/context_mm.h \
 	context/stacking_vector.h \
-	context/cddense_set.h \
 	decision/decision_attributes.h \
-	decision/decision_engine.h \
 	decision/decision_engine.cpp \
+	decision/decision_engine.h \
 	decision/decision_strategy.h \
-	decision/justification_heuristic.h \
 	decision/justification_heuristic.cpp \
-	printer/printer.h \
-	printer/printer.cpp \
-	printer/dagification_visitor.h \
+	decision/justification_heuristic.h \
 	printer/dagification_visitor.cpp \
-	printer/ast/ast_printer.h \
+	printer/dagification_visitor.h \
+	printer/printer.cpp \
+	printer/printer.h \
 	printer/ast/ast_printer.cpp \
-	printer/smt1/smt1_printer.h \
-	printer/smt1/smt1_printer.cpp \
-	printer/smt2/smt2_printer.h \
-	printer/smt2/smt2_printer.cpp \
-	printer/cvc/cvc_printer.h \
+	printer/ast/ast_printer.h \
 	printer/cvc/cvc_printer.cpp \
-	printer/tptp/tptp_printer.h \
+	printer/cvc/cvc_printer.h \
+	printer/smt1/smt1_printer.cpp \
+	printer/smt1/smt1_printer.h \
+	printer/smt2/smt2_printer.cpp \
+	printer/smt2/smt2_printer.h \
 	printer/tptp/tptp_printer.cpp \
+	printer/tptp/tptp_printer.h \
 	proof/arith_proof.cpp \
 	proof/arith_proof.h \
 	proof/array_proof.cpp \
@@ -85,29 +85,31 @@ libcvc4_la_SOURCES = \
 	proof/clause_id.h \
 	proof/cnf_proof.cpp \
 	proof/cnf_proof.h \
+	proof/lemma_proof.cpp \
+	proof/lemma_proof.h \
 	proof/proof.h \
 	proof/proof_manager.cpp \
 	proof/proof_manager.h \
+	proof/proof_output_channel.cpp \
+	proof/proof_output_channel.h \
 	proof/proof_utils.cpp \
 	proof/proof_utils.h \
 	proof/sat_proof.h \
 	proof/sat_proof_implementation.h \
+	proof/simplify_boolean_node.cpp \
+	proof/simplify_boolean_node.h \
 	proof/skolemization_manager.cpp \
 	proof/skolemization_manager.h \
 	proof/theory_proof.cpp \
 	proof/theory_proof.h \
-	proof/lemma_proof.cpp \
-	proof/lemma_proof.h \
 	proof/uf_proof.cpp \
 	proof/uf_proof.h \
 	proof/unsat_core.cpp \
 	proof/unsat_core.h \
-	proof/proof_output_channel.cpp \
-	proof/proof_output_channel.h \
-	proof/simplify_boolean_node.cpp \
-	proof/simplify_boolean_node.h \
 	prop/cnf_stream.cpp \
 	prop/cnf_stream.h \
+	prop/cryptominisat.cpp \
+	prop/cryptominisat.h \
 	prop/prop_engine.cpp \
 	prop/prop_engine.h \
 	prop/registrar.h \
@@ -115,8 +117,6 @@ libcvc4_la_SOURCES = \
 	prop/sat_solver_factory.cpp \
 	prop/sat_solver_factory.h \
 	prop/sat_solver_types.h \
-	prop/cryptominisat.h \
-	prop/cryptominisat.cpp \
 	prop/theory_proxy.cpp \
 	prop/theory_proxy.h \
 	smt/command.cpp \
@@ -125,8 +125,6 @@ libcvc4_la_SOURCES = \
 	smt/command_list.h \
 	smt/dump.cpp \
 	smt/dump.h \
-	smt/term_formula_removal.cpp \
-	smt/term_formula_removal.h \
 	smt/logic_exception.h \
 	smt/logic_request.cpp \
 	smt/logic_request.h \
@@ -141,317 +139,322 @@ libcvc4_la_SOURCES = \
 	smt/smt_engine_scope.h \
 	smt/smt_statistics_registry.cpp \
 	smt/smt_statistics_registry.h \
+	smt/term_formula_removal.cpp \
+	smt/term_formula_removal.h \
 	smt/update_ostream.h \
-	theory/logic_info.h \
-	theory/logic_info.cpp \
-	theory/output_channel.h \
+	theory/assertion.cpp \
+	theory/assertion.h \
+	theory/atom_requests.cpp \
+	theory/atom_requests.h \
+	theory/care_graph.h \
 	theory/interrupted.h \
-	theory/sort_inference.cpp \
-	theory/sort_inference.h \
-	theory/type_enumerator.h \
-	theory/theory_engine.h \
-	theory/theory_engine.cpp \
-	theory/theory_test_utils.h \
-	theory/theory.h \
-	theory/theory.cpp \
-	theory/theory_registrar.h \
+	theory/ite_utilities.cpp \
+	theory/ite_utilities.h \
+	theory/logic_info.cpp \
+	theory/logic_info.h \
+	theory/output_channel.h \
+	theory/quantifiers_engine.cpp \
+	theory/quantifiers_engine.h \
+	theory/rep_set.cpp \
+	theory/rep_set.h \
+	theory/rewriter.cpp \
 	theory/rewriter.h \
 	theory/rewriter_attributes.h \
-	theory/rewriter.cpp \
-	theory/substitutions.h \
-	theory/substitutions.cpp \
-	theory/valuation.h \
-	theory/valuation.cpp \
-	theory/shared_terms_database.h \
 	theory/shared_terms_database.cpp \
-	theory/term_registration_visitor.h \
+	theory/shared_terms_database.h \
+	theory/sort_inference.cpp \
+	theory/sort_inference.h \
+	theory/substitutions.cpp \
+	theory/substitutions.h \
 	theory/term_registration_visitor.cpp \
-	theory/ite_utilities.h \
-	theory/ite_utilities.cpp \
-	theory/unconstrained_simplifier.h \
-	theory/unconstrained_simplifier.cpp \
-	theory/quantifiers_engine.h \
-	theory/quantifiers_engine.cpp \
-	theory/theory_model.h \
+	theory/term_registration_visitor.h \
+	theory/theory.cpp \
+	theory/theory.h \
+	theory/theory_engine.cpp \
+	theory/theory_engine.h \
 	theory/theory_model.cpp \
-	theory/rep_set.h \
-	theory/rep_set.cpp \
-	theory/atom_requests.h \
-	theory/atom_requests.cpp \
-	theory/uf/theory_uf.h \
-	theory/uf/theory_uf.cpp \
-	theory/uf/theory_uf_type_rules.h \
-	theory/uf/theory_uf_rewriter.h \
-	theory/uf/equality_engine.h \
-	theory/uf/equality_engine_types.h \
-	theory/uf/equality_engine.cpp \
-	theory/uf/symmetry_breaker.h \
-	theory/uf/symmetry_breaker.cpp \
-	theory/uf/theory_uf_strong_solver.h \
-	theory/uf/theory_uf_strong_solver.cpp \
-	theory/uf/theory_uf_model.h \
-	theory/uf/theory_uf_model.cpp \
-	theory/bv/theory_bv_utils.h \
-	theory/bv/theory_bv_utils.cpp \
-	theory/bv/type_enumerator.h \
-	theory/bv/bv_to_bool.h \
-	theory/bv/bv_to_bool.cpp \
-	theory/bv/bv_subtheory.h \
-	theory/bv/bv_subtheory_core.h \
-	theory/bv/bv_subtheory_core.cpp \
-	theory/bv/bv_subtheory_bitblast.h \
-	theory/bv/bv_subtheory_bitblast.cpp \
-	theory/bv/bv_subtheory_inequality.h \
-	theory/bv/bv_subtheory_inequality.cpp \
-	theory/bv/bv_inequality_graph.h \
-	theory/bv/bv_inequality_graph.cpp \
-	theory/bv/bitblast_strategies_template.h \
-	theory/bv/bitblaster_template.h \
-	theory/bv/lazy_bitblaster.cpp \
-	theory/bv/eager_bitblaster.cpp \
-	theory/bv/aig_bitblaster.cpp \
-	theory/bv/bv_eager_solver.h \
-	theory/bv/bv_eager_solver.cpp \
-	theory/bv/slicer.h \
-	theory/bv/slicer.cpp \
-	theory/bv/theory_bv.h \
-	theory/bv/theory_bv.cpp \
-	theory/bv/theory_bv_rewrite_rules.h \
-	theory/bv/theory_bv_rewrite_rules_core.h \
-	theory/bv/theory_bv_rewrite_rules_operator_elimination.h \
-	theory/bv/theory_bv_rewrite_rules_constant_evaluation.h \
-	theory/bv/theory_bv_rewrite_rules_normalization.h \
-	theory/bv/theory_bv_rewrite_rules_simplification.h \
-	theory/bv/theory_bv_type_rules.h \
-	theory/bv/theory_bv_rewriter.h \
-	theory/bv/theory_bv_rewriter.cpp \
-	theory/bv/cd_set_collection.h \
-	theory/bv/abstraction.h \
-	theory/bv/abstraction.cpp \
-	theory/bv/bv_quick_check.h \
-	theory/bv/bv_quick_check.cpp \
-	theory/bv/bv_subtheory_algebraic.h \
-	theory/bv/bv_subtheory_algebraic.cpp \
-	theory/bv/bitblast_utils.h \
-	theory/bv/bvintropow2.h \
-	theory/bv/bvintropow2.cpp \
-	theory/idl/idl_model.h \
-	theory/idl/idl_model.cpp \
-	theory/idl/idl_assertion.h \
-	theory/idl/idl_assertion.cpp \
-	theory/idl/idl_assertion_db.h \
-	theory/idl/idl_assertion_db.cpp \
-	theory/idl/theory_idl.h \
-	theory/idl/theory_idl.cpp \
+	theory/theory_model.h \
+	theory/theory_registrar.h \
+	theory/theory_test_utils.h \
+	theory/type_enumerator.h \
+	theory/unconstrained_simplifier.cpp \
+	theory/unconstrained_simplifier.h \
+	theory/valuation.cpp \
+	theory/valuation.h \
+	theory/arith/approx_simplex.cpp \
+	theory/arith/approx_simplex.h \
+	theory/arith/arith_ite_utils.cpp \
+	theory/arith/arith_ite_utils.h \
+	theory/arith/arith_rewriter.cpp \
+	theory/arith/arith_rewriter.h \
+	theory/arith/arith_static_learner.cpp \
+	theory/arith/arith_static_learner.h \
+	theory/arith/arith_utilities.h \
+	theory/arith/arithvar.cpp \
+	theory/arith/arithvar.h \
+	theory/arith/attempt_solution_simplex.cpp \
+	theory/arith/attempt_solution_simplex.h \
+	theory/arith/bound_counts.h \
+	theory/arith/callbacks.cpp \
+	theory/arith/callbacks.h \
+	theory/arith/congruence_manager.cpp \
+	theory/arith/congruence_manager.h \
+	theory/arith/constraint.cpp \
+	theory/arith/constraint.h \
+	theory/arith/constraint_forward.h \
+	theory/arith/cut_log.cpp \
+	theory/arith/cut_log.h \
+	theory/arith/delta_rational.cpp \
+	theory/arith/delta_rational.h \
+	theory/arith/dio_solver.cpp \
+	theory/arith/dio_solver.h \
+	theory/arith/dual_simplex.cpp \
+	theory/arith/dual_simplex.h \
+	theory/arith/error_set.cpp \
+	theory/arith/error_set.h \
+	theory/arith/fc_simplex.cpp \
+	theory/arith/fc_simplex.h \
+	theory/arith/infer_bounds.cpp \
+	theory/arith/infer_bounds.h \
+	theory/arith/linear_equality.cpp \
+	theory/arith/linear_equality.h \
+	theory/arith/matrix.cpp \
+	theory/arith/matrix.h \
+	theory/arith/normal_form.cpp \
+	theory/arith/normal_form.h\
+	theory/arith/partial_model.cpp \
+	theory/arith/partial_model.h \
+	theory/arith/pseudoboolean_proc.cpp \
+	theory/arith/pseudoboolean_proc.h \
+	theory/arith/simplex.cpp \
+	theory/arith/simplex.h \
+	theory/arith/simplex_update.cpp \
+	theory/arith/simplex_update.h \
+	theory/arith/soi_simplex.cpp \
+	theory/arith/soi_simplex.h \
+	theory/arith/tableau.cpp \
+	theory/arith/tableau.h \
+	theory/arith/tableau_sizes.cpp \
+	theory/arith/tableau_sizes.h \
+	theory/arith/theory_arith.cpp \
+	theory/arith/theory_arith.h \
+	theory/arith/theory_arith_private.cpp \
+	theory/arith/theory_arith_private.h \
+	theory/arith/theory_arith_private_forward.h \
+	theory/arith/theory_arith_type_rules.h \
+	theory/arith/type_enumerator.h \
+	theory/arrays/array_info.cpp \
+	theory/arrays/array_info.h \
+	theory/arrays/array_proof_reconstruction.cpp \
+	theory/arrays/array_proof_reconstruction.h \
+	theory/arrays/static_fact_manager.cpp \
+	theory/arrays/static_fact_manager.h \
+	theory/arrays/theory_arrays.cpp \
+	theory/arrays/theory_arrays.h \
+	theory/arrays/theory_arrays_rewriter.cpp \
+	theory/arrays/theory_arrays_rewriter.h \
+	theory/arrays/theory_arrays_type_rules.h \
+	theory/arrays/type_enumerator.h \
+	theory/arrays/union_find.cpp \
+	theory/arrays/union_find.h \
+	theory/booleans/circuit_propagator.cpp \
+	theory/booleans/circuit_propagator.h \
+	theory/booleans/theory_bool.cpp \
+	theory/booleans/theory_bool.h \
+	theory/booleans/theory_bool_rewriter.cpp \
+	theory/booleans/theory_bool_rewriter.h \
+	theory/booleans/theory_bool_type_rules.h \
+	theory/booleans/type_enumerator.h \
+	theory/builtin/theory_builtin.cpp \
+	theory/builtin/theory_builtin.h \
+	theory/builtin/theory_builtin_rewriter.cpp \
+	theory/builtin/theory_builtin_rewriter.h \
 	theory/builtin/theory_builtin_type_rules.h \
 	theory/builtin/type_enumerator.h \
-	theory/builtin/theory_builtin_rewriter.h \
-	theory/builtin/theory_builtin_rewriter.cpp \
-	theory/builtin/theory_builtin.h \
-	theory/builtin/theory_builtin.cpp \
-	theory/datatypes/theory_datatypes_type_rules.h \
-	theory/datatypes/type_enumerator.h \
-	theory/datatypes/type_enumerator.cpp \
-	theory/datatypes/theory_datatypes.h \
+	theory/bv/abstraction.cpp \
+	theory/bv/abstraction.h \
+	theory/bv/aig_bitblaster.cpp \
+	theory/bv/bitblast_strategies_template.h \
+	theory/bv/bitblast_utils.h \
+	theory/bv/bitblaster_template.h \
+	theory/bv/bv_eager_solver.cpp \
+	theory/bv/bv_eager_solver.h \
+	theory/bv/bv_inequality_graph.cpp \
+	theory/bv/bv_inequality_graph.h \
+	theory/bv/bv_quick_check.cpp \
+	theory/bv/bv_quick_check.h \
+	theory/bv/bv_subtheory.h \
+	theory/bv/bv_subtheory_algebraic.cpp \
+	theory/bv/bv_subtheory_algebraic.h \
+	theory/bv/bv_subtheory_bitblast.cpp \
+	theory/bv/bv_subtheory_bitblast.h \
+	theory/bv/bv_subtheory_core.cpp \
+	theory/bv/bv_subtheory_core.h \
+	theory/bv/bv_subtheory_inequality.cpp \
+	theory/bv/bv_subtheory_inequality.h \
+	theory/bv/bv_to_bool.cpp \
+	theory/bv/bv_to_bool.h \
+	theory/bv/bvintropow2.cpp \
+	theory/bv/bvintropow2.h \
+	theory/bv/cd_set_collection.h \
+	theory/bv/eager_bitblaster.cpp \
+	theory/bv/lazy_bitblaster.cpp \
+	theory/bv/slicer.cpp \
+	theory/bv/slicer.h \
+	theory/bv/theory_bv.cpp \
+	theory/bv/theory_bv.h \
+	theory/bv/theory_bv_rewrite_rules.h \
+	theory/bv/theory_bv_rewrite_rules_constant_evaluation.h \
+	theory/bv/theory_bv_rewrite_rules_core.h \
+	theory/bv/theory_bv_rewrite_rules_normalization.h \
+	theory/bv/theory_bv_rewrite_rules_operator_elimination.h \
+	theory/bv/theory_bv_rewrite_rules_simplification.h \
+	theory/bv/theory_bv_rewriter.cpp \
+	theory/bv/theory_bv_rewriter.h \
+	theory/bv/theory_bv_type_rules.h \
+	theory/bv/theory_bv_utils.cpp \
+	theory/bv/theory_bv_utils.h \
+	theory/bv/type_enumerator.h \
 	theory/datatypes/datatypes_rewriter.h \
-	theory/datatypes/theory_datatypes.cpp \
-	theory/datatypes/datatypes_sygus.h \
 	theory/datatypes/datatypes_sygus.cpp \
+	theory/datatypes/datatypes_sygus.h \
+	theory/datatypes/theory_datatypes.cpp \
+	theory/datatypes/theory_datatypes.h \
+	theory/datatypes/theory_datatypes_type_rules.h \
+	theory/datatypes/type_enumerator.cpp \
+	theory/datatypes/type_enumerator.h \
+	theory/fp/theory_fp.cpp \
+	theory/fp/theory_fp.h \
+	theory/fp/theory_fp_rewriter.cpp \
+	theory/fp/theory_fp_rewriter.h \
+	theory/fp/theory_fp_type_rules.h \
+	theory/idl/idl_assertion.cpp \
+	theory/idl/idl_assertion.h \
+	theory/idl/idl_assertion_db.cpp \
+	theory/idl/idl_assertion_db.h \
+	theory/idl/idl_model.cpp \
+	theory/idl/idl_model.h \
+	theory/idl/theory_idl.cpp \
+	theory/idl/theory_idl.h \
+	theory/quantifiers/alpha_equivalence.cpp \
+	theory/quantifiers/alpha_equivalence.h \
+	theory/quantifiers/ambqi_builder.cpp \
+	theory/quantifiers/ambqi_builder.h \
+	theory/quantifiers/anti_skolem.cpp \
+	theory/quantifiers/anti_skolem.h \
+	theory/quantifiers/bounded_integers.cpp \
+	theory/quantifiers/bounded_integers.h \
+	theory/quantifiers/candidate_generator.cpp \
+	theory/quantifiers/candidate_generator.h \
+	theory/quantifiers/ce_guided_instantiation.cpp \
+	theory/quantifiers/ce_guided_instantiation.h \
+	theory/quantifiers/ce_guided_single_inv.cpp \
+	theory/quantifiers/ce_guided_single_inv.h \
+	theory/quantifiers/ce_guided_single_inv_ei.cpp \
+	theory/quantifiers/ce_guided_single_inv_ei.h \
+	theory/quantifiers/ce_guided_single_inv_sol.cpp \
+	theory/quantifiers/ce_guided_single_inv_sol.h \
+	theory/quantifiers/ceg_instantiator.cpp \
+	theory/quantifiers/ceg_instantiator.h \
+	theory/quantifiers/ceg_t_instantiator.cpp \
+	theory/quantifiers/ceg_t_instantiator.h \
+	theory/quantifiers/conjecture_generator.cpp \
+	theory/quantifiers/conjecture_generator.h \
+	theory/quantifiers/equality_infer.cpp \
+	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/first_order_model.cpp \
+	theory/quantifiers/first_order_model.h \
+	theory/quantifiers/full_model_check.cpp \
+	theory/quantifiers/full_model_check.h \
+	theory/quantifiers/fun_def_engine.cpp \
+	theory/quantifiers/fun_def_engine.h \
+	theory/quantifiers/fun_def_process.cpp \
+	theory/quantifiers/fun_def_process.h \
+	theory/quantifiers/inst_match.cpp \
+	theory/quantifiers/inst_match.h \
+	theory/quantifiers/inst_match_generator.cpp \
+	theory/quantifiers/inst_match_generator.h \
+	theory/quantifiers/inst_propagator.cpp \
+	theory/quantifiers/inst_propagator.h \
+	theory/quantifiers/inst_strategy_cbqi.cpp \
+	theory/quantifiers/inst_strategy_cbqi.h \
+	theory/quantifiers/inst_strategy_e_matching.cpp \
+	theory/quantifiers/inst_strategy_e_matching.h \
+	theory/quantifiers/instantiation_engine.cpp \
+	theory/quantifiers/instantiation_engine.h \
+	theory/quantifiers/local_theory_ext.cpp \
+	theory/quantifiers/local_theory_ext.h \
+	theory/quantifiers/macros.cpp \
+	theory/quantifiers/macros.h \
+	theory/quantifiers/model_builder.cpp \
+	theory/quantifiers/model_builder.h \
+	theory/quantifiers/model_engine.cpp \
+	theory/quantifiers/model_engine.h \
+	theory/quantifiers/quant_conflict_find.cpp \
+	theory/quantifiers/quant_conflict_find.h \
+	theory/quantifiers/quant_equality_engine.cpp \
+	theory/quantifiers/quant_equality_engine.h \
+	theory/quantifiers/quant_split.cpp \
+	theory/quantifiers/quant_split.h \
+	theory/quantifiers/quant_util.cpp \
+	theory/quantifiers/quant_util.h \
+	theory/quantifiers/quantifiers_attributes.cpp \
+	theory/quantifiers/quantifiers_attributes.h \
+	theory/quantifiers/quantifiers_rewriter.cpp \
+	theory/quantifiers/quantifiers_rewriter.h \
+	theory/quantifiers/relevant_domain.cpp \
+	theory/quantifiers/relevant_domain.h \
+	theory/quantifiers/rewrite_engine.cpp \
+	theory/quantifiers/rewrite_engine.h \
+	theory/quantifiers/symmetry_breaking.cpp \
+	theory/quantifiers/symmetry_breaking.h \
+	theory/quantifiers/term_database.cpp \
+	theory/quantifiers/term_database.h \
+	theory/quantifiers/theory_quantifiers.cpp \
+	theory/quantifiers/theory_quantifiers.h \
+	theory/quantifiers/theory_quantifiers_type_rules.h \
+	theory/quantifiers/trigger.cpp \
+	theory/quantifiers/trigger.h \
+	theory/sep/theory_sep.cpp \
+	theory/sep/theory_sep.h \
+	theory/sep/theory_sep_rewriter.cpp \
+	theory/sep/theory_sep_rewriter.h \
+	theory/sep/theory_sep_type_rules.h \
 	theory/sets/normal_form.h \
+	theory/sets/rels_utils.h \
 	theory/sets/theory_sets.cpp \
 	theory/sets/theory_sets.h \
 	theory/sets/theory_sets_private.cpp \
 	theory/sets/theory_sets_private.h \
+	theory/sets/theory_sets_rels.cpp \
+	theory/sets/theory_sets_rels.h \
 	theory/sets/theory_sets_rewriter.cpp \
 	theory/sets/theory_sets_rewriter.h \
 	theory/sets/theory_sets_type_enumerator.h \
 	theory/sets/theory_sets_type_rules.h \
-	theory/sets/theory_sets_rels.cpp \
-	theory/sets/theory_sets_rels.h \
-	theory/sets/rels_utils.h \
-	theory/strings/theory_strings.h \
-	theory/strings/theory_strings.cpp \
-	theory/strings/theory_strings_rewriter.h \
-	theory/strings/theory_strings_rewriter.cpp \
-	theory/strings/theory_strings_type_rules.h \
-	theory/strings/type_enumerator.h \
-	theory/strings/theory_strings_preprocess.h \
-	theory/strings/theory_strings_preprocess.cpp \
 	theory/strings/regexp_operation.cpp \
 	theory/strings/regexp_operation.h \
-	theory/arrays/theory_arrays_type_rules.h \
-	theory/arrays/type_enumerator.h \
-	theory/arrays/theory_arrays_rewriter.h \
-	theory/arrays/theory_arrays_rewriter.cpp \
-	theory/arrays/theory_arrays.h \
-	theory/arrays/theory_arrays.cpp \
-	theory/arrays/union_find.h \
-	theory/arrays/union_find.cpp \
-	theory/arrays/array_info.h \
-	theory/arrays/array_info.cpp \
-	theory/arrays/static_fact_manager.h \
-	theory/arrays/static_fact_manager.cpp \
-	theory/arrays/array_proof_reconstruction.cpp \
-	theory/arrays/array_proof_reconstruction.h \
-	theory/quantifiers/theory_quantifiers_type_rules.h \
-	theory/quantifiers/theory_quantifiers.h \
-	theory/quantifiers/quantifiers_rewriter.h \
-	theory/quantifiers/quantifiers_rewriter.cpp \
-	theory/quantifiers/theory_quantifiers.cpp \
-	theory/quantifiers/instantiation_engine.h \
-	theory/quantifiers/instantiation_engine.cpp \
-	theory/quantifiers/trigger.h \
-	theory/quantifiers/trigger.cpp \
-	theory/quantifiers/candidate_generator.h \
-	theory/quantifiers/candidate_generator.cpp \
-	theory/quantifiers/inst_match.h \
-	theory/quantifiers/inst_match.cpp \
-	theory/quantifiers/model_engine.h \
-	theory/quantifiers/model_engine.cpp \
-	theory/quantifiers/term_database.h \
-	theory/quantifiers/term_database.cpp \
-	theory/quantifiers/first_order_model.h \
-	theory/quantifiers/first_order_model.cpp \
-	theory/quantifiers/model_builder.h \
-	theory/quantifiers/model_builder.cpp \
-	theory/quantifiers/quantifiers_attributes.h \
-	theory/quantifiers/quantifiers_attributes.cpp \
-	theory/quantifiers/quant_util.h \
-	theory/quantifiers/quant_util.cpp \
-	theory/quantifiers/inst_match_generator.h \
-	theory/quantifiers/inst_match_generator.cpp \
-	theory/quantifiers/macros.h \
-	theory/quantifiers/macros.cpp \
-	theory/quantifiers/inst_strategy_e_matching.h \
-	theory/quantifiers/inst_strategy_e_matching.cpp \
-	theory/quantifiers/inst_strategy_cbqi.h \
-	theory/quantifiers/inst_strategy_cbqi.cpp \
-	theory/quantifiers/full_model_check.h \
-	theory/quantifiers/full_model_check.cpp \
-	theory/quantifiers/bounded_integers.h \
-	theory/quantifiers/bounded_integers.cpp \
-	theory/quantifiers/alpha_equivalence.h \
-	theory/quantifiers/alpha_equivalence.cpp \
-	theory/quantifiers/rewrite_engine.h \
-	theory/quantifiers/rewrite_engine.cpp \
-	theory/quantifiers/relevant_domain.h \
-	theory/quantifiers/relevant_domain.cpp \
-	theory/quantifiers/symmetry_breaking.h \
-	theory/quantifiers/symmetry_breaking.cpp \
-	theory/quantifiers/ambqi_builder.h \
-	theory/quantifiers/ambqi_builder.cpp \
-	theory/quantifiers/quant_conflict_find.h \
-	theory/quantifiers/quant_conflict_find.cpp \
-	theory/quantifiers/conjecture_generator.h \
-	theory/quantifiers/conjecture_generator.cpp \
-	theory/quantifiers/ce_guided_instantiation.h \
-	theory/quantifiers/ce_guided_instantiation.cpp \
-	theory/quantifiers/ce_guided_single_inv.h \
-	theory/quantifiers/ce_guided_single_inv.cpp \
-	theory/quantifiers/ce_guided_single_inv_sol.h \
-	theory/quantifiers/ce_guided_single_inv_sol.cpp \
-	theory/quantifiers/ce_guided_single_inv_ei.h \
-	theory/quantifiers/ce_guided_single_inv_ei.cpp \
-	theory/quantifiers/local_theory_ext.h \
-	theory/quantifiers/local_theory_ext.cpp \
-	theory/quantifiers/fun_def_process.h \
-	theory/quantifiers/fun_def_process.cpp \
-	theory/quantifiers/fun_def_engine.h \
-	theory/quantifiers/fun_def_engine.cpp \
-	theory/quantifiers/quant_equality_engine.h \
-	theory/quantifiers/quant_equality_engine.cpp \
-	theory/quantifiers/ceg_instantiator.h \
-	theory/quantifiers/ceg_instantiator.cpp \
-	theory/quantifiers/ceg_t_instantiator.h \
-	theory/quantifiers/ceg_t_instantiator.cpp \
-	theory/quantifiers/quant_split.h \
-	theory/quantifiers/quant_split.cpp \
-	theory/quantifiers/anti_skolem.h \
-	theory/quantifiers/anti_skolem.cpp \
-	theory/quantifiers/equality_infer.h \
-	theory/quantifiers/equality_infer.cpp \
-	theory/quantifiers/inst_propagator.h \
-	theory/quantifiers/inst_propagator.cpp \
-	theory/arith/theory_arith_type_rules.h \
-	theory/arith/type_enumerator.h \
-	theory/arith/arithvar.h \
-	theory/arith/arithvar.cpp \
-	theory/arith/bound_counts.h \
-	theory/arith/arith_ite_utils.h \
-	theory/arith/arith_ite_utils.cpp \
-	theory/arith/arith_rewriter.h \
-	theory/arith/arith_rewriter.cpp \
-	theory/arith/arith_static_learner.h \
-	theory/arith/arith_static_learner.cpp \
-	theory/arith/constraint_forward.h \
-	theory/arith/constraint.h \
-	theory/arith/constraint.cpp \
-	theory/arith/congruence_manager.h \
-	theory/arith/congruence_manager.cpp \
-	theory/arith/normal_form.h\
-	theory/arith/normal_form.cpp \
-	theory/arith/arith_utilities.h \
-	theory/arith/delta_rational.h \
-	theory/arith/delta_rational.cpp \
-	theory/arith/partial_model.h \
-	theory/arith/partial_model.cpp \
-	theory/arith/linear_equality.h \
-	theory/arith/linear_equality.cpp \
-	theory/arith/simplex_update.h \
-	theory/arith/simplex_update.cpp \
-	theory/arith/callbacks.h \
-	theory/arith/callbacks.cpp \
-	theory/arith/matrix.h \
-	theory/arith/matrix.cpp \
-	theory/arith/tableau.h \
-	theory/arith/tableau.cpp \
-	theory/arith/tableau_sizes.h \
-	theory/arith/tableau_sizes.cpp \
-	theory/arith/error_set.h \
-	theory/arith/error_set.cpp \
-	theory/arith/simplex.h \
-	theory/arith/simplex.cpp \
-	theory/arith/dual_simplex.h \
-	theory/arith/dual_simplex.cpp \
-	theory/arith/fc_simplex.h \
-	theory/arith/fc_simplex.cpp \
-	theory/arith/soi_simplex.h \
-	theory/arith/soi_simplex.cpp \
-	theory/arith/infer_bounds.h \
-	theory/arith/infer_bounds.cpp \
-	theory/arith/approx_simplex.h \
-	theory/arith/approx_simplex.cpp \
-	theory/arith/attempt_solution_simplex.h \
-	theory/arith/attempt_solution_simplex.cpp \
-	theory/arith/theory_arith.h \
-	theory/arith/theory_arith.cpp \
-	theory/arith/theory_arith_private_forward.h \
-	theory/arith/theory_arith_private.h \
-	theory/arith/theory_arith_private.cpp \
-	theory/arith/dio_solver.h \
-	theory/arith/dio_solver.cpp \
-	theory/arith/pseudoboolean_proc.h \
-	theory/arith/pseudoboolean_proc.cpp \
-	theory/arith/cut_log.h \
-	theory/arith/cut_log.cpp \
-	theory/booleans/type_enumerator.h \
-	theory/booleans/theory_bool.h \
-	theory/booleans/theory_bool.cpp \
-	theory/booleans/theory_bool_type_rules.h \
-	theory/booleans/theory_bool_rewriter.h \
-	theory/booleans/theory_bool_rewriter.cpp \
-	theory/booleans/circuit_propagator.h \
-	theory/booleans/circuit_propagator.cpp \
-	theory/fp/theory_fp.h \
-	theory/fp/theory_fp.cpp \
-	theory/fp/theory_fp_rewriter.h \
-	theory/fp/theory_fp_rewriter.cpp \
-	theory/fp/theory_fp_type_rules.h \
-	theory/sep/theory_sep.h \
-	theory/sep/theory_sep.cpp \
-	theory/sep/theory_sep_rewriter.h \
-	theory/sep/theory_sep_rewriter.cpp \
-	theory/sep/theory_sep_type_rules.h
+	theory/strings/theory_strings.cpp \
+	theory/strings/theory_strings.h \
+	theory/strings/theory_strings_preprocess.cpp \
+	theory/strings/theory_strings_preprocess.h \
+	theory/strings/theory_strings_rewriter.cpp \
+	theory/strings/theory_strings_rewriter.h \
+	theory/strings/theory_strings_type_rules.h \
+	theory/strings/type_enumerator.h \
+	theory/uf/equality_engine.cpp \
+	theory/uf/equality_engine.h \
+	theory/uf/equality_engine_types.h \
+	theory/uf/symmetry_breaker.cpp \
+	theory/uf/symmetry_breaker.h \
+	theory/uf/theory_uf.cpp \
+	theory/uf/theory_uf.h \
+	theory/uf/theory_uf_model.cpp \
+	theory/uf/theory_uf_model.h \
+	theory/uf/theory_uf_rewriter.h \
+	theory/uf/theory_uf_strong_solver.cpp \
+	theory/uf/theory_uf_strong_solver.h \
+	theory/uf/theory_uf_type_rules.h
 
 nodist_libcvc4_la_SOURCES = \
 	theory/rewriter_tables.h \

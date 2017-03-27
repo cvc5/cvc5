@@ -37,6 +37,7 @@
 #include "smt_util/node_visitor.h"
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/care_graph.h"
 #include "theory/ite_utilities.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/model_engine.h"
@@ -212,7 +213,7 @@ void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode, Proof* pf)
 void TheoryEngine::finishInit() {
   // initialize the quantifiers engine
   d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
-  
+
   //initialize the quantifiers engine, master equality engine, model, model builder
   if( d_logicInfo.isQuantified() ) {
     d_quantEngine->finishInit();
@@ -225,7 +226,7 @@ void TheoryEngine::finishInit() {
         d_theoryTable[theoryId]->setMasterEqualityEngine(d_masterEqualityEngine);
       }
     }
-  
+
     d_curr_model_builder = d_quantEngine->getModelBuilder();
     d_curr_model = d_quantEngine->getModel();
   } else {
@@ -662,7 +663,7 @@ void TheoryEngine::combineTheories() {
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
   if (theory::TheoryTraits<THEORY>::isParametric && d_logicInfo.isTheoryEnabled(THEORY)) { \
-    theoryOf(THEORY)->getCareGraph(careGraph); \
+    theoryOf(THEORY)->getCareGraph(&careGraph); \
   }
 
   // Call on each parametric theory to give us its care graph
@@ -1145,11 +1146,13 @@ Node TheoryEngine::preprocess(TNode assertion) {
   return d_ppCache[assertion];
 }
 
-void TheoryEngine::notifyPreprocessedAssertions( std::vector< Node >& assertions ){
+void TheoryEngine::notifyPreprocessedAssertions(
+    const std::vector<Node>& assertions) {
   // call all the theories
-  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
-    if(d_theoryTable[theoryId]) {
-      theoryOf(theoryId)->ppNotifyAssertions( assertions );
+  for (TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST;
+       ++theoryId) {
+    if (d_theoryTable[theoryId]) {
+      theoryOf(theoryId)->ppNotifyAssertions(assertions);
     }
   }
 }

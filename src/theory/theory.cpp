@@ -66,7 +66,7 @@ Theory::Theory(TheoryId id, context::Context* satContext,
     , d_sharedTermsIndex(satContext, 0)
     , d_careGraph(NULL)
     , d_quantEngine(NULL)
-    , d_extt(NULL)
+    , d_extTheory(NULL)
     , d_checkTime(getFullInstanceName() + "::checkTime")
     , d_computeCareGraphTime(getFullInstanceName() + "::computeCareGraphTime")
     , d_sharedTerms(satContext)
@@ -81,6 +81,8 @@ Theory::Theory(TheoryId id, context::Context* satContext,
 Theory::~Theory() {
   smtStatisticsRegistry()->unregisterStat(&d_checkTime);
   smtStatisticsRegistry()->unregisterStat(&d_computeCareGraphTime);
+
+  delete d_extTheory;
 }
 
 TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
@@ -295,6 +297,39 @@ std::pair<bool, Node> Theory::entailmentCheck(
     EntailmentCheckSideEffects* out) {
   return make_pair(false, Node::null());
 }
+
+ExtTheory* Theory::getExtTheory() {
+  Assert(d_extTheory != NULL);
+  return d_extTheory;
+}
+
+void Theory::addCarePair(TNode t1, TNode t2) {
+  if (d_careGraph) {
+    d_careGraph->insert(CarePair(t1, t2, d_id));
+  }
+}
+
+void Theory::getCareGraph(CareGraph* careGraph) {
+  Assert(careGraph != NULL);
+
+  Trace("sharing") << "Theory<" << getId() << ">::getCareGraph()" << std::endl;
+  TimerStat::CodeTimer computeCareGraphTime(d_computeCareGraphTime);
+  d_careGraph = careGraph;
+  computeCareGraph();
+  d_careGraph = NULL;
+}
+
+void Theory::setQuantifiersEngine(QuantifiersEngine* qe) {
+  Assert(d_quantEngine == NULL);
+  Assert(qe != NULL);
+  d_quantEngine = qe;
+}
+
+void Theory::setupExtTheory() {
+  Assert(d_extTheory == NULL);
+  d_extTheory = new ExtTheory(this);
+}
+
 
 EntailmentCheckParameters::EntailmentCheckParameters(TheoryId tid)
   : d_tid(tid) {
