@@ -41,7 +41,7 @@ class ArrayEnumerator : public TypeEnumeratorBase<ArrayEnumerator> {
 
 public:
 
-  ArrayEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw(AssertionException) :
+  ArrayEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) :
     TypeEnumeratorBase<ArrayEnumerator>(type),
     d_tep(tep),
     d_index(type.getArrayIndexType(), tep),
@@ -87,7 +87,7 @@ public:
     }
   }
 
-  Node operator*() throw(NoMoreValuesException) {
+  Node operator*() {
     if (d_finished) {
       throw NoMoreValuesException(getType());
     }
@@ -101,7 +101,7 @@ public:
     return n;
   }
 
-  ArrayEnumerator& operator++() throw() {
+  ArrayEnumerator& operator++() {
     Trace("array-type-enum") << "operator++ called, **this = " << **this << std::endl;
 
     if (d_finished) {

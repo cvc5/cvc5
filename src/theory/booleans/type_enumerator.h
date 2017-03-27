@@ -39,7 +39,7 @@ public:
            type.getConst<TypeConstant>() == BOOLEAN_TYPE);
   }
 
-  Node operator*() throw(NoMoreValuesException) {
+  Node operator*() {
     switch(d_value) {
     case FALSE:
       return NodeManager::currentNM()->mkConst(false);

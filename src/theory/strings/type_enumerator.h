@@ -50,7 +50,7 @@ public:
   Node operator*() throw() {
     return d_curr;
   }
-  StringEnumerator& operator++() throw() {
+  StringEnumerator& operator++() {
   bool changed = false;
   do{
     for(unsigned i=0; i<d_data.size(); ++i) {
@@ -99,7 +99,7 @@ public:
     return d_curr;
   }
 
-  StringEnumeratorLength& operator++() throw() {
+  StringEnumeratorLength& operator++() {
     bool changed = false;
     for(unsigned i=0; i<d_data.size(); ++i) {
       if( d_data[i] + 1 < d_cardinality ) {

@@ -35,13 +35,13 @@ class BitVectorEnumerator : public TypeEnumeratorBase<BitVectorEnumerator> {
 
 public:
 
-  BitVectorEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw(AssertionException) :
+  BitVectorEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) :
     TypeEnumeratorBase<BitVectorEnumerator>(type),
     d_size(type.getBitVectorSize()),
     d_bits(0) {
   }
 
-  Node operator*() throw(NoMoreValuesException) {
+  Node operator*() {
     if(d_bits != d_bits.modByPow2(d_size)) {
       throw NoMoreValuesException(getType());
     }
