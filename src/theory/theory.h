@@ -85,9 +85,7 @@ private:
   Theory(const Theory&) CVC4_UNDEFINED;
   Theory& operator=(const Theory&) CVC4_UNDEFINED;
 
-  /**
-   * An integer identifying the type of the theory
-   */
+  /** An integer identifying the type of the theory. */
   TheoryId d_id;
 
   /** Name of this theory instance. Along with the TheoryId this should provide
@@ -95,19 +93,13 @@ private:
    * this to ensure unique statistics names over multiple theory instances. */
   std::string d_instanceName;
 
-  /**
-   * The SAT search context for the Theory.
-   */
+  /** The SAT search context for the Theory. */
   context::Context* d_satContext;
 
-  /**
-   * The user level assertion context for the Theory.
-   */
+  /** The user level assertion context for the Theory. */
   context::UserContext* d_userContext;
 
-  /**
-   * Information about the logic we're operating within.
-   */
+  /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
 
   /**
@@ -121,31 +113,26 @@ private:
   /** Index into the head of the facts list */
   context::CDO<unsigned> d_factsHead;
 
-  /**
-   * Add shared term to the theory.
-   */
+  /** Add shared term to the theory. */
   void addSharedTermInternal(TNode node);
 
-  /**
-   * Indices for splitting on the shared terms.
-   */
+  /** Indices for splitting on the shared terms. */
   context::CDO<unsigned> d_sharedTermsIndex;
 
-  /**
-   * The care graph the theory will use during combination.
-   */
+  /** The care graph the theory will use during combination. */
   CareGraph* d_careGraph;
 
   /**
-   * Reference to the quantifiers engine (or NULL, if quantifiers are
-   * not supported or not enabled).
+   * Pointer to the quantifiers engine (or NULL, if quantifiers are not
+   * supported or not enabled). Not owned by the theory.
    */
   QuantifiersEngine* d_quantEngine;
 
-protected:
+  /** Extended theory module or NULL. Owned by the theory. */
+  ExtTheory* d_extTheory;
 
-  /** extended theory */
-  ExtTheory * d_extt;
+ protected:
+
 
   // === STATISTICS ===
   /** time spent in check calls */
@@ -470,12 +457,11 @@ public:
    */
   virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
 
-  /**
-   * Called to set the quantifiers engine.
-   */
-  virtual void setQuantifiersEngine(QuantifiersEngine* qe) {
-    d_quantEngine = qe;
-  }
+  /** Called to set the quantifiers engine. */
+  virtual void setQuantifiersEngine(QuantifiersEngine* qe);
+
+  /** Setup an ExtTheory module for this Theory. Can only be called once. */
+  void setupExtTheory();
 
   /**
    * Return the current theory care graph. Theories should overload
@@ -829,31 +815,38 @@ public:
    * @return         a pair <b,E> s.t. if b is true, then a formula E such that
    * E |= lit in the theory.
    */
-  virtual std::pair<bool, Node> entailmentCheck(TNode lit, const EntailmentCheckParameters* params = NULL, EntailmentCheckSideEffects* out = NULL);
+  virtual std::pair<bool, Node> entailmentCheck(
+      TNode lit, const EntailmentCheckParameters* params = NULL,
+      EntailmentCheckSideEffects* out = NULL);
 
   /* equality engine TODO: use? */
-  virtual eq::EqualityEngine * getEqualityEngine() { return NULL; }
-  
-  /* get extended theory */
-  virtual ExtTheory * getExtTheory() { return d_extt; }
+  virtual eq::EqualityEngine* getEqualityEngine() { return NULL; }
+
+  /* Get extended theory if one has been installed. */
+  ExtTheory* getExtTheory();
 
   /* get current substitution at an effort
    *   input : vars
-   *   output : subs, exp 
+   *   output : subs, exp
    *   where ( exp[vars[i]] => vars[i] = subs[i] ) holds for all i
-  */
-  virtual bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) { return false; }
-  
-  /* get reduction for node
-       if return value is not 0, then n is reduced. 
-       if return value <0 then n is reduced SAT-context-independently (e.g. by a lemma that persists at this user-context level).
-       if nr is non-null, then ( n = nr ) should be added as a lemma by caller, and return value should be <0.
+   */
+  virtual bool getCurrentSubstitution(int effort, std::vector<Node>& vars,
+                                      std::vector<Node>& subs,
+                                      std::map<Node, std::vector<Node> >& exp) {
+    return false;
+  }
+
+  /**
+   * Get reduction for node
+   * If return value is not 0, then n is reduced.
+   * If return value <0 then n is reduced SAT-context-independently (e.g. by a
+   *  lemma that persists at this user-context level).
+   * If nr is non-null, then ( n = nr ) should be added as a lemma by caller,
+   *  and return value should be <0.
    */
   virtual int getReduction( int effort, Node n, Node& nr ) { return 0; }
 
-  /**
-   * Turn on proof-production mode.
-   */
+  /** Turn on proof-production mode. */
   void produceProofs() { d_proofsEnabled = true; }
 
 };/* class Theory */
