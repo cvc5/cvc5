@@ -491,7 +491,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Node fact_2   = NodeManager::currentNM()->mkNode(kind::MEMBER, mem2, pt_rel[1]);
 
     if( pt_rel != exp[1] ) {
-      reason = NodeManager::currentNM()->mkNode(kind::AND, exp, explain(NodeManager::currentNM()->mkNode(kind::EQUAL, pt_rel, exp[1])));
+      reason = NodeManager::currentNM()->mkNode(kind::AND, exp, NodeManager::currentNM()->mkNode(kind::EQUAL, pt_rel, exp[1]));
     }
     sendInfer( fact_1, reason, "product-split" );
     sendInfer( fact_2, reason, "product-split" );
@@ -809,9 +809,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     doTCLemmas();
     Trace("rels-debug") << "[Theory::Rels] **************** Done with doPendingLemmas !" << std::endl;
     d_tuple_reps.clear();
-//    d_id_node.clear();
-//    d_node_id.clear();
-    d_tuple_reps.clear();
     d_rReps_memberReps_exp_cache.clear();
     d_terms_cache.clear();
     d_lemmas_out.clear();
@@ -1090,14 +1087,9 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     }
   }
 
-  Node TheorySetsRels::explain( Node literal ){
-    //use lazy explanations
-    return literal;
-  }
-
   TheorySetsRels::EqcInfo::EqcInfo( context::Context* c ) :
   d_mem(c), d_mem_exp(c), d_in(c), d_out(c),
-  d_tp(c), d_pt(c), d_join(c), d_tc(c) {}
+  d_tp(c), d_pt(c), d_join(c), d_tc(c), d_rel_tc(c) {}
 
   // Create an integer id for tuple element
   int TheorySetsRels::getOrMakeElementRepId(EqcInfo* ei, Node e_rep) {
@@ -1165,15 +1157,15 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     // save rep pair's exp and send out TC inference lemmas.
     // Otherwise, mem's rep is already in the TC and return.
     if( addId(tc_ei->d_id_inIds, snd_rep_id, fst_rep_id) ) {
-      Node reason       = exp == Node::null() ? explain(membership) : exp;
+      Node reason       = exp == Node::null() ? membership : exp;
       if(!fromRel && tc_ei->d_tc.get() != membership[1]) {
-        reason  = NodeManager::currentNM()->mkNode(kind::AND,reason, explain(NodeManager::currentNM()->mkNode(kind::EQUAL,tc_ei->d_tc.get(), membership[1])));
+        reason  = NodeManager::currentNM()->mkNode(kind::AND,reason, NodeManager::currentNM()->mkNode(kind::EQUAL,tc_ei->d_tc.get(), membership[1]));
       }
       if(fst != fst_rep) {
-        reason  = NodeManager::currentNM()->mkNode(kind::AND,reason, explain(NodeManager::currentNM()->mkNode(kind::EQUAL,fst, fst_rep)));
+        reason  = NodeManager::currentNM()->mkNode(kind::AND,reason, NodeManager::currentNM()->mkNode(kind::EQUAL,fst, fst_rep));
       }
       if(snd != snd_rep) {
-        reason  = NodeManager::currentNM()->mkNode(kind::AND,reason, explain(NodeManager::currentNM()->mkNode(kind::EQUAL,snd, snd_rep)));
+        reason  = NodeManager::currentNM()->mkNode(kind::AND,reason, NodeManager::currentNM()->mkNode(kind::EQUAL,snd, snd_rep));
       }
       tc_ei->d_mem_exp[mem_rep] = reason;
       Trace("rels-std") << "Added member " << mem_rep << " for " << tc_ei->d_tc.get()<< " with reason = " << reason << std::endl;
@@ -1203,10 +1195,10 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
       if(areEqual(fst, fst_e) && areEqual(snd, snd_e)) {
         if( fst != fst_e) {
-          reason = NodeManager::currentNM()->mkNode(kind::AND, reason, explain( NodeManager::currentNM()->mkNode(kind::EQUAL, fst, fst_e)) );
+          reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, fst, fst_e));
         }
         if( snd != snd_e) {
-          reason = NodeManager::currentNM()->mkNode(kind::AND, reason, explain( NodeManager::currentNM()->mkNode(kind::EQUAL, snd, snd_e)) );
+          reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, snd, snd_e));
         }
         return reason;
       }
@@ -1218,17 +1210,17 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       if(rel_ei != NULL) {
         NodeMap::iterator rel_mem_exp_it = rel_ei->d_mem_exp.begin();
         while(rel_mem_exp_it != rel_ei->d_mem_exp.end()) {
-          Node  exp     = rel_rep == ei->d_tc.get()[0] ? d_trueNode : explain(NodeManager::currentNM()->mkNode(kind::EQUAL,rel_rep, ei->d_tc.get()[0]));
+          Node  exp     = rel_rep == ei->d_tc.get()[0] ? d_trueNode : NodeManager::currentNM()->mkNode(kind::EQUAL,rel_rep, ei->d_tc.get()[0]);
           Node  tuple   = (*rel_mem_exp_it).first;
           Node  fst_e   = RelsUtils::nthElementOfTuple(tuple, 0);
           Node  snd_e   = RelsUtils::nthElementOfTuple(tuple, 1);
 
           if(areEqual(fst, fst_e) && areEqual(snd, snd_e)) {
             if( fst != fst_e) {
-              exp = NodeManager::currentNM()->mkNode(kind::AND, exp, explain( NodeManager::currentNM()->mkNode(kind::EQUAL, fst, fst_e)) );
+              exp = NodeManager::currentNM()->mkNode(kind::AND, exp, NodeManager::currentNM()->mkNode(kind::EQUAL, fst, fst_e));
             }
             if( snd != snd_e) {
-              exp = NodeManager::currentNM()->mkNode(kind::AND, exp, explain( NodeManager::currentNM()->mkNode(kind::EQUAL, snd, snd_e)) );
+              exp = NodeManager::currentNM()->mkNode(kind::AND, exp, NodeManager::currentNM()->mkNode(kind::EQUAL, snd, snd_e));
             }
             return NodeManager::currentNM()->mkNode(kind::AND, exp, (*rel_mem_exp_it).second);
           }
@@ -1307,56 +1299,193 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
   void TheorySetsRels::eqNotifyNewClass( Node n ) {
     Trace("rels-std") << "[sets-rels] eqNotifyNewClass:" << " t = " << n << std::endl;
-    if(isRel(n) && (n.getKind() == kind::TRANSPOSE ||
-                    n.getKind() == kind::PRODUCT ||
-                    n.getKind() == kind::JOIN ||
-                    n.getKind() == kind::TCLOSURE)) {
+    if(n.getKind() == kind::TRANSPOSE || n.getKind() == kind::PRODUCT || n.getKind() == kind::TCLOSURE) {
       getOrMakeEqcInfo( n, true );
+      if( n.getKind() == kind::TCLOSURE ) {
+        Node relRep_of_tc = getRepresentative( n[0] );
+        EqcInfo*  rel_ei = getOrMakeEqcInfo( relRep_of_tc, true );
+
+        if( rel_ei->d_rel_tc.get().isNull() ) {
+          rel_ei->d_rel_tc = n;
+          Node exp = relRep_of_tc == n[0] ? d_trueNode : NodeManager::currentNM()->mkNode( kind::EQUAL, relRep_of_tc, n[0] );
+          for( NodeSet::const_iterator mem_it = rel_ei->d_mem.begin(); mem_it != rel_ei->d_mem.end(); mem_it++ ) {
+            Node mem_exp = (*rel_ei->d_mem_exp.find(*mem_it)).second;
+            exp = NodeManager::currentNM()->mkNode( kind::AND, exp, mem_exp);
+            if( mem_exp[1] != relRep_of_tc ) {
+              exp = NodeManager::currentNM()->mkNode( kind::AND, exp, NodeManager::currentNM()->mkNode(kind::EQUAL, relRep_of_tc, mem_exp[1] ) );
+            }
+            sendMergeInfer( NodeManager::currentNM()->mkNode(kind::MEMBER, mem_exp[0], n), exp, "TCLOSURE-UP I" );
+          }
+        }
+      }
     }
   }
 
   // Merge t2 into t1, t1 will be the rep of the new eqc
   void TheorySetsRels::eqNotifyPostMerge( Node t1, Node t2 ) {
-    Trace("rels-std") << "[sets-rels] eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+    Trace("rels-std-post") << "[sets-rels-std] eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
 
-    // Merge membership constraint with "true" or "false" eqc
-    if( (t1 == d_trueNode || t1 == d_falseNode) && t2.getKind() == kind::MEMBER && t2[0].getType().isTuple() ) {
-
-      Assert(t1 == d_trueNode || t1 == d_falseNode);
-      bool      polarity        = t1 == d_trueNode;
-      Node      t2_1rep         = getRepresentative(t2[1]);
-      EqcInfo*  ei              = getOrMakeEqcInfo( t2_1rep, true );
-
-      if( polarity ) {
-        ei->d_mem.insert(t2[0]);
-        ei->d_mem_exp[t2[0]] = explain(t2);
+    // Merge membership constraint with "true" eqc
+    if( t1 == d_trueNode && t2.getKind() == kind::MEMBER && t2[0].getType().isTuple() ) {
+      Node      mem_rep  = getRepresentative( t2[0] );
+      Node      t2_1rep  = getRepresentative( t2[1] );
+      EqcInfo*  ei       = getOrMakeEqcInfo( t2_1rep, true );
+      if(ei->d_mem.contains(mem_rep)) {
+        return;
       }
+      Node exp = t2;
+
+      ei->d_mem.insert( mem_rep );
+      ei->d_mem_exp.insert( mem_rep, exp );
+
       // Process a membership constraint that a tuple is a member of transpose of rel
       if( !ei->d_tp.get().isNull() ) {
-        Node exp = polarity ? explain(t2) : explain(t2.negate());
-        if(ei->d_tp.get() != t2[1]) {
-          exp = NodeManager::currentNM()->mkNode(kind::AND, explain(NodeManager::currentNM()->mkNode(kind::EQUAL, ei->d_tp.get(), t2[1]) ), exp );
+        if( ei->d_tp.get() != t2[1] ) {
+          exp = NodeManager::currentNM()->mkNode(kind::AND, NodeManager::currentNM()->mkNode(kind::EQUAL, ei->d_tp.get(), t2[1]), exp );
         }
-        sendInferTranspose( polarity, t2[0], ei->d_tp.get(), exp, true );
+        sendInferTranspose( t2[0], ei->d_tp.get(), exp );
       }
       // Process a membership constraint that a tuple is a member of product of rel
       if( !ei->d_pt.get().isNull() ) {
-        Node exp = polarity ? explain(t2) : explain(t2.negate());
-        if(ei->d_pt.get() != t2[1]) {
-          exp = NodeManager::currentNM()->mkNode(kind::AND, explain(NodeManager::currentNM()->mkNode(kind::EQUAL, ei->d_pt.get(), t2[1]) ), exp );
+        if( ei->d_pt.get() != t2[1] ) {
+          exp = NodeManager::currentNM()->mkNode(kind::AND, NodeManager::currentNM()->mkNode(kind::EQUAL, ei->d_pt.get(), t2[1]), exp );
         }
-        sendInferProduct( polarity, t2[0], ei->d_pt.get(), exp );
+        sendInferProduct( t2[0], ei->d_pt.get(), exp );
       }
-      // Process a membership constraint that a tuple is a member of transitive closure of rel
-      if( polarity && !ei->d_tc.get().isNull() ) {
-        addTCMemAndSendInfer( ei, t2, Node::null() );
+
+      if( !ei->d_rel_tc.get().isNull() ) {
+        if( ei->d_rel_tc.get()[0] != t2[1] ) {
+          exp = NodeManager::currentNM()->mkNode(kind::AND, NodeManager::currentNM()->mkNode(kind::EQUAL, ei->d_rel_tc.get()[0], t2[1]), exp );
+        }
+        sendMergeInfer(NodeManager::currentNM()->mkNode(kind::MEMBER, t2[0], ei->d_rel_tc.get()), exp, "TCLOSURE-UP I");
       }
+//      // Process a membership constraint that a tuple is a member of transitive closure of rel
+//      if( !ei->d_tc.get().isNull() ) {
+//        if( ei->d_tc.get() != t2[1] ) {
+//          exp = NodeManager::currentNM()->mkNode(kind::AND, explain( NodeManager::currentNM()->mkNode(kind::EQUAL, ei->d_tc.get(), t2[1]) ), exp );
+//        }
+//        sendInferTClosure( mem_rep, ei, exp );
+//      }
 
     // Merge two relation eqcs
     } else if( t1.getType().isSet() && t2.getType().isSet() && t1.getType().getSetElementType().isTuple() ) {
-      mergeTransposeEqcs(t1, t2);
-      mergeProductEqcs(t1, t2);
-      mergeTCEqcs(t1, t2);
+      EqcInfo* t1_ei = getOrMakeEqcInfo( t1 );
+      EqcInfo* t2_ei = getOrMakeEqcInfo( t2 );
+
+      if( t1_ei != NULL && t2_ei != NULL ) {
+        if( !t1_ei->d_tp.get().isNull() && !t2_ei->d_tp.get().isNull() ) {
+          sendInferTranspose(t1_ei->d_tp.get(), t2_ei->d_tp.get(), NodeManager::currentNM()->mkNode(kind::EQUAL, t1_ei->d_tp.get(), t2_ei->d_tp.get() ) );
+        }
+        std::vector< Node > t2_new_mems;
+        std::vector< Node > t2_new_exps;
+        NodeSet::const_iterator t2_mem_it = t2_ei->d_mem.begin();
+        NodeSet::const_iterator t1_mem_it = t1_ei->d_mem.begin();
+
+        for( ; t2_mem_it != t2_ei->d_mem.end(); t2_mem_it++ ) {
+          if( !t1_ei->d_mem.contains( *t2_mem_it ) ) {
+            Node t2_mem_exp = (*t2_ei->d_mem_exp.find(*t2_mem_it)).second;
+
+            if( t2_ei->d_tp.get().isNull() && !t1_ei->d_tp.get().isNull() ) {
+              Node reason = t1_ei->d_tp.get() == (t2_mem_exp)[1]
+                            ? (t2_mem_exp) : NodeManager::currentNM()->mkNode(kind::AND, t2_mem_exp, NodeManager::currentNM()->mkNode(kind::EQUAL, (t2_mem_exp)[1], t1_ei->d_tp.get()));
+              sendInferTranspose( t2_mem_exp[0], t1_ei->d_tp.get(), reason );
+            }
+            if( t2_ei->d_pt.get().isNull() && !t1_ei->d_pt.get().isNull() ) {
+              Node reason = t1_ei->d_pt.get() == (t2_mem_exp)[1]
+                            ? (t2_mem_exp) : NodeManager::currentNM()->mkNode(kind::AND, t2_mem_exp, NodeManager::currentNM()->mkNode(kind::EQUAL, (t2_mem_exp)[1], t1_ei->d_pt.get()));
+              sendInferProduct( t2_mem_exp[0], t1_ei->d_pt.get(), reason );
+            }
+//            if( t2_ei->d_tc.get().isNull() && !t1_ei->d_tc.get().isNull() ) {
+//              sendInferTransClosure();
+//            }
+            t2_new_mems.push_back( *t2_mem_it );
+            t2_new_exps.push_back( t2_mem_exp );
+          }
+        }
+        for( ; t1_mem_it != t1_ei->d_mem.end(); t1_mem_it++ ) {
+          if( !t2_ei->d_mem.contains( *t1_mem_it ) ) {
+            Node t1_mem_exp = (*t1_ei->d_mem_exp.find(*t1_mem_it)).second;
+            if( t1_ei->d_tp.get().isNull() && !t2_ei->d_tp.get().isNull() ) {
+              Node reason = t2_ei->d_tp.get() == (t1_mem_exp)[1]
+                            ? (t1_mem_exp) : NodeManager::currentNM()->mkNode(kind::AND, t1_mem_exp, NodeManager::currentNM()->mkNode(kind::EQUAL, (t1_mem_exp)[1], t2_ei->d_tp.get()));
+              sendInferTranspose( (t1_mem_exp)[0], t2_ei->d_tp.get(), reason );
+            }
+            if( t1_ei->d_pt.get().isNull() && !t2_ei->d_pt.get().isNull() ) {
+              Node reason = t2_ei->d_pt.get() == (t1_mem_exp)[1]
+                            ? (t1_mem_exp) : NodeManager::currentNM()->mkNode(kind::AND, t1_mem_exp, NodeManager::currentNM()->mkNode(kind::EQUAL, (t1_mem_exp)[1], t2_ei->d_pt.get()));
+              sendInferProduct( (t1_mem_exp)[0], t2_ei->d_pt.get(), reason );
+            }
+//            if( t1_ei->d_tc.get().isNull() && !t2_ei->d_tc.get().isNull() ) {
+//              sendInferTransClosure();
+//            }
+          }
+        }
+        std::vector< Node >::iterator t2_new_mem_it = t2_new_mems.begin();
+        std::vector< Node >::iterator t2_new_exp_it = t2_new_exps.begin();
+        for( ; t2_new_mem_it != t2_new_mems.end(); t2_new_mem_it++, t2_new_exp_it++ ) {
+          t1_ei->d_mem.insert( *t2_new_mem_it );
+          t1_ei->d_mem_exp.insert( *t2_new_mem_it, *t2_new_exp_it );
+        }
+      } else if( t1_ei != NULL ) {
+        if( (t2.getKind() == kind::TRANSPOSE && t1_ei->d_tp.get().isNull()) ||
+            (t2.getKind() == kind::PRODUCT && t1_ei->d_pt.get().isNull()) ||
+            (t2.getKind() == kind::TCLOSURE && t1_ei->d_tc.get().isNull()) ) {
+          NodeSet::const_iterator t1_mem_it = t1_ei->d_mem.begin();
+
+          if( t2.getKind() == kind::TRANSPOSE ) {
+            t1_ei->d_tp = t2;
+          } else if( t2.getKind() == kind::PRODUCT ) {
+            t1_ei->d_pt = t2;
+          } else if( t2.getKind() == kind::TCLOSURE ) {
+            t1_ei->d_tc = t2;
+          }
+          for( ; t1_mem_it != t1_ei->d_mem.end(); t1_mem_it++ ) {
+            Node t1_exp = (*t1_ei->d_mem_exp.find(*t1_mem_it)).second;
+            if( t2.getKind() == kind::TRANSPOSE ) {
+              Node reason = t2 == t1_exp[1]
+                            ? (t1_exp) : NodeManager::currentNM()->mkNode(kind::AND, (t1_exp), NodeManager::currentNM()->mkNode(kind::EQUAL, (t1_exp)[1], t2));
+              sendInferTranspose( (t1_exp)[0], t2, reason );
+            } else if( t2.getKind() == kind::PRODUCT ) {
+              Node reason = t2 == (t1_exp)[1]
+                            ? (t1_exp) : NodeManager::currentNM()->mkNode(kind::AND, (t1_exp), NodeManager::currentNM()->mkNode(kind::EQUAL, (t1_exp)[1], t2));
+              sendInferProduct( (t1_exp)[0], t2, reason );
+            }
+//            else if( t2.getKind() == kind::TCLOSURE ) {
+//              sendInferTclosure();
+//            }
+          }
+        }
+      } else if( t2_ei != NULL ) {
+        if( (t1.getKind() == kind::TRANSPOSE && t2_ei->d_tp.get().isNull()) ||
+            (t1.getKind() == kind::PRODUCT && t2_ei->d_pt.get().isNull()) ||
+            (t1.getKind() == kind::TCLOSURE && t2_ei->d_tc.get().isNull()) ) {
+          NodeSet::const_iterator t2_mem_it = t2_ei->d_mem.begin();
+
+          if( t1.getKind() == kind::TRANSPOSE ) {
+            t2_ei->d_tp = t1;
+          } else if( t1.getKind() == kind::PRODUCT ) {
+            t2_ei->d_pt = t1;
+          } else if( t1.getKind() == kind::TCLOSURE ) {
+            t2_ei->d_tc = t1;
+          }
+          for( ; t2_mem_it != t2_ei->d_mem.end(); t2_mem_it++ ) {
+            Node t2_exp = (*t1_ei->d_mem_exp.find(*t2_mem_it)).second;
+
+            if( t1.getKind() == kind::TRANSPOSE ) {
+              Node reason = t1 == (t2_exp)[1]
+                            ? (t2_exp) : NodeManager::currentNM()->mkNode(kind::AND, (t2_exp), NodeManager::currentNM()->mkNode(kind::EQUAL, (t2_exp)[1], t1));
+              sendInferTranspose( (t2_exp)[0], t1, reason );
+            } else if( t1.getKind() == kind::PRODUCT ) {
+              Node reason = t1 == (t2_exp)[1]
+                            ? (t2_exp) : NodeManager::currentNM()->mkNode(kind::AND, (t2_exp), NodeManager::currentNM()->mkNode(kind::EQUAL, (t2_exp)[1], t1));
+              sendInferProduct( (t2_exp)[0], t1, reason );
+            }
+//            else if( t1.getKind() == kind::TCLOSURE ) {
+//              sendInferTclosure();
+//            }
+          }
+        }
+      }
     }
 
     Trace("rels-std") << "[sets-rels] done with eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
@@ -1397,91 +1526,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Trace("rels-std") << "[sets-rels] Done with merging TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
   }
 
-
-
-
-  void TheorySetsRels::mergeProductEqcs(Node t1, Node t2) {
-    Trace("rels-std") << "[sets-rels] Merge PRODUCT eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
-    EqcInfo* t1_ei = getOrMakeEqcInfo(t1);
-    EqcInfo* t2_ei = getOrMakeEqcInfo(t2);
-
-    if(t1_ei != NULL && t2_ei != NULL) {
-      // Apply Product rule on (non)members of t2 and t1->pt
-      if(!t1_ei->d_pt.get().isNull()) {
-        for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {
-          if(!t1_ei->d_mem.contains(*itr)) {
-            sendInferProduct( true, *itr, t1_ei->d_pt.get(), NodeManager::currentNM()->mkNode(kind::AND,explain(NodeManager::currentNM()->mkNode(kind::EQUAL,t1_ei->d_pt.get(), t2)), explain(NodeManager::currentNM()->mkNode(kind::MEMBER,*itr, t2))) );
-          }
-        }
-      } else if(!t2_ei->d_pt.get().isNull()) {
-        t1_ei->d_pt.set(t2_ei->d_pt);
-        for(NodeSet::key_iterator itr = t1_ei->d_mem.key_begin(); itr != t1_ei->d_mem.key_end(); itr++) {
-          if(!t2_ei->d_mem.contains(*itr)) {
-            sendInferProduct( true, *itr, t2_ei->d_pt.get(), NodeManager::currentNM()->mkNode(kind::AND,explain(NodeManager::currentNM()->mkNode(kind::EQUAL,t1, t2_ei->d_pt.get())), explain(NodeManager::currentNM()->mkNode(kind::MEMBER,*itr, t1))) );
-          }
-        }
-      }
-    // t1 was created already and t2 was not
-    } else if(t1_ei != NULL) {
-      if(t1_ei->d_pt.get().isNull() && t2.getKind() == kind::PRODUCT) {
-        t1_ei->d_pt.set( t2 );
-      }
-    } else if(t2_ei != NULL){
-      t1_ei = getOrMakeEqcInfo(t1, true);
-      if(t1_ei->d_pt.get().isNull() && !t2_ei->d_pt.get().isNull()) {
-        t1_ei->d_pt.set(t2_ei->d_pt);
-        for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {
-          t1_ei->d_mem.insert(*itr);
-          t1_ei->d_mem_exp.insert(*itr, t2_ei->d_mem_exp[*itr]);
-        }
-      }
-    }
-  }
-
-  void TheorySetsRels::mergeTransposeEqcs( Node t1, Node t2 ) {
-    Trace("rels-std") << "[sets-rels] Merge TRANSPOSE eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
-    EqcInfo* t1_ei = getOrMakeEqcInfo( t1 );
-    EqcInfo* t2_ei = getOrMakeEqcInfo( t2 );
-
-    if( t1_ei != NULL && t2_ei != NULL ) {
-      Trace("rels-std") << "[sets-rels] 0 Merge TRANSPOSE eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
-      // TP(t1) = TP(t2) -> t1 = t2;
-      if( !t1_ei->d_tp.get().isNull() && !t2_ei->d_tp.get().isNull() ) {
-        sendInferTranspose( true, t1_ei->d_tp.get(), t2_ei->d_tp.get(), explain(NodeManager::currentNM()->mkNode(kind::EQUAL,t1, t2)) );
-      }
-      // Apply transpose rule on (non)members of t2 and t1->tp
-      if( !t1_ei->d_tp.get().isNull() ) {
-        for( NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++ ) {
-          if( !t1_ei->d_mem.contains( *itr ) ) {
-            sendInferTranspose( true, *itr, t1_ei->d_tp.get(), NodeManager::currentNM()->mkNode(kind::AND, explain(NodeManager::currentNM()->mkNode(kind::EQUAL,t1_ei->d_tp.get(), t2)), explain(NodeManager::currentNM()->mkNode(kind::MEMBER,*itr, t2))) );
-          }
-        }
-        // Apply transpose rule on members of t1 and t2->tp
-      } else if( !t2_ei->d_tp.get().isNull() ) {
-        t1_ei->d_tp.set( t2_ei->d_tp );
-        for( NodeSet::key_iterator itr = t1_ei->d_mem.key_begin(); itr != t1_ei->d_mem.key_end(); itr++ ) {
-          if( !t2_ei->d_mem.contains(*itr) ) {
-            sendInferTranspose( true, *itr, t2_ei->d_tp.get(), NodeManager::currentNM()->mkNode(kind::AND, explain(NodeManager::currentNM()->mkNode(kind::EQUAL,t1, t2_ei->d_tp.get())), explain(NodeManager::currentNM()->mkNode(kind::MEMBER,*itr, t1))) );
-          }
-        }
-      }
-    // t1 was created already and t2 was not
-    } else if(t1_ei != NULL) {
-      if( t1_ei->d_tp.get().isNull() && t2.getKind() == kind::TRANSPOSE ) {
-        t1_ei->d_tp.set( t2 );
-      }
-    } else if( t2_ei != NULL ){
-      t1_ei = getOrMakeEqcInfo( t1, true );
-      if( t1_ei->d_tp.get().isNull() && !t2_ei->d_tp.get().isNull() ) {
-        t1_ei->d_tp.set( t2_ei->d_tp );
-        for( NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++ ) {
-          t1_ei->d_mem.insert( *itr );
-          t1_ei->d_mem_exp.insert( *itr, t2_ei->d_mem_exp[*itr] );
-        }
-      }
-    }
-  }
-
   void TheorySetsRels::doPendingMerge() {
     for( NodeList::const_iterator itr = d_pending_merge.begin(); itr != d_pending_merge.end(); itr++ ) {
       if( !holds(*itr) ) {
@@ -1495,23 +1539,17 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     }
   }
 
-  void TheorySetsRels::sendInferTranspose( bool polarity, Node t1, Node t2, Node exp, bool reverseOnly ) {
+  // t1 and t2 can be both relations
+  // or t1 is a tuple, t2 is a transposed relation
+  void TheorySetsRels::sendInferTranspose( Node t1, Node t2, Node exp ) {
     Assert( t2.getKind() == kind::TRANSPOSE );
-    if( !polarity ) {
-      return;
-    }
-    if( polarity && isRel(t1) && isRel(t2) ) {
+
+    if( isRel(t1) && isRel(t2) ) {
       Assert(t1.getKind() == kind::TRANSPOSE);
       sendMergeInfer(NodeManager::currentNM()->mkNode(kind::EQUAL, t1[0], t2[0]), exp, "Transpose-Equal");
       return;
     }
-
-    if( reverseOnly ) {
-      sendMergeInfer( NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::reverseTuple(t1), t2[0]), exp, "Transpose-Rule" );
-    } else {
-      sendMergeInfer(NodeManager::currentNM()->mkNode(kind::MEMBER, t1, t2), exp, "Transpose-Rule");
-      sendMergeInfer(NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::reverseTuple(t1), t2[0]), exp, "Transpose-Rule");
-    }
+    sendMergeInfer(NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::reverseTuple(t1), t2[0]), exp, "Transpose-Rule");
   }
 
   void TheorySetsRels::sendMergeInfer( Node fact, Node reason, const char * c ) {
@@ -1523,12 +1561,8 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     }
   }
 
-  void TheorySetsRels::sendInferProduct( bool polarity, Node member, Node pt_rel, Node exp ) {
+  void TheorySetsRels::sendInferProduct( Node member, Node pt_rel, Node exp ) {
     Assert( pt_rel.getKind() == kind::PRODUCT );
-
-    if(!polarity) {
-      return;
-    }
 
     std::vector<Node>   r1_element;
     std::vector<Node>   r2_element;

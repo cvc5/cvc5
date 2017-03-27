@@ -99,10 +99,10 @@ TESTS =	\
   rel_tc_5_1.cvc \
   rel_tp_join_1.cvc \
   rel_transpose_0.cvc \
-  set-strat.cvc
+  set-strat.cvc \
+  rel_tc_8.cvc
 
 # unsolved : garbage_collect.cvc
-# dump-unsat-core crash : rel_tc_8.cvc
 
 EXTRA_DIST = $(TESTS)
 

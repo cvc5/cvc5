@@ -88,6 +88,7 @@ private:
     context::CDO< Node >        d_pt;
     context::CDO< Node >        d_join;
     context::CDO< Node >        d_tc;
+    context::CDO< Node >        d_rel_tc;
     /** mapping from an element rep id to a list of rep ids that pointed by */
     /** Context dependent map Int -> IntList */
     std::map< int, std::vector< int > > d_id_inIds;
@@ -189,20 +190,17 @@ private:
   void buildTCAndExp(Node, EqcInfo*);
   void mergeTCEqcs(Node t1, Node t2);
   void mergeTCEqcExp(EqcInfo*, EqcInfo*);
-  void mergeProductEqcs(Node t1, Node t2);
   int getOrMakeElementRepId(EqcInfo*, Node);
-  void mergeTransposeEqcs(Node t1, Node t2);
   Node explainTCMem(EqcInfo*, Node, Node, Node);
-  void sendInferProduct(bool, Node, Node, Node);
+  void sendInferProduct(Node member, Node pt_rel, Node exp);
   EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
-  void sendInferTranspose(bool, Node, Node, Node, bool reverseOnly = false);
+  void sendInferTranspose(Node t1, Node t2, Node exp );
   void addTCMemAndSendInfer(EqcInfo* tc_ei, Node mem, Node exp, bool fromRel = false);
   void sendTCInference(EqcInfo* tc_ei, std::hash_set<int> in_reachable, std::hash_set<int> out_reachable, Node mem_rep, Node fst_rep, Node snd_rep, int id1, int id2);
 
 
 
   void check();
-  Node explain(Node);
   void collectRelsInfo();
   void applyTransposeRule( std::vector<Node> tp_terms );
   void applyTransposeRule( Node rel, Node rel_rep, Node exp );
