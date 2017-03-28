@@ -50,13 +50,15 @@ private:
   Node d_active_measure_term;
   /** refinement lemmas */
   std::vector< Node > d_refinement_lemmas;
-  std::vector< std::vector< Node > > d_refinement_lemmas_aux_vars;
   std::vector< Node > d_refinement_lemmas_base;
-  std::vector< std::vector< Node > > d_refinement_lemmas_ceval_ant;
-  std::vector< std::vector< Node > > d_refinement_lemmas_ceval_conc;
   //std::vector< Node > d_refinement_lemmas_cprogress;
   //std::vector< std::vector< Node > > d_refinement_lemmas_cprogress_pts;
 private: //for condition solutions
+  std::vector< std::vector< Node > > d_refinement_lemmas_aux_vars;
+  std::vector< std::vector< Node > > d_refinement_lemmas_ceval_ant;
+  std::vector< std::vector< Node > > d_refinement_lemmas_ceval_conc;
+  std::vector< Node > d_refinement_lemmas_ngr; //non-ground version
+  std::map< Node, bool > d_refinement_lemmas_reproc;
   /** get candidate list recursively for conditional solutions */
   void getConditionalCandidateList( std::vector< Node >& clist, Node curr, bool reqAdd );
   Node constructConditionalCandidate( std::map< Node, Node >& cmv, Node curr );
@@ -104,8 +106,6 @@ public:
   int d_measure_term_size;
   /** refine count */
   unsigned d_refine_count;
-  /** incomplete candidate values */
-  bool d_incomplete_candidate_values;
 
   const CegConjectureSingleInv* getCegConjectureSingleInv() const {
     return d_ceg_si;
@@ -183,7 +183,7 @@ public:
   /** is assigned */
   bool isAssigned() { return !d_quant.isNull(); }
   /** get model values */
-  bool getModelValues( std::vector< Node >& n, std::vector< Node >& v );
+  void getModelValues( std::vector< Node >& n, std::vector< Node >& v );
   /** get model value */
   Node getModelValue( Node n );
   /** get number of refinement lemmas */
