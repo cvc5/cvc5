@@ -3324,59 +3324,67 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
 }
 
 
-Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp ) {
+Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp ) {
   if( en.getKind()==kind::APPLY_UF ){
-    std::map< Node, Node >::iterator itv = vtm.find( en[0] );
-    if( itv!=vtm.end() ){
-      Node ev = itv->second;
-      Assert( en[0].getType()==ev.getType() );
-      Assert( ev.isConst() && ev.getKind()==kind::APPLY_CONSTRUCTOR );
-      std::vector< Node > args;
-      for( unsigned i=1; i<en.getNumChildren(); i++ ){
-        args.push_back( en[i] );
+    Node ev = en[0];
+    if( track_exp ){
+      std::map< Node, Node >::iterator itv = vtm.find( en[0] );
+      if( itv!=vtm.end() ){
+        ev = itv->second;
+      }else{
+        Assert( false );
       }
-      const Datatype& dt = ((DatatypeType)(ev.getType()).toType()).getDatatype();
-      unsigned i = Datatype::indexOf( ev.getOperator().toExpr() );
+      Assert( en[0].getType()==ev.getType() );
+      Assert( ev.isConst() );
+    }
+    Assert( ev.getKind()==kind::APPLY_CONSTRUCTOR );
+    std::vector< Node > args;
+    for( unsigned i=1; i<en.getNumChildren(); i++ ){
+      args.push_back( en[i] );
+    }
+    const Datatype& dt = ((DatatypeType)(ev.getType()).toType()).getDatatype();
+    unsigned i = Datatype::indexOf( ev.getOperator().toExpr() );
+    if( track_exp ){
       //explanation
       Node ee = NodeManager::currentNM()->mkNode( kind::APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), en[0] );
       if( std::find( exp.begin(), exp.end(), ee )==exp.end() ){
         exp.push_back( ee );
       }
-      std::map< int, Node > pre;
-      for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-        std::vector< Node > cc;
-        //get the evaluation argument for the selector
-        const Datatype & ad = ((DatatypeType)dt[i][j].getRangeType()).getDatatype();
-        cc.push_back( Node::fromExpr( ad.getSygusEvaluationFunc() ) );
-        Node s = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[i][j].getSelector() ), en[0] );
-        cc.push_back( s );
+    }
+    std::map< int, Node > pre;
+    for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
+      std::vector< Node > cc;
+      //get the evaluation argument for the selector
+      const Datatype & ad = ((DatatypeType)dt[i][j].getRangeType()).getDatatype();
+      cc.push_back( Node::fromExpr( ad.getSygusEvaluationFunc() ) );
+      Node s = en[0].getKind()==kind::APPLY_CONSTRUCTOR ? en[0][j] : NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[i][j].getSelector() ), en[0] );
+      cc.push_back( s );
+      if( track_exp ){
         //update vtm map
         vtm[s] = ev[j];
-        cc.insert( cc.end(), args.begin(), args.end() );
-        pre[j] = NodeManager::currentNM()->mkNode( kind::APPLY_UF, cc );
       }
-      std::map< TypeNode, int > var_count; 
-      Node ret = mkGeneric( dt, i, var_count, pre );
-      // if it is a variable, apply the substitution
-      if( ret.getKind()==kind::BOUND_VARIABLE ){
-        //replace by argument
-        Node var_list = Node::fromExpr( dt.getSygusVarList() );
-        //TODO : set argument # on sygus variables
-        for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
-          if( var_list[j]==ret ){
-            ret = args[j];
-            break;
-          }
-        }
-        Assert( ret.isConst() );
-      }else if( ret.getKind()==APPLY ){
-        //must expand definitions to account for defined functions in sygus grammars
-        ret = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( ret.toExpr() ) );
-      }
-      return ret;
-    }else{
-      Assert( false );
+      cc.insert( cc.end(), args.begin(), args.end() );
+      pre[j] = NodeManager::currentNM()->mkNode( kind::APPLY_UF, cc );
     }
+    std::map< TypeNode, int > var_count; 
+    Node ret = mkGeneric( dt, i, var_count, pre );
+    // if it is a variable, apply the substitution
+    if( ret.getKind()==kind::BOUND_VARIABLE ){
+      //replace by argument
+      Node var_list = Node::fromExpr( dt.getSygusVarList() );
+      //TODO : set argument # on sygus variables
+      for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
+        if( var_list[j]==ret ){
+          ret = args[j];
+          break;
+        }
+      }
+      Assert( ret.isConst() );
+    }else if( ret.getKind()==APPLY ){
+      //must expand definitions to account for defined functions in sygus grammars
+      ret = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( ret.toExpr() ) );
+    }
+    return ret;
   }else{
     Assert( en.isConst() );
   }

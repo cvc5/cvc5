@@ -21,8 +21,8 @@ examples: all
 install-examples:
 	(cd examples && $(MAKE) $(AM_MAKEFLAGS) install-data)
 
-.PHONY: units systemtests regress regress0 regress1 regress2 regress3
-systemtests regress regress0 regress1 regress2 regress3: all
+.PHONY: units systemtests regress regress0 regress1 regress2 regress3 regress4
+systemtests regress regress0 regress1 regress2 regress3 regress4: all
 	+(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1
 # We descend into "src" with the "check" target here to ensure that
 # the test prerequisites are all built.

@@ -673,7 +673,12 @@ private:
 public:
   void registerEvalTerm( Node n );
   void registerModelValue( Node n, Node v, std::vector< Node >& exps, std::vector< Node >& terms, std::vector< Node >& vals );
-  Node unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp );
+  Node unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp = true );
+  Node unfold( Node en ){
+    std::map< Node, Node > vtm;
+    std::vector< Node > exp;
+    return unfold( en, vtm, exp, false );
+  }
 };
 
 }/* CVC4::theory::quantifiers namespace */

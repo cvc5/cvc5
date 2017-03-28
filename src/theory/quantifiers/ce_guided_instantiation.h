@@ -52,20 +52,24 @@ private:
   std::vector< Node > d_refinement_lemmas;
   std::vector< std::vector< Node > > d_refinement_lemmas_aux_vars;
   std::vector< Node > d_refinement_lemmas_base;
-  std::vector< std::vector< Node > > d_refinement_lemmas_ceval;
-  std::vector< Node > d_refinement_lemmas_cprogress;
-  std::vector< std::vector< Node > > d_refinement_lemmas_cprogress_pts;
+  std::vector< std::vector< Node > > d_refinement_lemmas_ceval_ant;
+  std::vector< std::vector< Node > > d_refinement_lemmas_ceval_conc;
+  //std::vector< Node > d_refinement_lemmas_cprogress;
+  //std::vector< std::vector< Node > > d_refinement_lemmas_cprogress_pts;
 private: //for condition solutions
   /** get candidate list recursively for conditional solutions */
   void getConditionalCandidateList( std::vector< Node >& clist, Node curr, bool reqAdd );
   Node constructConditionalCandidate( std::map< Node, Node >& cmv, Node curr );
   Node getActiveConditional( Node curr );
-  void getContextConditionals( Node curr, Node x, std::vector< Node >& conds, std::vector< Node >& rets, std::map< Node, bool >& cpols );
-  Node mkConditional( Node c, std::vector< Node >& args, bool pol = true );
+  void getContextConditionalNodes( Node curr, Node x, std::vector< Node >& nodes );
+  Node mkConditionalEvalNode( Node c, std::vector< Node >& args );
+  Node mkConditionalNode( Node v, std::vector< Node >& args, unsigned eindex );
+  Node mkConditional( Node v, std::vector< Node >& args, bool pol = true );
   Node purifyConditionalEvaluations( Node n, std::map< Node, Node >& csol_cond, std::map< Node, Node >& psubs, 
                                      std::map< Node, Node >& visited );
   /** register candidate conditional */
   void registerCandidateConditional( Node v );
+  bool inferIteTemplate( unsigned k, Node n, std::map< Node, unsigned >& templ_var_index, std::map< unsigned, unsigned >& templ_injection );
 public:
   CegConjecture( QuantifiersEngine * qe, context::Context* c );
   ~CegConjecture();
@@ -84,8 +88,13 @@ public:
     Node d_csol_op;
     Node d_csol_cond;
     Node d_csol_var[2];
+    /** progress guard */
+    Node d_csol_progress_guard;
     /** solution status */
     int d_csol_status;
+    /** required for template solutions */
+    std::map< unsigned, Node > d_template;
+    std::map< unsigned, Node > d_template_arg; 
   };
   std::map< Node, CandidateInfo > d_cinfo;
   
@@ -184,11 +193,22 @@ public:
   /** get refinement lemma */
   Node getRefinementBaseLemma( unsigned i ) { return d_refinement_lemmas_base[i]; }
   /** get num conditional evaluations */
-  unsigned getNumConditionalEvaluations( unsigned i ) { return d_refinement_lemmas_ceval[i].size(); }
+  unsigned getNumConditionalEvaluations( unsigned i ) { return d_refinement_lemmas_ceval_ant[i].size(); }
   /** get conditional evaluation */
-  Node getConditionalEvaluation( unsigned i, unsigned j ) { return d_refinement_lemmas_ceval[i][j]; }
+  Node getConditionalEvaluationAntec( unsigned i, unsigned j ) { return d_refinement_lemmas_ceval_ant[i][j]; }
+  Node getConditionalEvaluationConc( unsigned i, unsigned j ) { return d_refinement_lemmas_ceval_conc[i][j]; }
   /** get progress lemma */
-  Node getConditionalProgressLemma( unsigned i ) { return d_refinement_lemmas_cprogress[i]; }
+  //Node getConditionalProgressLemma( unsigned i ) { return d_refinement_lemmas_cprogress[i]; }
+  /** get progress point */
+  //void getConditionalProgressLemmaPoint( unsigned i, std::vector< Node >& pt ){
+  //  pt.insert( pt.end(), d_refinement_lemmas_cprogress_pts[i].begin(), d_refinement_lemmas_cprogress_pts[i].end() );
+  //}
+private:
+  Node getNextDecisionRequestConditional( Node v, unsigned& priority );
+  // 1 : active, 0 : unknown, -1 : inactive, -2 : not applicable
+  int getProgressStatus( Node v );
+public:
+  Node getNextDecisionRequest( unsigned& priority );
 };
 
 
