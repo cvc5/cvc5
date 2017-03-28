@@ -396,10 +396,9 @@ void TheoryBV::check(Effort e)
   }
   
   //last call : do reductions on extended bitvector functions
-  if( e==Theory::EFFORT_LAST_CALL ){
-    std::vector< Node > nred;
-    getExtTheory()->getActive( nred );
-    doExtfReductions( nred );
+  if (e == Theory::EFFORT_LAST_CALL) {
+    std::vector<Node> nred = getExtTheory()->getActive();
+    doExtfReductions(nred);
     return;
   }
 

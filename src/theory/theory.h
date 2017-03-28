@@ -21,6 +21,8 @@
 
 #include <ext/hash_set>
 #include <iosfwd>
+#include <map>
+#include <set>
 #include <string>
 
 #include "context/cdlist.h"
@@ -913,7 +915,19 @@ public:
 class ExtTheory {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-protected:
+private:
+  // collect variables
+  static std::vector<Node> collectVars(Node n);
+  // is context dependent inactive
+  bool isContextIndependentInactive( Node n ) const;
+  //do inferences internal
+  bool doInferencesInternal(int effort, const std::vector<Node>& terms,
+                            std::vector<Node>& nred, bool batch, bool isRed);
+  // send lemma
+  bool sendLemma( Node lem, bool preprocess = false );
+  // register term (recursive)
+  void registerTermRec(Node n, std::set<Node>* visited);
+
   Theory * d_parent;
   Node d_true;
   //extended string terms, map to whether they are active
@@ -935,23 +949,16 @@ protected:
     std::vector< Node > d_vars;
   };
   std::map< Node, ExtfInfo > d_extf_info;
-  //collect variables
-  void collectVars( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited );
-  // is context dependent inactive
-  bool isContextIndependentInactive( Node n );
-  //do inferences internal
-  bool doInferencesInternal( int effort, std::vector< Node >& terms, std::vector< Node >& nred, bool batch, bool isRed ); 
-  //send lemma
-  bool sendLemma( Node lem, bool preprocess = false );
-  //register term (recursive)
-  void registerTermRec( Node n, std::map< Node, bool >& visited );
-public:
-  ExtTheory( Theory * p );
-  virtual ~ExtTheory(){}
-  //add extf kind
-  void addFunctionKind( Kind k ) { d_extf_kind[k] = true; }
-  bool hasFunctionKind( Kind k ) { return d_extf_kind.find( k )!=d_extf_kind.end(); }
-  //register term
+
+ public:
+  ExtTheory(Theory* p);
+  virtual ~ExtTheory() {}
+  // add extf kind
+  void addFunctionKind(Kind k) { d_extf_kind[k] = true; }
+  bool hasFunctionKind(Kind k) const {
+    return d_extf_kind.find(k) != d_extf_kind.end();
+  }
+  // register term
   //  adds n to d_ext_func_terms if addFunctionKind( n.getKind() ) was called
   void registerTerm( Node n );
   void registerTermRec( Node n );
@@ -964,27 +971,34 @@ public:
   //getSubstitutedTerms
   //  input : effort, terms
   //  output : sterms, exp, where ( exp[i] => terms[i] = sterms[i] ) for all i
-  void getSubstitutedTerms( int effort, std::vector< Node >& terms, std::vector< Node >& sterms, std::vector< std::vector< Node > >& exp );
-  //doInferences
-  //  * input : effort, terms, batch (whether to send one lemma or lemmas for all terms)
-  //  *   sends rewriting lemmas of the form ( exp => t = c ) where t is in terms and c is a constant, c = rewrite( t*sigma ) where exp |= sigma
+  void getSubstitutedTerms(int effort, const std::vector<Node>& terms,
+                           std::vector<Node>& sterms,
+                           std::vector<std::vector<Node> >& exp);
+  // doInferences
+  //  * input : effort, terms, batch (whether to send one lemma or lemmas for
+  //    all terms)
+  //  * sends rewriting lemmas of the form ( exp => t = c ) where t is in terms
+  //    and c is a constant, c = rewrite( t*sigma ) where exp |= sigma
   //  * output : nred (the terms that are still active)
   //  * return : true iff lemma is sent
-  bool doInferences( int effort, std::vector< Node >& terms, std::vector< Node >& nred, bool batch=true ); 
-  bool doInferences( int effort, std::vector< Node >& nred, bool batch=true  );
+  bool doInferences(int effort, const std::vector<Node>& terms,
+                    std::vector<Node>& nred, bool batch = true);
+  bool doInferences(int effort, std::vector<Node>& nred, bool batch = true);
   //doReductions 
-  //  same as doInferences, but will send reduction lemmas of the form ( t = t' ) where t is in terms, t' is equivalent, reduced term
-  bool doReductions( int effort, std::vector< Node >& terms, std::vector< Node >& nred, bool batch=true  ); 
-  bool doReductions( int effort, std::vector< Node >& nred, bool batch=true  ); 
+  // same as doInferences, but will send reduction lemmas of the form ( t = t' )
+  // where t is in terms, t' is equivalent, reduced term.
+  bool doReductions(int effort, const std::vector<Node>& terms,
+                    std::vector<Node>& nred, bool batch = true);
+  bool doReductions(int effort, std::vector<Node>& nred, bool batch = true);
 
-  //has active term 
+  // has active term
   bool hasActiveTerm();
-  //is n active
-  bool isActive( Node n );
-  //get the set of active terms from d_ext_func_terms
-  void getActive( std::vector< Node >& active );
-  //get the set of active terms from d_ext_func_terms of kind k
-  void getActive( std::vector< Node >& active, Kind k );
+  // is n active
+  bool isActive(Node n);
+  // get the set of active terms from d_ext_func_terms
+  std::vector<Node> getActive() const;
+  // get the set of active terms from d_ext_func_terms of kind k
+  std::vector<Node> getActive(Kind k) const;
 };
 
 }/* CVC4::theory namespace */

@@ -798,8 +798,7 @@ void TheoryStrings::checkExtfReductions( int effort ) {
   //std::vector< Node > nred;
   //getExtTheory()->doReductions( effort, nred, false );
 
-  std::vector< Node > extf;
-  getExtTheory()->getActive( extf );
+  std::vector< Node > extf = getExtTheory()->getActive();
   Trace("strings-process") << "checking " << extf.size() << " active extf" << std::endl;
   for( unsigned i=0; i<extf.size(); i++ ){
     Node n = extf[i];
@@ -1306,10 +1305,9 @@ void TheoryStrings::checkExtfEval( int effort ) {
   Trace("strings-extf-list") << "Active extended functions, effort=" << effort << " : " << std::endl;
   d_extf_info_tmp.clear();
   bool has_nreduce = false;
-  std::vector< Node > terms; 
+  std::vector< Node > terms = getExtTheory()->getActive();
   std::vector< Node > sterms; 
   std::vector< std::vector< Node > > exp;
-  getExtTheory()->getActive( terms );
   getExtTheory()->getSubstitutedTerms( effort, terms, sterms, exp );
   for( unsigned i=0; i<terms.size(); i++ ){
     Node n = terms[i];
@@ -4288,9 +4286,8 @@ bool TheoryStrings::checkMemberships2() {
 
 void TheoryStrings::checkMemberships() {
   //add the memberships
-  std::vector< Node > mems;
-  getExtTheory()->getActive( mems, kind::STRING_IN_REGEXP );
-  for( unsigned i=0; i<mems.size(); i++ ){
+  std::vector<Node> mems = getExtTheory()->getActive(kind::STRING_IN_REGEXP);
+  for (unsigned i = 0; i < mems.size(); i++) {
     Node n = mems[i];
     Assert( d_extf_info_tmp.find( n )!=d_extf_info_tmp.end() );
     if( d_extf_info_tmp[n].d_pol==1 || d_extf_info_tmp[n].d_pol==-1 ){

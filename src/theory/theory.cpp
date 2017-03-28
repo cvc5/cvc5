@@ -365,27 +365,38 @@ d_lemmas( p->getUserContext() ), d_pp_lemmas( p->getUserContext() ), d_has_extf(
   d_true = NodeManager::currentNM()->mkConst( true );
 }
 
-//gets all leaf terms in n
-void ExtTheory::collectVars( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited ) {
-  if( !n.isConst() ){
-    if( visited.find( n )==visited.end() ){
-      visited[n] = true;
-      //treat terms not belonging to this theory as leaf  
-      //  AJR TODO : should include terms not belonging to this theory (commented below)
-      if( n.getNumChildren()>0 ){//&& Theory::theoryOf(n)==d_parent->getId() ){
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          collectVars( n[i], vars, visited );
-        }
-      }else{
-        vars.push_back( n );
-      }
+// Gets all leaf terms in n.
+std::vector<Node> ExtTheory::collectVars(Node n) {
+  std::vector<Node> vars;
+  std::set<Node> visited;
+  std::vector<Node> worklist;
+  worklist.push_back(n);
+  while (!worklist.empty()) {
+    Node current = worklist.back();
+    worklist.pop_back();
+    if (current.isConst() || visited.count(current) <= 0) {
+      continue;
+    }
+    visited.insert(current);
+    // Treat terms not belonging to this theory as leaf
+    // AJR TODO : should include terms not belonging to this theory
+    // (commented below)
+    if (current.getNumChildren() > 0) {
+      //&& Theory::theoryOf(n)==d_parent->getId() ){
+      worklist.insert(worklist.end(), current.begin(), current.end());
+    } else {
+      vars.push_back(current);
     }
   }
+  return vars;
 }
 
-//do inferences 
-void ExtTheory::getSubstitutedTerms( int effort, std::vector< Node >& terms, std::vector< Node >& sterms, std::vector< std::vector< Node > >& exp ) {
-  Trace("extt-debug") << "Currently " << d_ext_func_terms.size() << " extended functions." << std::endl;
+//do inferences
+void ExtTheory::getSubstitutedTerms(int effort, const std::vector<Node>& terms,
+                                    std::vector<Node>& sterms,
+                                    std::vector<std::vector<Node> >& exp) {
+  Trace("extt-debug") << "Currently " << d_ext_func_terms.size()
+                      << " extended functions." << std::endl;
   Trace("extt-debug") << "..." << terms.size() << " to reduce." << std::endl;
   if( !terms.empty() ){
     //all variables we need to find a substitution for
@@ -441,8 +452,10 @@ void ExtTheory::getSubstitutedTerms( int effort, std::vector< Node >& terms, std
   }
 }
 
-bool ExtTheory::doInferencesInternal( int effort, std::vector< Node >& terms, std::vector< Node >& nred, bool batch, bool isRed ) {
-  if( batch ){
+bool ExtTheory::doInferencesInternal(int effort, const std::vector<Node>& terms,
+                                     std::vector<Node>& nred, bool batch,
+                                     bool isRed) {
+  if (batch) {
     bool addedLemma = false;
     if( isRed ){
       for( unsigned i=0; i<terms.size(); i++ ){
@@ -533,8 +546,9 @@ bool ExtTheory::sendLemma( Node lem, bool preprocess ) {
   return false;
 }
 
-bool ExtTheory::doInferences( int effort, std::vector< Node >& terms, std::vector< Node >& nred, bool batch ) {
-  if( !terms.empty() ){
+bool ExtTheory::doInferences(int effort, const std::vector<Node>& terms,
+                             std::vector<Node>& nred, bool batch) {
+  if (!terms.empty()) {
     return doInferencesInternal( effort, terms, nred, batch, false );
   }else{
     return false;
@@ -542,50 +556,48 @@ bool ExtTheory::doInferences( int effort, std::vector< Node >& terms, std::vecto
 }
 
 bool ExtTheory::doInferences( int effort, std::vector< Node >& nred, bool batch ) {
-  std::vector< Node > terms;
-  getActive( terms );
+  std::vector< Node > terms = getActive();
   return doInferencesInternal( effort, terms, nred, batch, false );
 }
 
-bool ExtTheory::doReductions( int effort, std::vector< Node >& terms, std::vector< Node >& nred, bool batch ) {
-  if( !terms.empty() ){
+bool ExtTheory::doReductions(int effort, const std::vector<Node>& terms,
+                             std::vector<Node>& nred, bool batch) {
+  if (!terms.empty()) {
     return doInferencesInternal( effort, terms, nred, batch, true );
   }else{
     return false;
   }
 }
 
-bool ExtTheory::doReductions( int effort, std::vector< Node >& nred, bool batch ) {
-  std::vector< Node > terms;
-  getActive( terms );
-  return doInferencesInternal( effort, terms, nred, batch, true );
+bool ExtTheory::doReductions(int effort, std::vector<Node>& nred, bool batch) {
+  const std::vector<Node> terms = getActive();
+  return doInferencesInternal(effort, terms, nred, batch, true);
 }
 
-
-//register term
-void ExtTheory::registerTerm( Node n ) {
-  if( d_extf_kind.find( n.getKind() )!=d_extf_kind.end() ){
-    if( d_ext_func_terms.find( n )==d_ext_func_terms.end() ){
-      Trace("extt-debug") << "Found extended function : " << n << " in " << d_parent->getId() << std::endl;
+// Register term.
+void ExtTheory::registerTerm(Node n) {
+  if (d_extf_kind.find(n.getKind()) != d_extf_kind.end()) {
+    if (d_ext_func_terms.find(n) == d_ext_func_terms.end()) {
+      Trace("extt-debug") << "Found extended function : " << n << " in "
+                          << d_parent->getId() << std::endl;
       d_ext_func_terms[n] = true;
       d_has_extf = n;
-      std::map< Node, bool > visited;
-      collectVars( n, d_extf_info[n].d_vars, visited );
+      d_extf_info[n].d_vars = collectVars(n);
     }
   }
 }
 
-void ExtTheory::registerTermRec( Node n ) {
-  std::map< Node, bool > visited;
-  registerTermRec( n, visited );
+void ExtTheory::registerTermRec(Node n) {
+  std::set<Node> visited;
+  registerTermRec(n, &visited);
 }
 
-void ExtTheory::registerTermRec( Node n, std::map< Node, bool >& visited ) {
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    registerTerm( n );
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      registerTermRec( n[i], visited );
+void ExtTheory::registerTermRec(Node n, std::set<Node>* visited) {
+  if (visited->find(n) == visited->end()) {
+    visited->insert(n);
+    registerTerm(n);
+    for (unsigned i = 0; i < n.getNumChildren(); i++) {
+      registerTermRec(n[i], visited);
     }
   }
 }
@@ -629,8 +641,8 @@ void ExtTheory::markCongruent( Node a, Node b ) {
   }
 }
 
-bool ExtTheory::isContextIndependentInactive( Node n ) {
-  return d_ci_inactive.find( n )!=d_ci_inactive.end();
+bool ExtTheory::isContextIndependentInactive(Node n) const {
+  return d_ci_inactive.find(n) != d_ci_inactive.end();
 }
 
 bool ExtTheory::hasActiveTerm() {
@@ -646,23 +658,31 @@ bool ExtTheory::isActive( Node n ) {
     return false;
   }
 }
-//get active 
-void ExtTheory::getActive( std::vector< Node >& active ) {
-  for( NodeBoolMap::iterator it = d_ext_func_terms.begin(); it != d_ext_func_terms.end(); ++it ){
-    //if not already reduced
-    if( (*it).second && !isContextIndependentInactive( (*it).first ) ){
-      active.push_back( (*it).first );
+
+// get active
+std::vector<Node> ExtTheory::getActive() const {
+  std::vector<Node> active;
+  for (NodeBoolMap::iterator it = d_ext_func_terms.begin();
+       it != d_ext_func_terms.end(); ++it) {
+    // if not already reduced
+    if ((*it).second && !isContextIndependentInactive((*it).first)) {
+      active.push_back((*it).first);
     }
   }
+  return active;
 }
 
-void ExtTheory::getActive( std::vector< Node >& active, Kind k ) {
-  for( NodeBoolMap::iterator it = d_ext_func_terms.begin(); it != d_ext_func_terms.end(); ++it ){
-    //if not already reduced
-    if( (*it).first.getKind()==k && (*it).second && !isContextIndependentInactive( (*it).first ) ){
-      active.push_back( (*it).first );
+std::vector<Node> ExtTheory::getActive(Kind k) const {
+  std::vector<Node> active;
+  for (NodeBoolMap::iterator it = d_ext_func_terms.begin();
+       it != d_ext_func_terms.end(); ++it) {
+    // if not already reduced
+    if ((*it).first.getKind() == k && (*it).second &&
+        !isContextIndependentInactive((*it).first)) {
+      active.push_back((*it).first);
     }
   }
+  return active;
 }
 
 }/* CVC4::theory namespace */
