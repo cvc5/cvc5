@@ -911,7 +911,6 @@ public:
 
 
 class ExtTheory {
-  friend class Theory;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 protected:
