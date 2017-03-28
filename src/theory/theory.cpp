@@ -374,7 +374,7 @@ std::vector<Node> ExtTheory::collectVars(Node n) {
   while (!worklist.empty()) {
     Node current = worklist.back();
     worklist.pop_back();
-    if (current.isConst() || visited.count(current) <= 0) {
+    if (current.isConst() || visited.count(current) > 0) {
       continue;
     }
     visited.insert(current);
