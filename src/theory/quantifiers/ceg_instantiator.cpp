@@ -711,6 +711,7 @@ void CegInstantiator::processAssertions() {
   d_curr_eqc.clear();
   d_curr_type_eqc.clear();
 
+  // must use master equality engine to avoid value instantiations
   eq::EqualityEngine* ee = d_qe->getMasterEqualityEngine();
   //to eliminate identified illegal terms
   std::map< Node, Node > aux_subs;

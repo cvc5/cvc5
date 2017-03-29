@@ -143,7 +143,7 @@ void LtePartialInst::check( Theory::Effort e, unsigned quant_e ) {
 
 void LtePartialInst::reset() {
   d_reps.clear();
-  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+  eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   while( !eqcs_i.isFinished() ){
     TNode r = (*eqcs_i);

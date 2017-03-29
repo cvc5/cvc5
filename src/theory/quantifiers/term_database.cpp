@@ -204,7 +204,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
 
 void TermDb::computeArgReps( TNode n ) {
   if( d_arg_reps.find( n )==d_arg_reps.end() ){
-    eq::EqualityEngine * ee = d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
+    eq::EqualityEngine * ee = d_quantEngine->getActiveEqualityEngine();
     for( unsigned j=0; j<n.getNumChildren(); j++ ){
       TNode r = ee->hasTerm( n[j] ) ? ee->getRepresentative( n[j] ) : n[j];
       d_arg_reps[n].push_back( r );
@@ -215,7 +215,7 @@ void TermDb::computeArgReps( TNode n ) {
 void TermDb::computeUfEqcTerms( TNode f ) {
   if( d_func_map_eqc_trie.find( f )==d_func_map_eqc_trie.end() ){
     d_func_map_eqc_trie[f].clear();
-    eq::EqualityEngine * ee = d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
+    eq::EqualityEngine * ee = d_quantEngine->getActiveEqualityEngine();
     for( unsigned i=0; i<d_op_map[f].size(); i++ ){
       TNode n = d_op_map[f][i];
       if( hasTermCurrent( n ) ){
@@ -234,7 +234,7 @@ void TermDb::computeUfTerms( TNode f ) {
     d_op_nonred_count[ f ] = 0;
     std::map< Node, std::vector< Node > >::iterator it = d_op_map.find( f );
     if( it!=d_op_map.end() ){
-      eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+      eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
       Trace("term-db-debug") << "Adding terms for operator " << f << std::endl;
       unsigned congruentCount = 0;
       unsigned nonCongruentCount = 0;
@@ -307,7 +307,8 @@ void TermDb::computeUfTerms( TNode f ) {
 
 bool TermDb::inRelevantDomain( TNode f, unsigned i, TNode r ) {
   computeUfTerms( f );
-  Assert( d_quantEngine->getTheoryEngine()->getMasterEqualityEngine()->getRepresentative( r )==r );
+  Assert( !d_quantEngine->getActiveEqualityEngine()->hasTerm( r ) || 
+          d_quantEngine->getActiveEqualityEngine()->getRepresentative( r )==r );
   std::map< Node, std::map< unsigned, std::vector< Node > > >::iterator it = d_func_map_rel_dom.find( f );
   if( it != d_func_map_rel_dom.end() ){
     std::map< unsigned, std::vector< Node > >::iterator it2 = it->second.find( i );
@@ -578,7 +579,7 @@ bool TermDb::hasTermCurrent( Node n, bool useMode ) {
   if( !useMode ){
     return d_has_map.find( n )!=d_has_map.end();
   }else{
-    //return d_quantEngine->getMasterEqualityEngine()->hasTerm( n ); //some assertions are not sent to EE
+    //return d_quantEngine->getActiveEqualityEngine()->hasTerm( n ); //some assertions are not sent to EE
     if( options::termDbMode()==TERM_DB_ALL ){
       return true;
     }else if( options::termDbMode()==TERM_DB_RELEVANT ){
@@ -630,7 +631,7 @@ Node TermDb::getEligibleTermInEqc( TNode r ) {
     std::map< Node, Node >::iterator it = d_term_elig_eqc.find( r );
     if( it==d_term_elig_eqc.end() ){
       Node h;
-      eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+      eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
       eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
       while( h.isNull() && !eqc_i.isFinished() ){
         TNode n = (*eqc_i);
@@ -680,7 +681,7 @@ bool TermDb::reset( Theory::Effort effort ){
   d_func_map_rel_dom.clear();
   d_consistent_ee = true;
 
-  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+  eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
   //compute has map
   if( options::termDbMode()==TERM_DB_RELEVANT || options::lteRestrictInstClosure() ){
     d_has_map.clear();

@@ -29,7 +29,7 @@ unsigned QuantifiersModule::needsModel( Theory::Effort e ) {
 }
 
 eq::EqualityEngine * QuantifiersModule::getEqualityEngine() {
-  return d_quantEngine->getMasterEqualityEngine();
+  return d_quantEngine->getActiveEqualityEngine();
 }
 
 bool QuantifiersModule::areEqual( TNode n1, TNode n2 ) {

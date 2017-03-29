@@ -108,6 +108,8 @@ option instWhenPhase --inst-when-phase=N int :read-write :default 2 :read-write
  instantiation rounds quantifiers takes (>=1) before allowing theory combination to happen
 option instWhenTcFirst --inst-when-tc-first bool :default true :read-write
  allow theory combination to happen once initially, before quantifier strategies are run
+option quantModelEe --quant-model-ee bool :default false
+ use equality engine of model for last call effort
  
 option instMaxLevel --inst-max-level=N int :read-write :default -1
  maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)
@@ -187,6 +189,8 @@ option qcfVoExp --qcf-vo-exp bool :default false
 
 option instNoEntail --inst-no-entail bool :read-write :default true
  do not consider instances of quantified formulas that are currently entailed
+option instNoModelTrue --inst-no-model-true bool :read-write :default false
+ do not consider instances of quantified formulas that are currently true in model, if it is available
 
 option instPropagate --inst-prop bool :read-write :default false
  internal propagation for instantiations for selecting relevant instances

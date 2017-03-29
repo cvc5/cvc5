@@ -35,8 +35,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
 TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-    Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo),
-  d_masterEqualityEngine(0)
+    Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo)
 {
   d_numInstantiations = 0;
   d_baseDecLevel = -1;
@@ -55,7 +54,7 @@ TheoryQuantifiers::~TheoryQuantifiers() {
 }
 
 void TheoryQuantifiers::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_masterEqualityEngine = eq;
+
 }
 
 void TheoryQuantifiers::addSharedTerm(TNode t) {

@@ -91,7 +91,7 @@ bool EqualityQueryInstProp::areDisequal( Node a, Node b ) {
 
 /** get the equality engine associated with this query */
 eq::EqualityEngine* EqualityQueryInstProp::getEngine() {
-  return d_qe->getMasterEqualityEngine();
+  return d_qe->getActiveEqualityEngine();
 }
 
 /** get the equivalence class of a */

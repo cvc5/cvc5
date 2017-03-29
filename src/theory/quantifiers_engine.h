@@ -165,6 +165,8 @@ private:  //this information is reset during check
   context::CDO< bool > d_conflict_c;
   /** has added lemma this round */
   bool d_hasAddedLemma;
+  /** whether to use model equality engine */
+  bool d_useModelEe;
 private:
   /** list of all quantifiers seen */
   std::map< Node, bool > d_quants;
@@ -306,9 +308,9 @@ private:
   bool removeInstantiationInternal( Node q, std::vector< Node >& terms );
   /** set instantiation level attr */
   static void setInstantiationLevelAttr( Node n, Node qn, uint64_t level );
-public:
   /** flush lemmas */
   void flushLemmas();
+public:
   /** get instantiation */
   Node getInstantiation( Node q, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts = false );
   /** get instantiation */
@@ -366,9 +368,13 @@ public:
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** get the master equality engine */
-  eq::EqualityEngine* getMasterEqualityEngine() ;
+  eq::EqualityEngine* getMasterEqualityEngine();
+  /** get the active equality engine */
+  eq::EqualityEngine* getActiveEqualityEngine();
   /** debug print equality engine */
   void debugPrintEqualityEngine( const char * c );
+  /** get internal representative */
+  Node getInternalRepresentative( Node a, Node q, int index );
 public:
   /** print instantiations */
   void printInstantiations( std::ostream& out );
@@ -402,6 +408,7 @@ public:
     IntStat d_inst_duplicate;
     IntStat d_inst_duplicate_eq;
     IntStat d_inst_duplicate_ent;
+    IntStat d_inst_duplicate_model_true;
     IntStat d_triggers;
     IntStat d_simple_triggers;
     IntStat d_multi_triggers;

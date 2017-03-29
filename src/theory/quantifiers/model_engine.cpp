@@ -155,7 +155,7 @@ int ModelEngine::checkModel(){
   //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
   //d_quantEngine->getEqualityQuery()->flattenRepresentatives( fm->d_rep_set.d_type_reps );
 
-  //for debugging
+  //for debugging, setup
   for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
        it != fm->d_rep_set.d_type_reps.end(); ++it ){
     if( it->first.isSort() ){
@@ -167,7 +167,7 @@ int ModelEngine::checkModel(){
       Trace("model-engine-debug") << std::endl;
       Trace("model-engine-debug") << "   Term reps : ";
       for( size_t i=0; i<it->second.size(); i++ ){
-        Node r = d_quantEngine->getEqualityQuery()->getInternalRepresentative( it->second[i], Node::null(), 0 );
+        Node r = d_quantEngine->getInternalRepresentative( it->second[i], Node::null(), 0 );
         Trace("model-engine-debug") << r << " ";
       }
       Trace("model-engine-debug") << std::endl;
