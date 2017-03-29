@@ -161,7 +161,10 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   AbstractionModule* d_abstraction;
   bool d_emptyNotify;
 
-  context::CDO<bool> d_satSolverFullModel;
+  // The size of the fact queue when we most recently called solve() in the
+  // bit-vector SAT solver. This is the level at which we should have
+  // a full model in the bv SAT solver.
+  context::CDO<int> d_fullModelAssertionLevel;
 
   void addAtom(TNode atom);
   bool hasValue(TNode a);

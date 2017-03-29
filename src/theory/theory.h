@@ -734,6 +734,11 @@ public:
     return !d_facts.empty(); 
   }
 
+  /** Return total number of facts asserted to this theory */
+  size_t numAssertions() {
+    return d_facts.size();
+  }
+  
   typedef context::CDList<TNode>::const_iterator shared_terms_iterator;
 
   /**

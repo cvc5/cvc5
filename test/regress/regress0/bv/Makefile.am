@@ -117,6 +117,7 @@ BUG_TESTS = \
 	bug260a.smt \
 	bug260b.smt \
 	bug440.smt \
+	bug733.smt2 \
 	bug734.smt2 \
 	bug_extract_mult_leading_bit.smt2
 

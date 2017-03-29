@@ -45,7 +45,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv,
   , d_bbAtoms()
   , d_abstraction(NULL)
   , d_emptyNotify(emptyNotify)
-  , d_satSolverFullModel(c, false)
+  , d_fullModelAssertionLevel(c, 0)
   , d_name(name)
   , d_statistics(name) {
 
@@ -290,7 +290,7 @@ bool TLazyBitblaster::solve() {
     }
   }
   Debug("bitvector") << "TLazyBitblaster::solve() asserted atoms " << d_assertedAtoms->size() <<"\n";
-  d_satSolverFullModel.set(true);
+  d_fullModelAssertionLevel.set(d_bv->numAssertions());
   return prop::SAT_VALUE_TRUE == d_satSolver->solve();
 }
 
@@ -393,8 +393,9 @@ void TLazyBitblaster::MinisatNotify::safePoint(unsigned ammount) {
 
 
 EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b) {
+  int numAssertions = d_bv->numAssertions();
   Debug("bv-equality-status")<< "TLazyBitblaster::getEqualityStatus " << a <<" = " << b <<"\n";
-  Debug("bv-equality-status")<< "BVSatSolver has full model? " << d_satSolverFullModel.get() <<"\n";
+  Debug("bv-equality-status")<< "BVSatSolver has full model? " << (d_fullModelAssertionLevel.get() == numAssertions) <<"\n";
 
   // First check if it trivially rewrites to false/true
   Node a_eq_b = Rewriter::rewrite(utils::mkNode(kind::EQUAL, a, b));
@@ -402,8 +403,9 @@ EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b) {
   if (a_eq_b == utils::mkFalse()) return theory::EQUALITY_FALSE;
   if (a_eq_b == utils::mkTrue()) return theory::EQUALITY_TRUE;
 
-  if (!d_satSolverFullModel.get())
+  if (d_fullModelAssertionLevel.get() != numAssertions) {
     return theory::EQUALITY_UNKNOWN;
+  }
 
   // Check if cache is valid (invalidated in check and pops)
   if (d_bv->d_invalidateModelCache.get()) {
