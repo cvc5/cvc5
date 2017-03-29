@@ -119,7 +119,8 @@ BUG_TESTS = \
 	bug440.smt \
 	bug733.smt2 \
 	bug734.smt2 \
-	bug_extract_mult_leading_bit.smt2
+	bug_extract_mult_leading_bit.smt2 \
+	bug787.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 

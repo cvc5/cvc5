@@ -155,7 +155,8 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
     inQuant = true;
   }else if( theory::kindToTheoryId(node.getKind())!=theory::THEORY_BOOL && 
             node.getKind()!=kind::EQUAL && node.getKind()!=kind::SEP_STAR && 
-            node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL ){
+            node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL && 
+            node.getKind()!=kind::BITVECTOR_EAGER_ATOM ){
     // Remember if we're inside a term
     Debug("ite") << "In term because of " << node << " " << node.getKind() << std::endl;
     inTerm = true;
