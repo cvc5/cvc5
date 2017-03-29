@@ -2104,8 +2104,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   throw UnrecognizedOptionException();
 }
 
-CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
-  throw(OptionException, ModalException) {
+CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
 
   SmtScope smts(this);
 
@@ -4649,7 +4648,7 @@ Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckin
   return resultNode.toExpr();
 }
 
-bool SmtEngine::addToAssignment(const Expr& ex) throw() {
+bool SmtEngine::addToAssignment(const Expr& ex) {
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
@@ -4682,7 +4681,7 @@ bool SmtEngine::addToAssignment(const Expr& ex) throw() {
   return true;
 }
 
-CVC4::SExpr SmtEngine::getAssignment() throw(ModalException, UnsafeInterruptException) {
+CVC4::SExpr SmtEngine::getAssignment() {
   Trace("smt") << "SMT getAssignment()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -4780,7 +4779,7 @@ void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool 
   }
 }
 
-Model* SmtEngine::getModel() throw(ModalException, UnsafeInterruptException) {
+Model* SmtEngine::getModel() {
   Trace("smt") << "SMT getModel()" << endl;
   SmtScope smts(this);
 
@@ -5042,7 +5041,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
 }
 
-UnsatCore SmtEngine::getUnsatCore() throw(ModalException, UnsafeInterruptException) {
+UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -5066,7 +5065,7 @@ UnsatCore SmtEngine::getUnsatCore() throw(ModalException, UnsafeInterruptExcepti
 #endif /* IS_PROOFS_BUILD */
 }
 
-Proof* SmtEngine::getProof() throw(ModalException, UnsafeInterruptException) {
+Proof* SmtEngine::getProof() {
   Trace("smt") << "SMT getProof()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -5202,7 +5201,7 @@ void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< E
   }
 }
 
-vector<Expr> SmtEngine::getAssertions() throw(ModalException) {
+vector<Expr> SmtEngine::getAssertions() {
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
@@ -5250,7 +5249,7 @@ void SmtEngine::push() throw(ModalException, LogicException, UnsafeInterruptExce
                        << d_userContext->getLevel() << endl;
 }
 
-void SmtEngine::pop() throw(ModalException, UnsafeInterruptException) {
+void SmtEngine::pop() {
   SmtScope smts(this);
   finalOptionsAreSet();
   Trace("smt") << "SMT pop()" << endl;

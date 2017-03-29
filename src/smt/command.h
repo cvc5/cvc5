@@ -215,8 +215,8 @@ public:
 
   virtual ~Command() throw();
 
-  virtual void invoke(SmtEngine* smtEngine) throw() = 0;
-  virtual void invoke(SmtEngine* smtEngine, std::ostream& out) throw();
+  virtual void invoke(SmtEngine* smtEngine) = 0;
+  virtual void invoke(SmtEngine* smtEngine, std::ostream& out);
 
   virtual void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
                         OutputLanguage language = language::output::LANG_AUTO) const throw();
@@ -255,7 +255,7 @@ public:
   /** Get the command status (it's NULL if we haven't run yet). */
   const CommandStatus* getCommandStatus() const throw() { return d_commandStatus; }
 
-  virtual void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  virtual void printResult(std::ostream& out, uint32_t verbosity = 2) const;
 
   /**
    * Maps this Command into one for a different ExprManager, using
@@ -299,7 +299,7 @@ public:
   EmptyCommand(std::string name = "") throw();
   ~EmptyCommand() throw() {}
   std::string getName() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -312,8 +312,8 @@ public:
   EchoCommand(std::string output = "") throw();
   ~EchoCommand() throw() {}
   std::string getOutput() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
-  void invoke(SmtEngine* smtEngine, std::ostream& out) throw();
+  void invoke(SmtEngine* smtEngine);
+  void invoke(SmtEngine* smtEngine, std::ostream& out);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -327,7 +327,7 @@ public:
   AssertCommand(const Expr& e, bool inUnsatCore = true) throw();
   ~AssertCommand() throw() {}
   Expr getExpr() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -336,7 +336,7 @@ public:
 class CVC4_PUBLIC PushCommand : public Command {
 public:
   ~PushCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -345,7 +345,7 @@ public:
 class CVC4_PUBLIC PopCommand : public Command {
 public:
   ~PopCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -357,7 +357,7 @@ protected:
 public:
   DeclarationDefinitionCommand(const std::string& id) throw();
   ~DeclarationDefinitionCommand() throw() {}
-  virtual void invoke(SmtEngine* smtEngine) throw() = 0;
+  virtual void invoke(SmtEngine* smtEngine) = 0;
   std::string getSymbol() const throw();
 };/* class DeclarationDefinitionCommand */
 
@@ -375,7 +375,7 @@ public:
   bool getPrintInModel() const throw();
   bool getPrintInModelSetByUser() const throw();
   void setPrintInModel( bool p );
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -390,7 +390,7 @@ public:
   ~DeclareTypeCommand() throw() {}
   size_t getArity() const throw();
   Type getType() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -406,7 +406,7 @@ public:
   ~DefineTypeCommand() throw() {}
   const std::vector<Type>& getParameters() const throw();
   Type getType() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -425,7 +425,7 @@ public:
   Expr getFunction() const throw();
   const std::vector<Expr>& getFormals() const throw();
   Expr getFormula() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -440,7 +440,7 @@ class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand {
 public:
   DefineNamedFunctionCommand(const std::string& id, Expr func,
                              const std::vector<Expr>& formals, Expr formula) throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
 };/* class DefineNamedFunctionCommand */
@@ -460,7 +460,7 @@ public:
   SetUserAttributeCommand( const std::string& attr, Expr expr, std::vector<Expr>& values ) throw();
   SetUserAttributeCommand( const std::string& attr, Expr expr, const std::string& value ) throw();
   ~SetUserAttributeCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -476,9 +476,9 @@ public:
   CheckSatCommand(const Expr& expr, bool inUnsatCore = true) throw();
   ~CheckSatCommand() throw() {}
   Expr getExpr() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Result getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -493,9 +493,9 @@ public:
   QueryCommand(const Expr& e, bool inUnsatCore = true) throw();
   ~QueryCommand() throw() {}
   Expr getExpr() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Result getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -511,9 +511,9 @@ public:
   CheckSynthCommand(const Expr& expr, bool inUnsatCore = true) throw();
   ~CheckSynthCommand() throw() {}
   Expr getExpr() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Result getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -528,9 +528,9 @@ public:
   SimplifyCommand(Expr term) throw();
   ~SimplifyCommand() throw() {}
   Expr getTerm() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Expr getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -544,9 +544,9 @@ public:
   ExpandDefinitionsCommand(Expr term) throw();
   ~ExpandDefinitionsCommand() throw() {}
   Expr getTerm() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Expr getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -561,9 +561,9 @@ public:
   GetValueCommand(const std::vector<Expr>& terms) throw();
   ~GetValueCommand() throw() {}
   const std::vector<Expr>& getTerms() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Expr getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -575,9 +575,9 @@ protected:
 public:
   GetAssignmentCommand() throw();
   ~GetAssignmentCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   SExpr getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -590,10 +590,10 @@ protected:
 public:
   GetModelCommand() throw();
   ~GetModelCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   // Model is private to the library -- for now
   //Model* getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -606,9 +606,9 @@ protected:
 public:
   GetProofCommand() throw();
   ~GetProofCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Proof* getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -621,9 +621,9 @@ protected:
 public:
   GetInstantiationsCommand() throw();
   ~GetInstantiationsCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   //Instantiations* getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -635,8 +635,8 @@ protected:
 public:
   GetSynthSolutionCommand() throw();
   ~GetSynthSolutionCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void invoke(SmtEngine* smtEngine);
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -653,9 +653,9 @@ public:
   ~GetQuantifierEliminationCommand() throw() {}
   Expr getExpr() const throw();
   bool getDoFull() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Expr getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -669,8 +669,8 @@ public:
   GetUnsatCoreCommand() throw();
   GetUnsatCoreCommand(const std::map<Expr, std::string>& names) throw();
   ~GetUnsatCoreCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void invoke(SmtEngine* smtEngine);
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   const UnsatCore& getUnsatCore() const throw();
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
@@ -683,9 +683,9 @@ protected:
 public:
   GetAssertionsCommand() throw();
   ~GetAssertionsCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   std::string getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -698,7 +698,7 @@ public:
   SetBenchmarkStatusCommand(BenchmarkStatus status) throw();
   ~SetBenchmarkStatusCommand() throw() {}
   BenchmarkStatus getStatus() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -711,7 +711,7 @@ public:
   SetBenchmarkLogicCommand(std::string logic) throw();
   ~SetBenchmarkLogicCommand() throw() {}
   std::string getLogic() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -726,7 +726,7 @@ public:
   ~SetInfoCommand() throw() {}
   std::string getFlag() const throw();
   SExpr getSExpr() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -740,9 +740,9 @@ public:
   GetInfoCommand(std::string flag) throw();
   ~GetInfoCommand() throw() {}
   std::string getFlag() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   std::string getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -757,7 +757,7 @@ public:
   ~SetOptionCommand() throw() {}
   std::string getFlag() const throw();
   SExpr getSExpr() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -771,9 +771,9 @@ public:
   GetOptionCommand(std::string flag) throw();
   ~GetOptionCommand() throw() {}
   std::string getFlag() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   std::string getResult() const throw();
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -787,7 +787,7 @@ public:
   ~DatatypeDeclarationCommand() throw() {}
   DatatypeDeclarationCommand(const std::vector<DatatypeType>& datatypes) throw();
   const std::vector<DatatypeType>& getDatatypes() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -818,7 +818,7 @@ public:
   Expr getHead() const throw();
   Expr getBody() const throw();
   const Triggers& getTriggers() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -854,7 +854,7 @@ public:
   Expr getBody() const throw();
   const Triggers& getTriggers() const throw();
   bool isDeduction() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -864,7 +864,7 @@ class CVC4_PUBLIC ResetCommand : public Command {
 public:
   ResetCommand() throw() {}
   ~ResetCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -874,7 +874,7 @@ class CVC4_PUBLIC ResetAssertionsCommand : public Command {
 public:
   ResetAssertionsCommand() throw() {}
   ~ResetAssertionsCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -884,7 +884,7 @@ class CVC4_PUBLIC QuitCommand : public Command {
 public:
   QuitCommand() throw() {}
   ~QuitCommand() throw() {}
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -896,7 +896,7 @@ public:
   CommentCommand(std::string comment) throw();
   ~CommentCommand() throw() {}
   std::string getComment() const throw();
-  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -915,8 +915,8 @@ public:
   void addCommand(Command* cmd) throw();
   void clear() throw();
 
-  void invoke(SmtEngine* smtEngine) throw();
-  void invoke(SmtEngine* smtEngine, std::ostream& out) throw();
+  void invoke(SmtEngine* smtEngine);
+  void invoke(SmtEngine* smtEngine, std::ostream& out);
 
   typedef std::vector<Command*>::iterator iterator;
   typedef std::vector<Command*>::const_iterator const_iterator;
