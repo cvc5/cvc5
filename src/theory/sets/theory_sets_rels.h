@@ -79,43 +79,19 @@ private:
   public:
     EqcInfo( context::Context* c );
     ~EqcInfo(){}
-    static int                  counter;
     NodeSet                     d_mem;
     NodeMap                     d_mem_exp;
-    NodeListMap                 d_in;
-    NodeListMap                 d_out;
     context::CDO< Node >        d_tp;
     context::CDO< Node >        d_pt;
-    context::CDO< Node >        d_join;
     context::CDO< Node >        d_tc;
-    /** mapping from an element rep id to a list of rep ids that pointed by */
-    /** Context dependent map Int -> IntList */
-    std::map< int, std::vector< int > > d_id_inIds;
-    /** mapping from an element rep id to a list of rep ids that point to */
-    /** Context dependent map Int -> IntList */
-    std::map< int, std::vector< int > > d_id_outIds;
+    context::CDO< Node >        d_rel_tc;
   };
 
 private:
-  /** Context */
-  context::CDHashMap< int, int > d_vec_size;
-
-  /** Mapping between integer id and tuple element rep */
-  std::map< int, Node >      d_id_node;
-
-  /** Mapping between tuple element rep and integer id*/
-  std::map< Node, int >      d_node_id;
 
   /** has eqc info */
   bool hasEqcInfo( TNode n ) { return d_eqc_info.find( n )!=d_eqc_info.end(); }
 
-  bool addId( std::map< int, std::vector< int > >& id_map, int key, int id );
-  std::vector< int > getIdList( std::map< int, std::vector< int > >& id_map, int key );
-
-  void collectReachableNodes( std::map< int, std::vector< int > >&, int, std::hash_set<int>& , bool first_round = true);
-
-
-private:
   eq::EqualityEngine            *d_eqEngine;
   context::CDO<bool>            *d_conflict;
   TheorySets&                   d_sets_theory;
@@ -179,30 +155,22 @@ private:
   std::map< Node, EqcInfo* > d_eqc_info;
 
 public:
+  /** Standard effort notifications */
   void eqNotifyNewClass(Node t);
   void eqNotifyPostMerge(Node t1, Node t2);
 
 private:
 
+  /** Methods used in standard effort */
   void doPendingMerge();
-  Node findTCMemExp(EqcInfo*, Node);
-  void buildTCAndExp(Node, EqcInfo*);
-  void mergeTCEqcs(Node t1, Node t2);
-  void mergeTCEqcExp(EqcInfo*, EqcInfo*);
-  void mergeProductEqcs(Node t1, Node t2);
-  int getOrMakeElementRepId(EqcInfo*, Node);
-  void mergeTransposeEqcs(Node t1, Node t2);
-  Node explainTCMem(EqcInfo*, Node, Node, Node);
-  void sendInferProduct(bool, Node, Node, Node);
+  void sendInferProduct(Node member, Node pt_rel, Node exp);
+  void sendInferTranspose(Node t1, Node t2, Node exp );
+  void sendInferTClosure( Node mem_rep, EqcInfo* ei );
+  void sendMergeInfer( Node fact, Node reason, const char * c );
   EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
-  void sendInferTranspose(bool, Node, Node, Node, bool reverseOnly = false);
-  void addTCMemAndSendInfer(EqcInfo* tc_ei, Node mem, Node exp, bool fromRel = false);
-  void sendTCInference(EqcInfo* tc_ei, std::hash_set<int> in_reachable, std::hash_set<int> out_reachable, Node mem_rep, Node fst_rep, Node snd_rep, int id1, int id2);
 
-
-
+  /** Methods used in full effort */
   void check();
-  Node explain(Node);
   void collectRelsInfo();
   void applyTransposeRule( std::vector<Node> tp_terms );
   void applyTransposeRule( Node rel, Node rel_rep, Node exp );
@@ -227,10 +195,9 @@ private:
   void addSharedTerm( TNode n );
   void sendInfer( Node fact, Node exp, const char * c );
   void sendLemma( Node fact, Node reason, const char * c );
-  void sendMergeInfer( Node fact, Node reason, const char * c );
   void doTCLemmas();
 
-  // Helper functions
+  /** Helper functions */
   bool holds( Node );
   bool hasTerm( Node a );
   void makeSharedTerm( Node );
@@ -248,8 +215,6 @@ private:
   void addToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   bool safelyAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
-
-
 };
 
 
