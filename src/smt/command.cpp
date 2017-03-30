@@ -105,7 +105,7 @@ bool Command::interrupted() const throw() {
   return d_commandStatus != NULL && dynamic_cast<const CommandInterrupted*>(d_commandStatus) != NULL;
 }
 
-void Command::invoke(SmtEngine* smtEngine, std::ostream& out) throw() {
+void Command::invoke(SmtEngine* smtEngine, std::ostream& out) {
   invoke(smtEngine);
   if(!(isMuted() && ok())) {
     printResult(out, smtEngine->getOption("command-verbosity:" + getCommandName()).getIntegerValue().toUnsignedInt());
@@ -127,7 +127,7 @@ void CommandStatus::toStream(std::ostream& out, OutputLanguage language) const t
   Printer::getPrinter(language)->toStream(out, this);
 }
 
-void Command::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void Command::printResult(std::ostream& out, uint32_t verbosity) const {
   if(d_commandStatus != NULL) {
     if((!ok() && verbosity >= 1) || verbosity >= 2) {
       out << *d_commandStatus;
@@ -145,7 +145,7 @@ std::string EmptyCommand::getName() const throw() {
   return d_name;
 }
 
-void EmptyCommand::invoke(SmtEngine* smtEngine) throw() {
+void EmptyCommand::invoke(SmtEngine* smtEngine) {
   /* empty commands have no implementation */
   d_commandStatus = CommandSuccess::instance();
 }
@@ -172,12 +172,12 @@ std::string EchoCommand::getOutput() const throw() {
   return d_output;
 }
 
-void EchoCommand::invoke(SmtEngine* smtEngine) throw() {
+void EchoCommand::invoke(SmtEngine* smtEngine) {
   /* we don't have an output stream here, nothing to do */
   d_commandStatus = CommandSuccess::instance();
 }
 
-void EchoCommand::invoke(SmtEngine* smtEngine, std::ostream& out) throw() {
+void EchoCommand::invoke(SmtEngine* smtEngine, std::ostream& out) {
   out << d_output << std::endl;
   d_commandStatus = CommandSuccess::instance();
   printResult(out, smtEngine->getOption("command-verbosity:" + getCommandName()).getIntegerValue().toUnsignedInt());
@@ -205,7 +205,7 @@ Expr AssertCommand::getExpr() const throw() {
   return d_expr;
 }
 
-void AssertCommand::invoke(SmtEngine* smtEngine) throw() {
+void AssertCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->assertFormula(d_expr, d_inUnsatCore);
     d_commandStatus = CommandSuccess::instance();
@@ -230,7 +230,7 @@ std::string AssertCommand::getCommandName() const throw() {
 
 /* class PushCommand */
 
-void PushCommand::invoke(SmtEngine* smtEngine) throw() {
+void PushCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->push();
     d_commandStatus = CommandSuccess::instance();
@@ -255,7 +255,7 @@ std::string PushCommand::getCommandName() const throw() {
 
 /* class PopCommand */
 
-void PopCommand::invoke(SmtEngine* smtEngine) throw() {
+void PopCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->pop();
     d_commandStatus = CommandSuccess::instance();
@@ -292,7 +292,7 @@ Expr CheckSatCommand::getExpr() const throw() {
   return d_expr;
 }
 
-void CheckSatCommand::invoke(SmtEngine* smtEngine) throw() {
+void CheckSatCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->checkSat(d_expr);
     d_commandStatus = CommandSuccess::instance();
@@ -305,7 +305,7 @@ Result CheckSatCommand::getResult() const throw() {
   return d_result;
 }
 
-void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -339,7 +339,7 @@ Expr QueryCommand::getExpr() const throw() {
   return d_expr;
 }
 
-void QueryCommand::invoke(SmtEngine* smtEngine) throw() {
+void QueryCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->query(d_expr);
     d_commandStatus = CommandSuccess::instance();
@@ -352,7 +352,7 @@ Result QueryCommand::getResult() const throw() {
   return d_result;
 }
 
-void QueryCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void QueryCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -391,7 +391,7 @@ Expr CheckSynthCommand::getExpr() const throw() {
   return d_expr;
 }
 
-void CheckSynthCommand::invoke(SmtEngine* smtEngine) throw() {
+void CheckSynthCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->checkSynth(d_expr);
     d_commandStatus = CommandSuccess::instance();
@@ -404,7 +404,7 @@ Result CheckSynthCommand::getResult() const throw() {
   return d_result;
 }
 
-void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -431,7 +431,7 @@ std::string CheckSynthCommand::getCommandName() const throw() {
 
 /* class ResetCommand */
 
-void ResetCommand::invoke(SmtEngine* smtEngine) throw() {
+void ResetCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->reset();
     d_commandStatus = CommandSuccess::instance();
@@ -454,7 +454,7 @@ std::string ResetCommand::getCommandName() const throw() {
 
 /* class ResetAssertionsCommand */
 
-void ResetAssertionsCommand::invoke(SmtEngine* smtEngine) throw() {
+void ResetAssertionsCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->resetAssertions();
     d_commandStatus = CommandSuccess::instance();
@@ -477,7 +477,7 @@ std::string ResetAssertionsCommand::getCommandName() const throw() {
 
 /* class QuitCommand */
 
-void QuitCommand::invoke(SmtEngine* smtEngine) throw() {
+void QuitCommand::invoke(SmtEngine* smtEngine) {
   Dump("benchmark") << *this;
   d_commandStatus = CommandSuccess::instance();
 }
@@ -503,7 +503,7 @@ std::string CommentCommand::getComment() const throw() {
   return d_comment;
 }
 
-void CommentCommand::invoke(SmtEngine* smtEngine) throw() {
+void CommentCommand::invoke(SmtEngine* smtEngine) {
   Dump("benchmark") << *this;
   d_commandStatus = CommandSuccess::instance();
 }
@@ -540,7 +540,7 @@ void CommandSequence::clear() throw() {
   d_commandSequence.clear();
 }
 
-void CommandSequence::invoke(SmtEngine* smtEngine) throw() {
+void CommandSequence::invoke(SmtEngine* smtEngine) {
   for(; d_index < d_commandSequence.size(); ++d_index) {
     d_commandSequence[d_index]->invoke(smtEngine);
     if(! d_commandSequence[d_index]->ok()) {
@@ -555,7 +555,7 @@ void CommandSequence::invoke(SmtEngine* smtEngine) throw() {
   d_commandStatus = CommandSuccess::instance();
 }
 
-void CommandSequence::invoke(SmtEngine* smtEngine, std::ostream& out) throw() {
+void CommandSequence::invoke(SmtEngine* smtEngine, std::ostream& out) {
   for(; d_index < d_commandSequence.size(); ++d_index) {
     d_commandSequence[d_index]->invoke(smtEngine, out);
     if(! d_commandSequence[d_index]->ok()) {
@@ -654,7 +654,7 @@ void DeclareFunctionCommand::setPrintInModel( bool p ) {
   d_printInModelSetByUser = true;
 }
 
-void DeclareFunctionCommand::invoke(SmtEngine* smtEngine) throw() {
+void DeclareFunctionCommand::invoke(SmtEngine* smtEngine) {
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -694,7 +694,7 @@ Type DeclareTypeCommand::getType() const throw() {
   return d_type;
 }
 
-void DeclareTypeCommand::invoke(SmtEngine* smtEngine) throw() {
+void DeclareTypeCommand::invoke(SmtEngine* smtEngine) {
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -737,7 +737,7 @@ Type DefineTypeCommand::getType() const throw() {
   return d_type;
 }
 
-void DefineTypeCommand::invoke(SmtEngine* smtEngine) throw() {
+void DefineTypeCommand::invoke(SmtEngine* smtEngine) {
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -790,7 +790,7 @@ Expr DefineFunctionCommand::getFormula() const throw() {
   return d_formula;
 }
 
-void DefineFunctionCommand::invoke(SmtEngine* smtEngine) throw() {
+void DefineFunctionCommand::invoke(SmtEngine* smtEngine) {
   try {
     if(!d_func.isNull()) {
       smtEngine->defineFunction(d_func, d_formals, d_formula);
@@ -827,7 +827,7 @@ DefineNamedFunctionCommand::DefineNamedFunctionCommand(const std::string& id,
   DefineFunctionCommand(id, func, formals, formula) {
 }
 
-void DefineNamedFunctionCommand::invoke(SmtEngine* smtEngine) throw() {
+void DefineNamedFunctionCommand::invoke(SmtEngine* smtEngine) {
   this->DefineFunctionCommand::invoke(smtEngine);
   if(!d_func.isNull() && d_func.getType().isBoolean()) {
     smtEngine->addToAssignment(d_func.getExprManager()->mkExpr(kind::APPLY, d_func));
@@ -865,7 +865,7 @@ SetUserAttributeCommand::SetUserAttributeCommand( const std::string& attr, Expr 
   d_attr( attr ), d_expr( expr ), d_str_value( value ){
 }
 
-void SetUserAttributeCommand::invoke(SmtEngine* smtEngine) throw(){
+void SetUserAttributeCommand::invoke(SmtEngine* smtEngine) {
   try {
     if(!d_expr.isNull()) {
       smtEngine->setUserAttribute( d_attr, d_expr, d_expr_values, d_str_value );
@@ -903,7 +903,7 @@ Expr SimplifyCommand::getTerm() const throw() {
   return d_term;
 }
 
-void SimplifyCommand::invoke(SmtEngine* smtEngine) throw() {
+void SimplifyCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->simplify(d_term);
     d_commandStatus = CommandSuccess::instance();
@@ -918,7 +918,7 @@ Expr SimplifyCommand::getResult() const throw() {
   return d_result;
 }
 
-void SimplifyCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void SimplifyCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -952,7 +952,7 @@ Expr ExpandDefinitionsCommand::getTerm() const throw() {
   return d_term;
 }
 
-void ExpandDefinitionsCommand::invoke(SmtEngine* smtEngine) throw() {
+void ExpandDefinitionsCommand::invoke(SmtEngine* smtEngine) {
   d_result = smtEngine->expandDefinitions(d_term);
   d_commandStatus = CommandSuccess::instance();
 }
@@ -961,7 +961,7 @@ Expr ExpandDefinitionsCommand::getResult() const throw() {
   return d_result;
 }
 
-void ExpandDefinitionsCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void ExpandDefinitionsCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -1002,7 +1002,7 @@ const std::vector<Expr>& GetValueCommand::getTerms() const throw() {
   return d_terms;
 }
 
-void GetValueCommand::invoke(SmtEngine* smtEngine) throw() {
+void GetValueCommand::invoke(SmtEngine* smtEngine) {
   try {
     vector<Expr> result;
     ExprManager* em = smtEngine->getExprManager();
@@ -1034,7 +1034,7 @@ Expr GetValueCommand::getResult() const throw() {
   return d_result;
 }
 
-void GetValueCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void GetValueCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -1068,7 +1068,7 @@ std::string GetValueCommand::getCommandName() const throw() {
 GetAssignmentCommand::GetAssignmentCommand() throw() {
 }
 
-void GetAssignmentCommand::invoke(SmtEngine* smtEngine) throw() {
+void GetAssignmentCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getAssignment();
     d_commandStatus = CommandSuccess::instance();
@@ -1083,7 +1083,7 @@ SExpr GetAssignmentCommand::getResult() const throw() {
   return d_result;
 }
 
-void GetAssignmentCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void GetAssignmentCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -1112,7 +1112,7 @@ std::string GetAssignmentCommand::getCommandName() const throw() {
 GetModelCommand::GetModelCommand() throw() {
 }
 
-void GetModelCommand::invoke(SmtEngine* smtEngine) throw() {
+void GetModelCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getModel();
     d_smtEngine = smtEngine;
@@ -1130,7 +1130,7 @@ Model* GetModelCommand::getResult() const throw() {
 }
 */
 
-void GetModelCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void GetModelCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -1161,7 +1161,7 @@ std::string GetModelCommand::getCommandName() const throw() {
 GetProofCommand::GetProofCommand() throw() {
 }
 
-void GetProofCommand::invoke(SmtEngine* smtEngine) throw() {
+void GetProofCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_smtEngine = smtEngine;
     d_result = smtEngine->getProof();
@@ -1177,7 +1177,7 @@ Proof* GetProofCommand::getResult() const throw() {
   return d_result;
 }
 
-void GetProofCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void GetProofCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -1209,7 +1209,7 @@ std::string GetProofCommand::getCommandName() const throw() {
 GetInstantiationsCommand::GetInstantiationsCommand() throw() {
 }
 
-void GetInstantiationsCommand::invoke(SmtEngine* smtEngine) throw() {
+void GetInstantiationsCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_smtEngine = smtEngine;
     d_commandStatus = CommandSuccess::instance();
@@ -1222,7 +1222,7 @@ void GetInstantiationsCommand::invoke(SmtEngine* smtEngine) throw() {
 //  return d_result;
 //}
 
-void GetInstantiationsCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void GetInstantiationsCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -1253,7 +1253,7 @@ std::string GetInstantiationsCommand::getCommandName() const throw() {
 GetSynthSolutionCommand::GetSynthSolutionCommand() throw() {
 }
 
-void GetSynthSolutionCommand::invoke(SmtEngine* smtEngine) throw() {
+void GetSynthSolutionCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_smtEngine = smtEngine;
     d_commandStatus = CommandSuccess::instance();
@@ -1262,7 +1262,7 @@ void GetSynthSolutionCommand::invoke(SmtEngine* smtEngine) throw() {
   }
 }
 
-void GetSynthSolutionCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void GetSynthSolutionCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -1303,7 +1303,7 @@ bool GetQuantifierEliminationCommand::getDoFull() const throw() {
   return d_doFull;
 }
 
-void GetQuantifierEliminationCommand::invoke(SmtEngine* smtEngine) throw() {
+void GetQuantifierEliminationCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->doQuantifierElimination(d_expr, d_doFull);
     d_commandStatus = CommandSuccess::instance();
@@ -1316,7 +1316,7 @@ Expr GetQuantifierEliminationCommand::getResult() const throw() {
   return d_result;
 }
 
-void GetQuantifierEliminationCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void GetQuantifierEliminationCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -1348,7 +1348,7 @@ GetUnsatCoreCommand::GetUnsatCoreCommand() throw() {
 GetUnsatCoreCommand::GetUnsatCoreCommand(const std::map<Expr, std::string>& names) throw() : d_names(names) {
 }
 
-void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) throw() {
+void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getUnsatCore();
     d_commandStatus = CommandSuccess::instance();
@@ -1357,7 +1357,7 @@ void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) throw() {
   }
 }
 
-void GetUnsatCoreCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void GetUnsatCoreCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -1391,7 +1391,7 @@ std::string GetUnsatCoreCommand::getCommandName() const throw() {
 GetAssertionsCommand::GetAssertionsCommand() throw() {
 }
 
-void GetAssertionsCommand::invoke(SmtEngine* smtEngine) throw() {
+void GetAssertionsCommand::invoke(SmtEngine* smtEngine) {
   try {
     stringstream ss;
     const vector<Expr> v = smtEngine->getAssertions();
@@ -1409,7 +1409,7 @@ std::string GetAssertionsCommand::getResult() const throw() {
   return d_result;
 }
 
-void GetAssertionsCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void GetAssertionsCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
@@ -1443,7 +1443,7 @@ BenchmarkStatus SetBenchmarkStatusCommand::getStatus() const throw() {
   return d_status;
 }
 
-void SetBenchmarkStatusCommand::invoke(SmtEngine* smtEngine) throw() {
+void SetBenchmarkStatusCommand::invoke(SmtEngine* smtEngine) {
   try {
     stringstream ss;
     ss << d_status;
@@ -1477,7 +1477,7 @@ std::string SetBenchmarkLogicCommand::getLogic() const throw() {
   return d_logic;
 }
 
-void SetBenchmarkLogicCommand::invoke(SmtEngine* smtEngine) throw() {
+void SetBenchmarkLogicCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->setLogic(d_logic);
     d_commandStatus = CommandSuccess::instance();
@@ -1513,7 +1513,7 @@ SExpr SetInfoCommand::getSExpr() const throw() {
   return d_sexpr;
 }
 
-void SetInfoCommand::invoke(SmtEngine* smtEngine) throw() {
+void SetInfoCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->setInfo(d_flag, d_sexpr);
     d_commandStatus = CommandSuccess::instance();
@@ -1547,7 +1547,7 @@ std::string GetInfoCommand::getFlag() const throw() {
   return d_flag;
 }
 
-void GetInfoCommand::invoke(SmtEngine* smtEngine) throw() {
+void GetInfoCommand::invoke(SmtEngine* smtEngine) {
   try {
     vector<SExpr> v;
     v.push_back(SExpr(SExpr::Keyword(string(":") + d_flag)));
@@ -1570,7 +1570,7 @@ std::string GetInfoCommand::getResult() const throw() {
   return d_result;
 }
 
-void GetInfoCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void GetInfoCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else if(d_result != "") {
@@ -1609,7 +1609,7 @@ SExpr SetOptionCommand::getSExpr() const throw() {
   return d_sexpr;
 }
 
-void SetOptionCommand::invoke(SmtEngine* smtEngine) throw() {
+void SetOptionCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->setOption(d_flag, d_sexpr);
     d_commandStatus = CommandSuccess::instance();
@@ -1642,7 +1642,7 @@ std::string GetOptionCommand::getFlag() const throw() {
   return d_flag;
 }
 
-void GetOptionCommand::invoke(SmtEngine* smtEngine) throw() {
+void GetOptionCommand::invoke(SmtEngine* smtEngine) {
   try {
     SExpr res = smtEngine->getOption(d_flag);
     d_result = res.toString();
@@ -1658,7 +1658,7 @@ std::string GetOptionCommand::getResult() const throw() {
   return d_result;
 }
 
-void GetOptionCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+void GetOptionCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else if(d_result != "") {
@@ -1698,7 +1698,7 @@ DatatypeDeclarationCommand::getDatatypes() const throw() {
   return d_datatypes;
 }
 
-void DatatypeDeclarationCommand::invoke(SmtEngine* smtEngine) throw() {
+void DatatypeDeclarationCommand::invoke(SmtEngine* smtEngine) {
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1749,7 +1749,7 @@ const RewriteRuleCommand::Triggers& RewriteRuleCommand::getTriggers() const thro
   return d_triggers;
 }
 
-void RewriteRuleCommand::invoke(SmtEngine* smtEngine) throw() {
+void RewriteRuleCommand::invoke(SmtEngine* smtEngine) {
   try {
     ExprManager* em = smtEngine->getExprManager();
     /** build vars list */
@@ -1861,7 +1861,7 @@ bool PropagateRuleCommand::isDeduction() const throw() {
   return d_deduction;
 }
 
-void PropagateRuleCommand::invoke(SmtEngine* smtEngine) throw() {
+void PropagateRuleCommand::invoke(SmtEngine* smtEngine) {
   try {
     ExprManager* em = smtEngine->getExprManager();
     /** build vars list */
