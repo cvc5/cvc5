@@ -482,19 +482,19 @@ bool VarMatchGeneratorTermSubs::getNextMatch( Node q, InstMatch& m, QuantifiersE
 /** constructors */
 InstMatchGeneratorMulti::InstMatchGeneratorMulti( Node q, std::vector< Node >& pats, QuantifiersEngine* qe ) :
 d_f( q ){
-  Debug("smart-multi-trigger") << "Making smart multi-trigger for " << q << std::endl;
+  Trace("smart-multi-trigger") << "Making smart multi-trigger for " << q << std::endl;
   std::map< Node, std::vector< Node > > var_contains;
   qe->getTermDatabase()->getVarContains( q, pats, var_contains );
   //convert to indicies
   for( std::map< Node, std::vector< Node > >::iterator it = var_contains.begin(); it != var_contains.end(); ++it ){
-    Debug("smart-multi-trigger") << "Pattern " << it->first << " contains: ";
+    Trace("smart-multi-trigger") << "Pattern " << it->first << " contains: ";
     for( int i=0; i<(int)it->second.size(); i++ ){
-      Debug("smart-multi-trigger") << it->second[i] << " ";
+      Trace("smart-multi-trigger") << it->second[i] << " ";
       int index = it->second[i].getAttribute(InstVarNumAttribute());
       d_var_contains[ it->first ].push_back( index );
       d_var_to_node[ index ].push_back( it->first );
     }
-    Debug("smart-multi-trigger") << std::endl;
+    Trace("smart-multi-trigger") << std::endl;
   }
   for( unsigned i=0; i<pats.size(); i++ ){
     Node n = pats[i];
@@ -506,7 +506,7 @@ d_f( q ){
     int numSharedVars = 0;
     for( unsigned j=0; j<d_var_contains[n].size(); j++ ){
       if( d_var_to_node[ d_var_contains[n][j] ].size()==1 ){
-        Debug("smart-multi-trigger") << "Var " << d_var_contains[n][j] << " is unique to " << pats[i] << std::endl;
+        Trace("smart-multi-trigger") << "Var " << d_var_contains[n][j] << " is unique to " << pats[i] << std::endl;
         unique_vars.push_back( d_var_contains[n][j] );
       }else{
         shared_vars[ d_var_contains[n][j] ] = true;
@@ -530,11 +530,11 @@ d_f( q ){
       index = index==0 ? (int)(pats.size()-1) : (index-1);
     }
     vars.insert( vars.end(), unique_vars.begin(), unique_vars.end() );
-    Debug("smart-multi-trigger") << "   Index[" << i << "]: ";
+    Trace("smart-multi-trigger") << "   Index[" << i << "]: ";
     for( unsigned j=0; j<vars.size(); j++ ){
-      Debug("smart-multi-trigger") << vars[j] << " ";
+      Trace("smart-multi-trigger") << vars[j] << " ";
     }
-    Debug("smart-multi-trigger") << std::endl;
+    Trace("smart-multi-trigger") << std::endl;
     //make ordered inst match trie
     d_imtio[i] = new InstMatchTrie::ImtIndexOrder;
     d_imtio[i]->d_order.insert( d_imtio[i]->d_order.begin(), vars.begin(), vars.end() );
@@ -567,9 +567,9 @@ void InstMatchGeneratorMulti::reset( Node eqc, QuantifiersEngine* qe ){
 
 int InstMatchGeneratorMulti::addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe ){
   int addedLemmas = 0;
-  Debug("smart-multi-trigger") << "Process smart multi trigger" << std::endl;
+  Trace("smart-multi-trigger") << "Process smart multi trigger" << std::endl;
   for( unsigned i=0; i<d_children.size(); i++ ){
-    Debug("smart-multi-trigger") << "Calculate matches " << i << std::endl;
+    Trace("smart-multi-trigger") << "Calculate matches " << i << std::endl;
     std::vector< InstMatch > newMatches;
     InstMatch m( q );
     while( d_children[i]->getNextMatch( q, m, qe ) ){
@@ -577,8 +577,9 @@ int InstMatchGeneratorMulti::addInstantiations( Node q, InstMatch& baseMatch, Qu
       newMatches.push_back( InstMatch( &m ) );
       m.clear();
     }
-    Debug("smart-multi-trigger") << "Made " << newMatches.size() << " new matches for index " << i << std::endl;
+    Trace("smart-multi-trigger") << "Made " << newMatches.size() << " new matches for index " << i << std::endl;
     for( unsigned j=0; j<newMatches.size(); j++ ){
+      Trace("smart-multi-trigger2") << "...processing " << j << " / " << newMatches.size() << ", #lemmas = " << addedLemmas << std::endl;
       processNewMatch( qe, newMatches[j], i, addedLemmas );
       if( qe->inConflict() ){
         return addedLemmas;
@@ -594,7 +595,7 @@ void InstMatchGeneratorMulti::processNewMatch( QuantifiersEngine* qe, InstMatch&
   //possibly only do the following if we know that new matches will be produced?
   //the issue is that instantiations are filtered in quantifiers engine, and so there is no guarentee that
   // we can safely skip the following lines, even when we have already produced this match.
-  Debug("smart-multi-trigger") << "Child " << fromChildIndex << " produced match " << m << std::endl;
+  Trace("smart-multi-trigger-debug") << "Child " << fromChildIndex << " produced match " << m << std::endl;
   //process new instantiations
   int childIndex = (fromChildIndex+1)%(int)d_children.size();
   std::vector< IndexedTrie > unique_var_tries;
@@ -696,7 +697,7 @@ void InstMatchGeneratorMulti::processNewInstantiations2( QuantifiersEngine* qe, 
     //m is an instantiation
     if( qe->addInstantiation( d_f, m ) ){
       addedLemmas++;
-      Debug("smart-multi-trigger") << "-> Produced instantiation " << m << std::endl;
+      Trace("smart-multi-trigger-debug") << "-> Produced instantiation " << m << std::endl;
     }
   }
 }
