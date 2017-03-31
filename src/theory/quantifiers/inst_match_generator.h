@@ -37,9 +37,9 @@ public:
   /** reset instantiation round (call this at beginning of instantiation round) */
   virtual void resetInstantiationRound( QuantifiersEngine* qe ) = 0;
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
-  virtual void reset( Node eqc, QuantifiersEngine* qe ) = 0;
+  virtual bool reset( Node eqc, QuantifiersEngine* qe ) = 0;
   /** get the next match.  must call reset( eqc ) before this function. */
-  virtual bool getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe ) = 0;
+  virtual int getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe ) = 0;
   /** add instantiations directly */
   virtual int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe ) = 0;
   /** set active add */
@@ -67,12 +67,18 @@ protected:
   Node d_eq_class_rel;
   /** variable numbers */
   std::map< int, int > d_var_num;
+  /** excluded matches */
+  std::map< Node, bool > d_curr_exclude_match;
+  /** first candidate */
+  Node d_curr_first_candidate;
+  /** indepdendent generate (failures should be cached) */
+  bool d_independent_gen;
   /** initialize pattern */
   void initialize( Node q, QuantifiersEngine* qe, std::vector< InstMatchGenerator * > & gens );
   /** children types 0 : variable, 1 : child term, -1 : ground term */
   std::vector< int > d_children_types;
   /** continue */
-  bool continueNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe );
+  int continueNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe );
 public:
   enum {
     //options for producing matches
@@ -85,7 +91,7 @@ public:
       d_match_pattern and t should have the same shape.
       only valid for use where !d_match_pattern.isNull().
   */
-  bool getMatch( Node q, Node t, InstMatch& m, QuantifiersEngine* qe );
+  int getMatch( Node q, Node t, InstMatch& m, QuantifiersEngine* qe );
 
   /** constructors */
   InstMatchGenerator( Node pat );
@@ -102,22 +108,28 @@ public:
   TypeNode d_match_pattern_type;
   /** match pattern op */
   Node d_match_pattern_op;
+  /** what matched */
+  Node d_curr_matched;
 public:
   /** reset instantiation round (call this whenever equivalence classes have changed) */
   void resetInstantiationRound( QuantifiersEngine* qe );
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
-  void reset( Node eqc, QuantifiersEngine* qe );
+  bool reset( Node eqc, QuantifiersEngine* qe );
   /** get the next match.  must call reset( eqc ) before this function. */
-  bool getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe );
+  int getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe );
   /** add instantiations */
   int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe );
 
   bool d_active_add;
   void setActiveAdd( bool val );
   int getActiveScore( QuantifiersEngine * qe );
+  void excludeMatch( Node n ) { d_curr_exclude_match[n] = true; }
+  void setIndependent() { d_independent_gen = true; }
 
   static InstMatchGenerator* mkInstMatchGenerator( Node q, Node pat, QuantifiersEngine* qe );
-  static InstMatchGenerator* mkInstMatchGenerator( Node q, std::vector< Node >& pats, QuantifiersEngine* qe );
+  static InstMatchGenerator* mkInstMatchGeneratorMulti( Node q, std::vector< Node >& pats, QuantifiersEngine* qe );
+  static InstMatchGenerator* mkInstMatchGenerator( Node q, std::vector< Node >& pats, QuantifiersEngine* qe, 
+                                                   std::map< Node, InstMatchGenerator * >& pat_map_init );
 };/* class InstMatchGenerator */
 
 //match generator for boolean term ITEs
@@ -130,9 +142,12 @@ public:
   /** reset instantiation round (call this at beginning of instantiation round) */
   void resetInstantiationRound( QuantifiersEngine* qe ){}
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
-  void reset( Node eqc, QuantifiersEngine* qe ){ d_eq_class = eqc; }
+  bool reset( Node eqc, QuantifiersEngine* qe ){ 
+    d_eq_class = eqc; 
+    return true;
+  }
   /** get the next match.  must call reset( eqc ) before this function. */
-  bool getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe );
+  int getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe );
   /** add instantiations directly */
   int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe ){ return 0; }
 };
@@ -149,12 +164,30 @@ public:
   /** reset instantiation round (call this at beginning of instantiation round) */
   void resetInstantiationRound( QuantifiersEngine* qe ){}
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
-  void reset( Node eqc, QuantifiersEngine* qe ){ d_eq_class = eqc; }
+  bool reset( Node eqc, QuantifiersEngine* qe ){ 
+    d_eq_class = eqc; 
+    return true;
+  }
   /** get the next match.  must call reset( eqc ) before this function. */
-  bool getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe );
+  int getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe );
   /** add instantiations directly */
   int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe ) { return 0; }
 };
+
+
+/** smart multi-trigger implementation */
+class InstMatchGeneratorMultiLinear : public InstMatchGenerator {
+public:
+  /** constructors */
+  InstMatchGeneratorMultiLinear( Node q, std::vector< Node >& pats, QuantifiersEngine* qe );
+  /** destructor */
+  virtual ~InstMatchGeneratorMultiLinear() throw();
+  /** reset, eqc is the equivalence class to search in (any if eqc=null) */
+  bool reset( Node eqc, QuantifiersEngine* qe );
+  /** get the next match.  must call reset( eqc ) before this function.*/
+  int getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe );
+};/* class InstMatchGeneratorMulti */
+
 
 /** smart multi-trigger implementation */
 class InstMatchGeneratorMulti : public IMGenerator {
@@ -196,9 +229,9 @@ public:
   /** reset instantiation round (call this whenever equivalence classes have changed) */
   void resetInstantiationRound( QuantifiersEngine* qe );
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
-  void reset( Node eqc, QuantifiersEngine* qe );
+  bool reset( Node eqc, QuantifiersEngine* qe );
   /** get the next match.  must call reset( eqc ) before this function. (not implemented) */
-  bool getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe ) { return false; }
+  int getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe ) { return -1; }
   /** add instantiations */
   int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe );
 };/* class InstMatchGeneratorMulti */
@@ -229,9 +262,9 @@ public:
   /** reset instantiation round (call this whenever equivalence classes have changed) */
   void resetInstantiationRound( QuantifiersEngine* qe );
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
-  void reset( Node eqc, QuantifiersEngine* qe ) {}
+  bool reset( Node eqc, QuantifiersEngine* qe ) { return true; }
   /** get the next match.  must call reset( eqc ) before this function. (not implemented) */
-  bool getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe ) { return false; }
+  int getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe ) { return -1; }
   /** add instantiations */
   int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe );
   /** get active score */

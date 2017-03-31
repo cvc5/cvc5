@@ -67,11 +67,6 @@ class Trigger {
   void reset( Node eqc );
   /** get next match.  must call reset( eqc ) once before this function. */
   bool getNextMatch( Node f, InstMatch& m );
-  /** get the match against ground term or formula t.
-      the trigger and t should have the same shape.
-      Currently the trigger should not be a multi-trigger.
-  */
-  bool getMatch( Node f, Node t, InstMatch& m);
   /** return whether this is a multi-trigger */
   bool isMultiTrigger() { return d_nodes.size()>1; }
   /** get inst pattern list */

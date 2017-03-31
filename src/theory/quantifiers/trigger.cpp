@@ -58,7 +58,12 @@ Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes )
       d_mg->setActiveAdd(true);
     }
   }else{
-    d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe );
+    if( options::multiTriggerLinear() ){
+      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti( f, d_nodes, qe );
+      d_mg->setActiveAdd(true);
+    }else{
+      d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe );
+    }
     //d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes, qe );
     //d_mg->setActiveAdd();
   }
@@ -92,13 +97,8 @@ void Trigger::reset( Node eqc ){
 }
 
 bool Trigger::getNextMatch( Node f, InstMatch& m ){
-  bool retVal = d_mg->getNextMatch( f, m, d_quantEngine );
-  return retVal;
-}
-
-bool Trigger::getMatch( Node f, Node t, InstMatch& m ){
-  //FIXME: this assumes d_mg is an inst match generator
-  return ((InstMatchGenerator*)d_mg)->getMatch( f, t, m, d_quantEngine );
+  int retVal = d_mg->getNextMatch( f, m, d_quantEngine );
+  return retVal>0;
 }
 
 Node Trigger::getInstPattern(){

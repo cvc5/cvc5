@@ -91,6 +91,8 @@ option multiTriggerWhenSingle --multi-trigger-when-single bool :default false
  select multi triggers when single triggers exist
 option multiTriggerPriority --multi-trigger-priority bool :default false
  only try multi triggers if single triggers give no instantiations
+option multiTriggerLinear --multi-trigger-linear bool :default false
+ implementation of multi triggers where maximum number of instantiations is linear wrt number of ground terms
 option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_MIN :read-write :include "options/quantifiers_modes.h" :handler  stringToTriggerSelMode
  selection mode for triggers
 option triggerActiveSelMode --trigger-active-sel CVC4::theory::quantifiers::TriggerActiveSelMode :default CVC4::theory::quantifiers::TRIGGER_ACTIVE_SEL_ALL :read-write :include "options/quantifiers_modes.h" :handler stringToTriggerActiveSelMode

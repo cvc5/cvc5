@@ -80,8 +80,6 @@ public:
   /** set */
   void setValue( int i, TNode n );
   bool set( QuantifiersEngine* qe, int i, TNode n );
-  /* Node used for matching the trigger */
-  Node d_matched;
 };/* class InstMatch */
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
