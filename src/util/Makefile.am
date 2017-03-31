@@ -44,6 +44,8 @@ libutil_la_SOURCES = \
 	resource_manager.h \
 	result.cpp \
 	result.h \
+	safe_print.cpp \
+	safe_print.h \
 	sexpr.cpp \
 	sexpr.h \
 	smt2_quote_string.cpp \

@@ -146,14 +146,20 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 
   // Auto-detect input language by filename extension
-  const char* filename = inputFromStdin ? "<stdin>" : filenames[0].c_str();
+  std::string filenameStr("<stdin>");
+  if (!inputFromStdin) {
+    // Use swap to avoid copying the string
+    // TODO: use std::move() when switching to c++11
+    filenameStr.swap(filenames[0]);
+  }
+  const char* filename = filenameStr.c_str();
 
   if(opts.getInputLanguage() == language::input::LANG_AUTO) {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
       opts.setInputLanguage(language::input::LANG_CVC4);
     } else {
-      unsigned len = strlen(filename);
+      unsigned len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
         opts.setInputLanguage(language::input::LANG_SMTLIB_V2_5);
       } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
@@ -264,7 +270,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                                     pTotalTime);
 
     // Filename statistics
-    ReferenceStat< const char* > s_statFilename("filename", filename);
+    ReferenceStat<std::string> s_statFilename("filename", filenameStr);
     RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
                                       &s_statFilename);
 

@@ -5573,6 +5573,10 @@ SExpr SmtEngine::getStatistic(std::string name) const throw() {
   return d_statisticsRegistry->getStatistic(name);
 }
 
+void SmtEngine::safeFlushStatistics(int fd) const {
+  d_statisticsRegistry->safeFlushInformation(fd);
+}
+
 void SmtEngine::setUserAttribute(const std::string& attr, Expr expr, std::vector<Expr> expr_values, std::string str_value) {
   SmtScope smts(this);
   std::vector<Node> node_values;

@@ -182,6 +182,12 @@ void StatisticsRegistry::flushInformation(std::ostream &out) const {
 #endif /* CVC4_STATISTICS_ON */
 }
 
+void StatisticsRegistry::safeFlushInformation(int fd) const {
+#ifdef CVC4_STATISTICS_ON
+  this->StatisticsBase::safeFlushInformation(fd);
+#endif /* CVC4_STATISTICS_ON */
+}
+
 void TimerStat::start() {
   if(__CVC4_USE_STATISTICS) {
     PrettyCheckArgument(!d_running, *this, "timer already running");
