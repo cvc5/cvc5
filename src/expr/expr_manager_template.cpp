@@ -1039,6 +1039,10 @@ SExpr ExprManager::getStatistic(const std::string& name) const throw() {
   return d_nodeManager->getStatisticsRegistry()->getStatistic(name);
 }
 
+void ExprManager::safeFlushStatistics(int fd) const {
+  d_nodeManager->getStatisticsRegistry()->safeFlushInformation(fd);
+}
+
 namespace expr {
 
 Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap);

@@ -69,6 +69,15 @@ public:
     d_stats.flushInformation(out);
   }
 
+  /**
+   * Flushes statistics to a file descriptor. Safe to use in a signal handler.
+   */
+  void safeFlushStatistics(int fd) const {
+    d_exprMgr.safeFlushStatistics(fd);
+    d_smtEngine->safeFlushStatistics(fd);
+    d_stats.safeFlushInformation(fd);
+  }
+
   static void printStatsFilterZeros(std::ostream& out,
                                     const std::string& statsString);
 

@@ -722,6 +722,11 @@ public:
   SExpr getStatistic(std::string name) const throw();
 
   /**
+   * Flush statistic from this SmtEngine. Safe to use in a signal handler.
+   */
+  void safeFlushStatistics(int fd) const;
+
+  /**
    * Returns the most recent result of checkSat/query or (set-info :status).
    */
   Result getStatusOfLastCommand() const throw() {

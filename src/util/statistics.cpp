@@ -19,6 +19,7 @@
 
 #include <typeinfo>
 
+#include "util/safe_print.h"
 #include "util/statistics_registry.h" // for details about class Stat
 
 
@@ -112,6 +113,20 @@ void StatisticsBase::flushInformation(std::ostream &out) const {
     }
     s->flushStat(out);
     out << std::endl;
+  }
+#endif /* CVC4_STATISTICS_ON */
+}
+
+void StatisticsBase::safeFlushInformation(int fd) const {
+#ifdef CVC4_STATISTICS_ON
+  for (StatSet::iterator i = d_stats.begin(); i != d_stats.end(); ++i) {
+    Stat* s = *i;
+    if (d_prefix.size() != 0) {
+      safe_print(fd, d_prefix.c_str());
+      safe_print(fd, s_regDelim.c_str());
+    }
+    s->safeFlushStat(fd);
+    safe_print(fd, "\n");
   }
 #endif /* CVC4_STATISTICS_ON */
 }
