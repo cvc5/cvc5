@@ -83,6 +83,8 @@ namespace inferbounds {
 }
 class InferBoundsResult;
 
+class NonlinearExtension;
+
 /**
  * Implementation of QF_LRA.
  * Based upon:
@@ -127,8 +129,6 @@ private:
   /** Static learner. */
   ArithStaticLearner d_learner;
 
-  /** quantifiers engine */
-  QuantifiersEngine * d_quantEngine;
   //std::vector<ArithVar> d_pool;
 public:
   void releaseArithVar(ArithVar v);
@@ -373,6 +373,9 @@ private:
   FCSimplexDecisionProcedure d_fcSimplex;
   SumOfInfeasibilitiesSPD d_soiSimplex;
   AttemptSolutionSDP d_attemptSolSimplex;
+  
+  /** non-linear algebraic approach */
+  NonlinearExtension * d_nonlinearExtension;
 
   bool solveRealRelaxation(Theory::Effort effortLevel);
 
@@ -432,9 +435,11 @@ public:
   void setQuantifiersEngine(QuantifiersEngine* qe);
 
   void check(Theory::Effort e);
+  bool needsCheckLastEffort();
   void propagate(Theory::Effort e);
   Node explain(TNode n);
-
+  bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
+  bool isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp );
 
   Rational deltaValueForTotalOrder() const;
 

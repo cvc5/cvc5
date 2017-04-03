@@ -37,6 +37,10 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
     , d_ppRewriteTimer("theory::arith::ppRewriteTimer")
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
+  if (options::nlAlg()) {
+    setupExtTheory();
+    getExtTheory()->addFunctionKind(kind::NONLINEAR_MULT);
+  }
 }
 
 TheoryArith::~TheoryArith(){
@@ -54,11 +58,6 @@ Node TheoryArith::expandDefinition(LogicRequest &logicRequest, Node node) {
 
 void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_internal->setMasterEqualityEngine(eq);
-}
-
-void TheoryArith::setQuantifiersEngine(QuantifiersEngine* qe) {
-  this->Theory::setQuantifiersEngine(qe);
-  d_internal->setQuantifiersEngine(qe);
 }
 
 void TheoryArith::addSharedTerm(TNode n){
@@ -83,8 +82,20 @@ void TheoryArith::check(Effort effortLevel){
   d_internal->check(effortLevel);
 }
 
+bool TheoryArith::needsCheckLastEffort() {
+  return d_internal->needsCheckLastEffort();
+}
+
 Node TheoryArith::explain(TNode n) {
   return d_internal->explain(n);
+}
+
+bool TheoryArith::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
+  return d_internal->getCurrentSubstitution( effort, vars, subs, exp );
+}
+
+bool TheoryArith::isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp ) {
+  return d_internal->isExtfReduced( effort, n, on, exp );
 }
 
 void TheoryArith::propagate(Effort e) {

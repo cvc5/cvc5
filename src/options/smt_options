@@ -162,4 +162,7 @@ option forceNoLimitCpuWhileDump --force-no-limit-cpu-while-dump bool :default fa
 undocumented-option solveIntAsBV --solve-int-as-bv uint32_t :default 0
  attempt to solve a pure integer satisfiable problem by bitblasting in sufficient bitwidth (experimental)
 
+undocumented-option solveRealAsInt --solve-real-as-int bool :default false
+ attempt to solve a pure real satisfiable problem as a integer problem (for non-linear)
+
 endmodule

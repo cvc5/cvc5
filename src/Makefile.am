@@ -220,6 +220,8 @@ libcvc4_la_SOURCES = \
 	theory/arith/linear_equality.h \
 	theory/arith/matrix.cpp \
 	theory/arith/matrix.h \
+	theory/arith/nonlinear_extension.h \
+	theory/arith/nonlinear_extension.cpp \
 	theory/arith/normal_form.cpp \
 	theory/arith/normal_form.h\
 	theory/arith/partial_model.cpp \
