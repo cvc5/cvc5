@@ -487,7 +487,7 @@ private:
   static Node multList(const std::vector<Variable>& list) {
     Assert(list.size() >= 2);
 
-    return makeNode(kind::MULT, list.begin(), list.end());
+    return makeNode(kind::NONLINEAR_MULT, list.begin(), list.end());
   }
 
   VarList() : NodeWrapper(Node::null()) {}
@@ -589,7 +589,7 @@ public:
 
   bool empty() const { return getNode().isNull(); }
   bool singleton() const {
-    return !empty() && getNode().getKind() != kind::MULT;
+    return !empty() && getNode().getKind() != kind::NONLINEAR_MULT;
   }
 
   int size() const {

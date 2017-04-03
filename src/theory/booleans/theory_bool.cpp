@@ -66,7 +66,6 @@ void TheoryBool::check(Effort level) {
     // Get all the assertions
     Assertion assertion = get();
     TNode fact = assertion.assertion;
-    Trace("ajr-bool") << "Assert : " << fact << std::endl;
   }
   if( Theory::fullEffort(level) ){
   }

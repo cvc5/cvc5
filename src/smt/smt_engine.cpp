@@ -584,8 +584,10 @@ private:
    */
   void removeITEs();
 
+  Node realToInt(TNode n, NodeToNodeHashMap& cache, std::vector< Node >& var_eq);
   Node intToBV(TNode n, NodeToNodeHashMap& cache);
   Node intToBVMakeBinary(TNode n, NodeToNodeHashMap& cache);
+  Node purifyNlTerms(TNode n, NodeToNodeHashMap& cache, NodeToNodeHashMap& bcache, std::vector< Node >& var_eq, bool beneathMult = false);
 
   /**
    * Helper function to fix up assertion list to restore invariants needed after
@@ -1272,9 +1274,10 @@ void SmtEngine::setLogicInternal() throw() {
 void SmtEngine::setDefaults() {
   if(options::forceLogicString.wasSetByUser()) {
     d_logic = LogicInfo(options::forceLogicString());
-  }
-  else if (options::solveIntAsBV() > 0) {
+  }else if (options::solveIntAsBV() > 0) {
     d_logic = LogicInfo("QF_BV");
+  }else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt()) {
+    d_logic = LogicInfo("QF_NIA");
   } else if ((d_logic.getLogicString() == "QF_UFBV" ||
               d_logic.getLogicString() == "QF_ABV") &&
              options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
@@ -1604,7 +1607,7 @@ void SmtEngine::setDefaults() {
 
   // Turn on arith rewrite equalities only for pure arithmetic
   if(! options::arithRewriteEq.wasSetByUser()) {
-    bool arithRewriteEq = d_logic.isPure(THEORY_ARITH) && !d_logic.isQuantified();
+    bool arithRewriteEq = d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isQuantified();
     Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq << endl;
     options::arithRewriteEq.set(arithRewriteEq);
   }
@@ -1976,9 +1979,8 @@ void SmtEngine::setDefaults() {
     options::arraysLazyRIntro1.set(false);
   }
 
-  // Non-linear arithmetic does not support models
-  if (d_logic.isTheoryEnabled(THEORY_ARITH) &&
-      !d_logic.isLinear()) {
+  // Non-linear arithmetic does not support models unless nlAlg is enabled
+  if (d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear() && !options::nlAlg() ) {
     if (options::produceModels()) {
       if(options::produceModels.wasSetByUser()) {
         throw OptionException("produce-model not supported with nonlinear arith");
@@ -2658,6 +2660,135 @@ Node SmtEnginePrivate::intToBV(TNode n, NodeMap& cache) {
     }
   }
   return cache[n_binary];
+}
+
+Node SmtEnginePrivate::realToInt(TNode n, NodeMap& cache, std::vector< Node >& var_eq) {
+  Trace("real-as-int-debug") << "Convert : " << n << std::endl;
+  NodeMap::iterator find = cache.find(n);
+  if (find != cache.end()) {
+    return (*find).second;
+  }else{
+    Node ret = n;
+    if( n.getNumChildren()>0 ){
+      if( n.getKind()==kind::EQUAL || n.getKind()==kind::GEQ || n.getKind()==kind::LT || n.getKind()==kind::GT || n.getKind()==kind::LEQ ){
+        ret = Rewriter::rewrite( n );
+        Trace("real-as-int-debug") << "Now looking at : " << ret << std::endl;
+        if( !ret.isConst() ){
+          Node ret_lit = ret.getKind()==kind::NOT ? ret[0] : ret;
+          bool ret_pol = ret.getKind()!=kind::NOT;
+          std::map< Node, Node > msum;
+          if( QuantArith::getMonomialSumLit( ret_lit, msum ) ){
+            //get common coefficient
+            std::vector< Node > coeffs;
+            for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
+              Node v = itm->first;
+              Node c = itm->second;
+              if( !c.isNull() ){
+                Assert( c.isConst() );
+                coeffs.push_back( NodeManager::currentNM()->mkConst( Rational( c.getConst<Rational>().getDenominator() ) ) );
+              }
+            }
+            Node cc = coeffs.empty() ? Node::null() : ( coeffs.size()==1 ? coeffs[0] : Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::MULT, coeffs ) ) );
+            std::vector< Node > sum;
+            for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
+              Node v = itm->first;
+              Node c = itm->second;
+              Node s;
+              if( c.isNull() ){
+                c = cc.isNull() ? NodeManager::currentNM()->mkConst( Rational( 1 ) ) : cc;
+              }else{
+                if( !cc.isNull() ){
+                  c = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::MULT, c, cc ) );
+                }
+              }
+              Assert( c.getType().isInteger() );
+              if( v.isNull() ){
+                sum.push_back( c );
+              }else{
+                Node vv = realToInt( v, cache, var_eq );
+                if( vv.getType().isInteger() ){
+                  sum.push_back( NodeManager::currentNM()->mkNode( kind::MULT, c, vv ) );
+                }else{
+                  throw TypeCheckingException(v.toExpr(), string("Cannot translate to Int: ") + v.toString());
+                }
+              }
+            }
+            Node sumt = sum.empty() ? NodeManager::currentNM()->mkConst( Rational( 0 ) ) : ( sum.size()==1 ? sum[0] : NodeManager::currentNM()->mkNode( kind::PLUS, sum ) );
+            ret = NodeManager::currentNM()->mkNode( ret_lit.getKind(), sumt, NodeManager::currentNM()->mkConst( Rational( 0 ) ) );
+            if( !ret_pol ){
+              ret = ret.negate();
+            }
+            Trace("real-as-int") << "Convert : " << std::endl;
+            Trace("real-as-int") << "   " << n << std::endl;
+            Trace("real-as-int") << "   " << ret << std::endl;
+          }else{
+            throw TypeCheckingException(n.toExpr(), string("Cannot translate to Int: ") + n.toString());
+          }
+        }
+      }else{
+        bool childChanged = false;
+        std::vector< Node > children;
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          Node nc = realToInt( n[i], cache, var_eq );
+          childChanged = childChanged || nc!=n[i];
+          children.push_back( nc );
+        }
+        if( childChanged ){
+          ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+        }
+      }
+    }else{
+      if( n.isVar() ){
+        if( !n.getType().isInteger() ){
+          ret = NodeManager::currentNM()->mkSkolem("__realToInt_var", NodeManager::currentNM()->integerType(), "Variable introduced in realToInt pass");
+          var_eq.push_back( n.eqNode( ret ) );
+        }
+      }
+    }
+    cache[n] = ret;
+    return ret;
+  }
+}
+
+Node SmtEnginePrivate::purifyNlTerms(TNode n, NodeMap& cache, NodeMap& bcache, std::vector< Node >& var_eq, bool beneathMult) {
+  if( beneathMult ){
+    NodeMap::iterator find = bcache.find(n);
+    if (find != bcache.end()) {
+      return (*find).second;
+    }
+  }else{
+    NodeMap::iterator find = cache.find(n);
+    if (find != cache.end()) {
+      return (*find).second;
+    }
+  }
+  Node ret = n;
+  if( n.getNumChildren()>0 ){
+    if( beneathMult && n.getKind()!=kind::MULT ){
+      //new variable
+      ret = NodeManager::currentNM()->mkSkolem("__purifyNl_var", n.getType(), "Variable introduced in purifyNl pass");
+      Node np = purifyNlTerms( n, cache, bcache, var_eq, false );
+      var_eq.push_back( np.eqNode( ret ) );
+    }else{
+      bool beneathMultNew = beneathMult || n.getKind()==kind::MULT;
+      bool childChanged = false;
+      std::vector< Node > children;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        Node nc = purifyNlTerms( n[i], cache, bcache, var_eq, beneathMultNew );
+        childChanged = childChanged || nc!=n[i];
+        children.push_back( nc );
+      }
+      if( childChanged ){
+        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+      }
+    }
+  }
+  if( beneathMult ){
+    bcache[n] = ret;
+  }else{
+    cache[n] = ret;
+  }
+  return ret;
 }
 
 void SmtEnginePrivate::removeITEs() {
@@ -3866,6 +3997,20 @@ void SmtEnginePrivate::processAssertions() {
      );
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
+  
+  if( options::nlAlgPurify() ){
+    hash_map<Node, Node, NodeHashFunction> cache;
+    hash_map<Node, Node, NodeHashFunction> bcache;
+    std::vector< Node > var_eq;
+    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+      d_assertions.replace(i, purifyNlTerms(d_assertions[i], cache, bcache, var_eq));
+    }
+    if( !var_eq.empty() ){
+      unsigned lastIndex = d_assertions.size()-1;
+      var_eq.insert( var_eq.begin(), d_assertions[lastIndex] );
+      d_assertions.replace(lastIndex, NodeManager::currentNM()->mkNode( kind::AND, var_eq ) );
+    }
+  }
 
   if( options::ceGuidedInst() ){
     //register sygus conjecture pre-rewrite (motivated by solution reconstruction)
@@ -3873,7 +4018,23 @@ void SmtEnginePrivate::processAssertions() {
       d_smt.d_theoryEngine->getQuantifiersEngine()->getCegInstantiation()->preregisterAssertion( d_assertions[i] );
     }
   }
-
+  
+  if (options::solveRealAsInt()) {
+    Chat() << "converting reals to ints..." << endl;
+    hash_map<Node, Node, NodeHashFunction> cache;
+    std::vector< Node > var_eq;
+    for(unsigned i = 0; i < d_assertions.size(); ++ i) {
+      d_assertions.replace(i, realToInt(d_assertions[i], cache, var_eq));
+    }
+   /*
+    if( !var_eq.empty() ){
+      unsigned lastIndex = d_assertions.size()-1;
+      var_eq.insert( var_eq.begin(), d_assertions[lastIndex] );
+      d_assertions.replace(last_index, NodeManager::currentNM()->mkNode( kind::AND, var_eq ) );
+    }
+    */  
+  } 
+  
   if (options::solveIntAsBV() > 0) {
     Chat() << "converting ints to bit-vectors..." << endl;
     hash_map<Node, Node, NodeHashFunction> cache;
@@ -4361,7 +4522,7 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
     Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
     r = isQuery ? check().asValidityResult() : check().asSatisfiabilityResult();
 
-    if (options::solveIntAsBV() > 0 &&r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+    if ( ( options::solveRealAsInt() || options::solveIntAsBV() > 0 ) && r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
       r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
     }
 

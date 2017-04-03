@@ -2230,14 +2230,67 @@ void TheoryEngine::checkTheoryAssertionsWithModel() {
 
 std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, TNode lit, const EntailmentCheckParameters* params, EntailmentCheckSideEffects* seffects) {
   TNode atom = (lit.getKind() == kind::NOT) ? lit[0] : lit;
-  theory::TheoryId tid = theory::Theory::theoryOf(mode, atom);
-  theory::Theory* th = theoryOf(tid);
+  if( atom.getKind()==kind::AND || atom.getKind()==kind::OR || atom.getKind()==kind::IMPLIES ){
+    //Boolean connective, recurse
+    std::vector< Node > children;
+    bool pol = (lit.getKind()!=kind::NOT);
+    bool is_conjunction = pol==(lit.getKind()==kind::AND);
+    for( unsigned i=0; i<atom.getNumChildren(); i++ ){
+      Node ch = atom[i];
+      if( pol==( lit.getKind()==kind::IMPLIES && i==0 ) ){
+        ch = atom[i].negate();
+      }
+      std::pair<bool, Node> chres = entailmentCheck( mode, ch, params, seffects );
+      if( chres.first ){
+        if( !is_conjunction ){
+          return chres;
+        }else{
+          children.push_back( chres.second );
+        }
+      }else if( !chres.first && is_conjunction ){
+        return std::pair<bool, Node>(false, Node::null());
+      }
+    }
+    if( is_conjunction ){
+      return std::pair<bool, Node>(true, NodeManager::currentNM()->mkNode(kind::AND, children));
+    }else{
+      return std::pair<bool, Node>(false, Node::null());
+    }
+  }else if( atom.getKind()==kind::ITE || ( atom.getKind()==kind::EQUAL && atom[0].getType().isBoolean() ) ){
+    bool pol = (lit.getKind()!=kind::NOT);
+    for( unsigned r=0; r<2; r++ ){
+      Node ch = atom[0];
+      if( r==1 ){
+        ch = ch.negate();
+      }
+      std::pair<bool, Node> chres = entailmentCheck( mode, ch, params, seffects );
+      if( chres.first ){
+        Node ch2 = atom[ atom.getKind()==kind::ITE ? r+1 : 1 ];
+        if( pol==( atom.getKind()==kind::ITE ? true : r==1 ) ){
+          ch2 = ch2.negate();
+        }
+        std::pair<bool, Node> chres2 = entailmentCheck( mode, ch2, params, seffects );
+        if( chres2.first ){
+          return std::pair<bool, Node>(true, NodeManager::currentNM()->mkNode(kind::AND, chres.second, chres2.second));
+        }else{
+          break;
+        }
+      }
+    }
+    return std::pair<bool, Node>(false, Node::null());
+  }else{
+    //it is a theory atom
+    theory::TheoryId tid = theory::Theory::theoryOf(mode, atom);
+    theory::Theory* th = theoryOf(tid);
 
-  Assert(th != NULL);
-  Assert(params == NULL || tid == params->getTheoryId());
-  Assert(seffects == NULL || tid == seffects->getTheoryId());
+    Assert(th != NULL);
+    Assert(params == NULL || tid == params->getTheoryId());
+    Assert(seffects == NULL || tid == seffects->getTheoryId());
+    Trace("theory-engine-entc") << "Entailment check : " << lit << std::endl;
 
-  return th->entailmentCheck(lit, params, seffects);
+    std::pair<bool, Node> chres = th->entailmentCheck(lit, params, seffects);
+    return chres;
+  }
 }
 
 void TheoryEngine::spendResource(unsigned ammount) {

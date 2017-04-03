@@ -843,6 +843,9 @@ public:
     return false;
   }
 
+  /* is extended function reduced */
+  virtual bool isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp ) { return n.isConst(); }
+  
   /**
    * Get reduction for node
    * If return value is not 0, then n is reduced.
@@ -940,9 +943,6 @@ private:
   //set of terms from d_ext_func_terms that are SAT-context-independently inactive 
   //  (e.g. term t when a reduction lemma of the form t = t' was added)
   NodeSet d_ci_inactive;
-  //cache of all lemmas sent
-  NodeSet d_lemmas;
-  NodeSet d_pp_lemmas;
   //watched term for checking if any non-reduced extended functions exist 
   context::CDO< Node > d_has_extf;
   //extf kind
@@ -955,8 +955,21 @@ private:
   };
   std::map< Node, ExtfInfo > d_extf_info;
 
+  //cache of all lemmas sent
+  NodeSet d_lemmas;
+  NodeSet d_pp_lemmas;
+  bool d_cacheEnabled;
+  // if d_cacheEnabled=true :
+  //cache for getSubstitutedTerms 
+  class SubsTermInfo {
+  public:
+    Node d_sterm;
+    std::vector< Node > d_exp;
+  };
+  std::map< int, std::map< Node, SubsTermInfo > > d_gst_cache;
+
  public:
-  ExtTheory(Theory* p);
+  ExtTheory(Theory* p, bool cacheEnabled = false );
   virtual ~ExtTheory() {}
   // add extf kind
   void addFunctionKind(Kind k) { d_extf_kind[k] = true; }
@@ -972,13 +985,13 @@ private:
   void markReduced( Node n, bool contextDepend = true );
   // mark that a and b are congruent terms: set b inactive, set a to inactive if b was inactive
   void markCongruent( Node a, Node b );
-  
   //getSubstitutedTerms
   //  input : effort, terms
   //  output : sterms, exp, where ( exp[i] => terms[i] = sterms[i] ) for all i
+  Node getSubstitutedTerm( int effort, Node term, std::vector< Node >& exp, bool useCache = false );
   void getSubstitutedTerms(int effort, const std::vector<Node>& terms,
                            std::vector<Node>& sterms,
-                           std::vector<std::vector<Node> >& exp);
+                           std::vector<std::vector<Node> >& exp, bool useCache = false);
   // doInferences
   //  * input : effort, terms, batch (whether to send one lemma or lemmas for
   //    all terms)
@@ -996,6 +1009,8 @@ private:
                     std::vector<Node>& nred, bool batch = true);
   bool doReductions(int effort, std::vector<Node>& nred, bool batch = true);
 
+  //get the set of terms from d_ext_func_terms
+  void getTerms( std::vector< Node >& terms );
   // has active term
   bool hasActiveTerm();
   // is n active
@@ -1004,6 +1019,8 @@ private:
   std::vector<Node> getActive() const;
   // get the set of active terms from d_ext_func_terms of kind k
   std::vector<Node> getActive(Kind k) const;
+  //clear cache 
+  void clearCache();
 };
 
 }/* CVC4::theory namespace */

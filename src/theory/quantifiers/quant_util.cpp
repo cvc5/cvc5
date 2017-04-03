@@ -136,6 +136,14 @@ Node QuantArith::mkNode( std::map< Node, Node >& msum ) {
   return children.size()>1 ? NodeManager::currentNM()->mkNode( PLUS, children ) : (children.size()==1 ? children[0] : NodeManager::currentNM()->mkConst( Rational(0) ));
 }
 
+Node QuantArith::mkCoeffTerm( Node coeff, Node t ) {
+  if( coeff.isNull() ){
+    return t;
+  }else{
+    return NodeManager::currentNM()->mkNode( kind::MULT, coeff, t );
+  }
+}
+
 // given (msum <k> 0), solve (veq_c * v <k> val) or (val <k> veq_c * v), where:
 // veq_c is either null (meaning 1), or positive.
 // return value 1: veq_c*v is RHS, -1: veq_c*v is LHS, 0: failed.

@@ -252,23 +252,63 @@ inline Node flattenAnd(Node n){
   return NodeManager::currentNM()->mkNode(kind::AND, out);
 }
 
+// Returns an node that is the identity of a select few kinds.
 inline Node getIdentity(Kind k){
   switch(k){
   case kind::AND:
-    return NodeManager::currentNM()->mkConst<bool>(true);
+    return mkBoolNode(true);
   case kind::PLUS:
-    return NodeManager::currentNM()->mkConst(Rational(1));
+    return mkRationalNode(0);
+  case kind::MULT:
+  case kind::NONLINEAR_MULT:
+    return mkRationalNode(1);
   default:
     Unreachable();
   }
 }
 
-inline Node safeConstructNary(NodeBuilder<>& nb){
-  switch(nb.getNumChildren()){
-  case 0:  return getIdentity(nb.getKind());
-  case 1:  return nb[0];
-  default: return (Node)nb;
+inline Node safeConstructNary(NodeBuilder<>& nb) {
+  switch (nb.getNumChildren()) {
+    case 0:
+      return getIdentity(nb.getKind());
+    case 1:
+      return nb[0];
+    default:
+      return (Node)nb;
   }
+}
+
+inline Node safeConstructNary(Kind k, const std::vector<Node>& children) {
+  switch (children.size()) {
+    case 0:
+      return getIdentity(k);
+    case 1:
+      return children[0];
+    default:
+      return NodeManager::currentNM()->mkNode(k, children);
+  }
+}
+
+// Returns the multiplication of a and b.
+inline Node mkMult(Node a, Node b) {
+  return NodeManager::currentNM()->mkNode(kind::MULT, a, b);
+}
+
+// Return a constraint that is equivalent to term being is in the range
+// [start, end). This includes start and excludes end.
+inline Node mkInRange(Node term, Node start, Node end) {
+  NodeManager* nm = NodeManager::currentNM();
+  Node above_start = nm->mkNode(kind::LEQ, start, term);
+  Node below_end = nm->mkNode(kind::LT, term, end);
+  return nm->mkNode(kind::AND, above_start, below_end);
+}
+
+// Creates an expression that constrains q to be equal to one of two expressions
+// when n is 0 or not. Useful for division by 0 logic.
+//   (ite (= n 0) (= q if_zero) (= q not_zero))
+inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero) {
+  Node zero = mkRationalNode(0);
+  return n.eqNode(zero).iteNode(q.eqNode(if_zero), q.eqNode(not_zero));
 }
 
 }/* CVC4::theory::arith namespace */

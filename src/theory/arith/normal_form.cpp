@@ -103,7 +103,7 @@ bool VarList::isMember(Node n) {
   if(Variable::isMember(n)) {
     return true;
   }
-  if(n.getKind() == kind::MULT) {
+  if(n.getKind() == kind::NONLINEAR_MULT) {
     Node::iterator curr = n.begin(), end = n.end();
     Node prev = *curr;
     if(!Variable::isMember(prev)) return false;
@@ -189,7 +189,7 @@ VarList VarList::operator*(const VarList& other) const {
     merge_ranges(thisBegin, thisEnd, otherBegin, otherEnd, result, cmp);
 
     Assert(result.size() >= 2);
-    Node mult = NodeManager::currentNM()->mkNode(kind::MULT, result);
+    Node mult = NodeManager::currentNM()->mkNode(kind::NONLINEAR_MULT, result);
     return VarList::parseVarList(mult);
   }
 }
