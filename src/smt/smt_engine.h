@@ -105,10 +105,6 @@ namespace theory {
   class TheoryModel;
 }/* CVC4::theory namespace */
 
-namespace stats {
-  StatisticsRegistry* getStatisticsRegistry(SmtEngine*);
-}/* CVC4::stats namespace */
-
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
 // SmtEngine and override check()?
@@ -356,7 +352,6 @@ class CVC4_PUBLIC SmtEngine {
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::BooleanTermConverter;
-  friend ::CVC4::StatisticsRegistry* ::CVC4::stats::getStatisticsRegistry(SmtEngine*);
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   // to access d_modelCommands
