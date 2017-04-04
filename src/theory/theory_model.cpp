@@ -586,7 +586,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   Trace("model-builder") << "TheoryEngineModelBuilder: buildModel" << std::endl;
   TheoryModel* tm = (TheoryModel*)m;
 
-  // buildModel with fullModel = true should only be called once in any context
+  // buildModel should only be called once per check
   Assert(!tm->isBuilt());
   tm->d_modelBuilt = true;
 
@@ -595,7 +595,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
 
   // Collect model info from the theories
   Trace("model-builder") << "TheoryEngineModelBuilder: Collect model info..." << std::endl;
-  d_te->collectModelInfo(tm, true);
+  d_te->collectModelInfo(tm);
 
   // model-builder specific initialization
   if( !preProcessBuildModel(tm) ){

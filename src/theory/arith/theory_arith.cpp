@@ -102,8 +102,8 @@ void TheoryArith::propagate(Effort e) {
   d_internal->propagate(e);
 }
 
-void TheoryArith::collectModelInfo( TheoryModel* m, bool fullModel ){
-  d_internal->collectModelInfo(m, fullModel);
+void TheoryArith::collectModelInfo( TheoryModel* m ){
+  d_internal->collectModelInfo(m);
 }
 
 void TheoryArith::notifyRestart(){

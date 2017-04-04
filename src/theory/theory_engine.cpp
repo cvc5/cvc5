@@ -616,7 +616,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         if(d_logicInfo.isQuantified()) {
           // quantifiers engine must pass effort last call check
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
-          // if returning incomplete or SAT, we have ensured that d_curr_model has been built with fullModel=true
+          // if returning incomplete or SAT, we have ensured that d_curr_model has been built
         } else if(options::produceModels() && !d_curr_model->isBuilt()) {
           // must build model at this point
           d_curr_model_builder->buildModel(d_curr_model);
@@ -843,16 +843,15 @@ bool TheoryEngine::properExplanation(TNode node, TNode expl) const {
   return true;
 }
 
-void TheoryEngine::collectModelInfo( theory::TheoryModel* m, bool fullModel ){
-  Assert( fullModel ); // AJR : FIXME : remove/simplify fullModel argument everywhere
+void TheoryEngine::collectModelInfo( theory::TheoryModel* m ){
   //have shared term engine collectModelInfo
-  //  d_sharedTerms.collectModelInfo( m, fullModel );
+  //  d_sharedTerms.collectModelInfo( m );
   // Consult each active theory to get all relevant information
   // concerning the model.
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
     if(d_logicInfo.isTheoryEnabled(theoryId)) {
       Trace("model-builder") << "  CollectModelInfo on theory: " << theoryId << endl;
-      d_theoryTable[theoryId]->collectModelInfo( m, fullModel );
+      d_theoryTable[theoryId]->collectModelInfo( m );
     }
   }
   // Get the Boolean variables

@@ -50,7 +50,7 @@ public:
 
   void check(Effort);
 
-  void collectModelInfo(TheoryModel*, bool fullModel);
+  void collectModelInfo(TheoryModel* m);
 
   void computeCareGraph();
 

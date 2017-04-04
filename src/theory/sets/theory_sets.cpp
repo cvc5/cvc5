@@ -46,8 +46,8 @@ void TheorySets::check(Effort e) {
   d_internal->check(e);
 }
 
-void TheorySets::collectModelInfo(TheoryModel* m, bool fullModel) {
-  d_internal->collectModelInfo(m, fullModel);
+void TheorySets::collectModelInfo(TheoryModel* m) {
+  d_internal->collectModelInfo(m);
 }
 
 void TheorySets::computeCareGraph() {

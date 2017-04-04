@@ -167,7 +167,7 @@ public:
 
   void check(Theory::Effort);
 
-  void collectModelInfo(TheoryModel*, bool fullModel);
+  void collectModelInfo(TheoryModel* m);
 
   void computeCareGraph();
 

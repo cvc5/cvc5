@@ -443,7 +443,7 @@ public:
 
   Rational deltaValueForTotalOrder() const;
 
-  void collectModelInfo( TheoryModel* m, bool fullModel );
+  void collectModelInfo( TheoryModel* m );
 
   void shutdown(){ }
 

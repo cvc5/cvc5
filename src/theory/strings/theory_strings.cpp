@@ -452,8 +452,8 @@ void TheoryStrings::presolve() {
 /////////////////////////////////////////////////////////////////////////////
 
 
-void TheoryStrings::collectModelInfo( TheoryModel* m, bool fullModel ) {
-  Trace("strings-model") << "TheoryStrings : Collect model info, fullModel = " << fullModel << std::endl;
+void TheoryStrings::collectModelInfo( TheoryModel* m ) {
+  Trace("strings-model") << "TheoryStrings : Collect model info" << std::endl;
   Trace("strings-model") << "TheoryStrings : assertEqualityEngine." << std::endl;
   
   //AJR : no use doing this since we cannot preregister terms with finite types that don't belong to strings.

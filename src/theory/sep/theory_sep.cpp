@@ -200,7 +200,7 @@ void TheorySep::computeCareGraph() {
 /////////////////////////////////////////////////////////////////////////////
 
 
-void TheorySep::collectModelInfo( TheoryModel* m, bool fullModel ){
+void TheorySep::collectModelInfo( TheoryModel* m ){
   set<Node> termSet;
 
   // Compute terms appearing in assertions and shared terms

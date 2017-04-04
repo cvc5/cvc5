@@ -106,7 +106,7 @@ public:
     *  This function tells the model that n should be the representative of its equivalence class.
     *  It should be called during model generation, before final representatives are chosen.  In the
     *  case of TheoryEngineModelBuilder, it should be called during Theory's collectModelInfo( ... )
-    *  functions where fullModel = true.
+    *  functions.
     */
   void assertRepresentative(TNode n);
 public:

@@ -1773,7 +1773,7 @@ EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b) {
 /******************** Model generation ********************/
 
 
-void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel) {
+void TheorySetsPrivate::collectModelInfo(TheoryModel* m) {
   Trace("sets-model") << "Set collect model info" << std::endl;
   set<Node> termSet;
   // Compute terms appearing in assertions and shared terms

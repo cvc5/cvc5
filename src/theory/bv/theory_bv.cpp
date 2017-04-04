@@ -576,14 +576,14 @@ bool TheoryBV::needsCheckLastEffort() {
   return d_needsLastCallCheck;
 }
 
-void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
+void TheoryBV::collectModelInfo( TheoryModel* m ){
   Assert(!inConflict());
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    d_eagerSolver->collectModelInfo(m, fullModel);
+    d_eagerSolver->collectModelInfo(m, true);
   }
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     if (d_subtheories[i]->isComplete()) {
-      d_subtheories[i]->collectModelInfo(m, fullModel);
+      d_subtheories[i]->collectModelInfo(m, true);
       return;
     }
   }

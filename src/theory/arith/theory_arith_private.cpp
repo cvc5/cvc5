@@ -4422,7 +4422,7 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   return belowMin;
 }
 
-void TheoryArithPrivate::collectModelInfo( TheoryModel* m, bool fullModel ){
+void TheoryArithPrivate::collectModelInfo( TheoryModel* m ){
   AlwaysAssert(d_qflraStatus ==  Result::SAT);
   //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
 

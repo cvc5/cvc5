@@ -1407,7 +1407,7 @@ void TheoryDatatypes::computeCareGraph(){
   Trace("dt-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;
 }
 
-void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
+void TheoryDatatypes::collectModelInfo( TheoryModel* m ){
   Trace("dt-cmi") << "Datatypes : Collect model info " << d_equalityEngine.consistent() << std::endl;
   Trace("dt-model") << std::endl;
   printModelDebug( "dt-model" );

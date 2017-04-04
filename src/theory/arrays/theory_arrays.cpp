@@ -1038,7 +1038,7 @@ void TheoryArrays::computeCareGraph()
 /////////////////////////////////////////////////////////////////////////////
 
 
-void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
+void TheoryArrays::collectModelInfo( TheoryModel* m )
 {
   set<Node> termSet;
 

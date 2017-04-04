@@ -245,7 +245,7 @@ Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
   return mkAnd(assumptions);
 }
 
-void TheoryUF::collectModelInfo( TheoryModel* m, bool fullModel ){
+void TheoryUF::collectModelInfo( TheoryModel* m ){
   set<Node> termSet;
 
   // Compute terms appearing in assertions and shared terms
