@@ -100,7 +100,8 @@ TESTS =	\
   rel_tp_join_1.cvc \
   rel_transpose_0.cvc \
   set-strat.cvc \
-  rel_tc_8.cvc
+  rel_tc_8.cvc \
+  atom_univ2.cvc
 
 # unsolved : garbage_collect.cvc
 

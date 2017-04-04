@@ -464,6 +464,12 @@ public:
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::VARIABLE;
   }
+  inline bool isUninterpretedVar() const {
+    assertTNodeNotExpired();
+    return getMetaKind() == kind::metakind::VARIABLE &&
+           getKind() != kind::UNIVERSE_SET && 
+           getKind() != kind::SEP_NIL;
+  }
 
   inline bool isClosure() const {
     assertTNodeNotExpired();
