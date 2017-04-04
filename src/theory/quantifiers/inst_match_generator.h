@@ -177,6 +177,8 @@ public:
 
 /** smart multi-trigger implementation */
 class InstMatchGeneratorMultiLinear : public InstMatchGenerator {
+private:
+  int resetChildren( QuantifiersEngine* qe );
 public:
   /** constructors */
   InstMatchGeneratorMultiLinear( Node q, std::vector< Node >& pats, QuantifiersEngine* qe );

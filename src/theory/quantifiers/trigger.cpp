@@ -58,11 +58,11 @@ Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes )
       d_mg->setActiveAdd(true);
     }
   }else{
-    if( options::multiTriggerLinear() ){
+    if( options::multiTriggerCache() ){
+      d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe );
+    }else{
       d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti( f, d_nodes, qe );
       d_mg->setActiveAdd(true);
-    }else{
-      d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe );
     }
     //d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes, qe );
     //d_mg->setActiveAdd();
