@@ -302,7 +302,7 @@ operator SEXPR 0: "a symbolic expression (any arity)"
 
 operator LAMBDA 2 "a lambda expression; first parameter is a BOUND_VAR_LIST, second is lambda body"
 
-parameterized CHAIN CHAIN_OP 2: "chained operator (N-ary), turned into a conjuction of binary applications of the operator on adjoining parameters; first parameter is a CHAIN_OP representing a binary operator, rest are arguments to that operator"
+parameterized CHAIN CHAIN_OP 2: "chained operator (N-ary), turned into a conjunction of binary applications of the operator on adjoining parameters; first parameter is a CHAIN_OP representing a binary operator, rest are arguments to that operator"
 constant CHAIN_OP \
     ::CVC4::Chain \
     ::CVC4::ChainHashFunction \

@@ -958,7 +958,7 @@ const std::string OptionsHandler::s_bitblastingModeHelp = "\
 Bit-blasting modes currently supported by the --bitblast option:\n\
 \n\
 lazy (default)\n\
-+ Separate boolean structure and term reasoning betwen the core\n\
++ Separate boolean structure and term reasoning between the core\n\
   SAT solver and the bv SAT solver\n\
 \n\
 eager\n\
