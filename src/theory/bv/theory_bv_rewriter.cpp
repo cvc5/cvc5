@@ -439,13 +439,16 @@ RewriteResponse TheoryBVRewriter::RewriteUdivTotal(TNode node, bool prerewrite){
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
   }
 
-  resultNode = LinearRewriteStrategy
-    < RewriteRule<EvalUdiv>,
-      RewriteRule<UdivOne>,
-      RewriteRule<UdivSelf>
-      >::apply(node);
+  resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalUdiv>, RewriteRule<UdivOne>,
+                            RewriteRule<UdivSelf> >::apply(node);
 
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+  if (RewriteRule<UdivConst>::applies(resultNode)) {
+    resultNode = RewriteRule<UdivConst>::run<false>(resultNode);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteUremTotal(TNode node, bool prerewrite) {

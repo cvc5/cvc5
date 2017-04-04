@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 
@@ -941,6 +942,46 @@ template<> inline
 Node RewriteRule<UdivSelf>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<UdivSelf>(" << node << ")" << std::endl;
   return utils::mkConst(utils::getSize(node), 1); 
+}
+
+/**
+ * UdivConst
+ *
+ * See: http://ridiculousfish.com/blog/posts/labor-of-division-episode-i.html
+ */
+
+template <>
+inline bool RewriteRule<UdivConst>::applies(TNode node) {
+  return (!options::bitvectorDivByZeroConst() &&
+          node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&
+          node[1].getKind() == kind::CONST_BITVECTOR &&
+          node[1] != utils::mkConst(utils::getSize(node[1]), 0));
+}
+
+template <>
+inline Node RewriteRule<UdivConst>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<UdivConst>(" << node << ")" << std::endl;
+  size_t bits = utils::getSize(node[0]);
+  Integer d = node[1].getConst<BitVector>().toInteger();
+
+  // p = ceil(log2(d))
+  size_t p = d.length();
+  // m = ceil(2 ** (32 + p) / d)
+  Integer m = Integer(2).pow(bits + p).ceilingDivideQuotient(d).extractBitRange(
+      bits, 0);
+  Node a = utils::mkConcat(utils::mkConst(bits, 0), node[0]);
+  // q = (m * n) >> bits
+  Node q =
+      utils::mkExtract(utils::mkNode(kind::BITVECTOR_MULT, a,
+                                     utils::mkConst(BitVector(bits * 2, m))),
+                       bits * 2 - 1, bits);
+  // t = (n + q) >> 1
+  Node t = utils::mkExtract(
+      utils::mkNode(kind::BITVECTOR_PLUS,
+                    utils::mkConcat(utils::mkConst(1, 0), node[0]),
+                    utils::mkConcat(utils::mkConst(1, 0), q)),
+      bits, 1);
+  return utils::mkNode(kind::BITVECTOR_LSHR, t, utils::mkConst(bits, p - 1));
 }
 
 /**
