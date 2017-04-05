@@ -526,6 +526,7 @@ bool NonLinearExtentionSubstitutionSolver::setSubstitutionConst(
         Node m_t = result.term;
         Node eq = m_t.eqNode(r_c);
         Node v_c = QuantArith::solveEqualityFor(eq, v);
+        Trace("nl-subs-debug") << "Solved equality " << eq << " for " << v << ", got = " << v_c << std::endl;
         if (!v_c.isNull()) {
           Assert(v_c.isConst());
           if (new_const.find(v) == new_const.end()) {
@@ -1789,9 +1790,35 @@ void NonlinearExtension::check(Theory::Effort e) {
       const Assertion& assertion = *it;
       assertions.push_back(assertion.assertion);
     }
+    
     const std::set<Node> false_asserts = getFalseInModel(assertions);
     if (!false_asserts.empty()) {
       checkLastCall(assertions, false_asserts);
+    }else{
+      //must ensure that shared terms are equal to their concrete value
+      std::vector< Node > lemmas;
+      for (context::CDList<TNode>::const_iterator its = d_containing.shared_terms_begin();
+           its != d_containing.shared_terms_end(); ++its) {
+        TNode shared_term = *its;
+        Node stv0 = computeModelValue( shared_term, 0 );
+        Node stv1 = computeModelValue( shared_term, 1 );
+        
+        if( stv0!=stv1 ){
+          Trace("nl-alg-mv") << "Bad shared term value : " << shared_term << " : " << stv1 << ", actual is " << stv0 << std::endl;
+          //split on the value, FIXME : this is non-terminating in general, improve this
+          Node lem = shared_term.eqNode(stv0);
+          lem = Rewriter::rewrite(lem);
+          d_containing.getValuation().ensureLiteral(lem);
+          d_containing.getOutputChannel().requirePhase(lem, true);
+          lem = NodeManager::currentNM()->mkNode(kind::OR, lem, lem.negate());
+          lemmas.push_back(lem);
+        }
+      }
+      if( !lemmas.empty() ){
+        int lemmas_proc = flushLemmas(lemmas);
+        Trace("nl-alg-mv") << "...added " << lemmas_proc << " shared term split lemmas." << std::endl;
+        Assert( lemmas_proc>0 );
+      }
     }
   }
 }

@@ -180,7 +180,7 @@ option nlAlgEntailConflicts --nl-alg-ent-conf bool :default false
 option nlAlgRewrites --nl-alg-rewrite bool :default true
  do rewrites in non-linear solver
  
-option nlAlgSolveSubs --nl-alg-solve-subs bool :default true
+option nlAlgSolveSubs --nl-alg-solve-subs bool :default false
  do solving for determining constant substitutions
  
 option nlAlgPurify --nl-alg-purify bool :default false
