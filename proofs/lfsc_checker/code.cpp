@@ -1303,7 +1303,9 @@ Expr *run_code(Expr *_e) {
       return tmp;
     }
 
+    assert(hd->getclass() == CEXPR);
     CExpr *prog = (CExpr *)hd;
+    assert(prog->kids[1]->getclass() == CEXPR);
     Expr **cur = ((CExpr *)prog->kids[1])->kids;
     vector<Expr *> old_vals;
     SymExpr *var;
@@ -1331,8 +1333,24 @@ Expr *run_code(Expr *_e) {
     else
     {
       while((var = (SymExpr *)*cur++)) {
+        // Check whether not enough arguments were supplied
+        if (i >= args.size()) {
+          for (size_t i = 0; i < args.size(); i++) {
+             args[i]->dec();
+          }
+          return NULL;
+        }
+
         old_vals.push_back(var->val);
         var->val = args[i++];
+      }
+
+      // Check whether too many arguments were supplied
+      if (i < args.size()) {
+        for (size_t i = 0; i < args.size(); i++) {
+           args[i]->dec();
+        }
+        return NULL;
       }
 
       if (dbg_prog) {
@@ -1359,6 +1377,7 @@ Expr *run_code(Expr *_e) {
       cur = ((CExpr *)prog->kids[1])->kids;
       i = 0;
       while((var = (SymExpr *)*cur++)) {
+        assert(i < args.size());
         args[i]->dec();
         var->val = old_vals[i++];
       }
