@@ -4288,8 +4288,7 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode n) const throw (DeltaRatio
     return value;
   }
 
-  case kind::MULT:
-  case kind::NONLINEAR_MULT: { // 2+ args
+  case kind::MULT: { // 2+ args
     DeltaRational value(1);
     unsigned variableParts = 0;
     for(TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
