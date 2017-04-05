@@ -32,9 +32,11 @@ namespace quantifiers {
 class FunDefFmf {
 private:
   //simplify
-  Node simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, int is_fun_def = 0 );
+  Node simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, int is_fun_def,
+                        std::map< int, std::map< Node, Node > >& visited,
+                        std::map< int, std::map< Node, Node > >& visited_cons );
   //simplify term
-  void simplifyTerm( Node n, std::vector< Node >& constraints );
+  void simplifyTerm( Node n, std::vector< Node >& constraints, std::map< Node, bool >& visited );
 public:
   FunDefFmf(){}
   ~FunDefFmf(){}

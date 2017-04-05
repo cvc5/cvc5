@@ -69,7 +69,8 @@ TESTS =	\
 	bug651.smt2 \
 	bug652.smt2 \
 	bug782.smt2 \
-	quant_real_univ.cvc
+	quant_real_univ.cvc \
+	constr-ground-to.smt2
 
 EXTRA_DIST = $(TESTS)
 
