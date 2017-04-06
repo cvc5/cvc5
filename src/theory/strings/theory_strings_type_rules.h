@@ -98,7 +98,7 @@ public:
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting an orginal string term in string contain");
+        throw TypeCheckingExceptionPrivate(n, "expecting an original string term in string contain");
       }
       t = n[1].getType(check);
       if (!t.isString()) {
