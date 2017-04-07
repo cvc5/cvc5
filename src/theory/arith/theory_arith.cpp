@@ -37,7 +37,7 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
     , d_ppRewriteTimer("theory::arith::ppRewriteTimer")
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
-  if (options::nlAlg()) {
+  if (options::nlExt()) {
     setupExtTheory();
     getExtTheory()->addFunctionKind(kind::NONLINEAR_MULT);
   }

@@ -165,28 +165,28 @@ option pbRewriteThreshold --pb-rewrite-threshold int :default 256
 option sNormInferEq --snorm-infer-eq bool :default false
  infer equalities based on Shostak normalization
 
-option nlAlg --nl-alg bool :default false
- algebraic approach to non-linear
+option nlExt --nl-ext bool :default false
+ extended approach to non-linear
  
-option nlAlgResBound --nl-alg-rbound bool :default false
+option nlExtResBound --nl-ext-rbound bool :default false
  use resolution-style inference for inferring new bounds
 
-option nlAlgTangentPlanes --nl-alg-tplanes bool :default false
+option nlExtTangentPlanes --nl-ext-tplanes bool :default false
  use non-terminating tangent plane strategy for non-linear
 
-option nlAlgEntailConflicts --nl-alg-ent-conf bool :default false
+option nlExtEntailConflicts --nl-ext-ent-conf bool :default false
  check for entailed conflicts in non-linear solver
  
-option nlAlgRewrites --nl-alg-rewrite bool :default true
+option nlExtRewrites --nl-ext-rewrite bool :default true
  do rewrites in non-linear solver
  
-option nlAlgSolveSubs --nl-alg-solve-subs bool :default false
+option nlExtSolveSubs --nl-ext-solve-subs bool :default false
  do solving for determining constant substitutions
  
-option nlAlgPurify --nl-alg-purify bool :default false
+option nlExtPurify --nl-ext-purify bool :default false
  purify non-linear terms at preprocess
  
-option nlAlgSplitZero --nl-alg-split-zero bool :default false
+option nlExtSplitZero --nl-ext-split-zero bool :default false
  intial splits on zero for all variables
 
 endmodule

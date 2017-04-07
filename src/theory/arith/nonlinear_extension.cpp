@@ -277,7 +277,7 @@ void NonlinearExtension::registerMonomialSubset(Node a, Node b) {
   Node nlmult_term = safeConstructNary(kind::NONLINEAR_MULT, diff_children);
   d_m_contain_mult[a][b] = mult_term;
   d_m_contain_umult[a][b] = nlmult_term;
-  Trace("nl-alg-mindex") << "..." << a << " is a subset of " << b
+  Trace("nl-ext-mindex") << "..." << a << " is a subset of " << b
                          << ", difference is " << mult_term << std::endl;
 }
 
@@ -646,7 +646,7 @@ bool NonlinearExtension::getCurrentSubstitution(
     }
   }
 
-  if (options::nlAlgSolveSubs()) {
+  if (options::nlExtSolveSubs()) {
     NonLinearExtentionSubstitutionSolver substitution_solver(d_ee);
     if (substitution_solver.solve(vars, &subs, &exp, &rep_to_subs_index)) {
       retVal = true;
@@ -665,12 +665,12 @@ std::pair<bool, Node> NonlinearExtension::isExtfReduced(
     return std::make_pair(n.getKind() != kind::NONLINEAR_MULT, Node::null());
   }
   Assert(n == d_zero);
-  Trace("nl-alg-zero-exp") << "Infer zero : " << on << " == " << n << std::endl;
+  Trace("nl-ext-zero-exp") << "Infer zero : " << on << " == " << n << std::endl;
   // minimize explanation
   const std::set<Node> vars(on.begin(), on.end());
 
   for (unsigned i = 0; i < exp.size(); i++) {
-    Trace("nl-alg-zero-exp") << "  exp[" << i << "] = " << exp[i] << std::endl;
+    Trace("nl-ext-zero-exp") << "  exp[" << i << "] = " << exp[i] << std::endl;
     std::vector<Node> eqs;
     if (exp[i].getKind() == kind::EQUAL) {
       eqs.push_back(exp[i]);
@@ -685,7 +685,7 @@ std::pair<bool, Node> NonlinearExtension::isExtfReduced(
     for (unsigned j = 0; j < eqs.size(); j++) {
       for (unsigned r = 0; r < 2; r++) {
         if (eqs[j][r] == d_zero && vars.find(eqs[j][1 - r]) != vars.end()) {
-          Trace("nl-alg-zero-exp") << "...single exp : " << eqs[j] << std::endl;
+          Trace("nl-ext-zero-exp") << "...single exp : " << eqs[j] << std::endl;
           return std::make_pair(true, eqs[j]);
         }
       }
@@ -699,7 +699,7 @@ Node NonlinearExtension::computeModelValue(Node n, unsigned index) {
   if (it != d_mv[index].end()) {
     return it->second;
   } else {
-    Trace("nl-alg-debug") << "computeModelValue " << n << std::endl;
+    Trace("nl-ext-debug") << "computeModelValue " << n << std::endl;
     Node ret;
     if (n.isConst()) {
       ret = n;
@@ -728,19 +728,19 @@ Node NonlinearExtension::computeModelValue(Node n, unsigned index) {
           ret = Rewriter::rewrite(
               NodeManager::currentNM()->mkNode(n.getKind(), children));
           if (!ret.isConst()) {
-            Trace("nl-alg-debug") << "...got non-constant : " << ret << " for "
+            Trace("nl-ext-debug") << "...got non-constant : " << ret << " for "
                                   << n << ", ask model directly." << std::endl;
             ret = d_containing.getValuation().getModel()->getValue(ret);
           }
         }
       }
       if (ret.getType().isReal() && !isArithKind(n.getKind())) {
-        // Trace("nl-alg-mv-debug") << ( index==0 ? "M" : "M_A" ) << "[ " << n
+        // Trace("nl-ext-mv-debug") << ( index==0 ? "M" : "M_A" ) << "[ " << n
         // << " ] -> " << ret << std::endl;
         Assert(ret.isConst());
       }
     }
-    Trace("nl-alg-debug") << "computed " << (index == 0 ? "M" : "M_A") << "["
+    Trace("nl-ext-debug") << "computed " << (index == 0 ? "M" : "M_A") << "["
                           << n << "] = " << ret << std::endl;
     d_mv[index][n] = ret;
     return ret;
@@ -750,7 +750,7 @@ Node NonlinearExtension::computeModelValue(Node n, unsigned index) {
 void NonlinearExtension::registerMonomial(Node n) {
   if (!IsInVector(d_monomials, n)) {
     d_monomials.push_back(n);
-    Trace("nl-alg-debug") << "Register monomial : " << n << std::endl;
+    Trace("nl-ext-debug") << "Register monomial : " << n << std::endl;
     if (n.getKind() == kind::NONLINEAR_MULT) {
       // get exponent count
       for (unsigned k = 0; k < n.getNumChildren(); k++) {
@@ -772,7 +772,7 @@ void NonlinearExtension::registerMonomial(Node n) {
     }
     // TODO: sort necessary here?
     std::sort(d_m_vlist[n].begin(), d_m_vlist[n].end());
-    Trace("nl-alg-mindex") << "Add monomial to index : " << n << std::endl;
+    Trace("nl-ext-mindex") << "Add monomial to index : " << n << std::endl;
     d_m_index.addTerm(n, d_m_vlist[n], this);
   }
 }
@@ -782,7 +782,7 @@ void NonlinearExtension::setMonomialFactor(Node a, Node b,
   // Could not tell if this was being inserted intentionally or not.
   std::map<Node, Node>& mono_diff_a = d_mono_diff[a];
   if (!Contains(mono_diff_a, b)) {
-    Trace("nl-alg-mono-factor")
+    Trace("nl-ext-mono-factor")
         << "Set monomial factor for " << a << "/" << b << std::endl;
     mono_diff_a[b] = mkMonomialRemFactor(a, common);
   }
@@ -791,12 +791,12 @@ void NonlinearExtension::setMonomialFactor(Node a, Node b,
 void NonlinearExtension::registerConstraint(Node atom) {
   if (!IsInVector(d_constraints, atom)) {
     d_constraints.push_back(atom);
-    Trace("nl-alg-debug") << "Register constraint : " << atom << std::endl;
+    Trace("nl-ext-debug") << "Register constraint : " << atom << std::endl;
     std::map<Node, Node> msum;
     if (QuantArith::getMonomialSumLit(atom, msum)) {
-      Trace("nl-alg-debug") << "got monomial sum: " << std::endl;
-      if (Trace.isOn("nl-alg-debug")) {
-        QuantArith::debugPrintMonomialSum(msum, "nl-alg-debug");
+      Trace("nl-ext-debug") << "got monomial sum: " << std::endl;
+      if (Trace.isOn("nl-ext-debug")) {
+        QuantArith::debugPrintMonomialSum(msum, "nl-ext-debug");
       }
       unsigned max_degree = 0;
       std::vector<Node> all_m;
@@ -806,7 +806,7 @@ void NonlinearExtension::registerConstraint(Node atom) {
         if (!itm->first.isNull()) {
           all_m.push_back(itm->first);
           registerMonomial(itm->first);
-          Trace("nl-alg-debug2")
+          Trace("nl-ext-debug2")
               << "...process monomial " << itm->first << std::endl;
           Assert(d_m_degree.find(itm->first) != d_m_degree.end());
           unsigned d = d_m_degree[itm->first];
@@ -829,11 +829,11 @@ void NonlinearExtension::registerConstraint(Node atom) {
           if (res == -1) {
             type = reverseRelationKind(type);
           }
-          Trace("nl-alg-constraint") << "Constraint : " << atom << " <=> ";
+          Trace("nl-ext-constraint") << "Constraint : " << atom << " <=> ";
           if (!coeff.isNull()) {
-            Trace("nl-alg-constraint") << coeff << " * ";
+            Trace("nl-ext-constraint") << coeff << " * ";
           }
-          Trace("nl-alg-constraint")
+          Trace("nl-ext-constraint")
               << m << " " << type << " " << rhs << std::endl;
           d_c_info[atom][m].d_rhs = rhs;
           d_c_info[atom][m].d_coeff = coeff;
@@ -845,7 +845,7 @@ void NonlinearExtension::registerConstraint(Node atom) {
         d_c_info_maxm[atom][m] = true;
       }
     } else {
-      Trace("nl-alg-debug") << "...failed to get monomial sum." << std::endl;
+      Trace("nl-ext-debug") << "...failed to get monomial sum." << std::endl;
     }
   }
 }
@@ -964,52 +964,52 @@ Node NonlinearExtension::mkMonomialRemFactor(
        itme2 != exponent_map.end(); ++itme2) {
     Node v = itme2->first;
     unsigned inc = itme2->second;
-    Trace("nl-alg-mono-factor")
+    Trace("nl-ext-mono-factor")
         << "..." << inc << " factors of " << v << std::endl;
     unsigned count_in_n_exp_rem = getCountWithDefault(n_exp_rem, v, 0);
     Assert(count_in_n_exp_rem <= inc);
     inc -= count_in_n_exp_rem;
-    Trace("nl-alg-mono-factor")
+    Trace("nl-ext-mono-factor")
         << "......rem, now " << inc << " factors of " << v << std::endl;
     children.insert(children.end(), inc, v);
   }
   Node ret = safeConstructNary(kind::MULT, children);
   ret = Rewriter::rewrite(ret);
-  Trace("nl-alg-mono-factor") << "...return : " << ret << std::endl;
+  Trace("nl-ext-mono-factor") << "...return : " << ret << std::endl;
   return ret;
 }
 
 int NonlinearExtension::flushLemma(Node lem) {
-  Trace("nl-alg-lemma-debug")
+  Trace("nl-ext-lemma-debug")
       << "NonlinearExtension::Lemma pre-rewrite : " << lem << std::endl;
   lem = Rewriter::rewrite(lem);
   if (Contains(d_lemmas, lem)) {
-    Trace("nl-alg-lemma-debug")
+    Trace("nl-ext-lemma-debug")
         << "NonlinearExtension::Lemma duplicate : " << lem << std::endl;
     // should not generate duplicates
     // Assert( false );
     return 0;
   }
   d_lemmas.insert(lem);
-  Trace("nl-alg-lemma") << "NonlinearExtension::Lemma : " << lem << std::endl;
+  Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << lem << std::endl;
   d_containing.getOutputChannel().lemma(lem);
   return 1;
 }
 
 int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
-  if (options::nlAlgEntailConflicts()) {
+  if (options::nlExtEntailConflicts()) {
     // check if any are entailed to be false
     for (unsigned i = 0; i < lemmas.size(); i++) {
       Node ch_lemma = lemmas[i].negate();
       ch_lemma = Rewriter::rewrite(ch_lemma);
-      Trace("nl-alg-et-debug")
+      Trace("nl-ext-et-debug")
           << "Check entailment of " << ch_lemma << "..." << std::endl;
       std::pair<bool, Node> et = d_containing.getValuation().entailmentCheck(
           THEORY_OF_TYPE_BASED, ch_lemma);
-      Trace("nl-alg-et-debug") << "entailment test result : " << et.first << " "
+      Trace("nl-ext-et-debug") << "entailment test result : " << et.first << " "
                                << et.second << std::endl;
       if (et.first) {
-        Trace("nl-alg-et") << "*** Lemma entailed to be in conflict : "
+        Trace("nl-ext-et") << "*** Lemma entailed to be in conflict : "
                            << lemmas[i] << std::endl;
         // return just this lemma
         if (flushLemma(lemmas[i])) {
@@ -1034,13 +1034,13 @@ std::set<Node> NonlinearExtension::getFalseInModel(
   for (size_t i = 0; i < assertions.size(); ++i) {
     Node lit = assertions[i];
     Node litv = computeModelValue(lit);
-    Trace("nl-alg-mv") << "M[[ " << lit << " ]] -> " << litv;
+    Trace("nl-ext-mv") << "M[[ " << lit << " ]] -> " << litv;
     if (litv != d_true) {
-      Trace("nl-alg-mv") << " [model-false]" << std::endl;
+      Trace("nl-ext-mv") << " [model-false]" << std::endl;
       Assert(litv == d_false);
       false_asserts.insert(lit);
     } else {
-      Trace("nl-alg-mv") << std::endl;
+      Trace("nl-ext-mv") << std::endl;
     }
   }
   return false_asserts;
@@ -1049,7 +1049,7 @@ std::set<Node> NonlinearExtension::getFalseInModel(
 std::vector<Node> NonlinearExtension::splitOnZeros(
     const std::vector<Node>& ms_vars) {
   std::vector<Node> lemmas;
-  if (!options::nlAlgSplitZero()) {
+  if (!options::nlExtSplitZero()) {
     return lemmas;
   }
   for (unsigned i = 0; i < ms_vars.size(); i++) {
@@ -1078,7 +1078,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   std::vector<Node> ms_vars;
 
   // register monomials
-  Trace("nl-alg-mv") << "Monomials : " << std::endl;
+  Trace("nl-ext-mv") << "Monomials : " << std::endl;
   for (unsigned j = 0; j < ms.size(); j++) {
     Node a = ms[j];
     registerMonomial(a);
@@ -1086,7 +1086,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     computeModelValue(a, 1);
     Assert(d_mv[1][a].isConst());
     Assert(d_mv[0][a].isConst());
-    Trace("nl-alg-mv") << "  " << a << " -> " << d_mv[1][a] << " ["
+    Trace("nl-ext-mv") << "  " << a << " -> " << d_mv[1][a] << " ["
                        << d_mv[0][a] << "]" << std::endl;
 
     std::map<Node, std::vector<Node> >::iterator itvl = d_m_vlist.find(a);
@@ -1104,7 +1104,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     itme->second.end(); ++itme2 ){ Node v = itme->first; Assert(
     d_mv[0].find( v )!=d_mv[0].end() ); Node mvv = d_mv[0][ v ]; if(
     mvv==d_one || mvv==d_neg_one ){ ms_proc[ a ] = true;
-    Trace("nl-alg-mv")
+    Trace("nl-ext-mv")
     << "...mark " << a << " reduced since has 1 factor." << std::endl;
         break;
       }
@@ -1124,44 +1124,44 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   std::vector<Node> lemmas;
 
   // register variables
-  Trace("nl-alg-mv") << "Variables : " << std::endl;
-  Trace("nl-alg") << "Get zero split lemmas..." << std::endl;
+  Trace("nl-ext-mv") << "Variables : " << std::endl;
+  Trace("nl-ext") << "Get zero split lemmas..." << std::endl;
   for (unsigned i = 0; i < ms_vars.size(); i++) {
     Node v = ms_vars[i];
     registerMonomial(v);
     computeModelValue(v, 0);
     computeModelValue(v, 1);
-    Trace("nl-alg-mv") << "  " << v << " -> " << d_mv[0][v] << std::endl;
+    Trace("nl-ext-mv") << "  " << v << " -> " << d_mv[0][v] << std::endl;
   }
 
   // possibly split on zero?
   lemmas = splitOnZeros(ms_vars);
   lemmas_proc = flushLemmas(lemmas);
   if (lemmas_proc > 0) {
-    Trace("nl-alg") << "  ...finished with " << lemmas_proc << " new lemmas."
+    Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas."
                     << std::endl;
     return;
   }
 
   //-----------------------------------lemmas based on sign (comparison to zero)
   std::map<Node, int> signs;
-  Trace("nl-alg") << "Get sign lemmas..." << std::endl;
+  Trace("nl-ext") << "Get sign lemmas..." << std::endl;
   for (unsigned j = 0; j < ms.size(); j++) {
     Node a = ms[j];
     if (ms_proc.find(a) == ms_proc.end()) {
       std::vector<Node> exp;
-      Trace("nl-alg-debug") << "  process " << a << "..." << std::endl;
+      Trace("nl-ext-debug") << "  process " << a << "..." << std::endl;
       signs[a] = compareSign(a, a, 0, 1, exp, lemmas);
       if (signs[a] == 0) {
         ms_proc[a] = true;
-        Trace("nl-alg-mv") << "...mark " << a
+        Trace("nl-ext-mv") << "...mark " << a
                            << " reduced since its value is 0." << std::endl;
       }
     }
   }
   lemmas_proc = flushLemmas(lemmas);
   if (lemmas_proc > 0) {
-    Trace("nl-alg") << "  ...finished with " << lemmas_proc << " new lemmas."
+    Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas."
                     << std::endl;
     return;
   }
@@ -1182,7 +1182,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       // if (x,y,L) in cmp_infers, then x > y inferred as conclusion of L
       // in lemmas
       std::map<int, std::map<Node, std::map<Node, Node> > > cmp_infers;
-      Trace("nl-alg") << "Get comparison lemmas (order=" << r
+      Trace("nl-ext") << "Get comparison lemmas (order=" << r
                       << ", compare=" << c << ")..." << std::endl;
       for (unsigned j = 0; j < ms.size(); j++) {
         Node a = ms[j];
@@ -1239,7 +1239,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                              : itmea2->second;
                       a_exp_proc[itmea2->first] = min_exp;
                       b_exp_proc[itmea2->first] = min_exp;
-                      Trace("nl-alg-comp")
+                      Trace("nl-ext-comp")
                           << "Common exponent : " << itmea2->first << " : "
                           << min_exp << std::endl;
                     }
@@ -1266,7 +1266,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       }
       // remove redundant lemmas, e.g. if a > b, b > c, a > c were
       // inferred, discard lemma with conclusion a > c
-      Trace("nl-alg-comp") << "Compute redundancies for " << lemmas.size()
+      Trace("nl-ext-comp") << "Compute redundancies for " << lemmas.size()
                            << " lemmas." << std::endl;
       // naive
       std::vector<Node> r_lemmas;
@@ -1286,7 +1286,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                 if (cmp_holds(itc3->first, itc2->first, itb->second, exp,
                               visited)) {
                   r_lemmas.push_back(itc2->second);
-                  Trace("nl-alg-comp")
+                  Trace("nl-ext-comp")
                       << "...inference of " << itc->first << " > "
                       << itc2->first << " was redundant." << std::endl;
                   break;
@@ -1305,11 +1305,11 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       }
       // TODO: only take maximal lower/minimial lower bounds?
 
-      Trace("nl-alg-comp") << nr_lemmas.size() << " / " << lemmas.size()
+      Trace("nl-ext-comp") << nr_lemmas.size() << " / " << lemmas.size()
                            << " were non-redundant." << std::endl;
       lemmas_proc = flushLemmas(nr_lemmas);
       if (lemmas_proc > 0) {
-        Trace("nl-alg") << "  ...finished with " << lemmas_proc
+        Trace("nl-ext") << "  ...finished with " << lemmas_proc
                         << " new lemmas (out of possible " << lemmas.size()
                         << ")." << std::endl;
         return;
@@ -1340,7 +1340,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   std::map<Node, std::map<bool, bool> > tplane_refine_dir;
 
   // register constraints
-  Trace("nl-alg-debug") << "Register bound constraints..." << std::endl;
+  Trace("nl-ext-debug") << "Register bound constraints..." << std::endl;
   for (context::CDList<Assertion>::const_iterator it =
            d_containing.facts_begin();
        it != d_containing.facts_end(); ++it) {
@@ -1385,9 +1385,9 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         }
         // add to status if maximal degree
         ci_max[x][coeff][rhs] = itcm->second.find(x) != itcm->second.end();
-        if (Trace.isOn("nl-alg-bound-debug2")) {
+        if (Trace.isOn("nl-ext-bound-debug2")) {
           Node t = QuantArith::mkCoeffTerm(coeff, x);
-          Trace("nl-alg-bound-debug2")
+          Trace("nl-ext-bound-debug2")
               << "Add Bound: " << t << " " << type << " " << rhs << " by "
               << exp << std::endl;
         }
@@ -1397,7 +1397,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
           ci[x][coeff][rhs] = type;
           ci_exp[x][coeff][rhs] = exp;
         } else if (type != its->second) {
-          Trace("nl-alg-bound-debug2")
+          Trace("nl-ext-bound-debug2")
               << "Joining kinds : " << type << " " << its->second << std::endl;
           Kind jk = joinKinds(type, its->second);
           if (jk == kind::UNDEFINED_KIND) {
@@ -1415,20 +1415,20 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
             updated = false;
           }
         }
-        if (Trace.isOn("nl-alg-bound")) {
+        if (Trace.isOn("nl-ext-bound")) {
           if (updated) {
-            Trace("nl-alg-bound") << "Bound: ";
-            debugPrintBound("nl-alg-bound", coeff, x, ci[x][coeff][rhs], rhs);
-            Trace("nl-alg-bound") << " by " << ci_exp[x][coeff][rhs];
+            Trace("nl-ext-bound") << "Bound: ";
+            debugPrintBound("nl-ext-bound", coeff, x, ci[x][coeff][rhs], rhs);
+            Trace("nl-ext-bound") << " by " << ci_exp[x][coeff][rhs];
             if (ci_max[x][coeff][rhs]) {
-              Trace("nl-alg-bound") << ", is max degree";
+              Trace("nl-ext-bound") << ", is max degree";
             }
-            Trace("nl-alg-bound") << std::endl;
+            Trace("nl-ext-bound") << std::endl;
           }
         }
         // compute if bound is not satisfied, and store what is required
         // for a possible refinement
-        if (options::nlAlgTangentPlanes()) {
+        if (options::nlExtTangentPlanes()) {
           if (is_false_lit) {
             Node rhs_v = computeModelValue(rhs, 0);
             Node x_v = computeModelValue(x, 0);
@@ -1453,20 +1453,20 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                 refineDir = true;
               }
             }
-            Trace("nl-alg-tplanes-cons-debug")
+            Trace("nl-ext-tplanes-cons-debug")
                 << "...compute if bound corresponds to a required "
                    "refinement"
                 << std::endl;
-            Trace("nl-alg-tplanes-cons-debug")
+            Trace("nl-ext-tplanes-cons-debug")
                 << "...M[" << x << "] = " << x_v << ", M[" << rhs
                 << "] = " << rhs_v << std::endl;
-            Trace("nl-alg-tplanes-cons-debug") << "...refine = " << needsRefine
+            Trace("nl-ext-tplanes-cons-debug") << "...refine = " << needsRefine
                                                << "/" << refineDir << std::endl;
             if (needsRefine) {
-              Trace("nl-alg-tplanes-cons")
+              Trace("nl-ext-tplanes-cons")
                   << "---> By " << lit << " and since M[" << x << "] = " << x_v
                   << ", M[" << rhs << "] = " << rhs_v << ", ";
-              Trace("nl-alg-tplanes-cons")
+              Trace("nl-ext-tplanes-cons")
                   << "monomial " << x << " should be "
                   << (refineDir ? "larger" : "smaller") << std::endl;
               tplane_refine_dir[x][refineDir] = true;
@@ -1487,17 +1487,17 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   //-----------------------------------------------------------------------------------------inferred
   // bounds lemmas, e.g. x >= t => y*x >= y*t
-  Trace("nl-alg") << "Get inferred bound lemmas..." << std::endl;
+  Trace("nl-ext") << "Get inferred bound lemmas..." << std::endl;
 
   std::vector<Node> nt_lemmas;
   for (unsigned k = 0; k < terms.size(); k++) {
     Node x = terms[k];
-    Trace("nl-alg-bound-debug")
+    Trace("nl-ext-bound-debug")
         << "Process bounds for " << x << " : " << std::endl;
     std::map<Node, std::vector<Node> >::iterator itm =
         d_m_contain_parent.find(x);
     if (itm != d_m_contain_parent.end()) {
-      Trace("nl-alg-bound-debug") << "...has " << itm->second.size()
+      Trace("nl-ext-bound-debug") << "...has " << itm->second.size()
                                   << " parent monomials." << std::endl;
       // check derived bounds
       std::map<Node, std::map<Node, std::map<Node, Kind> > >::iterator itc =
@@ -1522,14 +1522,14 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                 // x <k> t => m*x <k'> t  where y = m*x
                 // get the sign of mult
                 Node mmv = computeModelValue(mult);
-                Trace("nl-alg-bound-debug2")
+                Trace("nl-ext-bound-debug2")
                     << "Model value of " << mult << " is " << mmv << std::endl;
                 Assert(mmv.isConst());
                 int mmv_sign = mmv.getConst<Rational>().sgn();
-                Trace("nl-alg-bound-debug2")
+                Trace("nl-ext-bound-debug2")
                     << "  sign of " << mmv << " is " << mmv_sign << std::endl;
                 if (mmv_sign != 0) {
-                  Trace("nl-alg-bound-debug")
+                  Trace("nl-ext-bound-debug")
                       << "  from " << x << " * " << mult << " = " << y
                       << " and " << t << " " << type << " " << rhs
                       << ", infer : " << std::endl;
@@ -1541,13 +1541,13 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                       NodeManager::currentNM()->mkNode(kind::MULT, mult, rhs);
                   Node infer = NodeManager::currentNM()->mkNode(
                       infer_type, infer_lhs, infer_rhs);
-                  Trace("nl-alg-bound-debug") << "     " << infer << std::endl;
+                  Trace("nl-ext-bound-debug") << "     " << infer << std::endl;
                   infer = Rewriter::rewrite(infer);
-                  Trace("nl-alg-bound-debug2")
+                  Trace("nl-ext-bound-debug2")
                       << "     ...rewritten : " << infer << std::endl;
                   // check whether it is false in model for abstraction
                   Node infer_mv = computeModelValue(infer, 1);
-                  Trace("nl-alg-bound-debug")
+                  Trace("nl-ext-bound-debug")
                       << "       ...infer model value is " << infer_mv
                       << std::endl;
                   if (infer_mv == d_false) {
@@ -1561,10 +1561,10 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                     Node pr_iblem = iblem;
                     iblem = Rewriter::rewrite(iblem);
                     bool introNewTerms = hasNewMonomials(iblem, ms);
-                    Trace("nl-alg-bound-lemma")
+                    Trace("nl-ext-bound-lemma")
                         << "*** Bound inference lemma : " << iblem
                         << " (pre-rewrite : " << pr_iblem << ")" << std::endl;
-                    // Trace("nl-alg-bound-lemma") << "       intro new
+                    // Trace("nl-ext-bound-lemma") << "       intro new
                     // monomials = " << introNewTerms << std::endl;
                     if (!introNewTerms) {
                       lemmas.push_back(iblem);
@@ -1573,7 +1573,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                     }
                   }
                 } else {
-                  Trace("nl-alg-bound-debug") << "     ...coefficient " << mult
+                  Trace("nl-ext-bound-debug") << "     ...coefficient " << mult
                                               << " is zero." << std::endl;
                 }
               }
@@ -1582,15 +1582,15 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         }
       }
     } else {
-      Trace("nl-alg-bound-debug") << "...has no parent monomials." << std::endl;
+      Trace("nl-ext-bound-debug") << "...has no parent monomials." << std::endl;
     }
   }
-  // Trace("nl-alg") << "Bound lemmas : " << lemmas.size() << ", " <<
+  // Trace("nl-ext") << "Bound lemmas : " << lemmas.size() << ", " <<
   // nt_lemmas.size() << std::endl;  prioritize lemmas that do not
   // introduce new monomials
   lemmas_proc = flushLemmas(lemmas);
   if (lemmas_proc > 0) {
-    Trace("nl-alg") << "  ...finished with " << lemmas_proc << " new lemmas."
+    Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas."
                     << std::endl;
     return;
   }
@@ -1598,8 +1598,8 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   //------------------------------------resolution bound inferences, e.g.
   //(
   // y>=0 ^ s <= x*z ^ x*y <= t ) => y*s <= z*t
-  if (options::nlAlgResBound()) {
-    Trace("nl-alg") << "Get resolution inferred bound lemmas..." << std::endl;
+  if (options::nlExtResBound()) {
+    Trace("nl-ext") << "Get resolution inferred bound lemmas..." << std::endl;
     for (unsigned j = 0; j < terms.size(); j++) {
       Node a = terms[j];
       std::map<Node, std::map<Node, std::map<Node, Kind> > >::iterator itca =
@@ -1610,7 +1610,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
           std::map<Node, std::map<Node, std::map<Node, Kind> > >::iterator
               itcb = ci.find(b);
           if (itcb != ci.end()) {
-            Trace("nl-alg-rbound-debug") << "resolution inferences : compare "
+            Trace("nl-ext-rbound-debug") << "resolution inferences : compare "
                                          << a << " and " << b << std::endl;
             // if they have common factors
             std::map<Node, Node>::iterator ita = d_mono_diff[a].find(b);
@@ -1625,12 +1625,12 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
               Assert(mv_b.isConst());
               int mv_b_sgn = mv_b.getConst<Rational>().sgn();
               Assert(mv_b_sgn != 0);
-              Trace("nl-alg-rbound") << "Get resolution inferences for [a] "
+              Trace("nl-ext-rbound") << "Get resolution inferences for [a] "
                                      << a << " vs [b] " << b << std::endl;
-              Trace("nl-alg-rbound")
+              Trace("nl-ext-rbound")
                   << "  [a] factor is " << ita->second
                   << ", sign in model = " << mv_a_sgn << std::endl;
-              Trace("nl-alg-rbound")
+              Trace("nl-ext-rbound")
                   << "  [b] factor is " << itb->second
                   << ", sign in model = " << mv_b_sgn << std::endl;
 
@@ -1669,15 +1669,15 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                         if (!hasNewMonomials(rhs_b_res, ms)) {
                           Kind type_b = itcbr->second;
                           exp.push_back(ci_exp[b][coeff_b][rhs_b]);
-                          if (Trace.isOn("nl-alg-rbound")) {
-                            Trace("nl-alg-rbound") << "* try bounds : ";
-                            debugPrintBound("nl-alg-rbound", coeff_a, a, type_a,
+                          if (Trace.isOn("nl-ext-rbound")) {
+                            Trace("nl-ext-rbound") << "* try bounds : ";
+                            debugPrintBound("nl-ext-rbound", coeff_a, a, type_a,
                                             rhs_a);
-                            Trace("nl-alg-rbound") << std::endl;
-                            Trace("nl-alg-rbound") << "               ";
-                            debugPrintBound("nl-alg-rbound", coeff_b, b, type_b,
+                            Trace("nl-ext-rbound") << std::endl;
+                            Trace("nl-ext-rbound") << "               ";
+                            debugPrintBound("nl-ext-rbound", coeff_b, b, type_b,
                                             rhs_b);
-                            Trace("nl-alg-rbound") << std::endl;
+                            Trace("nl-ext-rbound") << std::endl;
                           }
                           Kind types[2];
                           for (unsigned r = 0; r < 2; r++) {
@@ -1698,7 +1698,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                             }
                           }
                           Kind jk = transKinds(types[0], types[1]);
-                          Trace("nl-alg-rbound-debug")
+                          Trace("nl-ext-rbound-debug")
                               << "trans kind : " << types[0] << " + "
                               << types[1] << " = " << jk << std::endl;
                           if (jk != kind::UNDEFINED_KIND) {
@@ -1711,13 +1711,13 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                   NodeManager::currentNM()->mkNode(kind::AND,
                                                                    exp),
                                   conc);
-                              Trace("nl-alg-rbound-lemma-debug")
+                              Trace("nl-ext-rbound-lemma-debug")
                                   << "Resolution bound lemma "
                                      "(pre-rewrite) "
                                      ": "
                                   << rblem << std::endl;
                               rblem = Rewriter::rewrite(rblem);
-                              Trace("nl-alg-rbound-lemma")
+                              Trace("nl-ext-rbound-lemma")
                                   << "Resolution bound lemma : " << rblem
                                   << std::endl;
                               lemmas.push_back(rblem);
@@ -1740,7 +1740,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
     lemmas_proc = flushLemmas(lemmas);
     if (lemmas_proc > 0) {
-      Trace("nl-alg") << "  ...finished with " << lemmas_proc << " new lemmas."
+      Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas."
                       << std::endl;
       return;
     }
@@ -1749,19 +1749,19 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   // from inferred bound inferences
   lemmas_proc = flushLemmas(nt_lemmas);
   if (lemmas_proc > 0) {
-    Trace("nl-alg") << "  ...finished with " << lemmas_proc
+    Trace("nl-ext") << "  ...finished with " << lemmas_proc
                     << " new (monomial-introducing) lemmas." << std::endl;
     return;
   }
 
-  if (options::nlAlgTangentPlanes()) {
-    Trace("nl-alg") << "Get tangent plane lemmas..." << std::endl;
+  if (options::nlExtTangentPlanes()) {
+    Trace("nl-ext") << "Get tangent plane lemmas..." << std::endl;
     unsigned kstart = ms_vars.size();
     for (unsigned k = kstart; k < terms.size(); k++) {
       Node t = terms[k];
       // if this term requires a refinement
       if (tplane_refine_dir.find(t) != tplane_refine_dir.end()) {
-        Trace("nl-alg-tplanes")
+        Trace("nl-ext-tplanes")
             << "Look at monomial requiring refinement : " << t << std::endl;
         // get a decomposition
         std::map<Node, std::vector<Node> >::iterator it =
@@ -1777,7 +1777,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
               Node b = tc < tc_diff ? tc_diff : tc;
               if (dproc[a].find(b) == dproc[a].end()) {
                 dproc[a][b] = true;
-                Trace("nl-alg-tplanes")
+                Trace("nl-ext-tplanes")
                     << "  decomposable into : " << a << " * " << b << std::endl;
                 Node a_v = computeModelValue(a, 1);
                 Node b_v = computeModelValue(b, 1);
@@ -1798,7 +1798,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                       d <= 1 ? kind::LEQ : kind::GEQ, t, tplane);
                   Node tlem = NodeManager::currentNM()->mkNode(
                       kind::OR, aa.negate(), ab.negate(), conc);
-                  Trace("nl-alg-tplanes")
+                  Trace("nl-ext-tplanes")
                       << "Tangent plane lemma : " << tlem << std::endl;
                   lemmas.push_back(tlem);
                 }
@@ -1808,41 +1808,41 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         }
       }
     }
-    Trace("nl-alg") << "...trying " << lemmas.size()
+    Trace("nl-ext") << "...trying " << lemmas.size()
                     << " tangent plane lemmas..." << std::endl;
     lemmas_proc = flushLemmas(lemmas);
     if (lemmas_proc > 0) {
-      Trace("nl-alg") << "  ...finished with " << lemmas_proc << " new lemmas."
+      Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas."
                       << std::endl;
       return;
     }
   }
 
-  Trace("nl-alg") << "...set incomplete" << std::endl;
+  Trace("nl-ext") << "...set incomplete" << std::endl;
   d_containing.getOutputChannel().setIncomplete();
 }
 
 void NonlinearExtension::check(Theory::Effort e) {
-  Trace("nl-alg") << std::endl;
-  Trace("nl-alg") << "NonlinearExtension::check, effort = " << e << std::endl;
+  Trace("nl-ext") << std::endl;
+  Trace("nl-ext") << "NonlinearExtension::check, effort = " << e << std::endl;
   if (e == Theory::EFFORT_FULL) {
     d_containing.getExtTheory()->clearCache();
     d_needsLastCall = true;
-    if (options::nlAlgRewrites()) {
+    if (options::nlExtRewrites()) {
       std::vector<Node> nred;
       if (!d_containing.getExtTheory()->doInferences(0, nred)) {
-        Trace("nl-alg") << "...sent no lemmas, # extf to reduce = "
+        Trace("nl-ext") << "...sent no lemmas, # extf to reduce = "
                         << nred.size() << std::endl;
         if (nred.empty()) {
           d_needsLastCall = false;
         }
       } else {
-        Trace("nl-alg") << "...sent lemmas." << std::endl;
+        Trace("nl-ext") << "...sent lemmas." << std::endl;
       }
     }
   } else {
     Assert(e == Theory::EFFORT_LAST_CALL);
-    Trace("nl-alg-mv") << "Getting model values... check for [model-false]"
+    Trace("nl-ext-mv") << "Getting model values... check for [model-false]"
                        << std::endl;
     d_mv[0].clear();
     d_mv[1].clear();
@@ -1866,7 +1866,7 @@ void NonlinearExtension::check(Theory::Effort e) {
         Node stv1 = computeModelValue( shared_term, 1 );
         
         if( stv0!=stv1 ){
-          Trace("nl-alg-mv") << "Bad shared term value : " << shared_term << " : " << stv1 << ", actual is " << stv0 << std::endl;
+          Trace("nl-ext-mv") << "Bad shared term value : " << shared_term << " : " << stv1 << ", actual is " << stv0 << std::endl;
           //split on the value, FIXME : this is non-terminating in general, improve this
           Node lem = shared_term.eqNode(stv0);
           lem = Rewriter::rewrite(lem);
@@ -1878,7 +1878,7 @@ void NonlinearExtension::check(Theory::Effort e) {
       }
       if( !lemmas.empty() ){
         int lemmas_proc = flushLemmas(lemmas);
-        Trace("nl-alg-mv") << "...added " << lemmas_proc << " shared term split lemmas." << std::endl;
+        Trace("nl-ext-mv") << "...added " << lemmas_proc << " shared term split lemmas." << std::endl;
         Assert( lemmas_proc>0 );
       }
     }
@@ -1902,7 +1902,7 @@ void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
   for (unsigned j = 0; j < vars.size(); j++) {
     Node x = vars[j];
     Node v = get_compare_value(x, orderType);
-    Trace("nl-alg-mvo") << "  order " << x << " : " << v << std::endl;
+    Trace("nl-ext-mvo") << "  order " << x << " : " << v << std::endl;
     if (v != prev) {
       // builtin points
       bool success;
@@ -1912,7 +1912,7 @@ void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
           Node vv = get_compare_value(d_order_points[order_index], orderType);
           if (compare_value(v, vv, orderType) <= 0) {
             counter++;
-            Trace("nl-alg-mvo")
+            Trace("nl-ext-mvo")
                 << "O_" << orderType << "[" << d_order_points[order_index]
                 << "] = " << counter << std::endl;
             order[d_order_points[order_index]] = counter;
@@ -1926,14 +1926,14 @@ void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
     if (prev.isNull() || compare_value(v, prev, orderType) != 0) {
       counter++;
     }
-    Trace("nl-alg-mvo") << "O_" << orderType << "[" << x << "] = " << counter
+    Trace("nl-ext-mvo") << "O_" << orderType << "[" << x << "] = " << counter
                         << std::endl;
     order[x] = counter;
     prev = v;
   }
   while (order_index < d_order_points.size()) {
     counter++;
-    Trace("nl-alg-mvo") << "O_" << orderType << "["
+    Trace("nl-ext-mvo") << "O_" << orderType << "["
                         << d_order_points[order_index] << "] = " << counter
                         << std::endl;
     order[d_order_points[order_index]] = counter;
@@ -1959,7 +1959,7 @@ int NonlinearExtension::compare(Node i, Node j, unsigned orderType) const {
 int NonlinearExtension::compare_value(Node i, Node j,
                                       unsigned orderType) const {
   Assert(orderType >= 0 && orderType <= 3);
-  Trace("nl-alg-debug") << "compare_value " << i << " " << j
+  Trace("nl-ext-debug") << "compare_value " << i << " " << j
                         << ", o = " << orderType << std::endl;
   int ret;
   if (i == j) {
@@ -1967,9 +1967,9 @@ int NonlinearExtension::compare_value(Node i, Node j,
   } else if (orderType == 0 || orderType == 2) {
     ret = i.getConst<Rational>() < j.getConst<Rational>() ? 1 : -1;
   } else {
-    Trace("nl-alg-debug") << "vals : " << i.getConst<Rational>() << " "
+    Trace("nl-ext-debug") << "vals : " << i.getConst<Rational>() << " "
                           << j.getConst<Rational>() << std::endl;
-    Trace("nl-alg-debug") << i.getConst<Rational>().abs() << " "
+    Trace("nl-ext-debug") << i.getConst<Rational>().abs() << " "
                           << j.getConst<Rational>().abs() << std::endl;
     ret = (i.getConst<Rational>().abs() == j.getConst<Rational>().abs()
                ? 0
@@ -1977,12 +1977,12 @@ int NonlinearExtension::compare_value(Node i, Node j,
                       ? 1
                       : -1));
   }
-  Trace("nl-alg-debug") << "...return " << ret << std::endl;
+  Trace("nl-ext-debug") << "...return " << ret << std::endl;
   return ret;
 }
 
 Node NonlinearExtension::get_compare_value(Node i, unsigned orderType) const {
-  Trace("nl-alg-debug") << "Compare variable " << i << " " << orderType
+  Trace("nl-ext-debug") << "Compare variable " << i << " " << orderType
                         << std::endl;
   Assert(orderType >= 0 && orderType <= 3);
   unsigned mindex = orderType <= 1 ? 0 : 1;
@@ -1996,7 +1996,7 @@ Node NonlinearExtension::get_compare_value(Node i, unsigned orderType) const {
 int NonlinearExtension::compareSign(Node oa, Node a, unsigned a_index,
                                     int status, std::vector<Node>& exp,
                                     std::vector<Node>& lem) {
-  Trace("nl-alg-debug") << "Process " << a << " at index " << a_index
+  Trace("nl-ext-debug") << "Process " << a << " at index " << a_index
                         << ", status is " << status << std::endl;
   Assert(d_mv[1].find(oa) != d_mv[1].end());
   if (a_index == d_m_vlist[a].size()) {
@@ -2013,7 +2013,7 @@ int NonlinearExtension::compareSign(Node oa, Node a, unsigned a_index,
     // take current sign in model
     Assert(d_mv[0].find(av) != d_mv[0].end());
     int sgn = d_mv[0][av].getConst<Rational>().sgn();
-    Trace("nl-alg-debug") << "Process var " << av << "^" << aexp
+    Trace("nl-ext-debug") << "Process var " << av << "^" << aexp
                           << ", model sign = " << sgn << std::endl;
     if (sgn == 0) {
       if (d_mv[1][oa].getConst<Rational>().sgn() != 0) {
@@ -2038,7 +2038,7 @@ bool NonlinearExtension::compareMonomial(
     Node oa, Node a, NodeMultiset& a_exp_proc, Node ob, Node b,
     NodeMultiset& b_exp_proc, std::vector<Node>& exp, std::vector<Node>& lem,
     std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers) {
-  Trace("nl-alg-comp-debug")
+  Trace("nl-ext-comp-debug")
       << "Check |" << a << "| >= |" << b << "|" << std::endl;
   unsigned pexp_size = exp.size();
   if (compareMonomial(oa, a, 0, a_exp_proc, ob, b, 0, b_exp_proc, 0, exp, lem,
@@ -2046,7 +2046,7 @@ bool NonlinearExtension::compareMonomial(
     return true;
   } else {
     exp.resize(pexp_size);
-    Trace("nl-alg-comp-debug")
+    Trace("nl-ext-comp-debug")
         << "Check |" << b << "| >= |" << a << "|" << std::endl;
     if (compareMonomial(ob, b, 0, b_exp_proc, oa, a, 0, a_exp_proc, 0, exp, lem,
                         cmp_infers)) {
@@ -2086,18 +2086,18 @@ bool NonlinearExtension::compareMonomial(
     Node b, unsigned b_index, NodeMultiset& b_exp_proc, int status,
     std::vector<Node>& exp, std::vector<Node>& lem,
     std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers) {
-  Trace("nl-alg-comp-debug")
+  Trace("nl-ext-comp-debug")
       << "compareMonomial " << oa << " and " << ob << ", indices = " << a_index
       << " " << b_index << std::endl;
   Assert(status == 0 || status == 2);
   if (a_index == d_m_vlist[a].size() && b_index == d_m_vlist[b].size()) {
     // finished, compare abstract values
     int modelStatus = compare(oa, ob, 3) * -2;
-    Trace("nl-alg-comp") << "...finished comparison with " << oa << " <"
+    Trace("nl-ext-comp") << "...finished comparison with " << oa << " <"
                          << status << "> " << ob
                          << ", model status = " << modelStatus << std::endl;
     if (status != modelStatus) {
-      Trace("nl-alg-comp-infer")
+      Trace("nl-ext-comp-infer")
           << "infer : " << oa << " <" << status << "> " << ob << std::endl;
       if (status == 2) {
         // must state that all variables are non-zero
@@ -2108,7 +2108,7 @@ bool NonlinearExtension::compareMonomial(
       Node clem = NodeManager::currentNM()->mkNode(
           kind::IMPLIES, safeConstructNary(kind::AND, exp),
           mkLit(oa, ob, status, 1));
-      Trace("nl-alg-comp-lemma") << "comparison lemma : " << clem << std::endl;
+      Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
       lem.push_back(clem);
       cmp_infers[status][oa][ob] = clem;
     }
@@ -2146,33 +2146,33 @@ bool NonlinearExtension::compareMonomial(
     // get "one" information
     Assert(d_order_vars[1].find(d_one) != d_order_vars[1].end());
     unsigned ovo = d_order_vars[1][d_one];
-    Trace("nl-alg-comp-debug") << "....vars : " << av << "^" << aexp << " "
+    Trace("nl-ext-comp-debug") << "....vars : " << av << "^" << aexp << " "
                                << bv << "^" << bexp << std::endl;
 
     //--- cases
     if (av.isNull()) {
       if (bvo <= ovo) {
-        Trace("nl-alg-comp-debug") << "...take leading " << bv << std::endl;
+        Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
         // can multiply b by <=1
         exp.push_back(mkLit(d_one, bv, bvo == ovo ? 0 : 2, 1));
         return compareMonomial(oa, a, a_index, a_exp_proc, ob, b, b_index + 1,
                                b_exp_proc, bvo == ovo ? status : 2, exp, lem,
                                cmp_infers);
       } else {
-        Trace("nl-alg-comp-debug")
+        Trace("nl-ext-comp-debug")
             << "...failure, unmatched |b|>1 component." << std::endl;
         return false;
       }
     } else if (bv.isNull()) {
       if (avo >= ovo) {
-        Trace("nl-alg-comp-debug") << "...take leading " << av << std::endl;
+        Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
         // can multiply a by >=1
         exp.push_back(mkLit(av, d_one, avo == ovo ? 0 : 2, 1));
         return compareMonomial(oa, a, a_index + 1, a_exp_proc, ob, b, b_index,
                                b_exp_proc, avo == ovo ? status : 2, exp, lem,
                                cmp_infers);
       } else {
-        Trace("nl-alg-comp-debug")
+        Trace("nl-ext-comp-debug")
             << "...failure, unmatched |a|<1 component." << std::endl;
         return false;
       }
@@ -2180,7 +2180,7 @@ bool NonlinearExtension::compareMonomial(
       Assert(!av.isNull() && !bv.isNull());
       if (avo >= bvo) {
         if (bvo < ovo && avo >= ovo) {
-          Trace("nl-alg-comp-debug") << "...take leading " << av << std::endl;
+          Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
           // do avo>=1 instead
           exp.push_back(mkLit(av, d_one, avo == ovo ? 0 : 2, 1));
           return compareMonomial(oa, a, a_index + 1, a_exp_proc, ob, b, b_index,
@@ -2190,7 +2190,7 @@ bool NonlinearExtension::compareMonomial(
           unsigned min_exp = aexp > bexp ? bexp : aexp;
           a_exp_proc[av] += min_exp;
           b_exp_proc[bv] += min_exp;
-          Trace("nl-alg-comp-debug")
+          Trace("nl-ext-comp-debug")
               << "...take leading " << min_exp << " from " << av << " and "
               << bv << std::endl;
           exp.push_back(mkLit(av, bv, avo == bvo ? 0 : 2, 1));
@@ -2203,14 +2203,14 @@ bool NonlinearExtension::compareMonomial(
         }
       } else {
         if (bvo <= ovo) {
-          Trace("nl-alg-comp-debug") << "...take leading " << bv << std::endl;
+          Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
           // try multiply b <= 1
           exp.push_back(mkLit(d_one, bv, bvo == ovo ? 0 : 2, 1));
           return compareMonomial(oa, a, a_index, a_exp_proc, ob, b, b_index + 1,
                                  b_exp_proc, bvo == ovo ? status : 2, exp, lem,
                                  cmp_infers);
         } else {
-          Trace("nl-alg-comp-debug")
+          Trace("nl-ext-comp-debug")
               << "...failure, leading |b|>|a|>1 component." << std::endl;
           return false;
         }
@@ -2253,14 +2253,14 @@ void NonlinearExtension::MonomialIndex::addTerm(Node n,
     if (m != n) {
       // we are superset if we are equal and haven't traversed all variables
       int cstatus = status == 0 ? (argIndex == reps.size() ? 0 : -1) : status;
-      Trace("nl-alg-mindex-debug") << "  compare " << n << " and " << m
+      Trace("nl-ext-mindex-debug") << "  compare " << n << " and " << m
                                    << ", status = " << cstatus << std::endl;
       if (cstatus <= 0 && nla->isMonomialSubset(m, n)) {
         nla->registerMonomialSubset(m, n);
-        Trace("nl-alg-mindex-debug") << "...success" << std::endl;
+        Trace("nl-ext-mindex-debug") << "...success" << std::endl;
       } else if (cstatus >= 0 && nla->isMonomialSubset(n, m)) {
         nla->registerMonomialSubset(n, m);
-        Trace("nl-alg-mindex-debug") << "...success (rev)" << std::endl;
+        Trace("nl-ext-mindex-debug") << "...success (rev)" << std::endl;
       }
     }
   }

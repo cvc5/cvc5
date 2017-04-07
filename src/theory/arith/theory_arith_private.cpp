@@ -162,7 +162,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
 {
   srand(79);
   
-  if( options::nlAlg() ){
+  if( options::nlExt() ){
     d_nonlinearExtension = new NonlinearExtension(
         containing, d_congruenceManager.getEqualityEngine());
   }
@@ -1574,7 +1574,7 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
       throw LogicException("A non-linear fact was asserted to arithmetic in a linear logic.");
     }
 
-    if( !options::nlAlg() ){
+    if( !options::nlExt() ){
       setIncomplete();
       d_nlIncomplete = true;
     }
@@ -1820,7 +1820,7 @@ void TheoryArithPrivate::setupAtom(TNode atom) {
 void TheoryArithPrivate::preRegisterTerm(TNode n) {
   Debug("arith::preregister") <<"begin arith::preRegisterTerm("<< n <<")"<< endl;
   
-  if( options::nlAlg() ){
+  if( options::nlExt() ){
     d_containing.getExtTheory()->registerTermRec( n );
   }
 
@@ -3647,7 +3647,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }
 
   if(effortLevel == Theory::EFFORT_LAST_CALL){
-    if( options::nlAlg() ){
+    if( options::nlExt() ){
       d_nonlinearExtension->check( effortLevel );
     }
     return;
@@ -3967,7 +3967,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }//if !emmittedConflictOrSplit && fullEffort(effortLevel) && !hasIntegerModel()
 
   if(!emmittedConflictOrSplit && effortLevel>=Theory::EFFORT_FULL){
-    if( options::nlAlg() ){
+    if( options::nlExt() ){
       d_nonlinearExtension->check( effortLevel );
     }
   }
@@ -4148,7 +4148,7 @@ void TheoryArithPrivate::debugPrintModel(std::ostream& out) const{
 }
 
 bool TheoryArithPrivate::needsCheckLastEffort() {
-  if( options::nlAlg() ){
+  if( options::nlExt() ){
     return d_nonlinearExtension->needsCheckLastEffort();
   }else{
     return false;
@@ -4185,7 +4185,7 @@ Node TheoryArithPrivate::explain(TNode n) {
 }
 
 bool TheoryArithPrivate::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  if( options::nlAlg() ){
+  if( options::nlExt() ){
     return d_nonlinearExtension->getCurrentSubstitution( effort, vars, subs, exp );
   }else{
     return false;
@@ -4194,7 +4194,7 @@ bool TheoryArithPrivate::getCurrentSubstitution( int effort, std::vector< Node >
 
 bool TheoryArithPrivate::isExtfReduced(int effort, Node n, Node on,
                                        std::vector<Node>& exp) {
-  if (options::nlAlg()) {
+  if (options::nlExt()) {
     std::pair<bool, Node> reduced =
         d_nonlinearExtension->isExtfReduced(effort, n, on, exp);
     if (!reduced.second.isNull()) {

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-alg --nl-alg-tplanes
+; COMMAND-LINE: --nl-ext --nl-ext-tplanes
 ; EXPECT: unsat
 (set-logic QF_NRA)
 (set-info :source |
