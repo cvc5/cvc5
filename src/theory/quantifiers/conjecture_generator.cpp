@@ -356,6 +356,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
       eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
       while( !eqcs_i.isFinished() ){
         TNode r = (*eqcs_i);
+        Trace("sg-proc-debug") << "...eqc : " << r << std::endl;
         eqcs.push_back( r );
         if( r.getType().isBoolean() ){
           if( areEqual( r, getTermDatabase()->d_true ) ){
@@ -370,8 +371,10 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
         eq::EqClassIterator ieqc_i = eq::EqClassIterator( r, ee );
         while( !ieqc_i.isFinished() ){
           TNode n = (*ieqc_i);
+          Trace("sg-proc-debug") << "......term : " << n << std::endl;
           if( getTermDatabase()->hasTermCurrent( n ) ){
             if( isHandledTerm( n ) ){
+              getTermDatabase()->computeArgReps( n );
               d_op_arg_index[r].addTerm( getTermDatabase()->d_arg_reps[n], n );
             }
           }
