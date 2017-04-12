@@ -536,7 +536,7 @@ public:
   Node mkAbstractValue(const TypeNode& type);
   
   /** make unique (per Type,Kind) variable. */
-  Node mkUniqueVar(const TypeNode& type, Kind k);
+  Node mkNullaryOperator(const TypeNode& type, Kind k);
 
   /**
    * Create a constant of type T.  It will have the appropriate
@@ -1240,6 +1240,7 @@ inline bool NodeManager::hasOperator(Kind k) {
 
   case kind::metakind::INVALID:
   case kind::metakind::VARIABLE:
+  case kind::metakind::NULLARY_OPERATOR:
     return false;
 
   case kind::metakind::OPERATOR:

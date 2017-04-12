@@ -60,7 +60,7 @@ void NodeValue::printAst(std::ostream& out, int ind) const {
   indent(out, ind);
   out << '(';
   out << getKind();
-  if (getMetaKind() == kind::metakind::VARIABLE) {
+  if (getMetaKind() == kind::metakind::VARIABLE || getMetaKind() == kind::metakind::NULLARY_OPERATOR ) {
     out << ' ' << getId();
   } else if (getMetaKind() == kind::metakind::CONSTANT) {
     out << ' ';

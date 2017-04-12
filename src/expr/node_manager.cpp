@@ -315,7 +315,7 @@ void NodeManager::reclaimZombies() {
 
       // remove from the pool
       kind::MetaKind mk = nv->getMetaKind();
-      if(mk != kind::metakind::VARIABLE) {
+      if(mk != kind::metakind::VARIABLE && mk != kind::metakind::NULLARY_OPERATOR) {
         poolRemove(nv);
       }
 
@@ -787,14 +787,15 @@ Node NodeManager::mkBooleanTermVariable() {
   return n;
 }
 
-Node NodeManager::mkUniqueVar(const TypeNode& type, Kind k) {
+Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
   std::map< TypeNode, Node >::iterator it = d_unique_vars[k].find( type );
   if( it==d_unique_vars[k].end() ){
     Node n = NodeBuilder<0>(this, k);
     n.setAttribute(TypeAttr(), type);
-    n.setAttribute(TypeCheckedAttr(), true);
+    //should type check it
+    //n.setAttribute(TypeCheckedAttr(), true);
     d_unique_vars[k][type] = n;
-    Assert( n.getMetaKind() == kind::metakind::VARIABLE );
+    Assert( n.getMetaKind() == kind::metakind::NULLARY_OPERATOR );
     return n;
   }else{
     return it->second;

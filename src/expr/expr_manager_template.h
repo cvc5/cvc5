@@ -549,7 +549,7 @@ public:
   /**
    * Create unique variable of type 
    */
-  Expr mkUniqueVar( Type type, Kind k);
+  Expr mkNullaryOperator( Type type, Kind k);
 
   /** Get a reference to the statistics registry for this ExprManager */
   Statistics getStatistics() const throw();

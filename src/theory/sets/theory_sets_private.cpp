@@ -1531,7 +1531,7 @@ Node TheorySetsPrivate::getEmptySet( TypeNode tn ) {
 Node TheorySetsPrivate::getUnivSet( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_univset.find( tn );
   if( it==d_univset.end() ){
-    Node n = NodeManager::currentNM()->mkUniqueVar(tn, kind::UNIVERSE_SET);
+    Node n = NodeManager::currentNM()->mkNullaryOperator(tn, kind::UNIVERSE_SET);
     d_univset[tn] = n;
     return n;
   }else{

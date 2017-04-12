@@ -174,7 +174,19 @@ struct ComplementTypeRule {
   }
 };/* struct ComplementTypeRule */
 
-
+struct UniverseSetTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::UNIVERSE_SET);
+    // for nullary operators, we only computeType for check=true, since they are given TypeAttr() on creation
+    Assert(check);
+    TypeNode setType = n.getType(false);
+    if(!setType.isSet()) {
+      throw TypeCheckingExceptionPrivate(n, "COMPLEMENT operates on a set, non-set object found");
+    }
+    return setType;
+  }
+};/* struct ComplementTypeRule */
 
 struct InsertTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)

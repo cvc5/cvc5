@@ -248,6 +248,12 @@ template <> $2 const & Expr::getConst() const {
   case $1: return to->mkConst(n.getConst< $2 >());"
 }
 
+function nullaryoperator {
+  # nullaryoperator K ["comment"]
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+}
+
 function check_theory_seen {
   if $seen_endtheory; then
     echo "$kf:$lineno: error: command after \"endtheory\" declaration (endtheory has to be last)" >&2

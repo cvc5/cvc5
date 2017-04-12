@@ -464,12 +464,6 @@ public:
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::VARIABLE;
   }
-  inline bool isUninterpretedVar() const {
-    assertTNodeNotExpired();
-    return getMetaKind() == kind::metakind::VARIABLE &&
-           getKind() != kind::UNIVERSE_SET && 
-           getKind() != kind::SEP_NIL;
-  }
 
   inline bool isClosure() const {
     assertTNodeNotExpired();
@@ -1258,6 +1252,9 @@ NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const {
 
   case kind::metakind::CONSTANT:
     IllegalArgument(*this, "getOperator() called on Node with CONSTANT-kinded kind");
+
+  case kind::metakind::NULLARY_OPERATOR:
+    IllegalArgument(*this, "getOperator() called on Node with NULLARY_OPERATOR-kinded kind");
 
   default:
     Unhandled(mk);

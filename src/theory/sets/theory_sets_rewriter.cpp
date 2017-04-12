@@ -306,7 +306,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     break;
   }//kind::UNION
   case kind::COMPLEMENT: {
-    Node univ = NodeManager::currentNM()->mkUniqueVar( node[0].getType(), kind::UNIVERSE_SET );
+    Node univ = NodeManager::currentNM()->mkNullaryOperator( node[0].getType(), kind::UNIVERSE_SET );
     return RewriteResponse( REWRITE_AGAIN, NodeManager::currentNM()->mkNode( kind::SETMINUS, univ, node[0] ) );
   }
     break;

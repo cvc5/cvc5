@@ -933,7 +933,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
   // file comments at the top of this file.
 
   // Case 0: If a VARIABLE
-  if(getMetaKind() == kind::metakind::VARIABLE) {
+  if(getMetaKind() == kind::metakind::VARIABLE || getMetaKind() == kind::metakind::NULLARY_OPERATOR) {
     /* 0. If a VARIABLE, treat similarly to 1(b), except that we know
      * there are no children (no reference counts to reason about),
      * and we don't keep VARIABLE-kinded Nodes in the NodeManager
@@ -1123,7 +1123,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
   // file comments at the top of this file.
 
   // Case 0: If a VARIABLE
-  if(getMetaKind() == kind::metakind::VARIABLE) {
+  if(getMetaKind() == kind::metakind::VARIABLE || getMetaKind() == kind::metakind::NULLARY_OPERATOR) {
     /* 0. If a VARIABLE, treat similarly to 1(b), except that we know
      * there are no children (no reference counts to reason about),
      * and we don't keep VARIABLE-kinded Nodes in the NodeManager
@@ -1336,6 +1336,7 @@ inline void NodeBuilder<nchild_thresh>::maybeCheckType(const TNode n) const
   if( d_nm->getOptions()[options::earlyTypeChecking] ) {
     kind::MetaKind mk = n.getMetaKind();
     if( mk != kind::metakind::VARIABLE
+        && mk != kind::metakind::NULLARY_OPERATOR
         && mk != kind::metakind::CONSTANT ) {
       d_nm->getType(n, true);
     }

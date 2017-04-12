@@ -98,7 +98,8 @@ enum MetaKind_t {
   VARIABLE, /**< special node kinds: no operator */
   OPERATOR, /**< operators that get "inlined" */
   PARAMETERIZED, /**< parameterized ops (like APPLYs) that carry extra data */
-  CONSTANT /**< constants */
+  CONSTANT, /**< constants */
+  NULLARY_OPERATOR /**< nullary operator */
 };/* enum MetaKind_t */
 
 }/* CVC4::kind::metakind namespace */
@@ -338,7 +339,7 @@ ${metakind_operatorKinds}
 
 }/* CVC4::kind namespace */
 
-#line 342 "${template}"
+#line 343 "${template}"
 
 namespace theory {
 

@@ -893,7 +893,8 @@ public:
     Trace("rewriteApplyToConst") << "rewriteApplyToConst :: " << n << std::endl;
 
     if(n.getMetaKind() == kind::metakind::CONSTANT ||
-       n.getMetaKind() == kind::metakind::VARIABLE)
+       n.getMetaKind() == kind::metakind::VARIABLE ||
+       n.getMetaKind() == kind::metakind::NULLARY_OPERATOR)
     {
       return n;
     }

@@ -1839,7 +1839,7 @@ postfixTerm[CVC4::Expr& f]
         } else if(f.getKind() == CVC4::kind::EMPTYSET && t.isSet()) {
           f = MK_CONST(CVC4::EmptySet(t));
         } else if(f.getKind() == CVC4::kind::UNIVERSE_SET && t.isSet()) {
-          f = EXPR_MANAGER->mkUniqueVar(t, kind::UNIVERSE_SET);
+          f = EXPR_MANAGER->mkNullaryOperator(t, kind::UNIVERSE_SET);
         } else {
           if(f.getType() != t) {
             PARSER_STATE->parseError("Type ascription not satisfied.");
@@ -2075,7 +2075,7 @@ simpleTerm[CVC4::Expr& f]
     { f = MK_CONST(EmptySet(Type())); }
   | UNIVSET_TOK
     { //booleanType is placeholder
-      f = EXPR_MANAGER->mkUniqueVar(EXPR_MANAGER->booleanType(), kind::UNIVERSE_SET);
+      f = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->booleanType(), kind::UNIVERSE_SET);
     }
 
     /* finite set literal */

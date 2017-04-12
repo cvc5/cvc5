@@ -271,12 +271,12 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isUninterpretedVar() && !in[1].hasSubterm(in[0]) &&
+    if (in[0].isVar() && !in[1].hasSubterm(in[0]) &&
         (in[1].getType()).isSubtypeOf(in[0].getType()) ){
       outSubstitutions.addSubstitution(in[0], in[1]);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[1].isUninterpretedVar() && !in[0].hasSubterm(in[1]) &&
+    if (in[1].isVar() && !in[0].hasSubterm(in[1]) &&
         (in[0].getType()).isSubtypeOf(in[1].getType())){
       outSubstitutions.addSubstitution(in[1], in[0]);
       return PP_ASSERT_STATUS_SOLVED;

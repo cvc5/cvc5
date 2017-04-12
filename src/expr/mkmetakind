@@ -302,6 +302,15 @@ struct ConstantMapReverse< ::CVC4::kind::$1 > {
 "
 }
 
+function nullaryoperator {
+  # nullaryoperator K ["comment"]
+
+  lineno=${BASH_LINENO[0]}
+
+  check_theory_seen
+  register_metakind NULLARY_OPERATOR "$1" 0
+}
+
 function registerOperatorToKind {
   operatorKind=$1
   applyKind=$2

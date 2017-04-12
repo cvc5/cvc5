@@ -99,6 +99,17 @@ struct SepLabelTypeRule {
   }
 };/* struct SepLabelTypeRule */
 
+struct SepNilTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::SEP_NIL);
+    Assert(check);
+    TypeNode type = n.getType(false);
+    return type;
+  }
+};/* struct SepLabelTypeRule */
+
+
 }/* CVC4::theory::sep namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
