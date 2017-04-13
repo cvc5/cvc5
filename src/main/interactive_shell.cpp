@@ -104,7 +104,7 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
   }
 
 #if HAVE_LIBREADLINE
-  if(d_in == cin) {
+  if(&d_in == &cin) {
     ::rl_readline_name = const_cast<char*>("CVC4");
 #if READLINE_COMPENTRY_FUNC_RETURNS_CHARP
     ::rl_completion_entry_function = commandGenerator;
