@@ -1314,9 +1314,9 @@ void TheoryArithPrivate::addSharedTerm(TNode n){
 
 Node TheoryArithPrivate::getModelValue(TNode term) {
   try{
-    DeltaRational drv = getDeltaValue(term);
+    const DeltaRational drv = getDeltaValue(term);
     const Rational& delta = d_partialModel.getDelta();
-    Rational qmodel = drv.substituteDelta( delta );
+    const Rational qmodel = drv.substituteDelta( delta );
     return mkRationalNode( qmodel );
   } catch (DeltaRationalException& dr) {
     return Node::null();
@@ -1529,7 +1529,8 @@ ArithVar TheoryArithPrivate::findShortestBasicRow(ArithVar variable){
       bestRowLength = rowLength;
     }
   }
-  Assert(bestBasic == ARITHVAR_SENTINEL || bestRowLength < std::numeric_limits<uint32_t>::max());
+  Assert(bestBasic == ARITHVAR_SENTINEL ||
+         bestRowLength < std::numeric_limits<uint32_t>::max());
   return bestBasic;
 }
 
@@ -1544,7 +1545,6 @@ void TheoryArithPrivate::setupVariable(const Variable& x){
   //setupInitialValue(varN);
 
   markSetup(n);
-
 
   if(x.isDivLike()){
     setupDivLike(x);
@@ -1610,7 +1610,11 @@ void TheoryArithPrivate::setupDivLike(const Variable& v){
   Assert(v.isDivLike());
 
   if(getLogicInfo().isLinear()){
-    throw LogicException("A non-linear fact (involving div/mod/divisibility) was asserted to arithmetic in a linear logic;\nif you only use division (or modulus) by a constant value, or if you only use the divisibility-by-k predicate, try using the --rewrite-divk option.");
+    throw LogicException(
+        "A non-linear fact (involving div/mod/divisibility) was asserted to "
+        "arithmetic in a linear logic;\nif you only use division (or modulus) "
+        "by a constant value, or if you only use the divisibility-by-k "
+        "predicate, try using the --rewrite-divk option.");
   }
 
   Node vnode = v.getNode();
@@ -4271,95 +4275,71 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
   }
 }
 
-DeltaRational TheoryArithPrivate::getDeltaValue(TNode n) const throw (DeltaRationalException, ModelException) {
+DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
+    throw(DeltaRationalException, ModelException) {
   AlwaysAssert(d_qflraStatus != Result::SAT_UNKNOWN);
-  Debug("arith::value") << n << std::endl;
+  Debug("arith::value") << term << std::endl;
 
-  switch(n.getKind()) {
-
-  case kind::CONST_RATIONAL:
-    return n.getConst<Rational>();
-
-  case kind::PLUS: { // 2+ args
-    DeltaRational value(0);
-    for(TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
-      value = value + getDeltaValue(*i);
-    }
-    return value;
+  if (d_partialModel.hasArithVar(term)) {
+    ArithVar var = d_partialModel.asArithVar(term);
+    return d_partialModel.getAssignment(var);
   }
 
-  case kind::MULT: { // 2+ args
-    DeltaRational value(1);
-    unsigned variableParts = 0;
-    for(TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
-      TNode curr = *i;
-      value = value * getDeltaValue(curr);
-      if(!curr.isConst()){
-        ++variableParts;
+  switch (Kind kind = term.getKind()) {
+    case kind::CONST_RATIONAL:
+      return term.getConst<Rational>();
+
+    case kind::PLUS: {  // 2+ args
+      DeltaRational value(0);
+      for (TNode::iterator i = term.begin(), iend = term.end(); i != iend;
+           ++i) {
+        value = value + getDeltaValue(*i);
+      }
+      return value;
+    }
+
+    case kind::NONLINEAR_MULT:
+    case kind::MULT: {  // 2+ args
+      Assert(!isSetup(term));
+      DeltaRational value(1);
+      for (TNode::iterator i = term.begin(), iend = term.end(); i != iend;
+           ++i) {
+        value = value * getDeltaValue(*i);
+      }
+      return value;
+    }
+    case kind::MINUS: {  // 2 args
+      return getDeltaValue(term[0]) - getDeltaValue(term[1]);
+    }
+    case kind::UMINUS: {  // 1 arg
+      return (-getDeltaValue(term[0]));
+    }
+
+    case kind::DIVISION: {  // 2 args
+      Assert(!isSetup(term));
+      return getDeltaValue(term[0]) / getDeltaValue(term[1]);
+    }
+    case kind::DIVISION_TOTAL:
+    case kind::INTS_DIVISION_TOTAL:
+    case kind::INTS_MODULUS_TOTAL: {  // 2 args
+      Assert(!isSetup(term));
+      DeltaRational denominator = getDeltaValue(term[1]);
+      if (denominator.isZero()) {
+        return DeltaRational(0, 0);
+      }
+      DeltaRational numerator = getDeltaValue(term[0]);
+      if (kind == kind::DIVISION_TOTAL) {
+        return numerator / denominator;
+      } else if (kind == kind::INTS_DIVISION_TOTAL) {
+        return Rational(numerator.euclidianDivideQuotient(denominator));
+      } else {
+        Assert(kind == kind::INTS_MODULUS_TOTAL);
+        return Rational(numerator.euclidianDivideRemainder(denominator));
       }
     }
-    // TODO: This is a bit of a weak check
-    if(isSetup(n)){
-      ArithVar var = d_partialModel.asArithVar(n);
-      const DeltaRational& assign = d_partialModel.getAssignment(var);
-      if(assign != value){
-        throw ModelException(n, "Model disagrees on non-linear term.");
-      }
-    }
-    return value;
-  }
-  case kind::MINUS:{ // 2 args
-    return getDeltaValue(n[0]) - getDeltaValue(n[1]);
-  }
 
-  case kind::UMINUS:{ // 1 arg
-    return (- getDeltaValue(n[0]));
-  }
-
-  case kind::DIVISION:{ // 2 args
-    DeltaRational res = getDeltaValue(n[0]) / getDeltaValue(n[1]);
-    if(isSetup(n)){
-      ArithVar var = d_partialModel.asArithVar(n);
-      if(d_partialModel.getAssignment(var) != res){
-        throw ModelException(n, "Model disagrees on non-linear term.");
-      }
-    }
-    return res;
-  }
-  case kind::DIVISION_TOTAL:
-  case kind::INTS_DIVISION_TOTAL:
-  case kind::INTS_MODULUS_TOTAL: { // 2 args
-    DeltaRational denom = getDeltaValue(n[1]);
-    if(denom.isZero()){
-      return DeltaRational(0,0);
-    }else{
-      DeltaRational numer = getDeltaValue(n[0]);
-      DeltaRational res;
-      if(n.getKind() == kind::DIVISION_TOTAL){
-        res = numer / denom;
-      }else if(n.getKind() == kind::INTS_DIVISION_TOTAL){
-        res = Rational(numer.euclidianDivideQuotient(denom));
-      }else{
-        Assert(n.getKind() == kind::INTS_MODULUS_TOTAL);
-        res = Rational(numer.euclidianDivideRemainder(denom));
-      }
-      if(isSetup(n)){
-        ArithVar var = d_partialModel.asArithVar(n);
-        if(d_partialModel.getAssignment(var) != res){
-          throw ModelException(n, "Model disagrees on non-linear term.");
-        }
-      }
-      return res;
-    }
-  }
-
-  default:
-    if(isSetup(n)){
-      ArithVar var = d_partialModel.asArithVar(n);
-      return d_partialModel.getAssignment(var);
-    }else{
-      throw ModelException(n, "Expected a setup node.");
-    }
+    default:
+      throw ModelException(term, "No model assignment.");
   }
 }
 
