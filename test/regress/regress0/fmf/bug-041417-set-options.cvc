@@ -1,0 +1,16 @@
+% EXPECT: invalid
+OPTION "finite-model-find";
+OPTION "fmf-fun";
+
+DATATYPE
+  Node = A | B
+END;
+
+link, reach: (Node,Node,INT) -> BOOLEAN;
+
+ASSERT FORALL(x,y:Node, c:INT):
+  link(x,y,c) => reach(x,y,c);
+
+ASSERT link(A,B,1);
+
+QUERY reach(A,B,5);

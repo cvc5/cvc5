@@ -1042,9 +1042,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_context->push();
 
   d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
-  if( options::fmfFunWellDefined() || options::fmfFunWellDefinedRelevant() ){
-    d_fmfRecFunctionsDefined = new(true) NodeList(d_userContext);
-  }
+  d_fmfRecFunctionsDefined = new(true) NodeList(d_userContext);
   d_modelCommands = new(true) smt::CommandList(d_userContext);
 }
 
@@ -1191,10 +1189,7 @@ SmtEngine::~SmtEngine() throw() {
     }
 
     d_definedFunctions->deleteSelf();
-
-    if( d_fmfRecFunctionsDefined != NULL ){
-      d_fmfRecFunctionsDefined->deleteSelf();
-    }
+    d_fmfRecFunctionsDefined->deleteSelf();
 
     delete d_theoryEngine;
     d_theoryEngine = NULL;
@@ -4185,6 +4180,7 @@ void SmtEnginePrivate::processAssertions() {
     //fmf-fun : assume admissible functions, applying preprocessing reduction to FMF
     if( options::fmfFunWellDefined() ){
       quantifiers::FunDefFmf fdf;
+      Assert( d_smt.d_fmfRecFunctionsDefined!=NULL );
       //must carry over current definitions (for incremental)
       for( context::CDList<Node>::const_iterator fit = d_smt.d_fmfRecFunctionsDefined->begin();
            fit != d_smt.d_fmfRecFunctionsDefined->end(); ++fit ) {
