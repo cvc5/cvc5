@@ -104,7 +104,7 @@ struct SepNilTypeRule {
     throw (TypeCheckingExceptionPrivate, AssertionException) {
     Assert(n.getKind() == kind::SEP_NIL);
     Assert(check);
-    TypeNode type = n.getType(false);
+    TypeNode type = n.getType();
     return type;
   }
 };/* struct SepLabelTypeRule */

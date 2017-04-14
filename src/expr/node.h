@@ -457,14 +457,21 @@ public:
   bool isConst() const;
 
   /**
-   * Returns true if this node represents a constant
-   * @return true if const
+   * Returns true if this node represents a variable
    */
   inline bool isVar() const {
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::VARIABLE;
   }
-
+  
+  /**
+   * Returns true if this node represents a nullary operator
+   */
+  inline bool isNullaryOp() const {
+    assertTNodeNotExpired();
+    return getMetaKind() == kind::metakind::NULLARY_OPERATOR;
+  }
+  
   inline bool isClosure() const {
     assertTNodeNotExpired();
     return getKind() == kind::LAMBDA ||

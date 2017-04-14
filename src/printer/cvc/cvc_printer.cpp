@@ -90,8 +90,6 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     string s;
     if(n.getAttribute(expr::VarNameAttr(), s)) {
       out << s;
-    }else if( n.getKind() == kind::UNIVERSE_SET ){
-      out << "UNIVERSE :: " << n.getType();
     } else {
       if(n.getKind() == kind::VARIABLE) {
         out << "var_";
@@ -104,6 +102,15 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       // print the whole type, but not *its* type
       out << ":";
       n.getType().toStream(out, language::output::LANG_CVC4);
+    }
+    return;
+  }
+  if(n.isNullaryOp()) {
+    if( n.getKind() == kind::UNIVERSE_SET ){
+      out << "UNIVERSE :: " << n.getType();
+    }else{
+      //unknown printer
+      out << n.getKind();
     }
     return;
   }

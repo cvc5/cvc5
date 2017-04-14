@@ -180,7 +180,7 @@ struct UniverseSetTypeRule {
     Assert(n.getKind() == kind::UNIVERSE_SET);
     // for nullary operators, we only computeType for check=true, since they are given TypeAttr() on creation
     Assert(check);
-    TypeNode setType = n.getType(false);
+    TypeNode setType = n.getType();
     if(!setType.isSet()) {
       throw TypeCheckingExceptionPrivate(n, "COMPLEMENT operates on a set, non-set object found");
     }

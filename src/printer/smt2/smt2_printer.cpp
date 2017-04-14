@@ -117,29 +117,21 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
   // variable
   if(n.isVar()) {
-    if( n.getKind() == kind::SEP_NIL ){
-      out << "(as sep.nil " << n.getType() << ")";
-      return;
-    }else if( n.getKind() == kind::UNIVERSE_SET ){
-      out << "(as univset " << n.getType() << ")";
-      return;
-    }else{
-      string s;
-      if(n.getAttribute(expr::VarNameAttr(), s)) {
-        out << maybeQuoteSymbol(s);
+    string s;
+    if(n.getAttribute(expr::VarNameAttr(), s)) {
+      out << maybeQuoteSymbol(s);
+    } else {
+      if(n.getKind() == kind::VARIABLE) {
+        out << "var_";
       } else {
-        if(n.getKind() == kind::VARIABLE) {
-          out << "var_";
-        } else {
-          out << n.getKind() << '_';
-        }
-        out << n.getId();
+        out << n.getKind() << '_';
       }
-      if(types) {
-        // print the whole type, but not *its* type
-        out << ":";
-        n.getType().toStream(out, language::output::LANG_SMTLIB_V2_5);
-      }
+      out << n.getId();
+    }
+    if(types) {
+      // print the whole type, but not *its* type
+      out << ":";
+      n.getType().toStream(out, language::output::LANG_SMTLIB_V2_5);
     }
 
     return;
@@ -520,7 +512,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::SET_TYPE:
   case kind::SINGLETON: 
   case kind::COMPLEMENT:out << smtKindString(k) << " "; break;
-
+  case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
+  
     // fp theory
   case kind::FLOATINGPOINT_FP:
   case kind::FLOATINGPOINT_EQ:
@@ -594,11 +587,13 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::PARAMETRIC_DATATYPE:
     break;
     
-  //separation
+  //separation logic
   case kind::SEP_EMP:
   case kind::SEP_PTO:
   case kind::SEP_STAR:
   case kind::SEP_WAND:out << smtKindString(k) << " "; break;
+
+  case kind::SEP_NIL:out << "(as sep.nil " << n.getType() << ")";break;
 
     // quantifiers
   case kind::FORALL:

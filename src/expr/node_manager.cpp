@@ -412,8 +412,9 @@ TypeNode NodeManager::getType(TNode n, bool check)
   bool hasType = getAttribute(n, TypeAttr(), typeNode);
   bool needsCheck = check && !getAttribute(n, TypeCheckedAttr());
 
-  Debug("getType") << "getting type for " << n << endl;
 
+  Debug("getType") << this << " getting type for " << &n << " " << n << ", check=" << check << ", needsCheck = " << needsCheck << ", hasType = " << hasType << endl;
+  
   if(needsCheck && !(*d_options)[options::earlyTypeChecking]) {
     /* Iterate and compute the children bottom up. This avoids stack
        overflows in computeType() when the Node graph is really deep,
@@ -437,6 +438,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
       }
 
       if( readyToCompute ) {
+        Assert( check || m.getMetaKind()!=kind::metakind::NULLARY_OPERATOR );
         /* All the children have types, time to compute */
         typeNode = TypeChecker::computeType(this, m, check);
         worklist.pop();
@@ -448,6 +450,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
   } else if( !hasType || needsCheck ) {
     /* We can compute the type top-down, without worrying about
        deep recursion. */
+    Assert( check || n.getMetaKind()!=kind::metakind::NULLARY_OPERATOR );
     typeNode = TypeChecker::computeType(this, n, check);
   }
 
@@ -788,16 +791,18 @@ Node NodeManager::mkBooleanTermVariable() {
 }
 
 Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
+  //FIXME : this is not correct for multitheading
   std::map< TypeNode, Node >::iterator it = d_unique_vars[k].find( type );
   if( it==d_unique_vars[k].end() ){
-    Node n = NodeBuilder<0>(this, k);
-    n.setAttribute(TypeAttr(), type);
-    //should type check it
-    //n.setAttribute(TypeCheckedAttr(), true);
+    Node n = NodeBuilder<0>(this, k).constructNode();
+    setAttribute(n, TypeAttr(), type);
+    //setAttribute(n, TypeCheckedAttr(), true);
     d_unique_vars[k][type] = n;
     Assert( n.getMetaKind() == kind::metakind::NULLARY_OPERATOR );
+    Trace("ajr-temp") << this << "...made nullary operator " << n << std::endl;
     return n;
   }else{
+    Trace("ajr-temp") << this << "...reuse nullary operator " << it->second << std::endl;
     return it->second;
   }
 }
