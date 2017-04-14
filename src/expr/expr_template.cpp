@@ -137,7 +137,12 @@ public:
         return to->mkConst(::CVC4::EmptySet(type));
       }
       return exportConstant(n, NodeManager::fromExprManager(to), vmap);
-    } else if(n.isVar()) {
+    } else if(n.getMetaKind() == metakind::NULLARY_OPERATOR ){
+      Expr from_e(from, new Node(n));
+      Type type = from->exportType(from_e.getType(), to, vmap);
+      NodeManagerScope nullScope(NULL);
+      return to->mkNullaryOperator(type, n.getKind()); // FIXME thread safety
+    } else if(n.getMetaKind() == metakind::VARIABLE) {
       Expr from_e(from, new Node(n));
       Expr& to_e = vmap.d_typeMap[from_e];
       if(! to_e.isNull()) {

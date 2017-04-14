@@ -459,7 +459,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
   /* The check should have happened, if we asked for it. */
   Assert( !check || getAttribute(n, TypeCheckedAttr()) );
 
-  Debug("getType") << "type of " << n << " is " << typeNode << endl;
+  Debug("getType") << "type of " << &n << " " <<  n << " is " << typeNode << endl;
   return typeNode;
 }
 
@@ -799,10 +799,10 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
     //setAttribute(n, TypeCheckedAttr(), true);
     d_unique_vars[k][type] = n;
     Assert( n.getMetaKind() == kind::metakind::NULLARY_OPERATOR );
-    Trace("ajr-temp") << this << "...made nullary operator " << n << std::endl;
+    Trace("ajr-temp") << this << "...made nullary operator " << n << " " << &n << " " << type << std::endl;
     return n;
   }else{
-    Trace("ajr-temp") << this << "...reuse nullary operator " << it->second << std::endl;
+    Trace("ajr-temp") << this << "...reuse nullary operator " << it->second << " " << &( it->second ) << std::endl;
     return it->second;
   }
 }
