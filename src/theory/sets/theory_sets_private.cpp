@@ -758,6 +758,7 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
           Node r2 = it2->first;
           //see if there are members in second argument
           std::map< Node, std::map< Node, Node > >::iterator itm2 = d_pol_mems[0].find( r2 );
+          std::map< Node, std::map< Node, Node > >::iterator itm2n = d_pol_mems[1].find( r2 );
           if( itm2!=d_pol_mems[0].end() || k!=kind::INTERSECTION ){
             Trace("sets-debug") << "Checking " << it2->second << ", members = " << (itm1!=d_pol_mems[0].end()) << ", " << (itm2!=d_pol_mems[0].end()) << std::endl;
             //for all members of r1
@@ -782,6 +783,14 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                     addEqualityToExp( it2->second[1], itm2->second[xr][1], exp );
                     addEqualityToExp( x, itm2->second[xr][0], exp );
                     valid = true;
+                  }else{
+                    // if not, check whether it is definitely not a member, if unknown, split
+                    bool not_in_r2 = itm2n!=d_pol_mems[1].end() && itm2n->second.find( xr )!=itm2->second.end();
+                    if( !not_in_r2 ){
+                      exp.push_back( NodeManager::currentNM()->mkNode( kind::MEMBER, x, it2->second[1] ) );
+                      valid = true;
+                      inferType = 1;
+                    }
                   }
                 }else{
                   Assert( k==kind::SETMINUS );
@@ -1714,8 +1723,11 @@ void TheorySetsPrivate::computeCareGraph() {
           }
         }
         if( hasCareArg ){
+          Trace("sets-cg-debug") << "......adding." << std::endl;
           index[tn].addTerm( f1, reps );
           arity = reps.size();
+        }else{
+          Trace("sets-cg-debug") << "......skip." << std::endl;
         }
       }
       if( arity>0 ){

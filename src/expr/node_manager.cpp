@@ -791,7 +791,6 @@ Node NodeManager::mkBooleanTermVariable() {
 }
 
 Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
-  //FIXME : this is not correct for multitheading
   std::map< TypeNode, Node >::iterator it = d_unique_vars[k].find( type );
   if( it==d_unique_vars[k].end() ){
     Node n = NodeBuilder<0>(this, k).constructNode();
@@ -799,10 +798,8 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
     //setAttribute(n, TypeCheckedAttr(), true);
     d_unique_vars[k][type] = n;
     Assert( n.getMetaKind() == kind::metakind::NULLARY_OPERATOR );
-    Trace("ajr-temp") << this << "...made nullary operator " << n << " " << &n << " " << type << std::endl;
     return n;
   }else{
-    Trace("ajr-temp") << this << "...reuse nullary operator " << it->second << " " << &( it->second ) << std::endl;
     return it->second;
   }
 }

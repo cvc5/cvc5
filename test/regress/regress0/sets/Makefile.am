@@ -78,7 +78,8 @@ TESTS =	\
 	univset-simp.smt2 \
 	complement.cvc \
 	complement2.cvc \
-    complement3.cvc
+  complement3.cvc \
+  sharing-simp.smt2
 
 EXTRA_DIST = $(TESTS)
 
