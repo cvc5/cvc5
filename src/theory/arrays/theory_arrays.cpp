@@ -1699,6 +1699,11 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
 
   Node n;
   while (true) {
+    // Normally, a is its own representative, but it's possible for a to have
+    // been merged with another array after it got queued up by the equality engine,
+    // so we take its representative to be safe.
+    a = d_equalityEngine.getRepresentative(a);
+    Assert(d_equalityEngine.getRepresentative(b) == a);
     Trace("arrays-merge") << spaces(getSatContext()->getLevel()) << "Arrays::merge: " << a << "," << b << ")\n";
 
     if (options::arraysLazyRIntro1() && !options::arraysWeakEquivalence()) {
