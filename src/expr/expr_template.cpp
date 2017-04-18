@@ -231,15 +231,14 @@ public:
 
 Expr Expr::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap,
                     uint32_t flags /* = 0 */) const {
-  Assert(d_exprManager != exprManager,
-         "No sense in cloning an Expr in the same ExprManager");
+  Assert(d_exprManager != exprManager) << "No sense in cloning an Expr in the same ExprManager" << std::endl;
   ExprManagerScope ems(*this);
   return Expr(exprManager, new Node(expr::ExportPrivate(d_exprManager, exprManager, variableMap, flags).exportInternal(*d_node)));
 }
 
 Expr& Expr::operator=(const Expr& e) {
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
+  Assert(e.d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
 
   if(this != &e) {
     if(d_exprManager == e.d_exprManager) {
@@ -267,8 +266,8 @@ bool Expr::operator==(const Expr& e) const {
     return false;
   }
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
+  Assert(e.d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
   return *d_node == *e.d_node;
 }
 
@@ -277,8 +276,8 @@ bool Expr::operator!=(const Expr& e) const {
 }
 
 bool Expr::operator<(const Expr& e) const {
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
+  Assert(e.d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
   if(isNull() && !e.isNull()) {
     return true;
   }
@@ -287,8 +286,8 @@ bool Expr::operator<(const Expr& e) const {
 }
 
 bool Expr::operator>(const Expr& e) const {
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
+  Assert(e.d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
   if(isNull() && !e.isNull()) {
     return true;
   }
@@ -298,48 +297,46 @@ bool Expr::operator>(const Expr& e) const {
 
 unsigned long Expr::getId() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
   return d_node->getId();
 }
 
 Kind Expr::getKind() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
   return d_node->getKind();
 }
 
 size_t Expr::getNumChildren() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
   return d_node->getNumChildren();
 }
 
 Expr Expr::operator[](unsigned i) const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  Assert(i >= 0 && i < d_node->getNumChildren(), "Child index out of bounds");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
+  Assert(i >= 0 && i < d_node->getNumChildren()) << "Child index out of bounds" << std::endl;
   return Expr(d_exprManager, new Node((*d_node)[i]));
 }
 
 bool Expr::hasOperator() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
   return d_node->hasOperator();
 }
 
 Expr Expr::getOperator() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  PrettyCheckArgument(d_node->hasOperator(), *this,
-                      "Expr::getOperator() called on an Expr with no operator");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
+  PrettyCheckArgument(d_node->hasOperator(), *this) << "Expr::getOperator() called on an Expr with no operator" << std::endl;
   return Expr(d_exprManager, new Node(d_node->getOperator()));
 }
 
 Type Expr::getType(bool check) const throw (TypeCheckingException) {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  PrettyCheckArgument(!d_node->isNull(), this,
-                      "Can't get type of null expression!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
+  PrettyCheckArgument(!d_node->isNull(), this) << "Can't get type of null expression!" << std::endl;
   return d_exprManager->getType(*this, check);
 }
 
@@ -469,25 +466,25 @@ Expr::const_iterator Expr::end() const {
 
 std::string Expr::toString() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
   return d_node->toString();
 }
 
 bool Expr::isNull() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
   return d_node->isNull();
 }
 
 bool Expr::isVariable() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
   return d_node->getMetaKind() == kind::metakind::VARIABLE;
 }
 
 bool Expr::isConst() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!" << std::endl;
   return d_node->isConst();
 }
 
@@ -506,59 +503,45 @@ TNode Expr::getTNode() const throw() {
 }
 
 Expr Expr::notExpr() const {
-  Assert(d_exprManager != NULL,
-         "Don't have an expression manager for this expression!");
+  Assert(d_exprManager != NULL) << "Don't have an expression manager for this expression!" << std::endl;
   return d_exprManager->mkExpr(NOT, *this);
 }
 
 Expr Expr::andExpr(const Expr& e) const {
-  Assert(d_exprManager != NULL,
-         "Don't have an expression manager for this expression!");
-  PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
-                      "Different expression managers!");
+  Assert(d_exprManager != NULL) << "Don't have an expression manager for this expression!" << std::endl;
+  PrettyCheckArgument(d_exprManager == e.d_exprManager, e) << "Different expression managers!" << std::endl;
   return d_exprManager->mkExpr(AND, *this, e);
 }
 
 Expr Expr::orExpr(const Expr& e) const {
-  Assert(d_exprManager != NULL,
-         "Don't have an expression manager for this expression!");
-  PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
-                      "Different expression managers!");
+  Assert(d_exprManager != NULL) << "Don't have an expression manager for this expression!" << std::endl;
+  PrettyCheckArgument(d_exprManager == e.d_exprManager, e) << "Different expression managers!" << std::endl;
   return d_exprManager->mkExpr(OR, *this, e);
 }
 
 Expr Expr::xorExpr(const Expr& e) const {
-  Assert(d_exprManager != NULL,
-         "Don't have an expression manager for this expression!");
-  PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
-                      "Different expression managers!");
+  Assert(d_exprManager != NULL) << "Don't have an expression manager for this expression!" << std::endl;
+  PrettyCheckArgument(d_exprManager == e.d_exprManager, e) << "Different expression managers!" << std::endl;
   return d_exprManager->mkExpr(XOR, *this, e);
 }
 
 Expr Expr::iffExpr(const Expr& e) const {
-  Assert(d_exprManager != NULL,
-         "Don't have an expression manager for this expression!");
-  PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
-                      "Different expression managers!");
+  Assert(d_exprManager != NULL) << "Don't have an expression manager for this expression!" << std::endl;
+  PrettyCheckArgument(d_exprManager == e.d_exprManager, e) << "Different expression managers!" << std::endl;
   return d_exprManager->mkExpr(EQUAL, *this, e);
 }
 
 Expr Expr::impExpr(const Expr& e) const {
-  Assert(d_exprManager != NULL,
-         "Don't have an expression manager for this expression!");
-  PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
-                      "Different expression managers!");
+  Assert(d_exprManager != NULL) << "Don't have an expression manager for this expression!" << std::endl;
+  PrettyCheckArgument(d_exprManager == e.d_exprManager, e) << "Different expression managers!" << std::endl;
   return d_exprManager->mkExpr(IMPLIES, *this, e);
 }
 
 Expr Expr::iteExpr(const Expr& then_e,
                            const Expr& else_e) const {
-  Assert(d_exprManager != NULL,
-         "Don't have an expression manager for this expression!");
-  PrettyCheckArgument(d_exprManager == then_e.d_exprManager, then_e,
-                      "Different expression managers!");
-  PrettyCheckArgument(d_exprManager == else_e.d_exprManager, else_e,
-                      "Different expression managers!");
+  Assert(d_exprManager != NULL) << "Don't have an expression manager for this expression!" << std::endl;
+  PrettyCheckArgument(d_exprManager == then_e.d_exprManager, then_e) << "Different expression managers!" << std::endl;
+  PrettyCheckArgument(d_exprManager == else_e.d_exprManager, else_e) << "Different expression managers!" << std::endl;
   return d_exprManager->mkExpr(ITE, *this, then_e, else_e);
 }
 
@@ -598,7 +581,7 @@ static Node exportConstant(TNode n, NodeManager* to, ExprManagerMapCollection& v
   switch(n.getKind()) {
 ${exportConstant_cases}
 
-  default: Unhandled(n.getKind());
+  default: Unhandled() << n.getKind() << std::endl;
   }
 
 }/* exportConstant() */

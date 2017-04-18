@@ -68,9 +68,8 @@ bool Record::contains(const std::string& name) const {
 
 size_t Record::getIndex(std::string name) const {
   FieldVector::const_iterator i = find(*d_fields, name);
-  PrettyCheckArgument(i != d_fields->end(), name,
-                      "requested field `%s' does not exist in record",
-                      name.c_str());
+  PrettyCheckArgument(i != d_fields->end(), name)
+      << "requested field `" << name << "' does not exist in record" << std::endl;
   return i - d_fields->begin();
 }
 
@@ -116,8 +115,7 @@ std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) {
 
 
 const std::pair<std::string, Type>& Record::operator[](size_t index) const {
-  PrettyCheckArgument(index < d_fields->size(), index,
-                      "index out of bounds for record type");
+  PrettyCheckArgument(index < d_fields->size(),index) << "index out of bounds for record type" << std::endl;
   return (*d_fields)[index];
 }
 

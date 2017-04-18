@@ -131,7 +131,7 @@ public:
    * already been put in the map.
    */
   TNode getSubstitution(TNode x) const {
-    AssertArgument(hasSubstitution(x), x, "element not in this substitution map");
+    AssertArgument(hasSubstitution(x), x) << "element not in this substitution map" << std::endl;
     return (*d_substitutions.find(x)).second;
   }
 

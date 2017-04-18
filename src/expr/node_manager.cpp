@@ -258,7 +258,7 @@ void NodeManager::reclaimZombies() {
   Debug("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
 
   // during reclamation, reclaimZombies() is never supposed to be called
-  Assert(! d_inReclaimZombies, "NodeManager::reclaimZombies() not re-entrant!");
+  Assert(! d_inReclaimZombies) << "NodeManager::reclaimZombies() not re-entrant!" << std::endl;
 
   // whether exit is normal or exceptional, the Reclaim dtor is called
   // and ensures that d_inReclaimZombies is set back to false.
@@ -497,8 +497,7 @@ TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
     sorts.push_back(sort);
   }
   Debug("datatypes") << "ctor range: " << range << endl;
-  PrettyCheckArgument(!range.isFunctionLike(), range,
-                      "cannot create higher-order function types");
+  PrettyCheckArgument(!range.isFunctionLike(), range) << "cannot create higher-order function types" << std::endl;
   sorts.push_back(range);
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }
@@ -618,15 +617,15 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
                                     const std::vector<TypeNode>& children,
                                     uint32_t flags) {
   Assert(constructor.getKind() == kind::SORT_TYPE &&
-         constructor.getNumChildren() == 0,
-         "expected a sort constructor");
-  Assert(children.size() > 0, "expected non-zero # of children");
-  Assert( hasAttribute(constructor.d_nv, expr::SortArityAttr()) &&
-          hasAttribute(constructor.d_nv, expr::VarNameAttr()),
-          "expected a sort constructor" );
+         constructor.getNumChildren() == 0) << "expected a sort constructor" << std::endl;
+  Assert(children.size() > 0) << "expected non-zero # of children" << std::endl;
+  Assert( hasAttribute(constructor.d_nv, expr::SortArityAttr()) 
+          && hasAttribute(constructor.d_nv, expr::VarNameAttr()) ) 
+      << "expected a sort constructor" << std::endl;
+
   std::string name = getAttribute(constructor.d_nv, expr::VarNameAttr());
-  Assert(getAttribute(constructor.d_nv, expr::SortArityAttr()) == children.size(),
-         "arity mismatch in application of sort constructor");
+  Assert(getAttribute(constructor.d_nv, expr::SortArityAttr()) == children.size())
+      << "arity mismatch in application of sort constructor" << std::endl;
   NodeBuilder<> nb(this, kind::SORT_TYPE);
   Node sortTag = Node(constructor.d_nv->d_children[0]);
   nb << sortTag;

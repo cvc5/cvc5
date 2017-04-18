@@ -720,7 +720,7 @@ void SymmetryBreaker::selectTerms(const Permutation& p) {
               Debug("ufsymm:eq") << "UFSYMM              -- yep" << endl;
             }
           }
-          Assert(j != teq.end(), "failed to find a difference between p and teq ?!");
+          Assert(j != teq.end()) << "failed to find a difference between p and teq ?!" << std::endl;
         }
       }
     } else {

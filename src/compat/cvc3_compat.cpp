@@ -24,6 +24,7 @@
 
 #include "base/exception.h"
 #include "base/output.h"
+#include "base/portability.h"
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "options/options.h"
@@ -38,15 +39,18 @@ using namespace std;
 
 // Matches base/cvc4_assert.h's PrettyCheckArgument.
 // base/cvc4_assert.h cannot be directly included.
-#define CompatCheckArgument(cond, arg, msg...)         \
-  do { \
-    if(__builtin_expect( ( ! (cond) ), false )) { \
-      throw ::CVC4::IllegalArgumentException(#cond, #arg, __PRETTY_FUNCTION__, \
-                                             ::CVC4::IllegalArgumentException::formatVariadic(msg).c_str()); \
-    } \
-  } while(0)
+#define CompatCheckArgument(cond, arg)                                  \
+  (__CVC4__expect((cond), true)) ? /* if */  (void)0 : /* else */       \
+    ::CVC4::OstreamVoider()                                             \
+      & ::CVC4::Thrower<CVC4::IllegalArgumentException>().msg()         \
+      << __CVC4__FUNC_STRING <<  std::endl                              \
+      << "`" << #arg << "' is a bad argument; expected "                \
+      << #cond << "to hold" << std::endl
 
-#define Unimplemented(str) throw Exception(str)
+#define Unimplemented()                                                 \
+  ::CVC4::Thrower<Exception>().msg()                                    \
+    << __CVC4__FUNC_STRING <<  std::endl                                \
+    << __FILE__ << ":" << __LINE__ << std::endl                    
 
 namespace CVC3 {
 
@@ -221,7 +225,7 @@ Cardinality Type::card() const {
 }
 
 Expr Type::enumerateFinite(Unsigned n) const {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Unsigned Type::sizeFinite() const {
@@ -381,7 +385,7 @@ bool Expr::isApply() const {
 }
 
 bool Expr::isSymbol() const {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 bool Expr::isTheorem() const {
@@ -485,20 +489,22 @@ bool Expr::isPropAtom() const {
 }
 
 std::string Expr::getName() const {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 std::string Expr::getUid() const {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 std::string Expr::getString() const {
-  CompatCheckArgument(getKind() == CVC4::kind::CONST_STRING, *this, "CVC3::Expr::getString(): not a string Expr: `%s'", toString().c_str());
+  CompatCheckArgument(getKind() == CVC4::kind::CONST_STRING, *this) 
+    << "CVC3::Expr::getString(): not a string Expr: `" << toString() << "'" << std::endl;
   return getConst<CVC4::String>().toString();
 }
 
 std::vector<Expr> Expr::getVars() const {
-  CompatCheckArgument(isClosure(), *this, "CVC3::Expr::getVars(): not a closure Expr: `%s'", toString().c_str());
+  CompatCheckArgument(isClosure(), *this)
+    << "CVC3::Expr::getVars(): not a closure Expr: `" << toString() << "'" << std::endl;
   const vector<CVC4::Expr>& kids = (*this)[0].getChildren();
   vector<Expr> v;
   for(vector<CVC4::Expr>::const_iterator i = kids.begin(); i != kids.end(); ++i) {
@@ -508,20 +514,21 @@ std::vector<Expr> Expr::getVars() const {
 }
 
 Expr Expr::getExistential() const {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 int Expr::getBoundIndex() const {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Expr Expr::getBody() const {
-  CompatCheckArgument(isClosure(), *this, "CVC3::Expr::getBody(): not a closure Expr: `%s'", toString().c_str());
+  CompatCheckArgument(isClosure(), *this)
+    << "CVC3::Expr::getBody(): not a closure Expr: `" << toString() << "'" << std::endl;
   return (*this)[1];
 }
 
 Theorem Expr::getTheorem() const {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 bool Expr::isEq() const {
@@ -565,7 +572,8 @@ bool Expr::isSkolem() const {
 }
 
 const Rational& Expr::getRational() const {
-  CompatCheckArgument(isRational(), *this, "CVC3::Expr::getRational(): not a rational Expr: `%s'", toString().c_str());
+  CompatCheckArgument(isRational(), *this) 
+    << "CVC3::Expr::getRational(): not a rational Expr: `" << toString() << "'" << std::endl;
   return getConst<CVC4::Rational>();
 }
 
@@ -592,8 +600,8 @@ Expr Expr::getExpr() const {
 }
 
 std::vector< std::vector<Expr> > Expr::getTriggers() const {
-  CompatCheckArgument(isClosure(), *this,
-                      "getTriggers() called on non-closure expr");
+  CompatCheckArgument(isClosure(), *this)
+    << "getTriggers() called on non-closure expr" << std::endl;
   if(getNumChildren() < 3) {
     // no triggers for this quantifier
     return vector< vector<Expr> >();
@@ -654,7 +662,7 @@ void Expr::pprintnodag() const {
 }
 
 bool isArrayLiteral(const Expr& e) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 std::string ExprManager::getKindName(int kind) {
@@ -816,11 +824,11 @@ CLFlagType CLFlag::getType() const {
 }
 
 bool CLFlag::modified() const {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 bool CLFlag::display() const {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 const bool& CLFlag::getBool() const {
@@ -844,7 +852,7 @@ const std::vector<std::pair<string, bool> >& CLFlag::getStrVec() const {
 }
 
 const std::string& CLFlag::getHelp() const {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 void CLFlags::addFlag(const std::string& name, const CLFlag& f) {
@@ -852,17 +860,18 @@ void CLFlags::addFlag(const std::string& name, const CLFlag& f) {
 }
 
 size_t CLFlags::countFlags(const std::string& name) const {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 size_t CLFlags::countFlags(const std::string& name,
                            std::vector<std::string>& names) const {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 const CLFlag& CLFlags::getFlag(const std::string& name) const {
   FlagMap::const_iterator i = d_map.find(name);
-  CompatCheckArgument(i != d_map.end(), name, "No command-line flag by that name, or not supported.");
+  CompatCheckArgument(i != d_map.end(), name) 
+    << "No command-line flag by that name, or not supported." << std::endl;
   return (*i).second;
 }
 
@@ -872,49 +881,49 @@ const CLFlag& CLFlags::operator[](const std::string& name) const {
 
 void CLFlags::setFlag(const std::string& name, const CLFlag& f) {
   FlagMap::iterator i = d_map.find(name);
-  CompatCheckArgument(i != d_map.end(), name, "No command-line flag by that name, or not supported.");
-  CompatCheckArgument((*i).second.getType() == f.getType(), f,
-                      "Command-line flag `%s' has type %s, but caller tried to set to a %s.",
-                      name.c_str(),
-                      toString((*i).second.getType()).c_str(),
-                      toString(f.getType()).c_str());
+  CompatCheckArgument(i != d_map.end(), name) << "No command-line flag by that name, or not supported." << std::endl;
+  CompatCheckArgument((*i).second.getType() == f.getType(), f)
+      << "Command-line flag `" << name 
+      << "' has type " << toString((*i).second.getType()) 
+      << ", but caller tried to set to a " << toString(f.getType()) 
+      << "." << std::endl;
   (*i).second = f;
 }
 
 void CLFlags::setFlag(const std::string& name, bool b) {
   FlagMap::iterator i = d_map.find(name);
-  CompatCheckArgument(i != d_map.end(), name, "No command-line flag by that name, or not supported.");
+  CompatCheckArgument(i != d_map.end(), name) << "No command-line flag by that name, or not supported." << std::endl;
   (*i).second = b;
 }
 
 void CLFlags::setFlag(const std::string& name, int i) {
   FlagMap::iterator it = d_map.find(name);
-  CompatCheckArgument(it != d_map.end(), name, "No command-line flag by that name, or not supported.");
+  CompatCheckArgument(it != d_map.end(), name) << "No command-line flag by that name, or not supported." << std::endl;
   (*it).second = i;
 }
 
 void CLFlags::setFlag(const std::string& name, const std::string& s) {
   FlagMap::iterator i = d_map.find(name);
-  CompatCheckArgument(i != d_map.end(), name, "No command-line flag by that name, or not supported.");
+  CompatCheckArgument(i != d_map.end(), name) << "No command-line flag by that name, or not supported." << std::endl;
   (*i).second = s;
 }
 
 void CLFlags::setFlag(const std::string& name, const char* s) {
   FlagMap::iterator i = d_map.find(name);
-  CompatCheckArgument(i != d_map.end(), name, "No command-line flag by that name, or not supported.");
+  CompatCheckArgument(i != d_map.end(), name) << "No command-line flag by that name, or not supported." << std::endl;
   (*i).second = s;
 }
 
 void CLFlags::setFlag(const std::string& name, const std::pair<string, bool>& p) {
   FlagMap::iterator i = d_map.find(name);
-  CompatCheckArgument(i != d_map.end(), name, "No command-line flag by that name, or not supported.");
+  CompatCheckArgument(i != d_map.end(), name) << "No command-line flag by that name, or not supported." << std::endl;
   (*i).second = p;
 }
 
 void CLFlags::setFlag(const std::string& name,
                       const std::vector<std::pair<string, bool> >& sv) {
   FlagMap::iterator i = d_map.find(name);
-  CompatCheckArgument(i != d_map.end(), name, "No command-line flag by that name, or not supported.");
+  CompatCheckArgument(i != d_map.end(), name) << "No command-line flag by that name, or not supported." << std::endl;
   (*i).second = sv;
 }
 
@@ -1005,7 +1014,7 @@ CLFlags& ValidityChecker::getFlags() const {
 }
 
 void ValidityChecker::reprocessFlags() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 CLFlags ValidityChecker::createFlags() {
@@ -1258,7 +1267,7 @@ Type ValidityChecker::subrangeType(const Expr& l, const Expr& r) {
 }
 
 Type ValidityChecker::subtypeType(const Expr& pred, const Expr& witness) {
-  Unimplemented("Predicate subtyping not supported by CVC4 (sorry!)");
+  Unimplemented() << "Predicate subtyping not supported by CVC4 (sorry!)" << std::endl;
   /*
   if(witness.isNull()) {
     return d_em->mkPredicateSubtype(pred);
@@ -1315,8 +1324,8 @@ Type ValidityChecker::recordType(const std::string& field0, const Type& type0,
 
 Type ValidityChecker::recordType(const std::vector<std::string>& fields,
                                  const std::vector<Type>& types) {
-  CompatCheckArgument(fields.size() == types.size() && fields.size() > 0,
-                      "invalid vector length(s) in recordType()");
+  CompatCheckArgument(fields.size() == types.size() && fields.size() > 0, fields)
+    << "invalid vector length(s) in recordType()" << std::endl;
   std::vector< std::pair<std::string, CVC4::Type> > fieldSpecs;
   for(unsigned i = 0; i < fields.size(); ++i) {
     fieldSpecs.push_back(std::make_pair(fields[i], (const CVC4::Type&) types[i]));
@@ -1328,9 +1337,8 @@ Type ValidityChecker::dataType(const std::string& name,
                                const std::string& constructor,
                                const std::vector<std::string>& selectors,
                                const std::vector<Expr>& types) {
-  CompatCheckArgument(selectors.size() == types.size(), types,
-                      "expected selectors and types vectors to be of equal"
-                      "length");
+  CompatCheckArgument(selectors.size() == types.size(), types)
+    << "expected selectors and types vectors to be of equal length" << std::endl;
   vector<string> cv;
   vector< vector<string> > sv;
   vector< vector<Expr> > tv;
@@ -1344,12 +1352,12 @@ Type ValidityChecker::dataType(const std::string& name,
                                const std::vector<std::string>& constructors,
                                const std::vector<std::vector<std::string> >& selectors,
                                const std::vector<std::vector<Expr> >& types) {
-  CompatCheckArgument(constructors.size() == selectors.size(), selectors,
-                      "Expected constructors and selectors vectors to be of "
-                      "equal length.");
-  CompatCheckArgument(constructors.size() == types.size(), types,
-                      "Expected constructors and types vectors to be of equal "
-                      "length.");
+  CompatCheckArgument(constructors.size() == selectors.size(), selectors)
+    << "Expected constructors and selectors vectors to be of equal length." << std::endl;
+
+  CompatCheckArgument(constructors.size() == types.size(), types)
+    << "Expected constructors and types vectors to be of equal length." << std::endl;
+
   vector<string> nv;
   vector< vector<string> > cv;
   vector< vector< vector<string> > > sv;
@@ -1370,31 +1378,31 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
                                const std::vector<std::vector<std::vector<Expr> > >& types,
                                std::vector<Type>& returnTypes) {
 
-  CompatCheckArgument(names.size() == constructors.size(), constructors,
-                      "Expected names and constructors vectors to be of equal "
-                      "length.");
-  CompatCheckArgument(names.size() == selectors.size(), selectors,
-                      "Expected names and selectors vectors to be of equal "
-                      "length.");
-  CompatCheckArgument(names.size() == types.size(), types,
-                      "Expected names and types vectors to be of equal "
-                      "length.");
+  CompatCheckArgument(names.size() == constructors.size(), constructors)
+    << "Expected names and constructors vectors to be of equal length." << std::endl;
+
+  CompatCheckArgument(names.size() == selectors.size(), selectors)
+    << "Expected names and selectors vectors to be of equal length." << std::endl;
+
+  CompatCheckArgument(names.size() == types.size(), types)
+    << "Expected names and types vectors to be of equal length." << std::endl;
+
   vector<CVC4::Datatype> dv;
 
   // Set up the datatype specifications.
   for(unsigned i = 0; i < names.size(); ++i) {
     CVC4::Datatype dt(names[i], false);
-    CompatCheckArgument(constructors[i].size() == selectors[i].size(),
-                        "Expected sub-vectors in constructors and selectors "
-                        "vectors to match in size.");
-    CompatCheckArgument(constructors[i].size() == types[i].size(),
-                        "Expected sub-vectors in constructors and types "
-                        "vectors to match in size.");
+    CompatCheckArgument(constructors[i].size() == selectors[i].size(), selectors[i])
+      << "Expected sub-vectors in constructors and selectors vectors to match in size." << std::endl;
+
+    CompatCheckArgument(constructors[i].size() == types[i].size(), types[i])
+      << "Expected sub-vectors in constructors and types vectors to match in size." << std::endl;
+
     for(unsigned j = 0; j < constructors[i].size(); ++j) {
       CVC4::DatatypeConstructor ctor(constructors[i][j]);
-      CompatCheckArgument(selectors[i][j].size() == types[i][j].size(), types,
-                          "Expected sub-vectors in selectors and types vectors "
-                          "to match in size.");
+      CompatCheckArgument(selectors[i][j].size() == types[i][j].size(), types)
+        << "Expected sub-vectors in selectors and types vectors to match in size." << std::endl;
+
       for(unsigned k = 0; k < selectors[i][j].size(); ++k) {
         if(types[i][j][k].getType().isString()) {
           CVC4::DatatypeUnresolvedType unresolvedName = 
@@ -1423,17 +1431,14 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
     CompatCheckArgument(dt.isWellFounded(), "datatype is not well-founded");
     for(CVC4::Datatype::const_iterator j = dt.begin(); j != dt.end(); ++j) {
       // For each constructor, register its name and its selectors names.
-      CompatCheckArgument(
-          d_constructors.find((*j).getName()) == d_constructors.end(),
-          constructors,
-          "Cannot have two constructors with the same name in a "
-          "ValidityChecker.");
+      CompatCheckArgument(d_constructors.find((*j).getName()) == d_constructors.end(), constructors)
+        << "Cannot have two constructors with the same name in a ValidityChecker." << std::endl;
+
       d_constructors[(*j).getName()] = &dt;
       for(CVC4::DatatypeConstructor::const_iterator k = (*j).begin(); k != (*j).end(); ++k) {
-        CompatCheckArgument(
-            d_selectors.find((*k).getName()) == d_selectors.end(), selectors,
-            "Cannot have two selectors with the same name in a "
-            "ValidityChecker.");
+        CompatCheckArgument(d_selectors.find((*k).getName()) == d_selectors.end(), selectors)
+          << "Cannot have two selectors with the same name in a ValidityChecker." << std::endl;
+
         d_selectors[(*k).getName()] = make_pair(&dt, (*j).getName());
       }
     }
@@ -1449,8 +1454,7 @@ Type ValidityChecker::arrayType(const Type& typeIndex, const Type& typeData) {
 }
 
 Type ValidityChecker::bitvecType(int n) {
-  CompatCheckArgument(n >= 0, n,
-                      "Cannot construct a bitvector type of negative size.");
+  CompatCheckArgument(n >= 0, n) << "Cannot construct a bitvector type of negative size." << std::endl;
   return d_em->mkBitVectorType(n);
 }
 
@@ -1487,7 +1491,7 @@ Expr ValidityChecker::varExpr(const std::string& name, const Type& type) {
 
 Expr ValidityChecker::varExpr(const std::string& name, const Type& type,
                               const Expr& def) {
-  CompatCheckArgument(def.getType() == type, def, "expected types to match");
+  CompatCheckArgument(def.getType() == type, def) << "expected types to match" << std::endl;
   d_parserContext->defineVar(name, def);
   return def;
 }
@@ -1511,7 +1515,7 @@ Type ValidityChecker::getBaseType(const Type& t) {
 Expr ValidityChecker::getTypePred(const Type&t, const Expr& e) {
   // This function appears to be TCC-related---it doesn't just get the pred of a
   // subtype predicate, but returns a predicate describing the type.
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Expr ValidityChecker::stringExpr(const std::string& str) {
@@ -1575,7 +1579,7 @@ Expr ValidityChecker::parseExpr(const Expr& e) {
 }
 
 Type ValidityChecker::parseType(const Expr& e) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Expr ValidityChecker::importExpr(const Expr& e) {
@@ -1671,7 +1675,7 @@ Expr ValidityChecker::iteExpr(const Expr& ifpart, const Expr& thenpart,
 }
 
 Expr ValidityChecker::distinctExpr(const std::vector<Expr>& children) {
-  CompatCheckArgument(children.size() > 1, children, "it makes no sense to create a `distinct' expression with only one child");
+  CompatCheckArgument(children.size() > 1, children) << "it makes no sense to create a `distinct' expression with only one child" << std::endl;
   const vector<CVC4::Expr>& v =
     *reinterpret_cast<const vector<CVC4::Expr>*>(&children);
   return d_em->mkExpr(CVC4::kind::DISTINCT, v);
@@ -1683,10 +1687,11 @@ Op ValidityChecker::createOp(const std::string& name, const Type& type) {
 
 Op ValidityChecker::createOp(const std::string& name, const Type& type,
                              const Expr& def) {
-  CompatCheckArgument(def.getType() == type, type,
-      "Type mismatch in ValidityChecker::createOp(): `%s' defined to an "
-      "expression of type %s but ascribed as type %s", name.c_str(),
-      def.getType().toString().c_str(), type.toString().c_str());
+  CompatCheckArgument(def.getType() == type, type) 
+      << "Type mismatch in ValidityChecker::createOp(): `" << name
+      << "' defined to an expression of type " << def.getType().toString()
+      << " but ascribed as type " << type.toString() << std::endl;
+
   d_parserContext->defineFunction(name, def);
   return def;
 }
@@ -1718,7 +1723,7 @@ Expr ValidityChecker::funExpr(const Op& op, const std::vector<Expr>& children) {
 }
 
 bool ValidityChecker::addPairToArithOrder(const Expr& smaller, const Expr& bigger) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Expr ValidityChecker::ratExpr(int n, int d) {
@@ -1733,7 +1738,7 @@ Expr ValidityChecker::ratExpr(const std::string& n, int base) {
   if(n.find(".") == string::npos) {
     return d_em->mkConst(Rational(n, base));
   } else {
-    CompatCheckArgument(base == 10, base, "unsupported base for decimal parsing");
+    CompatCheckArgument(base == 10, base) << "unsupported base for decimal parsing" << std::endl;
     return d_em->mkConst(Rational::fromDecimal(n));
   }
 }
@@ -1857,11 +1862,12 @@ Expr ValidityChecker::newBVConstExpr(const std::vector<bool>& bits) {
 Expr ValidityChecker::newBVConstExpr(const Rational& r, int len) {
   // implementation based on CVC3's TheoryBitvector::newBVConstExpr()
 
-  CompatCheckArgument(r.getDenominator() == 1, r,
-                      "ValidityChecker::newBVConstExpr: "
-                      "not an integer: `%s'", r.toString().c_str());
-  CompatCheckArgument(len > 0, len, "ValidityChecker::newBVConstExpr: "
-                      "len = %d", len);
+  CompatCheckArgument(r.getDenominator() == 1, r)
+      << "ValidityChecker::newBVConstExpr: not an integer: `" 
+      << r.toString() << "'" << std::endl;
+
+  CompatCheckArgument(len > 0, len)
+      << "ValidityChecker::newBVConstExpr: len = " << len << std::endl;
 
   string s(r.toString(2));
   size_t strsize = s.size();
@@ -1883,8 +1889,12 @@ Expr ValidityChecker::newBVConstExpr(const Rational& r, int len) {
 }
 
 Expr ValidityChecker::newConcatExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only concat a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only concat a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only concat a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only concat a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_CONCAT, t1, t2);
 }
 
@@ -1895,43 +1905,44 @@ Expr ValidityChecker::newConcatExpr(const std::vector<Expr>& kids) {
 }
 
 Expr ValidityChecker::newBVExtractExpr(const Expr& e, int hi, int low) {
-  CompatCheckArgument(e.getType().isBitVector(), e,
-                      "can only bvextract from a bitvector, not a `%s'",
-                      e.getType().toString().c_str());
-  CompatCheckArgument(hi >= low, hi,
-                      "extraction [%d:%d] is bad; possibly inverted?", hi, low);
-  CompatCheckArgument(low >= 0, low,
-                      "extraction [%d:%d] is bad (negative)", hi, low);
-  CompatCheckArgument(CVC4::BitVectorType(e.getType()).getSize() > unsigned(hi),
-                      hi,
-                      "bitvector is of size %u, extraction [%d:%d] is off-the-end",
-                      CVC4::BitVectorType(e.getType()).getSize(), hi, low);
+  CompatCheckArgument(e.getType().isBitVector(), e)
+      << "can only bvextract from a bitvector, not a `" << e.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(hi >= low, hi)
+      << "extraction [" << hi << ":" << low << "] is bad; possibly inverted?" << std::endl;
+
+  CompatCheckArgument(low >= 0, low)
+      << "extraction [" << hi << ":" << low << "] is bad (negative)" << std::endl;
+
+  CompatCheckArgument(CVC4::BitVectorType(e.getType()).getSize() > unsigned(hi), hi)
+      << "bitvector is of size " << CVC4::BitVectorType(e.getType()).getSize() 
+      << ", extraction [" << hi << ":" << low << "] is off-the-end" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_EXTRACT,
                       d_em->mkConst(CVC4::BitVectorExtract(hi, low)), e);
 }
 
 Expr ValidityChecker::newBVNegExpr(const Expr& t1) {
   // CVC3's BVNEG => SMT-LIBv2 bvnot
-  CompatCheckArgument(t1.getType().isBitVector(), t1,
-                      "can only bvneg a bitvector, not a `%s'",
-                      t1.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvneg a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_NOT, t1);
 }
 
 Expr ValidityChecker::newBVAndExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1,
-                      "can only bvand a bitvector, not a `%s'",
-                      t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2,
-                      "can only bvand a bitvector, not a `%s'",
-                      t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvand a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvand a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_AND, t1, t2);
 }
 
 Expr ValidityChecker::newBVAndExpr(const std::vector<Expr>& kids) {
   // BITVECTOR_AND is not N-ary in CVC4
-  CompatCheckArgument(kids.size() > 1, kids,
-                      "BITVECTOR_AND must have at least 2 children");
+  CompatCheckArgument(kids.size() > 1, kids) << "BITVECTOR_AND must have at least 2 children" << std::endl;
   std::vector<Expr>::const_reverse_iterator i = kids.rbegin();
   Expr e = *i++;
   while(i != kids.rend()) {
@@ -1941,19 +1952,18 @@ Expr ValidityChecker::newBVAndExpr(const std::vector<Expr>& kids) {
 }
 
 Expr ValidityChecker::newBVOrExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1,
-                      "can only bvor a bitvector, not a `%s'",
-                      t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2,
-                      "can only bvor a bitvector, not a `%s'",
-                      t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvor a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvor a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_OR, t1, t2);
 }
 
 Expr ValidityChecker::newBVOrExpr(const std::vector<Expr>& kids) {
   // BITVECTOR_OR is not N-ary in CVC4
-  CompatCheckArgument(kids.size() > 1, kids,
-                      "BITVECTOR_OR must have at least 2 children");
+  CompatCheckArgument(kids.size() > 1, kids) << "BITVECTOR_OR must have at least 2 children" << std::endl;
   std::vector<Expr>::const_reverse_iterator i = kids.rbegin();
   Expr e = *i++;
   while(i != kids.rend()) {
@@ -1963,19 +1973,18 @@ Expr ValidityChecker::newBVOrExpr(const std::vector<Expr>& kids) {
 }
 
 Expr ValidityChecker::newBVXorExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1,
-                      "can only bvxor a bitvector, not a `%s'",
-                      t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2,
-                      "can only bvxor a bitvector, not a `%s'",
-                      t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvxor a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvxor a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_XOR, t1, t2);
 }
 
 Expr ValidityChecker::newBVXorExpr(const std::vector<Expr>& kids) {
   // BITVECTOR_XOR is not N-ary in CVC4
-  CompatCheckArgument(kids.size() > 1, kids,
-                      "BITVECTOR_XOR must have at least 2 children");
+  CompatCheckArgument(kids.size() > 1, kids) << "BITVECTOR_XOR must have at least 2 children" << std::endl;
   std::vector<Expr>::const_reverse_iterator i = kids.rbegin();
   Expr e = *i++;
   while(i != kids.rend()) {
@@ -1985,19 +1994,18 @@ Expr ValidityChecker::newBVXorExpr(const std::vector<Expr>& kids) {
 }
 
 Expr ValidityChecker::newBVXnorExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1,
-                      "can only bvxnor a bitvector, not a `%s'",
-                      t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2,
-                      "can only bvxnor a bitvector, not a `%s'",
-                      t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvxnor a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvxnor a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_XNOR, t1, t2);
 }
 
 Expr ValidityChecker::newBVXnorExpr(const std::vector<Expr>& kids) {
   // BITVECTOR_XNOR is not N-ary in CVC4
-  CompatCheckArgument(kids.size() > 1, kids,
-                      "BITVECTOR_XNOR must have at least 2 children");
+  CompatCheckArgument(kids.size() > 1, kids) << "BITVECTOR_XNOR must have at least 2 children" << std::endl;
   std::vector<Expr>::const_reverse_iterator i = kids.rbegin();
   Expr e = *i++;
   while(i != kids.rend()) {
@@ -2007,82 +2015,112 @@ Expr ValidityChecker::newBVXnorExpr(const std::vector<Expr>& kids) {
 }
 
 Expr ValidityChecker::newBVNandExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1,
-                      "can only bvnand a bitvector, not a `%s'",
-                      t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2,
-                      "can only bvnand a bitvector, not a `%s'",
-                      t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvnand a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvnand a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_NAND, t1, t2);
 }
 
 Expr ValidityChecker::newBVNorExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1,
-                      "can only bvnor a bitvector, not a `%s'",
-                      t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2,
-                      "can only bvnor a bitvector, not a `%s'",
-                      t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvnor a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvnor a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_NOR, t1, t2);
 }
 
 Expr ValidityChecker::newBVCompExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvcomp a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvcomp a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvcomp a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvcomp a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_COMP, t1, t2);
 }
 
 Expr ValidityChecker::newBVLTExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvlt a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvlt a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvlt a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvlt a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_ULT, t1, t2);
 }
 
 Expr ValidityChecker::newBVLEExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvle a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvle a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvle a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvle a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_ULE, t1, t2);
 }
 
 Expr ValidityChecker::newBVSLTExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvslt a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvslt a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvslt a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvslt a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_SLT, t1, t2);
 }
 
 Expr ValidityChecker::newBVSLEExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvsle a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvsle a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvsle a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvsle a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_SLE, t1, t2);
 }
 
 Expr ValidityChecker::newSXExpr(const Expr& t1, int len) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only sx a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(len >= 0, len, "must sx by a positive integer");
-  CompatCheckArgument(unsigned(len) >= CVC4::BitVectorType(t1.getType()).getSize(), len, "cannot sx by something smaller than the bitvector (%d < %u)", len, CVC4::BitVectorType(t1.getType()).getSize());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only sx a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+  
+  CompatCheckArgument(len >= 0, len) << "must sx by a positive integer" << std::endl;
+  CompatCheckArgument(unsigned(len) >= CVC4::BitVectorType(t1.getType()).getSize(), len)
+      << "cannot sx by something smaller than the bitvector (" << len 
+      << " < " << CVC4::BitVectorType(t1.getType()).getSize() << ")" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_SIGN_EXTEND,
                      d_em->mkConst(CVC4::BitVectorSignExtend(len)), t1);
 }
 
 Expr ValidityChecker::newBVUminusExpr(const Expr& t1) {
   // CVC3's BVUMINUS => SMT-LIBv2 bvneg
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvuminus a bitvector, not a `%s'", t1.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvuminus a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_NEG, t1);
 }
 
 Expr ValidityChecker::newBVSubExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvsub a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvsub by a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvsub a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvsub by a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_SUB, t1, t2);
 }
 
 // Copied from CVC3's bitvector theory: makes bitvector expression "e"
 // into "len" bits, by zero-padding, or extracting least-significant bits.
 Expr ValidityChecker::bvpad(int len, const Expr& e) {
-  CompatCheckArgument(len >= 0, len,
-                "padding length must be a non-negative integer, not %d", len);
-  CompatCheckArgument(e.getType().isBitVector(), e,
-                "input to bitvector operation must be a bitvector");
+  CompatCheckArgument(len >= 0, len)
+      << "padding length must be a non-negative integer, not " << len << std::endl;
+  CompatCheckArgument(e.getType().isBitVector(), e) << "input to bitvector operation must be a bitvector" << std::endl;
 
   unsigned size = CVC4::BitVectorType(e.getType()).getSize();
   Expr res;
@@ -2100,89 +2138,129 @@ Expr ValidityChecker::bvpad(int len, const Expr& e) {
 
 Expr ValidityChecker::newBVPlusExpr(int numbits, const std::vector<Expr>& kids) {
   // BITVECTOR_PLUS is not N-ary in CVC4
-  CompatCheckArgument(kids.size() > 1, kids, "BITVECTOR_PLUS must have at least 2 children");
+  CompatCheckArgument(kids.size() > 1, kids) << "BITVECTOR_PLUS must have at least 2 children" << std::endl;
   std::vector<Expr>::const_reverse_iterator i = kids.rbegin();
   Expr e = *i++;
   while(i != kids.rend()) {
     e = d_em->mkExpr(CVC4::kind::BITVECTOR_PLUS, bvpad(numbits, *i++), e);
   }
   unsigned size = CVC4::BitVectorType(e.getType()).getSize();
-  CompatCheckArgument(unsigned(numbits) == size, numbits,
-                "argument must match computed size of bitvector sum: "
-                "passed size == %u, computed size == %u", numbits, size);
+  CompatCheckArgument(unsigned(numbits) == size, numbits)
+      << "argument must match computed size of bitvector sum: "
+      << "passed size == " << numbits << ", computed size == " << size << std::endl;
   return e;
 }
 
 Expr ValidityChecker::newBVPlusExpr(int numbits, const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvplus a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvplus a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvplus a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvplus a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   Expr e = d_em->mkExpr(CVC4::kind::BITVECTOR_PLUS, bvpad(numbits, t1), bvpad(numbits, t2));
   unsigned size = CVC4::BitVectorType(e.getType()).getSize();
-  CompatCheckArgument(unsigned(numbits) == size, numbits,
-                "argument must match computed size of bitvector sum: "
-                "passed size == %u, computed size == %u", numbits, size);
+  CompatCheckArgument(unsigned(numbits) == size, numbits)
+      << "argument must match computed size of bitvector sum: "
+      << "passed size == " << numbits << ", computed size == " << size << std::endl;
   return e;
 }
 
 Expr ValidityChecker::newBVMultExpr(int numbits, const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvmult a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvmult by a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvmult a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvmult by a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   Expr e = d_em->mkExpr(CVC4::kind::BITVECTOR_MULT, bvpad(numbits, t1), bvpad(numbits, t2));
   unsigned size = CVC4::BitVectorType(e.getType()).getSize();
-  CompatCheckArgument(unsigned(numbits) == size, numbits,
-                "argument must match computed size of bitvector product: "
-                "passed size == %u, computed size == %u", numbits, size);
+  CompatCheckArgument(unsigned(numbits) == size, numbits)
+      << "argument must match computed size of bitvector sum: "
+      << "passed size == " << numbits << ", computed size == " << size << std::endl;
   return e;
 }
 
 Expr ValidityChecker::newBVUDivExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvudiv a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvudiv by a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvudiv a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvudiv by a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_UDIV, t1, t2);
 }
 
 Expr ValidityChecker::newBVURemExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvurem a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvurem by a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvurem a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvurem by a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_UREM, t1, t2);
 }
 
 Expr ValidityChecker::newBVSDivExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvsdiv a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvsdiv by a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvsdiv a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvsdiv by a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_SDIV, t1, t2);
 }
 
 Expr ValidityChecker::newBVSRemExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvsrem a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvsrem by a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvsrem a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvsrem by a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_SREM, t1, t2);
 }
 
 Expr ValidityChecker::newBVSModExpr(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only bvsmod a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only bvsmod by a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvsmod a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvsmod by a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_SMOD, t1, t2);
 }
 
 Expr ValidityChecker::newFixedLeftShiftExpr(const Expr& t1, int r) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only left-shift a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(r >= 0, r, "left shift amount must be >= 0 (you passed %d)", r);
+  CompatCheckArgument(t1.getType().isBitVector(), t1) 
+      << "can only left-shift a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(r >= 0, r) 
+      << "left-shift amount must be >= 0 (you passed " << r << ")" << std::endl;
+
   // Defined in:
   // http://www.cs.nyu.edu/acsys/cvc3/doc/user_doc.html#user_doc_pres_lang_expr_bit
   return d_em->mkExpr(CVC4::kind::BITVECTOR_CONCAT, t1, d_em->mkConst(CVC4::BitVector(r)));
 }
 
 Expr ValidityChecker::newFixedConstWidthLeftShiftExpr(const Expr& t1, int r) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only right-shift a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(r >= 0, r, "const-width left shift amount must be >= 0 (you passed %d)", r);
+  CompatCheckArgument(t1.getType().isBitVector(), t1) 
+      << "can only const-width left-shift a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(r >= 0, r) 
+      << "const-width left shift amount must be >= 0 (you passed " << r << ")" << std::endl;
+
   // just turn it into a BVSHL
   return d_em->mkExpr(CVC4::kind::BITVECTOR_SHL, t1, d_em->mkConst(CVC4::BitVector(CVC4::BitVectorType(t1.getType()).getSize(), unsigned(r))));
 }
 
 Expr ValidityChecker::newFixedRightShiftExpr(const Expr& t1, int r) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only right-shift a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(r >= 0, r, "right shift amount must be >= 0 (you passed %d)", r);
+  CompatCheckArgument(t1.getType().isBitVector(), t1) 
+      << "can only right-shift a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(r >= 0, r) 
+      << "right-shift amount must be >= 0 (you passed " << r << ")" << std::endl;
+
   // Defined in:
   // http://www.cs.nyu.edu/acsys/cvc3/doc/user_doc.html#user_doc_pres_lang_expr_bit
   // Should be equivalent to a BVLSHR; just turn it into that.
@@ -2190,25 +2268,37 @@ Expr ValidityChecker::newFixedRightShiftExpr(const Expr& t1, int r) {
 }
 
 Expr ValidityChecker::newBVSHL(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only right-shift a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only right-shift by a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvshl a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvshl by a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_SHL, t1, t2);
 }
 
 Expr ValidityChecker::newBVLSHR(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only right-shift a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only right-shift by a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvlshr a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvlshr by a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_LSHR, t1, t2);
 }
 
 Expr ValidityChecker::newBVASHR(const Expr& t1, const Expr& t2) {
-  CompatCheckArgument(t1.getType().isBitVector(), t1, "can only right-shift a bitvector, not a `%s'", t1.getType().toString().c_str());
-  CompatCheckArgument(t2.getType().isBitVector(), t2, "can only right-shift by a bitvector, not a `%s'", t2.getType().toString().c_str());
+  CompatCheckArgument(t1.getType().isBitVector(), t1)
+      << "can only bvashr a bitvector, not a `" << t1.getType().toString() << "'" << std::endl;
+
+  CompatCheckArgument(t2.getType().isBitVector(), t2)
+      << "can only bvashr by a bitvector, not a `" << t2.getType().toString() << "'" << std::endl;
+
   return d_em->mkExpr(CVC4::kind::BITVECTOR_ASHR, t1, t2);
 }
 
 Rational ValidityChecker::computeBVConst(const Expr& e) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Expr ValidityChecker::tupleExpr(const std::vector<Expr>& exprs) {
@@ -2241,16 +2331,16 @@ Expr ValidityChecker::tupleUpdateExpr(const Expr& tuple, int index,
 
 Expr ValidityChecker::datatypeConsExpr(const std::string& constructor, const std::vector<Expr>& args) {
   ConstructorMap::const_iterator i = d_constructors.find(constructor);
-  CompatCheckArgument(i != d_constructors.end(), constructor, "no such constructor");
+  CompatCheckArgument(i != d_constructors.end(), constructor) << "no such constructor" << std::endl;
   const CVC4::Datatype& dt = *(*i).second;
   const CVC4::DatatypeConstructor& ctor = dt[constructor];
-  CompatCheckArgument(ctor.getNumArgs() == args.size(), args, "arity mismatch in constructor application");
+  CompatCheckArgument(ctor.getNumArgs() == args.size(), args) << "arity mismatch in constructor application" << std::endl;
   return d_em->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, ctor.getConstructor(), vector<CVC4::Expr>(args.begin(), args.end()));
 }
 
 Expr ValidityChecker::datatypeSelExpr(const std::string& selector, const Expr& arg) {
   SelectorMap::const_iterator i = d_selectors.find(selector);
-  CompatCheckArgument(i != d_selectors.end(), selector, "no such selector");
+  CompatCheckArgument(i != d_selectors.end(), selector) << "no such selector" << std::endl;
   const CVC4::Datatype& dt = *(*i).second.first;
   string constructor = (*i).second.second;
   const CVC4::DatatypeConstructor& ctor = dt[constructor];
@@ -2260,7 +2350,7 @@ Expr ValidityChecker::datatypeSelExpr(const std::string& selector, const Expr& a
 
 Expr ValidityChecker::datatypeTestExpr(const std::string& constructor, const Expr& arg) {
   ConstructorMap::const_iterator i = d_constructors.find(constructor);
-  CompatCheckArgument(i != d_constructors.end(), constructor, "no such constructor");
+  CompatCheckArgument(i != d_constructors.end(), constructor) << "no such constructor" << std::endl;
   const CVC4::Datatype& dt = *(*i).second;
   const CVC4::DatatypeConstructor& ctor = dt[constructor];
   return d_em->mkExpr(CVC4::kind::APPLY_TESTER, ctor.getTester(), arg);
@@ -2309,19 +2399,19 @@ Expr ValidityChecker::forallExpr(const std::vector<Expr>& vars, const Expr& body
 }
 
 void ValidityChecker::setTriggers(const Expr& e, const std::vector<std::vector<Expr> > & triggers) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 void ValidityChecker::setTriggers(const Expr& e, const std::vector<Expr>& triggers) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 void ValidityChecker::setTrigger(const Expr& e, const Expr& trigger) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 void ValidityChecker::setMultiTrigger(const Expr& e, const std::vector<Expr>& multiTrigger) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Expr ValidityChecker::existsExpr(const std::vector<Expr>& vars, const Expr& body) {
@@ -2330,17 +2420,17 @@ Expr ValidityChecker::existsExpr(const std::vector<Expr>& vars, const Expr& body
 }
 
 Op ValidityChecker::lambdaExpr(const std::vector<Expr>& vars, const Expr& body) {
-  Unimplemented("Lambda expressions not supported by CVC4 yet (sorry!)");
+  Unimplemented() << "Lambda expressions not supported by CVC4 yet (sorry!)" << std::endl;
 }
 
 Op ValidityChecker::transClosure(const Op& op) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Expr ValidityChecker::simulateExpr(const Expr& f, const Expr& s0,
                                    const std::vector<Expr>& inputs,
                                    const Expr& n) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 void ValidityChecker::setResourceLimit(unsigned limit) {
@@ -2361,11 +2451,11 @@ void ValidityChecker::assertFormula(const Expr& e) {
 }
 
 void ValidityChecker::registerAtom(const Expr& e) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Expr ValidityChecker::getImpliedLiteral() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Expr ValidityChecker::simplify(const Expr& e) {
@@ -2401,11 +2491,11 @@ QueryResult ValidityChecker::checkUnsat(const Expr& e) {
 }
 
 QueryResult ValidityChecker::checkContinue() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 QueryResult ValidityChecker::restart(const Expr& e) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 void ValidityChecker::returnFromCheck() {
@@ -2413,42 +2503,42 @@ void ValidityChecker::returnFromCheck() {
 }
 
 void ValidityChecker::getUserAssumptions(std::vector<Expr>& assumptions) {
-  CompatCheckArgument(assumptions.empty(), assumptions, "assumptions arg must be empty");
+  CompatCheckArgument(assumptions.empty(), assumptions) << "assumptions arg must be empty" << std::endl;
   vector<CVC4::Expr> v = d_smt->getAssertions();
   assumptions.swap(*reinterpret_cast<vector<Expr>*>(&v));
 }
 
 void ValidityChecker::getInternalAssumptions(std::vector<Expr>& assumptions) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 void ValidityChecker::getAssumptions(std::vector<Expr>& assumptions) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 void ValidityChecker::getAssumptionsUsed(std::vector<Expr>& assumptions) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Expr ValidityChecker::getProofQuery() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 void ValidityChecker::getCounterExample(std::vector<Expr>& assumptions,
                                         bool inOrder) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 void ValidityChecker::getConcreteModel(ExprMap<Expr>& m) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 QueryResult ValidityChecker::tryModelGeneration() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 FormulaValue ValidityChecker::value(const Expr& e) {
-  CompatCheckArgument(e.getType() == d_em->booleanType(), e, "argument must be a formula");
+  CompatCheckArgument(e.getType() == d_em->booleanType(), e) << "argument must be a formula" << std::endl;
   try {
     return d_smt->getValue(e).getConst<bool>() ? TRUE_VAL : FALSE_VAL;
   } catch(CVC4::Exception& e) {
@@ -2466,7 +2556,7 @@ Expr ValidityChecker::getValue(const Expr& e) {
 }
 
 bool ValidityChecker::inconsistent(std::vector<Expr>& assumptions) {
-  CompatCheckArgument(assumptions.empty(), assumptions, "assumptions vector should be empty on entry");
+  CompatCheckArgument(assumptions.empty(), assumptions) << "assumptions vector should be empty on entry" << std::endl;
   if(d_smt->checkSat() == CVC4::Result::UNSAT) {
     // supposed to be a minimal set, but CVC4 doesn't support that
     d_smt->getAssertions().swap(*reinterpret_cast<std::vector<CVC4::Expr>*>(&assumptions));
@@ -2480,35 +2570,35 @@ bool ValidityChecker::inconsistent() {
 }
 
 bool ValidityChecker::incomplete() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 bool ValidityChecker::incomplete(std::vector<std::string>& reasons) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Proof ValidityChecker::getProof() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Expr ValidityChecker::getTCC() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 void ValidityChecker::getAssumptionsTCC(std::vector<Expr>& assumptions) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Proof ValidityChecker::getProofTCC() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Expr ValidityChecker::getClosure() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 Proof ValidityChecker::getProofClosure() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 int ValidityChecker::stackLevel() {
@@ -2526,12 +2616,13 @@ void ValidityChecker::pop() {
 }
 
 void ValidityChecker::popto(int stackLevel) {
-  CompatCheckArgument(stackLevel >= 0, stackLevel,
-                      "Cannot pop to a negative stack level %d", stackLevel);
-  CompatCheckArgument(unsigned(stackLevel) <= d_stackLevel, stackLevel,
-                      "Cannot pop to a stack level higher than the current one!  "
-                      "At stack level %u, user requested stack level %d",
-                      d_stackLevel, stackLevel);
+  CompatCheckArgument(stackLevel >= 0, stackLevel)
+    << "Cannot pop to a negative stack level " << stackLevel << std::endl;
+  CompatCheckArgument(unsigned(stackLevel) <= d_stackLevel, stackLevel)
+    << "Cannot pop to a stack level higher than the current one!  "
+    << "At stack level " << d_stackLevel << " user requested stack level "
+    << stackLevel << std::endl;
+
   while(unsigned(stackLevel) < d_stackLevel) {
     pop();
   }
@@ -2550,20 +2641,21 @@ void ValidityChecker::popScope() {
 }
 
 void ValidityChecker::poptoScope(int scopeLevel) {
-  CompatCheckArgument(scopeLevel >= 0, scopeLevel,
-                      "Cannot pop to a negative scope level %d", scopeLevel);
-  CompatCheckArgument(unsigned(scopeLevel) <= d_parserContext->scopeLevel(),
-                      scopeLevel,
-                      "Cannot pop to a scope level higher than the current one!  "
-                      "At scope level %u, user requested scope level %d",
-                      d_parserContext->scopeLevel(), scopeLevel);
+  CompatCheckArgument(scopeLevel >= 0, scopeLevel)
+    << "Cannot pop to a negative scope level " << scopeLevel << std::endl;
+
+  CompatCheckArgument(unsigned(scopeLevel) <= d_parserContext->scopeLevel(), scopeLevel)
+    << "Cannot pop to a scope level higher than the current one!  "
+    << "At scope level " << d_parserContext->scopeLevel()
+    << ", user requested scope level " << scopeLevel << std::endl;
+
   while(unsigned(scopeLevel) < d_parserContext->scopeLevel()) {
     popScope();
   }
 }
 
 Context* ValidityChecker::getCurrentContext() {
-  Unimplemented("Contexts are not part of the public interface of CVC4");
+  Unimplemented() << "Contexts are not part of the public interface of CVC4" << std::endl;
 }
 
 void ValidityChecker::reset() {
@@ -2576,7 +2668,7 @@ void ValidityChecker::reset() {
 }
 
 void ValidityChecker::logAnnotation(const Expr& annot) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented() << "This CVC3 compatibility function not yet implemented (sorry!)" << std::endl;
 }
 
 static void doCommands(CVC4::parser::Parser* parser, CVC4::SmtEngine* smt, CVC4::Options& opts) {

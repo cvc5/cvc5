@@ -1672,7 +1672,7 @@ Node QuantifiersRewriter::rewriteRewriteRule( Node r ) {
     }
     break;
   default:
-    Unreachable("RewriteRules can be of only three kinds");
+    Unreachable() << "RewriteRules can be of only three kinds" << std::endl;
     break;
   }
   // Add the other guards

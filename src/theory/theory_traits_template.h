@@ -45,7 +45,7 @@ struct TheoryConstructor {
 ${theory_constructors}
 
     default:
-      Unhandled(id);
+      Unhandled() << id << std::endl;
     }
   }
 };/* struct CVC4::theory::TheoryConstructor */

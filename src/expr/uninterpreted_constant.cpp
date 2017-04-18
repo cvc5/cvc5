@@ -30,8 +30,8 @@ UninterpretedConstant::UninterpretedConstant(Type type, Integer index) throw(Ill
     : d_type(type)
     , d_index(index)
 {
-  //PrettyCheckArgument(type.isSort(), type, "uninterpreted constants can only be created for uninterpreted sorts, not `%s'", type.toString().c_str());
-  PrettyCheckArgument(index >= 0, index, "index >= 0 required for uninterpreted constant index, not `%s'", index.toString().c_str());
+  //PrettyCheckArgument(type.isSort(), type) <<  "uninterpreted constants can only be created for uninterpreted sorts, not `" << type.toString() << "'" << std::endl;
+  PrettyCheckArgument(index >= 0, index) <<  "index >= 0 required for uninterpreted constant index, not `" << index.toString() << "'" << std::endl;
 }
 
 std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc) {

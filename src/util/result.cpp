@@ -40,8 +40,7 @@ Result::Result(enum Sat s, std::string inputName)
       d_which(TYPE_SAT),
       d_unknownExplanation(UNKNOWN_REASON),
       d_inputName(inputName) {
-  PrettyCheckArgument(s != SAT_UNKNOWN,
-                      "Must provide a reason for satisfiability being unknown");
+  PrettyCheckArgument(s != SAT_UNKNOWN, "Must provide a reason for satisfiability being unknown");
 }
 
 Result::Result(enum Validity v, std::string inputName)
@@ -50,8 +49,7 @@ Result::Result(enum Validity v, std::string inputName)
       d_which(TYPE_VALIDITY),
       d_unknownExplanation(UNKNOWN_REASON),
       d_inputName(inputName) {
-  PrettyCheckArgument(v != VALIDITY_UNKNOWN,
-                      "Must provide a reason for validity being unknown");
+  PrettyCheckArgument(v != VALIDITY_UNKNOWN, "Must provide a reason for validity being unknown");
 }
 
 Result::Result(enum Sat s, enum UnknownExplanation unknownExplanation,
@@ -61,8 +59,7 @@ Result::Result(enum Sat s, enum UnknownExplanation unknownExplanation,
       d_which(TYPE_SAT),
       d_unknownExplanation(unknownExplanation),
       d_inputName(inputName) {
-  PrettyCheckArgument(s == SAT_UNKNOWN,
-                      "improper use of unknown-result constructor");
+  PrettyCheckArgument(s == SAT_UNKNOWN, "improper use of unknown-result constructor");
 }
 
 Result::Result(enum Validity v, enum UnknownExplanation unknownExplanation,
@@ -72,8 +69,7 @@ Result::Result(enum Validity v, enum UnknownExplanation unknownExplanation,
       d_which(TYPE_VALIDITY),
       d_unknownExplanation(unknownExplanation),
       d_inputName(inputName) {
-  PrettyCheckArgument(v == VALIDITY_UNKNOWN,
-                      "improper use of unknown-result constructor");
+  PrettyCheckArgument(v == VALIDITY_UNKNOWN, "improper use of unknown-result constructor");
 }
 
 Result::Result(const std::string& instr, std::string inputName)
@@ -120,17 +116,12 @@ Result::Result(const std::string& instr, std::string inputName)
     d_which = TYPE_SAT;
     d_sat = SAT_UNKNOWN;
   } else {
-    IllegalArgument(s,
-                    "expected satisfiability/validity result, "
-                    "instead got `%s'",
-                    s.c_str());
+    IllegalArgument(s) << "expected satisfiability/validity result, instead got `" << s << "'" << std::endl;
   }
 }
 
 Result::UnknownExplanation Result::whyUnknown() const {
-  PrettyCheckArgument(isUnknown(), this,
-                      "This result is not unknown, so the reason for "
-                      "being unknown cannot be inquired of it");
+  PrettyCheckArgument(isUnknown(), this) <<  "This result is not unknown, so the reason for being unknown cannot be inquired of it" << std::endl;
   return d_unknownExplanation;
 }
 
@@ -173,7 +164,7 @@ Result Result::asSatisfiabilityResult() const {
         return Result(SAT_UNKNOWN, d_unknownExplanation, d_inputName);
 
       default:
-        Unhandled(d_validity);
+        Unhandled() << d_validity << std::endl;
     }
   }
 
@@ -198,7 +189,7 @@ Result Result::asValidityResult() const {
         return Result(VALIDITY_UNKNOWN, d_unknownExplanation, d_inputName);
 
       default:
-        Unhandled(d_sat);
+        Unhandled() << d_sat << std::endl;
     }
   }
 
@@ -224,7 +215,7 @@ ostream& operator<<(ostream& out, enum Result::Sat s) {
       out << "SAT_UNKNOWN";
       break;
     default:
-      Unhandled(s);
+      Unhandled() << s << std::endl;
   }
   return out;
 }
@@ -241,7 +232,7 @@ ostream& operator<<(ostream& out, enum Result::Validity v) {
       out << "VALIDITY_UNKNOWN";
       break;
     default:
-      Unhandled(v);
+      Unhandled() << v << std::endl;
   }
   return out;
 }
@@ -279,7 +270,7 @@ ostream& operator<<(ostream& out, enum Result::UnknownExplanation e) {
       out << "UNKNOWN_REASON";
       break;
     default:
-      Unhandled(e);
+      Unhandled() << e << std::endl;
   }
   return out;
 }

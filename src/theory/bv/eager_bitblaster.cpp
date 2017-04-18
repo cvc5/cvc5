@@ -59,7 +59,7 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
           smtStatisticsRegistry(), "EagerBitblaster");
       break;
     default:
-      Unreachable("Unknown SAT solver type");
+      Unreachable() << "Unknown SAT solver type" << std::endl;
   }
 
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_bitblastingRegistrar,

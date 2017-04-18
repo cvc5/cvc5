@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "base/portability.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/type_properties.h"
 #include "options/base_options.h"
@@ -315,14 +316,14 @@ TypeNode TypeNode::mostCommonTypeNode(TypeNode t0, TypeNode t1){
 }
 
 TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert( NodeManager::currentNM() != NULL )
+      << "There is no current CVC4::NodeManager associated to this thread." << std::endl
+      << "Perhaps a public-facing function is missing a NodeManagerScope ?" << std::endl;
 
   Assert(!t0.isNull());
   Assert(!t1.isNull());
 
-  if(__builtin_expect( (t0 == t1), true )) {
+  if(__CVC4__expect( (t0 == t1), true )) {
     return t0;
   }
 
@@ -384,7 +385,7 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     }
   }
   case kind::SEXPR_TYPE:
-    Unimplemented("haven't implemented leastCommonType for symbolic expressions yet");
+    Unimplemented() << "haven't implemented leastCommonType for symbolic expressions yet" << std::endl;
     return TypeNode();
   case kind::DATATYPE_TYPE:
     if( t0.isTuple() && t1.isTuple() ){
@@ -422,7 +423,7 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     return TypeNode::fromType(t0[0].getDatatype().getDatatypeType(v));
   }
   default:
-    Unimplemented("don't have a commonType for types `%s' and `%s'", t0.toString().c_str(), t1.toString().c_str());
+    Unimplemented() << "don't have a commonType for types `" << t0.toString() << "' and `" << t1.toString() << "'" << std::endl;
     return TypeNode();
   }
 }

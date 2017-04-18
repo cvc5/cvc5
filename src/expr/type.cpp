@@ -93,8 +93,8 @@ Type Type::getBaseType() const {
 }
 
 Type& Type::operator=(const Type& t) {
-  PrettyCheckArgument(d_typeNode != NULL, this, "Unexpected NULL typenode pointer!");
-  PrettyCheckArgument(t.d_typeNode != NULL, t, "Unexpected NULL typenode pointer!");
+  PrettyCheckArgument(d_typeNode != NULL, this) <<  "Unexpected NULL typenode pointer!" << std::endl;
+  PrettyCheckArgument(t.d_typeNode != NULL, t) <<  "Unexpected NULL typenode pointer!" << std::endl;
 
   if(this != &t) {
     if(d_nodeManager == t.d_nodeManager) {

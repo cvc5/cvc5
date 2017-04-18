@@ -123,6 +123,6 @@ void SmtEngine::checkProof() {
   close(fd);
 
 #else /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
-  Unreachable("This version of CVC4 was built without proof support; cannot check proofs.");
+  Unreachable() << "This version of CVC4 was built without proof support; cannot check proofs." << std::endl;
 #endif /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
 }

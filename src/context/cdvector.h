@@ -124,13 +124,13 @@ public:
   }
 
   const T& get(size_t i) const {
-    Assert(i < size(), "index out of bounds in CDVector::get()");
+    Assert(i < size()) << "index out of bounds in CDVector::get()" << std::endl;
     //makeConsistent();
     return d_current[i].d_data;
   }
 
   void set(size_t index, const T& data) {
-    Assert(index < size(), "index out of bounds in CDVector::set()");
+    Assert(index < size()) << "index out of bounds in CDVector::set()" << std::endl;
     //makeConsistent();
 
     if(d_current[index].d_contextLevelOfLastUpdate == d_context->getLevel()) {
@@ -144,13 +144,13 @@ public:
   }
 
   bool hasUpdates(size_t index) const {
-    Assert(index < size(), "index out of bounds in CDVector::hasUpdates()");
+    Assert(index < size()) << "index out of bounds in CDVector::hasUpdates()" << std::endl;
     return d_current[index].d_contextLevelOfLastUpdate == ImpossibleLevel;
   }
 
   void pop_back() {
-    Assert(!empty(), "pop_back() on an empty CDVector");
-    Assert(!hasUpdates(size() - 1), "popping an element with updates.");
+    Assert(!empty()) << "pop_back() on an empty CDVector" << std::endl;
+    Assert(!hasUpdates(size() - 1)) << "popping an element with updates." << std::endl;
     d_current.pop_back();
   }
 

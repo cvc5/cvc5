@@ -719,7 +719,7 @@ SumPair Comparison::toSumPair() const {
       }
     }
   default:
-    Unhandled(cmpKind);
+    Unhandled() << cmpKind << std::endl;
   }
 }
 
@@ -758,7 +758,7 @@ Polynomial Comparison::normalizedVariablePart() const {
       }
     }
   default:
-    Unhandled(cmpKind);
+    Unhandled() << cmpKind << std::endl;
   }
 }
 
@@ -808,7 +808,7 @@ DeltaRational Comparison::normalizedDeltaRational() const {
       }
     }
   default:
-    Unhandled(cmpKind);
+    Unhandled() << cmpKind << std::endl;
   }
 }
 
@@ -826,7 +826,7 @@ Node Comparison::toNode(Kind k, const Polynomial& l, const Constant& r) {
   case kind::GT:
     return NodeManager::currentNM()->mkNode(k, l.getNode(), r.getNode());
   default:
-    Unhandled(k);
+    Unhandled() << k << std::endl;
   }
 }
 
@@ -867,7 +867,7 @@ size_t Comparison::getComplexity() const{
   case kind::GEQ:
     return getLeft().getComplexity() +  getRight().getComplexity();
   default:
-    Unhandled(comparisonKind());
+    Unhandled() << comparisonKind() << std::endl;
     return -1;
   }
 }
@@ -887,7 +887,7 @@ Polynomial Comparison::getLeft() const {
     left = getNode()[0];
     break;
   default:
-    Unhandled(k);
+    Unhandled() << k << std::endl;
   }
   return Polynomial::parsePolynomial(left);
 }
@@ -907,7 +907,7 @@ Polynomial Comparison::getRight() const {
     right = getNode()[1];
     break;
   default:
-    Unhandled(k);
+    Unhandled() << k << std::endl;
   }
   return Polynomial::parsePolynomial(right);
 }
@@ -1282,7 +1282,7 @@ Comparison Comparison::mkComparison(Kind k, const Polynomial& l, const Polynomia
         mkIntInequality(k, diff) : mkRatInequality(k, diff);
       break;
     default:
-      Unhandled(k);
+      Unhandled() << k << std::endl;
     }
     Assert(!result.isNull());
     if(result.getKind() == kind::NOT && result[0].getKind() == kind::CONST_BOOLEAN){

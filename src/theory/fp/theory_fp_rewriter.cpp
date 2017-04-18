@@ -39,7 +39,7 @@ namespace rewrite {
   /** Rewrite rules **/
 
   RewriteResponse notFP (TNode node, bool) {
-    Unreachable("non floating-point kind (%d) in floating point rewrite?",node.getKind());
+    Unreachable() << "non floating-point kind (" << node.getKind() << ") in floating point rewrite?" << std::endl;
   }
 
   RewriteResponse identity (TNode node, bool) {
@@ -47,7 +47,7 @@ namespace rewrite {
   }
 
   RewriteResponse type (TNode node, bool) {
-    Unreachable("sort kind (%d) found in expression?",node.getKind());
+    Unreachable() << "sort kind (" << node.getKind() << ") found in expression?" << std::endl;
     return RewriteResponse(REWRITE_DONE, node);
   }
 
@@ -99,7 +99,7 @@ namespace rewrite {
   }
 
   RewriteResponse removed (TNode node, bool) {  
-    Unreachable("kind (%d) should have been removed?",node.getKind());
+    Unreachable() << "kind (" << node.getKind() << ") should have been removed?" << std::endl;
     return RewriteResponse(REWRITE_DONE, node);
   }
 

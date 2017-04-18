@@ -281,7 +281,7 @@ void ProofManager::traceDeps(TNode n, ExprSet* coreAssertions) {
         Debug("cores") << " -- Could not track cause assertion. Failing silently." << std::endl;
         return;
       }
-      InternalError("Cannot trace dependence information back to input assertion:\n`%s'", n.toString().c_str());
+      InternalError() << "Cannot trace dependence information back to input assertion:\n`" << n.toString() << "'" << std::endl; 
     }
     Assert(d_deps.find(n) != d_deps.end());
     std::vector<Node> deps = (*d_deps.find(n)).second;
@@ -311,7 +311,7 @@ void ProofManager::traceDeps(TNode n, CDExprSet* coreAssertions) {
         Debug("cores") << " -- Could not track cause assertion. Failing silently." << std::endl;
         return;
       }
-      InternalError("Cannot trace dependence information back to input assertion:\n`%s'", n.toString().c_str());
+      InternalError() << "Cannot trace dependence information back to input assertion:\n`" << n.toString() << "'" << std::endl;
     }
     Assert(d_deps.find(n) != d_deps.end());
     std::vector<Node> deps = (*d_deps.find(n)).second;
@@ -371,8 +371,8 @@ void ProofManager::constructSatProof() {
 }
 
 void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Node> &lemmas) {
-  Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
-  Assert(unsatCoreAvailable(), "Cannot get unsat core at this time. Mabye the input is SAT?" );
+  Assert(PROOF_ON()) << "Cannot compute unsat core when proofs are off" << std::endl;
+  Assert(unsatCoreAvailable()) << "Cannot get unsat core at this time. Mabye the input is SAT?"  << std::endl;
 
   constructSatProof();
 
@@ -421,8 +421,8 @@ std::set<Node> ProofManager::satClauseToNodeSet(prop::SatClause* clause) {
 }
 
 Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
-  Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
-  Assert(unsatCoreAvailable(), "Cannot get unsat core at this time. Mabye the input is SAT?" );
+  Assert(PROOF_ON()) << "Cannot compute unsat core when proofs are off" << std::endl;
+  Assert(unsatCoreAvailable()) << "Cannot get unsat core at this time. Mabye the input is SAT?"  << std::endl;
 
   // If we're doing aggressive minimization, work on all lemmas, not just conjunctions.
   if (!options::aggressiveCoreMin() && (lemma.getKind() != kind::AND))

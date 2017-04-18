@@ -53,12 +53,12 @@ public:
 };/* class NodeSelfIterator */
 
 inline NodeSelfIterator NodeSelfIterator::self(TNode n) {
-  Assert(!n.isNull(), "Self-iteration over null nodes not permitted.");
+  Assert(!n.isNull()) << "Self-iteration over null nodes not permitted." << std::endl;
   return NodeSelfIterator(n);
 }
 
 inline NodeSelfIterator NodeSelfIterator::selfEnd(TNode n) {
-  Assert(!n.isNull(), "Self-iteration over null nodes not permitted.");
+  Assert(!n.isNull()) << "Self-iteration over null nodes not permitted." << std::endl;
   return NodeSelfIterator(n.end());
 }
 
@@ -70,13 +70,13 @@ inline NodeSelfIterator::NodeSelfIterator() :
 inline NodeSelfIterator::NodeSelfIterator(Node node) :
   d_node(node),
   d_child() {
-  Assert(!node.isNull(), "Self-iteration over null nodes not permitted.");
+  Assert(!node.isNull()) << "Self-iteration over null nodes not permitted." << std::endl;
 }
 
 inline NodeSelfIterator::NodeSelfIterator(TNode node) :
   d_node(node),
   d_child() {
-  Assert(!node.isNull(), "Self-iteration over null nodes not permitted.");
+  Assert(!node.isNull()) << "Self-iteration over null nodes not permitted." << std::endl;
 }
 
 inline NodeSelfIterator::NodeSelfIterator(const NodeSelfIterator& i) :

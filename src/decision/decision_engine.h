@@ -117,10 +117,8 @@ public:
   /** Gets the next decision based on strategies that are enabled */
   SatLiteral getNext(bool &stopSearch) {
     NodeManager::currentResourceManager()->spendResource(options::decisionStep());
-    Assert(d_cnfStream != NULL,
-           "Forgot to set cnfStream for decision engine?");
-    Assert(d_satSolver != NULL,
-           "Forgot to set satSolver for decision engine?");
+    Assert(d_cnfStream != NULL) << "Forgot to set cnfStream for decision engine?" << std::endl;
+    Assert(d_satSolver != NULL) << "Forgot to set satSolver for decision engine?" << std::endl;
 
     SatLiteral ret = undefSatLiteral;
     for(unsigned i = 0;
@@ -156,7 +154,7 @@ public:
     case SAT_VALUE_TRUE: return Result(Result::SAT);
     case SAT_VALUE_FALSE: return Result(Result::UNSAT);
     case SAT_VALUE_UNKNOWN: return Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
-    default: Assert(false, "d_result is garbage");
+    default: Assert(false) << "d_result is garbage" << std::endl;
     }
     return Result();
   }

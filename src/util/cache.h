@@ -74,17 +74,17 @@ public:
     }
 
     const U& get() throw(AssertionException) {
-      Assert(d_fired, "nothing in cache");
+      Assert(d_fired) << "nothing in cache" << std::endl;
       return d_cache.get();
     }
 
     U& operator()(U& computed) throw(AssertionException) {
-      Assert(!d_fired, "can only cache a computation once");
+      Assert(!d_fired) << "can only cache a computation once" << std::endl;
       d_fired = true;
       return d_cache(computed);
     }
     const U& operator()(const U& computed) throw(AssertionException) {
-      Assert(!d_fired, "can only cache a computation once");
+      Assert(!d_fired) << "can only cache a computation once" << std::endl;
       d_fired = true;
       return d_cache(computed);
     }

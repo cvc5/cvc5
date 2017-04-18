@@ -32,7 +32,7 @@ std::ostream& operator<<(std::ostream& out, const AbstractValue& val) {
 
 AbstractValue::AbstractValue(Integer index) throw(IllegalArgumentException) :
     d_index(index) {
-    PrettyCheckArgument(index >= 1, index, "index >= 1 required for abstract value, not `%s'", index.toString().c_str());
+    PrettyCheckArgument(index >= 1, index) <<  "index >= 1 required for abstract value, not `" << index.toString() << "'" << std::endl;
 }
 
 }/* CVC4 namespace */

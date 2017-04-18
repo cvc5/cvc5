@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "base/cvc4_assert.h"
+#include "base/portability.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "util/cardinality.h"
@@ -715,8 +716,7 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
   }
 
   // otherwise compute
-  Assert( typesEnd - typesBegin == replacementsEnd - replacementsBegin,
-          "Substitution iterator ranges must be equal size" );
+  Assert(typesEnd - typesBegin == replacementsEnd - replacementsBegin) << "Substitution iterator ranges must be equal size"  << std::endl;
   Iterator1 j = find(typesBegin, typesEnd, *this);
   if(j != typesEnd) {
     TypeNode tn = *(replacementsBegin + (j - typesBegin));
@@ -755,18 +755,18 @@ inline const T& TypeNode::getConst() const {
 
 inline TypeNode::TypeNode(const expr::NodeValue* ev) :
   d_nv(const_cast<expr::NodeValue*> (ev)) {
-  Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!" << std::endl;
   d_nv->inc();
 }
 
 inline TypeNode::TypeNode(const TypeNode& typeNode) {
-  Assert(typeNode.d_nv != NULL, "Expecting a non-NULL expression value!");
+  Assert(typeNode.d_nv != NULL) << "Expecting a non-NULL expression value!" << std::endl;
   d_nv = typeNode.d_nv;
   d_nv->inc();
 }
 
 inline TypeNode::~TypeNode() {
-  Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!" << std::endl;
   d_nv->dec();
 }
 
@@ -776,10 +776,9 @@ inline void TypeNode::assignNodeValue(expr::NodeValue* ev) {
 }
 
 inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
-  Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
-  Assert(typeNode.d_nv != NULL,
-         "Expecting a non-NULL expression value on RHS!");
-  if(__builtin_expect( ( d_nv != typeNode.d_nv ), true )) {
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!" << std::endl;
+  Assert(typeNode.d_nv != NULL) << "Expecting a non-NULL expression value on RHS!" << std::endl;
+  if(__CVC4__expect( ( d_nv != typeNode.d_nv ), true )) {
     d_nv->dec();
     d_nv = typeNode.d_nv;
     d_nv->inc();
@@ -790,35 +789,36 @@ inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
 template <class AttrKind>
 inline typename AttrKind::value_type TypeNode::
 getAttribute(const AttrKind&) const {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL) 
+      << "There is no current CVC4::NodeManager associated to this thread." << std::endl 
+      << "Perhaps a public-facing function is missing a NodeManagerScope ?" << std::endl;
+
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind());
 }
 
 template <class AttrKind>
 inline bool TypeNode::
 hasAttribute(const AttrKind&) const {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL) 
+      << "There is no current CVC4::NodeManager associated to this thread." << std::endl 
+      << "Perhaps a public-facing function is missing a NodeManagerScope ?" << std::endl;
   return NodeManager::currentNM()->hasAttribute(d_nv, AttrKind());
 }
 
 template <class AttrKind>
 inline bool TypeNode::getAttribute(const AttrKind&, typename AttrKind::value_type& ret) const {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL) 
+      << "There is no current CVC4::NodeManager associated to this thread." << std::endl 
+      << "Perhaps a public-facing function is missing a NodeManagerScope ?" << std::endl;
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind(), ret);
 }
 
 template <class AttrKind>
 inline void TypeNode::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL) 
+      << "There is no current CVC4::NodeManager associated to this thread." << std::endl 
+      << "Perhaps a public-facing function is missing a NodeManagerScope ?" << std::endl;
   NodeManager::currentNM()->setAttribute(d_nv, AttrKind(), value);
 }
 

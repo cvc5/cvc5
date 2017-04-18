@@ -197,7 +197,7 @@ void TheoryBV::collectFunctionSymbols(TNode term, TNodeSet& seen) {
     TNode func = term[0];
     storeFunction(func, term);
   } else if (term.getKind() == kind::STORE) {
-    AlwaysAssert(false, "Cannot use eager bitblasting on QF_ABV formula with stores");
+    AlwaysAssert(false) << "Cannot use eager bitblasting on QF_ABV formula with stores" << std::endl;
   }
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     collectFunctionSymbols(term[i], seen);

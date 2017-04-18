@@ -21,6 +21,7 @@
 #include "base/cvc4_assert.h"
 #include "base/output.h"
 #include "base/tls.h"
+#include "base/portability.h"
 
 using namespace std;
 
@@ -30,6 +31,12 @@ namespace CVC4 {
 //CVC4_THREAD_LOCAL const char* s_debugLastException = NULL;
 #endif /* CVC4_DEBUG */
 
+const std::string AssertionException::s_header = "Assertion failure";
+const std::string UnreachableCodeException::s_header = "Unreachable code reached";
+const std::string UnhandledCaseException::s_header = "Unhandled case encountered";
+const std::string UnimplementedOperationException::s_header = "Unimplemented code encountered";
+const std::string AssertArgumentException::s_header = "Illegal argument detected";
+const std::string InternalErrorException::s_header = "Internal error detected";
 
 void AssertionException::construct(const char* header, const char* extra,
                                    const char* function, const char* file,
@@ -139,11 +146,11 @@ void AssertionException::construct(const char* header, const char* extra,
  * debug builds only; in debug builds, it handles all assertion
  * failures (even those that exist in non-debug builds).
  */
-void debugAssertionFailed(const AssertionException& thisException,
+__CVC4__noreturn void debugAssertionFailed(const AssertionException& thisException,
                           const char* propagatingException) {
   static CVC4_THREAD_LOCAL bool alreadyFired = false;
 
-  if(__builtin_expect( ( !std::uncaught_exception() ), true ) || alreadyFired) {
+  if(__CVC4__expect( ( !std::uncaught_exception() ), true ) || alreadyFired) {
     throw thisException;
   }
 

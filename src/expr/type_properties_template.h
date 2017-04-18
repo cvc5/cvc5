@@ -49,7 +49,7 @@ ${type_constant_cardinalities}
   default: {
     std::stringstream ss;
     ss << "No cardinality known for type constant " << tc;
-    InternalError(ss.str());
+    InternalError() << ss.str() << std::endl;
   }
   }
 }/* getCardinality(TypeConstant) */
@@ -72,7 +72,7 @@ ${type_cardinalities}
     ss << "A theory kinds file did not provide a cardinality "
        << "or cardinality computer for type:\n" << typeNode
        << "\nof kind " << k;
-    InternalError(ss.str());
+    InternalError() << ss.str() << std::endl;
   }
   }
 }/* getCardinality(TypeNode) */
@@ -84,7 +84,7 @@ ${type_constant_wellfoundednesses}
   default: {
     std::stringstream ss;
     ss << "No well-foundedness status known for type constant: " << tc;
-    InternalError(ss.str());
+    InternalError() << ss.str() << std::endl;
   }
   }
 }/* isWellFounded(TypeConstant) */
@@ -101,7 +101,7 @@ ${type_wellfoundednesses}
     ss << "A theory kinds file did not provide a well-foundedness "
        << "or well-foundedness computer for type:\n" << typeNode
        << "\nof kind " << k;
-    InternalError(ss.str());
+    InternalError() << ss.str() << std::endl;
   }
   }
 }/* isWellFounded(TypeNode) */
@@ -113,7 +113,7 @@ ${type_constant_groundterms}
   default: {
     std::stringstream ss;
     ss << "No ground term known for type constant: " << tc;
-    InternalError(ss.str());
+    InternalError() << ss.str() << std::endl;
   }
   }
 }/* mkGroundTerm(TypeConstant) */
@@ -130,7 +130,7 @@ ${type_groundterms}
     ss << "A theory kinds file did not provide a ground term "
        << "or ground term computer for type:\n" << typeNode
        << "\nof kind " << k;
-    InternalError(ss.str());
+    InternalError() << ss.str() << std::endl;
   }
   }
 }/* mkGroundTerm(TypeNode) */

@@ -69,15 +69,12 @@ protected:
       d_list(NULL) {
     }
     void initialize(T* list) {
-      Assert( d_nextSegment == NULL &&
-              d_segmentSize == 0 &&
-              d_list == NULL,
-              "Double-initialization of ListSegment not permitted" );
+      Assert( d_nextSegment == NULL && d_segmentSize == 0 && d_list == NULL )
+          << "Double-initialization of ListSegment not permitted" << std::endl;
       d_list = list;
     }
     void linkTo(ListSegment* nextSegment) {
-      Assert( d_nextSegment == NULL,
-              "Double-linking of ListSegment not permitted" );
+      Assert( d_nextSegment == NULL) << "Double-linking of ListSegment not permitted"  << std::endl;
       d_nextSegment = nextSegment;
     }
     void cutLink() {
@@ -395,7 +392,7 @@ public:
    * Access to the ith item in the list in O(log n).
    */
   const T& operator[](size_t i) const {
-    Assert(i < d_size, "index out of bounds in CDChunkList::operator[]");
+    Assert(i < d_size) << "index out of bounds in CDChunkList::operator[]" << std::endl;
     const ListSegment* seg = &d_headSegment;
     while(i >= seg->size()) {
       i -= seg->size();
@@ -408,7 +405,7 @@ public:
    * Returns the most recent item added to the list.
    */
   const T& back() const {
-    Assert(d_size > 0, "CDChunkList::back() called on empty list");
+    Assert(d_size > 0) << "CDChunkList::back() called on empty list" << std::endl;
     return (*d_tailSegment)[d_tailSegment->size() - 1];
   }
 

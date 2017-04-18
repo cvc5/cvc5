@@ -164,10 +164,10 @@ void TheoryDatatypes::check(Effort e) {
     TNode atom CVC4_UNUSED = fact.getKind() == kind::NOT ? fact[0] : fact;
 
     // extra debug check to make sure that the rewriter did its job correctly
-    Assert( atom.getKind() != kind::EQUAL ||
+    Assert(atom.getKind() != kind::EQUAL ||
             ( atom[0].getKind() != kind::TUPLE_UPDATE && atom[1].getKind() != kind::TUPLE_UPDATE &&
-              atom[0].getKind() != kind::RECORD_UPDATE && atom[1].getKind() != kind::RECORD_UPDATE),
-            "tuple/record escaped into datatypes decision procedure; should have been rewritten away" );
+              atom[0].getKind() != kind::RECORD_UPDATE && atom[1].getKind() != kind::RECORD_UPDATE)) 
+        << "tuple/record escaped into datatypes decision procedure; should have been rewritten away"  << std::endl;
 
     //assert the fact
     assertFact( fact, fact );

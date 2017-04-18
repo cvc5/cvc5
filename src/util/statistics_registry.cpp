@@ -146,26 +146,24 @@ StatisticsRegistry::StatisticsRegistry(const std::string& name)
 
   d_prefix = name;
   if(__CVC4_USE_STATISTICS) {
-    PrettyCheckArgument(d_name.find(s_regDelim) == std::string::npos, name,
-                        "StatisticsRegistry names cannot contain the string \"%s\"",
-                    s_regDelim.c_str());
+    PrettyCheckArgument(d_name.find(s_regDelim) == std::string::npos, name)
+      << "StatisticsRegistry names cannot contain the string \"" 
+      << s_regDelim << "\"" << std::endl;
   }
 }
 
 void StatisticsRegistry::registerStat(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON
-  PrettyCheckArgument(d_stats.find(s) == d_stats.end(), s,
-                "Statistic `%s' was not registered with this registry.",
-                s->getName().c_str());
+  PrettyCheckArgument(d_stats.find(s) == d_stats.end(), s)
+    << "Statistic `" << s->getName() << "' was not registered with this registry." << std::endl;
   d_stats.insert(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat_() */
 
 void StatisticsRegistry::unregisterStat(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON
-  PrettyCheckArgument(d_stats.find(s) != d_stats.end(), s,
-                "Statistic `%s' was not registered with this registry.",
-                s->getName().c_str());
+  PrettyCheckArgument(d_stats.find(s) != d_stats.end(), s)
+    << "Statistic `" << s->getName() << "' was not registered with this registry." << std::endl;
   d_stats.erase(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::unregisterStat_() */
@@ -190,7 +188,7 @@ void StatisticsRegistry::safeFlushInformation(int fd) const {
 
 void TimerStat::start() {
   if(__CVC4_USE_STATISTICS) {
-    PrettyCheckArgument(!d_running, *this, "timer already running");
+    PrettyCheckArgument(!d_running, *this) <<  "timer already running" << std::endl;
     clock_gettime(CLOCK_MONOTONIC, &d_start);
     d_running = true;
   }
@@ -198,7 +196,7 @@ void TimerStat::start() {
 
 void TimerStat::stop() {
   if(__CVC4_USE_STATISTICS) {
-    PrettyCheckArgument(d_running, *this, "timer not running");
+    PrettyCheckArgument(d_running, *this) <<  "timer not running" << std::endl;
     ::timespec end;
     clock_gettime(CLOCK_MONOTONIC, &end);
     d_data += end - d_start;

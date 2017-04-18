@@ -3702,7 +3702,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
       d_currentPropagationList.pop_front();
 
       ConstraintType t = curr->getType();
-      Assert(t != Disequality, "Disequalities are not allowed in d_currentPropagation");
+      Assert(t != Disequality) << "Disequalities are not allowed in d_currentPropagation" << std::endl;
 
 
       switch(t){
@@ -3730,7 +3730,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
           break;
         }
       default:
-        Unhandled(curr->getType());
+        Unhandled() << curr->getType() << std::endl;
       }
     }
 
@@ -4087,7 +4087,8 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
       Debug("arith::prop") << c->getNegation()->externalExplainByAssertions()
                            << endl;
     }
-    Assert(!c->negationHasProof(), "A constraint has been propagated on the constraint propagation queue, but the negation has been set to true.  Contact Tim now!");
+    Assert(!c->negationHasProof()) 
+        << "A constraint has been propagated on the constraint propagation queue, but the negation has been set to true.  Contact Tim now!" << std::endl;
 
     if(!c->assertedToTheTheory()){
       Node literal = c->getLiteral();
@@ -4255,7 +4256,7 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
 
 void TheoryArithPrivate::collectModelInfo( TheoryModel* m ){
   AlwaysAssert(d_qflraStatus ==  Result::SAT);
-  //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
+  //AlwaysAssert(!d_nlIncomplete) << "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints" << std::endl;
 
   if(Debug.isOn("arith::collectModelInfo")){
     debugPrintFacts();
@@ -4412,7 +4413,7 @@ void TheoryArithPrivate::presolve(){
       d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
       break;
     default:
-      Unhandled(options::arithUnateLemmaMode());
+      Unhandled() << options::arithUnateLemmaMode() << std::endl;
     }
   }
 

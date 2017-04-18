@@ -123,7 +123,7 @@ PropEngine::~PropEngine() {
 }
 
 void PropEngine::assertFormula(TNode node) {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Assert(!d_inCheckSat) << "Sat solver in solve()!" << std::endl;
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
   d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
@@ -133,7 +133,7 @@ void PropEngine::assertLemma(TNode node, bool negated,
                              bool removable,
                              ProofRule rule,
                              TNode from) {
-  //Assert(d_inCheckSat, "Sat solver should be in solve()!");
+  //Assert(d_inCheckSat) << "Sat solver should be in solve()!" << std::endl;
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
   // Assert as (possibly) removable
@@ -179,7 +179,7 @@ void PropEngine::printSatisfyingAssignment(){
 }
 
 Result PropEngine::checkSat() {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Assert(!d_inCheckSat) << "Sat solver in solve()!" << std::endl;
   Debug("prop") << "PropEngine::checkSat()" << endl;
 
   // Mark that we are in the checkSat
@@ -270,13 +270,13 @@ void PropEngine::ensureLiteral(TNode n) {
 }
 
 void PropEngine::push() {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Assert(!d_inCheckSat) << "Sat solver in solve()!" << std::endl;
   d_satSolver->push();
   Debug("prop") << "push()" << endl;
 }
 
 void PropEngine::pop() {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Assert(!d_inCheckSat) << "Sat solver in solve()!" << std::endl;
   d_satSolver->pop();
   Debug("prop") << "pop()" << endl;
 }

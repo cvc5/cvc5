@@ -279,7 +279,7 @@ function register_sort {
     fi
   else
     type_constant_groundterms="${type_constant_groundterms}#line $lineno \"$kf\"
-  case $id: Unhandled(tc);
+  case $id: Unhandled() << tc << std::endl;
 "
   fi
 }
@@ -328,7 +328,7 @@ function register_wellfoundedness {
 "
   else
     type_groundterms="${type_groundterms}#line $lineno \"$kf\"
-  case $id: Unhandled(typeNode);
+  case $id: Unhandled() << typeNode;
 "
   fi
   if [ -n "$header" ]; then

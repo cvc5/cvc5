@@ -287,7 +287,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
          << "the term:    " << x << "\n"
          << "old mapping: " << d_substitutions.apply(oldX) << "\n"
          << "new mapping: " << d_substitutions.apply(t);
-      InternalError(ss.str());
+      InternalError() << ss.str() << std::endl;
     }
 #endif /* CVC4_ASSERTIONS */
   }
@@ -1044,7 +1044,7 @@ void TheoryEngineModelBuilder::debugCheckModel(Model* m){
           << "n: " << n << endl
           << "getValue(n): " << tm->getValue(n) << endl
           << "rep: " << rep << endl;
-        Assert(tm->getValue(*eqc_i) == rep, "run with -d check-model::rep-checking for details");
+        Assert(tm->getValue(*eqc_i) == rep) << "run with -d check-model::rep-checking for details" << std::endl;
       }
     }
   }
