@@ -253,6 +253,27 @@ AC_PROG_INSTALL
 
 CVC4_GCC_VERSION
 
+if test $cross_compiling = "no"; then
+  AC_MSG_CHECKING([whether C++ exceptions work])
+  AC_LANG_PUSH([C++])
+  AC_RUN_IFELSE(
+    AC_LANG_PROGRAM([#include <exception>], [[
+      int result = 1;
+      try {
+        throw std::exception();
+      } catch (...) {
+        result = 0;
+      }
+      return result;
+    ]]),
+    [AC_MSG_RESULT([yes])],
+    [AC_MSG_ERROR([C++ exceptions do not work.])]
+  )
+  AC_LANG_POP([C++])
+else
+  AC_MSG_WARN([Cross compiling, cannot check whether exceptions work])
+fi
+
 cvc4_use_gmp=2
 cvc4_use_cln=2
 
