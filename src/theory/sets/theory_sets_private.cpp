@@ -48,6 +48,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_proxy_to_term(u),
   d_lemmas_produced(u),
   d_card_processed(u),
+  d_var_elim(u),
   d_external(external),
   d_notify(*this),
   d_equalityEngine(d_notify, c, "theory::sets::TheorySetsPrivate", true),
@@ -524,6 +525,7 @@ void TheorySetsPrivate::fullEffortCheck(){
     d_eqc_singleton.clear();
     d_congruent.clear();
     d_nvar_sets.clear();
+    d_var_set.clear();
     d_pol_mems[0].clear();
     d_pol_mems[1].clear();
     d_members_index.clear();
@@ -620,6 +622,11 @@ void TheorySetsPrivate::fullEffortCheck(){
           }
           if( isSet ){
             d_set_eqc_list[eqc].push_back( n );
+            if( n.getKind()==kind::VARIABLE ){
+              if( d_var_set.find( eqc )==d_var_set.end() ){
+                d_var_set[eqc] = n;
+              }
+            }
           }
         }
         ++eqc_i;
@@ -866,16 +873,27 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
     Trace("sets-debug") << "Check universe sets..." << std::endl;
     //all elements must be in universal set
     for( std::map< Node, std::map< Node, Node > >::iterator it = d_pol_mems[0].begin(); it != d_pol_mems[0].end(); ++it ){
-      TypeNode tn = it->first.getType();
-      std::map< TypeNode, Node >::iterator itu = d_eqc_univset.find( tn );
-      if( itu==d_eqc_univset.end() || itu->second!=it->first ){
-        Node u = getUnivSet( tn );
-        for( std::map< Node, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-          Node mem = it2->second;
-          Node fact = NodeManager::currentNM()->mkNode( kind::MEMBER, mem[0], u );
-          assertInference( fact, mem, lemmas, "upuniv" );
-          if( d_conflict ){
-            return;
+      //if equivalence class contains a variable
+      std::map< Node, Node >::iterator itv = d_var_set.find( it->first );
+      if( itv!=d_var_set.end() ){
+        TypeNode tn = it->first.getType();
+        std::map< TypeNode, Node >::iterator itu = d_eqc_univset.find( tn );
+        // if the universe does not yet exist, or is not in this equivalence class
+        if( itu==d_eqc_univset.end() || itu->second!=it->first ){
+          Node u = getUnivSet( tn );
+          Node v = itv->second;
+          for( std::map< Node, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
+            Assert( it2->second.getKind()==kind::MEMBER );
+            std::vector< Node > exp;
+            exp.push_back( it2->second );
+            if( v!=it2->second[1] ){
+              exp.push_back( v.eqNode( it2->second[1] ) );
+            }
+            Node fact = NodeManager::currentNM()->mkNode( kind::MEMBER, it2->second[0], u );
+            assertInference( fact, exp, lemmas, "upuniv" );
+            if( d_conflict ){
+              return;
+            }
           }
         }
       }
@@ -1574,12 +1592,55 @@ void TheorySetsPrivate::debugPrintSet( Node s, const char * c ) {
   }
 }
 
+void TheorySetsPrivate::lastCallEffortCheck() {
+  Trace("sets") << "----- Last call effort check ------" << std::endl;
+  /*
+  //FIXME : this is messy, have to see if constants are handled by the decision procedure, and not UF
+  TheoryModel * m = d_external.d_valuation.getModel();
+  //must process eliminated variables at last call effort when model is available
+  std::vector< Node > lemmas;
+  for(NodeBoolMap::const_iterator it=d_var_elim.begin(); it !=d_var_elim.end(); ++it) {
+    if( (*it).second ){
+      Node v = (*it).first;
+      Trace("sets-var-elim") << "Process eliminated variable : " << v << std::endl;
+      Node mv = m->getValue( v );
+      Trace("sets-var-elim") << "...value in model is : " << mv << std::endl;
+      Node u = getUnivSet( mv.getType() );
+      Node mvc = mv;
+      std::vector< Node > conj;
+      while( mvc.getKind()==kind::UNION ){
+        Node s = mvc[1];
+        Assert( s.getKind()==kind::SINGLETON );
+        conj.push_back( NodeManager::currentNM()->mkNode( kind::MEMBER, s[0], u ) );
+        mvc = mvc[0];
+      }
+      if( mvc.getKind()==kind::SINGLETON ){
+        conj.push_back( NodeManager::currentNM()->mkNode( kind::MEMBER, mvc[0], u ) );
+      }
+      if( !conj.empty() ){
+        Node lem = conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( kind::AND, conj );
+        // cannot add antecedant here since the eliminated variable v should not be reintroduced
+        //lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, v.eqNode(mv), lem );
+        Trace("sets-var-elim") << "...lemma is : " << lem << std::endl;
+        lemmas.push_back( lem );
+      }
+      d_var_elim[v] = false;
+    }
+  }
+  flushLemmas( lemmas );
+  */
+}
+
 /**************************** TheorySetsPrivate *****************************/
 /**************************** TheorySetsPrivate *****************************/
 /**************************** TheorySetsPrivate *****************************/
 
 void TheorySetsPrivate::check(Theory::Effort level) {
   Trace("sets-check") << "Sets check effort " << level << std::endl;
+  if( level == Theory::EFFORT_LAST_CALL ){
+    lastCallEffortCheck();
+    return;
+  }
   while(!d_external.done() && !d_conflict) {
     // Get all the assertions
     Assertion assertion = d_external.get();
@@ -1614,6 +1675,12 @@ void TheorySetsPrivate::check(Theory::Effort level) {
   Trace("sets-check") << "Sets finish Check effort " << level << std::endl;
 }/* TheorySetsPrivate::check() */
 
+bool TheorySetsPrivate::needsCheckLastEffort() {
+  if( !d_var_elim.empty() ){
+    return true;
+  }
+  return false;
+}
 
 /************************ Sharing ************************/
 /************************ Sharing ************************/
@@ -2024,6 +2091,49 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 }
 
 
+Theory::PPAssertStatus TheorySetsPrivate::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
+  Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
+  
+  //TODO: should allow variable elimination for sets
+  //      however, this makes universe set incorrect
+  
+  //this is based off of Theory::ppAssert
+  Node var;
+  if (in.getKind() == kind::EQUAL) {
+    if (in[0].isVar() && !in[1].hasSubterm(in[0]) &&
+        (in[1].getType()).isSubtypeOf(in[0].getType()) ){
+      if( !in[0].getType().isSet() ){
+        outSubstitutions.addSubstitution(in[0], in[1]);
+        var = in[0];
+        status = Theory::PP_ASSERT_STATUS_SOLVED;
+      }
+    }else if (in[1].isVar() && !in[0].hasSubterm(in[1]) &&
+        (in[0].getType()).isSubtypeOf(in[1].getType())){
+      if( !in[1].getType().isSet() ){
+        outSubstitutions.addSubstitution(in[1], in[0]);
+        var = in[1];
+        status = Theory::PP_ASSERT_STATUS_SOLVED;
+      }
+    }else if (in[0].isConst() && in[1].isConst()) {
+      if (in[0] != in[1]) {
+        status = Theory::PP_ASSERT_STATUS_CONFLICT;
+      }
+    }
+  }
+  
+  if( status==Theory::PP_ASSERT_STATUS_SOLVED ){
+    Trace("sets-var-elim") << "Sets : ppAssert variable eliminated : " << in << ", var = " << var << std::endl;
+    /*
+    if( var.getType().isSet() ){
+      //we must ensure that subs is included in the universe set
+      d_var_elim[var] = true;
+    } 
+    */
+    Assert( !var.getType().isSet() ); 
+  }
+  return status;
+}
+  
 void TheorySetsPrivate::presolve() {
 
 }

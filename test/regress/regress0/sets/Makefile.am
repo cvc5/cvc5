@@ -79,7 +79,9 @@ TESTS =	\
 	complement.cvc \
 	complement2.cvc \
   complement3.cvc \
-  sharing-simp.smt2
+  sharing-simp.smt2 \
+  pre-proc-univ.smt2 \
+  nonvar-univ.smt2
 
 EXTRA_DIST = $(TESTS)
 

@@ -127,6 +127,7 @@ private:
   std::map< TypeNode, Node > d_univset;
   std::map< Node, Node > d_congruent;
   std::map< Node, std::vector< Node > > d_nvar_sets;
+  std::map< Node, Node > d_var_set;
   std::map< Node, std::map< Node, Node > > d_pol_mems[2];
   std::map< Node, std::map< Node, Node > > d_members_index;
   std::map< Node, Node > d_singleton_index;
@@ -149,6 +150,9 @@ private:
   void checkNormalForms( std::vector< Node >& lemmas, std::vector< Node >& intro_sets );
   void checkNormalForm( Node eqc, std::vector< Node >& intro_sets );
   void checkMinCard( std::vector< Node >& lemmas );
+private: //for universe set
+  NodeBoolMap d_var_elim;
+  void lastCallEffortCheck();
 public:
 
   /**
@@ -166,6 +170,8 @@ public:
   void addSharedTerm(TNode);
 
   void check(Theory::Effort);
+  
+  bool needsCheckLastEffort();
 
   void collectModelInfo(TheoryModel* m);
 
@@ -177,6 +183,8 @@ public:
 
   void preRegisterTerm(TNode node);
 
+  Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+  
   void presolve();
 
   void propagate(Theory::Effort);
