@@ -49,6 +49,8 @@ public:
   void addSharedTerm(TNode);
 
   void check(Effort);
+  
+  bool needsCheckLastEffort();
 
   void collectModelInfo(TheoryModel* m);
 
@@ -63,6 +65,8 @@ public:
   std::string identify() const { return "THEORY_SETS"; }
 
   void preRegisterTerm(TNode node);
+
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
 
   void presolve();
 
