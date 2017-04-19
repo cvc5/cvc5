@@ -227,10 +227,10 @@ struct RelBinaryOperatorTypeRule {
     TypeNode resultType = firstRelType;
 
     if(!firstRelType.isSet() || !secondRelType.isSet()) {
-      throw TypeCheckingExceptionPrivate(n, " set operator operates on non-sets");
+      throw TypeCheckingExceptionPrivate(n, " Relational operator operates on non-sets");
     }
     if(!firstRelType[0].isTuple() || !secondRelType[0].isTuple()) {
-      throw TypeCheckingExceptionPrivate(n, " set operator operates on non-relations (sets of tuples)");
+      throw TypeCheckingExceptionPrivate(n, " Relational operator operates on non-relations (sets of tuples)");
     }
 
     std::vector<TypeNode> newTupleTypes;
@@ -306,6 +306,75 @@ struct RelTransClosureTypeRule {
     }
 };/* struct RelTransClosureTypeRule */
 
+struct JoinImageTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::JOIN_IMAGE);
+
+    TypeNode firstRelType = n[0].getType(check);
+
+    if(!firstRelType.isSet()) {
+      throw TypeCheckingExceptionPrivate(n, " JoinImage operator operates on non-relations");
+    }
+    if(!firstRelType[0].isTuple()) {
+      throw TypeCheckingExceptionPrivate(n, " JoinImage operator operates on non-relations (sets of tuples)");
+    }
+
+    std::vector<TypeNode> tupleTypes = firstRelType[0].getTupleTypes();
+    if(tupleTypes.size() != 2) {
+      throw TypeCheckingExceptionPrivate(n, " JoinImage operates on a non-binary relation");
+    }
+    TypeNode valType = n[1].getType(check);
+    if (valType != nodeManager->integerType()) {
+      throw TypeCheckingExceptionPrivate(
+          n, " JoinImage cardinality constraint must be integer");
+    }
+    if (n[1].getKind() != kind::CONST_RATIONAL) {
+      throw TypeCheckingExceptionPrivate(
+          n, " JoinImage cardinality constraint must be a constant");
+    }
+    CVC4::Rational r(INT_MAX);
+    if (n[1].getConst<Rational>() > r) {
+      throw TypeCheckingExceptionPrivate(
+          n, " JoinImage Exceeded INT_MAX in cardinality constraint");
+    }
+    if (n[1].getConst<Rational>().getNumerator().getSignedInt() < 0) {
+      throw TypeCheckingExceptionPrivate(
+          n, " JoinImage cardinality constraint must be non-negative");
+    }
+    std::vector<TypeNode> newTupleTypes;
+    newTupleTypes.push_back(tupleTypes[0]);
+    return nodeManager->mkSetType(nodeManager->mkTupleType(newTupleTypes));
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+    Assert(n.getKind() == kind::JOIN_IMAGE);
+    return false;
+  }
+};/* struct JoinImageTypeRule */
+
+struct RelIdenTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::IDEN);
+    TypeNode setType = n[0].getType(check);
+    if(check) {
+      if(!setType.isSet() && !setType.getSetElementType().isTuple()) {
+        throw TypeCheckingExceptionPrivate(n, " Identity operates on non-relation");
+      }
+      if(setType[0].getTupleTypes().size() != 1) {
+        throw TypeCheckingExceptionPrivate(n, " Identity operates on non-unary relations");
+      }
+    }
+    std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
+    tupleTypes.push_back(tupleTypes[0]);
+    return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+      return false;
+    }
+};/* struct RelIdenTypeRule */
 
 struct SetsProperties {
   inline static Cardinality computeCardinality(TypeNode type) {

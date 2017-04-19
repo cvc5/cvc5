@@ -209,6 +209,8 @@ tokens {
   TRANSPOSE_TOK = 'TRANSPOSE';
   PRODUCT_TOK = 'PRODUCT';
   TRANSCLOSURE_TOK = 'TCLOSURE';
+  IDEN_TOK = 'IDEN';
+  JOIN_IMAGE_TOK = 'JOIN_IMAGE';  
 
   // Strings
 
@@ -324,6 +326,8 @@ int getOperatorPrecedence(int type) {
   case JOIN_TOK:
   case TRANSPOSE_TOK:
   case PRODUCT_TOK:
+  case IDEN_TOK:
+  case JOIN_IMAGE_TOK:  
   case TRANSCLOSURE_TOK: return 24;
   case LEQ_TOK:
   case LT_TOK:
@@ -365,6 +369,7 @@ Kind getOperatorKind(int type, bool& negate) {
   
   case PRODUCT_TOK: return kind::PRODUCT;
   case JOIN_TOK: return kind::JOIN;
+  case JOIN_IMAGE_TOK: return kind::JOIN_IMAGE;  
 
     // comparisonBinop
   case EQUAL_TOK: return kind::EQUAL;
@@ -1509,6 +1514,7 @@ booleanBinop[unsigned& op]
   | AND_TOK
   | JOIN_TOK
   | PRODUCT_TOK
+  | JOIN_IMAGE_TOK  
   ;
 
 comparison[CVC4::Expr& f]
@@ -1706,7 +1712,9 @@ relationTerm[CVC4::Expr& f]
       const Datatype& dt = t.getDatatype();
       args.insert( args.begin(), dt[0].getConstructor() );
       f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
-    }             
+    }
+  | IDEN_TOK relationTerm[f]
+    { f = MK_EXPR(CVC4::kind::IDEN, f); }                 
   | postfixTerm[f]
   ;
 
