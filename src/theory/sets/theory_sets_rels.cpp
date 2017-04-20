@@ -58,8 +58,6 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
 
         if( kind_terms.find(kind::TRANSPOSE) != kind_terms.end() ) {
           std::vector<Node> tp_terms = kind_terms[kind::TRANSPOSE];
-          // exp is a membership term and tp_terms contains all
-          // transposed terms that are equal to the right hand side of exp
           if( tp_terms.size() > 0 ) {
             applyTransposeRule( tp_terms );
             applyTransposeRule( tp_terms[0], rel_rep, exp );
@@ -67,9 +65,6 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
         }
         if( kind_terms.find(kind::JOIN) != kind_terms.end() ) {
           std::vector<Node> join_terms = kind_terms[kind::JOIN];
-          // exp is a membership term and join_terms contains all
-          // terms involving "join" operator that are in the same
-          // equivalence class with the right hand side of exp
           for( unsigned int j = 0; j < join_terms.size(); j++ ) {
             applyJoinRule( join_terms[j], rel_rep, exp );
           }
@@ -84,6 +79,18 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
           std::vector<Node> tc_terms = kind_terms[kind::TCLOSURE];
           for( unsigned int j = 0; j < tc_terms.size(); j++ ) {
             applyTCRule( mem, tc_terms[j], rel_rep, exp );
+          }
+        }
+        if( kind_terms.find(kind::JOIN_IMAGE) != kind_terms.end() ) {
+          std::vector<Node> join_image_terms = kind_terms[kind::JOIN_IMAGE];
+          for( unsigned int j = 0; j < join_image_terms.size(); j++ ) {
+            applyJoinImageRule( mem, join_image_terms[j], exp );
+          }
+        }
+        if( kind_terms.find(kind::IDEN) != kind_terms.end() ) {
+          std::vector<Node> iden_terms = kind_terms[kind::IDEN];
+          for( unsigned int j = 0; j < iden_terms.size(); j++ ) {
+            applyIdenRule( mem, iden_terms[j], exp );
           }
         }
       }
@@ -115,7 +122,18 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
               buildTCGraphForRel( *term_it );
               term_it++;
             }
-
+          } else if( k_t_it->first == kind::JOIN_IMAGE ) {
+            std::vector<Node>::iterator term_it = k_t_it->second.begin();
+            while( term_it != k_t_it->second.end() ) {
+              computeMembersForJoinImageTerm( *term_it );
+              term_it++;
+            }
+          } else if( k_t_it->first == kind::IDEN ) {
+            std::vector<Node>::iterator term_it = k_t_it->second.begin();
+            while( term_it != k_t_it->second.end() ) {
+              computeMembersForIdenTerm( *term_it );
+              term_it++;
+            }
           }
           k_t_it++;
         }
@@ -136,7 +154,7 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
       Node                      eqc_rep  = (*eqcs_i);
       eq::EqClassIterator       eqc_i   = eq::EqClassIterator( eqc_rep, d_eqEngine );
 
-      Trace("rels-ee") << "[sets-rels-ee] Eqc term representative: " << eqc_rep << std::endl;
+      Trace("rels-ee") << "[sets-rels-ee] Eqc term representative: " << eqc_rep << " with type " << eqc_rep.getType() << std::endl;
 
       while( !eqc_i.isFinished() ){
         Node eqc_node = (*eqc_i);
@@ -164,16 +182,13 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
                 computeTupleReps(tup_rep);
                 d_membership_trie[rel_rep].addTerm(tup_rep, d_tuple_reps[tup_rep]);
               }
-            } else {
-              if( safelyAddToMap(d_rReps_nonMemberReps_cache, rel_rep, tup_rep) ) {
-                addToMap(d_rReps_nonMemberReps_exp_cache, rel_rep, reason);
-              }
             }
           }
         // collect relational terms info
         } else if( eqc_rep.getType().isSet() && eqc_rep.getType().getSetElementType().isTuple() ) {
           if( eqc_node.getKind() == kind::TRANSPOSE || eqc_node.getKind() == kind::JOIN ||
-              eqc_node.getKind() == kind::PRODUCT || eqc_node.getKind() == kind::TCLOSURE ) {
+              eqc_node.getKind() == kind::PRODUCT || eqc_node.getKind() == kind::TCLOSURE ||
+              eqc_node.getKind() == kind::JOIN_IMAGE || eqc_node.getKind() == kind::IDEN ) {
             std::vector<Node> terms;
             std::map< kind::Kind_t, std::vector<Node> >  rel_terms;
             TERM_IT terms_it = d_terms_cache.find(eqc_rep);
@@ -209,6 +224,205 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
     }
     Trace("rels-debug") << "[Theory::Rels] Done with collecting relational terms!" << std::endl;
   }
+
+  /* JOIN-IMAGE UP  :   (x, x1) IS_IN R, ..., (x, xn) IS_IN R  (R JOIN_IMAGE n)
+  *                     -------------------------------------------------------
+  *                     x IS_IN (R JOIN_IMAGE n) || NOT DISTINCT(x1, ... , xn)
+  *
+  */
+
+  void TheorySetsRels::computeMembersForJoinImageTerm( Node join_image_term ) {
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Compute members for JoinImage Term = " << join_image_term << std::endl;
+    MEM_IT rel_mem_it = d_rReps_memberReps_cache.find( getRepresentative( join_image_term[0] ) );
+
+    if( rel_mem_it == d_rReps_memberReps_cache.end() ) {
+      return;
+    }
+
+    Node join_image_rel = join_image_term[0];
+    std::hash_set< Node, NodeHashFunction > hasChecked;
+    Node join_image_rel_rep = getRepresentative( join_image_rel );
+    std::vector< Node >::iterator mem_rep_it = (*rel_mem_it).second.begin();
+    MEM_IT rel_mem_exp_it = d_rReps_memberReps_exp_cache.find( join_image_rel_rep );
+    std::vector< Node >::iterator mem_rep_exp_it = (*rel_mem_exp_it).second.begin();
+    unsigned int min_card = join_image_term[1].getConst<Rational>().getNumerator().getUnsignedInt();
+
+    while( mem_rep_it != (*rel_mem_it).second.end() ) {
+      Node fst_mem_rep = RelsUtils::nthElementOfTuple( *mem_rep_it, 0 );
+
+      if( hasChecked.find( fst_mem_rep ) != hasChecked.end() ) {
+        ++mem_rep_it;
+        ++mem_rep_exp_it;
+        continue;
+      }
+      hasChecked.insert( fst_mem_rep );
+
+      Datatype dt = join_image_term.getType().getSetElementType().getDatatype();
+      Node new_membership = NodeManager::currentNM()->mkNode(kind::MEMBER,
+                                                             NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR,
+                                                                                               Node::fromExpr(dt[0].getConstructor()), fst_mem_rep ),
+                                                             join_image_term);
+      if( holds( new_membership ) ) {
+        ++mem_rep_it;
+        ++mem_rep_exp_it;
+        continue;
+      }
+
+      std::vector< Node > reasons;
+      std::vector< Node > existing_members;
+      std::vector< Node >::iterator mem_rep_exp_it_snd = (*rel_mem_exp_it).second.begin();
+
+      while( mem_rep_exp_it_snd != (*rel_mem_exp_it).second.end() ) {
+        Node fst_element_snd_mem = RelsUtils::nthElementOfTuple( (*mem_rep_exp_it_snd)[0], 0 );
+
+        if( areEqual( fst_mem_rep,  fst_element_snd_mem ) ) {
+          bool notExist = true;
+          std::vector< Node >::iterator existing_mem_it = existing_members.begin();
+          Node snd_element_snd_mem = RelsUtils::nthElementOfTuple( (*mem_rep_exp_it_snd)[0], 1 );
+
+          while( existing_mem_it != existing_members.end() ) {
+            if( areEqual( (*existing_mem_it), snd_element_snd_mem ) ) {
+              notExist = false;
+              break;
+            }
+            ++existing_mem_it;
+          }
+
+          if( notExist ) {
+            existing_members.push_back( snd_element_snd_mem );
+            reasons.push_back( *mem_rep_exp_it_snd );
+            if( fst_mem_rep != fst_element_snd_mem ) {
+              reasons.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, fst_mem_rep, fst_element_snd_mem ) );
+            }
+            if( join_image_rel != (*mem_rep_exp_it_snd)[1] ) {
+              reasons.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, (*mem_rep_exp_it_snd)[1], join_image_rel ));
+            }
+            if( existing_members.size() == min_card ) {
+              if( min_card >= 2) {
+                new_membership = NodeManager::currentNM()->mkNode( kind::OR, new_membership, NodeManager::currentNM()->mkNode( kind::NOT, NodeManager::currentNM()->mkNode( kind::DISTINCT, existing_members ) ));
+              }
+              Assert(reasons.size() >= 1);
+              sendInfer( new_membership, reasons.size() > 1 ? NodeManager::currentNM()->mkNode( kind::AND, reasons) : reasons[0], "JOIN-IMAGE UP" );
+              break;
+            }
+          }
+        }
+        ++mem_rep_exp_it_snd;
+      }
+      ++mem_rep_it;
+      ++mem_rep_exp_it;
+    }
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Done with computing members for JoinImage Term" << join_image_term << "*********** " << std::endl;
+  }
+
+  /* JOIN-IMAGE DOWN  : (x) IS_IN (R JOIN_IMAGE n)
+  *                     -------------------------------------------------------
+  *                     (x, x1) IS_IN R .... (x, xn) IS_IN R  DISTINCT(x1, ... , xn)
+  *
+  */
+
+  void TheorySetsRels::applyJoinImageRule( Node mem_rep, Node join_image_term, Node exp ) {
+    Trace("rels-debug") << "\n[Theory::Rels] *********** applyJoinImageRule on " << join_image_term
+                        << " with mem_rep = " << mem_rep  << " and exp = " << exp << std::endl;
+    if( d_rel_nodes.find( join_image_term ) == d_rel_nodes.end() ) {
+      computeMembersForJoinImageTerm( join_image_term );
+      d_rel_nodes.insert( join_image_term );
+    }
+
+    Node join_image_rel = join_image_term[0];
+    Node join_image_rel_rep = getRepresentative( join_image_rel );
+    MEM_IT rel_mem_it = d_rReps_memberReps_cache.find( join_image_rel_rep );
+    unsigned int min_card = join_image_term[1].getConst<Rational>().getNumerator().getUnsignedInt();
+
+    if( rel_mem_it != d_rReps_memberReps_cache.end() ) {
+      if( d_membership_trie.find( join_image_rel_rep ) != d_membership_trie.end() ) {
+        computeTupleReps( mem_rep );
+        if( d_membership_trie[join_image_rel_rep].findSuccessors(d_tuple_reps[mem_rep]).size() >= min_card ) {
+          return;
+        }
+      }
+    }
+
+    Node reason = exp;
+    Node conclusion = d_trueNode;
+    std::vector< Node > distinct_skolems;
+    Node fst_mem_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
+
+    if( exp[1] != join_image_term ) {
+      reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, exp[1], join_image_term ) );
+    }
+    for( unsigned int i = 0; i < min_card; i++ ) {
+      Node skolem = NodeManager::currentNM()->mkSkolem( "jig", join_image_rel.getType()[0].getTupleTypes()[0] );
+      distinct_skolems.push_back( skolem );
+      conclusion = NodeManager::currentNM()->mkNode( kind::AND, conclusion, NodeManager::currentNM()->mkNode( kind::MEMBER, RelsUtils::constructPair( join_image_rel, fst_mem_element, skolem ), join_image_rel ) );
+    }
+    if( distinct_skolems.size() >= 2 ) {
+      conclusion =  NodeManager::currentNM()->mkNode( kind::AND, conclusion, NodeManager::currentNM()->mkNode( kind::DISTINCT, distinct_skolems ) );
+    }
+    sendInfer( conclusion, reason, "JOIN-IMAGE DOWN" );
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Done with applyJoinImageRule ***********" << std::endl;
+
+  }
+
+
+  /* IDENTITY-DOWN  : (x, y) IS_IN IDEN(R)
+  *               -------------------------------------------------------
+  *                   x = y,  (x IS_IN R)
+  *
+  */
+
+  void TheorySetsRels::applyIdenRule( Node mem_rep, Node iden_term, Node exp) {
+    Trace("rels-debug") << "\n[Theory::Rels] *********** applyIdenRule on " << iden_term
+                        << " with mem_rep = " << mem_rep  << " and exp = " << exp << std::endl;
+    if( d_rel_nodes.find( iden_term ) == d_rel_nodes.end() ) {
+      computeMembersForIdenTerm( iden_term );
+      d_rel_nodes.insert( iden_term );
+    }
+    Node reason = exp;
+    Node fst_mem = RelsUtils::nthElementOfTuple( exp[0], 0 );
+    Node snd_mem = RelsUtils::nthElementOfTuple( exp[0], 1 );
+    Datatype dt = iden_term[0].getType().getSetElementType().getDatatype();
+    Node fact = NodeManager::currentNM()->mkNode( kind::MEMBER, NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, Node::fromExpr(dt[0].getConstructor()), fst_mem ), iden_term[0] );
+
+    if( exp[1] != iden_term ) {
+      reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, exp[1], iden_term ) );
+    }
+    sendInfer( NodeManager::currentNM()->mkNode( kind::AND, fact, NodeManager::currentNM()->mkNode( kind::EQUAL, fst_mem, snd_mem ) ), reason, "IDENTITY-DOWN" );
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Done with applyIdenRule on " << iden_term << std::endl;
+  }
+
+  /* IDEN UP  : (x) IS_IN R        IDEN(R) IN T
+  *             --------------------------------
+  *                   (x, x) IS_IN IDEN(R)
+  *
+  */
+
+  void TheorySetsRels::computeMembersForIdenTerm( Node iden_term ) {
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Compute members for Iden Term = " << iden_term << std::endl;
+    Node iden_term_rel = iden_term[0];
+    Node iden_term_rel_rep = getRepresentative( iden_term_rel );
+
+    if( d_rReps_memberReps_cache.find( iden_term_rel_rep ) == d_rReps_memberReps_cache.end() ) {
+      return;
+    }
+
+    MEM_IT rel_mem_exp_it = d_rReps_memberReps_exp_cache.find( iden_term_rel_rep );
+    std::vector< Node >::iterator mem_rep_exp_it = (*rel_mem_exp_it).second.begin();
+
+    while( mem_rep_exp_it != (*rel_mem_exp_it).second.end() ) {
+      Node reason = *mem_rep_exp_it;
+      Node fst_exp_mem = RelsUtils::nthElementOfTuple( (*mem_rep_exp_it)[0], 0 );
+      Node new_mem = RelsUtils::constructPair( iden_term, fst_exp_mem, fst_exp_mem );
+
+      if( (*mem_rep_exp_it)[1] != iden_term_rel ) {
+        reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, (*mem_rep_exp_it)[1], iden_term_rel ) );
+      }
+      sendInfer( NodeManager::currentNM()->mkNode( kind::MEMBER, new_mem, iden_term ), reason, "IDENTITY-UP" );
+      ++mem_rep_exp_it;
+    }
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Done with computing members for Iden Term = " << iden_term << std::endl;
+  }
+
 
   /*
    * Construct transitive closure graph for tc_rep based on the members of tc_r_rep
@@ -434,7 +648,7 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
     if( cur_set != tc_graph.end() ) {
       for( std::hash_set< Node, NodeHashFunction >::iterator set_it = cur_set->second.begin();
            set_it != cur_set->second.end(); set_it++ ) {
-        Node new_pair = constructPair( tc_rel, cur_node_rep, *set_it );
+        Node new_pair = RelsUtils::constructPair( tc_rel, cur_node_rep, *set_it );
         std::vector< Node > new_reasons( reasons );
         new_reasons.push_back( rel_tc_graph_exps.find( new_pair )->second );
         doTCInference( tc_rel, new_reasons, tc_graph, rel_tc_graph_exps, start_node_rep, *set_it, seen );
@@ -548,6 +762,7 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
     computeTupleReps(mem2);
 
     std::vector<Node> elements = d_membership_trie[r1_rep].findTerms(d_tuple_reps[mem1]);
+
     for(unsigned int j = 0; j < elements.size(); j++) {
       std::vector<Node> new_tup;
       new_tup.push_back(elements[j]);
@@ -966,11 +1181,6 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
     }
   }
 
-  inline Node TheorySetsRels::constructPair(Node tc_rep, Node a, Node b) {
-    Datatype dt = tc_rep.getType().getSetElementType().getDatatype();
-    return NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, Node::fromExpr(dt[0].getConstructor()), a, b);
-  }
-
   /*
    * Node n[0] is a tuple variable, reduce n[0] to a concrete representation,
    * which is (e1, ..., en) where e1, ... ,en are concrete elements of tuple n[0].
@@ -1011,6 +1221,8 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
     d_eqEngine->addFunctionKind(kind::JOIN);
     d_eqEngine->addFunctionKind(kind::TRANSPOSE);
     d_eqEngine->addFunctionKind(kind::TCLOSURE);
+    d_eqEngine->addFunctionKind(kind::JOIN_IMAGE);
+    d_eqEngine->addFunctionKind(kind::IDEN);
   }
 
   TheorySetsRels::~TheorySetsRels() {
@@ -1041,6 +1253,27 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
         return nodes;
       }else{
         return it->second.findTerms( reps, argIndex+1 );
+      }
+    }
+  }
+
+  std::vector<Node> TupleTrie::findSuccessors( std::vector< Node >& reps, int argIndex ) {
+    std::vector<Node>   nodes;
+    std::map< Node, TupleTrie >::iterator it;
+
+    if( argIndex==(int)reps.size() ){
+      it = d_data.begin();
+      while(it != d_data.end()) {
+        nodes.push_back(it->first);
+        it++;
+      }
+      return nodes;
+    }else{
+      it = d_data.find( reps[argIndex] );
+      if( it==d_data.end() ){
+        return nodes;
+      }else{
+        return it->second.findSuccessors( reps, argIndex+1 );
       }
     }
   }
@@ -1483,16 +1716,3 @@ typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > 
 }
 }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

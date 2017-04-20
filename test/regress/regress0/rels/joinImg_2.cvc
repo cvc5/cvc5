@@ -1,0 +1,33 @@
+% EXPECT: unsat
+OPTION "logic" "ALL_SUPPORTED";
+Atom: TYPE;
+x : SET OF [Atom, Atom];
+y : SET OF [Atom, Atom];
+r : SET OF [Atom, Atom];
+
+t : SET OF [Atom];
+
+a : Atom;
+b : Atom;
+c : Atom;
+d : Atom;
+e : Atom;
+f : Atom;
+g : Atom;
+
+ASSERT TUPLE(a) IS_IN (x JOIN_IMAGE 2);
+ASSERT TUPLE(a) IS_IN (y JOIN_IMAGE 3);
+%ASSERT y = {(f, g), (b, c), (d, e), (c, e)};
+ASSERT x = {(f, g), (b, c), (d, e), (c, e), (f, b)};
+ASSERT (a, f) IS_IN x;
+ASSERT (a, f) IS_IN y;
+ASSERT x = y;
+
+
+
+ASSERT NOT(a = b);
+
+ASSERT NOT (TUPLE(d) IS_IN (x JOIN_IMAGE 2));
+ASSERT f = d;
+
+CHECKSAT;

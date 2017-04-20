@@ -810,6 +810,14 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       op << "TCLOSURE";
       opType = PREFIX;
       break;
+    case kind::IDEN:
+      op << "IDEN";
+      opType = PREFIX;
+      break;
+    case kind::JOIN_IMAGE:
+      op << "JOIN_IMAGE";
+      opType = INFIX;
+      break;
     case kind::SINGLETON:
       out << "{";
       toStream(out, n[0], depth, types, false);
@@ -818,7 +826,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
     case kind::INSERT: {
       if(bracket) {
-	out << '(';
+        out << '(';
       }
       out << '{';
       size_t i = 0;
@@ -830,7 +838,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << "} | ";
       toStream(out, n[i], depth, types, true);
       if(bracket) {
-	out << ')';
+        out << ')';
       }
       return;
       break;
