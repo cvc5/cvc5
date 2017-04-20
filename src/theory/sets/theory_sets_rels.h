@@ -36,6 +36,7 @@ public:
   std::map< Node, TupleTrie > d_data;
 public:
   std::vector<Node> findTerms( std::vector< Node >& reps, int argIndex = 0 );
+  std::vector<Node> findSuccessors( std::vector< Node >& reps, int argIndex = 0 );
   Node existsTerm( std::vector< Node >& reps, int argIndex = 0 );
   bool addTerm( Node n, std::vector< Node >& reps, int argIndex = 0 );
   void debugPrint( const char * c, Node n, unsigned depth = 0 );
@@ -45,12 +46,7 @@ public:
 class TheorySetsRels {
 
   typedef context::CDChunkList< Node >                            NodeList;
-  typedef context::CDChunkList< int >                             IdList;
-  typedef context::CDHashMap< int, IdList* >                      IdListMap;
   typedef context::CDHashSet< Node, NodeHashFunction >            NodeSet;
-  typedef context::CDHashMap< Node, bool, NodeHashFunction >      NodeBoolMap;
-  typedef context::CDHashMap< Node, NodeList*, NodeHashFunction > NodeListMap;
-  typedef context::CDHashMap< Node, NodeSet*, NodeHashFunction >  NodeSetMap;
   typedef context::CDHashMap< Node, Node, NodeHashFunction >      NodeMap;
 
 public:
@@ -71,7 +67,6 @@ private:
    * d_not_mem tuples that are not members of this equivalence class
    * d_tp is a node of kind TRANSPOSE (if any) in this equivalence class,
    * d_pt is a node of kind PRODUCT (if any) in this equivalence class,
-   * d_join is a node of kind JOIN (if any) in this equivalence class,
    * d_tc is a node of kind TCLOSURE (if any) in this equivalence class,
    */
   class EqcInfo
@@ -101,15 +96,13 @@ private:
   Node                          d_falseNode;
 
   /** Facts and lemmas to be sent to EE */
-  std::map< Node, Node >        d_pending_facts;
-  std::vector< Node >           d_lemmas_out;
   NodeList                      d_pending_merge;
-
-  /** inferences: maintained to ensure ref count for internally introduced nodes */
   NodeSet                       d_lemmas_produced;
   NodeSet                       d_shared_terms;
+  std::vector< Node >           d_lemmas_out;
+  std::map< Node, Node >        d_pending_facts;
 
-  /** Relations that have been applied JOIN, PRODUCT, TC composition rules */
+
   std::hash_set< Node, NodeHashFunction >       d_rel_nodes;
   std::map< Node, std::vector<Node> >           d_tuple_reps;
   std::map< Node, TupleTrie >                   d_membership_trie;
@@ -117,41 +110,21 @@ private:
   /** Symbolic tuple variables that has been reduced to concrete ones */
   std::hash_set< Node, NodeHashFunction >       d_symbolic_tuples;
 
-  /** Mapping between relation and its (non)member representatives */
-  std::map< Node, std::vector<Node> >           d_rReps_memberReps_cache;
-  std::map< Node, std::vector<Node> >           d_rReps_nonMemberReps_cache;
-
-
-  /** Mapping between relation and its (non)member representatives explanation */
-  std::map< Node, std::vector<Node> >           d_rReps_memberReps_exp_cache;
-  std::map< Node, std::vector<Node> >           d_rReps_nonMemberReps_exp_cache;
-
   /** Mapping between relation and its member representatives */
-  std::map< Node, std::vector<Node> >           d_membership_db;
+  std::map< Node, std::vector< Node > >           d_rReps_memberReps_cache;
 
-  /** Mapping between relation and its members' explanation */
-  std::map< Node, std::vector<Node> >           d_membership_exp_db;
+  /** Mapping between relation and its member representatives explanation */
+  std::map< Node, std::vector< Node > >           d_rReps_memberReps_exp_cache;
 
   /** Mapping between a relation representative and its equivalent relations involving relational operators */
   std::map< Node, std::map<kind::Kind_t, std::vector<Node> > >                  d_terms_cache;
 
-  /** Mapping between relation and its member representatives */
-  std::map< Node, std::vector<Node> >           d_arg_rep_tp_terms;
-
-  /** Mapping between TC(r) and one explanation when building TC graph*/
-  std::map< Node, Node >                                                        d_membership_tc_exp_cache;
-
-  /** Mapping between transitive closure relation TC(r) (is not necessary a representative) and members directly asserted members */
-  std::map< Node, std::hash_set<Node, NodeHashFunction> >                       d_tc_membership_db;
-
   /** Mapping between transitive closure relation TC(r) and its TC graph constructed based on the members of r*/
-  std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_tc_r_graph;
   std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_rRep_tcGraph;
   std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_tcr_tcGraph;
   std::map< Node, std::map< Node, Node > > d_tcr_tcGraph_exps;
   std::map< Node, std::vector< Node > > d_tc_lemmas_last;
 
-  /** Mapping between transitive closure TC(r)'s representative and TC(r) */
   std::map< Node, EqcInfo* > d_eqc_info;
 
 public:
@@ -176,6 +149,8 @@ private:
   void applyTransposeRule( Node rel, Node rel_rep, Node exp );
   void applyProductRule( Node rel, Node rel_rep, Node exp );
   void applyJoinRule( Node rel, Node rel_rep, Node exp);
+  void applyJoinImageRule( Node mem_rep, Node rel_rep, Node exp);
+  void applyIdenRule( Node mem_rep, Node rel_rep, Node exp);
   void applyTCRule( Node mem, Node rel, Node rel_rep, Node exp);
   void buildTCGraphForRel( Node tc_rel );
   void doTCInference();
@@ -185,7 +160,9 @@ private:
 
   void composeMembersForRels( Node );
   void computeMembersForBinOpRel( Node );
+  void computeMembersForIdenTerm( Node );
   void computeMembersForUnaryOpRel( Node );
+  void computeMembersForJoinImageTerm( Node );
 
   bool isTCReachable( Node mem_rep, Node tc_rel );
   void isTCReachable( Node start, Node dest, std::hash_set<Node, NodeHashFunction>& hasSeen,
@@ -206,7 +183,6 @@ private:
   void computeTupleReps( Node );
   bool areEqual( Node a, Node b );
   Node getRepresentative( Node t );
-  bool insertIntoIdList(IdList&, int);
   bool exists( std::vector<Node>&, Node );
   Node mkAnd( std::vector< TNode >& assumptions );
   inline void addToMembershipDB( Node, Node, Node  );

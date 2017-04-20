@@ -50,6 +50,8 @@ operator JOIN 		   2  "set join"
 operator PRODUCT 	   2  "set cartesian product"
 operator TRANSPOSE 	   1  "set transpose"
 operator TCLOSURE      1  "set transitive closure"
+operator JOIN_IMAGE	   2  "set join image"
+operator IDEN 	   	   1  "set identity"
 
 typerule UNION          ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 typerule INTERSECTION   ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
@@ -67,6 +69,8 @@ typerule JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
 typerule PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule
 typerule TRANSPOSE 		::CVC4::theory::sets::RelTransposeTypeRule
 typerule TCLOSURE 	    ::CVC4::theory::sets::RelTransClosureTypeRule
+typerule JOIN_IMAGE	    ::CVC4::theory::sets::JoinImageTypeRule
+typerule IDEN 			::CVC4::theory::sets::RelIdenTypeRule
 
 construle UNION         ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle INTERSECTION  ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
@@ -80,5 +84,7 @@ construle JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
 construle PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule
 construle TRANSPOSE 	::CVC4::theory::sets::RelTransposeTypeRule
 construle TCLOSURE 	    ::CVC4::theory::sets::RelTransClosureTypeRule
+construle JOIN_IMAGE 	::CVC4::theory::sets::JoinImageTypeRule
+construle IDEN 			::CVC4::theory::sets::RelIdenTypeRule
 
 endtheory

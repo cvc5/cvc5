@@ -1,0 +1,21 @@
+% EXPECT: sat
+OPTION "logic" "ALL_SUPPORTED";
+Atom: TYPE;
+x : SET OF [Atom, Atom];
+y : SET OF [Atom, Atom];
+r : SET OF [Atom, Atom];
+
+t : SET OF [Atom];
+
+a : Atom;
+b : Atom;
+c : Atom;
+d : Atom;
+e : Atom;
+
+ASSERT TUPLE(a) IS_IN (x JOIN_IMAGE 2);
+ASSERT t = (x JOIN_IMAGE 2); 
+ASSERT x = {(b, c), (d, e), (c, e)};
+ASSERT TUPLE(c) IS_IN t;
+
+CHECKSAT;
