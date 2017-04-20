@@ -1495,7 +1495,7 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c, Var
       out << "(" << maybeQuoteSymbol(d.getName());
       out << " " << d.getNumParameters() << ")";
     }
-    out << ") ";
+    out << ") (";
     for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
           i_end = datatypes.end();
         i != i_end; ++i) {
@@ -1504,6 +1504,7 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c, Var
       toStream( out, d );
       out << ")" << endl;
     }
+    out << ")";
   }else{
     out << " () (";
     for(vector<DatatypeType>::const_iterator i = datatypes.begin(),

@@ -1871,6 +1871,9 @@ void SmtEngine::setDefaults() {
         //only instantiation should happen at last call when model is avaiable
         options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
       }
+    }else{
+      //only supported in pure arithmetic
+      options::cbqiNestedQE.set(false);
     }
   }
   //implied options...

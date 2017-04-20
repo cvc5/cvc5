@@ -314,7 +314,7 @@ option cbqiLitDepend --cbqi-lit-dep bool :default true
   dependency lemmas for quantifier alternation in counterexample-based quantifier instantiation
 option cbqiInnermost --cbqi-innermost bool :read-write :default true
  only process innermost quantified formulas in counterexample-based quantifier instantiation
-option cbqiNestedQE --cbqi-nested-qe bool :default false
+option cbqiNestedQE --cbqi-nested-qe bool :read-write :default false
  process nested quantified formulas with quantifier elimination in counterexample-based quantifier instantiation
  
 option quantEpr --quant-epr bool :default false :read-write
