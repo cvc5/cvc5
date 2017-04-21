@@ -1,4 +1,5 @@
 % EXPECT: sat
+OPTION "sets-ext";
 OPTION "logic" "ALL_SUPPORTED";
 Atom: TYPE;
 a : SET OF [Atom];

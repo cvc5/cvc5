@@ -70,13 +70,15 @@ private:
   // send lemma ( n OR (NOT n) ) immediately
   void split( Node n, int reqPol=0 );
   void fullEffortCheck();
+  void checkSubtypes( std::vector< Node >& lemmas );
   void checkDownwardsClosure( std::vector< Node >& lemmas );
   void checkUpwardsClosure( std::vector< Node >& lemmas );
   void checkDisequalities( std::vector< Node >& lemmas );
   bool isMember( Node x, Node s );
   bool isSetDisequalityEntailed( Node s, Node t );
   
-  void flushLemmas( std::vector< Node >& lemmas );
+  void flushLemmas( std::vector< Node >& lemmas, bool preprocess = false );
+  void flushLemma( Node lem, bool preprocess = false );
   Node getProxy( Node n );
   Node getCongruent( Node n );
   Node getEmptySet( TypeNode tn );
@@ -114,6 +116,7 @@ private:
   
   bool d_sentLemma;
   bool d_addedFact;
+  bool d_full_check_incomplete;
   NodeMap d_proxy;  
   NodeMap d_proxy_to_term;  
   NodeSet d_lemmas_produced;
@@ -128,6 +131,8 @@ private:
   std::map< Node, Node > d_congruent;
   std::map< Node, std::vector< Node > > d_nvar_sets;
   std::map< Node, Node > d_var_set;
+  std::map< Node, TypeNode > d_most_common_type;
+  std::map< Node, Node > d_most_common_type_term;
   std::map< Node, std::map< Node, Node > > d_pol_mems[2];
   std::map< Node, std::map< Node, Node > > d_members_index;
   std::map< Node, Node > d_singleton_index;

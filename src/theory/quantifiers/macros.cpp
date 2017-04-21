@@ -419,13 +419,16 @@ Node QuantifierMacros::simplify( Node n ){
           std::vector< Node > cond;
           TypeNode tno = op.getType();
           for( unsigned i=0; i<children.size(); i++ ){
-            if( !TermDb::getEnsureTypeCondition( children[i], tno[i], cond ) ){
+            Node etc = TypeNode::getEnsureTypeCondition( children[i], tno[i] );
+            if( etc.isNull() ){
               //if this does fail, we are incomplete, since we are eliminating quantified formula corresponding to op, 
               //  and not ensuring it applies to n when its types are correct.
               //however, this should never fail: we never process types for which we cannot constuct conditions that ensure correct types, e.g. (is-int t).
               Assert( false );
               success = false;
               break;
+            }else if( !etc.isConst() ){
+              cond.push_back( etc );
             }
           }
           if( success ){

@@ -79,7 +79,8 @@ TESTS =	\
 	dt-sel-2.6.smt2 \
 	dt-param-2.6.smt2 \
 	dt-color-2.6.smt2 \
-	dt-match-pat-param-2.6.smt2
+	dt-match-pat-param-2.6.smt2 \
+	tuple-no-clash.cvc
 
 FAILING_TESTS = \
 	datatype-dump.cvc

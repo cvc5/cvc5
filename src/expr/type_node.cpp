@@ -539,6 +539,46 @@ TypeNode TypeNode::leastCommonPredicateSubtype(TypeNode t0, TypeNode t1){
   }
 }
 
+
+Node TypeNode::getEnsureTypeCondition( Node n, TypeNode tn ) {
+  TypeNode ntn = n.getType();
+  Assert( ntn.isComparableTo( tn ) );
+  if( !ntn.isSubtypeOf( tn ) ){
+    if( tn.isInteger() ){
+      if( tn.isSubtypeOf( ntn ) ){
+        return NodeManager::currentNM()->mkNode( kind::IS_INTEGER, n );
+      }
+    }else if( tn.isDatatype() && ntn.isDatatype() ){
+      if( tn.isTuple() && ntn.isTuple() ){
+        const Datatype& dt1 = tn.getDatatype();
+        const Datatype& dt2 = ntn.getDatatype();
+        if( dt1[0].getNumArgs()==dt2[0].getNumArgs() ){
+          std::vector< Node > conds;
+          for( unsigned i=0; i<dt2[0].getNumArgs(); i++ ){
+            Node s = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt2[0][i].getSelector() ), n );
+            Node etc = getEnsureTypeCondition( s, TypeNode::fromType( dt1[0][i].getRangeType() ) );
+            if( etc.isNull() ){
+              return Node::null();
+            }else{
+              conds.push_back( etc );
+            }
+          }
+          if( conds.empty() ){
+            return NodeManager::currentNM()->mkConst( true );
+          }else if( conds.size()==1 ){
+            return conds[0];
+          }else{
+            return NodeManager::currentNM()->mkNode( kind::AND, conds );
+          }
+        }
+      }
+    }
+    return Node::null();
+  }else{
+    return NodeManager::currentNM()->mkConst( true );
+  }
+}
+
 /** Is this a sort kind */
 bool TypeNode::isSort() const {
   return ( getKind() == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()) ) ||

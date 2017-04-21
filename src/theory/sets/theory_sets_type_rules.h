@@ -59,7 +59,15 @@ struct SetsBinaryOperatorTypeRule {
       }
       TypeNode secondSetType = n[1].getType(check);
       if(secondSetType != setType) {
-        throw TypeCheckingExceptionPrivate(n, "operator expects two sets of the same type");
+        if( n.getKind() == kind::INTERSECTION ){
+          setType = TypeNode::mostCommonTypeNode( secondSetType, setType );
+        }else{
+          setType = TypeNode::leastCommonTypeNode( secondSetType, setType );
+        }
+        if( setType.isNull() ){
+          throw TypeCheckingExceptionPrivate(n, "operator expects two sets of comparable types");
+        }
+        
       }
     }
     return setType;
@@ -88,7 +96,9 @@ struct SubsetTypeRule {
       }
       TypeNode secondSetType = n[1].getType(check);
       if(secondSetType != setType) {
-        throw TypeCheckingExceptionPrivate(n, "set subset operating on sets of different types");
+        if( !setType.isComparableTo( secondSetType ) ){
+          throw TypeCheckingExceptionPrivate(n, "set subset operating on sets of different types");
+        }
       }
     }
     return nodeManager->booleanType();
@@ -105,7 +115,7 @@ struct MemberTypeRule {
         throw TypeCheckingExceptionPrivate(n, "checking for membership in a non-set");
       }
       TypeNode elementType = n[0].getType(check);
-      if(!setType.getSetElementType().isSubtypeOf(elementType)) {
+      if(!elementType.isComparableTo(setType.getSetElementType())) {
         throw TypeCheckingExceptionPrivate(n, "member operating on sets of different types");
       }
     }

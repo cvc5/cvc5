@@ -14,4 +14,7 @@ option setsInferAsLemmas --sets-infer-as-lemmas bool :default true
 option setsRelEager --sets-rel-eager bool :default true
  standard effort checks for relations
  
+option setsExt --sets-ext bool :default false
+ enable extended symbols such as complement and universe in theory of sets
+ 
 endmodule

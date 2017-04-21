@@ -473,8 +473,6 @@ public:
   bool containsVtsInfinity( Node n, bool isFree = false );
   /** ensure type */
   static Node ensureType( Node n, TypeNode tn );
-  /** get ensure type condition */
-  static bool getEnsureTypeCondition( Node n, TypeNode tn, std::vector< Node >& cond );
   /** get relevancy condition */
   static void getRelevancyCondition( Node n, std::vector< Node >& cond );
 private:

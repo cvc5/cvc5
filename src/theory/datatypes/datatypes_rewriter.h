@@ -36,7 +36,8 @@ public:
     Trace("datatypes-rewrite-debug") << "post-rewriting " << in << std::endl;
 
     if(in.getKind() == kind::APPLY_CONSTRUCTOR ){
-      Type t = in.getType().toType();
+      TypeNode tn = in.getType();
+      Type t = tn.toType();
       DatatypeType dt = DatatypeType(t);
       //check for parametric datatype constructors
       // to ensure a normal form, all parameteric datatype constructors must have a type ascription
@@ -56,6 +57,13 @@ public:
           Node inr = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
           Trace("datatypes-rewrite-debug") << "Created " << inr << std::endl;
           return RewriteResponse(REWRITE_DONE, inr);
+        }
+      }
+      if( tn.isTuple() ){
+        Node nn = normalizeTupleConstructorApp( in );
+        if( nn!=in ){
+          Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: Rewrite tuple constructor " << in << " to " << nn << std::endl;
+          return RewriteResponse(REWRITE_AGAIN_FULL, nn);
         }
       }
       if( in.isConst() ){
@@ -110,7 +118,7 @@ public:
       Expr constructorExpr = constructor.toExpr();
       size_t selectorIndex = Datatype::indexOf(selectorExpr);
       size_t constructorIndex = Datatype::indexOf(constructorExpr);
-      const Datatype& dt = Datatype::datatypeOf(constructorExpr);
+      const Datatype& dt = Datatype::datatypeOf(selectorExpr);
       const DatatypeConstructor& c = dt[constructorIndex];
       if(c.getNumArgs() > selectorIndex && c[selectorIndex].getSelector() == selectorExpr) {
         if( dt.isCodatatype() && in[0][selectorIndex].isConst() ){
@@ -235,15 +243,16 @@ public:
   static bool checkClash( Node n1, Node n2, std::vector< Node >& rew ) {
     Trace("datatypes-rewrite-debug") << "Check clash : " << n1 << " " << n2 << std::endl;
     if( n1.getKind() == kind::APPLY_CONSTRUCTOR && n2.getKind() == kind::APPLY_CONSTRUCTOR ) {
-      if( n1.getOperator() != n2.getOperator() ) {
-        Trace("datatypes-rewrite-debug") << "Clash operators : " << n1 << " " << n2 << " " << n1.getOperator() << " " << n2.getOperator() << std::endl;
-        return true;
-      } else {
-        Assert( n1.getNumChildren() == n2.getNumChildren() );
-        for( int i=0; i<(int)n1.getNumChildren(); i++ ) {
-          if( checkClash( n1[i], n2[i], rew ) ) {
-            return true;
-          }
+      if( n1.getOperator() != n2.getOperator()) {
+        if( n1.getNumChildren() != n2.getNumChildren() || !n1.getType().isTuple() || !n2.getType().isTuple() ){
+          Trace("datatypes-rewrite-debug") << "Clash operators : " << n1 << " " << n2 << " " << n1.getOperator() << " " << n2.getOperator() << std::endl;
+          return true;
+        }
+      }
+      Assert( n1.getNumChildren() == n2.getNumChildren() );
+      for( unsigned i=0; i<n1.getNumChildren(); i++ ) {
+        if( checkClash( n1[i], n2[i], rew ) ) {
+          return true;
         }
       }
     }else if( n1!=n2 ){
@@ -601,11 +610,38 @@ public:
       return Node::null();
     }
   }
+  
+  static Node normalizeTupleConstructorApp( Node n ){
+    Assert( n.getType().isTuple() );
+    Assert( n.getKind()==kind::APPLY_CONSTRUCTOR );
+    const Datatype& dt = n.getType().getDatatype();
+    //may apply a different constructor based on child types
+    std::vector< TypeNode > cht;
+    std::vector< Node > ch;
+    bool childTypeChange = false;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      TypeNode tci = n[i].getType(); 
+      cht.push_back( tci );
+      ch.push_back( n[i] );
+      if( tci!=TypeNode::fromType( dt[0][i].getRangeType() ) ){
+        childTypeChange = true;
+      }
+    }
+    if( childTypeChange ){
+      TypeNode ttn = NodeManager::currentNM()->mkTupleType( cht );
+      const Datatype& dtt = ttn.getDatatype();
+      ch.insert( ch.begin(), Node::fromExpr( dtt[0].getConstructor() ) );
+      return NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, ch );
+    }
+    return n;
+  }
   //normalize constant : apply to top-level codatatype constants
   static Node normalizeConstant( Node n ){
     TypeNode tn = n.getType();
     if( tn.isDatatype() ){
-      if( tn.isCodatatype() ){
+      if( tn.isTuple() ){
+        return normalizeTupleConstructorApp( n );
+      }else if( tn.isCodatatype() ){
         return normalizeCodatatypeConstant( n );
       }else{
         std::vector< Node > children;

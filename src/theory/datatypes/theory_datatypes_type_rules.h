@@ -99,6 +99,19 @@ struct DatatypeConstructorTypeRule {
         return false;
       }
     }
+    //check whether it is in normal form?
+    TypeNode tn = n.getType();
+    if( tn.isTuple() ){
+      const Datatype& dt = tn.getDatatype();
+      //may be the wrong constructor, if children types are subtypes
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if( n[i].getType()!=TypeNode::fromType( dt[0][i].getRangeType() ) ){
+          return false;
+        }
+      }
+    }else if( tn.isCodatatype() ){
+      //TODO?
+    }
     return true;
   }
 }; /* struct DatatypeConstructorTypeRule */

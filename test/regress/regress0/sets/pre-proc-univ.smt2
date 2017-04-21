@@ -1,3 +1,5 @@
+; COMMAND-LINE: --sets-ext
+; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun x () (Set Int))
