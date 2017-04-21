@@ -1754,18 +1754,20 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
       }
     }
 
-    // If a and b have different default values associated with their mayequal equivalence classes,
-    // things get complicated - disallow this for now.  -Clark
     TNode mayRepA = d_mayEqualEqualityEngine.getRepresentative(a);
     TNode mayRepB = d_mayEqualEqualityEngine.getRepresentative(b);
 
+    // If a and b have different default values associated with their mayequal equivalence classes,
+    // things get complicated.  Similarly, if two mayequal equivalence classes have different
+    // constant representatives, it's not clear what to do. - disallow these cases for now.  -Clark
     DefValMap::iterator it = d_defValues.find(mayRepA);
     DefValMap::iterator it2 = d_defValues.find(mayRepB);
     TNode defValue;
 
     if (it != d_defValues.end()) {
       defValue = (*it).second;
-      if (it2 != d_defValues.end() && (defValue != (*it2).second)) {
+      if ((it2 != d_defValues.end() && (defValue != (*it2).second)) ||
+          (mayRepA.isConst() && mayRepB.isConst() && mayRepA != mayRepB)) {
         throw LogicException("Array theory solver does not yet support write-chains connecting two different constant arrays");
       }
     }
