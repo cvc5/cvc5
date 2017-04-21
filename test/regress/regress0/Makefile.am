@@ -178,6 +178,7 @@ BUG_TESTS = \
 	bug596.cvc \
 	bug596b.cvc \
 	bug605.cvc \
+	bug639.smt2 \
 	bt-test-00.smt2 \
 	bt-test-01.smt2
 #bug590.smt2
@@ -197,6 +198,7 @@ EXTRA_DIST = $(TESTS) \
 if CVC4_BUILD_PROFILE_COMPETITION
 else
 TESTS += \
+	bug681.smt2 \
 	error.cvc \
 	errorcrash.smt2 \
 	arrayinuf_error.smt2
