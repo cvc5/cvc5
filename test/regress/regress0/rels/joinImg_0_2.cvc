@@ -1,4 +1,5 @@
 % EXPECT: sat
+OPTION "sets-ext";
 OPTION "logic" "ALL_SUPPORTED";
 IntPair: TYPE = [INT, INT];
 x : SET OF IntPair;
