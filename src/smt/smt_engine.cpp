@@ -2997,39 +2997,44 @@ bool SmtEnginePrivate::nonClausalSimplify() {
         }
         break;
     }
+  }
 
 #ifdef CVC4_ASSERTIONS
-    // Check data structure invariants:
-    // 1. for each lhs of d_topLevelSubstitutions, does not appear anywhere in rhs of d_topLevelSubstitutions or anywhere in constantPropagations
-    // 2. each lhs of constantPropagations rewrites to itself
-    // 3. if l -> r is a constant propagation and l is a subterm of l' with l' -> r' another constant propagation, then l'[l/r] -> r' should be a
-    //    constant propagation too
-    // 4. each lhs of constantPropagations is different from each rhs
-    for (pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos) {
-      Assert((*pos).first.isVar());
-      Assert(d_topLevelSubstitutions.apply((*pos).first) == (*pos).first);
-      Assert(d_topLevelSubstitutions.apply((*pos).second) == (*pos).second);
-      Assert(newSubstitutions.apply(newSubstitutions.apply((*pos).second)) == newSubstitutions.apply((*pos).second));
-    }
-    for (pos = constantPropagations.begin(); pos != constantPropagations.end(); ++pos) {
-      Assert((*pos).second.isConst());
-      Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
-      // Node newLeft = d_topLevelSubstitutions.apply((*pos).first);
-      // if (newLeft != (*pos).first) {
-      //   newLeft = Rewriter::rewrite(newLeft);
-      //   Assert(newLeft == (*pos).second ||
-      //          (constantPropagations.hasSubstitution(newLeft) && constantPropagations.apply(newLeft) == (*pos).second));
-      // }
-      // newLeft = constantPropagations.apply((*pos).first);
-      // if (newLeft != (*pos).first) {
-      //   newLeft = Rewriter::rewrite(newLeft);
-      //   Assert(newLeft == (*pos).second ||
-      //          (constantPropagations.hasSubstitution(newLeft) && constantPropagations.apply(newLeft) == (*pos).second));
-      // }
-      Assert(constantPropagations.apply((*pos).second) == (*pos).second);
-    }
-#endif /* CVC4_ASSERTIONS */
+  // NOTE: When debugging this code, consider moving this check inside of the
+  // loop over d_nonClausalLearnedLiterals. This check has been moved outside
+  // because it is costly for certain inputs (see bug 508).
+  //
+  // Check data structure invariants:
+  // 1. for each lhs of d_topLevelSubstitutions, does not appear anywhere in rhs of d_topLevelSubstitutions or anywhere in constantPropagations
+  // 2. each lhs of constantPropagations rewrites to itself
+  // 3. if l -> r is a constant propagation and l is a subterm of l' with l' -> r' another constant propagation, then l'[l/r] -> r' should be a
+  //    constant propagation too
+  // 4. each lhs of constantPropagations is different from each rhs
+  for (pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos) {
+    Assert((*pos).first.isVar());
+    Assert(d_topLevelSubstitutions.apply((*pos).first) == (*pos).first);
+    Assert(d_topLevelSubstitutions.apply((*pos).second) == (*pos).second);
+    Assert(newSubstitutions.apply(newSubstitutions.apply((*pos).second)) == newSubstitutions.apply((*pos).second));
   }
+  for (pos = constantPropagations.begin(); pos != constantPropagations.end(); ++pos) {
+    Assert((*pos).second.isConst());
+    Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
+    // Node newLeft = d_topLevelSubstitutions.apply((*pos).first);
+    // if (newLeft != (*pos).first) {
+    //   newLeft = Rewriter::rewrite(newLeft);
+    //   Assert(newLeft == (*pos).second ||
+    //          (constantPropagations.hasSubstitution(newLeft) && constantPropagations.apply(newLeft) == (*pos).second));
+    // }
+    // newLeft = constantPropagations.apply((*pos).first);
+    // if (newLeft != (*pos).first) {
+    //   newLeft = Rewriter::rewrite(newLeft);
+    //   Assert(newLeft == (*pos).second ||
+    //          (constantPropagations.hasSubstitution(newLeft) && constantPropagations.apply(newLeft) == (*pos).second));
+    // }
+    Assert(constantPropagations.apply((*pos).second) == (*pos).second);
+  }
+#endif /* CVC4_ASSERTIONS */
+
   // Resize the learnt
   Trace("simplify") << "Resize non-clausal learned literals to " << j << std::endl;
   d_nonClausalLearnedLiterals.resize(j);
