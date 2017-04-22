@@ -67,6 +67,11 @@ class CVC4_PUBLIC SExpr {
   SExpr(unsigned int value);
   SExpr(unsigned long int value);
 
+ #ifdef CVC4_NEED_INT64_T_OVERLOADS
+  SExpr(int64_t  value);
+  SExpr(uint64_t value);
+#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+
   SExpr(const CVC4::Rational& value);
 
   SExpr(const std::string& value);
