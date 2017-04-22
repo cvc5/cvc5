@@ -124,6 +124,22 @@ SExpr::SExpr(unsigned long int value)
       d_stringValue(""),
       d_children(NULL) {}
 
+#ifdef CVC4_NEED_INT64_T_OVERLOADS
+SExpr::SExpr(int64_t value)
+    : d_sexprType(SEXPR_INTEGER),
+      d_integerValue(value),
+      d_rationalValue(0),
+      d_stringValue(""),
+      d_children(NULL) {}
+	  
+SExpr::SExpr(uint64_t value)
+    : d_sexprType(SEXPR_INTEGER),
+      d_integerValue(value),
+      d_rationalValue(0),
+      d_stringValue(""),
+      d_children(NULL) {}
+#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+  
 SExpr::SExpr(const CVC4::Rational& value)
     : d_sexprType(SEXPR_RATIONAL),
       d_integerValue(0),
