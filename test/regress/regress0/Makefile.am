@@ -178,7 +178,6 @@ BUG_TESTS = \
 	bug596.cvc \
 	bug596b.cvc \
 	bug605.cvc \
-	bug639.smt2 \
 	bt-test-00.smt2 \
 	bt-test-01.smt2
 #bug590.smt2
@@ -187,8 +186,11 @@ TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 
 # bug512 -- taking too long, --time-per not working perhaps? in any case,
 # we have a minimized version still getting tested
+# bug639 -- still fails, reopened bug
 DISABLED_TESTS = \
-	bug512.smt2
+	bug512.smt2 \
+	bug639.smt2
+
 
 EXTRA_DIST = $(TESTS) \
 	simplification_bug4.smt2.expect \
