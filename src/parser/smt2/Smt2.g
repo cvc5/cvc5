@@ -2538,6 +2538,10 @@ indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
     | FP_TO_SBV_TOK m=INTEGER_LITERAL
       { op = MK_CONST(FloatingPointToSBV(AntlrInput::tokenToUnsigned($m))); }
     | TESTER_TOK term[expr, expr2] { 
+        if( expr.getKind()==kind::APPLY_CONSTRUCTOR ){
+          //for nullary constructors, must get the operator
+          expr = expr.getOperator();
+        }
         if( !expr.getType().isConstructor() ){
           PARSER_STATE->parseError("Bad syntax for test (_ is X), X must be a constructor.");
         }
