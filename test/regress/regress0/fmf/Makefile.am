@@ -71,7 +71,8 @@ TESTS =	\
 	bug782.smt2 \
 	quant_real_univ.cvc \
 	constr-ground-to.smt2 \
-	bug-041417-set-options.cvc
+	bug-041417-set-options.cvc \
+	alg202+1.smt2
 
 EXTRA_DIST = $(TESTS)
 

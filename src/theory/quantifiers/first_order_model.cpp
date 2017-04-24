@@ -615,23 +615,6 @@ FirstOrderModelFmc::~FirstOrderModelFmc() throw() {
   }
 }
 
-Node FirstOrderModelFmc::getUsedRepresentative(Node n, bool strict) {
-  //Assert( fm->hasTerm(n) );
-  TypeNode tn = n.getType();
-  if( tn.isBoolean() ){
-    return areEqual(n, d_true) ? d_true : d_false;
-  }else{
-    if( !hasTerm(n) ){
-      if( strict ){
-        return Node::null();
-      }else{
-        Trace("fmc-warn") << "WARNING : no representative for " << n << std::endl;
-      }
-    }
-    return getRepresentative(n);
-  }
-}
-
 /*
 Node FirstOrderModelFmc::getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) {
   Trace("fmc-uf-model") << "Get model value for " << n << " " << n.getKind() << std::endl;
@@ -753,7 +736,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
           }
         }else if ( !isStar(cond[j]) &&  //handle the case where there are 0 or 1 ground eqc of this type
                    d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() && d_rep_set.d_type_reps[ tn ].size()>1 ){
-          Node c = getUsedRepresentative( cond[j] );
+          Node c = getRepresentative( cond[j] );
           c = getRepresentative( c );
           children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );
         }

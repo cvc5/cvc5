@@ -167,7 +167,6 @@ private:
   std::map<Node, Def * > d_models;
   std::map<TypeNode, Node > d_type_star;
   Node intervalOp;
-  Node getUsedRepresentative(Node n, bool strict = false);
   /** get current model value */
   void processInitializeModelForTerm(Node n);
 public:
@@ -206,13 +205,13 @@ private:
   void processInitializeModelForTerm(Node n);
   void processInitializeQuantifier( Node q );
   void collectEqVars( TNode q, TNode n, std::map< int, bool >& eq_vars );
+  TNode getUsedRepresentative( TNode n );
 public:
   FirstOrderModelAbs(QuantifiersEngine * qe, context::Context* c, std::string name);
   ~FirstOrderModelAbs() throw();
   FirstOrderModelAbs * asFirstOrderModelAbs() { return this; }
   void processInitialize( bool ispre );
   unsigned getRepresentativeId( TNode n );
-  TNode getUsedRepresentative( TNode n );
   bool isValidType( TypeNode tn ) { return d_domain.find( tn )!=d_domain.end(); }
   Node getFunctionValue(Node op, const char* argPrefix );
   Node getVariable( Node q, unsigned i );

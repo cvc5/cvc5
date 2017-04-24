@@ -379,7 +379,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     if( it->first.isSort() ){
       Trace("fmc") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
       for( size_t a=0; a<it->second.size(); a++ ){
-        Node r = fm->getUsedRepresentative( it->second[a] );
+        Node r = fm->getRepresentative( it->second[a] );
         if( Trace.isOn("fmc-model-debug") ){
           std::vector< Node > eqc;
           ((EqualityQueryQuantifiersEngine*)d_qe->getEqualityQuery())->getEquivalenceClass( r, eqc );
@@ -412,18 +412,12 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       Trace("fmc-model-debug") << itut->second.size() << " model values for " << op << " ... " << std::endl;
       for( size_t i=0; i<itut->second.size(); i++ ){
         Node n = itut->second[i];
-        if( d_qe->getTermDatabase()->isTermActive( n ) ){
-          add_conds.push_back( n );
-          add_values.push_back( n );
-          Node r = fm->getUsedRepresentative(n);
-          Trace("fmc-model-debug") << n << " -> " << r << std::endl;
-          //AlwaysAssert( fm->areEqual( itut->second[i], r ) );
-        }else{
-          if( Trace.isOn("fmc-model-debug") ){
-            Node r = fm->getUsedRepresentative(n);
-            Trace("fmc-model-debug") << "[redundant] " << n << " -> " << r << std::endl;
-          }
-        }
+        // only consider unique up to congruence (in model equality engine)?
+        add_conds.push_back( n );
+        add_values.push_back( n );
+        Node r = fm->getRepresentative(n);
+        Trace("fmc-model-debug") << n << " -> " << r << std::endl;
+        //AlwaysAssert( fm->areEqual( itut->second[i], r ) );
       }
     }else{
       Trace("fmc-model-debug") << "No model values for " << op << " ... " << std::endl;
@@ -449,7 +443,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     std::vector< Node > conds;
     std::vector< Node > values;
     std::vector< Node > entry_conds;
-    //get the entries for the mdoel
+    //get the entries for the model
     for( size_t i=0; i<add_conds.size(); i++ ){
       Node c = add_conds[i];
       Node v = add_values[i];
@@ -459,7 +453,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       entry_children.push_back(op);
       bool hasNonStar = false;
       for( unsigned i=0; i<c.getNumChildren(); i++) {
-        Node ri = fm->getUsedRepresentative( c[i] );
+        Node ri = fm->getRepresentative( c[i] );
         children.push_back(ri);
         bool isStar = false;
         if( options::mbqiMode()!=quantifiers::MBQI_FMC_INTERVAL || !ri.getType().isInteger() ){
@@ -477,7 +471,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         entry_children.push_back(ri);
       }
       Node n = NodeManager::currentNM()->mkNode( APPLY_UF, children );
-      Node nv = fm->getUsedRepresentative( v );
+      Node nv = fm->getRepresentative( v );
       if( !nv.isConst() ){
         Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
         Assert( false );
@@ -529,7 +523,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     for( size_t i=0; i<fm->d_uf_terms[op].size(); i++ ){
       std::vector< Node > inst;
       for( unsigned j=0; j<fm->d_uf_terms[op][i].getNumChildren(); j++ ){
-        Node r = fm->getUsedRepresentative( fm->d_uf_terms[op][i][j] );
+        Node r = fm->getRepresentative( fm->d_uf_terms[op][i][j] );
         inst.push_back( r );
       }
       Node ev = fm->d_models[op]->evaluate( fm, inst );
@@ -784,7 +778,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
         Node rr = riter.getCurrentTerm( i );
         Node r = rr;
         //if( r.getType().isSort() ){
-        r = fm->getUsedRepresentative( r );
+        r = fm->getRepresentative( r );
         //}else{
         //  r = fm->getCurrentModelValue( r );
         //}
@@ -862,7 +856,7 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
       if( !fm->hasTerm(n) ){
         r = getSomeDomainElement(fm, n.getType() );
       }
-      r = fm->getUsedRepresentative( r );
+      r = fm->getRepresentative( r );
     }
     Trace("fmc-debug") << "Add constant entry..." << std::endl;
     d.addEntry(fm, mkCondDefault(fm, f), r);
@@ -948,7 +942,7 @@ void FullModelChecker::doVariableEquality( FirstOrderModelFmc * fm, Node f, Def 
         getSomeDomainElement( fm, tn );  //to verify the type is initialized
       }
       for (unsigned i=0; i<fm->d_rep_set.d_type_reps[tn].size(); i++) {
-        Node r = fm->getUsedRepresentative( fm->d_rep_set.d_type_reps[tn][i] );
+        Node r = fm->getRepresentative( fm->d_rep_set.d_type_reps[tn][i] );
         cond[j+1] = r;
         cond[k+1] = r;
         d.addEntry( fm, mkCond(cond), d_true);

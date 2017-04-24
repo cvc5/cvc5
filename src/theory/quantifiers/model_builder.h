@@ -131,8 +131,6 @@ public:
     ~Statistics();
   };
   Statistics d_statistics;
-  // is term active
-  bool isTermActive( Node n );
   // is term selected
   virtual bool isTermSelected( Node n ) { return false; }
   /** quantifier has inst-gen definition */

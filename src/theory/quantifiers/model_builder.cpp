@@ -334,22 +334,19 @@ void QModelBuilderIG::analyzeModel( FirstOrderModel* fm ){
       for( size_t i=0; i<itut->second.size(); i++ ){
         Node n = fmig->d_uf_terms[op][i];
         //for calculating if op is constant
-        if( d_qe->getTermDatabase()->isTermActive( n ) ){
-          Node v = fmig->getRepresentative( n );
-          if( i==0 ){
-            d_uf_prefs[op].d_const_val = v;
-          }else if( v!=d_uf_prefs[op].d_const_val ){
-            d_uf_prefs[op].d_const_val = Node::null();
-            break;
-          }
+        Node v = fmig->getRepresentative( n );
+        if( i==0 ){
+          d_uf_prefs[op].d_const_val = v;
+        }else if( v!=d_uf_prefs[op].d_const_val ){
+          d_uf_prefs[op].d_const_val = Node::null();
+          break;
         }
         //for calculating terms that we don't need to consider
-        if( d_qe->getTermDatabase()->isTermActive( n ) || n.getAttribute(ModelBasisArgAttribute())!=0 ){
-          if( d_basisNoMatch.find( n )==d_basisNoMatch.end() ){
-            //need to consider if it is not congruent modulo model basis
-            if( !tabt.addTerm( fmig, n ) ){
-              d_basisNoMatch[n] = true;
-            }
+        //if( d_qe->getTermDatabase()->isTermActive( n ) || n.getAttribute(ModelBasisArgAttribute())!=0 ){
+        if( d_basisNoMatch.find( n )==d_basisNoMatch.end() ){
+          //need to consider if it is not congruent modulo model basis
+          if( !tabt.addTerm( fmig, n ) ){
+            d_basisNoMatch[n] = true;
           }
         }
       }
@@ -407,13 +404,6 @@ QModelBuilderIG::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_eval_uf_terms);
   smtStatisticsRegistry()->unregisterStat(&d_eval_lits);
   smtStatisticsRegistry()->unregisterStat(&d_eval_lits_unknown);
-}
-
-bool QModelBuilderIG::isTermActive( Node n ){
-  return d_qe->getTermDatabase()->isTermActive( n ) || //it is not congruent to another active term
-         ( n.getAttribute(ModelBasisArgAttribute())!=0 && d_basisNoMatch.find( n )==d_basisNoMatch.end() ); //or it has model basis arguments
-                                                                                                      //and is not congruent modulo model basis
-                                                                                                      //to another active term
 }
 
 //do exhaustive instantiation
@@ -739,29 +729,28 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
     if( itut!=fmig->d_uf_terms.end() ){
       for( size_t i=0; i<itut->second.size(); i++ ){
         Node n = itut->second[i];
-        if( isTermActive( n ) ){
-          Node v = fmig->getRepresentative( n );
-          Trace("fmf-model-cons") << "Set term " << n << " : " << fmig->d_rep_set.getIndexFor( v ) << " " << v << std::endl;
-          //if this assertion did not help the model, just consider it ground
-          //set n = v in the model tree
-          //set it as ground value
-          fmig->d_uf_model_gen[op].setValue( fm, n, v );
-          if( fmig->d_uf_model_gen[op].optUsePartialDefaults() ){
-            //also set as default value if necessary
-            if( n.hasAttribute(ModelBasisArgAttribute()) && n.getAttribute(ModelBasisArgAttribute())!=0 ){
-              Trace("fmf-model-cons") << "  Set as default." << std::endl;
-              fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
-              if( n==defaultTerm ){
-                //incidentally already set, we will not need to find a default value
-                setDefaultVal = false;
-              }
-            }
-          }else{
+        // only consider unique up to congruence (in model equality engine)?
+        Node v = fmig->getRepresentative( n );
+        Trace("fmf-model-cons") << "Set term " << n << " : " << fmig->d_rep_set.getIndexFor( v ) << " " << v << std::endl;
+        //if this assertion did not help the model, just consider it ground
+        //set n = v in the model tree
+        //set it as ground value
+        fmig->d_uf_model_gen[op].setValue( fm, n, v );
+        if( fmig->d_uf_model_gen[op].optUsePartialDefaults() ){
+          //also set as default value if necessary
+          if( n.hasAttribute(ModelBasisArgAttribute()) && n.getAttribute(ModelBasisArgAttribute())!=0 ){
+            Trace("fmf-model-cons") << "  Set as default." << std::endl;
+            fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
             if( n==defaultTerm ){
-              fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
               //incidentally already set, we will not need to find a default value
               setDefaultVal = false;
             }
+          }
+        }else{
+          if( n==defaultTerm ){
+            fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
+            //incidentally already set, we will not need to find a default value
+            setDefaultVal = false;
           }
         }
       }

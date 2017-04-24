@@ -774,10 +774,9 @@ bool AbsMbqiBuilder::processBuildModel(TheoryModel* m) {
     if( itut!=fm->d_uf_terms.end() ){
       for( size_t i=0; i<itut->second.size(); i++ ){
         Node n = itut->second[i];
-        if( d_qe->getTermDatabase()->isTermActive( n ) ){
-          Trace("ambqi-model-debug") << "  " << n << " -> " << fm->getRepresentativeId( n ) << std::endl;
-          fapps.push_back( n );
-        }
+        // only consider unique up to congruence (in model equality engine)?
+        Trace("ambqi-model-debug") << "  " << n << " -> " << fm->getRepresentativeId( n ) << std::endl;
+        fapps.push_back( n );
       }
     }
     if( fapps.empty() ){
