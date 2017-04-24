@@ -401,8 +401,20 @@ private:
     virtual ~ModelException() throw ();
   };
 
-  /** Internal model value for the node */
-  DeltaRational getDeltaValue(TNode n) const throw (DeltaRationalException, ModelException);
+  /**
+   * Computes the delta rational value of a term from the current partial
+   * model. This returns the delta value assignment to the term if it is in the
+   * partial model. Otherwise, this is computed recursively for arithmetic terms
+   * from each subterm.
+   *
+   * This throws a DeltaRationalException if the value cannot be represented as
+   * a DeltaRational. This throws a ModelException if there is a term is not in
+   * the partial model and is not a theory of arithmetic term.
+   *
+   * precondition: The linear abstraction of the nodes must be satisfiable.
+   */
+  DeltaRational getDeltaValue(TNode term) const
+      throw(DeltaRationalException, ModelException);
 
   /** Uninterpretted function symbol for use when interpreting
    * division by zero.
