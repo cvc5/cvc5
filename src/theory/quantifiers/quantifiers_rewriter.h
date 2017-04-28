@@ -43,7 +43,7 @@ private:
   static void computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl );
   static Node computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
                                     std::map< Node, Node >& cache, std::map< Node, Node >& icache,
-                                    std::vector< Node >& new_vars, std::vector< Node >& new_conds );
+                                    std::vector< Node >& new_vars, std::vector< Node >& new_conds, bool elimExtArith );
   static void computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons, std::vector< Node >& conj );
   static bool isConditionalVariableElim( Node n, int pol=0 );
   static bool isVariableElim( Node v, Node s );

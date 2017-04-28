@@ -510,16 +510,17 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
     Node fbody = TermDb::getFunDefBody( q );
     Assert( !body.isNull() );
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
-    Node r = computeProcessTerms2( fbody, true, true, curr_cond, 0, cache, icache, new_vars, new_conds );
+    Node r = computeProcessTerms2( fbody, true, true, curr_cond, 0, cache, icache, new_vars, new_conds, false );
+    Assert( new_vars.size()==h.getNumChildren() );
     return Rewriter::rewrite( NodeManager::currentNM()->mkNode( EQUAL, h, r ) );
   }else{
-    return computeProcessTerms2( body, true, true, curr_cond, 0, cache, icache, new_vars, new_conds );
+    return computeProcessTerms2( body, true, true, curr_cond, 0, cache, icache, new_vars, new_conds, options::elimExtArithQuant() );
   }
 }
 
 Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
                                                 std::map< Node, Node >& cache, std::map< Node, Node >& icache,
-                                                std::vector< Node >& new_vars, std::vector< Node >& new_conds ) {
+                                                std::vector< Node >& new_vars, std::vector< Node >& new_conds, bool elimExtArith ) {
   Trace("quantifiers-rewrite-term-debug2") << "computeProcessTerms " << body << " " << hasPol << " " << pol << std::endl;
   Node ret;
   std::map< Node, Node >::iterator iti = cache.find( body );
@@ -593,14 +594,14 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
           bool newHasPol;
           bool newPol;
           QuantPhaseReq::getPolarity( body, i, hasPol, pol, newHasPol, newPol );
-          Node nn = computeProcessTerms2( body[i], newHasPol, newPol, currCond, nCurrCond, cache, icache, new_vars, new_conds );
+          Node nn = computeProcessTerms2( body[i], newHasPol, newPol, currCond, nCurrCond, cache, icache, new_vars, new_conds, elimExtArith );
           if( body.getKind()==ITE && i==0 ){
             int res = getEntailedCond( nn, currCond );
             Trace("quantifiers-rewrite-term-debug") << "Condition for " << body << " is " << nn << ", entailment check=" << res << std::endl;
             if( res==1 ){
-              ret = computeProcessTerms2( body[1], hasPol, pol, currCond, nCurrCond, cache, icache, new_vars, new_conds );
+              ret = computeProcessTerms2( body[1], hasPol, pol, currCond, nCurrCond, cache, icache, new_vars, new_conds, elimExtArith );
             }else if( res==-1 ){
-              ret = computeProcessTerms2( body[2], hasPol, pol, currCond, nCurrCond, cache, icache, new_vars, new_conds );
+              ret = computeProcessTerms2( body[2], hasPol, pol, currCond, nCurrCond, cache, icache, new_vars, new_conds, elimExtArith );
             }
           }
           children.push_back( nn );
@@ -681,7 +682,7 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
         ret = ite_v;
       }
       */
-    }else if( options::elimExtArithQuant() ){
+    }else if( elimExtArith ){
       if( ret.getKind()==INTS_DIVISION_TOTAL || ret.getKind()==INTS_MODULUS_TOTAL ){
         Node num = ret[0];
         Node den = ret[1];
