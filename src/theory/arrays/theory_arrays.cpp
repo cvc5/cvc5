@@ -684,12 +684,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     else {
       d_equalityEngine.addTerm(node);
     }
-    // Maybe it's a predicate
-    // TODO: remove this or keep it if we allow Boolean elements in arrays.
-    if (node.getType().isBoolean()) {
-      // Get triggered for both equal and dis-equal
-      d_equalityEngine.addTriggerPredicate(node);
-    }
 
     Assert(d_equalityEngine.getRepresentative(store) == store);
     d_infoMap.addIndex(store, node[1]);
@@ -817,6 +811,12 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
 void TheoryArrays::preRegisterTerm(TNode node)
 {
   preRegisterTermInternal(node);
+  // If we have a select from an array of Bools, mark it as a term that can be propagated.
+  // Note: do this here instead of in preRegisterTermInternal to prevent internal select
+  // terms from being propagated out (as this results in an assertion failure).
+  if (node.getKind() == kind::SELECT && node.getType().isBoolean()) {
+    d_equalityEngine.addTriggerPredicate(node);
+  }
 }
 
 
