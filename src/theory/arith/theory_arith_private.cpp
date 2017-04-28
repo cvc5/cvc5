@@ -238,8 +238,8 @@ static Node getSkolemConstrainedToDivisionTotal(
   if(total_div_node.getAttribute(LinearIntDivAttr(), total_div_skolem)) {
     return total_div_skolem;
   }
-  total_div_skolem = nm->mkSkolem("DivisionTotalSkolem", nm->integerType(),
-                                  "the result of an intdiv-by-k term");
+  total_div_skolem = nm->mkSkolem("DivisionTotalSkolem", nm->realType(),
+                                  "the result of a div term");
   total_div_node.setAttribute(LinearIntDivAttr(), total_div_skolem);
   Node zero = mkRationalNode(0);
   Node lemma = den.eqNode(zero).iteNode(
@@ -258,8 +258,8 @@ static Node getSkolemConstrainedToDivision(
   if(div_node.getAttribute(LinearIntDivAttr(), div_skolem)) {
     return div_skolem;
   }
-  div_skolem = nm->mkSkolem("DivisionSkolem", nm->integerType(),
-                            "the result of an intdiv-by-k term");
+  div_skolem = nm->mkSkolem("DivisionSkolem", nm->realType(),
+                            "the result of a div term");
   div_node.setAttribute(LinearIntDivAttr(), div_skolem);
   Node div0 = nm->mkNode(APPLY_UF, div0Func, num);
   Node total_div = getSkolemConstrainedToDivisionTotal(num, den, out);

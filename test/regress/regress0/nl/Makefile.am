@@ -46,7 +46,8 @@ TESTS =	\
   metitarski-3-4.smt2 \
   rewriting-sums.smt2 \
   disj-eval.smt2 \
-  bug698.smt2
+  bug698.smt2  \
+  real-div-ufnra.smt2
 
 # unsolved : garbage_collect.cvc
 
