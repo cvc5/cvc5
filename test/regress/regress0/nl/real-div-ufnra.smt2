@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --nl-ext --simplification=none
 ; EXPECT: sat
 (set-logic QF_UFNRA)
-(set-info :status unsat)
+(set-info :status sat)
 (declare-fun x () Real)
 (declare-fun y () Real)
 (declare-fun f (Real) Real)
