@@ -606,7 +606,7 @@ private:
 
   // Convert booleans to bit-vectors of size 1
   void boolToBv();
-  
+
   // Abstract common structure over small domains to UF
   // return true if changes were made.
   void bvAbstraction();
@@ -1753,7 +1753,7 @@ void SmtEngine::setDefaults() {
       //MBQI_ABS is only supported in pure quantified UF
       options::mbqiMode.set( quantifiers::MBQI_FMC );
     }
-  } 
+  }
   if( options::ufssSymBreak() ){
     options::sortInference.set( true );
   }
@@ -2359,7 +2359,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 
           fm = def.getFormula();
         }
-        
+
         Node instance = fm.substitute(formals.begin(), formals.end(),
                                       n.begin(), n.end());
         Debug("expand") << "made : " << instance << endl;
@@ -4001,7 +4001,7 @@ void SmtEnginePrivate::processAssertions() {
      );
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-  
+
   if( options::nlExtPurify() ){
     hash_map<Node, Node, NodeHashFunction> cache;
     hash_map<Node, Node, NodeHashFunction> bcache;
@@ -4022,7 +4022,7 @@ void SmtEnginePrivate::processAssertions() {
       d_smt.d_theoryEngine->getQuantifiersEngine()->getCegInstantiation()->preregisterAssertion( d_assertions[i] );
     }
   }
-  
+
   if (options::solveRealAsInt()) {
     Chat() << "converting reals to ints..." << endl;
     hash_map<Node, Node, NodeHashFunction> cache;
@@ -4036,9 +4036,9 @@ void SmtEnginePrivate::processAssertions() {
       var_eq.insert( var_eq.begin(), d_assertions[lastIndex] );
       d_assertions.replace(last_index, NodeManager::currentNM()->mkNode( kind::AND, var_eq ) );
     }
-    */  
-  } 
-  
+    */
+  }
+
   if (options::solveIntAsBV() > 0) {
     Chat() << "converting ints to bit-vectors..." << endl;
     hash_map<Node, Node, NodeHashFunction> cache;
@@ -4433,11 +4433,12 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   }
 
   Trace("smt") << "SmtEnginePrivate::addFormula(" << n << "), inUnsatCore = " << inUnsatCore << ", inInput = " << inInput << endl;
+
   // Give it to proof manager
   PROOF(
     if( inInput ){
       // n is an input assertion
-      if (inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores() || options::fewerPreprocessingHoles()) {
+      if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores() || options::checkUnsatCores() || options::fewerPreprocessingHoles()) {
 
         ProofManager::currentPM()->addCoreAssertion(n.toExpr());
       }
@@ -4781,7 +4782,7 @@ Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckin
   // used by the Model classes.  It's not clear to me exactly how these
   // two are different, but they need to be unified.  This ugly hack here
   // is to fix bug 554 until we can revamp boolean-terms and models [MGD]
-  
+
   //AJR : necessary?
   if(!n.getType().isFunction()) {
     n = Rewriter::rewrite(n);
