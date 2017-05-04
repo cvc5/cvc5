@@ -135,7 +135,7 @@ ArithProof* ProofManager::getArithProof() {
 }
 
 SkolemizationManager* ProofManager::getSkolemizationManager() {
-  Assert (options::proof());
+  Assert (options::proof() || options::unsatCores());
   return &(currentPM()->d_skolemizationManager);
 }
 
