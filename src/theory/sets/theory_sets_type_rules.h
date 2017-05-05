@@ -192,7 +192,7 @@ struct UniverseSetTypeRule {
     Assert(check);
     TypeNode setType = n.getType();
     if(!setType.isSet()) {
-      throw TypeCheckingExceptionPrivate(n, "COMPLEMENT operates on a set, non-set object found");
+      throw TypeCheckingExceptionPrivate(n, "Non-set type found for universe set");
     }
     return setType;
   }
