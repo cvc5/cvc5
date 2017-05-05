@@ -1781,11 +1781,15 @@ void SmtEngine::setDefaults() {
     if( !options::quantDynamicSplit.wasSetByUser() ){
       options::quantDynamicSplit.set( quantifiers::QUANT_DSPLIT_MODE_DEFAULT );
     }
+    //do not eliminate extended arithmetic symbols from quantified formulas
+    if( !options::elimExtArithQuant.wasSetByUser() ){
+      options::elimExtArithQuant.set( false );
+    }
     if( !options::eMatching.wasSetByUser() ){
       options::eMatching.set( options::fmfInstEngine() );
     }
     if( !options::instWhenMode.wasSetByUser() ){
-      //instantiate only on last call  FIXME: remove?
+      //instantiate only on last call
       if( options::eMatching() ){
         options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
       }
