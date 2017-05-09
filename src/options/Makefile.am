@@ -12,17 +12,22 @@
 #   This stage also waits for X_options.h as otherwise it cannot compile.
 #
 
-# Forcing some make variables to be actual absolute paths to fix Coverage
+# If coverage is enabled:
+# Force some make variables and sed paths to be absolute paths to fix Coverage
 # lcov does not support relative paths and src/options and src/expr
 # in particular were breaking it
 # Note: variable declarations may be moved in generated Makefile
 # see src/options/Makefile.am
 
-VPATH = $(realpath @srcdir@)
-srcdir = $(realpath @srcdir@)
-abs_srcdir = $(realpath @abs_srcdir@)
-abs_top_srcdir = $(realpath @abs_top_srcdir@)
-top_srcdir = $(realpath @top_srcdir@)
+if COVERAGE_ENABLED
+COVERAGE_ON = yes
+else
+COVERAGE_ON = 
+endif
+
+VPATH = $(if $(COVERAGE_ON), $(realpath @srcdir@), @srcdir@)
+abs_top_srcdir = $(if $(COVERAGE_ON), $(realpath @abs_top_srcdir@), @abs_top_srcdir@)
+top_srcdir = $(if $(COVERAGE_ON), $(realpath @top_srcdir@), @top_srcdir@)
 
 OPTIONS_SRC_FILES = \
 	arith_options \
@@ -212,7 +217,7 @@ DOCUMENTATION_TEMPLATE_SEDS = \
 
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
-	-I$(realpath @builddir@/..) -I$(realpath @srcdir@/../include) -I$(realpath @srcdir@/..)
+	-I@abs_builddir@/.. -I@abs_srcdir@/../include -I@abs_srcdir@/..
 AM_CXXFLAGS = -Wall $(FLAG_VISIBILITY_HIDDEN)
 
 noinst_LTLIBRARIES = liboptions.la
@@ -320,7 +325,7 @@ arith_options arrays_options base_options booleans_options builtin_options bv_op
 # Make is happier being listed explictly. Not sure why.
 arith_options.tmp arrays_options.tmp base_options.tmp booleans_options.tmp builtin_options.tmp bv_options.tmp datatypes_options.tmp decision_options.tmp expr_options.tmp fp_options.tmp idl_options.tmp main_options.tmp parser_options.tmp printer_options.tmp proof_options.tmp prop_options.tmp quantifiers_options.tmp sep_options.tmp sets_options.tmp smt_options.tmp strings_options.tmp theory_options.tmp uf_options.tmp:
 	echo "$@" "$(@:.tmp=)"
-	$(AM_V_GEN)(cp "$(realpath @srcdir@/$(@:.tmp=))" "$@" || true)
+	$(AM_V_GEN)(cp $(if $(COVERAGE_ON), "@abs_srcdir@/$(@:.tmp=)", "@srcdir@/$(@:.tmp=)") "$@" || true)
 #TIM:
 #The (... || true) here is to make distcheck not fail.
 
@@ -333,38 +338,38 @@ arith_options.tmp arrays_options.tmp base_options.tmp booleans_options.tmp built
 # We use the updating of %_options.options to signal that the options file updated.
 # However, we use the original file in src to generate the file.
 %_options.sed: %_options.options mkoptions
-	$(AM_V_at)chmod +x $(realpath @srcdir@/mkoptions)
-	$(AM_V_GEN)($(realpath @srcdir@/mkoptions) module-sed "$(realpath @srcdir@/$(@:.sed=))" ) > "$@"
+	$(AM_V_at)chmod +x $(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions)
+	$(AM_V_GEN)($(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions) module-sed $(if $(COVERAGE_ON), "@abs_srcdir@/$(@:.sed=)", "@srcdir@/$(@:.sed=)") ) > "$@"
 
 
 $(CPP_TEMPLATE_SEDS): %.sed : % mkoptions
 #	echo "template seds"
 #	echo "$@"
 #	echo $(TEMPLATE_SEDS)
-	$(AM_V_at)chmod +x $(realpath @srcdir@/mkoptions)
-	$(AM_V_GEN)($(realpath @srcdir@/mkoptions) template-sed "$<" ) > "$@"
+	$(AM_V_at)chmod +x $(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions)
+	$(AM_V_GEN)($(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions) template-sed "$<" ) > "$@"
 
 $(DOCUMENTATION_TEMPLATE_SEDS): %.sed : % mkoptions
 #	echo "template seds"
 #	echo "$@"
 #	echo $(TEMPLATE_SEDS)
-	$(AM_V_at)chmod +x $(realpath @srcdir@/mkoptions)
-	$(AM_V_GEN)($(realpath @srcdir@/mkoptions) template-sed "$<" ) > "$@"
+	$(AM_V_at)chmod +x $(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions)
+	$(AM_V_GEN)($(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions) template-sed "$<" ) > "$@"
 
 %_options.h : %_options.sed mkoptions base_options_template.h base_options_template.h.sed
 #	echo heads
 #	echo "$@"
 #	echo $(OPTIONS_HEADS)
-	$(AM_V_at)chmod +x $(realpath @srcdir@/mkoptions)
-	$(AM_V_GEN)($(realpath @srcdir@/mkoptions) apply-sed-files-to-template \
-		$(realpath @srcdir@/base_options_template.h) \
+	$(AM_V_at)chmod +x $(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions)
+	$(AM_V_GEN)($(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions) apply-sed-files-to-template \
+		$(if $(COVERAGE_ON), @abs_srcdir@/base_options_template.h, @srcdir@/base_options_template.h) \
 		base_options_template.h.sed \
 		"$<" \
 	) > "$@"
 
 summary.sed : mkoptions $(OPTIONS_OPTIONS_FILES)
-	$(AM_V_at)chmod +x $(realpath @srcdir@/mkoptions)
-	$(AM_V_GEN)($(realpath @srcdir@/mkoptions) summary-sed \
+	$(AM_V_at)chmod +x $(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions)
+	$(AM_V_GEN)($(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions) summary-sed \
 		$(OPTIONS_OPTIONS_FILES) \
 	) > summary.sed
 
@@ -372,18 +377,18 @@ summary.sed : mkoptions $(OPTIONS_OPTIONS_FILES)
 
 #   mkoptions apply-sed-to-template sed-file template-file
 options_holder.h : options_holder_template.h options_holder_template.h.sed summary.sed mkoptions $(OPTIONS_HEADS)
-	$(AM_V_at)chmod +x $(realpath @srcdir@/mkoptions)
-	$(AM_V_GEN)($(realpath @srcdir@/mkoptions) apply-sed-files-to-template \
-		$(realpath @srcdir@/options_holder_template.h) \
+	$(AM_V_at)chmod +x $(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions)
+	$(AM_V_GEN)($(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions) apply-sed-files-to-template \
+		$(if $(COVERAGE_ON), @abs_srcdir@/options_holder_template.h, @srcdir@/options_holder_template.h) \
 		@builddir@/options_holder_template.h.sed \
 		summary.sed \
 	) > "$@"
 
 # Make sure not to match with "options.cpp" too.
 %_options.cpp: %_options.sed %_options.h mkoptions options_holder.h base_options_template.cpp base_options_template.cpp.sed
-	$(AM_V_at)chmod +x $(realpath @srcdir@/mkoptions)
-	$(AM_V_GEN)($(realpath @srcdir@/mkoptions) apply-sed-files-to-template \
-		$(realpath @srcdir@/base_options_template.cpp) \
+	$(AM_V_at)chmod +x $(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions)
+	$(AM_V_GEN)($(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions) apply-sed-files-to-template \
+		$(if $(COVERAGE_ON), @abs_srcdir@/base_options_template.cpp, @srcdir@/base_options_template.cpp) \
 		base_options_template.cpp.sed \
 		"$<" \
 	) > "$@"
@@ -393,9 +398,9 @@ options_holder.h : options_holder_template.h options_holder_template.h.sed summa
 
 #   mkoptions apply-sed-to-template sed-file template-file
 options.cpp : options_template.cpp options_template.cpp.sed mkoptions summary.sed $(OPTIONS_HEADS) options_holder.h
-	$(AM_V_at)chmod +x $(realpath @srcdir@/mkoptions)
-	$(AM_V_GEN)($(realpath @srcdir@/mkoptions) apply-sed-files-to-template \
-		$(realpath @srcdir@/options_template.cpp) \
+	$(AM_V_at)chmod +x $(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions)
+	$(AM_V_GEN)($(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions) apply-sed-files-to-template \
+		$(if $(COVERAGE_ON), @abs_srcdir@/options_template.cpp, @srcdir@/options_template.cpp) \
 		@builddir@/options_template.cpp.sed \
 		summary.sed \
 	) > "$@"
@@ -403,17 +408,17 @@ options.cpp : options_template.cpp options_template.cpp.sed mkoptions summary.se
 
 #   mkoptions apply-sed-to-template sed-file template-file
 options_get_option.cpp : options_get_option_template.cpp options_get_option_template.cpp.sed mkoptions summary.sed $(OPTIONS_HEADS)
-	$(AM_V_at)chmod +x $(realpath @srcdir@/mkoptions)
-	$(AM_V_GEN)($(realpath @srcdir@/mkoptions) apply-sed-files-to-template \
-		$(realpath @srcdir@/options_get_option_template.cpp) \
+	$(AM_V_at)chmod +x $(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions)
+	$(AM_V_GEN)($(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions) apply-sed-files-to-template \
+		$(if $(COVERAGE_ON), @abs_srcdir@/options_get_option_template.cpp, @srcdir@/options_get_option_template.cpp) \
 		@builddir@/options_get_option_template.cpp.sed \
 		summary.sed \
 	) > "$@"
 
 options_set_option.cpp : options_set_option_template.cpp options_set_option_template.cpp.sed mkoptions summary.sed $(OPTIONS_HEADS)
-	$(AM_V_at)chmod +x $(realpath @srcdir@/mkoptions)
-	$(AM_V_GEN)($(realpath @srcdir@/mkoptions) apply-sed-files-to-template \
-		$(realpath @srcdir@/options_set_option_template.cpp) \
+	$(AM_V_at)chmod +x $(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions)
+	$(AM_V_GEN)($(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions) apply-sed-files-to-template \
+		$(if $(COVERAGE_ON), @abs_srcdir@/options_set_option_template.cpp, @srcdir@/options_set_option_template.cpp) \
 		@builddir@/options_set_option_template.cpp.sed \
 		summary.sed \
 	) > "$@"
@@ -423,8 +428,8 @@ options_set_option.cpp : options_set_option_template.cpp options_set_option_temp
 $(DOCUMENTATION_FILES) : % : %_template %_template.sed mkoptions summary.sed
 #	echo "$<"
 #	echo "$@"
-	$(AM_V_at)chmod +x $(realpath @srcdir@/mkoptions)
-	$(AM_V_GEN)($(realpath @srcdir@/mkoptions) apply-sed-files-to-template \
+	$(AM_V_at)chmod +x $(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions)
+	$(AM_V_GEN)($(if $(COVERAGE_ON), @abs_srcdir@/mkoptions, @srcdir@/mkoptions) apply-sed-files-to-template \
 		"$<" \
 		"$<".sed \
 		@builddir@/summary.sed \
