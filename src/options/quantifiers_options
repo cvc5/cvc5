@@ -54,7 +54,7 @@ option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
  perform aggressive miniscoping for quantifiers
 option elimTautQuant --elim-taut-quant bool :default true
  eliminate tautological disjuncts of quantified formulas
-option elimExtArithQuant --elim-ext-arith-quant bool :read-write :default true
+option elimExtArithQuant --elim-ext-arith-quant bool :default true
  eliminate extended arithmetic symbols in quantified formulas
 option condRewriteQuant --cond-rewrite-quant bool :default true
  conditional rewriting of quantified formulas
