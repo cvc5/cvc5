@@ -86,7 +86,8 @@ TESTS = \
   cmu-inc-nlpp-071516.smt2 \
   strings-index-empty.smt2 \
   bug768.smt2 \
-  username_checker_min.smt2
+  username_checker_min.smt2 \
+  repl-empty-sem.smt2
 
 FAILING_TESTS =
 

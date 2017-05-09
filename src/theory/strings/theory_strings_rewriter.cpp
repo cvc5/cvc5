@@ -1622,42 +1622,47 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   if( node[1]==node[2] ){
     return node[0];
   }else{
-    std::vector< Node > children;
-    getConcat( node[0], children );
-    if( children[0].isConst() && node[1].isConst() ){
-      CVC4::String s = children[0].getConst<String>();
-      CVC4::String t = node[1].getConst<String>();
-      std::size_t p = s.find(t);
-      if( p != std::string::npos ) {
-        Node retNode;
-        if( node[2].isConst() ){
-          CVC4::String r = node[2].getConst<String>();
-          CVC4::String ret = s.replace(t, r);
-          retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(ret) );
-        } else {
-          CVC4::String s1 = s.substr(0, (int)p);
-          CVC4::String s3 = s.substr((int)p + (int)t.size());
-          Node ns1 = NodeManager::currentNM()->mkConst( ::CVC4::String(s1) );
-          Node ns3 = NodeManager::currentNM()->mkConst( ::CVC4::String(s3) );
-          retNode = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, ns1, node[2], ns3 );
-        }
-        if( children.size()>1 ){
-          children[0] = retNode;
-          return mkConcat( kind::STRING_CONCAT, children );
+    if( node[1].isConst() ){
+      if( node[1].getConst<String>().isEmptyString() ){
+        return node[0];
+      }
+      std::vector< Node > children;
+      getConcat( node[0], children );
+      if( children[0].isConst() ){
+        CVC4::String s = children[0].getConst<String>();
+        CVC4::String t = node[1].getConst<String>();
+        std::size_t p = s.find(t);
+        if( p != std::string::npos ) {
+          Node retNode;
+          if( node[2].isConst() ){
+            CVC4::String r = node[2].getConst<String>();
+            CVC4::String ret = s.replace(t, r);
+            retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(ret) );
+          } else {
+            CVC4::String s1 = s.substr(0, (int)p);
+            CVC4::String s3 = s.substr((int)p + (int)t.size());
+            Node ns1 = NodeManager::currentNM()->mkConst( ::CVC4::String(s1) );
+            Node ns3 = NodeManager::currentNM()->mkConst( ::CVC4::String(s3) );
+            retNode = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, ns1, node[2], ns3 );
+          }
+          if( children.size()>1 ){
+            children[0] = retNode;
+            return mkConcat( kind::STRING_CONCAT, children );
+          }else{
+            return retNode;
+          }
         }else{
-          return retNode;
-        }
-      }else{
-        //could not find replacement string
-        if( node[0].isConst() ){
-          return node[0];
-        }else{
-          //check for overlap, if none, we can remove the prefix
-          if( s.overlap(t)==0 ){
-            std::vector< Node > spl;
-            spl.insert( spl.end(), children.begin()+1, children.end() );
-            return NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, children[0],
-                        NodeManager::currentNM()->mkNode( kind::STRING_STRREPL, mkConcat( kind::STRING_CONCAT, spl ), node[1], node[2] ) );
+          //could not find replacement string
+          if( node[0].isConst() ){
+            return node[0];
+          }else{
+            //check for overlap, if none, we can remove the prefix
+            if( s.overlap(t)==0 ){
+              std::vector< Node > spl;
+              spl.insert( spl.end(), children.begin()+1, children.end() );
+              return NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, children[0],
+                          NodeManager::currentNM()->mkNode( kind::STRING_STRREPL, mkConcat( kind::STRING_CONCAT, spl ), node[1], node[2] ) );
+            }
           }
         }
       }
