@@ -87,7 +87,8 @@ TESTS = \
   strings-index-empty.smt2 \
   bug768.smt2 \
   username_checker_min.smt2 \
-  repl-empty-sem.smt2
+  repl-empty-sem.smt2 \
+  bug799-min.smt2
 
 FAILING_TESTS =
 

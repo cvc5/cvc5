@@ -2212,7 +2212,7 @@ void TheoryStrings::getNormalForms( Node &eqc, std::vector< std::vector< Node > 
     normal_forms_exp_depend.push_back( std::map< Node, std::map< bool, int > >() );
   }else{
     if(Trace.isOn("strings-solve")) {
-      Trace("strings-solve") << "--- Normal forms for equivlance class " << eqc << " : " << std::endl;
+      Trace("strings-solve") << "--- Normal forms for equivalance class " << eqc << " : " << std::endl;
       for( unsigned i=0; i<normal_forms.size(); i++ ) {
         Trace("strings-solve") << "#" << i << " (from " << normal_form_src[i] << ") : ";
         for( unsigned j=0; j<normal_forms[i].size(); j++ ) {
@@ -3725,9 +3725,32 @@ void TheoryStrings::checkCardinality() {
         card_need++;
       }
       Trace("strings-card") << "Need length " << card_need << " for this number of strings (where alphabet size is " << d_card_size << ")." << std::endl;
-      Node cmp = NodeManager::currentNM()->mkNode( kind::GEQ, lr, NodeManager::currentNM()->mkConst( Rational( card_need ) ) );
-      cmp = Rewriter::rewrite( cmp );
-      if( cmp!=d_true ){
+      //check if we need to split
+      bool needsSplit = true;
+      if( lr.isConst() ){
+        // if constant, compare
+        Node cmp = NodeManager::currentNM()->mkNode( kind::GEQ, lr, NodeManager::currentNM()->mkConst( Rational( card_need ) ) );
+        cmp = Rewriter::rewrite( cmp );
+        needsSplit = cmp!=d_true;
+      }else{
+        // find the minimimum constant that we are unknown to be disequal from, or otherwise stop if we increment such that cardinality does not apply
+        unsigned r=0; 
+        bool success = true;
+        while( r<card_need && success ){
+          Node rr = NodeManager::currentNM()->mkConst<Rational>( Rational(r) );
+          if( areDisequal( rr, lr ) ){
+            r++;
+          }else{
+            success = false;
+          }
+        }
+        if( r>0 ){
+          Trace("strings-card") << "Symbolic length " << lr << " must be at least " << r << " due to constant disequalities." << std::endl;
+        }
+        needsSplit = r<card_need;
+      }
+
+      if( needsSplit ){
         unsigned int int_k = (unsigned int)card_need;
         for( std::vector< Node >::iterator itr1 = cols[i].begin();
             itr1 != cols[i].end(); ++itr1) {
