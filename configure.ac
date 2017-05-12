@@ -720,6 +720,9 @@ AC_ARG_ENABLE([coverage],
 
 if test -z "${enable_coverage+set}"; then
   enable_coverage=no
+  # make COVERAGE_ON the empty string for makefile conditional function
+  # $(if $(COVERAGE_ON), action1, action2)
+  COVERAGE_ON=
 fi
 
 AC_MSG_RESULT([$enable_coverage])
@@ -730,6 +733,7 @@ if test "$enable_coverage" = yes; then
   # If the user didn't specify these, we force them here.  If the
   # user specified them in opposite phase, give warnings that they
   # shouldn't do that, or bomb out.
+  COVERAGE_ON=yes
   if test "$user_specified_enable_or_disable_shared" != yes; then
     enable_shared=no
     AC_MSG_WARN([turning off shared library building due to --enable-coverage])
@@ -1263,6 +1267,7 @@ AC_SUBST(BUILDING_STATIC)
 AC_SUBST(STATIC_BINARY)
 AM_CONDITIONAL([STATIC_BINARY], [test "$enable_static_binary" = yes])
 AM_CONDITIONAL([COVERAGE_ENABLED], [test "$enable_coverage" = yes])
+AC_SUBST([COVERAGE_ON])
 
 AM_CONDITIONAL([CVC4_DEBUG], [test "$with_build" = debug])
 AM_CONDITIONAL([CVC4_TRACING], [test "$enable_tracing" = yes])
