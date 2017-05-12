@@ -6,6 +6,8 @@
 # in particular were breaking it
 # Building with coverage will cause portability issues in some cases
 
+VPATH = $(if $(COVERAGE_ON), $(realpath @srcdir@), @srcdir@)
+
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
 	$(if $(COVERAGE_ON), -I@abs_builddir@/.. -I@abs_srcdir@/../include -I@abs_srcdir@/.., \

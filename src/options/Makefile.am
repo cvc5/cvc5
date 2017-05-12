@@ -20,6 +20,7 @@
 # in particular were breaking it
 # Building with coverage will cause portability issues in some cases
 
+VPATH = $(if $(COVERAGE_ON), $(realpath @srcdir@), @srcdir@)
 
 OPTIONS_SRC_FILES = \
 	arith_options \
