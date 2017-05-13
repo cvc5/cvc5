@@ -172,7 +172,6 @@ public:
         "true\n"
         "[(0 : 1), (5 : 2), (6 : 1), (10 : 2)]\n"
         "<unsupported>";
-    std::cout << buf << std::endl;
     TS_ASSERT(strncmp(expected, buf, file_size) == 0);
     delete[] buf;
 
