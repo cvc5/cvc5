@@ -328,6 +328,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                    NodeManager::currentNM()->mkNode( kind::CARD, NodeManager::currentNM()->mkNode( kind::INTERSECTION, node[0][0], node[0][1] ) ) );                                      
       return RewriteResponse(REWRITE_DONE, ret );
     }
+    break;
   }
   case kind::TRANSPOSE: {
     if(node[0].getKind() == kind::TRANSPOSE) {
