@@ -277,8 +277,8 @@ struct RelTransposeTypeRule {
     throw (TypeCheckingExceptionPrivate, AssertionException) {
     Assert(n.getKind() == kind::TRANSPOSE);
     TypeNode setType = n[0].getType(check);
-    if(check && !setType.isSet() && !setType.getSetElementType().isTuple()) {
-        throw TypeCheckingExceptionPrivate(n, "relation transpose operats on non-relation");
+    if(check && (!setType.isSet() || !setType.getSetElementType().isTuple())) {
+        throw TypeCheckingExceptionPrivate(n, "relation transpose operates on non-relation");
     }
     std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
     std::reverse(tupleTypes.begin(), tupleTypes.end());
@@ -296,7 +296,7 @@ struct RelTransClosureTypeRule {
     Assert(n.getKind() == kind::TCLOSURE);
     TypeNode setType = n[0].getType(check);
     if(check) {
-      if(!setType.isSet() && !setType.getSetElementType().isTuple()) {
+      if(!setType.isSet() || !setType.getSetElementType().isTuple()) {
         throw TypeCheckingExceptionPrivate(n, " transitive closure operates on non-relation");
       }
       std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
