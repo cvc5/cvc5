@@ -1,19 +1,23 @@
-# Forcing some make variables to be actual absolute paths to fix Coverage
+# if coverage enabled:
+# Force some make variables to be actual absolute paths to fix Coverage
 # lcov does not support relative paths and src/options and src/expr
 # in particular were breaking it
 # Note: variable declarations may be moved in generated Makefile
 # see src/expr/Makefile.am
 
-VPATH = $(realpath @srcdir@)
-srcdir = $(realpath @srcdir@)
-abs_srcdir = $(realpath @abs_srcdir@)
-abs_top_srcdir = $(realpath @abs_top_srcdir@)
-top_srcdir = $(realpath @top_srcdir@)
+if COVERAGE_ENABLED
+COVERAGE_ON = yes
+else
+COVERAGE_ON = 
+endif
 
+VPATH = $(if $(COVERAGE_ON), $(realpath @srcdir@), @srcdir@)
+abs_top_srcdir = $(if $(COVERAGE_ON), $(realpath @abs_top_srcdir@), @abs_top_srcdir@)
+top_srcdir = $(if $(COVERAGE_ON), $(realpath @top_srcdir@), @top_srcdir@)
 
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
-	-I$(realpath @builddir@/..) -I$(realpath @srcdir@/../include) -I$(realpath @srcdir@/..)
+	-I@abs_builddir@/.. -I@abs_srcdir@/../include -I@abs_srcdir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
 noinst_LTLIBRARIES = libexpr.la

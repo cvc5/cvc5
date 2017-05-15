@@ -73,8 +73,7 @@ TESTS =	\
 	constr-ground-to.smt2 \
 	bug-041417-set-options.cvc \
 	alg202+1.smt2 \
-	fmf-fun-no-elim-ext-arith.smt2 \
-	fmf-fun-no-elim-ext-arith2.smt2
+	fmf-fun-no-elim-ext-arith.smt2
 
 EXTRA_DIST = $(TESTS)
 
