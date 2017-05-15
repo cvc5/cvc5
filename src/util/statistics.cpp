@@ -122,8 +122,8 @@ void StatisticsBase::safeFlushInformation(int fd) const {
   for (StatSet::iterator i = d_stats.begin(); i != d_stats.end(); ++i) {
     Stat* s = *i;
     if (d_prefix.size() != 0) {
-      safe_print(fd, d_prefix.c_str());
-      safe_print(fd, s_regDelim.c_str());
+      safe_print(fd, d_prefix);
+      safe_print(fd, s_regDelim);
     }
     s->safeFlushStat(fd);
     safe_print(fd, "\n");

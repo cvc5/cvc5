@@ -112,14 +112,14 @@ void segv_handler(int sig, siginfo_t* info, void* c) {
     safe_print(STDERR_FILENO,
                "Spinning so that a debugger can be connected.\n");
     safe_print(STDERR_FILENO, "Try:  gdb ");
-    safe_print(STDERR_FILENO, progName);
+    safe_print(STDERR_FILENO, *progName);
     safe_print(STDERR_FILENO, " ");
     safe_print<int64_t>(STDERR_FILENO, getpid());
     safe_print(STDERR_FILENO, "\n");
     safe_print(STDERR_FILENO, " or:  gdb --pid=");
     safe_print<int64_t>(STDERR_FILENO, getpid());
     safe_print(STDERR_FILENO, " ");
-    safe_print(STDERR_FILENO, progName);
+    safe_print(STDERR_FILENO, *progName);
     safe_print(STDERR_FILENO, "\n");
     for(;;) {
       sleep(60);
@@ -156,14 +156,14 @@ void ill_handler(int sig, siginfo_t* info, void*) {
     safe_print(STDERR_FILENO,
                "Spinning so that a debugger can be connected.\n");
     safe_print(STDERR_FILENO, "Try:  gdb ");
-    safe_print(STDERR_FILENO, progName);
+    safe_print(STDERR_FILENO, *progName);
     safe_print(STDERR_FILENO, " ");
     safe_print<int64_t>(STDERR_FILENO, getpid());
     safe_print(STDERR_FILENO, "\n");
     safe_print(STDERR_FILENO, " or:  gdb --pid=");
     safe_print<int64_t>(STDERR_FILENO, getpid());
     safe_print(STDERR_FILENO, " ");
-    safe_print(STDERR_FILENO, progName);
+    safe_print(STDERR_FILENO, *progName);
     safe_print(STDERR_FILENO, "\n");
     for(;;) {
       sleep(60);
@@ -206,14 +206,14 @@ void cvc4unexpected() {
     safe_print(STDERR_FILENO,
                "Spinning so that a debugger can be connected.\n");
     safe_print(STDERR_FILENO, "Try:  gdb ");
-    safe_print(STDERR_FILENO, progName);
+    safe_print(STDERR_FILENO, *progName);
     safe_print(STDERR_FILENO, " ");
     safe_print<int64_t>(STDERR_FILENO, getpid());
     safe_print(STDERR_FILENO, "\n");
     safe_print(STDERR_FILENO, " or:  gdb --pid=");
     safe_print<int64_t>(STDERR_FILENO, getpid());
     safe_print(STDERR_FILENO, " ");
-    safe_print(STDERR_FILENO, progName);
+    safe_print(STDERR_FILENO, *progName);
     safe_print(STDERR_FILENO, "\n");
     for(;;) {
       sleep(60);
