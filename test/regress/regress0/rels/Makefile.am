@@ -112,7 +112,8 @@ TESTS =	\
   joinImg_1_1.cvc \
   joinImg_1.cvc \
   joinImg_2_1.cvc \
-  joinImg_2.cvc  
+  joinImg_2.cvc \
+  card_transpose.cvc
 
 # unsolved : garbage_collect.cvc
 
