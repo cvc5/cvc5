@@ -416,17 +416,6 @@ private:
   DeltaRational getDeltaValue(TNode term) const
       throw(DeltaRationalException, ModelException);
 
-  /** Uninterpretted function symbol for use when interpreting
-   * division by zero.
-   */
-  Node d_realDivideBy0Func;
-  Node d_intDivideBy0Func;
-  Node d_intModulusBy0Func;
-  Node getRealDivideBy0Func();
-  Node getIntDivideBy0Func();
-  Node getIntModulusBy0Func();
-
-  Node definingIteForDivLike(Node divLike);
   Node axiomIteForTotalDivision(Node div_tot);
   Node axiomIteForTotalIntDivision(Node int_div_like);
 

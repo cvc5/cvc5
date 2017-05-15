@@ -83,6 +83,7 @@ namespace arith {
 namespace attr {
   struct ToIntegerTag { };
   struct LinearIntDivTag { };
+  struct LinearDivTag { };
 }/* CVC4::theory::arith::attr namespace */
 
 /**
@@ -96,6 +97,7 @@ typedef expr::CDAttribute<attr::ToIntegerTag, Node> ToIntegerAttr;
  * used to eliminate them.
  */
 typedef expr::CDAttribute<attr::LinearIntDivTag, Node> LinearIntDivAttr;
+typedef expr::CDAttribute<attr::LinearDivTag, Node> LinearDivAttr;
 
 static Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum);
 static double fRand(double fMin, double fMax);
@@ -235,36 +237,17 @@ static Node getSkolemConstrainedToDivisionTotal(
   NodeManager* nm = NodeManager::currentNM();
   Node total_div_node = nm->mkNode(kind::DIVISION_TOTAL, num, den);
   Node total_div_skolem;
-  if(total_div_node.getAttribute(LinearIntDivAttr(), total_div_skolem)) {
+  if(total_div_node.getAttribute(LinearDivAttr(), total_div_skolem)) {
     return total_div_skolem;
   }
   total_div_skolem = nm->mkSkolem("DivisionTotalSkolem", nm->realType(),
                                   "the result of a div term");
-  total_div_node.setAttribute(LinearIntDivAttr(), total_div_skolem);
+  total_div_node.setAttribute(LinearDivAttr(), total_div_skolem);
   Node zero = mkRationalNode(0);
   Node lemma = den.eqNode(zero).iteNode(
       total_div_skolem.eqNode(zero), num.eqNode(mkMult(total_div_skolem, den)));
   out->lemma(lemma);
   return total_div_skolem;
-}
-
-// Returns a skolem variable that is constrained to equal division(num, den) in
-// the current context. May add lemmas to out.
-static Node getSkolemConstrainedToDivision(
-    Node num, Node den, Node div0Func, OutputChannel* out) {
-  NodeManager* nm = NodeManager::currentNM();
-  Node div_node = nm->mkNode(kind::DIVISION, num, den);
-  Node div_skolem;
-  if(div_node.getAttribute(LinearIntDivAttr(), div_skolem)) {
-    return div_skolem;
-  }
-  div_skolem = nm->mkSkolem("DivisionSkolem", nm->realType(),
-                            "the result of a div term");
-  div_node.setAttribute(LinearIntDivAttr(), div_skolem);
-  Node div0 = nm->mkNode(APPLY_UF, div0Func, num);
-  Node total_div = getSkolemConstrainedToDivisionTotal(num, den, out);
-  out->lemma(mkOnZeroIte(den, div_skolem, div0, total_div));
-  return div_skolem;
 }
 
 
@@ -374,104 +357,14 @@ static Node getSkolemConstrainedToIntegerDivisionTotal(
     return total_div_skolem;
   }
   total_div_skolem = nm->mkSkolem("linearIntDiv", nm->integerType(),
-                                  "the result of an intdiv-by-k term");
+                                  "the result of an intdiv term");
   total_div_node.setAttribute(LinearIntDivAttr(), total_div_skolem);
   out->lemma(mkAxiomForTotalIntDivision(num, den, total_div_skolem));
   return total_div_skolem;
 }
 
-// Returns a skolem variable that is constrained to equal
-// integer_division(num, den) in the current context. May add lemmas to out.
-static Node getSkolemConstrainedToIntegerDivision(
-    Node num, Node den, Node div0Func, OutputChannel* out) {
-  NodeManager* nm = NodeManager::currentNM();
-  Node div_node = nm->mkNode(kind::INTS_DIVISION, num, den);
-  Node div_skolem;
-  if(div_node.getAttribute(LinearIntDivAttr(), div_skolem)) {
-    return div_skolem;
-  }
-  div_skolem = nm->mkSkolem("IntDivSkolem", nm->integerType(),
-                            "the result of an intdiv-by-k term");
-  div_node.setAttribute(LinearIntDivAttr(), div_skolem);
-  Node div0 = nm->mkNode(APPLY_UF, div0Func, num);
-  Node total_div = getSkolemConstrainedToIntegerDivisionTotal(num, den, out);
-  out->lemma(mkOnZeroIte(den, div_skolem, div0, total_div));
-  return div_skolem;
-}
-
-// Returns a skolem variable that is constrained to equal
-// integer_modulus_total(num, den) in the current context. May add lemmas to
-// out.
-static Node getSkolemConstrainedToIntegerModulusTotal(
-    Node num, Node den, OutputChannel* out) {
-  NodeManager* nm = NodeManager::currentNM();
-  Node total_mod_node = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
-  Node total_mod_skolem;
-  if(total_mod_node.getAttribute(LinearIntDivAttr(), total_mod_skolem)) {
-    return total_mod_skolem;
-  }
-  total_mod_skolem = nm->mkSkolem("IntModTotalSkolem", nm->integerType(),
-                                  "the result of an intdiv-by-k term");
-  total_mod_node.setAttribute(LinearIntDivAttr(), total_mod_skolem);
-  Node total_div = getSkolemConstrainedToIntegerDivisionTotal(num, den, out);
-  out->lemma(mkAxiomForTotalIntMod(num, den, total_div, total_mod_skolem));
-  return total_mod_skolem;
-}
-
-// Returns a skolem variable that is constrained to equal
-// integer_modulus(num, den) in the current context. May add lemmas to out.
-static Node getSkolemConstrainedToIntegerModulus(
-    Node num, Node den, Node mod0Func, OutputChannel* out) {
-  NodeManager* nm = NodeManager::currentNM();
-  Node mod_node = nm->mkNode(kind::INTS_MODULUS, num, den);
-  Node mod_skolem;
-  if(mod_node.getAttribute(LinearIntDivAttr(), mod_skolem)) {
-    return mod_skolem;
-  }
-  mod_skolem = nm->mkSkolem("IntModSkolem", nm->integerType(),
-                            "the result of an intdiv-by-k term");
-  mod_node.setAttribute(LinearIntDivAttr(), mod_skolem);
-  Node mod0 = nm->mkNode(APPLY_UF, mod0Func, num);
-  Node total_mod = getSkolemConstrainedToIntegerModulusTotal(num, den, out);
-  out->lemma(mkOnZeroIte(den, mod_skolem, mod0, total_mod));
-  return mod_skolem;
-}
-
 void TheoryArithPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_congruenceManager.setMasterEqualityEngine(eq);
-}
-
-Node TheoryArithPrivate::getRealDivideBy0Func(){
-  Assert(!getLogicInfo().isLinear());
-  Assert(getLogicInfo().areRealsUsed());
-
-  if(d_realDivideBy0Func.isNull()){
-    TypeNode realType = NodeManager::currentNM()->realType();
-    d_realDivideBy0Func = skolemFunction("/by0", realType, realType);
-  }
-  return d_realDivideBy0Func;
-}
-
-Node TheoryArithPrivate::getIntDivideBy0Func(){
-  Assert(!getLogicInfo().isLinear());
-  Assert(getLogicInfo().areIntegersUsed());
-
-  if(d_intDivideBy0Func.isNull()){
-    TypeNode intType = NodeManager::currentNM()->integerType();
-    d_intDivideBy0Func = skolemFunction("divby0", intType, intType);
-  }
-  return d_intDivideBy0Func;
-}
-
-Node TheoryArithPrivate::getIntModulusBy0Func(){
-  Assert(!getLogicInfo().isLinear());
-  Assert(getLogicInfo().areIntegersUsed());
-
-  if(d_intModulusBy0Func.isNull()){
-    TypeNode intType = NodeManager::currentNM()->integerType();
-    d_intModulusBy0Func = skolemFunction("modby0", intType, intType);
-  }
-  return d_intModulusBy0Func;
 }
 
 TheoryArithPrivate::ModelException::ModelException(TNode n, const char* msg) throw (){
@@ -1354,42 +1247,99 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
     Assert(k == kind::TO_INTEGER);
     return toIntSkolem;
   }
-  case kind::INTS_MODULUS:
-  case kind::INTS_MODULUS_TOTAL:
   case kind::INTS_DIVISION:
+  case kind::INTS_MODULUS:
+  case kind::DIVISION:
+    // these should be removed during expand definitions
+    Assert( false );
+    break;
+/*//AJR : This version seems to cause memory corruption, see bugs 803-805
+  //  The only difference w.r.t the code below is that the integer division skolem is shared between MOD AND DIV terms.
+  //  There may be an issue related to garbage collection on attributes, TODO : revisit this.
+  case kind::INTS_MODULUS_TOTAL:
   case kind::INTS_DIVISION_TOTAL: {
     Node den = Rewriter::rewrite(n[1]);
     if (!options::rewriteDivk() && den.isConst()) {
       return n;
     }
     Node num = Rewriter::rewrite(n[0]);
-    if (k == kind::INTS_MODULUS) {
-      return getSkolemConstrainedToIntegerModulus(
-          num, den, getIntModulusBy0Func(), d_containing.d_out);
-    } else if (k == kind::INTS_MODULUS_TOTAL) {
-      return getSkolemConstrainedToIntegerModulusTotal(num, den,
-                                                       d_containing.d_out);
-    } else if (k == kind::INTS_DIVISION) {
-      return getSkolemConstrainedToIntegerDivision(
-          num, den, getIntDivideBy0Func(), d_containing.d_out);
+    if( k == kind::INTS_MODULUS_TOTAL ){
+      Node dk = getSkolemConstrainedToIntegerDivisionTotal(num, den, d_containing.d_out);
+      return node = nm->mkNode(kind::MINUS, num, nm->mkNode(kind::MULT, den, dk));
+    } else{
+
+      Assert(k == kind::INTS_DIVISION_TOTAL);
+      return getSkolemConstrainedToIntegerDivisionTotal(num, den, d_containing.d_out);
     }
-    Assert(k == kind::INTS_DIVISION_TOTAL);
-    return getSkolemConstrainedToIntegerDivisionTotal(num, den,
-                                                      d_containing.d_out);
   }
-  case kind::DIVISION:
   case kind::DIVISION_TOTAL: {
     Node num = Rewriter::rewrite(n[0]);
     Node den = Rewriter::rewrite(n[1]);
     Assert(!den.isConst());
-    if (k == kind::DIVISION) {
-      return getSkolemConstrainedToDivision(num, den, getRealDivideBy0Func(),
-                                            d_containing.d_out);
-    }
-    Assert(k == kind::DIVISION_TOTAL);
     return getSkolemConstrainedToDivisionTotal(num, den, d_containing.d_out);
   }
-
+  */
+  
+  case kind::INTS_DIVISION_TOTAL: 
+  case kind::INTS_MODULUS_TOTAL: {
+    Node den = Rewriter::rewrite(n[1]);
+    if(!options::rewriteDivk() && den.isConst()) {
+      return n;
+    }
+    Node num = Rewriter::rewrite(n[0]);
+    Node intVar;
+    Node rw = nm->mkNode(k, num, den);
+    if(!rw.getAttribute(LinearIntDivAttr(), intVar)) {
+      intVar = nm->mkSkolem("linearIntDiv", nm->integerType(), "the result of an intdiv-by-k term");
+      rw.setAttribute(LinearIntDivAttr(), intVar);
+      Node lem;
+      if (den.isConst()) {
+        const Rational& rat = den.getConst<Rational>();
+        Assert(!num.isConst());
+        if(rat != 0) {
+          if(rat > 0) {
+            lem = nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), 
+                                        nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(1))))));
+          } else {
+            lem = nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), 
+                                        nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(-1))))));
+          }
+        }
+      }else{
+        lem = nm->mkNode(kind::AND,
+                nm->mkNode(kind::IMPLIES, NodeManager::currentNM()->mkNode( kind::GT, den, nm->mkConst(Rational(0)) ),
+                  nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), 
+                                        nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(1))))))),
+                nm->mkNode(kind::IMPLIES, NodeManager::currentNM()->mkNode( kind::LT, den, nm->mkConst(Rational(0)) ),
+                  nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), 
+                                        nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(-1))))))));                
+      }    
+      if( !lem.isNull() ){
+        d_containing.d_out->lemma(lem);
+      }
+    }
+    if( k==kind::INTS_MODULUS_TOTAL ){
+      Node node = nm->mkNode(kind::MINUS, num, nm->mkNode(kind::MULT, den, intVar));
+      return node;
+    }else{
+      return intVar;
+    }
+    break;
+  }
+  case kind::DIVISION_TOTAL: {
+    Node num = Rewriter::rewrite(n[0]);
+    Node den = Rewriter::rewrite(n[1]);
+    Assert(!den.isConst());
+    Node var;
+    Node rw = nm->mkNode(k, num, den);
+    if(!rw.getAttribute(LinearDivAttr(), var)) {
+      var = nm->mkSkolem("nonlinearDiv", nm->realType(), "the result of a non-linear div term");
+      rw.setAttribute(LinearDivAttr(), var);
+      d_containing.d_out->lemma(nm->mkNode(kind::IMPLIES, den.eqNode(nm->mkConst(Rational(0))).negate(), nm->mkNode(kind::MULT, den, var).eqNode(num)));
+    }
+    return var;
+    break;
+  }
   default:
     break;
   }
@@ -1630,7 +1580,8 @@ void TheoryArithPrivate::setupDivLike(const Variable& v){
   case DIVISION:
   case INTS_DIVISION:
   case INTS_MODULUS:
-    lem = definingIteForDivLike(vnode);
+    // these should be removed during expand definitions
+    Assert( false );
     break;
   case DIVISION_TOTAL:
     lem = axiomIteForTotalDivision(vnode);
@@ -1648,40 +1599,6 @@ void TheoryArithPrivate::setupDivLike(const Variable& v){
     Debug("arith::div") << lem << endl;
     outputLemma(lem);
   }
-}
-
-Node TheoryArithPrivate::definingIteForDivLike(Node divLike){
-  Kind k = divLike.getKind();
-  Assert(k == DIVISION || k == INTS_DIVISION || k == INTS_MODULUS);
-  // (for all ((n Real) (d Real))
-  //  (=
-  //   (DIVISION n d)
-  //   (ite (= d 0)
-  //    (APPLY [div_0_skolem_function] n)
-  //    (DIVISION_TOTAL n d))))
-
-  Polynomial n = Polynomial::parsePolynomial(divLike[0]);
-  Polynomial d = Polynomial::parsePolynomial(divLike[1]);
-
-  NodeManager* currNM = NodeManager::currentNM();
-  Node dEq0 = currNM->mkNode(EQUAL, d.getNode(), mkRationalNode(0));
-
-  Kind kTotal = (k == DIVISION) ? DIVISION_TOTAL :
-    (k == INTS_DIVISION) ? INTS_DIVISION_TOTAL : INTS_MODULUS_TOTAL;
-
-  Node by0Func = (k == DIVISION) ?  getRealDivideBy0Func():
-    (k == INTS_DIVISION) ? getIntDivideBy0Func() : getIntModulusBy0Func();
-
-
-  Debug("arith::div") << divLike << endl;
-  Debug("arith::div") << by0Func << endl;
-
-  Node divTotal = currNM->mkNode(kTotal, n.getNode(), d.getNode());
-  Node divZero = currNM->mkNode(APPLY_UF, by0Func, n.getNode());
-
-  Node defining = divLike.eqNode(dEq0.iteNode( divZero, divTotal));
-
-  return defining;
 }
 
 Node TheoryArithPrivate::axiomIteForTotalDivision(Node div_tot){
