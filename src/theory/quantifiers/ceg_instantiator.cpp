@@ -717,14 +717,10 @@ void CegInstantiator::processAssertions() {
   std::map< Node, Node > aux_subs;
 
   //for each variable
-  std::vector< TheoryId > tids;
-  tids.push_back(THEORY_UF);
   for( unsigned i=0; i<d_vars.size(); i++ ){
     Node pv = d_vars[i];
     TypeNode pvtn = pv.getType();
-    //collect relevant theories
-    std::map< TypeNode, bool > visited;
-    collectTheoryIds( pvtn, visited, tids );
+    Trace("cbqi-proc-debug") << "Collect theory ids from type " << pvtn << " of " << pv << std::endl;
     //collect information about eqc
     if( ee->hasTerm( pv ) ){
       Node pvr = ee->getRepresentative( pv );
@@ -739,8 +735,8 @@ void CegInstantiator::processAssertions() {
     }
   }
   //collect assertions for relevant theories
-  for( unsigned i=0; i<tids.size(); i++ ){
-    TheoryId tid = tids[i];
+  for( unsigned i=0; i<d_tids.size(); i++ ){
+    TheoryId tid = d_tids[i];
     Theory* theory = d_qe->getTheoryEngine()->theoryOf( tid );
     if( theory && d_qe->getTheoryEngine()->isTheoryEnabled(tid) ){
       Trace("cbqi-proc") << "Collect assertions from theory " << tid << std::endl;
@@ -781,7 +777,7 @@ void CegInstantiator::processAssertions() {
     TypeNode rtn = r.getType();
     TheoryId tid = Theory::theoryOf( rtn );
     //if we care about the theory of this eqc
-    if( std::find( tids.begin(), tids.end(), tid )!=tids.end() ){
+    if( std::find( d_tids.begin(), d_tids.end(), tid )!=d_tids.end() ){
       if( rtn.isInteger() || rtn.isReal() ){
         rtn = rtn.getBaseType();
       }
@@ -810,7 +806,7 @@ void CegInstantiator::processAssertions() {
     if( it!=aux_subs.end() ){
       addToAuxVarSubstitution( subs_lhs, subs_rhs, r, it->second );
     }else{
-      Trace("cbqi-proc") << "....no substitution found for auxiliary variable " << r << "!!!" << std::endl;
+      Trace("cbqi-proc") << "....no substitution found for auxiliary variable " << r << "!!! type is " << r.getType() << std::endl;
       Assert( false );
     }
   }
@@ -996,6 +992,21 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   std::map< Node, bool > visited;
   for( unsigned i=0; i<lems.size(); i++ ){
     collectCeAtoms( lems[i], visited );
+  }
+
+  //compute the theory ids
+  d_tids.clear();
+  d_tids.push_back(THEORY_UF);
+  for( unsigned r=0; r<2; r++ ){
+    unsigned sz = r==0 ? d_vars.size() : d_aux_vars.size();
+    for( unsigned i=0; i<sz; i++ ){
+      Node pv = r==0 ? d_vars[i] : d_aux_vars[i];
+      TypeNode pvtn = pv.getType();
+      Trace("cbqi-proc-debug") << "Collect theory ids from type " << pvtn << " of " << pv << std::endl;
+      //collect relevant theories
+      std::map< TypeNode, bool > visited;
+      collectTheoryIds( pvtn, visited, d_tids );
+    }
   }
 }
 

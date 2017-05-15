@@ -74,6 +74,7 @@ subdirs_to_check = \
 	regress/regress1/sets \
 	regress/regress1/strings \
 	regress/regress1/sygus \
+	regress/regress1/quantifiers \
 	regress/regress2 \
 	regress/regress2/arith \
 	regress/regress3 \

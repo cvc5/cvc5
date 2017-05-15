@@ -93,6 +93,8 @@ private:
   std::map< TypeNode, std::vector< Node > > d_curr_type_eqc;
   //auxiliary variables
   std::vector< Node > d_aux_vars;
+  // relevant theory ids
+  std::vector< TheoryId > d_tids;
   //literals to equalities for aux vars
   std::map< Node, std::map< Node, Node > > d_aux_eq;
   //the CE variables
