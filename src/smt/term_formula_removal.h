@@ -40,6 +40,8 @@ class RemoveTermFormulas {
   ITECache d_iteCache;
 
   static inline int cacheVal( bool inQuant, bool inTerm ) { return (inQuant ? 1 : 0) + 2*(inTerm ? 1 : 0); }
+  
+  static bool hasNestedTermChildren( TNode node );
 public:
 
   RemoveTermFormulas(context::UserContext* u);

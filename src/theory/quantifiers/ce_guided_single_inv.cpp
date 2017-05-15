@@ -817,6 +817,7 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
 Node CegConjectureSingleInv::reconstructToSyntax( Node s, TypeNode stn, int& reconstructed, bool rconsSygus ) {
   d_solution = s;
   const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
+  Trace("csi-sol") << "Reconstruct to syntax " << s << ", allow all = " << dt.getSygusAllowAll() << " " << stn << ", reconstruct = " << rconsSygus << std::endl;
 
   //reconstruct the solution into sygus if necessary
   reconstructed = 0;

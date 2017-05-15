@@ -153,10 +153,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   if(node.getKind() == kind::FORALL || node.getKind() == kind::EXISTS) {
     // Remember if we're inside a quantifier
     inQuant = true;
-  }else if( theory::kindToTheoryId(node.getKind())!=theory::THEORY_BOOL && 
-            node.getKind()!=kind::EQUAL && node.getKind()!=kind::SEP_STAR && 
-            node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL && 
-            node.getKind()!=kind::BITVECTOR_EAGER_ATOM ){
+  }else if( !inTerm && hasNestedTermChildren( node ) ){
     // Remember if we're inside a term
     Debug("ite") << "In term because of " << node << " " << node.getKind() << std::endl;
     inTerm = true;
@@ -208,7 +205,7 @@ Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
   if(node.getKind() == kind::FORALL || node.getKind() == kind::EXISTS) {
     // Remember if we're inside a quantifier
     inQuant = true;
-  }else if( theory::kindToTheoryId(node.getKind())!=theory::THEORY_BOOL && node.getKind()!=kind::EQUAL ){
+  }else if( !inTerm && hasNestedTermChildren( node ) ){
     // Remember if we're inside a term
     inTerm = true;
   }  
@@ -231,6 +228,15 @@ Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
   } else {
     return node;
   }
+}
+
+// returns true if the children of node should be considered nested terms 
+bool RemoveTermFormulas::hasNestedTermChildren( TNode node ) {
+  return theory::kindToTheoryId(node.getKind())!=theory::THEORY_BOOL && 
+         node.getKind()!=kind::EQUAL && node.getKind()!=kind::SEP_STAR && 
+         node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL && 
+         node.getKind()!=kind::BITVECTOR_EAGER_ATOM;
+         // dont' worry about FORALL or EXISTS (handled separately)
 }
 
 }/* CVC4 namespace */

@@ -601,7 +601,7 @@ bool Datatype::getSygusAllowConst() const {
 }
 
 bool Datatype::getSygusAllowAll() const {
-  return d_sygus_allow_const;
+  return d_sygus_allow_all;
 }
 
 Expr Datatype::getSygusEvaluationFunc() const {
