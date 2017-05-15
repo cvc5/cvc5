@@ -39,11 +39,6 @@ namespace theory {
 
 class QuantifiersEngine;
 
-namespace quantifiers {
-  class TermDb;
-  class TermDbSygus;
-}
-
 class InstantiationNotify {
 public:
   InstantiationNotify(){}
@@ -53,6 +48,8 @@ public:
 };
 
 namespace quantifiers {
+  class TermDb;
+  class TermDbSygus;
   class FirstOrderModel;
   //modules
   class InstantiationEngine;
@@ -343,6 +340,8 @@ public:
   bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
   /** is in conflict */
   bool inConflict() { return d_conflict; }
+  /** set conflict */
+  void setConflict();
   /** get number of waiting lemmas */
   unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
   /** get needs check */

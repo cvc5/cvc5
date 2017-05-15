@@ -80,6 +80,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_util.push_back( d_term_db );
 
   if( options::instPropagate() ){
+    // notice that this option is incompatible with options::qcfAllConflict()
     d_inst_prop = new quantifiers::InstPropagator( this );
     d_util.push_back( d_inst_prop );
     d_inst_notify.push_back( d_inst_prop->getInstantiationNotify() );
@@ -1250,8 +1251,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       for( unsigned j=0; j<d_inst_notify.size(); j++ ){
         if( !d_inst_notify[j]->notifyInstantiation( d_curr_effort_level, q, lem, terms, body ) ){
           Trace("inst-add-debug") << "...we are in conflict." << std::endl;
-          d_conflict = true;
-          d_conflict_c = true;
+          setConflict();
           Assert( !d_lemmas_waiting.empty() );
           break;
         }
@@ -1317,6 +1317,11 @@ bool QuantifiersEngine::addEPRAxiom( TypeNode tn ) {
   
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
+}
+
+void QuantifiersEngine::setConflict() { 
+  d_conflict = true; 
+  d_conflict_c = true; 
 }
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {

@@ -278,10 +278,12 @@ void TermDb::computeUfTerms( TNode f ) {
                   Trace("term-db-lemma") << "Disequal congruent terms : " << at << " " << n << "!!!!" << std::endl;
                   if( !d_quantEngine->getTheoryEngine()->needCheck() ){
                     Trace("term-db-lemma") << "  all theories passed with no lemmas." << std::endl;
+                    // we should be a full effort check, prior to theory combination
                   }
                   Trace("term-db-lemma") << "  add lemma : " << lem << std::endl;
                 }
                 d_quantEngine->addLemma( lem );
+                d_quantEngine->setConflict();
                 d_consistent_ee = false;
                 return;
               }
