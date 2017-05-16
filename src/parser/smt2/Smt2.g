@@ -3118,26 +3118,26 @@ FP_PINF_TOK : '+oo';
 FP_NINF_TOK : '-oo';
 FP_PZERO_TOK : '+zero';
 FP_NZERO_TOK : '-zero';
-FP_NAN_TOK : 'NaN';
+FP_NAN_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'NaN';
 
-FP_TO_FP_TOK : 'to_fp';
-FP_TO_FPBV_TOK : 'to_fp_bv';
-FP_TO_FPFP_TOK : 'to_fp_fp';
-FP_TO_FPR_TOK : 'to_fp_real';
-FP_TO_FPS_TOK : 'to_fp_signed';
-FP_TO_FPU_TOK : 'to_fp_unsigned';
-FP_TO_UBV_TOK : 'fp.to_ubv';
-FP_TO_SBV_TOK : 'fp.to_sbv';
-FP_RNE_TOK : 'RNE';
-FP_RNA_TOK : 'RNA';
-FP_RTP_TOK : 'RTP';
-FP_RTN_TOK : 'RTN';
-FP_RTZ_TOK : 'RTZ';
-FP_RNE_FULL_TOK : 'roundNearestTiesToEven';
-FP_RNA_FULL_TOK : 'roundNearestTiesToAway';
-FP_RTP_FULL_TOK : 'roundTowardPositive';
-FP_RTN_FULL_TOK : 'roundTowardNegative';
-FP_RTZ_FULL_TOK : 'roundTowardZero';
+FP_TO_FP_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'to_fp';
+FP_TO_FPBV_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'to_fp_bv';
+FP_TO_FPFP_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'to_fp_fp';
+FP_TO_FPR_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'to_fp_real';
+FP_TO_FPS_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'to_fp_signed';
+FP_TO_FPU_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'to_fp_unsigned';
+FP_TO_UBV_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'fp.to_ubv';
+FP_TO_SBV_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'fp.to_sbv';
+FP_RNE_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'RNE';
+FP_RNA_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'RNA';
+FP_RTP_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'RTP';
+FP_RTN_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'RTN';
+FP_RTZ_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'RTZ';
+FP_RNE_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundNearestTiesToEven';
+FP_RNA_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundNearestTiesToAway';
+FP_RTP_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundTowardPositive';
+FP_RTN_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundTowardNegative';
+FP_RTZ_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundTowardZero';
 
 /**
  * A sequence of printable ASCII characters (except backslash) that starts
