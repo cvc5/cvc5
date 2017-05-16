@@ -55,11 +55,6 @@ namespace main {
  */
 bool segvSpin = false;
 
-#ifndef __WIN32__
-
-size_t cvc4StackSize;
-void* cvc4StackBase;
-
 void print_statistics() {
   if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL) {
     if (pTotalTime != NULL && pTotalTime->running()) {
@@ -68,6 +63,11 @@ void print_statistics() {
     pExecutor->safeFlushStatistics(STDERR_FILENO);
   }
 }
+
+#ifndef __WIN32__
+
+size_t cvc4StackSize;
+void* cvc4StackBase;
 
 /** Handler for SIGXCPU, i.e., timeout. */
 void timeout_handler(int sig, siginfo_t* info, void*) {
