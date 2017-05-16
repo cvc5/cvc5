@@ -137,7 +137,7 @@ public:
    */
   virtual void safeFlushStat(int fd) const {
     if (__CVC4_USE_STATISTICS) {
-      safe_print(fd, d_name.c_str());
+      safe_print(fd, d_name);
       safe_print(fd, ", ");
       safeFlushInformation(fd);
     }

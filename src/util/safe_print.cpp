@@ -128,9 +128,8 @@ void safe_print(int fd, const double& _d) {
     d -= c;
     i++;
   }
-  if (i == 0) {
-    safe_print(fd, "0");
-  } else if (write(fd, buf, i) != i) {
+
+  if (write(fd, buf, i) != i) {
     abort();
   }
 }
@@ -172,7 +171,7 @@ void safe_print_hex(int fd, uint64_t i) {
 
   // This loop fills the buffer from the end. The number of elements in the
   // buffer is BUFER_SIZE - idx - 1 and they start at position idx + 1.
-  size_t idx = BUFFER_SIZE - 1;
+  ssize_t idx = BUFFER_SIZE - 1;
   while (i != 0 && idx >= 0) {
     char current = i % 16;
     if (current <= 9) {

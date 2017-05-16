@@ -61,7 +61,7 @@ namespace CVC4 {
     const char *progPath;
 
     /** Just the basename component of argv[0] */
-    const char *progName;
+    const std::string *progName;
 
     /** A pointer to the CommandExecutor (the signal handlers need it) */
     CVC4::main::CommandExecutor* pExecutor = NULL;
@@ -112,7 +112,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 # endif
 
-  progName = opts.getBinaryName().c_str();
+  string progNameStr = opts.getBinaryName();
+  progName = &progNameStr;
 
   if( opts.getHelp() ) {
     printUsage(opts, true);

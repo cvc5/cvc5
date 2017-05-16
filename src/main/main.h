@@ -38,7 +38,7 @@ class CommandExecutor;
 extern const char* progPath;
 
 /** Just the basename component of argv[0] */
-extern const char* progName;
+extern const std::string* progName;
 
 /** A reference for use by the signal handlers to print statistics */
 extern CVC4::main::CommandExecutor* pExecutor;
