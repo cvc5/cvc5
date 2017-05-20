@@ -615,7 +615,8 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
       }
     }
   }
-  return false;
+  // spurious if quantifiers engine is in conflict
+  return p->d_quantEngine->inConflict();
 }
 
 bool QuantInfo::isPropagatingInstance( QuantConflictFind * p, Node n ) {
