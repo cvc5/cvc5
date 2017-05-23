@@ -1,7 +1,7 @@
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__MEMORY_SINK_H
-#define __CVC4__PARSER__MEMORY_SINK_H
+#ifndef __CVC4__PARSER__OWNED_REGION_ALLOCATOR_H
+#define __CVC4__PARSER__OWNED_REGION_ALLOCATOR_H
 
 #include <cstddef>
 
@@ -37,4 +37,4 @@ class OwnedRegionAllocator {
 }  // namespace parser
 }  // namespace CVC4
 
-#endif /* #define __CVC4__PARSER__MEMORY_SINK_H */
+#endif /* #define __CVC4__PARSER__OWNED_REGION_ALLOCATOR_H */
