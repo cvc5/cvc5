@@ -48,6 +48,8 @@ libcvc4parser_la_SOURCES = \
 	input.h \
 	memory_mapped_input_buffer.cpp \
 	memory_mapped_input_buffer.h \
+	owned_region_allocator.cpp \
+	owned_region_allocator.h \
 	parser.cpp \
 	parser.h \
 	parser_builder.cpp \
