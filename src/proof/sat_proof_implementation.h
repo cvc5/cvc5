@@ -728,8 +728,8 @@ void TSatProof<Solver>::registerResolution(ClauseId id, ResChain<Solver>* res) {
     ResChain<Solver>* current = (*d_resolutionChains.find(id)).second;
     delete current;
   }
-  if (d_resolutionChains.find(id) == d_resolutionChains.end())
-    d_resolutionChains.insert(id, res);
+
+  d_resolutionChains.insert(id, res);
 
   if (Debug.isOn("proof:sat")) {
     printRes(id);
