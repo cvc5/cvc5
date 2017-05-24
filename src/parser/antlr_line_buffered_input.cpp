@@ -291,50 +291,44 @@ static ANTLR3_UCHAR myLA(pANTLR3_INT_STREAM is, ANTLR3_INT32 la) {
   return (ANTLR3_UCHAR)(*((pANTLR3_UINT8)input->nextChar + la - 1));
 }
 
+static void myConsume(pANTLR3_INT_STREAM is) {
+  pANTLR3_INPUT_STREAM input;
 
-static void
-myConsume(pANTLR3_INT_STREAM is)
-{
-    pANTLR3_INPUT_STREAM input;
+  input = ((pANTLR3_INPUT_STREAM)(is->super));
 
-    input   = ((pANTLR3_INPUT_STREAM) (is->super));
+  Debug("pipe") << "consume! '" << *(char*)input->nextChar << "' ("
+                << (unsigned)*(char*)input->nextChar << ")" << std::endl;
+  if ((pANTLR3_UINT8)(input->nextChar) <
+      (((pANTLR3_UINT8)input->data) + input->sizeBuf)) {
+    /* Indicate one more character in this line */
+    input->charPositionInLine++;
 
-    Debug("pipe") << "consume! '" << *(char*)input->nextChar << "' ("
-                  << (unsigned)*(char*)input->nextChar << ")" << std::endl;
-    if ((pANTLR3_UINT8)(input->nextChar) <
-        (((pANTLR3_UINT8)input->data) + input->sizeBuf)) {
-      /* Indicate one more character in this line
-       */
-      input->charPositionInLine++;
+    if ((ANTLR3_UCHAR)(*((pANTLR3_UINT8)input->nextChar)) ==
+        input->newlineChar) {
+      /* Reset for start of a new line of input */
+      input->line++;
+      input->charPositionInLine = 0;
+      input->currentLine = (void*)(((pANTLR3_UINT8)input->nextChar) + 1);
+      Debug("pipe") << "-- newline!" << std::endl;
+    }
 
-      if ((ANTLR3_UCHAR)(*((pANTLR3_UINT8)input->nextChar)) ==
-          input->newlineChar) {
-        /* Reset for start of a new line of input
-         */
-        input->line++;
-        input->charPositionInLine = 0;
-        input->currentLine = (void*)(((pANTLR3_UINT8)input->nextChar) + 1);
-        Debug("pipe") << "-- newline!" << std::endl;
-      }
-
-      /* Increment to next character position
-       */
-      input->nextChar = (void*)(((pANTLR3_UINT8)input->nextChar) + 1);
-      ptrdiff_t remaining = (((pANTLR3_UINT8)input->data) + input->sizeBuf) -
-        (pANTLR3_UINT8)(input->nextChar);
+    /* Increment to next character position */
+    input->nextChar = (void*)(((pANTLR3_UINT8)input->nextChar) + 1);
+    ptrdiff_t remaining = (((pANTLR3_UINT8)input->data) + input->sizeBuf) -
+                          (pANTLR3_UINT8)(input->nextChar);
     Debug("pipe") << "-- advance nextChar! have " << remaining << "chars.";
     assert(remaining >= 0);
 
     if (remaining >= sizeof(char)) {
-        Debug("pipe") << " looking at '" << *(char*)input->nextChar << "'";
-      }
-      if (remaining >= sizeof(unsigned)) {
-        Debug("pipe") << "(" << (unsigned)*(char*)input->nextChar << ")";
-      }
-      Debug("pipe") << std::endl;
-    } else {
-      Debug("pipe") << "-- nothing!" << std::endl;
+      Debug("pipe") << " looking at '" << *(char*)input->nextChar << "'";
     }
+    if (remaining >= sizeof(unsigned)) {
+      Debug("pipe") << "(" << (unsigned)*(char*)input->nextChar << ")";
+    }
+    Debug("pipe") << std::endl;
+  } else {
+    Debug("pipe") << "-- nothing!" << std::endl;
+  }
 }
 
 pANTLR3_INPUT_STREAM antlr3LineBufferedStreamNew(
