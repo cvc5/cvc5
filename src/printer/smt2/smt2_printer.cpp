@@ -1067,7 +1067,7 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core, const std::
     if(j == names.end()) {
       out << *i << endl;
     } else {
-      out << (*j).second << endl;
+      out << maybeQuoteSymbol((*j).second) << endl;
     }
   }
   out << ")" << endl;
