@@ -42,7 +42,8 @@ SMT_TESTS = \
 	fuzz01.smt
 
 # Regression tests for SMT2 inputs
-SMT2_TESTS =
+SMT2_TESTS = \
+	bug800.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = 

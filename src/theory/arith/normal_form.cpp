@@ -14,11 +14,11 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+#include "theory/arith/normal_form.h"
 
 #include <list>
 
 #include "base/output.h"
-#include "theory/arith/normal_form.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/theory.h"
 
@@ -805,6 +805,7 @@ DeltaRational Comparison::normalizedDeltaRational() const {
 }
 
 Comparison Comparison::parseNormalForm(TNode n) {
+  Debug("polynomial") << "Comparison::parseNormalForm(" << n << ")";
   Comparison result(n);
   Assert(result.isNormalForm());
   return result;
@@ -1080,8 +1081,8 @@ bool Comparison::isNormalEqualityOrDisequality() const {
 /** This must be (= qvarlist qpolynomial) or (= zmonomial zpolynomial)*/
 bool Comparison::isNormalEquality() const {
   Assert(getNode().getKind() == kind::EQUAL);
-
-  return isNormalEqualityOrDisequality();
+  return Theory::theoryOf(getNode()[0].getType()) == THEORY_ARITH &&
+         isNormalEqualityOrDisequality();
 }
 
 /**
@@ -1092,7 +1093,8 @@ bool Comparison::isNormalDistinct() const {
   Assert(getNode().getKind() == kind::NOT);
   Assert(getNode()[0].getKind() == kind::EQUAL);
 
-  return isNormalEqualityOrDisequality();
+  return Theory::theoryOf(getNode()[0][0].getType()) == THEORY_ARITH &&
+         isNormalEqualityOrDisequality();
 }
 
 Node Comparison::mkRatEquality(const Polynomial& p){

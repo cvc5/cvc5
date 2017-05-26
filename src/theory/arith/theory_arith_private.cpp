@@ -1387,7 +1387,8 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
   Rational minConstant = 0;
   Node minMonomial;
   Node minVar;
-  if (in.getKind() == kind::EQUAL) {
+  if (in.getKind() == kind::EQUAL &&
+      Theory::theoryOf(in[0].getType()) == THEORY_ARITH) {
     Comparison cmp = Comparison::parseNormalForm(in);
 
     Polynomial left = cmp.getLeft();
