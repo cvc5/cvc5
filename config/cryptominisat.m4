@@ -37,8 +37,8 @@ elif test -n "$with_cryptominisat"; then
 
   dnl TODO FIXME:
   dnl For some reason the CVC4_TRY_CRYPTOMINISAT is not working correctly
-  CVC4_TRY_CRYPTOMINISAT_WITH([])
-  CVC4_TRY_CRYPTOMINISAT_WITH([-lm4ri])
+  CVC4_TRY_CRYPTOMINISAT_WITH([-pthread])
+  CVC4_TRY_CRYPTOMINISAT_WITH([-pthread -lm4ri])
 
   if test -z "$CRYPTOMINISAT_LIBS"; then
     AC_MSG_FAILURE([cannot link against libcryptominisat!])
@@ -48,7 +48,6 @@ elif test -n "$with_cryptominisat"; then
   fi
 
   CRYPTOMINISAT_LDFLAGS="-L$CRYPTOMINISAT_HOME/install/lib"
-  CRYPTOMINISAT_LIBS="-lcryptominisat4 -lm4ri"
 
 else
   AC_MSG_RESULT([no, user didn't request cryptominisat])
@@ -71,10 +70,9 @@ if test -z "$CRYPTOMINISAT_LIBS"; then
   LDFLAGS="-L$CRYPTOMINISAT_HOME/install/lib"
   LIBS="-lcryptominisat4 $1"
 
-
   AC_LINK_IFELSE(
-    [AC_LANG_PROGRAM([#include <cryptominisat4/cryptominisat.h>],
-      [CMSat::SATSolver test()])], [CRYPTOMINISAT_LIBS="-lcryptominisat4 $1"],
+    [AC_LANG_PROGRAM([[#include <cryptominisat4/cryptominisat.h>]],
+      [[CMSat::SATSolver test()]])], [CRYPTOMINISAT_LIBS="-lcryptominisat4 $1"],
     [CRYPTOMINISAT_LIBS=])
 
   LDFLAGS="$cvc4_save_LDFLAGS"
