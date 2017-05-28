@@ -22,9 +22,7 @@
 #include "options/bv_options.h"
 #include "options/proof_options.h"
 #include "proof/bitvector_proof.h"
-#include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
-#include "proof/proof_utils.h"
 #include "proof/sat_proof_implementation.h"
 #include "proof/theory_proof.h"
 #include "smt/smt_engine.h"
@@ -37,7 +35,6 @@
 #include "theory/uf/theory_uf.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
-#include "util/proof.h"
 
 namespace CVC4 {
 
