@@ -294,7 +294,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     case kind::EMPTYSET:
       out << "(as emptyset " << n.getConst<EmptySet>().getType() << ")";
       break;
-  
+
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant
@@ -321,7 +321,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     }
     return;
   }
-  
+
   bool stillNeedToPrintParams = true;
   bool forceBinary = false; // force N-ary to binary when outputing children
   // operator
@@ -510,10 +510,10 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::SUBSET:
   case kind::MEMBER:
   case kind::SET_TYPE:
-  case kind::SINGLETON: 
+  case kind::SINGLETON:
   case kind::COMPLEMENT:out << smtKindString(k) << " "; break;
   case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
-  
+
     // fp theory
   case kind::FLOATINGPOINT_FP:
   case kind::FLOATINGPOINT_EQ:
@@ -586,7 +586,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::APPLY_SELECTOR_TOTAL:
   case kind::PARAMETRIC_DATATYPE:
     break;
-    
+
   //separation logic
   case kind::SEP_EMP:
   case kind::SEP_PTO:
@@ -667,7 +667,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
            tmp.replace(pos, 8, "::");
         }
         out << tmp;
-      }else if( n.getKind()==kind::APPLY_TESTER ){ 
+      }else if( n.getKind()==kind::APPLY_TESTER ){
         unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
         const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
         if( d_variant==smt2_6_variant ){
@@ -877,13 +877,13 @@ static string smtKindString(Kind k) throw() {
   case kind::REGEXP_OPT: return "re.opt";
   case kind::REGEXP_RANGE: return "re.range";
   case kind::REGEXP_LOOP: return "re.loop";
-  
+
   //sep theory
   case kind::SEP_STAR: return "sep";
   case kind::SEP_PTO: return "pto";
   case kind::SEP_WAND: return "wand";
   case kind::SEP_EMP: return "emp";
-    
+
   default:
     ; /* fall through */
   }
@@ -1064,10 +1064,12 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core, const std::
   out << "(" << std::endl;
   for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
     map<Expr, string>::const_iterator j = names.find(*i);
-    if(j == names.end()) {
-      out << *i << endl;
-    } else {
+    if (j != names.end()) {
+      // Named assertions always get printed
       out << maybeQuoteSymbol((*j).second) << endl;
+    } else if (options::dumpUnsatCoresFull()) {
+      // Unnamed assertions only get printed if the option is set
+      out << *i << endl;
     }
   }
   out << ")" << endl;
@@ -1105,7 +1107,7 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
     const std::map< TypeNode, std::vector< Node > >& type_reps = tm.d_rep_set.d_type_reps;
 
     std::map< TypeNode, std::vector< Node > >::const_iterator tn_iterator = type_reps.find( tn );
-    if( options::modelUninterpDtEnum() && tn.isSort() && tn_iterator != type_reps.end() ){  
+    if( options::modelUninterpDtEnum() && tn.isSort() && tn_iterator != type_reps.end() ){
       if(d_variant == smt2_6_variant) {
         out << "(declare-datatypes ((" << dynamic_cast<const DeclareTypeCommand*>(c)->getSymbol() << " 0)) (";
       }else{
