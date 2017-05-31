@@ -1855,6 +1855,7 @@ void SmtEngine::setDefaults() {
   if( d_logic.isQuantified() && 
       ( ( options::decisionMode()!=decision::DECISION_STRATEGY_INTERNAL &&
           ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_BV) ) ) ||
+        d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV) ||
         options::cbqiAll() ) ){
     if( !options::cbqi.wasSetByUser() ){
       options::cbqi.set( true );

@@ -238,8 +238,7 @@ void CoreSolver::buildModel() {
     TNode repr = *eqcs_i;
     ++eqcs_i;
 
-    if (repr.getKind() != kind::VARIABLE &&
-        repr.getKind() != kind::SKOLEM &&
+    if (!repr.isVar() &&
         repr.getKind() != kind::CONST_BITVECTOR &&
         !d_bv->isSharedTerm(repr)) {
       continue;

@@ -89,8 +89,9 @@ TESTS =	\
 	bug749-rounding.smt2 \
 	RNDPRE_4_1-dd-nqe.smt2 \
 	mix-complete-strat.smt2 \
-	cbqi-sdlx-fixpoint-3-dd.smt2
-
+	cbqi-sdlx-fixpoint-3-dd.smt2 \
+	qbv-simp.smt2 \
+	psyco-001-bv.smt2
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
 # set3.smt2

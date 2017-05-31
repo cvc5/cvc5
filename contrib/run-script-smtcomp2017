@@ -85,19 +85,19 @@ BV|UFBV)
   # many problems in UFBV are essentially BV
   trywith 300 --full-saturate-quant
   trywith 300 --finite-model-find
-  finishwith --full-saturate-quant --decision=internal
+  finishwith --full-saturate-quant --cbqi --decision=internal
   ;;
 LIA|LRA)
   trywith 30 --full-saturate-quant
   trywith 300 --full-saturate-quant --cbqi-midpoint
   trywith 300 --full-saturate-quant --cbqi-nested-qe
-  finishwith  --full-saturate-quant --cbqi-nested-qe --decision=internal
+  finishwith  --full-saturate-quant --cbqi --cbqi-nested-qe --decision=internal
   ;;
 NIA|NRA)
   trywith 30 --full-saturate-quant
   trywith 300 --full-saturate-quant --nl-ext
   trywith 300 --full-saturate-quant --cbqi-nested-qe
-  finishwith  --full-saturate-quant --cbqi-nested-qe --decision=internal
+  finishwith  --full-saturate-quant --cbqi --cbqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)
   trywith 600

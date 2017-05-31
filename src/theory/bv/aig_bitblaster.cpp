@@ -232,12 +232,6 @@ Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
       result = node.getConst<bool>() ? mkTrue<Abc_Obj_t*>() : mkFalse<Abc_Obj_t*>(); 
       break;
     }
-  case kind::VARIABLE:
-  case kind::SKOLEM:
-    {
-      result = mkInput(node);
-      break;
-    }
   case kind::EQUAL:
     {
       if( node[0].getType().isBoolean() ){
@@ -251,8 +245,12 @@ Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
       //else, continue...
     }
   default:
-    bbAtom(node);
-    result = getBBAtom(node);
+    if( isVar(node) ){
+      result = mkInput(node);
+    }else{
+      bbAtom(node);
+      result = getBBAtom(node);
+    }
   }
 
   cacheAig(node, result);
@@ -315,9 +313,7 @@ void AigBitblaster::makeVariable(TNode node, Bits& bits) {
 Abc_Obj_t* AigBitblaster::mkInput(TNode input) {
   Assert (!hasInput(input));
   Assert(input.getKind() == kind::BITVECTOR_BITOF ||
-         (input.getType().isBoolean() &&
-          (input.getKind() == kind::VARIABLE ||
-           input.getKind() == kind::SKOLEM)));
+         (input.getType().isBoolean() && input.isVar()));
   Abc_Obj_t* aig_input = Abc_NtkCreatePi(currentAigNtk());
   // d_aigCache.insert(std::make_pair(input, aig_input));
   d_nodeToAigInput.insert(std::make_pair(input, aig_input));
