@@ -1214,7 +1214,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
     NodeMap::const_iterator it = d_int_div_skolem.find( rw );
     if( it==d_int_div_skolem.end() ){
       intVar = nm->mkSkolem("linearIntDiv", nm->integerType(), "the result of an intdiv-by-k term");
-      d_div_skolem[rw] = intVar;
+      d_int_div_skolem[rw] = intVar;
       Node lem;
       if (den.isConst()) {
         const Rational& rat = den.getConst<Rational>();
