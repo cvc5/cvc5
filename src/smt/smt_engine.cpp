@@ -1852,8 +1852,10 @@ void SmtEngine::setDefaults() {
   }
   //counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
-  if( ( d_logic.isQuantified() && ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_BV) ) ) ||
-      options::cbqiAll() ){
+  if( d_logic.isQuantified() && 
+      ( ( options::decisionMode()!=decision::DECISION_STRATEGY_INTERNAL &&
+          ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_BV) ) ) ||
+        options::cbqiAll() ) ){
     if( !options::cbqi.wasSetByUser() ){
       options::cbqi.set( true );
     }
@@ -1889,11 +1891,14 @@ void SmtEngine::setDefaults() {
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
     options::quantConflictFind.set( true );
   }
-  if( options::cbqiNestedQE() ){
-    //only sound with prenex = disj_normal or normal
+  if( options::cbqi() && 
+      ( options::cbqiNestedQE() || options::decisionMode()==decision::DECISION_STRATEGY_INTERNAL ) ){
+    //only complete with prenex = disj_normal or normal
     if( options::prenexQuant()<=quantifiers::PRENEX_QUANT_DISJ_NORMAL ){
       options::prenexQuant.set( quantifiers::PRENEX_QUANT_DISJ_NORMAL );
     }
+  }
+  if( options::cbqiNestedQE() ){
     options::prenexQuantUser.set( true );
     if( !options::preSkolemQuant.wasSetByUser() ){
       options::preSkolemQuant.set( true );

@@ -1,4 +1,4 @@
-; COMMAND-LINE: -mi
+; COMMAND-LINE: --cbqi -mi --no-check-models
 ; EXPECT: sat
 ; EXPECT: unsat
 

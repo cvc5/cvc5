@@ -1,3 +1,5 @@
+; COMMAND-LINE: --no-check-models
+; EXPECT: sat
 (set-logic LIA)
 (set-info :status sat)
 (declare-fun W_S1_V5 () Bool)

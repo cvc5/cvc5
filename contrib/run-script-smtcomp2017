@@ -81,22 +81,23 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA)
   # finish 9min
   finishwith --full-saturate-quant
   ;;
-UFBV)
+BV|UFBV)
   # many problems in UFBV are essentially BV
-  trywith 300 --full-saturate-quant 
-  trywith 300 --finite-model-find
-  finishwith --cbqi-all --full-saturate-quant
-  ;;
-BV)
-  trywith 300 --finite-model-find
-  finishwith --cbqi-all --full-saturate-quant
-  ;;
-LIA|LRA|NIA|NRA)
   trywith 30 --full-saturate-quant
-  trywith 300 --full-saturate-quant --cbqi-min-bounds
-  trywith 300 --full-saturate-quant --decision=internal
-  trywith 1800  --full-saturate-quant --cbqi-nested-qe
-  finishwith --full-saturate-quant --cbqi-midpoint
+  trywith 30 --finite-model-find
+  finishwith --full-saturate-quant --decision=internal
+  ;;
+LIA|LRA)
+  trywith 30 --full-saturate-quant
+  trywith 300 --full-saturate-quant --cbqi-midpoint
+  trywith 300 --full-saturate-quant --cbqi-nested-qe
+  finishwith  --full-saturate-quant --cbqi-nested-qe --decision=internal
+  ;;
+NIA|NRA)
+  trywith 30 --full-saturate-quant
+  trywith 300 --full-saturate-quant --nl-ext
+  trywith 300 --full-saturate-quant --cbqi-nested-qe
+  finishwith  --full-saturate-quant --cbqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)
   trywith 600

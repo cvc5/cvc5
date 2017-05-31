@@ -1,4 +1,4 @@
-; COMMAND-LINE: --dt-rewrite-error-sel
+; COMMAND-LINE: --cbqi --dt-rewrite-error-sel
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (declare-datatypes () ((List (cons (head Int) (tail List)) (nil))))
