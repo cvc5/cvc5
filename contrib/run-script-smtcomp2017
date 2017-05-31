@@ -42,7 +42,7 @@ QF_NIA)
   finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cryptominisat
   ;;
 QF_NRA)
-  trywith 300 --nl-ext --nl-ext-tplanes
+  finishwith --nl-ext --nl-ext-tplanes
   ;;
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA)
   # the following is designed for a run time of 2400s (40 min).
@@ -83,8 +83,8 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA)
   ;;
 BV|UFBV)
   # many problems in UFBV are essentially BV
-  trywith 30 --full-saturate-quant
-  trywith 30 --finite-model-find
+  trywith 300 --full-saturate-quant
+  trywith 300 --finite-model-find
   finishwith --full-saturate-quant --decision=internal
   ;;
 LIA|LRA)
