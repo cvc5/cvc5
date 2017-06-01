@@ -120,6 +120,7 @@ bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
           if( std::find( d_parent_quant[q].begin(), d_parent_quant[q].end(), qi )==d_parent_quant[q].end() ){
             d_parent_quant[q].push_back( qi );
             d_children_quant[qi].push_back( q );
+            Assert( hasAddedCbqiLemma( qi ) );
             Node qicel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( qi );
             dep.push_back( qi );
             dep.push_back( qicel );
@@ -594,8 +595,10 @@ Node InstStrategyCbqi::getNextDecisionRequestProc( Node q, std::map< Node, bool 
 
 Node InstStrategyCbqi::getNextDecisionRequest( unsigned& priority ){
   std::map< Node, bool > proc;
-  for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-    Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
+  //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+  //  Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
+  for( NodeSet::const_iterator it = d_added_cbqi_lemma.begin(); it != d_added_cbqi_lemma.end(); ++it ){
+    Node q = *it;
     Node d = getNextDecisionRequestProc( q, proc );
     if( !d.isNull() ){
       priority = 0;

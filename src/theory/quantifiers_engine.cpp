@@ -933,32 +933,37 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
   }
 }
 
-Node QuantifiersEngine::getSubstitute( Node n, std::vector< Node >& terms ){
-  if( n.getKind()==INST_CONSTANT ){
-    Debug("check-inst") << "Substitute inst constant : " << n << std::endl;
-    return terms[n.getAttribute(InstVarNumAttribute())];
-  }else{
-    //if( !quantifiers::TermDb::hasInstConstAttr( n ) ){
-      //Debug("check-inst") << "No inst const attr : " << n << std::endl;
-      //return n;
-    //}else{
-      //Debug("check-inst") << "Recurse on : " << n << std::endl;
-    std::vector< Node > cc;
-    if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-      cc.push_back( n.getOperator() );
-    }
-    bool changed = false;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      Node c = getSubstitute( n[i], terms );
-      cc.push_back( c );
-      changed = changed || c!=n[i];
-    }
-    if( changed ){
-      Node ret = NodeManager::currentNM()->mkNode( n.getKind(), cc );
-      return ret;
+Node QuantifiersEngine::getSubstitute( Node n, std::vector< Node >& terms, std::map< Node, Node >& visited ){
+  std::map< Node, Node >::iterator itv = visited.find( n );
+  if( itv==visited.end() ){
+    Node ret = n;
+    if( n.getKind()==INST_CONSTANT ){
+      Debug("check-inst") << "Substitute inst constant : " << n << std::endl;
+      ret = terms[n.getAttribute(InstVarNumAttribute())];
     }else{
-      return n;
+      //if( !quantifiers::TermDb::hasInstConstAttr( n ) ){
+        //Debug("check-inst") << "No inst const attr : " << n << std::endl;
+        //return n;
+      //}else{
+        //Debug("check-inst") << "Recurse on : " << n << std::endl;
+      std::vector< Node > cc;
+      if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+        cc.push_back( n.getOperator() );
+      }
+      bool changed = false;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        Node c = getSubstitute( n[i], terms, visited );
+        cc.push_back( c );
+        changed = changed || c!=n[i];
+      }
+      if( changed ){
+        ret = NodeManager::currentNM()->mkNode( n.getKind(), cc );
+      }
     }
+    visited[n] = ret;
+    return ret;
+  }else{
+    return itv->second;
   }
 }
 
@@ -988,7 +993,8 @@ Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& vars, std
     }else{
       //do optimized version
       Node icb = d_term_db->getInstConstantBody( q );
-      body = getSubstitute( icb, terms );
+      std::map< Node, Node > visited;
+      body = getSubstitute( icb, terms, visited );
       if( Debug.isOn("check-inst") ){
         Node body2 = q[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
         if( body!=body2 ){

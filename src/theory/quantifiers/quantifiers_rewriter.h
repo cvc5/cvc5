@@ -60,7 +60,7 @@ public:
   static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa );
   static Node computeCondSplit( Node body, QAttributes& qa );
   static Node computePrenex( Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg );
-  static Node computePrenexAgg( Node n, bool topLevel );
+  static Node computePrenexAgg( Node n, bool topLevel, std::map< unsigned, std::map< Node, Node > >& visited );
   static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node computeVarElimination( Node body, std::vector< Node >& args, QAttributes& qa );
 private:

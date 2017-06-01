@@ -315,7 +315,7 @@ public:
   /** get instantiation */
   Node getInstantiation( Node q, std::vector< Node >& terms, bool doVts = false );
   /** do substitution */
-  Node getSubstitute( Node n, std::vector< Node >& terms );
+  Node getSubstitute( Node n, std::vector< Node >& terms, std::map< Node, Node >& visited );
   /** add lemma lem */
   bool addLemma( Node lem, bool doCache = true, bool doRewrite = true );
   /** remove pending lemma */
