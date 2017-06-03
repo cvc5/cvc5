@@ -63,6 +63,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUF
   trywith 30 --inst-when=full --full-saturate-quant
   trywith 30 --no-e-matching --no-quant-cf --full-saturate-quant
   trywith 30 --nl-ext --full-saturate-quant
+  trywith 30 --full-saturate-quant --quant-ind
   trywith 60 --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --full-saturate-quant
   # finite model find 2min
   trywith 20 --finite-model-find --mbqi=none
@@ -83,11 +84,13 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUF
 UFBV)
   # most problems in UFBV are essentially BV
   trywith 300 --full-saturate-quant
+  trywith 300 --full-saturate-quant --no-cbqi
   trywith 300 --full-saturate-quant --cbqi --decision=internal
   finishwith --finite-model-find
   ;;
 BV)
   trywith 300 --full-saturate-quant
+  trywith 300 --full-saturate-quant --no-cbqi
   finishwith --full-saturate-quant --cbqi --decision=internal
   ;;
 LIA|LRA)
