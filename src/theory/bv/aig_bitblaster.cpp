@@ -245,7 +245,7 @@ Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
       //else, continue...
     }
   default:
-    if( isVar(node) ){
+    if( node.isVar() ){
       result = mkInput(node);
     }else{
       bbAtom(node);
