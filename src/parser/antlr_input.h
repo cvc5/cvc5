@@ -35,11 +35,11 @@
 #include "base/output.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/input.h"
+#include "parser/line_buffer.h"
 #include "parser/parser_exception.h"
 #include "util/bitvector.h"
 #include "util/integer.h"
 #include "util/rational.h"
-
 
 namespace CVC4 {
 
@@ -62,10 +62,11 @@ private:
    */
   pANTLR3_UINT8 d_inputString;
 
-  AntlrInputStream(std::string name,
-                   pANTLR3_INPUT_STREAM input,
-                   bool fileIsTemporary,
-                   pANTLR3_UINT8 inputString);
+  LineBuffer* d_line_buffer;
+
+  AntlrInputStream(std::string name, pANTLR3_INPUT_STREAM input,
+                   bool fileIsTemporary, pANTLR3_UINT8 inputString,
+                   LineBuffer* line_buffer);
 
   /* This is private and unimplemented, because you should never use it. */
   AntlrInputStream(const AntlrInputStream& inputStream) CVC4_UNDEFINED;

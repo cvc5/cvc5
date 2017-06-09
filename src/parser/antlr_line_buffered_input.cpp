@@ -2,17 +2,30 @@
 /*! \file antlr_line_buffered_input.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief A custom ANTLR input stream that reads from the input stream lazily
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** WARNING: edits to this and related files should be done carefully due to the
+ *interaction with ANTLR internals.
+ **
+ ** This overwrites the _LA and the consume functions of the ANTLR input stream
+ ** to use a LineBuffer instead of accessing a buffer. The lines are kept in
+ ** memory to make sure that existing tokens remain valid (tokens store pointers
+ ** to the corresponding input). We do not overwrite mark()/rewind()/etc.
+ *because
+ ** we can use the line number and the position within that line to index into
+ *the
+ ** line buffer and the default markers already store and restore that
+ ** information. The line buffer guarantees that lines are consecutive in
+ ** memory, so ANTLR3_INPUT_STREAM::getLineBuf() should work as intended and
+ ** tokens themselves are consecutive in memory (we are assuming that tokens
+ ** are not split across multiple lines).
  **/
 
 // We rely on the inclusion of #include <antlr3.h> in
@@ -32,7 +45,8 @@
 namespace CVC4 {
 namespace parser {
 
-static pANTLR3_INPUT_STREAM    antlr3CreateLineBufferedStream(std::istream& in);
+static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
+    std::istream& in, LineBuffer* line_buffer);
 
 static void
 setupInputStream(pANTLR3_INPUT_STREAM input)
@@ -206,111 +220,66 @@ setupInputStream(pANTLR3_INPUT_STREAM input)
 #endif /* 0 */
 }
 
-static ANTLR3_UCHAR
-myLA(pANTLR3_INT_STREAM is, ANTLR3_INT32 la) {
-    pANTLR3_INPUT_STREAM input;
-
-    input   = ((pANTLR3_INPUT_STREAM) (is->super));
-
-    Debug("pipe") << "LA" << std::endl;
-    if	(( ((pANTLR3_UINT8)input->nextChar) + la - 1) >= (((pANTLR3_UINT8)input->data) + input->sizeBuf))
-    {
-      std::istream& in = *((CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input)->in;
-      //MGD
-      // in.clear();
-      if(!in) {
-        Debug("pipe") << "EOF" << std::endl;
-        return	ANTLR3_CHARSTREAM_EOF;
-      }
-      Debug("pipe") << "READ" << std::endl;
-      if(input->data == NULL) {
-        Debug("pipe") << "ALLOC" << std::endl;
-        input->data = malloc(1024);
-        input->nextChar = input->data;
-      } else {
-        Debug("pipe") << "REALLOC" << std::endl;
-        size_t pos = (char*)input->nextChar - (char*)input->data;
-        input->data = realloc(input->data, input->sizeBuf + 1024);
-        input->nextChar = (char*)input->data + pos;
-      }
-      in.getline((((char*)input->data) + input->sizeBuf), 1024);
-      while(in.fail() && !in.eof()) {
-        Debug("pipe") << "input string too long, reallocating" << std::endl;
-        input->sizeBuf += strlen(((char*)input->data) + input->sizeBuf);
-        size_t pos = (char*)input->nextChar - (char*)input->data;
-        input->data = realloc(input->data, input->sizeBuf + 1024);
-        input->nextChar = (char*)input->data + pos;
-        in.clear();
-        in.getline((((char*)input->data) + input->sizeBuf), 1024);
-      }
-      input->sizeBuf += strlen(((char*)input->data) + input->sizeBuf);
-      assert(*(((char*)input->data) + input->sizeBuf) == '\0');
-      Debug("pipe") << "SIZEBUF now " << input->sizeBuf << std::endl;
-      *(((char*)input->data) + input->sizeBuf) = '\n';
-      ++input->sizeBuf;
-    }
-
-    Debug("pipe") << "READ POINTER[" << la << "] AT: >>" << std::string(((char*)input->nextChar), input->sizeBuf - (((char*)input->nextChar) - (char*)input->data)) << "<< returning '" << (char)(*((pANTLR3_UINT8)input->nextChar + la - 1)) << "' (" << (unsigned)(*((pANTLR3_UINT8)input->nextChar + la - 1)) << ")" << std::endl;
-    return	(ANTLR3_UCHAR)(*((pANTLR3_UINT8)input->nextChar + la - 1));
+static ANTLR3_UCHAR myLA(pANTLR3_INT_STREAM is, ANTLR3_INT32 la) {
+  pANTLR3_INPUT_STREAM input = ((pANTLR3_INPUT_STREAM)(is->super));
+  CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
+      (CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
+  char* result = line_buffered_input->line_buffer->getPtrWithOffset(
+      input->line, input->charPositionInLine, la - 1);
+  return (result != NULL) ? *result : ANTLR3_CHARSTREAM_EOF;
 }
 
+static void myConsume(pANTLR3_INT_STREAM is) {
+  pANTLR3_INPUT_STREAM input = ((pANTLR3_INPUT_STREAM)(is->super));
+  CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
+      (CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
 
-static void
-myConsume(pANTLR3_INT_STREAM is)
-{
-    pANTLR3_INPUT_STREAM input;
+  char* current = line_buffered_input->line_buffer->getPtr(
+      input->line, input->charPositionInLine);
+  if (current != NULL) {
+    input->charPositionInLine++;
 
-    input   = ((pANTLR3_INPUT_STREAM) (is->super));
+    if (reinterpret_cast<unsigned char&>(*current) == input->newlineChar) {
+      // Reset for start of a new line of input
+      input->line++;
+      input->charPositionInLine = 0;
+      input->currentLine = line_buffered_input->line_buffer->getPtr(
+          input->line, input->charPositionInLine);
+      Debug("pipe") << "-- newline!" << std::endl;
+    }
 
-    Debug("pipe") << "consume! '" << *(char*)input->nextChar << "' (" << (unsigned)*(char*)input->nextChar << ")" << std::endl;
-    if	((pANTLR3_UINT8)(input->nextChar) < (((pANTLR3_UINT8)input->data) + input->sizeBuf))
-    {
-	/* Indicate one more character in this line
-	 */
-	input->charPositionInLine++;
-
-	if  ((ANTLR3_UCHAR)(*((pANTLR3_UINT8)input->nextChar)) == input->newlineChar)
-	{
-	    /* Reset for start of a new line of input
-	     */
-	    input->line++;
-	    input->charPositionInLine	= 0;
-	    input->currentLine		= (void *)(((pANTLR3_UINT8)input->nextChar) + 1);
-            Debug("pipe") << "-- newline!" << std::endl;
-	}
-
-	/* Increment to next character position
-	 */
-	input->nextChar = (void *)(((pANTLR3_UINT8)input->nextChar) + 1);
-        Debug("pipe") << "-- advance nextChar! looking at '" << *(char*)input->nextChar << "' (" << (unsigned)*(char*)input->nextChar << ")" << std::endl;
-    } else Debug("pipe") << "-- nothing!" << std::endl;
+    input->nextChar = line_buffered_input->line_buffer->getPtr(
+        input->line, input->charPositionInLine);
+  }
 }
 
-pANTLR3_INPUT_STREAM
-antlr3LineBufferedStreamNew(std::istream& in, ANTLR3_UINT32 encoding, pANTLR3_UINT8 name)
-{
-    pANTLR3_INPUT_STREAM    input;
+pANTLR3_INPUT_STREAM antlr3LineBufferedStreamNew(std::istream& in,
+                                                 ANTLR3_UINT32 encoding,
+                                                 pANTLR3_UINT8 name,
+                                                 LineBuffer* line_buffer) {
+  pANTLR3_INPUT_STREAM input;
 
-    if(!in) {
-      return NULL;
-    }
+  if (!in) {
+    return NULL;
+  }
 
-    // First order of business is to set up the stream and install the data pointer.
-    // Then we will work out the encoding and byte order and adjust the API functions that are installed for the
-    // default 8Bit stream accordingly.
-    //
-    input   = antlr3CreateLineBufferedStream(in);
-    if  (input == NULL)
-    {
-        return NULL;
-    }
+  // First order of business is to set up the stream and install the data
+  // pointer.
+  // Then we will work out the encoding and byte order and adjust the API
+  // functions that are installed for the
+  // default 8Bit stream accordingly.
+  //
+  input = antlr3CreateLineBufferedStream(in, line_buffer);
+  if (input == NULL) {
+    return NULL;
+  }
 
-    // Size (in bytes) of the given 'string'
-    //
-    input->sizeBuf		= 0;
+  // Size (in bytes) of the given 'string'
+  //
+  input->sizeBuf = 0;
 
-    input->istream->_LA		= myLA;
-    input->istream->consume	= myConsume;
+  input->istream->_LA = myLA;
+  input->istream->consume = myConsume;
 
 #ifndef CVC4_ANTLR3_OLD_INPUT_STREAM
     // We have the data in memory now so we can deal with it according to
@@ -326,43 +295,42 @@ antlr3LineBufferedStreamNew(std::istream& in, ANTLR3_UINT32 encoding, pANTLR3_UI
 
     // Now we can set up the file name
     //
-    input->istream->streamName	= input->strFactory->newStr8(input->strFactory, name);
-    input->fileName		= input->istream->streamName;
+    input->istream->streamName =
+        input->strFactory->newStr8(input->strFactory, name);
+    input->fileName = input->istream->streamName;
 
     return input;
 }
 
-static pANTLR3_INPUT_STREAM
-antlr3CreateLineBufferedStream(std::istream& in)
-{
-	// Pointer to the input stream we are going to create
-	//
-	pANTLR3_INPUT_STREAM    input;
+static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
+    std::istream& in, LineBuffer* line_buffer) {
+  // Pointer to the input stream we are going to create
+  //
+  pANTLR3_INPUT_STREAM input;
 
-	if	(!in)
-	{
-		return NULL;
-	}
+  if (!in) {
+    return NULL;
+  }
 
-	// Allocate memory for the input stream structure
-	//
-	input   = (pANTLR3_INPUT_STREAM)
-		ANTLR3_CALLOC(1, sizeof(ANTLR3_LINE_BUFFERED_INPUT_STREAM));
+  // Allocate memory for the input stream structure
+  //
+  input = (pANTLR3_INPUT_STREAM)ANTLR3_CALLOC(
+      1, sizeof(ANTLR3_LINE_BUFFERED_INPUT_STREAM));
 
-	if	(input == NULL)
-	{
-		return	NULL;
-	}
+  if (input == NULL) {
+    return NULL;
+  }
 
-	// Structure was allocated correctly, now we can install the pointer
-	//
-        input->data             = malloc(1024);
-        input->isAllocated	= ANTLR3_FALSE;
+  // Structure was allocated correctly, now we can install the pointer
+  //
+  input->data = malloc(1024);
+  input->isAllocated = ANTLR3_FALSE;
 
-        ((pANTLR3_LINE_BUFFERED_INPUT_STREAM)input)->in = &in;
-	// Call the common 8 bit input stream handler
-	// initialization.
-	//
+  ((pANTLR3_LINE_BUFFERED_INPUT_STREAM)input)->in = &in;
+  ((pANTLR3_LINE_BUFFERED_INPUT_STREAM)input)->line_buffer = line_buffer;
+// Call the common 8 bit input stream handler
+// initialization.
+//
 #ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
 	antlr3AsciiSetupStream(input, ANTLR3_CHARSTREAM);
 #else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
@@ -372,6 +340,9 @@ antlr3CreateLineBufferedStream(std::istream& in)
 	antlr3GenericSetupStream(input);
 #endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
 
+        input->charPositionInLine = 0;
+        input->line = 0;
+        input->nextChar = line_buffer->getPtr(0, 0);
         return  input;
 }
 
