@@ -46,15 +46,15 @@ libcvc4parser_la_SOURCES = \
 	bounded_token_factory.h \
 	input.cpp \
 	input.h \
+	line_buffer.cpp \
+	line_buffer.h \
 	memory_mapped_input_buffer.cpp \
 	memory_mapped_input_buffer.h \
 	parser.cpp \
 	parser.h \
 	parser_builder.cpp \
 	parser_builder.h \
-	parser_exception.h \
-	line_buffer.h \
-	line_buffer.cpp
+	parser_exception.h
 
 EXTRA_DIST = \
 	Makefile.antlr_tracing \

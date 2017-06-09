@@ -18,8 +18,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__SEGMENTED_BUFFER_H
-#define __CVC4__PARSER__SEGMENTED_BUFFER_H
+#ifndef __CVC4__PARSER__LINE_BUFFER_H
+#define __CVC4__PARSER__LINE_BUFFER_H
 
 #include <cstdlib>
 #include <istream>
@@ -37,13 +37,13 @@ class LineBuffer {
     * Gets a pointer to a char at a specific line and position within that
     * line.
     */
-  char* getPtr(size_t line, size_t pos_in_line);
+  uint8_t* getPtr(size_t line, size_t pos_in_line);
 
   /**
     * Gets a pointer to a char at an offset relative to a  specific line and
     * position within that line.
     */
-  char* getPtrWithOffset(size_t line, size_t pos_in_line, size_t offset);
+  uint8_t* getPtrWithOffset(size_t line, size_t pos_in_line, size_t offset);
 
  private:
   /**
@@ -56,7 +56,7 @@ class LineBuffer {
   std::istream* d_stream;
   // Each element in this vector corresponds to a line from the input stream.
   // WARNING: not null-terminated.
-  std::vector<char*> d_lines;
+  std::vector<uint8_t*> d_lines;
   // Each element in this vector corresponds to the length of a line from the
   // input stream.
   std::vector<size_t> d_sizes;
@@ -65,4 +65,4 @@ class LineBuffer {
 }  // namespace parser
 }  // namespace CVC4
 
-#endif /* __CVC4__PARSER__SEGMENTED_BUFFER_H */
+#endif /* __CVC4__PARSER__LINE_BUFFER_H */

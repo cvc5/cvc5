@@ -224,7 +224,7 @@ static ANTLR3_UCHAR myLA(pANTLR3_INT_STREAM is, ANTLR3_INT32 la) {
   pANTLR3_INPUT_STREAM input = ((pANTLR3_INPUT_STREAM)(is->super));
   CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
       (CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
-  char* result = line_buffered_input->line_buffer->getPtrWithOffset(
+  uint8_t* result = line_buffered_input->line_buffer->getPtrWithOffset(
       input->line, input->charPositionInLine, la - 1);
   return (result != NULL) ? *result : ANTLR3_CHARSTREAM_EOF;
 }
@@ -234,12 +234,12 @@ static void myConsume(pANTLR3_INT_STREAM is) {
   CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
       (CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
 
-  char* current = line_buffered_input->line_buffer->getPtr(
+  uint8_t* current = line_buffered_input->line_buffer->getPtr(
       input->line, input->charPositionInLine);
   if (current != NULL) {
     input->charPositionInLine++;
 
-    if (reinterpret_cast<unsigned char&>(*current) == input->newlineChar) {
+    if (*current == input->newlineChar) {
       // Reset for start of a new line of input
       input->line++;
       input->charPositionInLine = 0;
@@ -323,7 +323,7 @@ static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
 
   // Structure was allocated correctly, now we can install the pointer
   //
-  input->data = malloc(1024);
+  input->data = NULL;
   input->isAllocated = ANTLR3_FALSE;
 
   ((pANTLR3_LINE_BUFFERED_INPUT_STREAM)input)->in = &in;

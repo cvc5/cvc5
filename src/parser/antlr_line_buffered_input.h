@@ -31,7 +31,6 @@
 #define __CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H
 
 #include <istream>
-#include <vector>
 
 #include "parser/line_buffer.h"
 

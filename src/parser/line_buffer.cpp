@@ -30,14 +30,14 @@ LineBuffer::~LineBuffer() {
   }
 }
 
-char* LineBuffer::getPtr(size_t line, size_t pos_in_line) {
+uint8_t* LineBuffer::getPtr(size_t line, size_t pos_in_line) {
   if (!readToLine(line)) {
     return NULL;
   }
   return d_lines[line] + pos_in_line;
 }
 
-char* LineBuffer::getPtrWithOffset(size_t line, size_t pos_in_line,
+uint8_t* LineBuffer::getPtrWithOffset(size_t line, size_t pos_in_line,
                                    size_t offset) {
   if (!readToLine(line)) {
     return NULL;
@@ -57,7 +57,7 @@ bool LineBuffer::readToLine(size_t line) {
 
     std::string line;
     std::getline(*d_stream, line);
-    char* segment = new char[line.size() + 1];
+    uint8_t* segment = new uint8_t[line.size() + 1];
     std::memcpy(segment, line.c_str(), line.size());
     segment[line.size()] = '\n';
     d_lines.push_back(segment);
