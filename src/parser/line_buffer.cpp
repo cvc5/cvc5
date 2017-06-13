@@ -16,7 +16,9 @@
 
 #include "parser/line_buffer.h"
 
+#include <cassert>
 #include <cstring>
+#include <iostream>
 #include <string>
 
 namespace CVC4 {
@@ -34,6 +36,7 @@ uint8_t* LineBuffer::getPtr(size_t line, size_t pos_in_line) {
   if (!readToLine(line)) {
     return NULL;
   }
+  assert(pos_in_line < d_sizes[line]);
   return d_lines[line] + pos_in_line;
 }
 
@@ -46,7 +49,22 @@ uint8_t* LineBuffer::getPtrWithOffset(size_t line, size_t pos_in_line,
     return getPtrWithOffset(line + 1, 0,
                             offset - (d_sizes[line] - pos_in_line - 1));
   }
+  assert(pos_in_line + offset < d_sizes[line]);
   return d_lines[line] + pos_in_line + offset;
+}
+
+bool LineBuffer::isPtrBefore(uint8_t* ptr, size_t line, size_t pos_in_line) {
+  for (ssize_t i = line; i >= 0; i--) {
+    // NOTE: std::less is guaranteed to give consistent results when comparing
+    // pointers of different arrays (in contrast to built-in comparison
+    // operators).
+    uint8_t* end = d_lines[i] + ((i == line) ? pos_in_line : d_sizes[i]);
+    if (std::less<uint8_t*>()(d_lines[i] - 1, ptr) &&
+        std::less<uint8_t*>()(ptr, end)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool LineBuffer::readToLine(size_t line) {

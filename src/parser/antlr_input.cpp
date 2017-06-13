@@ -127,6 +127,9 @@ AntlrInputStream::~AntlrInputStream() {
   if(d_inputString != NULL){
     free(d_inputString);
   }
+  if (d_line_buffer != NULL) {
+    delete d_line_buffer;
+  }
 }
 
 pANTLR3_INPUT_STREAM AntlrInputStream::getAntlr3InputStream() const {

@@ -45,6 +45,12 @@ class LineBuffer {
     */
   uint8_t* getPtrWithOffset(size_t line, size_t pos_in_line, size_t offset);
 
+  /**
+    * Tests whether a given pointer points to a location before a given
+    * line and position within that line.
+    */
+  bool isPtrBefore(uint8_t* ptr, size_t line, size_t pos_in_line);
+
  private:
   /**
     * Reads lines up to a line number from the input if needed (it does

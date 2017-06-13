@@ -17,7 +17,7 @@
  ** This overwrites the _LA and the consume functions of the ANTLR input stream
  ** to use a LineBuffer instead of accessing a buffer. The lines are kept in
  ** memory to make sure that existing tokens remain valid (tokens store pointers
- ** to the corresponding input). We do not overwrite mark()/rewind()/etc.
+ ** to the corresponding input). We do not overwrite mark(), etc.
  *because
  ** we can use the line number and the position within that line to index into
  *the
@@ -220,7 +220,7 @@ setupInputStream(pANTLR3_INPUT_STREAM input)
 #endif /* 0 */
 }
 
-static ANTLR3_UCHAR myLA(pANTLR3_INT_STREAM is, ANTLR3_INT32 la) {
+static ANTLR3_UCHAR bufferedInputLA(pANTLR3_INT_STREAM is, ANTLR3_INT32 la) {
   pANTLR3_INPUT_STREAM input = ((pANTLR3_INPUT_STREAM)(is->super));
   CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
       (CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
@@ -229,7 +229,35 @@ static ANTLR3_UCHAR myLA(pANTLR3_INT_STREAM is, ANTLR3_INT32 la) {
   return (result != NULL) ? *result : ANTLR3_CHARSTREAM_EOF;
 }
 
-static void myConsume(pANTLR3_INT_STREAM is) {
+static void bufferedInputRewind(pANTLR3_INT_STREAM is, ANTLR3_MARKER mark) {
+  // This function is essentially the same as the original
+  // antlr38BitRewind() but does not do any seek. The seek in the
+  // original function does not do anything and also calls
+  // antlr38BitSeek() instead of the overloaded seek() function, which
+  // leads to subtle bugs.
+  pANTLR3_LEX_STATE state;
+  pANTLR3_INPUT_STREAM input;
+
+  input = ((pANTLR3_INPUT_STREAM)is->super);
+
+  // Perform any clean up of the marks
+  input->istream->release(input->istream, mark);
+
+  // Find the supplied mark state
+  state = (pANTLR3_LEX_STATE)input->markers->get(input->markers,
+                                                 (ANTLR3_UINT32)(mark - 1));
+  if (state == NULL) {
+    return;
+  }
+
+  // Reset the information in the mark
+  input->charPositionInLine = state->charPositionInLine;
+  input->currentLine = state->currentLine;
+  input->line = state->line;
+  input->nextChar = state->nextChar;
+}
+
+static void bufferedInputConsume(pANTLR3_INT_STREAM is) {
   pANTLR3_INPUT_STREAM input = ((pANTLR3_INPUT_STREAM)(is->super));
   CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
       (CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
@@ -253,6 +281,38 @@ static void myConsume(pANTLR3_INT_STREAM is) {
   }
 }
 
+static void bufferedInputSeek(pANTLR3_INT_STREAM is, ANTLR3_MARKER seekPoint) {
+  // In contrast to the original antlr38BitSeek() function, we only
+  // support seeking forward (seeking backwards is only supported for
+  // rewinding in the original code, which we do not do when rewinding,
+  // so this should be fine).
+  pANTLR3_INPUT_STREAM input = ((pANTLR3_INPUT_STREAM)(is->super));
+  pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
+      (CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
+
+  // Check that we are not seeking backwards.
+  assert(!line_buffered_input->line_buffer->isPtrBefore(
+      (uint8_t*)seekPoint, input->line, input->charPositionInLine));
+
+  ssize_t count = (ssize_t)(seekPoint - (ANTLR3_MARKER)(input->nextChar));
+  while (count > 0) {
+    is->consume(is);
+    count--;
+  }
+}
+
+static ANTLR3_UINT32 bufferedInputSize(pANTLR3_INPUT_STREAM input) {
+  // Not supported for this type of stream
+  assert(false);
+  return 0;
+}
+
+static void bufferedInputSetUcaseLA(pANTLR3_INPUT_STREAM input,
+                                    ANTLR3_BOOLEAN flag) {
+  // Not supported for this type of stream
+  assert(false);
+}
+
 pANTLR3_INPUT_STREAM antlr3LineBufferedStreamNew(std::istream& in,
                                                  ANTLR3_UINT32 encoding,
                                                  pANTLR3_UINT8 name,
@@ -274,12 +334,13 @@ pANTLR3_INPUT_STREAM antlr3LineBufferedStreamNew(std::istream& in,
     return NULL;
   }
 
-  // Size (in bytes) of the given 'string'
-  //
+  input->istream->_LA = bufferedInputLA;
+  input->istream->consume = bufferedInputConsume;
+  input->istream->seek = bufferedInputSeek;
+  input->istream->rewind = bufferedInputRewind;
+  input->size = bufferedInputSize;
+  input->setUcaseLA = bufferedInputSetUcaseLA;
   input->sizeBuf = 0;
-
-  input->istream->_LA = myLA;
-  input->istream->consume = myConsume;
 
 #ifndef CVC4_ANTLR3_OLD_INPUT_STREAM
     // We have the data in memory now so we can deal with it according to
@@ -343,6 +404,7 @@ static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
         input->charPositionInLine = 0;
         input->line = 0;
         input->nextChar = line_buffer->getPtr(0, 0);
+        input->currentLine = line_buffer->getPtr(0, 0);
         return  input;
 }
 

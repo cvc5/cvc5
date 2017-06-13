@@ -202,9 +202,6 @@ public:
   /** Get a bitvector constant from the text of the number and the size token */
   static BitVector tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTLR3_COMMON_TOKEN size);
 
-  /** Retrieve the remaining text in this input. */
-  std::string getUnparsedText();
-
   /** Get the ANTLR3 lexer for this input. */
   pANTLR3_LEXER getAntlr3Lexer() { return d_lexer; }
 
@@ -243,14 +240,6 @@ protected:
   /** Set the Parser object for this input. */
   virtual void setParser(Parser& parser);
 };/* class AntlrInput */
-
-inline std::string AntlrInput::getUnparsedText() {
-  const char *base = (const char *)d_antlr3InputStream->data;
-  const char *cur = (const char *)d_antlr3InputStream->nextChar;
-
-  return std::string(cur, d_antlr3InputStream->sizeBuf - (cur - base));
-}
-
 
 inline std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
   if( token->type == ANTLR3_TOKEN_EOF ) {
