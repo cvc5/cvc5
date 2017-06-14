@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
+#include "context/cdmaybe.h"
 #include "expr/expr.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
@@ -349,8 +350,7 @@ class TSatProof {
   IdCRefMap d_temp_idClause;
 
   // unit conflict
-  ClauseId d_unitConflictId;
-  bool d_storedUnitConflict;
+  context::CDMaybe<ClauseId> d_unitConflictId;
 
   ClauseId d_trueLit;
   ClauseId d_falseLit;

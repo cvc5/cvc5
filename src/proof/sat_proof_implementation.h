@@ -218,8 +218,7 @@ TSatProof<Solver>::TSatProof(Solver* solver, context::Context* context,
       d_nullId(-2),
       d_temp_clauseId(),
       d_temp_idClause(),
-      d_unitConflictId(),
-      d_storedUnitConflict(false),
+      d_unitConflictId(context),
       d_trueLit(ClauseIdUndef),
       d_falseLit(ClauseIdUndef),
       d_name(name),
@@ -867,12 +866,11 @@ template <class Solver>
 ClauseId TSatProof<Solver>::storeUnitConflict(
     typename Solver::TLit conflict_lit, ClauseKind kind) {
   Debug("cores") << "STORE UNIT CONFLICT" << std::endl;
-  Assert(!d_storedUnitConflict);
-  d_unitConflictId = registerUnitClause(conflict_lit, kind);
-  d_storedUnitConflict = true;
-  Debug("proof:sat:detailed") << "storeUnitConflict " << d_unitConflictId
+  Assert(!d_unitConflictId.isSet());
+  d_unitConflictId.set(registerUnitClause(conflict_lit, kind));
+  Debug("proof:sat:detailed") << "storeUnitConflict " << d_unitConflictId.get()
                               << "\n";
-  return d_unitConflictId;
+  return d_unitConflictId.get();
 }
 
 template <class Solver>
@@ -881,8 +879,8 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
   Assert(conflict_ref != Solver::TCRef_Undef);
   ClauseId conflict_id;
   if (conflict_ref == Solver::TCRef_Lazy) {
-    Assert(d_storedUnitConflict);
-    conflict_id = d_unitConflictId;
+    Assert(d_unitConflictId.isSet());
+    conflict_id = d_unitConflictId.get();
 
     ResChain<Solver>* res = new ResChain<Solver>(conflict_id);
     typename Solver::TLit lit = d_idUnit[conflict_id];
@@ -892,7 +890,7 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
     return;
 
   } else {
-    Assert(!d_storedUnitConflict);
+    Assert(!d_unitConflictId.isSet());
     conflict_id = registerClause(conflict_ref, LEARNT);  // FIXME
   }
 
