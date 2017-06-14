@@ -439,11 +439,9 @@ RewriteResponse TheoryBVRewriter::RewriteUdivTotal(TNode node, bool prerewrite){
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
   }
 
-  resultNode = LinearRewriteStrategy
-    < RewriteRule<EvalUdiv>,
-      RewriteRule<UdivOne>,
-      RewriteRule<UdivSelf>
-      >::apply(node);
+  resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalUdiv>, RewriteRule<UdivZero>,
+                            RewriteRule<UdivOne> >::apply(node);
 
   return RewriteResponse(REWRITE_DONE, resultNode); 
 }
