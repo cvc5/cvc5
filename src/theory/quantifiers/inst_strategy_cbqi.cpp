@@ -496,21 +496,49 @@ bool InstStrategyCbqi::hasNonCbqiOperator( Node n, std::map< Node, bool >& visit
   }
   return false;
 }
+
+// -1 : not cbqi sort, 0 : cbqi sort, 1 : cbqi sort regardless of quantifier body
+int InstStrategyCbqi::isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited ) {
+  std::map< TypeNode, int >::iterator itv = visited.find( tn );
+  if( itv==visited.end() ){
+    visited[tn] = 0;
+    int ret = -1;
+    if( tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector() ){
+      ret = 0;
+    }else if( tn.isDatatype() ){
+      ret = 1;
+      const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
+      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+        for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
+          TypeNode crange = TypeNode::fromType( ((SelectorType)dt[i][j].getType()).getRangeType() );
+          int cret = isCbqiSort( crange, visited );
+          if( cret==-1 ){
+            visited[tn] = -1;
+            return -1;
+          }else if( cret<ret ){
+            ret = cret;
+          }
+        }
+      }
+    }else if( tn.isSort() ){
+      QuantEPR * qepr = d_quantEngine->getQuantEPR();
+      if( qepr!=NULL ){
+        ret = qepr->isEPR( tn ) ? 1 : -1;
+      }
+    }
+    visited[tn] = ret;
+    return ret;
+  }else{
+    return itv->second;
+  }
+}
+
 int InstStrategyCbqi::hasNonCbqiVariable( Node q ){
   int hmin = 1;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
-    int handled = -1;
-    if( tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector() ){
-      handled = 0;
-    }else if( tn.isDatatype() ){
-      handled = 0;
-    }else if( tn.isSort() ){
-      QuantEPR * qepr = d_quantEngine->getQuantEPR();
-      if( qepr!=NULL ){
-        handled = qepr->isEPR( tn ) ? 1 : -1;
-      }
-    }
+    std::map< TypeNode, int > visited;
+    int handled = isCbqiSort( tn, visited );
     if( handled==-1 ){
       return -1;
     }else if( handled<hmin ){

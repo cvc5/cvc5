@@ -192,7 +192,8 @@ private:
   /** sygus utilities */
   SygusSplit * d_sygus_split;
   SygusSymBreak * d_sygus_sym_break;
-
+  /** uninterpreted constant to variable map */
+  std::map< Node, Node > d_uc_to_fresh_var;
 private:
   /** singleton lemmas (for degenerate co-datatype case) */
   std::map< TypeNode, Node > d_singleton_lemma[2];
@@ -284,6 +285,8 @@ private:
   void merge( Node t1, Node t2 );
   /** collapse selector, s is of the form sel( n ) where n = c */
   void collapseSelector( Node s, Node c );
+  /** remove uninterpreted constants */
+  Node removeUninterpretedConstants( Node n, std::map< Node, Node >& visited );
   /** for checking if cycles exist */
   void checkCycles();
   Node searchForCycle( TNode n, TNode on,
@@ -302,8 +305,6 @@ private:
   void collectTerms( Node n );
   /** get instantiate cons */
   Node getInstantiateCons( Node n, const Datatype& dt, int index );
-  /** process new term that was created internally */
-  void processNewTerm( Node n );
   /** check instantiate */
   void instantiate( EqcInfo* eqc, Node n );
   /** must communicate fact */

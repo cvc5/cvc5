@@ -58,6 +58,7 @@ protected:
   /** helper functions */
   int hasNonCbqiVariable( Node q );
   bool hasNonCbqiOperator( Node n, std::map< Node, bool >& visited );
+  int isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited );
   /** get next decision request with dependency checking */
   Node getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc );  
   /** process functions */

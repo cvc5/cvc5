@@ -734,8 +734,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
           if( !isStar(cond[j][1]) ){
             children.push_back( NodeManager::currentNM()->mkNode( LT, vars[j], cond[j][1] ) );
           }
-        }else if ( !isStar(cond[j]) &&  //handle the case where there are 0 or 1 ground eqc of this type
-                   d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() && d_rep_set.d_type_reps[ tn ].size()>1 ){
+        }else if( !isStar(cond[j]) ){
           Node c = getRepresentative( cond[j] );
           c = getRepresentative( c );
           children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );

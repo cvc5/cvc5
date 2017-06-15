@@ -1222,6 +1222,42 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
   eqc->d_constructor.set( c );
 }
 
+Node TheoryDatatypes::removeUninterpretedConstants( Node n, std::map< Node, Node >& visited ){
+  std::map< Node, Node >::iterator it = visited.find( n );
+  if( it==visited.end() ){
+    Node ret = n;
+    if( n.getKind()==UNINTERPRETED_CONSTANT ){
+      std::map< Node, Node >::iterator itu = d_uc_to_fresh_var.find( n );
+      if( itu==d_uc_to_fresh_var.end() ){
+        Node k = NodeManager::currentNM()->mkSkolem( "w", n.getType(), "Skolem for wrongly applied selector." );
+        d_uc_to_fresh_var[n] = k;
+        ret = k;
+      }else{
+        ret = itu->second;
+      }
+    }else if( n.getNumChildren()>0 ){
+      std::vector< Node > children;
+      if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+        children.push_back( n.getOperator() );
+      }
+      bool childChanged = false;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        Node nc = removeUninterpretedConstants( n[i], visited ); 
+        childChanged = childChanged || nc!=n[i];
+        children.push_back( nc );
+      }
+      if( childChanged ){
+        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+      }
+    }
+    visited[n] = ret;
+    return ret;
+  }else{
+    return it->second;
+  }
+} 
+
+
 void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   Assert( c.getKind()==APPLY_CONSTRUCTOR );
   Trace("dt-collapse-sel") << "collapse selector : " << s << " " << c << std::endl;
@@ -1268,8 +1304,16 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   }
   if( !r.isNull() ){
     Node rr = Rewriter::rewrite( r );
-    if( use_s!=rr ){
-      Node eq = use_s.eqNode( rr );
+    Node rrs = rr;
+    if( wrong ){
+      // we have inference S_i( C_j( t ) ) = t' for i != j, where t' is result of mkGroundTerm.
+      // we must eliminate uninterpreted constants for datatypes that have uninterpreted sort subfields,
+      // since uninterpreted constants should not appear in lemmas
+      std::map< Node, Node > visited;
+      rrs = removeUninterpretedConstants( rr, visited );
+    }
+    if( use_s!=rrs ){
+      Node eq = use_s.eqNode( rrs );
       Node eq_exp;
       if( options::dtRefIntro() ){
         eq_exp = d_true;
@@ -1651,19 +1695,6 @@ void TheoryDatatypes::collectTerms( Node n ) {
         }
       }
     }
-  }
-}
-
-void TheoryDatatypes::processNewTerm( Node n ){
-  Trace("dt-terms") << "Created term : " << n << std::endl;
-  //see if it is rewritten to be something different
-  Node rn = Rewriter::rewrite( n );
-  if( rn!=n && !areEqual( rn, n ) ){
-    Node eq = rn.eqNode( n );
-    d_pending.push_back( eq );
-    d_pending_exp[ eq ] = d_true;
-    Trace("datatypes-infer") << "DtInfer : rewrite : " << eq << std::endl;
-    d_infer.push_back( eq );
   }
 }
 
