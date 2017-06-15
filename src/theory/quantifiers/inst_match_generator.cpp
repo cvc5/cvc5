@@ -955,8 +955,10 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
     Debug("simple-trigger") << "Actual term is " << t << std::endl;
     //convert to actual used terms
     for( std::map< int, int >::iterator it = d_var_num.begin(); it != d_var_num.end(); ++it ){
-      Debug("simple-trigger") << "...set " << it->second << " " << t[it->first] << std::endl;
-      m.setValue( it->second, t[it->first] );
+      if( it->second>=0 ){
+        Debug("simple-trigger") << "...set " << it->second << " " << t[it->first] << std::endl;
+        m.setValue( it->second, t[it->first] );
+      }
     }
     if( qe->addInstantiation( d_f, m ) ){
       addedLemmas++;

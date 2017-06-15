@@ -129,6 +129,7 @@ void InstMatch::setValue( int i, TNode n ) {
 }
 
 bool InstMatch::set( QuantifiersEngine* qe, int i, TNode n ) {
+  Assert( i>=0 );
   if( !d_vals[i].isNull() ){
     if( qe->getEqualityQuery()->areEqual( d_vals[i], n ) ){
       return true;
