@@ -152,6 +152,7 @@ void RelevantDomain::compute(){
 }
 
 void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool pol ) {
+  Trace("rel-dom-debug") << "Compute relevant domain " << n << "..." << std::endl;
   Node op = d_qe->getTermDatabase()->getMatchOperator( n );
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( !op.isNull() ){
@@ -191,6 +192,7 @@ void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool po
       }
     }
   }
+  Trace("rel-dom-debug") << "...finished Compute relevant domain " << n << std::endl;
 }
 
 void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
@@ -238,43 +240,45 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
         d_rel_dom_lit[hasPol][pol][n].d_rd[1] = NULL;
       }else{
         //solve the inequality for one/two variables, if possible
-        std::map< Node, Node > msum;
-        if( QuantArith::getMonomialSumLit( n, msum ) ){
-          Node var;
-          Node var2;
-          bool hasNonVar = false;
-          for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
-            if( !it->first.isNull() && it->first.getKind()==INST_CONSTANT ){
-              if( var.isNull() ){
-                var = it->first;
-              }else if( var2.isNull() ){
-                var2 = it->first;
+        if( n[0].getType().isReal() ){
+          std::map< Node, Node > msum;
+          if( QuantArith::getMonomialSumLit( n, msum ) ){
+            Node var;
+            Node var2;
+            bool hasNonVar = false;
+            for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
+              if( !it->first.isNull() && it->first.getKind()==INST_CONSTANT ){
+                if( var.isNull() ){
+                  var = it->first;
+                }else if( var2.isNull() ){
+                  var2 = it->first;
+                }else{
+                  hasNonVar = true;
+                }
               }else{
                 hasNonVar = true;
               }
-            }else{
-              hasNonVar = true;
             }
-          }
-          if( !var.isNull() ){
-            if( var2.isNull() ){
-              //single variable solve
-              Node veq_c;
-              Node val;
-              int ires = QuantArith::isolate( var, msum, veq_c, val, n.getKind() );
-              if( ires!=0 ){
-                if( veq_c.isNull() ){
-                  r_add = val;
-                  varLhs = (ires==1);
-                  d_rel_dom_lit[hasPol][pol][n].d_rd[0] = getRDomain( q, var.getAttribute(InstVarNumAttribute()), false );
-                  d_rel_dom_lit[hasPol][pol][n].d_rd[1] = NULL;
+            if( !var.isNull() ){
+              if( var2.isNull() ){
+                //single variable solve
+                Node veq_c;
+                Node val;
+                int ires = QuantArith::isolate( var, msum, veq_c, val, n.getKind() );
+                if( ires!=0 ){
+                  if( veq_c.isNull() ){
+                    r_add = val;
+                    varLhs = (ires==1);
+                    d_rel_dom_lit[hasPol][pol][n].d_rd[0] = getRDomain( q, var.getAttribute(InstVarNumAttribute()), false );
+                    d_rel_dom_lit[hasPol][pol][n].d_rd[1] = NULL;
+                  }
                 }
+              }else if( !hasNonVar ){
+                //merge the domains
+                d_rel_dom_lit[hasPol][pol][n].d_rd[0] = getRDomain( q, var.getAttribute(InstVarNumAttribute()), false );
+                d_rel_dom_lit[hasPol][pol][n].d_rd[1] = getRDomain( q, var2.getAttribute(InstVarNumAttribute()), false );
+                d_rel_dom_lit[hasPol][pol][n].d_merge = true;
               }
-            }else if( !hasNonVar ){
-              //merge the domains
-              d_rel_dom_lit[hasPol][pol][n].d_rd[0] = getRDomain( q, var.getAttribute(InstVarNumAttribute()), false );
-              d_rel_dom_lit[hasPol][pol][n].d_rd[1] = getRDomain( q, var2.getAttribute(InstVarNumAttribute()), false );
-              d_rel_dom_lit[hasPol][pol][n].d_merge = true;
             }
           }
         }

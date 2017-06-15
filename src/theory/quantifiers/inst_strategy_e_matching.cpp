@@ -671,7 +671,9 @@ bool FullSaturation::process( Node f, bool fullEffort ){
         Trace("inst-alg") << "-> Ground term instantiate " << f << "..." << std::endl;
       }
       Assert( rd!=NULL );
+      Trace("inst-alg-debug") << "Compute relevant domain..." << std::endl;
       rd->compute();
+      Trace("inst-alg-debug") << "...finished" << std::endl;
       unsigned final_max_i = 0;
       std::vector< unsigned > maxs;
       std::vector< bool > max_zero;
