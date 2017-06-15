@@ -2,13 +2,19 @@
 
 cvc4=./cvc4-application
 
-read line
+line=""
+while [[ -z "$line" ]]; do
+  read line
+done
 if [ "$line" != '(set-option :print-success true)' ]; then
   echo 'ERROR: first line supposed to be set-option :print-success, but got: "'"$line"'"' >&2
   exit 1
 fi
 echo success
-read line
+line=""
+while [[ -z "$line" ]]; do
+  read line
+done
 logic=$(expr "$line" : ' *(set-logic  *\([A-Z_]*\) *) *$')
 if [ -z "$logic" ]; then
   echo 'ERROR: second line supposed to be set-logic, but got: "'"$line"'"' >&2
