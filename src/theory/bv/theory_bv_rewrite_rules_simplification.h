@@ -908,39 +908,39 @@ Node RewriteRule<UdivPow2>::apply(TNode node) {
 }
 
 /**
+ * UdivZero
+ *
+ * (a udiv 0) ==> 111...1
+ */
+
+template <>
+inline bool RewriteRule<UdivZero>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&
+          node[1] == utils::mkConst(utils::getSize(node), 0));
+}
+
+template <>
+inline Node RewriteRule<UdivZero>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<UdivZero>(" << node << ")" << std::endl;
+  return utils::mkOnes(utils::getSize(node));
+}
+
+/**
  * UdivOne
  *
  * (a udiv 1) ==> a
  */
 
-template<> inline
-bool RewriteRule<UdivOne>::applies(TNode node) {
+template <>
+inline bool RewriteRule<UdivOne>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&
           node[1] == utils::mkConst(utils::getSize(node), 1));
 }
 
-template<> inline
-Node RewriteRule<UdivOne>::apply(TNode node) {
+template <>
+inline Node RewriteRule<UdivOne>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<UdivOne>(" << node << ")" << std::endl;
-  return node[0]; 
-}
-
-/**
- * UdivSelf
- *
- * (a udiv a) ==> 1
- */
-
-template<> inline
-bool RewriteRule<UdivSelf>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&
-          node[0] == node[1]);
-}
-
-template<> inline
-Node RewriteRule<UdivSelf>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<UdivSelf>(" << node << ")" << std::endl;
-  return utils::mkConst(utils::getSize(node), 1); 
+  return node[0];
 }
 
 /**
