@@ -68,7 +68,8 @@ SMT2_TESTS = \
 	hung10_itesdk_output2.smt2 \
 	hung10_itesdk_output1.smt2 \
 	hung13sdk_output2.smt2 \
-	declare-funs.smt2
+	declare-funs.smt2 \
+	declare-fun-is-match.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = \
