@@ -267,7 +267,7 @@ static void bufferedInputConsume(pANTLR3_INT_STREAM is) {
   if (current != NULL) {
     input->charPositionInLine++;
 
-    if (*current == input->newlineChar) {
+    if (*current == LineBuffer::NewLineChar) {
       // Reset for start of a new line of input
       input->line++;
       input->charPositionInLine = 0;
@@ -307,6 +307,12 @@ static ANTLR3_UINT32 bufferedInputSize(pANTLR3_INPUT_STREAM input) {
   return 0;
 }
 
+static void bufferedInputSetNewLineChar(pANTLR3_INPUT_STREAM input,
+                                        ANTLR3_UINT32 newlineChar) {
+  // Not supported for this type of stream
+  assert(false);
+}
+
 static void bufferedInputSetUcaseLA(pANTLR3_INPUT_STREAM input,
                                     ANTLR3_BOOLEAN flag) {
   // Not supported for this type of stream
@@ -339,8 +345,8 @@ pANTLR3_INPUT_STREAM antlr3LineBufferedStreamNew(std::istream& in,
   input->istream->seek = bufferedInputSeek;
   input->istream->rewind = bufferedInputRewind;
   input->size = bufferedInputSize;
+  input->SetNewLineChar = bufferedInputSetNewLineChar;
   input->setUcaseLA = bufferedInputSetUcaseLA;
-  input->sizeBuf = 0;
 
 #ifndef CVC4_ANTLR3_OLD_INPUT_STREAM
     // We have the data in memory now so we can deal with it according to
@@ -393,19 +399,23 @@ static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
 // initialization.
 //
 #ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
-	antlr3AsciiSetupStream(input, ANTLR3_CHARSTREAM);
+  antlr3AsciiSetupStream(input, ANTLR3_CHARSTREAM);
 #else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
-	antlr38BitSetupStream(input);
-        // In some libantlr3c 3.4-beta versions, this call is not included in the above.
-        // This is probably an erroneously-deleted line in the libantlr3c source since 3.2.
-	antlr3GenericSetupStream(input);
+  antlr38BitSetupStream(input);
+  // In some libantlr3c 3.4-beta versions, this call is not included in the
+  // above.
+  // This is probably an erroneously-deleted line in the libantlr3c source since
+  // 3.2.
+  antlr3GenericSetupStream(input);
 #endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
 
-        input->charPositionInLine = 0;
-        input->line = 0;
-        input->nextChar = line_buffer->getPtr(0, 0);
-        input->currentLine = line_buffer->getPtr(0, 0);
-        return  input;
+  input->sizeBuf = 0;
+  input->newlineChar = LineBuffer::NewLineChar;
+  input->charPositionInLine = 0;
+  input->line = 0;
+  input->nextChar = line_buffer->getPtr(0, 0);
+  input->currentLine = line_buffer->getPtr(0, 0);
+  return input;
 }
 
 }/* CVC4::parser namespace */

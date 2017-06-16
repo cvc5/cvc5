@@ -77,7 +77,7 @@ bool LineBuffer::readToLine(size_t line) {
     std::getline(*d_stream, line);
     uint8_t* segment = new uint8_t[line.size() + 1];
     std::memcpy(segment, line.c_str(), line.size());
-    segment[line.size()] = '\n';
+    segment[line.size()] = LineBuffer::NewLineChar;
     d_lines.push_back(segment);
     d_sizes.push_back(line.size() + 1);
   }

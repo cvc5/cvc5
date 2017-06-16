@@ -30,6 +30,8 @@ namespace parser {
 
 class LineBuffer {
  public:
+  static const uint8_t NewLineChar = '\n';
+
   LineBuffer(std::istream* stream);
   ~LineBuffer();
 
