@@ -35,6 +35,7 @@
 #include "base/output.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/input.h"
+#include "parser/owned_region_allocator.h"
 #include "parser/parser_exception.h"
 #include "util/bitvector.h"
 #include "util/integer.h"
@@ -62,10 +63,30 @@ private:
    */
   pANTLR3_UINT8 d_inputString;
 
+  /**
+   * If the AntlrInputStream corresponds to reading from stdin, this is a memory
+   * allocator for data buffers for d_input if needed. This is owned by
+   * this object if it is non-NULL.
+   */
+  OwnedRegionAllocator* d_allocator;
+
+  /**
+   * Creates a wrapper around the ANTLR3_INPUT_STREAM input with the named
+   * `name`. Depending upon the source of the input stream other flags may be
+   * used.
+   *
+   * If `fileIsTemporary` is set, the file at the path `name` should be deleted.
+   * If `inputString` is set, the input stream will reads from this string and
+   * this object will free this string at destruction time.
+   * If `allocator` is set, the input stream will allocate regions of memory
+   * from this allocator, this object takes ownership the allocator, and frees
+   * all of these regions at destruction time.
+   */
   AntlrInputStream(std::string name,
                    pANTLR3_INPUT_STREAM input,
                    bool fileIsTemporary,
-                   pANTLR3_UINT8 inputString);
+                   pANTLR3_UINT8 inputString,
+                   OwnedRegionAllocator* allocator);
 
   /* This is private and unimplemented, because you should never use it. */
   AntlrInputStream(const AntlrInputStream& inputStream) CVC4_UNDEFINED;
