@@ -1704,7 +1704,7 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
     // so we take its representative to be safe.
     a = d_equalityEngine.getRepresentative(a);
     Assert(d_equalityEngine.getRepresentative(b) == a);
-    Trace("arrays-merge") << spaces(getSatContext()->getLevel()) << "Arrays::merge: " << a << "," << b << ")\n";
+    Trace("arrays-merge") << spaces(getSatContext()->getLevel()) << "Arrays::merge: (" << a << ", " << b << ")\n";
 
     if (options::arraysLazyRIntro1() && !options::arraysWeakEquivalence()) {
       checkRIntro1(a, b);

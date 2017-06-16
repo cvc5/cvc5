@@ -1,4 +1,4 @@
-(set-logic QF_AUFLIA)
+(set-logic QF_AUFNIA)
 (set-info :status unsat)
 (declare-fun i () Int)
 (declare-fun j () Int)

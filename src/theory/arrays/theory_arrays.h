@@ -309,7 +309,6 @@ class TheoryArrays : public Theory {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
         if (t1.getType().isArray()) {
-          d_arrays.mergeArrays(t1, t2);
           if (!d_arrays.isShared(t1) || !d_arrays.isShared(t2)) {
             return true;
           }
@@ -334,7 +333,11 @@ class TheoryArrays : public Theory {
 
     void eqNotifyNewClass(TNode t) { }
     void eqNotifyPreMerge(TNode t1, TNode t2) { }
-    void eqNotifyPostMerge(TNode t1, TNode t2) { }
+    void eqNotifyPostMerge(TNode t1, TNode t2) {
+      if (t1.getType().isArray()) {
+        d_arrays.mergeArrays(t1, t2);
+      }
+    }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
   };
 
