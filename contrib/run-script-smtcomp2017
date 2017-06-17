@@ -11,7 +11,7 @@ logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]
 # function returns normally.
 function trywith {
   limit=$1; shift;
-  result="$(ulimit -S -t "$limit";$cvc4 -L smt2 --no-incremental --no-checking --no-interactive "$@" $bench)"
+  result="$(ulimit -S -t "$limit";$cvc4 -L smt2.6 --no-incremental --no-checking --no-interactive "$@" $bench)"
   case "$result" in
     sat|unsat) echo "$result"; exit 0;;
   esac
@@ -20,7 +20,7 @@ function trywith {
 # use: finishwith [params..]
 # to run cvc4 and let it output whatever it will to stdout.
 function finishwith {
-  $cvc4 -L smt2 --no-incremental --no-checking --no-interactive "$@" $bench
+  $cvc4 -L smt2.6 --no-incremental --no-checking --no-interactive "$@" $bench
 }
 
 case "$logic" in
@@ -118,7 +118,7 @@ QF_UFBV)
   finishwith --bitblast=eager --bv-sat-solver=cryptominisat
   ;;
 QF_BV)
-  exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive --thread-stack=1024 \
+  exec ./pcvc4 -L smt2.6 --no-incremental --no-checking --no-interactive --thread-stack=1024 \
          --threads 2 \
          --thread0 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager  --bv-sat-solver=cryptominisat --bitblast-aig --no-bv-abstraction' \
          --thread1 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bv-eq-slicer=auto --no-bv-abstraction' \
