@@ -140,9 +140,6 @@ public:
   /** Destructor. Frees the input stream and closes the input. */
   virtual ~Input();
 
-  /** Retrieve the remaining text in this input. */
-  virtual std::string getUnparsedText() = 0;
-
   /** Get the language that this Input is reading. */
   virtual InputLanguage getLanguage() const throw() = 0;
 
