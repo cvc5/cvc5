@@ -1703,10 +1703,12 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
         assertToTheory(eq.notNode(), eqNormalized.notNode(), /** to */ atomsTo, /** Sat solver */ theory::THEORY_SAT_SOLVER);
       }
       continue;
+    }else if( eqNormalized.getKind() != kind::EQUAL){
+      Assert( eqNormalized.getKind()==kind::BOOLEAN_TERM_VARIABLE );
+      // this happens for Boolean term equalities V = true that are rewritten to V, we should skip
+      //  TODO : revisit this
+      continue;
     }
-
-    Assert(eqNormalized.getKind() == kind::EQUAL);
-
 
     // If the normalization did the just flips, keep the flip
     if (eqNormalized[0] == eq[1] && eqNormalized[1] == eq[0]) {
