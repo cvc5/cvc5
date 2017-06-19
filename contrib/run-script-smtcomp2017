@@ -42,6 +42,7 @@ QF_NIA)
   finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cryptominisat
   ;;
 QF_NRA)
+  trywith 300 --nl-ext --nl-ext-tplanes --decision=justification
   finishwith --nl-ext --nl-ext-tplanes
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
