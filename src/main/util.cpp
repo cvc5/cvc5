@@ -307,7 +307,7 @@ void cvc4_init() throw(Exception) {
   }
 
   struct sigaction act4;
-  act4.sa_sigaction = segv_handler;
+  act4.sa_sigaction = ill_handler;
   act4.sa_flags = SA_SIGINFO;
   sigemptyset(&act4.sa_mask);
   if(sigaction(SIGILL, &act4, NULL)) {
