@@ -909,7 +909,7 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
     typename Solver::TLit lit = conflict[i];
     ClauseId res_id = resolveUnit(~lit);
     res->addStep(lit, res_id, !sign(lit));
-    conflict_size = conflict.size();
+    conflict_size = getClause(conflict_ref).size();
   }
 
   registerResolution(d_emptyClauseId, res);
