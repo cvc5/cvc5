@@ -1035,6 +1035,10 @@ AC_CHECK_FUNC([ffs], [AC_DEFINE([HAVE_FFS], [1],
 
 AC_LIBOBJ([strtok_r ffs])
 
+# Check for sigaltstack (missing in emscripten and mingw)
+AC_CHECK_FUNC([sigaltstack], [AC_DEFINE([HAVE_SIGALTSTACK], [1],
+                                        [Defined to 1 if sigaltstack() is supported by the platform.])])
+
 # Check for antlr C++ runtime (defined in config/antlr.m4)
 AC_LIB_ANTLR
 

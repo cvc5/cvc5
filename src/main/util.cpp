@@ -66,8 +66,10 @@ void print_statistics() {
 
 #ifndef __WIN32__
 
+#ifdef HAVE_SIGALTSTACK
 size_t cvc4StackSize;
 void* cvc4StackBase;
+#endif /* HAVE_SIGALTSTACK */
 
 /** Handler for SIGXCPU, i.e., timeout. */
 void timeout_handler(int sig, siginfo_t* info, void*) {
@@ -83,6 +85,7 @@ void sigint_handler(int sig, siginfo_t* info, void*) {
   abort();
 }
 
+#ifdef HAVE_SIGALTSTACK
 /** Handler for SIGSEGV (segfault). */
 void segv_handler(int sig, siginfo_t* info, void* c) {
   uintptr_t extent = reinterpret_cast<uintptr_t>(cvc4StackBase) - cvc4StackSize;
@@ -143,6 +146,7 @@ void segv_handler(int sig, siginfo_t* info, void* c) {
   abort();
 #endif /* CVC4_DEBUG */
 }
+#endif /* HAVE_SIGALTSTACK */
 
 /** Handler for SIGILL (illegal instruction). */
 void ill_handler(int sig, siginfo_t* info, void*) {
@@ -256,16 +260,6 @@ void cvc4_init() throw(Exception) {
 #endif
 
 #ifndef __WIN32__
-  stack_t ss;
-  ss.ss_sp = (char*) malloc(SIGSTKSZ);
-  if(ss.ss_sp == NULL) {
-    throw Exception("Can't malloc() space for a signal stack");
-  }
-  ss.ss_size = SIGSTKSZ;
-  ss.ss_flags = 0;
-  if(sigaltstack(&ss, NULL) == -1) {
-    throw Exception(string("sigaltstack() failure: ") + strerror(errno));
-  }
   struct rlimit limit;
   if(getrlimit(RLIMIT_STACK, &limit)) {
     throw Exception(string("getrlimit() failure: ") + strerror(errno));
@@ -279,8 +273,6 @@ void cvc4_init() throw(Exception) {
       throw Exception(string("getrlimit() failure: ") + strerror(errno));
     }
   }
-  cvc4StackSize = limit.rlim_cur;
-  cvc4StackBase = ss.ss_sp;
 
   struct sigaction act1;
   act1.sa_sigaction = sigint_handler;
@@ -299,20 +291,36 @@ void cvc4_init() throw(Exception) {
   }
 
   struct sigaction act3;
-  act3.sa_sigaction = segv_handler;
-  act3.sa_flags = SA_SIGINFO | SA_ONSTACK;
+  act3.sa_sigaction = ill_handler;
+  act3.sa_flags = SA_SIGINFO;
   sigemptyset(&act3.sa_mask);
-  if(sigaction(SIGSEGV, &act3, NULL)) {
-    throw Exception(string("sigaction(SIGSEGV) failure: ") + strerror(errno));
-  }
-
-  struct sigaction act4;
-  act4.sa_sigaction = ill_handler;
-  act4.sa_flags = SA_SIGINFO;
-  sigemptyset(&act4.sa_mask);
-  if(sigaction(SIGILL, &act4, NULL)) {
+  if(sigaction(SIGILL, &act3, NULL)) {
     throw Exception(string("sigaction(SIGILL) failure: ") + strerror(errno));
   }
+
+#ifdef HAVE_SIGALTSTACK
+  stack_t ss;
+  ss.ss_sp = (char*) malloc(SIGSTKSZ);
+  if(ss.ss_sp == NULL) {
+    throw Exception("Can't malloc() space for a signal stack");
+  }
+  ss.ss_size = SIGSTKSZ;
+  ss.ss_flags = 0;
+  if(sigaltstack(&ss, NULL) == -1) {
+    throw Exception(string("sigaltstack() failure: ") + strerror(errno));
+  }
+
+  cvc4StackSize = limit.rlim_cur;
+  cvc4StackBase = ss.ss_sp;
+
+  struct sigaction act4;
+  act4.sa_sigaction = segv_handler;
+  act4.sa_flags = SA_SIGINFO | SA_ONSTACK;
+  sigemptyset(&act4.sa_mask);
+  if(sigaction(SIGSEGV, &act4, NULL)) {
+    throw Exception(string("sigaction(SIGSEGV) failure: ") + strerror(errno));
+  }
+#endif /* HAVE_SIGALTSTACK */
 
 #endif /* __WIN32__ */
 
@@ -322,9 +330,11 @@ void cvc4_init() throw(Exception) {
 
 void cvc4_shutdown() throw () {
 #ifndef __WIN32__
+#ifdef HAVE_SIGALTSTACK
   free(cvc4StackBase);
   cvc4StackBase = NULL;
   cvc4StackSize = 0;
+#endif /* HAVE_SIGALTSTACK */
 #endif /* __WIN32__ */
 }
 
