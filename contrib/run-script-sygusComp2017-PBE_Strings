@@ -12,5 +12,5 @@ function trywith {
   if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
 }
 
-trywith --cegqi-si=none --strings-exp
+trywith --cegqi-si=none --sygus-fair=direct
  

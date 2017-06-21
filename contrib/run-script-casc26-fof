@@ -9,7 +9,7 @@ bench="$1"
 file=${bench##*/}
 filename=${file%.*}
 
-echo "------- cvc4-fof casc j8 : $bench at $2..."
+echo "------- cvc4-fof casc 26 : $bench at $2..."
 
 # use: trywith [params..]
 # to attempt a run.  If an SZS ontology result is printed, then
@@ -39,12 +39,11 @@ trywith 5 --multi-trigger-when-single --full-saturate-quant
 trywith 5 --trigger-sel=max --full-saturate-quant
 trywith 5 --multi-trigger-when-single --multi-trigger-priority --full-saturate-quant  
 trywith 10 --multi-trigger-cache --full-saturate-quant
-trywith 5 --no-multi-trigger-linear --full-saturate-quant
-trywith 15 --finite-model-find --no-quant-cf --sort-inference --uf-ss-fair
 trywith 15 --prenex-quant=none --full-saturate-quant
 trywith 15 --fs-inst --decision=internal --full-saturate-quant
 trywith 15 --relevant-triggers --full-saturate-quant 
 trywith 15 --finite-model-find --fmf-inst-engine --sort-inference --uf-ss-fair
+trywith 30 --full-saturate-quant --macros-quant
 trywith 30 --fs-inst --full-saturate-quant
 trywith 30 --no-quant-cf --full-saturate-quant 
 finishwith --qcf-vo-exp --full-saturate-quant 

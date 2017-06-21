@@ -7,7 +7,7 @@ bench="$1"
 file=${bench##*/}
 filename=${file%.*}
 
-echo "------- cvc4-tfa casc j8 : $bench at $2..."
+echo "------- cvc4-tfa casc 26 : $bench at $2..."
 
 # use: trywith [params..]
 # to attempt a run.  If an SZS ontology result is printed, then
@@ -31,11 +31,9 @@ function finishwith {
 
 trywith 10 --decision=internal --full-saturate-quant
 trywith 10 --finite-model-find --decision=internal
-trywith 10 --nl-ext --nl-ext-tplanes --decision=internal --full-saturate-quant
-trywith 10 --purify-quant --full-saturate-quant
+trywith 10 --nl-ext --nl-ext-tplanes --full-saturate-quant
 trywith 10 --partial-triggers --full-saturate-quant
-trywith 10 --no-e-matching --full-saturate-quant
-trywith 30 --cbqi-all --purify-triggers --full-saturate-quant 
-trywith 30 --nl-ext --fs-inst --full-saturate-quant
-finishwith --nl-ext --nl-ext-tplanes --full-saturate-quant
+trywith 15 --cbqi-all --purify-triggers --full-saturate-quant 
+trywith 15 --nl-ext --fs-inst --full-saturate-quant
+finishwith --full-saturate-quant --macros-quant
 # echo "% SZS status" "GaveUp for $filename"
