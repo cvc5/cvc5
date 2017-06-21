@@ -17,8 +17,7 @@ QF_LRA)
   finishwith --no-restrict-pivots --use-soi --new-prop --unconstrained-simp
   ;;
 QF_LIA)
-  # same as QF_LRA but add --pb-rewrites
-  finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
+  finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi
   ;;
 QF_NIA)
   finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cryptominisat
@@ -46,13 +45,13 @@ QF_AUFBV)
   finishwith --decision=justification-stoponly
   ;;
 QF_ABV)
-  finishwith --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
+  finishwith --ite-simp --simp-with-care --arrays-weak-equiv
   ;;
 QF_UFBV)
   finishwith --bitblast=eager --bv-sat-solver=cryptominisat
   ;;
 QF_BV)
-  finishwith --unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bv-eq-slicer=auto --no-bv-abstraction
+  finishwith --bv-div-zero-const --bv-eq-slicer=auto --no-bv-abstraction
   ;;
 QF_AUFLIA)
   finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification
