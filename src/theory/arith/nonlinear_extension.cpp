@@ -381,7 +381,7 @@ bool NonLinearExtentionSubstitutionSolver::solve(
               }
             }
             if( evaluatable ){
-              bool success;
+              bool success = true;
               if( !vars_rm.empty() ){
                 Node ns = n.substitute( vars_rm.begin(), vars_rm.end(), subs_rm.begin(), subs_rm.end() );
                 ns = Rewriter::rewrite( ns );
