@@ -428,7 +428,10 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
             }
           }
           return ok;
-        } else return ok;
+        } else {
+          PROOF(id = ClauseIdUndef;);
+          return ok;
+        }
       }
     }
 
