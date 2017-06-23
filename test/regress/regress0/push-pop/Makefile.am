@@ -49,7 +49,8 @@ BUG_TESTS = \
   bug765.smt2 \
   bug691.smt2 \
   bug694-Unapply1.scala-0.smt2 \
-  simple_unsat_cores.smt2
+  simple_unsat_cores.smt2 \
+  bug821.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
