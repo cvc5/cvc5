@@ -3,6 +3,7 @@ cache:
  apt: true
  directories:
   - $HOME/cxxtest
+  - $HOME/Library/Caches/Homebrew
 
 sudo: required
 dist: trusty
@@ -139,6 +140,25 @@ matrix:
           branch_pattern: coverity_scan
       after_failure:
         - cat /home/travis/build/CVC4/CVC4/cov-int/build-log.txt
+    - os: osx
+      jdk: openjdk-7-jdk
+      before_install:
+      - |
+        contrib/mac-build
+        brew install swig
+      install: # Duplicated here because osx does not support `cp -T`
+      - |
+        wget http://sourceforge.net/projects/cxxtest/files/cxxtest/4.3/cxxtest-4.3.tar.gz
+        tar -xzvf cxxtest-4.3.tar.gz
+        cp -vR cxxtest-4.3/ $HOME/cxxtest
+      env:
+      - JAVA_HOME=`/Library/Java/JavaVirtualMachines/jdk1.*/Contents/Home`
+      - TRAVIS_CVC4=yes
+      - TRAVIS_CVC4_CHECK_PORTFOLIO=yes
+      - TRAVIS_CVC4_CONFIG="debug --enable-language-bindings=java --with-antlr-dir=`pwd`/antlr-3.4"
+      - LDFLAGS=-L/opt/local/lib
+      - CPPFLAGS='-I/opt/local/include -I/System/Library/Frameworks/JavaVM.framework/Versions/A/Headers'
+      - ANTLR=`pwd`/antlr-3.4/bin/antlr3
 notifications:
   email:
     on_success: change
