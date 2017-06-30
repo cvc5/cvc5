@@ -1,4 +1,4 @@
-Release Notes for CVC4 1.4, July 2014
+Release Notes for CVC4 1.5, July 2017
 
 ** Getting started
 
@@ -10,14 +10,14 @@ command line.  For stricter adherence to the standard, use "--smtlib-strict"
 
 When a filename is given on the command line, the file's extension determines
 the language parser that's used (e.g., file.smt is SMT-LIB 1.2, file.smt2
-is SMT-LIB 2.0, and file.cvc is the presentation language).  To override
+is SMT-LIB 2.6, and file.cvc is the presentation language).  To override
 this, you can use the --lang option.
 
 ** Type correctness
 
 The CVC family of systems relies on Type Correctness Conditions (TCCs) when
 mixing two types that have a compatible base type.  TCCs, and the checking of
-such, are not supported by CVC4 1.4.  This is an issue when mixing integers and
+such, are not supported by CVC4 1.5.  This is an issue when mixing integers and
 reals.  A function defined only on integers can be applied to REAL (as INT is a
 subtype of REAL), and CVC4 will not complain.  It is up to the user to ensure 
 that the REAL expression must be an integer.  If the REAL expression is not
@@ -74,7 +74,7 @@ planned for future releases.
 
 ** SMT-LIB compliance
 
-Every effort has been made to make CVC4 compliant with the SMT-LIB 2.0
+Every effort has been made to make CVC4 compliant with the SMT-LIB 2.6
 standard (http://smtlib.org/).  However, when parsing SMT-LIB input,
 certain default settings don't match what is stated in the official
 standard.  To make CVC4 adhere more strictly to the standard, use the
@@ -84,7 +84,7 @@ processed.
 
 For the latest news on SMT-LIB compliance, please check:
 
-  http://cvc4.cs.nyu.edu/wiki/SMT-LIB_Compliance
+  http://cvc4.cs.stanford.edu/wiki/SMT-LIB_Compliance
 
 ** Getting statistics
 
@@ -96,10 +96,9 @@ the --stats command line option.
 CVC4 can be made to self-timeout after a given number of milliseconds.
 Use the --tlimit command line option to limit the entire run of
 CVC4, or use --tlimit-per to limit each individual query separately.
-Preprocessing time is not counted by the time limit, so for some large
-inputs which require aggressive preprocessing, you may notice that
---tlimit does not work very well.  If you suspect this might be the
-case, you can use "-vv" (double verbosity) to see what CVC4 is doing.
+Occasionally, you may encounter a problem for which --tlimit does not work very
+well.  If you suspect this might be the case, please report it as a bug.  You
+can also use "-vv" (double verbosity) to see what CVC4 is doing.
 
 Time-limited runs are not deterministic; two consecutive runs with the
 same time limit might produce different results (i.e., one may time out
@@ -118,16 +117,15 @@ heap.
 
 ** Proof support
 
-CVC4 1.4 has limited support for proofs, and they are disabled by default.
-(Run the configure script with --enable-proof to enable proofs).  Proofs
-are exported in LFSC format and are limited to the propositional backbone
-of the discovered proof (theory lemmas are stated without proof in this
-release).
+CVC4 1.5 has support for proofs when using uninterpreted functions, arrays,
+bitvectors, or their combinations, and proofs are enabled by default.
+(Run the configure script with --disable-proof to disable proofs).  Proofs
+are exported in LFSC format.
 
 ** Nonlinear arithmetic
 
-CVC4 1.4 has a state-of-the-art linear arithmetic solver.  However, there
-is extremely limited support for nonlinear arithmetic in this release.
+CVC4 1.5 has a state-of-the-art linear arithmetic solver as well as some
+heuristic support for non-linear arithmetic.
 
 ** Portfolio solving
 
@@ -147,7 +145,7 @@ datatypes. This limitation will be addressed in a future release.
 ** Questions ??
 
 CVC4 and its predecessors have an active user base.  You might want to
-subscribe to the mailing list (http://cs.nyu.edu/mailman/listinfo/cvc-users)
+subscribe to the mailing list (http://cvc4.stanford.edu/#Technical_Support)
 and post a question there.
 
 ** Reporting bugs and making feature requests
@@ -156,6 +154,6 @@ CVC4 is under active development.  Should you find a bug in CVC4's
 documentation, behavior, API, or SMT-LIB compliance, or if you have
 a feature request, please let us know on our bugtracker at
 
-  http://cvc4.cs.nyu.edu/bugs/
+  http://cvc4.cs.stanford.edu/bugs/
 
-or send an email to cvc-bugs@cims.nyu.edu.
+or send an email to cvc-bugs@cs.stanford.edu.

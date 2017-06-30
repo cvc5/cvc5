@@ -3,14 +3,24 @@ This file contains a summary of important user-visible changes.
 Changes since 1.4
 =================
 
+* Improved heuristics for reasoning about non-linear arithmetic.
+* Native support for syntax-guided synthesis (sygus).
+* Support for many new heuristics for reasoning with quantifiers, including
+  finite model finding.
+* Support for proofs for uninterpreted functions, arrays, bitvectors, and
+  their combinations.
+* Performance improvements to existing theories.
+* A new theory of sets with cardinality and relations.
+* A new theory of strings.
 * Support for unsat cores.
 * Simplification mode "incremental" no longer supported.
 * Support for array constants in constraints.
-* Syntax for array models have changed in some language front-ends.
+* Syntax for array models has changed in some language front-ends.
 * New input/output languages supported: "smt2.0" and "smtlib2.0" to
-  force SMT-LIB v2.0; "smt2.5" and "smtlib2.5" to force SMT-LIB v2.5.
+  force SMT-LIB v2.0; "smt2.5" and "smtlib2.5" to force SMT-LIB v2.5;
+  "smt2.6" and "smtlib2.6" to force SMT-LIB v2.6;
   "smt", "smtlib", "smt2", and "smtlib2" all refer to the current standard
-  version 2.0.  If an :smt-lib-version is set in the input, that overrides
+  version 2.6.  If an :smt-lib-version is set in the input, that overrides
   the command line.
 * Abstract values in SMT-LIB models are now ascribed types (with "as").
 * In SMT-LIB model output, real-sorted but integer-valued constants are
