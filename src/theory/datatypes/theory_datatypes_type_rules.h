@@ -80,9 +80,12 @@ struct DatatypeConstructorTypeRule {
                                  << (*tchild_it) << std::endl;
           TypeNode argumentType = *tchild_it;
           if (!childType.isComparableTo(argumentType)) {
+          //if (!childType.isSubtypeOf(argumentType)) {   //FIXME:typing
             std::stringstream ss;
-            ss << "bad type for constructor argument:\nexpected: "
-               << argumentType << "\ngot     : " << childType;
+            ss << "bad type for constructor argument:\n"
+               << "child type:  " << childType << "\n"
+               << "not subtype: " << argumentType << "\n"
+               << "in term : " << n;
             throw TypeCheckingExceptionPrivate(n, ss.str());
           }
         }

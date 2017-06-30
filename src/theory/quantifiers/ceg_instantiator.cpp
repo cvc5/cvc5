@@ -502,6 +502,14 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
       }
     }
   }
+  if( Trace.isOn("cegqi-si-apply-subs-debug") ){
+    Trace("cegqi-si-apply-subs-debug") << "req_coeff = " << req_coeff << "  " << tn << std::endl;
+    for( unsigned i=0; i<subs.size(); i++ ){
+      Trace("cegqi-si-apply-subs-debug") << "  " << vars[i] << " -> " << subs[i] << "   types : " << vars[i].getType() << " -> " << subs[i].getType() << std::endl;
+      Assert( subs[i].getType().isSubtypeOf( vars[i].getType() ) );
+    }
+  }
+  
   if( !req_coeff ){
     Node nret = n.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
     if( n!=nret ){
@@ -515,8 +523,12 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
       std::vector< Node > nsubs;
       for( unsigned i=0; i<vars.size(); i++ ){
         if( !coeff[i].isNull() ){
+          Assert( vars[i].getType().isInteger() );
           Assert( coeff[i].isConst() );
-          nsubs.push_back( Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, subs[i], NodeManager::currentNM()->mkConst( Rational(1)/coeff[i].getConst<Rational>() ) ) ));
+          Node nn =NodeManager::currentNM()->mkNode( MULT, subs[i], NodeManager::currentNM()->mkConst( Rational(1)/coeff[i].getConst<Rational>() ) );
+          nn = NodeManager::currentNM()->mkNode( kind::TO_INTEGER, nn );
+          nn =  Rewriter::rewrite( nn );
+          nsubs.push_back( nn );
         }else{
           nsubs.push_back( subs[i] );
         }

@@ -33,5 +33,5 @@ function finishwith {
 trywith 60 --finite-model-find --fmf-inst-engine --sort-inference --uf-ss-fair
 trywith 30 --finite-model-find --uf-ss=no-minimal --sort-inference --uf-ss-fair
 trywith 60 --finite-model-find --decision=internal --sort-inference --uf-ss-fair
-finishwith --finite-model-find --mbqi=abs --sort-inference --uf-ss-fair
+finishwith --finite-model-find --macros-quant --macros-quant-mode=all --sort-inference --uf-ss-fair
 # echo "% SZS status" "GaveUp for $filename"

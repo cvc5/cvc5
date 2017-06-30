@@ -37,6 +37,7 @@ struct ArraySelectTypeRule {
       }
       TypeNode indexType = n[1].getType(check);
       if(!indexType.isComparableTo(arrayType.getArrayIndexType())){
+      //if(!indexType.isSubtypeOf(arrayType.getArrayIndexType())){  //FIXME:typing
         throw TypeCheckingExceptionPrivate(n, "array select not indexed with correct type for array");
       }
     }
@@ -56,9 +57,11 @@ struct ArrayStoreTypeRule {
         TypeNode indexType = n[1].getType(check);
         TypeNode valueType = n[2].getType(check);
         if(!indexType.isComparableTo(arrayType.getArrayIndexType())){
+        //if(!indexType.isSubtypeOf(arrayType.getArrayIndexType())){  //FIXME:typing
           throw TypeCheckingExceptionPrivate(n, "array store not indexed with correct type for array");
         }
-        if(!valueType.isComparableTo(arrayType.getArrayConstituentType())){
+        if(!valueType.isComparableTo(arrayType.getArrayConstituentType())){  
+        //if(!valueType.isSubtypeOf(arrayType.getArrayConstituentType())){  //FIXME:typing
           Debug("array-types") << "array type: "<< arrayType.getArrayConstituentType() << std::endl;
           Debug("array-types") << "value types: " << valueType << std::endl;
           throw TypeCheckingExceptionPrivate(n, "array store not assigned with correct type for array");

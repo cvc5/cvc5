@@ -398,49 +398,46 @@ bool Trigger::isSimpleTrigger( Node n ){
 }
 
 //store triggers in reqPol, indicating their polarity (if any) they must appear to falsify the quantified formula
-void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, Node >& visited, std::map< Node, TriggerTermInfo >& tinfo, 
+void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Node > >& visited, std::map< Node, TriggerTermInfo >& tinfo, 
                                 quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, std::vector< Node >& added,
-                                bool pol, bool hasPol, bool epol, bool hasEPol ){
-  std::map< Node, Node >::iterator itv = visited.find( n );
+                                bool pol, bool hasPol, bool epol, bool hasEPol, bool knowIsUsable ){
+  std::map< Node, std::vector< Node > >::iterator itv = visited.find( n );
   if( itv==visited.end() ){
-    visited[ n ] = Node::null();
+    visited[ n ].clear();
     Trace("auto-gen-trigger-debug2") << "Collect pat terms " << n << " " << pol << " " << hasPol << " " << epol << " " << hasEPol << std::endl;
     if( n.getKind()!=FORALL && n.getKind()!=INST_CONSTANT ){
       Node nu;
       bool nu_single = false;
-      if( n.getKind()!=NOT && std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
+      if( knowIsUsable ){
+        nu = n;
+      }else if( n.getKind()!=NOT && std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
         nu = getIsUsableTrigger( n, q );
-        if( !nu.isNull() ){
-          Assert( nu.getKind()!=NOT );
-          Trace("auto-gen-trigger-debug2") << "...found usable trigger : " << nu << std::endl;
-          Node reqEq;
-          if( nu.getKind()==EQUAL ){
-            if( isAtomicTrigger( nu[0] ) && !quantifiers::TermDb::hasInstConstAttr(nu[1]) ){
-              if( hasPol ){
-                reqEq = nu[1];
-              }
-              nu = nu[0];
+        if( !nu.isNull() && nu!=n ){
+          collectPatTerms2( q, nu, visited, tinfo, tstrt, exclude, added, pol, hasPol, epol, hasEPol, true );
+          // copy to n
+          visited[n].insert( visited[n].end(), added.begin(), added.end() );
+          return;
+        }
+      }
+      if( !nu.isNull() ){
+        Assert( nu==n );
+        Assert( nu.getKind()!=NOT );
+        Trace("auto-gen-trigger-debug2") << "...found usable trigger : " << nu << std::endl;
+        Node reqEq;
+        if( nu.getKind()==EQUAL ){
+          if( isAtomicTrigger( nu[0] ) && !quantifiers::TermDb::hasInstConstAttr(nu[1]) ){
+            if( hasPol ){
+              reqEq = nu[1];
             }
-          }
-          Assert( reqEq.isNull() || !quantifiers::TermDb::hasInstConstAttr( reqEq ) );
-          Assert( isUsableTrigger( nu, q ) );
-          //do not add if already visited
-          bool add = true;
-          if( n!=nu ){
-            std::map< Node, Node >::iterator itvu = visited.find( nu );
-            if( itvu!=visited.end() ){
-              add = false;
-            }
-          }
-          if( add ){
-            Trace("auto-gen-trigger-debug2") << "...add usable trigger : " << nu << std::endl;
-            visited[ nu ] = nu;
-            tinfo[ nu ].init( q, nu, hasEPol ? ( epol ? 1 : -1 ) : 0, reqEq );
-            nu_single = tinfo[ nu ].d_fv.size()==q[0].getNumChildren();
-          }else{
-            nu = Node::null();
+            nu = nu[0];
           }
         }
+        Assert( reqEq.isNull() || !quantifiers::TermDb::hasInstConstAttr( reqEq ) );
+        Assert( isUsableTrigger( nu, q ) );
+        //tinfo.find( nu )==tinfo.end()
+        Trace("auto-gen-trigger-debug2") << "...add usable trigger : " << nu << std::endl;
+        tinfo[ nu ].init( q, nu, hasEPol ? ( epol ? 1 : -1 ) : 0, reqEq );
+        nu_single = tinfo[ nu ].d_fv.size()==q[0].getNumChildren();
       }
       Node nrec = nu.isNull() ? n : nu;
       std::vector< Node > added2;
@@ -451,6 +448,7 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, Node >& visited,
         QuantPhaseReq::getEntailPolarity( nrec, i, hasEPol, epol, newHasEPol, newEPol );
         collectPatTerms2( q, nrec[i], visited, tinfo, tstrt, exclude, added2, newPol, newHasPol, newEPol, newHasEPol );
       }
+      // if this is not a usable trigger, don't worry about caching the results, since triggers do not contain non-usable subterms
       if( !nu.isNull() ){
         bool rm_nu = false;
         for( unsigned i=0; i<added2.size(); i++ ){
@@ -461,7 +459,7 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, Node >& visited,
             if( tstrt==quantifiers::TRIGGER_SEL_MAX || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_MAX && !nu_single ) ){
               //discard all subterms
               Trace("auto-gen-trigger-debug2") << "......remove it." << std::endl;
-              visited[added2[i]] = Node::null();
+              visited[ added2[i] ].clear();
               tinfo.erase( added2[i] );
             }else{
               if( tinfo[ nu ].d_fv.size()==tinfo[ added2[i] ].d_fv.size() ){
@@ -476,18 +474,20 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, Node >& visited,
           }
         }
         if( rm_nu && ( tstrt==quantifiers::TRIGGER_SEL_MIN || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_ALL && nu_single ) ) ){
-          visited[nu] = Node::null();
           tinfo.erase( nu );
         }else{
-          Assert( std::find( added.begin(), added.end(), nu )==added.end() );
-          added.push_back( nu );
+          if( std::find( added.begin(), added.end(), nu )==added.end() ){
+            added.push_back( nu );
+          }
         }
+        visited[n].insert( visited[n].end(), added.begin(), added.end() );
       }
     }
   }else{
-    if( !itv->second.isNull() ){
-      if( std::find( added.begin(), added.end(), itv->second )==added.end() ){
-        added.push_back( itv->second );
+    for( unsigned i=0; i<itv->second.size(); ++i ){
+      Node t = itv->second[i];
+      if( std::find( added.begin(), added.end(), t )==added.end() ){
+        added.push_back( t );
       }
     }
   }
@@ -573,7 +573,7 @@ bool Trigger::isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< 
 
 void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, 
                                std::map< Node, TriggerTermInfo >& tinfo, bool filterInst ){
-  std::map< Node, Node > visited;
+  std::map< Node, std::vector< Node > > visited;
   if( filterInst ){
     //immediately do not consider any term t for which another term is an instance of t
     std::vector< Node > patTerms2;
@@ -607,7 +607,7 @@ void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, qu
       //do not consider terms that have instances
       for( unsigned i=0; i<patTerms2.size(); i++ ){
         if( std::find( temp.begin(), temp.end(), patTerms2[i] )==temp.end() ){
-          visited[ patTerms2[i] ] = Node::null();
+          visited[ patTerms2[i] ].clear();
         }
       }
     }
@@ -615,9 +615,7 @@ void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, qu
   std::vector< Node > added;
   collectPatTerms2( q, n, visited, tinfo, tstrt, exclude, added, true, true, false, true );
   for( std::map< Node, TriggerTermInfo >::iterator it = tinfo.begin(); it != tinfo.end(); ++it ){
-    if( !visited[it->first].isNull() ){
-      patTerms.push_back( it->first );
-    }
+    patTerms.push_back( it->first );
   }
 }
 

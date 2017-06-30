@@ -659,6 +659,10 @@ void FullSaturation::check( Theory::Effort e, unsigned quant_e ) {
 }
 
 bool FullSaturation::process( Node f, bool fullEffort ){
+  // ignore if constant true (rare case of non-standard quantifier whose body is rewritten to true)
+  if( f[1].isConst() && f[1].getConst<bool>() ){
+    return false;
+  }
   //first, try from relevant domain
   RelevantDomain * rd = d_quantEngine->getRelevantDomain();
   unsigned rstart = options::fullSaturateQuantRd() ? 0 : 1;
@@ -770,7 +774,7 @@ bool FullSaturation::process( Node f, bool fullEffort ){
       }
     }
   }
-  //term enumerator?
+  //TODO : term enumerator?
   return false;
 }
 

@@ -116,7 +116,13 @@ struct MemberTypeRule {
       }
       TypeNode elementType = n[0].getType(check);
       if(!elementType.isComparableTo(setType.getSetElementType())) {
-        throw TypeCheckingExceptionPrivate(n, "member operating on sets of different types");
+      //if(!elementType.isSubtypeOf(setType.getSetElementType())) {     //FIXME:typing
+        std::stringstream ss;
+        ss << "member operating on sets of different types:\n"
+           << "child type:  " << elementType << "\n"
+           << "not subtype: " << setType.getSetElementType() << "\n"
+           << "in term : " << n;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
     return nodeManager->booleanType();

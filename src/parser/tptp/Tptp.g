@@ -353,7 +353,7 @@ definedFun[CVC4::Expr& expr]
                                       MK_EXPR(CVC4::kind::TO_INTEGER, expr),
                                       MK_EXPR(CVC4::kind::UMINUS, MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::UMINUS, expr))));
       if(remainder) {
-        expr = MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d));
+        expr = MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d)));
       }
       expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
     }
@@ -368,7 +368,7 @@ definedFun[CVC4::Expr& expr]
                                       MK_EXPR(CVC4::kind::TO_INTEGER, expr),
                                       MK_EXPR(CVC4::kind::UMINUS, MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::UMINUS, expr))));
       if(remainder) {
-        expr = MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d));
+        expr = MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d)));
       }
       expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
     }
@@ -381,7 +381,7 @@ definedFun[CVC4::Expr& expr]
       expr = MK_EXPR(CVC4::kind::DIVISION_TOTAL, n, d);
       expr = MK_EXPR(CVC4::kind::TO_INTEGER, expr);
       if(remainder) {
-        expr = MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d));
+        expr = MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d)));
       }
       expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
     }

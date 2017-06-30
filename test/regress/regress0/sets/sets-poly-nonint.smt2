@@ -7,5 +7,5 @@
 (assert (member 1.5 t))
 (assert (member 2.5 r))
 (assert (member 3.5 u))
-(assert (or (member 4.5 s) (= s t) (= s r) (= s u) (= s (singleton 6.5))))
+(assert (or (= s t) (= s r) (= s u)))
 (check-sat)

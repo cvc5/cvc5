@@ -34,7 +34,7 @@ function finishwith {
 # designed for 300 seconds
 trywith 20 --relational-triggers --full-saturate-quant 
 trywith 20 --no-e-matching --full-saturate-quant 
-trywith 15 --finite-model-find --mbqi=abs
+trywith 15 --finite-model-find --uf-ss=no-minimal
 trywith 5 --multi-trigger-when-single --full-saturate-quant 
 trywith 5 --trigger-sel=max --full-saturate-quant
 trywith 5 --multi-trigger-when-single --multi-trigger-priority --full-saturate-quant  
@@ -43,8 +43,8 @@ trywith 15 --prenex-quant=none --full-saturate-quant
 trywith 15 --fs-inst --decision=internal --full-saturate-quant
 trywith 15 --relevant-triggers --full-saturate-quant 
 trywith 15 --finite-model-find --fmf-inst-engine --sort-inference --uf-ss-fair
-trywith 30 --full-saturate-quant --macros-quant
-trywith 30 --fs-inst --full-saturate-quant
+trywith 30 --decision=internal --full-saturate-quant
+trywith 30 --qcf-vo-exp --full-saturate-quant
 trywith 30 --no-quant-cf --full-saturate-quant 
-finishwith --qcf-vo-exp --full-saturate-quant 
+finishwith --macros-quant --macros-quant-mode=all --full-saturate-quant
 # echo "% SZS status" "GaveUp for $filename"

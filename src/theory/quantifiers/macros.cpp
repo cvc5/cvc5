@@ -44,7 +44,7 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
     Trace("macros") << "Find macros, ground=" << d_ground_macros << "..." << std::endl;
     //first, collect macro definitions
     std::vector< Node > macro_assertions;
-    for( unsigned i=0; i<assertions.size(); i++ ){
+    for( int i=0; i<(int)assertions.size(); i++ ){
       Trace("macros-debug") << "  process assertion " << assertions[i] << std::endl;
       if( processAssertion( assertions[i] ) ){
         PROOF( 
@@ -167,16 +167,12 @@ bool QuantifierMacros::isBoundVarApplyUf( Node n ) {
   Assert( n.getKind()==APPLY_UF );
   TypeNode tno = n.getOperator().getType();
   std::map< Node, bool > vars;
+  // allow if a vector of unique variables of the same type as UF arguments
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( n[i].getKind()!=BOUND_VARIABLE ){
       return false;
     }
     if( n[i].getType()!=tno[i] ){
-      return false;
-    }
-    if( !tno[i].isSort() && !tno[i].isReal() && ( !tno[i].isDatatype() || tno[i].isParametricDatatype() ) && 
-        !tno[i].isBitVector() && !tno[i].isString() && !tno[i].isFloatingPoint() ){
-      //only non-parametric types are supported
       return false;
     }
     if( vars.find( n[i] )==vars.end() ){
@@ -331,6 +327,7 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
   }else{
     //literal case
     if( isMacroLiteral( n, pol ) ){
+      Trace("macros-debug") << "Check macro literal : " << n << std::endl;
       std::map< Node, bool > visited;
       std::vector< Node > candidates;
       for( size_t i=0; i<n.getNumChildren(); i++ ){
@@ -339,6 +336,7 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
       for( size_t i=0; i<candidates.size(); i++ ){
         Node m = candidates[i];
         Node op = m.getOperator();
+        Trace("macros-debug") << "Check macro candidate : " << m << std::endl;
         if( d_macro_defs.find( op )==d_macro_defs.end() ){
           std::vector< Node > fvs;
           visited.clear();
@@ -416,6 +414,7 @@ Node QuantifierMacros::simplify( Node n ){
         if( it!=d_macro_defs.end() && !it->second.isNull() ){
           //only apply if children are subtypes of arguments
           bool success = true;
+          // FIXME : this can be eliminated when we have proper typing rules
           std::vector< Node > cond;
           TypeNode tno = op.getType();
           for( unsigned i=0; i<children.size(); i++ ){
@@ -423,13 +422,13 @@ Node QuantifierMacros::simplify( Node n ){
             if( etc.isNull() ){
               //if this does fail, we are incomplete, since we are eliminating quantified formula corresponding to op, 
               //  and not ensuring it applies to n when its types are correct.
-              //however, this should never fail: we never process types for which we cannot constuct conditions that ensure correct types, e.g. (is-int t).
-              Assert( false );
+              //Assert( false );
               success = false;
               break;
             }else if( !etc.isConst() ){
               cond.push_back( etc );
             }
+            Assert( children[i].getType().isSubtypeOf( tno[i] ) );
           }
           if( success ){
             //do substitution if necessary

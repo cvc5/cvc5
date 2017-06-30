@@ -137,9 +137,9 @@ private:
   static Node getIsUsableEq( Node q, Node eq );
   static bool isUsableEqTerms( Node q, Node n1, Node n2 );
   /** collect all APPLY_UF pattern terms for f in n */
-  static void collectPatTerms2( Node q, Node n, std::map< Node, Node >& visited, std::map< Node, TriggerTermInfo >& tinfo, 
+  static void collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Node > >& visited, std::map< Node, TriggerTermInfo >& tinfo, 
                                 quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, std::vector< Node >& added,
-                                bool pol, bool hasPol, bool epol, bool hasEPol );
+                                bool pol, bool hasPol, bool epol, bool hasEPol, bool knowIsUsable = false );
 
   std::vector< Node > d_nodes;
 

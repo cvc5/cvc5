@@ -46,12 +46,14 @@ class UfTypeRule {
         TypeNode currentArgument = (*argument_it).getType();
         TypeNode currentArgumentType = *argument_type_it;
         if (!currentArgument.isComparableTo(currentArgumentType)) {
+        //if (!currentArgument.isSubtypeOf(currentArgumentType)) {   //FIXME:typing
           std::stringstream ss;
           ss << "argument type is not a subtype of the function's argument "
              << "type:\n"
              << "argument:  " << *argument_it << "\n"
              << "has type:  " << (*argument_it).getType() << "\n"
-             << "not subtype: " << *argument_type_it;
+             << "not subtype: " << *argument_type_it << "\n"
+             << "in term : " << n;
           throw TypeCheckingExceptionPrivate(n, ss.str());
         }
       }
