@@ -903,13 +903,11 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
   ResChain<Solver>* res = new ResChain<Solver>(conflict_id);
   // Here, the call to resolveUnit() can reallocate memory in the
   // clause allocator.  So reload conflict ptr each time.
-  size_t conflict_size = getClause(conflict_ref).size();
-  for (size_t i = 0; i < conflict_size; ++i) {
+  for (size_t i = 0; i < getClause(conflict_ref).size(); ++i) {
     const typename Solver::TClause& conflict = getClause(conflict_ref);
     typename Solver::TLit lit = conflict[i];
     ClauseId res_id = resolveUnit(~lit);
     res->addStep(lit, res_id, !sign(lit));
-    conflict_size = conflict.size();
   }
 
   registerResolution(d_emptyClauseId, res);
