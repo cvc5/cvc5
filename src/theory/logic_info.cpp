@@ -36,7 +36,7 @@ LogicInfo::LogicInfo() :
   d_sharingTheories(0),
   d_integers(true),
   d_reals(true),
-  d_linear(true),// for now, "everything enabled" doesn't include non-linear arith
+  d_linear(false),
   d_differenceLogic(false),
   d_cardinalityConstraints(false),
   d_locked(false) {

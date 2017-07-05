@@ -29,11 +29,9 @@ function finishwith {
   $cvc4 --lang=tptp --no-checking --no-interactive --force-logic="UFNIRA" --dump-instantiations --inst-format=szs --force-no-limit-cpu-while-dump "$@" $bench
 }
 
-trywith 10 --decision=internal --full-saturate-quant
-trywith 10 --finite-model-find --decision=internal
-trywith 10 --multi-trigger-when-single --multi-trigger-priority --nl-ext --nl-ext-tplanes --full-saturate-quant
-trywith 10 --partial-triggers --full-saturate-quant
+trywith 15 --finite-model-find --decision=internal
+trywith 15 --multi-trigger-when-single --multi-trigger-priority --nl-ext-tplanes --full-saturate-quant
+trywith 15 --no-e-matching --full-saturate-quant 
 trywith 15 --cbqi-all --purify-triggers --full-saturate-quant 
-trywith 15 --nl-ext --fs-inst --full-saturate-quant
-finishwith --macros-quant --macros-quant-mode=all --full-saturate-quant
+finishwith --macros-quant --macros-quant-mode=all --nl-ext-tplanes --full-saturate-quant
 # echo "% SZS status" "GaveUp for $filename"
