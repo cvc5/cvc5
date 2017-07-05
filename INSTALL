@@ -1,4 +1,4 @@
-CVC4 release version 1.4.
+CVC4 release version 1.5.
 
 *** Quick-start instructions
 
@@ -41,7 +41,7 @@ libantlr3c.  On a 32-bit machine, or if you have difficulty building
 libantlr3c (or difficulty getting CVC4 to link against it later), you
 may need to remove the --enable-64bit part in the script.  (If you're
 curious, the manual instructions are at
-http://cvc4.cs.nyu.edu/wiki/Developer%27s_Guide#ANTLR3 .)
+http://cvc4.cs.stanford.edu/wiki/Developer%27s_Guide#ANTLR3 .)
 
 *** Building CVC4
 
@@ -201,8 +201,7 @@ In principle, since we use SWIG to generate the native Java API, we
 could support other languages as well.  However, using CVC4 from other
 languages is not supported, nor expected to work, at this time.  If
 you're interested in helping to develop, maintain, and test a language
-binding, please contact us via the users' mailing list at
-cvc-users@cs.nyu.edu.
+binding, please contact one of the project leaders.
 
 *** Building CVC4 from a repository checkout
 
@@ -217,10 +216,10 @@ The following tools and libraries are additionally required to build
 CVC4 from from a repository checkout rather than from a prepared
 source tarball.
 
-  Automake v1.11
-  Autoconf v2.61
-  Libtool v2.2
-  ANTLR3 v3.2 or v3.4
+  Automake v1.11 or later
+  Autoconf v2.61 or later
+  Libtool v2.2 or later
+  ANTLR3 v3.2 or v3.4 
 
 First, use "./autogen.sh" to create the configure script.  Then
 proceed as normal for any distribution tarball.  The parsers are
