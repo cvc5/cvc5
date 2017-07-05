@@ -340,21 +340,25 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
     // the "all theories included" logic, no quantifiers
     enableEverything();
     disableQuantifiers();
+    arithNonLinear();
     p += 16;
   } else if(!strcmp(p, "QF_ALL")) {
     // the "all theories included" logic, no quantifiers
     enableEverything();
     disableQuantifiers();
+    arithNonLinear();
     p += 6;
   } else if(!strcmp(p, "ALL_SUPPORTED")) {
     // the "all theories included" logic, with quantifiers
     enableEverything();
     enableQuantifiers();
+    arithNonLinear();
     p += 13;
   } else if(!strcmp(p, "ALL")) {
     // the "all theories included" logic, with quantifiers
     enableEverything();
     enableQuantifiers();
+    arithNonLinear();
     p += 3;
   } else {
     if(!strncmp(p, "QF_", 3)) {

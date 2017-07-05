@@ -48,7 +48,8 @@ TESTS =	\
   disj-eval.smt2 \
   bug698.smt2  \
   real-div-ufnra.smt2 \
-  div-mod-partial.smt2
+  div-mod-partial.smt2 \
+  all-logic.smt2
 
 # unsolved : garbage_collect.cvc
 

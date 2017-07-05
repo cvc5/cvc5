@@ -354,22 +354,23 @@ void Smt2::resetAssertions() {
 
 void Smt2::setLogic(std::string name) {
   if(sygus()) {
+    // sygus by default requires UF, datatypes, and LIA
     if(name == "Arrays") {
-      name = "AUF";
+      name = "AUFDTLIA";
     } else if(name == "Reals") {
-      name = "UFLRA";
+      name = "UFDTLIRA";
     } else if(name == "LIA") {
-      name = "UFLIA";
+      name = "UFDTLIA";
     } else if(name == "LRA") {
-      name = "UFLRA";
+      name = "UFDTLIRA";
     } else if(name == "LIRA") {
-      name = "UFLIRA";
+      name = "UFDTLIRA";
     } else if(name == "BV") {
-      name = "UFBV";
+      name = "UFDTBVLIA";
     } else if(name == "SLIA") {
-      name = "UFSLIA";
+      name = "UFDTSLIA";
     } else if(name == "SAT") {
-      name = "UF";
+      name = "UFDTLIA";
     } else if(name == "ALL" || name == "ALL_SUPPORTED") {
       //no change
     } else {
@@ -452,16 +453,12 @@ void Smt2::checkThatLogicIsSet() {
     if(strictModeEnabled()) {
       parseError("set-logic must appear before this point.");
     } else {
-      if(sygus()) {
-        setLogic("LIA");
-      } else {
-        warning("No set-logic command was given before this point.");
-        warning("CVC4 will make all theories available.");
-        warning("Consider setting a stricter logic for (likely) better performance.");
-        warning("To suppress this warning in the future use (set-logic ALL).");
+      warning("No set-logic command was given before this point.");
+      warning("CVC4 will make all theories available.");
+      warning("Consider setting a stricter logic for (likely) better performance.");
+      warning("To suppress this warning in the future use (set-logic ALL).");
 
-        setLogic("ALL");
-      }
+      setLogic("ALL");
 
       Command* c = new SetBenchmarkLogicCommand("ALL");
       c->setMuted(true);
