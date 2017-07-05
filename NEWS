@@ -13,6 +13,7 @@ Changes since 1.4
 * A new theory of sets with cardinality and relations.
 * A new theory of strings.
 * Support for unsat cores.
+* Support for separation logic constraints.
 * Simplification mode "incremental" no longer supported.
 * Support for array constants in constraints.
 * Syntax for array models has changed in some language front-ends.
