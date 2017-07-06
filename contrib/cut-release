@@ -215,7 +215,7 @@ perl -pi -e 's/^m4_define\(_CVC4_MAJOR, ( *)[0-9]+( *)\)/m4_define(_CVC4_MAJOR, 
              s/^m4_define\(_CVC4_RELEASE, ( *)[0-9]+( *)\)/m4_define(_CVC4_RELEASE, ${1}'"$release"'$2)/;
              s/^m4_define\(_CVC4_EXTRAVERSION, ( *)\[.*\]( *)\)/m4_define(_CVC4_EXTRAVERSION, $1\['"$extra"'\]$2)/' configure.ac
 
-trap 'echo; echo; echo "Aborting in error."; git co -- configure.ac; echo' EXIT
+trap 'echo; echo; echo "Aborting in error."; git checkout -- configure.ac; echo' EXIT
 
 echo
 echo 'Made the following change to configure.ac:'
@@ -238,7 +238,7 @@ echo "Building and checking distribution \`cvc4-$version'..."
 
 if $dogetantlr 
 then
-  echo "Fetch and compile antlr..."
+  echo "Fetching and compiling antlr..."
   $getantlr > /dev/null 2>&1
   configantlr="--with-antlr-dir=$(pwd)/antlr-3.4 ANTLR=$(pwd)/antlr-3.4/bin/antlr3"
 fi
