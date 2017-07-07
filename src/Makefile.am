@@ -55,7 +55,6 @@ libcvc4_la_SOURCES = \
 	context/context.h \
 	context/context_mm.cpp \
 	context/context_mm.h \
-	context/stacking_vector.h \
 	decision/decision_attributes.h \
 	decision/decision_engine.cpp \
 	decision/decision_engine.h \

@@ -37,7 +37,6 @@ UNIT_TESTS += \
 	context/cdmap_black \
 	context/cdmap_white \
 	context/cdvector_black \
-	context/stacking_vector_black \
 	util/array_store_all_black \
 	util/assert_white \
 	util/binary_heap_black \
