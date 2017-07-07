@@ -2,7 +2,7 @@
 /*! \file util.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Kshitij Bansal
+ **   Morgan Deters, Andres Noetzli, Clément Pit-Claudel
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.

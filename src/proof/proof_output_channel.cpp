@@ -1,10 +1,18 @@
 /*********************                                                        */
 /*! \file proof_output_channel.cpp
-** \verbatim
-** \brief [[ Add one-line brief description here ]]
-**
-** [[ Add lengthier description here ]]
-** \todo document this file
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Guy Katz, Tim King
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** [[ Add lengthier description here ]]
+
+ ** \todo document this file
+
 **/
 
 #include "base/cvc4_assert.h"
