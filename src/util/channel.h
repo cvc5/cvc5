@@ -1,9 +1,8 @@
 /*********************                                                        */
 /*! \file channel.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   none 
  ** This file is part of the CVC4 project but is excluded from the
  ** standard CVC4 licensing because it is a derivative work of
  ** circular_buffer.hpp in the BOOST 1.46.1 distribution.
@@ -13,6 +12,7 @@
  ** The combined work is:
  **   Copyright (c) 2009-2014  New York University and The University of Iowa
  **   Copyright (c) 2003-2008  Jan Gaspar
+ ** \endverbatim
  **
  ** \brief [[ Add one-line brief description here ]]
  **
