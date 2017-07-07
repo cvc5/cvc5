@@ -2,9 +2,9 @@
 /*! \file statistics_registry.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Kshitij Bansal
+ **   Morgan Deters, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -225,6 +225,9 @@ public:
   /** Get the value of the statistic. */
   virtual T getData() const = 0;
 
+  /** Get a reference to the data value of the statistic. */
+  virtual const T& getDataRef() const = 0;
+
   /** Flush the value of the statistic to the given output stream. */
   void flushInformation(std::ostream& out) const {
     if(__CVC4_USE_STATISTICS) {
@@ -234,7 +237,7 @@ public:
 
   virtual void safeFlushInformation(int fd) const {
     if (__CVC4_USE_STATISTICS) {
-      safe_print<T>(fd, getData());
+      safe_print<T>(fd, getDataRef());
     }
   }
 
@@ -320,9 +323,10 @@ public:
   }
 
   /** Get the value of the referenced data cell. */
-  T getData() const {
-    return *d_data;
-  }
+  virtual T getData() const { return *d_data; }
+
+  /** Get a reference to the value of the referenced data cell. */
+  virtual const T& getDataRef() const { return *d_data; }
 
 };/* class ReferenceStat<T> */
 
@@ -361,9 +365,10 @@ public:
   }
 
   /** Get the underlying data value. */
-  T getData() const {
-    return d_data;
-  }
+  virtual T getData() const { return d_data; }
+
+  /** Get a reference to the underlying data value. */
+  virtual const T& getDataRef() const { return d_data; }
 
 };/* class BackedStat<T> */
 
@@ -402,8 +407,16 @@ public:
   }
 
   /** Get the data of the underlying (wrapped) statistic. */
-  T getData() const {
-    return d_stat.getData();
+  virtual T getData() const { return d_stat.getData(); }
+
+  /** Get a reference to the data of the underlying (wrapped) statistic. */
+  virtual const T& getDataRef() const { return d_stat.getDataRef(); }
+
+  virtual void safeFlushInformation(int fd) const {
+    // ReadOnlyDataStat uses getDataRef() to get the information to print,
+    // which might not be appropriate for all wrapped statistics. Delegate the
+    // printing to the wrapped statistic instead.
+    d_stat.safeFlushInformation(fd);
   }
 
   SExpr getValue() const {
@@ -728,10 +741,14 @@ public:
   /** If the timer is currently running */
   bool running() const;
 
-  timespec getData() const;
+  virtual timespec getData() const;
 
   virtual void safeFlushInformation(int fd) const {
-    safe_print<timespec>(fd, d_data);
+    // Overwrite the implementation in the superclass because we cannot use
+    // getDataRef(): it might return stale data if the timer is currently
+    // running.
+    ::timespec data = getData();
+    safe_print<timespec>(fd, data);
   }
 
   SExpr getValue() const;
