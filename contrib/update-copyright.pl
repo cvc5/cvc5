@@ -139,7 +139,7 @@ sub handleFile {
   my $authors = <$AUTHOR>; chomp $authors;
   close $AUTHOR;
   $_ = <$IN>;
-  if(m,^(%{)?/\*(\*| )\*\*\*,) {
+  if(m,^(%\{)?/\*(\*| )\*\*\*,) {
     print "updating\n";
     if($file =~ /\.(y|yy|ypp|Y)$/) {
       print $OUT "%{/*******************                                                        */\n";
@@ -201,7 +201,7 @@ $line";
     if($file =~ /\.(y|yy|ypp|Y)$/) {
       while(my $line = <$IN>) {
         chomp $line;
-        if($line =~ '\s*%{(.*)') {
+        if($line =~ '\s*%\{(.*)') {
           print $OUT "$1\n";
           last;
         }
