@@ -67,6 +67,34 @@ namespace rewrite {
     return RewriteResponse(REWRITE_DONE, addition);
   }
 
+  RewriteResponse breakChain (TNode node, bool isPreRewrite) {
+    Assert(isPreRewrite);  // Should be run first
+
+    Kind k = node.getKind();
+    Assert(k == kind::FLOATINGPOINT_EQ ||
+	   k == kind::FLOATINGPOINT_GEQ ||
+	   k == kind::FLOATINGPOINT_LEQ ||
+	   k == kind::FLOATINGPOINT_GT ||
+	   k == kind::FLOATINGPOINT_LT);
+
+
+    size_t children = node.getNumChildren();
+    if (children > 2) {
+
+      NodeBuilder<> conjunction(kind::AND);
+
+      for (size_t i = 0; i < children - 1; ++i) {
+	for (size_t j = i + 1; j < children; ++j) {
+	  conjunction << NodeManager::currentNM()->mkNode(k, node[i], node[j]);
+	}
+      }
+      return RewriteResponse(REWRITE_AGAIN_FULL, conjunction);
+
+    } else {
+      return RewriteResponse(REWRITE_DONE, node);
+    }
+  }
+
 
   /* Implies (fp.eq x x) --> (not (isNaN x))
    */
@@ -314,11 +342,11 @@ RewriteFunction TheoryFpRewriter::postRewriteTable[kind::LAST_KIND];
     preRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
 
     /******** Comparisons ********/
-    preRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::ieeeEqToEq;
-    preRewriteTable[kind::FLOATINGPOINT_LEQ] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_LT] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::geqToleq;
-    preRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::gtTolt;
+    preRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::then<rewrite::breakChain,rewrite::ieeeEqToEq>;
+    preRewriteTable[kind::FLOATINGPOINT_LEQ] = rewrite::breakChain;
+    preRewriteTable[kind::FLOATINGPOINT_LT] = rewrite::breakChain;
+    preRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::then<rewrite::breakChain,rewrite::geqToleq>;
+    preRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::then<rewrite::breakChain,rewrite::gtTolt>;
 
     /******** Classifications ********/
     preRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::identity;
