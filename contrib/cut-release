@@ -281,10 +281,10 @@ release-$version/cvc4-$version/builds/src/main/cvc4 --show-config
 echo
 isthatright
 
-echo
-echo "Signing tarball..."
-cp -p "release-$version/cvc4-$version.tar.gz" .
-gpg -b --armor "cvc4-$version.tar.gz"
+#echo
+#echo "Signing tarball..."
+#cp -p "release-$version/cvc4-$version.tar.gz" .
+#gpg -b --armor "cvc4-$version.tar.gz"
 
 #echo
 #echo "Signing cvc4 binary..."
