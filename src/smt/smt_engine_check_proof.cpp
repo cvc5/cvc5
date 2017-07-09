@@ -15,6 +15,12 @@
  ** \todo document this file
  **/
 
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
+#include <io.h>
+#endif
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include <cstdlib>
@@ -81,16 +87,24 @@ void SmtEngine::checkProof() {
     return;
   }
 
-  char const* tempDir = getenv("TMPDIR");
-  if (!tempDir) {
-    tempDir = "/tmp";
+  char *pfFile = tempnam(NULL, "cvc4_");
+  if (!pfFile) {
+    Notice() << "Error: couldn't get path from tempnam() during proof checking" << endl;
+    return;
   }
-
-  stringstream pfPath;
-  pfPath << tempDir << "/cvc4_proof.XXXXXX";
-
-  char* pfFile = strdup(pfPath.str().c_str());
-  int fd = mkstemp(pfFile);
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
+  int fd = _open(pfFile,
+                 _O_CREAT | _O_EXCL | _O_SHORT_LIVED | _O_RDWR,
+                 _S_IREAD | _S_IWRITE);
+#else
+  mode_t openmode = S_IRUSR | S_IWUSR;
+  int fd = open(pfFile, O_CREAT | O_EXCL | O_RDWR, openmode);
+#endif
+  if (fd == -1) {
+    free(pfFile);
+    Notice() << "Error: failed to open temporary file during proof checking" << endl;
+    return;
+  }
 
   // ensure this temp file is removed after
   smt::UnlinkProofFile unlinker(pfFile);
@@ -109,6 +123,7 @@ void SmtEngine::checkProof() {
   a.compile_lib = false;
   init();
   check_file(pfFile, a);
+  free(pfFile);
   close(fd);
 
 #else /* IS_PROOFS_BUILD */
