@@ -16,7 +16,7 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_database_sygus.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace CVC4;

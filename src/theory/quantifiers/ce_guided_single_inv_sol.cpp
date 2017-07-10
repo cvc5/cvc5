@@ -20,7 +20,7 @@
 #include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 

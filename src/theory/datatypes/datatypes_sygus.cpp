@@ -19,7 +19,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/datatypes_sygus.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_database_sygus.h"
 #include "theory/datatypes/theory_datatypes.h"
 #include "theory/theory_model.h"
 

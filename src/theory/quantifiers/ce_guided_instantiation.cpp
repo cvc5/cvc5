@@ -19,7 +19,7 @@
 #include "options/datatypes_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_database_sygus.h"
 #include "theory/theory_engine.h"
 #include "prop/prop_engine.h"
 #include "theory/bv/theory_bv_rewriter.h"
