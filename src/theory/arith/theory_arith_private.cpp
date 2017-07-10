@@ -1454,7 +1454,6 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
     }
 
     if( !options::nlExt() ){
-      setIncomplete();
       d_nlIncomplete = true;
     }
 
@@ -1464,6 +1463,13 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
     //setupInitialValue(av);
 
     markSetup(vlNode);
+  }else{
+    if( !options::nlExt() ){
+      if( vlNode.getKind()==kind::EXPONENTIAL || vlNode.getKind()==kind::SINE || 
+          vlNode.getKind()==kind::COSINE || vlNode.getKind()==kind::TANGENT ){
+        d_nlIncomplete = true;
+      }
+    }
   }
 
   /* Note:
@@ -3823,7 +3829,6 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }
 
   if(Theory::fullEffort(effortLevel) && d_nlIncomplete){
-    // TODO this is total paranoia
     setIncomplete();
   }
 
@@ -4864,6 +4869,12 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
 
 Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node) {
   NodeManager* nm = NodeManager::currentNM();
+
+  // eliminate here since involves division
+  if( node.getKind()==kind::TANGENT ){
+    node = nm->mkNode(kind::DIVISION, nm->mkNode( kind::SINE, node[0] ), 
+                                      nm->mkNode( kind::COSINE, node[0] ) );
+  }
 
   switch(node.getKind()) {
   case kind::DIVISION: {

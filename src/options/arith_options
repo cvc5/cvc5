@@ -171,6 +171,9 @@ option nlExt --nl-ext bool :default true
 option nlExtResBound --nl-ext-rbound bool :default false
  use resolution-style inference for inferring new bounds
 
+option nlExtFactor --nl-ext-factor bool :default true
+ use factoring inference in non-linear solver
+ 
 option nlExtTangentPlanes --nl-ext-tplanes bool :default false
  use non-terminating tangent plane strategy for non-linear
 

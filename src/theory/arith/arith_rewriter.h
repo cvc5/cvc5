@@ -57,7 +57,9 @@ private:
 
   static RewriteResponse preRewriteMult(TNode t);
   static RewriteResponse postRewriteMult(TNode t);
-
+  
+  static RewriteResponse preRewriteTranscendental(TNode t);
+  static RewriteResponse postRewriteTranscendental(TNode t);
 
   static RewriteResponse preRewriteAtom(TNode t);
   static RewriteResponse postRewriteAtom(TNode t);

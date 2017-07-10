@@ -27,6 +27,11 @@ operator ABS 1 "absolute value"
 parameterized DIVISIBLE DIVISIBLE_OP 1 "divisibility-by-k predicate; first parameter is a DIVISIBLE_OP, second is integer term"
 operator POW 2 "arithmetic power"
 
+operator EXPONENTIAL 1 "exponential"
+operator SINE 1 "sine"
+operator COSINE 1 "consine"
+operator TANGENT 1 "tangent"
+
 constant DIVISIBLE_OP \
         ::CVC4::Divisible \
         ::CVC4::DivisibleHashFunction \
@@ -111,5 +116,14 @@ typerule DIVISIBLE ::CVC4::theory::arith::IntUnaryPredicateTypeRule
 typerule DIVISION_TOTAL ::CVC4::theory::arith::ArithOperatorTypeRule
 typerule INTS_DIVISION_TOTAL ::CVC4::theory::arith::IntOperatorTypeRule
 typerule INTS_MODULUS_TOTAL ::CVC4::theory::arith::IntOperatorTypeRule
+
+typerule EXPONENTIAL ::CVC4::theory::arith::RealOperatorTypeRule
+typerule SINE ::CVC4::theory::arith::RealOperatorTypeRule
+typerule COSINE ::CVC4::theory::arith::RealOperatorTypeRule
+typerule TANGENT ::CVC4::theory::arith::RealOperatorTypeRule
+
+nullaryoperator PI "pi"
+
+typerule PI ::CVC4::theory::arith::RealNullaryOperatorTypeRule
 
 endtheory

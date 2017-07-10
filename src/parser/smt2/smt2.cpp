@@ -53,6 +53,12 @@ void Smt2::addArithmeticOperators() {
   Parser::addOperator(kind::LEQ);
   Parser::addOperator(kind::GT);
   Parser::addOperator(kind::GEQ);
+  
+  addOperator(kind::POW, "^");
+  addOperator(kind::EXPONENTIAL, "exp");
+  addOperator(kind::SINE, "sin");
+  addOperator(kind::COSINE, "cos");
+  addOperator(kind::TANGENT, "tan");
 }
 
 void Smt2::addBitvectorOperators() {

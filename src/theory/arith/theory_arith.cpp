@@ -40,6 +40,11 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
   if (options::nlExt()) {
     setupExtTheory();
     getExtTheory()->addFunctionKind(kind::NONLINEAR_MULT);
+    getExtTheory()->addFunctionKind(kind::EXPONENTIAL);
+    getExtTheory()->addFunctionKind(kind::SINE);
+    getExtTheory()->addFunctionKind(kind::COSINE);
+    getExtTheory()->addFunctionKind(kind::TANGENT);
+    getExtTheory()->addFunctionKind(kind::PI);
   }
 }
 

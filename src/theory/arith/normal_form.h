@@ -245,6 +245,12 @@ public:
     case kind::INTS_MODULUS_TOTAL:
     case kind::DIVISION_TOTAL:
       return isDivMember(n);
+    case kind::EXPONENTIAL:
+    case kind::SINE:
+    case kind::COSINE:
+    case kind::TANGENT:
+    case kind::PI:
+      return isTranscendentalMember(n);      
     case kind::ABS:
     case kind::TO_INTEGER:
       // Treat to_int as a variable; it is replaced in early preprocessing
@@ -260,6 +266,7 @@ public:
   bool isDivLike() const{
     return isDivMember(getNode());
   }
+  static bool isTranscendentalMember(Node n);
 
   bool isNormalForm() { return isMember(getNode()); }
 

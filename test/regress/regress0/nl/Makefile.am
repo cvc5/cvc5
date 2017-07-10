@@ -49,7 +49,22 @@ TESTS =	\
   bug698.smt2  \
   real-div-ufnra.smt2 \
   div-mod-partial.smt2 \
-  all-logic.smt2
+  all-logic.smt2 \
+  nta/bad-050217.smt2 \
+  nta/cos-bound.smt2 \
+  nta/cos-sig-value.smt2 \
+  nta/exp_monotone.smt2 \
+  nta/shifting2.smt2 \
+  nta/shifting.smt2 \
+  nta/sin-compare-across-phase.smt2 \
+  nta/sin-compare.smt2 \
+  nta/sin-sign.smt2 \
+  nta/sin-sym2.smt2 \
+  nta/sin-sym.smt2 \
+  nta/tan-rewrite2.smt2 \
+  nta/tan-rewrite.smt2 \
+  nta/arrowsmith-050317.smt2 \
+  nta/sin-init-tangents.smt2
 
 # unsolved : garbage_collect.cvc
 

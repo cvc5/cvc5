@@ -86,17 +86,17 @@ class NonlinearExtension {
   // Check assertions for consistency in the effort LAST_CALL with a subset of
   // the assertions, false_asserts, evaluate to false in the current model.
   void checkLastCall(const std::vector<Node>& assertions,
-                     const std::set<Node>& false_asserts);
-
-  // Returns a vector containing a split on whether each term is 0 or not for
-  // those terms that have not been split on in the current context.
-  std::vector<Node> splitOnZeros(const std::vector<Node>& terms);
+                     const std::set<Node>& false_asserts,
+                     const std::vector<Node>& xts);
 
   static bool isArithKind(Kind k);
   static Node mkLit(Node a, Node b, int status, int orderType = 0);
   static Node mkAbs(Node a);
+  static Node mkValidPhase(Node a, Node pi);
+  static Node mkBounded( Node l, Node a, Node u );
   static Kind joinKinds(Kind k1, Kind k2);
   static Kind transKinds(Kind k1, Kind k2);
+  static bool isTranscendentalKind(Kind k);
   Node mkMonomialRemFactor(Node n, const NodeMultiset& n_exp_rem) const;
 
   // register monomial
@@ -171,6 +171,9 @@ class NonlinearExtension {
   // cache of all lemmas sent
   NodeSet d_lemmas;
   NodeSet d_zero_split;
+  
+  // literals with Skolems (need not be satisfied by model)
+  NodeSet d_skolem_atoms;
 
   // utilities
   Node d_zero;
@@ -197,8 +200,71 @@ class NonlinearExtension {
   std::map<Node, Node> d_mv[2];
 
   // ordering, stores variables and 0,1,-1
-  std::map<unsigned, NodeMultiset> d_order_vars;
+  std::map<Node, unsigned> d_order_vars;
   std::vector<Node> d_order_points;
+  
+  //transcendent functions
+  std::map<Node, Node> d_trig_base;
+  std::map<Node, bool> d_trig_is_base;
+  std::map< Node, bool > d_tf_initial_refine;
+  Node d_pi;
+  Node d_pi_2;
+  Node d_pi_neg_2;
+  Node d_pi_neg;
+  Node d_pi_bound[2];
+  
+  void mkPi();
+  void getCurrentPiBounds( std::vector< Node >& lemmas );
+private:
+  //per last-call effort check
+  
+  //information about monomials
+  std::vector< Node > d_ms;
+  std::vector< Node > d_ms_vars;
+  std::map<Node, bool> d_ms_proc;
+  std::vector<Node> d_mterms;  
+  //list of monomials with factors whose model value is non-constant in model 
+  //  e.g. y*cos( x )
+  std::map<Node, bool> d_m_nconst_factor;
+  // If ( m, p1, true ), then it would help satisfiability if m were ( >
+  // if p1=true, < if p1=false )
+  std::map<Node, std::map<bool, bool> > d_tplane_refine_dir;
+  // term -> coeff -> rhs -> ( status, exp, b ),
+  //   where we have that : exp =>  ( coeff * term <status> rhs )
+  //   b is true if degree( term ) >= degree( rhs )
+  std::map<Node, std::map<Node, std::map<Node, Kind> > > d_ci;
+  std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
+  std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
+  
+  //information about transcendental functions
+  std::map< Kind, std::map< Node, Node > > d_tf_rep_map;  
+  
+  // factor skolems
+  std::map< Node, Node > d_factor_skolem;
+  Node getFactorSkolem( Node n, std::vector< Node >& lemmas );
+  
+  Node getTaylor( Node tf, Node x, unsigned n, std::vector< Node >& lemmas );
+private:
+  // Returns a vector containing a split on whether each term is 0 or not for
+  // those terms that have not been split on in the current context.
+  std::vector<Node> checkSplitZero();
+  
+  std::vector<Node> checkMonomialSign();
+  
+  std::vector<Node> checkMonomialMagnitude( unsigned c );
+  
+  std::vector<Node> checkMonomialInferBounds( std::vector<Node>& nt_lemmas,
+                                              const std::set<Node>& false_asserts );
+  
+  std::vector<Node> checkFactoring( const std::set<Node>& false_asserts );
+  
+  std::vector<Node> checkMonomialInferResBounds();
+  
+  std::vector<Node> checkTangentPlanes();
+  
+  std::vector<Node> checkTranscendentalInitialRefine();
+
+  std::vector<Node> checkTranscendentalMonotonic();
 }; /* class NonlinearExtension */
 
 }  // namespace arith

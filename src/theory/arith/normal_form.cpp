@@ -89,6 +89,19 @@ bool Variable::isDivMember(Node n){
   }
 }
 
+bool Variable::isTranscendentalMember(Node n) {
+  switch(n.getKind()){
+  case kind::EXPONENTIAL:
+  case kind::SINE:
+  case kind::COSINE:
+  case kind::TANGENT:
+    return Polynomial::isMember(n[0]);
+  case kind::PI:
+    return true;
+  default:
+    return false;
+  }
+}
 
 
 bool VarList::isSorted(iterator start, iterator end) {
