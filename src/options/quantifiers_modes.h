@@ -133,19 +133,6 @@ enum CVC4_PUBLIC PrenexQuantMode {
   PRENEX_QUANT_NORMAL,
 };
 
-enum CegqiFairMode {
-  /** enforce fairness by UF corresponding to datatypes size */
-  CEGQI_FAIR_UF_DT_SIZE,
-  /** enforce fairness by datatypes size */
-  CEGQI_FAIR_DT_SIZE,
-  /** enforce fairness by datatypes height bound */
-  CEGQI_FAIR_DT_HEIGHT_PRED,
-  /** enforce fairness by datatypes size bound */
-  CEGQI_FAIR_DT_SIZE_PRED,
-  /** do not use fair strategy for CEGQI */
-  CEGQI_FAIR_NONE,
-};
-
 enum TermDbMode {
   /** consider all terms in master equality engine */
   TERM_DB_ALL,

@@ -16,6 +16,7 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "options/datatypes_options.h"
 #include "theory/quantifiers/candidate_generator.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
@@ -116,7 +117,8 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
           break;
         }
       }
-    }else if( d_match_pattern.getKind()==APPLY_SELECTOR_TOTAL && d_match_pattern[0].getKind()==INST_CONSTANT && options::purifyDtTriggers() ){
+    }else if( d_match_pattern.getKind()==APPLY_SELECTOR_TOTAL && d_match_pattern[0].getKind()==INST_CONSTANT && 
+              options::purifyDtTriggers() && !options::dtSharedSelectors() ){
       d_match_pattern = d_match_pattern[0];
     }
     d_match_pattern_type = d_match_pattern.getType();

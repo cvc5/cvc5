@@ -31,6 +31,7 @@
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
 #include "options/theory_options.h"
+#include "options/quantifiers_options.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -62,12 +63,15 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);
   d_equalityEngine.addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
-  d_equalityEngine.addFunctionKind(kind::DT_SIZE);
-  d_equalityEngine.addFunctionKind(kind::DT_HEIGHT_BOUND);
+  //d_equalityEngine.addFunctionKind(kind::DT_SIZE);
+  //d_equalityEngine.addFunctionKind(kind::DT_HEIGHT_BOUND);
+  //d_equalityEngine.addFunctionKind(kind::DT_SYGUS_TERM_ORDER);
+  //d_equalityEngine.addFunctionKind(kind::DT_SYGUS_IS_CONST);
   d_equalityEngine.addFunctionKind(kind::APPLY_TESTER);
   //d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 
   d_true = NodeManager::currentNM()->mkConst( true );
+  d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
   d_dtfCounter = 0;
 
   d_sygus_split = NULL;
@@ -134,11 +138,19 @@ TNode TheoryDatatypes::getEqcConstructor( TNode r ) {
 }
 
 void TheoryDatatypes::check(Effort e) {
-  if (done() && !fullEffort(e)) {
+  if (done() && e<EFFORT_FULL) {
     return;
   }
   Assert( d_pending.empty() && d_pending_merge.empty() );
   d_addedLemma = false;
+  
+  if( e == EFFORT_LAST_CALL ){
+    Assert( d_sygus_sym_break );
+    std::vector< Node > lemmas;
+    d_sygus_sym_break->check( lemmas );
+    doSendLemmas( lemmas );
+    return;
+  }
 
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
@@ -273,7 +285,7 @@ void TheoryDatatypes::check(Effort e) {
                 consIndex = fconsIndex!=-1 ? fconsIndex : consIndex;
               }
 
-              if( needSplit && consIndex!=-1 ) {
+              if( needSplit ) {
                 if( dt.getNumConstructors()==1 ){
                   //this may not be necessary?
                   //if only one constructor, then this term must be this constructor
@@ -283,7 +295,8 @@ void TheoryDatatypes::check(Effort e) {
                   Trace("datatypes-infer") << "DtInfer : 1-cons (full) : " << t << std::endl;
                   d_infer.push_back( t );
                 }else{
-                  if( options::dtBinarySplit() ){
+                  Assert( consIndex!=-1 || dt.isSygus() );
+                  if( options::dtBinarySplit() && consIndex!=-1 ){
                     Node test = DatatypesRewriter::mkTester( n, consIndex, dt );
                     Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n << endl;
                     test = Rewriter::rewrite( test );
@@ -296,8 +309,10 @@ void TheoryDatatypes::check(Effort e) {
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     std::vector< Node > children;
                     if( dt.isSygus() && d_sygus_split ){
+                      Trace("dt-sygus") << "DtSygus : split on " << n << std::endl;
                       std::vector< Node > lemmas;
                       d_sygus_split->getSygusSplits( n, dt, children, lemmas );
+                      Trace("dt-sygus") << "Finished compute split, returned " << lemmas.size() << " lemmas." << std::endl;
                       for( unsigned i=0; i<lemmas.size(); i++ ){
                         Trace("dt-lemma-sygus") << "Dt sygus lemma : " << lemmas[i] << std::endl;
                         doSendLemma( lemmas[i] );
@@ -360,6 +375,10 @@ void TheoryDatatypes::check(Effort e) {
   }
 }
 
+bool TheoryDatatypes::needsCheckLastEffort() {
+  return d_sygus_sym_break!=NULL;
+}
+
 void TheoryDatatypes::flushPendingFacts(){
   doPendingMerges();
   //pending lemmas: used infrequently, only for definitional lemmas
@@ -403,9 +422,7 @@ void TheoryDatatypes::flushPendingFacts(){
         }
       }
       Trace("dt-lemma") << "Datatypes lemma : " << lem << std::endl;
-      if( doSendLemma( lem ) ){
-        d_addedLemma = true;
-      }
+      doSendLemma( lem );
     }else{
       assertFact( fact, exp );
       d_addedFact = true;
@@ -435,12 +452,22 @@ bool TheoryDatatypes::doSendLemma( Node lem ) {
     Trace("dt-lemma-send") << "TheoryDatatypes::doSendLemma : " << lem << std::endl;
     d_lemmas_produced_c[lem] = true;
     d_out->lemma( lem );
+    d_addedLemma = true;
     return true;
   }else{
     return false;
   }
 }
-
+bool TheoryDatatypes::doSendLemmas( std::vector< Node >& lemmas ){
+  bool ret = false;
+  for( unsigned i=0; i<lemmas.size(); i++ ){
+    bool cret = doSendLemma( lemmas[i] );
+    ret = ret || cret;
+  }
+  lemmas.clear();
+  return ret;
+}
+        
 void TheoryDatatypes::assertFact( Node fact, Node exp ){
   Assert( d_pending_merge.empty() );
   Trace("datatypes-debug") << "TheoryDatatypes::assertFact : " << fact << std::endl;
@@ -452,6 +479,12 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
     d_equalityEngine.assertPredicate( atom, polarity, exp );
   }
   doPendingMerges();
+  // could be sygus-specific
+  if( d_sygus_sym_break ){
+    std::vector< Node > lemmas;
+    d_sygus_sym_break->assertFact( atom, polarity, lemmas );
+    doSendLemmas( lemmas );
+  }
   //add to tester if applicable
   Node t_arg;
   int tindex = DatatypesRewriter::isTester( atom, t_arg );
@@ -461,36 +494,22 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
     EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
     addTester( tindex, fact, eqc, rep, t_arg );
     Trace("dt-tester") << "Done assert tester." << std::endl;
+    //do pending merges
+    doPendingMerges();
+    Trace("dt-tester") << "Done pending merges." << std::endl;
     if( !d_conflict && polarity ){
       if( d_sygus_sym_break ){
+        Trace("dt-sygus") << "Assert tester to sygus : " << atom << std::endl;
         //Assert( !d_sygus_util->d_conflict );
-        Trace("dt-tester") << "Assert tester to sygus : " << atom << std::endl;
-        d_sygus_sym_break->addTester( tindex, t_arg, atom );
-        Trace("dt-tester") << "Done assert tester to sygus." << std::endl;
-        for( unsigned i=0; i<d_sygus_sym_break->d_lemmas.size(); i++ ){
-          Trace("dt-lemma-sygus") << "Sygus symmetry breaking lemma : " << d_sygus_sym_break->d_lemmas[i] << std::endl;
-          doSendLemma( d_sygus_sym_break->d_lemmas[i] );
-        }
-        d_sygus_sym_break->d_lemmas.clear();
-        /*
-        if( d_sygus_util->d_conflict ){
-          //d_conflict = true;
-          if( !d_sygus_util->d_conflictNode.isNull() ){
-            std::vector< TNode > assumptions;
-            explain( d_sygus_util->d_conflictNode, assumptions );
-            d_conflictNode = mkAnd( assumptions );
-            Trace("dt-conflict") << "CONFLICT: sygus symmetry breaking conflict : " << d_conflictNode << std::endl;
-            d_out->conflict( d_conflictNode );
-          }
-          return;
-        }
-        */
+        std::vector< Node > lemmas;
+        d_sygus_sym_break->assertTester( tindex, t_arg, atom, lemmas );
+        Trace("dt-sygus") << "Done assert tester to sygus." << std::endl;
+        doSendLemmas( lemmas );
       }
     }
   }else{
     Trace("dt-tester-debug") << "Assert (non-tester) : " << atom << std::endl;
   }
-  doPendingMerges();
   Trace("datatypes-debug") << "TheoryDatatypes::assertFact : finished " << fact << std::endl;
 }
 
@@ -507,8 +526,16 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
     d_equalityEngine.addTriggerPredicate(n);
     break;
   default:
+    if( n.getKind()==kind::DT_SIZE ){
+      d_out->lemma( NodeManager::currentNM()->mkNode( LEQ, d_zero, n ) );
+    }
     // Function applications/predicates
     d_equalityEngine.addTerm(n);
+    if( d_sygus_sym_break ){
+      std::vector< Node > lemmas;
+      d_sygus_sym_break->preRegisterTerm(n, lemmas);
+      doSendLemmas( lemmas );
+    }
     //d_equalityEngine.addTriggerTerm(n, THEORY_DATATYPES);
     break;
   }
@@ -519,23 +546,35 @@ void TheoryDatatypes::finishInit() {
   if( getQuantifiersEngine() && options::ceGuidedInst() ){
     quantifiers::TermDbSygus * tds = getQuantifiersEngine()->getTermDatabaseSygus();
     Assert( tds!=NULL );
-    d_sygus_split = new SygusSplit( tds );
-    d_sygus_sym_break = new SygusSymBreak( tds, getSatContext() );
+    d_sygus_split = new SygusSplitNew( tds );
+    d_sygus_sym_break = new SygusSymBreakNew( this, tds, getSatContext() );
   }
 }
 
 Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
   switch( n.getKind() ){
   case kind::APPLY_SELECTOR: {
+    Trace("dt-expand") << "Dt Expand definition : " << n << std::endl;
     Node selector = n.getOperator();
     Expr selectorExpr = selector.toExpr();
-    Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( selectorExpr ), n[0] );
+    // APPLY_SELECTOR always applies to an external selector, cindexOf is legal here
+    size_t cindex = Datatype::cindexOf(selectorExpr);
+    const Datatype& dt = Datatype::datatypeOf(selectorExpr);
+    const DatatypeConstructor& c = dt[cindex];
+    Node selector_use;
+    TypeNode ndt = n[0].getType();
+    if( options::dtSharedSelectors() ){
+      size_t selectorIndex = Datatype::indexOf(selectorExpr);
+      Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
+      Assert( selectorIndex<c.getNumArgs() );
+      selector_use = Node::fromExpr( c.getSelectorInternal( ndt.toType(), selectorIndex ) );
+    }else{
+      selector_use = selector;
+    }
+    Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, selector_use, n[0] );
     if( options::dtRewriteErrorSel() ){
       return sel;
     }else{
-      size_t selectorIndex = Datatype::cindexOf(selectorExpr);
-      const Datatype& dt = Datatype::datatypeOf(selectorExpr);
-      const DatatypeConstructor& c = dt[selectorIndex];
       Expr tester = c.getTester();
       Node tst = NodeManager::currentNM()->mkNode( kind::APPLY_TESTER, Node::fromExpr( tester ), n[0] );
       tst = Rewriter::rewrite( tst );
@@ -543,7 +582,6 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
       if( tst==d_true ){
         n_ret = sel;
       }else{
-        TypeNode ndt = n[0].getType();
         mkExpDefSkolem( selector, ndt, n.getType() );
         Node sk = NodeManager::currentNM()->mkNode( kind::APPLY_UF, d_exp_def_skolem[ndt][ selector ], n[0]  );
         if( tst==NodeManager::currentNM()->mkConst( false ) ){
@@ -599,7 +637,7 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
         b << in[1];
         Debug("tuprec") << "arg " << i << " gets updated to " << in[1] << std::endl;
       } else {
-        b << NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, Node::fromExpr(dt[0][i].getSelector()), in[0]);
+        b << NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, Node::fromExpr(dt[0].getSelectorInternal( t.toType(), i )), in[0]);
         Debug("tuprec") << "arg " << i << " copies " << b[b.getNumChildren() - 1] << std::endl;
       }
     }
@@ -965,7 +1003,8 @@ bool TheoryDatatypes::hasTester( Node n ) {
 }
 
 void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& pcons ){
-  const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
+  TypeNode tn = n.getType();
+  const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
   int lindex = getLabelIndex( eqc, n );
   pcons.resize( dt.getNumConstructors(), lindex==-1 );
   if( lindex!=-1 ){
@@ -982,17 +1021,10 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
         Assert( tindex!=-1 );
         pcons[ tindex ] = false;
       }
-    }
-  }
-}
-
-void TheoryDatatypes::getSelectorsForCons( Node r, std::map< int, bool >& sels ) {
-  NodeIntMap::iterator sel_i = d_selector_apps.find( r );
-  if( sel_i != d_selector_apps.end() ){
-    int n_sel = (*sel_i).second;
-    for( int j=0; j<n_sel; j++ ){
-      int sindex = Datatype::indexOf( d_selector_apps_data[r][j].getOperator().toExpr() );
-      sels[sindex] = true;
+      //further limit the possibilities based on grammar minimization
+      if( d_sygus_sym_break && dt.isSygus() ){
+        d_sygus_sym_break->getPossibleCons( dt, tn, pcons );
+      }
     }
   }
 }
@@ -1061,6 +1093,7 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
     NodeIntMap::iterator lbl_i = d_labels.find( n );
     Assert( lbl_i != d_labels.end() );
     int n_lbl = (*lbl_i).second;
+    std::map< int, bool > neg_testers;
     for( int i=0; i<n_lbl; i++ ){
       Node ti = d_labels_data[n][i];
       Assert( ti.getKind()==NOT );
@@ -1076,6 +1109,8 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
         }else{            //it is redundant
           return;
         }
+      }else{
+        neg_testers[jtindex] = true;
       }
     }
     if( !makeConflict ){
@@ -1093,11 +1128,21 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
       Debug("datatypes-labels") << "Labels at " << n_lbl << " / " << dt.getNumConstructors() << std::endl;
       if( tpolarity ){
         instantiate( eqc, n );
+        //TODO : and it is not the other testers FIXME
+        for( int i=0; i<(int)dt.getNumConstructors(); i++ ){
+          if( i!=ttindex && neg_testers.find( i )==neg_testers.end() ){
+            Assert( n.getKind()!=APPLY_CONSTRUCTOR );
+            Node infer = DatatypesRewriter::mkTester( n, i, dt ).negate();
+            Trace("datatypes-infer") << "DtInfer : neg label : " << infer << " by " << t << std::endl;
+            d_infer.push_back( infer );
+            d_infer_exp.push_back( t );
+          }
+        }
       }else{
         //check if we have reached the maximum number of testers
         // in this case, add the positive tester
         //this should not be done for sygus, since cases may be limited
-        if( n_lbl==(int)dt.getNumConstructors()-1 && !dt.isSygus() ){
+        if( n_lbl==(int)dt.getNumConstructors()-1 ){
           std::vector< bool > pcons;
           getPossibleCons( eqc, n, pcons );
           int testerIndex = -1;
@@ -1107,7 +1152,7 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
               break;
             }
           }
-          Assert( testerIndex!=-1 );
+          Assert( dt.isSygus() || testerIndex!=-1 );
           //we must explain why each term in the set of testers for this equivalence class is equal
           std::vector< Node > eq_terms;
           NodeBuilder<> nb(kind::AND);
@@ -1127,7 +1172,7 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
               }
             }
           }
-          Node t_concl = DatatypesRewriter::mkTester( t_arg, testerIndex, dt );
+          Node t_concl = testerIndex==-1 ? NodeManager::currentNM()->mkConst( false ) : DatatypesRewriter::mkTester( t_arg, testerIndex, dt );
           Node t_concl_exp = ( nb.getNumChildren() == 1 ) ? nb.getChild( 0 ) : nb;
           d_pending.push_back( t_concl );
           d_pending_exp[ t_concl ] = t_concl_exp;
@@ -1257,7 +1302,6 @@ Node TheoryDatatypes::removeUninterpretedConstants( Node n, std::map< Node, Node
   }
 } 
 
-
 void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   Assert( c.getKind()==APPLY_CONSTRUCTOR );
   Trace("dt-collapse-sel") << "collapse selector : " << s << " " << c << std::endl;
@@ -1273,8 +1317,13 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     use_s = s;
   }
   if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
-    //Trace("dt-collapse-sel") << "Indices : " << Datatype::indexOf(c.getOperator().toExpr()) << " " << Datatype::cindexOf(s.getOperator().toExpr()) << std::endl;
-    wrong = Datatype::indexOf(c.getOperator().toExpr())!=Datatype::cindexOf(s.getOperator().toExpr());
+    Expr selectorExpr = s.getOperator().toExpr();
+    size_t constructorIndex = Datatype::indexOf(c.getOperator().toExpr());
+    const Datatype& dt = Datatype::datatypeOf(selectorExpr);
+    const DatatypeConstructor& dtc = dt[constructorIndex];
+    int selectorIndex = dtc.getSelectorIndexInternal( selectorExpr );
+    wrong = selectorIndex<0;
+    
     //if( wrong ){
     //  return;
     //}
@@ -1285,21 +1334,6 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
     if( options::dtRefIntro() ){
       use_s = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), use_s );
-    }
-  }else{
-    if( s.getKind()==DT_SIZE ){
-      r = NodeManager::currentNM()->mkNode( DT_SIZE, c );
-      if( options::dtRefIntro() ){
-        use_s = NodeManager::currentNM()->mkNode( DT_SIZE, use_s );
-      }
-    }else if( s.getKind()==DT_HEIGHT_BOUND ){
-      r = NodeManager::currentNM()->mkNode( DT_HEIGHT_BOUND, c, s[1] );
-      if( options::dtRefIntro() ){
-        use_s = NodeManager::currentNM()->mkNode( DT_HEIGHT_BOUND, use_s, s[1] );
-      }
-      if( r==d_true ){
-        return;
-      }
     }
   }
   if( !r.isNull() ){
@@ -1321,7 +1355,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
         eq_exp = c.eqNode( s[0] );
       }
       Trace("datatypes-infer") << "DtInfer : collapse sel";
-      Trace("datatypes-infer") << ( wrong ? " wrong" : "");
+      //Trace("datatypes-infer") << ( wrong ? " wrong" : "");
       Trace("datatypes-infer") << " : " << eq << " by " << eq_exp << std::endl;
       d_pending.push_back( eq );
       d_pending_exp[ eq ] = eq_exp;
@@ -1643,13 +1677,6 @@ void TheoryDatatypes::collectTerms( Node n ) {
         addSelector( n, eqc, rep );
 
         if( n.getKind() == DT_SIZE ){
-          Node conc = NodeManager::currentNM()->mkNode( LEQ, NodeManager::currentNM()->mkConst( Rational(0) ), n );
-          //must be non-negative
-          Trace("datatypes-infer") << "DtInfer : non-negative size : " << conc << std::endl;
-          //d_pending.push_back( conc );
-          //d_pending_exp[ conc ] = d_true;
-          //d_infer.push_back( conc );
-          d_pending_lem.push_back( conc );
   /*
           //add size = 0 lemma
           Node nn = n.eqNode( NodeManager::currentNM()->mkConst( Rational(0) ) );
@@ -1703,14 +1730,19 @@ Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index 
   if( it!=d_inst_map[n].end() ){
     return it->second;
   }else{
-    //add constructor to equivalence class
-    Node k = getTermSkolemFor( n );
-    Node n_ic = DatatypesRewriter::getInstCons( k, dt, index );
-    //Assert( n_ic==Rewriter::rewrite( n_ic ) );
-    n_ic = Rewriter::rewrite( n_ic );
-    collectTerms( n_ic );
-    d_equalityEngine.addTerm(n_ic);
-    Debug("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
+    Node n_ic;
+    if( n.getKind()==APPLY_CONSTRUCTOR && n.getNumChildren()==0 ){
+      n_ic = n;
+    }else{
+      //add constructor to equivalence class
+      Node k = getTermSkolemFor( n );
+      n_ic = DatatypesRewriter::getInstCons( k, dt, index );
+      //Assert( n_ic==Rewriter::rewrite( n_ic ) );
+      n_ic = Rewriter::rewrite( n_ic );
+      collectTerms( n_ic );
+      d_equalityEngine.addTerm(n_ic);
+      Debug("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
+    }
     d_inst_map[n][index] = n_ic;
     return n_ic;
   }
@@ -2256,6 +2288,17 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit, const Entailme
 
   }
   return make_pair(false, Node::null());
+}
+
+Node TheoryDatatypes::getNextDecisionRequest( unsigned& priority ) {
+  if( d_sygus_sym_break ){
+    std::vector< Node > lemmas;
+    Node ret = d_sygus_sym_break->getNextDecisionRequest( priority, lemmas );
+    doSendLemmas( lemmas );
+    return ret;
+  }else{
+    return Node::null();
+  }
 }
 
 } /* namepsace CVC4::theory::datatypes */

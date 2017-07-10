@@ -245,8 +245,6 @@ option conjectureGenMaxDepth --conjecture-gen-max-depth=N int :default 3
 
 option ceGuidedInst --cegqi bool :default false :read-write
   counterexample-guided quantifier instantiation
-option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMode :default CVC4::theory::quantifiers::CEGQI_FAIR_DT_SIZE :include "options/quantifiers_modes.h" :handler stringToCegqiFairMode
-  if and how to apply fairness for cegqi
 option cegqiSingleInvMode --cegqi-si=MODE CVC4::theory::quantifiers::CegqiSingleInvMode :default CVC4::theory::quantifiers::CEGQI_SI_MODE_NONE :include "options/quantifiers_modes.h" :handler stringToCegqiSingleInvMode :read-write
   mode for processing single invocation synthesis conjectures
 option cegqiSingleInvPartial --cegqi-si-partial bool :default false
@@ -261,29 +259,31 @@ option cegqiSingleInvReconstructConst --cegqi-si-reconstruct-const bool :default
   include constants when reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSingleInvAbort --cegqi-si-abort bool :default false
   abort if synthesis conjecture is not single invocation
+option sygusPbe --sygus-pbe bool :default true
+  sygus advanced pruning based on examples
   
-option sygusNormalForm --sygus-nf bool :default true
-  only search for sygus builtin terms that are in normal form
-option sygusNormalFormArg --sygus-nf-arg bool :default true
-  account for relationship between arguments of operations in sygus normal form
-option sygusNormalFormGlobal --sygus-nf-sym bool :default true
-  narrow sygus search space based on global state of current candidate program
-option sygusNormalFormGlobalGen --sygus-nf-sym-gen bool :default true
-  generalize lemmas for global search space narrowing
-option sygusNormalFormGlobalArg --sygus-nf-sym-arg bool :default true
-  generalize based on arguments in global search space narrowing
-option sygusNormalFormGlobalContent --sygus-nf-sym-content bool :default true
-  generalize based on content in global search space narrowing
+option sygusMinGrammar --sygus-min-grammar bool :default true
+  statically minimize sygus grammars
+option sygusMinGrammarAgg --sygus-min-grammar-agg bool :default false
+  aggressively minimize sygus grammars
+option sygusAddConstGrammar --sygus-add-const-grammar bool :default true
+  statically add constants appearing in conjecture to grammars
   
 option sygusInvTemplMode --sygus-inv-templ=MODE CVC4::theory::quantifiers::SygusInvTemplMode :default CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_NONE :include "options/quantifiers_modes.h" :handler stringToSygusInvTemplMode
   template mode for sygus invariant synthesis
-option sygusUnifCondSol --sygus-unif-csol bool :default false
-  enable approach which unifies conditional solutions
+option sygusInvAutoUnfold --sygus-auto-unfold bool :default true
+  enable approach which automatically unfolds transition systems for directly solving invariant synthesis problems
+option sygusUnifCondSol --sygus-unif-csol bool :default true
+  enable new approach which unifies conditional solutions
 
 option sygusDirectEval --sygus-direct-eval bool :default true
   direct unfolding of evaluation functions
-option sygusCRefEval --sygus-cref-eval bool :default false
+option sygusUnfoldBool --sygus-unfold-bool bool :default true
+  do unfolding of Boolean evaluation functions that appear in refinement lemmas
+option sygusCRefEval --sygus-cref-eval bool :default true
   direct evaluation of refinement lemmas for conflict analysis
+option sygusCRefEvalMinExp --sygus-cref-eval-min-exp bool :default true
+  use min explain for direct evaluation of refinement lemmas for conflict analysis
   
 # approach applied to general quantified formulas
 option cbqi --cbqi bool :read-write :default false

@@ -22,6 +22,8 @@
 #include "base/output.h"
 #include "expr/attribute.h"
 
+#include "theory/quantifiers/term_database.h"
+
 
 using namespace std;
 
@@ -110,6 +112,11 @@ bool NodeTemplate<ref_count>::hasBoundVar() {
     } else {
       for(iterator i = begin(); i != end() && !hasBv; ++i) {
         hasBv = (*i).hasBoundVar();
+      }
+      if( !hasBv ){
+        if( getKind()==kind::APPLY_UF && getOperator().hasAttribute(theory::SygusSynthFunVarListAttribute()) ){
+          hasBv = true;
+        }
       }
     }
     setAttribute(HasBoundVarAttr(), hasBv);

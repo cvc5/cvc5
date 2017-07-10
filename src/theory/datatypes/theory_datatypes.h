@@ -29,6 +29,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
+#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
@@ -54,6 +55,7 @@ private:
   NodeList d_infer;
   NodeList d_infer_exp;
   Node d_true;
+  Node d_zero;
   /** mkAnd */
   Node mkAnd( std::vector< TNode >& assumptions );
 private:
@@ -136,7 +138,6 @@ private:
   bool hasTester( Node n );
   /** get the possible constructors for n */
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
-  void getSelectorsForCons( Node r, std::map< int, bool >& sels );
   /** mkExpDefSkolem */
   void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );
   /** skolems for terms */
@@ -189,9 +190,6 @@ private:
   unsigned d_dtfCounter;
   /** expand definition skolem functions */
   std::map< TypeNode, std::map< Node, Node > > d_exp_def_skolem;
-  /** sygus utilities */
-  SygusSplit * d_sygus_split;
-  SygusSymBreak * d_sygus_sym_break;
   /** uninterpreted constant to variable map */
   std::map< Node, Node > d_uc_to_fresh_var;
 private:
@@ -212,6 +210,7 @@ private:
   void doPendingMerges();
   /** do send lemma */
   bool doSendLemma( Node lem );
+  bool doSendLemmas( std::vector< Node >& lem );
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
 
@@ -257,6 +256,7 @@ public:
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
   void check(Effort e);
+  bool needsCheckLastEffort();
   void preRegisterTerm(TNode n);
   void finishInit();
   Node expandDefinition(LogicRequest &logicRequest, Node n);
@@ -320,6 +320,12 @@ private:
   bool areDisequal( TNode a, TNode b );
   bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
+private:
+  /** sygus utilities */
+  SygusSplitNew * d_sygus_split;
+  SygusSymBreakNew * d_sygus_sym_break;
+public:
+  Node getNextDecisionRequest( unsigned& priority );
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */

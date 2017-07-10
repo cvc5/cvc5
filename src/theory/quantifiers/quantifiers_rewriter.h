@@ -94,6 +94,7 @@ public:
   static Node preprocess( Node n, bool isInst = false );
   static Node mkForAll( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node mkForall( std::vector< Node >& args, Node body, bool marked = false );
+  static Node mkForall( std::vector< Node >& args, Node body, std::vector< Node >& iplc, bool marked = false );
 };/* class QuantifiersRewriter */
 
 }/* CVC4::theory::quantifiers namespace */

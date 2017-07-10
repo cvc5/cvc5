@@ -353,6 +353,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/ce_guided_single_inv.h \
 	theory/quantifiers/ce_guided_single_inv_ei.cpp \
 	theory/quantifiers/ce_guided_single_inv_ei.h \
+	theory/quantifiers/ce_guided_pbe.cpp \
+	theory/quantifiers/ce_guided_pbe.h \
 	theory/quantifiers/ce_guided_single_inv_sol.cpp \
 	theory/quantifiers/ce_guided_single_inv_sol.h \
 	theory/quantifiers/ceg_instantiator.cpp \

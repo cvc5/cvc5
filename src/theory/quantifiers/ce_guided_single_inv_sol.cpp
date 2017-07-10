@@ -383,7 +383,7 @@ Node CegConjectureSingleInvSol::simplifySolutionNode( Node sol, TypeNode stn, st
     d_qe->getTermDatabaseSygus()->registerSygusType( stn );
     std::map< int, TypeNode > stnc;
     if( !stn.isNull() ){
-      int karg = d_qe->getTermDatabaseSygus()->getKindArg( stn, sol.getKind() );
+      int karg = d_qe->getTermDatabaseSygus()->getKindConsNum( stn, sol.getKind() );
       if( karg!=-1 ){
         const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
         if( dt[karg].getNumArgs()==sol.getNumChildren() ){
@@ -741,14 +741,14 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
     Node min_t = d_qe->getTermDatabaseSygus()->minimizeBuiltinTerm( t );
     Trace("csi-rcons-debug") << "Minimized term is : " << min_t << std::endl;
     //check if op is in syntax sort
-    carg = d_qe->getTermDatabaseSygus()->getOpArg( stn, min_t );
+    carg = d_qe->getTermDatabaseSygus()->getOpConsNum( stn, min_t );
     if( carg!=-1 ){
       Trace("csi-rcons-debug") << "  Type has operator." << std::endl;
       d_reconstruct[id] = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[carg].getConstructor() ) );
       status = 0;
     }else{
       //check if kind is in syntax sort
-      karg = d_qe->getTermDatabaseSygus()->getKindArg( stn, min_t.getKind() );
+      karg = d_qe->getTermDatabaseSygus()->getKindConsNum( stn, min_t.getKind() );
       if( karg!=-1 ){
         //collect the children of min_t
         std::vector< Node > tchildren;
@@ -880,7 +880,7 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
                 }
                 //get decompositions
                 for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-                  Kind k = d_qe->getTermDatabaseSygus()->getArgKind( stn, i );
+                  Kind k = d_qe->getTermDatabaseSygus()->getConsNumKind( stn, i );
                   getEquivalentTerms( k, min_t, equiv );
                 }
                 //assign ids to terms

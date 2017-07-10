@@ -229,6 +229,7 @@ liboptions_la_SOURCES = \
 	base_handlers.h \
 	bv_bitblast_mode.cpp \
 	bv_bitblast_mode.h \
+	datatypes_modes.h \
 	decision_mode.cpp \
 	decision_mode.h \
 	decision_weight.h \

@@ -36,6 +36,7 @@
 #include "options/bv_options.h"
 #include "options/decision_mode.h"
 #include "options/decision_options.h"
+#include "options/datatypes_modes.h"
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
@@ -399,10 +400,13 @@ norm \n\
 ";
 
 const std::string OptionsHandler::s_cegqiFairModeHelp = "\
-Modes for enforcing fairness for counterexample guided quantifier instantion, supported by --cegqi-fair:\n\
+Modes for enforcing fairness for counterexample guided quantifier instantion, supported by --sygus-fair:\n\
 \n\
 uf-dt-size \n\
 + Enforce fairness using an uninterpreted function for datatypes size.\n\
+\n\
+direct \n\
++ Enforce fairness using direct conflict lemmas.\n\
 \n\
 default | dt-size \n\
 + Default, enforce fairness using size operator.\n\
@@ -716,17 +720,17 @@ theory::quantifiers::PrenexQuantMode OptionsHandler::stringToPrenexQuantMode(std
   }
 }
 
-theory::quantifiers::CegqiFairMode OptionsHandler::stringToCegqiFairMode(std::string option, std::string optarg) throw(OptionException) {
-  if(optarg == "uf-dt-size" ) {
-    return theory::quantifiers::CEGQI_FAIR_UF_DT_SIZE;
+theory::SygusFairMode OptionsHandler::stringToSygusFairMode(std::string option, std::string optarg) throw(OptionException) {
+  if(optarg == "direct") {
+    return theory::SYGUS_FAIR_DIRECT;
   } else if(optarg == "default" || optarg == "dt-size") {
-    return theory::quantifiers::CEGQI_FAIR_DT_SIZE;
+    return theory::SYGUS_FAIR_DT_SIZE;
   } else if(optarg == "dt-height-bound" ){
-    return theory::quantifiers::CEGQI_FAIR_DT_HEIGHT_PRED;
-  //} else if(optarg == "dt-size-bound" ){
-  //  return theory::quantifiers::CEGQI_FAIR_DT_SIZE_PRED;
+    return theory::SYGUS_FAIR_DT_HEIGHT_PRED;
+  } else if(optarg == "dt-size-bound" ){
+    return theory::SYGUS_FAIR_DT_SIZE_PRED;
   } else if(optarg == "none") {
-    return theory::quantifiers::CEGQI_FAIR_NONE;
+    return theory::SYGUS_FAIR_NONE;
   } else if(optarg ==  "help") {
     puts(s_cegqiFairModeHelp.c_str());
     exit(1);

@@ -1188,9 +1188,15 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
           children[i] = children[i][1];
         }
       }
-      // TODO : keep the pattern
+      // keep the pattern
+      std::vector< Node > iplc;
+      if( n.getNumChildren()==3 ){
+        for( unsigned i=0; i<n[2].getNumChildren(); i++ ){
+          iplc.push_back( n[2][i] );
+        }
+      } 
       Node nb = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( OR, children );
-      ret = mkForall( args, nb, true );
+      ret = mkForall( args, nb, iplc, true );
     }else{
       std::vector< Node > args;
       std::vector< Node > nargs;
@@ -1347,14 +1353,19 @@ Node QuantifiersRewriter::mkForAll( std::vector< Node >& args, Node body, QAttri
     return NodeManager::currentNM()->mkNode( kind::FORALL, children );
   }
 }
+
 Node QuantifiersRewriter::mkForall( std::vector< Node >& args, Node body, bool marked ) {
+  std::vector< Node > iplc;
+  return mkForall( args, body, iplc, marked );
+}
+
+Node QuantifiersRewriter::mkForall( std::vector< Node >& args, Node body, std::vector< Node >& iplc, bool marked ) {
   if( args.empty() ){
     return body;
   }else{
     std::vector< Node > children;
     children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args ) );
     children.push_back( body );
-    std::vector< Node > iplc;
     if( marked ){
       Node avar = NodeManager::currentNM()->mkSkolem( "id", NodeManager::currentNM()->booleanType() );
       QuantIdNumAttribute ida;

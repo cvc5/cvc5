@@ -28,6 +28,7 @@
 #include "expr/node_manager.h"
 #include "expr/type.h"
 #include "options/set_language.h"
+#include "options/datatypes_options.h"
 
 using namespace std;
 
@@ -161,7 +162,7 @@ void Datatype::resolve(ExprManager* em,
     evalType.push_back(TypeNode::fromType(d_sygus_type));
     TypeNode eval_func_type = nm->mkFunctionType(evalType);
     d_sygus_eval = nm->mkSkolem(name, eval_func_type, "sygus evaluation function").toExpr();    
-  }  
+  }
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -180,6 +181,41 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
   d_sygus_allow_all = allow_all;
 }
 
+void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
+                                    CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args ) {
+  Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
+  if( !let_body.isNull() ){
+    Debug("dt-sygus") << "    let body = " << let_body << ", args = " << let_args.size() << "," << let_num_input_args << std::endl;
+    //TODO : remove arguments not occurring in body
+    //if this is a self identity function, ignore
+    if( let_args.size()==0 && let_args[0]==let_body ){
+      Debug("dt-sygus") << "    identity function " << cargs[0] << " to " << getName() << std::endl;
+      //TODO
+    }
+  }
+  std::string name = getName() + "_" + cname;
+  std::string testerId("is-");
+  testerId.append(name);
+  //checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
+  //checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
+  CVC4::DatatypeConstructor c(name, testerId );
+  c.setSygus( op, let_body, let_args, let_num_input_args );
+  for( unsigned j=0; j<cargs.size(); j++ ){
+    Debug("parser-sygus-debug") << "  arg " << j << " : " << cargs[j] << std::endl;
+    std::stringstream sname;
+    sname << name << "_" << j;
+    c.addArg(sname.str(), cargs[j]);
+  }
+  addConstructor(c);
+}
+
+void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs ) {
+  CVC4::Expr let_body; 
+  std::vector< CVC4::Expr > let_args; 
+  unsigned let_num_input_args = 0;
+  addSygusConstructor( op, cname, cargs, let_body, let_args, let_num_input_args );
+}
+                                    
 void Datatype::setTuple() {
   PrettyCheckArgument(!d_resolved, this, "cannot set tuple to a finalized Datatype");
   d_isTuple = true;
@@ -584,6 +620,30 @@ const DatatypeConstructor& Datatype::operator[](std::string name) const {
   IllegalArgument(name, "No such constructor `%s' of datatype `%s'", name.c_str(), d_name.c_str());
 }
 
+
+Expr Datatype::getSharedSelector( Type dtt, Type t, unsigned index ) const{
+  PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  std::map< Type, std::map< Type, std::map< unsigned, Expr > > >::iterator itd = d_shared_sel.find( dtt );
+  if( itd!=d_shared_sel.end() ){
+    std::map< Type, std::map< unsigned, Expr > >::iterator its = itd->second.find( t );
+    if( its!=itd->second.end() ){
+      std::map< unsigned, Expr >::iterator it = its->second.find( index );
+      if( it!=its->second.end() ){
+        return it->second;
+      }
+    }
+  }
+  //make the shared selector
+  Expr s;
+  NodeManager* nm = NodeManager::fromExprManager( d_self.getExprManager() );
+  std::stringstream ss;
+  ss << "sel_" << index;
+  s = nm->mkSkolem(ss.str(), nm->mkSelectorType(TypeNode::fromType(dtt), TypeNode::fromType(t)), "is a shared selector", NodeManager::SKOLEM_NO_NOTIFY).toExpr();
+  d_shared_sel[dtt][t][index] = s;
+  Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t << std::endl;
+  return s; 
+}
+
 Expr Datatype::getConstructor(std::string name) const {
   return (*this)[name].getConstructor();
 }
@@ -797,6 +857,7 @@ Expr DatatypeConstructor::getConstructor() const {
 
 Type DatatypeConstructor::getSpecializedConstructorType(Type returnType) const {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+  PrettyCheckArgument(returnType.isDatatype(), this, "cannot get specialized constructor type for non-datatype type");
   ExprManagerScope ems(d_constructor);
   const Datatype& dt = Datatype::datatypeOf(d_constructor);
   PrettyCheckArgument(dt.isParametric(), this, "this datatype constructor is not parametric");
@@ -1011,6 +1072,30 @@ Expr DatatypeConstructor::computeGroundTerm( Type t, std::vector< Type >& proces
   return groundTerm;
 }
 
+void DatatypeConstructor::computeSharedSelectors( Type domainType ) const {
+  if( d_shared_selectors[domainType].size()<getNumArgs() ){
+    TypeNode ctype;
+    if( DatatypeType(domainType).isParametric() ){
+      ctype = TypeNode::fromType( getSpecializedConstructorType( domainType ) );
+    }else{
+      ctype = TypeNode::fromType( d_constructor.getType() );
+    }
+    Assert( ctype.isConstructor() );
+    Assert( ctype.getNumChildren()-1==getNumArgs() );
+    //compute the shared selectors
+    const Datatype& dt = Datatype::datatypeOf(d_constructor);
+    std::map< TypeNode, unsigned > counter;
+    for( unsigned j=0; j<ctype.getNumChildren()-1; j++ ){
+      TypeNode t = ctype[j];
+      Expr ss = dt.getSharedSelector( domainType, t.toType(), counter[t] );
+      d_shared_selectors[domainType].push_back( ss );
+      Assert( d_shared_selector_index[domainType].find( ss )==d_shared_selector_index[domainType].end() );
+      d_shared_selector_index[domainType][ss] = j;
+      counter[t]++;
+    }
+  }
+}
+
 
 const DatatypeConstructorArg& DatatypeConstructor::operator[](size_t index) const {
   PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
@@ -1067,6 +1152,37 @@ std::string DatatypeConstructorArg::getName() const throw() {
 Expr DatatypeConstructorArg::getSelector() const {
   PrettyCheckArgument(isResolved(), this, "cannot get a selector for an unresolved datatype constructor");
   return d_selector;
+}
+
+Expr DatatypeConstructor::getSelectorInternal( Type domainType, size_t index ) const {
+  PrettyCheckArgument(isResolved(), this, "cannot get an internal selector for an unresolved datatype constructor");
+  PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
+  if( options::dtSharedSelectors() ){
+    computeSharedSelectors( domainType );
+    Assert( d_shared_selectors[domainType].size()==getNumArgs() );
+    return d_shared_selectors[domainType][index];
+  }else{
+    return d_args[index].getSelector();
+  }
+}
+
+int DatatypeConstructor::getSelectorIndexInternal( Expr sel ) const {
+  PrettyCheckArgument(isResolved(), this, "cannot get an internal selector index for an unresolved datatype constructor");
+  if( options::dtSharedSelectors() ){
+    Assert( sel.getType().isSelector() );
+    Type domainType = ((SelectorType)sel.getType()).getDomain();
+    computeSharedSelectors( domainType );
+    std::map< Expr, unsigned >::iterator its = d_shared_selector_index[domainType].find( sel );
+    if( its!=d_shared_selector_index[domainType].end() ){
+      return (int)its->second;
+    }
+  }else{
+    unsigned sindex = Datatype::indexOf(sel);
+    if( getNumArgs() > sindex && d_args[sindex].getSelector() == sel ){
+      return (int)sindex;
+    }
+  }
+  return -1;
 }
 
 Expr DatatypeConstructorArg::getConstructor() const {

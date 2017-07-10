@@ -825,10 +825,10 @@ static string smtKindString(Kind k) throw() {
   case kind::GEQ: return ">=";
   case kind::DIVISION:
   case kind::DIVISION_TOTAL: return "/";
+  case kind::INTS_DIVISION_TOTAL: 
   case kind::INTS_DIVISION: return "div";
-  case kind::INTS_DIVISION_TOTAL: return "INTS_DIVISION_TOTAL";
+  case kind::INTS_MODULUS_TOTAL: 
   case kind::INTS_MODULUS: return "mod";
-  case kind::INTS_MODULUS_TOTAL: return "INTS_MODULUS_TOTAL";
   case kind::ABS: return "abs";
   case kind::IS_INTEGER: return "is_int";
   case kind::TO_INTEGER: return "to_int";

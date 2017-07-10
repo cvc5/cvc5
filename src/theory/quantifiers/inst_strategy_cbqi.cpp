@@ -561,6 +561,9 @@ bool InstStrategyCbqi::doCbqi( Node q ){
           }
         }
       }
+      if( d_quantEngine->getTermDatabase()->isQAttrSygus( q ) ){
+        ret = 0;
+      }
       if( ret!=0 ){
         //if quantifier has a non-handled variable, then do not use cbqi
         //if quantifier has an APPLY_UF term, then do not use cbqi unless EPR

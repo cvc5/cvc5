@@ -20,7 +20,9 @@
 #include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
 #include "options/quantifiers_modes.h"
+#include "options/datatypes_modes.h"
 #include "theory/quantifiers/ce_guided_single_inv.h"
+#include "theory/quantifiers/ce_guided_pbe.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -42,36 +44,13 @@ private:
   std::vector< std::vector< Node > > d_inner_vars_disj;
   /** current extential quantifeirs whose couterexamples we must refine */
   std::vector< std::vector< Node > > d_ce_sk;
-  /** the cardinality literals */
-  std::map< int, Node > d_lits;
-  /** current cardinality */
-  context::CDO< int > d_curr_lit;
-  /** active measure term */
-  Node d_active_measure_term;
   /** refinement lemmas */
   std::vector< Node > d_refinement_lemmas;
   std::vector< Node > d_refinement_lemmas_base;
-  //std::vector< Node > d_refinement_lemmas_cprogress;
-  //std::vector< std::vector< Node > > d_refinement_lemmas_cprogress_pts;
-private: //for condition solutions
-  std::vector< std::vector< Node > > d_refinement_lemmas_aux_vars;
-  std::vector< std::vector< Node > > d_refinement_lemmas_ceval_ant;
-  std::vector< std::vector< Node > > d_refinement_lemmas_ceval_conc;
-  std::vector< Node > d_refinement_lemmas_ngr; //non-ground version
-  std::map< Node, bool > d_refinement_lemmas_reproc;
-  /** get candidate list recursively for conditional solutions */
-  void getConditionalCandidateList( std::vector< Node >& clist, Node curr, bool reqAdd );
-  Node constructConditionalCandidate( std::map< Node, Node >& cmv, Node curr );
-  Node getActiveConditional( Node curr );
-  void getContextConditionalNodes( Node curr, Node x, std::vector< Node >& nodes );
-  Node mkConditionalEvalNode( Node c, std::vector< Node >& args );
-  Node mkConditionalNode( Node v, std::vector< Node >& args, unsigned eindex );
-  Node mkConditional( Node v, std::vector< Node >& args, bool pol = true );
-  Node purifyConditionalEvaluations( Node n, std::map< Node, Node >& csol_cond, std::map< Node, Node >& psubs, 
-                                     std::map< Node, Node >& visited );
-  /** register candidate conditional */
-  void registerCandidateConditional( Node v );
-  bool inferIteTemplate( unsigned k, Node n, std::map< Node, unsigned >& templ_var_index, std::map< unsigned, unsigned >& templ_injection );
+  /** get embedding */
+  Node convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars, std::map< Node, Node >& visited );
+  /** collect constants */
+  void collectConstants( Node n, std::map< TypeNode, std::vector< Node > >& consts, std::map< Node, bool >& visited );
 public:
   CegConjecture( QuantifiersEngine * qe, context::Context* c );
   ~CegConjecture();
@@ -83,25 +62,12 @@ public:
 
   class CandidateInfo {
   public:
-    CandidateInfo() : d_csol_status(-1){}
+    CandidateInfo(){}
     /** list of terms we have instantiated candidates with */
     std::vector< Node > d_inst;
-    /** conditional solutions */
-    Node d_csol_op;
-    Node d_csol_cond;
-    Node d_csol_var[2];
-    /** progress guard */
-    Node d_csol_progress_guard;
-    /** solution status */
-    int d_csol_status;
-    /** required for template solutions */
-    std::map< unsigned, Node > d_template;
-    std::map< unsigned, Node > d_template_arg; 
   };
   std::map< Node, CandidateInfo > d_cinfo;
   
-  /** measure term */
-  Node d_measure_term;
   /** measure sum size */
   int d_measure_term_size;
   /** refine count */
@@ -113,7 +79,8 @@ public:
   
   bool needsRefinement();
   void getCandidateList( std::vector< Node >& clist, bool forceOrig = false );
-  bool constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, std::vector< Node >& candidate_values );
+  bool constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, std::vector< Node >& candidate_values, 
+                            std::vector< Node >& lems );
 
   void doCegConjectureSingleInvCheck(std::vector< Node >& lems);
   void doCegConjectureCheck(std::vector< Node >& lems, std::vector< Node >& model_values);
@@ -146,28 +113,19 @@ public:
 private:
   /** single invocation utility */
   CegConjectureSingleInv * d_ceg_si;
+  /** program by examples utility */
+  CegConjecturePbe * d_ceg_pbe;
 public: //non-syntax guided (deprecated)
   /** guard */
   bool d_syntax_guided;
   Node d_nsg_guard;
 public:
-  /** get current term size */
-  int getCurrentTermSize() { return d_curr_lit.get(); }
-  /** increment current term size */
-  void incrementCurrentTermSize() { d_curr_lit.set( d_curr_lit.get() + 1 ); }
-  /** set measure term */
-  void setMeasureTerm( Node mt );
-  /** get measure term */
-  Node getMeasureTermFactor( Node v );
-  Node getMeasureTerm() { return d_measure_term; }
-  /** allocate literal */
-  Node getFairnessLiteral( int i );
   /** get guard */
   Node getGuard();
   /** is ground */
   bool isGround() { return d_inner_vars.empty(); }
   /** fairness */
-  CegqiFairMode getCegqiFairMode();
+  SygusFairMode getCegqiFairMode();
   /** is single invocation */
   bool isSingleInvocation() const;
   /** is single invocation */
@@ -176,8 +134,6 @@ public:
   bool needsCheck( std::vector< Node >& lem );
   /** preregister conjecture */
   void preregisterConjecture( Node q );
-  /** initialize guard */
-  void initializeGuard();
   /** assign */
   void assign( Node q );
   /** is assigned */
@@ -192,23 +148,6 @@ public:
   Node getRefinementLemma( unsigned i ) { return d_refinement_lemmas[i]; }
   /** get refinement lemma */
   Node getRefinementBaseLemma( unsigned i ) { return d_refinement_lemmas_base[i]; }
-  /** get num conditional evaluations */
-  unsigned getNumConditionalEvaluations( unsigned i ) { return d_refinement_lemmas_ceval_ant[i].size(); }
-  /** get conditional evaluation */
-  Node getConditionalEvaluationAntec( unsigned i, unsigned j ) { return d_refinement_lemmas_ceval_ant[i][j]; }
-  Node getConditionalEvaluationConc( unsigned i, unsigned j ) { return d_refinement_lemmas_ceval_conc[i][j]; }
-  /** get progress lemma */
-  //Node getConditionalProgressLemma( unsigned i ) { return d_refinement_lemmas_cprogress[i]; }
-  /** get progress point */
-  //void getConditionalProgressLemmaPoint( unsigned i, std::vector< Node >& pt ){
-  //  pt.insert( pt.end(), d_refinement_lemmas_cprogress_pts[i].begin(), d_refinement_lemmas_cprogress_pts[i].end() );
-  //}
-private:
-  Node getNextDecisionRequestConditional( Node v, unsigned& priority );
-  // 1 : active, 0 : unknown, -1 : inactive, -2 : not applicable
-  int getProgressStatus( Node v );
-public:
-  Node getNextDecisionRequest( unsigned& priority );
 };
 
 
@@ -221,26 +160,10 @@ private:
   /** last instantiation by single invocation module? */
   bool d_last_inst_si;
   /** evaluation axioms */
-  std::map< Node, bool > d_eval_axioms;
-private: //for enforcing fairness
-  /** measure functions */
-  std::map< TypeNode, Node > d_uf_measure;
-  /** register measured type */
-  void registerMeasuredType( TypeNode tn );
-  /** term -> size term */
-  std::map< Node, Node > d_size_term;
-  /** get size term */
-  Node getSizeTerm( Node n, TypeNode tn, std::vector< Node >& lems );
-  /** term x constructor -> lemma */
-  std::map< Node, std::map< int, Node > > d_size_term_lemma;
-  /** get measure lemmas */
-  void getMeasureLemmas( Node n, Node v, std::vector< Node >& lems );
+  //std::map< Node, bool > d_eval_axioms;
 private: //for direct evaluation
   /** get refinement evaluation */
   void getCRefEvaluationLemmas( CegConjecture * conj, std::vector< Node >& vs, std::vector< Node >& ms, std::vector< Node >& lems );
-  Node crefEvaluate( Node lem, std::map< Node, Node >& vtm, std::map< Node, Node >& visited, std::map< Node, std::vector< Node > >& exp );
-  /** get eager unfolding */
-  Node getEagerUnfold( Node n, std::map< Node, Node >& visited );
 private:
   /** check conjecture */
   void checkCegConjecture( CegConjecture * conj );

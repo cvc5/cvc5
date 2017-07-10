@@ -1616,7 +1616,7 @@ tupleStore[CVC4::Expr& f]
       const Datatype & dt = ((DatatypeType)t).getDatatype();
       args.push_back( dt[0][k].getSelector() );
       args.push_back( f );
-      f2 = MK_EXPR(CVC4::kind::APPLY_SELECTOR_TOTAL,args);
+      f2 = MK_EXPR(CVC4::kind::APPLY_SELECTOR,args);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1651,7 +1651,7 @@ recordStore[CVC4::Expr& f]
       const Datatype & dt = ((DatatypeType)t).getDatatype();
       args.push_back( dt[0][id].getSelector() );
       args.push_back( f );
-      f2 = MK_EXPR(CVC4::kind::APPLY_SELECTOR_TOTAL,args);
+      f2 = MK_EXPR(CVC4::kind::APPLY_SELECTOR,args);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1802,7 +1802,7 @@ postfixTerm[CVC4::Expr& f]
           std::vector<Expr> sargs;
           sargs.push_back( dt[0][id].getSelector() );
           sargs.push_back( f );
-          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR_TOTAL,sargs);
+          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR,sargs);
         }
       | k=numeral
         { Type t = f.getType();
@@ -1819,7 +1819,7 @@ postfixTerm[CVC4::Expr& f]
           std::vector<Expr> sargs;
           sargs.push_back( dt[0][k].getSelector() );
           sargs.push_back( f );
-          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR_TOTAL,sargs);
+          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR,sargs);
         }
       )
     )*

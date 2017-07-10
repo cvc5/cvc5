@@ -66,8 +66,9 @@ public:
     if( tuple.getKind() == kind::APPLY_CONSTRUCTOR ) {
       return tuple[n_th];
     }
-    Datatype dt = tuple.getType().getDatatype();
-    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, dt[0][n_th].getSelector(), tuple);
+    TypeNode tn = tuple.getType();
+    Datatype dt = tn.getDatatype();
+    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal( tn.toType(), n_th ), tuple);
   } 
   
   static Node reverseTuple( Node tuple ) {

@@ -44,6 +44,58 @@ public:
 
 class SingleInvocationPartition;
 
+class DetTrace {
+private:
+  class DetTraceTrie {
+  public:
+    std::map< Node, DetTraceTrie > d_children;
+    bool add( Node loc, std::vector< Node >& val, unsigned index = 0 );
+    void clear() { d_children.clear(); }
+    Node constructFormula( std::vector< Node >& vars, unsigned index = 0 );
+  };
+  DetTraceTrie d_trie;
+public:
+  std::vector< Node > d_curr;
+  bool increment( Node loc, std::vector< Node >& vals );
+  Node constructFormula( std::vector< Node >& vars );
+  void print( const char* c );
+};
+
+class TransitionInference {
+private:
+  bool processDisjunct( Node n, std::map< bool, Node >& terms, std::vector< Node >& disjuncts, std::map< Node, bool >& visited, bool topLevel );
+  void getConstantSubstitution( std::vector< Node >& vars, std::vector< Node >& disjuncts, std::vector< Node >& const_var, std::vector< Node >& const_subs, bool reqPol );
+  bool d_complete;
+public:
+  TransitionInference() : d_complete( false ) {}
+  std::vector< Node > d_vars;
+  std::vector< Node > d_prime_vars;
+  Node d_func;
+  
+  class Component {
+  public:
+    Component(){}
+    Node d_this;
+    std::vector< Node > d_conjuncts;
+    std::map< Node, std::map< Node, Node > > d_const_eq;
+    bool has( Node c ) { return std::find( d_conjuncts.begin(), d_conjuncts.end(), c )!=d_conjuncts.end(); }
+  };
+  std::map< int, Component > d_com;
+  
+  void initialize( Node f, std::vector< Node >& vars );
+  void process( Node n );
+  Node getComponent( int i );
+  bool isComplete() { return d_complete; }
+  
+  // 0 : success, 1 : terminated, 2 : counterexample, -1 : invalid
+  int initializeTrace( DetTrace& dt, Node loc, bool fwd = true );
+  int incrementTrace( DetTrace& dt, Node loc, bool fwd = true );
+  int initializeTrace( DetTrace& dt, bool fwd = true );
+  int incrementTrace( DetTrace& dt, bool fwd = true );
+  Node constructFormulaTrace( DetTrace& dt );
+};
+
+
 class CegConjectureSingleInv {
  private:
   friend class CegqiOutputSingleInv;
@@ -72,6 +124,7 @@ class CegConjectureSingleInv {
   QuantifiersEngine* d_qe;
   CegConjecture* d_parent;
   SingleInvocationPartition* d_sip;
+  std::map< Node, TransitionInference > d_ti;
   CegConjectureSingleInvSol* d_sol;
   CegEntailmentInfer* d_ei;
   // the instantiator
@@ -130,6 +183,8 @@ class CegConjectureSingleInv {
   std::map< Node, Node > d_trans_pre;
   std::map< Node, Node > d_trans_post;
   std::map< Node, std::vector< Node > > d_prog_templ_vars;
+  std::map< Node, Node > d_templ;
+  std::map< Node, Node > d_templ_arg;
   //the non-single invocation portion of the quantified formula
   std::map< Node, Node > d_nsi_op_map;
   std::map< Node, Node > d_nsi_op_map_to_prog;
@@ -170,6 +225,22 @@ class CegConjectureSingleInv {
     std::map<Node, Node>::const_iterator location = d_trans_post.find(prog);
     return location->second;
   }
+  Node getTemplate(Node prog) const {
+    std::map<Node, Node>::const_iterator tmpl = d_templ.find(prog);
+    if( tmpl!=d_templ.end() ){
+      return tmpl->second;
+    }else{
+      return Node::null();
+    }
+  }
+  Node getTemplateArg(Node prog) const {
+    std::map<Node, Node>::const_iterator tmpla = d_templ_arg.find(prog);
+    if( tmpla != d_templ_arg.end() ){
+      return tmpla->second;
+    }else{
+      return Node::null();
+    }
+  }
 
 };
 
@@ -178,21 +249,22 @@ class CegConjectureSingleInv {
 // "d_arg_types",  and all invocations are in the same order across all
 // functions
 class SingleInvocationPartition {
- private:
+private:
+  bool d_has_input_funcs;
+  std::vector< Node > d_input_funcs;
   //options
-  Kind d_checkKind;
   bool inferArgTypes( Node n, std::vector< TypeNode >& typs, std::map< Node, bool >& visited );
   void process( Node n );
   bool collectConjuncts( Node n, bool pol, std::vector< Node >& conj );
   bool processConjunct( Node n, std::map< Node, bool >& visited, std::vector< Node >& args,
                         std::vector< Node >& terms, std::vector< Node >& subs );
   Node getSpecificationInst( Node n, std::map< Node, Node >& lam, std::map< Node, Node >& visited );
-  void extractInvariant2( Node n, Node& func, int& pol, std::vector< Node >& disjuncts, bool hasPol, std::map< Node, bool >& visited );
+  bool init( std::vector< Node >& funcs, std::vector< TypeNode >& typs, Node n, bool has_funcs );
 public:
-  SingleInvocationPartition( Kind checkKind = kind::APPLY_UF ) : d_checkKind( checkKind ){}
+  SingleInvocationPartition() : d_has_input_funcs( false ){}
   ~SingleInvocationPartition(){}
   bool init( Node n );
-  bool init( std::vector< TypeNode >& typs, Node n );
+  bool init( std::vector< Node >& funcs, Node n );
 
   //outputs (everything is with bound var)
   std::vector< TypeNode > d_arg_types;
@@ -216,13 +288,12 @@ public:
 
   Node getSpecificationInst( int index, std::map< Node, Node >& lam );
 
-  void extractInvariant( Node n, Node& func, int& pol, std::vector< Node >& disjuncts );
-
   bool isPurelySingleInvocation() { return d_conjuncts[1].empty(); }
   bool isNonGroundSingleInvocation() { return d_conjuncts[3].size()==d_conjuncts[1].size(); }
 
   void debugPrint( const char * c );
 };
+
 
 }/* namespace CVC4::theory::quantifiers */
 }/* namespace CVC4::theory */
