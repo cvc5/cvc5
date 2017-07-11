@@ -117,6 +117,7 @@ print "Updating sources...\n";
 
 while($#searchdirs >= 0) {
   my $dir = shift @searchdirs;
+  $dir =~ s,\/$,,;              # remove trailing slash from directory
   my $mode = (stat($dir))[2] || warn "file or directory \`$dir' does not exist!";
   my $is_directory = S_ISDIR($mode);
   if($is_directory) {
