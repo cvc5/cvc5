@@ -335,7 +335,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "expr/ascription_type.i"
 %include "expr/emptyset.i"
 %include "expr/datatype.i"
-%include "expr/predicate.i"
 %include "expr/record.i"
 %include "proof/unsat_core.i"
 

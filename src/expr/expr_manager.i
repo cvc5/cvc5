@@ -70,7 +70,6 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordUpdate>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Rational>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVector>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::Predicate>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::EmptySet>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::String>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::RegExp>;

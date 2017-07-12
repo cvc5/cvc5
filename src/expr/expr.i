@@ -153,7 +153,6 @@ namespace CVC4 {
 %template(getConstDatatypeIndexConstant) CVC4::Expr::getConst<CVC4::DatatypeIndexConstant>;
 %template(getConstRational) CVC4::Expr::getConst<CVC4::Rational>;
 %template(getConstBitVector) CVC4::Expr::getConst<CVC4::BitVector>;
-%template(getConstPredicate) CVC4::Expr::getConst<CVC4::Predicate>;
 %template(getConstString) CVC4::Expr::getConst<CVC4::String>;
 %template(getConstRegExp) CVC4::Expr::getConst<CVC4::RegExp>;
 %template(getConstEmptySet) CVC4::Expr::getConst<CVC4::EmptySet>;
