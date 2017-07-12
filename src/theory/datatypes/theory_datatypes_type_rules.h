@@ -79,8 +79,7 @@ struct DatatypeConstructorTypeRule {
           Debug("typecheck-idt") << "typecheck cons arg: " << childType << " "
                                  << (*tchild_it) << std::endl;
           TypeNode argumentType = *tchild_it;
-          if (!childType.isComparableTo(argumentType)) {
-          //if (!childType.isSubtypeOf(argumentType)) {   //FIXME:typing
+          if (!childType.isSubtypeOf(argumentType)) { 
             std::stringstream ss;
             ss << "bad type for constructor argument:\n"
                << "child type:  " << childType << "\n"

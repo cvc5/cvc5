@@ -842,43 +842,6 @@ SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
               new TypeNode(d_nodeManager->mkSortConstructor(name, arity))));
 }
 
-/* - not in release 1.0
-Type ExprManager::mkPredicateSubtype(Expr lambda)
-  throw(TypeCheckingException) {
-  NodeManagerScope nms(d_nodeManager);
-  try {
-    return PredicateSubtype(Type(d_nodeManager,
-                new TypeNode(d_nodeManager->mkPredicateSubtype(lambda))));
-  } catch (const TypeCheckingExceptionPrivate& e) {
-    throw TypeCheckingException(this, &e);
-  }
-}
-*/
-
-/* - not in release 1.0
-Type ExprManager::mkPredicateSubtype(Expr lambda, Expr witness)
-  throw(TypeCheckingException) {
-  NodeManagerScope nms(d_nodeManager);
-  try {
-    return PredicateSubtype(Type(d_nodeManager,
-                new TypeNode(d_nodeManager->mkPredicateSubtype(lambda, witness))));
-  } catch (const TypeCheckingExceptionPrivate& e) {
-    throw TypeCheckingException(this, &e);
-  }
-}
-*/
-
-Type ExprManager::mkSubrangeType(const SubrangeBounds& bounds)
-  throw(TypeCheckingException) {
-  NodeManagerScope nms(d_nodeManager);
-  try {
-    return SubrangeType(Type(d_nodeManager,
-                new TypeNode(d_nodeManager->mkSubrangeType(bounds))));
-  } catch (const TypeCheckingExceptionPrivate& e) {
-    throw TypeCheckingException(this, &e);
-  }
-}
-
 /**
  * Get the type for the given Expr and optionally do type checking.
  *
@@ -1062,8 +1025,6 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
     return to->mkTypeConst(n.getConst<TypeConstant>());
   } else if(n.getKind() == kind::BITVECTOR_TYPE) {
     return to->mkBitVectorType(n.getConst<BitVectorSize>());
-  } else if(n.getKind() == kind::SUBRANGE_TYPE) {
-    return to->mkSubrangeType(n.getSubrangeBounds());
   }
   Type from_t = from->toType(n);
   Type& to_t = vmap.d_typeMap[from_t];

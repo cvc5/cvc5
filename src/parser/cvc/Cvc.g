@@ -1293,7 +1293,8 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
            << "] inappropriate: range must be nonempty!";
         PARSER_STATE->parseError(ss.str());
       }
-      t = EXPR_MANAGER->mkSubrangeType(SubrangeBounds(k1, k2));
+      PARSER_STATE->unimplementedFeature("subrange typing not supported in this release");
+      //t = EXPR_MANAGER->mkSubrangeType(SubrangeBounds(k1, k2));
     }
 
     /* tuple types / old-style function types */

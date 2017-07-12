@@ -243,9 +243,6 @@ public:
   static inline TheoryId theoryOf(TypeNode typeNode) {
     Trace("theory::internal") << "theoryOf(" << typeNode << ")" << std::endl;
     TheoryId id;
-    while (typeNode.isPredicateSubtype()) {
-      typeNode = typeNode.getSubtypeParentType();
-    }
     if (typeNode.getKind() == kind::TYPE_CONSTANT) {
       id = typeConstantToTheoryId(typeNode.getConst<TypeConstant>());
     } else {

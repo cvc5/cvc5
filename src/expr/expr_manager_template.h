@@ -461,8 +461,8 @@ public:
   /**
    * Make an integer subrange type as defined by the argument.
    */
-  Type mkSubrangeType(const SubrangeBounds& bounds)
-    throw(TypeCheckingException);
+  //Type mkSubrangeType(const SubrangeBounds& bounds)
+  //  throw(TypeCheckingException);
 
   /** Get the type of an expression */
   Type getType(Expr e, bool check = false)

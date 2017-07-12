@@ -336,17 +336,4 @@ typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
 typerule CHAIN ::CVC4::theory::builtin::ChainTypeRule
 typerule CHAIN_OP ::CVC4::theory::builtin::ChainedOperatorTypeRule
 
-constant SUBTYPE_TYPE \
-    ::CVC4::Predicate \
-    ::CVC4::PredicateHashFunction \
-    "expr/predicate.h" \
-    "predicate subtype; payload is an instance of the CVC4::Predicate class"
-cardinality SUBTYPE_TYPE \
-    "::CVC4::theory::builtin::SubtypeProperties::computeCardinality(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
-well-founded SUBTYPE_TYPE \
-    "::CVC4::theory::builtin::SubtypeProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::builtin::SubtypeProperties::mkGroundTerm(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
-
 endtheory

@@ -27,7 +27,6 @@
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
-#include "expr/predicate.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
@@ -1257,6 +1256,7 @@ Type ValidityChecker::intType() {
 }
 
 Type ValidityChecker::subrangeType(const Expr& l, const Expr& r) {
+/*
   bool noLowerBound = l.getType().isString() && l.getConst<CVC4::String>() == "_NEGINF";
   bool noUpperBound = r.getType().isString() && r.getConst<CVC4::String>() == "_POSINF";
   CompatCheckArgument(noLowerBound || (l.getKind() == CVC4::kind::CONST_RATIONAL && l.getConst<Rational>().isIntegral()), l);
@@ -1264,10 +1264,12 @@ Type ValidityChecker::subrangeType(const Expr& l, const Expr& r) {
   CVC4::SubrangeBound bl = noLowerBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(l.getConst<Rational>().getNumerator());
   CVC4::SubrangeBound br = noUpperBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(r.getConst<Rational>().getNumerator());
   return d_em->mkSubrangeType(CVC4::SubrangeBounds(bl, br));
+  */
+  Unimplemented("Subrange types not supported by CVC4 (sorry!)");
 }
 
 Type ValidityChecker::subtypeType(const Expr& pred, const Expr& witness) {
-  Unimplemented("Predicate subtyping not supported by CVC4 yet (sorry!)");
+  Unimplemented("Predicate subtyping not supported by CVC4 (sorry!)");
   /*
   if(witness.isNull()) {
     return d_em->mkPredicateSubtype(pred);

@@ -875,31 +875,6 @@ public:
   TypeNode mkSortConstructor(const std::string& name, size_t arity);
 
   /**
-   * Make a predicate subtype type defined by the given LAMBDA
-   * expression.  A TypeCheckingExceptionPrivate can be thrown if
-   * lambda is not a LAMBDA, or is ill-typed, or if CVC4 fails at
-   * proving that the resulting predicate subtype is inhabited.
-   */
-  TypeNode mkPredicateSubtype(Expr lambda)
-    throw(TypeCheckingExceptionPrivate);
-
-  /**
-   * Make a predicate subtype type defined by the given LAMBDA
-   * expression and whose non-emptiness is witnessed by the given
-   * witness.  A TypeCheckingExceptionPrivate can be thrown if lambda
-   * is not a LAMBDA, or is ill-typed, or if the witness is not a
-   * witness or ill-typed.
-   */
-  TypeNode mkPredicateSubtype(Expr lambda, Expr witness)
-    throw(TypeCheckingExceptionPrivate);
-
-  /**
-   * Make an integer subrange type as defined by the argument.
-   */
-  TypeNode mkSubrangeType(const SubrangeBounds& bounds)
-    throw(TypeCheckingExceptionPrivate);
-
-  /**
    * Get the type for the given node and optionally do type checking.
    *
    * Initial type computation will be near-constant time if

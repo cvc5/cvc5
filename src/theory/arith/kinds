@@ -51,19 +51,6 @@ sort INTEGER_TYPE \
         "expr/node_manager.h" \
     "integer type"
 
-constant SUBRANGE_TYPE \
-    ::CVC4::SubrangeBounds \
-    ::CVC4::SubrangeBoundsHashFunction \
-    "util/subrange_bound.h" \
-    "the type of an integer subrange"
-cardinality SUBRANGE_TYPE \
-    "::CVC4::theory::arith::SubrangeProperties::computeCardinality(%TYPE%)" \
-    "theory/arith/theory_arith_type_rules.h"
-well-founded SUBRANGE_TYPE \
-    true \
-    "::CVC4::theory::arith::SubrangeProperties::mkGroundTerm(%TYPE%)" \
-    "theory/arith/theory_arith_type_rules.h"
-
 constant CONST_RATIONAL \
     ::CVC4::Rational \
     ::CVC4::RationalHashFunction \
@@ -75,9 +62,6 @@ enumerator REAL_TYPE \
     "theory/arith/type_enumerator.h"
 enumerator INTEGER_TYPE \
     "::CVC4::theory::arith::IntegerEnumerator" \
-    "theory/arith/type_enumerator.h"
-enumerator SUBRANGE_TYPE \
-    "::CVC4::theory::arith::SubrangeEnumerator" \
     "theory/arith/type_enumerator.h"
 
 operator LT 2 "less than, x < y"

@@ -545,8 +545,6 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   /** TODO: whether certain preprocess steps are necessary */
   //bool d_needsExpandDefs;
-  //bool d_needsRewriteBoolTerms;
-  //bool d_needsConstrainSubTypes;
 
 public:
   /**
@@ -625,14 +623,6 @@ private:
   void compressBeforeRealAssertions(size_t before);
 
   /**
-   * Any variable in an assertion that is declared as a subtype type
-   * (predicate subtype or integer subrange type) must be constrained
-   * to be in that type.
-   */
-  void constrainSubtypes(TNode n, AssertionPipeline& assertions)
-    throw();
-
-  /**
    * Trace nodes back to their assertions using CircuitPropagator's
    * BackEdgesMap.
    */
@@ -679,9 +669,7 @@ public:
     d_abstractValueMap(&d_fakeContext),
     d_abstractValues(),
     d_simplifyAssertionsDepth(0),
-    //d_needsExpandDefs(true),
-    //d_needsRewriteBoolTerms(true),
-    //d_needsConstrainSubTypes(true), //TODO
+    //d_needsExpandDefs(true),  //TODO?
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
     d_pbsProcessor(smt.d_userContext),
@@ -3270,64 +3258,6 @@ void SmtEnginePrivate::unconstrainedSimp() {
   d_smt.d_theoryEngine->ppUnconstrainedSimp(d_assertions.ref());
 }
 
-
-void SmtEnginePrivate::constrainSubtypes(TNode top, AssertionPipeline& assertions)
-  throw() {
-
-  Trace("constrainSubtypes") << "constrainSubtypes(): looking at " << top << endl;
-
-  set<TNode> done;
-  stack<TNode> worklist;
-  worklist.push(top);
-  done.insert(top);
-
-  do {
-    TNode n = worklist.top();
-    worklist.pop();
-
-    TypeNode t = n.getType();
-    if(t.isPredicateSubtype()) {
-      WarningOnce() << "Warning: CVC4 doesn't yet do checking that predicate subtypes are nonempty domains" << endl;
-      Node pred = t.getSubtypePredicate();
-      Kind k;
-      // pred can be a LAMBDA, a function constant, or a datatype tester
-      Trace("constrainSubtypes") << "constrainSubtypes(): pred.getType() == " << pred.getType() << endl;
-      if(d_smt.d_definedFunctions->find(pred) != d_smt.d_definedFunctions->end()) {
-        k = kind::APPLY;
-      } else if(pred.getType().isTester()) {
-        k = kind::APPLY_TESTER;
-      } else {
-        k = kind::APPLY_UF;
-      }
-      Node app = NodeManager::currentNM()->mkNode(k, pred, n);
-      Trace("constrainSubtypes") << "constrainSubtypes(): assert(" << k << ") " << app << endl;
-      assertions.push_back(app);
-    } else if(t.isSubrange()) {
-      SubrangeBounds bounds = t.getSubrangeBounds();
-      Trace("constrainSubtypes") << "constrainSubtypes(): got bounds " << bounds << endl;
-      if(bounds.lower.hasBound()) {
-        Node c = NodeManager::currentNM()->mkConst(Rational(bounds.lower.getBound()));
-        Node lb = NodeManager::currentNM()->mkNode(kind::LEQ, c, n);
-        Trace("constrainSubtypes") << "constrainSubtypes(): assert " << lb << endl;
-        assertions.push_back(lb);
-      }
-      if(bounds.upper.hasBound()) {
-        Node c = NodeManager::currentNM()->mkConst(Rational(bounds.upper.getBound()));
-        Node ub = NodeManager::currentNM()->mkNode(kind::LEQ, n, c);
-        Trace("constrainSubtypes") << "constrainSubtypes(): assert " << ub << endl;
-        assertions.push_back(ub);
-      }
-    }
-
-    for(TNode::iterator i = n.begin(); i != n.end(); ++i) {
-      if(done.find(*i) == done.end()) {
-        worklist.push(*i);
-        done.insert(*i);
-      }
-    }
-  } while(! worklist.empty());
-}
-
 void SmtEnginePrivate::traceBackToAssertions(const std::vector<Node>& nodes, std::vector<TNode>& assertions) {
   const booleans::CircuitPropagator::BackEdgesMap& backEdges = d_propagator.getBackEdges();
   for(vector<Node>::const_iterator i = nodes.begin(); i != nodes.end(); ++i) {
@@ -4077,22 +4007,6 @@ void SmtEnginePrivate::processAssertions() {
     bvAbstraction();
     dumpAssertions("post-bv-abstraction", d_assertions);
   }
-
-  Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-
-  dumpAssertions("pre-constrain-subtypes", d_assertions);
-  {
-    // Any variables of subtype types need to be constrained properly.
-    // Careful, here: constrainSubtypes() adds to the back of
-    // d_assertions, but we don't need to reprocess those.
-    // We also can't use an iterator, because the vector may be moved in
-    // memory during this loop.
-    Chat() << "constraining subtypes..." << endl;
-    for(unsigned i = 0, i_end = d_assertions.size(); i != i_end; ++i) {
-      constrainSubtypes(d_assertions[i], d_assertions);
-    }
-  }
-  dumpAssertions("post-constrain-subtypes", d_assertions);
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 

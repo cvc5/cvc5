@@ -115,6 +115,21 @@ struct MemberTypeRule {
         throw TypeCheckingExceptionPrivate(n, "checking for membership in a non-set");
       }
       TypeNode elementType = n[0].getType(check);
+      // TODO : still need to be flexible here due to situations like:
+      //
+      // T : (Set Int)
+      // S : (Set Real)
+      // (= (as T (Set Real)) S)
+      // (member 0.5 S)
+      // ...where (member 0.5 T) is inferred
+      //
+      // or
+      //
+      // S : (Set Real)
+      // (not (member 0.5 s))
+      // (member 0.0 s)
+      // ...find model M where M( s ) = { 0 }, check model will generate (not (member 0.5 (singleton 0)))
+      //      
       if(!elementType.isComparableTo(setType.getSetElementType())) {
       //if(!elementType.isSubtypeOf(setType.getSetElementType())) {     //FIXME:typing
         std::stringstream ss;

@@ -372,7 +372,7 @@ public:
    * Is this an integer subrange type?
    * @return true if this is an integer subrange type
    */
-  bool isSubrange() const;
+  //bool isSubrange() const;
 
   /**
    * Outputs a string representation of this type to the stream.
@@ -584,7 +584,6 @@ public:
   Type getParentType() const;
 
 };/* class PredicateSubtype */
-#endif /* 0 */
 
 /**
  * Class encapsulating an integer subrange type.
@@ -600,6 +599,7 @@ public:
   SubrangeBounds getSubrangeBounds() const;
 
 };/* class SubrangeType */
+#endif /* 0 */
 
 /**
  * Class encapsulating the bit-vector type.

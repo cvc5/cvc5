@@ -172,7 +172,6 @@ BUG_TESTS = \
 	bug576.smt2 \
 	bug576a.smt2 \
 	bug578.smt2 \
-	bug585.cvc \
 	bug586.cvc \
 	bug593.smt2 \
 	bug595.cvc \
@@ -189,8 +188,10 @@ TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 # bug512 -- taking too long, --time-per not working perhaps? in any case,
 # we have a minimized version still getting tested
 # bug639 -- still fails, reopened bug
+# bug585 -- contains subrange type (not supported)
 DISABLED_TESTS = \
-	bug512.smt2
+	bug512.smt2 \
+	bug585.cvc
 
 EXTRA_DIST = $(TESTS) \
 	simplification_bug4.smt2.expect \

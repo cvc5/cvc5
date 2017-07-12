@@ -506,51 +506,6 @@ TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }
 
-TypeNode NodeManager::mkPredicateSubtype(Expr lambda)
-  throw(TypeCheckingExceptionPrivate) {
-
-  Node lambdan = Node::fromExpr(lambda);
-
-  if(lambda.isNull()) {
-    throw TypeCheckingExceptionPrivate(lambdan, "cannot make a predicate subtype based on null expression");
-  }
-
-  TypeNode tn = lambdan.getType();
-  if(! tn.isPredicateLike() ||
-     tn.getArgTypes().size() != 1) {
-    stringstream ss;
-    ss << "expected a predicate of one argument to define predicate subtype, but got type `" << tn << "'";
-    throw TypeCheckingExceptionPrivate(lambdan, ss.str());
-  }
-
-  return TypeNode(mkTypeConst(Predicate(lambda)));
-}
-
-TypeNode NodeManager::mkPredicateSubtype(Expr lambda, Expr witness)
-  throw(TypeCheckingExceptionPrivate) {
-
-  Node lambdan = Node::fromExpr(lambda);
-
-  if(lambda.isNull()) {
-    throw TypeCheckingExceptionPrivate(lambdan, "cannot make a predicate subtype based on null expression");
-  }
-
-  TypeNode tn = lambdan.getType();
-  if(! tn.isPredicateLike() ||
-     tn.getArgTypes().size() != 1) {
-    stringstream ss;
-    ss << "expected a predicate of one argument to define predicate subtype, but got type `" << tn << "'";
-    throw TypeCheckingExceptionPrivate(lambdan, ss.str());
-  }
-
-  return TypeNode(mkTypeConst(Predicate(lambda, witness)));
-}
-
-TypeNode NodeManager::mkSubrangeType(const SubrangeBounds& bounds)
-  throw(TypeCheckingExceptionPrivate) {
-  return TypeNode(mkTypeConst(bounds));
-}
-
 TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index ) {
   if( index==types.size() ){
     if( d_data.isNull() ){

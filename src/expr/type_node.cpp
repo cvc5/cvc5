@@ -106,15 +106,6 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
       return false;
     }
   }
-  if(isSubrange()) {
-    if(t.isSubrange()) {
-      return t.getSubrangeBounds() <= getSubrangeBounds();
-    } else {
-      return t.getKind() == kind::TYPE_CONSTANT &&
-        ( t.getConst<TypeConstant>() == INTEGER_TYPE ||
-          t.getConst<TypeConstant>() == REAL_TYPE );
-    }
-  }
   if(isTuple() && t.isTuple()) {
     const Datatype& dt1 = getDatatype();
     const Datatype& dt2 = t.getDatatype();
@@ -150,9 +141,6 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
       }
     }
     return true;
-  }
-  if(isPredicateSubtype()) {
-    return getSubtypeParentType().isSubtypeOf(t);
   }
   if(isSet() && t.isSet()) {
     return getSetElementType().isSubtypeOf(t.getSetElementType());
@@ -205,28 +193,13 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   if(isArray() && t.isArray()) {
     return getArrayIndexType().isComparableTo(t.getArrayIndexType()) && getArrayConstituentType().isComparableTo(t.getArrayConstituentType());
   }
-  //if(isPredicateSubtype()) {
-  //  return t.isComparableTo(getSubtypeParentType());
-  //}
   return false;
-}
-
-Node TypeNode::getSubtypePredicate() const {
-  Assert(isPredicateSubtype());
-  return Node::fromExpr(getConst<Predicate>().getExpression());
-}
-
-TypeNode TypeNode::getSubtypeParentType() const {
-  Assert(isPredicateSubtype());
-  return getSubtypePredicate().getType().getArgTypes()[0];
 }
 
 TypeNode TypeNode::getBaseType() const {
   TypeNode realt = NodeManager::currentNM()->realType();
   if (isSubtypeOf(realt)) {
     return realt;
-  } else if (isPredicateSubtype()) {
-    return getSubtypeParentType().getBaseType();
   } else if (isParametricDatatype()) {
     vector<Type> v;
     for(size_t i = 1; i < getNumChildren(); ++i) {
@@ -264,14 +237,12 @@ std::vector<TypeNode> TypeNode::getParamTypes() const {
 
 /** Is this a tuple type? */
 bool TypeNode::isTuple() const {
-  return ( getKind() == kind::DATATYPE_TYPE && getDatatype().isTuple() ) ||
-    ( isPredicateSubtype() && getSubtypeParentType().isTuple() );
+  return ( getKind() == kind::DATATYPE_TYPE && getDatatype().isTuple() );
 }
 
 /** Is this a record type? */
 bool TypeNode::isRecord() const {
-  return ( getKind() == kind::DATATYPE_TYPE && getDatatype().isRecord() )  ||
-    ( isPredicateSubtype() && getSubtypeParentType().isRecord() );
+  return ( getKind() == kind::DATATYPE_TYPE && getDatatype().isRecord() );
 }
 
 size_t TypeNode::getTupleLength() const {
@@ -375,11 +346,7 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
         return TypeNode(); // null type
       }
     default:
-      //if(t1.isPredicateSubtype() && t1.getSubtypeParentType().isSubtypeOf(t0)) {
-      //  return t0; // t0 is a constant type
-      //} else {
-        return TypeNode(); // null type
-      //}
+      return TypeNode(); // null type
     }
   } else if(t1.getKind() == kind::TYPE_CONSTANT) {
     return commonTypeNode(t1, t0, isLeast); // decrease the number of special cases
@@ -394,11 +361,7 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   case kind::CONSTRUCTOR_TYPE:
   case kind::SELECTOR_TYPE:
   case kind::TESTER_TYPE:
-    //if( t1.isPredicateSubtype() && t1.getSubtypeParentType().isSubtypeOf(t0)) {
-    //  return t0;
-    //} else {
-      return TypeNode();
-    //}
+    return TypeNode();
   case kind::FUNCTION_TYPE:
     return TypeNode(); // Not sure if this is right
   case kind::SET_TYPE: {
@@ -422,47 +385,6 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   }
   case kind::SEXPR_TYPE:
     Unimplemented("haven't implemented leastCommonType for symbolic expressions yet");
-    return TypeNode();
-  case kind::SUBTYPE_TYPE:
-    //if(t1.isPredicateSubtype()){
-    //  // This is the case where both t0 and t1 are predicate subtypes.
-    //  return leastCommonPredicateSubtype(t0, t1);
-    //}else{ // t0 is a predicate subtype and t1 is not
-    //  return commonTypeNode(t1, t0, isLeast); //decrease the number of special cases
-    //}
-    return TypeNode();
-  case kind::SUBRANGE_TYPE:
-    /*
-    if(t1.isSubrange()) {
-      const SubrangeBounds& t0SR = t0.getSubrangeBounds();
-      const SubrangeBounds& t1SR = t1.getSubrangeBounds();
-      if(SubrangeBounds::joinIsBounded(t0SR, t1SR)) {
-        SubrangeBounds j = SubrangeBounds::join(t0SR, t1SR);
-        return NodeManager::currentNM()->mkSubrangeType(j);
-      } else {
-        return NodeManager::currentNM()->integerType();
-      }
-    } else if(t1.isPredicateSubtype()) {
-      // t0 is a subrange
-      // t1 is not a subrange
-      // t1 is a predicate subtype
-      if(t1.isInteger()) {
-        return NodeManager::currentNM()->integerType();
-      } else if(t1.isReal()) {
-        return NodeManager::currentNM()->realType();
-      } else {
-        return TypeNode();
-      }
-    } else {
-      // t0 is a subrange
-      // t1 is not a subrange
-      // t1 is not a type constant && is not a predicate subtype
-      // t1 cannot be real subtype or integer.
-      Assert(t1.isReal());
-      Assert(t1.isInteger());
-      return TypeNode();
-    }
-*/
     return TypeNode();
   case kind::DATATYPE_TYPE:
     if( t0.isTuple() && t1.isTuple() ){
@@ -490,9 +412,6 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     if(!t1.isParametricDatatype()) {
       return TypeNode();
     }
-    while(t1.getKind() != kind::PARAMETRIC_DATATYPE) {
-      t1 = t1.getSubtypeParentType();
-    }
     if(t0[0] != t1[0] || t0.getNumChildren() != t1.getNumChildren()) {
       return TypeNode();
     }
@@ -507,38 +426,6 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     return TypeNode();
   }
 }
-
-TypeNode TypeNode::leastCommonPredicateSubtype(TypeNode t0, TypeNode t1){
-  Assert(t0.isPredicateSubtype());
-  Assert(t1.isPredicateSubtype());
-
-  std::vector<TypeNode> t0stack;
-  t0stack.push_back(t0);
-  while(t0stack.back().isPredicateSubtype()){
-    t0stack.push_back(t0stack.back().getSubtypeParentType());
-  }
-  std::vector<TypeNode> t1stack;
-  t1stack.push_back(t1);
-  while(t1stack.back().isPredicateSubtype()){
-    t1stack.push_back(t1stack.back().getSubtypeParentType());
-  }
-
-  Assert(!t0stack.empty());
-  Assert(!t1stack.empty());
-
-  if(t0stack.back() == t1stack.back()){
-    TypeNode mostGeneral = t1stack.back();
-    t0stack.pop_back(); t1stack.pop_back();
-    while(!t0stack.empty() && t1stack.empty() && t0stack.back() == t1stack.back()){
-      mostGeneral = t0stack.back();
-      t0stack.pop_back(); t1stack.pop_back();
-    }
-    return mostGeneral;
-  }else{
-    return leastCommonTypeNode(t0stack.back(), t1stack.back());
-  }
-}
-
 
 Node TypeNode::getEnsureTypeCondition( Node n, TypeNode tn ) {
   TypeNode ntn = n.getType();
@@ -581,8 +468,7 @@ Node TypeNode::getEnsureTypeCondition( Node n, TypeNode tn ) {
 
 /** Is this a sort kind */
 bool TypeNode::isSort() const {
-  return ( getKind() == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()) ) ||
-    ( isPredicateSubtype() && getSubtypeParentType().isSort() );
+  return ( getKind() == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()) );
 }
 
 /** Is this a sort constructor kind */
