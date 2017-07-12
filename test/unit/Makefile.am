@@ -52,7 +52,6 @@ UNIT_TESTS += \
 	util/rational_white \
 	util/stats_black \
 	util/boolean_simplification_black \
-	util/subrange_bound_white \
 	main/interactive_shell_black
 endif
 

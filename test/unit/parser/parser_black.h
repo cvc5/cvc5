@@ -257,10 +257,10 @@ public:
     tryBadInput("a : INT; a: INT = 5;"); // can't define after decl
     tryBadInput("a : INT = 5; a: BOOLEAN;"); // decl w/ incompatible type
     tryBadInput("a : TYPE; a : INT; a : a;"); // ok except a is both INT and sort `a'
-    tryBadInput("a : [1..-1];"); // bad subrange
-    tryBadInput("a : [0. .0];"); // bad subrange
-    tryBadInput("a : [..0];"); // bad subrange
-    tryBadInput("a : [0.0];"); // bad subrange
+    //tryBadInput("a : [1..-1];"); // bad subrange
+    //tryBadInput("a : [0. .0];"); // bad subrange
+    //tryBadInput("a : [..0];"); // bad subrange
+    //tryBadInput("a : [0.0];"); // bad subrange
     tryBadInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE list = nil | cons(car:INT,cdr:list) END;");
     tryBadInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE list2 = nil END;");
     tryBadInput("DATATYPE tree = node(data:(list,list,ARRAY trex OF list)), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");

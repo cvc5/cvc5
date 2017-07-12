@@ -37,7 +37,7 @@ struct MyContextNotifyObj : public ContextNotifyObj {
     nCalls(0) {
   }
   
-  virtual ~MyContextNotifyObj() throw(AssertionException) {}
+  virtual ~MyContextNotifyObj() {}
 
   void contextNotifyPop() {
     ++nCalls;
@@ -75,7 +75,7 @@ public:
     nSaves(0) {
   }
 
-  virtual ~MyContextObj() throw(AssertionException) {
+  virtual ~MyContextObj() {
     destroy();
   }
 
