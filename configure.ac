@@ -64,11 +64,11 @@ CVC4_PARSER_LIBRARY_VERSION=_CVC4_PARSER_LIBRARY_VERSION
 CVC4_COMPAT_LIBRARY_VERSION=_CVC4_COMPAT_LIBRARY_VERSION
 CVC4_BINDINGS_LIBRARY_VERSION=_CVC4_BINDINGS_LIBRARY_VERSION
 
-# Using the AC_CANONICAL_* macros destroy the command line you get
-# from $@, which we want later for determining the build profile.  So
-# we save it.  (We can't do our build profile stuff here, or it's not
-# included in the output... autoconf overrides us on the orderings of
-# some things.)
+# Using AX_CXX_COMPILE_STDCXX_11 and the AC_CANONICAL_* macros destroy the
+# command line you get from $@, which we want later for determining the build
+# profile.  So we save it.
+# (We can't do our build profile stuff here, or it's not included in the
+# output... autoconf overrides us on the orderings of some things.)
 config_cmdline=("$@")
 cvc4_config_cmdline="${config_cmdline[[@]]}"
 
@@ -97,6 +97,10 @@ AC_DISABLE_STATIC
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
+
+# C++11 support in the compiler is now mandatory. Check for support and add
+# switches if necessary.
+AX_CXX_COMPILE_STDCXX_11([ext], [mandatory])
 
 as_me=configure
 
