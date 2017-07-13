@@ -30,9 +30,8 @@
 // Note: this implementation does not handle message longer than
 //       2^32 bytes.
 
-#pragma once 
+#pragma once
 
-#include <boost/static_assert.hpp>
 #include <cstddef>
 
 #include "word.h"
@@ -45,8 +44,8 @@ namespace std {
 
 namespace hashsmt {
 
-BOOST_STATIC_ASSERT(sizeof(unsigned char)*8 == 8);
-BOOST_STATIC_ASSERT(sizeof(unsigned int)*8 == 32);
+static_assert(sizeof(unsigned char)*8 == 8);
+static_assert(sizeof(unsigned int)*8 == 32);
 
 inline cvc4_uint32 left_rotate(cvc4_uint32 x, std::size_t n)
 {
@@ -223,4 +222,3 @@ inline void sha1::get_digest(digest_type digest)
 }
 
 } // namespace hashsmt
-
