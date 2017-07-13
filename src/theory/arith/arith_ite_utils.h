@@ -27,9 +27,10 @@
 #ifndef __CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H
 #define __CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H
 
+#include <unordered_map>
+#include <unordered_set>
+
 #include "expr/node.h"
-#include <ext/hash_map>
-#include <ext/hash_set>
 #include "context/cdo.h"
 #include "context/cdtrail_hashmap.h"
 
@@ -46,7 +47,7 @@ class ArithIteUtils {
   SubstitutionMap* d_subs;
   TheoryModel* d_model;
 
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   // cache for reduce vars
   NodeMap d_reduceVar; // if reduceVars[n].isNull(), treat reduceVars[n] == n
 
@@ -56,7 +57,7 @@ class ArithIteUtils {
 
 
   NodeMap d_reduceGcd;
-  typedef std::hash_map<Node, Integer, NodeHashFunction> NodeIntegerMap;
+  typedef std::unordered_map<Node, Integer, NodeHashFunction> NodeIntegerMap;
   NodeIntegerMap d_gcds;
 
   Integer d_one;

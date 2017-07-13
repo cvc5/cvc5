@@ -990,7 +990,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               if(d_bvp){
                  ClauseId id = d_bvp->getSatProof()->registerClause(cr, LEARNT);
                  PSTATS(
-                 __gnu_cxx::hash_set<int> cl_levels;
+                 std::unordered_set<int> cl_levels;
                  for (int i = 0; i < learnt_clause.size(); ++i) {
                    cl_levels.insert(level(var(learnt_clause[i])));
                  }

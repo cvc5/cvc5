@@ -19,7 +19,7 @@
 #ifndef __CVC4__BITBLASTER_TEMPLATE_H
 #define __CVC4__BITBLASTER_TEMPLATE_H
 
-#include <ext/hash_map>
+#include <unordered_map>
 #include <vector>
 
 #include "bitblast_strategies_template.h"
@@ -58,8 +58,8 @@ namespace bv {
 
 class BitblastingRegistrar;
 
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
 
 class AbstractionModule;
 
@@ -73,9 +73,9 @@ template <class T>
 class TBitblaster {
 protected:
   typedef std::vector<T> Bits;
-  typedef __gnu_cxx::hash_map <Node, Bits, NodeHashFunction>  TermDefMap;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>       TNodeSet;
-  typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction>   ModelCache;
+  typedef std::unordered_map <Node, Bits, NodeHashFunction>  TermDefMap;
+  typedef std::unordered_set<TNode, TNodeHashFunction>       TNodeSet;
+  typedef std::unordered_map<Node, Node, NodeHashFunction>   ModelCache;
 
   typedef void  (*TermBBStrategy) (TNode, Bits&, TBitblaster<T>*);
   typedef T     (*AtomBBStrategy) (TNode, TBitblaster<T>*);
@@ -258,7 +258,7 @@ public:
 
 
 class EagerBitblaster : public TBitblaster<Node> {
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
   // sat solver used for bitblasting and associated CnfStream
   prop::SatSolver*                   d_satSolver;
   BitblastingRegistrar*              d_bitblastingRegistrar;
@@ -305,8 +305,8 @@ public:
 }; /* class Registrar */
 
 class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
-  typedef std::hash_map<TNode, Abc_Obj_t*, TNodeHashFunction > TNodeAigMap;
-  typedef std::hash_map<Node, Abc_Obj_t*, NodeHashFunction > NodeAigMap;
+  typedef std::unordered_map<TNode, Abc_Obj_t*, TNodeHashFunction > TNodeAigMap;
+  typedef std::unordered_map<Node, Abc_Obj_t*, NodeHashFunction > NodeAigMap;
   
   static Abc_Ntk_t* abcAigNetwork;
   context::Context* d_nullContext;

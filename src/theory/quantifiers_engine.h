@@ -17,9 +17,9 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS_ENGINE_H
 #define __CVC4__THEORY__QUANTIFIERS_ENGINE_H
 
-#include <ext/hash_set>
 #include <iostream>
 #include <map>
+#include <unordered_set>
 
 #include "context/cdchunk_list.h"
 #include "context/cdhashset.h"
@@ -449,7 +449,7 @@ private:
   /** processInferences : will merge equivalence classes in master equality engine, if possible */
   bool processInferences( Theory::Effort e );
   /** node contains */
-  Node getInstance( Node n, const std::vector< Node >& eqc, std::hash_map<TNode, Node, TNodeHashFunction>& cache );
+  Node getInstance( Node n, const std::vector< Node >& eqc, std::unordered_map<TNode, Node, TNodeHashFunction>& cache );
   /** get score */
   int getRepScore( Node n, Node f, int index, TypeNode v_tn );
   /** flatten representatives */

@@ -23,7 +23,7 @@
 
 #include <utility>
 #include <vector>
-#include <ext/hash_map>
+#include <unordered_map>
 
 #include "expr/node.h"
 
@@ -33,7 +33,7 @@ namespace arrays {
 
   class StaticFactManager {
   /** Our underlying map type. */
-  typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> MapType;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> MapType;
 
   /**
    * Our map of Nodes to their canonical representatives.

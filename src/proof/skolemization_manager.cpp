@@ -57,11 +57,11 @@ void SkolemizationManager::clear() {
   d_skolemToDisequality.clear();
 }
 
-std::hash_map<Node, Node, NodeHashFunction>::const_iterator SkolemizationManager::begin() {
+std::unordered_map<Node, Node, NodeHashFunction>::const_iterator SkolemizationManager::begin() {
   return d_disequalityToSkolem.begin();
 }
 
-std::hash_map<Node, Node, NodeHashFunction>::const_iterator SkolemizationManager::end() {
+std::unordered_map<Node, Node, NodeHashFunction>::const_iterator SkolemizationManager::end() {
   return d_disequalityToSkolem.end();
 }
 

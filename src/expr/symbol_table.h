@@ -21,7 +21,7 @@
 
 #include <vector>
 #include <utility>
-#include <ext/hash_map>
+#include <unordered_map>
 
 #include "expr/expr.h"
 #include "util/hash.h"
@@ -50,10 +50,10 @@ class CVC4_PUBLIC SymbolTable {
   context::Context* d_context;
 
   /** A map for expressions. */
-  context::CDHashMap<std::string, Expr, StringHashFunction> *d_exprMap;
+  context::CDHashMap<std::string, Expr>* d_exprMap;
 
   /** A map for types. */
-  context::CDHashMap<std::string, std::pair<std::vector<Type>, Type>, StringHashFunction> *d_typeMap;
+  context::CDHashMap<std::string, std::pair<std::vector<Type>, Type>>* d_typeMap;
 
   /** A set of defined functions. */
   context::CDHashSet<Expr, ExprHashFunction> *d_functions;

@@ -1882,7 +1882,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
         r_best = r;
       }
       //now, make sure that no other member of the class is an instance
-      std::hash_map<TNode, Node, TNodeHashFunction> cache;
+      std::unordered_map<TNode, Node, TNodeHashFunction> cache;
       r_best = getInstance( r_best, eqc, cache );
       //store that this representative was chosen at this point
       if( d_rep_score.find( r_best )==d_rep_score.end() ){
@@ -2001,7 +2001,7 @@ TNode EqualityQueryQuantifiersEngine::getCongruentTerm( Node f, std::vector< TNo
 
 //helper functions
 
-Node EqualityQueryQuantifiersEngine::getInstance( Node n, const std::vector< Node >& eqc, std::hash_map<TNode, Node, TNodeHashFunction>& cache ){
+Node EqualityQueryQuantifiersEngine::getInstance( Node n, const std::vector< Node >& eqc, std::unordered_map<TNode, Node, TNodeHashFunction>& cache ){
   if(cache.find(n) != cache.end()) {
     return cache[n];
   }

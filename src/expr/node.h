@@ -22,13 +22,16 @@
 #ifndef __CVC4__NODE_H
 #define __CVC4__NODE_H
 
-#include <vector>
-#include <string>
-#include <iostream>
-#include <utility>
+#include <stdint.h>
+
 #include <algorithm>
 #include <functional>
-#include <stdint.h>
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "base/configuration.h"
 #include "base/cvc4_assert.h"
@@ -42,7 +45,6 @@
 #include "options/language.h"
 #include "options/set_language.h"
 #include "util/utility.h"
-#include "util/hash.h"
 
 namespace CVC4 {
 
@@ -243,7 +245,7 @@ public:
    * member function with a similar signature.
    */
   Node substitute(TNode node, TNode replacement,
-                  std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const;
+                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
 
   /**
    * Cache-aware, recursive version of substitute() used by the public
@@ -252,7 +254,7 @@ public:
   template <class Iterator1, class Iterator2>
   Node substitute(Iterator1 nodesBegin, Iterator1 nodesEnd,
                   Iterator2 replacementsBegin, Iterator2 replacementsEnd,
-                  std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const;
+                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
 
   /**
    * Cache-aware, recursive version of substitute() used by the public
@@ -260,7 +262,7 @@ public:
    */
   template <class Iterator>
   Node substitute(Iterator substitutionsBegin, Iterator substitutionsEnd,
-                  std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const;
+                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
 
   /** Default constructor, makes a null expression. */
   NodeTemplate() : d_nv(&expr::NodeValue::null()) { }
@@ -943,7 +945,7 @@ inline std::ostream& operator<<(std::ostream& out,
 
 }/* CVC4 namespace */
 
-#include <ext/hash_map>
+#include <unordered_map>
 
 //#include "expr/attribute.h"
 #include "expr/node_manager.h"
@@ -1296,14 +1298,14 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement) const {
   if (node == *this) {
     return replacement;
   }
-  std::hash_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
   return substitute(node, replacement, cache);
 }
 
 template <bool ref_count>
 Node
 NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
-                                    std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const {
+                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
   Assert(node != *this);
 
   if (getNumChildren() == 0) {
@@ -1311,7 +1313,7 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
   }
 
   // in cache?
-  typename std::hash_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
+  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -1351,7 +1353,7 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
                                     Iterator1 nodesEnd,
                                     Iterator2 replacementsBegin,
                                     Iterator2 replacementsEnd) const {
-  std::hash_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
   return substitute(nodesBegin, nodesEnd,
                     replacementsBegin, replacementsEnd, cache);
 }
@@ -1363,9 +1365,9 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
                                     Iterator1 nodesEnd,
                                     Iterator2 replacementsBegin,
                                     Iterator2 replacementsEnd,
-                                    std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const {
+                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
   // in cache?
-  typename std::hash_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
+  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -1410,7 +1412,7 @@ template <class Iterator>
 inline Node
 NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
                                     Iterator substitutionsEnd) const {
-  std::hash_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
   return substitute(substitutionsBegin, substitutionsEnd, cache);
 }
 
@@ -1419,9 +1421,9 @@ template <class Iterator>
 Node
 NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
                                     Iterator substitutionsEnd,
-                                    std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const {
+                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
   // in cache?
-  typename std::hash_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
+  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -1468,7 +1470,7 @@ inline Node NodeTemplate<true>::fromExpr(const Expr& e) {
 
 template<bool ref_count>
 bool NodeTemplate<ref_count>::hasSubterm(NodeTemplate<false> t, bool strict) const {
-  typedef std::hash_set<TNode, TNodeHashFunction> node_set;
+  typedef std::unordered_set<TNode, TNodeHashFunction> node_set;
 
   if (!strict && *this == t) {
     return true;

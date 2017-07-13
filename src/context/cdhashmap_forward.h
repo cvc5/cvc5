@@ -26,15 +26,14 @@
 #ifndef __CVC4__CONTEXT__CDHASHMAP_FORWARD_H
 #define __CVC4__CONTEXT__CDHASHMAP_FORWARD_H
 
+#include <functional>
+
 /// \cond internals
 
-namespace __gnu_cxx {
-  template <class Key> struct hash;
-}/* __gnu_cxx namespace */
 
 namespace CVC4 {
   namespace context {
-    template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> >
+    template <class Key, class Data, class HashFcn = std::hash<Key> >
     class CDHashMap;
   }/* CVC4::context namespace */
 }/* CVC4 namespace */

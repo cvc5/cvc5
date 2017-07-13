@@ -100,15 +100,15 @@ class InequalityGraph : public context::ContextNotifyObj{
     }
   }; 
 
-  typedef __gnu_cxx::hash_map<TNode, ReasonId, TNodeHashFunction> ReasonToIdMap;
-  typedef __gnu_cxx::hash_map<TNode, TermId, TNodeHashFunction> TermNodeToIdMap;
+  typedef std::unordered_map<TNode, ReasonId, TNodeHashFunction> ReasonToIdMap;
+  typedef std::unordered_map<TNode, TermId, TNodeHashFunction> TermNodeToIdMap;
 
   typedef std::vector<InequalityEdge> Edges; 
-  typedef __gnu_cxx::hash_set<TermId> TermIdSet;
+  typedef std::unordered_set<TermId> TermIdSet;
 
   typedef std::priority_queue<TermId, std::vector<TermId>, QueueComparator> BFSQueue; 
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
   std::vector<InequalityNode> d_ineqNodes;
   std::vector< Edges > d_ineqEdges;

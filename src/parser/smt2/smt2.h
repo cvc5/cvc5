@@ -58,7 +58,7 @@ public:
 private:
   bool d_logicSet;
   LogicInfo d_logic;
-  std::hash_map<std::string, Kind, StringHashFunction> operatorKindMap;
+  std::unordered_map<std::string, Kind> operatorKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
   // this is a user-context stack
   std::stack< std::map<Expr, std::string> > d_unsatCoreNames;

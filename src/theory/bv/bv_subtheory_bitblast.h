@@ -47,7 +47,7 @@ class BitblastSolver : public SubtheorySolver {
   context::CDQueue<TNode> d_bitblastQueue;
   Statistics d_statistics;
 
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_modelCache;
   context::CDO<bool> d_validModelCache;
 

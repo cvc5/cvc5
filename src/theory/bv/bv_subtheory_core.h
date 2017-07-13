@@ -31,9 +31,9 @@ class Base;
  * Bitvector equality solver
  */
 class CoreSolver : public SubtheorySolver {
-  typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> ModelValue;
-  typedef __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_map<TNode, Node, TNodeHashFunction> ModelValue;
+  typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
 
 
   struct Statistics {

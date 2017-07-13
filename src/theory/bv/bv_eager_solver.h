@@ -33,7 +33,7 @@ class AigBitblaster;
  * BitblastSolver
  */
 class EagerBitblastSolver {
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> AssertionSet;
+  typedef std::unordered_set<TNode, TNodeHashFunction> AssertionSet;
   AssertionSet d_assertionSet;
   /** Bitblasters */
   EagerBitblaster* d_bitblaster;

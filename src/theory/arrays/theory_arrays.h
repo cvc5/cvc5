@@ -19,6 +19,8 @@
 #ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 
+#include <unordered_map>
+
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
@@ -384,7 +386,7 @@ class TheoryArrays : public Theory {
   // When a new read term is created, we check the index to see if we know the model value.  If so, we add it to d_constReads (and d_constReadsList)
   // If not, we push it onto d_reads and figure out where it goes at computeCareGraph time.
   // d_constReadsList is used as a backup in case we can't compute the model at computeCareGraph time.
-  typedef std::hash_map<Node, CTNodeList*, NodeHashFunction> CNodeNListMap;
+  typedef std::unordered_map<Node, CTNodeList*, NodeHashFunction> CNodeNListMap;
   CNodeNListMap d_constReads;
   context::CDList<TNode> d_reads;
   context::CDList<TNode> d_constReadsList;
@@ -408,7 +410,7 @@ class TheoryArrays : public Theory {
   };/* class ContextPopper */
   ContextPopper d_contextPopper;
 
-  std::hash_map<Node, Node, NodeHashFunction> d_skolemCache;
+  std::unordered_map<Node, Node, NodeHashFunction> d_skolemCache;
   context::CDO<unsigned> d_skolemIndex;
   std::vector<Node> d_skolemAssertions;
 
@@ -425,7 +427,7 @@ class TheoryArrays : public Theory {
   typedef context::CDHashMap<Node,Node,NodeHashFunction> DefValMap;
   DefValMap d_defValues;
 
-  typedef std::hash_map<std::pair<TNode, TNode>, CTNodeList*, TNodePairHashFunction> ReadBucketMap;
+  typedef std::unordered_map<std::pair<TNode, TNode>, CTNodeList*, TNodePairHashFunction> ReadBucketMap;
   ReadBucketMap d_readBucketTable;
   context::Context* d_readTableContext;
   context::CDList<Node> d_arrayMerges;

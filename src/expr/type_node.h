@@ -22,10 +22,12 @@
 #ifndef __CVC4__TYPE_NODE_H
 #define __CVC4__TYPE_NODE_H
 
-#include <vector>
-#include <string>
-#include <iostream>
 #include <stdint.h>
+
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "base/cvc4_assert.h"
 #include "expr/kind.h"
@@ -93,7 +95,7 @@ private:
    * member function with a similar signature.
    */
   TypeNode substitute(const TypeNode& type, const TypeNode& replacement,
-                      std::hash_map<TypeNode, TypeNode, HashFunction>& cache) const;
+                      std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const;
 
   /**
    * Cache-aware, recursive version of substitute() used by the public
@@ -102,7 +104,7 @@ private:
   template <class Iterator1, class Iterator2>
   TypeNode substitute(Iterator1 typesBegin, Iterator1 typesEnd,
                       Iterator2 replacementsBegin, Iterator2 replacementsEnd,
-                      std::hash_map<TypeNode, TypeNode, HashFunction>& cache) const;
+                      std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const;
 
 public:
 
@@ -670,8 +672,6 @@ typedef TypeNode::HashFunction TypeNodeHashFunction;
 
 }/* CVC4 namespace */
 
-#include <ext/hash_map>
-
 #include "expr/node_manager.h"
 
 namespace CVC4 {
@@ -687,7 +687,7 @@ inline TypeNode TypeNode::fromType(const Type& t) {
 inline TypeNode
 TypeNode::substitute(const TypeNode& type,
                      const TypeNode& replacement) const {
-  std::hash_map<TypeNode, TypeNode, HashFunction> cache;
+  std::unordered_map<TypeNode, TypeNode, HashFunction> cache;
   return substitute(type, replacement, cache);
 }
 
@@ -697,7 +697,7 @@ TypeNode::substitute(Iterator1 typesBegin,
                      Iterator1 typesEnd,
                      Iterator2 replacementsBegin,
                      Iterator2 replacementsEnd) const {
-  std::hash_map<TypeNode, TypeNode, HashFunction> cache;
+  std::unordered_map<TypeNode, TypeNode, HashFunction> cache;
   return substitute(typesBegin, typesEnd,
                     replacementsBegin, replacementsEnd, cache);
 }
@@ -707,9 +707,9 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
                               Iterator1 typesEnd,
                               Iterator2 replacementsBegin,
                               Iterator2 replacementsEnd,
-                              std::hash_map<TypeNode, TypeNode, HashFunction>& cache) const {
+                              std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const {
   // in cache?
-  std::hash_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
+  std::unordered_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }

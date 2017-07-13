@@ -33,7 +33,7 @@ namespace CVC4 {
  */
 template <class T, class U, class Hasher = std::hash<T> >
 class Cache {
-  typedef std::hash_map<T, U, Hasher> Map;
+  typedef std::unordered_map<T, U, Hasher> Map;
   Map d_map;
   std::vector<T> d_current;
   typename Map::iterator d_result;

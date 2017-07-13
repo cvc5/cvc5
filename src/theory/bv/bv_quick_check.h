@@ -20,7 +20,7 @@
 #define __CVC4__BV_QUICK_CHECK_H
 
 #include <vector>
-#include <ext/hash_map>
+#include <unordered_map>
 
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -99,7 +99,7 @@ public:
   uint64_t computeAtomWeight(TNode atom, NodeSet& seen);
   void collectModelInfo(theory::TheoryModel* model, bool fullModel); 
 
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>::const_iterator vars_iterator;
+  typedef std::unordered_set<TNode, TNodeHashFunction>::const_iterator vars_iterator;
   vars_iterator beginVars(); 
   vars_iterator endVars(); 
 

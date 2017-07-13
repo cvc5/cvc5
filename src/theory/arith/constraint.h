@@ -75,7 +75,7 @@
 #ifndef __CVC4__THEORY__ARITH__CONSTRAINT_H
 #define __CVC4__THEORY__ARITH__CONSTRAINT_H
 
-#include <ext/hash_map>
+#include <unordered_map>
 #include <list>
 #include <set>
 #include <vector>
@@ -145,7 +145,7 @@ enum ConstraintType {LowerBound, Equality, UpperBound, Disequality};
 
 typedef context::CDList<ConstraintCP> CDConstraintList;
 
-typedef __gnu_cxx::hash_map<Node, ConstraintP, NodeHashFunction> NodetoConstraintMap;
+typedef std::unordered_map<Node, ConstraintP, NodeHashFunction> NodetoConstraintMap;
 
 typedef size_t ConstraintRuleID;
 static const ConstraintRuleID ConstraintRuleIdSentinel = std::numeric_limits<ConstraintRuleID>::max();

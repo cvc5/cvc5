@@ -20,11 +20,12 @@
 #ifndef __CVC4__REGEXP_H
 #define __CVC4__REGEXP_H
 
-#include <vector>
-#include <string>
+#include <algorithm>
+#include <cassert>
 #include <set>
 #include <sstream>
-#include <cassert>
+#include <string>
+#include <vector>
 
 #include "base/exception.h"
 #include "util/hash.h"
@@ -333,7 +334,7 @@ namespace strings {
 
 struct CVC4_PUBLIC StringHashFunction {
   size_t operator()(const ::CVC4::String& s) const {
-    return __gnu_cxx::hash<const char*>()(s.toString().c_str());
+    return std::hash<std::string>()(s.toString());
   }
 };/* struct StringHashFunction */
 

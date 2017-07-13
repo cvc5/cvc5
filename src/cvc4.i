@@ -11,7 +11,7 @@ namespace std {
   class istream;
   class ostream;
   template <class T> class set {};
-  template <class K, class V, class H> class hash_map {};
+  template <class K, class V, class H> class unordered_map {};
 }
 
 %{
@@ -41,7 +41,7 @@ namespace CVC4 {}
 using namespace CVC4;
 
 #include <cassert>
-#include <ext/hash_map>
+#include <unordered_map>
 #include <iosfwd>
 #include <set>
 #include <string>
@@ -86,7 +86,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %template(vectorPairStringType) std::vector< std::pair< std::string, CVC4::Type > >;
 %template(pairStringType) std::pair< std::string, CVC4::Type >;
 %template(setOfType) std::set< CVC4::Type >;
-%template(hashmapExpr) std::hash_map< CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction >;
+%template(hashmapExpr) std::unordered_map< CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction >;
 
 // This is unfortunate, but seems to be necessary; if we leave NULL
 // defined, swig will expand it to "(void*) 0", and some of swig's

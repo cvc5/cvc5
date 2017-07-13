@@ -17,9 +17,9 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__EQUALITY_INFER_H
 #define __CVC4__THEORY__QUANTIFIERS__EQUALITY_INFER_H
 
-#include <ext/hash_set>
 #include <iostream>
 #include <map>
+#include <unordered_set>
 #include <vector>
 
 #include "context/context.h"

@@ -16,8 +16,9 @@
  **/
 #include "theory/arith/constraint.h"
 
-#include <ostream>
 #include <algorithm>
+#include <ostream>
+#include <unordered_set>
 
 #include "base/output.h"
 #include "proof/proof.h"
@@ -1333,7 +1334,7 @@ struct ConstraintCPHash {
 };
 
 void Constraint::assertionFringe(ConstraintCPVec& v){
-  hash_set<ConstraintCP, ConstraintCPHash> visited;
+  unordered_set<ConstraintCP, ConstraintCPHash> visited;
   size_t writePos = 0;
 
   if(!v.empty()){

@@ -19,9 +19,9 @@
 #ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 #define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 
-#include <ext/hash_set>
 #include <iostream>
 #include <map>
+#include <unordered_set>
 
 #include "context/cdchunk_list.h"
 #include "expr/datatype.h"

@@ -220,8 +220,8 @@ void Theory::debugPrintFacts() const{
   printFacts(DebugChannel.getStream());
 }
 
-std::hash_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
-  std::hash_set<TNode, TNodeHashFunction> currentlyShared;
+std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
+  std::unordered_set<TNode, TNodeHashFunction> currentlyShared;
   for (shared_terms_iterator i = shared_terms_begin(),
            i_end = shared_terms_end(); i != i_end; ++i) {
     currentlyShared.insert (*i);

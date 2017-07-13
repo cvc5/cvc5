@@ -19,12 +19,11 @@
 #ifndef __CVC4__BITVECTOR__PROOF_H
 #define __CVC4__BITVECTOR__PROOF_H
 
-//#include <cstdint>
-#include <ext/hash_map>
-#include <ext/hash_set>
 #include <iostream>
 #include <set>
 #include <sstream>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "expr/expr.h"
@@ -56,11 +55,11 @@ typedef TSatProof< CVC4::BVMinisat::Solver> BVSatProof;
 template <class Solver> class LFSCSatProof;
 typedef LFSCSatProof< CVC4::BVMinisat::Solver> LFSCBVSatProof;
 
-typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
-typedef __gnu_cxx::hash_map<Expr, ClauseId, ExprHashFunction> ExprToClauseId;
-typedef __gnu_cxx::hash_map<Expr, unsigned, ExprHashFunction> ExprToId;
-typedef __gnu_cxx::hash_map<Expr, Expr, ExprHashFunction> ExprToExpr;
-typedef __gnu_cxx::hash_map<Expr, std::string, ExprHashFunction> ExprToString;
+typedef std::unordered_set<Expr, ExprHashFunction> ExprSet;
+typedef std::unordered_map<Expr, ClauseId, ExprHashFunction> ExprToClauseId;
+typedef std::unordered_map<Expr, unsigned, ExprHashFunction> ExprToId;
+typedef std::unordered_map<Expr, Expr, ExprHashFunction> ExprToExpr;
+typedef std::unordered_map<Expr, std::string, ExprHashFunction> ExprToString;
 
 class BitVectorProof : public TheoryProof {
 protected:

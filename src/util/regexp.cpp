@@ -17,6 +17,7 @@
 
 #include "util/regexp.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 

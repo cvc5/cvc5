@@ -28,8 +28,8 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
 
 namespace utils {
 
@@ -505,11 +505,11 @@ inline T gcd(T a, T b) {
   return a;
 }
 
-typedef __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
+typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
 
 bool isCoreTerm(TNode term, TNodeBoolMap& cache);
 bool isEqualityTerm(TNode term, TNodeBoolMap& cache);
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
 uint64_t numNodes(TNode node, NodeSet& seen);
 

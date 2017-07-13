@@ -115,7 +115,7 @@ static Node exportConstant(TNode n, NodeManager* to, ExprManagerMapCollection& v
 
 class ExportPrivate {
 private:
-  typedef std::hash_map <NodeTemplate<false>, NodeTemplate<true>, TNodeHashFunction> ExportCache;
+  typedef std::unordered_map <NodeTemplate<false>, NodeTemplate<true>, TNodeHashFunction> ExportCache;
   ExprManager* from;
   ExprManager* to;
   ExprManagerMapCollection& vmap;
@@ -393,7 +393,7 @@ static inline NodePairIteratorAdaptor<Iterator> mkNodePairIteratorAdaptor(Iterat
   return NodePairIteratorAdaptor<Iterator>(i);
 }
 
-Expr Expr::substitute(const std::hash_map<Expr, Expr, ExprHashFunction> map) const {
+Expr Expr::substitute(const std::unordered_map<Expr, Expr, ExprHashFunction> map) const {
   ExprManagerScope ems(*this);
   return Expr(d_exprManager, new Node(d_node->substitute(mkNodePairIteratorAdaptor(map.begin()), mkNodePairIteratorAdaptor(map.end()))));
 }

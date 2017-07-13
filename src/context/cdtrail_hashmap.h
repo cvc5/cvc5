@@ -45,8 +45,9 @@
 #pragma once
 
 #include <boost/static_assert.hpp>
-#include <ext/hash_map>
 #include <deque>
+#include <functional>
+#include <unordered_map>
 #include <utility>
 
 #include "base/cvc4_assert.h"
@@ -59,7 +60,7 @@ namespace CVC4 {
 namespace context {
 
 
-template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> >
+template <class Key, class Data, class HashFcn = std::hash<Key> >
 class TrailHashMap {
 public:
   /** A pair of Key and Data that mirrors hash_map::value_type. */
@@ -93,7 +94,7 @@ private:
   KDTVec d_kdts;
 
 
-  typedef __gnu_cxx::hash_map<Key, size_t, HashFcn> PositionMap;
+  typedef std::unordered_map<Key, size_t, HashFcn> PositionMap;
   typedef typename PositionMap::iterator PM_iterator;
   typedef typename PositionMap::const_iterator PM_const_iterator;
 

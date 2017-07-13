@@ -52,7 +52,7 @@ public:
   /** true/false nodes */
   Node d_true;
   Node d_false;
-  mutable std::hash_map<Node, Node, NodeHashFunction> d_modelCache;
+  mutable std::unordered_map<Node, Node, NodeHashFunction> d_modelCache;
 public: 
   /** comment stream to include in printing */
   std::stringstream d_comment_str;
@@ -140,8 +140,8 @@ public:
  */
 class TypeSet {
 public:
-  typedef std::hash_map<TypeNode, std::set<Node>*, TypeNodeHashFunction> TypeSetMap;
-  typedef std::hash_map<TypeNode, TypeEnumerator*, TypeNodeHashFunction> TypeToTypeEnumMap;
+  typedef std::unordered_map<TypeNode, std::set<Node>*, TypeNodeHashFunction> TypeSetMap;
+  typedef std::unordered_map<TypeNode, TypeEnumerator*, TypeNodeHashFunction> TypeToTypeEnumMap;
   typedef TypeSetMap::iterator iterator;
   typedef TypeSetMap::const_iterator const_iterator;
 private:
@@ -265,9 +265,9 @@ class TheoryEngineModelBuilder : public ModelBuilder
 protected:
   /** pointer to theory engine */
   TheoryEngine* d_te;
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_normalizedCache;
-  typedef std::hash_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
   std::map< Node, Node > d_constantReps;
 
   /** process build model */

@@ -65,7 +65,7 @@ class DagificationVisitor {
   /**
    * A map of subexprs to their occurrence count.
    */
-  std::hash_map<TNode, unsigned, TNodeHashFunction> d_nodeCount;
+  std::unordered_map<TNode, unsigned, TNodeHashFunction> d_nodeCount;
 
   /**
    * The top-most node we are visiting.
@@ -109,7 +109,7 @@ class DagificationVisitor {
    * in independently dagifying the child.  (If it is beyond the threshold
    * and occurs in more than one parent, we'll independently dagify.)
    */
-  std::hash_map<TNode, TNode, TNodeHashFunction> d_uniqueParent;
+  std::unordered_map<TNode, TNode, TNodeHashFunction> d_uniqueParent;
 
   /**
    * A list of all nodes that meet the occurrence threshold and therefore

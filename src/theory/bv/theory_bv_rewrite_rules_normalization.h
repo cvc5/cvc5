@@ -922,7 +922,7 @@ struct Count {
   {}
 };
 
-inline static void insert(std::hash_map<TNode, Count, TNodeHashFunction>& map, TNode node, bool neg) {
+inline static void insert(std::unordered_map<TNode, Count, TNodeHashFunction>& map, TNode node, bool neg) {
   if(map.find(node) == map.end()) {
     Count c = neg? Count(0,1) : Count(1, 0);
     map[node] = c; 
@@ -945,7 +945,7 @@ Node RewriteRule<AndSimplify>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<AndSimplify>(" << node << ")" << std::endl;
 
   // this will remove duplicates
-  std::hash_map<TNode, Count, TNodeHashFunction> subterms;
+  std::unordered_map<TNode, Count, TNodeHashFunction> subterms;
   unsigned size = utils::getSize(node);
   BitVector constant = utils::mkBitVectorOnes(size); 
   
@@ -974,7 +974,7 @@ Node RewriteRule<AndSimplify>::apply(TNode node) {
     children.push_back(utils::mkConst(constant)); 
   }
   
-  std::hash_map<TNode, Count, TNodeHashFunction>::const_iterator it = subterms.begin();
+  std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it = subterms.begin();
 
   for (; it != subterms.end(); ++it) {
     if (it->second.pos > 0 && it->second.neg > 0) {
@@ -1018,7 +1018,7 @@ Node RewriteRule<FlattenAssocCommutNoDuplicates>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")" << std::endl;
   std::vector<Node> processingStack;
   processingStack.push_back(node);
-  __gnu_cxx::hash_set<TNode, TNodeHashFunction> processed;
+  std::unordered_set<TNode, TNodeHashFunction> processed;
   std::vector<Node> children;
   Kind kind = node.getKind(); 
   
@@ -1053,7 +1053,7 @@ Node RewriteRule<OrSimplify>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<OrSimplify>(" << node << ")" << std::endl;
 
   // this will remove duplicates
-  std::hash_map<TNode, Count, TNodeHashFunction> subterms;
+  std::unordered_map<TNode, Count, TNodeHashFunction> subterms;
   unsigned size = utils::getSize(node);
   BitVector constant(size, (unsigned)0); 
   
@@ -1082,7 +1082,7 @@ Node RewriteRule<OrSimplify>::apply(TNode node) {
     children.push_back(utils::mkConst(constant)); 
   }
   
-  std::hash_map<TNode, Count, TNodeHashFunction>::const_iterator it = subterms.begin();
+  std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it = subterms.begin();
 
   for (; it != subterms.end(); ++it) {
     if (it->second.pos > 0 && it->second.neg > 0) {
@@ -1116,7 +1116,7 @@ Node RewriteRule<XorSimplify>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<XorSimplify>(" << node << ")" << std::endl;
 
 
-  std::hash_map<TNode, Count, TNodeHashFunction> subterms;
+  std::unordered_map<TNode, Count, TNodeHashFunction> subterms;
   unsigned size = utils::getSize(node);
   BitVector constant; 
   bool const_set = false; 
@@ -1144,7 +1144,7 @@ Node RewriteRule<XorSimplify>::apply(TNode node) {
 
   std::vector<Node> children;
 
-  std::hash_map<TNode, Count, TNodeHashFunction>::const_iterator it = subterms.begin();
+  std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it = subterms.begin();
   unsigned true_count = 0;
   bool seen_false = false; 
   for (; it != subterms.end(); ++it) {

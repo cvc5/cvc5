@@ -37,9 +37,9 @@ class UnconstrainedSimplifier {
   /** number of expressions eliminated due to unconstrained simplification */
   IntStat d_numUnconstrainedElim;
 
-  typedef std::hash_map<TNode, unsigned, TNodeHashFunction> TNodeCountMap;
-  typedef std::hash_map<TNode, TNode, TNodeHashFunction> TNodeMap;
-  typedef std::hash_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_map<TNode, unsigned, TNodeHashFunction> TNodeCountMap;
+  typedef std::unordered_map<TNode, TNode, TNodeHashFunction> TNodeMap;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
 
   TNodeCountMap d_visited;
   TNodeMap d_visitedOnce;

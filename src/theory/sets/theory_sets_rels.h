@@ -103,12 +103,12 @@ private:
   std::map< Node, Node >        d_pending_facts;
 
 
-  std::hash_set< Node, NodeHashFunction >       d_rel_nodes;
+  std::unordered_set< Node, NodeHashFunction >       d_rel_nodes;
   std::map< Node, std::vector<Node> >           d_tuple_reps;
   std::map< Node, TupleTrie >                   d_membership_trie;
 
   /** Symbolic tuple variables that has been reduced to concrete ones */
-  std::hash_set< Node, NodeHashFunction >       d_symbolic_tuples;
+  std::unordered_set< Node, NodeHashFunction >       d_symbolic_tuples;
 
   /** Mapping between relation and its member representatives */
   std::map< Node, std::vector< Node > >           d_rReps_memberReps_cache;
@@ -120,8 +120,8 @@ private:
   std::map< Node, std::map<kind::Kind_t, std::vector<Node> > >                  d_terms_cache;
 
   /** Mapping between transitive closure relation TC(r) and its TC graph constructed based on the members of r*/
-  std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_rRep_tcGraph;
-  std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_tcr_tcGraph;
+  std::map< Node, std::map< Node, std::unordered_set<Node, NodeHashFunction> > >     d_rRep_tcGraph;
+  std::map< Node, std::map< Node, std::unordered_set<Node, NodeHashFunction> > >     d_tcr_tcGraph;
   std::map< Node, std::map< Node, Node > > d_tcr_tcGraph_exps;
   std::map< Node, std::vector< Node > > d_tc_lemmas_last;
 
@@ -154,9 +154,9 @@ private:
   void applyTCRule( Node mem, Node rel, Node rel_rep, Node exp);
   void buildTCGraphForRel( Node tc_rel );
   void doTCInference();
-  void doTCInference( std::map< Node, std::hash_set<Node, NodeHashFunction> > rel_tc_graph, std::map< Node, Node > rel_tc_graph_exps, Node tc_rel );
-  void doTCInference(Node tc_rel, std::vector< Node > reasons, std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph,
-                       std::map< Node, Node >& rel_tc_graph_exps, Node start_node_rep, Node cur_node_rep, std::hash_set< Node, NodeHashFunction >& seen );
+  void doTCInference( std::map< Node, std::unordered_set<Node, NodeHashFunction> > rel_tc_graph, std::map< Node, Node > rel_tc_graph_exps, Node tc_rel );
+  void doTCInference(Node tc_rel, std::vector< Node > reasons, std::map< Node, std::unordered_set< Node, NodeHashFunction > >& tc_graph,
+                       std::map< Node, Node >& rel_tc_graph_exps, Node start_node_rep, Node cur_node_rep, std::unordered_set< Node, NodeHashFunction >& seen );
 
   void composeMembersForRels( Node );
   void computeMembersForBinOpRel( Node );
@@ -165,8 +165,8 @@ private:
   void computeMembersForJoinImageTerm( Node );
 
   bool isTCReachable( Node mem_rep, Node tc_rel );
-  void isTCReachable( Node start, Node dest, std::hash_set<Node, NodeHashFunction>& hasSeen,
-                    std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph, bool& isReachable );
+  void isTCReachable( Node start, Node dest, std::unordered_set<Node, NodeHashFunction>& hasSeen,
+                    std::map< Node, std::unordered_set< Node, NodeHashFunction > >& tc_graph, bool& isReachable );
 
 
   void addSharedTerm( TNode n );

@@ -51,7 +51,7 @@ class TheoryBV : public Theory {
   context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
 
   std::vector<SubtheorySolver*> d_subtheories;
-  __gnu_cxx::hash_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap;
+  std::unordered_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap;
 
 public:
 
@@ -129,22 +129,22 @@ private:
    */
   Node getBVDivByZero(Kind k, unsigned width);
 
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
   void collectFunctionSymbols(TNode term, TNodeSet& seen);
   void storeFunction(TNode func, TNode term);
-  typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
   NodeSet d_staticLearnCache;
 
   /**
    * Maps from bit-vector width to division-by-zero uninterpreted
    * function symbols.
    */
-  __gnu_cxx::hash_map<unsigned, Node> d_BVDivByZero;
-  __gnu_cxx::hash_map<unsigned, Node> d_BVRemByZero;
+  std::unordered_map<unsigned, Node> d_BVDivByZero;
+  std::unordered_map<unsigned, Node> d_BVRemByZero;
 
 
-  typedef __gnu_cxx::hash_map<Node, NodeSet, NodeHashFunction>  FunctionToArgs;
-  typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction>  NodeToNode;
+  typedef std::unordered_map<Node, NodeSet, NodeHashFunction>  FunctionToArgs;
+  typedef std::unordered_map<Node, Node, NodeHashFunction>  NodeToNode;
   // for ackermanization
   FunctionToArgs d_funcToArgs;
   CVC4::theory::SubstitutionMap d_funcToSkolem;

@@ -18,9 +18,9 @@
 #include "expr/node_manager.h"
 
 #include <algorithm>
-#include <ext/hash_set>
 #include <stack>
 #include <utility>
+#include <unordered_set>
 
 #include "base/cvc4_assert.h"
 #include "base/listener.h"
@@ -36,7 +36,7 @@
 
 using namespace std;
 using namespace CVC4::expr;
-using __gnu_cxx::hash_set;
+using std::unordered_set;
 
 namespace CVC4 {
 

@@ -23,7 +23,7 @@
 #ifndef __CVC4__EXPR__ATTRIBUTE_INTERNALS_H
 #define __CVC4__EXPR__ATTRIBUTE_INTERNALS_H
 
-#include <ext/hash_map>
+#include <unordered_map>
 
 #include "context/cdhashmap.h"
 
@@ -152,7 +152,7 @@ namespace attr {
  */
 template <class value_type>
 class AttrHash :
-    public __gnu_cxx::hash_map<std::pair<uint64_t, NodeValue*>,
+    public std::unordered_map<std::pair<uint64_t, NodeValue*>,
                                value_type,
                                AttrHashFunction> {
 };/* class AttrHash<> */
@@ -163,12 +163,12 @@ class AttrHash :
  */
 template <>
 class AttrHash<bool> :
-    protected __gnu_cxx::hash_map<NodeValue*,
+    protected std::unordered_map<NodeValue*,
                                   uint64_t,
                                   AttrBoolHashFunction> {
 
   /** A "super" type, like in Java, for easy reference below. */
-  typedef __gnu_cxx::hash_map<NodeValue*, uint64_t, AttrBoolHashFunction> super;
+  typedef std::unordered_map<NodeValue*, uint64_t, AttrBoolHashFunction> super;
 
   /**
    * BitAccessor allows us to return a bit "by reference."  Of course,

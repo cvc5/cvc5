@@ -116,6 +116,7 @@ namespace CVC4 {
 #include <set>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "base/output.h"
@@ -149,7 +150,7 @@ using namespace CVC4::parser;
 #define MK_CONST EXPR_MANAGER->mkConst
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
-static bool isClosed(const Expr& e, std::set<Expr>& free, std::hash_set<Expr, ExprHashFunction>& closedCache) {
+static bool isClosed(const Expr& e, std::set<Expr>& free, std::unordered_set<Expr, ExprHashFunction>& closedCache) {
   if(closedCache.find(e) != closedCache.end()) {
     return true;
   }
@@ -180,7 +181,7 @@ static bool isClosed(const Expr& e, std::set<Expr>& free, std::hash_set<Expr, Ex
 }
 
 static inline bool isClosed(const Expr& e, std::set<Expr>& free) {
-  std::hash_set<Expr, ExprHashFunction> cache;
+  std::unordered_set<Expr, ExprHashFunction> cache;
   return isClosed(e, free, cache);
 }  
   
@@ -1797,7 +1798,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   Expr attexpr;
   std::vector<Expr> patexprs;
   std::vector<Expr> patconds;
-  std::hash_set<std::string, StringHashFunction> names;
+  std::unordered_set<std::string> names;
   std::vector< std::pair<std::string, Expr> > binders;
   Type type;
   std::string s;

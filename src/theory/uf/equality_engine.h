@@ -20,8 +20,8 @@
 #pragma once
 
 #include <deque>
-#include <ext/hash_map>
 #include <queue>
+#include <unordered_map>
 #include <vector>
 
 #include "base/output.h"
@@ -234,10 +234,10 @@ private:
   std::map<unsigned, const PathReconstructionNotify*> d_pathReconstructionTriggers;
 
   /** Map from nodes to their ids */
-  __gnu_cxx::hash_map<TNode, EqualityNodeId, TNodeHashFunction> d_nodeIds;
+  std::unordered_map<TNode, EqualityNodeId, TNodeHashFunction> d_nodeIds;
 
   /** Map from function applications to their ids */
-  typedef __gnu_cxx::hash_map<FunctionApplication, EqualityNodeId, FunctionApplicationHashFunction> ApplicationIdsMap;
+  typedef std::unordered_map<FunctionApplication, EqualityNodeId, FunctionApplicationHashFunction> ApplicationIdsMap;
 
   /**
    * A map from a pair (a', b') to a function application f(a, b), where a' and b' are the current representatives
@@ -611,7 +611,7 @@ private:
    */
   std::vector<TriggerTermSetRef> d_nodeIndividualTrigger;
 
-  typedef std::hash_map<EqualityPair, DisequalityReasonRef, EqualityPairHashFunction> DisequalityReasonsMap;
+  typedef std::unordered_map<EqualityPair, DisequalityReasonRef, EqualityPairHashFunction> DisequalityReasonsMap;
 
   /**
    * A map from pairs of disequal terms, to the reason why we deduced they are disequal.

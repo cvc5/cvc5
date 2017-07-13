@@ -45,7 +45,7 @@ class TheoryUF;
 }
 }
 
-typedef __gnu_cxx::hash_set<Type, TypeHashFunction > TypeSet;
+typedef std::unordered_set<Type, TypeHashFunction > TypeSet;
 
 
 class UFProof : public TheoryProof {

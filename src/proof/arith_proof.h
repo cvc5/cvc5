@@ -19,6 +19,8 @@
 #ifndef __CVC4__ARITH__PROOF_H
 #define __CVC4__ARITH__PROOF_H
 
+#include <unordered_set>
+
 #include "expr/expr.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
@@ -45,7 +47,7 @@ class TheoryArith;
 }
 }
 
-typedef __gnu_cxx::hash_set<Type, TypeHashFunction > TypeSet;
+typedef std::unordered_set<Type, TypeHashFunction > TypeSet;
 
 
 class ArithProof : public TheoryProof {

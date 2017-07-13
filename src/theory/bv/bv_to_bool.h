@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeNodeMap;
+typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
 
 class BvToBoolPreprocessor {
 

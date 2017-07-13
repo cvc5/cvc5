@@ -20,6 +20,7 @@
 #ifndef __CVC4__DATATYPE_H
 #define __CVC4__DATATYPE_H
 
+#include <functional>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -788,16 +789,16 @@ public:
  */
 struct CVC4_PUBLIC DatatypeHashFunction {
   inline size_t operator()(const Datatype& dt) const {
-    return StringHashFunction()(dt.getName());
+    return std::hash<std::string>()(dt.getName());
   }
   inline size_t operator()(const Datatype* dt) const {
-    return StringHashFunction()(dt->getName());
+    return std::hash<std::string>()(dt->getName());
   }
   inline size_t operator()(const DatatypeConstructor& dtc) const {
-    return StringHashFunction()(dtc.getName());
+    return std::hash<std::string>()(dtc.getName());
   }
   inline size_t operator()(const DatatypeConstructor* dtc) const {
-    return StringHashFunction()(dtc->getName());
+    return std::hash<std::string>()(dtc->getName());
   }
 };/* struct DatatypeHashFunction */
 

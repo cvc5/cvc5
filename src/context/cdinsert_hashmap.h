@@ -35,7 +35,8 @@
 
 #include <boost/static_assert.hpp>
 #include <deque>
-#include <ext/hash_map>
+#include <functional>
+#include <unordered_map>
 #include <utility>
 
 #include "base/cvc4_assert.h"
@@ -51,14 +52,14 @@ namespace CVC4 {
 namespace context {
 
 
-template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> >
+template <class Key, class Data, class HashFcn = std::hash<Key> >
 class InsertHashMap {
 private:
   typedef std::deque<Key> KeyVec;
   /** A list of the keys in the map maintained as a stack. */
   KeyVec d_keys;
 
-  typedef __gnu_cxx::hash_map<Key, Data, HashFcn> HashMap;
+  typedef std::unordered_map<Key, Data, HashFcn> HashMap;
   /** The hash_map used for element lookup. */
   HashMap d_hashMap;
 

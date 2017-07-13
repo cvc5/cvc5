@@ -36,8 +36,8 @@ namespace CVC4 {
 
 SymbolTable::SymbolTable() :
   d_context(new Context()),
-  d_exprMap(new(true) CDHashMap<std::string, Expr, StringHashFunction>(d_context)),
-  d_typeMap(new(true) CDHashMap<std::string, pair<vector<Type>, Type>, StringHashFunction>(d_context)),
+  d_exprMap(new(true) CDHashMap<std::string, Expr>(d_context)),
+  d_typeMap(new(true) CDHashMap<std::string, pair<vector<Type>, Type>>(d_context)),
   d_functions(new(true) CDHashSet<Expr, ExprHashFunction>(d_context)) {
 }
 
@@ -74,7 +74,7 @@ bool SymbolTable::isBound(const std::string& name) const throw() {
 }
 
 bool SymbolTable::isBoundDefinedFunction(const std::string& name) const throw() {
-  CDHashMap<std::string, Expr, StringHashFunction>::iterator found =
+  CDHashMap<std::string, Expr>::iterator found =
     d_exprMap->find(name);
   return found != d_exprMap->end() && d_functions->contains((*found).second);
 }

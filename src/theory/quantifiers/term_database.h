@@ -17,12 +17,14 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
 #define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
 
+#include <map>
+#include <unordered_set>
+
 #include "expr/attribute.h"
 #include "theory/theory.h"
 #include "theory/type_enumerator.h"
 #include "theory/quantifiers/quant_util.h"
 
-#include <map>
 
 namespace CVC4 {
 namespace theory {
@@ -194,9 +196,9 @@ private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
   /** terms processed */
-  std::hash_set< Node, NodeHashFunction > d_processed;
+  std::unordered_set< Node, NodeHashFunction > d_processed;
   /** terms processed */
-  std::hash_set< Node, NodeHashFunction > d_iclosure_processed;
+  std::unordered_set< Node, NodeHashFunction > d_iclosure_processed;
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** whether master equality engine is UF-inconsistent */
