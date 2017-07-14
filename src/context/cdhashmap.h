@@ -60,14 +60,7 @@
  **     itself from the map completely and put itself on a "trash
  **     list" for the map.
  **
- **     Third, you might obliterate() the key.  This calls the CDOhash_map
- **     destructor, which calls destroy(), which does a successive
- **     restore() until level 0.  If the key was in the map since
- **     level 0, the restore() won't remove it, so in that case
- **     obliterate() removes it from the map and frees the CDOhash_map's
- **     memory.
- **
- **     Fourth, you might delete the cdhashmap(calling CDHashMap::~CDHashMap()).
+ **     Third, you might delete the cdhashmap(calling CDHashMap::~CDHashMap()).
  **     This first calls destroy(), as per ContextObj contract, but
  **     cdhashmapdoesn't save/restore itself, so that does nothing at the
  **     CDHashMap-level.  Then it empties the trash.  Then, for each
@@ -77,7 +70,7 @@
  **     it.  Finally it asserts that the trash is empty (which it
  **     should be, since restore() was short-circuited).
  **
- **     Fifth, you might clear() the CDHashMap.  This does exactly the
+ **     Fourth, you might clear() the CDHashMap.  This does exactly the
  **     same as CDHashMap::~CDHashMap(), except that it doesn't call destroy()
  **     on itself.
  **
@@ -453,43 +446,6 @@ public:
   }
 
   // FIXME: no erase(), too much hassle to implement efficiently...
-
-  /**
-   * "Obliterating" is kind of like erasing, except it's not
-   * backtrackable; the key is permanently removed from the map.
-   * (Naturally, it can be re-added as a new element.)
-   */
-  void obliterate(const Key& k) {
-    typename table_type::iterator i = d_map.find(k);
-    if(i != d_map.end()) {
-      Debug("gc") << "key " << k << " obliterated" << std::endl;
-      // Restore this object to level 0.  If it was inserted after level 0,
-      // nothing else to do as restore will put it in the trash.
-      (*i).second->destroy();
-
-      // Check if object was inserted at level 0: in that case, still have
-      // to do some work.
-      typename table_type::iterator j = d_map.find(k);
-      if(j != d_map.end()) {
-        Element* elt = (*j).second;
-        if(d_first == elt) {
-          if(elt->d_next == elt) {
-            Assert(elt->d_prev == elt);
-            d_first = NULL;
-          } else {
-            d_first = elt->d_next;
-          }
-        }
-        elt->d_prev->d_next = elt->d_next;
-        elt->d_next->d_prev = elt->d_prev;
-        d_map.erase(j);//FIXME multithreading
-        Debug("gc") << "key " << k << " obliterated zero-scope: " << elt << std::endl;
-        if(!elt->d_noTrash) {
-          elt->deleteSelf();
-        }
-      }
-    }
-  }
 
   class iterator {
     const Element* d_it;
