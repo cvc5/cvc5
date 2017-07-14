@@ -44,8 +44,10 @@ namespace std {
 
 namespace hashsmt {
 
-static_assert(sizeof(unsigned char)*8 == 8);
-static_assert(sizeof(unsigned int)*8 == 32);
+static_assert(sizeof(unsigned char)*8 == 8,
+              "Unexpected size for unsigned char");
+static_assert(sizeof(unsigned int)*8 == 32,
+              "Unexpected size for unsigned int");
 
 inline cvc4_uint32 left_rotate(cvc4_uint32 x, std::size_t n)
 {
