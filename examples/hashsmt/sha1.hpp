@@ -30,7 +30,8 @@
 // Note: this implementation does not handle message longer than
 //       2^32 bytes.
 
-#pragma once
+#ifndef __CVC4__EXAMPLES__HASHSMT__SHA1_H
+#define __CVC4__EXAMPLES__HASHSMT__SHA1_H
 
 #include <cstddef>
 
@@ -224,3 +225,5 @@ inline void sha1::get_digest(digest_type digest)
 }
 
 } // namespace hashsmt
+
+#endif /* __CVC4__EXAMPLES__HASHSMT__SHA1_H */
