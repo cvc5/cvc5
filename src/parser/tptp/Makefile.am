@@ -1,7 +1,8 @@
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4PARSERLIB \
 	-I@builddir@/../.. -I@srcdir@/../../include -I@srcdir@/../.. $(ANTLR_INCLUDES)
-AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN) $(WNO_PARENTHESES) $(WNO_TAUTOLOGICAL_COMPARE) -Wno-unused-function -Wno-unused-variable
+# CLEANUP: This should inherit the -std=gnu++11 from the parent CXXFLAGS.
+AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN) $(WNO_PARENTHESES) $(WNO_TAUTOLOGICAL_COMPARE) -Wno-unused-function -Wno-unused-variable -std=gnu++11
 
 # Compile generated C files using C++ compiler
 AM_CFLAGS = $(AM_CXXFLAGS)
