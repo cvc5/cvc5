@@ -794,9 +794,7 @@ public:
     }
   }
 
-  void nmNotifyDeleteNode(TNode n) {
-    d_smt.d_smtAttributes->deleteAllAttributes(n);
-  }
+  void nmNotifyDeleteNode(TNode n) {}
 
   Node applySubstitutions(TNode node) const {
     return Rewriter::rewrite(d_topLevelSubstitutions.apply(node));
@@ -981,14 +979,12 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_status(),
   d_replayStream(NULL),
   d_private(NULL),
-  d_smtAttributes(NULL),
   d_statisticsRegistry(NULL),
   d_stats(NULL),
   d_channels(new LemmaChannels())
 {
   SmtScope smts(this);
   d_originalOptions.copyValues(em->getOptions());
-  d_smtAttributes = new expr::attr::SmtAttributes(d_context);
   d_private = new smt::SmtEnginePrivate(*this);
   d_statisticsRegistry = new StatisticsRegistry();
   d_stats = new SmtEngineStatistics();
@@ -1203,9 +1199,6 @@ SmtEngine::~SmtEngine() throw() {
 
     delete d_private;
     d_private = NULL;
-
-    delete d_smtAttributes;
-    d_smtAttributes = NULL;
 
     delete d_userContext;
     d_userContext = NULL;
