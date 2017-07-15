@@ -531,10 +531,9 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 // files. See the documentation in "parser/antlr_undefines.h" for more details.
 #include "parser/antlr_undefines.h"
 
-#include <stdint.h>
 #include <cassert>
+#include <stdint.h>
 
-#include "base/ptr_closer.h"
 #include "options/set_language.h"
 #include "parser/antlr_tracing.h"
 #include "parser/parser.h"
@@ -590,12 +589,12 @@ namespace CVC4 {
 
 @parser::postinclude {
 
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "base/output.h"
-#include "base/ptr_closer.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
@@ -659,7 +658,7 @@ parseExpr returns [CVC4::Expr expr = CVC4::Expr()]
  */
 parseCommand returns [CVC4::Command* cmd_return = NULL]
 @declarations {
-    CVC4::PtrCloser<CVC4::Command> cmd;
+    std::unique_ptr<CVC4::Command> cmd;
 }
 @after {
     cmd_return = cmd.release();
@@ -689,7 +688,7 @@ parseCommand returns [CVC4::Command* cmd_return = NULL]
  * Matches a command of the input. If a declaration, it will return an empty
  * command.
  */
-command [CVC4::PtrCloser<CVC4::Command>* cmd]
+command [std::unique_ptr<CVC4::Command>* cmd]
   : ( mainCommand[cmd] SEMICOLON
     | SEMICOLON
     | LET_TOK { PARSER_STATE->pushScope(); }
@@ -716,7 +715,7 @@ options { backtrack = true; }
   : letDecl | typeLetDecl[check]
   ;
 
-mainCommand[CVC4::PtrCloser<CVC4::Command>* cmd]
+mainCommand[std::unique_ptr<CVC4::Command>* cmd]
 @init {
   Expr f;
   SExpr sexpr;
@@ -934,7 +933,7 @@ symbolicExpr[CVC4::SExpr& sexpr]
 /**
  * Match a top-level declaration.
  */
-toplevelDeclaration[CVC4::PtrCloser<CVC4::Command>* cmd]
+toplevelDeclaration[std::unique_ptr<CVC4::Command>* cmd]
 @init {
   std::vector<std::string> ids;
   Type t;
@@ -951,7 +950,7 @@ toplevelDeclaration[CVC4::PtrCloser<CVC4::Command>* cmd]
  */
 boundVarDecl[std::vector<std::string>& ids, CVC4::Type& t]
 @init {
-  CVC4::PtrCloser<Command> local_cmd;
+  std::unique_ptr<Command> local_cmd;
 }
   : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON
     declareVariables[&local_cmd,t,ids,false]
@@ -1002,14 +1001,14 @@ boundVarDeclReturn[std::vector<CVC4::Expr>& terms,
  * because type declarations are always top-level, except for
  * type-lets, which don't use this rule.
  */
-declareTypes[CVC4::PtrCloser<CVC4::Command>* cmd,
+declareTypes[std::unique_ptr<CVC4::Command>* cmd,
              const std::vector<std::string>& idList]
 @init {
   Type t;
 }
     /* A sort declaration (e.g., "T : TYPE") */
   : TYPE_TOK
-    { CVC4::PtrCloser<DeclarationSequence> seq(new DeclarationSequence());
+    { std::unique_ptr<DeclarationSequence> seq(new DeclarationSequence());
       for(std::vector<std::string>::const_iterator i = idList.begin();
           i != idList.end(); ++i) {
         // Don't allow a type variable to clash with a previously
@@ -1044,7 +1043,7 @@ declareTypes[CVC4::PtrCloser<CVC4::Command>* cmd,
  * permitted and "cmd" is output.  If topLevel is false, bound vars
  * are created
  */
-declareVariables[CVC4::PtrCloser<CVC4::Command>* cmd, CVC4::Type& t,
+declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
                  const std::vector<std::string>& idList, bool topLevel]
 @init {
   Expr f;
@@ -1052,7 +1051,7 @@ declareVariables[CVC4::PtrCloser<CVC4::Command>* cmd, CVC4::Type& t,
 }
     /* A variable declaration (or definition) */
   : type[t,CHECK_DECLARED] ( EQUAL_TOK formula[f] )?
-    { CVC4::PtrCloser<DeclarationSequence> seq;
+    { std::unique_ptr<DeclarationSequence> seq;
       if(topLevel) {
         seq.reset(new DeclarationSequence());
       }
@@ -2260,7 +2259,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
 constructorDef[CVC4::Datatype& type]
 @init {
   std::string id;
-  CVC4::PtrCloser<CVC4::DatatypeConstructor> ctor;
+  std::unique_ptr<CVC4::DatatypeConstructor> ctor;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
     { // make the tester
@@ -2280,7 +2279,7 @@ constructorDef[CVC4::Datatype& type]
     }
   ;
 
-selector[CVC4::PtrCloser<CVC4::DatatypeConstructor>* ctor]
+selector[std::unique_ptr<CVC4::DatatypeConstructor>* ctor]
 @init {
   std::string id;
   Type t, t2;
