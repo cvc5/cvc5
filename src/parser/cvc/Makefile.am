@@ -4,8 +4,9 @@ AM_CPPFLAGS = \
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN) $(WNO_PARENTHESES) $(WNO_TAUTOLOGICAL_COMPARE) -Wno-unused-function -Wno-unused-variable $(WNO_UNINITIALIZED) $(WNO_CONVERSION_NULL)
 
 # Compile generated C files using C++ compiler
-CC=$(CXX)
 AM_CFLAGS = $(AM_CXXFLAGS)
+CFLAGS=$(CXXFLAGS)
+CC=$(CXX)
 
 ANTLR_OPTS =
 
