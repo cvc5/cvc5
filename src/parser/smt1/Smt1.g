@@ -71,6 +71,7 @@ options {
 // files. See the documentation in "parser/antlr_undefines.h" for more details.
 #include "parser/antlr_undefines.h"
 
+#include <memory>
 #include <stdint.h>
 
 #include "smt/command.h"
@@ -111,7 +112,6 @@ namespace CVC4 {
 
 @parser::postinclude {
 
-#include <memory>
 #include <vector>
 
 #include "base/output.h"

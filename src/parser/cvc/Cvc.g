@@ -532,6 +532,7 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 #include "parser/antlr_undefines.h"
 
 #include <cassert>
+#include <memory>
 #include <stdint.h>
 
 #include "options/set_language.h"
@@ -589,7 +590,6 @@ namespace CVC4 {
 
 @parser::postinclude {
 
-#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>

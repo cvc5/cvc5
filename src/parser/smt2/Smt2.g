@@ -85,6 +85,8 @@ using namespace CVC4::parser;
 // files. See the documentation in "parser/antlr_undefines.h" for more details.
 #include "parser/antlr_undefines.h"
 
+#include <memory>
+
 #include "parser/parser.h"
 #include "parser/antlr_tracing.h"
 #include "smt/command.h"
@@ -112,7 +114,6 @@ namespace CVC4 {
 
 @parser::postinclude {
 
-#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
