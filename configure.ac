@@ -1073,9 +1073,6 @@ AC_CHECK_DECLS([optreset], [], [], [#include <getopt.h>])
 # check with which standard strerror_r() complies
 AC_FUNC_STRERROR_R
 
-# is is_sorted() in std or __gnu_cxx?
-CHECK_FOR_IS_SORTED
-
 # require boost library
 BOOST_REQUIRE()
 
