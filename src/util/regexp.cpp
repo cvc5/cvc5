@@ -34,11 +34,11 @@ static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
 int String::cmp(const String &y) const {
   if (size() != y.size()) {
-    return size() < y.size() ? 1 : -1;
+    return size() < y.size() ? -1 : 1;
   }
   for (unsigned int i = 0; i < size(); ++i) {
     if (d_str[i] != y.d_str[i]) {
-      return getUnsignedCharAt(i) < y.getUnsignedCharAt(i) ? 1 : -1;
+      return getUnsignedCharAt(i) < y.getUnsignedCharAt(i) ? -1 : 1;
     }
   }
   return 0;
