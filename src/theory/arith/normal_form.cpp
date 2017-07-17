@@ -105,11 +105,7 @@ bool Variable::isTranscendentalMember(Node n) {
 
 
 bool VarList::isSorted(iterator start, iterator end) {
-#if IS_SORTED_IN_GNUCXX_NAMESPACE
-  return __gnu_cxx::is_sorted(start, end);
-#else /* IS_SORTED_IN_GNUCXX_NAMESPACE */
   return std::is_sorted(start, end);
-#endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
 }
 
 bool VarList::isMember(Node n) {
@@ -198,8 +194,7 @@ VarList VarList::operator*(const VarList& other) const {
       otherEnd = other.internalEnd();
 
     Variable::VariableNodeCmp cmp;
-
-    merge_ranges(thisBegin, thisEnd, otherBegin, otherEnd, result, cmp);
+    std::merge(thisBegin, thisEnd, otherBegin, otherEnd, std::back_inserter(result), cmp);
 
     Assert(result.size() >= 2);
     Node mult = NodeManager::currentNM()->mkNode(kind::NONLINEAR_MULT, result);
@@ -356,7 +351,7 @@ void Monomial::printList(const std::vector<Monomial>& list) {
 Polynomial Polynomial::operator+(const Polynomial& vl) const {
 
   std::vector<Monomial> sortedMonos;
-  merge_ranges(begin(), end(), vl.begin(), vl.end(), sortedMonos);
+  std::merge(begin(), end(), vl.begin(), vl.end(), std::back_inserter(sortedMonos));
 
   Monomial::combineAdjacentMonomials(sortedMonos);
   //std::vector<Monomial> combined = Monomial::sumLikeTerms(sortedMonos);
