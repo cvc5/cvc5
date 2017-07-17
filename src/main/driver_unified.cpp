@@ -20,6 +20,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <new>
 
 // This must come before PORTFOLIO_BUILD.
@@ -27,7 +28,6 @@
 
 #include "base/configuration.h"
 #include "base/output.h"
-#include "base/ptr_closer.h"
 #include "expr/expr_iomanip.h"
 #include "expr/expr_manager.h"
 #include "main/command_executor.h"
@@ -249,7 +249,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 # endif
 
-  PtrCloser<Parser> replayParser;
+  std::unique_ptr<Parser> replayParser;
   if( opts.getReplayInputFilename() != "" ) {
     std::string replayFilename = opts.getReplayInputFilename();
     ParserBuilder replayParserBuilder(exprMgr, replayFilename, opts);
@@ -357,7 +357,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
       vector< vector<Command*> > allCommands;
       allCommands.push_back(vector<Command*>());
-      PtrCloser<Parser> parser(parserBuilder.build());
+      std::unique_ptr<Parser> parser(parserBuilder.build());
       if(replayParser) {
         // have the replay parser use the file's declarations
         replayParser->useDeclarationsFrom(parser.get());
@@ -512,7 +512,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 #endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
       }
 
-      PtrCloser<Parser> parser(parserBuilder.build());
+      std::unique_ptr<Parser> parser(parserBuilder.build());
       if(replayParser) {
         // have the replay parser use the file's declarations
         replayParser->useDeclarationsFrom(parser.get());
