@@ -53,7 +53,8 @@ class CVC4_PUBLIC SymbolTable {
   context::CDHashMap<std::string, Expr>* d_exprMap;
 
   /** A map for types. */
-  context::CDHashMap<std::string, std::pair<std::vector<Type>, Type>>* d_typeMap;
+  context::CDHashMap<std::string, std::pair<std::vector<Type>, Type> >*
+      d_typeMap;
 
   /** A set of defined functions. */
   context::CDHashSet<Expr, ExprHashFunction> *d_functions;

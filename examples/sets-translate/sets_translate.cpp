@@ -20,6 +20,7 @@
 #include <iostream>
 #include <string>
 #include <typeinfo>
+#include <unordered_map>
 #include <vector>
 
 #include "expr/expr.h"
@@ -83,7 +84,7 @@ class Mapper {
   set< Type > setTypes;
   map< Type, Type > mapTypes;
   map< pair<Type, Kind>, Expr > setoperators;
-  hash_map< Expr, Expr, ExprHashFunction > substitutions;
+  unordered_map< Expr, Expr, ExprHashFunction > substitutions;
   ostringstream sout;
   ExprManager* em;
   int depth;
