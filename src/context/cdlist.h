@@ -20,7 +20,6 @@
 #ifndef __CVC4__CONTEXT__CDLIST_H
 #define __CVC4__CONTEXT__CDLIST_H
 
-#include <boost/static_assert.hpp>
 #include <iterator>
 #include <memory>
 #include <string>
@@ -417,21 +416,21 @@ public:
   }
 };/* class CDList<> */
 
-
 template <class T, class CleanUp>
-class CDList <T, CleanUp, ContextMemoryAllocator<T> > : public ContextObj {
+class CDList<T, CleanUp, ContextMemoryAllocator<T> > : public ContextObj {
   /* CDList is incompatible for use with a ContextMemoryAllocator.
    * Consider using CDChunkList<T> instead.
    *
    * Explanation:
-   * If ContextMemoryAllocator is used and d_list grows at a deeper context level
-   * the reallocated will be reallocated in a context memory region that can be
-   * destroyed on pop. To support this, a full copy of d_list would have to be made.
-   * As this is unacceptable for performance in other situations, we do not do
-   * this.
+   * If ContextMemoryAllocator is used and d_list grows at a deeper context
+   * level the reallocated will be reallocated in a context memory region that
+   * can be destroyed on pop. To support this, a full copy of d_list would have
+   * to be made. As this is unacceptable for performance in other situations, we
+   * do not do this.
    */
 
-  BOOST_STATIC_ASSERT(sizeof(T) == 0);
+  static_assert(sizeof(T) == 0,
+                "Cannot create a CDList with a ContextMemoryAllocator.");
 };
 
 }/* CVC4::context namespace */

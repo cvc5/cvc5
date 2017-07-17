@@ -34,6 +34,7 @@ libutil_la_SOURCES = \
 	floatingpoint.h \
 	gmp_util.h \
 	hash.h \
+	index.cpp \
 	index.h \
 	maybe.h \
 	ntuple.h \
