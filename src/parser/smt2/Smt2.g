@@ -85,7 +85,8 @@ using namespace CVC4::parser;
 // files. See the documentation in "parser/antlr_undefines.h" for more details.
 #include "parser/antlr_undefines.h"
 
-#include "base/ptr_closer.h"
+#include <memory>
+
 #include "parser/parser.h"
 #include "parser/antlr_tracing.h"
 #include "smt/command.h"
@@ -206,7 +207,7 @@ parseExpr returns [CVC4::parser::smt2::myExpr expr]
  */
 parseCommand returns [CVC4::Command* cmd_return = NULL]
 @declarations {
-  CVC4::PtrCloser<CVC4::Command> cmd;
+  std::unique_ptr<CVC4::Command> cmd;
   std::string name;
 }
 @after {
@@ -242,7 +243,7 @@ parseCommand returns [CVC4::Command* cmd_return = NULL]
  */
 parseSygus returns [CVC4::Command* cmd_return = NULL]
 @declarations {
-  CVC4::PtrCloser<CVC4::Command> cmd;
+  std::unique_ptr<CVC4::Command> cmd;
   std::string name;
 }
 @after {
@@ -256,7 +257,7 @@ parseSygus returns [CVC4::Command* cmd_return = NULL]
  * Parse the internal portion of the command, ignoring the surrounding
  * parentheses.
  */
-command [CVC4::PtrCloser<CVC4::Command>* cmd]
+command [std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::string name;
   std::vector<std::string> names;
@@ -456,7 +457,7 @@ command [CVC4::PtrCloser<CVC4::Command>* cmd]
           PARSER_STATE->pushUnsatCoreNameScope();
           cmd->reset(new PushCommand());
         } else {
-          CVC4::PtrCloser<CommandSequence> seq(new CommandSequence());
+          std::unique_ptr<CommandSequence> seq(new CommandSequence());
           do {
             PARSER_STATE->pushScope();
             PARSER_STATE->pushUnsatCoreNameScope();
@@ -496,7 +497,7 @@ command [CVC4::PtrCloser<CVC4::Command>* cmd]
           PARSER_STATE->popScope();
           cmd->reset(new PopCommand());
         } else {
-          CVC4::PtrCloser<CommandSequence> seq(new CommandSequence());
+          std::unique_ptr<CommandSequence> seq(new CommandSequence());
           do {
             PARSER_STATE->popUnsatCoreNameScope();
             PARSER_STATE->popScope();
@@ -555,7 +556,7 @@ command [CVC4::PtrCloser<CVC4::Command>* cmd]
     }
   ;
 
-sygusCommand [CVC4::PtrCloser<CVC4::Command>* cmd]
+sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::string name, fun;
   std::vector<std::string> names;
@@ -566,7 +567,7 @@ sygusCommand [CVC4::PtrCloser<CVC4::Command>* cmd]
   std::vector<Expr> sygus_vars;
   std::vector<std::pair<std::string, Type> > sortedVarNames;
   SExpr sexpr;
-  CVC4::PtrCloser<CVC4::CommandSequence> seq;
+  std::unique_ptr<CVC4::CommandSequence> seq;
   std::vector< std::vector< CVC4::SygusGTerm > > sgts;
   std::vector< CVC4::Datatype > datatypes;
   std::vector< std::vector<Expr> > ops;
@@ -1076,7 +1077,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
   ;
 
 // Separate this into its own rule (can be invoked by set-info or meta-info)
-metaInfoInternal[CVC4::PtrCloser<CVC4::Command>* cmd]
+metaInfoInternal[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::string name;
   SExpr sexpr;
@@ -1106,7 +1107,7 @@ metaInfoInternal[CVC4::PtrCloser<CVC4::Command>* cmd]
     }
   ;
 
-setOptionInternal[CVC4::PtrCloser<CVC4::Command>* cmd]
+setOptionInternal[std::unique_ptr<CVC4::Command>* cmd]
 @init {
   std::string name;
   SExpr sexpr;
@@ -1123,7 +1124,7 @@ setOptionInternal[CVC4::PtrCloser<CVC4::Command>* cmd]
     }
   ;
 
-smt25Command[CVC4::PtrCloser<CVC4::Command>* cmd]
+smt25Command[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::string name;
   std::string fname;
@@ -1137,7 +1138,7 @@ smt25Command[CVC4::PtrCloser<CVC4::Command>* cmd]
   std::vector<Expr> funcs;
   std::vector<Expr> func_defs;
   Expr aexpr;
-  CVC4::PtrCloser<CVC4::CommandSequence> seq;
+  std::unique_ptr<CVC4::CommandSequence> seq;
 }
     /* meta-info */
   : META_INFO_TOK metaInfoInternal[cmd]
@@ -1331,7 +1332,7 @@ smt25Command[CVC4::PtrCloser<CVC4::Command>* cmd]
   // GET_UNSAT_ASSUMPTIONS
   ;
 
-extendedCommand[CVC4::PtrCloser<CVC4::Command>* cmd]
+extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
   Expr e, e2;
@@ -1341,7 +1342,7 @@ extendedCommand[CVC4::PtrCloser<CVC4::Command>* cmd]
   std::vector<Expr> terms;
   std::vector<Type> sorts;
   std::vector<std::pair<std::string, Type> > sortedVarNames;
-  CVC4::PtrCloser<CVC4::CommandSequence> seq;
+  std::unique_ptr<CVC4::CommandSequence> seq;
 }
     /* Extended SMT-LIB set of commands syntax, not permitted in
      * --smtlib2 compliance mode. */
@@ -1496,7 +1497,7 @@ extendedCommand[CVC4::PtrCloser<CVC4::Command>* cmd]
   ;
 
 
-datatypes_2_5_DefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]
+datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
   std::string name;
@@ -1516,7 +1517,7 @@ datatypes_2_5_DefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]
   }
   ;
   
-datatypeDefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]  
+datatypeDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]  
 @declarations {
   std::vector<CVC4::Datatype> dts;
   std::string name;
@@ -1531,7 +1532,7 @@ datatypeDefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]
  { cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts))); }
  ;
   
-datatypesDefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]
+datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
   std::string name;
@@ -1594,7 +1595,7 @@ datatypesDefCommand[bool isCo, CVC4::PtrCloser<CVC4::Command>* cmd]
   }
   ;
 
-rewriterulesCommand[CVC4::PtrCloser<CVC4::Command>* cmd]
+rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::vector<std::pair<std::string, Type> > sortedVarNames;
   std::vector<Expr> args, guards, heads, triggers;

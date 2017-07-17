@@ -33,7 +33,6 @@
 
 #include "cvc4_private.h"
 
-#include <boost/static_assert.hpp>
 #include <deque>
 #include <functional>
 #include <unordered_map>
@@ -384,9 +383,8 @@ public:
   }
 };/* class CDInsertHashMap<> */
 
-
 template <class Data, class HashFcn>
-class CDInsertHashMap <TNode, Data, HashFcn > : public ContextObj {
+class CDInsertHashMap<TNode, Data, HashFcn> : public ContextObj {
   /* CDInsertHashMap is challenging to get working with TNode.
    * Consider using CDHashMap<TNode,...> instead.
    *
@@ -398,7 +396,8 @@ class CDInsertHashMap <TNode, Data, HashFcn > : public ContextObj {
    * hashed. Getting the order right with a guarantee is too hard.
    */
 
-  BOOST_STATIC_ASSERT(sizeof(Data) == 0);
+  static_assert(sizeof(Data) == 0,
+                "Cannot create a CDInsertHashMap with TNode keys");
 };
 
 }/* CVC4::context namespace */

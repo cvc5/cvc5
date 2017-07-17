@@ -71,9 +71,9 @@ options {
 // files. See the documentation in "parser/antlr_undefines.h" for more details.
 #include "parser/antlr_undefines.h"
 
+#include <memory>
 #include <stdint.h>
 
-#include "base/ptr_closer.h"
 #include "smt/command.h"
 #include "parser/parser.h"
 #include "parser/antlr_tracing.h"
@@ -115,7 +115,6 @@ namespace CVC4 {
 #include <vector>
 
 #include "base/output.h"
-#include "base/ptr_closer.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
@@ -157,7 +156,7 @@ parseExpr returns [CVC4::parser::smt1::myExpr expr]
  */
 parseCommand returns [CVC4::Command* cmd_return = NULL]
 @declarations {
-  CVC4::PtrCloser<CVC4::Command> cmd;
+  std::unique_ptr<CVC4::Command> cmd;
 }
 @after {
   cmd_return = cmd.release();
@@ -177,7 +176,7 @@ parseCommand returns [CVC4::Command* cmd_return = NULL]
  * Matches the whole SMT-LIB benchmark.
  * @return the sequence command containing the whole problem
  */
-benchmark [CVC4::PtrCloser<CVC4::Command>* cmd]
+benchmark [std::unique_ptr<CVC4::Command>* cmd]
   : LPAREN_TOK BENCHMARK_TOK IDENTIFIER benchAttributes[cmd] RPAREN_TOK
   | EOF
   ;
@@ -187,10 +186,10 @@ benchmark [CVC4::PtrCloser<CVC4::Command>* cmd]
  * command sequence.
  * @return the command sequence
  */
-benchAttributes [CVC4::PtrCloser<CVC4::Command>* cmd]
+benchAttributes [std::unique_ptr<CVC4::Command>* cmd]
 @init {
-  CVC4::PtrCloser<CVC4::CommandSequence> cmd_seq(new CommandSequence());
-  CVC4::PtrCloser<CVC4::Command> attribute;
+  std::unique_ptr<CVC4::CommandSequence> cmd_seq(new CommandSequence());
+  std::unique_ptr<CVC4::Command> attribute;
 }
 @after {
   cmd->reset(cmd_seq.release());
@@ -205,13 +204,13 @@ benchAttributes [CVC4::PtrCloser<CVC4::Command>* cmd]
  * a corresponding command
  * @return a command corresponding to the attribute
  */
-benchAttribute [CVC4::PtrCloser<CVC4::Command>* smt_command]
+benchAttribute [std::unique_ptr<CVC4::Command>* smt_command]
 @declarations {
   std::string name;
   BenchmarkStatus b_status;
   Expr expr;
-  CVC4::PtrCloser<CVC4::CommandSequence> command_seq;
-  CVC4::PtrCloser<CVC4::Command> declaration_command;
+  std::unique_ptr<CVC4::CommandSequence> command_seq;
+  std::unique_ptr<CVC4::Command> declaration_command;
 }
   : LOGIC_TOK identifier[name,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->preemptCommand(new SetBenchmarkLogicCommand(name));
@@ -495,7 +494,7 @@ attribute[std::string& s]
     { s = AntlrInput::tokenText($ATTR_IDENTIFIER); }
   ;
 
-functionDeclaration[CVC4::PtrCloser<CVC4::Command>* smt_command]
+functionDeclaration[std::unique_ptr<CVC4::Command>* smt_command]
 @declarations {
   std::string name;
   std::vector<Type> sorts;
@@ -517,7 +516,7 @@ functionDeclaration[CVC4::PtrCloser<CVC4::Command>* smt_command]
 /**
  * Matches the declaration of a predicate and declares it
  */
-predicateDeclaration[CVC4::PtrCloser<CVC4::Command>* smt_command]
+predicateDeclaration[std::unique_ptr<CVC4::Command>* smt_command]
 @declarations {
   std::string name;
   std::vector<Type> p_sorts;
@@ -534,7 +533,7 @@ predicateDeclaration[CVC4::PtrCloser<CVC4::Command>* smt_command]
     }
   ;
 
-sortDeclaration[CVC4::PtrCloser<CVC4::Command>* smt_command]
+sortDeclaration[std::unique_ptr<CVC4::Command>* smt_command]
 @declarations {
   std::string name;
 }
@@ -590,7 +589,7 @@ status[ CVC4::BenchmarkStatus& status ]
  * Matches an annotation, which is an attribute name, with an optional user
  * value.
  */
-annotation[CVC4::PtrCloser<CVC4::Command>* smt_command]
+annotation[std::unique_ptr<CVC4::Command>* smt_command]
 @init {
   std::string key, value;
   std::vector<Expr> pats;
