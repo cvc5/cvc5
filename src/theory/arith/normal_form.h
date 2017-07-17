@@ -23,10 +23,6 @@
 #include <algorithm>
 #include <list>
 
-#if IS_SORTED_IN_GNUCXX_NAMESPACE
-#  include <ext/algorithm>
-#endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
-
 #include "base/output.h"
 #include "expr/node.h"
 #include "expr/node_self_iterator.h"
@@ -284,7 +280,7 @@ public:
   }
 
   struct VariableNodeCmp {
-    static inline int cmp(Node n, Node m) {
+    static inline int cmp(const Node& n, const Node& m) {
       if ( n == m ) { return 0; }
 
       // this is now slightly off of the old variable order.
@@ -320,7 +316,7 @@ public:
       }
     }
 
-    bool operator()(Node n, Node m) const {
+    bool operator()(const Node& n, const Node& m) const {
       return VariableNodeCmp::cmp(n,m) < 0;
     }
   };
@@ -430,56 +426,6 @@ inline Node makeNode(Kind k, GetNodeIterator start, GetNodeIterator end) {
 
   return Node(nb);
 }/* makeNode<GetNodeIterator>(Kind, iterator, iterator) */
-
-
-template <class GetNodeIterator, class T>
-static void copy_range(GetNodeIterator begin, GetNodeIterator end, std::vector<T>& result){
-  while(begin != end){
-    result.push_back(*begin);
-    ++begin;
-  }
-}
-
-template <class GetNodeIterator, class T>
-static void merge_ranges(GetNodeIterator first1,
-                  GetNodeIterator last1,
-                  GetNodeIterator first2,
-                  GetNodeIterator last2,
-                  std::vector<T>& result) {
-
-  while(first1 != last1 && first2 != last2){
-    if( (*first1) < (*first2) ){
-      result.push_back(*first1);
-      ++ first1;
-    }else{
-      result.push_back(*first2);
-      ++ first2;
-    }
-  }
-  copy_range(first1, last1, result);
-  copy_range(first2, last2, result);
-}
-
-template <class GetNodeIterator, class T, class Cmp>
-static void merge_ranges(GetNodeIterator first1,
-                         GetNodeIterator last1,
-                         GetNodeIterator first2,
-                         GetNodeIterator last2,
-                         std::vector<T>& result,
-                         const Cmp& cmp) {
-
-  while(first1 != last1 && first2 != last2){
-    if( cmp(*first1, *first2) ){
-      result.push_back(*first1);
-      ++ first1;
-    }else{
-      result.push_back(*first2);
-      ++ first2;
-    }
-  }
-  copy_range(first1, last1, result);
-  copy_range(first2, last2, result);
-}
 
 /**
  * A VarList is a sorted list of variables representing a product.
@@ -749,11 +695,7 @@ public:
   }
 
   static bool isSorted(const std::vector<Monomial>& m) {
-#if IS_SORTED_IN_GNUCXX_NAMESPACE
-    return __gnu_cxx::is_sorted(m.begin(), m.end());
-#else /* IS_SORTED_IN_GNUCXX_NAMESPACE */
     return std::is_sorted(m.begin(), m.end());
-#endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
   }
 
   static bool isStrictlySorted(const std::vector<Monomial>& m) {
@@ -852,7 +794,7 @@ private:
 public:
   static bool isMember(TNode n);
 
-  class iterator {
+  class iterator : public std::iterator<std::input_iterator_tag, Monomial> {
   private:
     internal_iterator d_iter;
 
@@ -954,7 +896,7 @@ public:
     iterator tailStart = begin();
     ++tailStart;
     std::vector<Monomial> subrange;
-    copy_range(tailStart, end(), subrange);
+    std::copy(tailStart, end(), std::back_inserter(subrange));
     return mkPolynomial(subrange);
   }
 

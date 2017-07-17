@@ -44,7 +44,6 @@
 
 #pragma once
 
-#include <boost/static_assert.hpp>
 #include <ext/hash_map>
 #include <deque>
 #include <utility>
@@ -551,7 +550,7 @@ public:
 };/* class CDTrailHashMap<> */
 
 template <class Data, class HashFcn>
-class CDTrailHashMap <TNode, Data, HashFcn > : public ContextObj {
+class CDTrailHashMap<TNode, Data, HashFcn> : public ContextObj {
   /* CDTrailHashMap is challenging to get working with TNode.
    * Consider using CDHashMap<TNode,...> instead.
    *
@@ -563,7 +562,8 @@ class CDTrailHashMap <TNode, Data, HashFcn > : public ContextObj {
    * hashed. Getting the order right with a guarantee is too hard.
    */
 
-  BOOST_STATIC_ASSERT(sizeof(Data) == 0);
+  static_assert(sizeof(Data) == 0,
+                "Cannot create a CDTrailHashMap with TNode keys");
 };
 
 }/* CVC4::context namespace */

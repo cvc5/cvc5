@@ -155,10 +155,11 @@
 #ifndef __CVC4__NODE_BUILDER_H
 #define __CVC4__NODE_BUILDER_H
 
-#include <iostream>
-#include <vector>
 #include <cstdlib>
+#include <iostream>
+#include <memory>
 #include <stdint.h>
+#include <vector>
 
 namespace CVC4 {
   static const unsigned default_nchild_thresh = 10;
@@ -171,7 +172,6 @@ namespace CVC4 {
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
-#include "base/ptr_closer.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
@@ -890,14 +890,14 @@ template <unsigned nchild_thresh>
 Node* NodeBuilder<nchild_thresh>::constructNodePtr() {
   // maybeCheckType() can throw an exception. Make sure to call the destructor
   // on the exception branch.
-  PtrCloser<Node> np(new Node(constructNV()));
+  std::unique_ptr<Node> np(new Node(constructNV()));
   maybeCheckType(*np.get());
   return np.release();
 }
 
 template <unsigned nchild_thresh>
 Node* NodeBuilder<nchild_thresh>::constructNodePtr() const {
-  PtrCloser<Node> np(new Node(constructNV()));
+  std::unique_ptr<Node> np(new Node(constructNV()));
   maybeCheckType(*np.get());
   return np.release();
 }

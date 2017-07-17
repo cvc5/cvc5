@@ -27,7 +27,7 @@
 namespace CVC4 {
 namespace expr {
 
-class NodeSelfIterator : std::iterator<std::input_iterator_tag, Node> {
+class NodeSelfIterator : public std::iterator<std::input_iterator_tag, Node> {
   Node d_node;
   Node::const_iterator d_child;
 
