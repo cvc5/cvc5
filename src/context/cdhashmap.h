@@ -58,7 +58,7 @@
  **     its CDOhash_map object memory freed.  Here, the CDOhash_map is restored
  **     to a "NULL-map" state (see above), signaling it to remove
  **     itself from the map completely and put itself on a "trash
- **     list" for the map.
+ **     list" for its scope.
  **
  **     Third, you might obliterate() the key.  This calls the CDOhash_map
  **     destructor, which calls destroy(), which does a successive
@@ -70,24 +70,18 @@
  **     Fourth, you might delete the cdhashmap(calling CDHashMap::~CDHashMap()).
  **     This first calls destroy(), as per ContextObj contract, but
  **     cdhashmapdoesn't save/restore itself, so that does nothing at the
- **     CDHashMap-level.  Then it empties the trash.  Then, for each
- **     element in the map, it marks it as being "part of a complete
- **     map destruction", which essentially short-circuits
+ **     CDHashMap-level. Then, for each element in the map, it marks it as being
+ **     "part of a complete map destruction", which essentially short-circuits
  **     CDOhash_map::restore() (see CDOhash_map::restore()), then deallocates
- **     it.  Finally it asserts that the trash is empty (which it
- **     should be, since restore() was short-circuited).
+ **     it.
  **
  **     Fifth, you might clear() the CDHashMap.  This does exactly the
  **     same as CDHashMap::~CDHashMap(), except that it doesn't call destroy()
  **     on itself.
  **
- **     CDHashMap::emptyTrash() simply goes through and calls
- **     ->deleteSelf() on all elements in the trash.
  **     ContextObj::deleteSelf() calls the CDOhash_map destructor, then
  **     frees the memory associated to the CDOhash_map.  CDOhash_map::~CDOhash_map()
- **     calls destroy(), which restores as much as possible.  (Note,
- **     though, that since objects placed on the trash have already
- **     restored to the fullest extent possible, it does nothing.)
+ **     calls destroy(), which restores as much as possible.
  **/
 
 #include "cvc4_private.h"
@@ -157,7 +151,7 @@ class CDOhash_map : public ContextObj {
         } else {
           Debug("gc") << "CDHashMap<> trash push_back " << this << std::endl;
           //this->deleteSelf();
-          d_map->d_trash.push_back(this);
+          enqueueToGarbageCollect();
         }
       } else {
         d_data = p->d_data;
@@ -290,8 +284,6 @@ class CDHashMap : public ContextObj {
   Element* d_first;
   Context* d_context;
 
-  std::vector<Element*> d_trash;
-
   // Nothing to save; the elements take care of themselves
   virtual ContextObj* save(ContextMemoryManager* pCMM) {
     Unreachable();
@@ -302,75 +294,38 @@ class CDHashMap : public ContextObj {
     Unreachable();
   }
 
-  void emptyTrash() {
-    //FIXME multithreading
-    for(typename std::vector<Element*>::iterator i = d_trash.begin();
-        i != d_trash.end();
-        ++i) {
-      Debug("gc") << "emptyTrash(): " << *i << std::endl;
-      (*i)->deleteSelf();
-    }
-    d_trash.clear();
-  }
-
   // no copy or assignment
   CDHashMap(const CDHashMap&) CVC4_UNDEFINED;
   CDHashMap& operator=(const CDHashMap&) CVC4_UNDEFINED;
 
 public:
-
-  CDHashMap(Context* context) :
-    ContextObj(context),
-    d_map(),
-    d_first(NULL),
-    d_context(context),
-    d_trash() {
-  }
+  CDHashMap(Context* context)
+    : ContextObj(context), d_map(), d_first(NULL), d_context(context) {}
 
   ~CDHashMap() {
-    Debug("gc") << "cdhashmap" << this
-                << " disappearing, destroying..." << std::endl;
+    Debug("gc") << "cdhashmap" << this << " disappearing, destroying..."
+                << std::endl;
     destroy();
-    Debug("gc") << "cdhashmap" << this
-                << " disappearing, done destroying" << std::endl;
-
-    Debug("gc") << "cdhashmap" << this << " gone, emptying trash" << std::endl;
-    emptyTrash();
-    Debug("gc") << "done emptying trash for " << this << std::endl;
-
-    for(typename table_type::iterator i = d_map.begin();
-        i != d_map.end();
-        ++i) {
-      // mark it as being a destruction (short-circuit restore())
-      (*i).second->d_map = NULL;
-      if(!(*i).second->d_noTrash) {
-        (*i).second->deleteSelf();
-      }
-    }
-    d_map.clear();
-    d_first = NULL;
-
-    Assert(d_trash.empty());
+    Debug("gc") << "cdhashmap" << this << " disappearing, done destroying"
+                << std::endl;
+    clear();
   }
 
-  void clear() throw(AssertionException) {
-    Debug("gc") << "clearing cdhashmap" << this << ", emptying trash" << std::endl;
-    emptyTrash();
+  void clear() {
+    Debug("gc") << "clearing cdhashmap" << this << ", emptying trash"
+                << std::endl;
     Debug("gc") << "done emptying trash for " << this << std::endl;
 
-    for(typename table_type::iterator i = d_map.begin();
-        i != d_map.end();
-        ++i) {
+    for (auto& key_element_pair : d_map) {
       // mark it as being a destruction (short-circuit restore())
-      (*i).second->d_map = NULL;
-      if(!(*i).second->d_noTrash) {
-        (*i).second->deleteSelf();
+      Element* element = key_element_pair.second;
+      element->d_map = nullptr;
+      if (!element->d_noTrash) {
+        element->deleteSelf();
       }
     }
     d_map.clear();
-    d_first = NULL;
-
-    Assert(d_trash.empty());
+    d_first = nullptr;
   }
 
   // The usual operators of map
@@ -389,8 +344,6 @@ public:
 
   // If a key is not present, a new object is created and inserted
   Element& operator[](const Key& k) {
-    emptyTrash();
-
     typename table_type::iterator i = d_map.find(k);
 
     Element* obj;
@@ -404,8 +357,6 @@ public:
   }
 
   bool insert(const Key& k, const Data& d) {
-    emptyTrash();
-
     typename table_type::iterator i = d_map.find(k);
 
     if(i == d_map.end()) {// create new object
@@ -443,8 +394,6 @@ public:
    * insertAtContextLevelZero() a key that already is in the map.
    */
   void insertAtContextLevelZero(const Key& k, const Data& d) {
-    emptyTrash();
-
     AlwaysAssert(d_map.find(k) == d_map.end());
 
     Element* obj = new(true) Element(d_context, this, k, d,
@@ -566,10 +515,6 @@ public:
     }
   }
 
-  iterator find(const Key& k) {
-    emptyTrash();
-    return const_cast<const CDHashMap*>(this)->find(k);
-  }
 
 };/* class CDHashMap<> */
 

@@ -19,12 +19,13 @@
 #ifndef __CVC4__CONTEXT__CONTEXT_H
 #define __CVC4__CONTEXT__CONTEXT_H
 
-#include <iostream>
 #include <cstdlib>
 #include <cstring>
-#include <vector>
+#include <iostream>
+#include <memory>
 #include <new>
 #include <typeinfo>
+#include <vector>
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
@@ -257,6 +258,14 @@ class Scope {
    */
   ContextObj* d_pContextObjList;
 
+  /**
+   * A list of ContextObj to be garbage collected before the destruction of this
+   * scope. deleteSelf() will be called on each element during ~Scope().
+   *
+   * This is either nullptr or list owned by this scope.
+   */
+  std::unique_ptr<std::vector<ContextObj*>> d_garbage;
+
   friend std::ostream&
   operator<<(std::ostream&, const Scope&) throw(AssertionException);
 
@@ -266,54 +275,60 @@ public:
    * Constructor: Create a new Scope; set the level and the previous Scope
    * if any.
    */
-  Scope(Context* pContext, ContextMemoryManager* pCMM, int level) throw() :
-    d_pContext(pContext),
-    d_pCMM(pCMM),
-    d_level(level),
-    d_pContextObjList(NULL) {
+ Scope(Context* pContext, ContextMemoryManager* pCMM, int level) throw()
+     : d_pContext(pContext),
+       d_pCMM(pCMM),
+       d_level(level),
+       d_pContextObjList(nullptr),
+       d_garbage() {}
+
+ /**
+  * Destructor: Clears out all of the garbage and restore all of the objects
+  * in ContextObjList.
+  */
+ ~Scope();
+
+ /**
+  * Get the Context for this Scope
+  */
+ Context* getContext() const throw() { return d_pContext; }
+
+ /**
+  * Get the ContextMemoryManager for this Scope
+  */
+ ContextMemoryManager* getCMM() const throw() { return d_pCMM; }
+
+ /**
+  * Get the level of the current Scope
+  */
+ int getLevel() const throw() { return d_level; }
+
+ /**
+  * Return true iff this Scope is the current top Scope
+  */
+ bool isCurrent() const throw() { return this == d_pContext->getTopScope(); }
+
+ /**
+  * When a ContextObj object is modified for the first time in this
+  * Scope, it should call this method to add itself to the list of
+  * objects that will need to be restored.  Defined inline below.
+  */
+ void addToChain(ContextObj* pContextObj) throw(AssertionException);
+
+ /**
+  * Overload operator new for use with ContextMemoryManager to allow
+  * creation of new Scope objects in the current memory region.
+  */
+ static void* operator new(size_t size, ContextMemoryManager* pCMM) {
+   Trace("context_mm") << "Scope::new " << size << " in " << pCMM << std::endl;
+   return pCMM->newData(size);
   }
 
   /**
-   * Destructor: Restore all of the objects in ContextObjList.  Defined inline
-   * below.
+   * Enqueues a ContextObj to be garbage collected via a call to deleteSelf()
+   * during the destruction of this scope.
    */
-  ~Scope();
-
-  /**
-   * Get the Context for this Scope
-   */
-  Context* getContext() const throw() { return d_pContext; }
-
-  /**
-   * Get the ContextMemoryManager for this Scope
-   */
-  ContextMemoryManager* getCMM() const throw() { return d_pCMM; }
-
-  /**
-   * Get the level of the current Scope
-   */
-  int getLevel() const throw() { return d_level; }
-
-  /**
-   * Return true iff this Scope is the current top Scope
-   */
-  bool isCurrent() const throw() { return this == d_pContext->getTopScope(); }
-
-  /**
-   * When a ContextObj object is modified for the first time in this
-   * Scope, it should call this method to add itself to the list of
-   * objects that will need to be restored.  Defined inline below.
-   */
-  void addToChain(ContextObj* pContextObj) throw(AssertionException);
-
-  /**
-   * Overload operator new for use with ContextMemoryManager to allow
-   * creation of new Scope objects in the current memory region.
-   */
-  static void* operator new(size_t size, ContextMemoryManager* pCMM) {
-    Trace("context_mm") << "Scope::new " << size << " in " << pCMM << std::endl;
-    return pCMM->newData(size);
-  }
+  void enqueueToGarbageCollect(ContextObj* obj);
 
   /**
    * Overload operator delete for Scope objects allocated using
@@ -647,6 +662,12 @@ public:
     ::operator delete(this);
   }
 
+  /**
+   * Use this to enqueue calling deleteSelf() at the time of the destruction of
+   * the enclosing Scope.
+   */
+  void enqueueToGarbageCollect();
+
 };/* class ContextObj */
 
 /**
@@ -723,15 +744,6 @@ inline void ContextObj::makeCurrent() throw(AssertionException) {
 
 inline void ContextObj::makeSaveRestorePoint() throw(AssertionException) {
   update();
-}
-
-inline Scope::~Scope() {
-  // Call restore() method on each ContextObj object in the list.
-  // Note that it is the responsibility of restore() to return the
-  // next item in the list.
-  while(d_pContextObjList != NULL) {
-    d_pContextObjList = d_pContextObjList->restoreAndContinue();
-  }
 }
 
 inline void
