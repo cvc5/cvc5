@@ -976,7 +976,8 @@ elif test -z "$CXXTEST"; then
     AC_MSG_RESULT([$CXXTEST])
   else
     if test -e "/usr/include/cxxtest/TestRunner.h"; then
-      AC_MSG_RESULT([/usr/include])
+      CXXTEST=/usr/include/cxxtest
+      AC_MSG_RESULT([$CXXTEST])
     else
       AC_MSG_RESULT([not found])
       AC_MSG_WARN([unit tests disabled, CxxTest headers not found.])
