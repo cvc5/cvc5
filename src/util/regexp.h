@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <functional>
 #include <set>
 #include <sstream>
 #include <string>

@@ -19,6 +19,9 @@
 #ifndef __CVC4__THEORY__BV__THEORY_BV_H
 #define __CVC4__THEORY__BV__THEORY_BV_H
 
+#include <unordered_map>
+#include <unordered_set>
+
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/context.h"

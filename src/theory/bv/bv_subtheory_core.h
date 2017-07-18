@@ -14,12 +14,16 @@
  ** Algebraic solver.
  **/
 
+#include "cvc4_private.h"
+
 #pragma once
 
-#include "cvc4_private.h"
-#include "theory/bv/bv_subtheory.h"
+#include <unordered_map>
+#include <unordered_set>
+
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
 namespace theory {

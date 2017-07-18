@@ -19,6 +19,8 @@
 #ifndef __CVC4__UF__PROOF_H
 #define __CVC4__UF__PROOF_H
 
+#include <unordered_set>
+
 #include "expr/expr.h"
 #include "proof/proof_manager.h"
 #include "theory/uf/equality_engine.h"

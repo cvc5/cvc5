@@ -17,11 +17,13 @@
 #ifndef SRC_THEORY_SETS_THEORY_SETS_RELS_H_
 #define SRC_THEORY_SETS_THEORY_SETS_RELS_H_
 
+#include <unordered_set>
+
+#include "context/cdchunk_list.h"
+#include "context/cdhashset.h"
+#include "theory/sets/rels_utils.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "context/cdhashset.h"
-#include "context/cdchunk_list.h"
-#include "theory/sets/rels_utils.h"
 
 namespace CVC4 {
 namespace theory {

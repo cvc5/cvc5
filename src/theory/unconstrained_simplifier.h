@@ -20,8 +20,10 @@
 #ifndef __CVC4__UNCONSTRAINED_SIMPLIFIER_H
 #define __CVC4__UNCONSTRAINED_SIMPLIFIER_H
 
-#include <vector>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include "expr/node.h"
 #include "theory/substitutions.h"

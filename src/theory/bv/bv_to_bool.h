@@ -19,6 +19,8 @@
 #ifndef __CVC4__THEORY__BV__BV_TO_BOOL_H
 #define __CVC4__THEORY__BV__BV_TO_BOOL_H
 
+#include <unordered_map>
+
 #include "theory/bv/theory_bv_utils.h"
 #include "util/statistics_registry.h"
 

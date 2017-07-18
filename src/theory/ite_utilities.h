@@ -23,7 +23,6 @@
 #define __CVC4__ITE_UTILITIES_H
 
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "expr/node.h"

@@ -21,8 +21,10 @@
 #ifndef __CVC4__CACHE_H
 #define __CVC4__CACHE_H
 
-#include <utility>
 #include <functional>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace CVC4 {
 

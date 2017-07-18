@@ -20,7 +20,7 @@
 #define __CVC4__BV_QUICK_CHECK_H
 
 #include <vector>
-#include <unordered_map>
+#include <unordered_set>
 
 #include "context/cdo.h"
 #include "expr/node.h"

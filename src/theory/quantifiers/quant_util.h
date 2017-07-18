@@ -19,7 +19,6 @@
 
 #include <iostream>
 #include <map>
-#include <unordered_set>
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"

@@ -19,6 +19,9 @@
 
 #pragma once
 
+#include <unordered_map>
+#include <unordered_set>
+
 #include "theory/rewriter.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"

@@ -21,7 +21,6 @@
 
 #include <iostream>
 #include <map>
-#include <unordered_set>
 
 #include "context/cdchunk_list.h"
 #include "expr/datatype.h"

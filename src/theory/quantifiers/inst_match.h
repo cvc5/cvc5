@@ -18,7 +18,6 @@
 #define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
 
 #include <map>
-#include <unordered_set>
 
 #include "context/cdlist.h"
 #include "context/cdo.h"

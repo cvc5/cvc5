@@ -19,10 +19,13 @@
 #ifndef __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 #define __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 
-#include "theory/bv/bv_subtheory.h"
-#include "theory/bv/bv_inequality_graph.h"
+#include <unordered_map>
+#include <unordered_set>
+
 #include "context/cdhashset.h"
 #include "expr/attribute.h"
+#include "theory/bv/bv_inequality_graph.h"
+#include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
 namespace theory {

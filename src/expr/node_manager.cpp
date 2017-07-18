@@ -20,7 +20,6 @@
 #include <algorithm>
 #include <stack>
 #include <utility>
-#include <unordered_set>
 
 #include "base/cvc4_assert.h"
 #include "base/listener.h"
@@ -36,7 +35,6 @@
 
 using namespace std;
 using namespace CVC4::expr;
-using std::unordered_set;
 
 namespace CVC4 {
 

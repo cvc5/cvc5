@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Algebraic solver. 
+ ** \brief Algebraic solver.
  **
  ** Algebraic solver.
  **/
@@ -19,23 +19,25 @@
 #ifndef __CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
 #define __CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
 
-#include "context/context.h"
-#include "context/cdqueue.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/theory.h"
-#include <queue>
 #include <list>
+#include <queue>
+#include <unordered_map>
+#include <unordered_set>
+
+#include "context/cdqueue.h"
+#include "context/context.h"
+#include "theory/theory.h"
+#include "theory/uf/equality_engine.h"
+
 namespace CVC4 {
 namespace theory {
-
-
 namespace bv {
 
-typedef unsigned TermId; 
+typedef unsigned TermId;
 typedef unsigned ReasonId;
 extern const TermId UndefinedTermId;
 extern const ReasonId UndefinedReasonId;
-extern const ReasonId AxiomReasonId; 
+extern const ReasonId AxiomReasonId;
 
 class InequalityGraph : public context::ContextNotifyObj{
 

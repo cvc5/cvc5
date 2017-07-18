@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "theory/bv/bitblaster_template.h"
 #include "theory/bv/bv_subtheory.h"
 
