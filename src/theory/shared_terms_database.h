@@ -18,7 +18,6 @@
 #pragma once
 
 #include <unordered_map>
-#include <unordered_set>
 
 #include "context/cdhashset.h"
 #include "expr/node.h"

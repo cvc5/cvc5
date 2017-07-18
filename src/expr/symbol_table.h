@@ -21,7 +21,6 @@
 
 #include <vector>
 #include <utility>
-#include <unordered_map>
 
 #include "expr/expr.h"
 #include "util/hash.h"

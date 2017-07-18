@@ -19,7 +19,6 @@
 #ifndef __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 #define __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 
-#include <unordered_map>
 #include <unordered_set>
 
 #include "context/cdhashset.h"

@@ -22,6 +22,7 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <unordered_map>
 #include <utility>
 
 #include "parser/parser.h"

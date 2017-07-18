@@ -15,11 +15,6 @@
  ** \todo document this file
  **/
 
-
-
-
-
-
 // Pass 1: label the ite as (constant) or (+ constant variable)
 
 #include "cvc4_private.h"
@@ -28,7 +23,6 @@
 #define __CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H
 
 #include <unordered_map>
-#include <unordered_set>
 
 #include "expr/node.h"
 #include "context/cdo.h"

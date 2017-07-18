@@ -19,11 +19,12 @@
 #ifndef __CVC4__PRINTER__DAGIFICATION_VISITOR_H
 #define __CVC4__PRINTER__DAGIFICATION_VISITOR_H
 
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include "expr/node.h"
 #include "util/hash.h"
-
-#include <vector>
-#include <string>
 
 namespace CVC4 {
 

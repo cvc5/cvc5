@@ -19,6 +19,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <unordered_set>
 
 #include "theory/bv/bv_subtheory.h"
 #include "theory/bv/slicer.h"

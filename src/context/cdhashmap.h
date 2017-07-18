@@ -89,6 +89,7 @@
 #ifndef __CVC4__CONTEXT__CDHASHMAP_H
 #define __CVC4__CONTEXT__CDHASHMAP_H
 
+#include <functional>
 #include <iterator>
 #include <unordered_map>
 #include <vector>

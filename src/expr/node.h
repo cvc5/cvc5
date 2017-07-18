@@ -945,8 +945,6 @@ inline std::ostream& operator<<(std::ostream& out,
 
 }/* CVC4 namespace */
 
-#include <unordered_map>
-
 //#include "expr/attribute.h"
 #include "expr/node_manager.h"
 #include "expr/type_checker.h"

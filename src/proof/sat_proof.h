@@ -25,7 +25,6 @@
 #include <set>
 #include <sstream>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "context/cdhashmap.h"
