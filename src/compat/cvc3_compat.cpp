@@ -924,13 +924,16 @@ void CLFlags::setFlag(const std::string& name,
 }
 
 void ValidityChecker::setUpOptions(CVC4::Options& options, const CLFlags& clflags) {
+  // Note: SIMPLIFICATION_MODE_INCREMENTAL, which was used
+  // for CVC3 compatibility, is not supported by CVC4
+  // anymore.
+
   // always incremental and model-producing in CVC3 compatibility mode
   // also incrementally-simplifying and interactive
   d_smt->setOption("incremental", string("true"));
   // disable this option by default for now, because datatype models
   // are broken [MGD 10/4/2012]
   //d_smt->setOption("produce-models", string("true"));
-  d_smt->setOption("simplification-mode", string("incremental"));
   d_smt->setOption("interactive-mode", string("true"));// support SmtEngine::getAssertions()
 
   d_smt->setOption("statistics", string(clflags["stats"].getBool() ? "true" : "false"));
