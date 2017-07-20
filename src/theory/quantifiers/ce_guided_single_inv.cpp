@@ -888,6 +888,8 @@ Node CegConjectureSingleInv::reconstructToSyntax( Node s, TypeNode stn, int& rec
   Node sol;
   if( reconstructed==1 ){
     sol = d_sygus_solution;
+  }else if( reconstructed==-1 ){
+    return Node::null();
   }else{
     sol = d_solution;
   }

@@ -898,7 +898,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
         sgt.d_gterm_type = SygusGTerm::gterm_op;
         sgt.d_expr = EXPR_MANAGER->operatorOf(k);
       }
-     | LET_TOK LPAREN_TOK { 
+     | SYGUS_LET_TOK LPAREN_TOK { 
          sgt.d_name = std::string("let");
          sgt.d_gterm_type = SygusGTerm::gterm_let;
          PARSER_STATE->pushScope(true);
@@ -1803,7 +1803,6 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   Type type;
   std::string s;
   bool isBuiltinOperator = false;
-  bool readLetSort = false;
   int match_vindex = -1;
   std::vector<Type> match_ptypes;
 }
@@ -2005,27 +2004,41 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_CONST( ::CVC4::ArrayStoreAll(type, f) );
       }
     )
-  | /* a let binding */
-    LPAREN_TOK LET_TOK LPAREN_TOK
-    { PARSER_STATE->pushScope(true); }
-    ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
-      (term[expr, f2] | sortSymbol[type,CHECK_DECLARED]
-       { readLetSort = true; } term[expr, f2]
-      )
-      RPAREN_TOK
-      // this is a parallel let, so we have to save up all the contributions
-      // of the let and define them only later on
-      { if( !PARSER_STATE->sygus() && readLetSort ){
-          PARSER_STATE->parseError("Bad syntax for let term.");
-        }else if(names.count(name) == 1) {
-          std::stringstream ss;
-          ss << "warning: symbol `" << name << "' bound multiple times by let;"
-             << " the last binding will be used, shadowing earlier ones";
-          PARSER_STATE->warning(ss.str());
-        } else {
-          names.insert(name);
-        }
-        binders.push_back(std::make_pair(name, expr)); } )+
+  | /* a let or sygus let binding */
+    LPAREN_TOK ( 
+      LET_TOK LPAREN_TOK
+      { PARSER_STATE->pushScope(true); }
+      ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
+        term[expr, f2]
+        RPAREN_TOK
+        // this is a parallel let, so we have to save up all the contributions
+        // of the let and define them only later on
+        { if(names.count(name) == 1) {
+            std::stringstream ss;
+            ss << "warning: symbol `" << name << "' bound multiple times by let;"
+               << " the last binding will be used, shadowing earlier ones";
+            PARSER_STATE->warning(ss.str());
+          } else {
+            names.insert(name);
+          }
+          binders.push_back(std::make_pair(name, expr)); } )+ |
+      SYGUS_LET_TOK LPAREN_TOK
+      { PARSER_STATE->pushScope(true); }
+      ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
+        sortSymbol[type,CHECK_DECLARED]
+        term[expr, f2]
+        RPAREN_TOK
+        // this is a parallel let, so we have to save up all the contributions
+        // of the let and define them only later on
+        { if(names.count(name) == 1) {
+            std::stringstream ss;
+            ss << "warning: symbol `" << name << "' bound multiple times by let;"
+               << " the last binding will be used, shadowing earlier ones";
+            PARSER_STATE->warning(ss.str());
+          } else {
+            names.insert(name);
+          }
+          binders.push_back(std::make_pair(name, expr)); } )+ )
     { // now implement these bindings
       for(std::vector< std::pair<std::string, Expr> >::iterator
             i = binders.begin(); i != binders.end(); ++i) {
@@ -3004,7 +3017,8 @@ EXIT_TOK : 'exit';
 RESET_TOK : { PARSER_STATE->v2_5(false) }? 'reset';
 RESET_ASSERTIONS_TOK : 'reset-assertions';
 ITE_TOK : 'ite';
-LET_TOK : 'let';
+LET_TOK : { !PARSER_STATE->sygus() }? 'let';
+SYGUS_LET_TOK : { PARSER_STATE->sygus() }? 'let';
 ATTRIBUTE_TOK : '!';
 LPAREN_TOK : '(';
 RPAREN_TOK : ')';

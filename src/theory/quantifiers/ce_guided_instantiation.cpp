@@ -924,7 +924,9 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
       if( d_last_inst_si ){
         Assert( d_conj->getCegConjectureSingleInv() != NULL );
         sol = d_conj->getSingleInvocationSolution( i, tn, status );
-        sol = sol.getKind()==LAMBDA ? sol[1] : sol;
+        if( !sol.isNull() ){
+          sol = sol.getKind()==LAMBDA ? sol[1] : sol;
+        }
       }else{
         Node cprog = d_conj->getCandidate( i );
         if( !d_conj->d_cinfo[cprog].d_inst.empty() ){
