@@ -19,8 +19,9 @@
 #ifndef __CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 #define __CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 
-#include <vector>
 #include <functional>
+#include <unordered_map>
+#include <vector>
 
 #include "theory/theory.h"
 #include "context/context.h"
@@ -64,7 +65,7 @@ public:
     else return ASSIGNED_TO_TRUE;
   }
 
-  typedef std::hash_map<Node, std::vector<Node>, NodeHashFunction> BackEdgesMap;
+  typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction> BackEdgesMap;
 
 private:
 

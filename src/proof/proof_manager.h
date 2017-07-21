@@ -20,7 +20,9 @@
 #define __CVC4__PROOF_MANAGER_H
 
 #include <iosfwd>
-#include <map>
+#include <unordered_map>
+#include <unordered_set>
+
 #include "expr/node.h"
 #include "context/cdhashset.h"
 #include "context/cdhashmap.h"
@@ -96,13 +98,11 @@ enum ProofFormat {
 
 std::string append(const std::string& str, uint64_t num);
 
-typedef __gnu_cxx::hash_map < ClauseId, prop::SatClause* > IdToSatClause;
-typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
+typedef std::unordered_map<ClauseId, prop::SatClause*> IdToSatClause;
 typedef context::CDHashSet<Expr, ExprHashFunction> CDExprSet;
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction > NodeSet;
-typedef __gnu_cxx::hash_map<Node, std::vector<Node>, NodeHashFunction > NodeToNodes;
-typedef context::CDHashMap<Node, std::vector<Node>, NodeHashFunction > CDNodeToNodes;
-typedef std::hash_set<ClauseId> IdHashSet;
+typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction> NodeToNodes;
+typedef context::CDHashMap<Node, std::vector<Node>, NodeHashFunction> CDNodeToNodes;
+typedef std::unordered_set<ClauseId> IdHashSet;
 
 enum ProofRule {
   RULE_GIVEN,       /* input assertion */

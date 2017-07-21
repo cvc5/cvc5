@@ -714,8 +714,10 @@ Node CegConjectureSingleInvSol::reconstructSolution( Node sol, TypeNode stn, int
       }
     }while( !active.empty() );
 
-    //if solution is null, we ran out of elements, return the original solution
-    return sol;
+    // we ran out of elements, return null
+    reconstructed = -1;
+    Warning() << CommandFailure("Cannot get synth function: reconstruction to syntax failed.");
+    return Node::null(); // return sol;
   }
 }
 

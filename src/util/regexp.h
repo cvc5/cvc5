@@ -21,6 +21,7 @@
 #define __CVC4__REGEXP_H
 
 #include <cstddef>
+#include <functional>
 #include <ostream>
 #include <string>
 #include <vector>

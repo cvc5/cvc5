@@ -17,10 +17,9 @@
 #ifndef __CVC4__PARSER__SMT1_H
 #define __CVC4__PARSER__SMT1_H
 
-#include <ext/hash_map>
-namespace std { using namespace __gnu_cxx; }
+#include <string>
+#include <unordered_map>
 
-#include "util/hash.h"
 #include "parser/parser.h"
 
 namespace CVC4 {
@@ -117,7 +116,7 @@ public:
 private:
 
   void addArithmeticOperators();
-  static std::hash_map<const std::string, Logic, CVC4::StringHashFunction> newLogicMap();
+  static std::unordered_map<std::string, Logic> newLogicMap();
 };/* class Smt1 */
 
 }/* CVC4::parser namespace */

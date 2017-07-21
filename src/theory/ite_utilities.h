@@ -22,8 +22,7 @@
 #ifndef __CVC4__ITE_UTILITIES_H
 #define __CVC4__ITE_UTILITIES_H
 
-#include <ext/hash_map>
-#include <ext/hash_set>
+#include <unordered_map>
 #include <vector>
 
 #include "expr/node.h"
@@ -80,7 +79,7 @@ public:
   size_t cache_size() const { return d_cache.size(); }
 
 private:
-  typedef std::hash_map<Node, bool, NodeHashFunction> NodeBoolMap;
+  typedef std::unordered_map<Node, bool, NodeHashFunction> NodeBoolMap;
   NodeBoolMap d_cache;
 };
 
@@ -100,7 +99,7 @@ public:
   }
   void clear();
 private:
-  typedef std::hash_map<Node, uint32_t, NodeHashFunction> NodeCountMap;
+  typedef std::unordered_map<Node, uint32_t, NodeHashFunction> NodeCountMap;
   NodeCountMap d_reachCount;
 
   bool d_skipVariables;
@@ -131,7 +130,7 @@ public:
   size_t cache_size() const;
 
 private:
-  typedef std::hash_map<Node, uint32_t, NodeHashFunction> NodeCountMap;
+  typedef std::unordered_map<Node, uint32_t, NodeHashFunction> NodeCountMap;
   NodeCountMap d_termITEHeight;
 }; /* class TermITEHeightCounter */
 
@@ -158,7 +157,7 @@ private:
   std::vector<Node>* d_assertions;
   IncomingArcCounter d_incoming;
 
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_compressed;
 
   void reset();
@@ -206,7 +205,7 @@ private:
   //     constant
   // or  termITE(cnd, ConstantIte, ConstantIte)
   typedef std::vector<Node> NodeVec;
-  typedef std::hash_map<Node, NodeVec*, NodeHashFunction > ConstantLeavesMap;
+  typedef std::unordered_map<Node, NodeVec*, NodeHashFunction > ConstantLeavesMap;
   ConstantLeavesMap d_constantLeaves;
 
   // d_constantLeaves satisfies the following invariants:
@@ -249,23 +248,23 @@ private:
       return hash;
     }
   };/* struct ITESimplifier::NodePairHashFunction */
-  typedef std::hash_map<NodePair, Node, NodePairHashFunction> NodePairMap;
+  typedef std::unordered_map<NodePair, Node, NodePairHashFunction> NodePairMap;
   NodePairMap d_constantIteEqualsConstantCache;
   NodePairMap d_replaceOverCache;
   NodePairMap d_replaceOverTermIteCache;
   Node replaceOver(Node n, Node replaceWith, Node simpVar);
   Node replaceOverTermIte(Node term, Node simpAtom, Node simpVar);
 
-  std::hash_map<Node, bool, NodeHashFunction> d_leavesConstCache;
+  std::unordered_map<Node, bool, NodeHashFunction> d_leavesConstCache;
   bool leavesAreConst(TNode e, theory::TheoryId tid);
   bool leavesAreConst(TNode e);
 
   NodePairMap d_simpConstCache;
   Node simpConstants(TNode simpContext, TNode iteNode, TNode simpVar);
-  std::hash_map<TypeNode, Node, TypeNode::HashFunction> d_simpVars;
+  std::unordered_map<TypeNode, Node, TypeNode::HashFunction> d_simpVars;
   Node getSimpVar(TypeNode t);
 
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_simpContextCache;
   Node createSimpContext(TNode c, Node& iteNode, Node& simpVar);
 
@@ -314,7 +313,7 @@ private:
   Node d_true;
   Node d_false;
 
-  typedef std::hash_map<TNode, Node, TNodeHashFunction> TNodeMap;
+  typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
 
   class CareSetPtr;
   class CareSetPtrVal {

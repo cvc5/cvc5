@@ -19,7 +19,8 @@
 #ifndef __CVC4__THEORY__ARITH__ARITH_UTILITIES_H
 #define __CVC4__THEORY__ARITH__ARITH_UTILITIES_H
 
-#include <ext/hash_map>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "context/cdhashset.h"
@@ -35,12 +36,12 @@ namespace theory {
 namespace arith {
 
 //Sets of Nodes
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
 typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
 
 //Maps from Nodes -> ArithVars, and vice versa
-typedef __gnu_cxx::hash_map<Node, ArithVar, NodeHashFunction> NodeToArithVarMap;
+typedef std::unordered_map<Node, ArithVar, NodeHashFunction> NodeToArithVarMap;
 typedef DenseMap<Node> ArithVarToNodeMap;
 
 inline Node mkRationalNode(const Rational& q){

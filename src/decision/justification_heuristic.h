@@ -23,6 +23,8 @@
 #ifndef __CVC4__DECISION__JUSTIFICATION_HEURISTIC
 #define __CVC4__DECISION__JUSTIFICATION_HEURISTIC
 
+#include <unordered_set>
+
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
@@ -78,13 +80,13 @@ class JustificationHeuristic : public ITEDecisionStrategy {
    * splitter. Can happen when exploring assertion corresponding to a
    * term-ITE.
    */
-  hash_set<TNode,TNodeHashFunction> d_visited;
+  std::unordered_set<TNode,TNodeHashFunction> d_visited;
 
   /**
    * Set to track visited nodes in a dfs search done in computeITE
    * function
    */
-  hash_set<TNode,TNodeHashFunction> d_visitedComputeITE;
+  std::unordered_set<TNode,TNodeHashFunction> d_visitedComputeITE;
 
   /** current decision for the recursive call */
   SatLiteral d_curDecision;
@@ -177,7 +179,6 @@ private:
 };/* class JustificationHeuristic */
 
 }/* namespace decision */
-
 }/* namespace CVC4 */
 
 #endif /* __CVC4__DECISION__JUSTIFICATION_HEURISTIC */

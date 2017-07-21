@@ -21,7 +21,7 @@
 #define __CVC4__PROOF_H
 
 #include <iosfwd>
-#include <ext/hash_map>
+#include <unordered_map>
 
 namespace CVC4 {
 
@@ -29,7 +29,7 @@ class Expr;
 class ProofLetCount;
 struct ExprHashFunction;
 
-typedef __gnu_cxx::hash_map<Expr, ProofLetCount, ExprHashFunction> ProofLetMap;
+typedef std::unordered_map<Expr, ProofLetCount, ExprHashFunction> ProofLetMap;
 
 class CVC4_PUBLIC Proof {
 public:

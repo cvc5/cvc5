@@ -20,14 +20,16 @@
 #pragma once
 
 #include <set>
-#include <vector>
 #include <sstream>
+#include <unordered_set>
+#include <vector>
+
 #include "expr/node_manager.h"
 
 namespace CVC4 {
 
-typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<Expr, ExprHashFunction> ExprSet;
+typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
 typedef std::pair<Node, Node> NodePair;
 typedef std::set<NodePair> NodePairSet;

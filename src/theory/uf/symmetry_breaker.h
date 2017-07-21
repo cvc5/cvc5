@@ -46,6 +46,7 @@
 
 #include <iostream>
 #include <list>
+#include <unordered_map>
 #include <vector>
 
 #include "context/cdlist.h"
@@ -64,8 +65,8 @@ class SymmetryBreaker : public context::ContextNotifyObj {
   class Template {
     Node d_template;
     NodeBuilder<> d_assertions;
-    std::hash_map<TNode, std::set<TNode>, TNodeHashFunction> d_sets;
-    std::hash_map<TNode, TNode, TNodeHashFunction> d_reps;
+    std::unordered_map<TNode, std::set<TNode>, TNodeHashFunction> d_sets;
+    std::unordered_map<TNode, TNode, TNodeHashFunction> d_reps;
 
     TNode find(TNode n);
     bool matchRecursive(TNode t, TNode n);
@@ -73,7 +74,7 @@ class SymmetryBreaker : public context::ContextNotifyObj {
   public:
     Template();
     bool match(TNode n);
-    std::hash_map<TNode, std::set<TNode>, TNodeHashFunction>& partitions() { return d_sets; }
+    std::unordered_map<TNode, std::set<TNode>, TNodeHashFunction>& partitions() { return d_sets; }
     Node assertions() {
       switch(d_assertions.getNumChildren()) {
       case 0: return Node::null();
@@ -91,7 +92,7 @@ public:
   typedef TNode Term;
   typedef std::list<Term> Terms;
   typedef std::set<Term> TermEq;
-  typedef std::hash_map<Term, TermEq, TNodeHashFunction> TermEqs;
+  typedef std::unordered_map<Term, TermEq, TNodeHashFunction> TermEqs;
 
 private:
 
@@ -113,7 +114,7 @@ private:
   Permutations d_permutations;
   Terms d_terms;
   Template d_template;
-  std::hash_map<Node, Node, NodeHashFunction> d_normalizationCache;
+  std::unordered_map<Node, Node, NodeHashFunction> d_normalizationCache;
   TermEqs d_termEqs;
   TermEqs d_termEqsOnly;
 

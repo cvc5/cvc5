@@ -74,13 +74,6 @@ namespace prop {
   class PropEngine;
 }/* CVC4::prop namespace */
 
-namespace expr {
-  namespace attr {
-    class AttributeManager;
-    struct SmtAttributes;
-  }/* CVC4::expr::attr namespace */
-}/* CVC4::expr namespace */
-
 namespace smt {
   /**
    * Representation of a defined function.  We keep these around in
@@ -357,19 +350,8 @@ class CVC4_PUBLIC SmtEngine {
   // to access d_modelCommands
   friend class ::CVC4::Model;
   friend class ::CVC4::theory::TheoryModel;
-  // to access SmtAttributes
-  friend class expr::attr::AttributeManager;
   // to access getModel(), which is private (for now)
   friend class GetModelCommand;
-
-  /**
-   * There's something of a handshake between the expr package's
-   * AttributeManager and the SmtEngine because the expr package
-   * doesn't have a Context on its own (that's owned by the
-   * SmtEngine).  Thus all context-dependent attributes are stored
-   * here.
-   */
-  expr::attr::SmtAttributes* d_smtAttributes;
 
   StatisticsRegistry* d_statisticsRegistry;
 

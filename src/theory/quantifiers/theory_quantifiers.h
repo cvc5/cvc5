@@ -19,24 +19,18 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 #define __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
-#include <ext/hash_set>
-#include <iostream>
-#include <map>
-
 #include "context/cdhashmap.h"
+#include "context/context.h"
+#include "expr/node.h"
+#include "theory/output_channel.h"
 #include "theory/theory.h"
-#include "util/hash.h"
+#include "theory/theory_engine.h"
+#include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-class TheoryEngine;
-
 namespace theory {
-
 namespace quantifiers {
-
-class ModelEngine;
-class InstantiationEngine;
 
 class TheoryQuantifiers : public Theory {
 private:

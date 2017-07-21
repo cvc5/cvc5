@@ -21,11 +21,10 @@
 
 #include <stdint.h>
 
-#include <ext/hash_map>
-#include <ext/hash_set>
 #include <iosfwd>
 #include <set>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 
 #include "context/cdhashmap.h"
@@ -101,18 +100,18 @@ class TSatProof {
 
   typedef std::set<typename Solver::TLit> LitSet;
   typedef std::set<typename Solver::TVar> VarSet;
-  typedef std::hash_map<ClauseId, typename Solver::TCRef> IdCRefMap;
-  typedef std::hash_map<typename Solver::TCRef, ClauseId> ClauseIdMap;
+  typedef std::unordered_map<ClauseId, typename Solver::TCRef> IdCRefMap;
+  typedef std::unordered_map<typename Solver::TCRef, ClauseId> ClauseIdMap;
   typedef context::CDHashMap<ClauseId, typename Solver::TLit> IdUnitMap;
   typedef context::CDHashMap<int, ClauseId> UnitIdMap;
   typedef context::CDHashMap<ClauseId, ResolutionChain*> IdResMap;
-  typedef std::hash_map<ClauseId, uint64_t> IdProofRuleMap;
+  typedef std::unordered_map<ClauseId, uint64_t> IdProofRuleMap;
   typedef std::vector<ResolutionChain*> ResStack;
   typedef std::set<ClauseId> IdSet;
   typedef std::vector<typename Solver::TLit> LitVector;
-  typedef __gnu_cxx::hash_map<ClauseId, typename Solver::TClause&>
+  typedef std::unordered_map<ClauseId, typename Solver::TClause&>
       IdToMinisatClause;
-  typedef __gnu_cxx::hash_map<ClauseId, LitVector*> IdToConflicts;
+  typedef std::unordered_map<ClauseId, LitVector*> IdToConflicts;
 
  public:
   TSatProof(Solver* solver, context::Context* context,
@@ -362,7 +361,7 @@ class TSatProof {
   IdToSatClause d_seenLemmas;
 
    private:
-  __gnu_cxx::hash_map<ClauseId, int> d_glueMap;
+  std::unordered_map<ClauseId, int> d_glueMap;
   struct Statistics {
     IntStat d_numLearnedClauses;
     IntStat d_numLearnedInProof;

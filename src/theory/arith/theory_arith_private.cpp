@@ -4268,7 +4268,7 @@ void TheoryArithPrivate::collectModelInfo( TheoryModel* m ){
 
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
-  std::hash_set<TNode, TNodeHashFunction> shared = d_containing.currentlySharedTerms();
+  std::unordered_set<TNode, TNodeHashFunction> shared = d_containing.currentlySharedTerms();
 
   // TODO:
   // This is not very good for user push/pop....

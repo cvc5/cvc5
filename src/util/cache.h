@@ -21,8 +21,10 @@
 #ifndef __CVC4__CACHE_H
 #define __CVC4__CACHE_H
 
-#include <utility>
 #include <functional>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace CVC4 {
 
@@ -33,7 +35,7 @@ namespace CVC4 {
  */
 template <class T, class U, class Hasher = std::hash<T> >
 class Cache {
-  typedef std::hash_map<T, U, Hasher> Map;
+  typedef std::unordered_map<T, U, Hasher> Map;
   Map d_map;
   std::vector<T> d_current;
   typename Map::iterator d_result;

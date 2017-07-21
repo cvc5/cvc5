@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "theory/theory.h"
@@ -43,7 +45,7 @@ private:
   IntStat d_statSharedTerms;
 
   // Needs to be a map from Nodes as after a backtrack they might not exist
-  typedef std::hash_map<Node, shared_terms_list, TNodeHashFunction> SharedTermsMap;
+  typedef std::unordered_map<Node, shared_terms_list, TNodeHashFunction> SharedTermsMap;
 
   /** A map from atoms to a list of shared terms */
   SharedTermsMap d_atomsToTerms;

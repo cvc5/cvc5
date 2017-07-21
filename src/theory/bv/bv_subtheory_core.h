@@ -14,12 +14,16 @@
  ** Algebraic solver.
  **/
 
+#include "cvc4_private.h"
+
 #pragma once
 
-#include "cvc4_private.h"
-#include "theory/bv/bv_subtheory.h"
+#include <unordered_map>
+#include <unordered_set>
+
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -31,9 +35,9 @@ class Base;
  * Bitvector equality solver
  */
 class CoreSolver : public SubtheorySolver {
-  typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> ModelValue;
-  typedef __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_map<TNode, Node, TNodeHashFunction> ModelValue;
+  typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
 
 
   struct Statistics {

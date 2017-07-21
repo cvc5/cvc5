@@ -18,7 +18,6 @@
 #include "expr/node_manager.h"
 
 #include <algorithm>
-#include <ext/hash_set>
 #include <stack>
 #include <utility>
 
@@ -36,7 +35,6 @@
 
 using namespace std;
 using namespace CVC4::expr;
-using __gnu_cxx::hash_set;
 
 namespace CVC4 {
 

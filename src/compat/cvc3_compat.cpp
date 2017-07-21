@@ -21,7 +21,6 @@
 #include <iosfwd>
 #include <iterator>
 #include <sstream>
-#include <string>
 
 #include "base/exception.h"
 #include "base/output.h"
@@ -33,9 +32,6 @@
 #include "parser/parser_builder.h"
 #include "smt/command.h"
 #include "util/bitvector.h"
-#include "util/hash.h"
-#include "util/integer.h"
-#include "util/rational.h"
 #include "util/sexpr.h"
 #include "util/subrange_bound.h"
 
@@ -60,22 +56,22 @@ namespace CVC3 {
 // ExprManager-to-ExprManager import).
 static std::map<CVC4::ExprManager*, ValidityChecker*> s_validityCheckers;
 
-static std::hash_map<Type, Expr, CVC4::TypeHashFunction> s_typeToExpr;
-static std::hash_map<Expr, Type, CVC4::ExprHashFunction> s_exprToType;
+static std::unordered_map<Type, Expr, CVC4::TypeHashFunction> s_typeToExpr;
+static std::unordered_map<Expr, Type, CVC4::ExprHashFunction> s_exprToType;
 
 static bool typeHasExpr(const Type& t) {
-  std::hash_map<Type, Expr, CVC4::TypeHashFunction>::const_iterator i = s_typeToExpr.find(t);
+  std::unordered_map<Type, Expr, CVC4::TypeHashFunction>::const_iterator i = s_typeToExpr.find(t);
   return i != s_typeToExpr.end();
 }
 
 static Expr typeToExpr(const Type& t) {
-  std::hash_map<Type, Expr, CVC4::TypeHashFunction>::const_iterator i = s_typeToExpr.find(t);
+  std::unordered_map<Type, Expr, CVC4::TypeHashFunction>::const_iterator i = s_typeToExpr.find(t);
   assert(i != s_typeToExpr.end());
   return (*i).second;
 }
 
 static Type exprToType(const Expr& e) {
-  std::hash_map<Expr, Type, CVC4::ExprHashFunction>::const_iterator i = s_exprToType.find(e);
+  std::unordered_map<Expr, Type, CVC4::ExprHashFunction>::const_iterator i = s_exprToType.find(e);
   assert(i != s_exprToType.end());
   return (*i).second;
 }
@@ -311,8 +307,8 @@ Expr Expr::substExpr(const std::vector<Expr>& oldTerms,
 }
 
 Expr Expr::substExpr(const ExprHashMap<Expr>& oldToNew) const {
-  const hash_map<CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction>& o2n =
-    *reinterpret_cast<const hash_map<CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction>*>(&oldToNew);
+  const unordered_map<CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction>& o2n =
+    *reinterpret_cast<const unordered_map<CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction>*>(&oldToNew);
 
   return Expr(substitute(o2n));
 }
@@ -924,13 +920,16 @@ void CLFlags::setFlag(const std::string& name,
 }
 
 void ValidityChecker::setUpOptions(CVC4::Options& options, const CLFlags& clflags) {
+  // Note: SIMPLIFICATION_MODE_INCREMENTAL, which was used
+  // for CVC3 compatibility, is not supported by CVC4
+  // anymore.
+
   // always incremental and model-producing in CVC3 compatibility mode
   // also incrementally-simplifying and interactive
   d_smt->setOption("incremental", string("true"));
   // disable this option by default for now, because datatype models
   // are broken [MGD 10/4/2012]
   //d_smt->setOption("produce-models", string("true"));
-  d_smt->setOption("simplification-mode", string("incremental"));
   d_smt->setOption("interactive-mode", string("true"));// support SmtEngine::getAssertions()
 
   d_smt->setOption("statistics", string(clflags["stats"].getBool() ? "true" : "false"));

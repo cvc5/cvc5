@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <ext/hash_set>
+#include <unordered_set>
 #include <vector>
 
 #include "context/cdhashmap.h"
@@ -43,7 +43,7 @@ private:
   CDNode2PairMap d_pbBounds;
   SubstitutionMap d_subCache;
 
-  typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
   NodeSet d_learningCache;
 
   context::CDO<unsigned> d_pbs;

@@ -23,7 +23,7 @@
 
 #include <utility>
 #include <vector>
-#include <ext/hash_map>
+#include <unordered_map>
 
 #include "expr/node.h"
 #include "context/cdo.h"
@@ -41,7 +41,7 @@ namespace arrays {
 template <class NodeType, class NodeHash>
 class UnionFind : context::ContextNotifyObj {
   /** Our underlying map type. */
-  typedef __gnu_cxx::hash_map<NodeType, NodeType, NodeHash> MapType;
+  typedef std::unordered_map<NodeType, NodeType, NodeHash> MapType;
 
   /**
    * Our map of Nodes to their canonical representatives.

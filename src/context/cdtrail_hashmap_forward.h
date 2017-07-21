@@ -25,14 +25,11 @@
 
 #pragma once
 
-namespace __gnu_cxx {
-  template <class Key> struct hash;
-}/* __gnu_cxx namespace */
+#include <functional>
 
 namespace CVC4 {
   namespace context {
-    template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> >
+    template <class Key, class Data, class HashFcn = std::hash<Key> >
     class CDTrailHashMap;
   }/* CVC4::context namespace */
 }/* CVC4 namespace */
-

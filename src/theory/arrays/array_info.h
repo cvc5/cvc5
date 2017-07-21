@@ -18,10 +18,9 @@
 #ifndef __CVC4__THEORY__ARRAYS__ARRAY_INFO_H
 #define __CVC4__THEORY__ARRAYS__ARRAY_INFO_H
 
-#include <ext/hash_set>
-#include <ext/hash_map>
 #include <iostream>
 #include <map>
+#include <unordered_map>
 
 #include "context/backtrackable.h"
 #include "context/cdlist.h"
@@ -92,7 +91,7 @@ public:
 };/* class Info */
 
 
-typedef __gnu_cxx::hash_map<Node, Info*, NodeHashFunction> CNodeInfoMap;
+typedef std::unordered_map<Node, Info*, NodeHashFunction> CNodeInfoMap;
 
 /**
  * Class keeping track of the following information for canonical

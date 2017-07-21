@@ -35,7 +35,7 @@ static TheoryId theoryOf(TNode node) {
 }
 
 #ifdef CVC4_ASSERTIONS
-static CVC4_THREADLOCAL(std::hash_set<Node, NodeHashFunction>*) s_rewriteStack = NULL;
+static CVC4_THREADLOCAL(std::unordered_set<Node, NodeHashFunction>*) s_rewriteStack = NULL;
 #endif /* CVC4_ASSERTIONS */
 
 class RewriterInitializer {
@@ -94,7 +94,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
   bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
 
   if(s_rewriteStack == NULL) {
-    s_rewriteStack = new std::hash_set<Node, NodeHashFunction>();
+    s_rewriteStack = new std::unordered_set<Node, NodeHashFunction>();
   }
 #endif
 

@@ -29,8 +29,8 @@ ${includes}
 #include <stdint.h>
 #include <iostream>
 #include <iterator>
-
 #include <string>
+#include <unordered_map>
 
 #include "base/exception.h"
 #include "options/language.h"
@@ -433,7 +433,7 @@ public:
   /**
    * Substitute pairs of (ex,replacement) from the given map.
    */
-  Expr substitute(const std::hash_map<Expr, Expr, ExprHashFunction> map) const;
+  Expr substitute(const std::unordered_map<Expr, Expr, ExprHashFunction> map) const;
 
   /**
    * Returns the string representation of the expression.

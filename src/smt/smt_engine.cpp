@@ -18,7 +18,8 @@
 
 #include <algorithm>
 #include <cctype>
-#include <ext/hash_map>
+#include <unordered_map>
+#include <unordered_set>
 #include <iterator>
 #include <sstream>
 #include <stack>
@@ -463,8 +464,8 @@ class PrintSuccessListener : public Listener {
 class SmtEnginePrivate : public NodeManagerListener {
   SmtEngine& d_smt;
 
-  typedef hash_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
-  typedef hash_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
+  typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
+  typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
 
   /**
    * Manager for limiting time and abstract resource usage.
@@ -634,7 +635,7 @@ private:
    * conjuncts.
    */
   size_t removeFromConjunction(Node& n,
-                               const std::hash_set<unsigned long>& toRemove);
+                               const std::unordered_set<unsigned long>& toRemove);
 
   /** Scrub miplib encodings. */
   void doMiplibTrick();
@@ -794,9 +795,7 @@ public:
     }
   }
 
-  void nmNotifyDeleteNode(TNode n) {
-    d_smt.d_smtAttributes->deleteAllAttributes(n);
-  }
+  void nmNotifyDeleteNode(TNode n) {}
 
   Node applySubstitutions(TNode node) const {
     return Rewriter::rewrite(d_topLevelSubstitutions.apply(node));
@@ -981,14 +980,12 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_status(),
   d_replayStream(NULL),
   d_private(NULL),
-  d_smtAttributes(NULL),
   d_statisticsRegistry(NULL),
   d_stats(NULL),
   d_channels(new LemmaChannels())
 {
   SmtScope smts(this);
   d_originalOptions.copyValues(em->getOptions());
-  d_smtAttributes = new expr::attr::SmtAttributes(d_context);
   d_private = new smt::SmtEnginePrivate(*this);
   d_statisticsRegistry = new StatisticsRegistry();
   d_stats = new SmtEngineStatistics();
@@ -1203,9 +1200,6 @@ SmtEngine::~SmtEngine() throw() {
 
     delete d_private;
     d_private = NULL;
-
-    delete d_smtAttributes;
-    d_smtAttributes = NULL;
 
     delete d_userContext;
     d_userContext = NULL;
@@ -2262,7 +2256,7 @@ bool SmtEngine::isDefinedFunction( Expr func ){
   return d_definedFunctions->find(nf) != d_definedFunctions->end();
 }
 
-Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
+Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
   throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
 
   stack< triple<Node, Node, bool> > worklist;
@@ -2302,7 +2296,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
       }
 
       // maybe it's in the cache
-      hash_map<Node, Node, NodeHashFunction>::iterator cacheHit = cache.find(n);
+      unordered_map<Node, Node, NodeHashFunction>::iterator cacheHit = cache.find(n);
       if(cacheHit != cache.end()) {
         TNode ret = (*cacheHit).second;
         result.push(ret.isNull() ? n : ret);
@@ -2434,7 +2428,7 @@ struct intToBV_stack_element {
   : node(node), children_added(false) {}
 };/* struct intToBV_stack_element */
 
-typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
 
 Node SmtEnginePrivate::intToBVMakeBinary(TNode n, NodeMap& cache) {
   // Do a topological sort of the subexpressions and substitute them
@@ -3038,7 +3032,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   Trace("simplify") << "Resize non-clausal learned literals to " << j << std::endl;
   d_nonClausalLearnedLiterals.resize(j);
 
-  hash_set<TNode, TNodeHashFunction> s;
+  unordered_set<TNode, TNodeHashFunction> s;
   Trace("debugging") << "NonClausal simplify pre-preprocess\n";
   for (unsigned i = 0; i < d_assertions.size(); ++ i) {
     Node assertion = d_assertions[i];
@@ -3273,7 +3267,7 @@ void SmtEnginePrivate::traceBackToAssertions(const std::vector<Node>& nodes, std
   }
 }
 
-size_t SmtEnginePrivate::removeFromConjunction(Node& n, const std::hash_set<unsigned long>& toRemove) {
+size_t SmtEnginePrivate::removeFromConjunction(Node& n, const std::unordered_set<unsigned long>& toRemove) {
   Assert(n.getKind() == kind::AND);
   size_t removals = 0;
   for(Node::iterator j = n.begin(); j != n.end(); ++j) {
@@ -3327,12 +3321,12 @@ void SmtEnginePrivate::doMiplibTrick() {
   Assert(!options::incrementalSolving());
 
   const booleans::CircuitPropagator::BackEdgesMap& backEdges = d_propagator.getBackEdges();
-  hash_set<unsigned long> removeAssertions;
+  unordered_set<unsigned long> removeAssertions;
 
   NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
 
-  hash_map<TNode, Node, TNodeHashFunction> intVars;
+  unordered_map<TNode, Node, TNodeHashFunction> intVars;
   for(vector<Node>::const_iterator i = d_boolVars.begin(); i != d_boolVars.end(); ++i) {
     if(d_propagator.isAssigned(*i)) {
       Debug("miplib") << "ineligible: " << *i << " because assigned " << d_propagator.getAssignment(*i) << endl;
@@ -3826,9 +3820,9 @@ Result SmtEngine::quickCheck() {
 }
 
 
-void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, hash_map<Node, bool, NodeHashFunction>& cache)
+void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_map<Node, bool, NodeHashFunction>& cache)
 {
-  hash_map<Node, bool, NodeHashFunction>::iterator it;
+  unordered_map<Node, bool, NodeHashFunction>::iterator it;
   it = cache.find(n);
   if (it != cache.end()) {
     return;
@@ -3852,9 +3846,9 @@ void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, hash_map<N
 }
 
 
-bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, bool, NodeHashFunction>& cache)
+bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, unordered_map<Node, bool, NodeHashFunction>& cache)
 {
-  hash_map<Node, bool, NodeHashFunction>::iterator it;
+  unordered_map<Node, bool, NodeHashFunction>::iterator it;
   it = cache.find(n);
   if (it != cache.end()) {
     return (*it).second;
@@ -3925,7 +3919,7 @@ void SmtEnginePrivate::processAssertions() {
     Chat() << "expanding definitions..." << endl;
     Trace("simplify") << "SmtEnginePrivate::simplify(): expanding definitions" << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_definitionExpansionTime);
-    hash_map<Node, Node, NodeHashFunction> cache;
+    unordered_map<Node, Node, NodeHashFunction> cache;
     for(unsigned i = 0; i < d_assertions.size(); ++ i) {
       d_assertions.replace(i, expandDefinitions(d_assertions[i], cache));
     }
@@ -3944,8 +3938,8 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
   if( options::nlExtPurify() ){
-    hash_map<Node, Node, NodeHashFunction> cache;
-    hash_map<Node, Node, NodeHashFunction> bcache;
+    unordered_map<Node, Node, NodeHashFunction> cache;
+    unordered_map<Node, Node, NodeHashFunction> bcache;
     std::vector< Node > var_eq;
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {
       d_assertions.replace(i, purifyNlTerms(d_assertions[i], cache, bcache, var_eq));
@@ -3966,7 +3960,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::solveRealAsInt()) {
     Chat() << "converting reals to ints..." << endl;
-    hash_map<Node, Node, NodeHashFunction> cache;
+    unordered_map<Node, Node, NodeHashFunction> cache;
     std::vector< Node > var_eq;
     for(unsigned i = 0; i < d_assertions.size(); ++ i) {
       d_assertions.replace(i, realToInt(d_assertions[i], cache, var_eq));
@@ -3982,7 +3976,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::solveIntAsBV() > 0) {
     Chat() << "converting ints to bit-vectors..." << endl;
-    hash_map<Node, Node, NodeHashFunction> cache;
+    unordered_map<Node, Node, NodeHashFunction> cache;
     for(unsigned i = 0; i < d_assertions.size(); ++ i) {
       d_assertions.replace(i, intToBV(d_assertions[i], cache));
     }
@@ -4210,7 +4204,7 @@ void SmtEnginePrivate::processAssertions() {
       // For each skolem variable sk, let iteExpr = iteMap(sk) be the ite expr mapped to by sk.
 
       // cache for expression traversal
-      hash_map<Node, bool, NodeHashFunction> cache;
+      unordered_map<Node, bool, NodeHashFunction> cache;
 
       // First, find all skolems that appear in the substitution map - their associated iteExpr will need
       // to be moved to the main assertion set
@@ -4663,7 +4657,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << ExpandDefinitionsCommand(e);
   }
-  hash_map<Node, Node, NodeHashFunction> cache;
+  unordered_map<Node, Node, NodeHashFunction> cache;
   Node n = d_private->expandDefinitions(Node::fromExpr(e), cache, /* expandOnly = */ true);
   n = postprocess(n, TypeNode::fromType(e.getType()));
 
@@ -4708,7 +4702,7 @@ Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckin
   TypeNode expectedType = n.getType();
 
   // Expand, then normalize
-  hash_map<Node, Node, NodeHashFunction> cache;
+  unordered_map<Node, Node, NodeHashFunction> cache;
   n = d_private->expandDefinitions(n, cache);
   // There are two ways model values for terms are computed (for historical
   // reasons).  One way is that used in check-model; the other is that
@@ -4821,7 +4815,7 @@ CVC4::SExpr SmtEngine::getAssignment() {
     Trace("smt") << "--- getting value of " << *i << endl;
 
     // Expand, then normalize
-    hash_map<Node, Node, NodeHashFunction> cache;
+    unordered_map<Node, Node, NodeHashFunction> cache;
     Node n = d_private->expandDefinitions(*i, cache);
     n = Rewriter::rewrite(n);
 
@@ -5063,7 +5057,7 @@ void SmtEngine::checkModel(bool hardFailure) {
 
     // Apply any define-funs from the problem.
     {
-      hash_map<Node, Node, NodeHashFunction> cache;
+      unordered_map<Node, Node, NodeHashFunction> cache;
       n = d_private->expandDefinitions(n, cache);
     }
     Notice() << "SmtEngine::checkModel(): -- expands to " << n << endl;

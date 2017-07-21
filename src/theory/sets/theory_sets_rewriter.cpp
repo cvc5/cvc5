@@ -25,7 +25,7 @@ namespace theory {
 namespace sets {
 
 typedef std::set<TNode> Elements;
-typedef std::hash_map<TNode, Elements, TNodeHashFunction> SettermElementsMap;
+typedef std::unordered_map<TNode, Elements, TNodeHashFunction> SettermElementsMap;
 
 struct FlattenedNodeTag {};
 typedef expr::Attribute<FlattenedNodeTag, bool> flattened;
@@ -50,7 +50,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
     return RewriteResponse(REWRITE_DONE, n);
   }
 
-  typedef std::hash_set<TNode, TNodeHashFunction> node_set;
+  typedef std::unordered_set<TNode, TNodeHashFunction> node_set;
 
   node_set visited;
   visited.insert(skipNode);

@@ -23,6 +23,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <math.h>
 
 #include <iostream>
+#include <unordered_set>
 
 #include "base/output.h"
 #include "options/prop_options.h"
@@ -1219,7 +1220,7 @@ lbool Solver::search(int nof_conflicts)
                 PROOF(
                       ClauseId id = ProofManager::getSatProof()->registerClause(cr, LEARNT);
                       PSTATS(
-                      __gnu_cxx::hash_set<int> cl_levels;
+                      std::unordered_set<int> cl_levels;
                       for (int i = 0; i < learnt_clause.size(); ++i) {
                         cl_levels.insert(level(var(learnt_clause[i])));
                       }

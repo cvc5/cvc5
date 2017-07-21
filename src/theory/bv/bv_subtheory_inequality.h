@@ -19,10 +19,12 @@
 #ifndef __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 #define __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 
-#include "theory/bv/bv_subtheory.h"
-#include "theory/bv/bv_inequality_graph.h"
+#include <unordered_set>
+
 #include "context/cdhashset.h"
 #include "expr/attribute.h"
+#include "theory/bv/bv_inequality_graph.h"
+#include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -47,7 +49,7 @@ class InequalitySolver: public SubtheorySolver {
   InequalityGraph d_inequalityGraph;
   context::CDHashMap<Node, TNode, NodeHashFunction> d_explanations;
   context::CDO<bool> d_isComplete;
-  typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
   NodeSet d_ineqTerms;
   bool isInequalityOnly(TNode node);
   bool addInequality(TNode a, TNode b, bool strict, TNode fact);

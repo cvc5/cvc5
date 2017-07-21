@@ -9,18 +9,21 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Eager bit-blasting solver. 
+ ** \brief Eager bit-blasting solver.
  **
  ** Eager bit-blasting solver.
  **/
 
 #include "cvc4_private.h"
+
+#pragma once
+
+#include <unordered_set>
+#include <vector>
+
 #include "expr/node.h"
 #include "theory/theory_model.h"
 #include "theory/bv/theory_bv.h"
-#include <vector>
-#pragma once
-
 
 namespace CVC4 {
 namespace theory {
@@ -33,7 +36,7 @@ class AigBitblaster;
  * BitblastSolver
  */
 class EagerBitblastSolver {
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> AssertionSet;
+  typedef std::unordered_set<TNode, TNodeHashFunction> AssertionSet;
   AssertionSet d_assertionSet;
   /** Bitblasters */
   EagerBitblaster* d_bitblaster;

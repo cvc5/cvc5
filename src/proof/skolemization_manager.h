@@ -21,7 +21,8 @@
 #define __CVC4__SKOLEMIZATION_MANAGER_H
 
 #include <iostream>
-#include <map>
+#include <unordered_map>
+
 #include "proof/proof.h"
 #include "util/proof.h"
 #include "expr/node.h"
@@ -39,12 +40,12 @@ public:
   bool isSkolem(Node skolem);
   void clear();
 
-  std::hash_map<Node, Node, NodeHashFunction>::const_iterator begin();
-  std::hash_map<Node, Node, NodeHashFunction>::const_iterator end();
+  std::unordered_map<Node, Node, NodeHashFunction>::const_iterator begin();
+  std::unordered_map<Node, Node, NodeHashFunction>::const_iterator end();
 
 private:
-  std::hash_map<Node, Node, NodeHashFunction> d_disequalityToSkolem;
-  std::hash_map<Node, Node, NodeHashFunction> d_skolemToDisequality;
+  std::unordered_map<Node, Node, NodeHashFunction> d_disequalityToSkolem;
+  std::unordered_map<Node, Node, NodeHashFunction> d_skolemToDisequality;
 };
 
 }/* CVC4 namespace */

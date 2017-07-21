@@ -22,7 +22,8 @@
 #define __CVC4__PARSER__TPTP_H
 
 #include <cassert>
-#include <ext/hash_set>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "parser/parser.h"
 #include "smt/command.h"
@@ -45,8 +46,8 @@ class Tptp : public Parser {
   Expr d_utr_op;
   Expr d_uts_op;
   // The set of expression that already have a bridge
-  std::hash_set<Expr, ExprHashFunction> d_r_converted;
-  std::hash_map<std::string, Expr, StringHashFunction> d_distinct_objects;
+  std::unordered_set<Expr, ExprHashFunction> d_r_converted;
+  std::unordered_map<std::string, Expr> d_distinct_objects;
   
   std::vector< pANTLR3_INPUT_STREAM > d_in_created;
 
