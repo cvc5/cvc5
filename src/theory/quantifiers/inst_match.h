@@ -17,13 +17,10 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
 #define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
 
-#include "util/hash.h"
-#include "context/cdo.h"
-
-#include <ext/hash_set>
 #include <map>
 
 #include "context/cdlist.h"
+#include "context/cdo.h"
 #include "expr/node.h"
 
 namespace CVC4 {

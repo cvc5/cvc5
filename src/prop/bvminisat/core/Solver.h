@@ -21,7 +21,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef BVMinisat_Solver_h
 #define BVMinisat_Solver_h
 
-#include <ext/hash_set>
 #include <vector>
 
 #include "context/context.h"

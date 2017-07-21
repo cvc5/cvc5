@@ -19,11 +19,11 @@
 #ifndef __CVC4__RECORD_H
 #define __CVC4__RECORD_H
 
+#include <functional>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <utility>
-#include "util/hash.h"
 
 // Forward Declarations
 namespace CVC4 {
@@ -56,13 +56,13 @@ public:
 
 struct CVC4_PUBLIC RecordSelectHashFunction {
   inline size_t operator()(const RecordSelect& t) const {
-    return StringHashFunction()(t.getField());
+    return std::hash<std::string>()(t.getField());
   }
 };/* struct RecordSelectHashFunction */
 
 struct CVC4_PUBLIC RecordUpdateHashFunction {
   inline size_t operator()(const RecordUpdate& t) const {
-    return StringHashFunction()(t.getField());
+    return std::hash<std::string>()(t.getField());
   }
 };/* struct RecordUpdateHashFunction */
 

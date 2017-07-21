@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <vector>
 
 #include "context/cdinsert_hashmap.h"
@@ -33,7 +34,7 @@ namespace theory {
   class ContainsTermITEVisitor;
 }/* CVC4::theory namespace */
 
-typedef std::hash_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
+typedef std::unordered_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
 
 class RemoveTermFormulas {
   typedef context::CDInsertHashMap< std::pair<Node, int>, Node, PairHashFunction<Node, int, NodeHashFunction, BoolHashFunction> > ITECache;

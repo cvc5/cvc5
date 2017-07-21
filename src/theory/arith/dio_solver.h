@@ -20,6 +20,7 @@
 #ifndef __CVC4__THEORY__ARITH__DIO_SOLVER_H
 #define __CVC4__THEORY__ARITH__DIO_SOLVER_H
 
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -68,7 +69,7 @@ private:
    * We maintain a map from the variables associated with proofs to an input constraint.
    * These variables can then be used in polynomial manipulations.
    */
-  typedef std::hash_map<Node, InputConstraintIndex, NodeHashFunction> NodeToInputConstraintIndexMap;
+  typedef std::unordered_map<Node, InputConstraintIndex, NodeHashFunction> NodeToInputConstraintIndexMap;
   NodeToInputConstraintIndexMap d_varToInputConstraintMap;
 
   Node proofVariableToReason(const Variable& v) const{

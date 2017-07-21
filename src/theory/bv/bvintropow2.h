@@ -21,7 +21,7 @@
 #include "expr/node.h"
 
 #include <vector>
-#include <ext/hash_map>
+#include <unordered_map>
 
 #ifndef __CVC4__THEORY__BV__BV_INTRO_POW_H
 #define __CVC4__THEORY__BV__BV_INTRO_POW_H
@@ -36,7 +36,7 @@ public:
   static void pow2Rewrite(std::vector<Node>& assertionsToPreprocess);
 
 private:
-  typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   static Node pow2Rewrite(Node assertionsToPreprocess, NodeMap& cache);
 }; 
 

@@ -720,7 +720,7 @@ bool TermDb::reset( Theory::Effort effort ){
     }
   }
   //explicitly add inst closure terms to the equality engine to ensure only EE terms are indexed
-  for( std::hash_set< Node, NodeHashFunction >::iterator it = d_iclosure_processed.begin(); it !=d_iclosure_processed.end(); ++it ){
+  for( std::unordered_set< Node, NodeHashFunction >::iterator it = d_iclosure_processed.begin(); it !=d_iclosure_processed.end(); ++it ){
     Node n = *it;
     if( !ee->hasTerm( n ) ){
       ee->addTerm( n );
@@ -2288,4 +2288,3 @@ Node TermDb::getQAttrQuantIdNumNode( Node q ) {
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
-

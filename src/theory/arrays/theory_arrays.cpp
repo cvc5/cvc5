@@ -551,7 +551,7 @@ void TheoryArrays::weakEquivMakeRepIndex(TNode node) {
 }
 
 void TheoryArrays::weakEquivAddSecondary(TNode index, TNode arrayFrom, TNode arrayTo, TNode reason) {
-  std::hash_set<TNode, TNodeHashFunction> marked;
+  std::unordered_set<TNode, TNodeHashFunction> marked;
   vector<TNode> index_trail;
   vector<TNode>::iterator it, iend;
   Node equivalence_trail = reason;
@@ -1198,7 +1198,7 @@ void TheoryArrays::collectModelInfo( TheoryModel* m )
       /*
     }
     else {
-      std::hash_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(n);
+      std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(n);
       if (it == d_skolemCache.end()) {
         rep = nm->mkSkolem("array_collect_model_var", n.getType(), "base model variable for array collectModelInfo");
         d_skolemCache[n] = rep;
@@ -1240,7 +1240,7 @@ void TheoryArrays::presolve()
 Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type, const string& comment, bool makeEqual)
 {
   Node skolem;
-  std::hash_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(ref);
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(ref);
   if (it == d_skolemCache.end()) {
     NodeManager* nm = NodeManager::currentNM();
     skolem = nm->mkSkolem(name, type, comment);

@@ -19,7 +19,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* #include <cvc4/bindings/compat/c/c_interface.h> /* use this after CVC4 is properly installed */
+// Use this after CVC4 is properly installed.
+// #include <cvc4/bindings/compat/c/c_interface.h>
 #include "bindings/compat/c/c_interface.h"
 
 int main() {

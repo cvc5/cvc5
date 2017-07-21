@@ -17,12 +17,11 @@
 #ifndef __CVC4__THEORY__QUANT_UTIL_H
 #define __CVC4__THEORY__QUANT_UTIL_H
 
-#include "theory/theory.h"
-#include "theory/uf/equality_engine.h"
-
-#include <ext/hash_set>
 #include <iostream>
 #include <map>
+
+#include "theory/theory.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {

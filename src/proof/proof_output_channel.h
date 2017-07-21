@@ -16,6 +16,8 @@
 #ifndef __CVC4__PROOF_OUTPUT_CHANNEL_H
 #define __CVC4__PROOF_OUTPUT_CHANNEL_H
 
+#include <unordered_set>
+
 #include "theory/output_channel.h"
 
 namespace CVC4 {
@@ -42,7 +44,7 @@ public:
 
 class MyPreRegisterVisitor {
   theory::Theory* d_theory;
-  __gnu_cxx::hash_set<TNode, TNodeHashFunction> d_visited;
+  std::unordered_set<TNode, TNodeHashFunction> d_visited;
 public:
   typedef void return_type;
   MyPreRegisterVisitor(theory::Theory* theory);

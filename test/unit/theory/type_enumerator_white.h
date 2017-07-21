@@ -17,6 +17,8 @@
 
 #include <cxxtest/TestSuite.h>
 
+#include <unordered_set>
+
 #include "expr/array_store_all.h"
 #include "expr/expr_manager.h"
 #include "expr/kind.h"
@@ -252,7 +254,7 @@ std::cout<<"here\n";
 
   void testArraysInfinite() {
     TypeEnumerator te(d_nm->mkArrayType(d_nm->integerType(), d_nm->integerType()));
-    hash_set<Node, NodeHashFunction> elts;
+    unordered_set<Node, NodeHashFunction> elts;
     for(size_t i = 0; i < 1000; ++i) {
       TS_ASSERT( ! te.isFinished() );
       Node elt = *te++;

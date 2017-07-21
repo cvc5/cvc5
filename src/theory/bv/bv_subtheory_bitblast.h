@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "theory/bv/bitblaster_template.h"
 #include "theory/bv/bv_subtheory.h"
 
@@ -47,7 +49,7 @@ class BitblastSolver : public SubtheorySolver {
   context::CDQueue<TNode> d_bitblastQueue;
   Statistics d_statistics;
 
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_modelCache;
   context::CDO<bool> d_validModelCache;
 

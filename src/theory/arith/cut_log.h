@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <ext/hash_map>
+#include <unordered_map>
 #include <map>
 #include <set>
 #include <vector>
@@ -179,7 +179,7 @@ private:
   int d_upId;
 
 public:
-  typedef __gnu_cxx::hash_map<int, ArithVar> RowIdMap;
+  typedef std::unordered_map<int, ArithVar> RowIdMap;
 private:
   RowIdMap d_rowId2ArithVar;
 

@@ -30,7 +30,7 @@
 
 #include <vector>
 #include <string>
-#include <ext/hash_set>
+#include <unordered_set>
 
 #include "base/tls.h"
 #include "expr/kind.h"
@@ -95,12 +95,12 @@ class NodeManager {
     bool operator()(expr::NodeValue* nv) { return nv->d_rc > 0; }
   };
 
-  typedef __gnu_cxx::hash_set<expr::NodeValue*,
-                              expr::NodeValuePoolHashFunction,
-                              expr::NodeValuePoolEq> NodeValuePool;
-  typedef __gnu_cxx::hash_set<expr::NodeValue*,
-                              expr::NodeValueIDHashFunction,
-                              expr::NodeValueIDEquality> NodeValueIDSet;
+  typedef std::unordered_set<expr::NodeValue*,
+                             expr::NodeValuePoolHashFunction,
+                             expr::NodeValuePoolEq> NodeValuePool;
+  typedef std::unordered_set<expr::NodeValue*,
+                             expr::NodeValueIDHashFunction,
+                             expr::NodeValueIDEquality> NodeValueIDSet;
 
   static CVC4_THREADLOCAL(NodeManager*) s_current;
 

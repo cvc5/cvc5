@@ -24,6 +24,7 @@
 #define __CVC4_USE_MINISAT
 
 #include <iosfwd>
+#include <unordered_set>
 
 #include "context/cdqueue.h"
 #include "expr/expr_stream.h"
@@ -138,7 +139,7 @@ public:
    * Set of all lemmas that have been "shared" in the portfolio---i.e.,
    * all imported and exported lemmas.
    */
-  std::hash_set<Node, NodeHashFunction> d_shared;
+  std::unordered_set<Node, NodeHashFunction> d_shared;
 
   /**
    * Statistic: the number of replayed decisions (via --replay).

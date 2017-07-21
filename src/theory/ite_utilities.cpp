@@ -1092,7 +1092,7 @@ bool ITESimplifier::leavesAreConst(TNode e, TheoryId tid)
     return true;
   }
 
-  hash_map<Node, bool, NodeHashFunction>::iterator it;
+  unordered_map<Node, bool, NodeHashFunction>::iterator it;
   it = d_leavesConstCache.find(e);
   if (it != d_leavesConstCache.end()) {
     return (*it).second;
@@ -1173,7 +1173,7 @@ Node ITESimplifier::simpConstants(TNode simpContext, TNode iteNode, TNode simpVa
 
 Node ITESimplifier::getSimpVar(TypeNode t)
 {
-  std::hash_map<TypeNode, Node, TypeNode::HashFunction>::iterator it;
+  std::unordered_map<TypeNode, Node, TypeNode::HashFunction>::iterator it;
   it = d_simpVars.find(t);
   if (it != d_simpVars.end()) {
     return (*it).second;
@@ -1231,7 +1231,7 @@ Node ITESimplifier::createSimpContext(TNode c, Node& iteNode, Node& simpVar)
   d_simpContextCache[c] = result;
   return result;
 }
-typedef std::hash_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 void countReachable_(Node x, Kind k, NodeSet& visited, uint32_t& reached){
   if(visited.find(x) != visited.end()){
     return;

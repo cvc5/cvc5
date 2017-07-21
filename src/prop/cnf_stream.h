@@ -25,8 +25,6 @@
 #ifndef __CVC4__PROP__CNF_STREAM_H
 #define __CVC4__PROP__CNF_STREAM_H
 
-#include <ext/hash_map>
-
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"

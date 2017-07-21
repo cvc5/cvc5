@@ -21,6 +21,7 @@
 
 #include <deque>
 #include <set>
+#include <unordered_map>
 #include <vector>
 #include <utility>
 
@@ -189,8 +190,8 @@ class TheoryEngine {
   theory::TheoryEngineModelBuilder* d_curr_model_builder;
   bool d_aloc_curr_model_builder;
 
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
-  typedef std::hash_map<TNode, Node, TNodeHashFunction> TNodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
 
   /**
   * Cache for theory-preprocessing of assertions

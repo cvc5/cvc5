@@ -20,7 +20,7 @@
 #include "context/context.h"
 #include "theory/shared_terms_database.h"
 
-#include <ext/hash_map>
+#include <unordered_map>
 
 namespace CVC4 {
 
@@ -105,7 +105,7 @@ class SharedTermsVisitor {
   /**
    * Cache from preprocessing of atoms.
    */
-  typedef std::hash_map<TNode, theory::Theory::Set, TNodeHashFunction> TNodeVisitedMap;
+  typedef std::unordered_map<TNode, theory::Theory::Set, TNodeHashFunction> TNodeVisitedMap;
   TNodeVisitedMap d_visited;
 
   /**

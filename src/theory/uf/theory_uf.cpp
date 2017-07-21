@@ -300,7 +300,7 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
 
   vector<TNode> workList;
   workList.push_back(n);
-  __gnu_cxx::hash_set<TNode, TNodeHashFunction> processed;
+  std::unordered_set<TNode, TNodeHashFunction> processed;
 
   while(!workList.empty()) {
     n = workList.back();

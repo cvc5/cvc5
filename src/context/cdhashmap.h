@@ -15,7 +15,7 @@
  ** which must be saved and restored as contexts are pushed and
  ** popped.  Requires that operator= be defined for the data class,
  ** and operator== for the key class.  For key types that don't have a
- ** __gnu_cxx::hash<>, you should provide an explicit HashFcn.
+ ** std::hash<>, you should provide an explicit HashFcn.
  **
  ** See also:
  **  CDInsertHashMap : An "insert-once" CD hash map.
@@ -82,8 +82,9 @@
 #ifndef __CVC4__CONTEXT__CDHASHMAP_H
 #define __CVC4__CONTEXT__CDHASHMAP_H
 
-#include <ext/hash_map>
+#include <functional>
 #include <iterator>
+#include <unordered_map>
 #include <vector>
 
 #include "base/cvc4_assert.h"
@@ -95,7 +96,7 @@ namespace context {
 
 // Auxiliary class: almost the same as CDO (see cdo.h)
 
-template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> >
+template <class Key, class Data, class HashFcn = std::hash<Key> >
 class CDOhash_map : public ContextObj {
   friend class CDHashMap<Key, Data, HashFcn>;
 
@@ -268,7 +269,7 @@ template <class Key, class Data, class HashFcn>
 class CDHashMap : public ContextObj {
 
   typedef CDOhash_map<Key, Data, HashFcn> Element;
-  typedef __gnu_cxx::hash_map<Key, Element*, HashFcn> table_type;
+  typedef std::unordered_map<Key, Element*, HashFcn> table_type;
 
   friend class CDOhash_map<Key, Data, HashFcn>;
 

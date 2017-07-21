@@ -31,9 +31,9 @@ TypeNode TypeNode::s_null( &expr::NodeValue::null() );
 
 TypeNode TypeNode::substitute(const TypeNode& type,
                               const TypeNode& replacement,
-                              std::hash_map<TypeNode, TypeNode, HashFunction>& cache) const {
+                              std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const {
   // in cache?
-  std::hash_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
+  std::unordered_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }

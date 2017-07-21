@@ -1645,7 +1645,7 @@ Node TheoryEngine::getExplanation(TNode node) {
 struct AtomsCollect {
 
   std::vector<TNode> d_atoms;
-  std::hash_set<TNode, TNodeHashFunction> d_visited;
+  std::unordered_set<TNode, TNodeHashFunction> d_visited;
 
 public:
 

@@ -20,8 +20,9 @@
 #ifndef __CVC4__VARIABLE_TYPE_MAP_H
 #define __CVC4__VARIABLE_TYPE_MAP_H
 
+#include <unordered_map>
+
 #include "expr/expr.h"
-#include "util/hash.h"
 
 namespace CVC4 {
 
@@ -35,13 +36,13 @@ class CVC4_PUBLIC VariableTypeMap {
    * A map Expr -> Expr, intended to be used for a mapping of variables
    * between two ExprManagers.
    */
-  std::hash_map<Expr, Expr, ExprHashFunction> d_variables;
+  std::unordered_map<Expr, Expr, ExprHashFunction> d_variables;
 
   /**
    * A map Type -> Type, intended to be used for a mapping of types
    * between two ExprManagers.
    */
-  std::hash_map<Type, Type, TypeHashFunction> d_types;
+  std::unordered_map<Type, Type, TypeHashFunction> d_types;
 
 public:
   Expr& operator[](Expr e) { return d_variables[e]; }
@@ -49,7 +50,7 @@ public:
 
 };/* class VariableTypeMap */
 
-typedef __gnu_cxx::hash_map<uint64_t, uint64_t> VarMap;
+typedef std::unordered_map<uint64_t, uint64_t> VarMap;
 
 struct CVC4_PUBLIC ExprManagerMapCollection {
   VariableTypeMap d_typeMap;

@@ -53,6 +53,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "theory/arith/arithvar.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/error_set.h"
@@ -199,7 +201,7 @@ protected:
     }
   };
 
-  typedef std::hash_map< std::pair<ArithVar, int>, ArithVarVec, ArithVarIntPairHashFunc> sgn_table;
+  typedef std::unordered_map< std::pair<ArithVar, int>, ArithVarVec, ArithVarIntPairHashFunc> sgn_table;
 
   static inline int determinizeSgn(int sgn){
     return sgn < 0 ? -1 : (sgn == 0 ? 0 : 1);

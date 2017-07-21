@@ -16,6 +16,8 @@
  **/
 
 #include <algorithm>
+#include <unordered_set>
+
 #include "theory/booleans/theory_bool_rewriter.h"
 
 namespace CVC4 {
@@ -41,7 +43,7 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  */
 RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 {
-  typedef std::hash_set<TNode, TNodeHashFunction> node_set;
+  typedef std::unordered_set<TNode, TNodeHashFunction> node_set;
 
   node_set visited;
   visited.insert(skipNode);
