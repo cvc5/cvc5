@@ -19,25 +19,17 @@
 #ifndef __CVC4__SYMBOL_TABLE_H
 #define __CVC4__SYMBOL_TABLE_H
 
+#include <memory>
+#include <string>
 #include <vector>
-#include <utility>
 
+#include "base/exception.h"
 #include "expr/expr.h"
-#include "util/hash.h"
-
-#include "context/cdhashset_forward.h"
-#include "context/cdhashmap_forward.h"
+#include "expr/type.h"
 
 namespace CVC4 {
 
-class Type;
-
-namespace context {
-  class Context;
-}/* CVC4::context namespace */
-
-class CVC4_PUBLIC ScopeException : public Exception {
-};/* class ScopeException */
+class CVC4_PUBLIC ScopeException : public Exception {};
 
 /**
  * A convenience class for handling scoped declarations. Implements the usual
@@ -45,24 +37,9 @@ class CVC4_PUBLIC ScopeException : public Exception {
  * and types.
  */
 class CVC4_PUBLIC SymbolTable {
-  /** The context manager for the scope maps. */
-  context::Context* d_context;
-
-  /** A map for expressions. */
-  context::CDHashMap<std::string, Expr>* d_exprMap;
-
-  /** A map for types. */
-  context::CDHashMap<std::string, std::pair<std::vector<Type>, Type> >*
-      d_typeMap;
-
-  /** A set of defined functions. */
-  context::CDHashSet<Expr, ExprHashFunction> *d_functions;
-
-public:
+ public:
   /** Create a symbol table. */
   SymbolTable();
-
-  /** Destroy a symbol table. */
   ~SymbolTable();
 
   /**
@@ -91,7 +68,8 @@ public:
    * @param obj the expression to bind to <code>name</code>
    * @param levelZero set if the binding must be done at level 0
    */
-  void bindDefinedFunction(const std::string& name, Expr obj, bool levelZero = false) throw();
+  void bindDefinedFunction(const std::string& name, Expr obj,
+                           bool levelZero = false) throw();
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -104,7 +82,8 @@ public:
    * @param t the type to bind to <code>name</code>
    * @param levelZero set if the binding must be done at level 0
    */
-  void bindType(const std::string& name, Type t, bool levelZero = false) throw();
+  void bindType(const std::string& name, Type t,
+                bool levelZero = false) throw();
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -119,8 +98,7 @@ public:
    * @param levelZero true to bind it globally (default is to bind it
    * locally within the current scope)
    */
-  void bindType(const std::string& name,
-                const std::vector<Type>& params,
+  void bindType(const std::string& name, const std::vector<Type>& params,
                 Type t, bool levelZero = false) throw();
 
   /**
@@ -201,8 +179,16 @@ public:
   /** Reset everything. */
   void reset();
 
-};/* class SymbolTable */
+ private:
+  // Copying, move and assignment have not yet been implemented.
+  SymbolTable(const SymbolTable&);
+  SymbolTable(SymbolTable&&);
+  SymbolTable& operator=(SymbolTable&);
 
-}/* CVC4 namespace */
+  class Implementation;
+  std::unique_ptr<Implementation> d_implementation;
+}; /* class SymbolTable */
+
+}  // namespace CVC4
 
 #endif /* __CVC4__SYMBOL_TABLE_H */
