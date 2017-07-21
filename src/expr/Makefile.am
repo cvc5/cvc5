@@ -26,7 +26,6 @@ libexpr_la_SOURCES = \
 	attribute.cpp \
 	attribute_internals.h \
 	attribute_unique_id.h \
-	convenience_node_builders.h \
 	chain.h \
 	emptyset.cpp \
 	emptyset.h \

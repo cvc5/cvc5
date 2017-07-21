@@ -39,10 +39,6 @@ namespace CVC4 {
 template <bool ref_count> class NodeTemplate;
 class TypeNode;
 template <unsigned N> class NodeBuilder;
-class AndNodeBuilder;
-class OrNodeBuilder;
-class PlusNodeBuilder;
-class MultNodeBuilder;
 class NodeManager;
 
 namespace expr {
