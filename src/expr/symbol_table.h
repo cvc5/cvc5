@@ -180,9 +180,8 @@ class CVC4_PUBLIC SymbolTable {
   void reset();
 
  private:
-  // Copying, move and assignment have not yet been implemented.
+  // Copying and assignment have not yet been implemented.
   SymbolTable(const SymbolTable&);
-  SymbolTable(SymbolTable&&);
   SymbolTable& operator=(SymbolTable&);
 
   class Implementation;
