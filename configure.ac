@@ -932,16 +932,6 @@ AC_ARG_WITH([cxxtest-dir],
   [AS_HELP_STRING([--with-cxxtest-dir=DIR], [path to CxxTest installation])],
   [CXXTEST="$withval"])
 
-# In the case of "./configure --with-cxxtest-dir=../cxxtest" (or other
-# relative path) and having switched the configure directory (see above),
-# search with respect to the top source dir, not the build dir
-if test "$CVC4_CONFIGURE_IN_BUILDS" = yes -a -n "$CXXTEST"; then
-  case "$CXXTEST" in
-    /*) ;;
-    *)  CXXTEST="$srcdir/$CXXTEST" ;;
-  esac
-fi
-
 TESTS_ENVIRONMENT=
 RUN_REGRESSION_ARGS=
 if test "$enable_proof" = yes; then
@@ -976,7 +966,7 @@ elif test -z "$CXXTEST"; then
     AC_MSG_RESULT([$CXXTEST])
   else
     if test -e "/usr/include/cxxtest/TestRunner.h"; then
-      CXXTEST=/usr/include/cxxtest
+      CXXTEST=/usr/include
       AC_MSG_RESULT([$CXXTEST])
     else
       AC_MSG_RESULT([not found])
