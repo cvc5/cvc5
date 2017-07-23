@@ -134,7 +134,7 @@ matrix:
             description: "Build submitted via Travis CI"
           notification_email: timothy.alan.king@gmail.com
           build_command_prepend: "./autogen.sh; ./configure --enable-unit-testing --enable-proof"
-          build_command: "make V=1 -j4 check"
+          build_command: "make V=1 -j4"
           branch_pattern: coverity_scan
       after_failure:
         - cat /home/travis/build/CVC4/CVC4/cov-int/build-log.txt
