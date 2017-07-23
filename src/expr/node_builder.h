@@ -179,12 +179,6 @@ namespace CVC4 {
 
 namespace CVC4 {
 
-/* see expr/convenience_node_builders.h */
-class AndNodeBuilder;
-class OrNodeBuilder;
-class PlusNodeBuilder;
-class MultNodeBuilder;
-
 // Sometimes it's useful for debugging to output a NodeBuilder that
 // isn't yet a Node..
 template <unsigned nchild_thresh>
@@ -727,11 +721,6 @@ public:
   NodeBuilder<nchild_thresh>& operator+=(TNode);
   NodeBuilder<nchild_thresh>& operator-=(TNode);
   NodeBuilder<nchild_thresh>& operator*=(TNode);
-
-  friend class AndNodeBuilder;
-  friend class OrNodeBuilder;
-  friend class PlusNodeBuilder;
-  friend class MultNodeBuilder;
 
   // This is needed for copy constructors of different sizes to access
   // private fields
