@@ -1,5 +1,5 @@
 language: cpp
-cache:
+cache: ccache
  apt: true
  directories:
   - $HOME/cxxtest

@@ -925,22 +925,10 @@ DX_INIT_DOXYGEN($PACKAGE_NAME, config/doxygen.cfg, $srcdir/doc/doxygen)
 
 AC_ARG_ENABLE([unit-testing], AS_HELP_STRING([--disable-unit-testing], [don't build support for unit testing, even if available]), , [enable_unit_testing=check])
 AC_ARG_VAR(CXXTEST, [path to CxxTest installation])
-
 AC_SUBST([CXXTEST])
-
 AC_ARG_WITH([cxxtest-dir],
   [AS_HELP_STRING([--with-cxxtest-dir=DIR], [path to CxxTest installation])],
   [CXXTEST="$withval"])
-
-# In the case of "./configure --with-cxxtest-dir=../cxxtest" (or other
-# relative path) and having switched the configure directory (see above),
-# search with respect to the top source dir, not the build dir
-if test "$CVC4_CONFIGURE_IN_BUILDS" = yes -a -n "$CXXTEST"; then
-  case "$CXXTEST" in
-    /*) ;;
-    *)  CXXTEST="$srcdir/$CXXTEST" ;;
-  esac
-fi
 
 TESTS_ENVIRONMENT=
 RUN_REGRESSION_ARGS=
@@ -950,38 +938,57 @@ fi
 AC_SUBST([TESTS_ENVIRONMENT])
 AC_SUBST([RUN_REGRESSION_ARGS])
 
+AC_ARG_VAR(TEST_CPPFLAGS, [CPPFLAGS to use when testing (default=$CPPFLAGS)])
+AC_ARG_VAR(TEST_CXXFLAGS, [CXXFLAGS to use when testing (default=$CXXFLAGS)])
+AC_ARG_VAR(TEST_LDFLAGS,  [LDFLAGS to use when testing (default=$LDFLAGS)])
+
 CXXTESTGEN=
-AC_PATH_PROG(CXXTESTGEN, cxxtestgen.pl, [], [$CXXTEST:$PATH])
-if test -z "$CXXTESTGEN"; then
-  AC_PATH_PROG(CXXTESTGEN, cxxtestgen.py, [], [$CXXTEST:$PATH])
-fi
-if test -z "$CXXTESTGEN"; then
-  AC_PATH_PROG(CXXTESTGEN, cxxtestgen, [], [$CXXTEST:$PATH])
-fi
-# The latest version of cxxtest distributed from the git repository places
-# cxxtest under <cxxtest-root>/bin/cxxtest
-if test -z "$CXXTESTGEN"; then
-  AC_PATH_PROG(CXXTESTGEN, cxxtestgen, [], [$CXXTEST/bin:$PATH])
-fi
 if test "$enable_unit_testing" = "no"; then
   AC_MSG_NOTICE([unit tests disabled by user request.])
-  CXXTESTGEN=
   CXXTEST=
-elif test -z "$CXXTESTGEN"; then
-  AC_MSG_NOTICE([unit tests disabled, could not find cxxtestgen.pl or cxxtestgen.py or cxxtestgen])
-elif test -z "$CXXTEST"; then
-  CXXTEST=`dirname "$CXXTESTGEN"`
-  AC_MSG_CHECKING([for location of CxxTest headers])
-  if test -e "$CXXTEST/cxxtest/TestRunner.h"; then
-    AC_MSG_RESULT([$CXXTEST])
-  else
-    if test -e "/usr/include/cxxtest/TestRunner.h"; then
-      AC_MSG_RESULT([/usr/include])
+else
+  # The latest version of cxxtest distributed from the git repository places
+  # cxxtest under <cxxtest-root>/bin/cxxtest
+  AC_PATH_PROGS(CXXTESTGEN,
+                cxxtestgen.pl cxxtestgen.py cxxtestgen,
+                [
+                  AC_MSG_NOTICE([unit tests disabled, \
+                                 could not find cxxtestgen.pl or \
+                                 cxxtestgen.py or cxxtestgen])
+                  CXXTEST=
+                ],
+                [$CXXTEST:$CXXTEST/bin:$PATH])
+
+  # check if CxxTest headers exist and set include paths accordingly
+  if test -n "$CXXTESTGEN"; then
+    AC_MSG_CHECKING([for location of CxxTest headers])
+
+    if test -n "$CXXTEST"; then
+      if test -e "$CXXTEST/cxxtest/TestRunner.h"; then
+        AC_MSG_RESULT([$CXXTEST])
+        TEST_CPPFLAGS="${TEST_CPPFLAGS} -I$CXXTEST"
+        TEST_CXXFLAGS="${TEST_CXXFLAGS} -I$CXXTEST"
+      else
+        AC_MSG_RESULT([not found])
+        AC_MSG_WARN([unit tests disabled, CxxTest headers not found at $CXXTEST.])
+        CXXTESTGEN=
+        CXXTEST=
+      fi
+    elif test -e "/usr/include/cxxtest/TestRunner.h"; then
+      CXXTEST=/usr/include
+      AC_MSG_RESULT([$CXXTEST])
     else
-      AC_MSG_RESULT([not found])
-      AC_MSG_WARN([unit tests disabled, CxxTest headers not found.])
-      CXXTESTGEN=
-      CXXTEST=
+      CXXTEST=`dirname "$CXXTESTGEN"`
+      if test -e "$CXXTEST/cxxtest/TestRunner.h"; then
+        AC_MSG_RESULT([$CXXTEST])
+        TEST_CPPFLAGS="${TEST_CPPFLAGS} -I$CXXTEST"
+        TEST_CXXFLAGS="${TEST_CXXFLAGS} -I$CXXTEST"
+      else
+        AC_MSG_RESULT([not found])
+        AC_MSG_WARN([unit tests disabled, CxxTest headers not found.])
+        CXXTESTGEN=
+        CXXTEST=
+      fi
     fi
   fi
 fi
@@ -991,10 +998,6 @@ if test "$enable_unit_testing" = yes -a -z "$CXXTESTGEN"; then
 fi
 
 AM_CONDITIONAL([HAVE_CXXTESTGEN], [test -n "$CXXTESTGEN"])
-
-AC_ARG_VAR(TEST_CPPFLAGS, [CPPFLAGS to use when testing (default=$CPPFLAGS)])
-AC_ARG_VAR(TEST_CXXFLAGS, [CXXFLAGS to use when testing (default=$CXXFLAGS)])
-AC_ARG_VAR(TEST_LDFLAGS,  [LDFLAGS to use when testing (default=$LDFLAGS)])
 
 AC_ARG_VAR(PERL, [PERL interpreter (used when testing)])
 
