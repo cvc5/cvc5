@@ -67,7 +67,6 @@ if HAVE_CXXTESTGEN
 
 AM_CPPFLAGS = \
 	-I. \
-	"-I@CXXTEST@" \
 	"-I@top_builddir@/src" \
 	"-I@top_srcdir@/src/include" \
 	"-I@top_srcdir@/lib" \
