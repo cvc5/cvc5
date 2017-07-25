@@ -986,6 +986,7 @@ else
         CXXTESTGEN=
         CXXTEST=
       fi
+    # TODO: use more generic way to find cxxtest/TestRunner.h in system headers
     elif test -e "/usr/include/cxxtest/TestRunner.h"; then
       CXXTEST=/usr/include
       AC_MSG_RESULT([$CXXTEST])
