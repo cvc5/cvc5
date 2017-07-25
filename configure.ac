@@ -958,7 +958,7 @@ else
                 ],
                 [$CXXTEST:$CXXTEST/bin:$PATH])
 
-  if test "$CXXTESTGEN" = "cxxtestgen.pl"; then
+  if test -n "$CXXTESTGEN" -a "`basename $CXXTESTGEN`" = "cxxtestgen.pl"; then
     if test -z "$PERL"; then
       AC_CHECK_PROGS(PERL, perl, perl, [])
     else
