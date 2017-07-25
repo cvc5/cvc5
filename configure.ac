@@ -925,7 +925,6 @@ DX_INIT_DOXYGEN($PACKAGE_NAME, config/doxygen.cfg, $srcdir/doc/doxygen)
 
 AC_ARG_ENABLE([unit-testing], AS_HELP_STRING([--disable-unit-testing], [don't build support for unit testing, even if available]), , [enable_unit_testing=check])
 AC_ARG_VAR(CXXTEST, [path to CxxTest installation])
-AC_SUBST([CXXTEST])
 AC_ARG_WITH([cxxtest-dir],
   [AS_HELP_STRING([--with-cxxtest-dir=DIR], [path to CxxTest installation])],
   [CXXTEST="$withval"])
@@ -959,10 +958,23 @@ else
                 ],
                 [$CXXTEST:$CXXTEST/bin:$PATH])
 
+  if test "$CXXTESTGEN" = "cxxtestgen.pl"; then
+    if test -z "$PERL"; then
+      AC_CHECK_PROGS(PERL, perl, perl, [])
+    else
+      AC_CHECK_PROG(PERL, "$PERL", "$PERL", [])
+    fi
+
+    if test -z "$PERL"; then
+      AC_MSG_WARN([unit tests disabled, perl not found.])
+      CXXTESTGEN=
+      CXXTEST=
+    fi
+  fi
+
   # check if CxxTest headers exist and set include paths accordingly
   if test -n "$CXXTESTGEN"; then
     AC_MSG_CHECKING([for location of CxxTest headers])
-
     if test -n "$CXXTEST"; then
       if test -e "$CXXTEST/cxxtest/TestRunner.h"; then
         AC_MSG_RESULT([$CXXTEST])
@@ -1000,20 +1012,6 @@ fi
 AM_CONDITIONAL([HAVE_CXXTESTGEN], [test -n "$CXXTESTGEN"])
 
 AC_ARG_VAR(PERL, [PERL interpreter (used when testing)])
-
-if test -n "$CXXTEST"; then
-  if test -z "$PERL"; then
-    AC_CHECK_PROGS(PERL, perl, perl, [])
-  else
-    AC_CHECK_PROG(PERL, "$PERL", "$PERL", [])
-  fi
-
-  if test -z "$PERL"; then
-    AC_MSG_WARN([unit tests disabled, perl not found.])
-    CXXTESTGEN=
-    CXXTEST=
-  fi
-fi
 
 AC_ARG_VAR(PYTHON, [PYTHON interpreter (used for building legacy Java library interface)])
 
