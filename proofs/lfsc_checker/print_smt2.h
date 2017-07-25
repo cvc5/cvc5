@@ -3,7 +3,9 @@
 
 #define PRINT_SMT2
 
-#include "expr.h"
+#include <iosfwd>
+
+class Expr;
 
 #ifdef PRINT_SMT2
 void print_smt2( Expr* p, std::ostream& s, short mode = 0 );

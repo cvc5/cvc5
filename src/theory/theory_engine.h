@@ -19,7 +19,6 @@
 #ifndef __CVC4__THEORY_ENGINE_H
 #define __CVC4__THEORY_ENGINE_H
 
-#include <deque>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -28,21 +27,14 @@
 #include "base/cvc4_assert.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "options/options.h"
-#include "options/smt_options.h"
-#include "prop/prop_engine.h"
-#include "smt/command.h"
-#include "smt_util/lemma_channels.h"
 #include "theory/atom_requests.h"
 #include "theory/bv/bv_to_bool.h"
 #include "theory/interrupted.h"
-#include "theory/rewriter.h"
 #include "theory/shared_terms_database.h"
 #include "theory/sort_inference.h"
 #include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
@@ -97,9 +89,14 @@ namespace theory {
   class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
 
+namespace prop {
+class PropEngine;
+} /* CVC4::prop namespace */
+
 class DecisionEngine;
 class RemoveTermFormulas;
 class UnconstrainedSimplifier;
+class LemmaChannels;
 
 /**
  * This is essentially an abstraction for a collection of theories.  A
@@ -285,45 +282,23 @@ class TheoryEngine {
 
     theory::LemmaStatus splitLemma(TNode lemma, bool removable = false);
 
-    void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
-      NodeManager* curr = NodeManager::currentNM();
-      Node restartVar =  curr->mkSkolem("restartVar",
-                                        curr->booleanType(),
-                                        "A boolean variable asserted to be true to force a restart");
-      Trace("theory::restart") << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar << ")" << std::endl;
-      ++ d_statistics.restartDemands;
-      lemma(restartVar, RULE_INVALID, true);
-    }
+    void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException,
+                               UnsafeInterruptException);
 
-    void requirePhase(TNode n, bool phase)
-      throw(theory::Interrupted, AssertionException, UnsafeInterruptException) {
-      Debug("theory") << "EngineOutputChannel::requirePhase("
-                      << n << ", " << phase << ")" << std::endl;
-      ++ d_statistics.requirePhase;
-      d_engine->d_propEngine->requirePhase(n, phase);
-    }
+    void requirePhase(TNode n, bool phase) throw(theory::Interrupted,
+                                                 AssertionException,
+                                                 UnsafeInterruptException);
 
-    bool flipDecision()
-      throw(theory::Interrupted, AssertionException, UnsafeInterruptException) {
-      Debug("theory") << "EngineOutputChannel::flipDecision()" << std::endl;
-      ++ d_statistics.flipDecision;
-      return d_engine->d_propEngine->flipDecision();
-    }
+    bool flipDecision() throw(theory::Interrupted, AssertionException,
+                              UnsafeInterruptException);
 
-    void setIncomplete() throw(AssertionException, UnsafeInterruptException) {
-      Trace("theory") << "TheoryEngine::setIncomplete()" << std::endl;
-      d_engine->setIncomplete(d_theory);
-    }
+    void setIncomplete() throw(AssertionException, UnsafeInterruptException);
 
-    void spendResource(unsigned ammount) throw(UnsafeInterruptException) {
-      d_engine->spendResource(ammount);
-    }
+    void spendResource(unsigned ammount) throw(UnsafeInterruptException);
 
-    void handleUserAttribute( const char* attr, theory::Theory* t ){
-      d_engine->handleUserAttribute( attr, t );
-    }
+    void handleUserAttribute(const char* attr, theory::Theory* t);
 
-  private:
+   private:
 
     /**
      * A helper function for registering lemma recipes with the proof engine

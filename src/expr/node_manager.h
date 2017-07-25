@@ -32,12 +32,13 @@
 #include <string>
 #include <unordered_set>
 
+#include "base/output.h"
 #include "base/tls.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
-#include "util/subrange_bound.h"
 #include "options/options.h"
+#include "util/subrange_bound.h"
 
 namespace CVC4 {
 

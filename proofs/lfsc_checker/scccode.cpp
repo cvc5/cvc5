@@ -1,5 +1,7 @@
 #include "scccode.h"
 
+#include <cstddef>
+
 void init_compiled_scc(){
 
 }

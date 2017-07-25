@@ -21,7 +21,7 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
+#include <iosfwd>
 #include <memory>
 #include <new>
 #include <typeinfo>

@@ -218,8 +218,12 @@ function constant {
   lineno=${BASH_LINENO[0]}
   check_theory_seen
 
-  includes="${includes}
+  # Only add include if it is not in the list of includes yet
+  if [[ "${includes}" != *"#include \"$4\""* ]]; then
+    includes="${includes}
 #include \"$4\""
+  fi
+
   mkConst_instantiations="${mkConst_instantiations}
 #line $lineno \"$kf\"
 template <> Expr ExprManager::mkConst($2 const& val);

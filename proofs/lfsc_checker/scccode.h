@@ -1,7 +1,9 @@
 #ifndef SCC_CODE_H
 #define SCC_CODE_H
 
-#include "check.h"
+#include <vector>
+
+class Expr;
 
 void init_compiled_scc();
 

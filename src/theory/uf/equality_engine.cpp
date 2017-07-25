@@ -17,6 +17,7 @@
 
 #include "theory/uf/equality_engine.h"
 
+#include "base/output.h"
 #include "smt/smt_statistics_registry.h"
 
 namespace CVC4 {

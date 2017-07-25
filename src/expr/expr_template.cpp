@@ -15,6 +15,7 @@
  **/
 #include "expr/expr.h"
 
+#include <iostream>
 #include <iterator>
 #include <utility>
 #include <vector>
@@ -31,7 +32,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 35 "${template}"
+#line 36 "${template}"
 
 using namespace CVC4::kind;
 using namespace std;

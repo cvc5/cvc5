@@ -19,7 +19,7 @@
 
 #include "theory/sort_inference.h"
 
-#include <vector>
+#include <iostream>
 
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"

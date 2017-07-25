@@ -229,17 +229,28 @@ function constant {
     echo "$kf:$lineno: warning: constant $1 hasher \`$3' isn't fully-qualified (e.g., ::CVC4::RationalHashFunction)" >&2
   fi
 
-  if [ -n "$4" ]; then
+  if [ -n "$4" ] && [[ "${metakind_includes}" != *"#include \"$4\""* ]]; then
     metakind_includes="${metakind_includes}
 #include \"$4\""
   fi
   register_metakind CONSTANT "$1" 0
+  metakind_getConst_decls="${metakind_getConst_decls}
+template <>
+$2 const& NodeValue::getConst< $2 >() const;
+"
+  metakind_constantMaps_decls="${metakind_constantMaps_decls}
+template <>
+struct ConstantMap< $2 > {
+  // typedef $theory_class OwningTheory;
+  enum { kind = ::CVC4::kind::$1 };
+};/* ConstantMap< $2 > */
+
+template <>
+struct ConstantMapReverse< ::CVC4::kind::$1 > {
+  typedef $2 T;
+};/* ConstantMapReverse< ::CVC4::kind::$1 > */
+  "
   metakind_constantMaps="${metakind_constantMaps}
-}/* CVC4::kind::metakind namespace */
-}/* CVC4::kind namespace */
-
-namespace expr {
-
 // The reinterpret_cast of d_children to \"$2 const*\"
 // flags a \"strict aliasing\" warning; it's okay, because we never access
 // the embedded constant as a NodeValue* child, and never access an embedded
@@ -247,7 +258,7 @@ namespace expr {
 #pragma GCC diagnostic ignored \"-Wstrict-aliasing\"
 
 template <>
-inline $2 const& NodeValue::getConst< $2 >() const {
+$2 const& NodeValue::getConst< $2 >() const {
   AssertArgument(getKind() == ::CVC4::kind::$1, *this,
                  \"Improper kind for getConst<$2>()\");
   // To support non-inlined CONSTANT-kinded NodeValues (those that are
@@ -260,22 +271,6 @@ inline $2 const& NodeValue::getConst< $2 >() const {
 
 // re-enable the warning
 #pragma GCC diagnostic warning \"-Wstrict-aliasing\"
-
-}/* CVC4::expr namespace */
-
-namespace kind {
-namespace metakind {
-
-template <>
-struct ConstantMap< $2 > {
-  // typedef $theory_class OwningTheory;
-  enum { kind = ::CVC4::kind::$1 };
-};/* ConstantMap< $2 > */
-
-template <>
-struct ConstantMapReverse< ::CVC4::kind::$1 > {
-  typedef $2 T;
-};/* ConstantMapReverse< ::CVC4::kind::$1 > */
 
 "
   metakind_compares="${metakind_compares}
@@ -423,6 +418,8 @@ for var in \
     metakind_includes \
     metakind_kinds \
     metakind_constantMaps \
+    metakind_constantMaps_decls \
+    metakind_getConst_decls \
     metakind_compares \
     metakind_constHashes \
     metakind_constPrinters \

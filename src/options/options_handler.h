@@ -19,7 +19,6 @@
 #ifndef __CVC4__OPTIONS__OPTIONS_HANDLER_H
 #define __CVC4__OPTIONS__OPTIONS_HANDLER_H
 
-#include <ostream>
 #include <string>
 
 #include "base/modal_exception.h"
@@ -32,7 +31,6 @@
 #include "options/datatypes_modes.h"
 #include "options/language.h"
 #include "options/option_exception.h"
-#include "options/options.h"
 #include "options/printer_modes.h"
 #include "options/quantifiers_modes.h"
 #include "options/simplification_mode.h"
@@ -40,6 +38,9 @@
 #include "options/ufss_mode.h"
 
 namespace CVC4 {
+
+class Options;
+
 namespace options {
 
 class OptionsHandler {

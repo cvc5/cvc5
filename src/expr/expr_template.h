@@ -27,7 +27,7 @@ ${includes}
 #define __CVC4__EXPR_H
 
 #include <stdint.h>
-#include <iostream>
+#include <iosfwd>
 #include <iterator>
 #include <string>
 #include <unordered_map>
