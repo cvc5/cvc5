@@ -600,8 +600,12 @@ if test "$enable_optimized" = yes; then
   CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }-O$OPTLEVEL"
   CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-O$OPTLEVEL"
 else
-  CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }-O0"
-  CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-O0"
+  # Use -Og if available (optimizations that do not interfere with debugging),
+  # -O0 otherwise
+  debug_optimization_level="-O0"
+  CVC4_CXX_OPTION([-Og], [debug_optimization_level])
+  CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }${debug_optimization_level}"
+  CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }${debug_optimization_level}"
 fi
 
 AC_MSG_CHECKING([whether to include debugging symbols in libcvc4])
