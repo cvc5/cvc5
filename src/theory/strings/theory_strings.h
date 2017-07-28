@@ -306,6 +306,7 @@ private:
       }
       return "";
     }
+    Node d_nf_pair[2];
     bool sendAsLemma();
   };
   //initial check
