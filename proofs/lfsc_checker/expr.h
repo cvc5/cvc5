@@ -2,11 +2,12 @@
 #define sc2__expr_h
 
 #include <stdint.h>
-#include <ext/hash_set>
 #include <iostream>
 #include <map>
 #include <string>
+#include <unordered_set>
 #include <vector>
+
 #include "chunking_memory_management.h"
 #include "gmp.h"
 
@@ -57,21 +58,17 @@ enum { NOT_CEXPR = 0, // for INT_EXPR, HOLE_EXPR, SYM_EXPR, SYMS_EXPR
 class Expr;
 class SymExpr;
 
-namespace __gnu_cxx {
-template <>
-struct hash<Expr *> {
+struct hashExprPtr {
   size_t operator()(const Expr *x) const {
     return reinterpret_cast<uintptr_t>(x);
   }
 };
-}
 
 struct eqExprPtr {
   bool operator()(const Expr *e1, const Expr *e2) const { return e1 == e2; }
 };
 
-typedef __gnu_cxx::hash_set<Expr *, __gnu_cxx::hash<Expr *>, eqExprPtr>
-    expr_ptr_set_t;
+typedef std::unordered_set<Expr *, hashExprPtr, eqExprPtr> expr_ptr_set_t;
 
 class Expr {
 protected:

@@ -16,10 +16,10 @@
  **/
 #include "theory/arith/approx_simplex.h"
 
+#include <math.h>
 #include <cfloat>
 #include <cmath>
-#include <map>
-#include <math.h>
+#include <unordered_set>
 
 #include "base/output.h"
 #include "cvc4autoconfig.h"
@@ -2043,7 +2043,7 @@ bool ApproxGLPK::checkCutOnPad(int nid, const CutInfo& cut) const{
 
   const DenseMap<Rational>& constructedLhs = d_pad.d_cut.lhs;
   const Rational& constructedRhs = d_pad.d_cut.rhs;
-  hash_set<ArithVar> visited;
+  std::unordered_set<ArithVar> visited;
 
   if(constructedLhs.empty()){
     Debug("approx::checkCutOnPad") << "its empty?" <<endl;
