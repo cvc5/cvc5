@@ -172,8 +172,6 @@ private:
   void addNormalFormPair( Node n1, Node n2 );
   bool isNormalFormPair( Node n1, Node n2 );
   bool isNormalFormPair2( Node n1, Node n2 );
-  // loop ant
-  NodeSet d_loop_antec;
   // preReg cache
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;

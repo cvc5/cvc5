@@ -1997,6 +1997,8 @@ stringTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::STRING_STRCTN, f, f2); }
   | STRING_SUBSTR_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_SUBSTR, f, f2, f3); }
+  | STRING_CHARAT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_CHARAT, f, f2); }
   | STRING_INDEXOF_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_STRIDOF, f, f2, f3); }
   | STRING_REPLACE_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
