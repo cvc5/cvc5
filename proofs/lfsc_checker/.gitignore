@@ -12,5 +12,4 @@ Makefile.in
 /aclocal.m4
 *~
 \#*\#
-/config/
 *.swp

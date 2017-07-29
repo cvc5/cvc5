@@ -5,7 +5,7 @@ AC_PREREQ([2.61])
 AC_INIT([lfsc-checker], [1.0], [cvc-bugs@cs.nyu.edu])
 AC_CONFIG_SRCDIR([libwriter.h])
 AC_CONFIG_AUX_DIR([config])
-AC_CONFIG_MACRO_DIR([../../config])
+AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([1.11 foreign no-define tar-pax])
 LT_INIT
