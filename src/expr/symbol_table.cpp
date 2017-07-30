@@ -49,6 +49,12 @@ class SymbolTable::Implementation {
         d_typeMap(new (true) TypeMap(&d_context)),
         d_functions(new (true) CDHashSet<Expr, ExprHashFunction>(&d_context)) {}
 
+  ~Implementation() {
+    d_exprMap->deleteSelf();
+    d_typeMap->deleteSelf();
+    d_functions->deleteSelf();
+  }
+
   void bind(const string& name, Expr obj, bool levelZero) throw();
   void bindDefinedFunction(const string& name, Expr obj,
                            bool levelZero) throw();
