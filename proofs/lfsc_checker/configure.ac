@@ -27,6 +27,10 @@ AC_DISABLE_STATIC
 AC_PROG_CXX
 AC_PROG_CC
 
+# C++11 support in the compiler is now mandatory. Check for support and add
+# switches if necessary.
+AX_CXX_COMPILE_STDCXX_11([ext], [mandatory])
+
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lgmp':
 AC_CHECK_LIB([gmp], [__gmpz_init])
