@@ -134,14 +134,18 @@ namespace CVC4 {
 /* The python bindings on Mac OS X have trouble with this one - leave it
  * out for now. */
 //%template(getConstTypeConstant) CVC4::Expr::getConst<CVC4::TypeConstant>;
+
+ /* This one also causes problems for the python api */
+ //%template(getConstSubrangeBounds) CVC4::Expr::getConst<CVC4::SubrangeBounds>;
 #else
 %template(getConstTypeConstant) CVC4::Expr::getConst<CVC4::TypeConstant>;
-#endif
+%template(getConstSubrangeBounds) CVC4::Expr::getConst<CVC4::SubrangeBounds>;
+#endif /* SWIGPYTHON */
+
 %template(getConstArrayStoreAll) CVC4::Expr::getConst<CVC4::ArrayStoreAll>;
 %template(getConstBitVectorSize) CVC4::Expr::getConst<CVC4::BitVectorSize>;
 %template(getConstAscriptionType) CVC4::Expr::getConst<CVC4::AscriptionType>;
 %template(getConstBitVectorBitOf) CVC4::Expr::getConst<CVC4::BitVectorBitOf>;
-%template(getConstSubrangeBounds) CVC4::Expr::getConst<CVC4::SubrangeBounds>;
 %template(getConstBitVectorRepeat) CVC4::Expr::getConst<CVC4::BitVectorRepeat>;
 %template(getConstBitVectorExtract) CVC4::Expr::getConst<CVC4::BitVectorExtract>;
 %template(getConstBitVectorRotateLeft) CVC4::Expr::getConst<CVC4::BitVectorRotateLeft>;
