@@ -22,7 +22,6 @@
 #include "base/configuration_private.h"
 #include "base/cvc4_assert.h"
 #include "base/output.h"
-#include "base/tls.h"
 #include "expr/node_manager.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
@@ -36,7 +35,7 @@ class ProofManager;
 
 namespace smt {
 
-extern CVC4_THREADLOCAL(SmtEngine*) s_smtEngine_current;
+extern thread_local SmtEngine* s_smtEngine_current;
 
 inline SmtEngine* currentSmtEngine() {
   Assert(s_smtEngine_current != NULL);

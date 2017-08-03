@@ -1180,35 +1180,6 @@ fi
 AC_SUBST(CVC4_BUILD_LIBCOMPAT)
 AM_CONDITIONAL([CVC4_BUILD_LIBCOMPAT], [test "$CVC4_BUILD_LIBCOMPAT" = yes])
 
-# Check for availability of TLS support (e.g. __thread storage class)
-AC_MSG_CHECKING([whether to use compiler-supported TLS if available])
-AC_ARG_ENABLE([tls], AS_HELP_STRING([--disable-tls], [don't use compiler-native TLS]))
-if test $cvc4_has_threads = no; then
-  # We disable TLS entirely by simply telling the build system that
-  # the empty string is the __thread keyword.
-  AC_MSG_RESULT([multithreading disabled])
-  CVC4_TLS_SUPPORTED=1
-  CVC4_TLS=
-  CVC4_TLS_explanation='disabled (no multithreading support)'
-else
-  if test -z "${enable_tls+set}" || test "$enable_tls" = "yes"; then
-    AC_MSG_RESULT([yes])
-    AX_TLS([CVC4_TLS=$ac_cv_tls], [CVC4_TLS=])
-  else
-    AC_MSG_RESULT([no])
-    CVC4_TLS=
-  fi
-  if test -n "$CVC4_TLS"; then
-    CVC4_TLS_SUPPORTED=1
-    CVC4_TLS_explanation="$CVC4_TLS"
-  else
-    CVC4_TLS_explanation='pthread_getspecific()'
-    CVC4_TLS_SUPPORTED=0
-  fi
-fi
-AC_SUBST([CVC4_TLS])
-AC_SUBST([CVC4_TLS_SUPPORTED])
-
 # Whether to compile with google profiling tools
 cvc4_use_google_perftools=0
 AC_ARG_WITH(
@@ -1466,7 +1437,6 @@ if test -n "$CVC4_LANGUAGE_BINDINGS"; then
   fi
 fi
 
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/base/tls.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/integer.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
 
@@ -1507,7 +1477,6 @@ Compat lib   : $CVC4_BUILD_LIBCOMPAT
 Bindings     : $bindings_to_be_built
 
 Multithreaded: $support_multithreaded
-TLS support  : $CVC4_TLS_explanation
 Portfolio    : $with_portfolio
 
 MP library   : $mplibrary

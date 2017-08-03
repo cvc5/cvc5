@@ -103,7 +103,7 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   Assert(d_sgnDisagreements.empty());
 
   d_pivots = 0;
-  static CVC4_THREADLOCAL(unsigned int) instance = 0;
+  static thread_local unsigned int instance = 0;
   instance = instance + 1;
   static const bool verbose = false;
 

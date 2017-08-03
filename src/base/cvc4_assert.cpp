@@ -26,7 +26,7 @@ using namespace std;
 namespace CVC4 {
 
 #ifdef CVC4_DEBUG
-//CVC4_THREADLOCAL(const char*) s_debugLastException = NULL;
+//thread_local const char* s_debugLastException = NULL;
 #endif /* CVC4_DEBUG */
 
 
@@ -140,7 +140,7 @@ void AssertionException::construct(const char* header, const char* extra,
  */
 void debugAssertionFailed(const AssertionException& thisException,
                           const char* propagatingException) {
-  static CVC4_THREADLOCAL(bool) alreadyFired = false;
+  static thread_local bool alreadyFired = false;
 
   if(__builtin_expect( ( !std::uncaught_exception() ), true ) || alreadyFired) {
     throw thisException;

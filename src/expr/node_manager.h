@@ -32,7 +32,6 @@
 #include <string>
 #include <unordered_set>
 
-#include "base/tls.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
@@ -102,7 +101,7 @@ class NodeManager {
                              expr::NodeValueIDHashFunction,
                              expr::NodeValueIDEquality> NodeValueIDSet;
 
-  static CVC4_THREADLOCAL(NodeManager*) s_current;
+  static thread_local NodeManager* s_current;
 
   Options* d_options;
   StatisticsRegistry* d_statisticsRegistry;

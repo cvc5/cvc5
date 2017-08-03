@@ -55,7 +55,7 @@ using namespace CVC4::main;
 namespace CVC4 {
   namespace main {
     /** Global options variable */
-    CVC4_THREADLOCAL(Options*) pOptions;
+    thread_local Options* pOptions;
 
     /** Full argv[0] */
     const char *progPath;

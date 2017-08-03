@@ -35,7 +35,7 @@ static TheoryId theoryOf(TNode node) {
 }
 
 #ifdef CVC4_ASSERTIONS
-static CVC4_THREADLOCAL(std::unordered_set<Node, NodeHashFunction>*) s_rewriteStack = NULL;
+static thread_local std::unordered_set<Node, NodeHashFunction>* s_rewriteStack = NULL;
 #endif /* CVC4_ASSERTIONS */
 
 class RewriterInitializer {

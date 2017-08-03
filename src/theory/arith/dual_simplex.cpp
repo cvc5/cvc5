@@ -62,7 +62,7 @@ DualSimplexDecisionProcedure::Statistics::~Statistics(){
 Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   Assert(d_conflictVariables.empty());
 
-  static CVC4_THREADLOCAL(unsigned int) instance = 0;
+  static thread_local unsigned int instance = 0;
   instance = instance + 1;
   d_pivots = 0;
 

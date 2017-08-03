@@ -27,14 +27,14 @@
 
 %import "cvc4_public.h"
 #warning "Working around a SWIG segfault in C++ template parsing."
-//%import "base/tls.h"
-#define CVC4_THREADLOCAL(__type...) __type
-#define CVC4_THREADLOCAL_PUBLIC(__type...) CVC4_PUBLIC __type
-#define CVC4_THREADLOCAL_TYPE(__type...) __type
 
-// swig doesn't like the __thread storage class...
-#define __thread
-// ...or GCC attributes
+#if !defined(SWIG_VERSION) || SWIG_VERSION < 0x030000
+// SWIG versions older than 3.0 do not support thread_local, so just redefine
+// thread_local to be nothing for those versions.
+#define thread_local
+#endif
+
+// swig doesn't like GCC attributes
 #define __attribute__(x)
 
 #endif /* __CVC4__BINDINGS__SWIG_H */

@@ -51,7 +51,6 @@ extern int optreset;
 #include "base/cvc4_assert.h"
 #include "base/exception.h"
 #include "base/output.h"
-#include "base/tls.h"
 #include "options/argument_extender.h"
 #include "options/argument_extender_implementation.h"
 #include "options/didyoumean.h"
@@ -75,7 +74,7 @@ using namespace CVC4::options;
 
 namespace CVC4 {
 
-CVC4_THREADLOCAL(Options*) Options::s_current = NULL;
+thread_local Options* Options::s_current = NULL;
 
 
 
@@ -532,10 +531,10 @@ namespace options {
 
 /** Set a given Options* as "current" just for a particular scope. */
 class OptionsGuard {
-  CVC4_THREADLOCAL_TYPE(Options*)* d_field;
+  Options** d_field;
   Options* d_old;
 public:
-  OptionsGuard(CVC4_THREADLOCAL_TYPE(Options*)* field, Options* opts) :
+  OptionsGuard(Options** field, Options* opts) :
     d_field(field),
     d_old(*field) {
     *field = opts;
