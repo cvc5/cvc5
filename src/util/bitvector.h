@@ -85,8 +85,8 @@ public:
     return BitVector(high - low + 1, d_value.extractBitRange(high - low + 1, low));
   }
 
-  /*
-    Bitwise operations on BitVectors
+  /**
+   * Bitwise operations on BitVectors
    */
 
   // xor
@@ -112,8 +112,8 @@ public:
     return BitVector(d_size, d_value.bitwiseNot());
   }
 
-  /*
-    Arithmetic operations on BitVectors
+  /**
+   * Arithmetic operations on BitVectors
    */
 
 
@@ -171,7 +171,8 @@ public:
   }
 
   /**
-   * Total division function that returns 0 when the denominator is 0.
+   * Total division function that returns 2^d_size-1 (signed: -1) when the
+   * denominator is 0 (d_value / 0 = 2^d_size - 1)..
    */
   BitVector unsignedDivTotal (const BitVector& y) const {
 
@@ -186,7 +187,8 @@ public:
   }
 
   /**
-   * Total division function that returns 0 when the denominator is 0.
+   * Total remainder function that returns d_value when the denominator is 0
+   * (d_value % 0 = d_value).
    */
   BitVector unsignedRemTotal(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
@@ -234,8 +236,8 @@ public:
   }
 
 
-  /*
-    Extend operations
+  /**
+   * Extend operations
    */
   BitVector zeroExtend(unsigned amount) const {
     return BitVector(d_size + amount, d_value);
@@ -251,8 +253,8 @@ public:
     }
   }
 
-  /*
-    Shifts on BitVectors
+  /**
+   * Shifts on BitVectors
    */
   BitVector leftShift(const BitVector& y) const {
     if (y.d_value > Integer(d_size)) {
@@ -261,7 +263,6 @@ public:
     if (y.d_value == 0) {
       return *this;
     }
-
     // making sure we don't lose information casting
     CheckArgument(y.d_value < Integer(1).multiplyByPow2(32), y);
     uint32_t amount = y.d_value.toUnsignedInt();
@@ -273,7 +274,6 @@ public:
     if(y.d_value > Integer(d_size)) {
       return BitVector(d_size, Integer(0));
     }
-
     // making sure we don't lose information casting
     CheckArgument(y.d_value < Integer(1).multiplyByPow2(32), y);
     uint32_t amount = y.d_value.toUnsignedInt();
@@ -309,8 +309,8 @@ public:
   }
 
 
-  /*
-    Convenience functions
+  /**
+   * Convenience functions
    */
 
   size_t hash() const {
@@ -338,8 +338,10 @@ public:
     return d_value;
   }
 
+  /**
+   * Return Integer corresponding to two's complement interpretation of bv.
+   */
   Integer toSignedInt() const {
-    // returns Integer corresponding to two's complement interpretation of bv
     unsigned size = d_size;
     Integer sign_bit = d_value.extractBitRange(1,size-1);
     Integer val = d_value.extractBitRange(size-1, 0);
@@ -348,19 +350,17 @@ public:
   }
 
   /**
-   Returns k is the integer is equal to 2^{k-1} and zero
-   otherwise
-   @return k if the integer is equal to 2^{k-1} and zero otherwise
+   * Return k if the integer is equal to 2^{k-1} and zero otherwise.
    */
   unsigned isPow2() {
     return d_value.isPow2();
   }
 
 private:
-  /*
-    Class invariants:
-    * no overflows: 2^d_size < d_value
-    * no negative numbers: d_value >= 0
+  /**
+   * Class invariants:
+   *  - no overflows: 2^d_size < d_value
+   *  - no negative numbers: d_value >= 0
    */
   unsigned d_size;
   Integer d_value;
