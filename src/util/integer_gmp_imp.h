@@ -252,7 +252,7 @@ public:
   }
 
   /**
-   * Computes a quoitent and remainder according to Boute's Euclidean definition.
+   * Computes a quotient and remainder according to Boute's Euclidean definition.
    * euclidianDivideQuotient, euclidianDivideRemainder.
    *
    * Boute, Raymond T. (April 1992).
@@ -286,7 +286,7 @@ public:
     }
   }
   /**
-   * Returns the quoitent according to Boute's Euclidean definition.
+   * Returns the quotient according to Boute's Euclidean definition.
    * See the documentation for euclidianQR.
    */
   Integer euclidianDivideQuotient(const Integer& y) const {
@@ -296,7 +296,7 @@ public:
   }
 
   /**
-   * Returns the remainfing according to Boute's Euclidean definition.
+   * Returns the remainder according to Boute's Euclidean definition.
    * See the documentation for euclidianQR.
    */
   Integer euclidianDivideRemainder(const Integer& y) const {
