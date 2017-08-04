@@ -1,3 +1,5 @@
+; COMMAND-LINE: --lang=smt2.5
+; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
 (declare-datatypes () ((D (C (R Bool)))))

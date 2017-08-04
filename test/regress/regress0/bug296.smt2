@@ -1,3 +1,5 @@
+; COMMAND-LINE: --lang=smt2.5
+; EXPECT: unsat
 (set-logic QF_ALL)
 (set-info :status unsat)
 (declare-datatypes

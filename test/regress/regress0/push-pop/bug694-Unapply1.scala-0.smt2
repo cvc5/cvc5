@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental
+; COMMAND-LINE: --incremental --lang=smt2.5
 ; EXPECT: unsat
 ; EXPECT: sat
 ; EXPECT: sat

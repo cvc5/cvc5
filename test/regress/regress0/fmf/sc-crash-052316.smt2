@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find
+; COMMAND-LINE: --finite-model-find --lang=smt2.5
 ; EXPECT: unsat
   (set-logic ALL_SUPPORTED)
   (set-info :status unsat)

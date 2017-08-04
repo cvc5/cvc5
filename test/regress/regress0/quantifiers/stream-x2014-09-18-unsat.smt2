@@ -1,3 +1,5 @@
+; COMMAND-LINE: --lang=smt2.5
+; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
 (declare-sort A$ 0)

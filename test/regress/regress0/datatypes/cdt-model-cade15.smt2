@@ -1,6 +1,6 @@
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
-(declare-codatatypes () ((Stream (C (c Stream)) (D (d Stream)) (E (e Stream)))))
+(declare-codatatypes ((Stream 0)) (((C (c Stream)) (D (d Stream)) (E (e Stream)))))
 
 (declare-const z Stream)
 (declare-const x Stream)

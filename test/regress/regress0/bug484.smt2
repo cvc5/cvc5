@@ -1,3 +1,6 @@
+; COMMAND-LINE: --lang=smt2.5
+; EXPECT: sat
+
 ; Preamble  --------------
 (set-logic ALL)
 (set-info :status sat)

@@ -1,3 +1,5 @@
+; COMMAND-LINE: --lang=smt2.5
+; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
 (declare-fun start!13 () Bool)

@@ -4,7 +4,7 @@
 (declare-fun x2 () Int)
 (declare-fun y1 () Int)
 (declare-fun y2 () Int)
-(declare-datatypes () ( (type
+(declare-datatypes ((type 0)) ( (
     (constructor1 (f1 Int))
     (constructor2 (f2 Int))
 )))

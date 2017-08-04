@@ -114,16 +114,16 @@ InputLanguage toInputLanguage(std::string language) {
   } else if(language == "smtlib1" || language == "smt1" ||
             language == "LANG_SMTLIB_V1") {
     return input::LANG_SMTLIB_V1;
-  } else if(language == "smtlib" || language == "smt" ||
-            language == "smtlib2" || language == "smt2" ||
-            language == "smtlib2.0" || language == "smt2.0" ||
-            language == "LANG_SMTLIB_V2_0" || language == "LANG_SMTLIB_V2") {
+  } else if(language == "smtlib2.0" || language == "smt2.0" ||
+            language == "LANG_SMTLIB_V2_0") {
     return input::LANG_SMTLIB_V2_0;
   } else if(language == "smtlib2.5" || language == "smt2.5" ||
             language == "LANG_SMTLIB_V2_5") {
     return input::LANG_SMTLIB_V2_5;
-  } else if(language == "smtlib2.6" || language == "smt2.6" ||
-            language == "LANG_SMTLIB_V2_6") {
+  } else if(language == "smtlib" || language == "smt" ||
+            language == "smtlib2" || language == "smt2" ||
+            language == "smtlib2.6" || language == "smt2.6" ||
+            language == "LANG_SMTLIB_V2_6" || language == "LANG_SMTLIB_V2") {
     return input::LANG_SMTLIB_V2_6;
   } else if(language == "tptp" || language == "LANG_TPTP") {
     return input::LANG_TPTP;

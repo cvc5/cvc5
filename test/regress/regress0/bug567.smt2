@@ -1,5 +1,5 @@
 (set-logic ALL_SUPPORTED)
-; COMMAND-LINE: --incremental
+; COMMAND-LINE: --incremental --lang=smt2.5
 ; EXPECT: unknown
 ; EXPECT: unsat
 ; EXPECT: unknown

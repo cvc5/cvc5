@@ -1,5 +1,3 @@
-; COMMAND-LINE: --lang=smt2.6
-; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
 (declare-datatypes ((nat 0)(list 0)(tree 0)) (((succ (pred nat)) (zero))

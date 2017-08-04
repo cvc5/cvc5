@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --fmf-fun-rlv --no-check-models
+; COMMAND-LINE: --incremental --fmf-fun-rlv --no-check-models --lang=smt2.5
 (set-logic ALL_SUPPORTED)
 
 (declare-datatypes () (
