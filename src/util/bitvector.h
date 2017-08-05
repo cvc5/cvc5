@@ -67,6 +67,18 @@ public:
     return *this;
   }
 
+  BitVector concat (const BitVector& other) const {
+    return BitVector(d_size + other.d_size, (d_value.multiplyByPow2(other.d_size)) + other.d_value);
+  }
+
+  BitVector extract(unsigned high, unsigned low) const {
+    return BitVector(high - low + 1, d_value.extractBitRange(high - low + 1, low));
+  }
+
+  /**
+   * Predicates
+   */
+
   bool operator ==(const BitVector& y) const {
     if (d_size != y.d_size) return false;
     return d_value == y.d_value;
@@ -77,62 +89,95 @@ public:
     return d_value != y.d_value;
   }
 
-  BitVector concat (const BitVector& other) const {
-    return BitVector(d_size + other.d_size, (d_value.multiplyByPow2(other.d_size)) + other.d_value);
-  }
-
-  BitVector extract(unsigned high, unsigned low) const {
-    return BitVector(high - low + 1, d_value.extractBitRange(high - low + 1, low));
-  }
-
   /**
-   * Bitwise operations on BitVectors
+   * Unsigned predicates
    */
-
-  // xor
-  BitVector operator ^(const BitVector& y) const {
-    CheckArgument(d_size == y.d_size, y);
-    return BitVector(d_size, d_value.bitwiseXor(y.d_value));
-  }
-
-  // or
-  BitVector operator |(const BitVector& y) const {
-    CheckArgument(d_size == y.d_size, y);
-    return BitVector(d_size, d_value.bitwiseOr(y.d_value));
-  }
-
-  // and
-  BitVector operator &(const BitVector& y) const {
-    CheckArgument(d_size == y.d_size, y);
-    return BitVector(d_size, d_value.bitwiseAnd(y.d_value));
-  }
-
-  // not
-  BitVector operator ~() const {
-    return BitVector(d_size, d_value.bitwiseNot());
-  }
-
-  /**
-   * Arithmetic operations on BitVectors
-   */
-
 
   bool operator <(const BitVector& y) const {
     return d_value < y.d_value;
   }
 
-  bool operator >(const BitVector& y) const {
-    return d_value > y.d_value ;
+  bool unsignedLessThan(const BitVector& y) const {
+    CheckArgument(d_size == y.d_size, y);
+    CheckArgument(d_value >= 0, this);
+    CheckArgument(y.d_value >= 0, y);
+    return d_value < y.d_value;
   }
 
   bool operator <=(const BitVector& y) const {
     return d_value <= y.d_value;
   }
 
+  bool unsignedLessThanEq(const BitVector& y) const {
+    CheckArgument(d_size == y.d_size, this);
+    CheckArgument(d_value >= 0, this);
+    CheckArgument(y.d_value >= 0, y);
+    return d_value <= y.d_value;
+  }
+
+  bool operator >(const BitVector& y) const {
+    return d_value > y.d_value ;
+  }
+
   bool operator >=(const BitVector& y) const {
     return d_value >= y.d_value ;
   }
 
+  /**
+   * Signed predicates
+   */
+
+  bool signedLessThan(const BitVector& y) const {
+    CheckArgument(d_size == y.d_size, y);
+    CheckArgument(d_value >= 0, this);
+    CheckArgument(y.d_value >= 0, y);
+    Integer a = (*this).toSignedInt();
+    Integer b = y.toSignedInt();
+
+    return a < b;
+  }
+
+  bool signedLessThanEq(const BitVector& y) const {
+    CheckArgument(d_size == y.d_size, y);
+    CheckArgument(d_value >= 0, this);
+    CheckArgument(y.d_value >= 0, y);
+    Integer a = (*this).toSignedInt();
+    Integer b = y.toSignedInt();
+
+    return a <= b;
+  }
+
+  /**
+   * Bitwise operations
+   */
+
+  /** xor */
+  BitVector operator ^(const BitVector& y) const {
+    CheckArgument(d_size == y.d_size, y);
+    return BitVector(d_size, d_value.bitwiseXor(y.d_value));
+  }
+
+  /** or */
+  BitVector operator |(const BitVector& y) const {
+    CheckArgument(d_size == y.d_size, y);
+    return BitVector(d_size, d_value.bitwiseOr(y.d_value));
+  }
+
+  /** and */
+  BitVector operator &(const BitVector& y) const {
+    CheckArgument(d_size == y.d_size, y);
+    return BitVector(d_size, d_value.bitwiseAnd(y.d_value));
+  }
+
+  /** not */
+  BitVector operator ~() const {
+    return BitVector(d_size, d_value.bitwiseNot());
+  }
+
+
+  /**
+   * Arithmetic operations
+   */
 
   BitVector operator +(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
@@ -159,20 +204,10 @@ public:
     return BitVector(d_size, prod);
   }
 
-  BitVector setBit(uint32_t i) const {
-    CheckArgument(i < d_size, i);
-    Integer res = d_value.setBit(i);
-    return BitVector(d_size, res);
-  }
-
-  bool isBitSet(uint32_t i) const {
-    CheckArgument(i < d_size, i);
-    return d_value.isBitSet(i);
-  }
-
   /**
-   * Total division function that returns 2^d_size-1 (signed: -1) when the
-   * denominator is 0 (d_value / 0 = 2^d_size - 1)..
+   * Total division function.
+   * Returns 2^d_size-1 (signed: -1) when the denominator is zero
+   * (d_value / 0 = 2^d_size - 1).
    */
   BitVector unsignedDivTotal (const BitVector& y) const {
 
@@ -187,8 +222,8 @@ public:
   }
 
   /**
-   * Total remainder function that returns d_value when the denominator is 0
-   * (d_value % 0 = d_value).
+   * Total remainder function.
+   * Returns d_value when the denominator is zero (d_value % 0 = d_value).
    */
   BitVector unsignedRemTotal(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
@@ -201,44 +236,10 @@ public:
   }
 
 
-  bool signedLessThan(const BitVector& y) const {
-    CheckArgument(d_size == y.d_size, y);
-    CheckArgument(d_value >= 0, this);
-    CheckArgument(y.d_value >= 0, y);
-    Integer a = (*this).toSignedInt();
-    Integer b = y.toSignedInt();
-
-    return a < b;
-  }
-
-  bool unsignedLessThan(const BitVector& y) const {
-    CheckArgument(d_size == y.d_size, y);
-    CheckArgument(d_value >= 0, this);
-    CheckArgument(y.d_value >= 0, y);
-    return d_value < y.d_value;
-  }
-
-  bool signedLessThanEq(const BitVector& y) const {
-    CheckArgument(d_size == y.d_size, y);
-    CheckArgument(d_value >= 0, this);
-    CheckArgument(y.d_value >= 0, y);
-    Integer a = (*this).toSignedInt();
-    Integer b = y.toSignedInt();
-
-    return a <= b;
-  }
-
-  bool unsignedLessThanEq(const BitVector& y) const {
-    CheckArgument(d_size == y.d_size, this);
-    CheckArgument(d_value >= 0, this);
-    CheckArgument(y.d_value >= 0, y);
-    return d_value <= y.d_value;
-  }
-
-
   /**
    * Extend operations
    */
+
   BitVector zeroExtend(unsigned amount) const {
     return BitVector(d_size + amount, d_value);
   }
@@ -254,7 +255,7 @@ public:
   }
 
   /**
-   * Shifts on BitVectors
+   * Shifts
    */
   BitVector leftShift(const BitVector& y) const {
     if (y.d_value > Integer(d_size)) {
@@ -336,6 +337,17 @@ public:
 
   const Integer& getValue() const {
     return d_value;
+  }
+
+  BitVector setBit(uint32_t i) const {
+    CheckArgument(i < d_size, i);
+    Integer res = d_value.setBit(i);
+    return BitVector(d_size, res);
+  }
+
+  bool isBitSet(uint32_t i) const {
+    CheckArgument(i < d_size, i);
+    return d_value.isBitSet(i);
   }
 
   /**
