@@ -1002,7 +1002,7 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
           Trace("cegqi-warn") << "WARNING : No recorded instantiations for syntax-guided solution!" << std::endl;
         }
       }
-      if( !(Trace.isOn("cegqi-stats")) ){
+      if( !(Trace.isOn("cegqi-stats")) && !sol.isNull() ){
         out << "(define-fun " << f << " ";
         if( dt.getSygusVarList().isNull() ){
           out << "() ";
@@ -1013,12 +1013,8 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
         if( status==0 ){
           out << sol;
         }else{
-          if( sol.isNull() ){
-            out << "?";
-          }else{
-            std::vector< Node > lvs;
-            TermDbSygus::printSygusTerm( out, sol, lvs );
-          }
+          std::vector< Node > lvs;
+          TermDbSygus::printSygusTerm( out, sol, lvs );
         }
         out << ")" << std::endl;
       }
