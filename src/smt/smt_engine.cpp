@@ -5246,13 +5246,21 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
       ss << "While performing quantifier elimination, unexpected result : " << r << " for query.";
       InternalError(ss.str().c_str());
     }
-
-    Node top_q = Rewriter::rewrite( nn_e ).negate();
-    Assert( top_q.getKind()==kind::FORALL );
-    Trace("smt-qe") << "Get qe for " << top_q << std::endl;
-    Node ret_n = d_theoryEngine->getInstantiatedConjunction( top_q );
-    Trace("smt-qe") << "Returned : " << ret_n << std::endl;
-    ret_n = Rewriter::rewrite( ret_n.negate() );
+    std::vector< Node > inst_qs;
+    d_theoryEngine->getInstantiatedQuantifiedFormulas( inst_qs );
+    Assert( inst_qs.size()<=1 );
+    Node ret_n;
+    if( inst_qs.size()==1 ){
+      Node top_q = inst_qs[0]; 
+      //Node top_q = Rewriter::rewrite( nn_e ).negate();
+      Assert( top_q.getKind()==kind::FORALL );
+      Trace("smt-qe") << "Get qe for " << top_q << std::endl;
+      ret_n = d_theoryEngine->getInstantiatedConjunction( top_q );
+      Trace("smt-qe") << "Returned : " << ret_n << std::endl;
+      ret_n = Rewriter::rewrite( ret_n.negate() );
+    }else{
+      ret_n = NodeManager::currentNM()->mkConst(false);
+    }
     return ret_n.toExpr();
   }else {
     return NodeManager::currentNM()->mkConst(true).toExpr();
