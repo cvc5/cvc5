@@ -5,10 +5,16 @@
 #
 # usage:
 #
-#     run_regression cvc4-binary [ --proof | --dump ] [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]
+#     run_regression [ --proof | --dump ] [ wrapper ] cvc4-binary [ benchmark.cvc | benchmark.smt | benchmark.smt2 | benchmark.p ]
 #
 # Runs benchmark and checks for correct exit status and output.
 #
+# The TEST_GROUP and TEST_GROUPS environment variables can be used to split the
+# benchmarks into groups and only run one of the groups. The benchmarks are
+# associated with a group based on a hash of their name. TEST_GROUPS controls
+# how many groups are created while TEST_GROUP specifies the group to run.
+# Currently, the primary use case for this is to split the benchmarks across
+# multiple Travis jobs.
 
 # ulimit -t 1    # For detecting long running regressions
 ulimit -s 65000  # Needed for some (esp. portfolio and model-building)
@@ -48,6 +54,16 @@ done
 cvc4=$1
 benchmark_orig=$2
 benchmark="$benchmark_orig"
+
+if [ -n "$TEST_GROUP" ]; then
+  # Use the checksum of the benchmark name to determine the group of the
+  # benchmark
+  benchmark_group=$(( $(echo "$benchmark" | cksum | cut -d " " -f1) % $TEST_GROUPS ))
+  if (( $benchmark_group != $TEST_GROUP )); then
+    # Skip the benchmark if it is not in the expected test group
+    exit 77
+  fi
+fi
 
 function error {
   echo "$prog: error: $*"
