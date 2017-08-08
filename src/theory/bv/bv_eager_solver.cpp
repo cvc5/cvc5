@@ -37,15 +37,17 @@ EagerBitblastSolver::EagerBitblastSolver(TheoryBV* bv)
 EagerBitblastSolver::~EagerBitblastSolver() {
 #ifdef CVC4_USE_ABC
   if (d_useAig) {
-    Assert (d_bitblaster == NULL); 
+    Assert (d_bitblaster == NULL);
     delete d_aigBitblaster;
   }
   else
-#endif
   {
-    Assert (d_aigBitblaster == NULL); 
+    Assert (d_aigBitblaster == NULL);
     delete d_bitblaster;
   }
+#else
+  delete d_bitblaster;
+#endif
 }
 
 void EagerBitblastSolver::turnOffAig() {
