@@ -1005,7 +1005,7 @@ int TermDbSygus::solveForArgument( TypeNode tn, unsigned cindex, unsigned arg ) 
       solve_ret = getConstConsNum( tn, builtin );
       if( solve_ret!=-1 ){
         // t - s    ----->  ( 0 - s ) + t
-        rt.d_req_kind = MINUS ? PLUS : BITVECTOR_PLUS;
+        rt.d_req_kind = nk == MINUS ? PLUS : BITVECTOR_PLUS;
         rt.d_children[0].d_req_type = tn; // avoid?
         rt.d_children[0].d_req_kind = nk;
         rt.d_children[0].d_children[0].d_req_const = builtin;
