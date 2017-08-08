@@ -179,7 +179,9 @@ void TheoryDatatypes::check(Effort e) {
     Assert( d_pending.empty() && d_pending_merge.empty() );
     do {
       d_addedFact = false;
+      Trace("datatypes-proc") << "Check cycles..." << std::endl;
       checkCycles();
+      Trace("datatypes-proc") << "...finish check cycles" << std::endl;
       flushPendingFacts();
       if( d_conflict || d_addedLemma ){
         return;
@@ -1791,7 +1793,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
 }
 
 void TheoryDatatypes::checkCycles() {
-  Debug("datatypes-cycle-check") << "Check cycles" << std::endl;
+  Trace("datatypes-cycle-check") << "Check acyclicity" << std::endl;
   std::vector< Node > cdt_eqc;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   while( !eqcs_i.isFinished() ){
@@ -1802,14 +1804,18 @@ void TheoryDatatypes::checkCycles() {
         if( options::dtCyclic() ){
           //do cycle checks
           std::map< TNode, bool > visited;
+          std::map< TNode, bool > proc;
           std::vector< TNode > expl;
-          Node cn = searchForCycle( eqc, eqc, visited, expl );
+          Trace("datatypes-cycle-check") << "...search for cycle starting at " << eqc << std::endl;
+          Node cn = searchForCycle( eqc, eqc, visited, proc, expl );
+          Trace("datatypes-cycle-check") << "...finish." << std::endl;
           //if we discovered a different cycle while searching this one
           if( !cn.isNull() && cn!=eqc ){
             visited.clear();
+            proc.clear();
             expl.clear();
             Node prev = cn;
-            cn = searchForCycle( cn, cn, visited, expl );
+            cn = searchForCycle( cn, cn, visited, proc, expl );
             Assert( prev==cn );
           }
 
@@ -1829,6 +1835,7 @@ void TheoryDatatypes::checkCycles() {
     }
     ++eqcs_i;
   }
+  Trace("datatypes-cycle-check") << "Check uniqueness" << std::endl;
   //process codatatypes
   if( cdt_eqc.size()>1 && options::cdtBisimilar() ){
     printModelDebug("dt-cdt-debug");
@@ -1991,9 +1998,9 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
 
 //postcondition: if cycle detected, explanation is why n is a subterm of on
 Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
-                                      std::map< TNode, bool >& visited,
+                                      std::map< TNode, bool >& visited, std::map< TNode, bool >& proc,
                                       std::vector< TNode >& explanation, bool firstTime ) {
-  Debug("datatypes-cycle-check") << "Search for cycle " << n << " " << on << endl;
+  Trace("datatypes-cycle-check2") << "Search for cycle " << n << " " << on << endl;
   TNode ncons;
   TNode nn;
   if( !firstTime ){
@@ -2003,14 +2010,19 @@ Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
       return on;
     }
   }else{
-    nn = n;
+    nn = getRepresentative( n );
   }
+  if( proc.find( nn )!=proc.end() ){
+    return Node::null();
+  }
+  Trace("datatypes-cycle-check2") << "...representative : " << nn << " " << ( visited.find( nn ) == visited.end() ) << " " << visited.size() << std::endl;
   if( visited.find( nn ) == visited.end() ) {
+    Trace("datatypes-cycle-check2") << "  visit : " << nn << std::endl;
     visited[nn] = true;
     TNode ncons = getEqcConstructor( nn );
     if( ncons.getKind()==APPLY_CONSTRUCTOR ) {
-      for( int i=0; i<(int)ncons.getNumChildren(); i++ ) {
-        TNode cn = searchForCycle( ncons[i], on, visited, explanation, false );
+      for( unsigned i=0; i<ncons.getNumChildren(); i++ ) {
+        TNode cn = searchForCycle( ncons[i], on, visited, proc, explanation, false );
         if( cn==on ) {
           //if( Debug.isOn("datatypes-cycles") && !d_cycle_check.isConnectedNode( n, ncons[i] ) ){
           //  Debug("datatypes-cycles") << "Cycle subterm: " << n << " is not -> " << ncons[i] << "!!!!" << std::endl;
@@ -2025,6 +2037,8 @@ Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
         }
       }
     }
+    Trace("datatypes-cycle-check2") << "  unvisit : " << nn << std::endl;
+    proc[nn] = true;
     visited.erase( nn );
     return Node::null();
   }else{
