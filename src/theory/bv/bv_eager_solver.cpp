@@ -27,33 +27,43 @@ using namespace CVC4::theory::bv;
 EagerBitblastSolver::EagerBitblastSolver(TheoryBV* bv)
   : d_assertionSet()
   , d_bitblaster(NULL)
+#ifdef CVC4_USE_ABC
   , d_aigBitblaster(NULL)
+#endif
   , d_useAig(options::bitvectorAig())
   , d_bv(bv)
 {}
 
 EagerBitblastSolver::~EagerBitblastSolver() {
+#ifdef CVC4_USE_ABC
   if (d_useAig) {
     Assert (d_bitblaster == NULL); 
     delete d_aigBitblaster;
   }
-  else {
+  else
+#endif
+  {
     Assert (d_aigBitblaster == NULL); 
     delete d_bitblaster;
   }
 }
 
 void EagerBitblastSolver::turnOffAig() {
-  Assert (d_aigBitblaster == NULL &&
-          d_bitblaster == NULL);
+#ifdef CVC4_USE_ABC
+  Assert (d_aigBitblaster == NULL);
+#endif
+  Assert (d_bitblaster == NULL);
   d_useAig = false;
 }
 
 void EagerBitblastSolver::initialize() {
   Assert(!isInitialized());
+#ifdef CVC4_USE_ABC
   if (d_useAig) {
     d_aigBitblaster = new AigBitblaster();
-  } else {
+  } else
+#endif
+  {
     d_bitblaster = new EagerBitblaster(d_bv);
     THEORY_PROOF(
       if( d_bvp ){
@@ -65,9 +75,15 @@ void EagerBitblastSolver::initialize() {
 }
 
 bool EagerBitblastSolver::isInitialized() {
+#ifdef CVC4_USE_ABC
   bool init = d_aigBitblaster != NULL || d_bitblaster != NULL;
+#else
+  bool init = d_bitblaster != NULL;
+#endif
   if (init) {
+#ifdef CVC4_USE_ABC
     Assert (!d_useAig || d_aigBitblaster);
+#endif
     Assert (d_useAig || d_bitblaster);
   }
   return init;
@@ -79,9 +95,11 @@ void EagerBitblastSolver::assertFormula(TNode formula) {
   Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula "<< formula <<"\n"; 
   d_assertionSet.insert(formula);
   //ensures all atoms are bit-blasted and converted to AIG
-  if (d_useAig) 
+#ifdef CVC4_USE_ABC
+  if (d_useAig)
     d_aigBitblaster->bbFormula(formula);
   else
+#endif
     d_bitblaster->bbFormula(formula);
 }
 
@@ -94,10 +112,12 @@ bool EagerBitblastSolver::checkSat() {
   if (!assertions.size())
     return true;
   
+#ifdef CVC4_USE_ABC
   if (d_useAig) {
     Node query = utils::mkAnd(assertions); 
     return d_aigBitblaster->solve(query);
   }
+#endif
   
   return d_bitblaster->solve(); 
 }
