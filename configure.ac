@@ -927,7 +927,7 @@ DX_PS_FEATURE(OFF)
 DX_DOT_FEATURE(OFF)
 DX_INIT_DOXYGEN($PACKAGE_NAME, config/doxygen.cfg, $srcdir/doc/doxygen)
 
-AC_ARG_ENABLE([unit-testing], AS_HELP_STRING([--disable-unit-testing], [don't build support for unit testing, even if available]), , [enable_unit_testing=check])
+AC_ARG_ENABLE([unit-testing], AS_HELP_STRING([--disable-unit-testing], [do not build support for unit testing, even if available]), , [enable_unit_testing=check])
 AC_ARG_VAR(CXXTEST, [path to CxxTest installation])
 AC_ARG_WITH([cxxtest-dir],
   [AS_HELP_STRING([--with-cxxtest-dir=DIR], [path to CxxTest installation])],
