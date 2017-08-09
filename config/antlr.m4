@@ -20,6 +20,10 @@ AC_DEFUN([AC_PROG_ANTLR], [
       AC_MSG_RESULT([OK])
     fi
   fi
+  # Check if antlr-3.4 was installed via contrib/get-antlr3.4
+  if test -e "../../../antlr-3.4/bin/antlr3"; then
+    ANTLR="`realpath ../../../antlr-3.4/bin/antlr3`"
+  fi
   if test "x$ANTLR" = "x"; then
     AC_MSG_WARN(
 [No usable antlr3 script found. Make sure that the parser code has
@@ -54,6 +58,11 @@ AC_DEFUN([AC_LIB_ANTLR],[
     ANTLR_PREFIXES="$withval",
     ANTLR_PREFIXES="$ANTLR_HOME /usr/local /usr /opt/local /opt"
   )
+
+  # Check if antlr-3.4 was installed via contrib/get-antlr3.4
+  if test -e "../../../antlr-3.4"; then
+    ANTLR_PREFIXES="`realpath ../../../antlr-3.4`"
+  fi
 
   AC_MSG_CHECKING(for ANTLR3 C runtime library)
 
