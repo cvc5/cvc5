@@ -34,19 +34,18 @@ EagerBitblastSolver::EagerBitblastSolver(TheoryBV* bv)
 
 EagerBitblastSolver::~EagerBitblastSolver() {
   if (d_useAig) {
-    Assert (d_bitblaster == NULL);
+    Assert (d_bitblaster == NULL); 
     delete d_aigBitblaster;
   }
-  else
-  {
-    Assert (d_aigBitblaster == NULL);
+  else {
+    Assert (d_aigBitblaster == NULL); 
     delete d_bitblaster;
   }
 }
 
 void EagerBitblastSolver::turnOffAig() {
-  Assert (d_aigBitblaster == NULL);
-  Assert (d_bitblaster == NULL);
+  Assert (d_aigBitblaster == NULL &&
+          d_bitblaster == NULL);
   d_useAig = false;
 }
 
@@ -58,8 +57,7 @@ void EagerBitblastSolver::initialize() {
 #else
     Unreachable();
 #endif
-  }
-  else {
+  } else {
     d_bitblaster = new EagerBitblaster(d_bv);
     THEORY_PROOF(
       if( d_bvp ){
@@ -85,7 +83,7 @@ void EagerBitblastSolver::assertFormula(TNode formula) {
   Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula "<< formula <<"\n"; 
   d_assertionSet.insert(formula);
   //ensures all atoms are bit-blasted and converted to AIG
-  if (d_useAig && d_aigBitblaster)
+  if (d_useAig)
   {
 #ifdef CVC4_USE_ABC
     d_aigBitblaster->bbFormula(formula);
@@ -106,7 +104,7 @@ bool EagerBitblastSolver::checkSat() {
   if (!assertions.size())
     return true;
   
-  if (d_useAig && d_aigBitblaster) {
+  if (d_useAig) {
 #ifdef CVC4_USE_ABC
     Node query = utils::mkAnd(assertions); 
     return d_aigBitblaster->solve(query);
