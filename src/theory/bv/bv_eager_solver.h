@@ -30,9 +30,7 @@ namespace theory {
 namespace bv {
 
 class EagerBitblaster;
-#ifdef CVC4_USE_ABC
 class AigBitblaster;
-#endif
 
 /**
  * BitblastSolver
@@ -42,9 +40,7 @@ class EagerBitblastSolver {
   AssertionSet d_assertionSet;
   /** Bitblasters */
   EagerBitblaster* d_bitblaster;
-#ifdef CVC4_USE_ABC
   AigBitblaster* d_aigBitblaster;
-#endif
   bool d_useAig;
 
   TheoryBV* d_bv; 
