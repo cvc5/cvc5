@@ -52,7 +52,11 @@ void EagerBitblastSolver::turnOffAig() {
 void EagerBitblastSolver::initialize() {
   Assert(!isInitialized());
   if (d_useAig) {
+#ifdef CVC4_USE_ABC
     d_aigBitblaster = new AigBitblaster();
+#else
+    Unreachable();
+#endif
   } else {
     d_bitblaster = new EagerBitblaster(d_bv);
     THEORY_PROOF(
@@ -79,8 +83,14 @@ void EagerBitblastSolver::assertFormula(TNode formula) {
   Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula "<< formula <<"\n"; 
   d_assertionSet.insert(formula);
   //ensures all atoms are bit-blasted and converted to AIG
-  if (d_useAig) 
+  if (d_useAig)
+  {
+#ifdef CVC4_USE_ABC
     d_aigBitblaster->bbFormula(formula);
+#else
+    Unreachable();
+#endif
+  }
   else
     d_bitblaster->bbFormula(formula);
 }
@@ -95,8 +105,12 @@ bool EagerBitblastSolver::checkSat() {
     return true;
   
   if (d_useAig) {
+#ifdef CVC4_USE_ABC
     Node query = utils::mkAnd(assertions); 
     return d_aigBitblaster->solve(query);
+#else
+    Unreachable();
+#endif
   }
   
   return d_bitblaster->solve(); 
