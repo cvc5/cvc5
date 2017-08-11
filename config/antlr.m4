@@ -21,8 +21,8 @@ AC_DEFUN([AC_PROG_ANTLR], [
     fi
   fi
   # Check if antlr-3.4 was installed via contrib/get-antlr3.4
-  if test -e "../../../antlr-3.4/bin/antlr3"; then
-    ANTLR="`realpath ../../../antlr-3.4/bin/antlr3`"
+  if test -e "$ac_abs_confdir/antlr-3.4/bin/antlr3"; then
+    ANTLR="$ac_abs_confdir/antlr-3.4/bin/antlr3"
   fi
   if test "x$ANTLR" = "x"; then
     AC_MSG_WARN(
@@ -60,8 +60,8 @@ AC_DEFUN([AC_LIB_ANTLR],[
   )
 
   # Check if antlr-3.4 was installed via contrib/get-antlr3.4
-  if test -e "../../../antlr-3.4"; then
-    ANTLR_PREFIXES="`realpath ../../../antlr-3.4`"
+  if test -e "$ac_abs_confdir/antlr-3.4"; then
+    ANTLR_PREFIXES="$ac_abs_confdir/antlr-3.4"
   fi
 
   AC_MSG_CHECKING(for ANTLR3 C runtime library)
