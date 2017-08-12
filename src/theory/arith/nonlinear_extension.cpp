@@ -1079,12 +1079,10 @@ std::vector<Node> NonlinearExtension::checkSplitZero() {
   for (unsigned i = 0; i < d_ms_vars.size(); i++) {
     Node v = d_ms_vars[i];
     if (d_zero_split.insert(v)) {
-      Node lem = v.eqNode(d_zero);
-      lem = Rewriter::rewrite(lem);
-      d_containing.getValuation().ensureLiteral(lem);
-      d_containing.getOutputChannel().requirePhase(lem, true);
-      lem = NodeManager::currentNM()->mkNode(kind::OR, lem, lem.negate());
-      lemmas.push_back(lem);
+      Node eq = v.eqNode(d_zero);
+      Node literal = d_containing.getValuation().ensureLiteral(eq);
+      d_containing.getOutputChannel().requirePhase(literal, true);
+      lemmas.push_back(literal.orNode(literal.negate()));
     }
   }
   return lemmas;
@@ -1406,12 +1404,10 @@ void NonlinearExtension::check(Theory::Effort e) {
         if( stv0!=stv1 ){
           Trace("nl-ext-mv") << "Bad shared term value : " << shared_term << " : " << stv1 << ", actual is " << stv0 << std::endl;
           //split on the value, FIXME : this is non-terminating in general, improve this
-          Node lem = shared_term.eqNode(stv0);
-          lem = Rewriter::rewrite(lem);
-          d_containing.getValuation().ensureLiteral(lem);
-          d_containing.getOutputChannel().requirePhase(lem, true);
-          lem = NodeManager::currentNM()->mkNode(kind::OR, lem, lem.negate());
-          lemmas.push_back(lem);
+          Node eq = shared_term.eqNode(stv0);
+          Node literal = d_containing.getValuation().ensureLiteral(eq);
+          d_containing.getOutputChannel().requirePhase(literal, true);
+          lemmas.push_back(literal.orNode(literal.negate()));
         }
       }
       if( !lemmas.empty() ){
