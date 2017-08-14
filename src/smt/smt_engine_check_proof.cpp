@@ -28,15 +28,15 @@
 #include <fstream>
 #include <string>
 
-#if IS_LFSC_BUILD
-#include <check.h>
-#endif
-
 #include "base/configuration_private.h"
 #include "base/cvc4_assert.h"
 #include "base/output.h"
 #include "smt/smt_engine.h"
 #include "util/statistics_registry.h"
+
+#if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
+#include "lfscc.h"
+#endif
 
 using namespace CVC4;
 using namespace std;
@@ -114,16 +114,9 @@ void SmtEngine::checkProof() {
   pfStream << proof::plf_signatures << endl;
   pf->toStream(pfStream);
   pfStream.close();
-  args a;
-  a.show_runs = false;
-  a.no_tail_calls = false;
-  a.compile_scc = false;
-  a.compile_scc_debug = false;
-  a.run_scc = false;
-  a.use_nested_app = false;
-  a.compile_lib = false;
-  init();
-  check_file(pfFile, a);
+  lfscc_init();
+  lfscc_check_file(pfFile, false, false, false, false, false, false, false);
+  lfscc_cleanup();
   free(pfFile);
   close(fd);
 

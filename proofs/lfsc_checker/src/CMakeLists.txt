@@ -2,6 +2,7 @@ set(lfsc_src_files
     check.cpp
     code.cpp
     expr.cpp
+    lfscc.cpp
     libwriter.cpp
     print_smt2.cpp
     scccode.cpp
@@ -19,7 +20,7 @@ install (TARGETS lfsc_checker
 add_library (liblfsc_checker SHARED $<TARGET_OBJECTS:objlib>)
 set_target_properties (liblfsc_checker PROPERTIES
   OUTPUT_NAME lfscc
-  PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/check.h"  
+  PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/lfscc.h"  
 )
 install (TARGETS liblfsc_checker
   LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
