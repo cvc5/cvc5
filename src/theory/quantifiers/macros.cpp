@@ -21,6 +21,7 @@
 #include "options/quantifiers_modes.h"
 #include "options/quantifiers_options.h"
 #include "proof/proof_manager.h"
+#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
