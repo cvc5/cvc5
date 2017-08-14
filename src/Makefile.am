@@ -25,7 +25,7 @@ include @top_srcdir@/src/Makefile.theories
 
 lib_LTLIBRARIES = libcvc4.la
 
-libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION)
+libcvc4_la_LDFLAGS = -no-undefined -version-info $(LIBCVC4_VERSION)
 
 # This "tricks" automake into linking us as a C++ library (rather than
 # as a C library, which messes up exception handling support)
