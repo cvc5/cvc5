@@ -1,7 +1,12 @@
 #include "libwriter.h"
-#include <sstream>
+
 #include <algorithm>
 #include <fstream>
+#include <iostream>
+#include <map>
+#include <sstream>
+
+#include "expr.h"
 
 void libwriter::get_var_name( const std::string& n, std::string& nn ) {
   nn = std::string( n.c_str() );

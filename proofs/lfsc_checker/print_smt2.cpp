@@ -1,5 +1,11 @@
 #include "print_smt2.h"
 
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include "expr.h"
+
 #ifdef PRINT_SMT2
 
 void print_smt2( Expr* p, std::ostream& s, short mode )

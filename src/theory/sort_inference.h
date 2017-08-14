@@ -17,8 +17,6 @@
 #ifndef __CVC4__SORT_INFERENCE_H
 #define __CVC4__SORT_INFERENCE_H
 
-#include <iostream>
-#include <string>
 #include <vector>
 #include <map>
 #include "expr/node.h"

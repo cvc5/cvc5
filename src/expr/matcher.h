@@ -20,12 +20,9 @@
 #define __CVC4__MATCHER_H
 
 #include <iosfwd>
-#include <string>
 #include <vector>
-#include <map>
 
 #include "base/cvc4_assert.h"
-#include "expr/node.h"
 #include "expr/type_node.h"
 
 namespace CVC4 {

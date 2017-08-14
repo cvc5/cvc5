@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers_engine.h"
 
+#include <iostream>
+
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_statistics_registry.h"

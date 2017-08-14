@@ -284,7 +284,7 @@ public:
    * If this is a CONST_* Node, extract the constant from it.
    */
   template <class T>
-  inline const T& getConst() const;
+  const T& getConst() const;
 
   NodeValue* getOperator() const;
   NodeValue* getChild(int i) const;

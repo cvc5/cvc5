@@ -20,7 +20,7 @@
 #ifndef __CVC4__CARDINALITY_H
 #define __CVC4__CARDINALITY_H
 
-#include <iostream>
+#include <iosfwd>
 #include <utility>
 
 #include "base/exception.h"

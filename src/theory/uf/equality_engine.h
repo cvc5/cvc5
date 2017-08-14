@@ -24,7 +24,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/output.h"
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
 #include "expr/kind_map.h"

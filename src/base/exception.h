@@ -24,7 +24,6 @@
 #include <exception>
 #include <iosfwd>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 
 #include "base/tls.h"

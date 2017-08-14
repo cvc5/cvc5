@@ -43,10 +43,11 @@ extern int optreset;
 #include <cstdlib>
 #include <cstring>
 #include <iomanip>
-#include <new>
-#include <string>
-#include <sstream>
 #include <limits>
+#include <new>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 #include "base/cvc4_assert.h"
 #include "base/exception.h"
@@ -60,7 +61,7 @@ extern int optreset;
 
 ${include_all_option_headers}
 
-#line 64 "${template}"
+#line 65 "${template}"
 
 #include "options/options_holder.h"
 #include "cvc4autoconfig.h"
@@ -68,7 +69,7 @@ ${include_all_option_headers}
 
 ${option_handler_includes}
 
-#line 72 "${template}"
+#line 73 "${template}"
 
 using namespace CVC4;
 using namespace CVC4::options;
@@ -390,7 +391,7 @@ Options::registerSetReplayLogFilename(
 
 ${all_custom_handlers}
 
-#line 394 "${template}"
+#line 395 "${template}"
 
 #ifdef CVC4_DEBUG
 #  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT true
@@ -408,18 +409,18 @@ options::OptionsHolder::OptionsHolder() : ${all_modules_defaults}
 {
 }
 
-#line 412 "${template}"
+#line 413 "${template}"
 
 static const std::string mostCommonOptionsDescription = "\
 Most commonly-used CVC4 options:${common_documentation}";
 
-#line 417 "${template}"
+#line 418 "${template}"
 
 static const std::string optionsDescription = mostCommonOptionsDescription + "\n\
 \n\
 Additional CVC4 options:${remaining_documentation}";
 
-#line 423 "${template}"
+#line 424 "${template}"
 
 static const std::string optionsFootnote = "\n\
 [*] Each of these options has a --no-OPTIONNAME variant, which reverses the\n\
@@ -500,7 +501,7 @@ static struct option cmdlineOptions[] = {${all_modules_long_options}
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
 
-#line 504 "${template}"
+#line 505 "${template}"
 
 // static void preemptGetopt(int& argc, char**& argv, const char* opt) {
 
@@ -722,7 +723,7 @@ void Options::parseOptionsRecursive(Options* options,
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 726 "${template}"
+#line 727 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the
@@ -800,7 +801,7 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName) th
 
 static const char* smtOptions[] = {
   ${all_modules_smt_options},
-#line 804 "${template}"
+#line 805 "${template}"
   NULL
 };/* smtOptions[] */
 
@@ -822,7 +823,7 @@ std::vector< std::vector<std::string> > Options::getOptions() const throw() {
 
   ${all_modules_get_options}
 
-#line 826 "${template}"
+#line 827 "${template}"
 
   return opts;
 }

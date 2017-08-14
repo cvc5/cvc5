@@ -17,13 +17,12 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS_ENGINE_H
 #define __CVC4__THEORY__QUANTIFIERS_ENGINE_H
 
-#include <iostream>
+#include <iosfwd>
 #include <map>
 #include <unordered_map>
 
 #include "context/cdchunk_list.h"
 #include "context/cdhashset.h"
-#include "expr/attribute.h"
 #include "options/quantifiers_modes.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/quant_util.h"

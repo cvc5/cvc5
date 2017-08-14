@@ -19,7 +19,7 @@
 #ifndef __CVC4__KIND__METAKIND_H
 #define __CVC4__KIND__METAKIND_H
 
-#include <iostream>
+#include <iosfwd>
 
 #include "base/cvc4_assert.h"
 #include "expr/kind.h"
@@ -81,9 +81,9 @@ struct NodeValueConstCompare {
 
 struct NodeValueCompare {
   template <bool pool>
-  inline static bool compare(const ::CVC4::expr::NodeValue* nv1,
-                             const ::CVC4::expr::NodeValue* nv2);
-  inline static size_t constHash(const ::CVC4::expr::NodeValue* nv);
+  static bool compare(const ::CVC4::expr::NodeValue* nv1,
+                      const ::CVC4::expr::NodeValue* nv2);
+  static size_t constHash(const ::CVC4::expr::NodeValue* nv);
 };/* struct NodeValueCompare */
 
 /**
@@ -111,27 +111,8 @@ typedef ::CVC4::kind::metakind::MetaKind_t MetaKind;
 /**
  * Get the metakind for a particular kind.
  */
-static inline MetaKind metaKindOf(Kind k) {
-  static const MetaKind metaKinds[] = {
-    metakind::INVALID, /* UNDEFINED_KIND */
-    metakind::INVALID, /* NULL_EXPR */
-${metakind_kinds}
-    metakind::INVALID /* LAST_KIND */
-  };/* metaKinds[] */
-
-  Assert(k >= kind::NULL_EXPR && k < kind::LAST_KIND);
-
-  // We've asserted that k >= NULL_EXPR (which is 0), but we still
-  // handle the UNDEFINED_KIND (-1) case.  If we don't, the compiler
-  // emits warnings for non-assertion builds, since the check isn't done.
-  return metaKinds[k + 1];
-}/* metaKindOf(k) */
-
+MetaKind metaKindOf(Kind k);
 }/* CVC4::kind namespace */
-
-namespace expr {
-  class NodeValue;
-}/* CVC4::expr namespace */
 
 namespace kind {
 namespace metakind {
@@ -169,6 +150,11 @@ ${metakind_includes}
 #ifdef __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
 namespace CVC4 {
+
+namespace expr {
+${metakind_getConst_decls}
+}/* CVC4::expr namespace */
+
 namespace kind {
 namespace metakind {
 
@@ -197,79 +183,13 @@ inline size_t NodeValueConstCompare<k, pool>::constHash(const ::CVC4::expr::Node
   return nv->getConst<T>().hash();
 }
 
-${metakind_constantMaps}
-
-template <bool pool>
-inline bool NodeValueCompare::compare(const ::CVC4::expr::NodeValue* nv1,
-                                      const ::CVC4::expr::NodeValue* nv2) {
-  if(nv1->d_kind != nv2->d_kind) {
-    return false;
-  }
-
-  if(nv1->getMetaKind() == kind::metakind::CONSTANT) {
-    switch(nv1->d_kind) {
-${metakind_compares}
-    default:
-      Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv1->d_kind));
-    }
-  }
-
-  if(nv1->d_nchildren != nv2->d_nchildren) {
-    return false;
-  }
-
-  ::CVC4::expr::NodeValue::const_nv_iterator i = nv1->nv_begin();
-  ::CVC4::expr::NodeValue::const_nv_iterator j = nv2->nv_begin();
-  ::CVC4::expr::NodeValue::const_nv_iterator i_end = nv1->nv_end();
-
-  while(i != i_end) {
-    if((*i) != (*j)) {
-      return false;
-    }
-    ++i;
-    ++j;
-  }
-
-  return true;
-}
-
-inline size_t NodeValueCompare::constHash(const ::CVC4::expr::NodeValue* nv) {
-  Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
-
-  switch(nv->d_kind) {
-${metakind_constHashes}
-  default:
-    Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv->d_kind));
-  }
-}
+${metakind_constantMaps_decls}
 
 struct NodeValueConstPrinter {
-  inline static void toStream(std::ostream& out,
+  static void toStream(std::ostream& out,
                               const ::CVC4::expr::NodeValue* nv);
-  inline static void toStream(std::ostream& out, TNode n);
+  static void toStream(std::ostream& out, TNode n);
 };
-
-inline void NodeValueConstPrinter::toStream(std::ostream& out,
-                                            const ::CVC4::expr::NodeValue* nv) {
-  Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
-
-  switch(nv->d_kind) {
-${metakind_constPrinters}
-  default:
-    Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv->d_kind));
-  }
-}
-
-inline void NodeValueConstPrinter::toStream(std::ostream& out, TNode n) {
-  toStream(out, n.d_nv);
-}
-
-// The reinterpret_cast of d_children to various constant payload types
-// in deleteNodeValueConstant(), below, can flag a "strict aliasing"
-// warning; it should actually be okay, because we never access the
-// embedded constant as a NodeValue* child, and never access an embedded
-// NodeValue* child as a constant.
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 
 /**
  * Cleanup to be performed when a NodeValue zombie is collected, and
@@ -280,40 +200,10 @@ inline void NodeValueConstPrinter::toStream(std::ostream& out, TNode n) {
  * This doesn't support "non-inlined" NodeValues, which shouldn't need this
  * kind of cleanup.
  */
-inline void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv) {
-  Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
+void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv);
 
-  switch(nv->d_kind) {
-${metakind_constDeleters}
-  default:
-    Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv->d_kind));
-  }
-}
-
-// re-enable the strict-aliasing warning
-# pragma GCC diagnostic warning "-Wstrict-aliasing"
-
-inline unsigned getLowerBoundForKind(::CVC4::Kind k) {
-  static const unsigned lbs[] = {
-    0, /* NULL_EXPR */
-${metakind_lbchildren}
-
-    0 /* LAST_KIND */
-  };
-
-  return lbs[k];
-}
-
-inline unsigned getUpperBoundForKind(::CVC4::Kind k) {
-  static const unsigned ubs[] = {
-    0, /* NULL_EXPR */
-${metakind_ubchildren}
-
-    0, /* LAST_KIND */
-  };
-
-  return ubs[k];
-}
+unsigned getLowerBoundForKind(::CVC4::Kind k);
+unsigned getUpperBoundForKind(::CVC4::Kind k);
 
 }/* CVC4::kind::metakind namespace */
 
@@ -322,24 +212,11 @@ ${metakind_ubchildren}
  * example, since the kind of functions is just VARIABLE, it should map
  * VARIABLE to APPLY_UF.
  */
-static inline Kind operatorToKind(::CVC4::expr::NodeValue* nv) {
-  if(nv->getKind() == kind::BUILTIN) {
-    return nv->getConst<Kind>();
-  } else if(nv->getKind() == kind::LAMBDA) {
-    return kind::APPLY_UF;
-  }
-
-  switch(Kind k CVC4_UNUSED = nv->getKind()) {
-${metakind_operatorKinds}
-
-  default:
-    return kind::UNDEFINED_KIND;  /* LAST_KIND */
-  };
-}
+Kind operatorToKind(::CVC4::expr::NodeValue* nv);
 
 }/* CVC4::kind namespace */
 
-#line 343 "${template}"
+#line 220 "${template}"
 
 namespace theory {
 

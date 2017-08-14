@@ -16,7 +16,6 @@
 
 #include "theory/theory_engine.h"
 
-#include <list>
 #include <vector>
 
 #include "decision/decision_engine.h"
@@ -31,8 +30,11 @@
 #include "proof/lemma_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
-#include "smt/term_formula_removal.h"
+#include "prop/prop_engine.h"
+#include "smt/command.h"
 #include "smt/logic_exception.h"
+#include "smt/term_formula_removal.h"
+#include "smt_util/lemma_channels.h"
 #include "smt_util/lemma_output_channel.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arith/arith_ite_utils.h"
@@ -44,13 +46,14 @@
 #include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/equality_engine.h"
 #include "theory/unconstrained_simplifier.h"
 #include "util/resource_manager.h"
-
 using namespace std;
 
 using namespace CVC4::theory;
@@ -191,6 +194,50 @@ theory::LemmaStatus TheoryEngine::EngineOutputChannel::splitLemma(
   theory::LemmaStatus result =
       d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory);
   return result;
+}
+
+void TheoryEngine::EngineOutputChannel::demandRestart() throw(
+    TypeCheckingExceptionPrivate, AssertionException,
+    UnsafeInterruptException) {
+  NodeManager* curr = NodeManager::currentNM();
+  Node restartVar = curr->mkSkolem(
+      "restartVar", curr->booleanType(),
+      "A boolean variable asserted to be true to force a restart");
+  Trace("theory::restart") << "EngineOutputChannel<" << d_theory
+                           << ">::restart(" << restartVar << ")" << std::endl;
+  ++d_statistics.restartDemands;
+  lemma(restartVar, RULE_INVALID, true);
+}
+
+void TheoryEngine::EngineOutputChannel::requirePhase(TNode n, bool phase) throw(
+    theory::Interrupted, AssertionException, UnsafeInterruptException) {
+  Debug("theory") << "EngineOutputChannel::requirePhase(" << n << ", " << phase
+                  << ")" << std::endl;
+  ++d_statistics.requirePhase;
+  d_engine->d_propEngine->requirePhase(n, phase);
+}
+
+bool TheoryEngine::EngineOutputChannel::flipDecision() throw(
+    theory::Interrupted, AssertionException, UnsafeInterruptException) {
+  Debug("theory") << "EngineOutputChannel::flipDecision()" << std::endl;
+  ++d_statistics.flipDecision;
+  return d_engine->d_propEngine->flipDecision();
+}
+
+void TheoryEngine::EngineOutputChannel::setIncomplete() throw(
+    AssertionException, UnsafeInterruptException) {
+  Trace("theory") << "TheoryEngine::setIncomplete()" << std::endl;
+  d_engine->setIncomplete(d_theory);
+}
+
+void TheoryEngine::EngineOutputChannel::spendResource(unsigned ammount) throw(
+    UnsafeInterruptException) {
+  d_engine->spendResource(ammount);
+}
+
+void TheoryEngine::EngineOutputChannel::handleUserAttribute(const char* attr,
+                                                            theory::Theory* t) {
+  d_engine->handleUserAttribute(attr, t);
 }
 
 bool TheoryEngine::EngineOutputChannel::propagate(TNode literal)

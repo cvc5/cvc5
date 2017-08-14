@@ -1,8 +1,10 @@
 #ifndef LIB_WRITER_H
 #define LIB_WRITER_H
 
-#include "expr.h"
-#include <map>
+#include <vector>
+#include <string>
+
+class Expr;
 
 class libwriter
 {

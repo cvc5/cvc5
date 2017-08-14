@@ -67,7 +67,9 @@ libexpr_la_SOURCES = \
 
 nodist_libexpr_la_SOURCES = \
 	kind.h \
+	kind.cpp \
 	metakind.h \
+	metakind.cpp \
 	type_properties.h \
 	expr.h \
 	expr.cpp \
@@ -83,7 +85,9 @@ EXTRA_DIST = \
 	datatype.i \
 	emptyset.i \
 	kind_template.h \
+	kind_template.cpp \
 	metakind_template.h \
+	metakind_template.cpp \
 	type_properties_template.h \
 	expr_manager_template.h \
 	expr_manager_template.cpp \
@@ -105,7 +109,9 @@ EXTRA_DIST = \
 
 BUILT_SOURCES = \
 	kind.h \
+	kind.cpp \
 	metakind.h \
+	metakind.cpp \
 	type_properties.h \
 	expr.h \
 	expr.cpp \
@@ -116,7 +122,9 @@ BUILT_SOURCES = \
 
 CLEANFILES = \
 	kind.h \
+	kind.cpp \
 	metakind.h \
+	metakind.cpp \
 	expr.h \
 	expr.cpp \
 	expr_manager.h \
@@ -142,7 +150,23 @@ kind.h: kind_template.h mkkind @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_
 		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
+kind.cpp: kind_template.cpp mkkind @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
+	$(AM_V_at)chmod +x @srcdir@/mkkind
+	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
+	$(AM_V_GEN)(@srcdir@/mkkind \
+		$< \
+		`cat @top_builddir@/src/expr/.subdirs` \
+	> $@) || (rm -f $@ && exit 1)
+
 metakind.h: metakind_template.h mkmetakind @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
+	$(AM_V_at)chmod +x @srcdir@/mkmetakind
+	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
+	$(AM_V_GEN)(@srcdir@/mkmetakind \
+		$< \
+		`cat @top_builddir@/src/expr/.subdirs` \
+	> $@) || (rm -f $@ && exit 1)
+
+metakind.cpp: metakind_template.cpp mkmetakind @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkmetakind
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkmetakind \
