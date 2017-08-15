@@ -67,6 +67,7 @@ libexpr_la_SOURCES = \
 
 nodist_libexpr_la_SOURCES = \
 	kind.h \
+	kind.cpp \
 	metakind.h \
 	type_properties.h \
 	expr.h \
@@ -83,6 +84,7 @@ EXTRA_DIST = \
 	datatype.i \
 	emptyset.i \
 	kind_template.h \
+	kind_template.cpp \
 	metakind_template.h \
 	type_properties_template.h \
 	expr_manager_template.h \
@@ -105,6 +107,7 @@ EXTRA_DIST = \
 
 BUILT_SOURCES = \
 	kind.h \
+	kind.cpp \
 	metakind.h \
 	type_properties.h \
 	expr.h \
@@ -116,6 +119,7 @@ BUILT_SOURCES = \
 
 CLEANFILES = \
 	kind.h \
+	kind.cpp \
 	metakind.h \
 	expr.h \
 	expr.cpp \
@@ -135,6 +139,14 @@ $(top_builddir)/src/expr/.subdirs: $(top_srcdir)/src/Makefile.theories  @top_src
 	fi
 
 kind.h: kind_template.h mkkind @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
+	$(AM_V_at)chmod +x @srcdir@/mkkind
+	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
+	$(AM_V_GEN)(@srcdir@/mkkind \
+		$< \
+		`cat @top_builddir@/src/expr/.subdirs` \
+	> $@) || (rm -f $@ && exit 1)
+
+kind.cpp: kind_template.cpp mkkind @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkkind
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkkind \
