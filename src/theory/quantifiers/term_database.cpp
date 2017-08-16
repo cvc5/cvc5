@@ -22,6 +22,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fun_def_engine.h"
 #include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/polymorphic_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers/term_database_sygus.h"
@@ -117,6 +118,7 @@ Node TermDb::getGroundTerm( Node f, unsigned i ) {
   return d_op_map[f][i];
 }
 
+
 unsigned TermDb::getNumTypeGroundTerms( TypeNode tn ) {
   std::map< TypeNode, std::vector< Node > >::iterator it = d_type_map.find( tn );
   if( it!=d_type_map.end() ){
@@ -197,6 +199,10 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
       }
     }
   }
+}
+
+bool TermDb::isTermAdded( Node n ){
+  return d_processed.find(n) != d_processed.end();
 }
 
 void TermDb::computeArgReps( TNode n ) {
@@ -2007,6 +2013,11 @@ bool TermDb::isFunDef( Node q ) {
   return !getFunDefHead( q ).isNull();
 }
 
+bool TermDb::isPolymorphic( Node q ) {
+  return q.getKind()==FORALL && //q.getNumChildren()==3 && 
+         NodeManager::currentNM()->isPolymorphicTypeVar(q[0][0].getType());
+}
+
 bool TermDb::isFunDefAnnotation( Node ipl ) {
   if( !ipl.isNull() ){
     for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
@@ -2088,6 +2099,13 @@ bool TermDb::isQuantElimAnnotation( Node ipl ) {
 
 void TermDb::computeAttributes( Node q ) {
   computeQuantAttributes( q, d_qattr[q] );
+  if( d_qattr[q].isPolymorphic() ){
+    if( d_quantEngine->getPolymorphicEngine()==NULL ){
+      Trace("quant-warn") << "WARNING : polymorphic engine is null, and we have : " << q << std::endl;
+    }
+    Trace("quant-owner") << "Set owner of " << q << " to polymorphic engine." << std::endl;
+    d_quantEngine->setOwner( q, d_quantEngine->getPolymorphicEngine(), 2 );
+  }
   if( !d_qattr[q].d_rr.isNull() ){
     if( d_quantEngine->getRewriteEngine()==NULL ){
       Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
@@ -2174,6 +2192,14 @@ void TermDb::computeQuantAttributes( Node q, QAttributes& qa ){
         if( avar.hasAttribute(QuantIdNumAttribute()) ){
           qa.d_qid_num = avar;
           Trace("quant-attr") << "Attribute : id number " << qa.d_qid_num.getAttribute(QuantIdNumAttribute()) << " : " << q << std::endl;
+        }
+        if( avar.getAttribute(QuantPolymorphicAttribute()) ){
+          Trace("quant-attr") << "Attribute : type quantifier (polymorphic) : " << q << std::endl;
+          qa.d_is_polymorphic = true;
+          //all variables in the bound var list should represent type quantification
+          for( unsigned j=0; j<q[0].getNumChildren(); j++ ){
+            Assert( NodeManager::currentNM()->isPolymorphicTypeVar(q[0][j].getType()) );
+          }
         }
         if( avar.getKind()==REWRITE_RULE ){
           Trace("quant-attr") << "Attribute : rewrite rule : " << q << std::endl;

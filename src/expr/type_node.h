@@ -28,6 +28,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <map>
 
 #include "base/cvc4_assert.h"
 #include "expr/kind.h"
@@ -151,6 +152,12 @@ public:
   inline TypeNode
   substitute(Iterator1 typesBegin, Iterator1 typesEnd,
              Iterator2 replacementsBegin, Iterator2 replacementsEnd) const;
+
+  /**
+   * Simultaneous substitution of TypeNodes using the cache as
+   * representation of the substitution
+   */
+  TypeNode substitute(std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const;
 
   /**
    * Structural comparison operator for expressions.

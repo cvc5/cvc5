@@ -190,6 +190,16 @@ NodeManager::~NodeManager() {
   }
   d_ownedDatatypes.clear();
 
+  // Empty all the information about polymorphic types.
+  // It is done early before all cleaning, instead of during
+  // the default destructors which run after all this code.
+  d_polymorphicFunction.clear();
+  d_instanceFunction.clear();
+  d_functionMonomorphization.clear();
+  d_parameterVariables.clear();
+  d_schemaVariables.clear();
+  d_polymorphicConstantArg = Node::null();
+
   Assert(!d_attrManager->inGarbageCollection() );
 
   std::vector<NodeValue*> order = TopologicalSort(d_maxedOut);
@@ -755,6 +765,267 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
   }else{
     return it->second;
   }
+}
+
+
+void NodeManager::newPolymorphicFunction(TNode n){
+  Assert ( n.getType(false).isFunction() );
+  Assert ( !isPolymorphicFunctionInstance(n) );
+  Assert ( !isPolymorphicFunction(n) );
+  d_polymorphicFunction[n] = n;
+}
+
+bool NodeManager::isPolymorphicFunction(TNode n){
+  return d_polymorphicFunction.find(n) != d_polymorphicFunction.end();
+}
+
+bool NodeManager::isPolymorphicFunctionInstance(TNode n){
+  return d_instanceFunction.find(n) != d_instanceFunction.end();
+}
+
+TNode NodeManager::getPolymorphicFunction(TNode n){
+  std::unordered_map<Node, Node, NodeHashFunction>::const_iterator i = d_instanceFunction.find(n);
+  Assert ( n.getType(false).isFunction() );
+  if (i != d_instanceFunction.end()) {
+    return (*i).second;
+  } else {
+    return TNode::null();
+  }
+}
+
+TNode NodeManager::getPolymorphicFunctionFromPolymorphicInstance(TNode n){
+  std::unordered_map<Node, Node, NodeHashFunction>::const_iterator i = d_polymorphicFunction.find(n);
+  Assert ( n.getType(false).isFunction() );
+  if (i != d_polymorphicFunction.end()) {
+    return (*i).second;
+  } else {
+    return TNode::null();
+  }
+}
+
+bool isCloseSchemaVar(NodeManager& nm, TypeNode ty){
+
+  if (ty.getNumChildren() == 0) {
+    /* variable case */
+    return !nm.isPolymorphicTypeVarSchema(ty);
+
+  } else {
+    /* arity n */
+
+    for(size_t i = 0, len = ty.getNumChildren(); i < len; ++i) {
+      if(!(isCloseSchemaVar(nm,ty[i]))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return false;
+
+}
+
+/**
+   The matching is done without Subtyping,
+   t2 must be ground
+*/
+bool NodeManager::matchPolymorphicType(TypeNode t1,
+                                      TypeNode t2,
+                                      std::unordered_map<TypeNode, TypeNode, TypeNode::HashFunction>& subst)
+  throw(TypeCheckingExceptionPrivate){
+
+  if(isPolymorphicTypeVarSchema(t2)){
+    throw TypeCheckingExceptionPrivate(Node::null(),"You should add an (as term ty) for specifying the return type.");
+  };
+
+  std::unordered_map<TypeNode, TypeNode, TypeNode::HashFunction>::const_iterator i = subst.find(t1);
+  if(i != subst.end()) {
+    return t2 == (*i).second;
+  }
+
+  if(t1 == t2) {
+    if(!isCloseSchemaVar(*this,t2)){
+      throw TypeCheckingExceptionPrivate(Node::null(),"You should add an (as term ty) for specifying the return type.");
+    }
+    subst[t1] = t2;
+    return true;
+  } else if ( isPolymorphicTypeVarSchema(t1) ) {
+    /* type variable not yet binded */
+    subst[t1] = t2;
+    return true;
+  } else if (t1.getNumChildren() > 0 && t1.getNumChildren() == t2.getNumChildren()) {
+    /* arity n */
+    if(t1.getMetaKind() != t2.getMetaKind()){
+      Debug("export") << "Metakind different" << std::endl;
+      return false;
+    }
+
+    if(t1.getMetaKind() == kind::metakind::PARAMETERIZED &&
+       t1.getOperator() != t2.getOperator()){
+      Debug("export") << "Operator different " << t1.getOperator() << " " << t2.getOperator() << std::endl;
+      return false;
+    }
+
+    for(size_t i = 0, len = t1.getNumChildren(); i < len; ++i) {
+      if(!(matchPolymorphicType(t1[i],t2[i],subst))) {
+        return false;
+      }
+    }
+    subst[t1] = t2;
+    return true;
+  }
+
+  return false;
+}
+
+TNode NodeManager::instantiatePolymorphicFunction(TNode n,
+                                                 TypeNode ty, bool check)
+  throw(TypeCheckingExceptionPrivate){
+  Assert ( n.getType(false).isFunction() );
+  Assert ( ty.isFunction() );
+  Assert ( isPolymorphicFunction(n) );
+  Assert ( n.getType(false).getNumChildren() == ty.getNumChildren());
+
+  if (check){
+    std::unordered_map<TypeNode, TypeNode, TypeNode::HashFunction> subst;
+    if(!(matchPolymorphicType(n.getType(false),ty,subst))){
+      throw TypeCheckingExceptionPrivate(n, "cannot apply this polymorphic function on these arguments and return value");
+    }
+  }
+
+  n = d_polymorphicFunction[n];
+  std::unordered_map<TypeNode, Node, TypeNodeHashFunction>& h = d_functionMonomorphization[n];
+  std::unordered_map<TypeNode, Node, TypeNodeHashFunction>::const_iterator i = h.find(ty);
+
+  if (i != h.end()) {
+    Debug("polymorphic") << "For function " << n << " and signature " << ty
+                        << " reuse existing instance " << (*i).second << "."
+                        << std::endl;
+    return (*i).second;
+  } else {
+    Node ni;
+    string name;
+    if(n.getAttribute(expr::VarNameAttr(), name)) {
+      std::stringstream ss;
+      ss << name << "_";
+      ss << d_instanceFunction.size() + d_polymorphicFunction.size();
+      ni = mkVar(ss.str(),ty);
+    } else {
+      ni = mkVar(ty);
+    };
+    Debug("polymorphic") << "For function " << n << " and signature " << ty
+                        << " create new instance " << ni << "."
+                        << std::endl;
+    h[ty] = ni;
+    if(isCloseSchemaVar(*this, ty.getRangeType())){
+      d_instanceFunction[ni] = n;
+    } else {
+      d_polymorphicFunction[ni] = n;
+    }
+    return ni;
+  }
+}
+
+/** Shouldn't this be done by TypeNode::substitute? */
+void NodeManager::registerTypeNode(TypeNode n, uint32_t flags){
+
+  if(n.getNumChildren() != 0) {
+    for(TypeNode::const_iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
+      registerTypeNode((*i),flags);
+    }
+
+    if(n.getKind() == kind::SORT_TYPE) {
+      NodeBuilder<> nb(this, kind::SORT_TYPE);
+      Node sortTag = Node(n.d_nv->d_children[0]);
+      nb << sortTag;
+      TypeNode ctor = nb.constructTypeNode();
+
+      vector< TypeNode > args(n.begin(),n.end());
+      TypeNode n2 = mkSort(ctor,args);
+
+      Assert ( n2 == n);
+    }
+  }
+}
+
+TNode NodeManager::instantiatePolymorphicFunction(TNode n,
+                                                 std::vector< TypeNode >& tys)
+  throw(TypeCheckingExceptionPrivate) {
+  TypeNode sig = n.getType();
+  Assert ( sig.isFunction() );
+  Assert ( sig.getNumChildren() - 1 == tys.size() );
+  Assert ( isPolymorphicFunction(n) );
+
+  std::unordered_map<TypeNode, TypeNode, TypeNode::HashFunction> subst;
+
+  //Debug("parser") << "instantiatePolymorphicFunction " << sig << " size " << sig.getNumChildren() << " tys " << tys[0] << std::endl;
+
+  for(size_t i = 0, len = sig.getNumChildren() - 1; i < len; ++i) {
+    if(!(matchPolymorphicType(sig[i],tys[i],subst))) {
+      throw TypeCheckingExceptionPrivate(n, "cannot apply this polymorphic function on these arguments");
+    }
+  }
+
+  TypeNode range = sig.getRangeType().substitute(subst);
+  registerTypeNode(range);
+  sig = mkFunctionType(tys,range);
+
+  return instantiatePolymorphicFunction(n,sig,false);
+}
+
+bool NodeManager::isPolymorphicTypeVar(TypeNode tv){
+  return d_parameterVariables.find(tv) != d_parameterVariables.end();
+}
+
+
+bool NodeManager::isPolymorphicTypeVarSchema(TypeNode tv){
+  return d_schemaVariables.find(tv) != d_schemaVariables.end();
+}
+
+std::vector<std::pair<TypeNode,TNode> > NodeManager::getPolymorphicTypeVars(size_t nb){
+  std::unordered_map<TypeNode, Node, TypeNode::HashFunction>::const_iterator i = d_parameterVariables.begin();
+  std::vector<std::pair<TypeNode,TNode> > res;
+  res.reserve(nb);
+  while(i != d_parameterVariables.end() && nb > 0){
+    res.push_back(*i);
+    ++i;
+    --nb;
+  }
+  while(nb > 0){
+    // NB: exportTypeInternal could also create such varaible in portfolio
+    TypeNode ty = mkSort("cvc4_tyvar");
+    Node n = mkBoundVar("cvc4_bvvar",ty);
+    d_parameterVariables[ty] = n;
+    res.push_back( std::make_pair(ty,n) );
+    --nb;
+  }
+  return res;
+}
+
+std::vector< TypeNode > NodeManager::getPolymorphicTypeVarsSchema(size_t nb){
+  std::unordered_set<TypeNode, TypeNode::HashFunction>::const_iterator i = d_schemaVariables.begin();
+  std::vector< TypeNode > res;
+  res.reserve(nb);
+  while(i != d_schemaVariables.end() && nb > 0){
+    res.push_back(*i);
+    ++i;
+    --nb;
+  }
+  while(nb > 0){
+    // NB: exportTypeInternal could also create such varaible in portfolio
+    TypeNode ty = mkSort("cvc4_schema");
+    d_schemaVariables.insert(ty);
+    res.push_back( ty );
+    --nb;
+  }
+  return res;
+}
+
+Node NodeManager::getPolymorphicConstantArg(){
+  if (d_polymorphicConstantArg.isNull()){
+    TypeNode cst_para_type = mkSort("cst_para");
+    d_polymorphicConstantArg = mkVar("cst_para",cst_para_type);
+  }
+  return d_polymorphicConstantArg;
 }
 
 Node NodeManager::mkAbstractValue(const TypeNode& type) {

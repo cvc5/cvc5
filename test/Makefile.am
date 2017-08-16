@@ -44,6 +44,7 @@ subdirs_to_check = \
 	regress/regress0/lemmas \
 	regress/regress0/nl \
 	regress/regress0/parser \
+	regress/regress0/polymorphic \
 	regress/regress0/precedence \
 	regress/regress0/preprocess \
 	regress/regress0/push-pop \

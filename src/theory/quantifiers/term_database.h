@@ -123,7 +123,9 @@ typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
 struct SygusVarNumAttributeId {};
 typedef expr::Attribute<SygusVarNumAttributeId, uint64_t> SygusVarNumAttribute;
 
-
+/** Attribute true for quantifiers that we are doing quantifier elimination on */
+struct QuantPolymorphicAttributeId {};
+typedef expr::Attribute< QuantPolymorphicAttributeId, bool > QuantPolymorphicAttribute;
 
 class QuantifiersEngine;
 
@@ -151,7 +153,8 @@ public:
 class QAttributes{
 public:
   QAttributes() : d_hasPattern(false), d_conjecture(false), d_axiom(false), d_sygus(false),
-                  d_synthesis(false), d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), d_quant_elim_partial(false){}
+                  d_synthesis(false), d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), 
+                  d_quant_elim_partial(false), d_is_polymorphic(false){}
   ~QAttributes(){}
   bool d_hasPattern;
   Node d_rr;
@@ -166,8 +169,10 @@ public:
   bool d_quant_elim_partial;
   Node d_ipl;
   Node d_qid_num;
+  bool d_is_polymorphic;
   bool isRewriteRule() { return !d_rr.isNull(); }
   bool isFunDef() { return !d_fundef_f.isNull(); }
+  bool isPolymorphic() { return d_is_polymorphic; }
 };
 
 namespace fmcheck {
@@ -180,6 +185,7 @@ class RelevantDomain;
 class ConjectureGenerator;
 class TermGenerator;
 class TermGenEnv;
+class PolymorphicEngine;
 
 class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::QuantifiersEngine;
@@ -190,6 +196,7 @@ class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::quantifiers::RelevantDomain;
   friend class ::CVC4::theory::quantifiers::ConjectureGenerator;
   friend class ::CVC4::theory::quantifiers::TermGenEnv;
+  friend class ::CVC4::theory::quantifiers::PolymorphicEngine;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
@@ -259,6 +266,8 @@ public:
   Node getTypeGroundTerm( TypeNode tn, unsigned i );
   /** add a term to the database */
   void addTerm( Node n, std::set< Node >& added, bool withinQuant = false, bool withinInstClosure = false );
+  /** Test if a Node have been already processed */
+  bool isTermAdded( Node n );
   /** get match operator */
   Node getMatchOperator( Node n );
   /** get term arg index */
@@ -532,6 +541,8 @@ public: //general queries concerning quantified formulas wrt modules
   static Node getRewriteRule( Node q );
   /** is fun def */
   static bool isFunDef( Node q );
+  /** is quantifier polymorphic? */
+  static bool isPolymorphic( Node q );
   /** is fun def */
   static bool isFunDefAnnotation( Node ipl );
   /** is sygus conjecture */

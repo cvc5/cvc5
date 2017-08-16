@@ -61,6 +61,35 @@ TypeNode TypeNode::substitute(const TypeNode& type,
   return tn;
 }
 
+TypeNode TypeNode::substitute(std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const {
+  // in cache?
+  std::unordered_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
+  if(i != cache.end()) {
+    return (*i).second;
+  }
+
+  /* arity 0 */
+  if(getNumChildren() == 0) {
+    cache[*this] = *this;
+    return *this;
+  } else { /* arity n */
+    NodeBuilder<> nb(getKind());
+    if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+      // push the operator
+      nb << TypeNode(d_nv->d_children[0]);
+    }
+    for(TypeNode::const_iterator i = begin(),
+          iend = end();
+        i != iend;
+        ++i) {
+      nb << (*i).substitute(cache);
+    }
+    TypeNode tn = nb.constructTypeNode();
+    cache[*this] = tn;
+    return tn;
+  }
+}
+
 Cardinality TypeNode::getCardinality() const {
   return kind::getCardinality(*this);
 }

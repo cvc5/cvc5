@@ -551,6 +551,65 @@ public:
    */
   Expr mkNullaryOperator( Type type, Kind k);
 
+  /**
+   * Register a function as a polymorphic function;
+   */
+  void newPolymorphicFunction(Expr n);
+
+  /**
+   * Returns true if the function is a polymorphic function.
+   */
+  bool isPolymorphicFunction(Expr n);
+
+  /**
+   * Returns true if the function is an instance of a polymorphic
+   * function.
+   */
+  bool isPolymorphicFunctionInstance(Expr n);
+
+  /**
+   * Returns the original polymorphic function
+   * or null if the function is not a monomorphised function
+   */
+  Expr getPolymorphicFunction(Expr n);
+
+  /**
+   * Returns the instantiation of a polymorphic function with the given signature
+   */
+  Expr instantiatePolymorphicFunction(Expr n, FunctionType ty)
+    throw(TypeCheckingException);
+
+  /**
+   * Returns the instantiation of a polymorphic function with the given signature
+   */
+  Expr instantiatePolymorphicFunction(Expr n, std::vector< Type > tys)
+    throw(TypeCheckingException);
+
+  /**
+   * Check if the given type is used for type polymorphicity
+   */
+  bool isPolymorphicTypeVar(Type tv);
+
+  /**
+   * Return the given number of type usable for polymorphicity
+   */
+  std::vector<std::pair<Type,Expr> > getPolymorphicTypeVars(size_t nb);
+
+  /**
+   * Check if the given type is used for polymorphic function schema
+   */
+  bool isPolymorphicTypeVarSchema(Type tv);
+
+  /**
+   * Return the given number of type usable for polymorphic function schema
+   */
+  std::vector< Type > getPolymorphicTypeVarsSchema(size_t nb);
+
+  /**
+   * Return the expr used for making polymorphic constant a function
+   */
+  Expr getPolymorphicConstantArg();
+
   /** Get a reference to the statistics registry for this ExprManager */
   Statistics getStatistics() const throw();
 

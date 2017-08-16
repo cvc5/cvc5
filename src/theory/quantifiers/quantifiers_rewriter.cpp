@@ -1546,7 +1546,7 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
 
 bool QuantifiersRewriter::doOperation( Node q, int computeOption, QAttributes& qa ){
   bool is_strict_trigger = qa.d_hasPattern && options::userPatternsQuant()==USER_PAT_MODE_TRUST;
-  bool is_std = !qa.d_sygus && !qa.d_quant_elim && !qa.isFunDef() && !is_strict_trigger;
+  bool is_std = !qa.d_sygus && !qa.d_quant_elim && !qa.isFunDef() && !is_strict_trigger && !qa.isPolymorphic();
   if( computeOption==COMPUTE_ELIM_SYMBOLS ){
     return true;
   }else if( computeOption==COMPUTE_MINISCOPING ){

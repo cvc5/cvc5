@@ -206,12 +206,15 @@ option qcfEagerCheckRd --qcf-eager-check-rd bool :default true
 option qcfSkipRd --qcf-skip-rd bool :default false
  optimization, skip instances based on possibly irrelevant portions of quantified formulas
  
-### rewrite rules options 
+### other modules
  
 option quantRewriteRules --rewrite-rules bool :default false
  use rewrite rules module
 option rrOneInstPerRound --rr-one-inst-per-round bool :default false
  add one instance of rewrite rule per round
+
+option quantPolymorphic --quant-polymorphic bool :default false
+ use polymorphic quantifiers module
  
 ### induction options 
  

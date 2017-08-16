@@ -38,6 +38,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/polymorphic_engine.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers/quant_split.h"
@@ -123,6 +124,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_model_engine = NULL;
   d_bint = NULL;
   d_rr_engine = NULL;
+  d_para_engine = NULL;
   d_ceg_inst = NULL;
   d_lte_part_inst = NULL;
   d_alpha_equiv = NULL;
@@ -154,6 +156,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_builder;
   delete d_qepr;
   delete d_rr_engine;
+  delete d_para_engine;
   delete d_bint;
   delete d_model_engine;
   delete d_inst_engine;
@@ -271,6 +274,11 @@ void QuantifiersEngine::finishInit(){
     needsRelDom = true;
   }
   
+  if( options::quantPolymorphic() ){
+    d_para_engine = new quantifiers::PolymorphicEngine( c, this );
+    d_modules.push_back(d_para_engine);
+  }
+
   if( needsRelDom ){
     d_rel_dom = new quantifiers::RelevantDomain( this );
     d_util.push_back( d_rel_dom );

@@ -144,6 +144,8 @@ public:
       NodeManagerScope nullScope(NULL);
       return to->mkNullaryOperator(type, n.getKind()); // FIXME thread safety
     } else if(n.getMetaKind() == metakind::VARIABLE) {
+      NodeManager *from_nm = NodeManager::fromExprManager(from);
+      NodeManager *to_nm =   NodeManager::fromExprManager(to);
       Expr from_e(from, new Node(n));
       Expr& to_e = vmap.d_typeMap[from_e];
       if(! to_e.isNull()) {
@@ -154,11 +156,33 @@ public:
         // to_e is a ref, so this inserts from_e -> to_e
         std::string name;
         Type type = from->exportType(from_e.getType(), to, vmap);
-        if(Node::fromExpr(from_e).getAttribute(VarNameAttr(), name)) {
+        if(from_nm->getAttribute(Node::fromExpr(from_e),VarNameAttr(), name)) {
           // temporarily set the node manager to NULL; this gets around
           // a check that mkVar isn't called internally
-
-          if(n.getKind() == kind::BOUND_VAR_LIST || n.getKind() == kind::BOUND_VARIABLE) {
+          if (from_nm->d_parameterVariables[n.getType()] == n){
+            //It is a boundvariable to a type variable
+            //The conversion of the type created the associated bound variable
+            Assert( to->isPolymorphicTypeVar(type) );
+            to_e = to_nm->toExpr(to_nm->d_parameterVariables[TypeNode::fromType(type)]);
+          } else if(from_nm->isPolymorphicFunctionInstance(n)) {
+            Expr to_poly = to_nm->toExpr(exportInternal(from_nm->getPolymorphicFunction(n)));
+            Debug("export") << "+ inst `" << to_poly.getType() << "' to `" << type << "'" << std::endl;
+            to_e = to->instantiatePolymorphicFunction(to_poly,type);
+          } else if(from_nm->isPolymorphicFunction(n)){
+            TNode poly = from_nm->getPolymorphicFunctionFromPolymorphicInstance(n);
+            if(poly != n){ //not the original fully polymorphic function
+              Expr to_poly = to_nm->toExpr(exportInternal(poly));
+              Debug("export") << "+ poly `" << to_poly.getType() << "' to `" << type << "'" << std::endl;
+              to_e = to->instantiatePolymorphicFunction(to_poly,type);
+            } else {
+              NodeManagerScope nullScope(NULL);
+              Assert( type.isFunction() );
+              to_e = to->mkVar(name, type);
+              to->newPolymorphicFunction(to_e);
+            }
+          } else if(n == from_nm->getPolymorphicConstantArg()) {
+            to_e = to->getPolymorphicConstantArg();
+          } else if(n.getKind() == kind::BOUND_VAR_LIST || n.getKind() == kind::BOUND_VARIABLE) {
             NodeManagerScope nullScope(NULL);
             to_e = to->mkBoundVar(name, type);// FIXME thread safety
           } else if(n.getKind() == kind::VARIABLE) {
@@ -210,8 +234,8 @@ public:
         children.push_back(exportInternal(*i));
       }
       if(Debug.isOn("export")) {
-        ExprManagerScope ems(*to);
         Debug("export") << "children for export from " << n << std::endl;
+        ExprManagerScope ems(*to);
         for(std::vector<Node>::iterator i = children.begin(), i_end = children.end(); i != i_end; ++i) {
           Debug("export") << "  child: " << *i << std::endl;
         }

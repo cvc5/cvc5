@@ -76,5 +76,9 @@ void QuantifiersAttributes::setUserAttribute( const std::string& attr, Node n, s
     Trace("quant-attr-debug") << "Set partial quantifier elimination " << n << std::endl;
     QuantElimPartialAttribute qepa;
     n.setAttribute( qepa, true );
+  }else if( attr=="polymorphic" ){
+    Trace("quant-attr-debug") << "Set polymorphic " << n << std::endl;
+    QuantPolymorphicAttribute qpa;
+    n.setAttribute( qpa, true );
   }
 }
