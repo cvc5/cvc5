@@ -25,7 +25,6 @@
 #include <stdint.h>
 
 #include "util/cardinality.h"
-#include "util/subrange_bound.h"
 
 namespace CVC4 {
 
@@ -584,21 +583,6 @@ public:
   Type getParentType() const;
 
 };/* class PredicateSubtype */
-
-/**
- * Class encapsulating an integer subrange type.
- */
-class CVC4_PUBLIC SubrangeType : public Type {
-
-public:
-
-  /** Construct from the base type */
-  SubrangeType(const Type& type = Type()) throw(IllegalArgumentException);
-
-  /** Get the bounds defining this integer subrange */
-  SubrangeBounds getSubrangeBounds() const;
-
-};/* class SubrangeType */
 #endif /* 0 */
 
 /**

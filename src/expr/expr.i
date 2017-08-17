@@ -141,7 +141,6 @@ namespace CVC4 {
 %template(getConstBitVectorSize) CVC4::Expr::getConst<CVC4::BitVectorSize>;
 %template(getConstAscriptionType) CVC4::Expr::getConst<CVC4::AscriptionType>;
 %template(getConstBitVectorBitOf) CVC4::Expr::getConst<CVC4::BitVectorBitOf>;
-%template(getConstSubrangeBounds) CVC4::Expr::getConst<CVC4::SubrangeBounds>;
 %template(getConstBitVectorRepeat) CVC4::Expr::getConst<CVC4::BitVectorRepeat>;
 %template(getConstBitVectorExtract) CVC4::Expr::getConst<CVC4::BitVectorExtract>;
 %template(getConstBitVectorRotateLeft) CVC4::Expr::getConst<CVC4::BitVectorRotateLeft>;

@@ -55,8 +55,6 @@ libutil_la_SOURCES = \
 	statistics.h \
 	statistics_registry.cpp \
 	statistics_registry.h \
-	subrange_bound.cpp \
-	subrange_bound.h \
 	tuple.h \
 	unsafe_interrupt_exception.h \
 	utility.h
@@ -102,7 +100,6 @@ EXTRA_DIST = \
 	result.i \
 	sexpr.i \
 	statistics.i \
-	subrange_bound.i \
 	tuple.i \
 	unsafe_interrupt_exception.i
 

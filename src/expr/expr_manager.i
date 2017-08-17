@@ -44,7 +44,6 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorSize>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::AscriptionType>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorBitOf>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::SubrangeBounds>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorRepeat>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorExtract>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorRotateLeft>;

@@ -33,7 +33,6 @@
 #include "smt/command.h"
 #include "util/bitvector.h"
 #include "util/sexpr.h"
-#include "util/subrange_bound.h"
 
 using namespace std;
 
@@ -1255,15 +1254,6 @@ Type ValidityChecker::intType() {
 }
 
 Type ValidityChecker::subrangeType(const Expr& l, const Expr& r) {
-/*
-  bool noLowerBound = l.getType().isString() && l.getConst<CVC4::String>() == "_NEGINF";
-  bool noUpperBound = r.getType().isString() && r.getConst<CVC4::String>() == "_POSINF";
-  CompatCheckArgument(noLowerBound || (l.getKind() == CVC4::kind::CONST_RATIONAL && l.getConst<Rational>().isIntegral()), l);
-  CompatCheckArgument(noUpperBound || (r.getKind() == CVC4::kind::CONST_RATIONAL && r.getConst<Rational>().isIntegral()), r);
-  CVC4::SubrangeBound bl = noLowerBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(l.getConst<Rational>().getNumerator());
-  CVC4::SubrangeBound br = noUpperBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(r.getConst<Rational>().getNumerator());
-  return d_em->mkSubrangeType(CVC4::SubrangeBounds(bl, br));
-  */
   Unimplemented("Subrange types not supported by CVC4 (sorry!)");
 }
 

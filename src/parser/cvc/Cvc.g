@@ -539,7 +539,6 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 #include "parser/antlr_tracing.h"
 #include "parser/parser.h"
 #include "smt/command.h"
-#include "util/subrange_bound.h"
 
 namespace CVC4 {
   class Expr;
@@ -558,18 +557,6 @@ namespace CVC4 {
         myString(void*) : std::string() {}
         myString() : std::string() {}
       };/* class myString */
-
-      /**
-       * Just exists to give us the void* construction that
-       * ANTLR requires.
-       */
-      class mySubrangeBound : public CVC4::SubrangeBound {
-      public:
-        mySubrangeBound() : CVC4::SubrangeBound() {}
-        mySubrangeBound(void*) : CVC4::SubrangeBound() {}
-        mySubrangeBound(const Integer& i) : CVC4::SubrangeBound(i) {}
-        mySubrangeBound(const SubrangeBound& b) : CVC4::SubrangeBound(b) {}
-      };/* class mySubrangeBound */
 
       /**
        * Just exists to give us the void* construction that
@@ -1284,16 +1271,9 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     }
 
     /* subrange types */
-  | LBRACKET k1=bound DOTDOT k2=bound RBRACKET
-    { if(k1.hasBound() && k2.hasBound() &&
-         k1.getBound() > k2.getBound()) {
-        std::stringstream ss;
-        ss << "Subrange [" << k1.getBound() << ".." << k2.getBound()
-           << "] inappropriate: range must be nonempty!";
-        PARSER_STATE->parseError(ss.str());
-      }
+  | LBRACKET bound DOTDOT bound RBRACKET
+    {
       PARSER_STATE->unimplementedFeature("subrange typing not supported in this release");
-      //t = EXPR_MANAGER->mkSubrangeType(SubrangeBounds(k1, k2));
     }
 
     /* tuple types / old-style function types */
@@ -1348,9 +1328,9 @@ parameterization[CVC4::parser::DeclarationCheck check,
     ( COMMA restrictedType[t,check] { Debug("parser-param") << "t = " << t << std::endl; params.push_back( t ); } )* RBRACKET
   ;
 
-bound returns [CVC4::parser::cvc::mySubrangeBound bound]
-  : UNDERSCORE { $bound = SubrangeBound(); }
-  | k=integer { $bound = SubrangeBound(k.getNumerator()); }
+bound
+  : UNDERSCORE
+  | integer
 ;
 
 typeLetDecl[CVC4::parser::DeclarationCheck check]
