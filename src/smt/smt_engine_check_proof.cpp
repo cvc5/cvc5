@@ -116,7 +116,9 @@ void SmtEngine::checkProof() {
   pfStream.close();
   lfscc_init();
   lfscc_check_file(pfFile, false, false, false, false, false, false, false);
-  lfscc_cleanup();
+  // FIXME: we should actually call lfscc_cleanup here, but lfscc_cleanup
+  // segfaults on regress0/bv/core/bitvec7.smt
+  //lfscc_cleanup();
   free(pfFile);
   close(fd);
 
