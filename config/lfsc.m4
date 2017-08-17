@@ -21,13 +21,20 @@ elif test -n "$with_lfsc"; then
       [path to top level of lfsc source tree]
     ),
     [LFSC_HOME="$withval"],
-    [ if test -z "$LFSC_HOME"; then
-        AC_MSG_FAILURE([must give --with-lfsc-dir=PATH or define environment variable LFSC_HOME!])
-      fi
-    ]
+    []
   )
 
-  if ! test -d "$LFSC_HOME" || ! test -x "$LFSC_HOME/bin/lfsc_checker" ; then
+  if test -z "$LFSC_HOME" -a -e "$ac_abs_confdir/lfsc-checker"; then
+    AC_MSG_CHECKING([for LFSC checker library])
+    LFSC_HOME="$ac_abs_confdir/lfsc-checker/install"
+    AC_MSG_RESULT([found LFSC checker in $LFSC_HOME])
+  fi
+  
+  if test -z "$LFSC_HOME"; then
+    AC_MSG_FAILURE([must give --with-lfsc-dir=PATH or define environment variable LFSC_HOME!])
+  fi
+
+  if ! test -d "$LFSC_HOME" || ! test -x "$LFSC_HOME/bin/lfscc" ; then
     AC_MSG_FAILURE([either $LFSC_HOME is not a LFSC install tree or it's not yet built])
   fi
 
