@@ -40,6 +40,13 @@
 
 %include "expr/expr_manager.h"
 
+#ifdef SWIGPYTHON
+  /* This line causes problems in the python API -- leave it out for now */
+  //%template(mkConst) CVC4::ExprManager::mkConst<CVC4::SubrangeBounds>;
+#else
+  %template(mkConst) CVC4::ExprManager::mkConst<CVC4::SubrangeBounds>;
+#endif /* SWIGPYTHON */
+
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::ArrayStoreAll>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorSize>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::AscriptionType>;
