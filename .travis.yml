@@ -21,7 +21,7 @@ env:
   - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --enable-proof --with-lfsc --with-portfolio' TEST_GROUP=0
   - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --enable-proof --with-lfsc --with-portfolio' TEST_GROUP=1
   - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='--disable-proof'
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_CVC4_CONFIG='--enable-proof'
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='--enable-proof'
 addons:
  apt:
   sources:
