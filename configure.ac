@@ -242,6 +242,7 @@ if test -n "${with_cryptominisat+set}"; then
 fi
 if test -n "${with_lfsc+set}"; then
   if test "$with_lfsc" = yes; then
+    enable_proof=yes
     btargs="$btargs lfsc"
   fi
 fi
@@ -967,7 +968,7 @@ AC_ARG_WITH([cxxtest-dir],
 
 TESTS_ENVIRONMENT=
 RUN_REGRESSION_ARGS=
-if test "$enable_proof" = yes; then
+if test "$with_lfsc" = yes; then
   RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--proof"
 fi
 AC_SUBST([TESTS_ENVIRONMENT])
