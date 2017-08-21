@@ -2109,14 +2109,18 @@ void TermDb::computeAttributes( Node q ) {
   computeQuantAttributes( q, d_qattr[q] );
   if( d_qattr[q].isPolymorphic() ){
     if( d_quantEngine->getPolymorphicEngine()==NULL ){
-      Trace("quant-warn") << "WARNING : polymorphic engine is null, and we have : " << q << std::endl;
+      std::stringstream ss;
+      ss << "Polymorphic quantifiers not supported in default mode, try --quant-polymorphic";
+      throw LogicException(ss.str());
     }
     Trace("quant-owner") << "Set owner of " << q << " to polymorphic engine." << std::endl;
     d_quantEngine->setOwner( q, d_quantEngine->getPolymorphicEngine(), 2 );
   }
   if( !d_qattr[q].d_rr.isNull() ){
     if( d_quantEngine->getRewriteEngine()==NULL ){
-      Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
+      std::stringstream ss;
+      ss << "Rewrite rules not supported in default mode, try --rewrite-rules";
+      throw LogicException(ss.str());
     }
     //set rewrite engine as owner
     d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine(), 2 );

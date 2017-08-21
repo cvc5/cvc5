@@ -22,12 +22,6 @@ TESTS =	\
 	parsing.smt2 \
 	parsing2.smt2 \
 	parsing3.smt2 \
-	parsing4.smt2 \
-	parsing5.smt2 \
-	parsing6.smt2 \
-	parsing7.smt2 \
-	parsing8.smt2 \
-	parsing10.smt2 \
 	typing_bad1.smt2 \
 	typing_bad2.smt2 \
 	typing_bad3.smt2 \
@@ -36,7 +30,6 @@ TESTS =	\
 	typing_bad6.smt2 \
 	typing_bad7.smt2 \
 	typing_bad8.smt2 \
-	poly-simple.smt2 \
 	empty-par.smt2
 
 EXTRA_DIST = $(TESTS)
@@ -49,7 +42,6 @@ EXTRA_DIST = $(TESTS)
 
 # disabled tests, yet distribute
 #EXTRA_DIST += \
-#	parsing9.smt2     #infinite loop
 # typing_bad0.smt2  #different debug/prod
 
 # synonyms for "check"
