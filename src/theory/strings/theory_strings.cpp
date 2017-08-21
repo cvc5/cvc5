@@ -3508,8 +3508,8 @@ Node TheoryStrings::mkExplain( std::vector< Node >& a, std::vector< Node >& an )
       Debug("strings-explain") << "Ask for explanation of " << a[i] << std::endl;
       //assert
       if(a[i].getKind() == kind::EQUAL) {
-        //assert( hasTerm(a[i][0]) );
-        //assert( hasTerm(a[i][1]) );
+        //Assert( hasTerm(a[i][0]) );
+        //Assert( hasTerm(a[i][1]) );
         Assert( areEqual(a[i][0], a[i][1]) );
         if( a[i][0]==a[i][1] ){
           exp = false;
