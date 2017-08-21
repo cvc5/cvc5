@@ -159,6 +159,11 @@ bool Options::getStrictParsing() const{
   return (*this)[options::strictParsing];
 }
 
+bool Options::supportsPortfolio() const {
+  // FIXME : polymorphism not supported in portfolio
+  return !(*this)[options::quantPolymorphic];
+}
+
 int Options::getTearDownIncremental() const{
   return (*this)[options::tearDownIncremental];
 }

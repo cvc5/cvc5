@@ -2840,22 +2840,26 @@ polymorphicAssert[std::vector<std::string>& pars, CVC4::Expr& expr, CVC4::Expr& 
         args.push_back(typars[i].second);
       }
 
-      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
-      args.clear();
-      args.push_back(bvl);
+      if( !args.empty() ){
+        Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
+        args.clear();
+        args.push_back(bvl);
+      }
     }
     term[expr,expr2]
     RPAREN_TOK
     {
-      args.push_back(expr);
-      // make polymorphic attribute
-      Expr avar = PARSER_STATE->mkVar("polymorphic", EXPR_MANAGER->booleanType());
-      Expr retExpr = MK_EXPR(kind::INST_PATTERN_LIST, MK_EXPR(kind::INST_ATTRIBUTE, avar) );
-      Command* c = new SetUserAttributeCommand( "polymorphic", avar );
-      c->setMuted(true);
-      PARSER_STATE->preemptCommand(c);
-      args.push_back(retExpr);
-      expr = MK_EXPR(CVC4::kind::FORALL, args);
+      if( !args.empty() ){
+        args.push_back(expr);
+        // make polymorphic attribute
+        Expr avar = PARSER_STATE->mkVar("polymorphic", EXPR_MANAGER->booleanType());
+        Expr retExpr = MK_EXPR(kind::INST_PATTERN_LIST, MK_EXPR(kind::INST_ATTRIBUTE, avar) );
+        Command* c = new SetUserAttributeCommand( "polymorphic", avar );
+        c->setMuted(true);
+        PARSER_STATE->preemptCommand(c);
+        args.push_back(retExpr);
+        expr = MK_EXPR(CVC4::kind::FORALL, args);
+      }
 
       PARSER_STATE->popScope(); }
   | term[expr,expr2]
@@ -3163,7 +3167,7 @@ DECLARE_DATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() )
 DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-datatypes';
 DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
 DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
-PAR_TOK : { PARSER_STATE->v2_6() }?'par';
+PAR_TOK : { PARSER_STATE->v2_5(false) }?'par';   //FIXME
 TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'is';
 MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'match';
 GET_MODEL_TOK : 'get-model';

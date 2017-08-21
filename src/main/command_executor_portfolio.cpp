@@ -197,8 +197,9 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   // mode = 2 : run _only_ the lastWinner thread, not saving the
   // command
 
-  if( dynamic_cast<CheckSynthCommand*>(cmd) != NULL ){
-    // sygus not supported in portfolio : FIXME: can support once datatypes exportTo is supported
+  if( dynamic_cast<CheckSynthCommand*>(cmd) != NULL || !d_options.supportsPortfolio() ){
+    // sygus (check-synth commands) not supported in portfolio
+    //   FIXME: can support once datatypes exportTo is supported
     return CommandExecutor::doCommandSingleton(cmd);
   }
 

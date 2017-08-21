@@ -168,6 +168,7 @@ public:
             Expr to_poly = to_nm->toExpr(exportInternal(from_nm->getPolymorphicFunction(n)));
             Debug("export") << "+ inst `" << to_poly.getType() << "' to `" << type << "'" << std::endl;
             to_e = to->instantiatePolymorphicFunction(to_poly,type);
+            Debug("export") << "...here now" << std::endl;
           } else if(from_nm->isPolymorphicFunction(n)){
             TNode poly = from_nm->getPolymorphicFunctionFromPolymorphicInstance(n);
             if(poly != n){ //not the original fully polymorphic function

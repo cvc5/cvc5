@@ -240,6 +240,9 @@ public:
   unsigned getThreadStackSize() const;
   unsigned getThreads() const;
 
+  //supports portfolio
+  bool supportsPortfolio() const;
+
 
   // TODO: Document these.
   void setCeGuidedInst(bool);

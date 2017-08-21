@@ -1103,7 +1103,7 @@ namespace expr {
 Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap);
 
 TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, ExprManagerMapCollection& vmap) {
-  Debug("export") << "type: " << n << " " << n.getId() << std::endl;
+  Debug("export") << "[export] type: " << n << " " << n.getId() << std::endl;
   if(theory::kindToTheoryId(n.getKind()) == theory::THEORY_DATATYPES) {
     throw ExportUnsupportedException
       ("export of types belonging to theory of DATATYPES kinds unsupported");
@@ -1114,6 +1114,7 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
       ("export of PARAMETERIZED-kinded types (other than SORT_KIND) not supported");
   }
   if(n.getKind() == kind::TYPE_CONSTANT) {
+    Debug("export") << "[export] " << n << " as type const" << std::endl;
     return to->mkTypeConst(n.getConst<TypeConstant>());
   } else if(n.getKind() == kind::BITVECTOR_TYPE) {
     return to->mkBitVectorType(n.getConst<BitVectorSize>());
@@ -1129,10 +1130,12 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
       Node to_bv = to->mkBoundVar("cvc4_bvvar",to_ty);
       to->d_parameterVariables[to_ty] = to_bv;
       to_t = to->toType(to_ty);
+      Debug("export") << "[export] " << n << " as polymorphic type var " << to_t << std::endl;
     } else if(from->isPolymorphicTypeVarSchema(n)){
       TypeNode to_ty = to->mkSort("cvc4_schema");
       to->d_schemaVariables.insert(to_ty);
       to_t = to->toType(to_ty);
+      Debug("export") << "[export] " << n << " as polymorphic type var schema " << to_t << std::endl;
     }
   }
 
@@ -1153,7 +1156,8 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
   }
   TypeNode out = children.constructTypeNode();// FIXME thread safety
   to_t = to->toType(out);
-  return out;
+  Debug("export") << "[export] " << n << " as default case " << to_t << std::endl;
+  return *Type::getTypeNode(to_t);
 }/* exportTypeInternal() */
 
 }/* CVC4::expr namespace */

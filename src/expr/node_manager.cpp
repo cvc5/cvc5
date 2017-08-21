@@ -828,14 +828,15 @@ bool isCloseSchemaVar(NodeManager& nm, TypeNode ty){
    The matching is done without Subtyping,
    t2 must be ground
 */
-bool NodeManager::matchPolymorphicType(TypeNode t1,
-                                      TypeNode t2,
-                                      std::unordered_map<TypeNode, TypeNode, TypeNode::HashFunction>& subst)
+bool NodeManager::matchPolymorphicType(TypeNode t1, TypeNode t2,
+                                       std::unordered_map<TypeNode, TypeNode, TypeNode::HashFunction>& subst)
   throw(TypeCheckingExceptionPrivate){
 
-  if(isPolymorphicTypeVarSchema(t2)){
+  Trace("polymorphic-debug") << "Match " << t1 << " with " << t2 << std::endl;
+
+  if( isPolymorphicTypeVarSchema(t2) ){
     throw TypeCheckingExceptionPrivate(Node::null(),"You should add an (as term ty) for specifying the return type.");
-  };
+  }
 
   std::unordered_map<TypeNode, TypeNode, TypeNode::HashFunction>::const_iterator i = subst.find(t1);
   if(i != subst.end()) {
@@ -877,13 +878,14 @@ bool NodeManager::matchPolymorphicType(TypeNode t1,
   return false;
 }
 
-TNode NodeManager::instantiatePolymorphicFunction(TNode n,
-                                                 TypeNode ty, bool check)
+TNode NodeManager::instantiatePolymorphicFunction(TNode n, TypeNode ty, bool check)
   throw(TypeCheckingExceptionPrivate){
   Assert ( n.getType(false).isFunction() );
   Assert ( ty.isFunction() );
   Assert ( isPolymorphicFunction(n) );
   Assert ( n.getType(false).getNumChildren() == ty.getNumChildren());
+
+  Trace("polymorphic-debug") << "Instantiate " << n << " with type " << ty << ", check = " << check << std::endl;
 
   if (check){
     std::unordered_map<TypeNode, TypeNode, TypeNode::HashFunction> subst;
@@ -947,14 +949,19 @@ void NodeManager::registerTypeNode(TypeNode n, uint32_t flags){
   }
 }
 
-TNode NodeManager::instantiatePolymorphicFunction(TNode n,
-                                                 std::vector< TypeNode >& tys)
+TNode NodeManager::instantiatePolymorphicFunction(TNode n, std::vector< TypeNode >& tys)
   throw(TypeCheckingExceptionPrivate) {
   TypeNode sig = n.getType();
   Assert ( sig.isFunction() );
   Assert ( sig.getNumChildren() - 1 == tys.size() );
   Assert ( isPolymorphicFunction(n) );
 
+  if( Trace.isOn("polymorphic-debug") ){
+    Trace("polymorphic-debug") << "Instantiate function " << n << " with types: " << std::endl;
+    for( unsigned i=0; i<tys.size(); i++ ){
+      Trace("polymorphic-debug") << "  " << tys[i] << std::endl;
+    }  
+  }
   std::unordered_map<TypeNode, TypeNode, TypeNode::HashFunction> subst;
 
   //Debug("parser") << "instantiatePolymorphicFunction " << sig << " size " << sig.getNumChildren() << " tys " << tys[0] << std::endl;

@@ -2014,8 +2014,16 @@ bool TermDb::isFunDef( Node q ) {
 }
 
 bool TermDb::isPolymorphic( Node q ) {
-  return q.getKind()==FORALL && //q.getNumChildren()==3 && 
-         NodeManager::currentNM()->isPolymorphicTypeVar(q[0][0].getType());
+  if( q.getKind()==FORALL && q.getNumChildren()==3 ){
+    for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
+      if( q[2][i].getKind()==INST_ATTRIBUTE ){
+        if( q[2][i][0].getAttribute(QuantPolymorphicAttribute()) ){
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 
 bool TermDb::isFunDefAnnotation( Node ipl ) {
