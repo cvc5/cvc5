@@ -1,4 +1,4 @@
-; COMMAND-LINE: --quant-polymorphic
+; COMMAND-LINE: --quant-polymorphic --no-check-proofs
 ; EXPECT: unsat
 (set-logic UFLIA)
 (declare-fun f (par (a) (a) a))

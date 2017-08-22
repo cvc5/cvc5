@@ -1,4 +1,4 @@
-; COMMAND-LINE: --quant-polymorphic
+; COMMAND-LINE: --quant-polymorphic --no-check-proof
 ; EXPECT: unsat
 (set-logic UF)
 (set-info :smt-lib-version 2.6)
