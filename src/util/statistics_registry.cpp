@@ -42,7 +42,7 @@ inline timespec& operator+=(timespec& a, const timespec& b) {
   CheckArgument(b.tv_nsec >= 0 && b.tv_nsec < nsec_per_sec, b);
   a.tv_sec += b.tv_sec;
   long nsec = a.tv_nsec + b.tv_nsec;
-  assert(nsec >= 0);
+  Assert(nsec >= 0);
   if(nsec < 0) {
     nsec += nsec_per_sec;
     --a.tv_sec;
@@ -51,7 +51,7 @@ inline timespec& operator+=(timespec& a, const timespec& b) {
     nsec -= nsec_per_sec;
     ++a.tv_sec;
   }
-  assert(nsec >= 0 && nsec < nsec_per_sec);
+  Assert(nsec >= 0 && nsec < nsec_per_sec);
   a.tv_nsec = nsec;
   return a;
 }
@@ -73,7 +73,7 @@ inline timespec& operator-=(timespec& a, const timespec& b) {
     nsec -= nsec_per_sec;
     ++a.tv_sec;
   }
-  assert(nsec >= 0 && nsec < nsec_per_sec);
+  Assert(nsec >= 0 && nsec < nsec_per_sec);
   a.tv_nsec = nsec;
   return a;
 }

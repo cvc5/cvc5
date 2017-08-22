@@ -370,7 +370,7 @@ void AigBitblaster::convertToCnfAndAssert() {
   
   Aig_Man_t * pMan = NULL;
   Cnf_Dat_t * pCnf = NULL;
-  assert( Abc_NtkIsStrash(currentAigNtk()) );
+  Assert( Abc_NtkIsStrash(currentAigNtk()) );
   
   // convert to the AIG manager
   pMan = Abc_NtkToDar(currentAigNtk(), 0, 0 );
