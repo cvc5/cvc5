@@ -41,7 +41,7 @@ An issue tracker for the CVC4 project is maintained at
 .BR https://github.com/CVC4/CVC4/issues .
 .SH AUTHORS
 .B CVC4
-is developed by a team of researchers at New York University
+is developed by a team of researchers at Stanford University
 and the University of Iowa.
 See the AUTHORS file in the distribution for a full list of
 contributors.
