@@ -834,7 +834,7 @@ public:
   void ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
   void ppBoolToBv(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
   bool ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
-  void mkAckermanizationAsssertions(std::vector<Node>& assertions);
+  void mkAckermanizationAssertions(std::vector<Node>& assertions);
 
   Node ppSimpITE(TNode assertion);
   /** Returns false if an assertion simplified to false. */

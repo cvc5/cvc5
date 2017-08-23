@@ -742,8 +742,8 @@ public:
   }
 
   ResourceManager* getResourceManager() { return d_resourceManager; }
-  void spendResource(unsigned ammount) throw(UnsafeInterruptException) {
-    d_resourceManager->spendResource(ammount);
+  void spendResource(unsigned amount) throw(UnsafeInterruptException) {
+    d_resourceManager->spendResource(amount);
   }
 
   void nmNotifyNewSort(TypeNode tn, uint32_t flags) {
@@ -3992,7 +3992,7 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    d_smt.d_theoryEngine->mkAckermanizationAsssertions(d_assertions.ref());
+    d_smt.d_theoryEngine->mkAckermanizationAssertions(d_assertions.ref());
   }
 
   if ( options::bvAbstraction() &&

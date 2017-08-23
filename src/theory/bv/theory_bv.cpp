@@ -217,8 +217,8 @@ void TheoryBV::storeFunction(TNode func, TNode term) {
   }
 }
 
-void TheoryBV::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
-  Debug("bv-ackermanize") << "TheoryBV::mkAckermanizationAsssertions\n";
+void TheoryBV::mkAckermanizationAssertions(std::vector<Node>& assertions) {
+  Debug("bv-ackermanize") << "TheoryBV::mkAckermanizationAssertions\n";
 
   Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
   AlwaysAssert(!options::incrementalSolving());
