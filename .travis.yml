@@ -26,7 +26,7 @@ addons:
  apt:
   sources:
   - ubuntu-toolchain-r-test
-  packages:
+  packages: &common_deps
   - libgmp-dev
   - libboost-dev
   - libboost-thread-dev
@@ -36,6 +36,8 @@ addons:
   - antlr3
   - libantlr3c-dev
   - ant-optional
+before_install:
+ - eval "${MATRIX_EVAL}"
 install:
 # Download and cache a copy of cxxtest until it appears officially in quantal.
  - wget http://sourceforge.net/projects/cxxtest/files/cxxtest/4.3/cxxtest-4.3.tar.gz
@@ -47,6 +49,8 @@ before_script:
  - export JAVA_CPPFLAGS=-I$JAVA_HOME/include
  - ./autogen.sh
 script:
+ - ${CC} --version
+ - ${CXX} --version
  - |
    echo "travis_fold:start:load_script"
    normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
@@ -106,8 +110,31 @@ script:
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
 matrix:
   fast_finish: true
-  # Rule for running Coverity Scan.
   include:
+    # Test with GCC7
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - *common_deps
+            - g++-7
+      env:
+        - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
+        - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=0
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - *common_deps
+            - g++-7
+      env:
+        - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
+        - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=1
+    # Rule for running Coverity Scan.
     - os: linux
       compiler: gcc
       before_install: echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
@@ -119,14 +146,7 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - libgmp-dev
-            - libboost-dev
-            - libboost-thread-dev
-            - swig
-            - libcln-dev
-            - openjdk-7-jdk
-            - antlr3
-            - libantlr3c-dev
+            - *common_deps
         coverity_scan:
           project:
             name: "CVC4/CVC4"
@@ -137,6 +157,14 @@ matrix:
           branch_pattern: coverity_scan
       after_failure:
         - cat /home/travis/build/CVC4/CVC4/cov-int/build-log.txt
+  allow_failures:
+  - env:
+    - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
+    - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=0
+  - env:
+    - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
+    - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=1
+
 notifications:
   email:
     on_success: change
