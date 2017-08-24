@@ -855,7 +855,6 @@ AC_ARG_WITH([lfsc],
 CVC4_CHECK_FOR_LFSC
 if test $have_liblfsc -eq 1; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_USE_LFSC"
-#  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-I$LFSC_HOME/src"
 fi
 AM_CONDITIONAL([CVC4_USE_LFSC], [test $have_liblfsc -eq 1])
 AC_SUBST([LFSC_LDFLAGS])
@@ -968,6 +967,7 @@ AC_ARG_WITH([cxxtest-dir],
 
 TESTS_ENVIRONMENT=
 RUN_REGRESSION_ARGS=
+# FIXME currently, unsat core regressions are disabled without LFSC
 if test "$with_lfsc" = yes; then
   RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--proof"
 fi
