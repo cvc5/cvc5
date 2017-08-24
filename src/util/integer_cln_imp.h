@@ -23,6 +23,7 @@
 #include <cln/input.h>
 #include <cln/integer.h>
 #include <cln/integer_io.h>
+#include <cln/modinteger.h>
 #include <iostream>
 #include <limits>
 #include <sstream>
@@ -157,6 +158,7 @@ public:
   Integer operator*(const Integer& y) const {
     return Integer( d_value * y.d_value );
   }
+
   Integer& operator*=(const Integer& y) {
     d_value *= y.d_value;
     return *this;
@@ -337,6 +339,43 @@ public:
   Integer lcm(const Integer& y) const {
     cln::cl_I result = cln::lcm(d_value, y.d_value);
     return Integer(result);
+  }
+
+  /**
+   * Compute modular inverse x^-1 of this Integer x modulo m.
+   * Returns a value x^-1 with 0 <= x^-1 < m such that x * x^-1 = 1 modulo m
+   * if such an inverse exists, and m otherwise.
+   * Note that such an inverse only exists if x and m are coprime, i.e.,
+   * if gcd (x, m) = 1.
+   */
+  Integer modInverse (const Integer & m) const {
+    if (this->gcd (m) != 1) return m;
+    cln::cl_modint_ring ry = cln::find_modint_ring (m.d_value);
+    cln::cl_MI xm = ry->canonhom (d_value);
+    cln::cl_MI res = cln::recip (xm);
+    return Integer (ry->retract (res));
+  }
+
+  /**
+   * Compute multiplication of this Integer x * y modulo m.
+   */
+  Integer modMultiply (const Integer & y, const Integer & m) const {
+    cln::cl_modint_ring ry = cln::find_modint_ring (m.d_value);
+    cln::cl_MI xm = ry->canonhom (d_value);
+    cln::cl_MI ym = ry->canonhom (y.d_value);
+    cln::cl_MI res = xm * ym;
+    return Integer (ry->retract (res));
+  }
+
+  /**
+   * Compute addition of this Integer x + y modulo m.
+   */
+  Integer modAdd (const Integer & y, const Integer & m) const {
+    cln::cl_modint_ring ry = cln::find_modint_ring (m.d_value);
+    cln::cl_MI xm = ry->canonhom (d_value);
+    cln::cl_MI ym = ry->canonhom (y.d_value);
+    cln::cl_MI res = xm + ym;
+    return Integer (ry->retract (res));
   }
 
   /**

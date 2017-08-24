@@ -285,6 +285,7 @@ public:
       }
     }
   }
+
   /**
    * Returns the quotient according to Boute's Euclidean definition.
    * See the documentation for euclidianQR.
@@ -381,6 +382,42 @@ public:
     mpz_class result;
     mpz_lcm(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
     return Integer(result);
+  }
+
+  /**
+   * Compute modular inverse x^-1 of this Integer x modulo y.
+   * Returns a value x^-1 with 0 <= x^-1 < y such that x * x^-1 = 1 modulo y
+   * if such an inverse exists, and y otherwise.
+   * Note that such an inverse only exists if x and y are coprime, i.e.,
+   * if gcd (x, y) = 1.
+   */
+  Integer modInverse (const Integer & y) const {
+    int ret;
+    mpz_class res;
+    ret = mpz_invert (
+        res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    if (!ret) return y;
+    return Integer (res);
+  }
+
+  /**
+   * Compute multiplication of this Integer x * y modulo m.
+   */
+  Integer modMultiply (const Integer & y, const Integer & m) const {
+    mpz_class res;
+    mpz_mul (res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    mpz_mod (res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
+    return Integer (res);
+  }
+
+  /**
+   * Compute multiplication of this Integer x * y modulo m.
+   */
+  Integer modAdd (const Integer & y, const Integer & m) const {
+    mpz_class res;
+    mpz_add (res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    mpz_mod (res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
+    return Integer (res);
   }
 
   /**
