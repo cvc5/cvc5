@@ -63,7 +63,6 @@ fi
 # ------------------------------
 # Try AC_CHECK_LIB(lfsc) with the given linking libraries
 AC_DEFUN([CVC4_TRY_LFSC_LIB], [
-if test -z "$LFSC_LIBS"; then
   AC_LANG_PUSH([C++])
 
   cvc4_save_LIBS="$LIBS"
@@ -83,5 +82,4 @@ if test -z "$LFSC_LIBS"; then
   LIBS="$cvc4_save_LIBS"
 
   AC_LANG_POP([C++])
-fi
 ])# CVC4_TRY_LFSC_LIB
