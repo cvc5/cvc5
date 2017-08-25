@@ -59,11 +59,14 @@
 #include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
+#include "options/sep_options.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "preproc/preprocessing_pass.h"
+#include "preproc/preprocessing_pass_registry.h"
 #include "printer/printer.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
@@ -73,10 +76,10 @@
 #include "prop/prop_engine.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
-#include "smt/term_formula_removal.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
@@ -100,11 +103,11 @@
 #include "util/hash.h"
 #include "util/proof.h"
 #include "util/resource_manager.h"
-#include "options/sep_options.h"
 
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::smt;
+using namespace CVC4::preproc;
 using namespace CVC4::prop;
 using namespace CVC4::context;
 using namespace CVC4::theory;
@@ -156,29 +159,6 @@ public:
   vector<Node> getFormals() const { return d_formals; }
   Node getFormula() const { return d_formula; }
 };/* class DefinedFunction */
-
-class AssertionPipeline {
-  vector<Node> d_nodes;
-
-public:
-
-  size_t size() const { return d_nodes.size(); }
-
-  void resize(size_t n) { d_nodes.resize(n); }
-  void clear() { d_nodes.clear(); }
-
-  Node& operator[](size_t i) { return d_nodes[i]; }
-  const Node& operator[](size_t i) const { return d_nodes[i]; }
-  void push_back(Node n) { d_nodes.push_back(n); }
-
-  vector<Node>& ref() { return d_nodes; }
-  const vector<Node>& ref() const { return d_nodes; }
-
-  void replace(size_t i, Node n) {
-    PROOF( ProofManager::currentPM()->addDependence(n, d_nodes[i]); );
-    d_nodes[i] = n;
-  }
-};/* class AssertionPipeline */
 
 struct SmtEngineStatistics {
   /** time spent in definition-expansion */
@@ -509,7 +489,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   std::vector<Node> d_boolVars;
 
   /** Assertions in the preprocessing pipeline */
-  AssertionPipeline d_assertions;
+  preproc::AssertionPipeline d_assertions;
 
   /** Whether any assertions have been processed */
   CDO<bool> d_assertionsProcessed;
@@ -556,9 +536,11 @@ public:
 
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
+  void finishInit();
 
-private:
-
+ private:
+  std::unique_ptr<PreprocessingPassAPI> d_preprocessingPassAPI;
+  PreprocessingPassRegistry d_preprocessingPassRegistry;
   theory::arith::PseudoBooleanProcessor d_pbsProcessor;
 
   /** The top level substitutions */
@@ -1092,7 +1074,7 @@ void SmtEngine::finishInit() {
           finishRegisterTheory(d_theoryEngine->theoryOf(id));
       }
     });
-
+  d_private->finishInit();
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
@@ -2256,6 +2238,11 @@ bool SmtEngine::isDefinedFunction( Expr func ){
   return d_definedFunctions->find(nf) != d_definedFunctions->end();
 }
 
+void SmtEnginePrivate::finishInit() {
+  d_preprocessingPassAPI.reset(new PreprocessingPassAPI(&d_smt));
+  d_preprocessingPassRegistry.init(d_preprocessingPassAPI.get());
+}
+
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
   throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
 
@@ -2817,7 +2804,8 @@ void SmtEnginePrivate::staticLearning() {
 }
 
 // do dumping (before/after any preprocessing pass)
-static void dumpAssertions(const char* key, const AssertionPipeline& assertionList) {
+static void dumpAssertions(const char* key,
+                           const preproc::AssertionPipeline& assertionList) {
   if( Dump.isOn("assertions") &&
       Dump.isOn(string("assertions:") + key) ) {
     // Push the simplified assertions to the dump output stream
