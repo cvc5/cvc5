@@ -17,8 +17,8 @@ env:
   - secure: "fRfdzYwV10VeW5tVSvy5qpR8ZlkXepR7XWzCulzlHs9SRI2YY20BpzWRjyMBiGu2t7IeJKT7qdjq/CJOQEM8WS76ON7QJ1iymKaRDewDs3OhyPJ71fsFKEGgLky9blk7I9qZh23hnRVECj1oJAVry9IK04bc2zyIEjUYpjRkUAQ="
   - TEST_GROUPS=2
  matrix:
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --enable-proof --with-portfolio'
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --enable-proof --with-portfolio' TEST_GROUP=0
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --enable-proof --with-portfolio'
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --enable-proof --with-portfolio' TEST_GROUP=0
   - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --enable-proof --with-portfolio' TEST_GROUP=1
   - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='--disable-proof'
   - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_CVC4_CONFIG='--enable-proof'
@@ -37,6 +37,7 @@ addons:
   - openjdk-7-jdk
   - antlr3
   - libantlr3c-dev
+  - ant-optional
 install:
 # Download and cache a copy of cxxtest until it appears officially in quantal.
  - wget http://sourceforge.net/projects/cxxtest/files/cxxtest/4.3/cxxtest-4.3.tar.gz
@@ -73,6 +74,12 @@ script:
      make V=1 -j2 check BINARY=pcvc4 CVC4_REGRESSION_ARGS='--fallback-sequential --no-early-exit' RUN_REGRESSION_ARGS= ||
        error "PORTFOLIO TEST FAILED";
    }
+   JavaApiTest() {
+     pushd test/java
+     local status=${ant}
+     popd
+     return $status
+   }
    makeExamples() {
      make V=1 -j2 examples || error "COULD NOT BUILD EXAMPLES${normal}";
    }
@@ -102,6 +109,7 @@ script:
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
    [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && run makeCheck && run makeExamples
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_CHECK_PORTFOLIO" ] && run makeCheckPortfolio
+   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_JAVA_API_TEST" ] && run JavaApiTest
    [ -n "$TRAVIS_LFSC" ] && run LFSCchecks
    [ -n "$TRAVIS_COVERITY" ] && echo "Running coverity. Skipping the normal build."
    [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_LFSC" ] && [ -z "$TRAVIS_COVERITY" ] && error "Unknown Travis-CI configuration"
