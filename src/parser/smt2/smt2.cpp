@@ -24,6 +24,8 @@
 #include "smt/command.h"
 #include "util/bitvector.h"
 
+#include <algorithm>
+
 // ANTLR defines these, which is really bad!
 #undef true
 #undef false
