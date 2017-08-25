@@ -72,8 +72,8 @@ public:
     }
 
     // Now test an assert with a format that drives it over the 512
-    // byte initial buffer.  This was a bug in r1441, see bug 246:
-    // http://goedel.cims.nyu.edu/bugzilla3/show_bug.cgi?id=246
+    // byte initial buffer.  This was a bug in r1441, see bug:
+    // https://github.com/CVC4/CVC4/issues/465
     string fmt = string(200, 'x') + " %s " + string(200, 'x');
     string arg(200, 'y');
     try {

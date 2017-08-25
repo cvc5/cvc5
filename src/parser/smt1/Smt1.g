@@ -71,6 +71,7 @@ options {
 // files. See the documentation in "parser/antlr_undefines.h" for more details.
 #include "parser/antlr_undefines.h"
 
+#include <algorithm>
 #include <memory>
 #include <stdint.h>
 

@@ -38,7 +38,6 @@
 
 #include <stdint.h>
 
-#include <cassert>
 #include <ctime>
 #include <iomanip>
 #include <map>

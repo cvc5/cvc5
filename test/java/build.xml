@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="CVC4" default="test" basedir=".">
+  <property name="class-dir" value="classes" />
+  <path id="classpath">
+    <fileset dir="local-lib" includes="**/*.jar" />
+    <fileset dir="../../builds" includes="**/*.jar" />
+  </path>
+
+  <path id="testpath">
+    <path refid="classpath" />
+    <pathelement location="${class-dir}" />
+  </path>
+
+  <dirset id="lib-dirs" dir="../.." includes="builds/**/*/src/bindings/java/.libs" />
+  <pathconvert property="lib-path" refid="lib-dirs" />
+
+  <target name="compile">
+    <mkdir dir="${class-dir}" />
+    <javac srcdir="." destdir="${class-dir}" classpathref="classpath" includeantruntime="false" />
+  </target>
+
+  <target name="test" depends="compile">
+    <junit printsummary="withOutAndErr" haltonfailure="yes" fork="yes">
+      <jvmarg value='-Djava.library.path=${lib-path}'/>
+      <classpath refid="testpath" />
+      <batchtest>
+        <fileset dir="${class-dir}" includes="**/*.class"/>
+      </batchtest>
+    </junit>
+  </target>
+</project>

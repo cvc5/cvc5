@@ -36,7 +36,7 @@
  * This forces the inclusion of "cvc4_private.h". This is intentional!
  *
  * See bug 688 for more details:
- * http://cvc4.cs.nyu.edu/bugs/show_bug.cgi?id=688
+ * https://github.com/CVC4/CVC4/issues/907
  *
  * If you want to check CVC4_PROOF, you should have a very good reason
  * and should list the exceptions here:
