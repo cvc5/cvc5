@@ -28,14 +28,15 @@
 #include <fstream>
 #include <string>
 
-// #warning "TODO: Why is lfsc's check.h being included like this?"
-#include "check.h"
-
 #include "base/configuration_private.h"
 #include "base/cvc4_assert.h"
 #include "base/output.h"
 #include "smt/smt_engine.h"
 #include "util/statistics_registry.h"
+
+#if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
+#include "lfscc.h"
+#endif
 
 using namespace CVC4;
 using namespace std;
@@ -61,7 +62,7 @@ public:
 
 void SmtEngine::checkProof() {
 
-#if IS_PROOFS_BUILD
+#if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
 
   Chat() << "generating proof..." << endl;
 
@@ -113,23 +114,15 @@ void SmtEngine::checkProof() {
   pfStream << proof::plf_signatures << endl;
   pf->toStream(pfStream);
   pfStream.close();
-  args a;
-  a.show_runs = false;
-  a.no_tail_calls = false;
-  a.compile_scc = false;
-  a.compile_scc_debug = false;
-  a.run_scc = false;
-  a.use_nested_app = false;
-  a.compile_lib = false;
-  init();
-  check_file(pfFile, a);
+  lfscc_init();
+  lfscc_check_file(pfFile, false, false, false, false, false, false, false);
+  // FIXME: we should actually call lfscc_cleanup here, but lfscc_cleanup
+  // segfaults on regress0/bv/core/bitvec7.smt
+  //lfscc_cleanup();
   free(pfFile);
   close(fd);
 
-#else /* IS_PROOFS_BUILD */
-
+#else /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
   Unreachable("This version of CVC4 was built without proof support; cannot check proofs.");
-
-#endif /* IS_PROOFS_BUILD */
-
+#endif /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
 }

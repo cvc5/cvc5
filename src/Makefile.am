@@ -16,7 +16,7 @@ AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
 	-D __STDC_LIMIT_MACROS \
 	-D __STDC_FORMAT_MACROS \
-	-I@builddir@ -I@srcdir@/include -I@srcdir@ -I@top_srcdir@/proofs/lfsc_checker
+	-I@builddir@ -I@srcdir@/include -I@srcdir@
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
 SUBDIRS = lib base options util expr smt_util prop/minisat prop/bvminisat . parser compat bindings main
@@ -476,7 +476,6 @@ libcvc4_la_LIBADD = \
 	@builddir@/prop/bvminisat/libbvminisat.la
 if CVC4_PROOF
 libcvc4_la_LIBADD += \
-	@top_builddir@/proofs/lfsc_checker/liblfsc_checker.la \
 	@top_builddir@/proofs/signatures/libsignatures.la
 endif
 
@@ -497,6 +496,12 @@ if CVC4_USE_CRYPTOMINISAT
 libcvc4_la_LIBADD += $(CRYPTOMINISAT_LIBS)
 libcvc4_la_LDFLAGS += $(CRYPTOMINISAT_LDFLAGS)
 endif
+
+if CVC4_USE_LFSC
+libcvc4_la_LIBADD += $(LFSC_LIBS)
+libcvc4_la_LDFLAGS += $(LFSC_LDFLAGS)
+endif
+
 
 
 BUILT_SOURCES = \

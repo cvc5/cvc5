@@ -17,13 +17,11 @@ env:
   - secure: "fRfdzYwV10VeW5tVSvy5qpR8ZlkXepR7XWzCulzlHs9SRI2YY20BpzWRjyMBiGu2t7IeJKT7qdjq/CJOQEM8WS76ON7QJ1iymKaRDewDs3OhyPJ71fsFKEGgLky9blk7I9qZh23hnRVECj1oJAVry9IK04bc2zyIEjUYpjRkUAQ="
   - TEST_GROUPS=2
  matrix:
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --enable-proof --with-portfolio'
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --enable-proof --with-portfolio' TEST_GROUP=0
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --enable-proof --with-portfolio' TEST_GROUP=1
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --with-lfsc --with-portfolio'
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=0
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=1
   - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='--disable-proof'
   - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_CVC4_CONFIG='--enable-proof'
-  - TRAVIS_LFSC=yes
-  - TRAVIS_LFSC=yes TRAVIS_LFSC_DISTCHECK=yes
 addons:
  apt:
   sources:
@@ -89,30 +87,21 @@ script:
        contrib/new-theory --alternate test_newtheory test_newalttheory || error "NEWTHEORY-ALTERNATE FAILED";
        grep -q '^THEORIES *=.* test_newalttheory' src/Makefile.theories || error "NEWTHEORY-ALTERNATE FAILED";
    }
-   LFSCchecks() {
-     cd proofs/lfsc_checker &&
-     (./configure || (echo; cat builds/config.log; echo; echo "${red}CONFIGURE FAILED${normal}"; exit 1)) &&
-     if [ -n "$TRAVIS_LFSC_DISTCHECK" ]; then
-       make -j2 distcheck || (echo; echo "${red}LFSC DISTCHECK FAILED${normal}"; echo; exit 1);
-     else
-       make -j2 || (echo; echo "${red}LFSC BUILD FAILED${normal}"; echo; exit 1);
-     fi;
-   }
    run() {
      echo "travis_fold:start:$1"
      echo "Running $1"
      $1 || exit 1
      echo "travis_fold:end:$1"
    }
+   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_WITH_LFSC" ] && run contrib/get-lfsc-checker
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run addNewTheoryTest
    [ -n "$TRAVIS_CVC4" ] && run configureCVC4
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
    [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && run makeCheck && run makeExamples
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_CHECK_PORTFOLIO" ] && run makeCheckPortfolio
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_JAVA_API_TEST" ] && run JavaApiTest
-   [ -n "$TRAVIS_LFSC" ] && run LFSCchecks
    [ -n "$TRAVIS_COVERITY" ] && echo "Running coverity. Skipping the normal build."
-   [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_LFSC" ] && [ -z "$TRAVIS_COVERITY" ] && error "Unknown Travis-CI configuration"
+   [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_COVERITY" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
 matrix:
