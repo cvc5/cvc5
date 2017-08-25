@@ -6,6 +6,7 @@
 #
 
 macports_prereq="autoconf automake boost gmp gtime libtool readline"
+homebrew_prereq="autoconf automake boost gmp gnu-time libtool readline"
 
 export PATH="/opt/local/bin:$PATH"
 
@@ -13,8 +14,8 @@ if [ $# -ne 0 ]; then
   echo "usage: `basename $0`" >&2
   echo >&2
   echo "This script attempts to set up the build requirements for CVC4 for Mac OS X." >&2
-  echo "MacPorts must be installed (but this script installs prerequisite port" >&2
-  echo "packages for CVC4).  If this script is successful, it prints a configure" >&2
+  echo "MacPorts or Homebrew must be installed (but this script installs prerequisite" >&2
+  echo "port packages for CVC4).  If this script is successful, it prints a configure" >&2
   echo "line that you can use to configure CVC4." >&2
   exit 1
 fi
@@ -30,11 +31,15 @@ function reporterror {
 
 echo =============================================================================
 echo
-echo "running: sudo port install $macports_prereq"
 if which port &>/dev/null; then
+  echo "running: sudo port install $macports_prereq"
   echo "You may be asked for your password to install these packages."
   echo
   sudo port install $macports_prereq || reporterror
+elif which brew &>/dev/null; then
+  for package in $homebrew_prereq; do
+      brew list $package &>/dev/null || brew install $package || reporterror
+  done
 else
   echo
   echo "ERROR: You must have MacPorts installed for Mac builds of CVC4."
