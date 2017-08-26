@@ -11,8 +11,9 @@
  **
  ** \brief Preprocessing pass api for passes
  **
- ** Preprocessing pass api for passes. Takes in variables and methods from d_smt
- ** and d_private and allows for access to the passes.
+ ** The preprocessing pass API is the interface between solver  and
+ ** preprocessing passes. Passes are expected to use API for 
+ ** read only access.
  **/
 #include "cvc4_private.h"
 

@@ -12,8 +12,9 @@
  ** \brief Implementation for preprocessing pass registry
  **
  ** Implementation for preprocessing pass registry, which facilitates
- *registering passes and deals with destruction of variables like timers of the
- *passes.
+ ** registering passes and deals with ownership of them to make sure that
+ ** passes are properly disposed of. The registry is
+ ** also responsible for making the API available to the passes. 
  **/
 #include "cvc4_private.h"
 
@@ -39,10 +40,10 @@ class PreprocessingPassRegistry {
  public:
   /* Initializes all the passes within PreprocessingPass map with API */
   void init(PreprocessingPassAPI* api);
-  /* registers pass given a name and an instance of the pass to the map */
+  /* registers a pass with a unique name and takes ownership of it*/
   void registerPass(const std::string& ppName,
                     PreprocessingPass* preprocessingPass);
-  /* gets pass from map */
+  /* retrieve pass given name from registry */
   PreprocessingPass* getPass(const std::string& ppName);
   /* destructor that deletes all passes in map */
   ~PreprocessingPassRegistry();

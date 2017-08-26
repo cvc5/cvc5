@@ -11,10 +11,13 @@
  **
  ** \brief Preprocessing pass registry
  **
- ** Preprocessing pass registry that registers the preprocessing passes.
+ ** Preprocessing pass registry that uses a name to store instances of
+ ** classes in a map. Makes sure passes are properly disposed of when
+ ** registry is destroyed.  
  **/
 #include "preproc/preprocessing_pass_registry.h"
 #include <utility>
+#include <cassert>
 #include "base/output.h"
 #include "preproc/preprocessing_pass.h"
 
@@ -31,6 +34,7 @@ void PreprocessingPassRegistry::init(PreprocessingPassAPI* api) {
 void PreprocessingPassRegistry::registerPass(
     const std::string& ppName, PreprocessingPass* preprocessingPass) {
   Debug("pp-registry") << "Registering pass " << ppName << std::endl;
+  Assert(d_stringToPreprocessingPass[ppName] == NULL);
   d_stringToPreprocessingPass[ppName] = preprocessingPass;
 }
 

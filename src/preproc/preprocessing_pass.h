@@ -11,9 +11,13 @@
  **
  ** \brief Implementation for preprocessing pass super class
  **
- ** Implementation for preprocessing pass super class. Assertion Pipeline has
- *been moved from SmtEngine to here, and methods like dump assertions, among
- *other classes. Generalized structure for a preprocessing pass implementation.
+ ** Implementation for preprocessing pass super class. Includes a generalized
+ ** structure for the apply method, which includes dumping assertions before
+ ** and after the pass, initializing the Timer, and Tracing and Chatting. 
+ ** For new classes, a name is necessary to register the pass, and 
+ ** an apply internal method is necessary that takes in
+ ** the AssertionPipeline to perform the pass. An init Internal method
+ ** is optional to initialize variables that are not a part of the API.
  **/
 #include "cvc4_public.h"
 
