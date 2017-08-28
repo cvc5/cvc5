@@ -111,6 +111,8 @@ matrix:
     # tests for both groups).
     - addons:
         apt:
+          sources:
+            - ubuntu-toolchain-r-test
           packages:
             - *common_deps
             - g++-7
@@ -119,6 +121,8 @@ matrix:
         - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=0
     - addons:
         apt:
+          sources:
+            - ubuntu-toolchain-r-test
           packages:
             - *common_deps
             - g++-7
