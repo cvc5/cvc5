@@ -41,14 +41,24 @@ public:
 class Instantiator;
 
 
+class TermProperties {
+public:
+  TermProperties() : d_type(-1) {}
+  int d_type;
+  // for arithmetic
+  Node d_coeff;
+};
+
 //solved form, involves substitution with coefficients
 class SolvedForm {
 public:
   std::vector< Node > d_vars;
   std::vector< Node > d_subs;
+  //
   std::vector< Node > d_coeff;
   std::vector< int > d_btyp;
-  std::vector< Node > d_has_coeff;
+  //std::vector< TermProperties > d_props;
+  std::vector< Node > d_has_coeff;//d_has_prop;
   Node d_theta;
   void copy( SolvedForm& sf ){
     d_vars.insert( d_vars.end(), sf.d_vars.begin(), sf.d_vars.end() );
@@ -105,7 +115,7 @@ private:
   bool d_is_nested_quant;
   std::vector< Node > d_ce_atoms;
   //collect atoms
-  void collectCeAtoms( Node n, std::map< Node, bool >& visited );  
+  void collectCeAtoms( Node n, std::map< Node, bool >& visited );
 private:
   //map from variables to their instantiators
   std::map< Node, Instantiator * > d_instantiator;
@@ -114,7 +124,7 @@ private:
   std::map< Node, unsigned > d_curr_index;
   //stack of temporary variables we are solving (e.g. subfields of datatypes)
   std::vector< Node > d_stack_vars;
-  //used instantiators 
+  //used instantiators
   std::map< Node, Instantiator * > d_active_instantiators;
   //register variable
   void registerInstantiationVariable( Node v, unsigned index );
@@ -141,7 +151,7 @@ public:
   CegqiOutput * getOutput() { return d_out; }
   //get quantifiers engine
   QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
-  
+
 //interface for instantiators
 public:
   void pushStackVariable( Node v );
@@ -157,15 +167,14 @@ public:
 public:
   unsigned getNumCEAtoms() { return d_ce_atoms.size(); }
   Node getCEAtom( unsigned i ) { return d_ce_atoms[i]; }
-  // is eligible 
+  // is eligible
   bool isEligible( Node n );
-  // has variable 
+  // has variable
   bool hasVariable( Node n, Node pv );
   bool useVtsDelta() { return d_use_vts_delta; }
   bool useVtsInfinity() { return d_use_vts_inf; }
   bool hasNestedQuantification() { return d_is_nested_quant; }
 };
-
 
 
 // an instantiator for individual variables
@@ -178,29 +187,32 @@ public:
   Instantiator( QuantifiersEngine * qe, TypeNode tn );
   virtual ~Instantiator(){}
   virtual void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {}
-  
+
   //called when pv_coeff * pv = n, and n is eligible for instantiation
   virtual bool processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, Node pv_coeff, Node n, unsigned effort );
   //eqc is the equivalence class of pv
   virtual bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort ) { return false; }
-  
-  //term_coeffs.size() = terms.size() = 2, called when term_coeff[0] * terms[0] = term_coeff[1] * terms[1], terms are eligible, and at least one of these terms contains pv
+
   virtual bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
+  //term_coeffs.size() = terms.size() = 2, called when term_coeff[0] * terms[0] = term_coeff[1] * terms[1], terms are eligible, and at least one of these terms contains pv
+  //  returns true if an instantiation was successfully added via a recursive call
   virtual bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort ) { return false; }
-  
-  //called when assertion lit holds.  note that lit is unsubstituted, first must substitute/solve/check eligible
+
   virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
+  virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return false; }
+  //called when assertion lit holds.  note that lit is unsubstituted, first must substitute/solve/check eligible
+  //  returns true if an instantiation was successfully added via a recursive call
   virtual bool processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return false; }
   virtual bool processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) { return false; }
-  
+
   //do we allow instantiation for the model value of pv
   virtual bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
   virtual bool allowModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return d_closed_enum_type; }
-  
+
   //do we need to postprocess the solved form? did we successfully postprocess
   virtual bool needsPostProcessInstantiation( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
   virtual bool postProcessInstantiation( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
-  
+
   /** Identify this module (for debugging) */
   virtual std::string identify() const { return "Default"; }
 };
