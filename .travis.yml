@@ -68,7 +68,8 @@ script:
    }
    JavaApiTest() {
      pushd test/java
-     local status=${ant}
+     local status=0
+     ant || status=1
      popd
      return $status
    }
