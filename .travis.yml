@@ -120,7 +120,7 @@ matrix:
           notification_email: timothy.alan.king@gmail.com
           build_command_prepend: "./autogen.sh; ./configure --enable-unit-testing --enable-proof"
           build_command: "make V=1 -j4"
-          branch_pattern: coverity_scan
+          branch_pattern: rem_coverity_ssl_cert_workaround
       after_failure:
         - cat /home/travis/build/CVC4/CVC4/cov-int/build-log.txt
 notifications:
