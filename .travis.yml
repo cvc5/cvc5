@@ -1,8 +1,6 @@
 language: cpp
 cache:
  apt: true
- directories:
-  - $HOME/cxxtest
 
 sudo: required
 dist: trusty
@@ -36,13 +34,9 @@ addons:
   - antlr3
   - libantlr3c-dev
   - ant-optional
+  - cxxtest
 before_install:
  - eval "${MATRIX_EVAL}"
-install:
-# Download and cache a copy of cxxtest until it appears officially in quantal.
- - wget http://sourceforge.net/projects/cxxtest/files/cxxtest/4.3/cxxtest-4.3.tar.gz
- - tar -xzvf cxxtest-4.3.tar.gz
- - cp -vRT cxxtest-4.3 $HOME/cxxtest
 before_script:
  - export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
  - export PATH=$PATH:$JAVA_HOME/bin
@@ -56,7 +50,7 @@ script:
    normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
    configureCVC4() {
      echo "CVC4 config - $TRAVIS_CVC4_CONFIG";
-     ./configure --enable-unit-testing $TRAVIS_CVC4_CONFIG  CXXTEST=$HOME/cxxtest ||
+     ./configure --enable-unit-testing $TRAVIS_CVC4_CONFIG ||
        (echo; echo "Trying to print config.log"; cat builds/config.log; error "CONFIGURE FAILED");
    }
    error() {
@@ -66,7 +60,7 @@ script:
      exit 1;
    }
    makeDistcheck() {
-     make V=1 -j2 distcheck CVC4_REGRESSION_ARGS='--no-early-exit' DISTCHECK_CONFIGURE_FLAGS="CXXTEST=$HOME/cxxtest" ||
+     make V=1 -j2 distcheck CVC4_REGRESSION_ARGS='--no-early-exit' ||
        error "DISTCHECK (WITH NEWTHEORY TESTS) FAILED";
    }
    makeCheck() {
@@ -121,25 +115,18 @@ matrix:
             - *common_deps
             - g++-7
       env:
+       global:
         - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
-        - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=0
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - *common_deps
-            - g++-7
-      env:
-        - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
-        - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=1
+        - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio'
+       matrix:
+        - TEST_GROUP=0
+        - TEST_GROUP=1
     # Rule for running Coverity Scan.
     - os: linux
       compiler: gcc
       before_install: echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
       env:
-        - TRAVIS_COVERITY=yes CVC4_REGRESSION_ARGS='--no-early-exit'  CXXTEST="$HOME/cxxtest"
+        - TRAVIS_COVERITY=yes CVC4_REGRESSION_ARGS='--no-early-exit'
       addons:
         # Need to duplicate as addons will be over written.
         apt:
@@ -159,11 +146,12 @@ matrix:
         - cat /home/travis/build/CVC4/CVC4/cov-int/build-log.txt
   allow_failures:
   - env:
-    - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
-    - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=0
-  - env:
-    - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
-    - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=1
+     global:
+      - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
+      - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio'
+     matrix:
+      - TEST_GROUP=0
+      - TEST_GROUP=1
 
 notifications:
   email:
