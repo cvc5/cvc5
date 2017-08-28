@@ -2,7 +2,7 @@ language: cpp
 cache:
  apt: true
 
-sudo: required
+sudo: false
 dist: trusty
 
 compiler:
@@ -104,7 +104,6 @@ matrix:
   include:
     - os: linux
       compiler: gcc
-      before_install: echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
       env:
         - TRAVIS_COVERITY=yes CVC4_REGRESSION_ARGS='--no-early-exit'
       addons:
