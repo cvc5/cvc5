@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Preprocessing pass api for passes
+ ** \brief Preprocessing pass API for passes
  **
- ** The preprocessing pass API is the interface between solver  and
+ ** The preprocessing pass API is the interface between solver and
  ** preprocessing passes. Passes are expected to use API for 
  ** read only access.
  **/
@@ -36,7 +36,7 @@ class PreprocessingPassAPI {
   SmtEngine* getSmt() { return d_smt; }
 
  private:
-  /* SmtEngine that is used to get varialbes */
+  /* SmtEngine that is used to get variables */
   SmtEngine* d_smt;
 };  // class PreprocessingPassAPI
 

@@ -11,9 +11,9 @@
  **
  ** \brief Implementation for preprocessing pass api for passes
  **
- ** Implementation for preprocessing pass api for passes. Takes in variables and
- *methods from d_smt
- *and d_private and allows for access to the passes.
+ ** Implementation for preprocessing pass API for passes. 
+ ** Stores a pointer to the SMTEngine that is was created in
+ ** and exposes parts of the solver to the preprocessing passes.
  **/
 #include "preprocessing_pass_api.h"
 

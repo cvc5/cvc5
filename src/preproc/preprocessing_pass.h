@@ -27,8 +27,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "expr/node.h"
 
+#include "expr/node.h"
 #include "options/proof_options.h"
 #include "preproc/preprocessing_pass_registry.h"
 #include "smt/dump.h"
@@ -37,11 +37,13 @@
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
+
 using namespace std;
 
 namespace CVC4 {
 namespace preproc {
 
+/* Assertion Pipeline stores a list of assertions modified by preprocessing passes */
 class AssertionPipeline {
   vector<Node> d_nodes;
 
@@ -64,7 +66,7 @@ class AssertionPipeline {
   }
 }; /* class AssertionPipeline */
 
-/* Data structure for return type of passes */
+/* Enumeration of the values returned when applying preprocessing pass */
 enum PreprocessingPassResult { CONFLICT, NO_CONFLICT };
 /* forward declaration of registry */
 class PreprocessingPassRegistry;
@@ -73,18 +75,19 @@ class PreprocessingPass {
  public:
   /* Initializes the api and registers the timer for each pass */
   void init(PreprocessingPassAPI* api);
-  /* General structure for the apply method for a pass, includes dumping
-   * assertions before and after pass and Chat */
+  /* Takes a collection of assertions and preprocesses them, modifying
+   * assertionsToPreprocess. Supports timing and output of debugging 
+   * information  */
   PreprocessingPassResult apply(AssertionPipeline* assertionsToPreprocess);
-  /* do dumping before/after any preprocessing pass) */
-  void dumpAssertions(const char* key, const AssertionPipeline& assertionList);
   PreprocessingPass(PreprocessingPassRegistry* preprocessingPassRegistry,
                     const std::string& name);
 
   virtual ~PreprocessingPass();
 
  protected:
-  /* prototype for initInternal method, wh ich may need to be called to
+  /* do dumping before/after any preprocessing pass) */
+  void dumpAssertions(const char* key, const AssertionPipeline& assertionList);
+  /* prototype for initInternal method, which may need to be called to
    * initialize stats or variables within passes */
   virtual void initInternal(PreprocessingPassAPI* api) {}
   /* prototype for apply method each individual pass ultimately calls */
@@ -94,7 +97,7 @@ class PreprocessingPass {
   PreprocessingPassAPI* d_api;
   /* name of pass */
   std::string d_name;
-  /* timer registered for passes */
+  /* Timer for registering the preprocessing time of this pass */
   TimerStat d_timer;
 };
 

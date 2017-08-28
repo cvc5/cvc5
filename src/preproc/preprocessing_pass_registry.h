@@ -43,7 +43,7 @@ class PreprocessingPassRegistry {
   /* registers a pass with a unique name and takes ownership of it*/
   void registerPass(const std::string& ppName,
                     PreprocessingPass* preprocessingPass);
-  /* retrieve pass given name from registry */
+  /* method for retrieivng pass given name from registry */
   PreprocessingPass* getPass(const std::string& ppName);
   /* destructor that deletes all passes in map */
   ~PreprocessingPassRegistry();

@@ -17,7 +17,7 @@
  **/
 #include "preproc/preprocessing_pass_registry.h"
 #include <utility>
-#include <cassert>
+#include "base/cvc4_assert.h" 
 #include "base/output.h"
 #include "preproc/preprocessing_pass.h"
 
@@ -34,13 +34,14 @@ void PreprocessingPassRegistry::init(PreprocessingPassAPI* api) {
 void PreprocessingPassRegistry::registerPass(
     const std::string& ppName, PreprocessingPass* preprocessingPass) {
   Debug("pp-registry") << "Registering pass " << ppName << std::endl;
-  Assert(d_stringToPreprocessingPass[ppName] == NULL);
+  Assert(preprocessingPass != NULL);
+  Assert(d_stringToPreprocessingPass.find(ppName) == d_stringToPreprocessingPass.end());
   d_stringToPreprocessingPass[ppName] = preprocessingPass;
 }
 
 PreprocessingPass* PreprocessingPassRegistry::getPass(
     const std::string& ppName) {
-  assert(d_stringToPreprocessingPass.find(ppName) !=
+  Assert(d_stringToPreprocessingPass.find(ppName) !=
          d_stringToPreprocessingPass.end());
   return d_stringToPreprocessingPass[ppName];
 }

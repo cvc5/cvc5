@@ -489,7 +489,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   std::vector<Node> d_boolVars;
 
   /** Assertions in the preprocessing pipeline */
-  preproc::AssertionPipeline d_assertions;
+  AssertionPipeline d_assertions;
 
   /** Whether any assertions have been processed */
   CDO<bool> d_assertionsProcessed;
@@ -536,6 +536,7 @@ public:
 
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
+  /* Method that finished the initialization of variables like the preprocessing pass registry and API */
   void finishInit();
 
  private:
@@ -2805,7 +2806,7 @@ void SmtEnginePrivate::staticLearning() {
 
 // do dumping (before/after any preprocessing pass)
 static void dumpAssertions(const char* key,
-                           const preproc::AssertionPipeline& assertionList) {
+                           const AssertionPipeline& assertionList) {
   if( Dump.isOn("assertions") &&
       Dump.isOn(string("assertions:") + key) ) {
     // Push the simplified assertions to the dump output stream
