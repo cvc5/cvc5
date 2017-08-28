@@ -17,8 +17,8 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROC__PREPROCESSING_PASS_API_H
-#define __CVC4__PREPROC__PREPROCESSING_PASS_API_H
+#ifndef __CVC4__PREPROC__PREPROCESSING_PASS_CONTEXT_H
+#define __CVC4__PREPROC__PREPROCESSING_PASS_CONTEXT_H
 
 #include <string>
 #include "decision/decision_engine.h"
@@ -30,17 +30,17 @@
 namespace CVC4 {
 namespace preproc {
 
-class PreprocessingPassAPI {
+class PreprocessingPassContext {
  public:
-  PreprocessingPassAPI(SmtEngine* smt);
+  PreprocessingPassContext(SmtEngine* smt);
   SmtEngine* getSmt() { return d_smt; }
 
  private:
   /* SmtEngine that is used to get variables */
   SmtEngine* d_smt;
-};  // class PreprocessingPassAPI
+};  // class PreprocessingPassContext
 
 }  // namespace preproc
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROC__PREPROCESSING_PASS_API_H */
+#endif /* __CVC4__PREPROC__PREPROCESSING_PASS_CONTEXT_H */

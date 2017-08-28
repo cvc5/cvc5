@@ -18,12 +18,6 @@
 namespace CVC4 {
 namespace preproc {
 
-void PreprocessingPass::init(PreprocessingPassAPI* api) {
-  d_api = api;
-  smtStatisticsRegistry()->registerStat(&d_timer);
-  initInternal(api);
-}
-
 PreprocessingPassResult PreprocessingPass::apply(
     AssertionPipeline* assertionsToPreprocess) {
   TimerStat::CodeTimer codeTimer(d_timer);
@@ -48,10 +42,13 @@ void PreprocessingPass::dumpAssertions(const char* key,
 }
 
 PreprocessingPass::PreprocessingPass(
-    PreprocessingPassRegistry* preprocessingPassRegistry,
+    PreprocessingPassContext* preprocContext, 
     const std::string& name)
     : d_name(name), d_timer("preproc::" + name) {
-  preprocessingPassRegistry->registerPass(name, this);
+  d_preprocContext = preprocContext; 
+  smtStatisticsRegistry()->registerStat(&d_timer);
+  initInternal(preprocContext);
+//  preprocessingPassRegistry->registerPass(name, this);
 }
 
 PreprocessingPass::~PreprocessingPass() {

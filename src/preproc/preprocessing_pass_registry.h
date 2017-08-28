@@ -13,8 +13,7 @@
  **
  ** Implementation for preprocessing pass registry, which facilitates
  ** registering passes and deals with ownership of them to make sure that
- ** passes are properly disposed of. The registry is
- ** also responsible for making the API available to the passes. 
+ ** passes are properly disposed of. 
  **/
 #include "cvc4_private.h"
 
@@ -26,7 +25,6 @@
 #include <unordered_map>
 
 #include "decision/decision_engine.h"
-#include "preproc/preprocessing_pass_api.h"
 #include "theory/arith/pseudoboolean_proc.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_engine.h"
@@ -38,8 +36,6 @@ class PreprocessingPass;
 
 class PreprocessingPassRegistry {
  public:
-  /* Initializes all the passes within PreprocessingPass map with API */
-  void init(PreprocessingPassAPI* api);
   /* registers a pass with a unique name and takes ownership of it*/
   void registerPass(const std::string& ppName,
                     PreprocessingPass* preprocessingPass);

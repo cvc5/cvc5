@@ -15,21 +15,16 @@
  ** classes in a map. Makes sure passes are properly disposed of when
  ** registry is destroyed.  
  **/
-#include "preproc/preprocessing_pass_registry.h"
+
 #include <utility>
+
+#include "preproc/preprocessing_pass_registry.h"
 #include "base/cvc4_assert.h" 
 #include "base/output.h"
 #include "preproc/preprocessing_pass.h"
 
 namespace CVC4 {
 namespace preproc {
-
-void PreprocessingPassRegistry::init(PreprocessingPassAPI* api) {
-  for (std::pair<std::string, PreprocessingPass*>&& element :
-       d_stringToPreprocessingPass) {
-    element.second->init(api);
-  }
-}
 
 void PreprocessingPassRegistry::registerPass(
     const std::string& ppName, PreprocessingPass* preprocessingPass) {

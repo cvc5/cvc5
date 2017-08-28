@@ -17,7 +17,7 @@
  ** For new classes, a name is necessary to register the pass, and 
  ** an apply internal method is necessary that takes in
  ** the AssertionPipeline to perform the pass. An init Internal method
- ** is optional to initialize variables that are not a part of the API.
+ ** is optional to initialize variables that are not a part of the Context.
  **/
 #include "cvc4_public.h"
 
@@ -29,14 +29,11 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "options/proof_options.h"
-#include "preproc/preprocessing_pass_registry.h"
+#include "proof/proof.h"
+#include "preproc/preprocessing_pass_context.h"
 #include "smt/dump.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/rewriter.h"
-#include "theory/substitutions.h"
-#include "theory/theory_model.h"
 
 using namespace std;
 
@@ -68,18 +65,14 @@ class AssertionPipeline {
 
 /* Enumeration of the values returned when applying preprocessing pass */
 enum PreprocessingPassResult { CONFLICT, NO_CONFLICT };
-/* forward declaration of registry */
-class PreprocessingPassRegistry;
 
 class PreprocessingPass {
  public:
-  /* Initializes the api and registers the timer for each pass */
-  void init(PreprocessingPassAPI* api);
   /* Takes a collection of assertions and preprocesses them, modifying
    * assertionsToPreprocess. Supports timing and output of debugging 
    * information  */
   PreprocessingPassResult apply(AssertionPipeline* assertionsToPreprocess);
-  PreprocessingPass(PreprocessingPassRegistry* preprocessingPassRegistry,
+  PreprocessingPass(PreprocessingPassContext* preprocContext,
                     const std::string& name);
 
   virtual ~PreprocessingPass();
@@ -89,12 +82,12 @@ class PreprocessingPass {
   void dumpAssertions(const char* key, const AssertionPipeline& assertionList);
   /* prototype for initInternal method, which may need to be called to
    * initialize stats or variables within passes */
-  virtual void initInternal(PreprocessingPassAPI* api) {}
+  virtual void initInternal(PreprocessingPassContext* preprocContext) {}
   /* prototype for apply method each individual pass ultimately calls */
   virtual PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) = 0;
-  /* API for Preprocessing Passes that initializes necessary variables */
-  PreprocessingPassAPI* d_api;
+  /* Context for Preprocessing Passes that initializes necessary variables */
+  PreprocessingPassContext* d_preprocContext;
   /* name of pass */
   std::string d_name;
   /* Timer for registering the preprocessing time of this pass */

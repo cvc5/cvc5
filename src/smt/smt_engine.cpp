@@ -536,11 +536,11 @@ public:
 
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
-  /* Method that finished the initialization of variables like the preprocessing pass registry and API */
+  /* Method that finished the initialization of variables like the preprocessing pass registry and Context */
   void finishInit();
 
  private:
-  std::unique_ptr<PreprocessingPassAPI> d_preprocessingPassAPI;
+  std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
   PreprocessingPassRegistry d_preprocessingPassRegistry;
   theory::arith::PseudoBooleanProcessor d_pbsProcessor;
 
@@ -2240,8 +2240,8 @@ bool SmtEngine::isDefinedFunction( Expr func ){
 }
 
 void SmtEnginePrivate::finishInit() {
-  d_preprocessingPassAPI.reset(new PreprocessingPassAPI(&d_smt));
-  d_preprocessingPassRegistry.init(d_preprocessingPassAPI.get());
+  d_preprocessingPassContext.reset(new PreprocessingPassContext(&d_smt));
+  //TODO: register passes here?
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
