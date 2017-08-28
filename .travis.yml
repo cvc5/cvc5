@@ -106,6 +106,9 @@ matrix:
   fast_finish: true
   include:
     # Test with GCC7
+    # Note: TRAVIS_CVC4_JAVA_API_TEST is only active for TEST_GROUP=0 because
+    # test groups only apply to regression tests (no need to repeat the Java
+    # tests for both groups).
     - addons:
         apt:
           packages:
@@ -151,7 +154,7 @@ matrix:
     - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=0
   - env:
     - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
-    - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=1
+    - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=1
 
 notifications:
   email:
