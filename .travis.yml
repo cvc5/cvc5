@@ -34,6 +34,8 @@ addons:
   - antlr3
   - libantlr3c-dev
   - ant-optional
+  - junit
+  - libhamcrest-java
   - cxxtest
 before_script:
  - export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
