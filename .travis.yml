@@ -70,7 +70,7 @@ script:
    }
    JavaApiTest() {(
      cd test/java
-     ant
+     # ant
    )}
    makeExamples() {
      make V=1 -j2 examples || error "COULD NOT BUILD EXAMPLES${normal}";
