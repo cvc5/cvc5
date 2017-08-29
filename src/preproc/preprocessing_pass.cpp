@@ -47,8 +47,6 @@ PreprocessingPass::PreprocessingPass(
     : d_name(name), d_timer("preproc::" + name) {
   d_preprocContext = preprocContext; 
   smtStatisticsRegistry()->registerStat(&d_timer);
-  initInternal(preprocContext);
-//  preprocessingPassRegistry->registerPass(name, this);
 }
 
 PreprocessingPass::~PreprocessingPass() {

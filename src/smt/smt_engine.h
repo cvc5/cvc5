@@ -70,6 +70,10 @@ namespace context {
   class UserContext;
 }/* CVC4::context namespace */
 
+namespace preproc {
+  class PreprocessingPassContext;
+}
+
 namespace prop {
   class PropEngine;
 }/* CVC4::prop namespace */
@@ -341,7 +345,8 @@ class CVC4_PUBLIC SmtEngine {
    * be called when d_logic is updated.
    */
   void setLogicInternal() throw();
-
+  
+  friend class ::CVC4::preproc::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::BooleanTermConverter;

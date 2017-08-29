@@ -80,9 +80,6 @@ class PreprocessingPass {
  protected:
   /* do dumping before/after any preprocessing pass) */
   void dumpAssertions(const char* key, const AssertionPipeline& assertionList);
-  /* prototype for initInternal method, which may need to be called to
-   * initialize stats or variables within passes */
-  virtual void initInternal(PreprocessingPassContext* preprocContext) {}
   /* prototype for apply method each individual pass ultimately calls */
   virtual PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) = 0;

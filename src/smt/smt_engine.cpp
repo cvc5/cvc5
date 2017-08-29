@@ -2241,7 +2241,7 @@ bool SmtEngine::isDefinedFunction( Expr func ){
 
 void SmtEnginePrivate::finishInit() {
   d_preprocessingPassContext.reset(new PreprocessingPassContext(&d_smt));
-  //TODO: register passes here?
+  //TODO: register passes here
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)

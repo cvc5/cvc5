@@ -34,6 +34,9 @@ class PreprocessingPassContext {
  public:
   PreprocessingPassContext(SmtEngine* smt);
   SmtEngine* getSmt() { return d_smt; }
+  TheoryEngine* getTheoryEngine() { return d_smt->d_theoryEngine; }
+  DecisionEngine* getDecisionEngine() { return d_smt->d_decisionEngine; }
+  prop::PropEngine* getPropEngine() { return d_smt->d_propEngine; }
 
  private:
   /* SmtEngine that is used to get variables */
