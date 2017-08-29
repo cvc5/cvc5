@@ -97,7 +97,7 @@ script:
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
    [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && run makeCheck && run makeExamples
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_CHECK_PORTFOLIO" ] && run makeCheckPortfolio
-   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_JAVA_API_TEST" ] && run JavaApiTest
+   # [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_JAVA_API_TEST" ] && run JavaApiTest
    [ -n "$TRAVIS_COVERITY" ] && echo "Running coverity. Skipping the normal build."
    [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_COVERITY" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
