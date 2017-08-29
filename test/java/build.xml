@@ -2,7 +2,7 @@
 <project name="CVC4" default="test" basedir=".">
   <property name="class-dir" value="classes" />
   <path id="classpath">
-    <fileset dir="/usr/share/java" includes="junit.jar,ant-junit4.jar,hamcrest-core.jar" />
+    <fileset dir="/usr/share/java" includes="*.jar" />
     <fileset dir="../../builds" includes="**/*.jar" />
   </path>
 
