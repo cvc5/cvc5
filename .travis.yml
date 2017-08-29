@@ -68,13 +68,10 @@ script:
      make V=1 -j2 check BINARY=pcvc4 CVC4_REGRESSION_ARGS='--fallback-sequential --no-early-exit' RUN_REGRESSION_ARGS= ||
        error "PORTFOLIO TEST FAILED";
    }
-   JavaApiTest() {
-     pushd test/java
-     local status=0
-     ant || status=1
-     popd
-     return $status
-   }
+   JavaApiTest() {(
+     cd test/java
+     ant
+   )}
    makeExamples() {
      make V=1 -j2 examples || error "COULD NOT BUILD EXAMPLES${normal}";
    }
