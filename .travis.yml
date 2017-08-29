@@ -2,7 +2,10 @@ language: cpp
 cache:
  apt: true
 
-sudo: false
+# We need more than 4G memory for compiling CVC4. Hence, we cannot switch
+# to container-based virtualization environments since they only provide 4G of
+# memory. We will stick with the VM-based environments for now.
+sudo: required
 dist: trusty
 
 compiler:
