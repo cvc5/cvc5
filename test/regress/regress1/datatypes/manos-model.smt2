@@ -1,3 +1,5 @@
+; COMMAND-LINE: --lang=smt2.5
+; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
 (declare-datatypes () ( (tuple2!879 (tuple2!879!880 (_1!881 Int) (_2!882 Int))) ))

@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --fmf-bound
 ; EXPECT: sat
 (set-logic ALL)
-(declare-datatypes () ((list (cons (head Int) (tail list)) (nil))))
+(declare-datatypes ((list 0)) (((cons (head Int) (tail list)) (nil))))
 
 (declare-fun P (Int) Bool)
 (declare-fun S () (Set list))
@@ -14,7 +14,7 @@
 
 ; should construct instantiation involving selectors for l 
 (declare-fun l () list)
-(assert (is-cons l))
+(assert ((_ is cons) l))
 (assert (member l S))
 
 ; should not contribute to instantiations

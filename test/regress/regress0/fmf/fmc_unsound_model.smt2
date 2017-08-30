@@ -4,7 +4,7 @@
 (set-logic ALL_SUPPORTED)
 
 (declare-sort a 0)
-(declare-datatypes () ((tree (Leaf (lab a)))))
+(declare-datatypes ((tree 0)) (((Leaf (lab a)))))
 
 (declare-sort alpha 0)
 (declare-fun alphabet (tree a) Bool)

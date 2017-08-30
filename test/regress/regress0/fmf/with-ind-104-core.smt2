@@ -1,3 +1,5 @@
+; COMMAND-LINE: --lang=smt2.5
+; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
 (declare-datatypes () ((Nat!2409 (succ!2410 (pred!2411 Nat!2409)) (zero!2412))

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --fmf-fun --strings-exp
+; COMMAND-LINE: --incremental --fmf-fun --strings-exp --lang=smt2.5
 (set-logic ALL_SUPPORTED)
 (declare-datatypes () (
 (List_T_C (List_T_C$CNil_T_CustomerType) (ListTC (ListTC$head T_CustomerType) (ListTC$tail List_T_C)))

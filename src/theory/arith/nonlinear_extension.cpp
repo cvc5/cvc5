@@ -1079,12 +1079,10 @@ std::vector<Node> NonlinearExtension::checkSplitZero() {
   for (unsigned i = 0; i < d_ms_vars.size(); i++) {
     Node v = d_ms_vars[i];
     if (d_zero_split.insert(v)) {
-      Node lem = v.eqNode(d_zero);
-      lem = Rewriter::rewrite(lem);
-      d_containing.getValuation().ensureLiteral(lem);
-      d_containing.getOutputChannel().requirePhase(lem, true);
-      lem = NodeManager::currentNM()->mkNode(kind::OR, lem, lem.negate());
-      lemmas.push_back(lem);
+      Node eq = v.eqNode(d_zero);
+      Node literal = d_containing.getValuation().ensureLiteral(eq);
+      d_containing.getOutputChannel().requirePhase(literal, true);
+      lemmas.push_back(literal.orNode(literal.negate()));
     }
   }
   return lemmas;
@@ -1406,12 +1404,10 @@ void NonlinearExtension::check(Theory::Effort e) {
         if( stv0!=stv1 ){
           Trace("nl-ext-mv") << "Bad shared term value : " << shared_term << " : " << stv1 << ", actual is " << stv0 << std::endl;
           //split on the value, FIXME : this is non-terminating in general, improve this
-          Node lem = shared_term.eqNode(stv0);
-          lem = Rewriter::rewrite(lem);
-          d_containing.getValuation().ensureLiteral(lem);
-          d_containing.getOutputChannel().requirePhase(lem, true);
-          lem = NodeManager::currentNM()->mkNode(kind::OR, lem, lem.negate());
-          lemmas.push_back(lem);
+          Node eq = shared_term.eqNode(stv0);
+          Node literal = d_containing.getValuation().ensureLiteral(eq);
+          d_containing.getOutputChannel().requirePhase(literal, true);
+          lemmas.push_back(literal.orNode(literal.negate()));
         }
       }
       if( !lemmas.empty() ){
@@ -2034,28 +2030,60 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
               dproc[a][b] = true;
               Trace("nl-ext-tplanes")
                   << "  decomposable into : " << a << " * " << b << std::endl;
-              Node a_v = computeModelValue(a, 1);
-              Node b_v = computeModelValue(b, 1);
-              // tangent plane
-              Node tplane = NodeManager::currentNM()->mkNode(
-                  kind::MINUS,
-                  NodeManager::currentNM()->mkNode(
-                      kind::PLUS,
-                      NodeManager::currentNM()->mkNode(kind::MULT, b_v, a),
-                      NodeManager::currentNM()->mkNode(kind::MULT, a_v, b)),
-                  NodeManager::currentNM()->mkNode(kind::MULT, a_v, b_v));
-              for (unsigned d = 0; d < 4; d++) {
-                Node aa = NodeManager::currentNM()->mkNode(
-                    d == 0 || d == 3 ? kind::GEQ : kind::LEQ, a, a_v);
-                Node ab = NodeManager::currentNM()->mkNode(
-                    d == 1 || d == 3 ? kind::GEQ : kind::LEQ, b, b_v);
-                Node conc = NodeManager::currentNM()->mkNode(
-                    d <= 1 ? kind::LEQ : kind::GEQ, t, tplane);
-                Node tlem = NodeManager::currentNM()->mkNode(
-                    kind::OR, aa.negate(), ab.negate(), conc);
-                Trace("nl-ext-tplanes")
-                    << "Tangent plane lemma : " << tlem << std::endl;
-                lemmas.push_back(tlem);
+              Node a_v_c = computeModelValue(a, 1);
+              Node b_v_c = computeModelValue(b, 1);
+              // points we will add tangent planes for
+              std::vector< Node > pts[2];
+              pts[0].push_back( a_v_c );
+              pts[1].push_back( b_v_c );
+              // if previously refined
+              bool prevRefine = d_tangent_val_bound[0][a].find( b )!=d_tangent_val_bound[0][a].end();
+              // a_min, a_max, b_min, b_max
+              for( unsigned p=0; p<4; p++ ){
+                Node curr_v = p<=1 ? a_v_c : b_v_c;
+                if( prevRefine ){
+                  Node pt_v = d_tangent_val_bound[p][a][b];
+                  Assert( !pt_v.isNull() );
+                  if( curr_v!=pt_v ){
+                    Node do_extend = NodeManager::currentNM()->mkNode( ( p==1 || p==3 ) ? GT : LT, curr_v, pt_v );
+                    do_extend = Rewriter::rewrite( do_extend );
+                    if( do_extend==d_true ){
+                      for( unsigned q=0; q<2; q++ ){
+                        pts[ p<=1 ? 0 : 1 ].push_back( curr_v );
+                        pts[ p<=1 ? 1 : 0 ].push_back( d_tangent_val_bound[ p<=1 ? 2+q : q ][a][b] );
+                      }
+                    }
+                  }
+                }else{
+                  d_tangent_val_bound[p][a][b] = curr_v;
+                }
+              }
+              
+              for( unsigned p=0; p<pts[0].size(); p++ ){
+                Node a_v = pts[0][p];
+                Node b_v = pts[1][p];
+              
+                // tangent plane
+                Node tplane = NodeManager::currentNM()->mkNode(
+                    kind::MINUS,
+                    NodeManager::currentNM()->mkNode(
+                        kind::PLUS,
+                        NodeManager::currentNM()->mkNode(kind::MULT, b_v, a),
+                        NodeManager::currentNM()->mkNode(kind::MULT, a_v, b)),
+                    NodeManager::currentNM()->mkNode(kind::MULT, a_v, b_v));
+                for (unsigned d = 0; d < 4; d++) {
+                  Node aa = NodeManager::currentNM()->mkNode(
+                      d == 0 || d == 3 ? kind::GEQ : kind::LEQ, a, a_v);
+                  Node ab = NodeManager::currentNM()->mkNode(
+                      d == 1 || d == 3 ? kind::GEQ : kind::LEQ, b, b_v);
+                  Node conc = NodeManager::currentNM()->mkNode(
+                      d <= 1 ? kind::LEQ : kind::GEQ, t, tplane);
+                  Node tlem = NodeManager::currentNM()->mkNode(
+                      kind::OR, aa.negate(), ab.negate(), conc);
+                  Trace("nl-ext-tplanes")
+                      << "Tangent plane lemma : " << tlem << std::endl;
+                  lemmas.push_back(tlem);
+                }
               }
             }
           }

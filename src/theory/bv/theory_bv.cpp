@@ -217,8 +217,8 @@ void TheoryBV::storeFunction(TNode func, TNode term) {
   }
 }
 
-void TheoryBV::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
-  Debug("bv-ackermanize") << "TheoryBV::mkAckermanizationAsssertions\n";
+void TheoryBV::mkAckermanizationAssertions(std::vector<Node>& assertions) {
+  Debug("bv-ackermanize") << "TheoryBV::mkAckermanizationAssertions\n";
 
   Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
   AlwaysAssert(!options::incrementalSolving());
@@ -510,7 +510,8 @@ bool TheoryBV::doExtfInferences( std::vector< Node >& terms ) {
   std::map< Node, Node > op_map;
   for( unsigned j=0; j<terms.size(); j++ ){
     TNode n = terms[j];
-    Assert( n.getKind()==kind::BITVECTOR_TO_NAT || kind::INT_TO_BITVECTOR );
+    Assert (n.getKind() == kind::BITVECTOR_TO_NAT
+            || n.getKind() == kind::INT_TO_BITVECTOR );
     if( n.getKind()==kind::BITVECTOR_TO_NAT ){
       //range lemmas
       if( d_extf_range_infer.find( n )==d_extf_range_infer.end() ){

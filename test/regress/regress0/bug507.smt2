@@ -1,3 +1,5 @@
+; COMMAND-LINE: --lang=smt2.5
+; EXPECT: sat
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status sat)
 

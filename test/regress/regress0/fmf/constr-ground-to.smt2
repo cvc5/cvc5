@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun
+; COMMAND-LINE: --fmf-fun --lang=smt2.5
 ; EXPECT: sat
 (set-logic UFDTLIA)
 (declare-datatypes () (

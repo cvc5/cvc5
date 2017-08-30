@@ -16,8 +16,9 @@
 
 #include "expr/datatype.h"
 #include "options/base_options.h"
-#include "options/quantifiers_options.h"
 #include "options/datatypes_options.h"
+#include "options/quantifiers_options.h"
+#include "smt/smt_engine.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fun_def_engine.h"
@@ -1005,7 +1006,7 @@ int TermDbSygus::solveForArgument( TypeNode tn, unsigned cindex, unsigned arg ) 
       solve_ret = getConstConsNum( tn, builtin );
       if( solve_ret!=-1 ){
         // t - s    ----->  ( 0 - s ) + t
-        rt.d_req_kind = MINUS ? PLUS : BITVECTOR_PLUS;
+        rt.d_req_kind = nk == MINUS ? PLUS : BITVECTOR_PLUS;
         rt.d_children[0].d_req_type = tn; // avoid?
         rt.d_children[0].d_req_kind = nk;
         rt.d_children[0].d_children[0].d_req_const = builtin;

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun-rlv --no-check-models
+; COMMAND-LINE: --fmf-fun-rlv --no-check-models --lang=smt2.5
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (define-fun $$isTrue$$ ((b Bool)) Bool b)

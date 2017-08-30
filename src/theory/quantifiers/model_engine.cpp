@@ -53,7 +53,11 @@ bool ModelEngine::needsCheck( Theory::Effort e ) {
 }
 
 unsigned ModelEngine::needsModel( Theory::Effort e ) {
-  return QuantifiersEngine::QEFFORT_MODEL;
+  if( options::mbqiInterleave() ){
+    return QuantifiersEngine::QEFFORT_STANDARD;
+  }else{
+    return QuantifiersEngine::QEFFORT_MODEL;
+  }
 }
 
 void ModelEngine::reset_round( Theory::Effort e ) {
@@ -61,7 +65,14 @@ void ModelEngine::reset_round( Theory::Effort e ) {
 }
 
 void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
-  if( quant_e==QuantifiersEngine::QEFFORT_MODEL ){
+  bool doCheck = false;
+  if( options::mbqiInterleave() ){
+    doCheck = quant_e==QuantifiersEngine::QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+  }
+  if( !doCheck ){
+    doCheck = quant_e==QuantifiersEngine::QEFFORT_MODEL;
+  }
+  if( doCheck ){
     Assert( !d_quantEngine->inConflict() );
     int addedLemmas = 0;
     FirstOrderModel* fm = d_quantEngine->getModel();

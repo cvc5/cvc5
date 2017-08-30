@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi
+; COMMAND-LINE: --cegqi --lang=smt2.5
 
 (set-logic UFDTLIA)
 

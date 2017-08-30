@@ -3036,15 +3036,15 @@ AS_TOK : 'as';
 CONST_TOK : 'const';
 
 // extended commands
-DECLARE_CODATATYPE_TOK : { PARSER_STATE->v2_6() }? 'declare-codatatype';
-DECLARE_DATATYPE_TOK : { PARSER_STATE->v2_6() }? 'declare-datatype';
-DECLARE_DATATYPES_2_5_TOK : { !PARSER_STATE->v2_6() }?'declare-datatypes';
-DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() }?'declare-datatypes';
-DECLARE_CODATATYPES_2_5_TOK : { !PARSER_STATE->v2_6() }?'declare-codatatypes';
-DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() }?'declare-codatatypes';
+DECLARE_CODATATYPE_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }? 'declare-codatatype';
+DECLARE_DATATYPE_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }? 'declare-datatype';
+DECLARE_DATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-datatypes';
+DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-datatypes';
+DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
+DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
 PAR_TOK : { PARSER_STATE->v2_6() }?'par';
-TESTER_TOK : { PARSER_STATE->v2_6() && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'is';
-MATCH_TOK : { PARSER_STATE->v2_6() && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'match';
+TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'is';
+MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'match';
 GET_MODEL_TOK : 'get-model';
 ECHO_TOK : 'echo';
 REWRITE_RULE_TOK : 'assert-rewrite';

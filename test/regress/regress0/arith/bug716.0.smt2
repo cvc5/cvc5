@@ -1,3 +1,4 @@
+; COMMAND-LINE: --lang=smt2.5
 ; SCRUBBER: sed -e 's/The fact in question: .*$/The fact in question: TERM/' -e 's/in a linear logic: .*$/in a linear logic: TERM/'
 ; EXPECT: (error "A non-linear fact was asserted to arithmetic in a linear logic.
 ; EXPECT: The fact in question: TERM

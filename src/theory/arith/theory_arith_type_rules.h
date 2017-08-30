@@ -19,8 +19,6 @@
 #ifndef __CVC4__THEORY__ARITH__THEORY_ARITH_TYPE_RULES_H
 #define __CVC4__THEORY__ARITH__THEORY_ARITH_TYPE_RULES_H
 
-#include "util/subrange_bound.h"
-
 namespace CVC4 {
 namespace theory {
 namespace arith {

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --full-saturate-quant
+; COMMAND-LINE: --full-saturate-quant --lang=smt2.5
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)

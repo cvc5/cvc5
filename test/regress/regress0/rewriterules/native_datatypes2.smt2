@@ -3,9 +3,9 @@
 
 (set-info :status unsat)
 
-(declare-datatypes (
-(nat  (succ (pred nat)) (zero ) )
-(list  (cons (car nat)(cdr list)) (nil ) )
+(declare-datatypes ((nat 0) (list 0)) (
+((succ (pred nat)) (zero ) )
+((cons (car nat)(cdr list)) (nil ) )
 
 ))
 

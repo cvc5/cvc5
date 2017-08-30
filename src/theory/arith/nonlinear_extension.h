@@ -243,6 +243,9 @@ private:
   std::map< Node, Node > d_factor_skolem;
   Node getFactorSkolem( Node n, std::vector< Node >& lemmas );
   
+  // tangent plane bounds
+  std::map< Node, std::map< Node, Node > > d_tangent_val_bound[4];
+  
   Node getTaylor( Node tf, Node x, unsigned n, std::vector< Node >& lemmas );
 private:
   // Returns a vector containing a split on whether each term is 0 or not for

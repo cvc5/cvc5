@@ -68,7 +68,7 @@ public:
 
   Node expandDefinition(LogicRequest &logicRequest, Node node);
 
-  void mkAckermanizationAsssertions(std::vector<Node>& assertions);
+  void mkAckermanizationAssertions(std::vector<Node>& assertions);
 
   void preRegisterTerm(TNode n);
 

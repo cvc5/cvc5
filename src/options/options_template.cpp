@@ -499,7 +499,7 @@ static struct option cmdlineOptions[] = {${all_modules_long_options}
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
 
-#line 502 "${template}"
+#line 504 "${template}"
 
 // static void preemptGetopt(int& argc, char**& argv, const char* opt) {
 
@@ -721,7 +721,7 @@ void Options::parseOptionsRecursive(Options* options,
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 724 "${template}"
+#line 726 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the
@@ -799,7 +799,7 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName) th
 
 static const char* smtOptions[] = {
   ${all_modules_smt_options},
-#line 802 "${template}"
+#line 804 "${template}"
   NULL
 };/* smtOptions[] */
 
@@ -821,7 +821,7 @@ std::vector< std::vector<std::string> > Options::getOptions() const throw() {
 
   ${all_modules_get_options}
 
-#line 824 "${template}"
+#line 826 "${template}"
 
   return opts;
 }

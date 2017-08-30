@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --fmf-inst-engine --uf-ss-fair-monotone
+; COMMAND-LINE: --finite-model-find --fmf-inst-engine --uf-ss-fair-monotone --lang=smt2.5
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)

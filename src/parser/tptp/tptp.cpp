@@ -20,6 +20,8 @@
 #include "expr/type.h"
 #include "parser/parser.h"
 
+#include <algorithm>
+
 // ANTLR defines these, which is really bad!
 #undef true
 #undef false

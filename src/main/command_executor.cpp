@@ -18,12 +18,12 @@
 #  include <sys/resource.h>
 #endif /* ! __WIN32__ */
 
+#include <cassert>
 #include <iostream>
 #include <string>
 
 #include "main/main.h"
 #include "smt/command.h"
-
 
 namespace CVC4 {
 namespace main {

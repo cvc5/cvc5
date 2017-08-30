@@ -1,9 +1,10 @@
 language: cpp
 cache:
  apt: true
- directories:
-  - $HOME/cxxtest
 
+# We need more than 4G memory for compiling CVC4. Hence, we cannot switch
+# to container-based virtualization environments since they only provide 4G of
+# memory. We will stick with the VM-based environments for now.
 sudo: required
 dist: trusty
 
@@ -15,18 +16,18 @@ env:
   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
   #   via the "travis encrypt" command using the project repo's public key
   - secure: "fRfdzYwV10VeW5tVSvy5qpR8ZlkXepR7XWzCulzlHs9SRI2YY20BpzWRjyMBiGu2t7IeJKT7qdjq/CJOQEM8WS76ON7QJ1iymKaRDewDs3OhyPJ71fsFKEGgLky9blk7I9qZh23hnRVECj1oJAVry9IK04bc2zyIEjUYpjRkUAQ="
+  - TEST_GROUPS=2
  matrix:
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --enable-proof --with-portfolio'
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --enable-proof --with-portfolio'
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --with-lfsc --with-portfolio'
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=0
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=1
   - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='--disable-proof'
   - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_CVC4_CONFIG='--enable-proof'
-  - TRAVIS_LFSC=yes
-  - TRAVIS_LFSC=yes TRAVIS_LFSC_DISTCHECK=yes
 addons:
  apt:
   sources:
   - ubuntu-toolchain-r-test
-  packages:
+  packages: &common_deps
   - libgmp-dev
   - libboost-dev
   - libboost-thread-dev
@@ -35,11 +36,8 @@ addons:
   - openjdk-7-jdk
   - antlr3
   - libantlr3c-dev
-install:
-# Download and cache a copy of cxxtest until it appears officially in quantal.
- - wget http://sourceforge.net/projects/cxxtest/files/cxxtest/4.3/cxxtest-4.3.tar.gz
- - tar -xzvf cxxtest-4.3.tar.gz
- - cp -vRT cxxtest-4.3 $HOME/cxxtest
+  - ant-optional
+  - cxxtest
 before_script:
  - export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
  - export PATH=$PATH:$JAVA_HOME/bin
@@ -51,7 +49,7 @@ script:
    normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
    configureCVC4() {
      echo "CVC4 config - $TRAVIS_CVC4_CONFIG";
-     ./configure --enable-unit-testing $TRAVIS_CVC4_CONFIG  CXXTEST=$HOME/cxxtest ||
+     ./configure --enable-unit-testing $TRAVIS_CVC4_CONFIG ||
        (echo; echo "Trying to print config.log"; cat builds/config.log; error "CONFIGURE FAILED");
    }
    error() {
@@ -61,7 +59,7 @@ script:
      exit 1;
    }
    makeDistcheck() {
-     make V=1 -j2 distcheck CVC4_REGRESSION_ARGS='--no-early-exit' DISTCHECK_CONFIGURE_FLAGS="CXXTEST=$HOME/cxxtest" ||
+     make V=1 -j2 distcheck CVC4_REGRESSION_ARGS='--no-early-exit' ||
        error "DISTCHECK (WITH NEWTHEORY TESTS) FAILED";
    }
    makeCheck() {
@@ -70,6 +68,13 @@ script:
    makeCheckPortfolio() {
      make V=1 -j2 check BINARY=pcvc4 CVC4_REGRESSION_ARGS='--fallback-sequential --no-early-exit' RUN_REGRESSION_ARGS= ||
        error "PORTFOLIO TEST FAILED";
+   }
+   JavaApiTest() {
+     pushd test/java
+     local status=0
+     ant || status=1
+     popd
+     return $status
    }
    makeExamples() {
      make V=1 -j2 examples || error "COULD NOT BUILD EXAMPLES${normal}";
@@ -80,29 +85,21 @@ script:
        contrib/new-theory --alternate test_newtheory test_newalttheory || error "NEWTHEORY-ALTERNATE FAILED";
        grep -q '^THEORIES *=.* test_newalttheory' src/Makefile.theories || error "NEWTHEORY-ALTERNATE FAILED";
    }
-   LFSCchecks() {
-     cd proofs/lfsc_checker &&
-     (./configure || (echo; cat builds/config.log; echo; echo "${red}CONFIGURE FAILED${normal}"; exit 1)) &&
-     if [ -n "$TRAVIS_LFSC_DISTCHECK" ]; then
-       make -j2 distcheck || (echo; echo "${red}LFSC DISTCHECK FAILED${normal}"; echo; exit 1);
-     else
-       make -j2 || (echo; echo "${red}LFSC BUILD FAILED${normal}"; echo; exit 1);
-     fi;
-   }
    run() {
      echo "travis_fold:start:$1"
      echo "Running $1"
      $1 || exit 1
      echo "travis_fold:end:$1"
    }
+   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_WITH_LFSC" ] && run contrib/get-lfsc-checker
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run addNewTheoryTest
    [ -n "$TRAVIS_CVC4" ] && run configureCVC4
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
    [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && run makeCheck && run makeExamples
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_CHECK_PORTFOLIO" ] && run makeCheckPortfolio
-   [ -n "$TRAVIS_LFSC" ] && run LFSCchecks
+   # [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_JAVA_API_TEST" ] && run JavaApiTest
    [ -n "$TRAVIS_COVERITY" ] && echo "Running coverity. Skipping the normal build."
-   [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_LFSC" ] && [ -z "$TRAVIS_COVERITY" ] && error "Unknown Travis-CI configuration"
+   [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_COVERITY" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
 matrix:
@@ -111,23 +108,15 @@ matrix:
   include:
     - os: linux
       compiler: gcc
-      before_install: echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
       env:
-        - TRAVIS_COVERITY=yes CVC4_REGRESSION_ARGS='--no-early-exit'  CXXTEST="$HOME/cxxtest"
+        - TRAVIS_COVERITY=yes CVC4_REGRESSION_ARGS='--no-early-exit'
       addons:
         # Need to duplicate as addons will be over written.
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - libgmp-dev
-            - libboost-dev
-            - libboost-thread-dev
-            - swig
-            - libcln-dev
-            - openjdk-7-jdk
-            - antlr3
-            - libantlr3c-dev
+            - *common_deps
         coverity_scan:
           project:
             name: "CVC4/CVC4"

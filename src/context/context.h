@@ -136,7 +136,7 @@ public:
       d_scope(d_context->getTopScope()) {
       d_context->push();
     }
-    ~ScopedPush() {
+    ~ScopedPush() noexcept(false) {
       d_context->pop();
       AlwaysAssert(d_context->getTopScope() == d_scope,
                    "Context::ScopedPush observed an uneven Context (at pop, "

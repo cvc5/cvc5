@@ -21,6 +21,7 @@
 #include "printer/printer.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
+#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 
 using namespace std;

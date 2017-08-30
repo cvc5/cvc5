@@ -4,7 +4,7 @@
 (declare-sort Loc 0)
 (declare-const loc0 Loc)
 
-(declare-datatypes () ((Node (node (data Int) (left Loc) (right Loc)))))
+(declare-datatypes ((Node 0)) (((node (data Int) (left Loc) (right Loc)))))
 
 (declare-fun data0 () Node)
 

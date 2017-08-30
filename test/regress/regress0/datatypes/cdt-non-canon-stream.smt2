@@ -1,6 +1,6 @@
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
-(declare-codatatypes () ((list (cons (head Int) (tail list)))))
+(declare-codatatypes ((list 0)) (((cons (head Int) (tail list)))))
 
 (declare-fun x () list)
 (declare-fun y () list)

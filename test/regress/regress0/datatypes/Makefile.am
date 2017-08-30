@@ -81,7 +81,8 @@ TESTS =	\
 	dt-color-2.6.smt2 \
 	dt-match-pat-param-2.6.smt2 \
 	tuple-no-clash.cvc \
-	jsat-2.6.smt2
+	jsat-2.6.smt2 \
+	acyclicity-sr-ground096.smt2
 
 # rec5 -- no longer support subrange types
 FAILING_TESTS = \

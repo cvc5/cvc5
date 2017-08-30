@@ -128,7 +128,7 @@ option fullSaturateQuant --full-saturate-quant bool :default false :read-write
  when all other quantifier instantiation strategies fail, instantiate with ground terms from relevant domain, then arbitrary ground terms before answering unknown
 option fullSaturateQuantRd --full-saturate-quant-rd bool :default true
  whether to use relevant domain first for full saturation instantiation strategy
-option fullSaturateInst --fs-inst bool :default false
+option fullSaturateInterleave --fs-interleave bool :default false
  interleave full saturate instantiation with other techniques
 
 option literalMatchMode --literal-matching=MODE CVC4::theory::quantifiers::LiteralMatchMode :default CVC4::theory::quantifiers::LITERAL_MATCH_USE :include "options/quantifiers_modes.h" :handler stringToLiteralMatchMode :predicate checkLiteralMatchMode
@@ -154,6 +154,8 @@ option fmfOneInstPerRound --mbqi-one-inst-per-round bool :read-write :default fa
  only add one instantiation per quantifier per round for mbqi
 option fmfOneQuantPerRound --mbqi-one-quant-per-round bool :default false
  only add instantiations for one quantifier per round for mbqi
+option mbqiInterleave --mbqi-interleave bool :default false
+ interleave model-based quantifier instantiation with other techniques
 
 option fmfInstEngine --fmf-inst-engine bool :default false :read-write
  use instantiation engine in conjunction with finite model finding
