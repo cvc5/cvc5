@@ -7,11 +7,12 @@ ACLOCAL_AMFLAGS = -I config
 
 SUBDIRS_BASE = src test contrib
 if CVC4_PROOF
-  SUBDIRS = proofs/signatures proofs/lfsc_checker $(SUBDIRS_BASE)
+  SUBDIRS = proofs/signatures $(SUBDIRS_BASE)
 else
   SUBDIRS = $(SUBDIRS_BASE)
 endif
-DIST_SUBDIRS = proofs/signatures proofs/lfsc_checker $(SUBDIRS_BASE) examples
+DIST_SUBDIRS = $(SUBDIRS) examples
+
 
 .PHONY: examples
 examples: all

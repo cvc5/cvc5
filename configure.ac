@@ -16,7 +16,6 @@ AC_CONFIG_SRCDIR([src/include/cvc4_public.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_LIBOBJ_DIR([src/lib])
-AC_CONFIG_SUBDIRS([proofs/lfsc_checker])
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
@@ -117,7 +116,22 @@ AC_ARG_WITH([build],
 if test -z "${with_build+set}"; then
   with_build=production
 fi
-if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_dumping+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}" -a -z "${enable_statistics+set}" -a -z "${enable_replay+set}" -a -z "${with_gmp+set}" -a -z "${with_cln+set}" -a -z "${with_glpk+set}" -a -z "${with_abc+set}" -a -z "${with_cryptominisat+set}"; then
+if test -z "${enable_optimized+set}" -a \
+        -z "${enable_debug_symbols+set}" -a \
+        -z "${enable_assertions+set}" -a \
+        -z "${enable_tracing+set}" -a \
+        -z "${enable_dumping+set}" -a \
+        -z "${enable_muzzle+set}" -a \
+        -z "${enable_coverage+set}" -a \
+        -z "${enable_profiling+set}" -a \
+        -z "${enable_statistics+set}" -a \
+        -z "${enable_replay+set}" -a \
+        -z "${with_gmp+set}" -a \
+        -z "${with_cln+set}" -a \
+        -z "${with_glpk+set}" -a \
+        -z "${with_abc+set}" -a \
+        -z "${with_cryptominisat+set}" -a \
+        -z "${with_lfsc+set}"; then
   custom_build_profile=no
 else
   custom_build_profile=yes
@@ -224,6 +238,12 @@ fi
 if test -n "${with_cryptominisat+set}"; then
   if test "$with_cryptominisat" = yes; then
     btargs="$btargs cryptominisat"
+  fi
+fi
+if test -n "${with_lfsc+set}"; then
+  if test "$with_lfsc" = yes; then
+    enable_proof=yes
+    btargs="$btargs lfsc"
   fi
 fi
 
@@ -828,6 +848,18 @@ AM_CONDITIONAL([CVC4_USE_CRYPTOMINISAT], [test $have_libcryptominisat -eq 1])
 AC_SUBST([CRYPTOMINISAT_LDFLAGS])
 AC_SUBST([CRYPTOMINISAT_LIBS])
 
+# Build with LFSC
+AC_ARG_WITH([lfsc],
+  [AS_HELP_STRING([--with-lfsc],
+     [use the LFSC proof checker])], [], [with_lfsc=])
+CVC4_CHECK_FOR_LFSC
+if test $have_liblfsc -eq 1; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_USE_LFSC"
+fi
+AM_CONDITIONAL([CVC4_USE_LFSC], [test $have_liblfsc -eq 1])
+AC_SUBST([LFSC_LDFLAGS])
+AC_SUBST([LFSC_LIBS])
+
 
 # Check to see if this version/architecture of GNU C++ explicitly
 # instantiates std::hash<uint64_t> or not.  Some do, some don't.
@@ -935,7 +967,8 @@ AC_ARG_WITH([cxxtest-dir],
 
 TESTS_ENVIRONMENT=
 RUN_REGRESSION_ARGS=
-if test "$enable_proof" = yes; then
+# FIXME currently, unsat core regressions are disabled without LFSC
+if test "$with_lfsc" = yes; then
   RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--proof"
 fi
 AC_SUBST([TESTS_ENVIRONMENT])

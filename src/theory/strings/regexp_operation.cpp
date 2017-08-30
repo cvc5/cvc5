@@ -1326,14 +1326,14 @@ void RegExpOpr::getCharSet( Node r, std::set<unsigned char> &pcset, SetNodes &pv
         Node st = Rewriter::rewrite(r[0]);
         if(st.isConst()) {
           CVC4::String s = st.getConst< CVC4::String >();
-          s.getCharSet( cset );
+          cset.insert(s.getVec().begin(), s.getVec().end());
         } else if(st.getKind() == kind::VARIABLE) {
           vset.insert( st );
         } else {
           for(unsigned i=0; i<st.getNumChildren(); i++) {
             if(st[i].isConst()) {
               CVC4::String s = st[i].getConst< CVC4::String >();
-              s.getCharSet( cset );
+              cset.insert(s.getVec().begin(), s.getVec().end());
             } else {
               vset.insert( st[i] );
             }

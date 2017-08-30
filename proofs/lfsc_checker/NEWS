@@ -1,9 +1,0 @@
-This file contains a summary of important user-visible changes to the
-LFSC proof checker.
-
-Changes since pre-1.0 (unversioned) releases
-============================================
-
-* Incorporated the LFSC checker into the CVC4 project.
-
--- Morgan Deters <mdeters@cs.nyu.edu>  Thu, 12 Dec 2013 18:16:08 -0500
