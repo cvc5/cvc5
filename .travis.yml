@@ -153,13 +153,6 @@ matrix:
           branch_pattern: coverity_scan
       after_failure:
         - cat /home/travis/build/CVC4/CVC4/cov-int/build-log.txt
-  allow_failures:
-  - env:
-    - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
-    - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=0
-  - env:
-    - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
-    - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio' TEST_GROUP=1
 
 notifications:
   email:
