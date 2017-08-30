@@ -12,7 +12,7 @@
  ** \brief Definiton of CVC4_THREAD_LOCAL
  **
  ** This header defines CVC4_THREAD_LOCAL, which should be used instead of
- ** thread_local because thread_local is not supported for by all build types
+ ** thread_local because thread_local is not supported by all build types
  ** (e.g. Swig).
  **/
 
