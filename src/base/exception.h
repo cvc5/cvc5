@@ -27,6 +27,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "base/tls.h"
+
 namespace CVC4 {
 
 class CVC4_PUBLIC Exception : public std::exception {
@@ -158,7 +160,7 @@ private:
 
   char* d_contents;
 
-  static thread_local LastExceptionBuffer* s_currentBuffer;
+  static CVC4_THREAD_LOCAL LastExceptionBuffer* s_currentBuffer;
 }; /* class LastExceptionBuffer */
 
 }/* CVC4 namespace */

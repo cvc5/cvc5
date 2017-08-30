@@ -28,12 +28,6 @@
 %import "cvc4_public.h"
 #warning "Working around a SWIG segfault in C++ template parsing."
 
-#if !defined(SWIG_VERSION) || SWIG_VERSION < 0x030000
-// SWIG versions older than 3.0 do not support thread_local, so just redefine
-// thread_local to be nothing for those versions.
-#define thread_local
-#endif
-
 // swig doesn't like GCC attributes
 #define __attribute__(x)
 

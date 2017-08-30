@@ -17,6 +17,7 @@
 #include <exception>
 #include <string>
 
+#include "base/tls.h"
 #include "base/exception.h"
 #include "cvc4autoconfig.h"
 #include "expr/expr_manager.h"
@@ -53,7 +54,7 @@ extern CVC4::TimerStat* pTotalTime;
 extern bool segvSpin;
 
 /** A pointer to the options in play */
-extern thread_local Options* pOptions;
+extern CVC4_THREAD_LOCAL Options* pOptions;
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
 void cvc4_init() throw(Exception);

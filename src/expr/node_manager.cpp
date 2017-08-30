@@ -37,7 +37,7 @@ using namespace CVC4::expr;
 
 namespace CVC4 {
 
-thread_local NodeManager* NodeManager::s_current = NULL;
+CVC4_THREAD_LOCAL NodeManager* NodeManager::s_current = NULL;
 
 namespace {
 
