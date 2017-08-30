@@ -581,6 +581,36 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue( std::map< TypeNode, unsigne
   return false;
 }
 
+
+void TheoryEngineModelBuilder::addToTypeList( TypeNode tn, std::vector< TypeNode >& type_list, 
+                                              std::map< TypeNode, bool >& visiting ){
+  if( std::find( type_list.begin(), type_list.end(), tn )==type_list.end() ){
+    if( visiting.find( tn )==visiting.end() ){
+      visiting[tn] = true;
+      /* This must make a recursive call on all types that are subterms of
+       * values of the current type.
+       * Note that recursive traversal here is over enumerated expressions
+       * (very low expression depth). */
+      if( tn.isArray() ){
+        addToTypeList( tn.getArrayIndexType(), type_list, visiting );
+        addToTypeList( tn.getArrayConstituentType(), type_list, visiting );
+      }else if( tn.isSet() ){
+        addToTypeList( tn.getSetElementType(), type_list, visiting );
+      }else if( tn.isDatatype() ){
+        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+          for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
+            TypeNode ctn = TypeNode::fromType( dt[i][j].getRangeType() );
+            addToTypeList( ctn, type_list, visiting );
+          }
+        }   
+      }
+      Assert( std::find( type_list.begin(), type_list.end(), tn )==type_list.end() );
+      type_list.push_back( tn );
+    }
+  }
+}
+
 bool TheoryEngineModelBuilder::buildModel(Model* m)
 {
   Trace("model-builder") << "TheoryEngineModelBuilder: buildModel" << std::endl;
@@ -639,7 +669,11 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     }
     typeConstSet.setTypeEnumeratorProperties( &tep );
   }
-  std::set< TypeNode > allTypes;
+  // AJR: build ordered list of types that ensures that base types are enumerated first.
+  //   (I think) this is only strictly necessary for finite model finding + parametric types 
+  //   instantiated with uninterpreted sorts, but is probably a good idea to do in general
+  //   since it leads to models with smaller term sizes.
+  std::vector< TypeNode > type_list;
   eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
   for ( ; !eqcs_i.isFinished(); ++eqcs_i) {
 
@@ -687,11 +721,13 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     else if (!rep.isNull()) {
       assertedReps[eqc] = rep;
       typeRepSet.add(eqct.getBaseType(), eqc);
-      allTypes.insert(eqct.getBaseType());
+      std::map< TypeNode, bool > visiting;
+      addToTypeList(eqct.getBaseType(), type_list, visiting);
     }
     else {
       typeNoRepSet.add(eqct, eqc);
-      allTypes.insert(eqct);
+      std::map< TypeNode, bool > visiting;
+      addToTypeList(eqct, type_list, visiting);
     }
   }
 
@@ -700,7 +736,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   Trace("model-builder") << "Processing EC's..." << std::endl;
 
   TypeSet::iterator it;
-  set<TypeNode>::iterator type_it;
+  vector<TypeNode>::iterator type_it;
   set<Node>::iterator i, i2;
   bool changed, unassignedAssignable, assignOne = false;
   set<TypeNode> evaluableSet;
@@ -718,7 +754,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       evaluableSet.clear();
 
       // Iterate over all types we've seen
-      for (type_it = allTypes.begin(); type_it != allTypes.end(); ++type_it) {
+      for (type_it = type_list.begin(); type_it != type_list.end(); ++type_it) {
         TypeNode t = *type_it;
         TypeNode tb = t.getBaseType();
         set<Node>* noRepSet = typeNoRepSet.getSet(t);
@@ -809,13 +845,23 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     // 2. there are no terms that share teh same base type that are unevaluated evaluable terms
     // Alternatively, if 2 or 3 don't hold but we are in a special deadlock-breaking mode where assignOne is true, go ahead and make one assignment
     changed = false;
-    for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it) {
-      set<Node>& noRepSet = TypeSet::getSet(it);
+    //must iterate over the ordered type list to ensure that we do not enumerate values with subterms
+    //  having types that we are currently enumerating (when possible)
+    //  for example, this ensures we enumerate uninterpreted sort U before (List of U) and (Array U U)
+    //  however, it does not break cyclic type dependencies for mutually recursive datatypes, but this is handled
+    //  by recording all subterms of enumerated values in TypeSet::addSubTerms.
+    for (type_it = type_list.begin(); type_it != type_list.end(); ++type_it) {
+      TypeNode t = *type_it;
+      // continue if there are no more equivalence classes of this type to assign
+      std::set<Node>* noRepSetPtr = typeNoRepSet.getSet( t );
+      if( noRepSetPtr==NULL ){
+        continue;
+      }
+      set<Node>& noRepSet = *noRepSetPtr;
       if (noRepSet.empty()) {
         continue;
       }
-      TypeNode t = TypeSet::getType(it);
-      
+
       //get properties of this type
       bool isCorecursive = false;
       if( t.isDatatype() ){
