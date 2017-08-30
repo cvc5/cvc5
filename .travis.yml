@@ -2,6 +2,9 @@ language: cpp
 cache:
  apt: true
 
+# We need more than 4G memory for compiling CVC4. Hence, we cannot switch
+# to container-based virtualization environments since they only provide 4G of
+# memory. We will stick with the VM-based environments for now.
 sudo: required
 dist: trusty
 
@@ -105,7 +108,6 @@ matrix:
   include:
     - os: linux
       compiler: gcc
-      before_install: echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
       env:
         - TRAVIS_COVERITY=yes CVC4_REGRESSION_ARGS='--no-early-exit'
       addons:
