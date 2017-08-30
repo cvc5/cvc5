@@ -587,7 +587,10 @@ void TheoryEngineModelBuilder::addToTypeList( TypeNode tn, std::vector< TypeNode
   if( std::find( type_list.begin(), type_list.end(), tn )==type_list.end() ){
     if( visiting.find( tn )==visiting.end() ){
       visiting[tn] = true;
-      // this must make a recursive call on all types that are subterms of values of the current type
+      /* This must make a recursive call on all types that are subterms of
+       * values of the current type.
+       * Note that recursive traversal here is over enumerated expressions
+       * (very low expression depth). */
       if( tn.isArray() ){
         addToTypeList( tn.getArrayIndexType(), type_list, visiting );
         addToTypeList( tn.getArrayConstituentType(), type_list, visiting );

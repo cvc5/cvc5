@@ -152,6 +152,8 @@ private:
   TypeToTypeEnumMap d_teMap;
   TypeEnumeratorProperties * d_tep;
 
+  /* Note that recursive traversal here is over enumerated expressions
+   * (very low expression depth). */
   void addSubTerms(TNode n, std::map< TNode, bool >& visited, bool topLevel=true){
     if( visited.find( n )==visited.end() ){
       visited[n] = true;
