@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "base/output.h"
+#include "base/tls.h"
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
@@ -56,12 +57,12 @@
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
 #include "theory/arith/matrix.h"
+#include "theory/arith/nonlinear_extension.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/nonlinear_extension.h"
 #include "theory/ite_utilities.h"
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/rewriter.h"
@@ -4389,7 +4390,7 @@ void TheoryArithPrivate::presolve(){
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
 
-  static CVC4_THREADLOCAL(unsigned) callCount = 0;
+  static CVC4_THREAD_LOCAL unsigned callCount = 0;
   if(Debug.isOn("arith::presolve")) {
     Debug("arith::presolve") << "TheoryArithPrivate::presolve #" << callCount << endl;
     callCount = callCount + 1;

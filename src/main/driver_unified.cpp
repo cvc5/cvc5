@@ -26,6 +26,7 @@
 // This must come before PORTFOLIO_BUILD.
 #include "cvc4autoconfig.h"
 
+#include "base/tls.h"
 #include "base/configuration.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
@@ -55,7 +56,7 @@ using namespace CVC4::main;
 namespace CVC4 {
   namespace main {
     /** Global options variable */
-    CVC4_THREADLOCAL(Options*) pOptions;
+    CVC4_THREAD_LOCAL Options* pOptions;
 
     /** Full argv[0] */
     const char *progPath;
