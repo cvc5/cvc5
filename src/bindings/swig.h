@@ -28,6 +28,8 @@
 %import "cvc4_public.h"
 #warning "Working around a SWIG segfault in C++ template parsing."
 
+%import "base/tls.h"
+
 // swig doesn't like GCC attributes
 #define __attribute__(x)
 

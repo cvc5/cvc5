@@ -20,7 +20,7 @@
 #ifndef __CVC4__BASE__TLS_H
 #define __CVC4__BASE__TLS_H
 
-#if !defined(SWIG_VERSION) || SWIG_VERSION < 0x030000
+#if SWIG && (!defined(SWIG_VERSION) || SWIG_VERSION < 0x030000)
 // SWIG versions older than 3.0 do not support thread_local, so just redefine
 // CVC4_THREAD_LOCAL to be empty for those versions.
 #define CVC4_THREAD_LOCAL
