@@ -17,6 +17,7 @@
 #include "theory/arith/dual_simplex.h"
 
 #include "base/output.h"
+#include "base/tls.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
@@ -62,7 +63,7 @@ DualSimplexDecisionProcedure::Statistics::~Statistics(){
 Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   Assert(d_conflictVariables.empty());
 
-  static CVC4_THREADLOCAL(unsigned int) instance = 0;
+  static CVC4_THREAD_LOCAL unsigned int instance = 0;
   instance = instance + 1;
   d_pivots = 0;
 

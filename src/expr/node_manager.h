@@ -101,7 +101,7 @@ class NodeManager {
                              expr::NodeValueIDHashFunction,
                              expr::NodeValueIDEquality> NodeValueIDSet;
 
-  static CVC4_THREADLOCAL(NodeManager*) s_current;
+  static CVC4_THREAD_LOCAL NodeManager* s_current;
 
   Options* d_options;
   StatisticsRegistry* d_statisticsRegistry;

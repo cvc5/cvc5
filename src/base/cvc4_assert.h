@@ -26,7 +26,6 @@
 #include <string>
 
 #include "base/exception.h"
-#include "base/tls.h"
 
 // output.h not strictly needed for this header, but it _is_ needed to
 // actually _use_ anything in this header, so let's include it.

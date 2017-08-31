@@ -29,8 +29,8 @@
 #include "base/tls.h"
 #include "options/argument_extender.h"
 #include "options/language.h"
-#include "options/printer_modes.h"
 #include "options/option_exception.h"
+#include "options/printer_modes.h"
 
 namespace CVC4 {
 
@@ -47,7 +47,7 @@ class CVC4_PUBLIC Options {
   options::OptionsHandler* d_handler;
 
   /** The current Options in effect */
-  static CVC4_THREADLOCAL(Options*) s_current;
+  static CVC4_THREAD_LOCAL Options* s_current;
 
   /** Listeners for options::forceLogicString being set. */
   ListenerCollection d_forceLogicListeners;

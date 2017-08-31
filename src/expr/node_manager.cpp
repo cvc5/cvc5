@@ -23,7 +23,6 @@
 
 #include "base/cvc4_assert.h"
 #include "base/listener.h"
-#include "base/tls.h"
 #include "expr/attribute.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_manager_listeners.h"
@@ -38,7 +37,7 @@ using namespace CVC4::expr;
 
 namespace CVC4 {
 
-CVC4_THREADLOCAL(NodeManager*) NodeManager::s_current = NULL;
+CVC4_THREAD_LOCAL NodeManager* NodeManager::s_current = NULL;
 
 namespace {
 
