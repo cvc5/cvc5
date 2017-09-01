@@ -30,6 +30,7 @@ addons:
   - ubuntu-toolchain-r-test
   packages: &common_deps
   - libgmp-dev
+  - libcln-dev
   - libboost-dev
   - libboost-thread-dev
   - swig
