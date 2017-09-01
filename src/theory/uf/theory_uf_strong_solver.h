@@ -396,8 +396,6 @@ public:
   void check( Theory::Effort level );
   /** presolve */
   void presolve();
-  /** propagate */
-  void propagate( Theory::Effort level );
   /** get next decision request */
   Node getNextDecisionRequest( unsigned& priority );
   /** preregister a term */

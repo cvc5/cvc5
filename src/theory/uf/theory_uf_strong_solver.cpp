@@ -697,6 +697,7 @@ bool SortModel::areDisequal( Node a, Node b ) {
 
 /** check */
 void SortModel::check( Theory::Effort level, OutputChannel* out ){
+  Assert( options::ufssMode()==UF_SS_FULL );
   if( level>=Theory::EFFORT_STANDARD && d_hasCard && !d_conflict ){
     Debug("uf-ss") << "StrongSolverTheoryUF: Check " << level << " " << d_type << std::endl;
     if( level==Theory::EFFORT_FULL ){
@@ -723,11 +724,9 @@ void SortModel::check( Theory::Effort level, OutputChannel* out ){
           if( d_regions[i]->valid() ){
             std::vector< Node > clique;
             if( d_regions[i]->check( level, d_cardinality, clique ) ){
-              if( options::ufssMode()==UF_SS_FULL ){
-                //add clique lemma
-                addCliqueLemma( clique, out );
-                return;
-              }
+              //add clique lemma
+              addCliqueLemma( clique, out );
+              return;
             }else{
               Trace("uf-ss-debug") << "No clique in Region #" << i << std::endl;
             }
@@ -797,10 +796,8 @@ void SortModel::check( Theory::Effort level, OutputChannel* out ){
                   int fcr = forceCombineRegion( i, false );
                   Debug("fmf-full-check") << "Combined regions " << i << " " << fcr << std::endl;
                   Trace("uf-ss-debug") << "Combined regions " << i << " " << fcr << std::endl;
-                  if( options::ufssMode()==UF_SS_FULL || fcr!=-1 ){
-                    recheck = true;
-                    break;
-                  }
+                  recheck = true;
+                  break;
                 }
               }
             }
@@ -1045,10 +1042,8 @@ void SortModel::checkRegion( int ri, bool checkCombine ){
     //now check if region is in conflict
     std::vector< Node > clique;
     if( d_regions[ri]->check( Theory::EFFORT_STANDARD, d_cardinality, clique ) ){
-      if( options::ufssMode()==UF_SS_FULL ){
-        //explain clique
-        addCliqueLemma( clique, &d_thss->getOutputChannel() );
-      }
+      //explain clique
+      addCliqueLemma( clique, &d_thss->getOutputChannel() );
     }
   }
 }
@@ -1228,24 +1223,6 @@ int SortModel::addSplit( Region* r, OutputChannel* out ){
       }
     }
     Assert( s!=Node::null() );
-  }else{
-    if( options::ufssMode()!=UF_SS_FULL ){
-      // Since candidate clique is not reported, we may need to find
-      // splits manually.
-      for ( Region::iterator it = r->begin(); it != r->end(); ++it ){
-        if ( it->second->valid() ){
-          for ( Region::iterator it2 = r->begin(); it2 != r->end(); ++it2 ){
-            if ( it->second!=it2->second && it2->second->valid() ){
-              if( !r->isDisequal( it->first, it2->first, 1 ) ){
-                Node it_node = it->first;
-                Node it2_node = it2->first;
-                s = it_node.eqNode(it2_node);
-              }
-            }
-          }
-        }
-      }
-    }
   }
   if (!s.isNull() ){
     //add lemma to output channel
@@ -1811,111 +1788,119 @@ void StrongSolverTheoryUF::assertNode( Node n, bool isDecision ){
 #endif
   bool polarity = n.getKind() != kind::NOT;
   TNode lit = polarity ? n : n[0];
-  if( lit.getKind()==CARDINALITY_CONSTRAINT ){
-    TypeNode tn = lit[0].getType();
-    Assert( tn.isSort() );
-    Assert( d_rep_model[tn] );
-    int nCard = lit[1].getConst<Rational>().getNumerator().getSignedInt();
-    Node ct = d_rep_model[tn]->getCardinalityTerm();
-    Trace("uf-ss-debug") << "...check cardinality terms : " << lit[0] << " " << ct << std::endl;
-    if( lit[0]==ct ){
-      if( options::ufssFairnessMonotone() ){
-        Trace("uf-ss-com-card-debug") << "...set master/slave" << std::endl;
-        if( tn!=d_tn_mono_master ){
-          std::map< TypeNode, bool >::iterator it = d_tn_mono_slave.find( tn );
-          if( it==d_tn_mono_slave.end() ){
-            bool isMonotonic;
-            if( d_th->getQuantifiersEngine() ){
-              isMonotonic = getSortInference()->isMonotonic( tn );
-            }else{
-              //if ground, everything is monotonic
-              isMonotonic = true;
-            }
-            if( isMonotonic ){
-              if( d_tn_mono_master.isNull() ){
-                Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set master : " << tn << std::endl;
-                d_tn_mono_master = tn;
+  if( options::ufssMode()==UF_SS_FULL ){
+    if( lit.getKind()==CARDINALITY_CONSTRAINT ){
+      TypeNode tn = lit[0].getType();
+      Assert( tn.isSort() );
+      Assert( d_rep_model[tn] );
+      int nCard = lit[1].getConst<Rational>().getNumerator().getSignedInt();
+      Node ct = d_rep_model[tn]->getCardinalityTerm();
+      Trace("uf-ss-debug") << "...check cardinality terms : " << lit[0] << " " << ct << std::endl;
+      if( lit[0]==ct ){
+        if( options::ufssFairnessMonotone() ){
+          Trace("uf-ss-com-card-debug") << "...set master/slave" << std::endl;
+          if( tn!=d_tn_mono_master ){
+            std::map< TypeNode, bool >::iterator it = d_tn_mono_slave.find( tn );
+            if( it==d_tn_mono_slave.end() ){
+              bool isMonotonic;
+              if( d_th->getQuantifiersEngine() ){
+                isMonotonic = getSortInference()->isMonotonic( tn );
               }else{
-                Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set slave : " << tn << std::endl;
-                d_tn_mono_slave[tn] = true;
+                //if ground, everything is monotonic
+                isMonotonic = true;
               }
-            }else{
-              Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set non-monotonic : " << tn << std::endl;
-              d_tn_mono_slave[tn] = false;
+              if( isMonotonic ){
+                if( d_tn_mono_master.isNull() ){
+                  Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set master : " << tn << std::endl;
+                  d_tn_mono_master = tn;
+                }else{
+                  Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set slave : " << tn << std::endl;
+                  d_tn_mono_slave[tn] = true;
+                }
+              }else{
+                Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set non-monotonic : " << tn << std::endl;
+                d_tn_mono_slave[tn] = false;
+              }
+            }
+          }
+          //set the minimum positive cardinality for master if necessary
+          if( polarity && tn==d_tn_mono_master ){
+            Trace("uf-ss-com-card-debug") << "...set min positive cardinality" << std::endl;
+            if( d_min_pos_tn_master_card.get()==-1 || nCard<d_min_pos_tn_master_card.get() ){
+              d_min_pos_tn_master_card.set( nCard );
             }
           }
         }
-        //set the minimum positive cardinality for master if necessary
-        if( polarity && tn==d_tn_mono_master ){
-          Trace("uf-ss-com-card-debug") << "...set min positive cardinality" << std::endl;
-          if( d_min_pos_tn_master_card.get()==-1 || nCard<d_min_pos_tn_master_card.get() ){
-            d_min_pos_tn_master_card.set( nCard );
-          }
+        Trace("uf-ss-com-card-debug") << "...assert cardinality" << std::endl;
+        d_rep_model[tn]->assertCardinality( d_out, nCard, polarity );
+        //check if combined cardinality is violated
+        checkCombinedCardinality();
+      }else{
+        //otherwise, make equal via lemma
+        if( d_card_assertions_eqv_lemma.find( lit )==d_card_assertions_eqv_lemma.end() ){
+          Node eqv_lit = NodeManager::currentNM()->mkNode( CARDINALITY_CONSTRAINT, ct, lit[1] );
+          eqv_lit = lit.eqNode( eqv_lit );
+          Trace("uf-ss-lemma") << "*** Cardinality equiv lemma : " << eqv_lit << std::endl;
+          getOutputChannel().lemma( eqv_lit );
+          d_card_assertions_eqv_lemma[lit] = true;
         }
       }
-      Trace("uf-ss-com-card-debug") << "...assert cardinality" << std::endl;
-      d_rep_model[tn]->assertCardinality( d_out, nCard, polarity );
-      //check if combined cardinality is violated
-      checkCombinedCardinality();
-    }else{
-      //otherwise, make equal via lemma
-      if( d_card_assertions_eqv_lemma.find( lit )==d_card_assertions_eqv_lemma.end() ){
-        Node eqv_lit = NodeManager::currentNM()->mkNode( CARDINALITY_CONSTRAINT, ct, lit[1] );
-        eqv_lit = lit.eqNode( eqv_lit );
-        Trace("uf-ss-lemma") << "*** Cardinality equiv lemma : " << eqv_lit << std::endl;
-        getOutputChannel().lemma( eqv_lit );
-        d_card_assertions_eqv_lemma[lit] = true;
-      }
-    }
-  }else if( lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
-    d_com_card_assertions[lit] = polarity;
-    if( polarity ){
-      //safe to assume int here
-      int nCard = lit[0].getConst<Rational>().getNumerator().getSignedInt();
-      if( d_min_pos_com_card.get()==-1 || nCard<d_min_pos_com_card.get() ){
-        d_min_pos_com_card.set( nCard );
-        checkCombinedCardinality();
-      }
-    }else{
-      bool needsCard = true;
-      if( d_min_pos_com_card.get()==-1 ){
-        //check if all current combined cardinality constraints are asserted negatively
-        for( std::map< int, Node >::iterator it = d_com_card_literal.begin(); it != d_com_card_literal.end(); ++it ){
-          if( d_com_card_assertions.find( it->second )==d_com_card_assertions.end() ){
-            Trace("uf-ss-com-card-debug") << "Does not need combined cardinality : non-assertion : " << it->first << std::endl;
-            needsCard = false;
-            break;
-          }else{
-            Assert( !d_com_card_assertions[it->second] );
-          }
+    }else if( lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
+      d_com_card_assertions[lit] = polarity;
+      if( polarity ){
+        //safe to assume int here
+        int nCard = lit[0].getConst<Rational>().getNumerator().getSignedInt();
+        if( d_min_pos_com_card.get()==-1 || nCard<d_min_pos_com_card.get() ){
+          d_min_pos_com_card.set( nCard );
+          checkCombinedCardinality();
         }
       }else{
-        Trace("uf-ss-com-card-debug") << "Does not need combined cardinality : positive assertion : " << d_min_pos_com_card.get() << std::endl;
-        needsCard = false;
+        bool needsCard = true;
+        if( d_min_pos_com_card.get()==-1 ){
+          //check if all current combined cardinality constraints are asserted negatively
+          for( std::map< int, Node >::iterator it = d_com_card_literal.begin(); it != d_com_card_literal.end(); ++it ){
+            if( d_com_card_assertions.find( it->second )==d_com_card_assertions.end() ){
+              Trace("uf-ss-com-card-debug") << "Does not need combined cardinality : non-assertion : " << it->first << std::endl;
+              needsCard = false;
+              break;
+            }else{
+              Assert( !d_com_card_assertions[it->second] );
+            }
+          }
+        }else{
+          Trace("uf-ss-com-card-debug") << "Does not need combined cardinality : positive assertion : " << d_min_pos_com_card.get() << std::endl;
+          needsCard = false;
+        }
+        if( needsCard ){
+          allocateCombinedCardinality();
+        }
       }
-      if( needsCard ){
-        allocateCombinedCardinality();
+    }else{
+      if( Trace.isOn("uf-ss-warn") ){
+        ////FIXME: this is too strict: theory propagations are showing up as isDecision=true, but
+        ////       a theory propagation is not a decision.
+        if( isDecision ){
+          for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
+            if( !it->second->hasCardinalityAsserted() ){
+              Trace("uf-ss-warn") << "WARNING: Assert " << n << " as a decision before cardinality for " << it->first << "." << std::endl;
+              //Message() << "Error: constraint asserted before cardinality for " << it->first << std::endl;
+              //Unimplemented();
+            }
+          }
+        }
+      }
+      if( lit.getKind()!=EQUAL ){
+        //it is a predicate
+        if( options::ufssDiseqPropagation() ){
+          d_deq_prop->assertPredicate(lit, polarity);
+        }
       }
     }
   }else{
-    if( Trace.isOn("uf-ss-warn") ){
-      ////FIXME: this is too strict: theory propagations are showing up as isDecision=true, but
-      ////       a theory propagation is not a decision.
-      if( isDecision ){
-        for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-          if( !it->second->hasCardinalityAsserted() ){
-            Trace("uf-ss-warn") << "WARNING: Assert " << n << " as a decision before cardinality for " << it->first << "." << std::endl;
-            //Message() << "Error: constraint asserted before cardinality for " << it->first << std::endl;
-            //Unimplemented();
-          }
-        }
-      }
-    }
-    if( lit.getKind()!=EQUAL ){
-      //it is a predicate
-      if( options::ufssDiseqPropagation() ){
-        d_deq_prop->assertPredicate(lit, polarity);
-      }
+    if( lit.getKind()==CARDINALITY_CONSTRAINT || lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
+      // cardinality constraint from user input, set incomplete   
+      Trace("uf-ss") << "Literal " << lit << " not handled when uf ss mode is not FULL, set incomplete." << std::endl;
+      d_out->setIncomplete();
     }
   }
   Trace("uf-ss") << "Assert: done " << n << " " << isDecision << std::endl;
@@ -1943,20 +1928,57 @@ bool StrongSolverTheoryUF::areDisequal( Node a, Node b ) {
 /** check */
 void StrongSolverTheoryUF::check( Theory::Effort level ){
   if( !d_conflict ){
-    Trace("uf-ss-solver") << "StrongSolverTheoryUF: check " << level << std::endl;
-    if( level==Theory::EFFORT_FULL && Debug.isOn( "uf-ss-debug" ) ){
-      debugPrint( "uf-ss-debug" );
-    }
-    for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-      it->second->check( level, d_out );
-      if( it->second->isConflict() ){
-        d_conflict = true;
-        break;
+    if( options::ufssMode()==UF_SS_FULL ){
+      Trace("uf-ss-solver") << "StrongSolverTheoryUF: check " << level << std::endl;
+      if( level==Theory::EFFORT_FULL && Debug.isOn( "uf-ss-debug" ) ){
+        debugPrint( "uf-ss-debug" );
       }
-    }
-    //check symmetry breaker
-    if( !d_conflict && options::ufssSymBreak() ){
-      d_sym_break->check( level );
+      for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
+        it->second->check( level, d_out );
+        if( it->second->isConflict() ){
+          d_conflict = true;
+          break;
+        }
+      }
+      //check symmetry breaker
+      if( !d_conflict && options::ufssSymBreak() ){
+        d_sym_break->check( level );
+      }
+    }else if( options::ufssMode()==UF_SS_NO_MINIMAL ){
+      if( level==Theory::EFFORT_FULL ){
+        // split on an equality between two equivalence classes (at most one per type)
+        std::map< TypeNode, std::vector< Node > > eqc_list;
+        std::map< TypeNode, bool > type_proc;
+        eq::EqClassesIterator eqcs_i(d_th->getEqualityEngine());
+        while( !eqcs_i.isFinished() ){
+          Node a = *eqcs_i;
+          TypeNode tn = a.getType();
+          if( tn.isSort() ){
+            if( type_proc.find( tn )==type_proc.end() ){
+              std::map< TypeNode, std::vector< Node > >::iterator itel = eqc_list.find( tn );
+              if( itel!=eqc_list.end() ){
+                for( unsigned j=0; j<itel->second.size(); j++ ){
+                  Node b = itel->second[j];
+                  if( !d_th->getEqualityEngine()->areDisequal( a, b, false ) ){
+                    Node eq = Rewriter::rewrite( a.eqNode( b ) );
+                    Node lem = NodeManager::currentNM()->mkNode( kind::OR, eq, eq.negate() );
+                    Trace("uf-ss-lemma") << "*** Split (no-minimal) : " << lem << std::endl;
+                    d_out->lemma( lem );
+                    d_out->requirePhase( eq, true );
+                    type_proc[tn] = true;
+                    break;
+                  }
+                }
+              }
+              eqc_list[tn].push_back( a );
+            }
+          }
+          ++eqcs_i;
+        }
+      }
+    }else{
+      // unhandled uf ss mode
+      Assert( false );
     }
     Trace("uf-ss-solver") << "Done StrongSolverTheoryUF: check " << level << std::endl;
   }
@@ -1970,39 +1992,34 @@ void StrongSolverTheoryUF::presolve() {
   }
 }
 
-/** propagate */
-void StrongSolverTheoryUF::propagate( Theory::Effort level ){
-  //for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-  //  it->second->propagate( level, d_out );
-  //}
-}
-
 /** get next decision request */
 Node StrongSolverTheoryUF::getNextDecisionRequest( unsigned& priority ){
   //request the combined cardinality as a decision literal, if not already asserted
-  if( options::ufssFairness() ){
-    int comCard = 0;
-    Node com_lit;
-    do {
-      if( comCard<d_aloc_com_card.get() ){
-        com_lit = d_com_card_literal.find( comCard )!=d_com_card_literal.end() ? d_com_card_literal[comCard] : Node::null();
-        if( !com_lit.isNull() && d_com_card_assertions.find( com_lit )==d_com_card_assertions.end() ){
-          Trace("uf-ss-dec") << "Decide on combined cardinality : " << com_lit << std::endl;
-          priority = 1;
-          return com_lit;
+  if( options::ufssMode()==UF_SS_FULL ){
+    if( options::ufssFairness() ){
+      int comCard = 0;
+      Node com_lit;
+      do {
+        if( comCard<d_aloc_com_card.get() ){
+          com_lit = d_com_card_literal.find( comCard )!=d_com_card_literal.end() ? d_com_card_literal[comCard] : Node::null();
+          if( !com_lit.isNull() && d_com_card_assertions.find( com_lit )==d_com_card_assertions.end() ){
+            Trace("uf-ss-dec") << "Decide on combined cardinality : " << com_lit << std::endl;
+            priority = 1;
+            return com_lit;
+          }
+          comCard++;
+        }else{
+          com_lit = Node::null();
         }
-        comCard++;
-      }else{
-        com_lit = Node::null();
+      }while( !com_lit.isNull() );
+    }
+    //otherwise, check each individual sort
+    for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
+      Node n = it->second->getNextDecisionRequest();
+      if( !n.isNull() ){
+        priority = 1;
+        return n;
       }
-    }while( !com_lit.isNull() );
-  }
-  //otherwise, check each individual sort
-  for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-    Node n = it->second->getNextDecisionRequest();
-    if( !n.isNull() ){
-      priority = 1;
-      return n;
     }
   }
   Trace("uf-ss-dec") << "...no UF SS decisions." << std::endl;
@@ -2010,42 +2027,44 @@ Node StrongSolverTheoryUF::getNextDecisionRequest( unsigned& priority ){
 }
 
 void StrongSolverTheoryUF::preRegisterTerm( TNode n ){
-  //initialize combined cardinality
-  initializeCombinedCardinality();
+  if( options::ufssMode()==UF_SS_FULL ){
+    //initialize combined cardinality
+    initializeCombinedCardinality();
 
-  Trace("uf-ss-register") << "Preregister " << n << "." << std::endl;
-  //shouldn't have to preregister this type (it may be that there are no quantifiers over tn)
-  TypeNode tn = n.getType();
-  std::map< TypeNode, SortModel* >::iterator it = d_rep_model.find( tn );
-  if( it==d_rep_model.end() ){
-    SortModel* rm = NULL;
-    if( tn.isSort() ){
-      Trace("uf-ss-register") << "Create sort model " << tn << "." << std::endl;
-      rm  = new SortModel( n, d_th->getSatContext(), d_th->getUserContext(), this );
-      //getOutputChannel().lemma( n.eqNode( rm->getCardinalityTerm() ) );
-    }else{
-      /*
-      if( tn==NodeManager::currentNM()->integerType() || tn==NodeManager::currentNM()->realType() ){
-        Debug("uf-ss-na") << "Error: Cannot perform finite model finding on arithmetic quantifier";
-        Debug("uf-ss-na") << " (" << f << ")";
-        Debug("uf-ss-na") << std::endl;
-        Unimplemented("Cannot perform finite model finding on arithmetic quantifier");
-      }else if( tn.isDatatype() ){
-        Debug("uf-ss-na") << "Error: Cannot perform finite model finding on datatype quantifier";
-        Debug("uf-ss-na") << " (" << f << ")";
-        Debug("uf-ss-na") << std::endl;
-        Unimplemented("Cannot perform finite model finding on datatype quantifier");
+    Trace("uf-ss-register") << "Preregister " << n << "." << std::endl;
+    //shouldn't have to preregister this type (it may be that there are no quantifiers over tn)
+    TypeNode tn = n.getType();
+    std::map< TypeNode, SortModel* >::iterator it = d_rep_model.find( tn );
+    if( it==d_rep_model.end() ){
+      SortModel* rm = NULL;
+      if( tn.isSort() ){
+        Trace("uf-ss-register") << "Create sort model " << tn << "." << std::endl;
+        rm  = new SortModel( n, d_th->getSatContext(), d_th->getUserContext(), this );
+        //getOutputChannel().lemma( n.eqNode( rm->getCardinalityTerm() ) );
+      }else{
+        /*
+        if( tn==NodeManager::currentNM()->integerType() || tn==NodeManager::currentNM()->realType() ){
+          Debug("uf-ss-na") << "Error: Cannot perform finite model finding on arithmetic quantifier";
+          Debug("uf-ss-na") << " (" << f << ")";
+          Debug("uf-ss-na") << std::endl;
+          Unimplemented("Cannot perform finite model finding on arithmetic quantifier");
+        }else if( tn.isDatatype() ){
+          Debug("uf-ss-na") << "Error: Cannot perform finite model finding on datatype quantifier";
+          Debug("uf-ss-na") << " (" << f << ")";
+          Debug("uf-ss-na") << std::endl;
+          Unimplemented("Cannot perform finite model finding on datatype quantifier");
+        }
+        */
       }
-      */
+      if( rm ){
+        rm->initialize( d_out );
+        d_rep_model[tn] = rm;
+        //d_rep_model_init[tn] = true;
+      }
+    }else{
+      //ensure sort model is initialized
+      it->second->initialize( d_out );
     }
-    if( rm ){
-      rm->initialize( d_out );
-      d_rep_model[tn] = rm;
-      //d_rep_model_init[tn] = true;
-    }
-  }else{
-    //ensure sort model is initialized
-    it->second->initialize( d_out );
   }
 }
 
@@ -2139,6 +2158,7 @@ bool StrongSolverTheoryUF::debugModel( TheoryModel* m ){
 
 /** initialize */
 void StrongSolverTheoryUF::initializeCombinedCardinality() {
+  Assert( options::ufssMode()==UF_SS_FULL );
   if( options::ufssFairness() ){
     if( d_aloc_com_card.get()==0 ){
       Trace("uf-ss-com-card-debug") << "Initialize combined cardinality" << std::endl;
@@ -2149,6 +2169,7 @@ void StrongSolverTheoryUF::initializeCombinedCardinality() {
 
 /** check */
 void StrongSolverTheoryUF::checkCombinedCardinality() {
+  Assert( options::ufssMode()==UF_SS_FULL );
   if( options::ufssFairness() ){
     Trace("uf-ss-com-card-debug") << "Check combined cardinality, get maximum negative cardinalities..." << std::endl;
     int totalCombinedCard = 0;
@@ -2231,6 +2252,7 @@ void StrongSolverTheoryUF::checkCombinedCardinality() {
 }
 
 void StrongSolverTheoryUF::allocateCombinedCardinality() {
+  Assert( options::ufssMode()==UF_SS_FULL );
   Trace("uf-ss-com-card") << "Allocate combined cardinality (" << d_aloc_com_card.get() << ")" << std::endl;
   //make node
   Node lem = NodeManager::currentNM()->mkNode( COMBINED_CARDINALITY_CONSTRAINT,

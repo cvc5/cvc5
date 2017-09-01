@@ -33,7 +33,7 @@ option omitDontCares --omit-dont-cares bool :default false
  When producing a model, omit variables whose value does not matter
 option proof produce-proofs --proof bool :default false :predicate proofEnabledBuild :notify notifyBeforeSearch
  turn on proof generation
-option checkProofs check-proofs --check-proofs bool :link --proof :link-smt produce-proofs :notify notifyBeforeSearch :read-write
+option checkProofs check-proofs --check-proofs bool :link --proof :link-smt produce-proofs :predicate LFSCEnabledBuild :notify notifyBeforeSearch :read-write
  after UNSAT/VALID, machine-check the generated proof
 option dumpProofs --dump-proofs bool :default false :link --proof :link-smt produce-proofs
  output proofs after every UNSAT/VALID response
