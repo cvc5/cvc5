@@ -40,12 +40,16 @@ addons:
   - ant-optional
   - cxxtest
   - libreadline-dev
+before_install:
+ - eval "${MATRIX_EVAL}"
 before_script:
  - export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
  - export PATH=$PATH:$JAVA_HOME/bin
  - export JAVA_CPPFLAGS=-I$JAVA_HOME/include
  - ./autogen.sh
 script:
+ - ${CC} --version
+ - ${CXX} --version
  - |
    echo "travis_fold:start:load_script"
    normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
@@ -106,8 +110,32 @@ script:
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
 matrix:
   fast_finish: true
-  # Rule for running Coverity Scan.
   include:
+    # Test with GCC7
+    # Note: TRAVIS_CVC4_JAVA_API_TEST is only active for TEST_GROUP=0 because
+    # test groups only apply to regression tests (no need to repeat the Java
+    # tests for both groups).
+    - addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - *common_deps
+            - g++-7
+      env:
+        - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
+        - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio --enable-gpl' TEST_GROUP=0
+    - addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - *common_deps
+            - g++-7
+      env:
+        - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
+        - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio --enable-gpl' TEST_GROUP=1
+    # Rule for running Coverity Scan.
     - os: linux
       compiler: gcc
       env:
@@ -129,6 +157,7 @@ matrix:
           branch_pattern: coverity_scan
       after_failure:
         - cat /home/travis/build/CVC4/CVC4/cov-int/build-log.txt
+
 notifications:
   email:
     on_success: change
