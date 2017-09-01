@@ -295,6 +295,8 @@ libcvc4_la_SOURCES = \
 	theory/bv/bv_subtheory_inequality.h \
 	theory/bv/bv_to_bool.cpp \
 	theory/bv/bv_to_bool.h \
+	theory/bv/bvgauss.cpp \
+	theory/bv/bvgauss.h \
 	theory/bv/bvintropow2.cpp \
 	theory/bv/bvintropow2.h \
 	theory/bv/cd_set_collection.h \
