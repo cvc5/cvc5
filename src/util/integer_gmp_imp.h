@@ -385,20 +385,18 @@ public:
   }
 
   /**
-   * Compute modular inverse x^-1 of this Integer x modulo y.
-   * Returns a value x^-1 with 0 <= x^-1 < y such that x * x^-1 = 1 modulo y
-   * if such an inverse exists, and y otherwise.
-   * Note that such an inverse only exists if x and y are coprime, i.e.,
-   * if gcd (x, y) = 1.
+   * Compute modular inverse x^-1 of this Integer x modulo m with m > 0.
+   * Returns a value x^-1 with 0 <= x^-1 < m such that x * x^-1 = 1 modulo m
+   * if such an inverse exists, and -1 otherwise.
+   *
+   * Such an inverse only exists if
+   *   - x is non-zero
+   *   - x and m are coprime, i.e., if gcd (x, m) = 1
+   *
+   * Note that if x and m are coprime, then x^-1 > 0 if m > 1 and x^-1 = 0
+   * if m = 1 (the zero ring).
    */
-  Integer modInverse (const Integer & y) const {
-    int ret;
-    mpz_class res;
-    ret = mpz_invert (
-        res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-    if (!ret) return y;
-    return Integer (res);
-  }
+  Integer modInverse (const Integer & m) const;
 
   /**
    * Compute multiplication of this Integer x * y modulo m.

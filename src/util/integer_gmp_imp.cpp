@@ -100,4 +100,12 @@ Integer Integer::exactQuotient(const Integer& y) const {
   return Integer( q );
 }
 
+Integer Integer::modInverse (const Integer & m) const {
+    PrettyCheckArgument (m > 0, m, "m must be greater than zero");
+    mpz_class res;
+    if (mpz_invert (
+          res.get_mpz_t(), d_value.get_mpz_t(), m.d_value.get_mpz_t()) == 0)
+      return Integer (-1);
+    return Integer (res);
+  }
 } /* namespace CVC4 */

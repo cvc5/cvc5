@@ -342,19 +342,18 @@ public:
   }
 
   /**
-   * Compute modular inverse x^-1 of this Integer x modulo m.
+   * Compute modular inverse x^-1 of this Integer x modulo m with m > 0.
    * Returns a value x^-1 with 0 <= x^-1 < m such that x * x^-1 = 1 modulo m
-   * if such an inverse exists, and m otherwise.
-   * Note that such an inverse only exists if x and m are coprime, i.e.,
-   * if gcd (x, m) = 1.
+   * if such an inverse exists, and -1 otherwise.
+   *
+   * Such an inverse only exists if
+   *   - x is non-zero
+   *   - x and m are coprime, i.e., if gcd (x, m) = 1
+   *
+   * Note that if x and m are coprime, then x^-1 > 0 if m > 1 and x^-1 = 0
+   * if m = 1 (the zero ring).
    */
-  Integer modInverse (const Integer & m) const {
-    if (this->gcd (m) != 1) return m;
-    cln::cl_modint_ring ry = cln::find_modint_ring (m.d_value);
-    cln::cl_MI xm = ry->canonhom (d_value);
-    cln::cl_MI res = cln::recip (xm);
-    return Integer (ry->retract (res));
-  }
+  Integer modInverse (const Integer & m) const;
 
   /**
    * Compute multiplication of this Integer x * y modulo m.
