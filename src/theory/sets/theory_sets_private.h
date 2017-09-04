@@ -188,6 +188,8 @@ public:
 
   void preRegisterTerm(TNode node);
 
+  Node expandDefinition(LogicRequest &logicRequest, Node n);
+
   Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
   
   void presolve();
