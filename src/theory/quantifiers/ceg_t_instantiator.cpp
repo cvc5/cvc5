@@ -895,36 +895,41 @@ Node BvInverter::getPathToPv( Node lit, Node pv, Node sv, Node pvs, std::vector<
 
 Node BvInverter::solve_bv_constraint( Node sv, Node sv_t, Node t, Kind rk, bool pol, std::vector< unsigned >& path,
                                       BvInverterModelQuery * m, BvInverterStatus& status ) {
-  if( path.empty() ){
-    Assert( sv_t==sv );
-    // finalize based on the kind of constraint
-    //TODO
-    return t;
-  }else{
+  while( !path.empty() ){
     unsigned index = path.back();
     Assert( index<sv_t.getNumChildren() );
     path.pop_back();
     Kind k = sv_t.getKind();
     // inversions
     if( k==BITVECTOR_PLUS ){
-      Node tt = NodeManager::currentNM()->mkNode( BITVECTOR_SUB, t, sv_t[1-index] );
-      return solve_bv_constraint( sv, sv_t[index], tt, rk, pol, path, m, status );
-    }else if( k==BITVECTOR_MULT ){
+      t = NodeManager::currentNM()->mkNode( BITVECTOR_SUB, t, sv_t[1-index] );
+    }else if( k==BITVECTOR_SUB ){
+      t = NodeManager::currentNM()->mkNode( BITVECTOR_PLUS, t, sv_t[1-index] );
+    //}else if( k==BITVECTOR_MULT ){
       // TODO
     }else if( k==BITVECTOR_NEG || k==BITVECTOR_NOT ){
-      Node tt = NodeManager::currentNM()->mkNode( k, t );
-      return solve_bv_constraint( sv, sv_t[index], tt, rk, pol, path, m, status );
-    }else if( k==BITVECTOR_AND || k==BITVECTOR_OR ){
+      t = NodeManager::currentNM()->mkNode( k, t );
+    //}else if( k==BITVECTOR_AND || k==BITVECTOR_OR ){
       // TODO
-    }else if( k==BITVECTOR_CONCAT ){
+    //}else if( k==BITVECTOR_CONCAT ){
       // TODO
-    }else if( k==BITVECTOR_SHL || k==BITVECTOR_LSHR ){
+    //}else if( k==BITVECTOR_SHL || k==BITVECTOR_LSHR ){
       // TODO
-    }else if( k==BITVECTOR_ASHR ){
+    //}else if( k==BITVECTOR_ASHR ){
       // TODO
     }else{
-      Trace("bv-invert") << "bv-invert : Unknown kind for bit-vector term " << sv_t << std::endl;
+      Trace("bv-invert") << "bv-invert : Unknown kind for bit-vector term " << k << ", from " << sv_t << std::endl;
+      return Node::null();
     }
+    sv_t = sv_t[index];
+  }
+  Assert( sv_t==sv );
+  // finalize based on the kind of constraint
+  //TODO
+  if( rk==EQUAL ){
+    return t;
+  }else{
+    Trace("bv-invert") << "bv-invert : Unknown relation kind for bit-vector literal " << rk << std::endl;
     return Node::null();
   }
 }
@@ -948,7 +953,7 @@ Node BvInverter::solve_bv_lit( Node sv, Node lit, bool pol, std::vector< unsigne
       }else if( k==BITVECTOR_ULE ){
         k = index==1 ? BITVECTOR_ULT : BITVECTOR_UGT;
       }else if( k==BITVECTOR_SLT ){
-        k = index==1 ? BITVECTOR_SGT : BITVECTOR_SGE;
+        k = index==1 ? BITVECTOR_SLE : BITVECTOR_SGE;
       }else{
         Assert( k==BITVECTOR_SLE );
         k = index==1 ? BITVECTOR_SLT : BITVECTOR_SGT;

@@ -41,6 +41,8 @@ public:
 class Instantiator;
 
 
+//TODO: refactor pv_coeff to pv_prop throughout
+//generic class that stores properties for a variable to solve for in CEGQI
 class TermProperties {
 public:
   TermProperties() : d_type(-1) {}
@@ -54,11 +56,12 @@ class SolvedForm {
 public:
   std::vector< Node > d_vars;
   std::vector< Node > d_subs;
-  //
+  //TODO: refactor below coeff -> prop;
   std::vector< Node > d_coeff;
   std::vector< int > d_btyp;
   //std::vector< TermProperties > d_props;
-  std::vector< Node > d_has_coeff;//d_has_prop;
+  std::vector< Node > d_has_coeff;
+  //std::vector< Node > d_has_prop;
   Node d_theta;
   void copy( SolvedForm& sf ){
     d_vars.insert( d_vars.end(), sf.d_vars.begin(), sf.d_vars.end() );
