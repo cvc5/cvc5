@@ -19,6 +19,7 @@
 #include <algorithm>
 
 #include "base/output.h"
+#include "base/tls.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
@@ -103,7 +104,7 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   Assert(d_sgnDisagreements.empty());
 
   d_pivots = 0;
-  static CVC4_THREADLOCAL(unsigned int) instance = 0;
+  static CVC4_THREAD_LOCAL unsigned int instance = 0;
   instance = instance + 1;
   static const bool verbose = false;
 

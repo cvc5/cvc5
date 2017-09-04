@@ -152,7 +152,20 @@ private:
   TypeToTypeEnumMap d_teMap;
   TypeEnumeratorProperties * d_tep;
 
-  public:
+  /* Note that recursive traversal here is over enumerated expressions
+   * (very low expression depth). */
+  void addSubTerms(TNode n, std::map< TNode, bool >& visited, bool topLevel=true){
+    if( visited.find( n )==visited.end() ){
+      visited[n] = true;
+      if( !topLevel ){
+        add(n.getType(), n);
+      }
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        addSubTerms( n[i], visited, false );
+      }
+    }
+  }
+public:
   TypeSet() : d_tep(NULL) {}
   ~TypeSet() {
     iterator it;
@@ -228,6 +241,11 @@ private:
       n = **te;
     }
     s->insert(n);
+    // add all subterms of n to this set as well
+    // this is necessary for parametric types whose values are constructed from other types 
+    // to ensure that we do not enumerate subterms of other previous enumerated values
+    std::map< TNode, bool > visited;
+    addSubTerms(n, visited);
     ++(*te);
     return n;
   }
@@ -282,6 +300,7 @@ protected:
   bool isAssignable(TNode n);
   void checkTerms(TNode n, TheoryModel* tm, NodeSet& cache);
   void assignConstantRep( TheoryModel* tm, Node eqc, Node const_rep );
+  void addToTypeList( TypeNode tn, std::vector< TypeNode >& type_list, std::map< TypeNode, bool >& visiting );
   /** is v an excluded codatatype value */
   bool isExcludedCdtValue( Node v, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc );
   bool isCdtValueMatch( Node v, Node r, Node eqc, Node& eqc_m );
