@@ -72,7 +72,6 @@ TESTS = \
   bug686dd.smt2 \
   idof-handg.smt2 \
   fmf001.smt2 \
-  type002.smt2 \
   crash-1019.smt2 \
   norn-31.smt2 \
   strings-native-simple.cvc \
@@ -100,6 +99,7 @@ EXTRA_DIST +=
 
 #norn-dis-0707-3.smt2
 #norn-ab.smt2
+#type002.smt2
 
 # synonyms for "check"
 .PHONY: regress regress0 test

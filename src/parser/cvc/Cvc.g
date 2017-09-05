@@ -226,10 +226,6 @@ tokens {
   STRING_SUFFIXOF_TOK = 'SUFFIXOF';
   STRING_STOI_TOK = 'STRING_TO_INTEGER';
   STRING_ITOS_TOK = 'INTEGER_TO_STRING';
-  STRING_U16TOS_TOK = 'UINT16_TO_STRING';
-  STRING_STOU16_TOK = 'STRING_TO_UINT16';
-  STRING_U32TOS_TOK = 'UINT32_TO_STRING';
-  STRING_STOU32_TOK = 'STRING_TO_UINT32';
   //Regular expressions (TODO)
   //STRING_IN_REGEXP_TOK
   //STRING_TO_REGEXP_TOK
@@ -1990,15 +1986,7 @@ stringTerm[CVC4::Expr& f]
   | STRING_STOI_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_STOI, f); }
   | STRING_ITOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_ITOS, f); }
-  | STRING_U16TOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_U16TOS, f); }
-  | STRING_STOU16_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_STOU16, f); }
-  | STRING_U32TOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_U32TOS, f); }
-  | STRING_STOU32_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_STOU32, f); }    
+    { f = MK_EXPR(CVC4::kind::STRING_ITOS, f); }   
 
     /* string literal */
   | str[s]

@@ -1167,57 +1167,27 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
             node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[1],
                     NodeManager::currentNM()->mkNode(kind::MINUS, lent, lens), lens)));
     }
-  }else if(node.getKind() == kind::STRING_ITOS || node.getKind() == kind::STRING_U16TOS || node.getKind() == kind::STRING_U32TOS) {
+  }else if(node.getKind() == kind::STRING_ITOS) {
     if(node[0].isConst()) {
-      bool flag = false;
-      std::string stmp = node[0].getConst<Rational>().getNumerator().toString();
-      if(node.getKind() == kind::STRING_U16TOS) {
-        CVC4::Rational r1(UINT16_MAX);
-        CVC4::Rational r2 = node[0].getConst<Rational>();
-        if(r2>r1) {
-          flag = true;
-        }
-      } else if(node.getKind() == kind::STRING_U32TOS) {
-        CVC4::Rational r1(UINT32_MAX);
-        CVC4::Rational r2 = node[0].getConst<Rational>();
-        if(r2>r1) {
-          flag = true;
-        }
-      }
-      //std::string stmp = static_cast<std::ostringstream*>( &(std::ostringstream() << node[0]) )->str();
-      if(flag || stmp[0] == '-') {
+      if( node[0].getConst<Rational>().sgn()==-1 ){
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-      } else {
+      }else{
+        std::string stmp = node[0].getConst<Rational>().getNumerator().toString();
+        Assert(stmp[0] != '-');
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(stmp) );
       }
     }
-  }else if(node.getKind() == kind::STRING_STOI || node.getKind() == kind::STRING_STOU16 || node.getKind() == kind::STRING_STOU32) {
+  }else if(node.getKind() == kind::STRING_STOI) {
     if(node[0].isConst()) {
       CVC4::String s = node[0].getConst<String>();
       if(s.isNumber()) {
         std::string stmp = s.toString();
+        //TODO: leading zeros : when smt2 standard for strings is set, uncomment this if applicable
         //if(stmp[0] == '0' && stmp.size() != 1) {
-          //TODO: leading zeros
           //retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
         //} else {
-          bool flag = false;
           CVC4::Rational r2(stmp.c_str());
-          if(node.getKind() == kind::STRING_U16TOS) {
-            CVC4::Rational r1(UINT16_MAX);
-            if(r2>r1) {
-              flag = true;
-            }
-          } else if(node.getKind() == kind::STRING_U32TOS) {
-            CVC4::Rational r1(UINT32_MAX);
-            if(r2>r1) {
-              flag = true;
-            }
-          }
-          if(flag) {
-            retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
-          } else {
-            retNode = NodeManager::currentNM()->mkConst( r2 );
-          }
+          retNode = NodeManager::currentNM()->mkConst( r2 );
         //}
       } else {
         retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));

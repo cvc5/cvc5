@@ -152,7 +152,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node rr = NodeManager::currentNM()->mkNode( kind::ITE, cond, left, right );
     new_nodes.push_back( rr );
     retNode = skk;
-  } else if( t.getKind() == kind::STRING_ITOS || t.getKind() == kind::STRING_U16TOS || t.getKind() == kind::STRING_U32TOS ) {
+  } else if( t.getKind() == kind::STRING_ITOS ) {
     //Node num = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::ITE,
     //        NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
     //        t[0], NodeManager::currentNM()->mkNode(kind::UMINUS, t[0])));
@@ -166,15 +166,6 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
 
     Node nonneg = NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero);
-    if(t.getKind()==kind::STRING_U16TOS) {
-      nonneg = NodeManager::currentNM()->mkNode(kind::AND, nonneg, NodeManager::currentNM()->mkNode(kind::GEQ, NodeManager::currentNM()->mkConst( ::CVC4::Rational(UINT16_MAX) ), t[0]));
-      Node lencond = NodeManager::currentNM()->mkNode(kind::GEQ, NodeManager::currentNM()->mkConst( ::CVC4::Rational(5) ), lenp);
-      new_nodes.push_back(lencond);
-    } else if(t.getKind()==kind::STRING_U32TOS) {
-      nonneg = NodeManager::currentNM()->mkNode(kind::AND, nonneg, NodeManager::currentNM()->mkNode(kind::GEQ, NodeManager::currentNM()->mkConst( ::CVC4::Rational(UINT32_MAX) ), t[0]));
-      Node lencond = NodeManager::currentNM()->mkNode(kind::GEQ, NodeManager::currentNM()->mkConst( ::CVC4::Rational(10) ), lenp);
-      new_nodes.push_back(lencond);
-    }
 
     Node lem = NodeManager::currentNM()->mkNode(kind::EQUAL, nonneg.negate(),
       pret.eqNode(NodeManager::currentNM()->mkConst( ::CVC4::String("") ))//lenp.eqNode(d_zero)
@@ -266,7 +257,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
               NodeManager::currentNM()->mkConst(::CVC4::String("-")), pret))));
     new_nodes.push_back( conc );*/
     retNode = pret;
-  } else if( t.getKind() == kind::STRING_STOI || t.getKind() == kind::STRING_STOU16 || t.getKind() == kind::STRING_STOU32 ) {
+  } else if( t.getKind() == kind::STRING_STOI ) {
     Node str = t[0];
     Node pret;
     if( options::stringUfReduct() ){
@@ -304,13 +295,6 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       t[0].eqNode(NodeManager::currentNM()->mkConst(::CVC4::String("0"))),
       t.eqNode(d_zero));
     new_nodes.push_back(lem);*/
-    if(t.getKind()==kind::STRING_U16TOS) {
-      lem = NodeManager::currentNM()->mkNode(kind::GEQ, NodeManager::currentNM()->mkConst(::CVC4::String("5")), lenp);
-      new_nodes.push_back(lem);
-    } else if(t.getKind()==kind::STRING_U32TOS) {
-      lem = NodeManager::currentNM()->mkNode(kind::GEQ, NodeManager::currentNM()->mkConst(::CVC4::String("9")), lenp);
-      new_nodes.push_back(lem);
-    }
     //cc1
     Node cc1 = str.eqNode(NodeManager::currentNM()->mkConst(::CVC4::String("")));
     //cc1 = NodeManager::currentNM()->mkNode(kind::AND, ufP0.eqNode(negone), cc1);
