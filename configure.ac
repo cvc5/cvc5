@@ -577,7 +577,7 @@ AC_MSG_RESULT([$enable_static_binary])
 if test "$enable_static_binary" = yes; then
   if test "$target_vendor" = apple; then
     if test -z "$MAC_STATIC_BINARY_MANUAL_OVERRIDE"; then
-      AC_MSG_ERROR([[Statically-linked binaries are not supported on Mac OS.  See https://developer.apple.com/library/mac/#qa/qa2001/qa1118.html .  (If you ABSOLUTELY insist on this going forward and you know what you are doing, set MAC_STATIC_BINARY_MANUAL_OVERRIDE=1)]])
+      AC_MSG_ERROR([[Statically-linked binaries are not supported on macOS.  See  https://developer.apple.com/library/content/qa/qa1118/_index.html .  (If you ABSOLUTELY insist on this going forward and you know what you are doing, set MAC_STATIC_BINARY_MANUAL_OVERRIDE=1)]])
     else
       AC_MSG_WARN([MAC_STATIC_BINARY_MANUAL_OVERRIDE was set!])
       AC_MSG_WARN([Will make a static binary during this build.  Note that it may fail!])
