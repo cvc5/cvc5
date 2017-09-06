@@ -90,6 +90,7 @@ function gettemp {
 }
 
 tmpbenchmark=
+requires_proof=
 if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   lang=smt1
   if test -e "$benchmark.expect"; then
@@ -109,6 +110,7 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
+    requires_proof=`grep '(get-unsat-core)'`
     # old mktemp from coreutils 7.x is broken, can't do XXXX in the middle
     # this frustrates our auto-language-detection
     gettemp tmpbenchmark cvc4_benchmark.smt.$$.XXXXXXXXXX
@@ -286,6 +288,12 @@ if [ "$proof" = yes ]; then
       # later on, we'll run another test with --check-unsat-cores on
       check_unsat_cores=true
     fi
+  fi
+else
+  # If this test case requires proofs but CVC4 is not built with proof support,
+  # skip it.
+  if [ -n "$requires_proof" ]; then
+    exit 77
   fi
 fi
 if [ -z "$expected_error" ]; then
