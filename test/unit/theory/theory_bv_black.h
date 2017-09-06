@@ -219,7 +219,23 @@ public:
         };
     std::cout << "matrix 7, modulo 11" << std::endl;
     testGaussElimT<AssertionException> (Integer(11), rhs, lhs);
-  }
 
+    //   lhs    rhs         lhs   rhs   modulo 11
+    //  --^--    ^         --^--   ^
+    //  1  1  1   6   -->  1 0 0   1
+    //  2 -1  1   3        0 1 0   2
+    //  1  0  1   4        0 0 1   3
+    //  2  1  1   7        0 0 0   0
+    rhs = { Integer(6), Integer(3), Integer(4), Integer(7) };
+    lhs =
+        {
+          { Integer(1), Integer(1), Integer(1)},
+          { Integer(2), Integer(-1), Integer(1)},
+          { Integer(1), Integer(0), Integer(1)},
+          { Integer(2), Integer(1), Integer(1)},
+        };
+    std::cout << "matrix 8, modulo 11" << std::endl;
+    testGaussElimT<AssertionException> (Integer(11), rhs, lhs);
+  }
 };
 
