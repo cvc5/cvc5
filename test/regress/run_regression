@@ -135,7 +135,7 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
   # support, skip it. Note: checking $CVC4_REGRESSION_ARGS instead of $proof
   # here because $proof is not set for the second run.
   requires_proof=`grep '(get-unsat-core)' "$benchmark"`
-  if [[ "$CVC4_REGRESSION_ARGS" = *"--proof"* ]] && [ -n "$requires_proof" ]; then
+  if [[ ! "$CVC4_REGRESSION_ARGS" = *"--proof"* ]] && [ -n "$requires_proof" ]; then
     exit 77
   fi
 
