@@ -110,7 +110,6 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
-    requires_proof=`grep '(get-unsat-core)'`
     # old mktemp from coreutils 7.x is broken, can't do XXXX in the middle
     # this frustrates our auto-language-detection
     gettemp tmpbenchmark cvc4_benchmark.smt.$$.XXXXXXXXXX
@@ -132,6 +131,7 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   fi
 elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
   lang=smt2
+  requires_proof=`grep '(get-unsat-core)' "$benchmark"`
   if test -e "$benchmark.expect"; then
     scrubber=`grep '^% SCRUBBER: ' "$benchmark.expect" | sed 's,^% SCRUBBER: ,,'`
     errscrubber=`grep '^% ERROR-SCRUBBER: ' "$benchmark.expect" | sed 's,^% ERROR-SCRUBBER: ,,'`
@@ -296,6 +296,7 @@ else
     exit 77
   fi
 fi
+
 if [ -z "$expected_error" ]; then
   # in case expected stderr output is empty, make sure we don't differ
   # by a newline, which we would if we echo "" >"$experrfile"
