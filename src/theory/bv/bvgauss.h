@@ -10,7 +10,8 @@
 bool gaussElim (CVC4::Integer prime,
                 std::vector< CVC4::Integer > & rhs,
                 std::vector< std::vector< CVC4::Integer >> & lhs,
-                std::vector< CVC4::Integer > & res);
+                std::vector< CVC4::Integer > & resrhs,
+                std::vector< std::vector< CVC4::Integer >> & reslhs);
 
 namespace CVC4 {
 namespace theory {
