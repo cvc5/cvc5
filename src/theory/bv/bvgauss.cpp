@@ -4,20 +4,22 @@
 using namespace CVC4;
 using namespace std;
 
-// FIXME: make this a private member function
+namespace CVC4 {
+namespace theory {
+namespace bv {
+
 bool
-gaussElim (Integer prime,
-           vector< Integer > & rhs,
-           vector< vector< Integer >> & lhs,
-           vector< Integer > & resrhs,
-           vector< vector< Integer >> & reslhs)
+BVGaussElim:: gaussElim (Integer prime,
+                         vector< Integer > & rhs,
+                         vector< vector< Integer >> & lhs,
+                         vector< Integer > & resrhs,
+                         vector< vector< Integer >> & reslhs)
 
 {
   Assert (prime > 0);
   Assert (lhs.size());
   Assert (lhs.size() == rhs.size());
   Assert (lhs.size() <= lhs[0].size());
-
 
   /* special case: zero ring */
   if (prime == 1)
@@ -128,14 +130,9 @@ gaussElim (Integer prime,
   return true;
 }
 
-namespace CVC4 {
-namespace theory {
-namespace bv {
 
-
-//static void
-//BVGaussElim::
-//gaussElimRewrite (std::vector<Node> & assertionsToPreprocess)
+//void
+//BVGaussElim::gaussElimRewrite (std::vector<Node> & assertionsToPreprocess)
 //{
 //}
 

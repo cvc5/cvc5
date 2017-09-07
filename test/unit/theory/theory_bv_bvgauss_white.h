@@ -38,9 +38,9 @@ testGaussElimX (Integer prime,
   std::cout << "Input: " << std::endl;
   print_matrix_dbg (rhs, lhs);
 
-  ret = gaussElim (prime, rhs, lhs, resrhs, reslhs);
+  ret = theory::bv::BVGaussElim::gaussElim (prime, rhs, lhs, resrhs, reslhs);
 
-  std::cout << "resrhs: " << std::endl;
+  std::cout << "Result: " << std::endl;
   print_matrix_dbg (resrhs, reslhs);
 
   TS_ASSERT_EQUALS (expected, ret);
@@ -76,15 +76,14 @@ testGaussElimT (Integer prime,
   std::vector< Integer > resrhs;
   std::vector< std::vector< Integer >> reslhs;
   TS_ASSERT_THROWS (
-      gaussElim (prime, rhs, lhs, resrhs, reslhs), T);
+      theory::bv::BVGaussElim::gaussElim (prime, rhs, lhs, resrhs, reslhs), T);
 }
 
-class TheoryBVBlack : public CxxTest::TestSuite
+class TheoryBVGaussWhite : public CxxTest::TestSuite
 {
-
 public:
   
-  TheoryBVBlack () {}
+  TheoryBVGaussWhite () {}
 
   void setUp ()
   {

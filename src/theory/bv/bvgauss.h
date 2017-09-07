@@ -7,18 +7,18 @@
 #include "util/bitvector.h"
 #include <vector>
 
-bool gaussElim (CVC4::Integer prime,
-                std::vector< CVC4::Integer > & rhs,
-                std::vector< std::vector< CVC4::Integer >> & lhs,
-                std::vector< CVC4::Integer > & resrhs,
-                std::vector< std::vector< CVC4::Integer >> & reslhs);
-
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
 class BVGaussElim {
   //static void gaussElimRewrite (std::vector<Node> & assertionsToPreprocess);
+  private:
+  static bool gaussElim (Integer prime,
+                         std::vector< Integer > & rhs,
+                         std::vector< std::vector< Integer >> & lhs,
+                         std::vector< Integer > & resrhs,
+                         std::vector< std::vector< Integer >> & reslhs);
 };
 
 }/* CVC4::theory::bv namespace */
