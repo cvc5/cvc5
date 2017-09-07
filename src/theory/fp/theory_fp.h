@@ -100,6 +100,8 @@ class TheoryFp : public Theory {
   context::CDO<Node> d_conflictNode;
 
   /** Uninterpretted functions for partially defined functions. **/
+  void enableUF(LogicRequest& lr);
+
   typedef context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>
       ComparisonUFMap;
 
