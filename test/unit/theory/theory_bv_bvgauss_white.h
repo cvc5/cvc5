@@ -28,7 +28,9 @@ static void
 testGaussElimX (Integer prime,
                 std::vector< Integer > rhs,
                 std::vector< std::vector< Integer >> lhs,
-                BVGaussElim::Result expected)
+                BVGaussElim::Result expected,
+                std::vector< Integer > * rrhs = nullptr,
+                std::vector< std::vector< Integer >> * rlhs = nullptr)
 {
   size_t nrows = lhs.size();
   size_t ncols = lhs[0].size();
@@ -67,6 +69,17 @@ testGaussElimX (Integer prime,
       TS_ASSERT (tmp == rhs[i].euclidianDivideRemainder (prime));
     }
   }
+  if (rrhs != nullptr && rlhs != nullptr)
+  {
+    for (size_t i = 0; i < nrows; ++i)
+    {
+      for (size_t j = 0; j < ncols; ++j)
+      {
+        TS_ASSERT (reslhs[i][j] == (*rlhs)[i][j]);
+      }
+      TS_ASSERT (resrhs[i] == (*rrhs)[i]);
+    }
+  }
 }
 
 template <class T>
@@ -101,11 +114,11 @@ public:
     std::vector< std::vector< Integer >> lhs;
 
     /*
-     *   lhs   rhs        lhs   rhs  modulo { 0,1,2,3,4,5,6,7,8,9,10,11 }
-     *  --^--   ^        --^--   ^
-     *  1 1 1   5   -->  1 0 0   3
-     *  2 3 5   8        0 1 0   4
-     *  4 0 5   2        0 0 1   9
+     *   lhs   rhs  modulo { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }
+     *  --^--   ^
+     *  1 1 1   5
+     *  2 3 5   8
+     *  4 0 5   2
      */
     rhs = { Integer(5), Integer(8), Integer(2) };
     lhs =
@@ -168,11 +181,11 @@ public:
     std::vector< std::vector< Integer >> lhs;
 
     /*
-     *   lhs     rhs        lhs    rhs  modulo { 9,17,59 }
-     *  --^---    ^        --^--    ^
-     *  2 4  6   18   -->  1 0 0    4
-     *  4 5  6   24        0 1 0   15
-     *  3 1 -2    4        0 0 1    3
+     *   lhs     rhs  modulo { 11,17,59 }
+     *  --^---    ^
+     *  2 4  6   18
+     *  4 5  6   24
+     *  3 1 -2    4
      */
     rhs = { Integer(18), Integer(24), Integer(4) };
     lhs =
@@ -181,8 +194,8 @@ public:
           { Integer(4), Integer(5), Integer(6) },
           { Integer(3), Integer(1), Integer(-2) }
         };
-    std::cout << "matrix 2, modulo 9" << std::endl;
-    testGaussElimX (Integer(9), rhs, lhs, BVGaussElim::Result::NONE);
+    std::cout << "matrix 2, modulo 11" << std::endl;
+    testGaussElimX (Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
     std::cout << "matrix 2, modulo 17" << std::endl;
     testGaussElimX (Integer(17), rhs, lhs, BVGaussElim::Result::UNIQUE);
     std::cout << "matrix 2, modulo 59" << std::endl;
@@ -330,6 +343,23 @@ public:
     std::vector< std::vector< Integer >> lhs;
 
     /*
+     *   lhs     rhs       modulo 9
+     *  --^---    ^
+     *  2 4  6   18   -->  not coprime (no inverse)
+     *  4 5  6   24
+     *  3 1 -2    4
+     */
+    rhs = { Integer(18), Integer(24), Integer(4) };
+    lhs =
+        {
+          { Integer(2), Integer(4), Integer(6) },
+          { Integer(4), Integer(5), Integer(6) },
+          { Integer(3), Integer(1), Integer(-2) }
+        };
+    std::cout << "matrix 2, modulo 9" << std::endl;
+    testGaussElimX (Integer(9), rhs, lhs, BVGaussElim::Result::NONE);
+
+    /*
      *     lhs    rhs       modulo 59
      *  ----^---   ^
      *  1 -2  -6   12   --> no solution
@@ -345,17 +375,11 @@ public:
         };
     std::cout << "matrix 10, modulo 59" << std::endl;
     testGaussElimX (Integer(59), rhs, lhs, BVGaussElim::Result::NONE);
-  }
-
-  void testGaussElimPartial ()
-  {
-    std::vector< Integer > rhs;
-    std::vector< std::vector< Integer >> lhs;
 
     /*
-     *     lhs    rhs       modulo 59
+     *     lhs    rhs       modulo 9
      *  ----^---   ^
-     *  2  4   6   18   --> 
+     *  2  4   6   18   --> not coprime (no inverse)
      *  4  5   6   24
      *  2  7  12   30
      */
@@ -366,7 +390,109 @@ public:
           { Integer(4), Integer(5), Integer(6) },
           { Integer(2), Integer(7), Integer(12) }
         };
+    std::cout << "matrix 11, modulo 9" << std::endl;
+    testGaussElimX (Integer(9), rhs, lhs, BVGaussElim::Result::NONE);
+  }
+
+  void testGaussElimPartial ()
+  {
+    std::vector< Integer > rhs, resrhs;
+    std::vector< std::vector< Integer >> lhs, reslhs;
+
+    /*
+     *     lhs    rhs  modulo { 2, 3, 5, 7, 11, 17, 31, 59 }
+     *  ----^---   ^
+     *  2  4   6   18
+     *  4  5   6   24
+     *  2  7  12   30
+     */
+    rhs = { Integer(18), Integer(24), Integer(30) };
+    lhs =
+        {
+          { Integer(2), Integer(4), Integer(6) },
+          { Integer(4), Integer(5), Integer(6) },
+          { Integer(2), Integer(7), Integer(12) }
+        };
+    //std::cout << "matrix 11, modulo 2" << std::endl;
+    //resrhs = { Integer(0), Integer(0), Integer(0) };
+    //reslhs =
+    //    {
+    //      { Integer(1), Integer(2), Integer(0) },
+    //      { Integer(0), Integer(0), Integer(0) },
+    //      { Integer(0), Integer(0), Integer(0) }
+    //    };
+    //testGaussElimX (
+    //    Integer(2), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+    std::cout << "matrix 11, modulo 3" << std::endl;
+    resrhs = { Integer(0), Integer(0), Integer(0) };
+    reslhs =
+        {
+          { Integer(1), Integer(2), Integer(0) },
+          { Integer(0), Integer(0), Integer(0) },
+          { Integer(0), Integer(0), Integer(0) }
+        };
+    testGaussElimX (
+        Integer(3), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+    resrhs = { Integer(1), Integer(4), Integer(0) };
+    std::cout << "matrix 11, modulo 5" << std::endl;
+    reslhs =
+        {
+          { Integer(1), Integer(0), Integer(4) },
+          { Integer(0), Integer(1), Integer(2) },
+          { Integer(0), Integer(0), Integer(0) }
+        };
+    testGaussElimX (
+        Integer(5), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+    std::cout << "matrix 11, modulo 7" << std::endl;
+    reslhs =
+        {
+          { Integer(1), Integer(0), Integer(6) },
+          { Integer(0), Integer(1), Integer(2) },
+          { Integer(0), Integer(0), Integer(0) }
+        };
+    testGaussElimX (
+        Integer(7), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+    std::cout << "matrix 11, modulo 11" << std::endl;
+    reslhs =
+        {
+          { Integer(1), Integer(0), Integer(10) },
+          { Integer(0), Integer(1), Integer(2) },
+          { Integer(0), Integer(0), Integer(0) }
+        };
+    testGaussElimX (
+        Integer(11), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+    std::cout << "matrix 11, modulo 17" << std::endl;
+    reslhs =
+        {
+          { Integer(1), Integer(0), Integer(16) },
+          { Integer(0), Integer(1), Integer(2) },
+          { Integer(0), Integer(0), Integer(0) }
+        };
+    testGaussElimX (
+        Integer(17), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
     std::cout << "matrix 11, modulo 59" << std::endl;
-    testGaussElimX (Integer(59), rhs, lhs, BVGaussElim::Result::PARTIAL);
+    reslhs =
+        {
+          { Integer(1), Integer(0), Integer(58) },
+          { Integer(0), Integer(1), Integer(2) },
+          { Integer(0), Integer(0), Integer(0) }
+        };
+    testGaussElimX (
+        Integer(59), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+
+    /*
+     *   lhs   rhs        lhs   rhs  modulo 11
+     *  --^--   ^        --^--   ^
+     *  1 1 1   5   -->  1 0 9   7
+     *  2 3 5   8        0 1 3   9
+     */
+    rhs = { Integer(5), Integer(8) };
+    lhs =
+        {
+          { Integer(1), Integer(1), Integer(1) },
+          { Integer(2), Integer(3), Integer(5) }
+        };
+    std::cout << "matrix 12, modulo 11" << std::endl;
+    testGaussElimX (Integer(11), rhs, lhs, BVGaussElim::Result::PARTIAL);
   }
 };

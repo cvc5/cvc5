@@ -116,7 +116,7 @@ BVGaussElim:: gaussElim (Integer prime,
     }
 
     /* (3) */
-    for (size_t j = 0; j < i; ++j)
+    for (size_t j = 0; i < nrows && j < i; ++j)
     {
       Integer mul = reslhs[j][i];
       if (mul != 0)
