@@ -8,7 +8,7 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-bool
+BVGaussElim::Result
 BVGaussElim:: gaussElim (Integer prime,
                          vector< Integer > & rhs,
                          vector< vector< Integer >> & lhs,
@@ -27,7 +27,7 @@ BVGaussElim:: gaussElim (Integer prime,
     resrhs = vector< Integer > (rhs.size(), Integer(0));
     reslhs = vector< vector< Integer >> (
         lhs.size(), vector< Integer > (lhs[0].size(), Integer(0)));
-    return true;
+    return BVGaussElim::Result::UNIQUE;
   }
 
   resrhs = vector< Integer > (rhs);
@@ -95,7 +95,7 @@ BVGaussElim:: gaussElim (Integer prime,
        if (reslhs[j][i] != 1)
         {
           Integer inv = reslhs[j][i].modInverse (prime);
-          if (inv == -1) return false;  /* not coprime */
+          if (inv == -1) return BVGaussElim::Result::NONE;  /* not coprime */
           for (size_t k = i; k < ncols; ++k)
           {
             reslhs[j][k] = reslhs[j][k].modMultiply (inv, prime);
@@ -127,7 +127,19 @@ BVGaussElim:: gaussElim (Integer prime,
       }
     }
   }
-  return true;
+
+  if (nrows < ncols)
+    return BVGaussElim::Result::PARTIAL;
+  
+  if (reslhs[nrows-1][ncols-1] == 0)
+  {
+    if (resrhs[ncols-1] != 0)
+      return BVGaussElim::Result::NONE;
+    else
+      return BVGaussElim::Result::PARTIAL;
+  }
+
+  return BVGaussElim::Result::UNIQUE;
 }
 
 

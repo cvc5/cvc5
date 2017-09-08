@@ -14,11 +14,12 @@ namespace bv {
 class BVGaussElim {
   //static void gaussElimRewrite (std::vector<Node> & assertionsToPreprocess);
   private:
-  static bool gaussElim (Integer prime,
-                         std::vector< Integer > & rhs,
-                         std::vector< std::vector< Integer >> & lhs,
-                         std::vector< Integer > & resrhs,
-                         std::vector< std::vector< Integer >> & reslhs);
+  enum class Result { UNIQUE, PARTIAL, NONE };
+  static Result gaussElim (Integer prime,
+                           std::vector< Integer > & rhs,
+                           std::vector< std::vector< Integer >> & lhs,
+                           std::vector< Integer > & resrhs,
+                           std::vector< std::vector< Integer >> & reslhs);
 };
 
 }/* CVC4::theory::bv namespace */
