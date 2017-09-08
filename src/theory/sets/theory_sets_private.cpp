@@ -2150,10 +2150,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
 }
 
-// Here, we need to be notified when a universe set occurs in our input,
-// before preprocessing and simplification takes place. If the sets-ext option
-// is not set, we throw an exception.
-// This function is a no-op otherwise.
 Node TheorySetsPrivate::expandDefinition(LogicRequest &logicRequest, Node n) {
   Debug("sets-proc") << "expandDefinition : " << n << std::endl;
   if( n.getKind()==kind::UNIVERSE_SET || n.getKind()==kind::COMPLEMENT || n.getKind()==kind::JOIN_IMAGE ){
