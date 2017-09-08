@@ -409,7 +409,7 @@ public:
   }
 
   /**
-   * Compute multiplication of this Integer x * y modulo m.
+   * Compute addition of this Integer x + y modulo m.
    */
   Integer modAdd (const Integer & y, const Integer & m) const {
     mpz_class res;
