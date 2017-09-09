@@ -40,13 +40,6 @@ BVGaussElim:: gaussElim (Integer prime,
 #ifdef CVC4_ASSERTIONS
   for (size_t i = 1; i < nrows; ++i)
     Assert (lhs[i].size() == ncols);
-  for (size_t k = 0; k < ncols; ++k)
-  {
-    size_t cnt0 = 0;
-    for (size_t i = 0; i < nrows; i++)
-      if (lhs[i][k] == 0) cnt0 += 1;
-    Assert (cnt0 < nrows);
-  }
 #endif
   
   /* (1) if element in pivot column is non-zero and != 1, divide row elements
@@ -61,83 +54,101 @@ BVGaussElim:: gaussElim (Integer prime,
    * Note: we do not normalize the given matrix to values modulo prime
    *       beforehand but on-the-fly. */
 
-  /* pivot = reslhs[i][i] */
-  for (size_t i = 0; i < ncols; ++i)
+  /* pivot = reslhs[pcol][pcol] */
+  for (size_t pcol = 0, prow = 0; pcol < ncols && pcol < nrows; ++pcol, ++prow)
   {
-    /* reslhs[j][i]: element in pivot column */
-    for (size_t j = i; j < nrows; ++j)
+    /* reslhs[j][pcol]: element in pivot column */
+    for (size_t j = prow; j < nrows; ++j)
     {
 #ifdef CVC4_ASSERTIONS
-      for (size_t k = 0; k < i; ++k)
+      for (size_t k = 0; k < pcol; ++k)
         Assert (reslhs[j][k] == 0);
 #endif
       /* normalize element in pivot column to modulo prime */
-      reslhs[j][i] = reslhs[j][i].euclidianDivideRemainder (prime);
+      reslhs[j][pcol] = reslhs[j][pcol].euclidianDivideRemainder (prime);
       /* exchange rows if pivot elem is 0 */
-      if (j == i && reslhs[j][i] == 0)
+      if (j == prow)
       {
-        for (size_t k = i+1; k < nrows; ++k)
-          if (reslhs[k][i] != 0)
+        while (reslhs[j][pcol] == 0)
+        {
+          for (size_t k = prow+1; k < nrows; ++k)
           {
-            Integer itmp = resrhs[j];
-            resrhs[j] = resrhs[k];
-            resrhs[k] = itmp;
-            vector< Integer > tmp = reslhs[j];
-            reslhs[j] = reslhs[k];
-            reslhs[k] = tmp;
-            break;
+            reslhs[k][pcol] = reslhs[k][pcol].euclidianDivideRemainder (prime);
+            if (reslhs[k][pcol] != 0)
+            {
+              Integer itmp = resrhs[j];
+              resrhs[j] = resrhs[k];
+              resrhs[k] = itmp;
+              vector< Integer > tmp = reslhs[j];
+              reslhs[j] = reslhs[k];
+              reslhs[k] = tmp;
+              break;
+            }
           }
+          if (pcol >= ncols-1) break;
+          if (reslhs[j][pcol] == 0)
+          {
+            pcol += 1;
+            if (reslhs[j][pcol] != 0)
+              reslhs[j][pcol] = reslhs[j][pcol].euclidianDivideRemainder (prime);
+          }
+        }
       }
 
       /* (1) */
-      if (reslhs[j][i] != 0)
+      if (reslhs[j][pcol] != 0)
       {
-       if (reslhs[j][i] != 1)
+       if (reslhs[j][pcol] != 1)
         {
-          Integer inv = reslhs[j][i].modInverse (prime);
+          Integer inv = reslhs[j][pcol].modInverse (prime);
           if (inv == -1) return BVGaussElim::Result::NONE;  /* not coprime */
-          for (size_t k = i; k < ncols; ++k)
+          for (size_t k = pcol; k < ncols; ++k)
           {
             reslhs[j][k] = reslhs[j][k].modMultiply (inv, prime);
-            if (j <= i) continue;  /** pivot */
-            reslhs[j][k] = reslhs[j][k].modAdd (-reslhs[i][k], prime);
+            if (j <= prow) continue;  /** pivot */
+            reslhs[j][k] = reslhs[j][k].modAdd (-reslhs[prow][k], prime);
           }
           resrhs[j] = resrhs[j].modMultiply (inv, prime);
-          if (j > i) resrhs[j] = resrhs[j].modAdd (-resrhs[i], prime);
+          if (j > prow) resrhs[j] = resrhs[j].modAdd (-resrhs[prow], prime);
         }
         /* (2) */
-        else if (j != i)
+        else if (j != prow)
         {
-          for (size_t k = i; k < ncols; ++k)
-            reslhs[j][k] = reslhs[j][k].modAdd (-reslhs[i][k], prime);
-          resrhs[j] = resrhs[j].modAdd (-resrhs[i], prime);
+          for (size_t k = pcol; k < ncols; ++k)
+            reslhs[j][k] = reslhs[j][k].modAdd (-reslhs[prow][k], prime);
+          resrhs[j] = resrhs[j].modAdd (-resrhs[prow], prime);
         }
       }
     }
 
     /* (3) */
-    for (size_t j = 0; i < nrows && j < i; ++j)
+    for (size_t j = 0; j < prow; ++j)
     {
-      Integer mul = reslhs[j][i];
+      Integer mul = reslhs[j][pcol];
       if (mul != 0)
       {
-        for (size_t k = i; k < ncols; ++k)
-          reslhs[j][k] = reslhs[j][k].modAdd (-reslhs[i][k] * mul, prime);
-        resrhs[j] = resrhs[j].modAdd (-resrhs[i] * mul, prime);
+        for (size_t k = pcol; k < ncols; ++k)
+          reslhs[j][k] = reslhs[j][k].modAdd (-reslhs[prow][k] * mul, prime);
+        resrhs[j] = resrhs[j].modAdd (-resrhs[prow] * mul, prime);
       }
     }
   }
 
-  if (nrows < ncols)
-    return BVGaussElim::Result::PARTIAL;
-  
-  if (reslhs[nrows-1][ncols-1] == 0)
+  bool ispart = false;
+  for (size_t i = 0; i < nrows; ++i)
   {
-    if (resrhs[ncols-1] != 0)
-      return BVGaussElim::Result::NONE;
-    else
-      return BVGaussElim::Result::PARTIAL;
+    size_t pcol = i;
+    while (pcol < ncols && reslhs[i][pcol] == 0) ++pcol;
+    if (pcol >= ncols)
+    {
+      resrhs[i] = resrhs[i].euclidianDivideRemainder (prime);
+      if (resrhs[i] != 0) return BVGaussElim::Result::NONE;
+      continue;
+    }
+    for (size_t j = i; j < ncols; ++j)
+      if (j > pcol && reslhs[i][j] != 0) ispart = true;
   }
+  if (ispart) return BVGaussElim::Result::PARTIAL;
 
   return BVGaussElim::Result::UNIQUE;
 }
