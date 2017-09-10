@@ -424,6 +424,12 @@ public:
    * used, definitions should only be used when rewrites are not
    * possible, for example in handling under-specified operations
    * using partially defined functions.
+   *
+   * TODO (github issue #1076): 
+   * some theories like sets use expandDefinition as a "context
+   * independent preRegisterTerm".  This is required for cases where
+   * a theory wants to be notified about a term before preprocessing
+   * and simplification but doesn't necessarily want to rewrite it.
    */
   virtual Node expandDefinition(LogicRequest &logicRequest, Node node) {
     // by default, do nothing
