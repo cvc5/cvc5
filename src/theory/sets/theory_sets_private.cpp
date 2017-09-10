@@ -604,13 +604,8 @@ void TheorySetsPrivate::fullEffortCheck(){
           }else if( n.getKind()==kind::EMPTYSET ){
             d_eqc_emptyset[tnn] = eqc;
           }else if( n.getKind()==kind::UNIVERSE_SET ){
-            if( options::setsExt() ){
-              d_eqc_univset[tnn] = eqc;
-            }else{
-              std::stringstream ss;
-              ss << "Symbols complement and universe set are not supported in default mode, try --sets-ext." << std::endl;
-              throw LogicException(ss.str());
-            }
+            Assert( options::setsExt() );
+            d_eqc_univset[tnn] = eqc;
           }else{
             Node r1 = d_equalityEngine.getRepresentative( n[0] );
             Node r2 = d_equalityEngine.getRepresentative( n[1] );
@@ -2155,8 +2150,20 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
 }
 
+Node TheorySetsPrivate::expandDefinition(LogicRequest &logicRequest, Node n) {
+  Debug("sets-proc") << "expandDefinition : " << n << std::endl;
+  if( n.getKind()==kind::UNIVERSE_SET || n.getKind()==kind::COMPLEMENT || n.getKind()==kind::JOIN_IMAGE ){
+    if( !options::setsExt() ){
+      std::stringstream ss;
+      ss << "Extended set operators are not supported in default mode, try --sets-ext.";
+      throw LogicException(ss.str());
+    }
+  }
+  return n;
+}
 
 Theory::PPAssertStatus TheorySetsPrivate::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
+  Debug("sets-proc") << "ppAssert : " << in << std::endl;
   Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
   
   //TODO: allow variable elimination for sets when setsExt = true

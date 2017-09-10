@@ -1,0 +1,8 @@
+% EXPECT: Extended set operators are not supported in default mode, try --sets-ext.
+% EXIT: 1
+OPTION "produce-models" true;
+x,y,z : SET OF BOOLEAN;
+ASSERT x = {TRUE};
+ASSERT y = {FALSE};
+CHECKSAT z = ~ y;
+COUNTERMODEL;
