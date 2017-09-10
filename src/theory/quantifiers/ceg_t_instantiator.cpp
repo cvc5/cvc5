@@ -853,9 +853,9 @@ Node BvInverter::getSolveVariable( TypeNode tn ) {
   }
 }
 
-Node BvInverter::getPathToPv( Node lit, Node pv, Node sv, std::vector< unsigned >& path, std::map< TNode, bool >& visited ) {
+Node BvInverter::getPathToPv( Node lit, Node pv, Node sv, std::vector< unsigned >& path, std::unordered_set< TNode, TNodeHashFunction >& visited ) {
   if( visited.find( lit )==visited.end() ){
-    visited[lit] = true;
+    visited.insert( lit );
     if( lit==pv ){
       return sv;
     }else{
@@ -882,7 +882,7 @@ Node BvInverter::getPathToPv( Node lit, Node pv, Node sv, std::vector< unsigned 
 }
 
 Node BvInverter::getPathToPv( Node lit, Node pv, Node sv, Node pvs, std::vector< unsigned >& path ) {
-  std::map< TNode, bool > visited;
+  std::unordered_set< TNode, TNodeHashFunction > visited;
   Node slit = getPathToPv( lit, pv, sv, path, visited );
   if( !slit.isNull() ){
     // substitute pvs for the other occurrences of pv

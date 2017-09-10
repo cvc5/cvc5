@@ -20,6 +20,8 @@
 
 #include "theory/quantifiers/ceg_instantiator.h"
 
+#include <unordered_set>
+
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
@@ -98,7 +100,7 @@ public:
 class BvInverter {
 private:
   std::map< TypeNode, Node > d_solve_var;
-  Node getPathToPv( Node lit, Node pv, Node sv, std::vector< unsigned >& path, std::map< TNode, bool >& visited );
+  Node getPathToPv( Node lit, Node pv, Node sv, std::vector< unsigned >& path, std::unordered_set< TNode, TNodeHashFunction >& visited );
 public:
   // get dummy fresh variable of type tn, used as argument for sv 
   Node getSolveVariable( TypeNode tn );
@@ -109,10 +111,12 @@ public:
   //   R.path' = pvs for all lit.path' = pv, where path' != path
   Node getPathToPv( Node lit, Node pv, Node sv, Node pvs, std::vector< unsigned >& path );
 public:
-  // solve for sv in constraint ( (pol ? _ : not) sv_t <k> t ), where sv_t.path = sv
+  // solve for sv in constraint ( (pol ? _ : not) sv_t <rk> t ), where sv_t.path = sv
+  // status accumulates side conditions
   Node solve_bv_constraint( Node sv, Node sv_t, Node t, Kind rk, bool pol, std::vector< unsigned >& path,
                             BvInverterModelQuery * m, BvInverterStatus& status );
   // solve for sv in lit, where lit.path = sv
+  // status accumulates side conditions
   Node solve_bv_lit( Node sv, Node lit, bool pol, std::vector< unsigned >& path,
                      BvInverterModelQuery * m, BvInverterStatus& status );
 };
