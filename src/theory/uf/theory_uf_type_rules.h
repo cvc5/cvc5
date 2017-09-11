@@ -139,6 +139,39 @@ class CardinalityValueTypeRule {
   }
 }; /* class CardinalityValueTypeRule */
 
+
+class HoApplyTypeRule {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
+    TypeNode fType = n[0].getType(check);
+    if (!fType.isFunction()) {
+      throw TypeCheckingExceptionPrivate(
+          n, "first argument does not have function type");
+    }
+    Assert( fType.getNumChildren()>=2 );
+    if (check) {
+      TypeNode aType = n[1].getType(check);
+      if( !aType.isSubtypeOf( fType[0] ) ){
+        throw TypeCheckingExceptionPrivate(
+            n, "argument does not match function type");
+      }
+    }
+    if( fType.getNumChildren()==2 ){
+      return fType.getRangeType();
+    }else{
+      std::vector< TypeNode > children;
+      TypeNode::iterator argument_type_it = fType.begin();
+      TypeNode::iterator argument_type_it_end = fType.end();
+      ++argument_type_it;
+      for (; argument_type_it != argument_type_it_end; ++argument_type_it) {
+        children.push_back( *argument_type_it );
+      }
+      return nodeManager->mkFunctionType( children );
+    }
+  }
+}; /* class UfTypeRule */
+
 } /* CVC4::theory::uf namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
