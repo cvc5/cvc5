@@ -230,6 +230,9 @@ private:
   /** The map of kinds to be treated as interpreted function applications (for evaluation of constants) */
   KindMap d_congruenceKindsInterpreted;
 
+  /** The map of kinds with operators to be considered external (for higher-order) */
+  KindMap d_congruenceKindsExtOperators;
+
   /** Objects that need to be notified during equality path reconstruction */
   std::map<unsigned, const PathReconstructionNotify*> d_pathReconstructionTriggers;
 
@@ -716,7 +719,7 @@ public:
   /**
    * Add a kind to treat as function applications.
    */
-  void addFunctionKind(Kind fun, bool interpreted = false);
+  void addFunctionKind(Kind fun, bool interpreted = false, bool extOperator = false);
 
   /**
    * Returns true if this kind is used for congruence closure.
@@ -730,6 +733,13 @@ public:
    */
   bool isInterpretedFunctionKind(Kind fun) const {
     return d_congruenceKindsInterpreted.tst(fun);
+  }
+
+  /**
+   * Returns true if this kind has an operator that is considered external.
+   */
+  bool isExternalOperatorKind(Kind fun) const {
+    return d_congruenceKindsExtOperators.tst(fun);
   }
 
   /**
