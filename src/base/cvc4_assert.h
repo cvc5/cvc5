@@ -278,10 +278,9 @@ __CVC4__noreturn void debugAssertionFailed(const AssertionException& thisExcepti
 
 /* need to dispatch to ::CVC4::debugAssertionFailed on assertionException */
 template <>
-class Thower<::CVC4::AssertionException> {
+class Thrower<::CVC4::AssertionException> {
   protected:
     std::stringstream d_msg;
-    Thrower() {};
 
   public:
     Thrower() {}
@@ -289,7 +288,7 @@ class Thower<::CVC4::AssertionException> {
       /* save the last assertion failure */
       ::CVC4::LastExceptionBuffer* buffer = ::CVC4::LastExceptionBuffer::getCurrent();
       const char* lastException = (buffer == NULL) ? NULL : buffer->getContents();
-      ::CVC4::AssertionException exception(msg().str());
+      ::CVC4::AssertionException exception(d_msg.str());
       ::CVC4::debugAssertionFailed(exception, lastException);
     }
 
