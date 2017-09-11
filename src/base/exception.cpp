@@ -28,7 +28,7 @@ using namespace std;
 
 namespace CVC4 {
 
-CVC4_THREADLOCAL(LastExceptionBuffer*) LastExceptionBuffer::s_currentBuffer = NULL;
+CVC4_THREAD_LOCAL LastExceptionBuffer* LastExceptionBuffer::s_currentBuffer = NULL;
 
 LastExceptionBuffer::LastExceptionBuffer() : d_contents(NULL) {}
 

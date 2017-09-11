@@ -8,7 +8,7 @@
 (declare-fun i () Int)
 
 (assert (>= i 420))
-(assert (= x (u16.to.str i)))
+(assert (= x (int.to.str i)))
 (assert (= x (str.++ y "0" z)))
 (assert (not (= y "")))
 (assert (not (= z "")))

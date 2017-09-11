@@ -100,11 +100,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
   getExtTheory()->addFunctionKind(kind::STRING_SUBSTR);
   getExtTheory()->addFunctionKind(kind::STRING_STRIDOF);
   getExtTheory()->addFunctionKind(kind::STRING_ITOS);
-  getExtTheory()->addFunctionKind(kind::STRING_U16TOS);
-  getExtTheory()->addFunctionKind(kind::STRING_U32TOS);
   getExtTheory()->addFunctionKind(kind::STRING_STOI);
-  getExtTheory()->addFunctionKind(kind::STRING_STOU16);
-  getExtTheory()->addFunctionKind(kind::STRING_STOU32);
   getExtTheory()->addFunctionKind(kind::STRING_STRREPL);
   getExtTheory()->addFunctionKind(kind::STRING_STRCTN);
   getExtTheory()->addFunctionKind(kind::STRING_IN_REGEXP);
@@ -118,10 +114,6 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
     d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
     d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
     d_equalityEngine.addFunctionKind(kind::STRING_STOI);
-    d_equalityEngine.addFunctionKind(kind::STRING_U16TOS);
-    d_equalityEngine.addFunctionKind(kind::STRING_STOU16);
-    d_equalityEngine.addFunctionKind(kind::STRING_U32TOS);
-    d_equalityEngine.addFunctionKind(kind::STRING_STOU32);
     d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
     d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
   }
@@ -410,7 +402,7 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
           return 1;
         }else{
           // for STRING_SUBSTR, STRING_STRCTN with pol=-1,
-          //     STRING_STRIDOF, STRING_ITOS, STRING_U16TOS, STRING_U32TOS, STRING_STOI, STRING_STOU16, STRING_STOU32, STRING_STRREPL
+          //     STRING_STRIDOF, STRING_ITOS, STRING_STOI, STRING_STRREPL
           std::vector< Node > new_nodes;
           Node res = d_preproc.simplify( n, new_nodes );
           Assert( res!=n );
@@ -604,8 +596,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
     //check for logic exceptions
     if( !options::stringExp() ){
       if( n.getKind()==kind::STRING_STRIDOF ||
-          n.getKind() == kind::STRING_ITOS || n.getKind() == kind::STRING_U16TOS || n.getKind() == kind::STRING_U32TOS ||
-          n.getKind() == kind::STRING_STOI || n.getKind() == kind::STRING_STOU16 || n.getKind() == kind::STRING_STOU32 ||
+          n.getKind() == kind::STRING_ITOS || n.getKind() == kind::STRING_STOI ||
           n.getKind() == kind::STRING_STRREPL || n.getKind() == kind::STRING_STRCTN ){
         std::stringstream ss;
         ss << "Term of kind " << n.getKind() << " not supported in default mode, try --strings-exp";
@@ -4017,7 +4008,8 @@ Node TheoryStrings::normalizeRegexp(Node r) {
             if(d_normal_forms.find( r[0] ) != d_normal_forms.end()) {
               nf_r = mkConcat( d_normal_forms[r[0]] );
               Debug("regexp-nf") << "Term: " << r[0] << " has a normal form " << nf_r << std::endl;
-              nf_exp.insert(nf_exp.end(), d_normal_forms_exp[r[0]].begin(), d_normal_forms_exp[r[0]].end());
+              const std::vector<Node>& r0_exp =  d_normal_forms_exp[r[0]];
+              nf_exp.insert(nf_exp.end(), r0_exp.begin(), r0_exp.end());
               nf_r = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, nf_r) );
             }
           }

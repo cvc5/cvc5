@@ -160,7 +160,7 @@ private:
 
   char* d_contents;
 
-  static CVC4_THREADLOCAL(LastExceptionBuffer*) s_currentBuffer;
+  static CVC4_THREAD_LOCAL LastExceptionBuffer* s_currentBuffer;
 }; /* class LastExceptionBuffer */
 
 }/* CVC4 namespace */
