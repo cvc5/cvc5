@@ -4383,14 +4383,14 @@ void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
   }
 }
 
-Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore) throw(TypeCheckingException, ModalException, LogicException) {
-  return checkSatisfiability( ex, inUnsatCore, false );
-}/* SmtEngine::checkSat() */
+Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore) throw(Exception) {
+  return checkSatisfiability(ex, inUnsatCore, false);
+} /* SmtEngine::checkSat() */
 
-Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(TypeCheckingException, ModalException, LogicException) {
+Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(Exception) {
   Assert(!ex.isNull());
-  return checkSatisfiability( ex, inUnsatCore, true );
-}/* SmtEngine::query() */
+  return checkSatisfiability(ex, inUnsatCore, true);
+} /* SmtEngine::query() */
 
 Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQuery) {
   try {
@@ -4497,8 +4497,7 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
   }
 }
 
-
-Result SmtEngine::checkSynth(const Expr& e) throw(TypeCheckingException, ModalException, LogicException) {
+Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
   SmtScope smts(this);
   Trace("smt") << "Check synth: " << e << std::endl;
   Trace("smt-synth") << "Check synthesis conjecture: " << e << std::endl;
@@ -5207,7 +5206,8 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
   }
 }
 
-Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict) throw(TypeCheckingException, ModalException, LogicException) {
+Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull,
+                                        bool strict) throw(Exception) {
   SmtScope smts(this);
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
