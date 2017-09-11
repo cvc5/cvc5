@@ -3990,12 +3990,12 @@ Node TheoryStrings::mkRegExpAntec(Node atom, Node ant) {
 }
 
 Node TheoryStrings::normalizeRegexp(Node r) {
-  if(d_nf_regexps.find(r) != d_nf_regexps.end()) {
+  if (d_nf_regexps.find(r) != d_nf_regexps.end()) {
     return d_nf_regexps[r];
   }
   Assert(d_nf_regexps.count(r) == 0);
   Node nf_r = r;
-  std::vector< Node > nf_exp;
+  std::vector<Node> nf_exp;
   if (!d_regexp_opr.checkConstRegExp(r)) {
     switch (r.getKind()) {
       case kind::REGEXP_EMPTY:
@@ -4006,13 +4006,13 @@ Node TheoryStrings::normalizeRegexp(Node r) {
         if (!r[0].isConst() &&
             d_normal_forms.find(r[0]) != d_normal_forms.end()) {
           nf_r = mkConcat(d_normal_forms[r[0]]);
-          Debug("regexp-nf") << "Term: " << r[0] << " has a normal form "
-                             << nf_r << std::endl;
-          nf_exp.insert(nf_exp.end(), d_normal_forms_exp[r[0]].begin(),
-                        d_normal_forms_exp[r[0]].end());
+          Debug("regexp-nf")
+              << "Term: " << r[0] << " has a normal form " << nf_r << std::endl;
+          const std::vector<Node>& r0_exp = d_normal_forms_exp[r[0]];
+          nf_exp.insert(nf_exp.end(), r0_exp.begin(), r0_exp.end());
           nf_r = Rewriter::rewrite(
               NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, nf_r));
-        }
+       }
         break;
       }
       case kind::REGEXP_CONCAT:
