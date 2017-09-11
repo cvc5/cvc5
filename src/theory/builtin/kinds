@@ -336,4 +336,7 @@ typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
 typerule CHAIN ::CVC4::theory::builtin::ChainTypeRule
 typerule CHAIN_OP ::CVC4::theory::builtin::ChainedOperatorTypeRule
 
+# almost constant lambda expressions can be considered constants
+construle LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
+
 endtheory

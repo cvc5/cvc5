@@ -23,6 +23,7 @@
 #include "expr/type_node.h"
 #include "expr/expr.h"
 #include "theory/rewriter.h"
+#include "theory/builtin/theory_builtin_rewriter.h" // for array and lambda representation
 
 #include <sstream>
 
@@ -160,6 +161,35 @@ public:
     }
     TypeNode rangeType = n[1].getType(check);
     return nodeManager->mkFunctionType(argTypes, rangeType);
+  }
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+    throw (AssertionException) {
+    Assert(n.getKind() == kind::LAMBDA);
+    //get array representation of this function, if possible
+    Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda( n, true );
+    if( !na.isNull() ){
+      Assert( na.getType().isArray() );
+      Trace("lambda-const") << "Array representation for " << n << " is " << na << " " << na.getType() << std::endl;
+      // must have the standard bound variable list
+      Node bvl = TheoryBuiltinRewriter::getLambdaBoundVarListForType( n.getType(), n[0].getNumChildren() );
+      if( bvl==n[0] ){
+        //array must be constant
+        if( na.isConst() ){
+          Trace("lambda-const") << "*** Constant lambda : " << n;
+          Trace("lambda-const") << " since its array representation : " << na << " is constant." << std::endl;
+          return true;
+        }else{
+          Trace("lambda-const") << "Non-constant lambda : " << n << " since array is not constant." << std::endl;
+        } 
+      }else{
+        Trace("lambda-const") << "Non-constant lambda : " << n << " since its varlist is not standard." << std::endl;
+        Trace("lambda-const") << "  standard : " << bvl << std::endl;
+        Trace("lambda-const") << "   current : " << n[0] << std::endl;
+      } 
+    }else{
+      Trace("lambda-const") << "Non-constant lambda : " << n << " since it has no array representation." << std::endl;
+    } 
+    return false;
   }
 };/* class LambdaTypeRule */
 
