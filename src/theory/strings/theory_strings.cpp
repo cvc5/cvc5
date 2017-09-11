@@ -4008,7 +4008,8 @@ Node TheoryStrings::normalizeRegexp(Node r) {
             if(d_normal_forms.find( r[0] ) != d_normal_forms.end()) {
               nf_r = mkConcat( d_normal_forms[r[0]] );
               Debug("regexp-nf") << "Term: " << r[0] << " has a normal form " << nf_r << std::endl;
-              nf_exp.insert(nf_exp.end(), d_normal_forms_exp[r[0]].begin(), d_normal_forms_exp[r[0]].end());
+              const std::vector<Node>& r0_exp =  d_normal_forms_exp[r[0]];
+              nf_exp.insert(nf_exp.end(), r0_exp.begin(), r0_exp.end());
               nf_r = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, nf_r) );
             }
           }
