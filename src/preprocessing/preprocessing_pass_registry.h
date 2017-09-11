@@ -17,8 +17,8 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROC__PREPROCESSING_PASS_REGISTRY_H
-#define __CVC4__PREPROC__PREPROCESSING_PASS_REGISTRY_H
+#ifndef __CVC4__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
+#define __CVC4__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
 
 #include <memory>
 #include <string>
@@ -30,27 +30,29 @@
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
-namespace preproc {
+namespace preprocessing {
 
 class PreprocessingPass;
 
 class PreprocessingPassRegistry {
  public:
-  /* registers a pass with a unique name and takes ownership of it*/
+  /**
+   *  Registers a pass with a unique name and takes ownership of it.
+   */
   void registerPass(const std::string& ppName,
-                    PreprocessingPass* preprocessingPass);
-  /* method for retrieivng pass given name from registry */
+                    std::unique_ptr<PreprocessingPass> preprocessingPass);
+  /**
+   * Retrieves a pass with a given name from registry.
+   */
   PreprocessingPass* getPass(const std::string& ppName);
-  /* destructor that deletes all passes in map */
-  ~PreprocessingPassRegistry();
 
  private:
-  /* map that stores all the registered preprocessing passes */
-  std::unordered_map<std::string, PreprocessingPass*>
+  /* Stores all the registered preprocessing passes. */
+  std::unordered_map<std::string, std::unique_ptr<PreprocessingPass>>
       d_stringToPreprocessingPass;
 };  // class PreprocessingPassRegistry
 
-}  // namespace preproc
+}  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROC__PREPROCESSING_PASS_REGISTRY_H */
+#endif /* __CVC4__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H */

@@ -19,30 +19,25 @@
  ** the AssertionPipeline to perform the pass. An init Internal method
  ** is optional to initialize variables that are not a part of the Context.
  **/
-#include "cvc4_public.h"
 
-#ifndef __CVC4__PREPROC__PREPROCESSING_PASS_H
-#define __CVC4__PREPROC__PREPROCESSING_PASS_H
+#include "cvc4_private.h"
 
-#include <iostream>
+#ifndef __CVC4__PREPROCESSING__PREPROCESSING_PASS_H
+#define __CVC4__PREPROCESSING__PREPROCESSING_PASS_H
+
 #include <string>
 #include <vector>
 
-#include "expr/node.h"
-#include "proof/proof.h"
-#include "preproc/preprocessing_pass_context.h"
-#include "smt/dump.h"
+#include "expr/expr.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_engine_scope.h"
-#include "smt/smt_statistics_registry.h"
-
-using namespace std;
 
 namespace CVC4 {
-namespace preproc {
+namespace preprocessing {
 
-/* Assertion Pipeline stores a list of assertions modified by preprocessing passes */
+/* Assertion Pipeline stores a list of assertions modified by preprocessing passes. */
 class AssertionPipeline {
-  vector<Node> d_nodes;
+  std::vector<Node> d_nodes;
 
  public:
   size_t size() const { return d_nodes.size(); }
@@ -54,13 +49,10 @@ class AssertionPipeline {
   const Node& operator[](size_t i) const { return d_nodes[i]; }
   void push_back(Node n) { d_nodes.push_back(n); }
 
-  vector<Node>& ref() { return d_nodes; }
-  const vector<Node>& ref() const { return d_nodes; }
+  std::vector<Node>& ref() { return d_nodes; }
+  const std::vector<Node>& ref() const { return d_nodes; }
 
-  void replace(size_t i, Node n) {
-    PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
-    d_nodes[i] = n;
-  }
+  void replace(size_t i, Node n);
 }; /* class AssertionPipeline */
 
 /* Enumeration of the values returned when applying preprocessing pass */
@@ -91,7 +83,7 @@ class PreprocessingPass {
   TimerStat d_timer;
 };
 
-}  // namespace preproc
+}  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROC__PREPROCESSING_PASS_H */
+#endif /* __CVC4__PREPROCESSING__PREPROCESSING_PASS_H */

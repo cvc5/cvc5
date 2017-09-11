@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file preprocessing_pass_api.cpp
+/*! \file preprocessing_pass_context.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **  Justin Xu
@@ -9,18 +9,19 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation for preprocessing pass api for passes
+ ** \brief Implementation for preprocessing pass API for passes
  **
  ** Implementation for preprocessing pass Context for passes. 
  ** Stores a pointer to the SMTEngine that is was created in
  ** and exposes parts of the solver to the preprocessing passes.
  **/
+
 #include "preprocessing_pass_context.h"
 
 namespace CVC4 {
-namespace preproc {
+namespace preprocessing {
 
 PreprocessingPassContext::PreprocessingPassContext(SmtEngine* smt) : d_smt(smt) {}
 
-}  // namespace preproc
+}  // namespace preprocessing
 }  // namespace CVC4

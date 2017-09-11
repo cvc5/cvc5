@@ -13,26 +13,36 @@
  **
  ** Preprocessing pass super class.
  **/
-#include "preproc/preprocessing_pass.h"
+
+#include "preprocessing/preprocessing_pass.h"
+
+#include "proof/proof.h"
+#include "smt/dump.h"
+#include "smt/smt_statistics_registry.h"
 
 namespace CVC4 {
-namespace preproc {
+namespace preprocessing {
+
+void AssertionPipeline::replace(size_t i, Node n) {
+PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
+d_nodes[i] = n;
+}
 
 PreprocessingPassResult PreprocessingPass::apply(
     AssertionPipeline* assertionsToPreprocess) {
   TimerStat::CodeTimer codeTimer(d_timer);
-  Trace("preproc") << "PRE " << d_name << std::endl;
+  Trace("preprocessing") << "PRE " << d_name << std::endl;
   Chat() << d_name << "..." << std::endl;
   dumpAssertions(("pre-" + d_name).c_str(), *assertionsToPreprocess);
   PreprocessingPassResult result = applyInternal(assertionsToPreprocess);
   dumpAssertions(("post-" + d_name).c_str(), *assertionsToPreprocess);
-  Trace("preproc") << "POST " << d_name << std::endl;
+  Trace("preprocessing") << "POST " << d_name << std::endl;
   return result;
 }
 
 void PreprocessingPass::dumpAssertions(const char* key,
                                        const AssertionPipeline& assertionList) {
-  if (Dump.isOn("assertions") && Dump.isOn(std::string("assertions:") + key)) {
+  if (Dump.isOn("assertions") && Dump.isOn(std::string("assertions::") + key)) {
     // Push the simplified assertions to the dump output stream
     for (unsigned i = 0; i < assertionList.size(); ++i) {
       TNode n = assertionList[i];
@@ -44,7 +54,7 @@ void PreprocessingPass::dumpAssertions(const char* key,
 PreprocessingPass::PreprocessingPass(
     PreprocessingPassContext* preprocContext, 
     const std::string& name)
-    : d_name(name), d_timer("preproc::" + name) {
+    : d_name(name), d_timer("preprocessing::" + name) {
   d_preprocContext = preprocContext; 
   smtStatisticsRegistry()->registerStat(&d_timer);
 }
@@ -56,5 +66,5 @@ PreprocessingPass::~PreprocessingPass() {
   }
 }
 
-}  // namespace preproc
+}  // namespace preprocessing
 }  // namespace CVC4

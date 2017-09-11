@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file preprocessing_pass_api.h
+/*! \file preprocessing_pass_context.h
  ** \verbatim
  ** Top contributors (to current version):
  **  Justin Xu
@@ -15,12 +15,12 @@
  ** preprocessing passes. Passes are expected to use API for 
  ** read only access.
  **/
+
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROC__PREPROCESSING_PASS_CONTEXT_H
-#define __CVC4__PREPROC__PREPROCESSING_PASS_CONTEXT_H
+#ifndef __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
+#define __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 
-#include <string>
 #include "decision/decision_engine.h"
 #include "smt/smt_engine.h"
 #include "theory/arith/pseudoboolean_proc.h"
@@ -28,7 +28,7 @@
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
-namespace preproc {
+namespace preprocessing {
 
 class PreprocessingPassContext {
  public:
@@ -39,11 +39,11 @@ class PreprocessingPassContext {
   prop::PropEngine* getPropEngine() { return d_smt->d_propEngine; }
 
  private:
-  /* SmtEngine that is used to get variables */
+  /* Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
 };  // class PreprocessingPassContext
 
-}  // namespace preproc
+}  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROC__PREPROCESSING_PASS_CONTEXT_H */
+#endif /* __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H */

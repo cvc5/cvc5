@@ -70,7 +70,7 @@ namespace context {
   class UserContext;
 }/* CVC4::context namespace */
 
-namespace preproc {
+namespace preprocessing {
   class PreprocessingPassContext;
 }
 
@@ -346,7 +346,7 @@ class CVC4_PUBLIC SmtEngine {
    */
   void setLogicInternal() throw();
   
-  friend class ::CVC4::preproc::PreprocessingPassContext;
+  friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::BooleanTermConverter;

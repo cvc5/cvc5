@@ -61,12 +61,12 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
-	preproc/preprocessing_pass_context.h \
-	preproc/preprocessing_pass_context.cpp \
-	preproc/preprocessing_pass.h \
-	preproc/preprocessing_pass.cpp \
-	preproc/preprocessing_pass_registry.h \
-	preproc/preprocessing_pass_registry.cpp \
+	preprocessing/preprocessing_pass_context.h \
+	preprocessing/preprocessing_pass_context.cpp \
+	preprocessing/preprocessing_pass.h \
+	preprocessing/preprocessing_pass.cpp \
+	preprocessing/preprocessing_pass_registry.h \
+	preprocessing/preprocessing_pass_registry.cpp \
 	printer/dagification_visitor.cpp \
 	printer/dagification_visitor.h \
 	printer/printer.cpp \

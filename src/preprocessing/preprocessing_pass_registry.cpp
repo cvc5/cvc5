@@ -16,37 +16,31 @@
  ** registry is destroyed.  
  **/
 
+#include "preprocessing/preprocessing_pass_registry.h"
+
 #include <utility>
 
-#include "preproc/preprocessing_pass_registry.h"
 #include "base/cvc4_assert.h" 
 #include "base/output.h"
-#include "preproc/preprocessing_pass.h"
+#include "preprocessing/preprocessing_pass.h"
 
 namespace CVC4 {
-namespace preproc {
+namespace preprocessing {
 
 void PreprocessingPassRegistry::registerPass(
-    const std::string& ppName, PreprocessingPass* preprocessingPass) {
+    const std::string& ppName, std::unique_ptr<PreprocessingPass> preprocessingPass) {
   Debug("pp-registry") << "Registering pass " << ppName << std::endl;
   Assert(preprocessingPass != NULL);
   Assert(d_stringToPreprocessingPass.find(ppName) == d_stringToPreprocessingPass.end());
-  d_stringToPreprocessingPass[ppName] = preprocessingPass;
+  d_stringToPreprocessingPass[ppName] = std::move(preprocessingPass);
 }
 
 PreprocessingPass* PreprocessingPassRegistry::getPass(
     const std::string& ppName) {
   Assert(d_stringToPreprocessingPass.find(ppName) !=
          d_stringToPreprocessingPass.end());
-  return d_stringToPreprocessingPass[ppName];
+  return d_stringToPreprocessingPass[ppName].get();
 }
 
-PreprocessingPassRegistry::~PreprocessingPassRegistry() {
-  for (std::pair<std::string, PreprocessingPass*>&& element :
-       d_stringToPreprocessingPass) {
-    delete element.second;
-  }
-}
-
-}  // namespace preproc
+}  // namespace preprocessing
 }  // namespace CVC4
