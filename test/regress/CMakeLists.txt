@@ -1,0 +1,5 @@
+add_subdirectory(regress0)
+add_subdirectory(regress1)
+add_subdirectory(regress2)
+add_subdirectory(regress3)
+add_subdirectory(regress4)

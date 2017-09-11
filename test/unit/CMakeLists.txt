@@ -1,0 +1,7 @@
+add_subdirectory(context)
+add_subdirectory(expr)
+add_subdirectory(main)
+add_subdirectory(parser)
+add_subdirectory(prop)
+add_subdirectory(theory)
+add_subdirectory(util)
