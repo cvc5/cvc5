@@ -621,7 +621,7 @@ const DatatypeConstructor& Datatype::operator[](std::string name) const {
 
 
 Expr Datatype::getSharedSelector( Type dtt, Type t, unsigned index ) const{
-  PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  PrettyCheckArgument(isResolved(), this) << "this datatype is not yet resolved" << std::endl;
   std::map< Type, std::map< Type, std::map< unsigned, Expr > > >::iterator itd = d_shared_sel.find( dtt );
   if( itd!=d_shared_sel.end() ){
     std::map< Type, std::map< unsigned, Expr > >::iterator its = itd->second.find( t );
@@ -684,10 +684,10 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
   throw(IllegalArgumentException, DatatypeResolutionException) {
 
   PrettyCheckArgument(em != NULL, em) <<  "cannot resolve a Datatype with a NULL expression manager" << std::endl;
-  PrettyCheckArgument(!isResolved(),
-                "cannot resolve a Datatype constructor twice; "
-                "perhaps the same constructor was added twice, "
-                "or to two datatypes?");
+  PrettyCheckArgument(!isResolved(), this)
+                << "cannot resolve a Datatype constructor twice; "
+                << "perhaps the same constructor was added twice, "
+                << "or to two datatypes?" << std::endl;
 
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(*em);
@@ -1154,8 +1154,8 @@ Expr DatatypeConstructorArg::getSelector() const {
 }
 
 Expr DatatypeConstructor::getSelectorInternal( Type domainType, size_t index ) const {
-  PrettyCheckArgument(isResolved(), this, "cannot get an internal selector for an unresolved datatype constructor");
-  PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
+  PrettyCheckArgument(isResolved(), this) << "cannot get an internal selector for an unresolved datatype constructor" << std::endl;
+  PrettyCheckArgument(index < getNumArgs(), index) << "index out of bounds" << std::endl;
   if( options::dtSharedSelectors() ){
     computeSharedSelectors( domainType );
     Assert( d_shared_selectors[domainType].size()==getNumArgs() );
@@ -1166,7 +1166,7 @@ Expr DatatypeConstructor::getSelectorInternal( Type domainType, size_t index ) c
 }
 
 int DatatypeConstructor::getSelectorIndexInternal( Expr sel ) const {
-  PrettyCheckArgument(isResolved(), this, "cannot get an internal selector index for an unresolved datatype constructor");
+  PrettyCheckArgument(isResolved(), this) << "cannot get an internal selector index for an unresolved datatype constructor" << std::endl;
   if( options::dtSharedSelectors() ){
     Assert( sel.getType().isSelector() );
     Type domainType = ((SelectorType)sel.getType()).getDomain();

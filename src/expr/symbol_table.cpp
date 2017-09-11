@@ -179,7 +179,7 @@ Type SymbolTable::Implementation::lookupType(const string& name,
                                              const vector<Type>& params) const
     throw() {
   pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
-  PrettyCheckArgument(p.first.size() == params.size(), params,
+  PrettyCheckArgument(p.first.size() == params.size(), params)
                       << "type constructor arity is wrong: `" << name
                       << "' requires " << p.first.size()
                       << " parameters but was provided " << params.size()

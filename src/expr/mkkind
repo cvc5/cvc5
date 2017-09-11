@@ -328,7 +328,7 @@ function register_wellfoundedness {
 "
   else
     type_groundterms="${type_groundterms}#line $lineno \"$kf\"
-  case $id: Unhandled() << typeNode;
+  case $id: Unhandled() << typeNode << std::endl;
 "
   fi
   if [ -n "$header" ]; then

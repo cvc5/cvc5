@@ -1263,7 +1263,7 @@ Type ValidityChecker::intType() {
 }
 
 Type ValidityChecker::subrangeType(const Expr& l, const Expr& r) {
-  Unimplemented("Subrange types not supported by CVC4 (sorry!)");
+  Unimplemented() << "Subrange types not supported by CVC4 (sorry!)" << std::endl;
 }
 
 Type ValidityChecker::subtypeType(const Expr& pred, const Expr& witness) {

@@ -121,7 +121,7 @@ TheoryProof* TheoryProofEngine::getTheoryProof(theory::TheoryId id) {
   if (d_theoryProofTable.find(id) == d_theoryProofTable.end()) {
     std::stringstream ss;
     ss << "Error! Proofs not yet supported for the following theory: " << id << std::endl;
-    InternalError(ss.str().c_str());
+    InternalError() << ss.str().c_str() << std::endl;
   }
 
   return d_theoryProofTable[id];

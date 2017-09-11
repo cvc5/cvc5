@@ -41,7 +41,7 @@ size_t NodeValueCompare::constHash(const ::CVC4::expr::NodeValue* nv) {
   switch(nv->d_kind) {
 ${metakind_constHashes}
   default:
-    Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv->d_kind));
+    Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind) << std::endl;
   }
 }
 
@@ -56,7 +56,7 @@ bool NodeValueCompare::compare(const ::CVC4::expr::NodeValue* nv1,
     switch(nv1->d_kind) {
 ${metakind_compares}
     default:
-      Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv1->d_kind));
+      Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv1->d_kind) << std::endl;
     }
   }
 
@@ -91,7 +91,7 @@ void NodeValueConstPrinter::toStream(std::ostream& out,
   switch(nv->d_kind) {
 ${metakind_constPrinters}
   default:
-    Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv->d_kind));
+    Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind) << std::endl;
   }
 }
 
@@ -121,7 +121,7 @@ void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv) {
   switch(nv->d_kind) {
 ${metakind_constDeleters}
   default:
-    Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv->d_kind));
+    Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind) << std::endl;
   }
 }
 

@@ -173,7 +173,6 @@ namespace CVC4 {
 #include "base/cvc4_assert.h"
 #include "base/output.h"
 #include "base/portability.h"
-#include "base/ptr_closer.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"

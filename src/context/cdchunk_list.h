@@ -141,6 +141,7 @@ protected:
       // This type of object _is_ the save/restore object.  It isn't
       // itself saved or restored.
       Unreachable();
+      return NULL;
     }
     void restore(ContextObj* data) {
       // This type of object _is_ the save/restore object.  It isn't
