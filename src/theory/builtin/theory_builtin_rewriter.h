@@ -64,15 +64,15 @@ public:
    * Given an array constant a, returns a lambda expression that it corresponds to, with bound variable list bvl. 
    * Examples:
    *
-   * (store 0 1 (storeall (Array Int Int) 2)) 
+   * (store (storeall (Array Int Int) 2) 0 1) 
    * becomes
    * ((lambda x. (ite (= x 0) 1 2))
    *
-   * (store 0 (store 1 2 (storeall (Array Int Int) 3)) (storeall (Array Int (Array Int Int)) (storeall (Array Int Int) 4)))
+   * (store (storeall (Array Int (Array Int Int)) (storeall (Array Int Int) 4)) 0 (store (storeall (Array Int Int) 3) 1 2))
    * becomes
    * (lambda xy. (ite (= x 0) (ite (= x 1) 2 3) 4))
    *
-   * (store 1 true (store 2 true (storeall (Array Int Bool) false)))
+   * (store (store (storeall (Array Int Bool) false) 2 true) 1 true)
    * becomes
    * (lambda x. (ite (= x 1) true (ite (= x 2) true false)))
    *

@@ -105,7 +105,6 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
   }
 }
 
-// recursion depth is bounded by the number of arguments in the bound variable list bvl
 Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode bvl, unsigned bvlIndex, 
                                                                 std::unordered_map< TNode, Node, TNodeHashFunction >& visited ){
   std::unordered_map< TNode, Node, TNodeHashFunction >::iterator it = visited.find( a );
@@ -117,7 +116,7 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode b
         // convert the array recursively
         Node body = getLambdaForArrayRepresentationRec( a[0], bvl, bvlIndex, visited );
         if( !body.isNull() ){
-          // convert the value recursively
+          // convert the value recursively (bounded by the number of arguments in bvl)
           Node val = getLambdaForArrayRepresentationRec( a[2], bvl, bvlIndex+1, visited );
           if( !val.isNull() ){
             Assert( !TypeNode::leastCommonTypeNode( a[1].getType(), bvl[bvlIndex].getType() ).isNull() );
@@ -129,7 +128,7 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode b
       }else if( a.getKind()==kind::STORE_ALL ){
         ArrayStoreAll storeAll = a.getConst<ArrayStoreAll>();
         Node sa = Node::fromExpr(storeAll.getExpr());
-        // convert the default value recursively
+        // convert the default value recursively (bounded by the number of arguments in bvl)
         ret = getLambdaForArrayRepresentationRec( sa, bvl, bvlIndex+1, visited );
       }
     }else{
