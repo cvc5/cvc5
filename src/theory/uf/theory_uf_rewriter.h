@@ -127,6 +127,7 @@ public:
   static inline void shutdown() {}
 
 public: //conversion between HO_APPLY AND APPLY_UF
+  // converts an APPLY_UF to a curried HO_APPLY e.g. (f a b) becomes (@ (@ f a) b)
   static Node getHoApplyForApplyUf(TNode n) {
     Assert( n.getKind()==kind::APPLY_UF );
     Node curr = n.getOperator();
@@ -135,6 +136,7 @@ public: //conversion between HO_APPLY AND APPLY_UF
     }
     return curr;
   }
+  // converts a curried HO_APPLY into an APPLY_UF e.g. (@ (@ f a) b) becomes (f a b)
   static Node getApplyUfForHoApply(TNode n) {
     Assert( n.getType().getNumChildren()==2 );
     std::vector< TNode > children;
@@ -146,7 +148,7 @@ public: //conversion between HO_APPLY AND APPLY_UF
     // cannot construct APPLY_UF if operator is partially applied or is not standard       
     return Node::null();
   }
-  // gets arguments, returns operator
+  // gets arguments, returns operator of a curried HO_APPLY node
   static Node decomposeHoApply(TNode n, std::vector<TNode>& args, bool opInArgs = false) {
     TNode curr = n;
     while( curr.getKind() == kind::HO_APPLY ){
@@ -159,6 +161,7 @@ public: //conversion between HO_APPLY AND APPLY_UF
     std::reverse( args.begin(), args.end() );
     return curr;
   }
+  // returns true if this node can be used as an operator of an APPLY_UF node
   static inline bool isStdApplyUfOperator(TNode n){
     return n.isVar() && n.getKind()!=kind::BOUND_VARIABLE;
   }
