@@ -20,7 +20,9 @@
 
 #include <cassert>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "main/main.h"
 #include "smt/command.h"
@@ -130,15 +132,15 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 
   // dump the model/proof/unsat core if option is set
   if (status) {
-    Command* g = NULL;
+    std::vector<std::unique_ptr<Command> > getCommands;
     if (d_options.getProduceModels() && d_options.getDumpModels() &&
         (res.asSatisfiabilityResult() == Result::SAT ||
          (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) {
-      g = new GetModelCommand();
+      getCommands.emplace_back(new GetModelCommand());
     }
     if (d_options.getProof() && d_options.getDumpProofs() &&
         res.asSatisfiabilityResult() == Result::UNSAT) {
-      g = new GetProofCommand();
+      getCommands.emplace_back(new GetProofCommand());
     }
 
     if (d_options.getDumpInstantiations() &&
@@ -146,26 +148,30 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
           (res.asSatisfiabilityResult() == Result::SAT ||
            (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) ||
          res.asSatisfiabilityResult() == Result::UNSAT)) {
-      g = new GetInstantiationsCommand();
+      getCommands.emplace_back(new GetInstantiationsCommand());
     }
 
     if (d_options.getDumpSynth() &&
         res.asSatisfiabilityResult() == Result::UNSAT) {
-      g = new GetSynthSolutionCommand();
+      getCommands.emplace_back(new GetSynthSolutionCommand());
     }
 
     if (d_options.getDumpUnsatCores() &&
         res.asSatisfiabilityResult() == Result::UNSAT) {
-      g = new GetUnsatCoreCommand();
+      getCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
-    if (g != NULL) {
+    if (getCommands.size() != 0) {
       // set no time limit during dumping if applicable
       if (d_options.getForceNoLimitCpuWhileDump()) {
         setNoLimitCPU();
       }
-      status = doCommandSingleton(g);
-      delete g;
+      for (const auto& getCommand : getCommands) {
+        status = doCommandSingleton(getCommand.get());
+        if (!status && !d_options.getContinuedExecution()) {
+          break;
+        }
+      }
     }
   }
   return status;
