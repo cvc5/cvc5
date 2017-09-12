@@ -161,7 +161,11 @@ public: //conversion between HO_APPLY AND APPLY_UF
     std::reverse( args.begin(), args.end() );
     return curr;
   }
-  // returns true if this node can be used as an operator of an APPLY_UF node
+  /** returns true if this node can be used as an operator of an APPLY_UF node
+   * f: Int -> Int, g : Int -> Int
+   * forall x : ( Int -> Int ), y : Int. (x y) = (f 0)
+   * Then, f and g are standard APPLY_UF operators, but (ite C f g), (lambda x1. (f x1)) as well as variable x above are not.  
+   */
   static inline bool isStdApplyUfOperator(TNode n){
     return n.isVar() && n.getKind()!=kind::BOUND_VARIABLE;
   }
