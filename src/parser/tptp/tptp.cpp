@@ -213,14 +213,21 @@ void Tptp::checkLetBinding(std::vector<Expr>& bvlist, Expr lhs, Expr rhs, bool f
   std::sort(v.begin(), v.end());
   std::sort(bvlist.begin(), bvlist.end());
   // ensure all let-bound variables appear on the LHS, and appear only once
-  for(size_t i = 0; i < bvlist.size(); ++i) {
-    std::vector<CVC4::Expr>::const_iterator found = std::lower_bound(v.begin(), v.end(), bvlist[i]);
-    if(found == v.end() || *found != bvlist[i]) {
-      parseError("malformed let: LHS must make use of all quantified variables, missing `" + bvlist[i].toString() + "'");
+  for (size_t i = 0; i < bvlist.size(); ++i) {
+    std::vector<CVC4::Expr>::const_iterator found =
+        std::lower_bound(v.begin(), v.end(), bvlist[i]);
+    if (found == v.end() || *found != bvlist[i]) {
+      parseError(
+          "malformed let: LHS must make use of all quantified variables, "
+          "missing `" +
+          bvlist[i].toString() + "'");
     }
-    std::vector<CVC4::Expr>::const_iterator found2 = found + 1;
-    if(found2 != v.end() && *found2 == *found) {
-      parseError("malformed let: LHS cannot use same bound variable twice: " + (*found).toString());
+    if (found != v.end()) {
+      std::vector<CVC4::Expr>::const_iterator found2 = found + 1;
+      if (found2 != v.end() && *found2 == *found) {
+        parseError("malformed let: LHS cannot use same bound variable twice: " +
+                   (*found).toString());
+      }
     }
   }
 }
