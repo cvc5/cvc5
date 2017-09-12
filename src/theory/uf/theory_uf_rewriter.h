@@ -148,7 +148,7 @@ public: //conversion between HO_APPLY AND APPLY_UF
     // cannot construct APPLY_UF if operator is partially applied or is not standard       
     return Node::null();
   }
-  // gets arguments, returns operator of a curried HO_APPLY node
+  // collects arguments into args, returns operator of a curried HO_APPLY node
   static Node decomposeHoApply(TNode n, std::vector<TNode>& args, bool opInArgs = false) {
     TNode curr = n;
     while( curr.getKind() == kind::HO_APPLY ){
