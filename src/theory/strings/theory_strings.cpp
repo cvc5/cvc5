@@ -3990,62 +3990,64 @@ Node TheoryStrings::mkRegExpAntec(Node atom, Node ant) {
 }
 
 Node TheoryStrings::normalizeRegexp(Node r) {
-  Node nf_r = r;
-  if(d_nf_regexps.find(r) != d_nf_regexps.end()) {
-    nf_r = d_nf_regexps[r];
-  } else {
-    std::vector< Node > nf_exp;
-    if(!d_regexp_opr.checkConstRegExp(r)) {
-      switch( r.getKind() ) {
-        case kind::REGEXP_EMPTY:
-        case kind::REGEXP_SIGMA: {
-          break;
-        }
-        case kind::STRING_TO_REGEXP: {
-          if(r[0].isConst()) {
-            break;
-          } else {
-            if(d_normal_forms.find( r[0] ) != d_normal_forms.end()) {
-              nf_r = mkConcat( d_normal_forms[r[0]] );
-              Debug("regexp-nf") << "Term: " << r[0] << " has a normal form " << nf_r << std::endl;
-              const std::vector<Node>& r0_exp =  d_normal_forms_exp[r[0]];
-              nf_exp.insert(nf_exp.end(), r0_exp.begin(), r0_exp.end());
-              nf_r = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, nf_r) );
-            }
-          }
-        }
-        case kind::REGEXP_CONCAT:
-        case kind::REGEXP_UNION:
-        case kind::REGEXP_INTER: {
-          bool flag = false;
-          std::vector< Node > vec_nodes;
-          for(unsigned i=0; i<r.getNumChildren(); ++i) {
-            Node rtmp = normalizeRegexp(r[i]);
-            vec_nodes.push_back(rtmp);
-            if(rtmp != r[i]) {
-              flag = true;
-            }
-          }
-          if(flag) {
-            Node rtmp = vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode(r.getKind(), vec_nodes);
-            nf_r = Rewriter::rewrite( rtmp );
-          }
-        }
-        case kind::REGEXP_STAR: {
-          Node rtmp = normalizeRegexp(r[0]);
-          if(rtmp != r[0]) {
-            rtmp = NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, rtmp);
-            nf_r = Rewriter::rewrite( rtmp );
-          }
-        }
-        default: {
-          Unreachable();
-        }
-      }
-    }
-    d_nf_regexps[r] = nf_r;
-    d_nf_regexps_exp[r] = nf_exp;
+  if (d_nf_regexps.find(r) != d_nf_regexps.end()) {
+    return d_nf_regexps[r];
   }
+  Assert(d_nf_regexps.count(r) == 0);
+  Node nf_r = r;
+  std::vector<Node> nf_exp;
+  if (!d_regexp_opr.checkConstRegExp(r)) {
+    switch (r.getKind()) {
+      case kind::REGEXP_EMPTY:
+      case kind::REGEXP_SIGMA: {
+        break;
+      }
+      case kind::STRING_TO_REGEXP: {
+        if (!r[0].isConst() &&
+            d_normal_forms.find(r[0]) != d_normal_forms.end()) {
+          nf_r = mkConcat(d_normal_forms[r[0]]);
+          Debug("regexp-nf")
+              << "Term: " << r[0] << " has a normal form " << nf_r << std::endl;
+          const std::vector<Node>& r0_exp = d_normal_forms_exp[r[0]];
+          nf_exp.insert(nf_exp.end(), r0_exp.begin(), r0_exp.end());
+          nf_r = Rewriter::rewrite(
+              NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, nf_r));
+       }
+        break;
+      }
+      case kind::REGEXP_CONCAT:
+      case kind::REGEXP_UNION:
+      case kind::REGEXP_INTER: {
+        bool flag = false;
+        std::vector<Node> vec_nodes;
+        for (unsigned i = 0; i < r.getNumChildren(); ++i) {
+          Node rtmp = normalizeRegexp(r[i]);
+          vec_nodes.push_back(rtmp);
+          if (rtmp != r[i]) {
+            flag = true;
+          }
+        }
+        if (flag) {
+          Node rtmp = vec_nodes.size() == 1 ? vec_nodes[0]
+                                            : NodeManager::currentNM()->mkNode(
+                                                  r.getKind(), vec_nodes);
+          nf_r = Rewriter::rewrite(rtmp);
+        }
+        break;
+      }
+      case kind::REGEXP_STAR: {
+        Node rtmp = normalizeRegexp(r[0]);
+        if (rtmp != r[0]) {
+          rtmp = NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, rtmp);
+          nf_r = Rewriter::rewrite(rtmp);
+        }
+        break;
+      }
+      default: { Unreachable(); }
+    }
+  }
+  d_nf_regexps[r] = nf_r;
+  d_nf_regexps_exp[r] = nf_exp;
   return nf_r;
 }
 
