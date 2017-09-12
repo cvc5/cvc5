@@ -162,6 +162,7 @@ public:
     TypeNode rangeType = n[1].getType(check);
     return nodeManager->mkFunctionType(argTypes, rangeType);
   }
+  // computes whether a lambda is a constant value, via conversion to array representation
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
     throw (AssertionException) {
     Assert(n.getKind() == kind::LAMBDA);

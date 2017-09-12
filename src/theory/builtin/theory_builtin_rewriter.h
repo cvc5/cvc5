@@ -45,33 +45,7 @@ public:
     }
   }
 
-  static inline RewriteResponse postRewrite(TNode node) {
-    if( node.getKind()==kind::LAMBDA ){
-      Trace("builtin-rewrite") << "Rewriting lambda " << node << "..." << std::endl;
-      Node anode = getArrayRepresentationForLambda( node );
-      if( !anode.isNull() ){
-        anode = Rewriter::rewrite( anode );
-        Assert( anode.getType().isArray() );
-        //must get the standard bound variable list
-        Node varList = getLambdaBoundVarListForType( node.getType(), node[0].getNumChildren() );
-        Node retNode = getLambdaForArrayRepresentation( anode, varList );
-        if( !retNode.isNull() && retNode!=node ){
-          Trace("builtin-rewrite") << "Rewrote lambda : " << std::endl;
-          Trace("builtin-rewrite") << "     input  : " << node << std::endl;
-          Trace("builtin-rewrite") << "     output : " << retNode << ", constant = " << retNode.isConst() << std::endl;
-          Trace("builtin-rewrite") << "  array rep : " << anode << ", constant = " << anode.isConst() << std::endl;
-          Assert( anode.isConst()==retNode.isConst() );
-          Assert( retNode.getType()==node.getType() );
-          return RewriteResponse(REWRITE_DONE, retNode);
-        } 
-      }else{
-        Trace("builtin-rewrite-debug") << "...failed to get array representation." << std::endl;
-      }
-      return RewriteResponse(REWRITE_DONE, node);
-    }else{ 
-      return doRewrite(node);
-    }
-  }
+  static RewriteResponse postRewrite(TNode node);
 
   static inline RewriteResponse preRewrite(TNode node) {
     return doRewrite(node);
@@ -82,12 +56,34 @@ public:
 
 // conversions between lambdas and arrays
 private:  
+  /** recursive helper for getLambdaForArrayRepresentation */
   static Node getLambdaForArrayRepresentationRec( TNode a, TNode bvl, unsigned bvlIndex, 
                                                   std::unordered_map< TNode, Node, TNodeHashFunction >& visited );
 public:
-  /** given an array constant a, returns a lambda expression that it corresponds to, with bound variable list bvl. */
+  /** 
+   * Given an array constant a, returns a lambda expression that it corresponds to, with bound variable list bvl. 
+   * Examples:
+   *
+   * (store 0 1 (storeall (Array Int Int) 2)) 
+   * becomes
+   * ((lambda x. (ite (= x 0) 1 2))
+   *
+   * (store 0 (store 1 2 (storeall (Array Int Int) 3)) (storeall (Array Int (Array Int Int)) (storeall (Array Int Int) 4)))
+   * becomes
+   * (lambda xy. (ite (= x 0) (ite (= x 1) 2 3) 4))
+   *
+   * (store 1 true (store 2 true (storeall (Array Int Bool) false)))
+   * becomes
+   * (lambda x. (ite (= x 1) true (ite (= x 2) true false)))
+   *
+   * Notice that the return body of the lambda is rewritten to ensure that the representation is canonical. Hence the last
+   * example will in fact be returned as:
+   * (lambda x. (ite (= x 1) true (= x 2)))
+   */
   static Node getLambdaForArrayRepresentation( TNode a, TNode bvl );
-  /** given a lambda expression n, returns an array term. reqConst is true if we require the return value to be a constant. */
+  /** given a lambda expression n, returns an array term. reqConst is true if we require the return value to be a constant. 
+    * This does the opposite direction of the examples described above.
+    */
   static Node getArrayRepresentationForLambda( TNode n, bool reqConst = false );
   /** get a canonical bound variable list for function type tn */
   static Node getLambdaBoundVarListForType( TypeNode tn, unsigned nargs );
