@@ -158,6 +158,19 @@ private:
 private: //for universe set
   NodeBoolMap d_var_elim;
   void lastCallEffortCheck();
+private:
+  // type constraint skolems
+  // The sets theory solver outputs equality lemmas of the form:
+  //   n = d_tc_skolem[n][tn] where
+  // where the type of d_tc_skolem[n][tn] is tn, and the type 
+  // of n is not a subtype of tn.
+  // this is required to handle benchmarks like test/regress/regress0/sets/sets-of-sets-subtypes.smt2
+  // where ( s = t ^ y in t ) implies ( exists k : Int. y = k )
+  // for s : (Set Int) and t : (Set Real)
+  // The type constraint skolem is k above.
+  std::map< Node, std::map< TypeNode, Node > > d_tc_skolem;
+  // get type constraint skolem for n and tn
+  Node getTypeConstraintSkolem( Node n, TypeNode tn );
 public:
 
   /**
