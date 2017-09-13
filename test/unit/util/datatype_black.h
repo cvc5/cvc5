@@ -363,11 +363,6 @@ public:
     TS_ASSERT_DIFFERS(pairIntInt, pairRealInt);
     TS_ASSERT_DIFFERS(pairIntReal, pairRealInt);
 
-    TS_ASSERT_EQUALS(pairRealReal.getBaseType(), pairRealReal);
-    TS_ASSERT_EQUALS(pairRealInt.getBaseType(), pairRealInt);
-    TS_ASSERT_EQUALS(pairIntReal.getBaseType(), pairIntReal);
-    TS_ASSERT_EQUALS(pairIntInt.getBaseType(), pairIntInt);
-
     TS_ASSERT(pairRealReal.isComparableTo(pairRealReal));
     TS_ASSERT(!pairIntReal.isComparableTo(pairRealReal));
     TS_ASSERT(!pairRealInt.isComparableTo(pairRealReal));
