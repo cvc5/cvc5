@@ -72,7 +72,7 @@ public:
           substitutions.addSubstitution(*formal, n);
         }
         return RewriteResponse(REWRITE_AGAIN_FULL, substitutions.apply(lambda[1]));
-      }else if( !isStdApplyUfOperator( node.getOperator() ) ){
+      }else if( !canUseAsApplyUfOperator( node.getOperator() ) ){
         return RewriteResponse(REWRITE_AGAIN_FULL, getHoApplyForApplyUf(node));
       }
     }else if( node.getKind() == kind::HO_APPLY ){
@@ -142,7 +142,7 @@ public: //conversion between HO_APPLY AND APPLY_UF
     std::vector< TNode > children;
     TNode curr = decomposeHoApply( n, children, true );
     // if operator is standard
-    if( isStdApplyUfOperator( curr ) ){
+    if( canUseAsApplyUfOperator( curr ) ){
       return NodeManager::currentNM()->mkNode( kind::APPLY_UF, children );
     }
     // cannot construct APPLY_UF if operator is partially applied or is not standard       
@@ -161,12 +161,15 @@ public: //conversion between HO_APPLY AND APPLY_UF
     std::reverse( args.begin(), args.end() );
     return curr;
   }
-  /** returns true if this node can be used as an operator of an APPLY_UF node
+  /** returns true if this node can be used as an operator of an APPLY_UF node.  In higher-order logic,
+   * terms can have function types and not just variables. 
+   * Currently, we want only free variables to be used as operators of APPLY_UF nodes. This is motivated by
+   * E-matching, ite-lifting among other things.  For example:
    * f: Int -> Int, g : Int -> Int
    * forall x : ( Int -> Int ), y : Int. (x y) = (f 0)
-   * Then, f and g are standard APPLY_UF operators, but (ite C f g), (lambda x1. (f x1)) as well as variable x above are not.  
+   * Then, f and g can be used as APPLY_UF operators, but (ite C f g), (lambda x1. (f x1)) as well as the variable x above are not.
    */
-  static inline bool isStdApplyUfOperator(TNode n){
+  static inline bool canUseAsApplyUfOperator(TNode n){
     return n.isVar() && n.getKind()!=kind::BOUND_VARIABLE;
   }
 };/* class TheoryUfRewriter */
