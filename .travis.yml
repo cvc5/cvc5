@@ -43,6 +43,16 @@ addons:
   - libreadline-dev
 before_install:
  - eval "${MATRIX_EVAL}"
+ # Clang does not play nice with ccache (at least the versions offered by
+ # Travis), use a workaround:
+ # https://github.com/travis-ci/travis-ci/issues/5383#issuecomment-224630584
+ - |
+   if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CXX" == "clang++" ]; then
+     export CFLAGS="-Qunused-arguments"
+     export CXXFLAGS="-Qunused-arguments"
+     sudo ln -s $(which ccache) /usr/lib/ccache/clang
+     sudo ln -s $(which ccache) /usr/lib/ccache/clang++
+   fi
 before_script:
  - export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
  - export PATH=$PATH:$JAVA_HOME/bin
