@@ -85,8 +85,6 @@ public:
     * This does the opposite direction of the examples described above.
     */
   static Node getArrayRepresentationForLambda( TNode n, bool reqConst = false );
-  /** get a canonical bound variable list for function type tn */
-  static Node getLambdaBoundVarListForType( TypeNode tn, unsigned nargs );
 };/* class TheoryBuiltinRewriter */
 
 }/* CVC4::theory::builtin namespace */

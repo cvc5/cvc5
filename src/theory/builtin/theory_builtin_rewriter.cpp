@@ -26,12 +26,6 @@ namespace CVC4 {
 namespace theory {
 namespace builtin {
 
-namespace attr {
-  struct LambdaBoundVarListTag { };
-}/* CVC4::theory::arrays::attr namespace */
-
-typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAttr;
-
 Node TheoryBuiltinRewriter::blastDistinct(TNode in) {
 
   Assert(in.getKind() == kind::DISTINCT);
@@ -85,7 +79,7 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
       anode = Rewriter::rewrite( anode );
       Assert( anode.getType().isArray() );
       //must get the standard bound variable list
-      Node varList = getLambdaBoundVarListForType( node.getType(), node[0].getNumChildren() );
+      Node varList = NodeManager::currentNM()->getBoundVarListForFunctionType( node.getType() );
       Node retNode = getLambdaForArrayRepresentation( anode, varList );
       if( !retNode.isNull() && retNode!=node ){
         Trace("builtin-rewrite") << "Rewrote lambda : " << std::endl;
@@ -261,23 +255,6 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambda( TNode n, bool reqCo
     Trace("builtin-rewrite-debug") << "...failed to get array (cannot get constant default value)" << std::endl;
     return Node::null();    
   }
-}
-
-Node TheoryBuiltinRewriter::getLambdaBoundVarListForType( TypeNode tn, unsigned nargs ) {
-  Trace("builtin-rewrite-debug") << "Truncate " << tn << " to [" << nargs << "]" << std::endl;
-  Assert( tn.isFunction() );
-  Node bvl = tn.getAttribute(LambdaBoundVarListAttr());
-  if( bvl.isNull() ){
-    std::vector< Node > vars;
-    for( unsigned i=0; i<tn.getNumChildren()-1; i++ ){
-      vars.push_back( NodeManager::currentNM()->mkBoundVar( tn[i] ) );
-    }
-    bvl = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, vars );
-    Trace("builtin-rewrite-debug") << "Make standard bound var list " << bvl << " for " << tn << std::endl;
-    tn.setAttribute(LambdaBoundVarListAttr(),bvl);
-  }
-  Assert( bvl.getNumChildren()==nargs );
-  return bvl;
 }
 
 }/* CVC4::theory::builtin namespace */

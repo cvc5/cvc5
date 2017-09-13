@@ -172,7 +172,7 @@ public:
       Assert( na.getType().isArray() );
       Trace("lambda-const") << "Array representation for " << n << " is " << na << " " << na.getType() << std::endl;
       // must have the standard bound variable list
-      Node bvl = TheoryBuiltinRewriter::getLambdaBoundVarListForType( n.getType(), n[0].getNumChildren() );
+      Node bvl = NodeManager::currentNM()->getBoundVarListForFunctionType( n.getType() );
       if( bvl==n[0] ){
         //array must be constant
         if( na.isConst() ){
