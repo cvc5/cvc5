@@ -11,7 +11,7 @@
  **
  ** \brief Implementation of counterexample-guided quantifier instantiation
  **/
- 
+
 #include "theory/quantifiers/ceg_instantiator.h"
 #include "theory/quantifiers/ceg_t_instantiator.h"
 
@@ -131,7 +131,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
           postProcessSuccess = false;
           break;
         }
-      } 
+      }
       if( postProcessSuccess ){
         return doAddInstantiation( sf_tmp.d_subs, sf_tmp.d_vars );
       }else{
@@ -294,9 +294,13 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
               Node lit = ita->second[j];
               if( std::find( lits.begin(), lits.end(), lit )==lits.end() ){
                 lits.push_back( lit );
-                if( vinst->processAssertion( this, sf, pv, lit, effort ) ){
-                  return true;
-                }
+                //if( vinst->hasProcessAssertion( this, sf, pv, lit, effort ) ){
+                  // apply substitutions check if eligible and contains pv
+                  // TODO
+                  if( vinst->processAssertion( this, sf, pv, lit, effort ) ){
+                    return true;
+                  }
+                //}
               }
             }
           }
@@ -326,7 +330,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       }
     }
     Trace("cbqi-inst-debug") << "[No instantiation found for " << pv << "]" << std::endl;
-    if( is_cv ){  
+    if( is_cv ){
       d_stack_vars.push_back( pv );
     }
     d_active_instantiators.erase( pv );
@@ -509,7 +513,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
       Assert( subs[i].getType().isSubtypeOf( vars[i].getType() ) );
     }
   }
-  
+
   if( !req_coeff ){
     Node nret = n.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
     if( n!=nret ){
@@ -995,7 +999,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
         Node v = lems[i][0];
         d_aux_eq[rlem][v] = lems[i][1];
          Trace("cbqi-debug") << "  " << rlem << " implies " << v << " = " << lems[i][1] << std::endl;
-      } 
+      }
     }*/
     lems[i] = rlem;
   }
