@@ -367,8 +367,6 @@ public:
   // level.  THIS IS HIGHLY EXPERIMENTAL.  It seems to work if ALL
   // your data objects are allocated from context memory.
   void insertDataFromContextMemory(const Key& k, const Data& d) {
-    emptyTrash();
-
     AlwaysAssert(d_map.find(k) == d_map.end());
 
     Element* obj = new(d_context->getCMM()) Element(d_context, this, k, d,
