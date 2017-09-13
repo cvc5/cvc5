@@ -89,7 +89,7 @@ TESTS =	\
 	sets-tuple-poly.cvc \
 	arjun-set-univ.cvc \
 	univ-set-uf-elim.smt2 \
-  sets-of-sets-subtypes.smt2
+	sets-of-sets-subtypes.smt2
 
 EXTRA_DIST = $(TESTS)
 
