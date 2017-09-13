@@ -9,9 +9,6 @@
 #endif /* SWIGJAVA */
 %}
 
-%rename(equals) CVC4::RecordSelect::operator==(const RecordSelect&) const;
-%ignore CVC4::RecordSelect::operator!=(const RecordSelect&) const;
-
 %rename(equals) CVC4::RecordUpdate::operator==(const RecordUpdate&) const;
 %ignore CVC4::RecordUpdate::operator!=(const RecordUpdate&) const;
 
@@ -20,11 +17,9 @@
 %rename(getField) CVC4::Record::operator[](size_t) const;
 
 %rename(apply) CVC4::RecordHashFunction::operator()(const Record&) const;
-%rename(apply) CVC4::RecordSelectHashFunction::operator()(const RecordSelect&) const;
 %rename(apply) CVC4::RecordUpdateHashFunction::operator()(const RecordUpdate&) const;
 
 %ignore CVC4::operator<<(std::ostream&, const Record&);
-%ignore CVC4::operator<<(std::ostream&, const RecordSelect&);
 %ignore CVC4::operator<<(std::ostream&, const RecordUpdate&);
 
 #ifdef SWIGJAVA

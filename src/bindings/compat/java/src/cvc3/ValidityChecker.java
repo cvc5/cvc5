@@ -312,8 +312,6 @@ public class ValidityChecker extends Embedded {
     private static native Object
 	jniTupleExpr(Object ValidityChecker, Object[] Exprs) throws Cvc3Exception;
     private static native Object
-	jniTupleSelectExpr(Object ValidityChecker, Object ExprTuple, int index) throws Cvc3Exception;
-    private static native Object
 	jniTupleUpdateExpr(Object ValidityChecker, Object ExprTuple, int index,
 			   Object ExprNewValue) throws Cvc3Exception;
     private static native Object
@@ -1377,12 +1375,6 @@ public class ValidityChecker extends Embedded {
 	assert(JniUtils.listInstanceof(exprs, Expr.class));
 	return new ExprMut(
 	  jniTupleExpr(embedded(), JniUtils.unembedList(exprs)),
-	  embeddedManager());
-    }
-
-    public ExprMut tupleSelectExpr(Expr tuple, int index) throws Cvc3Exception {
-	return new ExprMut(
-	  jniTupleSelectExpr(embedded(), tuple.embedded(), index),
 	  embeddedManager());
     }
 
