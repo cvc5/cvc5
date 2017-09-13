@@ -145,7 +145,7 @@ class HoApplyTypeRule {
   // the typing rule for HO_APPLY terms
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
-    Assert( n.getKind()==HO_APPLY );
+    Assert( n.getKind()==kind::HO_APPLY );
     TypeNode fType = n[0].getType(check);
     if (!fType.isFunction()) {
       throw TypeCheckingExceptionPrivate(
