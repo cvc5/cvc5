@@ -26,15 +26,6 @@
 
 namespace CVC4 {
 
-class CVC4_PUBLIC TupleSelect {
-  unsigned d_index;
-public:
-  TupleSelect(unsigned index) throw() : d_index(index) { }
-  unsigned getIndex() const throw() { return d_index; }
-  bool operator==(const TupleSelect& t) const throw() { return d_index == t.d_index; }
-  bool operator!=(const TupleSelect& t) const throw() { return d_index != t.d_index; }
-};/* class TupleSelect */
-
 class CVC4_PUBLIC TupleUpdate {
   unsigned d_index;
 public:
@@ -44,24 +35,13 @@ public:
   bool operator!=(const TupleUpdate& t) const throw() { return d_index != t.d_index; }
 };/* class TupleUpdate */
 
-struct CVC4_PUBLIC TupleSelectHashFunction {
-  inline size_t operator()(const TupleSelect& t) const {
-    return t.getIndex();
-  }
-};/* struct TupleSelectHashFunction */
-
 struct CVC4_PUBLIC TupleUpdateHashFunction {
   inline size_t operator()(const TupleUpdate& t) const {
     return t.getIndex();
   }
 };/* struct TupleUpdateHashFunction */
 
-std::ostream& operator<<(std::ostream& out, const TupleSelect& t) CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream& out, const TupleUpdate& t) CVC4_PUBLIC;
-
-inline std::ostream& operator<<(std::ostream& out, const TupleSelect& t) {
-  return out << "[" << t.getIndex() << "]";
-}
 
 inline std::ostream& operator<<(std::ostream& out, const TupleUpdate& t) {
   return out << "[" << t.getIndex() << "]";
