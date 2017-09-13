@@ -34,8 +34,8 @@ UNIT_TESTS += \
 	context/cdo_black \
 	context/cdlist_black \
 	context/cdlist_context_memory_black \
-	context/cdhashmap_black \
-	context/cdhashmap_white \
+	context/cdmap_black \
+	context/cdmap_white \
 	context/cdvector_black \
 	util/array_store_all_black \
 	util/assert_white \
