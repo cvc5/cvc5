@@ -12,7 +12,7 @@
  ** \brief Preprocessing pass API for passes
  **
  ** The preprocessing pass API is the interface between solver and
- ** preprocessing passes. Passes are expected to use API for 
+ ** preprocessing passes. Passes are expected to use API for
  ** read only access.
  **/
 

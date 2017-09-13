@@ -13,8 +13,8 @@
  **
  ** Implementation for preprocessing pass super class. Includes a generalized
  ** structure for the apply method, which includes dumping assertions before
- ** and after the pass, initializing the Timer, and Tracing and Chatting. 
- ** For new classes, a name is necessary to register the pass, and 
+ ** and after the pass, initializing the Timer, and Tracing and Chatting.
+ ** For new classes, a name is necessary to register the pass, and
  ** an apply internal method is necessary that takes in
  ** the AssertionPipeline to perform the pass. An init Internal method
  ** is optional to initialize variables that are not a part of the Context.
@@ -35,7 +35,8 @@
 namespace CVC4 {
 namespace preprocessing {
 
-/* Assertion Pipeline stores a list of assertions modified by preprocessing passes. */
+/* Assertion Pipeline stores a list of assertions modified by preprocessing
+ * passes. */
 class AssertionPipeline {
   std::vector<Node> d_nodes;
 
@@ -61,7 +62,7 @@ enum PreprocessingPassResult { CONFLICT, NO_CONFLICT };
 class PreprocessingPass {
  public:
   /* Takes a collection of assertions and preprocesses them, modifying
-   * assertionsToPreprocess. Supports timing and output of debugging 
+   * assertionsToPreprocess. Supports timing and output of debugging
    * information  */
   PreprocessingPassResult apply(AssertionPipeline* assertionsToPreprocess);
   PreprocessingPass(PreprocessingPassContext* preprocContext,
@@ -70,14 +71,23 @@ class PreprocessingPass {
   virtual ~PreprocessingPass();
 
  protected:
-  /* do dumping before/after any preprocessing pass) */
+  /*
+   * Method for dumping assertions within a pass. Also called before and after
+   * applying the pass.
+   */
   void dumpAssertions(const char* key, const AssertionPipeline& assertionList);
-  /* prototype for apply method each individual pass ultimately calls */
+
+  /*
+   * Abstract method that each pass implements to do the actual preprocessing.
+   */
   virtual PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) = 0;
+
   /* Context for Preprocessing Passes that initializes necessary variables */
   PreprocessingPassContext* d_preprocContext;
-  /* name of pass */
+
+ private:
+  /* Name of pass */
   std::string d_name;
   /* Timer for registering the preprocessing time of this pass */
   TimerStat d_timer;

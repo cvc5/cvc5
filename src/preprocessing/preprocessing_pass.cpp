@@ -24,8 +24,8 @@ namespace CVC4 {
 namespace preprocessing {
 
 void AssertionPipeline::replace(size_t i, Node n) {
-PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
-d_nodes[i] = n;
+  PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
+  d_nodes[i] = n;
 }
 
 PreprocessingPassResult PreprocessingPass::apply(
@@ -51,17 +51,16 @@ void PreprocessingPass::dumpAssertions(const char* key,
   }
 }
 
-PreprocessingPass::PreprocessingPass(
-    PreprocessingPassContext* preprocContext, 
-    const std::string& name)
+PreprocessingPass::PreprocessingPass(PreprocessingPassContext* preprocContext,
+                                     const std::string& name)
     : d_name(name), d_timer("preprocessing::" + name) {
-  d_preprocContext = preprocContext; 
+  d_preprocContext = preprocContext;
   smtStatisticsRegistry()->registerStat(&d_timer);
 }
 
 PreprocessingPass::~PreprocessingPass() {
   Assert(smt::smtEngineInScope());
-  if (smtStatisticsRegistry() != NULL) {
+  if (smtStatisticsRegistry() != nullptr) {
     smtStatisticsRegistry()->unregisterStat(&d_timer);
   }
 }

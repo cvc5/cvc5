@@ -11,7 +11,7 @@
  **
  ** \brief Implementation for preprocessing pass API for passes
  **
- ** Implementation for preprocessing pass Context for passes. 
+ ** Implementation for preprocessing pass Context for passes.
  ** Stores a pointer to the SMTEngine that is was created in
  ** and exposes parts of the solver to the preprocessing passes.
  **/
@@ -21,7 +21,8 @@
 namespace CVC4 {
 namespace preprocessing {
 
-PreprocessingPassContext::PreprocessingPassContext(SmtEngine* smt) : d_smt(smt) {}
+PreprocessingPassContext::PreprocessingPassContext(SmtEngine* smt)
+    : d_smt(smt) {}
 
 }  // namespace preprocessing
 }  // namespace CVC4

@@ -71,7 +71,7 @@ namespace context {
 }/* CVC4::context namespace */
 
 namespace preprocessing {
-  class PreprocessingPassContext;
+class PreprocessingPassContext;
 }
 
 namespace prop {
@@ -345,7 +345,8 @@ class CVC4_PUBLIC SmtEngine {
    * be called when d_logic is updated.
    */
   void setLogicInternal() throw();
-  
+
+  // TODO (Issue #1096): Remove this friend relationship.
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
