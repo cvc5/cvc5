@@ -180,7 +180,7 @@ class FloatingPointRoundingOperationTypeRule {
       for (size_t i = 2; i < children; ++i) {
         if (!(n[i].getType(check) == firstOperand)) {
           throw TypeCheckingExceptionPrivate(
-              n, "floating-point test applied to mixed sorts");
+              n, "floating-point operation applied to mixed sorts");
         }
       }
     }

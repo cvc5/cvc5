@@ -883,7 +883,7 @@ public:
    * Check that the theory assertions are satisfied in the model.
    * This function is called from the smt engine's checkModel routine.
    */
-  void checkTheoryAssertionsWithModel();
+  void checkTheoryAssertionsWithModel(bool hardFailure);
 
 private:
   IntStat d_arithSubstitutionsAdded;

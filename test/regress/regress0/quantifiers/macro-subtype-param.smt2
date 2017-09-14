@@ -1,5 +1,11 @@
 ; COMMAND-LINE: --macros-quant
-; EXPECT: unknown
+; EXPECT: (error "argument type is not a subtype of the function's argument type:
+; EXPECT: argument:  x
+; EXPECT: has type:  (List Int)
+; EXPECT: not subtype: (List Real)
+; EXPECT: in term : (R (as x (List Real)))")
+; EXIT: 1
+
 (set-logic ALL_SUPPORTED)
 
 (declare-datatypes ((List 1)) ((par (T) ((cons (hd T) (tl (List T))) (nil)))))
