@@ -29,6 +29,8 @@
 
 #include "context/cdo.h"
 #include "context/cdhashset.h"
+#include "context/cdchunk_list.h"
+
 
 namespace CVC4 {
 namespace theory {
@@ -45,6 +47,8 @@ class StrongSolverTheoryUF;
 class TheoryUF : public Theory {
 
   friend class StrongSolverTheoryUF;
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDChunkList<Node> NodeList;
 
 public:
 
@@ -125,6 +129,15 @@ private:
   /** The conflict node */
   Node d_conflictNode;
 
+  /** extensionality has been applied to these disequalities */
+  NodeSet d_extensionality_deq;
+
+  /** map from non-standard operators to their skolems */
+  std::map< Node, Node > d_uf_std_skolem;
+
+  /** node for true */
+  Node d_true;
+
   /**
    * Should be called to propagate the literal. We use a node here
    * since some of the propagated literals are not kept anywhere.
@@ -141,12 +154,6 @@ private:
    * Explain a literal, with proof (if "pf" is non-NULL).
    */
   Node explain(TNode literal, eq::EqProof* pf);
-
-  /** Literals to propagate */
-  context::CDList<Node> d_literalsToPropagate;
-
-  /** Index of the next literal to propagate */
-  context::CDO<unsigned> d_literalsToPropagateIndex;
 
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
@@ -169,6 +176,42 @@ private:
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
+private: // for higher-order
+  /** applyExtensionality 
+   * Given disequality deq 
+   * If not already cached, this sends a lemma of the form 
+   *   f = g V (f k) != (g k) for fresh constant k.
+   * on the output channel.
+   * Return value is the number of lemmas sent.
+   */
+  unsigned applyExtensionality(TNode deq);
+
+  /** check whether extensionality should be applied for any
+   * pair of terms in the equality engine.
+   */
+  unsigned checkExtensionality();
+  
+  /** applyAppCompletion
+   * This infers a correspondence between APPLY_UF and HO_APPLY 
+   * versions of terms for higher-order.
+   * Given APPLY_UF node e.g. (f a b c), this adds the equality to its 
+   * HO_APPLY equivalent:
+   *   (f a b c) == (@ (@ (@ f a) b) c)
+   * to equality engine, if not already equal.
+   * Return value is the number of equalities added.
+   */
+  unsigned applyAppCompletion( TNode n );
+
+  /** check whether app-completion should be applied for any
+   * pair of terms in the equality engine.
+   */
+  unsigned checkAppCompletion();
+
+  /** check higher order */
+  unsigned checkHigherOrder();
+
+  /** get apply uf for ho apply */
+  Node getApplyUfForHoApply( Node node );
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
@@ -181,7 +224,8 @@ public:
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
   void finishInit();
 
-  void check(Effort);
+  void check(Effort);  
+  Node expandDefinition(LogicRequest &logicRequest, Node node);
   void preRegisterTerm(TNode term);
   Node explain(TNode n);
 
