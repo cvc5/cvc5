@@ -157,7 +157,14 @@ public:
   inline void makeApplication(Expr& expr, std::string& name,
                               std::vector<Expr>& args, bool term);
 
-  inline Command* makeCommand(FormulaRole fr, Expr& expr, bool cnf);
+  /** Make CVC4 command based on formula role, formula expression, cnf is whether 
+      the formula is a CNF formula, inUnsatCore is whether expr is considered by unsat cores. */
+  inline Command* makeCommand(FormulaRole fr, Expr& expr, bool cnf, bool inUnsatCore);
+  
+  /** get name definition expression, where expr is named "name" for unsat core generation. 
+      This adds a define named 
+  */
+  inline Expr getNameDefinitionExpr(Expr& expr, std::string name);
 
   /** Ugly hack because I don't know how to return an expression from a
       token */
@@ -206,7 +213,7 @@ inline void Tptp::makeApplication(Expr& expr, std::string& name,
   }
 }
 
-inline Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf) {
+inline Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf, bool inUnsatCore) {
   // For SZS ontology compliance.
   // if we're in cnf() though, conjectures don't result in "Theorem" or
   // "CounterSatisfiable".
@@ -223,10 +230,10 @@ inline Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf) {
   case FR_NEGATED_CONJECTURE:
   case FR_PLAIN:
     // it's a usual assert
-    return new AssertCommand(expr);
+    return new AssertCommand(expr, inUnsatCore);
   case FR_CONJECTURE:
     // something to prove
-    return new AssertCommand(getExprManager()->mkExpr(kind::NOT,expr));
+    return new AssertCommand(getExprManager()->mkExpr(kind::NOT,expr), inUnsatCore);
   case FR_UNKNOWN:
   case FR_FI_DOMAIN:
   case FR_FI_FUNCTORS:
@@ -236,6 +243,14 @@ inline Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf) {
   }
   assert(false);// unreachable
   return NULL;
+}
+
+inline Expr Tptp::getNameDefinitionExpr(Expr& expr, std::string name){
+  Expr func = mkFunction(name,expr.getType());
+  Command* c = new DefineNamedFunctionCommand(name, func, std::vector<Expr>(), expr);
+  c->setMuted(true);
+  preemptCommand(c);
+  return func;
 }
 
 namespace tptp {
