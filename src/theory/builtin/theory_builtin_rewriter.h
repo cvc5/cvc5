@@ -45,9 +45,7 @@ public:
     }
   }
 
-  static inline RewriteResponse postRewrite(TNode node) {
-    return doRewrite(node);
-  }
+  static RewriteResponse postRewrite(TNode node);
 
   static inline RewriteResponse preRewrite(TNode node) {
     return doRewrite(node);
@@ -56,6 +54,37 @@ public:
   static inline void init() {}
   static inline void shutdown() {}
 
+// conversions between lambdas and arrays
+private:  
+  /** recursive helper for getLambdaForArrayRepresentation */
+  static Node getLambdaForArrayRepresentationRec( TNode a, TNode bvl, unsigned bvlIndex, 
+                                                  std::unordered_map< TNode, Node, TNodeHashFunction >& visited );
+public:
+  /** 
+   * Given an array constant a, returns a lambda expression that it corresponds to, with bound variable list bvl. 
+   * Examples:
+   *
+   * (store (storeall (Array Int Int) 2) 0 1) 
+   * becomes
+   * ((lambda x. (ite (= x 0) 1 2))
+   *
+   * (store (storeall (Array Int (Array Int Int)) (storeall (Array Int Int) 4)) 0 (store (storeall (Array Int Int) 3) 1 2))
+   * becomes
+   * (lambda xy. (ite (= x 0) (ite (= x 1) 2 3) 4))
+   *
+   * (store (store (storeall (Array Int Bool) false) 2 true) 1 true)
+   * becomes
+   * (lambda x. (ite (= x 1) true (ite (= x 2) true false)))
+   *
+   * Notice that the return body of the lambda is rewritten to ensure that the representation is canonical. Hence the last
+   * example will in fact be returned as:
+   * (lambda x. (ite (= x 1) true (= x 2)))
+   */
+  static Node getLambdaForArrayRepresentation( TNode a, TNode bvl );
+  /** given a lambda expression n, returns an array term. reqConst is true if we require the return value to be a constant. 
+    * This does the opposite direction of the examples described above.
+    */
+  static Node getArrayRepresentationForLambda( TNode n, bool reqConst = false );
 };/* class TheoryBuiltinRewriter */
 
 }/* CVC4::theory::builtin namespace */
