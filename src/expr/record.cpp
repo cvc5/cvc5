@@ -106,10 +106,6 @@ size_t RecordHashFunction::operator()(const Record& r) const {
   return n;
 }
 
-std::ostream& operator<<(std::ostream& out, const RecordSelect& t) {
-  return out << "[" << t.getField() << "]";
-}
-
 std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) {
   return out << "[" << t.getField() << "]";
 }

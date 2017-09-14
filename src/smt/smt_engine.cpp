@@ -4955,7 +4955,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   TheoryModel* m = d_theoryEngine->getModel();
 
   // Check individual theory assertions
-  d_theoryEngine->checkTheoryAssertionsWithModel();
+  d_theoryEngine->checkTheoryAssertionsWithModel(hardFailure);
 
   // Output the model
   Notice() << *m;

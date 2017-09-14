@@ -29,4 +29,7 @@ typerule PARTIAL_APPLY_UF ::CVC4::theory::uf::PartialTypeRule
 operator CARDINALITY_VALUE 1 "cardinality value of sort S: first parameter is (any) term of sort S"
 typerule CARDINALITY_VALUE ::CVC4::theory::uf::CardinalityValueTypeRule
 
+operator HO_APPLY 2 "higher-order (partial) function application"
+typerule HO_APPLY ::CVC4::theory::uf::HoApplyTypeRule
+
 endtheory
