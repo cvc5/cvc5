@@ -336,4 +336,7 @@ typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
 typerule CHAIN ::CVC4::theory::builtin::ChainTypeRule
 typerule CHAIN_OP ::CVC4::theory::builtin::ChainedOperatorTypeRule
 
+# lambda expressions that are isomorphic to array constants can be considered constants
+construle LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
+
 endtheory
