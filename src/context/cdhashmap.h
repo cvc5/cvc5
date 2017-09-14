@@ -363,19 +363,6 @@ public:
     }
   }
 
-  // Use this for pointer data d allocated in context memory at this
-  // level.  THIS IS HIGHLY EXPERIMENTAL.  It seems to work if ALL
-  // your data objects are allocated from context memory.
-  void insertDataFromContextMemory(const Key& k, const Data& d) {
-    AlwaysAssert(d_map.find(k) == d_map.end());
-
-    Element* obj = new(d_context->getCMM()) Element(d_context, this, k, d,
-                                                    false /* atLevelZero */,
-                                                    true /* allocatedInCMM */);
-
-    d_map.insert(std::make_pair(k, obj));
-  }
-
   /**
    * Version of insert() for CDHashMap<> that inserts data value d at
    * context level zero.  This is a special escape hatch for inserting
