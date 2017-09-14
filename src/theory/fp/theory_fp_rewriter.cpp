@@ -37,6 +37,16 @@ namespace fp {
 
 namespace rewrite {
   /** Rewrite rules **/
+  template <RewriteFunction first, RewriteFunction second>
+  RewriteResponse then (TNode node, bool isPreRewrite) {
+    RewriteResponse result(first(node, isPreRewrite));
+
+    if (result.status == REWRITE_DONE) {
+      return second(result.node, isPreRewrite);
+    } else {
+      return result;
+    }
+  }
 
   RewriteResponse notFP (TNode node, bool) {
     Unreachable("non floating-point kind (%d) in floating point rewrite?",node.getKind());
