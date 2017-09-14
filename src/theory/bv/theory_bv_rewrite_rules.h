@@ -356,6 +356,7 @@ class RewriteRule {
   /** Actually apply the rewrite rule */
   static inline Node apply(TNode node) {
     Unreachable();
+    return Node::null();
   }
 
 public:

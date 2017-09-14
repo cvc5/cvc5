@@ -632,9 +632,7 @@ public:
    */
   static inline uint64_t registerAttribute() {
     uint64_t id = attr::LastAttributeId<bool, context_dep>::getId()++;
-    AlwaysAssert( id <= 63,
-                  "Too many boolean node attributes registered "
-                  "during initialization !" );
+    AlwaysAssert( id <= 63 ) << "Too many boolean node attributes registered during initialization !" << std::endl;
     return id;
   }
 };/* class Attribute<..., bool, ...> */

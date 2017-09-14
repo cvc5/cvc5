@@ -431,9 +431,8 @@ const DeltaRational& ArithVariables::getAssignment(ArithVar x) const{
 
 
 void ArithVariables::setLowerBoundConstraint(ConstraintP c){
-  AssertArgument(c != NullConstraint, "Cannot set a lower bound to NullConstraint.");
-  AssertArgument(c->isEquality() || c->isLowerBound(),
-                 "Constraint type must be set to an equality or UpperBound.");
+  AssertArgument(c != NullConstraint, c) << "Cannot set a lower bound to NullConstraint." << std::endl;
+  AssertArgument(c->isEquality() || c->isLowerBound(), c) << "Constraint type must be set to an equality or UpperBound." << std::endl;
   ArithVar x = c->getVariable();
   Debug("partial_model") << "setLowerBoundConstraint(" << x << ":" << c << ")" << endl;
   Assert(inMaps(x));
@@ -449,9 +448,8 @@ void ArithVariables::setLowerBoundConstraint(ConstraintP c){
 }
 
 void ArithVariables::setUpperBoundConstraint(ConstraintP c){
-  AssertArgument(c != NullConstraint, "Cannot set a upper bound to NullConstraint.");
-  AssertArgument(c->isEquality() || c->isUpperBound(),
-                 "Constraint type must be set to an equality or UpperBound.");
+  AssertArgument(c != NullConstraint, c) << "Cannot set a upper bound to NullConstraint." << std::endl;
+  AssertArgument(c->isEquality() || c->isUpperBound(), c) << "Constraint type must be set to an equality or UpperBound." << std::endl;
 
   ArithVar x = c->getVariable();
   Debug("partial_model") << "setUpperBoundConstraint(" << x << ":" << c << ")" << endl;

@@ -281,6 +281,7 @@ class CDHashMap : public ContextObj {
   // Nothing to save; the elements take care of themselves
   virtual ContextObj* save(ContextMemoryManager* pCMM) {
     Unreachable();
+    return NULL;
   }
 
   // Similarly, nothing to restore

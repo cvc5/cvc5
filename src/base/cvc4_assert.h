@@ -26,13 +26,16 @@
 #include <string>
 
 #include "base/exception.h"
+#include "base/portability.h"
 
 // output.h not strictly needed for this header, but it _is_ needed to
 // actually _use_ anything in this header, so let's include it.
 // Tim : Disabling this and moving it into cvc4_assert.cpp
 //#include "util/output.h"
 
+
 namespace CVC4 {
+
 
 class AssertionException : public Exception {
  protected:
@@ -53,26 +56,33 @@ class AssertionException : public Exception {
 
   AssertionException() : Exception() {}
 
+  static const std::string s_header;
+
  public:
   AssertionException(const char* extra, const char* function, const char* file,
                      unsigned line, const char* fmt, ...)
       : Exception() {
     va_list args;
     va_start(args, fmt);
-    construct("Assertion failure", extra, function, file, line, fmt, args);
+    construct(s_header.c_str(), extra, function, file, line, fmt, args);
     va_end(args);
   }
 
   AssertionException(const char* extra, const char* function, const char* file,
                      unsigned line)
       : Exception() {
-    construct("Assertion failure", extra, function, file, line);
+    construct(s_header.c_str(), extra, function, file, line);
+  }
+
+  AssertionException(const std::string& msg) : Exception() {
+    setMessage(s_header + ".\n" + msg);
   }
 }; /* class AssertionException */
 
 class UnreachableCodeException : public AssertionException {
  protected:
   UnreachableCodeException() : AssertionException() {}
+  static const std::string s_header;
 
  public:
   UnreachableCodeException(const char* function, const char* file,
@@ -80,7 +90,7 @@ class UnreachableCodeException : public AssertionException {
       : AssertionException() {
     va_list args;
     va_start(args, fmt);
-    construct("Unreachable code reached", NULL, function, file, line, fmt,
+    construct(s_header.c_str(), NULL, function, file, line, fmt,
               args);
     va_end(args);
   }
@@ -88,13 +98,18 @@ class UnreachableCodeException : public AssertionException {
   UnreachableCodeException(const char* function, const char* file,
                            unsigned line)
       : AssertionException() {
-    construct("Unreachable code reached", NULL, function, file, line);
+    construct(s_header.c_str(), NULL, function, file, line);
   }
-}; /* class UnreachableCodeException */
 
+  UnreachableCodeException(const std::string& msg) : AssertionException() {
+    setMessage(s_header + ".\n" + msg);
+  }
+
+}; /* class UnreachableCodeException */
 class UnhandledCaseException : public UnreachableCodeException {
  protected:
   UnhandledCaseException() : UnreachableCodeException() {}
+  static const std::string s_header;
 
  public:
   UnhandledCaseException(const char* function, const char* file, unsigned line,
@@ -102,7 +117,7 @@ class UnhandledCaseException : public UnreachableCodeException {
       : UnreachableCodeException() {
     va_list args;
     va_start(args, fmt);
-    construct("Unhandled case encountered", NULL, function, file, line, fmt,
+    construct(s_header.c_str(), NULL, function, file, line, fmt,
               args);
     va_end(args);
   }
@@ -113,19 +128,24 @@ class UnhandledCaseException : public UnreachableCodeException {
       : UnreachableCodeException() {
     std::stringstream sb;
     sb << theCase;
-    construct("Unhandled case encountered", NULL, function, file, line,
+    construct(s_header.c_str(), NULL, function, file, line,
               "The case was: %s", sb.str().c_str());
   }
 
   UnhandledCaseException(const char* function, const char* file, unsigned line)
       : UnreachableCodeException() {
-    construct("Unhandled case encountered", NULL, function, file, line);
+    construct(s_header.c_str(), NULL, function, file, line);
+  }
+
+  UnhandledCaseException(const std::string& msg) : UnreachableCodeException () {
+      setMessage(s_header + ".\n" + msg);
   }
 }; /* class UnhandledCaseException */
 
 class UnimplementedOperationException : public AssertionException {
  protected:
   UnimplementedOperationException() : AssertionException() {}
+  static const std::string s_header;
 
  public:
   UnimplementedOperationException(const char* function, const char* file,
@@ -133,7 +153,7 @@ class UnimplementedOperationException : public AssertionException {
       : AssertionException() {
     va_list args;
     va_start(args, fmt);
-    construct("Unimplemented code encountered", NULL, function, file, line, fmt,
+    construct(s_header.c_str(), NULL, function, file, line, fmt,
               args);
     va_end(args);
   }
@@ -141,13 +161,18 @@ class UnimplementedOperationException : public AssertionException {
   UnimplementedOperationException(const char* function, const char* file,
                                   unsigned line)
       : AssertionException() {
-    construct("Unimplemented code encountered", NULL, function, file, line);
+    construct(s_header.c_str(), NULL, function, file, line);
+  }
+
+  UnimplementedOperationException(const std::string& msg) : AssertionException() {
+    setMessage(s_header + ".\n" + msg);
   }
 }; /* class UnimplementedOperationException */
 
 class AssertArgumentException : public AssertionException {
  protected:
   AssertArgumentException() : AssertionException() {}
+  static const std::string s_header;
 
  public:
   AssertArgumentException(const char* argDesc, const char* function,
@@ -155,7 +180,7 @@ class AssertArgumentException : public AssertionException {
       : AssertionException() {
     va_list args;
     va_start(args, fmt);
-    construct("Illegal argument detected",
+    construct(s_header.c_str(),
               (std::string("`") + argDesc + "' is a bad argument").c_str(),
               function, file, line, fmt, args);
     va_end(args);
@@ -164,7 +189,7 @@ class AssertArgumentException : public AssertionException {
   AssertArgumentException(const char* argDesc, const char* function,
                           const char* file, unsigned line)
       : AssertionException() {
-    construct("Illegal argument detected",
+    construct(s_header.c_str(),
               (std::string("`") + argDesc + "' is a bad argument").c_str(),
               function, file, line);
   }
@@ -175,7 +200,7 @@ class AssertArgumentException : public AssertionException {
       : AssertionException() {
     va_list args;
     va_start(args, fmt);
-    construct("Illegal argument detected",
+    construct(s_header.c_str(),
               (std::string("`") + argDesc + "' is a bad argument; expected " +
                condStr + " to hold")
                   .c_str(),
@@ -186,22 +211,27 @@ class AssertArgumentException : public AssertionException {
   AssertArgumentException(const char* condStr, const char* argDesc,
                           const char* function, const char* file, unsigned line)
       : AssertionException() {
-    construct("Illegal argument detected",
+    construct(s_header.c_str(),
               (std::string("`") + argDesc + "' is a bad argument; expected " +
                condStr + " to hold")
                   .c_str(),
               function, file, line);
+  }
+
+  AssertArgumentException(const std::string& msg) : AssertionException() {
+    setMessage(s_header + ".\n" + msg);
   }
 }; /* class AssertArgumentException */
 
 class InternalErrorException : public AssertionException {
  protected:
   InternalErrorException() : AssertionException() {}
+  static const std::string s_header;
 
  public:
   InternalErrorException(const char* function, const char* file, unsigned line)
       : AssertionException() {
-    construct("Internal error detected", "", function, file, line);
+    construct(s_header.c_str(), "", function, file, line);
   }
 
   InternalErrorException(const char* function, const char* file, unsigned line,
@@ -209,7 +239,7 @@ class InternalErrorException : public AssertionException {
       : AssertionException() {
     va_list args;
     va_start(args, fmt);
-    construct("Internal error detected", "", function, file, line, fmt, args);
+    construct(s_header.c_str(), "", function, file, line, fmt, args);
     va_end(args);
   }
 
@@ -218,12 +248,18 @@ class InternalErrorException : public AssertionException {
       : AssertionException() {
     va_list args;
     va_start(args, fmt);
-    construct("Internal error detected", "", function, file, line, fmt.c_str(),
+    construct(s_header.c_str(), "", function, file, line, fmt.c_str(),
               args);
     va_end(args);
   }
 
+  InternalErrorException(const std::string& msg) : AssertionException() {
+    setMessage(s_header + ".\n" + msg);
+  }
+
 }; /* class InternalErrorException */
+
+
 
 #ifdef CVC4_DEBUG
 
@@ -237,82 +273,90 @@ class InternalErrorException : public AssertionException {
  * debug builds only; in debug builds, it handles all assertion
  * failures (even those that exist in non-debug builds).
  */
-void debugAssertionFailed(const AssertionException& thisException,
+__CVC4__noreturn void debugAssertionFailed(const AssertionException& thisException,
                           const char* lastException);
 
-// If we're currently handling an exception, print a warning instead;
-// otherwise std::terminate() is called by the runtime and we lose
-// details of the exception
-#define AlwaysAssert(cond, msg...)                                     \
-  do {                                                                 \
-    if (__builtin_expect((!(cond)), false)) {                          \
-      /* save the last assertion failure */                            \
-      ::CVC4::LastExceptionBuffer* buffer =                            \
-          ::CVC4::LastExceptionBuffer::getCurrent();                   \
-      const char* lastException =                                      \
-          (buffer == NULL) ? NULL : buffer->getContents();             \
-      ::CVC4::AssertionException exception(#cond, __PRETTY_FUNCTION__, \
-                                           __FILE__, __LINE__, ##msg); \
-      ::CVC4::debugAssertionFailed(exception, lastException);          \
-    }                                                                  \
-  } while (0)
+/* need to dispatch to ::CVC4::debugAssertionFailed on assertionException */
+template <>
+class Thrower<::CVC4::AssertionException> {
+  protected:
+    std::stringstream d_msg;
 
-#else /* CVC4_DEBUG */
-// These simpler (but less useful) versions for non-debug builds fails
-// will terminate() if thrown during stack unwinding.
-#define AlwaysAssert(cond, msg...)                                           \
-  do {                                                                       \
-    if (__builtin_expect((!(cond)), false)) {                                \
-      throw ::CVC4::AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, \
-                                       __LINE__, ##msg);                     \
-    }                                                                        \
-  } while (0)
+  public:
+    Thrower() {}
+    __CVC4__noreturn ~Thrower() throw(::CVC4::AssertionException) {
+      /* save the last assertion failure */
+      ::CVC4::LastExceptionBuffer* buffer = ::CVC4::LastExceptionBuffer::getCurrent();
+      const char* lastException = (buffer == NULL) ? NULL : buffer->getContents();
+      ::CVC4::AssertionException exception(d_msg.str());
+      ::CVC4::debugAssertionFailed(exception, lastException);
+    }
+
+    inline std::ostream& msg() { return d_msg; }
+}; /* class Thrower<::CVC4::AssertionException> */
+
 #endif /* CVC4_DEBUG */
 
-#define Unreachable(msg...)                                             \
-  throw ::CVC4::UnreachableCodeException(__PRETTY_FUNCTION__, __FILE__, \
-                                         __LINE__, ##msg)
-#define Unhandled(msg...)                                             \
-  throw ::CVC4::UnhandledCaseException(__PRETTY_FUNCTION__, __FILE__, \
-                                       __LINE__, ##msg)
-#define Unimplemented(msg...)                                                  \
-  throw ::CVC4::UnimplementedOperationException(__PRETTY_FUNCTION__, __FILE__, \
-                                                __LINE__, ##msg)
-#define InternalError(msg...)                                         \
-  throw ::CVC4::InternalErrorException(__PRETTY_FUNCTION__, __FILE__, \
-                                       __LINE__, ##msg)
-#define IllegalArgument(arg, msg...)      \
-  throw ::CVC4::IllegalArgumentException( \
-      "", #arg, __PRETTY_FUNCTION__,      \
-      ::CVC4::IllegalArgumentException::formatVariadic(msg).c_str());
-// This cannot use check argument directly as this forces
-// CheckArgument to use a va_list. This is unsupported in Swig.
-#define PrettyCheckArgument(cond, arg, msg...)                            \
-  do {                                                                    \
-    if (__builtin_expect((!(cond)), false)) {                             \
-      throw ::CVC4::IllegalArgumentException(                             \
-          #cond, #arg, __PRETTY_FUNCTION__,                               \
-          ::CVC4::IllegalArgumentException::formatVariadic(msg).c_str()); \
-    }                                                                     \
-  } while (0)
-#define AlwaysAssertArgument(cond, arg, msg...)                               \
-  do {                                                                        \
-    if (__builtin_expect((!(cond)), false)) {                                 \
-      throw ::CVC4::AssertArgumentException(#cond, #arg, __PRETTY_FUNCTION__, \
-                                            __FILE__, __LINE__, ##msg);       \
-    }                                                                         \
-  } while (0)
+#define __CVC4__UNCONDITIONAL_THROW(E)                  \
+  ::CVC4::OstreamVoider()                               \
+    & ::CVC4::Thrower<E>().msg()
+
+#define __CVC4__CONDITIONAL_THROW(E, cond)              \
+  (__CVC4__expect(!(cond), true)) ? (void)0 :           \
+    __CVC4__UNCONDITIONAL_THROW(E)
+
+#define __CVC4__STANDARD_EXCEPT_FORMAT                  \
+  __CVC4__FUNC_STRING << std::endl                      \
+  << __FILE__ << ":" << __LINE__
+
+
+#define AlwaysAssert(cond)                                            \
+  __CVC4__CONDITIONAL_THROW(CVC4::AssertionException, !(cond))        \
+    << __CVC4__STANDARD_EXCEPT_FORMAT << ":" << std::endl             \
+    << std::endl                                                      \
+    << "  " << #cond << std::endl
+
+#define Unreachable()                                                 \
+  __CVC4__UNCONDITIONAL_THROW(CVC4::UnreachableCodeException)         \
+    << __CVC4__STANDARD_EXCEPT_FORMAT << std::endl
+
+#define Unhandled()                                                   \
+  __CVC4__UNCONDITIONAL_THROW(CVC4::UnhandledCaseException)           \
+    << __CVC4__STANDARD_EXCEPT_FORMAT << std::endl
+
+#define Unimplemented()                                               \
+  __CVC4__UNCONDITIONAL_THROW(CVC4::UnimplementedOperationException)  \
+    << __CVC4__STANDARD_EXCEPT_FORMAT << std::endl
+
+#define InternalError()                                               \
+  __CVC4__UNCONDITIONAL_THROW(CVC4::InternalErrorException)           \
+    << __CVC4__STANDARD_EXCEPT_FORMAT << std::endl
+
+#define IllegalArgument(arg)                                          \
+  __CVC4__UNCONDITIONAL_THROW(CVC4::IllegalArgumentException)         \
+    << __CVC4__FUNC_STRING <<  std::endl                              \
+    << "`" << #arg << "' is a bad argument" << std::endl
+
+#define PrettyCheckArgument(cond, arg)                                \
+  __CVC4__CONDITIONAL_THROW(CVC4::IllegalArgumentException, !(cond))  \
+    << __CVC4__FUNC_STRING <<  std::endl                              \
+    << "`" << #arg << "' is a bad argument; expected "                \
+    << #cond << "to hold" << std::endl
+
+#define AlwaysAssertArgument(cond, arg)                               \
+  __CVC4__CONDITIONAL_THROW(CVC4::AssertArgumentException, !(cond))   \
+    << __CVC4__FUNC_STRING <<  std::endl                              \
+    << "`" << #arg << "' is a bad argument; expected "                \
+    << #cond << "to hold" << std::endl
 
 #ifdef CVC4_ASSERTIONS
-#define Assert(cond, msg...) AlwaysAssert(cond, ##msg)
-#define AssertArgument(cond, arg, msg...) AlwaysAssertArgument(cond, arg, ##msg)
-#define DebugCheckArgument(cond, arg, msg...) CheckArgument(cond, arg, ##msg)
+#define Assert(cond) AlwaysAssert(cond)
+#define AssertArgument(cond, arg) AlwaysAssertArgument(cond, arg)
+#define DebugCheckArgument(cond, arg) PrettyCheckArgument(cond, arg)
 #else                                     /* ! CVC4_ASSERTIONS */
-#define Assert(cond, msg...)              /*__builtin_expect( ( cond ), true )*/
-#define AssertArgument(cond, arg, msg...) /*__builtin_expect( ( cond ), true \
-                                             )*/
-#define DebugCheckArgument(cond, arg, \
-                           msg...) /*__builtin_expect( ( cond ), true )*/
+#define Assert(cond) AlwaysAssert(true)
+#define AssertArgument(cond, arg) AlwaysAssertArgument(true, arg)
+#define DebugCheckArgument(cond, arg) PrettyCheckArgument(true, arg)
 #endif                             /* CVC4_ASSERTIONS */
 
 } /* CVC4 namespace */

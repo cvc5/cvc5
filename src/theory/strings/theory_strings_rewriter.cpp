@@ -740,7 +740,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
       if(r[0].getKind() == kind::CONST_STRING) {
         return ( s2 == r[0].getConst<String>() );
       } else {
-        Assert( false, "RegExp contains variables" );
+        Assert(false) << "RegExp contains variables"  << std::endl;
         return false;
       }
     }
@@ -838,7 +838,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
       } else if(l==0 && r[1]==r[2]) {
         return false;
       } else {
-        Assert(r.getNumChildren() == 3, "String rewriter error: LOOP has 2 children");
+        Assert(r.getNumChildren() == 3) << "String rewriter error: LOOP has 2 children" << std::endl;
         if(l==0) {
           //R{0,u}
           unsigned u = r[2].getConst<Rational>().getNumerator().toUnsignedInt();
@@ -859,7 +859,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
           return false;
         } else {
           //R{l,l}
-          Assert(r[1]==r[2], "String rewriter error: LOOP nums are not equal");
+          Assert(r[1]==r[2]) << "String rewriter error: LOOP nums are not equal" << std::endl;
           if(l>s.size() - index_start) {
             if(testConstStringInRegExp(s, s.size(), r[0])) {
               l = s.size() - index_start;
@@ -1299,8 +1299,8 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
       }
       CVC4::Rational rz(0);
       CVC4::Rational RMAXINT(LONG_MAX);
-      AlwaysAssert(rz <= n1.getConst<Rational>(), "Negative integer in string REGEXP_LOOP (1)");
-      Assert(n1.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (1)");
+      AlwaysAssert(rz <= n1.getConst<Rational>()) << "Negative integer in string REGEXP_LOOP (1)" << std::endl;
+      Assert(n1.getConst<Rational>() <= RMAXINT) << "Exceeded LONG_MAX in string REGEXP_LOOP (1)" << std::endl;
       unsigned l = n1.getConst<Rational>().getNumerator().toUnsignedInt();
       if(node.getNumChildren() == 3) {
         Node n2 = Rewriter::rewrite( node[2] );
@@ -1315,10 +1315,10 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
             retNode = node[0];
           }
         } else {
-          AlwaysAssert(rz <= n2.getConst<Rational>(), "Negative integer in string REGEXP_LOOP (2)");
-          Assert(n2.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (2)");
+          AlwaysAssert(rz <= n2.getConst<Rational>()) << "Negative integer in string REGEXP_LOOP (2)" << std::endl;
+          Assert(n2.getConst<Rational>() <= RMAXINT) << "Exceeded LONG_MAX in string REGEXP_LOOP (2)" << std::endl;
           unsigned u = n2.getConst<Rational>().getNumerator().toUnsignedInt();
-          AlwaysAssert(l <= u, "REGEXP_LOOP (1) > REGEXP_LOOP (2)");
+          AlwaysAssert(l <= u) << "REGEXP_LOOP (1) > REGEXP_LOOP (2)" << std::endl;
           if(l != 0) {
             Node zero = NodeManager::currentNM()->mkConst( CVC4::Rational(0) );
             Node num = NodeManager::currentNM()->mkConst( CVC4::Rational(u - l) );
@@ -1343,8 +1343,8 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
       }
       CVC4::Rational rz(0);
       CVC4::Rational RMAXINT(LONG_MAX);
-      AlwaysAssert(rz <= n1.getConst<Rational>(), "Negative integer in string REGEXP_LOOP (1)");
-      Assert(n1.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (1)");
+      AlwaysAssert(rz <= n1.getConst<Rational>()) << "Negative integer in string REGEXP_LOOP (1)" << std::endl;
+      Assert(n1.getConst<Rational>() <= RMAXINT) << "Exceeded LONG_MAX in string REGEXP_LOOP (1)" << std::endl;
       //
       unsigned l = n1.getConst<Rational>().getNumerator().toUnsignedInt();
       std::vector< Node > vec_nodes;
@@ -1493,7 +1493,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   if( node[2].isConst() ){
     CVC4::Rational RMAXINT(LONG_MAX);
     if( node[2].getConst<Rational>()>RMAXINT ){
-      Assert(node[2].getConst<Rational>() <= RMAXINT, "Number exceeds LONG_MAX in string index_of");
+      Assert(node[2].getConst<Rational>() <= RMAXINT) << "Number exceeds LONG_MAX in string index_of" << std::endl;
       return NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
     }else if( node[2].getConst<Rational>().sgn()==-1 ){
       //constant negative

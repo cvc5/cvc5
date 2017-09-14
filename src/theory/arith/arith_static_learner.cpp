@@ -268,7 +268,7 @@ void ArithStaticLearner::addBound(TNode n) {
     }
     break;
   default:
-    Unhandled(k);
+    Unhandled() << k << std::endl;
     break;
   }
 }

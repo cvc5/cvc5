@@ -232,7 +232,7 @@ SatLiteral TheoryProxy::getNextReplayDecision() {
 void TheoryProxy::logDecision(SatLiteral lit) {
 #ifdef CVC4_REPLAY
   if(d_replayLog != NULL) {
-    Assert(lit != undefSatLiteral, "logging an `undef' decision ?!");
+    Assert(lit != undefSatLiteral) << "logging an `undef' decision ?!" << std::endl;
     (*d_replayLog) << d_cnfStream->getNode(lit) << std::endl;
   }
 #endif /* CVC4_REPLAY */

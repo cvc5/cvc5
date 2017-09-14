@@ -90,7 +90,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
   /* Make sure we are under number of children possible in a node */
   NodeManager* nodeManager = NodeManager::currentNM();
   static const unsigned MAX_CHILDREN = (1u << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN ) - 1;
-  AlwaysAssert(childList.size() < MAX_CHILDREN, "do not support formulas this big");
+  AlwaysAssert(childList.size() < MAX_CHILDREN) <<  "do not support formulas this big" << std::endl;
 
   ChildList::iterator cur = childList.begin(), next, en = childList.end();
   Node ret = (*cur);
@@ -132,8 +132,8 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
     return elementTerm == setTerm[0];
   }
 
-  Assert(setTerm.getKind() == kind::UNION && setTerm[1].getKind() == kind::SINGLETON,
-         "kind was %d, term: %s", setTerm.getKind(), setTerm.toString().c_str());
+  Assert(setTerm.getKind() == kind::UNION && setTerm[1].getKind() == kind::SINGLETON)
+    << "kind was " << setTerm.getKind() << ", term: " << setTerm.toString() << std::endl;
 
   return
     elementTerm == setTerm[1][0] ||
@@ -178,7 +178,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }//kind::MEMBER
 
   case kind::SUBSET: {
-    Assert(false, "TheorySets::postRrewrite(): Subset is handled in preRewrite.");
+    Assert(false) << "TheorySets::postRrewrite(): Subset is handled in preRewrite." << std::endl;
 
     // but in off-chance we do end up here, let us do our best
 

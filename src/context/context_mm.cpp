@@ -31,8 +31,7 @@ void ContextMemoryManager::newChunk() {
 
   // Increment index to chunk list
   ++d_indexChunkList;
-  Assert(d_chunkList.size() == d_indexChunkList,
-         "Index should be at the end of the list");
+  Assert(d_chunkList.size() == d_indexChunkList) << "Index should be at the end of the list" << std::endl;
 
   // Create new chunk if no free chunk available
   if(d_freeChunks.empty()) {
@@ -85,8 +84,7 @@ void* ContextMemoryManager::newData(size_t size) {
     newChunk();
     res = (void*)d_nextFree;
     d_nextFree += size;
-    AlwaysAssert(d_nextFree <= d_endChunk,
-                 "Request is bigger than memory chunk size");
+    AlwaysAssert(d_nextFree <= d_endChunk) << "Request is bigger than memory chunk size" << std::endl;
   }
   Debug("context") << "ContextMemoryManager::newData(" << size
                    << ") returning " << res << " at level "

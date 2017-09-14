@@ -34,18 +34,16 @@ ArrayStoreAll::ArrayStoreAll(const ArrayType& type,
   // this check is stronger than the assertion check in the expr manager that
   // ArrayTypes are actually array types
   // because this check is done in production builds too
-  PrettyCheckArgument(
-      type.isArray(), type,
-      "array store-all constants can only be created for array types, not `%s'",
-      type.toString().c_str());
+  PrettyCheckArgument(type.isArray(), type) 
+      << "array store-all constants can only be created for array types, not `"
+      << type.toString() << "'" << std::endl;
 
-  PrettyCheckArgument(
-      expr.getType().isComparableTo(type.getConstituentType()), expr,
-      "expr type `%s' does not match constituent type of array type `%s'",
-      expr.getType().toString().c_str(), type.toString().c_str());
+  PrettyCheckArgument(expr.getType().isComparableTo(type.getConstituentType()), expr)
+      << "expr type `" << expr.getType().toString() 
+      << "' does not match constituent type of array type `" << type.toString() 
+      << "'" << std::endl;
 
-  PrettyCheckArgument(expr.isConst(), expr,
-                      "ArrayStoreAll requires a constant expression");
+  PrettyCheckArgument(expr.isConst(), expr) << "ArrayStoreAll requires a constant expression" << std::endl;
 
   // Delay allocation until the checks above have been performed. If these fail,
   // the memory for d_type and d_expr should not leak. The alternative is catch,

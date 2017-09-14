@@ -50,7 +50,7 @@ void LastExceptionBuffer::setContents(const char* string) {
   }
 }
 
-const char* IllegalArgumentException::s_header = "Illegal argument detected";
+const std::string IllegalArgumentException::s_header = "Illegal argument detected";
 
 std::string IllegalArgumentException::formatVariadic() {
   return std::string();

@@ -477,7 +477,7 @@ void TheoryStrings::collectModelInfo( TheoryModel* m ) {
     Trace("strings-model") << " } (length is " << lts[i] << ")" << std::endl;
     if( lts[i].isConst() ) {
       lts_values.push_back( lts[i] );
-      Assert(lts[i].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
+      Assert(lts[i].getConst<Rational>() <= RMAXINT) << "Exceeded LONG_MAX in string model" << std::endl;
       unsigned lvalue = lts[i].getConst<Rational>().getNumerator().toUnsignedInt();
       values_used[ lvalue ] = true;
     }else{
@@ -486,7 +486,7 @@ void TheoryStrings::collectModelInfo( TheoryModel* m ) {
         Node v = d_valuation.getModelValue(lts[i]);
         Trace("strings-model") << "Model value for " << lts[i] << " is " << v << std::endl;
         lts_values.push_back( v );
-        Assert(v.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
+        Assert(v.getConst<Rational>() <= RMAXINT) << "Exceeded LONG_MAX in string model" << std::endl;
         unsigned lvalue =  v.getConst<Rational>().getNumerator().toUnsignedInt();
         values_used[ lvalue ] = true;
       }else{
@@ -536,7 +536,7 @@ void TheoryStrings::collectModelInfo( TheoryModel* m ) {
 
 
       //use type enumerator
-      Assert(lts_values[i].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
+      Assert(lts_values[i].getConst<Rational>() <= RMAXINT) << "Exceeded LONG_MAX in string model" << std::endl;
       StringEnumeratorLength sel(lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
       for( unsigned j=0; j<pure_eq.size(); j++ ){
         Assert( !sel.isFinished() );
@@ -978,7 +978,7 @@ void TheoryStrings::computeCareGraph(){
 
 void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   Trace("strings-pending") << "Assert pending fact : " << atom << " " << polarity << " from " << exp << std::endl;
-  Assert(atom.getKind() != kind::OR, "Infer error: a split.");
+  Assert(atom.getKind() != kind::OR) << "Infer error: a split." << std::endl;
   if( atom.getKind()==kind::EQUAL ){
     Trace("strings-pending-debug") << "  Register term" << std::endl;
     for( unsigned j=0; j<2; j++ ) {
@@ -2543,8 +2543,8 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                 unsigned const_k = normal_forms[i][index].getKind() == kind::CONST_STRING ? i : j;
                 unsigned nconst_k = normal_forms[i][index].getKind() == kind::CONST_STRING ? j : i;
                 Node other_str = normal_forms[nconst_k][index];
-                Assert( other_str.getKind()!=kind::CONST_STRING, "Other string is not constant." );
-                Assert( other_str.getKind()!=kind::STRING_CONCAT, "Other string is not CONCAT." );
+                Assert(other_str.getKind()!=kind::CONST_STRING) << "Other string is not constant."  << std::endl;
+                Assert(other_str.getKind()!=kind::STRING_CONCAT) << "Other string is not CONCAT."  << std::endl;
                 if( !d_equalityEngine.areDisequal( other_str, d_emptyString, true ) ){
                   Node eq = other_str.eqNode( d_emptyString );
                   //set info
@@ -3243,7 +3243,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
           
         }
       } else {
-        AlwaysAssert(false, "String Terms only in registerTerm.");
+        AlwaysAssert(false) <<  "String Terms only in registerTerm." << std::endl;
       }
     }
   }
@@ -4739,7 +4739,7 @@ bool TheoryStrings::deriveRegExp( Node x, Node r, Node ant ) {
     // send lemma
     if(flag) {
       if(x.isConst()) {
-        Assert(false, "Impossible: TheoryStrings::deriveRegExp: const string in const regular expression.");
+        Assert(false) << "Impossible: TheoryStrings::deriveRegExp: const string in const regular expression." << std::endl;
         return false;
       } else {
         Assert( x.getKind() == kind::STRING_CONCAT );

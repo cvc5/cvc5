@@ -31,36 +31,30 @@ const Cardinality Cardinality::REALS(CardinalityBeth(1));
 const Cardinality Cardinality::UNKNOWN_CARD((CardinalityUnknown()));
 
 CardinalityBeth::CardinalityBeth(const Integer& beth) : d_index(beth) {
-  PrettyCheckArgument(beth >= 0, beth,
-                      "Beth index must be a nonnegative integer, not %s.",
-                      beth.toString().c_str());
+  PrettyCheckArgument(beth >= 0, beth) << "Beth index must be a nonnegative integer, not "
+    << beth.toString() << "." << std::endl;
 }
 
 Cardinality::Cardinality(long card) : d_card(card) {
-  PrettyCheckArgument(card >= 0, card,
-                      "Cardinality must be a nonnegative integer, not %ld.",
-                      card);
+  PrettyCheckArgument(card >= 0, card) << "Cardinality must be a nonnegative integer, not "
+    << card << "." << std::endl;
   d_card += 1;
 }
 
 Cardinality::Cardinality(const Integer& card) : d_card(card) {
-  PrettyCheckArgument(card >= 0, card,
-                      "Cardinality must be a nonnegative integer, not %s.",
-                      card.toString().c_str());
+  PrettyCheckArgument(card >= 0, card) << "Cardinality must be a nonnegative integer, not " 
+    << card.toString() << "." << std::endl;
   d_card += 1;
 }
 
 Integer Cardinality::getFiniteCardinality() const {
-  PrettyCheckArgument(isFinite(), *this, "This cardinality is not finite.");
-  PrettyCheckArgument(
-      !isLargeFinite(), *this,
-      "This cardinality is finite, but too large to represent.");
+  PrettyCheckArgument(isFinite(), *this) <<  "This cardinality is not finite." << std::endl;
+  PrettyCheckArgument(!isLargeFinite(), *this) <<  "This cardinality is finite, but too large to represent." << std::endl;
   return d_card - 1;
 }
 
 Integer Cardinality::getBethNumber() const {
-  PrettyCheckArgument(!isFinite() && !isUnknown(), *this,
-                      "This cardinality is not infinite (or is unknown).");
+  PrettyCheckArgument(!isFinite() && !isUnknown(), *this) <<  "This cardinality is not infinite (or is unknown)." << std::endl;
   return -d_card - 1;
 }
 
@@ -174,9 +168,7 @@ Cardinality& Cardinality::operator^=(const Cardinality& c) {
     // inf ^ finite == inf
     return *this;
   } else {
-    Assert(compare(2) != LESS && !c.isFinite(),
-           "fall-through case not as expected:\n%s\n%s",
-           this->toString().c_str(), c.toString().c_str());
+    Assert(compare(2) != LESS && !c.isFinite()) << "fall-through case not as expected:" << std::endl << this->toString() << std::endl << c.toString() << std::endl;
     // (>= 2) ^ beth_k == beth_(k+1)
     // unless the base is already > the exponent
     if (compare(c) == GREATER) {

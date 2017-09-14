@@ -66,7 +66,7 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
     return new printer::cvc::CvcPrinter(/* cvc3-mode = */ true);
 
   default:
-    Unhandled(lang);
+    Unhandled() << lang << std::endl;
   }
 }/* Printer::makePrinter() */
 

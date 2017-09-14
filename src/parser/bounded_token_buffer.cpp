@@ -53,6 +53,7 @@
 #include <antlr3lexer.h>
 #include <antlr3tokenstream.h>
 
+#include "base/portability.h"
 #include "parser/bounded_token_buffer.h"
 #include <cassert>
 
@@ -242,7 +243,7 @@ static pANTLR3_COMMON_TOKEN tokLT(pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k) {
   }
 
   /* Initialize the buffer on our first call. */
-  if( __builtin_expect( (buffer->empty == ANTLR3_TRUE), false ) ) {
+  if( __CVC4__expect( (buffer->empty == ANTLR3_TRUE), false ) ) {
     assert( buffer->tokenBuffer != NULL );
     buffer->tokenBuffer[ 0 ] = nextToken(buffer);
     buffer->maxIndex = 0;

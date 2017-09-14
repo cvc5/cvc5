@@ -231,7 +231,7 @@ public:
   void registerTerm(TNode) { Unimplemented(); }
   void check(Theory::Effort) { Unimplemented(); }
   void propagate(Theory::Effort) { Unimplemented(); }
-  Node explain(TNode) { Unimplemented(); }
+  Node explain(TNode) { Unimplemented(); return Node::null(); }
   Node getValue(TNode n) { return Node::null(); }
 };/* class FakeTheory */
 

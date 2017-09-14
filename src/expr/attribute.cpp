@@ -81,7 +81,7 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
 
     switch(tableId) {
     case AttrTableBool:
-      Unimplemented("delete attributes is unimplemented for bools");
+      Unimplemented() << "delete attributes is unimplemented for bools" << std::endl;
       break;
     case AttrTableUInt64:
       deleteAttributesFromTable(d_ints, ids);
@@ -108,7 +108,7 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
     case AttrTableCDNode:
     case AttrTableCDString:
     case AttrTableCDPointer:
-      Unimplemented("CDAttributes cannot be deleted. Contact Tim/Morgan if this behavior is desired.");
+      Unimplemented() << "CDAttributes cannot be deleted. Contact Tim/Morgan if this behavior is desired." << std::endl;
       break;
 
     case LastAttrTable:

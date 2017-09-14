@@ -295,9 +295,9 @@ void TheoryUFTim::check(Effort level) {
       d_disequality.push_back(assertion[0]);
       break;
     case APPLY_UF:
-      Unhandled("predicates not supported in this UF implementation");
+      Unhandled() << "predicates not supported in this UF implementation" << std::endl;
     default:
-      Unhandled(assertion.getKind());
+      Unhandled() << assertion.getKind() << std::endl;
     }
 
     Debug("uf") << "TheoryUFTim::check(): done = " << (done() ? "true" : "false") << std::endl;

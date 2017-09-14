@@ -80,7 +80,7 @@ Expr Parser::getSymbol(const std::string& name, SymbolType type) {
     return d_symtab->lookup(name);
   }
 
-  assert(false);  // Unhandled(type);
+  assert(false);  // Unhandled() << type << std::endl;
   return Expr();
 }
 
@@ -385,7 +385,7 @@ bool Parser::isDeclared(const std::string& name, SymbolType type) {
     case SYM_SORT:
       return d_symtab->isBoundType(name);
   }
-  assert(false);  // Unhandled(type);
+  assert(false);  // Unhandled() << type << std::endl;
   return false;
 }
 
@@ -422,7 +422,7 @@ void Parser::checkDeclaration(const std::string& varName,
       break;
 
     default:
-      assert(false);  // Unhandled(check);
+      assert(false);  // Unhandled() << check << std::endl;
   }
 }
 

@@ -59,11 +59,11 @@ public:
   }
 
   T& value() {
-    Assert(just(), "Maybe::value() requires the maybe to be set.");
+    Assert(just()) << "Maybe::value() requires the maybe to be set." << std::endl;
     return d_value;
   }
   const T& constValue() const {
-    Assert(just(), "Maybe::constValue() requires the maybe to be set.");
+    Assert(just()) << "Maybe::constValue() requires the maybe to be set." << std::endl;
     return d_value;
   }
 

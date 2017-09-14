@@ -52,7 +52,7 @@ public:
   void testReallyLongAssert() {
     string msg(1034, 'x');
     try {
-      AlwaysAssert(false, msg.c_str());
+      AlwaysAssert(false) << msg;
       TS_FAIL("Should have thrown an exception !");
     } catch(AssertionException& e) {
       // we don't want to match on the entire string, because it may
@@ -61,7 +61,7 @@ public:
       std::string s = e.toString();
       const char* theString = s.c_str();
       const char* firstPart =
-        "Assertion failure\nvoid AssertWhite::testReallyLongAssert()\n";
+        "Assertion failure.\nvoid AssertWhite::testReallyLongAssert()\n";
       string lastPartStr = "\n\n  false\n" + msg;
       const char* lastPart = lastPartStr.c_str();
       TS_ASSERT(strncmp(theString, firstPart, strlen(firstPart)) == 0);
@@ -71,13 +71,13 @@ public:
       TS_FAIL("Threw the wrong kind of exception !");
     }
 
-    // Now test an assert with a format that drives it over the 512
-    // byte initial buffer.  This was a bug in r1441, see bug:
-    // https://github.com/CVC4/CVC4/issues/465
-    string fmt = string(200, 'x') + " %s " + string(200, 'x');
-    string arg(200, 'y');
     try {
-      AlwaysAssert(false, fmt.c_str(), arg.c_str());
+      // Now test an assert with a format that drives it over the 512
+      // byte initial buffer.  This was a bug in r1441, see bug:
+      // https://github.com/CVC4/CVC4/issues/465
+      AlwaysAssert(false) << string(200, 'x') << " "
+                          << string(200, 'y') << " "
+                          << string(200, 'x');
       TS_FAIL("Should have thrown an exception !");
     } catch(AssertionException& e) {
       // we don't want to match on the entire string, because it may
@@ -86,7 +86,7 @@ public:
       std::string s = e.toString();
       const char* theString = s.c_str();
       const char* firstPart =
-        "Assertion failure\nvoid AssertWhite::testReallyLongAssert()\n";
+        "Assertion failure.\nvoid AssertWhite::testReallyLongAssert()\n";
       string lastPartStr = "\n\n  false\n" + string(200, 'x') + " " +
         string(200, 'y') + " " + string(200, 'x');
       const char* lastPart = lastPartStr.c_str();
@@ -100,14 +100,14 @@ public:
 
   void testUnreachable() {
     TS_ASSERT_THROWS( Unreachable(), UnreachableCodeException );
-    TS_ASSERT_THROWS( Unreachable("hello"), UnreachableCodeException );
-    TS_ASSERT_THROWS( Unreachable("hello %s", "world"), UnreachableCodeException );
+    TS_ASSERT_THROWS( Unreachable() << "hello", UnreachableCodeException );
+    TS_ASSERT_THROWS( Unreachable() << "hello world", UnreachableCodeException );
 
     int x = 5;
     TS_ASSERT_THROWS( Unhandled(), UnhandledCaseException );
-    TS_ASSERT_THROWS( Unhandled(x), UnhandledCaseException );
-    TS_ASSERT_THROWS( Unhandled("foo"), UnhandledCaseException );
-    TS_ASSERT_THROWS( Unhandled("foo %s baz", "bar"), UnhandledCaseException );
+    TS_ASSERT_THROWS( Unhandled() << x, UnhandledCaseException );
+    TS_ASSERT_THROWS( Unhandled() << "foo", UnhandledCaseException );
+    TS_ASSERT_THROWS( Unhandled() << "foo bar baz", UnhandledCaseException );
   }
 
 };

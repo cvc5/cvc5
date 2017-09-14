@@ -22,6 +22,7 @@
 #include <iosfwd>
 
 #include "base/exception.h"
+#include "base/portability.h"
 
 namespace CVC4 {
 namespace kind {

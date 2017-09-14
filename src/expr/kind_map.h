@@ -47,7 +47,7 @@ class KindMap {
     Accessor(KindMap& m, Kind k) :
       d_map(m),
       d_kind(k) {
-      AssertArgument(k >= Kind(0) && k < kind::LAST_KIND, k, "invalid kind");
+      AssertArgument(k >= Kind(0) && k < kind::LAST_KIND, k) << "invalid kind" << std::endl;
     }
 
     friend class KindMap;
@@ -87,7 +87,7 @@ public:
     iterator(const KindMap& m, Kind k) :
       d_map(&m),
       d_kind(k) {
-      AssertArgument(k >= Kind(0) && k <= kind::LAST_KIND, k, "invalid kind");
+      AssertArgument(k >= Kind(0) && k <= kind::LAST_KIND, k) << "invalid kind" << std::endl;
       while(d_kind < kind::LAST_KIND &&
             ! d_map->tst(d_kind)) {
         d_kind = Kind(uint64_t(d_kind) + 1);
@@ -150,17 +150,17 @@ public:
   }
   /** Test whether k is in the map. */
   bool tst(Kind k) const {
-    AssertArgument(k >= Kind(0) && k < kind::LAST_KIND, k, "invalid kind");
+    AssertArgument(k >= Kind(0) && k < kind::LAST_KIND, k) << "invalid kind" << std::endl;
     return (d_bitmap[k / 64] >> (k % 64)) & uint64_t(1);
   }
   /** Set k in the map. */
   void set(Kind k) {
-    AssertArgument(k >= Kind(0) && k < kind::LAST_KIND, k, "invalid kind");
+    AssertArgument(k >= Kind(0) && k < kind::LAST_KIND, k) << "invalid kind" << std::endl;
     d_bitmap[k / 64] |= (uint64_t(1) << (k % 64));
   }
   /** Clear k from the map. */
   void clr(Kind k) {
-    AssertArgument(k >= Kind(0) && k < kind::LAST_KIND, k, "invalid kind");
+    AssertArgument(k >= Kind(0) && k < kind::LAST_KIND, k) << "invalid kind" << std::endl;
     d_bitmap[k / 64] &= ~(uint64_t(1) << (k % 64));
   }
 

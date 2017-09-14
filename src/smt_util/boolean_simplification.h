@@ -159,8 +159,7 @@ public:
     AssertArgument(!n.isNull(), n);
     AssertArgument(k != kind::UNDEFINED_KIND && k != kind::NULL_EXPR, k);
     AssertArgument(notK != kind::NULL_EXPR, notK);
-    AssertArgument(n.getKind() == k, n,
-                   "expected node to have kind %s", kindToString(k).c_str());
+    AssertArgument(n.getKind() == k, n) << "expected node to have kind " << kindToString(k) << std::endl;
 
     bool b CVC4_UNUSED =
       push_back_associative_commute_recursive(n, buffer, k, notK, false);

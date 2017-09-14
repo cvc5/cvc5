@@ -81,22 +81,22 @@ public:
   }
 
   const T& operator[](unsigned i) const {
-    Assert(i < d_size, "index out of bounds in DynamicArray::operator[]");
+    Assert(i < d_size) << "index out of bounds in DynamicArray::operator[]" << std::endl;
     return d_arr[i];
   }
 
   T& operator[](unsigned i) {
-    Assert(i < d_size, "index out of bounds in DynamicArray::operator[]");
+    Assert(i < d_size) << "index out of bounds in DynamicArray::operator[]" << std::endl;
     return d_arr[i];
   }
 
   const T& back() const {
-    Assert(d_size > 0, "DynamicArray::back() called on empty list");
+    Assert(d_size > 0) << "DynamicArray::back() called on empty list" << std::endl;
     return d_arr[d_size - 1];
   }
 
   void pop_back() {
-    Assert(d_size > 0, "DynamicArray::back() called on empty list");
+    Assert(d_size > 0) << "DynamicArray::back() called on empty list" << std::endl;
     --d_size;
     if(d_callDestructor) {
       d_arr[d_size].~T();

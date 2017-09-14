@@ -1948,7 +1948,7 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m) {
             //slack elements from cardinality value
             Node v = d_external.d_valuation.getModelValue(it->second);
             Trace("sets-model") << "Cardinality of " << eqc << " is " << v << std::endl;
-            Assert(v.getConst<Rational>() <= LONG_MAX, "Exceeded LONG_MAX in sets model");
+            Assert(v.getConst<Rational>() <= LONG_MAX) << "Exceeded LONG_MAX in sets model" << std::endl;
             unsigned vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
             Assert( els.size()<=vu );
             while( els.size()<vu ){

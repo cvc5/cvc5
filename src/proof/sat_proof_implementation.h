@@ -859,7 +859,7 @@ ClauseId TSatProof<Solver>::resolveUnit(typename Solver::TLit lit) {
 template <class Solver>
 void TSatProof<Solver>::toStream(std::ostream& out) {
   Debug("proof:sat") << "TSatProof<Solver>::printProof\n";
-  Unimplemented("native proof printing not supported yet");
+  Unimplemented() << "native proof printing not supported yet" << std::endl;
 }
 
 template <class Solver>

@@ -70,7 +70,7 @@ namespace removeToFPGeneric {
       return NodeManager::currentNM()->mkNode(op, node[0], node[1]);
     }
 
-    Unreachable("to_fp generic not rewritten");
+    Unreachable() << "to_fp generic not rewritten" << std::endl;
   }
 }
 
@@ -116,7 +116,7 @@ void TheoryFp::check(Effort level) {
     /* cases for all the theory's kinds go here... */
 
     default:
-      Unhandled(fact.getKind());
+      Unhandled() << fact.getKind() << std::endl;
     }
   }
 

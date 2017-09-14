@@ -31,6 +31,7 @@
 #include <iterator>
 #include <string>
 
+#include "base/portability.h"
 #include "expr/kind.h"
 #include "options/language.h"
 
@@ -415,31 +416,33 @@ inline void NodeValue::decrRefCounts() {
 }
 
 inline void NodeValue::inc() {
-  Assert(!isBeingDeleted(),
-         "NodeValue is currently being deleted "
-         "and increment is being called on it. Don't Do That!");
+  Assert(!isBeingDeleted()) 
+      << "NodeValue is currently being deleted "
+      << "and increment is being called on it. Don't Do That!" << std::endl;
+
   // FIXME multithreading
-  if (__builtin_expect((d_rc < MAX_RC - 1), true)) {
+  if (__CVC4__expect((d_rc < MAX_RC - 1), true)) {
     ++d_rc;
-  } else if (__builtin_expect((d_rc == MAX_RC - 1), false)) {
+  } else if (__CVC4__expect((d_rc == MAX_RC - 1), false)) {
     ++d_rc;
-    Assert(NodeManager::currentNM() != NULL,
-           "No current NodeManager on incrementing of NodeValue: "
-           "maybe a public CVC4 interface function is missing a "
-           "NodeManagerScope ?");
+    Assert(NodeManager::currentNM() != NULL)
+        << "No current NodeManager on incrementing of NodeValue: "
+        << "maybe a public CVC4 interface function is missing a "
+        << "NodeManagerScope ?" << std::endl;
+
     NodeManager::currentNM()->markRefCountMaxedOut(this);
   }
 }
 
 inline void NodeValue::dec() {
   // FIXME multithreading
-  if(__builtin_expect( ( d_rc < MAX_RC ), true )) {
+  if(__CVC4__expect( ( d_rc < MAX_RC ), true )) {
     --d_rc;
-    if(__builtin_expect( ( d_rc == 0 ), false )) {
-      Assert(NodeManager::currentNM() != NULL,
-             "No current NodeManager on destruction of NodeValue: "
-             "maybe a public CVC4 interface function is missing a "
-             "NodeManagerScope ?");
+    if(__CVC4__expect( ( d_rc == 0 ), false )) {
+      Assert(NodeManager::currentNM() != NULL)
+          << "No current NodeManager on destruction of NodeValue: "
+          << "maybe a public CVC4 interface function is missing a "
+          << "NodeManagerScope ?" << std::endl;
       NodeManager::currentNM()->markForDeletion(this);
     }
   }

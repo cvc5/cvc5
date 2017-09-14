@@ -51,7 +51,7 @@ public:
   }
 
   static void operator delete(void* pMem) {
-    AlwaysAssert(false, "It is not allowed to delete a ContextObj this way!");
+    AlwaysAssert(false) << "It is not allowed to delete a ContextObj this way!" << std::endl;
   }
 
   CDHashSet(Context* context) :

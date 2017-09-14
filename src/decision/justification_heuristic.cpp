@@ -439,7 +439,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
   SatValue litVal = tryGetSatValue(node);
 
   /* You'd better know what you want */
-  Assert(desiredVal != SAT_VALUE_UNKNOWN, "expected known value");
+  Assert(desiredVal != SAT_VALUE_UNKNOWN) << "expected known value" << std::endl;
 
   /* Good luck, hope you can get what you want */
   // See bug 374
@@ -534,7 +534,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
     break;
 
   default:
-    Assert(false, "Unexpected Boolean operator");
+    Assert(false) << "Unexpected Boolean operator" << std::endl;
     break;
   }//end of switch(k)
 
@@ -543,8 +543,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
   }
 
   if(ret == NO_SPLITTER) {
-    Assert( litPresent == false || litVal ==  desiredVal,
-           "Output should be justified");
+    Assert(litPresent == false || litVal ==  desiredVal) << "Output should be justified" << std::endl;
     setJustified(node);
   }
   return ret;
@@ -567,7 +566,7 @@ JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal)
       }
     }
   }
-  Assert(d_curThreshold != 0, "handleAndOrEasy: No controlling input found");
+  Assert(d_curThreshold != 0) << "handleAndOrEasy: No controlling input found" << std::endl;
   return DONT_KNOW;
 }
 
@@ -619,7 +618,7 @@ JustificationHeuristic::SearchResult JustificationHeuristic::handleBinaryEasy(TN
     if(ret != DONT_KNOW)
       return ret;
   }
-  Assert(d_curThreshold != 0, "handleBinaryEasy: No controlling input found");
+  Assert(d_curThreshold != 0) << "handleBinaryEasy: No controlling input found" << std::endl;
   return DONT_KNOW;
 }
 
@@ -677,7 +676,7 @@ JustificationHeuristic::SearchResult JustificationHeuristic::handleITE(TNode nod
     if(findSplitterRec(node[0], ifDesiredVal) == FOUND_SPLITTER)
       return FOUND_SPLITTER;
 
-    Assert(d_curThreshold != 0, "No controlling input found (6)");
+    Assert(d_curThreshold != 0) << "No controlling input found (6)" << std::endl;
     return DONT_KNOW;
   } else {
     // Try to justify 'if'

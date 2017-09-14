@@ -123,7 +123,7 @@ public:
    * function.
    */
   void pop(){
-    Assert(!empty(), "Attempting to pop from an empty queue.");
+    Assert(!empty()) << "Attempting to pop from an empty queue." << std::endl;
     ParentType::makeCurrent();
     d_iter = d_iter + 1;
     if (empty() && d_lastsave != ParentType::d_size) {
@@ -137,7 +137,7 @@ public:
 
   /** Returns a reference to the next element on the queue. */
   const T& front() const{
-    Assert(!empty(), "No front in an empty queue.");
+    Assert(!empty()) << "No front in an empty queue." << std::endl;
     return ParentType::d_list[d_iter];
   }
 
@@ -145,7 +145,7 @@ public:
    * Returns the most recent item added to the queue.
    */
   const T& back() const {
-    Assert(!empty(), "CDQueue::back() called on empty list");
+    Assert(!empty()) << "CDQueue::back() called on empty list" << std::endl;
     return ParentType::d_list[ParentType::d_size - 1];
   }
 

@@ -924,7 +924,7 @@ void TheoryEngine::postsolve() {
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
     if (theory::TheoryTraits<THEORY>::hasPostsolve) { \
       theoryOf(THEORY)->postsolve(); \
-      Assert(! d_inConflict || wasInConflict, "conflict raised during postsolve()"); \
+      Assert(! d_inConflict || wasInConflict) << "conflict raised during postsolve()" << std::endl; \
     }
 
     // Postsolve for each theory using the statement above
@@ -1236,7 +1236,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
 
   // If sending to the shared terms database, it's also simple
   if (toTheoryId == THEORY_BUILTIN) {
-    Assert(atom.getKind() == kind::EQUAL, "atom should be an EQUALity, not `%s'", atom.toString().c_str());
+    Assert(atom.getKind() == kind::EQUAL) << "atom should be an EQUALity, not `" <<  atom.toString() << "'" << std::endl;
     if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
       d_sharedTerms.assertEquality(atom, polarity, assertion);
     }
@@ -2138,7 +2138,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     }
 
     Debug("theory::explain") << "TheoryEngine::explain(): got explanation " << explanation << " got from " << toExplain.theory << endl;
-    Assert( explanation != toExplain.node, "wasn't sent to you, so why are you explaining it trivially");
+    Assert(explanation != toExplain.node) << "wasn't sent to you, so why are you explaining it trivially" << std::endl;
     // Mark the explanation
     NodeTheoryPair newExplain(explanation, toExplain.theory, toExplain.timestamp);
     explanationVector.push_back(newExplain);
@@ -2223,7 +2223,7 @@ void TheoryEngine::checkTheoryAssertionsWithModel() {
           ss << theoryId << " has an asserted fact that the model doesn't satisfy." << endl
              << "The fact: " << assertion << endl
              << "Model value: " << val << endl;
-          InternalError(ss.str());
+          InternalError() << ss.str() << std::endl;
         }
       }
     }

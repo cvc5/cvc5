@@ -2047,12 +2047,12 @@ void StrongSolverTheoryUF::preRegisterTerm( TNode n ){
           Debug("uf-ss-na") << "Error: Cannot perform finite model finding on arithmetic quantifier";
           Debug("uf-ss-na") << " (" << f << ")";
           Debug("uf-ss-na") << std::endl;
-          Unimplemented("Cannot perform finite model finding on arithmetic quantifier");
+          Unimplemented() << "Cannot perform finite model finding on arithmetic quantifier" << std::endl;
         }else if( tn.isDatatype() ){
           Debug("uf-ss-na") << "Error: Cannot perform finite model finding on datatype quantifier";
           Debug("uf-ss-na") << " (" << f << ")";
           Debug("uf-ss-na") << std::endl;
-          Unimplemented("Cannot perform finite model finding on datatype quantifier");
+          Unimplemented() << "Cannot perform finite model finding on datatype quantifier" << std::endl;
         }
         */
       }

@@ -24,6 +24,7 @@
 #define __CVC4__DEBUG_H
 
 #include <cassert>
+#include "base/portability.h"
 
 #ifdef CVC4_ASSERTIONS
 // the __builtin_expect() helps us if assert is built-in or a macro

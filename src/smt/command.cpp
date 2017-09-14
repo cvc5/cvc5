@@ -994,8 +994,7 @@ GetValueCommand::GetValueCommand(Expr term) throw() :
 
 GetValueCommand::GetValueCommand(const std::vector<Expr>& terms) throw() :
   d_terms(terms) {
-  PrettyCheckArgument(terms.size() >= 1, terms,
-                      "cannot get-value of an empty set of terms");
+  PrettyCheckArgument(terms.size() >= 1, terms) <<  "cannot get-value of an empty set of terms" << std::endl;
 }
 
 const std::vector<Expr>& GetValueCommand::getTerms() const throw() {

@@ -72,7 +72,7 @@ void Context::push() {
 
 
 void Context::pop() {
-  Assert(getLevel() > 0, "Cannot pop below level 0");
+  Assert(getLevel() > 0) << "Cannot pop below level 0" << std::endl;
 
   // Notify the (pre-pop) ContextNotifyObj objects
   ContextNotifyObj* pCNO = d_pCNOpre;
@@ -152,8 +152,9 @@ void ContextObj::update() throw(AssertionException) {
   Assert( ( pContextObjSaved->d_pContextObjNext == d_pContextObjNext &&
             pContextObjSaved->d_ppContextObjPrev == d_ppContextObjPrev &&
             pContextObjSaved->d_pContextObjRestore == d_pContextObjRestore &&
-            pContextObjSaved->d_pScope == d_pScope ),
-          "save() did not properly copy information in base class" );
+            pContextObjSaved->d_pScope == d_pScope )
+        ) << "save() did not properly copy information in base class" << std::endl;
+
 
   // Link the "saved" object in place of this ContextObj in the scope
   // we're moving it FROM.
@@ -271,7 +272,7 @@ ContextObj::ContextObj(Context* pContext) :
   d_pContextObjNext(NULL),
   d_ppContextObjPrev(NULL) {
 
-  Assert(pContext != NULL, "NULL context pointer");
+  Assert(pContext != NULL) << "NULL context pointer" << std::endl;
 
   Debug("context") << "create new ContextObj(" << this << " inCMM=false)" << std::endl;
   d_pScope = pContext->getBottomScope();
@@ -285,7 +286,7 @@ ContextObj::ContextObj(bool allocatedInCMM, Context* pContext) :
   d_pContextObjNext(NULL),
   d_ppContextObjPrev(NULL) {
 
-  Assert(pContext != NULL, "NULL context pointer");
+  Assert(pContext != NULL) << "NULL context pointer" << std::endl;
 
   Debug("context") << "create new ContextObj(" << this << " inCMM=" << allocatedInCMM << ")" << std::endl;
   if(allocatedInCMM) {

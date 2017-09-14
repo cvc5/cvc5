@@ -260,8 +260,7 @@ struct ConstantMapReverse< ::CVC4::kind::$1 > {
 
 template <>
 $2 const& NodeValue::getConst< $2 >() const {
-  AssertArgument(getKind() == ::CVC4::kind::$1, *this,
-                 \"Improper kind for getConst<$2>()\");
+  AssertArgument(getKind() == ::CVC4::kind::$1, *this) << \"Improper kind for getConst<$2>()\" << std::endl;
   // To support non-inlined CONSTANT-kinded NodeValues (those that are
   // \"constructed\" when initially checking them against the NodeManager
   // pool), we must check d_nchildren here.

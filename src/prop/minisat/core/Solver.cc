@@ -192,7 +192,7 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
 void Solver::resizeVars(int newSize) {
   assert(enable_incremental);
   assert(decisionLevel() == 0);
-  Assert(newSize >= 2, "always keep true/false");
+  Assert(newSize >= 2) << "always keep true/false" << std::endl;
   if (newSize < nVars()) {
     int shrinkSize = nVars() - newSize;
 
@@ -568,7 +568,7 @@ Lit Solver::pickBranchLit()
       return lit_Undef;
     }
     if(nextLit != lit_Undef) {
-      Assert(value(var(nextLit)) == l_Undef, "literal to decide already has value");
+      Assert(value(var(nextLit)) == l_Undef) << "literal to decide already has value" << std::endl;
       decisions++;
       Var next = var(nextLit);
       if(polarity[next] & 0x2) {

@@ -919,7 +919,7 @@ public:
            << std::endl
            << "domain, and all applications are to integer values." << std::endl
            << "Found application: " << n;
-        Unhandled(ss.str());
+        Unhandled() << ss.str() << std::endl;
       }
     }
 
@@ -1108,9 +1108,8 @@ void SmtEngine::finalOptionsAreSet() {
   // finish initialization, create the prop engine, etc.
   finishInit();
 
-  AlwaysAssert( d_propEngine->getAssertionLevel() == 0,
-                "The PropEngine has pushed but the SmtEngine "
-                "hasn't finished initializing!" );
+  AlwaysAssert(d_propEngine->getAssertionLevel() == 0) 
+    << "The PropEngine has pushed but the SmtEngine hasn't finished initializing!" << std::endl;
 
   d_fullyInited = true;
   Assert(d_logic.isLocked());
@@ -1245,8 +1244,7 @@ LogicInfo SmtEngine::getLogicInfo() const {
 }
 
 void SmtEngine::setLogicInternal() throw() {
-  Assert(!d_fullyInited, "setting logic in SmtEngine but the engine has already"
-         " finished initializing for this run");
+  Assert(!d_fullyInited) << "setting logic in SmtEngine but the engine has already finished initializing for this run" << std::endl;
   d_logic.lock();
 }
 
@@ -3495,7 +3493,7 @@ void SmtEnginePrivate::doMiplibTrick() {
           if(mark != 3) { // exclude single-var case; nothing to check there
             uint64_t sz = (uint64_t(1) << checks[pos_var].size()) - 1;
             sz = (sz == 0) ? -1 : sz; // fix for overflow
-            Assert(sz == mark, "expected size %u == mark %u", sz, mark);
+            Assert(sz == mark) << "expected size " << sz << " == mark " << mark << std::endl;
             for(size_t k = 0; k < checks[pos_var].size(); ++k) {
               if((k & (k - 1)) != 0) {
                 Rational sum = 0;
@@ -3514,7 +3512,9 @@ void SmtEnginePrivate::doMiplibTrick() {
                   break;
                 }
               } else {
-                Assert(checks[pos_var][k] == 0, "checks[(%s,%s)][%u] should be 0, but it's %s", pos.toString().c_str(), var.toString().c_str(), k, checks[pos_var][k].toString().c_str()); // we never set for single-positive-var
+                Assert(checks[pos_var][k] == 0) 
+                    << "checks[(" << pos.toString() << "," << var.toString() << ")][" << k 
+                    << "] should be 0, but it's" << checks[pos_var][k].toString() << std::endl; // we never set for single-positive-var
               }
             }
           }
@@ -3545,15 +3545,11 @@ void SmtEnginePrivate::doMiplibTrick() {
               SubstitutionMap nullMap(&d_fakeContext);
               Theory::PPAssertStatus status CVC4_UNUSED; // just for assertions
               status = d_smt.d_theoryEngine->solve(geq, nullMap);
-              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
-                     "unexpected solution from arith's ppAssert()");
-              Assert(nullMap.empty(),
-                     "unexpected substitution from arith's ppAssert()");
+              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED) << "unexpected solution from arith's ppAssert()" << std::endl;
+              Assert(nullMap.empty()) << "unexpected substitution from arith's ppAssert()" << std::endl;
               status = d_smt.d_theoryEngine->solve(leq, nullMap);
-              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
-                     "unexpected solution from arith's ppAssert()");
-              Assert(nullMap.empty(),
-                     "unexpected substitution from arith's ppAssert()");
+              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED) << "unexpected solution from arith's ppAssert()" << std::endl;
+              Assert(nullMap.empty()) << "unexpected substitution from arith's ppAssert()" << std::endl;
               d_smt.d_theoryEngine->getModel()->addSubstitution(*ii, newVar.eqNode(one));
               newVars.push_back(newVar);
               varRef = newVar;
@@ -3749,7 +3745,7 @@ bool SmtEnginePrivate::simplifyAssertions()
     stringstream ss;
     ss << "A bad expression was produced.  Original exception follows:\n"
        << tcep;
-    InternalError(ss.str().c_str());
+    InternalError() << ss.str() << std::endl;
   }
   return true;
 }
@@ -4721,8 +4717,7 @@ Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckin
   Trace("smt") << "--- model-post expected " << expectedType << endl;
 
   // type-check the result we got
-  Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(expectedType),
-         "Run with -t smt for details.");
+  Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(expectedType)) << "Run with -t smt for details." << std::endl;
 
   // ensure it's a constant
   Assert(resultNode.getKind() == kind::LAMBDA || resultNode.isConst());
@@ -4743,20 +4738,18 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
   Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
   Type type = e.getType(options::typeChecking());
   // must be Boolean
-  PrettyCheckArgument(
-      type.isBoolean(), e,
-      "expected Boolean-typed variable or function application "
-      "in addToAssignment()" );
+  PrettyCheckArgument( type.isBoolean(), e ) 
+      << "expected Boolean-typed variable or function application "
+      << "in addToAssignment()" << std::endl;
   Node n = e.getNode();
   // must be an APPLY of a zero-ary defined function, or a variable
-  PrettyCheckArgument(
-      ( ( n.getKind() == kind::APPLY &&
+  PrettyCheckArgument( ( ( n.getKind() == kind::APPLY &&
           ( d_definedFunctions->find(n.getOperator()) !=
             d_definedFunctions->end() ) &&
           n.getNumChildren() == 0 ) ||
-        n.isVar() ), e,
-      "expected variable or defined-function application "
-      "in addToAssignment(),\ngot %s", e.toString().c_str() );
+        n.isVar() ), e) 
+      << "expected variable or defined-function application "
+      << "in addToAssignment(),\ngot " << e.toString() << std::endl;
   if(!options::produceAssignments()) {
     return false;
   }
@@ -4899,7 +4892,7 @@ Model* SmtEngine::getModel() {
 }
 
 void SmtEngine::checkUnsatCore() {
-  Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
+  Assert(options::unsatCores()) << "cannot check unsat core if unsat cores are turned off" << std::endl;
 
   Notice() << "SmtEngine::checkUnsatCore(): generating unsat core" << endl;
   UnsatCore core = getUnsatCore();
@@ -4931,18 +4924,18 @@ void SmtEngine::checkUnsatCore() {
   }
   Notice() << "SmtEngine::checkUnsatCore(): result is " << r << endl;
   if(r.asSatisfiabilityResult().isUnknown()) {
-    InternalError("SmtEngine::checkUnsatCore(): could not check core result unknown.");
+    InternalError() << "SmtEngine::checkUnsatCore(): could not check core result unknown." << std::endl;
   }
 
   if(r.asSatisfiabilityResult().isSat()) {
-    InternalError("SmtEngine::checkUnsatCore(): produced core was satisfiable.");
+    InternalError() << "SmtEngine::checkUnsatCore(): produced core was satisfiable." << std::endl;
   }
 }
 
 void SmtEngine::checkModel(bool hardFailure) {
   // --check-model implies --produce-assertions, which enables the
   // assertion list, so we should be ok.
-  Assert(d_assertionList != NULL, "don't have an assertion list to check in SmtEngine::checkModel()");
+  Assert(d_assertionList != NULL) << "don't have an assertion list to check in SmtEngine::checkModel()" << std::endl;
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
@@ -5006,7 +4999,7 @@ void SmtEngine::checkModel(bool hardFailure) {
           }
           ss << "so " << func << " is defined in terms of itself." << endl
              << "Run with `--check-models -v' for additional diagnostics.";
-          InternalError(ss.str());
+          InternalError() << ss.str() << std::endl;
         }
       }
 
@@ -5019,7 +5012,7 @@ void SmtEngine::checkModel(bool hardFailure) {
            << "             is " << val << endl
            << "and that is not a constant (.isConst() == false)." << endl
            << "Run with `--check-models -v' for additional diagnostics.";
-        InternalError(ss.str());
+        InternalError() << ss.str() << std::endl;
       }
 
       // (3) check that it's the correct (sub)type
@@ -5034,7 +5027,7 @@ void SmtEngine::checkModel(bool hardFailure) {
            << "value type is     " << val.getType() << endl
            << "should be of type " << func.getType() << endl
            << "Run with `--check-models -v' for additional diagnostics.";
-        InternalError(ss.str());
+        InternalError() << ss.str() << std::endl;
       }
 
       // (4) checks complete, add the substitution
@@ -5123,7 +5116,7 @@ void SmtEngine::checkModel(bool hardFailure) {
          << "expected `true'." << endl
          << "Run with `--check-models -v' for additional diagnostics.";
       if(hardFailure) {
-        InternalError(ss.str());
+        InternalError() << ss.str() << std::endl;
       } else {
         Warning() << ss.str() << endl;
       }
@@ -5237,7 +5230,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
     if( r.asSatisfiabilityResult().isSat() != Result::SAT && doFull ){
       stringstream ss;
       ss << "While performing quantifier elimination, unexpected result : " << r << " for query.";
-      InternalError(ss.str().c_str());
+      InternalError() << ss.str() << std::endl;
     }
     std::vector< Node > inst_qs;
     d_theoryEngine->getInstantiatedQuantifiedFormulas( inst_qs );
@@ -5645,8 +5638,7 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 }
 
 void SmtEngine::setReplayStream(ExprStream* replayStream) {
-  AlwaysAssert(!d_fullyInited,
-               "Cannot set replay stream once fully initialized");
+  AlwaysAssert(!d_fullyInited) << "Cannot set replay stream once fully initialized" << std::endl;
   d_replayStream = replayStream;
 }
 

@@ -91,7 +91,7 @@ class SymbolTable::Implementation {
 
 void SymbolTable::Implementation::bind(const string& name, Expr obj,
                                        bool levelZero) throw() {
-  PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
+  PrettyCheckArgument(!obj.isNull(), obj) << "cannot bind to a null Expr" << std::endl;
   ExprManagerScope ems(obj);
   if (levelZero) {
     d_exprMap->insertAtContextLevelZero(name, obj);
@@ -103,7 +103,7 @@ void SymbolTable::Implementation::bind(const string& name, Expr obj,
 void SymbolTable::Implementation::bindDefinedFunction(const string& name,
                                                       Expr obj,
                                                       bool levelZero) throw() {
-  PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
+  PrettyCheckArgument(!obj.isNull(), obj) << "cannot bind to a null Expr" << std::endl;
   ExprManagerScope ems(obj);
   if (levelZero) {
     d_exprMap->insertAtContextLevelZero(name, obj);
@@ -168,10 +168,10 @@ bool SymbolTable::Implementation::isBoundType(const string& name) const
 
 Type SymbolTable::Implementation::lookupType(const string& name) const throw() {
   pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
-  PrettyCheckArgument(p.first.size() == 0, name,
-                      "type constructor arity is wrong: "
-                      "`%s' requires %u parameters but was provided 0",
-                      name.c_str(), p.first.size());
+  PrettyCheckArgument(p.first.size() == 0, name)
+                      << "type constructor arity is wrong: `" << name
+                      << "' requires " << p.first.size() << "parameters but was provided 0"
+                      << std::endl;
   return p.second;
 }
 
@@ -179,10 +179,12 @@ Type SymbolTable::Implementation::lookupType(const string& name,
                                              const vector<Type>& params) const
     throw() {
   pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
-  PrettyCheckArgument(p.first.size() == params.size(), params,
-                      "type constructor arity is wrong: "
-                      "`%s' requires %u parameters but was provided %u",
-                      name.c_str(), p.first.size(), params.size());
+  PrettyCheckArgument(p.first.size() == params.size(), params)
+                      << "type constructor arity is wrong: `" << name
+                      << "' requires " << p.first.size()
+                      << " parameters but was provided " << params.size()
+                      << std::endl;
+
   if (p.first.size() == 0) {
     PrettyCheckArgument(p.second.isSort(), name.c_str());
     return p.second;
@@ -207,8 +209,8 @@ Type SymbolTable::Implementation::lookupType(const string& name,
 
     return instantiation;
   } else if (p.second.isDatatype()) {
-    PrettyCheckArgument(DatatypeType(p.second).isParametric(), name,
-                        "expected parametric datatype");
+    PrettyCheckArgument(DatatypeType(p.second).isParametric(), name)
+                        << "expected parametric datatype" << std::endl;
     return DatatypeType(p.second).instantiate(params);
   } else {
     if (Debug.isOn("sort")) {

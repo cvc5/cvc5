@@ -121,7 +121,7 @@ TheoryProof* TheoryProofEngine::getTheoryProof(theory::TheoryId id) {
   if (d_theoryProofTable.find(id) == d_theoryProofTable.end()) {
     std::stringstream ss;
     ss << "Error! Proofs not yet supported for the following theory: " << id << std::endl;
-    InternalError(ss.str().c_str());
+    InternalError() << ss.str().c_str() << std::endl;
   }
 
   return d_theoryProofTable[id];
@@ -966,7 +966,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
   }
 
   default:
-    Unhandled(k);
+    Unhandled() << k << std::endl;
   }
 
 }
@@ -998,7 +998,7 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
     os << " (clausify_false trust)";
     return;
   } else {
-    InternalError(std::string("can't generate theory-proof for ") + ProofManager::currentPM()->getLogic());
+    InternalError() << "can't generate theory-proof for " << ProofManager::currentPM()->getLogic() << std::endl;
   }
 
   Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - calling th->ProduceProofs()" << std::endl;
@@ -1188,7 +1188,7 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
     return;
 
   default:
-    Unhandled(k);
+    Unhandled() << k << std::endl;
   }
 
 }
@@ -1225,7 +1225,7 @@ void LFSCBooleanProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                              std::ostream& os,
                                              std::ostream& paren,
                                              const ProofLetMap& map) {
-  Unreachable("No boolean lemmas yet!");
+  Unreachable() << "No boolean lemmas yet!" << std::endl;
 }
 
 bool LFSCBooleanProof::printsAsBool(const Node &n)

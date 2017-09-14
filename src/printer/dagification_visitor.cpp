@@ -99,7 +99,7 @@ void DagificationVisitor::visit(TNode current, TNode parent) {
 }
 
 void DagificationVisitor::start(TNode node) {
-  AlwaysAssert(!d_done, "DagificationVisitor cannot be re-used");
+  AlwaysAssert(!d_done) << "DagificationVisitor cannot be re-used" << std::endl;
   d_top = node;
 }
 
@@ -144,12 +144,12 @@ void DagificationVisitor::done(TNode node) {
 }
 
 const theory::SubstitutionMap& DagificationVisitor::getLets() {
-  AlwaysAssert(d_done, "DagificationVisitor must be used as a visitor before getting the dagified version out!");
+  AlwaysAssert(d_done) << "DagificationVisitor must be used as a visitor before getting the dagified version out!" << std::endl;
   return *d_substitutions;
 }
 
 Node DagificationVisitor::getDagifiedBody() {
-  AlwaysAssert(d_done, "DagificationVisitor must be used as a visitor before getting the dagified version out!");
+  AlwaysAssert(d_done) << "DagificationVisitor must be used as a visitor before getting the dagified version out!" << std::endl;
 
 #ifdef CVC4_TRACING
 #  ifdef CVC4_DEBUG

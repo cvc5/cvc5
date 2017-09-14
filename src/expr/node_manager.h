@@ -400,14 +400,15 @@ public:
 
   /** Subscribe to NodeManager events */
   void subscribeEvents(NodeManagerListener* listener) {
-    Assert(std::find(d_listeners.begin(), d_listeners.end(), listener) == d_listeners.end(), "listener already subscribed");
+    Assert(std::find(d_listeners.begin(), d_listeners.end(), listener) == d_listeners.end())
+        << "listener already subscribed" << std::endl;
     d_listeners.push_back(listener);
   }
 
   /** Unsubscribe from NodeManager events */
   void unsubscribeEvents(NodeManagerListener* listener) {
     std::vector<NodeManagerListener*>::iterator elt = std::find(d_listeners.begin(), d_listeners.end(), listener);
-    Assert(elt != d_listeners.end(), "listener not subscribed");
+    Assert(elt != d_listeners.end()) << "listener not subscribed" << std::endl;
     d_listeners.erase(elt);
   }
   
@@ -572,9 +573,8 @@ public:
    * n.getConst<CVC4::Kind>() will yield k.
    */
   inline TNode operatorOf(Kind k) {
-    AssertArgument( kind::metaKindOf(k) == kind::metakind::OPERATOR, k,
-                    "Kind is not an OPERATOR-kinded kind "
-                    "in NodeManager::operatorOf()" );
+    AssertArgument( kind::metaKindOf(k) == kind::metakind::OPERATOR, k )
+        << "Kind is not an OPERATOR-kinded kind in NodeManager::operatorOf()" << std::endl;
     return d_operators[k];
   }
 
@@ -1164,14 +1164,12 @@ inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
 }
 
 inline void NodeManager::poolInsert(expr::NodeValue* nv) {
-  Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end(),
-         "NodeValue already in the pool!");
+  Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end()) << "NodeValue already in the pool!" << std::endl;
   d_nodeValuePool.insert(nv);// FIXME multithreading
 }
 
 inline void NodeManager::poolRemove(expr::NodeValue* nv) {
-  Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end(),
-         "NodeValue is not in the pool!");
+  Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end()) << "NodeValue is not in the pool!" << std::endl;
 
   d_nodeValuePool.erase(nv);// FIXME multithreading
 }
@@ -1228,7 +1226,7 @@ inline bool NodeManager::hasOperator(Kind k) {
     return false;
 
   default:
-    Unhandled(mk);
+    Unhandled() << mk << std::endl;
   }
 }
 

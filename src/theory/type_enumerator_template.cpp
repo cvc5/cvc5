@@ -38,7 +38,7 @@ ${mk_type_enumerator_type_constant_cases}
       {
         stringstream ss;
         ss << "No type enumerator for type `" << type << "'";
-        Unhandled(ss.str());
+        Unhandled() << ss.str() << std::endl;
       }
     }
     Unreachable();
@@ -48,7 +48,7 @@ ${mk_type_enumerator_cases}
     {
       stringstream ss;
       ss << "No type enumerator for type `" << type << "'";
-      Unhandled(ss.str());
+      Unhandled() << ss.str() << std::endl;
     }
   }
   Unreachable();

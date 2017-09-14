@@ -161,7 +161,7 @@ void PicklerPrivate::toCaseNode(TNode n)
     toCaseOperator(n);
     break;
   default:
-    Unhandled(m);
+    Unhandled() << m << std::endl;
   }
 }
 
@@ -238,7 +238,7 @@ void PicklerPrivate::toCaseConstant(TNode n) {
     break;
   }
   default:
-    Unhandled(k);
+    Unhandled() << k << std::endl;
   }
 }
 
@@ -310,7 +310,7 @@ Expr Pickler::fromPickle(Pickle& p) {
       result = d_private->fromCaseOperator(k, front.d_headerOperator.d_nchildren);
       break;
     default:
-      Unhandled(m);
+      Unhandled() << m << std::endl;
     }
     Assert(result != Node::null());
     d_private->d_stack.push(result);
@@ -381,7 +381,7 @@ Node PicklerPrivate::fromCaseConstant(Kind k, uint32_t constblocks) {
     return d_nm->mkConst<BitVectorSignExtend>(bvse);
   }
   default:
-    Unhandled(k);
+    Unhandled() << k << std::endl;
   }
 }
 

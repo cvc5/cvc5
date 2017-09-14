@@ -119,7 +119,7 @@ public:
     if(d_te->isFinished()) {
       try {
         **d_te;
-        Assert(false, "expected an NoMoreValuesException to be thrown");
+        Assert(false) << "expected an NoMoreValuesException to be thrown" << std::endl;
       } catch(NoMoreValuesException&) {
         // ignore the exception, we're just asserting that it would be thrown
         //
@@ -132,7 +132,7 @@ public:
       try {
         **d_te;
       } catch(NoMoreValuesException&) {
-        Assert(false, "didn't expect a NoMoreValuesException to be thrown");
+        Assert(false) << "didn't expect a NoMoreValuesException to be thrown" << std::endl;
       }
     }
 #endif /* CVC4_ASSERTIONS && !(APPLE || clang) */
