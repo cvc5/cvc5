@@ -23,6 +23,7 @@
 #include <fenv.h>
 
 #include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace CVC4 {
   // Inline these!
@@ -127,25 +128,83 @@ namespace CVC4 {
   public :
     FloatingPointSize t;
 
-    FloatingPoint (unsigned e, unsigned s, double d) : fpl(e,s,d), t(e,s) {}
-    FloatingPoint (unsigned e, unsigned s, const std::string &bitString) : fpl(e,s,bitString), t(e,s) {}
+    FloatingPoint (unsigned e, unsigned s, const BitVector &bv);
+    FloatingPoint (const FloatingPointSize &oldt, const FloatingPointLiteral &oldfpl) : fpl(oldfpl), t(oldt) {}
     FloatingPoint (const FloatingPoint &fp) : fpl(fp.fpl), t(fp.t) {}
+    FloatingPoint (const FloatingPointSize &ct, const RoundingMode &rm, const BitVector &bv, bool signedBV);
+    FloatingPoint (const FloatingPointSize &ct, const RoundingMode &rm, const Rational &r);
 
-    bool operator ==(const FloatingPoint& fp) const {
-      return ( (t == fp.t) && fpl == fp.fpl );
-    }
+
+    static FloatingPoint makeNaN (const FloatingPointSize &t);
+    static FloatingPoint makeInf (const FloatingPointSize &t, bool sign);
+    static FloatingPoint makeZero (const FloatingPointSize &t, bool sign);
 
     const FloatingPointLiteral & getLiteral (void) const {
       return this->fpl;
     }
 
+    // Gives the corresponding IEEE-754 transfer format
+    BitVector pack (void) const;
+
+
+    FloatingPoint absolute (void) const;
+    FloatingPoint negate (void) const;
+    FloatingPoint plus (const RoundingMode &rm, const FloatingPoint &arg) const;
+    FloatingPoint sub (const RoundingMode &rm, const FloatingPoint &arg) const;
+    FloatingPoint mult (const RoundingMode &rm, const FloatingPoint &arg) const;
+    FloatingPoint div (const RoundingMode &rm, const FloatingPoint &arg) const;
+    FloatingPoint fma (const RoundingMode &rm, const FloatingPoint &arg1, const FloatingPoint &arg2) const;
+    FloatingPoint sqrt (const RoundingMode &rm) const;
+    FloatingPoint rti (const RoundingMode &rm) const;
+    FloatingPoint rem (const FloatingPoint &arg) const;
+
+    // zeroCase is whether the left or right is returned in the case of min/max(-0,+0) or (+0,-0)
+    FloatingPoint maxTotal (const FloatingPoint &arg, bool zeroCaseLeft) const;
+    FloatingPoint minTotal (const FloatingPoint &arg, bool zeroCaseLeft) const;
+
+    // These detect when the answer is defined
+    typedef std::pair<FloatingPoint, bool> PartialFloatingPoint;
+
+    PartialFloatingPoint max (const FloatingPoint &arg) const;
+    PartialFloatingPoint min (const FloatingPoint &arg) const;
+
+
+    bool operator ==(const FloatingPoint& fp) const;
+    bool operator <= (const FloatingPoint &arg) const;
+    bool operator < (const FloatingPoint &arg) const;
+
+    bool isNormal (void) const;
+    bool isSubnormal (void) const;
+    bool isZero (void) const;
+    bool isInfinite (void) const;
+    bool isNaN (void) const;
+    bool isNegative (void) const;
+    bool isPositive (void) const;
+
+    FloatingPoint convert (const FloatingPointSize &target, const RoundingMode &rm) const;
+
+    // These require a value to return in the undefined case
+    BitVector convertToBVTotal (BitVectorSize width, const RoundingMode &rm,
+				bool signedBV, BitVector undefinedCase) const;
+    Rational convertToRationalTotal (Rational undefinedCase) const;
+
+    // These detect when the answer is defined
+    typedef std::pair<BitVector, bool> PartialBitVector;
+    typedef std::pair<Rational, bool> PartialRational;
+
+    PartialBitVector convertToBV (BitVectorSize width, const RoundingMode &rm,
+				bool signedBV) const;
+    PartialRational convertToRational (void) const;
+
   }; /* class FloatingPoint */
 
 
   struct CVC4_PUBLIC FloatingPointHashFunction {
-    inline size_t operator() (const FloatingPoint& fp) const {
-      FloatingPointSizeHashFunction h;
-      return h(fp.t) ^ fp.getLiteral().hash();
+    size_t operator() (const FloatingPoint& fp) const {
+      FloatingPointSizeHashFunction fpshf;
+      BitVectorHashFunction bvhf;
+
+      return fpshf(fp.t) ^ bvhf(fp.pack());
     }
   }; /* struct FloatingPointHashFunction */
 
@@ -235,16 +294,28 @@ namespace CVC4 {
   }; /* struct FloatingPointToBVHashFunction */
 
 
-
+  // It is not possible to pack a number without a size to pack to,
+  // thus it is difficult to implement this in a sensible way.  Use
+  // FloatingPoint instead...
+  /*
   inline std::ostream& operator <<(std::ostream& os, const FloatingPointLiteral& fp) CVC4_PUBLIC;
   inline std::ostream& operator <<(std::ostream& os, const FloatingPointLiteral& fp) {
-    fp.unfinished();
-    return os;
+    return os << "FloatingPointLiteral";
   }
+  */
 
   inline std::ostream& operator <<(std::ostream& os, const FloatingPoint& fp) CVC4_PUBLIC;
   inline std::ostream& operator <<(std::ostream& os, const FloatingPoint& fp) {
-    return os << fp.getLiteral();
+    BitVector bv(fp.pack());
+
+    unsigned largestSignificandBit = fp.t.significand() - 2; // -1 for -inclusive, -1 for hidden
+    unsigned largestExponentBit = (fp.t.exponent() - 1) + (largestSignificandBit + 1);
+
+    return os
+      << "(fp #b" << bv.extract(largestExponentBit + 1, largestExponentBit + 1)
+      << " #b" << bv.extract(largestExponentBit, largestSignificandBit + 1)
+      << " #b" << bv.extract(largestSignificandBit, 0)
+      << ")";
   }
 
   inline std::ostream& operator <<(std::ostream& os, const FloatingPointSize& fps) CVC4_PUBLIC;
