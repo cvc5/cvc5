@@ -296,18 +296,21 @@ private:
 public:
   Node extendedRewrite( Node n );
   
-// for default grammar construction
+// for grammar construction
 private:
   TypeNode mkUnresolvedType(const std::string& name, std::set<Type>& unres);
   void mkSygusConstantsForType( TypeNode type, std::vector<CVC4::Node>& ops );
   void collectSygusGrammarTypesFor( TypeNode range, std::vector< TypeNode >& types, std::map< TypeNode, std::vector< DatatypeConstructorArg > >& sels );
   void mkSygusDefaultGrammar( TypeNode range, Node bvl, const std::string& fun, std::map< TypeNode, std::vector< Node > >& extra_cons, std::vector< CVC4::Datatype >& datatypes, std::set<Type>& unres );
+  TypeNode mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
+                                const std::string& fun, unsigned& tcount );
 public:
   TypeNode mkSygusDefaultType( TypeNode range, Node bvl, const std::string& fun, std::map< TypeNode, std::vector< Node > >& extra_cons );
   TypeNode mkSygusDefaultType( TypeNode range, Node bvl, const std::string& fun ){
     std::map< TypeNode, std::vector< Node > > extra_cons;
     return mkSygusDefaultType( range, bvl, fun, extra_cons );
   }
+  TypeNode mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, const std::string& fun );
 };
 
 }/* CVC4::theory::quantifiers namespace */

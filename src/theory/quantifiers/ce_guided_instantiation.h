@@ -47,6 +47,7 @@ private:
   /** refinement lemmas */
   std::vector< Node > d_refinement_lemmas;
   std::vector< Node > d_refinement_lemmas_base;
+private:
   /** get embedding */
   Node convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars, std::map< Node, Node >& visited );
   /** collect constants */
@@ -79,7 +80,7 @@ public:
   
   bool needsRefinement();
   void getCandidateList( std::vector< Node >& clist, bool forceOrig = false );
-  bool constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, std::vector< Node >& candidate_values, 
+  bool constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, std::vector< Node >& candidate_values,
                             std::vector< Node >& lems );
 
   void doCegConjectureSingleInvCheck(std::vector< Node >& lems);
@@ -96,10 +97,6 @@ public:
     return d_ceg_si->reconstructToSyntax(s, stn, reconstructed, rconsSygus);
   }
 
-  std::vector<Node>& getProgTempVars(Node prog) {
-    return d_ceg_si->d_prog_templ_vars[prog];
-  }
-  
   void recordInstantiation( std::vector< Node >& vs ) {
     Assert( vs.size()==d_candidates.size() );
     for( unsigned i=0; i<vs.size(); i++ ){
