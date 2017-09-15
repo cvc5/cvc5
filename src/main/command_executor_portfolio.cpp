@@ -398,7 +398,12 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd, CommandContext *
         status = doCommandSingleton(gi, cc);
       } else if( d_options.getDumpUnsatCores() &&
                  d_result.asSatisfiabilityResult() == Result::UNSAT ) {
-        Command* guc = new GetUnsatCoreCommand();
+        Command* guc;
+        if( cc ) {
+          guc = new GetUnsatCoreCommand(cc->getUnsatCoreNames());
+        }else{
+          guc  = new GetUnsatCoreCommand();
+        }
         status = doCommandSingleton(guc, cc);
       }
     }
