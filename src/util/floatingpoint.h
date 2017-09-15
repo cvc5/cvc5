@@ -217,6 +217,8 @@ namespace CVC4 {
 
     FloatingPointConvertSort (unsigned _e, unsigned _s)
       : t(_e,_s) {}
+    FloatingPointConvertSort (const FloatingPointSize &fps)
+      : t(fps) {}
 
     bool operator ==(const FloatingPointConvertSort& fpcs) const {
       return t == fpcs.t;
