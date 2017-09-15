@@ -232,22 +232,39 @@ namespace CVC4 {
    */
 
   class CVC4_PUBLIC FloatingPointToFPIEEEBitVector : public FloatingPointConvertSort {
-  public : FloatingPointToFPIEEEBitVector (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+  public :
+    FloatingPointToFPIEEEBitVector (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+    FloatingPointToFPIEEEBitVector (const FloatingPointConvertSort &old) : FloatingPointConvertSort(old) {}
   };
+
   class CVC4_PUBLIC FloatingPointToFPFloatingPoint : public FloatingPointConvertSort {
-  public : FloatingPointToFPFloatingPoint (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+  public :
+    FloatingPointToFPFloatingPoint (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+    FloatingPointToFPFloatingPoint (const FloatingPointConvertSort &old) : FloatingPointConvertSort(old) {}
   };
+
   class CVC4_PUBLIC FloatingPointToFPReal : public FloatingPointConvertSort {
-  public : FloatingPointToFPReal (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+  public :
+    FloatingPointToFPReal (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+    FloatingPointToFPReal (const FloatingPointConvertSort &old) : FloatingPointConvertSort(old) {}
   };
+
   class CVC4_PUBLIC FloatingPointToFPSignedBitVector : public FloatingPointConvertSort {
-  public : FloatingPointToFPSignedBitVector (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+  public :
+    FloatingPointToFPSignedBitVector (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+    FloatingPointToFPSignedBitVector (const FloatingPointConvertSort &old) : FloatingPointConvertSort(old) {}
   };
+
   class CVC4_PUBLIC FloatingPointToFPUnsignedBitVector : public FloatingPointConvertSort {
-  public : FloatingPointToFPUnsignedBitVector (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+  public :
+    FloatingPointToFPUnsignedBitVector (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+    FloatingPointToFPUnsignedBitVector (const FloatingPointConvertSort &old) : FloatingPointConvertSort(old) {}
   };
+
   class CVC4_PUBLIC FloatingPointToFPGeneric : public FloatingPointConvertSort {
-  public : FloatingPointToFPGeneric (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+  public :
+    FloatingPointToFPGeneric (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+    FloatingPointToFPGeneric (const FloatingPointConvertSort &old) : FloatingPointConvertSort(old) {}
   };
 
 
@@ -276,14 +293,26 @@ namespace CVC4 {
 
     FloatingPointToBV (unsigned s)
       : bvs(s) {}
+    FloatingPointToBV (const FloatingPointToBV &old) : bvs(old.bvs) {}
+    FloatingPointToBV (const BitVectorSize &old) : bvs(old) {}
     operator unsigned () const { return bvs; }
   };
 
   class CVC4_PUBLIC FloatingPointToUBV : public FloatingPointToBV {
   public : FloatingPointToUBV (unsigned _s) : FloatingPointToBV(_s) {}
+    FloatingPointToUBV (const FloatingPointToBV &old) : FloatingPointToBV(old) {}
   };
   class CVC4_PUBLIC FloatingPointToSBV : public FloatingPointToBV {
   public : FloatingPointToSBV (unsigned _s) : FloatingPointToBV(_s) {}
+    FloatingPointToSBV (const FloatingPointToBV &old) : FloatingPointToBV(old) {}
+  };
+  class CVC4_PUBLIC FloatingPointToUBVTotal : public FloatingPointToBV {
+  public : FloatingPointToUBVTotal (unsigned _s) : FloatingPointToBV(_s) {}
+    FloatingPointToUBVTotal (const FloatingPointToBV &old) : FloatingPointToBV(old) {}
+  };
+  class CVC4_PUBLIC FloatingPointToSBVTotal : public FloatingPointToBV {
+  public : FloatingPointToSBVTotal (unsigned _s) : FloatingPointToBV(_s) {}
+    FloatingPointToSBVTotal (const FloatingPointToBV &old) : FloatingPointToBV(old) {}
   };
 
 
