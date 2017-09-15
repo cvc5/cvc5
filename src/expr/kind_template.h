@@ -92,13 +92,13 @@ ${theory_enum}
 const TheoryId THEORY_FIRST = static_cast<TheoryId>(0);
 const TheoryId THEORY_SAT_SOLVER = THEORY_LAST;
 
-inline TheoryId& operator ++ (TheoryId& id) {
+inline TheoryId& CVC4_PUBLIC operator ++ (TheoryId& id) {
   return id = static_cast<TheoryId>(((int)id) + 1);
 }
 
 std::ostream& operator<<(std::ostream& out, TheoryId theoryId);
 TheoryId kindToTheoryId(::CVC4::Kind k) CVC4_PUBLIC;
-TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant);
+TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant) CVC4_PUBLIC;
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
