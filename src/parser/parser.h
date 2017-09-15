@@ -20,6 +20,7 @@
 #define __CVC4__PARSER__PARSER_STATE_H
 
 #include <string>
+#include <stack>
 #include <set>
 #include <list>
 #include <cassert>
@@ -237,6 +238,11 @@ class CVC4_PUBLIC Parser {
 
   /** Lookup a symbol in the given namespace. */
   Expr getSymbol(const std::string& var_name, SymbolType type);
+
+  /** map from expressions to their names in unsat cores.
+   *  When using smt2 parsing, this is a user-context stack
+   */ 
+  std::stack< std::map<Expr, std::string> > d_unsatCoreNames;
 
 protected:
   /**
@@ -600,11 +606,34 @@ public:
 
   virtual void reset() {
     d_symtab->reset();
+    d_unsatCoreNames = std::stack< std::map<Expr, std::string> >();
+    d_unsatCoreNames.push(std::map<Expr, std::string>());
   }
 
   void setGlobalDeclarations(bool flag) {
     d_globalDeclarations = flag;
   }
+
+  /** push unsat core name scope */
+  void pushUnsatCoreNameScope() {
+    d_unsatCoreNames.push(d_unsatCoreNames.top());
+  }
+
+  /** pop unsat core name scope */
+  void popUnsatCoreNameScope() {
+    d_unsatCoreNames.pop();
+  }
+
+  /** register an unsat core name pair (expression, name for expression) */
+  void registerUnsatCoreName(std::pair<Expr, std::string> name) {
+    d_unsatCoreNames.top().insert(name);
+  }
+
+  /** get the map of all current unsat core names */
+  std::map<Expr, std::string> getUnsatCoreNames() {
+    return d_unsatCoreNames.top();
+  }
+
 
   /**
    * Set the current symbol table used by this parser.

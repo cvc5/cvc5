@@ -23,6 +23,7 @@
 #include "expr/expr.h" // for ExprSetDepth etc..
 #include "expr/node_manager.h" // for VarNameAttr
 #include "options/language.h" // for LANG_AST
+#include "options/smt_options.h" // for unsat cores
 #include "smt/command.h"
 
 using namespace std;
@@ -59,6 +60,20 @@ void TptpPrinter::toStream(std::ostream& out, const Model& m, const Command* c) 
   Unreachable();
 }
 
+void TptpPrinter::toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw() {
+  out << "% SZS output start UnsatCore " << std::endl;
+  for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
+    map<Expr, string>::const_iterator j = names.find(*i);
+    if (j != names.end()) {
+      // Named assertions always get printed
+      out << (*j).second << endl;
+    } else if (options::dumpUnsatCoresFull()) {
+      // Unnamed assertions only get printed if the option is set
+      out << *i << endl;
+    }
+  }
+  out << "% SZS output end UnsatCore " << std::endl;
+}
 
 }/* CVC4::printer::tptp namespace */
 }/* CVC4::printer namespace */

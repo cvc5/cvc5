@@ -59,6 +59,7 @@ Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode,
       d_logicIsForced(false),
       d_forcedLogic() {
   d_input->setParser(*this);
+  d_unsatCoreNames.push(std::map<Expr, std::string>());
 }
 
 Parser::~Parser() {

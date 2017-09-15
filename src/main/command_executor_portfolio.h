@@ -66,7 +66,7 @@ public:
   void flushStatistics(std::ostream& out) const;
 
 protected:
-  bool doCommandSingleton(Command* cmd);
+  bool doCommandSingleton(Command* cmd, CommandContext * cc);
 private:
   CommandExecutorPortfolio();
   void lemmaSharingInit();

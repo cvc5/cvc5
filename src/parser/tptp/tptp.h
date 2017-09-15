@@ -161,10 +161,9 @@ public:
       the formula is a CNF formula, inUnsatCore is whether expr is considered by unsat cores. */
   inline Command* makeCommand(FormulaRole fr, Expr& expr, bool cnf, bool inUnsatCore);
   
-  /** get name definition expression, where expr is named "name" for unsat core generation. 
-      This adds a define named 
+  /** set that the formula corresponding to expr is named "name" for unsat core generation
   */
-  inline Expr getNameDefinitionExpr(Expr& expr, std::string name);
+  inline void setUnsatCoreName(FormulaRole fr, Expr& expr, std::string name);
 
   /** Ugly hack because I don't know how to return an expression from a
       token */
@@ -245,12 +244,16 @@ inline Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf, bool inU
   return NULL;
 }
 
-inline Expr Tptp::getNameDefinitionExpr(Expr& expr, std::string name){
-  Expr func = mkFunction(name,expr.getType());
-  Command* c = new DefineNamedFunctionCommand(name, func, std::vector<Expr>(), expr);
+inline void Tptp::setUnsatCoreName(FormulaRole fr, Expr& expr, std::string name){
+  Expr cexpr = expr;
+  if(fr == FR_CONJECTURE) {
+    cexpr = getExprManager()->mkExpr(kind::NOT,cexpr);
+  }
+  Expr func = mkFunction(name,cexpr.getType());
+  Command* c = new DefineNamedFunctionCommand(name, func, std::vector<Expr>(), cexpr);
   c->setMuted(true);
   preemptCommand(c);
-  return func;
+  registerUnsatCoreName(std::pair<Expr, std::string>(cexpr,name));
 }
 
 namespace tptp {

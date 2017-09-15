@@ -169,9 +169,8 @@ parseCommand returns [CVC4::Command* cmd = NULL]
     (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
       PARSER_STATE->pushScope();
-      Expr func = PARSER_STATE->getNameDefinitionExpr(expr, name);
+      PARSER_STATE->setUnsatCoreName(fr, expr, name);
       cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ true, true);
-      //PARSER_STATE->registerUnsatCoreName(func);
       PARSER_STATE->popScope();
     }
   | FOF_TOK LPAREN_TOK nameN[name] COMMA_TOK formulaRole[fr] COMMA_TOK
@@ -179,9 +178,8 @@ parseCommand returns [CVC4::Command* cmd = NULL]
     fofFormula[expr] (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
       PARSER_STATE->pushScope();
-      Expr func = PARSER_STATE->getNameDefinitionExpr(expr, name);
+      PARSER_STATE->setUnsatCoreName(fr, expr, name);
       cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ false, true);
-      //PARSER_STATE->registerUnsatCoreName(func);
       PARSER_STATE->popScope();
     }
   | TFF_TOK LPAREN_TOK nameN[name] COMMA_TOK
@@ -191,9 +189,8 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       tffFormula[expr] (COMMA_TOK anything*)?
       {
         PARSER_STATE->pushScope();
-        Expr func = PARSER_STATE->getNameDefinitionExpr(expr, name);
+        PARSER_STATE->setUnsatCoreName(fr, expr, name);
         cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ false, true);
-        //PARSER_STATE->registerUnsatCoreName(func);
         PARSER_STATE->popScope();
       }
     ) RPAREN_TOK DOT_TOK

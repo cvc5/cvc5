@@ -61,7 +61,7 @@ void CommandExecutor::setReplayStream(ExprStream* replayStream) {
   d_smtEngine->setReplayStream(d_replayStream);
 }
 
-bool CommandExecutor::doCommand(Command* cmd)
+bool CommandExecutor::doCommand(Command* cmd, CommandContext * cc)
 {
   if( d_options.getParseOnly() ) {
     return true;
@@ -75,7 +75,7 @@ bool CommandExecutor::doCommand(Command* cmd)
     for(CommandSequence::iterator subcmd = seq->begin();
         (status || d_options.getContinuedExecution()) && subcmd != seq->end();
         ++subcmd) {
-      status = doCommand(*subcmd);
+      status = doCommand(*subcmd, cc);
     }
 
     return status;
@@ -84,7 +84,7 @@ bool CommandExecutor::doCommand(Command* cmd)
       *d_options.getOut() << "Invoking: " << *cmd << std::endl;
     }
 
-    return doCommandSingleton(cmd);
+    return doCommandSingleton(cmd, cc);
   }
 }
 
@@ -97,7 +97,7 @@ void CommandExecutor::reset()
   d_smtEngine = new SmtEngine(&d_exprMgr);
 }
 
-bool CommandExecutor::doCommandSingleton(Command* cmd)
+bool CommandExecutor::doCommandSingleton(Command* cmd, CommandContext * cc)
 {
   bool status = true;
   if(d_options.getVerbosity() >= -1) {
@@ -156,7 +156,11 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 
     if (d_options.getDumpUnsatCores() &&
         res.asSatisfiabilityResult() == Result::UNSAT) {
-      g = new GetUnsatCoreCommand();
+      if (cc) {
+        g = new GetUnsatCoreCommand(cc->getUnsatCoreNames());
+      }else{
+        g = new GetUnsatCoreCommand();
+      }
     }
 
     if (g != NULL) {
@@ -164,7 +168,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       if (d_options.getForceNoLimitCpuWhileDump()) {
         setNoLimitCPU();
       }
-      status = doCommandSingleton(g);
+      status = doCommandSingleton(g, cc);
       delete g;
     }
   }
