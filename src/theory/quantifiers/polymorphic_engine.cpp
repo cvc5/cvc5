@@ -275,7 +275,7 @@ void findPolymorphicConstants(TNode n, std::unordered_set<TNode, TNodeHashFuncti
 
 
 paralemma::paralemma(Node lemma) {
-  assert( TermDb::isPolymorphic(lemma) );
+  Assert( TermDb::isPolymorphic(lemma) );
 
   bv = lemma[0];
   origlemma = lemma;
