@@ -16,7 +16,6 @@ AC_CONFIG_SRCDIR([src/include/cvc4_public.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_LIBOBJ_DIR([src/lib])
-AC_CONFIG_SUBDIRS([proofs/lfsc_checker])
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
@@ -117,7 +116,22 @@ AC_ARG_WITH([build],
 if test -z "${with_build+set}"; then
   with_build=production
 fi
-if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_dumping+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}" -a -z "${enable_statistics+set}" -a -z "${enable_replay+set}" -a -z "${with_gmp+set}" -a -z "${with_cln+set}" -a -z "${with_glpk+set}" -a -z "${with_abc+set}" -a -z "${with_cryptominisat+set}"; then
+if test -z "${enable_optimized+set}" -a \
+        -z "${enable_debug_symbols+set}" -a \
+        -z "${enable_assertions+set}" -a \
+        -z "${enable_tracing+set}" -a \
+        -z "${enable_dumping+set}" -a \
+        -z "${enable_muzzle+set}" -a \
+        -z "${enable_coverage+set}" -a \
+        -z "${enable_profiling+set}" -a \
+        -z "${enable_statistics+set}" -a \
+        -z "${enable_replay+set}" -a \
+        -z "${with_gmp+set}" -a \
+        -z "${with_cln+set}" -a \
+        -z "${with_glpk+set}" -a \
+        -z "${with_abc+set}" -a \
+        -z "${with_cryptominisat+set}" -a \
+        -z "${with_lfsc+set}"; then
   custom_build_profile=no
 else
   custom_build_profile=yes
@@ -224,6 +238,12 @@ fi
 if test -n "${with_cryptominisat+set}"; then
   if test "$with_cryptominisat" = yes; then
     btargs="$btargs cryptominisat"
+  fi
+fi
+if test -n "${with_lfsc+set}"; then
+  if test "$with_lfsc" = yes; then
+    enable_proof=yes
+    btargs="$btargs lfsc"
   fi
 fi
 
@@ -557,7 +577,7 @@ AC_MSG_RESULT([$enable_static_binary])
 if test "$enable_static_binary" = yes; then
   if test "$target_vendor" = apple; then
     if test -z "$MAC_STATIC_BINARY_MANUAL_OVERRIDE"; then
-      AC_MSG_ERROR([[Statically-linked binaries are not supported on Mac OS.  See https://developer.apple.com/library/mac/#qa/qa2001/qa1118.html .  (If you ABSOLUTELY insist on this going forward and you know what you are doing, set MAC_STATIC_BINARY_MANUAL_OVERRIDE=1)]])
+      AC_MSG_ERROR([[Statically-linked binaries are not supported on macOS.  See  https://developer.apple.com/library/content/qa/qa1118/_index.html .  (If you ABSOLUTELY insist on this going forward and you know what you are doing, set MAC_STATIC_BINARY_MANUAL_OVERRIDE=1)]])
     else
       AC_MSG_WARN([MAC_STATIC_BINARY_MANUAL_OVERRIDE was set!])
       AC_MSG_WARN([Will make a static binary during this build.  Note that it may fail!])
@@ -828,6 +848,18 @@ AM_CONDITIONAL([CVC4_USE_CRYPTOMINISAT], [test $have_libcryptominisat -eq 1])
 AC_SUBST([CRYPTOMINISAT_LDFLAGS])
 AC_SUBST([CRYPTOMINISAT_LIBS])
 
+# Build with LFSC
+AC_ARG_WITH([lfsc],
+  [AS_HELP_STRING([--with-lfsc],
+     [use the LFSC proof checker])], [], [with_lfsc=])
+CVC4_CHECK_FOR_LFSC
+if test $have_liblfsc -eq 1; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_USE_LFSC"
+fi
+AM_CONDITIONAL([CVC4_USE_LFSC], [test $have_liblfsc -eq 1])
+AC_SUBST([LFSC_LDFLAGS])
+AC_SUBST([LFSC_LIBS])
+
 
 # Check to see if this version/architecture of GNU C++ explicitly
 # instantiates std::hash<uint64_t> or not.  Some do, some don't.
@@ -935,7 +967,8 @@ AC_ARG_WITH([cxxtest-dir],
 
 TESTS_ENVIRONMENT=
 RUN_REGRESSION_ARGS=
-if test "$enable_proof" = yes; then
+# FIXME currently, unsat core regressions are disabled without LFSC
+if test "$with_lfsc" = yes; then
   RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--proof"
 fi
 AC_SUBST([TESTS_ENVIRONMENT])
@@ -1179,35 +1212,6 @@ else
 fi
 AC_SUBST(CVC4_BUILD_LIBCOMPAT)
 AM_CONDITIONAL([CVC4_BUILD_LIBCOMPAT], [test "$CVC4_BUILD_LIBCOMPAT" = yes])
-
-# Check for availability of TLS support (e.g. __thread storage class)
-AC_MSG_CHECKING([whether to use compiler-supported TLS if available])
-AC_ARG_ENABLE([tls], AS_HELP_STRING([--disable-tls], [don't use compiler-native TLS]))
-if test $cvc4_has_threads = no; then
-  # We disable TLS entirely by simply telling the build system that
-  # the empty string is the __thread keyword.
-  AC_MSG_RESULT([multithreading disabled])
-  CVC4_TLS_SUPPORTED=1
-  CVC4_TLS=
-  CVC4_TLS_explanation='disabled (no multithreading support)'
-else
-  if test -z "${enable_tls+set}" || test "$enable_tls" = "yes"; then
-    AC_MSG_RESULT([yes])
-    AX_TLS([CVC4_TLS=$ac_cv_tls], [CVC4_TLS=])
-  else
-    AC_MSG_RESULT([no])
-    CVC4_TLS=
-  fi
-  if test -n "$CVC4_TLS"; then
-    CVC4_TLS_SUPPORTED=1
-    CVC4_TLS_explanation="$CVC4_TLS"
-  else
-    CVC4_TLS_explanation='pthread_getspecific()'
-    CVC4_TLS_SUPPORTED=0
-  fi
-fi
-AC_SUBST([CVC4_TLS])
-AC_SUBST([CVC4_TLS_SUPPORTED])
 
 # Whether to compile with google profiling tools
 cvc4_use_google_perftools=0
@@ -1466,7 +1470,6 @@ if test -n "$CVC4_LANGUAGE_BINDINGS"; then
   fi
 fi
 
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/base/tls.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/integer.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
 
@@ -1507,7 +1510,6 @@ Compat lib   : $CVC4_BUILD_LIBCOMPAT
 Bindings     : $bindings_to_be_built
 
 Multithreaded: $support_multithreaded
-TLS support  : $CVC4_TLS_explanation
 Portfolio    : $with_portfolio
 
 MP library   : $mplibrary

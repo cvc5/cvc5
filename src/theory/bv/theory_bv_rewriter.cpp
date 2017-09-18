@@ -30,8 +30,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
 
-// CVC4_THREADLOCAL(AllRewriteRules*) TheoryBVRewriter::s_allRules = NULL;
-// CVC4_THREADLOCAL(TimerStat*) TheoryBVRewriter::d_rewriteTimer = NULL;
+// CVC4_THREAD_LOCAL AllRewriteRules* TheoryBVRewriter::s_allRules = NULL;
+// CVC4_THREAD_LOCAL TimerStat* TheoryBVRewriter::d_rewriteTimer = NULL;
 RewriteFunction TheoryBVRewriter::d_rewriteTable[kind::LAST_KIND]; 
 void TheoryBVRewriter::init() {
    // s_allRules = new AllRewriteRules;

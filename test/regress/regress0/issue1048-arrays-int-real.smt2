@@ -1,0 +1,6 @@
+(set-logic QF_ALIRA)
+(declare-fun a () (Array Int Real))
+(declare-fun b () (Array Int Int))
+(assert (= a b))
+(assert (= (select a 0) 0.5))
+(check-sat)

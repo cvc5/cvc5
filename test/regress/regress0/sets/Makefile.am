@@ -86,7 +86,9 @@ TESTS =	\
 	sets-poly-nonint.smt2 \
 	int-real-univ.smt2 \
 	int-real-univ-unsat.smt2 \
-	sets-tuple-poly.cvc
+	sets-tuple-poly.cvc \
+	arjun-set-univ.cvc \
+	univ-set-uf-elim.smt2
 
 EXTRA_DIST = $(TESTS)
 

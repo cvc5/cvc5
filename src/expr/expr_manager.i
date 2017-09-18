@@ -44,7 +44,6 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorSize>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::AscriptionType>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorBitOf>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::SubrangeBounds>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorRepeat>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorExtract>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorRotateLeft>;
@@ -82,15 +81,8 @@
 
 // These cases have trouble too.  Remove them for now.
 //%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TypeConstant>;
-//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleSelect>;
-//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::Record>;
-//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordSelect>;
-
 #else
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::TypeConstant>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleSelect>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::Record>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordSelect>;
 %template(mkConst) CVC4::ExprManager::mkConst<bool>;
 #endif
 

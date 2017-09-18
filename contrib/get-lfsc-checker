@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+set -e
+
+lfscrepo="https://github.com/CVC4/LFSC.git"
+dirname="lfsc-checker"
+
+
+cd "$(dirname "$0")/.."
+
+if ! [ -e src/parser/cvc/Cvc.g ]; then
+  echo "$(basename $0): I expect to be in the contrib/ of a CVC4 source tree," >&2
+  echo "but apparently:" >&2
+  echo >&2
+  echo "  $(pwd)" >&2
+  echo >&2
+  echo "is not a CVC4 source tree ?!" >&2
+  exit 1
+fi
+
+function gitclone {
+  if which git &> /dev/null
+  then
+    git clone "$1" "$2"
+  else
+    echo "Need git to clone LFSC checker. Please install git." >&2
+    exit 1
+  fi
+}
+
+if [ -e lfsc-checker ]; then
+  echo 'error: file or directory "lfsc-checker" already exists!' >&2
+  exit 1
+fi
+
+mkdir $dirname
+cd $dirname
+
+LFSC_PATH=`pwd`
+
+gitclone $lfscrepo .
+mkdir install
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$LFSC_PATH/install ..
+make install
+cd ..
+
+echo
+echo ===================== Now configure CVC4 with =====================
+echo ./configure --with-lfsc

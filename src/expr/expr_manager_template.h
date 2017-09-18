@@ -25,7 +25,6 @@
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "util/statistics.h"
-#include "util/subrange_bound.h"
 
 ${includes}
 
@@ -33,7 +32,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 37 "${template}"
+#line 36 "${template}"
 
 namespace CVC4 {
 
@@ -456,12 +455,6 @@ public:
    */
   // not in release 1.0
   //Type mkPredicateSubtype(Expr lambda, Expr witness)
-  //  throw(TypeCheckingException);
-
-  /**
-   * Make an integer subrange type as defined by the argument.
-   */
-  //Type mkSubrangeType(const SubrangeBounds& bounds)
   //  throw(TypeCheckingException);
 
   /** Get the type of an expression */

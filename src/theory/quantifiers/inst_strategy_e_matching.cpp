@@ -603,7 +603,7 @@ FullSaturation::FullSaturation( QuantifiersEngine* qe ) : QuantifiersModule( qe 
 }
 
 bool FullSaturation::needsCheck( Theory::Effort e ){
-  if( options::fullSaturateInst() ){
+  if( options::fullSaturateInterleave() ){
     if( d_quantEngine->getInstWhenNeedsCheck( e ) ){
       return true;
     }
@@ -623,7 +623,7 @@ void FullSaturation::reset_round( Theory::Effort e ) {
 void FullSaturation::check( Theory::Effort e, unsigned quant_e ) {
   bool doCheck = false;
   bool fullEffort = false;
-  if( options::fullSaturateInst() ){
+  if( options::fullSaturateInterleave() ){
     //we only add when interleaved with other strategies
     doCheck = quant_e==QuantifiersEngine::QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
   }
@@ -653,7 +653,7 @@ void FullSaturation::check( Theory::Effort e, unsigned quant_e ) {
     if( Trace.isOn("fs-engine") ){
       Trace("fs-engine") << "Added lemmas = " << addedLemmas  << std::endl;
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-      Trace("fs-engine") << "Finished instantiation engine, time = " << (clSet2-clSet) << std::endl;
+      Trace("fs-engine") << "Finished full saturation engine, time = " << (clSet2-clSet) << std::endl;
     }
   }
 }

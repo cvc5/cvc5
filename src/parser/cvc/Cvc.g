@@ -226,10 +226,6 @@ tokens {
   STRING_SUFFIXOF_TOK = 'SUFFIXOF';
   STRING_STOI_TOK = 'STRING_TO_INTEGER';
   STRING_ITOS_TOK = 'INTEGER_TO_STRING';
-  STRING_U16TOS_TOK = 'UINT16_TO_STRING';
-  STRING_STOU16_TOK = 'STRING_TO_UINT16';
-  STRING_U32TOS_TOK = 'UINT32_TO_STRING';
-  STRING_STOU32_TOK = 'STRING_TO_UINT32';
   //Regular expressions (TODO)
   //STRING_IN_REGEXP_TOK
   //STRING_TO_REGEXP_TOK
@@ -539,7 +535,6 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 #include "parser/antlr_tracing.h"
 #include "parser/parser.h"
 #include "smt/command.h"
-#include "util/subrange_bound.h"
 
 namespace CVC4 {
   class Expr;
@@ -558,18 +553,6 @@ namespace CVC4 {
         myString(void*) : std::string() {}
         myString() : std::string() {}
       };/* class myString */
-
-      /**
-       * Just exists to give us the void* construction that
-       * ANTLR requires.
-       */
-      class mySubrangeBound : public CVC4::SubrangeBound {
-      public:
-        mySubrangeBound() : CVC4::SubrangeBound() {}
-        mySubrangeBound(void*) : CVC4::SubrangeBound() {}
-        mySubrangeBound(const Integer& i) : CVC4::SubrangeBound(i) {}
-        mySubrangeBound(const SubrangeBound& b) : CVC4::SubrangeBound(b) {}
-      };/* class mySubrangeBound */
 
       /**
        * Just exists to give us the void* construction that
@@ -1284,16 +1267,9 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     }
 
     /* subrange types */
-  | LBRACKET k1=bound DOTDOT k2=bound RBRACKET
-    { if(k1.hasBound() && k2.hasBound() &&
-         k1.getBound() > k2.getBound()) {
-        std::stringstream ss;
-        ss << "Subrange [" << k1.getBound() << ".." << k2.getBound()
-           << "] inappropriate: range must be nonempty!";
-        PARSER_STATE->parseError(ss.str());
-      }
+  | LBRACKET bound DOTDOT bound RBRACKET
+    {
       PARSER_STATE->unimplementedFeature("subrange typing not supported in this release");
-      //t = EXPR_MANAGER->mkSubrangeType(SubrangeBounds(k1, k2));
     }
 
     /* tuple types / old-style function types */
@@ -1348,9 +1324,9 @@ parameterization[CVC4::parser::DeclarationCheck check,
     ( COMMA restrictedType[t,check] { Debug("parser-param") << "t = " << t << std::endl; params.push_back( t ); } )* RBRACKET
   ;
 
-bound returns [CVC4::parser::cvc::mySubrangeBound bound]
-  : UNDERSCORE { $bound = SubrangeBound(); }
-  | k=integer { $bound = SubrangeBound(k.getNumerator()); }
+bound
+  : UNDERSCORE
+  | integer
 ;
 
 typeLetDecl[CVC4::parser::DeclarationCheck check]
@@ -2010,15 +1986,7 @@ stringTerm[CVC4::Expr& f]
   | STRING_STOI_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_STOI, f); }
   | STRING_ITOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_ITOS, f); }
-  | STRING_U16TOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_U16TOS, f); }
-  | STRING_STOU16_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_STOU16, f); }
-  | STRING_U32TOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_U32TOS, f); }
-  | STRING_STOU32_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_STOU32, f); }    
+    { f = MK_EXPR(CVC4::kind::STRING_ITOS, f); }   
 
     /* string literal */
   | str[s]
@@ -2136,7 +2104,12 @@ simpleTerm[CVC4::Expr& f]
     /* syntactic predicate: never match INTEGER.DIGIT as an integer and a dot!
      * This is a rational constant!  Otherwise the parser interprets it as a tuple
      * selector! */
-  | DECIMAL_LITERAL { f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
+  | DECIMAL_LITERAL { 
+      f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL));
+      if(f.getType().isInteger()) {
+        f = MK_EXPR(kind::TO_REAL, f);
+      } 
+    }
   | INTEGER_LITERAL { f = MK_CONST(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
     /* bitvector literals */
   | HEX_LITERAL

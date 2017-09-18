@@ -1,5 +1,6 @@
 % EXPECT: sat
 OPTION "fmf-bound";
+OPTION "sets-ext";
 Atom : TYPE;
 REAL_UNIVERSE : SET OF [REAL];
 ATOM_UNIVERSE : SET OF [Atom];

@@ -438,18 +438,14 @@ ConstraintP Constraint::getCeiling() {
   Debug("getCeiling") << "Constraint_::getCeiling on " << *this << endl;
   Assert(getValue().getInfinitesimalPart().sgn() > 0);
 
-  DeltaRational ceiling(getValue().ceiling());
-
-  // TODO: "Optimize via the iterator"
+  const DeltaRational ceiling(getValue().ceiling());
   return d_database->getConstraint(getVariable(), getType(), ceiling);
 }
 
 ConstraintP Constraint::getFloor() {
   Assert(getValue().getInfinitesimalPart().sgn() < 0);
 
-  DeltaRational floor(Rational(getValue().floor()));
-
-  // TODO: "Optimize via the iterator"
+  const DeltaRational floor(Rational(getValue().floor()));
   return d_database->getConstraint(getVariable(), getType(), floor);
 }
 

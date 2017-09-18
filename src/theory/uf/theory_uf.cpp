@@ -125,13 +125,18 @@ void TheoryUF::check(Effort level) {
       d_equalityEngine.assertEquality(atom, polarity, fact);
     } else if (atom.getKind() == kind::CARDINALITY_CONSTRAINT || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT) {
       if( d_thss == NULL ){
-        std::stringstream ss;
-        ss << "Cardinality constraint " << atom << " was asserted, but the logic does not allow it." << std::endl;
-        ss << "Try using a logic containing \"UFC\"." << std::endl;
-        throw Exception( ss.str() );
+        if( !getLogicInfo().hasCardinalityConstraints() ){
+          std::stringstream ss;
+          ss << "Cardinality constraint " << atom << " was asserted, but the logic does not allow it." << std::endl;
+          ss << "Try using a logic containing \"UFC\"." << std::endl;
+          throw Exception( ss.str() );
+        }else{
+          // support for cardinality constraints is not enabled, set incomplete
+          d_out->setIncomplete();
+        } 
       }
       //needed for models
-      if( options::produceModels() && ( atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT || options::ufssMode()!=UF_SS_FULL ) ){
+      if( options::produceModels() ){
         d_equalityEngine.assertPredicate(atom, polarity, fact);
       }
     } else {

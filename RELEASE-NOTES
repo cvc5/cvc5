@@ -154,6 +154,6 @@ CVC4 is under active development.  Should you find a bug in CVC4's
 documentation, behavior, API, or SMT-LIB compliance, or if you have
 a feature request, please let us know on our bugtracker at
 
-  http://cvc4.cs.stanford.edu/bugs/
+  https://github.com/CVC4/CVC4/issues
 
 or send an email to cvc-bugs@cs.stanford.edu.

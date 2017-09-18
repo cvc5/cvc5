@@ -36,7 +36,6 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
-#include "util/subrange_bound.h"
 #include "options/options.h"
 
 namespace CVC4 {
@@ -106,7 +105,7 @@ class NodeManager {
                              expr::NodeValueIDHashFunction,
                              expr::NodeValueIDEquality> NodeValueIDSet;
 
-  static CVC4_THREADLOCAL(NodeManager*) s_current;
+  static CVC4_THREAD_LOCAL NodeManager* s_current;
 
   Options* d_options;
   StatisticsRegistry* d_statisticsRegistry;
@@ -531,6 +530,9 @@ public:
 
   Node mkBoundVar(const TypeNode& type);
   Node* mkBoundVarPtr(const TypeNode& type);
+
+  /** get the canonical bound variable list for function type tn */
+  static Node getBoundVarListForFunctionType( TypeNode tn );
 
   /**
    * Optional flags used to control behavior of NodeManager::mkSkolem().

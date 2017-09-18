@@ -2297,7 +2297,12 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   | DECIMAL_LITERAL
     { // FIXME: This doesn't work because an SMT rational is not a
       // valid GMP rational string
-      expr = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); }
+      expr = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); 
+      if(expr.getType().isInteger()) {
+        //must cast to Real to ensure correct type is passed to parametric type constructors
+        expr = MK_EXPR(kind::TO_REAL, expr);
+      }  
+    }
 
   | LPAREN_TOK INDEX_TOK 
     ( bvLit=SIMPLE_SYMBOL size=INTEGER_LITERAL 

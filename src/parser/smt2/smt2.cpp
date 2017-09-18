@@ -24,6 +24,8 @@
 #include "smt/command.h"
 #include "util/bitvector.h"
 
+#include <algorithm>
+
 // ANTLR defines these, which is really bad!
 #undef true
 #undef false
@@ -118,10 +120,6 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
   addOperator(kind::STRING_ITOS, "int.to.str" );
   addOperator(kind::STRING_STOI, "str.to.int" );
-  addOperator(kind::STRING_U16TOS, "u16.to.str" );
-  addOperator(kind::STRING_STOU16, "str.to.u16" );
-  addOperator(kind::STRING_U32TOS, "u32.to.str" );
-  addOperator(kind::STRING_STOU32, "str.to.u32" );
   addOperator(kind::STRING_IN_REGEXP, "str.in.re");
   addOperator(kind::STRING_TO_REGEXP, "str.to.re");
   addOperator(kind::REGEXP_CONCAT, "re.++");

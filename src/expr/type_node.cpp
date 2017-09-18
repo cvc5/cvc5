@@ -135,50 +135,11 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
       return false;
     }
   }
-  if(isTuple() && t.isTuple()) {
-    const Datatype& dt1 = getDatatype();
-    const Datatype& dt2 = t.getDatatype();
-    if( dt1[0].getNumArgs()!=dt2[0].getNumArgs() ){
-      return false;
-    }
-    // r1's fields must be subtypes of r2's, in order
-    for( unsigned i=0; i<dt1[0].getNumArgs(); i++ ){
-      if( !dt1[0][i].getRangeType().isSubtypeOf( dt2[0][i].getRangeType() ) ){
-        return false;
-      }
-    }
-    return true;
-  }else if( t.isRecord() && t.isRecord() ){
-    //records are not subtypes of each other in current implementation
-  }
-  if(isFunction()) {
-    // A function is a subtype of another if the args are the same type, and
-    // the return type is a subtype of the other's.  This is enough for now
-    // (and it's necessary for model generation, since a Real-valued function
-    // might return a constant Int and thus the model value is typed differently).
-    return t.isFunction() && getArgTypes() == t.getArgTypes() && getRangeType().isSubtypeOf(t.getRangeType());
-  }
-  if(isParametricDatatype() && t.isParametricDatatype()) {
-    Assert(getKind() == kind::PARAMETRIC_DATATYPE);
-    Assert(t.getKind() == kind::PARAMETRIC_DATATYPE);
-    if((*this)[0] != t[0] || getNumChildren() != t.getNumChildren()) {
-      return false;
-    }
-    for(size_t i = 1; i < getNumChildren(); ++i) {
-      if(!((*this)[i].isSubtypeOf(t[i]))) {
-        return false;
-      }
-    }
-    return true;
-  }
   if(isSet() && t.isSet()) {
     return getSetElementType().isSubtypeOf(t.getSetElementType());
   }
-  if(isArray() && t.isArray()) {
-    //reverse for index type
-    return t.getArrayIndexType().isSubtypeOf(getArrayIndexType()) && 
-           getArrayConstituentType().isSubtypeOf(t.getArrayConstituentType());
-  }
+  // this should only return true for types T1, T2 where we handle equalities between T1 and T2
+  // (more cases go here, if we want to support such cases)
   return false;
 }
 
@@ -189,38 +150,8 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   if(isSubtypeOf(NodeManager::currentNM()->realType())) {
     return t.isSubtypeOf(NodeManager::currentNM()->realType());
   }
-  if(isTuple() && t.isTuple()) {
-    const Datatype& dt1 = getDatatype();
-    const Datatype& dt2 = t.getDatatype();
-    if( dt1[0].getNumArgs()!=dt2[0].getNumArgs() ){
-      return false;
-    }
-    // r1's fields must be subtypes of r2's, in order
-    for( unsigned i=0; i<dt1[0].getNumArgs(); i++ ){
-      if( !dt1[0][i].getRangeType().isComparableTo( dt2[0][i].getRangeType() ) ){
-        return false;
-      }
-    }
-    return true;
-  //}else if( isRecord() && t.isRecord() ){
-    //record types are incomparable in current implementation
-  } else if(isParametricDatatype() && t.isParametricDatatype()) {
-    Assert(getKind() == kind::PARAMETRIC_DATATYPE);
-    Assert(t.getKind() == kind::PARAMETRIC_DATATYPE);
-    if((*this)[0] != t[0] || getNumChildren() != t.getNumChildren()) {
-      return false;
-    }
-    for(size_t i = 1; i < getNumChildren(); ++i) {
-      if(!((*this)[i].isComparableTo(t[i]))) {
-        return false;
-      }
-    }
-    return true;
-  } else if(isSet() && t.isSet()) {
+  if(isSet() && t.isSet()) {
     return getSetElementType().isComparableTo(t.getSetElementType());
-  }
-  if(isArray() && t.isArray()) {
-    return getArrayIndexType().isComparableTo(t.getArrayIndexType()) && getArrayConstituentType().isComparableTo(t.getArrayConstituentType());
   }
   return false;
 }
@@ -390,9 +321,11 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   case kind::CONSTRUCTOR_TYPE:
   case kind::SELECTOR_TYPE:
   case kind::TESTER_TYPE:
-    return TypeNode();
   case kind::FUNCTION_TYPE:
-    return TypeNode(); // Not sure if this is right
+  case kind::ARRAY_TYPE:
+  case kind::DATATYPE_TYPE:
+  case kind::PARAMETRIC_DATATYPE:
+    return TypeNode();
   case kind::SET_TYPE: {
     // take the least common subtype of element types
     TypeNode elementType;
@@ -402,54 +335,9 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
       return TypeNode();
     }
   }
-  case kind::ARRAY_TYPE: {
-    TypeNode indexType, elementType;
-    if(t1.isArray() &&
-       ! (indexType = commonTypeNode(t0[0], t1[0], !isLeast)).isNull() && 
-       ! (elementType = commonTypeNode(t0[1], t1[1], isLeast)).isNull() ) {
-      return NodeManager::currentNM()->mkArrayType(indexType, elementType);
-    } else {
-      return TypeNode();
-    }
-  }
   case kind::SEXPR_TYPE:
     Unimplemented("haven't implemented leastCommonType for symbolic expressions yet");
     return TypeNode();
-  case kind::DATATYPE_TYPE:
-    if( t0.isTuple() && t1.isTuple() ){
-      const Datatype& dt1 = t0.getDatatype();
-      const Datatype& dt2 = t1.getDatatype();
-      if( dt1[0].getNumArgs()==dt2[0].getNumArgs() ){
-        std::vector< TypeNode > lc_types;
-        for( unsigned i=0; i<dt1[0].getNumArgs(); i++ ){
-          TypeNode tc = commonTypeNode( TypeNode::fromType( dt1[0][i].getRangeType() ), TypeNode::fromType( dt2[0][i].getRangeType() ), isLeast );
-          if( tc.isNull() ){
-            return tc;
-          }else{
-            lc_types.push_back( tc );
-          }
-        }
-        return NodeManager::currentNM()->mkTupleType( lc_types );
-      }
-    }
-    //else if( t0.isRecord() && t1.isRecord() ){
-      //record types are not related in current implementation
-    //}
-    // otherwise no common ancestor
-    return TypeNode();
-  case kind::PARAMETRIC_DATATYPE: {
-    if(!t1.isParametricDatatype()) {
-      return TypeNode();
-    }
-    if(t0[0] != t1[0] || t0.getNumChildren() != t1.getNumChildren()) {
-      return TypeNode();
-    }
-    vector<Type> v;
-    for(size_t i = 1; i < t0.getNumChildren(); ++i) {
-      v.push_back(commonTypeNode(t0[i], t1[i], isLeast).toType());
-    }
-    return TypeNode::fromType(t0[0].getDatatype().getDatatypeType(v));
-  }
   default:
     Unimplemented("don't have a commonType for types `%s' and `%s'", t0.toString().c_str(), t1.toString().c_str());
     return TypeNode();

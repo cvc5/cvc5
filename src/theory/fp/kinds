@@ -94,16 +94,16 @@ operator FLOATINGPOINT_MAX 2 "floating-point maximum"
 typerule FLOATINGPOINT_MAX   ::CVC4::theory::fp::FloatingPointOperationTypeRule
 
 
-operator FLOATINGPOINT_LEQ 2 "floating-point less than or equal"
+operator FLOATINGPOINT_LEQ 2: "floating-point less than or equal"
 typerule FLOATINGPOINT_LEQ   ::CVC4::theory::fp::FloatingPointTestTypeRule
 
-operator FLOATINGPOINT_LT 2 "floating-point less than"
+operator FLOATINGPOINT_LT 2: "floating-point less than"
 typerule FLOATINGPOINT_LT   ::CVC4::theory::fp::FloatingPointTestTypeRule
 
-operator FLOATINGPOINT_GEQ 2 "floating-point greater than or equal"
+operator FLOATINGPOINT_GEQ 2: "floating-point greater than or equal"
 typerule FLOATINGPOINT_GEQ   ::CVC4::theory::fp::FloatingPointTestTypeRule
 
-operator FLOATINGPOINT_GT 2 "floating-point greater than"
+operator FLOATINGPOINT_GT 2: "floating-point greater than"
 typerule FLOATINGPOINT_GT   ::CVC4::theory::fp::FloatingPointTestTypeRule
 
 

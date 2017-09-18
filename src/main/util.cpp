@@ -33,7 +33,6 @@
 #endif /* __WIN32__ */
 
 #include "base/exception.h"
-#include "base/tls.h"
 #include "cvc4autoconfig.h"
 #include "main/command_executor.h"
 #include "main/main.h"

@@ -74,6 +74,10 @@ void TheorySets::preRegisterTerm(TNode node) {
   d_internal->preRegisterTerm(node);
 }
 
+Node TheorySets::expandDefinition(LogicRequest &logicRequest, Node n) {
+  return d_internal->expandDefinition(logicRequest, n);
+}
+
 Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
   return d_internal->ppAssert( in, outSubstitutions );
 }

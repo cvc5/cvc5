@@ -20,6 +20,7 @@
 
 #include <vector>
 
+#include "base/tls.h"
 #include "expr/node.h"
 
 namespace CVC4 {
@@ -32,7 +33,7 @@ template<typename Visitor>
 class NodeVisitor {
 
   /** For re-entry checking */
-  static CVC4_THREADLOCAL(bool) s_inRun;
+  static CVC4_THREAD_LOCAL bool s_inRun;
 
   /**
    * Guard against NodeVisitor<> being re-entrant.
@@ -73,7 +74,7 @@ public:
    */
   static typename Visitor::return_type run(Visitor& visitor, TNode node) {
 
-    GuardReentry<CVC4_THREADLOCAL_TYPE(bool)> guard(s_inRun);
+    GuardReentry<bool> guard(s_inRun);
 
     // Notify of a start
     visitor.start(node);
@@ -115,6 +116,6 @@ public:
 };/* class NodeVisitor<> */
 
 template <typename Visitor>
-CVC4_THREADLOCAL(bool) NodeVisitor<Visitor>::s_inRun = false;
+CVC4_THREAD_LOCAL bool NodeVisitor<Visitor>::s_inRun = false;
 
 }/* CVC4 namespace */

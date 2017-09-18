@@ -268,7 +268,7 @@ void QuantifiersEngine::finishInit(){
     d_modules.push_back( d_uee );
   }
   //full saturation : instantiate from relevant domain, then arbitrary terms
-  if( options::fullSaturateQuant() || options::fullSaturateInst() ){
+  if( options::fullSaturateQuant() || options::fullSaturateInterleave() ){
     d_fs = new quantifiers::FullSaturation( this );
     d_modules.push_back( d_fs );
     needsRelDom = true;

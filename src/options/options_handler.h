@@ -143,6 +143,7 @@ public:
   SimplificationMode stringToSimplificationMode(std::string option, std::string optarg) throw(OptionException);
   void setProduceAssertions(std::string option, bool value) throw();
   void proofEnabledBuild(std::string option, bool value) throw(OptionException);
+  void LFSCEnabledBuild(std::string option, bool value);
   void notifyDumpToFile(std::string option);
   void notifySetRegularOutputChannel(std::string option);
   void notifySetDiagnosticOutputChannel(std::string option);
