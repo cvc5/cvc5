@@ -167,8 +167,8 @@ class CegConjectureSingleInv {
  public:
   CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p );
   ~CegConjectureSingleInv();
-  // original conjecture
-  Node d_orig_quant;
+  // conjecture
+  Node d_quant;
   // are we single invocation?
   bool d_single_invocation;
   // single invocation portion of quantified formula
@@ -184,9 +184,11 @@ class CegConjectureSingleInv {
  public:
   //get the single invocation lemma(s)
   void getInitialSingleInvLemma( std::vector< Node >& lems );
-  //initialize
-  void initialize( Node si_q );
-  // finish initialize
+  // initialize this class for synthesis conjecture q
+  void initialize( Node q );
+  // finish initialize, sets up final decisions about whether to use single invocation techniques
+  //  syntaxRestricted is whether the syntax for solutions for the initialized conjecture is restricted
+  //  hasItes is whether the syntax for solutions for the initialized conjecture allows ITEs
   void finishInit( bool syntaxRestricted, bool hasItes );
   //check
   bool check( std::vector< Node >& lems );

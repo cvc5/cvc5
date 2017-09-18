@@ -80,8 +80,8 @@ public:
   
   bool needsRefinement();
   void getCandidateList( std::vector< Node >& clist, bool forceOrig = false );
-  bool constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, std::vector< Node >& candidate_values,
-                            std::vector< Node >& lems );
+  bool constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, 
+                            std::vector< Node >& candidate_values, std::vector< Node >& lems );
 
   void doCegConjectureSingleInvCheck(std::vector< Node >& lems);
   void doCegConjectureCheck(std::vector< Node >& lems, std::vector< Node >& model_values);
