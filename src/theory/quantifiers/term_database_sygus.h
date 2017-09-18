@@ -298,18 +298,35 @@ public:
   
 // for grammar construction
 private:
+  // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
   TypeNode mkUnresolvedType(const std::string& name, std::set<Type>& unres);
+  // make the builtin constants for type type that should be included in a sygus grammar
   void mkSygusConstantsForType( TypeNode type, std::vector<CVC4::Node>& ops );
+  // collect the list of types that depend on type range
   void collectSygusGrammarTypesFor( TypeNode range, std::vector< TypeNode >& types, std::map< TypeNode, std::vector< DatatypeConstructorArg > >& sels );
-  void mkSygusDefaultGrammar( TypeNode range, Node bvl, const std::string& fun, std::map< TypeNode, std::vector< Node > >& extra_cons, std::vector< CVC4::Datatype >& datatypes, std::set<Type>& unres );
+  // helper function for function mkSygusDefaultGrammar below
+  //   collects a set of mutually recursive datatypes "datatypes" corresponding to encoding type "range" to SyGuS
+  //   unres is used for the resulting call to mkMutualDatatypeTypes
+  void mkSygusDefaultGrammar( TypeNode range, Node bvl, const std::string& fun, std::map< TypeNode, std::vector< Node > >& extra_cons, 
+                              std::vector< CVC4::Datatype >& datatypes, std::set<Type>& unres );
+  // helper function for mkSygusTemplateType
   TypeNode mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
                                 const std::string& fun, unsigned& tcount );
 public:
+  // make the default sygus datatype type corresponding to builtin type range
+  //   bvl is the set of free variables to include in the grammar
+  //   fun is for naming
+  //   extra_cons is a set of extra constant symbols to include in the grammar
   TypeNode mkSygusDefaultType( TypeNode range, Node bvl, const std::string& fun, std::map< TypeNode, std::vector< Node > >& extra_cons );
+  // make the default sygus datatype type corresponding to builtin type range
   TypeNode mkSygusDefaultType( TypeNode range, Node bvl, const std::string& fun ){
     std::map< TypeNode, std::vector< Node > > extra_cons;
     return mkSygusDefaultType( range, bvl, fun, extra_cons );
   }
+  // make the sygus datatype type that encodes the solution space (lambda templ_arg. templ[templ_arg]) where templ_arg
+  // has syntactic restrictions encoded by sygus type templ_arg_sygus_type
+  //   bvl is the set of free variables to include in the frammar
+  //   fun is for naming
   TypeNode mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, const std::string& fun );
 };
 

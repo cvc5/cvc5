@@ -3026,6 +3026,7 @@ TypeNode TermDbSygus::mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNo
       op = templ.getOperator();
       // make constructor taking arguments types from children
       for( unsigned i=0; i<templ.getNumChildren(); i++ ){
+        //recursion depth bound by the depth of SyGuS template expressions (low)
         TypeNode tnc = mkSygusTemplateTypeRec( templ[i], templ_arg, templ_arg_sygus_type, bvl, fun, tcount );
         argTypes.push_back( tnc.toType() );
       }
