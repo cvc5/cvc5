@@ -101,7 +101,8 @@ public:
 // It also has more advanced techniques for:
 // (1) partitioning a conjecture into single invocation / non-single invocation portions for invariant synthesis,
 // (2) inferring whether the conjecture corresponds to a deterministic transistion system (by utility d_ti).
-// For these techniques, we may generate a template (d_templ).
+// For these techniques, we may generate a template (d_templ) which specifies a restricted
+// solution space. We may in turn embed this template as a SyGuS grammar.
 class CegConjectureSingleInv {
  private:
   friend class CegqiOutputSingleInv;
