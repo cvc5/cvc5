@@ -596,10 +596,6 @@ DEFINITION: Java_cvc3_ValidityChecker_jniTupleExpr
 jobject m ValidityChecker vc cv Expr exprs
 return embed_copy(env, vc->tupleExpr(exprs));
 
-DEFINITION: Java_cvc3_ValidityChecker_jniTupleSelectExpr
-jobject m ValidityChecker vc c Expr tuple n int index
-return embed_copy(env, vc->tupleSelectExpr(*tuple, index));
-
 DEFINITION: Java_cvc3_ValidityChecker_jniTupleUpdateExpr
 jobject m ValidityChecker vc c Expr tuple n int index c Expr value
 return embed_copy(env, vc->tupleUpdateExpr(*tuple, index, *value));

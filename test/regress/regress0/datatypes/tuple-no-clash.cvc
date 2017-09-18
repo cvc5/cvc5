@@ -6,6 +6,6 @@ y : REAL;
 z : REAL;
 
 ASSERT x = (y, z) OR x = (z, y);
-ASSERT x = (0,0) OR x = (1,1);
+ASSERT x = (0.0,0.0) OR x = (1.0,1.0);
 
 CHECKSAT;
