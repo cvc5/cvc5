@@ -4664,6 +4664,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
   return n.toExpr();
 }
 
+// TODO(#1108): Simplify the error reporting of this method.
 Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException) {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
@@ -4773,6 +4774,7 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
   return true;
 }
 
+// TODO(#1108): Simplify the error reporting of this method.
 CVC4::SExpr SmtEngine::getAssignment() {
   Trace("smt") << "SMT getAssignment()" << endl;
   SmtScope smts(this);
@@ -4871,6 +4873,7 @@ void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool 
   }
 }
 
+// TODO(#1108): Simplify the error reporting of this method.
 Model* SmtEngine::getModel() {
   Trace("smt") << "SMT getModel()" << endl;
   SmtScope smts(this);
@@ -5133,6 +5136,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
 }
 
+// TODO(#1108): Simplify the error reporting of this method.
 UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
   SmtScope smts(this);
@@ -5159,6 +5163,7 @@ UnsatCore SmtEngine::getUnsatCore() {
 #endif /* IS_PROOFS_BUILD */
 }
 
+// TODO(#1108): Simplify the error reporting of this method.
 Proof* SmtEngine::getProof() {
   Trace("smt") << "SMT getProof()" << endl;
   SmtScope smts(this);

@@ -45,6 +45,9 @@ public:
 /**
  * Special case of ModalException that allows the execution of the solver to
  * continue.
+ *
+ * TODO(#1108): This exception should not be needed anymore in future versions
+ * of the public API.
  */
 class CVC4_PUBLIC RecoverableModalException : public CVC4::ModalException {
  public:
