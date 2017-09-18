@@ -92,8 +92,8 @@ ${theory_enum}
 const TheoryId THEORY_FIRST = static_cast<TheoryId>(0);
 const TheoryId THEORY_SAT_SOLVER = THEORY_LAST;
 
-inline TheoryId& CVC4_PUBLIC operator ++ (TheoryId& id) {
-  return id = static_cast<TheoryId>(((int)id) + 1);
+CVC4_PUBLIC inline TheoryId& operator++(TheoryId& id) {
+  return id = static_cast<TheoryId>(static_cast<int>(id) + 1);
 }
 
 std::ostream& operator<<(std::ostream& out, TheoryId theoryId);
