@@ -222,12 +222,11 @@ void Tptp::checkLetBinding(std::vector<Expr>& bvlist, Expr lhs, Expr rhs, bool f
           "missing `" +
           bvlist[i].toString() + "'");
     }
-    if (found != v.end()) {
-      std::vector<CVC4::Expr>::const_iterator found2 = found + 1;
-      if (found2 != v.end() && *found2 == *found) {
-        parseError("malformed let: LHS cannot use same bound variable twice: " +
-                   (*found).toString());
-      }
+    assert(found != v.end());
+    std::vector<CVC4::Expr>::const_iterator found2 = found + 1;
+    if (found2 != v.end() && *found2 == *found) {
+      parseError("malformed let: LHS cannot use same bound variable twice: " +
+                 (*found).toString());
     }
   }
 }
