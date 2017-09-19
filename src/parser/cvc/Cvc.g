@@ -2104,7 +2104,12 @@ simpleTerm[CVC4::Expr& f]
     /* syntactic predicate: never match INTEGER.DIGIT as an integer and a dot!
      * This is a rational constant!  Otherwise the parser interprets it as a tuple
      * selector! */
-  | DECIMAL_LITERAL { f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
+  | DECIMAL_LITERAL { 
+      f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL));
+      if(f.getType().isInteger()) {
+        f = MK_EXPR(kind::TO_REAL, f);
+      } 
+    }
   | INTEGER_LITERAL { f = MK_CONST(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
     /* bitvector literals */
   | HEX_LITERAL

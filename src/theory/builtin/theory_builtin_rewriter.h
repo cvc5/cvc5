@@ -59,6 +59,8 @@ private:
   /** recursive helper for getLambdaForArrayRepresentation */
   static Node getLambdaForArrayRepresentationRec( TNode a, TNode bvl, unsigned bvlIndex, 
                                                   std::unordered_map< TNode, Node, TNodeHashFunction >& visited );
+  /** recursive helper for getArrayRepresentationForLambda */
+  static Node getArrayRepresentationForLambdaRec( TNode n, bool reqConst, TypeNode retType );
 public:
   /** 
    * Given an array constant a, returns a lambda expression that it corresponds to, with bound variable list bvl. 
