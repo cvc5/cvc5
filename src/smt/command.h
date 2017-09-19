@@ -189,6 +189,24 @@ public:
   std::string getMessage() const throw() { return d_message; }
 };/* class CommandFailure */
 
+/**
+ * The execution of the command resulted in a non-fatal error and further
+ * commands can be processed. This status is for example used when a user asks
+ * for an unsat core in a place that is not immediately preceded by an
+ * unsat/valid response.
+ */
+class CVC4_PUBLIC CommandRecoverableFailure : public CommandStatus {
+  std::string d_message;
+
+ public:
+  CommandRecoverableFailure(std::string message) throw() : d_message(message) {}
+  CommandRecoverableFailure& clone() const {
+    return *new CommandRecoverableFailure(*this);
+  }
+  ~CommandRecoverableFailure() throw() {}
+  std::string getMessage() const throw() { return d_message; }
+}; /* class CommandRecoverableFailure */
+
 class CVC4_PUBLIC Command {
 protected:
   /**

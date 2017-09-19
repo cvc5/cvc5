@@ -349,6 +349,9 @@ String String::substr(std::size_t i, std::size_t j) const {
 }
 
 bool String::isNumber() const {
+  if (d_str.empty()) {
+    return false;
+  }
   for (unsigned character : d_str) {
     unsigned char c = convertUnsignedIntToChar(character);
     if (c < '0' || c > '9') {

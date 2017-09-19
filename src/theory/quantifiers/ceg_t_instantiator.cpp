@@ -223,11 +223,11 @@ void ArithInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, un
   }
 }
 
-bool ArithInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort ) {
+bool ArithInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort ) {
   Node eq_lhs = terms[0];
   Node eq_rhs = terms[1];
-  Node lhs_coeff = term_coeffs[0];
-  Node rhs_coeff = term_coeffs[1];
+  Node lhs_coeff = term_props[0].d_coeff;
+  Node rhs_coeff = term_props[1].d_coeff;
   //make the same coefficient
   if( rhs_coeff!=lhs_coeff ){
     if( !rhs_coeff.isNull() ){
@@ -244,13 +244,14 @@ bool ArithInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, N
   Node eq = eq_lhs.eqNode( eq_rhs );
   eq = Rewriter::rewrite( eq );
   Node val;
-  Node veq_c;
+  TermProperties pv_prop;
   Node vts_coeff_inf;
   Node vts_coeff_delta;
   //isolate pv in the equality
-  int ires = solve_arith( ci, pv, eq, veq_c, val, vts_coeff_inf, vts_coeff_delta );
+  int ires = solve_arith( ci, pv, eq, pv_prop.d_coeff, val, vts_coeff_inf, vts_coeff_delta );
   if( ires!=0 ){
-    if( ci->doAddInstantiationInc( pv, val, veq_c, 0, sf, effort ) ){
+    pv_prop.d_type = 0;
+    if( ci->doAddInstantiationInc( pv, val, pv_prop, sf, effort ) ){
       return true;
     }
   }
@@ -285,11 +286,11 @@ bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, 
     //must be an eligible term
     if( ci->isEligible( atom_lhs ) ){
       //apply substitution to LHS of atom
-      Node atom_lhs_coeff;
-      atom_lhs = ci->applySubstitution( d_type, atom_lhs, sf, atom_lhs_coeff );
+      TermProperties atom_lhs_prop;
+      atom_lhs = ci->applySubstitution( d_type, atom_lhs, sf, atom_lhs_prop );
       if( !atom_lhs.isNull() ){
-        if( !atom_lhs_coeff.isNull() ){
-          atom_rhs = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, atom_lhs_coeff, atom_rhs ) );
+        if( !atom_lhs_prop.d_coeff.isNull() ){
+          atom_rhs = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, atom_lhs_prop.d_coeff, atom_rhs ) );
         }
       }
       //if it contains pv, not infinity
@@ -302,9 +303,9 @@ bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, 
         Node vts_coeff_inf;
         Node vts_coeff_delta;
         Node val;
-        Node veq_c;
+        TermProperties pv_prop;
         //isolate pv in the inequality
-        int ires = solve_arith( ci, pv, satom, veq_c, val, vts_coeff_inf, vts_coeff_delta );
+        int ires = solve_arith( ci, pv, satom, pv_prop.d_coeff, val, vts_coeff_inf, vts_coeff_delta );
         if( ires!=0 ){
           //disequalities are either strict upper or lower bounds
           unsigned rmax = ( atom.getKind()==GEQ || options::cbqiModel() ) ? 1 : 2;
@@ -337,8 +338,8 @@ bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, 
                 }else{
                   Node rhs_value = ci->getModelValue( val );
                   Node lhs_value = pv_value;
-                  if( !veq_c.isNull() ){
-                    lhs_value = NodeManager::currentNM()->mkNode( MULT, lhs_value, veq_c );
+                  if( !pv_prop.d_coeff.isNull() ){
+                    lhs_value = NodeManager::currentNM()->mkNode( MULT, lhs_value, pv_prop.d_coeff );
                     lhs_value = Rewriter::rewrite( lhs_value );
                   }
                   Trace("cbqi-inst-debug") << "Disequality : check model values " << lhs_value << " " << rhs_value << std::endl;
@@ -362,8 +363,8 @@ bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, 
               }
             }
             Trace("cbqi-bound-inf") << "From " << lit << ", got : ";
-            if( !veq_c.isNull() ){
-              Trace("cbqi-bound-inf") << veq_c << " * ";
+            if( !pv_prop.d_coeff.isNull() ){
+              Trace("cbqi-bound-inf") << pv_prop.d_coeff << " * ";
             }
             Trace("cbqi-bound-inf") << pv << " -> " << uval << ", styp = " << uires << std::endl;
             //take into account delta
@@ -386,15 +387,16 @@ bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, 
               //just store bounds, will choose based on tighest bound
               unsigned index = uires>0 ? 0 : 1;
               d_mbp_bounds[index].push_back( uval );
-              d_mbp_coeff[index].push_back( veq_c );
-              Trace("cbqi-inst-debug") << "Store bound " << index << " " << uval << " " << veq_c << " " << vts_coeff_inf << " " << vts_coeff_delta << " " << lit << std::endl;
+              d_mbp_coeff[index].push_back( pv_prop.d_coeff );
+              Trace("cbqi-inst-debug") << "Store bound " << index << " " << uval << " " << pv_prop.d_coeff << " " << vts_coeff_inf << " " << vts_coeff_delta << " " << lit << std::endl;
               for( unsigned t=0; t<2; t++ ){
                 d_mbp_vts_coeff[index][t].push_back( t==0 ? vts_coeff_inf : vts_coeff_delta );
               }
               d_mbp_lit[index].push_back( lit );
             }else{
               //try this bound
-              if( ci->doAddInstantiationInc( pv, uval, veq_c, uires>0 ? 1 : -1, sf, effort ) ){
+              pv_prop.d_type = uires>0 ? 1 : -1;
+              if( ci->doAddInstantiationInc( pv, uval, pv_prop, sf, effort ) ){
                 return true;
               }
             }
@@ -434,7 +436,8 @@ bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf,
             val = NodeManager::currentNM()->mkNode( UMINUS, val );
             val = Rewriter::rewrite( val );
           }
-          if( ci->doAddInstantiationInc( pv, val, Node::null(), 0, sf, effort ) ){
+          TermProperties pv_prop_no_bound;
+          if( ci->doAddInstantiationInc( pv, val, pv_prop_no_bound, sf, effort ) ){
             return true;
           }
         }
@@ -528,7 +531,10 @@ bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf,
             val = getModelBasedProjectionValue( ci, pv, val, rr==0, d_mbp_coeff[rr][best], pv_value, t_values[rr][best], sf.d_theta,
                                                 d_mbp_vts_coeff[rr][0][best], d_mbp_vts_coeff[rr][1][best] );
             if( !val.isNull() ){
-              if( ci->doAddInstantiationInc( pv, val, d_mbp_coeff[rr][best], rr==0 ? 1 : -1, sf, effort ) ){
+              TermProperties pv_prop_bound;
+              pv_prop_bound.d_coeff = d_mbp_coeff[rr][best];
+              pv_prop_bound.d_type = rr==0 ? 1 : -1;
+              if( ci->doAddInstantiationInc( pv, val, pv_prop_bound, sf, effort ) ){
                 return true;
               }
             }
@@ -539,10 +545,10 @@ bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf,
     //if not using infinity, use model value of zero
     if( !use_inf && d_mbp_bounds[0].empty() && d_mbp_bounds[1].empty() ){
       Node val = zero;
-      Node c; //null (one) coefficient
-      val = getModelBasedProjectionValue( ci, pv, val, true, c, pv_value, zero, sf.d_theta, Node::null(), Node::null() );
+      TermProperties pv_prop_zero;
+      val = getModelBasedProjectionValue( ci, pv, val, true, pv_prop_zero.d_coeff, pv_value, zero, sf.d_theta, Node::null(), Node::null() );
       if( !val.isNull() ){
-        if( ci->doAddInstantiationInc( pv, val, c, 0, sf, effort ) ){
+        if( ci->doAddInstantiationInc( pv, val, pv_prop_zero, sf, effort ) ){
           return true;
         }
       }
@@ -583,7 +589,8 @@ bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf,
       }
       Trace("cbqi-bound") << "Midpoint value : " << val << std::endl;
       if( !val.isNull() ){
-        if( ci->doAddInstantiationInc( pv, val, Node::null(), 0, sf, effort ) ){
+        TermProperties pv_prop_midpoint;
+        if( ci->doAddInstantiationInc( pv, val, pv_prop_midpoint, sf, effort ) ){
           return true;
         }
       }
@@ -601,7 +608,10 @@ bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf,
             Node val = getModelBasedProjectionValue( ci, pv, d_mbp_bounds[rr][j], rr==0, d_mbp_coeff[rr][j], pv_value, t_values[rr][j], sf.d_theta,
                                                      d_mbp_vts_coeff[rr][0][j], d_mbp_vts_coeff[rr][1][j] );
             if( !val.isNull() ){
-              if( ci->doAddInstantiationInc( pv, val, d_mbp_coeff[rr][j], rr==0 ? 1 : -1, sf, effort ) ){
+              TermProperties pv_prop_nopt_bound;
+              pv_prop_nopt_bound.d_coeff = d_mbp_coeff[rr][j];
+              pv_prop_nopt_bound.d_type = rr==0 ? 1 : -1;
+              if( ci->doAddInstantiationInc( pv, val, pv_prop_nopt_bound, sf, effort ) ){
                 return true;
               }
             }
@@ -621,12 +631,13 @@ bool ArithInstantiator::postProcessInstantiation( CegInstantiator * ci, SolvedFo
   Assert( std::find( sf.d_has_coeff.begin(), sf.d_has_coeff.end(), pv )!=sf.d_has_coeff.end() );
   Assert( std::find( sf.d_vars.begin(), sf.d_vars.end(), pv )!=sf.d_vars.end() );
   unsigned index = std::find( sf.d_vars.begin(), sf.d_vars.end(), pv )-sf.d_vars.begin();
-  Assert( !sf.d_coeff[index].isNull() );
-  Trace("cbqi-inst-debug") << "Normalize substitution for " << sf.d_coeff[index] << " * " << sf.d_vars[index] << " = " << sf.d_subs[index] << std::endl;
+  Assert( !sf.d_props[index].d_coeff.isNull() );
+  Trace("cbqi-inst-debug") << "Normalize substitution for " << sf.d_props[index].d_coeff << " * ";
+  Trace("cbqi-inst-debug") << sf.d_vars[index] << " = " << sf.d_subs[index] << std::endl;
   Assert( sf.d_vars[index].getType().isInteger() );
   //must ensure that divisibility constraints are met
   //solve updated rewritten equality for vars[index], if coefficient is one, then we are successful
-  Node eq_lhs = NodeManager::currentNM()->mkNode( MULT, sf.d_coeff[index], sf.d_vars[index] );
+  Node eq_lhs = NodeManager::currentNM()->mkNode( MULT, sf.d_props[index].d_coeff, sf.d_vars[index] );
   Node eq_rhs = sf.d_subs[index];
   Node eq = eq_lhs.eqNode( eq_rhs );
   eq = Rewriter::rewrite( eq );
@@ -645,9 +656,9 @@ bool ArithInstantiator::postProcessInstantiation( CegInstantiator * ci, SolvedFo
       sf.d_subs[index] = veq[1];
       if( !veq_c.isNull() ){
         sf.d_subs[index] = NodeManager::currentNM()->mkNode( INTS_DIVISION_TOTAL, veq[1], veq_c );
-        Trace("cbqi-inst-debug") << "...bound type is : " << sf.d_btyp[index] << std::endl;
+        Trace("cbqi-inst-debug") << "...bound type is : " << sf.d_props[index].d_type << std::endl;
         //intger division rounding up if from a lower bound
-        if( sf.d_btyp[index]==1 && options::cbqiRoundUpLowerLia() ){
+        if( sf.d_props[index].d_type==1 && options::cbqiRoundUpLowerLia() ){
           sf.d_subs[index] = NodeManager::currentNM()->mkNode( PLUS, sf.d_subs[index],
             NodeManager::currentNM()->mkNode( ITE,
               NodeManager::currentNM()->mkNode( EQUAL,
@@ -732,7 +743,8 @@ bool DtInstantiator::processEqualTerms( CegInstantiator * ci, SolvedForm& sf, No
         children.push_back( c );
       }
       Node val = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
-      if( ci->doAddInstantiationInc( pv, val, Node::null(), 0, sf, effort ) ){
+      TermProperties pv_prop_dt;
+      if( ci->doAddInstantiationInc( pv, val, pv_prop_dt, sf, effort ) ){
         return true;
       }else{
         //cleanup
@@ -746,11 +758,11 @@ bool DtInstantiator::processEqualTerms( CegInstantiator * ci, SolvedForm& sf, No
   return false;
 }
 
-bool DtInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort ) {
+bool DtInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort ) {
   Node val = solve_dt( pv, terms[0], terms[1], terms[0], terms[1] );
   if( !val.isNull() ){
-    Node veq_c;
-    if( ci->doAddInstantiationInc( pv, val, veq_c, 0, sf, effort ) ){
+    TermProperties pv_prop;
+    if( ci->doAddInstantiationInc( pv, val, pv_prop, sf, effort ) ){
       return true;
     }
   }
@@ -761,13 +773,14 @@ void EprInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsi
   d_equal_terms.clear();
 }
 
-bool EprInstantiator::processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, Node pv_coeff, Node n, unsigned effort ) {
+bool EprInstantiator::processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, TermProperties& pv_prop, Node n, unsigned effort ) {
   if( options::quantEprMatching() ){
-    Assert( pv_coeff.isNull() );
+    Assert( pv_prop.d_coeff.isNull() );
     d_equal_terms.push_back( n );
     return false;
   }else{
-    return ci->doAddInstantiationInc( pv, n, pv_coeff, 0, sf, effort );
+    pv_prop.d_type = 0;
+    return ci->doAddInstantiationInc( pv, n, pv_prop, sf, effort );
   }
 }
 
@@ -832,9 +845,10 @@ bool EprInstantiator::processEqualTerms( CegInstantiator * ci, SolvedForm& sf, N
     }
     //sort by match score
     std::sort( d_equal_terms.begin(), d_equal_terms.end(), setm );
-    Node pv_coeff;
+    TermProperties pv_prop;
+    pv_prop.d_type = 0;
     for( unsigned i=0; i<d_equal_terms.size(); i++ ){
-      if( ci->doAddInstantiationInc( pv, d_equal_terms[i], pv_coeff, 0, sf, effort ) ){
+      if( ci->doAddInstantiationInc( pv, d_equal_terms[i], pv_prop, sf, effort ) ){
         return true;
       }
     }
@@ -1023,7 +1037,7 @@ void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node 
         if( d_inelig.find( atom[1-t] )==d_inelig.end() ){
           //only ground terms  TODO: more
           if( d_prog_var[atom[1-t]].empty() ){
-            Node veq_c;
+            TermProperties pv_prop;
             Node uval;
             if( ( !pol && atom.getKind()==BITVECTOR_ULT ) || ( pol && atom.getKind()==BITVECTOR_ULE ) ){
               uval = atom[1-t];
@@ -1031,7 +1045,7 @@ void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node 
               uval = NodeManager::currentNM()->mkNode( (atom.getKind()==BITVECTOR_ULT)==(t==1) ? BITVECTOR_PLUS : BITVECTOR_SUB, atom[1-t],
                                                        bv::utils::mkConst(pvtn.getConst<BitVectorSize>(), 1) );
             }
-            if( doAddInstantiationInc( pv, uval, veq_c, 0, sf, effort ) ){
+            if( doAddInstantiationInc( pv, uval, pv_prop, sf, effort ) ){
               return true;
             }
           }
@@ -1042,7 +1056,7 @@ void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node 
   */
 }
 
-bool BvInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort ) {
+bool BvInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort ) {
   //processLiteral( ci, sf, pv, terms[0].eqNode( terms[1] ), effort );
   return false;
 }
