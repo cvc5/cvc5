@@ -2271,17 +2271,25 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         }
       }
     | FP_PINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { expr = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                      AntlrInput::tokenToUnsigned($sb),
-                                      +INFINITY)); }
+      { expr = MK_CONST(FloatingPoint::makeInf(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
+                                                                 AntlrInput::tokenToUnsigned($sb)),
+                                               false)); }
     | FP_NINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { expr = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                      AntlrInput::tokenToUnsigned($sb),
-                                     -INFINITY)); }
+      { expr = MK_CONST(FloatingPoint::makeInf(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
+                                                                 AntlrInput::tokenToUnsigned($sb)),
+                                               true)); }
     | FP_NAN_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { expr = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                      AntlrInput::tokenToUnsigned($sb),
-                                      NAN)); }
+      { expr = MK_CONST(FloatingPoint::makeNaN(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
+                                                                 AntlrInput::tokenToUnsigned($sb)))); }
+
+    | FP_PZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { expr = MK_CONST(FloatingPoint::makeZero(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
+                                                                AntlrInput::tokenToUnsigned($sb)),
+                                              false)); }
+    | FP_NZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { expr = MK_CONST(FloatingPoint::makeZero(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
+                                                                AntlrInput::tokenToUnsigned($sb)),
+                                              true)); }
     // NOTE: Theory parametric constants go here
 
     )
@@ -2505,26 +2513,6 @@ indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
               "bv2nat and int2bv are not part of SMT-LIB, and aren't available "
               "in SMT-LIB strict compliance mode");
         } }
-    | FP_PINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                    AntlrInput::tokenToUnsigned($sb),
-                                    +INFINITY)); }
-    | FP_NINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                    AntlrInput::tokenToUnsigned($sb),
-                                    -INFINITY)); }
-    | FP_NAN_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                    AntlrInput::tokenToUnsigned($sb),
-                                    NAN)); }
-    | FP_PZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                    AntlrInput::tokenToUnsigned($sb),
-                                    +0.0)); }
-    | FP_NZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                    AntlrInput::tokenToUnsigned($sb),
-                                    -0.0)); }
     | FP_TO_FP_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
       { op = MK_CONST(FloatingPointToFPGeneric(
                 AntlrInput::tokenToUnsigned($eb),
