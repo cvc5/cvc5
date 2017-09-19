@@ -855,11 +855,6 @@ public:
 
   void testGaussElimRewriteForUrem ()
   {
-    ExprManager* d_em = new ExprManager();
-    NodeManager* d_nm = NodeManager::fromExprManager(d_em);
-    SmtEngine* d_smt = new SmtEngine(d_em);
-    SmtScope* d_scope = new SmtScope(d_smt);
-
     /*
      *   lhs   rhs  modulo 11
      *  --^--   ^
