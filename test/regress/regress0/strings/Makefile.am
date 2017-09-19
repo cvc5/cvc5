@@ -88,7 +88,8 @@ TESTS = \
   username_checker_min.smt2 \
   repl-empty-sem.smt2 \
   bug799-min.smt2 \
-  strings-charat.cvc
+  strings-charat.cvc \
+  issue1105.smt2
 
 FAILING_TESTS =
 

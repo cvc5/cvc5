@@ -2277,8 +2277,8 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
     if(!childrenPushed) {
       Kind k = n.getKind();
 
-      // Apart from apply, we can short circuit leaves
-      if(k != kind::APPLY && n.getNumChildren() == 0) {
+      // we can short circuit (variable) leaves
+      if(n.isVar()) {
         SmtEngine::DefinedFunctionMap::const_iterator i = d_smt.d_definedFunctions->find(n);
         if(i != d_smt.d_definedFunctions->end()) {
           // replacement must be closed
@@ -2372,15 +2372,6 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
         node = t->expandDefinition(req, n);
       }
 
-      // there should be children here, otherwise we short-circuited a result-push/continue, above
-      if (node.getNumChildren() == 0) {
-        Debug("expand") << "Unexpectedly no children..." << node << endl;
-      }
-      // This invariant holds at the moment but it is concievable that a new theory
-      // might introduce a kind which can have children before definition expansion but doesn't
-      // afterwards.  If this happens, remove this assertion.
-      Assert(node.getNumChildren() > 0);
-
       // the partial functions can fall through, in which case we still
       // consider their children
       worklist.push(make_triple(Node(n), node, true));            // Original and rewritten result
@@ -2394,22 +2385,24 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
       // Reconstruct the node from it's (now rewritten) children on the stack
 
       Debug("expand") << "cons : " << node << endl;
-      //cout << "cons : " << node << endl;
-      NodeBuilder<> nb(node.getKind());
-      if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
-        Debug("expand") << "op   : " << node.getOperator() << endl;
-        //cout << "op   : " << node.getOperator() << endl;
-        nb << node.getOperator();
+      if(node.getNumChildren()>0) {
+        //cout << "cons : " << node << endl;
+        NodeBuilder<> nb(node.getKind());
+        if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
+          Debug("expand") << "op   : " << node.getOperator() << endl;
+          //cout << "op   : " << node.getOperator() << endl;
+          nb << node.getOperator();
+        }
+        for(size_t i = 0; i < node.getNumChildren(); ++i) {
+          Assert(!result.empty());
+          Node expanded = result.top();
+          result.pop();
+          //cout << "exchld : " << expanded << endl;
+          Debug("expand") << "exchld : " << expanded << endl;
+          nb << expanded;
+        }
+        node = nb;
       }
-      for(size_t i = 0; i < node.getNumChildren(); ++i) {
-        Assert(!result.empty());
-        Node expanded = result.top();
-        result.pop();
-        //cout << "exchld : " << expanded << endl;
-        Debug("expand") << "exchld : " << expanded << endl;
-        nb << expanded;
-      }
-      node = nb;
       cache[n] = n == node ? Node::null() : node;           // Only cache once all subterms are expanded
       result.push(node);
     }
@@ -4390,14 +4383,14 @@ void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
   }
 }
 
-Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore) throw(TypeCheckingException, ModalException, LogicException) {
-  return checkSatisfiability( ex, inUnsatCore, false );
-}/* SmtEngine::checkSat() */
+Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore) throw(Exception) {
+  return checkSatisfiability(ex, inUnsatCore, false);
+} /* SmtEngine::checkSat() */
 
-Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(TypeCheckingException, ModalException, LogicException) {
+Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(Exception) {
   Assert(!ex.isNull());
-  return checkSatisfiability( ex, inUnsatCore, true );
-}/* SmtEngine::query() */
+  return checkSatisfiability(ex, inUnsatCore, true);
+} /* SmtEngine::query() */
 
 Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQuery) {
   try {
@@ -4504,8 +4497,7 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
   }
 }
 
-
-Result SmtEngine::checkSynth(const Expr& e) throw(TypeCheckingException, ModalException, LogicException) {
+Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
   SmtScope smts(this);
   Trace("smt") << "Check synth: " << e << std::endl;
   Trace("smt-synth") << "Check synthesis conjecture: " << e << std::endl;
@@ -4959,7 +4951,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   TheoryModel* m = d_theoryEngine->getModel();
 
   // Check individual theory assertions
-  d_theoryEngine->checkTheoryAssertionsWithModel();
+  d_theoryEngine->checkTheoryAssertionsWithModel(hardFailure);
 
   // Output the model
   Notice() << *m;
@@ -5213,7 +5205,8 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
   }
 }
 
-Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict) throw(TypeCheckingException, ModalException, LogicException) {
+Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull,
+                                        bool strict) throw(Exception) {
   SmtScope smts(this);
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;

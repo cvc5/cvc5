@@ -462,19 +462,20 @@ public:
    * of assertions by asserting the query expression's negation and
    * calling check().  Returns valid, invalid, or unknown result.
    */
-  Result query(const Expr& e, bool inUnsatCore = true) throw(TypeCheckingException, ModalException, LogicException);
+  Result query(const Expr& e, bool inUnsatCore = true) throw(Exception);
 
   /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSat(const Expr& e = Expr(), bool inUnsatCore = true) throw(TypeCheckingException, ModalException, LogicException);
+  Result checkSat(const Expr& e = Expr(),
+                  bool inUnsatCore = true) throw(Exception);
 
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSynth(const Expr& e) throw(TypeCheckingException, ModalException, LogicException);
+  Result checkSynth(const Expr& e) throw(Exception);
 
   /**
    * Simplify a formula without doing "much" work.  Does not involve
@@ -536,9 +537,11 @@ public:
   void printSynthSolution( std::ostream& out );
 
   /**
-   * Do quantifier elimination, doFull false means just output one disjunct, strict is whether to output warnings.
+   * Do quantifier elimination, doFull false means just output one disjunct,
+   * strict is whether to output warnings.
    */
-  Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict=true) throw(TypeCheckingException, ModalException, LogicException);
+  Expr doQuantifierElimination(const Expr& e, bool doFull,
+                               bool strict = true) throw(Exception);
 
   /**
    * Get list of quantified formulas that were instantiated

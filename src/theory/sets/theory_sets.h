@@ -66,6 +66,8 @@ public:
 
   void preRegisterTerm(TNode node);
 
+  Node expandDefinition(LogicRequest &logicRequest, Node n);
+
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
 
   void presolve();

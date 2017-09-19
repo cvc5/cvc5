@@ -190,6 +190,7 @@ TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 # we have a minimized version still getting tested
 # bug639 -- still fails, reopened bug
 # bug585 -- contains subrange type (not supported)
+# issue1048-arrays-int-real.smt2 -- different errors on debug and production
 DISABLED_TESTS = \
 	bug512.smt2 \
 	bug585.cvc
