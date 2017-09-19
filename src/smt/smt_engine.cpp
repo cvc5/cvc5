@@ -4656,6 +4656,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
   return n.toExpr();
 }
 
+// TODO(#1108): Simplify the error reporting of this method.
 Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException) {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
@@ -4675,9 +4676,7 @@ Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckin
      d_problemExtended) {
     const char* msg =
       "Cannot get value unless immediately preceded by SAT/INVALID or UNKNOWN response.";
-    //throw ModalException(msg);
-    Warning() << CommandFailure(msg);
-    return ex;
+    throw RecoverableModalException(msg);
   }
 
   // Substitute out any abstract values in ex.
@@ -4767,6 +4766,7 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
   return true;
 }
 
+// TODO(#1108): Simplify the error reporting of this method.
 CVC4::SExpr SmtEngine::getAssignment() {
   Trace("smt") << "SMT getAssignment()" << endl;
   SmtScope smts(this);
@@ -4786,9 +4786,7 @@ CVC4::SExpr SmtEngine::getAssignment() {
     const char* msg =
       "Cannot get the current assignment unless immediately "
       "preceded by SAT/INVALID or UNKNOWN response.";
-    //throw ModalException(msg);
-    Warning() << CommandFailure(msg);
-    return SExpr(vector<SExpr>());
+    throw RecoverableModalException(msg);
   }
 
   if(d_assignments == NULL) {
@@ -4867,6 +4865,7 @@ void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool 
   }
 }
 
+// TODO(#1108): Simplify the error reporting of this method.
 Model* SmtEngine::getModel() {
   Trace("smt") << "SMT getModel()" << endl;
   SmtScope smts(this);
@@ -4883,9 +4882,7 @@ Model* SmtEngine::getModel() {
     const char* msg =
       "Cannot get the current model unless immediately "
       "preceded by SAT/INVALID or UNKNOWN response.";
-    //throw ModalException(msg);
-    Warning() << CommandFailure(msg);
-    return NULL;
+    throw RecoverableModalException(msg);
   }
   if(!options::produceModels()) {
     const char* msg =
@@ -5131,6 +5128,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
 }
 
+// TODO(#1108): Simplify the error reporting of this method.
 UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
   SmtScope smts(this);
@@ -5145,9 +5143,9 @@ UnsatCore SmtEngine::getUnsatCore() {
   if(d_status.isNull() ||
      d_status.asSatisfiabilityResult() != Result::UNSAT ||
      d_problemExtended) {
-    //throw ModalException("Cannot get an unsat core unless immediately preceded by UNSAT/VALID response.");
-    Warning() << CommandFailure("Cannot get an unsat core unless immediately preceded by UNSAT/VALID response.");
-    return UnsatCore();
+    throw RecoverableModalException(
+        "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
+        "response.");
   }
 
   d_proofManager->traceUnsatCore();// just to trigger core creation
@@ -5157,6 +5155,7 @@ UnsatCore SmtEngine::getUnsatCore() {
 #endif /* IS_PROOFS_BUILD */
 }
 
+// TODO(#1108): Simplify the error reporting of this method.
 Proof* SmtEngine::getProof() {
   Trace("smt") << "SMT getProof()" << endl;
   SmtScope smts(this);
@@ -5171,9 +5170,9 @@ Proof* SmtEngine::getProof() {
   if(d_status.isNull() ||
      d_status.asSatisfiabilityResult() != Result::UNSAT ||
      d_problemExtended) {
-    //throw ModalException("Cannot get a proof unless immediately preceded by UNSAT/VALID response.");
-    Warning() << CommandFailure("Cannot get a proof unless immediately preceded by UNSAT/VALID response.");
-    return NULL;
+    throw RecoverableModalException(
+        "Cannot get a proof unless immediately preceded by UNSAT/VALID "
+        "response.");
   }
 
   return ProofManager::getProof(this);
