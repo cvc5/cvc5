@@ -1023,6 +1023,8 @@ void GetValueCommand::invoke(SmtEngine* smtEngine) {
     }
     d_result = em->mkExpr(kind::SEXPR, result);
     d_commandStatus = CommandSuccess::instance();
+  } catch (RecoverableModalException& e) {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
   } catch(UnsafeInterruptException& e) {
     d_commandStatus = new CommandInterrupted();
   } catch(exception& e) {
@@ -1072,6 +1074,8 @@ void GetAssignmentCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getAssignment();
     d_commandStatus = CommandSuccess::instance();
+  } catch (RecoverableModalException& e) {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
   } catch(UnsafeInterruptException& e) {
     d_commandStatus = new CommandInterrupted();
   } catch(exception& e) {
@@ -1117,6 +1121,8 @@ void GetModelCommand::invoke(SmtEngine* smtEngine) {
     d_result = smtEngine->getModel();
     d_smtEngine = smtEngine;
     d_commandStatus = CommandSuccess::instance();
+  } catch (RecoverableModalException& e) {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
   } catch(UnsafeInterruptException& e) {
     d_commandStatus = new CommandInterrupted();
   } catch(exception& e) {
@@ -1166,6 +1172,8 @@ void GetProofCommand::invoke(SmtEngine* smtEngine) {
     d_smtEngine = smtEngine;
     d_result = smtEngine->getProof();
     d_commandStatus = CommandSuccess::instance();
+  } catch (RecoverableModalException& e) {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
   } catch(UnsafeInterruptException& e) {
     d_commandStatus = new CommandInterrupted();
   } catch(exception& e) {
@@ -1352,6 +1360,8 @@ void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getUnsatCore();
     d_commandStatus = CommandSuccess::instance();
+  } catch (RecoverableModalException& e) {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
   }
