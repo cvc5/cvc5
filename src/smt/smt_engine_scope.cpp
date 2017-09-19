@@ -42,7 +42,8 @@ ProofManager* currentProofManager() {
   Assert(s_smtEngine_current != NULL);
   return s_smtEngine_current->d_proofManager;
 #else  /* IS_PROOFS_BUILD */
-  InternalError("proofs/unsat cores are not on, but ProofManager requested");
+  InternalError << "proofs/unsat cores are not on, but ProofManager requested"
+                << std::endl;
   return NULL;
 #endif /* IS_PROOFS_BUILD */
 }
