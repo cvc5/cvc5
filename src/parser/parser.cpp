@@ -123,6 +123,25 @@ Expr Parser::getVariableExpressionForType(const std::string& name, Type t) {
   return expr;
 }
 
+Kind Parser::getKindForFunction(Expr fun) {
+  if(isDefinedFunction(fun)) {
+    return APPLY;
+  }
+  Type t = fun.getType();
+  if(t.isConstructor()) {
+    return APPLY_CONSTRUCTOR;
+  } else if(t.isSelector()) {
+    return APPLY_SELECTOR;
+  } else if(t.isTester()) {
+    return APPLY_TESTER;
+  } else if(t.isFunction()) {
+    return APPLY_UF;
+  }else{
+    parseError("internal error: unhandled function application kind");
+    return UNDEFINED_KIND;
+  }
+}
+
 Type Parser::getSort(const std::string& name) {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   assert(isDeclared(name, SYM_SORT));

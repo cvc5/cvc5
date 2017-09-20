@@ -1745,22 +1745,10 @@ postfixTerm[CVC4::Expr& f]
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
       // TODO: check arity
-      { Type t = args.front().getType();
-        Debug("parser") << "type is " << t << std::endl;
+      { Kind k = PARSER_STATE->getKindForFunction(args.front());
         Debug("parser") << "expr is " << args.front() << std::endl;
-        if(PARSER_STATE->isDefinedFunction(args.front())) {
-          f = MK_EXPR(CVC4::kind::APPLY, args);
-        } else if(t.isFunction()) {
-          f = MK_EXPR(CVC4::kind::APPLY_UF, args);
-        } else if(t.isConstructor()) {
-          f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, args);
-        } else if(t.isSelector()) {
-          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR, args);
-        } else if(t.isTester()) {
-          f = MK_EXPR(CVC4::kind::APPLY_TESTER, args);
-        } else {
-          PARSER_STATE->parseError("internal error: unhandled function application kind");
-        }
+        Debug("parser") << "kind is " << k << std::endl;
+        f = MK_EXPR(k, args);
       }
 
       /* record / tuple select */

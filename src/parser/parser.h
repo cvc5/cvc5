@@ -349,6 +349,13 @@ public:
   virtual Expr getVariableExpressionForType(const std::string& name, Type t);
   
   /**
+   * Returns the kind that should be used for function fun. For example,
+   * returns APPLY_UF if fun is a function, APPLY_CONSTRUCTOR if fun
+   * is a constructor.
+   */
+  Kind getKindForFunction(Expr fun);
+  
+  /**
    * Returns a sort, given a name.
    * @param sort_name the name to look up
    */

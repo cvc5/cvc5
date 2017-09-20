@@ -47,9 +47,11 @@ class SymbolTable::Implementation {
       : d_context(),
         d_exprMap(new (true) CDHashMap<string, Expr>(&d_context)),
         d_typeMap(new (true) TypeMap(&d_context)),
-        d_functions(new (true) CDHashSet<Expr, ExprHashFunction>(&d_context)) {}
+        d_functions(new (true) CDHashSet<Expr, ExprHashFunction>(&d_context)),
+        d_overloaded_symbols(new (true) CDHashSet<Expr, ExprHashFunction>(&d_context)) {}
 
   ~Implementation() {
+    d_overloaded_symbols->deleteSelf();
     d_exprMap->deleteSelf();
     d_typeMap->deleteSelf();
     d_functions->deleteSelf();
@@ -73,32 +75,47 @@ class SymbolTable::Implementation {
   void pushScope() throw();
   size_t getLevel() const throw();
   void reset();
+ private:
+  /** The context manager for the scope maps. */
+  Context d_context;
+
+  /** A map for expressions. */
+  CDHashMap<string, Expr>* d_exprMap;
+
+  /** A map for types. */
+  using TypeMap = CDHashMap<string, std::pair<vector<Type>, Type>>;
+  TypeMap* d_typeMap;
+
+  /** A set of defined functions. */
+  CDHashSet<Expr, ExprHashFunction>* d_functions;
  // for operator overloading
  private:
   // the null expression
   Expr d_nullExpr;
-  // This data structure stores a trie of reference ids to expressions with
+  // This data structure stores a trie of expressions with
   // the same name, and must be distinguished by their argument types.
   // For simplicity, it is context-independent.
   class TypeArgTrie {
   public:
+    // children in the trie
     std::map< Type, TypeArgTrie > d_children;
-    std::vector< unsigned > d_symbols;
-    void add( std::vector< Type >& args, unsigned s, unsigned index = 0 ){
-      if( index>=args.size() ){
-        d_symbols.push_back( s );
-      }else{
-        d_children[args[index]].add( args, s, index+1 );
-      }
-    }
+    // symbols at this node
+    std::map< Type, Expr > d_symbols;
   };
   // for each string with operator overloading, this stores the data
   // structure above.
-  std::map< std::string, TypeArgTrie > d_overload_type_arg_trie;
-  /** id counter for overloaded symbols */
-  //CDO< unsigned > d_overload_id_counter;
-  /** map from overloaded symbols to an id */
-  //CDHashMap< Expr, unsigned > d_overload_expr_id;
+  std::unordered_map< std::string, TypeArgTrie > d_overload_type_arg_trie;
+  /** bind with overloading
+   * This is called whenever obj is bound to name.
+   * If a symbol is previously bound to that name, it marks both as overloaded.
+  */
+  void bindWithOverloading(const string& name, Expr obj);
+  /** Marks expression obj with name as overloaded. 
+   * Adds relevant information to the type arg trie data structure.
+  */
+  void markOverloaded(const string& name, Expr obj);
+  /** A set of overloaded symbols. */
+  CDHashSet<Expr, ExprHashFunction>* d_overloaded_symbols;
  public:
    /** is this function overloaded? */
   bool isOverloadedFunction(Expr fun) const;
@@ -115,37 +132,19 @@ class SymbolTable::Implementation {
    * null expression.
    */
   Expr getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) const;
- private:
-  /** A set of overloaded symbols. */
-  CDHashSet<Expr, ExprHashFunction>* d_overloaded_symbols;
- private:
-  /** The context manager for the scope maps. */
-  Context d_context;
-
-  /** A map for expressions. */
-  CDHashMap<string, Expr>* d_exprMap;
-
-  /** A map for types. */
-  using TypeMap = CDHashMap<string, std::pair<vector<Type>, Type>>;
-  TypeMap* d_typeMap;
-
-  /** A set of defined functions. */
-  CDHashSet<Expr, ExprHashFunction>* d_functions;
 }; /* SymbolTable::Implementation */
 
 void SymbolTable::Implementation::bind(const string& name, Expr obj,
                                        bool levelZero) throw() {
   PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
-  if(false && isBound(name)) {
-    // TODO : overloading goes here
-    
-  }else{
-    if (levelZero) {
-      d_exprMap->insertAtContextLevelZero(name, obj);
-    } else {
-      d_exprMap->insert(name, obj);
-    }
+  if (levelZero) {
+    // we only bind symbols to overload at top level  
+    // things like bound variables in scopes are assumed to shadow previous definitions
+    bindWithOverloading(name, obj);
+    d_exprMap->insertAtContextLevelZero(name, obj);
+  } else {
+    d_exprMap->insert(name, obj);
   }
 }
 
@@ -154,17 +153,15 @@ void SymbolTable::Implementation::bindDefinedFunction(const string& name,
                                                       bool levelZero) throw() {
   PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
-  if(false && isBound(name)) {
-    // TODO : overloading goes here
-    
-  }else{
-    if (levelZero) {
-      d_exprMap->insertAtContextLevelZero(name, obj);
-      d_functions->insertAtContextLevelZero(obj);
-    } else {
-      d_exprMap->insert(name, obj);
-      d_functions->insert(obj);
-    }
+  if (levelZero) {
+    // we only bind symbols to overload at top level
+    // things like bound variables in scopes are assumed to shadow previous definitions
+    bindWithOverloading(name, obj);
+    d_exprMap->insertAtContextLevelZero(name, obj);
+    d_functions->insertAtContextLevelZero(obj);
+  } else {
+    d_exprMap->insert(name, obj);
+    d_functions->insert(obj);
   }
 }
 
@@ -314,21 +311,85 @@ void SymbolTable::Implementation::reset() {
   new (this) SymbolTable::Implementation();
 }
 
+void SymbolTable::Implementation::bindWithOverloading(const string& name, Expr obj) {
+  CDHashMap<string, Expr>::const_iterator it = d_exprMap->find(name);
+  if(it != d_exprMap->end()) {
+    if((*it).second!=obj) {
+      if(d_overloaded_symbols->find((*it).second)==d_overloaded_symbols->end()) {
+        // mark previous as overloaded
+        markOverloaded(name, (*it).second);
+      }
+      // mark this as overloaded
+      markOverloaded(name, obj);
+    }
+  }
+}
+
+void SymbolTable::Implementation::markOverloaded(const string& name, Expr obj) {
+  Trace("parser-overloading") << "Overloaded function : " << name << " with type " << obj.getType() << std::endl;
+  d_overloaded_symbols->insert(obj);
+  // get the argument types
+  Type t = obj.getType();
+  Type rangeType = t;
+  std::vector< Type > argTypes;
+  if(t.isFunction()) {
+    argTypes = ((FunctionType)t).getArgTypes();
+    rangeType = ((FunctionType)t).getRangeType();
+  }else if(t.isConstructor()) {
+    argTypes = ((ConstructorType)t).getArgTypes();
+    rangeType = ((ConstructorType)t).getRangeType();
+  }
+  // add to the trie
+  TypeArgTrie * tat = &d_overload_type_arg_trie[name];
+  for(unsigned i=0; i<argTypes.size(); i++) {
+    tat = &(tat->d_children[argTypes[i]]);
+  }
+  tat->d_symbols[rangeType] = obj;
+}
+  
 bool SymbolTable::Implementation::isOverloadedFunction(Expr fun) const {
-  //TODO
-  return false;
+  return d_overloaded_symbols->find(fun)!=d_overloaded_symbols->end();
 }
 
 Expr SymbolTable::Implementation::getOverloadedConstantForType(const std::string& name, Type t) const {
-  Expr sym;
-  //TODO
-  return sym;
+  std::unordered_map< std::string, TypeArgTrie >::const_iterator it = d_overload_type_arg_trie.find(name);
+  if(it!=d_overload_type_arg_trie.end()) {
+    std::map< Type, Expr >::const_iterator its = it->second.d_symbols.find(t);
+    if(its!=it->second.d_symbols.end()) {
+      return its->second;
+    }
+  }
+  return d_nullExpr;
 }
 
 Expr SymbolTable::Implementation::getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) const {
-  Expr fun;
-  //TODO
-  return fun;
+  std::unordered_map< std::string, TypeArgTrie >::const_iterator it = d_overload_type_arg_trie.find(name);
+  if(it!=d_overload_type_arg_trie.end()) {
+    const TypeArgTrie * tat = &it->second;
+    for(unsigned i=0; i<argTypes.size(); i++) {
+      std::map< Type, TypeArgTrie >::const_iterator itc = tat->d_children.find(argTypes[i]);
+      if(itc!=tat->d_children.end()) {
+        tat = &itc->second;
+      }else{
+        // no functions match 
+        return d_nullExpr;
+      }
+    }
+    // now, we must ensure that there is one and only one active symbol at this node
+    Expr retExpr;
+    for(std::map< Type, Expr >::const_iterator its = tat->d_symbols.begin(); its != tat->d_symbols.end(); ++its) {
+      Expr expr = its->second;
+      if(isOverloadedFunction(expr)) {
+        if(retExpr.isNull()) {
+          retExpr = expr;
+        }else{
+          return d_nullExpr;
+        }
+      }
+    }
+    return retExpr;
+  }
+  return d_nullExpr;
 }
 
 bool SymbolTable::isOverloadedFunction(Expr fun) {

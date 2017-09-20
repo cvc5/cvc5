@@ -1951,30 +1951,9 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         //  op = PARSER_STATE->getVariable(name);
         //}else{
         PARSER_STATE->checkFunctionLike(name);
-        const bool isDefinedFunction =
-          PARSER_STATE->isDefinedFunction(name);
-        if(isDefinedFunction) {
-          expr = PARSER_STATE->getFunction(name);
-          kind = CVC4::kind::APPLY;
-        } else {
-          expr = PARSER_STATE->getVariable(name);
-          if(expr.isNull()) {
-            // it is an overloaded operator
-            // wait until we have the types of the arguments below
-          }else{
-            Type t = expr.getType();
-            if(t.isConstructor()) {
-              kind = CVC4::kind::APPLY_CONSTRUCTOR;
-            } else if(t.isSelector()) {
-              kind = CVC4::kind::APPLY_SELECTOR;
-            } else if(t.isTester()) {
-              kind = CVC4::kind::APPLY_TESTER;
-            } else {
-              kind = CVC4::kind::APPLY_UF;
-            }
-          }
-        }
+        expr = PARSER_STATE->getVariable(name);
         if(!expr.isNull()) {
+          kind = PARSER_STATE->getKindForFunction(expr);
           args.push_back(expr);
         }else{
           isOverloadedFunction = true;
@@ -1994,8 +1973,11 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           argTypes.push_back( (*i).getType() );
         }
         expr = PARSER_STATE->getOverloadedFunctionForTypes(name, argTypes);
-        if(expr.isNull()) {
-          
+        if(!expr.isNull()) {
+          kind = PARSER_STATE->getKindForFunction(expr);
+          args.insert(args.begin(),expr);
+        }else{
+          PARSER_STATE->parseError("Cannot find overloaded function for argument types.");
         }
       }
       if(isBuiltinOperator) {
