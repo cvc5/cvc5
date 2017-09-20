@@ -107,19 +107,85 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   NodeManager* d_nm;
   SmtEngine* d_smt;
   SmtScope* d_scope;
+  Node d_p;
+  Node d_x;
+  Node d_y;
+  Node d_z;
+  Node d_zero; 
+  Node d_one;
+  Node d_two;
+  Node d_three;
+  Node d_four;
+  Node d_five;
+  Node d_eight;
+  Node d_x_mul_one;
+  Node d_y_mul_one;
+  Node d_z_mul_one;
+  Node d_x_mul_two;
+  Node d_x_mul_four;
+  Node d_y_mul_three;
+  Node d_z_mul_five;
+
+
+
+
 public:
   
   TheoryBVGaussWhite () {}
 
-  void setUp() {
+  void setUp()
+  {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
+
+    d_p = d_nm->mkConst<BitVector> (BitVector(16, 11u));
+    d_x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
+    d_y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
+    d_z = d_nm->mkVar("z", d_nm->mkBitVectorType(16));
+    
+    d_zero = d_nm->mkConst<BitVector> (BitVector(16, 0u));
+    d_one = d_nm->mkConst<BitVector> (BitVector(16, 1u));
+    d_two = d_nm->mkConst<BitVector> (BitVector(16, 2u));
+    d_three = d_nm->mkConst<BitVector> (BitVector(16, 3u));
+    d_four = d_nm->mkConst<BitVector> (BitVector(16, 4u));
+    d_five = d_nm->mkConst<BitVector> (BitVector(16, 5u));
+    d_eight = d_nm->mkConst<BitVector> (BitVector(16, 8u));
+
+    d_x_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_one);
+    d_y_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_one);
+    d_z_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_one);
+
+    d_x_mul_two = d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_two);
+    d_x_mul_four = d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_four);
+    d_y_mul_three = d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_three);
+    d_z_mul_five = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_five);
+
+
   }
 
-  void tearDown() {
+  void tearDown()
+  {
     (void) d_scope;
+    d_p = Node::null();
+    d_x = Node::null();
+    d_y = Node::null();
+    d_z = Node::null();
+    d_zero = Node::null(); 
+    d_one = Node::null();
+    d_two = Node::null();
+    d_three = Node::null();
+    d_four = Node::null();
+    d_five = Node::null();
+    d_eight = Node::null();
+    d_x_mul_one = Node::null();
+    d_y_mul_one = Node::null();
+    d_z_mul_one = Node::null();
+    d_x_mul_two = Node::null();
+    d_x_mul_four = Node::null();
+    d_y_mul_three = Node::null();
+    d_z_mul_five = Node::null();
     delete d_scope;
     delete d_smt;
     delete d_em;
@@ -853,7 +919,7 @@ public:
   }
 
 
-  void testGaussElimRewriteForUrem ()
+  void testGaussElimRewriteForUremUnique ()
   {
     /*
      *   lhs   rhs  modulo 11
@@ -863,59 +929,68 @@ public:
      *  4 0 5   2
      */
     
-    Node p = d_nm->mkConst<BitVector> (BitVector(16, 11u));
-
-    Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
-    Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
-    Node z = d_nm->mkVar("z", d_nm->mkBitVectorType(16));
-    
-    Node zero = d_nm->mkConst<BitVector> (BitVector(16, 0u));
-    Node one = d_nm->mkConst<BitVector> (BitVector(16, 1u));
-    Node two = d_nm->mkConst<BitVector> (BitVector(16, 2u));
-    Node three = d_nm->mkConst<BitVector> (BitVector(16, 3u));
-    Node four = d_nm->mkConst<BitVector> (BitVector(16, 4u));
-    Node five = d_nm->mkConst<BitVector> (BitVector(16, 5u));
-    Node eight = d_nm->mkConst<BitVector> (BitVector(16, 8u));
-
-    Node x_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, x, one);
-    Node y_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, y, one);
-    Node z_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, z, one);
-
-    Node x_mul_two = d_nm->mkNode(kind::BITVECTOR_MULT, x, two);
-    Node y_mul_three = d_nm->mkNode(kind::BITVECTOR_MULT, y, three);
-    Node z_mul_five = d_nm->mkNode(kind::BITVECTOR_MULT, z, five);
-
-    Node x_mul_four = d_nm->mkNode(kind::BITVECTOR_MULT, x, four);
-
     Node eq1 = d_nm->mkNode(kind::EQUAL,
         d_nm->mkNode(kind::BITVECTOR_UREM,
           d_nm->mkNode(kind::BITVECTOR_PLUS,
-              d_nm->mkNode(kind::BITVECTOR_PLUS, x_mul_one, y_mul_one),
-              z_mul_one),
-          p),
-        five);
+              d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_one, d_y_mul_one),
+              d_z_mul_one),
+          d_p),
+        d_five);
 
     Node eq2 = d_nm->mkNode(kind::EQUAL,
         d_nm->mkNode(kind::BITVECTOR_UREM,
           d_nm->mkNode(kind::BITVECTOR_PLUS,
-              d_nm->mkNode(kind::BITVECTOR_PLUS, x_mul_two, y_mul_three),
-              z_mul_five),
-          p),
-        eight);
+              d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_two, d_y_mul_three),
+              d_z_mul_five),
+          d_p),
+        d_eight);
 
     Node eq3 = d_nm->mkNode(kind::EQUAL,
         d_nm->mkNode(kind::BITVECTOR_UREM,
-          d_nm->mkNode(kind::BITVECTOR_PLUS, x_mul_four, z_mul_five),
-          p),
-        two);
+          d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_four, d_z_mul_five),
+          d_p),
+        d_two);
 
     std::vector< TNode > eqs = { eq1, eq2, eq3 };
 
     std::unordered_map< TNode, TNode, TNodeHashFunction > res;
     BVGaussElim::Result ret = BVGaussElim::gaussElimRewriteForUrem (eqs, res);
     TS_ASSERT (ret == BVGaussElim::Result::UNIQUE);
-    TS_ASSERT (res[x] == d_nm->mkConst< BitVector > (BitVector (16, 3u)));
-    TS_ASSERT (res[y] == d_nm->mkConst< BitVector > (BitVector (16, 4u)));
-    TS_ASSERT (res[z] == d_nm->mkConst< BitVector > (BitVector (16, 9u)));
+    TS_ASSERT (res[d_x] == d_nm->mkConst< BitVector > (BitVector (16, 3u)));
+    TS_ASSERT (res[d_y] == d_nm->mkConst< BitVector > (BitVector (16, 4u)));
+    TS_ASSERT (res[d_z] == d_nm->mkConst< BitVector > (BitVector (16, 9u)));
   }
+  
+  void testGaussElimRewriteForUremPartial ()
+  {
+    /*
+     *   lhs   rhs        lhs   rhs  modulo 11
+     *  --^--   ^        --^--   ^
+     *  1 0 9   7   -->  1 0 9   7
+     *  0 1 3   9        0 1 3   9
+     */
+
+    /*
+     *   lhs   rhs        lhs   rhs  modulo 11
+     *  --^--   ^        --^--   ^
+     *  1 3 0   7   -->  1 3 0   7
+     *  0 0 1   9        0 0 1   9
+     */
+
+    /*
+     *   lhs   rhs        lhs   rhs  modulo 11
+     *  --^--   ^        --^--   ^
+     *  1 1 1   5   -->  1 0 9   7
+     *  2 3 5   8        0 1 3   9
+     */
+
+    /*
+     *     lhs    rhs  modulo { 3, 5, 7, 11, 17, 31, 59 }
+     *  ----^---   ^
+     *  2  4   6   18
+     *  4  5   6   24
+     *  2  7  12   30
+     */
+  }
+
 };
