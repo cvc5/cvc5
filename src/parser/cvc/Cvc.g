@@ -1047,7 +1047,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
             i != i_end;
             ++i) {
           if(PARSER_STATE->isDeclared(*i, SYM_VARIABLE)) {
-            Type oldType = PARSER_STATE->getType(*i);
+            Type oldType = PARSER_STATE->getVariable(*i).getType();
             Debug("parser") << "  " << *i << " was declared previously "
                             << "with type " << oldType << std::endl;
             if(oldType != t) {
@@ -2139,7 +2139,7 @@ simpleTerm[CVC4::Expr& f]
     /* ascriptions will be required for parameterized zero-ary constructors */
     { f = PARSER_STATE->getVariable(name); }
     { // datatypes: zero-ary constructors
-      Type t2 = PARSER_STATE->getType(name);
+      Type t2 = f.getType();
       if(t2.isConstructor() && ConstructorType(t2).getArity() == 0) {
         // don't require parentheses, immediately turn it into an apply
         f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, f);

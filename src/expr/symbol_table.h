@@ -178,7 +178,24 @@ class CVC4_PUBLIC SymbolTable {
 
   /** Reset everything. */
   void reset();
-
+ 
+ public:  // the following functions are for operator overloading
+  /** is this function overloaded? */
+  bool isOverloadedFunction(Expr fun);
+  
+  /** Get overloaded constant for type.
+   * If possible, it returns a defined symbol with name
+   * that has type t. Otherwise returns null expression.
+  */
+  Expr getOverloadedConstantForType(const std::string& name, Type t);
+  
+  /**
+   * If possible, returns a defined function for a name
+   * and a vector of expected argument types. Otherwise returns
+   * null expression.
+   */
+  Expr getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes);
+  
  private:
   // Copying and assignment have not yet been implemented.
   SymbolTable(const SymbolTable&);

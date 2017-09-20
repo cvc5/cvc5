@@ -73,7 +73,51 @@ class SymbolTable::Implementation {
   void pushScope() throw();
   size_t getLevel() const throw();
   void reset();
-
+ // for operator overloading
+ private:
+  // the null expression
+  Expr d_nullExpr;
+  // This data structure stores a trie of reference ids to expressions with
+  // the same name, and must be distinguished by their argument types.
+  // For simplicity, it is context-independent.
+  class TypeArgTrie {
+  public:
+    std::map< Type, TypeArgTrie > d_children;
+    std::vector< unsigned > d_symbols;
+    void add( std::vector< Type >& args, unsigned s, unsigned index = 0 ){
+      if( index>=args.size() ){
+        d_symbols.push_back( s );
+      }else{
+        d_children[args[index]].add( args, s, index+1 );
+      }
+    }
+  };
+  // for each string with operator overloading, this stores the data
+  // structure above.
+  std::map< std::string, TypeArgTrie > d_overload_type_arg_trie;
+  /** id counter for overloaded symbols */
+  //CDO< unsigned > d_overload_id_counter;
+  /** map from overloaded symbols to an id */
+  //CDHashMap< Expr, unsigned > d_overload_expr_id;
+ public:
+   /** is this function overloaded? */
+  bool isOverloadedFunction(Expr fun) const;
+  
+  /** Get overloaded constant for type.
+   * If possible, it returns a defined symbol with name
+   * that has type t. Otherwise returns null expression.
+  */
+  Expr getOverloadedConstantForType(const std::string& name, Type t) const;
+  
+  /**
+   * If possible, returns a defined function for a name
+   * and a vector of expected argument types. Otherwise returns
+   * null expression.
+   */
+  Expr getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) const;
+ private:
+  /** A set of overloaded symbols. */
+  CDHashSet<Expr, ExprHashFunction>* d_overloaded_symbols;
  private:
   /** The context manager for the scope maps. */
   Context d_context;
@@ -93,10 +137,15 @@ void SymbolTable::Implementation::bind(const string& name, Expr obj,
                                        bool levelZero) throw() {
   PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
-  if (levelZero) {
-    d_exprMap->insertAtContextLevelZero(name, obj);
-  } else {
-    d_exprMap->insert(name, obj);
+  if(false && isBound(name)) {
+    // TODO : overloading goes here
+    
+  }else{
+    if (levelZero) {
+      d_exprMap->insertAtContextLevelZero(name, obj);
+    } else {
+      d_exprMap->insert(name, obj);
+    }
   }
 }
 
@@ -105,12 +154,17 @@ void SymbolTable::Implementation::bindDefinedFunction(const string& name,
                                                       bool levelZero) throw() {
   PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
-  if (levelZero) {
-    d_exprMap->insertAtContextLevelZero(name, obj);
-    d_functions->insertAtContextLevelZero(obj);
-  } else {
-    d_exprMap->insert(name, obj);
-    d_functions->insert(obj);
+  if(false && isBound(name)) {
+    // TODO : overloading goes here
+    
+  }else{
+    if (levelZero) {
+      d_exprMap->insertAtContextLevelZero(name, obj);
+      d_functions->insertAtContextLevelZero(obj);
+    } else {
+      d_exprMap->insert(name, obj);
+      d_functions->insert(obj);
+    }
   }
 }
 
@@ -130,7 +184,12 @@ bool SymbolTable::Implementation::isBoundDefinedFunction(Expr func) const
 }
 
 Expr SymbolTable::Implementation::lookup(const string& name) const throw() {
-  return (*d_exprMap->find(name)).second;
+  Expr expr = (*d_exprMap->find(name)).second;
+  if(isOverloadedFunction(expr)) {
+    return d_nullExpr;
+  }else{
+    return expr;
+  }
 }
 
 void SymbolTable::Implementation::bindType(const string& name, Type t,
@@ -253,6 +312,35 @@ size_t SymbolTable::Implementation::getLevel() const throw() {
 void SymbolTable::Implementation::reset() {
   this->SymbolTable::Implementation::~Implementation();
   new (this) SymbolTable::Implementation();
+}
+
+bool SymbolTable::Implementation::isOverloadedFunction(Expr fun) const {
+  //TODO
+  return false;
+}
+
+Expr SymbolTable::Implementation::getOverloadedConstantForType(const std::string& name, Type t) const {
+  Expr sym;
+  //TODO
+  return sym;
+}
+
+Expr SymbolTable::Implementation::getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) const {
+  Expr fun;
+  //TODO
+  return fun;
+}
+
+bool SymbolTable::isOverloadedFunction(Expr fun) {
+  return d_implementation->isOverloadedFunction(fun);
+}
+
+Expr SymbolTable::getOverloadedConstantForType(const std::string& name, Type t) {
+  return d_implementation->getOverloadedConstantForType(name, t);
+}
+
+Expr SymbolTable::getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) {
+  return d_implementation->getOverloadedFunctionForTypes(name, argTypes);
 }
 
 SymbolTable::SymbolTable()

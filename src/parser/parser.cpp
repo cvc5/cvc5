@@ -92,11 +92,35 @@ Expr Parser::getFunction(const std::string& name) {
   return getSymbol(name, SYM_VARIABLE);
 }
 
-Type Parser::getType(const std::string& var_name, SymbolType type) {
-  checkDeclaration(var_name, CHECK_DECLARED, type);
-  assert(isDeclared(var_name, type));
-  Type t = getSymbol(var_name, type).getType();
-  return t;
+Expr Parser::getVariableExpression(const std::string& name) {
+  Type t;
+  return getVariableExpressionForType(name, t);
+}
+
+Expr Parser::getVariableExpressionForType(const std::string& name, Type t) {
+  Expr expr;
+  if(isDefinedFunction(name)) {
+    expr = d_exprManager->mkExpr(CVC4::kind::APPLY, getFunction(name));
+  } else {
+    expr = getVariable(name);
+    if(expr.isNull()) {
+      // the variable is overloaded, try with type if the type exists
+      if(!t.isNull()) {
+        expr = getOverloadedConstantForType(name, t);
+        if(expr.isNull()) {
+          parseError("Type ascription not satisfied.");
+        }
+      }else{
+        parseError("Overloaded constants must be type cast.");
+      }
+    }
+    Type te = expr.getType();
+    if(te.isConstructor() && ConstructorType(te).getArity() == 0) {
+      // immediately turn it into an apply
+      expr = d_exprManager->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr);
+    }
+  }
+  return expr;
 }
 
 Type Parser::getSort(const std::string& name) {
@@ -121,16 +145,18 @@ size_t Parser::getArity(const std::string& sort_name) {
 
 /* Returns true if name is bound to a boolean variable. */
 bool Parser::isBoolean(const std::string& name) {
-  return isDeclared(name, SYM_VARIABLE) && getType(name).isBoolean();
+  Expr expr = getVariable(name);
+  return !expr.isNull() && expr.getType().isBoolean();
 }
 
 /* Returns true if name is bound to a function-like thing (function,
  * constructor, tester, or selector). */
 bool Parser::isFunctionLike(const std::string& name) {
-  if (!isDeclared(name, SYM_VARIABLE)) {
+  Expr expr = getVariable(name);
+  if(expr.isNull()) {
     return false;
   }
-  Type type = getType(name);
+  Type type = expr.getType();
   return type.isFunction() || type.isConstructor() || type.isTester() ||
          type.isSelector();
 }
@@ -151,7 +177,8 @@ bool Parser::isDefinedFunction(Expr func) {
 
 /* Returns true if name is bound to a function returning boolean. */
 bool Parser::isPredicate(const std::string& name) {
-  return isDeclared(name, SYM_VARIABLE) && getType(name).isPredicate();
+  Expr expr = getVariable(name);
+  return !expr.isNull() && expr.getType().isPredicate();
 }
 
 Expr Parser::mkVar(const std::string& name, const Type& type, uint32_t flags) {

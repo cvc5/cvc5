@@ -339,7 +339,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     }
   | /* function declaration */
     DECLARE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    symbol[name,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK sortList[sorts] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
@@ -1178,7 +1178,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     { PARSER_STATE->checkThatLogicIsSet();
       seq.reset(new CVC4::CommandSequence());
     }
-    symbol[fname,CHECK_UNDECLARED,SYM_VARIABLE]
+    symbol[fname,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(fname); }
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
@@ -1788,6 +1788,20 @@ symbolicExpr[CVC4::SExpr& sexpr]
  */
 term[CVC4::Expr& expr, CVC4::Expr& expr2]
 @init {
+  std::string name;
+}
+: termNonVariable[expr, expr2]
+    /* a variable */
+  | symbol[name,CHECK_DECLARED,SYM_VARIABLE]
+    { expr = PARSER_STATE->getVariableExpression(name); }
+  ;
+
+/**
+ * Matches a term.
+ * @return the expression representing the formula
+ */
+termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
+@init {
   Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
   Kind kind = kind::NULL_EXPR;
   Expr op;
@@ -1804,6 +1818,8 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   Type type;
   std::string s;
   bool isBuiltinOperator = false;
+  bool isOverloadedFunction = false;
+  bool readVariable = false;
   int match_vindex = -1;
   std::vector<Type> match_ptypes;
 }
@@ -1852,8 +1868,13 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  | LPAREN_TOK AS_TOK term[f, f2] sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
+  | LPAREN_TOK AS_TOK ( termNonVariable[f, f2] | symbol[name,CHECK_DECLARED,SYM_VARIABLE] { readVariable = true; } ) 
+    sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
     {
+      if(readVariable) {
+        // get the variable expression for the type
+        f = PARSER_STATE->getVariableExpressionForType(name, type); 
+      }
       if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
         std::vector<CVC4::Expr> v;
         Expr e = f.getOperator();
@@ -1937,26 +1958,45 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
           kind = CVC4::kind::APPLY;
         } else {
           expr = PARSER_STATE->getVariable(name);
-          Type t = expr.getType();
-          if(t.isConstructor()) {
-            kind = CVC4::kind::APPLY_CONSTRUCTOR;
-          } else if(t.isSelector()) {
-            kind = CVC4::kind::APPLY_SELECTOR;
-          } else if(t.isTester()) {
-            kind = CVC4::kind::APPLY_TESTER;
-          } else {
-            kind = CVC4::kind::APPLY_UF;
+          if(expr.isNull()) {
+            // it is an overloaded operator
+            // wait until we have the types of the arguments below
+          }else{
+            Type t = expr.getType();
+            if(t.isConstructor()) {
+              kind = CVC4::kind::APPLY_CONSTRUCTOR;
+            } else if(t.isSelector()) {
+              kind = CVC4::kind::APPLY_SELECTOR;
+            } else if(t.isTester()) {
+              kind = CVC4::kind::APPLY_TESTER;
+            } else {
+              kind = CVC4::kind::APPLY_UF;
+            }
           }
         }
-        args.push_back(expr);
-      }
+        if(!expr.isNull()) {
+          args.push_back(expr);
+        }else{
+          isOverloadedFunction = true;
         }
+      }
+    }
     //(termList[args,expr])? RPAREN_TOK
     termList[args,expr] RPAREN_TOK
     { Debug("parser") << "args has size " << args.size() << std::endl
                       << "expr is " << expr << std::endl;
       for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
         Debug("parser") << "++ " << *i << std::endl;
+      }
+      if(isOverloadedFunction) {
+        std::vector< Type > argTypes;
+        for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
+          argTypes.push_back( (*i).getType() );
+        }
+        expr = PARSER_STATE->getOverloadedFunctionForTypes(name, argTypes);
+        if(expr.isNull()) {
+          
+        }
       }
       if(isBuiltinOperator) {
         PARSER_STATE->checkOperator(kind, args.size());
@@ -2168,30 +2208,6 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       // expr.getType().isConstructor() &&
       // ConstructorType(expr.getType()).getArity()==0;
       expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, expr);
-    }
-    /* a variable */
-  | symbol[name,CHECK_DECLARED,SYM_VARIABLE]
-    { if( PARSER_STATE->sygus() && name[0]=='-' && 
-          name.find_first_not_of("0123456789", 1) == std::string::npos ){
-        //allow unary minus in sygus
-        expr = MK_CONST(Rational(name));
-      }else{
-        const bool isDefinedFunction =
-          PARSER_STATE->isDefinedFunction(name);
-        if(PARSER_STATE->isAbstractValue(name)) {
-          expr = PARSER_STATE->mkAbstractValue(name);
-        } else if(isDefinedFunction) {
-          expr = MK_EXPR(CVC4::kind::APPLY,
-                        PARSER_STATE->getFunction(name));
-        } else {
-          expr = PARSER_STATE->getVariable(name);
-          Type t = PARSER_STATE->getType(name);
-          if(t.isConstructor() && ConstructorType(t).getArity() == 0) {
-            // don't require parentheses, immediately turn it into an apply
-            expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, expr);
-          }
-        }
-      }
     }
 
     /* attributed expressions */
@@ -2978,7 +2994,7 @@ constructorDef[CVC4::Datatype& type]
   std::string id;
   CVC4::DatatypeConstructor* ctor = NULL;
 }
-  : symbol[id,CHECK_UNDECLARED,SYM_VARIABLE]
+  : symbol[id,CHECK_NONE,SYM_VARIABLE]
     { // make the tester
       std::string testerId("is-");
       testerId.append(id);

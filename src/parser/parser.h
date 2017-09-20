@@ -134,7 +134,7 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
  */
 class CVC4_PUBLIC Parser {
   friend class ParserBuilder;
-
+protected:
   /** The expression manager */
   ExprManager *d_exprManager;
   /** The resource manager associated with this expr manager */
@@ -235,7 +235,9 @@ class CVC4_PUBLIC Parser {
    */
   std::list<Command*> d_commandQueue;
 
-  /** Lookup a symbol in the given namespace. */
+  /** Lookup a symbol in the given namespace. 
+   * Only returns a symbol if it is not overloaded.
+   */
   Expr getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
@@ -322,6 +324,7 @@ public:
    *
    * @param name the name of the variable
    * @return the variable expression
+   * Only returns a variable if its name is not overloaded.
    */
   Expr getVariable(const std::string& name);
 
@@ -330,9 +333,21 @@ public:
    *
    * @param name the name of the variable
    * @return the variable expression
+   * Only returns a function if its name is not overloaded.
    */
   Expr getFunction(const std::string& name);
 
+  /**
+   * Returns a expression, given a name.
+   * Only returns an expression if its name is not overloaded.
+   */
+  virtual Expr getVariableExpression(const std::string& name);  
+  
+  /**
+   * Returns a expression, given a name and a type.
+   */
+  virtual Expr getVariableExpressionForType(const std::string& name, Type t);
+  
   /**
    * Returns a sort, given a name.
    * @param sort_name the name to look up
@@ -404,14 +419,6 @@ public:
    * operator <code>kind</code> has not been enabled
    */
   void checkOperator(Kind kind, unsigned numArgs) throw(ParserException);
-
-  /**
-   * Returns the type for the variable with the given name.
-   *
-   * @param var_name the symbol to lookup
-   * @param type the (namespace) type of the symbol
-   */
-  Type getType(const std::string& var_name, SymbolType type = SYM_VARIABLE);
 
   /** Create a new CVC4 variable expression of the given type. */
   Expr mkVar(const std::string& name, const Type& type,
@@ -663,6 +670,29 @@ public:
     ~ExprStream() { delete d_parser; }
     Expr nextExpr() { return d_parser->nextExpression(); }
   };/* class Parser::ExprStream */
+  
+public:
+  /** is this function overloaded? */
+  bool isOverloadedFunction(Expr fun) {
+    return d_symtab->isOverloadedFunction(fun);
+  }
+  
+  /** Get overloaded constant for type.
+   * If possible, it returns a defined symbol with name
+   * that has type t. Otherwise returns null expression.
+  */
+  Expr getOverloadedConstantForType(const std::string& name, Type t) {
+    return d_symtab->getOverloadedConstantForType(name, t);
+  }
+  
+  /**
+   * If possible, returns a defined function for a name
+   * and a vector of expected argument types. Otherwise returns
+   * null expression.
+   */
+  Expr getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) {
+    return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
+  }
 };/* class Parser */
 
 }/* CVC4::parser namespace */
