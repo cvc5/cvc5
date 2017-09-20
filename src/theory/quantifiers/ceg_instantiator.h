@@ -40,15 +40,19 @@ public:
 
 class Instantiator;
 
-
-//TODO: refactor pv_coeff to pv_prop throughout
-//generic class that stores properties for a variable to solve for in CEGQI
+//stores properties for a variable to solve for in CEGQI
+//  For LIA, this includes the coefficient of the variable, and the bound type for the variable
 class TermProperties {
 public:
-  TermProperties() : d_type(-1) {}
+  TermProperties() : d_type(0) {}
+  // type of property for a term
+  //  for arithmetic this corresponds to bound type (0:equal, 1:upper bound, -1:lower bound)
   int d_type;
   // for arithmetic
   Node d_coeff;
+  // get cache node 
+  // we consider terms + TermProperties that are unique up to their cache node (see doAddInstantiationInc)
+  Node getCacheNode() { return d_coeff; }
 };
 
 //solved form, involves substitution with coefficients
@@ -56,36 +60,29 @@ class SolvedForm {
 public:
   std::vector< Node > d_vars;
   std::vector< Node > d_subs;
-  //TODO: refactor below coeff -> prop;
-  std::vector< Node > d_coeff;
-  std::vector< int > d_btyp;
-  //std::vector< TermProperties > d_props;
+  std::vector< TermProperties > d_props;
   std::vector< Node > d_has_coeff;
-  //std::vector< Node > d_has_prop;
   Node d_theta;
   void copy( SolvedForm& sf ){
     d_vars.insert( d_vars.end(), sf.d_vars.begin(), sf.d_vars.end() );
     d_subs.insert( d_subs.end(), sf.d_subs.begin(), sf.d_subs.end() );
-    d_coeff.insert( d_coeff.end(), sf.d_coeff.begin(), sf.d_coeff.end() );
-    d_btyp.insert( d_btyp.end(), sf.d_btyp.begin(), sf.d_btyp.end() );
+    d_props.insert( d_props.end(), sf.d_props.begin(), sf.d_props.end() );
     d_has_coeff.insert( d_has_coeff.end(), sf.d_has_coeff.begin(), sf.d_has_coeff.end() );
     d_theta = sf.d_theta;
   }
-  void push_back( Node pv, Node n, Node pv_coeff, int bt ){
+  void push_back( Node pv, Node n, TermProperties& pv_prop ){
     d_vars.push_back( pv );
     d_subs.push_back( n );
-    d_coeff.push_back( pv_coeff );
-    d_btyp.push_back( bt );
-    if( !pv_coeff.isNull() ){
+    d_props.push_back( pv_prop );
+    if( !pv_prop.d_coeff.isNull() ){
       d_has_coeff.push_back( pv );
     }
   }
-  void pop_back( Node pv, Node n, Node pv_coeff, int bt ){
+  void pop_back( Node pv, Node n, TermProperties& pv_prop ){
     d_vars.pop_back();
     d_subs.pop_back();
-    d_coeff.pop_back();
-    d_btyp.pop_back();
-    if( !pv_coeff.isNull() ){
+    d_props.pop_back();
+    if( !pv_prop.d_coeff.isNull() ){
       d_has_coeff.pop_back();
     }
   }
@@ -159,14 +156,14 @@ public:
 public:
   void pushStackVariable( Node v );
   void popStackVariable();
-  bool doAddInstantiationInc( Node pv, Node n, Node pv_coeff, int bt, SolvedForm& sf, unsigned effort );
+  bool doAddInstantiationInc( Node pv, Node n, TermProperties& pv_prop, SolvedForm& sf, unsigned effort );
   Node getModelValue( Node n );
   // TODO: move to solved form?
-  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, Node& pv_coeff, bool try_coeff = true ) {
-    return applySubstitution( tn, n, sf.d_subs, sf.d_coeff, sf.d_has_coeff, sf.d_vars, pv_coeff, try_coeff );
+  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, TermProperties& pv_prop, bool try_coeff = true ) {
+    return applySubstitution( tn, n, sf.d_subs, sf.d_props, sf.d_has_coeff, sf.d_vars, pv_prop, try_coeff );
   }
-  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< Node >& coeff, std::vector< Node >& has_coeff,
-                          std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true );
+  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< TermProperties >& prop, std::vector< Node >& has_coeff,
+                          std::vector< Node >& vars, TermProperties& pv_prop, bool try_coeff = true );
 public:
   unsigned getNumCEAtoms() { return d_ce_atoms.size(); }
   Node getCEAtom( unsigned i ) { return d_ce_atoms[i]; }
@@ -191,15 +188,16 @@ public:
   virtual ~Instantiator(){}
   virtual void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {}
 
-  //called when pv_coeff * pv = n, and n is eligible for instantiation
-  virtual bool processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, Node pv_coeff, Node n, unsigned effort );
+  //called when pv_prop.d_coeff * pv = n, and n is eligible for instantiation
+  virtual bool processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, TermProperties& pv_prop, Node n, unsigned effort );
   //eqc is the equivalence class of pv
   virtual bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort ) { return false; }
 
   virtual bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
-  //term_coeffs.size() = terms.size() = 2, called when term_coeff[0] * terms[0] = term_coeff[1] * terms[1], terms are eligible, and at least one of these terms contains pv
+  //term_props.size() = terms.size() = 2
+  //  called when terms[0] = terms[1], terms are eligible, and at least one of these terms contains pv
   //  returns true if an instantiation was successfully added via a recursive call
-  virtual bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort ) { return false; }
+  virtual bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort ) { return false; }
 
   virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
   virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return false; }
@@ -227,7 +225,6 @@ public:
   bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
   std::string identify() const { return "ModelValue"; }
 };
-
 
 }
 }

@@ -202,7 +202,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       break;
     }
     case kind::CONST_FLOATINGPOINT:
-      out << n.getConst<FloatingPoint>().getLiteral();
+      out << n.getConst<FloatingPoint>();
       break;
     case kind::CONST_ROUNDINGMODE:
       switch (n.getConst<RoundingMode>()) {
@@ -1114,11 +1114,11 @@ template <class T>
 static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v) throw();
 
 void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const throw() {
-
-  if(tryToStream<CommandSuccess>(out, s, d_variant) ||
-     tryToStream<CommandFailure>(out, s, d_variant) ||
-     tryToStream<CommandUnsupported>(out, s, d_variant) ||
-     tryToStream<CommandInterrupted>(out, s, d_variant)) {
+  if (tryToStream<CommandSuccess>(out, s, d_variant) ||
+      tryToStream<CommandFailure>(out, s, d_variant) ||
+      tryToStream<CommandRecoverableFailure>(out, s, d_variant) ||
+      tryToStream<CommandUnsupported>(out, s, d_variant) ||
+      tryToStream<CommandInterrupted>(out, s, d_variant)) {
     return;
   }
 
@@ -1653,8 +1653,7 @@ static void toStream(std::ostream& out, const CommandUnsupported* s, Variant v) 
 #endif /* CVC4_COMPETITION_MODE */
 }
 
-static void toStream(std::ostream& out, const CommandFailure* s, Variant v) throw() {
-  string message = s->getMessage();
+static void errorToStream(std::ostream& out, std::string message, Variant v) {
   // escape all double-quotes
   size_t pos = 0;
   while((pos = message.find('"', pos)) != string::npos) {
@@ -1662,6 +1661,15 @@ static void toStream(std::ostream& out, const CommandFailure* s, Variant v) thro
     pos += 2;
   }
   out << "(error \"" << message << "\")" << endl;
+}
+
+static void toStream(std::ostream& out, const CommandFailure* s, Variant v) {
+  errorToStream(out, s->getMessage(), v);
+}
+
+static void toStream(std::ostream& out, const CommandRecoverableFailure* s,
+                     Variant v) {
+  errorToStream(out, s->getMessage(), v);
 }
 
 template <class T>

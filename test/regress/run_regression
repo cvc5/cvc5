@@ -130,6 +130,15 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   fi
 elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
   lang=smt2
+
+  # If this test case requires unsat cores but CVC4 is not built with proof
+  # support, skip it. Note: checking $CVC4_REGRESSION_ARGS instead of $proof
+  # here because $proof is not set for the second run.
+  requires_proof=`grep '(get-unsat-core)' "$benchmark"`
+  if [[ ! "$CVC4_REGRESSION_ARGS" = *"--proof"* ]] && [ -n "$requires_proof" ]; then
+    exit 77
+  fi
+
   if test -e "$benchmark.expect"; then
     scrubber=`grep '^% SCRUBBER: ' "$benchmark.expect" | sed 's,^% SCRUBBER: ,,'`
     errscrubber=`grep '^% ERROR-SCRUBBER: ' "$benchmark.expect" | sed 's,^% ERROR-SCRUBBER: ,,'`
@@ -288,6 +297,7 @@ if [ "$proof" = yes ]; then
     fi
   fi
 fi
+
 if [ -z "$expected_error" ]; then
   # in case expected stderr output is empty, make sure we don't differ
   # by a newline, which we would if we echo "" >"$experrfile"
