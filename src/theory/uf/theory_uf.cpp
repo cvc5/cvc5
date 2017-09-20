@@ -49,6 +49,7 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u,
                        true),
       d_conflict(c, false),
       d_extensionality_deq(u),
+      d_uf_std_skolem(u),
       d_functionsTerms(c),
       d_symb(u, instanceName)
 {
@@ -175,16 +176,16 @@ Node TheoryUF::getApplyUfForHoApply( Node node ) {
   Node f = TheoryUfRewriter::decomposeHoApply( node, args, true );
   Node new_f = f;
   if( !TheoryUfRewriter::canUseAsApplyUfOperator( f ) ){
-    std::map< Node, Node >::iterator itus = d_uf_std_skolem.find( f );
+    NodeNodeMap::const_iterator itus = d_uf_std_skolem.find( f );
     if( itus==d_uf_std_skolem.end() ){
       // introduce skolem to make a standard APPLY_UF
-      new_f = NodeManager::currentNM()->mkSkolem( "a", f.getType() );
+      new_f = NodeManager::currentNM()->mkSkolem( "app_uf", f.getType() );
       Node lem = new_f.eqNode( f );
       Trace("uf-ho-lemma") << "uf-ho-lemma : Skolem definition for apply-conversion : " << lem << std::endl;
       d_out->lemma( lem );
       d_uf_std_skolem[f] = new_f;
     }else{
-      new_f = itus->second;
+      new_f = (*itus).second;
     }
   }
   Assert( TheoryUfRewriter::canUseAsApplyUfOperator( new_f ) );
@@ -193,6 +194,19 @@ Node TheoryUF::getApplyUfForHoApply( Node node ) {
   return ret;
 }
 
+Node TheoryUF::getOperatorForApplyTerm( TNode node ) {
+  Assert( node.getKind()==kind::APPLY_UF || node.getKind()==kind::HO_APPLY );
+  if( node.getKind()==kind::APPLY_UF ){
+    return node.getOperator();
+  }else{
+    return d_equalityEngine.getRepresentative( node[0] );
+  }
+}
+
+unsigned TheoryUF::getArgumentStartIndexForApplyTerm( TNode node ) {
+  Assert( node.getKind()==kind::APPLY_UF || node.getKind()==kind::HO_APPLY );
+  return node.getKind()==kind::APPLY_UF ? 0 : 1;
+}
 
 Node TheoryUF::expandDefinition(LogicRequest &logicRequest, Node node) {
   Trace("uf-ho-debug") << "uf-ho-debug : expanding definition : " << node << std::endl;
@@ -523,7 +537,7 @@ void TheoryUF::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArg
       if( !d_equalityEngine.areEqual( f1, f2 ) ){
         Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
         vector< pair<TNode, TNode> > currentPairs;
-        unsigned arg_start_index = f1.getKind() == kind::HO_APPLY ? 1 : 0;
+        unsigned arg_start_index = getArgumentStartIndexForApplyTerm( f1 );
         for (unsigned k = arg_start_index; k < f1.getNumChildren(); ++ k) {
           TNode x = f1[k];
           TNode y = f2[k];
@@ -590,15 +604,8 @@ void TheoryUF::computeCareGraph() {
     unsigned functionTerms = d_functionsTerms.size();
     for (unsigned i = 0; i < functionTerms; ++ i) {
       TNode f1 = d_functionsTerms[i];
-      Node op;
-      unsigned arg_start_index;
-      if( f1.getKind()==kind::HO_APPLY ){
-        op = d_equalityEngine.getRepresentative( f1[0] );
-        arg_start_index = 1;
-      }else{
-        op = f1.getOperator();
-        arg_start_index = 0;
-      }
+      Node op = getOperatorForApplyTerm( f1 );
+      unsigned arg_start_index = getArgumentStartIndexForApplyTerm( f1 );
       std::vector< TNode > reps;
       bool has_trigger_arg = false;
       for( unsigned j=arg_start_index; j<f1.getNumChildren(); j++ ){
@@ -764,7 +771,7 @@ unsigned TheoryUF::checkAppCompletion() {
             // add to pending list
             apply_uf[rop].push_back( n );
           }
-          //arguments are also relevant operators  FIXME
+          //arguments are also relevant operators  FIXME (github issue #1115)
           for( unsigned k=0; k<n.getNumChildren(); k++ ){
             if( n[k].getType().isFunction() ){
               TNode rop = d_equalityEngine.getRepresentative( n[k] );

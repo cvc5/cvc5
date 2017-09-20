@@ -49,7 +49,7 @@ class TheoryUF : public Theory {
   friend class StrongSolverTheoryUF;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDChunkList<Node> NodeList;
-
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 public:
 
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -133,7 +133,7 @@ private:
   NodeSet d_extensionality_deq;
 
   /** map from non-standard operators to their skolems */
-  std::map< Node, Node > d_uf_std_skolem;
+  NodeNodeMap d_uf_std_skolem;
 
   /** node for true */
   Node d_true;
@@ -207,11 +207,26 @@ private: // for higher-order
    */
   unsigned checkAppCompletion();
 
-  /** check higher order */
+  /** check higher order
+   * This is called at full effort and infers facts and sends lemmas
+   * based on higher-order reasoning (specifically, extentionality and
+   * app completion above). It returns the number of lemmas plus facts
+   * added to the equality engine.
+  */
   unsigned checkHigherOrder();
 
-  /** get apply uf for ho apply */
+  /** get apply uf for ho apply 
+   * This returns the APPLY_UF equivalent for the HO_APPLY term node, where
+   * node has non-functional return type (that is, it corresponds to a fully
+   * applied function term).
+   * This call may introduce a skolem for the head operator and send out a lemma
+   * specifying the definition.
+  */
   Node getApplyUfForHoApply( Node node );
+  /** get the operator for this node (node should be either APPLY_UF or HO_APPLY) */
+  Node getOperatorForApplyTerm( TNode node );
+  /** get the starting index of the arguments for node (node should be either APPLY_UF or HO_APPLY) */
+  unsigned getArgumentStartIndexForApplyTerm( TNode node );
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
