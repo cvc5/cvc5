@@ -20,6 +20,7 @@
 #ifndef __CVC4__GMP_UTIL_H
 #define __CVC4__GMP_UTIL_H
 
+#include <cstddef>
 #include <gmpxx.h>
 
 namespace CVC4 {

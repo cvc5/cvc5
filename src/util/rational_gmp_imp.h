@@ -20,6 +20,7 @@
 #ifndef __CVC4__RATIONAL_H
 #define __CVC4__RATIONAL_H
 
+#include <cstddef>
 #include <gmp.h>
 #include <string>
 
