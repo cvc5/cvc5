@@ -2208,7 +2208,7 @@ void TheoryEngine::handleUserAttribute(const char* attr, Theory* t) {
   d_attr_handle[ str ].push_back( t );
 }
 
-void TheoryEngine::checkTheoryAssertionsWithModel() {
+void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
@@ -2223,7 +2223,9 @@ void TheoryEngine::checkTheoryAssertionsWithModel() {
           ss << theoryId << " has an asserted fact that the model doesn't satisfy." << endl
              << "The fact: " << assertion << endl
              << "Model value: " << val << endl;
-          InternalError(ss.str());
+	  if(hardFailure) {
+	    InternalError(ss.str());
+	  }
         }
       }
     }

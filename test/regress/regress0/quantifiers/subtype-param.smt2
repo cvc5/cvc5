@@ -1,5 +1,11 @@
 ; COMMAND-LINE: --lang=smt2.5
-; EXPECT: unsat
+; EXPECT: (error "argument type is not a subtype of the function's argument type:
+; EXPECT: argument:  x
+; EXPECT: has type:  (Array Int Int)
+; EXPECT: not subtype: (Array Int Real)
+; EXPECT: in term : (Q (as x (Array Int Real)))")
+; EXIT: 1
+
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
 
