@@ -181,7 +181,7 @@ void CommandExecutorPortfolio::lemmaSharingCleanup()
 }/* CommandExecutorPortfolio::lemmaSharingCleanup() */
 
 
-bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
+bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd, CommandContext * cc)
 {
   /**
    * save the command and if check sat or query command, run a
@@ -199,7 +199,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
 
   if( dynamic_cast<CheckSynthCommand*>(cmd) != NULL ){
     // sygus not supported in portfolio : FIXME: can support once datatypes exportTo is supported
-    return CommandExecutor::doCommandSingleton(cmd);
+    return CommandExecutor::doCommandSingleton(cmd, cc);
   }
 
   if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
@@ -265,7 +265,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
         if(d_options.getFallbackSequential()) {
           Notice() << "Unsupported theory encountered."
                    << "Switching to sequential mode.";
-          return CommandExecutor::doCommandSingleton(cmd);
+          return CommandExecutor::doCommandSingleton(cmd, cc);
         }
         else
           throw Exception("Certain theories (e.g., datatypes) are (currently)"
@@ -378,12 +378,12 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
              d_result.whyUnknown() == Result::INCOMPLETE) ) )
       {
         Command* gm = new GetModelCommand();
-        status = doCommandSingleton(gm);
+        status = doCommandSingleton(gm, cc);
       } else if( d_options.getProof() &&
                  d_options.getDumpProofs() &&
                  d_result.asSatisfiabilityResult() == Result::UNSAT ) {
         Command* gp = new GetProofCommand();
-        status = doCommandSingleton(gp);
+        status = doCommandSingleton(gp, cc);
       } else if( d_options.getDumpInstantiations() &&
                  ( ( d_options.getInstFormatMode() != INST_FORMAT_MODE_SZS &&
                    ( d_result.asSatisfiabilityResult() == Result::SAT ||
@@ -391,15 +391,20 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
                       d_result.whyUnknown() == Result::INCOMPLETE) ) ) ||
                    d_result.asSatisfiabilityResult() == Result::UNSAT ) ) {
         Command* gi = new GetInstantiationsCommand();
-        status = doCommandSingleton(gi);
+        status = doCommandSingleton(gi, cc);
       } else if( d_options.getDumpSynth() &&
                  d_result.asSatisfiabilityResult() == Result::UNSAT ){
         Command* gi = new GetSynthSolutionCommand();
-        status = doCommandSingleton(gi);
+        status = doCommandSingleton(gi, cc);
       } else if( d_options.getDumpUnsatCores() &&
                  d_result.asSatisfiabilityResult() == Result::UNSAT ) {
-        Command* guc = new GetUnsatCoreCommand();
-        status = doCommandSingleton(guc);
+        Command* guc;
+        if( cc ) {
+          guc = new GetUnsatCoreCommand(cc->getUnsatCoreNames());
+        }else{
+          guc  = new GetUnsatCoreCommand();
+        }
+        status = doCommandSingleton(guc, cc);
       }
     }
 

@@ -35,6 +35,7 @@ public:
   void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const CommandStatus* s) const throw();
   void toStream(std::ostream& out, const Model& m) const throw();
+  void toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw();
 };/* class TptpPrinter */
 
 }/* CVC4::printer::tptp namespace */

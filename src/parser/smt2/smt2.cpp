@@ -36,7 +36,6 @@ namespace parser {
 Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
   Parser(exprManager,input,strictMode,parseOnly),
   d_logicSet(false) {
-  d_unsatCoreNames.push(std::map<Expr, std::string>());
   if( !strictModeEnabled() ) {
     addTheory(Smt2::THEORY_CORE);
   }
@@ -342,10 +341,8 @@ void Smt2::reset() {
   d_logic = LogicInfo();
   operatorKindMap.clear();
   d_lastNamedTerm = std::pair<Expr, std::string>();
-  d_unsatCoreNames = std::stack< std::map<Expr, std::string> >();
   this->Parser::reset();
 
-  d_unsatCoreNames.push(std::map<Expr, std::string>());
   if( !strictModeEnabled() ) {
     addTheory(Smt2::THEORY_CORE);
   }

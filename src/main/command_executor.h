@@ -27,6 +27,19 @@
 namespace CVC4 {
 namespace main {
 
+/** 
+ * Command context class 
+ * This virtual class contains required functions when executing commands with
+ * the CommandExecutor class below.
+*/
+class CommandContext {
+public:
+  CommandContext(){}
+  virtual ~CommandContext(){}
+  /** get the unsat core names */
+  virtual std::map<Expr, std::string> getUnsatCoreNames() = 0;
+};
+
 class CommandExecutor {
 private:
   std::string d_lastStatistics;
@@ -54,7 +67,7 @@ public:
    * sequence.  Eventually uses doCommandSingleton (which can be
    * overridden by a derived class).
    */
-  bool doCommand(CVC4::Command* cmd);
+  bool doCommand(CVC4::Command* cmd, CommandContext * cc = NULL);
 
   Result getResult() const { return d_result; }
   void reset();
@@ -88,7 +101,7 @@ public:
 
 protected:
   /** Executes treating cmd as a singleton */
-  virtual bool doCommandSingleton(CVC4::Command* cmd);
+  virtual bool doCommandSingleton(CVC4::Command* cmd, CommandContext * cc);
 
 private:
   CommandExecutor();

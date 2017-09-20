@@ -88,6 +88,23 @@ void printUsage(Options& opts, bool full) {
   }
 }
 
+/** parser command context. This class is used to query relavant information
+ * such as unsat core names when executing commands.
+ */
+class ParserCommandContext : public CommandContext{
+protected:
+  // the parser used for querying
+  Parser * d_parser;
+public:
+  ParserCommandContext(Parser * p ) : d_parser( p ) {}
+  virtual ~ParserCommandContext(){}
+
+  /** get the unsat core names */
+  virtual std::map<Expr, std::string> getUnsatCoreNames() {
+    return d_parser->getUnsatCoreNames();
+  }  
+};
+
 int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Timer statistic
@@ -359,6 +376,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       vector< vector<Command*> > allCommands;
       allCommands.push_back(vector<Command*>());
       std::unique_ptr<Parser> parser(parserBuilder.build());
+      ParserCommandContext cmdContext(parser.get());
       if(replayParser) {
         // have the replay parser use the file's declarations
         replayParser->useDeclarationsFrom(parser.get());
@@ -389,7 +407,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
               {
                 Command* cmd = allCommands[i][j]->clone();
                 cmd->setMuted(true);
-                pExecutor->doCommand(cmd);
+                pExecutor->doCommand(cmd, &cmdContext);
                 if(cmd->interrupted()) {
                   interrupted = true;
                 }
@@ -401,7 +419,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           allCommands.push_back(vector<Command*>());
           Command* copy = cmd->clone();
           allCommands.back().push_back(copy);
-          status = pExecutor->doCommand(cmd);
+          status = pExecutor->doCommand(cmd, &cmdContext);
           if(cmd->interrupted()) {
             interrupted = true;
             continue;
@@ -415,7 +433,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
               {
                 Command* cmd = allCommands[i][j]->clone();
                 cmd->setMuted(true);
-                pExecutor->doCommand(cmd);
+                pExecutor->doCommand(cmd, &cmdContext);
                 if(cmd->interrupted()) {
                   interrupted = true;
                 }
@@ -426,7 +444,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             (*opts.getOut()) << CommandSuccess();
             needReset = 0;
           } else {
-            status = pExecutor->doCommand(cmd);
+            status = pExecutor->doCommand(cmd, &cmdContext);
             if(cmd->interrupted()) {
               interrupted = true;
               continue;
@@ -441,7 +459,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
               {
                 Command* cmd = allCommands[i][j]->clone();
                 cmd->setMuted(true);
-                pExecutor->doCommand(cmd);
+                pExecutor->doCommand(cmd, &cmdContext);
                 if(cmd->interrupted()) {
                   interrupted = true;
                 }
@@ -456,13 +474,13 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             continue;
           }
 
-          status = pExecutor->doCommand(cmd);
+          status = pExecutor->doCommand(cmd, &cmdContext);
           if(cmd->interrupted()) {
             interrupted = true;
             continue;
           }
         } else if(dynamic_cast<ResetCommand*>(cmd) != NULL) {
-          pExecutor->doCommand(cmd);
+          pExecutor->doCommand(cmd, &cmdContext);
           allCommands.clear();
           allCommands.push_back(vector<Command*>());
         } else {
@@ -482,7 +500,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             Command* copy = cmd->clone();
             allCommands.back().push_back(copy);
           }
-          status = pExecutor->doCommand(cmd);
+          status = pExecutor->doCommand(cmd, &cmdContext);
           if(cmd->interrupted()) {
             interrupted = true;
             continue;
@@ -514,6 +532,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       }
 
       std::unique_ptr<Parser> parser(parserBuilder.build());
+      ParserCommandContext cmdContext(parser.get());
       if(replayParser) {
         // have the replay parser use the file's declarations
         replayParser->useDeclarationsFrom(parser.get());
@@ -533,7 +552,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           continue;
         }
 
-        status = pExecutor->doCommand(cmd);
+        status = pExecutor->doCommand(cmd, &cmdContext);
         if (cmd->interrupted() && status == 0) {
           interrupted = true;
           break;

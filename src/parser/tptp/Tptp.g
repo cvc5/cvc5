@@ -168,13 +168,19 @@ parseCommand returns [CVC4::Command* cmd = NULL]
   }
     (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ true);
+      PARSER_STATE->pushScope();
+      PARSER_STATE->setUnsatCoreName(fr, expr, name);
+      cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ true, true);
+      PARSER_STATE->popScope();
     }
   | FOF_TOK LPAREN_TOK nameN[name] COMMA_TOK formulaRole[fr] COMMA_TOK
     { PARSER_STATE->cnf = false; PARSER_STATE->fof = true; }
     fofFormula[expr] (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ false);
+      PARSER_STATE->pushScope();
+      PARSER_STATE->setUnsatCoreName(fr, expr, name);
+      cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ false, true);
+      PARSER_STATE->popScope();
     }
   | TFF_TOK LPAREN_TOK nameN[name] COMMA_TOK
     ( TYPE_TOK COMMA_TOK tffTypedAtom[cmd]
@@ -182,7 +188,10 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       { PARSER_STATE->cnf = false; PARSER_STATE->fof = false; }
       tffFormula[expr] (COMMA_TOK anything*)?
       {
-        cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ false);
+        PARSER_STATE->pushScope();
+        PARSER_STATE->setUnsatCoreName(fr, expr, name);
+        cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ false, true);
+        PARSER_STATE->popScope();
       }
     ) RPAREN_TOK DOT_TOK
   | INCLUDE_TOK LPAREN_TOK unquotedFileName[name]
