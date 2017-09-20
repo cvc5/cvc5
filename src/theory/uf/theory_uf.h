@@ -29,7 +29,6 @@
 
 #include "context/cdo.h"
 #include "context/cdhashset.h"
-#include "context/cdchunk_list.h"
 
 
 namespace CVC4 {
@@ -48,7 +47,6 @@ class TheoryUF : public Theory {
 
   friend class StrongSolverTheoryUF;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 public:
 
