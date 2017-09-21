@@ -62,7 +62,8 @@ TESTS = commutative.sy \
         General_plus10.sy \
         qe.sy \
         cggmp.sy \
-        parse-bv-let.sy
+        parse-bv-let.sy \
+        cegar1.sy
 
 
 # sygus tests currently taking too long for make regress
