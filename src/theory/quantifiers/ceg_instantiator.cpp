@@ -395,7 +395,7 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
         TNode tv = pv;
         TNode ts = n;
         TermProperties a_pv_prop;
-        Node new_subs = applySubstitution( sf.d_vars[j].getType(), sf.d_subs[j], a_subs, a_prop, a_non_basic, a_var, a_pv_prop, true );
+        Node new_subs = applySubstitution( sf.d_vars[j].getType(), sf.d_subs[j], a_var, a_subs, a_prop, a_non_basic, a_pv_prop, true );
         if( !new_subs.isNull() ){
           sf.d_subs[j] = new_subs;
           if( !a_pv_prop.d_coeff.isNull() ){
@@ -509,9 +509,9 @@ bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& no
   return true;
 }
 
-Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< TermProperties >& prop, std::vector< Node >& non_basic,
-                                         std::vector< Node >& vars, TermProperties& pv_prop, bool try_coeff ) {
-  Assert( d_prog_var.find( n )!=d_prog_var.end() );
+Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
+                                         std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff ) {
+  computeProgVars( n );
   Assert( n==Rewriter::rewrite( n ) );
   bool is_basic = canApplyBasicSubstitution( n, non_basic );
   if( Trace.isOn("cegqi-si-apply-subs-debug") ){
@@ -620,8 +620,9 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
   return nret;
 }
 
-Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >& subs, std::vector< TermProperties >& prop, std::vector< Node >& non_basic,
-                                                  std::vector< Node >& vars ) {
+Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >& vars, std::vector< Node >& subs, 
+                                                  std::vector< TermProperties >& prop, std::vector< Node >& non_basic ) {
+  computeProgVars( lit );
   bool is_basic = canApplyBasicSubstitution( lit, non_basic );
   Node lret;
   if( is_basic ){
@@ -646,7 +647,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
       if( isEligible( atom_lhs ) ){
         //apply substitution to LHS of atom
         TermProperties atom_lhs_prop;
-        atom_lhs = applySubstitution( NodeManager::currentNM()->realType(), atom_lhs, subs, prop, non_basic, vars, atom_lhs_prop );
+        atom_lhs = applySubstitution( NodeManager::currentNM()->realType(), atom_lhs, vars, subs, prop, non_basic, atom_lhs_prop );
         if( !atom_lhs.isNull() ){
           if( !atom_lhs_prop.d_coeff.isNull() ){
             atom_rhs = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, atom_lhs_prop.d_coeff, atom_rhs ) );

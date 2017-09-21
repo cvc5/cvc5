@@ -166,20 +166,20 @@ private:
   *   ( pv_prop.getModifiedTerm(pv) = ret )
   */
   Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, TermProperties& pv_prop, bool try_coeff = true ) {
-    return applySubstitution( tn, n, sf.d_subs, sf.d_props, sf.d_non_basic, sf.d_vars, pv_prop, try_coeff );
+    return applySubstitution( tn, n, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic, pv_prop, try_coeff );
   }
   /** apply substitution, with solved form expanded to subs/prop/non_basic/vars */
-  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< TermProperties >& prop, std::vector< Node >& non_basic,
-                          std::vector< Node >& vars, TermProperties& pv_prop, bool try_coeff = true );
+  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
+                          std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff = true );
   /** apply substitution to literal lit 
   * The return value "ret" is equivalent to ( lit * sf )
   */
   Node applySubstitutionToLiteral( Node lit, SolvedForm& sf ) {
-    return applySubstitutionToLiteral( lit, sf.d_subs, sf.d_props, sf.d_non_basic, sf.d_vars );
+    return applySubstitutionToLiteral( lit, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic );
   }
   /** apply substitution to literal lit, with solved form expanded to subs/prop/non_basic/vars */
-  Node applySubstitutionToLiteral( Node lit, std::vector< Node >& subs, std::vector< TermProperties >& prop, std::vector< Node >& non_basic,
-                                   std::vector< Node >& vars );
+  Node applySubstitutionToLiteral( Node lit, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
+                                   std::vector< Node >& non_basic );
 public:
   CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta = true, bool use_vts_inf = true );
   virtual ~CegInstantiator();
