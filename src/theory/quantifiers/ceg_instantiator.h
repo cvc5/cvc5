@@ -52,38 +52,55 @@ public:
   Node d_coeff;
   // get cache node 
   // we consider terms + TermProperties that are unique up to their cache node (see doAddInstantiationInc)
-  Node getCacheNode() { return d_coeff; }
+  Node getCacheNode() const { return d_coeff; }
+  // is non-basic 
+  bool isBasic() const { return d_coeff.isNull(); }
+  // get modified term 
+  Node getModifiedTerm( Node pv ) const {
+    if( !d_coeff.isNull() ){
+      return NodeManager::currentNM()->mkNode( kind::MULT, d_coeff, pv );
+    }else{
+      return pv;
+    }
+  }
 };
 
 //solved form, involves substitution with coefficients
 class SolvedForm {
 public:
+  // list of variables
   std::vector< Node > d_vars;
+  // list of terms that they are substituted to
   std::vector< Node > d_subs;
+  // properties for each variable
   std::vector< TermProperties > d_props;
-  std::vector< Node > d_has_coeff;
+  // the variables that have non-basic information regarding how they are substituted
+  //   an example is for linear arithmetic, we store "substitution with coefficients" such that 
+  //   ( c * v ) -> s, where c is a positive integer constant.
+  std::vector< Node > d_non_basic;
+  // the current theta value (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
   Node d_theta;
   void copy( SolvedForm& sf ){
     d_vars.insert( d_vars.end(), sf.d_vars.begin(), sf.d_vars.end() );
     d_subs.insert( d_subs.end(), sf.d_subs.begin(), sf.d_subs.end() );
     d_props.insert( d_props.end(), sf.d_props.begin(), sf.d_props.end() );
-    d_has_coeff.insert( d_has_coeff.end(), sf.d_has_coeff.begin(), sf.d_has_coeff.end() );
+    d_non_basic.insert( d_non_basic.end(), sf.d_non_basic.begin(), sf.d_non_basic.end() );
     d_theta = sf.d_theta;
   }
   void push_back( Node pv, Node n, TermProperties& pv_prop ){
     d_vars.push_back( pv );
     d_subs.push_back( n );
     d_props.push_back( pv_prop );
-    if( !pv_prop.d_coeff.isNull() ){
-      d_has_coeff.push_back( pv );
+    if( !pv_prop.isBasic() ){
+      d_non_basic.push_back( pv );
     }
   }
   void pop_back( Node pv, Node n, TermProperties& pv_prop ){
     d_vars.pop_back();
     d_subs.pop_back();
     d_props.pop_back();
-    if( !pv_prop.d_coeff.isNull() ){
-      d_has_coeff.pop_back();
+    if( !pv_prop.isBasic() ){
+      d_non_basic.pop_back();
     }
   }
 };
@@ -138,6 +155,31 @@ private:
   //process
   void processAssertions();
   void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
+private:
+  /** can use basic substitution */
+  bool canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic );
+  /** apply substitution
+  * We wish to process the substitution: 
+  *   ( pv = n * sf )
+  * where pv is a variable with type tn.
+  * The return value "ret" and pv_prop is such that this is equivalent to
+  *   ( pv_prop.getModifiedTerm(pv) = ret )
+  */
+  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, TermProperties& pv_prop, bool try_coeff = true ) {
+    return applySubstitution( tn, n, sf.d_subs, sf.d_props, sf.d_non_basic, sf.d_vars, pv_prop, try_coeff );
+  }
+  /** apply substitution, with solved form expanded to subs/prop/non_basic/vars */
+  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< TermProperties >& prop, std::vector< Node >& non_basic,
+                          std::vector< Node >& vars, TermProperties& pv_prop, bool try_coeff = true );
+  /** apply substitution to literal lit 
+  * The return value "ret" is equivalent to ( lit * sf )
+  */
+  Node applySubstitutionToLiteral( Node lit, SolvedForm& sf ) {
+    return applySubstitutionToLiteral( lit, sf.d_subs, sf.d_props, sf.d_non_basic, sf.d_vars );
+  }
+  /** apply substitution to literal lit, with solved form expanded to subs/prop/non_basic/vars */
+  Node applySubstitutionToLiteral( Node lit, std::vector< Node >& subs, std::vector< TermProperties >& prop, std::vector< Node >& non_basic,
+                                   std::vector< Node >& vars );
 public:
   CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta = true, bool use_vts_inf = true );
   virtual ~CegInstantiator();
@@ -158,12 +200,6 @@ public:
   void popStackVariable();
   bool doAddInstantiationInc( Node pv, Node n, TermProperties& pv_prop, SolvedForm& sf, unsigned effort );
   Node getModelValue( Node n );
-  // TODO: move to solved form?
-  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, TermProperties& pv_prop, bool try_coeff = true ) {
-    return applySubstitution( tn, n, sf.d_subs, sf.d_props, sf.d_has_coeff, sf.d_vars, pv_prop, try_coeff );
-  }
-  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< TermProperties >& prop, std::vector< Node >& has_coeff,
-                          std::vector< Node >& vars, TermProperties& pv_prop, bool try_coeff = true );
 public:
   unsigned getNumCEAtoms() { return d_ce_atoms.size(); }
   Node getCEAtom( unsigned i ) { return d_ce_atoms[i]; }
@@ -193,17 +229,23 @@ public:
   //eqc is the equivalence class of pv
   virtual bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort ) { return false; }
 
+  // whether the 
   virtual bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
   //term_props.size() = terms.size() = 2
-  //  called when terms[0] = terms[1], terms are eligible, and at least one of these terms contains pv
+  //  called when:
+  //    term_props[0].getModifiedTerm(terms[0]) = term_props[1].getModifiedTerm(terms[1]) 
+  //  is an equality that is entailed in this context, terms are eligible, and at least one of these terms contains pv
   //  returns true if an instantiation was successfully added via a recursive call
   virtual bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort ) { return false; }
 
+  // whether the instantiator implements processAssertion for any literal
   virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
+  // whether the instantiator implements processAssertion for literal lit
   virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return false; }
-  //called when assertion lit holds.  note that lit is unsubstituted, first must substitute/solve/check eligible
+  // called when assertion lit holds.  note that lit is unsubstituted, first must substitute/solve/check eligible
   //  returns true if an instantiation was successfully added via a recursive call
   virtual bool processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return false; }
+  // called once after processAssertion is called for each literal asserted to the theory
   virtual bool processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) { return false; }
 
   //do we allow instantiation for the model value of pv
