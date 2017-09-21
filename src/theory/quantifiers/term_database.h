@@ -129,6 +129,7 @@ class QuantifiersEngine;
 
 namespace inst{
   class Trigger;
+  class HigherOrderTrigger;
 }
 
 namespace quantifiers {
@@ -185,6 +186,7 @@ class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::QuantifiersEngine;
   //TODO: eliminate most of these
   friend class ::CVC4::theory::inst::Trigger;
+  friend class ::CVC4::theory::inst::HigherOrderTrigger;
   friend class ::CVC4::theory::quantifiers::fmcheck::FullModelChecker;
   friend class ::CVC4::theory::quantifiers::QuantConflictFind;
   friend class ::CVC4::theory::quantifiers::RelevantDomain;
@@ -248,6 +250,16 @@ private:
   Node evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy, bool useEntailmentTests );
   TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
   bool isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy );
+  /** compute uf eqc terms */
+  void computeUfEqcTerms( TNode f );
+  /** compute uf terms */
+  void computeUfTerms( TNode f );
+private:
+  /** for higher-order, representative maps */
+  std::map< TNode, TNode > d_ho_op_rep;
+  std::map< TNode, std::vector< TNode > > d_ho_op_rep_slaves;
+  /** get operator representative */
+  Node getOperatorRepresentative( TNode op ) const;
 public:
   /** ground terms for operator */
   unsigned getNumGroundTerms( Node f );
@@ -269,10 +281,6 @@ public:
   TNode getCongruentTerm( Node f, std::vector< TNode >& args );
   /** compute arg reps */
   void computeArgReps( TNode n );
-  /** compute uf eqc terms */
-  void computeUfEqcTerms( TNode f );
-  /** compute uf terms */
-  void computeUfTerms( TNode f );
   /** in relevant domain */
   bool inRelevantDomain( TNode f, unsigned i, TNode r );
   /** evaluate a term under a substitution.  Return representative in EE if possible.
@@ -516,6 +524,18 @@ public:
   static bool isBoolConnective( Kind k );
   /** is bool connective term */
   static bool isBoolConnectiveTerm( TNode n );
+
+//for higher-order
+private:
+  /** dummy predicate that states terms should be considered first-class members of equality engine */
+  std::map< TypeNode, Node > d_ho_type_match_pred;
+  /** bound variables for lambda expressions associated with variables (typically used in instantiations) */
+  std::map< Node, std::vector< Node > > d_lambda_args;
+public:
+  /** get higher-order type match predicate */
+  Node getHoTypeMatchPredicate( TypeNode tn );
+  /** get lambda args */
+  void getLambdaArgs( Node f, std::vector< Node >& args );
 
 //for sygus
 private:
