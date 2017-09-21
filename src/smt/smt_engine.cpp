@@ -1731,6 +1731,12 @@ void SmtEngine::setDefaults() {
       options::prenexQuant.set( quantifiers::PRENEX_QUANT_NONE );
     }
   }
+  if( options::ufHo() ){
+    //if higher-order, then current variants of model-based instantiation cannot be used
+    if( options::mbqiMode()!=quantifiers::MBQI_NONE ){
+      options::mbqiMode.set( quantifiers::MBQI_NONE );
+    }
+  }
   if( options::mbqiMode()==quantifiers::MBQI_ABS ){
     if( !d_logic.isPure(THEORY_UF) ){
       //MBQI_ABS is only supported in pure quantified UF
