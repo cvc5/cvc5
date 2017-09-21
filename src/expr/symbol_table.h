@@ -48,29 +48,36 @@ class CVC4_PUBLIC SymbolTable {
    * <code>name</code> is already bound to an expression in the current
    * level, then the binding is replaced. If <code>name</code> is bound
    * in a previous level, then the binding is "covered" by this one
-   * until the current scope is popped. If levelZero is true the name
-   * shouldn't be already bound.
+   * until the current scope is popped when doOverload is false. 
+   * If levelZero is true the name shouldn't be already bound.
    *
    * @param name an identifier
    * @param obj the expression to bind to <code>name</code>
    * @param levelZero set if the binding must be done at level 0
+   * @param doOverload set if the binding can overload the function name.
+   *        if this is not set, the name is "covered" in the sense above.
    */
-  void bind(const std::string& name, Expr obj, bool levelZero = false) throw();
+  void bind(const std::string& name, Expr obj, bool levelZero = false, 
+            bool doOverload = false) throw();
 
   /**
    * Bind a function body to a name in the current scope.  If
    * <code>name</code> is already bound to an expression in the current
    * level, then the binding is replaced. If <code>name</code> is bound
    * in a previous level, then the binding is "covered" by this one
-   * until the current scope is popped.  Same as bind() but registers
-   * this as a function (so that isBoundDefinedFunction() returns true).
+   * until the current scope is popped when doOverload is false.  
+   * Same as bind() but registers this as a function (so that 
+   * isBoundDefinedFunction() returns true).
    *
    * @param name an identifier
    * @param obj the expression to bind to <code>name</code>
    * @param levelZero set if the binding must be done at level 0
+   * @param doOverload set if the binding can overload the function name.
+   *        if this is not set, the name is "covered" in the sense above.
    */
   void bindDefinedFunction(const std::string& name, Expr obj,
-                           bool levelZero = false) throw();
+                           bool levelZero = false, 
+                           bool doOverload = false) throw();
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>

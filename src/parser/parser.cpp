@@ -23,6 +23,7 @@
 #include <iostream>
 #include <iterator>
 #include <sstream>
+#include <unordered_set>
 
 #include "base/output.h"
 #include "expr/expr.h"
@@ -372,6 +373,8 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
       } else {
         defineType(name, t);
       }
+      std::unordered_set< std::string > consNames;
+      std::unordered_set< std::string > selNames;
       for (Datatype::const_iterator j = dt.begin(), j_end = dt.end();
            j != j_end; ++j) {
         const DatatypeConstructor& ctor = *j;
@@ -379,16 +382,15 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         Expr constructor = ctor.getConstructor();
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
-        if (isDeclared(constructorName, SYM_VARIABLE)) {
-          throw ParserException(constructorName + " already declared");
+        if(consNames.find(constructorName)==consNames.end()) {
+          defineVar(constructorName, constructor);
+          consNames.insert(constructorName);
+        }else{
+          throw ParserException(constructorName + " already declared in this datatype");
         }
-        defineVar(constructorName, constructor);
         Expr tester = ctor.getTester();
         Debug("parser-idt") << "+ define " << tester << std::endl;
         string testerName = ctor.getTesterName();
-        if (isDeclared(testerName, SYM_VARIABLE)) {
-          throw ParserException(testerName + " already declared");
-        }
         defineVar(testerName, tester);
         for (DatatypeConstructor::const_iterator k = ctor.begin(),
                                                  k_end = ctor.end();
@@ -396,10 +398,12 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
           Expr selector = (*k).getSelector();
           Debug("parser-idt") << "+++ define " << selector << std::endl;
           string selectorName = (*k).getName();
-          if (isDeclared(selectorName, SYM_VARIABLE)) {
-            throw ParserException(selectorName + " already declared");
+          if(selNames.find(selectorName)==selNames.end()) {
+            defineVar(selectorName, selector);
+            selNames.insert(selectorName);
+          }else{
+            throw ParserException(selectorName + " already declared in this datatype");
           }
-          defineVar(selectorName, selector);
         }
       }
     }

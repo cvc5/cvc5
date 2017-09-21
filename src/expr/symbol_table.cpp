@@ -57,9 +57,9 @@ class SymbolTable::Implementation {
     d_functions->deleteSelf();
   }
 
-  void bind(const string& name, Expr obj, bool levelZero) throw();
+  void bind(const string& name, Expr obj, bool levelZero, bool doOverload) throw();
   void bindDefinedFunction(const string& name, Expr obj,
-                           bool levelZero) throw();
+                           bool levelZero, bool doOverload) throw();
   void bindType(const string& name, Type t, bool levelZero = false) throw();
   void bindType(const string& name, const vector<Type>& params, Type t,
                 bool levelZero = false) throw();
@@ -135,13 +135,13 @@ class SymbolTable::Implementation {
 }; /* SymbolTable::Implementation */
 
 void SymbolTable::Implementation::bind(const string& name, Expr obj,
-                                       bool levelZero) throw() {
+                                       bool levelZero, bool doOverload) throw() {
   PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
-  if (levelZero) {
-    // we only bind symbols to overload at top level  
-    // things like bound variables in scopes are assumed to shadow previous definitions
+  if (doOverload) {
     bindWithOverloading(name, obj);
+  }
+  if (levelZero) {
     d_exprMap->insertAtContextLevelZero(name, obj);
   } else {
     d_exprMap->insert(name, obj);
@@ -150,13 +150,14 @@ void SymbolTable::Implementation::bind(const string& name, Expr obj,
 
 void SymbolTable::Implementation::bindDefinedFunction(const string& name,
                                                       Expr obj,
-                                                      bool levelZero) throw() {
+                                                      bool levelZero, 
+                                                      bool doOverload) throw() {
   PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
-  if (levelZero) {
-    // we only bind symbols to overload at top level
-    // things like bound variables in scopes are assumed to shadow previous definitions
+  if (doOverload) {
     bindWithOverloading(name, obj);
+  }
+  if (levelZero) {
     d_exprMap->insertAtContextLevelZero(name, obj);
     d_functions->insertAtContextLevelZero(obj);
   } else {
@@ -409,13 +410,13 @@ SymbolTable::SymbolTable()
 
 SymbolTable::~SymbolTable() {}
 
-void SymbolTable::bind(const string& name, Expr obj, bool levelZero) throw() {
-  d_implementation->bind(name, obj, levelZero);
+void SymbolTable::bind(const string& name, Expr obj, bool levelZero, bool doOverload) throw() {
+  d_implementation->bind(name, obj, levelZero, doOverload);
 }
 
 void SymbolTable::bindDefinedFunction(const string& name, Expr obj,
-                                      bool levelZero) throw() {
-  d_implementation->bindDefinedFunction(name, obj, levelZero);
+                                      bool levelZero, bool doOverload) throw() {
+  d_implementation->bindDefinedFunction(name, obj, levelZero, doOverload);
 }
 
 void SymbolTable::bindType(const string& name, Type t, bool levelZero) throw() {

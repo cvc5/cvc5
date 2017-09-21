@@ -1872,18 +1872,24 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
     {
       if(readVariable) {
+        Trace("parser-overloading") << "Getting variable expression of type " << name << " with type " << type << std::endl;
         // get the variable expression for the type
         f = PARSER_STATE->getVariableExpressionForType(name, type); 
       }
       if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
-        std::vector<CVC4::Expr> v;
-        Expr e = f.getOperator();
-        const DatatypeConstructor& dtc =
-            Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-        v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
-                             MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f.getOperator() ));
-        v.insert(v.end(), f.begin(), f.end());
-        expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
+        // could be a parametric type constructor or just an overloaded constructor
+        if(((DatatypeType)type).isParametric()) {
+          std::vector<CVC4::Expr> v;
+          Expr e = f.getOperator();
+          const DatatypeConstructor& dtc =
+              Datatype::datatypeOf(e)[Datatype::indexOf(e)];
+          v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
+                               MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f.getOperator() ));
+          v.insert(v.end(), f.begin(), f.end());
+          expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
+        }else{
+          expr = f;
+        }
       } else if(f.getKind() == CVC4::kind::EMPTYSET) {
         Debug("parser") << "Empty set encountered: " << f << " "
                           << f2 << " " << type <<  std::endl;
@@ -1898,6 +1904,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else {
         if(f.getType() != type) {
           PARSER_STATE->parseError("Type ascription not satisfied.");
+        }else{
+          expr = f;
         }
       }
     }
@@ -2980,7 +2988,6 @@ constructorDef[CVC4::Datatype& type]
     { // make the tester
       std::string testerId("is-");
       testerId.append(id);
-      PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
       ctor = new CVC4::DatatypeConstructor(id, testerId);
     }
     ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
@@ -2996,7 +3003,7 @@ selector[CVC4::DatatypeConstructor& ctor]
   std::string id;
   Type t, t2;
 }
-  : symbol[id,CHECK_UNDECLARED,SYM_SORT] sortSymbol[t,CHECK_NONE]
+  : symbol[id,CHECK_NONE,SYM_SORT] sortSymbol[t,CHECK_NONE]
     { ctor.addArg(id, t);
       Debug("parser-idt") << "selector: " << id.c_str()
                           << " of type " << t << std::endl;
