@@ -165,7 +165,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
       ret = nr;
     }
   } else {
-    // FIXME : special case not necessary? (also address BV_ACKERMANIZE functions below)
+    // FIXME : special case not necessary? (also address BV_ACKERMANIZE functions below), github issue #1116
     if(n.getKind() == kind::LAMBDA) {
       NodeManager* nm = NodeManager::currentNM();
       Node body = getModelValue(n[1], true);
@@ -218,9 +218,10 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
     TypeNode t = n.getType();
     bool eeHasTerm;
     if( !options::ufHo() && (t.isFunction() || t.isPredicate()) ){
-      // functions are in the equality engine, but not as first-class members
-      // e.g. we should not query representatives for functions. However, they
-      // are first class members when higher-order is enabled. Hence, the special
+      // functions are in the equality engine, but *not* as first-class members
+      // when higher-order is disabled. In this case, we cannot not query representatives for functions
+      // since they are "internal" nodes according to the equality engine despite hasTerm returning true. 
+      // However, they are first class members when higher-order is enabled. Hence, the special
       // case here.
       eeHasTerm = false;
     }else{
@@ -1111,10 +1112,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     }
   }  
 
-  //must assign functions that occur as external terms now, since these must have a particular shape
-  //TODO
-
-
 #ifdef CVC4_ASSERTIONS
   // Assert that all representatives have been converted to constants
   for (it = typeRepSet.begin(); it != typeRepSet.end(); ++it) {
@@ -1167,22 +1164,13 @@ void TheoryEngineModelBuilder::debugCheckModel(Model* m){
   for (eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine); !eqcs_i.isFinished(); ++eqcs_i) {
     // eqc is the equivalence class representative
     Node eqc = (*eqcs_i);
+    // get the representative
     Node rep = tm->getRepresentative( eqc );
     if( !rep.isConst() && eqc.getType().isBoolean() ){
+      // if Boolean, it does not necessarily have a constant representative, use get value instead
       rep = tm->getValue(eqc);
       Assert(rep.isConst());
     }
-/*
-    itMap = d_constantReps.find(eqc);
-    if (itMap == d_constantReps.end() && eqc.getType().isBoolean()) {
-      rep = tm->getValue(eqc);
-      Assert(rep.isConst());
-    }
-    else {
-      Assert(itMap != d_constantReps.end());
-      rep = itMap->second;
-    }
-*/
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, tm->d_equalityEngine);
     for ( ; !eqc_i.isFinished(); ++eqc_i) {
       Node n = *eqc_i;
@@ -1250,8 +1238,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     retNode = NodeManager::currentNM()->mkNode( r.getKind(), children );
     if (childrenConst) {
       retNode = Rewriter::rewrite(retNode);
-      Assert(retNode.getKind()==kind::APPLY_UF || retNode.getType().isRegExp() || 
-             retNode.getType().isFunction() || retNode.isConst());
+      Assert(retNode.getKind()==kind::APPLY_UF || retNode.getType().isRegExp() || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;
@@ -1318,7 +1305,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f) {
       apply_args.push_back( v );
     }
   }
-  //start with the base return value (must use the same default value for all functions?)
+  //start with the base return value (currently we use the same default value for all functions)
   TypeEnumerator te(type.getRangeType());
   Node curr = (*te);
   std::map< Node, std::vector< Node > >::iterator itht = m->d_ho_uf_terms.find( f );
@@ -1391,7 +1378,6 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m) {
 
   if( options::ufHo() ){
     // sort based on type size if higher-order
-    //   this means we assign T -> T before ( T x T ) -> T and before ( T -> T ) -> T
     Trace("model-builder") << "Sort functions by type..." << std::endl;
     sortTypeSize sts;
     std::sort( funcs_to_assign.begin(), funcs_to_assign.end(), sts );
