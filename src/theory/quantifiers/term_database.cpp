@@ -215,7 +215,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   Assert( f==getOperatorRepresentative( f ) );
   if( d_func_map_eqc_trie.find( f )==d_func_map_eqc_trie.end() ){
     d_func_map_eqc_trie[f].clear();
-    // get the operators
+    // get the matchable operators in the equivalence class of f
     std::vector< TNode > ops;
     ops.push_back( f );
     if( options::ufHo() ){
@@ -243,7 +243,7 @@ void TermDb::computeUfTerms( TNode f ) {
   Assert( f==getOperatorRepresentative( f ) );
   if( d_op_nonred_count.find( f )==d_op_nonred_count.end() ){
     d_op_nonred_count[ f ] = 0;
-    // get the operators
+    // get the matchable operators in the equivalence class of f
     std::vector< TNode > ops;
     ops.push_back( f );
     if( options::ufHo() ){
@@ -2085,22 +2085,6 @@ Node TermDb::getHoTypeMatchPredicate( TypeNode tn ) {
     return k;
   }else{
     return ithp->second;  
-  }
-}
-
-void TermDb::getLambdaArgs( Node f, std::vector< Node >& args ) {
-  Assert( args.empty() );
-  std::map< Node, std::vector< Node > >::iterator it = d_lambda_args.find( f );
-  if( it==d_lambda_args.end() ){
-    TypeNode tn = f.getType();
-    Assert( tn.isFunction() );
-    for( unsigned j=0; j<tn.getNumChildren()-1; j++ ){
-      Node nv = NodeManager::currentNM()->mkBoundVar( tn[j] );
-      d_lambda_args[f].push_back( nv );
-      args.push_back( nv );
-    }
-  }else{
-    args.insert( args.end(), it->second.begin(), it->second.end() );
   }
 }
 

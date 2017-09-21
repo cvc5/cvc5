@@ -254,9 +254,10 @@ private:
   void computeUfEqcTerms( TNode f );
   /** compute uf terms */
   void computeUfTerms( TNode f );
-private:
-  /** for higher-order, representative maps */
+private: // for higher-order term indexing
+  /** a map from matchable operators to their representative */
   std::map< TNode, TNode > d_ho_op_rep;
+  /** for each representative matchable operator, the list of other matchable operators in their equivalence class */
   std::map< TNode, std::vector< TNode > > d_ho_op_rep_slaves;
   /** get operator representative */
   Node getOperatorRepresentative( TNode op ) const;
@@ -529,13 +530,14 @@ public:
 private:
   /** dummy predicate that states terms should be considered first-class members of equality engine */
   std::map< TypeNode, Node > d_ho_type_match_pred;
-  /** bound variables for lambda expressions associated with variables (typically used in instantiations) */
-  std::map< Node, std::vector< Node > > d_lambda_args;
 public:
-  /** get higher-order type match predicate */
+  /** get higher-order type match predicate
+   * This predicate is used to force certain functions f of type tn to appear as first-class representatives in the
+   * quantifier-free UF solver. For a typical use case, we call getHoTypeMatchPredicate which returns a fresh 
+   * predicate P of type (tn -> Bool). Then, we add P( f ) as a lemma.  
+   * TODO: we may eliminate this depending on how github issue #1115 is resolved.
+   */
   Node getHoTypeMatchPredicate( TypeNode tn );
-  /** get lambda args */
-  void getLambdaArgs( Node f, std::vector< Node >& args );
 
 //for sygus
 private:
