@@ -448,7 +448,7 @@ public:
            bool doOverload = false);
 
   /** Create a new CVC4 bound variable expression of the given type. */
-  Expr mkBoundVar(const std::string& name, const Type& type, bool doOverload=false);
+  Expr mkBoundVar(const std::string& name, const Type& type);
 
   /**
    * Create a set of new CVC4 bound variable expressions of the given type.
@@ -456,8 +456,7 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, we overwrite name with val in the current context.
    */
-  std::vector<Expr> mkBoundVars(const std::vector<std::string> names, const Type& type, 
-                                bool doOverload=false);
+  std::vector<Expr> mkBoundVars(const std::vector<std::string> names, const Type& type);
 
   /** Create a new CVC4 function expression of the given type. */
   Expr mkFunction(const std::string& name, const Type& type,

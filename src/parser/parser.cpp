@@ -210,10 +210,10 @@ Expr Parser::mkVar(const std::string& name, const Type& type, uint32_t flags, bo
   return expr;
 }
 
-Expr Parser::mkBoundVar(const std::string& name, const Type& type, bool doOverload) {
+Expr Parser::mkBoundVar(const std::string& name, const Type& type) {
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
   Expr expr = d_exprManager->mkBoundVar(name, type);
-  defineVar(name, expr, false, doOverload);
+  defineVar(name, expr, false);
   return expr;
 }
 
@@ -251,10 +251,10 @@ std::vector<Expr> Parser::mkVars(const std::vector<std::string> names,
 }
 
 std::vector<Expr> Parser::mkBoundVars(const std::vector<std::string> names,
-                                      const Type& type, bool doOverload) {
+                                      const Type& type) {
   std::vector<Expr> vars;
   for (unsigned i = 0; i < names.size(); ++i) {
-    vars.push_back(mkBoundVar(names[i], type, doOverload));
+    vars.push_back(mkBoundVar(names[i], type));
   }
   return vars;
 }
@@ -382,6 +382,9 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
         if(consNames.find(constructorName)==consNames.end()) {
+          if(!doOverload) {
+            checkDeclaration(constructorName, CHECK_UNDECLARED);
+          }
           defineVar(constructorName, constructor, false, doOverload);
           consNames.insert(constructorName);
         }else{
@@ -390,6 +393,9 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         Expr tester = ctor.getTester();
         Debug("parser-idt") << "+ define " << tester << std::endl;
         string testerName = ctor.getTesterName();
+        if(!doOverload) {
+          checkDeclaration(testerName, CHECK_UNDECLARED);
+        }
         defineVar(testerName, tester, false, doOverload);
         for (DatatypeConstructor::const_iterator k = ctor.begin(),
                                                  k_end = ctor.end();
@@ -398,6 +404,9 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
           Debug("parser-idt") << "+++ define " << selector << std::endl;
           string selectorName = (*k).getName();
           if(selNames.find(selectorName)==selNames.end()) {
+            if(!doOverload) {
+              checkDeclaration(selectorName, CHECK_UNDECLARED);
+            }
             defineVar(selectorName, selector, false, doOverload);
             selNames.insert(selectorName);
           }else{
