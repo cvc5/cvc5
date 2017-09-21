@@ -130,12 +130,19 @@ public:
   void printRepresentativeDebug( const char* c, Node r );
   /** print representative function */
   void printRepresentative( std::ostream& out, Node r );
+private:
+  /** uf models */
+  std::map< Node, Node > d_uf_models;
 public:
   /** whether function models are enabled */
   bool d_enableFuncModels;
   //necessary information for function models
   std::map< Node, std::vector< Node > > d_uf_terms;
-  std::map< Node, Node > d_uf_models;
+  std::map< Node, std::vector< Node > > d_ho_uf_terms;
+  /** assign function value */
+  void assignFunctionDefinition( Node f, Node f_def );
+  bool hasAssignedFunctionDefinition( Node f ) const { return d_uf_models.find( f )!=d_uf_models.end(); }
+  std::vector< Node > getFunctionsToAssign();
 };/* class TheoryModel */
 
 /*
@@ -307,6 +314,10 @@ protected:
   /** involves usort */
   bool involvesUSort( TypeNode tn );
   bool isExcludedUSortValue( std::map< TypeNode, unsigned >& eqc_usort_count, Node v, std::map< Node, bool >& visited );
+protected:
+  void assignFunction(TheoryModel* m, Node f);
+  void assignHoFunction(TheoryModel* m, Node f);
+  void assignFunctions(TheoryModel* m);
 public:
   TheoryEngineModelBuilder(TheoryEngine* te);
   virtual ~TheoryEngineModelBuilder(){}

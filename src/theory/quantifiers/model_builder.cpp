@@ -275,7 +275,8 @@ bool QModelBuilderIG::processBuildModel( TheoryModel* m ) {
     it->second.update( fm );
     Trace("model-func") << "QModelBuilder: Make function value from tree " << it->first << std::endl;
     //construct function values
-    fm->d_uf_models[ it->first ] = it->second.getFunctionValue( "$x" );
+    Node f_def = it->second.getFunctionValue( "$x" );
+    fm->assignFunctionDefinition( it->first, f_def );
   }
   Assert( d_addedLemmas==0 );
   return TheoryEngineModelBuilder::processBuildModel( m );

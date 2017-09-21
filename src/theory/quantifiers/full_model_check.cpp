@@ -536,7 +536,8 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
   
   //make function values
   for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ){
-    m->d_uf_models[ it->first ] = getFunctionValue( fm, it->first, "$x" );
+    Node f_def = getFunctionValue( fm, it->first, "$x" );
+    m->assignFunctionDefinition( it->first, f_def );
   }
   return TheoryEngineModelBuilder::processBuildModel( m );
 }
