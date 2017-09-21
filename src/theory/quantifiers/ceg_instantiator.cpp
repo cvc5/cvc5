@@ -297,8 +297,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
                   // apply substitutions
                   Node slit = applySubstitutionToLiteral( lit, sf );
                   if( !slit.isNull() ){
-                    // check if eligible and contains pv
-                    // TODO
+                    // check if contains pv
                     if( hasVariable( slit, pv ) ){
                       if( vinst->processAssertion( this, sf, pv, slit, effort ) ){
                        return true;
