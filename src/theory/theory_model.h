@@ -147,7 +147,7 @@ public:
   /** get the list of functions to assign. 
   * If higher-order is enabled, we ensure that these functions are sorted by type size.
   * This allows us to assign functions T -> T before ( T x T ) -> T and before ( T -> T ) -> T,
-  * which is required for "tree form" model construction (see TheoryModelBuilder::assignHoFunction).
+  * which is required for "dag form" model construction (see TheoryModelBuilder::assignHoFunction).
   */
   std::vector< Node > getFunctionsToAssign();
 };/* class TheoryModel */
@@ -335,7 +335,7 @@ protected:
   */
   void assignFunction(TheoryModel* m, Node f);
   /** assign function f based on the model m. 
-  * This construction is based on "tree form". For example:
+  * This construction is based on "dag form". For example:
   * (f 0 1) = 1
   * (f 0 2) = 2
   * (f 1 1) = 3
@@ -346,6 +346,7 @@ protected:
   *                 (ite (= x 1) (ite (= y 1) 3 ...)
   *                              ...))
   * 
+  * where the above is represented as a directed acyclic graph (dag).
   * This construction is accomplished by assigning values to (f c) 
   * terms before f, e.g. 
   * (f 0) = (lambda y. (ite (= y 1) 1
