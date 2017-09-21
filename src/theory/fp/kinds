@@ -38,14 +38,31 @@ sort ROUNDINGMODE_TYPE \
     "expr/node_manager.h" \
     "floating-point rounding mode"
 
+enumerator ROUNDINGMODE_TYPE \
+    "::CVC4::theory::fp::RoundingModeEnumerator" \
+    "theory/fp/type_enumerator.h"
+
+
+
 constant FLOATINGPOINT_TYPE \
     ::CVC4::FloatingPointSize \
     ::CVC4::FloatingPointSizeHashFunction \
     "util/floatingpoint.h" \
     "floating-point type"
-#cardinality FLOATINGPOINT_TYPE "function" "header"
-#enumerator FLOATINGPOINT_TYPE "function" "header"
-#well-founded FLOATINGPOINT_TYPE true "function" "header"
+
+cardinality FLOATINGPOINT_TYPE \
+    "::CVC4::theory::fp::CardinalityComputer::computeCardinality(%TYPE%)" \
+    "theory/fp/theory_fp_type_rules.h"
+
+enumerator FLOATINGPOINT_TYPE \
+    "::CVC4::theory::fp::FloatingPointEnumerator" \
+    "theory/fp/type_enumerator.h"
+
+well-founded FLOATINGPOINT_TYPE \
+    true \
+    "(*CVC4::theory::TypeEnumerator(%TYPE%))" \
+    "theory/type_enumerator.h"
+
 
 
 # operators...
@@ -94,16 +111,16 @@ operator FLOATINGPOINT_MAX 2 "floating-point maximum"
 typerule FLOATINGPOINT_MAX   ::CVC4::theory::fp::FloatingPointOperationTypeRule
 
 
-operator FLOATINGPOINT_LEQ 2 "floating-point less than or equal"
+operator FLOATINGPOINT_LEQ 2: "floating-point less than or equal"
 typerule FLOATINGPOINT_LEQ   ::CVC4::theory::fp::FloatingPointTestTypeRule
 
-operator FLOATINGPOINT_LT 2 "floating-point less than"
+operator FLOATINGPOINT_LT 2: "floating-point less than"
 typerule FLOATINGPOINT_LT   ::CVC4::theory::fp::FloatingPointTestTypeRule
 
-operator FLOATINGPOINT_GEQ 2 "floating-point greater than or equal"
+operator FLOATINGPOINT_GEQ 2: "floating-point greater than or equal"
 typerule FLOATINGPOINT_GEQ   ::CVC4::theory::fp::FloatingPointTestTypeRule
 
-operator FLOATINGPOINT_GT 2 "floating-point greater than"
+operator FLOATINGPOINT_GT 2: "floating-point greater than"
 typerule FLOATINGPOINT_GT   ::CVC4::theory::fp::FloatingPointTestTypeRule
 
 
