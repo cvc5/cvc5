@@ -97,7 +97,7 @@ class SymbolTable::Implementation {
   // For simplicity, it is context-independent.
   class TypeArgTrie {
   public:
-    // children in the trie
+    // children of this node
     std::map< Type, TypeArgTrie > d_children;
     // symbols at this node
     std::map< Type, Expr > d_symbols;
@@ -106,7 +106,7 @@ class SymbolTable::Implementation {
   // structure above.
   std::unordered_map< std::string, TypeArgTrie > d_overload_type_arg_trie;
   /** bind with overloading
-   * This is called whenever obj is bound to name.
+   * This is called whenever obj is bound to name where overloading symbols is allowed.
    * If a symbol is previously bound to that name, it marks both as overloaded.
   */
   void bindWithOverloading(const string& name, Expr obj);
@@ -114,7 +114,7 @@ class SymbolTable::Implementation {
    * Adds relevant information to the type arg trie data structure.
   */
   void markOverloaded(const string& name, Expr obj);
-  /** A set of overloaded symbols. */
+  /** The set of overloaded symbols. */
   CDHashSet<Expr, ExprHashFunction>* d_overloaded_symbols;
  public:
    /** is this function overloaded? */
@@ -339,6 +339,12 @@ void SymbolTable::Implementation::markOverloaded(const string& name, Expr obj) {
   }else if(t.isConstructor()) {
     argTypes = ((ConstructorType)t).getArgTypes();
     rangeType = ((ConstructorType)t).getRangeType();
+  }else if(t.isTester()) {
+    argTypes.push_back( ((TesterType)t).getDomain() );
+    rangeType = ((TesterType)t).getRangeType();
+  }else if(t.isSelector()) {
+    argTypes.push_back( ((SelectorType)t).getDomain() );
+    rangeType = ((SelectorType)t).getRangeType();
   }
   // add to the trie
   TypeArgTrie * tat = &d_overload_type_arg_trie[name];
@@ -384,6 +390,7 @@ Expr SymbolTable::Implementation::getOverloadedFunctionForTypes(const std::strin
         if(retExpr.isNull()) {
           retExpr = expr;
         }else{
+          // multiple functions match
           return d_nullExpr;
         }
       }

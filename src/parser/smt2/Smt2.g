@@ -351,7 +351,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         }
         t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
-      Expr func = PARSER_STATE->mkVar(name, t);
+      // we allow overloading for function declarations
+      Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
       cmd->reset(new DeclareFunctionCommand(name, func, t));
     }
   | /* function definition */
@@ -386,8 +387,9 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
+      // we allow overloading for function definitions
       Expr func = PARSER_STATE->mkFunction(name, t,
-                                           ExprManager::VAR_FLAG_DEFINED);
+                                           ExprManager::VAR_FLAG_DEFINED, true);
       cmd->reset(new DefineFunctionCommand(name, func, terms, expr));
     }
   | /* value query */
@@ -622,7 +624,8 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
       }else{
         synth_fun_type = range;
       }
-      synth_fun = PARSER_STATE->mkVar(fun, synth_fun_type);
+      // allow overloading for synth fun
+      synth_fun = PARSER_STATE->mkVar(fun, synth_fun_type, ExprManager::VAR_FLAG_NONE, true);
       PARSER_STATE->pushScope(true);
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
             sortedVarNames.begin(), iend = sortedVarNames.end(); i != iend;
@@ -1145,10 +1148,11 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
 
     /* declare-const */
   | DECLARE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    symbol[name,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
-    { Expr c = PARSER_STATE->mkVar(name, t);
+    { // allow overloading here
+      Expr c = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -1192,7 +1196,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
         }
         t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
-      Expr func = PARSER_STATE->mkVar(fname, t);
+      // allow overloading
+      Expr func = PARSER_STATE->mkVar(fname, t, ExprManager::VAR_FLAG_NONE, true);
       seq->addCommand(new DeclareFunctionCommand(fname, func, t));
       if( sortedVarNames.empty() ){
         func_app = func;
@@ -1249,7 +1254,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
           }
         }
         sortedVarNames.clear();
-        Expr func = PARSER_STATE->mkVar(fname, t);
+        // allow overloading
+        Expr func = PARSER_STATE->mkVar(fname, t, ExprManager::VAR_FLAG_NONE, true);
         seq->addCommand(new DeclareFunctionCommand(fname, func, t));
         funcs.push_back( func );
       }
@@ -1391,7 +1397,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         } else {
           t = sorts[0];
         }
-        Expr func = PARSER_STATE->mkVar(name, t);
+        // allow overloading
+        Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, t));
         sorts.clear();
       }
@@ -1412,7 +1419,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           }
           t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }
-        Expr func = PARSER_STATE->mkVar(name, t);
+        // allow overloading
+        Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, t));
         sorts.clear();
       }
@@ -1954,13 +1962,13 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else {
         /* A non-built-in function application */
         PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
-        //hack to allow constants with parentheses (disabled for now)
-        //if( PARSER_STATE->sygus() && !PARSER_STATE->isFunctionLike(name) ){
-        //  op = PARSER_STATE->getVariable(name);
-        //}else{
-        PARSER_STATE->checkFunctionLike(name);
         expr = PARSER_STATE->getVariable(name);
         if(!expr.isNull()) {
+          //hack to allow constants with parentheses (disabled for now)
+          //if( PARSER_STATE->sygus() && !PARSER_STATE->isFunctionLike(expr) ){
+          //  op = PARSER_STATE->getVariable(name);
+          //}else{
+          PARSER_STATE->checkFunctionLike(expr);
           kind = PARSER_STATE->getKindForFunction(expr);
           args.push_back(expr);
         }else{
@@ -1982,10 +1990,11 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         }
         expr = PARSER_STATE->getOverloadedFunctionForTypes(name, argTypes);
         if(!expr.isNull()) {
+          PARSER_STATE->checkFunctionLike(expr);
           kind = PARSER_STATE->getKindForFunction(expr);
           args.insert(args.begin(),expr);
         }else{
-          PARSER_STATE->parseError("Cannot find overloaded function for argument types.");
+          PARSER_STATE->parseError("Cannot find unambiguous overloaded function for argument types.");
         }
       }
       if(isBuiltinOperator) {

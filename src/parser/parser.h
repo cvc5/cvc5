@@ -399,12 +399,12 @@ public:
   void reserveSymbolAtAssertionLevel(const std::string& name);
 
   /**
-   * Checks whether the given name is bound to a function.
-   * @param name the name to check
-   * @throws ParserException if checks are enabled and name is not
-   * bound to a function
+   * Checks whether the given expression is a function.
+   * @param fun the expression to check
+   * @throws ParserException if checks are enabled and fun is not
+   * a function
    */
-  void checkFunctionLike(const std::string& name) throw(ParserException);
+  void checkFunctionLike(Expr fun) throw(ParserException);
 
   /**
    * Check that <code>kind</code> can accept <code>numArgs</code> arguments.
@@ -427,28 +427,42 @@ public:
    */
   void checkOperator(Kind kind, unsigned numArgs) throw(ParserException);
 
-  /** Create a new CVC4 variable expression of the given type. */
+  /** Create a new CVC4 variable expression of the given type. 
+   * If a symbol with name already exists,
+   *  then if doOverload is true, we create overloaded operators.
+   *  else if doOverload is false, we overwrite name with val in the current context.  
+   */
   Expr mkVar(const std::string& name, const Type& type,
-             uint32_t flags = ExprManager::VAR_FLAG_NONE);
+             uint32_t flags = ExprManager::VAR_FLAG_NONE, 
+             bool doOverload = false);
 
   /**
    * Create a set of new CVC4 variable expressions of the given type.
+   * For each name, if a symbol with name already exists,
+   *  then if doOverload is true, we create overloaded operators.
+   *  else if doOverload is false, we overwrite name with val in the current context.
    */
   std::vector<Expr>
     mkVars(const std::vector<std::string> names, const Type& type,
-           uint32_t flags = ExprManager::VAR_FLAG_NONE);
+           uint32_t flags = ExprManager::VAR_FLAG_NONE, 
+           bool doOverload = false);
 
   /** Create a new CVC4 bound variable expression of the given type. */
-  Expr mkBoundVar(const std::string& name, const Type& type);
+  Expr mkBoundVar(const std::string& name, const Type& type, bool doOverload=false);
 
   /**
    * Create a set of new CVC4 bound variable expressions of the given type.
+   * For each name, if a symbol with name already exists,
+   *  then if doOverload is true, we create overloaded operators.
+   *  else if doOverload is false, we overwrite name with val in the current context.
    */
-  std::vector<Expr> mkBoundVars(const std::vector<std::string> names, const Type& type);
+  std::vector<Expr> mkBoundVars(const std::vector<std::string> names, const Type& type, 
+                                bool doOverload=false);
 
   /** Create a new CVC4 function expression of the given type. */
   Expr mkFunction(const std::string& name, const Type& type,
-                  uint32_t flags = ExprManager::VAR_FLAG_NONE);
+                  uint32_t flags = ExprManager::VAR_FLAG_NONE, 
+                  bool doOverload=false);
 
   /**
    * Create a new CVC4 function expression of the given type,
@@ -458,13 +472,21 @@ public:
   Expr mkAnonymousFunction(const std::string& prefix, const Type& type,
                            uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
-  /** Create a new variable definition (e.g., from a let binding). */
+  /** Create a new variable definition (e.g., from a let binding). 
+   * If a symbol with name already exists,
+   *  then if doOverload is true, we create overloaded operators.
+   *  else if doOverload is false, we overwrite name with val in the current context.
+   */
   void defineVar(const std::string& name, const Expr& val,
-                 bool levelZero = false);
+                 bool levelZero = false, bool doOverload = false);
 
-  /** Create a new function definition (e.g., from a define-fun). */
+  /** Create a new function definition (e.g., from a define-fun). 
+   * If a symbol with name already exists,
+   *  then if doOverload is true, we create overloaded operators.
+   *  else if doOverload is false, we overwrite name with val in the current context.
+   */
   void defineFunction(const std::string& name, const Expr& val,
-                      bool levelZero = false);
+                      bool levelZero = false, bool doOverload = false);
 
   /** Create a new type definition. */
   void defineType(const std::string& name, const Type& type);
@@ -536,8 +558,8 @@ public:
   /** Is the symbol bound to a boolean variable? */
   bool isBoolean(const std::string& name);
 
-  /** Is the symbol bound to a function (or function-like thing)? */
-  bool isFunctionLike(const std::string& name);
+  /** Is fun a function (or function-like thing)? */
+  bool isFunctionLike(Expr fun);
 
   /** Is the symbol bound to a defined function? */
   bool isDefinedFunction(const std::string& name);
