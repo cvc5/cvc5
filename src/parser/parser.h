@@ -536,9 +536,12 @@ public:
 
   /**
    * Create sorts of mutually-recursive datatypes.
+   * For each symbol defined by the datatype, if a symbol with name already exists,
+   *  then if doOverload is true, we create overloaded operators.
+   *  else if doOverload is false, we overwrite name with val in the current context.
    */
   std::vector<DatatypeType>
-  mkMutualDatatypeTypes(std::vector<Datatype>& datatypes);
+  mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, bool doOverload=false);
 
   /**
    * Add an operator to the current legal set.

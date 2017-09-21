@@ -351,7 +351,7 @@ bool Parser::isUnresolvedType(const std::string& name) {
 }
 
 std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
-    std::vector<Datatype>& datatypes) {
+    std::vector<Datatype>& datatypes, bool doOverload) {
   try {
     std::vector<DatatypeType> types =
         d_exprManager->mkMutualDatatypeTypes(datatypes, d_unresolved);
@@ -382,7 +382,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
         if(consNames.find(constructorName)==consNames.end()) {
-          defineVar(constructorName, constructor, false, true);
+          defineVar(constructorName, constructor, false, doOverload);
           consNames.insert(constructorName);
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
@@ -390,7 +390,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         Expr tester = ctor.getTester();
         Debug("parser-idt") << "+ define " << tester << std::endl;
         string testerName = ctor.getTesterName();
-        defineVar(testerName, tester, false, true);
+        defineVar(testerName, tester, false, doOverload);
         for (DatatypeConstructor::const_iterator k = ctor.begin(),
                                                  k_end = ctor.end();
              k != k_end; ++k) {
@@ -398,7 +398,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
           Debug("parser-idt") << "+++ define " << selector << std::endl;
           string selectorName = (*k).getName();
           if(selNames.find(selectorName)==selNames.end()) {
-            defineVar(selectorName, selector, false, true);
+            defineVar(selectorName, selector, false, doOverload);
             selNames.insert(selectorName);
           }else{
             throw ParserException(selectorName + " already declared in this datatype");
