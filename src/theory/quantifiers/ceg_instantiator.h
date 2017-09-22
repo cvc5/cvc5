@@ -63,6 +63,16 @@ public:
       return pv;
     }
   }
+  // combine property 
+  void combineProperty( TermProperties& p ){
+    if( !p.d_coeff.isNull() ){
+      if( d_coeff.isNull() ){
+        d_coeff = p.d_coeff;
+      }else{
+        d_coeff = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::MULT, d_coeff, p.d_coeff ) );
+      }
+    }
+  }
 };
 
 //solved form, involves substitution with coefficients
@@ -161,8 +171,8 @@ private:
   /** apply substitution
   * We wish to process the substitution: 
   *   ( pv = n * sf )
-  * where pv is a variable with type tn.
-  * The return value "ret" and pv_prop is such that this is equivalent to
+  * where pv is a variable with type tn, and * denotes application of substitution.
+  * The return value "ret" and pv_prop is such that the above equality is equivalent to
   *   ( pv_prop.getModifiedTerm(pv) = ret )
   */
   Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, TermProperties& pv_prop, bool try_coeff = true ) {
@@ -172,7 +182,8 @@ private:
   Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
                           std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff = true );
   /** apply substitution to literal lit 
-  * The return value "ret" is equivalent to ( lit * sf )
+  * The return value is equivalent to ( lit * sf )
+  * where * denotes application of substitution.
   */
   Node applySubstitutionToLiteral( Node lit, SolvedForm& sf ) {
     return applySubstitutionToLiteral( lit, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic );
@@ -224,32 +235,38 @@ public:
   virtual ~Instantiator(){}
   virtual void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {}
 
-  //called when pv_prop.d_coeff * pv = n, and n is eligible for instantiation
+  //  Called when the entailment:
+  //    E |= pv_prop.getModifiedTerm(pv) = n
+  //  holds in the current context E, and n is eligible for instantiation.
   virtual bool processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, TermProperties& pv_prop, Node n, unsigned effort );
-  //eqc is the equivalence class of pv
+  //  Called about process equal term, where eqc is the list of eligible terms in the equivalence class of pv
   virtual bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort ) { return false; }
 
-  // whether the 
+  // whether the instantiator implements processEquality
   virtual bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
-  //term_props.size() = terms.size() = 2
-  //  called when:
-  //    term_props[0].getModifiedTerm(terms[0]) = term_props[1].getModifiedTerm(terms[1]) 
-  //  is an equality that is entailed in this context, terms are eligible, and at least one of these terms contains pv
-  //  returns true if an instantiation was successfully added via a recursive call
+  //  term_props.size() = terms.size() = 2
+  //  Called when the entailment:
+  //    E ^ term_props[0].getModifiedTerm(x0) = terms[0] ^ term_props[1].getModifiedTerm(x1) = terms[1] |= x0 = x1
+  //  holds in current context E for fresh variables xi, terms[i] are eligible, and at least one terms[i] contains pv for i = 0,1.
+  //  Notice in the basic case, E |= terms[0] = terms[1].
+  //  Returns true if an instantiation was successfully added via a recursive call
   virtual bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort ) { return false; }
 
   // whether the instantiator implements processAssertion for any literal
   virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
   // whether the instantiator implements processAssertion for literal lit
   virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return false; }
-  // called when assertion lit holds.  note that lit is unsubstituted, first must substitute/solve/check eligible
-  //  returns true if an instantiation was successfully added via a recursive call
+  // Called when the entailment:
+  //   E |= lit 
+  // holds in current context E. Typically, lit belongs to the list of current assertions.
+  // Returns true if an instantiation was successfully added via a recursive call
   virtual bool processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return false; }
-  // called once after processAssertion is called for each literal asserted to the theory
+  // Called after processAssertion is called for each literal asserted to the instantiator.
   virtual bool processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) { return false; }
 
-  //do we allow instantiation for the model value of pv
+  //do we use the model value as instantiation for pv
   virtual bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
+  //do we allow the model value as instantiation for pv
   virtual bool allowModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return d_closed_enum_type; }
 
   //do we need to postprocess the solved form? did we successfully postprocess

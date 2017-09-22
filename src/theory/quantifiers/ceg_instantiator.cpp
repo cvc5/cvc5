@@ -375,9 +375,9 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
     std::vector< Node > a_var;
     a_var.push_back( pv );
     std::vector< TermProperties > a_prop;
+    a_prop.push_back( pv_prop );
     std::vector< Node > a_non_basic;
     if( !pv_prop.isBasic() ){
-      a_prop.push_back( pv_prop );
       a_non_basic.push_back( pv );
     }
     bool success = true;
@@ -385,7 +385,7 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
     std::map< int, TermProperties > prev_prop;
     std::map< int, Node > prev_sym_subs;
     std::vector< Node > new_non_basic;
-    Trace("cbqi-inst-debug2") << "Applying substitutions..." << std::endl;
+    Trace("cbqi-inst-debug2") << "Applying substitutions to previous substitution terms..." << std::endl;
     for( unsigned j=0; j<sf.d_subs.size(); j++ ){
       Trace("cbqi-inst-debug2") << "  Apply for " << sf.d_subs[j]  << std::endl;
       Assert( d_prog_var.find( sf.d_subs[j] )!=d_prog_var.end() );
@@ -397,17 +397,18 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
         Node new_subs = applySubstitution( sf.d_vars[j].getType(), sf.d_subs[j], a_var, a_subs, a_prop, a_non_basic, a_pv_prop, true );
         if( !new_subs.isNull() ){
           sf.d_subs[j] = new_subs;
-          if( !a_pv_prop.d_coeff.isNull() ){
+          // the substitution apply to this term resulted in a non-basic substitution relationship
+          if( !a_pv_prop.isBasic() ){
             prev_prop[j] = sf.d_props[j];
-            if( sf.d_props[j].d_coeff.isNull() ){
+            // if previously was basic, becomes non-basic
+            if( sf.d_props[j].isBasic() ){
               Assert( std::find( sf.d_non_basic.begin(), sf.d_non_basic.end(), sf.d_vars[j] )==sf.d_non_basic.end() );
-              //now has coefficient
               new_non_basic.push_back( sf.d_vars[j] );
               sf.d_non_basic.push_back( sf.d_vars[j] );
-              sf.d_props[j].d_coeff = a_pv_prop.d_coeff;
-            }else{
-              sf.d_props[j].d_coeff = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, sf.d_props[j].d_coeff, a_pv_prop.d_coeff ) );
             }
+            // now combine the property
+            sf.d_props[j].combineProperty( a_pv_prop );
+            Assert( !sf.d_props[j].isBasic() );
           }
           if( sf.d_subs[j]!=prev_subs[j] ){
             computeProgVars( sf.d_subs[j] );

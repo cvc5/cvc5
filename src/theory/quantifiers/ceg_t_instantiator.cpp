@@ -313,9 +313,9 @@ bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, 
             is_upper = ( vts_coeff_inf.getConst<Rational>().sgn()==1 );
           }else{
             Node rhs_value = ci->getModelValue( val );
-            Node lhs_value = pv_value;
-            if( !pv_prop.d_coeff.isNull() ){
-              lhs_value = NodeManager::currentNM()->mkNode( MULT, lhs_value, pv_prop.d_coeff );
+            Node lhs_value = pv_prop.getModifiedTerm( pv_value );
+            if( !pv_prop.isBasic() ){
+              lhs_value = pv_prop.getModifiedTerm( pv_value );
               lhs_value = Rewriter::rewrite( lhs_value );
             }
             Trace("cbqi-inst-debug") << "Disequality : check model values " << lhs_value << " " << rhs_value << std::endl;
@@ -338,11 +338,11 @@ bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, 
           uires = is_upper ? -2 : 2;
         }
       }
-      Trace("cbqi-bound-inf") << "From " << lit << ", got : ";
-      if( !pv_prop.d_coeff.isNull() ){
-        Trace("cbqi-bound-inf") << pv_prop.d_coeff << " * ";
+      if( Trace.isOn("cbqi-bound-inf") ){
+        Node pvmod = pv_prop.getModifiedTerm( pv );
+        Trace("cbqi-bound-inf") << "From " << lit << ", got : ";
+        Trace("cbqi-bound-inf") << pvmod << " -> " << uval << ", styp = " << uires << std::endl;
       }
-      Trace("cbqi-bound-inf") << pv << " -> " << uval << ", styp = " << uires << std::endl;
       //take into account delta
       if( ci->useVtsDelta() && ( uires==2 || uires==-2 ) ){
         if( options::cbqiModel() ){
@@ -604,13 +604,15 @@ bool ArithInstantiator::postProcessInstantiation( CegInstantiator * ci, SolvedFo
   Assert( std::find( sf.d_non_basic.begin(), sf.d_non_basic.end(), pv )!=sf.d_non_basic.end() );
   Assert( std::find( sf.d_vars.begin(), sf.d_vars.end(), pv )!=sf.d_vars.end() );
   unsigned index = std::find( sf.d_vars.begin(), sf.d_vars.end(), pv )-sf.d_vars.begin();
-  Assert( !sf.d_props[index].d_coeff.isNull() );
-  Trace("cbqi-inst-debug") << "Normalize substitution for " << sf.d_props[index].d_coeff << " * ";
-  Trace("cbqi-inst-debug") << sf.d_vars[index] << " = " << sf.d_subs[index] << std::endl;
+  Assert( !sf.d_props[index].isBasic() );
+  Node eq_lhs = sf.d_props[index].getModifiedTerm( sf.d_vars[index] );
+  if( Trace.isOn("cbqi-inst-debug") ){
+    Trace("cbqi-inst-debug") << "Normalize substitution for ";
+    Trace("cbqi-inst-debug") << eq_lhs << " = " << sf.d_subs[index] << std::endl;
+  }
   Assert( sf.d_vars[index].getType().isInteger() );
   //must ensure that divisibility constraints are met
   //solve updated rewritten equality for vars[index], if coefficient is one, then we are successful
-  Node eq_lhs = NodeManager::currentNM()->mkNode( MULT, sf.d_props[index].d_coeff, sf.d_vars[index] );
   Node eq_rhs = sf.d_subs[index];
   Node eq = eq_lhs.eqNode( eq_rhs );
   eq = Rewriter::rewrite( eq );
@@ -748,7 +750,7 @@ void EprInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsi
 
 bool EprInstantiator::processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, TermProperties& pv_prop, Node n, unsigned effort ) {
   if( options::quantEprMatching() ){
-    Assert( pv_prop.d_coeff.isNull() );
+    Assert( pv_prop.isBasic() );
     d_equal_terms.push_back( n );
     return false;
   }else{
@@ -1030,6 +1032,8 @@ void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node 
 }
 
 bool BvInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort ) {
+  Assert( term_props[0].isBasic() );
+  Assert( term_props[1].isBasic() );
   //processLiteral( ci, sf, pv, terms[0].eqNode( terms[1] ), effort );
   return false;
 }
