@@ -63,7 +63,7 @@ private:
     std::vector< Node > d_inst;
   };
   std::map< Node, CandidateInfo > d_cinfo;  
-  /** refine count */
+  /** number of times we have called doRefine */
   unsigned d_refine_count;
   /** Whether we are syntax-guided (e.g. was the input in SyGuS format).
    * This includes SyGuS inputs where no syntactic restrictions are provided.
@@ -87,7 +87,7 @@ private:
                             std::vector< Node >& candidate_values, std::vector< Node >& lems );
   /** get candidadate */
   Node getCandidate( unsigned int i ) { return d_candidates[i]; }
-  /** record instantiation */
+  /** record instantiation (this is used to construct solutions later) */
   void recordInstantiation( std::vector< Node >& vs ) {
     Assert( vs.size()==d_candidates.size() );
     for( unsigned i=0; i<vs.size(); i++ ){
@@ -105,6 +105,8 @@ public:
   Node getNextDecisionRequest( unsigned& priority );
   /** increment the number of times we have successfully done candidate refinement */
   void incrementRefineCount() { d_refine_count++; }
+  /** whether the conjecture is waiting for a call to do_Check below */
+  bool needsCheck( std::vector< Node >& lem );
   /** whether the conjecture is waiting for a call to doRefine below */
   bool needsRefinement();
   /** get the list of candidates */
@@ -134,27 +136,29 @@ public:
    */
   void printSynthSolution( std::ostream& out, bool singleInvocation );
 public:
-  /** get guard */
+  /** get guard, this is "G" in Figure 3 of Reynolds et al CAV 2015 */
   Node getGuard();
   /** is ground */
   bool isGround() { return d_inner_vars.empty(); }
-  /** is syntax guided */
+  /** does this conjecture correspond to a syntax-guided synthesis input */
   bool isSyntaxGuided() const { return d_syntax_guided; }
-  /** is single invocation */
+  /** are we using single invocation techniques */
   bool isSingleInvocation() const;
-  /** needs check */
-  bool needsCheck( std::vector< Node >& lem );
-  /** preregister conjecture */
+  /** preregister conjecture 
+  * This is used as a heuristic for solution reconstruction, so that we 
+  * remember expressions in the conjecture before preprocessing, since they
+  * may be helpful during solution reconstruction (Figure 5 of Reynolds et al CAV 2015)
+  */
   void preregisterConjecture( Node q );
-  /** assign */
+  /** assign conjecture q to this class */
   void assign( Node q );
-  /** is assigned */
+  /** has a conjecture been assigned to this class */
   bool isAssigned() { return !d_embed_quant.isNull(); }
-  /** get model values */
+  /** get model values for terms n, store in vector v */
   void getModelValues( std::vector< Node >& n, std::vector< Node >& v );
-  /** get model value */
+  /** get model value for term n */
   Node getModelValue( Node n );
-  /** get number of refinement lemmas */
+  /** get number of refinement lemmas we have added so far */
   unsigned getNumRefinementLemmas() { return d_refinement_lemmas.size(); }
   /** get refinement lemma */
   Node getRefinementLemma( unsigned i ) { return d_refinement_lemmas[i]; }

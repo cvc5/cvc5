@@ -625,7 +625,7 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
               Trace("cegqi-debug") << "getNextDecision : we have a new solution since stream guard was propagated false: " << curr_stream_guard << std::endl;
               // we have generated a solution, print it
               // get the current output stream
-              // this should coincide with wherever --dump-synth-solution goes
+              // this output stream should coincide with wherever --dump-synth is output on
               Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
               printSynthSolution( *nodeManagerOptions.getOut(), false );
               // need to make the next stream guard
