@@ -9,8 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief counterexample guided conjecture class
- **
+ ** \brief implementation of class that encapsulates counterexample-guided instantiation
+ **        techniques for a single SyGuS synthesis conjecture
  **/
 #include "theory/quantifiers/ce_guided_conjecture.h"
 
@@ -334,6 +334,20 @@ bool CegConjecture::needsCheck( std::vector< Node >& lem ) {
 void CegConjecture::doSingleInvCheck(std::vector< Node >& lems) {
   if( d_ceg_si!=NULL ){
     d_ceg_si->check(lems);
+  }
+}
+
+void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
+  std::vector< Node > model_terms;
+  std::vector< Node > clist;
+  getCandidateList( clist, true );
+  Assert( clist.size()==d_quant[0].getNumChildren() );
+  getModelValues( clist, model_terms );
+  if( d_qe->addInstantiation( d_quant, model_terms ) ){
+    //record the instantiation
+    recordInstantiation( model_terms );
+  }else{
+    Assert( false );
   }
 }
 

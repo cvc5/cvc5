@@ -9,7 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief counterexample guided instantiation class
+ ** \brief class that encapsulates counterexample-guided instantiation
+ **        techniques for a single SyGuS synthesis conjecture
  **/
 
 #include "cvc4_private.h"
@@ -77,7 +78,7 @@ private: //non-syntax guided (deprecated)
   /** the guard for non-syntax-guided synthesis */
   Node d_nsg_guard;
 private:
-  /** get embedding */
+  /** convert node n based on deep embedding (Section 4 of Reynolds et al CAV 2015) */
   Node convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars, std::map< Node, Node >& visited );
   /** collect constants */
   void collectConstants( Node n, std::map< TypeNode, std::vector< Node > >& consts, std::map< Node, bool >& visited );
@@ -86,6 +87,13 @@ private:
                             std::vector< Node >& candidate_values, std::vector< Node >& lems );
   /** get candidadate */
   Node getCandidate( unsigned int i ) { return d_candidates[i]; }
+  /** record instantiation */
+  void recordInstantiation( std::vector< Node >& vs ) {
+    Assert( vs.size()==d_candidates.size() );
+    for( unsigned i=0; i<vs.size(); i++ ){
+      d_cinfo[d_candidates[i]].d_inst.push_back( vs[i] );
+    }
+  }
 public:
   CegConjecture( QuantifiersEngine * qe, context::Context* c );
   ~CegConjecture();
@@ -97,29 +105,32 @@ public:
   Node getNextDecisionRequest( unsigned& priority );
   /** increment the number of times we have successfully done candidate refinement */
   void incrementRefineCount() { d_refine_count++; }
-  /** whether the conjecture is waiting for a call to doRefine */
+  /** whether the conjecture is waiting for a call to doRefine below */
   bool needsRefinement();
   /** get the list of candidates */
   void getCandidateList( std::vector< Node >& clist, bool forceOrig = false );
-  /** record instantiation */
-  void recordInstantiation( std::vector< Node >& vs ) {
-    Assert( vs.size()==d_candidates.size() );
-    for( unsigned i=0; i<vs.size(); i++ ){
-      d_cinfo[d_candidates[i]].d_inst.push_back( vs[i] );
-    }
-  }
 public:
-  /** do single invocation check */
+  /** do single invocation check 
+  * This updates Gamma for an iteration of step 2 of Figure 1 of Reynolds et al CAV 2015.
+  */
   void doSingleInvCheck(std::vector< Node >& lems);
-  /** do syntax-guided enumerative check */
+  /** do syntax-guided enumerative check 
+  * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
+  */
   void doCheck(std::vector< Node >& lems, std::vector< Node >& model_values);
-  /** do refinement */
+  /** do basic check 
+  * This is called for non-SyGuS synthesis conjectures
+  */
+  void doBasicCheck(std::vector< Node >& lems);
+  /** do refinement 
+  * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
+  */
   void doRefine(std::vector< Node >& lems);
 public:
   /** print out debug information about this conjecture */
   void debugPrint( const char * c );
-  /** print the synthesis solution
-   * singleInvocation is whether to print the solution from single invocation techniques.
+  /** Print the synthesis solution
+   * singleInvocation is whether the solution was found by single invocation techniques.
    */
   void printSynthSolution( std::ostream& out, bool singleInvocation );
 public:

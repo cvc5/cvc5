@@ -203,16 +203,10 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       } 
     }else{
       Assert( aq==q );
-      std::vector< Node > model_terms;
-      std::vector< Node > clist;
-      conj->getCandidateList( clist, true );
-      Assert( clist.size()==q[0].getNumChildren() );
-      conj->getModelValues( clist, model_terms );
-      if( d_quantEngine->addInstantiation( q, model_terms ) ){
-        conj->recordInstantiation( model_terms );
-      }else{
-        Assert( false );
-      }
+      Trace("cegqi-engine") << "  *** Check candidate phase (non-SyGuS)." << std::endl;
+      std::vector< Node > lems;
+      conj->doBasicCheck(lems);
+      Assert(lems.empty());
     }
   }else{
     Trace("cegqi-engine") << "  *** Refine candidate phase..." << std::endl;
