@@ -97,23 +97,25 @@ public:
   Node getNextDecisionRequest( unsigned& priority );
   /** increment the number of times we have successfully done candidate refinement */
   void incrementRefineCount() { d_refine_count++; }
-  
+  /** whether the conjecture is waiting for a call to doRefine */
   bool needsRefinement();
   /** get the list of candidates */
   void getCandidateList( std::vector< Node >& clist, bool forceOrig = false );
-  /** do single invocation check */
-  void doCegConjectureSingleInvCheck(std::vector< Node >& lems);
-  /** do syntax-guided enumerative check */
-  void doCegConjectureCheck(std::vector< Node >& lems, std::vector< Node >& model_values);
-  /** do refinement */
-  void doCegConjectureRefine(std::vector< Node >& lems);
-
+  /** record instantiation */
   void recordInstantiation( std::vector< Node >& vs ) {
     Assert( vs.size()==d_candidates.size() );
     for( unsigned i=0; i<vs.size(); i++ ){
       d_cinfo[d_candidates[i]].d_inst.push_back( vs[i] );
     }
   }
+public:
+  /** do single invocation check */
+  void doSingleInvCheck(std::vector< Node >& lems);
+  /** do syntax-guided enumerative check */
+  void doCheck(std::vector< Node >& lems, std::vector< Node >& model_values);
+  /** do refinement */
+  void doRefine(std::vector< Node >& lems);
+public:
   /** print out debug information about this conjecture */
   void debugPrint( const char * c );
   /** print the synthesis solution

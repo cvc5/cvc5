@@ -331,7 +331,7 @@ bool CegConjecture::needsCheck( std::vector< Node >& lem ) {
 }
 
 
-void CegConjecture::doCegConjectureSingleInvCheck(std::vector< Node >& lems) {
+void CegConjecture::doSingleInvCheck(std::vector< Node >& lems) {
   if( d_ceg_si!=NULL ){
     d_ceg_si->check(lems);
   }
@@ -363,7 +363,7 @@ bool CegConjecture::constructCandidates( std::vector< Node >& clist, std::vector
   return true;
 }
 
-void CegConjecture::doCegConjectureCheck(std::vector< Node >& lems, std::vector< Node >& model_values) {
+void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& model_values) {
   std::vector< Node > clist;
   getCandidateList( clist );
   std::vector< Node > c_model_values;
@@ -444,12 +444,12 @@ void CegConjecture::doCegConjectureCheck(std::vector< Node >& lems, std::vector<
   }
 }
         
-void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
+void CegConjecture::doRefine( std::vector< Node >& lems ){
   Assert( lems.empty() );
   Assert( d_ce_sk.size()==1 );
 
   //first, make skolem substitution
-  Trace("cegqi-refine") << "doCegConjectureRefine : construct skolem substitution..." << std::endl;
+  Trace("cegqi-refine") << "doRefine : construct skolem substitution..." << std::endl;
   std::vector< Node > sk_vars;
   std::vector< Node > sk_subs;
   //collect the substitution over all disjuncts
@@ -484,7 +484,7 @@ void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
   std::vector< Node > lem_c;
   Assert( d_ce_sk[0].size()==d_base_disj.size() );
   std::vector< Node > inst_cond_c;
-  Trace("cegqi-refine") << "doCegConjectureRefine : Construct refinement lemma..." << std::endl;
+  Trace("cegqi-refine") << "doRefine : Construct refinement lemma..." << std::endl;
   for( unsigned k=0; k<d_ce_sk[0].size(); k++ ){
     Node ce_q = d_ce_sk[0][k];
     Trace("cegqi-refine-debug") << "  For counterexample point, disjunct " << k << " : " << ce_q << " " << d_base_disj[k] << std::endl;
@@ -516,7 +516,7 @@ void CegConjecture::doCegConjectureRefine( std::vector< Node >& lems ){
   
   Node base_lem = lem_c.size()==1 ? lem_c[0] : NodeManager::currentNM()->mkNode( AND, lem_c );
   
-  Trace("cegqi-refine") << "doCegConjectureRefine : construct and finalize lemmas..." << std::endl;
+  Trace("cegqi-refine") << "doRefine : construct and finalize lemmas..." << std::endl;
   
   Node lem = base_lem;
   
@@ -610,7 +610,7 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
             if( !value ){
               Trace("cegqi-debug") << "getNextDecision : we have a new solution since stream guard was propagated false: " << curr_stream_guard << std::endl;
               // we have generated a solution, print it
-              // get current used the output stream
+              // get the current output stream
               // this should coincide with wherever --dump-synth-solution goes
               Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
               printSynthSolution( *nodeManagerOptions.getOut(), false );
@@ -620,7 +620,27 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
               // We will not refine the current candidate solution since it is a solution
               // thus, we clear information regarding the current refinement
               d_ce_sk.clear();
-              // However, we need to exclude the current solution.
+              // However, we need to exclude the current solution using an explicit refinement 
+              // so that we proceed to the next solution. 
+              std::vector< Node > clist;
+              getCandidateList( clist );
+              Trace("cegqi-debug") << "getNextDecision : solution was : " << std::endl;
+              std::vector< Node > exp;
+              for( unsigned i=0; i<clist.size(); i++ ){
+                Node cprog = clist[i];
+                Node sol = cprog;
+                if( !d_cinfo[cprog].d_inst.empty() ){
+                  sol = d_cinfo[cprog].d_inst.back();
+                  // add to explanation of exclusion
+                  d_qe->getTermDatabaseSygus()->getExplanationForConstantEquality( cprog, sol, exp );
+                }
+                Trace("cegqi-debug") << "  " << cprog << " -> " << sol << std::endl;
+              }
+              Assert( !exp.empty() );
+              Node exc_lem = exp.size()==1 ? exp[0] : NodeManager::currentNM()->mkNode( kind::AND, exp );
+              exc_lem = exc_lem.negate();
+              Trace("cegqi-lemma") << "Cegqi::Lemma : stream exclude current solution : " << exc_lem << std::endl;
+              d_qe->getOutputChannel().lemma( exc_lem );
             }
           }
         }
@@ -643,7 +663,6 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
   }
   return Node::null();
 }
-
 
 void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation ) {
   Trace("cegqi-debug") << "Printing synth solution..." << std::endl;

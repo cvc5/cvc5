@@ -109,7 +109,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
     Trace("cegqi-engine-debug") << "Do conjecture check..." << std::endl;
     if( conj->isSyntaxGuided() ){
       std::vector< Node > clems;
-      conj->doCegConjectureSingleInvCheck( clems );
+      conj->doSingleInvCheck( clems );
       if( !clems.empty() ){
         d_last_inst_si = true;
         for( unsigned j=0; j<clems.size(); j++ ){
@@ -174,7 +174,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       
       Trace("cegqi-engine") << "  *** Check candidate phase..." << std::endl;
       std::vector< Node > cclems;
-      conj->doCegConjectureCheck( cclems, model_values );
+      conj->doCheck( cclems, model_values );
       bool addedLemma = false;
       for( unsigned i=0; i<cclems.size(); i++ ){
         Node lem = cclems[i];
@@ -217,7 +217,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
   }else{
     Trace("cegqi-engine") << "  *** Refine candidate phase..." << std::endl;
     std::vector< Node > rlems;
-    conj->doCegConjectureRefine( rlems );
+    conj->doRefine( rlems );
     bool addedLemma = false;
     for( unsigned i=0; i<rlems.size(); i++ ){
       Node lem = rlems[i];
