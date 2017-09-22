@@ -30,7 +30,12 @@ namespace quantifiers {
 /** a synthesis conjecture */
 class CegConjecture {
 private:
+  /** reference to quantifier engine */
   QuantifiersEngine * d_qe;
+  /** single invocation utility */
+  CegConjectureSingleInv * d_ceg_si;
+  /** program by examples utility */
+  CegConjecturePbe * d_ceg_pbe;
   /** list of constants for quantified formula */
   std::vector< Node > d_candidates;
   /** base instantiation */
@@ -59,11 +64,28 @@ private:
   std::map< Node, CandidateInfo > d_cinfo;  
   /** refine count */
   unsigned d_refine_count;
+  /** Whether we are syntax-guided (e.g. was the input in SyGuS format).
+   * This includes SyGuS inputs where no syntactic restrictions are provided.
+   */
+  bool d_syntax_guided;
+private: // for sygusStream
+  /** the streaming guards for sygus streaming mode */
+  std::vector< Node > d_stream_guards;
+  /** get current stream guard */
+  Node getCurrentStreamGuard() const;
+private: //non-syntax guided (deprecated)
+  /** the guard for non-syntax-guided synthesis */
+  Node d_nsg_guard;
 private:
   /** get embedding */
   Node convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars, std::map< Node, Node >& visited );
   /** collect constants */
   void collectConstants( Node n, std::map< TypeNode, std::vector< Node > >& consts, std::map< Node, bool >& visited );
+  /** construct candidates */
+  bool constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, 
+                            std::vector< Node >& candidate_values, std::vector< Node >& lems );
+  /** get candidadate */
+  Node getCandidate( unsigned int i ) { return d_candidates[i]; }
 public:
   CegConjecture( QuantifiersEngine * qe, context::Context* c );
   ~CegConjecture();
@@ -77,23 +99,14 @@ public:
   void incrementRefineCount() { d_refine_count++; }
   
   bool needsRefinement();
+  /** get the list of candidates */
   void getCandidateList( std::vector< Node >& clist, bool forceOrig = false );
-  bool constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, 
-                            std::vector< Node >& candidate_values, std::vector< Node >& lems );
-
+  /** do single invocation check */
   void doCegConjectureSingleInvCheck(std::vector< Node >& lems);
+  /** do syntax-guided enumerative check */
   void doCegConjectureCheck(std::vector< Node >& lems, std::vector< Node >& model_values);
+  /** do refinement */
   void doCegConjectureRefine(std::vector< Node >& lems);
-
-  Node getSingleInvocationSolution(unsigned sol_index, TypeNode stn,
-                                   int& reconstructed, bool rconsSygus=true){
-    return d_ceg_si->getSolution(sol_index, stn, reconstructed, rconsSygus);
-  }
-
-  Node reconstructToSyntaxSingleInvocation(
-      Node s, TypeNode stn, int& reconstructed, bool rconsSygus = true ) {
-    return d_ceg_si->reconstructToSyntax(s, stn, reconstructed, rconsSygus);
-  }
 
   void recordInstantiation( std::vector< Node >& vs ) {
     Assert( vs.size()==d_candidates.size() );
@@ -101,22 +114,12 @@ public:
       d_cinfo[d_candidates[i]].d_inst.push_back( vs[i] );
     }
   }
-  Node getCandidate( unsigned int i ) { return d_candidates[i]; }
   /** print out debug information about this conjecture */
   void debugPrint( const char * c );
   /** print the synthesis solution
    * singleInvocation is whether to print the solution from single invocation techniques.
    */
   void printSynthSolution( std::ostream& out, bool singleInvocation );
-private:
-  /** single invocation utility */
-  CegConjectureSingleInv * d_ceg_si;
-  /** program by examples utility */
-  CegConjecturePbe * d_ceg_pbe;
-private: //non-syntax guided (deprecated)
-  /** guard */
-  bool d_syntax_guided;
-  Node d_nsg_guard;
 public:
   /** get guard */
   Node getGuard();
@@ -126,8 +129,6 @@ public:
   bool isSyntaxGuided() const { return d_syntax_guided; }
   /** is single invocation */
   bool isSingleInvocation() const;
-  /** is single invocation */
-  bool isFullySingleInvocation();
   /** needs check */
   bool needsCheck( std::vector< Node >& lem );
   /** preregister conjecture */

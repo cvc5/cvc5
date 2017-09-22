@@ -326,7 +326,6 @@ bool CegConjecture::needsCheck( std::vector< Node >& lem ) {
     }else{
       Assert( false );
     }
-
     return true;
   }
 }
@@ -433,6 +432,12 @@ void CegConjecture::doCegConjectureCheck(std::vector< Node >& lems, std::vector<
       Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
       std::map< Node, Node > visited_n;
       lem = d_qe->getTermDatabaseSygus()->getEagerUnfold( lem, visited_n );
+    }
+    if( options::sygusStream() ){
+      // if we are in streaming mode, we guard with the current stream guard
+      Node curr_stream_guard = getCurrentStreamGuard();
+      Assert( !curr_stream_guard.isNull() );
+      lem = NodeManager::currentNM()->mkNode( kind::OR, curr_stream_guard.negate(), lem );
     }
     lems.push_back( lem );
     recordInstantiation( c_model_values );
@@ -569,20 +574,72 @@ void CegConjecture::debugPrint( const char * c ) {
   }
 }
 
+Node CegConjecture::getCurrentStreamGuard() const {
+  if( d_stream_guards.empty() ){
+    return Node::null();
+  }else{
+    return d_stream_guards[d_stream_guards.size()-1];
+  }
+}
+
 Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
   // first, must try the guard
   // which denotes "this conjecture is feasible"
-  Node g = getGuard();
+  Node feasible_guard = getGuard();
   bool value;
-  if( !d_qe->getValuation().hasSatValue( g, value ) ) {
+  if( !d_qe->getValuation().hasSatValue( feasible_guard, value ) ) {
     priority = 0;
-    return g;
-  }
-  if( options::sygusStream() ){
-    // if we are in sygus streaming mode, then get the "next guard" 
-    // which denotes "we have not generated the next solution to the conjecture"
-    // TODO
-    
+    return feasible_guard;
+  }else{
+    if( value ){  
+      // the conjecture is feasible
+      if( options::sygusStream() ){
+        Assert( !isSingleInvocation() );
+        // if we are in sygus streaming mode, then get the "next guard" 
+        // which denotes "we have not yet generated the next solution to the conjecture"
+        Node curr_stream_guard = getCurrentStreamGuard();
+        bool needs_new_stream_guard = false;
+        if( curr_stream_guard.isNull() ){
+          needs_new_stream_guard = true;
+        }else{
+          // check the polarity of the guard
+          if( !d_qe->getValuation().hasSatValue( curr_stream_guard, value ) ) {
+            priority = 0;
+            return curr_stream_guard;
+          }else{
+            if( !value ){
+              Trace("cegqi-debug") << "getNextDecision : we have a new solution since stream guard was propagated false: " << curr_stream_guard << std::endl;
+              // we have generated a solution, print it
+              // get current used the output stream
+              // this should coincide with wherever --dump-synth-solution goes
+              Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+              printSynthSolution( *nodeManagerOptions.getOut(), false );
+              // need to make the next stream guard
+              needs_new_stream_guard = true;
+              
+              // We will not refine the current candidate solution since it is a solution
+              // thus, we clear information regarding the current refinement
+              d_ce_sk.clear();
+              // However, we need to exclude the current solution.
+            }
+          }
+        }
+        if( needs_new_stream_guard ){
+          // generate a new stream guard
+          curr_stream_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G_Stream", NodeManager::currentNM()->booleanType() ) );
+          curr_stream_guard = d_qe->getValuation().ensureLiteral( curr_stream_guard );
+          AlwaysAssert( !curr_stream_guard.isNull() );
+          d_qe->getOutputChannel().requirePhase( curr_stream_guard, true );
+          d_stream_guards.push_back( curr_stream_guard );
+          Trace("cegqi-debug") << "getNextDecision : allocate new stream guard : " << curr_stream_guard << std::endl;
+          // return it as a decision
+          priority = 0;
+          return curr_stream_guard;
+        }
+      }
+    }else{
+      Trace("cegqi-debug") << "getNextDecision : conjecture is infeasible." << std::endl;
+    } 
   }
   return Node::null();
 }
@@ -606,7 +663,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
     int status = -1;
     if( singleInvocation ){
       Assert( d_ceg_si != NULL );
-      sol = getSingleInvocationSolution( i, tn, status );
+      sol = d_ceg_si->getSolution( i, tn, status, true );
       if( !sol.isNull() ){
         sol = sol.getKind()==LAMBDA ? sol[1] : sol;
       }
