@@ -501,7 +501,7 @@ bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf,
           //if using cbqiMidpoint, only add the instance based on one bound if the bound is non-strict
           if( !options::cbqiMidpoint() || d_type.isInteger() || d_mbp_vts_coeff[rr][1][best].isNull() ){
             Node val = d_mbp_bounds[rr][best];
-            val = getModelBasedProjectionValue( ci, pv, val, rr==0, d_mbp_coeff[rr][best], pv_value, t_values[rr][best], sf.d_theta,
+            val = getModelBasedProjectionValue( ci, pv, val, rr==0, d_mbp_coeff[rr][best], pv_value, t_values[rr][best], sf.getTheta(),
                                                 d_mbp_vts_coeff[rr][0][best], d_mbp_vts_coeff[rr][1][best] );
             if( !val.isNull() ){
               TermProperties pv_prop_bound;
@@ -519,7 +519,8 @@ bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf,
     if( !use_inf && d_mbp_bounds[0].empty() && d_mbp_bounds[1].empty() ){
       Node val = zero;
       TermProperties pv_prop_zero;
-      val = getModelBasedProjectionValue( ci, pv, val, true, pv_prop_zero.d_coeff, pv_value, zero, sf.d_theta, Node::null(), Node::null() );
+      Node theta = sf.getTheta();
+      val = getModelBasedProjectionValue( ci, pv, val, true, pv_prop_zero.d_coeff, pv_value, zero, sf.getTheta(), Node::null(), Node::null() );
       if( !val.isNull() ){
         if( ci->doAddInstantiationInc( pv, val, pv_prop_zero, sf, effort ) ){
           return true;
@@ -536,7 +537,7 @@ bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf,
           bothBounds = false;
         }else{
           vals[rr] = d_mbp_bounds[rr][best];
-          vals[rr] = getModelBasedProjectionValue( ci, pv, vals[rr], rr==0, Node::null(), pv_value, t_values[rr][best], sf.d_theta,
+          vals[rr] = getModelBasedProjectionValue( ci, pv, vals[rr], rr==0, Node::null(), pv_value, t_values[rr][best], sf.getTheta(),
                                                    d_mbp_vts_coeff[rr][0][best], Node::null() );
         }
         Trace("cbqi-bound") << "Bound : " << vals[rr] << std::endl;
@@ -578,7 +579,7 @@ bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf,
         int rr = upper_first ? (1-r) : r;
         for( unsigned j=0; j<d_mbp_bounds[rr].size(); j++ ){
           if( (int)j!=best_used[rr] && ( !options::cbqiMidpoint() || d_mbp_vts_coeff[rr][1][j].isNull() ) ){
-            Node val = getModelBasedProjectionValue( ci, pv, d_mbp_bounds[rr][j], rr==0, d_mbp_coeff[rr][j], pv_value, t_values[rr][j], sf.d_theta,
+            Node val = getModelBasedProjectionValue( ci, pv, d_mbp_bounds[rr][j], rr==0, d_mbp_coeff[rr][j], pv_value, t_values[rr][j], sf.getTheta(),
                                                      d_mbp_vts_coeff[rr][0][j], d_mbp_vts_coeff[rr][1][j] );
             if( !val.isNull() ){
               TermProperties pv_prop_nopt_bound;

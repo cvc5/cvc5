@@ -52,11 +52,11 @@ public:
   Node d_coeff;
   // get cache node 
   // we consider terms + TermProperties that are unique up to their cache node (see doAddInstantiationInc)
-  Node getCacheNode() const { return d_coeff; }
+  virtual Node getCacheNode() const { return d_coeff; }
   // is non-basic 
-  bool isBasic() const { return d_coeff.isNull(); }
+  virtual bool isBasic() const { return d_coeff.isNull(); }
   // get modified term 
-  Node getModifiedTerm( Node pv ) const {
+  virtual Node getModifiedTerm( Node pv ) const {
     if( !d_coeff.isNull() ){
       return NodeManager::currentNM()->mkNode( kind::MULT, d_coeff, pv );
     }else{
@@ -64,7 +64,7 @@ public:
     }
   }
   // combine property 
-  void combineProperty( TermProperties& p ){
+  virtual void combineProperty( TermProperties& p ){
     if( !p.d_coeff.isNull() ){
       if( d_coeff.isNull() ){
         d_coeff = p.d_coeff;
@@ -75,7 +75,9 @@ public:
   }
 };
 
-//solved form, involves substitution with coefficients
+//Solved form
+//  This specifies a substitution:
+//  { d_props[i].getModifiedTerm(d_vars[i]) -> d_subs[i] | i = 0...|d_vars| }
 class SolvedForm {
 public:
   // list of variables
@@ -85,32 +87,46 @@ public:
   // properties for each variable
   std::vector< TermProperties > d_props;
   // the variables that have non-basic information regarding how they are substituted
-  //   an example is for linear arithmetic, we store "substitution with coefficients" such that 
-  //   ( c * v ) -> s, where c is a positive integer constant.
+  //   an example is for linear arithmetic, we store "substitution with coefficients".
   std::vector< Node > d_non_basic;
-  // the current theta value (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
-  Node d_theta;
-  void copy( SolvedForm& sf ){
-    d_vars.insert( d_vars.end(), sf.d_vars.begin(), sf.d_vars.end() );
-    d_subs.insert( d_subs.end(), sf.d_subs.begin(), sf.d_subs.end() );
-    d_props.insert( d_props.end(), sf.d_props.begin(), sf.d_props.end() );
-    d_non_basic.insert( d_non_basic.end(), sf.d_non_basic.begin(), sf.d_non_basic.end() );
-    d_theta = sf.d_theta;
-  }
+  // push the substitution pv_prop.getModifiedTerm(pv) -> n
   void push_back( Node pv, Node n, TermProperties& pv_prop ){
     d_vars.push_back( pv );
     d_subs.push_back( n );
     d_props.push_back( pv_prop );
     if( !pv_prop.isBasic() ){
       d_non_basic.push_back( pv );
+      // update theta value
+      Node new_theta = getTheta();
+      if( new_theta.isNull() ){
+        new_theta = pv_prop.d_coeff;
+      }else{
+        new_theta = NodeManager::currentNM()->mkNode( kind::MULT, new_theta, pv_prop.d_coeff );
+        new_theta = Rewriter::rewrite( new_theta );
+      }
+      d_theta.push_back( new_theta );
     }
   }
+  // pop the substitution pv_prop.getModifiedTerm(pv) -> n
   void pop_back( Node pv, Node n, TermProperties& pv_prop ){
     d_vars.pop_back();
     d_subs.pop_back();
     d_props.pop_back();
     if( !pv_prop.isBasic() ){
       d_non_basic.pop_back();
+      // update theta value
+      d_theta.pop_back();
+    }
+  }
+public:
+  // theta values (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
+  std::vector< Node > d_theta;
+  // get the current value for theta (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
+  Node getTheta() {
+    if( d_theta.empty() ){
+      return Node::null();
+    }else{
+      return d_theta[d_theta.size()-1];
     }
   }
 };
@@ -269,8 +285,9 @@ public:
   //do we allow the model value as instantiation for pv
   virtual bool allowModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return d_closed_enum_type; }
 
-  //do we need to postprocess the solved form? did we successfully postprocess
+  //do we need to postprocess the solved form for pv?
   virtual bool needsPostProcessInstantiation( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
+  // propocess the solved form for pv, returns true if we successfully postprocessed
   virtual bool postProcessInstantiation( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
 
   /** Identify this module (for debugging) */

@@ -123,8 +123,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
     }
     if( needsPostprocess ){
       //must make copy so that backtracking reverts sf
-      SolvedForm sf_tmp;
-      sf_tmp.copy( sf );
+      SolvedForm sf_tmp = sf;
       bool postProcessSuccess = true;
       for( std::map< Instantiator *, Node >::iterator itp = pp_inst.begin(); itp != pp_inst.end(); ++itp ){
         if( !itp->first->postProcessInstantiation( this, sf_tmp, itp->second, effort ) ){
@@ -427,21 +426,9 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
     if( success ){
       Trace("cbqi-inst-debug2") << "Adding to vectors..." << std::endl;
       sf.push_back( pv, n, pv_prop );
-      Node prev_theta = sf.d_theta;
-      Node new_theta = sf.d_theta;
-      if( !pv_prop.isBasic() ){
-        if( new_theta.isNull() ){
-          new_theta = pv_prop.d_coeff;
-        }else{
-          new_theta = NodeManager::currentNM()->mkNode( MULT, new_theta, pv_prop.d_coeff );
-          new_theta = Rewriter::rewrite( new_theta );
-        }
-      }
-      sf.d_theta = new_theta;
       Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
       unsigned i = d_curr_index[pv];
       success = doAddInstantiation( sf, d_stack_vars.empty() ? i+1 : i, effort );
-      sf.d_theta = prev_theta;
       if( !success ){
         Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
         sf.pop_back( pv, n, pv_prop );
