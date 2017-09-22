@@ -45,8 +45,10 @@ class CVC4_PUBLIC String {
   }
 
   String() = default;
-  explicit String(const std::string& s) : d_str(toInternal(s)) {}
-  explicit String(const char* s) : d_str(toInternal(std::string(s))) {}
+  explicit String(const std::string& s, bool useEscSequences = true) :
+   d_str(toInternal(s, useEscSequences)) {}
+  explicit String(const char* s, bool useEscSequences = true) : 
+    d_str(toInternal(std::string(s), useEscSequences)) {}
   explicit String(const unsigned char c)
       : d_str({convertCharToUnsignedInt(c)}) {}
   explicit String(const std::vector<unsigned>& s) : d_str(s) {}
@@ -107,7 +109,7 @@ class CVC4_PUBLIC String {
   // guarded
   static unsigned char hexToDec(unsigned char c);
 
-  static std::vector<unsigned> toInternal(const std::string& s);
+  static std::vector<unsigned> toInternal(const std::string& s, bool useEscSequences = true);
   unsigned char getUnsignedCharAt(size_t pos) const;
 
   /**

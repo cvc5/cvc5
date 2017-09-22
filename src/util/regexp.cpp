@@ -84,11 +84,11 @@ bool String::rstrncmp(const String &y, const std::size_t np) const {
   return true;
 }
 
-std::vector<unsigned> String::toInternal(const std::string &s) {
+std::vector<unsigned> String::toInternal(const std::string &s, bool useEscSequences) {
   std::vector<unsigned> str;
   unsigned i = 0;
   while (i < s.size()) {
-    if (s[i] == '\\') {
+    if (s[i] == '\\' && useEscSequences) {
       i++;
       if (i < s.size()) {
         switch (s[i]) {
