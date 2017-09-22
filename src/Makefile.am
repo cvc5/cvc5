@@ -330,6 +330,8 @@ libcvc4_la_SOURCES = \
 	theory/fp/theory_fp_rewriter.h \
 	theory/fp/theory_fp_type_rules.h \
 	theory/fp/type_enumerator.h \
+	theory/fp/fp_converter.h \
+	theory/fp/fp_converter.cpp \
 	theory/idl/idl_assertion.cpp \
 	theory/idl/idl_assertion.h \
 	theory/idl/idl_assertion_db.cpp \
