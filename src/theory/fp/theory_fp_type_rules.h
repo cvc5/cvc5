@@ -17,6 +17,9 @@
 
 #include "cvc4_private.h"
 
+// This is only needed for checking that components are only applied to leaves.
+#include "theory/theory.h"
+
 #ifndef __CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H
 #define __CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H
 
@@ -612,6 +615,167 @@ class FloatingPointToRealTotalTypeRule {
   }
 };
 
+class FloatingPointComponentBit
+{
+ public:
+  inline static TypeNode computeType(
+      NodeManager* nodeManager,
+      TNode n,
+      bool check) throw(TypeCheckingExceptionPrivate, AssertionException)
+  {
+    TRACE("FloatingPointComponentBit");
+
+    if (check)
+    {
+      TypeNode operandType = n[0].getType(check);
+
+      if (!operandType.isFloatingPoint())
+      {
+        throw TypeCheckingExceptionPrivate(n,
+                                           "floating-point bit component "
+                                           "applied to a non floating-point "
+                                           "sort");
+      }
+      if (!(Theory::isLeafOf(n[0], THEORY_FP)
+            || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_REAL))
+      {
+        throw TypeCheckingExceptionPrivate(n,
+                                           "floating-point bit component "
+                                           "applied to a non leaf / to_fp leaf "
+                                           "node");
+      }
+    }
+
+    return nodeManager->mkBitVectorType(1);
+  }
+};
+
+class FloatingPointComponentExponent
+{
+ public:
+  inline static TypeNode computeType(
+      NodeManager* nodeManager,
+      TNode n,
+      bool check) throw(TypeCheckingExceptionPrivate, AssertionException)
+  {
+    TRACE("FloatingPointComponentExponent");
+
+    TypeNode operandType = n[0].getType(check);
+
+    if (check)
+    {
+      if (!operandType.isFloatingPoint())
+      {
+        throw TypeCheckingExceptionPrivate(n,
+                                           "floating-point exponent component "
+                                           "applied to a non floating-point "
+                                           "sort");
+      }
+      if (!(Theory::isLeafOf(n[0], THEORY_FP)
+            || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_REAL))
+      {
+        throw TypeCheckingExceptionPrivate(n,
+                                           "floating-point exponent component "
+                                           "applied to a non leaf / to_fp "
+                                           "node");
+      }
+    }
+
+#ifdef CVC4_USE_SYMFPU
+    /* Need to create some symfpu objects as the size of bit-vector
+     * that is needed for this component is dependent on the encoding
+     * used (i.e. whether subnormals are forcibly normalised or not).
+     * Here we use types from floatingpoint.h which are the literal
+     * back-end but it should't make a difference. */
+    FloatingPointSize fps = operandType.getConst<FloatingPointSize>();
+    symfpuLiteral::fpt format(fps);  // The symfpu interface to type info
+    unsigned bw = FloatingPointLiteral::exponentWidth(format);
+#else
+    unsigned bw = 2;
+#endif
+
+    return nodeManager->mkBitVectorType(bw);
+  }
+};
+
+class FloatingPointComponentSignificand
+{
+ public:
+  inline static TypeNode computeType(
+      NodeManager* nodeManager,
+      TNode n,
+      bool check) throw(TypeCheckingExceptionPrivate, AssertionException)
+  {
+    TRACE("FloatingPointComponentSignificand");
+
+    TypeNode operandType = n[0].getType(check);
+
+    if (check)
+    {
+      if (!operandType.isFloatingPoint())
+      {
+        throw TypeCheckingExceptionPrivate(n,
+                                           "floating-point significand "
+                                           "component applied to a non "
+                                           "floating-point sort");
+      }
+      if (!(Theory::isLeafOf(n[0], THEORY_FP)
+            || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_REAL))
+      {
+        throw TypeCheckingExceptionPrivate(n,
+                                           "floating-point significand "
+                                           "component applied to a non leaf / "
+                                           "to_fp node");
+      }
+    }
+
+#ifdef CVC4_USE_SYMFPU
+    /* As before we need to use some of sympfu. */
+    FloatingPointSize fps = operandType.getConst<FloatingPointSize>();
+    symfpuLiteral::fpt format(fps);
+    unsigned bw = FloatingPointLiteral::significandWidth(format);
+#else
+    unsigned bw = 1;
+#endif
+
+    return nodeManager->mkBitVectorType(bw);
+  }
+};
+
+class RoundingModeBitBlast
+{
+ public:
+  inline static TypeNode computeType(
+      NodeManager* nodeManager,
+      TNode n,
+      bool check) throw(TypeCheckingExceptionPrivate, AssertionException)
+  {
+    TRACE("RoundingModeBitBlast");
+
+    if (check)
+    {
+      TypeNode operandType = n[0].getType(check);
+
+      if (!operandType.isRoundingMode())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "rounding mode bit-blast applied to a non rounding-mode sort");
+      }
+      if (!Theory::isLeafOf(n[0], THEORY_FP))
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "rounding mode bit-blast applied to a non leaf node");
+      }
+    }
+
+#ifdef CVC4_USE_SYMFPU
+    /* Uses sympfu for the macro. */
+    return nodeManager->mkBitVectorType(SYMFPU_NUMBER_OF_ROUNDING_MODES);
+#else
+    return nodeManager->mkBitVectorType(5);
+#endif
+  }
+};
 
 class CardinalityComputer {
 public:
