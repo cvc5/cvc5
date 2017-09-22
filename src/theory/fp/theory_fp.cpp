@@ -157,6 +157,14 @@ TheoryFp::TheoryFp(context::Context *c, context::UserContext *u,
   d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_SBV_TOTAL);
   d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_REAL_TOTAL);
 
+  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_NAN);
+  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_INF);
+  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_ZERO);
+  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGN);
+  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_EXPONENT);
+  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
+  d_equalityEngine.addFunctionKind(kind::ROUNDINGMODE_BITBLAST);
+
 } /* TheoryFp::TheoryFp() */
 
 Node TheoryFp::minUF(Node node) {
