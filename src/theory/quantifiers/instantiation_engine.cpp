@@ -29,30 +29,27 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
-InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe ) :
-QuantifiersModule( qe ){
-  if( options::eMatching() ){
-    //these are the instantiation strategies for E-matching
-    //user-provided patterns
-    if( options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
-      d_isup = new InstStrategyUserPatterns( d_quantEngine );
-      d_instStrategies.push_back( d_isup );
+InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
+    : QuantifiersModule(qe),
+      d_instStrategies(),
+      d_isup(),
+      d_i_ag(),
+      d_quants() {
+  if (options::eMatching()) {
+    // these are the instantiation strategies for E-matching
+    // user-provided patterns
+    if (options::userPatternsQuant() != USER_PAT_MODE_IGNORE) {
+      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine));
+      d_instStrategies.push_back(d_isup.get());
     }
 
-    //auto-generated patterns
-    d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine );
-    d_instStrategies.push_back( d_i_ag );
-  }else{
-    d_isup = NULL;
-    d_i_ag = NULL;
+    // auto-generated patterns
+    d_i_ag.reset(new InstStrategyAutoGenTriggers(d_quantEngine));
+    d_instStrategies.push_back(d_i_ag.get());
   }
 }
 
-InstantiationEngine::~InstantiationEngine() {
-  delete d_i_ag;
-  delete d_isup;
-}
-
+InstantiationEngine::~InstantiationEngine() {}
 
 void InstantiationEngine::presolve() {
   for( unsigned i=0; i<d_instStrategies.size(); ++i ){
@@ -194,14 +191,14 @@ void InstantiationEngine::registerQuantifier( Node f ){
   }
 }
 
-void InstantiationEngine::addUserPattern( Node q, Node pat ){
-  if( d_isup ){
-    d_isup->addUserPattern( q, pat );
+void InstantiationEngine::addUserPattern(Node q, Node pat) {
+  if (d_isup) {
+    d_isup->addUserPattern(q, pat);
   }
 }
 
-void InstantiationEngine::addUserNoPattern( Node q, Node pat ){
-  if( d_i_ag ){
-    d_i_ag->addUserNoPattern( q, pat );
+void InstantiationEngine::addUserNoPattern(Node q, Node pat) {
+  if (d_i_ag) {
+    d_i_ag->addUserNoPattern(q, pat);
   }
 }
