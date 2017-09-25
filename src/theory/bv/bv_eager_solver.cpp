@@ -92,17 +92,16 @@ void EagerBitblastSolver::assertFormula(TNode formula) {
 
 bool EagerBitblastSolver::checkSat() {
   Assert(isInitialized());
-  std::vector<TNode> assertions;
-  for (TNode assertion : d_assertionSet) {
-    assertions.push_back(assertion);
-  }
-
-  if (assertions.empty()) {
+  if (d_assertionSet.empty()) {
     return true;
   }
 
   if (d_useAig) {
 #ifdef CVC4_USE_ABC
+    const std::vector<TNode> assertions = {d_assertionSet.begin(),
+                                           d_assertionSet.end()};
+    Assert(!assertions.empty());
+
     Node query = utils::mkAnd(assertions);
     return d_aigBitblaster->solve(query);
 #else
