@@ -21,6 +21,7 @@
 #include <ostream>
 #include <string>
 #include <utility>
+#include <unordered_map>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -51,10 +52,10 @@ class SymbolTable::Implementation {
         d_overloaded_symbols(new (true) CDHashSet<Expr, ExprHashFunction>(&d_context)) {}
 
   ~Implementation() {
-    d_overloaded_symbols->deleteSelf();
     d_exprMap->deleteSelf();
     d_typeMap->deleteSelf();
     d_functions->deleteSelf();
+    d_overloaded_symbols->deleteSelf();
   }
 
   void bind(const string& name, Expr obj, bool levelZero, bool doOverload) throw();
@@ -131,7 +132,7 @@ class SymbolTable::Implementation {
    * and a vector of expected argument types. Otherwise returns
    * null expression.
    */
-  Expr getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) const;
+  Expr getOverloadedFunctionForTypes(const std::string& name, const std::vector< Type >& argTypes) const;
 }; /* SymbolTable::Implementation */
 
 void SymbolTable::Implementation::bind(const string& name, Expr obj,
@@ -316,7 +317,7 @@ void SymbolTable::Implementation::bindWithOverloading(const string& name, Expr o
   CDHashMap<string, Expr>::const_iterator it = d_exprMap->find(name);
   if(it != d_exprMap->end()) {
     if((*it).second!=obj) {
-      if(d_overloaded_symbols->find((*it).second)==d_overloaded_symbols->end()) {
+      if(!isOverloadedFunction((*it).second)) {
         // mark previous as overloaded
         markOverloaded(name, (*it).second);
       }
@@ -327,7 +328,8 @@ void SymbolTable::Implementation::bindWithOverloading(const string& name, Expr o
 }
 
 void SymbolTable::Implementation::markOverloaded(const string& name, Expr obj) {
-  Trace("parser-overloading") << "Overloaded function : " << name << " with type " << obj.getType() << std::endl;
+  Trace("parser-overloading") << "Overloaded function : " << name;
+  Trace("parser-overloading") << " with type " << obj.getType() << std::endl;
   d_overloaded_symbols->insert(obj);
   // get the argument types
   Type t = obj.getType();
@@ -369,7 +371,8 @@ Expr SymbolTable::Implementation::getOverloadedConstantForType(const std::string
   return d_nullExpr;
 }
 
-Expr SymbolTable::Implementation::getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) const {
+Expr SymbolTable::Implementation::getOverloadedFunctionForTypes(const std::string& name, 
+                                                                const std::vector< Type >& argTypes) const {
   std::unordered_map< std::string, TypeArgTrie >::const_iterator it = d_overload_type_arg_trie.find(name);
   if(it!=d_overload_type_arg_trie.end()) {
     const TypeArgTrie * tat = &it->second;
@@ -400,15 +403,16 @@ Expr SymbolTable::Implementation::getOverloadedFunctionForTypes(const std::strin
   return d_nullExpr;
 }
 
-bool SymbolTable::isOverloadedFunction(Expr fun) {
+bool SymbolTable::isOverloadedFunction(Expr fun) const {
   return d_implementation->isOverloadedFunction(fun);
 }
 
-Expr SymbolTable::getOverloadedConstantForType(const std::string& name, Type t) {
+Expr SymbolTable::getOverloadedConstantForType(const std::string& name, Type t) const {
   return d_implementation->getOverloadedConstantForType(name, t);
 }
 
-Expr SymbolTable::getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) {
+Expr SymbolTable::getOverloadedFunctionForTypes(const std::string& name, 
+                                                const std::vector< Type >& argTypes) const {
   return d_implementation->getOverloadedFunctionForTypes(name, argTypes);
 }
 

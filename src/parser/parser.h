@@ -134,7 +134,7 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
  */
 class CVC4_PUBLIC Parser {
   friend class ParserBuilder;
-protected:
+private:
   /** The expression manager */
   ExprManager *d_exprManager;
   /** The resource manager associated with this expr manager */
