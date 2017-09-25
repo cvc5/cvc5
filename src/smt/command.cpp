@@ -1113,8 +1113,8 @@ std::string GetAssignmentCommand::getCommandName() const throw() {
 
 /* class GetModelCommand */
 
-GetModelCommand::GetModelCommand() throw() {
-}
+GetModelCommand::GetModelCommand() throw()
+    : d_result(nullptr), d_smtEngine(nullptr) {}
 
 void GetModelCommand::invoke(SmtEngine* smtEngine) {
   try {
@@ -1164,8 +1164,8 @@ std::string GetModelCommand::getCommandName() const throw() {
 
 /* class GetProofCommand */
 
-GetProofCommand::GetProofCommand() throw() {
-}
+GetProofCommand::GetProofCommand() throw()
+    : d_result(nullptr), d_smtEngine(nullptr) {}
 
 void GetProofCommand::invoke(SmtEngine* smtEngine) {
   try {
