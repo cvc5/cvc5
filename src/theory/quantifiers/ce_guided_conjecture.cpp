@@ -131,9 +131,11 @@ void CegConjecture::assign( Node q ) {
   Trace("cegqi") << "CegConjecture : assign : " << q << std::endl;
   d_quant = q;
 
+  Node simp_quant = q;
   //register with single invocation if applicable
   if( d_qe->getTermDatabase()->isQAttrSygus( d_quant ) ){
     d_ceg_si->initialize( d_quant );
+    simp_quant = d_ceg_si->getSimplifiedConjecture();
   }
 
   // convert to deep embedding and finalize single invocation here
@@ -151,8 +153,9 @@ void CegConjecture::assign( Node q ) {
   std::map< Node, Node > visited;
   std::map< Node, Node > synth_fun_vars;
   std::vector< Node > ebvl;
-  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-    Node v = q[0][i];
+  Node qbody_subs = simp_quant[1];
+  for( unsigned i=0; i<simp_quant[0].getNumChildren(); i++ ){
+    Node v = simp_quant[0][i];
     Node sf = v.getAttribute(SygusSynthFunAttribute());
     Assert( !sf.isNull() );
     Node sfvl = sf.getAttribute(SygusSynthFunVarListAttribute());
@@ -167,16 +170,40 @@ void CegConjecture::assign( Node q ) {
       // make the default grammar
       tn = d_qe->getTermDatabaseSygus()->mkSygusDefaultType( v.getType(), sfvl, ss.str(), extra_cons );
     }
-    // if there is a template for this argument, make a sygus type on top of it
     Node templ = d_ceg_si->getTemplate( sf );
     if( !templ.isNull() ){
-      Node templ_arg = d_ceg_si->getTemplateArg( sf );
+      TNode templ_arg = d_ceg_si->getTemplateArg( sf );
       Assert( !templ_arg.isNull() );
-      if( Trace.isOn("cegqi-debug") ){
         Trace("cegqi-debug") << "Template for " << sf << " is : " << templ << " with arg " << templ_arg << std::endl;
+      // if there is a template for this argument, make a sygus type on top of it
+      if( options::sygusTemplEmbedGrammar() ){
         Trace("cegqi-debug") << "  embed this template as a grammar..." << std::endl;
+        tn = d_qe->getTermDatabaseSygus()->mkSygusTemplateType( templ, templ_arg, tn, sfvl, ss.str() );
+      }else{
+        // otherwise, apply it as a preprocessing pass 
+        Trace("cegqi-debug") << "  apply this template as a substituion during preprocess..." << std::endl;
+        std::vector< Node > schildren;
+        std::vector< Node > largs;
+        for( unsigned j=0; j<sfvl.getNumChildren(); j++ ){
+          schildren.push_back( sfvl[j] );
+          largs.push_back( NodeManager::currentNM()->mkBoundVar( sfvl[j].getType() ) );
+        }
+        std::vector< Node > subsfn_children;
+        subsfn_children.push_back( sf );
+        subsfn_children.insert( subsfn_children.end(), schildren.begin(), schildren.end() );
+        Node subsfn = NodeManager::currentNM()->mkNode( kind::APPLY_UF, subsfn_children );
+        TNode subsf = subsfn;
+        Trace("cegqi-debug") << "  substitute arg : " << templ_arg << " -> " << subsf << std::endl;
+        templ = templ.substitute( templ_arg, subsf );
+        // substitute lambda arguments
+        templ = templ.substitute( schildren.begin(), schildren.end(), largs.begin(), largs.end() );
+        Node subsn = NodeManager::currentNM()->mkNode( kind::LAMBDA, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, largs ), templ );
+        TNode var = sf;
+        TNode subs = subsn;
+        Trace("cegqi-debug") << "  substitute : " << var << " -> " << subs << std::endl;
+        qbody_subs = qbody_subs.substitute( var, subs );
+        Trace("cegqi-debug") << "  body is now : " << qbody_subs << std::endl;
       }
-      tn = d_qe->getTermDatabaseSygus()->mkSygusTemplateType( templ, templ_arg, tn, sfvl, ss.str() );
     }
     d_qe->getTermDatabaseSygus()->registerSygusType( tn );
     // check grammar restrictions
@@ -201,7 +228,12 @@ void CegConjecture::assign( Node q ) {
     Trace("cegqi") << "...embedding synth fun : " << sf << " -> " << ev << std::endl;
   }
   qchildren.push_back( NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, ebvl ) );
-  qchildren.push_back( convertToEmbedding( q[1], synth_fun_vars, visited ) );
+  if( qbody_subs!=simp_quant[1] ){
+    Trace("cegqi") << "...rewriting : " << qbody_subs << std::endl;
+    qbody_subs = Rewriter::rewrite( qbody_subs );
+    Trace("cegqi") << "...got : " << qbody_subs << std::endl;
+  }
+  qchildren.push_back( convertToEmbedding( qbody_subs, synth_fun_vars, visited ) );
   if( q.getNumChildren()==3 ){
     qchildren.push_back( q[2] );
   }
@@ -280,7 +312,7 @@ void CegConjecture::assign( Node q ) {
       // negated base as a guarded lemma
       guarded_lemmas.push_back( d_base_inst.negate() );
     }
-  }else if( d_ceg_si->d_si_guard.isNull() ){
+  }else if( d_ceg_si->getGuard().isNull() ){
     std::vector< Node > lems;
     d_ceg_si->getInitialSingleInvLemma( lems );
     for( unsigned i=0; i<lems.size(); i++ ){
@@ -304,7 +336,7 @@ void CegConjecture::assign( Node q ) {
 }
 
 Node CegConjecture::getGuard() {
-  return !d_syntax_guided ? d_nsg_guard : d_ceg_si->d_si_guard;
+  return !d_syntax_guided ? d_nsg_guard : d_ceg_si->getGuard();
 }
 
 bool CegConjecture::isSingleInvocation() const {
@@ -680,6 +712,7 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
 
 void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation ) {
   Trace("cegqi-debug") << "Printing synth solution..." << std::endl;
+  Assert( d_quant[0].getNumChildren()==d_embed_quant[0].getNumChildren() );
   for( unsigned i=0; i<d_embed_quant[0].getNumChildren(); i++ ){
     Node prog = d_embed_quant[0][i];
     Trace("cegqi-debug") << "  print solution for " << prog << std::endl;
@@ -706,6 +739,36 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         // the solution is just the last instantiated term
         sol = d_cinfo[cprog].d_inst.back();
         status = 1;
+        
+        //check if there was a template
+        Node sf = d_quant[0][i].getAttribute(SygusSynthFunAttribute());
+        Node templ = d_ceg_si->getTemplate( sf );
+        if( !templ.isNull() ){
+          Trace("cegqi-inv-debug") << sf << " used template : " << templ << std::endl;
+          // if it was not embedded into the grammar
+          if( !options::sygusTemplEmbedGrammar() ){
+            TNode templa = d_ceg_si->getTemplateArg( sf );
+            // make the builtin version of the full solution
+            TermDbSygus* sygusDb = d_qe->getTermDatabase()->getTermDatabaseSygus();
+            sol = sygusDb->sygusToBuiltin( sol, sol.getType() );		
+            Trace("cegqi-inv") << "Builtin version of solution is : "
+                               << sol << ", type : " << sol.getType()
+                               << std::endl;
+            TNode tsol = sol;
+            sol = templ.substitute( templa, tsol );
+            Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
+            sol = Rewriter::rewrite( sol );
+            Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
+            // now, reconstruct to the syntax
+            sol = d_ceg_si->reconstructToSyntax(sol, tn, status, true);
+            sol = sol.getKind()==LAMBDA ? sol[1] : sol;
+            Trace("cegqi-inv-debug") << "Reconstructed to syntax : " << sol << std::endl;
+          }else{
+            Trace("cegqi-inv-debug") << "...was embedding into grammar." << std::endl;
+          }
+        }else{
+          Trace("cegqi-inv-debug") << sf << " did not used template" << std::endl;
+        }
       }else{
         Trace("cegqi-warn") << "WARNING : No recorded instantiations for syntax-guided solution!" << std::endl;
       }

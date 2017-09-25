@@ -164,11 +164,9 @@ class CegConjectureSingleInv {
   bool isEligibleForInstantiation( Node n );
   // add lemma
   bool addLemma( Node lem );
- public:
-  CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p );
-  ~CegConjectureSingleInv();
   // conjecture
   Node d_quant;
+  Node d_simp_quant;
   // are we single invocation?
   bool d_single_invocation;
   // single invocation portion of quantified formula
@@ -181,6 +179,15 @@ class CegConjectureSingleInv {
   std::map< Node, Node > d_templ;
   // the template argument for each function to synthesize (occurs in exactly one position of its template)
   std::map< Node, Node > d_templ_arg;
+  
+ public:
+  CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p );
+  ~CegConjectureSingleInv();
+
+  // get simplified conjecture
+  Node getSimplifiedConjecture() { return d_simp_quant; }
+  // get single invocation guard
+  Node getGuard() { return d_si_guard; }
  public:
   //get the single invocation lemma(s)
   void getInitialSingleInvLemma( std::vector< Node >& lems );
