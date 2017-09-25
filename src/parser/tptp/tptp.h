@@ -30,9 +30,6 @@
 #include "util/hash.h"
 
 namespace CVC4 {
-
-class SExpr;
-
 namespace parser {
 
 class Tptp : public Parser {
