@@ -22,8 +22,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/theory_model.h"
 #include "theory/bv/theory_bv.h"
+#include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace theory {
@@ -36,6 +36,21 @@ class AigBitblaster;
  * BitblastSolver
  */
 class EagerBitblastSolver {
+ public:
+  EagerBitblastSolver(theory::bv::TheoryBV* bv);
+  ~EagerBitblastSolver();
+  bool checkSat();
+  void assertFormula(TNode formula);
+  // purely for debugging purposes
+  bool hasAssertions(const std::vector<TNode>& formulas);
+
+  void turnOffAig();
+  bool isInitialized();
+  void initialize();
+  void collectModelInfo(theory::TheoryModel* m, bool fullModel);
+  void setProofLog(BitVectorProof* bvp);
+
+ private:
   typedef std::unordered_set<TNode, TNodeHashFunction> AssertionSet;
   AssertionSet d_assertionSet;
   /** Bitblasters */
@@ -43,24 +58,10 @@ class EagerBitblastSolver {
   AigBitblaster* d_aigBitblaster;
   bool d_useAig;
 
-  TheoryBV* d_bv; 
-  BitVectorProof * d_bvp;
+  TheoryBV* d_bv;
+  BitVectorProof* d_bvp;
+};  // class EagerBitblastSolver
 
-public:
-  EagerBitblastSolver(theory::bv::TheoryBV* bv);
-  ~EagerBitblastSolver();
-  bool checkSat();
-  void assertFormula(TNode formula);
-  // purely for debugging purposes
-  bool hasAssertions(const std::vector<TNode> &formulas);
-
-  void turnOffAig();
-  bool isInitialized();
-  void initialize();
-  void collectModelInfo(theory::TheoryModel* m, bool fullModel);
-  void setProofLog( BitVectorProof * bvp );
-};
-
-}
-}
-}
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
