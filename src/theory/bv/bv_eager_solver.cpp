@@ -9,43 +9,42 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Eager bit-blasting solver. 
+ ** \brief Eager bit-blasting solver.
  **
  ** Eager bit-blasting solver.
  **/
 
-#include "options/bv_options.h"
-#include "theory/bv/bitblaster_template.h"
-#include "proof/bitvector_proof.h"
 #include "theory/bv/bv_eager_solver.h"
+#include "options/bv_options.h"
+#include "proof/bitvector_proof.h"
+#include "theory/bv/bitblaster_template.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
+
+namespace CVC4 {
+namespace theory {
+namespace bv {
 
 EagerBitblastSolver::EagerBitblastSolver(TheoryBV* bv)
-  : d_assertionSet()
-  , d_bitblaster(NULL)
-  , d_aigBitblaster(NULL)
-  , d_useAig(options::bitvectorAig())
-  , d_bv(bv)
-{}
+    : d_assertionSet(),
+      d_bitblaster(nullptr),
+      d_aigBitblaster(nullptr),
+      d_useAig(options::bitvectorAig()),
+      d_bv(bv),
+      d_bvp(nullptr) {}
 
 EagerBitblastSolver::~EagerBitblastSolver() {
   if (d_useAig) {
-    Assert (d_bitblaster == NULL); 
+    Assert(d_bitblaster == nullptr);
     delete d_aigBitblaster;
-  }
-  else {
-    Assert (d_aigBitblaster == NULL); 
+  } else {
+    Assert(d_aigBitblaster == nullptr);
     delete d_bitblaster;
   }
 }
 
 void EagerBitblastSolver::turnOffAig() {
-  Assert (d_aigBitblaster == NULL &&
-          d_bitblaster == NULL);
+  Assert(d_aigBitblaster == nullptr && d_bitblaster == nullptr);
   d_useAig = false;
 }
 
@@ -59,81 +58,79 @@ void EagerBitblastSolver::initialize() {
 #endif
   } else {
     d_bitblaster = new EagerBitblaster(d_bv);
-    THEORY_PROOF(
-      if( d_bvp ){
-        d_bitblaster->setProofLog( d_bvp );
-        d_bvp->setBitblaster(d_bitblaster);
-      }
-    );
+    THEORY_PROOF(if (d_bvp) {
+      d_bitblaster->setProofLog(d_bvp);
+      d_bvp->setBitblaster(d_bitblaster);
+    });
   }
 }
 
 bool EagerBitblastSolver::isInitialized() {
-  bool init = d_aigBitblaster != NULL || d_bitblaster != NULL;
-  if (init) {
-    Assert (!d_useAig || d_aigBitblaster);
-    Assert (d_useAig || d_bitblaster);
-  }
+  const bool init = d_aigBitblaster != nullptr || d_bitblaster != nullptr;
+  Assert(!init || !d_useAig || d_aigBitblaster);
+  Assert(!init || d_useAig || d_bitblaster);
   return init;
 }
 
 void EagerBitblastSolver::assertFormula(TNode formula) {
   d_bv->spendResource(1);
-  Assert (isInitialized());
-  Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula "<< formula <<"\n"; 
+  Assert(isInitialized());
+  Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula " << formula
+                           << "\n";
   d_assertionSet.insert(formula);
-  //ensures all atoms are bit-blasted and converted to AIG
-  if (d_useAig)
-  {
+  // ensures all atoms are bit-blasted and converted to AIG
+  if (d_useAig) {
 #ifdef CVC4_USE_ABC
     d_aigBitblaster->bbFormula(formula);
 #else
     Unreachable();
 #endif
-  }
-  else
+  } else {
     d_bitblaster->bbFormula(formula);
+  }
 }
 
 bool EagerBitblastSolver::checkSat() {
-  Assert (isInitialized());
-  std::vector<TNode> assertions; 
-  for (AssertionSet::const_iterator it = d_assertionSet.begin(); it != d_assertionSet.end(); ++it) {
-    assertions.push_back(*it); 
+  Assert(isInitialized());
+  std::vector<TNode> assertions;
+  for (TNode assertion : d_assertionSet) {
+    assertions.push_back(assertion);
   }
-  if (!assertions.size())
+
+  if (assertions.empty()) {
     return true;
-  
+  }
+
   if (d_useAig) {
 #ifdef CVC4_USE_ABC
-    Node query = utils::mkAnd(assertions); 
+    Node query = utils::mkAnd(assertions);
     return d_aigBitblaster->solve(query);
 #else
     Unreachable();
 #endif
   }
-  
-  return d_bitblaster->solve(); 
+
+  return d_bitblaster->solve();
 }
 
-bool EagerBitblastSolver::hasAssertions(const std::vector<TNode> &formulas) {
-  Assert (isInitialized());
-  if (formulas.size() != d_assertionSet.size())
-    return false; 
+bool EagerBitblastSolver::hasAssertions(const std::vector<TNode>& formulas) {
+  Assert(isInitialized());
+  if (formulas.size() != d_assertionSet.size()) return false;
   for (unsigned i = 0; i < formulas.size(); ++i) {
-    Assert (formulas[i].getKind() == kind::BITVECTOR_EAGER_ATOM);
+    Assert(formulas[i].getKind() == kind::BITVECTOR_EAGER_ATOM);
     TNode formula = formulas[i][0];
-    if (d_assertionSet.find(formula) == d_assertionSet.end())
-      return false; 
+    if (d_assertionSet.find(formula) == d_assertionSet.end()) return false;
   }
-  return true; 
+  return true;
 }
 
 void EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
   AlwaysAssert(!d_useAig && d_bitblaster);
-  d_bitblaster->collectModelInfo(m, fullModel); 
+  d_bitblaster->collectModelInfo(m, fullModel);
 }
 
-void EagerBitblastSolver::setProofLog( BitVectorProof * bvp ) {
-  d_bvp = bvp;
-}
+void EagerBitblastSolver::setProofLog(BitVectorProof* bvp) { d_bvp = bvp; }
+
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
