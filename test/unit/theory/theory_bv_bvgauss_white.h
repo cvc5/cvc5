@@ -103,10 +103,10 @@ testGaussElimT (Integer prime,
 
 class TheoryBVGaussWhite : public CxxTest::TestSuite
 {
-  ExprManager* d_em;
-  NodeManager* d_nm;
-  SmtEngine* d_smt;
-  SmtScope* d_scope;
+  ExprManager *d_em;
+  NodeManager *d_nm;
+  SmtEngine *d_smt;
+  SmtScope *d_scope;
   Node d_p;
   Node d_x;
   Node d_y;
@@ -117,7 +117,10 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   Node d_three;
   Node d_four;
   Node d_five;
+  Node d_six;
+  Node d_seven;
   Node d_eight;
+  Node d_nine;
   Node d_x_mul_one;
   Node d_y_mul_one;
   Node d_z_mul_one;
@@ -151,7 +154,10 @@ public:
     d_three = d_nm->mkConst<BitVector> (BitVector(16, 3u));
     d_four = d_nm->mkConst<BitVector> (BitVector(16, 4u));
     d_five = d_nm->mkConst<BitVector> (BitVector(16, 5u));
+    d_six = d_nm->mkConst<BitVector> (BitVector(16, 6u));
+    d_seven = d_nm->mkConst<BitVector> (BitVector(16, 7u));
     d_eight = d_nm->mkConst<BitVector> (BitVector(16, 8u));
+    d_nine = d_nm->mkConst<BitVector> (BitVector(16, 9u));
 
     d_x_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_one);
     d_y_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_one);
@@ -178,7 +184,10 @@ public:
     d_three = Node::null();
     d_four = Node::null();
     d_five = Node::null();
+    d_six = Node::null();
+    d_seven = Node::null();
     d_eight = Node::null();
+    d_nine = Node::null();
     d_x_mul_one = Node::null();
     d_y_mul_one = Node::null();
     d_z_mul_one = Node::null();
@@ -258,7 +267,7 @@ public:
     std::cout << "matrix 1, modulo 17" << std::endl;
     testGaussElimX (Integer(17), rhs, lhs, BVGaussElim::Result::UNIQUE);
   }
-    
+
   void testGaussElimUnique ()
   {
     std::vector< Integer > rhs;
@@ -928,7 +937,7 @@ public:
      *  2 3 5   8
      *  4 0 5   2
      */
-    
+
     Node eq1 = d_nm->mkNode(kind::EQUAL,
         d_nm->mkNode(kind::BITVECTOR_UREM,
           d_nm->mkNode(kind::BITVECTOR_PLUS,
@@ -952,23 +961,52 @@ public:
         d_two);
 
     std::vector< TNode > eqs = { eq1, eq2, eq3 };
-
-    std::unordered_map< TNode, TNode, TNodeHashFunction > res;
+    std::unordered_map< Node, Node, NodeHashFunction > res;
     BVGaussElim::Result ret = BVGaussElim::gaussElimRewriteForUrem (eqs, res);
     TS_ASSERT (ret == BVGaussElim::Result::UNIQUE);
+    TS_ASSERT (res.size() == 3);
     TS_ASSERT (res[d_x] == d_nm->mkConst< BitVector > (BitVector (16, 3u)));
     TS_ASSERT (res[d_y] == d_nm->mkConst< BitVector > (BitVector (16, 4u)));
     TS_ASSERT (res[d_z] == d_nm->mkConst< BitVector > (BitVector (16, 9u)));
   }
-  
+
   void testGaussElimRewriteForUremPartial ()
   {
+    std::unordered_map< Node, Node, NodeHashFunction > res;
+    BVGaussElim::Result ret;
+    Node tmp;
+
     /*
      *   lhs   rhs        lhs   rhs  modulo 11
      *  --^--   ^        --^--   ^
      *  1 0 9   7   -->  1 0 9   7
      *  0 1 3   9        0 1 3   9
      */
+    Node z_mul_nine = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_nine);
+    Node z_mul_three = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_three);
+
+    Node eq1_1 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_one, z_mul_nine),
+          d_p),
+        d_seven);
+
+    Node eq1_2 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS, d_y_mul_one, z_mul_three),
+          d_p),
+        d_nine);
+
+    std::vector< TNode > eqs1 = { eq1_1, eq1_2 };
+    ret = BVGaussElim::gaussElimRewriteForUrem (eqs1, res);
+    TS_ASSERT (ret == BVGaussElim::Result::PARTIAL);
+    TS_ASSERT (res.size() == 2);
+    tmp = d_nm->mkNode(kind::BITVECTOR_SUB,
+        d_seven, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_nine));
+    TS_ASSERT (res[d_x] == tmp);
+    tmp = d_nm->mkNode(kind::BITVECTOR_SUB,
+        d_nine, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_three));
+    TS_ASSERT (res[d_y] == tmp);
 
     /*
      *   lhs   rhs        lhs   rhs  modulo 11
@@ -977,6 +1015,27 @@ public:
      *  0 0 1   9        0 0 1   9
      */
 
+    Node eq2_1 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_one, d_y_mul_three),
+          d_p),
+        d_seven);
+
+    Node eq2_2 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_z_mul_one,
+          d_p),
+        d_nine);
+
+    std::vector< TNode > eqs2 = { eq2_1, eq2_2 };
+    ret = BVGaussElim::gaussElimRewriteForUrem (eqs2, res);
+    TS_ASSERT (ret == BVGaussElim::Result::PARTIAL);
+    TS_ASSERT (res.size() == 2);
+    tmp = d_nm->mkNode(kind::BITVECTOR_SUB,
+        d_seven, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_three));
+    TS_ASSERT (res[d_x] == tmp);
+    TS_ASSERT (res[d_z] == d_nine);
+
     /*
      *   lhs   rhs        lhs   rhs  modulo 11
      *  --^--   ^        --^--   ^
@@ -984,13 +1043,124 @@ public:
      *  2 3 5   8        0 1 3   9
      */
 
+    Node eq3_1 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS,
+            d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_one, d_y_mul_one),
+            d_z_mul_one),
+          d_p),
+        d_five);
+
+    Node eq3_2 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS,
+            d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_two, d_y_mul_three),
+            d_z_mul_five),
+          d_p),
+        d_eight);
+
+    std::vector< TNode > eqs3 = { eq3_1, eq3_2 };
+    ret = BVGaussElim::gaussElimRewriteForUrem (eqs3, res);
+    TS_ASSERT (ret == BVGaussElim::Result::PARTIAL);
+    TS_ASSERT (res.size() == 2);
+    tmp = d_nm->mkNode(kind::BITVECTOR_SUB,
+        d_seven, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_nine));
+    TS_ASSERT (res[d_x] == tmp);
+    tmp = d_nm->mkNode(kind::BITVECTOR_SUB,
+        d_nine, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_three));
+    TS_ASSERT (res[d_y] == tmp);
+
     /*
-     *     lhs    rhs  modulo { 3, 5, 7, 11, 17, 31, 59 }
-     *  ----^---   ^
-     *  2  4   6   18
-     *  4  5   6   24
-     *  2  7  12   30
+     *     lhs    rhs          lhs    rhs  modulo 11
+     *  ----^---   ^         ---^---   ^
+     *  2  4   6   18   -->  1 0 10    1
+     *  4  5   6   24        0 1  2    4
+     *  2  7  12   30        0 0  0    0
      */
+    Node ten = d_nm->mkConst<BitVector> (BitVector(16, 10u));
+    Node twelve = d_nm->mkConst<BitVector> (BitVector(16, 12u));
+    Node eighteen = d_nm->mkConst<BitVector> (BitVector(16, 18u));
+    Node twentyfour = d_nm->mkConst<BitVector> (BitVector(16, 24u));
+    Node thirty = d_nm->mkConst<BitVector> (BitVector(16, 30u));
+    Node y_mul_four = d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_four);
+    Node y_mul_five = d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_five);
+    Node y_mul_seven = d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_seven);
+    Node z_mul_six = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_six);
+    Node z_mul_twelve = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, twelve);
+
+    Node eq4_1 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS,
+            d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_two, y_mul_four),
+            z_mul_six),
+          d_p),
+        eighteen);
+
+    Node eq4_2 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS,
+            d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_four, y_mul_five),
+            z_mul_six),
+          d_p),
+        twentyfour);
+
+    Node eq4_3 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS,
+            d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_two, y_mul_seven),
+            z_mul_twelve),
+          d_p),
+        thirty);
+
+    std::vector< TNode > eqs4 = { eq4_1, eq4_2, eq4_3 };
+    ret = BVGaussElim::gaussElimRewriteForUrem (eqs4, res);
+    TS_ASSERT (ret == BVGaussElim::Result::PARTIAL);
+    TS_ASSERT (res.size() == 2);
+    tmp = d_nm->mkNode(kind::BITVECTOR_SUB,
+        d_one, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, ten));
+    TS_ASSERT (res[d_x] == tmp);
+    tmp = d_nm->mkNode(kind::BITVECTOR_SUB,
+        d_four, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_two));
+    TS_ASSERT (res[d_y] == tmp);
+
+    /*
+     *     lhs    rhs         lhs   rhs  modulo 3
+     *  ----^---   ^         --^--   ^
+     *  2  4   6   18   -->  1 2 0   0
+     *  4  5   6   24        0 0 0   0
+     *  2  7  12   30        0 0 0   0
+     */
+    Node eq5_1 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS,
+            d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_two, y_mul_four),
+            z_mul_six),
+          d_three),
+        eighteen);
+
+    Node eq5_2 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS,
+            d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_four, y_mul_five),
+            z_mul_six),
+          d_three),
+        twentyfour);
+
+    Node eq5_3 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS,
+            d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_two, y_mul_seven),
+            z_mul_twelve),
+          d_three),
+        thirty);
+
+    std::vector< TNode > eqs5 = { eq5_1, eq5_2, eq5_3 };
+    ret = BVGaussElim::gaussElimRewriteForUrem (eqs5, res);
+    TS_ASSERT (ret == BVGaussElim::Result::PARTIAL);
+    TS_ASSERT (res.size() == 1);
+    tmp = d_nm->mkNode(kind::BITVECTOR_NEG,
+        d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_two));
+    TS_ASSERT (res[d_y] == tmp);
   }
 
 };
