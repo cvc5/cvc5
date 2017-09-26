@@ -11,7 +11,7 @@
  **
  ** \brief Sort inference module
  **
- ** This class implements pre-process steps for well-defined functions
+ ** This class implements pre-process steps for admissible recursive function definitions (Reynolds et al IJCAR2016)
  **/
 
 #include <vector>
@@ -29,7 +29,7 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
 
-void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
+void FunDefFmf::simplify( std::vector< Node >& assertions ) {
   std::vector< int > fd_assertions;
   std::map< int, Node > subs_head;
   //first pass : find defined functions, transform quantifiers
@@ -116,7 +116,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
   }
 }
 
-//is_fun_def 1 : top of fun-def, 2 : top of fun-def body, 0 : not top
+//is_fun_def 1 : top of fun-def, 0 : not top
 Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, int is_fun_def,
                                  std::map< int, std::map< Node, Node > >& visited,
                                  std::map< int, std::map< Node, Node > >& visited_cons ) {
@@ -148,9 +148,12 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
     }else{
       Node nn = n;
       bool isBool = n.getType().isBoolean();
-      if( isBool && n.getKind()!=APPLY_UF && is_fun_def!=2 ){
+      if( isBool && n.getKind()!=APPLY_UF ){
         std::vector< Node > children;
         bool childChanged = false;
+        // are we at a branch position (not all children are necessarily relevant)?
+        bool branch_pos = ( n.getKind()==ITE || n.getKind()==OR || n.getKind()==AND );
+        std::vector< Node > branch_constraints;
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
           Node c = n[i];
           //do not process LHS of definition
@@ -160,7 +163,14 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
             QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
             //get child constraints
             std::vector< Node > cconstraints;
-            c = simplifyFormula( n[i], newPol, newHasPol, cconstraints, hd, is_fun_def==1 ? 2 : 0, visited, visited_cons );
+            c = simplifyFormula( n[i], newPol, newHasPol, cconstraints, hd, 0, visited, visited_cons );
+            if( branch_pos ){
+              // if at a branching position, the other constraints don't matter if this is satisfied
+              Node bcons = cconstraints.empty() ? NodeManager::currentNM()->mkConst( true ) : 
+                           ( cconstraints.size()==1 ? cconstraints[0] : NodeManager::currentNM()->mkNode( AND, cconstraints ) );
+              branch_constraints.push_back( bcons );
+              Trace("fmf-fun-def-debug2") << "Branching constraint at arg " << i << " is " << bcons << std::endl;
+            }
             constraints.insert( constraints.end(), cconstraints.begin(), cconstraints.end() );
           }
           children.push_back( c );
@@ -168,6 +178,29 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
         }
         if( childChanged ){
           nn = NodeManager::currentNM()->mkNode( n.getKind(), children );
+        }
+        if( branch_pos && !constraints.empty() ){
+          // if we are at a branching position in the formula, we can
+          // minimize recursive constraints on recursively defined predicates if we know one child forces
+          // the overall evaluation of this formula.
+          Node branch_cond;
+          if( n.getKind()==ITE ){
+            // always care about constraints on the head of the ITE, but only care about one of the children depending on how it evaluates
+            branch_cond = NodeManager::currentNM()->mkNode( kind::AND, branch_constraints[0],
+                            NodeManager::currentNM()->mkNode( kind::ITE, n[0], branch_constraints[1], branch_constraints[2] ) );
+          }else{
+            // in the default case, we care about all conditions
+            branch_cond = constraints.size()==1 ? constraints[0] : NodeManager::currentNM()->mkNode( AND, constraints );
+            for( unsigned i=0; i<n.getNumChildren(); i++ ){
+              // if this child holds with forcing polarity (true child of OR or false child of AND), 
+              // then we only care about its associated recursive conditions 
+              branch_cond = NodeManager::currentNM()->mkNode( kind::ITE, 
+                              ( n.getKind()==OR ? n[i] : n[i].negate() ), branch_constraints[i], branch_cond );
+            }
+          }
+          Trace("fmf-fun-def-debug2") << "Made branching condition " << branch_cond << std::endl;
+          constraints.clear();
+          constraints.push_back( branch_cond );
         }
       }else{
         //simplify term
@@ -182,6 +215,7 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
         }else{
           ret = NodeManager::currentNM()->mkNode( OR, nn, cons.negate() );
         }
+        Trace("fmf-fun-def-debug2") << "Add constraint to obtain " << ret << std::endl;
         constraints.clear();
       }else{
         ret = nn;

@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Pre-process steps for well-defined functions
+ ** \brief Pre-process step for admissible recursively defined functions
  **/
 
 #include "cvc4_private.h"
@@ -28,7 +28,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-//find finite models for well-defined functions
+//Preprocessing pass to allow finite model finding for admissible recursive function definitions
+// For details, see Reynolds et al "Model Finding for Recursive Functions" IJCAR 2016
 class FunDefFmf {
 private:
   //simplify
@@ -46,8 +47,13 @@ public:
   std::map< Node, std::vector< Node > > d_input_arg_inj;
   // (newly) defined functions
   std::vector< Node > d_funcs;
-  //simplify
-  void simplify( std::vector< Node >& assertions, bool doRewrite = false );
+  /** simplify, which does the following:
+  * (1) records all top-level recursive function definitions in assertions,
+  * (2) runs Figure 1 of Reynolds et al "Model Finding for Recursive Functions" 
+  * IJCAR 2016 on all formulas in assertions based on the definitions from part (1),
+  * which are Sigma^{dfn} in that paper.
+  */
+  void simplify( std::vector< Node >& assertions );
 };
 
 
