@@ -1258,8 +1258,8 @@ std::string GetInstantiationsCommand::getCommandName() const throw() {
 
 /* class GetSynthSolutionCommand */
 
-GetSynthSolutionCommand::GetSynthSolutionCommand() throw() {
-}
+GetSynthSolutionCommand::GetSynthSolutionCommand() throw()
+    : d_smtEngine(nullptr) {}
 
 void GetSynthSolutionCommand::invoke(SmtEngine* smtEngine) {
   try {

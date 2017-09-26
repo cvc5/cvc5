@@ -649,17 +649,19 @@ class CVC4_PUBLIC GetInstantiationsCommand : public Command {
 }; /* class GetInstantiationsCommand */
 
 class CVC4_PUBLIC GetSynthSolutionCommand : public Command {
-protected:
-  SmtEngine* d_smtEngine;
-public:
+ public:
   GetSynthSolutionCommand() throw();
   ~GetSynthSolutionCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class GetSynthSolutionCommand */
+
+ protected:
+  SmtEngine* d_smtEngine;
+}; /* class GetSynthSolutionCommand */
 
 class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command {
 protected:
