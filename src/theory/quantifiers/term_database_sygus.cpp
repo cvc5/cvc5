@@ -3003,6 +3003,52 @@ TypeNode TermDbSygus::mkSygusDefaultType( TypeNode range, Node bvl, const std::s
   return TypeNode::fromType( types[0] );
 }
 
+TypeNode TermDbSygus::mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
+                                              const std::string& fun, unsigned& tcount ) {
+  if( templ==templ_arg ){
+    //Assert( templ_arg.getType()==sygusToBuiltinType( templ_arg_sygus_type ) );
+    return templ_arg_sygus_type;
+  }else{
+    tcount++;
+    std::set<Type> unres;
+    std::vector< CVC4::Datatype > datatypes;
+    std::stringstream ssd;
+    ssd << fun << "_templ_" << tcount;
+    std::string dbname = ssd.str();
+    datatypes.push_back(Datatype(dbname));
+    Node op;
+    std::vector< Type > argTypes;
+    if( templ.getNumChildren()==0 ){
+      // TODO : can short circuit to this case when !TermDb::containsTerm( templ, templ_arg )
+      op = templ;
+    }else{
+      Assert( templ.hasOperator() );
+      op = templ.getOperator();
+      // make constructor taking arguments types from children
+      for( unsigned i=0; i<templ.getNumChildren(); i++ ){
+        //recursion depth bound by the depth of SyGuS template expressions (low)
+        TypeNode tnc = mkSygusTemplateTypeRec( templ[i], templ_arg, templ_arg_sygus_type, bvl, fun, tcount );
+        argTypes.push_back( tnc.toType() );
+      }
+    }
+    std::stringstream ssdc;
+    ssdc << fun << "_templ_cons_" << tcount;
+    std::string cname = ssdc.str();
+    // we have a single sygus constructor that encodes the template
+    datatypes.back().addSygusConstructor( op.toExpr(), cname, argTypes );
+    datatypes.back().setSygus( templ.getType().toType(), bvl.toExpr(), true, true );
+    std::vector<DatatypeType> types = NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(datatypes, unres);
+    Assert( types.size()==1 );
+    return TypeNode::fromType( types[0] );
+  }
+}
+
+TypeNode TermDbSygus::mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
+                                           const std::string& fun ) {
+  unsigned tcount = 0;
+  return mkSygusTemplateTypeRec( templ, templ_arg, templ_arg_sygus_type, bvl, fun, tcount );
+}
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
