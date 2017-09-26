@@ -540,7 +540,8 @@ TypeNode SortInference::getTypeForId( int t ){
 }
 
 Node SortInference::getNewSymbol( Node old, TypeNode tn ){
-  if( tn.isNull() || tn==old.getType() ){
+  // if no sort was inferred for this node, return original
+  if( tn.isNull() || tn.isComparableTo( old.getType() ) ){
     return old;
   }else if( old.isConst() ){
     //must make constant of type tn
