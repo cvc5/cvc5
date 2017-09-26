@@ -22,7 +22,7 @@ class BVGaussElim
 
   static Result gaussElimRewriteForUrem (
       std::vector< TNode > & equations,
-      std::unordered_map< TNode, TNode, TNodeHashFunction > & res);
+      std::unordered_map< Node, Node, NodeHashFunction > & res);
 
   static Result gaussElim (
       Integer prime,
