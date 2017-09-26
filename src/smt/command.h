@@ -637,19 +637,20 @@ class CVC4_PUBLIC GetProofCommand : public Command {
 }; /* class GetProofCommand */
 
 class CVC4_PUBLIC GetInstantiationsCommand : public Command {
-protected:
-  //Instantiations* d_result;
-  SmtEngine* d_smtEngine;
-public:
+ public:
   GetInstantiationsCommand() throw();
   ~GetInstantiationsCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
-  //Instantiations* getResult() const throw();
+  // Instantiations* getResult() const throw();
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class GetInstantiationsCommand */
+
+ protected:
+  SmtEngine* d_smtEngine;
+}; /* class GetInstantiationsCommand */
 
 class CVC4_PUBLIC GetSynthSolutionCommand : public Command {
  public:

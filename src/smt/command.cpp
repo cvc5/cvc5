@@ -1214,8 +1214,8 @@ std::string GetProofCommand::getCommandName() const throw() {
 
 /* class GetInstantiationsCommand */
 
-GetInstantiationsCommand::GetInstantiationsCommand() throw() {
-}
+GetInstantiationsCommand::GetInstantiationsCommand() throw()
+    : d_smtEngine(nullptr) {}
 
 void GetInstantiationsCommand::invoke(SmtEngine* smtEngine) {
   try {
