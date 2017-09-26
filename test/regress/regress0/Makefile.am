@@ -70,7 +70,8 @@ SMT2_TESTS = \
 	hung13sdk_output2.smt2 \
 	declare-funs.smt2 \
 	declare-fun-is-match.smt2 \
-	non-fatal-errors.smt2
+	non-fatal-errors.smt2 \
+	sqrt2-sort-inf-unk.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = \
