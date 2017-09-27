@@ -885,18 +885,39 @@ Node BvInverter::getPathToPv( Node lit, Node pv, Node sv, Node pvs, std::vector<
 
 Node BvInverter::solve_bv_constraint( Node sv, Node sv_t, Node t, Kind rk, bool pol, std::vector< unsigned >& path,
                                       BvInverterModelQuery * m, BvInverterStatus& status ) {
+  NodeManager *nm = NodeManager::currentNM();
   while( !path.empty() ){
     unsigned index = path.back();
+    Assert (sv_t.getNumChildren() <= 2);
     Assert( index<sv_t.getNumChildren() );
     path.pop_back();
     Kind k = sv_t.getKind();
     // inversions
     if( k==BITVECTOR_PLUS ){
-      t = NodeManager::currentNM()->mkNode( BITVECTOR_SUB, t, sv_t[1-index] );
+      t = nm->mkNode( BITVECTOR_SUB, t, sv_t[1-index] );
     }else if( k==BITVECTOR_SUB ){
-      t = NodeManager::currentNM()->mkNode( BITVECTOR_PLUS, t, sv_t[1-index] );
-    //}else if( k==BITVECTOR_MULT ){
-      // TODO
+      t = nm->mkNode( BITVECTOR_PLUS, t, sv_t[1-index] );
+    }else if( k==BITVECTOR_MULT ){
+      // t = skv (fresh skolem constant)
+      // with side condition:
+      // ctz(t) >= ctz(s) <-> skv * s = t
+      // where
+      // ctz(t) >= ctz(s) -> (t & -t) >= (s & -s)
+      Node s = sv_t[1-index];
+      Node skv = nm->mkSkolem ("skvinv", t.getType(), "created for BvInverter");
+      // cache for substitution
+      BvInverterSkData d = BvInverterSkData (sv_t, t, k);
+      d_sk_inv.emplace(skv,d);
+      // left hand side of side condition
+      Node scl = nm->mkNode (BITVECTOR_UGE,
+          nm->mkNode (BITVECTOR_AND, t, nm->mkNode (BITVECTOR_NEG, t)),
+          nm->mkNode (BITVECTOR_AND, s, nm->mkNode (BITVECTOR_NEG, s)));
+      // right hand side of side condition
+      Node scr = nm->mkNode (EQUAL, nm->mkNode (BITVECTOR_MULT, skv, s), t);
+      // add side condition
+      status.d_conds.push_back (nm->mkNode (EQUAL, scl, scr));
+      t = skv;
+
     }else if( k==BITVECTOR_NEG || k==BITVECTOR_NOT ){
       t = NodeManager::currentNM()->mkNode( k, t );
     //}else if( k==BITVECTOR_AND || k==BITVECTOR_OR ){
