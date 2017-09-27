@@ -32,11 +32,27 @@ namespace quantifiers {
 // For details, see Reynolds et al "Model Finding for Recursive Functions" IJCAR 2016
 class FunDefFmf {
 private:
-  //simplify
-  Node simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, int is_fun_def,
+  /** simplify formula
+  * This is A_0 in Figure 1 of Reynolds et al "Model Finding for Recursive Functions".
+  * The input of A_0 in that paper is a pair ( term t, polarity p )
+  * The return value of A_0 in that paper is a pair ( term t', set of formulas X ).
+  *
+  * This function implements this such that :
+  *   n is t
+  *   pol/hasPol is p
+  *   the return value is t'
+  *   the set of formulas X are stored in "constraints"
+  *
+  * Additionally, is_fun_def is whether we are currently processing the top of a function defintion,
+  * since this affects whether we process the head of the definition.
+  */
+  Node simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, bool is_fun_def,
                         std::map< int, std::map< Node, Node > >& visited,
                         std::map< int, std::map< Node, Node > >& visited_cons );
-  //simplify term
+  /** simplify term
+  * This computes constraints for the final else branch of A_0 in Figure 1 
+  * of Reynolds et al "Model Finding for Recursive Functions".
+  */
   void simplifyTerm( Node n, std::vector< Node >& constraints, std::map< Node, bool >& visited );
 public:
   FunDefFmf(){}

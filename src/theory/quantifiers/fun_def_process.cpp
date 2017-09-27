@@ -97,12 +97,12 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
   std::map< int, std::map< Node, Node > > visited;
   std::map< int, std::map< Node, Node > > visited_cons;
   for( unsigned i=0; i<assertions.size(); i++ ){
-    int is_fd = std::find( fd_assertions.begin(), fd_assertions.end(), i )!=fd_assertions.end() ? 1 : 0;
+    bool is_fd = std::find( fd_assertions.begin(), fd_assertions.end(), i )!=fd_assertions.end();
     //constant boolean function definitions do not add domain constraints
-    if( is_fd==0 || ( is_fd==1 && assertions[i][1].getKind()==EQUAL ) ){
+    if( !is_fd || ( is_fd && assertions[i][1].getKind()==EQUAL ) ){
       std::vector< Node > constraints;
-      Trace("fmf-fun-def-rewrite") << "Rewriting " << assertions[i] << ", is_fd = " << is_fd << std::endl;
-      Node n = simplifyFormula( assertions[i], true, true, constraints, is_fd==1 ? subs_head[i] : Node::null(), is_fd, visited, visited_cons );
+      Trace("fmf-fun-def-rewrite") << "Rewriting " << assertions[i] << ", is function definition = " << is_fd << std::endl;
+      Node n = simplifyFormula( assertions[i], true, true, constraints, is_fd ? subs_head[i] : Node::null(), is_fd, visited, visited_cons );
       Assert( constraints.empty() );
       if( n!=assertions[i] ){
         n = Rewriter::rewrite( n );
@@ -116,12 +116,11 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
   }
 }
 
-//is_fun_def 1 : top of fun-def, 0 : not top
-Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, int is_fun_def,
+Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, bool is_fun_def,
                                  std::map< int, std::map< Node, Node > >& visited,
                                  std::map< int, std::map< Node, Node > >& visited_cons ) {
   Assert( constraints.empty() );
-  int index = is_fun_def + 3*( hasPol ? ( pol ? 1 : -1 ) : 0 );
+  int index = ( is_fun_def ? 1 : 0 ) + 2*( hasPol ? ( pol ? 1 : -1 ) : 0 );
   std::map< Node, Node >::iterator itv = visited[index].find( n );
   if( itv!=visited[index].end() ){
     //constraints.insert( visited_cons[index]
@@ -157,13 +156,13 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
           Node c = n[i];
           //do not process LHS of definition
-          if( is_fun_def!=1 || c!=hd ){
+          if( !is_fun_def || c!=hd ){
             bool newHasPol;
             bool newPol;
             QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
             //get child constraints
             std::vector< Node > cconstraints;
-            c = simplifyFormula( n[i], newPol, newHasPol, cconstraints, hd, 0, visited, visited_cons );
+            c = simplifyFormula( n[i], newPol, newHasPol, cconstraints, hd, false, visited, visited_cons );
             if( branch_pos ){
               // if at a branching position, the other constraints don't matter if this is satisfied
               Node bcons = cconstraints.empty() ? NodeManager::currentNM()->mkConst( true ) : 
