@@ -406,7 +406,7 @@ public:
     iterator(const iterator& i) : d_it(i.d_it) {}
 
     // Default constructor
-    iterator() {}
+    iterator() : d_it(nullptr) {}
 
     // (Dis)equality
     bool operator==(const iterator& i) const {

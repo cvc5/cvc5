@@ -602,35 +602,39 @@ public:
 };/* class GetAssignmentCommand */
 
 class CVC4_PUBLIC GetModelCommand : public Command {
-protected:
-  Model* d_result;
-  SmtEngine* d_smtEngine;
-public:
+ public:
   GetModelCommand() throw();
   ~GetModelCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
   // Model is private to the library -- for now
-  //Model* getResult() const throw();
+  // Model* getResult() const throw();
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class GetModelCommand */
+
+ protected:
+  Model* d_result;
+  SmtEngine* d_smtEngine;
+}; /* class GetModelCommand */
 
 class CVC4_PUBLIC GetProofCommand : public Command {
-protected:
-  Proof* d_result;
-  SmtEngine* d_smtEngine;
-public:
+ public:
   GetProofCommand() throw();
   ~GetProofCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
   Proof* getResult() const throw();
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class GetProofCommand */
+
+ protected:
+  Proof* d_result;
+  SmtEngine* d_smtEngine;
+}; /* class GetProofCommand */
 
 class CVC4_PUBLIC GetInstantiationsCommand : public Command {
  public:
