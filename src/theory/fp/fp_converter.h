@@ -16,6 +16,8 @@
  **    'bit-blasting'. ]]
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__THEORY__FP__FP_CONVERTER_H
 #define __CVC4__THEORY__FP__FP_CONVERTER_H
 
