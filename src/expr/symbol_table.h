@@ -185,8 +185,8 @@ class CVC4_PUBLIC SymbolTable {
 
   /** Reset everything. */
   void reset();
- 
- public:  // the following functions are for operator overloading
+  
+  //------------------------ operator overloading
   /** is this function overloaded? */
   bool isOverloadedFunction(Expr fun) const;
   
@@ -202,6 +202,7 @@ class CVC4_PUBLIC SymbolTable {
    * null expression.
    */
   Expr getOverloadedFunctionForTypes(const std::string& name, const std::vector< Type >& argTypes) const;
+  //------------------------ end operator overloading
   
  private:
   // Copying and assignment have not yet been implemented.

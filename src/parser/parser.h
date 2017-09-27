@@ -702,7 +702,7 @@ public:
     Expr nextExpr() { return d_parser->nextExpression(); }
   };/* class Parser::ExprStream */
   
-public:
+  //------------------------ operator overloading
   /** is this function overloaded? */
   bool isOverloadedFunction(Expr fun) {
     return d_symtab->isOverloadedFunction(fun);
@@ -724,6 +724,7 @@ public:
   Expr getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) {
     return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
   }
+  //------------------------ end operator overloading
 };/* class Parser */
 
 }/* CVC4::parser namespace */
