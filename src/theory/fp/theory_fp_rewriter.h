@@ -32,6 +32,8 @@ class TheoryFpRewriter {
  protected :
   static RewriteFunction preRewriteTable[kind::LAST_KIND];
   static RewriteFunction postRewriteTable[kind::LAST_KIND];
+  static RewriteFunction constantFoldTable[kind::LAST_KIND]; 
+
 
  public:
 
