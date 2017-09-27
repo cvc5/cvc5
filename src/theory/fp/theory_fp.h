@@ -20,96 +20,22 @@
 #ifndef __CVC4__THEORY__FP__THEORY_FP_H
 #define __CVC4__THEORY__FP__THEORY_FP_H
 
+#include "context/cdo.h"
+#include "theory/fp/fp_converter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-
-#include "theory/fp/fp_converter.h"
-
-#include "context/cdo.h"
 
 namespace CVC4 {
 namespace theory {
 namespace fp {
 
 class TheoryFp : public Theory {
-protected :
-  /** Equality engine */
-  class NotifyClass : public eq::EqualityEngineNotify {
-    protected :
-      TheoryFp& theorySolver;
-
-    public:
-    NotifyClass(TheoryFp& solver): theorySolver(solver) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value);
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value);
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2);
-    void eqNotifyNewClass(TNode t) { }
-    void eqNotifyPreMerge(TNode t1, TNode t2) { }
-    void eqNotifyPostMerge(TNode t1, TNode t2) { }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
-  };
-  friend NotifyClass;
-
-  NotifyClass notification;
-  eq::EqualityEngine equalityEngine;
-
-
-  /** General utility **/
-  void registerTerm(TNode node);
-  bool isRegistered(TNode node);
-
-  context::CDHashSet<Node, NodeHashFunction> registeredTerms;
-
-
-  /** Bit-blasting conversion */
-  fpConverter conv;
-  bool expansionRequested;
-
-  void convertAndEquateTerm(TNode node);
-
-
-  /** Interaction with the rest of the solver **/
-  void handleLemma(Node node);
-  bool handlePropagation(TNode node);
-  void handleConflict(TNode node);
-
-  context::CDO<bool> conflict;
-  context::CDO<Node> conflictNode;
-
-  /** Uninterpretted functions for partially defined functions. **/
-  typedef context::CDHashMap<TypeNode, Node, TypeNodeHashFunction> comparisonUFMap;
-
-  comparisonUFMap minMap;
-  comparisonUFMap maxMap;
-
-  Node minUF(Node);
-  Node maxUF(Node);
-
-  typedef context::CDHashMap<std::pair<TypeNode, TypeNode>, Node, PairTypeNodeHashFunction> conversionUFMap;
-
-  conversionUFMap toUBVMap;
-  conversionUFMap toSBVMap;
-
-  Node toUBVUF(Node);
-  Node toSBVUF(Node);
-
-
-  comparisonUFMap toRealMap;
-
-  Node toRealUF(Node);
-
-
-public:
-
+ public:
   /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-  TheoryFp(context::Context* c,
-           context::UserContext* u,
-           OutputChannel& out,
-           Valuation valuation,
-           const LogicInfo& logicInfo);
+  TheoryFp(context::Context* c, context::UserContext* u, OutputChannel& out,
+           Valuation valuation, const LogicInfo& logicInfo);
 
-  Node expandDefinition(LogicRequest &lr, Node node);
+  Node expandDefinition(LogicRequest& lr, Node node);
 
   void preRegisterTerm(TNode node);
   void addSharedTerm(TNode node);
@@ -117,20 +43,84 @@ public:
   void check(Effort);
 
   Node getModelValue(TNode var);
-  void collectModelInfo(TheoryModel *m);
+  void collectModelInfo(TheoryModel* m);
 
-  std::string identify() const {
-    return "THEORY_FP";
-  }
+  std::string identify() const { return "THEORY_FP"; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
   Node explain(TNode n);
 
-};/* class TheoryFp */
+ protected:
+  /** Equality engine */
+  class NotifyClass : public eq::EqualityEngineNotify {
+   protected:
+    TheoryFp& d_theorySolver;
 
-}/* CVC4::theory::fp namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+   public:
+    NotifyClass(TheoryFp& solver) : d_theorySolver(solver) {}
+    bool eqNotifyTriggerEquality(TNode equality, bool value);
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value);
+    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2,
+                                     bool value);
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2);
+    void eqNotifyNewClass(TNode t) {}
+    void eqNotifyPreMerge(TNode t1, TNode t2) {}
+    void eqNotifyPostMerge(TNode t1, TNode t2) {}
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {}
+  };
+  friend NotifyClass;
+
+  NotifyClass d_notification;
+  eq::EqualityEngine d_equalityEngine;
+
+  /** General utility **/
+  void registerTerm(TNode node);
+  bool isRegistered(TNode node);
+
+  context::CDHashSet<Node, NodeHashFunction> d_registeredTerms;
+
+  /** Bit-blasting conversion */
+  fpConverter d_conv;
+  bool d_expansionRequested;
+
+  void convertAndEquateTerm(TNode node);
+
+  /** Interaction with the rest of the solver **/
+  void handleLemma(Node node);
+  bool handlePropagation(TNode node);
+  void handleConflict(TNode node);
+
+  context::CDO<bool> d_conflict;
+  context::CDO<Node> d_conflictNode;
+
+  /** Uninterpretted functions for partially defined functions. **/
+  typedef context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>
+      ComparisonUFMap;
+
+  ComparisonUFMap d_minMap;
+  ComparisonUFMap d_maxMap;
+
+  Node minUF(Node);
+  Node maxUF(Node);
+
+  typedef context::CDHashMap<std::pair<TypeNode, TypeNode>, Node,
+                             PairTypeNodeHashFunction>
+      ConversionUFMap;
+
+  ConversionUFMap d_toUBVMap;
+  ConversionUFMap d_toSBVMap;
+
+  Node toUBVUF(Node);
+  Node toSBVUF(Node);
+
+  ComparisonUFMap d_toRealMap;
+
+  Node toRealUF(Node);
+}; /* class TheoryFp */
+
+}  // namespace fp
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__FP__THEORY_FP_H */
