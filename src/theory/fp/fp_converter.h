@@ -16,44 +16,38 @@
  **    'bit-blasting'. ]]
  **/
 
-#include "theory/valuation.h"
-
-#include "context/cdhashmap.h"
-#include "context/cdlist.h"
-
-#include "util/floatingpoint.h"
-
-
 #ifndef __CVC4__THEORY__FP__FP_CONVERTER_H
 #define __CVC4__THEORY__FP__FP_CONVERTER_H
 
+#include "context/cdhashmap.h"
+#include "context/cdlist.h"
+#include "theory/valuation.h"
+#include "util/floatingpoint.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 namespace theory {
 namespace fp {
 
-  struct PairTypeNodeHashFunction {
-    size_t operator()(const std::pair<TypeNode, TypeNode> &p) const;
-  };
+typedef PairHashFunction<TypeNode, TypeNode, TypeNodeHashFunction,
+                         TypeNodeHashFunction>
+    PairTypeNodeHashFunction;
 
+class FpConverter {
+ public:
+  context::CDList<Node> d_additionalAssertions;
 
-  class fpConverter {
-  public :
-    context::CDList<Node> additionalAssertions;
+  FpConverter(context::UserContext *);
 
-    fpConverter (context::UserContext*);
+  /** Adds a node to the conversion, returns the converted node */
+  Node convert(TNode);
 
-    /** Adds a node to the conversion, returns the converted node */
-    Node convert (TNode);
+  /** Gives the node representing the value of a given variable */
+  Node getValue(Valuation &, TNode);
+};
 
-    /** Gives the node representing the value of a given variable */
-    Node getValue (Valuation &, TNode);
-
-  };
-
-
-}/* CVC4::theory::fp namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace fp
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__FP__THEORY_FP_H */
