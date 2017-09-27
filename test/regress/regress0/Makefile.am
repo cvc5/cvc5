@@ -73,6 +73,7 @@ SMT2_TESTS = \
 	issue1063-overloading-dt-cons.smt2 \
 	issue1063-overloading-dt-sel.smt2 \
 	issue1063-overloading-dt-fun.smt2 \
+	non-fatal-errors.smt2 \
 	sqrt2-sort-inf-unk.smt2
 
 
