@@ -445,16 +445,9 @@ class FloatingPointToRealTypeRule {
     TRACE("FloatingPointToRealTypeRule");
 
     if (check) {
-      TypeNode roundingModeType = n[0].getType(check);
+      TypeNode operandType = n[0].getType(check);
 
-      if (!roundingModeType.isRoundingMode()) {
-        throw TypeCheckingExceptionPrivate(
-            n, "first argument must be a rounding mode");
-      }
-
-      TypeNode operand = n[1].getType(check);
-
-      if (!operand.isFloatingPoint()) {
+      if (!operandType.isFloatingPoint()) {
         throw TypeCheckingExceptionPrivate(
             n, "floating-point to real applied to a non floating-point sort");
       }
