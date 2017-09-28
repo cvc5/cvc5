@@ -87,7 +87,7 @@ private:
     // children of this node
     std::map< Type, TypeArgTrie > d_children;
     // symbols at this node
-    std::map< Type, Expr > d_symbols;
+    std::map< Type, std::map< Kind, Expr > > d_symbols;
   };
   /** for each string with operator overloading, this stores the data structure above. */
   std::unordered_map< std::string, TypeArgTrie > d_overload_type_arg_trie;
@@ -102,13 +102,22 @@ bool OverloadedTypeTrie::isOverloadedFunction(Expr fun) const {
 Expr OverloadedTypeTrie::getOverloadedConstantForType(const std::string& name, Type t) const {
   std::unordered_map< std::string, TypeArgTrie >::const_iterator it = d_overload_type_arg_trie.find(name);
   if(it!=d_overload_type_arg_trie.end()) {
-    std::map< Type, Expr >::const_iterator its = it->second.d_symbols.find(t);
+    std::map< Type, std::map< Kind, Expr > >::const_iterator its = it->second.d_symbols.find(t);
     if(its!=it->second.d_symbols.end()) {
       // must be an active symbol
-      Expr expr = its->second;
-      if(isOverloadedFunction(expr)) {
-        return expr;
+      Expr retExpr;
+      for( std::map< Kind, Expr >::const_iterator its2 = its->second.begin(); its2 != its->second.begin(); ++its2) {
+        Expr expr = its2->second;
+        if(isOverloadedFunction(expr)) {
+          if(retExpr.isNull()) {
+            retExpr = expr;
+          }else{
+            // multiple functions match
+            return d_nullExpr;
+          }
+        }
       }
+      return retExpr;
     }
   }
   return d_nullExpr;
@@ -130,14 +139,16 @@ Expr OverloadedTypeTrie::getOverloadedFunctionForTypes(const std::string& name,
     }
     // now, we must ensure that there is *only* one active symbol at this node
     Expr retExpr;
-    for(std::map< Type, Expr >::const_iterator its = tat->d_symbols.begin(); its != tat->d_symbols.end(); ++its) {
-      Expr expr = its->second;
-      if(isOverloadedFunction(expr)) {
-        if(retExpr.isNull()) {
-          retExpr = expr;
-        }else{
-          // multiple functions match
-          return d_nullExpr;
+    for(std::map< Type, std::map< Kind, Expr > >::const_iterator its = tat->d_symbols.begin(); its != tat->d_symbols.end(); ++its) {
+      for( std::map< Kind, Expr >::const_iterator its2 = its->second.begin(); its2 != its->second.begin(); ++its2) {
+        Expr expr = its2->second;
+        if(isOverloadedFunction(expr)) {
+          if(retExpr.isNull()) {
+            retExpr = expr;
+          }else{
+            // multiple functions match
+            return d_nullExpr;
+          }
         }
       }
     }
@@ -181,17 +192,23 @@ void OverloadedTypeTrie::markOverloaded(const string& name, Expr obj) {
     tat = &(tat->d_children[argTypes[i]]);
   }
   
-  std::map< Type, Expr >::iterator it = d_symbols.find( rangeType );
-  if( it!=d_symbols.end() ){
-    // if there is already an active function with the same name and an identical type, simply ignore it
-    if( isOverloadedFunction( it->second ) ){
-      return;
+  // types can be identical but vary on the kind of the type, thus we must distinguish based on this
+  Kind k = TypeNode::fromType( t ).getKind();
+  std::map< Type, std::map< Kind, Expr > >::iterator it = tat->d_symbols.find( rangeType );
+  if( it!=tat->d_symbols.end() ){
+    std::map< Kind, Expr >::iterator it2 = it->second.find( k );
+    if( it2!=it->second.end() ){
+      Assert( it2->second.getType()==obj.getType() );
+      // if there is already an active function with the same name and an identical type, simply ignore it
+      if( isOverloadedFunction( it2->second ) ){
+        return;
+      }
     }
   }
   
   // otherwise, update the symbols
   d_overloaded_symbols->insert(obj);
-  tat->d_symbols[rangeType] = obj;
+  tat->d_symbols[rangeType][k]= obj;
 }
 
 
