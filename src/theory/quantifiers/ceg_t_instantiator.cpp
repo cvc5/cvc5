@@ -842,6 +842,19 @@ Node BvInverter::getSolveVariable( TypeNode tn ) {
   }
 }
 
+Node BvInverter::getInversionSkolemFor( Node cond, TypeNode tn ) {
+  std::unordered_map< Node, Node, NodeHashFunction >::iterator it = d_inversion_skolem_cache.find( cond );
+  if( it==d_inversion_skolem_cache.end() ){
+    Node skv = NodeManager::currentNM()->mkSkolem ("skvinv", tn, "created for BvInverter");
+    Trace("cegqi-bv-skvinv") << "SKVINV : " << skv << " is the skolem associated with conditon " << cond << std::endl;
+    d_inversion_skolem_cache[cond] = skv;
+    return skv;
+  }else{
+    Assert( it->second.getType()==tn );
+    return it->second;
+  }
+}
+
 Node BvInverter::getPathToPv( Node lit, Node pv, Node sv, std::vector< unsigned >& path, std::unordered_set< TNode, TNodeHashFunction >& visited ) {
   if( visited.find( lit )==visited.end() ){
     visited.insert( lit );
@@ -898,23 +911,29 @@ Node BvInverter::solve_bv_constraint( Node sv, Node sv_t, Node t, Kind rk, bool 
       t = nm->mkNode( BITVECTOR_PLUS, t, sv_t[1-index] );
     }else if( k==BITVECTOR_MULT ){
       // t = skv (fresh skolem constant)
+      TypeNode solve_tn = sv_t[index].getType();
+      Node x = getSolveVariable( solve_tn );
       // with side condition:
-      // ctz(t) >= ctz(s) <-> skv * s = t
+      // ctz(t) >= ctz(s) <-> x * s = t
       // where
       // ctz(t) >= ctz(s) -> (t & -t) >= (s & -s)
       Node s = sv_t[1-index];
-      Node skv = nm->mkSkolem ("skvinv", t.getType(), "created for BvInverter");
-      // cache for substitution
-      BvInverterSkData d = BvInverterSkData (sv_t, t, k);
-      d_sk_inv.emplace(skv,d);
       // left hand side of side condition
       Node scl = nm->mkNode (BITVECTOR_UGE,
           nm->mkNode (BITVECTOR_AND, t, nm->mkNode (BITVECTOR_NEG, t)),
           nm->mkNode (BITVECTOR_AND, s, nm->mkNode (BITVECTOR_NEG, s)));
       // right hand side of side condition
-      Node scr = nm->mkNode (EQUAL, nm->mkNode (BITVECTOR_MULT, skv, s), t);
+      Node scr = nm->mkNode (EQUAL, nm->mkNode (BITVECTOR_MULT, x, s), t);
+      // overall side condition
+      Node sc = nm->mkNode (IMPLIES, scl, scr);
       // add side condition
-      status.d_conds.push_back (nm->mkNode (EQUAL, scl, scr));
+      status.d_conds.push_back (sc);
+      
+      // get the skolem variable for this side condition
+      Node skv = getInversionSkolemFor (sc, solve_tn);
+      // cache for substitution
+      // map the skolem to its side condition
+      status.d_sk_inv[ skv ] = sc;
       t = skv;
 
     }else if( k==BITVECTOR_NEG || k==BITVECTOR_NOT ){
@@ -940,7 +959,7 @@ Node BvInverter::solve_bv_constraint( Node sv, Node sv_t, Node t, Kind rk, bool 
     return t;
   }else{
     Trace("bv-invert") << "bv-invert : Unknown relation kind for bit-vector literal " << rk << std::endl;
-    return Node::null();
+    return t;
   }
 }
 
@@ -987,34 +1006,45 @@ Node BvInverter::solve_bv_lit( Node sv, Node lit, bool pol, std::vector< unsigne
   return Node::null();
 }
 
-void BvInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
-  d_inst_id_counter = 0;
-  d_var_to_inst_id.clear();
-  d_inst_id_to_term.clear();
-  d_inst_id_to_status.clear();
-}
-
+// this class can be used to query the model value through the CegInstaniator classZ
 class CegInstantiatorBvInverterModelQuery : public BvInverterModelQuery {
 protected:
+  // pointer to class that is able to query model values
   CegInstantiator * d_ci;
 public:
   CegInstantiatorBvInverterModelQuery( CegInstantiator * ci ) : 
     BvInverterModelQuery(), d_ci( ci ){}
+  ~CegInstantiatorBvInverterModelQuery(){}
+  // get the model value of n
   Node getModelValue( Node n ) {
     return d_ci->getModelValue( n );
   }
 };
 
+BvInstantiator::BvInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){
+  //FIXME : this needs to be global
+  d_inverter = new BvInverter;
+}
+
+void BvInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
+  d_inst_id_counter = 0;
+  d_var_to_inst_id.clear();
+  d_inst_id_to_term.clear();
+  d_inst_id_to_status.clear();
+  d_var_to_curr_inst_id.clear();
+}
+
+
 void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
   // find path to pv
   std::vector< unsigned > path;
-  Node sv = d_inverter.getSolveVariable( pv.getType() );
+  Node sv = d_inverter->getSolveVariable( pv.getType() );
   Node pvs = ci->getModelValue( pv );
-  Node slit = d_inverter.getPathToPv( lit, pv, sv, pvs, path );
+  Node slit = d_inverter->getPathToPv( lit, pv, sv, pvs, path );
   if( !slit.isNull() ){
     CegInstantiatorBvInverterModelQuery m( ci );
     unsigned iid = d_inst_id_counter;
-    Node inst = d_inverter.solve_bv_lit( sv, slit, true, path, &m, d_inst_id_to_status[iid] );
+    Node inst = d_inverter->solve_bv_lit( sv, slit, true, path, &m, d_inst_id_to_status[iid] );
     if( !inst.isNull() ){
       // store information for id and increment
       d_var_to_inst_id[pv].push_back( iid );
@@ -1052,35 +1082,128 @@ void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node 
   */
 }
 
-bool BvInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort ) {
-  Assert( term_props[0].isBasic() );
-  Assert( term_props[1].isBasic() );
-  //processLiteral( ci, sf, pv, terms[0].eqNode( terms[1] ), effort );
-  return false;
-}
-
 bool BvInstantiator::hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
   return true;
 }
 
 bool BvInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
-  //processLiteral( ci, sf, pv, lit, effort );
+  Trace("cegqi-bv") << "BvInstantiator::processAssertion : solve " << pv << " in " << lit << std::endl;
+  processLiteral( ci, sf, pv, lit, effort );
   return false;
 }
 
 bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) {
   std::map< Node, std::vector< unsigned > >::iterator iti = d_var_to_inst_id.find( pv );
   if( iti!=d_var_to_inst_id.end() ){
+    Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv << std::endl;
     // get inst id list
-    Trace("bv-inst") << "bv-inst : " << iti->second.size() << " candidate instantiations for " << pv << " : " << std::endl;
+    Trace("cegqi-bv") << "  " << iti->second.size() << " candidate instantiations for " << pv << " : " << std::endl;
+    // the order of instantiation ids we will try
+    std::vector< unsigned > inst_ids_try;
+    
     for( unsigned j=0; j<iti->second.size(); j++ ){
-      Trace("bv-inst") << "[" << j << "] : " << iti->second[j];
-      // print information about solved status TODO
-
-      Trace("bv-inst") << std::endl;
+      unsigned inst_id = iti->second[j];
+      Assert( d_inst_id_to_term.find(inst_id)!=d_inst_id_to_term.end() );
+      Node inst_term = d_inst_id_to_term[inst_id];
+      // debug printing
+      if( Trace.isOn("cegqi-bv") ){
+        Trace("cegqi-bv") << "   [" << j << "] : ";
+        Trace("cegqi-bv") << inst_term << std::endl;
+        // process information about solved status
+        std::map< unsigned, BvInverterStatus >::iterator its = d_inst_id_to_status.find( inst_id );
+        Assert( its!=d_inst_id_to_status.end() );
+        if( !(*its).second.d_conds.empty() ){
+          Trace("cegqi-bv") << "   ...with " << (*its).second.d_conds.size() << " side conditions : " << std::endl;
+          for( unsigned k=0; k<(*its).second.d_conds.size(); k++ ){
+            Node cond = (*its).second.d_conds[k];
+            Trace("cegqi-bv") << "       " << cond << std::endl;
+          }
+        }
+        Trace("cegqi-bv") << std::endl;
+      }
+      // TODO : selection criteria across multiple literals goes here
+      
+      // currently, we use a naive heuristic which takes only the first solved term
+      if( inst_ids_try.empty() ){
+        inst_ids_try.push_back( inst_id );
+      }
     }
+    
+    // now, try all instantiation ids we want to try
+    for( unsigned j = 0; j<inst_ids_try.size(); j++ ){
+      unsigned inst_id = iti->second[j];
+      Assert( d_inst_id_to_term.find(inst_id)!=d_inst_id_to_term.end() );
+      Node inst_term = d_inst_id_to_term[inst_id];
+      // try instantiation pv -> inst_term
+      TermProperties pv_prop_bv;
+      Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term << std::endl;
+      d_var_to_curr_inst_id[pv] = inst_id;
+      if( ci->doAddInstantiationInc( pv, inst_term, pv_prop_bv, sf, effort ) ){
+        return true;
+      }
+    }
+    Trace("cegqi-bv") << "...failed to add instantiation for " << pv << std::endl;
+    d_var_to_curr_inst_id.erase( pv );
   }
 
   return false;
 }
+
+
+bool BvInstantiator::needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
+  std::unordered_map< Node, unsigned, NodeHashFunction >::iterator iti = d_var_to_curr_inst_id.find( pv );
+  // we need to post-process the instantiation since inversion skolems need to be finalized
+  return iti!=d_var_to_curr_inst_id.end();
+}
+
+bool BvInstantiator::postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas ) {
+  Trace("cegqi-bv") << "BvInstantiator::postProcessInstantiation for " << pv << std::endl;
+  // first, eliminate bound variables from all skolem conditions
+  std::unordered_map< Node, unsigned, NodeHashFunction >::iterator iti = d_var_to_curr_inst_id.find( pv );
+  Assert( iti!=d_var_to_curr_inst_id.end() );
+  unsigned inst_id = iti->second;
+  std::map< unsigned, BvInverterStatus >::iterator its = d_inst_id_to_status.find( inst_id );
+  Assert( its!=d_inst_id_to_status.end() );
+  
+  // this maps temporary skolems (those with side conditions involving free variables) -> finalized skolems
+  std::vector< Node > sk_vars_add;
+  std::vector< Node > sk_subs_add;
+  for( std::unordered_map< Node, Node, NodeHashFunction >::iterator itk = its->second.d_sk_inv.begin(); 
+       itk != its->second.d_sk_inv.end(); ++itk ){
+    TNode curr_skv = itk->first;
+    Trace("cegqi-bv-debug") << "  Skolem " << curr_skv << " has condition " << itk->second << std::endl;
+    Node curr_cond = itk->second.substitute( sf.d_vars.begin(), sf.d_vars.end(), sf.d_subs.begin(), sf.d_subs.end() );
+    // the condition should have no bound variables, or skolems that are associated with conditions that have bound variables.
+    
+    // if the condition is updated, we need to update it
+    Node sk_for_curr_cond;
+    if( curr_cond!=itk->second ){
+      Trace("cegqi-bv-debug") << "  Skolem " << curr_skv << " has condition (after substitution) " << curr_cond << std::endl;
+      sk_for_curr_cond = d_inverter->getInversionSkolemFor( curr_cond, curr_skv.getType() );
+      // we must replace the Skolem in the condition 
+      sk_vars_add.push_back( curr_skv );
+      sk_subs_add.push_back( sk_for_curr_cond );
+    }else{
+      sk_for_curr_cond = curr_skv;
+    }
+    
+    // we now must map the solve variable in the current condition to the final skolem
+    TNode solve_var = d_inverter->getSolveVariable( sk_for_curr_cond.getType() );
+    curr_cond = curr_cond.substitute( solve_var, sk_for_curr_cond );
+    
+    // curr_cond is now in terms of the finalized skolem
+    lemmas.push_back( curr_cond );
+    Trace("cegqi-bv") << "    side condition : " << curr_cond << std::endl;
+  }
+  
+  // add new substitutions
+  TermProperties term_prop_skvinv;
+  for( unsigned i=0; i<sk_vars_add.size(); i++ ){
+    sf.push_back( sk_vars_add[i], sk_subs_add[i], term_prop_skvinv );
+    Trace("cegqi-bv") << "  (temporary -> final) skolem substitution : " << sk_vars_add[i] << " -> " << sk_subs_add[i] << std::endl;
+  }
+
+  return true;
+}
+
 
