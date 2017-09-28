@@ -1026,6 +1026,10 @@ BvInstantiator::BvInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instanti
   d_inverter = new BvInverter;
 }
 
+BvInstantiator::~BvInstantiator(){
+  delete d_inverter;
+}
+
 void BvInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
   d_inst_id_counter = 0;
   d_var_to_inst_id.clear();

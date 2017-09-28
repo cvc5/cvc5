@@ -84,23 +84,15 @@ public:
 class BvInverterModelQuery {
 public:
   BvInverterModelQuery(){}
+  ~BvInverterModelQuery(){}
   virtual Node getModelValue( Node n ) = 0;
-};
-
-// class for storing mapped data for fresh skolem constants
-class BvInverterSkData {
-public:
-  BvInverterSkData (Node sv_t, Node t, Kind op)
-    : d_sv_t(sv_t), d_t(t), d_op(op) {}
-  Node d_sv_t;
-  Node d_t;
-  Kind d_op;
 };
 
 // class for storing information about the solved status
 class BvInverterStatus {
 public:
   BvInverterStatus() : d_status(0) {}
+  ~BvInverterStatus(){}
   int d_status;
   // side conditions 
   std::vector< Node > d_conds;
@@ -157,7 +149,7 @@ private:
   void processLiteral( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
 public:
   BvInstantiator( QuantifiersEngine * qe, TypeNode tn );
-  virtual ~BvInstantiator(){}
+  virtual ~BvInstantiator();
   void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
   bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
   bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
