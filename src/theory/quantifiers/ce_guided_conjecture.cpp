@@ -16,11 +16,11 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/theory_engine.h"
-#include "prop/prop_engine.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -389,7 +389,6 @@ bool CegConjecture::needsRefinement() {
 
 void CegConjecture::getCandidateList( std::vector< Node >& clist, bool forceOrig ) {
   if( d_ceg_pbe->isPbe() && !forceOrig ){
-    //Assert( isGround() );
     d_ceg_pbe->getCandidateList( d_candidates, clist );
   }else{
     clist.insert( clist.end(), d_candidates.begin(), d_candidates.end() );
@@ -400,7 +399,6 @@ bool CegConjecture::constructCandidates( std::vector< Node >& clist, std::vector
                                          std::vector< Node >& lems ) {
   Assert( clist.size()==model_values.size() );
   if( d_ceg_pbe->isPbe() ){
-    //Assert( isGround() );
     return d_ceg_pbe->constructCandidates( clist, model_values, d_candidates, candidate_values, lems );
   }else{
     Assert( model_values.size()==d_candidates.size() );
@@ -518,15 +516,9 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
         }
       }
     }
-  }
-  
-  std::map< Node, Node > csol_active;
-  std::map< Node, std::vector< Node > > csol_ccond_nodes;
-  std::map< Node, std::map< Node, bool > > csol_cpol;    
+  } 
   
   //for conditional evaluation
-  std::map< Node, Node > psubs_visited;
-  std::map< Node, Node > psubs;
   std::vector< Node > lem_c;
   Assert( d_ce_sk[0].size()==d_base_disj.size() );
   std::vector< Node > inst_cond_c;
@@ -553,12 +545,6 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
     }
   }
   Assert( sk_vars.size()==sk_subs.size() );
-  //add conditional correctness assumptions
-  std::vector< Node > psubs_cond_ant;
-  std::vector< Node > psubs_cond_conc;
-  std::map< Node, std::vector< Node > > psubs_apply;
-  std::vector< Node > paux_vars;
-  Assert( psubs.empty() );
   
   Node base_lem = lem_c.size()==1 ? lem_c[0] : NodeManager::currentNM()->mkNode( AND, lem_c );
   
@@ -624,7 +610,7 @@ Node CegConjecture::getCurrentStreamGuard() const {
   if( d_stream_guards.empty() ){
     return Node::null();
   }else{
-    return d_stream_guards[d_stream_guards.size()-1];
+    return d_stream_guards.back();
   }
 }
 
@@ -767,7 +753,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             Trace("cegqi-inv-debug") << "...was embedding into grammar." << std::endl;
           }
         }else{
-          Trace("cegqi-inv-debug") << sf << " did not used template" << std::endl;
+          Trace("cegqi-inv-debug") << sf << " did not use template" << std::endl;
         }
       }else{
         Trace("cegqi-warn") << "WARNING : No recorded instantiations for syntax-guided solution!" << std::endl;

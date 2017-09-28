@@ -19,7 +19,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/term_database_sygus.h"
-//FIXME
+//FIXME : remove this include (github issue #1156)
 #include "theory/bv/theory_bv_rewriter.h"
 
 using namespace CVC4::kind;
@@ -158,7 +158,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
           for( unsigned j=0; j<eager_terms.size(); j++ ){
             Node lem = NodeManager::currentNM()->mkNode( kind::OR, eager_exps[j].negate(), eager_terms[j].eqNode( eager_vals[j] ) );
             if( d_quantEngine->getTheoryEngine()->isTheoryEnabled(THEORY_BV) ){
-              //FIXME: hack to incorporate hacks from BV for division by zero
+              //FIXME: hack to incorporate hacks from BV for division by zero (github issue #1156)
               lem = bv::TheoryBVRewriter::eliminateBVSDiv( lem );
             }
             if( d_quantEngine->addLemma( lem ) ){
