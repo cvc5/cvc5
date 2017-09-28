@@ -69,13 +69,27 @@ public:
    * null expression.
    */
   Expr getOverloadedFunctionForTypes(const std::string& name, const std::vector< Type >& argTypes) const;
-  /** called when obj is bound to name, and prev_bound_obj was already bound to name */
-  void bind(const string& name, Expr prev_bound_obj, Expr obj);
+  /** called when obj is bound to name, and prev_bound_obj was already bound to name 
+  * Returns false if the binding is invalid.
+  */
+  bool bind(const string& name, Expr prev_bound_obj, Expr obj);
 private:
   /** Marks expression obj with name as overloaded. 
    * Adds relevant information to the type arg trie data structure.
+   * It returns false if there is already an expression bound to that name
+   * whose type expects the same arguments as the type of obj but is not identical
+   * to the type of obj.  For example, if we declare :
+   *
+   * (declare-datatypes () ((List (cons (hd Int) (tl List)) (nil))))
+   * (declare-fun cons (Int List) List)
+   *
+   * cons : constructor_type( Int, List, List )
+   * cons : function_type( Int, List, List )
+   * 
+   * These are put in the same place in the trie but do not have identical type,
+   * hence we return false.
   */
-  void markOverloaded(const string& name, Expr obj);
+  bool markOverloaded(const string& name, Expr obj);
   /** the null expression */
   Expr d_nullExpr;
   // The (context-independent) trie storing that maps expected argument
@@ -87,7 +101,7 @@ private:
     // children of this node
     std::map< Type, TypeArgTrie > d_children;
     // symbols at this node
-    std::map< Type, std::map< Kind, Expr > > d_symbols;
+    std::map< Type, Expr > d_symbols;
   };
   /** for each string with operator overloading, this stores the data structure above. */
   std::unordered_map< std::string, TypeArgTrie > d_overload_type_arg_trie;
@@ -102,22 +116,13 @@ bool OverloadedTypeTrie::isOverloadedFunction(Expr fun) const {
 Expr OverloadedTypeTrie::getOverloadedConstantForType(const std::string& name, Type t) const {
   std::unordered_map< std::string, TypeArgTrie >::const_iterator it = d_overload_type_arg_trie.find(name);
   if(it!=d_overload_type_arg_trie.end()) {
-    std::map< Type, std::map< Kind, Expr > >::const_iterator its = it->second.d_symbols.find(t);
+    std::map< Type, Expr >::const_iterator its = it->second.d_symbols.find(t);
     if(its!=it->second.d_symbols.end()) {
+      Expr expr = its->second;
       // must be an active symbol
-      Expr retExpr;
-      for( std::map< Kind, Expr >::const_iterator its2 = its->second.begin(); its2 != its->second.begin(); ++its2) {
-        Expr expr = its2->second;
-        if(isOverloadedFunction(expr)) {
-          if(retExpr.isNull()) {
-            retExpr = expr;
-          }else{
-            // multiple functions match
-            return d_nullExpr;
-          }
-        }
+      if(isOverloadedFunction(expr)) {
+        return expr;
       }
-      return retExpr;
     }
   }
   return d_nullExpr;
@@ -139,16 +144,14 @@ Expr OverloadedTypeTrie::getOverloadedFunctionForTypes(const std::string& name,
     }
     // now, we must ensure that there is *only* one active symbol at this node
     Expr retExpr;
-    for(std::map< Type, std::map< Kind, Expr > >::const_iterator its = tat->d_symbols.begin(); its != tat->d_symbols.end(); ++its) {
-      for( std::map< Kind, Expr >::const_iterator its2 = its->second.begin(); its2 != its->second.begin(); ++its2) {
-        Expr expr = its2->second;
-        if(isOverloadedFunction(expr)) {
-          if(retExpr.isNull()) {
-            retExpr = expr;
-          }else{
-            // multiple functions match
-            return d_nullExpr;
-          }
+    for(std::map< Type, Expr >::const_iterator its = tat->d_symbols.begin(); its != tat->d_symbols.end(); ++its) {
+      Expr expr = its->second;
+      if(isOverloadedFunction(expr)) {
+        if(retExpr.isNull()) {
+          retExpr = expr;
+        }else{
+          // multiple functions match
+          return d_nullExpr;
         }
       }
     }
@@ -157,16 +160,18 @@ Expr OverloadedTypeTrie::getOverloadedFunctionForTypes(const std::string& name,
   return d_nullExpr;
 }
 
-void OverloadedTypeTrie::bind(const string& name, Expr prev_bound_obj, Expr obj) {
+bool OverloadedTypeTrie::bind(const string& name, Expr prev_bound_obj, Expr obj) {
+  bool retprev = true;
   if(!isOverloadedFunction(prev_bound_obj)) {
     // mark previous as overloaded
-    markOverloaded(name, prev_bound_obj);
+    retprev = markOverloaded(name, prev_bound_obj);
   }
   // mark this as overloaded
-  markOverloaded(name, obj);
+  bool retobj = markOverloaded(name, obj);
+  return retprev && retobj;
 }
 
-void OverloadedTypeTrie::markOverloaded(const string& name, Expr obj) {
+bool OverloadedTypeTrie::markOverloaded(const string& name, Expr obj) {
   Trace("parser-overloading") << "Overloaded function : " << name;
   Trace("parser-overloading") << " with type " << obj.getType() << std::endl;
   // get the argument types
@@ -193,22 +198,25 @@ void OverloadedTypeTrie::markOverloaded(const string& name, Expr obj) {
   }
   
   // types can be identical but vary on the kind of the type, thus we must distinguish based on this
-  Kind k = TypeNode::fromType( t ).getKind();
-  std::map< Type, std::map< Kind, Expr > >::iterator it = tat->d_symbols.find( rangeType );
+  std::map< Type, Expr >::iterator it = tat->d_symbols.find( rangeType );
   if( it!=tat->d_symbols.end() ){
-    std::map< Kind, Expr >::iterator it2 = it->second.find( k );
-    if( it2!=it->second.end() ){
-      Assert( it2->second.getType()==obj.getType() );
-      // if there is already an active function with the same name and an identical type, simply ignore it
-      if( isOverloadedFunction( it2->second ) ){
-        return;
+    Expr prev_obj = it->second;
+    // if there is already an active function with the same name and expects the same argument types
+    if( isOverloadedFunction(prev_obj) ){
+      if( prev_obj.getType()==obj.getType() ){
+        //types are identical, simply ignore it
+        return true;
+      }else{
+        //otherwise there is no way to distinguish these types, we return an error
+        return false;
       }
     }
   }
   
   // otherwise, update the symbols
   d_overloaded_symbols->insert(obj);
-  tat->d_symbols[rangeType][k]= obj;
+  tat->d_symbols[rangeType] = obj;
+  return true;
 }
 
 
@@ -229,8 +237,8 @@ class SymbolTable::Implementation {
     delete d_overload_trie;
   }
 
-  void bind(const string& name, Expr obj, bool levelZero, bool doOverload) throw();
-  void bindDefinedFunction(const string& name, Expr obj,
+  bool bind(const string& name, Expr obj, bool levelZero, bool doOverload) throw();
+  bool bindDefinedFunction(const string& name, Expr obj,
                            bool levelZero, bool doOverload) throw();
   void bindType(const string& name, Type t, bool levelZero = false) throw();
   void bindType(const string& name, const vector<Type>& params, Type t,
@@ -279,33 +287,39 @@ class SymbolTable::Implementation {
   /** bind with overloading
    * This is called whenever obj is bound to name where overloading symbols is allowed.
    * If a symbol is previously bound to that name, it marks both as overloaded.
+   * Returns false if the binding was invalid.
   */
-  void bindWithOverloading(const string& name, Expr obj);
+  bool bindWithOverloading(const string& name, Expr obj);
   //------------------------ end operator overloading
 }; /* SymbolTable::Implementation */
 
-void SymbolTable::Implementation::bind(const string& name, Expr obj,
+bool SymbolTable::Implementation::bind(const string& name, Expr obj,
                                        bool levelZero, bool doOverload) throw() {
   PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
   if (doOverload) {
-    bindWithOverloading(name, obj);
+    if( !bindWithOverloading(name, obj) ){
+      return false;
+    }
   }
   if (levelZero) {
     d_exprMap->insertAtContextLevelZero(name, obj);
   } else {
     d_exprMap->insert(name, obj);
   }
+  return true;
 }
 
-void SymbolTable::Implementation::bindDefinedFunction(const string& name,
+bool SymbolTable::Implementation::bindDefinedFunction(const string& name,
                                                       Expr obj,
                                                       bool levelZero, 
                                                       bool doOverload) throw() {
   PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
   if (doOverload) {
-    bindWithOverloading(name, obj);
+    if( !bindWithOverloading(name, obj) ){
+      return false;
+    }
   }
   if (levelZero) {
     d_exprMap->insertAtContextLevelZero(name, obj);
@@ -314,6 +328,7 @@ void SymbolTable::Implementation::bindDefinedFunction(const string& name,
     d_exprMap->insert(name, obj);
     d_functions->insert(obj);
   }
+  return true;
 }
 
 bool SymbolTable::Implementation::isBound(const string& name) const throw() {
@@ -475,14 +490,15 @@ Expr SymbolTable::Implementation::getOverloadedFunctionForTypes(const std::strin
   return d_overload_trie->getOverloadedFunctionForTypes(name, argTypes);
 }
 
-void SymbolTable::Implementation::bindWithOverloading(const string& name, Expr obj){
+bool SymbolTable::Implementation::bindWithOverloading(const string& name, Expr obj){
   CDHashMap<string, Expr>::const_iterator it = d_exprMap->find(name);
   if(it != d_exprMap->end()) {
     const Expr& prev_bound_obj = (*it).second;
     if(prev_bound_obj!=obj) {
-      d_overload_trie->bind(name, prev_bound_obj, obj);
+      return d_overload_trie->bind(name, prev_bound_obj, obj);
     }
   }
+  return true;
 }
 
 bool SymbolTable::isOverloadedFunction(Expr fun) const {
@@ -503,13 +519,13 @@ SymbolTable::SymbolTable()
 
 SymbolTable::~SymbolTable() {}
 
-void SymbolTable::bind(const string& name, Expr obj, bool levelZero, bool doOverload) throw() {
-  d_implementation->bind(name, obj, levelZero, doOverload);
+bool SymbolTable::bind(const string& name, Expr obj, bool levelZero, bool doOverload) throw() {
+  return d_implementation->bind(name, obj, levelZero, doOverload);
 }
 
-void SymbolTable::bindDefinedFunction(const string& name, Expr obj,
+bool SymbolTable::bindDefinedFunction(const string& name, Expr obj,
                                       bool levelZero, bool doOverload) throw() {
-  d_implementation->bindDefinedFunction(name, obj, levelZero, doOverload);
+  return d_implementation->bindDefinedFunction(name, obj, levelZero, doOverload);
 }
 
 void SymbolTable::bindType(const string& name, Type t, bool levelZero) throw() {

@@ -61,8 +61,10 @@ class CVC4_PUBLIC SymbolTable {
    * @param obj the expression to bind to <code>name</code>
    * @param levelZero set if the binding must be done at level 0
    * @param doOverload set if the binding can overload the function name.
+   *
+   * Returns false if the binding was invalid.
    */
-  void bind(const std::string& name, Expr obj, bool levelZero = false, 
+  bool bind(const std::string& name, Expr obj, bool levelZero = false, 
             bool doOverload = false) throw();
 
   /**
@@ -87,8 +89,10 @@ class CVC4_PUBLIC SymbolTable {
    * @param obj the expression to bind to <code>name</code>
    * @param levelZero set if the binding must be done at level 0
    * @param doOverload set if the binding can overload the function name.
+   *
+   * Returns false if the binding was invalid.
    */
-  void bindDefinedFunction(const std::string& name, Expr obj,
+  bool bindDefinedFunction(const std::string& name, Expr obj,
                            bool levelZero = false, 
                            bool doOverload = false) throw();
 
