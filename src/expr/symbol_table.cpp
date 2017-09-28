@@ -104,7 +104,11 @@ Expr OverloadedTypeTrie::getOverloadedConstantForType(const std::string& name, T
   if(it!=d_overload_type_arg_trie.end()) {
     std::map< Type, Expr >::const_iterator its = it->second.d_symbols.find(t);
     if(its!=it->second.d_symbols.end()) {
-      return its->second;
+      // must be an active symbol
+      Expr expr = its->second;
+      if(isOverloadedFunction(expr)) {
+        return expr;
+      }
     }
   }
   return d_nullExpr;
@@ -124,7 +128,7 @@ Expr OverloadedTypeTrie::getOverloadedFunctionForTypes(const std::string& name,
         return d_nullExpr;
       }
     }
-    // now, we must ensure that there is one and only one active symbol at this node
+    // now, we must ensure that there is *only* one active symbol at this node
     Expr retExpr;
     for(std::map< Type, Expr >::const_iterator its = tat->d_symbols.begin(); its != tat->d_symbols.end(); ++its) {
       Expr expr = its->second;
@@ -154,29 +158,39 @@ void OverloadedTypeTrie::bind(const string& name, Expr prev_bound_obj, Expr obj)
 void OverloadedTypeTrie::markOverloaded(const string& name, Expr obj) {
   Trace("parser-overloading") << "Overloaded function : " << name;
   Trace("parser-overloading") << " with type " << obj.getType() << std::endl;
-  d_overloaded_symbols->insert(obj);
   // get the argument types
   Type t = obj.getType();
   Type rangeType = t;
   std::vector< Type > argTypes;
   if(t.isFunction()) {
-    argTypes = ((FunctionType)t).getArgTypes();
-    rangeType = ((FunctionType)t).getRangeType();
+    argTypes = static_cast<FunctionType>(t).getArgTypes();
+    rangeType = static_cast<FunctionType>(t).getRangeType();
   }else if(t.isConstructor()) {
-    argTypes = ((ConstructorType)t).getArgTypes();
-    rangeType = ((ConstructorType)t).getRangeType();
+    argTypes = static_cast<ConstructorType>(t).getArgTypes();
+    rangeType = static_cast<ConstructorType>(t).getRangeType();
   }else if(t.isTester()) {
-    argTypes.push_back( ((TesterType)t).getDomain() );
-    rangeType = ((TesterType)t).getRangeType();
+    argTypes.push_back( static_cast<TesterType>(t).getDomain() );
+    rangeType = static_cast<TesterType>(t).getRangeType();
   }else if(t.isSelector()) {
-    argTypes.push_back( ((SelectorType)t).getDomain() );
-    rangeType = ((SelectorType)t).getRangeType();
+    argTypes.push_back( static_cast<SelectorType>(t).getDomain() );
+    rangeType = static_cast<SelectorType>(t).getRangeType();
   }
   // add to the trie
   TypeArgTrie * tat = &d_overload_type_arg_trie[name];
   for(unsigned i=0; i<argTypes.size(); i++) {
     tat = &(tat->d_children[argTypes[i]]);
   }
+  
+  std::map< Type, Expr >::iterator it = d_symbols.find( rangeType );
+  if( it!=d_symbols.end() ){
+    // if there is already an active function with the same name and an identical type, simply ignore it
+    if( isOverloadedFunction( it->second ) ){
+      return;
+    }
+  }
+  
+  // otherwise, update the symbols
+  d_overloaded_symbols->insert(obj);
   tat->d_symbols[rangeType] = obj;
 }
 
