@@ -43,28 +43,43 @@ class CVC4_PUBLIC SymbolTable {
   ~SymbolTable();
 
   /**
-   * Bind an expression to a name in the current scope level.  If
-   * <code>name</code> is already bound to an expression in the current
+   * Bind an expression to a name in the current scope level.  
+   *
+   * When doOverload is false:
+   * if <code>name</code> is already bound to an expression in the current
    * level, then the binding is replaced. If <code>name</code> is bound
    * in a previous level, then the binding is "covered" by this one
-   * until the current scope is popped when doOverload is false. 
+   * until the current scope is popped. 
    * If levelZero is true the name shouldn't be already bound.
+   *
+   * When doOverload is true:
+   * if <code>name</code> is already bound to an expression in the current
+   * level, then we mark the previous bound expression and obj as overloaded
+   * functions.
    *
    * @param name an identifier
    * @param obj the expression to bind to <code>name</code>
    * @param levelZero set if the binding must be done at level 0
    * @param doOverload set if the binding can overload the function name.
-   *        if this is not set, the name is "covered" in the sense above.
    */
   void bind(const std::string& name, Expr obj, bool levelZero = false, 
             bool doOverload = false) throw();
 
   /**
-   * Bind a function body to a name in the current scope.  If
-   * <code>name</code> is already bound to an expression in the current
+   * Bind a function body to a name in the current scope.  
+   *
+   * When doOverload is false:
+   * if <code>name</code> is already bound to an expression in the current
    * level, then the binding is replaced. If <code>name</code> is bound
    * in a previous level, then the binding is "covered" by this one
-   * until the current scope is popped when doOverload is false.  
+   * until the current scope is popped. 
+   * If levelZero is true the name shouldn't be already bound.
+   *
+   * When doOverload is true:
+   * if <code>name</code> is already bound to an expression in the current
+   * level, then we mark the previous bound expression and obj as overloaded
+   * functions.
+   *
    * Same as bind() but registers this as a function (so that 
    * isBoundDefinedFunction() returns true).
    *
@@ -72,7 +87,6 @@ class CVC4_PUBLIC SymbolTable {
    * @param obj the expression to bind to <code>name</code>
    * @param levelZero set if the binding must be done at level 0
    * @param doOverload set if the binding can overload the function name.
-   *        if this is not set, the name is "covered" in the sense above.
    */
   void bindDefinedFunction(const std::string& name, Expr obj,
                            bool levelZero = false, 
@@ -191,15 +205,21 @@ class CVC4_PUBLIC SymbolTable {
   bool isOverloadedFunction(Expr fun) const;
   
   /** Get overloaded constant for type.
-   * If possible, it returns a defined symbol with name
+   * If possible, it returns the defined symbol with name
    * that has type t. Otherwise returns null expression.
   */
   Expr getOverloadedConstantForType(const std::string& name, Type t) const;
   
   /**
-   * If possible, returns a defined function for a name
-   * and a vector of expected argument types. Otherwise returns
-   * null expression.
+   * If possible, returns the unique defined function for a name
+   * that expects arguments with types "argTypes".
+   * For example, if argTypes = ( T1, ..., Tn ), then this may return 
+   * an expression with type function( T1, ..., Tn ), or constructor( T1, ...., Tn ).
+   * 
+   * If there is not a unique defined function for the name and argTypes,
+   * this returns the null expression. This can happen either if there are
+   * no functions with name and expected argTypes, or alternatively there are
+   * more than one functions with name and expected argTypes.
    */
   Expr getOverloadedFunctionForTypes(const std::string& name, const std::vector< Type >& argTypes) const;
   //------------------------ end operator overloading

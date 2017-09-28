@@ -317,10 +317,11 @@ void SymbolTable::Implementation::reset() {
 void SymbolTable::Implementation::bindWithOverloading(const string& name, Expr obj) {
   CDHashMap<string, Expr>::const_iterator it = d_exprMap->find(name);
   if(it != d_exprMap->end()) {
-    if((*it).second!=obj) {
-      if(!isOverloadedFunction((*it).second)) {
+    const Expr& prev_bound_expr = (*it).second;
+    if(prev_bound_expr!=obj) {
+      if(!isOverloadedFunction(prev_bound_expr)) {
         // mark previous as overloaded
-        markOverloaded(name, (*it).second);
+        markOverloaded(name, prev_bound_expr);
       }
       // mark this as overloaded
       markOverloaded(name, obj);
