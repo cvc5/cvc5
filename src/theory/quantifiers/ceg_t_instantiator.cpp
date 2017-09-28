@@ -1006,7 +1006,7 @@ Node BvInverter::solve_bv_lit( Node sv, Node lit, bool pol, std::vector< unsigne
   return Node::null();
 }
 
-// this class can be used to query the model value through the CegInstaniator classZ
+// this class can be used to query the model value through the CegInstaniator class
 class CegInstantiatorBvInverterModelQuery : public BvInverterModelQuery {
 protected:
   // pointer to class that is able to query model values
