@@ -76,7 +76,9 @@ TESTS =	\
 	fmf-fun-no-elim-ext-arith.smt2 \
 	fmf-fun-no-elim-ext-arith2.smt2 \
 	cruanes-no-minimal-unk.smt2 \
-	no-minimal-sat.smt2
+	no-minimal-sat.smt2 \
+	issue916-fmf-or.smt2 \
+	pow2-bool.smt2 
 
 EXTRA_DIST = $(TESTS)
 
