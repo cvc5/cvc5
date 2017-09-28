@@ -95,11 +95,22 @@ public:
   std::vector< Node > d_conds;
 };
 
+// class for storing mapped data for fresh skolem constants
+class BvInverterSkData {
+public:
+  BvInverterSkData (Node sv_t, Node t, Kind op)
+    : d_sv_t(sv_t), d_t(t), d_op(op) {}
+  Node d_sv_t;
+  Node d_t;
+  Kind d_op;
+};
+
 // inverter class
 // TODO : move to theory/bv/ if generally useful?
 class BvInverter {
 private:
   std::map< TypeNode, Node > d_solve_var;
+  std::unordered_map< Node, BvInverterSkData, NodeHashFunction > d_sk_inv;
   Node getPathToPv( Node lit, Node pv, Node sv, std::vector< unsigned >& path, std::unordered_set< TNode, TNodeHashFunction >& visited );
 public:
   // get dummy fresh variable of type tn, used as argument for sv 

@@ -294,10 +294,8 @@ static void bufferedInputSeek(pANTLR3_INT_STREAM is, ANTLR3_MARKER seekPoint) {
   assert(!line_buffered_input->line_buffer->isPtrBefore(
       (uint8_t*)seekPoint, input->line, input->charPositionInLine));
 
-  ssize_t count = (ssize_t)(seekPoint - (ANTLR3_MARKER)(input->nextChar));
-  while (count > 0) {
+  while ((ANTLR3_MARKER)(input->nextChar) != seekPoint) {
     is->consume(is);
-    count--;
   }
 }
 
