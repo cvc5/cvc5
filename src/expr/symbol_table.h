@@ -154,7 +154,9 @@ class CVC4_PUBLIC SymbolTable {
    * Lookup a bound expression.
    *
    * @param name the identifier to lookup
-   * @returns the expression bound to <code>name</code> in the current scope.
+   * @returns the unique expression bound to <code>name</code> in the current scope.
+   * It returns the null expression if there is not a unique expression bound to 
+   * <code>name</code> in the current scope (i.e. if there is not exactly one).
    */
   Expr lookup(const std::string& name) const throw();
 
