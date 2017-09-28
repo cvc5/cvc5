@@ -18,7 +18,6 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_CONJECTURE_H
 #define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_CONJECTURE_H
 
-#include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
 #include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/ce_guided_pbe.h"
