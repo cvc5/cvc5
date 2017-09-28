@@ -20,6 +20,7 @@
 #ifndef __CVC4__HASH_H
 #define __CVC4__HASH_H
 
+#include <cstdint>
 #include <functional>
 #include <string>
 
@@ -40,11 +41,27 @@ struct hash<uint64_t> {
 
 namespace CVC4 {
 
+namespace fnv1a {
+
+/**
+ * FNV-1a hash algorithm for 64-bit numbers.
+ *
+ * More details here: http://www.isthe.com/chongo/tech/comp/fnv/index.html
+ */
+inline uint64_t fnv1a_64(uint64_t v, uint64_t hash = 14695981039346656037U) {
+  hash ^= v;
+  // Multiplication by 1099511628211
+  return hash + (hash << 1) + (hash << 4) + (hash << 5) + (hash << 7) +
+         (hash << 8) + (hash << 40);
+}
+
+}  // namespace fnv1a
 
 template <class T, class U, class HashT = std::hash<T>, class HashU = std::hash<U> >
 struct PairHashFunction {
   size_t operator()(const std::pair<T, U>& pr) const {
-    return HashT()(pr.first) ^ HashU()(pr.second);
+    uint64_t hash = fnv1a::fnv1a_64(HashT()(pr.first));
+    return static_cast<size_t>(fnv1a::fnv1a_64(HashU()(pr.second), hash));
   }
 };/* struct PairHashFunction */
 
