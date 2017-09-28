@@ -224,7 +224,7 @@ class CVC4_PUBLIC SymbolTable {
    * 
    * If there is not a unique defined function for the name and argTypes,
    * this returns the null expression. This can happen either if there are
-   * no functions with name and expected argTypes, or alternatively there are
+   * no functions with name and expected argTypes, or alternatively there is
    * more than one functions with name and expected argTypes.
    */
   Expr getOverloadedFunctionForTypes(const std::string& name, const std::vector< Type >& argTypes) const;
