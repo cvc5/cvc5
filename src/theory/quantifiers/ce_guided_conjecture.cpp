@@ -29,6 +29,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+// recursion is not an issue since OR nodes are flattened by the (quantifiers) rewriter
+// this function is for sanity since solution correctness in SyGuS depends on fully miniscoping based on this function
 void collectDisjuncts( Node n, std::vector< Node >& d ) {
   if( n.getKind()==OR ){
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -39,7 +41,7 @@ void collectDisjuncts( Node n, std::vector< Node >& d ) {
   }
 }
 
-CegConjecture::CegConjecture( QuantifiersEngine * qe, context::Context* c )
+CegConjecture::CegConjecture( QuantifiersEngine * qe )
     : d_qe( qe ) {
   d_refine_count = 0;
   d_ceg_si = new CegConjectureSingleInv( qe, this );

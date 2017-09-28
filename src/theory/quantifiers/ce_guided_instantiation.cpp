@@ -30,7 +30,7 @@ namespace theory {
 namespace quantifiers {
 
 CegInstantiation::CegInstantiation( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ){
-  d_conj = new CegConjecture( qe, qe->getSatContext() );
+  d_conj = new CegConjecture( qe );
   d_last_inst_si = false;
 }
 

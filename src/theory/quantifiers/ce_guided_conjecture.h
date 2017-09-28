@@ -30,7 +30,7 @@ namespace quantifiers {
 /** a synthesis conjecture */
 class CegConjecture {
 public:
-  CegConjecture( QuantifiersEngine * qe, context::Context* c );
+  CegConjecture( QuantifiersEngine * qe );
   ~CegConjecture();
   /** get original version of conjecture */
   Node getConjecture() { return d_quant; }
