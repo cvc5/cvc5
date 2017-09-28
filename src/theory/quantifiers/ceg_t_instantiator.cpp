@@ -1022,7 +1022,7 @@ public:
 };
 
 BvInstantiator::BvInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){
-  //FIXME : this needs to be global
+  //FIXME : this needs to be global!!  Probably move to QuantifiersEngine
   d_inverter = new BvInverter;
 }
 
@@ -1051,35 +1051,10 @@ void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node 
       d_inst_id_to_term[iid] = inst;
       d_inst_id_counter++;
     }else{
-      // cleanup information
+      // cleanup information if we failed to solve
       d_inst_id_to_status.erase( iid );
     }
   }
-  /*   TODO: algebraic reasoning for bitvector instantiation
-  if( atom.getKind()==BITVECTOR_ULT || atom.getKind()==BITVECTOR_ULE ){
-    for( unsigned t=0; t<2; t++ ){
-      if( atom[t]==pv ){
-        computeProgVars( atom[1-t] );
-        if( d_inelig.find( atom[1-t] )==d_inelig.end() ){
-          //only ground terms  TODO: more
-          if( d_prog_var[atom[1-t]].empty() ){
-            TermProperties pv_prop;
-            Node uval;
-            if( ( !pol && atom.getKind()==BITVECTOR_ULT ) || ( pol && atom.getKind()==BITVECTOR_ULE ) ){
-              uval = atom[1-t];
-            }else{
-              uval = NodeManager::currentNM()->mkNode( (atom.getKind()==BITVECTOR_ULT)==(t==1) ? BITVECTOR_PLUS : BITVECTOR_SUB, atom[1-t],
-                                                       bv::utils::mkConst(pvtn.getConst<BitVectorSize>(), 1) );
-            }
-            if( doAddInstantiationInc( pv, uval, pv_prop, sf, effort ) ){
-              return true;
-            }
-          }
-        }
-      }
-    }
-  }
-  */
 }
 
 bool BvInstantiator::hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
@@ -1088,7 +1063,10 @@ bool BvInstantiator::hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, 
 
 bool BvInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
   Trace("cegqi-bv") << "BvInstantiator::processAssertion : solve " << pv << " in " << lit << std::endl;
-  processLiteral( ci, sf, pv, lit, effort );
+  if( options::cbqiBv() ){
+    // if option enabled, use approach for word-level inversion for BV instantiation
+    processLiteral( ci, sf, pv, lit, effort );
+  }
   return false;
 }
 
@@ -1124,6 +1102,7 @@ bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, No
       // TODO : selection criteria across multiple literals goes here
       
       // currently, we use a naive heuristic which takes only the first solved term
+      // TODO : randomize?
       if( inst_ids_try.empty() ){
         inst_ids_try.push_back( inst_id );
       }
@@ -1137,6 +1116,8 @@ bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, No
       // try instantiation pv -> inst_term
       TermProperties pv_prop_bv;
       Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term << std::endl;
+      // TODO : need to track dependencies between inst_term and the free variables it depends on
+      // This should enforce that we do not introduce any circular dependencies when solving for further variables.
       d_var_to_curr_inst_id[pv] = inst_id;
       if( ci->doAddInstantiationInc( pv, inst_term, pv_prop_bv, sf, effort ) ){
         return true;
@@ -1183,6 +1164,8 @@ bool BvInstantiator::postProcessInstantiationForVariable( CegInstantiator * ci, 
       // we must replace the Skolem in the condition 
       sk_vars_add.push_back( curr_skv );
       sk_subs_add.push_back( sk_for_curr_cond );
+      
+      // TODO : register this as a skolem that is eligible for instantiation
     }else{
       sk_for_curr_cond = curr_skv;
     }
