@@ -219,7 +219,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
     bool eeHasTerm;
     if( !options::ufHo() && (t.isFunction() || t.isPredicate()) ){
       // functions are in the equality engine, but *not* as first-class members
-      // when higher-order is disabled. In this case, we cannot not query representatives for functions
+      // when higher-order is disabled. In this case, we cannot query representatives for functions
       // since they are "internal" nodes according to the equality engine despite hasTerm returning true. 
       // However, they are first class members when higher-order is enabled. Hence, the special
       // case here.
@@ -1342,9 +1342,15 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f) {
   m->assignFunctionDefinition( f, val );
 }
 
-
+// This struct is used to sort terms by the "size" of their type
+//   The size of the type is the number of nodes in the type, for example
+//  size of Int is 1
+//  size of Function( Int, Int ) is 3
+//  size of Function( Function( Bool, Int ), Int ) is 5
 struct sortTypeSize {
+  // stores the size of the type
   std::map< TypeNode, unsigned > d_type_size;
+  // get the size of type tn
   unsigned getTypeSize( TypeNode tn ) {
     std::map< TypeNode, unsigned >::iterator it = d_type_size.find( tn );
     if( it!=d_type_size.end() ){
@@ -1359,6 +1365,9 @@ struct sortTypeSize {
     }
   }
 public:
+  // compares the type size of i and j
+  // returns true iff the size of i is less than that of j
+  // tiebreaks are determined by node value
   bool operator() (Node i, Node j) {
     int si = getTypeSize( i.getType() );
     int sj = getTypeSize( j.getType() );

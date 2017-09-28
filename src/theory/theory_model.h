@@ -131,7 +131,10 @@ public:
   /** print representative function */
   void printRepresentative( std::ostream& out, Node r );
 private:
-  /** uf models */
+  /** map from function terms to the (lambda) definitions
+  * After the model is built, the domain of this map is all terms of function type
+  * that appear as terms in d_equalityEngine.
+  */
   std::map< Node, Node > d_uf_models;
 public:
   /** whether function models are enabled */
@@ -145,7 +148,8 @@ public:
   /** have we assigned function f? */
   bool hasAssignedFunctionDefinition( Node f ) const { return d_uf_models.find( f )!=d_uf_models.end(); }
   /** get the list of functions to assign. 
-  * If higher-order is enabled, we ensure that these functions are sorted by type size.
+  * This list will contain all terms of function type that are terms in d_equalityEngine.
+  * If higher-order is enabled, we ensure that this list is sorted by type size.
   * This allows us to assign functions T -> T before ( T x T ) -> T and before ( T -> T ) -> T,
   * which is required for "dag form" model construction (see TheoryModelBuilder::assignHoFunction).
   */
@@ -357,7 +361,11 @@ protected:
   *                 (ite (= x 1) ((f 1) y) ...))
   */
   void assignHoFunction(TheoryModel* m, Node f);
-  /** assign all unassigned functions that occur in the model m, using the two functions above. */
+  /** Assign all unassigned functions in the model m (those returned by TheoryModel::getFunctionsToAssign), 
+  * using the two functions above. Currently:
+  * If ufHo is disabled, we call assignFunction for all functions. 
+  * If ufHo is enabled, we call assignHoFunction.
+  */
   void assignFunctions(TheoryModel* m);
 public:
   TheoryEngineModelBuilder(TheoryEngine* te);
