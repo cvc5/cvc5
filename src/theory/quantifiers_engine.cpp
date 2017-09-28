@@ -741,6 +741,8 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       //}
       Trace("quant-debug")  << "...finish." << std::endl;
       d_quants[f] = true;
+      // flush lemmas
+      flushLemmas();
       return true;
     }
   }else{

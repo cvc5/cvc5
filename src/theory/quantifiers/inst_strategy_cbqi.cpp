@@ -167,10 +167,8 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
     if( doCbqi( q ) ){
-      if( registerCbqiLemma( q ) ){
-        Debug("cbqi-debug") << "Registered cbqi lemma." << std::endl;
-      //set inactive the quantified formulas whose CE literals are asserted false
-      }else if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
+      Assert( hasAddedCbqiLemma( q ) );
+      if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
         d_active_quant[q] = true;
         Debug("cbqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( q );
@@ -373,7 +371,11 @@ void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
 }
 
 void InstStrategyCbqi::registerQuantifier( Node q ) {
-
+  if( doCbqi( q ) ){
+    if( registerCbqiLemma( q ) ){
+      Trace("cbqi") << "Registered cbqi lemma for quantifier : " << q << std::endl;
+    }
+  }
 }
 
 Node InstStrategyCbqi::doNestedQENode( Node q, Node ceq, Node n, std::vector< Node >& inst_terms, bool doVts ) {
@@ -553,6 +555,7 @@ bool InstStrategyCbqi::doCbqi( Node q ){
   if( it==d_do_cbqi.end() ){
     int ret = 2;
     if( !d_quantEngine->getTermDatabase()->isQAttrQuantElim( q ) ){
+      Assert( !d_quantEngine->getTermDatabase()->isQAttrQuantElimPartial( q ) );
       //if has an instantiation pattern, don't do it
       if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
         for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
@@ -776,10 +779,14 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
 }
 
 void InstStrategyCegqi::registerQuantifier( Node q ) {
-  if( options::cbqiPreRegInst() ){
-    if( doCbqi( q ) ){
-      //just get the instantiator
+  if( doCbqi( q ) ){
+    // get the instantiator  
+    if( options::cbqiPreRegInst() ){
       getInstantiator( q );
+    }
+    // register the cbqi lemma
+    if( registerCbqiLemma( q ) ){
+      Trace("cbqi") << "Registered cbqi lemma for quantifier : " << q << std::endl;
     }
   }
 }
