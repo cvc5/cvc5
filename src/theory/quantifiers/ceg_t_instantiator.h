@@ -45,8 +45,8 @@ public:
   bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
   bool processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
   bool processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort );
-  bool needsPostProcessInstantiation( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
-  bool postProcessInstantiation( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
+  bool needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
+  bool postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas );
   std::string identify() const { return "Arith"; }
 };
 
@@ -87,14 +87,6 @@ public:
   virtual Node getModelValue( Node n ) = 0;
 };
 
-// class for storing information about the solved status
-class BvInverterStatus {
-public:
-  BvInverterStatus() : d_status(0) {}
-  int d_status;
-  std::vector< Node > d_conds;
-};
-
 // class for storing mapped data for fresh skolem constants
 class BvInverterSkData {
 public:
@@ -105,16 +97,35 @@ public:
   Kind d_op;
 };
 
+// class for storing information about the solved status
+class BvInverterStatus {
+public:
+  BvInverterStatus() : d_status(0) {}
+  int d_status;
+  // side conditions 
+  std::vector< Node > d_conds;
+  // conditions regarding the skolems in d_conds
+  std::unordered_map< Node, Node, NodeHashFunction > d_sk_inv;
+};
+
 // inverter class
 // TODO : move to theory/bv/ if generally useful?
 class BvInverter {
 private:
   std::map< TypeNode, Node > d_solve_var;
-  std::unordered_map< Node, BvInverterSkData, NodeHashFunction > d_sk_inv;
   Node getPathToPv( Node lit, Node pv, Node sv, std::vector< unsigned >& path, std::unordered_set< TNode, TNodeHashFunction >& visited );
+  // stores the inversion skolems
+  std::unordered_map< Node, Node, NodeHashFunction > d_inversion_skolem_cache;
 public:
+  BvInverter(){}
+  ~BvInverter(){}
   // get dummy fresh variable of type tn, used as argument for sv 
   Node getSolveVariable( TypeNode tn );
+  // get inversion skolem for condition
+  // precondition : exists x. cond( x ) is a tautology in BV,
+  //                where x is getSolveVariable( tn ).
+  // returns fresh skolem k, where we may assume cond( k ).
+  Node getInversionSkolemFor( Node cond, TypeNode tn );
   // Get path to pv in lit, replace that occurrence by sv and all others by pvs.
   // e.g. if return value R is non-null, then:
   //   lit.path = pv
@@ -134,23 +145,26 @@ public:
 
 class BvInstantiator : public Instantiator {
 private:
-  BvInverter d_inverter;
+  // point to the bv inverter class
+  BvInverter * d_inverter;
   unsigned d_inst_id_counter;
   std::map< Node, std::vector< unsigned > > d_var_to_inst_id;
   std::map< unsigned, Node > d_inst_id_to_term;
   std::map< unsigned, BvInverterStatus > d_inst_id_to_status;
+  // variable to current id we are processing
+  std::unordered_map< Node, unsigned, NodeHashFunction > d_var_to_curr_inst_id;
 private:
   void processLiteral( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
 public:
-  BvInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
+  BvInstantiator( QuantifiersEngine * qe, TypeNode tn );
   virtual ~BvInstantiator(){}
   void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
-  bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
-  bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort );
   bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
   bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
   bool processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
   bool processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort );
+  bool needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
+  bool postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas );
   bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
   std::string identify() const { return "Bv"; }
 };
