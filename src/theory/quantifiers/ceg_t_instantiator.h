@@ -140,9 +140,9 @@ private:
   // point to the bv inverter class
   BvInverter * d_inverter;
   unsigned d_inst_id_counter;
-  std::map< Node, std::vector< unsigned > > d_var_to_inst_id;
-  std::map< unsigned, Node > d_inst_id_to_term;
-  std::map< unsigned, BvInverterStatus > d_inst_id_to_status;
+  std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction > d_var_to_inst_id;
+  std::unordered_map< unsigned, Node > d_inst_id_to_term;
+  std::unordered_map< unsigned, BvInverterStatus > d_inst_id_to_status;
   // variable to current id we are processing
   std::unordered_map< Node, unsigned, NodeHashFunction > d_var_to_curr_inst_id;
 private:

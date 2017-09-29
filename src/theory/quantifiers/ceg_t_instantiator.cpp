@@ -1075,7 +1075,7 @@ bool BvInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, Nod
 }
 
 bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) {
-  std::map< Node, std::vector< unsigned > >::iterator iti = d_var_to_inst_id.find( pv );
+  std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction >::iterator iti = d_var_to_inst_id.find( pv );
   if( iti!=d_var_to_inst_id.end() ){
     Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv << std::endl;
     // get inst id list
@@ -1092,7 +1092,7 @@ bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, No
         Trace("cegqi-bv") << "   [" << j << "] : ";
         Trace("cegqi-bv") << inst_term << std::endl;
         // process information about solved status
-        std::map< unsigned, BvInverterStatus >::iterator its = d_inst_id_to_status.find( inst_id );
+        std::unordered_map< unsigned, BvInverterStatus >::iterator its = d_inst_id_to_status.find( inst_id );
         Assert( its!=d_inst_id_to_status.end() );
         if( !(*its).second.d_conds.empty() ){
           Trace("cegqi-bv") << "   ...with " << (*its).second.d_conds.size() << " side conditions : " << std::endl;
@@ -1136,9 +1136,8 @@ bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, No
 
 
 bool BvInstantiator::needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
-  std::unordered_map< Node, unsigned, NodeHashFunction >::iterator iti = d_var_to_curr_inst_id.find( pv );
-  // we need to post-process the instantiation since inversion skolems need to be finalized
-  return iti!=d_var_to_curr_inst_id.end();
+  // we may need to post-process the instantiation since inversion skolems need to be finalized
+  return d_var_to_curr_inst_id.find(pv)!=d_var_to_curr_inst_id.end();
 }
 
 bool BvInstantiator::postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas ) {
@@ -1147,7 +1146,7 @@ bool BvInstantiator::postProcessInstantiationForVariable( CegInstantiator * ci, 
   std::unordered_map< Node, unsigned, NodeHashFunction >::iterator iti = d_var_to_curr_inst_id.find( pv );
   Assert( iti!=d_var_to_curr_inst_id.end() );
   unsigned inst_id = iti->second;
-  std::map< unsigned, BvInverterStatus >::iterator its = d_inst_id_to_status.find( inst_id );
+  std::unordered_map< unsigned, BvInverterStatus >::iterator its = d_inst_id_to_status.find( inst_id );
   Assert( its!=d_inst_id_to_status.end() );
   
   // this maps temporary skolems (those with side conditions involving free variables) -> finalized skolems
