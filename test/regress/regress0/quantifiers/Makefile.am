@@ -89,7 +89,11 @@ TESTS =	\
 	cbqi-sdlx-fixpoint-3-dd.smt2 \
 	qbv-simp.smt2 \
 	psyco-001-bv.smt2 \
-	bug822.smt2
+	bug822.smt2 
+
+# FIXME: solvable with --cbqi-bv
+#qbv-test-invert-mul.smt2 
+#qbv-simple-2vars-vo.smt2
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
 # set3.smt2
