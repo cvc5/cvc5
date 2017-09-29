@@ -150,7 +150,11 @@ BVGaussElim:: gaussElim (Integer prime,
       continue;
     }
     for (size_t j = i; j < ncols; ++j)
+    {
+      if (reslhs[i][j] >= prime || reslhs[i][j] <= -prime)
+        reslhs[i][j] = reslhs[i][j].euclidianDivideRemainder (prime);
       if (j > pcol && reslhs[i][j] != 0) ispart = true;
+    }
   }
   if (ispart) return BVGaussElim::Result::PARTIAL;
 
