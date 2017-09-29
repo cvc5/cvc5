@@ -147,9 +147,9 @@ Node BvInverter::getPathToPv(
 Node BvInverter::eliminateSkolemFunctions(TNode n,
                                           std::vector<Node>& side_conditions) {
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
 
   visit.push_back(n);
   do {
@@ -160,8 +160,9 @@ Node BvInverter::eliminateSkolemFunctions(TNode n,
     if (it == visited.end()) {
       visited[cur] = Node::null();
       visit.push_back(cur);
-      for (unsigned i = 0; i < cur.getNumChildren(); i++)
+      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
         visit.push_back(cur[i]);
+      }
     } else if (it->second.isNull()) {
       Trace("bv-invert-debug")
           << "eliminateSkolemFunctions from " << cur << "..." << std::endl;
