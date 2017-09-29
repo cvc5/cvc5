@@ -63,8 +63,9 @@ public:
       return pv;
     }
   }
-  // combine property 
-  virtual void combineProperty( TermProperties& p ){
+  // compose property, should be such that: 
+  //   p.getModifiedTerm( this.getModifiedTerm( x ) ) = this_updated.getModifiedTerm( x )
+  virtual void composeProperty( TermProperties& p ){
     if( !p.d_coeff.isNull() ){
       if( d_coeff.isNull() ){
         d_coeff = p.d_coeff;
@@ -177,7 +178,8 @@ private:
   void computeProgVars( Node n );
   // effort=0 : do not use model value, 1: use model value, 2: one must use model value
   bool doAddInstantiation( SolvedForm& sf, unsigned i, unsigned effort );
-  bool doAddInstantiation( std::vector< Node >& subs, std::vector< Node >& vars );
+  // called by the above function after we finalize the variables/substitution and auxiliary lemmas
+  bool doAddInstantiation( std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& lemmas );
   //process
   void processAssertions();
   void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
@@ -286,9 +288,9 @@ public:
   virtual bool allowModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return d_closed_enum_type; }
 
   //do we need to postprocess the solved form for pv?
-  virtual bool needsPostProcessInstantiation( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
-  // propocess the solved form for pv, returns true if we successfully postprocessed
-  virtual bool postProcessInstantiation( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
+  virtual bool needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
+  //postprocess the solved form for pv, returns true if we successfully postprocessed, lemmas is a set of lemmas we wish to return along with the instantiation
+  virtual bool postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas ) { return true; }
 
   /** Identify this module (for debugging) */
   virtual std::string identify() const { return "Default"; }
