@@ -87,6 +87,11 @@ public:
   bool isTheoryEnabled(Theory theory) const;
 
   bool logicIsSet();
+  
+  /**
+   * Returns a expression, given a name and a type.
+   */
+  virtual Expr getVariableExpressionForType(const std::string& name, Type t);
 
   void reset();
 
