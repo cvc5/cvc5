@@ -340,6 +340,7 @@ public:
   /**
    * Returns a expression, given a name.
    *
+   * The symbol name should be declared.
    * This creates the expression that the string "name" should be interpreted as.
    * Typically this corresponds to a variable, but it may also correspond to
    * a nullary constructor or a defined function.

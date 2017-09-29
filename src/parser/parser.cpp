@@ -99,27 +99,30 @@ Expr Parser::getVariableExpression(const std::string& name) {
 }
 
 Expr Parser::getVariableExpressionForType(const std::string& name, Type t) {
-  Expr expr;
-  if(isDefinedFunction(name)) {
-    expr = d_exprManager->mkExpr(CVC4::kind::APPLY, getFunction(name));
-  } else {
-    expr = getVariable(name);
-    if(expr.isNull()) {
-      // the variable is overloaded, try with type if the type exists
-      if(!t.isNull()) {
-        // if we support annotations with function types, this will update to 
-        // separate t into ( argument types, return type )
-        expr = getOverloadedConstantForType(name, t);
-        if(expr.isNull()) {
-          parseError("Type ascription not satisfied.");
-        }
-      }else{
-        parseError("Overloaded constants must be type cast.");
+  assert( isDeclared(name) );
+  // first check if the variable is declared and not overloaded
+  Expr expr = getVariable(name);
+  if(expr.isNull()) {
+    // the variable is overloaded, try with type if the type exists
+    if(!t.isNull()) {
+      // if we support annotations for function types, this will update to 
+      // separate t into ( argument types, return type )
+      expr = getOverloadedConstantForType(name, t);
+      if(expr.isNull()) {
+        parseError("Cannot get overloaded constant for type ascription.");
       }
+    }else{
+      parseError("Overloaded constants must be type cast.");
     }
+  }
+  // now, post-process the expression
+  assert( !expr.isNull() );
+  if(isDefinedFunction(expr)) {
+    expr = d_exprManager->mkExpr(CVC4::kind::APPLY, expr);
+  }else{
     Type te = expr.getType();
     if(te.isConstructor() && ConstructorType(te).getArity() == 0) {
-      // immediately turn it into an apply
+      // immediately turn it into an apply constructor
       expr = d_exprManager->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr);
     }
   }
@@ -264,7 +267,11 @@ std::vector<Expr> Parser::mkBoundVars(const std::vector<std::string> names,
 void Parser::defineVar(const std::string& name, const Expr& val,
                        bool levelZero, bool doOverload) {
   Debug("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;
-  d_symtab->bind(name, val, levelZero, doOverload);
+  if (!d_symtab->bind(name, val, levelZero, doOverload)) {
+    std::stringstream ss;
+    ss << "Failed to bind " << name << " to symbol of type " << val.getType();
+    parseError(ss.str()); 
+  }
   assert(isDeclared(name));
 }
 
