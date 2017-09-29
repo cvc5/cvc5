@@ -37,13 +37,14 @@
 #include "base/cvc4_assert.h"
 #include "base/exception.h"
 #include "base/output.h"
-#include "expr/type.h"
-#include "expr/kind.h"
-#include "expr/metakind.h"
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
+#include "expr/kind.h"
+#include "expr/metakind.h"
+#include "expr/type.h"
 #include "options/language.h"
 #include "options/set_language.h"
+#include "util/hash.h"
 #include "util/utility.h"
 
 namespace CVC4 {
@@ -959,14 +960,8 @@ inline size_t TNodeHashFunction::operator()(TNode node) const {
   return node.getId();
 }
 
-struct TNodePairHashFunction {
-  size_t operator()(const std::pair<CVC4::TNode, CVC4::TNode>& pair ) const {
-    TNode n1 = pair.first;
-    TNode n2 = pair.second;
-
-    return (size_t) (n1.getId() * 0x9e3779b9 + n2.getId());
-  }
-};/* struct TNodePairHashFunction */
+typedef PairHashFunction<TNode, TNode, TNodeHashFunction, TNodeHashFunction>
+    TNodePairHashFunction;
 
 template <bool ref_count>
 inline size_t NodeTemplate<ref_count>::getNumChildren() const {

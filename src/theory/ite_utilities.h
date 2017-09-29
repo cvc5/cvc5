@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "util/hash.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -240,14 +241,8 @@ private:
   uint32_t d_citeEqConstApplications;
 
   typedef std::pair<Node, Node> NodePair;
-  struct NodePairHashFunction {
-    size_t operator () (const NodePair& pair) const {
-      size_t hash = 0;
-      hash = 0x9e3779b9 + NodeHashFunction().operator()(pair.first);
-      hash ^= 0x9e3779b9 + NodeHashFunction().operator()(pair.second) + (hash << 6) + (hash >> 2);
-      return hash;
-    }
-  };/* struct ITESimplifier::NodePairHashFunction */
+  typedef PairHashFunction<Node, Node, NodeHashFunction, NodeHashFunction>
+      NodePairHashFunction;
   typedef std::unordered_map<NodePair, Node, NodePairHashFunction> NodePairMap;
   NodePairMap d_constantIteEqualsConstantCache;
   NodePairMap d_replaceOverCache;
