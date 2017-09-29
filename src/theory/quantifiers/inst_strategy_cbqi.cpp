@@ -746,7 +746,8 @@ bool InstStrategyCegqi::addLemma( Node lem ) {
 
 bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
   if( n.getKind()==INST_CONSTANT || n.getKind()==SKOLEM ){
-    if( n.getKind()==SKOLEM && d_quantEngine->getTermDatabase()->containsVtsTerm( n ) ){
+    if( n.getAttribute(VirtualTermSkolemAttribute()) ){
+      // virtual terms are allowed
       return true;
     }else{
       TypeNode tn = n.getType();
