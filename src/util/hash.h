@@ -50,7 +50,7 @@ namespace fnv1a {
  */
 inline uint64_t fnv1a_64(uint64_t v, uint64_t hash = 14695981039346656037U) {
   hash ^= v;
-  // Multiplication by 1099511628211
+  // Compute (hash * 1099511628211)
   return hash + (hash << 1) + (hash << 4) + (hash << 5) + (hash << 7) +
          (hash << 8) + (hash << 40);
 }
