@@ -55,7 +55,6 @@ void CegInstantiator::computeProgVars( Node n ){
       computeProgVars( n[i] );
       if( d_inelig.find( n[i] )!=d_inelig.end() ){
         d_inelig[n] = true;
-        return;
       }
       for( std::map< Node, bool >::iterator it = d_prog_var[n[i]].begin(); it != d_prog_var[n[i]].end(); ++it ){
         d_prog_var[n][it->first] = true;
@@ -126,7 +125,6 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
     if( needsPostprocess ){
       //must make copy so that backtracking reverts sf
       SolvedForm sf_tmp = sf;
-      unsigned prev_var_size = sf.d_vars.size();
       bool postProcessSuccess = true;
       for( std::map< Instantiator *, Node >::iterator itp = pp_inst_to_var.begin(); itp != pp_inst_to_var.end(); ++itp ){
         if( !itp->first->postProcessInstantiationForVariable( this, sf_tmp, itp->second, effort, lemmas ) ){
@@ -134,17 +132,6 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
           break;
         }
       }
-      if( sf_tmp.d_vars.size()>prev_var_size ){
-        // if we added substitutions during postprocess, process these now
-        std::vector< Node > new_vars;
-        std::vector< Node > new_subs;
-        for( unsigned i=0; i<prev_var_size; i++ ){
-          Node subs = sf_tmp.d_subs[i];
-          sf_tmp.d_subs[i] = subs.substitute( sf_tmp.d_vars.begin() + prev_var_size, sf_tmp.d_vars.end(),
-                                              sf_tmp.d_subs.begin() + prev_var_size, sf_tmp.d_subs.end() );
-        }
-      }
-
       if( postProcessSuccess ){
         return doAddInstantiation( sf_tmp.d_vars, sf_tmp.d_subs, lemmas );
       }else{

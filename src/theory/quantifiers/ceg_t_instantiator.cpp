@@ -26,6 +26,8 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
 
+#include <algorithm>
+
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -834,7 +836,18 @@ bool EprInstantiator::processEqualTerms( CegInstantiator * ci, SolvedForm& sf, N
 Node BvInverter::getSolveVariable( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator its = d_solve_var.find( tn );
   if( its==d_solve_var.end() ){
-    Node k = NodeManager::currentNM()->mkSkolem( "s", tn );
+    std::stringstream ss;
+    if( tn.isFunction() ){
+      Assert( tn.getNumChildren()==2 );
+      Assert( tn[0].isBoolean() );
+      ss << "slv_f";
+    }else{
+      ss << "slv";
+    }
+    Node k = NodeManager::currentNM()->mkSkolem( ss.str(), tn );
+    // marked as a virtual term (it is eligible for instantiation)
+    VirtualTermSkolemAttribute vtsa;
+    k.setAttribute(vtsa,true);
     d_solve_var[tn] = k;
     return k;
   }else{
@@ -843,10 +856,31 @@ Node BvInverter::getSolveVariable( TypeNode tn ) {
 }
 
 Node BvInverter::getInversionSkolemFor( Node cond, TypeNode tn ) {
+  // condition should be rewritten
+  Assert( Rewriter::rewrite(cond)==cond );
   std::unordered_map< Node, Node, NodeHashFunction >::iterator it = d_inversion_skolem_cache.find( cond );
   if( it==d_inversion_skolem_cache.end() ){
-    Node skv = NodeManager::currentNM()->mkSkolem ("skvinv", tn, "created for BvInverter");
-    Trace("cegqi-bv-skvinv") << "SKVINV : " << skv << " is the skolem associated with conditon " << cond << std::endl;
+    Node skv;
+    if( cond.getKind()==EQUAL ){
+      // optimization : if condition is ( x = v ) should just return v and not introduce a Skolem
+      // this can happen when we ask for the multiplicative inversion with bv1
+      Node x = getSolveVariable( tn );
+      for( unsigned i=0; i<2; i++ ){
+        if( cond[i]==x ){
+          skv = cond[1-i];
+          Trace("cegqi-bv-skvinv") << "SKVINV : " << skv << " is trivially associated with conditon " << cond << std::endl;
+          break;
+        }
+      }
+    }
+    if( skv.isNull() ){
+      // TODO : compute the value if the condition is deterministic, e.g. calc multiplicative inverse of 2 constants
+      skv = NodeManager::currentNM()->mkSkolem ("skvinv", tn, "created for BvInverter");
+      Trace("cegqi-bv-skvinv") << "SKVINV : " << skv << " is the skolem associated with conditon " << cond << std::endl;
+      // marked as a virtual term (it is eligible for instantiation)
+      VirtualTermSkolemAttribute vtsa;
+      skv.setAttribute(vtsa,true);
+    }
     d_inversion_skolem_cache[cond] = skv;
     return skv;
   }else{
@@ -855,27 +889,52 @@ Node BvInverter::getInversionSkolemFor( Node cond, TypeNode tn ) {
   }
 }
 
+Node BvInverter::getInversionSkolemFunctionFor( TypeNode tn ) {
+  // function maps conditions to skolems
+  TypeNode ftn = NodeManager::currentNM()->mkFunctionType( NodeManager::currentNM()->booleanType(), tn );
+  return getSolveVariable( ftn );
+}
+
+Node BvInverter::getInversionNode( Node cond, TypeNode tn ) {
+  // condition should be rewritten
+  Node new_cond = Rewriter::rewrite(cond);
+  if( new_cond!=cond ){
+    Trace("bv-invert-debug") << "Condition " << cond << " was rewritten to " << new_cond << std::endl;
+  } 
+  Node f = getInversionSkolemFunctionFor( tn );
+  return NodeManager::currentNM()->mkNode( kind::APPLY_UF, f, new_cond );
+}
+
+bool BvInverter::isInvertible( Kind k ) {
+  // TODO : make this precise (this should correspond to all kinds that we handle in solve_bv_lit/solve_bv_constraint)
+  return k!=APPLY_UF;
+}
+
 Node BvInverter::getPathToPv( Node lit, Node pv, Node sv, std::vector< unsigned >& path, std::unordered_set< TNode, TNodeHashFunction >& visited ) {
   if( visited.find( lit )==visited.end() ){
     visited.insert( lit );
     if( lit==pv ){
       return sv;
     }else{
-      unsigned rmod = 0; // TODO : randomize?
-      for( unsigned i=0; i<lit.getNumChildren(); i++ ){
-        unsigned ii = ( i + rmod )%lit.getNumChildren();
-        Node litc = getPathToPv( lit[ii], pv, sv, path, visited );
-        if( !litc.isNull() ){
-          // path is outermost term index last
-          path.push_back( ii );
-          std::vector< Node > children;
-          if( lit.getMetaKind() == kind::metakind::PARAMETERIZED ){
-            children.push_back( lit.getOperator() );
+      // only recurse if the kind is invertible 
+      // this allows us to avoid paths that go through skolem functions
+      if( isInvertible( lit.getKind() ) ){
+        unsigned rmod = 0; // TODO : randomize?
+        for( unsigned i=0; i<lit.getNumChildren(); i++ ){
+          unsigned ii = ( i + rmod )%lit.getNumChildren();
+          Node litc = getPathToPv( lit[ii], pv, sv, path, visited );
+          if( !litc.isNull() ){
+            // path is outermost term index last
+            path.push_back( ii );
+            std::vector< Node > children;
+            if( lit.getMetaKind() == kind::metakind::PARAMETERIZED ){
+              children.push_back( lit.getOperator() );
+            }
+            for( unsigned j=0; j<lit.getNumChildren(); j++ ){
+              children.push_back( j==ii ? litc : lit[j] );
+            }
+            return NodeManager::currentNM()->mkNode( lit.getKind(), children );
           }
-          for( unsigned j=0; j<lit.getNumChildren(); j++ ){
-            children.push_back( j==ii ? litc : lit[j] );
-          }
-          return NodeManager::currentNM()->mkNode( lit.getKind(), children );
         }
       }
     }
@@ -883,9 +942,69 @@ Node BvInverter::getPathToPv( Node lit, Node pv, Node sv, std::vector< unsigned 
   return Node::null();
 }
 
+Node BvInverter::eliminateSkolemFunctions( TNode n, std::vector< Node >& side_conditions, std::unordered_map< TNode, Node, TNodeHashFunction >& visited ) {
+  std::unordered_map< TNode, Node, TNodeHashFunction >::iterator it = visited.find( n );
+  if( it==visited.end() ){
+    Trace("bv-invert-debug") << "eliminateSkolemFunctions from " << n << "..." << std::endl;
+    Node ret = n;
+    bool childChanged = false;
+    std::vector< Node > children;
+    if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+      children.push_back( n.getOperator() );
+    }
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      Node nc = eliminateSkolemFunctions( n[i], side_conditions, visited );
+      childChanged = childChanged || n[i]!=nc;
+      children.push_back( nc );
+    } 
+    if( childChanged ){
+      ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+    }
+    // now, check if it is a skolem function
+    if( ret.getKind()==APPLY_UF ){
+      Node op = ret.getOperator();
+      TypeNode tnp = op.getType();
+      // is this a skolem function?
+      std::map< TypeNode, Node >::iterator its = d_solve_var.find( tnp );
+      if( its!=d_solve_var.end() && its->second==op ){
+        Assert( ret.getNumChildren()==1 );
+        Assert( ret[0].getType().isBoolean() );
+        
+        Node cond = ret[0];
+        // must rewrite now to ensure we lookup the correct skolem 
+        cond = Rewriter::rewrite( cond );
+        
+        // if so, we replace by the (finalized) skolem variable
+        // Notice that since we are post-rewriting, skolem functions are already eliminated from cond
+        ret = getInversionSkolemFor( cond, ret.getType() );
+        
+        // also must add (substituted) side condition to vector
+        // substitute ( solve variable -> inversion skolem )
+        TNode solve_var = getSolveVariable( ret.getType() );
+        TNode tret = ret;
+        cond = cond.substitute( solve_var, tret );
+        if( std::find( side_conditions.begin(), side_conditions.end(), cond )==side_conditions.end() ){
+          side_conditions.push_back( cond );
+        }
+      }
+    }
+    Trace("bv-invert-debug") << "eliminateSkolemFunctions from " << n << " returned " << ret << std::endl;
+    visited[n] = ret;
+    return ret;
+  }else{
+    return it->second;
+  }
+}
+
+Node BvInverter::eliminateSkolemFunctions( TNode n, std::vector< Node >& side_conditions ) {
+  std::unordered_map< TNode, Node, TNodeHashFunction > visited;
+  return eliminateSkolemFunctions( n, side_conditions, visited );
+}
+  
 Node BvInverter::getPathToPv( Node lit, Node pv, Node sv, Node pvs, std::vector< unsigned >& path ) {
   std::unordered_set< TNode, TNodeHashFunction > visited;
   Node slit = getPathToPv( lit, pv, sv, path, visited );
+  // if we are able to find a (invertible) path to pv
   if( !slit.isNull() ){
     // substitute pvs for the other occurrences of pv
     TNode tpv = pv;
@@ -929,11 +1048,9 @@ Node BvInverter::solve_bv_constraint( Node sv, Node sv_t, Node t, Kind rk, bool 
       // add side condition
       status.d_conds.push_back (sc);
       
-      // get the skolem variable for this side condition
-      Node skv = getInversionSkolemFor (sc, solve_tn);
-      // cache for substitution
-      // map the skolem to its side condition
-      status.d_sk_inv[ skv ] = sc;
+      // get the skolem node for this side condition
+      Node skv = getInversionNode (sc, solve_tn);
+      // now solving with the skolem node as the RHS
       t = skv;
 
     }else if( k==BITVECTOR_NEG || k==BITVECTOR_NOT ){
@@ -1022,12 +1139,15 @@ public:
 };
 
 BvInstantiator::BvInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){
-  //FIXME : this needs to be global!!  Probably move to QuantifiersEngine
-  d_inverter = new BvInverter;
+  // get the global inverter utility
+  // this must be global since we need to:
+  // * process Skolem functions properly across multiple variables within the same quantifier
+  // * cache Skolem variables uniformly across multiple quantified formulas
+  d_inverter = qe->getBvInverter();
 }
 
 BvInstantiator::~BvInstantiator(){
-  delete d_inverter;
+
 }
 
 void BvInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
@@ -1040,6 +1160,7 @@ void BvInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsig
 
 
 void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
+  Assert( d_inverter!=NULL );
   // find path to pv
   std::vector< unsigned > path;
   Node sv = d_inverter->getSolveVariable( pv.getType() );
@@ -1082,6 +1203,10 @@ bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, No
     Trace("cegqi-bv") << "  " << iti->second.size() << " candidate instantiations for " << pv << " : " << std::endl;
     // the order of instantiation ids we will try
     std::vector< unsigned > inst_ids_try;
+    // until we have a model-preserving selection function for BV, this must be heuristic (we only pick one literal)
+    // hence we randomize the list
+    // this helps robustness, since picking the same literal every time may be lead to a stream of value instantiations
+    std::random_shuffle( iti->second.begin(), iti->second.end() );
     
     for( unsigned j=0; j<iti->second.size(); j++ ){
       unsigned inst_id = iti->second[j];
@@ -1106,13 +1231,14 @@ bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, No
       // TODO : selection criteria across multiple literals goes here
       
       // currently, we use a naive heuristic which takes only the first solved term
-      // TODO : randomize?
       if( inst_ids_try.empty() ){
         inst_ids_try.push_back( inst_id );
       }
     }
     
     // now, try all instantiation ids we want to try
+    // typically size( inst_ids_try )=0, otherwise worst-case performance for constructing
+    // instantiations is exponential on the number of variables in this quantifier
     for( unsigned j = 0; j<inst_ids_try.size(); j++ ){
       unsigned inst_id = iti->second[j];
       Assert( d_inst_id_to_term.find(inst_id)!=d_inst_id_to_term.end() );
@@ -1120,8 +1246,6 @@ bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, No
       // try instantiation pv -> inst_term
       TermProperties pv_prop_bv;
       Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term << std::endl;
-      // TODO : need to track dependencies between inst_term and the free variables it depends on
-      // This should enforce that we do not introduce any circular dependencies when solving for further variables.
       d_var_to_curr_inst_id[pv] = inst_id;
       if( ci->doAddInstantiationInc( pv, inst_term, pv_prop_bv, sf, effort ) ){
         return true;
@@ -1137,56 +1261,23 @@ bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, No
 
 bool BvInstantiator::needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
   // we may need to post-process the instantiation since inversion skolems need to be finalized
-  return d_var_to_curr_inst_id.find(pv)!=d_var_to_curr_inst_id.end();
+  // TODO : technically skolem functions can appear in datatypes with bit-vector fields. We need to eliminate them there too.
+  return true;
 }
 
 bool BvInstantiator::postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas ) {
-  Trace("cegqi-bv") << "BvInstantiator::postProcessInstantiation for " << pv << std::endl;
-  // first, eliminate bound variables from all skolem conditions
-  std::unordered_map< Node, unsigned, NodeHashFunction >::iterator iti = d_var_to_curr_inst_id.find( pv );
-  Assert( iti!=d_var_to_curr_inst_id.end() );
-  unsigned inst_id = iti->second;
-  std::unordered_map< unsigned, BvInverterStatus >::iterator its = d_inst_id_to_status.find( inst_id );
-  Assert( its!=d_inst_id_to_status.end() );
-  
-  // this maps temporary skolems (those with side conditions involving free variables) -> finalized skolems
-  std::vector< Node > sk_vars_add;
-  std::vector< Node > sk_subs_add;
-  for( std::unordered_map< Node, Node, NodeHashFunction >::iterator itk = its->second.d_sk_inv.begin(); 
-       itk != its->second.d_sk_inv.end(); ++itk ){
-    TNode curr_skv = itk->first;
-    Trace("cegqi-bv-debug") << "  Skolem " << curr_skv << " has condition " << itk->second << std::endl;
-    Node curr_cond = itk->second.substitute( sf.d_vars.begin(), sf.d_vars.end(), sf.d_subs.begin(), sf.d_subs.end() );
-    // the condition should have no bound variables, or skolems that are associated with conditions that have bound variables.
-    
-    // if the condition is updated, we need to update it
-    Node sk_for_curr_cond;
-    if( curr_cond!=itk->second ){
-      Trace("cegqi-bv-debug") << "  Skolem " << curr_skv << " has condition (after substitution) " << curr_cond << std::endl;
-      sk_for_curr_cond = d_inverter->getInversionSkolemFor( curr_cond, curr_skv.getType() );
-      // we must replace the Skolem in the condition 
-      sk_vars_add.push_back( curr_skv );
-      sk_subs_add.push_back( sk_for_curr_cond );
-      
-      // TODO : register this as a skolem that is eligible for instantiation
-    }else{
-      sk_for_curr_cond = curr_skv;
+  Trace("cegqi-bv") << "BvInstantiator::postProcessInstantiation " << pv << std::endl;
+  Assert( std::find( sf.d_vars.begin(), sf.d_vars.end(), pv )!=sf.d_vars.end() );
+  unsigned index = std::find( sf.d_vars.begin(), sf.d_vars.end(), pv )-sf.d_vars.begin();
+  Trace("cegqi-bv") << "  postprocess : " << pv << " -> " << sf.d_subs[index] << std::endl;
+  // eliminate skolem functions from the substitution
+  unsigned prev_lem_size = lemmas.size();
+  sf.d_subs[index] = d_inverter->eliminateSkolemFunctions( sf.d_subs[index], lemmas );
+  if( Trace.isOn("cegqi-bv") ){
+    Trace("cegqi-bv") << "  got : " << pv << " -> " << sf.d_subs[index] << std::endl;
+    for( unsigned i=prev_lem_size; i<lemmas.size(); i++ ){
+      Trace("cegqi-bv") << "  side condition : " << lemmas[i] << std::endl;
     }
-    
-    // we now must map the solve variable in the current condition to the final skolem
-    TNode solve_var = d_inverter->getSolveVariable( sk_for_curr_cond.getType() );
-    curr_cond = curr_cond.substitute( solve_var, sk_for_curr_cond );
-    
-    // curr_cond is now in terms of the finalized skolem
-    lemmas.push_back( curr_cond );
-    Trace("cegqi-bv") << "    side condition : " << curr_cond << std::endl;
-  }
-  
-  // add new substitutions
-  TermProperties term_prop_skvinv;
-  for( unsigned i=0; i<sk_vars_add.size(); i++ ){
-    sf.push_back( sk_vars_add[i], sk_subs_add[i], term_prop_skvinv );
-    Trace("cegqi-bv") << "  (temporary -> final) skolem substitution : " << sk_vars_add[i] << " -> " << sk_subs_add[i] << std::endl;
   }
 
   return true;
