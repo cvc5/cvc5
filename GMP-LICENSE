@@ -1,7 +1,12 @@
 --------------------------------------------------------------------------------
-CVC4 links against The GNU Multiple Precision Arithmetic Library, licensed
-under GNU LGPL v3. In the following we include a copy of the GNU GPL v3 license
-and the GNU LGPL v3 as required by GNU LGPL v3.
+CVC4 can be (and is by default) configured to link against The GNU Multiple
+Precision (GMP) Arithmetic Library, licensed under GNU's Lesser General Public
+License (LGPL), version 3.  Below, we include a copy of the GNU General Public
+License (GPL), version 3 followed by a copy of the GNU LGPL, version 3, as
+required by the LGPL.  Note that according to the terms of the LGPL, both
+CVC4's source, and the combined work (CVC4 linked with GMP) may (and do) remain
+under the more permissive CVC4 license (see the COPYING file included with
+CVC4's distribution).
 --------------------------------------------------------------------------------
 
                     GNU GENERAL PUBLIC LICENSE

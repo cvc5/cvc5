@@ -1,5 +1,5 @@
-CVC4 is copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016 by its
-authors and contributors (see the file AUTHORS) and their institutional
+CVC4 is copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 by
+its authors and contributors (see the file AUTHORS) and their institutional
 affiliations.  All rights reserved.
 
 The source code of CVC4 is open and available to students, researchers,
@@ -218,11 +218,14 @@ Their copyright:
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-CVC4 links against The GNU Multiple Precision Arithmetic Library. It is
-licensed under GNU LGPL v3. See GMP-LICENSE for a copy of the license.
+CVC4 by default links against The GNU Multiple Precision (GMP) Arithmetic
+Library, which is licensed under GNU LGPL v3. See the file GMP-LICENSE for a
+copy of that license.  Note that according to the terms of the LGPL, both
+CVC4's source, and the combined work (CVC4 linked with GMP) may (and do) remain
+under the more permissive CVC4 license.
 
-CVC4 can be optionally configured to link against CLN, the Class Library for
-Numbers, available here:
+Alternatively, CVC4 can be optionally configured to link against CLN, the Class
+Library for Numbers, available here:
 
   http://www.ginac.de/CLN/
 
