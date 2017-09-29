@@ -149,14 +149,13 @@ Node BvInverter::eliminateSkolemFunctions(TNode n,
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::vector<TNode> visit;
   TNode cur;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
 
   visit.push_back(n);
   do {
     cur = visit.back();
     visit.pop_back();
-
-    std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it =
-        visited.find(cur);
+    it = visited.find(cur);
 
     if (it == visited.end()) {
       visited[cur] = Node::null();
@@ -176,6 +175,7 @@ Node BvInverter::eliminateSkolemFunctions(TNode n,
       for (unsigned i = 0; i < cur.getNumChildren(); i++) {
         it = visited.find(cur[i]);
         Assert(it != visited.end());
+        Assert(!it->second.isNull());
         childChanged = childChanged || cur[i] != it->second;
         children.push_back(it->second);
       }
@@ -218,6 +218,7 @@ Node BvInverter::eliminateSkolemFunctions(TNode n,
     }
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
   return visited[n];
 }
 
