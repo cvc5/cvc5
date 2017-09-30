@@ -15,6 +15,7 @@
 #include "theory/quantifiers/bv_inverter.h"
 
 #include <algorithm>
+#include <stack>
 
 #include "theory/quantifiers/term_database.h"
 
@@ -148,20 +149,20 @@ Node BvInverter::eliminateSkolemFunctions(TNode n,
                                           std::vector<Node>& side_conditions) {
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
+  std::stack<TNode> visit;
   TNode cur;
 
-  visit.push_back(n);
+  visit.push(n);
   do {
-    cur = visit.back();
-    visit.pop_back();
+    cur = visit.top();
+    visit.pop();
     it = visited.find(cur);
 
     if (it == visited.end()) {
       visited[cur] = Node::null();
-      visit.push_back(cur);
+      visit.push(cur);
       for (unsigned i = 0; i < cur.getNumChildren(); i++) {
-        visit.push_back(cur[i]);
+        visit.push(cur[i]);
       }
     } else if (it->second.isNull()) {
       Trace("bv-invert-debug")
