@@ -55,7 +55,6 @@ void CegInstantiator::computeProgVars( Node n ){
       computeProgVars( n[i] );
       if( d_inelig.find( n[i] )!=d_inelig.end() ){
         d_inelig[n] = true;
-        return;
       }
       for( std::map< Node, bool >::iterator it = d_prog_var[n[i]].begin(); it != d_prog_var[n[i]].end(); ++it ){
         d_prog_var[n][it->first] = true;
@@ -114,30 +113,32 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
   if( i==d_vars.size() ){
     //solved for all variables, now construct instantiation
     bool needsPostprocess = false;
-    std::map< Instantiator *, Node > pp_inst;
+    std::vector< Instantiator * > pp_inst;
+    std::map< Instantiator *, Node > pp_inst_to_var;
+    std::vector< Node > lemmas;
     for( std::map< Node, Instantiator * >::iterator ita = d_active_instantiators.begin(); ita != d_active_instantiators.end(); ++ita ){
-      if( ita->second->needsPostProcessInstantiation( this, sf, ita->first, effort ) ){
+      if( ita->second->needsPostProcessInstantiationForVariable( this, sf, ita->first, effort ) ){
         needsPostprocess = true;
-        pp_inst[ ita->second ] = ita->first;
+        pp_inst_to_var[ ita->second ] = ita->first;
       }
     }
     if( needsPostprocess ){
       //must make copy so that backtracking reverts sf
       SolvedForm sf_tmp = sf;
       bool postProcessSuccess = true;
-      for( std::map< Instantiator *, Node >::iterator itp = pp_inst.begin(); itp != pp_inst.end(); ++itp ){
-        if( !itp->first->postProcessInstantiation( this, sf_tmp, itp->second, effort ) ){
+      for( std::map< Instantiator *, Node >::iterator itp = pp_inst_to_var.begin(); itp != pp_inst_to_var.end(); ++itp ){
+        if( !itp->first->postProcessInstantiationForVariable( this, sf_tmp, itp->second, effort, lemmas ) ){
           postProcessSuccess = false;
           break;
         }
       }
       if( postProcessSuccess ){
-        return doAddInstantiation( sf_tmp.d_subs, sf_tmp.d_vars );
+        return doAddInstantiation( sf_tmp.d_vars, sf_tmp.d_subs, lemmas );
       }else{
         return false;
       }
     }else{
-      return doAddInstantiation( sf.d_subs, sf.d_vars );
+      return doAddInstantiation( sf.d_vars, sf.d_subs, lemmas );
     }
   }else{
     //Node v = d_single_inv_map_to_prog[d_single_inv[0][i]];
@@ -292,10 +293,12 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
               Node lit = ita->second[j];
               if( std::find( lits.begin(), lits.end(), lit )==lits.end() ){
                 lits.push_back( lit );
-                if( vinst->hasProcessAssertion( this, sf, pv, lit, effort ) ){
+                if( vinst->hasProcessAssertion( this, sf, pv, lit, effort ) ){  
+                  Trace("cbqi-inst-debug2") << "  look at " << lit << std::endl;
                   // apply substitutions
                   Node slit = applySubstitutionToLiteral( lit, sf );
                   if( !slit.isNull() ){
+                    Trace("cbqi-inst-debug") << "...try based on literal " << slit << std::endl;
                     // check if contains pv
                     if( hasVariable( slit, pv ) ){
                       if( vinst->processAssertion( this, sf, pv, slit, effort ) ){
@@ -369,10 +372,10 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
     Assert( d_inelig.find( n )==d_inelig.end() );
 
     //substitute into previous substitutions, when applicable
-    std::vector< Node > a_subs;
-    a_subs.push_back( n );
     std::vector< Node > a_var;
     a_var.push_back( pv );
+    std::vector< Node > a_subs;
+    a_subs.push_back( n );
     std::vector< TermProperties > a_prop;
     a_prop.push_back( pv_prop );
     std::vector< Node > a_non_basic;
@@ -398,16 +401,29 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
           sf.d_subs[j] = new_subs;
           // the substitution apply to this term resulted in a non-basic substitution relationship
           if( !a_pv_prop.isBasic() ){
+            // we are processing:
+            //    sf.d_props[j].getModifiedTerm( sf.d_vars[j] ) = sf.d_subs[j] { pv_prop.getModifiedTerm( pv ) -> n } 
+          
+            // based on the above substitution, we have:
+            //   x = sf.d_subs[j] { pv_prop.getModifiedTerm( pv ) -> n } 
+            // is equivalent to
+            //   a_pv_prop.getModifiedTerm( x ) = new_subs
+            
+            // thus we must compose substitutions:
+            //   a_pv_prop.getModifiedTerm( sf.d_props[j].getModifiedTerm( sf.d_vars[j] ) ) = new_subs
+            
             prev_prop[j] = sf.d_props[j];
+            bool prev_basic = sf.d_props[j].isBasic();
+            
+            // now compose the property
+            sf.d_props[j].composeProperty( a_pv_prop );
+            
             // if previously was basic, becomes non-basic
-            if( sf.d_props[j].isBasic() ){
+            if( prev_basic && !sf.d_props[j].isBasic() ){
               Assert( std::find( sf.d_non_basic.begin(), sf.d_non_basic.end(), sf.d_vars[j] )==sf.d_non_basic.end() );
               new_non_basic.push_back( sf.d_vars[j] );
               sf.d_non_basic.push_back( sf.d_vars[j] );
             }
-            // now combine the property
-            sf.d_props[j].combineProperty( a_pv_prop );
-            Assert( !sf.d_props[j].isBasic() );
           }
           if( sf.d_subs[j]!=prev_subs[j] ){
             computeProgVars( sf.d_subs[j] );
@@ -456,7 +472,7 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
   }
 }
 
-bool CegInstantiator::doAddInstantiation( std::vector< Node >& subs, std::vector< Node >& vars ) {
+bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& lemmas ) {
   if( vars.size()>d_vars.size() ){
     Trace("cbqi-inst-debug") << "Reconstructing instantiations...." << std::endl;
     std::map< Node, Node > subs_map;
@@ -481,6 +497,9 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& subs, std::vector
     }
   }
   bool ret = d_out->doAddInstantiation( subs );
+  for( unsigned i=0; i<lemmas.size(); i++ ){
+    d_out->addLemma( lemmas[i] );
+  }
   return ret;
 }
 
