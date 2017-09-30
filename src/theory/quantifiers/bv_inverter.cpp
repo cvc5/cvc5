@@ -16,10 +16,12 @@
 
 #include <algorithm>
 
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/term_database.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
+using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
 Node BvInverter::getSolveVariable(TypeNode tn) {
@@ -267,6 +269,56 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
       // now solving with the skolem node as the RHS
       t = skv;
 
+    } else if (k == BITVECTOR_UDIV_TOTAL) {
+      TypeNode solve_tn = sv_t[index].getType();
+      Node x = getSolveVariable(solve_tn);
+      Node s = sv_t[1 - index];
+      unsigned bw = s.getType().getBitVectorSize();
+      Node scl;
+      Node scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UDIV_TOTAL, x, s), t);
+
+      /* x udiv s = t */
+      if (index == 0) {
+        /* with side conditions:
+         * !umulo(s * t) <-> (zext(s, bw) * zext(t, bw))[2*bw-1:bw] != 0
+         */
+        NodeBuilder<> nb(BITVECTOR_ZERO_EXTEND);
+        Node zext_op =
+            nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(bw));
+        nb << zext_op << s;
+        Node zext_s = nb;
+        nb << zext_op << t;
+        Node zext_t = nb;
+        Node s_conc_t = nm->mkNode(BITVECTOR_CONCAT, zext_s, zext_t);
+        Node extr_s_conc_t = bv::utils::mkExtract(s_conc_t, 2 * bw - 1, bw);
+        scl =
+            nm->mkNode(DISTINCT, extr_s_conc_t, bv::utils::mkConst(2 * bw, 0u));
+        /* s udiv x = t */
+      } else {
+        /* with side conditions:
+         * (t = 0 && (s = 0 || s != 2^bw-1))
+         * || s >= t
+         * || t = 2^bw-1
+         */
+        Node zero = bv::utils::mkConst(bw, 0u);
+        Node ones = bv::utils::mkOnes(bw);
+        Node t_eq_zero = nm->mkNode(EQUAL, t, zero);
+        Node s_eq_zero = nm->mkNode(EQUAL, s, zero);
+        Node s_ne_ones = nm->mkNode(DISTINCT, s, ones);
+        Node s_ge_t = nm->mkNode(BITVECTOR_UGE, s, t);
+        Node t_eq_ones = nm->mkNode(EQUAL, t, ones);
+        scl = nm->mkNode(
+            OR,
+            nm->mkNode(AND, t_eq_zero, nm->mkNode(OR, s_eq_zero, s_ne_ones)),
+            s_ge_t, t_eq_ones);
+      }
+
+      /* overall side condition */
+      Node sc = nm->mkNode(IMPLIES, scl, scr);
+      /* get the skolem node for this side condition*/
+      Node skv = getInversionNode(sc, solve_tn);
+      /* now solving with the skolem node as the RHS */
+      t = skv;
     } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
       t = NodeManager::currentNM()->mkNode(k, t);
       //}else if( k==BITVECTOR_AND || k==BITVECTOR_OR ){
