@@ -110,7 +110,7 @@ public:
 class BvInverter {
 private:
   std::map< TypeNode, Node > d_solve_var;
-  std::map< Node, BvInverterSkData > d_sk_inv;
+  std::unordered_map< Node, BvInverterSkData, NodeHashFunction > d_sk_inv;
   Node getPathToPv( Node lit, Node pv, Node sv, std::vector< unsigned >& path, std::unordered_set< TNode, TNodeHashFunction >& visited );
 public:
   // get dummy fresh variable of type tn, used as argument for sv 
