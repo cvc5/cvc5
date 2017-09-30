@@ -204,6 +204,14 @@ inline Node mkConst(const BitVector& value) {
   return NodeManager::currentNM()->mkConst<BitVector>(value);
 }
 
+inline Node mkZero(unsigned size) {
+  return mkConst(size, 0u);
+}
+
+inline Node mkOne(unsigned size) {
+  return mkConst(size, 1u);
+}
+
 inline void getConjuncts(TNode node, std::set<TNode>& conjuncts) {
   if (node.getKind() != kind::AND) {
     conjuncts.insert(node);

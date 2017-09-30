@@ -292,15 +292,45 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         Node s_m_t = nm->mkNode(BITVECTOR_SUB, s, t);
         Node smt_gt_t = nm->mkNode(BITVECTOR_UGT, s_m_t, t);
         Node t_eq_z = nm->mkNode(EQUAL,
-            t, bv::utils::mkConst(bv::utils::getSize(t), 0u));
+            t, bv::utils::mkZero(bv::utils::getSize(t)));
         Node s_m_o = nm->mkNode (BITVECTOR_SUB,
-            s, bv::utils::mkConst(bv::utils::getSize(s), 1u));
+            s, bv::utils::mkOne(bv::utils::getSize(s)));
         Node t_d_smo = nm->mkNode(DISTINCT, t, s_m_o);
 
         scl = nm->mkNode(AND,
             nm->mkNode(AND, s_gt_t, smt_gt_t),
             nm->mkNode(OR, t_eq_z, t_d_smo));
         scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UREM_TOTAL, s, x), t);
+      }
+      Node sc = nm->mkNode(IMPLIES, scl, scr);
+      status.d_conds.push_back (sc);
+      Node skv = getInversionNode(sc, solve_tn);
+      t = skv;
+    } else if (k == BITVECTOR_ULT) {
+      /* t = skv (fresh skolem constant)  */
+      TypeNode solve_tn = sv_t[index].getType();
+      Node x = getSolveVariable(solve_tn);
+      Node s = sv_t[1 - index];
+      Node scl, scr;
+      /* x % s = t  */
+      if (index == 0) {
+        /* with side conditions:
+         * t = false
+         * || s != 0  */
+        scl = nm->mkNode(OR,
+            nm->mkNode(NOT, t),
+            nm->mkNode(DISTINCT, s, bv::utils::mkZero(bv::utils::getSize(s))));
+        scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_ULT, x, s), t);
+      }
+      else {
+        /* with side conditions:
+         * t = false
+         * || s != 1...1  */
+        scl = nm->mkNode(OR,
+            nm->mkNode(NOT, t),
+            nm->mkNode(DISTINCT,
+              s, bv::utils::mkOnes(bv::utils::getSize(s))));
+        scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_ULT, s, x), t);
       }
       Node sc = nm->mkNode(IMPLIES, scl, scr);
       status.d_conds.push_back (sc);
