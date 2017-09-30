@@ -21,9 +21,9 @@
 
 using namespace CVC4;
 using namespace CVC4::kind;
+using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-namespace bvutils = theory::bv::utils;
 
 Node BvInverter::getSolveVariable(TypeNode tn) {
   std::map<TypeNode, Node>::iterator its = d_solve_var.find(tn);
@@ -274,13 +274,13 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
       TypeNode solve_tn = sv_t[index].getType();
       Node x = getSolveVariable(solve_tn);
       Node s = sv_t[1 - index];
-      Node scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UREM_TOTAL, x, s), t);
-      Node scl;
+      Node scl, scr;
       /* x % s = t  */
       if (index == 0) {
         /* with side condition:
          * s > t  */
         scl = nm->mkNode(BITVECTOR_UGT, s, t);
+        scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UREM_TOTAL, x, s), t);
       }
       /* s % x = t  */
       else {
@@ -292,14 +292,15 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         Node s_m_t = nm->mkNode(BITVECTOR_SUB, s, t);
         Node smt_gt_t = nm->mkNode(BITVECTOR_UGT, s_m_t, t);
         Node t_eq_z = nm->mkNode(EQUAL,
-            t, nm->mkConst<BitVector> (BitVector(bvutils::getSize (t), 0u)));
+            t, bv::utils::mkConst(bv::utils::getSize(t), 0u));
         Node s_m_o = nm->mkNode (BITVECTOR_SUB,
-            s, nm->mkConst<BitVector> (BitVector(bvutils::getSize (s), 1u)));
+            s, bv::utils::mkConst(bv::utils::getSize(s), 1u));
         Node t_d_smo = nm->mkNode(DISTINCT, t, s_m_o);
 
-        scl = nm->mkNode(BITVECTOR_AND,
-            nm->mkNode(BITVECTOR_AND, s_gt_t, smt_gt_t),
-            nm->mkNode(BITVECTOR_OR, t_eq_z, t_d_smo));
+        scl = nm->mkNode(AND,
+            nm->mkNode(AND, s_gt_t, smt_gt_t),
+            nm->mkNode(OR, t_eq_z, t_d_smo));
+        scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UREM_TOTAL, s, x), t);
       }
       Node sc = nm->mkNode(IMPLIES, scl, scr);
       status.d_conds.push_back (sc);
