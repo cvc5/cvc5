@@ -17,10 +17,13 @@
 #include <algorithm>
 
 #include "theory/quantifiers/term_database.h"
+#include "theory/bv/theory_bv_utils.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::theory::quantifiers;
+
+namespace bvutils = theory::bv::utils;
 
 Node BvInverter::getSolveVariable(TypeNode tn) {
   std::map<TypeNode, Node>::iterator its = d_solve_var.find(tn);
@@ -236,37 +239,72 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
     Assert(index < sv_t.getNumChildren());
     path.pop_back();
     Kind k = sv_t.getKind();
-    // inversions
+    /* inversions  */
     if (k == BITVECTOR_PLUS) {
       t = nm->mkNode(BITVECTOR_SUB, t, sv_t[1 - index]);
     } else if (k == BITVECTOR_SUB) {
       t = nm->mkNode(BITVECTOR_PLUS, t, sv_t[1 - index]);
     } else if (k == BITVECTOR_MULT) {
-      // t = skv (fresh skolem constant)
+      /* t = skv (fresh skolem constant)  */
       TypeNode solve_tn = sv_t[index].getType();
       Node x = getSolveVariable(solve_tn);
-      // with side condition:
-      // ctz(t) >= ctz(s) <-> x * s = t
-      // where
-      // ctz(t) >= ctz(s) -> (t & -t) >= (s & -s)
+      /* with side condition:
+       * ctz(t) >= ctz(s) <-> x * s = t
+       * where
+       * ctz(t) >= ctz(s) -> (t & -t) >= (s & -s)  */
       Node s = sv_t[1 - index];
-      // left hand side of side condition
+      /* left hand side of side condition  */
       Node scl = nm->mkNode(
           BITVECTOR_UGE,
           nm->mkNode(BITVECTOR_AND, t, nm->mkNode(BITVECTOR_NEG, t)),
           nm->mkNode(BITVECTOR_AND, s, nm->mkNode(BITVECTOR_NEG, s)));
-      // right hand side of side condition
+      /* right hand side of side condition  */
       Node scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_MULT, x, s), t);
-      // overall side condition
+      /* overall side condition  */
       Node sc = nm->mkNode(IMPLIES, scl, scr);
-      // add side condition
+      /* add side condition  */
       status.d_conds.push_back(sc);
 
-      // get the skolem node for this side condition
+      /* get the skolem node for this side condition  */
       Node skv = getInversionNode(sc, solve_tn);
-      // now solving with the skolem node as the RHS
+      /* now solving with the skolem node as the RHS  */
       t = skv;
+    } else if (k == BITVECTOR_UREM_TOTAL) {
+      /* t = skv (fresh skolem constant)  */
+      TypeNode solve_tn = sv_t[index].getType();
+      Node x = getSolveVariable(solve_tn);
+      Node s = sv_t[1 - index];
+      Node scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UREM_TOTAL, x, s), t);
+      Node scl;
+      /* x % s = t  */
+      if (index == 0) {
+        /* with side condition:
+         * s > t  */
+        scl = nm->mkNode(BITVECTOR_UGT, s, t);
+      }
+      /* s % x = t  */
+      else {
+        /* with side conditions:
+         * s > t
+         * && s-t > t
+         * && (t = 0 || t != s-1)  */
+        Node s_gt_t = nm->mkNode(BITVECTOR_UGT, s, t);
+        Node s_m_t = nm->mkNode(BITVECTOR_SUB, s, t);
+        Node smt_gt_t = nm->mkNode(BITVECTOR_UGT, s_m_t, t);
+        Node t_eq_z = nm->mkNode(EQUAL,
+            t, nm->mkConst<BitVector> (BitVector(bvutils::getSize (t), 0u)));
+        Node s_m_o = nm->mkNode (BITVECTOR_SUB,
+            s, nm->mkConst<BitVector> (BitVector(bvutils::getSize (s), 1u)));
+        Node t_d_smo = nm->mkNode(DISTINCT, t, s_m_o);
 
+        scl = nm->mkNode(BITVECTOR_AND,
+            nm->mkNode(BITVECTOR_AND, s_gt_t, smt_gt_t),
+            nm->mkNode(BITVECTOR_OR, t_eq_z, t_d_smo));
+      }
+      Node sc = nm->mkNode(IMPLIES, scl, scr);
+      status.d_conds.push_back (sc);
+      Node skv = getInversionNode(sc, solve_tn);
+      t = skv;
     } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
       t = NodeManager::currentNM()->mkNode(k, t);
       //}else if( k==BITVECTOR_AND || k==BITVECTOR_OR ){
