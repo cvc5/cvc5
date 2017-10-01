@@ -346,8 +346,12 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/anti_skolem.h \
 	theory/quantifiers/bounded_integers.cpp \
 	theory/quantifiers/bounded_integers.h \
+	theory/quantifiers/bv_inverter.cpp \
+	theory/quantifiers/bv_inverter.h \
 	theory/quantifiers/candidate_generator.cpp \
 	theory/quantifiers/candidate_generator.h \
+	theory/quantifiers/ce_guided_conjecture.cpp \
+	theory/quantifiers/ce_guided_conjecture.h \
 	theory/quantifiers/ce_guided_instantiation.cpp \
 	theory/quantifiers/ce_guided_instantiation.h \
 	theory/quantifiers/ce_guided_single_inv.cpp \
