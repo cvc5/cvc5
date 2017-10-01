@@ -1656,6 +1656,9 @@ Node TermDb::getVtsDelta( bool isFree, bool create ) {
     }
     if( d_vts_delta.isNull() ){
       d_vts_delta = NodeManager::currentNM()->mkSkolem( "delta", NodeManager::currentNM()->realType(), "delta for virtual term substitution" );
+      //mark as a virtual term
+      VirtualTermSkolemAttribute vtsa;
+      d_vts_delta.setAttribute(vtsa,true);
     }
   }
   return isFree ? d_vts_delta_free : d_vts_delta;
@@ -1668,6 +1671,9 @@ Node TermDb::getVtsInfinity( TypeNode tn, bool isFree, bool create ) {
     }
     if( d_vts_inf[tn].isNull() ){
       d_vts_inf[tn] = NodeManager::currentNM()->mkSkolem( "inf", tn, "infinity for virtual term substitution" );
+      //mark as a virtual term
+      VirtualTermSkolemAttribute vtsa;
+      d_vts_inf[tn].setAttribute(vtsa,true);
     }
   }
   return isFree ? d_vts_inf_free[tn] : d_vts_inf[tn];
