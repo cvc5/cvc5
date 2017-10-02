@@ -41,11 +41,11 @@ void collectDisjuncts( Node n, std::vector< Node >& d ) {
   }
 }
 
-CegConjecture::CegConjecture( QuantifiersEngine * qe )
-    : d_qe( qe ) {
+CegConjecture::CegConjecture(QuantifiersEngine* qe)
+    : d_qe(qe), d_syntax_guided(false) {
   d_refine_count = 0;
-  d_ceg_si = new CegConjectureSingleInv( qe, this );
-  d_ceg_pbe = new CegConjecturePbe( qe, this );
+  d_ceg_si = new CegConjectureSingleInv(qe, this);
+  d_ceg_pbe = new CegConjecturePbe(qe, this);
 }
 
 CegConjecture::~CegConjecture() {
