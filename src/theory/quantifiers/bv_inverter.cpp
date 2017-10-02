@@ -273,34 +273,29 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
       TypeNode solve_tn = sv_t[index].getType();
       Node x = getSolveVariable(solve_tn);
       Node s = sv_t[1 - index];
-      unsigned bw = s.getType().getBitVectorSize();
-      Node scl;
-      Node scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UDIV_TOTAL, x, s), t);
+      unsigned w = bv::utils::getSize(s);
+      Node scl, scr;
+      Node zero = bv::utils::mkConst(w, 0u);
 
       /* x udiv s = t */
       if (index == 0) {
         /* with side conditions:
-         * !umulo(s * t) <-> (zext(s, bw) * zext(t, bw))[2*bw-1:bw] = 0
+         * !umulo(s * t) <-> (zext(s, w) * zext(t, w))[2*w-1:w] = 0
          */
-        NodeBuilder<> nb(BITVECTOR_ZERO_EXTEND);
-        Node zext_op =
-            nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(bw));
-        nb << zext_op << s;
-        Node zext_s = nb;
-        nb << zext_op << t;
-        Node zext_t = nb;
+        Node zext_s = nm->mkNode(BITVECTOR_CONCAT, zero, s);
+        Node zext_t = nm->mkNode(BITVECTOR_CONCAT, zero, t);
         Node s_mul_t = nm->mkNode(BITVECTOR_MULT, zext_s, zext_t);
-        Node extr_s_mul_t = bv::utils::mkExtract(s_mul_t, 2 * bw - 1, bw);
-        scl = nm->mkNode(EQUAL, extr_s_mul_t, bv::utils::mkConst(2 * bw, 0u));
-        /* s udiv x = t */
+        Node extr_s_mul_t = bv::utils::mkExtract(s_mul_t, 2 * w - 1, w);
+        scl = nm->mkNode(EQUAL, extr_s_mul_t, zero);
+        scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UDIV_TOTAL, x, s), t);
+      /* s udiv x = t */
       } else {
         /* with side conditions:
-         * (t = 0 && (s = 0 || s != 2^bw-1))
+         * (t = 0 && (s = 0 || s != 2^w-1))
          * || s >= t
-         * || t = 2^bw-1
+         * || t = 2^w-1
          */
-        Node zero = bv::utils::mkConst(bw, 0u);
-        Node ones = bv::utils::mkOnes(bw);
+        Node ones = bv::utils::mkOnes(w);
         Node t_eq_zero = nm->mkNode(EQUAL, t, zero);
         Node s_eq_zero = nm->mkNode(EQUAL, s, zero);
         Node s_ne_ones = nm->mkNode(DISTINCT, s, ones);
@@ -310,6 +305,7 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
             OR,
             nm->mkNode(AND, t_eq_zero, nm->mkNode(OR, s_eq_zero, s_ne_ones)),
             s_ge_t, t_eq_ones);
+        scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UDIV_TOTAL, s, x), t);
       }
 
       /* overall side condition */
