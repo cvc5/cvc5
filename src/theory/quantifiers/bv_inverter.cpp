@@ -314,6 +314,9 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
 
       /* overall side condition */
       Node sc = nm->mkNode(IMPLIES, scl, scr);
+      /* add side condition */
+      status.d_conds.push_back(sc);
+
       /* get the skolem node for this side condition*/
       Node skv = getInversionNode(sc, solve_tn);
       /* now solving with the skolem node as the RHS */
@@ -358,6 +361,9 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
 
       /* overall side condition */
       Node sc = nm->mkNode(IMPLIES, scl, scr);
+      /* add side condition */
+      status.d_conds.push_back(sc);
+
       /* get the skolem node for this side condition*/
       Node skv = getInversionNode(sc, solve_tn);
       /* now solving with the skolem node as the RHS */
