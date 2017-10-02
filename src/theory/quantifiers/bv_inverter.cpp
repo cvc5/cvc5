@@ -321,28 +321,29 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
       TypeNode solve_tn = sv_t[index].getType();
       Node x = getSolveVariable(solve_tn);
       Node s = sv_t[1 - index];
-      unsigned bw = s.getType().getBitVectorSize();
-      Node scl;
-      Node scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_SHL, x, s), t);
+      unsigned w = bv::utils::getSize(s);
+      Node scl, scr;
 
       /* x << s = t */
       if (index == 0) {
         /* with side conditions:
          * (s = 0 || ctz(t) >= s)
          * <->
-         * (s = 0 || ((t o z) >> s)[bw-1:0] = z)
+         * (s = 0 || ((t o z) >> (z o s))[w-1:0] = z)
          *
          * where
-         * getSize(s) = getSize(t) = getSize (z) && z = 0
+         * w = getSize(s) = getSize(t) = getSize (z) && z = 0
          */
-        Node zero = bv::utils::mkConst(bw, 0u);
+        Node zero = bv::utils::mkConst(w, 0u);
         Node s_eq_zero = nm->mkNode(EQUAL, s, zero);
         Node t_conc_zero = nm->mkNode(BITVECTOR_CONCAT, t, zero);
-        Node shl_s = nm->mkNode(BITVECTOR_SHL, t_conc_zero, s);
-        Node extr_shl_s = bv::utils::mkExtract(shl_s, bw - 1, 0);
-        Node ctz_t_ge_s = nm->mkNode(EQUAL, extr_shl_s, zero);
-        Node scl = nm->mkNode(OR, s_eq_zero, ctz_t_ge_s);
-      /* s << x = t */
+        Node zero_conc_s = nm->mkNode(BITVECTOR_CONCAT, zero, s);
+        Node shr_s = nm->mkNode(BITVECTOR_LSHR, t_conc_zero, zero_conc_s);
+        Node extr_shr_s = bv::utils::mkExtract(shr_s, w - 1, 0);
+        Node ctz_t_ge_s = nm->mkNode(EQUAL, extr_shr_s, zero);
+        scl = nm->mkNode(OR, s_eq_zero, ctz_t_ge_s);
+        scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_SHL, x, s), t);
+        /* s << x = t */
       } else {
         /* with side conditions:
          * (s = 0 && t = 0)
