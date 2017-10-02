@@ -336,10 +336,22 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
       status.d_conds.push_back (sc);
       Node skv = getInversionNode(sc, solve_tn);
       t = skv;
+    } else if (k == BITVECTOR_AND || k == BITVECTOR_OR) {
+      /* t = skv (fresh skolem constant)  */
+      TypeNode solve_tn = sv_t[index].getType();
+      Node x = getSolveVariable(solve_tn);
+      Node s = sv_t[1 - index];
+      /* with side condition:
+       * t & s = t
+       * t | s = t */
+      Node scl = nm->mkNode(EQUAL, t, nm->mkNode(k, t, s));
+      Node scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
+      Node sc = nm->mkNode(IMPLIES, scl, scr);
+      status.d_conds.push_back (sc);
+      Node skv = getInversionNode(sc, solve_tn);
+      t = skv;
     } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
       t = NodeManager::currentNM()->mkNode(k, t);
-      //}else if( k==BITVECTOR_AND || k==BITVECTOR_OR ){
-      // TODO
       //}else if( k==BITVECTOR_CONCAT ){
       // TODO
       //}else if( k==BITVECTOR_SHL || k==BITVECTOR_LSHR ){
