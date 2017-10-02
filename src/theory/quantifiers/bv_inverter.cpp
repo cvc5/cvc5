@@ -318,6 +318,50 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
       Node skv = getInversionNode(sc, solve_tn);
       /* now solving with the skolem node as the RHS */
       t = skv;
+    } else if (k == BITVECTOR_SHL) {
+      TypeNode solve_tn = sv_t[index].getType();
+      Node x = getSolveVariable(solve_tn);
+      Node s = sv_t[1 - index];
+      unsigned bw = s.getType().getBitVectorSize();
+      Node scl;
+      Node scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_SHL, x, s), t);
+
+      /* x << s = t */
+      if (index == 0) {
+        /* with side conditions:
+         * (s = 0 || ctz(t) >= s)
+         * <->
+         * (s = 0 || ((t o z) >> s)[bw-1:0] = z)
+         *
+         * where
+         * getSize(s) = getSize(t) = getSize (z) && z = 0
+         */
+        Node zero = bv::utils::mkConst(bw, 0u);
+        Node s_eq_zero = nm->mkNode(EQUAL, s, zero);
+        Node t_conc_zero = nm->mkNode(BITVECTOR_CONCAT, t, zero);
+        Node shl_s = nm->mkNode(BITVECTOR_SHL, t_conc_zero, s);
+        Node extr_shl_s = bv::utils::mkExtract(shl_s, bw - 1, 0);
+        Node ctz_t_ge_s = nm->mkNode(EQUAL, extr_shl_s, zero);
+        Node scl = nm->mkNode(OR, s_eq_zero, ctz_t_ge_s);
+      /* s << x = t */
+      } else {
+        /* with side conditions:
+         * (s = 0 && t = 0)
+         * || (ctz(t) >= ctz(s)
+         *     && (t = 0 ||
+         *         "remaining shifted bits in t match corresponding bits in s"))
+         */
+        Trace("bv-invert") << "bv-invert : Unsupported for index " << index
+                           << ", from " << sv_t << std::endl;
+        return Node::null();
+      }
+
+      /* overall side condition */
+      Node sc = nm->mkNode(IMPLIES, scl, scr);
+      /* get the skolem node for this side condition*/
+      Node skv = getInversionNode(sc, solve_tn);
+      /* now solving with the skolem node as the RHS */
+      t = skv;
     } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
       t = NodeManager::currentNM()->mkNode(k, t);
       //}else if( k==BITVECTOR_AND || k==BITVECTOR_OR ){
