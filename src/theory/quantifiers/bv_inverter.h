@@ -42,7 +42,7 @@ class BvInverterStatus {
   BvInverterStatus() : d_status(0) {}
   ~BvInverterStatus() {}
   int d_status;
-  // TODO : may not need this (conditions are now appear explicitly in solved
+  // TODO : may not need this (conditions now appear explicitly in solved
   // forms) side conditions
   std::vector<Node> d_conds;
 };
@@ -110,11 +110,6 @@ class BvInverter {
   /** helper function for getPathToPv */
   Node getPathToPv(Node lit, Node pv, Node sv, std::vector<unsigned>& path,
                    std::unordered_set<TNode, TNodeHashFunction>& visited);
-
-  /** helper function for eliminateSkolemFunctions */
-  Node eliminateSkolemFunctions(
-      TNode n, std::vector<Node>& side_conditions,
-      std::unordered_map<TNode, Node, TNodeHashFunction>& visited);
 
   // is operator k invertible?
   bool isInvertible(Kind k);
