@@ -85,9 +85,10 @@ class NonlinearExtension {
 
   // Check assertions for consistency in the effort LAST_CALL with a subset of
   // the assertions, false_asserts, evaluate to false in the current model.
-  void checkLastCall(const std::vector<Node>& assertions,
-                     const std::set<Node>& false_asserts,
-                     const std::vector<Node>& xts);
+  // Returns the number of lemmas added on the output channel.
+  int checkLastCall(const std::vector<Node>& assertions,
+                    const std::set<Node>& false_asserts,
+                    const std::vector<Node>& xts);
 
   static bool isArithKind(Kind k);
   static Node mkLit(Node a, Node b, int status, int orderType = 0);
@@ -203,7 +204,7 @@ class NonlinearExtension {
   std::map<Node, unsigned> d_order_vars;
   std::vector<Node> d_order_points;
   
-  //transcendent functions
+  //transcendental functions
   std::map<Node, Node> d_trig_base;
   std::map<Node, bool> d_trig_is_base;
   std::map< Node, bool > d_tf_initial_refine;
