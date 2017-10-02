@@ -20,6 +20,8 @@
 #include <iostream>
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
+#include <stack>
 
 #include "context/cdchunk_list.h"
 #include "context/cdhashset.h"
