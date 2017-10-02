@@ -960,8 +960,8 @@ inline size_t TNodeHashFunction::operator()(TNode node) const {
   return node.getId();
 }
 
-typedef PairHashFunction<TNode, TNode, TNodeHashFunction, TNodeHashFunction>
-    TNodePairHashFunction;
+using TNodePairHashFunction =
+    PairHashFunction<TNode, TNode, TNodeHashFunction, TNodeHashFunction>;
 
 template <bool ref_count>
 inline size_t NodeTemplate<ref_count>::getNumChildren() const {

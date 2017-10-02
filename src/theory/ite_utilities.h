@@ -241,8 +241,8 @@ private:
   uint32_t d_citeEqConstApplications;
 
   typedef std::pair<Node, Node> NodePair;
-  typedef PairHashFunction<Node, Node, NodeHashFunction, NodeHashFunction>
-      NodePairHashFunction;
+  using NodePairHashFunction =
+      PairHashFunction<Node, Node, NodeHashFunction, NodeHashFunction>;
   typedef std::unordered_map<NodePair, Node, NodePairHashFunction> NodePairMap;
   NodePairMap d_constantIteEqualsConstantCache;
   NodePairMap d_replaceOverCache;

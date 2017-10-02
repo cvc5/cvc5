@@ -269,8 +269,8 @@ public:
 
 /** A pair of ids */
 typedef std::pair<EqualityNodeId, EqualityNodeId> EqualityPair;
-typedef PairHashFunction<EqualityNodeId, EqualityNodeId>
-    EqualityPairHashFunction;
+using EqualityPairHashFunction =
+    PairHashFunction<EqualityNodeId, EqualityNodeId>;
 
 enum FunctionApplicationType {
   /** This application is an equality a = b */
