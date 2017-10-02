@@ -459,6 +459,52 @@ void TheoryFp::registerTerm(TNode node) {
       d_equalityEngine.addTerm(node);
     }
 
+    // Give the expansion of classifications in terms of equalities
+    // This should make equality reasoning slightly more powerful.
+    if ((node.getKind() == kind::FLOATINGPOINT_ISNAN)
+        || (node.getKind() == kind::FLOATINGPOINT_ISZ)
+        || (node.getKind() == kind::FLOATINGPOINT_ISINF))
+    {
+      NodeManager *nm = NodeManager::currentNM();
+      FloatingPointSize s = node[0].getType().getConst<FloatingPointSize>();
+      Node equalityAlias = Node::null();
+
+      if (node.getKind() == kind::FLOATINGPOINT_ISNAN)
+      {
+        equalityAlias = nm->mkNode(
+            kind::EQUAL, node[0], nm->mkConst(FloatingPoint::makeNaN(s)));
+      }
+      else if (node.getKind() == kind::FLOATINGPOINT_ISZ)
+      {
+        equalityAlias = nm->mkNode(
+            kind::OR,
+            nm->mkNode(kind::EQUAL,
+                       node[0],
+                       nm->mkConst(FloatingPoint::makeZero(s, true))),
+            nm->mkNode(kind::EQUAL,
+                       node[0],
+                       nm->mkConst(FloatingPoint::makeZero(s, false))));
+      }
+      else if (node.getKind() == kind::FLOATINGPOINT_ISINF)
+      {
+        equalityAlias = nm->mkNode(
+            kind::OR,
+            nm->mkNode(kind::EQUAL,
+                       node[0],
+                       nm->mkConst(FloatingPoint::makeInf(s, true))),
+            nm->mkNode(kind::EQUAL,
+                       node[0],
+                       nm->mkConst(FloatingPoint::makeInf(s, false))));
+      }
+      else
+      {
+        Unreachable("Only isNaN, isInf and isZero have aliases");
+      }
+
+      handleLemma(nm->mkNode(kind::EQUAL, node, equalityAlias));
+    }
+
+    // Use symfpu to produce an equivalent bit-vector statement
     convertAndEquateTerm(node);
   }
   return;
