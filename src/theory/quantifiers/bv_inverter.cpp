@@ -350,6 +350,45 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
       status.d_conds.push_back (sc);
       Node skv = getInversionNode(sc, solve_tn);
       t = skv;
+    } else if (k == BITVECTOR_LSHR) {
+      /* t = skv (fresh skolem constant)  */
+      TypeNode solve_tn = sv_t[index].getType();
+      Node x = getSolveVariable(solve_tn);
+      Node s = sv_t[1 - index];
+      Node scl, scr;
+      /* x >> s = t */
+      if (index == 0) {
+        /* with side condition:
+         * s = 0 || clz(t) >= s
+         * ->
+         * s = 0 || ((z o t) << s)[2w-1 : w] = z
+         * with w = getSize(t) = getSize(s) and z = 0 with getSize(z) = w  */
+        unsigned w = bv::utils::getSize(s);
+        Node z = bv::utils::mkZero(w);
+        Node z_o_t =  nm->mkNode (BITVECTOR_CONCAT, z, t);
+        Node zot_shl_s = nm->mkNode (BITVECTOR_SHL, z_o_t, s);
+        Node ext = bv::utils::mkExtract (zot_shl_s, 2*w-1, w);
+        scl = nm->mkNode(OR,
+            nm->mkNode(EQUAL, s, z),
+            nm->mkNode(EQUAL, ext, z));
+        scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_LSHR, x, s), t);
+        Node sc = nm->mkNode(IMPLIES, scl, scr);
+        status.d_conds.push_back (sc);
+        Node skv = getInversionNode(sc, solve_tn);
+        t = skv;
+      } else {
+        // TODO: index == 1
+        /* with side conditions:                                                
+         * (s = 0 && t = 0)                                                     
+         * || (clz(t) >= clz(s)                                                 
+         *     && (t = 0
+         *         || "remaining shifted bits in t "
+         *            "match corresponding bits in s"))  */ 
+        Trace("bv-invert") << "bv-invert : Unsupported for index " << index
+                         << "for kind " << k
+                         << ", from " << sv_t << std::endl;
+        return Node::null();
+      }
     } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
       t = NodeManager::currentNM()->mkNode(k, t);
       //}else if( k==BITVECTOR_CONCAT ){
