@@ -19,8 +19,6 @@
 
 #include <map>
 #include <unordered_set>
-#include <unordered_map>
-#include <stack>
 
 #include "expr/attribute.h"
 #include "theory/theory.h"

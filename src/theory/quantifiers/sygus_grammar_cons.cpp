@@ -14,6 +14,8 @@
  **/
 #include "theory/quantifiers/sygus_grammar_cons.h"
 
+#include <stack>
+
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_database_sygus.h"
