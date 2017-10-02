@@ -1801,7 +1801,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
 : termNonVariable[expr, expr2]
     /* a variable */
   | symbol[name,CHECK_DECLARED,SYM_VARIABLE]
-    { expr = PARSER_STATE->getVariableExpression(name); }
+    { expr = PARSER_STATE->getExpressionForName(name); }
   ;
 
 /**
@@ -1882,7 +1882,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       if(readVariable) {
         Trace("parser-overloading") << "Getting variable expression of type " << name << " with type " << type << std::endl;
         // get the variable expression for the type
-        f = PARSER_STATE->getVariableExpressionForType(name, type); 
+        f = PARSER_STATE->getExpressionForNameAndType(name, type); 
       }
       if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
         // could be a parametric type constructor or just an overloaded constructor

@@ -93,19 +93,19 @@ Expr Parser::getFunction(const std::string& name) {
   return getSymbol(name, SYM_VARIABLE);
 }
 
-Expr Parser::getVariableExpression(const std::string& name) {
+Expr Parser::getExpressionForName(const std::string& name) {
   Type t;
-  return getVariableExpressionForType(name, t);
+  return getExpressionForNameAndType(name, t);
 }
 
-Expr Parser::getVariableExpressionForType(const std::string& name, Type t) {
+Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
   assert( isDeclared(name) );
   // first check if the variable is declared and not overloaded
   Expr expr = getVariable(name);
   if(expr.isNull()) {
     // the variable is overloaded, try with type if the type exists
     if(!t.isNull()) {
-      // if we support annotations for function types, this will update to 
+      // if we decide later to support annotations for function types, this will update to 
       // separate t into ( argument types, return type )
       expr = getOverloadedConstantForType(name, t);
       if(expr.isNull()) {
@@ -118,11 +118,13 @@ Expr Parser::getVariableExpressionForType(const std::string& name, Type t) {
   // now, post-process the expression
   assert( !expr.isNull() );
   if(isDefinedFunction(expr)) {
+    // defined functions/constants are wrapped in an APPLY so that they are
+    // expanded into their definition, e.g. during SmtEnginePrivate::expandDefinitions
     expr = d_exprManager->mkExpr(CVC4::kind::APPLY, expr);
   }else{
     Type te = expr.getType();
     if(te.isConstructor() && ConstructorType(te).getArity() == 0) {
-      // immediately turn it into an apply constructor
+      // nullary constructors have APPLY_CONSTRUCTOR kind with no children
       expr = d_exprManager->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr);
     }
   }
@@ -174,8 +176,6 @@ bool Parser::isBoolean(const std::string& name) {
   return !expr.isNull() && expr.getType().isBoolean();
 }
 
-/* Returns true if name is bound to a function-like thing (function,
- * constructor, tester, or selector). */
 bool Parser::isFunctionLike(Expr fun) {
   if(fun.isNull()) {
     return false;
@@ -277,7 +277,11 @@ void Parser::defineVar(const std::string& name, const Expr& val,
 
 void Parser::defineFunction(const std::string& name, const Expr& val,
                             bool levelZero, bool doOverload) {
-  d_symtab->bindDefinedFunction(name, val, levelZero, doOverload);
+  if (!d_symtab->bindDefinedFunction(name, val, levelZero, doOverload)) {
+    std::stringstream ss;
+    ss << "Failed to bind defined function " << name << " to symbol of type " << val.getType();
+    parseError(ss.str()); 
+  }
   assert(isDeclared(name));
 }
 

@@ -235,8 +235,8 @@ private:
    */
   std::list<Command*> d_commandQueue;
 
-  /** Lookup a symbol in the given namespace. 
-   * Only returns a symbol if it is not overloaded.
+  /** Lookup a symbol in the given namespace (as specified by the type). 
+   * Only returns a symbol if it is not overloaded, returns null otherwise.
    */
   Expr getSymbol(const std::string& var_name, SymbolType type);
 
@@ -320,46 +320,49 @@ public:
   bool logicIsForced() const { return d_logicIsForced; }
 
   /**
-   * Returns a variable, given a name.
+   * Gets the variable currently bound to name.
    *
    * @param name the name of the variable
    * @return the variable expression
-   * Only returns a variable if its name is not overloaded.
+   * Only returns a variable if its name is not overloaded, returns null otherwise.
    */
   Expr getVariable(const std::string& name);
 
   /**
-   * Returns a function, given a name.
+   * Gets the function currently bound to name.
    *
    * @param name the name of the variable
    * @return the variable expression
-   * Only returns a function if its name is not overloaded.
+   * Only returns a function if its name is not overloaded, returns null otherwise.
    */
   Expr getFunction(const std::string& name);
 
   /**
-   * Returns a expression, given a name.
+   * Returns the expression that name should be interpreted as, based on the current binding.
    *
    * The symbol name should be declared.
    * This creates the expression that the string "name" should be interpreted as.
    * Typically this corresponds to a variable, but it may also correspond to
    * a nullary constructor or a defined function.
-   * Only returns an expression if its name is not overloaded.
+   * Only returns an expression if its name is not overloaded, returns null otherwise.
    */
-  virtual Expr getVariableExpression(const std::string& name);  
+  virtual Expr getExpressionForName(const std::string& name);
   
   /**
-   * Returns a expression, given a name and a type. 
+   * Returns the expression that name should be interpreted as, based on the current binding.
    *
    * This is the same as above but where the name has been type cast to t. 
-   * A null type for t indicates that there was no type cast.
    */
-  virtual Expr getVariableExpressionForType(const std::string& name, Type t);
+  virtual Expr getExpressionForNameAndType(const std::string& name, Type t);
   
   /**
-   * Returns the kind that should be used for function fun. For example,
-   * returns APPLY_UF if fun is a function, APPLY_CONSTRUCTOR if fun
-   * is a constructor.
+   * Returns the kind that should be used for applications of expression fun, where
+   * fun has "function-like" type, i.e. where checkFunctionLike(fun) returns true. 
+   * Returns a parse error if fun does not have function-like type.
+   * 
+   * For example, this function returns
+   *   APPLY_UF if fun has function type, 
+   *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
   Kind getKindForFunction(Expr fun);
   
@@ -407,7 +410,10 @@ public:
   void reserveSymbolAtAssertionLevel(const std::string& name);
 
   /**
-   * Checks whether the given expression is a function.
+   * Checks whether the given expression is function-like, i.e.
+   * it expects arguments. This is checked by looking at the type 
+   * of fun. Examples of function types are function, constructor,
+   * selector, tester.
    * @param fun the expression to check
    * @throws ParserException if checks are enabled and fun is not
    * a function
@@ -436,9 +442,13 @@ public:
   void checkOperator(Kind kind, unsigned numArgs) throw(ParserException);
 
   /** Create a new CVC4 variable expression of the given type. 
+   *
+   * flags specify information about the variable, e.g. whether it is global or defined
+   *   (see enum in expr_manager_template.h).
+   *
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, we overwrite name with val in the current context.  
+   *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   Expr mkVar(const std::string& name, const Type& type,
              uint32_t flags = ExprManager::VAR_FLAG_NONE, 
@@ -446,9 +456,13 @@ public:
 
   /**
    * Create a set of new CVC4 variable expressions of the given type.
+   *
+   * flags specify information about the variable, e.g. whether it is global or defined
+   *   (see enum in expr_manager_template.h).
+   *
    * For each name, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, we overwrite name with val in the current context.
+   *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   std::vector<Expr>
     mkVars(const std::vector<std::string> names, const Type& type,
@@ -460,9 +474,13 @@ public:
 
   /**
    * Create a set of new CVC4 bound variable expressions of the given type.
+   *
+   * flags specify information about the variable, e.g. whether it is global or defined
+   *   (see enum in expr_manager_template.h).
+   *
    * For each name, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, we overwrite name with val in the current context.
+   *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   std::vector<Expr> mkBoundVars(const std::vector<std::string> names, const Type& type);
 
@@ -475,22 +493,27 @@ public:
    * Create a new CVC4 function expression of the given type,
    * appending a unique index to its name.  (That's the ONLY
    * difference between mkAnonymousFunction() and mkFunction()).
+   *
+   * flags specify information about the variable, e.g. whether it is global or defined
+   *   (see enum in expr_manager_template.h).
    */
   Expr mkAnonymousFunction(const std::string& prefix, const Type& type,
                            uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
   /** Create a new variable definition (e.g., from a let binding). 
+   * levelZero is set if the binding must be done at level 0.
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, we overwrite name with val in the current context.
+   *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   void defineVar(const std::string& name, const Expr& val,
                  bool levelZero = false, bool doOverload = false);
 
   /** Create a new function definition (e.g., from a define-fun). 
+   * levelZero is set if the binding must be done at level 0.
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, we overwrite name with val in the current context.
+   *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   void defineFunction(const std::string& name, const Expr& val,
                       bool levelZero = false, bool doOverload = false);
@@ -545,7 +568,7 @@ public:
    * Create sorts of mutually-recursive datatypes.
    * For each symbol defined by the datatype, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, we overwrite name with val in the current context.
+   *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   std::vector<DatatypeType>
   mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, bool doOverload=false);
@@ -568,7 +591,9 @@ public:
   /** Is the symbol bound to a boolean variable? */
   bool isBoolean(const std::string& name);
 
-  /** Is fun a function (or function-like thing)? */
+  /** Is fun a function (or function-like thing)? 
+  * Currently this means its type is either a function, constructor, tester, or selector.
+  */
   bool isFunctionLike(Expr fun);
 
   /** Is the symbol bound to a defined function? */

@@ -89,9 +89,9 @@ public:
   bool logicIsSet();
   
   /**
-   * Returns a expression, given a name and a type.
+   * Returns the expression that name should be interpreted as. 
    */
-  virtual Expr getVariableExpressionForType(const std::string& name, Type t);
+  virtual Expr getExpressionForNameAndType(const std::string& name, Type t);
 
   void reset();
 
