@@ -61,8 +61,7 @@ private:
   /** does the syntax allow ITE expressions? */
   bool d_has_ite;
   /** collect terms */
-  void collectTerms( Node n, std::map< TypeNode, std::vector< Node > >& consts, 
-                     std::unordered_set< Node, NodeHashFunction >& visited );
+  void collectTerms( Node n, std::map< TypeNode, std::vector< Node > >& consts );
   /** convert node n based on deep embedding (Section 4 of Reynolds et al CAV 2015) */
   Node convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars );
   //---------------- grammar construction

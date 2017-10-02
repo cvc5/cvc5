@@ -31,26 +31,39 @@ d_qe( qe ), d_is_syntax_restricted(false), d_has_ite(true){
 
 }
 
-void CegGrammarConstructor::collectTerms( Node n, std::map< TypeNode, std::vector< Node > >& consts, 
-                                          std::unordered_set< Node, NodeHashFunction >& visited ) {
-  if( visited.find( n )==visited.end() ){
-    visited.insert( n );
-    if( n.isConst() ){
-      TypeNode tn = n.getType();
-      Node nc = n;
-      if( tn.isReal() ){
-        nc = NodeManager::currentNM()->mkConst( n.getConst<Rational>().abs() );
+void CegGrammarConstructor::collectTerms( Node n, std::map< TypeNode, std::vector< Node > >& consts ){
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
+  std::stack<TNode> visit;
+  TNode cur;
+  visit.push(n);
+  do {
+    cur = visit.top();
+    visit.pop();
+    it = visited.find(cur);
+    if (it == visited.end()) {
+      visited[cur] = true;
+      // is this a constant?
+      if( cur.isConst() ){
+        TypeNode tn = cur.getType();
+        Node c = cur;
+        if( tn.isReal() ){
+          c = NodeManager::currentNM()->mkConst( c.getConst<Rational>().abs() );
+        }
+        if( std::find( consts[tn].begin(), consts[tn].end(), c )==consts[tn].end() ){
+          Trace("cegqi-debug") << "...consider const : " << c << std::endl;
+          consts[tn].push_back( c );
+        }
       }
-      if( std::find( consts[tn].begin(), consts[tn].end(), nc )==consts[tn].end() ){
-        Trace("cegqi-debug") << "...consider const : " << nc << std::endl;
-        consts[tn].push_back( nc );
+      // recurse
+      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+        visit.push(cur[i]);
       }
     }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      collectTerms( n[i], consts, visited );
-    }
-  }
+  } while (!visit.empty());
 }
+
+
 
 Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, std::map< Node, Node >& templates_arg ) {
   // convert to deep embedding and finalize single invocation here
@@ -59,8 +72,7 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
   std::map< TypeNode, std::vector< Node > > extra_cons;
   if( options::sygusAddConstGrammar() ){
     Trace("cegqi") << "CegConjecture : collect constants..." << std::endl;
-    std::unordered_set< Node, NodeHashFunction > visited;
-    collectTerms( q[1], extra_cons, visited );
+    collectTerms( q[1], extra_cons );
   }
 
   std::vector< Node > qchildren;
