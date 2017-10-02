@@ -365,11 +365,30 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
       Node skv = getInversionNode(sc, solve_tn);
       /* now solving with the skolem node as the RHS */
       t = skv;
+    } else if (k == BITVECTOR_CONCAT) {
+      TypeNode solve_tn = sv_t[index].getType();
+      Node x = getSolveVariable(solve_tn);
+      Node s = sv_t[1 - index];
+      Node sc;
+
+      /* x o s = t */
+      if (index == 0) {
+        sc = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_CONCAT, x, s), t);
+      /* s o x = t */
+      } else {
+        sc = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_CONCAT, s, x), t);
+      }
+
+      /* add side condition */
+      status.d_conds.push_back(sc);
+
+      /* get the skolem node for this side condition*/
+      Node skv = getInversionNode(sc, solve_tn);
+      /* now solving with the skolem node as the RHS */
+      t = skv;
     } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
       t = NodeManager::currentNM()->mkNode(k, t);
       //}else if( k==BITVECTOR_AND || k==BITVECTOR_OR ){
-      // TODO
-      //}else if( k==BITVECTOR_CONCAT ){
       // TODO
       //}else if( k==BITVECTOR_SHL || k==BITVECTOR_LSHR ){
       // TODO
