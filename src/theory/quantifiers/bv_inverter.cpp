@@ -262,8 +262,10 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         : dropChild (sv_t, index);
       /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
        *       are commutative (no case split based on index). */
-      if (k == BITVECTOR_PLUS || k == BITVECTOR_SUB) {
-        t = nm->mkNode(k, t, s);
+      if (k == BITVECTOR_PLUS) {
+        t = nm->mkNode(BITVECTOR_SUB, t, s);
+      } else if (k == BITVECTOR_SUB) {
+        t = nm->mkNode(BITVECTOR_PLUS, t, s);
       } else if (k == BITVECTOR_MULT) {
         /* t = skv (fresh skolem constant)  */
         TypeNode solve_tn = sv_t[index].getType();
