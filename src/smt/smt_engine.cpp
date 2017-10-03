@@ -972,7 +972,7 @@ public:
   }
 
   // implments getExpressionNames, as described in smt_engine.h
-  std::map<Expr, std::string> getExpressionNames() {
+  std::map<Expr, std::string>& getExpressionNames() {
     return d_exprNames.top();
   }
   //------------------------------- end expression names
@@ -5680,7 +5680,7 @@ void SmtEngine::setReplayStream(ExprStream* replayStream) {
   d_replayStream = replayStream;
 }  
 
-std::map< Expr, std::string > SmtEngine::getExpressionNames() {
+std::map< Expr, std::string >& SmtEngine::getExpressionNames() {
   return d_private->getExpressionNames();
 }
 

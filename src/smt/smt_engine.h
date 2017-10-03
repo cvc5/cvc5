@@ -750,7 +750,7 @@ public:
   * in the current user context via calls to setExpressionName.
   * This mapping is used, for instance, to print unsat cores.
   */
-  std::map< Expr, std::string > getExpressionNames();
+  std::map< Expr, std::string >& getExpressionNames();
 
   /** set expression name 
   * Sets the expression name of e to name.
