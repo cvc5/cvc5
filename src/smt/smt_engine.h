@@ -251,6 +251,7 @@ class CVC4_PUBLIC SmtEngine {
    * Verbosity of various commands.
    */
   std::map<std::string, Integer> d_commandVerbosity;
+  
 
   /** ReplayStream for the solver. */
   ExprStream* d_replayStream;
@@ -743,6 +744,20 @@ public:
    * translation.
    */
   void setReplayStream(ExprStream* exprStream);
+  
+  /** get expression names 
+  * This gets a mapping of all expressions that have been named
+  * in the current user context via calls to setExpressionName.
+  * This mapping is used, for instance, to print unsat cores.
+  */
+  std::map< Expr, std::string > getExpressionNames();
+
+  /** set expression name 
+  * Sets the expression name of e to name.
+  * This information is user-context-dependent.
+  * If e already has a name, it is overwritten.
+  */
+  void setExpressionName(Expr e, const std::string& name);
 
 };/* class SmtEngine */
 

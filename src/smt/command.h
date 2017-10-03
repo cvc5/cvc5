@@ -687,9 +687,6 @@ public:
 };/* class GetQuantifierEliminationCommand */
 
 class CVC4_PUBLIC GetUnsatCoreCommand : public Command {
-protected:
-  UnsatCore d_result;
-  std::map<Expr, std::string> d_names;
 public:
   GetUnsatCoreCommand() throw();
   GetUnsatCoreCommand(const std::map<Expr, std::string>& names) throw();
@@ -700,6 +697,13 @@ public:
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
+
+protected:
+  // the result of the unsat core call
+  UnsatCore d_result;
+  // the SMT engine used to get the unsat core
+  // this is required for knowing the expression names
+  SmtEngine* d_smtEngine;
 };/* class GetUnsatCoreCommand */
 
 class CVC4_PUBLIC GetAssertionsCommand : public Command {
@@ -803,6 +807,27 @@ public:
   Command* clone() const;
   std::string getCommandName() const throw();
 };/* class GetOptionCommand */
+
+// Set expression name command
+// Note this is not an official smt2 command
+// Conceptually:
+//   (assert (! expr :named name))
+// is converted to
+//   (assert expr)
+//   (set-expr-name expr name)
+class CVC4_PUBLIC SetExpressionNameCommand : public Command {
+protected:
+  Expr d_expr;
+  std::string d_name;
+public:
+  SetExpressionNameCommand(Expr expr, std::string name) throw();
+  ~SetExpressionNameCommand() throw() {}
+  void invoke(SmtEngine* smtEngine);
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+};/* class SetExpressionNameCommand */
+
 
 class CVC4_PUBLIC DatatypeDeclarationCommand : public Command {
 private:

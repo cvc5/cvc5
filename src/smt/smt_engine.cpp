@@ -546,7 +546,13 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   /** TODO: whether certain preprocess steps are necessary */
   //bool d_needsExpandDefs;
-
+  
+  //------------------------------- expression names
+  /** mapping from expressions to names
+  * This is a user-context stack
+  */
+  std::stack< std::map<Expr, std::string> > d_exprNames;
+  //------------------------------- end expression names
 public:
   /**
    * Map from skolem variables to index in d_assertions containing
@@ -729,6 +735,9 @@ public:
     d_listenerRegistrations->add(
         nodeManagerOptions.registerSetReplayLogFilename(
             new SetToDefaultSourceListener(&d_managedReplayLog), true));
+            
+    // expression names are a context-dependent stack, we push the initial stack here
+    d_exprNames.push(std::map<Expr, std::string>());
   }
 
   ~SmtEnginePrivate() throw() {
@@ -806,12 +815,21 @@ public:
    */
   void processAssertions();
 
+  /** Process a user push. 
+  * This copies the map of expression names to the next level.
+  */
+  void notifyPush() {
+    d_exprNames.push(d_exprNames.top());
+  }
+
   /**
    * Process a user pop.  Clears out the non-context-dependent stuff in this
    * SmtEnginePrivate.  Necessary to clear out our assertion vectors in case
-   * someone does a push-assert-pop without a check-sat.
+   * someone does a push-assert-pop without a check-sat. It also pops the
+   * last map of expression names from notifyPush.
    */
   void notifyPop() {
+    d_exprNames.pop();
     d_assertions.clear();
     d_nonClausalLearnedLiterals.clear();
     d_realAssertionsEnd = 0;
@@ -946,6 +964,18 @@ public:
   std::ostream* getReplayLog() const {
     return d_managedReplayLog.getReplayLog();
   }
+  
+  //------------------------------- expression names
+  // implments setExpressionName, as described in smt_engine.h
+  void setExpressionName(Expr e, std::string name) {
+    d_exprNames.top().insert(std::make_pair(e,name));
+  }
+
+  // implments getExpressionNames, as described in smt_engine.h
+  std::map<Expr, std::string> getExpressionNames() {
+    return d_exprNames.top();
+  }
+  //------------------------------- end expression names
 
 };/* class SmtEnginePrivate */
 
@@ -5326,6 +5356,7 @@ void SmtEngine::push() throw(ModalException, LogicException, UnsafeInterruptExce
   finalOptionsAreSet();
   doPendingPops();
   Trace("smt") << "SMT push()" << endl;
+  d_private->notifyPush();
   d_private->processAssertions();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << PushCommand();
@@ -5647,6 +5678,15 @@ void SmtEngine::setReplayStream(ExprStream* replayStream) {
   AlwaysAssert(!d_fullyInited,
                "Cannot set replay stream once fully initialized");
   d_replayStream = replayStream;
+}  
+
+std::map< Expr, std::string > SmtEngine::getExpressionNames() {
+  return d_private->getExpressionNames();
+}
+
+void SmtEngine::setExpressionName(Expr e, const std::string& name) {
+  Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
+  d_private->setExpressionName(e,name);
 }
 
 }/* CVC4 namespace */
