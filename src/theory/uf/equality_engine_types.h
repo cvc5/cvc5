@@ -17,9 +17,14 @@
 
 #include "cvc4_private.h"
 
+#ifndef __CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H
+#define __CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H
+
 #include <string>
 #include <iostream>
 #include <sstream>
+
+#include "util/hash.h"
 
 namespace CVC4 {
 namespace theory {
@@ -264,15 +269,8 @@ public:
 
 /** A pair of ids */
 typedef std::pair<EqualityNodeId, EqualityNodeId> EqualityPair;
-
-struct EqualityPairHashFunction {
-  size_t operator () (const EqualityPair& pair) const {
-    size_t hash = 0;
-    hash = 0x9e3779b9 + pair.first;
-    hash ^= 0x9e3779b9 + pair.second + (hash << 6) + (hash >> 2);
-    return hash;
-  }
-};
+using EqualityPairHashFunction =
+    PairHashFunction<EqualityNodeId, EqualityNodeId>;
 
 enum FunctionApplicationType {
   /** This application is an equality a = b */
@@ -362,3 +360,5 @@ struct TriggerInfo {
 } // namespace eq
 } // namespace theory
 } // namespace CVC4
+
+#endif /* __CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H */
