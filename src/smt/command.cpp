@@ -1356,7 +1356,9 @@ GetUnsatCoreCommand::GetUnsatCoreCommand() throw() {
 void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getUnsatCore();
+    // store a pointer to the SMT engine that we used for getting the unsat core
     d_smtEngine = smtEngine;
+    // copy names here instead of storing the pointer?
     d_commandStatus = CommandSuccess::instance();
   } catch (RecoverableModalException& e) {
     d_commandStatus = new CommandRecoverableFailure(e.what());
