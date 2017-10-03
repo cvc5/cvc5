@@ -5,9 +5,9 @@
 (declare-sort I 0)
 (declare-fun e0 () I)
 
-;; as was badly parsed in default case
-;; no specialization (emptyset) just dumb type-checking
-
+;; below we type cast e0 to its type
+;; in other words, this just affirms that e0 has type I
+;; previously, this was not handled correctly in the smt2 parser
 (assert (= (as e0 I) (as e0 I)))
 
 (check-sat)
