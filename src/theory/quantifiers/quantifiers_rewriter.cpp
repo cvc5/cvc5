@@ -931,7 +931,8 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
       return true;
     }
   }
-  if( ( lit.getKind()==EQUAL && lit[0].getType().isReal() && pol ) || ( ( lit.getKind()==GEQ || lit.getKind()==GT ) && options::varIneqElimQuant() ) ){
+  if( ( lit.getKind()==EQUAL && lit[0].getType().isReal() && pol && options::varElimQuant() ) || 
+      ( ( lit.getKind()==GEQ || lit.getKind()==GT ) && options::varIneqElimQuant() ) ){
     //for arithmetic, solve the (in)equality
     std::map< Node, Node > msum;
     if( QuantArith::getMonomialSumLit( lit, msum ) ){
