@@ -259,7 +259,7 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
     } else {
       Node s = sv_t.getNumChildren() == 2
         ? sv_t[1 - index]
-        : dropChild (sv_t, index);
+        : dropChild(sv_t, index);
       /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
        *       are commutative (no case split based on index). */
       if (k == BITVECTOR_PLUS) {
@@ -312,7 +312,7 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
           Node smt_gt_t = nm->mkNode(BITVECTOR_UGT, s_m_t, t);
           Node t_eq_z = nm->mkNode(EQUAL,
               t, bv::utils::mkZero(bv::utils::getSize(t)));
-          Node s_m_o = nm->mkNode (BITVECTOR_SUB,
+          Node s_m_o = nm->mkNode(BITVECTOR_SUB,
               s, bv::utils::mkOne(bv::utils::getSize(s)));
           Node t_d_smo = nm->mkNode(DISTINCT, t, s_m_o);
 
@@ -322,7 +322,7 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
           scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UREM_TOTAL, s, x), t);
         }
         Node sc = nm->mkNode(IMPLIES, scl, scr);
-        status.d_conds.push_back (sc);
+        status.d_conds.push_back(sc);
         Node skv = getInversionNode(sc, solve_tn);
         t = skv;
       } else if (k == BITVECTOR_ULT) {
@@ -351,7 +351,7 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
           scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_ULT, s, x), t);
         }
         Node sc = nm->mkNode(IMPLIES, scl, scr);
-        status.d_conds.push_back (sc);
+        status.d_conds.push_back(sc);
         Node skv = getInversionNode(sc, solve_tn);
         t = skv;
       } else if (k == BITVECTOR_AND || k == BITVECTOR_OR) {
@@ -364,7 +364,7 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         Node scl = nm->mkNode(EQUAL, t, nm->mkNode(k, t, s));
         Node scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
         Node sc = nm->mkNode(IMPLIES, scl, scr);
-        status.d_conds.push_back (sc);
+        status.d_conds.push_back(sc);
         Node skv = getInversionNode(sc, solve_tn);
         t = skv;
       } else if (k == BITVECTOR_LSHR) {
@@ -381,15 +381,15 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
            * with w = getSize(t) = getSize(s) and z = 0 with getSize(z) = w  */
           unsigned w = bv::utils::getSize(s);
           Node z = bv::utils::mkZero(w);
-          Node z_o_t =  nm->mkNode (BITVECTOR_CONCAT, z, t);
-          Node zot_shl_s = nm->mkNode (BITVECTOR_SHL, z_o_t, s);
-          Node ext = bv::utils::mkExtract (zot_shl_s, 2*w-1, w);
+          Node z_o_t =  nm->mkNode(BITVECTOR_CONCAT, z, t);
+          Node zot_shl_s = nm->mkNode(BITVECTOR_SHL, z_o_t, s);
+          Node ext = bv::utils::mkExtract(zot_shl_s, 2*w-1, w);
           scl = nm->mkNode(OR,
               nm->mkNode(EQUAL, s, z),
               nm->mkNode(EQUAL, ext, z));
           scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_LSHR, x, s), t);
           Node sc = nm->mkNode(IMPLIES, scl, scr);
-          status.d_conds.push_back (sc);
+          status.d_conds.push_back(sc);
           Node skv = getInversionNode(sc, solve_tn);
           t = skv;
         } else {
