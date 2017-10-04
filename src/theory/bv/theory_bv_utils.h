@@ -204,13 +204,9 @@ inline Node mkConst(const BitVector& value) {
   return NodeManager::currentNM()->mkConst<BitVector>(value);
 }
 
-inline Node mkZero(unsigned size) {
-  return mkConst(size, 0u);
-}
+inline Node mkZero(unsigned size) { return mkConst(size, 0u); }
 
-inline Node mkOne(unsigned size) {
-  return mkConst(size, 1u);
-}
+inline Node mkOne(unsigned size) { return mkConst(size, 1u); }
 
 /* Unsigned multiplication overflow detection.
  * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication

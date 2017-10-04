@@ -76,7 +76,7 @@ public:
     Node x_shl_one = d_nm->mkNode(kind::BITVECTOR_SHL, x, one);
     Node eq = d_nm->mkNode(kind::EQUAL, x_plus_y, x_shl_one);
     Node not_x_eq_y = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, x, y));
-    
+
     bb->bbFormula(eq);
     bb->bbFormula(not_x_eq_y);
 
@@ -86,10 +86,9 @@ public:
   }
 
   void testMkUmulo() {
-    d_smt->setOption ("incremental", SExpr("true"));
-    d_smt->setOption ("bitblast", SExpr("lazy"));
-    for (size_t w = 1; w < 16; ++w)
-    {
+    d_smt->setOption("incremental", SExpr("true"));
+    d_smt->setOption("bitblast", SExpr("lazy"));
+    for (size_t w = 1; w < 16; ++w) {
       d_smt->push();
       Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(w));
       Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(w));
@@ -97,12 +96,13 @@ public:
       Node zx = mkConcat(mkZero(w), x);
       Node zy = mkConcat(mkZero(w), y);
       Node mul = d_nm->mkNode(kind::BITVECTOR_MULT, zx, zy);
-      Node lhs = d_nm->mkNode(kind::DISTINCT, mkExtract(mul, 2*w-1, w), mkZero(w));
+      Node lhs =
+          d_nm->mkNode(kind::DISTINCT, mkExtract(mul, 2 * w - 1, w), mkZero(w));
       Node rhs = mkUmulo(x, y);
       Node eq = d_nm->mkNode(kind::DISTINCT, lhs, rhs);
-      d_smt->assertFormula (eq.toExpr());
-      Result res = d_smt->checkSat ();
-      TS_ASSERT (res.isSat() == Result::UNSAT);
+      d_smt->assertFormula(eq.toExpr());
+      Result res = d_smt->checkSat();
+      TS_ASSERT(res.isSat() == Result::UNSAT);
       d_smt->pop();
     }
   }
