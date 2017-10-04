@@ -267,13 +267,13 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
       } else if (k == BITVECTOR_SUB) {
         t = nm->mkNode(BITVECTOR_PLUS, t, s);
       } else if (k == BITVECTOR_MULT) {
-        /* t = skv (fresh skolem constant)  */
-        TypeNode solve_tn = sv_t[index].getType();
-        Node x = getSolveVariable(solve_tn);
-        /* with side condition:
+        /* t = skv (fresh skolem constant)
+         * with side condition:
          * ctz(t) >= ctz(s) <-> x * s = t
          * where
          * ctz(t) >= ctz(s) -> (t & -t) >= (s & -s)  */
+        TypeNode solve_tn = sv_t[index].getType();
+        Node x = getSolveVariable(solve_tn);
         /* left hand side of side condition  */
         Node scl = nm->mkNode(
             BITVECTOR_UGE,
@@ -330,18 +330,18 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         TypeNode solve_tn = sv_t[index].getType();
         Node x = getSolveVariable(solve_tn);
         Node scl, scr;
-        /* x % s = t  */
         if (index == 0) {
-          /* with side conditions:
+          /* x % s = t
+           * with side conditions:
            * t = false
            * || s != 0  */
           scl = nm->mkNode(OR,
               nm->mkNode(NOT, t),
               nm->mkNode(DISTINCT, s, bv::utils::mkZero(bv::utils::getSize(s))));
           scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_ULT, x, s), t);
-        }
-        else {
-          /* with side conditions:
+        } else {
+          /* s % x = t
+           * with side conditions:
            * t = false
            * || s != 1...1  */
           scl = nm->mkNode(OR,
@@ -355,12 +355,12 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         Node skv = getInversionNode(sc, solve_tn);
         t = skv;
       } else if (k == BITVECTOR_AND || k == BITVECTOR_OR) {
-        /* t = skv (fresh skolem constant)  */
-        TypeNode solve_tn = sv_t[index].getType();
-        Node x = getSolveVariable(solve_tn);
-        /* with side condition:
+        /* t = skv (fresh skolem constant)
+         * with side condition:
          * t & s = t
          * t | s = t */
+        TypeNode solve_tn = sv_t[index].getType();
+        Node x = getSolveVariable(solve_tn);
         Node scl = nm->mkNode(EQUAL, t, nm->mkNode(k, t, s));
         Node scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
         Node sc = nm->mkNode(IMPLIES, scl, scr);
@@ -372,9 +372,9 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         TypeNode solve_tn = sv_t[index].getType();
         Node x = getSolveVariable(solve_tn);
         Node scl, scr;
-        /* x >> s = t */
         if (index == 0) {
-          /* with side condition:
+          /* x >> s = t
+           * with side condition:
            * s = 0 || clz(t) >= s
            * ->
            * s = 0 || ((z o t) << s)[2w-1 : w] = z
@@ -394,12 +394,13 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
           t = skv;
         } else {
           // TODO: index == 1
-          /* with side conditions:                                                
-           * (s = 0 && t = 0)                                                     
-           * || (clz(t) >= clz(s)                                                 
+          /* s >> x = t
+           * with side conditions:
+           * (s = 0 && t = 0)
+           * || (clz(t) >= clz(s)
            *     && (t = 0
            *         || "remaining shifted bits in t "
-           *            "match corresponding bits in s"))  */ 
+           *            "match corresponding bits in s"))  */
           Trace("bv-invert") << "bv-invert : Unsupported for index " << index
                            << "for kind " << k
                            << ", from " << sv_t << std::endl;
