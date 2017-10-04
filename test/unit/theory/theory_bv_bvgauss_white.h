@@ -967,7 +967,7 @@ public:
           { Integer(5), Integer(6) , Integer(4)},
           { Integer(7), Integer(12), Integer(2) }
         };
-    std::cout << "matrix 32, modulo 3" << std::endl;
+    std::cout << "matrix 33, modulo 3" << std::endl;
     resrhs = { Integer(0), Integer(0), Integer(0) };
     reslhs =
         {
