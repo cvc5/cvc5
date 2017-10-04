@@ -302,11 +302,8 @@ BVGaussElim::gaussElimRewriteForUrem (
       {
         Assert (reslhs[prow][pcol] == 0 || reslhs[prow][pcol] == 1);
         while (pcol < nvars && reslhs[prow][pcol] == 0) pcol += 1;
-        if (reslhs[prow][pcol] == 0)
-        {
-          Assert (resrhs[prow] == 0);
-          continue;
-        }
+        if (pcol >= nvars) { Assert (resrhs[prow] == 0); break; }
+        if (reslhs[prow][pcol] == 0) { Assert (resrhs[prow] == 0); continue; }
         Assert (reslhs[prow][pcol] == 1);
         stack< Node > stack;
         while (reslhs[prow][pcol] == 0) pcol += 1;
