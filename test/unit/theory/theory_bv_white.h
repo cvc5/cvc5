@@ -47,7 +47,6 @@ class TheoryBVWhite : public CxxTest::TestSuite {
   NodeManager* d_nm;
   SmtEngine* d_smt;
   SmtScope* d_scope;
-  EagerBitblaster* d_bb;
 
 public:
 
@@ -58,18 +57,18 @@ public:
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
-    d_smt->setOption("bitblast", SExpr("eager"));
-    d_bb = new EagerBitblaster(dynamic_cast<TheoryBV*>(d_smt->d_theoryEngine->d_theoryTable[THEORY_BV]));
   }
 
   void tearDown() {
-    delete d_bb;
     delete d_scope;
     delete d_smt;
     delete d_em;
   }
  
   void testBitblasterCore() {
+    d_smt->setOption("bitblast", SExpr("eager"));
+    EagerBitblaster* bb = new EagerBitblaster(dynamic_cast<TheoryBV*>(
+        d_smt->d_theoryEngine->d_theoryTable[THEORY_BV]));
     Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
     Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
     Node x_plus_y = d_nm->mkNode(kind::BITVECTOR_PLUS, x, y);
@@ -78,10 +77,33 @@ public:
     Node eq = d_nm->mkNode(kind::EQUAL, x_plus_y, x_shl_one);
     Node not_x_eq_y = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, x, y));
     
-    d_bb->bbFormula(eq);
-    d_bb->bbFormula(not_x_eq_y);
+    bb->bbFormula(eq);
+    bb->bbFormula(not_x_eq_y);
 
-    bool res = d_bb->solve(); 
+    bool res = bb->solve();
     TS_ASSERT (res == false);
+    delete bb;
+  }
+
+  void testMkUmulo() {
+    d_smt->setOption ("incremental", SExpr("true"));
+    d_smt->setOption ("bitblast", SExpr("lazy"));
+    for (size_t w = 1; w < 16; ++w)
+    {
+      d_smt->push();
+      Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(w));
+      Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(w));
+
+      Node zx = mkConcat(mkZero(w), x);
+      Node zy = mkConcat(mkZero(w), y);
+      Node mul = d_nm->mkNode(kind::BITVECTOR_MULT, zx, zy);
+      Node lhs = d_nm->mkNode(kind::DISTINCT, mkExtract(mul, 2*w-1, w), mkZero(w));
+      Node rhs = mkUmulo(x, y);
+      Node eq = d_nm->mkNode(kind::DISTINCT, lhs, rhs);
+      d_smt->assertFormula (eq.toExpr());
+      Result res = d_smt->checkSat ();
+      TS_ASSERT (res.isSat() == Result::UNSAT);
+      d_smt->pop();
+    }
   }
 };/* class TheoryBVWhite */
