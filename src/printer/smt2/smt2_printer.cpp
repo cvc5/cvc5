@@ -899,6 +899,8 @@ static string smtKindString(Kind k) throw() {
   case kind::FLOATINGPOINT_RTI: return "fp.roundToIntegral";
   case kind::FLOATINGPOINT_MIN: return "fp.min";
   case kind::FLOATINGPOINT_MAX: return "fp.max";
+  case kind::FLOATINGPOINT_MIN_TOTAL: return "fp.min_total";
+  case kind::FLOATINGPOINT_MAX_TOTAL: return "fp.max_total";
 
   case kind::FLOATINGPOINT_LEQ: return "fp.leq";
   case kind::FLOATINGPOINT_LT: return "fp.lt";
@@ -920,8 +922,11 @@ static string smtKindString(Kind k) throw() {
   case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR: return "to_fp_unsigned";
   case kind::FLOATINGPOINT_TO_FP_GENERIC: return "to_fp_unsigned";
   case kind::FLOATINGPOINT_TO_UBV: return "fp.to_ubv";
+  case kind::FLOATINGPOINT_TO_UBV_TOTAL: return "fp.to_ubv_total";
   case kind::FLOATINGPOINT_TO_SBV: return "fp.to_sbv";
+  case kind::FLOATINGPOINT_TO_SBV_TOTAL: return "fp.to_sbv_total";
   case kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
+  case kind::FLOATINGPOINT_TO_REAL_TOTAL: return "fp.to_real_total";
 
   //string theory
   case kind::STRING_CONCAT: return "str.++";
@@ -1042,6 +1047,14 @@ static void printFpParameterizedOp(std::ostream& out, TNode n) throw() {
   case kind::FLOATINGPOINT_TO_SBV:
     out << "fp.to_sbv "
         << n.getOperator().getConst<FloatingPointToSBV>().bvs.size;
+    break;
+  case kind::FLOATINGPOINT_TO_UBV_TOTAL:
+    out << "fp.to_ubv_total "
+        << n.getOperator().getConst<FloatingPointToUBVTotal>().bvs.size;
+    break;
+  case kind::FLOATINGPOINT_TO_SBV_TOTAL:
+    out << "fp.to_sbv_total "
+        << n.getOperator().getConst<FloatingPointToSBVTotal>().bvs.size;
     break;
   default:
     out << n.getKind();

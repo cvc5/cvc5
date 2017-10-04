@@ -350,6 +350,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/bv_inverter.h \
 	theory/quantifiers/candidate_generator.cpp \
 	theory/quantifiers/candidate_generator.h \
+	theory/quantifiers/ce_guided_conjecture.cpp \
+	theory/quantifiers/ce_guided_conjecture.h \
 	theory/quantifiers/ce_guided_instantiation.cpp \
 	theory/quantifiers/ce_guided_instantiation.h \
 	theory/quantifiers/ce_guided_single_inv.cpp \
@@ -412,6 +414,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/rewrite_engine.cpp \
 	theory/quantifiers/rewrite_engine.h \
+	theory/quantifiers/sygus_grammar_cons.cpp \
+	theory/quantifiers/sygus_grammar_cons.h \
 	theory/quantifiers/symmetry_breaking.cpp \
 	theory/quantifiers/symmetry_breaking.h \
 	theory/quantifiers/term_database.cpp \

@@ -65,7 +65,8 @@ TESTS =	\
   nta/tan-rewrite2.smt2 \
   nta/tan-rewrite.smt2 \
   nta/arrowsmith-050317.smt2 \
-  nta/sin-init-tangents.smt2
+  nta/sin-init-tangents.smt2 \
+  nta/cos1-tc.smt2
 
 # unsolved : garbage_collect.cvc
 
