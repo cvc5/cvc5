@@ -44,9 +44,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  Third-Party Software
 -------------------------------------------------------------------------------
 
-CVC4 incorporates third-party software without changing the terms above.
+The CVC4 source code includes third-party software which has its own copyright
+and licensing terms, as described below.
 
-The following files are part of CVC4, but excluded from the above copyright:
+Each of the following files contains third-party software.
 
   autogen.sh
   config/ax_cxx_compile_stdcxx.m4
@@ -56,8 +57,8 @@ The following files are part of CVC4, but excluded from the above copyright:
   config/doxygen.am
   config/pkg.m4
 
-The copyright and licensing information for each file is in the header of the
-corresponding file.
+The copyright and licensing information for each of these files is in the
+header of the corresponding file.
 
 CVC4 incorporates MiniSat code (see src/prop/minisat and src/prop/bvminisat),
 excluded from the above copyright.  See src/prop/minisat/LICENSE and
@@ -84,8 +85,9 @@ CVC4 optionally links against the following libraries:
   Cryptominisat4.0   (https://github.com/msoos/cryptominisat)
   LFSC checker       (https://github.com/CVC4/LFSC)
 
-Linking CVC4 against these libraries does not change the terms above.  See
-the respective project for copyright and licensing information.
+Linking CVC4 against these libraries does not affect the license terms of the
+CVC4 code.  See the respective projects for copyright and licensing
+information.
 
 
 -------------------------------------------------------------------------------
@@ -97,18 +99,18 @@ license.  If you choose to link CVC4 against one of these libraries, the
 resulting combined work is also covered under the GPLv3. If you want to make
 sure you build a version of CVC4 that uses no GPLed libraries, configure CVC4
 with the "--bsd" option before building (which is the default).  CVC4 can then
-be used in contexts where you want to license CVC4 under the (modified) BSD
-license.  See licenses/gpl-3.0.txt for more information.
+be used in contexts where you want to use CVC4 under the terms of the
+(modified) BSD license.  See licenses/gpl-3.0.txt for more information.
 
 CVC4 can be optionally configured to link against CLN, the Class Library for
 Numbers, available here:
 
   http://www.ginac.de/CLN/
 
-CVC4 can be optionally configured to link against GLPK, the GNU Linear
-Programming Kit, available here:
+CVC4 can be optionally configured to link against glpk-cut-log, a modified
+version of GLPK, the GNU Linear Programming Kit, available here:
 
-  http://www.gnu.org/software/glpk/
+  https://github.com/timothy-king/glpk-cut-log
 
 CVC4 can be optionally configured to link against GNU Readline for improved
 text-editing support in interactive mode.  GNU Readline is available here:
