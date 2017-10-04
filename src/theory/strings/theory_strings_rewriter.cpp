@@ -1394,77 +1394,58 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
 Node TheoryStringsRewriter::rewriteContains( Node node ) {
   if( node[0] == node[1] ){
     return NodeManager::currentNM()->mkConst( true );
-  }else if( node[0].isConst() && node[1].isConst() ){
-    CVC4::String s = node[0].getConst<String>();
-    CVC4::String t = node[1].getConst<String>();
-    if( s.find(t) != std::string::npos ){
-      return NodeManager::currentNM()->mkConst( true );
+  }else if( node[0].isConst() ){
+    if( node[1].isConst() ){
+      CVC4::String s = node[0].getConst<String>();
+      CVC4::String t = node[1].getConst<String>();
+      return NodeManager::currentNM()->mkConst( s.find(t)!=std::string::npos );
     }else{
-      return NodeManager::currentNM()->mkConst( false );
-    }
-  }else if( node[0].getKind()==kind::STRING_CONCAT ){
-    //component-wise containment
-    unsigned n1 = node[0].getNumChildren();
-    std::vector< Node > nc1;
-    getConcat( node[1], nc1 );
-    unsigned n2 = nc1.size();
-    if( n1>n2 ){
-      unsigned diff = n1-n2;
-      for(unsigned i=0; i<diff; i++) {
-        if( node[0][i]==nc1[0] ){
-          bool flag = true;
-          for(unsigned j=1; j<n2; j++) {
-            if( node[0][i+j]!=nc1[j] ){
-              flag = false;
-              break;
-            }
-          }
-          if(flag) {
-            return NodeManager::currentNM()->mkConst( true );
-          }
+      if( node[0].getConst<String>().size()==0 ){
+        return NodeManager::currentNM()->mkNode( kind::EQUAL, node[0], node[1] );
+      }else if( node[1].getKind()==kind::STRING_CONCAT ){
+        int firstc, lastc;
+        if( !canConstantContainConcat( node[0], node[1], firstc, lastc ) ){
+          return NodeManager::currentNM()->mkConst( false );
         }
       }
     }
+  }else if( node[0].getKind()==kind::STRING_CONCAT ){
+    std::vector< Node > nc1;
+    getConcat( node[0], nc1 );
+    std::vector< Node > nc2;
+    getConcat( node[1], nc2 );
+    std::vector< Node > nr;
+    //component-wise containment
+    if( componentContains( nc1, nc2, nr )!=-1 ){
+      return NodeManager::currentNM()->mkConst( true );
+    }
+    
+    //strip endpoints
+    std::vector< Node > nb;
+    std::vector< Node > ne;
+    if( stripConstantEndpoints( nc1, nc2, nb, ne ) ){
+      return NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, nc1 ), node[1] );
+    }
+
+    //splitting
     if( node[1].isConst() ){
       CVC4::String t = node[1].getConst<String>();
-      for(unsigned i=0; i<node[0].getNumChildren(); i++){
+      for(unsigned i=1; i<(node[0].getNumChildren()-1); i++){
         //constant contains
         if( node[0][i].isConst() ){
           CVC4::String s = node[0][i].getConst<String>();
-          if( s.find(t)!=std::string::npos ) {
-            return NodeManager::currentNM()->mkConst( true );
-          }else{
-            //if no overlap, we can split into disjunction
-            // if first child, only require no left overlap
-            // if last child, only require no right overlap
-            if( i==0 || i==node[0].getNumChildren()-1 || t.find(s)==std::string::npos ){
-              bool do_split = false;
-              int sot = s.overlap( t );
-              Trace("strings-ext-rewrite") << "Overlap " << s << " " << t << " is " << sot << std::endl;
-              if( sot==0 ){
-                do_split = i==0;
-              }
-              if( !do_split && ( i==(node[0].getNumChildren()-1) || sot==0 ) ){
-                int tos = t.overlap( s );
-                Trace("strings-ext-rewrite") << "Overlap " << t << " " << s << " is " << tos << std::endl;
-                if( tos==0 ){
-                  do_split = true;
-                }
-              }
-              if( do_split ){
-                std::vector< Node > nc0;
-                getConcat( node[0], nc0 );
-                std::vector< Node > spl[2];
-                if( i>0 ){
-                  spl[0].insert( spl[0].end(), nc0.begin(), nc0.begin()+i );
-                }
-                if( i<nc0.size()-1 ){
-                  spl[1].insert( spl[1].end(), nc0.begin()+i+1, nc0.end() );
-                }
-                return NodeManager::currentNM()->mkNode( kind::OR,
-                            NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, spl[0] ), node[1] ),
-                            NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, spl[1] ), node[1] ) );
-              }
+          //if no overlap, we can split into disjunction
+          if( t.find(s)==std::string::npos ){
+            if( s.overlap( t )==0 && t.overlap( s )==0 ){
+              std::vector< Node > nc0;
+              getConcat( node[0], nc0 );
+              std::vector< Node > spl[2];
+              spl[0].insert( spl[0].end(), nc0.begin(), nc0.begin()+i );
+              Assert( i<nc0.size()-1 );
+              spl[1].insert( spl[1].end(), nc0.begin()+i+1, nc0.end() );
+              return NodeManager::currentNM()->mkNode( kind::OR,
+                          NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, spl[0] ), node[1] ),
+                          NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, spl[1] ), node[1] ) );
             }
           }
         }
@@ -1753,4 +1734,132 @@ Node TheoryStringsRewriter::collectConstantStringAt( std::vector< Node >& vec, u
     return Node::null();
   }
 }
+
+
+// if returns n>0, then n1 = { x1...x{n-1} xn...x{n+s} x{n+s+1}...xm }, n2 = { y1...ys }, where y1 suffix of xn, y2...y{s-1} = x{n+1}...x{n+s-1}, ys is prefix of x{n+s}
+//                 if computeRemainder = true, then n1 is updated to { x1...x{n-1} xn...ys }, nr is { ( x{n+s} \ ys ) x{n+s+1}...xm }
+int TheoryStringsRewriter::componentContains( std::vector< Node >& n1, std::vector< Node >& n2, std::vector< Node >& nr, bool computeRemainder ){
+  if( n2.size()==1 && n2[0].isConst() ){
+    CVC4::String t = n2[0].getConst<String>();
+    for( unsigned i=0; i<n1.size(); i++ ){
+      if( n1[i].isConst() ){
+        CVC4::String s = n1[i].getConst<String>();
+        size_t f = s.find(t);
+        if( f!=std::string::npos ) {
+          if( computeRemainder ){
+            Assert( s.size()>=f + t.size() );
+            if( s.size()>f+t.size() ){
+              nr.push_back( NodeManager::currentNM()->mkConst( ::CVC4::String( s.substr( f + t.size(), s.size() - (f + t.size()) ) ) ) );
+            }
+            nr.insert( nr.end(), n1.begin()+i+1, n1.end() );
+            n1[i] = NodeManager::currentNM()->mkConst( ::CVC4::String( s.substr( 0, f + t.size() ) ) );
+            n1.erase( n1.begin()+i+1, n1.end() );
+          }
+          return i;
+        }
+      }
+    }
+  }else if( n1.size()>=n2.size() ){
+    unsigned diff = n1.size()-n2.size();
+    for(unsigned i=0; i<=diff; i++) {
+      bool check = false;
+      if( n1[i]==n2[0] ){
+        check = true;
+      }else if( n1[i].isConst() && n2[0].isConst()){
+        //could be suffix
+        CVC4::String s = n1[i].getConst<String>();
+        CVC4::String t =  n2[0].getConst<String>();
+        if( t.size()<s.size() && s.suffix(t.size())==t ){
+          check = true;
+        }
+      }
+      if( check ){
+        bool success = true;
+        for(unsigned j=1; j<n2.size(); j++) {
+          if( n1[i+j]!=n2[j] ){
+            if( j+1==n2.size() && n1[i+j].isConst() && n2[j].isConst() ){
+              //could be prefix
+              CVC4::String s = n1[i+j].getConst<String>();
+              CVC4::String t = n2[j].getConst<String>();
+              if( t.size()<s.size() && s.prefix(t.size())==t ){
+                if( computeRemainder ){
+                  if( s.size()>t.size() ){
+                    nr.push_back( NodeManager::currentNM()->mkConst( ::CVC4::String( s.substr( t.size(), s.size() - t.size() ) ) ) );
+                  }
+                  n1[i+j] = NodeManager::currentNM()->mkConst( ::CVC4::String( s.substr( 0, t.size() ) ) );
+                }
+              }else{
+                success = false;
+                break;
+              }
+            }else{
+              success = false;
+              break;
+            }
+          }
+        }
+        if( success ){
+          if( computeRemainder ){
+            nr.insert( nr.end(), n1.begin()+i+n2.size(), n1.end() );
+            n1.erase( n1.begin()+i+n2.size(), n1.end() );
+          }
+          return i;
+        }
+      }
+    }
+  }
+  return -1;
+}
+
+bool TheoryStringsRewriter::stripConstantEndpoints( std::vector< Node >& n1, std::vector< Node >& n2,
+                                                   std::vector< Node >& nb, std::vector< Node >& ne, int dir ) {
+  bool changed = false;
+  for( unsigned r=0; r<2; r++ ){
+    if( dir==0 || ( r==0 && dir==-1 ) || ( r==1 && dir==1 ) ){
+      unsigned index0 = r==0 ? 0 : n1.size()-1;
+      unsigned index1 = r==0 ? 0 : n2.size()-1;
+      if( n1[index0].isConst() && n2[index1].isConst() ){
+        CVC4::String s = n1[index0].getConst<String>();
+        CVC4::String t = n2[index1].getConst<String>();
+        std::size_t ret = s.find( t );
+        if( ret==std::string::npos ) {
+          if( n1.size()==1 ){
+            //can drop everything : it is not contained
+            if( r==0 ){
+              nb.push_back( n1[0] );
+            }else{
+              ne.push_back( n1[0] );
+            }
+            n1.clear();
+            return true;
+          }else{
+            //check overlap
+            if( r==0 ){
+              if( s.overlap(t)==0 ){
+                //can drop first component
+                nb.insert( nb.end(), n1.begin(), n1.begin() + 1 );
+                n1.erase( n1.begin(), n1.begin() + 1 );
+                changed = true;
+              }
+            }else{
+              Assert( r==1 );
+              if( t.overlap(s)==0 ){
+                //can drop last argument
+                ne.insert( ne.end(), n1.end() - 1, n1.end() );
+                n1.erase( n1.end() - 1, n1.end() );
+                changed = true;
+              }
+            }
+          }
+        }else{
+          //inconclusive
+        }
+      }else{
+        
+      }
+    }
+  }
+  return changed;
+}
+
 
