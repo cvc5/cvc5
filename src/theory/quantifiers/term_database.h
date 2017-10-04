@@ -123,6 +123,9 @@ typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
 struct SygusVarNumAttributeId {};
 typedef expr::Attribute<SygusVarNumAttributeId, uint64_t> SygusVarNumAttribute;
 
+/** Attribute to mark Skolems as virtual terms */
+struct VirtualTermSkolemAttributeId {};
+typedef expr::Attribute< VirtualTermSkolemAttributeId, bool > VirtualTermSkolemAttribute;
 
 
 class QuantifiersEngine;

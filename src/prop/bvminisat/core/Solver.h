@@ -80,7 +80,7 @@ public:
     static CRef TCRef_Lazy;
 private:
     /** To notify */
-    Notify* notify;
+    Notify* d_notify;
 
     /** Cvc4 context */
     CVC4::context::Context* c;
@@ -98,7 +98,7 @@ public:
     Solver(CVC4::context::Context* c);
     virtual ~Solver();
 
-    void setNotify(Notify* toNotify) { notify = toNotify; }
+    void setNotify(Notify* toNotify);
 
     // Problem specification:
     //
@@ -461,14 +461,6 @@ inline void     Solver::setPropBudget(int64_t x){ propagation_budget = propagati
 inline void     Solver::interrupt(){ asynch_interrupt = true; }
 inline void     Solver::clearInterrupt(){ asynch_interrupt = false; }
 inline void     Solver::budgetOff(){ conflict_budget = propagation_budget = -1; }
-inline bool     Solver::withinBudget(uint64_t ammount) const {
-    Assert (notify);
-    notify->spendResource(ammount);
-    notify->safePoint(0);
-
-    return !asynch_interrupt &&
-           (conflict_budget    < 0 || conflicts < (uint64_t)conflict_budget) &&
-           (propagation_budget < 0 || propagations < (uint64_t)propagation_budget); }
 
 inline lbool     Solver::solve         ()                    { budgetOff(); return solve_(); }
 inline lbool     Solver::solve         (Lit p)               { budgetOff(); assumptions.push(p); return solve_(); }

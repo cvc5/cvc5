@@ -399,22 +399,22 @@ Expr Expr::substitute(const std::unordered_map<Expr, Expr, ExprHashFunction> map
   return Expr(d_exprManager, new Node(d_node->substitute(mkNodePairIteratorAdaptor(map.begin()), mkNodePairIteratorAdaptor(map.end()))));
 }
 
-Expr::const_iterator::const_iterator() :
-  d_iterator(NULL) {
-}
-Expr::const_iterator::const_iterator(ExprManager* em, void* v) :
-  d_exprManager(em),
-  d_iterator(v) {
-}
-Expr::const_iterator::const_iterator(const const_iterator& it) {
-  if(it.d_iterator == NULL) {
-    d_iterator = NULL;
-  } else {
+Expr::const_iterator::const_iterator()
+    : d_exprManager(nullptr), d_iterator(nullptr) {}
+
+Expr::const_iterator::const_iterator(ExprManager* em, void* v)
+    : d_exprManager(em), d_iterator(v) {}
+
+Expr::const_iterator::const_iterator(const const_iterator& it)
+    : d_exprManager(nullptr), d_iterator(nullptr) {
+  if (it.d_iterator != nullptr) {
     d_exprManager = it.d_exprManager;
     ExprManagerScope ems(*d_exprManager);
-    d_iterator = new Node::iterator(*reinterpret_cast<Node::iterator*>(it.d_iterator));
+    d_iterator =
+        new Node::iterator(*reinterpret_cast<Node::iterator*>(it.d_iterator));
   }
 }
+
 Expr::const_iterator& Expr::const_iterator::operator=(const const_iterator& it) {
   if(d_iterator != NULL) {
     ExprManagerScope ems(*d_exprManager);

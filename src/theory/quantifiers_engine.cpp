@@ -24,6 +24,7 @@
 #include "theory/quantifiers/ambqi_builder.h"
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
+#include "theory/quantifiers/ceg_t_instantiator.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/full_model_check.h"
@@ -130,6 +131,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_uee = NULL;
   d_fs = NULL;
   d_rel_dom = NULL;
+  d_bv_invert = NULL;
   d_builder = NULL;
 
   d_total_inst_count_debug = 0;
@@ -160,6 +162,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_qcf;
   delete d_quant_rel;
   delete d_rel_dom;
+  delete d_bv_invert;
   delete d_model;
   delete d_tr_trie;
   delete d_term_db;
@@ -217,9 +220,10 @@ void QuantifiersEngine::finishInit(){
   if( options::cbqi() ){
     d_i_cbqi = new quantifiers::InstStrategyCegqi( this );
     d_modules.push_back( d_i_cbqi );
-    //if( options::cbqiModel() ){
-    //  needsBuilder = true;
-    //}
+    if( options::cbqiBv() ){
+      // if doing instantiation for BV, need the inverter class
+      d_bv_invert = new quantifiers::BvInverter;
+    }
   }
   if( options::ceGuidedInst() ){
     d_ceg_inst = new quantifiers::CegInstantiation( this, c );
@@ -741,6 +745,8 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       //}
       Trace("quant-debug")  << "...finish." << std::endl;
       d_quants[f] = true;
+      // flush lemmas
+      flushLemmas();
       return true;
     }
   }else{

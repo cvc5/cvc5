@@ -126,7 +126,7 @@ namespace CVC4 {
 #define IS_LFSC_BUILD false
 #endif /* CVC4_USE_LFSC */
 
-#ifdef HAVE_LIBREADLINE
+#if HAVE_LIBREADLINE
 #  define IS_READLINE_BUILD true
 #else /* HAVE_LIBREADLINE */
 #  define IS_READLINE_BUILD false
