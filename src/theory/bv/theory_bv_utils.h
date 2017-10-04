@@ -212,6 +212,12 @@ inline Node mkOne(unsigned size) {
   return mkConst(size, 1u);
 }
 
+/* Unsigned multiplication overflow detection.
+ * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+ * overflow detection circuits", 2001.
+ * http://ieeexplore.ieee.org/document/987767 */
+Node mkUmulo(TNode t1, TNode t2);
+
 inline void getConjuncts(TNode node, std::set<TNode>& conjuncts) {
   if (node.getKind() != kind::AND) {
     conjuncts.insert(node);
