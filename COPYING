@@ -78,8 +78,10 @@ CVC4 by default links against The GNU Multiple Precision (GMP) Arithmetic
 Library, which is licensed under GNU LGPL v3. See the file licenses/lgpl.txt
 for a copy of that license.  Note that according to the terms of the LGPL, both
 CVC4's source, and the combined work (CVC4 linked with GMP) may (and do) remain
-under the more permissive CVC4 license.
+under the more permissive modified BSD license.
 
+-------------------------------------------------------------------------------
+ OPTIONAL GPLv3 libraries
 -------------------------------------------------------------------------------
 
 Please be advised that the following libraries are covered under the GPLv3
