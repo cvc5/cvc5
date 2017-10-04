@@ -31,18 +31,17 @@ Node mkUmulo(TNode t1, TNode t2) {
   if (w == 1) return mkFalse();
 
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> t1_uppc;
+  std::vector<Node> uppc;
   std::vector<Node> tmp;
 
-  t1_uppc.push_back(mkExtract(t1, w - 1, w - 1));
+  uppc.push_back(mkExtract(t1, w - 1, w - 1));
   for (size_t i = 1; i < w; ++i) {
-    t1_uppc.push_back(nm->mkNode(kind::BITVECTOR_OR,
-                                 mkExtract(t1, w - 1 - i, w - 1 - i),
-                                 t1_uppc.back()));
-  }
-  for (size_t j = 1; j < w; ++j) {
-    tmp.push_back(
-        nm->mkNode(kind::BITVECTOR_AND, mkExtract(t2, j, j), t1_uppc[j - 1]));
+    uppc.push_back(nm->mkNode(kind::BITVECTOR_OR,
+                              mkExtract(t1, w-1-i, w-1-i),
+                              uppc[i-1]));
+    tmp.push_back(nm->mkNode(kind::BITVECTOR_AND,
+                             mkExtract(t2, i, i),
+                             uppc[i-1]));
   }
   Node zext_t1 = mkConcat(mkZero(1), t1);
   Node zext_t2 = mkConcat(mkZero(1), t2);
