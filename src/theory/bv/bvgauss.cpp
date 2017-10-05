@@ -213,6 +213,10 @@ BVGaussElim::gaussElimRewriteForUrem (
         for (size_t j = 0, nchild = n.getNumChildren(); j < nchild; ++j)
           stack.push (n[j]);
       }
+      else if (k == kind::VARIABLE)
+      {
+        tmp[n] = utils::mkOne(utils::getSize(n));
+      }
       else if (k == kind::BITVECTOR_MULT && n.getNumChildren() == 2)
       {
         CVC4::Kind kn0 = n[0].getKind();

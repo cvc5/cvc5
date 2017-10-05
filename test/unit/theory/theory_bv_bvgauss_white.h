@@ -135,9 +135,11 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   Node d_y_mul_five;
   Node d_y_mul_seven;
   Node d_z_mul_one;
+  Node d_z_mul_three;
   Node d_z_mul_five;
   Node d_z_mul_twelve;
   Node d_z_mul_six;
+  Node d_z_mul_nine;
 
 
 public:
@@ -181,9 +183,11 @@ public:
     d_y_mul_five = d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_five);
     d_y_mul_seven = d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_seven);
     d_z_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_one);
+    d_z_mul_three = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_three);
     d_z_mul_five = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_five);
     d_z_mul_six = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_six);
     d_z_mul_twelve = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_twelve);
+    d_z_mul_nine = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_nine);
 
 
   }
@@ -219,9 +223,11 @@ public:
     d_y_mul_five = Node::null();
     d_y_mul_three = Node::null();
     d_z_mul_one = Node::null();
+    d_z_mul_three = Node::null();
     d_z_mul_five = Node::null();
     d_z_mul_six = Node::null();
     d_z_mul_twelve = Node::null();
+    d_z_mul_nine = Node::null();
     delete d_scope;
     delete d_smt;
     delete d_em;
@@ -1034,18 +1040,15 @@ public:
      *  0 1 3   9        0 1 3   9
      * ------------------------------------------------------------------- */
 
-    Node z_mul_nine = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_nine);
-    Node z_mul_three = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_three);
-
     Node eq1 = d_nm->mkNode(kind::EQUAL,
         d_nm->mkNode(kind::BITVECTOR_UREM,
-          d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_one, z_mul_nine),
+          d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_one, d_z_mul_nine),
           d_p),
         d_seven);
 
     Node eq2 = d_nm->mkNode(kind::EQUAL,
         d_nm->mkNode(kind::BITVECTOR_UREM,
-          d_nm->mkNode(kind::BITVECTOR_PLUS, d_y_mul_one, z_mul_three),
+          d_nm->mkNode(kind::BITVECTOR_PLUS, d_y_mul_one, d_z_mul_three),
           d_p),
         d_nine);
 
@@ -1115,6 +1118,96 @@ public:
     }
   }
 
+  void testGaussElimRewriteForUremPartial1a ()
+  {
+    std::unordered_map< Node, Node, NodeHashFunction > res;
+    BVGaussElim::Result ret;
+
+    /* -------------------------------------------------------------------
+     *   lhs   rhs        lhs   rhs  modulo 11
+     *  --^--   ^        --^--   ^
+     *  1 0 9   7   -->  1 0 9   7
+     *  0 1 3   9        0 1 3   9
+     * ------------------------------------------------------------------- */
+
+    Node eq1 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS, d_x, d_z_mul_nine),
+          d_p),
+        d_seven);
+
+    Node eq2 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM,
+          d_nm->mkNode(kind::BITVECTOR_PLUS, d_y, d_z_mul_three),
+          d_p),
+        d_nine);
+
+    std::vector< TNode > eqs = { eq1, eq2 };
+    ret = BVGaussElim::gaussElimRewriteForUrem (eqs, res);
+    TS_ASSERT (ret == BVGaussElim::Result::PARTIAL);
+    TS_ASSERT (res.size() == 2);
+
+    Node x1 = d_nm->mkNode(kind::BITVECTOR_SUB,
+      d_seven, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_nine));
+    Node y1 = d_nm->mkNode(kind::BITVECTOR_SUB,
+      d_nine, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_three));
+
+    Node x2 = d_nm->mkNode(kind::BITVECTOR_SUB,
+      d_two, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_eight));
+    Node z2 = d_nm->mkNode(kind::BITVECTOR_SUB,
+      d_three, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_four));
+
+    Node y3 = d_nm->mkNode(kind::BITVECTOR_SUB,
+      d_three, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_seven));
+    Node z3 = d_nm->mkNode(kind::BITVECTOR_SUB,
+      d_two, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_five));
+
+
+    /* result depends on order of variables in matrix */
+    if (res.find (d_x) == res.end())
+    {
+      /*
+       *  y z x           y z x 
+       *  0 9 1  7   -->  1 0 7  3
+       *  1 3 0  9        0 1 5  2
+       *
+       *  z y x           z y x
+       *  9 0 1  7   -->  1 0 5  2
+       *  3 1 0  9        0 1 7  3
+       */
+      TS_ASSERT (res[d_y] == y3);
+      TS_ASSERT (res[d_z] == z3);
+    }
+    else if (res.find (d_y) == res.end())
+    {
+      /*
+       *  x z y           x z y 
+       *  1 9 0  7   -->  1 0 8  2
+       *  0 3 1  9        0 1 4  3
+       *
+       *  z x y           z x y
+       *  9 1 0  7   -->  1 0 4  3
+       *  3 0 1  9        0 1 8  2
+       */
+      TS_ASSERT (res[d_x] == x2);
+      TS_ASSERT (res[d_z] == z2);
+    }
+    else
+    {
+      TS_ASSERT (res.find (d_z) == res.end());
+      /*
+       *  x y z           x y z 
+       *  1 0 9  7   -->  1 0 9  7
+       *  0 1 3  9        0 1 3  9
+       *
+       *  y x z           y x z
+       *  0 1 9  7   -->  1 0 3  9
+       *  1 0 3  9        0 1 9  7
+       */
+      TS_ASSERT (res[d_x] == x1);
+      TS_ASSERT (res[d_y] == y1);
+    }
+  }
 
   void testGaussElimRewriteForUremPartial2 ()
   {
@@ -1208,7 +1301,7 @@ public:
     Node eq1 = d_nm->mkNode(kind::EQUAL,
         d_nm->mkNode(kind::BITVECTOR_UREM,
           d_nm->mkNode(kind::BITVECTOR_PLUS,
-            d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_one, d_y_mul_one),
+            d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_one, d_y),
             d_z_mul_one),
           d_p),
         d_five);
@@ -1450,7 +1543,7 @@ public:
        *  5 4  6  24       0 0 0 0
        *  7 2 12  30       0 0 0 0
        *
-       *  y  z x           y z x 
+         y  z x           y z x 
        *  4  6 2  18  -->  1 0 2  0
        *  5  6 4  24       0 0 0  0
        *  7 12 2  30       0 0 0  0
