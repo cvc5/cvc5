@@ -130,12 +130,30 @@ public:
   void printRepresentativeDebug( const char* c, Node r );
   /** print representative function */
   void printRepresentative( std::ostream& out, Node r );
+private:
+  /** map from function terms to the (lambda) definitions
+  * After the model is built, the domain of this map is all terms of function type
+  * that appear as terms in d_equalityEngine.
+  */
+  std::map< Node, Node > d_uf_models;
 public:
   /** whether function models are enabled */
   bool d_enableFuncModels;
-  //necessary information for function models
+  /** a map from functions f to a list of all APPLY_UF terms with operator f */
   std::map< Node, std::vector< Node > > d_uf_terms;
-  std::map< Node, Node > d_uf_models;
+  /** a map from functions f to a list of all HO_APPLY terms with first argument f */
+  std::map< Node, std::vector< Node > > d_ho_uf_terms;
+  /** assign function value f to definition f_def */
+  void assignFunctionDefinition( Node f, Node f_def );
+  /** have we assigned function f? */
+  bool hasAssignedFunctionDefinition( Node f ) const { return d_uf_models.find( f )!=d_uf_models.end(); }
+  /** get the list of functions to assign. 
+  * This list will contain all terms of function type that are terms in d_equalityEngine.
+  * If higher-order is enabled, we ensure that this list is sorted by type size.
+  * This allows us to assign functions T -> T before ( T x T ) -> T and before ( T -> T ) -> T,
+  * which is required for "dag form" model construction (see TheoryModelBuilder::assignHoFunction).
+  */
+  std::vector< Node > getFunctionsToAssign();
 };/* class TheoryModel */
 
 /*
@@ -307,6 +325,48 @@ protected:
   /** involves usort */
   bool involvesUSort( TypeNode tn );
   bool isExcludedUSortValue( std::map< TypeNode, unsigned >& eqc_usort_count, Node v, std::map< Node, bool >& visited );
+protected:
+  /** assign function f based on the model m. 
+  * This construction is based on "table form". For example:
+  * (f 0 1) = 1
+  * (f 0 2) = 2
+  * (f 1 1) = 3
+  * ...
+  * becomes:
+  * f = (lambda xy. (ite (and (= x 0) (= y 1)) 1 
+  *                 (ite (and (= x 0) (= y 2)) 2
+  *                 (ite (and (= x 1) (= y 1)) 3 ...)))
+  */
+  void assignFunction(TheoryModel* m, Node f);
+  /** assign function f based on the model m. 
+  * This construction is based on "dag form". For example:
+  * (f 0 1) = 1
+  * (f 0 2) = 2
+  * (f 1 1) = 3
+  * ...
+  * becomes:
+  * f = (lambda xy. (ite (= x 0) (ite (= y 1) 1
+  *                              (ite (= y 2) 2 ...))
+  *                 (ite (= x 1) (ite (= y 1) 3 ...)
+  *                              ...))
+  * 
+  * where the above is represented as a directed acyclic graph (dag).
+  * This construction is accomplished by assigning values to (f c) 
+  * terms before f, e.g. 
+  * (f 0) = (lambda y. (ite (= y 1) 1
+  *                    (ite (= y 2) 2 ...))
+  * (f 1) = (lambda y. (ite (= y 1) 3 ...))
+  * where
+  * f = (lambda xy. (ite (= x 0) ((f 0) y)
+  *                 (ite (= x 1) ((f 1) y) ...))
+  */
+  void assignHoFunction(TheoryModel* m, Node f);
+  /** Assign all unassigned functions in the model m (those returned by TheoryModel::getFunctionsToAssign), 
+  * using the two functions above. Currently:
+  * If ufHo is disabled, we call assignFunction for all functions. 
+  * If ufHo is enabled, we call assignHoFunction.
+  */
+  void assignFunctions(TheoryModel* m);
 public:
   TheoryEngineModelBuilder(TheoryEngine* te);
   virtual ~TheoryEngineModelBuilder(){}

@@ -1512,9 +1512,11 @@ Bindings     : $bindings_to_be_built
 Multithreaded: $support_multithreaded
 Portfolio    : $with_portfolio
 
-MP library   : $mplibrary
-GLPK         : $with_glpk
 ABC          : $with_abc
+Cryptominisat: $with_cryptominisat
+GLPK         : $with_glpk
+LFSC         : $with_lfsc
+MP library   : $mplibrary
 Readline     : $with_readline
 
 CPPFLAGS     : $CPPFLAGS

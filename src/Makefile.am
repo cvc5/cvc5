@@ -414,6 +414,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/rewrite_engine.cpp \
 	theory/quantifiers/rewrite_engine.h \
+	theory/quantifiers/sygus_grammar_cons.cpp \
+	theory/quantifiers/sygus_grammar_cons.h \
 	theory/quantifiers/symmetry_breaking.cpp \
 	theory/quantifiers/symmetry_breaking.h \
 	theory/quantifiers/term_database.cpp \
