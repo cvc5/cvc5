@@ -1047,7 +1047,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
             i != i_end;
             ++i) {
           if(PARSER_STATE->isDeclared(*i, SYM_VARIABLE)) {
-            Type oldType = PARSER_STATE->getType(*i);
+            Type oldType = PARSER_STATE->getVariable(*i).getType();
             Debug("parser") << "  " << *i << " was declared previously "
                             << "with type " << oldType << std::endl;
             if(oldType != t) {
@@ -1745,22 +1745,10 @@ postfixTerm[CVC4::Expr& f]
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
       // TODO: check arity
-      { Type t = args.front().getType();
-        Debug("parser") << "type is " << t << std::endl;
+      { Kind k = PARSER_STATE->getKindForFunction(args.front());
         Debug("parser") << "expr is " << args.front() << std::endl;
-        if(PARSER_STATE->isDefinedFunction(args.front())) {
-          f = MK_EXPR(CVC4::kind::APPLY, args);
-        } else if(t.isFunction()) {
-          f = MK_EXPR(CVC4::kind::APPLY_UF, args);
-        } else if(t.isConstructor()) {
-          f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, args);
-        } else if(t.isSelector()) {
-          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR, args);
-        } else if(t.isTester()) {
-          f = MK_EXPR(CVC4::kind::APPLY_TESTER, args);
-        } else {
-          PARSER_STATE->parseError("internal error: unhandled function application kind");
-        }
+        Debug("parser") << "kind is " << k << std::endl;
+        f = MK_EXPR(k, args);
       }
 
       /* record / tuple select */
@@ -2104,7 +2092,12 @@ simpleTerm[CVC4::Expr& f]
     /* syntactic predicate: never match INTEGER.DIGIT as an integer and a dot!
      * This is a rational constant!  Otherwise the parser interprets it as a tuple
      * selector! */
-  | DECIMAL_LITERAL { f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
+  | DECIMAL_LITERAL { 
+      f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL));
+      if(f.getType().isInteger()) {
+        f = MK_EXPR(kind::TO_REAL, f);
+      } 
+    }
   | INTEGER_LITERAL { f = MK_CONST(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
     /* bitvector literals */
   | HEX_LITERAL
@@ -2132,9 +2125,9 @@ simpleTerm[CVC4::Expr& f]
     /* variable / zero-ary constructor application */
   | identifier[name,CHECK_DECLARED,SYM_VARIABLE]
     /* ascriptions will be required for parameterized zero-ary constructors */
-    { f = PARSER_STATE->getVariable(name); }
-    { // datatypes: zero-ary constructors
-      Type t2 = PARSER_STATE->getType(name);
+    { f = PARSER_STATE->getVariable(name);
+      // datatypes: zero-ary constructors
+      Type t2 = f.getType();
       if(t2.isConstructor() && ConstructorType(t2).getArity() == 0) {
         // don't require parentheses, immediately turn it into an apply
         f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, f);

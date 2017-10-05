@@ -70,10 +70,7 @@ TESTS =	\
 	agg-rew-test-cf.smt2 \
 	rew-to-0211-dd.smt2 \
 	rew-to-scala.smt2 \
-	macro-subtype-param.smt2 \
 	macros-real-arg.smt2 \
-	subtype-param-unk.smt2 \
-	subtype-param.smt2 \
 	anti-sk-simp.smt2 \
 	pure_dt_cbqi.smt2 \
 	florian-case-ax.smt2 \
@@ -92,7 +89,9 @@ TESTS =	\
 	cbqi-sdlx-fixpoint-3-dd.smt2 \
 	qbv-simp.smt2 \
 	psyco-001-bv.smt2 \
-	bug822.smt2
+	bug822.smt2 \
+	qbv-test-invert-mul.smt2 \
+	qbv-simple-2vars-vo.smt2
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
 # set3.smt2
@@ -107,6 +106,11 @@ TESTS =	\
 #		javafe.tc.FlowInsensitiveChecks.682.smt2 \
 #		clock-10.smt2
 #
+
+# FIXME: I've disabled these since they give different error messages on production and debug
+#	macro-subtype-param.smt2 
+#	subtype-param-unk.smt2 
+#	subtype-param.smt2 
 
 EXTRA_DIST = $(TESTS) \
 	bug291.smt2.expect

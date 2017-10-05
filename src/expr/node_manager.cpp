@@ -83,6 +83,12 @@ struct NVReclaim {
 
 } // namespace
 
+namespace attr {
+  struct LambdaBoundVarListTag { };
+}/* CVC4::attr namespace */
+
+// attribute that stores the canonical bound variable list for function types
+typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAttr;
 
 NodeManager::NodeManager(ExprManager* exprManager) :
   d_options(new Options()),
@@ -690,6 +696,21 @@ Node* NodeManager::mkBoundVarPtr(const std::string& name,
   Node* n = mkBoundVarPtr(type);
   setAttribute(*n, expr::VarNameAttr(), name);
   return n;
+}
+
+Node NodeManager::getBoundVarListForFunctionType( TypeNode tn ) {
+  Assert( tn.isFunction() );
+  Node bvl = tn.getAttribute(LambdaBoundVarListAttr());
+  if( bvl.isNull() ){
+    std::vector< Node > vars;
+    for( unsigned i=0; i<tn.getNumChildren()-1; i++ ){
+      vars.push_back( NodeManager::currentNM()->mkBoundVar( tn[i] ) );
+    }
+    bvl = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, vars );
+    Trace("functions") << "Make standard bound var list " << bvl << " for " << tn << std::endl;
+    tn.setAttribute(LambdaBoundVarListAttr(),bvl);
+  }
+  return bvl;
 }
 
 Node NodeManager::mkVar(const TypeNode& type, uint32_t flags) {

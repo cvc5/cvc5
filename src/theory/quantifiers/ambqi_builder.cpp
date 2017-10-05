@@ -821,7 +821,8 @@ bool AbsMbqiBuilder::processBuildModel(TheoryModel* m) {
   for( std::map<Node, AbsDef * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
     if( it->first.getType().getNumChildren()>1 ){
       Trace("ambqi-model") << "Construct for " << it->first << "..." << std::endl;
-      m->d_uf_models[ it->first ] = fm->getFunctionValue( it->first, "$x" );
+      Node f_def = fm->getFunctionValue( it->first, "$x" );
+      m->assignFunctionDefinition( it->first, f_def );
     }
   }
   Assert( d_addedLemmas==0 );

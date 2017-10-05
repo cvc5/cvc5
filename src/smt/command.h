@@ -189,6 +189,24 @@ public:
   std::string getMessage() const throw() { return d_message; }
 };/* class CommandFailure */
 
+/**
+ * The execution of the command resulted in a non-fatal error and further
+ * commands can be processed. This status is for example used when a user asks
+ * for an unsat core in a place that is not immediately preceded by an
+ * unsat/valid response.
+ */
+class CVC4_PUBLIC CommandRecoverableFailure : public CommandStatus {
+  std::string d_message;
+
+ public:
+  CommandRecoverableFailure(std::string message) throw() : d_message(message) {}
+  CommandRecoverableFailure& clone() const {
+    return *new CommandRecoverableFailure(*this);
+  }
+  ~CommandRecoverableFailure() throw() {}
+  std::string getMessage() const throw() { return d_message; }
+}; /* class CommandRecoverableFailure */
+
 class CVC4_PUBLIC Command {
 protected:
   /**
@@ -584,63 +602,70 @@ public:
 };/* class GetAssignmentCommand */
 
 class CVC4_PUBLIC GetModelCommand : public Command {
-protected:
-  Model* d_result;
-  SmtEngine* d_smtEngine;
-public:
+ public:
   GetModelCommand() throw();
   ~GetModelCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
   // Model is private to the library -- for now
-  //Model* getResult() const throw();
+  // Model* getResult() const throw();
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class GetModelCommand */
+
+ protected:
+  Model* d_result;
+  SmtEngine* d_smtEngine;
+}; /* class GetModelCommand */
 
 class CVC4_PUBLIC GetProofCommand : public Command {
-protected:
-  Proof* d_result;
-  SmtEngine* d_smtEngine;
-public:
+ public:
   GetProofCommand() throw();
   ~GetProofCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
   Proof* getResult() const throw();
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class GetProofCommand */
+
+ protected:
+  Proof* d_result;
+  SmtEngine* d_smtEngine;
+}; /* class GetProofCommand */
 
 class CVC4_PUBLIC GetInstantiationsCommand : public Command {
-protected:
-  //Instantiations* d_result;
-  SmtEngine* d_smtEngine;
-public:
+ public:
   GetInstantiationsCommand() throw();
   ~GetInstantiationsCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
-  //Instantiations* getResult() const throw();
+  // Instantiations* getResult() const throw();
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class GetInstantiationsCommand */
+
+ protected:
+  SmtEngine* d_smtEngine;
+}; /* class GetInstantiationsCommand */
 
 class CVC4_PUBLIC GetSynthSolutionCommand : public Command {
-protected:
-  SmtEngine* d_smtEngine;
-public:
+ public:
   GetSynthSolutionCommand() throw();
   ~GetSynthSolutionCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class GetSynthSolutionCommand */
+
+ protected:
+  SmtEngine* d_smtEngine;
+}; /* class GetSynthSolutionCommand */
 
 class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command {
 protected:

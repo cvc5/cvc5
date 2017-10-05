@@ -160,23 +160,23 @@ public class ValidityChecker extends Embedded {
     private static native Object
 	jniCreateOp2(Object ValidityChecker, String name, Object Type, Object ExprDef) throws Cvc3Exception;
     private static native Object
-	jniEqOp() throws Cvc3Exception;
+	jniEqOp(Object ValidityChecker) throws Cvc3Exception;
     private static native Object
-	jniLtOp() throws Cvc3Exception;
+	jniLtOp(Object ValidityChecker) throws Cvc3Exception;
     private static native Object
-	jniLeOp() throws Cvc3Exception;
+	jniLeOp(Object ValidityChecker) throws Cvc3Exception;
     private static native Object
-	jniGtOp() throws Cvc3Exception;
+	jniGtOp(Object ValidityChecker) throws Cvc3Exception;
     private static native Object
-	jniGeOp() throws Cvc3Exception;
+	jniGeOp(Object ValidityChecker) throws Cvc3Exception;
     private static native Object
-	jniPlusOp() throws Cvc3Exception;
+	jniPlusOp(Object ValidityChecker) throws Cvc3Exception;
     private static native Object
-	jniMinusOp() throws Cvc3Exception;
+	jniMinusOp(Object ValidityChecker) throws Cvc3Exception;
     private static native Object
-	jniMultOp() throws Cvc3Exception;
+	jniMultOp(Object ValidityChecker) throws Cvc3Exception;
     private static native Object
-	jniDivideOp() throws Cvc3Exception;
+	jniDivideOp(Object ValidityChecker) throws Cvc3Exception;
     private static native Object
 	jniFunExpr1(Object ValidityChecker, Object Op, Object Expr) throws Cvc3Exception;
     private static native Object
@@ -311,8 +311,6 @@ public class ValidityChecker extends Embedded {
         jniComputeBVConst(Object ValidityChecker, Object Expr) throws Cvc3Exception;
     private static native Object
 	jniTupleExpr(Object ValidityChecker, Object[] Exprs) throws Cvc3Exception;
-    private static native Object
-	jniTupleSelectExpr(Object ValidityChecker, Object ExprTuple, int index) throws Cvc3Exception;
     private static native Object
 	jniTupleUpdateExpr(Object ValidityChecker, Object ExprTuple, int index,
 			   Object ExprNewValue) throws Cvc3Exception;
@@ -921,47 +919,47 @@ public class ValidityChecker extends Embedded {
 
     // '='
     public OpMut eqOp() throws Cvc3Exception {
-	return new OpMut(jniEqOp(), embeddedManager());
+	return new OpMut(jniEqOp(embedded()), embeddedManager());
     }
 
     // '<'
     public OpMut ltOp() throws Cvc3Exception {
-	return new OpMut(jniLtOp(), embeddedManager());
+	return new OpMut(jniLtOp(embedded()), embeddedManager());
     }
 
     // '<='
     public OpMut leOp() throws Cvc3Exception {
-	return new OpMut(jniLeOp(), embeddedManager());
+	return new OpMut(jniLeOp(embedded()), embeddedManager());
     }
 
     // '>'
     public OpMut gtOp() throws Cvc3Exception {
-	return new OpMut(jniGtOp(), embeddedManager());
+	return new OpMut(jniGtOp(embedded()), embeddedManager());
     }
 
     // '>='
     public OpMut geOp() throws Cvc3Exception {
-	return new OpMut(jniGeOp(), embeddedManager());
+	return new OpMut(jniGeOp(embedded()), embeddedManager());
     }
 
     // '+'
     public OpMut plusOp() throws Cvc3Exception {
-	return new OpMut(jniPlusOp(), embeddedManager());
+	return new OpMut(jniPlusOp(embedded()), embeddedManager());
     }
 
     // '-'
     public OpMut minusOp() throws Cvc3Exception {
-	return new OpMut(jniMinusOp(), embeddedManager());
+	return new OpMut(jniMinusOp(embedded()), embeddedManager());
     }
 
     // '*'
     public OpMut multOp() throws Cvc3Exception {
-	return new OpMut(jniMultOp(), embeddedManager());
+	return new OpMut(jniMultOp(embedded()), embeddedManager());
     }
 
     // '/' for rationals
     public OpMut divideOp() throws Cvc3Exception {
-	return new OpMut(jniDivideOp(), embeddedManager());
+	return new OpMut(jniDivideOp(embedded()), embeddedManager());
     }
 
     public ExprMut funExpr(Op op, Expr expr1) throws Cvc3Exception {
@@ -1377,12 +1375,6 @@ public class ValidityChecker extends Embedded {
 	assert(JniUtils.listInstanceof(exprs, Expr.class));
 	return new ExprMut(
 	  jniTupleExpr(embedded(), JniUtils.unembedList(exprs)),
-	  embeddedManager());
-    }
-
-    public ExprMut tupleSelectExpr(Expr tuple, int index) throws Cvc3Exception {
-	return new ExprMut(
-	  jniTupleSelectExpr(embedded(), tuple.embedded(), index),
 	  embeddedManager());
     }
 

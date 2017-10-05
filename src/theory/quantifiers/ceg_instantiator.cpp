@@ -11,7 +11,7 @@
  **
  ** \brief Implementation of counterexample-guided quantifier instantiation
  **/
- 
+
 #include "theory/quantifiers/ceg_instantiator.h"
 #include "theory/quantifiers/ceg_t_instantiator.h"
 
@@ -55,7 +55,6 @@ void CegInstantiator::computeProgVars( Node n ){
       computeProgVars( n[i] );
       if( d_inelig.find( n[i] )!=d_inelig.end() ){
         d_inelig[n] = true;
-        return;
       }
       for( std::map< Node, bool >::iterator it = d_prog_var[n[i]].begin(); it != d_prog_var[n[i]].end(); ++it ){
         d_prog_var[n][it->first] = true;
@@ -114,31 +113,32 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
   if( i==d_vars.size() ){
     //solved for all variables, now construct instantiation
     bool needsPostprocess = false;
-    std::map< Instantiator *, Node > pp_inst;
+    std::vector< Instantiator * > pp_inst;
+    std::map< Instantiator *, Node > pp_inst_to_var;
+    std::vector< Node > lemmas;
     for( std::map< Node, Instantiator * >::iterator ita = d_active_instantiators.begin(); ita != d_active_instantiators.end(); ++ita ){
-      if( ita->second->needsPostProcessInstantiation( this, sf, ita->first, effort ) ){
+      if( ita->second->needsPostProcessInstantiationForVariable( this, sf, ita->first, effort ) ){
         needsPostprocess = true;
-        pp_inst[ ita->second ] = ita->first;
+        pp_inst_to_var[ ita->second ] = ita->first;
       }
     }
     if( needsPostprocess ){
       //must make copy so that backtracking reverts sf
-      SolvedForm sf_tmp;
-      sf_tmp.copy( sf );
+      SolvedForm sf_tmp = sf;
       bool postProcessSuccess = true;
-      for( std::map< Instantiator *, Node >::iterator itp = pp_inst.begin(); itp != pp_inst.end(); ++itp ){
-        if( !itp->first->postProcessInstantiation( this, sf_tmp, itp->second, effort ) ){
+      for( std::map< Instantiator *, Node >::iterator itp = pp_inst_to_var.begin(); itp != pp_inst_to_var.end(); ++itp ){
+        if( !itp->first->postProcessInstantiationForVariable( this, sf_tmp, itp->second, effort, lemmas ) ){
           postProcessSuccess = false;
           break;
         }
-      } 
+      }
       if( postProcessSuccess ){
-        return doAddInstantiation( sf_tmp.d_subs, sf_tmp.d_vars );
+        return doAddInstantiation( sf_tmp.d_vars, sf_tmp.d_subs, lemmas );
       }else{
         return false;
       }
     }else{
-      return doAddInstantiation( sf.d_subs, sf.d_vars );
+      return doAddInstantiation( sf.d_vars, sf.d_subs, lemmas );
     }
   }else{
     //Node v = d_single_inv_map_to_prog[d_single_inv[0][i]];
@@ -192,10 +192,10 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
             //must be an eligible term
             if( isEligible( n ) ){
               Node ns;
-              Node pv_coeff;  //coefficient of pv in the equality we solve (null is 1)
+              TermProperties pv_prop;  //coefficient of pv in the equality we solve (null is 1)
               bool proc = false;
               if( !d_prog_var[n].empty() ){
-                ns = applySubstitution( pvtn, n, sf, pv_coeff, false );
+                ns = applySubstitution( pvtn, n, sf, pv_prop, false );
                 if( !ns.isNull() ){
                   computeProgVars( ns );
                   //substituted version must be new and cannot contain pv
@@ -206,7 +206,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
                 proc = true;
               }
               if( proc ){
-                if( vinst->processEqualTerm( this, sf, pv, pv_coeff, ns, effort ) ){
+                if( vinst->processEqualTerm( this, sf, pv, pv_prop, ns, effort ) ){
                   return true;
                 }
               }
@@ -229,7 +229,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
           std::map< Node, std::vector< Node > >::iterator it_reqc = d_curr_eqc.find( r );
           std::vector< Node > lhs;
           std::vector< bool > lhs_v;
-          std::vector< Node > lhs_coeff;
+          std::vector< TermProperties > lhs_prop;
           Assert( it_reqc!=d_curr_eqc.end() );
           for( unsigned kk=0; kk<it_reqc->second.size(); kk++ ){
             Node n = it_reqc->second[kk];
@@ -237,9 +237,9 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
             //must be an eligible term
             if( isEligible( n ) ){
               Node ns;
-              Node pv_coeff;
+              TermProperties pv_prop;
               if( !d_prog_var[n].empty() ){
-                ns = applySubstitution( pvtn, n, sf, pv_coeff );
+                ns = applySubstitution( pvtn, n, sf, pv_prop );
                 if( !ns.isNull() ){
                   computeProgVars( ns );
                 }
@@ -249,27 +249,26 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
               if( !ns.isNull() ){
                 bool hasVar = d_prog_var[ns].find( pv )!=d_prog_var[ns].end();
                 Trace("cbqi-inst-debug2") << "... " << ns << " has var " << pv << " : " << hasVar << std::endl;
-                std::vector< Node > term_coeffs;
+                std::vector< TermProperties > term_props;
                 std::vector< Node > terms;
-                term_coeffs.push_back( pv_coeff );
+                term_props.push_back( pv_prop );
                 terms.push_back( ns );
                 for( unsigned j=0; j<lhs.size(); j++ ){
                   //if this term or the another has pv in it, try to solve for it
                   if( hasVar || lhs_v[j] ){
                     Trace("cbqi-inst-debug") << "... " << i << "...try based on equality " << lhs[j] << " = " << ns << std::endl;
-                    //processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort ) { return false; }
-                    term_coeffs.push_back( lhs_coeff[j] );
+                    term_props.push_back( lhs_prop[j] );
                     terms.push_back( lhs[j] );
-                    if( vinst->processEquality( this, sf, pv, term_coeffs, terms, effort ) ){
+                    if( vinst->processEquality( this, sf, pv, term_props, terms, effort ) ){
                       return true;
                     }
-                    term_coeffs.pop_back();
+                    term_props.pop_back();
                     terms.pop_back();
                   }
                 }
                 lhs.push_back( ns );
                 lhs_v.push_back( hasVar );
-                lhs_coeff.push_back( pv_coeff );
+                lhs_prop.push_back( pv_prop );
               }else{
                 Trace("cbqi-inst-debug2") << "... term " << n << " is ineligible after substitution." << std::endl;
               }
@@ -294,8 +293,19 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
               Node lit = ita->second[j];
               if( std::find( lits.begin(), lits.end(), lit )==lits.end() ){
                 lits.push_back( lit );
-                if( vinst->processAssertion( this, sf, pv, lit, effort ) ){
-                  return true;
+                if( vinst->hasProcessAssertion( this, sf, pv, lit, effort ) ){  
+                  Trace("cbqi-inst-debug2") << "  look at " << lit << std::endl;
+                  // apply substitutions
+                  Node slit = applySubstitutionToLiteral( lit, sf );
+                  if( !slit.isNull() ){
+                    Trace("cbqi-inst-debug") << "...try based on literal " << slit << std::endl;
+                    // check if contains pv
+                    if( hasVariable( slit, pv ) ){
+                      if( vinst->processAssertion( this, sf, pv, slit, effort ) ){
+                       return true;
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -318,15 +328,15 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       }
 #endif
       Node mv = getModelValue( pv );
-      Node pv_coeff_m;
+      TermProperties pv_prop_m;
       Trace("cbqi-inst-debug") << "[5] " << i << "...try model value " << mv << std::endl;
       int new_effort = use_model_value ? effort : 1;
-      if( doAddInstantiationInc( pv, mv, pv_coeff_m, 0, sf, new_effort ) ){
+      if( doAddInstantiationInc( pv, mv, pv_prop_m, sf, new_effort ) ){
         return true;
       }
     }
     Trace("cbqi-inst-debug") << "[No instantiation found for " << pv << "]" << std::endl;
-    if( is_cv ){  
+    if( is_cv ){
       d_stack_vars.push_back( pv );
     }
     d_active_instantiators.erase( pv );
@@ -344,18 +354,17 @@ void CegInstantiator::popStackVariable() {
   d_stack_vars.pop_back();
 }
 
-bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, Node pv_coeff, int bt, SolvedForm& sf, unsigned effort ) {
-  if( d_curr_subs_proc[pv][n].find( pv_coeff )==d_curr_subs_proc[pv][n].end() ){
-    d_curr_subs_proc[pv][n][pv_coeff] = true;
+bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv_prop, SolvedForm& sf, unsigned effort ) {
+  Node cnode = pv_prop.getCacheNode();
+  if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
+    d_curr_subs_proc[pv][n][cnode] = true;
     if( Trace.isOn("cbqi-inst") ){
       for( unsigned j=0; j<sf.d_subs.size(); j++ ){
         Trace("cbqi-inst") << " ";
       }
       Trace("cbqi-inst") << sf.d_subs.size() << ": ";
-      if( !pv_coeff.isNull() ){
-        Trace("cbqi-inst") << pv_coeff << " * ";
-      }
-      Trace("cbqi-inst") << pv << " -> " << n << std::endl;
+      Node mod_pv = pv_prop.getModifiedTerm( pv );
+      Trace("cbqi-inst") << mod_pv << " -> " << n << std::endl;
       Assert( n.getType().isSubtypeOf( pv.getType() ) );
     }
     //must ensure variables have been computed for n
@@ -363,22 +372,22 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, Node pv_coeff, int
     Assert( d_inelig.find( n )==d_inelig.end() );
 
     //substitute into previous substitutions, when applicable
-    std::vector< Node > a_subs;
-    a_subs.push_back( n );
     std::vector< Node > a_var;
     a_var.push_back( pv );
-    std::vector< Node > a_coeff;
-    std::vector< Node > a_has_coeff;
-    if( !pv_coeff.isNull() ){
-      a_coeff.push_back( pv_coeff );
-      a_has_coeff.push_back( pv );
+    std::vector< Node > a_subs;
+    a_subs.push_back( n );
+    std::vector< TermProperties > a_prop;
+    a_prop.push_back( pv_prop );
+    std::vector< Node > a_non_basic;
+    if( !pv_prop.isBasic() ){
+      a_non_basic.push_back( pv );
     }
     bool success = true;
     std::map< int, Node > prev_subs;
-    std::map< int, Node > prev_coeff;
+    std::map< int, TermProperties > prev_prop;
     std::map< int, Node > prev_sym_subs;
-    std::vector< Node > new_has_coeff;
-    Trace("cbqi-inst-debug2") << "Applying substitutions..." << std::endl;
+    std::vector< Node > new_non_basic;
+    Trace("cbqi-inst-debug2") << "Applying substitutions to previous substitution terms..." << std::endl;
     for( unsigned j=0; j<sf.d_subs.size(); j++ ){
       Trace("cbqi-inst-debug2") << "  Apply for " << sf.d_subs[j]  << std::endl;
       Assert( d_prog_var.find( sf.d_subs[j] )!=d_prog_var.end() );
@@ -386,20 +395,34 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, Node pv_coeff, int
         prev_subs[j] = sf.d_subs[j];
         TNode tv = pv;
         TNode ts = n;
-        Node a_pv_coeff;
-        Node new_subs = applySubstitution( sf.d_vars[j].getType(), sf.d_subs[j], a_subs, a_coeff, a_has_coeff, a_var, a_pv_coeff, true );
+        TermProperties a_pv_prop;
+        Node new_subs = applySubstitution( sf.d_vars[j].getType(), sf.d_subs[j], a_var, a_subs, a_prop, a_non_basic, a_pv_prop, true );
         if( !new_subs.isNull() ){
           sf.d_subs[j] = new_subs;
-          if( !a_pv_coeff.isNull() ){
-            prev_coeff[j] = sf.d_coeff[j];
-            if( sf.d_coeff[j].isNull() ){
-              Assert( std::find( sf.d_has_coeff.begin(), sf.d_has_coeff.end(), sf.d_vars[j] )==sf.d_has_coeff.end() );
-              //now has coefficient
-              new_has_coeff.push_back( sf.d_vars[j] );
-              sf.d_has_coeff.push_back( sf.d_vars[j] );
-              sf.d_coeff[j] = a_pv_coeff;
-            }else{
-              sf.d_coeff[j] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, sf.d_coeff[j], a_pv_coeff ) );
+          // the substitution apply to this term resulted in a non-basic substitution relationship
+          if( !a_pv_prop.isBasic() ){
+            // we are processing:
+            //    sf.d_props[j].getModifiedTerm( sf.d_vars[j] ) = sf.d_subs[j] { pv_prop.getModifiedTerm( pv ) -> n } 
+          
+            // based on the above substitution, we have:
+            //   x = sf.d_subs[j] { pv_prop.getModifiedTerm( pv ) -> n } 
+            // is equivalent to
+            //   a_pv_prop.getModifiedTerm( x ) = new_subs
+            
+            // thus we must compose substitutions:
+            //   a_pv_prop.getModifiedTerm( sf.d_props[j].getModifiedTerm( sf.d_vars[j] ) ) = new_subs
+            
+            prev_prop[j] = sf.d_props[j];
+            bool prev_basic = sf.d_props[j].isBasic();
+            
+            // now compose the property
+            sf.d_props[j].composeProperty( a_pv_prop );
+            
+            // if previously was basic, becomes non-basic
+            if( prev_basic && !sf.d_props[j].isBasic() ){
+              Assert( std::find( sf.d_non_basic.begin(), sf.d_non_basic.end(), sf.d_vars[j] )==sf.d_non_basic.end() );
+              new_non_basic.push_back( sf.d_vars[j] );
+              sf.d_non_basic.push_back( sf.d_vars[j] );
             }
           }
           if( sf.d_subs[j]!=prev_subs[j] ){
@@ -418,25 +441,13 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, Node pv_coeff, int
     }
     if( success ){
       Trace("cbqi-inst-debug2") << "Adding to vectors..." << std::endl;
-      sf.push_back( pv, n, pv_coeff, bt );
-      Node prev_theta = sf.d_theta;
-      Node new_theta = sf.d_theta;
-      if( !pv_coeff.isNull() ){
-        if( new_theta.isNull() ){
-          new_theta = pv_coeff;
-        }else{
-          new_theta = NodeManager::currentNM()->mkNode( MULT, new_theta, pv_coeff );
-          new_theta = Rewriter::rewrite( new_theta );
-        }
-      }
-      sf.d_theta = new_theta;
+      sf.push_back( pv, n, pv_prop );
       Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
       unsigned i = d_curr_index[pv];
       success = doAddInstantiation( sf, d_stack_vars.empty() ? i+1 : i, effort );
-      sf.d_theta = prev_theta;
       if( !success ){
         Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
-        sf.pop_back( pv, n, pv_coeff, bt );
+        sf.pop_back( pv, n, pv_prop );
       }
     }
     if( success ){
@@ -447,11 +458,11 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, Node pv_coeff, int
       for( std::map< int, Node >::iterator it = prev_subs.begin(); it != prev_subs.end(); it++ ){
         sf.d_subs[it->first] = it->second;
       }
-      for( std::map< int, Node >::iterator it = prev_coeff.begin(); it != prev_coeff.end(); it++ ){
-        sf.d_coeff[it->first] = it->second;
+      for( std::map< int, TermProperties >::iterator it = prev_prop.begin(); it != prev_prop.end(); it++ ){
+        sf.d_props[it->first] = it->second;
       }
-      for( unsigned i=0; i<new_has_coeff.size(); i++ ){
-        sf.d_has_coeff.pop_back();
+      for( unsigned i=0; i<new_non_basic.size(); i++ ){
+        sf.d_non_basic.pop_back();
       }
       return false;
     }
@@ -461,7 +472,7 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, Node pv_coeff, int
   }
 }
 
-bool CegInstantiator::doAddInstantiation( std::vector< Node >& subs, std::vector< Node >& vars ) {
+bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& lemmas ) {
   if( vars.size()>d_vars.size() ){
     Trace("cbqi-inst-debug") << "Reconstructing instantiations...." << std::endl;
     std::map< Node, Node > subs_map;
@@ -486,46 +497,49 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& subs, std::vector
     }
   }
   bool ret = d_out->doAddInstantiation( subs );
+  for( unsigned i=0; i<lemmas.size(); i++ ){
+    d_out->addLemma( lemmas[i] );
+  }
   return ret;
 }
 
-Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< Node >& coeff, std::vector< Node >& has_coeff,
-                                         std::vector< Node >& vars, Node& pv_coeff, bool try_coeff ) {
+bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic ){
   Assert( d_prog_var.find( n )!=d_prog_var.end() );
-  Assert( n==Rewriter::rewrite( n ) );
-  bool req_coeff = false;
-  if( !has_coeff.empty() ){
+  if( !non_basic.empty() ){
     for( std::map< Node, bool >::iterator it = d_prog_var[n].begin(); it != d_prog_var[n].end(); ++it ){
-      if( std::find( has_coeff.begin(), has_coeff.end(), it->first )!=has_coeff.end() ){
-        req_coeff = true;
-        break;
+      if( std::find( non_basic.begin(), non_basic.end(), it->first )!=non_basic.end() ){
+        return false;
       }
     }
   }
+  return true;
+}
+
+Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
+                                         std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff ) {
+  computeProgVars( n );
+  Assert( n==Rewriter::rewrite( n ) );
+  bool is_basic = canApplyBasicSubstitution( n, non_basic );
   if( Trace.isOn("cegqi-si-apply-subs-debug") ){
-    Trace("cegqi-si-apply-subs-debug") << "req_coeff = " << req_coeff << "  " << tn << std::endl;
+    Trace("cegqi-si-apply-subs-debug") << "is_basic = " << is_basic << "  " << tn << std::endl;
     for( unsigned i=0; i<subs.size(); i++ ){
       Trace("cegqi-si-apply-subs-debug") << "  " << vars[i] << " -> " << subs[i] << "   types : " << vars[i].getType() << " -> " << subs[i].getType() << std::endl;
       Assert( subs[i].getType().isSubtypeOf( vars[i].getType() ) );
     }
   }
-  
-  if( !req_coeff ){
-    Node nret = n.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-    if( n!=nret ){
-      nret = Rewriter::rewrite( nret );
-    }
-    return nret;
+  Node nret;
+  if( is_basic ){
+    nret = n.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
   }else{
     if( !tn.isInteger() ){
       //can do basic substitution instead with divisions
       std::vector< Node > nvars;
       std::vector< Node > nsubs;
       for( unsigned i=0; i<vars.size(); i++ ){
-        if( !coeff[i].isNull() ){
+        if( !prop[i].d_coeff.isNull() ){
           Assert( vars[i].getType().isInteger() );
-          Assert( coeff[i].isConst() );
-          Node nn =NodeManager::currentNM()->mkNode( MULT, subs[i], NodeManager::currentNM()->mkConst( Rational(1)/coeff[i].getConst<Rational>() ) );
+          Assert( prop[i].d_coeff.isConst() );
+          Node nn = NodeManager::currentNM()->mkNode( MULT, subs[i], NodeManager::currentNM()->mkConst( Rational(1)/prop[i].d_coeff.getConst<Rational>() ) );
           nn = NodeManager::currentNM()->mkNode( kind::TO_INTEGER, nn );
           nn =  Rewriter::rewrite( nn );
           nsubs.push_back( nn );
@@ -533,11 +547,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           nsubs.push_back( subs[i] );
         }
       }
-      Node nret = n.substitute( vars.begin(), vars.end(), nsubs.begin(), nsubs.end() );
-      if( n!=nret ){
-        nret = Rewriter::rewrite( nret );
-      }
-      return nret;
+      nret = n.substitute( vars.begin(), vars.end(), nsubs.begin(), nsubs.end() );
     }else if( try_coeff ){
       //must convert to monomial representation
       std::map< Node, Node > msum;
@@ -549,18 +559,18 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           std::vector< Node >::iterator its = std::find( vars.begin(), vars.end(), it->first );
           if( its!=vars.end() ){
             int index = its-vars.begin();
-            if( coeff[index].isNull() ){
+            if( prop[index].d_coeff.isNull() ){
               //apply substitution
               msum_term[it->first] = subs[index];
             }else{
               //apply substitution, multiply to ensure no divisibility conflict
               msum_term[it->first] = subs[index];
               //relative coefficient
-              msum_coeff[it->first] = coeff[index];
-              if( pv_coeff.isNull() ){
-                pv_coeff = coeff[index];
+              msum_coeff[it->first] = prop[index].d_coeff;
+              if( pv_prop.d_coeff.isNull() ){
+                pv_prop.d_coeff = prop[index].d_coeff;
               }else{
-                pv_coeff = NodeManager::currentNM()->mkNode( MULT, pv_coeff, coeff[index] );
+                pv_prop.d_coeff = NodeManager::currentNM()->mkNode( MULT, pv_prop.d_coeff, prop[index].d_coeff );
               }
             }
           }else{
@@ -568,16 +578,16 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           }
         }
         //make sum with normalized coefficient
-        if( !pv_coeff.isNull() ){
-          pv_coeff = Rewriter::rewrite( pv_coeff );
-          Trace("cegqi-si-apply-subs-debug") << "Combined coeff : " << pv_coeff << std::endl;
+        if( !pv_prop.d_coeff.isNull() ){
+          pv_prop.d_coeff = Rewriter::rewrite( pv_prop.d_coeff );
+          Trace("cegqi-si-apply-subs-debug") << "Combined coeff : " << pv_prop.d_coeff << std::endl;
           std::vector< Node > children;
           for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
             Node c_coeff;
             if( !msum_coeff[it->first].isNull() ){
-              c_coeff = Rewriter::rewrite( NodeManager::currentNM()->mkConst( pv_coeff.getConst<Rational>() / msum_coeff[it->first].getConst<Rational>() ) );
+              c_coeff = Rewriter::rewrite( NodeManager::currentNM()->mkConst( pv_prop.d_coeff.getConst<Rational>() / msum_coeff[it->first].getConst<Rational>() ) );
             }else{
-              c_coeff = pv_coeff;
+              c_coeff = pv_prop.d_coeff;
             }
             if( !it->second.isNull() ){
               c_coeff = NodeManager::currentNM()->mkNode( MULT, c_coeff, it->second );
@@ -592,14 +602,14 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             children.push_back( c );
             Trace("cegqi-si-apply-subs-debug") << "Add child : " << c << std::endl;
           }
-          Node nret = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
-          nret = Rewriter::rewrite( nret );
+          Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
+          nretc = Rewriter::rewrite( nretc );
           //ensure that nret does not contain vars
-          if( !TermDb::containsTerms( nret, vars ) ){
-            //result is ( nret / pv_coeff )
-            return nret;
+          if( !TermDb::containsTerms( nretc, vars ) ){
+            //result is ( nret / pv_prop.d_coeff )
+            nret = nretc;
           }else{
-            Trace("cegqi-si-apply-subs-debug") << "Failed, since result " << nret << " contains free variable." << std::endl;
+            Trace("cegqi-si-apply-subs-debug") << "Failed, since result " << nretc << " contains free variable." << std::endl;
           }
         }else{
           //implies that we have a monomial that has a free variable
@@ -609,11 +619,61 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
         Trace("cegqi-si-apply-subs-debug") << "Failed to find monomial sum " << n << std::endl;
       }
     }
-    // failed to apply the substitution
-    return Node::null();
   }
+  if( n!=nret && !nret.isNull() ){
+    nret = Rewriter::rewrite( nret );
+  }
+  return nret;
 }
 
+Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >& vars, std::vector< Node >& subs, 
+                                                  std::vector< TermProperties >& prop, std::vector< Node >& non_basic ) {
+  computeProgVars( lit );
+  bool is_basic = canApplyBasicSubstitution( lit, non_basic );
+  Node lret;
+  if( is_basic ){
+   lret = lit.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+  }else{
+    Node atom = lit.getKind()==NOT ? lit[0] : lit;
+    bool pol = lit.getKind()!=NOT;
+    //arithmetic inequalities and disequalities
+    if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && atom[0].getType().isReal() ) ){
+      Assert( atom.getKind()!=GEQ || atom[1].isConst() );
+      Node atom_lhs;
+      Node atom_rhs;
+      if( atom.getKind()==GEQ ){
+        atom_lhs = atom[0];
+        atom_rhs = atom[1];
+      }else{
+        atom_lhs = NodeManager::currentNM()->mkNode( MINUS, atom[0], atom[1] );
+        atom_lhs = Rewriter::rewrite( atom_lhs );
+        atom_rhs = getQuantifiersEngine()->getTermDatabase()->d_zero;
+      }
+      //must be an eligible term
+      if( isEligible( atom_lhs ) ){
+        //apply substitution to LHS of atom
+        TermProperties atom_lhs_prop;
+        atom_lhs = applySubstitution( NodeManager::currentNM()->realType(), atom_lhs, vars, subs, prop, non_basic, atom_lhs_prop );
+        if( !atom_lhs.isNull() ){
+          if( !atom_lhs_prop.d_coeff.isNull() ){
+            atom_rhs = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, atom_lhs_prop.d_coeff, atom_rhs ) );
+          }
+          lret = NodeManager::currentNM()->mkNode( atom.getKind(), atom_lhs, atom_rhs );
+          if( !pol ){
+            lret = lret.negate();
+          }
+        }
+      }
+    }else{
+      // don't know how to apply substitution to literal
+    }
+  }
+  if( lit!=lret && !lret.isNull() ){
+    lret = Rewriter::rewrite( lret );
+  }
+  return lret;
+}
+  
 bool CegInstantiator::check() {
   if( d_qe->getTheoryEngine()->needCheck() ){
     Trace("cbqi-engine") << "  CEGQI instantiator : wait until all ground theories are finished." << std::endl;
@@ -995,7 +1055,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
         Node v = lems[i][0];
         d_aux_eq[rlem][v] = lems[i][1];
          Trace("cbqi-debug") << "  " << rlem << " implies " << v << " = " << lems[i][1] << std::endl;
-      } 
+      }
     }*/
     lems[i] = rlem;
   }
@@ -1028,8 +1088,9 @@ Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn )
 }
 
 
-bool Instantiator::processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, Node pv_coeff, Node n, unsigned effort ) {
-  return ci->doAddInstantiationInc( pv, n, pv_coeff, 0, sf, effort );
+bool Instantiator::processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, TermProperties& pv_prop, Node n, unsigned effort ) {
+  pv_prop.d_type = 0;
+  return ci->doAddInstantiationInc( pv, n, pv_prop, sf, effort );
 }
 
 

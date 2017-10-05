@@ -300,40 +300,40 @@ jobject m ValidityChecker vc n string name c Type type c Expr expr
 return embed_copy(env, vc->createOp(name, *type, *expr));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniEqOp
-jobject
-return embed_copy<Op>(env, Op(EQ));
+jobject m ValidityChecker vc
+return embed_copy<Op>(env, Op(vc->getEM(), EQ));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniLtOp
-jobject
-return embed_copy<Op>(env, Op(LT));
+jobject m ValidityChecker vc
+return embed_copy<Op>(env, Op(vc->getEM(), LT));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniLeOp
-jobject
-return embed_copy<Op>(env, Op(LE));
+jobject m ValidityChecker vc
+return embed_copy<Op>(env, Op(vc->getEM(), LE));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniGtOp
-jobject
-return embed_copy<Op>(env, Op(GT));
+jobject m ValidityChecker vc
+return embed_copy<Op>(env, Op(vc->getEM(), GT));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniGeOp
-jobject
-return embed_copy<Op>(env, Op(GE));
+jobject m ValidityChecker vc
+return embed_copy<Op>(env, Op(vc->getEM(), GE));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniPlusOp
-jobject
-return embed_copy<Op>(env, Op(PLUS));
+jobject m ValidityChecker vc
+return embed_copy<Op>(env, Op(vc->getEM(), PLUS));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniMinusOp
-jobject
-return embed_copy<Op>(env, Op(MINUS));
+jobject m ValidityChecker vc
+return embed_copy<Op>(env, Op(vc->getEM(), MINUS));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniMultOp
-jobject
-return embed_copy<Op>(env, Op(MULT));
+jobject m ValidityChecker vc
+return embed_copy<Op>(env, Op(vc->getEM(), MULT));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniDivideOp
-jobject
-return embed_copy<Op>(env, Op(DIVIDE));
+jobject m ValidityChecker vc
+return embed_copy<Op>(env, Op(vc->getEM(), DIVIDE));
 
 
 DEFINITION: Java_cvc3_ValidityChecker_jniFunExpr1
@@ -595,10 +595,6 @@ return embed_copy(env, vc->computeBVConst(*expr));
 DEFINITION: Java_cvc3_ValidityChecker_jniTupleExpr
 jobject m ValidityChecker vc cv Expr exprs
 return embed_copy(env, vc->tupleExpr(exprs));
-
-DEFINITION: Java_cvc3_ValidityChecker_jniTupleSelectExpr
-jobject m ValidityChecker vc c Expr tuple n int index
-return embed_copy(env, vc->tupleSelectExpr(*tuple, index));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniTupleUpdateExpr
 jobject m ValidityChecker vc c Expr tuple n int index c Expr value

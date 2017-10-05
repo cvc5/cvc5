@@ -1023,6 +1023,8 @@ void GetValueCommand::invoke(SmtEngine* smtEngine) {
     }
     d_result = em->mkExpr(kind::SEXPR, result);
     d_commandStatus = CommandSuccess::instance();
+  } catch (RecoverableModalException& e) {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
   } catch(UnsafeInterruptException& e) {
     d_commandStatus = new CommandInterrupted();
   } catch(exception& e) {
@@ -1072,6 +1074,8 @@ void GetAssignmentCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getAssignment();
     d_commandStatus = CommandSuccess::instance();
+  } catch (RecoverableModalException& e) {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
   } catch(UnsafeInterruptException& e) {
     d_commandStatus = new CommandInterrupted();
   } catch(exception& e) {
@@ -1109,14 +1113,16 @@ std::string GetAssignmentCommand::getCommandName() const throw() {
 
 /* class GetModelCommand */
 
-GetModelCommand::GetModelCommand() throw() {
-}
+GetModelCommand::GetModelCommand() throw()
+    : d_result(nullptr), d_smtEngine(nullptr) {}
 
 void GetModelCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getModel();
     d_smtEngine = smtEngine;
     d_commandStatus = CommandSuccess::instance();
+  } catch (RecoverableModalException& e) {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
   } catch(UnsafeInterruptException& e) {
     d_commandStatus = new CommandInterrupted();
   } catch(exception& e) {
@@ -1158,14 +1164,16 @@ std::string GetModelCommand::getCommandName() const throw() {
 
 /* class GetProofCommand */
 
-GetProofCommand::GetProofCommand() throw() {
-}
+GetProofCommand::GetProofCommand() throw()
+    : d_result(nullptr), d_smtEngine(nullptr) {}
 
 void GetProofCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_smtEngine = smtEngine;
     d_result = smtEngine->getProof();
     d_commandStatus = CommandSuccess::instance();
+  } catch (RecoverableModalException& e) {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
   } catch(UnsafeInterruptException& e) {
     d_commandStatus = new CommandInterrupted();
   } catch(exception& e) {
@@ -1206,8 +1214,8 @@ std::string GetProofCommand::getCommandName() const throw() {
 
 /* class GetInstantiationsCommand */
 
-GetInstantiationsCommand::GetInstantiationsCommand() throw() {
-}
+GetInstantiationsCommand::GetInstantiationsCommand() throw()
+    : d_smtEngine(nullptr) {}
 
 void GetInstantiationsCommand::invoke(SmtEngine* smtEngine) {
   try {
@@ -1250,8 +1258,8 @@ std::string GetInstantiationsCommand::getCommandName() const throw() {
 
 /* class GetSynthSolutionCommand */
 
-GetSynthSolutionCommand::GetSynthSolutionCommand() throw() {
-}
+GetSynthSolutionCommand::GetSynthSolutionCommand() throw()
+    : d_smtEngine(nullptr) {}
 
 void GetSynthSolutionCommand::invoke(SmtEngine* smtEngine) {
   try {
@@ -1352,6 +1360,8 @@ void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getUnsatCore();
     d_commandStatus = CommandSuccess::instance();
+  } catch (RecoverableModalException& e) {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
   }

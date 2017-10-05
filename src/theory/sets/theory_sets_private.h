@@ -188,6 +188,38 @@ public:
 
   void preRegisterTerm(TNode node);
 
+  /** expandDefinition
+   * If the sets-ext option is not set and we have an extended operator, 
+   * we throw an exception. This function is a no-op otherwise.
+   *
+   * This is related to github issue #1076
+   * TheorySets uses expandDefinition as an entry point to see if the input
+   * contains extended operators.
+   *
+   * We need to be notified when a universe set occurs in our input,
+   * before preprocessing and simplification takes place. Otherwise the models
+   * may be inaccurate when setsExt is false, here is an example:
+   *
+   * x,y : (Set Int)
+   * x = (as univset (Set Int));
+   * 0 in y;
+   * check-sat;
+   *
+   * If setsExt is enabled, the model value of (as univset (Set Int)) is always accurate.
+   *
+   * If setsExt is not enabled, the following can happen for the above example:
+   * x = (as univset (Set Int)) is made into a model substitution during 
+   * simplification. This means (as univset (Set Int)) is not a term in any assertion, 
+   * and hence we do not throw an exception, nor do we infer that 0 is a member of 
+   * (as univset (Set Int)). We instead report a model where x = {}. The correct behavior 
+   * is to throw an exception that says universe set is not supported when setsExt disabled.
+   * Hence we check for the existence of universe set before simplification here.
+   *
+   * Another option to fix this is to make TheoryModel::getValue more general
+   * so that it makes theory-specific calls to evaluate interpreted symbols.
+   */
+  Node expandDefinition(LogicRequest &logicRequest, Node n);
+
   Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
   
   void presolve();

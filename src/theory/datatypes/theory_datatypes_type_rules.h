@@ -101,6 +101,8 @@ struct DatatypeConstructorTypeRule {
         return false;
       }
     }
+    //if we support subtyping for tuples, enable this
+    /*
     //check whether it is in normal form?
     TypeNode tn = n.getType();
     if( tn.isTuple() ){
@@ -114,6 +116,7 @@ struct DatatypeConstructorTypeRule {
     }else if( tn.isCodatatype() ){
       //TODO?
     }
+    */
     return true;
   }
 }; /* struct DatatypeConstructorTypeRule */

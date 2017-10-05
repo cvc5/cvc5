@@ -18,64 +18,58 @@
 
 #include "cvc4_public.h"
 
-#pragma once
+#ifndef __CVC4__ARRAY_STORE_ALL_H
+#define __CVC4__ARRAY_STORE_ALL_H
 
 #include <iosfwd>
-
-#include "base/exception.h"
+#include <memory>
 
 namespace CVC4 {
-  // messy; Expr needs ArrayStoreAll (because it's the payload of a
-  // CONSTANT-kinded expression), and ArrayStoreAll needs Expr.
-  class Expr;
-  class ArrayType;
-}/* CVC4 namespace */
-
+// messy; Expr needs ArrayStoreAll (because it's the payload of a
+// CONSTANT-kinded expression), and ArrayStoreAll needs Expr.
+class Expr;
+class ArrayType;
+}  // namespace CVC4
 
 namespace CVC4 {
 
 class CVC4_PUBLIC ArrayStoreAll {
-public:
-  ArrayStoreAll(const ArrayStoreAll& other);
-
-  ArrayStoreAll& operator=(const ArrayStoreAll& other);
-
-  ArrayStoreAll(const ArrayType& type, const Expr& expr)
-      throw(IllegalArgumentException);
-
+ public:
+  /**
+   * @throws IllegalArgumentException if `type` is not an array or if `expr` is
+   * not a constant of type `type`.
+   */
+  ArrayStoreAll(const ArrayType& type, const Expr& expr);
   ~ArrayStoreAll() throw();
 
-  const ArrayType& getType() const throw();
+  ArrayStoreAll(const ArrayStoreAll& other);
+  ArrayStoreAll& operator=(const ArrayStoreAll& other);
 
+  const ArrayType& getType() const throw();
   const Expr& getExpr() const throw();
 
   bool operator==(const ArrayStoreAll& asa) const throw();
-
-  bool operator!=(const ArrayStoreAll& asa) const throw() {
-    return !(*this == asa);
-  }
-
+  bool operator!=(const ArrayStoreAll& asa) const throw();
   bool operator<(const ArrayStoreAll& asa) const throw();
   bool operator<=(const ArrayStoreAll& asa) const throw();
-  bool operator>(const ArrayStoreAll& asa) const throw() {
-    return !(*this <= asa);
-  }
-  bool operator>=(const ArrayStoreAll& asa) const throw() {
-    return !(*this < asa);
-  }
+  bool operator>(const ArrayStoreAll& asa) const throw();
+  bool operator>=(const ArrayStoreAll& asa) const throw();
 
-private:
-  ArrayType* d_type;
-  Expr* d_expr;
-};/* class ArrayStoreAll */
+ private:
+  std::unique_ptr<ArrayType> d_type;
+  std::unique_ptr<Expr> d_expr;
+}; /* class ArrayStoreAll */
 
-std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out,
+                         const ArrayStoreAll& asa) CVC4_PUBLIC;
 
 /**
  * Hash function for the ArrayStoreAll constants.
  */
 struct CVC4_PUBLIC ArrayStoreAllHashFunction {
   size_t operator()(const ArrayStoreAll& asa) const;
-};/* struct ArrayStoreAllHashFunction */
+}; /* struct ArrayStoreAllHashFunction */
 
-}/* CVC4 namespace */
+}  // namespace CVC4
+
+#endif /* __CVC4__ARRAY_STORE_ALL_H */

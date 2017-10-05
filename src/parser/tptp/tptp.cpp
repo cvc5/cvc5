@@ -213,16 +213,135 @@ void Tptp::checkLetBinding(std::vector<Expr>& bvlist, Expr lhs, Expr rhs, bool f
   std::sort(v.begin(), v.end());
   std::sort(bvlist.begin(), bvlist.end());
   // ensure all let-bound variables appear on the LHS, and appear only once
-  for(size_t i = 0; i < bvlist.size(); ++i) {
-    std::vector<CVC4::Expr>::const_iterator found = std::lower_bound(v.begin(), v.end(), bvlist[i]);
-    if(found == v.end() || *found != bvlist[i]) {
-      parseError("malformed let: LHS must make use of all quantified variables, missing `" + bvlist[i].toString() + "'");
+  for (size_t i = 0; i < bvlist.size(); ++i) {
+    std::vector<CVC4::Expr>::const_iterator found =
+        std::lower_bound(v.begin(), v.end(), bvlist[i]);
+    if (found == v.end() || *found != bvlist[i]) {
+      parseError(
+          "malformed let: LHS must make use of all quantified variables, "
+          "missing `" +
+          bvlist[i].toString() + "'");
     }
+    assert(found != v.end());
     std::vector<CVC4::Expr>::const_iterator found2 = found + 1;
-    if(found2 != v.end() && *found2 == *found) {
-      parseError("malformed let: LHS cannot use same bound variable twice: " + (*found).toString());
+    if (found2 != v.end() && *found2 == *found) {
+      parseError("malformed let: LHS cannot use same bound variable twice: " +
+                 (*found).toString());
     }
   }
+}
+
+void Tptp::addFreeVar(Expr var) {
+  assert(cnf());
+  d_freeVar.push_back(var);
+}
+
+std::vector<Expr> Tptp::getFreeVar() {
+  assert(cnf());
+  std::vector<Expr> r;
+  r.swap(d_freeVar);
+  return r;
+}
+
+Expr Tptp::convertRatToUnsorted(Expr expr) {
+  ExprManager* em = getExprManager();
+
+  // Create the conversion function If they doesn't exists
+  if (d_rtu_op.isNull()) {
+    Type t;
+    // Conversion from rational to unsorted
+    t = em->mkFunctionType(em->realType(), d_unsorted);
+    d_rtu_op = em->mkVar("$$rtu", t);
+    preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op, t));
+    // Conversion from unsorted to rational
+    t = em->mkFunctionType(d_unsorted, em->realType());
+    d_utr_op = em->mkVar("$$utr", t);
+    preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op, t));
+  }
+  // Add the inverse in order to show that over the elements that
+  // appear in the problem there is a bijection between unsorted and
+  // rational
+  Expr ret = em->mkExpr(kind::APPLY_UF, d_rtu_op, expr);
+  if (d_r_converted.find(expr) == d_r_converted.end()) {
+    d_r_converted.insert(expr);
+    Expr eq = em->mkExpr(kind::EQUAL, expr,
+                         em->mkExpr(kind::APPLY_UF, d_utr_op, ret));
+    preemptCommand(new AssertCommand(eq));
+  }
+  return ret;
+}
+
+Expr Tptp::convertStrToUnsorted(std::string str) {
+  Expr& e = d_distinct_objects[str];
+  if (e.isNull()) {
+    e = getExprManager()->mkConst(
+        UninterpretedConstant(d_unsorted, d_distinct_objects.size() - 1));
+  }
+  return e;
+}
+
+void Tptp::makeApplication(Expr& expr, std::string& name,
+                           std::vector<Expr>& args, bool term) {
+  if (args.empty()) {        // Its a constant
+    if (isDeclared(name)) {  // already appeared
+      expr = getVariable(name);
+    } else {
+      Type t = term ? d_unsorted : getExprManager()->booleanType();
+      expr = mkVar(name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
+      preemptCommand(new DeclareFunctionCommand(name, expr, t));
+    }
+  } else {                   // Its an application
+    if (isDeclared(name)) {  // already appeared
+      expr = getVariable(name);
+    } else {
+      std::vector<Type> sorts(args.size(), d_unsorted);
+      Type t = term ? d_unsorted : getExprManager()->booleanType();
+      t = getExprManager()->mkFunctionType(sorts, t);
+      expr = mkVar(name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
+      preemptCommand(new DeclareFunctionCommand(name, expr, t));
+    }
+    // args might be rationals, in which case we need to create
+    // distinct constants of the "unsorted" sort to represent them
+    for (size_t i = 0; i < args.size(); ++i) {
+      if (args[i].getType().isReal() &&
+          FunctionType(expr.getType()).getArgTypes()[i] == d_unsorted) {
+        args[i] = convertRatToUnsorted(args[i]);
+      }
+    }
+    expr = getExprManager()->mkExpr(kind::APPLY_UF, expr, args);
+  }
+}
+
+Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf) {
+  // For SZS ontology compliance.
+  // if we're in cnf() though, conjectures don't result in "Theorem" or
+  // "CounterSatisfiable".
+  if (!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE)) {
+    d_hasConjecture = true;
+  }
+  switch (fr) {
+    case FR_AXIOM:
+    case FR_HYPOTHESIS:
+    case FR_DEFINITION:
+    case FR_ASSUMPTION:
+    case FR_LEMMA:
+    case FR_THEOREM:
+    case FR_NEGATED_CONJECTURE:
+    case FR_PLAIN:
+      // it's a usual assert
+      return new AssertCommand(expr);
+    case FR_CONJECTURE:
+      // something to prove
+      return new AssertCommand(getExprManager()->mkExpr(kind::NOT, expr));
+    case FR_UNKNOWN:
+    case FR_FI_DOMAIN:
+    case FR_FI_FUNCTORS:
+    case FR_FI_PREDICATES:
+    case FR_TYPE:
+      return new EmptyCommand("Untreated role");
+  }
+  assert(false);  // unreachable
+  return nullptr;
 }
 
 }/* CVC4::parser namespace */
