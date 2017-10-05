@@ -110,6 +110,12 @@ typerule FLOATINGPOINT_MIN   ::CVC4::theory::fp::FloatingPointOperationTypeRule
 operator FLOATINGPOINT_MAX 2 "floating-point maximum"
 typerule FLOATINGPOINT_MAX   ::CVC4::theory::fp::FloatingPointOperationTypeRule
 
+operator FLOATINGPOINT_MIN_TOTAL 3 "floating-point minimum (defined for all inputs)"
+typerule FLOATINGPOINT_MIN_TOTAL   ::CVC4::theory::fp::FloatingPointPartialOperationTypeRule
+
+operator FLOATINGPOINT_MAX_TOTAL 3 "floating-point maximum (defined for all inputs)"
+typerule FLOATINGPOINT_MAX_TOTAL   ::CVC4::theory::fp::FloatingPointPartialOperationTypeRule
+
 
 operator FLOATINGPOINT_LEQ 2: "floating-point less than or equal"
 typerule FLOATINGPOINT_LEQ   ::CVC4::theory::fp::FloatingPointTestTypeRule
@@ -236,6 +242,17 @@ parameterized FLOATINGPOINT_TO_UBV FLOATINGPOINT_TO_UBV_OP 2 "convert a floating
 typerule FLOATINGPOINT_TO_UBV   ::CVC4::theory::fp::FloatingPointToUBVTypeRule
 
 
+constant FLOATINGPOINT_TO_UBV_TOTAL_OP \
+    ::CVC4::FloatingPointToUBVTotal \
+    "::CVC4::FloatingPointToBVHashFunction<0x4>" \
+    "util/floatingpoint.h" \
+    "operator for to_ubv_total"
+typerule FLOATINGPOINT_TO_UBV_TOTAL_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+
+parameterized FLOATINGPOINT_TO_UBV_TOTAL FLOATINGPOINT_TO_UBV_TOTAL_OP 3 "convert a floating-point value to an unsigned bit vector (defined for all inputs)"
+typerule FLOATINGPOINT_TO_UBV_TOTAL   ::CVC4::theory::fp::FloatingPointToUBVTotalTypeRule
+
+
 
 constant FLOATINGPOINT_TO_SBV_OP \
     ::CVC4::FloatingPointToSBV \
@@ -248,8 +265,22 @@ parameterized FLOATINGPOINT_TO_SBV FLOATINGPOINT_TO_SBV_OP 2 "convert a floating
 typerule FLOATINGPOINT_TO_SBV   ::CVC4::theory::fp::FloatingPointToSBVTypeRule
 
 
+constant FLOATINGPOINT_TO_SBV_TOTAL_OP \
+    ::CVC4::FloatingPointToSBVTotal \
+    "::CVC4::FloatingPointToBVHashFunction<0x8>" \
+    "util/floatingpoint.h" \
+    "operator for to_sbv_total"
+typerule FLOATINGPOINT_TO_SBV_TOTAL_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+
+parameterized FLOATINGPOINT_TO_SBV_TOTAL FLOATINGPOINT_TO_SBV_TOTAL_OP 3 "convert a floating-point value to a signed bit vector (defined for all inputs)"
+typerule FLOATINGPOINT_TO_SBV_TOTAL   ::CVC4::theory::fp::FloatingPointToSBVTotalTypeRule
+
+
 operator FLOATINGPOINT_TO_REAL 1 "floating-point to real"
 typerule FLOATINGPOINT_TO_REAL   ::CVC4::theory::fp::FloatingPointToRealTypeRule
+
+operator FLOATINGPOINT_TO_REAL_TOTAL 2 "floating-point to real (defined for all inputs)"
+typerule FLOATINGPOINT_TO_REAL_TOTAL   ::CVC4::theory::fp::FloatingPointToRealTotalTypeRule
 
 
 endtheory

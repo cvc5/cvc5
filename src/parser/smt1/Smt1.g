@@ -483,8 +483,8 @@ functionSymbol[CVC4::Expr& fun]
 	std::string name;
 }
   : functionName[name,CHECK_DECLARED]
-    { PARSER_STATE->checkFunctionLike(name);
-      fun = PARSER_STATE->getVariable(name); }
+    { fun = PARSER_STATE->getVariable(name);
+      PARSER_STATE->checkFunctionLike(fun); }
   ;
 
 /**
