@@ -134,7 +134,7 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
  */
 class CVC4_PUBLIC Parser {
   friend class ParserBuilder;
-
+private:
   /** The expression manager */
   ExprManager *d_exprManager;
   /** The resource manager associated with this expr manager */
@@ -235,7 +235,9 @@ class CVC4_PUBLIC Parser {
    */
   std::list<Command*> d_commandQueue;
 
-  /** Lookup a symbol in the given namespace. */
+  /** Lookup a symbol in the given namespace (as specified by the type). 
+   * Only returns a symbol if it is not overloaded, returns null otherwise.
+   */
   Expr getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
@@ -318,21 +320,52 @@ public:
   bool logicIsForced() const { return d_logicIsForced; }
 
   /**
-   * Returns a variable, given a name.
+   * Gets the variable currently bound to name.
    *
    * @param name the name of the variable
    * @return the variable expression
+   * Only returns a variable if its name is not overloaded, returns null otherwise.
    */
   Expr getVariable(const std::string& name);
 
   /**
-   * Returns a function, given a name.
+   * Gets the function currently bound to name.
    *
    * @param name the name of the variable
    * @return the variable expression
+   * Only returns a function if its name is not overloaded, returns null otherwise.
    */
   Expr getFunction(const std::string& name);
 
+  /**
+   * Returns the expression that name should be interpreted as, based on the current binding.
+   *
+   * The symbol name should be declared.
+   * This creates the expression that the string "name" should be interpreted as.
+   * Typically this corresponds to a variable, but it may also correspond to
+   * a nullary constructor or a defined function.
+   * Only returns an expression if its name is not overloaded, returns null otherwise.
+   */
+  virtual Expr getExpressionForName(const std::string& name);
+  
+  /**
+   * Returns the expression that name should be interpreted as, based on the current binding.
+   *
+   * This is the same as above but where the name has been type cast to t. 
+   */
+  virtual Expr getExpressionForNameAndType(const std::string& name, Type t);
+  
+  /**
+   * Returns the kind that should be used for applications of expression fun, where
+   * fun has "function-like" type, i.e. where checkFunctionLike(fun) returns true. 
+   * Returns a parse error if fun does not have function-like type.
+   * 
+   * For example, this function returns
+   *   APPLY_UF if fun has function type, 
+   *   APPLY_CONSTRUCTOR if fun has constructor type.
+   */
+  Kind getKindForFunction(Expr fun);
+  
   /**
    * Returns a sort, given a name.
    * @param sort_name the name to look up
@@ -377,12 +410,15 @@ public:
   void reserveSymbolAtAssertionLevel(const std::string& name);
 
   /**
-   * Checks whether the given name is bound to a function.
-   * @param name the name to check
-   * @throws ParserException if checks are enabled and name is not
-   * bound to a function
+   * Checks whether the given expression is function-like, i.e.
+   * it expects arguments. This is checked by looking at the type 
+   * of fun. Examples of function types are function, constructor,
+   * selector, tester.
+   * @param fun the expression to check
+   * @throws ParserException if checks are enabled and fun is not
+   * a function
    */
-  void checkFunctionLike(const std::string& name) throw(ParserException);
+  void checkFunctionLike(Expr fun) throw(ParserException);
 
   /**
    * Check that <code>kind</code> can accept <code>numArgs</code> arguments.
@@ -405,52 +441,82 @@ public:
    */
   void checkOperator(Kind kind, unsigned numArgs) throw(ParserException);
 
-  /**
-   * Returns the type for the variable with the given name.
+  /** Create a new CVC4 variable expression of the given type. 
    *
-   * @param var_name the symbol to lookup
-   * @param type the (namespace) type of the symbol
+   * flags specify information about the variable, e.g. whether it is global or defined
+   *   (see enum in expr_manager_template.h).
+   *
+   * If a symbol with name already exists,
+   *  then if doOverload is true, we create overloaded operators.
+   *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  Type getType(const std::string& var_name, SymbolType type = SYM_VARIABLE);
-
-  /** Create a new CVC4 variable expression of the given type. */
   Expr mkVar(const std::string& name, const Type& type,
-             uint32_t flags = ExprManager::VAR_FLAG_NONE);
+             uint32_t flags = ExprManager::VAR_FLAG_NONE, 
+             bool doOverload = false);
 
   /**
    * Create a set of new CVC4 variable expressions of the given type.
+   *
+   * flags specify information about the variable, e.g. whether it is global or defined
+   *   (see enum in expr_manager_template.h).
+   *
+   * For each name, if a symbol with name already exists,
+   *  then if doOverload is true, we create overloaded operators.
+   *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   std::vector<Expr>
     mkVars(const std::vector<std::string> names, const Type& type,
-           uint32_t flags = ExprManager::VAR_FLAG_NONE);
+           uint32_t flags = ExprManager::VAR_FLAG_NONE, 
+           bool doOverload = false);
 
   /** Create a new CVC4 bound variable expression of the given type. */
   Expr mkBoundVar(const std::string& name, const Type& type);
 
   /**
    * Create a set of new CVC4 bound variable expressions of the given type.
+   *
+   * flags specify information about the variable, e.g. whether it is global or defined
+   *   (see enum in expr_manager_template.h).
+   *
+   * For each name, if a symbol with name already exists,
+   *  then if doOverload is true, we create overloaded operators.
+   *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   std::vector<Expr> mkBoundVars(const std::vector<std::string> names, const Type& type);
 
   /** Create a new CVC4 function expression of the given type. */
   Expr mkFunction(const std::string& name, const Type& type,
-                  uint32_t flags = ExprManager::VAR_FLAG_NONE);
+                  uint32_t flags = ExprManager::VAR_FLAG_NONE, 
+                  bool doOverload=false);
 
   /**
    * Create a new CVC4 function expression of the given type,
    * appending a unique index to its name.  (That's the ONLY
    * difference between mkAnonymousFunction() and mkFunction()).
+   *
+   * flags specify information about the variable, e.g. whether it is global or defined
+   *   (see enum in expr_manager_template.h).
    */
   Expr mkAnonymousFunction(const std::string& prefix, const Type& type,
                            uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
-  /** Create a new variable definition (e.g., from a let binding). */
+  /** Create a new variable definition (e.g., from a let binding). 
+   * levelZero is set if the binding must be done at level 0.
+   * If a symbol with name already exists,
+   *  then if doOverload is true, we create overloaded operators.
+   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   */
   void defineVar(const std::string& name, const Expr& val,
-                 bool levelZero = false);
+                 bool levelZero = false, bool doOverload = false);
 
-  /** Create a new function definition (e.g., from a define-fun). */
+  /** Create a new function definition (e.g., from a define-fun). 
+   * levelZero is set if the binding must be done at level 0.
+   * If a symbol with name already exists,
+   *  then if doOverload is true, we create overloaded operators.
+   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   */
   void defineFunction(const std::string& name, const Expr& val,
-                      bool levelZero = false);
+                      bool levelZero = false, bool doOverload = false);
 
   /** Create a new type definition. */
   void defineType(const std::string& name, const Type& type);
@@ -500,9 +566,12 @@ public:
 
   /**
    * Create sorts of mutually-recursive datatypes.
+   * For each symbol defined by the datatype, if a symbol with name already exists,
+   *  then if doOverload is true, we create overloaded operators.
+   *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   std::vector<DatatypeType>
-  mkMutualDatatypeTypes(std::vector<Datatype>& datatypes);
+  mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, bool doOverload=false);
 
   /**
    * Add an operator to the current legal set.
@@ -522,8 +591,10 @@ public:
   /** Is the symbol bound to a boolean variable? */
   bool isBoolean(const std::string& name);
 
-  /** Is the symbol bound to a function (or function-like thing)? */
-  bool isFunctionLike(const std::string& name);
+  /** Is fun a function (or function-like thing)? 
+  * Currently this means its type is either a function, constructor, tester, or selector.
+  */
+  bool isFunctionLike(Expr fun);
 
   /** Is the symbol bound to a defined function? */
   bool isDefinedFunction(const std::string& name);
@@ -663,6 +734,30 @@ public:
     ~ExprStream() { delete d_parser; }
     Expr nextExpr() { return d_parser->nextExpression(); }
   };/* class Parser::ExprStream */
+  
+  //------------------------ operator overloading
+  /** is this function overloaded? */
+  bool isOverloadedFunction(Expr fun) {
+    return d_symtab->isOverloadedFunction(fun);
+  }
+  
+  /** Get overloaded constant for type.
+   * If possible, it returns a defined symbol with name
+   * that has type t. Otherwise returns null expression.
+  */
+  Expr getOverloadedConstantForType(const std::string& name, Type t) {
+    return d_symtab->getOverloadedConstantForType(name, t);
+  }
+  
+  /**
+   * If possible, returns a defined function for a name
+   * and a vector of expected argument types. Otherwise returns
+   * null expression.
+   */
+  Expr getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) {
+    return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
+  }
+  //------------------------ end operator overloading
 };/* class Parser */
 
 }/* CVC4::parser namespace */
