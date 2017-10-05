@@ -1088,7 +1088,7 @@ std::vector<Node> NonlinearExtension::checkSplitZero() {
   return lemmas;
 }
 
-void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
+int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                        const std::set<Node>& false_asserts,
                                        const std::vector<Node>& xts) {
   d_ms_vars.clear();
@@ -1203,7 +1203,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   lemmas_proc = flushLemmas(lemmas);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas during registration." << std::endl;
-    return;
+    return lemmas_proc;
   }
 
 
@@ -1232,7 +1232,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     lemmas_proc = flushLemmas(lemmas);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
-      return;
+      return lemmas_proc;
     }
   }
 
@@ -1241,7 +1241,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   lemmas_proc = flushLemmas(lemmas);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
-    return;
+    return lemmas_proc;
   }
   
   //-----------------------------------lemmas based on sign (comparison to zero)
@@ -1249,7 +1249,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   lemmas_proc = flushLemmas(lemmas);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
-    return;
+    return lemmas_proc;
   }
   
   //-----------------------------------monotonicity of transdental functions
@@ -1257,7 +1257,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   lemmas_proc = flushLemmas(lemmas);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
-    return;
+    return lemmas_proc;
   }
 
   //-----------------------------------lemmas based on magnitude of non-zero monomials
@@ -1282,7 +1282,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       Trace("nl-ext") << "  ...finished with " << lemmas_proc
                       << " new lemmas (out of possible " << lemmas.size()
                       << ")." << std::endl;
-      return;
+      return lemmas_proc;
     }
   }
 
@@ -1308,7 +1308,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas."
                     << std::endl;
-    return;
+    return lemmas_proc;
   }
   
   // from inferred bound inferences : now do ones that introduce new terms
@@ -1316,7 +1316,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc
                     << " new (monomial-introducing) lemmas." << std::endl;
-    return;
+    return lemmas_proc;
   }
   
   //------------------------------------factoring lemmas
@@ -1326,7 +1326,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     lemmas_proc = flushLemmas(lemmas);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
-      return;
+      return lemmas_proc;
     }
   }
 
@@ -1337,7 +1337,7 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     lemmas_proc = flushLemmas(lemmas);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
-      return;
+      return lemmas_proc;
     }
   }
   
@@ -1347,12 +1347,11 @@ void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     lemmas_proc = flushLemmas(lemmas);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
-      return;
+      return lemmas_proc;
     }
   }
 
-  Trace("nl-ext") << "...set incomplete" << std::endl;
-  d_containing.getOutputChannel().setIncomplete();
+  return 0;
 }
 
 void NonlinearExtension::check(Theory::Effort e) {
@@ -1377,43 +1376,96 @@ void NonlinearExtension::check(Theory::Effort e) {
     Assert(e == Theory::EFFORT_LAST_CALL);
     Trace("nl-ext-mv") << "Getting model values... check for [model-false]"
                        << std::endl;
+    // reset cached information
     d_mv[0].clear();
     d_mv[1].clear();
+    
+    // get the assertions
     std::vector<Node> assertions;
     for (Theory::assertions_iterator it = d_containing.facts_begin();
          it != d_containing.facts_end(); ++it) {
       const Assertion& assertion = *it;
       assertions.push_back(assertion.assertion);
     }
+    // get the assertions that are false in the model
     const std::set<Node> false_asserts = getFalseInModel(assertions);
     
+    // get the extended terms belonging to this theory
     std::vector<Node> xts;
     d_containing.getExtTheory()->getTerms(xts);
     
-    if (!false_asserts.empty()) {
-      checkLastCall(assertions, false_asserts, xts);
-    }else{
-      //must ensure that shared terms are equal to their concrete value
-      std::vector< Node > lemmas;
-      for (context::CDList<TNode>::const_iterator its = d_containing.shared_terms_begin();
-           its != d_containing.shared_terms_end(); ++its) {
-        TNode shared_term = *its;
-        Node stv0 = computeModelValue( shared_term, 0 );
-        Node stv1 = computeModelValue( shared_term, 1 );
-        
-        if( stv0!=stv1 ){
-          Trace("nl-ext-mv") << "Bad shared term value : " << shared_term << " : " << stv1 << ", actual is " << stv0 << std::endl;
-          //split on the value, FIXME : this is non-terminating in general, improve this
+    if( Trace.isOn("nl-ext-debug") ){
+      Trace("nl-ext-debug") << "  processing NonlinearExtension::check : " << std::endl;
+      Trace("nl-ext-debug") << "     " << false_asserts.size() << " false assertions" << std::endl;
+      Trace("nl-ext-debug") << "     " << xts.size() << " extended terms: " << std::endl;
+      Trace("nl-ext-debug") << "       ";
+      for( unsigned j=0; j<xts.size(); j++ ){
+        Trace("nl-ext-debug") << xts[j] << " ";
+      }
+      Trace("nl-ext-debug") << std::endl;
+    }  
+   
+    // compute whether shared terms have correct values
+    unsigned num_shared_wrong_value = 0;
+    std::vector< Node > shared_term_value_splits;
+    //must ensure that shared terms are equal to their concrete value
+    for (context::CDList<TNode>::const_iterator its = d_containing.shared_terms_begin();
+         its != d_containing.shared_terms_end(); ++its) {
+      TNode shared_term = *its;
+      // compute its value in the model, and its evaluation in the model
+      Node stv0 = computeModelValue( shared_term, 0 );
+      Node stv1 = computeModelValue( shared_term, 1 );
+      if( stv0!=stv1 ){
+        num_shared_wrong_value++;
+        Trace("nl-ext-mv") << "Bad shared term value : " << shared_term << " : " << stv1 << ", actual is " << stv0 << std::endl;
+        if( shared_term!=stv0 ){
+          //split on the value, this is non-terminating in general, TODO : improve this
           Node eq = shared_term.eqNode(stv0);
-          Node literal = d_containing.getValuation().ensureLiteral(eq);
-          d_containing.getOutputChannel().requirePhase(literal, true);
-          lemmas.push_back(literal.orNode(literal.negate()));
+          shared_term_value_splits.push_back( eq );
+        }else{
+          // this can happen for transcendental functions
+          // the problem is that we cannot evaluate transcendental functions (they don't have a rewriter that returns constants)
+          // thus, the actual value in their model can be themselves, hence we have no reference
+          //   point to rule out the current model.  In this case, we may set incomplete below.
         }
       }
-      if( !lemmas.empty() ){
-        int lemmas_proc = flushLemmas(lemmas);
-        Trace("nl-ext-mv") << "...added " << lemmas_proc << " shared term split lemmas." << std::endl;
-        Assert( lemmas_proc>0 );
+    }
+    Trace("nl-ext-debug") << "     " << num_shared_wrong_value << " shared terms with wrong model value." << std::endl;
+    
+    // we require a check either if an assertion is false or a shared term has a wrong value
+    bool isIncomplete = false;
+    int num_added_lemmas = 0;
+    if(!false_asserts.empty() || num_shared_wrong_value>0 ){
+      isIncomplete = true;
+      num_added_lemmas = checkLastCall(assertions, false_asserts, xts);
+    }
+    
+    //if we did not add a lemma during check
+    if(num_added_lemmas==0) {
+      if(num_shared_wrong_value>0) {
+        // resort to splitting on shared terms with their model value
+        isIncomplete = true;
+        if( !shared_term_value_splits.empty() ){
+          std::vector< Node > shared_term_value_lemmas;
+          for( unsigned i=0; i<shared_term_value_splits.size(); i++ ){
+            Node eq = shared_term_value_splits[i];
+            Node literal = d_containing.getValuation().ensureLiteral(eq);
+            d_containing.getOutputChannel().requirePhase(literal, true);
+            shared_term_value_lemmas.push_back(literal.orNode(literal.negate()));
+          }
+          num_added_lemmas = flushLemmas(shared_term_value_lemmas);
+          Trace("nl-ext") << "...added " << num_added_lemmas << " shared term value split lemmas." << std::endl;
+        }else{
+          // this can happen if we are trying to do theory combination with trancendental functions
+          // since their model value cannot even be computed exactly
+        }
+      }
+      
+      if(num_added_lemmas==0) {
+        if(isIncomplete) {
+          Trace("nl-ext") << "...failed to send lemma in NonLinearExtension, set incomplete" << std::endl;
+          d_containing.getOutputChannel().setIncomplete();
+        }
       }
     }
   }

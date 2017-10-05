@@ -48,16 +48,20 @@ public:
 };
 
 namespace quantifiers {
+  //TODO: organize this more/review this, github issue #1163
+  //utilities
   class TermDb;
   class TermDbSygus;
   class FirstOrderModel;
-  //modules
+  class RelevantDomain;
+  class BvInverter;
+  class InstPropagator;
+  //modules, these are "subsolvers" of the quantifiers theory.
   class InstantiationEngine;
   class ModelEngine;
   class BoundedIntegers;
   class QuantConflictFind;
   class RewriteEngine;
-  class RelevantDomain;
   class QModelBuilder;
   class ConjectureGenerator;
   class CegInstantiation;
@@ -71,7 +75,6 @@ namespace quantifiers {
   class QuantDSplit;
   class QuantAntiSkolem;
   class EqualityInference;
-  class InstPropagator;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -108,6 +111,8 @@ private:
   QuantRelevance * d_quant_rel;
   /** relevant domain */
   quantifiers::RelevantDomain* d_rel_dom;
+  /** inversion utility for BV instantiation */
+  quantifiers::BvInverter * d_bv_invert;
   /** alpha equivalence */
   quantifiers::AlphaEquivalence * d_alpha_equiv;
   /** model builder */
@@ -225,6 +230,8 @@ public:
   Valuation& getValuation();
   /** get relevant domain */
   quantifiers::RelevantDomain* getRelevantDomain() { return d_rel_dom; }
+  /** get the BV inverter utility */
+  quantifiers::BvInverter * getBvInverter() { return d_bv_invert; }
   /** get quantifier relevance */
   QuantRelevance* getQuantifierRelevance() { return d_quant_rel; }
   /** get the model builder */
