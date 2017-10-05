@@ -13,6 +13,7 @@
  **/
 
 #include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ho_trigger.h"
 #include "theory/quantifiers/candidate_generator.h"
 #include "theory/quantifiers/inst_match_generator.h"
 #include "theory/quantifiers/term_database.h"
@@ -54,14 +55,14 @@ Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes )
     if( isSimpleTrigger( d_nodes[0] ) ){
       d_mg = new InstMatchGeneratorSimple( f, d_nodes[0], qe );
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGenerator( f, d_nodes[0], qe );
+      d_mg = InstMatchGenerator::mkInstMatchGenerator( f, d_nodes[0], qe, this );
       d_mg->setActiveAdd(true);
     }
   }else{
     if( options::multiTriggerCache() ){
-      d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe );
+      d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe, this );
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti( f, d_nodes, qe );
+      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti( f, d_nodes, qe, this );
       d_mg->setActiveAdd(true);
     }
     //d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes, qe );
@@ -80,6 +81,7 @@ Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes )
     }
     ++(qe->d_statistics.d_multi_triggers);
   }
+
   //Notice() << "Trigger : " << (*this) << "  for " << f << std::endl;
   Trace("trigger-debug") << "Finished making trigger." << std::endl;
 }
@@ -97,7 +99,7 @@ void Trigger::reset( Node eqc ){
 }
 
 bool Trigger::getNextMatch( Node f, InstMatch& m ){
-  int retVal = d_mg->getNextMatch( f, m, d_quantEngine );
+  int retVal = d_mg->getNextMatch( f, m, d_quantEngine, this );
   return retVal>0;
 }
 
@@ -105,16 +107,24 @@ Node Trigger::getInstPattern(){
   return NodeManager::currentNM()->mkNode( INST_PATTERN, d_nodes );
 }
 
-int Trigger::addInstantiations( InstMatch& baseMatch ){
-  int addedLemmas = d_mg->addInstantiations( d_f, baseMatch, d_quantEngine );
+int Trigger::addBasicInstantiations( InstMatch& baseMatch ){
+  int addedLemmas = d_mg->addInstantiations( d_f, baseMatch, d_quantEngine, this );
   if( addedLemmas>0 ){
     Debug("inst-trigger") << "Added " << addedLemmas << " lemmas, trigger was ";
-    for( int i=0; i<(int)d_nodes.size(); i++ ){
+    for( unsigned i=0; i<d_nodes.size(); i++ ){
       Debug("inst-trigger") << d_nodes[i] << " ";
     }
     Debug("inst-trigger") << std::endl;
   }
   return addedLemmas;
+}
+
+int Trigger::addInstantiations( InstMatch& baseMatch ) {
+  return addBasicInstantiations( baseMatch );
+}
+
+bool Trigger::sendInstantiation( InstMatch& m ) {
+  return d_quantEngine->addInstantiation( d_f, m );  
 }
 
 bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_vars, std::vector< Node >& trNodes ) {
@@ -212,7 +222,21 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
       }
     }
   }
-  Trigger* t = new Trigger( qe, f, trNodes );
+
+  // check if higher-order
+  Trace("trigger") << "Collect higher-order variable triggers..." << std::endl;
+  std::map< TNode, bool > visited;
+  std::map< Node, std::vector< Node > > ho_apps;
+  for( unsigned i=0; i<trNodes.size(); i++ ){
+    HigherOrderTrigger::collectHoVarApplyTerms( f, trNodes[i], ho_apps, visited );
+  }
+  Trigger* t;
+  if( !ho_apps.empty() ){
+    t = new HigherOrderTrigger( qe, f, trNodes, ho_apps );  
+  }else{
+    t = new Trigger( qe, f, trNodes );
+  }
+  
   qe->getTriggerDatabase()->addTrigger( trNodes, t );
   return t;
 }
@@ -354,7 +378,7 @@ bool Trigger::isAtomicTriggerKind( Kind k ) {
   return k==APPLY_UF || k==SELECT || k==STORE ||
          k==APPLY_CONSTRUCTOR || k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER ||
          k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON || 
-         k==SEP_PTO || k==BITVECTOR_TO_NAT || k==INT_TO_BITVECTOR;
+         k==SEP_PTO || k==BITVECTOR_TO_NAT || k==INT_TO_BITVECTOR || k==HO_APPLY;
 }
 
 bool Trigger::isRelationalTrigger( Node n ) {
@@ -390,6 +414,9 @@ bool Trigger::isSimpleTrigger( Node n ){
     }
     if( options::purifyDtTriggers() && t.getKind()==APPLY_SELECTOR_TOTAL ){
       return false;
+    }
+    if( t.getKind()==HO_APPLY && t[0].getKind()==INST_CONSTANT ){
+      return false;    
     }
     return true;
   }else{
