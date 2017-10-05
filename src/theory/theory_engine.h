@@ -44,6 +44,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
+#include "util/hash.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
@@ -74,7 +75,8 @@ struct NodeTheoryPairHashFunction {
   NodeHashFunction hashFunction;
   // Hash doesn't take into account the timestamp
   size_t operator()(const NodeTheoryPair& pair) const {
-    return hashFunction(pair.node)*0x9e3779b9 + pair.theory;
+    uint64_t hash = fnv1a::fnv1a_64(NodeHashFunction()(pair.node));
+    return static_cast<size_t>(fnv1a::fnv1a_64(pair.theory, hash));
   }
 };/* struct NodeTheoryPairHashFunction */
 

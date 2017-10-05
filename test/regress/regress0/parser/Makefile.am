@@ -22,7 +22,8 @@ TESTS =	\
 	declarefun-emptyset-uf.smt2 \
 	constraint.smt2 \
 	strings20.smt2 \
-	strings25.smt2
+	strings25.smt2 \
+	as.smt2
 
 EXTRA_DIST = $(TESTS)
 
