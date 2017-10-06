@@ -293,13 +293,9 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
       /* x udiv s = t */
       if (index == 0) {
         /* with side conditions:
-         * !umulo(s * t) <-> (zext(s, w) * zext(t, w))[2*w-1:w] = 0
+         * !umulo(s * t)
          */
-        Node zext_s = nm->mkNode(BITVECTOR_CONCAT, zero, s);
-        Node zext_t = nm->mkNode(BITVECTOR_CONCAT, zero, t);
-        Node s_mul_t = nm->mkNode(BITVECTOR_MULT, zext_s, zext_t);
-        Node extr_s_mul_t = bv::utils::mkExtract(s_mul_t, 2 * w - 1, w);
-        scl = nm->mkNode(EQUAL, extr_s_mul_t, zero);
+        scl = nm->mkNode(NOT, bv::utils::mkUmulo(s, t));
         scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UDIV_TOTAL, x, s), t);
       /* s udiv x = t */
       } else {
