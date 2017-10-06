@@ -39,7 +39,7 @@ bool IMGenerator::sendInstantiation( Trigger * tparent, InstMatch& m ) {
 InstMatchGenerator::InstMatchGenerator( Node pat ){
   d_cg = NULL;
   d_needsReset = true;
-  d_active_add = false;
+  d_active_add = true;
   Assert( quantifiers::TermDb::hasInstConstAttr(pat) );
   d_pattern = pat;
   d_match_pattern = pat;
@@ -52,7 +52,7 @@ InstMatchGenerator::InstMatchGenerator( Node pat ){
 InstMatchGenerator::InstMatchGenerator() {
   d_cg = NULL;
   d_needsReset = true;
-  d_active_add = false;
+  d_active_add = true;
   d_next = NULL;
   d_matchPolicy = MATCH_GEN_DEFAULT;
   d_independent_gen = false;
@@ -92,7 +92,7 @@ int InstMatchGenerator::getActiveScore( QuantifiersEngine * qe ) {
   }
 }
 
-void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector< InstMatchGenerator * > & gens, Trigger * tparent ){
+void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector< InstMatchGenerator * > & gens ){
   if( !d_pattern.isNull() ){
     Trace("inst-match-gen") << "Initialize, pattern term is " << d_pattern << std::endl;
     if( d_match_pattern.getKind()==NOT ){
@@ -136,7 +136,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       for( unsigned i=0; i<d_match_pattern.getNumChildren(); i++ ){
         Node qa = quantifiers::TermDb::getInstConstAttr(d_match_pattern[i]);
         if( !qa.isNull() ){
-          InstMatchGenerator * cimg = Trigger::getInstMatchGenerator( q, d_match_pattern[i] );
+          InstMatchGenerator * cimg = getInstMatchGenerator( q, d_match_pattern[i] );
           if( cimg ){
             d_children.push_back( cimg );
             d_children_index.push_back( i );
@@ -436,20 +436,18 @@ int InstMatchGenerator::addInstantiations( Node f, InstMatch& baseMatch, Quantif
 }
 
 
-InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator( Node q, Node pat, QuantifiersEngine* qe, 
-                                                              Trigger * tparent ) {
+InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator( Node q, Node pat, QuantifiersEngine* qe ) {
   std::vector< Node > pats;
   pats.push_back( pat );
   std::map< Node, InstMatchGenerator * > pat_map_init;
-  return mkInstMatchGenerator( q, pats, qe, pat_map_init, tparent );
+  return mkInstMatchGenerator( q, pats, qe, pat_map_init );
 }
 
-InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti( Node q, std::vector< Node >& pats, QuantifiersEngine* qe, 
-                                                                   Trigger * tparent ) {
+InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti( Node q, std::vector< Node >& pats, QuantifiersEngine* qe ) {
   Assert( pats.size()>1 );
   InstMatchGeneratorMultiLinear * imgm = new InstMatchGeneratorMultiLinear( q, pats, qe );
   std::vector< InstMatchGenerator* > gens;
-  imgm->initialize(q, qe, gens, tparent);
+  imgm->initialize(q, qe, gens);
   Assert( gens.size()==pats.size() );
   std::vector< Node > patsn;
   std::map< Node, InstMatchGenerator * > pat_map_init;
@@ -459,13 +457,12 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti( Node q, std::
     pat_map_init[pn] = gens[i];
   }
   //return mkInstMatchGenerator( q, patsn, qe, pat_map_init );
-  imgm->d_next = mkInstMatchGenerator( q, patsn, qe, pat_map_init, tparent );
+  imgm->d_next = mkInstMatchGenerator( q, patsn, qe, pat_map_init );
   return imgm;
 }
 
 InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator( Node q, std::vector< Node >& pats, QuantifiersEngine* qe, 
-                                                              std::map< Node, InstMatchGenerator * >& pat_map_init, 
-                                                              Trigger * tparent ) {
+                                                              std::map< Node, InstMatchGenerator * >& pat_map_init ) {
   size_t pCounter = 0;
   InstMatchGenerator* prev = NULL;
   InstMatchGenerator* oinit = NULL;
@@ -489,13 +486,39 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator( Node q, std::vecto
       if( prev ){
         prev->d_next = curr;
       }
-      curr->initialize(q, qe, gens, tparent);
+      curr->initialize(q, qe, gens);
       prev = curr;
       counter++;
     }
     pCounter++;
   }
   return oinit;
+}
+
+InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator( Node q, Node n ) {
+  if( n.getKind()==INST_CONSTANT ){
+    return NULL;
+  }else{
+    Trace("var-trigger-debug") << "Is " << n << " a variable trigger?" << std::endl;
+    if( Trigger::isBooleanTermTrigger( n ) ){
+      VarMatchGeneratorBooleanTerm* vmg = new VarMatchGeneratorBooleanTerm( n[0], n[1] );
+      Trace("var-trigger") << "Boolean term trigger : " << n << ", var = " << n[0] << std::endl;
+      return vmg;
+    }else{
+      Node x;
+      if( options::purifyTriggers() ){
+        x = Trigger::getInversionVariable( n );
+      }
+      if( !x.isNull() ){
+        Node s = Trigger::getInversion( n, x );
+        VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs( x, s );
+        Trace("var-trigger") << "Term substitution trigger : " << n << ", var = " << x << ", subs = " << s << std::endl;
+        return vmg;
+      }else{
+        return new InstMatchGenerator( n );
+      }
+    }
+  }
 }
 
 VarMatchGeneratorBooleanTerm::VarMatchGeneratorBooleanTerm( Node var, Node comp ) :
@@ -607,7 +630,7 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vecto
   Trace("multi-trigger-linear") << "Make children for linear multi trigger." << std::endl;
   for( unsigned i=0; i<pats_ordered.size(); i++ ){
     Trace("multi-trigger-linear") << "...make for " << pats_ordered[i] << std::endl;
-    InstMatchGenerator * cimg = Trigger::getInstMatchGenerator( q, pats_ordered[i] );
+    InstMatchGenerator * cimg = getInstMatchGenerator( q, pats_ordered[i] );
     Assert( cimg!=NULL );
     d_children.push_back( cimg );
     if( i==0 ){  //TODO : improve
@@ -666,7 +689,7 @@ int InstMatchGeneratorMultiLinear::getNextMatch( Node q, InstMatch& m, Quantifie
 
 
 /** constructors */
-InstMatchGeneratorMulti::InstMatchGeneratorMulti( Node q, std::vector< Node >& pats, QuantifiersEngine* qe, Trigger * tparent ) :
+InstMatchGeneratorMulti::InstMatchGeneratorMulti( Node q, std::vector< Node >& pats, QuantifiersEngine* qe ) :
 d_f( q ){
   Trace("multi-trigger-cache") << "Making smart multi-trigger for " << q << std::endl;
   std::map< Node, std::vector< Node > > var_contains;
@@ -685,7 +708,9 @@ d_f( q ){
   for( unsigned i=0; i<pats.size(); i++ ){
     Node n = pats[i];
     //make the match generator
-    d_children.push_back( InstMatchGenerator::mkInstMatchGenerator(q, n, qe, tparent ) );
+    InstMatchGenerator * img = InstMatchGenerator::mkInstMatchGenerator(q, n, qe);
+    img->setActiveAdd( false ); 
+    d_children.push_back( img );
     //compute unique/shared variables
     std::vector< int > unique_vars;
     std::map< int, bool > shared_vars;

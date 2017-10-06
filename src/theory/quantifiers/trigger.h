@@ -73,9 +73,8 @@ class HigherOrderTrigger;
 * the instantiation lemma :
 * forall x. P( x ) => P( a )
 *
-* This algorithm is implemented by this class in the following way.
-* To use a Trigger* t in a full effort check, we do the following.
-* Assume that t is associated with quantified formula q (see field d_f).
+* We use a Trigger* t in a full effort check, where assume that t is associated with quantified formula q (see field d_f),
+* in the following way:
 *
 * t->resetInstantiationRound();      // setup initial information
 * t->reset( Node::null() );          // will produce instantiations based on matching with all terms
@@ -199,8 +198,6 @@ public:
   static int getTriggerWeight( Node n );
   static bool isLocalTheoryExt( Node n, std::vector< Node >& vars,
                                 std::vector< Node >& patTerms );
-  /** return data structure for producing matches for this trigger. */
-  static InstMatchGenerator* getInstMatchGenerator( Node q, Node n );
   /** get the variable associated with an inversion for n, e.g. getInversionVariable( x+1 ) returns x */
   static Node getInversionVariable( Node n );
   /** get the inversion for n, e.g. getInversion( x+1, y ) returns y-1 */

@@ -55,18 +55,14 @@ Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes )
     if( isSimpleTrigger( d_nodes[0] ) ){
       d_mg = new InstMatchGeneratorSimple( f, d_nodes[0], qe );
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGenerator( f, d_nodes[0], qe, this );
-      d_mg->setActiveAdd(true);
+      d_mg = InstMatchGenerator::mkInstMatchGenerator( f, d_nodes[0], qe );
     }
   }else{
     if( options::multiTriggerCache() ){
-      d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe, this );
+      d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe );
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti( f, d_nodes, qe, this );
-      d_mg->setActiveAdd(true);
+      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti( f, d_nodes, qe );
     }
-    //d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes, qe );
-    //d_mg->setActiveAdd();
   }
   if( d_nodes.size()==1 ){
     if( isSimpleTrigger( d_nodes[0] ) ){
@@ -723,32 +719,6 @@ void Trigger::getTriggerVariables( Node icn, Node q, std::vector< Node >& t_vars
   //collect all variables from all patterns in patTerms, add to t_vars
   for( unsigned i=0; i<patTerms.size(); i++ ){
     quantifiers::TermDb::getVarContainsNode( q, patTerms[i], t_vars );
-  }
-}
-
-InstMatchGenerator* Trigger::getInstMatchGenerator( Node q, Node n ) {
-  if( n.getKind()==INST_CONSTANT ){
-    return NULL;
-  }else{
-    Trace("var-trigger-debug") << "Is " << n << " a variable trigger?" << std::endl;
-    if( isBooleanTermTrigger( n ) ){
-      VarMatchGeneratorBooleanTerm* vmg = new VarMatchGeneratorBooleanTerm( n[0], n[1] );
-      Trace("var-trigger") << "Boolean term trigger : " << n << ", var = " << n[0] << std::endl;
-      return vmg;
-    }else{
-      Node x;
-      if( options::purifyTriggers() ){
-        x = getInversionVariable( n );
-      }
-      if( !x.isNull() ){
-        Node s = getInversion( n, x );
-        VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs( x, s );
-        Trace("var-trigger") << "Term substitution trigger : " << n << ", var = " << x << ", subs = " << s << std::endl;
-        return vmg;
-      }else{
-        return new InstMatchGenerator( n );
-      }
-    }
   }
 }
 
