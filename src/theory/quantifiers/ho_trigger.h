@@ -35,6 +35,17 @@ class Trigger;
 
 class HigherOrderTrigger : public Trigger {
   friend class Trigger;
+private:
+  HigherOrderTrigger( QuantifiersEngine* qe, Node q, std::vector< Node >& nodes, 
+                      std::map< Node, std::vector< Node > >& ho_apps );
+  virtual ~HigherOrderTrigger();
+public:
+  /** collect all top-level HO_APPLY terms whose head is a variable */
+  static void collectHoVarApplyTerms( Node q, TNode n, std::map< Node, std::vector< Node > >& apps );
+  /** collect all top-level HO_APPLY terms whose head is a variable */
+  static void collectHoVarApplyTerms( Node q, std::vector< Node >& ns, std::map< Node, std::vector< Node > >& apps );  
+  /** add all available instantiations exhaustively */
+  virtual int addInstantiations( InstMatch& baseMatch );
 protected: 
   /** the applications */
   std::map< Node, std::vector< Node > > d_ho_var_apps;
@@ -47,30 +58,22 @@ protected:
   std::vector< TypeNode > d_ho_var_types;
   /** add higher-order type predicate lemmas */
   int addHoTypeMatchPredicateLemmas();
-  /** add an instantiation */
+  /** add an instantiation 
+  *
+  *
+  * 
+  */
   virtual bool sendInstantiation( InstMatch& m );
 private:
   /** current information about match */
   std::map< unsigned, std::vector< Node > > d_lchildren;
   std::map< unsigned, std::map< unsigned, unsigned > > d_arg_to_arg_rep;
   std::map< unsigned, std::map< unsigned, std::vector< Node > > > d_arg_vector;
-private:
   /** higher-order pattern unification algorithm */
   bool sendInstantiation( InstMatch& m, unsigned var_index );
+  /** */
   bool sendInstantiationArg( InstMatch& m, unsigned var_index, unsigned vnum, unsigned arg_index,
                              Node lbvl, bool arg_changed );
-private:
-  HigherOrderTrigger( QuantifiersEngine* qe, Node q, std::vector< Node >& nodes, 
-                      std::map< Node, std::vector< Node > >& ho_apps );
-  virtual ~HigherOrderTrigger();
-public:
-  /** collect all top-level HO_APPLY terms whose head is a variable */
-  static void collectHoVarApplyTerms( Node q, TNode n, std::map< Node, std::vector< Node > >& apps, 
-                                      std::map< TNode, bool >& visited, bool withinApply = false );
-  /** collect all top-level HO_APPLY terms whose head is a variable */
-  static void collectHoVarApplyTerms( Node q, TNode n, std::map< Node, std::vector< Node > >& apps );
-  /** add all available instantiations exhaustively */
-  virtual int addInstantiations( InstMatch& baseMatch );
 };
 
 }/* CVC4::theory::inst namespace */

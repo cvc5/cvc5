@@ -11,7 +11,8 @@
  **
  ** \brief Implementation of higher-order trigger class
  ** 
- ** This class implements higher-order matching, examples (f, x, y are universal variables):
+ ** This class implements higher-order matching via Huet's algorithm.
+ ** Examples below (f, x, y are universal variables):
  ** 
  ** (f x y) matches (k 0 1) with possible solutions:
  ** 
@@ -41,6 +42,8 @@
  ** handle a corner case where matching is stuck (addHoTypeMatchPredicateLemmas).
  ** 
  **/
+
+#include <stack>
 
 #include "theory/quantifiers/ho_trigger.h"
 #include "theory/quantifiers/term_database.h"
@@ -91,33 +94,55 @@ HigherOrderTrigger::~HigherOrderTrigger() {
 
 }
 
-void HigherOrderTrigger::collectHoVarApplyTerms( Node q, TNode n, std::map< Node, std::vector< Node > >& apps, 
-                                                 std::map< TNode, bool >& visited, bool withinApply ) {
-  std::map< TNode, bool >::iterator itv = visited.find( n );
-  if( itv==visited.end() ){
-    visited[n] = true;
-    if( !withinApply && n.getKind()==HO_APPLY ){
-      TNode curr = n;
-      while( curr.getKind() == kind::HO_APPLY ){
-        curr = curr[0];        
-      }
-      if( curr.getKind()==INST_CONSTANT ){
-        Assert( quantifiers::TermDb::getInstConstAttr(n)==q );
-        Trace("ho-quant-trigger-debug") << "Ho variable apply term : " << n << " with head " << curr << std::endl;
-        apps[curr].push_back( n );
-      }
-      withinApply = true;
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      bool newWithinApply = withinApply && i==0;
-      collectHoVarApplyTerms( q, n[i], apps, visited, newWithinApply );
-    }
-  }
+void HigherOrderTrigger::collectHoVarApplyTerms( Node q, TNode n, std::map< Node, std::vector< Node > >& apps ) {
+  std::vector< Node > ns;
+  ns.push_back(n);
+  collectHoVarApplyTerms( q, ns, apps );
 }
 
-void HigherOrderTrigger::collectHoVarApplyTerms( Node q, TNode n, std::map< Node, std::vector< Node > >& apps ) {
-  std::map< TNode, bool > visited;
-  collectHoVarApplyTerms( q, n, apps, visited, false );
+void HigherOrderTrigger::collectHoVarApplyTerms( Node q, std::vector< Node >& ns, std::map< Node, std::vector< Node > >& apps ) {
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  // whether the visited node is a child of a HO_APPLY chain
+  std::unordered_map<TNode, bool, TNodeHashFunction> withinApply;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::stack<TNode> visit;
+  TNode cur;
+  for( unsigned i=0; i<ns.size(); i++ ){
+    visit.push(ns[i]);
+    withinApply[ns[i]] = false;
+    do {
+      cur = visit.top();
+      visit.pop();
+      it = visited.find(cur);
+
+      if (it == visited.end()) {
+        visited.insert(cur);
+        bool curWithinApply = withinApply[cur];
+        if( !curWithinApply ){
+          if( cur.getKind()==HO_APPLY ){
+            TNode tmp = cur;
+            while( tmp.getKind() == kind::HO_APPLY ){
+              tmp = tmp[0];        
+            }
+            if( tmp.getKind()==INST_CONSTANT ){
+              Assert( quantifiers::TermDb::getInstConstAttr(cur)==q );
+              Trace("ho-quant-trigger-debug") << "Ho variable apply term : " << cur << " with head " << tmp << std::endl;
+              apps[tmp].push_back( cur );
+            }
+            curWithinApply = true;
+          }
+        }else{
+          if( cur.getKind()!=HO_APPLY ){
+            curWithinApply = false;
+          }
+        }
+        for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+          withinApply[cur[i]] = curWithinApply && i==0;
+          visit.push(cur[i]);
+        }
+      }
+    } while (!visit.empty());
+  }
 }
 
 int HigherOrderTrigger::addInstantiations( InstMatch& baseMatch ){
