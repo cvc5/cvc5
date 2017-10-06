@@ -1371,8 +1371,9 @@ void OptionsHandler::notifySetPrintExprTypes(std::string option) {
 
 // main/options_handlers.h
 
-#define PRINT_CONFIG(str,cond) \
-  (printf("%s: %s\n", (str), (cond) ? "yes" : "no"))
+static void print_config (const char * str, bool cond) {
+  printf("%s: %s\n", str, cond ? "yes" : "no");
+}
 
 void OptionsHandler::copyright(std::string option) {
   printf("%s\n", Configuration::copyright().c_str());
@@ -1398,7 +1399,7 @@ void OptionsHandler::showConfiguration(std::string option) {
            Configuration::hasSubversionModifications() ? " (with modifications)"
                                                        : "");
   } else {
-    PRINT_CONFIG("scm        ", false);
+    print_config("scm        ", false);
   }
   
   printf("\n");
@@ -1408,27 +1409,27 @@ void OptionsHandler::showConfiguration(std::string option) {
          Configuration::getVersionRelease());
   
   printf("\n");
-  PRINT_CONFIG("debug code ", Configuration::isDebugBuild());
-  PRINT_CONFIG("statistics ", Configuration::isStatisticsBuild());
-  PRINT_CONFIG("replay     ", Configuration::isReplayBuild());
-  PRINT_CONFIG("tracing    ", Configuration::isTracingBuild());
-  PRINT_CONFIG("dumping    ", Configuration::isDumpingBuild());
-  PRINT_CONFIG("muzzled    ", Configuration::isMuzzledBuild());
-  PRINT_CONFIG("assertions ", Configuration::isAssertionBuild());
-  PRINT_CONFIG("proof      ", Configuration::isProofBuild());
-  PRINT_CONFIG("coverage   ", Configuration::isCoverageBuild());
-  PRINT_CONFIG("profiling  ", Configuration::isProfilingBuild());
-  PRINT_CONFIG("competition", Configuration::isCompetitionBuild());
+  print_config("debug code ", Configuration::isDebugBuild());
+  print_config("statistics ", Configuration::isStatisticsBuild());
+  print_config("replay     ", Configuration::isReplayBuild());
+  print_config("tracing    ", Configuration::isTracingBuild());
+  print_config("dumping    ", Configuration::isDumpingBuild());
+  print_config("muzzled    ", Configuration::isMuzzledBuild());
+  print_config("assertions ", Configuration::isAssertionBuild());
+  print_config("proof      ", Configuration::isProofBuild());
+  print_config("coverage   ", Configuration::isCoverageBuild());
+  print_config("profiling  ", Configuration::isProfilingBuild());
+  print_config("competition", Configuration::isCompetitionBuild());
   printf("\n");
   
-  PRINT_CONFIG("abc          ", Configuration::isBuiltWithAbc());
-  PRINT_CONFIG("cln          ", Configuration::isBuiltWithCln());
-  PRINT_CONFIG("glpk         ", Configuration::isBuiltWithGlpk());
-  PRINT_CONFIG("cryptominisat", Configuration::isBuiltWithCryptominisat());
-  PRINT_CONFIG("gmp          ", Configuration::isBuiltWithGmp());
-  PRINT_CONFIG("lfsc         ", Configuration::isBuiltWithLfsc());
-  PRINT_CONFIG("readline     ", Configuration::isBuiltWithReadline());
-  PRINT_CONFIG("tls          ", Configuration::isBuiltWithTlsSupport());
+  print_config("abc          ", Configuration::isBuiltWithAbc());
+  print_config("cln          ", Configuration::isBuiltWithCln());
+  print_config("glpk         ", Configuration::isBuiltWithGlpk());
+  print_config("cryptominisat", Configuration::isBuiltWithCryptominisat());
+  print_config("gmp          ", Configuration::isBuiltWithGmp());
+  print_config("lfsc         ", Configuration::isBuiltWithLfsc());
+  print_config("readline     ", Configuration::isBuiltWithReadline());
+  print_config("tls          ", Configuration::isBuiltWithTlsSupport());
   
   exit(0);
 }
