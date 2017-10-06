@@ -1824,11 +1824,15 @@ bool TheoryStringsRewriter::stripConstantEndpoints( std::vector< Node >& n1, std
               removeComponent = true;
             }else{
               //check how much overlap there is
+              // This is used to partially strip off the endpoint
+              // e.g. str.contains( str.++( "abc", x ), str.++( "cd", y ) ) --> str.contains( str.++( "c", x ), str.++( "cd", y ) )
               overlap = r==0 ? s.overlap(t) : t.overlap(s);
             }
           }else{
-            // should catch case of this containment in componentContain
-            Assert( n2.size()>1 );
+            Assert( ret<s.size() );
+            // can strip off up to the find position
+            // e.g. str.contains( str.++( "abc", x ), str.++( "b", y ) ) --> str.contains( str.++( "bc", x ), str.++( "b", y ) )
+            overlap = s.size()-ret;
           }
         }else if( n2[index1].getKind()==kind::STRING_ITOS ){
           const std::vector<unsigned>& svec = s.getVec();
