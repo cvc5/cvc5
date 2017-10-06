@@ -17,6 +17,7 @@
  **/
 #include "base/configuration.h"
 
+#include <gmp.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -26,6 +27,14 @@
 #include "cvc4autoconfig.h"
 #include "base/configuration_private.h"
 
+#if IS_GLPK_BUILD
+#include <glpk.h>
+#endif
+
+#if IS_CLN_BUILD
+#include <cln/version.h>
+#endif
+
 #if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
 #  include "base/Debug_tags.h"
 #endif /* CVC4_DEBUG && CVC4_TRACING */
@@ -33,6 +42,7 @@
 #ifdef CVC4_TRACING
 #  include "base/Trace_tags.h"
 #endif /* CVC4_TRACING */
+
 
 using namespace std;
 
@@ -110,8 +120,96 @@ std::string Configuration::getVersionExtra() {
   return CVC4_EXTRAVERSION;
 }
 
+std::string Configuration::copyright() {
+  std::stringstream ss;
+  ss << "Copyright (c) 2009-2017 by the authors and their institutional\n"
+     << "affiliations listed at http://cvc4.cs.stanford.edu/authors\n\n";
+
+  if (Configuration::licenseIsGpl())
+    ss << "This build of CVC4 uses GPLed libraries, and is thus covered by\n"
+       << "the GNU General Public License (GPL) version 3.  Versions of CVC4\n"
+       << "are available that are covered by the (modified) BSD license. If\n"
+       << "you want to license CVC4 under this license, please configure CVC4\n"
+       << "with the \"--bsd\" option before building from sources.\n\n";
+  else
+    ss << "CVC4 is open-source and is covered by the BSD license (modified)."
+       << "\n\n";
+
+  ss << "THIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\n"
+     << "USE AT YOUR OWN RISK.\n\n";
+ 
+  ss << "This version of CVC4 is linked against the following third party "
+     << "libraries:\n\n";
+
+  ss << "  ANTLR - Another Tool for Language Recognition\n"
+     << "  http://www.antlr.org\n"
+     << "  Copyright (c) 2012-2017 The ANTLR Project."
+     << "\n\n";
+
+  if (Configuration::isBuiltWithGmp())
+    ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
+       << "  http://gmplib.org\n"
+       << "  Copyright (c) 1991, 1993-2016 Free Software Foundation, Inc."
+       << "\n\n";
+
+  if (Configuration::isBuiltWithCln())
+    ss << "  CLN - Class Library for Numbers\n"
+       << "  http://www.ginac.de/CLN\n"
+       << "  Copyright (c) Bruno Haible 1995-2008.\n"
+       << "  Copyright (c) Richard B. Kreckel 2000-2014.\n"
+       << "  Copyright (c) Alexei Sheplyakov 2008, 2010."
+       << "\n\n";
+
+  if (Configuration::isBuiltWithGlpk())
+    ss << "  glpk-cut-log -  a modified version of GPLK, "
+       << "the GNU Linear Programming Kit\n"
+       << "  http://github.com/timothy-king/glpk-cut-log\n"
+       << "  Copyright (c) 2000-2012 Andrew Makhorin, Department for Applied "
+       << "Informatics,\n"
+       << "  Moscow Aviation Institute, Moscow, Russia.\n"
+       << "  Copyright (c) 2013-2014 Tim King, New York University."
+       << "\n\n";
+
+  if (Configuration::isBuiltWithAbc())
+    ss << "  ABC - A System for Sequentiyl Synthesis and Verification\n"
+       << "  https//bitbucket.org/alanmi/abc\n"
+       << "  Copyright (c) The Regents of the University of California."
+       << "\n\n";
+
+  if (Configuration::isBuiltWithCryptominisat())
+    ss << "  CryptoMiniSat - An Advanced SAT Solver\n"
+       << "  http://github.com/msoos/cryptominisat\n"
+       << "  Copyright (c) Mate Soos.\n\n";
+
+  if (Configuration::isBuiltWithReadline())
+    ss << "  GNU Readline\n"
+       << "  http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html\n"
+       << "  Copyright (c) 1989-2016 Free Software Foundation, Inc."
+       << "\n\n";
+
+  if (Configuration::isBuiltWithLfsc())
+    ss << "  LFSC Proof Checker\n"
+       << "  http://github.com/CVC4/LFSC\n"
+       << "  Copyright (c) 2012, 2013 The University of Iowa."
+       << "\n\n";
+
+  ss << "See the file COPYING (distributed with the source code, and with\n"
+     << "all binaries) for the full CVC4 copyright, licensing, and (lack of)\n"
+     << "warranty information.\n";
+  return ss.str();
+}
+
 std::string Configuration::about() {
-  return CVC4_ABOUT_STRING;
+  std::stringstream ss;
+  ss << "This is CVC4 version " << CVC4_RELEASE_STRING;
+  if (Configuration::isGitBuild())
+    ss << " [" << Configuration::getGitId() << "]";
+  else if (CVC4::Configuration::isSubversionBuild())
+    ss << " [" << Configuration::getSubversionId() << "]";
+  ss << "\ncompiled with " << Configuration::getCompiler()
+     << "\non " << Configuration::getCompiledDateTime() << "\n\n";
+  ss << Configuration::copyright ();
+  return ss.str();
 }
 
 bool Configuration::licenseIsGpl() {

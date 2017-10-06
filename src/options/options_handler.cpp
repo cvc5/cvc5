@@ -23,11 +23,13 @@
 #include "cvc4autoconfig.h"
 
 #include "base/configuration.h"
+#include "base/configuration_private.h"
 #include "base/cvc4_assert.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "lib/strtok_r.h"
+#include "gmp.h"
 #include "options/arith_heuristic_pivot_rule.h"
 #include "options/arith_propagation_mode.h"
 #include "options/arith_unate_lemma_mode.h"
@@ -1368,55 +1370,73 @@ void OptionsHandler::notifySetPrintExprTypes(std::string option) {
 
 
 // main/options_handlers.h
+
+#define PRINT_CONFIG(str,cond) \
+  (printf("%s: %s\n", (str), (cond) ? "yes" : "no"))
+
+#define PRINT_CONFIGV(str,cond,version) \
+  do {\
+    printf ("%s: ", str); \
+    if (cond) printf("yes (%s)\n", (version)); \
+    else printf("no\n"); \
+  } while (0)
+
+void OptionsHandler::copyright(std::string option) {
+  printf("%s\n", Configuration::copyright().c_str());
+  exit(0);
+}
+
 void OptionsHandler::showConfiguration(std::string option) {
-  fputs(Configuration::about().c_str(), stdout);
-  printf("\n");
+  printf("%s\n", Configuration::about().c_str());
   printf("version    : %s\n", Configuration::getVersionString().c_str());
+
   if(Configuration::isGitBuild()) {
     const char* branchName = Configuration::getGitBranchName();
-    if(*branchName == '\0') {
-      branchName = "-";
-    }
+    if(*branchName == '\0')  branchName = "-";
     printf("scm        : git [%s %s%s]\n",
            branchName,
            std::string(Configuration::getGitCommit()).substr(0, 8).c_str(),
-           Configuration::hasGitModifications() ?
-             " (with modifications)" : "");
+           Configuration::hasGitModifications() ? " (with modifications)"
+                                                : "");
   } else if(Configuration::isSubversionBuild()) {
     printf("scm        : svn [%s r%u%s]\n",
            Configuration::getSubversionBranchName(),
            Configuration::getSubversionRevision(),
-           Configuration::hasSubversionModifications() ?
-             " (with modifications)" : "");
+           Configuration::hasSubversionModifications() ? " (with modifications)"
+                                                       : "");
   } else {
-    printf("scm        : no\n");
+    PRINT_CONFIG("scm        ", false);
   }
+  
   printf("\n");
   printf("library    : %u.%u.%u\n",
          Configuration::getVersionMajor(),
          Configuration::getVersionMinor(),
          Configuration::getVersionRelease());
+  
   printf("\n");
-  printf("debug code : %s\n", Configuration::isDebugBuild() ? "yes" : "no");
-  printf("statistics : %s\n", Configuration::isStatisticsBuild() ? "yes" : "no");
-  printf("replay     : %s\n", Configuration::isReplayBuild() ? "yes" : "no");
-  printf("tracing    : %s\n", Configuration::isTracingBuild() ? "yes" : "no");
-  printf("dumping    : %s\n", Configuration::isDumpingBuild() ? "yes" : "no");
-  printf("muzzled    : %s\n", Configuration::isMuzzledBuild() ? "yes" : "no");
-  printf("assertions : %s\n", Configuration::isAssertionBuild() ? "yes" : "no");
-  printf("proof      : %s\n", Configuration::isProofBuild() ? "yes" : "no");
-  printf("coverage   : %s\n", Configuration::isCoverageBuild() ? "yes" : "no");
-  printf("profiling  : %s\n", Configuration::isProfilingBuild() ? "yes" : "no");
-  printf("competition: %s\n", Configuration::isCompetitionBuild() ? "yes" : "no");
+  PRINT_CONFIG("debug code ", Configuration::isDebugBuild());
+  PRINT_CONFIG("statistics ", Configuration::isStatisticsBuild());
+  PRINT_CONFIG("replay     ", Configuration::isReplayBuild());
+  PRINT_CONFIG("tracing    ", Configuration::isTracingBuild());
+  PRINT_CONFIG("dumping    ", Configuration::isDumpingBuild());
+  PRINT_CONFIG("muzzled    ", Configuration::isMuzzledBuild());
+  PRINT_CONFIG("assertions ", Configuration::isAssertionBuild());
+  PRINT_CONFIG("proof      ", Configuration::isProofBuild());
+  PRINT_CONFIG("coverage   ", Configuration::isCoverageBuild());
+  PRINT_CONFIG("profiling  ", Configuration::isProfilingBuild());
+  PRINT_CONFIG("competition", Configuration::isCompetitionBuild());
   printf("\n");
-  printf("abc          : %s\n", Configuration::isBuiltWithAbc() ? "yes" : "no");
-  printf("cln          : %s\n", Configuration::isBuiltWithCln() ? "yes" : "no");
-  printf("glpk         : %s\n", Configuration::isBuiltWithGlpk() ? "yes" : "no");
-  printf("cryptominisat: %s\n", Configuration::isBuiltWithCryptominisat() ? "yes" : "no");
-  printf("gmp          : %s\n", Configuration::isBuiltWithGmp() ? "yes" : "no");
-  printf("lfsc         : %s\n", Configuration::isBuiltWithLfsc() ? "yes" : "no");
-  printf("readline     : %s\n", Configuration::isBuiltWithReadline() ? "yes" : "no");
-  printf("tls          : %s\n", Configuration::isBuiltWithTlsSupport() ? "yes" : "no");
+  
+  PRINT_CONFIG("abc          ", Configuration::isBuiltWithAbc());
+  PRINT_CONFIG("cln          ", Configuration::isBuiltWithCln());
+  PRINT_CONFIG("glpk         ", Configuration::isBuiltWithGlpk());
+  PRINT_CONFIG("cryptominisat", Configuration::isBuiltWithCryptominisat());
+  PRINT_CONFIG("gmp          ", Configuration::isBuiltWithGmp());
+  PRINT_CONFIG("lfsc         ", Configuration::isBuiltWithLfsc());
+  PRINT_CONFIG("readline     ", Configuration::isBuiltWithReadline());
+  PRINT_CONFIG("tls          ", Configuration::isBuiltWithTlsSupport());
+  
   exit(0);
 }
 
