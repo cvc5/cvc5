@@ -62,12 +62,29 @@ class HigherOrderTrigger;
 /** A collection of nodes representing a trigger. 
 *
 * This class is a wrapper around an underlying IMGenerator class, which implements various forms 
-* of matching. To use a Trigger* t in a full effort check, we do the following :
+* of matching. A trigger is a set of nodes with free variables that are used to guide instantiations
+* (for example, see "Efficient E-Matching for SMT Solvers" by de Moura et al). For example :
+*
+* quantified formula : forall x. P( x )
+*            trigger : P( x )
+*     ground context : ~P( a )
+*
+* Then E-matching matches P( x ) and P( a ), resulting in the match { x -> a } which is used to generate
+* the instantiation lemma :
+* forall x. P( x ) => P( a )
+*
+* This algorithm is implemented by this class in the following way.
+* To use a Trigger* t in a full effort check, we do the following.
+* Assume that t is associated with quantified formula q (see field d_f).
 *
 * t->resetInstantiationRound();      // setup initial information
-* t->reset( Node::null() );          // will produce matches 
+* t->reset( Node::null() );          // will produce instantiations based on matching with all terms
 * InstMatch baseMatch;
-* t->addInstaitiations( baseMatch ); // add all instantiations based on the current context
+* t->addInstantiations( baseMatch ); // add all instantiations based E-matching with this trigger and the current context
+*
+* This will result in (a set of) calls to d_quantEngine->addInstantiation( q, m1 )...d_quantEngine->addInstantiation( q, mn ),
+* where m1...mn are InstMatch objects. These calls add the corresponding instantiation lemma for (q,mi) on the output channel
+* associated with d_quantEngine.
 *
 * For more details, see functions below.
 */
@@ -83,7 +100,7 @@ public:
   */
   void resetInstantiationRound();
   /** Reset the trigger.
-  * eqc is the equivalence class to search in, or any equivalence class if eqc=null.
+  * eqc is the equivalence class to match ground terms, or any equivalence class if eqc is Node::null().
   */
   void reset( Node eqc );
   /** get next match.  Must call reset( eqc ) once before this function. */
@@ -115,7 +132,7 @@ public:
 public:
   /** mkTrigger method
   *  qe     : quantifier engine;
-  *  f      : the quantified formula we are making a trigger for
+  *  q      : the quantified formula we are making a trigger for
   *  nodes  : the nodes comprising the (multi-)trigger
   *  keepAll: don't remove unneeded patterns;
   *  trOption : policy for dealing with triggers that already existed
@@ -128,10 +145,10 @@ public:
     TR_GET_OLD,     //return a previous trigger if it had already been created
     TR_RETURN_NULL  //return null if a duplicate is found
   };
-  static Trigger* mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes,
+  static Trigger* mkTrigger( QuantifiersEngine* qe, Node q, std::vector< Node >& nodes,
                              bool keepAll = true, int trOption = TR_MAKE_NEW, unsigned use_n_vars = 0 );
   /** single trigger version that calls the above function */
-  static Trigger* mkTrigger( QuantifiersEngine* qe, Node f, Node n, bool keepAll = true,
+  static Trigger* mkTrigger( QuantifiersEngine* qe, Node q, Node n, bool keepAll = true,
                              int trOption = TR_MAKE_NEW, unsigned use_n_vars = 0 );
   /** make trigger terms 
   * This takes a set of eligible trigger terms nodes and returns a subset trNodes such that :

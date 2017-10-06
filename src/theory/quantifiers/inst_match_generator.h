@@ -76,7 +76,8 @@ public:
   virtual int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe, Trigger * tparent ) = 0;
   /** active add flag
   *
-  * 
+  *  
+  *
   */
   virtual void setActiveAdd( bool val ) {}
   /** get active score 
@@ -100,7 +101,10 @@ class CandidateGenerator;
 * triggers composed of a single term with nested term applications.
 * For example, { f( y, f( x, a ) ) } and { f( g( x ), a ) } are non-simple triggers.
 *
-* For non-simple triggers like this, CVC4 employs techniques that ensure that the number of instantiations 
+* Handling non-simple triggers is done by constructing a linked list of InstMatchGenerator classes
+* (see mkInstMatchGenerator).
+*
+* For non-simple triggers, CVC4 employs techniques that ensure that the number of instantiations 
 * is worst-case polynomial wrt the number of ground terms.
 * Consider the axiom/pattern/context :
 *
@@ -108,7 +112,7 @@ class CandidateGenerator;
 *
 *        trigger : P( f( x1 ), f( x2 ), f( x3 ), f( x4 ) )
 *
-* ground context : P( a, a, a, a ) = true, a = f( c_1 ) = ... = f( c_100 )
+* ground context : ~P( a, a, a, a ), a = f( c_1 ) = ... = f( c_100 )
 *
 * If E-matching were applied exhaustively, then x1, x2, x3, x4 would be instantiated with all combinations of c_1, ... c_100, giving 100^4 instantiations.
 *
@@ -161,7 +165,6 @@ public:
     //others (internally used)
     MATCH_GEN_INTERNAL_ERROR,
   };
-public:
   /** get the match against ground term or formula t.
       d_match_pattern and t should have the same shape.
       only valid for use where !d_match_pattern.isNull().
