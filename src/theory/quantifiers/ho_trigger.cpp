@@ -146,7 +146,9 @@ void HigherOrderTrigger::collectHoVarApplyTerms( Node q, std::vector< Node >& ns
 }
 
 int HigherOrderTrigger::addInstantiations( InstMatch& baseMatch ){
-  int addedFoLemmas = addBasicInstantiations( baseMatch );
+  // call the base class implementation
+  int addedFoLemmas = Trigger::addInstantiations( baseMatch );
+  // also adds predicate lemms to force app completion
   int addedHoLemmas = addHoTypeMatchPredicateLemmas();
   return addedHoLemmas+addedFoLemmas;
 }

@@ -98,31 +98,52 @@ public:
   bool isMultiTrigger() { return d_nodes.size()>1; }
   /** get inst pattern list associated with this trigger */
   Node getInstPattern();
-protected:
-  /** add all available instantiations exhaustively */
-  int addBasicInstantiations( InstMatch& baseMatch );
-  /** add an instantiation (called by InstMatchGenerator) */
-  virtual bool sendInstantiation( InstMatch& m );
+  /* A heuristic value indicating how active this generator is. */
+  int getActiveScore();
+  /** print debug information for the trigger */
+  void debugPrint( const char * c ) {
+    Trace(c) << "TRIGGER( ";
+    for( int i=0; i<(int)d_nodes.size(); i++ ){
+      if( i>0 ){ Trace(c) << ", "; }
+      Trace(c) << d_nodes[i];
+    }
+    Trace(c) << " )";
+  }
 public:
   /** mkTrigger method
-     ie     : quantifier engine;
-     f      : forall something ....
-     nodes  : (multi-)trigger
-     keepAll: don't remove unneeded patterns;
-     trOption : policy for dealing with triggers that already existed
-                (see below)
+  *  qe     : quantifier engine;
+  *  f      : the quantified formula we are making a trigger for
+  *  nodes  : the nodes comprising the (multi-)trigger
+  *  keepAll: don't remove unneeded patterns;
+  *  trOption : policy for dealing with triggers that already existed
+  *             (see below)
+  *  use_n_vars : number of variables that should be bound by the trigger
+  *               typically, the number of quantified variables in f.
   */
   enum{
     TR_MAKE_NEW,    //make new trigger even if it already may exist
     TR_GET_OLD,     //return a previous trigger if it had already been created
     TR_RETURN_NULL  //return null if a duplicate is found
   };
-  //nodes input, trNodes output
-  static bool mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_vars, std::vector< Node >& trNodes );
   static Trigger* mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes,
                              bool keepAll = true, int trOption = TR_MAKE_NEW, unsigned use_n_vars = 0 );
+  /** single trigger version that calls the above function */
   static Trigger* mkTrigger( QuantifiersEngine* qe, Node f, Node n, bool keepAll = true,
                              int trOption = TR_MAKE_NEW, unsigned use_n_vars = 0 );
+  /** make trigger terms 
+  * This takes a set of eligible trigger terms nodes and returns a subset trNodes such that :
+  *   (1) the terms in trNodes contains at least n_vars of the quantified variables in quantified formula q
+  *   (2) the set trNodes is minimal, i.e. removing one term from trNodes always violates (1).
+  */
+  static bool mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_vars, std::vector< Node >& trNodes );
+  /** collectPatTerms
+  * This collects all terms that are eligible for triggers for quantified formula q in term n.
+  *   tstrt is the selection strategy
+  *   exclude is a set of terms that *cannot* be selected as triggers 
+  *   tinfo stores the result of the collection, mapping terms to information they are associated with
+  *   filterInst is a flag that when true, we discard terms that have instances, 
+  *     e.g. we do not return f( x, y ) if we are also returning f( x, a ).
+  */     
   static void collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt,
                                std::vector< Node >& exclude, std::map< Node, TriggerTermInfo >& tinfo,
                                bool filterInst = false );
@@ -160,20 +181,12 @@ public:
                                 std::vector< Node >& patTerms );
   /** return data structure for producing matches for this trigger. */
   static InstMatchGenerator* getInstMatchGenerator( Node q, Node n );
+  /** get the variable associated with an inversion for n, e.g. getInversionVariable( x+1 ) returns x */
   static Node getInversionVariable( Node n );
+  /** get the inversion for n, e.g. getInversion( x+1, y ) returns y-1 */
   static Node getInversion( Node n, Node x );
   /** get all variables that E-matching can possibly handle */
   static void getTriggerVariables( Node icn, Node f, std::vector< Node >& t_vars );
-
-  void debugPrint( const char * c ) {
-    Trace(c) << "TRIGGER( ";
-    for( int i=0; i<(int)d_nodes.size(); i++ ){
-      if( i>0 ){ Trace(c) << ", "; }
-      Trace(c) << d_nodes[i];
-    }
-    Trace(c) << " )";
-  }
-  int getActiveScore();
 protected:
   /** trigger constructor */
   Trigger( QuantifiersEngine* ie, Node f, std::vector< Node >& nodes );
@@ -186,6 +199,13 @@ protected:
   static void collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Node > >& visited, std::map< Node, TriggerTermInfo >& tinfo, 
                                 quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, std::vector< Node >& added,
                                 bool pol, bool hasPol, bool epol, bool hasEPol, bool knowIsUsable = false );
+                                
+  /** add an instantiation (called by InstMatchGenerator) 
+  * This calls d_quantEngine->addInstantiation(...) for instantiations associated with m.
+  * Typically, m is associated with a single instantiation, but in some cases (e.g. higher-order)
+  * we may modify m before sending it.
+  */
+  virtual bool sendInstantiation( InstMatch& m );
   /** the nodes comprising this trigger */
   std::vector< Node > d_nodes;
   /** the quantifiers engine */
@@ -204,13 +224,14 @@ class TriggerTrie {
 public:
   TriggerTrie();
   ~TriggerTrie();
-
+  /** lookup a trigger based on nodes */
   inst::Trigger* getTrigger( std::vector< Node >& nodes ){
     std::vector< Node > temp;
     temp.insert( temp.begin(), nodes.begin(), nodes.end() );
     std::sort( temp.begin(), temp.end() );
     return getTrigger2( temp );
   }
+  /** add trigger to trie with nodes */
   void addTrigger( std::vector< Node >& nodes, inst::Trigger* t ){
     std::vector< Node > temp;
     temp.insert( temp.begin(), nodes.begin(), nodes.end() );

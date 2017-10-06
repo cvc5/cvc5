@@ -107,7 +107,7 @@ Node Trigger::getInstPattern(){
   return NodeManager::currentNM()->mkNode( INST_PATTERN, d_nodes );
 }
 
-int Trigger::addBasicInstantiations( InstMatch& baseMatch ){
+int Trigger::addInstantiations( InstMatch& baseMatch ) {
   int addedLemmas = d_mg->addInstantiations( d_f, baseMatch, d_quantEngine, this );
   if( addedLemmas>0 ){
     Debug("inst-trigger") << "Added " << addedLemmas << " lemmas, trigger was ";
@@ -117,10 +117,6 @@ int Trigger::addBasicInstantiations( InstMatch& baseMatch ){
     Debug("inst-trigger") << std::endl;
   }
   return addedLemmas;
-}
-
-int Trigger::addInstantiations( InstMatch& baseMatch ) {
-  return addBasicInstantiations( baseMatch );
 }
 
 bool Trigger::sendInstantiation( InstMatch& m ) {
