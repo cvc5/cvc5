@@ -19,6 +19,7 @@
 #include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/theory_engine.h"
 
@@ -64,7 +65,7 @@ void CegConjecture::assign( Node q ) {
   std::map< Node, Node > templates; 
   std::map< Node, Node > templates_arg;
   //register with single invocation if applicable
-  if( d_qe->getTermDatabase()->isQAttrSygus( d_quant ) ){
+  if( d_qe->getQuantAttributes()->isSygus( d_quant ) ){
     d_ceg_si->initialize( d_quant );
     q = d_ceg_si->getSimplifiedConjecture();
     // carry the templates
@@ -84,7 +85,7 @@ void CegConjecture::assign( Node q ) {
   Trace("cegqi") << "CegConjecture : converted to embedding : " << d_embed_quant << std::endl;
 
   // we now finalize the single invocation module, based on the syntax restrictions
-  if( d_qe->getTermDatabase()->isQAttrSygus( d_quant ) ){
+  if( d_qe->getQuantAttributes()->isSygus( d_quant ) ){
     d_ceg_si->finishInit( d_ceg_gc->isSyntaxRestricted(), d_ceg_gc->hasSyntaxITE() );
   }
 
@@ -122,7 +123,7 @@ void CegConjecture::assign( Node q ) {
   }
   
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
-  if( d_qe->getTermDatabase()->isQAttrSygus( d_quant ) ){
+  if( d_qe->getQuantAttributes()->isSygus( d_quant ) ){
     collectDisjuncts( d_base_inst, d_base_disj );
     Trace("cegqi") << "Conjecture has " << d_base_disj.size() << " disjuncts." << std::endl;
     //store the inner variables for each disjunct
@@ -138,7 +139,7 @@ void CegConjecture::assign( Node q ) {
       }
     }
     d_syntax_guided = true;
-  }else if( d_qe->getTermDatabase()->isQAttrSynthesis( d_quant ) ){
+  }else if( d_qe->getQuantAttributes()->isSynthesis( d_quant ) ){
     d_syntax_guided = false;
   }else{
     Assert( false );

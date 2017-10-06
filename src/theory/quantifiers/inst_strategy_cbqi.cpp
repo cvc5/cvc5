@@ -19,6 +19,7 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -143,7 +144,7 @@ bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
         if( options::cbqiNestedQE() ){
           //record these as counterexample quantifiers
           QAttributes qa;
-          TermDb::computeQuantAttributes( quants[i], qa );
+          QuantAttributes::computeQuantAttributes( quants[i], qa );
           if( !qa.d_qid_num.isNull() ){
             d_id_to_ce_quant[ qa.d_qid_num ] = quants[i];
             d_ce_quant_to_id[ quants[i] ] = qa.d_qid_num;
@@ -299,7 +300,7 @@ Node InstStrategyCbqi::getIdMarkedQuantNode( Node n, std::map< Node, Node >& vis
     Node ret = n;
     if( n.getKind()==FORALL ){
       QAttributes qa;
-      TermDb::computeQuantAttributes( n, qa );
+      QuantAttributes::computeQuantAttributes( n, qa );
       if( qa.d_qid_num.isNull() ){
         std::vector< Node > rc;
         rc.push_back( n[0] );
@@ -413,7 +414,7 @@ Node InstStrategyCbqi::doNestedQERec( Node q, Node n, std::map< Node, Node >& vi
     Node ret = n;
     if( n.getKind()==FORALL ){
       QAttributes qa;
-      TermDb::computeQuantAttributes( n, qa );
+      QuantAttributes::computeQuantAttributes( n, qa );
       if( !qa.d_qid_num.isNull() ){
         //if it has an id, check whether we have done quantifier elimination for this id
         std::map< Node, Node >::iterator it = d_id_to_ce_quant.find( qa.d_qid_num );
@@ -554,8 +555,8 @@ bool InstStrategyCbqi::doCbqi( Node q ){
   std::map< Node, int >::iterator it = d_do_cbqi.find( q );
   if( it==d_do_cbqi.end() ){
     int ret = 2;
-    if( !d_quantEngine->getTermDatabase()->isQAttrQuantElim( q ) ){
-      Assert( !d_quantEngine->getTermDatabase()->isQAttrQuantElimPartial( q ) );
+    if( !d_quantEngine->getQuantAttributes()->isQuantElim( q ) ){
+      Assert( !d_quantEngine->getQuantAttributes()->isQuantElimPartial( q ) );
       //if has an instantiation pattern, don't do it
       if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
         for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
@@ -564,7 +565,7 @@ bool InstStrategyCbqi::doCbqi( Node q ){
           }
         }
       }
-      if( d_quantEngine->getTermDatabase()->isQAttrSygus( q ) ){
+      if( d_quantEngine->getQuantAttributes()->isSygus( q ) ){
         ret = 0;
       }
       if( ret!=0 ){
@@ -719,7 +720,7 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert( !d_curr_quant.isNull() );
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
-  if( d_quantEngine->getTermDatabase()->isQAttrQuantElimPartial( d_curr_quant ) ){
+  if( d_quantEngine->getQuantAttributes()->isQuantElimPartial( d_curr_quant ) ){
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
     d_quantEngine->recordInstantiationInternal( d_curr_quant, subs, false, false );

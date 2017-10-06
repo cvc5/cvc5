@@ -199,5 +199,5 @@ void TheoryQuantifiers::assertExistential( Node n ){
 }
 
 void TheoryQuantifiers::setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value){
-  QuantifiersAttributes::setUserAttribute( attr, n, node_values, str_value );
+  QuantAttributes::setUserAttribute( attr, n, node_values, str_value );
 }

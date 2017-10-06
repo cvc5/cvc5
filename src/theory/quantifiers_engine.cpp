@@ -35,6 +35,7 @@
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_equality_engine.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -80,6 +81,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
 
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_util.push_back( d_term_db );
+  
+  d_quant_attr = new quantifiers::QuantAttributes( this );
 
   if( options::instPropagate() ){
     // notice that this option is incompatible with options::qcfAllConflict()
@@ -727,7 +730,7 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
     }else{
       //make instantiation constants for f
       d_term_db->makeInstantiationConstantsFor( f );
-      d_term_db->computeAttributes( f );
+      d_quant_attr->computeAttributes( f );
       for( unsigned i=0; i<d_modules.size(); i++ ){
         Trace("quant-debug") << "pre-register with " << d_modules[i]->identify() << "..." << std::endl;
         d_modules[i]->preRegisterQuantifier( f );

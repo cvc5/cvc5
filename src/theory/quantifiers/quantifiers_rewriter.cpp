@@ -15,6 +15,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
 
@@ -196,7 +197,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
     }else{
       //compute attributes
       QAttributes qa;
-      TermDb::computeQuantAttributes( in, qa );
+      QuantAttributes::computeQuantAttributes( in, qa );
       if( !qa.isRewriteRule() ){
         for( int op=0; op<COMPUTE_LAST; op++ ){
           if( doOperation( in, op, qa ) ){
@@ -504,10 +505,10 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
   std::map< Node, Node > cache;
   std::map< Node, Node > icache;
   if( qa.isFunDef() ){
-    Node h = TermDb::getFunDefHead( q );
+    Node h = QuantAttributes::getFunDefHead( q );
     Assert( !h.isNull() );
     // if it is a function definition, rewrite the body independently
-    Node fbody = TermDb::getFunDefBody( q );
+    Node fbody = QuantAttributes::getFunDefBody( q );
     Assert( !body.isNull() );
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
     Node r = computeProcessTerms2( fbody, true, true, curr_cond, 0, cache, icache, new_vars, new_conds, false );

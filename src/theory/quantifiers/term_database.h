@@ -151,29 +151,6 @@ public:
   void clear() { d_data.clear(); }
 };/* class TermArgTrie */
 
-
-class QAttributes{
-public:
-  QAttributes() : d_hasPattern(false), d_conjecture(false), d_axiom(false), d_sygus(false),
-                  d_synthesis(false), d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), d_quant_elim_partial(false){}
-  ~QAttributes(){}
-  bool d_hasPattern;
-  Node d_rr;
-  bool d_conjecture;
-  bool d_axiom;
-  Node d_fundef_f;
-  bool d_sygus;
-  bool d_synthesis;
-  int d_rr_priority;
-  int d_qinstLevel;
-  bool d_quant_elim;
-  bool d_quant_elim_partial;
-  Node d_ipl;
-  Node d_qid_num;
-  bool isRewriteRule() { return !d_rr.isNull(); }
-  bool isFunDef() { return !d_fundef_f.isNull(); }
-};
-
 namespace fmcheck {
   class FullModelChecker;
 }
@@ -548,57 +525,7 @@ private:
 public:
   TermDbSygus * getTermDatabaseSygus() { return d_sygus_tdb; }
 
-private:
-  std::map< Node, bool > d_fun_defs;
-public: //general queries concerning quantified formulas wrt modules
-  /** is quantifier treated as a rewrite rule? */
-  static bool isRewriteRule( Node q );
-  /** get the rewrite rule associated with the quanfied formula */
-  static Node getRewriteRule( Node q );
-  /** is fun def */
-  static bool isFunDef( Node q );
-  /** is fun def */
-  static bool isFunDefAnnotation( Node ipl );
-  /** is sygus conjecture */
-  static bool isSygusConjecture( Node q );
-  /** is sygus conjecture */
-  static bool isSygusConjectureAnnotation( Node ipl );
-  /** get fun def body */
-  static Node getFunDefHead( Node q );
-  /** get fun def body */
-  static Node getFunDefBody( Node q );
-  /** is quant elim annotation */
-  static bool isQuantElimAnnotation( Node ipl );
-//attributes
-private:
-  std::map< Node, QAttributes > d_qattr;
-  //record attributes
-  void computeAttributes( Node q );
-public:
-  /** is conjecture */
-  bool isQAttrConjecture( Node q );
-  /** is axiom */
-  bool isQAttrAxiom( Node q );
-  /** is function definition */
-  bool isQAttrFunDef( Node q );
-  /** is sygus conjecture */
-  bool isQAttrSygus( Node q );
-  /** is synthesis conjecture */
-  bool isQAttrSynthesis( Node q );
-  /** get instantiation level */
-  int getQAttrQuantInstLevel( Node q );
-  /** get rewrite rule priority */
-  int getQAttrRewriteRulePriority( Node q );
-  /** is quant elim */
-  bool isQAttrQuantElim( Node q );
-  /** is quant elim partial */
-  bool isQAttrQuantElimPartial( Node q );
-  /** get quant id num */
-  int getQAttrQuantIdNum( Node q );
-  /** get quant id num */
-  Node getQAttrQuantIdNumNode( Node q );
-  /** compute quantifier attributes */
-  static void computeQuantAttributes( Node q, QAttributes& qa );
+
 };/* class TermDb */
 
 }/* CVC4::theory::quantifiers namespace */

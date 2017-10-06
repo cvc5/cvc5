@@ -20,6 +20,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/inst_match_generator.h"
 #include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
@@ -44,7 +45,7 @@ RewriteEngine::RewriteEngine( context::Context* c, QuantifiersEngine* qe ) : Qua
 }
 
 double RewriteEngine::getPriority( Node f ) {
-  Node rr = TermDb::getRewriteRule( f );
+  Node rr = QuantAttributes::getRewriteRule( f );
   Node rrr = rr[2];
   Trace("rr-priority") << "Get priority : " << rrr << " " << rrr.getKind() << std::endl;
   bool deterministic = rrr[1].getKind()!=OR;
@@ -121,7 +122,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
     if( it!=d_qinfo.end() ){
       QuantInfo * qi = &it->second;
       if( qi->matchGeneratorIsValid() ){
-        Node rr = TermDb::getRewriteRule( f );
+        Node rr = QuantAttributes::getRewriteRule( f );
         Trace("rewrite-engine-inst-debug") << "   Reset round..." << std::endl;
         qi->reset_round( qcf );
         Trace("rewrite-engine-inst-debug") << "   Get matches..." << std::endl;
@@ -211,7 +212,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
 }
 
 void RewriteEngine::registerQuantifier( Node f ) {
-  Node rr = TermDb::getRewriteRule( f );
+  Node rr = QuantAttributes::getRewriteRule( f );
   if( !rr.isNull() ){
     Trace("rr-register") << "Register quantifier " << f << std::endl;
     Trace("rr-register") << "  rewrite rule is : " << rr << std::endl;

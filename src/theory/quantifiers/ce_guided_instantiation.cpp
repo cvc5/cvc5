@@ -18,6 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database_sygus.h"
 //FIXME : remove this include (github issue #1156)
 #include "theory/bv/theory_bv_rewriter.h"
@@ -308,7 +309,7 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
 
 void CegInstantiation::preregisterAssertion( Node n ) {
   //check if it sygus conjecture
-  if( TermDb::isSygusConjecture( n ) ){
+  if( QuantAttributes::checkSygusConjecture( n ) ){
     //this is a sygus conjecture
     Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
     d_conj->preregisterConjecture( n );

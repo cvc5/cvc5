@@ -16,29 +16,111 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
-#define __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
+#define __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
 
-#include "theory/rewriter.h"
-#include "theory/quantifiers_engine.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 /** Attribute priority for rewrite rules */
 //struct RrPriorityAttributeId {};
 //typedef expr::Attribute< RrPriorityAttributeId, uint64_t > RrPriorityAttribute;
 
-struct QuantifiersAttributes
+
+class QAttributes{
+public:
+  QAttributes() : d_hasPattern(false), d_conjecture(false), d_axiom(false), d_sygus(false),
+                  d_synthesis(false), d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), d_quant_elim_partial(false){}
+  ~QAttributes(){}
+  bool d_hasPattern;
+  Node d_rr;
+  bool d_conjecture;
+  bool d_axiom;
+  Node d_fundef_f;
+  bool d_sygus;
+  bool d_synthesis;
+  int d_rr_priority;
+  int d_qinstLevel;
+  bool d_quant_elim;
+  bool d_quant_elim_partial;
+  Node d_ipl;
+  Node d_qid_num;
+  bool isRewriteRule() { return !d_rr.isNull(); }
+  bool isFunDef() { return !d_fundef_f.isNull(); }
+};
+
+class QuantAttributes
 {
+public:
+  QuantAttributes( QuantifiersEngine * qe );
+  ~QuantAttributes(){}
+  
   /** set user attribute
     *   This function will apply a custom set of attributes to all top-level universal
     *   quantifiers contained in n
     */
   static void setUserAttribute( const std::string& attr, Node n, std::vector< Node >& node_values, std::string str_value );
-};
+  
+  //general queries concerning quantified formulas wrt modules
+  /** is quantifier treated as a rewrite rule? */
+  static bool checkRewriteRule( Node q );
+  /** get the rewrite rule associated with the quanfied formula */
+  static Node getRewriteRule( Node q );
+  /** is fun def */
+  static bool checkFunDef( Node q );
+  /** is fun def */
+  static bool checkFunDefAnnotation( Node ipl );
+  /** is sygus conjecture */
+  static bool checkSygusConjecture( Node q );
+  /** is sygus conjecture */
+  static bool checkSygusConjectureAnnotation( Node ipl );
+  /** get fun def body */
+  static Node getFunDefHead( Node q );
+  /** get fun def body */
+  static Node getFunDefBody( Node q );
+  /** is quant elim annotation */
+  static bool checkQuantElimAnnotation( Node ipl );
 
+  /** is conjecture */
+  bool isConjecture( Node q );
+  /** is axiom */
+  bool isAxiom( Node q );
+  /** is function definition */
+  bool isFunDef( Node q );
+  /** is sygus conjecture */
+  bool isSygus( Node q );
+  /** is synthesis conjecture */
+  bool isSynthesis( Node q );
+  /** get instantiation level */
+  int getQuantInstLevel( Node q );
+  /** get rewrite rule priority */
+  int getRewriteRulePriority( Node q );
+  /** is quant elim */
+  bool isQuantElim( Node q );
+  /** is quant elim partial */
+  bool isQuantElimPartial( Node q );
+  /** get quant id num */
+  int getQuantIdNum( Node q );
+  /** get quant id num */
+  Node getQuantIdNumNode( Node q );
+  /** compute quantifier attributes */
+  static void computeQuantAttributes( Node q, QAttributes& qa );
+  /** compute the attributes for q */
+  void computeAttributes( Node q );
+private:
+  /** pointer to quantifiers engine */
+  QuantifiersEngine * d_quantEngine;
+  /** cache of attributes */
+  std::map< Node, QAttributes > d_qattr;
+  /** function definitions */
+  std::map< Node, bool > d_fun_defs;
+};
 
 }
 }

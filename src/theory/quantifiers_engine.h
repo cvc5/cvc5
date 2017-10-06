@@ -53,6 +53,7 @@ namespace quantifiers {
   class TermDb;
   class TermDbSygus;
   class FirstOrderModel;
+  class QuantAttributes;
   class RelevantDomain;
   class BvInverter;
   class InstPropagator;
@@ -193,6 +194,8 @@ private:
   BoolMap d_skolemized;
   /** term database */
   quantifiers::TermDb* d_term_db;
+  /** quantifiers attributes */
+  quantifiers::QuantAttributes* d_quant_attr;
   /** all triggers will be stored in this trie */
   inst::TriggerTrie* d_tr_trie;
   /** extended model object */
@@ -366,6 +369,8 @@ public:
   quantifiers::FirstOrderModel* getModel() { return d_model; }
   /** get term database */
   quantifiers::TermDb* getTermDatabase() { return d_term_db; }
+  /** get quantifiers attributes */
+  quantifiers::QuantAttributes* getQuantAttributes() { return d_quant_attr; }
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus();
   /** get trigger database */

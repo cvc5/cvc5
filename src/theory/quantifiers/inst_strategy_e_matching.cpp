@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/inst_strategy_e_matching.h"
 #include "theory/quantifiers/inst_match_generator.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_engine.h"
@@ -279,7 +280,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     std::map< Node, inst::TriggerTermInfo > tinfo;
     //well-defined function: can assume LHS is only trigger
     if( options::quantFunWellDefined() ){
-      Node hd = TermDb::getFunDefHead( f );
+      Node hd = QuantAttributes::getFunDefHead( f );
       if( !hd.isNull() ){
         hd = d_quantEngine->getTermDatabase()->getInstConstantNode( hd, f );
         patTermsF.push_back( hd );
