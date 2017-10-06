@@ -194,6 +194,8 @@ private:
   BoolMap d_skolemized;
   /** term database */
   quantifiers::TermDb* d_term_db;
+  /** term database */
+  quantifiers::TermDbSygus* d_sygus_tdb;
   /** quantifiers attributes */
   quantifiers::QuantAttributes* d_quant_attr;
   /** all triggers will be stored in this trie */
@@ -369,10 +371,10 @@ public:
   quantifiers::FirstOrderModel* getModel() { return d_model; }
   /** get term database */
   quantifiers::TermDb* getTermDatabase() { return d_term_db; }
+  /** get term database sygus */
+  quantifiers::TermDbSygus * getTermDatabaseSygus() { return d_sygus_tdb; }
   /** get quantifiers attributes */
   quantifiers::QuantAttributes* getQuantAttributes() { return d_quant_attr; }
-  /** get term database sygus */
-  quantifiers::TermDbSygus* getTermDatabaseSygus();
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
   /** add term to database */

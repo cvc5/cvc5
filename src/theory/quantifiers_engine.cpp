@@ -42,6 +42,7 @@
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/anti_skolem.h"
@@ -81,6 +82,12 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
 
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_util.push_back( d_term_db );
+  
+  if (options::ceGuidedInst()) {
+    d_sygus_tdb = new quantifiers::TermDbSygus(c, this);
+  }else{
+    d_sygus_tdb = NULL;
+  }
   
   d_quant_attr = new quantifiers::QuantAttributes( this );
 
@@ -176,6 +183,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_model;
   delete d_tr_trie;
   delete d_term_db;
+  delete d_sygus_tdb;
   delete d_eq_inference;
   delete d_eq_query;
   delete d_sg_gen;
@@ -822,10 +830,6 @@ Node QuantifiersEngine::getNextDecisionRequest( unsigned& priority ){
     }
   }
   return dec;
-}
-
-quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() {
-  return getTermDatabase()->getTermDatabaseSygus();
 }
 
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){

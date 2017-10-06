@@ -578,7 +578,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
           if( !options::sygusTemplEmbedGrammar() ){
             TNode templa = d_ceg_si->getTemplateArg( sf );
             // make the builtin version of the full solution
-            TermDbSygus* sygusDb = d_qe->getTermDatabase()->getTermDatabaseSygus();
+            TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
             sol = sygusDb->sygusToBuiltin( sol, sol.getType() );		
             Trace("cegqi-inv") << "Builtin version of solution is : "
                                << sol << ", type : " << sol.getType()

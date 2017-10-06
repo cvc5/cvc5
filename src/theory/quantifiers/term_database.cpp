@@ -87,21 +87,17 @@ TermDb::TermDb(context::Context* c, context::UserContext* u,
     : d_quantEngine(qe),
       d_inactive_map(c),
       d_op_id_count(0),
-      d_typ_id_count(0),
-      d_sygus_tdb(NULL) {
+      d_typ_id_count(0) {
   d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  if (options::ceGuidedInst()) {
-    d_sygus_tdb = new TermDbSygus(c, qe);
-  }
+
 }
+
 TermDb::~TermDb(){
-  if(d_sygus_tdb) {
-    delete d_sygus_tdb;
-  }
+
 }
 
 /** ground terms */
@@ -181,8 +177,8 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
           d_op_map[op].push_back( n );
           added.insert( n );
           
-          if( d_sygus_tdb ){
-            d_sygus_tdb->registerEvalTerm( n );
+          if( d_quantEngine->getTermDatabaseSygus() ){
+            d_quantEngine->getTermDatabaseSygus()->registerEvalTerm( n );
           }
         }
       }else{

@@ -19,12 +19,41 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
 #define __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
 
+#include "expr/attribute.h"
 #include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
+
+/** Attribute true for quantifiers that are axioms */
+struct AxiomAttributeId {};
+typedef expr::Attribute< AxiomAttributeId, bool > AxiomAttribute;
+
+/** Attribute true for quantifiers that are conjecture */
+struct ConjectureAttributeId {};
+typedef expr::Attribute< ConjectureAttributeId, bool > ConjectureAttribute;
+
+/** Attribute true for function definition quantifiers */
+struct FunDefAttributeId {};
+typedef expr::Attribute< FunDefAttributeId, bool > FunDefAttribute;
+
+/** Attribute true for quantifiers that we are doing quantifier elimination on */
+struct QuantElimAttributeId {};
+typedef expr::Attribute< QuantElimAttributeId, bool > QuantElimAttribute;
+
+/** Attribute true for quantifiers that we are doing partial quantifier elimination on */
+struct QuantElimPartialAttributeId {};
+typedef expr::Attribute< QuantElimPartialAttributeId, bool > QuantElimPartialAttribute;
+
+/** Attribute true for quantifiers that are SyGus conjectures */
+struct SygusAttributeId {};
+typedef expr::Attribute< SygusAttributeId, bool > SygusAttribute;
+
+/** Attribute true for quantifiers that are synthesis conjectures */
+struct SynthesisAttributeId {};
+typedef expr::Attribute< SynthesisAttributeId, bool > SynthesisAttribute;
 
 namespace quantifiers {
 
@@ -33,6 +62,9 @@ namespace quantifiers {
 //typedef expr::Attribute< RrPriorityAttributeId, uint64_t > RrPriorityAttribute;
 
 
+/** This class stores attributes for quantified formulas 
+* TODO : document (as part of #1171)
+*/
 class QAttributes{
 public:
   QAttributes() : d_hasPattern(false), d_conjecture(false), d_axiom(false), d_sygus(false),
@@ -55,6 +87,10 @@ public:
   bool isFunDef() { return !d_fundef_f.isNull(); }
 };
 
+/** This class caches information about attributes of quantified formulas 
+* It also has static utility functions used for determining attributes and information about 
+* quantified formulas.
+*/
 class QuantAttributes
 {
 public:

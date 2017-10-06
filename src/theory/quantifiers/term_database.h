@@ -29,26 +29,6 @@
 namespace CVC4 {
 namespace theory {
 
-/** Attribute true for quantifiers that are axioms */
-struct AxiomAttributeId {};
-typedef expr::Attribute< AxiomAttributeId, bool > AxiomAttribute;
-
-/** Attribute true for quantifiers that are conjecture */
-struct ConjectureAttributeId {};
-typedef expr::Attribute< ConjectureAttributeId, bool > ConjectureAttribute;
-
-/** Attribute true for function definition quantifiers */
-struct FunDefAttributeId {};
-typedef expr::Attribute< FunDefAttributeId, bool > FunDefAttribute;
-
-/** Attribute true for quantifiers that are SyGus conjectures */
-struct SygusAttributeId {};
-typedef expr::Attribute< SygusAttributeId, bool > SygusAttribute;
-
-/** Attribute true for quantifiers that are synthesis conjectures */
-struct SynthesisAttributeId {};
-typedef expr::Attribute< SynthesisAttributeId, bool > SynthesisAttribute;
-
 // attribute for "contains instantiation constants from"
 struct InstConstantAttributeId {};
 typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
@@ -106,14 +86,6 @@ typedef expr::Attribute<SygusSynthFunVarListAttributeId, Node> SygusSynthFunVarL
 //attribute for fun-def abstraction type
 struct AbsTypeFunDefAttributeId {};
 typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
-
-/** Attribute true for quantifiers that we are doing quantifier elimination on */
-struct QuantElimAttributeId {};
-typedef expr::Attribute< QuantElimAttributeId, bool > QuantElimAttribute;
-
-/** Attribute true for quantifiers that we are doing partial quantifier elimination on */
-struct QuantElimPartialAttributeId {};
-typedef expr::Attribute< QuantElimPartialAttributeId, bool > QuantElimPartialAttribute;
 
 /** Attribute for id number */
 struct QuantIdNumAttributeId {};
@@ -518,14 +490,6 @@ public:
    * TODO: we may eliminate this depending on how github issue #1115 is resolved.
    */
   Node getHoTypeMatchPredicate( TypeNode tn );
-
-//for sygus
-private:
-  TermDbSygus * d_sygus_tdb;
-public:
-  TermDbSygus * getTermDatabaseSygus() { return d_sygus_tdb; }
-
-
 };/* class TermDb */
 
 }/* CVC4::theory::quantifiers namespace */
