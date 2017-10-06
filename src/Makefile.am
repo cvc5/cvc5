@@ -424,6 +424,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/term_database.h \
 	theory/quantifiers/term_database_sygus.cpp \
 	theory/quantifiers/term_database_sygus.h \
+	theory/quantifiers/term_util.cpp \
+	theory/quantifiers/term_util.h \
 	theory/quantifiers/theory_quantifiers.cpp \
 	theory/quantifiers/theory_quantifiers.h \
 	theory/quantifiers/theory_quantifiers_type_rules.h \

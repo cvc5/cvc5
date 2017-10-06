@@ -20,6 +20,7 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_util.h"
 //FIXME : remove this include (github issue #1156)
 #include "theory/bv/theory_bv_rewriter.h"
 
@@ -254,7 +255,7 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
           lem_conj.push_back( lem );
         }
         EvalSygusInvarianceTest vsit;
-        vsit.d_result = d_quantEngine->getTermDatabase()->d_false;
+        vsit.d_result = d_quantEngine->getTermUtil()->d_false;
         for( unsigned j=0; j<lem_conj.size(); j++ ){
           Node lemc = lem_conj[j];
           Trace("sygus-cref-eval") << "Check refinement lemma conjunct " << lemc << " against current model." << std::endl;
@@ -264,7 +265,7 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
           Trace("sygus-cref-eval2") << "...under substitution it is : " << lemcs << std::endl;
           Node lemcsu = d_quantEngine->getTermDatabaseSygus()->evaluateWithUnfolding( lemcs, vsit.d_visited );
           Trace("sygus-cref-eval2") << "...after unfolding is : " << lemcsu << std::endl;
-          if( lemcsu==d_quantEngine->getTermDatabase()->d_false ){
+          if( lemcsu==d_quantEngine->getTermUtil()->d_false ){
             std::vector< Node > msu;
             std::vector< Node > mexp;
             msu.insert( msu.end(), ms.begin(), ms.end() );

@@ -18,6 +18,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 
@@ -119,7 +120,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
   Assert( f.isNull() || f.getKind()==FORALL );
   Node r = getRepresentative( a );
   if( options::finiteModelFind() ){
-    if( r.isConst() && quantifiers::TermDb::containsUninterpretedConstant( r ) ){
+    if( r.isConst() && quantifiers::TermUtil::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
       if( d_qe->getModel() ){
         std::map< Node, Node >::iterator it = d_qe->getModel()->d_rep_set.d_values_to_terms.find( r );
@@ -310,7 +311,7 @@ Node EqualityQueryQuantifiersEngine::getInstance( Node n, const std::vector< Nod
 
 //-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
 int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index, TypeNode v_tn ){
-  if( options::cbqi() && quantifiers::TermDb::hasInstConstAttr(n) ){  //reject
+  if( options::cbqi() && quantifiers::TermUtil::hasInstConstAttr(n) ){  //reject
     return -2;
   }else if( !n.getType().isSubtypeOf( v_tn ) ){  //reject if incorrect type
     return -2;
@@ -329,7 +330,7 @@ int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index, Type
       return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
     }else{
       Assert( options::quantRepMode()==quantifiers::QUANT_REP_MODE_DEPTH );
-      return quantifiers::TermDb::getTermDepth( n );
+      return quantifiers::TermUtil::getTermDepth( n );
     }
   }
 }

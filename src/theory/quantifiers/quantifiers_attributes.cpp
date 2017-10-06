@@ -16,10 +16,10 @@
 
 #include "theory/quantifiers_engine.h"
 #include "options/quantifiers_options.h"
-
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/fun_def_engine.h"
 #include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace std;
 using namespace CVC4;

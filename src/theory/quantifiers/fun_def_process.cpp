@@ -19,6 +19,7 @@
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "proof/proof_manager.h"
 
 using namespace CVC4;

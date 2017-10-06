@@ -43,6 +43,7 @@
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/anti_skolem.h"
@@ -83,6 +84,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_util.push_back( d_term_db );
   
+  d_term_util = new quantifiers::TermUtil( this );
+  
   if (options::ceGuidedInst()) {
     d_sygus_tdb = new quantifiers::TermDbSygus(c, this);
   }else{
@@ -112,7 +115,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_hasAddedLemma = false;
   d_useModelEe = false;
   //don't add true lemma
-  d_lemmas_produced_c[d_term_db->d_true] = true;
+  d_lemmas_produced_c[d_term_util->d_true] = true;
 
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
@@ -184,6 +187,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_tr_trie;
   delete d_term_db;
   delete d_sygus_tdb;
+  delete d_term_util;
   delete d_eq_inference;
   delete d_eq_query;
   delete d_sg_gen;
@@ -356,7 +360,7 @@ bool QuantifiersEngine::isFiniteBound( Node q, Node v ) {
     TypeNode tn = v.getType();
     if( tn.isSort() && options::finiteModelFind() ){
       return true;
-    }else if( getTermDatabase()->mayComplete( tn ) ){
+    }else if( getTermUtil()->mayComplete( tn ) ){
       return true;
     }
   }
@@ -736,9 +740,16 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       d_quants[f] = false;
       return false;
     }else{
-      //make instantiation constants for f
-      d_term_db->makeInstantiationConstantsFor( f );
+      // register with utilities : TODO (#1163) make this a standard call
+      
+      d_term_util->registerQuantifier( f );
+      d_term_db->registerQuantifier( f );
       d_quant_attr->computeAttributes( f );
+      //register with quantifier relevance
+      if( d_quant_rel ){
+        d_quant_rel->registerQuantifier( f );
+      }
+      
       for( unsigned i=0; i<d_modules.size(); i++ ){
         Trace("quant-debug") << "pre-register with " << d_modules[i]->identify() << "..." << std::endl;
         d_modules[i]->preRegisterQuantifier( f );
@@ -747,17 +758,13 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       if( qm!=NULL ){
         Trace("quant") << "   Owner : " << qm->identify() << std::endl;
       }
-      //register with quantifier relevance
-      if( d_quant_rel ){
-        d_quant_rel->registerQuantifier( f );
-      }
       //register with each module
       for( unsigned i=0; i<d_modules.size(); i++ ){
         Trace("quant-debug") << "register with " << d_modules[i]->identify() << "..." << std::endl;
         d_modules[i]->registerQuantifier( f );
       }
       //TODO: remove this
-      Node ceBody = d_term_db->getInstConstantBody( f );
+      Node ceBody = d_term_util->getInstConstantBody( f );
       //also register it with the strong solver
       //if( options::finiteModelFind() ){
       //  ((uf::TheoryUF*)d_te->theoryOf( THEORY_UF ))->getStrongSolver()->registerQuantifier( f );
@@ -786,7 +793,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     if( !reduceQuantifier( f ) ){
       //do skolemization
       if( d_skolemized.find( f )==d_skolemized.end() ){
-        Node body = d_term_db->getSkolemizedBody( f );
+        Node body = d_term_util->getSkolemizedBody( f );
         NodeBuilder<> nb(kind::OR);
         nb << f << body.notNode();
         Node lem = nb;
@@ -806,7 +813,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
       for( unsigned i=0; i<d_modules.size(); i++ ){
         d_modules[i]->assertNode( f );
       }
-      addTermToDatabase( d_term_db->getInstConstantBody( f ), true );
+      addTermToDatabase( d_term_util->getInstConstantBody( f ), true );
     }
   }
 }
@@ -962,7 +969,7 @@ Node QuantifiersEngine::getSubstitute( Node n, std::vector< Node >& terms, std::
       Debug("check-inst") << "Substitute inst constant : " << n << std::endl;
       ret = terms[n.getAttribute(InstVarNumAttribute())];
     }else{
-      //if( !quantifiers::TermDb::hasInstConstAttr( n ) ){
+      //if( !quantifiers::TermUtil::hasInstConstAttr( n ) ){
         //Debug("check-inst") << "No inst const attr : " << n << std::endl;
         //return n;
       //}else{
@@ -1013,7 +1020,7 @@ Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& vars, std
       body = q[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
     }else{
       //do optimized version
-      Node icb = d_term_db->getInstConstantBody( q );
+      Node icb = d_term_util->getInstConstantBody( q );
       std::map< Node, Node > visited;
       body = getSubstitute( icb, terms, visited );
       if( Debug.isOn("check-inst") ){
@@ -1028,7 +1035,7 @@ Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& vars, std
     //do virtual term substitution
     body = Rewriter::rewrite( body );
     Trace("quant-vts-debug") << "Rewrite vts symbols in " << body << std::endl;
-    Node body_r = d_term_db->rewriteVtsSymbols( body );
+    Node body_r = d_term_util->rewriteVtsSymbols( body );
     Trace("quant-vts-debug") << "            ...result: " << body_r << std::endl;
     body = body_r;
   }
@@ -1043,8 +1050,8 @@ Node QuantifiersEngine::getInstantiation( Node q, InstMatch& m, bool doVts ){
 }
 
 Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& terms, bool doVts ) {
-  Assert( d_term_db->d_vars.find( q )!=d_term_db->d_vars.end() );
-  return getInstantiation( q, d_term_db->d_vars[q], terms, doVts );
+  Assert( d_term_util->d_vars.find( q )!=d_term_util->d_vars.end() );
+  return getInstantiation( q, d_term_util->d_vars[q], terms, doVts );
 }
 
 /*
@@ -1129,7 +1136,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       terms[i] = getInternalRepresentative( terms[i], q, i );
     }else{
       //ensure the type is correct
-      terms[i] = quantifiers::TermDb::ensureType( terms[i], q[0][i].getType() );
+      terms[i] = quantifiers::TermUtil::ensureType( terms[i], q[0][i].getType() );
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if( terms[i].isNull() ){
@@ -1138,24 +1145,24 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     }else{
       //get relevancy conditions
       if( options::instRelevantCond() ){
-        quantifiers::TermDb::getRelevancyCondition( terms[i], rlv_cond );
+        quantifiers::TermUtil::getRelevancyCondition( terms[i], rlv_cond );
       }
     }
 #ifdef CVC4_ASSERTIONS
     bool bad_inst = false;
-    if( quantifiers::TermDb::containsUninterpretedConstant( terms[i] ) ){
+    if( quantifiers::TermUtil::containsUninterpretedConstant( terms[i] ) ){
       Trace("inst") << "***& inst contains uninterpreted constant : " << terms[i] << std::endl;
       bad_inst = true;
     }else if( !terms[i].getType().isSubtypeOf( q[0][i].getType() ) ){
       Trace("inst") << "***& inst bad type : " << terms[i] << " " << terms[i].getType() << "/" << q[0][i].getType() << std::endl;
       bad_inst = true;
     }else if( options::cbqi() ){
-      Node icf = quantifiers::TermDb::getInstConstAttr(terms[i]);
+      Node icf = quantifiers::TermUtil::getInstConstAttr(terms[i]);
       if( !icf.isNull() ){
         if( icf==q ){
           Trace("inst") << "***& inst contains inst constant attr : " << terms[i] << std::endl;
           bad_inst = true;
-        }else if( quantifiers::TermDb::containsTerms( terms[i], d_term_db->d_inst_constants[q] ) ){
+        }else if( quantifiers::TermUtil::containsTerms( terms[i], d_term_util->d_inst_constants[q] ) ){
           Trace("inst") << "***& inst contains inst constants : " << terms[i] << std::endl;
           bad_inst = true;
         }
@@ -1208,8 +1215,8 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
 
   //construct the instantiation
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
-  Assert( d_term_db->d_vars[q].size()==terms.size() );
-  Node body = getInstantiation( q, d_term_db->d_vars[q], terms, doVts );  //do virtual term substitution
+  Assert( d_term_util->d_vars[q].size()==terms.size() );
+  Node body = getInstantiation( q, d_term_util->d_vars[q], terms, doVts );  //do virtual term substitution
   Node orig_body = body;
   if( options::cbqiNestedQE() && d_i_cbqi ){
     body = d_i_cbqi->doNestedQE( q, terms, body, doVts );
@@ -1223,7 +1230,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   
   if( d_useModelEe && options::instNoModelTrue() ){
     Node val_body = d_model->getValue( body );
-    if( val_body==d_term_db->d_true ){
+    if( val_body==d_term_util->d_true ){
       Trace("inst-add-debug") << " --> True in model." << std::endl;
       ++(d_statistics.d_inst_duplicate_model_true);
       return false;
@@ -1510,9 +1517,9 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
     printed = true;
     out << "(skolem " << q << std::endl;
     out << "  ( ";
-    for( unsigned i=0; i<d_term_db->d_skolem_constants[q].size(); i++ ){
+    for( unsigned i=0; i<d_term_util->d_skolem_constants[q].size(); i++ ){
       if( i>0 ){ out << " "; }
-      out << d_term_db->d_skolem_constants[q][i];
+      out << d_term_util->d_skolem_constants[q][i];
     }
     out << " )" << std::endl;
     out << ")" << std::endl;
@@ -1610,7 +1617,7 @@ Node QuantifiersEngine::getInstantiatedConjunction( Node q ) {
     }
     //have to remove q, TODO: avoid this in a better way
     TNode tq = q;
-    TNode tt = d_term_db->d_true;
+    TNode tt = d_term_util->d_true;
     ret = ret.substitute( tq, tt );
     return ret;
   }

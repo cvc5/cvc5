@@ -52,6 +52,7 @@ namespace quantifiers {
   //utilities
   class TermDb;
   class TermDbSygus;
+  class TermUtil;
   class FirstOrderModel;
   class QuantAttributes;
   class RelevantDomain;
@@ -196,6 +197,8 @@ private:
   quantifiers::TermDb* d_term_db;
   /** term database */
   quantifiers::TermDbSygus* d_sygus_tdb;
+  /** term utilities */
+  quantifiers::TermUtil* d_term_util;
   /** quantifiers attributes */
   quantifiers::QuantAttributes* d_quant_attr;
   /** all triggers will be stored in this trie */
@@ -373,6 +376,8 @@ public:
   quantifiers::TermDb* getTermDatabase() { return d_term_db; }
   /** get term database sygus */
   quantifiers::TermDbSygus * getTermDatabaseSygus() { return d_sygus_tdb; }
+  /** get term utilities */
+  quantifiers::TermUtil* getTermUtil() { return d_term_util; }
   /** get quantifiers attributes */
   quantifiers::QuantAttributes* getQuantAttributes() { return d_quant_attr; }
   /** get trigger database */

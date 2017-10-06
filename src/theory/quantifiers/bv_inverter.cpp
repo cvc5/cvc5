@@ -17,7 +17,8 @@
 #include <algorithm>
 #include <stack>
 
-#include "theory/quantifiers/term_database.h"
+#include "theory/rewriter.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

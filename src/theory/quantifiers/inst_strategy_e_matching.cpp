@@ -17,6 +17,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -282,14 +283,14 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     if( options::quantFunWellDefined() ){
       Node hd = QuantAttributes::getFunDefHead( f );
       if( !hd.isNull() ){
-        hd = d_quantEngine->getTermDatabase()->getInstConstantNode( hd, f );
+        hd = d_quantEngine->getTermUtil()->getInstConstantNode( hd, f );
         patTermsF.push_back( hd );
         tinfo[hd].init( f, hd );
       }
     }
     //otherwise, use algorithm for collecting pattern terms
     if( patTermsF.empty() ){
-      Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
+      Node bd = d_quantEngine->getTermUtil()->getInstConstantBody( f );
       Trigger::collectPatTerms( f, bd, patTermsF, d_tr_strategy, d_user_no_gen[f], tinfo, true );
       if( ntrivTriggers ){
         sortTriggers st;
@@ -333,7 +334,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       if( options::partialTriggers() ){
         std::vector< Node > vcs[2];
         for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-          Node ic = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i );
+          Node ic = d_quantEngine->getTermUtil()->getInstantiationConstant( f, i );
           vcs[ vcMap.find( ic )==vcMap.end() ? 0 : 1 ].push_back( f[0][i] );
         }
         for( unsigned i=0; i<2; i++ ){
@@ -507,7 +508,7 @@ void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
   if( tr ){
     if( d_num_trigger_vars[q]<q[0].getNumChildren() ){
       //partial trigger : generate implication to mark user pattern
-      Node ipl = NodeManager::currentNM()->mkNode( INST_PATTERN_LIST, d_quantEngine->getTermDatabase()->getVariableNode( tr->getInstPattern(), q ) );
+      Node ipl = NodeManager::currentNM()->mkNode( INST_PATTERN_LIST, d_quantEngine->getTermUtil()->getVariableNode( tr->getInstPattern(), q ) );
       Node qq = NodeManager::currentNM()->mkNode( FORALL, d_vc_partition[1][q], NodeManager::currentNM()->mkNode( FORALL, d_vc_partition[0][q], q[1] ), ipl );
       Trace("auto-gen-trigger-partial") << "Make partially specified user pattern: " << std::endl;
       Trace("auto-gen-trigger-partial") << "  " << qq << std::endl;
@@ -568,7 +569,7 @@ bool InstStrategyLocalTheoryExt::isLocalTheoryExt( Node f ) {
   std::map< Node, bool >::iterator itq = d_quant.find( f );
   if( itq==d_quant.end() ){
     //generate triggers
-    Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
+    Node bd = d_quantEngine->getTermUtil()->getInstConstantBody( f );
     std::vector< Node > vars;
     std::vector< Node > patTerms;
     bool ret = Trigger::isLocalTheoryExt( bd, vars, patTerms );
@@ -576,7 +577,7 @@ bool InstStrategyLocalTheoryExt::isLocalTheoryExt( Node f ) {
       d_quant[f] = ret;
       //add all variables to trigger that don't already occur
       for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-        Node x = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i );
+        Node x = d_quantEngine->getTermUtil()->getInstantiationConstant( f, i );
         if( std::find( vars.begin(), vars.end(), x )==vars.end() ){
           patTerms.push_back( x );
         }
@@ -699,7 +700,7 @@ bool FullSaturation::process( Node f, bool fullEffort ){
             std::map< Node, Node > reps_found;
             for( unsigned j=0; j<ts; j++ ){
               Node gt = d_quantEngine->getTermDatabase()->getTypeGroundTerm( ftypes[i], j );
-              if( !options::cbqi() || !quantifiers::TermDb::hasInstConstAttr( gt ) ){
+              if( !options::cbqi() || !quantifiers::TermUtil::hasInstConstAttr( gt ) ){
                 Node r = d_quantEngine->getEqualityQuery()->getRepresentative( gt );
                 if( reps_found.find( r )==reps_found.end() ){
                   reps_found[r] = gt;
