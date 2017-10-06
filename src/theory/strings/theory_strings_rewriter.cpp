@@ -1395,12 +1395,12 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   if( node[0] == node[1] ){
     return NodeManager::currentNM()->mkConst( true );
   }else if( node[0].isConst() ){
+    CVC4::String s = node[0].getConst<String>();
     if( node[1].isConst() ){
-      CVC4::String s = node[0].getConst<String>();
       CVC4::String t = node[1].getConst<String>();
       return NodeManager::currentNM()->mkConst( s.find(t)!=std::string::npos );
     }else{
-      if( node[0].getConst<String>().size()==0 ){
+      if( s.size()==0 ){
         return NodeManager::currentNM()->mkNode( kind::EQUAL, node[0], node[1] );
       }else if( node[1].getKind()==kind::STRING_CONCAT ){
         int firstc, lastc;
@@ -1415,6 +1415,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     std::vector< Node > nc2;
     getConcat( node[1], nc2 );
     std::vector< Node > nr;
+    
     //component-wise containment
     if( componentContains( nc1, nc2, nr )!=-1 ){
       return NodeManager::currentNM()->mkConst( true );
@@ -1426,6 +1427,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     if( stripConstantEndpoints( nc1, nc2, nb, ne ) ){
       return NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, nc1 ), node[1] );
     }
+    Trace("ajr-temp") << "No constant endpoints for " << node[0] << " " << node[1] << std::endl;
 
     //splitting
     if( node[1].isConst() ){
@@ -1449,15 +1451,6 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
             }
           }
         }
-      }
-    }
-  }else if( node[0].isConst() ){
-    if( node[0].getConst<String>().size()==0 ){
-      return NodeManager::currentNM()->mkNode( kind::EQUAL, node[0], node[1] );
-    }else if( node[1].getKind()==kind::STRING_CONCAT ){
-      int firstc, lastc;
-      if( !canConstantContainConcat( node[0], node[1], firstc, lastc ) ){
-        return NodeManager::currentNM()->mkConst( false );
       }
     }
   }
@@ -1735,9 +1728,6 @@ Node TheoryStringsRewriter::collectConstantStringAt( std::vector< Node >& vec, u
   }
 }
 
-
-// if returns n>0, then n1 = { x1...x{n-1} xn...x{n+s} x{n+s+1}...xm }, n2 = { y1...ys }, where y1 suffix of xn, y2...y{s-1} = x{n+1}...x{n+s-1}, ys is prefix of x{n+s}
-//                 if computeRemainder = true, then n1 is updated to { x1...x{n-1} xn...ys }, nr is { ( x{n+s} \ ys ) x{n+s+1}...xm }
 int TheoryStringsRewriter::componentContains( std::vector< Node >& n1, std::vector< Node >& n2, std::vector< Node >& nr, bool computeRemainder ){
   if( n2.size()==1 && n2[0].isConst() ){
     CVC4::String t = n2[0].getConst<String>();
@@ -1812,50 +1802,110 @@ int TheoryStringsRewriter::componentContains( std::vector< Node >& n1, std::vect
 }
 
 bool TheoryStringsRewriter::stripConstantEndpoints( std::vector< Node >& n1, std::vector< Node >& n2,
-                                                   std::vector< Node >& nb, std::vector< Node >& ne, int dir ) {
+                                                    std::vector< Node >& nb, std::vector< Node >& ne, int dir ) {
   bool changed = false;
   for( unsigned r=0; r<2; r++ ){
     if( dir==0 || ( r==0 && dir==-1 ) || ( r==1 && dir==1 ) ){
       unsigned index0 = r==0 ? 0 : n1.size()-1;
       unsigned index1 = r==0 ? 0 : n2.size()-1;
-      if( n1[index0].isConst() && n2[index1].isConst() ){
+      bool removeComponent = false;
+      Trace("strings-rewrite-debug2") << "stripConstantEndpoints : Compare " << n1[index0] << " " << n2[index1] << ", dir = " << dir << std::endl;
+      if( n1[index0].isConst() ){
         CVC4::String s = n1[index0].getConst<String>();
-        CVC4::String t = n2[index1].getConst<String>();
-        std::size_t ret = s.find( t );
-        if( ret==std::string::npos ) {
-          if( n1.size()==1 ){
-            //can drop everything : it is not contained
-            if( r==0 ){
-              nb.push_back( n1[0] );
+        // overlap is an overapproximation of the number of characters n2[index1] can match in s
+        unsigned overlap = s.size();
+        if( n2[index1].isConst() ){
+          CVC4::String t = n2[index1].getConst<String>();
+          std::size_t ret = s.find( t );
+          if( ret==std::string::npos ) {
+            if( n1.size()==1 ){
+              // can remove everything
+              //   e.g. str.contains( "abc", str.++( "ba", x ) ) --> str.contains( "", str.++( "ba", x ) )
+              removeComponent = true;
             }else{
-              ne.push_back( n1[0] );
+              //check how much overlap there is
+              overlap = r==0 ? s.overlap(t) : t.overlap(s);
             }
-            n1.clear();
-            return true;
           }else{
-            //check overlap
-            if( r==0 ){
-              if( s.overlap(t)==0 ){
-                //can drop first component
-                nb.insert( nb.end(), n1.begin(), n1.begin() + 1 );
-                n1.erase( n1.begin(), n1.begin() + 1 );
-                changed = true;
-              }
+            // should catch case of this containment in componentContain
+            Assert( n2.size()>1 );
+          }
+        }else if( n2[index1].getKind()==kind::STRING_ITOS ){
+          const std::vector<unsigned>& svec = s.getVec();
+          // can remove up to the first occurrence of a non-digit
+          for( unsigned i=0; i<svec.size(); i++ ){
+            unsigned sindex = r==0 ? i : svec.size()-i;
+            if(String::isDigit(svec[sindex])) {
+              break;
             }else{
-              Assert( r==1 );
-              if( t.overlap(s)==0 ){
-                //can drop last argument
-                ne.insert( ne.end(), n1.end() - 1, n1.end() );
-                n1.erase( n1.end() - 1, n1.end() );
-                changed = true;
-              }
+              // e.g. str.contains( str.++( "a", x ), str.to.int(y) ) --> str.contains( x, str.to.int(y) )
+              overlap--;
             }
           }
         }else{
           //inconclusive
         }
-      }else{
-        
+        // process the overlap
+        if( overlap<s.size() ){
+          changed = true;
+          if( overlap==0 ){
+            removeComponent = true;
+          }else{
+            // can drop the prefix (resp. suffix) from the first (resp. last) component
+            if( r==0 ){
+              nb.push_back( NodeManager::currentNM()->mkConst(s.prefix(overlap)) );
+              n1[index0] = NodeManager::currentNM()->mkConst(s.suffix(overlap));
+            }else{
+              ne.push_back( NodeManager::currentNM()->mkConst(s.suffix(overlap)) );
+              n1[index0] = NodeManager::currentNM()->mkConst(s.prefix(overlap));
+            }
+          }
+        }
+      }else if( n1[index0].getKind()==kind::STRING_ITOS ){
+        if( n2[index1].isConst() ){
+          CVC4::String t = n2[index1].getConst<String>();
+          const std::vector<unsigned>& tvec = t.getVec();
+          removeComponent = n1.size()>1;
+          // if n1.size()==1, then if n2[index1] contains a non-digit, we can drop the entire component
+          //    e.g. str.contains( str.to.int(x), "123a45") --> false
+          // if n1.size()>1, then if n2[index1] does not contain a digit, we can drop the entire component
+          //    e.g. str.contains( str.++( str.to.int(x), y ), "abc") --> str.contains( y, "abc" )
+          for( unsigned i=0; i<tvec.size(); i++ ){
+            if(String::isDigit(tvec[i])) {
+              if(n1.size()>1) {
+                removeComponent = false;
+                break;
+              }
+            }else{
+              if(n1.size()==1) {
+                removeComponent = true;
+                return true;
+              }
+            }
+          }
+        }
+      }
+      if( removeComponent ){
+        if( n1.size()==1 ){
+          //can drop everything : it is not contained
+          if( r==0 ){
+            nb.push_back( n1[0] );
+          }else{
+            ne.push_back( n1[0] );
+          }
+          n1.clear();
+          return true;
+        }else{
+          changed = true;
+          //can drop entire first (resp. last) component
+          if( r==0 ){
+            nb.push_back( n1[index0] );
+            n1.erase( n1.begin(), n1.begin() + 1 );
+          }else{
+            ne.push_back( n1[index0] );
+            n1.pop_back();
+          }
+        }
       }
     }
   }
