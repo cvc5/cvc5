@@ -62,12 +62,14 @@ class HigherOrderTrigger;
 /** A collection of nodes representing a trigger. 
 *
 * This class is a wrapper around an underlying IMGenerator class, which implements various forms 
-* of matching. To use a Trigger * t in a full effort check, we do the following :
+* of matching. To use a Trigger* t in a full effort check, we do the following :
 *
 * t->resetInstantiationRound();      // setup initial information
 * t->reset( Node::null() );          // will produce matches 
 * InstMatch baseMatch;
-* t->addInstaitiations( baseMatch ); // add all instantiations 
+* t->addInstaitiations( baseMatch ); // add all instantiations based on the current context
+*
+* For more details, see functions below.
 */
 class Trigger {
   friend class IMGenerator;
@@ -81,15 +83,16 @@ public:
   */
   void resetInstantiationRound();
   /** Reset the trigger.
-  * eqc is the equivalence class to search in (any if eqc=null).
+  * eqc is the equivalence class to search in, or any equivalence class if eqc=null.
   */
   void reset( Node eqc );
-  /** get next match.  must call reset( eqc ) once before this function. */
+  /** get next match.  Must call reset( eqc ) once before this function. */
   bool getNextMatch( Node f, InstMatch& m );
   /** add all available instantiations, based on the current context
   *
   * This function makes the appropriate class to d_qe->addInstantiation(...) based on the current
-  * ground terms and equalities in the current context, via queries to functions in d_qe.
+  * ground terms and equalities in the current context, via queries to functions in d_qe. Typically,
+  * this is implemented as a fixed point of getNextMatch within the underlying IMGenerator.
   *
   * baseMatch is a mapping of default values that should be used for variables that are not bound by this (not frequently used).
   */
