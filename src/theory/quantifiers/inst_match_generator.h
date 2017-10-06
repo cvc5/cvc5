@@ -53,7 +53,7 @@ public:
   *
   * eqc is the equivalence class to search in (any if eqc=null).
   *
-  * Returns true if 
+  * Returns true if it is possible that this generator can produce instantiations.
   */
   virtual bool reset( Node eqc, QuantifiersEngine* qe ) = 0;
   /** Get the next match.
@@ -74,7 +74,10 @@ public:
   * baseMatch is a mapping of default values that should be used for variables that are not bound by this (not frequently used).
   */
   virtual int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe, Trigger * tparent ) = 0;
-  /** active add */
+  /** active add flag
+  *
+  * 
+  */
   virtual void setActiveAdd( bool val ) {}
   /** get active score 
   *
@@ -107,10 +110,19 @@ class CandidateGenerator;
 *
 * ground context : P( a, a, a, a ) = true, a = f( c_1 ) = ... = f( c_100 )
 *
-* If E-matching were applied exhaustively, then x1,x2,x3,x4 would be instantiated with all combinations of c_1...c_100, giving 100^4 instantiations.
+* If E-matching were applied exhaustively, then x1, x2, x3, x4 would be instantiated with all combinations of c_1, ... c_100, giving 100^4 instantiations.
 *
 * Instead, we enforce that at most 1 instantiation is produced for a ( pattern, ground term ) pair per round. Meaning, only one instantiation is generated
 * when matching P( a, a, a, a ) and P( f( x1 ), f( x2 ), f( x3 ), f( x4 ) ).
+*
+* A number of special cases of triggers are covered by this generator (see implementation of initialize), including :
+*   Literal triggers, e.g. x >= a, ~x = y
+*   Purified triggers, e.g. selector triggers head( x ), and simple invertible triggers e.g. x+1
+*   Variable triggers, e.g. x
+*
+* All triggers above can be in the context of an equality, e.g.
+* { f( y, f( x, a ) ) = b } is a trigger that matches f( y, f( x, a ) ) to ground terms in the equivalence class of b.
+* { ~f( y, f( x, a ) ) = b } is a trigger that matches f( y, f( x, a ) ) to any ground terms not in the equivalence class of b.
 */
 class InstMatchGenerator : public IMGenerator {
 protected:
@@ -335,6 +347,9 @@ public:
 *
 * This is the default generator class for simple single triggers.
 * For example, { f( x, a ) }, { f( x, x ) } and { f( x, y ) } are simple triggers.
+*
+* Notice that simple triggers also can have an attached polarity.
+* For example, { f( x, y ) = a } and { ~f( a, x ) = b } are simple triggers.
 *
 * The implementation traverses the term indices in TermDatabase for adding instantiations,
 * which is more efficient than the techniques required for handling non-simple triggers.
