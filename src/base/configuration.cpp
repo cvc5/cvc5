@@ -17,7 +17,6 @@
  **/
 #include "base/configuration.h"
 
-#include <gmp.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -27,14 +26,6 @@
 #include "cvc4autoconfig.h"
 #include "base/configuration_private.h"
 
-#if IS_GLPK_BUILD
-#include <glpk.h>
-#endif
-
-#if IS_CLN_BUILD
-#include <cln/version.h>
-#endif
-
 #if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
 #  include "base/Debug_tags.h"
 #endif /* CVC4_DEBUG && CVC4_TRACING */
@@ -42,7 +33,6 @@
 #ifdef CVC4_TRACING
 #  include "base/Trace_tags.h"
 #endif /* CVC4_TRACING */
-
 
 using namespace std;
 
