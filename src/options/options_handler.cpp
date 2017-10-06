@@ -1374,13 +1374,6 @@ void OptionsHandler::notifySetPrintExprTypes(std::string option) {
 #define PRINT_CONFIG(str,cond) \
   (printf("%s: %s\n", (str), (cond) ? "yes" : "no"))
 
-#define PRINT_CONFIGV(str,cond,version) \
-  do {\
-    printf ("%s: ", str); \
-    if (cond) printf("yes (%s)\n", (version)); \
-    else printf("no\n"); \
-  } while (0)
-
 void OptionsHandler::copyright(std::string option) {
   printf("%s\n", Configuration::copyright().c_str());
   exit(0);
