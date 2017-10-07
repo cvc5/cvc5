@@ -22,10 +22,6 @@
 #include "base/output.h"
 #include "expr/attribute.h"
 
-// FIXME : can be removed if we properly handle #1205
-#include "theory/quantifiers/term_util.h"
-
-
 using namespace std;
 
 namespace CVC4 {
@@ -113,16 +109,6 @@ bool NodeTemplate<ref_count>::hasBoundVar() {
     } else {
       for(iterator i = begin(); i != end() && !hasBv; ++i) {
         hasBv = (*i).hasBoundVar();
-      }
-      if( !hasBv ){
-        //FIXME : this is a hack to handle synthesis conjectures (issue #1205)
-        // the issue is that we represent second-order quantification in synthesis conjectures via a Node:
-        //  exists x forall y P[f,y], where x is a dummy variable that maps to f through attribute SygusSynthFunVarListAttributeId
-        //  when asked whether a node has a bound variable, we want to treat f as if it were a bound (second-order) variable. -AJR
-        // This can be solved once higher-order is merged by doing explicit higher-order quantification.
-        if( getKind()==kind::APPLY_UF && getOperator().hasAttribute(theory::SygusSynthFunVarListAttribute()) ){
-          hasBv = true;
-        }
       }
     }
     setAttribute(HasBoundVarAttr(), hasBv);
