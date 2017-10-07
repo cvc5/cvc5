@@ -55,7 +55,7 @@ public:
   static inline void shutdown() {}
 
   /** rewrite contains
-  * This is the entry point for post-rewriting terms n of the form str.contains( t )
+  * This is the entry point for post-rewriting terms n of the form str.contains( t, s )
   * Returns the rewritten form of n.
   *
   * For details on some of the basic rewrites done in this function, see Figure 7 of Reynolds et al
@@ -76,10 +76,26 @@ public:
   static void getConcat( Node n, std::vector< Node >& c );
   static Node mkConcat( Kind k, std::vector< Node >& c );
   static Node splitConstant( Node a, Node b, int& index, bool isRev );
-  /** return true if constant c can contain the concat n/list l in order 
-      firstc/lastc store which indices were used */
-  static bool canConstantContainConcat( Node c, Node n, int& firstc, int& lastc );
+  /** can constant contain list
+   * return true if constant c can contain the list l in order
+   * firstc/lastc store which indices in l were used to determine the return value. 
+   *   (This is typically used when this function returns false, for minimizing explanations)
+   *
+   * For example:
+   *   canConstantContainList( "abc", { x, "c", y } ) returns true
+   *     firstc/lastc are updated to 1/1
+   *   canConstantContainList( "abc", { x, "d", y } ) returns false
+   *     firstc/lastc are updated to 1/1
+   *   canConstantContainList( "abcdef", { x, "b", y, "a", z, "c", w } returns false
+   *     firstc/lastc are updated to 1/3
+   *   canConstantContainList( "abcdef", { x, "b", y, "e", z, "c", w } returns false
+   *     firstc/lastc are updated to 1/5
+   */
   static bool canConstantContainList( Node c, std::vector< Node >& l, int& firstc, int& lastc );
+  /** can constant contain concat 
+  * same as above but with n = str.++( l ) instead of l
+  */
+  static bool canConstantContainConcat( Node c, Node n, int& firstc, int& lastc );
   static Node getNextConstantAt( std::vector< Node >& vec, unsigned& start_index, unsigned& end_index, bool isRev );
   static Node collectConstantStringAt( std::vector< Node >& vec, unsigned& end_index, bool isRev );
   

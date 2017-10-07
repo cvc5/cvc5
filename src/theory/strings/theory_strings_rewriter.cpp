@@ -1409,27 +1409,28 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
         }
       }
     }
-  }else if( node[0].getKind()==kind::STRING_CONCAT ){
-    std::vector< Node > nc1;
-    getConcat( node[0], nc1 );
-    std::vector< Node > nc2;
-    getConcat( node[1], nc2 );
-    std::vector< Node > nr;
-    
-    //component-wise containment
-    if( componentContains( nc1, nc2, nr )!=-1 ){
-      return NodeManager::currentNM()->mkConst( true );
-    }
-    
-    //strip endpoints
-    std::vector< Node > nb;
-    std::vector< Node > ne;
-    if( stripConstantEndpoints( nc1, nc2, nb, ne ) ){
-      return NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, nc1 ), node[1] );
-    }
-    Trace("ajr-temp") << "No constant endpoints for " << node[0] << " " << node[1] << std::endl;
+  }
+  std::vector< Node > nc1;
+  getConcat( node[0], nc1 );
+  std::vector< Node > nc2;
+  getConcat( node[1], nc2 );
+  std::vector< Node > nr;
+  
+  //component-wise containment
+  if( componentContains( nc1, nc2, nr )!=-1 ){
+    return NodeManager::currentNM()->mkConst( true );
+  }
+  
+  //strip endpoints
+  std::vector< Node > nb;
+  std::vector< Node > ne;
+  if( stripConstantEndpoints( nc1, nc2, nb, ne ) ){
+    return NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, nc1 ), node[1] );
+  }
+  Trace("strings-rewrite-debug2") << "No constant endpoints for " << node[0] << " " << node[1] << std::endl;
 
-    //splitting
+  //splitting
+  if( node[0].getKind()==kind::STRING_CONCAT ){
     if( node[1].isConst() ){
       CVC4::String t = node[1].getConst<String>();
       for(unsigned i=1; i<(node[0].getNumChildren()-1); i++){
