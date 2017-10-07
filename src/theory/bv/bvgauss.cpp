@@ -217,17 +217,50 @@ BVGaussElim::gaussElimRewriteForUrem (
       {
         tmp[n] = utils::mkOne(utils::getSize(n));
       }
-      else if (k == kind::BITVECTOR_MULT && n.getNumChildren() == 2)
+      else if (k == kind::BITVECTOR_MULT)
       {
-        CVC4::Kind kn0 = n[0].getKind();
-        CVC4::Kind kn1 = n[1].getKind();
-        if (kn0 == kind::CONST_BITVECTOR && kn1 == kind::VARIABLE)
+        unsigned nchild = n.getNumChildren();
+        Node n0, n1;
+
+        if (nchild == 2)
         {
-          tmp[n[1]] = n[0];
+          n0 = n[0];
+          n1 = n[1];
         }
-        else if (kn0 == kind::VARIABLE && kn1 == kind::CONST_BITVECTOR)
+        else
         {
-          tmp[n[0]] = n[1];
+          NodeBuilder<> nb (NodeManager::currentNM(), k);
+
+          for (size_t j = 0; j < nchild; ++j)
+          {
+            if (n0 == Node::null()
+                && n[j].getKind() == kind::CONST_BITVECTOR)
+            {
+              n0 = n[j];
+            }
+            else
+            {
+              nb << n[j];
+            }
+          }
+          if (n0 == Node::null())
+          {
+            isvalid = false;
+            break;
+          }
+          n1 = nb.constructNode();
+        }
+        CVC4::Kind kn0 = n0.getKind();
+        CVC4::Kind kn1 = n1.getKind();
+        if (kn0 == kind::CONST_BITVECTOR)
+        {
+          Assert (kn1 != kind::CONST_BITVECTOR);
+          tmp[n1] = n0;
+        }
+        else if (kn1 == kind::CONST_BITVECTOR)
+        {
+          Assert (kn0 != kind::CONST_BITVECTOR);
+          tmp[n0] = n1;
         }
         else
         {
@@ -243,6 +276,8 @@ BVGaussElim::gaussElimRewriteForUrem (
     }
 
     if (!isvalid) return BVGaussElim::Result::NONE;
+
+    // Note: "var" is not necessarily a VARIABLE but can be an arbitrary expr
 
     for (auto p : tmp)
     {
@@ -263,7 +298,7 @@ BVGaussElim::gaussElimRewriteForUrem (
     for (auto p : vars)
       Assert (p.second.size() == rowsize);
 #endif
-  } 
+  }
 
   for (size_t i = 0; i < neqs; ++i)
   {
@@ -331,7 +366,7 @@ BVGaussElim::gaussElimRewriteForUrem (
           if (resrhs[prow] == 0)
             tmp = nm->mkNode (kind::BITVECTOR_NEG, tmp);
           else
-            tmp = nm->mkNode (kind::BITVECTOR_SUB, 
+            tmp = nm->mkNode (kind::BITVECTOR_SUB,
                 nm->mkConst< BitVector >(
                   BitVector (utils::getSize(vvars[pcol]), resrhs[prow])),
                 tmp);
