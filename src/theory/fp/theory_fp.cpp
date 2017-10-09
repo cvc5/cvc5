@@ -18,7 +18,10 @@
 #include "theory/fp/theory_fp.h"
 #include "theory/theory_model.h"
 
+#include <set>
 #include <stack>
+#include <unordered_set>
+#include <vector>
 
 using namespace std;
 
@@ -428,6 +431,7 @@ void TheoryFp::registerTerm(TNode node) {
 
   if (!isRegistered(node)) {
     bool success = d_registeredTerms.insert(node);
+    (void)success;  // Only used for assertion
     Assert(success);
 
     // Add to the equality engine
@@ -591,7 +595,7 @@ void TheoryFp::collectModelInfo(TheoryModel *m) {
     }
   }
 
-  std::set<TNode> visited;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
   std::stack<TNode> working;
   std::set<TNode> relevantVariables;
   for (std::set<Node>::const_iterator i(relevantTerms.begin());

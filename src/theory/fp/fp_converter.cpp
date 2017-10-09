@@ -1,22 +1,20 @@
 /*********************                                                        */
-/*! \file fp_converter.cpp
+/*! \file fp_convert.cpp
  ** \verbatim
- ** Original author: Martin Brain
- ** Major contributors:
- ** Minor contributors (to current version):
+ ** Top contributors (to current version):
+ **   Martin Brain
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2014  University of Oxford
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Conversion of floating-point operations to bit-vectors using
- ** symfpu. ]]
- **
+ ** \brief Conversion of floating-point operations to bit-vectors using symfpu.
  **/
 
-#include <stack>
-
 #include "theory/fp/fp_converter.h"
+
+#include <stack>
 
 namespace CVC4 {
 namespace theory {

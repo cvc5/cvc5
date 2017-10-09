@@ -20,6 +20,9 @@
 #ifndef __CVC4__THEORY__FP__THEORY_FP_H
 #define __CVC4__THEORY__FP__THEORY_FP_H
 
+#include <string>
+#include <utility>
+
 #include "context/cdo.h"
 #include "theory/fp/fp_converter.h"
 #include "theory/theory.h"

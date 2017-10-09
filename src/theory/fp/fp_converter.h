@@ -1,19 +1,19 @@
 /*********************                                                        */
 /*! \file fp_convert.h
  ** \verbatim
- ** Original author: Martin Brain
- ** Major contributors:
- ** Minor contributors (to current version):
+ ** Top contributors (to current version):
+ **   Martin Brain
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2014  University of Oxford
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Converts floating-point nodes to bit-vector expressions. ]]
+ ** \brief Converts floating-point nodes to bit-vector expressions.
  **
- ** [[ Uses the symfpu library to convert from floating-point operations
- **    to bit-vectors and propositions allowing the theory to be solved by
- **    'bit-blasting'. ]]
+ ** Uses the symfpu library to convert from floating-point operations to
+ ** bit-vectors and propositions allowing the theory to be solved by
+ ** 'bit-blasting'.
  **/
 
 #include "cvc4_private.h"
