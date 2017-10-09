@@ -24,6 +24,8 @@ using namespace CVC4::kind;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
+/* Drop child at given index from expression.
+ * E.g., dropChild((x + y + z), 1) -> (x + z)  */
 static Node dropChild (Node n, unsigned index)
 {
   unsigned nchildren = n.getNumChildren();
