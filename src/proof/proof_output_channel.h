@@ -18,28 +18,34 @@
 
 #include <unordered_set>
 
+#include "expr/node.h"
+#include "util/proof.h"
 #include "theory/output_channel.h"
 
 namespace CVC4 {
 
 class ProofOutputChannel : public theory::OutputChannel {
 public:
+  ProofOutputChannel();
+  virtual ~ProofOutputChannel() {}
+
+  void conflict(TNode n, Proof* pf = nullptr) override;
+  bool propagate(TNode x) override;
+  theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) override;
+  theory::LemmaStatus splitLemma(TNode, bool) override;
+  void requirePhase(TNode n, bool b) override;
+  bool flipDecision() override;
+  void setIncomplete() override;
+
+  Node getLastConflict() const { return d_conflict; }
+  Node getLastLemma() const { return d_lemma; }
+
+  Proof* mutable_proof();
+ private:
   Node d_conflict;
   Proof* d_proof;
   Node d_lemma;
   std::set<Node> d_propagations;
-
-  ProofOutputChannel();
-
-  virtual ~ProofOutputChannel() throw() {}
-
-  virtual void conflict(TNode n, Proof* pf) throw();
-  virtual bool propagate(TNode x) throw();
-  virtual theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool);
-  virtual theory::LemmaStatus splitLemma(TNode, bool);
-  virtual void requirePhase(TNode n, bool b) throw();
-  virtual bool flipDecision() throw();
-  virtual void setIncomplete() throw();
 };/* class ProofOutputChannel */
 
 class MyPreRegisterVisitor {
