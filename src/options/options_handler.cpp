@@ -1394,7 +1394,7 @@ void OptionsHandler::showConfiguration(std::string option) {
 
   if(Configuration::isGitBuild()) {
     const char* branchName = Configuration::getGitBranchName();
-    if(*branchName == '\0')  branchName = "-";
+    if(*branchName == '\0')  { branchName = "-"; }
     std::stringstream ss;
     ss << "git ["
        << branchName << " "
