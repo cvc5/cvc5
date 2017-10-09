@@ -926,7 +926,7 @@ std::string EqualityEngine::edgesToString(EqualityEdgeId edgeId) const {
   return out.str();
 }
 
-void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vector<TNode>& equalities, EqProof * eqp) const {
+void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vector<TNode>& equalities, std::shared_ptr<EqProof> eqp) const {
   Debug("equality") << d_name << "::eq::explainEquality(" << t1 << ", " << t2 << ", " << (polarity ? "true" : "false") << ")" << ", proof = " << (eqp ? "ON" : "OFF") << std::endl;
 
   // The terms must be there already
@@ -953,11 +953,11 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
     for (unsigned i = reasonRef.mergesStart; i < reasonRef.mergesEnd; ++ i) {
 
       EqualityPair toExplain = d_deducedDisequalityReasons[i];
-      EqProof* eqpc = NULL;
+      std::shared_ptr<EqProof> eqpc;
 
       // If we're constructing a (transitivity) proof, we don't need to include an explanation for x=x.
       if (eqp && toExplain.first != toExplain.second) {
-        eqpc = new EqProof;
+        eqpc = std::make_shared<EqProof>();
       }
 
       getExplanation(toExplain.first, toExplain.second, equalities, eqpc);
@@ -967,7 +967,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
         eqpc->debug_print("pf::ee", 1);
 
         if (eqpc->d_id == eq::MERGED_THROUGH_TRANS) {
-          std::vector<EqProof *> orderedChildren;
+          std::vector<std::shared_ptr<EqProof>> orderedChildren;
           bool nullCongruenceFound = false;
           for (unsigned i = 0; i < eqpc->d_children.size(); ++i) {
             if (eqpc->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE &&
@@ -1002,10 +1002,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
         eqp->d_id = MERGED_THROUGH_CONSTANTS;
       } else if (eqp->d_children.size() == 1) {
         // The transitivity proof has just one child. Simplify.
-        EqProof* temp = eqp->d_children[0];
-        eqp->d_children.clear();
-        *eqp = *temp;
-        delete temp;
+        std::shared_ptr<EqProof> temp = eqp->d_children[0];
+        eqp = temp;
       }
 
       Debug("pf::ee") << "Disequality explanation final proof: " << std::endl;
@@ -1014,16 +1012,21 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
   }
 }
 
-void EqualityEngine::explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions, EqProof * eqp) const {
-  Debug("equality") << d_name << "::eq::explainPredicate(" << p << ")" << std::endl;
+void EqualityEngine::explainPredicate(TNode p, bool polarity,
+                                      std::vector<TNode>& assertions,
+                                      std::shared_ptr<EqProof> eqp) const {
+  Debug("equality") << d_name << "::eq::explainPredicate(" << p << ")"
+                    << std::endl;
   // Must have the term
   Assert(hasTerm(p));
   // Get the explanation
-  getExplanation(getNodeId(p), polarity ? d_trueId : d_falseId, assertions, eqp);
+  getExplanation(getNodeId(p), polarity ? d_trueId : d_falseId, assertions,
+                 eqp);
 }
 
-void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, std::vector<TNode>& equalities, EqProof * eqp) const {
-
+void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id,
+                                    std::vector<TNode>& equalities,
+                                    std::shared_ptr<EqProof> eqp) const {
   Debug("equality") << d_name << "::eq::getExplanation(" << d_nodes[t1Id] << "," << d_nodes[t2Id] << ")" << std::endl;
 
   // We can only explain the nodes that got merged
@@ -1094,7 +1097,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
 
           Debug("equality") << d_name << "::eq::getExplanation(): path found: " << std::endl;
 
-          std::vector<EqProof *> eqp_trans;
+          std::vector<std::shared_ptr<EqProof>> eqp_trans;
 
           // Reconstruct the path
           do {
@@ -1109,10 +1112,10 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             Debug("equality") << d_name << "                     in currentEdge = (" << d_nodes[currentNode] << "," << d_nodes[edge.getNodeId()] << ")" << std::endl;
             Debug("equality") << d_name << "                     reason type = " << reasonType << std::endl;
 
-            EqProof* eqpc = NULL;
+            std::shared_ptr<EqProof> eqpc;;
             // Make child proof if a proof is being constructed
             if (eqp) {
-              eqpc = new EqProof;
+              eqpc = std::make_shared<EqProof>();
               eqpc->d_id = reasonType;
             }
 
@@ -1126,10 +1129,12 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
 
               Debug("equality") << push;
               Debug("equality") << "Explaining left hand side equalities" << std::endl;
-              EqProof * eqpc1 = eqpc ? new EqProof : NULL;
+              std::shared_ptr<EqProof> eqpc1 =
+                  eqpc ? std::make_shared<EqProof>() : nullptr;
               getExplanation(f1.a, f2.a, equalities, eqpc1);
               Debug("equality") << "Explaining right hand side equalities" << std::endl;
-              EqProof * eqpc2 = eqpc ? new EqProof : NULL;
+              std::shared_ptr<EqProof> eqpc2 =
+                  eqpc ? std::make_shared<EqProof>() : nullptr;
               getExplanation(f1.b, f2.b, equalities, eqpc2);
               if( eqpc ){
                 eqpc->d_children.push_back( eqpc1 );
@@ -1173,7 +1178,8 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
 
               // Explain why a = b constant
               Debug("equality") << push;
-              EqProof * eqpc1 = eqpc ? new EqProof : NULL;
+              std::shared_ptr<EqProof> eqpc1 =
+                  eqpc ? std::make_shared<EqProof>() : nullptr;
               getExplanation(eq.a, eq.b, equalities, eqpc1);
               if( eqpc ){
                 eqpc->d_children.push_back( eqpc1 );
@@ -1198,8 +1204,10 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               for (unsigned i = 0; i < interpreted.getNumChildren(); ++ i) {
                 EqualityNodeId childId = getNodeId(interpreted[i]);
                 Assert(isConstant(childId));
-                EqProof * eqpcc = eqpc ? new EqProof : NULL;
-                getExplanation(childId, getEqualityNode(childId).getFind(), equalities, eqpcc);
+                std::shared_ptr<EqProof> eqpcc =
+                    eqpc ? std::make_shared<EqProof>() : nullptr;
+                getExplanation(childId, getEqualityNode(childId).getFind(),
+                               equalities, eqpcc);
                 if( eqpc ) {
                   eqpc->d_children.push_back( eqpcc );
 
@@ -1255,9 +1263,8 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             if (eqpc != NULL && eqpc->d_id == MERGED_THROUGH_REFLEXIVITY) {
               if(eqpc->d_node.isNull()) {
                 Assert(eqpc->d_children.size() == 1);
-                EqProof *p = eqpc;
+                std::shared_ptr<EqProof> p = eqpc;
                 eqpc = p->d_children[0];
-                delete p;
               } else {
                 Assert(eqpc->d_children.empty());
               }
@@ -1269,8 +1276,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
 
           if (eqp) {
             if(eqp_trans.size() == 1) {
-              *eqp = *eqp_trans[0];
-              delete eqp_trans[0];
+              eqp = eqp_trans[0];
             } else {
               eqp->d_id = MERGED_THROUGH_TRANS;
               eqp->d_children.insert( eqp->d_children.end(), eqp_trans.begin(), eqp_trans.end() );

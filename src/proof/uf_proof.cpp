@@ -78,7 +78,9 @@ void ProofUF::toStream(std::ostream& out, const ProofLetMap& map) {
   toStreamLFSC(out, ProofManager::getUfProof(), d_proof, map);
 }
 
-void ProofUF::toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const ProofLetMap& map) {
+void ProofUF::toStreamLFSC(std::ostream& out, TheoryProof* tp,
+                           std::shared_ptr<theory::eq::EqProof> pf,
+                           const ProofLetMap& map) {
   Debug("pf::uf") << "ProofUF::toStreamLFSC starting" << std::endl;
   Debug("lfsc-uf") << "Printing uf proof in LFSC : " << std::endl;
   pf->debug_print("lfsc-uf");
@@ -86,8 +88,13 @@ void ProofUF::toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqPr
   toStreamRecLFSC( out, tp, pf, 0, map );
 }
 
-Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, unsigned tb, const ProofLetMap& map) {
-  Debug("pf::uf") << std::endl << std::endl << "toStreamRecLFSC called. tb = " << tb << " . proof:" << std::endl;
+Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
+                              std::shared_ptr<theory::eq::EqProof> pf,
+                              unsigned tb, const ProofLetMap& map) {
+  Debug("pf::uf") << std::endl
+                  << std::endl
+                  << "toStreamRecLFSC called. tb = " << tb
+                  << " . proof:" << std::endl;
   pf->debug_print("pf::uf");
   Debug("pf::uf") << std::endl;
 
@@ -106,9 +113,10 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     Assert(pf->d_children.size() >= 2);
 
     int neg = -1;
-    theory::eq::EqProof subTrans;
-    subTrans.d_id = theory::eq::MERGED_THROUGH_TRANS;
-    subTrans.d_node = pf->d_node;
+    std::shared_ptr<theory::eq::EqProof> subTrans =
+        std::make_shared<theory::eq::EqProof>();
+    subTrans->d_id = theory::eq::MERGED_THROUGH_TRANS;
+    subTrans->d_node = pf->d_node;
 
     size_t i = 0;
 
@@ -128,7 +136,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         Debug("pf::uf") << "Handling congruence over equalities" << std::endl;
 
         // Gather the sequence of consecutive congruence closures.
-        std::vector<const theory::eq::EqProof *> congruenceClosures;
+        std::vector<std::shared_ptr<const theory::eq::EqProof>> congruenceClosures;
         unsigned count;
         Debug("pf::uf") << "Collecting congruence sequence" << std::endl;
         for (count = 0;
@@ -167,13 +175,13 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
           targetAppearsBefore = false;
 
         // Begin breaking up the congruences and ordering the equalities correctly.
-        std::vector<theory::eq::EqProof *> orderedEqualities;
+        std::vector<std::shared_ptr<theory::eq::EqProof>> orderedEqualities;
 
         // Insert target clause first.
         if (targetAppearsBefore) {
           orderedEqualities.push_back(pf->d_children[i - 1]);
           // The target has already been added to subTrans; remove it.
-          subTrans.d_children.pop_back();
+          subTrans->d_children.pop_back();
         } else {
           orderedEqualities.push_back(pf->d_children[i + count]);
         }
@@ -196,7 +204,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         }
 
         // Copy the result into the main transitivity proof.
-        subTrans.d_children.insert(subTrans.d_children.end(), orderedEqualities.begin(), orderedEqualities.end());
+        subTrans->d_children.insert(subTrans->d_children.end(), orderedEqualities.begin(), orderedEqualities.end());
 
         // Increase i to skip over the children that have been processed.
         i += count;
@@ -207,7 +215,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
 
       // Else, just copy the child proof as is
       else {
-        subTrans.d_children.push_back(pf->d_children[i]);
+        subTrans->d_children.push_back(pf->d_children[i]);
         ++i;
       }
     }
@@ -223,13 +231,13 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
 
     Node n1;
     std::stringstream ss;
-    Debug("pf::uf") << "\nsubtrans has " << subTrans.d_children.size() << " children\n";
+    Debug("pf::uf") << "\nsubtrans has " << subTrans->d_children.size() << " children\n";
 
-    if(!disequalityFound || subTrans.d_children.size() >= 2) {
-      n1 = toStreamRecLFSC(ss, tp, &subTrans, 1, map);
+    if(!disequalityFound || subTrans->d_children.size() >= 2) {
+      n1 = toStreamRecLFSC(ss, tp, subTrans, 1, map);
     } else {
-      n1 = toStreamRecLFSC(ss, tp, subTrans.d_children[0], 1, map);
-      Debug("pf::uf") << "\nsubTrans unique child " << subTrans.d_children[0]->d_id << " was proven\ngot: " << n1 << std::endl;
+      n1 = toStreamRecLFSC(ss, tp, subTrans->d_children[0], 1, map);
+      Debug("pf::uf") << "\nsubTrans unique child " << subTrans->d_children[0]->d_id << " was proven\ngot: " << n1 << std::endl;
     }
 
     Debug("pf::uf") << "\nhave proven: " << n1 << std::endl;
@@ -286,8 +294,10 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
   case theory::eq::MERGED_THROUGH_CONGRUENCE: {
     Debug("pf::uf") << "\nok, looking at congruence:\n";
     pf->debug_print("pf::uf");
-    std::stack<const theory::eq::EqProof*> stk;
-    for(const theory::eq::EqProof* pf2 = pf; pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE; pf2 = pf2->d_children[0]) {
+    std::stack<std::shared_ptr<const theory::eq::EqProof>> stk;
+    for (std::shared_ptr<const theory::eq::EqProof> pf2 = pf;
+         pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE;
+         pf2 = pf2->d_children[0]) {
       Assert(!pf2->d_node.isNull());
       Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF || pf2->d_node.getKind() == kind::BUILTIN || pf2->d_node.getKind() == kind::APPLY_UF || pf2->d_node.getKind() == kind::SELECT || pf2->d_node.getKind() == kind::STORE);
       Assert(pf2->d_children.size() == 2);
@@ -296,7 +306,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     }
     Assert(stk.top()->d_children[0]->d_id != theory::eq::MERGED_THROUGH_CONGRUENCE);
     NodeBuilder<> b1(kind::PARTIAL_APPLY_UF), b2(kind::PARTIAL_APPLY_UF);
-    const theory::eq::EqProof* pf2 = stk.top();
+    std::shared_ptr<const theory::eq::EqProof> pf2 = stk.top();
     stk.pop();
     Assert(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
     Node n1 = toStreamRecLFSC(out, tp, pf2->d_children[0], tb + 1, map);

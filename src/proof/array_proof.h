@@ -19,6 +19,7 @@
 #ifndef __CVC4__ARRAY__PROOF_H
 #define __CVC4__ARRAY__PROOF_H
 
+#include <memory>
 #include <unordered_set>
 
 #include "expr/expr.h"
@@ -59,8 +60,7 @@ private:
   };
 
   Node toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
-                       theory::eq::EqProof* pf,
-                       unsigned tb,
+                       std::shared_ptr<theory::eq::EqProof> pf, unsigned tb,
                        const ProofLetMap& map);
 
   /** Merge tag for ROW applications */
@@ -72,12 +72,14 @@ private:
 
   ArrayProofPrinter d_proofPrinter;
 public:
-  ProofArray(theory::eq::EqProof* pf) : d_proof(pf) {}
+  ProofArray(std::shared_ptr<theory::eq::EqProof> pf) : d_proof(pf) {}
   //it is simply an equality engine proof
-  theory::eq::EqProof *d_proof;
+  std::shared_ptr<theory::eq::EqProof> d_proof;
   void toStream(std::ostream& out);
   void toStream(std::ostream& out, const ProofLetMap& map);
-  void toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const ProofLetMap& map);
+  void toStreamLFSC(std::ostream& out, TheoryProof* tp,
+                    std::shared_ptr<theory::eq::EqProof> pf,
+                    const ProofLetMap& map);
 
   void registerSkolem(Node equality, Node skolem);
 

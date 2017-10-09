@@ -296,7 +296,7 @@ Node TheoryUF::getNextDecisionRequest( unsigned& priority ){
   }
 }
 
-void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof* pf) {
+void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, std::shared_ptr<eq::EqProof> pf) {
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
@@ -321,7 +321,7 @@ Node TheoryUF::explain(TNode literal) {
   return explain(literal, NULL);
 }
 
-Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
+Node TheoryUF::explain(TNode literal, std::shared_ptr<eq::EqProof> pf) {
   Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
   explain(literal, assumptions, pf);
@@ -629,8 +629,9 @@ void TheoryUF::computeCareGraph() {
 }/* TheoryUF::computeCareGraph() */
 
 void TheoryUF::conflict(TNode a, TNode b) {
-  eq::EqProof* pf = d_proofsEnabled ? new eq::EqProof() : NULL;
-  d_conflictNode = explain(a.eqNode(b),pf);
+  std::shared_ptr<eq::EqProof> pf =
+      d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
+  d_conflictNode = explain(a.eqNode(b), pf);
   ProofUF* puf = d_proofsEnabled ? new ProofUF( pf ) : NULL;
   d_out->conflict(d_conflictNode, puf);
   d_conflict = true;

@@ -18,6 +18,7 @@
 #ifndef __CVC4__THEORY__ARRAYS__ARRAY_PROOF_RECONSTRUCTION_H
 #define __CVC4__THEORY__ARRAYS__ARRAY_PROOF_RECONSTRUCTION_H
 
+#include <memory>
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -34,7 +35,8 @@ public:
   ArrayProofReconstruction(const eq::EqualityEngine* equalityEngine);
 
   void notify(unsigned reasonType, Node reason, Node a, Node b,
-              std::vector<TNode>& equalities, eq::EqProof* proof) const;
+              std::vector<TNode>& equalities,
+              std::shared_ptr<eq::EqProof> proof) const override;
 
   void setRowMergeTag(unsigned tag);
   void setRow1MergeTag(unsigned tag);

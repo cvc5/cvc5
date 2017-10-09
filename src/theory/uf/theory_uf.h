@@ -20,6 +20,8 @@
 #ifndef __CVC4__THEORY__UF__THEORY_UF_H
 #define __CVC4__THEORY__UF__THEORY_UF_H
 
+#include <memory>
+
 #include "expr/node.h"
 //#include "expr/attribute.h"
 
@@ -146,12 +148,13 @@ private:
    * Explain why this literal is true by adding assumptions
    * with proof (if "pf" is non-NULL).
    */
-  void explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof* pf);
+  void explain(TNode literal, std::vector<TNode>& assumptions,
+               std::shared_ptr<eq::EqProof> pf);
 
   /**
    * Explain a literal, with proof (if "pf" is non-NULL).
    */
-  Node explain(TNode literal, eq::EqProof* pf);
+  Node explain(TNode literal, std::shared_ptr<eq::EqProof> pf);
 
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;

@@ -19,6 +19,7 @@
 #ifndef __CVC4__UF__PROOF_H
 #define __CVC4__UF__PROOF_H
 
+#include <memory>
 #include <unordered_set>
 
 #include "expr/expr.h"
@@ -30,16 +31,19 @@ namespace CVC4 {
 //proof object outputted by TheoryUF
 class ProofUF : public Proof {
 private:
-  static Node toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, unsigned tb, const ProofLetMap& map);
+  static Node toStreamRecLFSC(std::ostream& out, TheoryProof * tp,
+                              std::shared_ptr<theory::eq::EqProof> pf,
+                              unsigned tb, const ProofLetMap& map);
 public:
-  ProofUF( theory::eq::EqProof * pf ) : d_proof( pf ) {}
+  ProofUF( std::shared_ptr<theory::eq::EqProof> pf ) : d_proof( pf ) {}
   //it is simply an equality engine proof
-  theory::eq::EqProof * d_proof;
+  std::shared_ptr<theory::eq::EqProof> d_proof;
   void toStream(std::ostream& out);
   void toStream(std::ostream& out, const ProofLetMap& map);
-  static void toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const ProofLetMap& map);
+  static void toStreamLFSC(std::ostream& out, TheoryProof* tp,
+                           std::shared_ptr<theory::eq::EqProof> pf,
+                           const ProofLetMap& map);
 };
-
 
 namespace theory {
 namespace uf {

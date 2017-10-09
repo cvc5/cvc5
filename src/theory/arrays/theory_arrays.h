@@ -19,6 +19,7 @@
 #ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 
+#include <memory>
 #include <unordered_map>
 
 #include "context/cdhashmap.h"
@@ -195,7 +196,8 @@ class TheoryArrays : public Theory {
   bool propagate(TNode literal);
 
   /** Explain why this literal is true by adding assumptions */
-  void explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof *proof);
+  void explain(TNode literal, std::vector<TNode>& assumptions,
+               std::shared_ptr<eq::EqProof> proof);
 
   /** For debugging only- checks invariants about when things are preregistered*/
   context::CDHashSet<Node, NodeHashFunction > d_isPreRegistered;
@@ -207,7 +209,7 @@ class TheoryArrays : public Theory {
 
   void preRegisterTerm(TNode n);
   void propagate(Effort e);
-  Node explain(TNode n, eq::EqProof *proof);
+  Node explain(TNode n, std::shared_ptr<eq::EqProof> proof);
   Node explain(TNode n);
 
   /////////////////////////////////////////////////////////////////////////////
