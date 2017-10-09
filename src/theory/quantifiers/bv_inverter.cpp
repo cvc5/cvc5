@@ -34,7 +34,7 @@ static Node dropChild (Node n, unsigned index)
   Kind k = n.getKind();
   Assert (k == AND || k == OR || k == BITVECTOR_MULT || k == BITVECTOR_PLUS);
   NodeBuilder<> nb (NodeManager::currentNM(), k);
-  for (size_t i = 0, nchildren = n.getNumChildren(); i < nchildren; ++i)
+  for (unsigned i = 0, nchildren = n.getNumChildren(); i < nchildren; ++i)
   {
     if (i == index) continue;
     nb << n[i];
