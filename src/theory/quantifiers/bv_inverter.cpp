@@ -27,15 +27,13 @@ using namespace CVC4::theory::quantifiers;
 
 /* Drop child at given index from expression.
  * E.g., dropChild((x + y + z), 1) -> (x + z)  */
-static Node dropChild (Node n, unsigned index)
-{
+static Node dropChild(Node n, unsigned index) {
   unsigned nchildren = n.getNumChildren();
-  Assert (index < nchildren);
+  Assert(index < nchildren);
   Kind k = n.getKind();
-  Assert (k == AND || k == OR || k == BITVECTOR_MULT || k == BITVECTOR_PLUS);
-  NodeBuilder<> nb (NodeManager::currentNM(), k);
-  for (unsigned i = 0; i < nchildren; ++i)
-  {
+  Assert(k == AND || k == OR || k == BITVECTOR_MULT || k == BITVECTOR_PLUS);
+  NodeBuilder<> nb(NodeManager::currentNM(), k);
+  for (unsigned i = 0; i < nchildren; ++i) {
     if (i == index) continue;
     nb << n[i];
   }
