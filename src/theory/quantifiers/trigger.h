@@ -160,8 +160,9 @@ public:
   *   tstrt is the selection strategy
   *   exclude is a set of terms that *cannot* be selected as triggers 
   *   tinfo stores the result of the collection, mapping terms to information they are associated with
-  *   filterInst is a flag that when true, we discard terms that have instances, 
-  *     e.g. we do not return f( x, y ) if we are also returning f( x, a ).
+  *   filterInst is a flag that when true, we discard terms that have instances in the vector we are returning.
+  *     e.g. we do not return f( x ) if we are also returning f( f( x ) ).
+  *     TODO: revisit this (issue #1211)
   */     
   static void collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt,
                                std::vector< Node >& exclude, std::map< Node, TriggerTermInfo >& tinfo,
