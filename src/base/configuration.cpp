@@ -129,66 +129,65 @@ std::string Configuration::copyright() {
   ss << "THIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\n"
      << "USE AT YOUR OWN RISK.\n\n";
  
-  ss << "This version of CVC4 is linked against the following third party "
-     << "libraries:\n\n";
-
-  ss << "  ANTLR - Another Tool for Language Recognition\n"
-     << "  http://www.antlr.org\n"
-     << "  Copyright (c) 2012-2017 The ANTLR Project."
+  ss << "CVC4 incorporates code from ANTLR3 (http://www.antlr.org).\n"
+     << "See licenses/antlr3-LICENSE for copyright and licensing information."
      << "\n\n";
 
-  if (Configuration::isBuiltWithGmp()) {
-    ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
-       << "  http://gmplib.org\n"
-       << "  Copyright (c) 1991, 1993-2016 Free Software Foundation, Inc."
-       << "\n\n";
-  }
-
-  if (Configuration::isBuiltWithCln()) {
-    ss << "  CLN - Class Library for Numbers\n"
-       << "  http://www.ginac.de/CLN\n"
-       << "  Copyright (c) Bruno Haible 1995-2008.\n"
-       << "  Copyright (c) Richard B. Kreckel 2000-2014.\n"
-       << "  Copyright (c) Alexei Sheplyakov 2008, 2010."
-       << "\n\n";
-  }
-
-  if (Configuration::isBuiltWithGlpk()) {
-    ss << "  glpk-cut-log -  a modified version of GPLK, "
-       << "the GNU Linear Programming Kit\n"
-       << "  http://github.com/timothy-king/glpk-cut-log\n"
-       << "  Copyright (c) 2000-2012 Andrew Makhorin, Department for Applied "
-       << "Informatics,\n"
-       << "  Moscow Aviation Institute, Moscow, Russia.\n"
-       << "  Copyright (c) 2013-2014 Tim King, New York University."
-       << "\n\n";
-  }
-
   if (Configuration::isBuiltWithAbc()) {
-    ss << "  ABC - A System for Sequentiyl Synthesis and Verification\n"
-       << "  https//bitbucket.org/alanmi/abc\n"
-       << "  Copyright (c) The Regents of the University of California."
-       << "\n\n";
+    ss << "This version of CVC4 is linked against ABC.\n"
+       << "See http://bitbucket.org/alanmi/abc for more information.\n\n";
   }
 
-  if (Configuration::isBuiltWithCryptominisat()) {
-    ss << "  CryptoMiniSat - An Advanced SAT Solver\n"
-       << "  http://github.com/msoos/cryptominisat\n"
-       << "  Copyright (c) Mate Soos.\n\n";
+  if (Configuration::isBuiltWithGmp()
+      || Configuration::isBuiltWithCryptominisat()
+      || Configuration::isBuiltWithLfsc()) {
+    ss << "This version of CVC4 is linked against the following third party"
+       << "libraries\n"
+       << "covered by the LGPLv3 license.\n"
+       << "See licenses/lgpl-3.0.txt for more information.\n\n";
+    if (Configuration::isBuiltWithGmp()) {
+      ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
+         << "  See http://gmplib.org for copyright information.\n\n";
+    }
+    if (Configuration::isBuiltWithAbc()) {
+      ss << "  ABC - A System for Sequentiyl Synthesis and Verification\n"
+         << "  See https//bitbucket.org/alanmi/abc for copyright information."
+         << "\n\n";
+    }
+    if (Configuration::isBuiltWithCryptominisat()) {
+      ss << "  CryptoMiniSat - An Advanced SAT Solver\n"
+         << "  See http://github.com/msoos/cryptominisat for copyright "
+         << "information.\n\n";
+    }
+    if (Configuration::isBuiltWithLfsc()) {
+      ss << "  LFSC Proof Checker\n"
+         << "  See http://github.com/CVC4/LFSC for copyright information."
+         << "\n\n";
+    }
   }
 
-  if (Configuration::isBuiltWithReadline()) {
-    ss << "  GNU Readline\n"
-       << "  http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html\n"
-       << "  Copyright (c) 1989-2016 Free Software Foundation, Inc."
-       << "\n\n";
-  }
-
-  if (Configuration::isBuiltWithLfsc()) {
-    ss << "  LFSC Proof Checker\n"
-       << "  http://github.com/CVC4/LFSC\n"
-       << "  Copyright (c) 2012, 2013 The University of Iowa."
-       << "\n\n";
+  if (Configuration::isBuiltWithCln()
+      || Configuration::isBuiltWithGlpk ()
+      || Configuration::isBuiltWithReadline()) {
+    ss << "This version of CVC4 is linked against the following third party "
+       << "libraries\n"
+       << "covered by the GPLv3 license.\n"
+       << "See licenses/gpl-3.0.txt for more information.\n\n";
+    if (Configuration::isBuiltWithCln()) {
+      ss << "  CLN - Class Library for Numbers\n"
+         << "  See http://www.ginac.de/CLN for copyright information.\n\n";
+    }
+    if (Configuration::isBuiltWithGlpk()) {
+      ss << "  glpk-cut-log -  a modified version of GPLK, "
+         << "the GNU Linear Programming Kit\n"
+         << "  See http://github.com/timothy-king/glpk-cut-log for copyright"
+         << "information\n\n";
+    }
+    if (Configuration::isBuiltWithReadline()) {
+      ss << "  GNU Readline\n"
+         << "  See http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html\n"
+         << "  for copyright information.\n\n";
+    }
   }
 
   ss << "See the file COPYING (distributed with the source code, and with\n"
