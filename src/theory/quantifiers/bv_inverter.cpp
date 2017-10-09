@@ -271,6 +271,10 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
     /* inversions  */
     if (k == BITVECTOR_CONCAT) {
       // TODO
+      Trace("bv-invert") << "bv-invert : Unknown kind for bit-vector term "
+                         << k
+                         << ", from " << sv_t << std::endl;
+      return Node::null();
     } else {
       Node s = sv_t.getNumChildren() == 2
         ? sv_t[1 - index]
