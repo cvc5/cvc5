@@ -1,7 +1,7 @@
 % EXPECT-ERROR: CVC4 Error:
-% EXPECT-ERROR: Parse Error: foo already declared
+% EXPECT-ERROR: Parse Error: foo already declared in this datatype
 % EXIT: 1
 
-DATATYPE single_ctor = foo(bar:REAL) END;
+DATATYPE single_ctor = foo(bar:REAL) | foo(bar2:REAL) END;
 DATATYPE double_ctor = foo(bar:REAL) END;
 
