@@ -15,6 +15,7 @@
 #include "theory/quantifiers/bv_inverter.h"
 
 #include <algorithm>
+#include <stack>
 
 #include "theory/quantifiers/term_database.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -106,9 +107,9 @@ Node BvInverter::getInversionSkolemFor(Node cond, TypeNode tn) {
 }
 
 Node BvInverter::getInversionSkolemFunctionFor(TypeNode tn) {
+  NodeManager* nm = NodeManager::currentNM();
   // function maps conditions to skolems
-  TypeNode ftn = NodeManager::currentNM()->mkFunctionType(
-      NodeManager::currentNM()->booleanType(), tn);
+  TypeNode ftn = nm->mkFunctionType(nm->booleanType(), tn);
   return getSolveVariable(ftn);
 }
 
@@ -163,71 +164,83 @@ Node BvInverter::getPathToPv(
   return Node::null();
 }
 
-Node BvInverter::eliminateSkolemFunctions(
-    TNode n, std::vector<Node>& side_conditions,
-    std::unordered_map<TNode, Node, TNodeHashFunction>& visited) {
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it =
-      visited.find(n);
-  if (it == visited.end()) {
-    Trace("bv-invert-debug")
-        << "eliminateSkolemFunctions from " << n << "..." << std::endl;
-    Node ret = n;
-    bool childChanged = false;
-    std::vector<Node> children;
-    if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      children.push_back(n.getOperator());
-    }
-    for (unsigned i = 0; i < n.getNumChildren(); i++) {
-      Node nc = eliminateSkolemFunctions(n[i], side_conditions, visited);
-      childChanged = childChanged || n[i] != nc;
-      children.push_back(nc);
-    }
-    if (childChanged) {
-      ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
-    }
-    // now, check if it is a skolem function
-    if (ret.getKind() == APPLY_UF) {
-      Node op = ret.getOperator();
-      TypeNode tnp = op.getType();
-      // is this a skolem function?
-      std::map<TypeNode, Node>::iterator its = d_solve_var.find(tnp);
-      if (its != d_solve_var.end() && its->second == op) {
-        Assert(ret.getNumChildren() == 1);
-        Assert(ret[0].getType().isBoolean());
-
-        Node cond = ret[0];
-        // must rewrite now to ensure we lookup the correct skolem
-        cond = Rewriter::rewrite(cond);
-
-        // if so, we replace by the (finalized) skolem variable
-        // Notice that since we are post-rewriting, skolem functions are already
-        // eliminated from cond
-        ret = getInversionSkolemFor(cond, ret.getType());
-
-        // also must add (substituted) side condition to vector
-        // substitute ( solve variable -> inversion skolem )
-        TNode solve_var = getSolveVariable(ret.getType());
-        TNode tret = ret;
-        cond = cond.substitute(solve_var, tret);
-        if (std::find(side_conditions.begin(), side_conditions.end(), cond) ==
-            side_conditions.end()) {
-          side_conditions.push_back(cond);
-        }
-      }
-    }
-    Trace("bv-invert-debug") << "eliminateSkolemFunctions from " << n
-                             << " returned " << ret << std::endl;
-    visited[n] = ret;
-    return ret;
-  } else {
-    return it->second;
-  }
-}
-
 Node BvInverter::eliminateSkolemFunctions(TNode n,
                                           std::vector<Node>& side_conditions) {
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  return eliminateSkolemFunctions(n, side_conditions, visited);
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::stack<TNode> visit;
+  TNode cur;
+
+  visit.push(n);
+  do {
+    cur = visit.top();
+    visit.pop();
+    it = visited.find(cur);
+
+    if (it == visited.end()) {
+      visited[cur] = Node::null();
+      visit.push(cur);
+      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+        visit.push(cur[i]);
+      }
+    } else if (it->second.isNull()) {
+      Trace("bv-invert-debug")
+          << "eliminateSkolemFunctions from " << cur << "..." << std::endl;
+
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        children.push_back(cur.getOperator());
+      }
+      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+        it = visited.find(cur[i]);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cur[i] != it->second;
+        children.push_back(it->second);
+      }
+      if (childChanged) {
+        ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+      }
+      // now, check if it is a skolem function
+      if (ret.getKind() == APPLY_UF) {
+        Node op = ret.getOperator();
+        TypeNode tnp = op.getType();
+        // is this a skolem function?
+        std::map<TypeNode, Node>::iterator its = d_solve_var.find(tnp);
+        if (its != d_solve_var.end() && its->second == op) {
+          Assert(ret.getNumChildren() == 1);
+          Assert(ret[0].getType().isBoolean());
+
+          Node cond = ret[0];
+          // must rewrite now to ensure we lookup the correct skolem
+          cond = Rewriter::rewrite(cond);
+
+          // if so, we replace by the (finalized) skolem variable
+          // Notice that since we are post-rewriting, skolem functions are
+          // already eliminated from cond
+          ret = getInversionSkolemFor(cond, ret.getType());
+
+          // also must add (substituted) side condition to vector
+          // substitute ( solve variable -> inversion skolem )
+          TNode solve_var = getSolveVariable(ret.getType());
+          TNode tret = ret;
+          cond = cond.substitute(solve_var, tret);
+          if (std::find(side_conditions.begin(), side_conditions.end(), cond) ==
+              side_conditions.end()) {
+            side_conditions.push_back(cond);
+          }
+        }
+      }
+      Trace("bv-invert-debug") << "eliminateSkolemFunctions from " << cur
+                               << " returned " << ret << std::endl;
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
 }
 
 Node BvInverter::getPathToPv(Node lit, Node pv, Node sv, Node pvs,
