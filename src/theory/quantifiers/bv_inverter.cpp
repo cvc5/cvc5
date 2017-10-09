@@ -298,9 +298,10 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         if (index == 0) {
           /* x % s = t
            * with side condition:
-           * s > t  */
-          scl = nm->mkNode(BITVECTOR_UGT, s, t);
-          scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UREM_TOTAL, x, s), t);
+           * TODO  */
+          Trace("bv-invert") << "bv-invert : Unsupported for index " << index
+                             << ", from " << sv_t << std::endl;
+          return Node::null();
         } else {
           /* s % x = t
            * with side conditions:
@@ -402,8 +403,7 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
            *         || "remaining shifted bits in t "
            *            "match corresponding bits in s"))  */
           Trace("bv-invert") << "bv-invert : Unsupported for index " << index
-                           << "for kind " << k
-                           << ", from " << sv_t << std::endl;
+                             << ", from " << sv_t << std::endl;
           return Node::null();
         }
       } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
@@ -413,7 +413,8 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         //}else if( k==BITVECTOR_ASHR ){
         // TODO
       } else {
-        Trace("bv-invert") << "bv-invert : Unknown kind for bit-vector term " << k
+        Trace("bv-invert") << "bv-invert : Unknown kind for bit-vector term "
+                           << k
                            << ", from " << sv_t << std::endl;
         return Node::null();
       }
