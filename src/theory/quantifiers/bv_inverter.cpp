@@ -346,6 +346,7 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         Node skv = getInversionNode(sc, solve_tn);
         t = skv;
       } else if (k == BITVECTOR_ULT) {
+        Trace("bv-invert") << "ULT";
         /* t = skv (fresh skolem constant)  */
         TypeNode solve_tn = sv_t[index].getType();
         Node x = getSolveVariable(solve_tn);
