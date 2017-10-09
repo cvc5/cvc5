@@ -107,6 +107,7 @@ namespace quantifiers {
 
 class TermDatabase;
 
+// TODO : #1216 split this class, most of the functions in this class should be dispersed to where they are used.
 class TermUtil {
   // TODO : remove these
   friend class ::CVC4::theory::QuantifiersEngine;

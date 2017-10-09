@@ -63,7 +63,7 @@ namespace quantifiers {
 
 
 /** This class stores attributes for quantified formulas 
-* TODO : document (as part of #1171)
+* TODO : document (as part of #1171, #1215)
 */
 class QAttributes{
 public:

@@ -23,6 +23,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+// TODO : (as part of #1171, #1214) further document and clean this class.
 /** equality query object using theory engine */
 class EqualityQueryQuantifiersEngine : public EqualityQuery
 {
