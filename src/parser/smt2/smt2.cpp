@@ -1090,6 +1090,7 @@ const void Smt2::getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed ) {
 }
 
 const void Smt2::addSygusFunSymbol( Type t, Expr synth_fun ){
+  //FIXME #1205 : we should not create a proxy, instead quantify on synth_fun and set Type t as an attribute
   Expr sym = mkBoundVar("sfproxy", t);
   d_sygusFunSymbols.push_back(sym);
   
