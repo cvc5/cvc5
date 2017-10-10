@@ -270,28 +270,22 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
 
     /* inversions  */
     if (k == BITVECTOR_CONCAT) {
-        TypeNode solve_tn = sv_t[index].getType();
-        Node x = getSolveVariable(solve_tn);
-        Node s = sv_t[1 - index];
-        Node sc;
-
-        NodeBuilder<> nb(nm, BITVECTOR_CONCAT);
-        for (unsigned i = 0; i < sv_t.getNumChildren(); i++) {
-          if (i == index)
-            nb << x;
-          else
-            nb << sv_t[i];
-        }
-
-        sc = nm->mkNode(EQUAL, nb.constructNode(), t);
-
-        /* add side condition */
-        status.d_conds.push_back(sc);
-
-        /* get the skolem node for this side condition*/
-        Node skv = getInversionNode(sc, solve_tn);
-        /* now solving with the skolem node as the RHS */
-        t = skv;
+      /* x = t[upper:lower]
+       * where
+       * upper = getSize(t) - 1 - sum(getSize(sv_t[i])) for i < index
+       * lower = getSize(sv_t[i]) for i > index
+       */
+      unsigned upper, lower;
+      upper = bv::utils::getSize(t) - 1;
+      lower = 0;
+      NodeBuilder<> nb(nm, BITVECTOR_CONCAT);
+      for (unsigned i = 0; i < sv_t.getNumChildren(); i++) {
+        if (i < index)
+          upper -= bv::utils::getSize(sv_t[i]);
+        else if (i > index)
+          lower += bv::utils::getSize(sv_t[i]);
+      }
+      t = bv::utils::mkExtract(t, upper, lower);
     } else {
       Node s = sv_t.getNumChildren() == 2
         ? sv_t[1 - index]
