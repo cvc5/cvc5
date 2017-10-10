@@ -43,7 +43,7 @@ enum OutputChannelCallType{CONFLICT, PROPAGATE, LEMMA, EXPLANATION};
 class TestOutputChannel : public OutputChannel {
  public:
   TestOutputChannel() {}
-  virtual ~TestOutputChannel() {}
+  ~TestOutputChannel() override {}
 
   void safePoint(uint64_t amount) override {}
 

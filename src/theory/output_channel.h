@@ -58,6 +58,9 @@ class LemmaStatus {
 
 /**
  * Generic "theory output channel" interface.
+ *
+ * All methods can throw unrecoverable CVC4::Exception's unless otherwise
+ * documented.
  */
 class OutputChannel {
  public:
@@ -71,15 +74,14 @@ class OutputChannel {
    */
   virtual ~OutputChannel() {}
 
-  /** Disallow copying: private constructor */
   OutputChannel(const OutputChannel&) = delete;
-
-  /** Disallow assignment: private operator=() */
   OutputChannel& operator=(const OutputChannel&) = delete;
 
   /**
    * With safePoint(), the theory signals that it is at a safe point
    * and can be interrupted.
+   *
+   * @throws Interrupted if the theory can be safely interrupted.
    */
   virtual void safePoint(uint64_t amount) {}
 

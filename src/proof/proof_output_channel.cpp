@@ -15,8 +15,9 @@
 
 **/
 
+#include "proof/proof_output_channel.h"
+
 #include "base/cvc4_assert.h"
-#include "proof_output_channel.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
 
@@ -24,18 +25,19 @@ namespace CVC4 {
 
 ProofOutputChannel::ProofOutputChannel() : d_conflict(), d_proof(nullptr) {}
 
-Proof* ProofOutputChannel::mutable_proof() {
-  Assert(d_proof);
+Proof* ProofOutputChannel::getConflictProof() {
+  Assert(hasConflict());
   return d_proof;
 }
 
 void ProofOutputChannel::conflict(TNode n, Proof* pf) {
   Trace("pf::tp") << "ProofOutputChannel: CONFLICT: " << n << std::endl;
-  Assert(d_conflict.isNull());
-  Assert(!n.isNull());
+  AlwaysAssert(!hasConflict());
+  Assert(!d_proof);
   d_conflict = n;
-  Assert(pf);
   d_proof = pf;
+  AlwaysAssert(hasConflict());
+  Assert(d_proof);
 }
 
 bool ProofOutputChannel::propagate(TNode x) {

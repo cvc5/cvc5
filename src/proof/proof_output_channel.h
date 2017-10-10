@@ -27,8 +27,9 @@ namespace CVC4 {
 class ProofOutputChannel : public theory::OutputChannel {
 public:
   ProofOutputChannel();
-  virtual ~ProofOutputChannel() {}
+  ~ProofOutputChannel() override {}
 
+  /** This may be called exactly once. */
   void conflict(TNode n, Proof* pf = nullptr) override;
   bool propagate(TNode x) override;
   theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) override;
@@ -37,10 +38,12 @@ public:
   bool flipDecision() override;
   void setIncomplete() override;
 
-  Node getLastConflict() const { return d_conflict; }
+  bool hasConflict() const { return !d_conflict.isNull(); }
+  Node getConflict() const { return d_conflict; }
+  /** Requires hasConflict() to hold. */
+  Proof* getConflictProof();
   Node getLastLemma() const { return d_lemma; }
 
-  Proof* mutable_proof();
  private:
   Node d_conflict;
   Proof* d_proof;
