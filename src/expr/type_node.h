@@ -432,8 +432,10 @@ public:
 
   /**
    * Is this a first-class type?
-   * First-class types are types for which we handle equalities between terms
-   * of that type, and are allowed to be parameters of parametric types.
+   * First-class types are types for which:
+   * (1) we handle equalities between terms of that type, and 
+   * (2) they are allowed to be parameters of parametric types (e.g. index or element types of arrays).
+   *
    * Examples of types that are not first-class include constructor types,
    * selector types, tester types, regular expressions and SExprs.
    */
