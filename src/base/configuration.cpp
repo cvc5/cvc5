@@ -135,7 +135,8 @@ std::string Configuration::copyright() {
 
   if (Configuration::isBuiltWithAbc()) {
     ss << "This version of CVC4 is linked against ABC.\n"
-       << "See http://bitbucket.org/alanmi/abc for more information.\n\n";
+       << "See http://bitbucket.org/alanmi/abc for copyright and licensing "
+       << "information.\n\n";
   }
 
   if (Configuration::isBuiltWithGmp()
@@ -143,7 +144,7 @@ std::string Configuration::copyright() {
       || Configuration::isBuiltWithLfsc()) {
     ss << "This version of CVC4 is linked against the following third party"
        << "libraries\n"
-       << "covered by the LGPLv3 license.\n"
+       << "covered by the LGPLv3 license. "
        << "See licenses/lgpl-3.0.txt for more information.\n\n";
     if (Configuration::isBuiltWithGmp()) {
       ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
@@ -171,7 +172,7 @@ std::string Configuration::copyright() {
       || Configuration::isBuiltWithReadline()) {
     ss << "This version of CVC4 is linked against the following third party "
        << "libraries\n"
-       << "covered by the GPLv3 license.\n"
+       << "covered by the GPLv3 license. "
        << "See licenses/gpl-3.0.txt for more information.\n\n";
     if (Configuration::isBuiltWithCln()) {
       ss << "  CLN - Class Library for Numbers\n"
