@@ -52,10 +52,14 @@ namespace quantifiers {
   //utilities
   class TermDb;
   class TermDbSygus;
+  class TermUtil;
   class FirstOrderModel;
+  class QuantAttributes;
   class RelevantDomain;
   class BvInverter;
   class InstPropagator;
+  class EqualityInference;
+  class EqualityQueryQuantifiersEngine;
   //modules, these are "subsolvers" of the quantifiers theory.
   class InstantiationEngine;
   class ModelEngine;
@@ -81,8 +85,6 @@ namespace inst {
   class TriggerTrie;
 }/* CVC4::theory::inst */
 
-//class EfficientEMatcher;
-class EqualityQueryQuantifiersEngine;
 
 class QuantifiersEngine {
   friend class quantifiers::InstantiationEngine;
@@ -106,7 +108,9 @@ private:
   /** instantiation notify */
   std::vector< InstantiationNotify* > d_inst_notify;
   /** equality query class */
-  EqualityQueryQuantifiersEngine* d_eq_query;
+  quantifiers::EqualityQueryQuantifiersEngine* d_eq_query;
+  /** equality inference class */
+  quantifiers::EqualityInference* d_eq_inference;
   /** for computing relevance of quantifiers */
   QuantRelevance * d_quant_rel;
   /** relevant domain */
@@ -191,6 +195,12 @@ private:
   BoolMap d_skolemized;
   /** term database */
   quantifiers::TermDb* d_term_db;
+  /** term database */
+  quantifiers::TermDbSygus* d_sygus_tdb;
+  /** term utilities */
+  quantifiers::TermUtil* d_term_util;
+  /** quantifiers attributes */
+  quantifiers::QuantAttributes* d_quant_attr;
   /** all triggers will be stored in this trie */
   inst::TriggerTrie* d_tr_trie;
   /** extended model object */
@@ -219,7 +229,9 @@ public:
   /** get theory engine */
   TheoryEngine* getTheoryEngine() { return d_te; }
   /** get equality query */
-  EqualityQueryQuantifiersEngine* getEqualityQuery();
+  EqualityQuery* getEqualityQuery();
+  /** get the equality inference */
+  quantifiers::EqualityInference* getEqualityInference() { return d_eq_inference; }
   /** get default sat context for quantifiers engine */
   context::Context* getSatContext();
   /** get default sat context for quantifiers engine */
@@ -363,7 +375,11 @@ public:
   /** get term database */
   quantifiers::TermDb* getTermDatabase() { return d_term_db; }
   /** get term database sygus */
-  quantifiers::TermDbSygus* getTermDatabaseSygus();
+  quantifiers::TermDbSygus * getTermDatabaseSygus() { return d_sygus_tdb; }
+  /** get term utilities */
+  quantifiers::TermUtil* getTermUtil() { return d_term_util; }
+  /** get quantifiers attributes */
+  quantifiers::QuantAttributes* getQuantAttributes() { return d_quant_attr; }
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
   /** add term to database */
@@ -434,56 +450,6 @@ public:
   };/* class QuantifiersEngine::Statistics */
   Statistics d_statistics;
 };/* class QuantifiersEngine */
-
-
-
-/** equality query object using theory engine */
-class EqualityQueryQuantifiersEngine : public EqualityQuery
-{
-private:
-  /** pointer to theory engine */
-  QuantifiersEngine* d_qe;
-  /** quantifiers equality inference */
-  quantifiers::EqualityInference * d_eq_inference;
-  context::CDO< unsigned > d_eqi_counter;
-  /** internal representatives */
-  std::map< TypeNode, std::map< Node, Node > > d_int_rep;
-  /** rep score */
-  std::map< Node, int > d_rep_score;
-  /** reset count */
-  int d_reset_count;
-
-  /** processInferences : will merge equivalence classes in master equality engine, if possible */
-  bool processInferences( Theory::Effort e );
-  /** node contains */
-  Node getInstance( Node n, const std::vector< Node >& eqc, std::unordered_map<TNode, Node, TNodeHashFunction>& cache );
-  /** get score */
-  int getRepScore( Node n, Node f, int index, TypeNode v_tn );
-  /** flatten representatives */
-  void flattenRepresentatives( std::map< TypeNode, std::vector< Node > >& reps );
-public:
-  EqualityQueryQuantifiersEngine( context::Context* c, QuantifiersEngine* qe );
-  virtual ~EqualityQueryQuantifiersEngine();
-  /** reset */
-  bool reset( Theory::Effort e );
-  /** identify */
-  std::string identify() const { return "EqualityQueryQE"; }
-  /** general queries about equality */
-  bool hasTerm( Node a );
-  Node getRepresentative( Node a );
-  bool areEqual( Node a, Node b );
-  bool areDisequal( Node a, Node b );
-  eq::EqualityEngine* getEngine();
-  void getEquivalenceClass( Node a, std::vector< Node >& eqc );
-  TNode getCongruentTerm( Node f, std::vector< TNode >& args );
-  /** getInternalRepresentative gets the current best representative in the equivalence class of a, based on some criteria.
-      If cbqi is active, this will return a term in the equivalence class of "a" that does
-      not contain instantiation constants, if such a term exists.
-   */
-  Node getInternalRepresentative( Node a, Node f, int index );
-  /** get quantifiers equality inference */
-  quantifiers::EqualityInference * getEqualityInference() { return d_eq_inference; }
-}; /* EqualityQueryQuantifiersEngine */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
