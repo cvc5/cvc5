@@ -20,6 +20,7 @@
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
@@ -265,7 +266,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
       for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-        Trace("fmf-exh-inst-debug") << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) << " ";
+        Trace("fmf-exh-inst-debug") << d_quantEngine->getTermUtil()->getInstantiationConstant( f, i ) << " ";
       }
       Trace("fmf-exh-inst-debug") << std::endl;
     }

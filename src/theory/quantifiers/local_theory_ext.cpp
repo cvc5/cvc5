@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 
