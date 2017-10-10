@@ -966,12 +966,12 @@ public:
   }
   
   //------------------------------- expression names
-  // implments setExpressionName, as described in smt_engine.h
+  // implements setExpressionName, as described in smt_engine.h
   void setExpressionName(Expr e, std::string name) {
     d_exprNames.top().insert(std::make_pair(e,name));
   }
 
-  // implments getExpressionNames, as described in smt_engine.h
+  // implements getExpressionNames, as described in smt_engine.h
   std::map<Expr, std::string>& getExpressionNames() {
     return d_exprNames.top();
   }
