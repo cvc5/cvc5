@@ -93,7 +93,7 @@ bool QuantAttributes::checkRewriteRule( Node q ) {
 }
 
 Node QuantAttributes::getRewriteRule( Node q ) {
-  if( q.getKind()==FORALL && q.getNumChildren()==3 && q[2].getNumChildren()>0 && q[2][0][0].getKind()==REWRITE_RULE ){
+  if( q.getKind()==FORALL && q.getNumChildren()==3 && q[2][0].getNumChildren()>0 && q[2][0][0].getKind()==REWRITE_RULE ){
     return q[2][0][0];
   }else{
     return Node::null();

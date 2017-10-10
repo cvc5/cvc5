@@ -18,6 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS_EQUALITY_QUERY_H
 
 #include "context/cdo.h"
+#include "context/context.h"
 #include "expr/node.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/quant_util.h"
