@@ -384,15 +384,40 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
         return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(Rational(0)));
       }
     }else{
+      // get the factor of PI in the argument
       Node pi_factor;
       Node pi;
+      Node rem;
       if( t[0].getKind()==kind::PI ){
         pi_factor = NodeManager::currentNM()->mkConst(Rational(1));
         pi = t[0];
       }else if( t[0].getKind()==kind::MULT && t[0][0].isConst() && t[0][1].getKind()==kind::PI ){
         pi_factor = t[0][0];
         pi = t[0][1];
-      }
+      }else if( t[0].getKind()==kind::PLUS ){
+        for( unsigned j=0; j<t[0].getNumChildren(); j++ ){
+          Node monomial = t[0][j];
+          if( monomial.getKind()==kind::PI ){
+            pi_factor = NodeManager::currentNM()->mkConst(Rational(1));
+            pi = monomial;
+          }else if( monomial.getKind()==kind::MULT && monomial[0].isConst() && monomial[1].getKind()==kind::PI ){
+            pi_factor = monomial[0];
+            pi = monomial[1];
+          }
+          if( !pi_factor.isNull() ){
+            // remainder is the sum of the child besides this one
+            std::vector< Node > remc;
+            for( unsigned k=0; k<t[0].getNumChildren(); k++ ){
+              if( j!=k ){
+                remc.push_back( t[0][k] );
+              }
+            }
+            Assert( !remc.empty() );
+            rem = remc.size()==1 ? remc[0] : NodeManager::currentNM()->mkNode( kind::PLUS, remc );
+            break;
+          }
+        }
+      }      
       if( !pi_factor.isNull() ){
         Trace("arith-tf-rewrite-debug") << "Process pi factor = " << pi_factor << std::endl;
         Rational r = pi_factor.getConst<Rational>();
@@ -409,20 +434,33 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
             Assert( r.sgn()==-1 );
             new_pi_factor = NodeManager::currentNM()->mkNode( kind::PLUS, pi_factor, NodeManager::currentNM()->mkNode( kind::MULT, ntwo, ra_div_two ) );
           }
-          return RewriteResponse(REWRITE_AGAIN_FULL, NodeManager::currentNM()->mkNode( kind::SINE,
-                                                       NodeManager::currentNM()->mkNode( kind::MULT, new_pi_factor, pi ) ) );
+          Node new_arg = NodeManager::currentNM()->mkNode( kind::MULT, new_pi_factor, pi );
+          if( !rem.isNull() ){
+            new_arg = NodeManager::currentNM()->mkNode( kind::PLUS, new_arg, rem );
+          }
+          // sin( 2*n*PI + x ) = sin( x )
+          return RewriteResponse(REWRITE_AGAIN_FULL, NodeManager::currentNM()->mkNode( kind::SINE, new_arg ) );
         }else if( ra == rone ){
-          return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(Rational(0)));
+          // sin( PI + x ) = -sin( x )
+          if( rem.isNull() ){
+            return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(Rational(0)));
+          }else{
+            return RewriteResponse(REWRITE_AGAIN_FULL, NodeManager::currentNM()->mkNode( kind::UMINUS, NodeManager::currentNM()->mkNode( kind::SINE, rem ) ) );
+          }
         }else{
-          Integer one = Integer(1);
-          Integer two = Integer(2);
-          Integer six = Integer(6);
-          if( ra.getDenominator()==two ){
-            return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst( Rational( r.sgn() ) ) );
-          }else if( ra.getDenominator()==six ){
-            Integer five = Integer(5);
-            if( ra.getNumerator()==one || ra.getNumerator()==five ){
-              return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst( Rational( r.sgn() )/Rational(2) ) );
+          // other rational cases based on Niven's theorem (https://en.wikipedia.org/wiki/Niven%27s_theorem)
+          if( rem.isNull() ){
+            Integer one = Integer(1);
+            Integer two = Integer(2);
+            Integer six = Integer(6);
+            if( ra.getDenominator()==two ){
+              Assert( ra.getNumerator()==one );
+              return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst( Rational( r.sgn() ) ) );
+            }else if( ra.getDenominator()==six ){
+              Integer five = Integer(5);
+              if( ra.getNumerator()==one || ra.getNumerator()==five ){
+                return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst( Rational( r.sgn() )/Rational(2) ) );
+              }
             }
           }
         }
