@@ -275,13 +275,15 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         Node s = sv_t[1 - index];
         Node sc;
 
-        /* x o s = t */
-        if (index == 0) {
-          sc = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_CONCAT, x, s), t);
-        /* s o x = t */
-        } else {
-          sc = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_CONCAT, s, x), t);
+        NodeBuilder<> nb(nm, BITVECTOR_CONCAT);
+        for (unsigned i = 0; i < sv_t.getNumChildren(); i++) {
+          if (i == index)
+            nb << x;
+          else
+            nb << sv_t[i];
         }
+
+        sc = nm->mkNode(EQUAL, nb.constructNode(), t);
 
         /* add side condition */
         status.d_conds.push_back(sc);
