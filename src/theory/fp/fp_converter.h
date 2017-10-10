@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file fp_convert.h
+/*! \file fp_converter.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Martin Brain
