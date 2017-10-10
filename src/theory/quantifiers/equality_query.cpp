@@ -141,8 +141,11 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
     return r;
   }else{
     TypeNode v_tn = f.isNull() ? a.getType() : f[0][index].getType();
-    std::map< Node, Node >::iterator itir = d_int_rep[v_tn].find( r );
-    if( itir==d_int_rep[v_tn].end() ){
+    std::map<Node, Node>& v_int_rep = d_int_rep[v_tn];
+    std::map< Node, Node >::const_iterator itir = v_int_rep.find( r );
+    if( itir!=v_int_rep.end() ){
+      return itir->second;
+    }else{
       //find best selection for representative
       Node r_best;
       //if( options::fmfRelevantDomain() && !f.isNull() ){
@@ -154,7 +157,9 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
       getEquivalenceClass( r, eqc );
       Trace("internal-rep-select") << "Choose representative for equivalence class : { ";
       for( unsigned i=0; i<eqc.size(); i++ ){
-        if( i>0 ) Trace("internal-rep-select") << ", ";
+        if( i>0 ){
+          Trace("internal-rep-select") << ", ";
+        }
         Trace("internal-rep-select") << eqc[i];
       }
       Trace("internal-rep-select")  << " }, type = " << v_tn << std::endl;
@@ -181,14 +186,12 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
       }
       Trace("internal-rep-select") << "...Choose " << r_best << " with score " << r_best_score << std::endl;
       Assert( r_best.getType().isSubtypeOf( v_tn ) );
-      d_int_rep[v_tn][r] = r_best;
+      v_int_rep[r] = r_best;
       if( r_best!=a ){
         Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;
         Trace("internal-rep-debug") << "int_rep( " << a << " ) = " << r_best << ", " << std::endl;
       }
       return r_best;
-    }else{
-      return itir->second;
     }
   }
 }

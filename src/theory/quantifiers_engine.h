@@ -123,6 +123,14 @@ private:
   quantifiers::QModelBuilder* d_builder;
   /** utility for effectively propositional logic */
   QuantEPR * d_qepr;
+  /** term database */
+  quantifiers::TermDb* d_term_db;
+  /** term database */
+  quantifiers::TermDbSygus* d_sygus_tdb;
+  /** term utilities */
+  quantifiers::TermUtil* d_term_util;
+  /** quantifiers attributes */
+  quantifiers::QuantAttributes* d_quant_attr;
 private:
   /** instantiation engine */
   quantifiers::InstantiationEngine* d_inst_engine;
@@ -193,14 +201,6 @@ private:
   std::vector< std::pair< Node, std::vector< Node > > > d_recorded_inst;
   /** quantifiers that have been skolemized */
   BoolMap d_skolemized;
-  /** term database */
-  quantifiers::TermDb* d_term_db;
-  /** term database */
-  quantifiers::TermDbSygus* d_sygus_tdb;
-  /** term utilities */
-  quantifiers::TermUtil* d_term_util;
-  /** quantifiers attributes */
-  quantifiers::QuantAttributes* d_quant_attr;
   /** all triggers will be stored in this trie */
   inst::TriggerTrie* d_tr_trie;
   /** extended model object */

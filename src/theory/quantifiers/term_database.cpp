@@ -104,6 +104,15 @@ void TermDb::registerQuantifier( Node q ) {
   }
 }
 
+unsigned TermDb::getNumOperators() {
+  return d_ops.size();
+}
+
+Node TermDb::getOperator( unsigned i ) {
+  Assert( i<d_ops.size() );
+  return d_ops[i];
+}
+  
 /** ground terms */
 unsigned TermDb::getNumGroundTerms( Node f ) {
   std::map< Node, std::vector< Node > >::iterator it = d_op_map.find( f );
@@ -178,6 +187,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
           
           Node op = getMatchOperator( n );
           Trace("term-db-debug") << "  match operator is : " << op << std::endl;
+          d_ops.push_back( op );
           d_op_map[op].push_back( n );
           added.insert( n );
           
@@ -720,7 +730,8 @@ void TermDb::setHasTerm( Node n ) {
 
 void TermDb::presolve() {
   if( options::incrementalSolving() ){
-    //reset the caches that are SAT context-independent
+    //reset the caches that are SAT context-independent but user context-dependent
+    d_ops.clear();
     d_op_map.clear();
     d_type_map.clear();
     d_processed.clear();
@@ -967,6 +978,11 @@ void TermDb::computeModelBasisArgAttribute( Node n ){
     ModelBasisArgAttribute mbaa;
     n.setAttribute( mbaa, val );
   }
+}
+
+unsigned TermDb::getModelBasisArg( Node n ) {
+  computeModelBasisArgAttribute( n );
+  return n.getAttribute(ModelBasisArgAttribute());
 }
 
 }/* CVC4::theory::quantifiers namespace */

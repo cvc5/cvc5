@@ -120,12 +120,10 @@ bool QuantAttributes::checkFunDefAnnotation( Node ipl ) {
 Node QuantAttributes::getFunDefHead( Node q ) {
   //&& q[1].getKind()==EQUAL && q[1][0].getKind()==APPLY_UF &&
   if( q.getKind()==FORALL && q.getNumChildren()==3 ){
-
-    for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
-      if( q[2][i].getKind()==INST_ATTRIBUTE ){
-        if( q[2][i][0].getAttribute(FunDefAttribute()) ){
-          return q[2][i][0];
-        }
+    Node ipl = q[2];
+    for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
+      if( ipl[i].getKind()==INST_ATTRIBUTE && ipl[i][0].getAttribute(FunDefAttribute()) ){
+        return ipl[i][0];
       }
     }
   }
@@ -196,7 +194,7 @@ void QuantAttributes::computeAttributes( Node q ) {
     Node f = d_qattr[q].d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
       Message() << "Cannot define function " << f << " more than once." << std::endl;
-      exit( 1 );
+      AlwaysAssert( false );
     }
     d_fun_defs[f] = true;
     d_quantEngine->setOwner( q, d_quantEngine->getFunDefEngine(), 2 );

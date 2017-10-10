@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <map>
+#include <vector>
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -33,52 +34,89 @@ namespace quantifiers {
   class TermUtil;
 }
 
+/** QuantifiersModule class
+*
+* This is the virtual class for defining subsolvers of the quantifiers theory.
+* It has a similar interface to a Theory object.
+*/
 class QuantifiersModule {
-protected:
-  QuantifiersEngine* d_quantEngine;
 public:
   QuantifiersModule( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
   virtual ~QuantifiersModule(){}
-  //get quantifiers engine
-  QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
   /** presolve */
   virtual void presolve() {}
   /* whether this module needs to check this round */
   virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
-  /* whether this module needs a model built */
+  /* whether this module needs a model built during 
+  * It returns one of QEFFORT_* from quantifiers_engine.h,
+  * which specifies the quantifiers effort in which it requires the model to
+  * be built.
+  */
   virtual unsigned needsModel( Theory::Effort e );
-  /* reset at a round */
+  /* reset
+  * Called at the beginning of an instantiation round.
+  */
   virtual void reset_round( Theory::Effort e ){}
   /* Call during quantifier engine's check */
   virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
-  /* check was complete, return false if there is no way to answer "SAT", true if maybe can answer "SAT" */
+  /* check was complete, return false if the module's reasoning was globally incomplete 
+  * (e.g. "sat" must be replaced with "incomplete") 
+  */
   virtual bool checkComplete() { return true; }
-  /* check was complete for quantified formula q (e.g. no lemmas implies a model) */
+  /* check was complete for quantified formula q
+  * If for each quantified formula q, some module returns true for checkCompleteFor( q ),
+  * and no lemmas are added by the quantifiers theory, then we may answer "sat", unless
+  * we are incomplete for other reasons.
+  */
   virtual bool checkCompleteFor( Node q ) { return false; }
   /* Called for new quantified formulas */
   virtual void preRegisterQuantifier( Node q ) { }
-  /* Called for new quantifiers after owners are finalized */
+  /* Called for new quantifiers after ownership of quantified formulas are finalized */
   virtual void registerQuantifier( Node q ) = 0;
+  /* Called when a quantified formula n is asserted to the quantifiers theory */
   virtual void assertNode( Node n ) {}
-  virtual void propagate( Theory::Effort level ){}
+  /* Get the next decision request, identical to Theory::getNextDecisionRequest */
   virtual Node getNextDecisionRequest( unsigned& priority ) { return TNode::null(); }
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
-public:
+//----------------------------general queries
+  /** get currently used the equality engine */
   eq::EqualityEngine * getEqualityEngine();
-  bool areDisequal( TNode n1, TNode n2 );
+  /** are n1 and n2 equal in the current used equality engine? */
   bool areEqual( TNode n1, TNode n2 );
+  /** are n1 and n2 disequal in the current used equality engine? */
+  bool areDisequal( TNode n1, TNode n2 );
+  /** get the representative of n in the current used equality engine */
   TNode getRepresentative( TNode n );
+  /** get quantifiers engine that owns this module */
+  QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
+  /** get currently used term database */
   quantifiers::TermDb * getTermDatabase();
+  /** get currently used term utility object */
   quantifiers::TermUtil * getTermUtil();
+//----------------------------end general queries
+protected:
+  /** pointer to the quantifiers engine that owns this module */
+  QuantifiersEngine* d_quantEngine;
 };/* class QuantifiersModule */
 
+/** Quantifiers utility 
+*
+* This is a lightweight version of a quantifiers module that does not implement methods
+* for checking satisfiability or lemma generation.
+*/
 class QuantifiersUtil {
 public:
   QuantifiersUtil(){}
   virtual ~QuantifiersUtil(){}
-  /* reset at a round */
+  /* reset
+  * Called at the beginning of an instantiation round 
+  * Returns false if the reset failed. When reset fails, the utility should have added a lemma 
+  * via 
+  */
   virtual bool reset( Theory::Effort e ) = 0;
+  /* Called for new quantifiers */
+  virtual void registerQuantifier( Node q ) = 0;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
 };
@@ -103,7 +141,11 @@ public:
 };
 
 
-class QuantRelevance
+/** QuantRelevance 
+* This class is used for implementing SinE-style heuristics (e.g. see Hoder et al CADE 2011)
+* This is enabled by the option --relevant-triggers.
+*/
+class QuantRelevance : public QuantifiersUtil
 {
 private:
   /** for computing relevance */
@@ -119,8 +161,11 @@ private:
 public:
   QuantRelevance( bool cr ) : d_computeRel( cr ){}
   ~QuantRelevance(){}
-  /** register quantifier */
-  void registerQuantifier( Node f );
+  virtual bool reset( Theory::Effort e ) { return true; }
+  /* Called for new quantifiers after ownership of quantified formulas are finalized */
+  virtual void registerQuantifier( Node q );
+  /** Identify this module (for debugging, dynamic configuration, etc..) */
+  virtual std::string identify() const { return "QuantRelevance"; }
   /** set relevance */
   void setRelevance( Node s, int r );
   /** get relevance */
@@ -153,6 +198,9 @@ public:
 };
 
 
+/** EqualityQuery
+* This is a wrapper class around equality engine.
+*/
 class EqualityQuery : public QuantifiersUtil {
 public:
   EqualityQuery(){}
@@ -171,7 +219,7 @@ public:
   virtual eq::EqualityEngine* getEngine() = 0;
   /** get the equivalence class of a */
   virtual void getEquivalenceClass( Node a, std::vector< Node >& eqc ) = 0;
-  /** get the term that exists in EE that is congruent to f with args (f is returned by TermDb::getMatchOperator(...) */
+  /** get the term that exists in EE that is congruent to f with args (f is returned by TermDb::getMatchOperator(...)) */
   virtual TNode getCongruentTerm( Node f, std::vector< TNode >& args ) = 0;
 };/* class EqualityQuery */
 

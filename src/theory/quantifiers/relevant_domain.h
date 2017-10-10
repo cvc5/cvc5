@@ -66,11 +66,13 @@ public:
   virtual ~RelevantDomain();
   /* reset */
   bool reset( Theory::Effort e );
+  /** register the quantified formula q */
+  void registerQuantifier( Node q );
   /** identify */
   std::string identify() const { return "RelevantDomain"; }
-  //compute the relevant domain
+  /** compute the relevant domain */
   void compute();
-
+  /** get the relevant domain object for the i^th argument of n */
   RDomain * getRDomain( Node n, int i, bool getParent = true );
 };/* class RelevantDomain */
 
