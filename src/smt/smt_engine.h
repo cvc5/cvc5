@@ -748,10 +748,15 @@ public:
   /** get expression names 
   * This gets a mapping of all expressions that have been named
   * in the current user context via calls to setExpressionName.
-  * This mapping is used, for instance, to print unsat cores.
   */
-  std::map< Expr, std::string >& getExpressionNames();
-
+  std::map< Expr, std::string > getExpressionNames() const;
+  
+  /** get expression name
+  * Returns true if e has an expression name in the current context.
+  * If it returns true, the name of e is stored in name.
+  */
+  bool getExpressionName(Expr e, std::string& name) const;
+  
   /** set expression name 
   * Sets the expression name of e to name.
   * This information is user-context-dependent.

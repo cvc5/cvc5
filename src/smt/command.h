@@ -689,7 +689,6 @@ public:
 class CVC4_PUBLIC GetUnsatCoreCommand : public Command {
 public:
   GetUnsatCoreCommand() throw();
-  GetUnsatCoreCommand(const std::map<Expr, std::string>& names) throw();
   ~GetUnsatCoreCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
@@ -701,9 +700,6 @@ public:
 protected:
   // the result of the unsat core call
   UnsatCore d_result;
-  // the SMT engine used to get the unsat core
-  // this is required for knowing the expression names
-  SmtEngine* d_smtEngine;
 };/* class GetUnsatCoreCommand */
 
 class CVC4_PUBLIC GetAssertionsCommand : public Command {

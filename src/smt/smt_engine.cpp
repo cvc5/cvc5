@@ -33,6 +33,7 @@
 #include "base/listener.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
+#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/context.h"
@@ -548,10 +549,8 @@ class SmtEnginePrivate : public NodeManagerListener {
   //bool d_needsExpandDefs;
   
   //------------------------------- expression names
-  /** mapping from expressions to names
-  * This is a user-context stack
-  */
-  std::stack< std::map<Expr, std::string> > d_exprNames;
+  /** mapping from expressions to name */
+  context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
   //------------------------------- end expression names
 public:
   /**
@@ -677,6 +676,7 @@ public:
     d_abstractValues(),
     d_simplifyAssertionsDepth(0),
     //d_needsExpandDefs(true),  //TODO?
+    d_exprNames(smt.d_userContext),
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
     d_pbsProcessor(smt.d_userContext),
@@ -735,9 +735,6 @@ public:
     d_listenerRegistrations->add(
         nodeManagerOptions.registerSetReplayLogFilename(
             new SetToDefaultSourceListener(&d_managedReplayLog), true));
-            
-    // expression names are a context-dependent stack, we push the initial stack here
-    d_exprNames.push(std::map<Expr, std::string>());
   }
 
   ~SmtEnginePrivate() throw() {
@@ -815,11 +812,10 @@ public:
    */
   void processAssertions();
 
-  /** Process a user push. 
-  * This copies the map of expression names to the next level.
+  /** Process a user push.
   */
   void notifyPush() {
-    d_exprNames.push(d_exprNames.top());
+  
   }
 
   /**
@@ -829,7 +825,6 @@ public:
    * last map of expression names from notifyPush.
    */
   void notifyPop() {
-    d_exprNames.pop();
     d_assertions.clear();
     d_nonClausalLearnedLiterals.clear();
     d_realAssertionsEnd = 0;
@@ -968,12 +963,28 @@ public:
   //------------------------------- expression names
   // implements setExpressionName, as described in smt_engine.h
   void setExpressionName(Expr e, std::string name) {
-    d_exprNames.top().insert(std::make_pair(e,name));
+    d_exprNames[Node::fromExpr(e)] = name;
   }
 
   // implements getExpressionNames, as described in smt_engine.h
-  std::map<Expr, std::string>& getExpressionNames() {
-    return d_exprNames.top();
+  std::map< Expr, std::string > getExpressionNames() const {
+    std::map< Expr, std::string > names;
+    for(context::CDHashMap< Node, std::string, NodeHashFunction >::const_iterator it = d_exprNames.begin(); 
+        it != d_exprNames.end(); ++it ){
+      names[ (*it).first.toExpr() ] = (*it).second;
+    }
+    return names;
+  }
+  
+  // implements getExpressionName, as described in smt_engine.h
+  bool getExpressionName(Expr e, std::string& name) const {
+    context::CDHashMap< Node, std::string, NodeHashFunction >::const_iterator it = d_exprNames.find(e);
+    if(it!=d_exprNames.end()) {
+      name = (*it).second;
+      return true;
+    }else{
+      return false;
+    }
   }
   //------------------------------- end expression names
 
@@ -5680,8 +5691,12 @@ void SmtEngine::setReplayStream(ExprStream* replayStream) {
   d_replayStream = replayStream;
 }  
 
-std::map< Expr, std::string >& SmtEngine::getExpressionNames() {
+std::map< Expr, std::string > SmtEngine::getExpressionNames() const {
   return d_private->getExpressionNames();
+}
+
+bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
+  return d_private->getExpressionName(e, name);
 }
 
 void SmtEngine::setExpressionName(Expr e, const std::string& name) {

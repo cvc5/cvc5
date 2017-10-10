@@ -1356,8 +1356,6 @@ GetUnsatCoreCommand::GetUnsatCoreCommand() throw() {
 void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getUnsatCore();
-    // store a pointer to the SMT engine that we used for getting the unsat core
-    d_smtEngine = smtEngine;
     // copy names here instead of storing the pointer?
     d_commandStatus = CommandSuccess::instance();
   } catch (RecoverableModalException& e) {
@@ -1371,7 +1369,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out, uint32_t verbosity) con
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
-    d_result.toStream(out, d_smtEngine->getExpressionNames());
+    d_result.toStream(out);
   }
 }
 
@@ -1383,14 +1381,12 @@ const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const throw() {
 Command* GetUnsatCoreCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
   c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
   return c;
 }
 
 Command* GetUnsatCoreCommand::clone() const {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
   c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
   return c;
 }
 
