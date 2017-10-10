@@ -14,7 +14,7 @@
  **/
 
 #include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace CVC4;
 using namespace std;
@@ -23,9 +23,9 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
 struct sortTypeOrder {
-  TermDb* d_tdb;
+  TermUtil* d_tu;
   bool operator() (TypeNode i, TypeNode j) {
-    return d_tdb->getIdForType( i )<d_tdb->getIdForType( j );
+    return d_tu->getIdForType( i )<d_tu->getIdForType( j );
   }
 };
 
@@ -100,7 +100,7 @@ Node AlphaEquivalence::reduceQuantifier( Node q ) {
   Assert( q.getKind()==FORALL );
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
   //construct canonical quantified formula
-  Node t = d_qe->getTermDatabase()->getCanonicalTerm( q[1], true );
+  Node t = d_qe->getTermUtil()->getCanonicalTerm( q[1], true );
   Trace("aeq") << "  canonical form: " << t << std::endl;
   //compute variable type counts
   std::map< TypeNode, int > typ_count;
@@ -113,7 +113,7 @@ Node AlphaEquivalence::reduceQuantifier( Node q ) {
     }
   }
   sortTypeOrder sto;
-  sto.d_tdb = d_qe->getTermDatabase();
+  sto.d_tu = d_qe->getTermUtil();
   std::sort( typs.begin(), typs.end(), sto );
   Trace("aeq-debug") << "  ";
   Node ret = AlphaEquivalenceTypeNode::registerNode( &d_ae_typ_trie, d_qe, q, t, typs, typ_count );

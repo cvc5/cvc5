@@ -30,6 +30,7 @@ class QuantifiersEngine;
 
 namespace quantifiers {
   class TermDb;
+  class TermUtil;
 }
 
 class QuantifiersModule {
@@ -69,6 +70,7 @@ public:
   bool areEqual( TNode n1, TNode n2 );
   TNode getRepresentative( TNode n );
   quantifiers::TermDb * getTermDatabase();
+  quantifiers::TermUtil * getTermUtil();
 };/* class QuantifiersModule */
 
 class QuantifiersUtil {

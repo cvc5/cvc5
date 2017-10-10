@@ -20,9 +20,11 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/inst_match_generator.h"
 #include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4;
@@ -44,7 +46,7 @@ RewriteEngine::RewriteEngine( context::Context* c, QuantifiersEngine* qe ) : Qua
 }
 
 double RewriteEngine::getPriority( Node f ) {
-  Node rr = TermDb::getRewriteRule( f );
+  Node rr = QuantAttributes::getRewriteRule( f );
   Node rrr = rr[2];
   Trace("rr-priority") << "Get priority : " << rrr << " " << rrr.getKind() << std::endl;
   bool deterministic = rrr[1].getKind()!=OR;
@@ -121,7 +123,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
     if( it!=d_qinfo.end() ){
       QuantInfo * qi = &it->second;
       if( qi->matchGeneratorIsValid() ){
-        Node rr = TermDb::getRewriteRule( f );
+        Node rr = QuantAttributes::getRewriteRule( f );
         Trace("rewrite-engine-inst-debug") << "   Reset round..." << std::endl;
         qi->reset_round( qcf );
         Trace("rewrite-engine-inst-debug") << "   Get matches..." << std::endl;
@@ -211,7 +213,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
 }
 
 void RewriteEngine::registerQuantifier( Node f ) {
-  Node rr = TermDb::getRewriteRule( f );
+  Node rr = QuantAttributes::getRewriteRule( f );
   if( !rr.isNull() ){
     Trace("rr-register") << "Register quantifier " << f << std::endl;
     Trace("rr-register") << "  rewrite rule is : " << rr << std::endl;
@@ -262,7 +264,7 @@ void RewriteEngine::registerQuantifier( Node f ) {
             body_c.push_back( d_rr[f][1][j].negate() );
           }
         }
-      }else if( d_rr[f][1]!=d_quantEngine->getTermDatabase()->d_true ){
+      }else if( d_rr[f][1]!=d_quantEngine->getTermUtil()->d_true ){
         if( MatchGen::isHandled( d_rr[f][1] ) ){
           body_c.push_back( d_rr[f][1].negate() );
         }
@@ -291,7 +293,7 @@ bool RewriteEngine::checkCompleteFor( Node q ) {
 Node RewriteEngine::getInstConstNode( Node n, Node q ) {
   std::map< Node, Node >::iterator it = d_inst_const_node[q].find( n );
   if( it==d_inst_const_node[q].end() ){
-    Node nn = d_quantEngine->getTermDatabase()->getInstConstantNode( n, q );
+    Node nn = d_quantEngine->getTermUtil()->getInstConstantNode( n, q );
     d_inst_const_node[q][n] = nn;
     return nn;
   }else{
