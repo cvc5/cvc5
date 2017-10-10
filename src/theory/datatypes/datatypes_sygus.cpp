@@ -20,6 +20,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/datatypes_sygus.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/datatypes/theory_datatypes.h"
 #include "theory/theory_model.h"
 
@@ -491,7 +492,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
         if( depth==1 ){
           if( nk!=UNDEFINED_KIND ){
             // commutative operators 
-            if( quantifiers::TermDb::isComm( nk ) ){
+            if( quantifiers::TermUtil::isComm( nk ) ){
               if( children.size()==2 ){
                 if( children[0].getType()==children[1].getType() ){
   #if 0
@@ -516,7 +517,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
             std::vector< unsigned > deq_child[2];
             if( children.size()==2 && children[0].getType()==tn ){
               bool argDeq = false;
-              if( quantifiers::TermDb::isNonAdditive( nk ) ){
+              if( quantifiers::TermUtil::isNonAdditive( nk ) ){
                 argDeq = true;
               }else{
                 //other cases of rewriting x k x -> x'
@@ -617,7 +618,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
         }else if( depth==2 ){
           if( nk!=UNDEFINED_KIND ){
             // commutative operators 
-            if( quantifiers::TermDb::isComm( nk ) ){
+            if( quantifiers::TermUtil::isComm( nk ) ){
               if( children.size()==2 ){
                 if( children[0].getType()==children[1].getType() ){
                   //chainable

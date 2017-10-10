@@ -19,6 +19,7 @@
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -559,7 +560,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     Node op;
     std::vector< Type > argTypes;
     if( templ.getNumChildren()==0 ){
-      // TODO : can short circuit to this case when !TermDb::containsTerm( templ, templ_arg )
+      // TODO : can short circuit to this case when !TermUtil::containsTerm( templ, templ_arg )
       op = templ;
     }else{
       Assert( templ.hasOperator() );

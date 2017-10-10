@@ -8,7 +8,7 @@ theory THEORY_FP ::CVC4::theory::fp::TheoryFp "theory/fp/theory_fp.h"
 typechecker "theory/fp/theory_fp_type_rules.h"
 rewriter ::CVC4::theory::fp::TheoryFpRewriter "theory/fp/theory_fp_rewriter.h"
 
-properties check
+properties check propagate
 
 # Theory content goes here.
 
