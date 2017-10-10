@@ -1383,7 +1383,7 @@ static void print_config_cond (const char * str, bool cond = false) {
 }
 
 void OptionsHandler::copyright(std::string option) {
-  std::cout << Configuration::copyright().c_str() << std::endl;
+  std::cout << Configuration::copyright() << std::endl;
   exit(0);
 }
 

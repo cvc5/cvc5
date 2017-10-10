@@ -133,46 +133,43 @@ std::string Configuration::copyright() {
      << "See licenses/antlr3-LICENSE for copyright and licensing information."
      << "\n\n";
 
-  if (Configuration::isBuiltWithAbc()) {
-    ss << "This version of CVC4 is linked against ABC.\n"
-       << "See http://bitbucket.org/alanmi/abc for copyright and licensing "
-       << "information.\n\n";
+  if (Configuration::isBuiltWithAbc()
+      || Configuration::isBuiltWithLfsc()) {
+    ss << "This version of CVC4 is linked against the following non-(L)GPL'ed\n"
+       << "third party libraries.\n\n";
+    if (Configuration::isBuiltWithAbc()) {
+      ss << "  ABC - A System for Sequential Synthesis and Verification\n"
+         << "  See http://bitbucket.org/alanmi/abc for copyright and\n"
+         << "  licensing information.\n\n";
+    }
+    if (Configuration::isBuiltWithLfsc()) {
+      ss << "  LFSC Proof Checker\n"
+         << "  See http://github.com/CVC4/LFSC for copyright and\n"
+         << "  licensing information.\n\n";
+    }
   }
 
   if (Configuration::isBuiltWithGmp()
-      || Configuration::isBuiltWithCryptominisat()
-      || Configuration::isBuiltWithLfsc()) {
-    ss << "This version of CVC4 is linked against the following third party"
-       << "libraries\n"
-       << "covered by the LGPLv3 license. "
+      || Configuration::isBuiltWithCryptominisat()) {
+    ss << "This version of CVC4 is linked against the following third party\n"
+       << "libraries covered by the LGPLv3 license.\n"
        << "See licenses/lgpl-3.0.txt for more information.\n\n";
     if (Configuration::isBuiltWithGmp()) {
       ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
          << "  See http://gmplib.org for copyright information.\n\n";
-    }
-    if (Configuration::isBuiltWithAbc()) {
-      ss << "  ABC - A System for Sequentiyl Synthesis and Verification\n"
-         << "  See https//bitbucket.org/alanmi/abc for copyright information."
-         << "\n\n";
     }
     if (Configuration::isBuiltWithCryptominisat()) {
       ss << "  CryptoMiniSat - An Advanced SAT Solver\n"
          << "  See http://github.com/msoos/cryptominisat for copyright "
          << "information.\n\n";
     }
-    if (Configuration::isBuiltWithLfsc()) {
-      ss << "  LFSC Proof Checker\n"
-         << "  See http://github.com/CVC4/LFSC for copyright information."
-         << "\n\n";
-    }
   }
 
   if (Configuration::isBuiltWithCln()
       || Configuration::isBuiltWithGlpk ()
       || Configuration::isBuiltWithReadline()) {
-    ss << "This version of CVC4 is linked against the following third party "
-       << "libraries\n"
-       << "covered by the GPLv3 license. "
+    ss << "This version of CVC4 is linked against the following third party\n"
+       << "libraries covered by the GPLv3 license.\n"
        << "See licenses/gpl-3.0.txt for more information.\n\n";
     if (Configuration::isBuiltWithCln()) {
       ss << "  CLN - Class Library for Numbers\n"
