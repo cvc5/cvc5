@@ -820,12 +820,12 @@ protected:
   Expr d_expr;
   std::string d_name;
 public:
-  SetExpressionNameCommand(Expr expr, std::string name) throw();
-  ~SetExpressionNameCommand() throw() {}
+  SetExpressionNameCommand(Expr expr, std::string name) noexcept;
+  ~SetExpressionNameCommand() noexcept {}
   void invoke(SmtEngine* smtEngine);
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
-  std::string getCommandName() const throw();
+  std::string getCommandName() const noexcept;
 };/* class SetExpressionNameCommand */
 
 

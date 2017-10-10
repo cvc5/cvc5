@@ -1697,7 +1697,7 @@ std::string GetOptionCommand::getCommandName() const throw() {
 
 /* class SetExpressionNameCommand */
 
-SetExpressionNameCommand::SetExpressionNameCommand(Expr expr, std::string name) throw() :
+SetExpressionNameCommand::SetExpressionNameCommand(Expr expr, std::string name) noexcept :
 d_expr(expr), d_name(name) {
 
 }
@@ -1717,7 +1717,7 @@ Command* SetExpressionNameCommand::clone() const {
   return c;
 }
 
-std::string SetExpressionNameCommand::getCommandName() const throw() {
+std::string SetExpressionNameCommand::getCommandName() const noexcept {
   return "set-expr-name";
 }
 
