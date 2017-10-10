@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <unordered_map>
 
 #include "context/cdchunk_list.h"
@@ -200,7 +201,7 @@ private:
   /** term utilities */
   quantifiers::TermUtil* d_term_util;
   /** quantifiers attributes */
-  quantifiers::QuantAttributes* d_quant_attr;
+  std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
   /** all triggers will be stored in this trie */
   inst::TriggerTrie* d_tr_trie;
   /** extended model object */
@@ -379,7 +380,9 @@ public:
   /** get term utilities */
   quantifiers::TermUtil* getTermUtil() { return d_term_util; }
   /** get quantifiers attributes */
-  quantifiers::QuantAttributes* getQuantAttributes() { return d_quant_attr; }
+  quantifiers::QuantAttributes* getQuantAttributes() {
+    return d_quant_attr.get();
+  }
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
   /** add term to database */
