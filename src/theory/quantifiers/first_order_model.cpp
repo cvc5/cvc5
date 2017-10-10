@@ -19,6 +19,7 @@
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 
 #define USE_INDEX_ORDERING
 
@@ -521,7 +522,7 @@ struct sortGetMaxVariableNum {
   int computeMaxVariableNum( Node n ){
     if( n.getKind()==INST_CONSTANT ){
       return n.getAttribute(InstVarNumAttribute());
-    }else if( TermDb::hasInstConstAttr(n) ){
+    }else if( TermUtil::hasInstConstAttr(n) ){
       int maxVal = -1;
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
         int val = getMaxVariableNum( n[i] );
@@ -710,7 +711,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
         }else{
           //can happen for types not involved in quantified formulas
           Trace("fmc-model-func") << "No type rep for " << tn << std::endl;
-          v = d_qe->getTermDatabase()->getEnumerateTerm( tn, 0 );
+          v = d_qe->getTermUtil()->getEnumerateTerm( tn, 0 );
         }
         Trace("fmc-model-func") << "No term, assign " << v << std::endl;
       }
