@@ -97,9 +97,9 @@ public:
 
   static bool isBuiltWithReadline();
 
-  static bool isBuiltWithCudd();
-
   static bool isBuiltWithTlsSupport();
+
+  static bool isBuiltWithLfsc();
 
   /* Return the number of debug tags */
   static unsigned getNumDebugTags();

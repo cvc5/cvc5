@@ -87,7 +87,6 @@ public:
 
   void testMkUmulo() {
     d_smt->setOption("incremental", SExpr("true"));
-    d_smt->setOption("bitblast", SExpr("lazy"));
     for (size_t w = 1; w < 16; ++w) {
       d_smt->push();
       Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(w));
