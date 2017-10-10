@@ -24,6 +24,7 @@
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/valuation.h"
 
@@ -74,7 +75,7 @@ void TheoryQuantifiers::notifyEq(TNode lhs, TNode rhs) {
 void TheoryQuantifiers::preRegisterTerm(TNode n) {
   Debug("quantifiers-prereg") << "TheoryQuantifiers::preRegisterTerm() " << n << endl;
   if( n.getKind()==FORALL ){
-    if( !options::cbqi() || options::recurseCbqi() || !TermDb::hasInstConstAttr(n) ){
+    if( !options::cbqi() || options::recurseCbqi() || !TermUtil::hasInstConstAttr(n) ){
       getQuantifiersEngine()->registerQuantifier( n );
       Debug("quantifiers-prereg") << "TheoryQuantifiers::preRegisterTerm() done " << n << endl;
     }
@@ -186,18 +187,18 @@ Node TheoryQuantifiers::getNextDecisionRequest( unsigned& priority ){
 
 void TheoryQuantifiers::assertUniversal( Node n ){
   Assert( n.getKind()==FORALL );
-  if( !options::cbqi() || options::recurseCbqi() || !TermDb::hasInstConstAttr(n) ){
+  if( !options::cbqi() || options::recurseCbqi() || !TermUtil::hasInstConstAttr(n) ){
     getQuantifiersEngine()->assertQuantifier( n, true );
   }
 }
 
 void TheoryQuantifiers::assertExistential( Node n ){
   Assert( n.getKind()== NOT && n[0].getKind()==FORALL );
-  if( !options::cbqi() || options::recurseCbqi() || !TermDb::hasInstConstAttr(n[0]) ){
+  if( !options::cbqi() || options::recurseCbqi() || !TermUtil::hasInstConstAttr(n[0]) ){
     getQuantifiersEngine()->assertQuantifier( n[0], false );
   }
 }
 
 void TheoryQuantifiers::setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value){
-  QuantifiersAttributes::setUserAttribute( attr, n, node_values, str_value );
+  QuantAttributes::setUserAttribute( attr, n, node_values, str_value );
 }

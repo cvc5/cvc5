@@ -15,6 +15,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/first_order_model.h"
 
 using namespace std;
@@ -54,7 +55,7 @@ void RelevantDomain::RDomain::removeRedundantTerms( QuantifiersEngine * qe ) {
   std::map< Node, Node > rterms;
   for( unsigned i=0; i<d_terms.size(); i++ ){
     Node r = d_terms[i];
-    if( !TermDb::hasInstConstAttr( d_terms[i] ) ){
+    if( !TermUtil::hasInstConstAttr( d_terms[i] ) ){
       r = qe->getEqualityQuery()->getRepresentative( d_terms[i] );
     }
     if( rterms.find( r )==rterms.end() ){
@@ -108,7 +109,7 @@ void RelevantDomain::compute(){
     FirstOrderModel* fm = d_qe->getModel();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node q = fm->getAssertedQuantifier( i );
-      Node icf = d_qe->getTermDatabase()->getInstConstantBody( q );
+      Node icf = d_qe->getTermUtil()->getInstConstantBody( q );
       Trace("rel-dom-debug") << "compute relevant domain for " << icf << std::endl;
       computeRelevantDomain( q, icf, true, true );
     }
@@ -173,7 +174,7 @@ void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool po
     }
   }
 
-  if( ( ( n.getKind()==EQUAL && !n[0].getType().isBoolean() ) || n.getKind()==GEQ ) && TermDb::hasInstConstAttr( n ) ){
+  if( ( ( n.getKind()==EQUAL && !n[0].getType().isBoolean() ) || n.getKind()==GEQ ) && TermUtil::hasInstConstAttr( n ) ){
     //compute the information for what this literal does
     computeRelevantDomainLit( q, hasPol, pol, n );
     if( d_rel_dom_lit[hasPol][pol][n].d_merge ){
@@ -197,16 +198,16 @@ void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool po
 
 void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
   if( n.getKind()==INST_CONSTANT ){
-    Node q = d_qe->getTermDatabase()->getInstConstAttr( n );
+    Node q = d_qe->getTermUtil()->getInstConstAttr( n );
     //merge the RDomains
     unsigned id = n.getAttribute(InstVarNumAttribute());
     Trace("rel-dom-debug") << n << " is variable # " << id << " for " << q;
-    Trace("rel-dom-debug") << " with body : " << d_qe->getTermDatabase()->getInstConstantBody( q ) << std::endl;
+    Trace("rel-dom-debug") << " with body : " << d_qe->getTermUtil()->getInstConstantBody( q ) << std::endl;
     RDomain * rq = getRDomain( q, id );
     if( rf!=rq ){
       rq->merge( rf );
     }
-  }else if( !TermDb::hasInstConstAttr( n ) ){
+  }else if( !TermUtil::hasInstConstAttr( n ) ){
     Trace("rel-dom-debug") << "...add ground term to rel dom " << n << std::endl;
     //term to add
     rf->addTerm( n );
@@ -289,7 +290,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
       if( hasPol && !pol ){
         d_rel_dom_lit[hasPol][pol][n].d_merge = false;
       }
-    }else if( !r_add.isNull() && !TermDb::hasInstConstAttr( r_add ) ){
+    }else if( !r_add.isNull() && !TermUtil::hasInstConstAttr( r_add ) ){
       Trace("rel-dom-debug") << "...add term " << r_add << ", pol = " << pol << ", kind = " << n.getKind() << std::endl;
       //the negative occurrence adds the term to the domain
       if( !hasPol || !pol ){
