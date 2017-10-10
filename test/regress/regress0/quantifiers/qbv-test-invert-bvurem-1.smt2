@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-bv
+; COMMAND-LINE: --cbqi-bv --bv-div-zero-const
 (set-logic BV)
 (set-info :status sat)
 (declare-fun a () (_ BitVec 32))
