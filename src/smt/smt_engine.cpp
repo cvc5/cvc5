@@ -965,16 +965,6 @@ public:
   void setExpressionName(Expr e, std::string name) {
     d_exprNames[Node::fromExpr(e)] = name;
   }
-
-  // implements getExpressionNames, as described in smt_engine.h
-  std::map< Expr, std::string > getExpressionNames() const {
-    std::map< Expr, std::string > names;
-    for(context::CDHashMap< Node, std::string, NodeHashFunction >::const_iterator it = d_exprNames.begin(); 
-        it != d_exprNames.end(); ++it ){
-      names[ (*it).first.toExpr() ] = (*it).second;
-    }
-    return names;
-  }
   
   // implements getExpressionName, as described in smt_engine.h
   bool getExpressionName(Expr e, std::string& name) const {
@@ -5690,10 +5680,6 @@ void SmtEngine::setReplayStream(ExprStream* replayStream) {
                "Cannot set replay stream once fully initialized");
   d_replayStream = replayStream;
 }  
-
-std::map< Expr, std::string > SmtEngine::getExpressionNames() const {
-  return d_private->getExpressionNames();
-}
 
 bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
   return d_private->getExpressionName(e, name);

@@ -745,12 +745,6 @@ public:
    */
   void setReplayStream(ExprStream* exprStream);
   
-  /** get expression names 
-  * This gets a mapping of all expressions that have been named
-  * in the current user context via calls to setExpressionName.
-  */
-  std::map< Expr, std::string > getExpressionNames() const;
-  
   /** get expression name
   * Returns true if e has an expression name in the current context.
   * If it returns true, the name of e is stored in name.
