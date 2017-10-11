@@ -81,6 +81,8 @@ public:
 
   static std::string getVersionExtra();
 
+  static std::string copyright();
+
   static std::string about();
 
   static bool licenseIsGpl();
