@@ -501,8 +501,6 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         t = skv;
       } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
         t = NodeManager::currentNM()->mkNode(k, t);
-        //}else if( k==BITVECTOR_CONCAT ){
-        // TODO
         //}else if( k==BITVECTOR_ASHR ){
         // TODO
       } else {
