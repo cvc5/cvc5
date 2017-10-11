@@ -17,6 +17,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/trigger.h"
 
@@ -86,7 +87,7 @@ Node ArithInstantiator::getModelBasedProjectionValue( CegInstantiator * ci, Node
   }
   if( !delta_coeff.isNull() ){
     //create delta here if necessary
-    val = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkNode( MULT, delta_coeff, ci->getQuantifiersEngine()->getTermDatabase()->getVtsDelta() ) );
+    val = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkNode( MULT, delta_coeff, ci->getQuantifiersEngine()->getTermUtil()->getVtsDelta() ) );
     val = Rewriter::rewrite( val );
   }
   return val;
@@ -148,7 +149,7 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
       }
       if( options::cbqiAll() ){
         // when not pure LIA/LRA, we must check whether the lhs contains pv
-        if( TermDb::containsTerm( val, pv ) ){
+        if( TermUtil::containsTerm( val, pv ) ){
           Trace("cegqi-arith-debug") << "fail : contains bad term" << std::endl;
           return 0;
         }
@@ -156,7 +157,7 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
       if( pvtn.isInteger() && ( ( !veq_c.isNull() && !veq_c.getType().isInteger() ) || !val.getType().isInteger() ) ){
         //redo, split integer/non-integer parts
         bool useCoeff = false;
-        Integer coeff = ci->getQuantifiersEngine()->getTermDatabase()->d_one.getConst<Rational>().getNumerator();
+        Integer coeff = ci->getQuantifiersEngine()->getTermUtil()->d_one.getConst<Rational>().getNumerator();
         for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
           if( it->first.isNull() || it->first.getType().isInteger() ){
             if( !it->second.isNull() ){
@@ -186,7 +187,7 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
         if( !vts_coeff[0].isNull() ){
           vts_coeff[0] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, rcoeff, vts_coeff[0] ) );
         }
-        realPart = real_part.empty() ? ci->getQuantifiersEngine()->getTermDatabase()->d_zero : ( real_part.size()==1 ? real_part[0] : NodeManager::currentNM()->mkNode( PLUS, real_part ) );
+        realPart = real_part.empty() ? ci->getQuantifiersEngine()->getTermUtil()->d_zero : ( real_part.size()==1 ? real_part[0] : NodeManager::currentNM()->mkNode( PLUS, real_part ) );
         Assert( ci->getOutput()->isEligibleForInstantiation( realPart ) );
         //re-isolate
         Trace("cegqi-arith-debug") << "Re-isolate..." << std::endl;
@@ -213,8 +214,8 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
 }
 
 void ArithInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
-  d_vts_sym[0] = ci->getQuantifiersEngine()->getTermDatabase()->getVtsInfinity( d_type, false, false );
-  d_vts_sym[1] = ci->getQuantifiersEngine()->getTermDatabase()->getVtsDelta( false, false );
+  d_vts_sym[0] = ci->getQuantifiersEngine()->getTermUtil()->getVtsInfinity( d_type, false, false );
+  d_vts_sym[1] = ci->getQuantifiersEngine()->getTermUtil()->getVtsDelta( false, false );
   for( unsigned i=0; i<2; i++ ){
     d_mbp_bounds[i].clear();
     d_mbp_coeff[i].clear();
@@ -323,7 +324,7 @@ bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, 
             Node cmp = NodeManager::currentNM()->mkNode( GEQ, lhs_value, rhs_value );
             cmp = Rewriter::rewrite( cmp );
             Assert( cmp.isConst() );
-            is_upper = ( cmp!=ci->getQuantifiersEngine()->getTermDatabase()->d_true );
+            is_upper = ( cmp!=ci->getQuantifiersEngine()->getTermUtil()->d_true );
           }
         }else{
           is_upper = (r==0);
@@ -354,7 +355,7 @@ bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, 
             vts_coeff_delta = Rewriter::rewrite( vts_coeff_delta );
           }
         }else{
-          Node delta = ci->getQuantifiersEngine()->getTermDatabase()->getVtsDelta();
+          Node delta = ci->getQuantifiersEngine()->getTermUtil()->getVtsDelta();
           uval = NodeManager::currentNM()->mkNode( uires==2 ? PLUS : MINUS, uval, delta );
           uval = Rewriter::rewrite( uval );
         }
@@ -392,8 +393,8 @@ bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf,
     }
     int best_used[2];
     std::vector< Node > t_values[3];
-    Node zero = ci->getQuantifiersEngine()->getTermDatabase()->d_zero;
-    Node one = ci->getQuantifiersEngine()->getTermDatabase()->d_one;
+    Node zero = ci->getQuantifiersEngine()->getTermUtil()->d_zero;
+    Node one = ci->getQuantifiersEngine()->getTermUtil()->d_one;
     Node pv_value = ci->getModelValue( pv );
     //try optimal bounds
     for( unsigned r=0; r<2; r++ ){
@@ -403,7 +404,7 @@ bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf,
         if( use_inf ){
           Trace("cegqi-arith-bound") << "No " << ( rr==0 ? "lower" : "upper" ) << " bounds for " << pv << " (type=" << d_type << ")" << std::endl;
           //no bounds, we do +- infinity
-          Node val = ci->getQuantifiersEngine()->getTermDatabase()->getVtsInfinity( d_type );
+          Node val = ci->getQuantifiersEngine()->getTermUtil()->getVtsInfinity( d_type );
           //TODO : rho value for infinity?
           if( rr==0 ){
             val = NodeManager::currentNM()->mkNode( UMINUS, val );
@@ -472,7 +473,7 @@ bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf,
                 Kind k = rr==0 ? GEQ : LEQ;
                 Node cmp_bound = NodeManager::currentNM()->mkNode( k, value[t], best_bound_value[t] );
                 cmp_bound = Rewriter::rewrite( cmp_bound );
-                if( cmp_bound!=ci->getQuantifiersEngine()->getTermDatabase()->d_true ){
+                if( cmp_bound!=ci->getQuantifiersEngine()->getTermUtil()->d_true ){
                   new_best = false;
                   break;
                 }
@@ -640,8 +641,8 @@ bool ArithInstantiator::postProcessInstantiationForVariable( CegInstantiator * c
             NodeManager::currentNM()->mkNode( ITE,
               NodeManager::currentNM()->mkNode( EQUAL,
                 NodeManager::currentNM()->mkNode( INTS_MODULUS_TOTAL, veq[1], veq_c ),
-                ci->getQuantifiersEngine()->getTermDatabase()->d_zero ),
-              ci->getQuantifiersEngine()->getTermDatabase()->d_zero, ci->getQuantifiersEngine()->getTermDatabase()->d_one )
+                ci->getQuantifiersEngine()->getTermUtil()->d_zero ),
+              ci->getQuantifiersEngine()->getTermUtil()->d_zero, ci->getQuantifiersEngine()->getTermUtil()->d_one )
           );
         }
       }
@@ -695,7 +696,7 @@ Node DtInstantiator::solve_dt( Node v, Node a, Node b, Node sa, Node sb ) {
   }
   if( !ret.isNull() ){
     //ensure does not contain
-    if( TermDb::containsTerm( ret, v ) ){
+    if( TermUtil::containsTerm( ret, v ) ){
       ret = Node::null();
     }
   }
@@ -784,7 +785,7 @@ void EprInstantiator::computeMatchScore( CegInstantiator * ci, Node pv, Node cat
 }
 
 void EprInstantiator::computeMatchScore( CegInstantiator * ci, Node pv, Node catom, Node eqc, std::map< Node, int >& match_score ) {
-  if( inst::Trigger::isAtomicTrigger( catom ) && TermDb::containsTerm( catom, pv ) ){
+  if( inst::Trigger::isAtomicTrigger( catom ) && TermUtil::containsTerm( catom, pv ) ){
     Trace("cegqi-epr") << "Find matches for " << catom << "..." << std::endl;
     std::vector< Node > arg_reps;
     for( unsigned j=0; j<catom.getNumChildren(); j++ ){

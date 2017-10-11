@@ -330,6 +330,8 @@ libcvc4_la_SOURCES = \
 	theory/fp/theory_fp_rewriter.h \
 	theory/fp/theory_fp_type_rules.h \
 	theory/fp/type_enumerator.h \
+	theory/fp/fp_converter.h \
+	theory/fp/fp_converter.cpp \
 	theory/idl/idl_assertion.cpp \
 	theory/idl/idl_assertion.h \
 	theory/idl/idl_assertion_db.cpp \
@@ -368,6 +370,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/ceg_t_instantiator.h \
 	theory/quantifiers/conjecture_generator.cpp \
 	theory/quantifiers/conjecture_generator.h \
+	theory/quantifiers/equality_query.cpp \
+	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
 	theory/quantifiers/equality_infer.h \
 	theory/quantifiers/first_order_model.cpp \
@@ -414,12 +418,16 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/rewrite_engine.cpp \
 	theory/quantifiers/rewrite_engine.h \
+	theory/quantifiers/sygus_grammar_cons.cpp \
+	theory/quantifiers/sygus_grammar_cons.h \
 	theory/quantifiers/symmetry_breaking.cpp \
 	theory/quantifiers/symmetry_breaking.h \
 	theory/quantifiers/term_database.cpp \
 	theory/quantifiers/term_database.h \
 	theory/quantifiers/term_database_sygus.cpp \
 	theory/quantifiers/term_database_sygus.h \
+	theory/quantifiers/term_util.cpp \
+	theory/quantifiers/term_util.h \
 	theory/quantifiers/theory_quantifiers.cpp \
 	theory/quantifiers/theory_quantifiers.h \
 	theory/quantifiers/theory_quantifiers_type_rules.h \

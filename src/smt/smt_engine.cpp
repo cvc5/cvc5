@@ -91,7 +91,7 @@
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/substitutions.h"
@@ -4543,6 +4543,7 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
       quantifiers::SingleInvocationPartition sip;
       std::vector< Node > funcs;
       for( unsigned i=0; i<conj[0].getNumChildren(); i++ ){
+        // TODO : revisit this when addressing #1205
         Node sf = conj[0][i].getAttribute(theory::SygusSynthFunAttribute());
         Assert( !sf.isNull() );
         funcs.push_back( sf );

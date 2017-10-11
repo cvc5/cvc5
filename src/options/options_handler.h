@@ -171,6 +171,7 @@ public:
   void notifySetPrintExprTypes(std::string option);
 
   /* main/options_handlers.h */
+  void copyright(std::string option);
   void showConfiguration(std::string option);
   void showDebugTags(std::string option);
   void showTraceTags(std::string option);
