@@ -403,9 +403,10 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
            * with w = getSize(t) = getSize(s) and z = 0 with getSize(z) = w  */
           unsigned w = bv::utils::getSize(s);
           Node z = bv::utils::mkZero(w);
-          Node z_o_t =  nm->mkNode(BITVECTOR_CONCAT, z, t);
-          Node zot_shl_s = nm->mkNode(BITVECTOR_SHL, z_o_t, s);
-          Node ext = bv::utils::mkExtract(zot_shl_s, 2*w-1, w);
+          Node z_o_t = nm->mkNode(BITVECTOR_CONCAT, z, t);
+          Node z_o_s = nm->mkNode(BITVECTOR_CONCAT, z, s);
+          Node zot_shl_zos = nm->mkNode(BITVECTOR_SHL, z_o_t, z_o_s);
+          Node ext = bv::utils::mkExtract(zot_shl_zos, 2*w-1, w);
           scl = nm->mkNode(OR,
               nm->mkNode(EQUAL, s, z),
               nm->mkNode(EQUAL, ext, z));
