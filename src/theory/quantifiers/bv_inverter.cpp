@@ -22,10 +22,11 @@
 #include "theory/bv/theory_bv_utils.h"
 
 
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 /* Drop child at given index from expression.
  * E.g., dropChild((x + y + z), 1) -> (x + z)  */
@@ -573,3 +574,7 @@ Node BvInverter::solve_bv_lit(Node sv, Node lit, bool pol,
   }
   return Node::null();
 }
+
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
