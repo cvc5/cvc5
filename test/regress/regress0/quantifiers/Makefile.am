@@ -96,7 +96,8 @@ TESTS =	\
 	qbv-test-invert-concat-1.smt2 \
 	qbv-test-invert-shl.smt2 \
 	qbv-test-invert-udiv-0.smt2 \
-	qbv-test-invert-udiv-1.smt2
+	qbv-test-invert-udiv-1.smt2 \
+	qbv-test-urem-rewrite.smt2
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
 # set3.smt2
