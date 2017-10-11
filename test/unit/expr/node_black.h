@@ -39,7 +39,7 @@ std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager, int N,
                                    TypeNode type) {
   std::vector<Node> skolems;
   for (int i = 0; i < N; i++) {
-    skolems.push_back(nodeManager->mkSkolem(/*prefix=*/skolem_, type,
+    skolems.push_back(nodeManager->mkSkolem(/*prefix=*/"skolem_", type,
                                             "Created by makeNSkolemNodes()"));
   }
   return skolems;
