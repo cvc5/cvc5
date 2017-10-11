@@ -19,12 +19,9 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
-#include "theory/quantifiers/ce_guided_instantiation.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fun_def_engine.h"
-#include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
@@ -152,7 +149,7 @@ bool TermDbSygus::getMatch2( Node p, Node n, std::map< int, Node >& s, std::vect
     return p==n;
   }else if( n.getKind()==p.getKind() && n.getNumChildren()==p.getNumChildren() ){
     //try both ways?
-    unsigned rmax = TermDb::isComm( n.getKind() ) && n.getNumChildren()==2 ? 2 : 1;
+    unsigned rmax = TermUtil::isComm( n.getKind() ) && n.getNumChildren()==2 ? 2 : 1;
     std::vector< int > new_tmp;
     for( unsigned r=0; r<rmax; r++ ){
       bool success = true;
@@ -724,7 +721,7 @@ bool TermDbSygus::considerArgKind( TypeNode tn, TypeNode tnp, Kind k, Kind pk, i
   int pc = getKindConsNum( tnp, pk );
   if( k==pk ){
     //check for associativity
-    if( quantifiers::TermDb::isAssoc( k ) ){
+    if( quantifiers::TermUtil::isAssoc( k ) ){
       //if the operator is associative, then a repeated occurrence should only occur in the leftmost argument position
       int firstArg = getFirstArgOccurrence( pdt[pc], tn );
       Assert( firstArg!=-1 );
@@ -2011,7 +2008,7 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
         Assert( dt.isSygus() );
         Trace("sygus-eager") << "TermDbSygus::eager: Register model value : " << vn << " for " << n << std::endl;
         Trace("sygus-eager") << "...it has " << it->second.size() << " evaluations, already processed " << start << "." << std::endl;
-        Node bTerm = d_quantEngine->getTermDatabaseSygus()->sygusToBuiltin( vn, tn );
+        Node bTerm = sygusToBuiltin( vn, tn );
         Trace("sygus-eager") << "Built-in term : " << bTerm << std::endl;
         std::vector< Node > vars;
         Node var_list = Node::fromExpr( dt.getSygusVarList() );

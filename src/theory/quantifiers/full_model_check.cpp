@@ -16,6 +16,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace std;
 using namespace CVC4;
@@ -382,7 +383,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         Node r = fm->getRepresentative( it->second[a] );
         if( Trace.isOn("fmc-model-debug") ){
           std::vector< Node > eqc;
-          ((EqualityQueryQuantifiersEngine*)d_qe->getEqualityQuery())->getEquivalenceClass( r, eqc );
+          d_qe->getEqualityQuery()->getEquivalenceClass( r, eqc );
           Trace("fmc-model-debug") << "   " << (it->second[a]==r);
           Trace("fmc-model-debug") << " : " << it->second[a] << " : " << r << " : ";
           //Trace("fmc-model-debug") << r2 << " : " << ir << " : ";
