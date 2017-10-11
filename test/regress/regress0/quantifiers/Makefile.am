@@ -96,7 +96,6 @@ TESTS =	\
 	qbv-test-invert-bvult-1.smt2 \
 	qbv-test-invert-mul.smt2 \
 	qbv-test-invert-bvlshr-0.smt2 \
- 	qbv-test-invert-bvult-0.smt2 \
  	qbv-test-invert-bvurem-1.smt2 \
 	qbv-simple-2vars-vo.smt2
 
