@@ -342,13 +342,12 @@ Expr Tptp::getAssertionExpr(FormulaRole fr, Expr expr) {
 }
 
 Command* Tptp::makeAssertCommand(FormulaRole fr, Expr expr, bool cnf, bool inUnsatCore) {
-  assert(!expr.isNull());
   // For SZS ontology compliance.
   // if we're in cnf() though, conjectures don't result in "Theorem" or
   // "CounterSatisfiable".
   if (!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE)) {
     d_hasConjecture = true;
-    
+    assert(!expr.isNull());
   }
   if( expr.isNull() ){
     return new EmptyCommand("Untreated role for expression");
