@@ -93,7 +93,6 @@ TESTS =	\
 	qbv-test-invert-mul.smt2 \
 	qbv-test-invert-bvand.smt2 \
 	qbv-test-invert-bvor.smt2 \
-	qbv-test-invert-bvult-1.smt2 \
 	qbv-test-invert-mul.smt2 \
 	qbv-test-invert-bvlshr-0.smt2 \
  	qbv-test-invert-bvurem-1.smt2 \
