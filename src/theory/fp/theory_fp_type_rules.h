@@ -194,6 +194,7 @@ class FloatingPointPartialOperationTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     TRACE("FloatingPointOperationTypeRule");
+    AlwaysAssert(n.getNumChildren() > 0);
 
     TypeNode firstOperand = n[0].getType(check);
 
@@ -203,9 +204,9 @@ class FloatingPointPartialOperationTypeRule {
             n, "floating-point operation applied to a non floating-point sort");
       }
 
-      size_t children = n.getNumChildren();
+      const size_t children = n.getNumChildren();
       for (size_t i = 1; i < children - 1; ++i) {
-        if (!(n[i].getType(check) == firstOperand)) {
+        if (n[i].getType(check) != firstOperand) {
           throw TypeCheckingExceptionPrivate(
               n, "floating-point partial operation applied to mixed sorts");
         }
@@ -240,6 +241,7 @@ class FloatingPointToFPIEEEBitVectorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     TRACE("FloatingPointToFPIEEEBitVectorTypeRule");
+    AlwaysAssert(n.getNumChildren() == 1);
 
     FloatingPointToFPIEEEBitVector info =
         n.getOperator().getConst<FloatingPointToFPIEEEBitVector>();
@@ -270,6 +272,7 @@ class FloatingPointToFPFloatingPointTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     TRACE("FloatingPointToFPFloatingPointTypeRule");
+    AlwaysAssert(n.getNumChildren() == 2);
 
     FloatingPointToFPFloatingPoint info =
         n.getOperator().getConst<FloatingPointToFPFloatingPoint>();
@@ -301,6 +304,7 @@ class FloatingPointToFPRealTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     TRACE("FloatingPointToFPRealTypeRule");
+    AlwaysAssert(n.getNumChildren() == 2);
 
     FloatingPointToFPReal info =
         n.getOperator().getConst<FloatingPointToFPReal>();
@@ -332,6 +336,7 @@ class FloatingPointToFPSignedBitVectorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     TRACE("FloatingPointToFPSignedBitVectorTypeRule");
+    AlwaysAssert(n.getNumChildren() == 2);
 
     FloatingPointToFPSignedBitVector info =
         n.getOperator().getConst<FloatingPointToFPSignedBitVector>();
@@ -363,6 +368,7 @@ class FloatingPointToFPUnsignedBitVectorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     TRACE("FloatingPointToFPUnsignedBitVectorTypeRule");
+    AlwaysAssert(n.getNumChildren() == 2);
 
     FloatingPointToFPUnsignedBitVector info =
         n.getOperator().getConst<FloatingPointToFPUnsignedBitVector>();
@@ -419,6 +425,7 @@ class FloatingPointToUBVTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     TRACE("FloatingPointToUBVTypeRule");
+    AlwaysAssert(n.getNumChildren() == 2);
 
     FloatingPointToUBV info = n.getOperator().getConst<FloatingPointToUBV>();
 
@@ -449,6 +456,7 @@ class FloatingPointToSBVTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     TRACE("FloatingPointToSBVTypeRule");
+    AlwaysAssert(n.getNumChildren() == 2);
 
     FloatingPointToSBV info = n.getOperator().getConst<FloatingPointToSBV>();
 
@@ -479,6 +487,7 @@ class FloatingPointToUBVTotalTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     TRACE("FloatingPointToUBVTotalTypeRule");
+    AlwaysAssert(n.getNumChildren() == 3);
 
     FloatingPointToUBVTotal info = n.getOperator().getConst<FloatingPointToUBVTotal>();
 
@@ -519,6 +528,7 @@ class FloatingPointToSBVTotalTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     TRACE("FloatingPointToSBVTotalTypeRule");
+    AlwaysAssert(n.getNumChildren() == 3);
 
     FloatingPointToSBVTotal info = n.getOperator().getConst<FloatingPointToSBVTotal>();
 
@@ -559,6 +569,7 @@ class FloatingPointToRealTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     TRACE("FloatingPointToRealTypeRule");
+    AlwaysAssert(n.getNumChildren() == 1);
 
     if (check) {
       TypeNode operandType = n[0].getType(check);
@@ -578,6 +589,7 @@ class FloatingPointToRealTotalTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     TRACE("FloatingPointToRealTotalTypeRule");
+    AlwaysAssert(n.getNumChildren() == 2);
 
     if (check) {
       TypeNode operandType = n[0].getType(check);

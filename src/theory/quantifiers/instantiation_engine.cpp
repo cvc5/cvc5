@@ -18,6 +18,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/inst_strategy_e_matching.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 
@@ -177,7 +178,7 @@ void InstantiationEngine::registerQuantifier( Node f ){
     //}
     //take into account user patterns
     if( f.getNumChildren()==3 ){
-      Node subsPat = d_quantEngine->getTermDatabase()->getInstConstantNode( f[2], f );
+      Node subsPat = d_quantEngine->getTermUtil()->getInstConstantNode( f[2], f );
       //add patterns
       for( int i=0; i<(int)subsPat.getNumChildren(); i++ ){
         //Notice() << "Add pattern " << subsPat[i] << " for " << f << std::endl;

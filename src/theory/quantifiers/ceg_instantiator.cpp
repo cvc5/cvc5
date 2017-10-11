@@ -19,6 +19,7 @@
 #include "smt/term_formula_removal.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
@@ -605,7 +606,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
           nretc = Rewriter::rewrite( nretc );
           //ensure that nret does not contain vars
-          if( !TermDb::containsTerms( nretc, vars ) ){
+          if( !TermUtil::containsTerms( nretc, vars ) ){
             //result is ( nret / pv_prop.d_coeff )
             nret = nretc;
           }else{
@@ -647,7 +648,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
       }else{
         atom_lhs = NodeManager::currentNM()->mkNode( MINUS, atom[0], atom[1] );
         atom_lhs = Rewriter::rewrite( atom_lhs );
-        atom_rhs = getQuantifiersEngine()->getTermDatabase()->d_zero;
+        atom_rhs = getQuantifiersEngine()->getTermUtil()->d_zero;
       }
       //must be an eligible term
       if( isEligible( atom_lhs ) ){
@@ -968,7 +969,7 @@ void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) 
     d_is_nested_quant = true;
   }else if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( TermDb::isBoolConnectiveTerm( n ) ){
+    if( TermUtil::isBoolConnectiveTerm( n ) ){
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         collectCeAtoms( n[i], visited );
       }
@@ -1084,7 +1085,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
 
 
 Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn ){
-  d_closed_enum_type = qe->getTermDatabase()->isClosedEnumerableType( tn );
+  d_closed_enum_type = qe->getTermUtil()->isClosedEnumerableType( tn );
 }
 
 
