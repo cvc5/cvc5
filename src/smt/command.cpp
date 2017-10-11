@@ -1113,8 +1113,8 @@ std::string GetAssignmentCommand::getCommandName() const throw() {
 
 /* class GetModelCommand */
 
-GetModelCommand::GetModelCommand() throw() {
-}
+GetModelCommand::GetModelCommand() throw()
+    : d_result(nullptr), d_smtEngine(nullptr) {}
 
 void GetModelCommand::invoke(SmtEngine* smtEngine) {
   try {
@@ -1164,8 +1164,8 @@ std::string GetModelCommand::getCommandName() const throw() {
 
 /* class GetProofCommand */
 
-GetProofCommand::GetProofCommand() throw() {
-}
+GetProofCommand::GetProofCommand() throw()
+    : d_result(nullptr), d_smtEngine(nullptr) {}
 
 void GetProofCommand::invoke(SmtEngine* smtEngine) {
   try {
@@ -1214,8 +1214,8 @@ std::string GetProofCommand::getCommandName() const throw() {
 
 /* class GetInstantiationsCommand */
 
-GetInstantiationsCommand::GetInstantiationsCommand() throw() {
-}
+GetInstantiationsCommand::GetInstantiationsCommand() throw()
+    : d_smtEngine(nullptr) {}
 
 void GetInstantiationsCommand::invoke(SmtEngine* smtEngine) {
   try {
@@ -1258,8 +1258,8 @@ std::string GetInstantiationsCommand::getCommandName() const throw() {
 
 /* class GetSynthSolutionCommand */
 
-GetSynthSolutionCommand::GetSynthSolutionCommand() throw() {
-}
+GetSynthSolutionCommand::GetSynthSolutionCommand() throw()
+    : d_smtEngine(nullptr) {}
 
 void GetSynthSolutionCommand::invoke(SmtEngine* smtEngine) {
   try {
@@ -1353,9 +1353,6 @@ std::string GetQuantifierEliminationCommand::getCommandName() const throw() {
 GetUnsatCoreCommand::GetUnsatCoreCommand() throw() {
 }
 
-GetUnsatCoreCommand::GetUnsatCoreCommand(const std::map<Expr, std::string>& names) throw() : d_names(names) {
-}
-
 void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getUnsatCore();
@@ -1371,7 +1368,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out, uint32_t verbosity) con
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
-    d_result.toStream(out, d_names);
+    d_result.toStream(out);
   }
 }
 
@@ -1381,13 +1378,13 @@ const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const throw() {
 }
 
 Command* GetUnsatCoreCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  GetUnsatCoreCommand* c = new GetUnsatCoreCommand(d_names);
+  GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
   c->d_result = d_result;
   return c;
 }
 
 Command* GetUnsatCoreCommand::clone() const {
-  GetUnsatCoreCommand* c = new GetUnsatCoreCommand(d_names);
+  GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
   c->d_result = d_result;
   return c;
 }
@@ -1690,6 +1687,33 @@ Command* GetOptionCommand::clone() const {
 
 std::string GetOptionCommand::getCommandName() const throw() {
   return "get-option";
+}
+
+
+/* class SetExpressionNameCommand */
+
+SetExpressionNameCommand::SetExpressionNameCommand(Expr expr, std::string name) throw() :
+d_expr(expr), d_name(name) {
+
+}
+
+void SetExpressionNameCommand::invoke(SmtEngine* smtEngine) {
+  smtEngine->setExpressionName(d_expr, d_name);
+  d_commandStatus = CommandSuccess::instance();
+}
+
+Command* SetExpressionNameCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  SetExpressionNameCommand* c = new SetExpressionNameCommand(d_expr.exportTo(exprManager, variableMap), d_name);
+  return c;
+}
+
+Command* SetExpressionNameCommand::clone() const {
+  SetExpressionNameCommand* c = new SetExpressionNameCommand(d_expr, d_name);
+  return c;
+}
+
+std::string SetExpressionNameCommand::getCommandName() const throw() {
+  return "set-expr-name";
 }
 
 /* class DatatypeDeclarationCommand */

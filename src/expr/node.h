@@ -44,6 +44,7 @@
 #include "expr/expr_iomanip.h"
 #include "options/language.h"
 #include "options/set_language.h"
+#include "util/hash.h"
 #include "util/utility.h"
 
 namespace CVC4 {
@@ -959,14 +960,8 @@ inline size_t TNodeHashFunction::operator()(TNode node) const {
   return node.getId();
 }
 
-struct TNodePairHashFunction {
-  size_t operator()(const std::pair<CVC4::TNode, CVC4::TNode>& pair ) const {
-    TNode n1 = pair.first;
-    TNode n2 = pair.second;
-
-    return (size_t) (n1.getId() * 0x9e3779b9 + n2.getId());
-  }
-};/* struct TNodePairHashFunction */
+using TNodePairHashFunction =
+    PairHashFunction<TNode, TNode, TNodeHashFunction, TNodeHashFunction>;
 
 template <bool ref_count>
 inline size_t NodeTemplate<ref_count>::getNumChildren() const {

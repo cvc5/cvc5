@@ -61,8 +61,6 @@ private:
   LogicInfo d_logic;
   std::unordered_map<std::string, Kind> operatorKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
-  // this is a user-context stack
-  std::stack< std::map<Expr, std::string> > d_unsatCoreNames;
   // for sygus
   std::vector<Expr> d_sygusVars, d_sygusConstraints, d_sygusFunSymbols;
   std::map< Expr, bool > d_sygusVarPrimed;
@@ -87,6 +85,11 @@ public:
   bool isTheoryEnabled(Theory theory) const;
 
   bool logicIsSet();
+  
+  /**
+   * Returns the expression that name should be interpreted as. 
+   */
+  virtual Expr getExpressionForNameAndType(const std::string& name, Type t);
 
   void reset();
 
@@ -149,22 +152,6 @@ public:
 
   std::pair<Expr, std::string> lastNamedTerm() {
     return d_lastNamedTerm;
-  }
-
-  void pushUnsatCoreNameScope() {
-    d_unsatCoreNames.push(d_unsatCoreNames.top());
-  }
-
-  void popUnsatCoreNameScope() {
-    d_unsatCoreNames.pop();
-  }
-
-  void registerUnsatCoreName(std::pair<Expr, std::string> name) {
-    d_unsatCoreNames.top().insert(name);
-  }
-
-  std::map<Expr, std::string> getUnsatCoreNames() {
-    return d_unsatCoreNames.top();
   }
 
   bool isAbstractValue(const std::string& name) {

@@ -29,7 +29,7 @@
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
@@ -899,6 +899,8 @@ static string smtKindString(Kind k) throw() {
   case kind::FLOATINGPOINT_RTI: return "fp.roundToIntegral";
   case kind::FLOATINGPOINT_MIN: return "fp.min";
   case kind::FLOATINGPOINT_MAX: return "fp.max";
+  case kind::FLOATINGPOINT_MIN_TOTAL: return "fp.min_total";
+  case kind::FLOATINGPOINT_MAX_TOTAL: return "fp.max_total";
 
   case kind::FLOATINGPOINT_LEQ: return "fp.leq";
   case kind::FLOATINGPOINT_LT: return "fp.lt";
@@ -920,8 +922,11 @@ static string smtKindString(Kind k) throw() {
   case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR: return "to_fp_unsigned";
   case kind::FLOATINGPOINT_TO_FP_GENERIC: return "to_fp_unsigned";
   case kind::FLOATINGPOINT_TO_UBV: return "fp.to_ubv";
+  case kind::FLOATINGPOINT_TO_UBV_TOTAL: return "fp.to_ubv_total";
   case kind::FLOATINGPOINT_TO_SBV: return "fp.to_sbv";
+  case kind::FLOATINGPOINT_TO_SBV_TOTAL: return "fp.to_sbv_total";
   case kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
+  case kind::FLOATINGPOINT_TO_REAL_TOTAL: return "fp.to_real_total";
 
   //string theory
   case kind::STRING_CONCAT: return "str.++";
@@ -1043,6 +1048,14 @@ static void printFpParameterizedOp(std::ostream& out, TNode n) throw() {
     out << "fp.to_sbv "
         << n.getOperator().getConst<FloatingPointToSBV>().bvs.size;
     break;
+  case kind::FLOATINGPOINT_TO_UBV_TOTAL:
+    out << "fp.to_ubv_total "
+        << n.getOperator().getConst<FloatingPointToUBVTotal>().bvs.size;
+    break;
+  case kind::FLOATINGPOINT_TO_SBV_TOTAL:
+    out << "fp.to_sbv_total "
+        << n.getOperator().getConst<FloatingPointToSBVTotal>().bvs.size;
+    break;
   default:
     out << n.getKind();
   }
@@ -1128,13 +1141,15 @@ void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const thro
 }/* Smt2Printer::toStream(CommandStatus*) */
 
 
-void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw() {
+void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const throw() {
   out << "(" << std::endl;
+  SmtEngine * smt = core.getSmtEngine();
+  Assert( smt!=NULL );
   for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
-    map<Expr, string>::const_iterator j = names.find(*i);
-    if (j != names.end()) {
+    std::string name;
+    if (smt->getExpressionName(*i,name)) {
       // Named assertions always get printed
-      out << maybeQuoteSymbol((*j).second) << endl;
+      out << maybeQuoteSymbol(name) << endl;
     } else if (options::dumpUnsatCoresFull()) {
       // Unnamed assertions only get printed if the option is set
       out << *i << endl;

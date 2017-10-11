@@ -15,6 +15,9 @@ common-option help -h --help/ bool
 common-option - --show-config void :handler showConfiguration
  show CVC4 static configuration
 
+common-option - --copyright void :handler copyright
+ show CVC4 copyright information
+
 option - --show-debug-tags void :handler showDebugTags
  show all available tags for debugging
 option - --show-trace-tags void :handler showTraceTags

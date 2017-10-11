@@ -36,7 +36,6 @@ namespace parser {
 Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
   Parser(exprManager,input,strictMode,parseOnly),
   d_logicSet(false) {
-  d_unsatCoreNames.push(std::map<Expr, std::string>());
   if( !strictModeEnabled() ) {
     addTheory(Smt2::THEORY_CORE);
   }
@@ -337,15 +336,25 @@ bool Smt2::logicIsSet() {
   return d_logicSet;
 }
 
+Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
+  if(sygus() && name[0]=='-' && 
+    name.find_first_not_of("0123456789", 1) == std::string::npos) {
+    //allow unary minus in sygus
+    return getExprManager()->mkConst(Rational(name));
+  }else if(isAbstractValue(name)) {
+    return mkAbstractValue(name);
+  }else{
+    return Parser::getExpressionForNameAndType(name, t);
+  }
+}
+
 void Smt2::reset() {
   d_logicSet = false;
   d_logic = LogicInfo();
   operatorKindMap.clear();
   d_lastNamedTerm = std::pair<Expr, std::string>();
-  d_unsatCoreNames = std::stack< std::map<Expr, std::string> >();
   this->Parser::reset();
 
-  d_unsatCoreNames.push(std::map<Expr, std::string>());
   if( !strictModeEnabled() ) {
     addTheory(Smt2::THEORY_CORE);
   }
@@ -1078,6 +1087,7 @@ const void Smt2::getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed ) {
 }
 
 const void Smt2::addSygusFunSymbol( Type t, Expr synth_fun ){
+  //FIXME #1205 : we should not create a proxy, instead quantify on synth_fun and set Type t as an attribute
   Expr sym = mkBoundVar("sfproxy", t);
   d_sygusFunSymbols.push_back(sym);
   
