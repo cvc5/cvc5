@@ -50,6 +50,12 @@ bool ProofOutputChannel::propagate(TNode x) {
 theory::LemmaStatus ProofOutputChannel::lemma(TNode n, ProofRule rule, bool,
                                               bool, bool) {
   Trace("pf::tp") << "ProofOutputChannel: new lemma: " << n << std::endl;
+  // TODO(#1231): We should transition to supporting multiple lemmas. The
+  // following assertion cannot be enabled due to
+  // "test/regress/regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smt".
+  // AlwaysAssert(
+  //     d_lemma.isNull(),
+  //     "Multiple calls to ProofOutputChannel::lemma() are not supported.");
   d_lemma = n;
   return theory::LemmaStatus(TNode::null(), 0);
 }
