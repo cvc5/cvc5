@@ -102,7 +102,7 @@ void ArrayProofReconstruction::notify(
                         << indexOne << " != " << indexTwo << std::endl;
 
         std::shared_ptr<eq::EqProof> childProof =
-            std::shared_ptr<eq::EqProof>();
+            std::make_shared<eq::EqProof>();
         d_equalityEngine->explainEquality(indexOne, indexTwo, false, equalities,
                                           childProof);
 

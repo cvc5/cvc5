@@ -143,7 +143,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
     Assert(pf->d_children.size() >= 2);
 
     int neg = -1;
-    std::shared_ptr<theory::eq::EqProof> subTrans;
+    std::shared_ptr<theory::eq::EqProof> subTrans =
+        std::make_shared<theory::eq::EqProof>();
     subTrans->d_id = theory::eq::MERGED_THROUGH_TRANS;
     subTrans->d_node = pf->d_node;
 

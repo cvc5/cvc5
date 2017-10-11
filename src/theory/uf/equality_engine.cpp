@@ -1003,7 +1003,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
       } else if (eqp->d_children.size() == 1) {
         // The transitivity proof has just one child. Simplify.
         std::shared_ptr<EqProof> temp = eqp->d_children[0];
-        eqp = temp;
+        eqp->d_children.clear();
+        *eqp = *temp;
       }
 
       Debug("pf::ee") << "Disequality explanation final proof: " << std::endl;
@@ -1276,7 +1277,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id,
 
           if (eqp) {
             if(eqp_trans.size() == 1) {
-              eqp = eqp_trans[0];
+              *eqp = *eqp_trans[0];
             } else {
               eqp->d_id = MERGED_THROUGH_TRANS;
               eqp->d_children.insert( eqp->d_children.end(), eqp_trans.begin(), eqp_trans.end() );
