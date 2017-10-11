@@ -416,7 +416,11 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     { bool inUnsatCore = PARSER_STATE->lastNamedTerm().first == expr;
       cmd->reset(new AssertCommand(expr, inUnsatCore));
       if(inUnsatCore) {
-        PARSER_STATE->registerUnsatCoreName(PARSER_STATE->lastNamedTerm());
+        // set the expression name, if there was a named term
+        std::pair<Expr, std::string> namedTerm = PARSER_STATE->lastNamedTerm();
+        Command* csen = new SetExpressionNameCommand(namedTerm.first, namedTerm.second);
+        csen->setMuted(true);
+        PARSER_STATE->preemptCommand(csen);
       }
     }
   | /* check-sat */
@@ -443,7 +447,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     { cmd->reset(new GetProofCommand()); }
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd->reset(new GetUnsatCoreCommand(PARSER_STATE->getUnsatCoreNames())); }
+    { cmd->reset(new GetUnsatCoreCommand); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { if( PARSER_STATE->sygus() ){
@@ -456,13 +460,11 @@ command [std::unique_ptr<CVC4::Command>* cmd]
           cmd->reset(new EmptyCommand());
         } else if(n == 1) {
           PARSER_STATE->pushScope();
-          PARSER_STATE->pushUnsatCoreNameScope();
           cmd->reset(new PushCommand());
         } else {
           std::unique_ptr<CommandSequence> seq(new CommandSequence());
           do {
             PARSER_STATE->pushScope();
-            PARSER_STATE->pushUnsatCoreNameScope();
             Command* push_cmd = new PushCommand();
             push_cmd->setMuted(n > 1);
             seq->addCommand(push_cmd);
@@ -477,7 +479,6 @@ command [std::unique_ptr<CVC4::Command>* cmd]
               "PUSH.  Maybe you want (push 1)?");
         } else {
           PARSER_STATE->pushScope();
-          PARSER_STATE->pushUnsatCoreNameScope();
           cmd->reset(new PushCommand());
         }
       } )
@@ -495,13 +496,11 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         if(n == 0) {
           cmd->reset(new EmptyCommand());
         } else if(n == 1) {
-          PARSER_STATE->popUnsatCoreNameScope();
           PARSER_STATE->popScope();
           cmd->reset(new PopCommand());
         } else {
           std::unique_ptr<CommandSequence> seq(new CommandSequence());
           do {
-            PARSER_STATE->popUnsatCoreNameScope();
             PARSER_STATE->popScope();
             Command* pop_command = new PopCommand();
             pop_command->setMuted(n > 1);
@@ -516,7 +515,6 @@ command [std::unique_ptr<CVC4::Command>* cmd]
               "Strict compliance mode demands an integer to be provided to POP."
               "Maybe you want (pop 1)?");
         } else {
-          PARSER_STATE->popUnsatCoreNameScope();
           PARSER_STATE->popScope();
           cmd->reset(new PopCommand());
         }

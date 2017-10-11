@@ -28,6 +28,7 @@
 #include "util/bitvector.h"
 
 #include <algorithm>
+#include <stack>
 
 using namespace std;
 using namespace CVC4;
@@ -899,10 +900,18 @@ bool BvInstantiator::hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, 
 }
 
 bool BvInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
-  Trace("cegqi-bv") << "BvInstantiator::processAssertion : solve " << pv << " in " << lit << std::endl;
+  // if option enabled, use approach for word-level inversion for BV instantiation
   if( options::cbqiBv() ){
-    // if option enabled, use approach for word-level inversion for BV instantiation
-    processLiteral( ci, sf, pv, lit, effort );
+    // get the best rewritten form of lit for solving for pv 
+    //   this should remove instances of non-invertible operators, and "linearize" lit with respect to pv as much as possible
+    Node rlit = rewriteAssertionForSolvePv( pv, lit );
+    if( Trace.isOn("cegqi-bv") ){
+      Trace("cegqi-bv") << "BvInstantiator::processAssertion : solve " << pv << " in " << lit << std::endl;
+      if( lit!=rlit ){
+        Trace("cegqi-bv") << "...rewritten to " << rlit << std::endl;
+      }
+    }
+    processLiteral( ci, sf, pv, rlit, effort );
   }
   return false;
 }
@@ -994,3 +1003,76 @@ bool BvInstantiator::postProcessInstantiationForVariable( CegInstantiator * ci, 
 
   return true;
 }
+  
+Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
+  NodeManager* nm = NodeManager::currentNM();
+  // result of rewriting the visited term
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  // whether the visited term contains pv
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited_contains_pv;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::stack<TNode> visit;
+  TNode cur;
+  visit.push(lit);
+  do {
+    cur = visit.top();
+    visit.pop();
+    it = visited.find(cur);
+
+    if (it == visited.end()) {
+      visited[cur] = Node::null();
+      visit.push(cur);
+      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+        visit.push(cur[i]);
+      }
+    } else if (it->second.isNull()) {
+      Node ret;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        children.push_back(cur.getOperator());
+      }
+      bool contains_pv = ( cur==pv );
+      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+        it = visited.find(cur[i]);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cur[i] != it->second;
+        children.push_back(it->second);
+        contains_pv = contains_pv || visited_contains_pv[cur[i]];
+      }
+      
+      // [1] rewrite cases of non-invertible operators
+      
+      // if cur is urem( x, y ) where x contains pv but y does not, then
+      // rewrite urem( x, y ) ---> x - udiv( x, y )*y
+      if (cur.getKind()==BITVECTOR_UREM_TOTAL) {
+        if( visited_contains_pv[cur[0]] && !visited_contains_pv[cur[1]] ){
+          ret = nm->mkNode( BITVECTOR_SUB, children[0], 
+                  nm->mkNode( BITVECTOR_MULT,
+                    nm->mkNode( BITVECTOR_UDIV_TOTAL, children[0], children[1] ),
+                    children[1] ) );
+        }
+      }
+      
+      // [2] try to rewrite non-linear literals -> linear literals
+      
+      
+      // return original if the above steps do not produce a result
+      if (ret.isNull()) {
+        if (childChanged) {
+          ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+        }else{
+          ret = cur;
+        }
+      }
+      visited[cur] = ret;
+      // careful that rewrites above do not affect whether this term contains pv
+      visited_contains_pv[cur] = contains_pv;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(lit) != visited.end());
+  Assert(!visited.find(lit)->second.isNull());
+  return visited[lit];
+}
+

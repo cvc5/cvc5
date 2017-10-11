@@ -33,6 +33,7 @@
 #include "base/listener.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
+#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/context.h"
@@ -546,7 +547,11 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   /** TODO: whether certain preprocess steps are necessary */
   //bool d_needsExpandDefs;
-
+  
+  //------------------------------- expression names
+  /** mapping from expressions to name */
+  context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
+  //------------------------------- end expression names
 public:
   /**
    * Map from skolem variables to index in d_assertions containing
@@ -671,6 +676,7 @@ public:
     d_abstractValues(),
     d_simplifyAssertionsDepth(0),
     //d_needsExpandDefs(true),  //TODO?
+    d_exprNames(smt.d_userContext),
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
     d_pbsProcessor(smt.d_userContext),
@@ -806,10 +812,17 @@ public:
    */
   void processAssertions();
 
+  /** Process a user push.
+  */
+  void notifyPush() {
+  
+  }
+
   /**
    * Process a user pop.  Clears out the non-context-dependent stuff in this
    * SmtEnginePrivate.  Necessary to clear out our assertion vectors in case
-   * someone does a push-assert-pop without a check-sat.
+   * someone does a push-assert-pop without a check-sat. It also pops the
+   * last map of expression names from notifyPush.
    */
   void notifyPop() {
     d_assertions.clear();
@@ -946,6 +959,24 @@ public:
   std::ostream* getReplayLog() const {
     return d_managedReplayLog.getReplayLog();
   }
+  
+  //------------------------------- expression names
+  // implements setExpressionName, as described in smt_engine.h
+  void setExpressionName(Expr e, std::string name) {
+    d_exprNames[Node::fromExpr(e)] = name;
+  }
+  
+  // implements getExpressionName, as described in smt_engine.h
+  bool getExpressionName(Expr e, std::string& name) const {
+    context::CDHashMap< Node, std::string, NodeHashFunction >::const_iterator it = d_exprNames.find(e);
+    if(it!=d_exprNames.end()) {
+      name = (*it).second;
+      return true;
+    }else{
+      return false;
+    }
+  }
+  //------------------------------- end expression names
 
 };/* class SmtEnginePrivate */
 
@@ -1729,6 +1760,12 @@ void SmtEngine::setDefaults() {
     }
     if( ! options::prenexQuant.wasSetByUser() ){
       options::prenexQuant.set( quantifiers::PRENEX_QUANT_NONE );
+    }
+  }
+  if( options::ufHo() ){
+    //if higher-order, then current variants of model-based instantiation cannot be used
+    if( options::mbqiMode()!=quantifiers::MBQI_NONE ){
+      options::mbqiMode.set( quantifiers::MBQI_NONE );
     }
   }
   if( options::mbqiMode()==quantifiers::MBQI_ABS ){
@@ -5327,6 +5364,7 @@ void SmtEngine::push() throw(ModalException, LogicException, UnsafeInterruptExce
   finalOptionsAreSet();
   doPendingPops();
   Trace("smt") << "SMT push()" << endl;
+  d_private->notifyPush();
   d_private->processAssertions();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << PushCommand();
@@ -5648,6 +5686,15 @@ void SmtEngine::setReplayStream(ExprStream* replayStream) {
   AlwaysAssert(!d_fullyInited,
                "Cannot set replay stream once fully initialized");
   d_replayStream = replayStream;
+}  
+
+bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
+  return d_private->getExpressionName(e, name);
+}
+
+void SmtEngine::setExpressionName(Expr e, const std::string& name) {
+  Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
+  d_private->setExpressionName(e,name);
 }
 
 }/* CVC4 namespace */
