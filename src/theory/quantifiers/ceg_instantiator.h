@@ -272,15 +272,36 @@ public:
 
   // whether the instantiator implements processAssertion for any literal
   virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
-  // whether the instantiator implements processAssertion for literal lit
-  virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return false; }
-  // Called when the entailment:
-  //   E |= lit 
-  // holds in current context E. Typically, lit belongs to the list of current assertions.
-  // Returns true if an instantiation was successfully added via a recursive call
-  virtual bool processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return false; }
-  // Called after processAssertion is called for each literal asserted to the instantiator.
-  virtual bool processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) { return false; }
+  /** has process assertion
+  *
+  * Called when the entailment:
+  *   E |= lit 
+  * holds in current context E. Typically, lit belongs to the list of current assertions.
+  *
+  * This function is used to determine whether the instantiator implements processAssertion for literal lit.
+  *   If this function returns null, then this intantiator does not handle the literal lit
+  *   Otherwise, this function returns a literal lit' with the properties:
+  *   (1) lit' is true in the current model,
+  *   (2) lit' implies lit.
+  *   where typically lit' = lit.
+  */
+  virtual Node hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return Node::null(); }
+  /** process assertion
+  * Processes the assertion slit for variable pv
+  *
+  * lit is the substituted form (under sf) of a literal returned by hasProcessAssertion
+  * alit is the asserted literal, given as input to hasProcessAssertion
+  *
+  * Returns true if an instantiation was successfully added via a recursive call
+  */
+  virtual bool processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, Node alit, unsigned effort ) { return false; }
+  /** process assertions
+  * Called after processAssertion is called for each literal asserted to the instantiator.
+  * lits contains all literals that were given as input to processAssertion with argument lit,
+  * alits contains all literals that were given as input to processAssertion with argument alit
+  */
+  virtual bool processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, 
+                                  std::vector< Node >& alits, unsigned effort ) { return false; }
 
   //do we use the model value as instantiation for pv
   virtual bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
