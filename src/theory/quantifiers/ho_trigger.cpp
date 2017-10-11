@@ -38,6 +38,9 @@
  ** f -> \ xy. (k x y), x -> 0, y -> 1, z -> 2
  ** f -> \ xy. (k 0 y), x -> 0, y -> 1, z -> 2
  ** 
+ ** This class enumerates the lists above until one instantiation of that form is successfully added
+ ** via a call to QuantifiersEngine::addInstantiation(...)
+ ** 
  ** It also implements a way of forcing APPLY_UF to expand to curried HO_APPLY to
  ** handle a corner case where matching is stuck (addHoTypeMatchPredicateLemmas).
  ** 
@@ -47,6 +50,7 @@
 
 #include "theory/quantifiers/ho_trigger.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
@@ -119,26 +123,42 @@ void HigherOrderTrigger::collectHoVarApplyTerms( Node q, std::vector< Node >& ns
         visited.insert(cur);
         bool curWithinApply = withinApply[cur];
         if( !curWithinApply ){
-          if( cur.getKind()==HO_APPLY ){
-            TNode tmp = cur;
-            while( tmp.getKind() == kind::HO_APPLY ){
-              tmp = tmp[0];        
+          TNode op;
+          if( cur.getKind()==kind::APPLY_UF ){
+            // could be a fully applied function variable
+            op = cur.getOperator();
+          }else if( cur.getKind()==kind::HO_APPLY ){
+            op = cur;
+            while( op.getKind() == kind::HO_APPLY ){
+              op = op[0];        
             }
-            if( tmp.getKind()==INST_CONSTANT ){
-              Assert( quantifiers::TermDb::getInstConstAttr(cur)==q );
-              Trace("ho-quant-trigger-debug") << "Ho variable apply term : " << cur << " with head " << tmp << std::endl;
-              apps[tmp].push_back( cur );
+          }
+          if( !op.isNull() ){
+            if( op.getKind()==INST_CONSTANT ){
+              Assert( quantifiers::TermUtil::getInstConstAttr(cur)==q );
+              Trace("ho-quant-trigger-debug") << "Ho variable apply term : " << cur << " with head " << op << std::endl;
+              Node app = cur;
+              if( app.getKind()==kind::APPLY_UF ){
+                // for consistency, convert to HO_APPLY if fully applied
+                app = uf::TheoryUfRewriter::getHoApplyForApplyUf(app);
+              }
+              apps[op].push_back( cur );
             }
-            curWithinApply = true;
+            if( cur.getKind() == kind::HO_APPLY ){
+              curWithinApply = true;
+            }
           }
         }else{
           if( cur.getKind()!=HO_APPLY ){
             curWithinApply = false;
           }
         }
-        for (unsigned i = 0; i < cur.getNumChildren(); i++) {
-          withinApply[cur[i]] = curWithinApply && i==0;
-          visit.push(cur[i]);
+        // do not look in nested quantifiers
+        if( cur.getKind()!=FORALL ){
+          for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+            withinApply[cur[i]] = curWithinApply && i==0;
+            visit.push(cur[i]);
+          }
         }
       }
     } while (!visit.empty());
@@ -159,12 +179,9 @@ bool HigherOrderTrigger::sendInstantiation( InstMatch& m ) {
     std::vector< TNode > vars;
     std::vector< TNode > subs;
     for( unsigned i=0; i<d_f[0].getNumChildren(); i++ ){
-      subs.push_back( m.d_vals[i] );  
+      subs.push_back( m.d_vals[i] );
+      vars.push_back( d_quantEngine->getTermUtil()->getInstantiationConstant( d_f, i ) ) ;
     }
-    std::map< Node, std::vector< Node > >::iterator itic = d_quantEngine->getTermDatabase()->d_inst_constants.find( d_f );
-    Assert( itic!=d_quantEngine->getTermDatabase()->d_inst_constants.end() );
-    vars.insert( vars.end(), itic->second.begin(), itic->second.end() );
-    Assert( vars.size()==subs.size() );
 
     Trace("ho-unif-debug") << "Run higher-order unification..." << std::endl;
 
@@ -340,7 +357,7 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas() {
       if( it->first.isVar() ){
         TypeNode tn = it->first.getType();
         if( std::find( d_ho_var_types.begin(), d_ho_var_types.end(), tn )!=d_ho_var_types.end() ){
-          Node u = d_quantEngine->getTermDatabase()->getHoTypeMatchPredicate( tn );
+          Node u = d_quantEngine->getTermUtil()->getHoTypeMatchPredicate( tn );
           Node au = NodeManager::currentNM()->mkNode( kind::APPLY_UF, u, it->first );
           if( d_quantEngine->addLemma( au ) ){
             //this forces it->first to be a first-class member of the quantifier-free equality engine,

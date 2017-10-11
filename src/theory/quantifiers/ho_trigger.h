@@ -33,6 +33,15 @@ namespace inst {
 
 class Trigger;
 
+/** HigherOrder trigger 
+*
+* This extends the trigger class with techniques that post-process instantiations, specified by
+* InstMatch objects according to higher-order preunification (also called Huet's algorithm). For examples,
+* see description in the cpp.
+*
+* Its main function is sendInstantiation(...), which is called by its underlying IMGenerator generates
+* an instantiation by standard E-matching. We enumerate a candidate 
+*/
 class HigherOrderTrigger : public Trigger {
   friend class Trigger;
 private:
@@ -44,14 +53,14 @@ public:
   static void collectHoVarApplyTerms( Node q, TNode n, std::map< Node, std::vector< Node > >& apps );
   /** collect all top-level HO_APPLY terms in terms ns whose head is a variable in quantified formula q, store in apps */
   static void collectHoVarApplyTerms( Node q, std::vector< Node >& ns, std::map< Node, std::vector< Node > >& apps );  
-  /** add all available instantiations exhaustively */
+  /** add all available instantiations exhaustively, extends Trigger::addInstantiations for this trigger */
   virtual int addInstantiations( InstMatch& baseMatch );
 protected: 
-  /** the applications */
+  /** map from variable functions to their applications in the quantifier d_f (member of Trigger) */
   std::map< Node, std::vector< Node > > d_ho_var_apps;
-  /** list of ho variables */
+  /** list of all variable functions that are applied in d_f */
   std::vector< Node > d_ho_var_list;
-  /** bound variables, bound variable list for each ho variable */
+  /** bound variables, bound variable list for each ho variable, used for constructing lambda terms in instantiations */
   std::map< TNode, std::vector< Node > > d_ho_var_bvs;
   std::map< TNode, Node > d_ho_var_bvl;
   /** the set of types of ho variables */
@@ -72,10 +81,16 @@ protected:
   */
   virtual bool sendInstantiation( InstMatch& m );
 private:
-  /** current information about match */
+  //-------------------- current information about the match
+  /** map from variable position to the lambda we generated */
   std::map< unsigned, std::vector< Node > > d_lchildren;
+  /** map from variable position to the representative variable position.
+  * Used when two variables are mapped to equal terms, for an example, see second example in cpp.
+  */
   std::map< unsigned, std::map< unsigned, unsigned > > d_arg_to_arg_rep;
+  /** map from representative variable positions to their equivalence class */
   std::map< unsigned, std::map< unsigned, std::vector< Node > > > d_arg_vector;
+  //-------------------- end current information about the match
   /** higher-order pattern unification algorithm 
   * Sends an instantiation that is equivalent to m via d_quantEngine->addInstantiation(...).
   * This is a helper function of sendInstantiation( m ) above.

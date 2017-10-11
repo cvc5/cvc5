@@ -41,7 +41,7 @@ InstMatchGenerator::InstMatchGenerator( Node pat ){
   d_cg = NULL;
   d_needsReset = true;
   d_active_add = true;
-  Assert( quantifiers::TermDb::hasInstConstAttr(pat) );
+  Assert( quantifiers::TermUtil::hasInstConstAttr(pat) );
   d_pattern = pat;
   d_match_pattern = pat;
   d_match_pattern_type = pat.getType();
@@ -135,7 +135,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       d_var_num[0] = d_match_pattern.getAttribute(InstVarNumAttribute());
     }else{
       for( unsigned i=0; i<d_match_pattern.getNumChildren(); i++ ){
-        Node qa = quantifiers::TermDb::getInstConstAttr(d_match_pattern[i]);
+        Node qa = quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i]);
         if( !qa.isNull() ){
           InstMatchGenerator * cimg = getInstMatchGenerator( q, d_match_pattern[i] );
           if( cimg ){

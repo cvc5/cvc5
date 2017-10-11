@@ -38,8 +38,10 @@ class Trigger;
 * Some functions below take as argument a pointer to the current quantifiers engine, 
 * which is used for making various queries about what terms and equalities exist in the current context.
 *
-* Some functions below take a point to a parent Trigger object, which is used to post-process and finalize
-* the instantiations we make with calls to qe->addInstantiation(...).
+* Some functions below take a pointer to a parent Trigger object, which is used to post-process and finalize
+* the instantiations through sendInstantiation(...), where the parent trigger will make calls to 
+* qe->addInstantiation(...). The latter function is the entry point in which lemmas are enqueued to be sent on
+* the output channel.
 */
 class IMGenerator {
 public:
@@ -58,20 +60,23 @@ public:
   virtual bool reset( Node eqc, QuantifiersEngine* qe ) = 0;
   /** Get the next match.
   *
-  * Must call reset( eqc ) before this function. 
+  * Must call reset( eqc ) before this function. This constructs an instantiation, which it populates in data structure m,
+  * based on the current context using the implemented matching algorithm. 
   *
   * q is the quantified formula we are adding instantiations for
   * m is the InstMatch object we are generating
   *
-  * Returns a positive value if we successfully generate a match m.
+  * Returns a value >0 if an instantiation was successfully generated
   */
   virtual int getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe, Trigger * tparent ) = 0;
   /** add instantiations
   *
-  * This add all available instantiations for q based on the current context. It typically is
-  * implemented as a fixed point of getNextMatch above.
+  * This add all available instantiations for q based on the current context using the implemented matching algorithm. 
+  * It typically is implemented as a fixed point of getNextMatch above.
   *
   * baseMatch is a mapping of default values that should be used for variables that are not bound by this (not frequently used).
+  *
+  * It returns the number of instantiations added using calls to  calls to qe->addInstantiation(...) 
   */
   virtual int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe, Trigger * tparent ) = 0;
   /** get active score 
@@ -80,9 +85,10 @@ public:
   */
   virtual int getActiveScore( QuantifiersEngine * qe ) { return 0; }
 protected:
-  /** send instantiation 
-  *
-  * This is called for each instantiation generator 
+  /** send instantiation specified by m to the parent trigger object,
+  * which will in turn make a call to qe->addInstantiation(...).
+  * Returns true if a call to qe->addInstantiation(...) was successfully made, indicating
+  * that an instantiation was enqueued in the quantifier engine's lemma cache.
   */
   bool sendInstantiation( Trigger * tparent, InstMatch& m );
 };/* class IMGenerator */
@@ -96,11 +102,20 @@ class CandidateGenerator;
 * For example, { f( y, f( x, a ) ) } and { f( g( x ), a ) } are non-simple triggers.
 *
 * Handling non-simple triggers is done by constructing a linked list of InstMatchGenerator classes
-* (see mkInstMatchGenerator).
+* (see mkInstMatchGenerator), where each InstMatchGenerator has a "d_next" pointer.  If d_next is NULL,
+* then this is the end of the InstMatchGenerator and the last InstMatchGenerator is responsible for finalizing the instantiation.
 *
-* For non-simple triggers, CVC4 employs techniques that ensure that the number of instantiations 
+* For example [EX#1], for the trigger f( y, f( x, a ) ), we construct the linked list:
+*
+* [ f( y, f( x, a ) ) ] -> [ f( x, a ) ] -> NULL
+*
+* In a call to getNextMatch,
+* if we match against a ground term f( b, c ), then the first InstMatchGenerator in this list binds
+* y to b, and tells the InstMatchGenerator [ f( x, a ) ] to match f-applications in the equivalence class of c.
+*
+* CVC4 employs techniques that ensure that the number of instantiations 
 * is worst-case polynomial wrt the number of ground terms.
-* Consider the axiom/pattern/context :
+* Consider the axiom/pattern/context [EX#2] :
 *
 *          axiom : forall x1 x2 x3 x4. F[ x1...x4 ]
 *
@@ -111,11 +126,21 @@ class CandidateGenerator;
 * If E-matching were applied exhaustively, then x1, x2, x3, x4 would be instantiated with all combinations of c_1, ... c_100, giving 100^4 instantiations.
 *
 * Instead, we enforce that at most 1 instantiation is produced for a ( pattern, ground term ) pair per round. Meaning, only one instantiation is generated
-* when matching P( a, a, a, a ) and P( f( x1 ), f( x2 ), f( x3 ), f( x4 ) ).
+* when matching P( a, a, a, a ) against the generator [P( f( x1 ), f( x2 ), f( x3 ), f( x4 ) )].
+*
+* To enforce these policies, we use a flag "d_active_add" which dictates the behavior of the last element in the linked list.
+*   If d_active_add is true, we return 1 (signaling an instantiation has been successfully generated) only if adding the instantiation via
+*                            a call to IMGenerator::sendInstantiation(...) successfully enqueues a lemma, where this call may fail if we have already
+*                            added the instantiation, or the instantiation is entailed. In this case, the resulting value of m can be ignored
+*   If d_active_add is false, we return 1 regardless, where typically the caller would use m.
+* This is important since a return value >0 signals that the current matched terms should be flushed. Consider the above example [EX#1], where
+* [ f(y,f(x,a)) ] is being matched against f(b,c),
+* [ f(x,a) ] is being matched against f(d,a) where c=f(d,a)
+* A successfully added instantiation { x->d, y->b } here signals we should not produce further instantiations that match f(y,f(x,a)) with f(b,c).
 *
 * A number of special cases of triggers are covered by this generator (see implementation of initialize), including :
 *   Literal triggers, e.g. x >= a, ~x = y
-*   Purified triggers, e.g. selector triggers head( x ), and simple invertible triggers e.g. x+1
+*   Purified triggers, e.g. selector triggers head( x ), and invertible subterms e.g. f( x+1 )
 *   Variable triggers, e.g. x
 *
 * All triggers above can be in the context of an equality, e.g.
@@ -153,7 +178,11 @@ protected:
   int continueNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe, Trigger * tparent );
   /** active add flag */
   bool d_active_add;
-  /** constructors */
+  /** cached value of d_match_pattern.getType() */
+  TypeNode d_match_pattern_type;
+  /** the match operator (see TermDatabase::getMatchOperator) for d_match_pattern */
+  Node d_match_pattern_op;
+  /** constructors (private, called during linked list construction in mkInstMatchGenerator) */
   InstMatchGenerator( Node pat );
   InstMatchGenerator();
   /** gets the InstMatchGenerator associated with q and n. */
@@ -166,24 +195,26 @@ public:
     MATCH_GEN_INTERNAL_ERROR,
   };
   /** get the match against ground term or formula t.
-      d_match_pattern and t should have the same shape.
-      only valid for use where !d_match_pattern.isNull().
+  * d_match_pattern and t should have the same shape, for example
+  * 
+  * only valid for use where !d_match_pattern.isNull().
   */
   int getMatch( Node q, Node t, InstMatch& m, QuantifiersEngine* qe, Trigger * tparent );
 
   /** destructor */
   virtual ~InstMatchGenerator() throw();
-  /** The pattern we are producing matches for.
-      If null, this is a multi trigger that is merging matches from d_children.
+  /** The pattern we are producing matches for. 
+  * The distinction between this and d_match_pattern is 
+  * information regarding phase and (dis)equality entailment.
+  * For example, for the trigger for P( x ) = false, which matches P( x ) with P( t ) in the equivalence class of false,
+  *   P( x ) = false is d_pattern
+  *   P( x ) is d_match_pattern
+  * If null, this is a multi trigger that is merging matches from d_children.
   */
   Node d_pattern;
-  /** match pattern */
+  /** the match pattern (the exact term that is matched against ground terms) */
   Node d_match_pattern;
-  /** match pattern type */
-  TypeNode d_match_pattern_type;
-  /** match pattern op */
-  Node d_match_pattern_op;
-  /** what matched */
+  /** the current term we are matching */
   Node d_curr_matched;
 public:
   /** reset instantiation round (call this whenever equivalence classes have changed) */
@@ -198,7 +229,6 @@ public:
   * If active add is true, we call sendInstantiation in calls to getNextMatch, instead of returning the match.
   * This is necessary so that we can ensure policies that are dependent upon knowing when instantiations are
   * successfully added.
-  * For some uses of this class, we do not want active add enabled.
   */
   void setActiveAdd( bool val );
   /** get active score */
@@ -207,6 +237,8 @@ public:
   void excludeMatch( Node n ) { d_curr_exclude_match[n] = true; }
   /** set that this match generator is independent, e.g. when it fails the overall matching fails. */
   void setIndependent() { d_independent_gen = true; }
+  
+  //-------------------------------construction of inst match generators
   /** mkInstMatchGenerator for the single trigger case, calls the function below */
   static InstMatchGenerator* mkInstMatchGenerator( Node q, Node pat, QuantifiersEngine* qe );
   /** mkInstMatchGenerator for the multi trigger case
@@ -228,9 +260,12 @@ public:
   */
   static InstMatchGenerator* mkInstMatchGenerator( Node q, std::vector< Node >& pats, QuantifiersEngine* qe, 
                                                    std::map< Node, InstMatchGenerator * >& pat_map_init );
+  //-------------------------------end construction of inst match generators
 };/* class InstMatchGenerator */
 
-//match generator for boolean term ITEs
+/** match generator for boolean term ITEs
+* This handles the special case of triggers that look like ite( x, BV1, BV0 ).
+*/
 class VarMatchGeneratorBooleanTerm : public InstMatchGenerator {
 public:
   VarMatchGeneratorBooleanTerm( Node var, Node comp );
@@ -250,15 +285,20 @@ public:
   int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe, Trigger * tparent ){ return 0; }
 };
 
-//match generator for purified terms (matched term is substituted into d_subs)
+/** match generator for purified terms
+* This handles the special case of simple invertible terms like x+1.
+* For a trigger like x+1 :
+*   d_subs is x-1
+*/
 class VarMatchGeneratorTermSubs : public InstMatchGenerator {
-public:
-  VarMatchGeneratorTermSubs( Node var, Node subs );
-  virtual ~VarMatchGeneratorTermSubs() throw() {}
+private:
   TNode d_var;
   TypeNode d_var_type;
   Node d_subs;
   bool d_rm_prev;
+public:
+  VarMatchGeneratorTermSubs( Node var, Node subs );
+  virtual ~VarMatchGeneratorTermSubs() throw() {}
   /** reset instantiation round (call this at beginning of instantiation round) */
   void resetInstantiationRound( QuantifiersEngine* qe ){}
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
@@ -288,7 +328,7 @@ public:
 *
 * For this multi-trigger, we insist that for each i=1...4, and each ground term t, there is at most 1 instantiation added as a result of matching 
 * ( f( x1 ), f( x2 ), f( x3 ), f( x4 ) ) against ground terms of the form ( s_1, s_2, s_3, s_4 ) where t = s_i.
-* Meaning I could add instantiations for the multi-trigger ( f( x1 ), f( x2 ), f( x3 ), f( x4 ) ) based on matching pairwise against:
+* Meaning we add instantiations for the multi-trigger ( f( x1 ), f( x2 ), f( x3 ), f( x4 ) ) based on matching pairwise against:
 * ( f( c_i11 ), f( c_i21 ), f( c_i31 ), f( c_i41 ) )
 * ( f( c_i12 ), f( c_i22 ), f( c_i32 ), f( c_i42 ) )
 * ( f( c_i13 ), f( c_i23 ), f( c_i33 ), f( c_i43 ) )
@@ -298,6 +338,8 @@ public:
 * ( f( c_1 ), f( c_2 ), f( c_4 ), f( c_6 ) ) and
 * ( f( c_1 ), f( c_3 ), f( c_5 ), f( c_7 ) )
 * against ( f( x1 ), f( x2 ), f( x3 ), f( x4 ) ), since f( c_1 ) is matched against f( x1 ) twice.
+*
+* This policy can be disabled by --no-multi-trigger-linear.
 *
 */
 class InstMatchGeneratorMultiLinear : public InstMatchGenerator {
@@ -319,7 +361,7 @@ public:
 
 /** InstMatchGeneratorMulti
 *
-* This is an earlier implementation of multi-triggers.
+* This is an earlier implementation of multi-triggers that is enabled by --multi-trigger-cache.
 * This generator takes the product of instantiations found by single trigger matching, and does 
 * not have the guarantee that the number of instantiations is polynomial wrt the number of ground terms.
 */
@@ -372,15 +414,16 @@ public:
 /** InstMatchGeneratorSimple class
 *
 * This is the default generator class for simple single triggers.
-* For example, { f( x, a ) }, { f( x, x ) } and { f( x, y ) } are simple triggers.
+* For example, { f( x, a ) }, { f( x, x ) } and { f( x, y ) } are simple single triggers.
+* In practice, around 70 to 90% of triggers are simple single triggers.
 *
 * Notice that simple triggers also can have an attached polarity.
-* For example, { f( x, y ) = a } and { ~f( a, x ) = b } are simple triggers.
+* For example, { P( x ) = false }, { f( x, y ) = a } and { ~f( a, x ) = b } are simple single triggers.
 *
 * The implementation traverses the term indices in TermDatabase for adding instantiations,
-* which is more efficient than the techniques required for handling non-simple triggers.
+* which is more efficient than the techniques required for handling non-simple single triggers.
 *
-* In contrast to other instantiation generators, it does not call sendInstantiation and instead
+* In contrast to other instantiation generators, it does not call IMGenerator::sendInstantiation and instead
 * calls qe->addInstantiation(...) directly. This is done for performance reasons.
 */
 class InstMatchGeneratorSimple : public IMGenerator {
