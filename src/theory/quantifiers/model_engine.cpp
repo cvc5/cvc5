@@ -165,11 +165,11 @@ int ModelEngine::checkModel(){
 
   //flatten the representatives
   //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
-  //d_quantEngine->getEqualityQuery()->flattenRepresentatives( fm->d_rep_set.d_type_reps );
+  //d_quantEngine->getEqualityQuery()->flattenRepresentatives( fm->getRepSetPtr()->d_type_reps );
 
   //for debugging, setup
-  for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
-       it != fm->d_rep_set.d_type_reps.end(); ++it ){
+  for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->getRepSet()->d_type_reps.begin();
+       it != fm->getRepSet()->d_type_reps.end(); ++it ){
     if( it->first.isSort() ){
       Trace("model-engine") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
       Trace("model-engine-debug") << "        Reps : ";
@@ -199,8 +199,8 @@ int ModelEngine::checkModel(){
         int totalInst = 1;
         for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
           TypeNode tn = f[0][j].getType();
-          if( fm->d_rep_set.hasType( tn ) ){
-            totalInst = totalInst * (int)fm->d_rep_set.d_type_reps[ tn ].size();
+          if( fm->getRepSetPtr()->hasType( tn ) ){
+            totalInst = totalInst * (int)fm->getRepSetPtr()->getNumRepresentatives( tn );
           }
         }
         d_totalLemmas += totalInst;
@@ -271,7 +271,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       Trace("fmf-exh-inst-debug") << std::endl;
     }
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
-    RepSetIterator riter( d_quantEngine, &(d_quantEngine->getModel()->d_rep_set) );
+    RepSetIterator riter( d_quantEngine, d_quantEngine->getModel()->getRepSet() );
     if( riter.setQuantifier( f ) ){
       Trace("fmf-exh-inst") << "...exhaustive instantiation set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
       if( !riter.isIncomplete() ){

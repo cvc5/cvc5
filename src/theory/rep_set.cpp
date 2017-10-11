@@ -40,13 +40,20 @@ bool RepSet::hasRep( TypeNode tn, Node n ) {
   }
 }
 
-int RepSet::getNumRepresentatives( TypeNode tn ) const{
+unsigned RepSet::getNumRepresentatives( TypeNode tn ) const{
   std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
   if( it!=d_type_reps.end() ){
-    return (int)it->second.size();
+    return it->second.size();
   }else{
     return 0;
   }
+}
+
+Node RepSet::getRepresentative( TypeNode tn, unsigned i ) const {
+  std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
+  Assert( it!=d_type_reps.end() );
+  Assert( i<it->second.size() );
+  return it->second[i];
 }
 
 bool containsStoreAll( Node n, std::vector< Node >& cache ){

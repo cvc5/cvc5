@@ -66,8 +66,8 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
       //for star: check if all children are defined and have generalizations
       if( c[index]==st ){     ///options::fmfFmcCoverSimplify()
         //check if all children exist and are complete
-        int num_child_def = d_child.size() - (d_child.find(st)!=d_child.end() ? 1 : 0);
-        if( num_child_def==m->d_rep_set.getNumRepresentatives(tn) ){
+        unsigned num_child_def = d_child.size() - (d_child.find(st)!=d_child.end() ? 1 : 0);
+        if( num_child_def==m->getRepSetPtr()->getNumRepresentatives(tn) ){
           bool complete = true;
           for ( std::map<Node,EntryTrie>::iterator it = d_child.begin(); it != d_child.end(); ++it ){
             if( !m->isStar(it->first) ){
@@ -375,8 +375,9 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
   d_rep_ids.clear();
   d_star_insts.clear();
   //process representatives
-  for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
-       it != fm->d_rep_set.d_type_reps.end(); ++it ){
+  RepSet * rs = fm->getRepSet();
+  for( std::map< TypeNode, std::vector< Node > >::iterator it = rs->d_type_reps.begin();
+       it != rs->d_type_reps.end(); ++it ){
     if( it->first.isSort() ){
       Trace("fmc") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
       for( size_t a=0; a<it->second.size(); a++ ){
@@ -435,7 +436,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       }else{
         Node vmb = getSomeDomainElement(fm, nmb.getType());
         Trace("fmc-model-debug") << "Add default to default representative " << nmb << " ";
-        Trace("fmc-model-debug") << fm->d_rep_set.d_type_reps[nmb.getType()].size() << std::endl;
+        Trace("fmc-model-debug") << fm->getRepSet()->d_type_reps[nmb.getType()].size() << std::endl;
         add_conds.push_back( nmb );
         add_values.push_back( vmb );
       }
@@ -940,11 +941,13 @@ void FullModelChecker::doVariableEquality( FirstOrderModelFmc * fm, Node f, Def 
     if( tn.isSort() ){
       int j = fm->getVariableId(f, eq[0]);
       int k = fm->getVariableId(f, eq[1]);
-      if( !fm->d_rep_set.hasType( tn ) ){
+      const RepSet * rs = fm->getRepSetPtr();
+      if( !rs->hasType( tn ) ){
         getSomeDomainElement( fm, tn );  //to verify the type is initialized
       }
-      for (unsigned i=0; i<fm->d_rep_set.d_type_reps[tn].size(); i++) {
-        Node r = fm->getRepresentative( fm->d_rep_set.d_type_reps[tn][i] );
+      unsigned nreps = rs->getNumRepresentatives( tn );
+      for (unsigned i=0; i<nreps; i++) {
+        Node r = fm->getRepresentative( rs->getRepresentative( tn, i ) );
         cond[j+1] = r;
         cond[k+1] = r;
         d.addEntry( fm, mkCond(cond), d_true);
@@ -1319,7 +1322,7 @@ Node FullModelChecker::evaluateInterpreted( Node n, std::vector< Node > & vals )
 }
 
 Node FullModelChecker::getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn ) {
-  bool addRepId = !fm->d_rep_set.hasType( tn );
+  bool addRepId = !fm->getRepSetPtr()->hasType( tn );
   Node de = fm->getSomeDomainElement(tn);
   if( addRepId ){
     d_rep_ids[tn][de] = 0;

@@ -252,7 +252,9 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
           // TODO: if func models not enabled, throw an error?
           Unreachable();
         }
-      }else if(t.isRegExp()) {
+      }else if(!t.isFirstClass()) {
+        // this is the class for regular expressions
+        // we simply invoke the rewriter on them
         ret = Rewriter::rewrite(ret);
       } else {
         if (options::omitDontCares() && useDontCares) {
@@ -415,7 +417,7 @@ void TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
         if (first) {
           rep = (*eqc_i);
           //add the term (this is specifically for the case of singleton equivalence classes)
-          if( !rep.getType().isRegExp() ){
+          if( rep.getType().isFirstClass() ){
             d_equalityEngine->addTerm( rep );
             Trace("model-builder-debug") << "Add term to ee within assertEqualityEngine: " << rep << std::endl;
           }
@@ -1238,7 +1240,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     retNode = NodeManager::currentNM()->mkNode( r.getKind(), children );
     if (childrenConst) {
       retNode = Rewriter::rewrite(retNode);
-      Assert(retNode.getKind()==kind::APPLY_UF || retNode.getType().isRegExp() || retNode.isConst());
+      Assert(retNode.getKind()==kind::APPLY_UF || !retNode.getType().isFirstClass() || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;

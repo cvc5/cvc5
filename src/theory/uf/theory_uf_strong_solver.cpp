@@ -851,8 +851,8 @@ bool SortModel::minimize( OutputChannel* out, TheoryModel* m ){
 #if 0
       // ensure that the constructed model is minimal
       // if the model has terms that the strong solver does not know about
-      if( (int)m->d_rep_set.d_type_reps[ d_type ].size()>d_cardinality ){
-        eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &m->d_equalityEngine );
+      if( (int)rs->d_type_reps[ d_type ].size()>d_cardinality ){
+        eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &m->getEqualityEngine() );
         while( !eqcs_i.isFinished() ){
           Node eqc = (*eqcs_i);
           if( eqc.getType()==d_type ){
@@ -1548,7 +1548,7 @@ void SortModel::debugPrint( const char* c ){
 bool SortModel::debugModel( TheoryModel* m ){
   if( Trace.isOn("uf-ss-warn") ){
     std::vector< Node > eqcs;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( m->d_equalityEngine );
+    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( m->getEqualityEngine() );
     while( !eqcs_i.isFinished() ){
       Node eqc = (*eqcs_i);
       if( eqc.getType()==d_type ){
@@ -1565,7 +1565,8 @@ bool SortModel::debugModel( TheoryModel* m ){
       ++eqcs_i;
     }
   }
-  int nReps = m->d_rep_set.d_type_reps.find( d_type )==m->d_rep_set.d_type_reps.end() ? 0 : (int)m->d_rep_set.d_type_reps[d_type].size();
+  RepSet * rs = m->getRepSet();
+  int nReps = rs->d_type_reps.find( d_type )==rs->d_type_reps.end() ? 0 : (int)rs->d_type_reps[d_type].size();
   if( nReps!=(d_maxNegCard+1) ){
     Trace("uf-ss-warn") << "WARNING : Model does not have same # representatives as cardinality for " << d_type << "." << std::endl;
     Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard << std::endl;
@@ -1574,7 +1575,7 @@ bool SortModel::debugModel( TheoryModel* m ){
       /*
       for( unsigned i=0; i<d_fresh_aloc_reps.size(); i++ ){
         if( add>0 && !m->d_equalityEngine->hasTerm( d_fresh_aloc_reps[i] ) ){
-          m->d_rep_set.d_type_reps[d_type].push_back( d_fresh_aloc_reps[i] );
+          rs->d_type_reps[d_type].push_back( d_fresh_aloc_reps[i] );
           add--;
         }
       }
@@ -1583,7 +1584,7 @@ bool SortModel::debugModel( TheoryModel* m ){
         ss << "r_" << d_type << "_";
         Node nn = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "enumeration to meet negative card constraint" );
         d_fresh_aloc_reps.push_back( nn );
-        m->d_rep_set.d_type_reps[d_type].push_back( nn );
+        rs->d_type_reps[d_type].push_back( nn );
       }
       */
       while( (int)d_fresh_aloc_reps.size()<=d_maxNegCard ){
@@ -1593,7 +1594,7 @@ bool SortModel::debugModel( TheoryModel* m ){
         d_fresh_aloc_reps.push_back( nn );
       }
       if( d_maxNegCard==0 ){
-        m->d_rep_set.d_type_reps[d_type].push_back( d_fresh_aloc_reps[0] );
+        rs->d_type_reps[d_type].push_back( d_fresh_aloc_reps[0] );
       }else{
         //must add lemma
         std::vector< Node > force_cl;

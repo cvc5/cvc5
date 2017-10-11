@@ -42,7 +42,9 @@ public:
   /** has rep */
   bool hasRep( TypeNode tn, Node n );
   /** get cardinality for type */
-  int getNumRepresentatives( TypeNode tn ) const;
+  unsigned getNumRepresentatives( TypeNode tn ) const;
+  /** get representative at index */
+  Node getRepresentative( TypeNode tn, unsigned i ) const;
   /** add representative for type */
   void add( TypeNode tn, Node n );
   /** returns index in d_type_reps for node n */
