@@ -195,8 +195,8 @@ public:
     MATCH_GEN_INTERNAL_ERROR,
   };
   /** get the match against ground term or formula t.
-  * d_match_pattern and t should have the same shape, for example
-  * 
+  * d_match_pattern and t should have the same shape, that is,
+  * their math operator (see TermDatabase::getMatchOperator) is the same.
   * only valid for use where !d_match_pattern.isNull().
   */
   int getMatch( Node q, Node t, InstMatch& m, QuantifiersEngine* qe, Trigger * tparent );
