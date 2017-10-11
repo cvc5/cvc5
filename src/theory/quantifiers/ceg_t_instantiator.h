@@ -91,6 +91,10 @@ private:
   std::unordered_map< unsigned, BvInverterStatus > d_inst_id_to_status;
   // variable to current id we are processing
   std::unordered_map< Node, unsigned, NodeHashFunction > d_var_to_curr_inst_id;
+  /** rewrite assertion for solve pv
+  * returns a literal that is equivalent to lit that leads to best solved form for pv
+  */
+  Node rewriteAssertionForSolvePv( Node pv, Node lit );
 private:
   void processLiteral( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
 public:
