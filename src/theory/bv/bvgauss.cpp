@@ -208,14 +208,11 @@ BVGaussElim::gaussElimRewriteForUrem (
       TNode n = stack.top();
       stack.pop();
       CVC4::Kind k = n.getKind();
+      cout << "kind " << k << endl;
       if (k == kind::BITVECTOR_PLUS)
       {
         for (size_t j = 0, nchild = n.getNumChildren(); j < nchild; ++j)
           stack.push (n[j]);
-      }
-      else if (k == kind::VARIABLE)
-      {
-        tmp[n] = utils::mkOne(utils::getSize(n));
       }
       else if (k == kind::BITVECTOR_MULT)
       {
@@ -270,12 +267,12 @@ BVGaussElim::gaussElimRewriteForUrem (
       }
       else
       {
-        isvalid = false;
-        break;
+        cout << "asdf " << endl;
+        tmp[n] = utils::mkOne(utils::getSize(n));
       }
     }
 
-    if (!isvalid) return BVGaussElim::Result::NONE;
+    if (!isvalid) continue;
 
     // Note: "var" is not necessarily a VARIABLE but can be an arbitrary expr
 
@@ -284,7 +281,10 @@ BVGaussElim::gaussElimRewriteForUrem (
       TNode var = p.first;
       TNode val = p.second;
       if (i > 0 && vars.find (var) == vars.end())
-        vars[var].push_back (Integer(0));
+      {
+        for (size_t j = 0; j < i; ++j) 
+          vars[var].push_back (Integer(0));
+      }
       vars[var].push_back (val.getConst< BitVector >().getValue());
     }
 
@@ -293,20 +293,24 @@ BVGaussElim::gaussElimRewriteForUrem (
       if (tmp.find (p.first) == tmp.end())
         vars[p.first].push_back (Integer(0));
     }
-#ifdef CVC4_ASSERTIONS
-    size_t rowsize = vars.begin()->second.size();
-    for (auto p : vars)
-      Assert (p.second.size() == rowsize);
-#endif
   }
 
-  for (size_t i = 0; i < neqs; ++i)
+  size_t nvars = vars.size();
+  size_t nrows = vars.begin()->second.size();
+#ifdef CVC4_ASSERTIONS
+  for (auto p : vars) Assert (p.second.size() == nrows);
+#endif
+
+  if (nrows < 1) return BVGaussElim::Result::NONE;
+
+  for (size_t i = 0; i < nrows; ++i)
   {
     for (auto p : vars)
       lhs[i].push_back (p.second[i]);
   }
+
 #ifdef CVC4_ASSERTIONS
-  for (size_t i = 1, nrows = lhs.size(), nvars = lhs[0].size(); i < nrows; ++i)
+  for (size_t i = 0; i < nrows; ++i)
     Assert (lhs[i].size() == nvars);
   Assert (lhs.size() == rhs.size());
 #endif
@@ -316,17 +320,16 @@ BVGaussElim::gaussElimRewriteForUrem (
   {
     vector< TNode > vvars;
     for (auto p : vars) vvars.push_back (p.first);
-    size_t nvars = vvars.size();
-    Assert (nvars == lhs[0].size());
+    Assert (nvars == vvars.size());
     Assert (lhs[0].size() == reslhs[0].size());
-    Assert (neqs == lhs.size());
+    Assert (nrows == lhs.size());
     Assert (lhs.size() == reslhs.size());
-    Assert (neqs == rhs.size());
+    Assert (nrows == rhs.size());
     Assert (rhs.size() == resrhs.size());
     NodeManager *nm = NodeManager::currentNM();
     if (ret == BVGaussElim::Result::UNIQUE)
     {
-      for (size_t i = 0, nvars = vvars.size(); i < nvars; ++i)
+      for (size_t i = 0; i < nvars; ++i)
       {
         res[vvars[i]] = nm->mkConst< BitVector > (
             BitVector (utils::getSize (vvars[i]), resrhs[i]));
@@ -336,7 +339,7 @@ BVGaussElim::gaussElimRewriteForUrem (
     {
       Assert (ret == BVGaussElim::Result::PARTIAL);
       for (size_t pcol = 0, prow = 0;
-           pcol < nvars && pcol < neqs;
+           pcol < nvars && pcol < nrows;
            ++pcol, ++prow)
       {
         Assert (reslhs[prow][pcol] == 0 || reslhs[prow][pcol] == 1);
