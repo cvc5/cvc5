@@ -97,7 +97,7 @@ public:
   
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
-  /** get the representative set object (FIXME: remove this) */
+  /** get the representative set object (FIXME: remove this, see #1199) */
   RepSet* getRepSetPtr() { return &d_rep_set; }
   /** return whether this node is a don't-care */
   bool isDontCare(Expr expr) const;

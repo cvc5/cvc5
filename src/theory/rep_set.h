@@ -47,6 +47,9 @@ class RepSet {
 public:
   RepSet(){}
   ~RepSet(){}
+  /** map from types to the list of representatives 
+   * TODO : as part of #1199, encapsulate this
+   */
   std::map< TypeNode, std::vector< Node > > d_type_reps;
   /** clear the set */
   void clear();
