@@ -395,9 +395,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci, SolvedForm& sf,
 }
 
 bool ArithInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
-                                          Node pv, std::vector<Node>& lits,
-                                          std::vector<Node>& alits,
-                                          unsigned effort) {
+                                          Node pv, unsigned effort) {
   if (options::cbqiModel()) {
     bool use_inf = ci->useVtsInfinity() && ( d_type.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal() );
     bool upper_first = false;
@@ -974,9 +972,7 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci, SolvedForm& sf,
 }
 
 bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
-                                       Node pv, std::vector<Node>& lits,
-                                       std::vector<Node>& alits,
-                                       unsigned effort) {
+                                       Node pv, unsigned effort) {
   std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction >::iterator iti = d_var_to_inst_id.find( pv );
   if( iti!=d_var_to_inst_id.end() ){
     Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv << std::endl;

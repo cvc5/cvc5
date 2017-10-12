@@ -308,14 +308,9 @@ public:
   /** process assertions
   * Called after processAssertion is called for each literal asserted to the
   * instantiator.
-  * lits contains all literals that were given as input to processAssertion with
-  * argument lit,
-  * alits contains all literals that were given as input to processAssertion
-  * with argument alit
   */
   virtual bool processAssertions(CegInstantiator* ci, SolvedForm& sf, Node pv,
-                                 std::vector<Node>& lits,
-                                 std::vector<Node>& alits, unsigned effort) {
+                                 unsigned effort) {
     return false;
   }
 

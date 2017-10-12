@@ -283,8 +283,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       //[4] directly look at assertions
       if( vinst->hasProcessAssertion( this, sf, pv, effort ) ){
         Trace("cbqi-inst-debug") << "[4] try based on assertions." << std::endl;
-        std::vector< Node > lits;
-        std::vector<Node> alits;
+        std::unordered_set< Node, NodeHashFunction > lits;
         //unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
         for( unsigned r=0; r<2; r++ ){
           TheoryId tid = r==0 ? Theory::theoryOf( pvtn ) : THEORY_UF;
@@ -293,7 +292,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
           if( ita!=d_curr_asserts.end() ){
             for (unsigned j = 0; j<ita->second.size(); j++) {
               Node lit = ita->second[j];
-              if( std::find( lits.begin(), lits.end(), lit )==lits.end() ){
+              if( lits.find(lit)==lits.end() ){
+                lits.insert(lit);
                 Node plit =
                     vinst->hasProcessAssertion(this, sf, pv, lit, effort);
                 if (!plit.isNull()) {
@@ -308,8 +308,6 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
                     Trace("cbqi-inst-debug") << "...try based on literal " << slit << std::endl;
                     // check if contains pv
                     if( hasVariable( slit, pv ) ){
-                      lits.push_back(slit);
-                      alits.push_back(lit);
                       if (vinst->processAssertion(this, sf, pv, slit, lit,
                                                   effort)) {
                         return true;
@@ -321,7 +319,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
             }
           }
         }
-        if (vinst->processAssertions(this, sf, pv, lits, alits, effort)) {
+        if (vinst->processAssertions(this, sf, pv, effort)) {
           return true;
         }
       }

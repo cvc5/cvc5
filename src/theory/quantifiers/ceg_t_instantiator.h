@@ -48,7 +48,6 @@ public:
   bool processAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit,
                         Node alit, unsigned effort);
   bool processAssertions(CegInstantiator* ci, SolvedForm& sf, Node pv,
-                         std::vector<Node>& lits, std::vector<Node>& alits,
                          unsigned effort);
   bool needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
   bool postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas );
@@ -121,7 +120,6 @@ private:
   bool processAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit,
                         Node alit, unsigned effort);
   bool processAssertions(CegInstantiator* ci, SolvedForm& sf, Node pv,
-                         std::vector<Node>& lits, std::vector<Node>& alits,
                          unsigned effort);
   bool needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
   bool postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas );
