@@ -23,6 +23,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class CegConjecture;
+
 class SygusInvarianceTest {
 protected:
   // check whether nvn[ x ] should be excluded
@@ -79,7 +81,7 @@ private:
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 private:
   // stores root
-  std::map< Node, Node > d_measured_term;
+  std::map< Node, CegConjecture * > d_measured_term;
   std::map< Node, Node > d_measured_term_active_guard;
   //information for sygus types
   std::map< TypeNode, TypeNode > d_register;  //stores sygus -> builtin type
@@ -118,10 +120,14 @@ public:
 public:
   /** register the sygus type */
   void registerSygusType( TypeNode tn );
-  /** register a term that we will do enumerative search on */
-  void registerMeasuredTerm( Node e, Node root, bool mkActiveGuard = false );
-  /** is measured term */
-  Node isMeasuredTerm( Node e );
+  /** register a term that we will do enumerative search on 
+   * conj is the conjecture that the enumeration for e is for 
+   *   This can be used for "conjecture-specific symmetry breaking", e.g. see 
+   *   "SyGuS Techniques in the Core of an SMT Solver" Reynolds et al SYNT 2017
+   */
+  void registerMeasuredTerm( Node e, CegConjecture * conj, bool mkActiveGuard = false );
+  /** is measured term, return the conjecture it is associated with */
+  CegConjecture * isMeasuredTerm( Node e );
   /** get active guard */
   Node getActiveGuardForMeasureTerm( Node e );
   /** get measured terms */
@@ -239,7 +245,7 @@ public:
   void getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et );
   // builtin evaluation, returns rewrite( bn [ args / vars(tn) ] )
   Node evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& args );
-  Node evaluateBuiltin( TypeNode tn, Node bn, Node ar, unsigned i );
+  Node evaluateBuiltin( TypeNode tn, Node bn, CegConjecture * conj, Node e, unsigned i );
   // evaluate with unfolding
   Node evaluateWithUnfolding( Node n, std::map< Node, Node >& visited );
   Node evaluateWithUnfolding( Node n );
@@ -256,39 +262,6 @@ private:
 public:
   bool isGenericRedundant( TypeNode tn, unsigned i );
   
-//sygus pbe
-private:
-  std::map< Node, std::vector< std::vector< Node > > > d_pbe_exs;
-  std::map< Node, std::vector< Node > > d_pbe_exos;
-  std::map< Node, unsigned > d_pbe_term_id;
-private:
-  class PbeTrie {
-  private:
-    Node addPbeExampleEval( TypeNode etn, Node e, Node b, std::vector< Node >& ex, quantifiers::TermDbSygus * tds, unsigned index, unsigned ntotal );
-  public:
-    PbeTrie(){}
-    ~PbeTrie(){}
-    Node d_lazy_child;
-    std::map< Node, PbeTrie > d_children;
-    void clear() { d_children.clear(); }
-    Node addPbeExample( TypeNode etn, Node e, Node b, TermDbSygus * tds, unsigned index, unsigned ntotal );
-  };
-  std::map< Node, std::map< TypeNode, PbeTrie > > d_pbe_trie;
-public:
-  /** register examples for an enumerative search term. 
-      This should be a comprehensive set of examples. */
-  void registerPbeExamples( Node e, std::vector< std::vector< Node > >& exs, 
-                            std::vector< Node >& exos, std::vector< Node >& exts );
-  /** get examples */
-  bool hasPbeExamples( Node e );
-  unsigned getNumPbeExamples( Node e );
-  /** return value is the required value for the example */
-  void getPbeExample( Node e, unsigned i, std::vector< Node >& ex );
-  Node getPbeExampleOut( Node e, unsigned i );
-  int getPbeExampleId( Node n );
-  /** add the search val, returns an equivalent value (possibly the same) */
-  Node addPbeSearchVal( TypeNode tn, Node e, Node bvr );
-
 // extended rewriting
 private:
   std::map< Node, Node > d_ext_rewrite_cache;

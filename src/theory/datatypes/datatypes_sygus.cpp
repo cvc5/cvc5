@@ -19,6 +19,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/datatypes_sygus.h"
+#include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/datatypes/theory_datatypes.h"
@@ -257,7 +258,7 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
         d_term_to_anchor[n] = n;
         d_term_to_anchor_root[n] = d_tds->isMeasuredTerm( n );
         // this assertion fails if we have a sygus term in the search that is unmeasured
-        Assert( !d_term_to_anchor_root[n].isNull() );
+        Assert( d_term_to_anchor_root[n]!=NULL );
         d = 0;
         is_top_level = true;
         success = true;
@@ -700,17 +701,15 @@ class EquivSygusInvarianceTest : public quantifiers::SygusInvarianceTest {
 public:
   EquivSygusInvarianceTest(){}
   ~EquivSygusInvarianceTest(){}
-  Node d_ex_ar;
-  Node d_bvr;
-  std::vector< Node > d_exo;
-  void init( quantifiers::TermDbSygus * tds, TypeNode tn, Node ar, Node bvr ) {
+  void init( quantifiers::TermDbSygus * tds, TypeNode tn, quantifiers::CegConjecture * aconj, Node e, Node bvr ) {
     //compute the current examples
     d_bvr = bvr;
-    if( tds->hasPbeExamples( ar ) ){
-      d_ex_ar = ar;
-      unsigned nex = tds->getNumPbeExamples( ar );
+    if( aconj->getPbe()->hasPbeExamples( e ) ){
+      d_conj = aconj;
+      d_ex_ar = e;
+      unsigned nex = aconj->getPbe()->getNumPbeExamples( e );
       for( unsigned i=0; i<nex; i++ ){
-        d_exo.push_back( tds->evaluateBuiltin( tn, bvr, ar, i ) );
+        d_exo.push_back( tds->evaluateBuiltin( tn, bvr, aconj, e, i ) );
       }
     }
   }
@@ -747,7 +746,7 @@ protected:
       if( !d_ex_ar.isNull() ){
         bool ex_equiv = true;
         for( unsigned j=0; j<d_exo.size(); j++ ){
-          Node nbvr_ex = tds->evaluateBuiltin( tn, nbvr, d_ex_ar, j );
+          Node nbvr_ex = tds->evaluateBuiltin( tn, nbvr, d_conj, d_ex_ar, j );
           if( nbvr_ex!=d_exo[j] ){
             ex_equiv = false;
             break;
@@ -762,6 +761,11 @@ protected:
     }
     return exc_arg;
   }
+private:
+  quantifiers::CegConjecture * d_conj;
+  Node d_ex_ar;
+  Node d_bvr;
+  std::vector< Node > d_exo;
 };
 
 
@@ -805,8 +809,8 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
     d_cache[a].d_search_val_proc[nv] = true;
     // get the root (for PBE symmetry breaking)
     Assert( d_term_to_anchor_root.find( a )!=d_term_to_anchor_root.end() );
-    Node ar = d_term_to_anchor_root[a];
-    Assert( !ar.isNull() );
+    quantifiers::CegConjecture * aconj = d_term_to_anchor_root[a];
+    Assert( aconj!=NULL );
     Trace("sygus-sb-debug") << "  ...register search value " << nv << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin( nv, tn );
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
@@ -827,7 +831,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       bool by_examples = false;
       if( itsv==d_cache[a].d_search_val[tn].end() ){
         // is it equivalent under examples?
-        Node bvr_equiv = d_tds->addPbeSearchVal( tn, ar, bvr );
+        Node bvr_equiv = aconj->getPbe()->addPbeSearchVal( tn, a, bvr );
         if( !bvr_equiv.isNull() ){
           if( bvr_equiv!=bvr ){
             Trace("sygus-sb-debug") << "......adding search val for " << bvr << " returned " << bvr_equiv << std::endl;
@@ -878,7 +882,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
         
         // do analysis of the evaluation  FIXME: does not work (evaluation is non-constant)
         EquivSygusInvarianceTest eset;
-        eset.init( d_tds, tn, ar, bvr );
+        eset.init( d_tds, tn, aconj, a, bvr );
         Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;
         d_tds->getExplanationFor( x, bad_val, exp, eset, bad_val_o, sz );
         do_exclude = true;
@@ -979,7 +983,7 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
     if( e.getType().isDatatype() ){
       const Datatype& dt = ((DatatypeType)(e.getType()).toType()).getDatatype();
       if( dt.isSygus() ){
-        if( !d_tds->isMeasuredTerm( e ).isNull() ){
+        if( d_tds->isMeasuredTerm( e )!=NULL ){
           d_register_st[e] = true;
           Node ag = d_tds->getActiveGuardForMeasureTerm( e );
           if( !ag.isNull() ){

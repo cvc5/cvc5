@@ -116,6 +116,7 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
             if( success ){
               d_examples[neval[0]].push_back( ex );
               d_examples_out[neval[0]].push_back( n_output );
+              d_examples_term_id[neval] = d_examples_term[neval[0]].size();
               d_examples_term[neval[0]].push_back( neval );
               if( n_output.isNull() ){
                 d_examples_out_invalid[neval[0]] = true;
@@ -199,26 +200,118 @@ void CegConjecturePbe::initialize( Node n, std::vector< Node >& candidates, std:
   if( !d_is_pbe ){
     Trace("sygus-unif") << "Do not do PBE optimizations, register..." << std::endl;
     for( unsigned i=0; i<candidates.size(); i++ ){
-      d_qe->getTermDatabaseSygus()->registerMeasuredTerm( candidates[i], candidates[i] );
+      d_qe->getTermDatabaseSygus()->registerMeasuredTerm( candidates[i], d_parent );
     }
   }
 }
 
-bool CegConjecturePbe::getPbeExamples( Node v, std::vector< std::vector< Node > >& exs, 
-                                       std::vector< Node >& exos, std::vector< Node >& exts ) {
-  std::map< Node, bool >::iterator itx = d_examples_invalid.find( v );
-  if( itx==d_examples_invalid.end() ){
-    Assert( d_examples.find( v )!=d_examples.end() );
-    exs = d_examples[v];
-    Assert( d_examples_out.find( v )!=d_examples_out.end() );
-    exos = d_examples_out[v];
-    Assert( d_examples_term.find( v )!=d_examples_term.end() );
-    exts = d_examples_term[v];
-    return true;
+
+Node CegConjecturePbe::PbeTrie::addPbeExample( TypeNode etn, Node e, Node b, CegConjecturePbe * cpbe, unsigned index, unsigned ntotal ) {
+  Assert( cpbe->getNumPbeExamples( e )==ntotal );
+  if( index==ntotal ){
+    //lazy child holds the leaf data
+    if( d_lazy_child.isNull() ){
+      d_lazy_child = b;
+    }
+    return d_lazy_child;
+  }else{
+    std::vector< Node > ex;
+    if( d_children.empty() ){
+      if( d_lazy_child.isNull() ){
+        d_lazy_child = b;
+        return d_lazy_child;
+      }else{
+        //evaluate the lazy child    
+        cpbe->getPbeExample( e, index, ex );
+        addPbeExampleEval( etn, e, d_lazy_child, ex, cpbe, index, ntotal );
+        Assert( !d_children.empty() );
+        d_lazy_child = Node::null();
+      }
+    }else{
+      cpbe->getPbeExample( e, index, ex );
+    }
+    return addPbeExampleEval( etn, e, b, ex, cpbe, index, ntotal );
+  }
+}
+
+Node CegConjecturePbe::PbeTrie::addPbeExampleEval( TypeNode etn, Node e, Node b, std::vector< Node >& ex, CegConjecturePbe * cpbe, unsigned index, unsigned ntotal ) {
+  Node eb = cpbe->getTermDatabaseSygus()->evaluateBuiltin( etn, b, ex );
+  return d_children[eb].addPbeExample( etn, e, b, cpbe, index+1, ntotal );
+}
+
+
+bool CegConjecturePbe::hasPbeExamples( Node e ) {
+  if( isPbe() ){
+    e = getCandidateForEnumerator( e );
+    std::map< Node, bool >::iterator itx = d_examples_invalid.find( e );
+    if( itx==d_examples_invalid.end() ){
+      return d_examples.find( e )!=d_examples.end();
+    }
   }
   return false;
 }
 
+unsigned CegConjecturePbe::getNumPbeExamples( Node e ) {
+  e = getCandidateForEnumerator( e );
+  std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_examples.find( e );
+  if( it!=d_examples.end() ){
+    return it->second.size();
+  }else{
+    return 0;
+  }
+}
+
+void CegConjecturePbe::getPbeExample( Node e, unsigned i, std::vector< Node >& ex ) {
+  e = getCandidateForEnumerator( e );
+  std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_examples.find( e );
+  if( it!=d_examples.end() ){
+    Assert( i<it->second.size() );
+    ex.insert( ex.end(), it->second[i].begin(), it->second[i].end() );
+  }else{
+    Assert( false );
+  }
+}
+Node CegConjecturePbe::getPbeExampleOut( Node e, unsigned i ) {
+  e = getCandidateForEnumerator( e );
+  std::map< Node, std::vector< Node > >::iterator it = d_examples_out.find( e );
+  if( it!=d_examples_out.end() ){
+    Assert( i<it->second.size() );
+    return it->second[i];
+  }else{
+    Assert( false );
+    return Node::null();
+  }
+}
+
+int CegConjecturePbe::getPbeExampleId( Node n ) {
+  std::map< Node, unsigned >::iterator it = d_examples_term_id.find( n );
+  if( it!=d_examples_term_id.end() ){
+    return it->second;
+  }else{
+    return -1;
+  }
+}
+
+Node CegConjecturePbe::addPbeSearchVal( TypeNode tn, Node e, Node bvr ){
+  Assert( !e.isNull() );
+  e = getCandidateForEnumerator( e );
+  if( hasPbeExamples( e ) ){
+    unsigned nex = getNumPbeExamples( e );
+    Node ret = d_pbe_trie[e][tn].addPbeExample( tn, e, bvr, this, 0, nex );
+    Assert( ret.getType()==bvr.getType() );
+    return ret;
+  }
+  return Node::null();
+}
+
+Node CegConjecturePbe::getCandidateForEnumerator( Node e ) {
+  std::map< Node, Node >::const_iterator it = d_enum_to_candidate.find( e );
+  if( it != d_enum_to_candidate.end() ){
+    return it->second;
+  }else{
+    return e;
+  }
+}
 
 // ----------------------------- establishing enumeration types
 
@@ -239,7 +332,8 @@ void CegConjecturePbe::registerEnumerator( Node et, Node c, TypeNode tn, unsigne
       d_cinfo[c].d_esym_list.push_back( et );
       d_einfo[et].d_enum_slave.push_back( et );
       //register measured term with database
-      d_qe->getTermDatabaseSygus()->registerMeasuredTerm( et, c, true );
+      d_enum_to_candidate[et] = c;
+      d_qe->getTermDatabaseSygus()->registerMeasuredTerm( et, d_parent, true );
       d_einfo[et].d_active_guard = d_qe->getTermDatabaseSygus()->getActiveGuardForMeasureTerm( et );
     }else{
       Trace("sygus-unif-debug") << "Make " << et << " a slave of " << itn->second << std::endl;
@@ -650,7 +744,6 @@ void CegConjecturePbe::staticLearnRedundantOps( Node c, Node e, std::map< Node, 
   }
 }
 
-
 // ------------------------------------------- solution construction from enumeration
 
 void CegConjecturePbe::getCandidateList( std::vector< Node >& candidates, std::vector< Node >& clist ) {
@@ -873,13 +966,15 @@ public:
   Node d_ar;
   std::vector< Node > d_exo;
   std::vector< unsigned > d_neg_con_indices;
+  quantifiers::CegConjecturePbe * d_cpbe;
   
-  void init( quantifiers::TermDbSygus * tds, Node ar, std::vector< Node >& exo, std::vector< unsigned >& ncind ) {
-    if( tds->hasPbeExamples( ar ) ){
-      Assert( tds->getNumPbeExamples( ar )==exo.size() );
+  void init( quantifiers::CegConjecturePbe * cpbe, Node ar, std::vector< Node >& exo, std::vector< unsigned >& ncind ) {
+    if( cpbe->hasPbeExamples( ar ) ){
+      Assert( cpbe->getNumPbeExamples( ar )==exo.size() );
       d_ar = ar;
       d_exo.insert( d_exo.end(), exo.begin(), exo.end() );
       d_neg_con_indices.insert( d_neg_con_indices.end(), ncind.begin(), ncind.end() );
+      d_cpbe = cpbe;
     }
   }
 protected:  
@@ -892,7 +987,7 @@ protected:
       for( unsigned i=0; i<d_neg_con_indices.size(); i++ ){
         unsigned ii = d_neg_con_indices[i];
         Assert( ii<d_exo.size() );
-        Node nbvre = tds->evaluateBuiltin( tn, nbvr, d_ar, ii );
+        Node nbvre = tds->evaluateBuiltin( tn, nbvr, d_cpbe->getParent(), d_ar, ii );
         Node out = d_exo[ii];
         Node cont = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, out, nbvre );
         Node contr = Rewriter::rewrite( cont );
@@ -902,7 +997,7 @@ protected:
             Trace("sygus-pbe-cterm") << nbv << " for any " << tds->sygusToBuiltin( x ) << " since " << std::endl;
             Trace("sygus-pbe-cterm") << "   PBE-cterm :    for input example : ";
             std::vector< Node > ex;
-            tds->getPbeExample( d_ar, ii, ex );
+            d_cpbe->getPbeExample( d_ar, ii, ex );
             for( unsigned j=0; j<ex.size(); j++ ){
               Trace("sygus-pbe-cterm") << ex[j] << " ";
             }
@@ -959,7 +1054,7 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude( Node c, Node x, Node 
       if( !cmp_indices.empty() ){
         //set up the inclusion set
         NegContainsSygusInvarianceTest ncset;
-        ncset.init( d_tds, c, itxo->second, cmp_indices );
+        ncset.init( this, c, itxo->second, cmp_indices );
         d_tds->getExplanationFor( x, v, exp, ncset );
         Trace("sygus-pbe-cterm") << "PBE-cterm : enumerator exclude " << d_tds->sygusToBuiltin( v ) << " due to negative containment." << std::endl;
         return true;

@@ -33,6 +33,11 @@
 
 namespace CVC4 {
 namespace theory {
+
+namespace quantifiers {
+  class CegConjecture;
+}
+
 namespace datatypes {
 
 class TheoryDatatypes;
@@ -69,7 +74,7 @@ private:
   Node d_zero;
 private:
   std::map< Node, Node > d_term_to_anchor;
-  std::map< Node, Node > d_term_to_anchor_root;
+  std::map< Node, quantifiers::CegConjecture * > d_term_to_anchor_root;
   std::map< Node, unsigned > d_term_to_depth;
   std::map< Node, bool > d_is_top_level;
   void registerTerm( Node n, std::vector< Node >& lemmas );

@@ -40,6 +40,8 @@ private:
   std::map< Node, std::vector< std::vector< Node > > > d_examples;
   std::map< Node, std::vector< Node > > d_examples_out;
   std::map< Node, std::vector< Node > > d_examples_term;
+  std::map< Node, unsigned > d_examples_term_id;
+  std::map< Node, Node > d_enum_to_candidate;
   
   void collectExamples( Node n, std::map< Node, bool >& visited, bool hasPol, bool pol );
   bool d_is_pbe;
@@ -65,6 +67,35 @@ public:
   bool getPbeExamples( Node v, std::vector< std::vector< Node > >& exs, 
                        std::vector< Node >& exos, std::vector< Node >& exts);
   bool isPbe() { return d_is_pbe; }
+  
+  quantifiers::TermDbSygus * getTermDatabaseSygus() { return d_tds; }
+  CegConjecture* getParent() { return d_parent; }
+  /** get examples */
+  bool hasPbeExamples( Node e );
+  unsigned getNumPbeExamples( Node e );
+  /** return value is the required value for the example */
+  void getPbeExample( Node e, unsigned i, std::vector< Node >& ex );
+  Node getPbeExampleOut( Node e, unsigned i );
+  int getPbeExampleId( Node n );
+  /** add the search val, returns an equivalent value (possibly the same) */
+  Node addPbeSearchVal( TypeNode tn, Node e, Node bvr );
+  /** get candidate for enumerator */
+  Node getCandidateForEnumerator( Node e );
+  
+private:
+  class PbeTrie {
+  private:
+    Node addPbeExampleEval( TypeNode etn, Node e, Node b, std::vector< Node >& ex, CegConjecturePbe * cpbe, unsigned index, unsigned ntotal );
+  public:
+    PbeTrie(){}
+    ~PbeTrie(){}
+    Node d_lazy_child;
+    std::map< Node, PbeTrie > d_children;
+    void clear() { d_children.clear(); }
+    Node addPbeExample( TypeNode etn, Node e, Node b, CegConjecturePbe * cpbe, unsigned index, unsigned ntotal );
+  };
+  std::map< Node, std::map< TypeNode, PbeTrie > > d_pbe_trie;
+  
 private:  // for registration
   void collectEnumeratorTypes( Node c, TypeNode tn, unsigned enum_role );
   void registerEnumerator( Node et, Node c, TypeNode tn, unsigned enum_role, bool inSearch );
