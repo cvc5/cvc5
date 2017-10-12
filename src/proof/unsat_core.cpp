@@ -44,13 +44,6 @@ void UnsatCore::toStream(std::ostream& out) const {
   Printer::getPrinter(options::outputLanguage())->toStream(out, *this);
 }
 
-void UnsatCore::toStream(std::ostream& out, const std::map<Expr, std::string>& names) const {
-  Assert(d_smt != NULL);
-  smt::SmtScope smts(d_smt);
-  expr::ExprDag::Scope scope(out, false);
-  Printer::getPrinter(options::outputLanguage())->toStream(out, *this, names);
-}
-
 std::ostream& operator<<(std::ostream& out, const UnsatCore& core) {
   core.toStream(out);
   return out;

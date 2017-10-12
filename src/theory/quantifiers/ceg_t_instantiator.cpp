@@ -28,6 +28,7 @@
 #include "util/bitvector.h"
 
 #include <algorithm>
+#include <stack>
 
 using namespace std;
 using namespace CVC4;
@@ -262,14 +263,23 @@ bool ArithInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, N
   return false;
 }
 
-bool ArithInstantiator::hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
+Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
+                                            Node pv, Node lit,
+                                            unsigned effort) {
   Node atom = lit.getKind()==NOT ? lit[0] : lit;
   bool pol = lit.getKind()!=NOT;
   //arithmetic inequalities and disequalities
-  return atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && atom[0].getType().isReal() );
+  if (atom.getKind() == GEQ ||
+      (atom.getKind() == EQUAL && !pol && atom[0].getType().isReal())) {
+    return lit;
+  } else {
+    return Node::null();
+  }
 }
 
-bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
+bool ArithInstantiator::processAssertion(CegInstantiator* ci, SolvedForm& sf,
+                                         Node pv, Node lit, Node alit,
+                                         unsigned effort) {
   Node atom = lit.getKind()==NOT ? lit[0] : lit;
   bool pol = lit.getKind()!=NOT;
   //arithmetic inequalities and disequalities
@@ -384,8 +394,9 @@ bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, 
   return false;
 }
 
-bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) {
- if( options::cbqiModel() ){
+bool ArithInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
+                                          Node pv, unsigned effort) {
+  if (options::cbqiModel()) {
     bool use_inf = ci->useVtsInfinity() && ( d_type.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal() );
     bool upper_first = false;
     if( options::cbqiMinBounds() ){
@@ -867,11 +878,14 @@ void BvInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsig
   d_var_to_inst_id.clear();
   d_inst_id_to_term.clear();
   d_inst_id_to_status.clear();
+  d_inst_id_to_alit.clear();
   d_var_to_curr_inst_id.clear();
+  d_alit_to_model_slack.clear();
 }
 
-
-void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
+void BvInstantiator::processLiteral(CegInstantiator* ci, SolvedForm& sf,
+                                    Node pv, Node lit, Node alit,
+                                    unsigned effort) {
   Assert( d_inverter!=NULL );
   // find path to pv
   std::vector< unsigned > path;
@@ -886,6 +900,7 @@ void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node 
       // store information for id and increment
       d_var_to_inst_id[pv].push_back( iid );
       d_inst_id_to_term[iid] = inst;
+      d_inst_id_to_alit[iid] = alit;
       d_inst_id_counter++;
     }else{
       // cleanup information if we failed to solve
@@ -894,20 +909,70 @@ void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node 
   }
 }
 
-bool BvInstantiator::hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
-  return true;
+Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
+                                         Node pv, Node lit, unsigned effort) {
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool pol = lit.getKind() != NOT;
+  Kind k = atom.getKind();
+  if (pol && k == EQUAL) {
+    // positively asserted equalities between bitvector terms we leave unmodifed
+    if (atom[0].getType().isBitVector()) {
+      return lit;
+    }
+  } else {
+    // for all other predicates, we convert them to a positive equality based on
+    // the current model M, e.g.:
+    //   (not) s ~ t  --->  s = t + ( s^M - t^M )
+    if (k == EQUAL || k == BITVECTOR_ULT || k == BITVECTOR_ULE ||
+        k == BITVECTOR_SLT || k == BITVECTOR_SLE) {
+      Node s = atom[0];
+      Node t = atom[1];
+      // only handle equalities between bitvectors
+      if (s.getType().isBitVector()) {
+        NodeManager* nm = NodeManager::currentNM();
+        Node sm = ci->getModelValue(s);
+        Assert(!sm.isNull() && sm.isConst());
+        Node tm = ci->getModelValue(t);
+        Assert(!tm.isNull() && tm.isConst());
+        if (sm != tm) {
+          Node slack =
+              Rewriter::rewrite(nm->mkNode(kind::BITVECTOR_SUB, sm, tm));
+          Assert(slack.isConst());
+          // remember the slack value for the asserted literal
+          d_alit_to_model_slack[lit] = slack;
+          Node ret = nm->mkNode(kind::EQUAL, s,
+                                nm->mkNode(kind::BITVECTOR_PLUS, t, slack));
+          Trace("cegqi-bv") << "Process " << lit << " as " << ret
+                            << ", slack is " << slack << std::endl;
+          return ret;
+        }
+      }
+    }
+  }
+  return Node::null();
 }
 
-bool BvInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
-  Trace("cegqi-bv") << "BvInstantiator::processAssertion : solve " << pv << " in " << lit << std::endl;
+bool BvInstantiator::processAssertion(CegInstantiator* ci, SolvedForm& sf,
+                                      Node pv, Node lit, Node alit,
+                                      unsigned effort) {
+  // if option enabled, use approach for word-level inversion for BV instantiation
   if( options::cbqiBv() ){
-    // if option enabled, use approach for word-level inversion for BV instantiation
-    processLiteral( ci, sf, pv, lit, effort );
+    // get the best rewritten form of lit for solving for pv 
+    //   this should remove instances of non-invertible operators, and "linearize" lit with respect to pv as much as possible
+    Node rlit = rewriteAssertionForSolvePv( pv, lit );
+    if( Trace.isOn("cegqi-bv") ){
+      Trace("cegqi-bv") << "BvInstantiator::processAssertion : solve " << pv << " in " << lit << std::endl;
+      if( lit!=rlit ){
+        Trace("cegqi-bv") << "...rewritten to " << rlit << std::endl;
+      }
+    }
+    processLiteral(ci, sf, pv, rlit, alit, effort);
   }
   return false;
 }
 
-bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) {
+bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
+                                       Node pv, unsigned effort) {
   std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction >::iterator iti = d_var_to_inst_id.find( pv );
   if( iti!=d_var_to_inst_id.end() ){
     Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv << std::endl;
@@ -919,15 +984,30 @@ bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, No
     // hence we randomize the list
     // this helps robustness, since picking the same literal every time may be lead to a stream of value instantiations
     std::random_shuffle( iti->second.begin(), iti->second.end() );
-    
+
     for( unsigned j=0; j<iti->second.size(); j++ ){
       unsigned inst_id = iti->second[j];
       Assert( d_inst_id_to_term.find(inst_id)!=d_inst_id_to_term.end() );
       Node inst_term = d_inst_id_to_term[inst_id];
+      Assert(d_inst_id_to_alit.find(inst_id) != d_inst_id_to_alit.end());
+      Node alit = d_inst_id_to_alit[inst_id];
+
+      // get the slack value introduced for the asserted literal
+      Node curr_slack_val;
+      std::unordered_map<Node, Node, NodeHashFunction>::iterator itms =
+          d_alit_to_model_slack.find(alit);
+      if (itms != d_alit_to_model_slack.end()) {
+        curr_slack_val = itms->second;
+      }
+
       // debug printing
       if( Trace.isOn("cegqi-bv") ){
         Trace("cegqi-bv") << "   [" << j << "] : ";
         Trace("cegqi-bv") << inst_term << std::endl;
+        if (!curr_slack_val.isNull()) {
+          Trace("cegqi-bv") << "   ...with slack value : " << curr_slack_val
+                            << std::endl;
+        }
         // process information about solved status
         std::unordered_map< unsigned, BvInverterStatus >::iterator its = d_inst_id_to_status.find( inst_id );
         Assert( its!=d_inst_id_to_status.end() );
@@ -940,11 +1020,15 @@ bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, No
         }
         Trace("cegqi-bv") << std::endl;
       }
-      // TODO : selection criteria across multiple literals goes here
-      
-      // currently, we use a naive heuristic which takes only the first solved term
+
+      // currently we take select the first literal
       if( inst_ids_try.empty() ){
+        // try the first one
         inst_ids_try.push_back( inst_id );
+      } else {
+        // selection criteria across multiple literals goes here
+
+
       }
     }
     
@@ -994,3 +1078,76 @@ bool BvInstantiator::postProcessInstantiationForVariable( CegInstantiator * ci, 
 
   return true;
 }
+  
+Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
+  NodeManager* nm = NodeManager::currentNM();
+  // result of rewriting the visited term
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  // whether the visited term contains pv
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited_contains_pv;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::stack<TNode> visit;
+  TNode cur;
+  visit.push(lit);
+  do {
+    cur = visit.top();
+    visit.pop();
+    it = visited.find(cur);
+
+    if (it == visited.end()) {
+      visited[cur] = Node::null();
+      visit.push(cur);
+      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+        visit.push(cur[i]);
+      }
+    } else if (it->second.isNull()) {
+      Node ret;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        children.push_back(cur.getOperator());
+      }
+      bool contains_pv = ( cur==pv );
+      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+        it = visited.find(cur[i]);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cur[i] != it->second;
+        children.push_back(it->second);
+        contains_pv = contains_pv || visited_contains_pv[cur[i]];
+      }
+      
+      // [1] rewrite cases of non-invertible operators
+      
+      // if cur is urem( x, y ) where x contains pv but y does not, then
+      // rewrite urem( x, y ) ---> x - udiv( x, y )*y
+      if (cur.getKind()==BITVECTOR_UREM_TOTAL) {
+        if( visited_contains_pv[cur[0]] && !visited_contains_pv[cur[1]] ){
+          ret = nm->mkNode( BITVECTOR_SUB, children[0], 
+                  nm->mkNode( BITVECTOR_MULT,
+                    nm->mkNode( BITVECTOR_UDIV_TOTAL, children[0], children[1] ),
+                    children[1] ) );
+        }
+      }
+      
+      // [2] try to rewrite non-linear literals -> linear literals
+      
+      
+      // return original if the above steps do not produce a result
+      if (ret.isNull()) {
+        if (childChanged) {
+          ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+        }else{
+          ret = cur;
+        }
+      }
+      visited[cur] = ret;
+      // careful that rewrites above do not affect whether this term contains pv
+      visited_contains_pv[cur] = contains_pv;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(lit) != visited.end());
+  Assert(!visited.find(lit)->second.isNull());
+  return visited[lit];
+}
+

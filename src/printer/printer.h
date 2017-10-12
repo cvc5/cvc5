@@ -77,9 +77,6 @@ public:
   /** Write an UnsatCore out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const UnsatCore& core) const throw();
 
-  /** Write an UnsatCore out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw();
-
 };/* class Printer */
 
 }/* CVC4 namespace */
