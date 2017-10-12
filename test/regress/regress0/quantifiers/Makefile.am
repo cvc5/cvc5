@@ -91,6 +91,10 @@ TESTS =	\
 	psyco-001-bv.smt2 \
 	bug822.smt2 \
 	qbv-test-invert-mul.smt2 \
+	qbv-test-invert-bvand.smt2 \
+	qbv-test-invert-bvor.smt2 \
+	qbv-test-invert-bvlshr-0.smt2 \
+ 	qbv-test-invert-bvurem-1.smt2 \
 	qbv-simple-2vars-vo.smt2 \
 	qbv-test-invert-concat-0.smt2 \
 	qbv-test-invert-concat-1.smt2 \
