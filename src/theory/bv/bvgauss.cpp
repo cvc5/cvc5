@@ -431,16 +431,26 @@ BVGaussElim::gaussElimRewrite (std::vector<Node> & assertionsToPreprocess)
           && urem[1].getKind() == kind::CONST_BITVECTOR)
       {
         BitVector u = urem[1].getConst< BitVector >();
-        if (equations.find(u) == equations.end())
-          equations[u] = vector< TNode >();
         equations[u].push_back (a);
       }
     }
   }
 
-  for (auto e : equations)
+  for (auto eq : equations)
   {
-    // TODO
+    unordered_map< Node, Node, NodeHashFunction > res;
+    BVGaussElim::Result ret = gaussElimRewriteForUrem (eq.second, res);
+    if (ret != BVGaussElim::Result::NONE)
+    {
+      NodeManager *nm = NodeManager::currentNM();
+      cout << "ret " << (ret==BVGaussElim::Result::UNIQUE) << endl;
+      for (auto p : res)
+      {
+        cout << "p.first " << p.first << " p.second " << p.second << endl;
+        assertionsToPreprocess.push_back (
+            nm->mkNode(kind::EQUAL, p.first, p.second));
+      }
+    }
   }
 }
 
