@@ -367,9 +367,11 @@ void Smt2::resetAssertions() {
 void Smt2::setLogic(std::string name) {
 
   if(sygus()) {
-    // non-smt2-standard sygus logic names go here 
+    // non-smt2-standard sygus logic names go here (http://sygus.seas.upenn.edu/files/sygus.pdf Section 3.2)
     if(name == "Arrays") {
       name = "A";
+    }else if(name == "Reals") {
+      name = "LRA";
     }
   }
 
