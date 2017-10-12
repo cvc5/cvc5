@@ -33,8 +33,8 @@ void RepSet::clear(){
   d_values_to_terms.clear();
 }
 
-bool RepSet::hasRep( TypeNode tn, Node n ) {
-  std::map< TypeNode, std::vector< Node > >::iterator it = d_type_reps.find( tn );
+bool RepSet::hasRep( TypeNode tn, Node n ) const {
+  std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
   if( it==d_type_reps.end() ){
     return false;
   }else{
@@ -98,7 +98,7 @@ int RepSet::getIndexFor( Node n ) const {
 }
 
 bool RepSet::complete( TypeNode t ){
-    std::map< TypeNode, bool >::iterator it = d_type_complete.find( t );
+  std::map< TypeNode, bool >::iterator it = d_type_complete.find( t );
   if( it==d_type_complete.end() ){
     //remove all previous
     for( unsigned i=0; i<d_type_reps[t].size(); i++ ){
