@@ -61,23 +61,24 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 
-QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te):
-    d_te( te ),
-    d_sygus_tdb(nullptr),
-    d_conflict_c(c, false),
-    //d_quants(u),
-    d_quants_red(u),
-    d_lemmas_produced_c(u),
-    d_skolemized(u),
-    d_ierCounter_c(c),
-    //d_ierCounter(c),
-    //d_ierCounter_lc(c),
-    //d_ierCounterLastLc(c),
-    d_presolve(u, true),
-    d_presolve_in(u),
-    d_presolve_cache(u),
-    d_presolve_cache_wq(u),
-    d_presolve_cache_wic(u){
+QuantifiersEngine::QuantifiersEngine(context::Context* c,
+                                     context::UserContext* u, TheoryEngine* te)
+    : d_te(te),
+      d_conflict_c(c, false),
+      // d_quants(u),
+      d_quants_red(u),
+      d_lemmas_produced_c(u),
+      d_skolemized(u),
+      d_quant_attr(new quantifiers::QuantAttributes(this)),
+      d_ierCounter_c(c),
+      // d_ierCounter(c),
+      // d_ierCounter_lc(c),
+      // d_ierCounterLastLc(c),
+      d_presolve(u, true),
+      d_presolve_in(u),
+      d_presolve_cache(u),
+      d_presolve_cache_wq(u),
+      d_presolve_cache_wic(u) {
   //utilities
   d_eq_query = new quantifiers::EqualityQueryQuantifiersEngine( c, this );
   d_util.push_back( d_eq_query );
@@ -92,8 +93,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   if (options::ceGuidedInst()) {
     d_sygus_tdb = new quantifiers::TermDbSygus(c, this);
   }
-  
-  d_quant_attr = new quantifiers::QuantAttributes( this );
 
   if( options::instPropagate() ){
     // notice that this option is incompatible with options::qcfAllConflict()

@@ -77,10 +77,7 @@ class EqualityTypeRule {
     if( check ) {
       TypeNode lhsType = n[0].getType(check);
       TypeNode rhsType = n[1].getType(check);
-
-      // TODO : we may want to limit cases where we have equalities between terms of different types 
-      //   equalities between (Set Int) and (Set Real) already cause strange issues in theory solver for sets
-      //   one possibility is to only allow this for Int/Real
+      
       if ( TypeNode::leastCommonTypeNode(lhsType, rhsType).isNull() ) {
         std::stringstream ss;
         ss << "Subexpressions must have a common base type:" << std::endl;
@@ -90,6 +87,7 @@ class EqualityTypeRule {
 
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
+      // TODO : check isFirstClass for these types? (github issue #1202)
     }
     return booleanType;
   }
