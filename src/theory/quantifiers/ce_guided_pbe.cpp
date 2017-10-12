@@ -207,7 +207,7 @@ void CegConjecturePbe::initialize( Node n, std::vector< Node >& candidates, std:
 
 
 Node CegConjecturePbe::PbeTrie::addPbeExample( TypeNode etn, Node e, Node b, CegConjecturePbe * cpbe, unsigned index, unsigned ntotal ) {
-  Assert( cpbe->getNumPbeExamples( e )==ntotal );
+  Assert( cpbe->getNumExamples( e )==ntotal );
   if( index==ntotal ){
     //lazy child holds the leaf data
     if( d_lazy_child.isNull() ){
@@ -222,13 +222,17 @@ Node CegConjecturePbe::PbeTrie::addPbeExample( TypeNode etn, Node e, Node b, Ceg
         return d_lazy_child;
       }else{
         //evaluate the lazy child    
-        cpbe->getExample( e, index, ex );  //FIXME : do not look up enumerator -> candidate
+        Assert( cpbe->d_examples.find( e )!=cpbe->d_examples.end() );
+        Assert( index<cpbe->d_examples[e].size() );
+        ex = cpbe->d_examples[e][index];
         addPbeExampleEval( etn, e, d_lazy_child, ex, cpbe, index, ntotal );
         Assert( !d_children.empty() );
         d_lazy_child = Node::null();
       }
     }else{
-      cpbe->getExample( e, index, ex );
+      Assert( cpbe->d_examples.find( e )!=cpbe->d_examples.end() );
+      Assert( index<cpbe->d_examples[e].size() );
+      ex = cpbe->d_examples[e][index];
     }
     return addPbeExampleEval( etn, e, b, ex, cpbe, index, ntotal );
   }

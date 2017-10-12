@@ -52,6 +52,7 @@ protected:
   bool invariant( quantifiers::TermDbSygus * tds, Node nvn, Node x );
 };
 
+// TODO :issue #1235 split and document this class
 class TermDbSygus {
 private:
   /** reference to the quantifiers engine */
