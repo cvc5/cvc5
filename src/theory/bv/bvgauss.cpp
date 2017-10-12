@@ -208,7 +208,6 @@ BVGaussElim::gaussElimRewriteForUrem (
       TNode n = stack.top();
       stack.pop();
       CVC4::Kind k = n.getKind();
-      cout << "kind " << k << endl;
       if (k == kind::BITVECTOR_PLUS)
       {
         for (size_t j = 0, nchild = n.getNumChildren(); j < nchild; ++j)
@@ -247,32 +246,36 @@ BVGaussElim::gaussElimRewriteForUrem (
           }
           n1 = nb.constructNode();
         }
-        CVC4::Kind kn0 = n0.getKind();
-        CVC4::Kind kn1 = n1.getKind();
-        if (kn0 == kind::CONST_BITVECTOR)
+
+        if (!isvalid)
         {
-          Assert (kn1 != kind::CONST_BITVECTOR);
-          tmp[n1] = n0;
-        }
-        else if (kn1 == kind::CONST_BITVECTOR)
-        {
-          Assert (kn0 != kind::CONST_BITVECTOR);
-          tmp[n0] = n1;
+          tmp[n] = utils::mkOne(utils::getSize(n));
         }
         else
         {
-          isvalid = false;
-          break;
+          CVC4::Kind kn0 = n0.getKind();
+          CVC4::Kind kn1 = n1.getKind();
+          if (kn0 == kind::CONST_BITVECTOR)
+          {
+            Assert (kn1 != kind::CONST_BITVECTOR);
+            tmp[n1] = n0;
+          }
+          else if (kn1 == kind::CONST_BITVECTOR)
+          {
+            Assert (kn0 != kind::CONST_BITVECTOR);
+            tmp[n0] = n1;
+          }
+          else
+          {
+            tmp[n] = utils::mkOne(utils::getSize(n));
+          }
         }
       }
       else
       {
-        cout << "asdf " << endl;
         tmp[n] = utils::mkOne(utils::getSize(n));
       }
     }
-
-    if (!isvalid) continue;
 
     // Note: "var" is not necessarily a VARIABLE but can be an arbitrary expr
 
@@ -315,7 +318,10 @@ BVGaussElim::gaussElimRewriteForUrem (
   Assert (lhs.size() == rhs.size());
 #endif
 
+  if (lhs.size() > lhs[0].size()) return BVGaussElim::Result::NONE;
+
   Result ret = gaussElim (prime, rhs, lhs, resrhs, reslhs);
+
   if (ret != BVGaussElim::Result::NONE)
   {
     vector< TNode > vvars;
