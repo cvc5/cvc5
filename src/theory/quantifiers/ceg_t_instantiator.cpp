@@ -897,6 +897,7 @@ void BvInstantiator::processLiteral(CegInstantiator* ci, SolvedForm& sf,
     unsigned iid = d_inst_id_counter;
     Node inst = d_inverter->solve_bv_lit( sv, slit, true, path, &m, d_inst_id_to_status[iid] );
     if( !inst.isNull() ){
+      inst = Rewriter::rewrite( inst );
       Trace("cegqi-bv") << "...solved form is " << inst << std::endl;
       // store information for id and increment
       d_var_to_inst_id[pv].push_back( iid );
