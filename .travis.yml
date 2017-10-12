@@ -20,11 +20,9 @@ env:
   - TEST_GROUPS=2
   - CCACHE_COMPRESS=1
  matrix:
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --with-lfsc --with-portfolio --enable-gpl'
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio --enable-gpl --disable-debug-symbols' TEST_GROUP=0
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio --enable-gpl --disable-debug-symbols' TEST_GROUP=1
-  - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-cln --enable-gpl --disable-debug-symbols'
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='--disable-proof'
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --with-lfsc --with-portfolio'
+  - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-lfsc --disable-debug-symbols'
+  - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-cln --enable-gpl --disable-debug-symbols --disable-proof'
   - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_CVC4_CONFIG='--enable-proof'
 addons:
  apt:
@@ -89,13 +87,6 @@ script:
      make V=1 -j2 check BINARY=pcvc4 CVC4_REGRESSION_ARGS='--fallback-sequential --no-early-exit' RUN_REGRESSION_ARGS= ||
        error "PORTFOLIO TEST FAILED";
    }
-   JavaApiTest() {
-     pushd test/java
-     local status=0
-     ant || status=1
-     popd
-     return $status
-   }
    makeExamples() {
      make V=1 -j2 examples || error "COULD NOT BUILD EXAMPLES${normal}";
    }
@@ -117,7 +108,6 @@ script:
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
    [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && run makeCheck && run makeExamples
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_CHECK_PORTFOLIO" ] && run makeCheckPortfolio
-   # [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_JAVA_API_TEST" ] && run JavaApiTest
    [ -n "$TRAVIS_COVERITY" ] && echo "Running coverity. Skipping the normal build."
    [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_COVERITY" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
@@ -127,9 +117,6 @@ matrix:
   fast_finish: true
   include:
     # Test with GCC7
-    # Note: TRAVIS_CVC4_JAVA_API_TEST is only active for TEST_GROUP=0 because
-    # test groups only apply to regression tests (no need to repeat the Java
-    # tests for both groups).
     - addons:
         apt:
           sources:
@@ -139,7 +126,7 @@ matrix:
             - g++-7
       env:
         - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
-        - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_JAVA_API_TEST=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio --enable-gpl --disable-debug-symbols' TEST_GROUP=0
+        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-lfsc --disable-debug-symbols' TEST_GROUP=0
     - addons:
         apt:
           sources:
@@ -149,7 +136,7 @@ matrix:
             - g++-7
       env:
         - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
-        - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c --with-lfsc --with-portfolio --enable-gpl --disable-debug-symbols' TEST_GROUP=1
+        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-lfsc --disable-debug-symbols' TEST_GROUP=1
     # Rule for running Coverity Scan.
     - os: linux
       compiler: gcc
