@@ -67,7 +67,7 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
       if( c[index]==st ){     ///options::fmfFmcCoverSimplify()
         //check if all children exist and are complete
         unsigned num_child_def = d_child.size() - (d_child.find(st)!=d_child.end() ? 1 : 0);
-        if( num_child_def==m->getRepSetPtr()->getNumRepresentatives(tn) ){
+        if( num_child_def==m->getRepSet()->getNumRepresentatives(tn) ){
           bool complete = true;
           for ( std::map<Node,EntryTrie>::iterator it = d_child.begin(); it != d_child.end(); ++it ){
             if( !m->isStar(it->first) ){
@@ -375,7 +375,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
   d_rep_ids.clear();
   d_star_insts.clear();
   //process representatives
-  RepSet * rs = fm->getRepSet();
+  RepSet * rs = fm->getRepSetPtr();
   for( std::map< TypeNode, std::vector< Node > >::iterator it = rs->d_type_reps.begin();
        it != rs->d_type_reps.end(); ++it ){
     if( it->first.isSort() ){
@@ -436,7 +436,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       }else{
         Node vmb = getSomeDomainElement(fm, nmb.getType());
         Trace("fmc-model-debug") << "Add default to default representative " << nmb << " ";
-        Trace("fmc-model-debug") << fm->getRepSetPtr()->getNumRepresentatives(nmb.getType()) << std::endl;
+        Trace("fmc-model-debug") << fm->getRepSet()->getNumRepresentatives(nmb.getType()) << std::endl;
         add_conds.push_back( nmb );
         add_values.push_back( vmb );
       }
@@ -941,7 +941,7 @@ void FullModelChecker::doVariableEquality( FirstOrderModelFmc * fm, Node f, Def 
     if( tn.isSort() ){
       int j = fm->getVariableId(f, eq[0]);
       int k = fm->getVariableId(f, eq[1]);
-      const RepSet * rs = fm->getRepSetPtr();
+      const RepSet * rs = fm->getRepSet();
       if( !rs->hasType( tn ) ){
         getSomeDomainElement( fm, tn );  //to verify the type is initialized
       }
@@ -1322,7 +1322,7 @@ Node FullModelChecker::evaluateInterpreted( Node n, std::vector< Node > & vals )
 }
 
 Node FullModelChecker::getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn ) {
-  bool addRepId = !fm->getRepSetPtr()->hasType( tn );
+  bool addRepId = !fm->getRepSet()->hasType( tn );
   Node de = fm->getSomeDomainElement(tn);
   if( addRepId ){
     d_rep_ids[tn][de] = 0;

@@ -1005,7 +1005,7 @@ void CvcPrinter::toStream(std::ostream& out, const Model& m, const Command* c) c
   if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
     TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
     if( options::modelUninterpDtEnum() && tn.isSort() ){
-      const theory::RepSet * rs = tm.getRepSetPtr();
+      const theory::RepSet * rs = tm.getRepSet();
       if( rs->d_type_reps.find( tn )!=rs->d_type_reps.end() ){
         out << "DATATYPE" << std::endl;
         out << "  " << dynamic_cast<const DeclareTypeCommand*>(c)->getSymbol() << " = ";
@@ -1058,7 +1058,7 @@ void CvcPrinter::toStream(std::ostream& out, const Model& m, const Command* c) c
     }
     Node val = Node::fromExpr(tm.getSmtEngine()->getValue(n.toExpr()));
     if( options::modelUninterpDtEnum() && val.getKind() == kind::STORE ) {
-      const theory::RepSet * rs = tm.getRepSetPtr();
+      const theory::RepSet * rs = tm.getRepSet();
       TypeNode tn = val[1].getType();
       if (tn.isSort() && rs->d_type_reps.find( tn )!=rs->d_type_reps.end() ){
         Cardinality indexCard((*rs->d_type_reps.find(tn)).second.size());

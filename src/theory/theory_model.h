@@ -96,9 +96,9 @@ public:
   // ------------------- end general equality queries
   
   /** get the representative set object */
-  const RepSet* getRepSetPtr() const { return &d_rep_set; }
+  const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this) */
-  RepSet* getRepSet() { return &d_rep_set; }
+  RepSet* getRepSetPtr() { return &d_rep_set; }
   /** return whether this node is a don't-care */
   bool isDontCare(Expr expr) const;
   /** get value function for Exprs. */

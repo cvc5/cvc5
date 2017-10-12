@@ -66,7 +66,7 @@ void AbsDef::construct_func( FirstOrderModelAbs * m, std::vector< TNode >& fapps
     //construct children
     for( std::map< unsigned, std::vector< TNode > >::iterator it = fapp_child.begin(); it != fapp_child.end(); ++it ){
       Trace("abs-model-debug") << "Construct " << it->first << " : " << fapp_child_index[it->first] << " : ";
-      const RepSet* rs = m->getRepSetPtr();
+      const RepSet* rs = m->getRepSet();
       debugPrintUInt( "abs-model-debug", rs->getNumRepresentatives( tn ), fapp_child_index[it->first] );
       Trace("abs-model-debug") << " : " << it->second.size() << " terms." << std::endl;
       d_def[fapp_child_index[it->first]].construct_func( m, it->second, depth+1 );
@@ -135,7 +135,7 @@ void AbsDef::debugPrint( const char * c, FirstOrderModelAbs * m, TNode f, unsign
       Trace(c) << "V[" << d_value << "]" << std::endl;
     }else{
       TypeNode tn = f[depth].getType();
-      const RepSet* rs = m->getRepSetPtr();
+      const RepSet* rs = m->getRepSet();
       unsigned dSize = rs->getNumRepresentatives( tn );
       Assert( dSize<32 );
       for( std::map< unsigned, AbsDef >::const_iterator it = d_def.begin(); it != d_def.end(); ++it ){
@@ -181,7 +181,7 @@ bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, 
             success = false;
             index = getId( it->first, index );
             if( index<32 ){
-              const RepSet* rs = m->getRepSetPtr();
+              const RepSet* rs = m->getRepSet();
               Assert( index<rs->getNumRepresentatives( tn ) );
               terms[m->d_var_order[q][depth]] = rs->getRepresentative( tn, index );
               //terms[depth] = rs->getRepresentative( tn, index );
@@ -282,7 +282,7 @@ void AbsDef::apply_ucompose( FirstOrderModelAbs * m, TNode q,
   if( depth==terms.size() ){
     if( Trace.isOn("ambqi-check-debug2") ){
       Trace("ambqi-check-debug2") << "Add entry ( ";
-      const RepSet* rs = m->getRepSetPtr();
+      const RepSet* rs = m->getRepSet();
       for( unsigned i=0; i<entry.size(); i++ ){
         unsigned dSize = rs->getNumRepresentatives( m->getVariable( q, i ).getType() );
         debugPrintUInt( "ambqi-check-debug2", dSize, entry[i] );
@@ -336,7 +336,7 @@ void AbsDef::construct_var_eq( FirstOrderModelAbs * m, TNode q, unsigned v1, uns
     }else{
       Assert( currv==val_none );
       if( curr==val_none ){
-        unsigned numReps = m->getRepSetPtr()->getNumRepresentatives( tn );
+        unsigned numReps = m->getRepSet()->getNumRepresentatives( tn );
         Assert( numReps < 32 );
         for( unsigned i=0; i<numReps; i++ ){
           curr = 1 << i;
@@ -360,7 +360,7 @@ void AbsDef::construct_var( FirstOrderModelAbs * m, TNode q, unsigned v, int cur
   }else{
     TypeNode tn = m->getVariable( q, depth ).getType();
     if( v==depth ){
-      unsigned numReps = m->getRepSetPtr()->getNumRepresentatives( tn );
+      unsigned numReps = m->getRepSet()->getNumRepresentatives( tn );
       Assert( numReps>0 && numReps < 32 );
       for( unsigned i=0; i<numReps; i++ ){
         d_def[ 1 << i ].construct_var( m, q, v, i, depth+1 );
@@ -378,7 +378,7 @@ void AbsDef::construct_compose( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef
                                 std::map< unsigned, AbsDef * >& children,
                                 std::map< unsigned, int >& bchildren, std::map< unsigned, int >& vchildren,
                                 std::vector< unsigned >& entry, std::vector< bool >& entry_def ) {
-  const RepSet* rs = m->getRepSetPtr();
+  const RepSet* rs = m->getRepSet();
   if( n.getKind()==OR || n.getKind()==AND ){
     // short circuiting
     for( std::map< unsigned, AbsDef * >::iterator it = children.begin(); it != children.end(); ++it ){
@@ -625,7 +625,7 @@ void AbsDef::negate() {
 }
 
 Node AbsDef::getFunctionValue( FirstOrderModelAbs * m, TNode op, std::vector< Node >& vars, unsigned depth ) {
-  const RepSet* rs = m->getRepSetPtr();
+  const RepSet* rs = m->getRepSet();
   if( depth==vars.size() ){
     TypeNode tn = op.getType();
     if( tn.getNumChildren()>0 ){
@@ -691,7 +691,7 @@ Node AbsDef::evaluate( FirstOrderModelAbs * m, TypeNode retTyp, std::vector< uns
     if( d_value==val_unk ){
       return Node::null();
     }else{
-      const RepSet* rs = m->getRepSetPtr();
+      const RepSet* rs = m->getRepSet();
       Assert( d_value>=0 && d_value<(int)rs->getNumRepresentatives( retTyp ) );
       return rs->getRepresentative( retTyp, d_value );
     }
@@ -732,7 +732,7 @@ bool AbsMbqiBuilder::processBuildModel(TheoryModel* m) {
   Trace("ambqi-debug") << "process build model " << std::endl;
   FirstOrderModel* f = (FirstOrderModel*)m;
   FirstOrderModelAbs* fm = f->asFirstOrderModelAbs();
-  RepSet* rs = m->getRepSet();
+  RepSet* rs = m->getRepSetPtr();
   fm->initialize();
   //process representatives
   fm->d_rep_id.clear();
