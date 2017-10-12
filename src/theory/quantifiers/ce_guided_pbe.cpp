@@ -116,7 +116,6 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
             if( success ){
               d_examples[neval[0]].push_back( ex );
               d_examples_out[neval[0]].push_back( n_output );
-              d_examples_term_id[neval] = d_examples_term[neval[0]].size();
               d_examples_term[neval[0]].push_back( neval );
               if( n_output.isNull() ){
                 d_examples_out_invalid[neval[0]] = true;
@@ -239,7 +238,7 @@ Node CegConjecturePbe::PbeTrie::addPbeExample( TypeNode etn, Node e, Node b, Ceg
 }
 
 Node CegConjecturePbe::PbeTrie::addPbeExampleEval( TypeNode etn, Node e, Node b, std::vector< Node >& ex, CegConjecturePbe * cpbe, unsigned index, unsigned ntotal ) {
-  Node eb = cpbe->getTermDatabaseSygus()->evaluateBuiltin( etn, b, ex );
+  Node eb = cpbe->d_tds->evaluateBuiltin( etn, b, ex );
   return d_children[eb].addPbeExample( etn, e, b, cpbe, index+1, ntotal );
 }
 
@@ -285,15 +284,6 @@ Node CegConjecturePbe::getExampleOut( Node e, unsigned i ) {
   }else{
     Assert( false );
     return Node::null();
-  }
-}
-
-int CegConjecturePbe::getExampleId( Node n ) {
-  std::map< Node, unsigned >::iterator it = d_examples_term_id.find( n );
-  if( it!=d_examples_term_id.end() ){
-    return it->second;
-  }else{
-    return -1;
   }
 }
 

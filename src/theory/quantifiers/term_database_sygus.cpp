@@ -1369,9 +1369,9 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
 }
 
 void TermDbSygus::registerMeasuredTerm( Node e, CegConjecture * conj, bool mkActiveGuard ) {
-  Assert( d_measured_term.find( e )==d_measured_term.end() );
+  Assert( d_enum_to_conjecture.find( e )==d_enum_to_conjecture.end() );
   Trace("sygus-db") << "Register measured term : " << e << std::endl;
-  d_measured_term[e] = conj;
+  d_enum_to_conjecture[e] = conj;
   if( mkActiveGuard ){
     // make the guard
     Node eg = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "eG", NodeManager::currentNM()->booleanType() ) );
@@ -1382,13 +1382,17 @@ void TermDbSygus::registerMeasuredTerm( Node e, CegConjecture * conj, bool mkAct
     Node lem = NodeManager::currentNM()->mkNode( OR, eg, eg.negate() );
     Trace("cegqi-lemma") << "Cegqi::Lemma : enumerator : " << lem << std::endl;
     d_quantEngine->getOutputChannel().lemma( lem );
-    d_measured_term_active_guard[e] = eg;
+    d_enum_to_active_guard[e] = eg;
   }
 }
 
-CegConjecture * TermDbSygus::isMeasuredTerm( Node e ) {
-  std::map< Node, CegConjecture * >::iterator itm = d_measured_term.find( e );
-  if( itm!=d_measured_term.end() ){
+bool TermDbSygus::isMeasuredTerm( Node e ) const {
+  return d_enum_to_conjecture.find( e )!=d_enum_to_conjecture.end();
+}
+
+CegConjecture * TermDbSygus::getConjectureFor( Node e ) {
+  std::map< Node, CegConjecture * >::iterator itm = d_enum_to_conjecture.find( e );
+  if( itm!=d_enum_to_conjecture.end() ){
     return itm->second;
   }else{
     return NULL;
@@ -1396,8 +1400,8 @@ CegConjecture * TermDbSygus::isMeasuredTerm( Node e ) {
 }
 
 Node TermDbSygus::getActiveGuardForMeasureTerm( Node e ) {
-  std::map< Node, Node >::iterator itag = d_measured_term_active_guard.find( e );
-  if( itag!=d_measured_term_active_guard.end() ){
+  std::map< Node, Node >::iterator itag = d_enum_to_active_guard.find( e );
+  if( itag!=d_enum_to_active_guard.end() ){
     return itag->second;
   }else{
     return Node::null();
@@ -1405,7 +1409,7 @@ Node TermDbSygus::getActiveGuardForMeasureTerm( Node e ) {
 }
 
 void TermDbSygus::getMeasuredTerms( std::vector< Node >& mts ) {
-  for( std::map< Node, CegConjecture * >::iterator itm = d_measured_term.begin(); itm != d_measured_term.end(); ++itm ){
+  for( std::map< Node, CegConjecture * >::iterator itm = d_enum_to_conjecture.begin(); itm != d_enum_to_conjecture.end(); ++itm ){
     mts.push_back( itm->first );
   }
 }
@@ -1892,17 +1896,6 @@ void TermDbSygus::registerEvalTerm( Node n ) {
           Node f = n.getOperator();
           Trace("sygus-eager") << "...the evaluation function is : " << f << std::endl;
           if( n[0].getKind()!=APPLY_CONSTRUCTOR ){
-            // check if it directly occurs in an input/ouput example
-            /*  FIXME
-            int pbe_id = getPbeExampleId( n );
-            if( pbe_id!=-1 ){
-              Node n_res = getPbeExampleOut( n[0], pbe_id );
-              if( !n_res.isNull() ){
-                Trace("sygus-eager") << "......do not evaluate " << n << " since it is an input/output example : " << n_res << std::endl;
-                return;
-              }
-            }
-            */
             d_evals[n[0]].push_back( n );
             TypeNode tn = n[0].getType();
             Assert( tn.isDatatype() );

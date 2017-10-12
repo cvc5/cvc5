@@ -81,9 +81,13 @@ private:
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 private:
-  // stores root
-  std::map< Node, CegConjecture * > d_measured_term;
-  std::map< Node, Node > d_measured_term_active_guard;
+  /** mapping from enumerator terms to the conjecture they are associated with */
+  std::map< Node, CegConjecture * > d_enum_to_conjecture;
+  /** mapping from enumerator terms to the guard they are associated with 
+  * The guard G for an enumerator e has the semantics 
+  *   "if G is true, then there are more values of e to enumerate".
+  */
+  std::map< Node, Node > d_enum_to_active_guard;
   //information for sygus types
   std::map< TypeNode, TypeNode > d_register;  //stores sygus -> builtin type
   std::map< TypeNode, std::vector< Node > > d_var_list;
@@ -121,17 +125,18 @@ public:
 public:
   /** register the sygus type */
   void registerSygusType( TypeNode tn );
-  /** register a term that we will do enumerative search on 
-   * conj is the conjecture that the enumeration for e is for 
-   *   This can be used for "conjecture-specific symmetry breaking", e.g. see 
-   *   "SyGuS Techniques in the Core of an SMT Solver" Reynolds et al SYNT 2017
+  /** register a variable e that we will do enumerative search on 
+   * conj is the conjecture that the enumeration for e is for.
+   * mkActiveGuard is whether we want to make a active guard for e (see d_enum_to_active_guard)
    */
   void registerMeasuredTerm( Node e, CegConjecture * conj, bool mkActiveGuard = false );
-  /** is measured term, return the conjecture it is associated with */
-  CegConjecture * isMeasuredTerm( Node e );
-  /** get active guard */
+  /** is e a measured term (enumerator)? */
+  bool isMeasuredTerm( Node e ) const;
+  /** return the conjecture e is associated with */
+  CegConjecture * getConjectureFor( Node e );
+  /** get active guard for e */
   Node getActiveGuardForMeasureTerm( Node e );
-  /** get measured terms */
+  /** get all registered measure terms (enumerators) */
   void getMeasuredTerms( std::vector< Node >& mts );
 public:  //general sygus utilities
   bool isRegistered( TypeNode tn );
@@ -246,7 +251,6 @@ public:
   void getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et );
   // builtin evaluation, returns rewrite( bn [ args / vars(tn) ] )
   Node evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& args );
-  Node evaluateBuiltin( TypeNode tn, Node bn, CegConjecture * conj, Node e, unsigned i );
   // evaluate with unfolding
   Node evaluateWithUnfolding( Node n, std::map< Node, Node >& visited );
   Node evaluateWithUnfolding( Node n );

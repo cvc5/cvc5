@@ -256,7 +256,7 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
       registerSizeTerm( n, lemmas );
       if( d_register_st[n] ){
         d_term_to_anchor[n] = n;
-        d_term_to_anchor_conj[n] = d_tds->isMeasuredTerm( n );
+        d_term_to_anchor_conj[n] = d_tds->getConjectureFor( n );
         // this assertion fails if we have a sygus term in the search that is unmeasured
         Assert( d_term_to_anchor_conj[n]!=NULL );
         d = 0;
@@ -292,7 +292,7 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   /* TODO
   IntMap::const_iterator itisc = d_is_const.find( n );
   if( itisc != d_is_const.end() ){
-      assertIsConst( n, (*itisc).second==1, lemmas );
+    assertIsConst( n, (*itisc).second==1, lemmas );
   }
   */
   
@@ -697,16 +697,42 @@ void SygusSymBreakNew::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool
   }
 }
 
+/** EquivSygusInvarianceTest 
+*
+* This class is used to construct a minimal shape of a term that is equivalent up to rewriting to a RHS value, 
+* given as input bvr.
+*
+* For example, 
+*
+* ite( t>0, 0, 0 ) + s*0 ----> 0
+*
+* can be minimized to:
+*
+* ite( _, 0, 0 ) + _*0 ----> 0
+*
+* It also manages the case where the rewriting is invariant wrt a finite set of examples occurring in the conjecture.
+*
+* It is an instance of quantifiers::SygusInvarianceTest which is the standard interface for term generalization via
+* the TermRecBuild utility, which traverses the AST of a given term, replaces each subterm by a fresh variable and
+* check whether the invariant, as specified by this class (equivalent up to rewriting to a RHS) holds.
+*
+* For details, see Reynolds et al SYNT 2017.
+*/
 class EquivSygusInvarianceTest : public quantifiers::SygusInvarianceTest {
 public:
   EquivSygusInvarianceTest(){}
   ~EquivSygusInvarianceTest(){}
+  /** initialize this invariance test 
+  * tn is the sygus type for e
+  * aconj/e are used for conjecture-specific symmetry breaking 
+  * bvr is the builtin version of the right hand side of the rewrite that we are checking for invariance
+  */
   void init( quantifiers::TermDbSygus * tds, TypeNode tn, quantifiers::CegConjecture * aconj, Node e, Node bvr ) {
     //compute the current examples
     d_bvr = bvr;
     if( aconj->getPbe()->hasExamples( e ) ){
       d_conj = aconj;
-      d_ex_ar = e;
+      d_enum = e;
       unsigned nex = aconj->getPbe()->getNumExamples( e );
       for( unsigned i=0; i<nex; i++ ){
         d_exo.push_back( d_conj->getPbe()->evaluateBuiltin( tn, bvr, e, i ) );
@@ -714,6 +740,7 @@ public:
     }
   }
 protected:
+  /** does nvn still rewrite to d_bvr? */
   bool invariant( quantifiers::TermDbSygus * tds, Node nvn, Node x ){
     TypeNode tn = nvn.getType();
     Node nbv = tds->sygusToBuiltin( nvn, tn );
@@ -743,10 +770,10 @@ protected:
     }
     // equivalent under examples
     if( !exc_arg ){
-      if( !d_ex_ar.isNull() ){
+      if( !d_enum.isNull() ){
         bool ex_equiv = true;
         for( unsigned j=0; j<d_exo.size(); j++ ){
-          Node nbvr_ex = d_conj->getPbe()->evaluateBuiltin( tn, nbvr, d_ex_ar, j );
+          Node nbvr_ex = d_conj->getPbe()->evaluateBuiltin( tn, nbvr, d_enum, j );
           if( nbvr_ex!=d_exo[j] ){
             ex_equiv = false;
             break;
@@ -762,9 +789,23 @@ protected:
     return exc_arg;
   }
 private:
+  /** the conjecture associated with the enumerator d_enum */
   quantifiers::CegConjecture * d_conj;
-  Node d_ex_ar;
+  /** the enumerator associated with the term we are doing an invariance test for */
+  Node d_enum;
+  /** the RHS of the evaluation */
   Node d_bvr;
+  /** the result of the examples 
+  * This is a finer-grained version of d_bvr, where for example if our input examples are:
+  * (x,y,z) = (3,2,4), (5,2,6), (3,2,1)
+  * On these examples, we have:
+  *
+  * ite( x>y, z, 0) ---> 4,6,1
+  *
+  * which can be minimized to:
+  *
+  * ite( x>y, z, _) ---> 4,6,1
+  */
   std::vector< Node > d_exo;
 };
 
@@ -816,7 +857,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
     Node bvr = d_tds->extendedRewrite( bv );
     Trace("sygus-sb-debug") << "  ......rewrites to " << bvr << std::endl;
-      unsigned sz = d_tds->getSygusTermSize( nv );      
+    unsigned sz = d_tds->getSygusTermSize( nv );      
     std::vector< Node > exp;
     bool do_exclude = false;
     if( d_tds->involvesDivByZero( bvr ) ){
@@ -830,8 +871,13 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       Node bad_val_bvr;
       bool by_examples = false;
       if( itsv==d_cache[a].d_search_val[tn].end() ){
+        // TODO (github #1210) conjecture-specific symmetry breaking
+        // this should be generalized and encapsulated within the CegConjecture class
         // is it equivalent under examples?
-        Node bvr_equiv = aconj->getPbe()->addSearchVal( tn, a, bvr );
+        Node bvr_equiv;
+        if( aconj->getPbe()->hasExamples( a ) ){
+          bvr_equiv = aconj->getPbe()->addSearchVal( tn, a, bvr );
+        }
         if( !bvr_equiv.isNull() ){
           if( bvr_equiv!=bvr ){
             Trace("sygus-sb-debug") << "......adding search val for " << bvr << " returned " << bvr_equiv << std::endl;
@@ -983,7 +1029,7 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
     if( e.getType().isDatatype() ){
       const Datatype& dt = ((DatatypeType)(e.getType()).toType()).getDatatype();
       if( dt.isSygus() ){
-        if( d_tds->isMeasuredTerm( e )!=NULL ){
+        if( d_tds->isMeasuredTerm( e ) ){
           d_register_st[e] = true;
           Node ag = d_tds->getActiveGuardForMeasureTerm( e );
           if( !ag.isNull() ){
