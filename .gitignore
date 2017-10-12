@@ -10,6 +10,7 @@
 /cvc4-*.tar.gz
 /cvc4-*.tar.bz2
 /builds/
+/test/java/classes
 /doc/doxygen
 .dep
 Makefile.in
