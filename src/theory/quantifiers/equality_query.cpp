@@ -23,11 +23,12 @@
 #include "theory/uf/equality_engine.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine( context::Context* c, QuantifiersEngine* qe ) : d_qe( qe ), d_eqi_counter( c ), d_reset_count( 0 ){
 
@@ -337,3 +338,7 @@ int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index, Type
     }
   }
 }
+
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

@@ -22,11 +22,13 @@
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
+
 
 QuantAttributes::QuantAttributes( QuantifiersEngine * qe ) : 
 d_quantEngine(qe) {
@@ -380,3 +382,6 @@ Node QuantAttributes::getQuantIdNumNode( Node q ) {
   }
 }
 
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
