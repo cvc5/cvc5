@@ -64,7 +64,8 @@ TESTS = commutative.sy \
         cggmp.sy \
         parse-bv-let.sy \
         cegar1.sy \
-        triv-type-mismatch-si.sy
+        triv-type-mismatch-si.sy \
+        nia-max-square-ns.sy
 
 
 # sygus tests currently taking too long for make regress
