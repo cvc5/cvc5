@@ -138,7 +138,7 @@ void RepSet::setTermForRepresentative( Node n, Node t ) {
   d_values_to_terms[n] = t;
 }
 
-Node RepSet::getDomainValue( TypeNode tn, std::vector< Node >& exclude ) const{
+Node RepSet::getDomainValue( TypeNode tn, const std::vector< Node >& exclude ) const{
   std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
   if( it!=d_type_reps.end() ){
     //try to find a pre-existing arbitrary element

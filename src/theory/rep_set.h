@@ -17,8 +17,11 @@
 #ifndef __CVC4__THEORY__REP_SET_H
 #define __CVC4__THEORY__REP_SET_H
 
-#include "expr/node.h"
 #include <map>
+#include <vector>
+
+#include "expr/node.h"
+#include "expr/type_node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -81,7 +84,7 @@ public:
   /** get existing domain value, with possible exclusions
     *   This function returns a term in d_type_reps[tn] but not in exclude
     */
-  Node getDomainValue( TypeNode tn, std::vector< Node >& exclude ) const;
+  Node getDomainValue( TypeNode tn, const std::vector< Node >& exclude ) const;
   /** debug print */
   void toStream(std::ostream& out);
 private:
