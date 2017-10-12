@@ -2312,20 +2312,6 @@ Node TermDbSygus::evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& ar
   }
 }
 
-Node TermDbSygus::evaluateBuiltin( TypeNode tn, Node bn, CegConjecture * conj, Node e, unsigned i ) {
-  //FIXME
-  /*
-  std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_pbe_exs.find( e );
-  if( it!=d_pbe_exs.end() ){
-    Assert( i<it->second.size() );
-    return evaluateBuiltin( tn, bn, it->second[i] );
-  }else{
-    return Rewriter::rewrite( bn );
-  }
-  */
-  return Rewriter::rewrite( bn );
-}
-
 Node TermDbSygus::evaluateWithUnfolding( Node n, std::map< Node, Node >& visited ) {
   std::map< Node, Node >::iterator it = visited.find( n );
   if( it==visited.end() ){

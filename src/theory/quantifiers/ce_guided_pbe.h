@@ -70,19 +70,25 @@ public:
   
   quantifiers::TermDbSygus * getTermDatabaseSygus() { return d_tds; }
   CegConjecture* getParent() { return d_parent; }
-  /** get examples */
-  bool hasPbeExamples( Node e );
-  unsigned getNumPbeExamples( Node e );
-  /** return value is the required value for the example */
-  void getPbeExample( Node e, unsigned i, std::vector< Node >& ex );
-  Node getPbeExampleOut( Node e, unsigned i );
-  int getPbeExampleId( Node n );
-  /** add the search val, returns an equivalent value (possibly the same) */
-  Node addPbeSearchVal( TypeNode tn, Node e, Node bvr );
+  
   /** get candidate for enumerator */
   Node getCandidateForEnumerator( Node e );
+  /** is the enumerator e associated with I/O example pairs? */
+  bool hasExamples( Node e );
+  /** get number of I/O example pairs for enumerator e */
+  unsigned getNumExamples( Node e );
+  /** get the input arguments for i^th I/O example for e, which is added to the vector ex */
+  void getExample( Node e, unsigned i, std::vector< Node >& ex );
+  /** get the output value of the i^th I/O example for enumerator e */
+  Node getExampleOut( Node e, unsigned i );
+  int getExampleId( Node n );
+  /** add the search val, returns an equivalent value (possibly the same) */
+  Node addSearchVal( TypeNode tn, Node e, Node bvr );
+  /** evaluate builtin */
+  Node evaluateBuiltin( TypeNode tn, Node bn, Node e, unsigned i );
   
 private:
+  /** this class is an index of candidate solutions for PBE synthesis */
   class PbeTrie {
   private:
     Node addPbeExampleEval( TypeNode etn, Node e, Node b, std::vector< Node >& ex, CegConjecturePbe * cpbe, unsigned index, unsigned ntotal );
@@ -94,6 +100,9 @@ private:
     void clear() { d_children.clear(); }
     Node addPbeExample( TypeNode etn, Node e, Node b, CegConjecturePbe * cpbe, unsigned index, unsigned ntotal );
   };
+  /** trie of candidate solutions tried, for each (enumerator, type), 
+   * where type is a type in the grammar of the space of solutions for a subterm of e 
+   */
   std::map< Node, std::map< TypeNode, PbeTrie > > d_pbe_trie;
   
 private:  // for registration

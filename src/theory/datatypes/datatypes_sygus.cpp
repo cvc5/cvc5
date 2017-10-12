@@ -247,7 +247,7 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
       std::map< Node, Node >::iterator it = d_term_to_anchor.find( n[0] );
       if( it!=d_term_to_anchor.end() ) {
         d_term_to_anchor[n] = it->second;
-        d_term_to_anchor_root[n] = d_term_to_anchor_root[n[0]];
+        d_term_to_anchor_conj[n] = d_term_to_anchor_conj[n[0]];
         d = d_term_to_depth[n[0]] + 1;
         is_top_level = computeTopLevel( tn, n[0] );
         success = true;
@@ -256,9 +256,9 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
       registerSizeTerm( n, lemmas );
       if( d_register_st[n] ){
         d_term_to_anchor[n] = n;
-        d_term_to_anchor_root[n] = d_tds->isMeasuredTerm( n );
+        d_term_to_anchor_conj[n] = d_tds->isMeasuredTerm( n );
         // this assertion fails if we have a sygus term in the search that is unmeasured
-        Assert( d_term_to_anchor_root[n]!=NULL );
+        Assert( d_term_to_anchor_conj[n]!=NULL );
         d = 0;
         is_top_level = true;
         success = true;
@@ -292,7 +292,7 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   /* TODO
   IntMap::const_iterator itisc = d_is_const.find( n );
   if( itisc != d_is_const.end() ){
-    assertIsConst( n, (*itisc).second==1, lemmas );
+      assertIsConst( n, (*itisc).second==1, lemmas );
   }
   */
   
@@ -704,12 +704,12 @@ public:
   void init( quantifiers::TermDbSygus * tds, TypeNode tn, quantifiers::CegConjecture * aconj, Node e, Node bvr ) {
     //compute the current examples
     d_bvr = bvr;
-    if( aconj->getPbe()->hasPbeExamples( e ) ){
+    if( aconj->getPbe()->hasExamples( e ) ){
       d_conj = aconj;
       d_ex_ar = e;
-      unsigned nex = aconj->getPbe()->getNumPbeExamples( e );
+      unsigned nex = aconj->getPbe()->getNumExamples( e );
       for( unsigned i=0; i<nex; i++ ){
-        d_exo.push_back( tds->evaluateBuiltin( tn, bvr, aconj, e, i ) );
+        d_exo.push_back( d_conj->getPbe()->evaluateBuiltin( tn, bvr, e, i ) );
       }
     }
   }
@@ -746,7 +746,7 @@ protected:
       if( !d_ex_ar.isNull() ){
         bool ex_equiv = true;
         for( unsigned j=0; j<d_exo.size(); j++ ){
-          Node nbvr_ex = tds->evaluateBuiltin( tn, nbvr, d_conj, d_ex_ar, j );
+          Node nbvr_ex = d_conj->getPbe()->evaluateBuiltin( tn, nbvr, d_ex_ar, j );
           if( nbvr_ex!=d_exo[j] ){
             ex_equiv = false;
             break;
@@ -808,15 +808,15 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
   if( d_cache[a].d_search_val_proc.find( nv )==d_cache[a].d_search_val_proc.end() ){
     d_cache[a].d_search_val_proc[nv] = true;
     // get the root (for PBE symmetry breaking)
-    Assert( d_term_to_anchor_root.find( a )!=d_term_to_anchor_root.end() );
-    quantifiers::CegConjecture * aconj = d_term_to_anchor_root[a];
+    Assert( d_term_to_anchor_conj.find( a )!=d_term_to_anchor_conj.end() );
+    quantifiers::CegConjecture * aconj = d_term_to_anchor_conj[a];
     Assert( aconj!=NULL );
     Trace("sygus-sb-debug") << "  ...register search value " << nv << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin( nv, tn );
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
     Node bvr = d_tds->extendedRewrite( bv );
     Trace("sygus-sb-debug") << "  ......rewrites to " << bvr << std::endl;
-    unsigned sz = d_tds->getSygusTermSize( nv );      
+      unsigned sz = d_tds->getSygusTermSize( nv );      
     std::vector< Node > exp;
     bool do_exclude = false;
     if( d_tds->involvesDivByZero( bvr ) ){
@@ -831,7 +831,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       bool by_examples = false;
       if( itsv==d_cache[a].d_search_val[tn].end() ){
         // is it equivalent under examples?
-        Node bvr_equiv = aconj->getPbe()->addPbeSearchVal( tn, a, bvr );
+        Node bvr_equiv = aconj->getPbe()->addSearchVal( tn, a, bvr );
         if( !bvr_equiv.isNull() ){
           if( bvr_equiv!=bvr ){
             Trace("sygus-sb-debug") << "......adding search val for " << bvr << " returned " << bvr_equiv << std::endl;
