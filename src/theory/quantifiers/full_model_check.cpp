@@ -436,7 +436,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       }else{
         Node vmb = getSomeDomainElement(fm, nmb.getType());
         Trace("fmc-model-debug") << "Add default to default representative " << nmb << " ";
-        Trace("fmc-model-debug") << fm->getRepSet()->d_type_reps[nmb.getType()].size() << std::endl;
+        Trace("fmc-model-debug") << fm->getRepSetPtr()->getNumRepresentatives(nmb.getType()) << std::endl;
         add_conds.push_back( nmb );
         add_values.push_back( vmb );
       }

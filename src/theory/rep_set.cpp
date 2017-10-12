@@ -12,6 +12,8 @@
  ** \brief Implementation of representative set
  **/
 
+#include <unordered_set>
+
 #include "theory/rep_set.h"
 #include "theory/type_enumerator.h"
 #include "theory/quantifiers/bounded_integers.h"
@@ -56,9 +58,9 @@ Node RepSet::getRepresentative( TypeNode tn, unsigned i ) const {
   return it->second[i];
 }
 
-bool containsStoreAll( Node n, std::vector< Node >& cache ){
+bool containsStoreAll( Node n, std::unordered_set< Node, NodeHashFunction >& cache ){
   if( std::find( cache.begin(), cache.end(), n )==cache.end() ){
-    cache.push_back( n );
+    cache.insert( n );
     if( n.getKind()==STORE_ALL ){
       return true;
     }else{
@@ -75,7 +77,7 @@ bool containsStoreAll( Node n, std::vector< Node >& cache ){
 void RepSet::add( TypeNode tn, Node n ){
   //for now, do not add array constants FIXME
   if( tn.isArray() ){
-    std::vector< Node > cache;
+    std::unordered_set< Node, NodeHashFunction > cache;
     if( containsStoreAll( n, cache ) ){
       return;
     }
@@ -96,7 +98,7 @@ int RepSet::getIndexFor( Node n ) const {
 }
 
 bool RepSet::complete( TypeNode t ){
-  std::map< TypeNode, bool >::iterator it = d_type_complete.find( t );
+    std::map< TypeNode, bool >::iterator it = d_type_complete.find( t );
   if( it==d_type_complete.end() ){
     //remove all previous
     for( unsigned i=0; i<d_type_reps[t].size(); i++ ){
@@ -121,6 +123,32 @@ bool RepSet::complete( TypeNode t ){
   }else{
     return it->second;
   }
+}
+
+Node RepSet::getTermForRepresentative( Node n ) const {
+  std::map< Node, Node >::const_iterator it = d_values_to_terms.find( n );
+  if( it!=d_values_to_terms.end()) {
+    return it->second;    
+  }else{
+    return Node::null();
+  }
+}
+
+void RepSet::setTermForRepresentative( Node n, Node t ) {
+  d_values_to_terms[n] = t;
+}
+
+Node RepSet::getDomainValue( TypeNode tn, std::vector< Node >& exclude ) const{
+  std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
+  if( it!=d_type_reps.end() ){
+    //try to find a pre-existing arbitrary element
+    for( size_t i=0; i<it->second.size(); i++ ){
+      if( std::find( exclude.begin(), exclude.end(), it->second[i] )==exclude.end() ){
+        return it->second[i];
+      }
+    }
+  }
+  return Node::null();
 }
 
 void RepSet::toStream(std::ostream& out){

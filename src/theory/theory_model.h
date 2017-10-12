@@ -52,11 +52,6 @@ public:
    * on this model.
    */
   Node getValue( TNode n, bool useDontCares = false ) const;
-
-  /** get existing domain value, with possible exclusions
-    *   This function returns a term in d_rep_set.d_type_reps[tn] but not in exclude
-    */
-  Node getDomainValue( TypeNode tn, std::vector< Node >& exclude );
   
   //---------------------------- separation logic
   /** set the heap and value sep.nil is equal to */

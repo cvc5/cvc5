@@ -767,7 +767,7 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
           Node mbt = d_qe->getTermDatabase()->getModelBasisTerm(defaultTerm.getType());
           fmig->getRepSet()->d_type_reps[defaultTerm.getType()].push_back(mbt);
         }
-        defaultVal = fmig->getRepSet()->d_type_reps[defaultTerm.getType()][0];
+        defaultVal = fmig->getRepSetPtr()->getRepresentative(defaultTerm.getType(), 0);
       }
       Assert( !defaultVal.isNull() );
       Trace("fmf-model-cons") << "Set default term : " << fmig->getRepSetPtr()->getIndexFor( defaultVal ) << std::endl;

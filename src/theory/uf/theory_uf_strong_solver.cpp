@@ -1566,7 +1566,7 @@ bool SortModel::debugModel( TheoryModel* m ){
     }
   }
   RepSet * rs = m->getRepSet();
-  int nReps = rs->d_type_reps.find( d_type )==rs->d_type_reps.end() ? 0 : (int)rs->d_type_reps[d_type].size();
+  int nReps = (int)rs->getNumRepresentatives( d_type );
   if( nReps!=(d_maxNegCard+1) ){
     Trace("uf-ss-warn") << "WARNING : Model does not have same # representatives as cardinality for " << d_type << "." << std::endl;
     Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard << std::endl;

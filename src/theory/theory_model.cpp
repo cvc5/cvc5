@@ -281,18 +281,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
   return ret;
 }
 
-Node TheoryModel::getDomainValue( TypeNode tn, std::vector< Node >& exclude ){
-  if( d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() ){
-    //try to find a pre-existing arbitrary element
-    for( size_t i=0; i<d_rep_set.d_type_reps[tn].size(); i++ ){
-      if( std::find( exclude.begin(), exclude.end(), d_rep_set.d_type_reps[tn][i] )==exclude.end() ){
-        return d_rep_set.d_type_reps[tn][i];
-      }
-    }
-  }
-  return Node::null();
-}
-
 /** add substitution */
 void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
   if( !d_substitutions.hasSubstitution( x ) ){
@@ -638,7 +626,7 @@ void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cac
 void TheoryEngineModelBuilder::assignConstantRep( TheoryModel* tm, Node eqc, Node const_rep ) {
   d_constantReps[eqc] = const_rep;
   Trace("model-builder") << "    Assign: Setting constant rep of " << eqc << " to " << const_rep << endl;
-  tm->d_rep_set.d_values_to_terms[const_rep] = eqc;
+  tm->d_rep_set.setTermForRepresentative( const_rep, eqc );
 }
 
 bool TheoryEngineModelBuilder::isExcludedCdtValue( Node val, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc ) {

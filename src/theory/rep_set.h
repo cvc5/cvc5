@@ -31,10 +31,6 @@ public:
   RepSet(){}
   ~RepSet(){}
   std::map< TypeNode, std::vector< Node > > d_type_reps;
-  std::map< TypeNode, bool > d_type_complete;
-  std::map< Node, int > d_tmap;
-  // map from values to terms they were assigned for
-  std::map< Node, Node > d_values_to_terms;
   /** clear the set */
   void clear();
   /** has type */
@@ -51,8 +47,23 @@ public:
   int getIndexFor( Node n ) const;
   /** complete all values */
   bool complete( TypeNode t );
+  /** get term for representative */
+  Node getTermForRepresentative( Node n ) const;
+  /** set term for representative */
+  void setTermForRepresentative( Node n, Node t );
+  /** get existing domain value, with possible exclusions
+    *   This function returns a term in d_rep_set.d_type_reps[tn] but not in exclude
+    */
+  Node getDomainValue( TypeNode tn, std::vector< Node >& exclude ) const;
   /** debug print */
   void toStream(std::ostream& out);
+private:
+  /** whether the list of representatives for types are complete */
+  std::map< TypeNode, bool > d_type_complete;
+  /** map from representatives to their index in d_type_reps */
+  std::map< Node, int > d_tmap;
+  /** map from values to terms they were assigned for */
+  std::map< Node, Node > d_values_to_terms;
 };/* class RepSet */
 
 //representative domain
