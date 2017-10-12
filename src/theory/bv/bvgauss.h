@@ -5,8 +5,10 @@
 
 #include "expr/node.h"
 #include "util/bitvector.h"
-#include <vector>
+
+#include <iostream>
 #include <unordered_map>
+#include <vector>
 
 namespace CVC4 {
 namespace theory {
@@ -14,10 +16,10 @@ namespace bv {
 
 class BVGaussElim
 {
+public:
   static void gaussElimRewrite (std::vector<Node> & assertionsToPreprocess);
 
-  private:
-
+private:
   enum class Result { UNIQUE, PARTIAL, NONE };
 
   static Result gaussElimRewriteForUrem (

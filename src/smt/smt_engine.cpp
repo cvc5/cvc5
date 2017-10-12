@@ -85,6 +85,7 @@
 #include "smt_util/node_visitor.h"
 #include "theory/arith/pseudoboolean_proc.h"
 #include "theory/booleans/circuit_propagator.h"
+#include "theory/bv/bvgauss.h"
 #include "theory/bv/bvintropow2.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
@@ -1416,9 +1417,10 @@ void SmtEngine::setDefaults() {
       if(options::bvIntroducePow2.wasSetByUser()) {
         throw OptionException("bv-intro-pow2 not supported with unsat cores");
       }
-      Notice() << "SmtEngine: turning off bv-introduce-pow2 to support unsat-cores" << endl;
+      Notice() << "SmtEngine: turning off bv-intro-pow2 to support unsat-cores" << endl;
       setOption("bv-intro-pow2", false);
     }
+
     if(options::repeatSimp()) {
       if(options::repeatSimp.wasSetByUser()) {
         throw OptionException("repeat-simp not supported with unsat cores");
@@ -3977,6 +3979,10 @@ void SmtEnginePrivate::processAssertions() {
   if (d_assertions.size() == 0) {
     // nothing to do
     return;
+  }
+
+  if(options::bvGaussElim()){
+    theory::bv::BVGaussElim::gaussElimRewrite(d_assertions.ref());
   }
 
   if (d_assertionsProcessed && options::incrementalSolving()) {

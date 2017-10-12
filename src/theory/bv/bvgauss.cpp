@@ -440,15 +440,20 @@ BVGaussElim::gaussElimRewrite (std::vector<Node> & assertionsToPreprocess)
   {
     unordered_map< Node, Node, NodeHashFunction > res;
     BVGaussElim::Result ret = gaussElimRewriteForUrem (eq.second, res);
+    Trace("bv-gauss-elim")
+      << "result: "
+      << (ret == BVGaussElim::Result::UNIQUE
+          ? "UNIQUE" : (ret == BVGaussElim::Result::PARTIAL
+                        ? "PARTIAL" : "NONE"))
+      << endl;
     if (ret != BVGaussElim::Result::NONE)
     {
       NodeManager *nm = NodeManager::currentNM();
-      cout << "ret " << (ret==BVGaussElim::Result::UNIQUE) << endl;
       for (auto p : res)
       {
-        cout << "p.first " << p.first << " p.second " << p.second << endl;
-        assertionsToPreprocess.push_back (
-            nm->mkNode(kind::EQUAL, p.first, p.second));
+        Node a = nm->mkNode(kind::EQUAL, p.first, p.second);
+        Trace("bv-gauss-elim") << "added assertion: " << a << endl;
+        assertionsToPreprocess.push_back (a);
       }
     }
   }
