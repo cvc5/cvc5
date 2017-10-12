@@ -1815,7 +1815,7 @@ public:
     }
   }
 
-  void testGaussElimRewriteForUremNotInvalid ()
+  void testGaussElimRewriteForUremNotInvalid1 ()
   {
     std::unordered_map< Node, Node, NodeHashFunction > res;
     BVGaussElim::Result ret;
@@ -1853,6 +1853,79 @@ public:
     TS_ASSERT(res[n3] == d_five);
   }
 
+  void testGaussElimRewriteForUremNotInvalid2 ()
+  {
+    std::unordered_map< Node, Node, NodeHashFunction > res;
+    BVGaussElim::Result ret;
 
-  // TODO test cases for invalid input
+    /* -------------------------------------------------------------------
+     * x*y = 4  modulo 11
+     * x*y*z = 2
+     * 2*x*y + 2*z = 9
+     * ------------------------------------------------------------------- */
+
+    Node n1 = d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_y);
+    Node n2 = d_nm->mkNode(kind::BITVECTOR_MULT,
+        d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_y), d_z);
+    Node n3 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        d_nm->mkNode(kind::BITVECTOR_MULT,
+          d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_y), d_two),
+        d_nm->mkNode(kind::BITVECTOR_MULT, d_two, d_z));
+
+    Node eq1 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM, n1, d_p), d_four);
+
+    Node eq2 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM, n2, d_p), d_two);
+
+    Node eq3 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM, n3, d_p), d_nine);
+
+    std::vector< TNode > eqs = { eq1, eq2, eq3 };
+    ret = BVGaussElim::gaussElimRewriteForUrem (eqs, res);
+    TS_ASSERT (ret == BVGaussElim::Result::UNIQUE);
+    TS_ASSERT (res.size() == 3);
+
+    TS_ASSERT(res[n1] == d_four);
+    TS_ASSERT(res[n2] == d_two);
+
+    Integer twoxy = (res[n1].getConst<BitVector>().getValue()
+                     * Integer(2)).euclidianDivideRemainder(Integer(16));
+    Integer twoz = (res[d_z].getConst<BitVector>().getValue()
+                     * Integer(2)).euclidianDivideRemainder(Integer(16));
+    Integer r = (twoxy + twoz).euclidianDivideRemainder(Integer(11));
+    TS_ASSERT(r == Integer(9));
+  }
+
+  void testGaussElimRewriteForUremInvalid ()
+  {
+    std::unordered_map< Node, Node, NodeHashFunction > res;
+    BVGaussElim::Result ret;
+
+    /* -------------------------------------------------------------------
+     * x*y = 4  modulo 11
+     * x*y*z = 2
+     * 2*x*y = 9
+     * ------------------------------------------------------------------- */
+
+    Node n1 = d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_y);
+    Node n2 = d_nm->mkNode(kind::BITVECTOR_MULT,
+        d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_y), d_z);
+    Node n3 = d_nm->mkNode(kind::BITVECTOR_MULT,
+          d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_y), d_two);
+
+    Node eq1 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM, n1, d_p), d_four);
+
+    Node eq2 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM, n2, d_p), d_two);
+
+    Node eq3 = d_nm->mkNode(kind::EQUAL,
+        d_nm->mkNode(kind::BITVECTOR_UREM, n3, d_p), d_nine);
+
+    std::vector< TNode > eqs = { eq1, eq2, eq3 };
+    ret = BVGaussElim::gaussElimRewriteForUrem (eqs, res);
+    TS_ASSERT (ret == BVGaussElim::Result::NONE);
+  }
+
 };
