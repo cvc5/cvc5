@@ -73,8 +73,8 @@ struct SygusProxyAttributeId {};
 typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
 
 // attribute for associating a synthesis function with a first order variable
-struct SygusSynthFunAttributeId {};
-typedef expr::Attribute<SygusSynthFunAttributeId, Node> SygusSynthFunAttribute;
+struct SygusSynthGrammarAttributeId {};
+typedef expr::Attribute<SygusSynthGrammarAttributeId, Node> SygusSynthGrammarAttribute;
 
 // attribute for associating a variable list with a synth fun
 struct SygusSynthFunVarListAttributeId {};
