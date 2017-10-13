@@ -1090,7 +1090,7 @@ const void Smt2::addSygusFunSymbol( Type t, Expr synth_fun ){
   Expr sym = mkBoundVar("sfproxy", t);  
   std::vector< Expr > attr_value;
   attr_value.push_back( sym );
-  Command* cattr = new SetUserAttributeCommand("sygus-synth-fun", synth_fun, attr_value);
+  Command* cattr = new SetUserAttributeCommand("sygus-synth-grammar", synth_fun, attr_value);
   cattr->setMuted(true);
   preemptCommand(cattr);
 }
