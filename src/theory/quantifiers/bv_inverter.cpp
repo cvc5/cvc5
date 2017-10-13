@@ -287,6 +287,10 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
           lower += bv::utils::getSize(sv_t[i]);
       }
       t = bv::utils::mkExtract(t, upper, lower);
+    } else if (k == BITVECTOR_EXTRACT) {
+      Trace("bv-invert") << "bv-invert : Unsupported for index " << index
+                         << ", from " << sv_t << std::endl;
+      return Node::null();
     } else {
       Node s = sv_t.getNumChildren() == 2
         ? sv_t[1 - index]
