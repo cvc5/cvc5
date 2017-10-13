@@ -897,7 +897,7 @@ void BvInstantiator::processLiteral(CegInstantiator* ci, SolvedForm& sf,
     unsigned iid = d_inst_id_counter;
     Node inst = d_inverter->solve_bv_lit( sv, slit, true, path, &m, d_inst_id_to_status[iid] );
     if( !inst.isNull() ){
-      inst = Rewriter::rewrite( inst );
+      inst = Rewriter::rewrite(inst);
       Trace("cegqi-bv") << "...solved form is " << inst << std::endl;
       // store information for id and increment
       d_var_to_inst_id[pv].push_back( iid );
@@ -924,42 +924,12 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
     }
   } else {
     bool useSlack = false;
-    if( k == EQUAL ){
+    if (k == EQUAL) {
+      // always use slack for disequalities
       useSlack = true;
-    }else{
-      if( options::cbqiBvSlackIneq() ){
+    } else {
+      if (options::cbqiBvSlackIneq()) {
         useSlack = true;
-      }else{
-        // otherwise, we optimistically solve for the boundary point
-        if( !pol ){
-          if (k == BITVECTOR_ULT) {
-            k = BITVECTOR_UGE;
-          } else if (k == BITVECTOR_ULE) {
-            k = BITVECTOR_UGT;
-          } else if (k == BITVECTOR_SLT) {
-            k = BITVECTOR_SGE;
-          } else {
-            Assert(k == BITVECTOR_SLE);
-            k = BITVECTOR_SGT;
-          }
-        }
-        // turn into a positive equality based on solving for the boundary point, for example
-        //   for s >= t, we solve s = t
-        //   for s > t, we solve s = t+1
-        //   for ~( s >= t ), we solve s+1 = t
-        unsigned one = 1;
-        BitVector bval(atom[0].getType().getConst<BitVectorSize>(), one);
-        Node bv_one = NodeManager::currentNM()->mkConst<BitVector>(bval);
-        Node ret;
-        if( k==BITVECTOR_ULE || k==BITVECTOR_SLE || k==BITVECTOR_UGE || k==BITVECTOR_SGE ){
-          ret = atom[0].eqNode( atom[1] );
-        }else if( k==BITVECTOR_ULT || k==BITVECTOR_SLT ){
-          ret = NodeManager::currentNM()->mkNode( kind::BITVECTOR_PLUS, atom[0], bv_one ).eqNode( atom[1] );
-        }else{
-          Assert( k==BITVECTOR_UGT || k==BITVECTOR_SGT );
-          ret = atom[1].eqNode( NodeManager::currentNM()->mkNode( kind::BITVECTOR_PLUS, atom[0], bv_one ) );
-        }
-        return ret;
       }
     }
     // for all other predicates, we convert them to a positive equality based on
@@ -975,21 +945,59 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
         Assert(!sm.isNull() && sm.isConst());
         Node tm = ci->getModelValue(t);
         Assert(!tm.isNull() && tm.isConst());
+        Node ret;
         if (sm != tm) {
           Node slack =
               Rewriter::rewrite(nm->mkNode(kind::BITVECTOR_SUB, sm, tm));
           Assert(slack.isConst());
           // remember the slack value for the asserted literal
           d_alit_to_model_slack[lit] = slack;
-          Node ret = nm->mkNode(kind::EQUAL, s,
-                                nm->mkNode(kind::BITVECTOR_PLUS, t, slack));
+          ret = nm->mkNode(kind::EQUAL, s,
+                           nm->mkNode(kind::BITVECTOR_PLUS, t, slack));
           Trace("cegqi-bv") << "Process " << lit << " as " << ret
                             << ", slack is " << slack << std::endl;
-          return ret;
+        }else{
+          ret = s.eqNode(t);          
+          Trace("cegqi-bv") << "Process " << lit << " as " << ret << std::endl;
+        }
+        return ret;
+      }
+    } else {
+      // otherwise, we optimistically solve for the boundary point of an inequality
+      if (!pol) {
+        if (k == BITVECTOR_ULT) {
+          k = BITVECTOR_UGE;
+        } else if (k == BITVECTOR_ULE) {
+          k = BITVECTOR_UGT;
+        } else if (k == BITVECTOR_SLT) {
+          k = BITVECTOR_SGE;
+        } else {
+          Assert(k == BITVECTOR_SLE);
+          k = BITVECTOR_SGT;
         }
       }
-    }else{
-      
+      // turn into a positive equality based on solving for the boundary
+      // point, for example
+      //   for s >= t, we solve s = t
+      //   for s > t, we solve s = t+1
+      //   for ~( s >= t ), we solve s+1 = t
+      unsigned one = 1;
+      BitVector bval(atom[0].getType().getConst<BitVectorSize>(), one);
+      Node bv_one = NodeManager::currentNM()->mkConst<BitVector>(bval);
+      Node ret;
+      if (k == BITVECTOR_ULE || k == BITVECTOR_SLE || k == BITVECTOR_UGE ||
+          k == BITVECTOR_SGE) {
+        ret = atom[0].eqNode(atom[1]);
+      } else if (k == BITVECTOR_ULT || k == BITVECTOR_SLT) {
+        ret = NodeManager::currentNM()
+                  ->mkNode(kind::BITVECTOR_PLUS, atom[0], bv_one)
+                  .eqNode(atom[1]);
+      } else {
+        Assert(k == BITVECTOR_UGT || k == BITVECTOR_SGT);
+        ret = atom[1].eqNode(NodeManager::currentNM()->mkNode(
+            kind::BITVECTOR_PLUS, atom[0], bv_one));
+      }
+      return ret;
     }
   }
   return Node::null();
@@ -1019,19 +1027,23 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
   std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction >::iterator iti = d_var_to_inst_id.find( pv );
   if( iti!=d_var_to_inst_id.end() ){
     Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv << std::endl;
-    if( !options::cbqiBvInterleaveValue() || rand()%2==0 ){
+    if (!options::cbqiBvInterleaveValue() || rand() % 2 == 0) {
       // get inst id list
-      Trace("cegqi-bv") << "  " << iti->second.size() << " candidate instantiations for " << pv << " : " << std::endl;
+      Trace("cegqi-bv") << "  " << iti->second.size()
+                        << " candidate instantiations for " << pv << " : "
+                        << std::endl;
       // the order of instantiation ids we will try
-      std::vector< unsigned > inst_ids_try;
-      // until we have a model-preserving selection function for BV, this must be heuristic (we only pick one literal)
+      std::vector<unsigned> inst_ids_try;
+      // until we have a model-preserving selection function for BV, this must
+      // be heuristic (we only pick one literal)
       // hence we randomize the list
-      // this helps robustness, since picking the same literal every time may be lead to a stream of value instantiations
-      std::random_shuffle( iti->second.begin(), iti->second.end() );
+      // this helps robustness, since picking the same literal every time may be
+      // lead to a stream of value instantiations
+      std::random_shuffle(iti->second.begin(), iti->second.end());
 
-      for( unsigned j=0; j<iti->second.size(); j++ ){
+      for (unsigned j = 0; j < iti->second.size(); j++) {
         unsigned inst_id = iti->second[j];
-        Assert( d_inst_id_to_term.find(inst_id)!=d_inst_id_to_term.end() );
+        Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
         Node inst_term = d_inst_id_to_term[inst_id];
         Assert(d_inst_id_to_alit.find(inst_id) != d_inst_id_to_alit.end());
         Node alit = d_inst_id_to_alit[inst_id];
@@ -1045,7 +1057,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
         }
 
         // debug printing
-        if( Trace.isOn("cegqi-bv") ){
+        if (Trace.isOn("cegqi-bv")) {
           Trace("cegqi-bv") << "   [" << j << "] : ";
           Trace("cegqi-bv") << inst_term << std::endl;
           if (!curr_slack_val.isNull()) {
@@ -1053,11 +1065,13 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
                               << std::endl;
           }
           // process information about solved status
-          std::unordered_map< unsigned, BvInverterStatus >::iterator its = d_inst_id_to_status.find( inst_id );
-          Assert( its!=d_inst_id_to_status.end() );
-          if( !(*its).second.d_conds.empty() ){
-            Trace("cegqi-bv") << "   ...with " << (*its).second.d_conds.size() << " side conditions : " << std::endl;
-            for( unsigned k=0; k<(*its).second.d_conds.size(); k++ ){
+          std::unordered_map<unsigned, BvInverterStatus>::iterator its =
+              d_inst_id_to_status.find(inst_id);
+          Assert(its != d_inst_id_to_status.end());
+          if (!(*its).second.d_conds.empty()) {
+            Trace("cegqi-bv") << "   ...with " << (*its).second.d_conds.size()
+                              << " side conditions : " << std::endl;
+            for (unsigned k = 0; k < (*its).second.d_conds.size(); k++) {
               Node cond = (*its).second.d_conds[k];
               Trace("cegqi-bv") << "       " << cond << std::endl;
             }
@@ -1066,35 +1080,38 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
         }
 
         // currently we take select the first literal
-        if( inst_ids_try.empty() ){
+        if (inst_ids_try.empty()) {
           // try the first one
-          inst_ids_try.push_back( inst_id );
+          inst_ids_try.push_back(inst_id);
         } else {
           // selection criteria across multiple literals goes here
-
-
         }
       }
-      
+
       // now, try all instantiation ids we want to try
-      // typically size( inst_ids_try )=0, otherwise worst-case performance for constructing
-      // instantiations is exponential on the number of variables in this quantifier
-      for( unsigned j = 0; j<inst_ids_try.size(); j++ ){
+      // typically size( inst_ids_try )=0, otherwise worst-case performance for
+      // constructing
+      // instantiations is exponential on the number of variables in this
+      // quantifier
+      for (unsigned j = 0; j < inst_ids_try.size(); j++) {
         unsigned inst_id = iti->second[j];
-        Assert( d_inst_id_to_term.find(inst_id)!=d_inst_id_to_term.end() );
+        Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
         Node inst_term = d_inst_id_to_term[inst_id];
         // try instantiation pv -> inst_term
         TermProperties pv_prop_bv;
-        Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term << std::endl;
+        Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term
+                          << std::endl;
         d_var_to_curr_inst_id[pv] = inst_id;
-        if( ci->doAddInstantiationInc( pv, inst_term, pv_prop_bv, sf, effort ) ){
+        if (ci->doAddInstantiationInc(pv, inst_term, pv_prop_bv, sf, effort)) {
           return true;
         }
       }
-      Trace("cegqi-bv") << "...failed to add instantiation for " << pv << std::endl;
-      d_var_to_curr_inst_id.erase( pv );
-    }else{
-      Trace("cegqi-bv") << "...do not do instantiation for " << pv << " (skip, based on heuristic)" << std::endl;
+      Trace("cegqi-bv") << "...failed to add instantiation for " << pv
+                        << std::endl;
+      d_var_to_curr_inst_id.erase(pv);
+    } else {
+      Trace("cegqi-bv") << "...do not do instantiation for " << pv
+                        << " (skip, based on heuristic)" << std::endl;
     }
   }
 
