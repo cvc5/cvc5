@@ -45,9 +45,9 @@ class CVC4_PUBLIC String {
   }
 
   String() = default;
-  explicit String(const std::string& s, bool useEscSequences = true) :
+  explicit String(const std::string& s, bool useEscSequences = false) :
    d_str(toInternal(s, useEscSequences)) {}
-  explicit String(const char* s, bool useEscSequences = true) : 
+  explicit String(const char* s, bool useEscSequences = false) : 
     d_str(toInternal(std::string(s), useEscSequences)) {}
   explicit String(const unsigned char c)
       : d_str({convertCharToUnsignedInt(c)}) {}
