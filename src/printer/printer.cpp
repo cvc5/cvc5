@@ -84,17 +84,12 @@ void Printer::toStream(std::ostream& out, const Model& m) const throw() {
 }/* Printer::toStream(Model) */
 
 void Printer::toStream(std::ostream& out, const UnsatCore& core) const throw() {
-  std::map<Expr, std::string> names;
-  toStream(out, core, names);
-}/* Printer::toStream(UnsatCore) */
-
-void Printer::toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw() {
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     AssertCommand cmd(*i);
     toStream(out, &cmd, -1, false, -1);
     out << std::endl;
   }
-}/* Printer::toStream(UnsatCore, std::map<Expr, std::string>) */
+}/* Printer::toStream(UnsatCore) */
 
 Printer* Printer::getPrinter(OutputLanguage lang) throw() {
   if(lang == language::output::LANG_AUTO) {
