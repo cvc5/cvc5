@@ -927,10 +927,14 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
     if (k == EQUAL) {
       // always use slack for disequalities
       useSlack = true;
-    } else {
+    } else if( k == BITVECTOR_ULT || k == BITVECTOR_SLT ){
       if (options::cbqiBvSlackIneq()) {
         useSlack = true;
       }
+    }else{
+      // others should be rewritten
+      Assert( false );
+      return Node::null();
     }
     // for all other predicates, we convert them to a positive equality based on
     // the current model M, e.g.:
@@ -964,38 +968,22 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
       }
     } else {
       // otherwise, we optimistically solve for the boundary point of an inequality
-      if (!pol) {
-        if (k == BITVECTOR_ULT) {
-          k = BITVECTOR_UGE;
-        } else if (k == BITVECTOR_ULE) {
-          k = BITVECTOR_UGT;
-        } else if (k == BITVECTOR_SLT) {
-          k = BITVECTOR_SGE;
-        } else {
-          Assert(k == BITVECTOR_SLE);
-          k = BITVECTOR_SGT;
-        }
-      }
-      // turn into a positive equality based on solving for the boundary
-      // point, for example
-      //   for s >= t, we solve s = t
-      //   for s > t, we solve s = t+1
-      //   for ~( s >= t ), we solve s+1 = t
-      unsigned one = 1;
-      BitVector bval(atom[0].getType().getConst<BitVectorSize>(), one);
-      Node bv_one = NodeManager::currentNM()->mkConst<BitVector>(bval);
+      // for example
+      //   for s < t, we solve s+1 = t
+      //   for ~( s < t ), we solve s = t
+      // notice that this equality does not necessarily hold in the model, and 
+      // hence the corresponding instantiation strategy is not guaranteed to be 
+      // monotonic.
       Node ret;
-      if (k == BITVECTOR_ULE || k == BITVECTOR_SLE || k == BITVECTOR_UGE ||
-          k == BITVECTOR_SGE) {
+      if (!pol) {
         ret = atom[0].eqNode(atom[1]);
-      } else if (k == BITVECTOR_ULT || k == BITVECTOR_SLT) {
+      } else {
+        unsigned one = 1;
+        BitVector bval(atom[0].getType().getConst<BitVectorSize>(), one);
+        Node bv_one = NodeManager::currentNM()->mkConst<BitVector>(bval);
         ret = NodeManager::currentNM()
                   ->mkNode(kind::BITVECTOR_PLUS, atom[0], bv_one)
                   .eqNode(atom[1]);
-      } else {
-        Assert(k == BITVECTOR_UGT || k == BITVECTOR_SGT);
-        ret = atom[1].eqNode(NodeManager::currentNM()->mkNode(
-            kind::BITVECTOR_PLUS, atom[0], bv_one));
       }
       return ret;
     }
@@ -1027,6 +1015,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
   std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction >::iterator iti = d_var_to_inst_id.find( pv );
   if( iti!=d_var_to_inst_id.end() ){
     Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv << std::endl;
+    // if interleaving, do not do inversion half the time
     if (!options::cbqiBvInterleaveValue() || rand() % 2 == 0) {
       // get inst id list
       Trace("cegqi-bv") << "  " << iti->second.size()
@@ -1037,8 +1026,9 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
       // until we have a model-preserving selection function for BV, this must
       // be heuristic (we only pick one literal)
       // hence we randomize the list
-      // this helps robustness, since picking the same literal every time may be
-      // lead to a stream of value instantiations
+      // this helps robustness, since picking the same literal every time may
+      // lead to a stream of value instantiations, whereas with randomization
+      // we may find an invertible literal that leads to a useful instantiation.
       std::random_shuffle(iti->second.begin(), iti->second.end());
 
       for (unsigned j = 0; j < iti->second.size(); j++) {
@@ -1068,11 +1058,11 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
           std::unordered_map<unsigned, BvInverterStatus>::iterator its =
               d_inst_id_to_status.find(inst_id);
           Assert(its != d_inst_id_to_status.end());
-          if (!(*its).second.d_conds.empty()) {
-            Trace("cegqi-bv") << "   ...with " << (*its).second.d_conds.size()
+          if (!its->second.d_conds.empty()) {
+            Trace("cegqi-bv") << "   ...with " << its->second.d_conds.size()
                               << " side conditions : " << std::endl;
-            for (unsigned k = 0; k < (*its).second.d_conds.size(); k++) {
-              Node cond = (*its).second.d_conds[k];
+            for (unsigned k = 0; k < its->second.d_conds.size(); k++) {
+              Node cond = its->second.d_conds[k];
               Trace("cegqi-bv") << "       " << cond << std::endl;
             }
           }
