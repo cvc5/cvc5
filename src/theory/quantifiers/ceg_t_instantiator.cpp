@@ -927,13 +927,13 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
     if (k == EQUAL) {
       // always use slack for disequalities
       useSlack = true;
-    } else if( k == BITVECTOR_ULT || k == BITVECTOR_SLT ){
+    } else if (k == BITVECTOR_ULT || k == BITVECTOR_SLT) {
       if (options::cbqiBvSlackIneq()) {
         useSlack = true;
       }
-    }else{
+    } else {
       // others should be rewritten
-      Assert( false );
+      Assert(false);
       return Node::null();
     }
     // for all other predicates, we convert them to a positive equality based on
@@ -971,8 +971,8 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
       // for example
       //   for s < t, we solve s+1 = t
       //   for ~( s < t ), we solve s = t
-      // notice that this equality does not necessarily hold in the model, and 
-      // hence the corresponding instantiation strategy is not guaranteed to be 
+      // notice that this equality does not necessarily hold in the model, and
+      // hence the corresponding instantiation strategy is not guaranteed to be
       // monotonic.
       Node ret;
       if (!pol) {
@@ -1069,7 +1069,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
           Trace("cegqi-bv") << std::endl;
         }
 
-        // currently we take select the first literal
+        // currently we select the first literal
         if (inst_ids_try.empty()) {
           // try the first one
           inst_ids_try.push_back(inst_id);
