@@ -62,6 +62,16 @@ private:
   /** recursive helper for getArrayRepresentationForLambda */
   static Node getArrayRepresentationForLambdaRec( TNode n, bool reqConst, TypeNode retType );
 public:
+  /** Get function type for array type
+  * This returns the function type of terms returned by the function getLambdaForArrayRepresentation( t, bvl ),
+  * where t.getType()=atn.
+  */
+  static TypeNode getFunctionTypeForArrayType( TypeNode atn, Node bvl );
+  /** Get array type for function type 
+  * This returns the array type of terms returned getArrayRepresentationForLambda( t ),
+  * where t.getType()=ftn.
+  */
+  static TypeNode getArrayTypeForFunctionType( TypeNode ftn );
   /** 
    * Given an array constant a, returns a lambda expression that it corresponds to, with bound variable list bvl. 
    * Examples:

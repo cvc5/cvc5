@@ -99,6 +99,29 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
   }
 }
 
+TypeNode TheoryBuiltinRewriter::getFunctionTypeForArrayType( TypeNode atn, Node bvl ) {
+  std::vector<TypeNode> children;
+  for( unsigned i=0; i<bvl.getNumChildren(); i++ ){
+    Assert( atn.isArray() );
+    Assert( bvl[i].getType()==atn.getArrayIndexType() );
+    children.push_back( atn.getArrayIndexType() );
+    atn = atn.getArrayConstituentType();
+  }
+  children.push_back( atn );
+  return NodeManager::currentNM()->mkFunctionType( children );
+}
+
+TypeNode TheoryBuiltinRewriter::getArrayTypeForFunctionType( TypeNode ftn ) {
+  Assert( ftn.isFunction() );
+  // construct the curried array type
+  unsigned nchildren = ftn.getNumChildren();
+  TypeNode ret = ftn[nchildren-1];
+  for( int i=((int)nchildren-2); i>=0; i-- ){
+    ret = NodeManager::currentNM()->mkArrayType( ftn[i], ret );
+  }
+  return ret;
+}
+
 Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode bvl, unsigned bvlIndex, 
                                                                 std::unordered_map< TNode, Node, TNodeHashFunction >& visited ){
   std::unordered_map< TNode, Node, TNodeHashFunction >::iterator it = visited.find( a );
@@ -134,7 +157,7 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode b
     return it->second;
   }
 }
-
+  
 Node TheoryBuiltinRewriter::getLambdaForArrayRepresentation( TNode a, TNode bvl ){
   Assert( a.getType().isArray() );
   std::unordered_map< TNode, Node, TNodeHashFunction > visited;

@@ -23,6 +23,7 @@
 #include "expr/type_node.h"
 #include "expr/uninterpreted_constant.h"
 #include "theory/type_enumerator.h"
+#include "theory/builtin/theory_builtin_rewriter.h"
 #include "util/integer.h"
 
 namespace CVC4 {
@@ -74,6 +75,49 @@ public:
   }
 
 };/* class UninterpretedSortEnumerator */
+
+
+/** FunctionEnumerator 
+* This enumerates function values, based on the enumerator for the
+* array type corresponding to the given function type.
+*/
+class FunctionEnumerator : public TypeEnumeratorBase<FunctionEnumerator> {
+public:
+  FunctionEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) :
+    TypeEnumeratorBase<FunctionEnumerator>(type),
+    d_arrayEnum(TheoryBuiltinRewriter::getArrayTypeForFunctionType(type), tep) {
+    Assert(type.getKind() == kind::FUNCTION_TYPE);
+    d_bvl = NodeManager::currentNM()->getBoundVarListForFunctionType( type );
+  }
+  /** get the current term of the enumerator */
+  Node operator*() {
+    if(isFinished()) {
+      throw NoMoreValuesException(getType());
+    }
+    Node a = *d_arrayEnum;
+    return TheoryBuiltinRewriter::getLambdaForArrayRepresentation( a, d_bvl );
+  }
+  /** increment the enumerator */
+  FunctionEnumerator& operator++() throw() {
+    ++d_arrayEnum;
+    return *this;
+  }
+  /** is the enumerator finished? */
+  bool isFinished() throw() {
+    return d_arrayEnum.isFinished();
+  }
+private:
+  /** type properties */
+  TypeEnumeratorProperties * d_tep;
+  /** enumerates arrays, which we convert to functions */
+  TypeEnumerator d_arrayEnum;
+  /** the bound variable list for the function type we are enumerating.
+  * All terms output by this enumerator are of the form (LAMBDA d_bvl t) for some term t.
+  */
+  Node d_bvl;
+};/* class FunctionEnumerator */
+
+
 
 }/* CVC4::theory::builtin namespace */
 }/* CVC4::theory namespace */
