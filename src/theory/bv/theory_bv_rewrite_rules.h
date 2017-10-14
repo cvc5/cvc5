@@ -144,6 +144,9 @@ enum RewriteRuleId {
   SltZero,
   ZeroUlt,
   MergeSignExtend,
+  SignExtendEqConst,
+  ZeroExtendEqConst,
+  SignExtendUltConst,
 
   /// normalization rules
   ExtractBitwise,
@@ -303,6 +306,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case SltZero : out << "SltZero"; return out;
   case ZeroUlt : out << "ZeroUlt"; return out;
   case MergeSignExtend : out << "MergeSignExtend"; return out;
+  case SignExtendEqConst: out << "SignExtendEqConst"; return out;
+  case ZeroExtendEqConst: out << "ZeroExtendEqConst"; return out;
     
   case UleEliminate : out << "UleEliminate"; return out;
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
@@ -533,6 +538,8 @@ struct AllRewriteRules {
   RewriteRule<IsPowerOfTwo> rule121;
   RewriteRule<RedorEliminate> rule122;
   RewriteRule<RedandEliminate> rule123;
+  RewriteRule<SignExtendEqConst> rule124;
+  RewriteRule<ZeroExtendEqConst> rule125;
 };
 
 template<> inline
