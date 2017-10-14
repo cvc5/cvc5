@@ -163,11 +163,12 @@ BVGaussElim:: gaussElim (Integer prime,
 
 BVGaussElim::Result
 BVGaussElim::gaussElimRewriteForUrem (
-    vector< TNode > & equations,
+    vector< Node > & equations,
     unordered_map< Node, Node, NodeHashFunction > & res)
 {
-  Integer prime;
-  unordered_map< TNode, vector< Integer >, TNodeHashFunction > vars;
+  Node prime;
+  Integer iprime;
+  unordered_map< Node, vector< Integer >, NodeHashFunction > vars;
   size_t neqs = equations.size();
   vector< Integer > resrhs, rhs;
   vector< vector< Integer >> reslhs, lhs =
@@ -177,9 +178,9 @@ BVGaussElim::gaussElimRewriteForUrem (
 
   for (size_t i = 0; i < neqs; ++i)
   {
-    TNode eq = equations[i];
+    Node eq = equations[i];
     Assert (eq.getKind() == kind::EQUAL);
-    TNode urem;
+    Node urem;
 
     if (eq[0].getKind() == kind::BITVECTOR_UREM)
     {
@@ -196,16 +197,20 @@ BVGaussElim::gaussElimRewriteForUrem (
     }
 
     Assert (urem[1].getKind() == kind::CONST_BITVECTOR);
-    Assert (i == 0 || urem[1].getConst< BitVector >().getValue() == prime);
-    if (i == 0) prime = urem[1].getConst< BitVector >().getValue();
+    Assert (i == 0 || urem[1].getConst< BitVector >().getValue() == iprime);
+    if (i == 0)
+    {
+      prime = urem[1];
+      iprime = prime.getConst< BitVector >().getValue();
+    }
 
-    unordered_map< TNode, TNode, TNodeHashFunction > tmp;
+    unordered_map< Node, Integer, NodeHashFunction > tmp;
     bool isvalid = true;
-    stack< TNode > stack;
+    stack< Node > stack;
     stack.push (urem[0]);
     while (!stack.empty())
     {
-      TNode n = stack.top();
+      Node n = stack.top();
       stack.pop();
       CVC4::Kind k = n.getKind();
       if (k == kind::BITVECTOR_PLUS)
@@ -249,31 +254,29 @@ BVGaussElim::gaussElimRewriteForUrem (
 
         if (!isvalid)
         {
-          tmp[n] = utils::mkOne(utils::getSize(n));
+          tmp[n] += Integer(1);
         }
         else
         {
           CVC4::Kind kn0 = n0.getKind();
           CVC4::Kind kn1 = n1.getKind();
-          if (kn0 == kind::CONST_BITVECTOR)
+          if (kn0 == kind::CONST_BITVECTOR && kn1 != kind::CONST_BITVECTOR)
           {
-            Assert (kn1 != kind::CONST_BITVECTOR);
-            tmp[n1] = n0;
+            tmp[n1] += n0.getConst< BitVector >().getValue();
           }
-          else if (kn1 == kind::CONST_BITVECTOR)
+          else if (kn0 != kind::CONST_BITVECTOR && kn1 == kind::CONST_BITVECTOR)
           {
-            Assert (kn0 != kind::CONST_BITVECTOR);
-            tmp[n0] = n1;
+            tmp[n0] += n1.getConst< BitVector >().getValue();
           }
           else
           {
-            tmp[n] = utils::mkOne(utils::getSize(n));
+            tmp[n] += Integer(1);
           }
         }
       }
       else
       {
-        tmp[n] = utils::mkOne(utils::getSize(n));
+        tmp[n] += Integer(1);
       }
     }
 
@@ -281,14 +284,14 @@ BVGaussElim::gaussElimRewriteForUrem (
 
     for (auto p : tmp)
     {
-      TNode var = p.first;
-      TNode val = p.second;
+      Node var = p.first;
+      Integer val = p.second;
       if (i > 0 && vars.find (var) == vars.end())
       {
         for (size_t j = 0; j < i; ++j) 
           vars[var].push_back (Integer(0));
       }
-      vars[var].push_back (val.getConst< BitVector >().getValue());
+      vars[var].push_back (val);
     }
 
     for (auto p : vars)
@@ -299,6 +302,7 @@ BVGaussElim::gaussElimRewriteForUrem (
   }
 
   size_t nvars = vars.size();
+  Assert (nvars);
   size_t nrows = vars.begin()->second.size();
 #ifdef CVC4_ASSERTIONS
   for (auto p : vars) Assert (p.second.size() == nrows);
@@ -320,11 +324,10 @@ BVGaussElim::gaussElimRewriteForUrem (
 
   if (lhs.size() > lhs[0].size()) return BVGaussElim::Result::NONE;
 
-  Result ret = gaussElim (prime, rhs, lhs, resrhs, reslhs);
-
+  Result ret = gaussElim (iprime, rhs, lhs, resrhs, reslhs);
   if (ret != BVGaussElim::Result::NONE)
   {
-    vector< TNode > vvars;
+    vector< Node > vvars;
     for (auto p : vars) vvars.push_back (p.first);
     Assert (nvars == vvars.size());
     Assert (lhs[0].size() == reslhs[0].size());
@@ -358,8 +361,11 @@ BVGaussElim::gaussElimRewriteForUrem (
         for (size_t i = pcol + 1; i < nvars; ++i)
         {
           if (reslhs[prow][i] == 0) continue;
+          /* Normalize (no negative numbers, hence no subtraction)
+           * e.g., x = 4 - 2y  --> x = 4 + 9y (modulo 11) */
+          Integer m = iprime - reslhs[prow][i];
           Node bv = nm->mkConst< BitVector > (
-              BitVector (utils::getSize(vvars[i]), reslhs[prow][i]));
+              BitVector (utils::getSize(vvars[i]), m));
           Node mult = nm->mkNode (kind::BITVECTOR_MULT, vvars[i], bv);
           stack.push (mult);
         }
@@ -372,19 +378,24 @@ BVGaussElim::gaussElimRewriteForUrem (
         {
           Node tmp = stack.top();
           stack.pop();
-          if (resrhs[prow] == 0)
-            tmp = nm->mkNode (kind::BITVECTOR_NEG, tmp);
-          else
-            tmp = nm->mkNode (kind::BITVECTOR_SUB,
+          if (resrhs[prow] != 0)
+            tmp = nm->mkNode (kind::BITVECTOR_PLUS,
                 nm->mkConst< BitVector >(
                   BitVector (utils::getSize(vvars[pcol]), resrhs[prow])),
                 tmp);
           while (!stack.empty())
           {
-            tmp = nm->mkNode (kind::BITVECTOR_SUB, tmp, stack.top());
+            tmp = nm->mkNode (kind::BITVECTOR_PLUS, tmp, stack.top());
             stack.pop();
           }
-          res[vvars[pcol]] = tmp;
+          if (tmp.getKind() == kind::CONST_BITVECTOR)
+          {
+            res[vvars[pcol]] = tmp;
+          }
+          else
+          {
+            res[vvars[pcol]] = nm->mkNode (kind::BITVECTOR_UREM, tmp, prime);
+          }
         }
       }
     }
@@ -395,8 +406,8 @@ BVGaussElim::gaussElimRewriteForUrem (
 void
 BVGaussElim::gaussElimRewrite (std::vector<Node> & assertionsToPreprocess)
 {
-  stack< TNode > assertions;
-  unordered_map< BitVector, vector< TNode >, BitVectorHashFunction > equations;
+  stack< Node > assertions;
+  unordered_map< Node, vector< Node >, NodeHashFunction > equations;
   vector< Integer > resrhs;
   vector< vector< Integer >> reslhs;
 
@@ -405,7 +416,7 @@ BVGaussElim::gaussElimRewrite (std::vector<Node> & assertionsToPreprocess)
 
   while (!assertions.empty())
   {
-    TNode a = assertions.top();
+    Node a = assertions.top();
     CVC4::Kind k = a.getKind();
     assertions.pop();
 
@@ -418,7 +429,7 @@ BVGaussElim::gaussElimRewrite (std::vector<Node> & assertionsToPreprocess)
     {
       CVC4::Kind k0 = a[0].getKind();
       CVC4::Kind k1 = a[1].getKind();
-      TNode urem;
+      Node urem;
 
       if (k0 == kind::CONST_BITVECTOR && k1 == kind::BITVECTOR_UREM)
         urem = a[1];
@@ -430,14 +441,14 @@ BVGaussElim::gaussElimRewrite (std::vector<Node> & assertionsToPreprocess)
       if (urem[0].getKind() == kind::BITVECTOR_PLUS
           && urem[1].getKind() == kind::CONST_BITVECTOR)
       {
-        BitVector u = urem[1].getConst< BitVector >();
-        equations[u].push_back (a);
+        equations[urem[1]].push_back (a);
       }
     }
   }
 
   for (auto eq : equations)
   {
+    if (eq.second.size() <= 1) continue;
     unordered_map< Node, Node, NodeHashFunction > res;
     BVGaussElim::Result ret = gaussElimRewriteForUrem (eq.second, res);
     Trace("bv-gauss-elim")

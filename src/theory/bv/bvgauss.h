@@ -23,7 +23,7 @@ private:
   enum class Result { UNIQUE, PARTIAL, NONE };
 
   static Result gaussElimRewriteForUrem (
-      std::vector< TNode > & equations,
+      std::vector< Node > & equations,
       std::unordered_map< Node, Node, NodeHashFunction > & res);
 
   static Result gaussElim (
