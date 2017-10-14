@@ -540,6 +540,7 @@ struct AllRewriteRules {
   RewriteRule<RedandEliminate> rule123;
   RewriteRule<SignExtendEqConst> rule124;
   RewriteRule<ZeroExtendEqConst> rule125;
+  RewriteRule<SignExtendUltConst> rule126;
 };
 
 template<> inline
