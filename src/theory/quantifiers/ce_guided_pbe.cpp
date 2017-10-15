@@ -17,6 +17,7 @@
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace CVC4;
@@ -605,7 +606,7 @@ void CegConjecturePbe::staticLearnRedundantOps( Node c, Node e, std::map< Node, 
               const Datatype& cdt = ((DatatypeType)ctn.toType()).getDatatype();
               for( unsigned j=0; j<cdt.getNumConstructors(); j++ ){
                 Kind ck = d_tds->getConsNumKind( ctn, j );
-                if( ck!=UNDEFINED_KIND && TermDb::isBoolConnective( ck ) ){
+                if( ck!=UNDEFINED_KIND && TermUtil::isBoolConnective( ck ) ){
                   bool typeCorrect = true;
                   for( unsigned k=0; k<cdt[j].getNumArgs(); k++ ){
                     if( d_tds->getArgType( cdt[j], k )!=ctn ){

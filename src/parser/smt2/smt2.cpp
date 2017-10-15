@@ -36,7 +36,6 @@ namespace parser {
 Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
   Parser(exprManager,input,strictMode,parseOnly),
   d_logicSet(false) {
-  d_unsatCoreNames.push(std::map<Expr, std::string>());
   if( !strictModeEnabled() ) {
     addTheory(Smt2::THEORY_CORE);
   }
@@ -354,10 +353,8 @@ void Smt2::reset() {
   d_logic = LogicInfo();
   operatorKindMap.clear();
   d_lastNamedTerm = std::pair<Expr, std::string>();
-  d_unsatCoreNames = std::stack< std::map<Expr, std::string> >();
   this->Parser::reset();
 
-  d_unsatCoreNames.push(std::map<Expr, std::string>());
   if( !strictModeEnabled() ) {
     addTheory(Smt2::THEORY_CORE);
   }
@@ -368,30 +365,13 @@ void Smt2::resetAssertions() {
 }
 
 void Smt2::setLogic(std::string name) {
+
   if(sygus()) {
-    // sygus by default requires UF, datatypes, and LIA
+    // non-smt2-standard sygus logic names go here (http://sygus.seas.upenn.edu/files/sygus.pdf Section 3.2)
     if(name == "Arrays") {
-      name = "AUFDTLIA";
-    } else if(name == "Reals") {
-      name = "UFDTLIRA";
-    } else if(name == "LIA") {
-      name = "UFDTLIA";
-    } else if(name == "LRA") {
-      name = "UFDTLIRA";
-    } else if(name == "LIRA") {
-      name = "UFDTLIRA";
-    } else if(name == "BV") {
-      name = "UFDTBVLIA";
-    } else if(name == "SLIA") {
-      name = "UFDTSLIA";
-    } else if(name == "SAT") {
-      name = "UFDTLIA";
-    } else if(name == "ALL" || name == "ALL_SUPPORTED") {
-      //no change
-    } else {
-      std::stringstream ss;
-      ss << "Unknown SyGuS background logic `" << name << "'";
-      parseError(ss.str());
+      name = "A";
+    }else if(name == "Reals") {
+      name = "LRA";
     }
   }
 
@@ -400,6 +380,17 @@ void Smt2::setLogic(std::string name) {
     d_logic = getForcedLogic();
   } else {
     d_logic = name;
+  }
+  
+  // if sygus is enabled, we must enable UF, datatypes and integer arithmetic
+  if(sygus()) {
+    // get unlocked copy, modify, copy and relock
+    LogicInfo log(d_logic.getUnlockedCopy());
+    log.enableTheory(theory::THEORY_UF);
+    log.enableTheory(theory::THEORY_DATATYPES);
+    log.enableIntegers();
+    d_logic = log;
+    d_logic.lock();
   }
 
   // Core theory belongs to every logic
@@ -1090,6 +1081,7 @@ const void Smt2::getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed ) {
 }
 
 const void Smt2::addSygusFunSymbol( Type t, Expr synth_fun ){
+  //FIXME #1205 : we should not create a proxy, instead quantify on synth_fun and set Type t as an attribute
   Expr sym = mkBoundVar("sfproxy", t);
   d_sygusFunSymbols.push_back(sym);
   

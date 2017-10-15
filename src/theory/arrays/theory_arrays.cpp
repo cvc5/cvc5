@@ -2248,10 +2248,8 @@ void TheoryArrays::conflict(TNode a, TNode b) {
 
     if (d_proofsEnabled) {
       proof->debug_print("pf::array");
-      proof_array = new ProofArray( proof );
-      proof_array->setRowMergeTag(d_reasonRow);
-      proof_array->setRow1MergeTag(d_reasonRow1);
-      proof_array->setExtMergeTag(d_reasonExt);
+      proof_array = new ProofArray(proof, /*row=*/d_reasonRow,
+                                   /*row1=*/d_reasonRow1, /*ext=*/d_reasonExt);
     }
 
     d_out->conflict(d_conflictNode, proof_array);

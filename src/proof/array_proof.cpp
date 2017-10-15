@@ -26,6 +26,39 @@
 
 namespace CVC4 {
 
+namespace {
+
+class ArrayProofPrinter : public theory::eq::EqProof::PrettyPrinter {
+ public:
+  ArrayProofPrinter(unsigned row, unsigned row1, unsigned ext)
+      : d_row(row), d_row1(row1), d_ext(ext) {}
+
+  std::string printTag(unsigned tag) override;
+
+ private:
+  const unsigned d_row;
+  const unsigned d_row1;
+  const unsigned d_ext;
+};  // class ArrayProofPrinter
+
+std::string ArrayProofPrinter::printTag(unsigned tag) {
+  if (tag == theory::eq::MERGED_THROUGH_CONGRUENCE) return "Congruence";
+  if (tag == theory::eq::MERGED_THROUGH_EQUALITY) return "Pure Equality";
+  if (tag == theory::eq::MERGED_THROUGH_REFLEXIVITY) return "Reflexivity";
+  if (tag == theory::eq::MERGED_THROUGH_CONSTANTS) return "Constants";
+  if (tag == theory::eq::MERGED_THROUGH_TRANS) return "Transitivity";
+
+  if (tag == d_row) return "Read Over Write";
+  if (tag == d_row1) return "Read Over Write (1)";
+  if (tag == d_ext) return "Extensionality";
+
+  std::ostringstream result;
+  result << tag;
+  return result.str();
+}
+
+}  // namespace
+
 inline static Node eqNode(TNode n1, TNode n2) {
   return NodeManager::currentNM()->mkNode(kind::EQUAL, n1, n2);
 }
@@ -82,32 +115,9 @@ inline static bool match(TNode n1, TNode n2) {
   return true;
 }
 
-void ProofArray::setRowMergeTag(unsigned tag) {
-  d_reasonRow = tag;
-  d_proofPrinter.d_row = tag;
-}
-
-void ProofArray::setRow1MergeTag(unsigned tag) {
-  d_reasonRow1 = tag;
-  d_proofPrinter.d_row1 = tag;
-}
-
-void ProofArray::setExtMergeTag(unsigned tag) {
-  d_reasonExt = tag;
-  d_proofPrinter.d_ext = tag;
-}
-
-unsigned ProofArray::getRowMergeTag() const {
-  return d_reasonRow;
-}
-
-unsigned ProofArray::getRow1MergeTag() const {
-  return d_reasonRow1;
-}
-
-unsigned ProofArray::getExtMergeTag() const {
-  return d_reasonExt;
-}
+ProofArray::ProofArray(std::shared_ptr<theory::eq::EqProof> pf, unsigned row,
+                       unsigned row1, unsigned ext)
+    : d_proof(pf), d_reasonRow(row), d_reasonRow1(row1), d_reasonExt(ext) {}
 
 void ProofArray::toStream(std::ostream& out) {
   ProofLetMap map;
@@ -124,9 +134,10 @@ void ProofArray::toStreamLFSC(std::ostream& out, TheoryProof* tp,
                               std::shared_ptr<theory::eq::EqProof> pf,
                               const ProofLetMap& map) {
   Debug("pf::array") << "Printing array proof in LFSC : " << std::endl;
-  pf->debug_print("pf::array", 0, &d_proofPrinter);
+  ArrayProofPrinter proofPrinter(d_reasonRow, d_reasonRow1, d_reasonExt);
+  pf->debug_print("pf::array", 0, &proofPrinter);
   Debug("pf::array") << std::endl;
-  toStreamRecLFSC( out, tp, pf, 0, map );
+  toStreamRecLFSC(out, tp, pf, 0, map);
   Debug("pf::array") << "Printing array proof in LFSC DONE" << std::endl;
 }
 
@@ -134,7 +145,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
                                  std::shared_ptr<theory::eq::EqProof> pf,
                                  unsigned tb, const ProofLetMap& map) {
   Debug("pf::array") << std::endl << std::endl << "toStreamRecLFSC called. tb = " << tb << " . proof:" << std::endl;
-  pf->debug_print("pf::array", 0, &d_proofPrinter);
+  ArrayProofPrinter proofPrinter(d_reasonRow, d_reasonRow1, d_reasonExt);
+  pf->debug_print("pf::array", 0, &proofPrinter);
   Debug("pf::array") << std::endl;
 
   if(tb == 0) {
@@ -174,8 +186,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
                pf->d_children[i + count]->d_node.isNull();
              ++count) {
           Debug("pf::array") << "Found a congruence: " << std::endl;
-          pf->d_children[i+count]->debug_print("pf::array", 0, &d_proofPrinter);
-          congruenceClosures.push_back(pf->d_children[i+count]);
+          pf->d_children[i + count]->debug_print("pf::array", 0, &proofPrinter);
+          congruenceClosures.push_back(pf->d_children[i + count]);
         }
 
         Debug("pf::array") << "Total number of congruences found: " << congruenceClosures.size() << std::endl;
@@ -323,14 +335,13 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
 
   if (pf->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE) {
     Debug("mgd") << "\nok, looking at congruence:\n";
-    pf->debug_print("mgd", 0, &d_proofPrinter);
+    pf->debug_print("mgd", 0, &proofPrinter);
     std::stack<std::shared_ptr<const theory::eq::EqProof>> stk;
     for (std::shared_ptr<const theory::eq::EqProof> pf2 = pf;
          pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE;
          pf2 = pf2->d_children[0]) {
       Debug("mgd") << "Looking at pf2 with d_node: " << pf2->d_node
                    << std::endl;
-
       Assert(!pf2->d_node.isNull());
       Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF ||
              pf2->d_node.getKind() == kind::BUILTIN ||
@@ -358,7 +369,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
 
 
     Debug("mgd") << "\nok, in FIRST cong[" << stk.size() << "]" << "\n";
-    pf2->debug_print("mgd", 0, &d_proofPrinter);
+    pf2->debug_print("mgd", 0, &proofPrinter);
     // Temp
     Debug("mgd") << "n1 is a proof for: " << pf2->d_children[0]->d_node << ". It is: " << n1 << std::endl;
     Debug("mgd") << "n2 is a proof for: " << pf2->d_children[1]->d_node << ". It is: " << n2 << std::endl;
@@ -375,7 +386,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
       Debug("mgd") << "SIDE IS 1\n";
       if(!match(pf2->d_node, n1[1])) {
         Debug("mgd") << "IN BAD CASE, our first subproof is\n";
-        pf2->d_children[0]->debug_print("mgd", 0, &d_proofPrinter);
+        pf2->d_children[0]->debug_print("mgd", 0, &proofPrinter);
       }
       Assert(match(pf2->d_node, n1[1]));
       side = 1;
@@ -612,7 +623,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
     Assert(pf->d_children.size() >= 2);
     std::stringstream ss;
     Debug("mgd") << "\ndoing trans proof[[\n";
-    pf->debug_print("mgd", 0, &d_proofPrinter);
+    pf->debug_print("mgd", 0, &proofPrinter);
     Debug("mgd") << "\n";
 
     pf->d_children[0]->d_node = simplifyBooleanNode(pf->d_children[0]->d_node);
@@ -839,7 +850,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
           Warning() << "\n\ntrans proof failure at step " << i << "\n\n";
           Warning() << "0 proves " << n1 << "\n";
           Warning() << "1 proves " << n2 << "\n\n";
-          pf->debug_print("mgdx", 0, &d_proofPrinter);
+          pf->debug_print("mgdx", 0, &proofPrinter);
           //toStreamRec(Warning.getStream(), pf, 0);
           Warning() << "\n\n";
           Unreachable();

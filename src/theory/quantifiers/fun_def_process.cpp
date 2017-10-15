@@ -17,9 +17,9 @@
 #include <vector>
 
 #include "theory/quantifiers/fun_def_process.h"
-#include "theory/rewriter.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/term_util.h"
 #include "proof/proof_manager.h"
 
 using namespace CVC4;
@@ -34,7 +34,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
   std::map< int, Node > subs_head;
   //first pass : find defined functions, transform quantifiers
   for( unsigned i=0; i<assertions.size(); i++ ){
-    Node n = TermDb::getFunDefHead( assertions[i] );
+    Node n = QuantAttributes::getFunDefHead( assertions[i] );
     if( !n.isNull() ){
       Assert( n.getKind()==APPLY_UF );
       Node f = n.getOperator();
@@ -45,7 +45,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
         exit( 0 );
       }
 
-      Node bd = TermDb::getFunDefBody( assertions[i] );
+      Node bd = QuantAttributes::getFunDefBody( assertions[i] );
       Trace("fmf-fun-def-debug") << "Process function " << n << ", body = " << bd << std::endl;
       if( !bd.isNull() ){
         d_funcs.push_back( f );

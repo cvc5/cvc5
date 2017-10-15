@@ -170,7 +170,7 @@ public: //conversion between HO_APPLY AND APPLY_UF
    * Then, f and g can be used as APPLY_UF operators, but (ite C f g), (lambda x1. (f x1)) as well as the variable x above are not.
    */
   static inline bool canUseAsApplyUfOperator(TNode n){
-    return n.isVar() && n.getKind()!=kind::BOUND_VARIABLE;
+    return n.isVar();
   }
 };/* class TheoryUfRewriter */
 
