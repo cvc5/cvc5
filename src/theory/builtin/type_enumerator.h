@@ -89,7 +89,7 @@ public:
   /** Increment the enumerator. */
   FunctionEnumerator& operator++() throw() override;
   /** is the enumerator finished? */
-  bool isFinished() throw() {
+  bool isFinished() throw() override{
     return d_arrayEnum.isFinished();
   }
 private:
