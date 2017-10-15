@@ -15,7 +15,7 @@
 #include "theory/rep_set.h"
 #include "theory/type_enumerator.h"
 #include "theory/quantifiers/bounded_integers.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/first_order_model.h"
 
 using namespace std;
@@ -183,7 +183,7 @@ bool RepSetIterator::initialize( RepBoundExt* rext ){
         // terms in rep_set are now constants which mapped to terms through TheoryModel
         // thus, should introduce a constant and a term.  for now, just a term.
 
-        //Node c = d_qe->getTermDatabase()->getEnumerateTerm( tn, 0 );
+        //Node c = d_qe->getTermUtil()->getEnumerateTerm( tn, 0 );
         Node var = d_qe->getModel()->getSomeDomainElement( tn );
         Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn << std::endl;
         d_rep_set->add( tn, var );
@@ -208,7 +208,7 @@ bool RepSetIterator::initialize( RepBoundExt* rext ){
     }
     if( !tn.isSort() ){
       if( inc ){
-        if( d_qe->getTermDatabase()->mayComplete( tn ) ){
+        if( d_qe->getTermUtil()->mayComplete( tn ) ){
           Trace("rsi") << "  do complete, since cardinality is small (" << tn.getCardinality() << ")..." << std::endl;
           d_rep_set->complete( tn );
           //must have succeeded
@@ -242,7 +242,7 @@ bool RepSetIterator::initialize( RepBoundExt* rext ){
     for( unsigned i=0; i<d_qe->getBoundedIntegers()->getNumBoundVars( d_owner ); i++ ){
       Node v = d_qe->getBoundedIntegers()->getBoundVar( d_owner, i );
       Trace("bound-int-rsi") << "  bound var #" << i << " is " << v << std::endl;
-      varOrder.push_back( d_qe->getTermDatabase()->getVariableNum( d_owner, v ) );
+      varOrder.push_back( d_qe->getTermUtil()->getVariableNum( d_owner, v ) );
     }
     for( unsigned i=0; i<d_owner[0].getNumChildren(); i++) {
       if( !d_qe->getBoundedIntegers()->isBoundVar(d_owner, d_owner[0][i])) {

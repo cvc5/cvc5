@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief quant conflict find class
+ ** \brief Implements conflict-based instantiation (Reynolds et al FMCAD 2014)
  **
  **/
 
@@ -21,6 +21,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/theory_engine.h"
@@ -596,7 +597,7 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
         }
         Trace("qcf-instance-check") << "...evaluates to " << inst_eval << std::endl;
       }
-      if( inst_eval.isNull() || inst_eval==p->getTermDatabase()->d_true || !isPropagatingInstance( p, inst_eval ) ){
+      if( inst_eval.isNull() || inst_eval==p->getTermUtil()->d_true || !isPropagatingInstance( p, inst_eval ) ){
         Trace("qcf-instance-check") << "...spurious." << std::endl;
         return true;
       }else{
@@ -608,7 +609,7 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
     //check constraints
     for( std::map< Node, bool >::iterator it = d_tconstraints.begin(); it != d_tconstraints.end(); ++it ){
       //apply substitution to the tconstraint
-      Node cons = p->getTermDatabase()->getInstantiatedNode( it->first, d_q, terms );
+      Node cons = p->getTermUtil()->getInstantiatedNode( it->first, d_q, terms );
       cons = it->second ? cons : cons.negate();
       if( !entailmentTest( p, cons, p->d_effort==QuantConflictFind::effort_conflict ) ){
         return true;
@@ -1863,7 +1864,7 @@ void MatchGen::setInvalid() {
 }
 
 bool MatchGen::isHandledBoolConnective( TNode n ) {
-  return TermDb::isBoolConnectiveTerm( n ) && n.getKind()!=SEP_STAR;
+  return TermUtil::isBoolConnectiveTerm( n ) && n.getKind()!=SEP_STAR;
 }
 
 bool MatchGen::isHandledUfTerm( TNode n ) {
@@ -2185,7 +2186,7 @@ void QuantConflictFind::computeRelevantEqr() {
       Node r = (*eqcs_i);
       if( getTermDatabase()->hasTermCurrent( r ) ){
         TypeNode rtn = r.getType();
-        if( !options::cbqi() || !TermDb::hasInstConstAttr( r ) ){
+        if( !options::cbqi() || !TermUtil::hasInstConstAttr( r ) ){
           d_eqcs[rtn].push_back( r );
         }
       }

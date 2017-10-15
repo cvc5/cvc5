@@ -19,6 +19,7 @@
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
@@ -434,8 +435,8 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
         //if evaluate(...)==1, then the instantiation is already true in the model
         //  depIndex is the index of the least significant variable that this evaluation relies upon
         depIndex = riter.getNumTerms()-1;
-        Debug("fmf-model-eval") << "We will evaluate " << d_qe->getTermDatabase()->getInstConstantBody( f ) << std::endl;
-        eval = fmig->evaluate( d_qe->getTermDatabase()->getInstConstantBody( f ), depIndex, &riter );
+        Debug("fmf-model-eval") << "We will evaluate " << d_qe->getTermUtil()->getInstConstantBody( f ) << std::endl;
+        eval = fmig->evaluate( d_qe->getTermUtil()->getInstConstantBody( f ), depIndex, &riter );
         if( eval==1 ){
           Debug("fmf-model-eval") << "  Returned success with depIndex = " << depIndex << std::endl;
         }else{
@@ -531,7 +532,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
     // - determine selection literals
     // - check which function/predicates have good and bad definitions for satisfying f
     if( d_phase_reqs.find( f )==d_phase_reqs.end() ){
-      d_phase_reqs[f].initialize( d_qe->getTermDatabase()->getInstConstantBody( f ), true );
+      d_phase_reqs[f].initialize( d_qe->getTermUtil()->getInstConstantBody( f ), true );
     }
     int selectLitScore = -1;
     for( std::map< Node, bool >::iterator it = d_phase_reqs[f].d_phase_reqs.begin(); it != d_phase_reqs[f].d_phase_reqs.end(); ++it ){
@@ -547,7 +548,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
         //  constant definitions.
         bool isConst = true;
         std::vector< Node > uf_terms;
-        if( TermDb::hasInstConstAttr(n) ){
+        if( TermUtil::hasInstConstAttr(n) ){
           isConst = false;
           if( gn.getKind()==APPLY_UF ){
             uf_terms.push_back( gn );
@@ -555,7 +556,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
           }else if( gn.getKind()==EQUAL ){
             isConst = true;
             for( int j=0; j<2; j++ ){
-              if( TermDb::hasInstConstAttr(n[j]) ){
+              if( TermUtil::hasInstConstAttr(n[j]) ){
                 if( n[j].getKind()==APPLY_UF &&
                     fmig->d_uf_model_tree.find( gn[j].getOperator() )!=fmig->d_uf_model_tree.end() ){
                   uf_terms.push_back( gn[j] );
@@ -663,7 +664,7 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
     for( size_t i=0; i<d_quant_selection_lit_candidates[f].size(); i++ ){
       bool phase = d_quant_selection_lit_candidates[f][i].getKind()!=NOT;
       Node lit = d_quant_selection_lit_candidates[f][i].getKind()==NOT ? d_quant_selection_lit_candidates[f][i][0] : d_quant_selection_lit_candidates[f][i];
-      Assert( TermDb::hasInstConstAttr(lit) );
+      Assert( TermUtil::hasInstConstAttr(lit) );
       std::vector< Node > tr_terms;
       if( lit.getKind()==APPLY_UF ){
         //only match predicates that are contrary to this one, use literal matching
@@ -672,7 +673,7 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
       }else if( lit.getKind()==EQUAL ){
         //collect trigger terms
         for( int j=0; j<2; j++ ){
-          if( TermDb::hasInstConstAttr(lit[j]) ){
+          if( TermUtil::hasInstConstAttr(lit[j]) ){
             if( lit[j].getKind()==APPLY_UF ){
               tr_terms.push_back( lit[j] );
             }else{
