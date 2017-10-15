@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Enumerator for uninterpreted sorts
+ ** \brief Enumerator for uninterpreted sorts and functions.
  **
- ** Enumerator for uninterpreted sorts.
+ ** Enumerator for uninterpreted sorts and functions.
  **/
 
 #include "cvc4_private.h"
@@ -83,41 +83,23 @@ public:
 */
 class FunctionEnumerator : public TypeEnumeratorBase<FunctionEnumerator> {
 public:
-  FunctionEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) :
-    TypeEnumeratorBase<FunctionEnumerator>(type),
-    d_arrayEnum(TheoryBuiltinRewriter::getArrayTypeForFunctionType(type), tep) {
-    Assert(type.getKind() == kind::FUNCTION_TYPE);
-    d_bvl = NodeManager::currentNM()->getBoundVarListForFunctionType( type );
-  }
-  /** get the current term of the enumerator */
-  Node operator*() {
-    if(isFinished()) {
-      throw NoMoreValuesException(getType());
-    }
-    Node a = *d_arrayEnum;
-    return TheoryBuiltinRewriter::getLambdaForArrayRepresentation( a, d_bvl );
-  }
-  /** increment the enumerator */
-  FunctionEnumerator& operator++() throw() {
-    ++d_arrayEnum;
-    return *this;
-  }
+  FunctionEnumerator(TypeNode type, TypeEnumeratorProperties * tep = nullptr);
+  /** Get the current term of the enumerator. */
+  Node operator*() override;
+  /** Increment the enumerator. */
+  FunctionEnumerator& operator++() throw() override;
   /** is the enumerator finished? */
   bool isFinished() throw() {
     return d_arrayEnum.isFinished();
   }
 private:
-  /** type properties */
-  TypeEnumeratorProperties * d_tep;
-  /** enumerates arrays, which we convert to functions */
+  /** Enumerates arrays, which we convert to functions. */
   TypeEnumerator d_arrayEnum;
-  /** the bound variable list for the function type we are enumerating.
+  /** The bound variable list for the function type we are enumerating.
   * All terms output by this enumerator are of the form (LAMBDA d_bvl t) for some term t.
   */
   Node d_bvl;
 };/* class FunctionEnumerator */
-
-
 
 }/* CVC4::theory::builtin namespace */
 }/* CVC4::theory namespace */

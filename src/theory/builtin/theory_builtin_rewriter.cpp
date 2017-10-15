@@ -116,7 +116,7 @@ TypeNode TheoryBuiltinRewriter::getArrayTypeForFunctionType( TypeNode ftn ) {
   // construct the curried array type
   unsigned nchildren = ftn.getNumChildren();
   TypeNode ret = ftn[nchildren-1];
-  for( int i=((int)nchildren-2); i>=0; i-- ){
+  for( int i=(static_cast<int>(nchildren)-2); i>=0; i-- ){
     ret = NodeManager::currentNM()->mkArrayType( ftn[i], ret );
   }
   return ret;

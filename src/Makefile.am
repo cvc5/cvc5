@@ -271,6 +271,7 @@ libcvc4_la_SOURCES = \
 	theory/builtin/theory_builtin_rewriter.cpp \
 	theory/builtin/theory_builtin_rewriter.h \
 	theory/builtin/theory_builtin_type_rules.h \
+	theory/builtin/type_enumerator.cpp \
 	theory/builtin/type_enumerator.h \
 	theory/bv/abstraction.cpp \
 	theory/bv/abstraction.h \
