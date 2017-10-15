@@ -84,15 +84,36 @@ public:
 };
 
 
+/** arithmetic utilities for quantifiers 
+ * In the following functions:
+ * 
+ *   We say Node c is a {pconstant} if it is constant or is null.
+ *   For pconstant c, we write [c] to denote 1 if c.isNull() and c otherwise.
+ * 
+ *   A {monmoial sum} msum is represented by a std::map< Node, Node >, and 
+ *   has the following semantics. A key-value pair ( v, c ) in msum is interpreted
+ *   as 
+ * 
+ */
 class QuantArith
 {
 public:
+  /** get monomial 
+   * If n = n[0]*n[1] where n[0] is constant and n[1] is not,
+   * this function returns true, sets c to n[0] and v to n[1]. 
+   */
   static bool getMonomial( Node n, Node& c, Node& v );
   static bool getMonomial( Node n, std::map< Node, Node >& msum );
   static bool getMonomialSum( Node n, std::map< Node, Node >& msum );
   static bool getMonomialSumLit( Node lit, std::map< Node, Node >& msum );
   static Node mkNode( std::map< Node, Node >& msum );
+  /** make coefficent term 
+   * Returns the rewritten form of [coeff]*t
+   */
   static Node mkCoeffTerm( Node coeff, Node t );
+  // given (msum <k> 0), solve (veq_c * v <k> val) or (val <k> veq_c * v), where:
+  // veq_c is either null (meaning 1), or positive.
+  // return value 1: veq_c*v is RHS, -1: veq_c*v is LHS, 0: failed.  
   //return 1 : solved on LHS, return -1 : solved on RHS, return 0: failed
   static int isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Node & val, Kind k );
   static int isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind k, bool doCoeff = false );

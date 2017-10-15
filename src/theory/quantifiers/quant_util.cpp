@@ -149,9 +149,6 @@ Node QuantArith::mkCoeffTerm( Node coeff, Node t ) {
   }
 }
 
-// given (msum <k> 0), solve (veq_c * v <k> val) or (val <k> veq_c * v), where:
-// veq_c is either null (meaning 1), or positive.
-// return value 1: veq_c*v is RHS, -1: veq_c*v is LHS, 0: failed.
 int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Node & val, Kind k ) {
   std::map< Node, Node >::iterator itv = msum.find( v );
   if( itv!=msum.end() ){
