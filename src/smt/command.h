@@ -468,21 +468,29 @@ public:
  *  via the syntax (! expr :attr)
  */
 class CVC4_PUBLIC SetUserAttributeCommand : public Command {
-protected:
-  std::string d_attr;
-  Expr d_expr;
-  std::vector<Expr> d_expr_values;
-  std::string d_str_value;
-public:
-  SetUserAttributeCommand( const std::string& attr, Expr expr ) throw();
-  SetUserAttributeCommand( const std::string& attr, Expr expr, std::vector<Expr>& values ) throw();
-  SetUserAttributeCommand( const std::string& attr, Expr expr, const std::string& value ) throw();
-  ~SetUserAttributeCommand() throw() {}
-  void invoke(SmtEngine* smtEngine);
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
-  Command* clone() const;
-  std::string getCommandName() const throw();
-};/* class SetUserAttributeCommand */
+ public:
+  SetUserAttributeCommand(const std::string& attr, Expr expr) throw();
+  SetUserAttributeCommand(const std::string& attr, Expr expr,
+                          const std::vector<Expr>& values) throw();
+  SetUserAttributeCommand(const std::string& attr, Expr expr,
+                          const std::string& value) throw();
+  ~SetUserAttributeCommand() throw() override {}
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const throw() override;
+
+ protected:
+  SetUserAttributeCommand(const std::string& attr, Expr expr,
+                          const std::vector<Expr>& expr_values,
+                          const std::string& str_value) throw();
+
+  const std::string d_attr;
+  const Expr d_expr;
+  const std::vector<Expr> d_expr_values;
+  const std::string d_str_value;
+}; /* class SetUserAttributeCommand */
 
 class CVC4_PUBLIC CheckSatCommand : public Command {
 protected:
