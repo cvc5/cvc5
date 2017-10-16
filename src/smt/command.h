@@ -474,14 +474,15 @@ class CVC4_PUBLIC SetUserAttributeCommand : public Command {
                           const std::vector<Expr>& values) throw();
   SetUserAttributeCommand(const std::string& attr, Expr expr,
                           const std::string& value) throw();
-  ~SetUserAttributeCommand() throw() override {}
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
-  Command* clone() const override;
-  std::string getCommandName() const throw() override;
+  ~SetUserAttributeCommand() throw() {}
 
- protected:
+  void invoke(SmtEngine* smtEngine);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+
+ private:
   SetUserAttributeCommand(const std::string& attr, Expr expr,
                           const std::vector<Expr>& expr_values,
                           const std::string& str_value) throw();
