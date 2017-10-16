@@ -106,10 +106,10 @@ void CegConjecture::assign( Node q ) {
   if( !isSingleInvocation() ){
     if( options::sygusPbe() ){
       d_ceg_pbe->initialize( d_base_inst, d_candidates, guarded_lemmas );
-    }else{
-      for( unsigned i=0; i<d_candidates.size(); i++ ){
+    } else {
+      for (unsigned i = 0; i < d_candidates.size(); i++) {
         Node e = d_candidates[i];
-        d_qe->getTermDatabaseSygus()->registerMeasuredTerm( e, this );
+        d_qe->getTermDatabaseSygus()->registerMeasuredTerm(e, this);
       }
     }
   }

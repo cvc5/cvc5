@@ -27,10 +27,13 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** a synthesis conjecture 
- * This class implements approaches for a synthesis conecjture, given by data member d_quant.
- * This includes both approaches for synthesis in Reynolds et al CAV 2015. It determines
- * which approach and optimizations are applicable to the conjecture, and has interfaces for
+/** a synthesis conjecture
+ * This class implements approaches for a synthesis conecjture, given by data
+ * member d_quant.
+ * This includes both approaches for synthesis in Reynolds et al CAV 2015. It
+ * determines
+ * which approach and optimizations are applicable to the conjecture, and has
+ * interfaces for
  * implementing them.
  */
 class CegConjecture {
@@ -100,7 +103,7 @@ public:
   /** get refinement lemma */
   Node getRefinementBaseLemma( unsigned i ) { return d_refinement_lemmas_base[i]; }
   /** get program by examples utility */
-  CegConjecturePbe * getPbe() { return d_ceg_pbe; }
+  CegConjecturePbe* getPbe() { return d_ceg_pbe; }
   /** print out debug information about this conjecture */
   void debugPrint( const char * c );
 private:

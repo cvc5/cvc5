@@ -81,42 +81,45 @@ private:
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 private:
-  /** mapping from enumerator terms to the conjecture they are associated with */
-  std::map< Node, CegConjecture * > d_enum_to_conjecture;
-  /** mapping from enumerator terms to the guard they are associated with 
-  * The guard G for an enumerator e has the semantics 
-  *   "if G is true, then there are more values of e to enumerate".
-  */
-  std::map< Node, Node > d_enum_to_active_guard;
-  //information for sygus types
-  std::map< TypeNode, TypeNode > d_register;  //stores sygus -> builtin type
-  std::map< TypeNode, std::vector< Node > > d_var_list;
-  std::map< TypeNode, std::map< int, Kind > > d_arg_kind;
-  std::map< TypeNode, std::map< Kind, int > > d_kinds;
-  std::map< TypeNode, std::map< int, Node > > d_arg_const;
-  std::map< TypeNode, std::map< Node, int > > d_consts;
-  std::map< TypeNode, std::map< Node, int > > d_ops;
-  std::map< TypeNode, std::map< int, Node > > d_arg_ops;
-  std::map< TypeNode, std::vector< int > > d_id_funcs;
-  std::map< TypeNode, std::vector< Node > > d_const_list; //sorted list of constants for type
-  std::map< TypeNode, unsigned > d_const_list_pos;
-  std::map< TypeNode, std::map< Node, Node > > d_semantic_skolem;
-  //information for builtin types
-  std::map< TypeNode, std::map< int, Node > > d_type_value;
-  std::map< TypeNode, Node > d_type_max_value;
-  std::map< TypeNode, std::map< Node, std::map< int, Node > > > d_type_value_offset;
-  std::map< TypeNode, std::map< Node, std::map< int, int > > > d_type_value_offset_status;
-  //normalized map
-  std::map< TypeNode, std::map< Node, Node > > d_normalized;
-  std::map< TypeNode, std::map< Node, Node > > d_sygus_to_builtin;
-  std::map< TypeNode, std::map< Node, Node > > d_builtin_const_to_sygus;
-  // grammar information
-  // root -> type -> _
-  std::map< TypeNode, std::map< TypeNode, unsigned > > d_min_type_depth;
-  //std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > > d_consider_const;
-  // type -> cons -> _
-  std::map< TypeNode, unsigned > d_min_term_size;
-  std::map< TypeNode, std::map< unsigned, unsigned > > d_min_cons_term_size;
+ /** mapping from enumerator terms to the conjecture they are associated with */
+ std::map<Node, CegConjecture*> d_enum_to_conjecture;
+ /** mapping from enumerator terms to the guard they are associated with
+ * The guard G for an enumerator e has the semantics
+ *   "if G is true, then there are more values of e to enumerate".
+ */
+ std::map<Node, Node> d_enum_to_active_guard;
+ // information for sygus types
+ std::map<TypeNode, TypeNode> d_register;  // stores sygus -> builtin type
+ std::map<TypeNode, std::vector<Node> > d_var_list;
+ std::map<TypeNode, std::map<int, Kind> > d_arg_kind;
+ std::map<TypeNode, std::map<Kind, int> > d_kinds;
+ std::map<TypeNode, std::map<int, Node> > d_arg_const;
+ std::map<TypeNode, std::map<Node, int> > d_consts;
+ std::map<TypeNode, std::map<Node, int> > d_ops;
+ std::map<TypeNode, std::map<int, Node> > d_arg_ops;
+ std::map<TypeNode, std::vector<int> > d_id_funcs;
+ std::map<TypeNode, std::vector<Node> >
+     d_const_list;  // sorted list of constants for type
+ std::map<TypeNode, unsigned> d_const_list_pos;
+ std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
+ // information for builtin types
+ std::map<TypeNode, std::map<int, Node> > d_type_value;
+ std::map<TypeNode, Node> d_type_max_value;
+ std::map<TypeNode, std::map<Node, std::map<int, Node> > > d_type_value_offset;
+ std::map<TypeNode, std::map<Node, std::map<int, int> > >
+     d_type_value_offset_status;
+ // normalized map
+ std::map<TypeNode, std::map<Node, Node> > d_normalized;
+ std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
+ std::map<TypeNode, std::map<Node, Node> > d_builtin_const_to_sygus;
+ // grammar information
+ // root -> type -> _
+ std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
+ // std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > >
+ // d_consider_const;
+ // type -> cons -> _
+ std::map<TypeNode, unsigned> d_min_term_size;
+ std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
 public:
   TermDbSygus( context::Context* c, QuantifiersEngine* qe );
   ~TermDbSygus(){}
@@ -125,15 +128,17 @@ public:
 public:
   /** register the sygus type */
   void registerSygusType( TypeNode tn );
-  /** register a variable e that we will do enumerative search on 
+  /** register a variable e that we will do enumerative search on
    * conj is the conjecture that the enumeration for e is for.
-   * mkActiveGuard is whether we want to make a active guard for e (see d_enum_to_active_guard)
+   * mkActiveGuard is whether we want to make a active guard for e (see
+   * d_enum_to_active_guard)
    */
-  void registerMeasuredTerm( Node e, CegConjecture * conj, bool mkActiveGuard = false );
+  void registerMeasuredTerm(Node e, CegConjecture* conj,
+                            bool mkActiveGuard = false);
   /** is e a measured term (enumerator)? */
-  bool isMeasuredTerm( Node e ) const;
+  bool isMeasuredTerm(Node e) const;
   /** return the conjecture e is associated with */
-  CegConjecture * getConjectureFor( Node e );
+  CegConjecture* getConjectureFor(Node e);
   /** get active guard for e */
   Node getActiveGuardForMeasureTerm( Node e );
   /** get all registered measure terms (enumerators) */

@@ -22,13 +22,13 @@
 #include <iostream>
 #include <map>
 
-#include "expr/node.h"
-#include "expr/datatype.h"
-#include "context/context.h"
 #include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdo.h"
+#include "context/context.h"
+#include "expr/datatype.h"
+#include "expr/node.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/term_database.h"
 
@@ -70,7 +70,7 @@ private:
   Node d_zero;
 private:
   std::map< Node, Node > d_term_to_anchor;
-  std::map< Node, quantifiers::CegConjecture * > d_term_to_anchor_conj;
+  std::map<Node, quantifiers::CegConjecture*> d_term_to_anchor_conj;
   std::map< Node, unsigned > d_term_to_depth;
   std::map< Node, bool > d_is_top_level;
   void registerTerm( Node n, std::vector< Node >& lemmas );
