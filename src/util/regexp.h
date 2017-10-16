@@ -47,11 +47,11 @@ class CVC4_PUBLIC String {
   /** constructors for String
   *
   * Internally, a CVC4::String is represented by a vector of unsigned
-  * integers (d_str), where the correspondence between C++ characters 
+  * integers (d_str), where the correspondence between C++ characters
   * to and from unsigned integers is determined by
   * by convertCharToUnsignedInt and convertUnsignedIntToChar.
   *
-  * If useEscSequences is true, then the escape sequences in the input 
+  * If useEscSequences is true, then the escape sequences in the input
   * are converted to the corresponding character. This constructor may
   * throw an exception if the input contains unrecognized escape sequences.
   * Currently supported escape sequences are \n, \t, \v, \b, \r, \f, \a, \\,
@@ -62,10 +62,10 @@ class CVC4_PUBLIC String {
   * CVC4::String correspond one-to-one with the input string.
   */
   String() = default;
-  explicit String(const std::string& s, bool useEscSequences = false) :
-   d_str(toInternal(s, useEscSequences)) {}
-  explicit String(const char* s, bool useEscSequences = false) : 
-    d_str(toInternal(std::string(s), useEscSequences)) {}
+  explicit String(const std::string& s, bool useEscSequences = false)
+      : d_str(toInternal(s, useEscSequences)) {}
+  explicit String(const char* s, bool useEscSequences = false)
+      : d_str(toInternal(std::string(s), useEscSequences)) {}
   explicit String(const unsigned char c)
       : d_str({convertCharToUnsignedInt(c)}) {}
   explicit String(const std::vector<unsigned>& s) : d_str(s) {}
@@ -93,7 +93,7 @@ class CVC4_PUBLIC String {
   * Converts this string to a std::string.
   *
   * If useEscSequences is true, then unprintable characters
-  * are converted to escape sequences. The escape sequences 
+  * are converted to escape sequences. The escape sequences
   * \n, \t, \v, \b, \r, \f, \a, \\ are printed in this way.
   * For all other unprintable characters, we print \x[N] where
   * [N] is the 2 digit hexidecimal corresponding to value of
@@ -141,7 +141,8 @@ class CVC4_PUBLIC String {
   // guarded
   static unsigned char hexToDec(unsigned char c);
 
-  static std::vector<unsigned> toInternal(const std::string& s, bool useEscSequences = true);
+  static std::vector<unsigned> toInternal(const std::string& s,
+                                          bool useEscSequences = true);
   unsigned char getUnsignedCharAt(size_t pos) const;
 
   /**

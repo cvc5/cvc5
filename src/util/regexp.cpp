@@ -84,7 +84,8 @@ bool String::rstrncmp(const String &y, const std::size_t np) const {
   return true;
 }
 
-std::vector<unsigned> String::toInternal(const std::string &s, bool useEscSequences) {
+std::vector<unsigned> String::toInternal(const std::string &s,
+                                         bool useEscSequences) {
   std::vector<unsigned> str;
   unsigned i = 0;
   while (i < s.size()) {
@@ -218,7 +219,7 @@ std::string String::toString(bool useEscSequences) const {
     unsigned char c = convertUnsignedIntToChar(d_str[i]);
     if (!useEscSequences) {
       str += c;
-    }else if (isprint(c)) {
+    } else if (isprint(c)) {
       if (c == '\\') {
         str += "\\\\";
       }
