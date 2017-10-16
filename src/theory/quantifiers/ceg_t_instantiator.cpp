@@ -263,14 +263,23 @@ bool ArithInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, N
   return false;
 }
 
-bool ArithInstantiator::hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
+Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
+                                            Node pv, Node lit,
+                                            unsigned effort) {
   Node atom = lit.getKind()==NOT ? lit[0] : lit;
   bool pol = lit.getKind()!=NOT;
   //arithmetic inequalities and disequalities
-  return atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && atom[0].getType().isReal() );
+  if (atom.getKind() == GEQ ||
+      (atom.getKind() == EQUAL && !pol && atom[0].getType().isReal())) {
+    return lit;
+  } else {
+    return Node::null();
+  }
 }
 
-bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
+bool ArithInstantiator::processAssertion(CegInstantiator* ci, SolvedForm& sf,
+                                         Node pv, Node lit, Node alit,
+                                         unsigned effort) {
   Node atom = lit.getKind()==NOT ? lit[0] : lit;
   bool pol = lit.getKind()!=NOT;
   //arithmetic inequalities and disequalities
@@ -385,8 +394,9 @@ bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, 
   return false;
 }
 
-bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) {
- if( options::cbqiModel() ){
+bool ArithInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
+                                          Node pv, unsigned effort) {
+  if (options::cbqiModel()) {
     bool use_inf = ci->useVtsInfinity() && ( d_type.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal() );
     bool upper_first = false;
     if( options::cbqiMinBounds() ){
@@ -868,11 +878,14 @@ void BvInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsig
   d_var_to_inst_id.clear();
   d_inst_id_to_term.clear();
   d_inst_id_to_status.clear();
+  d_inst_id_to_alit.clear();
   d_var_to_curr_inst_id.clear();
+  d_alit_to_model_slack.clear();
 }
 
-
-void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
+void BvInstantiator::processLiteral(CegInstantiator* ci, SolvedForm& sf,
+                                    Node pv, Node lit, Node alit,
+                                    unsigned effort) {
   Assert( d_inverter!=NULL );
   // find path to pv
   std::vector< unsigned > path;
@@ -884,22 +897,103 @@ void BvInstantiator::processLiteral( CegInstantiator * ci, SolvedForm& sf, Node 
     unsigned iid = d_inst_id_counter;
     Node inst = d_inverter->solve_bv_lit( sv, slit, true, path, &m, d_inst_id_to_status[iid] );
     if( !inst.isNull() ){
+      inst = Rewriter::rewrite(inst);
+      Trace("cegqi-bv") << "...solved form is " << inst << std::endl;
       // store information for id and increment
       d_var_to_inst_id[pv].push_back( iid );
       d_inst_id_to_term[iid] = inst;
+      d_inst_id_to_alit[iid] = alit;
       d_inst_id_counter++;
     }else{
+      Trace("cegqi-bv") << "...failed to solve." << std::endl;
       // cleanup information if we failed to solve
       d_inst_id_to_status.erase( iid );
     }
   }
 }
 
-bool BvInstantiator::hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
-  return true;
+Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
+                                         Node pv, Node lit, unsigned effort) {
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool pol = lit.getKind() != NOT;
+  Kind k = atom.getKind();
+  if (pol && k == EQUAL) {
+    // positively asserted equalities between bitvector terms we leave unmodifed
+    if (atom[0].getType().isBitVector()) {
+      return lit;
+    }
+  } else {
+    bool useSlack = false;
+    if (k == EQUAL) {
+      // always use slack for disequalities
+      useSlack = true;
+    } else if (k == BITVECTOR_ULT || k == BITVECTOR_SLT) {
+      if (options::cbqiBvSlackIneq()) {
+        useSlack = true;
+      }
+    } else {
+      // others should be rewritten
+      Assert(false);
+      return Node::null();
+    }
+    // for all other predicates, we convert them to a positive equality based on
+    // the current model M, e.g.:
+    //   (not) s ~ t  --->  s = t + ( s^M - t^M )
+    if (useSlack) {
+      Node s = atom[0];
+      Node t = atom[1];
+      // only handle equalities between bitvectors
+      if (s.getType().isBitVector()) {
+        NodeManager* nm = NodeManager::currentNM();
+        Node sm = ci->getModelValue(s);
+        Assert(!sm.isNull() && sm.isConst());
+        Node tm = ci->getModelValue(t);
+        Assert(!tm.isNull() && tm.isConst());
+        Node ret;
+        if (sm != tm) {
+          Node slack =
+              Rewriter::rewrite(nm->mkNode(kind::BITVECTOR_SUB, sm, tm));
+          Assert(slack.isConst());
+          // remember the slack value for the asserted literal
+          d_alit_to_model_slack[lit] = slack;
+          ret = nm->mkNode(kind::EQUAL, s,
+                           nm->mkNode(kind::BITVECTOR_PLUS, t, slack));
+          Trace("cegqi-bv") << "Process " << lit << " as " << ret
+                            << ", slack is " << slack << std::endl;
+        }else{
+          ret = s.eqNode(t);          
+          Trace("cegqi-bv") << "Process " << lit << " as " << ret << std::endl;
+        }
+        return ret;
+      }
+    } else {
+      // otherwise, we optimistically solve for the boundary point of an inequality
+      // for example
+      //   for s < t, we solve s+1 = t
+      //   for ~( s < t ), we solve s = t
+      // notice that this equality does not necessarily hold in the model, and
+      // hence the corresponding instantiation strategy is not guaranteed to be
+      // monotonic.
+      Node ret;
+      if (!pol) {
+        ret = atom[0].eqNode(atom[1]);
+      } else {
+        unsigned one = 1;
+        BitVector bval(atom[0].getType().getConst<BitVectorSize>(), one);
+        Node bv_one = NodeManager::currentNM()->mkConst<BitVector>(bval);
+        ret = NodeManager::currentNM()
+                  ->mkNode(kind::BITVECTOR_PLUS, atom[0], bv_one)
+                  .eqNode(atom[1]);
+      }
+      return ret;
+    }
+  }
+  return Node::null();
 }
 
-bool BvInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
+bool BvInstantiator::processAssertion(CegInstantiator* ci, SolvedForm& sf,
+                                      Node pv, Node lit, Node alit,
+                                      unsigned effort) {
   // if option enabled, use approach for word-level inversion for BV instantiation
   if( options::cbqiBv() ){
     // get the best rewritten form of lit for solving for pv 
@@ -911,69 +1005,104 @@ bool BvInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, Nod
         Trace("cegqi-bv") << "...rewritten to " << rlit << std::endl;
       }
     }
-    processLiteral( ci, sf, pv, rlit, effort );
+    processLiteral(ci, sf, pv, rlit, alit, effort);
   }
   return false;
 }
 
-bool BvInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) {
+bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
+                                       Node pv, unsigned effort) {
   std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction >::iterator iti = d_var_to_inst_id.find( pv );
   if( iti!=d_var_to_inst_id.end() ){
     Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv << std::endl;
-    // get inst id list
-    Trace("cegqi-bv") << "  " << iti->second.size() << " candidate instantiations for " << pv << " : " << std::endl;
-    // the order of instantiation ids we will try
-    std::vector< unsigned > inst_ids_try;
-    // until we have a model-preserving selection function for BV, this must be heuristic (we only pick one literal)
-    // hence we randomize the list
-    // this helps robustness, since picking the same literal every time may be lead to a stream of value instantiations
-    std::random_shuffle( iti->second.begin(), iti->second.end() );
-    
-    for( unsigned j=0; j<iti->second.size(); j++ ){
-      unsigned inst_id = iti->second[j];
-      Assert( d_inst_id_to_term.find(inst_id)!=d_inst_id_to_term.end() );
-      Node inst_term = d_inst_id_to_term[inst_id];
-      // debug printing
-      if( Trace.isOn("cegqi-bv") ){
-        Trace("cegqi-bv") << "   [" << j << "] : ";
-        Trace("cegqi-bv") << inst_term << std::endl;
-        // process information about solved status
-        std::unordered_map< unsigned, BvInverterStatus >::iterator its = d_inst_id_to_status.find( inst_id );
-        Assert( its!=d_inst_id_to_status.end() );
-        if( !(*its).second.d_conds.empty() ){
-          Trace("cegqi-bv") << "   ...with " << (*its).second.d_conds.size() << " side conditions : " << std::endl;
-          for( unsigned k=0; k<(*its).second.d_conds.size(); k++ ){
-            Node cond = (*its).second.d_conds[k];
-            Trace("cegqi-bv") << "       " << cond << std::endl;
-          }
+    // if interleaving, do not do inversion half the time
+    if (!options::cbqiBvInterleaveValue() || rand() % 2 == 0) {
+      // get inst id list
+      Trace("cegqi-bv") << "  " << iti->second.size()
+                        << " candidate instantiations for " << pv << " : "
+                        << std::endl;
+      // the order of instantiation ids we will try
+      std::vector<unsigned> inst_ids_try;
+      // until we have a model-preserving selection function for BV, this must
+      // be heuristic (we only pick one literal)
+      // hence we randomize the list
+      // this helps robustness, since picking the same literal every time may
+      // lead to a stream of value instantiations, whereas with randomization
+      // we may find an invertible literal that leads to a useful instantiation.
+      std::random_shuffle(iti->second.begin(), iti->second.end());
+
+      for (unsigned j = 0; j < iti->second.size(); j++) {
+        unsigned inst_id = iti->second[j];
+        Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
+        Node inst_term = d_inst_id_to_term[inst_id];
+        Assert(d_inst_id_to_alit.find(inst_id) != d_inst_id_to_alit.end());
+        Node alit = d_inst_id_to_alit[inst_id];
+
+        // get the slack value introduced for the asserted literal
+        Node curr_slack_val;
+        std::unordered_map<Node, Node, NodeHashFunction>::iterator itms =
+            d_alit_to_model_slack.find(alit);
+        if (itms != d_alit_to_model_slack.end()) {
+          curr_slack_val = itms->second;
         }
-        Trace("cegqi-bv") << std::endl;
+
+        // debug printing
+        if (Trace.isOn("cegqi-bv")) {
+          Trace("cegqi-bv") << "   [" << j << "] : ";
+          Trace("cegqi-bv") << inst_term << std::endl;
+          if (!curr_slack_val.isNull()) {
+            Trace("cegqi-bv") << "   ...with slack value : " << curr_slack_val
+                              << std::endl;
+          }
+          // process information about solved status
+          std::unordered_map<unsigned, BvInverterStatus>::iterator its =
+              d_inst_id_to_status.find(inst_id);
+          Assert(its != d_inst_id_to_status.end());
+          if (!its->second.d_conds.empty()) {
+            Trace("cegqi-bv") << "   ...with " << its->second.d_conds.size()
+                              << " side conditions : " << std::endl;
+            for (unsigned k = 0; k < its->second.d_conds.size(); k++) {
+              Node cond = its->second.d_conds[k];
+              Trace("cegqi-bv") << "       " << cond << std::endl;
+            }
+          }
+          Trace("cegqi-bv") << std::endl;
+        }
+
+        // currently we select the first literal
+        if (inst_ids_try.empty()) {
+          // try the first one
+          inst_ids_try.push_back(inst_id);
+        } else {
+          // selection criteria across multiple literals goes here
+        }
       }
-      // TODO : selection criteria across multiple literals goes here
-      
-      // currently, we use a naive heuristic which takes only the first solved term
-      if( inst_ids_try.empty() ){
-        inst_ids_try.push_back( inst_id );
+
+      // now, try all instantiation ids we want to try
+      // typically size( inst_ids_try )=0, otherwise worst-case performance for
+      // constructing
+      // instantiations is exponential on the number of variables in this
+      // quantifier
+      for (unsigned j = 0; j < inst_ids_try.size(); j++) {
+        unsigned inst_id = iti->second[j];
+        Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
+        Node inst_term = d_inst_id_to_term[inst_id];
+        // try instantiation pv -> inst_term
+        TermProperties pv_prop_bv;
+        Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term
+                          << std::endl;
+        d_var_to_curr_inst_id[pv] = inst_id;
+        if (ci->doAddInstantiationInc(pv, inst_term, pv_prop_bv, sf, effort)) {
+          return true;
+        }
       }
+      Trace("cegqi-bv") << "...failed to add instantiation for " << pv
+                        << std::endl;
+      d_var_to_curr_inst_id.erase(pv);
+    } else {
+      Trace("cegqi-bv") << "...do not do instantiation for " << pv
+                        << " (skip, based on heuristic)" << std::endl;
     }
-    
-    // now, try all instantiation ids we want to try
-    // typically size( inst_ids_try )=0, otherwise worst-case performance for constructing
-    // instantiations is exponential on the number of variables in this quantifier
-    for( unsigned j = 0; j<inst_ids_try.size(); j++ ){
-      unsigned inst_id = iti->second[j];
-      Assert( d_inst_id_to_term.find(inst_id)!=d_inst_id_to_term.end() );
-      Node inst_term = d_inst_id_to_term[inst_id];
-      // try instantiation pv -> inst_term
-      TermProperties pv_prop_bv;
-      Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term << std::endl;
-      d_var_to_curr_inst_id[pv] = inst_id;
-      if( ci->doAddInstantiationInc( pv, inst_term, pv_prop_bv, sf, effort ) ){
-        return true;
-      }
-    }
-    Trace("cegqi-bv") << "...failed to add instantiation for " << pv << std::endl;
-    d_var_to_curr_inst_id.erase( pv );
   }
 
   return false;

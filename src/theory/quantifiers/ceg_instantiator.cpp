@@ -283,7 +283,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       //[4] directly look at assertions
       if( vinst->hasProcessAssertion( this, sf, pv, effort ) ){
         Trace("cbqi-inst-debug") << "[4] try based on assertions." << std::endl;
-        std::vector< Node > lits;
+        std::unordered_set< Node, NodeHashFunction > lits;
         //unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
         for( unsigned r=0; r<2; r++ ){
           TheoryId tid = r==0 ? Theory::theoryOf( pvtn ) : THEORY_UF;
@@ -292,18 +292,25 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
           if( ita!=d_curr_asserts.end() ){
             for (unsigned j = 0; j<ita->second.size(); j++) {
               Node lit = ita->second[j];
-              if( std::find( lits.begin(), lits.end(), lit )==lits.end() ){
-                lits.push_back( lit );
-                if( vinst->hasProcessAssertion( this, sf, pv, lit, effort ) ){  
-                  Trace("cbqi-inst-debug2") << "  look at " << lit << std::endl;
+              if( lits.find(lit)==lits.end() ){
+                lits.insert(lit);
+                Node plit =
+                    vinst->hasProcessAssertion(this, sf, pv, lit, effort);
+                if (!plit.isNull()) {
+                  Trace("cbqi-inst-debug2") << "  look at " << lit;
+                  if (plit != lit) {
+                    Trace("cbqi-inst-debug2") << "...processed to : " << plit;
+                  }
+                  Trace("cbqi-inst-debug2") << std::endl;
                   // apply substitutions
-                  Node slit = applySubstitutionToLiteral( lit, sf );
+                  Node slit = applySubstitutionToLiteral(plit, sf);
                   if( !slit.isNull() ){
                     Trace("cbqi-inst-debug") << "...try based on literal " << slit << std::endl;
                     // check if contains pv
                     if( hasVariable( slit, pv ) ){
-                      if( vinst->processAssertion( this, sf, pv, slit, effort ) ){
-                       return true;
+                      if (vinst->processAssertion(this, sf, pv, slit, lit,
+                                                  effort)) {
+                        return true;
                       }
                     }
                   }
@@ -312,7 +319,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
             }
           }
         }
-        if( vinst->processAssertions( this, sf, pv, lits, effort ) ){
+        if (vinst->processAssertions(this, sf, pv, effort)) {
           return true;
         }
       }
