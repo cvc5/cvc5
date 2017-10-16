@@ -706,12 +706,12 @@ Node Trigger::getInversion( Node n, Node x ) {
   return Node::null();
 }
 
-void Trigger::getTriggerVariables( Node icn, Node q, std::vector< Node >& t_vars ) {
+void Trigger::getTriggerVariables( Node n, Node q, std::vector< Node >& t_vars ) {
   std::vector< Node > patTerms;
   std::map< Node, TriggerTermInfo > tinfo;
-  //collect all patterns from icn
+  //collect all patterns from n
   std::vector< Node > exclude;
-  collectPatTerms( q, icn, patTerms, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo );
+  collectPatTerms( q, n, patTerms, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo );
   //collect all variables from all patterns in patTerms, add to t_vars
   for( unsigned i=0; i<patTerms.size(); i++ ){
     quantifiers::TermUtil::getVarContainsNode( q, patTerms[i], t_vars );

@@ -189,12 +189,12 @@ public:
   /** set active add flag (true by default)
   * If active add is true, we call sendInstantiation in calls to getNextMatch, instead of returning the match.
   * This is necessary so that we can ensure policies that are dependent upon knowing when instantiations are
-  * successfully added.
+  * successfully added to the output channel through QuantifiersEngine::addInstantiation(...).
   */
   void setActiveAdd( bool val );
-  /** get active score */
+  /** Get active score for this inst match generator (see Trigger::getActiveScore). */
   int getActiveScore( QuantifiersEngine * qe );
-  /** exclude Node n on subsequent matches */
+  /** Exclude matching with Node n on subsequent calls to getNextMatch. */
   void excludeMatch( Node n ) { d_curr_exclude_match[n] = true; }
   /** set that this match generator is independent, e.g. when it fails the overall matching fails. */
   void setIndependent() { d_independent_gen = true; }
@@ -276,15 +276,13 @@ protected:
   static InstMatchGenerator* getInstMatchGenerator( Node q, Node n );
 };/* class InstMatchGenerator */
 
-/** match generator for boolean term ITEs
+/** match generator for Boolean term ITEs
 * This handles the special case of triggers that look like ite( x, BV1, BV0 ).
 */
 class VarMatchGeneratorBooleanTerm : public InstMatchGenerator {
 public:
   VarMatchGeneratorBooleanTerm( Node var, Node comp );
   virtual ~VarMatchGeneratorBooleanTerm() throw() {}
-  Node d_comp;
-  bool d_rm_prev;
   /** reset instantiation round (call this at beginning of instantiation round) */
   void resetInstantiationRound( QuantifiersEngine* qe ){}
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
@@ -296,12 +294,15 @@ public:
   int getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe, Trigger * tparent );
   /** add instantiations directly */
   int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe, Trigger * tparent ){ return 0; }
+private:
+  /** stores the true branch of the Boolean ITE */
+  Node d_comp;
+  /** stores whether we have written a new value for var in the current match. */
+  bool d_rm_prev;
 };
 
 /** match generator for purified terms
-* This handles the special case of simple invertible terms like x+1.
-* For a trigger like x+1 :
-*   d_subs is x-1
+* This handles the special case of invertible terms like x+1 (see Trigger::getTermInversionVariable).
 */
 class VarMatchGeneratorTermSubs : public InstMatchGenerator {
 public:
@@ -319,9 +320,13 @@ public:
   /** add instantiations directly */
   int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe, Trigger * tparent ) { return 0; }
 private:
+  /** variable we are matching (x in the example x+1). */
   TNode d_var;
+  /** cache of d_var.getType() */
   TypeNode d_var_type;
+  /** The substitution for what we match (x-1 in the example x+1). */
   Node d_subs;
+  /** stores whether we have written a new value for d_var in the current match. */
   bool d_rm_prev;
 };
 
@@ -455,20 +460,27 @@ public:
   /** get active score */
   int getActiveScore( QuantifiersEngine * qe );
 private:
-  /** quantifier for match term */
+  /** quantified formula for the trigger term */
   Node d_f;
-  /** match term */
+  /** the trigger term */
   Node d_match_pattern;
-  /** equivalence class */
+  /** equivalence class polarity information
+  * This stores that a required polarity/equivalence class with this trigger.
+  * If d_eqc is non-null, we only produce matches { x->t } such that 
+  * our context does not entail 
+  *   ( d_match_pattern*{ x->t } = d_eqc) if d_pol = true, or
+  *   ( d_match_pattern*{ x->t } != d_eqc) if d_pol = false.
+  * where * denotes application of substitution.
+  */
   bool d_pol;
   Node d_eqc;
   /** match pattern arg types */
   std::vector< TypeNode > d_match_pattern_arg_types;
   /** operator */
   Node d_op;
-  /** to indicies */
+  /** Map from child number to variable index */
   std::map< int, int > d_var_num;
-  /** add instantiations */
+  /** add instantiations, helper function */
   void addInstantiations( InstMatch& m, QuantifiersEngine* qe, 
                           int& addedLemmas, int argIndex, quantifiers::TermArgTrie* tat );
 };/* class InstMatchGeneratorSimple */
