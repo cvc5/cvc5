@@ -14,6 +14,9 @@
  **/
 #include "theory/quantifiers/ce_guided_pbe.h"
 
+#include <algorithm>
+#include <numeric>
+
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_database_sygus.h"
@@ -27,6 +30,19 @@ using namespace CVC4::theory::quantifiers;
 using namespace std;
 
 namespace CVC4 {
+
+// Returns a range of |elements| numbers starting from start and going to
+// start+elements-1. The range is increasing if `increasing` holds and decreases
+// otherwise.
+std::vector<unsigned> GetRange(unsigned start, size_t elements,
+                               bool increasing) {
+  std::vector<unsigned> corder(elements);
+  std::iota(corder.begin(), corder.end(), start);
+  if (!increasing) {
+    std::reverse(corder.begin(), corder.end());
+  }
+  return corder;
+}
 
 void indent( const char * c, int ind ) {
   if( Trace.isOn(c) ){
@@ -1436,35 +1452,25 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
           Node incr_val;
           int incr_type = 0;
           std::map< Node, std::vector< unsigned > > incr;
-            
+          const std::vector<Node>& itts_cenum = itts->second.d_cenum;
           // construct the child order
-          std::vector< unsigned > corder;
-          if( strat==strat_CONCAT ){
-            for( unsigned r=0; r<2; r++ ){
-              unsigned sc = r==0 ? 0 : itts->second.d_cenum.size()-1;
-              Node ce = itts->second.d_cenum[sc];
-              if( ce.getType()==etn ){
+          std::vector<unsigned> corder;
+          if (strat == strat_CONCAT) {
+            for (unsigned r = 0; r < 2; r++) {
+              Node ce = r == 0 ? itts_cenum.front() : itts_cenum.back();
+              if (ce.getType() == etn) {
                 // prefer simple recursion (self type)
-                Assert( d_einfo.find( ce )!=d_einfo.end() );
-                Assert( d_einfo[ce].d_role==enum_concat_term );
-                corder.push_back( sc );
-                unsigned inc = r==0 ? 1 : -1;
-                unsigned scc = sc + inc;
-                while( scc>=0 && scc<itts->second.d_cenum.size() ){
-                  corder.push_back( scc );
-                  scc = scc + inc;
-                }
+                Assert(d_einfo.find(ce) != d_einfo.end());
+                Assert(d_einfo[ce].d_role == enum_concat_term);
+                corder = GetRange(0, itts_cenum.size(), r == 0);
                 break;
               }
             }
-          }else{
-            for( unsigned sc=0; sc<itts->second.d_cenum.size(); sc++ ){
-              corder.push_back( sc );
-            }
-          }    
-          Assert( corder.size()==itts->second.d_cenum.size() );
-            
-            
+          } else {
+            corder = GetRange(0, itts_cenum.size(), true);
+          }
+          Assert(corder.size() == itts->second.d_cenum.size());
+
           for( unsigned scc=0; scc<corder.size(); scc++ ){
             unsigned sc = corder[scc];
             Node rec_c;
