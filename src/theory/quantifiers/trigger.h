@@ -219,6 +219,11 @@ public:
   */
   static bool isUsableTrigger( Node n, Node q );
   /** Return the associated node of n that is a usable trigger in quantified formula q.
+  * This may be different than n in several cases, in several cases :
+  * (1) Polarity information is explicitly converted to equalities, e.g. 
+  *      getIsUsableTrigger( (not (P x )), q ) may return (= (P x) false)
+  * (2) Relational triggers are put into solved form, e.g.
+  *      getIsUsableTrigger( (= (+ x a) 5), q ) may return (= x (- 5 a)).
   */
   static Node getIsUsableTrigger( Node n, Node q );
   /** Iis n a usable atomic trigger? 
@@ -294,7 +299,7 @@ protected:
   /** add an instantiation (called by InstMatchGenerator) 
   * This calls d_quantEngine->addInstantiation(...) for instantiations associated with m.
   * Typically, m is associated with a single instantiation, but in some cases (e.g. higher-order)
-  * we may modify m before sending it.
+  * we may modify m before calling d_quantEngine->addInstantiation(...).
   */
   virtual bool sendInstantiation( InstMatch& m );
   /** The nodes comprising this trigger. */
@@ -312,8 +317,10 @@ protected:
 
 /** A trie of triggers.
 * 
-* This class is used for caching Trigger objects.
-* We store Triggers in this data structure based on Trigger::d_nodes.
+* This class is used to cache all Trigger objects that are generated in the 
+* current context. We index Triggers in this data structure based on the 
+* value of Trigger::d_nodes. When a Trigger is added to this data structure,
+* this Trie assumes responsibility for deleting it.
 */
 class TriggerTrie {
 public:
@@ -329,8 +336,7 @@ public:
     std::sort( temp.begin(), temp.end() );
     return getTrigger2( temp );
   }
-  /** Add trigger to trie.
-  * It should be the case that t->d_nodes = nodes.
+  /** Add trigger to trie, where t->d_nodes = nodes.
   */
   void addTrigger( std::vector< Node >& nodes, inst::Trigger* t ){
     std::vector< Node > temp;
