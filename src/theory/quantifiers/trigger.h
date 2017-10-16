@@ -33,23 +33,49 @@ namespace inst {
 class IMGenerator;
 class InstMatchGenerator;
 
-/** Information about a node used in a trigger. */
+/** Information about a node used in a trigger. 
+*
+* As an example, consider the trigger 
+*   { f( x ), g( y ), P( y, z ) } 
+* for quantified formula 
+*   forall xy. ( f( x ) != b => ( P( x, g( y ) ) V P( y, z ) ) )
+* This example is referenced for each of the functions below.
+*/
 class TriggerTermInfo {
 public:
   TriggerTermInfo() : d_reqPol(0){}
   ~TriggerTermInfo(){}
-  /** the free variables in the node */
+  /** The free variables in the node 
+  *
+  * For the trigger term info for f( x ) in the above example, d_fv = { x } 
+  * For the trigger term info for g( y ) in the above example, d_fv = { y } 
+  * For the trigger term info for P( y, z ) in the above example, d_fv = { y, z } 
+  */
   std::vector< Node > d_fv;
-  /** required polarity */
+  /** Required polarity:  1 for equality, -1 for disequality, 0 for none
+  *
+  * For the trigger term info for f( x ) in the above example, d_reqPol = -1
+  * For the trigger term info for g( y ) in the above example, d_reqPol = 0 
+  * For the trigger term info for P( y, z ) in the above example,  d_reqPol = 1
+  */
   int d_reqPol;
-  /** required polarity equal term
-  * d_reqPolEq is not null, then n appears in an equality with d_reqPolEq.
+  /** Required polarity equal term
+  *
+  * If d_reqPolEq is not null, 
   *   if d_reqPol = 1, then this trigger term must be matched to terms in the equivalence class of d_reqPolEq
   *   if d_reqPol = -1, then this trigger term must be matched to terms *not* in the equivalence class of d_reqPolEq
-  * This information is determined by analyzing the entailed equalities and disequalities of quantified formulas.
+  *
+  * This information is typically chosen by analyzing the entailed equalities and disequalities of quantified formulas.
+  * For the trigger term info for f( x ) in the above example, d_reqPolEq = b
+  * For the trigger term info for g( y ) in the above example, d_reqPolEq = Node::null()
+  * For the trigger term info for P( y, z ) in the above example,  d_reqPolEq = false
+  *
+  * In other words, it is only useful to match f( x ) to terms not in the equivalence class of b,
+  * and P( y, z ) to terms in the equivalence class of false, as such instances will always be 
+  * redundant/entailed in the current context.
   */
   Node d_reqPolEq;
-  /** initialize this information class (can be called more than once). 
+  /** Initialize this information class (can be called more than once). 
   * q is the quantified formula that n is a trigger term for
   * n is the trigger term
   * reqPol/reqPolEq are described above
@@ -57,35 +83,39 @@ public:
   void init( Node q, Node n, int reqPol = 0, Node reqPolEq = Node::null() );
 };
 
-class HigherOrderTrigger;
-
 /** A collection of nodes representing a trigger. 
 *
-* This class is a wrapper around an underlying IMGenerator class, which implements various forms 
-* of matching. A trigger is a set of nodes with free variables that are used to guide instantiations
-* (for example, see "Efficient E-Matching for SMT Solvers" by de Moura et al). For example :
+* This class encapsulates all implementations of E-matching in CVC4.
+* Its primary use is as a utility of the quantifiers module InstantiationEngine (see theory/quantifiers/instantiation_engine.h)
+* which uses Trigger to make appropriate calls to QuantifiersEngine::addInstantiation(...) (see theory/quantifiers_engine.h)
+* for the quantifiers engine (d_quantEngine) associated with this trigger.  These calls
+* queue instantiation lemmas to the output channel of TheoryQuantifiers during a full effort check.
+*
+* Concretely, a Trigger* t is used in the following way during a full effort check.
+* Assume that t is associated with quantified formula q (see field d_f). We call :
+*
+* t->resetInstantiationRound();      // setup initial information
+* t->reset( Node::null() );          // will produce instantiations based on matching with all terms
+* InstMatch baseMatch;
+* t->addInstantiations( baseMatch ); // add all instantiations based on E-matching with this trigger and the current context
+*
+* This will result in (a set of) calls to QuantifiersEngine::addInstantiation( q, m1 )...QuantifiersEngine::addInstantiation( q, mn ),
+* where m1...mn are InstMatch objects. These calls add the corresponding instantiation lemma for (q,mi) on the output channel
+* associated with d_quantEngine.
+*
+* The Trigger class is wrapper around an underlying IMGenerator class, which implements various forms 
+* of E-matching for the set of nodes (d_nodes), which is refered to in the literature as a "trigger".
+* A trigger is a set of terms whose free variables are the bound variables of a quantified formula q, 
+* and that are used to guide instantiations for q (for example, see "Efficient E-Matching for SMT Solvers" by de Moura et al). 
+*
+* For example of an instantiation lemma produced by E-matching :
 *
 * quantified formula : forall x. P( x )
 *            trigger : P( x )
 *     ground context : ~P( a )
 *
-* Then E-matching matches P( x ) and P( a ), resulting in the match { x -> a } which is used to generate
-* the instantiation lemma :
-* forall x. P( x ) => P( a )
-*
-* We use a Trigger* t in a full effort check, where assume that t is associated with quantified formula q (see field d_f),
-* in the following way:
-*
-* t->resetInstantiationRound();      // setup initial information
-* t->reset( Node::null() );          // will produce instantiations based on matching with all terms
-* InstMatch baseMatch;
-* t->addInstantiations( baseMatch ); // add all instantiations based E-matching with this trigger and the current context
-*
-* This will result in (a set of) calls to d_quantEngine->addInstantiation( q, m1 )...d_quantEngine->addInstantiation( q, mn ),
-* where m1...mn are InstMatch objects. These calls add the corresponding instantiation lemma for (q,mi) on the output channel
-* associated with d_quantEngine.
-*
-* For more details, see functions below.
+* Then E-matching matches P( x ) and P( a ), resulting in the match { x -> a } which is used to generate the instantiation lemma :
+* (forall x. P( x )) => P( a )
 */
 class Trigger {
   friend class IMGenerator;
@@ -94,30 +124,33 @@ public:
   /** get the generator associated with this trigger */
   IMGenerator* getGenerator() { return d_mg; }
   /** Reset instantiation round. 
-  *
   * Called once at beginning of an instantiation round.
   */
   void resetInstantiationRound();
   /** Reset the trigger.
-  * eqc is the equivalence class to match ground terms, or any equivalence class if eqc is Node::null().
+  * eqc is the equivalence class from which to match ground terms.
+  * If eqc is Node::null(), then we match ground terms from all equivalence classes.
   */
   void reset( Node eqc );
-  /** get next match.  Must call reset( eqc ) once before this function. */
-  bool getNextMatch( Node f, InstMatch& m );
   /** add all available instantiations, based on the current context
   *
-  * This function makes the appropriate class to d_qe->addInstantiation(...) based on the current
+  * This function makes the appropriate calls to d_qe->addInstantiation(...) based on the current
   * ground terms and equalities in the current context, via queries to functions in d_qe. Typically,
   * this is implemented as a fixed point of getNextMatch within the underlying IMGenerator.
   *
   * baseMatch is a mapping of default values that should be used for variables that are not bound by this (not frequently used).
   */
   virtual int addInstantiations( InstMatch& baseMatch );
-  /** return whether this is a multi-trigger */
+  /** Return whether this is a multi-trigger */
   bool isMultiTrigger() { return d_nodes.size()>1; }
-  /** get inst pattern list associated with this trigger */
+  /** Get instantiation pattern list associated with this trigger.
+  * An instantiation pattern list in the node representation of a trigger, in particular, it
+  * is the third argument of quantified formulas which have user (! ... :pattern) attributes.
+  */
   Node getInstPattern();
-  /* A heuristic value indicating how active this generator is. */
+  /* A heuristic value indicating how active this generator is. 
+  * This returns the number of ground terms for the match operators in terms from d_nodes.
+  */
   int getActiveScore();
   /** print debug information for the trigger */
   void debugPrint( const char * c ) {
@@ -128,9 +161,8 @@ public:
     }
     Trace(c) << " )";
   }
-public:
   /** mkTrigger method
-  *  qe     : quantifier engine;
+  *  qe     : point to the quantifier engine;
   *  q      : the quantified formula we are making a trigger for
   *  nodes  : the nodes comprising the (multi-)trigger
   *  keepAll: don't remove unneeded patterns;
@@ -167,15 +199,20 @@ public:
   static void collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt,
                                std::vector< Node >& exclude, std::map< Node, TriggerTermInfo >& tinfo,
                                bool filterInst = false );
-  /** is n a usable trigger in quantified formula q? 
+  /** Is n a usable trigger in quantified formula q? 
   * A usable trigger is one that is matchable and contains free variables only from q.
   */
   static bool isUsableTrigger( Node n, Node q );
-  /** return the associated node of n that is a usable trigger in quantified formula q */
+  /** Return the associated node of n that is a usable trigger in quantified formula q.
+  */
   static Node getIsUsableTrigger( Node n, Node q );
-  /** is n a usable atomic trigger? */
+  /** Iis n a usable atomic trigger? 
+  * A usable atomic trigger is a term that is both a useable trigger and an atomic trigger.
+  */
   static bool isUsableAtomicTrigger( Node n, Node q );
-  /** is n an atomic trigger? */
+  /** is n an atomic trigger? 
+  * An atomic trigger is one whose kind is an atomic trigger kind.
+  */
   static bool isAtomicTrigger( Node n );
   /** is k an atomic trigger kind?
   * An atomic trigger kind is one for which term indexing/matching is possible. 
@@ -195,8 +232,13 @@ public:
   static bool isPureTheoryTrigger( Node n );
   /** get trigger weight
   * Returns 0 for triggers that are easy to process and 1 otherwise. 
+  * A trigger is easy to process if it is an atomic trigger, or a relational trigger
+  * of the form x ~ g.
   */
   static int getTriggerWeight( Node n );
+  /** Returns whether n is a trigger term with the local theory extension
+  * property from Bansal et al CAV 2015.
+  */
   static bool isLocalTheoryExt( Node n, std::vector< Node >& vars,
                                 std::vector< Node >& patTerms );
   /** get the variable associated with an inversion for n, e.g. getInversionVariable( x+1 ) returns x */
@@ -237,7 +279,9 @@ protected:
   IMGenerator* d_mg;
 }; /* class Trigger */
 
-/** a trie of triggers */
+/** a trie of triggers 
+* This stores an index of triggers, 
+*/
 class TriggerTrie {
 public:
   TriggerTrie();

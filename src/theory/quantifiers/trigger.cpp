@@ -95,11 +95,6 @@ void Trigger::reset( Node eqc ){
   d_mg->reset( eqc, d_quantEngine );
 }
 
-bool Trigger::getNextMatch( Node f, InstMatch& m ){
-  int retVal = d_mg->getNextMatch( f, m, d_quantEngine, this );
-  return retVal>0;
-}
-
 Node Trigger::getInstPattern(){
   return NodeManager::currentNM()->mkNode( INST_PATTERN, d_nodes );
 }
