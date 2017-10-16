@@ -1106,6 +1106,14 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
   return res;
 }
 
+/**
+ * ZeroExtendEqConst
+ *
+ * Rewrite zero_extend(x^n, m) = c^n+m to
+ *
+ *   false         if c[n+m-1:n] != 0
+ *   x = c[n-1:0]  otherwise.
+ */
 template <>
 inline bool RewriteRule<ZeroExtendEqConst>::applies(TNode node) {
   return node.getKind() == kind::EQUAL &&
@@ -1137,6 +1145,15 @@ inline Node RewriteRule<ZeroExtendEqConst>::apply(TNode node) {
   return utils::mkFalse();
 }
 
+/**
+ * SignExtendEqConst
+ *
+ * Rewrite sign_extend(x^n, m) = c^n+m to
+ *
+ *   false         if (c[n-1:n-1] == 0 && c[n+m-1:n] != 0) ||
+ *                    (c[n-1:n-1] == 1 && c[n+m-1:n] != ~0)
+ *   x = c[n-1:0]  otherwise.
+ */
 template <>
 inline bool RewriteRule<SignExtendEqConst>::applies(TNode node) {
   return node.getKind() == kind::EQUAL &&
@@ -1169,6 +1186,17 @@ inline Node RewriteRule<SignExtendEqConst>::apply(TNode node) {
   return utils::mkFalse();
 }
 
+/**
+ * SignExtendUltConst
+ *
+ * Rewrite sign_extend(x^n,m) < c^n+m to
+ *
+ *   x < c[n-1:0]   if c <= (1 << n - 1).
+ *
+ * Rewrite c^n+m < Rewrite sign_extend(x^n,m) to
+ *
+ *   c[n-1:0] < x   if c < (1 << n - 1).
+ */
 template <>
 inline bool RewriteRule<SignExtendUltConst>::applies(TNode node) {
   if (node.getKind() == kind::BITVECTOR_ULT &&
@@ -1185,7 +1213,6 @@ inline bool RewriteRule<SignExtendUltConst>::applies(TNode node) {
       t = node[1][0];
       c = node[0];
     }
-
     BitVector bv_c = c.getConst<BitVector>();
     BitVector bv_max =
         BitVector(utils::getSize(c)).setBit(utils::getSize(t) - 1);
@@ -1206,7 +1233,6 @@ inline Node RewriteRule<SignExtendUltConst>::apply(TNode node) {
     t = node[1][0];
     c = node[0];
   }
-
   Node c_lo =
       utils::mkConst(c.getConst<BitVector>().extract(utils::getSize(t) - 1, 0));
 
