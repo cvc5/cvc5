@@ -14,11 +14,11 @@
  ** Implementation of sygus utilities for theory of datatypes
  **/
 
+#include "theory/datatypes/datatypes_sygus.h"
 
 #include "expr/node_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/datatypes/datatypes_sygus.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/datatypes/theory_datatypes.h"
@@ -64,11 +64,17 @@ void SygusSplitNew::getSygusSplits( Node n, const Datatype& dt, std::vector< Nod
   splits.insert( splits.end(), d_splits[n].begin(), d_splits[n].end() );
 }
 
-
-SygusSymBreakNew::SygusSymBreakNew( TheoryDatatypes * td, quantifiers::TermDbSygus * tds, context::Context* c ) : 
-d_td( td ), d_tds( tds ), d_context( c ), 
-d_testers( c ), d_is_const( c ), d_testers_exp( c ), d_active_terms( c ), d_currTermSize( c ) {
-  d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
+SygusSymBreakNew::SygusSymBreakNew(TheoryDatatypes* td,
+                                   quantifiers::TermDbSygus* tds,
+                                   context::Context* c)
+    : d_td(td),
+      d_tds(tds),
+      d_testers(c),
+      d_is_const(c),
+      d_testers_exp(c),
+      d_active_terms(c),
+      d_currTermSize(c) {
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
 }
 
 SygusSymBreakNew::~SygusSymBreakNew() {
