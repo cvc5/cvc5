@@ -1150,9 +1150,9 @@ inline Node RewriteRule<ZeroExtendEqConst>::apply(TNode node) {
  *
  * Rewrite sign_extend(x^n, m) = c^n+m to
  *
- *   false         if (c[n-1:n-1] == 0 && c[n+m-1:n] != 0) ||
- *                    (c[n-1:n-1] == 1 && c[n+m-1:n] != ~0)
- *   x = c[n-1:0]  otherwise.
+ *   x = c[n-1:0]   if (c[n-1:n-1] == 0 && c[n+m-1:n] == 0) ||
+ *                     (c[n-1:n-1] == 1 && c[n+m-1:n] == ~0)
+ *   false          otherwise.
  */
 template <>
 inline bool RewriteRule<SignExtendEqConst>::applies(TNode node) {
@@ -1184,6 +1184,66 @@ inline Node RewriteRule<SignExtendEqConst>::apply(TNode node) {
                                             utils::mkConst(c_lo));
   }
   return utils::mkFalse();
+}
+
+/**
+ * ZeroExtendUltConst
+ *
+ * Rewrite zero_extend(x^n,m) < c^n+m to
+ *
+ *   x < c[n-1:0]   if c[n+m-1:n] == 0.
+ *
+ * Rewrite c^n+m < Rewrite zero_extend(x^n,m) to
+ *
+ *   c[n-1:0] < x   if c[n+m-1:n] == 0.
+ */
+template <>
+inline bool RewriteRule<ZeroExtendUltConst>::applies(TNode node) {
+  if (node.getKind() == kind::BITVECTOR_ULT &&
+      ((node[0].getKind() == kind::BITVECTOR_ZERO_EXTEND &&
+        node[1].isConst()) ||
+       (node[1].getKind() == kind::BITVECTOR_ZERO_EXTEND &&
+        node[0].isConst()))) {
+    TNode t, c;
+    bool is_lhs = node[0].getKind() == kind::BITVECTOR_ZERO_EXTEND;
+    if (is_lhs) {
+      t = node[0][0];
+      c = node[1];
+    } else {
+      t = node[1][0];
+      c = node[0];
+    }
+    BitVector bv_c = c.getConst<BitVector>();
+    BitVector bv_max =
+        BitVector(utils::getSize(c)).setBit(utils::getSize(t) - 1);
+
+    BitVector c_hi = c.getConst<BitVector>().extract(utils::getSize(c) - 1,
+                                                     utils::getSize(t));
+    BitVector zero = BitVector(c_hi.getSize(), Integer(0));
+
+    return c_hi == zero;
+  }
+  return false;
+}
+
+template <>
+inline Node RewriteRule<ZeroExtendUltConst>::apply(TNode node) {
+  TNode t, c;
+  bool is_lhs = node[0].getKind() == kind::BITVECTOR_ZERO_EXTEND;
+  if (is_lhs) {
+    t = node[0][0];
+    c = node[1];
+  } else {
+    t = node[1][0];
+    c = node[0];
+  }
+  Node c_lo =
+      utils::mkConst(c.getConst<BitVector>().extract(utils::getSize(t) - 1, 0));
+
+  if (is_lhs) {
+    return NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, t, c_lo);
+  }
+  return NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, c_lo, t);
 }
 
 /**
