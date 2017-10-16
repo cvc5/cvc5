@@ -29,15 +29,11 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdo.h"
+#include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
 namespace theory {
-
-namespace quantifiers {
-  class CegConjecture;
-}
-
 namespace datatypes {
 
 class TheoryDatatypes;

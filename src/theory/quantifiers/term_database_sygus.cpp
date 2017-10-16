@@ -19,10 +19,10 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
+#include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 

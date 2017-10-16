@@ -14,15 +14,15 @@
  ** Implementation of sygus utilities for theory of datatypes
  **/
 
+#include "theory/datatypes/datatypes_sygus.h"
 
 #include "expr/node_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/datatypes/datatypes_sygus.h"
+#include "theory/datatypes/theory_datatypes.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/datatypes/theory_datatypes.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4;
