@@ -35,6 +35,7 @@ void indent( const char * c, int ind ) {
     }
   } 
 }
+
 void print_val( const char * c, std::vector< Node >& vals, bool pol = true ){
   if( Trace.isOn(c) ){
     for( unsigned i=0; i<vals.size(); i++ ){
@@ -43,21 +44,23 @@ void print_val( const char * c, std::vector< Node >& vals, bool pol = true ){
     }
   }
 }
-void print_strat( const char * c, unsigned s ){
-  switch(s){
-  case CegConjecturePbe::strat_ITE:Trace(c) << "ITE";break;
-  case CegConjecturePbe::strat_CONCAT:Trace(c) << "CONCAT";break;
-  case CegConjecturePbe::strat_ID:Trace(c) << "ID";break;
-  default:Trace(c) << "strat_" << s;break;
-  }
-}
-void print_role( const char * c, unsigned r ){
+
+void CegConjecturePbe::print_role( const char * c, unsigned r ){
   switch(r){
   case CegConjecturePbe::enum_io:Trace(c) << "IO";break;
   case CegConjecturePbe::enum_ite_condition:Trace(c) << "CONDITION";break;
   case CegConjecturePbe::enum_concat_term:Trace(c) << "CTERM";break;
   case CegConjecturePbe::enum_any:Trace(c) << "ANY";break;
   default:Trace(c) << "role_" << r;break;
+  }
+}
+
+void CegConjecturePbe::print_strat( const char * c, unsigned s ){
+  switch(s){
+  case CegConjecturePbe::strat_ITE:Trace(c) << "ITE";break;
+  case CegConjecturePbe::strat_CONCAT:Trace(c) << "CONCAT";break;
+  case CegConjecturePbe::strat_ID:Trace(c) << "ID";break;
+  default:Trace(c) << "strat_" << s;break;
   }
 }
 

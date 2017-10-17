@@ -57,7 +57,7 @@ class CegEntailmentInfer;
 *     of particular types in the grammar through use of fresh variables which 
 *     we call "enumerators".
 *
-* Points (1)-(3) happen within a call to initialize(...).
+* Points (1)-(3) happen within a call to CegConjecturePbe::initialize(...).
 *
 * Notice that each enumerator is associated with a single function-to-synthesize,
 * but a function-to-sythesize may be mapped to multiple enumerators.
@@ -75,35 +75,24 @@ class CegEntailmentInfer;
 *     f = \x ite( x<0, x+1, x ) and f = \x x 
 *     are equivalent up to examples on the above conjecture, since they have the same
 *     value on the points x = 0,5,6. Hence, we need only consider one of them.
-*     The interface for querying this is addSearchVal(...) below.
+*     The interface for querying this is CegConjecturePbe::addSearchVal(...).
 *     For details, see Reynolds et al. SYNT 2017.
 * 
 * (5) When the extension of quantifier-free datatypes procedure for SyGuS datatypes
-*     terminates with a model, the parent of this class calls getCandidateList(...), 
-*     where this class returns the list of active enumerators.
-* (6) The parent class subsequently calls constructValues(...), which
+*     terminates with a model, the parent of this class calls 
+*     CegConjecturePbe::getCandidateList(...), where this class returns the list of 
+*     active enumerators.
+* (6) The parent class subsequently calls CegConjecturePbe::constructValues(...), which
 *     informs this class that new values have been enumerated for active enumerators,
 *     as indicated by the current model. This call also requests that based on these
 *     newly enumerated values, whether this class is now able to construct a solution
 *     based on the high-level strategy (stored in d_c_info).
 *
-* This class is not designed to work in incremental mode, since there is no way to specify
-* incremental problems in SyguS.
+* This class is not designed to work in incremental mode, since there is no way to 
+* specify incremental problems in SyguS.
 *
 */
 class CegConjecturePbe {
-public:  
-  enum {
-    enum_io,
-    enum_ite_condition,
-    enum_concat_term,
-    enum_any,
-  };
-  enum {
-    strat_ITE,
-    strat_CONCAT,
-    strat_ID,
-  };
 public:
   CegConjecturePbe( QuantifiersEngine * qe, CegConjecture * p );
   ~CegConjecturePbe();
@@ -221,12 +210,7 @@ private:
   //--------------------------------- PBE search values
   /** this class is an index of candidate solutions for PBE synthesis */
   class PbeTrie {
-   private:
-    Node addPbeExampleEval(TypeNode etn, Node e, Node b, std::vector<Node>& ex,
-                           CegConjecturePbe* cpbe, unsigned index,
-                           unsigned ntotal);
-
-   public:
+  public:
     PbeTrie() {}
     ~PbeTrie() {}
     Node d_lazy_child;
@@ -234,13 +218,17 @@ private:
     void clear() { d_children.clear(); }
     Node addPbeExample(TypeNode etn, Node e, Node b, CegConjecturePbe* cpbe,
                        unsigned index, unsigned ntotal);
+  private:
+    Node addPbeExampleEval(TypeNode etn, Node e, Node b, std::vector<Node>& ex,
+                           CegConjecturePbe* cpbe, unsigned index,
+                           unsigned ntotal);
   };
-  /** trie of candidate solutions tried, for each (enumerator, type),
-   * where type is a type in the grammar of the space of solutions for a subterm
-   * of e. This is used for symmetry breaking in quantifier-free reasoning
-   * about SyGuS datatypes.
-   * For details, see Reynolds et al. SYNT 2017.
-   */
+  /** trie of candidate solutions tried
+  * This stores information for each (enumerator, type),
+  * where type is a type in the grammar of the space of solutions for a subterm
+  * of e. This is used for symmetry breaking in quantifier-free reasoning
+  * about SyGuS datatypes.
+  */
   std::map<Node, std::map<TypeNode, PbeTrie> > d_pbe_trie;
   //--------------------------------- end PBE search values
   
@@ -258,9 +246,6 @@ private:
   };  
   // subsumption trie
   class SubsumeTrie {
-  private:
-    Node addTermInternal( CegConjecturePbe * pbe, Node t, std::vector< Node >& vals, bool pol, std::vector< Node >& subsumed, bool spol, IndexFilter * f, 
-                          unsigned index, int status, bool checkExistsOnly, bool checkSubsume );
   public:
     SubsumeTrie(){}
     // adds term to the trie, removes based on subsumption
@@ -281,24 +266,49 @@ private:
       d_children.clear(); 
     }
   private:
+    /** the term at this node */
     Node d_term;
+    /** the children nodes of this trie */
     std::map< Node, SubsumeTrie > d_children;
+    /** helper function for above functions */
+    Node addTermInternal( CegConjecturePbe * pbe, Node t, std::vector< Node >& vals, bool pol, std::vector< Node >& subsumed, bool spol, IndexFilter * f, 
+                          unsigned index, int status, bool checkExistsOnly, bool checkSubsume );
+    /** helper function for above functions */
     void getLeavesInternal( CegConjecturePbe * pbe, std::vector< Node >& vals, bool pol, std::map< int, std::vector< Node > >& v, IndexFilter * f, 
                             unsigned index, int status );
   };
   // -------------------------------- end decision tree learning
   
   //------------------------------ representation of a enumeration strategy
+  /** roles for enumerators */
+  enum {
+    enum_io,
+    enum_ite_condition,
+    enum_concat_term,
+    enum_any,
+  };
+  /** print the role with Trace c. */
+  static void print_role( const char * c, unsigned r );
+  /** strategies for SyGuS datatype types */
+  enum {
+    strat_ITE,
+    strat_CONCAT,
+    strat_ID,
+  };  
+  /** print the strategy with Trace c. */
+  static void print_strat( const char * c, unsigned s );
+  /** information about an enumerator */
   class EnumInfo {
-  private:
-    Node d_enum_solved;
-    // the role of this enumerator (one of enum_* above).
-    unsigned d_role;   
   public:
     EnumInfo() : d_role( enum_io ){}
+    /** initialize this infomration class 
+    * c is the parent function-to-synthesize 
+    * role is the "role" the enumerator plays in the high-level strategy,
+    *   which is one of enum_* above.
+    */
     void initialize( Node c, unsigned role ){
       d_parent_candidate = c;
-      d_rold = role;
+      d_role = role;
     }
     bool isTemplated() { return !d_template.isNull(); }
     void addEnumValue( CegConjecturePbe * pbe, Node v, std::vector< Node >& results );
@@ -308,11 +318,9 @@ private:
     unsigned getRole() { return d_role; }
     
     Node d_parent_candidate;
-    
     // for template
     Node d_template;
     Node d_template_arg;
-    
     
     Node d_active_guard;
     std::vector< Node > d_enum_slave;
@@ -325,9 +333,16 @@ private:
     std::vector< Node > d_enum_subsume;
     std::map< Node, unsigned > d_enum_val_to_index;
     SubsumeTrie d_term_trie;
+  private:
+    /** whether an enumerated value for this conjecture has solved the entire conjecture */
+    Node d_enum_solved;
+    /** the role of this enumerator (one of enum_* above). */
+    unsigned d_role;
   };
+  /** maps enumerators to the information above */
   std::map< Node, EnumInfo > d_einfo;
   class CandidateInfo;
+  /** represents a strategy for a SyGuS datatype type */
   class EnumTypeInfoStrat {
   public:
     unsigned d_this;
@@ -335,6 +350,7 @@ private:
     std::vector< TypeNode > d_csol_cts;
     std::vector< Node > d_cenum;
   };
+  /** stores enumerators and strategies for a SyGuS datatype type */
   class EnumTypeInfo {
   public:
     EnumTypeInfo() : d_parent( NULL ){}
@@ -346,14 +362,21 @@ private:
     std::map< Node, EnumTypeInfoStrat > d_strat;
     bool isSolved( CegConjecturePbe * pbe );
   };
+  /** stores strategy and enumeration information for a function-to-synthesize */
   class CandidateInfo {
   public:
     CandidateInfo() : d_check_sol( false ), d_cond_count( 0 ){}
     Node d_this_candidate;
+    /** root SyGuS datatype for the function-to-synthesize,
+    * which encodes the overall syntactic restrictions on the space
+    * of solutions.
+    */
     TypeNode d_root;
+    /** Information for each SyGuS datatype type occurring in a field of d_root */
     std::map< TypeNode, EnumTypeInfo > d_tinfo;
+    /** list of all enumerators for the function-to-synthesize */
     std::vector< Node > d_esym_list;
-    // role -> sygus type -> enumerator
+    /** maps sygus datatypes to their enumerator */
     std::map< TypeNode, Node > d_search_enum;
     bool d_check_sol;
     unsigned d_cond_count;
@@ -363,7 +386,7 @@ private:
     Node getRootEnumerator();
     bool isNonTrivial();
   };
-  //  candidate -> sygus type -> info
+  /** maps a function-to-synthesize to the above information */
   std::map< Node, CandidateInfo > d_cinfo;
   //------------------------------ representation of an enumeration strategy
   /** add enumerated value */
@@ -416,11 +439,11 @@ private:
   };
   /** construct solution */
   Node constructSolution( Node c );
+  /** helper function for construct solution.
+  * Construct a solution based on enumerator e for function-to-synthesize c,
+  * in context x, where ind is the term depth of the context.
+  */
   Node constructSolution( Node c, Node e, UnifContext& x, int ind );
-  
-  void getStringIncrement( bool isPrefix, Node c, Node v,                                     
-                           std::map< Node, unsigned > total_inc, 
-                           std::map< Node, std::vector< unsigned > > incr );
   /** Heuristically choose the best solved term in context x, currently return the first. */
   Node constructBestSolvedTerm( std::vector< Node >& solved, UnifContext& x );
   /** Heuristically choose the best solved string term in context x, currently  return the first. */
