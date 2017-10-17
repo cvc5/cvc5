@@ -8,6 +8,21 @@
 using namespace CVC4;
 using namespace std;
 
+//static void
+//print_matrix_dbg (std::vector< Integer > & rhs,
+//                  std::vector< std::vector< Integer >> & lhs)
+//{
+//  for (size_t m = 0, nrows = lhs.size(), ncols = lhs[0].size(); m < nrows; ++m)
+//  {
+//    for (size_t n = 0; n < ncols; ++n)
+//    {
+//      std::cout << " " << lhs[m][n];
+//    }
+//    std::cout << " " << rhs[m];
+//    std::cout << std::endl;
+//  }
+//}
+
 namespace CVC4 {
 namespace theory {
 namespace bv {
@@ -204,6 +219,7 @@ BVGaussElim::gaussElimRewriteForUrem (
       iprime = prime.getConst< BitVector >().getValue();
     }
 
+    //cout << "prime " << iprime << endl;
     unordered_map< Node, Integer, NodeHashFunction > tmp;
     bool isvalid = true;
     stack< Node > stack;
@@ -313,7 +329,9 @@ BVGaussElim::gaussElimRewriteForUrem (
   for (size_t i = 0; i < nrows; ++i)
   {
     for (auto p : vars)
+    { //cout << "var " << p.first << endl;
       lhs[i].push_back (p.second[i]);
+    }
   }
 
 #ifdef CVC4_ASSERTIONS
@@ -324,7 +342,9 @@ BVGaussElim::gaussElimRewriteForUrem (
 
   if (lhs.size() > lhs[0].size()) return BVGaussElim::Result::NONE;
 
+  //print_matrix_dbg(rhs,lhs);
   Result ret = gaussElim (iprime, rhs, lhs, resrhs, reslhs);
+  //print_matrix_dbg(resrhs,reslhs);
   if (ret != BVGaussElim::Result::NONE)
   {
     vector< Node > vvars;
@@ -347,6 +367,9 @@ BVGaussElim::gaussElimRewriteForUrem (
     else
     {
       Assert (ret == BVGaussElim::Result::PARTIAL);
+      unsigned bw = utils::getSize(vvars[0]);
+      Node zerobw = utils::mkZero (bw), zero1 = utils::mkZero (1);
+
       for (size_t pcol = 0, prow = 0;
            pcol < nvars && pcol < nrows;
            ++pcol, ++prow)
@@ -364,37 +387,52 @@ BVGaussElim::gaussElimRewriteForUrem (
           /* Normalize (no negative numbers, hence no subtraction)
            * e.g., x = 4 - 2y  --> x = 4 + 9y (modulo 11) */
           Integer m = iprime - reslhs[prow][i];
-          Node bv = nm->mkConst< BitVector > (
-              BitVector (utils::getSize(vvars[i]), m));
-          Node mult = nm->mkNode (kind::BITVECTOR_MULT, vvars[i], bv);
+          Node bv = nm->mkConst< BitVector > (BitVector (2*bw, m));
+          Node mult = utils::mkConcat (
+              zero1,
+              nm->mkNode (kind::BITVECTOR_MULT,
+                utils::mkConcat (zerobw, vvars[i]), bv));
           stack.push (mult);
         }
+
+
         if (stack.empty())
         {
           res[vvars[pcol]] = nm->mkConst< BitVector > (
-              BitVector (utils::getSize(vvars[pcol]), resrhs[prow]));
+              BitVector (bw, resrhs[prow]));
         }
         else
         {
           Node tmp = stack.top();
+          Assert (utils::getSize (tmp) == 2*bw+1);
           stack.pop();
           if (resrhs[prow] != 0)
+          {
             tmp = nm->mkNode (kind::BITVECTOR_PLUS,
-                nm->mkConst< BitVector >(
-                  BitVector (utils::getSize(vvars[pcol]), resrhs[prow])),
+                nm->mkConst< BitVector >(BitVector (2*bw+1, resrhs[prow])),
                 tmp);
+          }
           while (!stack.empty())
           {
+            Assert (utils::getSize (stack.top()) == 2*bw+1);
+            Assert (utils::getSize (tmp) == 2*bw+1);
             tmp = nm->mkNode (kind::BITVECTOR_PLUS, tmp, stack.top());
             stack.pop();
           }
           if (tmp.getKind() == kind::CONST_BITVECTOR)
           {
+            Assert (utils::getSize (tmp) == bw);
             res[vvars[pcol]] = tmp;
           }
           else
           {
-            res[vvars[pcol]] = nm->mkNode (kind::BITVECTOR_UREM, tmp, prime);
+            Assert (utils::getSize (tmp) == 2*bw+1);
+            res[vvars[pcol]] = utils::mkExtract (
+              nm->mkNode (kind::BITVECTOR_UREM,
+                tmp,
+                utils::mkConcat (utils::mkZero (bw+1), prime)),
+              bw-1,
+              0);
           }
         }
       }
