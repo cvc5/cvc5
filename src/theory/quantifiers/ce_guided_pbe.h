@@ -33,8 +33,8 @@ class CegEntailmentInfer;
 *
 * This class implements optimizations that target synthesis conjectures
 * that are in Programming-By-Examples (PBE) form.
-* [EX#1] An example of a synthesis conjecture in PBE form i s:
 *
+* [EX#1] An example of a synthesis conjecture in PBE form is :
 * exists f. forall x. 
 * ( x = 0 => f( x ) = 2 ) ^ ( x = 5 => f( x ) = 7 ) ^ ( x = 6 => f( x ) = 8 )
 *
@@ -280,6 +280,7 @@ private:
   // -------------------------------- end decision tree learning
   
   //------------------------------ representation of a enumeration strategy
+  
   /** roles for enumerators */
   enum {
     enum_io,
@@ -297,11 +298,12 @@ private:
   };  
   /** print the strategy with Trace c. */
   static void print_strat( const char * c, unsigned s );
+  
   /** information about an enumerator */
   class EnumInfo {
   public:
     EnumInfo() : d_role( enum_io ){}
-    /** initialize this infomration class 
+    /** initialize this class 
     * c is the parent function-to-synthesize 
     * role is the "role" the enumerator plays in the high-level strategy,
     *   which is one of enum_* above.
@@ -341,6 +343,8 @@ private:
   };
   /** maps enumerators to the information above */
   std::map< Node, EnumInfo > d_einfo;
+  
+  
   class CandidateInfo;
   /** represents a strategy for a SyGuS datatype type */
   class EnumTypeInfoStrat {
@@ -350,6 +354,8 @@ private:
     std::vector< TypeNode > d_csol_cts;
     std::vector< Node > d_cenum;
   };
+  
+  
   /** stores enumerators and strategies for a SyGuS datatype type */
   class EnumTypeInfo {
   public:
@@ -362,6 +368,8 @@ private:
     std::map< Node, EnumTypeInfoStrat > d_strat;
     bool isSolved( CegConjecturePbe * pbe );
   };
+  
+  
   /** stores strategy and enumeration information for a function-to-synthesize */
   class CandidateInfo {
   public:
@@ -388,6 +396,7 @@ private:
   };
   /** maps a function-to-synthesize to the above information */
   std::map< Node, CandidateInfo > d_cinfo;
+  
   //------------------------------ representation of an enumeration strategy
   /** add enumerated value */
   void addEnumeratedValue( Node x, Node v, std::vector< Node >& lems );
@@ -444,22 +453,29 @@ private:
   * in context x, where ind is the term depth of the context.
   */
   Node constructSolution( Node c, Node e, UnifContext& x, int ind );
-  /** Heuristically choose the best solved term in context x, currently return the first. */
+  /** Heuristically choose the best solved term from solved in context x, currently return the first. */
   Node constructBestSolvedTerm( std::vector< Node >& solved, UnifContext& x );
-  /** Heuristically choose the best solved string term in context x, currently  return the first. */
+  /** Heuristically choose the best solved string term  from solved in context x, currently  return the first. */
   Node constructBestStringSolvedTerm( std::vector< Node >& solved, UnifContext& x );
-  /** heuristically choose the best solved conditional term in context x, currently random */
+  /** heuristically choose the best solved conditional term  from solved in context x, currently random */
   Node constructBestSolvedConditional( std::vector< Node >& solved, UnifContext& x );
-  /** heuristically choose the best conditional term in context x, currently random */
+  /** heuristically choose the best conditional term  from conds in context x, currently random */
   Node constructBestConditional( std::vector< Node >& conds, UnifContext& x );
-  /** heuristically choose the best string to concatenate to the solution in context x, currently random */
+  /** heuristically choose the best string to concatenate from strs to the solution in context x, currently random 
+  * incr stores the vector of indices that are incremented by this solution in example outputs.
+  * total_inc[x] is the sum of incr[x] for each x in strs.
+  */
   Node constructBestStringToConcat( std::vector< Node > strs,
                                     std::map< Node, unsigned > total_inc, 
                                     std::map< Node, std::vector< unsigned > > incr,
                                     UnifContext& x );
   //------------------------------ end constructing solutions
   
-  /** get guard status */
+  /** get guard status 
+  * Returns 1 if g is asserted true in the SAT solver.
+  * Returns -1 if g is asserted false in the SAT solver.
+  * Returns 0 otherwise.
+  */
   int getGuardStatus( Node g );
 };
 

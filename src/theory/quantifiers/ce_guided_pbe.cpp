@@ -389,9 +389,9 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
       std::map< Node, unsigned > cop_to_strat;
       std::map< Node, unsigned > cop_to_cindex;
       
+      // look at builtin operartors first (when r=0), then defined operators (when r=1)
       for( unsigned r=0; r<2; r++ ){
         for( unsigned j=0; j<dt.getNumConstructors(); j++ ){
-          bool success = false;
           Node cop = Node::fromExpr( dt[j].getConstructor() );
           Node op = Node::fromExpr( dt[j].getSygusOp() );
           if( r==0 ){
@@ -399,7 +399,6 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
             if( op.getKind() == kind::BUILTIN ){
               Kind sk = NodeManager::operatorToKind( op );
               if( sk==kind::ITE ){
-                Trace("sygus-unif") << "...type " << dt.getName() << " has ITE, enumerate child types..." << std::endl;
                 // we can do unification
                 Assert( dt[j].getNumArgs()==3 );
                 cop_to_strat[cop] = strat_ITE;
@@ -407,9 +406,11 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
                 if( dt[j].getNumArgs()==2 ) {
                   cop_to_strat[cop] = strat_CONCAT;
                 }
-                Trace("sygus-unif") << "...type " << dt.getName() << " has CONCAT, child types successful = " << success << std::endl;
               }
               if( cop_to_strat.find( cop )!=cop_to_strat.end() ){
+                Trace("sygus-unif") << "...type " << dt.getName() << " has strategy ";
+                print_strat("sygus-unif",cop_to_strat[cop]); 
+                Trace("sygus-unif") << "..." << std::endl;
                 // add child types
                 for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
                   TypeNode ct = TypeNode::fromType( dt[j][k].getRangeType() );
@@ -419,7 +420,7 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
               }
             }
           }else if( cop_to_strat.find( cop )==cop_to_strat.end() ){
-            // could be a defined function (this is a hack for ICFP benchmarks)
+            // could be a defined function (this handles the ICFP benchmarks)
             std::vector< Node > utchildren;
             utchildren.push_back( cop );
             std::vector< Node > sks;
@@ -451,7 +452,7 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
                 cop_to_strat[cop] = strat_ITE;
               }
             }else if( eut.getKind()==kind::STRING_CONCAT ){
-              if( dt[j].getNumArgs()>=eut.getNumChildren() ){
+              if( dt[j].getNumArgs()>=eut.getNumChildren() && eut.getNumChildren()==2 ){
                 cop_to_strat[cop] = strat_CONCAT;
               }
             }else if( eut.getKind()==kind::APPLY_UF ){
@@ -507,7 +508,8 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
               }
               if( cop_to_strat.find( cop )!=cop_to_strat.end() ){
                 Trace("sygus-unif") << "...type " << dt.getName() << " has defined constructor matching strategy ";
-                Trace("sygus-unif") << cop_to_strat[cop] << ", enumerate child types..." << std::endl;
+                print_strat("sygus-unif",cop_to_strat[cop]);
+                Trace("sygus-unif") << "..." << std::endl;
                 for( unsigned k=0; k<eut.getNumChildren(); k++ ){
                   Assert( templ_injection.find( k )!=templ_injection.end() );
                   unsigned sk_index = templ_injection[k];
