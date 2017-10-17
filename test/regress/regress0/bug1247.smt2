@@ -1,4 +1,5 @@
-(set-option :incremental true)
+; COMMAND-LINE: --incremental
+; EXPECT: unsat
 (set-logic QF_ABV)
 (set-info :status unsat)
 
