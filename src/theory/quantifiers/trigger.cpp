@@ -722,34 +722,6 @@ int Trigger::getActiveScore() {
   return d_mg->getActiveScore( d_quantEngine );
 }
 
-Trigger* TriggerTrie::getTrigger2( std::vector< Node >& nodes ){
-  if( nodes.empty() ){
-    return d_tr.empty() ? NULL : d_tr[0];
-  }else{
-    Node n = nodes.back();
-    nodes.pop_back();
-    if( d_children.find( n )!=d_children.end() ){
-      return d_children[n]->getTrigger2( nodes );
-    }else{
-      return NULL;
-    }
-  }
-}
-
-void TriggerTrie::addTrigger2( std::vector< Node >& nodes, Trigger* t ){
-  if( nodes.empty() ){
-    d_tr.push_back( t );
-  }else{
-    Node n = nodes.back();
-    nodes.pop_back();
-    if( d_children.find( n )==d_children.end() ){
-      d_children[n] = new TriggerTrie;
-    }
-    d_children[n]->addTrigger2( nodes, t );
-  }
-}
-
-
 TriggerTrie::TriggerTrie()
 {}
 
@@ -766,6 +738,42 @@ TriggerTrie::~TriggerTrie() {
   }
 }
 
+inst::Trigger* TriggerTrie::getTrigger( std::vector< Node >& nodes ){
+  std::vector< Node > temp;
+  temp.insert( temp.begin(), nodes.begin(), nodes.end() );
+  std::sort( temp.begin(), temp.end() );
+  TriggerTrie * tt = this;
+  for( unsigned i=0; i<temp.size(); i++ ){
+    Node n = temp[i];
+    std::map< TNode, TriggerTrie* >::iterator itt = tt->d_children.find( n );
+    if( itt==tt->d_children.end() ){
+      return NULL;
+    }else{
+      tt = itt->second;
+    }
+  }
+  return tt->d_tr.empty() ? NULL : tt->d_tr[0];
+}
+  
+void TriggerTrie::addTrigger( std::vector< Node >& nodes, inst::Trigger* t ){
+  std::vector< Node > temp;
+  temp.insert( temp.begin(), nodes.begin(), nodes.end() );
+  std::sort( temp.begin(), temp.end() );
+  TriggerTrie * tt = this;
+  for( unsigned i=0; i<temp.size(); i++ ){
+    Node n = temp[i];
+    std::map< TNode, TriggerTrie* >::iterator itt = tt->d_children.find( n );
+    if( itt==tt->d_children.end() ){
+      TriggerTrie * ttn = new TriggerTrie;
+      tt->d_children[n] = ttn;
+      tt = ttn;
+    }else{
+      tt = itt->second;
+    }
+  }
+  tt->d_tr.push_back( t );
+}
+  
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
