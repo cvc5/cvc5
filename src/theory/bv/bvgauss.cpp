@@ -8,20 +8,20 @@
 using namespace CVC4;
 using namespace std;
 
-//static void
-//print_matrix_dbg (std::vector< Integer > & rhs,
-//                  std::vector< std::vector< Integer >> & lhs)
-//{
-//  for (size_t m = 0, nrows = lhs.size(), ncols = lhs[0].size(); m < nrows; ++m)
-//  {
-//    for (size_t n = 0; n < ncols; ++n)
-//    {
-//      std::cout << " " << lhs[m][n];
-//    }
-//    std::cout << " " << rhs[m];
-//    std::cout << std::endl;
-//  }
-//}
+static void
+print_matrix_dbg (std::vector< Integer > & rhs,
+                  std::vector< std::vector< Integer >> & lhs)
+{
+  for (size_t m = 0, nrows = lhs.size(), ncols = lhs[0].size(); m < nrows; ++m)
+  {
+    for (size_t n = 0; n < ncols; ++n)
+    {
+      std::cout << " " << lhs[m][n];
+    }
+    std::cout << " " << rhs[m];
+    std::cout << std::endl;
+  }
+}
 
 namespace CVC4 {
 namespace theory {
@@ -329,7 +329,7 @@ BVGaussElim::gaussElimRewriteForUrem (
   for (size_t i = 0; i < nrows; ++i)
   {
     for (auto p : vars)
-    { //cout << "var " << p.first << endl;
+    { cout << "var " << p.first << endl;
       lhs[i].push_back (p.second[i]);
     }
   }
@@ -342,9 +342,9 @@ BVGaussElim::gaussElimRewriteForUrem (
 
   if (lhs.size() > lhs[0].size()) return BVGaussElim::Result::NONE;
 
-  //print_matrix_dbg(rhs,lhs);
+  print_matrix_dbg(rhs,lhs);
   Result ret = gaussElim (iprime, rhs, lhs, resrhs, reslhs);
-  //print_matrix_dbg(resrhs,reslhs);
+  print_matrix_dbg(resrhs,reslhs);
   if (ret != BVGaussElim::Result::NONE)
   {
     vector< Node > vvars;
