@@ -23,6 +23,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class CegConjecture;
+
 class SygusInvarianceTest {
 protected:
   // check whether nvn[ x ] should be excluded
@@ -50,6 +52,7 @@ protected:
   bool invariant( quantifiers::TermDbSygus * tds, Node nvn, Node x );
 };
 
+// TODO :issue #1235 split and document this class
 class TermDbSygus {
 private:
   /** reference to the quantifiers engine */
@@ -78,38 +81,45 @@ private:
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 private:
-  // stores root
-  std::map< Node, Node > d_measured_term;
-  std::map< Node, Node > d_measured_term_active_guard;
-  //information for sygus types
-  std::map< TypeNode, TypeNode > d_register;  //stores sygus -> builtin type
-  std::map< TypeNode, std::vector< Node > > d_var_list;
-  std::map< TypeNode, std::map< int, Kind > > d_arg_kind;
-  std::map< TypeNode, std::map< Kind, int > > d_kinds;
-  std::map< TypeNode, std::map< int, Node > > d_arg_const;
-  std::map< TypeNode, std::map< Node, int > > d_consts;
-  std::map< TypeNode, std::map< Node, int > > d_ops;
-  std::map< TypeNode, std::map< int, Node > > d_arg_ops;
-  std::map< TypeNode, std::vector< int > > d_id_funcs;
-  std::map< TypeNode, std::vector< Node > > d_const_list; //sorted list of constants for type
-  std::map< TypeNode, unsigned > d_const_list_pos;
-  std::map< TypeNode, std::map< Node, Node > > d_semantic_skolem;
-  //information for builtin types
-  std::map< TypeNode, std::map< int, Node > > d_type_value;
-  std::map< TypeNode, Node > d_type_max_value;
-  std::map< TypeNode, std::map< Node, std::map< int, Node > > > d_type_value_offset;
-  std::map< TypeNode, std::map< Node, std::map< int, int > > > d_type_value_offset_status;
-  //normalized map
-  std::map< TypeNode, std::map< Node, Node > > d_normalized;
-  std::map< TypeNode, std::map< Node, Node > > d_sygus_to_builtin;
-  std::map< TypeNode, std::map< Node, Node > > d_builtin_const_to_sygus;
-  // grammar information
-  // root -> type -> _
-  std::map< TypeNode, std::map< TypeNode, unsigned > > d_min_type_depth;
-  //std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > > d_consider_const;
-  // type -> cons -> _
-  std::map< TypeNode, unsigned > d_min_term_size;
-  std::map< TypeNode, std::map< unsigned, unsigned > > d_min_cons_term_size;
+ /** mapping from enumerator terms to the conjecture they are associated with */
+ std::map<Node, CegConjecture*> d_enum_to_conjecture;
+ /** mapping from enumerator terms to the guard they are associated with
+ * The guard G for an enumerator e has the semantics
+ *   "if G is true, then there are more values of e to enumerate".
+ */
+ std::map<Node, Node> d_enum_to_active_guard;
+ // information for sygus types
+ std::map<TypeNode, TypeNode> d_register;  // stores sygus -> builtin type
+ std::map<TypeNode, std::vector<Node> > d_var_list;
+ std::map<TypeNode, std::map<int, Kind> > d_arg_kind;
+ std::map<TypeNode, std::map<Kind, int> > d_kinds;
+ std::map<TypeNode, std::map<int, Node> > d_arg_const;
+ std::map<TypeNode, std::map<Node, int> > d_consts;
+ std::map<TypeNode, std::map<Node, int> > d_ops;
+ std::map<TypeNode, std::map<int, Node> > d_arg_ops;
+ std::map<TypeNode, std::vector<int> > d_id_funcs;
+ std::map<TypeNode, std::vector<Node> >
+     d_const_list;  // sorted list of constants for type
+ std::map<TypeNode, unsigned> d_const_list_pos;
+ std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
+ // information for builtin types
+ std::map<TypeNode, std::map<int, Node> > d_type_value;
+ std::map<TypeNode, Node> d_type_max_value;
+ std::map<TypeNode, std::map<Node, std::map<int, Node> > > d_type_value_offset;
+ std::map<TypeNode, std::map<Node, std::map<int, int> > >
+     d_type_value_offset_status;
+ // normalized map
+ std::map<TypeNode, std::map<Node, Node> > d_normalized;
+ std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
+ std::map<TypeNode, std::map<Node, Node> > d_builtin_const_to_sygus;
+ // grammar information
+ // root -> type -> _
+ std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
+ // std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > >
+ // d_consider_const;
+ // type -> cons -> _
+ std::map<TypeNode, unsigned> d_min_term_size;
+ std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
 public:
   TermDbSygus( context::Context* c, QuantifiersEngine* qe );
   ~TermDbSygus(){}
@@ -118,13 +128,20 @@ public:
 public:
   /** register the sygus type */
   void registerSygusType( TypeNode tn );
-  /** register a term that we will do enumerative search on */
-  void registerMeasuredTerm( Node e, Node root, bool mkActiveGuard = false );
-  /** is measured term */
-  Node isMeasuredTerm( Node e );
-  /** get active guard */
+  /** register a variable e that we will do enumerative search on
+   * conj is the conjecture that the enumeration for e is for.
+   * mkActiveGuard is whether we want to make a active guard for e (see
+   * d_enum_to_active_guard)
+   */
+  void registerMeasuredTerm(Node e, CegConjecture* conj,
+                            bool mkActiveGuard = false);
+  /** is e a measured term (enumerator)? */
+  bool isMeasuredTerm(Node e) const;
+  /** return the conjecture e is associated with */
+  CegConjecture* getConjectureFor(Node e);
+  /** get active guard for e */
   Node getActiveGuardForMeasureTerm( Node e );
-  /** get measured terms */
+  /** get all registered measure terms (enumerators) */
   void getMeasuredTerms( std::vector< Node >& mts );
 public:  //general sygus utilities
   bool isRegistered( TypeNode tn );
@@ -239,7 +256,6 @@ public:
   void getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et );
   // builtin evaluation, returns rewrite( bn [ args / vars(tn) ] )
   Node evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& args );
-  Node evaluateBuiltin( TypeNode tn, Node bn, Node ar, unsigned i );
   // evaluate with unfolding
   Node evaluateWithUnfolding( Node n, std::map< Node, Node >& visited );
   Node evaluateWithUnfolding( Node n );
@@ -256,78 +272,12 @@ private:
 public:
   bool isGenericRedundant( TypeNode tn, unsigned i );
   
-//sygus pbe
-private:
-  std::map< Node, std::vector< std::vector< Node > > > d_pbe_exs;
-  std::map< Node, std::vector< Node > > d_pbe_exos;
-  std::map< Node, unsigned > d_pbe_term_id;
-private:
-  class PbeTrie {
-  private:
-    Node addPbeExampleEval( TypeNode etn, Node e, Node b, std::vector< Node >& ex, quantifiers::TermDbSygus * tds, unsigned index, unsigned ntotal );
-  public:
-    PbeTrie(){}
-    ~PbeTrie(){}
-    Node d_lazy_child;
-    std::map< Node, PbeTrie > d_children;
-    void clear() { d_children.clear(); }
-    Node addPbeExample( TypeNode etn, Node e, Node b, TermDbSygus * tds, unsigned index, unsigned ntotal );
-  };
-  std::map< Node, std::map< TypeNode, PbeTrie > > d_pbe_trie;
-public:
-  /** register examples for an enumerative search term. 
-      This should be a comprehensive set of examples. */
-  void registerPbeExamples( Node e, std::vector< std::vector< Node > >& exs, 
-                            std::vector< Node >& exos, std::vector< Node >& exts );
-  /** get examples */
-  bool hasPbeExamples( Node e );
-  unsigned getNumPbeExamples( Node e );
-  /** return value is the required value for the example */
-  void getPbeExample( Node e, unsigned i, std::vector< Node >& ex );
-  Node getPbeExampleOut( Node e, unsigned i );
-  int getPbeExampleId( Node n );
-  /** add the search val, returns an equivalent value (possibly the same) */
-  Node addPbeSearchVal( TypeNode tn, Node e, Node bvr );
-
 // extended rewriting
 private:
   std::map< Node, Node > d_ext_rewrite_cache;
   Node extendedRewritePullIte( Node n );
 public:
   Node extendedRewrite( Node n );
-  
-// for grammar construction
-private:
-  // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
-  TypeNode mkUnresolvedType(const std::string& name, std::set<Type>& unres);
-  // make the builtin constants for type type that should be included in a sygus grammar
-  void mkSygusConstantsForType( TypeNode type, std::vector<CVC4::Node>& ops );
-  // collect the list of types that depend on type range
-  void collectSygusGrammarTypesFor( TypeNode range, std::vector< TypeNode >& types, std::map< TypeNode, std::vector< DatatypeConstructorArg > >& sels );
-  // helper function for function mkSygusDefaultGrammar below
-  //   collects a set of mutually recursive datatypes "datatypes" corresponding to encoding type "range" to SyGuS
-  //   unres is used for the resulting call to mkMutualDatatypeTypes
-  void mkSygusDefaultGrammar( TypeNode range, Node bvl, const std::string& fun, std::map< TypeNode, std::vector< Node > >& extra_cons, 
-                              std::vector< CVC4::Datatype >& datatypes, std::set<Type>& unres );
-  // helper function for mkSygusTemplateType
-  TypeNode mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
-                                const std::string& fun, unsigned& tcount );
-public:
-  // make the default sygus datatype type corresponding to builtin type range
-  //   bvl is the set of free variables to include in the grammar
-  //   fun is for naming
-  //   extra_cons is a set of extra constant symbols to include in the grammar
-  TypeNode mkSygusDefaultType( TypeNode range, Node bvl, const std::string& fun, std::map< TypeNode, std::vector< Node > >& extra_cons );
-  // make the default sygus datatype type corresponding to builtin type range
-  TypeNode mkSygusDefaultType( TypeNode range, Node bvl, const std::string& fun ){
-    std::map< TypeNode, std::vector< Node > > extra_cons;
-    return mkSygusDefaultType( range, bvl, fun, extra_cons );
-  }
-  // make the sygus datatype type that encodes the solution space (lambda templ_arg. templ[templ_arg]) where templ_arg
-  // has syntactic restrictions encoded by sygus type templ_arg_sygus_type
-  //   bvl is the set of free variables to include in the frammar
-  //   fun is for naming
-  TypeNode mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, const std::string& fun );
 };
 
 }/* CVC4::theory::quantifiers namespace */

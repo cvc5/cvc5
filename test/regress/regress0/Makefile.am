@@ -70,7 +70,12 @@ SMT2_TESTS = \
 	hung13sdk_output2.smt2 \
 	declare-funs.smt2 \
 	declare-fun-is-match.smt2 \
-	non-fatal-errors.smt2
+	issue1063-overloading-dt-cons.smt2 \
+	issue1063-overloading-dt-sel.smt2 \
+	issue1063-overloading-dt-fun.smt2 \
+	non-fatal-errors.smt2 \
+	sqrt2-sort-inf-unk.smt2
+
 
 # Regression tests for PL inputs
 CVC_TESTS = \
@@ -181,7 +186,8 @@ BUG_TESTS = \
 	bug605.cvc \
 	bug639.smt2 \
 	bt-test-00.smt2 \
-	bt-test-01.smt2
+	bt-test-01.smt2 \
+	bug1247.smt2
 #bug590.smt2
 
 TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)

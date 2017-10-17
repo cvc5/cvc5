@@ -270,6 +270,8 @@ option sygusMinGrammarAgg --sygus-min-grammar-agg bool :default false
   aggressively minimize sygus grammars
 option sygusAddConstGrammar --sygus-add-const-grammar bool :default true
   statically add constants appearing in conjecture to grammars
+option sygusTemplEmbedGrammar --sygus-templ-embed-grammar bool :default false
+  embed sygus templates into grammars
   
 option sygusInvTemplMode --sygus-inv-templ=MODE CVC4::theory::quantifiers::SygusInvTemplMode :default CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_NONE :include "options/quantifiers_modes.h" :handler stringToSygusInvTemplMode
   template mode for sygus invariant synthesis
@@ -287,7 +289,10 @@ option sygusCRefEval --sygus-cref-eval bool :default true
 option sygusCRefEvalMinExp --sygus-cref-eval-min-exp bool :default true
   use min explain for direct evaluation of refinement lemmas for conflict analysis
   
-# approach applied to general quantified formulas
+option sygusStream --sygus-stream bool :default false
+  enumerate a stream of solutions instead of terminating after the first one
+  
+# CEGQI applied to general quantified formulas
 option cbqi --cbqi bool :read-write :default false
  turns on counterexample-based quantifier instantiation
 option recurseCbqi --cbqi-recurse bool :default true
@@ -298,6 +303,8 @@ option cbqiModel --cbqi-model bool :read-write :default true
  guide instantiations by model values for counterexample-based quantifier instantiation
 option cbqiAll --cbqi-all bool :read-write :default false
  apply counterexample-based instantiation to all quantified formulas
+ 
+# CEGQI for arithmetic
 option cbqiUseInfInt --cbqi-use-inf-int bool :read-write :default false
  use integer infinity for vts in counterexample-based quantifier instantiation
 option cbqiUseInfReal --cbqi-use-inf-real bool :read-write :default false
@@ -319,10 +326,19 @@ option cbqiInnermost --cbqi-innermost bool :read-write :default true
 option cbqiNestedQE --cbqi-nested-qe bool :read-write :default false
  process nested quantified formulas with quantifier elimination in counterexample-based quantifier instantiation
  
+# CEGQI for EPR
 option quantEpr --quant-epr bool :default false :read-write
  infer whether in effectively propositional fragment, use for cbqi
 option quantEprMatching --quant-epr-match bool :default true
  use matching heuristics for EPR instantiation
+ 
+# CEGQI for BV
+option cbqiBv --cbqi-bv bool :read-write :default false
+  use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors
+option cbqiBvInterleaveValue --cbqi-bv-interleave-value bool :read-write :default false
+  interleave model value instantiation with word-level inversion approach
+option cbqiBvSlackIneq --cbqi-bv-slack-ineq bool :read-write :default true
+  use model slack values when solving inequalities with word-level inversion approach
  
 ### local theory extensions options 
 
@@ -356,6 +372,16 @@ option quantAntiSkolem --quant-anti-skolem bool :read-write :default false
 option quantEqualityEngine --quant-ee bool :default false
   maintain congrunce closure over universal equalities
  
+### higher-order options
+
+option hoMatching --ho-matching bool :default true
+  do higher-order matching algorithm for triggers with variable operators
+option hoMatchingVarArgPriority --ho-matching-var-priority bool :default true
+  give priority to variable arguments over constant arguments
+
+option hoMergeTermDb --ho-merge-term-db bool :default true
+  merge term indices modulo equality
+
 ### proof options
 
 option trackInstLemmas --track-inst-lemmas bool :read-write :default false

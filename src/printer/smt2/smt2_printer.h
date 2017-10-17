@@ -48,7 +48,11 @@ public:
   void toStream(std::ostream& out, const CommandStatus* s) const throw();
   void toStream(std::ostream& out, const SExpr& sexpr) const throw();
   void toStream(std::ostream& out, const Model& m) const throw();
-  void toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw();
+  /** print the unsat core to the stream out.
+  * We use the expression names that are stored in the SMT engine associated 
+  * with the core (UnsatCore::getSmtEngine) for printing named assertions.
+  */
+  void toStream(std::ostream& out, const UnsatCore& core) const throw();
 };/* class Smt2Printer */
 
 }/* CVC4::printer::smt2 namespace */

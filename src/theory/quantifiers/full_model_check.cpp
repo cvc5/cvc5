@@ -16,6 +16,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace std;
 using namespace CVC4;
@@ -382,7 +383,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         Node r = fm->getRepresentative( it->second[a] );
         if( Trace.isOn("fmc-model-debug") ){
           std::vector< Node > eqc;
-          ((EqualityQueryQuantifiersEngine*)d_qe->getEqualityQuery())->getEquivalenceClass( r, eqc );
+          d_qe->getEqualityQuery()->getEquivalenceClass( r, eqc );
           Trace("fmc-model-debug") << "   " << (it->second[a]==r);
           Trace("fmc-model-debug") << " : " << it->second[a] << " : " << r << " : ";
           //Trace("fmc-model-debug") << r2 << " : " << ir << " : ";
@@ -536,7 +537,8 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
   
   //make function values
   for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ){
-    m->d_uf_models[ it->first ] = getFunctionValue( fm, it->first, "$x" );
+    Node f_def = getFunctionValue( fm, it->first, "$x" );
+    m->assignFunctionDefinition( it->first, f_def );
   }
   return TheoryEngineModelBuilder::processBuildModel( m );
 }

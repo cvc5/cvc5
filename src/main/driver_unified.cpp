@@ -304,7 +304,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
                   << " assertions:"
                   << (Configuration::isAssertionBuild() ? "on" : "off")
-                  << endl;
+                  << endl << endl;
+        Message() << Configuration::copyright() << endl;
       }
       if(replayParser) {
         // have the replay parser use the declarations input interactively
