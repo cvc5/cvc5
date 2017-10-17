@@ -56,7 +56,6 @@ class SygusSymBreakNew
 private:
   TheoryDatatypes * d_td;
   quantifiers::TermDbSygus * d_tds;
-  context::Context* d_context;
   typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
