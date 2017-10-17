@@ -29,18 +29,52 @@ class CegConjecture;
 class CegConjecturePbe;
 class CegEntailmentInfer;
 
+/** CegConjecturePbe
+*
+* This class implements optimizations that target Programming-By-Examples (PBE)
+* synthesis conjectures.
+* [EX#1] An example of a PBE synthesis conjecture is:
+*
+* exists f. forall x. ( x = 0 => f( x ) = 2 ) ^ ( x = 5 => f( x ) = 7 ) ^ ( x =
+* 6 => f( x ) = 8 )
+*
+* We say that the above conjecture has I/O examples (0)->2, (5)->7, (6)->8.
+*/
 class CegConjecturePbe {
 private:
   QuantifiersEngine* d_qe;
   quantifiers::TermDbSygus * d_tds;
   CegConjecture* d_parent;
 
+  /** for each candidate variable f (a function-to-synthesize), whether the
+  * conjecture is purely PBE for that variable
+  * In other words, all occurrences of f are guarded by equalities that
+  * constraint its arguments to constants.
+  */
   std::map< Node, bool > d_examples_invalid;
+  /** for each candidate variable (function-to-synthesize), whether the
+  * conjecture is purely PBE for that variable.
+  * An example of a conjecture for which d_examples_invalid is false but
+  * d_examples_out_invalid is true is:
+  * exists f. forall x. ( x = 0 => f( x ) > 2 )
+  */
   std::map< Node, bool > d_examples_out_invalid;
+  /** for each candidate variable (function-to-synthesize), input of I/O
+   * examples */
   std::map< Node, std::vector< std::vector< Node > > > d_examples;
+  /** for each candidate variable (function-to-synthesize), output of I/O
+   * examples */
   std::map< Node, std::vector< Node > > d_examples_out;
+  /** the list of example terms (for the example [EX#1] above, this is f( 0 ),
+   * f( 5 ), f( 6 ) */
   std::map< Node, std::vector< Node > > d_examples_term;
-  
+  /** map from enumerators to candidate varaibles (function-to-synthesize). An
+  * enumerator may not be equivalent
+  * to the candidate variable it maps so in synthesis-through-unification
+  * approaches (e.g. decision tree construction).
+  */
+  std::map<Node, Node> d_enum_to_candidate;
+
   void collectExamples( Node n, std::map< Node, bool >& visited, bool hasPol, bool pol );
   bool d_is_pbe;
 public:  
@@ -64,8 +98,49 @@ public:
   void initialize( Node n, std::vector< Node >& candidates, std::vector< Node >& lemmas );
   bool getPbeExamples( Node v, std::vector< std::vector< Node > >& exs, 
                        std::vector< Node >& exos, std::vector< Node >& exts);
+  /** is PBE enabled for any enumerator? */
   bool isPbe() { return d_is_pbe; }
-private:  // for registration
+  /** get candidate for enumerator */
+  Node getCandidateForEnumerator(Node e);
+  /** is the enumerator e associated with I/O example pairs? */
+  bool hasExamples(Node e);
+  /** get number of I/O example pairs for enumerator e */
+  unsigned getNumExamples(Node e);
+  /** get the input arguments for i^th I/O example for e, which is added to the
+   * vector ex */
+  void getExample(Node e, unsigned i, std::vector<Node>& ex);
+  /** get the output value of the i^th I/O example for enumerator e */
+  Node getExampleOut(Node e, unsigned i);
+  int getExampleId(Node n);
+  /** add the search val, returns an equivalent value (possibly the same) */
+  Node addSearchVal(TypeNode tn, Node e, Node bvr);
+  /** evaluate builtin */
+  Node evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i);
+
+ private:
+  /** this class is an index of candidate solutions for PBE synthesis */
+  class PbeTrie {
+   private:
+    Node addPbeExampleEval(TypeNode etn, Node e, Node b, std::vector<Node>& ex,
+                           CegConjecturePbe* cpbe, unsigned index,
+                           unsigned ntotal);
+
+   public:
+    PbeTrie() {}
+    ~PbeTrie() {}
+    Node d_lazy_child;
+    std::map<Node, PbeTrie> d_children;
+    void clear() { d_children.clear(); }
+    Node addPbeExample(TypeNode etn, Node e, Node b, CegConjecturePbe* cpbe,
+                       unsigned index, unsigned ntotal);
+  };
+  /** trie of candidate solutions tried, for each (enumerator, type),
+   * where type is a type in the grammar of the space of solutions for a subterm
+   * of e
+   */
+  std::map<Node, std::map<TypeNode, PbeTrie> > d_pbe_trie;
+
+ private:  // for registration
   void collectEnumeratorTypes( Node c, TypeNode tn, unsigned enum_role );
   void registerEnumerator( Node et, Node c, TypeNode tn, unsigned enum_role, bool inSearch );
   void staticLearnRedundantOps( Node c, std::vector< Node >& lemmas );
