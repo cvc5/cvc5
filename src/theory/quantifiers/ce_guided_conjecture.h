@@ -27,7 +27,15 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** a synthesis conjecture */
+/** a synthesis conjecture
+ * This class implements approaches for a synthesis conecjture, given by data
+ * member d_quant.
+ * This includes both approaches for synthesis in Reynolds et al CAV 2015. It
+ * determines
+ * which approach and optimizations are applicable to the conjecture, and has
+ * interfaces for
+ * implementing them.
+ */
 class CegConjecture {
 public:
   CegConjecture( QuantifiersEngine * qe );
@@ -40,7 +48,7 @@ public:
   Node getNextDecisionRequest( unsigned& priority );
   /** increment the number of times we have successfully done candidate refinement */
   void incrementRefineCount() { d_refine_count++; }
-  /** whether the conjecture is waiting for a call to do_Check below */
+  /** whether the conjecture is waiting for a call to doCheck below */
   bool needsCheck( std::vector< Node >& lem );
   /** whether the conjecture is waiting for a call to doRefine below */
   bool needsRefinement();
@@ -94,6 +102,8 @@ public:
   Node getRefinementLemma( unsigned i ) { return d_refinement_lemmas[i]; }
   /** get refinement lemma */
   Node getRefinementBaseLemma( unsigned i ) { return d_refinement_lemmas_base[i]; }
+  /** get program by examples utility */
+  CegConjecturePbe* getPbe() { return d_ceg_pbe; }
   /** print out debug information about this conjecture */
   void debugPrint( const char * c );
 private:
