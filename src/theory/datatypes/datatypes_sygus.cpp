@@ -65,11 +65,17 @@ void SygusSplitNew::getSygusSplits( Node n, const Datatype& dt, std::vector< Nod
   splits.insert( splits.end(), d_splits[n].begin(), d_splits[n].end() );
 }
 
-
-SygusSymBreakNew::SygusSymBreakNew( TheoryDatatypes * td, quantifiers::TermDbSygus * tds, context::Context* c ) : 
-d_td( td ), d_tds( tds ), d_context( c ), 
-d_testers( c ), d_is_const( c ), d_testers_exp( c ), d_active_terms( c ), d_currTermSize( c ) {
-  d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
+SygusSymBreakNew::SygusSymBreakNew(TheoryDatatypes* td,
+                                   quantifiers::TermDbSygus* tds,
+                                   context::Context* c)
+    : d_td(td),
+      d_tds(tds),
+      d_testers(c),
+      d_is_const(c),
+      d_testers_exp(c),
+      d_active_terms(c),
+      d_currTermSize(c) {
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
 }
 
 SygusSymBreakNew::~SygusSymBreakNew() {
