@@ -385,8 +385,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     term[expr, expr2]
     { 
       if( !flattenVars.empty() ){
-        // we apply the body of the definition to the flatten vars here (see above)
-        Debug("parser") << "defining function, #flatten vars = " << flattenVars.size() << std::endl;
+        // if this function has any implicit variables flattenVars,
+        // we apply the body of the definition to the flatten vars
         expr = PARSER_STATE->mkHoApply(expr, flattenVars);
       }
       PARSER_STATE->popScope();
