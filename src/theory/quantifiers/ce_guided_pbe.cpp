@@ -1558,7 +1558,7 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
             
           // construct the child order based on heuristics
           std::vector< unsigned > corder;
-          std::unordered_map< unsigned, bool > cused;
+          std::unordered_set< unsigned > cused;
           if( strat==strat_CONCAT ){
             for( unsigned r=0; r<2; r++ ){
               // Concatenate strategy can only be applied from the endpoints.
@@ -1572,7 +1572,7 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
                 Assert( d_einfo.find( ce )!=d_einfo.end() );
                 Assert( d_einfo[ce].getRole()==enum_concat_term );
                 corder.push_back( sc );
-                cused[sc] = true;
+                cused.insert( sc );
                 break;
               }
             }
