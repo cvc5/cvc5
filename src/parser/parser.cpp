@@ -457,7 +457,10 @@ FunctionType Parser::mkFlatFunctionType( std::vector<Type>& sorts,
       std::vector< Type > domainTypes = ((FunctionType)range).getArgTypes();
       for( unsigned i=0; i<domainTypes.size(); i++ ){
         sorts.push_back( domainTypes[i] );
-        Expr v = mkBoundVar("__flatten_var_",domainTypes[i]);
+        // the introduced variable is internal (not parsable)
+        std::stringstream ss;
+        ss << "__flatten_var_" << i;
+        Expr v = d_exprManager->mkBoundVar(ss.str(), domainTypes[i]);
         flattenVars.push_back( v );
       }
       range = ((FunctionType)range).getRangeType();
@@ -477,6 +480,13 @@ FunctionType Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range) {
     }
     return d_exprManager->mkFunctionType(sorts, range);
   }
+}
+
+Expr Parser::mkHoApply( Expr expr, std::vector<Expr>& args, unsigned startIndex ) {
+  for( unsigned i=startIndex; i<args.size(); i++ ){
+    expr = d_exprManager->mkExpr( kind::HO_APPLY, expr, args[i] );
+  }
+  return expr;
 }
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {

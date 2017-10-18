@@ -390,11 +390,12 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
     }
     term[expr, expr2]
-    { // we apply the body of the definition to the flatten vars here (see above)
-      Debug("parser") << "defining function, #flatten vars = " << flatten_vars.size() << std::endl;
-      for( unsigned i=0; i<flatten_vars.size(); i++ ){
-        expr = MK_EXPR( CVC4::kind::HO_APPLY, expr, flatten_vars[i] );
-      } 
+    { 
+      if( !flatten_vars.empty() ){
+        // we apply the body of the definition to the flatten vars here (see above)
+        Debug("parser") << "defining function, #flatten vars = " << flatten_vars.size() << std::endl;
+        expr = PARSER_STATE->mkHoApply(expr, flatten_vars);
+      }
       PARSER_STATE->popScope();
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
@@ -1216,6 +1217,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
           sorts.push_back((*i).second);
         }
       }
+      // make the flattened function type, add bound variables
+      // to flatten_vars if the defined function was given a function return type.
       t = PARSER_STATE->mkFlatFunctionType(sorts, t, flatten_vars);
       // allow overloading
       func = PARSER_STATE->mkVar(fname, t, ExprManager::VAR_FLAG_NONE, true);
@@ -1227,30 +1230,18 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
         Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
         bvs.push_back( v );
       }
-    }
-    term[expr, expr2]
-    { 
+      bvs.insert( bvs.end(), flatten_vars.begin(), flatten_vars.end() );
       if( sorts.empty() ){
         func_app = func;
       }else{
         std::vector< Expr > f_app;
         f_app.push_back( func );
-        // carry variables if functional
-        for( unsigned i=0; i<sorts.size(); i++ ){
-          if( i<bvs.size() ){
-            f_app.push_back( bvs[i] );
-          }else{
-            std::stringstream ss;
-            ss << "__" << fname << "_" << i << "__";
-            Expr v = PARSER_STATE->mkBoundVar(ss.str(), sorts[i]);
-            bvs.push_back( v );
-            f_app.push_back( v );
-            expr = MK_EXPR( CVC4::kind::HO_APPLY, expr, bvs[i] );
-          }
-        }
+        f_app.insert( f_app.end(), bvs.begin(), bvs.end() );
         func_app = MK_EXPR( kind::APPLY_UF, f_app );
       }
-      PARSER_STATE->popScope(); 
+    }
+    term[expr, expr2]
+    { PARSER_STATE->popScope(); 
       Expr as = MK_EXPR( kind::EQUAL, func_app, expr);
       if( !bvs.empty() ){
         std::string attr_name("fun-def");
@@ -1277,6 +1268,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       sortSymbol[t,CHECK_DECLARED]
       { sortedVarNamesList.push_back( sortedVarNames );
         sorts.clear();
+        flatten_vars.clear();
         if( sortedVarNamesList[0].size() > 0 ) {
           if( !sortedVarNames.empty() ){
             for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator
@@ -2047,10 +2039,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         Debug("parser") << " : #argTypes = " << ((FunctionType)args[0].getType()).getArity();  
         Debug("parser") << ", #args = " << args.size()-1 << std::endl;  
         // must curry the application
-        expr = MK_EXPR( CVC4::kind::HO_APPLY, args[0], args[1] );
-        for( unsigned i=2; i<args.size(); i++ ){
-          expr = MK_EXPR( CVC4::kind::HO_APPLY, expr, args[i] );
-        }  
+        expr = args[0];
+        expr = PARSER_STATE->mkHoApply( expr, args, 1 );
       }else{
         expr = MK_EXPR(kind, args); 
       }

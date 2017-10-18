@@ -596,6 +596,18 @@ public:
    */
   FunctionType mkFlatFunctionType(std::vector<Type>& sorts, Type range);
   
+  /** mkHoApply
+  * This returns the left-associative curried application of (function) expr to the 
+  * arguments in args, starting at index startIndex.
+  *
+  * For example, mkHoApply( f, { a, b }, 0 ) returns
+  *  (HO_APPLY (HO_APPLY f a) b)
+  *
+  * If args is non-empty, the type of expr should be (-> T0 ... Tn T),
+  * where args[i-startIndex].getType() = Ti for each i where startIndex <= i < args.size().
+  */
+  Expr mkHoApply( Expr expr, std::vector<Expr>& args, unsigned startIndex=0 );
+  
   /**
    * Add an operator to the current legal set.
    *
