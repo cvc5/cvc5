@@ -448,7 +448,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
   }
 }
   
-FunctionType Parser::mkFlatFunctionType( std::vector<Type>& sorts, 
+Type Parser::mkFlatFunctionType( std::vector<Type>& sorts, 
                                          Type range, std::vector<Expr>& flattenVars) {
   if( range.isFunction() ){
     std::vector< Type > domainTypes = (static_cast<FunctionType>(range)).getArgTypes();
@@ -469,7 +469,7 @@ FunctionType Parser::mkFlatFunctionType( std::vector<Type>& sorts,
   }
 }
 
-FunctionType Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range) {
+Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range) {
   if( sorts.empty() ){
     // no difference
     return range;

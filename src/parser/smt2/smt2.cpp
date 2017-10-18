@@ -348,6 +348,62 @@ Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
   }
 }
 
+Expr Smt2::mkDefineFunRec( const std::string& fname,
+                           const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+                           Type t, std::vector<Expr>& flattenVars ) {
+  std::vector<Type> sorts;
+  for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+      sortedVarNames.begin(), iend = sortedVarNames.end(); i != iend;
+      ++i) {
+    sorts.push_back((*i).second);
+  }
+  
+  // make the flattened function type, add bound variables
+  // to flattenVars if the defined function was given a function return type.
+  Type ft = mkFlatFunctionType(sorts, t, flattenVars);
+  
+  // allow overloading
+  return mkVar(fname, ft, ExprManager::VAR_FLAG_NONE, true);
+}
+
+void Smt2::pushDefineFunRecScope(
+    const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+    Expr func, const std::vector<Expr>& flattenVars,
+    Expr& func_app, std::vector<Expr>& bvs, 
+    bool bindingLevel) {
+  pushScope(bindingLevel);
+
+  std::vector< Expr > f_app;
+  f_app.push_back( func );
+  // bound variables are those that are explicitly named in the preamble
+  // of the define-fun(s)-rec command, we define them here
+  for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+        sortedVarNames.begin(), iend = sortedVarNames.end(); i != iend;
+      ++i) {
+    Expr v = mkBoundVar((*i).first, (*i).second);
+    bvs.push_back( v );
+    f_app.push_back( v );
+  }
+  
+  // Check whether the function has any additional arguments that are not explicitly
+  // named. This can happen when we have define-fun-rec whose return type is a function.
+  // a function. Note the equivalence:
+  //    (define-fun-rec Q ((x Int)) (-> Int Int) ( (lambda y (P x y))))
+  // which is equivalent to:
+  //    (define-fun-rec Q ((x Int) (z Int)) Int ( ((lambda y (P x y)) z)))
+  // Here, z is a member of flattenVars and hence is added to bvs.
+  
+  bvs.insert( bvs.end(), flattenVars.begin(), flattenVars.end() );
+  
+  // make the function application
+  if( bvs.empty() ){
+    // it has no arguments
+    func_app = func;
+  }else{
+    func_app = getExprManager()->mkExpr( kind::APPLY_UF, f_app );
+  }
+}
+
 void Smt2::reset() {
   d_logicSet = false;
   d_logic = LogicInfo();

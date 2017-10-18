@@ -576,7 +576,8 @@ public:
   /** mkFlatFunctionType 
    * Returns the "flat" function type correspond to the function taking argument
    * types "sorts" and range type "range".  A flat function type is one whose
-   * range is not a function.
+   * range is not a function. Notice that if sorts is empty and range is not a 
+   * function, then this function returns range itself.
    *
    * If range is a function type, we add its function argument sorts to sorts and 
    * consider its function range as the new range. For each sort S added to sorts
@@ -589,14 +590,29 @@ public:
    *   * updates flattenVars to { x }, where x is bound variable of type Int.
    *
    * Only one iteration of flattening is run.
+   *
+   * This method is required so that we do not return functions
+   * that have function return type (these give an unhandled exception 
+   * in the ExprManager). For examples of the equivalence between function
+   * definitions in the proposed higher-order extension of the smt2 language,         
+   * see page 3 of http://matryoshka.gforge.inria.fr/pubs/PxTP2017.pdf
+   *
+   * The argument flattenVars is needed in the case of defined functions
+   * with function return type. These have implicit arguments, for instance:
+   *    (define-fun Q ((x Int)) (-> Int Int) (lambda y (P x)))
+   * is equivalent to the command:
+   *    (define-fun Q ((x Int) (z Int)) Int ((lambda y (P x)) z))
+   * In this example, z is added to flattenVars.
    */
-  FunctionType mkFlatFunctionType(std::vector<Type>& sorts, 
-                                  Type range, std::vector<Expr>& flattenVars);
+  Type mkFlatFunctionType(std::vector<Type>& sorts, 
+                          Type range, std::vector<Expr>& flattenVars);
       
   /** mkFlatFunctionType 
-   * Same as above, but does not take the arugment flattenVars.
+   * Same as above, but does not take argument flattenVars.
+   * This is used when the arguments of the function are not important (for instance,
+   * if we are only using this type in a declare-fun).
    */
-  FunctionType mkFlatFunctionType(std::vector<Type>& sorts, Type range);
+  Type mkFlatFunctionType(std::vector<Type>& sorts, Type range);
   
   /** mkHoApply
   * This returns the left-associative curried application of (function) expr to the 
