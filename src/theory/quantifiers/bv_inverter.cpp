@@ -34,7 +34,10 @@ static Node dropChild(Node n, unsigned index) {
   unsigned nchildren = n.getNumChildren();
   Assert(index < nchildren);
   Kind k = n.getKind();
-  Assert(k == AND || k == OR || k == BITVECTOR_MULT || k == BITVECTOR_PLUS);
+  Assert(k == BITVECTOR_AND
+         || k == BITVECTOR_OR
+         || k == BITVECTOR_MULT
+         || k == BITVECTOR_PLUS);
   NodeBuilder<> nb(NodeManager::currentNM(), k);
   for (unsigned i = 0; i < nchildren; ++i) {
     if (i == index) continue;
@@ -268,6 +271,7 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
     Assert(index < sv_t.getNumChildren());
     path.pop_back();
     Kind k = sv_t.getKind();
+    unsigned nchildren = sv_t.getNumChildren();
 
     /* inversions  */
     if (k == BITVECTOR_CONCAT) {
@@ -280,17 +284,22 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
       upper = bv::utils::getSize(t) - 1;
       lower = 0;
       NodeBuilder<> nb(nm, BITVECTOR_CONCAT);
-      for (unsigned i = 0; i < sv_t.getNumChildren(); i++) {
+      for (unsigned i = 0; i < nchildren; i++) {
         if (i < index)
           upper -= bv::utils::getSize(sv_t[i]);
         else if (i > index)
           lower += bv::utils::getSize(sv_t[i]);
       }
       t = bv::utils::mkExtract(t, upper, lower);
+    } else if (k == BITVECTOR_EXTRACT) {
+      Trace("bv-invert") << "bv-invert : Unsupported for index " << index
+                         << ", from " << sv_t << std::endl;
+      return Node::null();
+    } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
+      t = NodeManager::currentNM()->mkNode(k, t);
     } else {
-      Node s = sv_t.getNumChildren() == 2
-        ? sv_t[1 - index]
-        : dropChild(sv_t, index);
+      Assert (nchildren >= 2);
+      Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
       /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
        *       are commutative (no case split based on index). */
       if (k == BITVECTOR_PLUS) {
@@ -327,9 +336,7 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         Node x = getSolveVariable(solve_tn);
         Node scl, scr;
         if (index == 0) {
-          /* x % s = t
-           * with side condition:
-           * TODO  */
+          /* x % s = t is rewritten to x - x / y * y */
           Trace("bv-invert") << "bv-invert : Unsupported for index " << index
                              << ", from " << sv_t << std::endl;
           return Node::null();
@@ -501,10 +508,8 @@ Node BvInverter::solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk,
         Node skv = getInversionNode(sc, solve_tn);
         /* now solving with the skolem node as the RHS */
         t = skv;
-      } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
-        t = NodeManager::currentNM()->mkNode(k, t);
-        //}else if( k==BITVECTOR_ASHR ){
-        // TODO
+      //}else if( k==BITVECTOR_ASHR ){
+      // TODO
       } else {
         Trace("bv-invert") << "bv-invert : Unknown kind for bit-vector term "
                            << k
