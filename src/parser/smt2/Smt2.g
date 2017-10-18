@@ -266,6 +266,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
   std::vector<Expr> terms;
   std::vector<Type> sorts;
   std::vector<std::pair<std::string, Type> > sortedVarNames;
+  std::vector<Expr> flatten_vars;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -343,19 +344,15 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK sortList[sorts] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
-    { // if return type is a function, flatten
-      if( t.isFunction() ){
-        std::vector< Type > domainTypes = ((FunctionType)t).getArgTypes();
-        sorts.insert( sorts.end(), domainTypes.begin(), domainTypes.end() );
-        t = ((FunctionType)t).getRangeType();
+    { Debug("parser") << "declare fun: '" << name << "'" << std::endl;
+      if( !sorts.empty() ) {
+        // We call mkFlatFunctionType, which handles cases as described on page 3 
+        // of http://matryoshka.gforge.inria.fr/pubs/PxTP2017.pdf
+        t = PARSER_STATE->mkFlatFunctionType(sorts, t);
       }
-      Debug("parser") << "declare fun: '" << name << "'" << std::endl;
-      if( sorts.size() > 0 ) {
-        if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-          PARSER_STATE->parseErrorLogic("Functions (of non-zero arity) cannot "
-                                        "be declared in logic ");
-        }
-        t = EXPR_MANAGER->mkFunctionType(sorts, t);
+      if(t.isFunction() && !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
+        PARSER_STATE->parseErrorLogic("Functions (of non-zero arity) cannot "
+                                      "be declared in logic ");
       }
       // we allow overloading for function declarations
       Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
@@ -377,14 +374,12 @@ command [std::unique_ptr<CVC4::Command>* cmd]
             ++i) {
           sorts.push_back((*i).second);
         }
-        // flatten if function return sort
-        if( t.isFunction() ){
-          std::vector< Type > domainTypes = ((FunctionType)t).getArgTypes();
-          sorts.insert( sorts.end(), domainTypes.begin(), domainTypes.end() );
-          Debug("parser") << "Flatten function type " << name << ", #argTypes = " << domainTypes.size() << std::endl;
-          t = ((FunctionType)t).getRangeType();
-        }
-        t = EXPR_MANAGER->mkFunctionType(sorts, t);
+        // We call mkFlatFunction here, which handles cases like:
+        //    (define-fun ((x Int)) (-> Int Int) (P x))
+        // which is equivalent to:
+        //    (define-fun ((x Int) (z Int)) Int ((P x) z))
+        // Here, z is added to flatten_vars
+        t = PARSER_STATE->mkFlatFunctionType(sorts, t, flatten_vars);
       }
       PARSER_STATE->pushScope(true);
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
@@ -395,15 +390,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
     }
     term[expr, expr2]
-    { 
-      Debug("parser") << "defining function, #sorts = " << sorts.size() << ", #terms = " << terms.size() << std::endl;
-      for( unsigned i=terms.size(); i<sorts.size(); i++ ){
-        std::stringstream ss;
-        ss << "__" << name << "_" << i << "__";
-        Expr var = PARSER_STATE->mkBoundVar(ss.str(), sorts[i]);
-        terms.push_back( var );
-        Debug("parser") << "Add variable " << var << " to flatten function " << name << std::endl;
-        expr = MK_EXPR( CVC4::kind::HO_APPLY, expr, var );
+    { // we apply the body of the definition to the flatten vars here (see above)
+      Debug("parser") << "defining function, #flatten vars = " << flatten_vars.size() << std::endl;
+      for( unsigned i=0; i<flatten_vars.size(); i++ ){
+        expr = MK_EXPR( CVC4::kind::HO_APPLY, expr, flatten_vars[i] );
       } 
       PARSER_STATE->popScope();
       // declare the name down here (while parsing term, signature
@@ -1173,6 +1163,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   Expr aexpr;
   std::unique_ptr<CVC4::CommandSequence> seq;
   std::vector<Type> sorts;
+  std::vector<Expr> flatten_vars;
 }
     /* meta-info */
   : META_INFO_TOK metaInfoInternal[cmd]
@@ -1224,14 +1215,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
             ++i) {
           sorts.push_back((*i).second);
         }
-        // if return type is a function, flatten
-        if( t.isFunction() ){
-          std::vector< Type > domainTypes = ((FunctionType)t).getArgTypes();
-          sorts.insert( sorts.end(), domainTypes.begin(), domainTypes.end() );
-          t = ((FunctionType)t).getRangeType();
-        }
-        t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
+      t = PARSER_STATE->mkFlatFunctionType(sorts, t, flatten_vars);
       // allow overloading
       func = PARSER_STATE->mkVar(fname, t, ExprManager::VAR_FLAG_NONE, true);
       seq->addCommand(new DeclareFunctionCommand(fname, func, t));
@@ -1442,7 +1427,10 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
             PARSER_STATE->parseErrorLogic("Functions (of non-zero arity) "
                                           "cannot be declared in logic ");
           }
-          t = EXPR_MANAGER->mkFunctionType(sorts);
+          // must flatten
+          Type range = sorts.back();
+          sorts.pop_back();
+          t = PARSER_STATE->mkFlatFunctionType(sorts, range);
         } else {
           t = sorts[0];
         }
@@ -2942,14 +2930,7 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
       //flatten the type
       Type rangeType = args[args.size()-1];
       args.pop_back();
-      if( rangeType.isFunction() ){
-        std::vector< Type > domainTypes = ((FunctionType)rangeType).getArgTypes();
-        args.insert( args.end(), domainTypes.begin(), domainTypes.end() );
-        rangeType = ((FunctionType)rangeType).getRangeType();
-      }
-      Debug("parser") << "Make function type, #argTypes=" << args.size() << ", rangeType " << rangeType << std::endl;
-      t = EXPR_MANAGER->mkFunctionType( args, rangeType );
-      Debug("parser") << "Finish here." << std::endl;
+      t = PARSER_STATE->mkFlatFunctionType( args, rangeType );
     }
   ;
 

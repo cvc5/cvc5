@@ -447,6 +447,37 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
     throw ParserException(ie.getMessage());
   }
 }
+  
+FunctionType Parser::mkFlatFunctionType( std::vector<Type>& sorts, 
+                                         Type range, std::vector<Expr>& flattenVars) {
+  if( sorts.empty() ){
+    return range;
+  }else{
+    while( range.isFunction() ){
+      std::vector< Type > domainTypes = ((FunctionType)range).getArgTypes();
+      for( unsigned i=0; i<domainTypes.size(); i++ ){
+        sorts.push_back( domainTypes[i] );
+        Expr v = mkBoundVar("__flatten_var_",domainTypes[i]);
+        flattenVars.push_back( v );
+      }
+      range = ((FunctionType)range).getRangeType();
+    }
+    return d_exprManager->mkFunctionType(sorts, range);
+  }
+}
+
+FunctionType Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range) {
+  if( sorts.empty() ){
+    return range;
+  }else{
+    while( range.isFunction() ){
+      std::vector< Type > domainTypes = ((FunctionType)range).getArgTypes();
+      sorts.insert( sorts.end(), domainTypes.begin(), domainTypes.end() );
+      range = ((FunctionType)range).getRangeType();
+    }
+    return d_exprManager->mkFunctionType(sorts, range);
+  }
+}
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch (type) {
