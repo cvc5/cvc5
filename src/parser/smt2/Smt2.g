@@ -1031,7 +1031,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
   | str[s,false]
     { Debug("parser-sygus") << "Sygus grammar " << fun << " : string literal \""
                             << s << "\"" << std::endl;
-      sgt.d_expr = MK_CONST( ::CVC4::String(s) );
+      sgt.d_expr = MK_CONST( ::CVC4::String(s, true) );
       sgt.d_name = s;
       sgt.d_gterm_type = SygusGTerm::gterm_op;
     }
@@ -2328,7 +2328,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       expr = MK_CONST( BitVector(binString, 2) ); }
 
   | str[s,false]
-    { expr = MK_CONST( ::CVC4::String(s) ); }
+    { expr = MK_CONST( ::CVC4::String(s, true) ); }
   | FP_RNE_TOK      { expr = MK_CONST(roundNearestTiesToEven); }
   | FP_RNA_TOK      { expr = MK_CONST(roundNearestTiesToAway); }
   | FP_RTP_TOK      { expr = MK_CONST(roundTowardPositive); }
