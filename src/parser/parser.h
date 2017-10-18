@@ -578,7 +578,7 @@ public:
    * types "sorts" and range type "range".  A flat function type is one whose
    * range is not a function.
    *
-   * While range is a function type, we add its function argument sorts to sorts and 
+   * If range is a function type, we add its function argument sorts to sorts and 
    * consider its function range as the new range. For each sort S added to sorts
    * in this process, we add a new bound variable of sort S to flattenVars.
    *
@@ -587,6 +587,8 @@ public:
    *   * returns the the function type (-> Int (-> Real Real) Int Bool)
    *   * updates sorts to { Int, (-> Real Real), Int },
    *   * updates flattenVars to { x }, where x is bound variable of type Int.
+   *
+   * Only one iteration of flattening is run.
    */
   FunctionType mkFlatFunctionType(std::vector<Type>& sorts, 
                                   Type range, std::vector<Expr>& flattenVars);

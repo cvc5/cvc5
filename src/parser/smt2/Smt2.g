@@ -375,9 +375,9 @@ command [std::unique_ptr<CVC4::Command>* cmd]
           sorts.push_back((*i).second);
         }
         // We call mkFlatFunction here, which handles cases like:
-        //    (define-fun ((x Int)) (-> Int Int) (P x))
+        //    (define-fun Q ((x Int)) (-> Int Int) (P x))
         // which is equivalent to:
-        //    (define-fun ((x Int) (z Int)) Int ((P x) z))
+        //    (define-fun Q ((x Int) (z Int)) Int ((P x) z))
         // Here, z is added to flatten_vars
         t = PARSER_STATE->mkFlatFunctionType(sorts, t, flatten_vars);
       }
@@ -1279,6 +1279,9 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
             t = EXPR_MANAGER->mkFunctionType(sorts, t);
           }
         }
+        // make the flattened function type, add bound variables
+        // to flatten_vars if the defined function was given a function return type.
+        //t = PARSER_STATE->mkFlatFunctionType(sorts, t, flatten_vars);
         sortedVarNames.clear();
         // allow overloading
         Expr func = PARSER_STATE->mkVar(fname, t, ExprManager::VAR_FLAG_NONE, true);
@@ -2918,7 +2921,7 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
         PARSER_STATE->parseError("Arrow types must have at least 2 arguments");
       }
       //flatten the type
-      Type rangeType = args[args.size()-1];
+      Type rangeType = args.back();
       args.pop_back();
       t = PARSER_STATE->mkFlatFunctionType( args, rangeType );
     }
