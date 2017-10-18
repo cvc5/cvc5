@@ -131,10 +131,10 @@ class CandidateGenerator;
 * when matching P( a, a, a, a ) against the generator [P( f( x1 ), f( x2 ), f( x3 ), f( x4 ) )].
 *
 * To enforce these policies, we use a flag "d_active_add" which dictates the behavior of the last element in the linked list.
-*   If d_active_add is true, we return 1 (signaling an instantiation has been successfully generated) only if adding the instantiation via
-*                            a call to IMGenerator::sendInstantiation(...) successfully enqueues a lemma, where this call may fail if we have already
-*                            added the instantiation, or the instantiation is entailed. In this case, the resulting value of m can be ignored
-*   If d_active_add is false, we return 1 regardless, where typically the caller would use m.
+*   If d_active_add is true, a call to getNextMatch(...) returns 1 only if adding the instantiation via a call to IMGenerator::sendInstantiation(...) successfully 
+*                            enqueues a lemma via a call to QuantifiersEngine::addInstantiation(...).
+*                            This call may fail if we have already added the instantiation, the instantiation is entailed. 
+*   If d_active_add is false, a call to getNextMatch(...) returns 1 whenever an m is constructed, where typically the caller would use m.
 * This is important since a return value >0 signals that the current matched terms should be flushed. Consider the above example [EX#1], where
 * [ f(y,f(x,a)) ] is being matched against f(b,c),
 * [ f(x,a) ] is being matched against f(d,a) where c=f(d,a)
@@ -161,7 +161,7 @@ public:
   };
   /** get the match against ground term or formula t.
   * d_match_pattern and t should have the same shape, that is,
-  * their math operator (see TermDatabase::getMatchOperator) is the same.
+  * their match operator (see TermDatabase::getMatchOperator) is the same.
   * only valid for use where !d_match_pattern.isNull().
   */
   int getMatch( Node q, Node t, InstMatch& m, QuantifiersEngine* qe, Trigger * tparent );
@@ -194,9 +194,11 @@ public:
   void setActiveAdd( bool val );
   /** Get active score for this inst match generator (see Trigger::getActiveScore). */
   int getActiveScore( QuantifiersEngine * qe );
-  /** Exclude matching with Node n on subsequent calls to getNextMatch. */
+  /** Exclude matching d_match_pattern with Node n on subsequent calls to getNextMatch. */
   void excludeMatch( Node n ) { d_curr_exclude_match[n] = true; }
-  /** set that this match generator is independent, e.g. when it fails the overall matching fails. */
+  /** set that this match generator is independent
+  * i.e. when this generator fails to produce a match in a call to getNextMatch, the overall matching fails. 
+  */
   void setIndependent() { d_independent_gen = true; }
   
   //-------------------------------construction of inst match generators
@@ -264,7 +266,12 @@ protected:
   void initialize( Node q, QuantifiersEngine* qe, std::vector< InstMatchGenerator * > & gens );
   /** children types 0 : variable, 1 : child term, -1 : ground term */
   std::vector< int > d_children_types;
-  /** continue next match */
+  /** continue next match 
+  * This is called during getNextMatch when the current generator in the linked list succesfully
+  * satisfies its matching constraint. This function either calls getNextMatch of the next element 
+  * in the linked list, or finalizes the match (calling sendInstantiation(...) if active add is true,
+  * or returning if active add is false).
+  */
   int continueNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe, Trigger * tparent );
   /** active add flag, described above */
   bool d_active_add;
@@ -272,7 +279,9 @@ protected:
   TypeNode d_match_pattern_type;
   /** the match operator (see TermDatabase::getMatchOperator) for d_match_pattern */
   Node d_match_pattern_op;
-  /** gets the InstMatchGenerator associated with q and n. */
+  /** gets the InstMatchGenerator that implements the appropriate matching algorithm for n within q
+  * within a linked list of InstMatchGenerators. 
+  */
   static InstMatchGenerator* getInstMatchGenerator( Node q, Node n );
 };/* class InstMatchGenerator */
 
@@ -400,13 +409,16 @@ public:
 private:
   /** indexed trie */
   typedef std::pair< std::pair< int, int >, InstMatchTrie* > IndexedTrie;
-  /** process new match */
+  /** process new match 
+  * Indicates we produced a match m for child formChildIndex
+  * addedLemmas is how many instantiations we succesfully enqueue via QuantifiersEngine::addInstantiation(...) calls.
+  */
   void processNewMatch( QuantifiersEngine* qe, Trigger * tparent, InstMatch& m, int fromChildIndex, int& addedLemmas );
-  /** process new instantiations */
+  /** helper for process new instantiations */
   void processNewInstantiations( QuantifiersEngine* qe, Trigger * tparent, InstMatch& m, int& addedLemmas, InstMatchTrie* tr,
                                  std::vector< IndexedTrie >& unique_var_tries,
                                  int trieIndex, int childIndex, int endChildIndex, bool modEq );
-  /** process new instantiations 2 */
+  /** helper for process new instantiations */
   void processNewInstantiations2( QuantifiersEngine* qe, Trigger * tparent, InstMatch& m, int& addedLemmas,
                                   std::vector< IndexedTrie >& unique_var_tries,
                                   int uvtIndex, InstMatchTrie* tr = NULL, int trieIndex = 0 );
@@ -414,15 +426,13 @@ private:
   std::map< Node, std::vector< int > > d_var_contains;
   /** variable indices contained to pattern nodes */
   std::map< int, std::vector< Node > > d_var_to_node;
-  /** quantifier to use */
+  /** quantified formula we are producing matches for */
   Node d_f;
-  /** policy to use for matching */
-  int d_matchPolicy;
   /** children generators */
   std::vector< InstMatchGenerator* > d_children;
-  /** order */
+  /** variable orderings for each child node */
   std::map< unsigned, InstMatchTrie::ImtIndexOrder* > d_imtio;
-  /** inst match tries for each child */
+  /** inst match tries for each child node */
   std::vector< InstMatchTrieOrdered > d_children_trie;
   /** calculate matches */
   void calculateMatches( QuantifiersEngine* qe );

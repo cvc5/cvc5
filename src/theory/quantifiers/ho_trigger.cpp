@@ -14,14 +14,20 @@
  ** This class implements higher-order matching via Huet's algorithm.
  ** Examples below (f, x, y are universal variables):
  ** 
- ** (f x y) matches (k 0 1) with possible solutions:
  ** 
+ ** (f x y) matches (k 0 1) in standard E-matching with:
+ **
+ ** f -> k, x -> 0, y -> 1
+ **
+ ** This match is extended to four possible solutions by this class:
+ **
  ** f -> \ xy. (k x y), x -> 0, y -> 1
  ** f -> \ xy. (k 0 y), x -> 0, y -> 1
  ** f -> \ xy. (k x 1), x -> 0, y -> 1
  ** f -> \ xy. (k 0 1), x -> 0, y -> 1
  ** 
- ** (f x y) matches (k 0 0) with possible solutions:
+ ** 
+ ** Similarly, (f x y) matches (k 0 0) with possible solutions:
  ** 
  ** f -> \ xy. (k x x), x -> 0, y -> 0
  ** f -> \ xy. (k y x), x -> 0, y -> 0
@@ -33,10 +39,12 @@
  ** f -> \ xy. (k y 0), x -> 0, y -> 0
  ** f -> \ xy. (k 0 0), x -> 0, y -> 0
  ** 
+ ** 
  ** (f x y), (f x z) simultaneously match (k 0 1), (k 0 2) with possible solutions:
  ** 
  ** f -> \ xy. (k x y), x -> 0, y -> 1, z -> 2
  ** f -> \ xy. (k 0 y), x -> 0, y -> 1, z -> 2
+ ** 
  ** 
  ** This class enumerates the lists above until one instantiation of that form is successfully added
  ** via a call to QuantifiersEngine::addInstantiation(...)
