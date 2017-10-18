@@ -1,5 +1,21 @@
 ---
 Language:        Cpp
 BasedOnStyle:  Google
+AllowShortCaseLabelsOnASingleLine: true
+BinPackArguments: false
+BinPackParameters: false
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  SplitEmptyFunction: false
+  SplitEmptyNamespace: false
+  SplitEmptyRecord: false
+BreakBeforeBraces: Custom
 ...
 
