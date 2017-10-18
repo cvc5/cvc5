@@ -1,4 +1,5 @@
-; COMMAND-LINE: --cbqi-bv
+; COMMAND-LINE: --cbqi-bv --bv-div-zero-const
+; EXPECT: sat
 (set-logic BV)
 (set-info :status sat)
 (declare-fun a () (_ BitVec 32))

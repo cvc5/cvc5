@@ -43,9 +43,12 @@ public:
   bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
   bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort );
   bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
-  bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
-  bool processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
-  bool processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort );
+  Node hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv,
+                           Node lit, unsigned effort);
+  bool processAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit,
+                        Node alit, unsigned effort);
+  bool processAssertions(CegInstantiator* ci, SolvedForm& sf, Node pv,
+                         unsigned effort);
   bool needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
   bool postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas );
   std::string identify() const { return "Arith"; }
@@ -86,21 +89,38 @@ private:
   // point to the bv inverter class
   BvInverter * d_inverter;
   unsigned d_inst_id_counter;
+  /** information about solved forms */
   std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction > d_var_to_inst_id;
   std::unordered_map< unsigned, Node > d_inst_id_to_term;
   std::unordered_map< unsigned, BvInverterStatus > d_inst_id_to_status;
+  std::unordered_map<unsigned, Node> d_inst_id_to_alit;
   // variable to current id we are processing
   std::unordered_map< Node, unsigned, NodeHashFunction > d_var_to_curr_inst_id;
-private:
-  void processLiteral( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
-public:
+  /** the amount of slack we added for asserted literals */
+  std::unordered_map<Node, Node, NodeHashFunction> d_alit_to_model_slack;
+  /** rewrite assertion for solve pv
+  * returns a literal that is equivalent to lit that leads to best solved form for pv
+  */
+  Node rewriteAssertionForSolvePv( Node pv, Node lit );
+  /** process literal, called from processAssertion
+  * lit is the literal to solve for pv that has been rewritten according to
+  * internal rules here.
+  * alit is the asserted literal that lit is derived from.
+  */
+  void processLiteral(CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit,
+                      Node alit, unsigned effort);
+
+ public:
   BvInstantiator( QuantifiersEngine * qe, TypeNode tn );
   virtual ~BvInstantiator();
   void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
   bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
-  bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
-  bool processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
-  bool processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort );
+  Node hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv,
+                           Node lit, unsigned effort);
+  bool processAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit,
+                        Node alit, unsigned effort);
+  bool processAssertions(CegInstantiator* ci, SolvedForm& sf, Node pv,
+                         unsigned effort);
   bool needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
   bool postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas );
   bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
