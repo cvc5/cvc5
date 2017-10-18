@@ -1157,8 +1157,8 @@ void SortModel::allocateCardinality( OutputChannel* out ){
   }while( increment );
 
   //check for abort case
-  if( options::ufssAbortCardinality()==d_aloc_cardinality ){
-    Message() << "Maximum cardinality reached." << std::endl;
+  if( options::ufssAbortCardinality()!=-1 && d_aloc_cardinality>=options::ufssAbortCardinality() ){
+    Message() << "Maximum cardinality (" << options::ufssAbortCardinality() << ")  for finite model finding exceeded." << std::endl;
     exit( 1 );
   }else{
     if( applyTotality( d_aloc_cardinality ) ){
