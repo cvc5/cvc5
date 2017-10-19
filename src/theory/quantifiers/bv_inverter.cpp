@@ -537,42 +537,6 @@ Node BvInverter::solve_bv_constraint(Node sv,
           t = skv;
           break;
         }
-#if 0
-        case BITVECTOR_ULT:
-        case BITVECTOR_ULTBV: {
-          /* t = skv (fresh skolem constant)  */
-          TypeNode solve_tn = sv_t[index].getType();
-          Node x = getSolveVariable(solve_tn);
-          Node scl, scr;
-          if (index == 0) {
-            /* x < s = t
-             * with side conditions:
-             * t = false
-             * || s != 0  */
-            scl = nm->mkNode(OR,
-                nm->mkNode(NOT, t),
-                nm->mkNode(DISTINCT,
-                           s,
-                           bv::utils::mkZero(bv::utils::getSize(s))));
-            scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
-          } else {
-            /* s < x = t
-             * with side conditions:
-             * t = false
-             * || s != 1...1  */
-            scl = nm->mkNode(OR,
-                nm->mkNode(NOT, t),
-                nm->mkNode(DISTINCT,
-                  s, bv::utils::mkOnes(bv::utils::getSize(s))));
-            scr = nm->mkNode(EQUAL, nm->mkNode(k, s, x), t);
-          }
-          Node sc = nm->mkNode(IMPLIES, scl, scr);
-          status.d_conds.push_back(sc);
-          Node skv = getInversionNode(sc, solve_tn);
-          t = skv;
-          break;
-        }
-#endif
         default:
           Trace("bv-invert") << "bv-invert : Unknown kind " << k
                              << " for bit-vector term " << sv_t << std::endl;
