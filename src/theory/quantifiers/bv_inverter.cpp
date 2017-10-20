@@ -524,11 +524,51 @@ Node BvInverter::solve_bv_lit(Node sv,
           } else {
             /* s >> x = t
              * with side condition:
-             * (s = 0 && t = 0)
-             * || (clz(t) >= clz(s)
-             *     && (t = 0
-             *         || "remaining shifted bits in t "
-             *            "match corresponding bits in s"))  */
+             * clz(t) >= clz(s)
+             *   && (t = 0
+             *    || "remaining shifted bits in t "
+             *       "match corresponding bits in s")  */
+            Trace("bv-invert") << "bv-invert : Unsupported for index " << index
+                               << ", from " << sv_t << std::endl;
+            return Node::null();
+          }
+          break;
+        }
+
+        case BITVECTOR_ASHR: {
+          TypeNode solve_tn = sv_t[index].getType();
+          Node x = getSolveVariable(solve_tn);
+          Node scl, scr;
+          if (index == 0) {
+            /* x >> s = t
+             * with side condition:
+             * s = 0 || (sext(t,w) << s)[2w-1 : w] = sext(t[w-1:w-1], w-1)
+             * with w = getSize(t) = getSize(s)  */
+            unsigned w = bv::utils::getSize(s);
+            Node z = bv::utils::mkZero(w);
+            Node s1 = bv::utils::mkSignExtend(t, w);
+            Node z_o_s = nm->mkNode(BITVECTOR_CONCAT, z, s);
+            Node s1_shl_zos = nm->mkNode(BITVECTOR_SHL, s1, z_o_s);
+            Node msb_t = bv::utils::mkExtract(t, w-1, w-1);
+            Node s2 = bv::utils::mkSignExtend(msb_t, w-1);
+            Node ext = bv::utils::mkExtract(s1_shl_zos, 2*w-1, w);
+            scl = nm->mkNode(OR,
+                nm->mkNode(EQUAL, s, z),
+                nm->mkNode(EQUAL, ext, s2));
+            scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_LSHR, x, s), t);
+            Node sc = nm->mkNode(IMPLIES, scl, scr);
+            status.d_conds.push_back(sc);
+            /* t = skv (fresh skolem constant)  */
+            Node skv = getInversionNode(sc, solve_tn);
+            t = skv;
+          } else {
+            /* s >> x = t
+             * with side condition:
+             * clx(msb(s),t) >= clx(msb(s),s)
+             *   && (t = 0 
+             *    || t = ~0
+             *    || "remaining shifted bits in t "
+             *          "match corresponding bits in s")  */
             Trace("bv-invert") << "bv-invert : Unsupported for index " << index
                                << ", from " << sv_t << std::endl;
             return Node::null();
