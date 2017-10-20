@@ -4574,12 +4574,7 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
       Trace("smt-synth") << "Compute single invocation for " << conj_se << "..." << std::endl;
       quantifiers::SingleInvocationPartition sip;
       std::vector< Node > funcs;
-      for( unsigned i=0; i<conj[0].getNumChildren(); i++ ){
-        // TODO : revisit this when addressing #1205
-        Node sf = conj[0][i].getAttribute(theory::SygusSynthFunAttribute());
-        Assert( !sf.isNull() );
-        funcs.push_back( sf );
-      }
+      funcs.insert(funcs.end(), conj[0].begin(), conj[0].end());
       sip.init( funcs, conj_se );
       Trace("smt-synth") << "...finished, got:" << std::endl;
       sip.debugPrint("smt-synth");
