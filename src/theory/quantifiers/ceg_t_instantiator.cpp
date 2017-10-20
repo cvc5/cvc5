@@ -917,7 +917,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool pol = lit.getKind() != NOT;
   Kind k = atom.getKind();
-  if (pol && k == EQUAL) {
+  if ((pol && k == EQUAL) || (k != EQUAL && options::cbqiBvInvLt())) {
     // positively asserted equalities between bitvector terms we leave unmodifed
     if (atom[0].getType().isBitVector()) {
       return lit;
@@ -960,7 +960,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
                            nm->mkNode(kind::BITVECTOR_PLUS, t, slack));
           Trace("cegqi-bv") << "Process " << lit << " as " << ret
                             << ", slack is " << slack << std::endl;
-        }else{
+        } else{
           ret = s.eqNode(t);          
           Trace("cegqi-bv") << "Process " << lit << " as " << ret << std::endl;
         }

@@ -339,6 +339,8 @@ option cbqiBvInterleaveValue --cbqi-bv-interleave-value bool :read-write :defaul
   interleave model value instantiation with word-level inversion approach
 option cbqiBvSlackIneq --cbqi-bv-slack-ineq bool :read-write :default true
   use model slack values when solving inequalities with word-level inversion approach
+option cbqiBvInvLt --cbqi-bv-inv-lt bool :read-write :default false
+  let bv inverter handle (un)signed less than nodes
  
 ### local theory extensions options 
 
