@@ -371,7 +371,9 @@ Node BvInverter::solve_bv_lit(Node sv,
     Kind k = sv_t.getKind();
     nchildren = sv_t.getNumChildren();
 
-    if (k == BITVECTOR_CONCAT) {
+    if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
+      t = nm->mkNode(k, t);
+    } else if (k == BITVECTOR_CONCAT) {
       /* x = t[upper:lower]
        * where
        * upper = getSize(t) - 1 - sum(getSize(sv_t[i])) for i < index
@@ -392,8 +394,8 @@ Node BvInverter::solve_bv_lit(Node sv,
       Trace("bv-invert") << "bv-invert : Unsupported for index " << index
                          << ", from " << sv_t << std::endl;
       return Node::null();
-    } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
-      t = NodeManager::currentNM()->mkNode(k, t);
+    } else if (k == BITVECTOR_SIGN_EXTEND) {
+      t = bv::utils::mkExtract(t, bv::utils::getSize(sv_t[index])-1, 0);
     } else {
       Assert(nchildren >= 2);
       Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
@@ -487,6 +489,10 @@ Node BvInverter::solve_bv_lit(Node sv,
           t = skv;
           break;
         }
+
+        case BITVECTOR_XOR:
+          t = nm->mkNode(BITVECTOR_XOR, t, s);
+          break;
 
         case BITVECTOR_LSHR: {
           TypeNode solve_tn = sv_t[index].getType();
@@ -630,6 +636,7 @@ Node BvInverter::solve_bv_lit(Node sv,
           t = skv;
           break;
         }
+
         default:
           Trace("bv-invert") << "bv-invert : Unknown kind " << k
                              << " for bit-vector term " << sv_t << std::endl;
