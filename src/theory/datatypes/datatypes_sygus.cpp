@@ -1347,9 +1347,11 @@ Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDat
   if( options::sygusFair()!=SYGUS_FAIR_NONE ){
     std::map< unsigned, Node >::iterator it = d_lits.find( s );
     if( it==d_lits.end() ){
-      if( options::sygusAbortSize()!=-1 && static_cast<int>(s)>options::sygusAbortSize() ){
-        Message() << "Maximum term size (" << options::sygusAbortSize() << ") for enumerative SyGuS exceeded." << std::endl;
-        exit( 1 );
+      if (options::sygusAbortSize() != -1 &&
+          static_cast<int>(s) > options::sygusAbortSize()) {
+        Message() << "Maximum term size (" << options::sygusAbortSize()
+                  << ") for enumerative SyGuS exceeded." << std::endl;
+        exit(1);
       }
       Assert( !d_this.isNull() );
       Node c = NodeManager::currentNM()->mkConst( Rational( s ) );
@@ -1372,7 +1374,7 @@ Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDat
     return Node::null();
   }
 }
-    
+
 Node SygusSymBreakNew::getNextDecisionRequest( unsigned& priority, std::vector< Node >& lemmas ) {
   Trace("sygus-dec-debug") << "SygusSymBreakNew: Get next decision " << std::endl;
   for( std::map< Node, Node >::iterator it = d_anchor_to_active_guard.begin(); it != d_anchor_to_active_guard.end(); ++it ){
