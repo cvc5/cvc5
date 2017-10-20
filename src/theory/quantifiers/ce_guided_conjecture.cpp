@@ -105,19 +105,10 @@ void CegConjecture::assign( Node q ) {
   if( !isSingleInvocation() ){
     if( options::sygusPbe() ){
       d_ceg_pbe->initialize( d_base_inst, d_candidates, guarded_lemmas );
-    }
-    for( unsigned i=0; i<d_candidates.size(); i++ ){
-      Node e = d_candidates[i];
-      if( options::sygusPbe() ){
-        std::vector< std::vector< Node > > exs;
-        std::vector< Node > exos;
-        std::vector< Node > exts;
-        // use the PBE examples, regardless of the search algorithm, since these help search space pruning
-        if( d_ceg_pbe->getPbeExamples( e, exs, exos, exts ) ){
-          d_qe->getTermDatabaseSygus()->registerPbeExamples( e, exs, exos, exts );
-        }
-      }else{
-        d_qe->getTermDatabaseSygus()->registerMeasuredTerm( e, e );
+    } else {
+      for (unsigned i = 0; i < d_candidates.size(); i++) {
+        Node e = d_candidates[i];
+        d_qe->getTermDatabaseSygus()->registerMeasuredTerm(e, this);
       }
     }
   }

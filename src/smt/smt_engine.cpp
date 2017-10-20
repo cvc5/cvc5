@@ -808,6 +808,12 @@ public:
   }
 
   /**
+   * Apply the substitutions in d_topLevelAssertions and the rewriter to each of
+   * the assertions in d_assertions, and store the result back in d_assertions.
+   */
+  void applySubstitutionsToAssertions();
+  
+  /**
    * Process the assertions that have been asserted.
    */
   void processAssertions();
@@ -3909,6 +3915,30 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, unordered_map<N
   return false;
 }
 
+void SmtEnginePrivate::applySubstitutionsToAssertions() {
+  if(!options::unsatCores()) {
+    Chat() << "applying substitutions..." << endl;
+    Trace("simplify") << "SmtEnginePrivate::processAssertions(): "
+                      << "applying substitutions" << endl;
+    // TODO(b/1255): Substitutions in incremental mode should be managed with a
+    // proper data structure.
+
+    // When solving incrementally, all substitutions are piled into the
+    // assertion at d_substitutionsIndex: we don't want to apply substitutions
+    // to this assertion or information will be lost.
+    unsigned substitutionAssertion = d_substitutionsIndex > 0 ? d_substitutionsIndex : d_assertions.size();
+    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+      if (i == substitutionAssertion) {
+        continue;
+      }
+      Trace("simplify") << "applying to " << d_assertions[i] << endl;
+      spendResource(options::preprocessStep());
+      d_assertions.replace(i, Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertions[i])));
+      Trace("simplify") << "  got " << d_assertions[i] << endl;
+    }
+  }
+}
+
 void SmtEnginePrivate::processAssertions() {
   TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
   spendResource(options::preprocessStep());
@@ -3929,6 +3959,9 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if (d_assertionsProcessed && options::incrementalSolving()) {
+    // TODO(b/1255): Substitutions in incremental mode should be managed with a
+    // proper data structure.
+
     // Placeholder for storing substitutions
     d_substitutionsIndex = d_assertions.size();
     d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
@@ -4062,18 +4095,7 @@ void SmtEnginePrivate::processAssertions() {
       d_assertions.replace(i, Rewriter::rewrite(d_assertions[i]));
     }
   } else {
-    // Apply the substitutions we already have, and normalize
-    if(!options::unsatCores()) {
-      Chat() << "applying substitutions..." << endl;
-      Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                        << "applying substitutions" << endl;
-      for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-        Trace("simplify") << "applying to " << d_assertions[i] << endl;
-        spendResource(options::preprocessStep());
-        d_assertions.replace(i, Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertions[i])));
-        Trace("simplify") << "  got " << d_assertions[i] << endl;
-      }
-    }
+    applySubstitutionsToAssertions();
   }
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-substitution" << endl;
   dumpAssertions("post-substitution", d_assertions);
@@ -4216,6 +4238,10 @@ void SmtEnginePrivate::processAssertions() {
     // Remove ITEs, updating d_iteSkolemMap
     d_smt.d_stats->d_numAssertionsPre += d_assertions.size();
     removeITEs();
+    // This is needed because when solving incrementally, removeITEs may introduce
+    // skolems that were solved for earlier and thus appear in the substitution
+    // map.
+    applySubstitutionsToAssertions();
     d_smt.d_stats->d_numAssertionsPost += d_assertions.size();
   }
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-ite-removal" << endl;
@@ -4283,10 +4309,10 @@ void SmtEnginePrivate::processAssertions() {
         }
         d_assertions[d_realAssertionsEnd - 1] = Rewriter::rewrite(Node(builder));
       }
-      // For some reason this is needed for some benchmarks, such as
+      // TODO(b/1256): For some reason this is needed for some benchmarks, such as
       // http://cvc4.cs.nyu.edu/benchmarks/smtlib2/QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
-      // Figure it out later
       removeITEs();
+      applySubstitutionsToAssertions();
       //      Assert(iteRewriteAssertionsEnd == d_assertions.size());
     }
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-repeat-simplify" << endl;
