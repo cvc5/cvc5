@@ -338,8 +338,8 @@ Node BvInverter::solve_bv_lit(Node sv,
         /* x < t
          * with side condition:
          * t != 10...0 */
-        Node max = bv::utils::mkConst(BitVector(w).setBit(w - 1));
-        scl = nm->mkNode(DISTINCT, max, t);
+        Node min = bv::utils::mkConst(BitVector(w).setBit(w - 1));
+        scl = nm->mkNode(DISTINCT, min, t);
         sc = nm->mkNode(IMPLIES, scl, scr);
       } else {
         sc = scr;
@@ -351,8 +351,8 @@ Node BvInverter::solve_bv_lit(Node sv,
          * with side condition:
          * t != 01...1  */
         BitVector bv = BitVector(w).setBit(w - 1);
-        Node min = bv::utils::mkConst(~bv);
-        scl = nm->mkNode(DISTINCT, t, min);
+        Node max = bv::utils::mkConst(~bv);
+        scl = nm->mkNode(DISTINCT, t, max);
         sc = nm->mkNode(IMPLIES, scl, scr);
       } else {
         sc = scr;
