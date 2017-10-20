@@ -1251,11 +1251,11 @@ inline Node RewriteRule<ZeroExtendUltConst>::apply(TNode node) {
  *
  * Rewrite sign_extend(x^n,m) < c^n+m to
  *
- *   x < c[n-1:0]   if c <= (1 << n - 1).
+ *   x < c[n-1:0]   if c <= (1 << (n - 1)).
  *
- * Rewrite c^n+m < Rewrite sign_extend(x^n,m) to
+ * Rewrite c^n+m < sign_extend(x^n,m) to
  *
- *   c[n-1:0] < x   if c < (1 << n - 1).
+ *   c[n-1:0] < x   if c < (1 << (n - 1)).
  */
 template <>
 inline bool RewriteRule<SignExtendUltConst>::applies(TNode node) {
@@ -1277,7 +1277,7 @@ inline bool RewriteRule<SignExtendUltConst>::applies(TNode node) {
     BitVector bv_max =
         BitVector(utils::getSize(c)).setBit(utils::getSize(t) - 1);
 
-    return (is_lhs && bv_c <= bv_max || (!is_lhs && bv_c < bv_max));
+    return (is_lhs && bv_c <= bv_max) || (!is_lhs && bv_c < bv_max);
   }
   return false;
 }

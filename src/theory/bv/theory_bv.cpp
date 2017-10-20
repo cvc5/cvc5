@@ -802,10 +802,6 @@ Node TheoryBV::ppRewrite(TNode t)
     res = RewriteRule<SignExtendEqConst>::run<false>(t);
   } else if (RewriteRule<ZeroExtendEqConst>::applies(t)) {
     res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
-  } else if (RewriteRule<SignExtendUltConst>::applies(t)) {
-    res = RewriteRule<SignExtendUltConst>::run<false>(t);
-  } else if (RewriteRule<ZeroExtendUltConst>::applies(t)) {
-    res = RewriteRule<ZeroExtendUltConst>::run<false>(t);
   }
 
 
