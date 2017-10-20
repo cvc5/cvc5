@@ -275,31 +275,28 @@ Node BvInverter::solve_bv_lit(Node sv,
   Kind k;
 
   do {
-    Assert (!path.empty());
+    Assert(!path.empty());
     index = path.back();
     Assert(index < lit.getNumChildren());
     path.pop_back();
     k = lit.getKind();
-    Trace("bv-invert") << "####### kind " << k << std::endl;
     if (k != NOT) break;
     pol = !pol;
     lit = lit[index];
   } while (k == NOT);
 
-  Assert (k == EQUAL
+  Assert(k == EQUAL
        || k == BITVECTOR_ULT
        || k == BITVECTOR_ULTBV
        || k == BITVECTOR_SLT
        || k == BITVECTOR_SLTBV);
 
-  Assert (k != EQUAL || pol == true);
+  Assert(k != EQUAL || pol == true);
 
-    Trace("bv-invert") << "####### kind " << k << std::endl;
   Node sv_t = lit[index];
   Node t = lit[1-index];
 
   if (k == BITVECTOR_ULT || k == BITVECTOR_ULTBV) {
-    Trace("bv-invert") << "#######################################" << std::endl;
     TypeNode solve_tn = sv_t.getType();
     Node x = getSolveVariable(solve_tn);
     Node sc, scr, scl;
@@ -312,7 +309,6 @@ Node BvInverter::solve_bv_lit(Node sv,
         scl = nm->mkNode(DISTINCT, t, bv::utils::mkZero(bv::utils::getSize(t)));
         sc = nm->mkNode(IMPLIES, scl, scr);
       } else {
-        Trace("bv-invert") << "pol false 1" << std::endl;
         sc = scr;
       }
     } else if (index == 1) {
@@ -324,7 +320,6 @@ Node BvInverter::solve_bv_lit(Node sv,
         scl = nm->mkNode(DISTINCT, t, bv::utils::mkOnes(bv::utils::getSize(t)));
         sc = nm->mkNode(IMPLIES, scl, scr);
       } else {
-        Trace("bv-invert") << "pol false 2" << std::endl;
         sc = scr;
       }
     }
@@ -400,7 +395,7 @@ Node BvInverter::solve_bv_lit(Node sv,
     } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
       t = NodeManager::currentNM()->mkNode(k, t);
     } else {
-      Assert (nchildren >= 2);
+      Assert(nchildren >= 2);
       Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
       /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
        *       are commutative (no case split based on index). */

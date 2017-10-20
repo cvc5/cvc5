@@ -960,7 +960,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
                            nm->mkNode(kind::BITVECTOR_PLUS, t, slack));
           Trace("cegqi-bv") << "Process " << lit << " as " << ret
                             << ", slack is " << slack << std::endl;
-        } else{
+        } else {
           ret = s.eqNode(t);          
           Trace("cegqi-bv") << "Process " << lit << " as " << ret << std::endl;
         }
