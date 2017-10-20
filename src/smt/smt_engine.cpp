@@ -4548,7 +4548,7 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
       Trace("smt-synth") << "Compute single invocation for " << conj_se << "..." << std::endl;
       quantifiers::SingleInvocationPartition sip;
       std::vector< Node > funcs;
-      funcs.insert( funcs.end(), conj[0].begin(), conj[0].end() );
+      funcs.insert(funcs.end(), conj[0].begin(), conj[0].end());
       sip.init( funcs, conj_se );
       Trace("smt-synth") << "...finished, got:" << std::endl;
       sip.debugPrint("smt-synth");

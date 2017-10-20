@@ -84,9 +84,10 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
   Node qbody_subs = q[1];
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     Node sf = q[0][i];
-    // v encodes the syntactic restrictions (via an inductive datatype) on sf from the input
+    // v encodes the syntactic restrictions (via an inductive datatype) on sf
+    // from the input
     Node v = sf.getAttribute(SygusSynthGrammarAttribute());
-    Assert( !v.isNull() );
+    Assert(!v.isNull());
     Node sfvl = sf.getAttribute(SygusSynthFunVarListAttribute());
     // sfvl may be null for constant synthesis functions
     Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is " << sfvl << std::endl;

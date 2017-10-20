@@ -1081,16 +1081,17 @@ const void Smt2::getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed ) {
 }
 
 const void Smt2::addSygusFunSymbol( Type t, Expr synth_fun ){
-  // When constructing the synthesis conjecture, we quantify on the 
+  // When constructing the synthesis conjecture, we quantify on the
   // (higher-order) bound variable synth_fun.
   d_sygusFunSymbols.push_back(synth_fun);
-  
+
   // Variable "sfproxy" carries the type, which may be a SyGuS datatype
   // that corresponds to syntactic restrictions.
-  Expr sym = mkBoundVar("sfproxy", t);  
+  Expr sym = mkBoundVar("sfproxy", t);
   std::vector< Expr > attr_value;
-  attr_value.push_back( sym );
-  Command* cattr = new SetUserAttributeCommand("sygus-synth-grammar", synth_fun, attr_value);
+  attr_value.push_back(sym);
+  Command* cattr =
+      new SetUserAttributeCommand("sygus-synth-grammar", synth_fun, attr_value);
   cattr->setMuted(true);
   preemptCommand(cattr);
 }

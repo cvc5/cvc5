@@ -111,7 +111,7 @@ bool NodeTemplate<ref_count>::hasBoundVar() {
         hasBv = (*i).hasBoundVar();
       }
     }
-    if(!hasBv && hasOperator()){
+    if (!hasBv && hasOperator()) {
       hasBv = getOperator().hasBoundVar();
     }
     setAttribute(HasBoundVarAttr(), hasBv);
