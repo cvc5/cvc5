@@ -268,30 +268,30 @@ Node BvInverter::solve_bv_lit(Node sv,
                               std::vector<unsigned>& path,
                               BvInverterModelQuery* m,
                               BvInverterStatus& status) {
+  Assert(!path.empty());
 
-  unsigned index;
-  unsigned nchildren;
   NodeManager* nm = NodeManager::currentNM();
+  unsigned index, nchildren;
   Kind k;
 
-  do {
-    Assert(!path.empty());
-    index = path.back();
-    Assert(index < lit.getNumChildren());
-    path.pop_back();
-    k = lit.getKind();
-    if (k != NOT) break;
+  index = path.back();
+  Assert(index < lit.getNumChildren());
+  path.pop_back();
+  k = lit.getKind();
+
+  if (k == NOT) {
     pol = !pol;
     lit = lit[index];
-  } while (k == NOT);
+  }
 
   Assert(k == EQUAL
+       || k == BITVECTOR_COMP
        || k == BITVECTOR_ULT
        || k == BITVECTOR_ULTBV
        || k == BITVECTOR_SLT
        || k == BITVECTOR_SLTBV);
 
-  Assert(k != EQUAL || pol == true);
+  Assert((k != EQUAL && k != BITVECTOR_COMP) || pol == true);
 
   Node sv_t = lit[index];
   Node t = lit[1-index];
@@ -366,10 +366,10 @@ Node BvInverter::solve_bv_lit(Node sv,
 
   while (!path.empty()) {
     index = path.back();
-    Assert(index < sv_t.getNumChildren());
-    path.pop_back();
-    Kind k = sv_t.getKind();
     nchildren = sv_t.getNumChildren();
+    Assert(index < nchildren);
+    path.pop_back();
+    k = sv_t.getKind();
 
     if (k == BITVECTOR_CONCAT) {
       /* x = t[upper:lower]
@@ -393,7 +393,7 @@ Node BvInverter::solve_bv_lit(Node sv,
                          << ", from " << sv_t << std::endl;
       return Node::null();
     } else if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
-      t = NodeManager::currentNM()->mkNode(k, t);
+      t = nm->mkNode(k, t);
     } else {
       Assert(nchildren >= 2);
       Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
@@ -403,6 +403,7 @@ Node BvInverter::solve_bv_lit(Node sv,
         case BITVECTOR_PLUS:
           t = nm->mkNode(BITVECTOR_SUB, t, s);
           break;
+
         case BITVECTOR_SUB:
           t = nm->mkNode(BITVECTOR_PLUS, t, s);
           break;
