@@ -26,7 +26,8 @@ TESTS =	\
 	unbdd_inv_gen_ex7.sy \
 	icfp_easy_mt_ite.sy \
 	three.sy \
-	nia-max-square.sy
+	nia-max-square.sy \
+	MPwL_d1s3.sy
 
 EXTRA_DIST = $(TESTS)
 
