@@ -226,6 +226,9 @@ Node QuantArith::solveEqualityFor( Node lit, Node v ) {
         Node val, veqc;
         if( QuantArith::isolate( v, msum, veqc, val, EQUAL )!=0 ){
           if( veqc.isNull() ){
+            // in this case, we have an integer equality with a coefficient
+            // on the variable we solved for that could not be eliminated,
+            // hence we fail.
             return val;
           }
         }
