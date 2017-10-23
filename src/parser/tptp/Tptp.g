@@ -170,13 +170,29 @@ parseCommand returns [CVC4::Command* cmd = NULL]
   }
     (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ true);
+      Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+      if( !aexpr.isNull() ){
+        // set the expression name (e.g. used with unsat core printing)
+        Command* csen = new SetExpressionNameCommand(aexpr, name);
+        csen->setMuted(true);
+        PARSER_STATE->preemptCommand(csen);
+      }
+      // make the command to assert the formula
+      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ true, true);
     }
   | FOF_TOK LPAREN_TOK nameN[name] COMMA_TOK formulaRole[fr] COMMA_TOK
     { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(true); }
     fofFormula[expr] (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ false);
+      Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+      if( !aexpr.isNull() ){
+        // set the expression name (e.g. used with unsat core printing)
+        Command* csen = new SetExpressionNameCommand(aexpr, name);
+        csen->setMuted(true);
+        PARSER_STATE->preemptCommand(csen);
+      }
+      // make the command to assert the formula
+      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
     }
   | TFF_TOK LPAREN_TOK nameN[name] COMMA_TOK
     ( TYPE_TOK COMMA_TOK tffTypedAtom[cmd]
@@ -184,7 +200,15 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(false); }
       tffFormula[expr] (COMMA_TOK anything*)?
       {
-        cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ false);
+        Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+        if( !aexpr.isNull() ){
+          // set the expression name (e.g. used with unsat core printing)
+          Command* csen = new SetExpressionNameCommand(aexpr, name);
+          csen->setMuted(true);
+          PARSER_STATE->preemptCommand(csen);
+        }
+        // make the command to assert the formula
+        cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
       }
     ) RPAREN_TOK DOT_TOK
   | INCLUDE_TOK LPAREN_TOK unquotedFileName[name]

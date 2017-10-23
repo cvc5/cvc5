@@ -19,12 +19,10 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
-#include "theory/quantifiers/ce_guided_instantiation.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fun_def_engine.h"
-#include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/theory_quantifiers.h"
-#include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
@@ -152,7 +150,7 @@ bool TermDbSygus::getMatch2( Node p, Node n, std::map< int, Node >& s, std::vect
     return p==n;
   }else if( n.getKind()==p.getKind() && n.getNumChildren()==p.getNumChildren() ){
     //try both ways?
-    unsigned rmax = TermDb::isComm( n.getKind() ) && n.getNumChildren()==2 ? 2 : 1;
+    unsigned rmax = TermUtil::isComm( n.getKind() ) && n.getNumChildren()==2 ? 2 : 1;
     std::vector< int > new_tmp;
     for( unsigned r=0; r<rmax; r++ ){
       bool success = true;
@@ -724,7 +722,7 @@ bool TermDbSygus::considerArgKind( TypeNode tn, TypeNode tnp, Kind k, Kind pk, i
   int pc = getKindConsNum( tnp, pk );
   if( k==pk ){
     //check for associativity
-    if( quantifiers::TermDb::isAssoc( k ) ){
+    if( quantifiers::TermUtil::isAssoc( k ) ){
       //if the operator is associative, then a repeated occurrence should only occur in the leftmost argument position
       int firstArg = getFirstArgOccurrence( pdt[pc], tn );
       Assert( firstArg!=-1 );
@@ -1370,10 +1368,11 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
   }
 }
 
-void TermDbSygus::registerMeasuredTerm( Node e, Node root, bool mkActiveGuard ) {
-  Assert( d_measured_term.find( e )==d_measured_term.end() );
-  Trace("sygus-db") << "Register measured term : " << e << " with root " << root << std::endl;
-  d_measured_term[e] = root;
+void TermDbSygus::registerMeasuredTerm(Node e, CegConjecture* conj,
+                                       bool mkActiveGuard) {
+  Assert(d_enum_to_conjecture.find(e) == d_enum_to_conjecture.end());
+  Trace("sygus-db") << "Register measured term : " << e << std::endl;
+  d_enum_to_conjecture[e] = conj;
   if( mkActiveGuard ){
     // make the guard
     Node eg = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "eG", NodeManager::currentNM()->booleanType() ) );
@@ -1384,38 +1383,26 @@ void TermDbSygus::registerMeasuredTerm( Node e, Node root, bool mkActiveGuard ) 
     Node lem = NodeManager::currentNM()->mkNode( OR, eg, eg.negate() );
     Trace("cegqi-lemma") << "Cegqi::Lemma : enumerator : " << lem << std::endl;
     d_quantEngine->getOutputChannel().lemma( lem );
-    d_measured_term_active_guard[e] = eg;
+    d_enum_to_active_guard[e] = eg;
   }
 }
 
-void TermDbSygus::registerPbeExamples( Node e, std::vector< std::vector< Node > >& exs, 
-                                       std::vector< Node >& exos, std::vector< Node >& exts  ) {
-  Trace("sygus-db") << "Register " << exs.size() << " PBE examples with " << e << std::endl;
-  Assert( d_measured_term.find( e )==d_measured_term.end() || isMeasuredTerm( e )==e );
-  Assert( d_pbe_exs.find( e )==d_pbe_exs.end() );
-  Assert( exs.size()==exos.size() );
-  d_pbe_exs[e] = exs;
-  d_pbe_exos[e] = exos;
-  for( unsigned i=0; i<exts.size(); i++ ){
-    Trace("sygus-db-debug") << "  # " << i << " : " << exts[i] << std::endl;
-    Assert( exts[i].getKind()==APPLY_UF );
-    Assert( exts[i][0]==e );
-    d_pbe_term_id[exts[i]] = i;
-  }
+bool TermDbSygus::isMeasuredTerm(Node e) const {
+  return d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end();
 }
 
-Node TermDbSygus::isMeasuredTerm( Node e ) {
-  std::map< Node, Node >::iterator itm = d_measured_term.find( e );
-  if( itm!=d_measured_term.end() ){
+CegConjecture* TermDbSygus::getConjectureFor(Node e) {
+  std::map<Node, CegConjecture*>::iterator itm = d_enum_to_conjecture.find(e);
+  if (itm != d_enum_to_conjecture.end()) {
     return itm->second;
   }else{
-    return Node::null();
+    return NULL;
   }
 }
 
 Node TermDbSygus::getActiveGuardForMeasureTerm( Node e ) {
-  std::map< Node, Node >::iterator itag = d_measured_term_active_guard.find( e );
-  if( itag!=d_measured_term_active_guard.end() ){
+  std::map<Node, Node>::iterator itag = d_enum_to_active_guard.find(e);
+  if (itag != d_enum_to_active_guard.end()) {
     return itag->second;
   }else{
     return Node::null();
@@ -1423,51 +1410,10 @@ Node TermDbSygus::getActiveGuardForMeasureTerm( Node e ) {
 }
 
 void TermDbSygus::getMeasuredTerms( std::vector< Node >& mts ) {
-  for( std::map< Node, Node >::iterator itm = d_measured_term.begin(); itm != d_measured_term.end(); ++itm ){
+  for (std::map<Node, CegConjecture*>::iterator itm =
+           d_enum_to_conjecture.begin();
+       itm != d_enum_to_conjecture.end(); ++itm) {
     mts.push_back( itm->first );
-  }
-}
-
-bool TermDbSygus::hasPbeExamples( Node e ) {
-  return d_pbe_exs.find( e )!=d_pbe_exs.end();
-}
-
-unsigned TermDbSygus::getNumPbeExamples( Node e ) {
-  std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_pbe_exs.find( e );
-  if( it!=d_pbe_exs.end() ){
-    return it->second.size();
-  }else{
-    return 0;
-  }
-}
-
-void TermDbSygus::getPbeExample( Node e, unsigned i, std::vector< Node >& ex ) {
-  std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_pbe_exs.find( e );
-  if( it!=d_pbe_exs.end() ){
-    Assert( i<it->second.size() );
-    Assert( i<d_pbe_exos[e].size() );
-    ex.insert( ex.end(), it->second[i].begin(), it->second[i].end() );
-  }else{
-    Assert( false );
-  }
-}
-Node TermDbSygus::getPbeExampleOut( Node e, unsigned i ) {
-  std::map< Node, std::vector< Node > >::iterator it = d_pbe_exos.find( e );
-  if( it!=d_pbe_exos.end() ){
-    Assert( i<it->second.size() );
-    return it->second[i];
-  }else{
-    Assert( false );
-    return Node::null();
-  }
-}
-
-int TermDbSygus::getPbeExampleId( Node n ) {
-  std::map< Node, unsigned >::iterator it = d_pbe_term_id.find( n );
-  if( it!=d_pbe_term_id.end() ){
-    return it->second;
-  }else{
-    return -1;
   }
 }
 
@@ -1945,7 +1891,8 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 void TermDbSygus::registerEvalTerm( Node n ) {
   if( options::sygusDirectEval() ){
     if( n.getKind()==APPLY_UF && !n.getType().isBoolean() ){
-      Trace("sygus-eager") << "TermDbSygus::eager: Register eval term : " << n << std::endl;
+      Trace("sygus-eager") << "TermDbSygus::eager: Register eval term : " << n
+                           << std::endl;
       TypeNode tn = n[0].getType();
       if( tn.isDatatype() ){
         const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
@@ -1953,15 +1900,6 @@ void TermDbSygus::registerEvalTerm( Node n ) {
           Node f = n.getOperator();
           Trace("sygus-eager") << "...the evaluation function is : " << f << std::endl;
           if( n[0].getKind()!=APPLY_CONSTRUCTOR ){
-            // check if it directly occurs in an input/ouput example
-            int pbe_id = getPbeExampleId( n );
-            if( pbe_id!=-1 ){
-              Node n_res = getPbeExampleOut( n[0], pbe_id );
-              if( !n_res.isNull() ){
-                Trace("sygus-eager") << "......do not evaluate " << n << " since it is an input/output example : " << n_res << std::endl;
-                return;
-              }
-            }
             d_evals[n[0]].push_back( n );
             TypeNode tn = n[0].getType();
             Assert( tn.isDatatype() );
@@ -2011,7 +1949,7 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
         Assert( dt.isSygus() );
         Trace("sygus-eager") << "TermDbSygus::eager: Register model value : " << vn << " for " << n << std::endl;
         Trace("sygus-eager") << "...it has " << it->second.size() << " evaluations, already processed " << start << "." << std::endl;
-        Node bTerm = d_quantEngine->getTermDatabaseSygus()->sygusToBuiltin( vn, tn );
+        Node bTerm = sygusToBuiltin( vn, tn );
         Trace("sygus-eager") << "Built-in term : " << bTerm << std::endl;
         std::vector< Node > vars;
         Node var_list = Node::fromExpr( dt.getSygusVarList() );
@@ -2371,16 +2309,6 @@ Node TermDbSygus::evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& ar
   }
 }
 
-Node TermDbSygus::evaluateBuiltin( TypeNode tn, Node bn, Node ar, unsigned i ) {
-  std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_pbe_exs.find( ar );
-  if( it!=d_pbe_exs.end() ){
-    Assert( i<it->second.size() );
-    return evaluateBuiltin( tn, bn, it->second[i] );
-  }else{
-    return Rewriter::rewrite( bn );
-  }
-}
-
 Node TermDbSygus::evaluateWithUnfolding( Node n, std::map< Node, Node >& visited ) {
   std::map< Node, Node >::iterator it = visited.find( n );
   if( it==visited.end() ){
@@ -2449,50 +2377,6 @@ bool TermDbSygus::isGenericRedundant( TypeNode tn, unsigned i ) {
   }else{
     return d_sygus_red_status[tn][i]==1;
   }
-}
-
-Node TermDbSygus::PbeTrie::addPbeExample( TypeNode etn, Node e, Node b, quantifiers::TermDbSygus * tds, unsigned index, unsigned ntotal ) {
-  Assert( tds->getNumPbeExamples( e )==ntotal );
-  if( index==ntotal ){
-    //lazy child holds the leaf data
-    if( d_lazy_child.isNull() ){
-      d_lazy_child = b;
-    }
-    return d_lazy_child;
-  }else{
-    std::vector< Node > ex;
-    if( d_children.empty() ){
-      if( d_lazy_child.isNull() ){
-        d_lazy_child = b;
-        return d_lazy_child;
-      }else{
-        //evaluate the lazy child    
-        tds->getPbeExample( e, index, ex );
-        addPbeExampleEval( etn, e, d_lazy_child, ex, tds, index, ntotal );
-        Assert( !d_children.empty() );
-        d_lazy_child = Node::null();
-      }
-    }else{
-      tds->getPbeExample( e, index, ex );
-    }
-    return addPbeExampleEval( etn, e, b, ex, tds, index, ntotal );
-  }
-}
-
-Node TermDbSygus::PbeTrie::addPbeExampleEval( TypeNode etn, Node e, Node b, std::vector< Node >& ex, quantifiers::TermDbSygus * tds, unsigned index, unsigned ntotal ) {
-  Node eb = tds->evaluateBuiltin( etn, b, ex );
-  return d_children[eb].addPbeExample( etn, e, b, tds, index+1, ntotal );
-}
-
-Node TermDbSygus::addPbeSearchVal( TypeNode tn, Node e, Node bvr ){
-  Assert( !e.isNull() );
-  if( hasPbeExamples( e ) ){
-    unsigned nex = getNumPbeExamples( e );
-    Node ret = d_pbe_trie[e][tn].addPbeExample( tn, e, bvr, this, 0, nex );
-    Assert( ret.getType()==bvr.getType() );
-    return ret;
-  }
-  return Node::null();
 }
 
 Node TermDbSygus::extendedRewritePullIte( Node n ) {

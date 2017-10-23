@@ -16,6 +16,7 @@
 #include "theory/quantifiers/candidate_generator.h"
 #include "theory/quantifiers/inst_match_generator.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
@@ -32,7 +33,7 @@ namespace inst {
 
 void TriggerTermInfo::init( Node q, Node n, int reqPol, Node reqPolEq ){
   if( d_fv.empty() ){
-    quantifiers::TermDb::getVarContainsNode( q, n, d_fv );
+    quantifiers::TermUtil::getVarContainsNode( q, n, d_fv );
   }
   if( d_reqPol==0 ){
     d_reqPol = reqPol;
@@ -125,12 +126,12 @@ bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_var
   std::map< Node, std::vector< Node > > patterns;
   size_t varCount = 0;
   std::map< Node, std::vector< Node > > varContains;
-  quantifiers::TermDb::getVarContains( q, temp, varContains );
+  quantifiers::TermUtil::getVarContains( q, temp, varContains );
   for( unsigned i=0; i<temp.size(); i++ ){
     bool foundVar = false;
     for( unsigned j=0; j<varContains[ temp[i] ].size(); j++ ){
       Node v = varContains[ temp[i] ][j];
-      Assert( quantifiers::TermDb::getInstConstAttr(v)==q );
+      Assert( quantifiers::TermUtil::getInstConstAttr(v)==q );
       if( vars.find( v )==vars.end() ){
         varCount++;
         vars[ v ] = true;
@@ -224,7 +225,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, Node n, bool keepAll
 }
 
 bool Trigger::isUsable( Node n, Node q ){
-  if( quantifiers::TermDb::getInstConstAttr(n)==q ){
+  if( quantifiers::TermUtil::getInstConstAttr(n)==q ){
     if( isAtomicTrigger( n ) ){
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         if( !isUsable( n[i], q ) ){
@@ -255,7 +256,7 @@ Node Trigger::getIsUsableEq( Node q, Node n ) {
   Assert( isRelationalTrigger( n ) );
   for( unsigned i=0; i<2; i++) {
     if( isUsableEqTerms( q, n[i], n[1-i] ) ){
-      if( i==1 && n.getKind()==EQUAL && !quantifiers::TermDb::hasInstConstAttr(n[0]) ){
+      if( i==1 && n.getKind()==EQUAL && !quantifiers::TermUtil::hasInstConstAttr(n[0]) ){
         return NodeManager::currentNM()->mkNode( n.getKind(), n[1], n[0] );  
       }else{
         return n;
@@ -268,16 +269,16 @@ Node Trigger::getIsUsableEq( Node q, Node n ) {
 bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
   if( n1.getKind()==INST_CONSTANT ){
     if( options::relationalTriggers() ){
-      if( !quantifiers::TermDb::hasInstConstAttr(n2) ){
+      if( !quantifiers::TermUtil::hasInstConstAttr(n2) ){
         return true;
       }else if( n2.getKind()==INST_CONSTANT ){
         return true;
       }
     }
   }else if( isUsableAtomicTrigger( n1, q ) ){
-    if( options::relationalTriggers() && n2.getKind()==INST_CONSTANT && !quantifiers::TermDb::containsTerm( n1, n2 ) ){
+    if( options::relationalTriggers() && n2.getKind()==INST_CONSTANT && !quantifiers::TermUtil::containsTerm( n1, n2 ) ){
       return true;
-    }else if( !quantifiers::TermDb::hasInstConstAttr(n2) ){
+    }else if( !quantifiers::TermUtil::hasInstConstAttr(n2) ){
       return true;
     }
   }
@@ -329,7 +330,7 @@ Node Trigger::getIsUsableTrigger( Node n, Node q ) {
       return rtr2;
     }
   }else{
-    Trace("trigger-debug") << n << " usable : " << ( quantifiers::TermDb::getInstConstAttr(n)==q ) << " " << isAtomicTrigger( n ) << " " << isUsable( n, q ) << std::endl;
+    Trace("trigger-debug") << n << " usable : " << ( quantifiers::TermUtil::getInstConstAttr(n)==q ) << " " << isAtomicTrigger( n ) << " " << isUsable( n, q ) << std::endl;
     if( isUsableAtomicTrigger( n, q ) ){
       return pol ? n : NodeManager::currentNM()->mkNode( EQUAL, n, NodeManager::currentNM()->mkConst( true ) ).notNode();
     }
@@ -338,7 +339,7 @@ Node Trigger::getIsUsableTrigger( Node n, Node q ) {
 }
 
 bool Trigger::isUsableAtomicTrigger( Node n, Node q ) {
-  return quantifiers::TermDb::getInstConstAttr( n )==q && isAtomicTrigger( n ) && isUsable( n, q );
+  return quantifiers::TermUtil::getInstConstAttr( n )==q && isAtomicTrigger( n ) && isUsable( n, q );
 }
 
 bool Trigger::isUsableTrigger( Node n, Node q ){
@@ -366,7 +367,7 @@ bool Trigger::isRelationalTriggerKind( Kind k ) {
 }
   
 bool Trigger::isCbqiKind( Kind k ) {
-  if( quantifiers::TermDb::isBoolConnective( k ) || k==PLUS || k==GEQ || k==EQUAL || k==MULT ){
+  if( quantifiers::TermUtil::isBoolConnective( k ) || k==PLUS || k==GEQ || k==EQUAL || k==MULT ){
     return true;
   }else{
     //CBQI typically works for satisfaction-complete theories
@@ -378,13 +379,13 @@ bool Trigger::isCbqiKind( Kind k ) {
 bool Trigger::isSimpleTrigger( Node n ){
   Node t = n.getKind()==NOT ? n[0] : n;
   if( t.getKind()==EQUAL ){
-    if( !quantifiers::TermDb::hasInstConstAttr( t[1] ) ){
+    if( !quantifiers::TermUtil::hasInstConstAttr( t[1] ) ){
       t = t[0];
     }
   }
   if( isAtomicTrigger( t ) ){
     for( unsigned i=0; i<t.getNumChildren(); i++ ){
-      if( t[i].getKind()!=INST_CONSTANT && quantifiers::TermDb::hasInstConstAttr(t[i]) ){
+      if( t[i].getKind()!=INST_CONSTANT && quantifiers::TermUtil::hasInstConstAttr(t[i]) ){
         return false;
       }
     }
@@ -425,14 +426,14 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
         Trace("auto-gen-trigger-debug2") << "...found usable trigger : " << nu << std::endl;
         Node reqEq;
         if( nu.getKind()==EQUAL ){
-          if( isAtomicTrigger( nu[0] ) && !quantifiers::TermDb::hasInstConstAttr(nu[1]) ){
+          if( isAtomicTrigger( nu[0] ) && !quantifiers::TermUtil::hasInstConstAttr(nu[1]) ){
             if( hasPol ){
               reqEq = nu[1];
             }
             nu = nu[0];
           }
         }
-        Assert( reqEq.isNull() || !quantifiers::TermDb::hasInstConstAttr( reqEq ) );
+        Assert( reqEq.isNull() || !quantifiers::TermUtil::hasInstConstAttr( reqEq ) );
         Assert( isUsableTrigger( nu, q ) );
         //tinfo.find( nu )==tinfo.end()
         Trace("auto-gen-trigger-debug2") << "...add usable trigger : " << nu << std::endl;
@@ -510,7 +511,7 @@ bool Trigger::isBooleanTermTrigger( Node n ) {
 }
 
 bool Trigger::isPureTheoryTrigger( Node n ) {
-  if( n.getKind()==APPLY_UF || n.getKind()==VARIABLE || n.getKind()==SKOLEM ){  //|| !quantifiers::TermDb::hasInstConstAttr( n ) ){
+  if( n.getKind()==APPLY_UF || n.getKind()==VARIABLE || n.getKind()==SKOLEM ){  //|| !quantifiers::TermUtil::hasInstConstAttr( n ) ){
     return false;
   }else{
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -529,7 +530,7 @@ int Trigger::getTriggerWeight( Node n ) {
     if( options::relationalTriggers() ){
       if( isRelationalTrigger( n ) ){
         for( unsigned i=0; i<2; i++ ){
-          if( n[i].getKind()==INST_CONSTANT && !quantifiers::TermDb::hasInstConstAttr( n[1-i] ) ){
+          if( n[i].getKind()==INST_CONSTANT && !quantifiers::TermUtil::hasInstConstAttr( n[1-i] ) ){
             return 0;
           }
         }
@@ -581,7 +582,7 @@ void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, qu
     collectPatTerms( q, n, patTerms2, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo2, false );
     std::vector< Node > temp;
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
-    quantifiers::TermDb::filterInstances( temp );
+    quantifiers::TermUtil::filterInstances( temp );
     if( temp.size()!=patTerms2.size() ){
       Trace("trigger-filter-instance") << "Filtered an instance: " << std::endl;
       Trace("trigger-filter-instance") << "Old: ";
@@ -625,7 +626,7 @@ Node Trigger::getInversionVariable( Node n ) {
   }else if( n.getKind()==PLUS || n.getKind()==MULT ){
     Node ret;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( quantifiers::TermDb::hasInstConstAttr(n[i]) ){
+      if( quantifiers::TermUtil::hasInstConstAttr(n[i]) ){
         if( ret.isNull() ){
           ret = getInversionVariable( n[i] );
           if( ret.isNull() ){
@@ -664,7 +665,7 @@ Node Trigger::getInversion( Node n, Node x ) {
   }else if( n.getKind()==PLUS || n.getKind()==MULT ){
     int cindex = -1;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( !quantifiers::TermDb::hasInstConstAttr(n[i]) ){
+      if( !quantifiers::TermUtil::hasInstConstAttr(n[i]) ){
         if( n.getKind()==PLUS ){
           x = NodeManager::currentNM()->mkNode( MINUS, x, n[i] );
         }else if( n.getKind()==MULT ){
@@ -702,7 +703,7 @@ void Trigger::getTriggerVariables( Node icn, Node q, std::vector< Node >& t_vars
   collectPatTerms( q, icn, patTerms, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo );
   //collect all variables from all patterns in patTerms, add to t_vars
   for( unsigned i=0; i<patTerms.size(); i++ ){
-    quantifiers::TermDb::getVarContainsNode( q, patTerms[i], t_vars );
+    quantifiers::TermUtil::getVarContainsNode( q, patTerms[i], t_vars );
   }
 }
 

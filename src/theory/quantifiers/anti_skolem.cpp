@@ -17,7 +17,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace std;
@@ -29,9 +29,9 @@ namespace theory {
 namespace quantifiers {
 
 struct sortTypeOrder {
-  TermDb* d_tdb;
+  TermUtil* d_tu;
   bool operator() (TypeNode i, TypeNode j) {
-    return d_tdb->getIdForType( i )<d_tdb->getIdForType( j );
+    return d_tu->getIdForType( i )<d_tu->getIdForType( j );
   }
 };
 
@@ -120,7 +120,7 @@ void QuantAntiSkolem::check( Theory::Effort e, unsigned quant_e ) {
             indices[d_ask_types[q][j]].push_back( j );
           }
           sortTypeOrder sto;
-          sto.d_tdb = d_quantEngine->getTermDatabase();
+          sto.d_tu = d_quantEngine->getTermUtil();
           std::sort( d_ask_types[q].begin(), d_ask_types[q].end(), sto );
           //increment j on inner loop
           for( unsigned j=0; j<d_ask_types[q].size();  ){

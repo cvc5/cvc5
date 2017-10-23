@@ -29,7 +29,7 @@
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
@@ -94,7 +94,7 @@ static std::string maybeQuoteSymbol(const std::string& s) {
 
 static bool stringifyRegexp(Node n, stringstream& ss) {
   if(n.getKind() == kind::STRING_TO_REGEXP) {
-    ss << n[0].getConst<String>().toString();
+    ss << n[0].getConst<String>().toString(true);
   } else if(n.getKind() == kind::REGEXP_CONCAT) {
     for(unsigned i = 0; i < n.getNumChildren(); ++i) {
       if(!stringifyRegexp(n[i], ss)) {
@@ -256,7 +256,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
     case kind::CONST_STRING: {
       //const std::vector<unsigned int>& s = n.getConst<String>().getVec();
-      std::string s = n.getConst<String>().toString();
+      std::string s = n.getConst<String>().toString(true);
       out << '"';
       for(size_t i = 0; i < s.size(); ++i) {
         //char c = String::convertUnsignedIntToChar(s[i]);
@@ -1141,13 +1141,15 @@ void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const thro
 }/* Smt2Printer::toStream(CommandStatus*) */
 
 
-void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw() {
+void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const throw() {
   out << "(" << std::endl;
+  SmtEngine * smt = core.getSmtEngine();
+  Assert( smt!=NULL );
   for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
-    map<Expr, string>::const_iterator j = names.find(*i);
-    if (j != names.end()) {
+    std::string name;
+    if (smt->getExpressionName(*i,name)) {
       // Named assertions always get printed
-      out << maybeQuoteSymbol((*j).second) << endl;
+      out << maybeQuoteSymbol(name) << endl;
     } else if (options::dumpUnsatCoresFull()) {
       // Unnamed assertions only get printed if the option is set
       out << *i << endl;

@@ -19,6 +19,7 @@
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -82,9 +83,11 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
   std::vector< Node > ebvl;
   Node qbody_subs = q[1];
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-    Node v = q[0][i];
-    Node sf = v.getAttribute(SygusSynthFunAttribute());
-    Assert( !sf.isNull() );
+    Node sf = q[0][i];
+    // v encodes the syntactic restrictions (via an inductive datatype) on sf
+    // from the input
+    Node v = sf.getAttribute(SygusSynthGrammarAttribute());
+    Assert(!v.isNull());
     Node sfvl = sf.getAttribute(SygusSynthFunVarListAttribute());
     // sfvl may be null for constant synthesis functions
     Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is " << sfvl << std::endl;
@@ -559,7 +562,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     Node op;
     std::vector< Type > argTypes;
     if( templ.getNumChildren()==0 ){
-      // TODO : can short circuit to this case when !TermDb::containsTerm( templ, templ_arg )
+      // TODO : can short circuit to this case when !TermUtil::containsTerm( templ, templ_arg )
       op = templ;
     }else{
       Assert( templ.hasOperator() );

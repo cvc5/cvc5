@@ -468,21 +468,30 @@ public:
  *  via the syntax (! expr :attr)
  */
 class CVC4_PUBLIC SetUserAttributeCommand : public Command {
-protected:
-  std::string d_attr;
-  Expr d_expr;
-  std::vector<Expr> d_expr_values;
-  std::string d_str_value;
-public:
-  SetUserAttributeCommand( const std::string& attr, Expr expr ) throw();
-  SetUserAttributeCommand( const std::string& attr, Expr expr, std::vector<Expr>& values ) throw();
-  SetUserAttributeCommand( const std::string& attr, Expr expr, const std::string& value ) throw();
+ public:
+  SetUserAttributeCommand(const std::string& attr, Expr expr) throw();
+  SetUserAttributeCommand(const std::string& attr, Expr expr,
+                          const std::vector<Expr>& values) throw();
+  SetUserAttributeCommand(const std::string& attr, Expr expr,
+                          const std::string& value) throw();
   ~SetUserAttributeCommand() throw() {}
+
   void invoke(SmtEngine* smtEngine);
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class SetUserAttributeCommand */
+
+ private:
+  SetUserAttributeCommand(const std::string& attr, Expr expr,
+                          const std::vector<Expr>& expr_values,
+                          const std::string& str_value) throw();
+
+  const std::string d_attr;
+  const Expr d_expr;
+  const std::vector<Expr> d_expr_values;
+  const std::string d_str_value;
+}; /* class SetUserAttributeCommand */
 
 class CVC4_PUBLIC CheckSatCommand : public Command {
 protected:
@@ -687,12 +696,8 @@ public:
 };/* class GetQuantifierEliminationCommand */
 
 class CVC4_PUBLIC GetUnsatCoreCommand : public Command {
-protected:
-  UnsatCore d_result;
-  std::map<Expr, std::string> d_names;
 public:
   GetUnsatCoreCommand() throw();
-  GetUnsatCoreCommand(const std::map<Expr, std::string>& names) throw();
   ~GetUnsatCoreCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
@@ -700,6 +705,10 @@ public:
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
+
+protected:
+  // the result of the unsat core call
+  UnsatCore d_result;
 };/* class GetUnsatCoreCommand */
 
 class CVC4_PUBLIC GetAssertionsCommand : public Command {
@@ -803,6 +812,27 @@ public:
   Command* clone() const;
   std::string getCommandName() const throw();
 };/* class GetOptionCommand */
+
+// Set expression name command
+// Note this is not an official smt2 command
+// Conceptually:
+//   (assert (! expr :named name))
+// is converted to
+//   (assert expr)
+//   (set-expr-name expr name)
+class CVC4_PUBLIC SetExpressionNameCommand : public Command {
+protected:
+  Expr d_expr;
+  std::string d_name;
+public:
+  SetExpressionNameCommand(Expr expr, std::string name) throw();
+  ~SetExpressionNameCommand() throw() {}
+  void invoke(SmtEngine* smtEngine);
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+};/* class SetExpressionNameCommand */
+
 
 class CVC4_PUBLIC DatatypeDeclarationCommand : public Command {
 private:

@@ -334,7 +334,11 @@ option quantEprMatching --quant-epr-match bool :default true
  
 # CEGQI for BV
 option cbqiBv --cbqi-bv bool :read-write :default false
- use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors
+  use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors
+option cbqiBvInterleaveValue --cbqi-bv-interleave-value bool :read-write :default false
+  interleave model value instantiation with word-level inversion approach
+option cbqiBvSlackIneq --cbqi-bv-slack-ineq bool :read-write :default true
+  use model slack values when solving inequalities with word-level inversion approach
  
 ### local theory extensions options 
 

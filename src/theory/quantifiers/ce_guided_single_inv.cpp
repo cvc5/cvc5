@@ -21,6 +21,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 
@@ -100,7 +101,7 @@ void CegConjectureSingleInv::getInitialSingleInvLemma( std::vector< Node >& lems
     }else{
       inst = d_single_inv;
     }
-    inst = TermDb::simpleNegate( inst );
+    inst = TermUtil::simpleNegate( inst );
     Trace("cegqi-si") << "Single invocation initial lemma : " << inst << std::endl;
 
     //register with the instantiator
@@ -125,8 +126,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
   std::vector< Node > progs;
   std::map< Node, std::vector< Node > > prog_vars;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-    Node v = q[0][i];
-    Node sf = v.getAttribute(SygusSynthFunAttribute());
+    Node sf = q[0][i];
     progs.push_back( sf );
     Node sfvl = sf.getAttribute(SygusSynthFunVarListAttribute());
     for( unsigned j=0; j<sfvl.getNumChildren(); j++ ){
@@ -139,7 +139,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
     if( q[1].getKind()==NOT && q[1][0].getKind()==FORALL ){
       qq = q[1][0][1];
     }else{
-      qq = TermDb::simpleNegate( q[1] );
+      qq = TermUtil::simpleNegate( q[1] );
     }
     //process the single invocation-ness of the property
     if( !d_sip->init( progs, qq ) ){
@@ -282,7 +282,7 @@ void CegConjectureSingleInv::finishInit( bool syntaxRestricted, bool hasItes ) {
   // we now have determined whether we will do single invocation techniques
   if( d_single_invocation ){
     d_single_inv = d_sip->getSingleInvocation();
-    d_single_inv = TermDb::simpleNegate( d_single_inv );
+    d_single_inv = TermUtil::simpleNegate( d_single_inv );
     if( !d_sip->d_func_vars.empty() ){
       Node pbvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, d_sip->d_func_vars );
       d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, d_single_inv );
@@ -349,9 +349,9 @@ bool CegConjectureSingleInv::doAddInstantiation( std::vector< Node >& subs ){
       Trace("cegqi-engine") << siss.str() << std::endl;
       Assert( d_single_inv_var.size()==subs.size() );
       lem = d_single_inv[1].substitute( d_single_inv_var.begin(), d_single_inv_var.end(), subs.begin(), subs.end() );
-      if( d_qe->getTermDatabase()->containsVtsTerm( lem ) ){
+      if( d_qe->getTermUtil()->containsVtsTerm( lem ) ){
         Trace("cegqi-engine-debug") << "Rewrite based on vts symbols..." << std::endl;
-        lem = d_qe->getTermDatabase()->rewriteVtsSymbols( lem );
+        lem = d_qe->getTermUtil()->rewriteVtsSymbols( lem );
       }
     }
   }
@@ -407,7 +407,7 @@ Node CegConjectureSingleInv::constructSolution( std::vector< unsigned >& indices
     if( itw!=weak_imp.end() ){
       cond = itw->second;
     }
-    cond = TermDb::simpleNegate( cond );
+    cond = TermUtil::simpleNegate( cond );
     Node ite1 = d_inst[uindex][i];
     Node ite2 = constructSolution( indices, i, index+1, weak_imp );
     return NodeManager::currentNM()->mkNode( ITE, cond, ite1, ite2 );
@@ -468,12 +468,12 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
   Assert( !d_lemmas_produced.empty() );
   const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
   Node varList = Node::fromExpr( dt.getSygusVarList() );
-  Node prog = d_quant[0][sol_index].getAttribute(SygusSynthFunAttribute());
+  Node prog = d_quant[0][sol_index];
   std::vector< Node > vars;
   Node s;
   if( d_prog_to_sol_index.find( prog )==d_prog_to_sol_index.end() ){
     Trace("csi-sol") << "Get solution for (unconstrained) " << prog << std::endl;
-    s = d_qe->getTermDatabase()->getEnumerateTerm( TypeNode::fromType( dt.getSygusType() ), 0 );
+    s = d_qe->getTermUtil()->getEnumerateTerm( TypeNode::fromType( dt.getSygusType() ), 0 );
   }else{
     Trace("csi-sol") << "Get solution for " << prog << ", with skolems : ";
     sol_index = d_prog_to_sol_index[prog];
@@ -704,7 +704,7 @@ void SingleInvocationPartition::process( Node n ) {
       std::vector< Node > si_subs;
       Trace("si-prt") << "Process conjunct : " << conj[i] << std::endl;
       //do DER on conjunct
-      Node cr = TermDb::getQuantSimplify( conj[i] );
+      Node cr = TermUtil::getQuantSimplify( conj[i] );
       if( cr!=conj[i] ){
         Trace("si-prt-debug") << "...rewritten to " << cr << std::endl;
       }
@@ -751,11 +751,23 @@ void SingleInvocationPartition::process( Node n ) {
         Trace("si-prt-debug") << "...normalized invocations to " << cr << std::endl;
         //now must check if it has other bound variables
         std::vector< Node > bvs;
-        TermDb::getBoundVars( cr, bvs );
+        TermUtil::getBoundVars( cr, bvs );
         if( bvs.size()>d_si_vars.size() ){
-          Trace("si-prt") << "...not ground single invocation." << std::endl;
-          ngroundSingleInvocation = true;
-          singleInvocation = false;
+          // getBoundVars also collects functions in the rare case that we are synthesizing a function with 0 arguments
+          // take these into account below.
+          unsigned n_const_synth_fun = 0;
+          for( unsigned j=0; j<bvs.size(); j++ ){
+            if( std::find( d_input_funcs.begin(), d_input_funcs.end(), bvs[j] )!=d_input_funcs.end() ){
+              n_const_synth_fun++;
+            }
+          }
+          if( bvs.size()-n_const_synth_fun>d_si_vars.size() ){
+            Trace("si-prt") << "...not ground single invocation." << std::endl;
+            ngroundSingleInvocation = true;
+            singleInvocation = false;
+          }else{
+            Trace("si-prt") << "...ground single invocation : success, after removing 0-arg synth functions." << std::endl;
+          }
         }else{
           Trace("si-prt") << "...ground single invocation : success." << std::endl;
         }
@@ -764,7 +776,7 @@ void SingleInvocationPartition::process( Node n ) {
         singleInvocation = false;
         //rename bound variables with maximal overlap with si_vars
         std::vector< Node > bvs;
-        TermDb::getBoundVars( cr, bvs );
+        TermUtil::getBoundVars( cr, bvs );
         std::vector< Node > terms;
         std::vector< Node > subs;
         for( unsigned j=0; j<bvs.size(); j++ ){
@@ -787,7 +799,7 @@ void SingleInvocationPartition::process( Node n ) {
       cr = Rewriter::rewrite( cr );
       Trace("si-prt") << ".....got si=" << singleInvocation << ", result : " << cr << std::endl;
       d_conjuncts[2].push_back( cr );
-      TermDb::getBoundVars( cr, d_all_vars );
+      TermUtil::getBoundVars( cr, d_all_vars );
       if( singleInvocation ){
         //replace with single invocation formulation
         Assert( si_terms.size()==si_subs.size() );
@@ -820,7 +832,7 @@ bool SingleInvocationPartition::collectConjuncts( Node n, bool pol, std::vector<
     return false;
   }else{
     if( !pol ){
-      n = TermDb::simpleNegate( n );
+      n = TermUtil::simpleNegate( n );
     }
     Trace("si-prt") << "Conjunct : " << n << std::endl;
     conj.push_back( n );
@@ -835,7 +847,7 @@ bool SingleInvocationPartition::processConjunct( Node n, std::map< Node, bool >&
     return true;
   }else{
     bool ret = true;
-    //if( TermDb::hasBoundVarAttr( n ) ){
+    //if( TermUtil::hasBoundVarAttr( n ) ){
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         if( !processConjunct( n[i], visited, args, terms, subs ) ){
           ret = false;
@@ -1106,7 +1118,7 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
       Node s;
       for( unsigned r=0; r<2; r++ ){
         if( std::find( vars.begin(), vars.end(), slit[r] )!=vars.end() ){
-          if( !TermDb::containsTerm( slit[1-r], slit[r] ) ){
+          if( !TermUtil::containsTerm( slit[1-r], slit[r] ) ){
             v = slit[r];
             s = slit[1-r];
             break;
@@ -1122,7 +1134,7 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
               Node veq_c;
               Node val;
               int ires = QuantArith::isolate( itm->first, msum, veq_c, val, EQUAL );
-              if( ires!=0 && veq_c.isNull() && !TermDb::containsTerm( val, itm->first ) ){
+              if( ires!=0 && veq_c.isNull() && !TermUtil::containsTerm( val, itm->first ) ){
                 v = itm->first;
                 s = val;
               }
@@ -1258,7 +1270,7 @@ void TransitionInference::process( Node n ) {
     }
     if( i==0 || i==1 ){
       // pre-condition and transition are negated
-      ret = TermDb::simpleNegate( ret );
+      ret = TermUtil::simpleNegate( ret );
     }
     d_com[i].d_this = ret;
   }

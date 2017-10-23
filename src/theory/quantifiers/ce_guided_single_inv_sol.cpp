@@ -21,6 +21,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 
@@ -87,7 +88,7 @@ Node CegConjectureSingleInvSol::pullITEs( Node s ) {
         rem = pullITEs( rem );
         Trace("csi-pull-ite") << "PI: Rewrite : " << s << std::endl;
         Node prev = s;
-        s = NodeManager::currentNM()->mkNode( ITE, TermDb::simpleNegate( cond ), t, rem );
+        s = NodeManager::currentNM()->mkNode( ITE, TermUtil::simpleNegate( cond ), t, rem );
         Trace("csi-pull-ite") << "PI: Rewrite Now : " << s << std::endl;
         Trace("csi-pull-ite") << "(= " << prev << " " << s << ")" << std::endl;
         success = true;
@@ -109,7 +110,7 @@ bool CegConjectureSingleInvSol::pullITECondition( Node root, Node n_ite, std::ve
       Node cond = n_ite[0][i];
       orig_conj.push_back( cond );
       if( n_ite[0].getKind()==OR ){
-        cond = TermDb::simpleNegate( cond );
+        cond = TermUtil::simpleNegate( cond );
       }
       curr_conj.push_back( cond );
     }
@@ -258,7 +259,7 @@ bool CegConjectureSingleInvSol::getAssign( bool pol, Node n, std::map< Node, boo
     Trace("csi-simp-debug") << "---already assigned, lookup " << pol << " " << ita->second << std::endl;
     return pol==ita->second;
   }else if( n.isConst() ){
-    return pol==(n==d_qe->getTermDatabase()->d_true);
+    return pol==(n==d_qe->getTermUtil()->d_true);
   }else{
     Trace("csi-simp-debug") << "---assign " << n << " " << pol << std::endl;
     assign[n] = pol;
@@ -286,7 +287,7 @@ bool CegConjectureSingleInvSol::getAssignEquality( Node eq, std::vector< Node >&
       Assert( std::find( vars.begin(), vars.end(), eq[r] )==vars.end() );
       if( std::find( new_vars.begin(), new_vars.end(), eq[r] )==new_vars.end() ){
         Node eqro = eq[r==0 ? 1 : 0 ];
-        if( !d_qe->getTermDatabase()->containsTerm( eqro, eq[r] ) ){
+        if( !d_qe->getTermUtil()->containsTerm( eqro, eq[r] ) ){
           Trace("csi-simp-debug") << "---equality " << eq[r] << " = " << eqro << std::endl;
           new_vars.push_back( eq[r] );
           new_subs.push_back( eqro );
@@ -468,7 +469,7 @@ Node CegConjectureSingleInvSol::simplifySolutionNode( Node sol, TypeNode stn, st
       std::vector< Node > children;
       std::vector< Node > new_vars;
       std::vector< Node > new_subs;
-      Node bc = sol.getKind()==OR ? d_qe->getTermDatabase()->d_true : d_qe->getTermDatabase()->d_false;
+      Node bc = sol.getKind()==OR ? d_qe->getTermUtil()->d_true : d_qe->getTermUtil()->d_false;
       for( unsigned i=0; i<sol.getNumChildren(); i++ ){
         bool do_exc = false;
         Node c;
@@ -577,7 +578,7 @@ Node CegConjectureSingleInvSol::simplifySolutionNode( Node sol, TypeNode stn, st
                 if( j!=i && ( j>i || std::find( final_children.begin(), final_children.end(), children[j] )!=final_children.end() ) ){
                   Node sj = children[j].substitute( tmp_vars.begin(), tmp_vars.end(), tmp_subs.begin(), tmp_subs.end() );
                   sj = Rewriter::rewrite( sj );
-                  if( sj==( sol.getKind()==AND ? d_qe->getTermDatabase()->d_false : d_qe->getTermDatabase()->d_true ) ){
+                  if( sj==( sol.getKind()==AND ? d_qe->getTermUtil()->d_false : d_qe->getTermUtil()->d_true ) ){
                     Trace("csi-simp") << "--- " << children[i].negate() << " is implied by " << children[j].negate() << std::endl;
                     red = true;
                     break;
@@ -675,7 +676,7 @@ Node CegConjectureSingleInvSol::reconstructSolution( Node sol, TypeNode stn, int
       std::vector< TypeNode > to_erase;
       for( std::map< TypeNode, bool >::iterator it = active.begin(); it != active.end(); ++it ){
         TypeNode stn = it->first;
-        Node ns = d_qe->getTermDatabase()->getEnumerateTerm( stn, index );
+        Node ns = d_qe->getTermUtil()->getEnumerateTerm( stn, index );
         if( ns.isNull() ){
           to_erase.push_back( stn );
         }else{
@@ -754,7 +755,7 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
       if( karg!=-1 ){
         //collect the children of min_t
         std::vector< Node > tchildren;
-        if( min_t.getNumChildren()>dt[karg].getNumArgs() && quantifiers::TermDb::isAssoc( min_t.getKind() ) && dt[karg].getNumArgs()==2 ){
+        if( min_t.getNumChildren()>dt[karg].getNumArgs() && quantifiers::TermUtil::isAssoc( min_t.getKind() ) && dt[karg].getNumArgs()==2 ){
           tchildren.push_back( min_t[0] );
           std::vector< Node > rem_children;
           for( unsigned i=1; i<min_t.getNumChildren(); i++ ){
@@ -864,9 +865,9 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
                       new_t = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, curr[0], curr[1] ),
                                                                     NodeManager::currentNM()->mkNode( AND, curr[0].negate(), curr[2] ) );
                     }else if( curr.getKind()==OR || curr.getKind()==AND ){
-                      new_t = TermDb::simpleNegate( curr ).negate();
+                      new_t = TermUtil::simpleNegate( curr ).negate();
                     }else if( curr.getKind()==NOT ){
-                      new_t = TermDb::simpleNegate( curr[0] );
+                      new_t = TermUtil::simpleNegate( curr[0] );
                     }else{
                       new_t = NodeManager::currentNM()->mkNode( NOT, NodeManager::currentNM()->mkNode( NOT, curr ) );
                     }
@@ -1096,7 +1097,7 @@ void CegConjectureSingleInvSol::getEquivalentTerms( Kind k, Node n, std::vector<
         }
         if( !eq.isNull() ){
           eq = Rewriter::rewrite( eq );
-          if( eq!=d_qe->getTermDatabase()->d_true ){
+          if( eq!=d_qe->getTermUtil()->d_true ){
             success = false;
             break;
           }
