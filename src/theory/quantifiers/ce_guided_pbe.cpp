@@ -1034,12 +1034,10 @@ public:
   * fun).
   *  exo is the list of outputs of the PBE conjecture.
   *  ncind is the set of possible indices of the PBE conjecture to check
-  * invariance of
-  *    non-containment. For example, in the above example, when t[x1] = "ab",
-  * then this
-  *    has the index 1 since contains("de de", "ab") ---> false but does not
-  * have the
-  *    index 0 since contains("abc abc","ab") ---> true.
+  *    invariance of non-containment. 
+  *    For example, in the above example, when t[x1] = "ab", then this
+  *    has the index 1 since contains("de de", "ab") ---> false but not
+  *    the index 0 since contains("abc abc","ab") ---> true.
   */
   void init(quantifiers::CegConjecturePbe* cpbe, Node e, std::vector<Node>& exo,
             std::vector<unsigned>& ncind) {

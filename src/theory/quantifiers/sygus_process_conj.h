@@ -25,6 +25,18 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+
+/** This structure stores information regarding conjecture-specific
+* analysis of a function to synthesize.
+*/
+struct CegSynthFunProcessInfo {
+public:
+  CegSynthFunProcessInfo(){}
+  ~CegSynthFunProcessInfo(){}
+  /** the set of arguments that this synth-fun is independent of */
+  std::map< unsigned, bool > d_arg_independent;
+};
+
 /** Ceg Conjecture Process
 *
 * This class implements static techniques for preprocessing and analysis of
@@ -54,8 +66,8 @@ public:
   Node simplify(Node q);
   /** initialize
   *
-  * n is the base instantiation of the deep-embedding version of 
-  *   the synthesis conjecture under "candidates.
+  * n is the "base instantiation" of the deep-embedding version of 
+  *   the synthesis conjecture under "candidates".
   *   (see CegConjecture::d_base_inst)
   */
   void initialize(Node n, std::vector<Node>& candidates);
@@ -70,6 +82,10 @@ public:
   /** print out debug information about this conjecture */
   void debugPrint( const char * c );
 private:
+  /** process conjunct */
+  void processConjunct( Node c );
+  /** for each synth-fun, information that is specific to this conjecture */
+  std::map< Node, CegSynthFunProcessInfo > d_sf_info;
   /** reference to quantifier engine */
   QuantifiersEngine * d_qe;
 };

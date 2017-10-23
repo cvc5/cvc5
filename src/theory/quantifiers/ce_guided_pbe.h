@@ -106,7 +106,7 @@ class CegConjecturePbe {
 
   /** initialize this class 
   *
-  * n is the base instantiation of the deep-embedding version of 
+  * n is the "base instantiation" of the deep-embedding version of 
   *   the synthesis conjecture under "candidates".
   *   (see CegConjecture::d_base_inst)
   *

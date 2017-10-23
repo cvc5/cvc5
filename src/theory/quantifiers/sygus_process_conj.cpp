@@ -64,9 +64,20 @@ void CegConjectureProcess::initialize(Node n, std::vector<Node>& candidates) {
     conj.push_back( base );
   }
   
+  // initialize the information for synth funs
+  for( unsigned i=0; i<candidates.size(); i++ ){
+    Node e = candidates[i];
+    //d_sf_info[e].d_arg_independent
+  }
   
-  
-  
+  // process the conjunctions
+  for( unsigned i=0; i<conj.size(); i++ ){
+    processConjunct( conj[i] );
+  }
+}
+
+void CegConjectureProcess::processConjunct( Node c ) {
+
 }
 
 Node CegConjectureProcess::getSymmetryBreakingPredicate(Node x, Node e,
