@@ -299,69 +299,73 @@ Node BvInverter::solve_bv_lit(Node sv,
   if (k == BITVECTOR_ULT || k == BITVECTOR_ULTBV) {
     TypeNode solve_tn = sv_t.getType();
     Node x = getSolveVariable(solve_tn);
-    Node sc, scr, scl;
+    Node sc;
     if (index == 0) {
-      scr = nm->mkNode(k, x, t);
       if (pol == true) {
         /* x < t
          * with side condition:
          * t != 0  */
-        scl = nm->mkNode(DISTINCT, t, bv::utils::mkZero(bv::utils::getSize(t)));
+        Node scl = nm->mkNode(
+            DISTINCT, t, bv::utils::mkZero(bv::utils::getSize(t)));
+        Node scr = nm->mkNode(k, x, t);
         sc = nm->mkNode(IMPLIES, scl, scr);
       } else {
-        sc = scr;
+        sc = nm->mkNode(NOT, nm->mkNode(k, x, t));
       }
     } else if (index == 1) {
-      scr = nm->mkNode(k, t, x);
       if (pol == true) {
         /* t < x
          * with side condition:
          * t != 1...1  */
-        scl = nm->mkNode(DISTINCT, t, bv::utils::mkOnes(bv::utils::getSize(t)));
+        Node scl = nm->mkNode(
+            DISTINCT, t, bv::utils::mkOnes(bv::utils::getSize(t)));
+        Node scr = nm->mkNode(k, t, x);
         sc = nm->mkNode(IMPLIES, scl, scr);
       } else {
-        sc = scr;
+        sc = nm->mkNode(NOT, nm->mkNode(k, t, x));
       }
     }
     status.d_conds.push_back(sc);
     /* t = skv (fresh skolem constant)  */
     Node skv = getInversionNode(sc, solve_tn);
     t = skv;
+    sv_t = sv_t[index];
   } else if (k == BITVECTOR_SLT || k == BITVECTOR_SLTBV) {
     TypeNode solve_tn = sv_t.getType();
     Node x = getSolveVariable(solve_tn);
-    Node sc, scr, scl;
+    Node sc;
     unsigned w = bv::utils::getSize(t);
     if (index == 0) {
-      scr = nm->mkNode(k, x, t);
       if (pol == true) {
         /* x < t
          * with side condition:
          * t != 10...0 */
         Node min = bv::utils::mkConst(BitVector(w).setBit(w - 1));
-        scl = nm->mkNode(DISTINCT, min, t);
+        Node scl = nm->mkNode(DISTINCT, min, t);
+        Node scr = nm->mkNode(k, x, t);
         sc = nm->mkNode(IMPLIES, scl, scr);
       } else {
-        sc = scr;
+        sc = nm->mkNode(NOT, nm->mkNode(k, x, t));
       }
     } else if (index == 1) {
-      scr = nm->mkNode(k, t, x);
       if (pol == true) {
         /* t < x
          * with side condition:
          * t != 01...1  */
         BitVector bv = BitVector(w).setBit(w - 1);
         Node max = bv::utils::mkConst(~bv);
-        scl = nm->mkNode(DISTINCT, t, max);
+        Node scl = nm->mkNode(DISTINCT, t, max);
+        Node scr = nm->mkNode(k, t, x);
         sc = nm->mkNode(IMPLIES, scl, scr);
       } else {
-        sc = scr;
+        sc = nm->mkNode(NOT, nm->mkNode(k, t, x));
       }
     }
     status.d_conds.push_back(sc);
     /* t = skv (fresh skolem constant)  */
     Node skv = getInversionNode(sc, solve_tn);
     t = skv;
+    sv_t = sv_t[index];
   }
 
   while (!path.empty()) {
