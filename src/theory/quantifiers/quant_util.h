@@ -157,7 +157,7 @@ public:
   /** make coefficent term
    * 
    * Input coeff is a monomial constant.
-   * Returns the term [coeff]*t.
+   * Returns the term t if coeff.isNull() or coeff*t otherwise.
    */
   static Node mkCoeffTerm( Node coeff, Node t );
   /** isolate variable v in constraint ([msum] <k> 0)
