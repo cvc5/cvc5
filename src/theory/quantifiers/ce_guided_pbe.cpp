@@ -152,7 +152,8 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
   }
 }
 
-void CegConjecturePbe::initialize( Node n, std::vector< Node >& candidates, std::vector< Node >& lemmas ) {
+void CegConjecturePbe::initialize( Node n, std::vector<Node>& candidates,
+                                   std::vector< Node >& lemmas ) {
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
   
   for( unsigned i=0; i<candidates.size(); i++ ){

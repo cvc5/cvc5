@@ -36,10 +36,12 @@ namespace quantifiers {
 * CegConjectureProcess::simplify( q ),
 *     where q is the sygus conjecture in original form.
 *
-* (2) After a sygus conjecture
+* (2) After a sygus conjecture is simplified and converted to deep
+* embedding form, we call CegConjectureProcess::initialize( n, candidates ).
 *
-* (3) During enumerative SyGuS search, calls may be made to
-* CegConjectureProcess::getSymmetryBreakingPredicate(...), which are
+* (3) During enumerative SyGuS search, calls may be made by
+* the extension of the quantifier-free datatypes decision procedure for
+* sygus to CegConjectureProcess::getSymmetryBreakingPredicate(...), which are
 * used for pruning search space based on conjecture-specific analysis.
 */
 class CegConjectureProcess {
@@ -50,15 +52,18 @@ public:
   * Returns a formula that is equivalent to q.
   */
   Node simplify(Node q);
-  /** process the (simplified) synthesis conjecture q */
+  /** initialize
+  *
+  * n is the base instantiation of the deep-embedding version of 
+  *   the synthesis conjecture under "candidates.
+  *   (see CegConjecture::d_base_inst)
+  */
   void initialize(Node n, std::vector<Node>& candidates);
   /** get symmetry breaking predicate
   *
   * Returns a formula that restricts the enumerative search space (for a given
-  * depth)
-  * for a term x of sygus type tn whose top symbol is the tindex^{th}
-  * constructor,
-  * where x is a subterm of enumerator e.
+  * depth) for a term x of sygus type tn whose top symbol is the tindex^{th}
+  * constructor, where x is a subterm of enumerator e.
   */
   Node getSymmetryBreakingPredicate(Node x, Node e, TypeNode tn,
                                     unsigned tindex, unsigned depth);

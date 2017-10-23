@@ -72,33 +72,27 @@ class CegEntailmentInfer;
 * for it. The search may continue unless all enumerators become inactive.
 *
 * (4) During search, the extension of quantifier-free datatypes procedure for
-* SyGuS
-*     datatypes may ask this class whether current candidates can be discarded
-* based on
+*     SyGuS datatypes may ask this class whether current candidates can be 
+*     discarded based on
 *     inferring when two candidate solutions are equivalent up to examples.
 *     For example, the candidate solutions:
 *     f = \x ite( x<0, x+1, x ) and f = \x x
 *     are equivalent up to examples on the above conjecture, since they have the
-* same
-*     value on the points x = 0,5,6. Hence, we need only consider one of them.
-*     The interface for querying this is CegConjecturePbe::addSearchVal(...).
+*     same value on the points x = 0,5,6. Hence, we need only consider one of 
+*     them. The interface for querying this is CegConjecturePbe::addSearchVal(...).
 *     For details, see Reynolds et al. SYNT 2017.
 *
 * (5) When the extension of quantifier-free datatypes procedure for SyGuS
-* datatypes
-*     terminates with a model, the parent of this class calls
+*     datatypes terminates with a model, the parent of this class calls
 *     CegConjecturePbe::getCandidateList(...), where this class returns the list
-* of
-*     active enumerators.
+*     of active enumerators.
 * (6) The parent class subsequently calls
-* CegConjecturePbe::constructValues(...), which
+*     CegConjecturePbe::constructValues(...), which
 *     informs this class that new values have been enumerated for active
-* enumerators,
-*     as indicated by the current model. This call also requests that based on
-* these
+*     enumerators, as indicated by the current model. This call also requests 
+*     that based on these
 *     newly enumerated values, whether this class is now able to construct a
-* solution
-*     based on the high-level strategy (stored in d_c_info).
+*     solution based on the high-level strategy (stored in d_c_info).
 *
 * This class is not designed to work in incremental mode, since there is no way
 * to
@@ -110,8 +104,19 @@ class CegConjecturePbe {
   CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p);
   ~CegConjecturePbe();
 
-  /** initialize this class */
-  void initialize(Node n, std::vector<Node>& candidates,
+  /** initialize this class 
+  *
+  * n is the base instantiation of the deep-embedding version of 
+  *   the synthesis conjecture under "candidates".
+  *   (see CegConjecture::d_base_inst)
+  *
+  * This function may add lemmas to the vector lemmas corresponding
+  * to initial lemmas regarding static analysis of enumerators it
+  * introduced. For example, we may say that the top-level symbol
+  * of an enumerator is not ITE if it is being used to construct 
+  * return values for decision trees.
+  */
+  void initialize(Node n, std::vector<Node>& candidates, 
                   std::vector<Node>& lemmas);
   /** get candidate list
   * Adds all active enumerators associated with functions-to-synthesize in
@@ -121,15 +126,14 @@ class CegConjecturePbe {
                         std::vector<Node>& clist);
   /** construct candidates
   * (1) Indicates that the list of enumerators in "enums" currently have model
-  * values "enum_values".
+  *     values "enum_values".
   * (2) Asks whether based on these new enumerated values, we can construct a
-  * solution for
+  *     solution for
   *     the functions-to-synthesize in "candidates". If so, this function
-  * returns "true" and
+  *     returns "true" and
   *     adds solutions for candidates into "candidate_values".
   * During this class, this class may add auxiliary lemmas to "lems", which the
-  * caller
-  * should send on the output channel via lemma(...).
+  * caller should send on the output channel via lemma(...).
   */
   bool constructCandidates(std::vector<Node>& enums,
                            std::vector<Node>& enum_values,
@@ -150,19 +154,18 @@ class CegConjecturePbe {
 
   /** add the search val
   * This function is called by the extension of quantifier-free datatypes
-  * procedure
-  * for SyGuS datatypes when we are considering a value of enumerator e of sygus
-  * type tn whose analog in the signature of builtin theory is bvr.
+  * procedure for SyGuS datatypes when we are considering a value of 
+  * enumerator e of sygus type tn whose analog in the signature of builtin 
+  * theory is bvr.
   *
   * For example, bvr = x + 1 when e is the datatype value Plus( x(), One() ) and
   * tn is a sygus datatype that encodes a subsignature of the integers.
   *
   * This returns either:
   * - A SyGuS term whose analog is equivalent to bvr up to examples, in the
-  * above example,
+  *   above example,
   *   it may return a term t of the form Plus( One(), x() ), such that this
-  * function was
-  *   previously called with t as input.
+  *   function was previously called with t as input.
   * - e, indicating that no previous terms are equivalent to e up to examples.
   */
   Node addSearchVal(TypeNode tn, Node e, Node bvr);
@@ -170,8 +173,7 @@ class CegConjecturePbe {
   * This returns the evaluation of bn on the i^th example for the
   * function-to-synthesis
   * associated with enumerator e. If there are not at least i examples, it
-  * returns
-  * the rewritten form of bn.
+  * returns the rewritten form of bn.
   * For example, if bn = x+5, e is an enumerator for f in the above example
   * [EX#1], then
   *   evaluateBuiltin( tn, bn, e, 0 ) = 7

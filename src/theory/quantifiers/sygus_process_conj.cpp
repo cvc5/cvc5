@@ -10,15 +10,13 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of techniqures for static preprocessing and analysis
- *of
- ** sygus conjectures.
+ ** of sygus conjectures.
  **/
 #include "theory/quantifiers/sygus_process_conj.h"
 
 #include <stack>
 
 #include "expr/datatype.h"
-#include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -36,22 +34,46 @@ d_qe( qe ){
 
 CegConjectureProcess::~CegConjectureProcess() {}
 
-Node CegConjectureProcess::simplify(Node q) { return q; }
+Node CegConjectureProcess::simplify(Node q) { 
+  Trace("sygus-process") << "Simplify conjecture : " << q << std::endl;
+
+  return q; 
+}
 
 void CegConjectureProcess::initialize(Node n, std::vector<Node>& candidates) {
-  if (Trace.isOn("ceg-process")) {
-    Trace("ceg-process") << "Process conjecture : " << n
-                         << " with candidates: " << std::endl;
+  if (Trace.isOn("sygus-process")) {
+    Trace("sygus-process") << "Process conjecture : " << n
+                           << " with candidates: " << std::endl;
     for (unsigned i = 0; i < candidates.size(); i++) {
-      Trace("ceg-process") << candidates[i] << std::endl;
+      Trace("sygus-process") << "  " << candidates[i] << std::endl;
     }
   }
+  Node base;
+  if( n.getKind()==NOT && n[0].getKind()==FORALL ){
+    base = n[0][1];
+  }else{
+    base = n;
+  }
+  
+  std::vector< Node > conj;
+  if( base.getKind()==AND ){
+    for( unsigned i=0; i<base.getNumChildren(); i++ ){
+      conj.push_back( base[i] );
+    }
+  }else{
+    conj.push_back( base );
+  }
+  
+  
+  
+  
 }
 
 Node CegConjectureProcess::getSymmetryBreakingPredicate(Node x, Node e,
                                                         TypeNode tn,
                                                         unsigned tindex,
                                                         unsigned depth) {
+  
   return Node::null();
 }
 

@@ -128,9 +128,14 @@ private:
   CegConjectureProcess* d_ceg_proc;
   /** grammar utility */
   CegGrammarConstructor * d_ceg_gc;
-  /** list of constants for quantified formula */
+  /** list of constants for quantified formula 
+  * The Skolems for the negation of d_embed_quant.
+  */
   std::vector< Node > d_candidates;
-  /** base instantiation */
+  /** base instantiation 
+  * If d_embed_quant is forall d. exists y. P( d, y ), then
+  * this is the formula  P( candidates, y ).
+  */
   Node d_base_inst;
   /** expand base inst to disjuncts */
   std::vector< Node > d_base_disj;
