@@ -361,29 +361,48 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   Trace("sygus-sb-fair-debug") << "Tester " << exp << " is for depth " << d << " term in search size " << ssz << std::endl;
   //Assert( d<=ssz );
   if( options::sygusSymBreakLazy() ){
+    // dynamic symmetry breaking
     addSymBreakLemmasFor( ntn, n, d, lemmas );
   }
-     
-  // process simple symmetry breaking
+
   unsigned max_depth = ssz>=d ? ssz-d : 0;
   unsigned min_depth = d_simple_proc[exp];
   if( min_depth<=max_depth ){
+  
     TNode x = getFreeVar( ntn );
-    Node rlv = getRelevancyCondition( n );
-    for( unsigned d=0; d<=max_depth; d++ ){
-      Node simple_sb_pred = getSimpleSymBreakPred( ntn, tindex, d );
-      if( !simple_sb_pred.isNull() ){
-        simple_sb_pred = simple_sb_pred.substitute( x, n );
-        if( !rlv.isNull() ){
-          simple_sb_pred = NodeManager::currentNM()->mkNode( kind::OR, rlv.negate(), simple_sb_pred ); 
-        }
-        lemmas.push_back( simple_sb_pred ); 
+    std::vector< Node > sb_lemmas;
+    for( unsigned ds=0; ds<=max_depth; ds++ ){ 
+      // static conjecture-independent symmetry breaking
+      Node ipred = getSimpleSymBreakPred( ntn, tindex, ds );
+      if( !ipred.isNull() ){
+        sb_lemmas.push_back( ipred ); 
       }
+      // static conjecture-dependent symmetry breaking
+      std::map<Node, quantifiers::CegConjecture*>::iterator itc = d_term_to_anchor_conj.find(n);
+      if(itc!=d_term_to_anchor_conj.end()) {
+        quantifiers::CegConjecture* conj = itc->second;
+        Assert(conj!=NULL);
+        Node dpred = conj->getSymmetryBreakingPredicate( x, a, ntn, tindex, ds );
+        if( !dpred.isNull() ){
+          sb_lemmas.push_back( dpred ); 
+        }
+      }
+    }
+    
+    // add the above symmetry breaking predictes to lemmas
+    Node rlv = getRelevancyCondition( n );
+    for( unsigned i=0; i<sb_lemmas.size(); i++ ){
+      Node pred = sb_lemmas[i].substitute( x, n );
+      if( !rlv.isNull() ){
+        pred = NodeManager::currentNM()->mkNode( kind::OR, rlv.negate(), pred ); 
+      }
+      lemmas.push_back( pred );
     }
   }
   d_simple_proc[exp] = max_depth + 1;
   
-  // add back testers for the children if they exist
+  // now activate the children those testers were previously asserted in this context
+  // and are awaiting activation, if they exist
   if( options::sygusSymBreakLazy() ){
     for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
       Node sel = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex].getSelectorInternal( ntn.toType(), j ) ), n );

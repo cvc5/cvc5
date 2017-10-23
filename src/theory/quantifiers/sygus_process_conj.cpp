@@ -10,7 +10,7 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of techniqures for static preprocessing and analysis of
- ** sygus conjectures..
+ ** sygus conjectures.
  **/
 #include "theory/quantifiers/sygus_process_conj.h"
 
@@ -33,8 +33,25 @@ d_qe( qe ){
 
 }
 
-void CegConjectureProcess::process( Node q ) {
+CegConjectureProcess::~CegConjectureProcess() {
 
+}
+
+Node CegConjectureProcess::simplify( Node q ) {
+  return q;
+}
+ 
+void CegConjectureProcess::initialize( Node n, std::vector< Node >& candidates ) {
+  if( Trace.isOn("ceg-process") ){
+    Trace("ceg-process") << "Process conjecture : " << n << " with candidates: " << std::endl;
+    for( unsigned i=0; i<candidates.size(); i++ ){
+      Trace("ceg-process") << candidates[i] << std::endl;
+    }
+  }
+}
+
+Node CegConjectureProcess::getSymmetryBreakingPredicate( Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth ) {
+  return Node::null();
 }
 
 void CegConjectureProcess::debugPrint( const char * c ) {
