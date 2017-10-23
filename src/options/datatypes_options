@@ -47,5 +47,7 @@ option sygusFair --sygus-fair=MODE CVC4::theory::SygusFairMode :default CVC4::th
   if and how to apply fairness for sygus
 option sygusFairMax --sygus-fair-max bool :default true
   use max instead of sum for multi-function sygus conjectures
+option sygusAbortSize --sygus-abort-size=N int :default -1
+  tells enumerative sygus to only consider solutions up to term size N (-1 == no limit, default)
   
 endmodule

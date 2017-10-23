@@ -65,11 +65,17 @@ void SygusSplitNew::getSygusSplits( Node n, const Datatype& dt, std::vector< Nod
   splits.insert( splits.end(), d_splits[n].begin(), d_splits[n].end() );
 }
 
-
-SygusSymBreakNew::SygusSymBreakNew( TheoryDatatypes * td, quantifiers::TermDbSygus * tds, context::Context* c ) : 
-d_td( td ), d_tds( tds ), d_context( c ), 
-d_testers( c ), d_is_const( c ), d_testers_exp( c ), d_active_terms( c ), d_currTermSize( c ) {
-  d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
+SygusSymBreakNew::SygusSymBreakNew(TheoryDatatypes* td,
+                                   quantifiers::TermDbSygus* tds,
+                                   context::Context* c)
+    : d_td(td),
+      d_tds(tds),
+      d_testers(c),
+      d_is_const(c),
+      d_testers_exp(c),
+      d_active_terms(c),
+      d_currTermSize(c) {
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
 }
 
 SygusSymBreakNew::~SygusSymBreakNew() {
@@ -1341,6 +1347,12 @@ Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDat
   if( options::sygusFair()!=SYGUS_FAIR_NONE ){
     std::map< unsigned, Node >::iterator it = d_lits.find( s );
     if( it==d_lits.end() ){
+      if (options::sygusAbortSize() != -1 &&
+          static_cast<int>(s) > options::sygusAbortSize()) {
+        Message() << "Maximum term size (" << options::sygusAbortSize()
+                  << ") for enumerative SyGuS exceeded." << std::endl;
+        exit(1);
+      }
       Assert( !d_this.isNull() );
       Node c = NodeManager::currentNM()->mkConst( Rational( s ) );
       Node lit = NodeManager::currentNM()->mkNode( DT_SYGUS_BOUND, d_this, c );
