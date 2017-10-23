@@ -32,11 +32,11 @@ Proof* ProofOutputChannel::getConflictProof() {
 
 void ProofOutputChannel::conflict(TNode n, Proof* pf) {
   Trace("pf::tp") << "ProofOutputChannel: CONFLICT: " << n << std::endl;
-  AlwaysAssert(!hasConflict());
+  Assert(!hasConflict());
   Assert(!d_proof);
   d_conflict = n;
   d_proof = pf;
-  AlwaysAssert(hasConflict());
+  Assert(hasConflict());
   Assert(d_proof);
 }
 
@@ -53,7 +53,7 @@ theory::LemmaStatus ProofOutputChannel::lemma(TNode n, ProofRule rule, bool,
   // TODO(#1231): We should transition to supporting multiple lemmas. The
   // following assertion cannot be enabled due to
   // "test/regress/regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smt".
-  // AlwaysAssert(
+  // Assert(
   //     d_lemma.isNull(),
   //     "Multiple calls to ProofOutputChannel::lemma() are not supported.");
   d_lemma = n;
