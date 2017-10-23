@@ -21,6 +21,7 @@
 #include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/ce_guided_pbe.h"
 #include "theory/quantifiers/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus_process_conj.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -31,10 +32,8 @@ namespace quantifiers {
  * This class implements approaches for a synthesis conecjture, given by data
  * member d_quant.
  * This includes both approaches for synthesis in Reynolds et al CAV 2015. It
- * determines
- * which approach and optimizations are applicable to the conjecture, and has
- * interfaces for
- * implementing them.
+ * determines which approach and optimizations are applicable to the 
+ * conjecture, and has interfaces for implementing them.
  */
 class CegConjecture {
 public:
