@@ -64,15 +64,15 @@ void CegConjecture::assign( Node q ) {
   Assert( q.getKind()==FORALL );
   Trace("cegqi") << "CegConjecture : assign : " << q << std::endl;
   d_quant = q;
-  
+
   // simplify the quantified formula based on the process utility
-  d_simp_quant = d_ceg_proc->simplify( d_quant );
+  d_simp_quant = d_ceg_proc->simplify(d_quant);
 
   std::map< Node, Node > templates; 
   std::map< Node, Node > templates_arg;
   //register with single invocation if applicable
-  if( d_qe->getQuantAttributes()->isSygus( q ) ){
-    d_ceg_si->initialize( d_simp_quant );
+  if (d_qe->getQuantAttributes()->isSygus(q)) {
+    d_ceg_si->initialize(d_simp_quant);
     d_simp_quant = d_ceg_si->getSimplifiedConjecture();
     // carry the templates
     for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
@@ -86,11 +86,11 @@ void CegConjecture::assign( Node q ) {
   }
 
   // convert to deep embedding and finalize single invocation here
-  d_embed_quant = d_ceg_gc->process( d_simp_quant, templates, templates_arg );
+  d_embed_quant = d_ceg_gc->process(d_simp_quant, templates, templates_arg);
   Trace("cegqi") << "CegConjecture : converted to embedding : " << d_embed_quant << std::endl;
 
   // we now finalize the single invocation module, based on the syntax restrictions
-  if( d_qe->getQuantAttributes()->isSygus( q ) ){
+  if (d_qe->getQuantAttributes()->isSygus(q)) {
     d_ceg_si->finishInit( d_ceg_gc->isSyntaxRestricted(), d_ceg_gc->hasSyntaxITE() );
   }
 
@@ -105,12 +105,12 @@ void CegConjecture::assign( Node q ) {
   //construct base instantiation
   d_base_inst = Rewriter::rewrite( d_qe->getInstantiation( d_embed_quant, vars, d_candidates ) );
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
-  
+
   // register this term with sygus database and other utilities that impact
   // the enumerative sygus search
   std::vector< Node > guarded_lemmas;
   if( !isSingleInvocation() ){
-    d_ceg_proc->initialize( d_base_inst, d_candidates );
+    d_ceg_proc->initialize(d_base_inst, d_candidates);
     if( options::sygusPbe() ){
       d_ceg_pbe->initialize( d_base_inst, d_candidates, guarded_lemmas );
     } else {
@@ -120,8 +120,8 @@ void CegConjecture::assign( Node q ) {
       }
     }
   }
-  
-  if( d_qe->getQuantAttributes()->isSygus( q ) ){
+
+  if (d_qe->getQuantAttributes()->isSygus(q)) {
     collectDisjuncts( d_base_inst, d_base_disj );
     Trace("cegqi") << "Conjecture has " << d_base_disj.size() << " disjuncts." << std::endl;
     //store the inner variables for each disjunct
@@ -137,7 +137,7 @@ void CegConjecture::assign( Node q ) {
       }
     }
     d_syntax_guided = true;
-  }else if( d_qe->getQuantAttributes()->isSynthesis( q ) ){
+  } else if (d_qe->getQuantAttributes()->isSynthesis(q)) {
     d_syntax_guided = false;
   }else{
     Assert( false );
@@ -619,20 +619,25 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
   }
 }
 
-Node CegConjecture::getSymmetryBreakingPredicate( Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth ) {
-  std::vector< Node > sb_lemmas;
- 
+Node CegConjecture::getSymmetryBreakingPredicate(Node x, Node e, TypeNode tn,
+                                                 unsigned tindex,
+                                                 unsigned depth) {
+  std::vector<Node> sb_lemmas;
+
   // based on simple preprocessing
-  Node ppred = d_ceg_proc->getSymmetryBreakingPredicate( x, e, tn, tindex, depth );
-  if( !ppred.isNull() ){
-    sb_lemmas.push_back( ppred );
+  Node ppred =
+      d_ceg_proc->getSymmetryBreakingPredicate(x, e, tn, tindex, depth);
+  if (!ppred.isNull()) {
+    sb_lemmas.push_back(ppred);
   }
-  
+
   // other static conjecture-dependent symmetry breaking goes here
-  
-  if( !sb_lemmas.empty() ){
-    return sb_lemmas.size()==1 ? sb_lemmas[0] : NodeManager::currentNM()->mkNode( kind::AND, sb_lemmas );
-  }else{
+
+  if (!sb_lemmas.empty()) {
+    return sb_lemmas.size() == 1
+               ? sb_lemmas[0]
+               : NodeManager::currentNM()->mkNode(kind::AND, sb_lemmas);
+  } else {
     return Node::null();
   }
 }

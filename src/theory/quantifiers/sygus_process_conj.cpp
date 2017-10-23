@@ -9,7 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of techniqures for static preprocessing and analysis of
+ ** \brief Implementation of techniqures for static preprocessing and analysis
+ *of
  ** sygus conjectures.
  **/
 #include "theory/quantifiers/sygus_process_conj.h"
@@ -33,24 +34,24 @@ d_qe( qe ){
 
 }
 
-CegConjectureProcess::~CegConjectureProcess() {
+CegConjectureProcess::~CegConjectureProcess() {}
 
-}
+Node CegConjectureProcess::simplify(Node q) { return q; }
 
-Node CegConjectureProcess::simplify( Node q ) {
-  return q;
-}
- 
-void CegConjectureProcess::initialize( Node n, std::vector< Node >& candidates ) {
-  if( Trace.isOn("ceg-process") ){
-    Trace("ceg-process") << "Process conjecture : " << n << " with candidates: " << std::endl;
-    for( unsigned i=0; i<candidates.size(); i++ ){
+void CegConjectureProcess::initialize(Node n, std::vector<Node>& candidates) {
+  if (Trace.isOn("ceg-process")) {
+    Trace("ceg-process") << "Process conjecture : " << n
+                         << " with candidates: " << std::endl;
+    for (unsigned i = 0; i < candidates.size(); i++) {
       Trace("ceg-process") << candidates[i] << std::endl;
     }
   }
 }
 
-Node CegConjectureProcess::getSymmetryBreakingPredicate( Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth ) {
+Node CegConjectureProcess::getSymmetryBreakingPredicate(Node x, Node e,
+                                                        TypeNode tn,
+                                                        unsigned tindex,
+                                                        unsigned depth) {
   return Node::null();
 }
 

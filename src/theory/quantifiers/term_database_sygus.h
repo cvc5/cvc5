@@ -83,7 +83,8 @@ private:
 private:
  /** mapping from enumerator terms to the conjecture they are associated with */
  std::map<Node, CegConjecture*> d_enum_to_conjecture;
- /** mapping from enumerator terms to the function-to-synthesize they are associated with */
+ /** mapping from enumerator terms to the function-to-synthesize they are
+  * associated with */
  std::map<Node, Node> d_enum_to_synth_fun;
  /** mapping from enumerator terms to the guard they are associated with
  * The guard G for an enumerator e has the semantics
@@ -137,7 +138,7 @@ public:
    * d_enum_to_active_guard)
    *
    * Notice that enumerator e may not be equivalent
-   * to f in synthesis-through-unification approaches 
+   * to f in synthesis-through-unification approaches
    * (e.g. decision tree construction for PBE synthesis).
    */
   void registerEnumerator(Node e, Node f, CegConjecture* conj,
@@ -147,12 +148,13 @@ public:
   /** return the conjecture e is associated with */
   CegConjecture* getConjectureForEnumerator(Node e);
   /** return the function-to-synthesize e is associated with */
-  Node getSynthFunForEnumerator( Node e );
+  Node getSynthFunForEnumerator(Node e);
   /** get active guard for e */
-  Node getActiveGuardForEnumerator( Node e );
+  Node getActiveGuardForEnumerator(Node e);
   /** get all registered measure terms (enumerators) */
-  void getEnumerators( std::vector< Node >& mts );
-public:  //general sygus utilities
+  void getEnumerators(std::vector<Node>& mts);
+
+ public:  // general sygus utilities
   bool isRegistered( TypeNode tn );
   // get the minimum depth of type in its parent grammar
   unsigned getMinTypeDepth( TypeNode root_tn, TypeNode tn );

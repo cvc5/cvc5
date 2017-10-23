@@ -45,9 +45,10 @@ public:
   Node getEmbeddedConjecture() { return d_embed_quant; }
   /** get next decision request */
   Node getNextDecisionRequest( unsigned& priority );
-  
+
   //-------------------------------for counterexample-guided check/refine
-  /** increment the number of times we have successfully done candidate refinement */
+  /** increment the number of times we have successfully done candidate
+   * refinement */
   void incrementRefineCount() { d_refine_count++; }
   /** whether the conjecture is waiting for a call to doCheck below */
   bool needsCheck( std::vector< Node >& lem );
@@ -75,7 +76,7 @@ public:
    * singleInvocation is whether the solution was found by single invocation techniques.
    */
   //-------------------------------end for counterexample-guided check/refine
-  
+
   void printSynthSolution( std::ostream& out, bool singleInvocation );
   /** get guard, this is "G" in Figure 3 of Reynolds et al CAV 2015 */
   Node getGuard();
@@ -99,7 +100,7 @@ public:
   void getModelValues( std::vector< Node >& n, std::vector< Node >& v );
   /** get model value for term n */
   Node getModelValue( Node n );
-  
+
   //-----------------------------------refinement lemmas
   /** get number of refinement lemmas we have added so far */
   unsigned getNumRefinementLemmas() { return d_refinement_lemmas.size(); }
@@ -112,7 +113,8 @@ public:
   /** get program by examples utility */
   CegConjecturePbe* getPbe() { return d_ceg_pbe; }
   /** get the symmetry breaking predicate for type */
-  Node getSymmetryBreakingPredicate( Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth );  
+  Node getSymmetryBreakingPredicate(Node x, Node e, TypeNode tn,
+                                    unsigned tindex, unsigned depth);
   /** print out debug information about this conjecture */
   void debugPrint( const char * c );
 private:
@@ -123,7 +125,7 @@ private:
   /** program by examples utility */
   CegConjecturePbe * d_ceg_pbe;
   /** utility for static preprocessing and analysis of conjectures */
-  CegConjectureProcess * d_ceg_proc;
+  CegConjectureProcess* d_ceg_proc;
   /** grammar utility */
   CegGrammarConstructor * d_ceg_gc;
   /** list of constants for quantified formula */
@@ -137,13 +139,13 @@ private:
   std::vector< std::vector< Node > > d_inner_vars_disj;
   /** current extential quantifeirs whose couterexamples we must refine */
   std::vector< std::vector< Node > > d_ce_sk;
-  
+
   //-----------------------------------refinement lemmas
   /** refinement lemmas */
   std::vector< Node > d_refinement_lemmas;
   std::vector< Node > d_refinement_lemmas_base;
   //-----------------------------------end refinement lemmas
-  
+
   /** quantified formula asserted */
   Node d_quant;
   /** quantified formula (after simplification) */

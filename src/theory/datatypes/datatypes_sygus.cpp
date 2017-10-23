@@ -368,40 +368,41 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   unsigned max_depth = ssz>=d ? ssz-d : 0;
   unsigned min_depth = d_simple_proc[exp];
   if( min_depth<=max_depth ){
-  
     TNode x = getFreeVar( ntn );
-    std::vector< Node > sb_lemmas;
-    for( unsigned ds=0; ds<=max_depth; ds++ ){ 
+    std::vector<Node> sb_lemmas;
+    for (unsigned ds = 0; ds <= max_depth; ds++) {
       // static conjecture-independent symmetry breaking
-      Node ipred = getSimpleSymBreakPred( ntn, tindex, ds );
-      if( !ipred.isNull() ){
-        sb_lemmas.push_back( ipred ); 
+      Node ipred = getSimpleSymBreakPred(ntn, tindex, ds);
+      if (!ipred.isNull()) {
+        sb_lemmas.push_back(ipred);
       }
       // static conjecture-dependent symmetry breaking
-      std::map<Node, quantifiers::CegConjecture*>::iterator itc = d_term_to_anchor_conj.find(n);
-      if(itc!=d_term_to_anchor_conj.end()) {
+      std::map<Node, quantifiers::CegConjecture*>::iterator itc =
+          d_term_to_anchor_conj.find(n);
+      if (itc != d_term_to_anchor_conj.end()) {
         quantifiers::CegConjecture* conj = itc->second;
-        Assert(conj!=NULL);
-        Node dpred = conj->getSymmetryBreakingPredicate( x, a, ntn, tindex, ds );
-        if( !dpred.isNull() ){
-          sb_lemmas.push_back( dpred ); 
+        Assert(conj != NULL);
+        Node dpred = conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
+        if (!dpred.isNull()) {
+          sb_lemmas.push_back(dpred);
         }
       }
     }
-    
+
     // add the above symmetry breaking predictes to lemmas
-    Node rlv = getRelevancyCondition( n );
-    for( unsigned i=0; i<sb_lemmas.size(); i++ ){
-      Node pred = sb_lemmas[i].substitute( x, n );
-      if( !rlv.isNull() ){
-        pred = NodeManager::currentNM()->mkNode( kind::OR, rlv.negate(), pred ); 
+    Node rlv = getRelevancyCondition(n);
+    for (unsigned i = 0; i < sb_lemmas.size(); i++) {
+      Node pred = sb_lemmas[i].substitute(x, n);
+      if (!rlv.isNull()) {
+        pred = NodeManager::currentNM()->mkNode(kind::OR, rlv.negate(), pred);
       }
-      lemmas.push_back( pred );
+      lemmas.push_back(pred);
     }
   }
   d_simple_proc[exp] = max_depth + 1;
-  
-  // now activate the children those testers were previously asserted in this context
+
+  // now activate the children those testers were previously asserted in this
+  // context
   // and are awaiting activation, if they exist
   if( options::sygusSymBreakLazy() ){
     for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
@@ -1075,7 +1076,7 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
       if( dt.isSygus() ){
         if (d_tds->isEnumerator(e)) {
           d_register_st[e] = true;
-          Node ag = d_tds->getActiveGuardForEnumerator( e );
+          Node ag = d_tds->getActiveGuardForEnumerator(e);
           if( !ag.isNull() ){
             d_anchor_to_active_guard[e] = ag;
           }
@@ -1176,10 +1177,10 @@ unsigned SygusSymBreakNew::getSearchSizeForAnchor( Node a ) {
   Trace("sygus-sb-debug2") << "get search size for anchor : " << a << std::endl;
   std::map< Node, Node >::iterator it = d_anchor_to_measure_term.find( a );
   Assert( it!=d_anchor_to_measure_term.end() );
-  return getSearchSizeForEnumerator( it->second );
+  return getSearchSizeForEnumerator(it->second);
 }
 
-unsigned SygusSymBreakNew::getSearchSizeForEnumerator( Node m ) {
+unsigned SygusSymBreakNew::getSearchSizeForEnumerator(Node m) {
   Trace("sygus-sb-debug2") << "get search size for measure : " << m << std::endl;
   std::map< Node, SearchSizeInfo * >::iterator its = d_szinfo.find( m );
   Assert( its!=d_szinfo.end() );
@@ -1262,7 +1263,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   }
   //register any measured terms that we haven't encountered yet (should only be invoked on first call to check
   std::vector< Node > mts;
-  d_tds->getEnumerators( mts );
+  d_tds->getEnumerators(mts);
   for( unsigned i=0; i<mts.size(); i++ ){
     registerSizeTerm( mts[i], lemmas );
   }
