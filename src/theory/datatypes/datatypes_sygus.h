@@ -146,7 +146,7 @@ private:
   void registerMeasureTerm( Node m );
   unsigned getSearchSizeFor( Node n );
   unsigned getSearchSizeForAnchor( Node n );
-  unsigned getSearchSizeForMeasureTerm( Node m );
+  unsigned getSearchSizeForEnumerator( Node m );
 private:
   unsigned processSelectorChain( Node n, std::map< TypeNode, Node >& top_level, 
                                  std::map< Node, unsigned >& tdepth, std::vector< Node >& lemmas );

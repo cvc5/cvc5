@@ -116,7 +116,7 @@ void CegConjecture::assign( Node q ) {
     } else {
       for (unsigned i = 0; i < d_candidates.size(); i++) {
         Node e = d_candidates[i];
-        d_qe->getTermDatabaseSygus()->registerMeasuredTerm(e, this);
+        d_qe->getTermDatabaseSygus()->registerEnumerator(e, e, this);
       }
     }
   }

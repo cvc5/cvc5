@@ -83,6 +83,8 @@ private:
 private:
  /** mapping from enumerator terms to the conjecture they are associated with */
  std::map<Node, CegConjecture*> d_enum_to_conjecture;
+ /** mapping from enumerator terms to the function-to-synthesize they are associated with */
+ std::map<Node, Node> d_enum_to_synth_fun;
  /** mapping from enumerator terms to the guard they are associated with
  * The guard G for an enumerator e has the semantics
  *   "if G is true, then there are more values of e to enumerate".
@@ -129,20 +131,27 @@ public:
   /** register the sygus type */
   void registerSygusType( TypeNode tn );
   /** register a variable e that we will do enumerative search on
-   * conj is the conjecture that the enumeration for e is for.
+   * conj is the conjecture that the enumeration of e is for.
+   * f is the synth-fun that the enumeration of e is for.
    * mkActiveGuard is whether we want to make a active guard for e (see
    * d_enum_to_active_guard)
+   *
+   * Notice that enumerator e may not be equivalent
+   * to f in synthesis-through-unification approaches 
+   * (e.g. decision tree construction for PBE synthesis).
    */
-  void registerMeasuredTerm(Node e, CegConjecture* conj,
-                            bool mkActiveGuard = false);
+  void registerEnumerator(Node e, Node f, CegConjecture* conj,
+                          bool mkActiveGuard = false);
   /** is e a measured term (enumerator)? */
-  bool isMeasuredTerm(Node e) const;
+  bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
-  CegConjecture* getConjectureFor(Node e);
+  CegConjecture* getConjectureForEnumerator(Node e);
+  /** return the function-to-synthesize e is associated with */
+  Node getSynthFunForEnumerator( Node e );
   /** get active guard for e */
-  Node getActiveGuardForMeasureTerm( Node e );
+  Node getActiveGuardForEnumerator( Node e );
   /** get all registered measure terms (enumerators) */
-  void getMeasuredTerms( std::vector< Node >& mts );
+  void getEnumerators( std::vector< Node >& mts );
 public:  //general sygus utilities
   bool isRegistered( TypeNode tn );
   // get the minimum depth of type in its parent grammar

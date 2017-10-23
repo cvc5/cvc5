@@ -202,8 +202,7 @@ void CegConjecturePbe::initialize( Node n, std::vector< Node >& candidates, std:
   if( !d_is_pbe ){
     Trace("sygus-unif") << "Do not do PBE optimizations, register..." << std::endl;
     for( unsigned i=0; i<candidates.size(); i++ ){
-      d_qe->getTermDatabaseSygus()->registerMeasuredTerm(candidates[i],
-                                                         d_parent);
+      d_qe->getTermDatabaseSygus()->registerEnumerator(candidates[i], candidates[i], d_parent);
     }
   }
 }
@@ -211,7 +210,6 @@ void CegConjecturePbe::initialize( Node n, std::vector< Node >& candidates, std:
 Node CegConjecturePbe::PbeTrie::addPbeExample(TypeNode etn, Node e, Node b,
                                               CegConjecturePbe* cpbe,
                                               unsigned index, unsigned ntotal) {
-  Assert(cpbe->getNumExamples(e) == ntotal);
   if (index == ntotal) {
     // lazy child holds the leaf data
     if (d_lazy_child.isNull()) {
@@ -253,7 +251,8 @@ Node CegConjecturePbe::PbeTrie::addPbeExampleEval(TypeNode etn, Node e, Node b,
 
 bool CegConjecturePbe::hasExamples(Node e) {
   if (isPbe()) {
-    e = getSynthFunctionForEnumerator(e);
+    e = d_tds->getSynthFunForEnumerator(e);
+    Assert( !e.isNull() );
     std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
     if (itx == d_examples_invalid.end()) {
       return d_examples.find(e) != d_examples.end();
@@ -263,7 +262,8 @@ bool CegConjecturePbe::hasExamples(Node e) {
 }
 
 unsigned CegConjecturePbe::getNumExamples(Node e) {
-  e = getSynthFunctionForEnumerator(e);
+  e = d_tds->getSynthFunForEnumerator(e);
+  Assert( !e.isNull() );
   std::map<Node, std::vector<std::vector<Node> > >::iterator it =
       d_examples.find(e);
   if (it != d_examples.end()) {
@@ -274,7 +274,8 @@ unsigned CegConjecturePbe::getNumExamples(Node e) {
 }
 
 void CegConjecturePbe::getExample(Node e, unsigned i, std::vector<Node>& ex) {
-  e = getSynthFunctionForEnumerator(e);
+  e = d_tds->getSynthFunForEnumerator(e);
+  Assert( !e.isNull() );
   std::map<Node, std::vector<std::vector<Node> > >::iterator it =
       d_examples.find(e);
   if (it != d_examples.end()) {
@@ -286,7 +287,8 @@ void CegConjecturePbe::getExample(Node e, unsigned i, std::vector<Node>& ex) {
 }
 
 Node CegConjecturePbe::getExampleOut(Node e, unsigned i) {
-  e = getSynthFunctionForEnumerator(e);
+  e = d_tds->getSynthFunForEnumerator(e);
+  Assert( !e.isNull() );
   std::map<Node, std::vector<Node> >::iterator it = d_examples_out.find(e);
   if (it != d_examples_out.end()) {
     Assert(i < it->second.size());
@@ -300,7 +302,8 @@ Node CegConjecturePbe::getExampleOut(Node e, unsigned i) {
 Node CegConjecturePbe::addSearchVal(TypeNode tn, Node e, Node bvr) {
   Assert(isPbe());
   Assert(!e.isNull());
-  e = getSynthFunctionForEnumerator(e);
+  e = d_tds->getSynthFunForEnumerator(e);
+  Assert( !e.isNull() );
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
   if (itx == d_examples_invalid.end()) {
     unsigned nex = d_examples[e].size();
@@ -313,7 +316,8 @@ Node CegConjecturePbe::addSearchVal(TypeNode tn, Node e, Node bvr) {
 
 Node CegConjecturePbe::evaluateBuiltin(TypeNode tn, Node bn, Node e,
                                        unsigned i) {
-  e = getSynthFunctionForEnumerator(e);
+  e = d_tds->getSynthFunForEnumerator(e);
+  Assert( !e.isNull() );
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
   if (itx == d_examples_invalid.end()) {
     std::map<Node, std::vector<std::vector<Node> > >::iterator it =
@@ -324,15 +328,6 @@ Node CegConjecturePbe::evaluateBuiltin(TypeNode tn, Node bn, Node e,
     }
   }
   return Rewriter::rewrite(bn);
-}
-
-Node CegConjecturePbe::getSynthFunctionForEnumerator(Node e) {
-  std::map<Node, Node>::const_iterator it = d_enum_to_candidate.find(e);
-  if (it != d_enum_to_candidate.end()) {
-    return it->second;
-  } else {
-    return e;
-  }
 }
 
 // ----------------------------- establishing enumeration types
@@ -353,9 +348,8 @@ void CegConjecturePbe::registerEnumerator( Node et, Node c, TypeNode tn, unsigne
       d_cinfo[c].d_esym_list.push_back( et );
       d_einfo[et].d_enum_slave.push_back( et );
       //register measured term with database
-      d_enum_to_candidate[et] = c;
-      d_qe->getTermDatabaseSygus()->registerMeasuredTerm(et, d_parent, true);
-      d_einfo[et].d_active_guard = d_qe->getTermDatabaseSygus()->getActiveGuardForMeasureTerm( et );
+      d_qe->getTermDatabaseSygus()->registerEnumerator(et, c, d_parent, true);
+      d_einfo[et].d_active_guard = d_qe->getTermDatabaseSygus()->getActiveGuardForEnumerator( et );
     }else{
       Trace("sygus-unif-debug") << "Make " << et << " a slave of " << itn->second << std::endl;
       d_einfo[itn->second].d_enum_slave.push_back( et );
@@ -981,29 +975,66 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
 }
 
 
-
+/** NegContainsSygusInvarianceTest
+*
+* This class is used to construct a minimal shape of a term that cannot
+* be contained in at least one output of an I/O pair.
+*
+* Say our PBE conjecture is:
+*
+* exists f.
+*   f( "abc" ) = "abc abc" ^
+*   f( "de" ) = "de de"
+*
+* Then, this class is used when there is a candidate solution t[x1] such that either
+*   contains( "abc abc", t["abc"] ) ---> false or
+*   contains( "de de", t["de"] ) ---> false 
+*
+* In particular it is used to determine whether certain generalizations of t[x1]
+* are still sufficient to falsify one of the above containments.
+*
+* For example:
+*
+* str.++( x1, "d" ) can be minimized to str.++( _, "d" )
+*   ...since contains( "abc abc", str.++( y, "d" ) ) ---> false, 
+*      for any y.
+* str.replace( "de", x1, "b" ) can be minimized to str.replace( "de", x1, _ )
+*   ...since contains( "abc abc", str.replace( "de", "abc", y ) ) ---> false, 
+*      for any y.
+*
+* It is an instance of quantifiers::SygusInvarianceTest, which 
+* traverses the AST of a given term, replaces each subterm by a 
+* fresh variable y and checks whether an invariance test (such as 
+* the one specified by this class) holds.
+*
+*/
 class NegContainsSygusInvarianceTest : public quantifiers::SygusInvarianceTest {
 public:
   NegContainsSygusInvarianceTest(){}
   ~NegContainsSygusInvarianceTest(){}
-  Node d_ar;
-  std::vector< Node > d_exo;
-  std::vector< unsigned > d_neg_con_indices;
-  quantifiers::CegConjecturePbe* d_cpbe;
-
-  void init(quantifiers::CegConjecturePbe* cpbe, Node ar,
+  /** initialize this invariance test 
+  *  cpbe is the conjecture utility.
+  *  e is the enumerator which we are reasoning about (associated with a synth fun).
+  *  exo is the list of outputs of the PBE conjecture.
+  *  ncind is the set of possible indices of the PBE conjecture to check invariance of
+  *    non-containment. For example, in the above example, when t[x1] = "ab", then this
+  *    has the index 1 since contains("de de", "ab") ---> false but does not have the 
+  *    index 0 since contains("abc abc","ab") ---> true.
+  */
+  void init(quantifiers::CegConjecturePbe* cpbe, Node e,
             std::vector<Node>& exo, std::vector<unsigned>& ncind) {
-    if (cpbe->hasExamples(ar)) {
-      Assert(cpbe->getNumExamples(ar) == exo.size());
-      d_ar = ar;
+    if (cpbe->hasExamples(e)) {
+      Assert(cpbe->getNumExamples(e) == exo.size());
+      d_enum = e;
       d_exo.insert( d_exo.end(), exo.begin(), exo.end() );
       d_neg_con_indices.insert( d_neg_con_indices.end(), ncind.begin(), ncind.end() );
       d_cpbe = cpbe;
     }
   }
-protected:  
+protected:
+  /** checks whether contains( out_i, nvn[in_i] ) --> false for some I/O pair i. */
   bool invariant( quantifiers::TermDbSygus * tds, Node nvn, Node x ){
-    if( !d_ar.isNull() ){
+    if( !d_enum.isNull() ){
       TypeNode tn = nvn.getType();
       Node nbv = tds->sygusToBuiltin( nvn, tn );
       Node nbvr = tds->extendedRewrite( nbv );
@@ -1011,7 +1042,7 @@ protected:
       for( unsigned i=0; i<d_neg_con_indices.size(); i++ ){
         unsigned ii = d_neg_con_indices[i];
         Assert( ii<d_exo.size() );
-        Node nbvre = d_cpbe->evaluateBuiltin(tn, nbvr, d_ar, ii);
+        Node nbvre = d_cpbe->evaluateBuiltin(tn, nbvr, d_enum, ii);
         Node out = d_exo[ii];
         Node cont = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, out, nbvre );
         Node contr = Rewriter::rewrite( cont );
@@ -1021,7 +1052,7 @@ protected:
             Trace("sygus-pbe-cterm") << nbv << " for any " << tds->sygusToBuiltin( x ) << " since " << std::endl;
             Trace("sygus-pbe-cterm") << "   PBE-cterm :    for input example : ";
             std::vector< Node > ex;
-            d_cpbe->getExample(d_ar, ii, ex);
+            d_cpbe->getExample(d_enum, ii, ex);
             for( unsigned j=0; j<ex.size(); j++ ){
               Trace("sygus-pbe-cterm") << ex[j] << " ";
             }
@@ -1035,6 +1066,15 @@ protected:
     }
     return false;
   }
+private:
+  /** The enumerator whose value we are considering in this invariance test */
+  Node d_enum;
+  /** The output examples for the enumerator */
+  std::vector< Node > d_exo;
+  /** The set of I/O pair indices i such that contains( out_i, nvn[in_i] ) ---> false */
+  std::vector< unsigned > d_neg_con_indices;
+  /** reference to the PBE utility */
+  quantifiers::CegConjecturePbe* d_cpbe;
 };
 
 
@@ -1078,7 +1118,7 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude( Node c, Node x, Node 
       if( !cmp_indices.empty() ){
         //set up the inclusion set
         NegContainsSygusInvarianceTest ncset;
-        ncset.init(this, c, itxo->second, cmp_indices);
+        ncset.init(this, x, itxo->second, cmp_indices);
         d_tds->getExplanationFor( x, v, exp, ncset );
         Trace("sygus-pbe-cterm") << "PBE-cterm : enumerator exclude " << d_tds->sygusToBuiltin( v ) << " due to negative containment." << std::endl;
         return true;

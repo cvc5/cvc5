@@ -262,7 +262,7 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
       registerSizeTerm( n, lemmas );
       if( d_register_st[n] ){
         d_term_to_anchor[n] = n;
-        d_term_to_anchor_conj[n] = d_tds->getConjectureFor(n);
+        d_term_to_anchor_conj[n] = d_tds->getConjectureForEnumerator(n);
         // this assertion fails if we have a sygus term in the search that is unmeasured
         Assert(d_term_to_anchor_conj[n] != NULL);
         d = 0;
@@ -1073,9 +1073,9 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
     if( e.getType().isDatatype() ){
       const Datatype& dt = ((DatatypeType)(e.getType()).toType()).getDatatype();
       if( dt.isSygus() ){
-        if (d_tds->isMeasuredTerm(e)) {
+        if (d_tds->isEnumerator(e)) {
           d_register_st[e] = true;
-          Node ag = d_tds->getActiveGuardForMeasureTerm( e );
+          Node ag = d_tds->getActiveGuardForEnumerator( e );
           if( !ag.isNull() ){
             d_anchor_to_active_guard[e] = ag;
           }
@@ -1176,10 +1176,10 @@ unsigned SygusSymBreakNew::getSearchSizeForAnchor( Node a ) {
   Trace("sygus-sb-debug2") << "get search size for anchor : " << a << std::endl;
   std::map< Node, Node >::iterator it = d_anchor_to_measure_term.find( a );
   Assert( it!=d_anchor_to_measure_term.end() );
-  return getSearchSizeForMeasureTerm( it->second );
+  return getSearchSizeForEnumerator( it->second );
 }
 
-unsigned SygusSymBreakNew::getSearchSizeForMeasureTerm( Node m ) {
+unsigned SygusSymBreakNew::getSearchSizeForEnumerator( Node m ) {
   Trace("sygus-sb-debug2") << "get search size for measure : " << m << std::endl;
   std::map< Node, SearchSizeInfo * >::iterator its = d_szinfo.find( m );
   Assert( its!=d_szinfo.end() );
@@ -1262,7 +1262,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   }
   //register any measured terms that we haven't encountered yet (should only be invoked on first call to check
   std::vector< Node > mts;
-  d_tds->getMeasuredTerms( mts );
+  d_tds->getEnumerators( mts );
   for( unsigned i=0; i<mts.size(); i++ ){
     registerSizeTerm( mts[i], lemmas );
   }

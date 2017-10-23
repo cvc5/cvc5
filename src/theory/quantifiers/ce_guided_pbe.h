@@ -62,7 +62,7 @@ class CegEntailmentInfer;
 * Notice that each enumerator is associated with a single function-to-synthesize,
 * but a function-to-sythesize may be mapped to multiple enumerators.
 * Some public functions of this class expect an enumerator as input, which we
-* map to a function-to-synthesize via getSynthFunctionForEnumerator.
+* map to a function-to-synthesize via TermDatabaseSygus::getSynthFunFor(e).
 *
 * An enumerator is initially "active" but may become inactive if the enumeration
 * exhausts all possible values in the datatype corresponding to syntactic restrictions
@@ -116,8 +116,6 @@ public:
                             std::vector< Node >& lems );
   /** is PBE enabled for any enumerator? */
   bool isPbe() { return d_is_pbe; }
-  /** get candidate for enumerator */
-  Node getSynthFunctionForEnumerator(Node e);
   /** is the enumerator e associated with I/O example pairs? */
   bool hasExamples(Node e);
   /** get number of I/O example pairs for enumerator e */
@@ -195,12 +193,6 @@ private:
    * For the example [EX#1] above, this is f( 0 ), f( 5 ), f( 6 ) 
    */
   std::map< Node, std::vector< Node > > d_examples_term;
-  /** map from enumerators to candidate varaibles (function-to-synthesize). An
-  * enumerator may not be equivalent
-  * to the candidate variable it maps so in synthesis-through-unification
-  * approaches (e.g. decision tree construction).
-  */
-  std::map<Node, Node> d_enum_to_candidate;
   /** collect the PBE examples in n 
   * This is called on the input conjecture, and will populate the above vectors.
   *   hasPol/pol denote the polarity of n in the conjecture.
