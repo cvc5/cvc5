@@ -446,6 +446,22 @@ all \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_cbqiBvIneqModeHelp = "\
+Modes for single invocation techniques, supported by --cbqi-bv-ineq:\n\
+\n\
+eq-slack (default)  \n\
++ Solve for the inequality using the slack value in the model, e.g.,\
+  t > s becomes t = s + ( t-s )^M.\n\
+\n\
+eq-boundary \n\
++ Solve for the boundary point of the inequality, e.g.,\
+  t > s becomes t = s+1.\n\
+\n\
+keep  \n\
++ Solve for the inequality directly using side conditions for invertibility.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_cegqiSingleInvHelp = "\
 Modes for single invocation techniques, supported by --cegqi-si:\n\
 \n\
@@ -769,6 +785,22 @@ theory::quantifiers::IteLiftQuantMode OptionsHandler::stringToIteLiftQuantMode(s
   } else {
     throw OptionException(std::string("unknown option for --ite-lift-quant: `") +
                           optarg + "'.  Try --ite-lift-quant help.");
+  }
+}
+
+theory::quantifiers::CbqiBvIneqMode OptionsHandler::stringToCbqiBvIneqMode(std::string option, std::string optarg) throw(OptionException) {
+  if(optarg == "eq-slack" ) {
+    return theory::quantifiers::CBQI_BV_INEQ_EQ_SLACK;
+  } else if(optarg == "eq-boundary") {
+    return theory::quantifiers::CBQI_BV_INEQ_EQ_BOUNDARY;
+  } else if(optarg == "keep") {
+    return theory::quantifiers::CBQI_BV_INEQ_KEEP;
+  } else if(optarg ==  "help") {
+    puts(s_cbqiBvIneqModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --cbqi-bv-ineq: `") +
+                          optarg + "'.  Try --cbqi-bv-ineq help.");
   }
 }
 
