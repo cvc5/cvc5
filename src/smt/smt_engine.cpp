@@ -1419,7 +1419,15 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off repeat-simp to support unsat-cores" << endl;
       setOption("repeat-simp", false);
     }
+  }
 
+  if (options::cbqiBv()) {
+    if(options::boolToBitvector.wasSetByUser()) {
+      throw OptionException("bool-to-bv not supported with CBQI BV");
+    }
+    Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
+             << endl;
+    options::boolToBitvector.set(false);
   }
 
   if(options::produceAssignments() && !options::produceModels()) {
