@@ -1419,7 +1419,15 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off repeat-simp to support unsat-cores" << endl;
       setOption("repeat-simp", false);
     }
+  }
 
+  if (options::cbqiBv()) {
+    if(options::boolToBitvector.wasSetByUser()) {
+      throw OptionException("bool-to-bv not supported with CBQI BV");
+    }
+    Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
+             << endl;
+    options::boolToBitvector.set(false);
   }
 
   if(options::produceAssignments() && !options::produceModels()) {
@@ -4574,12 +4582,7 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
       Trace("smt-synth") << "Compute single invocation for " << conj_se << "..." << std::endl;
       quantifiers::SingleInvocationPartition sip;
       std::vector< Node > funcs;
-      for( unsigned i=0; i<conj[0].getNumChildren(); i++ ){
-        // TODO : revisit this when addressing #1205
-        Node sf = conj[0][i].getAttribute(theory::SygusSynthFunAttribute());
-        Assert( !sf.isNull() );
-        funcs.push_back( sf );
-      }
+      funcs.insert(funcs.end(), conj[0].begin(), conj[0].end());
       sip.init( funcs, conj_se );
       Trace("smt-synth") << "...finished, got:" << std::endl;
       sip.debugPrint("smt-synth");

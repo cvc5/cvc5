@@ -18,8 +18,8 @@
 #include <stack>
 
 #include "options/quantifiers_options.h"
-#include "theory/rewriter.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 
 
@@ -264,114 +264,176 @@ Node BvInverter::getPathToPv(Node lit, Node pv, Node sv, Node pvs,
 
 Node BvInverter::solve_bv_lit(Node sv,
                               Node lit,
-                              bool pol,
                               std::vector<unsigned>& path,
                               BvInverterModelQuery* m,
                               BvInverterStatus& status) {
+  Assert(!path.empty());
 
-  unsigned index;
-  unsigned nchildren;
+  bool pol = true;
+  unsigned index, nchildren;
   NodeManager* nm = NodeManager::currentNM();
   Kind k;
 
-  do {
+  Assert(!path.empty());
+  index = path.back();
+  Assert(index < lit.getNumChildren());
+  path.pop_back();
+  k = lit.getKind();
+  
+  /* Note: option --bool-to-bv is currently disabled when CBQI BV
+   *       is enabled. We currently do not support Boolean operators
+   *       that are interpreted as bit-vector operators of width 1.  */
+
+  /* Boolean layer ----------------------------------------------- */
+  
+  if (k == NOT) {
+    pol = !pol;
+    lit = lit[index];
     Assert(!path.empty());
     index = path.back();
     Assert(index < lit.getNumChildren());
     path.pop_back();
     k = lit.getKind();
-    if (k != NOT) break;
-    pol = !pol;
-    lit = lit[index];
-  } while (k == NOT);
+  }
 
   Assert(k == EQUAL
-       || k == BITVECTOR_ULT
-       || k == BITVECTOR_ULTBV
-       || k == BITVECTOR_SLT
-       || k == BITVECTOR_SLTBV);
-
-  Assert(k != EQUAL || pol == true);
+      || k == BITVECTOR_ULT
+      || k == BITVECTOR_SLT
+      || k == BITVECTOR_COMP);
 
   Node sv_t = lit[index];
   Node t = lit[1-index];
 
-  if (k == BITVECTOR_ULT || k == BITVECTOR_ULTBV) {
-    TypeNode solve_tn = sv_t.getType();
-    Node x = getSolveVariable(solve_tn);
-    Node sc, scr, scl;
-    if (index == 0) {
-      scr = nm->mkNode(k, x, t);
-      if (pol == true) {
-        /* x < t
-         * with side condition:
-         * t != 0  */
-        scl = nm->mkNode(DISTINCT, t, bv::utils::mkZero(bv::utils::getSize(t)));
-        sc = nm->mkNode(IMPLIES, scl, scr);
-      } else {
-        sc = scr;
+  switch (k) {
+    case BITVECTOR_ULT: {
+      TypeNode solve_tn = sv_t.getType();
+      Node x = getSolveVariable(solve_tn);
+      Node sc;
+      if (index == 0) {
+        if (pol == true) {
+          /* x < t
+           * with side condition:
+           * t != 0  */
+          Node scl = nm->mkNode(
+              DISTINCT, t, bv::utils::mkZero(bv::utils::getSize(t)));
+          Node scr = nm->mkNode(k, x, t);
+          sc = nm->mkNode(IMPLIES, scl, scr);
+        } else {
+          sc = nm->mkNode(NOT, nm->mkNode(k, x, t));
+        }
+      } else if (index == 1) {
+        if (pol == true) {
+          /* t < x
+           * with side condition:
+           * t != ~0  */
+          Node scl = nm->mkNode(
+              DISTINCT, t, bv::utils::mkOnes(bv::utils::getSize(t)));
+          Node scr = nm->mkNode(k, t, x);
+          sc = nm->mkNode(IMPLIES, scl, scr);
+        } else {
+          sc = nm->mkNode(NOT, nm->mkNode(k, t, x));
+        }
       }
-    } else if (index == 1) {
-      scr = nm->mkNode(k, t, x);
-      if (pol == true) {
-        /* t < x
-         * with side condition:
-         * t != 1...1  */
-        scl = nm->mkNode(DISTINCT, t, bv::utils::mkOnes(bv::utils::getSize(t)));
-        sc = nm->mkNode(IMPLIES, scl, scr);
-      } else {
-        sc = scr;
+      status.d_conds.push_back(sc);
+      /* t = skv (fresh skolem constant)  */
+      Node skv = getInversionNode(sc, solve_tn);
+      t = skv;
+      if (!path.empty()) {
+        index = path.back();
+        Assert(index < sv_t.getNumChildren());
+        path.pop_back();
+        sv_t = sv_t[index];
+        k = sv_t.getKind();
       }
+      break;
     }
-    status.d_conds.push_back(sc);
-    /* t = skv (fresh skolem constant)  */
-    Node skv = getInversionNode(sc, solve_tn);
-    t = skv;
-  } else if (k == BITVECTOR_SLT || k == BITVECTOR_SLTBV) {
-    TypeNode solve_tn = sv_t.getType();
-    Node x = getSolveVariable(solve_tn);
-    Node sc, scr, scl;
-    unsigned w = bv::utils::getSize(t);
-    if (index == 0) {
-      scr = nm->mkNode(k, x, t);
-      if (pol == true) {
-        /* x < t
-         * with side condition:
-         * t != 10...0 */
-        Node min = bv::utils::mkConst(BitVector(w).setBit(w - 1));
-        scl = nm->mkNode(DISTINCT, min, t);
-        sc = nm->mkNode(IMPLIES, scl, scr);
-      } else {
-        sc = scr;
+
+    case BITVECTOR_SLT: {
+      TypeNode solve_tn = sv_t.getType();
+      Node x = getSolveVariable(solve_tn);
+      Node sc;
+      unsigned w = bv::utils::getSize(t);
+      if (index == 0) {
+        if (pol == true) {
+          /* x < t
+           * with side condition:
+           * t != 10...0 */
+          Node min = bv::utils::mkConst(BitVector(w).setBit(w - 1));
+          Node scl = nm->mkNode(DISTINCT, min, t);
+          Node scr = nm->mkNode(k, x, t);
+          sc = nm->mkNode(IMPLIES, scl, scr);
+        } else {
+          sc = nm->mkNode(NOT, nm->mkNode(k, x, t));
+        }
+      } else if (index == 1) {
+        if (pol == true) {
+          /* t < x
+           * with side condition:
+           * t != 01...1  */
+          BitVector bv = BitVector(w).setBit(w - 1);
+          Node max = bv::utils::mkConst(~bv);
+          Node scl = nm->mkNode(DISTINCT, t, max);
+          Node scr = nm->mkNode(k, t, x);
+          sc = nm->mkNode(IMPLIES, scl, scr);
+        } else {
+          sc = nm->mkNode(NOT, nm->mkNode(k, t, x));
+        }
       }
-    } else if (index == 1) {
-      scr = nm->mkNode(k, t, x);
-      if (pol == true) {
-        /* t < x
-         * with side condition:
-         * t != 01...1  */
-        BitVector bv = BitVector(w).setBit(w - 1);
-        Node max = bv::utils::mkConst(~bv);
-        scl = nm->mkNode(DISTINCT, t, max);
-        sc = nm->mkNode(IMPLIES, scl, scr);
-      } else {
-        sc = scr;
+      status.d_conds.push_back(sc);
+      /* t = skv (fresh skolem constant)  */
+      Node skv = getInversionNode(sc, solve_tn);
+      t = skv;
+      if (!path.empty()) {
+        index = path.back();
+        Assert(index < sv_t.getNumChildren());
+        path.pop_back();
+        sv_t = sv_t[index];
+        k = sv_t.getKind();
       }
+      break;
     }
-    status.d_conds.push_back(sc);
-    /* t = skv (fresh skolem constant)  */
-    Node skv = getInversionNode(sc, solve_tn);
-    t = skv;
+
+    default:
+      Assert(k == EQUAL);
+      if (pol == false) {
+        /* x != t
+         * <-> 
+         * x < t || x > t  (ULT)
+         * with side condition:
+         * t != 0 || t != ~0  */
+        TypeNode solve_tn = sv_t.getType();
+        Node x = getSolveVariable(solve_tn);
+        unsigned w = bv::utils::getSize(t);
+        Node scl = nm->mkNode(
+            OR,
+            nm->mkNode(DISTINCT, t, bv::utils::mkZero(w)),
+            nm->mkNode(DISTINCT, t, bv::utils::mkOnes(w)));
+        Node scr = nm->mkNode(DISTINCT, x, t);
+        Node sc = nm->mkNode(IMPLIES, scl, scr);
+        status.d_conds.push_back(sc);
+        /* t = skv (fresh skolem constant)  */
+        Node skv = getInversionNode(sc, solve_tn);
+        t = skv;
+        if (!path.empty()) {
+          index = path.back();
+          Assert(index < sv_t.getNumChildren());
+          path.pop_back();
+          sv_t = sv_t[index];
+          k = sv_t.getKind();
+        }
+      }
   }
+
+  /* Bit-vector layer -------------------------------------------- */
 
   while (!path.empty()) {
     index = path.back();
     Assert(index < sv_t.getNumChildren());
     path.pop_back();
-    Kind k = sv_t.getKind();
+    k = sv_t.getKind();
     nchildren = sv_t.getNumChildren();
 
-    if (k == BITVECTOR_NEG || k == BITVECTOR_NOT) {
+    if (k == BITVECTOR_NOT || k == BITVECTOR_NEG) {
       t = nm->mkNode(k, t);
     } else if (k == BITVECTOR_CONCAT) {
       /* x = t[upper:lower]
@@ -390,12 +452,12 @@ Node BvInverter::solve_bv_lit(Node sv,
           lower += bv::utils::getSize(sv_t[i]);
       }
       t = bv::utils::mkExtract(t, upper, lower);
-    } else if (k == BITVECTOR_EXTRACT) {
-      Trace("bv-invert") << "bv-invert : Unsupported for index " << index
-                         << ", from " << sv_t << std::endl;
-      return Node::null();
     } else if (k == BITVECTOR_SIGN_EXTEND) {
       t = bv::utils::mkExtract(t, bv::utils::getSize(sv_t[index])-1, 0);
+    } else if (k == BITVECTOR_EXTRACT) {
+      Trace("bv-invert") << "bv-invert : Unsupported for index " << index
+                             << ", from " << sv_t << std::endl;
+      return Node::null();
     } else {
       Assert(nchildren >= 2);
       Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
@@ -405,6 +467,7 @@ Node BvInverter::solve_bv_lit(Node sv,
         case BITVECTOR_PLUS:
           t = nm->mkNode(BITVECTOR_SUB, t, s);
           break;
+
         case BITVECTOR_SUB:
           t = nm->mkNode(BITVECTOR_PLUS, t, s);
           break;
@@ -524,51 +587,11 @@ Node BvInverter::solve_bv_lit(Node sv,
           } else {
             /* s >> x = t
              * with side condition:
-             * clz(t) >= clz(s)
-             *   && (t = 0
-             *    || "remaining shifted bits in t "
-             *       "match corresponding bits in s")  */
-            Trace("bv-invert") << "bv-invert : Unsupported for index " << index
-                               << ", from " << sv_t << std::endl;
-            return Node::null();
-          }
-          break;
-        }
-
-        case BITVECTOR_ASHR: {
-          TypeNode solve_tn = sv_t[index].getType();
-          Node x = getSolveVariable(solve_tn);
-          Node scl, scr;
-          if (index == 0) {
-            /* x >> s = t
-             * with side condition:
-             * s = 0 || (sext(t,w) << s)[2w-1 : w] = sext(t[w-1:w-1], w-1)
-             * with w = getSize(t) = getSize(s)  */
-            unsigned w = bv::utils::getSize(s);
-            Node z = bv::utils::mkZero(w);
-            Node s1 = bv::utils::mkSignExtend(t, w);
-            Node z_o_s = nm->mkNode(BITVECTOR_CONCAT, z, s);
-            Node s1_shl_zos = nm->mkNode(BITVECTOR_SHL, s1, z_o_s);
-            Node msb_t = bv::utils::mkExtract(t, w-1, w-1);
-            Node s2 = bv::utils::mkSignExtend(msb_t, w-1);
-            Node ext = bv::utils::mkExtract(s1_shl_zos, 2*w-1, w);
-            scl = nm->mkNode(OR,
-                nm->mkNode(EQUAL, s, z),
-                nm->mkNode(EQUAL, ext, s2));
-            scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_LSHR, x, s), t);
-            Node sc = nm->mkNode(IMPLIES, scl, scr);
-            status.d_conds.push_back(sc);
-            /* t = skv (fresh skolem constant)  */
-            Node skv = getInversionNode(sc, solve_tn);
-            t = skv;
-          } else {
-            /* s >> x = t
-             * with side condition:
-             * clx(msb(s),t) >= clx(msb(s),s)
-             *   && (t = 0 
-             *    || t = ~0
-             *    || "remaining shifted bits in t "
-             *          "match corresponding bits in s")  */
+             * (s = 0 && t = 0)
+             * || (clz(t) >= clz(s)
+             *     && (t = 0
+             *         || "remaining shifted bits in t "
+             *            "match corresponding bits in s"))  */
             Trace("bv-invert") << "bv-invert : Unsupported for index " << index
                                << ", from " << sv_t << std::endl;
             return Node::null();
