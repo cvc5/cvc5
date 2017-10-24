@@ -4,6 +4,7 @@ BasedOnStyle:  Google
 AllowShortCaseLabelsOnASingleLine: true
 BinPackArguments: false
 BinPackParameters: false
+BreakBeforeBinaryOperators: NonAssignment
 BraceWrapping:
   AfterClass: true
   AfterControlStatement: true
