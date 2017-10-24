@@ -92,6 +92,7 @@ TESTS =	\
 	bug822.smt2 \
 	qbv-test-invert-mul.smt2 \
 	qbv-test-invert-bvand.smt2 \
+	qbv-test-invert-bvcomp.smt2 \
 	qbv-test-invert-bvor.smt2 \
 	qbv-test-invert-bvlshr-0.smt2 \
 	qbv-test-invert-bvashr-0.smt2 \
