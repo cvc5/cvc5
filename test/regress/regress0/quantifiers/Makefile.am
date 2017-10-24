@@ -98,6 +98,7 @@ TESTS =	\
  	qbv-test-invert-bvurem-1.smt2 \
 	qbv-test-invert-concat-0.smt2 \
 	qbv-test-invert-concat-1.smt2 \
+	qbv-test-invert-disequality.smt2 \
 	qbv-test-invert-shl.smt2 \
 	qbv-test-invert-udiv-0.smt2 \
 	qbv-test-invert-udiv-1.smt2 \
