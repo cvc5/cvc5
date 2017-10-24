@@ -261,9 +261,9 @@ Node BvInverter::getPathToPv(Node lit, Node pv, Node sv, Node pvs,
   return slit;
 }
 
-Node BvInverter::solve_bv_lit(Node sv, Node lit, std::vector<unsigned>& path,
-                              BvInverterModelQuery* m,
-                              BvInverterStatus& status) {
+Node BvInverter::solve_bv_lit(Node sv, Node lit, std::vector<unsigned> &path,
+                              BvInverterModelQuery *m,
+                              BvInverterStatus &status) {
   Assert(!path.empty());
 
   bool pol = true;
