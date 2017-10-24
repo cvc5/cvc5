@@ -14,9 +14,6 @@ BraceWrapping:
   AfterUnion: true
   BeforeCatch: true
   BeforeElse: true
-  SplitEmptyFunction: false
-  SplitEmptyNamespace: false
-  SplitEmptyRecord: false
 BreakBeforeBraces: Custom
 ...
 
