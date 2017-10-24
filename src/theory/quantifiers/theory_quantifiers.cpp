@@ -44,7 +44,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, Output
   out.handleUserAttribute( "conjecture", this );
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute( "sygus", this );
-  out.handleUserAttribute( "sygus-synth-fun", this );
+  out.handleUserAttribute("sygus-synth-grammar", this);
   out.handleUserAttribute( "sygus-synth-fun-var-list", this );
   out.handleUserAttribute( "synthesis", this );
   out.handleUserAttribute( "quant-inst-max-level", this );
