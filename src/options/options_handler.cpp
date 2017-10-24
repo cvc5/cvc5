@@ -446,7 +446,8 @@ all \n\
 \n\
 ";
 
-const std::string OptionsHandler::s_cbqiBvIneqModeHelp = "\
+const std::string OptionsHandler::s_cbqiBvIneqModeHelp =
+    "\
 Modes for single invocation techniques, supported by --cbqi-bv-ineq:\n\
 \n\
 eq-slack (default)  \n\
