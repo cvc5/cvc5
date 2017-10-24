@@ -129,10 +129,30 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn) {
   return NodeManager::currentNM()->mkNode(kind::APPLY_UF, f, new_cond);
 }
 
-bool BvInverter::isInvertible(Kind k) {
-  // TODO : make this precise (this should correspond to all kinds that we
-  // handle in solve_bv_lit/solve_bv_constraint)
-  return k != APPLY_UF;
+bool BvInverter::isInvertible(Kind k, unsigned index) {
+  return k == NOT
+      || k == EQUAL
+      || k == BITVECTOR_ULT
+      || k == BITVECTOR_SLT
+      || k == BITVECTOR_COMP
+      || k == BITVECTOR_ULT
+      || k == BITVECTOR_SLT
+      || k == BITVECTOR_NOT
+      || k == BITVECTOR_NEG
+      || k == BITVECTOR_CONCAT
+      || k == BITVECTOR_SIGN_EXTEND
+      || k == BITVECTOR_COMP
+      || k == BITVECTOR_PLUS
+      || k == BITVECTOR_SUB
+      || k == BITVECTOR_MULT
+      || (k == BITVECTOR_UREM_TOTAL && index == 1)
+      || k == BITVECTOR_UDIV_TOTAL
+      || k == BITVECTOR_AND
+      || k == BITVECTOR_OR
+      || k == BITVECTOR_XOR
+      || (k == BITVECTOR_LSHR && index == 0)
+      || (k == BITVECTOR_ASHR && index == 0)
+      || (k == BITVECTOR_SHL && index == 0);
 }
 
 Node BvInverter::getPathToPv(
@@ -145,23 +165,22 @@ Node BvInverter::getPathToPv(
     } else {
       // only recurse if the kind is invertible
       // this allows us to avoid paths that go through skolem functions
-      if (isInvertible(lit.getKind())) {
-        unsigned rmod = 0;  // TODO : randomize?
-        for (unsigned i = 0; i < lit.getNumChildren(); i++) {
-          unsigned ii = (i + rmod) % lit.getNumChildren();
-          Node litc = getPathToPv(lit[ii], pv, sv, path, visited);
-          if (!litc.isNull()) {
-            // path is outermost term index last
-            path.push_back(ii);
-            std::vector<Node> children;
-            if (lit.getMetaKind() == kind::metakind::PARAMETERIZED) {
-              children.push_back(lit.getOperator());
-            }
-            for (unsigned j = 0; j < lit.getNumChildren(); j++) {
-              children.push_back(j == ii ? litc : lit[j]);
-            }
-            return NodeManager::currentNM()->mkNode(lit.getKind(), children);
+      unsigned rmod = 0;  // TODO : randomize?
+      for (unsigned i = 0; i < lit.getNumChildren(); i++) {
+        unsigned ii = (i + rmod) % lit.getNumChildren();
+        if (!isInvertible(lit.getKind(), ii)) { continue; }
+        Node litc = getPathToPv(lit[ii], pv, sv, path, visited);
+        if (!litc.isNull()) {
+          // path is outermost term index last
+          path.push_back(ii);
+          std::vector<Node> children;
+          if (lit.getMetaKind() == kind::metakind::PARAMETERIZED) {
+            children.push_back(lit.getOperator());
           }
+          for (unsigned j = 0; j < lit.getNumChildren(); j++) {
+            children.push_back(j == ii ? litc : lit[j]);
+          }
+          return NodeManager::currentNM()->mkNode(lit.getKind(), children);
         }
       }
     }
