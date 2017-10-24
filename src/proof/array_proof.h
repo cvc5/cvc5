@@ -40,13 +40,12 @@ class ProofArray : public Proof {
 
   void toStream(std::ostream& out);
   void toStream(std::ostream& out, const ProofLetMap& map);
-  void toStreamLFSC(std::ostream& out, TheoryProof* tp,
-                    std::shared_ptr<theory::eq::EqProof> pf,
-                    const ProofLetMap& map);
-
  private:
+  void toStreamLFSC(std::ostream& out, TheoryProof* tp,
+                    const theory::eq::EqProof& pf, const ProofLetMap& map);
+
   Node toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
-                       std::shared_ptr<theory::eq::EqProof> pf, unsigned tb,
+                       const theory::eq::EqProof& pf, unsigned tb,
                        const ProofLetMap& map);
 
   // It is simply an equality engine proof.

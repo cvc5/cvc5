@@ -39,7 +39,7 @@ void ArrayProofReconstruction::setExtMergeTag(unsigned tag) {
 
 void ArrayProofReconstruction::notify(
     unsigned reasonType, Node reason, Node a, Node b,
-    std::vector<TNode>& equalities, std::shared_ptr<eq::EqProof> proof) const {
+    std::vector<TNode>& equalities, eq::EqProof* proof) const {
   Debug("pf::array") << "ArrayProofReconstruction::notify( "
                      << reason << ", " << a << ", " << b << std::endl;
 
@@ -104,7 +104,7 @@ void ArrayProofReconstruction::notify(
         std::shared_ptr<eq::EqProof> childProof =
             std::make_shared<eq::EqProof>();
         d_equalityEngine->explainEquality(indexOne, indexTwo, false, equalities,
-                                          childProof);
+                                          childProof.get());
 
         // It could be that the guard condition is a constant disequality. In
         // this case, we need to change it to a different format.
@@ -180,7 +180,7 @@ void ArrayProofReconstruction::notify(
         std::shared_ptr<eq::EqProof> childProof =
             std::make_shared<eq::EqProof>();
         d_equalityEngine->explainEquality(reason[1][0], reason[1][1], false,
-                                          equalities, childProof);
+                                          equalities, childProof.get());
         proof->d_children.push_back(childProof);
       }
     }

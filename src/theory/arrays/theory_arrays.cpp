@@ -396,7 +396,7 @@ bool TheoryArrays::propagate(TNode literal)
 
 
 void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions,
-                           std::shared_ptr<eq::EqProof> proof) {
+                           eq::EqProof* proof) {
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
@@ -832,7 +832,7 @@ Node TheoryArrays::explain(TNode literal) {
   return explanation;
 }
 
-Node TheoryArrays::explain(TNode literal, std::shared_ptr<eq::EqProof> proof) {
+Node TheoryArrays::explain(TNode literal, eq::EqProof* proof) {
   ++d_numExplain;
   Debug("arrays") << spaces(getSatContext()->getLevel())
                   << "TheoryArrays::explain(" << literal << ")" << std::endl;
@@ -2241,7 +2241,7 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   std::shared_ptr<eq::EqProof> proof = d_proofsEnabled ?
       std::make_shared<eq::EqProof>() : nullptr;
 
-  d_conflictNode = explain(a.eqNode(b), proof);
+  d_conflictNode = explain(a.eqNode(b), proof.get());
 
   if (!d_inCheckModel) {
     ProofArray* proof_array = NULL;

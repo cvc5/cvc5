@@ -36,7 +36,7 @@ public:
 
   void notify(unsigned reasonType, Node reason, Node a, Node b,
               std::vector<TNode>& equalities,
-              std::shared_ptr<eq::EqProof> proof) const override;
+              eq::EqProof* proof) const override;
 
   void setRowMergeTag(unsigned tag);
   void setRow1MergeTag(unsigned tag);
