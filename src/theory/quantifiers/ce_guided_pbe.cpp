@@ -1031,7 +1031,7 @@ public:
   /** initialize this invariance test
   *  cpbe is the conjecture utility.
   *  e is the enumerator which we are reasoning about (associated with a synth
-  * fun).
+  *    fun).
   *  exo is the list of outputs of the PBE conjecture.
   *  ncind is the set of possible indices of the PBE conjecture to check
   *    invariance of non-containment. 
@@ -1092,8 +1092,9 @@ public:
   Node d_enum;
   /** The output examples for the enumerator */
   std::vector<Node> d_exo;
-  /** The set of I/O pair indices i such that contains( out_i, nvn[in_i] ) --->
-   * false */
+  /** The set of I/O pair indices i such that 
+   *    contains( out_i, nvn[in_i] ) ---> false 
+   */
   std::vector<unsigned> d_neg_con_indices;
   /** reference to the PBE utility */
   quantifiers::CegConjecturePbe* d_cpbe;

@@ -47,11 +47,10 @@ class CegEntailmentInfer;
 *     devises a strategy for enumerating terms and construction solutions,
 *     which is inspired by Alur et al. "Scaling Enumerative Program Synthesis
 *     via Divide and Conquer" TACAS 2017. In particular, it may consider
-* strategies
-*     for constructing decision trees when the grammar permits ITEs and a
-*     strategy for divide-and-conquer string synthesis when the grammar permits
-*     string concatenation. This is stored in a set of data structures within
-*     d_cinfo.
+*     strategies for constructing decision trees when the grammar permits ITEs 
+*     and a strategy for divide-and-conquer string synthesis when the grammar 
+*     permits string concatenation. This is stored in a set of data structures 
+*     within d_cinfo.
 * (3) It makes (possibly multiple) calls to
 *     TermDatabaseSygus::registerMeasuredTerm(...) based
 *     on the strategy, which inform the rest of the system to enumerate values

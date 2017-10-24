@@ -389,7 +389,7 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
       }
     }
 
-    // add the above symmetry breaking predictes to lemmas
+    // add the above symmetry breaking predicates to lemmas
     Node rlv = getRelevancyCondition(n);
     for (unsigned i = 0; i < sb_lemmas.size(); i++) {
       Node pred = sb_lemmas[i].substitute(x, n);
@@ -402,8 +402,7 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   d_simple_proc[exp] = max_depth + 1;
 
   // now activate the children those testers were previously asserted in this
-  // context
-  // and are awaiting activation, if they exist
+  // context and are awaiting activation, if they exist.
   if( options::sygusSymBreakLazy() ){
     for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
       Node sel = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex].getSelectorInternal( ntn.toType(), j ) ), n );
@@ -1177,10 +1176,10 @@ unsigned SygusSymBreakNew::getSearchSizeForAnchor( Node a ) {
   Trace("sygus-sb-debug2") << "get search size for anchor : " << a << std::endl;
   std::map< Node, Node >::iterator it = d_anchor_to_measure_term.find( a );
   Assert( it!=d_anchor_to_measure_term.end() );
-  return getSearchSizeForEnumerator(it->second);
+  return getSearchSizeForMeasureTerm(it->second);
 }
 
-unsigned SygusSymBreakNew::getSearchSizeForEnumerator(Node m) {
+unsigned SygusSymBreakNew::getSearchSizeForMeasureTerm(Node m) {
   Trace("sygus-sb-debug2") << "get search size for measure : " << m << std::endl;
   std::map< Node, SearchSizeInfo * >::iterator its = d_szinfo.find( m );
   Assert( its!=d_szinfo.end() );

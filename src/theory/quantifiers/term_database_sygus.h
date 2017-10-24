@@ -143,7 +143,7 @@ public:
    */
   void registerEnumerator(Node e, Node f, CegConjecture* conj,
                           bool mkActiveGuard = false);
-  /** is e a measured term (enumerator)? */
+  /** is e an enumerator? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
   CegConjecture* getConjectureForEnumerator(Node e);
@@ -151,7 +151,7 @@ public:
   Node getSynthFunForEnumerator(Node e);
   /** get active guard for e */
   Node getActiveGuardForEnumerator(Node e);
-  /** get all registered measure terms (enumerators) */
+  /** get all registered enumerators */
   void getEnumerators(std::vector<Node>& mts);
 
  public:  // general sygus utilities
