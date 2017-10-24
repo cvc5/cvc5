@@ -111,6 +111,9 @@ bool NodeTemplate<ref_count>::hasBoundVar() {
         hasBv = (*i).hasBoundVar();
       }
     }
+    if (!hasBv && hasOperator()) {
+      hasBv = getOperator().hasBoundVar();
+    }
     setAttribute(HasBoundVarAttr(), hasBv);
     setAttribute(HasBoundVarComputedAttr(), true);
     Debug("bva") << *this << " has bva : " << getAttribute(HasBoundVarAttr()) << std::endl;
