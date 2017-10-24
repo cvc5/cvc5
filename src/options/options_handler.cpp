@@ -446,7 +446,8 @@ all \n\
 \n\
 ";
 
-const std::string OptionsHandler::s_cbqiBvIneqModeHelp = "\
+const std::string OptionsHandler::s_cbqiBvIneqModeHelp =
+    "\
 Modes for single invocation techniques, supported by --cbqi-bv-ineq:\n\
 \n\
 eq-slack (default)  \n\
@@ -788,19 +789,31 @@ theory::quantifiers::IteLiftQuantMode OptionsHandler::stringToIteLiftQuantMode(s
   }
 }
 
-theory::quantifiers::CbqiBvIneqMode OptionsHandler::stringToCbqiBvIneqMode(std::string option, std::string optarg) throw(OptionException) {
-  if(optarg == "eq-slack" ) {
+theory::quantifiers::CbqiBvIneqMode OptionsHandler::stringToCbqiBvIneqMode(
+    std::string option, std::string optarg) throw(OptionException)
+{
+  if (optarg == "eq-slack")
+  {
     return theory::quantifiers::CBQI_BV_INEQ_EQ_SLACK;
-  } else if(optarg == "eq-boundary") {
+  }
+  else if (optarg == "eq-boundary")
+  {
     return theory::quantifiers::CBQI_BV_INEQ_EQ_BOUNDARY;
-  } else if(optarg == "keep") {
+  }
+  else if (optarg == "keep")
+  {
     return theory::quantifiers::CBQI_BV_INEQ_KEEP;
-  } else if(optarg ==  "help") {
+  }
+  else if (optarg == "help")
+  {
     puts(s_cbqiBvIneqModeHelp.c_str());
     exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --cbqi-bv-ineq: `") +
-                          optarg + "'.  Try --cbqi-bv-ineq help.");
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --cbqi-bv-ineq: `")
+                          + optarg
+                          + "'.  Try --cbqi-bv-ineq help.");
   }
 }
 

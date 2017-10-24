@@ -917,24 +917,31 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool pol = lit.getKind() != NOT;
   Kind k = atom.getKind();
-  if (pol && k == EQUAL) {
-    // positively asserted equalities between bitvector terms we always leave unmodified
+  if (pol && k == EQUAL)
+  {
+    // positively asserted equalities between bitvector terms we always leave
+    // unmodified
     if (atom[0].getType().isBitVector()) {
       return lit;
     }
-  } else if (options::cbqiBvIneqMode()==CBQI_BV_INEQ_KEEP) {
+  }
+  else if (options::cbqiBvIneqMode() == CBQI_BV_INEQ_KEEP)
+  {
     // if option is set, disequalities and inequalities we leave unmodified
-    if ((k == EQUAL && atom[0].getType().isBitVector()) ||
-        k == BITVECTOR_ULT || k == BITVECTOR_SLT) {
+    if ((k == EQUAL && atom[0].getType().isBitVector()) || k == BITVECTOR_ULT
+        || k == BITVECTOR_SLT)
+    {
       return lit;
     }
   } else {
     bool useSlack = false;
-    if (k == EQUAL && atom[0].getType().isBitVector()) {
+    if (k == EQUAL && atom[0].getType().isBitVector())
+    {
       // always use slack for disequalities
       useSlack = true;
     } else if (k == BITVECTOR_ULT || k == BITVECTOR_SLT) {
-      if (options::cbqiBvIneqMode()==CBQI_BV_INEQ_EQ_SLACK) {
+      if (options::cbqiBvIneqMode() == CBQI_BV_INEQ_EQ_SLACK)
+      {
         useSlack = true;
       }
     } else {
