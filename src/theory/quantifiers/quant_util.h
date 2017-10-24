@@ -83,19 +83,19 @@ public:
   virtual std::string identify() const = 0;
 };
 
-/** arithmetic utilities
+/** Arithmetic utilities regarding monomial sums.
  *
  * Note the following terminology:
  *
- *   We say Node c is a {monomial constant} (or mconstant) if it is:
+ *   We say Node c is a {monomial constant} (or m-constant) if it is:
  *   (a) c is a constant Rational, or
  *   (b) c is null.
  *
- *   We say Node v is a {monomial variable} (or mvariable) either:
+ *   We say Node v is a {monomial variable} (or m-variable) either:
  *   (a) v.getType().isReal() and v is not a constant, or
  *   (b) v is null.
  *
- *   For mconstant or mvariable t, we write [t] to denote 1 if t.isNull() and t
+ *   For m-constant or m-variable t, we write [t] to denote 1 if t.isNull() and t
  *   otherwise.
  *
  *   A monomial m is a pair ( mvariable, mconstant ) of the form ( v, c ), which
@@ -120,25 +120,25 @@ public:
  static bool getMonomial(Node n, Node& c, Node& v);
  /** get monomial
   *
-  * If this function returns true, it adds the ( mconstant, mvariable )
+  * If this function returns true, it adds the ( m-constant, m-variable )
   * pair corresponding to the monomial representation of n to the
   * monomial sum msum.
   *
-  * This function returns false if the mvariable of n is already
+  * This function returns false if the m-variable of n is already
   * present in n.
   */
  static bool getMonomial(Node n, std::map<Node, Node>& msum);
- /** get monomial sum
+ /** get monomial sum for real-valued term n
   *
   * If this function returns true, it sets msum to a monmoial sum such that
-  *   [msum]  is equivalent to n
+  *   [msum] is equivalent to n
   *
   * This function may return false if n is not a sum of monomials whose
   * whose variables are pairwise unique.
   * If term n is in rewritten form, this function should always return true.
   */
  static bool getMonomialSum(Node n, std::map<Node, Node>& msum);
- /** get monmoial sum literal
+ /** get monmoial sum literal for literal lit
   *
   * If this function returns true, it sets msum to a monmoial sum such that
   *   [msum] <k> 0  is equivalent to lit[0] <k> lit[1]
@@ -158,14 +158,14 @@ public:
  static Node mkNode(std::map<Node, Node>& msum);
  /** make coefficent term
   *
-  * Input coeff is a monomial constant.
+  * Input coeff is a m-constant.
   * Returns the term t if coeff.isNull() or coeff*t otherwise.
   */
  static Node mkCoeffTerm(Node coeff, Node t);
  /** isolate variable v in constraint ([msum] <k> 0)
   *
   * If this function returns a value ret where ret != 0, then
-  * veq_c is set to monomial constant, and val is set to a term such that:
+  * veq_c is set to m-constant, and val is set to a term such that:
   *    If ret=1, then ([veq_c] * v <k> val) is equivalent to [msum] <k> 0.
   *   If ret=-1, then (val <k> [veq_c] * v) is equivalent to [msum] <k> 0.
   *   If veq_c is non-null, then it is a positive constant Rational.
@@ -192,7 +192,7 @@ public:
   */
  static int isolate(Node v, std::map<Node, Node>& msum, Node& veq, Kind k,
                     bool doCoeff = false);
- /** solve equality for variable
+ /** solve equality lit for variable
   *
   * If return value ret is non-null, then:
   *    v = ret is equivalent to lit.
@@ -202,6 +202,16 @@ public:
   * e.g. 3*v = 7.
   */
  static Node solveEqualityFor(Node lit, Node v);
+ /** decompose real-valued term n
+ * 
+ * If this function returns true, then
+ *   ([coeff]*v + rem) is equivalent to n
+ * where coeff is non-zero m-constant.
+ *
+ * This function will return false if n is not a monomial sum containing
+ * a monomial with factor v.
+ */
+ static bool decompose(Node n, Node v, Node& coeff, Node& rem);
  /** return the rewritten form of (UMINUS t) */
  static Node negate(Node t);
  /** return the rewritten form of (PLUS t (CONST_RATIONAL i)) */
