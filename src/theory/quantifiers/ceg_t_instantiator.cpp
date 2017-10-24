@@ -895,8 +895,7 @@ void BvInstantiator::processLiteral(CegInstantiator* ci, SolvedForm& sf,
   if( !slit.isNull() ){
     CegInstantiatorBvInverterModelQuery m( ci );
     unsigned iid = d_inst_id_counter;
-    Node inst =
-        d_inverter->solve_bv_lit(sv, slit, path, &m, d_inst_id_to_status[iid]);
+    Node inst = d_inverter->solve_bv_lit( sv, slit, path, &m, d_inst_id_to_status[iid] );
     if( !inst.isNull() ){
       inst = Rewriter::rewrite(inst);
       Trace("cegqi-bv") << "...solved form is " << inst << std::endl;
@@ -919,15 +918,14 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
   bool pol = lit.getKind() != NOT;
   Kind k = atom.getKind();
   if (pol && k == EQUAL) {
-    // positively asserted equalities between bitvector terms we always leave
-    // unmodified
+    // positively asserted equalities between bitvector terms we always leave unmodified
     if (atom[0].getType().isBitVector()) {
       return lit;
     }
-  } else if (options::cbqiBvIneqMode() == CBQI_BV_INEQ_KEEP) {
+  } else if (options::cbqiBvIneqMode()==CBQI_BV_INEQ_KEEP) {
     // if option is set, disequalities and inequalities we leave unmodified
-    if ((k == EQUAL && atom[0].getType().isBitVector()) || k == BITVECTOR_ULT ||
-        k == BITVECTOR_SLT) {
+    if ((k == EQUAL && atom[0].getType().isBitVector()) ||
+        k == BITVECTOR_ULT || k == BITVECTOR_SLT) {
       return lit;
     }
   } else {
@@ -936,11 +934,11 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
       // always use slack for disequalities
       useSlack = true;
     } else if (k == BITVECTOR_ULT || k == BITVECTOR_SLT) {
-      if (options::cbqiBvIneqMode() == CBQI_BV_INEQ_EQ_SLACK) {
+      if (options::cbqiBvIneqMode()==CBQI_BV_INEQ_EQ_SLACK) {
         useSlack = true;
       }
     } else {
-      // others are not handled
+      // others are not unhandled
       return Node::null();
     }
     // for all other predicates, we convert them to a positive equality based on
