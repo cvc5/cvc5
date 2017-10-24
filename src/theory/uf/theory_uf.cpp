@@ -17,6 +17,8 @@
 
 #include "theory/uf/theory_uf.h"
 
+#include <memory>
+
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"

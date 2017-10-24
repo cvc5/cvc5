@@ -20,8 +20,6 @@
 #ifndef __CVC4__THEORY__UF__THEORY_UF_H
 #define __CVC4__THEORY__UF__THEORY_UF_H
 
-#include <memory>
-
 #include "expr/node.h"
 //#include "expr/attribute.h"
 

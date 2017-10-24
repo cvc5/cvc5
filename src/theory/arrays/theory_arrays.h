@@ -19,7 +19,6 @@
 #ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 
-#include <memory>
 #include <unordered_map>
 
 #include "context/cdhashmap.h"

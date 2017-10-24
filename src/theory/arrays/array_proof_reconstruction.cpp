@@ -17,6 +17,8 @@
 
 #include "theory/arrays/array_proof_reconstruction.h"
 
+#include <memory>
+
 namespace CVC4 {
 namespace theory {
 namespace arrays {

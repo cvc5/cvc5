@@ -17,6 +17,7 @@
 #include "theory/arrays/theory_arrays.h"
 
 #include <map>
+#include <memory>
 
 #include "expr/kind.h"
 #include "options/arrays_options.h"

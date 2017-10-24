@@ -18,7 +18,6 @@
 #ifndef __CVC4__THEORY__ARRAYS__ARRAY_PROOF_RECONSTRUCTION_H
 #define __CVC4__THEORY__ARRAYS__ARRAY_PROOF_RECONSTRUCTION_H
 
-#include <memory>
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
