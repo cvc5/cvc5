@@ -431,44 +431,35 @@ Node BvInverter::solve_bv_lit(Node sv,
     Assert(index < sv_t.getNumChildren());
     path.pop_back();
     k = sv_t.getKind();
+    nchildren = sv_t.getNumChildren();
 
-    if ((nchildren = sv_t.getNumChildren()) < 2) {
-      switch (k) {
-        case BITVECTOR_NOT:
-        case BITVECTOR_NEG:
-          t = nm->mkNode(k, t);
-          break;
-
-        case BITVECTOR_CONCAT: {
-          /* x = t[upper:lower]
-           * where
-           * upper = getSize(t) - 1 - sum(getSize(sv_t[i])) for i < index
-           * lower = getSize(sv_t[i]) for i > index
-           */
-          unsigned upper, lower;
-          upper = bv::utils::getSize(t) - 1;
-          lower = 0;
-          NodeBuilder<> nb(nm, BITVECTOR_CONCAT);
-          for (unsigned i = 0; i < nchildren; i++) {
-            if (i < index)
-              upper -= bv::utils::getSize(sv_t[i]);
-            else if (i > index)
-              lower += bv::utils::getSize(sv_t[i]);
-          }
-          t = bv::utils::mkExtract(t, upper, lower);
-          break;
-        }
-
-        case BITVECTOR_SIGN_EXTEND:
-          t = bv::utils::mkExtract(t, bv::utils::getSize(sv_t[index])-1, 0);
-          break;
-
-        default:
-          Trace("bv-invert") << "bv-invert : Unsupported for index " << index
-                             << ", from " << sv_t << std::endl;
-          return Node::null();
+    if (k == BITVECTOR_NOT || k == BITVECTOR_NEG) {
+      t = nm->mkNode(k, t);
+    } else if (k == BITVECTOR_CONCAT) {
+      /* x = t[upper:lower]
+       * where
+       * upper = getSize(t) - 1 - sum(getSize(sv_t[i])) for i < index
+       * lower = getSize(sv_t[i]) for i > index
+       */
+      unsigned upper, lower;
+      upper = bv::utils::getSize(t) - 1;
+      lower = 0;
+      NodeBuilder<> nb(nm, BITVECTOR_CONCAT);
+      for (unsigned i = 0; i < nchildren; i++) {
+        if (i < index)
+          upper -= bv::utils::getSize(sv_t[i]);
+        else if (i > index)
+          lower += bv::utils::getSize(sv_t[i]);
       }
+      t = bv::utils::mkExtract(t, upper, lower);
+    } else if (k == BITVECTOR_SIGN_EXTEND) {
+      t = bv::utils::mkExtract(t, bv::utils::getSize(sv_t[index])-1, 0);
+    } else if (k == BITVECTOR_EXTRACT) {
+      Trace("bv-invert") << "bv-invert : Unsupported for index " << index
+                             << ", from " << sv_t << std::endl;
+      return Node::null();
     } else {
+      Assert(nchildren >= 2);
       Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
       /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
        *       are commutative (no case split based on index). */
