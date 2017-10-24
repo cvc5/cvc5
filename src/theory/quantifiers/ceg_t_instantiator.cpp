@@ -895,7 +895,7 @@ void BvInstantiator::processLiteral(CegInstantiator* ci, SolvedForm& sf,
   if( !slit.isNull() ){
     CegInstantiatorBvInverterModelQuery m( ci );
     unsigned iid = d_inst_id_counter;
-    Node inst = d_inverter->solve_bv_lit( sv, slit, true, path, &m, d_inst_id_to_status[iid] );
+    Node inst = d_inverter->solve_bv_lit( sv, slit, path, &m, d_inst_id_to_status[iid] );
     if( !inst.isNull() ){
       inst = Rewriter::rewrite(inst);
       Trace("cegqi-bv") << "...solved form is " << inst << std::endl;
@@ -917,7 +917,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool pol = lit.getKind() != NOT;
   Kind k = atom.getKind();
-  if (pol && k == EQUAL) {
+  if ((pol && k == EQUAL) || (options::cbqiBvInvInDisEq())) {
     // positively asserted equalities between bitvector terms we leave unmodifed
     if (atom[0].getType().isBitVector()) {
       return lit;
@@ -960,7 +960,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
                            nm->mkNode(kind::BITVECTOR_PLUS, t, slack));
           Trace("cegqi-bv") << "Process " << lit << " as " << ret
                             << ", slack is " << slack << std::endl;
-        }else{
+        } else {
           ret = s.eqNode(t);          
           Trace("cegqi-bv") << "Process " << lit << " as " << ret << std::endl;
         }
