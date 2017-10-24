@@ -95,14 +95,15 @@ public:
  *   (a) v.getType().isReal() and v is not a constant, or
  *   (b) v is null.
  *
- *   For m-constant or m-variable t, we write [t] to denote 1 if t.isNull() and t
+ *   For m-constant or m-variable t, we write [t] to denote 1 if t.isNull() and
+ * t
  *   otherwise.
  *
  *   A monomial m is a pair ( mvariable, mconstant ) of the form ( v, c ), which
  *   is interpreted as [c]*[v].
  *
  *   A {monmoial sum} msum is represented by a std::map< Node, Node > having
- *   key-value pairs of the form ( mvariable, mconstant ).  It is interpreted 
+ *   key-value pairs of the form ( mvariable, mconstant ).  It is interpreted
  *   as:
  *   [msum] = sum_{( v, c ) \in msum } [c]*[v]
  *
@@ -203,7 +204,7 @@ public:
   */
  static Node solveEqualityFor(Node lit, Node v);
  /** decompose real-valued term n
- * 
+ *
  * If this function returns true, then
  *   ([coeff]*v + rem) is equivalent to n
  * where coeff is non-zero m-constant.
