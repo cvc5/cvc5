@@ -98,7 +98,8 @@ public:
   theory::quantifiers::PrenexQuantMode stringToPrenexQuantMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::TermDbMode stringToTermDbMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::IteLiftQuantMode stringToIteLiftQuantMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::CbqiBvIneqMode stringToCbqiBvIneqMode(std::string option, std::string optarg) throw(OptionException);
+  theory::quantifiers::CbqiBvIneqMode stringToCbqiBvIneqMode(
+      std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::CegqiSingleInvMode stringToCegqiSingleInvMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::MacrosQuantMode stringToMacrosQuantMode(std::string option, std::string optarg) throw(OptionException);

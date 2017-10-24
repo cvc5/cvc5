@@ -1422,7 +1422,7 @@ void SmtEngine::setDefaults() {
   }
 
   if (options::cbqiBv()) {
-    if(options::boolToBitvector.wasSetByUser()) {
+    if (options::boolToBitvector.wasSetByUser()) {
       throw OptionException("bool-to-bv not supported with CBQI BV");
     }
     Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
