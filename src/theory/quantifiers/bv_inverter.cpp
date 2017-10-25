@@ -154,13 +154,10 @@ bool BvInverter::isInvertible(Kind k, unsigned index)
       ||  k == BITVECTOR_ULT
       ||  k == BITVECTOR_SLT
       ||  k == BITVECTOR_COMP
-      ||  k == BITVECTOR_ULT
-      ||  k == BITVECTOR_SLT
       ||  k == BITVECTOR_NOT
       ||  k == BITVECTOR_NEG
       ||  k == BITVECTOR_CONCAT
       ||  k == BITVECTOR_SIGN_EXTEND
-      ||  k == BITVECTOR_COMP
       ||  k == BITVECTOR_PLUS
       ||  k == BITVECTOR_SUB
       ||  k == BITVECTOR_MULT
@@ -190,12 +187,12 @@ Node BvInverter::getPathToPv(
     }
     else
     {
-      // only recurse if the kind is invertible
-      // this allows us to avoid paths that go through skolem functions
       unsigned rmod = 0;  // TODO : randomize?
       for (unsigned i = 0; i < lit.getNumChildren(); i++)
       {
         unsigned ii = (i + rmod) % lit.getNumChildren();
+        // only recurse if the kind is invertible
+        // this allows us to avoid paths that go through skolem functions
         if (!isInvertible(lit.getKind(), ii))
         {
           continue;
