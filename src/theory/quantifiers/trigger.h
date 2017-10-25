@@ -45,11 +45,11 @@ class InstMatchGenerator;
 *   forall xy. ( f( x ) != b => ( P( x, g( y ) ) V P( y, z ) ) )
 *
 * Notice that it is only useful to match f( x ) to f-applications not in the equivalence class of b,
-* and P( y, z ) to P-applications in the equivalence class of false, as such instances will always be 
-* redundant/entailed by the ground equalities and disequalities the current context.
-* Entailed instances are not helpful and are discarded in QuantifiersEngine::addInstantiation(...)
+* and P( y, z ) to P-applications not in the equivalence class of true, as such instances will always be 
+* entailed by the ground equalities and disequalities the current context.
+* Entailed instances are typically not helpful, and are discarded in QuantifiersEngine::addInstantiation(...)
 * unless the option --no-inst-no-entail is enabled. 
-* For more details, see page 10 of "Congruence Closure with Free Variables", Barbosa et al 2017.
+* For more details, see page 10 of "Congruence Closure with Free Variables", Barbosa et al., TACAS 2017.
 *
 * This example is referenced for each of the functions below.
 */
@@ -127,7 +127,8 @@ public:
 *
 * Terms that are provided as input to a Trigger class via mkTrigger 
 * should be in "instantiation constant form", see TermUtil::getInstConstantNode.
-* Say we have quantified formula q = (FORALL (BOUND_VAR_LIST x) (NOT (P x)) (INST_PATTERN_LIST (INST_PATTERN (P x)))),
+* Say we have quantified formula q whose AST is the Node
+*   (FORALL (BOUND_VAR_LIST x) (NOT (P x)) (INST_PATTERN_LIST (INST_PATTERN (P x))))
 * then TermUtil::getInstConstantNode( q, (P x) ) = (P i) where i = TermUtil::getInstantiationConstant( q, i ).
 * Trigger expects as input (P i) to represent the Trigger (P x).
 * This form ensures that references to bound variables are unique to quantified formulas.
