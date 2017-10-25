@@ -1029,10 +1029,16 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
     Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv << std::endl;
     // if interleaving, do not do inversion half the time
     if (!options::cbqiBvInterleaveValue() || rand() % 2 == 0) {
+      bool firstVar = sf.empty();
       // get inst id list
-      Trace("cegqi-bv") << "  " << iti->second.size()
-                        << " candidate instantiations for " << pv << " : "
-                        << std::endl;
+      if( Trace.isOn("cegqi-bv") ){
+        Trace("cegqi-bv") << "  " << iti->second.size()
+                          << " candidate instantiations for " << pv << " : "
+                          << std::endl;
+        if( firstVar ){
+          Trace("cegqi-bv") << "  ...this is the first variable" << std::endl;
+        }
+      }
       // the order of instantiation ids we will try
       std::vector<unsigned> inst_ids_try;
       // until we have a model-preserving selection function for BV, this must
@@ -1043,6 +1049,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
       // we may find an invertible literal that leads to a useful instantiation.
       std::random_shuffle(iti->second.begin(), iti->second.end());
 
+      
       for (unsigned j = 0; j < iti->second.size(); j++) {
         unsigned inst_id = iti->second[j];
         Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
@@ -1081,8 +1088,10 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
           Trace("cegqi-bv") << std::endl;
         }
 
-        // currently we select the first literal
-        if (inst_ids_try.empty()) {
+        // currently:
+        //   We select the first literal, and
+        //   for the first varisable, we select all.
+        if (inst_ids_try.empty() || ( firstVar && options::cbqiMultiInst())) {
           // try the first one
           inst_ids_try.push_back(inst_id);
         } else {
@@ -1090,11 +1099,12 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
         }
       }
 
-      // now, try all instantiation ids we want to try
-      // typically size( inst_ids_try )=0, otherwise worst-case performance for
-      // constructing
-      // instantiations is exponential on the number of variables in this
-      // quantifier
+      // Now, try all instantiation ids we want to try
+      // Typically size( inst_ids_try )<=1, otherwise worst-case performance
+      // for constructing instantiations is exponential on the number of 
+      // variables in this quantifier prefix.
+      bool ret = false;
+      bool revertOnSuccess = inst_ids_try.size()>1;
       for (unsigned j = 0; j < inst_ids_try.size(); j++) {
         unsigned inst_id = iti->second[j];
         Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
@@ -1104,9 +1114,12 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
         Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term
                           << std::endl;
         d_var_to_curr_inst_id[pv] = inst_id;
-        if (ci->doAddInstantiationInc(pv, inst_term, pv_prop_bv, sf, effort)) {
-          return true;
+        if (ci->doAddInstantiationInc(pv, inst_term, pv_prop_bv, sf, effort, revertOnSuccess)) {
+          ret = true;
         }
+      }
+      if( ret ){
+        return true;
       }
       Trace("cegqi-bv") << "...failed to add instantiation for " << pv
                         << std::endl;
