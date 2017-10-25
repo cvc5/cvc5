@@ -367,8 +367,8 @@ BVGaussElim::gaussElimRewriteForUrem (
     else
     {
       Assert (ret == BVGaussElim::Result::PARTIAL);
-      unsigned bw = utils::getSize(vvars[0]);
-      Node zerobw = utils::mkZero (bw), zero1 = utils::mkZero (1);
+      //unsigned bw = utils::getSize(vvars[0]);
+      //Node zerobw = utils::mkZero (bw), zero1 = utils::mkZero (1);
 
       for (size_t pcol = 0, prow = 0;
            pcol < nvars && pcol < nrows;
@@ -387,11 +387,14 @@ BVGaussElim::gaussElimRewriteForUrem (
           /* Normalize (no negative numbers, hence no subtraction)
            * e.g., x = 4 - 2y  --> x = 4 + 9y (modulo 11) */
           Integer m = iprime - reslhs[prow][i];
-          Node bv = nm->mkConst< BitVector > (BitVector (2*bw, m));
-          Node mult = utils::mkConcat (
-              zero1,
-              nm->mkNode (kind::BITVECTOR_MULT,
-                utils::mkConcat (zerobw, vvars[i]), bv));
+          Node bv = nm->mkConst< BitVector > (
+              BitVector (utils::getSize(vvars[i]), m));
+          Node mult = nm->mkNode (kind::BITVECTOR_MULT, vvars[i], bv);
+          //Node bv = nm->mkConst< BitVector > (BitVector (2*bw, m));
+          //Node mult = utils::mkConcat (
+          //    zero1,
+          //    nm->mkNode (kind::BITVECTOR_MULT,
+          //      utils::mkConcat (zerobw, vvars[i]), bv));
           stack.push (mult);
         }
 
@@ -399,40 +402,44 @@ BVGaussElim::gaussElimRewriteForUrem (
         if (stack.empty())
         {
           res[vvars[pcol]] = nm->mkConst< BitVector > (
-              BitVector (bw, resrhs[prow]));
+              BitVector (utils::getSize(vvars[pcol]), resrhs[prow]));
+              //BitVector (bw, resrhs[prow]));
         }
         else
         {
           Node tmp = stack.top();
-          Assert (utils::getSize (tmp) == 2*bw+1);
+          //Assert (utils::getSize (tmp) == 2*bw+1);
           stack.pop();
           if (resrhs[prow] != 0)
           {
             tmp = nm->mkNode (kind::BITVECTOR_PLUS,
-                nm->mkConst< BitVector >(BitVector (2*bw+1, resrhs[prow])),
+                nm->mkConst< BitVector >(
+                  BitVector (utils::getSize(vvars[pcol]), resrhs[prow])),
+//                nm->mkConst< BitVector >(BitVector (2*bw+1, resrhs[prow])),
                 tmp);
           }
           while (!stack.empty())
           {
-            Assert (utils::getSize (stack.top()) == 2*bw+1);
-            Assert (utils::getSize (tmp) == 2*bw+1);
+//            Assert (utils::getSize (stack.top()) == 2*bw+1);
+//            Assert (utils::getSize (tmp) == 2*bw+1);
             tmp = nm->mkNode (kind::BITVECTOR_PLUS, tmp, stack.top());
             stack.pop();
           }
           if (tmp.getKind() == kind::CONST_BITVECTOR)
           {
-            Assert (utils::getSize (tmp) == bw);
+ //           Assert (utils::getSize (tmp) == bw);
             res[vvars[pcol]] = tmp;
           }
           else
           {
-            Assert (utils::getSize (tmp) == 2*bw+1);
-            res[vvars[pcol]] = utils::mkExtract (
-              nm->mkNode (kind::BITVECTOR_UREM,
-                tmp,
-                utils::mkConcat (utils::mkZero (bw+1), prime)),
-              bw-1,
-              0);
+            res[vvars[pcol]] = nm->mkNode (kind::BITVECTOR_UREM, tmp, prime);
+//            Assert (utils::getSize (tmp) == 2*bw+1);
+//            res[vvars[pcol]] = utils::mkExtract (
+//              nm->mkNode (kind::BITVECTOR_UREM,
+//                tmp,
+//                utils::mkConcat (utils::mkZero (bw+1), prime)),
+//              bw-1,
+//              0);
           }
         }
       }
