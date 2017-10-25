@@ -104,7 +104,7 @@ class BvInverter {
                    std::unordered_set<TNode, TNodeHashFunction>& visited);
 
   // is operator k invertible?
-  bool isInvertible(Kind k);
+  bool isInvertible(Kind k, unsigned index);
 
   /** get inversion skolem for condition
    * precondition : exists x. cond( x ) is a tautology in BV,
