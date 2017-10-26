@@ -52,40 +52,20 @@ using namespace CVC4::theory::bv;
 using namespace std;
 
 class FakeOutputChannel : public OutputChannel {
-  void conflict(TNode n, Proof* pf = NULL) throw(AssertionException) {
+  void conflict(TNode n, Proof* pf) override { Unimplemented(); }
+  bool propagate(TNode n) override { Unimplemented(); }
+  LemmaStatus lemma(TNode n, ProofRule rule, bool removable, bool preprocess,
+                    bool sendAtoms) override {
     Unimplemented();
   }
-  bool propagate(TNode n) throw(AssertionException) {
+  void requirePhase(TNode, bool) override { Unimplemented(); }
+  bool flipDecision() override { Unimplemented(); }
+  void setIncomplete() override { Unimplemented(); }
+  void handleUserAttribute(const char* attr, Theory* t) override {
     Unimplemented();
   }
-  void propagateAsDecision(TNode n) throw(AssertionException) {
-    Unimplemented();
-  }
-  LemmaStatus lemma(TNode n, ProofRule rule,
-                    bool removable,
-                    bool preprocess,
-                    bool sendAtoms) throw(AssertionException) {
-    Unimplemented();
-  }
-  void requirePhase(TNode, bool) throw(AssertionException) {
-    Unimplemented();
-  }
-  bool flipDecision() throw(AssertionException) {
-    Unimplemented();
-  }
-  void explanation(TNode n) throw(AssertionException) {
-    Unimplemented();
-  }
-  void setIncomplete() throw(AssertionException) {
-    Unimplemented();
-  }
-  void handleUserAttribute( const char* attr, Theory* t ){
-    Unimplemented();
-  }
-  LemmaStatus splitLemma(TNode n, bool removable) throw(TypeCheckingExceptionPrivate, AssertionException){
-    Unimplemented();
-  }
-};/* class FakeOutputChannel */
+  LemmaStatus splitLemma(TNode n, bool removable) override { Unimplemented(); }
+}; /* class FakeOutputChannel */
 
 template<TheoryId theory>
 class FakeTheory;
