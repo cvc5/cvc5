@@ -16,31 +16,49 @@
 #ifndef __CVC4__PROOF_OUTPUT_CHANNEL_H
 #define __CVC4__PROOF_OUTPUT_CHANNEL_H
 
+#include <set>
 #include <unordered_set>
 
+#include "expr/node.h"
+#include "util/proof.h"
 #include "theory/output_channel.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 
 class ProofOutputChannel : public theory::OutputChannel {
-public:
+ public:
+  ProofOutputChannel();
+  ~ProofOutputChannel() override {}
+
+  /**
+   * This may be called at most once per ProofOutputChannel.
+   * Requires that `n` and `pf` are non-null.
+   */
+  void conflict(TNode n, Proof* pf) override;
+  bool propagate(TNode x) override;
+  theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) override;
+  theory::LemmaStatus splitLemma(TNode, bool) override;
+  void requirePhase(TNode n, bool b) override;
+  bool flipDecision() override;
+  void setIncomplete() override;
+
+  /** Has conflict() has been called? */
+  bool hasConflict() const { return !d_conflict.isNull(); }
+
+  /**
+   * Returns the proof passed into the conflict() call.
+   * Requires hasConflict() to hold.
+   */
+  Proof* getConflictProof();
+  Node getLastLemma() const { return d_lemma; }
+
+ private:
   Node d_conflict;
   Proof* d_proof;
   Node d_lemma;
   std::set<Node> d_propagations;
-
-  ProofOutputChannel();
-
-  virtual ~ProofOutputChannel() throw() {}
-
-  virtual void conflict(TNode n, Proof* pf) throw();
-  virtual bool propagate(TNode x) throw();
-  virtual theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool);
-  virtual theory::LemmaStatus splitLemma(TNode, bool);
-  virtual void requirePhase(TNode n, bool b) throw();
-  virtual bool flipDecision() throw();
-  virtual void setIncomplete() throw();
-};/* class ProofOutputChannel */
+}; /* class ProofOutputChannel */
 
 class MyPreRegisterVisitor {
   theory::Theory* d_theory;
