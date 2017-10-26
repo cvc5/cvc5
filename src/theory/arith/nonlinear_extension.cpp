@@ -229,9 +229,12 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
   d_order_points.push_back(d_neg_one);
   d_order_points.push_back(d_zero);
   d_order_points.push_back(d_one);
-  d_taylor_real_fv = NodeManager::currentNM()->mkBoundVar("x",NodeManager::currentNM()->realType());
-  d_taylor_real_fv_base = NodeManager::currentNM()->mkBoundVar("a",NodeManager::currentNM()->realType());
-  d_taylor_real_fv_base_rem = NodeManager::currentNM()->mkBoundVar("b",NodeManager::currentNM()->realType());
+  d_taylor_real_fv = NodeManager::currentNM()->mkBoundVar(
+      "x", NodeManager::currentNM()->realType());
+  d_taylor_real_fv_base = NodeManager::currentNM()->mkBoundVar(
+      "a", NodeManager::currentNM()->realType());
+  d_taylor_real_fv_base_rem = NodeManager::currentNM()->mkBoundVar(
+      "b", NodeManager::currentNM()->realType());
 }
 
 NonlinearExtension::~NonlinearExtension() {}
@@ -667,31 +670,45 @@ std::pair<bool, Node> NonlinearExtension::isExtfReduced(
     int effort, Node n, Node on, const std::vector<Node>& exp) const {
   if (n != d_zero) {
     Kind k = n.getKind();
-    return std::make_pair(k != kind::NONLINEAR_MULT && !isTranscendentalKind(k), Node::null());
+    return std::make_pair(k != kind::NONLINEAR_MULT && !isTranscendentalKind(k),
+                          Node::null());
   }
   Assert(n == d_zero);
-  if( on.getKind()==kind::NONLINEAR_MULT ){
-    Trace("nl-ext-zero-exp") << "Infer zero : " << on << " == " << n << std::endl;
+  if (on.getKind() == kind::NONLINEAR_MULT)
+  {
+    Trace("nl-ext-zero-exp") << "Infer zero : " << on << " == " << n
+                             << std::endl;
     // minimize explanation if a substitution+rewrite results in zero
     const std::set<Node> vars(on.begin(), on.end());
 
-    for (unsigned i = 0; i < exp.size(); i++) {
-      Trace("nl-ext-zero-exp") << "  exp[" << i << "] = " << exp[i] << std::endl;
+    for (unsigned i = 0; i < exp.size(); i++)
+    {
+      Trace("nl-ext-zero-exp") << "  exp[" << i << "] = " << exp[i]
+                               << std::endl;
       std::vector<Node> eqs;
-      if (exp[i].getKind() == kind::EQUAL) {
+      if (exp[i].getKind() == kind::EQUAL)
+      {
         eqs.push_back(exp[i]);
-      } else if (exp[i].getKind() == kind::AND) {
-        for (unsigned j = 0; j < exp[i].getNumChildren(); j++) {
-          if (exp[i][j].getKind() == kind::EQUAL) {
+      }
+      else if (exp[i].getKind() == kind::AND)
+      {
+        for (unsigned j = 0; j < exp[i].getNumChildren(); j++)
+        {
+          if (exp[i][j].getKind() == kind::EQUAL)
+          {
             eqs.push_back(exp[i][j]);
           }
         }
       }
 
-      for (unsigned j = 0; j < eqs.size(); j++) {
-        for (unsigned r = 0; r < 2; r++) {
-          if (eqs[j][r] == d_zero && vars.find(eqs[j][1 - r]) != vars.end()) {
-            Trace("nl-ext-zero-exp") << "...single exp : " << eqs[j] << std::endl;
+      for (unsigned j = 0; j < eqs.size(); j++)
+      {
+        for (unsigned r = 0; r < 2; r++)
+        {
+          if (eqs[j][r] == d_zero && vars.find(eqs[j][1 - r]) != vars.end())
+          {
+            Trace("nl-ext-zero-exp") << "...single exp : " << eqs[j]
+                                     << std::endl;
             return std::make_pair(true, eqs[j]);
           }
         }
@@ -1110,7 +1127,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_ci_max.clear();
   d_tf_rep_map.clear();
   d_tf_region.clear();
-  
+
   int lemmas_proc = 0;
   std::vector<Node> lemmas;  
   
@@ -1174,7 +1191,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
               getCurrentPiBounds( lemmas );
             }
             Node shift = NodeManager::currentNM()->mkSkolem( "s", NodeManager::currentNM()->integerType(), "number of shifts" );
-            // FIXME : do not introduce shift here, instead needs model-based refinement for constant shifts (#1284)
+            // FIXME : do not introduce shift here, instead needs model-based
+            // refinement for constant shifts (#1284)
             Node shift_lem = NodeManager::currentNM()->mkNode( kind::AND, mkValidPhase( y, d_pi ),
                                a[0].eqNode( NodeManager::currentNM()->mkNode( kind::PLUS, y, 
                                               NodeManager::currentNM()->mkNode( kind::MULT, NodeManager::currentNM()->mkConst( Rational(2) ), shift, d_pi ) ) ),
@@ -1618,9 +1636,12 @@ int NonlinearExtension::compare_value(Node i, Node j,
 }
 
 Node NonlinearExtension::get_compare_value(Node i, unsigned orderType) const {
-  if( i.isConst() ){
+  if (i.isConst())
+  {
     return i;
-  }else{
+  }
+  else
+  {
     Trace("nl-ext-debug") << "Compare variable " << i << " " << orderType
                           << std::endl;
     Assert(orderType >= 0 && orderType <= 3);
@@ -2717,17 +2738,25 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
                       NodeManager::currentNM()->mkNode( kind::GT, t[0], d_pi_neg ),
                       NodeManager::currentNM()->mkNode( kind::GT, t, NodeManager::currentNM()->mkNode( kind::MINUS, d_pi_neg, t[0] ) ) ) ) );
         }else if( it->first==kind::EXPONENTIAL ){
-          // ( exp(x) > 0 ) ^ ( x=0 <=> exp( x ) = 1 ) ^ ( x < 0 <=> exp( x ) < 1 ) ^ ( x <= 0 V exp( x ) > x + 1 )
-          lem = NodeManager::currentNM()->mkNode( kind::AND, 
-                  NodeManager::currentNM()->mkNode( kind::GT, t, d_zero ),
-                  NodeManager::currentNM()->mkNode( kind::EQUAL, t[0].eqNode(d_zero), t.eqNode(d_one)),
-                  NodeManager::currentNM()->mkNode( kind::EQUAL, 
-                    NodeManager::currentNM()->mkNode( kind::LT, t[0], d_zero ),
-                    NodeManager::currentNM()->mkNode( kind::LT, t, d_one ) ),
-                  NodeManager::currentNM()->mkNode( kind::OR, 
-                    NodeManager::currentNM()->mkNode( kind::LEQ, t[0], d_zero ),
-                    NodeManager::currentNM()->mkNode( kind::GT, t, NodeManager::currentNM()->mkNode( kind::PLUS, t[0], d_one ) ) ) );
-                    
+          // ( exp(x) > 0 ) ^ ( x=0 <=> exp( x ) = 1 ) ^ ( x < 0 <=> exp( x ) <
+          // 1 ) ^ ( x <= 0 V exp( x ) > x + 1 )
+          lem = NodeManager::currentNM()->mkNode(
+              kind::AND,
+              NodeManager::currentNM()->mkNode(kind::GT, t, d_zero),
+              NodeManager::currentNM()->mkNode(
+                  kind::EQUAL, t[0].eqNode(d_zero), t.eqNode(d_one)),
+              NodeManager::currentNM()->mkNode(
+                  kind::EQUAL,
+                  NodeManager::currentNM()->mkNode(kind::LT, t[0], d_zero),
+                  NodeManager::currentNM()->mkNode(kind::LT, t, d_one)),
+              NodeManager::currentNM()->mkNode(
+                  kind::OR,
+                  NodeManager::currentNM()->mkNode(kind::LEQ, t[0], d_zero),
+                  NodeManager::currentNM()->mkNode(
+                      kind::GT,
+                      t,
+                      NodeManager::currentNM()->mkNode(
+                          kind::PLUS, t[0], d_one))));
         }
         if( !lem.isNull() ){
           lemmas.push_back( lem );
@@ -2782,7 +2811,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
       if( it->first==kind::SINE ){
         mpoints.push_back( d_pi );
         mpoints.push_back( d_pi_2 );
-        mpoints.push_back( d_zero );
+        mpoints.push_back(d_zero);
         mpoints.push_back( d_pi_neg_2 );
         mpoints.push_back( d_pi_neg );
       }else if( it->first==kind::EXPONENTIAL ){
@@ -2815,7 +2844,8 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
         
           //increment to the proper monotonicity region
           bool increment = true;
-          while( increment && mdir_index<mpoints.size() ){
+          while (increment && mdir_index < mpoints.size())
+          {
             increment = false;
             if( mpoints[mdir_index].isNull() ){
               increment = true;
@@ -2831,8 +2861,9 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
               tval = Node::null();
               mono_bounds[1] = mpoints[mdir_index];
               mdir_index++;
-              monotonic_dir = regionToMonotonicityDir( it->first, mdir_index );
-              if( mdir_index<mpoints.size() ){
+              monotonic_dir = regionToMonotonicityDir(it->first, mdir_index);
+              if (mdir_index < mpoints.size())
+              {
                 mono_bounds[0] = mpoints[mdir_index];
               }else{
                 mono_bounds[0] = Node::null();
@@ -2841,10 +2872,11 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
           }
           // store the concavity region
           d_tf_region[s] = mdir_index;
-          Trace("nl-ext-concavity") << "Transcendental function " << s << " is in region #" << mdir_index;
-          Trace("nl-ext-concavity") << ", arg model value = " << sargval << std::endl;
-          
-           
+          Trace("nl-ext-concavity") << "Transcendental function " << s
+                                    << " is in region #" << mdir_index;
+          Trace("nl-ext-concavity") << ", arg model value = " << sargval
+                                    << std::endl;
+
           if( !tval.isNull() ){
             Node mono_lem;
             if( monotonic_dir==1 && sval.getConst<Rational>() > tval.getConst<Rational>() ){
@@ -2880,124 +2912,185 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   }
   return lemmas;
 }
-  
 
-int NonlinearExtension::regionToMonotonicityDir( Kind k, int region ) {
-  if( k==kind::EXPONENTIAL ){
-    if( region==1 ){
+int NonlinearExtension::regionToMonotonicityDir(Kind k, int region)
+{
+  if (k == kind::EXPONENTIAL)
+  {
+    if (region == 1)
+    {
       return 1;
     }
-  }else if( k==kind::SINE ){
-    if( region==1 || region==4 ){
+  }
+  else if (k == kind::SINE)
+  {
+    if (region == 1 || region == 4)
+    {
       return -1;
-    }else if( region==2 || region==3 ){
+    }
+    else if (region == 2 || region == 3)
+    {
       return 1;
     }
   }
   return 0;
 }
 
-int NonlinearExtension::regionToConcavity( Kind k, int region ) {
-  if( k==kind::EXPONENTIAL ){
-    if( region==1 ){
+int NonlinearExtension::regionToConcavity(Kind k, int region)
+{
+  if (k == kind::EXPONENTIAL)
+  {
+    if (region == 1)
+    {
       return 1;
     }
-  }else if( k==kind::SINE ){
-    if( region==1 || region==2 ){
+  }
+  else if (k == kind::SINE)
+  {
+    if (region == 1 || region == 2)
+    {
       return -1;
-    }else if( region==3 || region==4 ){
+    }
+    else if (region == 3 || region == 4)
+    {
       return 1;
     }
   }
   return 0;
 }
 
-Node NonlinearExtension::regionToLowerBound( Kind k, int region ) {
-  if( k==kind::SINE ){
-    if( region==1 ){
+Node NonlinearExtension::regionToLowerBound(Kind k, int region)
+{
+  if (k == kind::SINE)
+  {
+    if (region == 1)
+    {
       return d_pi_2;
-    }else if( region==2 ){
+    }
+    else if (region == 2)
+    {
       return d_zero;
-    }else if( region==3 ){
+    }
+    else if (region == 3)
+    {
       return d_pi_neg_2;
-    }else if( region==4 ){
+    }
+    else if (region == 4)
+    {
       return d_pi_neg;
     }
   }
   return Node::null();
 }
 
-Node NonlinearExtension::regionToUpperBound( Kind k, int region ) {
-  if( k==kind::SINE ){
-    if( region==1 ){
+Node NonlinearExtension::regionToUpperBound(Kind k, int region)
+{
+  if (k == kind::SINE)
+  {
+    if (region == 1)
+    {
       return d_pi;
-    }else if( region==2 ){
+    }
+    else if (region == 2)
+    {
       return d_pi_2;
-    }else if( region==3 ){
+    }
+    else if (region == 3)
+    {
       return d_zero;
-    }else if( region==4 ){
+    }
+    else if (region == 4)
+    {
       return d_pi_neg_2;
     }
   }
   return Node::null();
 }
 
-Node NonlinearExtension::getDerivative( Node n, Node x ) {
-  Assert( x.isVar() );
+Node NonlinearExtension::getDerivative(Node n, Node x)
+{
+  Assert(x.isVar());
   // only handle the cases of the taylor expansion of d
-  if( n.getKind()==kind::EXPONENTIAL ){
-    if( n[0]==x ){
+  if (n.getKind() == kind::EXPONENTIAL)
+  {
+    if (n[0] == x)
+    {
       return n;
-    }else{
+    }
+    else
+    {
       return d_zero;
     }
-  }else if( n.getKind()==kind::SINE ){
-    if( n[0]==x ){
-      Node na = NodeManager::currentNM()->mkNode( kind::MINUS, d_pi_2, n[0] );
-      Node ret = NodeManager::currentNM()->mkNode( kind::SINE, na );
-      ret = Rewriter::rewrite( ret );
+  }
+  else if (n.getKind() == kind::SINE)
+  {
+    if (n[0] == x)
+    {
+      Node na = NodeManager::currentNM()->mkNode(kind::MINUS, d_pi_2, n[0]);
+      Node ret = NodeManager::currentNM()->mkNode(kind::SINE, na);
+      ret = Rewriter::rewrite(ret);
       return ret;
-    }else{
+    }
+    else
+    {
       return d_zero;
     }
-  }else if( n.getKind()==kind::PLUS ){
-    std::vector< Node > dchildren;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+  }
+  else if (n.getKind() == kind::PLUS)
+  {
+    std::vector<Node> dchildren;
+    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    {
       // PLUS is flattened in rewriter, recursion depth is bounded by 1
-      Node dc = getDerivative( n[i], x );
-      if( dc.isNull() ){
+      Node dc = getDerivative(n[i], x);
+      if (dc.isNull())
+      {
         return dc;
       }else{
-        dchildren.push_back( dc );
+        dchildren.push_back(dc);
       }
     }
-    return NodeManager::currentNM()->mkNode( kind::PLUS, dchildren );
-  }else if( n.getKind()==kind::MULT ){
-    Assert( n[0].isConst() );
-    Node dc = getDerivative( n[1], x );
-    if( !dc.isNull() ){
-      return NodeManager::currentNM()->mkNode( kind::MULT, n[0], dc );
+    return NodeManager::currentNM()->mkNode(kind::PLUS, dchildren);
+  }
+  else if (n.getKind() == kind::MULT)
+  {
+    Assert(n[0].isConst());
+    Node dc = getDerivative(n[1], x);
+    if (!dc.isNull())
+    {
+      return NodeManager::currentNM()->mkNode(kind::MULT, n[0], dc);
     }
-  }else if( n.getKind()==kind::NONLINEAR_MULT ){
+  }
+  else if (n.getKind() == kind::NONLINEAR_MULT)
+  {
     unsigned xcount = 0;
-    std::vector< Node > children;
+    std::vector<Node> children;
     unsigned xindex = 0;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( n[i]==x ){
+    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    {
+      if (n[i] == x)
+      {
         xcount++;
         xindex = i;
       }
-      children.push_back( n[i] );
+      children.push_back(n[i]);
     }
-    if( xcount==0 ){
+    if (xcount == 0)
+    {
       return d_zero;
-    }else{
+    }
+    else
+    {
       children[xindex] = NodeManager::currentNM()->mkConst(Rational(xcount));
     }
-    return NodeManager::currentNM()->mkNode( kind::MULT, children );
-  }else if( n.isVar() ){
-    return n==x ? d_one : d_zero;
-  }else if( n.isConst() ){
+    return NodeManager::currentNM()->mkNode(kind::MULT, children);
+  }
+  else if (n.isVar())
+  {
+    return n == x ? d_one : d_zero;
+  }
+  else if (n.isConst())
+  {
     return d_zero;
   }
   Trace("nl-ext-debug") << "No derivative computed for " << n;
@@ -3005,88 +3098,123 @@ Node NonlinearExtension::getDerivative( Node n, Node x ) {
   return Node::null();
 }
 
-std::pair< Node, Node > NonlinearExtension::getTaylor( TNode fa, unsigned n ) {
-  Node fac;   // what term we cache for fa
-  if( fa[0]==d_zero ){
-    // optimization : simpler to compute (x-fa[0])^n if we are centered around 0.
+std::pair<Node, Node> NonlinearExtension::getTaylor(TNode fa, unsigned n)
+{
+  Node fac;  // what term we cache for fa
+  if (fa[0] == d_zero)
+  {
+    // optimization : simpler to compute (x-fa[0])^n if we are centered around
+    // 0.
     fac = fa;
-  }else{
+  }
+  else
+  {
     // otherwise we use a standard factor a in (x-a)^n
-    fac = NodeManager::currentNM()->mkNode( fa.getKind(), d_taylor_real_fv_base );
+    fac = NodeManager::currentNM()->mkNode(fa.getKind(), d_taylor_real_fv_base);
   }
   Node taylor_rem;
   Node taylor_sum;
   // check if we have already computed this Taylor series
-  std::unordered_map< unsigned, Node >::iterator itt = d_taylor_sum[fac].find( n );
-  if( itt==d_taylor_sum[fac].end() ){
+  std::unordered_map<unsigned, Node>::iterator itt = d_taylor_sum[fac].find(n);
+  if (itt == d_taylor_sum[fac].end())
+  {
     Node i_exp_base;
-    if( fa[0]==d_zero ){
+    if (fa[0] == d_zero)
+    {
       i_exp_base = d_taylor_real_fv;
-    }else{
-      i_exp_base = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::MINUS, d_taylor_real_fv, d_taylor_real_fv_base ) );
+    }
+    else
+    {
+      i_exp_base = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
+          kind::MINUS, d_taylor_real_fv, d_taylor_real_fv_base));
     }
     Node i_derv = fac;
     Node i_fact = d_one;
     Node i_exp = d_one;
     int i_derv_status = 0;
     unsigned counter = 0;
-    std::vector< Node > sum;
-    do {
+    std::vector<Node> sum;
+    do
+    {
       counter++;
-      if( fa.getKind()==kind::EXPONENTIAL ){
-        //unchanged
-      }else if( fa.getKind()==kind::SINE ){
-        if( i_derv_status%2==1 ){
-          Node arg = NodeManager::currentNM()->mkNode( kind::PLUS, d_pi_2, d_taylor_real_fv_base );
-          i_derv = NodeManager::currentNM()->mkNode( kind::SINE, arg );
-        }else{
+      if (fa.getKind() == kind::EXPONENTIAL)
+      {
+        // unchanged
+      }
+      else if (fa.getKind() == kind::SINE)
+      {
+        if (i_derv_status % 2 == 1)
+        {
+          Node arg = NodeManager::currentNM()->mkNode(
+              kind::PLUS, d_pi_2, d_taylor_real_fv_base);
+          i_derv = NodeManager::currentNM()->mkNode(kind::SINE, arg);
+        }
+        else
+        {
           i_derv = fa;
         }
-        if( i_derv_status>=2 ){
-          i_derv = NodeManager::currentNM()->mkNode( kind::MINUS, d_zero, i_derv );
+        if (i_derv_status >= 2)
+        {
+          i_derv =
+              NodeManager::currentNM()->mkNode(kind::MINUS, d_zero, i_derv);
         }
-        i_derv = Rewriter::rewrite( i_derv );
-        i_derv_status = i_derv_status==3 ? 0 : i_derv_status+1;
+        i_derv = Rewriter::rewrite(i_derv);
+        i_derv_status = i_derv_status == 3 ? 0 : i_derv_status + 1;
       }
-      if( counter==(n+1) ){
+      if (counter == (n + 1))
+      {
         TNode x = d_taylor_real_fv_base;
-        i_derv = i_derv.substitute( x, d_taylor_real_fv_base_rem );
+        i_derv = i_derv.substitute(x, d_taylor_real_fv_base_rem);
       }
-      Node curr = NodeManager::currentNM()->mkNode( kind::MULT, 
-                    NodeManager::currentNM()->mkNode( kind::DIVISION, i_derv, i_fact ), i_exp );
-      if( counter==(n+1) ){
+      Node curr = NodeManager::currentNM()->mkNode(
+          kind::MULT,
+          NodeManager::currentNM()->mkNode(kind::DIVISION, i_derv, i_fact),
+          i_exp);
+      if (counter == (n + 1))
+      {
         taylor_rem = curr;
-      }else{
-        sum.push_back( curr );
-        i_fact = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::MULT, NodeManager::currentNM()->mkConst( Rational( counter ) ), i_fact ) );
-        i_exp = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::MULT, i_exp_base, i_exp ) );
       }
-    }while( counter<=n );
-    taylor_sum = sum.size()==1 ? sum[0] : NodeManager::currentNM()->mkNode( kind::PLUS, sum );
-    
-    if( fac[0]!=d_taylor_real_fv_base ){
+      else
+      {
+        sum.push_back(curr);
+        i_fact = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
+            kind::MULT,
+            NodeManager::currentNM()->mkConst(Rational(counter)),
+            i_fact));
+        i_exp = Rewriter::rewrite(
+            NodeManager::currentNM()->mkNode(kind::MULT, i_exp_base, i_exp));
+      }
+    } while (counter <= n);
+    taylor_sum = sum.size() == 1
+                     ? sum[0]
+                     : NodeManager::currentNM()->mkNode(kind::PLUS, sum);
+
+    if (fac[0] != d_taylor_real_fv_base)
+    {
       TNode x = d_taylor_real_fv_base;
-      taylor_sum = taylor_sum.substitute( x, fac[0] );
+      taylor_sum = taylor_sum.substitute(x, fac[0]);
     }
-    
+
     // cache
     d_taylor_sum[fac][n] = taylor_sum;
     d_taylor_rem[fac][n] = taylor_rem;
-  }else{
+  }
+  else
+  {
     taylor_sum = itt->second;
-    Assert( d_taylor_rem[fac].find(n )!=d_taylor_rem[fac].end() );
+    Assert(d_taylor_rem[fac].find(n) != d_taylor_rem[fac].end());
     taylor_rem = d_taylor_rem[fac][n];
   }
-  
-  // must substitute for the argument if we were using a different lookup 
-  if( fa[0]!=fac[0] ){
+
+  // must substitute for the argument if we were using a different lookup
+  if (fa[0] != fac[0])
+  {
     TNode x = d_taylor_real_fv_base;
-    taylor_sum = taylor_sum.substitute( x, fa[0] );
+    taylor_sum = taylor_sum.substitute(x, fa[0]);
   }
-  return std::pair< Node, Node >( taylor_sum, taylor_rem );
+  return std::pair<Node, Node>(taylor_sum, taylor_rem);
 }
 
-                    
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
