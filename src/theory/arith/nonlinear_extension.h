@@ -43,6 +43,7 @@ namespace arith {
 
 typedef std::map<Node, unsigned> NodeMultiset;
 
+// TODO : refactor/document this class (#1287)
 class NonlinearExtension {
  public:
   NonlinearExtension(TheoryArith& containing, eq::EqualityEngine* ee);
@@ -55,14 +56,18 @@ class NonlinearExtension {
                                       const std::vector<Node>& exp) const;
   void check(Theory::Effort e);
   bool needsCheckLastEffort() const { return d_needsLastCall; }
-  /** compare
-  * orderType = 0 : compare concrete model values
-  * orderType = 1 : compare abstract model values
-  * orderType = 2 : compare abs of concrete model values
-  * orderType = 3 : compare abs of abstract model values
-  * (for concrete vs abstract, see computeModelValue)
-  */
+  /** Compare i and j based an ordering.
+   * orderType = 0 : compare concrete model values
+   * orderType = 1 : compare abstract model values
+   * orderType = 2 : compare abs of concrete model values
+   * orderType = 3 : compare abs of abstract model values
+   * (for concrete vs abstract, see computeModelValue)
+   */
   int compare(Node i, Node j, unsigned orderType) const;
+  /** Compare the value of i and j based an ordering,
+   * where i and j are constant Rationals.
+   * orderType is the same as above.
+   */
   int compare_value(Node i, Node j, unsigned orderType) const;
 
   bool isMonomialSubset(Node a, Node b) const;
@@ -113,16 +118,26 @@ class NonlinearExtension {
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 
   void registerConstraint(Node atom);
-  // index = 0 means compute the value of n based on its children, recursively
-  // (its "concrete" value)
-  // index = 1 means lookup the value of n in the model (its "abstract" value)
-  // For example, if M( a ) = 2, M( b ) = 3, M( a * b ) = 5, then :
-  //   computeModelValue( a*b, 0 ) = computeModelValue( a, 0
-  //   )*computeModelValue( b, 0 ) = 2*3 = 6
-  //   computeModelValue( a*b, 1 ) = 5
-  // In other words, index = 1 treats multiplication terms and transcendental
-  // function applications
-  // as variables.
+  /** compute model value
+   * 
+   * This computes model values for term based on two semantics,
+   *   a "concrete" semantics and an "abstract" semantics.
+   * 
+   * index = 0 means compute the value of n based on its children recursively.
+   *          (we call this its "concrete" value)
+   * index = 1 means lookup the value of n in the model.
+   *          (we call this its "abstract" value)
+   * In other words, index = 1 treats multiplication terms and transcendental
+   * function applications as variables, whereas index = 0 computes their
+   * actual values. This is a key distinction 
+   * 
+   * For example, if M( a ) = 2, M( b ) = 3, M( a * b ) = 5, then :
+   * 
+   *   computeModelValue( a*b, 0 ) = 
+   *   computeModelValue( a, 0 )*computeModelValue( b, 0 ) = 2*3 = 6
+   * whereas:
+   *   computeModelValue( a*b, 1 ) = 5
+   */
   Node computeModelValue(Node n, unsigned index = 0);
 
   Node get_compare_value(Node i, unsigned orderType) const;
@@ -132,13 +147,15 @@ class NonlinearExtension {
   // Returns the subset of assertions that evaluate to false in the model.
   std::set<Node> getFalseInModel(const std::vector<Node>& assertions);
 
-  // status
-  // 0 : equal
-  // 1 : greater than or equal
-  // 2 : greater than
-  // -X : (less)
-  // in these functions we are iterating over variables of monomials
-  // initially : exp => ( oa = a ^ ob = b )
+  /** compare the sign
+  * status
+  * 0 : equal
+  * 1 : greater than or equal
+  * 2 : greater than
+  * -X : (greater -> less)
+  * In these functions we are iterating over variables of monomials
+  * initially : exp => ( oa = a ^ ob = b )
+  */
   int compareSign(Node oa, Node a, unsigned a_index, int status,
                   std::vector<Node>& exp, std::vector<Node>& lem);
   bool compareMonomial(
@@ -193,13 +210,22 @@ class NonlinearExtension {
   // literals with Skolems (need not be satisfied by model)
   NodeSet d_skolem_atoms;
 
-  // utilities
+  // commonly used terms
   Node d_zero;
   Node d_one;
   Node d_neg_one;
   Node d_true;
   Node d_false;
-
+  // PI
+  Node d_pi;
+  // PI/2
+  Node d_pi_2;
+  // -PI/2
+  Node d_pi_neg_2;
+  // -PI
+  Node d_pi_neg;
+  Node d_pi_bound[2];
+  
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
 
@@ -225,15 +251,6 @@ class NonlinearExtension {
   std::map<Node, Node> d_trig_base;
   std::map<Node, bool> d_trig_is_base;
   std::map< Node, bool > d_tf_initial_refine;
-  // PI
-  Node d_pi;
-  // PI/2
-  Node d_pi_2;
-  // -PI/2
-  Node d_pi_neg_2;
-  // -PI
-  Node d_pi_neg;
-  Node d_pi_bound[2];
   
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );
@@ -289,7 +306,7 @@ private:
   std::pair<Node, Node> getTaylor(TNode fa, unsigned n);
 
   /** internal variables used for constructing (cached) versions
-  * the Taylor series above
+  * the Taylor series above.
   */
   Node d_taylor_real_fv;           // x above
   Node d_taylor_real_fv_base;      // a above
