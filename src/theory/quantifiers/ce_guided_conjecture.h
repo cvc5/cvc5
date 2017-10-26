@@ -18,8 +18,8 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_CONJECTURE_H
 #define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_CONJECTURE_H
 
-#include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/ce_guided_pbe.h"
+#include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus_process_conj.h"
 #include "theory/quantifiers_engine.h"
@@ -32,7 +32,7 @@ namespace quantifiers {
  * This class implements approaches for a synthesis conecjture, given by data
  * member d_quant.
  * This includes both approaches for synthesis in Reynolds et al CAV 2015. It
- * determines which approach and optimizations are applicable to the 
+ * determines which approach and optimizations are applicable to the
  * conjecture, and has interfaces for implementing them.
  */
 class CegConjecture {
@@ -113,8 +113,8 @@ public:
   /** get program by examples utility */
   CegConjecturePbe* getPbe() { return d_ceg_pbe; }
   /** get the symmetry breaking predicate for type */
-  Node getSymmetryBreakingPredicate(Node x, Node e, TypeNode tn,
-                                    unsigned tindex, unsigned depth);
+  Node getSymmetryBreakingPredicate(
+      Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
   /** print out debug information about this conjecture */
   void debugPrint( const char * c );
 private:
@@ -128,11 +128,11 @@ private:
   CegConjectureProcess* d_ceg_proc;
   /** grammar utility */
   CegGrammarConstructor * d_ceg_gc;
-  /** list of constants for quantified formula 
+  /** list of constants for quantified formula
   * The Skolems for the negation of d_embed_quant.
   */
   std::vector< Node > d_candidates;
-  /** base instantiation 
+  /** base instantiation
   * If d_embed_quant is forall d. exists y. P( d, y ), then
   * this is the formula  P( candidates, y ).
   */

@@ -45,7 +45,8 @@ void print_val( const char * c, std::vector< Node >& vals, bool pol = true ){
   }
 }
 
-void CegConjecturePbe::print_role(const char* c, unsigned r) {
+void CegConjecturePbe::print_role(const char* c, unsigned r)
+{
   switch(r){
   case CegConjecturePbe::enum_io:Trace(c) << "IO";break;
   case CegConjecturePbe::enum_ite_condition:Trace(c) << "CONDITION";break;
@@ -55,20 +56,14 @@ void CegConjecturePbe::print_role(const char* c, unsigned r) {
   }
 }
 
-void CegConjecturePbe::print_strat(const char* c, unsigned s) {
-  switch (s) {
-    case CegConjecturePbe::strat_ITE:
-      Trace(c) << "ITE";
-      break;
-    case CegConjecturePbe::strat_CONCAT:
-      Trace(c) << "CONCAT";
-      break;
-    case CegConjecturePbe::strat_ID:
-      Trace(c) << "ID";
-      break;
-    default:
-      Trace(c) << "strat_" << s;
-      break;
+void CegConjecturePbe::print_strat(const char* c, unsigned s)
+{
+  switch (s)
+  {
+    case CegConjecturePbe::strat_ITE: Trace(c) << "ITE"; break;
+    case CegConjecturePbe::strat_CONCAT: Trace(c) << "CONCAT"; break;
+    case CegConjecturePbe::strat_ID: Trace(c) << "ID"; break;
+    default: Trace(c) << "strat_" << s; break;
   }
 }
 
@@ -152,8 +147,10 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
   }
 }
 
-void CegConjecturePbe::initialize( Node n, std::vector<Node>& candidates,
-                                   std::vector< Node >& lemmas ) {
+void CegConjecturePbe::initialize(Node n,
+                                  std::vector<Node>& candidates,
+                                  std::vector<Node>& lemmas)
+{
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
   
   for( unsigned i=0; i<candidates.size(); i++ ){
@@ -211,8 +208,8 @@ void CegConjecturePbe::initialize( Node n, std::vector<Node>& candidates,
   if( !d_is_pbe ){
     Trace("sygus-unif") << "Do not do PBE optimizations, register..." << std::endl;
     for( unsigned i=0; i<candidates.size(); i++ ){
-      d_qe->getTermDatabaseSygus()->registerEnumerator(candidates[i],
-                                                       candidates[i], d_parent);
+      d_qe->getTermDatabaseSygus()->registerEnumerator(
+          candidates[i], candidates[i], d_parent);
     }
   }
 }
@@ -459,8 +456,9 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
                 cop_to_strat[cop] = strat_ITE;
               }
             }else if( eut.getKind()==kind::STRING_CONCAT ){
-              if (dt[j].getNumArgs() >= eut.getNumChildren() &&
-                  eut.getNumChildren() == 2) {
+              if (dt[j].getNumArgs() >= eut.getNumChildren()
+                  && eut.getNumChildren() == 2)
+              {
                 cop_to_strat[cop] = strat_CONCAT;
               }
             }else if( eut.getKind()==kind::APPLY_UF ){
@@ -860,7 +858,8 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
         Assert( itv!=d_einfo.end() );
         Trace("sygus-pbe-enum") << "Process " << xs << " from " << s << std::endl;
         //bool prevIsCover = false;
-        if (itv->second.getRole() == enum_io) {
+        if (itv->second.getRole() == enum_io)
+        {
           Trace("sygus-pbe-enum") << "   IO-Eval of ";
           //prevIsCover = itv->second.isFeasible();
         }else{
@@ -883,7 +882,8 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
             Assert( res.isConst() );
           }
           Node resb;
-          if (itv->second.getRole() == enum_io) {
+          if (itv->second.getRole() == enum_io)
+          {
             Node out = itxo->second[j];
             Assert( out.isConst() );
             resb = res==out ? d_true : d_false;
@@ -901,7 +901,8 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
           }
         }
         bool keep = false;
-        if (itv->second.getRole() == enum_io) {
+        if (itv->second.getRole() == enum_io)
+        {
           if( cond_vals.find( d_true )!=cond_vals.end() || cond_vals.empty() ){  // latter is the degenerate case of no examples
             //check subsumbed/subsuming
             std::vector< Node > subsume;
@@ -1034,14 +1035,18 @@ public:
   *    fun).
   *  exo is the list of outputs of the PBE conjecture.
   *  ncind is the set of possible indices of the PBE conjecture to check
-  *    invariance of non-containment. 
+  *    invariance of non-containment.
   *    For example, in the above example, when t[x1] = "ab", then this
   *    has the index 1 since contains("de de", "ab") ---> false but not
   *    the index 0 since contains("abc abc","ab") ---> true.
   */
-  void init(quantifiers::CegConjecturePbe* cpbe, Node e, std::vector<Node>& exo,
-            std::vector<unsigned>& ncind) {
-    if (cpbe->hasExamples(e)) {
+  void init(quantifiers::CegConjecturePbe* cpbe,
+            Node e,
+            std::vector<Node>& exo,
+            std::vector<unsigned>& ncind)
+  {
+    if (cpbe->hasExamples(e))
+    {
       Assert(cpbe->getNumExamples(e) == exo.size());
       d_enum = e;
       d_exo.insert( d_exo.end(), exo.begin(), exo.end() );
@@ -1054,7 +1059,8 @@ public:
   /** checks whether contains( out_i, nvn[in_i] ) --> false for some I/O pair i.
    */
   bool invariant( quantifiers::TermDbSygus * tds, Node nvn, Node x ){
-    if (!d_enum.isNull()) {
+    if (!d_enum.isNull())
+    {
       TypeNode tn = nvn.getType();
       Node nbv = tds->sygusToBuiltin( nvn, tn );
       Node nbvr = tds->extendedRewrite( nbv );
@@ -1092,8 +1098,8 @@ public:
   Node d_enum;
   /** The output examples for the enumerator */
   std::vector<Node> d_exo;
-  /** The set of I/O pair indices i such that 
-   *    contains( out_i, nvn[in_i] ) ---> false 
+  /** The set of I/O pair indices i such that
+   *    contains( out_i, nvn[in_i] ) ---> false
    */
   std::vector<unsigned> d_neg_con_indices;
   /** reference to the PBE utility */
@@ -1105,7 +1111,8 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude( Node c, Node x, Node 
   if( ei.d_enum_slave.size()==1 ){
     // this check whether the example evaluates to something that is larger than the output
     //  if so, then this term is never useful when using a concatenation strategy
-    if (ei.getRole() == enum_concat_term) {
+    if (ei.getRole() == enum_concat_term)
+    {
       if( Trace.isOn("sygus-pbe-cterm-debug") ){
         Trace("sygus-pbe-enum") << std::endl;
       }
@@ -1527,13 +1534,16 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
   std::map< Node, EnumInfo >::iterator itn = d_einfo.find( e );
   Assert( itn!=d_einfo.end() );
   Node ret_dt;
-  if (itn->second.getRole() == enum_any) {
+  if (itn->second.getRole() == enum_any)
+  {
     indent("sygus-pbe-dt", ind);
     ret_dt = constructBestSolvedTerm( itn->second.d_enum_vals, x );
     Trace("sygus-pbe-dt") << "return PBE: success : use any " << d_tds->sygusToBuiltin( ret_dt ) << std::endl;
     Assert( !ret_dt.isNull() );
-  } else if (itn->second.getRole() == enum_io && !x.isReturnValueModified() &&
-             itn->second.isSolved()) {
+  }
+  else if (itn->second.getRole() == enum_io && !x.isReturnValueModified()
+           && itn->second.isSolved())
+  {
     // this type has a complete solution
     ret_dt = itn->second.getSolved();
     indent("sygus-pbe-dt", ind);
@@ -1549,7 +1559,8 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
       // get the term enumerator for this type
       bool success = true;
       std::map< Node, EnumInfo >::iterator itet;
-      if (itn->second.getRole() == enum_concat_term) {
+      if (itn->second.getRole() == enum_concat_term)
+      {
         itet = itn;
       }else{
         std::map< unsigned, Node >::iterator itnt = itt->second.d_enum.find( enum_concat_term );
@@ -1586,7 +1597,9 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
           Trace("sygus-pbe-dt-debug") << "  ...not currently string solved." << std::endl;
         }
       }
-    } else if (itn->second.getRole() == enum_io && !x.isReturnValueModified()) {
+    }
+    else if (itn->second.getRole() == enum_io && !x.isReturnValueModified())
+    {
       // it has an enumerated value that is conditionally correct under the current assumptions
       std::vector< Node > subsumed_by;
       itn->second.d_term_trie.getSubsumedBy( this, x.d_vals, true, subsumed_by );
@@ -1645,8 +1658,10 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
             }
           }
           // fill remaining children for which there is no preference
-          for (unsigned sc = 0; sc < itts->second.d_cenum.size(); sc++) {
-            if (cused.find(sc) == cused.end()) {
+          for (unsigned sc = 0; sc < itts->second.d_cenum.size(); sc++)
+          {
+            if (cused.find(sc) == cused.end())
+            {
               corder.push_back( sc );
             }
           }

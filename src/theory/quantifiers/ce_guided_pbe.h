@@ -47,9 +47,9 @@ class CegEntailmentInfer;
 *     devises a strategy for enumerating terms and construction solutions,
 *     which is inspired by Alur et al. "Scaling Enumerative Program Synthesis
 *     via Divide and Conquer" TACAS 2017. In particular, it may consider
-*     strategies for constructing decision trees when the grammar permits ITEs 
-*     and a strategy for divide-and-conquer string synthesis when the grammar 
-*     permits string concatenation. This is stored in a set of data structures 
+*     strategies for constructing decision trees when the grammar permits ITEs
+*     and a strategy for divide-and-conquer string synthesis when the grammar
+*     permits string concatenation. This is stored in a set of data structures
 *     within d_cinfo.
 * (3) It makes (possibly multiple) calls to
 *     TermDatabaseSygus::registerMeasuredTerm(...) based
@@ -71,14 +71,15 @@ class CegEntailmentInfer;
 * for it. The search may continue unless all enumerators become inactive.
 *
 * (4) During search, the extension of quantifier-free datatypes procedure for
-*     SyGuS datatypes may ask this class whether current candidates can be 
+*     SyGuS datatypes may ask this class whether current candidates can be
 *     discarded based on
 *     inferring when two candidate solutions are equivalent up to examples.
 *     For example, the candidate solutions:
 *     f = \x ite( x<0, x+1, x ) and f = \x x
 *     are equivalent up to examples on the above conjecture, since they have the
-*     same value on the points x = 0,5,6. Hence, we need only consider one of 
-*     them. The interface for querying this is CegConjecturePbe::addSearchVal(...).
+*     same value on the points x = 0,5,6. Hence, we need only consider one of
+*     them. The interface for querying this is
+* CegConjecturePbe::addSearchVal(...).
 *     For details, see Reynolds et al. SYNT 2017.
 *
 * (5) When the extension of quantifier-free datatypes procedure for SyGuS
@@ -88,7 +89,7 @@ class CegEntailmentInfer;
 * (6) The parent class subsequently calls
 *     CegConjecturePbe::constructValues(...), which
 *     informs this class that new values have been enumerated for active
-*     enumerators, as indicated by the current model. This call also requests 
+*     enumerators, as indicated by the current model. This call also requests
 *     that based on these
 *     newly enumerated values, whether this class is now able to construct a
 *     solution based on the high-level strategy (stored in d_c_info).
@@ -103,19 +104,20 @@ class CegConjecturePbe {
   CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p);
   ~CegConjecturePbe();
 
-  /** initialize this class 
+  /** initialize this class
   *
-  * n is the "base instantiation" of the deep-embedding version of 
+  * n is the "base instantiation" of the deep-embedding version of
   *   the synthesis conjecture under "candidates".
   *   (see CegConjecture::d_base_inst)
   *
   * This function may add lemmas to the vector lemmas corresponding
   * to initial lemmas regarding static analysis of enumerators it
   * introduced. For example, we may say that the top-level symbol
-  * of an enumerator is not ITE if it is being used to construct 
+  * of an enumerator is not ITE if it is being used to construct
   * return values for decision trees.
   */
-  void initialize(Node n, std::vector<Node>& candidates, 
+  void initialize(Node n,
+                  std::vector<Node>& candidates,
                   std::vector<Node>& lemmas);
   /** get candidate list
   * Adds all active enumerators associated with functions-to-synthesize in
@@ -153,8 +155,8 @@ class CegConjecturePbe {
 
   /** add the search val
   * This function is called by the extension of quantifier-free datatypes
-  * procedure for SyGuS datatypes when we are considering a value of 
-  * enumerator e of sygus type tn whose analog in the signature of builtin 
+  * procedure for SyGuS datatypes when we are considering a value of
+  * enumerator e of sygus type tn whose analog in the signature of builtin
   * theory is bvr.
   *
   * For example, bvr = x + 1 when e is the datatype value Plus( x(), One() ) and
@@ -297,14 +299,25 @@ class CegConjecturePbe {
     /** the children nodes of this trie */
     std::map<Node, SubsumeTrie> d_children;
     /** helper function for above functions */
-    Node addTermInternal(CegConjecturePbe* pbe, Node t, std::vector<Node>& vals,
-                         bool pol, std::vector<Node>& subsumed, bool spol,
-                         IndexFilter* f, unsigned index, int status,
-                         bool checkExistsOnly, bool checkSubsume);
+    Node addTermInternal(CegConjecturePbe* pbe,
+                         Node t,
+                         std::vector<Node>& vals,
+                         bool pol,
+                         std::vector<Node>& subsumed,
+                         bool spol,
+                         IndexFilter* f,
+                         unsigned index,
+                         int status,
+                         bool checkExistsOnly,
+                         bool checkSubsume);
     /** helper function for above functions */
-    void getLeavesInternal(CegConjecturePbe* pbe, std::vector<Node>& vals,
-                           bool pol, std::map<int, std::vector<Node> >& v,
-                           IndexFilter* f, unsigned index, int status);
+    void getLeavesInternal(CegConjecturePbe* pbe,
+                           std::vector<Node>& vals,
+                           bool pol,
+                           std::map<int, std::vector<Node> >& v,
+                           IndexFilter* f,
+                           unsigned index,
+                           int status);
   };
   // -------------------------------- end decision tree learning
 
@@ -320,7 +333,8 @@ class CegConjecturePbe {
   /** print the role with Trace c. */
   static void print_role(const char* c, unsigned r);
   /** strategies for SyGuS datatype types */
-  enum {
+  enum
+  {
     strat_ITE,
     strat_CONCAT,
     strat_ID,
@@ -337,18 +351,19 @@ class CegConjecturePbe {
     * role is the "role" the enumerator plays in the high-level strategy,
     *   which is one of enum_* above.
     */
-    void initialize(Node c, unsigned role) {
+    void initialize(Node c, unsigned role)
+    {
       d_parent_candidate = c;
       d_role = role;
     }
     bool isTemplated() { return !d_template.isNull(); }
-    void addEnumValue(CegConjecturePbe* pbe, Node v,
+    void addEnumValue(CegConjecturePbe* pbe,
+                      Node v,
                       std::vector<Node>& results);
     void setSolved(Node slv);
     bool isSolved() { return !d_enum_solved.isNull(); }
     Node getSolved() { return d_enum_solved; }
     unsigned getRole() { return d_role; }
-
     Node d_parent_candidate;
     // for template
     Node d_template;
@@ -435,15 +450,19 @@ class CegConjecturePbe {
 
   //------------------------------ strategy registration
   void collectEnumeratorTypes(Node c, TypeNode tn, unsigned enum_role);
-  void registerEnumerator(Node et, Node c, TypeNode tn, unsigned enum_role,
-                          bool inSearch);
+  void registerEnumerator(
+      Node et, Node c, TypeNode tn, unsigned enum_role, bool inSearch);
   void staticLearnRedundantOps(Node c, std::vector<Node>& lemmas);
-  void staticLearnRedundantOps(Node c, Node e, std::map<Node, bool>& visited,
+  void staticLearnRedundantOps(Node c,
+                               Node e,
+                               std::map<Node, bool>& visited,
                                std::vector<Node>& redundant,
-                               std::vector<Node>& lemmas, int ind);
+                               std::vector<Node>& lemmas,
+                               int ind);
 
   /** register candidate conditional */
-  bool inferTemplate(unsigned k, Node n,
+  bool inferTemplate(unsigned k,
+                     Node n,
                      std::map<Node, unsigned>& templ_var_index,
                      std::map<unsigned, unsigned>& templ_injection);
   //------------------------------ end strategy registration

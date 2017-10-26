@@ -1368,8 +1368,11 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
   }
 }
 
-void TermDbSygus::registerEnumerator(Node e, Node f, CegConjecture* conj,
-                                     bool mkActiveGuard) {
+void TermDbSygus::registerEnumerator(Node e,
+                                     Node f,
+                                     CegConjecture* conj,
+                                     bool mkActiveGuard)
+{
   Assert(d_enum_to_conjecture.find(e) == d_enum_to_conjecture.end());
   Trace("sygus-db") << "Register measured term : " << e << std::endl;
   d_enum_to_conjecture[e] = conj;
@@ -1388,11 +1391,13 @@ void TermDbSygus::registerEnumerator(Node e, Node f, CegConjecture* conj,
   }
 }
 
-bool TermDbSygus::isEnumerator(Node e) const {
+bool TermDbSygus::isEnumerator(Node e) const
+{
   return d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end();
 }
 
-CegConjecture* TermDbSygus::getConjectureForEnumerator(Node e) {
+CegConjecture* TermDbSygus::getConjectureForEnumerator(Node e)
+{
   std::map<Node, CegConjecture*>::iterator itm = d_enum_to_conjecture.find(e);
   if (itm != d_enum_to_conjecture.end()) {
     return itm->second;
@@ -1401,16 +1406,21 @@ CegConjecture* TermDbSygus::getConjectureForEnumerator(Node e) {
   }
 }
 
-Node TermDbSygus::getSynthFunForEnumerator(Node e) {
+Node TermDbSygus::getSynthFunForEnumerator(Node e)
+{
   std::map<Node, Node>::iterator itsf = d_enum_to_synth_fun.find(e);
-  if (itsf != d_enum_to_synth_fun.end()) {
+  if (itsf != d_enum_to_synth_fun.end())
+  {
     return itsf->second;
-  } else {
+  }
+  else
+  {
     return Node::null();
   }
 }
 
-Node TermDbSygus::getActiveGuardForEnumerator(Node e) {
+Node TermDbSygus::getActiveGuardForEnumerator(Node e)
+{
   std::map<Node, Node>::iterator itag = d_enum_to_active_guard.find(e);
   if (itag != d_enum_to_active_guard.end()) {
     return itag->second;
@@ -1419,7 +1429,8 @@ Node TermDbSygus::getActiveGuardForEnumerator(Node e) {
   }
 }
 
-void TermDbSygus::getEnumerators(std::vector<Node>& mts) {
+void TermDbSygus::getEnumerators(std::vector<Node>& mts)
+{
   for (std::map<Node, CegConjecture*>::iterator itm =
            d_enum_to_conjecture.begin();
        itm != d_enum_to_conjecture.end(); ++itm) {

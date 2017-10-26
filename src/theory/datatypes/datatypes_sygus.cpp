@@ -370,20 +370,24 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   if( min_depth<=max_depth ){
     TNode x = getFreeVar( ntn );
     std::vector<Node> sb_lemmas;
-    for (unsigned ds = 0; ds <= max_depth; ds++) {
+    for (unsigned ds = 0; ds <= max_depth; ds++)
+    {
       // static conjecture-independent symmetry breaking
       Node ipred = getSimpleSymBreakPred(ntn, tindex, ds);
-      if (!ipred.isNull()) {
+      if (!ipred.isNull())
+      {
         sb_lemmas.push_back(ipred);
       }
       // static conjecture-dependent symmetry breaking
       std::map<Node, quantifiers::CegConjecture*>::iterator itc =
           d_term_to_anchor_conj.find(n);
-      if (itc != d_term_to_anchor_conj.end()) {
+      if (itc != d_term_to_anchor_conj.end())
+      {
         quantifiers::CegConjecture* conj = itc->second;
         Assert(conj != NULL);
         Node dpred = conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
-        if (!dpred.isNull()) {
+        if (!dpred.isNull())
+        {
           sb_lemmas.push_back(dpred);
         }
       }
@@ -391,9 +395,11 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
 
     // add the above symmetry breaking predicates to lemmas
     Node rlv = getRelevancyCondition(n);
-    for (unsigned i = 0; i < sb_lemmas.size(); i++) {
+    for (unsigned i = 0; i < sb_lemmas.size(); i++)
+    {
       Node pred = sb_lemmas[i].substitute(x, n);
-      if (!rlv.isNull()) {
+      if (!rlv.isNull())
+      {
         pred = NodeManager::currentNM()->mkNode(kind::OR, rlv.negate(), pred);
       }
       lemmas.push_back(pred);
@@ -1073,7 +1079,8 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
     if( e.getType().isDatatype() ){
       const Datatype& dt = ((DatatypeType)(e.getType()).toType()).getDatatype();
       if( dt.isSygus() ){
-        if (d_tds->isEnumerator(e)) {
+        if (d_tds->isEnumerator(e))
+        {
           d_register_st[e] = true;
           Node ag = d_tds->getActiveGuardForEnumerator(e);
           if( !ag.isNull() ){
@@ -1179,7 +1186,8 @@ unsigned SygusSymBreakNew::getSearchSizeForAnchor( Node a ) {
   return getSearchSizeForMeasureTerm(it->second);
 }
 
-unsigned SygusSymBreakNew::getSearchSizeForMeasureTerm(Node m) {
+unsigned SygusSymBreakNew::getSearchSizeForMeasureTerm(Node m)
+{
   Trace("sygus-sb-debug2") << "get search size for measure : " << m << std::endl;
   std::map< Node, SearchSizeInfo * >::iterator its = d_szinfo.find( m );
   Assert( its!=d_szinfo.end() );

@@ -141,7 +141,9 @@ public:
    * to f in synthesis-through-unification approaches
    * (e.g. decision tree construction for PBE synthesis).
    */
-  void registerEnumerator(Node e, Node f, CegConjecture* conj,
+  void registerEnumerator(Node e,
+                          Node f,
+                          CegConjecture* conj,
                           bool mkActiveGuard = false);
   /** is e an enumerator? */
   bool isEnumerator(Node e) const;

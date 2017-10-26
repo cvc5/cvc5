@@ -25,16 +25,16 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-
 /** This structure stores information regarding conjecture-specific
 * analysis of a function to synthesize.
 */
-struct CegSynthFunProcessInfo {
-public:
-  CegSynthFunProcessInfo(){}
-  ~CegSynthFunProcessInfo(){}
+struct CegSynthFunProcessInfo
+{
+ public:
+  CegSynthFunProcessInfo() {}
+  ~CegSynthFunProcessInfo() {}
   /** the set of arguments that this synth-fun is independent of */
-  std::map< unsigned, bool > d_arg_independent;
+  std::map<unsigned, bool> d_arg_independent;
 };
 
 /** Ceg Conjecture Process
@@ -56,9 +56,10 @@ public:
 * sygus to CegConjectureProcess::getSymmetryBreakingPredicate(...), which are
 * used for pruning search space based on conjecture-specific analysis.
 */
-class CegConjectureProcess {
-public:
-  CegConjectureProcess( QuantifiersEngine * qe );
+class CegConjectureProcess
+{
+ public:
+  CegConjectureProcess(QuantifiersEngine* qe);
   ~CegConjectureProcess();
   /** simplify the synthesis conjecture q
   * Returns a formula that is equivalent to q.
@@ -66,7 +67,7 @@ public:
   Node simplify(Node q);
   /** initialize
   *
-  * n is the "base instantiation" of the deep-embedding version of 
+  * n is the "base instantiation" of the deep-embedding version of
   *   the synthesis conjecture under "candidates".
   *   (see CegConjecture::d_base_inst)
   */
@@ -77,17 +78,18 @@ public:
   * depth) for a term x of sygus type tn whose top symbol is the tindex^{th}
   * constructor, where x is a subterm of enumerator e.
   */
-  Node getSymmetryBreakingPredicate(Node x, Node e, TypeNode tn,
-                                    unsigned tindex, unsigned depth);
+  Node getSymmetryBreakingPredicate(
+      Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
   /** print out debug information about this conjecture */
-  void debugPrint( const char * c );
-private:
+  void debugPrint(const char* c);
+
+ private:
   /** process conjunct */
-  void processConjunct( Node c );
+  void processConjunct(Node c);
   /** for each synth-fun, information that is specific to this conjecture */
-  std::map< Node, CegSynthFunProcessInfo > d_sf_info;
+  std::map<Node, CegSynthFunProcessInfo> d_sf_info;
   /** reference to quantifier engine */
-  QuantifiersEngine * d_qe;
+  QuantifiersEngine* d_qe;
 };
 
 } /* namespace CVC4::theory::quantifiers */
