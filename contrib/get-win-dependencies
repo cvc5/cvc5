@@ -60,7 +60,7 @@ function webget {
   fi
 }
 
-for dir in antlr-3.4; do
+for dir in antlr-3.4 gmp-$GMPVERSION boost-$BOOSTVERSION; do
   if [ -e "$dir" ]; then
     echo "error: $dir directory exists; please move it out of the way." >&2
     exit 1
