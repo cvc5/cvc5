@@ -61,6 +61,7 @@
 #include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
+#include "options/sep_options.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
@@ -69,16 +70,15 @@
 #include "printer/printer.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
-#include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
-#include "smt/term_formula_removal.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
@@ -102,7 +102,6 @@
 #include "util/hash.h"
 #include "util/proof.h"
 #include "util/resource_manager.h"
-#include "options/sep_options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -1290,8 +1289,10 @@ void SmtEngine::setLogicInternal() throw() {
 
 void SmtEngine::setDefaults() {
   // Language-based defaults
-  if( !options::bitvectorDivByZeroConst.wasSetByUser() ){
-    options::bitvectorDivByZeroConst.set(options::inputLanguage() == language::input::LANG_SMTLIB_V2_6);
+  if (!options::bitvectorDivByZeroConst.wasSetByUser())
+  {
+    options::bitvectorDivByZeroConst.set(options::inputLanguage()
+                                         == language::input::LANG_SMTLIB_V2_6);
   }
 
   if(options::forceLogicString.wasSetByUser()) {
