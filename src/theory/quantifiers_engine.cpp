@@ -32,6 +32,7 @@
 #include "theory/quantifiers/fun_def_engine.h"
 #include "theory/quantifiers/inst_strategy_cbqi.h"
 #include "theory/quantifiers/inst_strategy_e_matching.h"
+#include "theory/quantifiers/inst_strategy_enumerative.h"
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/model_engine.h"
@@ -293,7 +294,7 @@ void QuantifiersEngine::finishInit(){
   }
   //full saturation : instantiate from relevant domain, then arbitrary terms
   if( options::fullSaturateQuant() || options::fullSaturateInterleave() ){
-    d_fs = new quantifiers::FullSaturation( this );
+    d_fs = new quantifiers::InstStrategyEnum( this );
     d_modules.push_back( d_fs );
     needsRelDom = true;
   }
