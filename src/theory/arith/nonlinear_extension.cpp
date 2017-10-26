@@ -1174,7 +1174,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
               getCurrentPiBounds( lemmas );
             }
             Node shift = NodeManager::currentNM()->mkSkolem( "s", NodeManager::currentNM()->integerType(), "number of shifts" );
-            // FIXME : do not introduce shift here (instead needs model-based refinement for constant shifts)
+            // FIXME : do not introduce shift here, instead needs model-based refinement for constant shifts (#1284)
             Node shift_lem = NodeManager::currentNM()->mkNode( kind::AND, mkValidPhase( y, d_pi ),
                                a[0].eqNode( NodeManager::currentNM()->mkNode( kind::PLUS, y, 
                                               NodeManager::currentNM()->mkNode( kind::MULT, NodeManager::currentNM()->mkConst( Rational(2) ), shift, d_pi ) ) ),
