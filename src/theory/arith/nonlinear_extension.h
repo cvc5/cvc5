@@ -417,7 +417,8 @@ private:
   *
   * x > 0 ^ (y > z + w) => x*y > x*(z+w)
   * x < 0 ^ (y > z + w) => x*y < x*(z+w)
-  *   ...where (y > z + w) and x*y exist in the current context.
+  *   ...where (y > z + w) and x*y are a constraint and term 
+  *      that occur in the current context.
   */
   std::vector<Node> checkMonomialInferBounds( std::vector<Node>& nt_lemmas,
                                               const std::set<Node>& false_asserts );
@@ -431,7 +432,8 @@ private:
   * Examples:
   *
   * x*z+y*z > t => ( k = x + y ^ k*z > t )
-  *   ...where k is fresh x*z and y*z exist in the current context.
+  *   ...where k is fresh and x*z + y*z > t is a
+  *      constraint that occurs in the current context.
   */
   std::vector<Node> checkFactoring( const std::set<Node>& false_asserts );
 
@@ -446,8 +448,8 @@ private:
   * Examples:
   *
   *  ( y>=0 ^ s <= x*z ^ x*y <= t ) => y*s <= z*t
-  *  ...where s <= x*z and x*y <= t exist in the current
-  *     context.
+  *  ...where s <= x*z and x*y <= t are constraints 
+  *     that occur in the current context.
   */
   std::vector<Node> checkMonomialInferResBounds();
 
