@@ -121,7 +121,7 @@ public:
   }
   // is this solved form empty?
   bool empty() { return d_vars.empty(); }
-public:
+ public:
   // theta values (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
   std::vector< Node > d_theta;
   // get the current value for theta (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
@@ -230,18 +230,25 @@ public:
   void pushStackVariable( Node v );
   void popStackVariable();
   /** do add instantiation increment
-   * 
-   * Adds the substitution { pv_prop.getModifiedTerm(pv) -> n } to the current instantiation,
+   *
+   * Adds the substitution { pv_prop.getModifiedTerm(pv) -> n } to the current
+   * instantiation,
    * specified by sf.
-   * 
-   * This function returns true if a call to QuantifiersEngine::addInstantiation(...) 
+   *
+   * This function returns true if a call to
+   * QuantifiersEngine::addInstantiation(...)
    * was successfully made in a recursive call.
-   * 
-   * The solved form sf is reverted to its original state if this function returns false,
+   *
+   * The solved form sf is reverted to its original state if this function
+   * returns false,
    * or if revertOnSuccess is true and this function returns true.
    */
-  bool doAddInstantiationInc( Node pv, Node n, TermProperties& pv_prop, SolvedForm& sf, unsigned effort, 
-                              bool revertOnSuccess = false );
+  bool doAddInstantiationInc(Node pv,
+                             Node n,
+                             TermProperties& pv_prop,
+                             SolvedForm& sf,
+                             unsigned effort,
+                             bool revertOnSuccess = false);
   Node getModelValue( Node n );
 public:
   unsigned getNumCEAtoms() { return d_ce_atoms.size(); }

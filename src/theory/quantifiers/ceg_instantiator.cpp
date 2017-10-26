@@ -362,8 +362,13 @@ void CegInstantiator::popStackVariable() {
   d_stack_vars.pop_back();
 }
 
-bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv_prop, SolvedForm& sf, unsigned effort,
-                                             bool revertOnSuccess ) {
+bool CegInstantiator::doAddInstantiationInc(Node pv,
+                                            Node n,
+                                            TermProperties& pv_prop,
+                                            SolvedForm& sf,
+                                            unsigned effort,
+                                            bool revertOnSuccess)
+{
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
@@ -454,12 +459,14 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
       Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
       unsigned i = d_curr_index[pv];
       success = doAddInstantiation( sf, d_stack_vars.empty() ? i+1 : i, effort );
-      if( !success || revertOnSuccess ){
+      if (!success || revertOnSuccess)
+      {
         Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
         sf.pop_back( pv, n, pv_prop );
       }
     }
-    if( success && !revertOnSuccess ){
+    if (success && !revertOnSuccess)
+    {
       return true;
     }else{
       Trace("cbqi-inst-debug2") << "Revert substitutions..." << std::endl;
