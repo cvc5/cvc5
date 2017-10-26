@@ -140,7 +140,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   //   http://planetmath.org/hilbertsvarepsilonoperator.
   if (node.getKind() == kind::CHOICE && !inQuant)
   {
-    // Make the skolem to represent the ITE
+    // Make the skolem to witness the choice
     skolem = nodeManager->mkSkolem(
         "choiceK",
         nodeType,
