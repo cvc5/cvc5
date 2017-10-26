@@ -42,14 +42,37 @@ using ::std::pair;
 using ::std::string;
 using ::std::vector;
 
-// This data structure stores a trie of expressions with
-// the same name, and must be distinguished by their argument types.
-// It is context-dependent.
+/** Overloaded type trie.
+ *
+ * This data structure stores a trie of expressions with
+ * the same name, and must be distinguished by their argument types.
+ * It is context-dependent.
+ * 
+ * Using the argument allowFunVariants,
+ * it may either be configured to allow function variants or not,
+ * where a function variant is function that expects the same
+ * argument types as another. 
+ * 
+ * For example, the following definitions introduce function 
+ * variants for the symbol f:
+ * 
+ *   (declare-fun f (Int) Int) and 
+ *   (declare-fun f (Int) Bool)
+ * 
+ *   (declare-fun f (Int) Int) and 
+ *   (declare-fun f (Int) Int)
+ * 
+ *   (declare-datatypes ((Tup 0)) ((f (data Int)))) and
+ *   (declare-fun f (Int) Tup)
+ * 
+ *   (declare-datatypes ((Tup 0)) ((mkTup (f Int)))) and
+ *   (declare-fun f (Tup) Bool)
+ */
 class OverloadedTypeTrie {
  public:
-  OverloadedTypeTrie(Context* c)
+  OverloadedTypeTrie(Context* c, bool allowFunVariants=false)
       : d_overloaded_symbols(new (true) CDHashSet<Expr, ExprHashFunction>(c)), 
-        d_allowFunctionVariants(false) {}
+        d_allowFunctionVariants(allowFunVariants) {}
   ~OverloadedTypeTrie() { d_overloaded_symbols->deleteSelf(); }
 
   /** is this function overloaded? */
