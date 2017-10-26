@@ -20,9 +20,10 @@
 #define __CVC4__THEORY__OUTPUT_CHANNEL_H
 
 #include "base/cvc4_assert.h"
+#include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/interrupted.h"
-#include "proof/proof_manager.h"
+#include "util/proof.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
@@ -36,14 +37,9 @@ class Theory;
  * for inspection and the user-level at which the lemma will reside.
  */
 class LemmaStatus {
-  Node d_rewrittenLemma;
-  unsigned d_level;
-
-public:
-  LemmaStatus(TNode rewrittenLemma, unsigned level) :
-    d_rewrittenLemma(rewrittenLemma),
-    d_level(level) {
-  }
+ public:
+  LemmaStatus(TNode rewrittenLemma, unsigned level)
+      : d_rewrittenLemma(rewrittenLemma), d_level(level) {}
 
   /** Get the T-rewritten form of the lemma. */
   TNode getRewrittenLemma() const throw() { return d_rewrittenLemma; }
@@ -55,41 +51,39 @@ public:
    */
   unsigned getLevel() const throw() { return d_level; }
 
-};/* class LemmaStatus */
+ private:
+  Node d_rewrittenLemma;
+  unsigned d_level;
+}; /* class LemmaStatus */
 
 /**
  * Generic "theory output channel" interface.
+ *
+ * All methods can throw unrecoverable CVC4::Exception's unless otherwise
+ * documented.
  */
 class OutputChannel {
-  /** Disallow copying: private constructor */
-  OutputChannel(const OutputChannel&) CVC4_UNDEFINED;
-
-  /** Disallow assignment: private operator=() */
-  OutputChannel& operator=(const OutputChannel&) CVC4_UNDEFINED;
-
-public:
-
-  /**
-   * Construct an OutputChannel.
-   */
-  OutputChannel() {
-  }
+ public:
+  /** Construct an OutputChannel. */
+  OutputChannel() {}
 
   /**
    * Destructs an OutputChannel.  This implementation does nothing,
    * but we need a virtual destructor for safety in case subclasses
    * have a destructor.
    */
-  virtual ~OutputChannel() {
-  }
+  virtual ~OutputChannel() {}
+
+  OutputChannel(const OutputChannel&) = delete;
+  OutputChannel& operator=(const OutputChannel&) = delete;
 
   /**
    * With safePoint(), the theory signals that it is at a safe point
    * and can be interrupted.
+   *
+   * @throws Interrupted if the theory can be safely interrupted.
    */
-  virtual void safePoint(uint64_t amount)
-      throw(Interrupted, UnsafeInterruptException, AssertionException)
-  {}
+  virtual void safePoint(uint64_t amount) {}
 
   /**
    * Indicate a theory conflict has arisen.
@@ -103,7 +97,7 @@ public:
    * @param pf - a proof of the conflict. This is only non-null if proofs
    * are enabled.
    */
-  virtual void conflict(TNode n, Proof* pf = NULL) throw(AssertionException, UnsafeInterruptException) = 0;
+  virtual void conflict(TNode n, Proof* pf = nullptr) = 0;
 
   /**
    * Propagate a theory literal.
@@ -111,7 +105,7 @@ public:
    * @param n - a theory consequence at the current decision level
    * @return false if an immediate conflict was encountered
    */
-  virtual bool propagate(TNode n) throw(AssertionException, UnsafeInterruptException) = 0;
+  virtual bool propagate(TNode n) = 0;
 
   /**
    * Tell the core that a valid theory lemma at decision level 0 has
@@ -125,18 +119,15 @@ public:
    * @return the "status" of the lemma, including user level at which
    * the lemma resides; the lemma will be removed when this user level pops
    */
-  virtual LemmaStatus lemma(TNode n, ProofRule rule,
-                            bool removable = false,
+  virtual LemmaStatus lemma(TNode n, ProofRule rule, bool removable = false,
                             bool preprocess = false,
                             bool sendAtoms = false) = 0;
 
   /**
    * Variant of the lemma function that does not require providing a proof rule.
    */
-  virtual LemmaStatus lemma(TNode n,
-                            bool removable = false,
-                            bool preprocess = false,
-                            bool sendAtoms = false) {
+  virtual LemmaStatus lemma(TNode n, bool removable = false,
+                            bool preprocess = false, bool sendAtoms = false) {
     return lemma(n, RULE_INVALID, removable, preprocess, sendAtoms);
   }
 
@@ -146,10 +137,7 @@ public:
    *
    * @param n - a theory atom; must be of Boolean type
    */
-  LemmaStatus split(TNode n)
-    throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
-    return splitLemma(n.orNode(n.notNode()));
-  }
+  LemmaStatus split(TNode n) { return splitLemma(n.orNode(n.notNode())); }
 
   virtual LemmaStatus splitLemma(TNode n, bool removable = false) = 0;
 
@@ -165,8 +153,7 @@ public:
    * been pre-registered
    * @param phase - the phase to decide on n
    */
-  virtual void requirePhase(TNode n, bool phase)
-    throw(Interrupted, TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) = 0;
+  virtual void requirePhase(TNode n, bool phase) = 0;
 
   /**
    * Flips the most recent unflipped decision to the other phase and
@@ -208,15 +195,14 @@ public:
    * @return true if a decision was flipped; false if no decision
    * could be flipped, or if the root decision was re-flipped
    */
-  virtual bool flipDecision()
-    throw(Interrupted, TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) = 0;
+  virtual bool flipDecision() = 0;
 
   /**
    * Notification from a theory that it realizes it is incomplete at
    * this context level.  If SAT is later determined by the
    * TheoryEngine, it should actually return an UNKNOWN result.
    */
-  virtual void setIncomplete() throw(AssertionException, UnsafeInterruptException) = 0;
+  virtual void setIncomplete() = 0;
 
   /**
    * "Spend" a "resource."  The meaning is specific to the context in
@@ -229,7 +215,7 @@ public:
    * long-running operations, they cannot rely on resource() to break
    * out of infinite or intractable computations.
    */
-  virtual void spendResource(unsigned ammount) throw(UnsafeInterruptException) {}
+  virtual void spendResource(unsigned amount) {}
 
   /**
    * Handle user attribute.
@@ -239,16 +225,15 @@ public:
    */
   virtual void handleUserAttribute(const char* attr, Theory* t) {}
 
-
   /** Demands that the search restart from sat search level 0.
    * Using this leads to non-termination issues.
    * It is appropriate for prototyping for theories.
    */
-  virtual void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {}
+  virtual void demandRestart() {}
 
-};/* class OutputChannel */
+}; /* class OutputChannel */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__OUTPUT_CHANNEL_H */
