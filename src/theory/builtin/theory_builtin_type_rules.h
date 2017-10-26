@@ -222,7 +222,8 @@ class ChoiceTypeRule
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
-    return nodeManager->booleanType();
+    // The type of a choice function is the type of its bound variable.
+    return n[0][0].getType();
   }
 }; /* class ChoiceTypeRule */
 
