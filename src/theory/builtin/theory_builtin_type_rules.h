@@ -192,32 +192,39 @@ public:
   }
 };/* class LambdaTypeRule */
 
-
-class ChoiceTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    if( n[0].getType(check) != nodeManager->boundVarListType() ) {
+class ChoiceTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    if (n[0].getType(check) != nodeManager->boundVarListType())
+    {
       std::stringstream ss;
       ss << "expected a bound var list for CHOICE expression, got `"
          << n[0].getType().toString() << "'";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
-    if( n[0].getNumChildren()!=1 ){
+    if (n[0].getNumChildren() != 1)
+    {
       std::stringstream ss;
       ss << "expected a bound var list with one argument for CHOICE expression";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
-    if( check ){
+    if (check)
+    {
       TypeNode rangeType = n[1].getType(check);
-      if( !rangeType.isBoolean() ){
+      if (!rangeType.isBoolean())
+      {
         std::stringstream ss;
-        ss << "expected a body of a CHOICE expression to have Boolean type";   
-        throw TypeCheckingExceptionPrivate(n, ss.str());       
+        ss << "expected a body of a CHOICE expression to have Boolean type";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
     return nodeManager->booleanType();
   }
-};/* class ChoiceTypeRule */
+}; /* class ChoiceTypeRule */
 
 class ChainTypeRule {
 public:

@@ -50,8 +50,8 @@ public:
 
   /**
    * By introducing skolem variables, this function removes all occurrences of:
-   * (1) term ITEs 
-   * (2) terms of type Boolean that are not Boolean term variables, 
+   * (1) term ITEs
+   * (2) terms of type Boolean that are not Boolean term variables,
    * (3) lambdas, and
    * (4) Hilbert choice expressions.
    * from assertions.
@@ -60,7 +60,7 @@ public:
    * assertions containing the new definition created in conjunction
    * with that skolem variable.
    *
-   * As an example of (1): 
+   * As an example of (1):
    *   f( (ite C 0 1)) = 2
    * becomes
    *   f( k ) = 2 ^ ite( C, k=0, k=1 )
@@ -70,13 +70,13 @@ public:
    * becomes
    *   g( k ) = 3 ^ ( k <=> (and C1 C2) )
    *
-   * As an example of (3): 
+   * As an example of (3):
    *   (lambda x. t[x]) = f
    * becomes
    *   (forall x. k(x) = t[x]) ^ k = f
    * where k is a fresh skolem function.
    * This is sometimes called "lambda lifting"
-   * 
+   *
    * As an example of (4):
    *   (choice x. P( x ) ) = t
    * becomes
