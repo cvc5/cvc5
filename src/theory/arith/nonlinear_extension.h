@@ -23,6 +23,7 @@
 #include <map>
 #include <queue>
 #include <set>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -265,7 +266,7 @@ private:
   std::map< Node, std::map< Node, Node > > d_tangent_val_bound[4];
   
   /** secant points (sorted list) for transcendental functions */
-  std::map< Node, std::vector< Node > > d_secant_points;
+  std::unordered_map< Node, std::vector< Node >, NodeHashFunction > d_secant_points;
   
   /** get Taylor series of degree n for function fa centered around point fa[0].
    * Return value is ( P_{n,f(a)}( x ), R_{n+1,f(a)}( x ) ) where
@@ -292,8 +293,8 @@ private:
   Node d_taylor_real_fv_base_rem; // b above
   
   /** internal cache of values for getTaylor */
-  std::map< Node, std::map< unsigned, Node > > d_taylor_sum;
-  std::map< Node, std::map< unsigned, Node > > d_taylor_rem;
+  std::unordered_map< Node, std::unordered_map< unsigned, Node >, NodeHashFunction > d_taylor_sum;
+  std::unordered_map< Node, std::unordered_map< unsigned, Node >, NodeHashFunction > d_taylor_rem;
   
   /** concavity region for transcendental functions
   *
@@ -315,7 +316,7 @@ private:
   * of transcendental functions whose arguments have model
   * values that reside in valid regions.
   */
-  std::map< Node, int > d_tf_region;
+  std::unordered_map< Node, int, NodeHashFunction > d_tf_region;
   /** get monotonicity direction 
   * Returns whether the slope is positive (+1) or negative(-1) 
   * in region of transcendental function with kind k.

@@ -3017,7 +3017,7 @@ std::pair< Node, Node > NonlinearExtension::getTaylor( TNode fa, unsigned n ) {
   Node taylor_rem;
   Node taylor_sum;
   // check if we have already computed this Taylor series
-  std::map< unsigned, Node >::iterator itt = d_taylor_sum[fac].find( n );
+  std::unordered_map< unsigned, Node >::iterator itt = d_taylor_sum[fac].find( n );
   if( itt==d_taylor_sum[fac].end() ){
     Node i_exp_base;
     if( fa[0]==d_zero ){
