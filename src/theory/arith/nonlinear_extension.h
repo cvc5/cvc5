@@ -129,7 +129,8 @@ class NonlinearExtension {
    *          (we call this its "abstract" value)
    * In other words, index = 1 treats multiplication terms and transcendental
    * function applications as variables, whereas index = 0 computes their
-   * actual values. This is a key distinction 
+   * actual values. This is a key distinction used in the model-based
+   * refinement scheme in Cimatti et al. TACAS 2017.
    * 
    * For example, if M( a ) = 2, M( b ) = 3, M( a * b ) = 5, then :
    * 
