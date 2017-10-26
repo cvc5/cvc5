@@ -232,16 +232,15 @@ public:
   /** do add instantiation increment
    *
    * Adds the substitution { pv_prop.getModifiedTerm(pv) -> n } to the current
-   * instantiation,
-   * specified by sf.
+   * instantiation, specified by sf.
    *
    * This function returns true if a call to
    * QuantifiersEngine::addInstantiation(...)
    * was successfully made in a recursive call.
    *
-   * The solved form sf is reverted to its original state if this function
-   * returns false,
-   * or if revertOnSuccess is true and this function returns true.
+   * The solved form sf is reverted to its original state if 
+   *   this function returns false, or
+   *   revertOnSuccess is true and this function returns true.
    */
   bool doAddInstantiationInc(Node pv,
                              Node n,
