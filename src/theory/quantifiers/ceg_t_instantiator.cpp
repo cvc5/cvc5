@@ -1091,7 +1091,8 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
 
         // currently:
         //   We select the first literal, and
-        //   for the first varisable, we select all.
+        //   for the first variable, we select all 
+        //   if cbqiMultiInst is enabled.
         if (inst_ids_try.empty() || (firstVar && options::cbqiMultiInst()))
         {
           // try the first one
