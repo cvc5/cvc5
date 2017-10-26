@@ -15,25 +15,32 @@
 
 **/
 
+#include "proof/proof_output_channel.h"
+
 #include "base/cvc4_assert.h"
-#include "proof_output_channel.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
 
 namespace CVC4 {
 
-ProofOutputChannel::ProofOutputChannel() : d_conflict(), d_proof(NULL) {}
+ProofOutputChannel::ProofOutputChannel() : d_conflict(), d_proof(nullptr) {}
 
-void ProofOutputChannel::conflict(TNode n, Proof* pf) throw() {
-  Trace("pf::tp") << "ProofOutputChannel: CONFLICT: " << n << std::endl;
-  Assert(d_conflict.isNull());
-  Assert(!n.isNull());
-  d_conflict = n;
-  Assert(pf != NULL);
-  d_proof = pf;
+Proof* ProofOutputChannel::getConflictProof() {
+  Assert(hasConflict());
+  return d_proof;
 }
 
-bool ProofOutputChannel::propagate(TNode x) throw() {
+void ProofOutputChannel::conflict(TNode n, Proof* pf) {
+  Trace("pf::tp") << "ProofOutputChannel: CONFLICT: " << n << std::endl;
+  Assert(!hasConflict());
+  Assert(!d_proof);
+  d_conflict = n;
+  d_proof = pf;
+  Assert(hasConflict());
+  Assert(d_proof);
+}
+
+bool ProofOutputChannel::propagate(TNode x) {
   Trace("pf::tp") << "ProofOutputChannel: got a propagation: " << x
                   << std::endl;
   d_propagations.insert(x);
@@ -43,6 +50,12 @@ bool ProofOutputChannel::propagate(TNode x) throw() {
 theory::LemmaStatus ProofOutputChannel::lemma(TNode n, ProofRule rule, bool,
                                               bool, bool) {
   Trace("pf::tp") << "ProofOutputChannel: new lemma: " << n << std::endl;
+  // TODO(#1231): We should transition to supporting multiple lemmas. The
+  // following assertion cannot be enabled due to
+  // "test/regress/regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smt".
+  // Assert(
+  //     d_lemma.isNull(),
+  //     "Multiple calls to ProofOutputChannel::lemma() are not supported.");
   d_lemma = n;
   return theory::LemmaStatus(TNode::null(), 0);
 }
@@ -52,18 +65,18 @@ theory::LemmaStatus ProofOutputChannel::splitLemma(TNode, bool) {
   return theory::LemmaStatus(TNode::null(), 0);
 }
 
-void ProofOutputChannel::requirePhase(TNode n, bool b) throw() {
+void ProofOutputChannel::requirePhase(TNode n, bool b) {
   Debug("pf::tp") << "ProofOutputChannel::requirePhase called" << std::endl;
   Trace("pf::tp") << "requirePhase " << n << " " << b << std::endl;
 }
 
-bool ProofOutputChannel::flipDecision() throw() {
+bool ProofOutputChannel::flipDecision() {
   Debug("pf::tp") << "ProofOutputChannel::flipDecision called" << std::endl;
   AlwaysAssert(false);
   return false;
 }
 
-void ProofOutputChannel::setIncomplete() throw() {
+void ProofOutputChannel::setIncomplete() {
   Debug("pf::tp") << "ProofOutputChannel::setIncomplete called" << std::endl;
   AlwaysAssert(false);
 }
