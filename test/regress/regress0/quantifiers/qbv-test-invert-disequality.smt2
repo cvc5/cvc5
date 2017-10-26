@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-bv --cbqi-bv-inv-in-dis-eq
+; COMMAND-LINE: --cbqi-bv --cbqi-bv-ineq=keep
 ; EXPECT: sat
 (set-logic BV)
 (set-info :status sat)
