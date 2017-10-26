@@ -146,7 +146,7 @@ private:
   /** quantifiers equality engine */
   quantifiers::QuantEqualityEngine * d_uee;
   /** full saturation */
-  quantifiers::InstStrategyEnum * d_fs;
+  quantifiers::InstStrategyEnum* d_fs;
   /** counterexample-based quantifier instantiation */
   quantifiers::InstStrategyCbqi * d_i_cbqi;
   /** quantifiers splitting */
@@ -273,7 +273,7 @@ public:  //modules
   /** quantifiers equality engine */
   quantifiers::QuantEqualityEngine * getQuantEqualityEngine() { return d_uee; }
   /** get full saturation */
-  quantifiers::InstStrategyEnum * getInstStrategyEnum() { return d_fs; }
+  quantifiers::InstStrategyEnum* getInstStrategyEnum() { return d_fs; }
   /** get inst strategy cbqi */
   quantifiers::InstStrategyCbqi * getInstStrategyCbqi() { return d_i_cbqi; }
   /** get quantifiers splitting */

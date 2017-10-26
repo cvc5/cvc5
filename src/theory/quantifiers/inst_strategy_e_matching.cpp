@@ -605,8 +605,6 @@ bool InstStrategyLocalTheoryExt::isLocalTheoryExt( Node f ) {
 }
 */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */
