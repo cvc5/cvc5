@@ -54,6 +54,13 @@ class NonlinearExtension {
                                       const std::vector<Node>& exp) const;
   void check(Theory::Effort e);
   bool needsCheckLastEffort() const { return d_needsLastCall; }
+  /** compare 
+  * orderType = 0 : compare concrete model values
+  * orderType = 1 : compare abstract model values
+  * orderType = 2 : compare abs of concrete model values
+  * orderType = 3 : compare abs of abstract model values
+  * (for concrete vs abstract, see computeModelValue)
+  */
   int compare(Node i, Node j, unsigned orderType) const;
   int compare_value(Node i, Node j, unsigned orderType) const;
 
@@ -105,7 +112,13 @@ class NonlinearExtension {
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 
   void registerConstraint(Node atom);
-  // index = 0 : concrete, 1 : abstract
+  // index = 0 means compute the value of n based on its children, recursively (its "concrete" value)
+  // index = 1 means lookup the value of n in the model (its "abstract" value)
+  // For example, if M( a ) = 2, M( b ) = 3, M( a * b ) = 5, then :
+  //   computeModelValue( a*b, 0 ) = computeModelValue( a, 0 )*computeModelValue( b, 0 ) = 2*3 = 6
+  //   computeModelValue( a*b, 1 ) = 5
+  // In other words, index = 1 treats multiplication terms and transcendental function applications
+  // as variables.
   Node computeModelValue(Node n, unsigned index = 0);
 
   Node get_compare_value(Node i, unsigned orderType) const;
@@ -208,9 +221,13 @@ class NonlinearExtension {
   std::map<Node, Node> d_trig_base;
   std::map<Node, bool> d_trig_is_base;
   std::map< Node, bool > d_tf_initial_refine;
+  // PI
   Node d_pi;
+  // PI/2
   Node d_pi_2;
+  // -PI/2
   Node d_pi_neg_2;
+  // -PI
   Node d_pi_neg;
   Node d_pi_bound[2];
   
@@ -247,28 +264,228 @@ private:
   // tangent plane bounds
   std::map< Node, std::map< Node, Node > > d_tangent_val_bound[4];
   
-  Node getTaylor( Node tf, Node x, unsigned n, std::vector< Node >& lemmas );
+  /** secant points (sorted list) for transcendental functions */
+  std::map< Node, std::vector< Node > > d_secant_points;
+  
+  /** get Taylor series of degree n for function fa centered around point fa[0].
+   * Return value is ( P_{n,f(a)}( x ), R_{n+1,f(a)}( x ) ) where
+   * the first part of the pair is the Taylor series expansion :
+   *    P_{n,f(a)}( x ) = sum_{i=0}^n (f^i( a )/i!)*(x-a)^i
+   * and the second part of the pair is the Taylor series remainder :
+   *    R_{n+1,f(a),b}( x ) = (f^{n+1}( b )/(n+1)!)*(x-a)^{n+1}
+   * 
+   * The above values are cached for each (f,n) for a fixed variable "a".
+   * To compute the Taylor series for fa, we compute the Taylor series
+   *   for ( fa.getKind(), n ) then substitute { a -> fa[0] } if fa[0]!=0.
+   * We compute P_{n,f(0)}( x )/R_{n+1,f(0),b}( x ) for ( fa.getKind(), n ) 
+   *   if fa[0]=0.
+   * In the latter case, note we compute the exponential x^{n+1} 
+   * instead of (x-a)^{n+1}, which can be done faster.
+   */
+  std::pair< Node, Node > getTaylor( TNode fa, unsigned n );
+  
+  /** internal variables used for constructing (cached) versions
+  * the Taylor series above
+  */
+  Node d_taylor_real_fv;          // x above
+  Node d_taylor_real_fv_base;     // a above
+  Node d_taylor_real_fv_base_rem; // b above
+  
+  /** internal cache of values for getTaylor */
+  std::map< Node, std::map< unsigned, Node > > d_taylor_sum;
+  std::map< Node, std::map< unsigned, Node > > d_taylor_rem;
+  
+  /** concavity region for transcendental functions
+  *
+  * This stores an integer that identifies an interval in
+  * which the current model value for an argument of an 
+  * application of a transcendental function resides. 
+  *
+  * For exp( x ):
+  *   region #1 is -infty < x < infty
+  * For sin( x ):
+  *   region #0 is pi < x < infty (this is an invalid region)
+  *   region #1 is pi/2 < x <= pi
+  *   region #2 is 0 < x <= pi/2
+  *   region #3 is -pi/2 < x <= 0
+  *   region #4 is -pi < x <= -pi/2
+  *   region #5 is -infty < x <= -pi (this is an invalid region)
+  * All regions not listed above, as well as regions 0 and 5 
+  * for SINE are "invalid". We only process applications
+  * of transcendental functions whose arguments have model
+  * values that reside in valid regions.
+  */
+  std::map< Node, int > d_tf_region;
+  /** get monotonicity direction 
+  * Returns whether the slope is positive (+1) or negative(-1) 
+  * in region of transcendental function with kind k.
+  * Returns 0 if region is invalid.
+  */
+  int regionToMonotonicityDir( Kind k, int region );
+  /** get concavity
+  * Returns whether we are concave (+1) or convex (-1) 
+  * in region of transcendental function with kind k.
+  * Returns 0 if region is invalid.
+  */
+  int regionToConcavity( Kind k, int region );
+  /** region to lower bound */
+  Node regionToLowerBound( Kind k, int region );
+  /** region to upper bound */
+  Node regionToUpperBound( Kind k, int region );
+  /** Get derivative.
+  * Returns d/dx n. Supports cases
+  * for transcendental functions, multiplication,
+  * addition, constants and variables.
+  */
+  Node getDerivative( Node n, Node x );
 private:
-  // Returns a vector containing a split on whether each term is 0 or not for
-  // those terms that have not been split on in the current context.
+  //-------------------------------------------- lemma schemas
+  /** check split zero
+  *
+  * Returns a set of theory lemmas of the form
+  *   t = 0 V t != 0
+  */
   std::vector<Node> checkSplitZero();
   
+  /** check monomial sign
+  *
+  * Returns a set of valid theory lemmas, based on a
+  * lemma schema which ensures that non-linear monomials 
+  * respect sign information based on their facts.
+  * For more details, see Section 5 of "Design Theory
+  * Solvers with Extensions" by Reynolds et al., FroCoS 2017,
+  * Figure 5, this is the schema "Sign".  
+  * 
+  * Examples:
+  *
+  * x > 0 ^ y > 0 => x*y > 0
+  * x < 0 => x*y*y < 0
+  * x = 0 => x*y*z = 0
+  */
   std::vector<Node> checkMonomialSign();
   
+  /** check monomial magnitude
+  *
+  * Returns a set of valid theory lemmas, based on a
+  * lemma schema which ensures that comparisons between
+  * non-linear monomials respect the magnitude of their
+  * factors.
+  * For more details, see Section 5 of "Design Theory
+  * Solvers with Extensions" by Reynolds et al., FroCoS 2017,  
+  * Figure 5, this is the schema "Magnitude".  
+  * 
+  * Examples:
+  *
+  * |x|>|y| => |x*z|>|y*z|
+  * |x|>|y| ^ |z|>|w| ^ |x|>=1 => |x*x*z*u|>|y*w|
+  */
   std::vector<Node> checkMonomialMagnitude( unsigned c );
   
+  /** check monomial inferred bounds
+  *
+  * Returns a set of valid theory lemmas, based on a
+  * lemma schema 
+  * For more details, see Section 5 of "Design Theory
+  * Solvers with Extensions" by Reynolds et al., FroCoS 2017,
+  * Figure 5, this is the schema "Multiply".  
+  * 
+  * Examples:
+  *
+  * x > 0 ^ (y > z + w) => x*y > x*(z+w)
+  * x < 0 ^ (y > z + w) => x*y < x*(z+w)
+  *   ...where (y > z + w) and x*y exist in the current context.
+  */
   std::vector<Node> checkMonomialInferBounds( std::vector<Node>& nt_lemmas,
                                               const std::set<Node>& false_asserts );
-  
+                                              
+  /** check factoring
+  *
+  * Returns a set of valid theory lemmas, based on a
+  * lemma schema that states a relationship betwen monomials
+  * with common factors that occur in the same constraint.
+  * 
+  * Examples:
+  *
+  * x*z+y*z > t => ( k = x + y ^ k*z > t )
+  *   ...where k is fresh x*z and y*z exist in the current context.
+  */
   std::vector<Node> checkFactoring( const std::set<Node>& false_asserts );
   
+  /** check monomial infer resolution bounds
+  *
+  * Returns a set of valid theory lemmas, based on a
+  * lemma schema which "resolves" upper bounds
+  * of one inequality with lower bounds for another.
+  * This schema is not enabled by default, and can
+  * be enabled by --nl-ext-rbound.
+  * 
+  * Examples:
+  *
+  *  ( y>=0 ^ s <= x*z ^ x*y <= t ) => y*s <= z*t
+  *  ...where s <= x*z and x*y <= t exist in the current
+  *     context.
+  */
   std::vector<Node> checkMonomialInferResBounds();
   
+  /** check tangent planes
+  *
+  * Returns a set of valid theory lemmas, based on a
+  * "incremental linearization" of non-linear monomials.
+  * This linearization is accomplished by adding constraints
+  * corresponding to "tangent planes" at the current
+  * model value of each non-linear monomial. In particular 
+  * consider the definition for constants a,b :
+  *   T_{a,b}( x*y ) = b*x + a*y - a*b.
+  * The lemmas added by this function are of the form :
+  *  ( ( x>a ^ y<b) ^ (x<a ^ y>b) ) => x*y < T_{a,b}( x*y )
+  *  ( ( x>a ^ y>b) ^ (x<a ^ y<b) ) => x*y > T_{a,b}( x*y )
+  * It is inspired by "Invariant Checking of NRA Transition 
+  * Systems via Incremental Reduction to LRA with EUF" by
+  * Cimatti et al., TACAS 2017.
+  * This schema is not terminating in general.
+  * It is not enabled by default, and can
+  * be enabled by --nl-ext-tplanes. 
+  * 
+  * Examples:
+  *
+  * ( ( x>2 ^ y>5) ^ (x<2 ^ y<5) ) => x*y > 5*x + 2*y - 10
+  * ( ( x>2 ^ y<5) ^ (x<2 ^ y>5) ) => x*y < 5*x + 2*y - 10
+  */
   std::vector<Node> checkTangentPlanes();
   
+  /** check transcendental initial refine
+  *
+  * Returns a set of valid theory lemmas, based on
+  * simple facts about transcendental functions.
+  * This mostly follows the initial axioms described in
+  * Section 4 of "Satisfiability 
+  * Modulo Transcendental Functions via Incremental 
+  * Linearization" by Cimatti et al., CADE 2017.
+  * 
+  * Examples:
+  *
+  * sin( x ) = -sin( -x )
+  * ( PI > x > 0 ) => 0 < sin( x ) < 1
+  * exp( x )>0
+  * x<0 => exp( x )<1
+  */
   std::vector<Node> checkTranscendentalInitialRefine();
-
+  
+  /** check transcendental monotonic
+  *
+  * Returns a set of valid theory lemmas, based on a
+  * lemma scheme that ensures that applications
+  * of transcendental functions respect monotonicity.
+  * 
+  * Examples:
+  *
+  * x > y => exp( x ) > exp( y )
+  * PI/2 > x > y > 0 => sin( x ) > sin( y )
+  * PI > x > y > PI/2 => sin( x ) < sin( y )
+  */
   std::vector<Node> checkTranscendentalMonotonic();
+  
+  //-------------------------------------------- end lemma schemas
 }; /* class NonlinearExtension */
 
 }  // namespace arith
