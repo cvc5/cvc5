@@ -235,13 +235,11 @@ class TheoryEngine {
     ~Statistics();
   };/* class TheoryEngine::Statistics */
 
-
   /**
    * An output channel for Theory that passes messages
    * back to a TheoryEngine.
    */
   class EngineOutputChannel : public theory::OutputChannel {
-
     friend class TheoryEngine;
 
     /**
@@ -254,84 +252,75 @@ class TheoryEngine {
      */
     Statistics d_statistics;
 
-    /**
-     * The theory owning this chanell.
-     */
+    /** The theory owning this channel. */
     theory::TheoryId d_theory;
 
-  public:
+   public:
+    EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory)
+        : d_engine(engine), d_statistics(theory), d_theory(theory) {}
 
-    EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory) :
-      d_engine(engine),
-      d_statistics(theory),
-      d_theory(theory)
-    {
-    }
-
-    void safePoint(uint64_t ammount) throw(theory::Interrupted, UnsafeInterruptException, AssertionException) {
-      spendResource(ammount);
+    void safePoint(uint64_t amount) override {
+      spendResource(amount);
       if (d_engine->d_interrupted) {
         throw theory::Interrupted();
       }
     }
 
-    void conflict(TNode conflictNode, Proof* pf = NULL) throw(AssertionException, UnsafeInterruptException);
+    void conflict(TNode conflictNode, Proof* pf = nullptr) override;
+    bool propagate(TNode literal) override;
 
-    bool propagate(TNode literal) throw(AssertionException, UnsafeInterruptException);
+    theory::LemmaStatus lemma(TNode lemma, ProofRule rule,
+                              bool removable = false, bool preprocess = false,
+                              bool sendAtoms = false) override;
 
-    theory::LemmaStatus lemma(TNode lemma,
-                              ProofRule rule,
-                              bool removable = false,
-                              bool preprocess = false,
-                              bool sendAtoms = false);
+    theory::LemmaStatus splitLemma(TNode lemma,
+                                   bool removable = false) override;
 
-    theory::LemmaStatus splitLemma(TNode lemma, bool removable = false);
-
-    void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
+    void demandRestart() override {
       NodeManager* curr = NodeManager::currentNM();
-      Node restartVar =  curr->mkSkolem("restartVar",
-                                        curr->booleanType(),
-                                        "A boolean variable asserted to be true to force a restart");
-      Trace("theory::restart") << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar << ")" << std::endl;
-      ++ d_statistics.restartDemands;
+      Node restartVar = curr->mkSkolem(
+          "restartVar", curr->booleanType(),
+          "A boolean variable asserted to be true to force a restart");
+      Trace("theory::restart")
+          << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar
+          << ")" << std::endl;
+      ++d_statistics.restartDemands;
       lemma(restartVar, RULE_INVALID, true);
     }
 
-    void requirePhase(TNode n, bool phase)
-      throw(theory::Interrupted, AssertionException, UnsafeInterruptException) {
-      Debug("theory") << "EngineOutputChannel::requirePhase("
-                      << n << ", " << phase << ")" << std::endl;
-      ++ d_statistics.requirePhase;
+    void requirePhase(TNode n, bool phase) override {
+      Debug("theory") << "EngineOutputChannel::requirePhase(" << n << ", "
+                      << phase << ")" << std::endl;
+      ++d_statistics.requirePhase;
       d_engine->d_propEngine->requirePhase(n, phase);
     }
 
-    bool flipDecision()
-      throw(theory::Interrupted, AssertionException, UnsafeInterruptException) {
+    bool flipDecision() override {
       Debug("theory") << "EngineOutputChannel::flipDecision()" << std::endl;
-      ++ d_statistics.flipDecision;
+      ++d_statistics.flipDecision;
       return d_engine->d_propEngine->flipDecision();
     }
 
-    void setIncomplete() throw(AssertionException, UnsafeInterruptException) {
+    void setIncomplete() override {
       Trace("theory") << "TheoryEngine::setIncomplete()" << std::endl;
       d_engine->setIncomplete(d_theory);
     }
 
-    void spendResource(unsigned ammount) throw(UnsafeInterruptException) {
-      d_engine->spendResource(ammount);
+    void spendResource(unsigned amount) override {
+      d_engine->spendResource(amount);
     }
 
-    void handleUserAttribute( const char* attr, theory::Theory* t ){
-      d_engine->handleUserAttribute( attr, t );
+    void handleUserAttribute(const char* attr, theory::Theory* t) override {
+      d_engine->handleUserAttribute(attr, t);
     }
 
-  private:
-
+   private:
     /**
      * A helper function for registering lemma recipes with the proof engine
      */
-    void registerLemmaRecipe(Node lemma, Node originalLemma, bool preprocess, theory::TheoryId theoryId);
-  };/* class TheoryEngine::EngineOutputChannel */
+    void registerLemmaRecipe(Node lemma, Node originalLemma, bool preprocess,
+                             theory::TheoryId theoryId);
+  }; /* class TheoryEngine::EngineOutputChannel */
 
   /**
    * Output channels for individual theories.
@@ -475,7 +464,7 @@ public:
   /**
    * "Spend" a resource during a search or preprocessing.
    */
-  void spendResource(unsigned ammount);
+  void spendResource(unsigned amount);
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if
