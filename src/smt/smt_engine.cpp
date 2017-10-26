@@ -53,6 +53,7 @@
 #include "options/datatypes_options.h"
 #include "options/decision_mode.h"
 #include "options/decision_options.h"
+#include "options/language.h"
 #include "options/main_options.h"
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
@@ -1288,6 +1289,11 @@ void SmtEngine::setLogicInternal() throw() {
 }
 
 void SmtEngine::setDefaults() {
+  // Language-based defaults
+  if( !options::bitvectorDivByZeroConst.wasSetByUser() ){
+    options::bitvectorDivByZeroConst.set(options::inputLanguage() == language::input::LANG_SMTLIB_V2_6);
+  }
+
   if(options::forceLogicString.wasSetByUser()) {
     d_logic = LogicInfo(options::forceLogicString());
   }else if (options::solveIntAsBV() > 0) {
@@ -2106,6 +2112,8 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
         (value.isRational() && value.getRationalValue() == Rational(2)) ||
         value.getValue() == "2" ||
         value.getValue() == "2.0" ) {
+      options::inputLanguage.set(language::input::LANG_SMTLIB_V2_0);
+
       // supported SMT-LIB version
       if(!options::outputLanguage.wasSetByUser() &&
          ( options::outputLanguage() == language::output::LANG_SMTLIB_V2_5 || options::outputLanguage() == language::output::LANG_SMTLIB_V2_6 )) {
@@ -2115,6 +2123,8 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       return;
     } else if( (value.isRational() && value.getRationalValue() == Rational(5, 2)) ||
                value.getValue() == "2.5" ) {
+      options::inputLanguage.set(language::input::LANG_SMTLIB_V2_5);
+
       // supported SMT-LIB version
       if(!options::outputLanguage.wasSetByUser() &&
          options::outputLanguage() == language::output::LANG_SMTLIB_V2_0) {
@@ -2124,6 +2134,8 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       return;
     } else if( (value.isRational() && value.getRationalValue() == Rational(13, 5)) ||
                value.getValue() == "2.6" ) {
+      options::inputLanguage.set(language::input::LANG_SMTLIB_V2_6);
+
       // supported SMT-LIB version
       if(!options::outputLanguage.wasSetByUser() &&
          options::outputLanguage() == language::output::LANG_SMTLIB_V2_0) {
