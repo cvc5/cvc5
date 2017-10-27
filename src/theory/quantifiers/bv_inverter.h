@@ -57,11 +57,15 @@ class BvInverter {
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
 
-  /** get inversion node, if :
-   *
-   *   f = getInversionSkolemFunctionFor( tn )
-   *
-   * This returns f( cond ).
+  /** get inversion node
+   * 
+   * This expects a condition cond where:
+   *   (exists x. cond)
+   * is a BV tautology where x is getSolveVariable( tn ).
+   * 
+   * It returns a term of the form:
+   *   (choice y. cond { x -> y })
+   * where y is a bound variable and x is getSolveVariable( tn ).
    */
   Node getInversionNode(Node cond, TypeNode tn);
 
@@ -71,19 +75,6 @@ class BvInverter {
    */
   Node getPathToPv(Node lit, Node pv, Node sv, Node pvs,
                    std::vector<unsigned>& path);
-
-  /** eliminate skolem functions in node n
-   *
-   * This eliminates all Skolem functions from Node n and replaces them with
-   * finalized Skolem variables.
-   *
-   * For each skolem variable we introduce, we ensure its associated side
-   * condition is added to side_conditions.
-   *
-   * Apart from Skolem functions, all subterms of n should be eligible for
-   * instantiation.
-   */
-  Node eliminateSkolemFunctions(TNode n, std::vector<Node>& side_conditions);
 
   /** solve_bv_lit
    * solve for sv in lit, where lit.path = sv
@@ -95,6 +86,10 @@ class BvInverter {
  private:
   /** dummy variables for each type */
   std::map<TypeNode, Node> d_solve_var;
+  std::vector< Node > d_keep;
+  
+  /** stores the Hilbert choice terms, for each condition */
+  std::unordered_map<Node, Node, NodeHashFunction> d_choice_cache;
 
   /** stores the inversion skolems, for each condition */
   std::unordered_map<Node, Node, NodeHashFunction> d_inversion_skolem_cache;
@@ -105,29 +100,6 @@ class BvInverter {
 
   // is operator k invertible?
   bool isInvertible(Kind k, unsigned index);
-
-  /** get inversion skolem for condition
-   * precondition : exists x. cond( x ) is a tautology in BV,
-   *               where x is getSolveVariable( tn ).
-   * returns fresh skolem k of type tn, where we may assume cond( k ).
-   */
-  Node getInversionSkolemFor(Node cond, TypeNode tn);
-
-  /** get inversion skolem function for type tn.
-   *   This is a function of type ( Bool -> tn ) that is used for explicitly
-   * storing side conditions inside terms. For all ( cond, tn ), if :
-   *
-   *   f = getInversionSkolemFunctionFor( tn )
-   *   k = getInversionSkolemFor( cond, tn )
-   *   then:
-   *   f( cond ) is a placeholder for k.
-   *
-   * In the call eliminateSkolemFunctions, we replace all f( cond ) with k and
-   * add cond{ x -> k } to side_conditions. The advantage is that f( cond )
-   * explicitly contains the side condition so it automatically updates with
-   * substitutions.
-   */
-  Node getInversionSkolemFunctionFor(TypeNode tn);
 };
 
 }  // namespace quantifiers

@@ -89,7 +89,7 @@ public:
   std::vector< TermProperties > d_props;
   // the variables that have non-basic information regarding how they are substituted
   //   an example is for linear arithmetic, we store "substitution with coefficients".
-  std::vector< Node > d_non_basic;
+    std::vector< Node > d_non_basic;
   // push the substitution pv_prop.getModifiedTerm(pv) -> n
   void push_back( Node pv, Node n, TermProperties& pv_prop ){
     d_vars.push_back( pv );
@@ -134,18 +134,36 @@ public:
   }
 };
 
+/** Ceg instantiator
+ * 
+ * This class manages counterexample-guided quantifier instantiation
+ * for a single quantified formula.
+ */
 class CegInstantiator {
 private:
+  /** quantified formula associated with this instantiator */
   QuantifiersEngine * d_qe;
+  /** output channel of this instantiator */
   CegqiOutput * d_out;
+  /** whether we are using delta for virtual term substitution
+   * (for quantified LRA).
+   */
   bool d_use_vts_delta;
+  /** whether we are using infinity for virtual term substitution
+   * (for quantified LRA).
+   */
   bool d_use_vts_inf;
-  //program variable contains cache
-  std::map< Node, std::map< Node, bool > > d_prog_var;
-  std::map< Node, bool > d_inelig;
-  //current assertions
+  /** cache from nodes to the set of variables it contains
+   * (from the quantified formula we are instantiating).
+   */
+  std::unordered_map< Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction > d_prog_var;
+  /** the set of terms that we have established are ineligible for instantiation */
+  std::unordered_set< Node, NodeHashFunction > d_inelig;
+  /** current assertions per theory */
   std::map< TheoryId, std::vector< Node > > d_curr_asserts;
+  /** map from representatives to the terms in their equivalence class */
   std::map< Node, std::vector< Node > > d_curr_eqc;
+  /** map from types to representatives of that type */
   std::map< TypeNode, std::vector< Node > > d_curr_type_eqc;
   //auxiliary variables
   std::vector< Node > d_aux_vars;
@@ -155,10 +173,13 @@ private:
   std::map< Node, std::map< Node, Node > > d_aux_eq;
   //the CE variables
   std::vector< Node > d_vars;
+  /** set form of variables */
+  std::unordered_set< Node, NodeHashFunction > d_vars_set;
   //index of variables reported in instantiation
   std::vector< unsigned > d_var_order_index;
-  //atoms of the CE lemma
+  /** are we handled a nested quantified formula? */
   bool d_is_nested_quant;
+  /** the atoms of the CE lemma */
   std::vector< Node > d_ce_atoms;
   //collect atoms
   void collectCeAtoms( Node n, std::map< Node, bool >& visited );
@@ -225,9 +246,16 @@ public:
   //get quantifiers engine
   QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
 
-//interface for instantiators
-public:
+  //------------------------------interface for instantiators 
+  /** push stack variable 
+   * This adds a new variable to solve for in the stack
+   * of variables we are processing. This stack is only
+   * used for datatypes, where e.g. the DtInstantiator 
+   * solving for a list x may push the stack "variables"
+   * head(x) and tail(x).
+   */
   void pushStackVariable( Node v );
+  /** pop stack variable */
   void popStackVariable();
   /** do add instantiation increment
    *
@@ -248,16 +276,21 @@ public:
                              SolvedForm& sf,
                              unsigned effort,
                              bool revertOnSuccess = false);
+  /** get the current model value of term n */
   Node getModelValue( Node n );
+  //------------------------------end interface for instantiators 
 public:
   unsigned getNumCEAtoms() { return d_ce_atoms.size(); }
   Node getCEAtom( unsigned i ) { return d_ce_atoms[i]; }
-  // is eligible
+  /** is n a term that is eligible for instantiation? */
   bool isEligible( Node n );
-  // has variable
+  /** does n have variable pv? */
   bool hasVariable( Node n, Node pv );
+  /** are we using delta for LRA virtual term substitution? */
   bool useVtsDelta() { return d_use_vts_delta; }
+  /** are we using infinity for LRA virtual term substitution? */
   bool useVtsInfinity() { return d_use_vts_inf; }
+  /** is the quantified formula we are processing a nested quantified formula? */
   bool hasNestedQuantification() { return d_is_nested_quant; }
 };
 

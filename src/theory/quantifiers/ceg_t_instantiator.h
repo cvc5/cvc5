@@ -121,8 +121,6 @@ private:
                         Node alit, unsigned effort);
   bool processAssertions(CegInstantiator* ci, SolvedForm& sf, Node pv,
                          unsigned effort);
-  bool needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
-  bool postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas );
   bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
   std::string identify() const { return "Bv"; }
 };

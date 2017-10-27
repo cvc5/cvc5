@@ -53,20 +53,8 @@ Node BvInverter::getSolveVariable(TypeNode tn)
   if (its == d_solve_var.end())
   {
     std::stringstream ss;
-    if (tn.isFunction())
-    {
-      Assert(tn.getNumChildren() == 2);
-      Assert(tn[0].isBoolean());
-      ss << "slv_f";
-    }
-    else
-    {
-      ss << "slv";
-    }
+    ss << "slv";
     Node k = NodeManager::currentNM()->mkSkolem(ss.str(), tn);
-    // marked as a virtual term (it is eligible for instantiation)
-    VirtualTermSkolemAttribute vtsa;
-    k.setAttribute(vtsa, true);
     d_solve_var[tn] = k;
     return k;
   }
@@ -74,64 +62,6 @@ Node BvInverter::getSolveVariable(TypeNode tn)
   {
     return its->second;
   }
-}
-
-Node BvInverter::getInversionSkolemFor(Node cond, TypeNode tn)
-{
-  // condition should be rewritten
-  Assert(Rewriter::rewrite(cond) == cond);
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
-      d_inversion_skolem_cache.find(cond);
-  if (it == d_inversion_skolem_cache.end())
-  {
-    Node skv;
-    if (cond.getKind() == EQUAL)
-    {
-      // optimization : if condition is ( x = v ) should just return v and not
-      // introduce a Skolem this can happen when we ask for the multiplicative
-      // inversion with bv1
-      Node x = getSolveVariable(tn);
-      for (unsigned i = 0; i < 2; i++)
-      {
-        if (cond[i] == x)
-        {
-          skv = cond[1 - i];
-          Trace("cegqi-bv-skvinv")
-              << "SKVINV : " << skv << " is trivially associated with conditon "
-              << cond << std::endl;
-          break;
-        }
-      }
-    }
-    if (skv.isNull())
-    {
-      // TODO : compute the value if the condition is deterministic, e.g. calc
-      // multiplicative inverse of 2 constants
-      skv = NodeManager::currentNM()->mkSkolem(
-          "skvinv", tn, "created for BvInverter");
-      Trace("cegqi-bv-skvinv")
-          << "SKVINV : " << skv << " is the skolem associated with conditon "
-          << cond << std::endl;
-      // marked as a virtual term (it is eligible for instantiation)
-      VirtualTermSkolemAttribute vtsa;
-      skv.setAttribute(vtsa, true);
-    }
-    d_inversion_skolem_cache[cond] = skv;
-    return skv;
-  }
-  else
-  {
-    Assert(it->second.getType() == tn);
-    return it->second;
-  }
-}
-
-Node BvInverter::getInversionSkolemFunctionFor(TypeNode tn)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  // function maps conditions to skolems
-  TypeNode ftn = nm->mkFunctionType(nm->booleanType(), tn);
-  return getSolveVariable(ftn);
 }
 
 Node BvInverter::getInversionNode(Node cond, TypeNode tn)
@@ -143,8 +73,20 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn)
     Trace("bv-invert-debug") << "Condition " << cond << " was rewritten to "
                              << new_cond << std::endl;
   }
-  Node f = getInversionSkolemFunctionFor(tn);
-  return NodeManager::currentNM()->mkNode(kind::APPLY_UF, f, new_cond);
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_choice_cache.find( new_cond );
+  if( it==d_choice_cache.end() ){
+    NodeManager* nm = NodeManager::currentNM();
+    Node x = nm->mkBoundVar("x",tn);
+    d_keep.push_back( x );
+    Node solve_var = getSolveVariable(tn);
+    TNode tsv = solve_var;
+    Node ccond = new_cond.substitute(tsv,x);
+    Node c = nm->mkNode( kind::CHOICE, nm->mkNode( BOUND_VAR_LIST, x ), ccond );
+    d_choice_cache[new_cond] = c;
+    return c;
+  }else{
+    return it->second;    
+  }
 }
 
 bool BvInverter::isInvertible(Kind k, unsigned index)
@@ -217,97 +159,6 @@ Node BvInverter::getPathToPv(
     }
   }
   return Node::null();
-}
-
-Node BvInverter::eliminateSkolemFunctions(TNode n,
-                                          std::vector<Node>& side_conditions)
-{
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
-  std::stack<TNode> visit;
-  TNode cur;
-
-  visit.push(n);
-  do
-  {
-    cur = visit.top();
-    visit.pop();
-    it = visited.find(cur);
-
-    if (it == visited.end())
-    {
-      visited[cur] = Node::null();
-      visit.push(cur);
-      for (unsigned i = 0; i < cur.getNumChildren(); i++)
-      {
-        visit.push(cur[i]);
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Trace("bv-invert-debug")
-          << "eliminateSkolemFunctions from " << cur << "..." << std::endl;
-
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        children.push_back(cur.getOperator());
-      }
-      for (unsigned i = 0; i < cur.getNumChildren(); i++)
-      {
-        it = visited.find(cur[i]);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cur[i] != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
-      }
-      // now, check if it is a skolem function
-      if (ret.getKind() == APPLY_UF)
-      {
-        Node op = ret.getOperator();
-        TypeNode tnp = op.getType();
-        // is this a skolem function?
-        std::map<TypeNode, Node>::iterator its = d_solve_var.find(tnp);
-        if (its != d_solve_var.end() && its->second == op)
-        {
-          Assert(ret.getNumChildren() == 1);
-          Assert(ret[0].getType().isBoolean());
-
-          Node cond = ret[0];
-          // must rewrite now to ensure we lookup the correct skolem
-          cond = Rewriter::rewrite(cond);
-
-          // if so, we replace by the (finalized) skolem variable
-          // Notice that since we are post-rewriting, skolem functions are
-          // already eliminated from cond
-          ret = getInversionSkolemFor(cond, ret.getType());
-
-          // also must add (substituted) side condition to vector
-          // substitute ( solve variable -> inversion skolem )
-          TNode solve_var = getSolveVariable(ret.getType());
-          TNode tret = ret;
-          cond = cond.substitute(solve_var, tret);
-          if (std::find(side_conditions.begin(), side_conditions.end(), cond)
-              == side_conditions.end())
-          {
-            side_conditions.push_back(cond);
-          }
-        }
-      }
-      Trace("bv-invert-debug") << "eliminateSkolemFunctions from " << cur
-                               << " returned " << ret << std::endl;
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
-  return visited[n];
 }
 
 Node BvInverter::getPathToPv(

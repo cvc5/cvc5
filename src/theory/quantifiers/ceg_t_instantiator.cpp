@@ -1138,31 +1138,6 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
 
   return false;
 }
-
-
-bool BvInstantiator::needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
-  // we may need to post-process the instantiation since inversion skolems need to be finalized
-  // TODO : technically skolem functions can appear in datatypes with bit-vector fields. We need to eliminate them there too.
-  return true;
-}
-
-bool BvInstantiator::postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas ) {
-  Trace("cegqi-bv") << "BvInstantiator::postProcessInstantiation " << pv << std::endl;
-  Assert( std::find( sf.d_vars.begin(), sf.d_vars.end(), pv )!=sf.d_vars.end() );
-  unsigned index = std::find( sf.d_vars.begin(), sf.d_vars.end(), pv )-sf.d_vars.begin();
-  Trace("cegqi-bv") << "  postprocess : " << pv << " -> " << sf.d_subs[index] << std::endl;
-  // eliminate skolem functions from the substitution
-  unsigned prev_lem_size = lemmas.size();
-  sf.d_subs[index] = d_inverter->eliminateSkolemFunctions( sf.d_subs[index], lemmas );
-  if( Trace.isOn("cegqi-bv") ){
-    Trace("cegqi-bv") << "  got : " << pv << " -> " << sf.d_subs[index] << std::endl;
-    for( unsigned i=prev_lem_size; i<lemmas.size(); i++ ){
-      Trace("cegqi-bv") << "  side condition : " << lemmas[i] << std::endl;
-    }
-  }
-
-  return true;
-}
   
 Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
   NodeManager* nm = NodeManager::currentNM();
