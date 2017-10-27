@@ -1921,7 +1921,7 @@ bool TheoryStringsRewriter::stripConstantEndpoints( std::vector< Node >& n1, std
     }
   }
   // TODO (#1180) : computing the maximal overlap in this function may be important.
-  // str.contains( str.substr( str.to.int(x), str.substr(y,0,3) ), "2aaaa" ) ---> false
+  // str.contains( str.++( str.to.int(x), str.substr(y,0,3) ), "2aaaa" ) ---> false
   //   ...since str.to.int(x) can contain at most 1 character from "2aaaa", leaving 4 characters
   //      which is larger that the upper bound for length of str.substr(y,0,3), which is 3.
   return changed;
