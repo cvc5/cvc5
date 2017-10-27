@@ -111,10 +111,10 @@ class CVC4_PUBLIC String {
   * then the maximal prefix of this string that is a suffix of y is of length m.
   *
   * For example, if x is "abcdef", then:
-  * x.overlap("aaabc") = 3
-  * x.overlap("def") = 0
-  * x.overlap("d") = 0
-  * x.overlap("defabcde") = 5
+  * x.roverlap("aaabc") = 3
+  * x.roverlap("def") = 0
+  * x.roverlap("d") = 0
+  * x.roverlap("defabcde") = 5
   *
   * Notice that x.overlap(y) = y.roverlap(x)
   */

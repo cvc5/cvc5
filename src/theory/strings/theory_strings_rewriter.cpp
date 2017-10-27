@@ -1433,23 +1433,27 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   if( node[0].getKind()==kind::STRING_CONCAT ){
     if( node[1].isConst() ){
       CVC4::String t = node[1].getConst<String>();
+      // Below, we are looking for a constant component of node[0]
+      // has no overlap with node[1], which means we can split.
+      // Notice that if the first or last components had no
+      // overlap, these would have been removed by strip
+      // constant endpoints above.
+      // Hence, we consider only the inner children.
       for(unsigned i=1; i<(node[0].getNumChildren()-1); i++){
         //constant contains
         if( node[0][i].isConst() ){
           CVC4::String s = node[0][i].getConst<String>();
           //if no overlap, we can split into disjunction
-          if( t.find(s)==std::string::npos ){
-            if( s.overlap( t )==0 && t.overlap( s )==0 ){
-              std::vector< Node > nc0;
-              getConcat( node[0], nc0 );
-              std::vector< Node > spl[2];
-              spl[0].insert( spl[0].end(), nc0.begin(), nc0.begin()+i );
-              Assert( i<nc0.size()-1 );
-              spl[1].insert( spl[1].end(), nc0.begin()+i+1, nc0.end() );
-              return NodeManager::currentNM()->mkNode( kind::OR,
-                          NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, spl[0] ), node[1] ),
-                          NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, spl[1] ), node[1] ) );
-            }
+          if( t.find(s)==std::string::npos && s.overlap( t )==0 && t.overlap( s )==0 ){
+            std::vector< Node > nc0;
+            getConcat( node[0], nc0 );
+            std::vector< Node > spl[2];
+            spl[0].insert( spl[0].end(), nc0.begin(), nc0.begin()+i );
+            Assert( i<nc0.size()-1 );
+            spl[1].insert( spl[1].end(), nc0.begin()+i+1, nc0.end() );
+            return NodeManager::currentNM()->mkNode( kind::OR,
+                        NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, spl[0] ), node[1] ),
+                        NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, spl[1] ), node[1] ) );
           }
         }
       }
@@ -1805,6 +1809,7 @@ int TheoryStringsRewriter::componentContains( std::vector< Node >& n1, std::vect
 bool TheoryStringsRewriter::stripConstantEndpoints( std::vector< Node >& n1, std::vector< Node >& n2,
                                                     std::vector< Node >& nb, std::vector< Node >& ne, int dir ) {
   bool changed = false;
+  // for ( forwards, backwards ) direction
   for( unsigned r=0; r<2; r++ ){
     if( dir==0 || ( r==0 && dir==-1 ) || ( r==1 && dir==1 ) ){
       unsigned index0 = r==0 ? 0 : n1.size()-1;
@@ -1869,23 +1874,24 @@ bool TheoryStringsRewriter::stripConstantEndpoints( std::vector< Node >& n1, std
       }else if( n1[index0].getKind()==kind::STRING_ITOS ){
         if( n2[index1].isConst() ){
           CVC4::String t = n2[index1].getConst<String>();
-          const std::vector<unsigned>& tvec = t.getVec();
-          removeComponent = n1.size()>1;
-          // if n1.size()==1, then if n2[index1] contains a non-digit, we can drop the entire component
-          //    e.g. str.contains( str.to.int(x), "123a45") --> false
-          // if n1.size()>1, then if n2[index1] does not contain a digit, we can drop the entire component
-          //    e.g. str.contains( str.++( str.to.int(x), y ), "abc") --> str.contains( y, "abc" )
-          for( unsigned i=0; i<tvec.size(); i++ ){
-            if(String::isDigit(tvec[i])) {
-              if(n1.size()>1) {
-                removeComponent = false;
-                break;
-              }
-            }else{
-              if(n1.size()==1) {
-                removeComponent = true;
-                return true;
-              }
+
+          if (n1.size()==1 ){
+            // if n1.size()==1, then if n2[index1] is not a number, we can drop the entire component
+            //    e.g. str.contains( str.to.int(x), "123a45") --> false
+            if( !t.isNumber() ){
+              removeComponent = true;
+            }
+          }else{
+            const std::vector<unsigned>& tvec = t.getVec();
+            Assert( tvec.size()>0 );
+            
+            // if n1.size()>1, then if the first (resp. last) character of n2[index1] 
+            //  is not a digit, we can drop the entire component, e.g.:
+            //    str.contains( str.++( str.to.int(x), y ), "a12") --> str.contains( y, "a12" )
+            //    str.contains( str.++( y, str.to.int(x) ), "a0b") --> str.contains( y, "a0b" )
+            unsigned i = r==0 ? 0 : (tvec.size()-1);
+            if(!String::isDigit(tvec[i])) {
+              removeComponent = true;
             }
           }
         }
@@ -1914,6 +1920,10 @@ bool TheoryStringsRewriter::stripConstantEndpoints( std::vector< Node >& n1, std
       }
     }
   }
+  // TODO (#1180) : computing the maximal overlap in this function may be important.
+  // str.contains( str.substr( str.to.int(x), str.substr(y,0,3) ), "2aaaa" ) ---> false
+  //   ...since str.to.int(x) can contain at most 1 character from "2aaaa", leaving 4 characters
+  //      which is larger that the upper bound for length of str.substr(y,0,3), which is 3.
   return changed;
 }
 
