@@ -131,11 +131,11 @@ class TermDb : public QuantifiersUtil {
   /** presolve (called once per user check-sat) */
   void presolve();
   /** reset (calculate which terms are active) */
-  bool reset(Theory::Effort effort);
+  virtual bool reset(Theory::Effort effort) override;
   /** register quantified formula */
-  void registerQuantifier(Node q);
+  virtual void registerQuantifier(Node q) override;
   /** identify */
-  std::string identify() const { return "TermDb"; }
+  virtual std::string identify() const override { return "TermDb"; }
   /** get number of operators */
   unsigned getNumOperators();
   /** get operator at index i */
@@ -378,7 +378,7 @@ class TermDb : public QuantifiersUtil {
   std::map< Node, std::vector< Node > > d_model_basis_terms;
   /** compute model basis arg */
   void computeModelBasisArgAttribute( Node n );
-public:
+ public:
   /** get model basis term */
   Node getModelBasisTerm(TypeNode tn, int i = 0);
   /** get model basis term for op */
