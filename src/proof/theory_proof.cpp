@@ -1021,31 +1021,32 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   th->check(theory::Theory::EFFORT_FULL);
   Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - th->check() DONE" << std::endl;
 
-  if(oc.d_conflict.isNull()) {
+  if(!oc.hasConflict()) {
     Trace("pf::tp") << "; conflict is null" << std::endl;
-    Assert(!oc.d_lemma.isNull());
-    Trace("pf::tp") << "; ++ but got lemma: " << oc.d_lemma << std::endl;
+    Node lastLemma  = oc.getLastLemma();
+    Assert(!lastLemma.isNull());
+    Trace("pf::tp") << "; ++ but got lemma: " << lastLemma << std::endl;
 
-    if (oc.d_lemma.getKind() == kind::OR) {
+    if (lastLemma.getKind() == kind::OR) {
       Debug("pf::tp") << "OR lemma. Negating each child separately" << std::endl;
-      for (unsigned i = 0; i < oc.d_lemma.getNumChildren(); ++i) {
-        if (oc.d_lemma[i].getKind() == kind::NOT) {
-          Trace("pf::tp") << ";     asserting fact: " << oc.d_lemma[i][0] << std::endl;
-          th->assertFact(oc.d_lemma[i][0], false);
+      for (unsigned i = 0; i < lastLemma.getNumChildren(); ++i) {
+        if (lastLemma[i].getKind() == kind::NOT) {
+          Trace("pf::tp") << ";     asserting fact: " << lastLemma[i][0] << std::endl;
+          th->assertFact(lastLemma[i][0], false);
         }
         else {
-          Trace("pf::tp") << ";     asserting fact: " << oc.d_lemma[i].notNode() << std::endl;
-          th->assertFact(oc.d_lemma[i].notNode(), false);
+          Trace("pf::tp") << ";     asserting fact: " << lastLemma[i].notNode() << std::endl;
+          th->assertFact(lastLemma[i].notNode(), false);
         }
       }
-    }
-    else {
+    } else {
       Unreachable();
 
-      Assert(oc.d_lemma.getKind() == kind::NOT);
+      Assert(oc.getLastLemma().getKind() == kind::NOT);
       Debug("pf::tp") << "NOT lemma" << std::endl;
-      Trace("pf::tp") << ";     asserting fact: " << oc.d_lemma[0] << std::endl;
-      th->assertFact(oc.d_lemma[0], false);
+      Trace("pf::tp") << ";     asserting fact: " << oc.getLastLemma()[0]
+                      << std::endl;
+      th->assertFact(oc.getLastLemma()[0], false);
     }
 
     // Trace("pf::tp") << "; ++ but got lemma: " << oc.d_lemma << std::endl;
@@ -1054,10 +1055,11 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
 
     //
     th->check(theory::Theory::EFFORT_FULL);
+  } else {
+    Debug("pf::tp") << "Calling   oc.d_proof->toStream(os)" << std::endl;
+    oc.getConflictProof()->toStream(os, map);
+    Debug("pf::tp") << "Calling   oc.d_proof->toStream(os) -- DONE!" << std::endl;
   }
-  Debug("pf::tp") << "Calling   oc.d_proof->toStream(os)" << std::endl;
-  oc.d_proof->toStream(os, map);
-  Debug("pf::tp") << "Calling   oc.d_proof->toStream(os) -- DONE!" << std::endl;
 
   Debug("pf::tp") << "About to delete the theory solver used for proving the lemma... " << std::endl;
   delete th;

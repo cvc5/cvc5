@@ -53,11 +53,12 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     Trace("quant-attr-debug") << "Set sygus " << n << std::endl;
     SygusAttribute ca;
     n.setAttribute( ca, true );
-  }else if( attr=="sygus-synth-fun" ){
+  } else if (attr == "sygus-synth-grammar") {
     Assert( node_values.size()==1 );
-    Trace("quant-attr-debug") << "Set sygus synth fun " << n << " to "  << node_values[0] << std::endl;
-    SygusSynthFunAttribute ssfa;
-    n.setAttribute( ssfa, node_values[0] );
+    Trace("quant-attr-debug") << "Set sygus synth grammar " << n << " to "
+                              << node_values[0] << std::endl;
+    SygusSynthGrammarAttribute ssg;
+    n.setAttribute(ssg, node_values[0]);
   }else if( attr=="sygus-synth-fun-var-list" ){
     Assert( node_values.size()==1 );
     Trace("quant-attr-debug") << "Set sygus synth fun var list to " << n << " to "  << node_values[0] << std::endl;

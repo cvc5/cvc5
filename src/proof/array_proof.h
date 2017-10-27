@@ -19,6 +19,7 @@
 #ifndef __CVC4__ARRAY__PROOF_H
 #define __CVC4__ARRAY__PROOF_H
 
+#include <memory>
 #include <unordered_set>
 
 #include "expr/expr.h"
@@ -32,23 +33,23 @@ namespace CVC4 {
 // Proof object outputted by TheoryARRAY.
 class ProofArray : public Proof {
  public:
-  ProofArray(theory::eq::EqProof* pf, unsigned row, unsigned row1,
-             unsigned ext);
+  ProofArray(std::shared_ptr<theory::eq::EqProof> pf, unsigned row,
+             unsigned row1, unsigned ext);
 
   void registerSkolem(Node equality, Node skolem);
 
   void toStream(std::ostream& out);
   void toStream(std::ostream& out, const ProofLetMap& map);
-  void toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf,
-                    const ProofLetMap& map);
-
  private:
+  void toStreamLFSC(std::ostream& out, TheoryProof* tp,
+                    const theory::eq::EqProof& pf, const ProofLetMap& map);
+
   Node toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
-                       theory::eq::EqProof* pf, unsigned tb,
+                       const theory::eq::EqProof& pf, unsigned tb,
                        const ProofLetMap& map);
 
-  // it is simply an equality engine proof
-  theory::eq::EqProof* d_proof;
+  // It is simply an equality engine proof.
+  std::shared_ptr<theory::eq::EqProof> d_proof;
 
   /** Merge tag for ROW applications */
   unsigned d_reasonRow;
