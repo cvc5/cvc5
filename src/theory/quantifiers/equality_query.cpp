@@ -123,8 +123,9 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
     if( r.isConst() && quantifiers::TermUtil::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
       if( d_qe->getModel() ){
-        Node tr = d_qe->getModel()->getRepSet()->getTermForRepresentative( r );
-        if( !tr.isNull() ){
+        Node tr = d_qe->getModel()->getRepSet()->getTermForRepresentative(r);
+        if (!tr.isNull())
+        {
           r = tr;
           r = getRepresentative( r );
         }else{

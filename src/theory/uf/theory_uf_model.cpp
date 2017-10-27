@@ -437,7 +437,7 @@ Node UfModelPreferenceData::getBestDefaultValue( Node defaultTerm, TheoryModel* 
     //consider finding another value, if possible
     Debug("fmf-model-cons-debug") << "Poor choice for default value, score = " << maxScore << std::endl;
     TypeNode tn = defaultTerm.getType();
-    Node newDefaultVal = m->getRepSet()->getDomainValue( tn, d_values );
+    Node newDefaultVal = m->getRepSet()->getDomainValue(tn, d_values);
     if( !newDefaultVal.isNull() ){
       defaultVal = newDefaultVal;
       Debug("fmf-model-cons-debug") << "-> Change default value to ";

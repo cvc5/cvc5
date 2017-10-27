@@ -1550,7 +1550,8 @@ void SortModel::debugPrint( const char* c ){
 bool SortModel::debugModel( TheoryModel* m ){
   if( Trace.isOn("uf-ss-warn") ){
     std::vector< Node > eqcs;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( m->getEqualityEngine() );
+    eq::EqClassesIterator eqcs_i =
+        eq::EqClassesIterator(m->getEqualityEngine());
     while( !eqcs_i.isFinished() ){
       Node eqc = (*eqcs_i);
       if( eqc.getType()==d_type ){
@@ -1567,8 +1568,8 @@ bool SortModel::debugModel( TheoryModel* m ){
       ++eqcs_i;
     }
   }
-  RepSet * rs = m->getRepSetPtr();
-  int nReps = (int)rs->getNumRepresentatives( d_type );
+  RepSet* rs = m->getRepSetPtr();
+  int nReps = (int)rs->getNumRepresentatives(d_type);
   if( nReps!=(d_maxNegCard+1) ){
     Trace("uf-ss-warn") << "WARNING : Model does not have same # representatives as cardinality for " << d_type << "." << std::endl;
     Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard << std::endl;
@@ -1584,7 +1585,8 @@ bool SortModel::debugModel( TheoryModel* m ){
       for( int i=0; i<add; i++ ){
         std::stringstream ss;
         ss << "r_" << d_type << "_";
-        Node nn = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "enumeration to meet negative card constraint" );
+        Node nn = NodeManager::currentNM()->mkSkolem( ss.str(), d_type,
+      "enumeration to meet negative card constraint" );
         d_fresh_aloc_reps.push_back( nn );
         rs->d_type_reps[d_type].push_back( nn );
       }
@@ -1596,7 +1598,7 @@ bool SortModel::debugModel( TheoryModel* m ){
         d_fresh_aloc_reps.push_back( nn );
       }
       if( d_maxNegCard==0 ){
-        rs->d_type_reps[d_type].push_back( d_fresh_aloc_reps[0] );
+        rs->d_type_reps[d_type].push_back(d_fresh_aloc_reps[0]);
       }else{
         //must add lemma
         std::vector< Node > force_cl;

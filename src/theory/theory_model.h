@@ -52,14 +52,14 @@ public:
    * on this model.
    */
   Node getValue( TNode n, bool useDontCares = false ) const;
-  
+
   //---------------------------- separation logic
   /** set the heap and value sep.nil is equal to */
-  void setHeapModel( Node h, Node neq );
+  void setHeapModel(Node h, Node neq);
   /** get the heap and value sep.nil is equal to */
-  bool getHeapModel( Expr& h, Expr& neq ) const;
+  bool getHeapModel(Expr& h, Expr& neq) const;
   //---------------------------- end separation logic
-  
+
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
   /** add term function
@@ -81,7 +81,7 @@ public:
     *  functions.
     */
   void assertRepresentative(TNode n);
-  
+
   // ------------------- general equality queries
   /** does the equality engine of this model have term a? */
   bool hasTerm(TNode a);
@@ -94,7 +94,7 @@ public:
   /** get the equality engine for this model */
   eq::EqualityEngine* getEqualityEngine() { return d_equalityEngine; }
   // ------------------- end general equality queries
-  
+
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
@@ -109,7 +109,7 @@ public:
   void printRepresentativeDebug( const char* c, Node r );
   /** print representative function */
   void printRepresentative( std::ostream& out, Node r );
-  
+
   //---------------------------- function values
   /** a map from functions f to a list of all APPLY_UF terms with operator f */
   std::map< Node, std::vector< Node > > d_uf_terms;
@@ -127,17 +127,19 @@ public:
   */
   std::vector< Node > getFunctionsToAssign();
   //---------------------------- end function values
-protected:
+ protected:
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
   /** whether this model has been built */
   bool d_modelBuilt;
-  /** special local context for our equalityEngine so we can clear it independently of search context */
+  /** special local context for our equalityEngine so we can clear it
+   * independently of search context */
   context::Context* d_eeContext;
   /** equality engine containing all known equalities/disequalities */
   eq::EqualityEngine* d_equalityEngine;
-  /** map of representatives of equality engine to used representatives in representative set */
-  std::map< Node, Node > d_reps;
+  /** map of representatives of equality engine to used representatives in
+   * representative set */
+  std::map<Node, Node> d_reps;
   /** stores set of representatives for each type */
   RepSet d_rep_set;
   /** true/false nodes */
@@ -151,23 +153,27 @@ protected:
   /**
    * Get model value function.  This function is called by getValue
    */
-  Node getModelValue(TNode n, bool hasBoundVars = false, bool useDontCares = false) const;
-private:
+  Node getModelValue(TNode n,
+                     bool hasBoundVars = false,
+                     bool useDontCares = false) const;
+
+ private:
   //---------------------------- separation logic
   /** the value of the heap */
   Node d_sep_heap;
   /** the value of the nil element */
   Node d_sep_nil_eq;
   //---------------------------- end separation logic
-  
+
   //---------------------------- function values
   /** whether function models are enabled */
   bool d_enableFuncModels;
   /** map from function terms to the (lambda) definitions
-  * After the model is built, the domain of this map is all terms of function type
+  * After the model is built, the domain of this map is all terms of function
+  * type
   * that appear as terms in d_equalityEngine.
   */
-  std::map< Node, Node > d_uf_models;
+  std::map<Node, Node> d_uf_models;
   //---------------------------- end function values
 };/* class TheoryModel */
 

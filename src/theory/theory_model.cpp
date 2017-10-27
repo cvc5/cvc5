@@ -252,7 +252,9 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
           // TODO: if func models not enabled, throw an error?
           Unreachable();
         }
-      }else if(!t.isFirstClass()) {
+      }
+      else if (!t.isFirstClass())
+      {
         // this is the class for regular expressions
         // we simply invoke the rewriter on them
         ret = Rewriter::rewrite(ret);
@@ -405,7 +407,8 @@ void TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
         if (first) {
           rep = (*eqc_i);
           //add the term (this is specifically for the case of singleton equivalence classes)
-          if( rep.getType().isFirstClass() ){
+          if (rep.getType().isFirstClass())
+          {
             d_equalityEngine->addTerm( rep );
             Trace("model-builder-debug") << "Add term to ee within assertEqualityEngine: " << rep << std::endl;
           }
@@ -626,7 +629,7 @@ void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cac
 void TheoryEngineModelBuilder::assignConstantRep( TheoryModel* tm, Node eqc, Node const_rep ) {
   d_constantReps[eqc] = const_rep;
   Trace("model-builder") << "    Assign: Setting constant rep of " << eqc << " to " << const_rep << endl;
-  tm->d_rep_set.setTermForRepresentative( const_rep, eqc );
+  tm->d_rep_set.setTermForRepresentative(const_rep, eqc);
 }
 
 bool TheoryEngineModelBuilder::isExcludedCdtValue( Node val, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc ) {
@@ -1228,7 +1231,9 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     retNode = NodeManager::currentNM()->mkNode( r.getKind(), children );
     if (childrenConst) {
       retNode = Rewriter::rewrite(retNode);
-      Assert(retNode.getKind()==kind::APPLY_UF || !retNode.getType().isFirstClass() || retNode.isConst());
+      Assert(retNode.getKind() == kind::APPLY_UF
+             || !retNode.getType().isFirstClass()
+             || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;

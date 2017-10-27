@@ -33,8 +33,10 @@ void RepSet::clear(){
   d_values_to_terms.clear();
 }
 
-bool RepSet::hasRep( TypeNode tn, Node n ) const {
-  std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
+bool RepSet::hasRep(TypeNode tn, Node n) const
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_reps.find(tn);
   if( it==d_type_reps.end() ){
     return false;
   }else{
@@ -42,7 +44,8 @@ bool RepSet::hasRep( TypeNode tn, Node n ) const {
   }
 }
 
-unsigned RepSet::getNumRepresentatives( TypeNode tn ) const{
+unsigned RepSet::getNumRepresentatives(TypeNode tn) const
+{
   std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
   if( it!=d_type_reps.end() ){
     return it->second.size();
@@ -51,16 +54,19 @@ unsigned RepSet::getNumRepresentatives( TypeNode tn ) const{
   }
 }
 
-Node RepSet::getRepresentative( TypeNode tn, unsigned i ) const {
-  std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
-  Assert( it!=d_type_reps.end() );
-  Assert( i<it->second.size() );
+Node RepSet::getRepresentative(TypeNode tn, unsigned i) const
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_reps.find(tn);
+  Assert(it != d_type_reps.end());
+  Assert(i < it->second.size());
   return it->second[i];
 }
 
-bool containsStoreAll( Node n, std::unordered_set< Node, NodeHashFunction >& cache ){
+bool containsStoreAll(Node n, std::unordered_set<Node, NodeHashFunction>& cache)
+{
   if( std::find( cache.begin(), cache.end(), n )==cache.end() ){
-    cache.insert( n );
+    cache.insert(n);
     if( n.getKind()==STORE_ALL ){
       return true;
     }else{
@@ -77,7 +83,7 @@ bool containsStoreAll( Node n, std::unordered_set< Node, NodeHashFunction >& cac
 void RepSet::add( TypeNode tn, Node n ){
   //for now, do not add array constants FIXME
   if( tn.isArray() ){
-    std::unordered_set< Node, NodeHashFunction > cache;
+    std::unordered_set<Node, NodeHashFunction> cache;
     if( containsStoreAll( n, cache ) ){
       return;
     }
@@ -125,25 +131,36 @@ bool RepSet::complete( TypeNode t ){
   }
 }
 
-Node RepSet::getTermForRepresentative( Node n ) const {
-  std::map< Node, Node >::const_iterator it = d_values_to_terms.find( n );
-  if( it!=d_values_to_terms.end()) {
-    return it->second;    
-  }else{
+Node RepSet::getTermForRepresentative(Node n) const
+{
+  std::map<Node, Node>::const_iterator it = d_values_to_terms.find(n);
+  if (it != d_values_to_terms.end())
+  {
+    return it->second;
+  }
+  else
+  {
     return Node::null();
   }
 }
 
-void RepSet::setTermForRepresentative( Node n, Node t ) {
+void RepSet::setTermForRepresentative(Node n, Node t)
+{
   d_values_to_terms[n] = t;
 }
 
-Node RepSet::getDomainValue( TypeNode tn, const std::vector< Node >& exclude ) const{
-  std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
-  if( it!=d_type_reps.end() ){
-    //try to find a pre-existing arbitrary element
-    for( size_t i=0; i<it->second.size(); i++ ){
-      if( std::find( exclude.begin(), exclude.end(), it->second[i] )==exclude.end() ){
+Node RepSet::getDomainValue(TypeNode tn, const std::vector<Node>& exclude) const
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_reps.find(tn);
+  if (it != d_type_reps.end())
+  {
+    // try to find a pre-existing arbitrary element
+    for (size_t i = 0; i < it->second.size(); i++)
+    {
+      if (std::find(exclude.begin(), exclude.end(), it->second[i])
+          == exclude.end())
+      {
         return it->second[i];
       }
     }

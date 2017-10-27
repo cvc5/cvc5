@@ -1187,8 +1187,8 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
   const theory::TheoryModel& tm = (const theory::TheoryModel&) m;
   if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
     TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
-    const theory::RepSet * rs = tm.getRepSet();
-    const std::map< TypeNode, std::vector< Node > >& type_reps = rs->d_type_reps;
+    const theory::RepSet* rs = tm.getRepSet();
+    const std::map<TypeNode, std::vector<Node> >& type_reps = rs->d_type_reps;
 
     std::map< TypeNode, std::vector< Node > >::const_iterator tn_iterator = type_reps.find( tn );
     if( options::modelUninterpDtEnum() && tn.isSort() && tn_iterator != type_reps.end() ){
@@ -1242,8 +1242,9 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
     } else {
       if( options::modelUninterpDtEnum() && val.getKind() == kind::STORE ) {
         TypeNode tn = val[1].getType();
-        const theory::RepSet * rs = tm.getRepSet();
-        if (tn.isSort() && rs->d_type_reps.find( tn )!=rs->d_type_reps.end() ){
+        const theory::RepSet* rs = tm.getRepSet();
+        if (tn.isSort() && rs->d_type_reps.find(tn) != rs->d_type_reps.end())
+        {
           Cardinality indexCard((*rs->d_type_reps.find(tn)).second.size());
           val = theory::arrays::TheoryArraysRewriter::normalizeConstant( val, indexCard );
         }

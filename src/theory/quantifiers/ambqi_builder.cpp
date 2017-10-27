@@ -67,7 +67,9 @@ void AbsDef::construct_func( FirstOrderModelAbs * m, std::vector< TNode >& fapps
     for( std::map< unsigned, std::vector< TNode > >::iterator it = fapp_child.begin(); it != fapp_child.end(); ++it ){
       Trace("abs-model-debug") << "Construct " << it->first << " : " << fapp_child_index[it->first] << " : ";
       const RepSet* rs = m->getRepSet();
-      debugPrintUInt( "abs-model-debug", rs->getNumRepresentatives( tn ), fapp_child_index[it->first] );
+      debugPrintUInt("abs-model-debug",
+                     rs->getNumRepresentatives(tn),
+                     fapp_child_index[it->first]);
       Trace("abs-model-debug") << " : " << it->second.size() << " terms." << std::endl;
       d_def[fapp_child_index[it->first]].construct_func( m, it->second, depth+1 );
     }
@@ -136,7 +138,7 @@ void AbsDef::debugPrint( const char * c, FirstOrderModelAbs * m, TNode f, unsign
     }else{
       TypeNode tn = f[depth].getType();
       const RepSet* rs = m->getRepSet();
-      unsigned dSize = rs->getNumRepresentatives( tn );
+      unsigned dSize = rs->getNumRepresentatives(tn);
       Assert( dSize<32 );
       for( std::map< unsigned, AbsDef >::const_iterator it = d_def.begin(); it != d_def.end(); ++it ){
         for( unsigned i=0; i<depth; i++ ){ Trace(c) << "  ";}
@@ -182,8 +184,9 @@ bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, 
             index = getId( it->first, index );
             if( index<32 ){
               const RepSet* rs = m->getRepSet();
-              Assert( index<rs->getNumRepresentatives( tn ) );
-              terms[m->d_var_order[q][depth]] = rs->getRepresentative( tn, index );
+              Assert(index < rs->getNumRepresentatives(tn));
+              terms[m->d_var_order[q][depth]] =
+                  rs->getRepresentative(tn, index);
               if( !it->second.addInstantiations( m, qe, q, terms, inst, depth+1 ) && inst==0 ){
                 //if we are incomplete, and have not yet added an instantiation, keep trying
                 index++;
@@ -283,7 +286,8 @@ void AbsDef::apply_ucompose( FirstOrderModelAbs * m, TNode q,
       Trace("ambqi-check-debug2") << "Add entry ( ";
       const RepSet* rs = m->getRepSet();
       for( unsigned i=0; i<entry.size(); i++ ){
-        unsigned dSize = rs->getNumRepresentatives( m->getVariable( q, i ).getType() );
+        unsigned dSize =
+            rs->getNumRepresentatives(m->getVariable(q, i).getType());
         debugPrintUInt( "ambqi-check-debug2", dSize, entry[i] );
         Trace("ambqi-check-debug2") << " ";
       }
@@ -335,7 +339,7 @@ void AbsDef::construct_var_eq( FirstOrderModelAbs * m, TNode q, unsigned v1, uns
     }else{
       Assert( currv==val_none );
       if( curr==val_none ){
-        unsigned numReps = m->getRepSet()->getNumRepresentatives( tn );
+        unsigned numReps = m->getRepSet()->getNumRepresentatives(tn);
         Assert( numReps < 32 );
         for( unsigned i=0; i<numReps; i++ ){
           curr = 1 << i;
@@ -359,7 +363,7 @@ void AbsDef::construct_var( FirstOrderModelAbs * m, TNode q, unsigned v, int cur
   }else{
     TypeNode tn = m->getVariable( q, depth ).getType();
     if( v==depth ){
-      unsigned numReps = m->getRepSet()->getNumRepresentatives( tn );
+      unsigned numReps = m->getRepSet()->getNumRepresentatives(tn);
       Assert( numReps>0 && numReps < 32 );
       for( unsigned i=0; i<numReps; i++ ){
         d_def[ 1 << i ].construct_var( m, q, v, i, depth+1 );
@@ -423,11 +427,18 @@ void AbsDef::construct_compose( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef
       for( std::map< unsigned, AbsDef * >::iterator it = children.begin(); it != children.end(); ++it ){
         Trace("ambqi-check-debug2") << "composite : " << it->first << " : " << it->second->d_value;
         if( it->second->d_value>=0 ){
-          if( it->second->d_value>=(int)rs->getNumRepresentatives( n[it->first].getType() ) ){
-            std::cout << it->second->d_value << " " << n[it->first] << " " << n[it->first].getType() << " " << rs->getNumRepresentatives( n[it->first].getType() ) << std::endl;
+          if (it->second->d_value
+              >= (int)rs->getNumRepresentatives(n[it->first].getType()))
+          {
+            std::cout << it->second->d_value << " " << n[it->first] << " "
+                      << n[it->first].getType() << " "
+                      << rs->getNumRepresentatives(n[it->first].getType())
+                      << std::endl;
           }
-          Assert( it->second->d_value<(int)rs->getNumRepresentatives( n[it->first].getType() ) );
-          values[it->first] = rs->getRepresentative( n[it->first].getType(), it->second->d_value );
+          Assert(it->second->d_value
+                 < (int)rs->getNumRepresentatives(n[it->first].getType()));
+          values[it->first] = rs->getRepresentative(n[it->first].getType(),
+                                                    it->second->d_value);
         }else{
           incomplete = true;
         }
@@ -436,8 +447,10 @@ void AbsDef::construct_compose( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef
       for( std::map< unsigned, int >::iterator it = bchildren.begin(); it != bchildren.end(); ++it ){
         Trace("ambqi-check-debug2") << "   basic :  " << it->first << " : " << it->second;
         if( it->second>=0 ){
-          Assert( it->second<(int)rs->getNumRepresentatives( n[it->first].getType() ) );
-          values[it->first] = rs->getRepresentative( n[it->first].getType(), it->second );
+          Assert(it->second
+                 < (int)rs->getNumRepresentatives(n[it->first].getType()));
+          values[it->first] =
+              rs->getRepresentative(n[it->first].getType(), it->second);
         }else{
           incomplete = true;
         }
@@ -496,7 +509,9 @@ void AbsDef::construct_compose( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef
           if( Trace.isOn("ambqi-check-debug2") ){
             for( unsigned i=0; i<entry.size(); i++ ){ Trace("ambqi-check-debug2") << "  "; }
             Trace("ambqi-check-debug2") << "...process : ";
-            debugPrintUInt("ambqi-check-debug2", rs->getNumRepresentatives( tn ), itd->first );
+            debugPrintUInt("ambqi-check-debug2",
+                           rs->getNumRepresentatives(tn),
+                           itd->first);
             Trace("ambqi-check-debug2") << " " << children.size() << " " << cchildren.size() << std::endl;
           }
           entry.push_back( itd->first );
@@ -526,7 +541,8 @@ void AbsDef::construct_compose( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef
       if( Trace.isOn("ambqi-check-debug2") ){
         for( unsigned i=0; i<entry.size(); i++ ){ Trace("ambqi-check-debug2") << "  "; }
         Trace("ambqi-check-debug2") << "...process default : ";
-        debugPrintUInt("ambqi-check-debug2", rs->getNumRepresentatives( tn ), def );
+        debugPrintUInt(
+            "ambqi-check-debug2", rs->getNumRepresentatives(tn), def);
         Trace("ambqi-check-debug2") << " " << children.size() << " " << cdchildren.size() << std::endl;
       }
       entry.push_back( def );
@@ -631,11 +647,11 @@ Node AbsDef::getFunctionValue( FirstOrderModelAbs * m, TNode op, std::vector< No
       tn = tn[tn.getNumChildren() - 1];
     }
     if( d_value>=0 ){
-      Assert( d_value<(int)rs->getNumRepresentatives( tn ) );
+      Assert(d_value < (int)rs->getNumRepresentatives(tn));
       if( tn.isBoolean() ){
         return NodeManager::currentNM()->mkConst( d_value==1 );
       }else{
-        return rs->getRepresentative( tn, d_value );
+        return rs->getRepresentative(tn, d_value);
       }
     }else{
       return Node::null();
@@ -647,8 +663,8 @@ Node AbsDef::getFunctionValue( FirstOrderModelAbs * m, TNode op, std::vector< No
     for( std::map< unsigned, AbsDef >::iterator it = d_def.begin(); it != d_def.end(); ++it ){
       if( it->first!=d_default ){
         unsigned id = getId( it->first );
-        Assert( id<rs->getNumRepresentatives( tn ) );
-        TNode n = rs->getRepresentative( tn, id );
+        Assert(id < rs->getNumRepresentatives(tn));
+        TNode n = rs->getRepresentative(tn, id);
         Node fv = it->second.getFunctionValue( m, op, vars, depth+1 );
         if( !curr.isNull() && !fv.isNull() ){
           curr = NodeManager::currentNM()->mkNode( ITE, vars[depth].eqNode( n ), fv, curr );
@@ -691,8 +707,8 @@ Node AbsDef::evaluate( FirstOrderModelAbs * m, TypeNode retTyp, std::vector< uns
       return Node::null();
     }else{
       const RepSet* rs = m->getRepSet();
-      Assert( d_value>=0 && d_value<(int)rs->getNumRepresentatives( retTyp ) );
-      return rs->getRepresentative( retTyp, d_value );
+      Assert(d_value >= 0 && d_value < (int)rs->getNumRepresentatives(retTyp));
+      return rs->getRepresentative(retTyp, d_value);
     }
   }else{
     std::map< unsigned, AbsDef >::iterator it = d_def.find( iargs[depth] );
@@ -740,15 +756,18 @@ bool AbsMbqiBuilder::processBuildModel(TheoryModel* m) {
   //initialize boolean sort
   TypeNode b = d_true.getType();
   rs->d_type_reps[b].clear();
-  rs->d_type_reps[b].push_back( d_false );
-  rs->d_type_reps[b].push_back( d_true );
+  rs->d_type_reps[b].push_back(d_false);
+  rs->d_type_reps[b].push_back(d_true);
   fm->d_rep_id[d_false] = 0;
   fm->d_rep_id[d_true] = 1;
 
   //initialize unintpreted sorts
   Trace("ambqi-model") << std::endl << "Making representatives..." << std::endl;
-  for( std::map< TypeNode, std::vector< Node > >::iterator it = rs->d_type_reps.begin();
-       it != rs->d_type_reps.end(); ++it ){
+  for (std::map<TypeNode, std::vector<Node> >::iterator it =
+           rs->d_type_reps.begin();
+       it != rs->d_type_reps.end();
+       ++it)
+  {
     if( it->first.isSort() ){
       Assert( !it->second.empty() );
       //set the domain
