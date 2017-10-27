@@ -92,6 +92,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   
   if (options::ceGuidedInst()) {
     d_sygus_tdb = new quantifiers::TermDbSygus(c, this);
+  }else{
+    d_sygus_tdb = NULL;    
   }
 
   if( options::instPropagate() ){
