@@ -252,7 +252,11 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
           // TODO: if func models not enabled, throw an error?
           Unreachable();
         }
-      }else if(t.isRegExp()) {
+      }
+      else if (!t.isFirstClass())
+      {
+        // this is the class for regular expressions
+        // we simply invoke the rewriter on them
         ret = Rewriter::rewrite(ret);
       } else {
         if (options::omitDontCares() && useDontCares) {
@@ -277,18 +281,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
   }
   d_modelCache[n] = ret;
   return ret;
-}
-
-Node TheoryModel::getDomainValue( TypeNode tn, std::vector< Node >& exclude ){
-  if( d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() ){
-    //try to find a pre-existing arbitrary element
-    for( size_t i=0; i<d_rep_set.d_type_reps[tn].size(); i++ ){
-      if( std::find( exclude.begin(), exclude.end(), d_rep_set.d_type_reps[tn][i] )==exclude.end() ){
-        return d_rep_set.d_type_reps[tn][i];
-      }
-    }
-  }
-  return Node::null();
 }
 
 /** add substitution */
@@ -415,7 +407,8 @@ void TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
         if (first) {
           rep = (*eqc_i);
           //add the term (this is specifically for the case of singleton equivalence classes)
-          if( !rep.getType().isRegExp() ){
+          if (rep.getType().isFirstClass())
+          {
             d_equalityEngine->addTerm( rep );
             Trace("model-builder-debug") << "Add term to ee within assertEqualityEngine: " << rep << std::endl;
           }
@@ -636,7 +629,7 @@ void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cac
 void TheoryEngineModelBuilder::assignConstantRep( TheoryModel* tm, Node eqc, Node const_rep ) {
   d_constantReps[eqc] = const_rep;
   Trace("model-builder") << "    Assign: Setting constant rep of " << eqc << " to " << const_rep << endl;
-  tm->d_rep_set.d_values_to_terms[const_rep] = eqc;
+  tm->d_rep_set.setTermForRepresentative(const_rep, eqc);
 }
 
 bool TheoryEngineModelBuilder::isExcludedCdtValue( Node val, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc ) {
@@ -1238,7 +1231,9 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     retNode = NodeManager::currentNM()->mkNode( r.getKind(), children );
     if (childrenConst) {
       retNode = Rewriter::rewrite(retNode);
-      Assert(retNode.getKind()==kind::APPLY_UF || retNode.getType().isRegExp() || retNode.isConst());
+      Assert(retNode.getKind() == kind::APPLY_UF
+             || !retNode.getType().isFirstClass()
+             || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;
