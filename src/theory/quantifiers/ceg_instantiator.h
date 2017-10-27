@@ -121,7 +121,7 @@ public:
   }
   // is this solved form empty?
   bool empty() { return d_vars.empty(); }
- public:
+public:
   // theta values (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
   std::vector< Node > d_theta;
   // get the current value for theta (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
@@ -238,7 +238,7 @@ public:
    * QuantifiersEngine::addInstantiation(...)
    * was successfully made in a recursive call.
    *
-   * The solved form sf is reverted to its original state if 
+   * The solved form sf is reverted to its original state if
    *   this function returns false, or
    *   revertOnSuccess is true and this function returns true.
    */
