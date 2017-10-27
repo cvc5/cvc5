@@ -55,7 +55,8 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
     FirstOrderModel * fm = (FirstOrderModel*)m;
     //traverse equality engine
     std::map< TypeNode, bool > eqc_usort;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( fm->d_equalityEngine );
+    eq::EqClassesIterator eqcs_i =
+        eq::EqClassesIterator(fm->getEqualityEngine());
     while( !eqcs_i.isFinished() ){
       TypeNode tr = (*eqcs_i).getType();
       eqc_usort[tr] = true;
@@ -107,7 +108,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
       for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
         vars.push_back( f[0][j] );
       }
-      RepSetIterator riter( d_qe, &(fm->d_rep_set) );
+      RepSetIterator riter(d_qe, fm->getRepSetPtr());
       if( riter.setQuantifier( f ) ){
         while( !riter.isFinished() ){
           tests++;
@@ -117,7 +118,8 @@ void QModelBuilder::debugModel( TheoryModel* m ){
           }
           Node n = d_qe->getInstantiation( f, vars, terms );
           Node val = fm->getValue( n );
-          if( val!=fm->d_true ){
+          if (val != d_qe->getTermUtil()->d_true)
+          {
             Trace("quant-check-model") << "*******  Instantiation " << n << " for " << std::endl;
             Trace("quant-check-model") << "         " << f << std::endl;
             Trace("quant-check-model") << "         Evaluates to " << val << std::endl;
@@ -411,7 +413,7 @@ QModelBuilderIG::Statistics::~Statistics(){
 //do exhaustive instantiation
 int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   if( optUseModel() ){
-    RepSetIterator riter( d_qe, &(d_qe->getModel()->d_rep_set) );
+    RepSetIterator riter(d_qe, d_qe->getModel()->getRepSetPtr());
     if( riter.setQuantifier( f ) ){
       FirstOrderModelIG * fmig = (FirstOrderModelIG*)d_qe->getModel();
       Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;
@@ -668,7 +670,8 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
       std::vector< Node > tr_terms;
       if( lit.getKind()==APPLY_UF ){
         //only match predicates that are contrary to this one, use literal matching
-        Node eq = NodeManager::currentNM()->mkNode( EQUAL, lit, !phase ? fm->d_true : fm->d_false );
+        Node eq = NodeManager::currentNM()->mkNode(
+            EQUAL, lit, NodeManager::currentNM()->mkConst(!phase));
         tr_terms.push_back( eq );
       }else if( lit.getKind()==EQUAL ){
         //collect trigger terms
@@ -733,7 +736,9 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
         Node n = itut->second[i];
         // only consider unique up to congruence (in model equality engine)?
         Node v = fmig->getRepresentative( n );
-        Trace("fmf-model-cons") << "Set term " << n << " : " << fmig->d_rep_set.getIndexFor( v ) << " " << v << std::endl;
+        Trace("fmf-model-cons") << "Set term " << n << " : "
+                                << fmig->getRepSet()->getIndexFor(v) << " " << v
+                                << std::endl;
         //if this assertion did not help the model, just consider it ground
         //set n = v in the model tree
         //set it as ground value
@@ -763,14 +768,19 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
       //chose defaultVal based on heuristic, currently the best ratio of "pro" responses
       Node defaultVal = d_uf_prefs[op].getBestDefaultValue( defaultTerm, fm );
       if( defaultVal.isNull() ){
-        if (!fmig->d_rep_set.hasType(defaultTerm.getType())) {
+        if (!fmig->getRepSet()->hasType(defaultTerm.getType()))
+        {
           Node mbt = d_qe->getTermDatabase()->getModelBasisTerm(defaultTerm.getType());
-          fmig->d_rep_set.d_type_reps[defaultTerm.getType()].push_back(mbt);
+          fmig->getRepSetPtr()->d_type_reps[defaultTerm.getType()].push_back(
+              mbt);
         }
-        defaultVal = fmig->d_rep_set.d_type_reps[defaultTerm.getType()][0];
+        defaultVal =
+            fmig->getRepSet()->getRepresentative(defaultTerm.getType(), 0);
       }
       Assert( !defaultVal.isNull() );
-      Trace("fmf-model-cons") << "Set default term : " << fmig->d_rep_set.getIndexFor( defaultVal ) << std::endl;
+      Trace("fmf-model-cons")
+          << "Set default term : " << fmig->getRepSet()->getIndexFor(defaultVal)
+          << std::endl;
       fmig->d_uf_model_gen[op].setValue( fm, defaultTerm, defaultVal, false );
     }
     Debug("fmf-model-cons") << "  Making model...";
