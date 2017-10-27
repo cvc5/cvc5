@@ -523,7 +523,6 @@ public:
 
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
-
   /**
    * Return a decision request, if the theory has one, or the NULL node
    * otherwise.

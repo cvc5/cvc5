@@ -132,7 +132,8 @@ private:
   quantifiers::TermUtil* d_term_util;
   /** quantifiers attributes */
   std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
-private:
+
+ private:
   /** instantiation engine */
   quantifiers::InstantiationEngine* d_inst_engine;
   /** model engine */
@@ -163,7 +164,8 @@ private:
   quantifiers::QuantAntiSkolem * d_anti_skolem;
   /** quantifiers instantiation propagtor */
   quantifiers::InstPropagator * d_inst_prop;
-public: //effort levels (TODO : make an enum and use everywhere #1293)
+
+ public:  // effort levels (TODO : make an enum and use everywhere #1293)
   enum {
     QEFFORT_CONFLICT,
     QEFFORT_STANDARD,

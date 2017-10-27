@@ -31,9 +31,9 @@ struct ModelBasisArgSort
 {
   std::vector< Node > d_terms;
   // number of arguments that are model-basis terms
-  std::unordered_map< Node, unsigned, NodeHashFunction > d_mba_count;
+  std::unordered_map<Node, unsigned, NodeHashFunction> d_mba_count;
   bool operator() (int i,int j) {
-    return (d_mba_count[d_terms[i]] < d_mba_count[d_terms[j]] );
+    return (d_mba_count[d_terms[i]] < d_mba_count[d_terms[j]]);
   }
 };
 
@@ -504,7 +504,8 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     ModelBasisArgSort mbas;
     for (int i=0; i<(int)conds.size(); i++) {
       mbas.d_terms.push_back(conds[i]);
-      mbas.d_mba_count[conds[i]] = d_qe->getTermDatabase()->getModelBasisArg( conds[i] );
+      mbas.d_mba_count[conds[i]] =
+          d_qe->getTermDatabase()->getModelBasisArg(conds[i]);
       indices.push_back(i);
     }
     std::sort( indices.begin(), indices.end(), mbas );

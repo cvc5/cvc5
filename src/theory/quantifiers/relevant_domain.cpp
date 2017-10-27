@@ -98,10 +98,7 @@ bool RelevantDomain::reset( Theory::Effort e ) {
   return true;
 }
 
-void RelevantDomain::registerQuantifier( Node q ) {
-
-}  
-  
+void RelevantDomain::registerQuantifier(Node q) {}
 void RelevantDomain::compute(){
   if( !d_is_computed ){
     d_is_computed = true;
@@ -120,11 +117,12 @@ void RelevantDomain::compute(){
 
     Trace("rel-dom-debug") << "account for ground terms" << std::endl;
     TermDb * db = d_qe->getTermDatabase();
-    for( unsigned k=0; k<db->getNumOperators(); k++ ){
-      Node op = db->getOperator( k );
+    for (unsigned k = 0; k < db->getNumOperators(); k++)
+    {
+      Node op = db->getOperator(k);
       unsigned sz = db->getNumGroundTerms( op );
       for( unsigned i=0; i<sz; i++ ){
-        Node n = db->getGroundTerm( op, i );
+        Node n = db->getGroundTerm(op, i);
         //if it is a non-redundant term
         if( db->isTermActive( n ) ){
           for( unsigned j=0; j<n.getNumChildren(); j++ ){

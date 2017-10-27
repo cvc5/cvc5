@@ -38,9 +38,9 @@ public:
   EqualityQueryInstProp( QuantifiersEngine* qe );
   ~EqualityQueryInstProp(){};
   /** reset */
-  virtual bool reset( Theory::Effort e );
+  virtual bool reset(Theory::Effort e);
   /* Called for new quantifiers */
-  virtual void registerQuantifier( Node q ) {}
+  virtual void registerQuantifier(Node q) {}
   /** identify */
   virtual std::string identify() const { return "EqualityQueryInstProp"; }
   /** extends engine */
@@ -163,11 +163,11 @@ public:
   InstPropagator( QuantifiersEngine* qe );
   ~InstPropagator(){}
   /** reset */
-  virtual bool reset( Theory::Effort e );
+  virtual bool reset(Theory::Effort e) override;
   /* Called for new quantifiers */
-  virtual void registerQuantifier( Node q ) {}
+  virtual void registerQuantifier(Node q) override {}
   /** identify */
-  virtual std::string identify() const { return "InstPropagator"; }
+  virtual std::string identify() const override { return "InstPropagator"; }
   /** get the notify mechanism */
   InstantiationNotify* getInstantiationNotify() { return &d_notify; }
 };

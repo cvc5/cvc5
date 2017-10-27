@@ -43,19 +43,19 @@ class QuantifiersModule {
 public:
   QuantifiersModule( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
   virtual ~QuantifiersModule(){}
-  /** Presolve. 
-   * 
+  /** Presolve.
+   *
    * Called at the beginning of check-sat call.
    */
   virtual void presolve() {}
   /** Needs check.
-   * 
+   *
    * Returns true if this module wishes a call to be made
    * to check(e) during QuantifiersEngine::check(e).
    */
   virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
-  /** Needs model. 
-   * 
+  /** Needs model.
+   *
    * Whether this module needs a model built during a
    * call to QuantifiersEngine::check(e)
    * It returns one of QEFFORT_* from quantifiers_engine.h,
@@ -64,64 +64,66 @@ public:
    */
   virtual unsigned needsModel( Theory::Effort e );
   /** Reset.
-   * 
+   *
    * Called at the beginning of QuantifiersEngine::check(e).
    */
   virtual void reset_round( Theory::Effort e ){}
   /** Check.
-   * 
+   *
    *   Called during QuantifiersEngine::check(e) depending
    *   if needsCheck(e) returns true.
    */
   virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
   /** Check complete?
-   * 
-   * Returns false if the module's reasoning was globally incomplete 
+   *
+   * Returns false if the module's reasoning was globally incomplete
    * (e.g. "sat" must be replaced with "incomplete").
-   * 
+   *
    * This is called just before the quantifiers engine will return
    * with no lemmas added during a LAST_CALL effort check.
    */
   virtual bool checkComplete() { return true; }
   /** Check was complete for quantified formula q
-   * 
-   * If for each quantified formula q, some module returns true for checkCompleteFor( q ),
-   * and no lemmas are added by the quantifiers theory, then we may answer "sat", unless
+   *
+   * If for each quantified formula q, some module returns true for
+   * checkCompleteFor( q ),
+   * and no lemmas are added by the quantifiers theory, then we may answer
+   * "sat", unless
    * we are incomplete for other reasons.
    */
   virtual bool checkCompleteFor( Node q ) { return false; }
   /** Pre register quantifier.
-   * 
+   *
    * Called once for new quantified formulas that are
    * pre-registered by the quantifiers theory.
    */
   virtual void preRegisterQuantifier( Node q ) { }
-  /** Register quantifier 
+  /** Register quantifier
    *
    * Called once for new quantified formulas that are
    * pre-registered by the quantifiers theory, after
-   * internal ownership of quantified formulas is finalized. 
+   * internal ownership of quantified formulas is finalized.
    */
   virtual void registerQuantifier( Node q ) = 0;
-  /** Assert node. 
+  /** Assert node.
    *
-   * Called when a quantified formula q is asserted to the quantifiers theory 
+   * Called when a quantified formula q is asserted to the quantifiers theory
    */
-  virtual void assertNode( Node q ) {}
+  virtual void assertNode(Node q) {}
   /* Get the next decision request.
-   * 
-   * Identical to Theory::getNextDecisionRequest(...) 
+   *
+   * Identical to Theory::getNextDecisionRequest(...)
    */
   virtual Node getNextDecisionRequest( unsigned& priority ) { return TNode::null(); }
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
-//----------------------------general queries
+  //----------------------------general queries
   /** get currently used the equality engine */
   eq::EqualityEngine * getEqualityEngine();
   /** are n1 and n2 equal in the current used equality engine? */
   bool areEqual( TNode n1, TNode n2 );
   /** are n1 and n2 disequal in the current used equality engine? */
-  bool areDisequal( TNode n1, TNode n2 );
+  bool areDisequal(TNode n1, TNode n2);
   /** get the representative of n in the current used equality engine */
   TNode getRepresentative( TNode n );
   /** get quantifiers engine that owns this module */
@@ -130,15 +132,16 @@ public:
   quantifiers::TermDb * getTermDatabase();
   /** get currently used term utility object */
   quantifiers::TermUtil * getTermUtil();
-//----------------------------end general queries
-protected:
+  //----------------------------end general queries
+ protected:
   /** pointer to the quantifiers engine that owns this module */
   QuantifiersEngine* d_quantEngine;
 };/* class QuantifiersModule */
 
-/** Quantifiers utility 
+/** Quantifiers utility
 *
-* This is a lightweight version of a quantifiers module that does not implement methods
+* This is a lightweight version of a quantifiers module that does not implement
+* methods
 * for checking satisfiability.
 */
 class QuantifiersUtil {
@@ -146,13 +149,14 @@ public:
   QuantifiersUtil(){}
   virtual ~QuantifiersUtil(){}
   /* reset
-  * Called at the beginning of an instantiation round 
-  * Returns false if the reset failed. When reset fails, the utility should have added a lemma 
+  * Called at the beginning of an instantiation round
+  * Returns false if the reset failed. When reset fails, the utility should have
+  * added a lemma
   * via a call to qe->addLemma. TODO: improve this contract #1163
   */
   virtual bool reset( Theory::Effort e ) = 0;
   /* Called for new quantifiers */
-  virtual void registerQuantifier( Node q ) = 0;
+  virtual void registerQuantifier(Node q) = 0;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
 };
@@ -176,9 +180,9 @@ public:
   static void debugPrintMonomialSum( std::map< Node, Node >& msum, const char * c );
 };
 
-
-/** QuantRelevance 
-* This class is used for implementing SinE-style heuristics (e.g. see Hoder et al CADE 2011)
+/** QuantRelevance
+* This class is used for implementing SinE-style heuristics (e.g. see Hoder et
+* al CADE 2011)
 * This is enabled by the option --relevant-triggers.
 */
 class QuantRelevance : public QuantifiersUtil
@@ -197,9 +201,10 @@ private:
 public:
   QuantRelevance( bool cr ) : d_computeRel( cr ){}
   ~QuantRelevance(){}
-  virtual bool reset( Theory::Effort e ) override { return true; }
-  /** Called for new quantifiers after ownership of quantified formulas are finalized */
-  virtual void registerQuantifier( Node q ) override;
+  virtual bool reset(Theory::Effort e) override { return true; }
+  /** Called for new quantifiers after ownership of quantified formulas are
+   * finalized */
+  virtual void registerQuantifier(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const override { return "QuantRelevance"; }
   /** set relevance */
@@ -233,7 +238,6 @@ public:
   static void getEntailPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol );
 };
 
-
 /** EqualityQuery
 * This is a wrapper class around equality engine.
 */
@@ -255,7 +259,8 @@ public:
   virtual eq::EqualityEngine* getEngine() = 0;
   /** get the equivalence class of a */
   virtual void getEquivalenceClass( Node a, std::vector< Node >& eqc ) = 0;
-  /** get the term that exists in EE that is congruent to f with args (f is returned by TermDb::getMatchOperator(...)) */
+  /** get the term that exists in EE that is congruent to f with args (f is
+   * returned by TermDb::getMatchOperator(...)) */
   virtual TNode getCongruentTerm( Node f, std::vector< TNode >& args ) = 0;
 };/* class EqualityQuery */
 

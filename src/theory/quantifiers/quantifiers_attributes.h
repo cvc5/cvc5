@@ -61,22 +61,24 @@ namespace quantifiers {
 //struct RrPriorityAttributeId {};
 //typedef expr::Attribute< RrPriorityAttributeId, uint64_t > RrPriorityAttribute;
 
-
 /** This struct stores attributes for a single quantified formula */
-struct QAttributes{
-public:
+struct QAttributes
+{
+ public:
   QAttributes() : d_hasPattern(false), d_conjecture(false), d_axiom(false), d_sygus(false),
                   d_synthesis(false), d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), d_quant_elim_partial(false){}
   ~QAttributes(){}
   /** does the quantified formula have a pattern? */
   bool d_hasPattern;
-  /** if non-null, this is the rewrite rule representation of the quantified formula */
+  /** if non-null, this is the rewrite rule representation of the quantified
+   * formula */
   Node d_rr;
   /** is this formula marked a conjecture? */
   bool d_conjecture;
   /** is this formula marked an axiom? */
   bool d_axiom;
-  /** if non-null, this quantified formula is a function definition for function d_fundef_f */
+  /** if non-null, this quantified formula is a function definition for function
+   * d_fundef_f */
   Node d_fundef_f;
   /** is this formula marked as a sygus conjecture? */
   bool d_sygus;
@@ -84,13 +86,15 @@ public:
   bool d_synthesis;
   /** if a rewrite rule, then this is the priority value for the rewrite rule */
   int d_rr_priority;
-  /** stores the maximum instantiation level allowed for this quantified formula (-1 means allow any) */
+  /** stores the maximum instantiation level allowed for this quantified formula
+   * (-1 means allow any) */
   int d_qinstLevel;
   /** is this formula marked for quantifier elimination? */
   bool d_quant_elim;
   /** is this formula marked for partial quantifier elimination? */
   bool d_quant_elim_partial;
-  /** the instantiation pattern list for this quantified formula (its 3rd child) */
+  /** the instantiation pattern list for this quantified formula (its 3rd child)
+   */
   Node d_ipl;
   /** the quantifier id associated with this formula */
   Node d_qid_num;
@@ -100,9 +104,10 @@ public:
   bool isFunDef() { return !d_fundef_f.isNull(); }
 };
 
-/** This class caches information about attributes of quantified formulas 
+/** This class caches information about attributes of quantified formulas
 *
-* It also has static utility functions used for determining attributes and information about 
+* It also has static utility functions used for determining attributes and
+* information about
 * quantified formulas.
 */
 class QuantAttributes
@@ -110,19 +115,23 @@ class QuantAttributes
 public:
   QuantAttributes( QuantifiersEngine * qe );
   ~QuantAttributes(){}
-  
   /** set user attribute
-  * This function applies an attribute 
-  * This can be called when we mark expressions with attributes, e.g. (! q :attribute attr [node_values, str_value...]),
-  * It can also be called internally in various ways (for SyGus, quantifier elimination, etc.)
+  * This function applies an attribute
+  * This can be called when we mark expressions with attributes, e.g. (! q
+  * :attribute attr [node_values, str_value...]),
+  * It can also be called internally in various ways (for SyGus, quantifier
+  * elimination, etc.)
   */
-  static void setUserAttribute( const std::string& attr, Node q, std::vector< Node >& node_values, std::string str_value );
-  
+  static void setUserAttribute(const std::string& attr,
+                               Node q,
+                               std::vector<Node>& node_values,
+                               std::string str_value);
+
   /** compute quantifier attributes */
-  static void computeQuantAttributes( Node q, QAttributes& qa );
+  static void computeQuantAttributes(Node q, QAttributes& qa);
   /** compute the attributes for q */
-  void computeAttributes( Node q );
-  
+  void computeAttributes(Node q);
+
   /** is quantifier treated as a rewrite rule? */
   static bool checkRewriteRule( Node q );
   /** get the rewrite rule associated with the quanfied formula */
@@ -164,7 +173,7 @@ public:
   int getQuantIdNum( Node q );
   /** get quant id num */
   Node getQuantIdNumNode( Node q );
-  
+
 private:
   /** pointer to quantifiers engine */
   QuantifiersEngine * d_quantEngine;
