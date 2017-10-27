@@ -94,7 +94,7 @@ static std::string maybeQuoteSymbol(const std::string& s) {
 
 static bool stringifyRegexp(Node n, stringstream& ss) {
   if(n.getKind() == kind::STRING_TO_REGEXP) {
-    ss << n[0].getConst<String>().toString();
+    ss << n[0].getConst<String>().toString(true);
   } else if(n.getKind() == kind::REGEXP_CONCAT) {
     for(unsigned i = 0; i < n.getNumChildren(); ++i) {
       if(!stringifyRegexp(n[i], ss)) {
@@ -256,7 +256,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
     case kind::CONST_STRING: {
       //const std::vector<unsigned int>& s = n.getConst<String>().getVec();
-      std::string s = n.getConst<String>().toString();
+      std::string s = n.getConst<String>().toString(true);
       out << '"';
       for(size_t i = 0; i < s.size(); ++i) {
         //char c = String::convertUnsignedIntToChar(s[i]);

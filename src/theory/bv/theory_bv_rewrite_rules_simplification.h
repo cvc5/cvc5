@@ -21,6 +21,7 @@
 
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -1105,6 +1106,201 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
   return res;
 }
 
+/**
+ * ZeroExtendEqConst
+ *
+ * Rewrite zero_extend(x^n, m) = c^n+m to
+ *
+ *   false         if c[n+m-1:n] != 0
+ *   x = c[n-1:0]  otherwise.
+ */
+template <>
+inline bool RewriteRule<ZeroExtendEqConst>::applies(TNode node) {
+  return node.getKind() == kind::EQUAL &&
+         ((node[0].getKind() == kind::BITVECTOR_ZERO_EXTEND &&
+           node[1].isConst()) ||
+          (node[1].getKind() == kind::BITVECTOR_ZERO_EXTEND &&
+           node[0].isConst()));
+}
+
+template <>
+inline Node RewriteRule<ZeroExtendEqConst>::apply(TNode node) {
+  TNode t, c;
+  if (node[0].getKind() == kind::BITVECTOR_ZERO_EXTEND) {
+    t = node[0][0];
+    c = node[1];
+  } else {
+    t = node[1][0];
+    c = node[0];
+  }
+  BitVector c_hi =
+      c.getConst<BitVector>().extract(utils::getSize(c) - 1, utils::getSize(t));
+  BitVector c_lo = c.getConst<BitVector>().extract(utils::getSize(t) - 1, 0);
+  BitVector zero = BitVector(c_hi.getSize(), Integer(0));
+
+  if (c_hi == zero) {
+    return NodeManager::currentNM()->mkNode(kind::EQUAL, t,
+                                            utils::mkConst(c_lo));
+  }
+  return utils::mkFalse();
+}
+
+/**
+ * SignExtendEqConst
+ *
+ * Rewrite sign_extend(x^n, m) = c^n+m to
+ *
+ *   x = c[n-1:0]   if (c[n-1:n-1] == 0 && c[n+m-1:n] == 0) ||
+ *                     (c[n-1:n-1] == 1 && c[n+m-1:n] == ~0)
+ *   false          otherwise.
+ */
+template <>
+inline bool RewriteRule<SignExtendEqConst>::applies(TNode node) {
+  return node.getKind() == kind::EQUAL &&
+         ((node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND &&
+           node[1].isConst()) ||
+          (node[1].getKind() == kind::BITVECTOR_SIGN_EXTEND &&
+           node[0].isConst()));
+}
+
+template <>
+inline Node RewriteRule<SignExtendEqConst>::apply(TNode node) {
+  TNode t, c;
+  if (node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND) {
+    t = node[0][0];
+    c = node[1];
+  } else {
+    t = node[1][0];
+    c = node[0];
+  }
+  unsigned pos_msb_t = utils::getSize(t) - 1;
+  BitVector c_hi =
+      c.getConst<BitVector>().extract(utils::getSize(c) - 1, pos_msb_t);
+  BitVector c_lo = c.getConst<BitVector>().extract(pos_msb_t, 0);
+  BitVector zero = BitVector(c_hi.getSize(), Integer(0));
+
+  if (c_hi == zero || c_hi == ~zero) {
+    return NodeManager::currentNM()->mkNode(kind::EQUAL, t,
+                                            utils::mkConst(c_lo));
+  }
+  return utils::mkFalse();
+}
+
+/**
+ * ZeroExtendUltConst
+ *
+ * Rewrite zero_extend(x^n,m) < c^n+m to
+ *
+ *   x < c[n-1:0]   if c[n+m-1:n] == 0.
+ *
+ * Rewrite c^n+m < Rewrite zero_extend(x^n,m) to
+ *
+ *   c[n-1:0] < x   if c[n+m-1:n] == 0.
+ */
+template <>
+inline bool RewriteRule<ZeroExtendUltConst>::applies(TNode node) {
+  if (node.getKind() == kind::BITVECTOR_ULT &&
+      ((node[0].getKind() == kind::BITVECTOR_ZERO_EXTEND &&
+        node[1].isConst()) ||
+       (node[1].getKind() == kind::BITVECTOR_ZERO_EXTEND &&
+        node[0].isConst()))) {
+    TNode t, c;
+    bool is_lhs = node[0].getKind() == kind::BITVECTOR_ZERO_EXTEND;
+    if (is_lhs) {
+      t = node[0][0];
+      c = node[1];
+    } else {
+      t = node[1][0];
+      c = node[0];
+    }
+    BitVector bv_c = c.getConst<BitVector>();
+    BitVector bv_max =
+        BitVector(utils::getSize(c)).setBit(utils::getSize(t) - 1);
+
+    BitVector c_hi = c.getConst<BitVector>().extract(utils::getSize(c) - 1,
+                                                     utils::getSize(t));
+    BitVector zero = BitVector(c_hi.getSize(), Integer(0));
+
+    return c_hi == zero;
+  }
+  return false;
+}
+
+template <>
+inline Node RewriteRule<ZeroExtendUltConst>::apply(TNode node) {
+  TNode t, c;
+  bool is_lhs = node[0].getKind() == kind::BITVECTOR_ZERO_EXTEND;
+  if (is_lhs) {
+    t = node[0][0];
+    c = node[1];
+  } else {
+    t = node[1][0];
+    c = node[0];
+  }
+  Node c_lo =
+      utils::mkConst(c.getConst<BitVector>().extract(utils::getSize(t) - 1, 0));
+
+  if (is_lhs) {
+    return NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, t, c_lo);
+  }
+  return NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, c_lo, t);
+}
+
+/**
+ * SignExtendUltConst
+ *
+ * Rewrite sign_extend(x^n,m) < c^n+m to
+ *
+ *   x < c[n-1:0]   if c <= (1 << (n - 1)).
+ *
+ * Rewrite c^n+m < sign_extend(x^n,m) to
+ *
+ *   c[n-1:0] < x   if c < (1 << (n - 1)).
+ */
+template <>
+inline bool RewriteRule<SignExtendUltConst>::applies(TNode node) {
+  if (node.getKind() == kind::BITVECTOR_ULT &&
+      ((node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND &&
+        node[1].isConst()) ||
+       (node[1].getKind() == kind::BITVECTOR_SIGN_EXTEND &&
+        node[0].isConst()))) {
+    TNode t, c;
+    bool is_lhs = node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND;
+    if (is_lhs) {
+      t = node[0][0];
+      c = node[1];
+    } else {
+      t = node[1][0];
+      c = node[0];
+    }
+    BitVector bv_c = c.getConst<BitVector>();
+    BitVector bv_max =
+        BitVector(utils::getSize(c)).setBit(utils::getSize(t) - 1);
+
+    return (is_lhs && bv_c <= bv_max) || (!is_lhs && bv_c < bv_max);
+  }
+  return false;
+}
+
+template <>
+inline Node RewriteRule<SignExtendUltConst>::apply(TNode node) {
+  TNode t, c;
+  bool is_lhs = node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND;
+  if (is_lhs) {
+    t = node[0][0];
+    c = node[1];
+  } else {
+    t = node[1][0];
+    c = node[0];
+  }
+  Node c_lo =
+      utils::mkConst(c.getConst<BitVector>().extract(utils::getSize(t) - 1, 0));
+
+  if (is_lhs) {
+    return NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, t, c_lo);
+  }
+  return NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, c_lo, t);
+}
 
 template<> inline
 bool RewriteRule<MultSlice>::applies(TNode node) {
