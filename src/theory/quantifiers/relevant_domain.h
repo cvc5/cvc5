@@ -64,9 +64,9 @@ private:
 public:
   RelevantDomain( QuantifiersEngine* qe );
   virtual ~RelevantDomain();
-  /* reset */
+  /** Reset. */
   bool reset( Theory::Effort e );
-  /** register the quantified formula q */
+  /** Register the quantified formula q */
   void registerQuantifier( Node q );
   /** identify */
   std::string identify() const { return "RelevantDomain"; }

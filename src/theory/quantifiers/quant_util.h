@@ -43,39 +43,75 @@ class QuantifiersModule {
 public:
   QuantifiersModule( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
   virtual ~QuantifiersModule(){}
-  /** presolve */
+  /** Presolve. 
+   * 
+   * Called at the beginning of check-sat call.
+   */
   virtual void presolve() {}
-  /* whether this module needs to check this round */
+  /** Needs check.
+   * 
+   * Returns true if this module wishes a call to be made
+   * to check(e) during QuantifiersEngine::check(e).
+   */
   virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
-  /* whether this module needs a model built during 
-  * It returns one of QEFFORT_* from quantifiers_engine.h,
-  * which specifies the quantifiers effort in which it requires the model to
-  * be built.
-  */
+  /** Needs model. 
+   * 
+   * Whether this module needs a model built during a
+   * call to QuantifiersEngine::check(e)
+   * It returns one of QEFFORT_* from quantifiers_engine.h,
+   * which specifies the quantifiers effort in which it requires the model to
+   * be built.
+   */
   virtual unsigned needsModel( Theory::Effort e );
-  /* reset
-  * Called at the beginning of an instantiation round.
-  */
+  /** Reset.
+   * 
+   * Called at the beginning of QuantifiersEngine::check(e).
+   */
   virtual void reset_round( Theory::Effort e ){}
-  /* Call during quantifier engine's check */
+  /** Check.
+   * 
+   *   Called during QuantifiersEngine::check(e) depending
+   *   if needsCheck(e) returns true.
+   */
   virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
-  /* check was complete, return false if the module's reasoning was globally incomplete 
-  * (e.g. "sat" must be replaced with "incomplete") 
-  */
+  /** Check complete?
+   * 
+   * Returns false if the module's reasoning was globally incomplete 
+   * (e.g. "sat" must be replaced with "incomplete").
+   * 
+   * This is called just before the quantifiers engine will return
+   * with no lemmas added during a LAST_CALL effort check.
+   */
   virtual bool checkComplete() { return true; }
-  /* check was complete for quantified formula q
-  * If for each quantified formula q, some module returns true for checkCompleteFor( q ),
-  * and no lemmas are added by the quantifiers theory, then we may answer "sat", unless
-  * we are incomplete for other reasons.
-  */
+  /** Check was complete for quantified formula q
+   * 
+   * If for each quantified formula q, some module returns true for checkCompleteFor( q ),
+   * and no lemmas are added by the quantifiers theory, then we may answer "sat", unless
+   * we are incomplete for other reasons.
+   */
   virtual bool checkCompleteFor( Node q ) { return false; }
-  /* Called for new quantified formulas */
+  /** Pre register quantifier.
+   * 
+   * Called once for new quantified formulas that are
+   * pre-registered by the quantifiers theory.
+   */
   virtual void preRegisterQuantifier( Node q ) { }
-  /* Called for new quantifiers after ownership of quantified formulas are finalized */
+  /** Register quantifier 
+   *
+   * Called once for new quantified formulas that are
+   * pre-registered by the quantifiers theory, after
+   * internal ownership of quantified formulas is finalized. 
+   */
   virtual void registerQuantifier( Node q ) = 0;
-  /* Called when a quantified formula n is asserted to the quantifiers theory */
-  virtual void assertNode( Node n ) {}
-  /* Get the next decision request, identical to Theory::getNextDecisionRequest */
+  /** Assert node. 
+   *
+   * Called when a quantified formula q is asserted to the quantifiers theory 
+   */
+  virtual void assertNode( Node q ) {}
+  /* Get the next decision request.
+   * 
+   * Identical to Theory::getNextDecisionRequest(...) 
+   */
   virtual Node getNextDecisionRequest( unsigned& priority ) { return TNode::null(); }
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
@@ -161,11 +197,11 @@ private:
 public:
   QuantRelevance( bool cr ) : d_computeRel( cr ){}
   ~QuantRelevance(){}
-  virtual bool reset( Theory::Effort e ) { return true; }
-  /* Called for new quantifiers after ownership of quantified formulas are finalized */
-  virtual void registerQuantifier( Node q );
+  virtual bool reset( Theory::Effort e ) override { return true; }
+  /** Called for new quantifiers after ownership of quantified formulas are finalized */
+  virtual void registerQuantifier( Node q ) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
-  virtual std::string identify() const { return "QuantRelevance"; }
+  virtual std::string identify() const override { return "QuantRelevance"; }
   /** set relevance */
   void setRelevance( Node s, int r );
   /** get relevance */

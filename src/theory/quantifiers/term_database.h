@@ -161,20 +161,23 @@ public:
   void addTerm( Node n, std::set< Node >& added, bool withinQuant = false, bool withinInstClosure = false );
   /** get match operator for term n
   *
-  * If n has a kind that we index, this will typically n.getOperator().
+  * If n has a kind that we index, this function will 
+  * typically return n.getOperator().
   *
   * However, for parametric operators f, the match operator is an arbitrary chosen
   * f-application.  For example, consider array select:
   * A : (Array Int Int)
   * B : (Array Bool Int)
   * We require that terms like (select A 1) and (select B 2) are indexed in separate
-  * data structures despite the fact that (select A 1).getOperator()==(select B 2).getOperator().
+  * data structures despite the fact that 
+  *    (select A 1).getOperator()==(select B 2).getOperator().
   * Hence, for the above terms, we may return:
   * getMatchOperator( (select A 1) ) = (select A 1), and
   * getMatchOperator( (select B 2) ) = (select B 2).
   * The match operator is the first instance of an application of the parametric operator of its type.
   *
-  * If n has a kind that we do not index (like PLUS), then this function returns Node::null().
+  * If n has a kind that we do not index (like PLUS), 
+  * then this function returns Node::null().
   */
   Node getMatchOperator( Node n );
   /** get term arg index for all f-applications in the current context */
@@ -254,7 +257,7 @@ public:
   bool hasTermCurrent( Node n, bool useMode = true );
   /** is term eligble for instantiation? */
   bool isTermEligibleForInstantiation( TNode n, TNode f, bool print = false );
-  /** get has term eqc */
+  /** get eligible term in equivalence class */
   Node getEligibleTermInEqc( TNode r );
   /** is inst closure */
   bool isInstClosure( Node r );

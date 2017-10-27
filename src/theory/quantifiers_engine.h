@@ -126,7 +126,7 @@ private:
   QuantEPR * d_qepr;
   /** term database */
   quantifiers::TermDb* d_term_db;
-  /** term database */
+  /** sygus term database */
   quantifiers::TermDbSygus* d_sygus_tdb;
   /** term utilities */
   quantifiers::TermUtil* d_term_util;
@@ -163,7 +163,7 @@ private:
   quantifiers::QuantAntiSkolem * d_anti_skolem;
   /** quantifiers instantiation propagtor */
   quantifiers::InstPropagator * d_inst_prop;
-public: //effort levels
+public: //effort levels (TODO : make an enum and use everywhere #1293)
   enum {
     QEFFORT_CONFLICT,
     QEFFORT_STANDARD,

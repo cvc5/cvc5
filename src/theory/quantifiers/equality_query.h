@@ -55,7 +55,7 @@ public:
   bool hasTerm( Node a );
   /** get the representative of a */
   Node getRepresentative( Node a );
-  /** are a and b disequal? */
+  /** are a and b equal? */
   bool areEqual( Node a, Node b );
   /** are a and b disequal? */
   bool areDisequal( Node a, Node b );
@@ -74,11 +74,21 @@ public:
   * Notice that f should be a "match operator", returned by TermDb::getMatchOperator.
   */
   TNode getCongruentTerm( Node f, std::vector< TNode >& args );
-  /** getInternalRepresentative gets the current best representative in the equivalence class of a, based on some criteria.
-      If cbqi is active, this will return a term in the equivalence class of "a" that does
-      not contain instantiation constants, if such a term exists.
+  /** gets the current best representative in the equivalence 
+   * class of a, based on some heuristic. Currently, the default heuristic
+   * chooses terms that were previously chosen as representatives
+   * on the earliest instantiation round.
+   * 
+   * If q is non-null, then q/index is the quantified formula
+   * and variable position that we are choosing for instantiation.
+   * 
+   * This function avoids certain terms that are "ineligible" for instantiation.
+   * If cbqi is active, we terms that contain instantiation constants 
+   * are ineligible. As a result, this function may return
+   * Node::null() if all terms in the equivalence class of a
+   * are ineligible.
    */
-  Node getInternalRepresentative( Node a, Node f, int index );
+  Node getInternalRepresentative( Node a, Node q, int index );
 private:
   /** pointer to theory engine */
   QuantifiersEngine* d_qe;

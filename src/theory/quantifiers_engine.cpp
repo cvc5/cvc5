@@ -64,12 +64,12 @@ using namespace CVC4::theory::inst;
 QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      context::UserContext* u, TheoryEngine* te)
     : d_te(te),
+      d_quant_attr(new quantifiers::QuantAttributes(this)),
       d_conflict_c(c, false),
       // d_quants(u),
       d_quants_red(u),
       d_lemmas_produced_c(u),
       d_skolemized(u),
-      d_quant_attr(new quantifiers::QuantAttributes(this)),
       d_ierCounter_c(c),
       // d_ierCounter(c),
       // d_ierCounter_lc(c),
