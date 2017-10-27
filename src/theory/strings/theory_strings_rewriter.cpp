@@ -1897,25 +1897,19 @@ bool TheoryStringsRewriter::stripConstantEndpoints( std::vector< Node >& n1, std
         }
       }
       if( removeComponent ){
-        if( n1.size()==1 ){
-          //can drop everything : it is not contained
-          if( r==0 ){
-            nb.push_back( n1[0] );
-          }else{
-            ne.push_back( n1[0] );
-          }
-          n1.clear();
+        //can drop entire first (resp. last) component
+        if( r==0 ){
+          nb.push_back( n1[index0] );
+          n1.erase( n1.begin(), n1.begin() + 1 );
+        }else{
+          ne.push_back( n1[index0] );
+          n1.pop_back();
+        }
+        if( n1.empty() ){
+          // if we've removed everything, just return (we will rewrite to false)
           return true;
         }else{
           changed = true;
-          //can drop entire first (resp. last) component
-          if( r==0 ){
-            nb.push_back( n1[index0] );
-            n1.erase( n1.begin(), n1.begin() + 1 );
-          }else{
-            ne.push_back( n1[index0] );
-            n1.pop_back();
-          }
         }
       }
     }
