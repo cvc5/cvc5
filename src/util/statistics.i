@@ -9,6 +9,8 @@
 #endif /* SWIGJAVA */
 %}
 
+%include "stdint.i"
+
 %rename(assign) CVC4::Statistics::operator=(const StatisticsBase&);
 %rename(assign) CVC4::Statistics::operator=(const Statistics& stats);
 
@@ -62,7 +64,7 @@
       jenv->SetObjectArrayElement($result, 0, jenv->NewStringUTF($1.first.c_str()));
       jclass clazz = jenv->FindClass("edu/nyu/acsys/CVC4/SExpr");
       jmethodID methodid = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
-      jenv->SetObjectArrayElement($result, 1, jenv->NewObject(clazz, methodid, reinterpret_cast<long>(new CVC4::SExpr($1.second)), true));
+      jenv->SetObjectArrayElement($result, 1, jenv->NewObject(clazz, methodid, reinterpret_cast<uintptr_t>(new CVC4::SExpr($1.second)), true));
     };
 
 #endif /* SWIGJAVA */

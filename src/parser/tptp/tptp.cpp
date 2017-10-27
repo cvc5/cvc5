@@ -312,13 +312,8 @@ void Tptp::makeApplication(Expr& expr, std::string& name,
   }
 }
 
-Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf) {
-  // For SZS ontology compliance.
-  // if we're in cnf() though, conjectures don't result in "Theorem" or
-  // "CounterSatisfiable".
-  if (!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE)) {
-    d_hasConjecture = true;
-  }
+
+Expr Tptp::getAssertionExpr(FormulaRole fr, Expr expr) {
   switch (fr) {
     case FR_AXIOM:
     case FR_HYPOTHESIS:
@@ -329,19 +324,36 @@ Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf) {
     case FR_NEGATED_CONJECTURE:
     case FR_PLAIN:
       // it's a usual assert
-      return new AssertCommand(expr);
+      return expr;
     case FR_CONJECTURE:
-      // something to prove
-      return new AssertCommand(getExprManager()->mkExpr(kind::NOT, expr));
+      // it should be negated when asserted
+      return getExprManager()->mkExpr(kind::NOT, expr);
     case FR_UNKNOWN:
     case FR_FI_DOMAIN:
     case FR_FI_FUNCTORS:
     case FR_FI_PREDICATES:
     case FR_TYPE:
-      return new EmptyCommand("Untreated role");
+      // it does not correspond to an assertion
+      return d_nullExpr;
+      break;
   }
   assert(false);  // unreachable
-  return nullptr;
+  return d_nullExpr;
+}
+
+Command* Tptp::makeAssertCommand(FormulaRole fr, Expr expr, bool cnf, bool inUnsatCore) {
+  // For SZS ontology compliance.
+  // if we're in cnf() though, conjectures don't result in "Theorem" or
+  // "CounterSatisfiable".
+  if (!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE)) {
+    d_hasConjecture = true;
+    assert(!expr.isNull());
+  }
+  if( expr.isNull() ){
+    return new EmptyCommand("Untreated role for expression");
+  }else{
+    return new AssertCommand(expr, inUnsatCore);
+  }
 }
 
 }/* CVC4::parser namespace */

@@ -35,6 +35,11 @@ public:
   void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const CommandStatus* s) const throw();
   void toStream(std::ostream& out, const Model& m) const throw();
+  /** print unsat core to stream
+  * We use the expression names stored in the SMT engine associated with the unsat core
+  * with UnsatCore::getSmtEngine.
+  */
+  void toStream(std::ostream& out, const UnsatCore& core) const throw();
 };/* class TptpPrinter */
 
 }/* CVC4::printer::tptp namespace */

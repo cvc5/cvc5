@@ -72,11 +72,10 @@ void CegConjecture::assign( Node q ) {
     // carry the templates
     for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
       Node v = q[0][i];
-      Node sf = v.getAttribute(SygusSynthFunAttribute());
-      Node templ = d_ceg_si->getTemplate(sf);
+      Node templ = d_ceg_si->getTemplate(v);
       if( !templ.isNull() ){
-        templates[sf] = templ;
-        templates_arg[sf] = d_ceg_si->getTemplateArg(sf);
+        templates[v] = templ;
+        templates_arg[v] = d_ceg_si->getTemplateArg(v);
       }
     }
   }
@@ -106,19 +105,10 @@ void CegConjecture::assign( Node q ) {
   if( !isSingleInvocation() ){
     if( options::sygusPbe() ){
       d_ceg_pbe->initialize( d_base_inst, d_candidates, guarded_lemmas );
-    }
-    for( unsigned i=0; i<d_candidates.size(); i++ ){
-      Node e = d_candidates[i];
-      if( options::sygusPbe() ){
-        std::vector< std::vector< Node > > exs;
-        std::vector< Node > exos;
-        std::vector< Node > exts;
-        // use the PBE examples, regardless of the search algorithm, since these help search space pruning
-        if( d_ceg_pbe->getPbeExamples( e, exs, exos, exts ) ){
-          d_qe->getTermDatabaseSygus()->registerPbeExamples( e, exs, exos, exts );
-        }
-      }else{
-        d_qe->getTermDatabaseSygus()->registerMeasuredTerm( e, e );
+    } else {
+      for (unsigned i = 0; i < d_candidates.size(); i++) {
+        Node e = d_candidates[i];
+        d_qe->getTermDatabaseSygus()->registerMeasuredTerm(e, this);
       }
     }
   }
@@ -571,7 +561,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         status = 1;
         
         //check if there was a template
-        Node sf = d_quant[0][i].getAttribute(SygusSynthFunAttribute());
+        Node sf = d_quant[0][i];
         Node templ = d_ceg_si->getTemplate( sf );
         if( !templ.isNull() ){
           Trace("cegqi-inv-debug") << sf << " used template : " << templ << std::endl;
