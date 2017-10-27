@@ -102,7 +102,7 @@ public:
  *   is interpreted as [c]*[v].
  *
  *   A {monmoial sum} msum is represented by a std::map< Node, Node > having
- *   key-value pairs of the form ( mvariable, mconstant ).  
+ *   key-value pairs of the form ( mvariable, mconstant ).
  *   It is interpreted as:
  *   [msum] = sum_{( v, c ) \in msum } [c]*[v]
  *
@@ -118,7 +118,7 @@ public:
   * this function returns true, sets c to n[0] and v to n[1].
   */
  static bool getMonomial(Node n, Node& c, Node& v);
- 
+
  /** get monomial
   *
   * If this function returns true, it adds the ( m-constant, m-variable )
@@ -129,7 +129,7 @@ public:
   * present in n.
   */
  static bool getMonomial(Node n, std::map<Node, Node>& msum);
- 
+
  /** get monomial sum for real-valued term n
   *
   * If this function returns true, it sets msum to a monmoial sum such that
@@ -140,7 +140,7 @@ public:
   * If term n is in rewritten form, this function should always return true.
   */
  static bool getMonomialSum(Node n, std::map<Node, Node>& msum);
- 
+
  /** get monmoial sum literal for literal lit
   *
   * If this function returns true, it sets msum to a monmoial sum such that
@@ -153,21 +153,21 @@ public:
   * true.
   */
  static bool getMonomialSumLit(Node lit, std::map<Node, Node>& msum);
- 
+
  /** make node for monomial sum
   *
   * Make the Node corresponding to the interpretation of msum, [msum], where:
   *   [msum] = sum_{( v, c ) \in msum } [c]*[v]
   */
  static Node mkNode(std::map<Node, Node>& msum);
- 
+
  /** make coefficent term
   *
   * Input coeff is a m-constant.
   * Returns the term t if coeff.isNull() or coeff*t otherwise.
   */
  static Node mkCoeffTerm(Node coeff, Node t);
- 
+
  /** isolate variable v in constraint ([msum] <k> 0)
   *
   * If this function returns a value ret where ret != 0, then
@@ -180,9 +180,9 @@ public:
   * This function returns 0 indicating a failure if msum does not contain
   * a (non-zero) monomial having mvariable v.
   */
- static int isolate(Node v, std::map<Node, Node>& msum, Node& veq_c, Node& val,
-                    Kind k);
- 
+ static int isolate(
+     Node v, std::map<Node, Node>& msum, Node& veq_c, Node& val, Kind k);
+
  /** isolate variable v in constraint ([msum] <k> 0)
   *
   * If this function returns a value ret where ret != 0, then veq
@@ -197,9 +197,12 @@ public:
   * a (non-zero) monomial having variable v, or if veq_c must be non-null
   * for an integer constraint and doCoeff is false.
   */
- static int isolate(Node v, std::map<Node, Node>& msum, Node& veq, Kind k,
+ static int isolate(Node v,
+                    std::map<Node, Node>& msum,
+                    Node& veq,
+                    Kind k,
                     bool doCoeff = false);
- 
+
  /** solve equality lit for variable
   *
   * If return value ret is non-null, then:
@@ -210,7 +213,7 @@ public:
   * e.g. 3*v = 7.
   */
  static Node solveEqualityFor(Node lit, Node v);
- 
+
  /** decompose real-valued term n
  *
  * If this function returns true, then
@@ -221,13 +224,13 @@ public:
  * a monomial with factor v.
  */
  static bool decompose(Node n, Node v, Node& coeff, Node& rem);
- 
+
  /** return the rewritten form of (UMINUS t) */
  static Node negate(Node t);
- 
+
  /** return the rewritten form of (PLUS t (CONST_RATIONAL i)) */
  static Node offset(Node t, int i);
- 
+
  /** debug print for a monmoial sum, prints to Trace(c) */
  static void debugPrintMonomialSum(std::map<Node, Node>& msum, const char* c);
 };

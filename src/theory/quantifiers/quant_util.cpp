@@ -238,19 +238,26 @@ Node QuantArith::solveEqualityFor( Node lit, Node v ) {
   return Node::null();
 }
 
-bool QuantArith::decompose(Node n, Node v, Node& coeff, Node& rem) {
+bool QuantArith::decompose(Node n, Node v, Node& coeff, Node& rem)
+{
   std::map<Node, Node> msum;
-  if (getMonomialSum(n, msum)) {
+  if (getMonomialSum(n, msum))
+  {
     std::map<Node, Node>::iterator it = msum.find(v);
-    if (it == msum.end()) {
+    if (it == msum.end())
+    {
       return false;
-    } else {
+    }
+    else
+    {
       coeff = it->second;
       msum.erase(v);
       rem = mkNode(msum);
       return true;
     }
-  } else {
+  }
+  else
+  {
     return false;
   }
 }
