@@ -40,7 +40,7 @@ class QuantifiersEngine;
  * (1) It maintains a partial mapping from representatives to a term that has that value in the current
  * model.  This is important because algorithms like the instantiation method in Reynolds et al CADE 2013
  * act on "term models" where domains in models are interpreted as a set of representative terms. Hence,
- * instead of instantiating with e.g. uninterpreted constants u, we instantiate with the correspond term
+ * instead of instantiating with e.g. uninterpreted constants u, we instantiate with the corresponding term
  * that is interpreted as u.
  * (2) It is mutable, calls to add(...) and complete(...) may modify this class as necessary, for instance
  * in the case that there are no ground terms of a type that occurs in a quantified formula, or for 

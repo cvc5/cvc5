@@ -184,7 +184,6 @@ bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, 
               const RepSet* rs = m->getRepSet();
               Assert( index<rs->getNumRepresentatives( tn ) );
               terms[m->d_var_order[q][depth]] = rs->getRepresentative( tn, index );
-              //terms[depth] = rs->getRepresentative( tn, index );
               if( !it->second.addInstantiations( m, qe, q, terms, inst, depth+1 ) && inst==0 ){
                 //if we are incomplete, and have not yet added an instantiation, keep trying
                 index++;
