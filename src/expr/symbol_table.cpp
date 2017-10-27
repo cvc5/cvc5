@@ -42,13 +42,62 @@ using ::std::pair;
 using ::std::string;
 using ::std::vector;
 
-// This data structure stores a trie of expressions with
-// the same name, and must be distinguished by their argument types.
-// It is context-dependent.
+/** Overloaded type trie.
+ *
+ * This data structure stores a trie of expressions with
+ * the same name, and must be distinguished by their argument types.
+ * It is context-dependent.
+ *
+ * Using the argument allowFunVariants,
+ * it may either be configured to allow function variants or not,
+ * where a function variant is function that expects the same
+ * argument types as another.
+ *
+ * For example, the following definitions introduce function
+ * variants for the symbol f:
+ *
+ * 1. (declare-fun f (Int) Int) and
+ *    (declare-fun f (Int) Bool)
+ *
+ * 2. (declare-fun f (Int) Int) and
+ *    (declare-fun f (Int) Int)
+ *
+ * 3. (declare-datatypes ((Tup 0)) ((f (data Int)))) and
+ *    (declare-fun f (Int) Tup)
+ *
+ * 4. (declare-datatypes ((Tup 0)) ((mkTup (f Int)))) and
+ *    (declare-fun f (Tup) Bool)
+ * 
+ * If function variants is set to true, we allow function variants
+ * but not function redefinition. In examples 2 and 3, f is 
+ * declared twice as a symbol of identical argument and range
+ * types. We never accept these definitions. However, we do
+ * allow examples 1 and 4 above when allowFunVariants is true.
+ * 
+ * For 0-argument functions (constants), we always allow
+ * function variants.  That is, we always accept these examples:
+ * 
+ * 5.  (declare-fun c () Int)
+ *     (declare-fun c () Bool)
+ * 
+ * 6.  (declare-datatypes ((Enum 0)) ((c)))
+ *     (declare-fun c () Int)
+ * 
+ * and always reject constant redefinition such as:
+ * 
+ * 7. (declare-fun c () Int)
+ *    (declare-fun c () Int)
+ * 
+ * 8. (declare-datatypes ((Enum 0)) ((c))) and
+ *    (declare-fun c () Enum)
+ */
 class OverloadedTypeTrie {
  public:
-  OverloadedTypeTrie(Context* c)
-      : d_overloaded_symbols(new (true) CDHashSet<Expr, ExprHashFunction>(c)) {}
+  OverloadedTypeTrie(Context* c, bool allowFunVariants = false)
+      : d_overloaded_symbols(new (true) CDHashSet<Expr, ExprHashFunction>(c)),
+        d_allowFunctionVariants(allowFunVariants)
+  {
+  }
   ~OverloadedTypeTrie() { d_overloaded_symbols->deleteSelf(); }
 
   /** is this function overloaded? */
@@ -107,6 +156,18 @@ class OverloadedTypeTrie {
   std::unordered_map<std::string, TypeArgTrie> d_overload_type_arg_trie;
   /** The set of overloaded symbols. */
   CDHashSet<Expr, ExprHashFunction>* d_overloaded_symbols;
+  /** allow function variants
+   * This is true if we allow overloading (non-constant) functions that expect
+   * the same argument types.
+   */
+  bool d_allowFunctionVariants;
+  /** get unique overloaded function
+  * If tat->d_symbols contains an active overloaded function, it
+  * returns that function, where that function must be unique 
+  * if reqUnique=true.
+  * Otherwise, it returns the null expression.
+  */
+  Expr getOverloadedFunctionAt(const TypeArgTrie* tat, bool reqUnique=true) const;
 };
 
 bool OverloadedTypeTrie::isOverloadedFunction(Expr fun) const {
@@ -146,21 +207,8 @@ Expr OverloadedTypeTrie::getOverloadedFunctionForTypes(
         return d_nullExpr;
       }
     }
-    // now, we must ensure that there is *only* one active symbol at this node
-    Expr retExpr;
-    for (std::map<Type, Expr>::const_iterator its = tat->d_symbols.begin();
-         its != tat->d_symbols.end(); ++its) {
-      Expr expr = its->second;
-      if (isOverloadedFunction(expr)) {
-        if (retExpr.isNull()) {
-          retExpr = expr;
-        } else {
-          // multiple functions match
-          return d_nullExpr;
-        }
-      }
-    }
-    return retExpr;
+    // we ensure that there is *only* one active symbol at this node
+    return getOverloadedFunctionAt(tat);
   }
   return d_nullExpr;
 }
@@ -203,22 +251,30 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, Expr obj) {
     tat = &(tat->d_children[argTypes[i]]);
   }
 
-  // types can be identical but vary on the kind of the type, thus we must
-  // distinguish based on this
-  std::map<Type, Expr>::iterator it = tat->d_symbols.find(rangeType);
-  if (it != tat->d_symbols.end()) {
-    Expr prev_obj = it->second;
-    // if there is already an active function with the same name and expects the
-    // same argument types
-    if (isOverloadedFunction(prev_obj)) {
-      if (prev_obj.getType() == obj.getType()) {
-        // types are identical, simply ignore it
-        return true;
-      } else {
-        // otherwise there is no way to distinguish these types, we return an
-        // error
+  // check if function variants are allowed here
+  if (d_allowFunctionVariants || argTypes.empty())
+  {
+    // they are allowed, check for redefinition
+    std::map<Type, Expr>::iterator it = tat->d_symbols.find(rangeType);
+    if (it != tat->d_symbols.end())
+    {
+      Expr prev_obj = it->second;
+      // if there is already an active function with the same name and expects
+      // the same argument types and has the same return type, we reject the 
+      // re-declaration here.
+      if (isOverloadedFunction(prev_obj))
+      {
         return false;
       }
+    }
+  }
+  else
+  {
+    // they are not allowed, we cannot have any function defined here.
+    Expr existingFun = getOverloadedFunctionAt(tat, false);
+    if (!existingFun.isNull())
+    {
+      return false;
     }
   }
 
@@ -226,6 +282,38 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, Expr obj) {
   d_overloaded_symbols->insert(obj);
   tat->d_symbols[rangeType] = obj;
   return true;
+}
+
+Expr OverloadedTypeTrie::getOverloadedFunctionAt(
+    const OverloadedTypeTrie::TypeArgTrie* tat, bool reqUnique) const
+{
+  Expr retExpr;
+  for (std::map<Type, Expr>::const_iterator its = tat->d_symbols.begin();
+       its != tat->d_symbols.end();
+       ++its)
+  {
+    Expr expr = its->second;
+    if (isOverloadedFunction(expr))
+    {
+      if (retExpr.isNull())
+      {
+        if (!reqUnique) 
+        {
+          return expr;
+        }
+        else 
+        {
+          retExpr = expr;
+        }
+      }
+      else
+      {
+        // multiple functions match
+        return d_nullExpr;
+      }
+    }
+  }
+  return retExpr;
 }
 
 class SymbolTable::Implementation {
