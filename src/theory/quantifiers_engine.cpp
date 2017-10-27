@@ -1704,7 +1704,7 @@ eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine(){
 
 eq::EqualityEngine* QuantifiersEngine::getActiveEqualityEngine() {
   if( d_useModelEe ){
-    return d_model->d_equalityEngine;
+    return d_model->getEqualityEngine();
   }else{
     return d_te->getMasterEqualityEngine();
   }
