@@ -131,7 +131,7 @@ public:
   /** reset */
   virtual bool reset(Theory::Effort e) override { return true; }
   /** register quantifier */
-  virtual void registerQuantifier( Node q ) override;
+  virtual void registerQuantifier(Node q) override;
   /** identify */
   virtual std::string identify() const override { return "TermUtil"; }
   // for inst constant

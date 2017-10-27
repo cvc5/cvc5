@@ -215,12 +215,12 @@ class TermDb : public QuantifiersUtil {
   */
   bool inRelevantDomain(TNode f, unsigned i, TNode r);
   /** evaluate term
-   * 
+   *
   * Returns a term n' such that n = n' is entailed based on the equality
-  * information qy.  This function may generate new terms. In particular, 
+  * information qy.  This function may generate new terms. In particular,
   * we typically rewrite maximal
   * subterms of n to terms that exist in the equality engine specified by qy.
-  * 
+  *
   * useEntailmentTests is whether to use the theory engine's entailmentCheck
   * call, for increased precision. This is not frequently used.
   */
@@ -228,17 +228,17 @@ class TermDb : public QuantifiersUtil {
                     EqualityQuery* qy = NULL,
                     bool useEntailmentTests = false);
   /** get entailed term
-   * 
+   *
   * If possible, returns a term n' such that:
   * (1) n' exists in the current equality engine (as specified by qy),
   * (2) n = n' is entailed in the current context.
   * It returns null if no such term can be found.
-  * Wrt evaluateTerm, this version does not construct new terms, and 
+  * Wrt evaluateTerm, this version does not construct new terms, and
   * thus is less aggressive.
   */
   TNode getEntailedTerm(TNode n, EqualityQuery* qy = NULL);
   /** get entailed term
-   * 
+   *
   * If possible, returns a term n' such that:
   * (1) n' exists in the current equality engine (as specified by qy),
   * (2) n * subs = n' is entailed in the current context, where * is denotes
@@ -246,7 +246,7 @@ class TermDb : public QuantifiersUtil {
   * It returns null if no such term can be found.
   * subsRep is whether the substitution maps to terms that are representatives
   * according to qy.
-  * Wrt evaluateTerm, this version does not construct new terms, and 
+  * Wrt evaluateTerm, this version does not construct new terms, and
   * thus is less aggressive.
   */
   TNode getEntailedTerm(TNode n,
@@ -260,7 +260,7 @@ class TermDb : public QuantifiersUtil {
   */
   bool isEntailed(TNode n, bool pol, EqualityQuery* qy = NULL);
   /** is entailed
-   * 
+   *
   * Checks whether the current context entails ( n * subs ) with polarity pol,
   * based on the equality information qy,
   * where * denotes substitution application.
@@ -273,7 +273,7 @@ class TermDb : public QuantifiersUtil {
                   bool pol,
                   EqualityQuery* qy = NULL);
   /** is the term n active in the current context?
-   * 
+   *
   * By default, all terms are active. A term is inactive if:
   * (1) it is congruent to another term
   * (2) it is irrelevant based on the term database mode. This includes terms
@@ -287,9 +287,9 @@ class TermDb : public QuantifiersUtil {
   /** set that term n is inactive in this context. */
   void setTermInactive(Node n);
   /** has term current
-   * 
+   *
   * This function is used in cases where we restrict which terms appear in the
-  * database, such as for heuristics used in local theory extensions 
+  * database, such as for heuristics used in local theory extensions
   * and for --term-db-mode=relevant.
   * It returns whether the term n should be indexed in the current context.
   */
@@ -380,13 +380,13 @@ class TermDb : public QuantifiersUtil {
   void computeModelBasisArgAttribute( Node n );
 public:
   /** get model basis term */
-  Node getModelBasisTerm( TypeNode tn, int i = 0 );
+  Node getModelBasisTerm(TypeNode tn, int i = 0);
   /** get model basis term for op */
-  Node getModelBasisOpTerm( Node op );
+  Node getModelBasisOpTerm(Node op);
   /** get model basis */
-  Node getModelBasis( Node q, Node n );
+  Node getModelBasis(Node q, Node n);
   /** get model basis body */
-  Node getModelBasisBody( Node q );
+  Node getModelBasisBody(Node q);
   /** get model basis arg */
   unsigned getModelBasisArg(Node n);
 

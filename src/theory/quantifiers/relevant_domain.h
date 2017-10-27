@@ -27,9 +27,9 @@ namespace quantifiers {
  *
  * This class computes the relevant domain of
  * functions and quantified formulas based on
- * techniques from "Complete Instantiation for Quantified 
+ * techniques from "Complete Instantiation for Quantified
  * Formulas in SMT" by Ge et al., CAV 2009.
- * 
+ *
  * Calling compute() will compute a representation
  * of relevant domain information, which be accessed
  * by getRDomain(...) calls. It is intended to be called
@@ -38,19 +38,19 @@ namespace quantifiers {
  */
 class RelevantDomain : public QuantifiersUtil
 {
-public:
-  RelevantDomain( QuantifiersEngine* qe );
+ public:
+  RelevantDomain(QuantifiersEngine* qe);
   virtual ~RelevantDomain();
   /** Reset. */
-  virtual bool reset( Theory::Effort e ) override;
+  virtual bool reset(Theory::Effort e) override;
   /** Register the quantified formula q */
   virtual void registerQuantifier(Node q) override;
   /** identify */
   virtual std::string identify() const override { return "RelevantDomain"; }
   /** Compute the relevant domain */
   void compute();
-  /** Relevant domain representation. 
-   * 
+  /** Relevant domain representation.
+   *
    * This data structure is inspired by the paper
    * "Complete Instantiation for Quantified Formulas in SMT" by
    * Ge et al., CAV 2009.
@@ -66,8 +66,12 @@ public:
     /** the set of terms in this relevant domain */
     std::vector< Node > d_terms;
     /** reset this object */
-    void reset() { d_parent = NULL; d_terms.clear(); }
-    /** merge this with r 
+    void reset()
+    {
+      d_parent = NULL;
+      d_terms.clear();
+    }
+    /** merge this with r
      * This sets d_parent of this to r and
      * copies the terms of this to r.
      */
@@ -82,37 +86,39 @@ public:
     void removeRedundantTerms( QuantifiersEngine * qe );
     /** is n in this relevant domain? */
     bool hasTerm( Node n ) { return std::find( d_terms.begin(), d_terms.end(), n )!=d_terms.end(); }
-  private:
+
+   private:
     /** the parent of this relevant domain */
-    RDomain * d_parent;
+    RDomain* d_parent;
   };
-  /** get the relevant domain 
-   * 
+  /** get the relevant domain
+   *
    * Gets object representing the relevant domain of the i^th argument of n.
-   * 
-   * If getParent is true, we return the representative 
+   *
+   * If getParent is true, we return the representative
    * of the equivalence class of relevant domain objects,
    * which is computed as a union find (see RDomain::d_parent).
    */
-  RDomain * getRDomain( Node n, int i, bool getParent = true );
-private:
+  RDomain* getRDomain(Node n, int i, bool getParent = true);
+
+ private:
   /** the relevant domains for each quantified formula and function,
    * for each variable # and argument #.
    */
   std::map< Node, std::map< int, RDomain * > > d_rel_doms;
-  /** stores the function or quantified formula associated with  
-   * each relevant domain object. 
+  /** stores the function or quantified formula associated with
+   * each relevant domain object.
    */
   std::map< RDomain *, Node > d_rn_map;
   /** stores the argument or variable number associated with
-   * each relevant domain object. 
+   * each relevant domain object.
    */
   std::map< RDomain *, int > d_ri_map;
   /** Quantifiers engine associated with this utility. */
   QuantifiersEngine* d_qe;
   /** have we computed the relevant domain on this full effort check? */
   bool d_is_computed;
-  /** relevant domain literal 
+  /** relevant domain literal
    * Caches the effect of literals on the relevant domain.
    */
   class RDomainLit {
@@ -124,12 +130,12 @@ private:
     ~RDomainLit(){}
     /** whether this literal forces the merge of two relevant domains */
     bool d_merge;
-    /** the relevant domains that are merged as a result 
-     * of this literal 
-     */ 
+    /** the relevant domains that are merged as a result
+     * of this literal
+     */
     RDomain * d_rd[2];
-    /** the terms that are added to 
-     * the relevant domain as a result of this literal 
+    /** the terms that are added to
+     * the relevant domain as a result of this literal
      */
     std::vector< Node > d_val;
   };
@@ -138,13 +144,13 @@ private:
   /** Compute the relevant domain for a subformula n of q,
    * whose polarity is given by hasPol/pol.
    */
-  void computeRelevantDomain( Node q, Node n, bool hasPol, bool pol );
+  void computeRelevantDomain(Node q, Node n, bool hasPol, bool pol);
   /** Compute the relevant domain when the term n
    * is in a position to be included in relevant domain rf.
    */
-  void computeRelevantDomainOpCh( RDomain * rf, Node n );
+  void computeRelevantDomainOpCh(RDomain* rf, Node n);
   /** compute relevant domain for literal.
-   * 
+   *
    * Updates the relevant domains based on a literal n in quantified
    * formula q whose polarity is given by hasPol/pol.
    */
