@@ -105,6 +105,9 @@ public:
  *   key-value pairs of the form ( mvariable, mconstant ).
  *   It is interpreted as:
  *   [msum] = sum_{( v, c ) \in msum } [c]*[v]
+ *   It is critical that this map is ordered so that operations like adding
+ *   two monomial sums can be done efficiently. The ordering itself is not 
+ *   important, and currently corresponds to the default ordering on Nodes.
  *
  * The following has utilities involving monmoial sums.
  *
