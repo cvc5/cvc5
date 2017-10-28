@@ -111,23 +111,6 @@ public:
   void addUserNoPattern( Node q, Node pat );
 };/* class InstStrategyAutoGenTriggers */
 
-class FullSaturation : public QuantifiersModule {
-private:
-  /** guessed instantiations */
-  std::map< Node, bool > d_guessed;
-  /** process functions */
-  bool process( Node q, bool fullEffort );
-public:
-  FullSaturation( QuantifiersEngine* qe );
-  ~FullSaturation(){}
-  bool needsCheck( Theory::Effort e );
-  void reset_round( Theory::Effort e );
-  void check( Theory::Effort e, unsigned quant_e );
-  void registerQuantifier( Node q );
-  /** identify */
-  std::string identify() const { return std::string("FullSaturation"); }
-};/* class FullSaturation */
-
 
 }
 }/* CVC4::theory namespace */

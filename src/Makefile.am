@@ -392,6 +392,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/inst_strategy_cbqi.h \
 	theory/quantifiers/inst_strategy_e_matching.cpp \
 	theory/quantifiers/inst_strategy_e_matching.h \
+	theory/quantifiers/inst_strategy_enumerative.cpp \
+	theory/quantifiers/inst_strategy_enumerative.h \
 	theory/quantifiers/instantiation_engine.cpp \
 	theory/quantifiers/instantiation_engine.h \
 	theory/quantifiers/local_theory_ext.cpp \
