@@ -148,26 +148,85 @@ class NonlinearExtension {
   // Returns the subset of assertions that evaluate to false in the model.
   std::set<Node> getFalseInModel(const std::vector<Node>& assertions);
 
-  /** compare the sign
-  * status
+  /** In the following functions, status states a relationship
+  * between two arithmetic terms, where:
   * 0 : equal
   * 1 : greater than or equal
   * 2 : greater than
   * -X : (greater -> less)
-  * In these functions we are iterating over variables of monomials
-  * initially : exp => ( oa = a ^ ob = b )
+  * TODO (#1287) make this an enum?
+  */
+  /** compute the sign of a.
+  *
+  * Calls to this function are such that :
+  *    exp => ( oa = a ^ a <status> 0 )
+  *
+  * This function iterates over the factors of a,
+  * where a_index is the index of the factor in a
+  * we are currently looking at.
+  * 
+  * This function returns a status, which indicates
+  * a's relationship to 0.
+  * We add lemmas to lem of the form given by the 
+  * lemma schema checkSign(...).
   */
   int compareSign(Node oa, Node a, unsigned a_index, int status,
                   std::vector<Node>& exp, std::vector<Node>& lem);
+  /** compute the sign of a.
+  *
+  * Initially, a call to this function is such that :
+  *    exp => ( oa = a ^ ob = b )
+  *
+  * This function returns true if we can infer a valid
+  * arithmetic lemma of the form :
+  *    P => abs( a ) >= abs( b )
+  * where P is true and abs( a ) >= abs( b ) is false in the 
+  * current model.
+  * 
+  * This function is implemented by "processing" factors
+  * of monomials a and b until an inference of the above
+  * form can be made. For example, if :
+  *   a = x*x*y and b = z*w
+  * Assuming we are trying to show abs( a ) >= abs( c ),
+  * then if abs( x^M ) >= abs( z^M ), then we can add
+  * abs( x ) >= abs( z ) to our explanation, and 
+  * mark one factor of x as processed in a, and 
+  * one factor of z as processed in b.
+  * The number of processed factors of a and b are stored
+  * in a_exp_proc and b_exp_proc respectively.
+  *
+  * cmp_infers stores information that is helpful
+  * in discarding redundant inferences.  For example,
+  * we do not want to infer abs( x ) >= abs( z ) if
+  * we have already inferred abs( x ) >= abs( y ) and 
+  * abs( y ) >= abs( z ). 
+  * It stores entries of the form (status,t1,t2)->F,
+  * which indicates that we constructed a lemma F that
+  * showed t1 <status> t2.
+  *   
+  * We add lemmas to lem of the form given by the 
+  * lemma schema checkMagnitude(...).
+  */
   bool compareMonomial(
       Node oa, Node a, NodeMultiset& a_exp_proc, Node ob, Node b,
       NodeMultiset& b_exp_proc, std::vector<Node>& exp, std::vector<Node>& lem,
       std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
+  /** helper function for above
+  * The difference is the inputs a_index and b_index,
+  * which are the indices of children (factors) in
+  * monomials a and b which we are currently looking at.
+  */
   bool compareMonomial(
       Node oa, Node a, unsigned a_index, NodeMultiset& a_exp_proc, Node ob,
       Node b, unsigned b_index, NodeMultiset& b_exp_proc, int status,
       std::vector<Node>& exp, std::vector<Node>& lem,
       std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
+  /** check whether we have already inferred a 
+  * relationship between monomials x and y
+  * based on the information in cmp_infers.
+  * This traverses the transitive closure
+  * of the relation stored in cmp_infers.
+  */
   bool cmp_holds(Node x, Node y,
                  std::map<Node, std::map<Node, Node> >& cmp_infers,
                  std::vector<Node>& exp, std::map<Node, bool>& visited);
@@ -358,8 +417,8 @@ private:
   Node regionToUpperBound(Kind k, int region);
   /** Get derivative.
   * Returns d/dx n. Supports cases
-  * for transcendental functions, multiplication,
-  * addition, constants and variables.
+  * for transcendental functions applied to x, 
+  * multiplication, addition, constants and variables.
   */
   Node getDerivative(Node n, Node x);
 

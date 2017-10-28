@@ -3019,7 +3019,7 @@ Node NonlinearExtension::getDerivative(Node n, Node x)
     }
     else
     {
-      return d_zero;
+      //return d_zero;
     }
   }
   else if (n.getKind() == kind::SINE)
@@ -3033,7 +3033,7 @@ Node NonlinearExtension::getDerivative(Node n, Node x)
     }
     else
     {
-      return d_zero;
+      //return d_zero;
     }
   }
   else if (n.getKind() == kind::PLUS)
