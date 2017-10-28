@@ -108,14 +108,16 @@ private:
    * that n should be rewritten to ret. It is called as
    * a "post-rewrite", that is, after the children of n
    * have been rewritten and stored in the vector children.
-   * 
+   *
    * contains_pv stores whether certain nodes contain pv.
-   * where we guarantee that all subterms of terms in children 
+   * where we guarantee that all subterms of terms in children
    * appear in the domain of contains_pv.
    */
-  Node rewriteTermForSolvePv( Node pv, Node n,
-     std::vector< Node >& children,
-     std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv);
+  Node rewriteTermForSolvePv(
+      Node pv,
+      Node n,
+      std::vector<Node>& children,
+      std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv);
   /** process literal, called from processAssertion
   * lit is the literal to solve for pv that has been rewritten according to
   * internal rules here.

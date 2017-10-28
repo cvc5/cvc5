@@ -46,32 +46,41 @@ CegInstantiator::~CegInstantiator() {
 void CegInstantiator::computeProgVars( Node n ){
   if( d_prog_var.find( n )==d_prog_var.end() ){
     d_prog_var[n].clear();
-    if( n.getKind()==kind::CHOICE ){
-      Assert( d_prog_var.find( n[0][0] )==d_prog_var.end() );
+    if (n.getKind() == kind::CHOICE)
+    {
+      Assert(d_prog_var.find(n[0][0]) == d_prog_var.end());
       d_prog_var[n[0][0]].clear();
     }
-    if( d_vars_set.find( n )!=d_vars_set.end() ){
-      d_prog_var[n].insert( n );
+    if (d_vars_set.find(n) != d_vars_set.end())
+    {
+      d_prog_var[n].insert(n);
     }else if( !d_out->isEligibleForInstantiation( n ) ){
-      d_inelig.insert( n );
+      d_inelig.insert(n);
       return;
     }
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       computeProgVars( n[i] );
       if( d_inelig.find( n[i] )!=d_inelig.end() ){
-        d_inelig.insert( n );
+        d_inelig.insert(n);
       }
       // all variables in child are cotained in this
-      for( std::unordered_set< Node, NodeHashFunction >::iterator it = d_prog_var[n[i]].begin(); it != d_prog_var[n[i]].end(); ++it ){
-        d_prog_var[n].insert( *it );
+      for (std::unordered_set<Node, NodeHashFunction>::iterator it =
+               d_prog_var[n[i]].begin();
+           it != d_prog_var[n[i]].end();
+           ++it)
+      {
+        d_prog_var[n].insert(*it);
       }
     }
-    //selectors applied to program variables are also variables
-    if(n.getKind()==APPLY_SELECTOR_TOTAL && d_prog_var[n].find( n[0] )!=d_prog_var[n].end()) {
-      d_prog_var[n].insert( n );
+    // selectors applied to program variables are also variables
+    if (n.getKind() == APPLY_SELECTOR_TOTAL
+        && d_prog_var[n].find(n[0]) != d_prog_var[n].end())
+    {
+      d_prog_var[n].insert(n);
     }
-    if( n.getKind()==kind::CHOICE ){
-      d_prog_var.erase( n[0][0] );
+    if (n.getKind() == kind::CHOICE)
+    {
+      d_prog_var.erase(n[0][0]);
     }
   }
 }
@@ -530,8 +539,13 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
 bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic ){
   Assert( d_prog_var.find( n )!=d_prog_var.end() );
   if( !non_basic.empty() ){
-    for( std::unordered_set< Node, NodeHashFunction >::iterator it = d_prog_var[n].begin(); it != d_prog_var[n].end(); ++it ){
-      if( std::find( non_basic.begin(), non_basic.end(), *it )!=non_basic.end() ){
+    for (std::unordered_set<Node, NodeHashFunction>::iterator it =
+             d_prog_var[n].begin();
+         it != d_prog_var[n].end();
+         ++it)
+    {
+      if (std::find(non_basic.begin(), non_basic.end(), *it) != non_basic.end())
+      {
         return false;
       }
     }
@@ -1018,8 +1032,9 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   //Assert( d_vars.empty() );
   d_vars.clear();
   d_vars.insert( d_vars.end(), ce_vars.begin(), ce_vars.end() );
-  for( unsigned i=0; i<ce_vars.size(); i++ ){
-    d_vars_set.insert( ce_vars[i] );    
+  for (unsigned i = 0; i < ce_vars.size(); i++)
+  {
+    d_vars_set.insert(ce_vars[i]);
   }
 
   //determine variable order: must do Reals before Ints

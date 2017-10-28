@@ -1175,10 +1175,10 @@ Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
         children.push_back(it->second);
         contains_pv = contains_pv || visited_contains_pv[cur[i]];
       }
-      
+
       // rewrite the term
-      ret = rewriteTermForSolvePv( pv, cur, children, visited_contains_pv );
-      
+      ret = rewriteTermForSolvePv(pv, cur, children, visited_contains_pv);
+
       // return original if the above function does not produce a result
       if (ret.isNull()) {
         if (childChanged) {
@@ -1197,40 +1197,47 @@ Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
   return visited[lit];
 }
 
-Node BvInstantiator::rewriteTermForSolvePv( Node pv, Node n,
-     std::vector< Node >& children,
-     std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv ) {
+Node BvInstantiator::rewriteTermForSolvePv(
+    Node pv,
+    Node n,
+    std::vector<Node>& children,
+    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
+{
   NodeManager* nm = NodeManager::currentNM();
-  
+
   // [1] pre-requiste rewrites
-  
+
   // must rewrite choice functions to have unique free variables
   // otherwise, substitution for multiple variables
   // can result in variable capture.
-  if( n.getKind()==CHOICE ){
+  if (n.getKind() == CHOICE)
+  {
     std::stringstream ss;
     ss << n[0][0] << "_p";
-    Node bv = nm->mkBoundVar(ss.str(),n[0][0].getType());
+    Node bv = nm->mkBoundVar(ss.str(), n[0][0].getType());
     TNode var = n[0][0];
-    Node new_body = n[1].substitute( var, bv );
-    return nm->mkNode( CHOICE, nm->mkNode( BOUND_VAR_LIST, bv ), new_body );
+    Node new_body = n[1].substitute(var, bv);
+    return nm->mkNode(CHOICE, nm->mkNode(BOUND_VAR_LIST, bv), new_body);
   }
-  
+
   // [2] rewrite cases of non-invertible operators
-  
+
   // if n is urem( x, y ) where x contains pv but y does not, then
   // rewrite urem( x, y ) ---> x - udiv( x, y )*y
-  if (n.getKind()==BITVECTOR_UREM_TOTAL) {
-    if( contains_pv[n[0]] && !contains_pv[n[1]] ){
-      return nm->mkNode( BITVECTOR_SUB, children[0], 
-                nm->mkNode( BITVECTOR_MULT,
-                  nm->mkNode( BITVECTOR_UDIV_TOTAL, children[0], children[1] ),
-                  children[1] ) );
+  if (n.getKind() == BITVECTOR_UREM_TOTAL)
+  {
+    if (contains_pv[n[0]] && !contains_pv[n[1]])
+    {
+      return nm->mkNode(
+          BITVECTOR_SUB,
+          children[0],
+          nm->mkNode(BITVECTOR_MULT,
+                     nm->mkNode(BITVECTOR_UDIV_TOTAL, children[0], children[1]),
+                     children[1]));
     }
   }
-  
+
   // [3] try to rewrite non-linear literals -> linear literals
-  
+
   return Node::null();
 }
-      

@@ -58,15 +58,15 @@ class BvInverter {
   Node getSolveVariable(TypeNode tn);
 
   /** get inversion node
-   * 
+   *
    * This expects a condition cond where:
    *   (exists x. cond)
    * is a BV tautology where x is getSolveVariable( tn ).
-   * 
+   *
    * It returns a term of the form:
    *   (choice y. cond { x -> y })
    * where y is a bound variable and x is getSolveVariable( tn ).
-   * 
+   *
    * In some cases, we may return a term t
    * if cond implies an equality on the solve variable.
    * For example, if cond is x = t where x is
@@ -92,7 +92,7 @@ class BvInverter {
  private:
   /** dummy variables for each type */
   std::map<TypeNode, Node> d_solve_var;
-  
+
   /** stores the Hilbert choice terms, for each condition */
   std::unordered_map<Node, Node, NodeHashFunction> d_choice_cache;
 
