@@ -153,17 +153,17 @@ class CVC4_PUBLIC String {
   * Notice that x.overlap(y) = y.roverlap(x)
   */
   std::size_t roverlap(const String& y) const;
-  
+
   bool isNumber() const;
   int toNumber() const;
 
   const std::vector<unsigned>& getVec() const { return d_str; }
-  
   /** is the unsigned a digit?
   * The input should be the same type as the element type of d_str
   */
   static bool isDigit(unsigned character);
-private:
+
+ private:
   // guarded
   static unsigned char hexToDec(unsigned char c);
 

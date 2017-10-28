@@ -9,10 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief Rewriter for the theory of strings
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
  **/
 
 #include "cvc4_private.h"
@@ -53,18 +51,19 @@ public:
 
   static inline void init() {}
   static inline void shutdown() {}
-
   /** rewrite contains
-  * This is the entry point for post-rewriting terms n of the form str.contains( t, s )
+  * This is the entry point for post-rewriting terms n of the form 
+  *   str.contains( t, s )
   * Returns the rewritten form of n.
   *
-  * For details on some of the basic rewrites done in this function, see Figure 7 of Reynolds et al
-  * "Scaling Up DPLL(T) String Solvers Using Context-Dependent Rewriting" CAV 2017.
+  * For details on some of the basic rewrites done in this function, see Figure
+  * 7 of Reynolds et al "Scaling Up DPLL(T) String Solvers Using 
+  * Context-Dependent Rewriting", CAV 2017.
   */
   static Node rewriteContains( Node n );
   static Node rewriteIndexof( Node n );
   static Node rewriteReplace( Node n );
-  
+
   /** gets the "vector form" of term n, adds it to c.
   * For example:
   * when n = str.++( x, y ), c is { x, y }
@@ -78,59 +77,69 @@ public:
   static Node splitConstant( Node a, Node b, int& index, bool isRev );
   /** can constant contain list
    * return true if constant c can contain the list l in order
-   * firstc/lastc store which indices in l were used to determine the return value. 
-   *   (This is typically used when this function returns false, for minimizing explanations)
+   * firstc/lastc store which indices in l were used to determine the return
+   * value.
+   *   (This is typically used when this function returns false, for minimizing
+   * explanations)
    *
    * For example:
    *   canConstantContainList( "abc", { x, "c", y } ) returns true
    *     firstc/lastc are updated to 1/1
    *   canConstantContainList( "abc", { x, "d", y } ) returns false
    *     firstc/lastc are updated to 1/1
-   *   canConstantContainList( "abcdef", { x, "b", y, "a", z, "c", w } returns false
+   *   canConstantContainList( "abcdef", { x, "b", y, "a", z, "c", w } 
+   *     returns false
    *     firstc/lastc are updated to 1/3
-   *   canConstantContainList( "abcdef", { x, "b", y, "e", z, "c", w } returns false
+   *   canConstantContainList( "abcdef", { x, "b", y, "e", z, "c", w } 
+   *     returns false
    *     firstc/lastc are updated to 1/5
    */
   static bool canConstantContainList( Node c, std::vector< Node >& l, int& firstc, int& lastc );
-  /** can constant contain concat 
+  /** can constant contain concat
   * same as above but with n = str.++( l ) instead of l
   */
-  static bool canConstantContainConcat( Node c, Node n, int& firstc, int& lastc );
+  static bool canConstantContainConcat(Node c, Node n, int& firstc, int& lastc);
   static Node getNextConstantAt( std::vector< Node >& vec, unsigned& start_index, unsigned& end_index, bool isRev );
   static Node collectConstantStringAt( std::vector< Node >& vec, unsigned& end_index, bool isRev );
-  
-  /** component contains 
+
+  /** component contains
   * This function is used when rewriting str.contains( t1, t2 ), where
   * n1 is the vector form of t1
   * n2 is the vector form of t2
   *
-  * if this function returns n>=0 for some n, then 
-  *    n1 = { x1...x{n-1} xn...x{n+s} x{n+s+1}...xm }, 
-  *    n2 = { y1...ys }, 
-  *    y1 is a suffix of xn, 
+  * if this function returns n>=0 for some n, then
+  *    n1 = { x1...x{n-1} xn...x{n+s} x{n+s+1}...xm },
+  *    n2 = { y1...ys },
+  *    y1 is a suffix of xn,
   *    y2...y{s-1} = x{n+1}...x{n+s-1}, and
   *    ys is a prefix of x{n+s}
-  *    if computeRemainder = true, then 
+  *    if computeRemainder = true, then
   *      n1 is updated to { x1...x{n-1} xn... x{n+s-1} ys }, and
   *      nr is set to { ( x{n+s} \ ys ) x{n+s+1}...xm }
-  *        where ( x{n+s} \ ys ) denotes string remainder (see operator "\" in Section 3.2 of Reynolds et al CAV 2017).
+  *        where ( x{n+s} \ ys ) denotes string remainder (see operator "\" in
+  * Section 3.2 of Reynolds et al CAV 2017).
   * otherwise it returns -1.
   *
   * For example:
-  * componentContains( { y, "abc", x, "def" }, { "c", x, "de" }, {}, true ) returns 1,
+  * componentContains( { y, "abc", x, "def" }, { "c", x, "de" }, {}, true )
+  *   returns 1,
   *   n1 is updated to { y, "abc", x, "de" },
   *   nr is updated to { "f" }
   */
-  static int componentContains( std::vector< Node >& n1, std::vector< Node >& n2, std::vector< Node >& nr, bool computeRemainder = false );
-  /** strip constant endpoints 
+  static int componentContains(std::vector<Node>& n1,
+                               std::vector<Node>& n2,
+                               std::vector<Node>& nr,
+                               bool computeRemainder = false);
+  /** strip constant endpoints
   * This function is used when rewriting str.contains( t1, t2 ), where
   * n1 is the vector form of t1
   * n2 is the vector form of t2
-  * 
+  *
   * It modifies n1 to a new vector n1' such that:
-  * (1) str.contains( str.++( n1 ), str.++( n2 ) ) is equivalent to str.contains( str.++( n1' ), str.++( n2 ) )
+  * (1) str.contains( str.++( n1 ), str.++( n2 ) ) is equivalent to
+  * str.contains( str.++( n1' ), str.++( n2 ) )
   * (2) str.++( n1 ) = str.++( nb, n1', ne )
-  * 
+  *
   * "dir" is the direction in which we can modify n1:
   * if dir = 1, then we allow dropping components from the front of n1,
   * if dir = -1, then we allow dropping components from the back of n1,
@@ -139,15 +148,21 @@ public:
   * It returns true if n1 is modified.
   *
   * For example:
-  * stripConstantEndpoints( { "ab", x, "de" }, { "c" }, {}, {}, 1 ) returns true, 
+  * stripConstantEndpoints( { "ab", x, "de" }, { "c" }, {}, {}, 1 ) 
+  *   returns true,
   *   n1 is updated to { x, "de" }
   *   nb is updated to { "ab" }
-  * stripConstantEndpoints( { "ab", x, "de" }, { "bd" }, {}, {}, 0 ) returns true, 
+  * stripConstantEndpoints( { "ab", x, "de" }, { "bd" }, {}, {}, 0 ) 
+  *   returns true,
   *   n1 is updated to { "b", x, "d" }
   *   nb is updated to { "a" }
   *   ne is updated to { "e" }
   */
-  static bool stripConstantEndpoints( std::vector< Node >& n1, std::vector< Node >& n2, std::vector< Node >& nb, std::vector< Node >& ne, int dir = 0 );
+  static bool stripConstantEndpoints(std::vector<Node>& n1,
+                                     std::vector<Node>& n2,
+                                     std::vector<Node>& nb,
+                                     std::vector<Node>& ne,
+                                     int dir = 0);
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */

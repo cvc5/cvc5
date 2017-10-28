@@ -357,14 +357,16 @@ bool String::isNumber() const {
     return false;
   }
   for (unsigned character : d_str) {
-    if (!isDigit(character)) {
+    if (!isDigit(character))
+    {
       return false;
     }
   }
   return true;
 }
 
-bool String::isDigit(unsigned character){
+bool String::isDigit(unsigned character)
+{
   unsigned char c = convertUnsignedIntToChar(character);
   return c >= '0' && c <= '9';
 }
