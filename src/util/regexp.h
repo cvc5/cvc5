@@ -127,15 +127,41 @@ class CVC4_PUBLIC String {
 
   String prefix(std::size_t i) const { return substr(0, i); }
   String suffix(std::size_t i) const { return substr(size() - i, i); }
-  // if y=y1...yn and overlap returns m, then this is x1...y1...ym
+  /** string overlap
+  *
+  * if overlap returns m>0,
+  * then the maximal suffix of this string that is a prefix of y is of length m.
+  *
+  * For example, if x is "abcdef", then:
+  * x.overlap("defg") = 3
+  * x.overlap("ab") = 0
+  * x.overlap("d") = 0
+  * x.overlap("bcdefdef") = 5
+  */
   std::size_t overlap(const String& y) const;
-  // if y=y1...yn and overlap returns m, then this is y(n+1-m)...yn...xk
+  /** string reverse overlap
+  *
+  * if roverlap returns m>0,
+  * then the maximal prefix of this string that is a suffix of y is of length m.
+  *
+  * For example, if x is "abcdef", then:
+  * x.roverlap("aaabc") = 3
+  * x.roverlap("def") = 0
+  * x.roverlap("d") = 0
+  * x.roverlap("defabcde") = 5
+  *
+  * Notice that x.overlap(y) = y.roverlap(x)
+  */
   std::size_t roverlap(const String& y) const;
 
   bool isNumber() const;
   int toNumber() const;
 
   const std::vector<unsigned>& getVec() const { return d_str; }
+  /** is the unsigned a digit?
+  * The input should be the same type as the element type of d_str
+  */
+  static bool isDigit(unsigned character);
 
  private:
   // guarded
