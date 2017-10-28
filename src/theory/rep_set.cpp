@@ -12,10 +12,12 @@
  ** \brief Implementation of representative set
  **/
 
+#include <unordered_set>
+
 #include "theory/rep_set.h"
 #include "theory/type_enumerator.h"
 #include "theory/quantifiers/bounded_integers.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/first_order_model.h"
 
 using namespace std;
@@ -31,8 +33,10 @@ void RepSet::clear(){
   d_values_to_terms.clear();
 }
 
-bool RepSet::hasRep( TypeNode tn, Node n ) {
-  std::map< TypeNode, std::vector< Node > >::iterator it = d_type_reps.find( tn );
+bool RepSet::hasRep(TypeNode tn, Node n) const
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_reps.find(tn);
   if( it==d_type_reps.end() ){
     return false;
   }else{
@@ -40,18 +44,29 @@ bool RepSet::hasRep( TypeNode tn, Node n ) {
   }
 }
 
-int RepSet::getNumRepresentatives( TypeNode tn ) const{
+unsigned RepSet::getNumRepresentatives(TypeNode tn) const
+{
   std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
   if( it!=d_type_reps.end() ){
-    return (int)it->second.size();
+    return it->second.size();
   }else{
     return 0;
   }
 }
 
-bool containsStoreAll( Node n, std::vector< Node >& cache ){
+Node RepSet::getRepresentative(TypeNode tn, unsigned i) const
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_reps.find(tn);
+  Assert(it != d_type_reps.end());
+  Assert(i < it->second.size());
+  return it->second[i];
+}
+
+bool containsStoreAll(Node n, std::unordered_set<Node, NodeHashFunction>& cache)
+{
   if( std::find( cache.begin(), cache.end(), n )==cache.end() ){
-    cache.push_back( n );
+    cache.insert(n);
     if( n.getKind()==STORE_ALL ){
       return true;
     }else{
@@ -68,7 +83,7 @@ bool containsStoreAll( Node n, std::vector< Node >& cache ){
 void RepSet::add( TypeNode tn, Node n ){
   //for now, do not add array constants FIXME
   if( tn.isArray() ){
-    std::vector< Node > cache;
+    std::unordered_set<Node, NodeHashFunction> cache;
     if( containsStoreAll( n, cache ) ){
       return;
     }
@@ -114,6 +129,43 @@ bool RepSet::complete( TypeNode t ){
   }else{
     return it->second;
   }
+}
+
+Node RepSet::getTermForRepresentative(Node n) const
+{
+  std::map<Node, Node>::const_iterator it = d_values_to_terms.find(n);
+  if (it != d_values_to_terms.end())
+  {
+    return it->second;
+  }
+  else
+  {
+    return Node::null();
+  }
+}
+
+void RepSet::setTermForRepresentative(Node n, Node t)
+{
+  d_values_to_terms[n] = t;
+}
+
+Node RepSet::getDomainValue(TypeNode tn, const std::vector<Node>& exclude) const
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_reps.find(tn);
+  if (it != d_type_reps.end())
+  {
+    // try to find a pre-existing arbitrary element
+    for (size_t i = 0; i < it->second.size(); i++)
+    {
+      if (std::find(exclude.begin(), exclude.end(), it->second[i])
+          == exclude.end())
+      {
+        return it->second[i];
+      }
+    }
+  }
+  return Node::null();
 }
 
 void RepSet::toStream(std::ostream& out){
@@ -183,7 +235,7 @@ bool RepSetIterator::initialize( RepBoundExt* rext ){
         // terms in rep_set are now constants which mapped to terms through TheoryModel
         // thus, should introduce a constant and a term.  for now, just a term.
 
-        //Node c = d_qe->getTermDatabase()->getEnumerateTerm( tn, 0 );
+        //Node c = d_qe->getTermUtil()->getEnumerateTerm( tn, 0 );
         Node var = d_qe->getModel()->getSomeDomainElement( tn );
         Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn << std::endl;
         d_rep_set->add( tn, var );
@@ -208,7 +260,7 @@ bool RepSetIterator::initialize( RepBoundExt* rext ){
     }
     if( !tn.isSort() ){
       if( inc ){
-        if( d_qe->getTermDatabase()->mayComplete( tn ) ){
+        if( d_qe->getTermUtil()->mayComplete( tn ) ){
           Trace("rsi") << "  do complete, since cardinality is small (" << tn.getCardinality() << ")..." << std::endl;
           d_rep_set->complete( tn );
           //must have succeeded
@@ -242,7 +294,7 @@ bool RepSetIterator::initialize( RepBoundExt* rext ){
     for( unsigned i=0; i<d_qe->getBoundedIntegers()->getNumBoundVars( d_owner ); i++ ){
       Node v = d_qe->getBoundedIntegers()->getBoundVar( d_owner, i );
       Trace("bound-int-rsi") << "  bound var #" << i << " is " << v << std::endl;
-      varOrder.push_back( d_qe->getTermDatabase()->getVariableNum( d_owner, v ) );
+      varOrder.push_back( d_qe->getTermUtil()->getVariableNum( d_owner, v ) );
     }
     for( unsigned i=0; i<d_owner[0].getNumChildren(); i++) {
       if( !d_qe->getBoundedIntegers()->isBoundVar(d_owner, d_owner[0][i])) {

@@ -18,16 +18,24 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_CONJECTURE_H
 #define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_CONJECTURE_H
 
-#include "context/cdhashmap.h"
 #include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/ce_guided_pbe.h"
+#include "theory/quantifiers/sygus_grammar_cons.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** a synthesis conjecture */
+/** a synthesis conjecture
+ * This class implements approaches for a synthesis conecjture, given by data
+ * member d_quant.
+ * This includes both approaches for synthesis in Reynolds et al CAV 2015. It
+ * determines
+ * which approach and optimizations are applicable to the conjecture, and has
+ * interfaces for
+ * implementing them.
+ */
 class CegConjecture {
 public:
   CegConjecture( QuantifiersEngine * qe );
@@ -40,7 +48,7 @@ public:
   Node getNextDecisionRequest( unsigned& priority );
   /** increment the number of times we have successfully done candidate refinement */
   void incrementRefineCount() { d_refine_count++; }
-  /** whether the conjecture is waiting for a call to do_Check below */
+  /** whether the conjecture is waiting for a call to doCheck below */
   bool needsCheck( std::vector< Node >& lem );
   /** whether the conjecture is waiting for a call to doRefine below */
   bool needsRefinement();
@@ -94,6 +102,8 @@ public:
   Node getRefinementLemma( unsigned i ) { return d_refinement_lemmas[i]; }
   /** get refinement lemma */
   Node getRefinementBaseLemma( unsigned i ) { return d_refinement_lemmas_base[i]; }
+  /** get program by examples utility */
+  CegConjecturePbe* getPbe() { return d_ceg_pbe; }
   /** print out debug information about this conjecture */
   void debugPrint( const char * c );
 private:
@@ -103,6 +113,8 @@ private:
   CegConjectureSingleInv * d_ceg_si;
   /** program by examples utility */
   CegConjecturePbe * d_ceg_pbe;
+  /** grammar utility */
+  CegGrammarConstructor * d_ceg_gc;
   /** list of constants for quantified formula */
   std::vector< Node > d_candidates;
   /** base instantiation */
@@ -131,10 +143,6 @@ private:
   std::map< Node, CandidateInfo > d_cinfo;  
   /** number of times we have called doRefine */
   unsigned d_refine_count;
-  /** convert node n based on deep embedding (Section 4 of Reynolds et al CAV 2015) */
-  Node convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars, std::map< Node, Node >& visited );
-  /** collect constants */
-  void collectConstants( Node n, std::map< TypeNode, std::vector< Node > >& consts, std::map< Node, bool >& visited );
   /** construct candidates */
   bool constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, 
                             std::vector< Node >& candidate_values, std::vector< Node >& lems );

@@ -19,12 +19,10 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
-#include "theory/quantifiers/ce_guided_instantiation.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fun_def_engine.h"
-#include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/theory_quantifiers.h"
-#include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
@@ -152,7 +150,7 @@ bool TermDbSygus::getMatch2( Node p, Node n, std::map< int, Node >& s, std::vect
     return p==n;
   }else if( n.getKind()==p.getKind() && n.getNumChildren()==p.getNumChildren() ){
     //try both ways?
-    unsigned rmax = TermDb::isComm( n.getKind() ) && n.getNumChildren()==2 ? 2 : 1;
+    unsigned rmax = TermUtil::isComm( n.getKind() ) && n.getNumChildren()==2 ? 2 : 1;
     std::vector< int > new_tmp;
     for( unsigned r=0; r<rmax; r++ ){
       bool success = true;
@@ -724,7 +722,7 @@ bool TermDbSygus::considerArgKind( TypeNode tn, TypeNode tnp, Kind k, Kind pk, i
   int pc = getKindConsNum( tnp, pk );
   if( k==pk ){
     //check for associativity
-    if( quantifiers::TermDb::isAssoc( k ) ){
+    if( quantifiers::TermUtil::isAssoc( k ) ){
       //if the operator is associative, then a repeated occurrence should only occur in the leftmost argument position
       int firstArg = getFirstArgOccurrence( pdt[pc], tn );
       Assert( firstArg!=-1 );
@@ -1370,10 +1368,11 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
   }
 }
 
-void TermDbSygus::registerMeasuredTerm( Node e, Node root, bool mkActiveGuard ) {
-  Assert( d_measured_term.find( e )==d_measured_term.end() );
-  Trace("sygus-db") << "Register measured term : " << e << " with root " << root << std::endl;
-  d_measured_term[e] = root;
+void TermDbSygus::registerMeasuredTerm(Node e, CegConjecture* conj,
+                                       bool mkActiveGuard) {
+  Assert(d_enum_to_conjecture.find(e) == d_enum_to_conjecture.end());
+  Trace("sygus-db") << "Register measured term : " << e << std::endl;
+  d_enum_to_conjecture[e] = conj;
   if( mkActiveGuard ){
     // make the guard
     Node eg = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "eG", NodeManager::currentNM()->booleanType() ) );
@@ -1384,38 +1383,26 @@ void TermDbSygus::registerMeasuredTerm( Node e, Node root, bool mkActiveGuard ) 
     Node lem = NodeManager::currentNM()->mkNode( OR, eg, eg.negate() );
     Trace("cegqi-lemma") << "Cegqi::Lemma : enumerator : " << lem << std::endl;
     d_quantEngine->getOutputChannel().lemma( lem );
-    d_measured_term_active_guard[e] = eg;
+    d_enum_to_active_guard[e] = eg;
   }
 }
 
-void TermDbSygus::registerPbeExamples( Node e, std::vector< std::vector< Node > >& exs, 
-                                       std::vector< Node >& exos, std::vector< Node >& exts  ) {
-  Trace("sygus-db") << "Register " << exs.size() << " PBE examples with " << e << std::endl;
-  Assert( d_measured_term.find( e )==d_measured_term.end() || isMeasuredTerm( e )==e );
-  Assert( d_pbe_exs.find( e )==d_pbe_exs.end() );
-  Assert( exs.size()==exos.size() );
-  d_pbe_exs[e] = exs;
-  d_pbe_exos[e] = exos;
-  for( unsigned i=0; i<exts.size(); i++ ){
-    Trace("sygus-db-debug") << "  # " << i << " : " << exts[i] << std::endl;
-    Assert( exts[i].getKind()==APPLY_UF );
-    Assert( exts[i][0]==e );
-    d_pbe_term_id[exts[i]] = i;
-  }
+bool TermDbSygus::isMeasuredTerm(Node e) const {
+  return d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end();
 }
 
-Node TermDbSygus::isMeasuredTerm( Node e ) {
-  std::map< Node, Node >::iterator itm = d_measured_term.find( e );
-  if( itm!=d_measured_term.end() ){
+CegConjecture* TermDbSygus::getConjectureFor(Node e) {
+  std::map<Node, CegConjecture*>::iterator itm = d_enum_to_conjecture.find(e);
+  if (itm != d_enum_to_conjecture.end()) {
     return itm->second;
   }else{
-    return Node::null();
+    return NULL;
   }
 }
 
 Node TermDbSygus::getActiveGuardForMeasureTerm( Node e ) {
-  std::map< Node, Node >::iterator itag = d_measured_term_active_guard.find( e );
-  if( itag!=d_measured_term_active_guard.end() ){
+  std::map<Node, Node>::iterator itag = d_enum_to_active_guard.find(e);
+  if (itag != d_enum_to_active_guard.end()) {
     return itag->second;
   }else{
     return Node::null();
@@ -1423,51 +1410,10 @@ Node TermDbSygus::getActiveGuardForMeasureTerm( Node e ) {
 }
 
 void TermDbSygus::getMeasuredTerms( std::vector< Node >& mts ) {
-  for( std::map< Node, Node >::iterator itm = d_measured_term.begin(); itm != d_measured_term.end(); ++itm ){
+  for (std::map<Node, CegConjecture*>::iterator itm =
+           d_enum_to_conjecture.begin();
+       itm != d_enum_to_conjecture.end(); ++itm) {
     mts.push_back( itm->first );
-  }
-}
-
-bool TermDbSygus::hasPbeExamples( Node e ) {
-  return d_pbe_exs.find( e )!=d_pbe_exs.end();
-}
-
-unsigned TermDbSygus::getNumPbeExamples( Node e ) {
-  std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_pbe_exs.find( e );
-  if( it!=d_pbe_exs.end() ){
-    return it->second.size();
-  }else{
-    return 0;
-  }
-}
-
-void TermDbSygus::getPbeExample( Node e, unsigned i, std::vector< Node >& ex ) {
-  std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_pbe_exs.find( e );
-  if( it!=d_pbe_exs.end() ){
-    Assert( i<it->second.size() );
-    Assert( i<d_pbe_exos[e].size() );
-    ex.insert( ex.end(), it->second[i].begin(), it->second[i].end() );
-  }else{
-    Assert( false );
-  }
-}
-Node TermDbSygus::getPbeExampleOut( Node e, unsigned i ) {
-  std::map< Node, std::vector< Node > >::iterator it = d_pbe_exos.find( e );
-  if( it!=d_pbe_exos.end() ){
-    Assert( i<it->second.size() );
-    return it->second[i];
-  }else{
-    Assert( false );
-    return Node::null();
-  }
-}
-
-int TermDbSygus::getPbeExampleId( Node n ) {
-  std::map< Node, unsigned >::iterator it = d_pbe_term_id.find( n );
-  if( it!=d_pbe_term_id.end() ){
-    return it->second;
-  }else{
-    return -1;
   }
 }
 
@@ -1945,7 +1891,8 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 void TermDbSygus::registerEvalTerm( Node n ) {
   if( options::sygusDirectEval() ){
     if( n.getKind()==APPLY_UF && !n.getType().isBoolean() ){
-      Trace("sygus-eager") << "TermDbSygus::eager: Register eval term : " << n << std::endl;
+      Trace("sygus-eager") << "TermDbSygus::eager: Register eval term : " << n
+                           << std::endl;
       TypeNode tn = n[0].getType();
       if( tn.isDatatype() ){
         const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
@@ -1953,15 +1900,6 @@ void TermDbSygus::registerEvalTerm( Node n ) {
           Node f = n.getOperator();
           Trace("sygus-eager") << "...the evaluation function is : " << f << std::endl;
           if( n[0].getKind()!=APPLY_CONSTRUCTOR ){
-            // check if it directly occurs in an input/ouput example
-            int pbe_id = getPbeExampleId( n );
-            if( pbe_id!=-1 ){
-              Node n_res = getPbeExampleOut( n[0], pbe_id );
-              if( !n_res.isNull() ){
-                Trace("sygus-eager") << "......do not evaluate " << n << " since it is an input/output example : " << n_res << std::endl;
-                return;
-              }
-            }
             d_evals[n[0]].push_back( n );
             TypeNode tn = n[0].getType();
             Assert( tn.isDatatype() );
@@ -2011,7 +1949,7 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
         Assert( dt.isSygus() );
         Trace("sygus-eager") << "TermDbSygus::eager: Register model value : " << vn << " for " << n << std::endl;
         Trace("sygus-eager") << "...it has " << it->second.size() << " evaluations, already processed " << start << "." << std::endl;
-        Node bTerm = d_quantEngine->getTermDatabaseSygus()->sygusToBuiltin( vn, tn );
+        Node bTerm = sygusToBuiltin( vn, tn );
         Trace("sygus-eager") << "Built-in term : " << bTerm << std::endl;
         std::vector< Node > vars;
         Node var_list = Node::fromExpr( dt.getSygusVarList() );
@@ -2371,16 +2309,6 @@ Node TermDbSygus::evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& ar
   }
 }
 
-Node TermDbSygus::evaluateBuiltin( TypeNode tn, Node bn, Node ar, unsigned i ) {
-  std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_pbe_exs.find( ar );
-  if( it!=d_pbe_exs.end() ){
-    Assert( i<it->second.size() );
-    return evaluateBuiltin( tn, bn, it->second[i] );
-  }else{
-    return Rewriter::rewrite( bn );
-  }
-}
-
 Node TermDbSygus::evaluateWithUnfolding( Node n, std::map< Node, Node >& visited ) {
   std::map< Node, Node >::iterator it = visited.find( n );
   if( it==visited.end() ){
@@ -2449,50 +2377,6 @@ bool TermDbSygus::isGenericRedundant( TypeNode tn, unsigned i ) {
   }else{
     return d_sygus_red_status[tn][i]==1;
   }
-}
-
-Node TermDbSygus::PbeTrie::addPbeExample( TypeNode etn, Node e, Node b, quantifiers::TermDbSygus * tds, unsigned index, unsigned ntotal ) {
-  Assert( tds->getNumPbeExamples( e )==ntotal );
-  if( index==ntotal ){
-    //lazy child holds the leaf data
-    if( d_lazy_child.isNull() ){
-      d_lazy_child = b;
-    }
-    return d_lazy_child;
-  }else{
-    std::vector< Node > ex;
-    if( d_children.empty() ){
-      if( d_lazy_child.isNull() ){
-        d_lazy_child = b;
-        return d_lazy_child;
-      }else{
-        //evaluate the lazy child    
-        tds->getPbeExample( e, index, ex );
-        addPbeExampleEval( etn, e, d_lazy_child, ex, tds, index, ntotal );
-        Assert( !d_children.empty() );
-        d_lazy_child = Node::null();
-      }
-    }else{
-      tds->getPbeExample( e, index, ex );
-    }
-    return addPbeExampleEval( etn, e, b, ex, tds, index, ntotal );
-  }
-}
-
-Node TermDbSygus::PbeTrie::addPbeExampleEval( TypeNode etn, Node e, Node b, std::vector< Node >& ex, quantifiers::TermDbSygus * tds, unsigned index, unsigned ntotal ) {
-  Node eb = tds->evaluateBuiltin( etn, b, ex );
-  return d_children[eb].addPbeExample( etn, e, b, tds, index+1, ntotal );
-}
-
-Node TermDbSygus::addPbeSearchVal( TypeNode tn, Node e, Node bvr ){
-  Assert( !e.isNull() );
-  if( hasPbeExamples( e ) ){
-    unsigned nex = getNumPbeExamples( e );
-    Node ret = d_pbe_trie[e][tn].addPbeExample( tn, e, bvr, this, 0, nex );
-    Assert( ret.getType()==bvr.getType() );
-    return ret;
-  }
-  return Node::null();
 }
 
 Node TermDbSygus::extendedRewritePullIte( Node n ) {
@@ -2693,361 +2577,6 @@ Node TermDbSygus::extendedRewrite( Node n ) {
   }
 }
 
-
-
-
-
-
-TypeNode TermDbSygus::mkUnresolvedType(const std::string& name, std::set<Type>& unres) {
-  TypeNode unresolved = NodeManager::currentNM()->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER);
-  unres.insert( unresolved.toType() );
-  return unresolved;
-}
-
-void TermDbSygus::mkSygusConstantsForType( TypeNode type, std::vector<CVC4::Node>& ops ) {
-  if( type.isInteger() ){
-    ops.push_back(NodeManager::currentNM()->mkConst(Rational(0)));
-    ops.push_back(NodeManager::currentNM()->mkConst(Rational(1)));
-  }else if( type.isBitVector() ){
-    unsigned sz = ((BitVectorType)type.toType()).getSize();
-    BitVector bval0(sz, (unsigned int)0);
-    ops.push_back( NodeManager::currentNM()->mkConst(bval0) );
-    BitVector bval1(sz, (unsigned int)1);
-    ops.push_back( NodeManager::currentNM()->mkConst(bval1) );
-  }else if( type.isBoolean() ){
-    ops.push_back(NodeManager::currentNM()->mkConst(true));
-    ops.push_back(NodeManager::currentNM()->mkConst(false));
-  }
-  //TODO : others?
-}
-
-void TermDbSygus::collectSygusGrammarTypesFor( TypeNode range, std::vector< TypeNode >& types, std::map< TypeNode, std::vector< DatatypeConstructorArg > >& sels ){
-  if( !range.isBoolean() ){
-    if( std::find( types.begin(), types.end(), range )==types.end() ){
-      Trace("sygus-grammar-def") << "...will make grammar for " << range << std::endl;
-      types.push_back( range );
-      if( range.isDatatype() ){
-        const Datatype& dt = ((DatatypeType)range.toType()).getDatatype();
-        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-          for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-            TypeNode crange = TypeNode::fromType( ((SelectorType)dt[i][j].getType()).getRangeType() );
-            sels[crange].push_back( dt[i][j] );
-            collectSygusGrammarTypesFor( crange, types, sels );
-          }
-        }
-      }
-    }
-  }
-}
-
-void TermDbSygus::mkSygusDefaultGrammar( TypeNode range, Node bvl, const std::string& fun, std::map< TypeNode, std::vector< Node > >& extra_cons, 
-                                         std::vector< CVC4::Datatype >& datatypes, std::set<Type>& unres ) {
-  // collect the variables
-  std::vector<Node> sygus_vars;
-  if( !bvl.isNull() ){
-    for( unsigned i=0; i<bvl.getNumChildren(); i++ ){
-      sygus_vars.push_back( bvl[i] );
-    }
-  }
-  //if( !range.isBoolean() && !range.isInteger() && !range.isBitVector() && !range.isDatatype() ){
-  //  parseError("No default grammar for type.");
-  //}
-  std::vector< std::vector< Expr > > ops;
-  int startIndex = -1;
-  Trace("sygus-grammar-def") << "Construct default grammar for " << fun << " " << range << std::endl;
-  std::map< Type, Type > sygus_to_builtin;
-
-  std::vector< TypeNode > types;
-  std::map< TypeNode, std::vector< DatatypeConstructorArg > > sels;
-  //types for each of the variables of parametric sort
-  for( unsigned i=0; i<sygus_vars.size(); i++ ){
-    collectSygusGrammarTypesFor( sygus_vars[i].getType(), types, sels );
-  }
-  //types connected to range
-  collectSygusGrammarTypesFor( range, types, sels );
-
-  //name of boolean sort
-  std::stringstream ssb;
-  ssb << fun << "_Bool";
-  std::string dbname = ssb.str();
-  Type unres_bt = mkUnresolvedType(ssb.str(), unres).toType();
-
-  std::vector< Type > unres_types;
-  std::map< TypeNode, Type > type_to_unres;
-  for( unsigned i=0; i<types.size(); i++ ){
-    std::stringstream ss;
-    ss << fun << "_" << types[i];
-    std::string dname = ss.str();
-    datatypes.push_back(Datatype(dname));
-    ops.push_back(std::vector< Expr >());
-    //make unresolved type
-    Type unres_t = mkUnresolvedType(dname, unres).toType();
-    unres_types.push_back(unres_t);
-    type_to_unres[types[i]] = unres_t;
-    sygus_to_builtin[unres_t] = types[i].toType();
-  }
-  for( unsigned i=0; i<types.size(); i++ ){
-    Trace("sygus-grammar-def") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
-    std::vector<std::string> cnames;
-    std::vector<std::vector<CVC4::Type> > cargs;
-    Type unres_t = unres_types[i];
-    //add variables
-    for( unsigned j=0; j<sygus_vars.size(); j++ ){
-      if( sygus_vars[j].getType()==types[i] ){
-        std::stringstream ss;
-        ss << sygus_vars[j];
-        Trace("sygus-grammar-def") << "...add for variable " << ss.str() << std::endl;
-        ops[i].push_back( sygus_vars[j].toExpr() );
-        cnames.push_back( ss.str() );
-        cargs.push_back( std::vector< CVC4::Type >() );
-      }
-    }
-    //add constants
-    std::vector< Node > consts;
-    mkSygusConstantsForType( types[i], consts );
-    std::map< TypeNode, std::vector< Node > >::iterator itec = extra_cons.find( types[i] );
-    if( itec!=extra_cons.end() ){
-      //consts.insert( consts.end(), itec->second.begin(), itec->second.end() );
-      for( unsigned j=0; j<itec->second.size(); j++ ){
-        if( std::find( consts.begin(), consts.end(), itec->second[j] )==consts.end() ){
-          consts.push_back( itec->second[j] );
-        }
-      }
-    }
-    for( unsigned j=0; j<consts.size(); j++ ){
-      std::stringstream ss;
-      ss << consts[j];
-      Trace("sygus-grammar-def") << "...add for constant " << ss.str() << std::endl;
-      ops[i].push_back( consts[j].toExpr() );
-      cnames.push_back( ss.str() );
-      cargs.push_back( std::vector< CVC4::Type >() );
-    }
-    //ITE
-    CVC4::Kind k = kind::ITE;
-    Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-    ops[i].push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
-    cnames.push_back( kind::kindToString(k) );
-    cargs.push_back( std::vector< CVC4::Type >() );
-    cargs.back().push_back(unres_bt);
-    cargs.back().push_back(unres_t);
-    cargs.back().push_back(unres_t);
-
-    if( types[i].isInteger() ){
-      for( unsigned j=0; j<2; j++ ){
-        CVC4::Kind k = j==0 ? kind::PLUS : kind::MINUS;
-        Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-        ops[i].push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
-        cnames.push_back(kind::kindToString(k));
-        cargs.push_back( std::vector< CVC4::Type >() );
-        cargs.back().push_back(unres_t);
-        cargs.back().push_back(unres_t);
-      }
-    }else if( types[i].isDatatype() ){
-      Trace("sygus-grammar-def") << "...add for constructors" << std::endl;
-      const Datatype& dt = ((DatatypeType)types[i].toType()).getDatatype();
-      for( unsigned k=0; k<dt.getNumConstructors(); k++ ){
-        Trace("sygus-grammar-def") << "...for " << dt[k].getName() << std::endl;
-        ops[i].push_back( dt[k].getConstructor() );
-        cnames.push_back( dt[k].getName() );
-        cargs.push_back( std::vector< CVC4::Type >() );
-        for( unsigned j=0; j<dt[k].getNumArgs(); j++ ){
-          TypeNode crange = TypeNode::fromType( ((SelectorType)dt[k][j].getType()).getRangeType() );
-          //Assert( type_to_unres.find(crange)!=type_to_unres.end() );
-          cargs.back().push_back( type_to_unres[crange] );
-        }
-      }
-    }else{
-      std::stringstream sserr;
-      sserr << "No implementation for default Sygus grammar of type " << types[i] << std::endl;
-      //AlwaysAssert( false, sserr.str() );
-      // FIXME
-      AlwaysAssert( false );
-    }
-    //add for all selectors to this type
-    if( !sels[types[i]].empty() ){
-      Trace("sygus-grammar-def") << "...add for selectors" << std::endl;
-      for( unsigned j=0; j<sels[types[i]].size(); j++ ){
-        Trace("sygus-grammar-def") << "...for " << sels[types[i]][j].getName() << std::endl;
-        TypeNode arg_type = TypeNode::fromType( ((SelectorType)sels[types[i]][j].getType()).getDomain() );
-        ops[i].push_back( sels[types[i]][j].getSelector() );
-        cnames.push_back( sels[types[i]][j].getName() );
-        cargs.push_back( std::vector< CVC4::Type >() );
-        //Assert( type_to_unres.find(arg_type)!=type_to_unres.end() );
-        cargs.back().push_back( type_to_unres[arg_type] );
-      }
-    }
-    Trace("sygus-grammar-def") << "...make datatype " << datatypes.back() << std::endl;
-    datatypes[i].setSygus( types[i].toType(), bvl.toExpr(), true, true );
-    for( unsigned j=0; j<ops[i].size(); j++ ){
-      datatypes[i].addSygusConstructor( ops[i][j], cnames[j], cargs[j] );
-    }
-    //sorts.push_back( types[i] );
-    //set start index if applicable
-    if( types[i]==range ){
-      startIndex = i;
-    }
-  }
-
-  //make Boolean type
-  TypeNode btype = NodeManager::currentNM()->booleanType();
-  datatypes.push_back(Datatype(dbname));
-  ops.push_back(std::vector<Expr>());
-  std::vector<std::string> cnames;
-  std::vector<std::vector< Type > > cargs;
-  Trace("sygus-grammar-def") << "Make grammar for " << btype << " " << datatypes.back() << std::endl;
-  //add variables
-  for( unsigned i=0; i<sygus_vars.size(); i++ ){
-    if( sygus_vars[i].getType().isBoolean() ){
-      std::stringstream ss;
-      ss << sygus_vars[i];
-      Trace("sygus-grammar-def") << "...add for variable " << ss.str() << std::endl;
-      ops.back().push_back( sygus_vars[i].toExpr() );
-      cnames.push_back( ss.str() );
-      cargs.push_back( std::vector< CVC4::Type >() );
-    }
-  }
-  //add constants if no variables and no connected types
-  if( ops.back().empty() && types.empty() ){
-    std::vector< Node > consts;
-    mkSygusConstantsForType( btype, consts );
-    for( unsigned j=0; j<consts.size(); j++ ){
-      std::stringstream ss;
-      ss << consts[j];
-      Trace("sygus-grammar-def") << "...add for constant " << ss.str() << std::endl;
-      ops.back().push_back( consts[j].toExpr() );
-      cnames.push_back( ss.str() );
-      cargs.push_back( std::vector< CVC4::Type >() );
-    }
-  }
-  //add operators
-  for( unsigned i=0; i<3; i++ ){
-    CVC4::Kind k = i==0 ? kind::NOT : ( i==1 ? kind::AND : kind::OR );
-    Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-    ops.back().push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
-    cnames.push_back(kind::kindToString(k));
-    cargs.push_back( std::vector< CVC4::Type >() );
-    if( k==kind::NOT ){
-      cargs.back().push_back(unres_bt);
-    }else if( k==kind::AND || k==kind::OR ){
-      cargs.back().push_back(unres_bt);
-      cargs.back().push_back(unres_bt);
-    }
-  }
-  //add predicates for types
-  for( unsigned i=0; i<types.size(); i++ ){
-    Trace("sygus-grammar-def") << "...add predicates for " << types[i] << std::endl;
-    //add equality per type
-    CVC4::Kind k = kind::EQUAL;
-    Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-    ops.back().push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
-    std::stringstream ss;
-    ss << kind::kindToString(k) << "_" << types[i];
-    cnames.push_back(ss.str());
-    cargs.push_back( std::vector< CVC4::Type >() );
-    cargs.back().push_back(unres_types[i]);
-    cargs.back().push_back(unres_types[i]);
-    //type specific predicates
-    if( types[i].isInteger() ){
-      CVC4::Kind k = kind::LEQ;
-      Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-      ops.back().push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
-      cnames.push_back(kind::kindToString(k));
-      cargs.push_back( std::vector< CVC4::Type >() );
-      cargs.back().push_back(unres_types[i]);
-      cargs.back().push_back(unres_types[i]);
-    }else if( types[i].isDatatype() ){
-      //add for testers
-      Trace("sygus-grammar-def") << "...add for testers" << std::endl;
-      const Datatype& dt = ((DatatypeType)types[i].toType()).getDatatype();
-      for( unsigned k=0; k<dt.getNumConstructors(); k++ ){
-        Trace("sygus-grammar-def") << "...for " << dt[k].getTesterName() << std::endl;
-        ops.back().push_back(dt[k].getTester());
-        cnames.push_back(dt[k].getTesterName());
-        cargs.push_back( std::vector< CVC4::Type >() );
-        cargs.back().push_back(unres_types[i]);
-      }
-    }
-  }
-  if( range==btype ){
-    startIndex = datatypes.size()-1;
-  }
-  Trace("sygus-grammar-def") << "...make datatype " << datatypes.back() << std::endl;
-  datatypes.back().setSygus( btype.toType(), bvl.toExpr(), true, true );
-  for( unsigned j=0; j<ops.back().size(); j++ ){
-    datatypes.back().addSygusConstructor( ops.back()[j], cnames[j], cargs[j] );
-  }
-  //sorts.push_back( btype );
-  Trace("sygus-grammar-def") << "...finished make default grammar for " << fun << " " << range << std::endl;
-  
-  if( startIndex>0 ){
-    CVC4::Datatype tmp_dt = datatypes[0];
-    datatypes[0] = datatypes[startIndex];
-    datatypes[startIndex] = tmp_dt;
-  }
-}
-
-
-TypeNode TermDbSygus::mkSygusDefaultType( TypeNode range, Node bvl, const std::string& fun, 
-                                          std::map< TypeNode, std::vector< Node > >& extra_cons ) {
-  Trace("sygus-grammar-def") << "*** Make sygus default type " << range << ", make datatypes..." << std::endl;
-  for( std::map< TypeNode, std::vector< Node > >::iterator it = extra_cons.begin(); it != extra_cons.end(); ++it ){
-    Trace("sygus-grammar-def") << "    ...using " << it->second.size() << " extra constants for " << it->first << std::endl;
-  }
-  std::set<Type> unres;
-  std::vector< CVC4::Datatype > datatypes;
-  mkSygusDefaultGrammar( range, bvl, fun, extra_cons, datatypes, unres );
-  Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
-  Assert( !datatypes.empty() );
-  std::vector<DatatypeType> types = NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(datatypes, unres);
-  Assert( types.size()==datatypes.size() );
-  return TypeNode::fromType( types[0] );
-}
-
-TypeNode TermDbSygus::mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
-                                              const std::string& fun, unsigned& tcount ) {
-  if( templ==templ_arg ){
-    //Assert( templ_arg.getType()==sygusToBuiltinType( templ_arg_sygus_type ) );
-    return templ_arg_sygus_type;
-  }else{
-    tcount++;
-    std::set<Type> unres;
-    std::vector< CVC4::Datatype > datatypes;
-    std::stringstream ssd;
-    ssd << fun << "_templ_" << tcount;
-    std::string dbname = ssd.str();
-    datatypes.push_back(Datatype(dbname));
-    Node op;
-    std::vector< Type > argTypes;
-    if( templ.getNumChildren()==0 ){
-      // TODO : can short circuit to this case when !TermDb::containsTerm( templ, templ_arg )
-      op = templ;
-    }else{
-      Assert( templ.hasOperator() );
-      op = templ.getOperator();
-      // make constructor taking arguments types from children
-      for( unsigned i=0; i<templ.getNumChildren(); i++ ){
-        //recursion depth bound by the depth of SyGuS template expressions (low)
-        TypeNode tnc = mkSygusTemplateTypeRec( templ[i], templ_arg, templ_arg_sygus_type, bvl, fun, tcount );
-        argTypes.push_back( tnc.toType() );
-      }
-    }
-    std::stringstream ssdc;
-    ssdc << fun << "_templ_cons_" << tcount;
-    std::string cname = ssdc.str();
-    // we have a single sygus constructor that encodes the template
-    datatypes.back().addSygusConstructor( op.toExpr(), cname, argTypes );
-    datatypes.back().setSygus( templ.getType().toType(), bvl.toExpr(), true, true );
-    std::vector<DatatypeType> types = NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(datatypes, unres);
-    Assert( types.size()==1 );
-    return TypeNode::fromType( types[0] );
-  }
-}
-
-TypeNode TermDbSygus::mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
-                                           const std::string& fun ) {
-  unsigned tcount = 0;
-  return mkSygusTemplateTypeRec( templ, templ_arg, templ_arg_sygus_type, bvl, fun, tcount );
-}
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

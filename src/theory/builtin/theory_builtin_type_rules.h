@@ -77,10 +77,7 @@ class EqualityTypeRule {
     if( check ) {
       TypeNode lhsType = n[0].getType(check);
       TypeNode rhsType = n[1].getType(check);
-
-      // TODO : we may want to limit cases where we have equalities between terms of different types 
-      //   equalities between (Set Int) and (Set Real) already cause strange issues in theory solver for sets
-      //   one possibility is to only allow this for Int/Real
+      
       if ( TypeNode::leastCommonTypeNode(lhsType, rhsType).isNull() ) {
         std::stringstream ss;
         ss << "Subexpressions must have a common base type:" << std::endl;
@@ -90,6 +87,7 @@ class EqualityTypeRule {
 
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
+      // TODO : check isFirstClass for these types? (github issue #1202)
     }
     return booleanType;
   }
@@ -193,6 +191,41 @@ public:
     return false;
   }
 };/* class LambdaTypeRule */
+
+class ChoiceTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    if (n[0].getType(check) != nodeManager->boundVarListType())
+    {
+      std::stringstream ss;
+      ss << "expected a bound var list for CHOICE expression, got `"
+         << n[0].getType().toString() << "'";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (n[0].getNumChildren() != 1)
+    {
+      std::stringstream ss;
+      ss << "expected a bound var list with one argument for CHOICE expression";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (check)
+    {
+      TypeNode rangeType = n[1].getType(check);
+      if (!rangeType.isBoolean())
+      {
+        std::stringstream ss;
+        ss << "expected a body of a CHOICE expression to have Boolean type";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+    // The type of a choice function is the type of its bound variable.
+    return n[0][0].getType();
+  }
+}; /* class ChoiceTypeRule */
 
 class ChainTypeRule {
 public:

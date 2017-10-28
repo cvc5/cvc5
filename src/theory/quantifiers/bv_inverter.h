@@ -85,19 +85,11 @@ class BvInverter {
    */
   Node eliminateSkolemFunctions(TNode n, std::vector<Node>& side_conditions);
 
-  /** solve_bv_constraint
-   * solve for sv in constraint ( (pol ? _ : not) sv_t <rk> t ), where sv_t.path
-   * = sv status accumulates side conditions
-   */
-  Node solve_bv_constraint(Node sv, Node sv_t, Node t, Kind rk, bool pol,
-                           std::vector<unsigned>& path, BvInverterModelQuery* m,
-                           BvInverterStatus& status);
-
   /** solve_bv_lit
    * solve for sv in lit, where lit.path = sv
    * status accumulates side conditions
    */
-  Node solve_bv_lit(Node sv, Node lit, bool pol, std::vector<unsigned>& path,
+  Node solve_bv_lit(Node sv, Node lit, std::vector<unsigned>& path,
                     BvInverterModelQuery* m, BvInverterStatus& status);
 
  private:
@@ -112,7 +104,7 @@ class BvInverter {
                    std::unordered_set<TNode, TNodeHashFunction>& visited);
 
   // is operator k invertible?
-  bool isInvertible(Kind k);
+  bool isInvertible(Kind k, unsigned index);
 
   /** get inversion skolem for condition
    * precondition : exists x. cond( x ) is a tautology in BV,

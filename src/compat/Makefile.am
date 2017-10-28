@@ -22,6 +22,7 @@ if CVC4_BUILD_LIBCOMPAT
 lib_LTLIBRARIES = libcvc4compat.la
 
 libcvc4compat_la_LDFLAGS = \
+	-no-undefined \
 	-version-info $(LIBCVC4COMPAT_VERSION)
 
 libcvc4compat_la_LIBADD = \

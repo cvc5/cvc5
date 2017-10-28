@@ -22,7 +22,7 @@ option ufssTotalityLimited --uf-ss-totality-limited=N int :default -1
 option ufssTotalitySymBreak --uf-ss-totality-sym-break bool :default false
  apply symmetry breaking for totality axioms
 option ufssAbortCardinality --uf-ss-abort-card=N int :default -1
- tells the uf strong solver a cardinality to abort at (-1 == no limit, default)
+ tells the uf strong solver to only consider models that interpret uninterpreted sorts of cardinality at most N (-1 == no limit, default)
 option ufssExplainedCliques --uf-ss-explained-cliques bool :default false
  use explained clique lemmas for uf strong solver
 option ufssSimpleCliques --uf-ss-simple-cliques bool :default true

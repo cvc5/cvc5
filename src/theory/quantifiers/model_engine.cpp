@@ -20,6 +20,7 @@
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
@@ -164,11 +165,15 @@ int ModelEngine::checkModel(){
 
   //flatten the representatives
   //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
-  //d_quantEngine->getEqualityQuery()->flattenRepresentatives( fm->d_rep_set.d_type_reps );
+  // d_quantEngine->getEqualityQuery()->flattenRepresentatives(
+  // fm->getRepSet()->d_type_reps );
 
   //for debugging, setup
-  for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
-       it != fm->d_rep_set.d_type_reps.end(); ++it ){
+  for (std::map<TypeNode, std::vector<Node> >::iterator it =
+           fm->getRepSetPtr()->d_type_reps.begin();
+       it != fm->getRepSetPtr()->d_type_reps.end();
+       ++it)
+  {
     if( it->first.isSort() ){
       Trace("model-engine") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
       Trace("model-engine-debug") << "        Reps : ";
@@ -198,8 +203,10 @@ int ModelEngine::checkModel(){
         int totalInst = 1;
         for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
           TypeNode tn = f[0][j].getType();
-          if( fm->d_rep_set.hasType( tn ) ){
-            totalInst = totalInst * (int)fm->d_rep_set.d_type_reps[ tn ].size();
+          if (fm->getRepSet()->hasType(tn))
+          {
+            totalInst =
+                totalInst * (int)fm->getRepSet()->getNumRepresentatives(tn);
           }
         }
         d_totalLemmas += totalInst;
@@ -265,12 +272,13 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
       for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-        Trace("fmf-exh-inst-debug") << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) << " ";
+        Trace("fmf-exh-inst-debug") << d_quantEngine->getTermUtil()->getInstantiationConstant( f, i ) << " ";
       }
       Trace("fmf-exh-inst-debug") << std::endl;
     }
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
-    RepSetIterator riter( d_quantEngine, &(d_quantEngine->getModel()->d_rep_set) );
+    RepSetIterator riter(d_quantEngine,
+                         d_quantEngine->getModel()->getRepSetPtr());
     if( riter.setQuantifier( f ) ){
       Trace("fmf-exh-inst") << "...exhaustive instantiation set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
       if( !riter.isIncomplete() ){

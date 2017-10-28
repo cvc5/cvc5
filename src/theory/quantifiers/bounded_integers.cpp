@@ -19,7 +19,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4;
@@ -241,7 +241,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
       //if we are ( x != t1 ^ ...^ x != tn ), then x can be bound to { t1...tn }
       Node conj = n;
       if( !pol ){
-        conj = TermDb::simpleNegate( conj );
+        conj = TermUtil::simpleNegate( conj );
       }
       Trace("bound-int-debug") << "Process possible finite disequality conjunction : " << conj << std::endl;
       Assert( conj.getKind()==AND );
@@ -455,7 +455,7 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if( tn.isSort() || getTermDatabase()->mayComplete( tn ) ){
+          if( tn.isSort() || getTermUtil()->mayComplete( tn ) ){
             success = true;
             setBoundedVar( f, f[0][i], BOUND_FINITE );
             break;
@@ -738,8 +738,10 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
     Assert( q[0][v]==d_set[q][i] );
     Node t = rsi->getCurrentTerm( v );
     Trace("bound-int-rsi") << "term : " << t << std::endl;
-    if( rsi->d_rep_set->d_values_to_terms.find( t )!=rsi->d_rep_set->d_values_to_terms.end() ){
-      t = rsi->d_rep_set->d_values_to_terms[t];
+    Node tt = rsi->d_rep_set->getTermForRepresentative(t);
+    if (!tt.isNull())
+    {
+      t = tt;
       Trace("bound-int-rsi") << "term (post-rep) : " << t << std::endl;
     }
     vars.push_back( d_set[q][i] );
@@ -808,7 +810,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
         Assert( !tl.isNull() && !tu.isNull() );
-        if( ra==d_quantEngine->getTermDatabase()->d_true ){
+        if( ra==d_quantEngine->getTermUtil()->d_true ){
           long rr = range.getConst<Rational>().getNumerator().getLong()+1;
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
           for( unsigned k=0; k<rr; k++ ){

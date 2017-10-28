@@ -44,9 +44,28 @@ class CVC4_PUBLIC String {
     return (c >= ' ' && c <= '~');  // isprint( (int)c );
   }
 
+  /** constructors for String
+  *
+  * Internally, a CVC4::String is represented by a vector of unsigned
+  * integers (d_str), where the correspondence between C++ characters
+  * to and from unsigned integers is determined by
+  * by convertCharToUnsignedInt and convertUnsignedIntToChar.
+  *
+  * If useEscSequences is true, then the escape sequences in the input
+  * are converted to the corresponding character. This constructor may
+  * throw an exception if the input contains unrecognized escape sequences.
+  * Currently supported escape sequences are \n, \t, \v, \b, \r, \f, \a, \\,
+  * \x[N] where N is a hexidecimal, and octal escape sequences of the
+  * form \[c1]([c2]([c3])?)? where c1, c2, c3 are digits from 0 to 7.
+  *
+  * If useEscSequences is false, then the characters of the constructed
+  * CVC4::String correspond one-to-one with the input string.
+  */
   String() = default;
-  explicit String(const std::string& s) : d_str(toInternal(s)) {}
-  explicit String(const char* s) : d_str(toInternal(std::string(s))) {}
+  explicit String(const std::string& s, bool useEscSequences = false)
+      : d_str(toInternal(s, useEscSequences)) {}
+  explicit String(const char* s, bool useEscSequences = false)
+      : d_str(toInternal(std::string(s), useEscSequences)) {}
   explicit String(const unsigned char c)
       : d_str({convertCharToUnsignedInt(c)}) {}
   explicit String(const std::vector<unsigned>& s) : d_str(s) {}
@@ -70,12 +89,27 @@ class CVC4_PUBLIC String {
   bool strncmp(const String& y, const std::size_t np) const;
   bool rstrncmp(const String& y, const std::size_t np) const;
 
-  /*
-   * Convenience functions
-   */
-  std::string toString() const;
+  /* toString
+  * Converts this string to a std::string.
+  *
+  * If useEscSequences is true, then unprintable characters
+  * are converted to escape sequences. The escape sequences
+  * \n, \t, \v, \b, \r, \f, \a, \\ are printed in this way.
+  * For all other unprintable characters, we print \x[N] where
+  * [N] is the 2 digit hexidecimal corresponding to value of
+  * the character.
+  *
+  * If useEscSequences is false, the returned std::string's characters
+  * map one-to-one with the characters in this string.
+  * Notice that for all std::string s, we have that
+  *    CVC4::String( s ).toString() = s.
+  */
+  std::string toString(bool useEscSequences = false) const;
+  /** is this the empty string? */
   bool empty() const { return d_str.empty(); }
+  /** is this the empty string? */
   bool isEmptyString() const { return empty(); }
+  /** Return the length of the string */
   std::size_t size() const { return d_str.size(); }
 
   unsigned char getFirstChar() const { return getUnsignedCharAt(0); }
@@ -133,7 +167,8 @@ private:
   // guarded
   static unsigned char hexToDec(unsigned char c);
 
-  static std::vector<unsigned> toInternal(const std::string& s);
+  static std::vector<unsigned> toInternal(const std::string& s,
+                                          bool useEscSequences = true);
   unsigned char getUnsignedCharAt(size_t pos) const;
 
   /**

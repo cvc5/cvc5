@@ -19,6 +19,7 @@
 #include "smt/term_formula_removal.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
@@ -282,7 +283,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       //[4] directly look at assertions
       if( vinst->hasProcessAssertion( this, sf, pv, effort ) ){
         Trace("cbqi-inst-debug") << "[4] try based on assertions." << std::endl;
-        std::vector< Node > lits;
+        std::unordered_set< Node, NodeHashFunction > lits;
         //unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
         for( unsigned r=0; r<2; r++ ){
           TheoryId tid = r==0 ? Theory::theoryOf( pvtn ) : THEORY_UF;
@@ -291,18 +292,25 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
           if( ita!=d_curr_asserts.end() ){
             for (unsigned j = 0; j<ita->second.size(); j++) {
               Node lit = ita->second[j];
-              if( std::find( lits.begin(), lits.end(), lit )==lits.end() ){
-                lits.push_back( lit );
-                if( vinst->hasProcessAssertion( this, sf, pv, lit, effort ) ){  
-                  Trace("cbqi-inst-debug2") << "  look at " << lit << std::endl;
+              if( lits.find(lit)==lits.end() ){
+                lits.insert(lit);
+                Node plit =
+                    vinst->hasProcessAssertion(this, sf, pv, lit, effort);
+                if (!plit.isNull()) {
+                  Trace("cbqi-inst-debug2") << "  look at " << lit;
+                  if (plit != lit) {
+                    Trace("cbqi-inst-debug2") << "...processed to : " << plit;
+                  }
+                  Trace("cbqi-inst-debug2") << std::endl;
                   // apply substitutions
-                  Node slit = applySubstitutionToLiteral( lit, sf );
+                  Node slit = applySubstitutionToLiteral(plit, sf);
                   if( !slit.isNull() ){
                     Trace("cbqi-inst-debug") << "...try based on literal " << slit << std::endl;
                     // check if contains pv
                     if( hasVariable( slit, pv ) ){
-                      if( vinst->processAssertion( this, sf, pv, slit, effort ) ){
-                       return true;
+                      if (vinst->processAssertion(this, sf, pv, slit, lit,
+                                                  effort)) {
+                        return true;
                       }
                     }
                   }
@@ -311,7 +319,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
             }
           }
         }
-        if( vinst->processAssertions( this, sf, pv, lits, effort ) ){
+        if (vinst->processAssertions(this, sf, pv, effort)) {
           return true;
         }
       }
@@ -354,7 +362,13 @@ void CegInstantiator::popStackVariable() {
   d_stack_vars.pop_back();
 }
 
-bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv_prop, SolvedForm& sf, unsigned effort ) {
+bool CegInstantiator::doAddInstantiationInc(Node pv,
+                                            Node n,
+                                            TermProperties& pv_prop,
+                                            SolvedForm& sf,
+                                            unsigned effort,
+                                            bool revertOnSuccess)
+{
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
@@ -445,12 +459,14 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
       Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
       unsigned i = d_curr_index[pv];
       success = doAddInstantiation( sf, d_stack_vars.empty() ? i+1 : i, effort );
-      if( !success ){
+      if (!success || revertOnSuccess)
+      {
         Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
         sf.pop_back( pv, n, pv_prop );
       }
     }
-    if( success ){
+    if (success && !revertOnSuccess)
+    {
       return true;
     }else{
       Trace("cbqi-inst-debug2") << "Revert substitutions..." << std::endl;
@@ -464,7 +480,7 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
       for( unsigned i=0; i<new_non_basic.size(); i++ ){
         sf.d_non_basic.pop_back();
       }
-      return false;
+      return success;
     }
   }else{
     //already tried this substitution
@@ -605,7 +621,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
           nretc = Rewriter::rewrite( nretc );
           //ensure that nret does not contain vars
-          if( !TermDb::containsTerms( nretc, vars ) ){
+          if( !TermUtil::containsTerms( nretc, vars ) ){
             //result is ( nret / pv_prop.d_coeff )
             nret = nretc;
           }else{
@@ -647,7 +663,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
       }else{
         atom_lhs = NodeManager::currentNM()->mkNode( MINUS, atom[0], atom[1] );
         atom_lhs = Rewriter::rewrite( atom_lhs );
-        atom_rhs = getQuantifiersEngine()->getTermDatabase()->d_zero;
+        atom_rhs = getQuantifiersEngine()->getTermUtil()->d_zero;
       }
       //must be an eligible term
       if( isEligible( atom_lhs ) ){
@@ -968,7 +984,7 @@ void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) 
     d_is_nested_quant = true;
   }else if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( TermDb::isBoolConnectiveTerm( n ) ){
+    if( TermUtil::isBoolConnectiveTerm( n ) ){
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         collectCeAtoms( n[i], visited );
       }
@@ -1084,7 +1100,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
 
 
 Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn ){
-  d_closed_enum_type = qe->getTermDatabase()->isClosedEnumerableType( tn );
+  d_closed_enum_type = qe->getTermUtil()->isClosedEnumerableType( tn );
 }
 
 

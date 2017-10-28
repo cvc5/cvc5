@@ -59,9 +59,6 @@ class FunctionType;
 class SExprType;
 class SortType;
 class SortConstructorType;
-// not in release 1.0
-//class PredicateSubtype;
-class SubrangeType;
 class Type;
 
 /** Hash function for Types */

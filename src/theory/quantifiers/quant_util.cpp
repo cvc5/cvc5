@@ -15,6 +15,7 @@
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace std;
@@ -48,6 +49,10 @@ quantifiers::TermDb * QuantifiersModule::getTermDatabase() {
   return d_quantEngine->getTermDatabase();
 }
 
+quantifiers::TermUtil * QuantifiersModule::getTermUtil() {
+  return d_quantEngine->getTermUtil();
+}  
+  
 bool QuantArith::getMonomial( Node n, Node& c, Node& v ){
   if( n.getKind()==MULT && n.getNumChildren()==2 && n[0].isConst() ){
     c = n[0];
@@ -144,9 +149,6 @@ Node QuantArith::mkCoeffTerm( Node coeff, Node t ) {
   }
 }
 
-// given (msum <k> 0), solve (veq_c * v <k> val) or (val <k> veq_c * v), where:
-// veq_c is either null (meaning 1), or positive.
-// return value 1: veq_c*v is RHS, -1: veq_c*v is LHS, 0: failed.
 int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Node & val, Kind k ) {
   std::map< Node, Node >::iterator itv = msum.find( v );
   if( itv!=msum.end() ){
@@ -218,12 +220,15 @@ Node QuantArith::solveEqualityFor( Node lit, Node v ) {
     }
   }
   if( tn.isReal() ){
-    if( quantifiers::TermDb::containsTerm( lit, v ) ){
+    if( quantifiers::TermUtil::containsTerm( lit, v ) ){
       std::map< Node, Node > msum;
       if( QuantArith::getMonomialSumLit( lit, msum ) ){
         Node val, veqc;
         if( QuantArith::isolate( v, msum, veqc, val, EQUAL )!=0 ){
           if( veqc.isNull() ){
+            // in this case, we have an integer equality with a coefficient
+            // on the variable we solved for that could not be eliminated,
+            // hence we fail.
             return val;
           }
         }
@@ -231,6 +236,30 @@ Node QuantArith::solveEqualityFor( Node lit, Node v ) {
     }
   }
   return Node::null();
+}
+
+bool QuantArith::decompose(Node n, Node v, Node& coeff, Node& rem)
+{
+  std::map<Node, Node> msum;
+  if (getMonomialSum(n, msum))
+  {
+    std::map<Node, Node>::iterator it = msum.find(v);
+    if (it == msum.end())
+    {
+      return false;
+    }
+    else
+    {
+      coeff = it->second;
+      msum.erase(v);
+      rem = mkNode(msum);
+      return true;
+    }
+  }
+  else
+  {
+    return false;
+  }
 }
 
 Node QuantArith::negate( Node t ) {
@@ -338,13 +367,13 @@ void QuantPhaseReq::initialize( Node n, bool computeEq ){
     for( std::map< Node, bool >::iterator it = d_phase_reqs.begin(); it != d_phase_reqs.end(); ++it ){
       Debug("inst-engine-phase-req") << "   " << it->first << " -> " << it->second << std::endl;
       if( it->first.getKind()==EQUAL ){
-        if( quantifiers::TermDb::hasInstConstAttr(it->first[0]) ){
-          if( !quantifiers::TermDb::hasInstConstAttr(it->first[1]) ){
+        if( quantifiers::TermUtil::hasInstConstAttr(it->first[0]) ){
+          if( !quantifiers::TermUtil::hasInstConstAttr(it->first[1]) ){
             d_phase_reqs_equality_term[ it->first[0] ] = it->first[1];
             d_phase_reqs_equality[ it->first[0] ] = it->second;
             Debug("inst-engine-phase-req") << "      " << it->first[0] << ( it->second ? " == " : " != " ) << it->first[1] << std::endl;
           }
-        }else if( quantifiers::TermDb::hasInstConstAttr(it->first[1]) ){
+        }else if( quantifiers::TermUtil::hasInstConstAttr(it->first[1]) ){
           d_phase_reqs_equality_term[ it->first[1] ] = it->first[0];
           d_phase_reqs_equality[ it->first[1] ] = it->second;
           Debug("inst-engine-phase-req") << "      " << it->first[1] << ( it->second ? " == " : " != " ) << it->first[0] << std::endl;

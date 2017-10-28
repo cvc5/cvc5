@@ -49,11 +49,39 @@ public:
   ~RemoveTermFormulas();
 
   /**
-   * Removes the ITE nodes by introducing skolem variables. All
-   * additional assertions are pushed into assertions. iteSkolemMap
+   * By introducing skolem variables, this function removes all occurrences of:
+   * (1) term ITEs
+   * (2) terms of type Boolean that are not Boolean term variables,
+   * (3) lambdas, and
+   * (4) Hilbert choice expressions.
+   * from assertions.
+   * All additional assertions are pushed into assertions. iteSkolemMap
    * contains a map from introduced skolem variables to the index in
-   * assertions containing the new Boolean ite created in conjunction
+   * assertions containing the new definition created in conjunction
    * with that skolem variable.
+   *
+   * As an example of (1):
+   *   f( (ite C 0 1)) = 2
+   * becomes
+   *   f( k ) = 2 ^ ite( C, k=0, k=1 )
+   *
+   * As an example of (2):
+   *   g( (and C1 C2) ) = 3
+   * becomes
+   *   g( k ) = 3 ^ ( k <=> (and C1 C2) )
+   *
+   * As an example of (3):
+   *   (lambda x. t[x]) = f
+   * becomes
+   *   (forall x. k(x) = t[x]) ^ k = f
+   * where k is a fresh skolem function.
+   * This is sometimes called "lambda lifting"
+   *
+   * As an example of (4):
+   *   (choice x. P( x ) ) = t
+   * becomes
+   *   P( k ) ^ k = t
+   * where k is a fresh skolem constant.
    *
    * With reportDeps true, report reasoning dependences to the proof
    * manager (for unsat cores).
@@ -61,11 +89,15 @@ public:
   void run(std::vector<Node>& assertions, IteSkolemMap& iteSkolemMap, bool reportDeps = false);
 
   /**
-   * Removes the ITE from the node by introducing skolem
-   * variables. All additional assertions are pushed into
+   * Removes terms of the form (1), (2), (3) described above from node.
+   * All additional assertions are pushed into
    * assertions. iteSkolemMap contains a map from introduced skolem
    * variables to the index in assertions containing the new Boolean
    * ite created in conjunction with that skolem variable.
+   *
+   * inQuant is whether we are processing node in the body of quantified formula
+   * inTerm is whether we are are processing node in a "term" position, that is, it is a subterm
+   *        of a parent term that is not a Boolean connective.
    */
   Node run(TNode node, std::vector<Node>& additionalAssertions,
            IteSkolemMap& iteSkolemMap, bool inQuant, bool inTerm);

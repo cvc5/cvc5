@@ -73,7 +73,7 @@ namespace parser {
 
 class Input;
 
-/** Types of check for the symols */
+/** Types of checks for the symbols */
 enum DeclarationCheck {
   /** Enforce that the symbol has been declared */
   CHECK_DECLARED,

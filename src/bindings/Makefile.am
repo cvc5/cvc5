@@ -59,6 +59,7 @@ if CVC4_LANGUAGE_BINDING_JAVA
 javalib_LTLIBRARIES += java/libcvc4jni.la
 javadata_DATA += CVC4.jar
 java_libcvc4jni_la_LDFLAGS = \
+	-no-undefined \
 	-module \
 	-shrext $(CVC4_JAVA_MODULE_EXT) \
 	-version-info $(LIBCVC4BINDINGS_VERSION)

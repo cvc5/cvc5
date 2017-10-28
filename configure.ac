@@ -1305,11 +1305,15 @@ LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 
 # visibility flag not supported for Windows builds
 # also increase default stack size for Windows binaries
+windows_build=no
 case $host_os in
   (*mingw*) FLAG_VISIBILITY_HIDDEN=
             cvc4_LDFLAGS=-Wl,--stack,134217728
             pcvc4_LDFLAGS=-Wl,--stack,134217728
+            windows_build=yes
 esac
+
+AM_CONDITIONAL([CVC4_WINDOWS_BUILD], [test "$windows_build" = "yes"])
 
 AC_SUBST(FLAG_VISIBILITY_HIDDEN)
 AC_SUBST(cvc4_LDFLAGS)
@@ -1512,9 +1516,11 @@ Bindings     : $bindings_to_be_built
 Multithreaded: $support_multithreaded
 Portfolio    : $with_portfolio
 
-MP library   : $mplibrary
-GLPK         : $with_glpk
 ABC          : $with_abc
+Cryptominisat: $with_cryptominisat
+GLPK         : $with_glpk
+LFSC         : $with_lfsc
+MP library   : $mplibrary
 Readline     : $with_readline
 
 CPPFLAGS     : $CPPFLAGS

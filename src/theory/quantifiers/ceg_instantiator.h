@@ -119,6 +119,8 @@ public:
       d_theta.pop_back();
     }
   }
+  // is this solved form empty?
+  bool empty() { return d_vars.empty(); }
 public:
   // theta values (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
   std::vector< Node > d_theta;
@@ -227,7 +229,25 @@ public:
 public:
   void pushStackVariable( Node v );
   void popStackVariable();
-  bool doAddInstantiationInc( Node pv, Node n, TermProperties& pv_prop, SolvedForm& sf, unsigned effort );
+  /** do add instantiation increment
+   *
+   * Adds the substitution { pv_prop.getModifiedTerm(pv) -> n } to the current
+   * instantiation, specified by sf.
+   *
+   * This function returns true if a call to
+   * QuantifiersEngine::addInstantiation(...)
+   * was successfully made in a recursive call.
+   *
+   * The solved form sf is reverted to its original state if
+   *   this function returns false, or
+   *   revertOnSuccess is true and this function returns true.
+   */
+  bool doAddInstantiationInc(Node pv,
+                             Node n,
+                             TermProperties& pv_prop,
+                             SolvedForm& sf,
+                             unsigned effort,
+                             bool revertOnSuccess = false);
   Node getModelValue( Node n );
 public:
   unsigned getNumCEAtoms() { return d_ce_atoms.size(); }
@@ -272,15 +292,47 @@ public:
 
   // whether the instantiator implements processAssertion for any literal
   virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
-  // whether the instantiator implements processAssertion for literal lit
-  virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return false; }
-  // Called when the entailment:
-  //   E |= lit 
-  // holds in current context E. Typically, lit belongs to the list of current assertions.
-  // Returns true if an instantiation was successfully added via a recursive call
-  virtual bool processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return false; }
-  // Called after processAssertion is called for each literal asserted to the instantiator.
-  virtual bool processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) { return false; }
+  /** has process assertion
+  *
+  * Called when the entailment:
+  *   E |= lit
+  * holds in current context E. Typically, lit belongs to the list of current
+  * assertions.
+  *
+  * This function is used to determine whether the instantiator implements
+  * processAssertion for literal lit.
+  *   If this function returns null, then this intantiator does not handle the
+  * literal lit
+  *   Otherwise, this function returns a literal lit' with the properties:
+  *   (1) lit' is true in the current model,
+  *   (2) lit' implies lit.
+  *   where typically lit' = lit.
+  */
+  virtual Node hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv,
+                                   Node lit, unsigned effort) {
+    return Node::null();
+  }
+  /** process assertion
+  * Processes the assertion slit for variable pv
+  *
+  * lit is the substituted form (under sf) of a literal returned by
+  * hasProcessAssertion
+  * alit is the asserted literal, given as input to hasProcessAssertion
+  *
+  * Returns true if an instantiation was successfully added via a recursive call
+  */
+  virtual bool processAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv,
+                                Node lit, Node alit, unsigned effort) {
+    return false;
+  }
+  /** process assertions
+  * Called after processAssertion is called for each literal asserted to the
+  * instantiator.
+  */
+  virtual bool processAssertions(CegInstantiator* ci, SolvedForm& sf, Node pv,
+                                 unsigned effort) {
+    return false;
+  }
 
   //do we use the model value as instantiation for pv
   virtual bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
