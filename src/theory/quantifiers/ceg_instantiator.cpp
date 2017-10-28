@@ -47,8 +47,8 @@ void CegInstantiator::computeProgVars( Node n ){
   if( d_prog_var.find( n )==d_prog_var.end() ){
     d_prog_var[n].clear();
     if( n.getKind()==kind::CHOICE ){
-      Assert( d_prog_var.find( n[0] )==d_prog_var.end() );
-      d_prog_var[n[0]].clear();
+      Assert( d_prog_var.find( n[0][0] )==d_prog_var.end() );
+      d_prog_var[n[0][0]].clear();
     }
     if( d_vars_set.find( n )!=d_vars_set.end() ){
       d_prog_var[n].insert( n );
@@ -71,7 +71,7 @@ void CegInstantiator::computeProgVars( Node n ){
       d_prog_var[n].insert( n );
     }
     if( n.getKind()==kind::CHOICE ){
-      d_prog_var.erase( n[0] );
+      d_prog_var.erase( n[0][0] );
     }
   }
 }

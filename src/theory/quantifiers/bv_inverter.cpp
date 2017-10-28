@@ -76,12 +76,15 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn)
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_choice_cache.find( new_cond );
   if( it==d_choice_cache.end() ){
     NodeManager* nm = NodeManager::currentNM();
-    Node x = nm->mkBoundVar("x",tn);
+    std::stringstream ss;
+    ss << "x" << d_choice_cache.size();
+    Node x = nm->mkBoundVar(ss.str(),tn);
     d_keep.push_back( x );
     Node solve_var = getSolveVariable(tn);
     TNode tsv = solve_var;
     Node ccond = new_cond.substitute(tsv,x);
     Node c = nm->mkNode( kind::CHOICE, nm->mkNode( BOUND_VAR_LIST, x ), ccond );
+    Trace("bv-invert-debug") << "Make " << c << " for " << new_cond << std::endl;
     d_choice_cache[new_cond] = c;
     return c;
   }else{
