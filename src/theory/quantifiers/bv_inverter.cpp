@@ -79,7 +79,6 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn)
     std::stringstream ss;
     ss << "x" << d_choice_cache.size();
     Node x = nm->mkBoundVar(ss.str(),tn);
-    d_keep.push_back( x );
     Node solve_var = getSolveVariable(tn);
     TNode tsv = solve_var;
     Node ccond = new_cond.substitute(tsv,x);

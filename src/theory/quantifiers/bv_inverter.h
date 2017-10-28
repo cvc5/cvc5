@@ -86,7 +86,6 @@ class BvInverter {
  private:
   /** dummy variables for each type */
   std::map<TypeNode, Node> d_solve_var;
-  std::vector< Node > d_keep;
   
   /** stores the Hilbert choice terms, for each condition */
   std::unordered_map<Node, Node, NodeHashFunction> d_choice_cache;

@@ -1140,7 +1140,6 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
 }
   
 Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
-  NodeManager* nm = NodeManager::currentNM();
   // result of rewriting the visited term
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   // whether the visited term contains pv
@@ -1177,23 +1176,10 @@ Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
         contains_pv = contains_pv || visited_contains_pv[cur[i]];
       }
       
-      // [1] rewrite cases of non-invertible operators
+      // rewrite the term
+      ret = rewriteTermForSolvePv( pv, cur, children, visited_contains_pv );
       
-      // if cur is urem( x, y ) where x contains pv but y does not, then
-      // rewrite urem( x, y ) ---> x - udiv( x, y )*y
-      if (cur.getKind()==BITVECTOR_UREM_TOTAL) {
-        if( visited_contains_pv[cur[0]] && !visited_contains_pv[cur[1]] ){
-          ret = nm->mkNode( BITVECTOR_SUB, children[0], 
-                  nm->mkNode( BITVECTOR_MULT,
-                    nm->mkNode( BITVECTOR_UDIV_TOTAL, children[0], children[1] ),
-                    children[1] ) );
-        }
-      }
-      
-      // [2] try to rewrite non-linear literals -> linear literals
-      
-      
-      // return original if the above steps do not produce a result
+      // return original if the above function does not produce a result
       if (ret.isNull()) {
         if (childChanged) {
           ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
@@ -1211,3 +1197,40 @@ Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
   return visited[lit];
 }
 
+Node BvInstantiator::rewriteTermForSolvePv( Node pv, Node n,
+     std::vector< Node >& children,
+     std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv ) {
+  NodeManager* nm = NodeManager::currentNM();
+  
+  // [1] pre-requiste rewrites
+  
+  // must rewrite choice functions to have unique free variables
+  // otherwise, substitution for multiple variables
+  // can result in variable capture.
+  if( n.getKind()==CHOICE ){
+    std::stringstream ss;
+    ss << n[0][0] << "_p";
+    Node bv = nm->mkBoundVar(ss.str(),n[0][0].getType());
+    TNode var = n[0][0];
+    Node new_body = n[1].substitute( var, bv );
+    return nm->mkNode( CHOICE, nm->mkNode( BOUND_VAR_LIST, bv ), new_body );
+  }
+  
+  // [2] rewrite cases of non-invertible operators
+  
+  // if n is urem( x, y ) where x contains pv but y does not, then
+  // rewrite urem( x, y ) ---> x - udiv( x, y )*y
+  if (n.getKind()==BITVECTOR_UREM_TOTAL) {
+    if( contains_pv[n[0]] && !contains_pv[n[1]] ){
+      return nm->mkNode( BITVECTOR_SUB, children[0], 
+                nm->mkNode( BITVECTOR_MULT,
+                  nm->mkNode( BITVECTOR_UDIV_TOTAL, children[0], children[1] ),
+                  children[1] ) );
+    }
+  }
+  
+  // [3] try to rewrite non-linear literals -> linear literals
+  
+  return Node::null();
+}
+      
