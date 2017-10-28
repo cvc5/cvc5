@@ -1212,11 +1212,14 @@ Node BvInstantiator::rewriteTermForSolvePv(
   // can result in variable capture.
   if (n.getKind() == CHOICE)
   {
+    // should not have modified the bound variable list
+    // via a recursive call
+    Assert(n[0] == children[0]);
     std::stringstream ss;
     ss << n[0][0] << "_p";
     Node bv = nm->mkBoundVar(ss.str(), n[0][0].getType());
     TNode var = n[0][0];
-    Node new_body = n[1].substitute(var, bv);
+    Node new_body = children[1].substitute(var, bv);
     return nm->mkNode(CHOICE, nm->mkNode(BOUND_VAR_LIST, bv), new_body);
   }
 
