@@ -30,9 +30,10 @@ using namespace CVC4::theory::quantifiers::fmcheck;
 struct ModelBasisArgSort
 {
   std::vector< Node > d_terms;
+  // number of arguments that are model-basis terms
+  std::unordered_map<Node, unsigned, NodeHashFunction> d_mba_count;
   bool operator() (int i,int j) {
-    return (d_terms[i].getAttribute(ModelBasisArgAttribute()) <
-            d_terms[j].getAttribute(ModelBasisArgAttribute()) );
+    return (d_mba_count[d_terms[i]] < d_mba_count[d_terms[j]]);
   }
 };
 
@@ -502,8 +503,9 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     std::vector< int > indices;
     ModelBasisArgSort mbas;
     for (int i=0; i<(int)conds.size(); i++) {
-      d_qe->getTermDatabase()->computeModelBasisArgAttribute( conds[i] );
       mbas.d_terms.push_back(conds[i]);
+      mbas.d_mba_count[conds[i]] =
+          d_qe->getTermDatabase()->getModelBasisArg(conds[i]);
       indices.push_back(i);
     }
     std::sort( indices.begin(), indices.end(), mbas );

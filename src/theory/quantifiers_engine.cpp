@@ -62,14 +62,15 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 
 QuantifiersEngine::QuantifiersEngine(context::Context* c,
-                                     context::UserContext* u, TheoryEngine* te)
+                                     context::UserContext* u,
+                                     TheoryEngine* te)
     : d_te(te),
+      d_quant_attr(new quantifiers::QuantAttributes(this)),
       d_conflict_c(c, false),
       // d_quants(u),
       d_quants_red(u),
       d_lemmas_produced_c(u),
       d_skolemized(u),
-      d_quant_attr(new quantifiers::QuantAttributes(this)),
       d_ierCounter_c(c),
       // d_ierCounter(c),
       // d_ierCounter_lc(c),
@@ -78,15 +79,18 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_presolve_in(u),
       d_presolve_cache(u),
       d_presolve_cache_wq(u),
-      d_presolve_cache_wic(u) {
+      d_presolve_cache_wic(u)
+{
   //utilities
   d_eq_query = new quantifiers::EqualityQueryQuantifiersEngine( c, this );
   d_util.push_back( d_eq_query );
 
+  // term util must come first
+  d_term_util = new quantifiers::TermUtil(this);
+  d_util.push_back(d_term_util);
+
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_util.push_back( d_term_db );
-  
-  d_term_util = new quantifiers::TermUtil( this );
   
   if (options::ceGuidedInst()) {
     d_sygus_tdb = new quantifiers::TermDbSygus(c, this);
@@ -122,6 +126,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
 
   if( options::relevantTriggers() ){
     d_quant_rel = new QuantRelevance( false );
+    d_util.push_back(d_quant_rel);
   }else{
     d_quant_rel = NULL;
   }
@@ -740,16 +745,14 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       d_quants[f] = false;
       return false;
     }else{
-      // register with utilities : TODO (#1163) make this a standard call
-      
-      d_term_util->registerQuantifier( f );
-      d_term_db->registerQuantifier( f );
-      d_quant_attr->computeAttributes( f );
-      //register with quantifier relevance
-      if( d_quant_rel ){
-        d_quant_rel->registerQuantifier( f );
+      // register with utilities
+      for (unsigned i = 0; i < d_util.size(); i++)
+      {
+        d_util[i]->registerQuantifier(f);
       }
-      
+      // compute attributes
+      d_quant_attr->computeAttributes(f);
+
       for( unsigned i=0; i<d_modules.size(); i++ ){
         Trace("quant-debug") << "pre-register with " << d_modules[i]->identify() << "..." << std::endl;
         d_modules[i]->preRegisterQuantifier( f );
@@ -765,10 +768,6 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       }
       //TODO: remove this
       Node ceBody = d_term_util->getInstConstantBody( f );
-      //also register it with the strong solver
-      //if( options::finiteModelFind() ){
-      //  ((uf::TheoryUF*)d_te->theoryOf( THEORY_UF ))->getStrongSolver()->registerQuantifier( f );
-      //}
       Trace("quant-debug")  << "...finish." << std::endl;
       d_quants[f] = true;
       // flush lemmas
@@ -821,9 +820,6 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
 void QuantifiersEngine::propagate( Theory::Effort level ){
   CodeTimer codeTimer(d_statistics.d_time);
 
-  for( int i=0; i<(int)d_modules.size(); i++ ){
-    d_modules[i]->propagate( level );
-  }
 }
 
 Node QuantifiersEngine::getNextDecisionRequest( unsigned& priority ){
