@@ -96,9 +96,6 @@ class BvInverter {
   /** stores the Hilbert choice terms, for each condition */
   std::unordered_map<Node, Node, NodeHashFunction> d_choice_cache;
 
-  /** stores the inversion skolems, for each condition */
-  std::unordered_map<Node, Node, NodeHashFunction> d_inversion_skolem_cache;
-
   /** helper function for getPathToPv */
   Node getPathToPv(Node lit, Node pv, Node sv, std::vector<unsigned>& path,
                    std::unordered_set<TNode, TNodeHashFunction>& visited);
