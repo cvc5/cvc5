@@ -25,7 +25,9 @@ include @top_srcdir@/src/Makefile.theories
 
 lib_LTLIBRARIES = libcvc4.la
 
-libcvc4_la_LDFLAGS = -no-undefined -version-info $(LIBCVC4_VERSION)
+libcvc4_la_LDFLAGS = \
+	-no-undefined \
+	-version-info $(LIBCVC4_VERSION)
 
 # This "tricks" automake into linking us as a C++ library (rather than
 # as a C library, which messes up exception handling support)
@@ -420,6 +422,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/rewrite_engine.h \
 	theory/quantifiers/sygus_grammar_cons.cpp \
 	theory/quantifiers/sygus_grammar_cons.h \
+	theory/quantifiers/sygus_process_conj.cpp \
+	theory/quantifiers/sygus_process_conj.h \
 	theory/quantifiers/symmetry_breaking.cpp \
 	theory/quantifiers/symmetry_breaking.h \
 	theory/quantifiers/term_database.cpp \

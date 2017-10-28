@@ -146,8 +146,9 @@ private:
   void registerMeasureTerm( Node m );
   unsigned getSearchSizeFor( Node n );
   unsigned getSearchSizeForAnchor( Node n );
-  unsigned getSearchSizeForMeasureTerm( Node m );
-private:
+  unsigned getSearchSizeForMeasureTerm(Node m);
+
+ private:
   unsigned processSelectorChain( Node n, std::map< TypeNode, Node >& top_level, 
                                  std::map< Node, unsigned >& tdepth, std::vector< Node >& lemmas );
   bool debugTesters( Node n, Node vn, int ind, std::vector< Node >& lemmas );
