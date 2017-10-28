@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_grammar_cons.cpp
+/*! \file sygus_process_conj.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds

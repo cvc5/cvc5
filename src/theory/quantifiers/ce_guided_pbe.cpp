@@ -611,9 +611,6 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
             Trace("sygus-unif-debug") << std::endl;
             Assert( !et.isNull() );
             d_cinfo[e].d_tinfo[tn].d_strat[cop].d_cenum.push_back( et );
-            // need to make this take into account template
-            // Assert( et.getType()==e.getType() ||
-            // d_einfo[et].getRole()!=enum_io );
           }
           Trace("sygus-unif") << "Initialized strategy ";
           print_strat( "sygus-unif", strat );
