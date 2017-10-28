@@ -149,9 +149,6 @@ Node QuantArith::mkCoeffTerm( Node coeff, Node t ) {
   }
 }
 
-// given (msum <k> 0), solve (veq_c * v <k> val) or (val <k> veq_c * v), where:
-// veq_c is either null (meaning 1), or positive.
-// return value 1: veq_c*v is RHS, -1: veq_c*v is LHS, 0: failed.
 int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Node & val, Kind k ) {
   std::map< Node, Node >::iterator itv = msum.find( v );
   if( itv!=msum.end() ){
@@ -229,6 +226,9 @@ Node QuantArith::solveEqualityFor( Node lit, Node v ) {
         Node val, veqc;
         if( QuantArith::isolate( v, msum, veqc, val, EQUAL )!=0 ){
           if( veqc.isNull() ){
+            // in this case, we have an integer equality with a coefficient
+            // on the variable we solved for that could not be eliminated,
+            // hence we fail.
             return val;
           }
         }
@@ -236,6 +236,30 @@ Node QuantArith::solveEqualityFor( Node lit, Node v ) {
     }
   }
   return Node::null();
+}
+
+bool QuantArith::decompose(Node n, Node v, Node& coeff, Node& rem)
+{
+  std::map<Node, Node> msum;
+  if (getMonomialSum(n, msum))
+  {
+    std::map<Node, Node>::iterator it = msum.find(v);
+    if (it == msum.end())
+    {
+      return false;
+    }
+    else
+    {
+      coeff = it->second;
+      msum.erase(v);
+      rem = mkNode(msum);
+      return true;
+    }
+  }
+  else
+  {
+    return false;
+  }
 }
 
 Node QuantArith::negate( Node t ) {

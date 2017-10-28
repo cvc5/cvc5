@@ -74,7 +74,7 @@ namespace quantifiers {
   class AlphaEquivalence;
   class FunDefEngine;
   class QuantEqualityEngine;
-  class FullSaturation;
+  class InstStrategyEnum;
   class InstStrategyCbqi;
   class InstStrategyCegqi;
   class QuantDSplit;
@@ -124,7 +124,16 @@ private:
   quantifiers::QModelBuilder* d_builder;
   /** utility for effectively propositional logic */
   QuantEPR * d_qepr;
-private:
+  /** term database */
+  quantifiers::TermDb* d_term_db;
+  /** sygus term database */
+  quantifiers::TermDbSygus* d_sygus_tdb;
+  /** term utilities */
+  quantifiers::TermUtil* d_term_util;
+  /** quantifiers attributes */
+  std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
+
+ private:
   /** instantiation engine */
   quantifiers::InstantiationEngine* d_inst_engine;
   /** model engine */
@@ -146,7 +155,7 @@ private:
   /** quantifiers equality engine */
   quantifiers::QuantEqualityEngine * d_uee;
   /** full saturation */
-  quantifiers::FullSaturation * d_fs;
+  quantifiers::InstStrategyEnum* d_fs;
   /** counterexample-based quantifier instantiation */
   quantifiers::InstStrategyCbqi * d_i_cbqi;
   /** quantifiers splitting */
@@ -155,7 +164,8 @@ private:
   quantifiers::QuantAntiSkolem * d_anti_skolem;
   /** quantifiers instantiation propagtor */
   quantifiers::InstPropagator * d_inst_prop;
-public: //effort levels
+
+ public:  // effort levels (TODO : make an enum and use everywhere #1293)
   enum {
     QEFFORT_CONFLICT,
     QEFFORT_STANDARD,
@@ -194,14 +204,6 @@ private:
   std::vector< std::pair< Node, std::vector< Node > > > d_recorded_inst;
   /** quantifiers that have been skolemized */
   BoolMap d_skolemized;
-  /** term database */
-  quantifiers::TermDb* d_term_db;
-  /** term database */
-  quantifiers::TermDbSygus* d_sygus_tdb;
-  /** term utilities */
-  quantifiers::TermUtil* d_term_util;
-  /** quantifiers attributes */
-  std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
   /** all triggers will be stored in this trie */
   inst::TriggerTrie* d_tr_trie;
   /** extended model object */
@@ -273,7 +275,7 @@ public:  //modules
   /** quantifiers equality engine */
   quantifiers::QuantEqualityEngine * getQuantEqualityEngine() { return d_uee; }
   /** get full saturation */
-  quantifiers::FullSaturation * getFullSaturation() { return d_fs; }
+  quantifiers::InstStrategyEnum* getInstStrategyEnum() { return d_fs; }
   /** get inst strategy cbqi */
   quantifiers::InstStrategyCbqi * getInstStrategyCbqi() { return d_i_cbqi; }
   /** get quantifiers splitting */
