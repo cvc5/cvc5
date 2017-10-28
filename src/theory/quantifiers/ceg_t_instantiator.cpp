@@ -891,10 +891,12 @@ void BvInstantiator::processLiteral(CegInstantiator* ci, SolvedForm& sf,
   std::vector< unsigned > path;
   Node sv = d_inverter->getSolveVariable( pv.getType() );
   Node pvs = ci->getModelValue( pv );
+  Trace("cegqi-bv") << "Get path to pv : " << lit << std::endl;
   Node slit = d_inverter->getPathToPv( lit, pv, sv, pvs, path );
   if( !slit.isNull() ){
     CegInstantiatorBvInverterModelQuery m( ci );
     unsigned iid = d_inst_id_counter;
+    Trace("cegqi-bv") << "Solve lit to bv inverter : " << slit << std::endl;
     Node inst = d_inverter->solve_bv_lit( sv, slit, path, &m, d_inst_id_to_status[iid] );
     if( !inst.isNull() ){
       inst = Rewriter::rewrite(inst);
