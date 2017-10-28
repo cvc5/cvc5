@@ -70,20 +70,38 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn)
   Node new_cond = Rewriter::rewrite(cond);
   if (new_cond != cond)
   {
-    Trace("bv-invert-debug") << "Condition " << cond << " was rewritten to "
-                             << new_cond << std::endl;
+    Trace("cegqi-bv-skvinv-debug") << "Condition " << cond << " was rewritten to "
+                                   << new_cond << std::endl;
   }
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_choice_cache.find( new_cond );
   if( it==d_choice_cache.end() ){
-    NodeManager* nm = NodeManager::currentNM();
-    std::stringstream ss;
-    ss << "x" << d_choice_cache.size();
-    Node x = nm->mkBoundVar(ss.str(),tn);
-    Node solve_var = getSolveVariable(tn);
-    TNode tsv = solve_var;
-    Node ccond = new_cond.substitute(tsv,x);
-    Node c = nm->mkNode( kind::CHOICE, nm->mkNode( BOUND_VAR_LIST, x ), ccond );
-    Trace("bv-invert-debug") << "Make " << c << " for " << new_cond << std::endl;
+    Node c;
+    // optimization : if condition is ( x = v ) should just return v and not		
+    // introduce a Skolem this can happen when we ask for the multiplicative		
+    // inversion with bv1		
+    TNode solve_var = getSolveVariable(tn);		
+    for (unsigned i = 0; i < 2; i++)		
+    {		
+      if (new_cond[i] == solve_var)		
+      {		
+        c = new_cond[1 - i];		
+        Trace("cegqi-bv-skvinv")		
+            << "SKVINV : " << c << " is trivially associated with conditon "		
+            << new_cond << std::endl;		
+        break;		
+      }		
+    }
+    // TODO : compute the value if the condition is deterministic, e.g. calc		
+    // multiplicative inverse of 2 constants
+    if( c.isNull() ){
+      NodeManager* nm = NodeManager::currentNM();
+      std::stringstream ss;
+      ss << "x" << d_choice_cache.size();
+      Node x = nm->mkBoundVar(ss.str(),tn);
+      Node ccond = new_cond.substitute(solve_var,x);
+      c = nm->mkNode( kind::CHOICE, nm->mkNode( BOUND_VAR_LIST, x ), ccond );
+      Trace("cegqi-bv-skvinv")	 << "SKVINV : Make " << c << " for " << new_cond << std::endl;
+    }
     d_choice_cache[new_cond] = c;
     return c;
   }else{

@@ -66,6 +66,12 @@ class BvInverter {
    * It returns a term of the form:
    *   (choice y. cond { x -> y })
    * where y is a bound variable and x is getSolveVariable( tn ).
+   * 
+   * In some cases, we may return a term t
+   * if cond implies an equality on the solve variable.
+   * For example, if cond is x = t where x is
+   * getSolveVariable( tn ), then we return t
+   * instead of introducing the choice function.
    */
   Node getInversionNode(Node cond, TypeNode tn);
 
