@@ -130,7 +130,7 @@ void CegInstantiator::unregisterInstantiationVariable( Node v ) {
 bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned effort ){
   if( i==d_vars.size() ){
     //solved for all variables, now construct instantiation
-    bool needsPostprocess = false;
+    bool needsPostprocess = sf.d_vars.size()>d_vars.size() || !d_var_order_index.empty();
     std::vector< Instantiator * > pp_inst;
     std::map< Instantiator *, Node > pp_inst_to_var;
     std::vector< Node > lemmas;

@@ -112,7 +112,8 @@ TESTS =	\
 	intersection-example-onelane.proof-node22337.smt2 \
  	nested9_true-unreach-call.i_575.smt2 \
  	small-pipeline-fixpoint-3.smt2 \
-	NUM878.smt2
+	NUM878.smt2 \
+	psyco-107-bv.smt2
  
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
