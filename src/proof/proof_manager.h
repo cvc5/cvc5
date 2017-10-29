@@ -299,29 +299,31 @@ private:
   std::set<Node> satClauseToNodeSet(prop::SatClause* clause);
 };/* class ProofManager */
 
-class LFSCProof : public Proof {
-  LFSCCoreSatProof* d_satProof;
-  LFSCCnfProof* d_cnfProof;
-  LFSCTheoryProofEngine* d_theoryProof;
-  SmtEngine* d_smtEngine;
-
-  // FIXME: hack until we get preprocessing
-  void printPreprocessedAssertions(const NodeSet& assertions,
-                                   std::ostream& os,
-                                   std::ostream& paren,
-                                   ProofLetMap& globalLetMap);
-
-  void checkUnrewrittenAssertion(const NodeSet& assertions);
-
-public:
+class LFSCProof : public Proof
+{
+ public:
   LFSCProof(SmtEngine* smtEngine,
             LFSCCoreSatProof* sat,
             LFSCCnfProof* cnf,
             LFSCTheoryProofEngine* theory);
-  virtual void toStream(std::ostream& out);
-  virtual void toStream(std::ostream& out, const ProofLetMap& map);
-  virtual ~LFSCProof() {}
-};/* class LFSCProof */
+  ~LFSCProof() override {}
+  void toStream(std::ostream& out) const override;
+  void toStream(std::ostream& out, const ProofLetMap& map) const override;
+
+ private:
+  // FIXME: hack until we get preprocessing
+  void printPreprocessedAssertions(const NodeSet& assertions,
+                                   std::ostream& os,
+                                   std::ostream& paren,
+                                   ProofLetMap& globalLetMap) const;
+
+  void checkUnrewrittenAssertion(const NodeSet& assertions) const;
+
+  LFSCCoreSatProof* d_satProof;
+  LFSCCnfProof* d_cnfProof;
+  LFSCTheoryProofEngine* d_theoryProof;
+  SmtEngine* d_smtEngine;
+}; /* class LFSCProof */
 
 std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k);
 }/* CVC4 namespace */

@@ -66,13 +66,14 @@ inline static bool match(TNode n1, TNode n2) {
   return true;
 }
 
-
-void ProofUF::toStream(std::ostream& out) {
+void ProofUF::toStream(std::ostream& out) const
+{
   ProofLetMap map;
   toStream(out, map);
 }
 
-void ProofUF::toStream(std::ostream& out, const ProofLetMap& map) {
+void ProofUF::toStream(std::ostream& out, const ProofLetMap& map) const
+{
   Trace("theory-proof-debug") << "; Print UF proof..." << std::endl;
   //AJR : carry this further?
   toStreamLFSC(out, ProofManager::getUfProof(), *d_proof, map);

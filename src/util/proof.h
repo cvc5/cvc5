@@ -34,8 +34,8 @@ typedef std::unordered_map<Expr, ProofLetCount, ExprHashFunction> ProofLetMap;
 class CVC4_PUBLIC Proof {
 public:
   virtual ~Proof() { }
-  virtual void toStream(std::ostream& out) = 0;
-  virtual void toStream(std::ostream& out, const ProofLetMap& map) = 0;
+  virtual void toStream(std::ostream& out) const = 0;
+  virtual void toStream(std::ostream& out, const ProofLetMap& map) const = 0;
 };/* class Proof */
 
 }/* CVC4 namespace */

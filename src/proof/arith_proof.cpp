@@ -67,8 +67,8 @@ inline static bool match(TNode n1, TNode n2) {
   return true;
 }
 
-
-void ProofArith::toStream(std::ostream& out) {
+void ProofArith::toStream(std::ostream& out) const
+{
   Trace("theory-proof-debug") << "; Print Arith proof..." << std::endl;
   //AJR : carry this further?
   ProofLetMap map;

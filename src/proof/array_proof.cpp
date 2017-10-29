@@ -119,20 +119,24 @@ ProofArray::ProofArray(std::shared_ptr<theory::eq::EqProof> pf, unsigned row,
                        unsigned row1, unsigned ext)
     : d_proof(pf), d_reasonRow(row), d_reasonRow1(row1), d_reasonExt(ext) {}
 
-void ProofArray::toStream(std::ostream& out) {
+void ProofArray::toStream(std::ostream& out) const
+{
   ProofLetMap map;
   toStream(out, map);
 }
 
-void ProofArray::toStream(std::ostream& out, const ProofLetMap& map) {
+void ProofArray::toStream(std::ostream& out, const ProofLetMap& map) const
+{
   Trace("pf::array") << "; Print Array proof..." << std::endl;
   toStreamLFSC(out, ProofManager::getArrayProof(), *d_proof, map);
   Debug("pf::array") << "; Print Array proof done!" << std::endl;
 }
 
-void ProofArray::toStreamLFSC(std::ostream& out, TheoryProof* tp,
+void ProofArray::toStreamLFSC(std::ostream& out,
+                              TheoryProof* tp,
                               const theory::eq::EqProof& pf,
-                              const ProofLetMap& map) {
+                              const ProofLetMap& map) const
+{
   Debug("pf::array") << "Printing array proof in LFSC : " << std::endl;
   ArrayProofPrinter proofPrinter(d_reasonRow, d_reasonRow1, d_reasonExt);
   pf.debug_print("pf::array", 0, &proofPrinter);
@@ -141,9 +145,12 @@ void ProofArray::toStreamLFSC(std::ostream& out, TheoryProof* tp,
   Debug("pf::array") << "Printing array proof in LFSC DONE" << std::endl;
 }
 
-Node ProofArray::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
-                                 const theory::eq::EqProof& pf, unsigned tb,
-                                 const ProofLetMap& map) {
+Node ProofArray::toStreamRecLFSC(std::ostream& out,
+                                 TheoryProof* tp,
+                                 const theory::eq::EqProof& pf,
+                                 unsigned tb,
+                                 const ProofLetMap& map) const
+{
   Debug("pf::array") << std::endl
                      << std::endl
                      << "toStreamRecLFSC called. tb = " << tb

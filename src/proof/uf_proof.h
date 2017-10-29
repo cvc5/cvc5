@@ -33,8 +33,8 @@ namespace CVC4 {
 class ProofUF : public Proof {
  public:
   ProofUF(std::shared_ptr<theory::eq::EqProof> pf) : d_proof(pf) {}
-  void toStream(std::ostream& out) override;
-  void toStream(std::ostream& out, const ProofLetMap& map) override;
+  void toStream(std::ostream& out) const override;
+  void toStream(std::ostream& out, const ProofLetMap& map) const override;
 
  private:
   static void toStreamLFSC(std::ostream& out, TheoryProof* tp,

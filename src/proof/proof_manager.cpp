@@ -551,12 +551,13 @@ LFSCProof::LFSCProof(SmtEngine* smtEngine,
   , d_smtEngine(smtEngine)
 {}
 
-void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) {
+void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) const
+{
   Unreachable();
 }
 
-void LFSCProof::toStream(std::ostream& out) {
-
+void LFSCProof::toStream(std::ostream& out) const
+{
   Assert(options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER);
 
   Assert(!d_satProof->proofConstructed());
@@ -743,7 +744,8 @@ void LFSCProof::toStream(std::ostream& out) {
 void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
                                             std::ostream& os,
                                             std::ostream& paren,
-                                            ProofLetMap& globalLetMap) {
+                                            ProofLetMap& globalLetMap) const
+{
   os << "\n ;; In the preprocessor we trust \n";
   NodeSet::const_iterator it = assertions.begin();
   NodeSet::const_iterator end = assertions.end();
@@ -842,7 +844,8 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
   os << "\n";
 }
 
-void LFSCProof::checkUnrewrittenAssertion(const NodeSet& rewrites) {
+void LFSCProof::checkUnrewrittenAssertion(const NodeSet& rewrites) const
+{
   Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion starting" << std::endl;
 
   NodeSet::const_iterator rewrite;
