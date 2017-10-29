@@ -1142,6 +1142,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
 }
   
 Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
+  NodeManager* nm = NodeManager::currentNM();
   // result of rewriting the visited term
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   // whether the visited term contains pv
@@ -1156,10 +1157,31 @@ Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
     it = visited.find(cur);
 
     if (it == visited.end()) {
-      visited[cur] = Node::null();
-      visit.push(cur);
-      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
-        visit.push(cur[i]);
+      if( cur.getKind()==CHOICE && false ){
+        // must replace variables of choice functions
+        // with new variables to avoid variable
+        // capture when considering substitutions
+        // with multiple literals.
+        std::stringstream ss;
+        ss << cur[0][0] << "_p";
+        Node bv = nm->mkBoundVar(ss.str(), cur[0][0].getType());
+        TNode var = cur[0][0];
+        Node sbody = cur[1].substitute( var, bv );
+        // we cannot cache the results of subterms
+        // of this choice expression since we are  
+        // now in the context { cur[0][0] -> bv },
+        // hence we make a separate call to
+        // rewriteAssertionForSolvePv here,
+        // where the recursion depth is the maximum
+        // depth of nested choice expressions.
+        Node rsbody = rewriteAssertionForSolvePv( pv, sbody );
+        visited[cur] = nm->mkNode( CHOICE, nm->mkNode( BOUND_VAR_LIST, bv ), rsbody );
+      }else{
+        visited[cur] = Node::null();
+        visit.push(cur);
+        for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+          visit.push(cur[i]);
+        }
       }
     } else if (it->second.isNull()) {
       Node ret;
@@ -1207,25 +1229,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
 {
   NodeManager* nm = NodeManager::currentNM();
 
-  // [1] pre-requiste rewrites
-
-  // must rewrite choice functions to have unique free variables
-  // otherwise, substitution for multiple variables
-  // can result in variable capture.
-  if (n.getKind() == CHOICE)
-  {
-    // should not have modified the bound variable list
-    // via a recursive call
-    Assert(n[0] == children[0]);
-    std::stringstream ss;
-    ss << n[0][0] << "_p";
-    Node bv = nm->mkBoundVar(ss.str(), n[0][0].getType());
-    TNode var = n[0][0];
-    Node new_body = children[1].substitute(var, bv);
-    return nm->mkNode(CHOICE, nm->mkNode(BOUND_VAR_LIST, bv), new_body);
-  }
-
-  // [2] rewrite cases of non-invertible operators
+  // [1] rewrite cases of non-invertible operators
 
   // if n is urem( x, y ) where x contains pv but y does not, then
   // rewrite urem( x, y ) ---> x - udiv( x, y )*y
@@ -1242,7 +1246,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
     }
   }
 
-  // [3] try to rewrite non-linear literals -> linear literals
+  // [2] try to rewrite non-linear literals -> linear literals
 
   return Node::null();
 }
