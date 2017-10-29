@@ -19,25 +19,29 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/datatypes/theory_datatypes.h"
-#include "theory/sep/theory_sep.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/ambqi_builder.h"
+#include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/ceg_t_instantiator.h"
 #include "theory/quantifiers/conjecture_generator.h"
+#include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/fun_def_engine.h"
+#include "theory/quantifiers/inst_propagator.h"
 #include "theory/quantifiers/inst_strategy_cbqi.h"
 #include "theory/quantifiers/inst_strategy_e_matching.h"
+#include "theory/quantifiers/inst_strategy_enumerative.h"
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/model_engine.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_equality_engine.h"
+#include "theory/quantifiers/quant_split.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/rewrite_engine.h"
@@ -45,10 +49,7 @@
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
-#include "theory/quantifiers/quant_split.h"
-#include "theory/quantifiers/anti_skolem.h"
-#include "theory/quantifiers/equality_infer.h"
-#include "theory/quantifiers/inst_propagator.h"
+#include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
@@ -298,7 +299,7 @@ void QuantifiersEngine::finishInit(){
   }
   //full saturation : instantiate from relevant domain, then arbitrary terms
   if( options::fullSaturateQuant() || options::fullSaturateInterleave() ){
-    d_fs = new quantifiers::FullSaturation( this );
+    d_fs = new quantifiers::InstStrategyEnum(this);
     d_modules.push_back( d_fs );
     needsRelDom = true;
   }
