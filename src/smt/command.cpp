@@ -1168,12 +1168,12 @@ std::string GetModelCommand::getCommandName() const throw() {
 /* class GetProofCommand */
 
 GetProofCommand::GetProofCommand() throw()
-    : d_result(nullptr), d_smtEngine(nullptr) {}
+  : d_smtEngine(nullptr), d_result(nullptr) {}
 
 void GetProofCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_smtEngine = smtEngine;
-    d_result = smtEngine->getProof();
+    d_result = &smtEngine->getProof();
     d_commandStatus = CommandSuccess::instance();
   } catch (RecoverableModalException& e) {
     d_commandStatus = new CommandRecoverableFailure(e.what());
@@ -1184,10 +1184,7 @@ void GetProofCommand::invoke(SmtEngine* smtEngine) {
   }
 }
 
-Proof* GetProofCommand::getResult() const throw() {
-  return d_result;
-}
-
+const Proof& GetProofCommand::getResult() const throw() { return *d_result; }
 void GetProofCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);

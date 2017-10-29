@@ -2245,15 +2245,17 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   d_conflictNode = explain(a.eqNode(b), proof.get());
 
   if (!d_inCheckModel) {
-    ProofArray* proof_array = NULL;
+    std::unique_ptr<ProofArray> proof_array;
 
     if (d_proofsEnabled) {
       proof->debug_print("pf::array");
-      proof_array = new ProofArray(proof, /*row=*/d_reasonRow,
-                                   /*row1=*/d_reasonRow1, /*ext=*/d_reasonExt);
+      proof_array.reset(new ProofArray(proof,
+                                       /*row=*/d_reasonRow,
+                                       /*row1=*/d_reasonRow1,
+                                       /*ext=*/d_reasonExt));
     }
 
-    d_out->conflict(d_conflictNode, proof_array);
+    d_out->conflict(d_conflictNode, std::move(proof_array));
   }
 
   d_conflict = true;

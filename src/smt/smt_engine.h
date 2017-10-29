@@ -524,8 +524,11 @@ public:
    * Get the last proof (only if immediately preceded by an UNSAT
    * or VALID query).  Only permitted if CVC4 was built with proof
    * support and produce-proofs is on.
+   *
+   * The Proof object is owned by this SmtEngine until the SmtEngine is
+   * destroyed.
    */
-  Proof* getProof();
+  const Proof& getProof();
 
   /**
    * Print all instantiations made by the quantifiers module.

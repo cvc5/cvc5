@@ -115,9 +115,13 @@ inline static bool match(TNode n1, TNode n2) {
   return true;
 }
 
-ProofArray::ProofArray(std::shared_ptr<theory::eq::EqProof> pf, unsigned row,
-                       unsigned row1, unsigned ext)
-    : d_proof(pf), d_reasonRow(row), d_reasonRow1(row1), d_reasonExt(ext) {}
+ProofArray::ProofArray(std::shared_ptr<theory::eq::EqProof> pf,
+                       unsigned row,
+                       unsigned row1,
+                       unsigned ext)
+    : d_proof(pf), d_reasonRow(row), d_reasonRow1(row1), d_reasonExt(ext)
+{
+}
 
 void ProofArray::toStream(std::ostream& out) const
 {

@@ -75,18 +75,23 @@ void ProofArith::toStream(std::ostream& out) const
   toStreamLFSC(out, ProofManager::getArithProof(), *d_proof, map);
 }
 
-void ProofArith::toStreamLFSC(std::ostream& out, TheoryProof* tp,
+void ProofArith::toStreamLFSC(std::ostream& out,
+                              TheoryProof* tp,
                               const theory::eq::EqProof& pf,
-                              const ProofLetMap& map) {
+                              const ProofLetMap& map)
+{
   Debug("lfsc-arith") << "Printing arith proof in LFSC : " << std::endl;
   pf.debug_print("lfsc-arith");
   Debug("lfsc-arith") << std::endl;
   toStreamRecLFSC(out, tp, pf, 0, map);
 }
 
-Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
-                                 const theory::eq::EqProof& pf, unsigned tb,
-                                 const ProofLetMap& map) {
+Node ProofArith::toStreamRecLFSC(std::ostream& out,
+                                 TheoryProof* tp,
+                                 const theory::eq::EqProof& pf,
+                                 unsigned tb,
+                                 const ProofLetMap& map)
+{
   Debug("pf::arith") << std::endl
                      << std::endl
                      << "toStreamRecLFSC called. tb = " << tb

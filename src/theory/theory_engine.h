@@ -20,6 +20,7 @@
 #define __CVC4__THEORY_ENGINE_H
 
 #include <deque>
+#include <memory>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -266,7 +267,8 @@ class TheoryEngine {
       }
     }
 
-    void conflict(TNode conflictNode, Proof* pf = nullptr) override;
+    void conflict(TNode conflictNode,
+                  std::unique_ptr<Proof> pf = nullptr) override;
     bool propagate(TNode literal) override;
 
     theory::LemmaStatus lemma(TNode lemma, ProofRule rule,

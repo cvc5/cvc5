@@ -20,6 +20,7 @@
 #define __CVC4__PROOF_MANAGER_H
 
 #include <iosfwd>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -58,7 +59,6 @@ const ClauseId ClauseIdEmpty(-1);
 const ClauseId ClauseIdUndef(-2);
 const ClauseId ClauseIdError(-3);
 
-class Proof;
 template <class Solver> class TSatProof;
 typedef TSatProof< CVC4::Minisat::Solver> CoreSatProof;
 
@@ -159,7 +159,7 @@ class ProofManager {
 
   int d_nextId;
 
-  Proof* d_fullProof;
+  std::unique_ptr<Proof> d_fullProof;
   ProofFormat d_format; // used for now only in debug builds
 
   CDNodeToNodes d_deps;
@@ -187,7 +187,7 @@ public:
   static void         initTheoryProofEngine();
 
   // getting various proofs
-  static Proof*         getProof(SmtEngine* smt);
+  static const Proof& getProof(SmtEngine* smt);
   static CoreSatProof*  getSatProof();
   static CnfProof*      getCnfProof();
   static TheoryProofEngine* getTheoryProofEngine();

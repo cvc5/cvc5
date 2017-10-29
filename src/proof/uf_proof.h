@@ -30,7 +30,8 @@
 namespace CVC4 {
 
 // proof object outputted by TheoryUF
-class ProofUF : public Proof {
+class ProofUF : public Proof
+{
  public:
   ProofUF(std::shared_ptr<theory::eq::EqProof> pf) : d_proof(pf) {}
   void toStream(std::ostream& out) const override;

@@ -56,18 +56,18 @@ std::string append(const std::string& str, uint64_t num) {
   return os.str();
 }
 
-ProofManager::ProofManager(context::Context* context, ProofFormat format):
-  d_context(context),
-  d_satProof(NULL),
-  d_cnfProof(NULL),
-  d_theoryProof(NULL),
-  d_inputFormulas(),
-  d_inputCoreFormulas(context),
-  d_outputCoreFormulas(context),
-  d_nextId(0),
-  d_fullProof(NULL),
-  d_format(format),
-  d_deps(context)
+ProofManager::ProofManager(context::Context* context, ProofFormat format)
+    : d_context(context),
+      d_satProof(NULL),
+      d_cnfProof(NULL),
+      d_theoryProof(NULL),
+      d_inputFormulas(),
+      d_inputCoreFormulas(context),
+      d_outputCoreFormulas(context),
+      d_nextId(0),
+      d_fullProof(),
+      d_format(format),
+      d_deps(context)
 {
 }
 
@@ -75,24 +75,23 @@ ProofManager::~ProofManager() {
   if (d_satProof) delete d_satProof;
   if (d_cnfProof) delete d_cnfProof;
   if (d_theoryProof) delete d_theoryProof;
-  if (d_fullProof) delete d_fullProof;
 }
 
 ProofManager* ProofManager::currentPM() {
   return smt::currentProofManager();
 }
-
-Proof* ProofManager::getProof(SmtEngine* smt) {
-  if (currentPM()->d_fullProof != NULL) {
-    return currentPM()->d_fullProof;
+const Proof& ProofManager::getProof(SmtEngine* smt)
+{
+  if (!currentPM()->d_fullProof)
+  {
+    Assert(currentPM()->d_format == LFSC);
+    currentPM()->d_fullProof.reset(new LFSCProof(
+        smt,
+        static_cast<LFSCCoreSatProof*>(getSatProof()),
+        static_cast<LFSCCnfProof*>(getCnfProof()),
+        static_cast<LFSCTheoryProofEngine*>(getTheoryProofEngine())));
   }
-  Assert (currentPM()->d_format == LFSC);
-
-  currentPM()->d_fullProof = new LFSCProof(smt,
-                                           (LFSCCoreSatProof*)getSatProof(),
-                                           (LFSCCnfProof*)getCnfProof(),
-                                           (LFSCTheoryProofEngine*)getTheoryProofEngine());
-  return currentPM()->d_fullProof;
+  return *(currentPM()->d_fullProof);
 }
 
 CoreSatProof* ProofManager::getSatProof() {
