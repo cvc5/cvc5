@@ -23,11 +23,12 @@
 #include "theory/uf/equality_engine.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine( context::Context* c, QuantifiersEngine* qe ) : d_qe( qe ), d_eqi_counter( c ), d_reset_count( 0 ){
 
@@ -116,16 +117,20 @@ bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
   }
 }
 
-Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, int index ){
-  Assert( f.isNull() || f.getKind()==FORALL );
+Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
+                                                               Node q,
+                                                               int index)
+{
+  Assert(q.isNull() || q.getKind() == FORALL);
   Node r = getRepresentative( a );
   if( options::finiteModelFind() ){
     if( r.isConst() && quantifiers::TermUtil::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
       if( d_qe->getModel() ){
-        std::map< Node, Node >::iterator it = d_qe->getModel()->d_rep_set.d_values_to_terms.find( r );
-        if( it!=d_qe->getModel()->d_rep_set.d_values_to_terms.end() ){
-          r = it->second;
+        Node tr = d_qe->getModel()->getRepSet()->getTermForRepresentative(r);
+        if (!tr.isNull())
+        {
+          r = tr;
           r = getRepresentative( r );
         }else{
           if( r.getType().isSort() ){
@@ -140,27 +145,38 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
   if( options::quantRepMode()==quantifiers::QUANT_REP_MODE_EE ){
     return r;
   }else{
-    TypeNode v_tn = f.isNull() ? a.getType() : f[0][index].getType();
-    std::map< Node, Node >::iterator itir = d_int_rep[v_tn].find( r );
-    if( itir==d_int_rep[v_tn].end() ){
+    TypeNode v_tn = q.isNull() ? a.getType() : q[0][index].getType();
+    std::map<Node, Node>& v_int_rep = d_int_rep[v_tn];
+    std::map<Node, Node>::const_iterator itir = v_int_rep.find(r);
+    if (itir != v_int_rep.end())
+    {
+      return itir->second;
+    }
+    else
+    {
       //find best selection for representative
       Node r_best;
-      //if( options::fmfRelevantDomain() && !f.isNull() ){
-      //  Trace("internal-rep-debug") << "Consult relevant domain to mkRep " << r << std::endl;
-      //  r_best = d_qe->getRelevantDomain()->getRelevantTerm( f, index, r );
-      //  Trace("internal-rep-debug") << "Returned " << r_best << " " << r << std::endl;
+      // if( options::fmfRelevantDomain() && !q.isNull() ){
+      //  Trace("internal-rep-debug") << "Consult relevant domain to mkRep " <<
+      //  r << std::endl;
+      //  r_best = d_qe->getRelevantDomain()->getRelevantTerm( q, index, r );
+      //  Trace("internal-rep-debug") << "Returned " << r_best << " " << r <<
+      //  std::endl;
       //}
       std::vector< Node > eqc;
       getEquivalenceClass( r, eqc );
       Trace("internal-rep-select") << "Choose representative for equivalence class : { ";
       for( unsigned i=0; i<eqc.size(); i++ ){
-        if( i>0 ) Trace("internal-rep-select") << ", ";
+        if (i > 0)
+        {
+          Trace("internal-rep-select") << ", ";
+        }
         Trace("internal-rep-select") << eqc[i];
       }
       Trace("internal-rep-select")  << " }, type = " << v_tn << std::endl;
       int r_best_score = -1;
       for( size_t i=0; i<eqc.size(); i++ ){
-        int score = getRepScore( eqc[i], f, index, v_tn );
+        int score = getRepScore(eqc[i], q, index, v_tn);
         if( score!=-2 ){
           if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
             r_best = eqc[i];
@@ -181,14 +197,12 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
       }
       Trace("internal-rep-select") << "...Choose " << r_best << " with score " << r_best_score << std::endl;
       Assert( r_best.getType().isSubtypeOf( v_tn ) );
-      d_int_rep[v_tn][r] = r_best;
+      v_int_rep[r] = r_best;
       if( r_best!=a ){
         Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;
         Trace("internal-rep-debug") << "int_rep( " << a << " ) = " << r_best << ", " << std::endl;
       }
       return r_best;
-    }else{
-      return itir->second;
     }
   }
 }
@@ -310,7 +324,11 @@ Node EqualityQueryQuantifiersEngine::getInstance( Node n, const std::vector< Nod
 }
 
 //-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
-int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index, TypeNode v_tn ){
+int EqualityQueryQuantifiersEngine::getRepScore(Node n,
+                                                Node q,
+                                                int index,
+                                                TypeNode v_tn)
+{
   if( options::cbqi() && quantifiers::TermUtil::hasInstConstAttr(n) ){  //reject
     return -2;
   }else if( !n.getType().isSubtypeOf( v_tn ) ){  //reject if incorrect type
@@ -334,3 +352,7 @@ int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index, Type
     }
   }
 }
+
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */

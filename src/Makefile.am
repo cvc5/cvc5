@@ -392,6 +392,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/inst_strategy_cbqi.h \
 	theory/quantifiers/inst_strategy_e_matching.cpp \
 	theory/quantifiers/inst_strategy_e_matching.h \
+	theory/quantifiers/inst_strategy_enumerative.cpp \
+	theory/quantifiers/inst_strategy_enumerative.h \
 	theory/quantifiers/instantiation_engine.cpp \
 	theory/quantifiers/instantiation_engine.h \
 	theory/quantifiers/local_theory_ext.cpp \
@@ -420,6 +422,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/rewrite_engine.h \
 	theory/quantifiers/sygus_grammar_cons.cpp \
 	theory/quantifiers/sygus_grammar_cons.h \
+	theory/quantifiers/sygus_process_conj.cpp \
+	theory/quantifiers/sygus_process_conj.h \
 	theory/quantifiers/symmetry_breaking.cpp \
 	theory/quantifiers/symmetry_breaking.h \
 	theory/quantifiers/term_database.cpp \
