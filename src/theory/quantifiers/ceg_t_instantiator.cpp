@@ -1157,7 +1157,8 @@ Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
     it = visited.find(cur);
 
     if (it == visited.end()) {
-      if( cur.getKind()==CHOICE ){
+      if (cur.getKind() == CHOICE)
+      {
         // must replace variables of choice functions
         // with new variables to avoid variable
         // capture when considering substitutions
@@ -1166,20 +1167,24 @@ Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
         ss << cur[0][0] << "_p";
         Node bv = nm->mkBoundVar(ss.str(), cur[0][0].getType());
         TNode var = cur[0][0];
-        Node sbody = cur[1].substitute( var, bv );
+        Node sbody = cur[1].substitute(var, bv);
         // we cannot cache the results of subterms
-        // of this choice expression since we are  
+        // of this choice expression since we are
         // now in the context { cur[0][0] -> bv },
         // hence we make a separate call to
         // rewriteAssertionForSolvePv here,
         // where the recursion depth is the maximum
         // depth of nested choice expressions.
-        Node rsbody = rewriteAssertionForSolvePv( pv, sbody );
-        visited[cur] = nm->mkNode( CHOICE, nm->mkNode( BOUND_VAR_LIST, bv ), rsbody );
-      }else{
+        Node rsbody = rewriteAssertionForSolvePv(pv, sbody);
+        visited[cur] =
+            nm->mkNode(CHOICE, nm->mkNode(BOUND_VAR_LIST, bv), rsbody);
+      }
+      else
+      {
         visited[cur] = Node::null();
         visit.push(cur);
-        for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+        for (unsigned i = 0; i < cur.getNumChildren(); i++)
+        {
           visit.push(cur[i]);
         }
       }

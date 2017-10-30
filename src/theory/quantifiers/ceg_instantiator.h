@@ -157,8 +157,8 @@ class CegInstantiator {
     * (from the quantified formula we are instantiating).
     */
   std::unordered_map<Node,
-                      std::unordered_set<Node, NodeHashFunction>,
-                      NodeHashFunction>
+                     std::unordered_set<Node, NodeHashFunction>,
+                     NodeHashFunction>
       d_prog_var;
   /** the set of terms that we have established are ineligible for instantiation
     */
@@ -187,7 +187,8 @@ class CegInstantiator {
   std::vector<Node> d_ce_atoms;
   // collect atoms
   void collectCeAtoms(Node n, std::map<Node, bool>& visited);
-private:
+
+ private:
   //map from variables to their instantiators
   std::map< Node, Instantiator * > d_instantiator;
   //cache of current substitutions tried between register/unregister

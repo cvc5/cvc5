@@ -83,15 +83,16 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn)
     // introduce a Skolem this can happen when we ask for the multiplicative
     // inversion with bv1
     TNode solve_var = getSolveVariable(tn);
-    if( new_cond.getKind()==EQUAL ){
+    if (new_cond.getKind() == EQUAL)
+    {
       for (unsigned i = 0; i < 2; i++)
       {
         if (new_cond[i] == solve_var)
         {
           c = new_cond[1 - i];
           Trace("cegqi-bv-skvinv") << "SKVINV : " << c
-                                  << " is trivially associated with conditon "
-                                  << new_cond << std::endl;
+                                   << " is trivially associated with conditon "
+                                   << new_cond << std::endl;
           break;
         }
       }
