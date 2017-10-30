@@ -107,29 +107,72 @@ public:
   * n1 is the vector form of t1
   * n2 is the vector form of t2
   *
-  * if this function returns n>=0 for some n, then
+  * If this function returns n>=0 for some n, then
   *    n1 = { x1...x{n-1} xn...x{n+s} x{n+s+1}...xm },
   *    n2 = { y1...ys },
   *    y1 is a suffix of xn,
   *    y2...y{s-1} = x{n+1}...x{n+s-1}, and
   *    ys is a prefix of x{n+s}
-  *    if computeRemainder = true, then
-  *      n1 is updated to { x1...x{n-1} xn... x{n+s-1} ys }, and
-  *      nr is set to { ( x{n+s} \ ys ) x{n+s+1}...xm }
-  *        where ( x{n+s} \ ys ) denotes string remainder (see operator "\" in
-  * Section 3.2 of Reynolds et al CAV 2017).
-  * otherwise it returns -1.
+  * Otherwise it returns -1.
+  *    
+  * This function may update n1 if computeRemainder = true.
+  *   We maintain the invariant that the resulting value n1'
+  *   of n1 after this function is such that:
+  *     n1 = str.++( nb, n1', ne )
+  * The vectors nb and ne have the following properties.
+  * If computeRemainder = true, then 
+  *   If remainderDir != -1, then
+  *     ne is { x{n+s}' x{n+s+1}...xm }
+  *     where x{n+s} = str.++( ys, x{n+s}' ).
+  *   If remainderDir != 1, then
+  *     nb is { x1, ..., x{n-1}, xn' } 
+  *     where xn = str.++( xn', y1 ).
   *
   * For example:
-  * componentContains( { y, "abc", x, "def" }, { "c", x, "de" }, {}, true )
+  * 
+  * componentContains( { y, z, "abc", x, "def" }, { "c", x, "de" }, {}, true, 1 )
+  *   returns 2,
+  *   n1 is updated to { y, z, "abc", x, "de" },
+  *   ne is updated to { "f" }
+  * 
+  * componentContains( { y, "abc", x, "def" }, { "c", x, "de" }, {}, true, -1 )
   *   returns 1,
-  *   n1 is updated to { y, "abc", x, "de" },
-  *   nr is updated to { "f" }
+  *   n1 is updated to { "c", x, "def" },
+  *   nb is updated to { y, "ab" }
   */
   static int componentContains(std::vector<Node>& n1,
                                std::vector<Node>& n2,
-                               std::vector<Node>& nr,
-                               bool computeRemainder = false);
+                               std::vector<Node>& nb,
+                               std::vector<Node>& ne,
+                               bool computeRemainder = false,
+                               int remainderDir = 0);
+  /** component contains base
+   * 
+   * This function is a helper for the above function.
+   * 
+   * It returns true if n2 is contained in n1 with the following
+   * restrictions:
+   *   If dir=1, then n2 must be a suffix of n1.
+   *   If dir=-1, then n2 must be a prefix of n1. 
+   * 
+   * If computeRemainder is true, then n1rb and n1re are
+   * updated such that :
+   *   n1 = str.++( n1rb, n2, n1re )
+   * where a null value of n1rb and n1re indicates the
+   * empty string.
+   * 
+   * For example:
+   * 
+   * componentContainsBase( "ab", "cabe", n1rb, n1re, 1, false ) 
+   *   returns false.
+   * 
+   * componentContainsBase( "ab", "cabe", n1rb, n1re, 0, true ) 
+   *   returns true,
+   *   n1rb is set to "c",
+   *   n1re is set to "e".
+   */
+  static bool componentContainsBase(Node n1, Node n2, Node& n1rb, Node& n1re,
+                                    int dir, bool computeRemainder);
   /** strip constant endpoints
   * This function is used when rewriting str.contains( t1, t2 ), where
   * n1 is the vector form of t1
@@ -163,6 +206,14 @@ public:
                                      std::vector<Node>& nb,
                                      std::vector<Node>& ne,
                                      int dir = 0);
+  /** check arithmetic entailment 
+   * Returns true if it is always the case that a >= b.
+   */
+  bool checkEntailArith( Node a, Node b );
+  /** check arithmetic entailment 
+   * Returns true if it is always the case that a >= 0.
+   */
+  bool checkEntailArith( Node a );
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */
