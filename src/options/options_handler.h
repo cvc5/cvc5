@@ -28,8 +28,8 @@
 #include "options/arith_unate_lemma_mode.h"
 #include "options/base_handlers.h"
 #include "options/bv_bitblast_mode.h"
-#include "options/decision_mode.h"
 #include "options/datatypes_modes.h"
+#include "options/decision_mode.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/options.h"
@@ -144,7 +144,8 @@ public:
   void notifyBeforeSearch(const std::string& option) throw(ModalException);
   void notifyDumpMode(std::string option) throw(OptionException);
   SimplificationMode stringToSimplificationMode(std::string option, std::string optarg) throw(OptionException);
-  SygusSolutionOutMode stringToSygusSolutionOutMode(std::string option, std::string optarg) throw(OptionException);
+  SygusSolutionOutMode stringToSygusSolutionOutMode(
+      std::string option, std::string optarg) throw(OptionException);
   void setProduceAssertions(std::string option, bool value) throw();
   void proofEnabledBuild(std::string option, bool value) throw(OptionException);
   void LFSCEnabledBuild(std::string option, bool value);

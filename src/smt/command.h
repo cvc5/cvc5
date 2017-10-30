@@ -540,7 +540,8 @@ public:
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-protected:
+
+ protected:
   /** the assertion of check-synth */
   Expr d_expr;
   /** result of the check-synth call */

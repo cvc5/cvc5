@@ -25,7 +25,8 @@
 namespace CVC4 {
 
 /** Mode for printing sygus solutions. */
-enum SygusSolutionOutMode {
+enum SygusSolutionOutMode
+{
   /** print status */
   SYGUS_SOL_OUT_STATUS,
   /** (default) print status and solution */
@@ -36,6 +37,6 @@ enum SygusSolutionOutMode {
   SYGUS_SOL_OUT_STANDARD,
 };
 
-}/* CVC4 namespace */
+} /* CVC4 namespace */
 
 #endif /* __CVC4__SMT__SYGUS_OUT_MODE_H */
