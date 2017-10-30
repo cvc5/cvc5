@@ -242,7 +242,6 @@ public:
 
 
   // TODO: Document these.
-  void setDumpSynth(bool);
   void setInputLanguage(InputLanguage);
   void setInteractive(bool);
   void setOut(std::ostream*);

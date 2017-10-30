@@ -395,6 +395,28 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->checkSynth(d_expr);
     d_commandStatus = CommandSuccess::instance();
+    smt::SmtScope scope(smtEngine);
+    // check whether we should print the status
+    if( d_result.asSatisfiabilityResult() != Result::UNSAT ||
+        options::sygusOut()==SYGUS_SOL_OUT_STATUS_AND_DEF ||
+        options::sygusOut()==SYGUS_SOL_OUT_STATUS ){
+      if( options::sygusOut()==SYGUS_SOL_OUT_STANDARD ){
+        d_solution << "fail" << endl;
+      }else{
+        d_solution << d_result << endl;
+      }
+    }
+    // check whether we should print the solution
+    if( d_result.asSatisfiabilityResult() == Result::UNSAT &&
+        options::sygusOut()!=SYGUS_SOL_OUT_STATUS ){
+      d_solution.clear();
+      // printing a synthesis solution is a non-constant
+      // method, since it invokes a sophisticated algorithm
+      // (Figure 5 of Reynolds et al. CAV 2015).
+      // Hence, we must call here print solution here, 
+      // instead of during printResult.
+      smtEngine->printSynthSolution(d_solution);
+    }
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
   }
@@ -408,7 +430,7 @@ void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
-    out << d_result << endl;
+    out << d_solution.str();
   }
 }
 

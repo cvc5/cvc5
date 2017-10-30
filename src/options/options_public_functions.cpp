@@ -242,10 +242,6 @@ std::ostream* Options::currentGetOut() {
 
 // TODO: Document these.
 
-void Options::setDumpSynth(bool value) {
-  set(options::dumpSynth, value);
-}
-
 void Options::setInputLanguage(InputLanguage value) {
   set(options::inputLanguage, value);
 }

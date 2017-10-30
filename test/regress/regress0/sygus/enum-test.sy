@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --no-dump-synth
+; COMMAND-LINE: --cegqi-si=all --sygus-out=status
 (set-logic LIA)
 (define-sort D (Enum (a b)))
 (define-fun f ((x D)) Int (ite (= x D::a) 3 7))
