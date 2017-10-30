@@ -45,6 +45,10 @@ private:
   static Node rewriteMembership(TNode node);
 
   static bool hasEpsilonNode(TNode node);
+  /** check a >= 0 internal 
+   * a is in rewritten form
+   */
+  static bool checkEntailArithInternal( Node a );
 public:
   static RewriteResponse postRewrite(TNode node);
   static RewriteResponse preRewrite(TNode node);
@@ -170,6 +174,10 @@ public:
    *   returns true,
    *   n1rb is set to "c",
    *   n1re is set to "e".
+   * 
+   * componentContainsBase( y, str.substr(y,0,5), n1rb, n1re, -1, true ) 
+   *   returns true,
+   *   n1re is set to str.substr(y,5,str.len(y)).
    */
   static bool componentContainsBase(Node n1, Node n2, Node& n1rb, Node& n1re,
                                     int dir, bool computeRemainder);
@@ -207,13 +215,14 @@ public:
                                      std::vector<Node>& ne,
                                      int dir = 0);
   /** check arithmetic entailment 
-   * Returns true if it is always the case that a >= b.
+   * Returns true if it is always the case that a >= b,
+   * and a>b if strict is true.
    */
-  bool checkEntailArith( Node a, Node b );
+  static bool checkEntailArith( Node a, Node b, bool strict=false );
   /** check arithmetic entailment 
    * Returns true if it is always the case that a >= 0.
    */
-  bool checkEntailArith( Node a );
+  static bool checkEntailArith( Node a, bool strict=false );
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */
