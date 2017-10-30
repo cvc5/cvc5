@@ -241,9 +241,6 @@ std::ostream* Options::currentGetOut() {
 
 
 // TODO: Document these.
-void Options::setCeGuidedInst(bool value) {
-  set(options::ceGuidedInst, value);
-}
 
 void Options::setDumpSynth(bool value) {
   set(options::dumpSynth, value);

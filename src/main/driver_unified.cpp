@@ -189,9 +189,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // if doing sygus, turn on CEGQI by default
   if(opts.getInputLanguage() == language::input::LANG_SYGUS ){
-    if( !opts.wasSetByUserCeGuidedInst()) {
-      opts.setCeGuidedInst(true);
-    }
     if( !opts.wasSetByUserDumpSynth()) {
       opts.setDumpSynth(true);
     }
