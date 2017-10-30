@@ -846,20 +846,21 @@ bool EprInstantiator::processEqualTerms( CegInstantiator * ci, SolvedForm& sf, N
 }
 
 // this class can be used to query the model value through the CegInstaniator class
-class CegInstantiatorBvInverterQuery : public BvInverterQuery {
-public:
-  CegInstantiatorBvInverterQuery( CegInstantiator * ci ) : 
-    BvInverterQuery(), d_ci( ci ){}
-  ~CegInstantiatorBvInverterQuery(){}
+class CegInstantiatorBvInverterQuery : public BvInverterQuery
+{
+ public:
+  CegInstantiatorBvInverterQuery(CegInstantiator* ci)
+      : BvInverterQuery(), d_ci(ci)
+  {
+  }
+  ~CegInstantiatorBvInverterQuery() {}
   /** return the model value of n */
   Node getModelValue( Node n ) {
     return d_ci->getModelValue( n );
   }
   /** get bound variable of type tn */
-  Node getBoundVariable( TypeNode tn ) {
-    return d_ci->getBoundVariable( tn );    
-  }
-protected:
+  Node getBoundVariable(TypeNode tn) { return d_ci->getBoundVariable(tn); }
+ protected:
   // pointer to class that is able to query model values
   CegInstantiator * d_ci;
 };
@@ -898,7 +899,7 @@ void BvInstantiator::processLiteral(CegInstantiator* ci, SolvedForm& sf,
   Trace("cegqi-bv") << "Get path to pv : " << lit << std::endl;
   Node slit = d_inverter->getPathToPv( lit, pv, sv, pvs, path );
   if( !slit.isNull() ){
-    CegInstantiatorBvInverterQuery m( ci );
+    CegInstantiatorBvInverterQuery m(ci);
     unsigned iid = d_inst_id_counter;
     Trace("cegqi-bv") << "Solve lit to bv inverter : " << slit << std::endl;
     Node inst = d_inverter->solve_bv_lit( sv, slit, path, &m, d_inst_id_to_status[iid] );
@@ -1016,7 +1017,7 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci, SolvedForm& sf,
   if( options::cbqiBv() ){
     // get the best rewritten form of lit for solving for pv 
     //   this should remove instances of non-invertible operators, and "linearize" lit with respect to pv as much as possible
-    Node rlit = rewriteAssertionForSolvePv( ci, pv, lit );
+    Node rlit = rewriteAssertionForSolvePv(ci, pv, lit);
     if( Trace.isOn("cegqi-bv") ){
       Trace("cegqi-bv") << "BvInstantiator::processAssertion : solve " << pv << " in " << lit << std::endl;
       if( lit!=rlit ){
@@ -1144,8 +1145,11 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
 
   return false;
 }
-  
-Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci, Node pv, Node lit ) {
+
+Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
+                                                Node pv,
+                                                Node lit)
+{
   NodeManager* nm = NodeManager::currentNM();
   // result of rewriting the visited term
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;

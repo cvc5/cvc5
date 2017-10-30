@@ -87,8 +87,8 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
       {
         c = new_cond[1 - i];
         Trace("cegqi-bv-skvinv") << "SKVINV : " << c
-                                  << " is trivially associated with conditon "
-                                  << new_cond << std::endl;
+                                 << " is trivially associated with conditon "
+                                 << new_cond << std::endl;
         break;
       }
     }
@@ -102,9 +102,9 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
     Node ccond = new_cond.substitute(solve_var, x);
     c = nm->mkNode(kind::CHOICE, nm->mkNode(BOUND_VAR_LIST, x), ccond);
     Trace("cegqi-bv-skvinv") << "SKVINV : Make " << c << " for " << new_cond
-                              << std::endl;
+                             << std::endl;
   }
-  // currently shouldn't cache since 
+  // currently shouldn't cache since
   // the return value depends on the
   // state of m (which bound variable is returned).
   return c;

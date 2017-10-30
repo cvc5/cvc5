@@ -29,11 +29,12 @@ namespace theory {
 namespace quantifiers {
 
 /** BvInverterQuery
- * 
+ *
  * This is a virtual class for queries
  * required by the BvInverter class.
  */
-class BvInverterQuery {
+class BvInverterQuery
+{
  public:
   BvInverterQuery() {}
   ~BvInverterQuery() {}
@@ -60,7 +61,6 @@ class BvInverter {
  public:
   BvInverter() {}
   ~BvInverter() {}
-  
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
 
@@ -93,8 +93,11 @@ class BvInverter {
    * solve for sv in lit, where lit.path = sv
    * status accumulates side conditions
    */
-  Node solve_bv_lit(Node sv, Node lit, std::vector<unsigned>& path,
-                    BvInverterQuery* m, BvInverterStatus& status);
+  Node solve_bv_lit(Node sv,
+                    Node lit,
+                    std::vector<unsigned>& path,
+                    BvInverterQuery* m,
+                    BvInverterStatus& status);
 
  private:
   /** dummy variables for each type */

@@ -42,7 +42,8 @@ class Instantiator;
 
 /** Term Properties
  * stores properties for a variable to solve for in CEGQI
- *  For LIA, this includes the coefficient of the variable, and the bound type for the variable.
+ *  For LIA, this includes the coefficient of the variable, and the bound type
+ * for the variable.
  */
 class TermProperties {
 public:
@@ -163,7 +164,7 @@ class CegInstantiator {
                      std::unordered_set<Node, NodeHashFunction>,
                      NodeHashFunction>
       d_prog_var;
-  /** cache of the set of terms that we have established are 
+  /** cache of the set of terms that we have established are
    * ineligible for instantiation.
     */
   std::unordered_set<Node, NodeHashFunction> d_inelig;
@@ -189,19 +190,22 @@ class CegInstantiator {
   bool d_is_nested_quant;
   /** the atoms of the CE lemma */
   std::vector<Node> d_ce_atoms;
-  /** cache bound variables for type returned 
+  /** cache bound variables for type returned
    * by getBoundVariable(...).
    */
-  std::unordered_map< TypeNode, std::vector< Node >, TypeNodeHashFunction > d_bound_var;
-  /** current index of bound variables for type. 
+  std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
+      d_bound_var;
+  /** current index of bound variables for type.
    * The next call to getBoundVariable(...) for
    * type tn returns the d_bound_var_index[tn]^th
    * element of d_bound_var[tn], or a fresh variable
    * if not in bounds.
    */
-  std::unordered_map< TypeNode, unsigned, TypeNodeHashFunction > d_bound_var_index;
+  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>
+      d_bound_var_index;
   /** collect atoms */
   void collectCeAtoms(Node n, std::map<Node, bool>& visited);
+
  private:
   //map from variables to their instantiators
   std::map< Node, Instantiator * > d_instantiator;
@@ -296,13 +300,13 @@ public:
                              bool revertOnSuccess = false);
   /** get the current model value of term n */
   Node getModelValue( Node n );
-  /** get bound variable for type 
-   * 
-   * This gets the next (canonical) bound variable of 
-   * type tn. This can be used for instance when 
+  /** get bound variable for type
+   *
+   * This gets the next (canonical) bound variable of
+   * type tn. This can be used for instance when
    * constructing instantiations that involve choice expressions.
    */
-  Node getBoundVariable( TypeNode tn );
+  Node getBoundVariable(TypeNode tn);
   //------------------------------end interface for instantiators
   unsigned getNumCEAtoms() { return d_ce_atoms.size(); }
   Node getCEAtom( unsigned i ) { return d_ce_atoms[i]; }

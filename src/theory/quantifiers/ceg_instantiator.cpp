@@ -1003,18 +1003,22 @@ Node CegInstantiator::getModelValue( Node n ) {
   return d_qe->getModel()->getValue( n );
 }
 
-Node CegInstantiator::getBoundVariable( TypeNode tn ) {
+Node CegInstantiator::getBoundVariable(TypeNode tn)
+{
   unsigned index = 0;
-  std::unordered_map< TypeNode, unsigned, TypeNodeHashFunction >::iterator itb = d_bound_var_index.find( tn );
-  if( itb!=d_bound_var_index.end() ){
-    index = itb->second;    
+  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>::iterator itb =
+      d_bound_var_index.find(tn);
+  if (itb != d_bound_var_index.end())
+  {
+    index = itb->second;
   }
   d_bound_var_index[tn] = index + 1;
-  while( index>=d_bound_var[tn].size() ){
+  while (index >= d_bound_var[tn].size())
+  {
     std::stringstream ss;
     ss << "x" << index;
     Node x = NodeManager::currentNM()->mkBoundVar(ss.str(), tn);
-    d_bound_var[tn].push_back( x );
+    d_bound_var[tn].push_back(x);
   }
   return d_bound_var[tn][index];
 }
