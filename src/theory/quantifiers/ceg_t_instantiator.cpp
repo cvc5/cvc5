@@ -1157,7 +1157,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv( Node pv, Node lit ) {
     it = visited.find(cur);
 
     if (it == visited.end()) {
-      if( cur.getKind()==CHOICE && false ){
+      if( cur.getKind()==CHOICE ){
         // must replace variables of choice functions
         // with new variables to avoid variable
         // capture when considering substitutions
