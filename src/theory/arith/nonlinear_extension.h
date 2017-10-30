@@ -44,24 +44,97 @@ namespace arith {
 typedef std::map<Node, unsigned> NodeMultiset;
 
 // TODO : refactor/document this class (#1287)
+/** Non-linear extension class
+ *
+ * This class implements model-based refinement schemes
+ * for non-linear arithmetic, described in:
+ * 
+ * - "Invariant Checking of NRA Transistion Systems
+ * via Incremental Reduction to LRA with EUF" by
+ * Cimatti et al., TACAS 2017.
+ * 
+ * - Section 5 of "Desiging Theory Solvers with
+ * Extensions" by Reynolds et al., FroCoS 2017.
+ * 
+ * - "Satisfiability Modulo Transcendental 
+ * Functions via Incremental Linearization" by Cimatti 
+ * et al., CADE 2017.
+ * 
+ * It's main functionality is a check(...) method, 
+ * which is called by TheoryArithPrivate either:
+ * (1) at full effort with no conflicts or lemmas emitted,
+ * or
+ * (2) at last call effort.
+ * In this method, this class calls d_out->lemma(...)
+ * for valid arithmetic theory lemmas, based on
+ * the current set of assertions, where d_out is the
+ * output channel of TheoryArith.
+ */
 class NonlinearExtension {
  public:
   NonlinearExtension(TheoryArith& containing, eq::EqualityEngine* ee);
   ~NonlinearExtension();
+  /** Get current substitution
+   * 
+   * This function and the one below are 
+   * used for context-dependent 
+   * simplification, see Section 3.1 of 
+   * "Designing Theory Solvers with Extensions"
+   * by Reynolds et al. FroCoS 2017.
+   * 
+   * effort is an identifier indicating the stage where
+   *   we are performing context-dependent simplification,
+   * vars is a set of arithmetic variables.
+   * 
+   * This function populates subs and exp,
+   * such that for each 0 <= i < vars.size()
+   * ( exp[vars[i]] ) => vars[i] = subs[i]
+   * where exp[vars[i]] is a set of assertions
+   * that hold in the current context.
+   * We call { vars -> subs } a "derivable
+   * substituion" (see Reynolds et al. 
+   * FroCoS 2017).
+   */
   bool getCurrentSubstitution(int effort, const std::vector<Node>& vars,
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node> >& exp);
-
+  /** Is the term n in reduced form?
+   * 
+   * Used for context-dependent simplification.
+   * 
+   * effort is an identifier indicating the stage where
+   *   we are performing context-dependent simplification,
+   * on is the original term that we reduced to n,
+   * exp is an explanation such that ( exp => on = n ).
+   * 
+   * We return a pair ( b, exp' ) such that
+   *   if b is true, then:
+   *     n is in reduced form
+   *     if exp' is non-null, then ( exp' => on = n )
+   * The second part of the pair is used for constructing
+   * minimal explanations for context-dependent
+   * simplifications.
+   * 
+   */
   std::pair<bool, Node> isExtfReduced(int effort, Node n, Node on,
                                       const std::vector<Node>& exp) const;
+  /** Check at effort level e.
+   * This call may result in (possibly multiple)
+   * calls to d_out->lemma(...) where d_out
+   * is the output channel of TheoryArith.
+   */
   void check(Theory::Effort e);
+  /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** Compare i and j based an ordering.
+   * 
    * orderType = 0 : compare concrete model values
    * orderType = 1 : compare abstract model values
    * orderType = 2 : compare abs of concrete model values
    * orderType = 3 : compare abs of abstract model values
-   * (for concrete vs abstract, see computeModelValue)
+   * 
+   * For definitions of concrete vs abstract model values, 
+   * see computeModelValue below.
    */
   int compare(Node i, Node j, unsigned orderType) const;
   /** Compare the value of i and j based an ordering,
@@ -69,11 +142,10 @@ class NonlinearExtension {
    * orderType is the same as above.
    */
   int compare_value(Node i, Node j, unsigned orderType) const;
-
+ private:
   bool isMonomialSubset(Node a, Node b) const;
   void registerMonomialSubset(Node a, Node b);
 
- private:
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
   // monomial information (context-independent)
@@ -96,13 +168,16 @@ class NonlinearExtension {
     Kind d_type;
   }; /* struct ConstraintInfo */
 
-  // Check assertions for consistency in the effort LAST_CALL with a subset of
-  // the assertions, false_asserts, evaluate to false in the current model.
-  // Returns the number of lemmas added on the output channel.
+  /** check last call
+  * Check assertions for consistency in the effort LAST_CALL with a subset of
+  * the assertions, false_asserts, evaluate to false in the current model.
+  * xts is the list of (non-reduced) extended terms in the current context.
+  * Returns the number of lemmas added on the output channel.
+  */
   int checkLastCall(const std::vector<Node>& assertions,
                     const std::set<Node>& false_asserts,
                     const std::vector<Node>& xts);
-
+  //---------------------------------------term utilities
   static bool isArithKind(Kind k);
   static Node mkLit(Node a, Node b, int status, int orderType = 0);
   static Node mkAbs(Node a);
@@ -112,6 +187,7 @@ class NonlinearExtension {
   static Kind transKinds(Kind k1, Kind k2);
   static bool isTranscendentalKind(Kind k);
   Node mkMonomialRemFactor(Node n, const NodeMultiset& n_exp_rem) const;
+  //---------------------------------------end term utilities
 
   // register monomial
   void registerMonomial(Node n);
@@ -140,12 +216,16 @@ class NonlinearExtension {
    *   computeModelValue( a*b, 1 ) = 5
    */
   Node computeModelValue(Node n, unsigned index = 0);
-
+  /** returns the Node corresponding to the value of i in the 
+   * type of order orderType,
+   */
   Node get_compare_value(Node i, unsigned orderType) const;
   void assignOrderIds(std::vector<Node>& vars, NodeMultiset& d_order,
                       unsigned orderType);
 
-  // Returns the subset of assertions that evaluate to false in the model.
+  /** Returns the subset of assertions whose concrete values are
+   * false in the model.
+   */
   std::set<Node> getFalseInModel(const std::vector<Node>& assertions);
 
   /** In the following functions, status states a relationship
@@ -172,7 +252,7 @@ class NonlinearExtension {
   */
   int compareSign(Node oa, Node a, unsigned a_index, int status,
                   std::vector<Node>& exp, std::vector<Node>& lem);
-  /** compute the sign of a.
+  /** compare monomials a and b
   *
   * Initially, a call to this function is such that :
   *    exp => ( oa = a ^ ob = b )
@@ -230,16 +310,21 @@ class NonlinearExtension {
   bool cmp_holds(Node x, Node y,
                  std::map<Node, std::map<Node, Node> >& cmp_infers,
                  std::vector<Node>& exp, std::map<Node, bool>& visited);
-
+  /** Is the assertion n entailed with polarity
+   * pol in the current context?
+   */
   bool isEntailed(Node n, bool pol);
 
-  // Potentially sends lem on the output channel if lem has not been sent on the
-  // output channel in this context. Returns the number of lemmas sent on the
-  // output channel.
+  /** flush lemmas
+   * Potentially sends lem on the output channel if lem has not been sent on the
+   * output channel in this context. Returns the number of lemmas sent on the
+   * output channel.
+   */
   int flushLemma(Node lem);
 
-  // Potentially sends lemmas to the output channel and clears lemmas. Returns
-  // the number of lemmas sent to the output channel.
+  /** Potentially sends lemmas to the output channel and clears lemmas. Returns
+   * the number of lemmas sent to the output channel.
+   */
   int flushLemmas(std::vector<Node>& lemmas);
 
   // Returns the NodeMultiset for an existing monomial.
@@ -270,20 +355,27 @@ class NonlinearExtension {
   // literals with Skolems (need not be satisfied by model)
   NodeSet d_skolem_atoms;
 
-  // commonly used terms
+  /** commonly used terms */
   Node d_zero;
   Node d_one;
   Node d_neg_one;
   Node d_true;
   Node d_false;
-  // PI
+  /** PI 
+   * Note that PI is a (symbolic, non-constant)
+   * nullary operator. This is because its value
+   * cannot be computed exactly. We bound PI
+   * to concrete lower and upper bounds stored
+   * in d_pi_bound below.
+   */
   Node d_pi;
-  // PI/2
+  /** PI/2 */
   Node d_pi_2;
-  // -PI/2
+  /** -PI/2 */
   Node d_pi_neg_2;
-  // -PI
+  /** -PI */
   Node d_pi_neg;
+  /** the concrete lower and upper bounds for PI */
   Node d_pi_bound[2];
   
   // The theory of arithmetic containing this extension.
