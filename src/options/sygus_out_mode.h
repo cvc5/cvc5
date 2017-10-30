@@ -9,10 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** \brief Options for sygus solution output.
  **/
 
 #include "cvc4_public.h"
