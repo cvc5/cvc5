@@ -119,6 +119,7 @@ class NonlinearExtension {
   std::pair<bool, Node> isExtfReduced(int effort, Node n, Node on,
                                       const std::vector<Node>& exp) const;
   /** Check at effort level e.
+   * 
    * This call may result in (possibly multiple)
    * calls to d_out->lemma(...) where d_out
    * is the output channel of TheoryArith.
@@ -126,23 +127,27 @@ class NonlinearExtension {
   void check(Theory::Effort e);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
-  /** Compare i and j based an ordering.
+  /** Compare arithmetic terms i and j based an ordering.
    * 
    * orderType = 0 : compare concrete model values
    * orderType = 1 : compare abstract model values
    * orderType = 2 : compare abs of concrete model values
-   * orderType = 3 : compare abs of abstract model values
+   * orderType = 3 : compare abs of abstract model values  
+   * TODO (#1287) make this an enum?
    * 
    * For definitions of concrete vs abstract model values, 
    * see computeModelValue below.
    */
   int compare(Node i, Node j, unsigned orderType) const;
-  /** Compare the value of i and j based an ordering,
-   * where i and j are constant Rationals.
+  /** Compare constant rationals i and j based an ordering.
    * orderType is the same as above.
    */
   int compare_value(Node i, Node j, unsigned orderType) const;
  private:
+  /** returns true if the multiset containing the
+   * factors of monomial a is a subset of the multiset 
+   * containing the factors of monomial b.
+   */
   bool isMonomialSubset(Node a, Node b) const;
   void registerMonomialSubset(Node a, Node b);
 
@@ -189,7 +194,7 @@ class NonlinearExtension {
   Node mkMonomialRemFactor(Node n, const NodeMultiset& n_exp_rem) const;
   //---------------------------------------end term utilities
 
-  // register monomial
+  /** register monomial */
   void registerMonomial(Node n);
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 
@@ -217,7 +222,8 @@ class NonlinearExtension {
    */
   Node computeModelValue(Node n, unsigned index = 0);
   /** returns the Node corresponding to the value of i in the 
-   * type of order orderType,
+   * type of order orderType, which is one of values
+   * described above ::compare(...).
    */
   Node get_compare_value(Node i, unsigned orderType) const;
   void assignOrderIds(std::vector<Node>& vars, NodeMultiset& d_order,
@@ -392,7 +398,10 @@ class NonlinearExtension {
   std::vector<Node> d_constraints;
 
   // model values/orderings
-  // model values
+  /** cache of model values
+   * Stores the the concrete/abstract model values
+   * at indices 0 and 1 respectively. 
+   */
   std::map<Node, Node> d_mv[2];
 
   // ordering, stores variables and 0,1,-1
@@ -427,7 +436,13 @@ private:
   std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
   std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
   
-  //information about transcendental functions
+  /** transcendental function representative map 
+   * 
+   * For each transcendental function n = tf( x ),
+   * this stores ( n.getKind(), r ) -> n
+   * where r is the current representative of x
+   * in the equality engine assoiated with this class.
+   */
   std::map< Kind, std::map< Node, Node > > d_tf_rep_map;  
   
   // factor skolems
@@ -437,7 +452,15 @@ private:
   // tangent plane bounds
   std::map< Node, std::map< Node, Node > > d_tangent_val_bound[4];
 
-  /** secant points (sorted list) for transcendental functions */
+  /** secant points (sorted list) for transcendental functions 
+   * 
+   * This is used for tangent plane refinements for 
+   * transcendental functions. This is the set
+   * "get-previous-secant-points" in "Satisfiability
+   * Modulo Transcendental Functions via Incremental
+   * Linearization" by Cimatti et al., CADE 2017, for
+   * each transcendental function application.
+   */
   std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_secant_points;
 
   /** get Taylor series of degree n for function fa centered around point fa[0].
@@ -464,7 +487,7 @@ private:
   Node d_taylor_real_fv_base;      // a above
   Node d_taylor_real_fv_base_rem;  // b above
 
-  /** internal cache of values for getTaylor */
+  /** cache of sum and remainder terms for getTaylor */
   std::unordered_map<Node, std::unordered_map<unsigned, Node>, NodeHashFunction>
       d_taylor_sum;
   std::unordered_map<Node, std::unordered_map<unsigned, Node>, NodeHashFunction>
@@ -499,18 +522,33 @@ private:
   int regionToMonotonicityDir(Kind k, int region);
   /** get concavity
   * Returns whether we are concave (+1) or convex (-1)
-  * in region of transcendental function with kind k.
+  * in region of transcendental function with kind k,
+  * where region is defined above.
   * Returns 0 if region is invalid.
   */
   int regionToConcavity(Kind k, int region);
-  /** region to lower bound */
+  /** region to lower bound 
+   * Returns the term corresponding to the lower
+   * bound of the region of transcendental function
+   * with kind k. Returns Node::null if the region 
+   * is invalid, or there is no lower bound for the 
+   * region.
+   */
   Node regionToLowerBound(Kind k, int region);
-  /** region to upper bound */
+  /** region to upper bound
+   * Returns the term corresponding to the upper
+   * bound of the region of transcendental function
+   * with kind k. Returns Node::null if the region 
+   * is invalid, or there is no upper bound for the 
+   * region.
+   */
   Node regionToUpperBound(Kind k, int region);
   /** Get derivative.
-  * Returns d/dx n. Supports cases
+  * Returns d/dx n. Supports cases of n
   * for transcendental functions applied to x, 
   * multiplication, addition, constants and variables.
+  * Returns Node::null() if derivative is an 
+  * unhandled case.
   */
   Node getDerivative(Node n, Node x);
 
@@ -520,6 +558,7 @@ private:
   *
   * Returns a set of theory lemmas of the form
   *   t = 0 V t != 0
+  * where t is a term that exists in the current context.
   */
   std::vector<Node> checkSplitZero();
 
