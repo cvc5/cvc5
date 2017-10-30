@@ -74,7 +74,6 @@ echo
 MACHINE_TYPE="x86_64" ANTLR_CONFIGURE_ARGS="--host=$HOST" contrib/get-antlr-3.4 | grep -v 'Now configure CVC4 with' | grep -v '\./configure --with-antlr-dir='
 [ ${PIPESTATUS[0]} -eq 0 ] || reporterror
 echo
-exit 0
 echo =============================================================================
 echo
 echo "Setting up GMP $GMPVERSION..."
