@@ -64,7 +64,7 @@ Node BvInverter::getSolveVariable(TypeNode tn)
   }
 }
 
-Node BvInverter::getInversionNode(Node cond, TypeNode tn)
+Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
 {
   // condition should be rewritten
   Node new_cond = Rewriter::rewrite(cond);
@@ -74,49 +74,40 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn)
                                    << " was rewritten to " << new_cond
                                    << std::endl;
   }
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
-      d_choice_cache.find(new_cond);
-  if (it == d_choice_cache.end())
+  Node c;
+  // optimization : if condition is ( x = v ) should just return v and not
+  // introduce a Skolem this can happen when we ask for the multiplicative
+  // inversion with bv1
+  TNode solve_var = getSolveVariable(tn);
+  if (new_cond.getKind() == EQUAL)
   {
-    Node c;
-    // optimization : if condition is ( x = v ) should just return v and not
-    // introduce a Skolem this can happen when we ask for the multiplicative
-    // inversion with bv1
-    TNode solve_var = getSolveVariable(tn);
-    if (new_cond.getKind() == EQUAL)
+    for (unsigned i = 0; i < 2; i++)
     {
-      for (unsigned i = 0; i < 2; i++)
+      if (new_cond[i] == solve_var)
       {
-        if (new_cond[i] == solve_var)
-        {
-          c = new_cond[1 - i];
-          Trace("cegqi-bv-skvinv") << "SKVINV : " << c
-                                   << " is trivially associated with conditon "
-                                   << new_cond << std::endl;
-          break;
-        }
+        c = new_cond[1 - i];
+        Trace("cegqi-bv-skvinv") << "SKVINV : " << c
+                                  << " is trivially associated with conditon "
+                                  << new_cond << std::endl;
+        break;
       }
     }
-    // TODO : compute the value if the condition is deterministic, e.g. calc
-    // multiplicative inverse of 2 constants
-    if (c.isNull())
-    {
-      NodeManager* nm = NodeManager::currentNM();
-      std::stringstream ss;
-      ss << "x" << d_choice_cache.size();
-      Node x = nm->mkBoundVar(ss.str(), tn);
-      Node ccond = new_cond.substitute(solve_var, x);
-      c = nm->mkNode(kind::CHOICE, nm->mkNode(BOUND_VAR_LIST, x), ccond);
-      Trace("cegqi-bv-skvinv") << "SKVINV : Make " << c << " for " << new_cond
-                               << std::endl;
-    }
-    d_choice_cache[new_cond] = c;
-    return c;
   }
-  else
+  // TODO : compute the value if the condition is deterministic, e.g. calc
+  // multiplicative inverse of 2 constants
+  if (c.isNull())
   {
-    return it->second;
+    NodeManager* nm = NodeManager::currentNM();
+    Node x = m->getBoundVariable(tn);
+    Node ccond = new_cond.substitute(solve_var, x);
+    c = nm->mkNode(kind::CHOICE, nm->mkNode(BOUND_VAR_LIST, x), ccond);
+    Trace("cegqi-bv-skvinv") << "SKVINV : Make " << c << " for " << new_cond
+                              << std::endl;
   }
+  // currently shouldn't cache since 
+  // the return value depends on the
+  // state of m (which bound variable is returned).
+  return c;
 }
 
 bool BvInverter::isInvertible(Kind k, unsigned index)
@@ -210,7 +201,7 @@ Node BvInverter::getPathToPv(
 Node BvInverter::solve_bv_lit(Node sv,
                               Node lit,
                               std::vector<unsigned>& path,
-                              BvInverterModelQuery* m,
+                              BvInverterQuery* m,
                               BvInverterStatus& status)
 {
   Assert(!path.empty());
@@ -294,7 +285,7 @@ Node BvInverter::solve_bv_lit(Node sv,
       }
       status.d_conds.push_back(sc);
       /* t = skv (fresh skolem constant)  */
-      Node skv = getInversionNode(sc, solve_tn);
+      Node skv = getInversionNode(sc, solve_tn, m);
       t = skv;
       if (!path.empty())
       {
@@ -350,7 +341,7 @@ Node BvInverter::solve_bv_lit(Node sv,
       }
       status.d_conds.push_back(sc);
       /* t = skv (fresh skolem constant)  */
-      Node skv = getInversionNode(sc, solve_tn);
+      Node skv = getInversionNode(sc, solve_tn, m);
       t = skv;
       if (!path.empty())
       {
@@ -383,7 +374,7 @@ Node BvInverter::solve_bv_lit(Node sv,
         Node sc = nm->mkNode(IMPLIES, scl, scr);
         status.d_conds.push_back(sc);
         /* t = skv (fresh skolem constant)  */
-        Node skv = getInversionNode(sc, solve_tn);
+        Node skv = getInversionNode(sc, solve_tn, m);
         t = skv;
         if (!path.empty())
         {
@@ -480,7 +471,7 @@ Node BvInverter::solve_bv_lit(Node sv,
 
           /* t = skv (fresh skolem constant)
            * get the skolem node for this side condition  */
-          Node skv = getInversionNode(sc, solve_tn);
+          Node skv = getInversionNode(sc, solve_tn, m);
           /* now solving with the skolem node as the RHS  */
           t = skv;
           break;
@@ -522,7 +513,7 @@ Node BvInverter::solve_bv_lit(Node sv,
           }
           Node sc = nm->mkNode(IMPLIES, scl, scr);
           status.d_conds.push_back(sc);
-          Node skv = getInversionNode(sc, solve_tn);
+          Node skv = getInversionNode(sc, solve_tn, m);
           t = skv;
           break;
         }
@@ -575,7 +566,7 @@ Node BvInverter::solve_bv_lit(Node sv,
 
           /* t = skv (fresh skolem constant)
            * get the skolem node for this side condition */
-          Node skv = getInversionNode(sc, solve_tn);
+          Node skv = getInversionNode(sc, solve_tn, m);
           /* now solving with the skolem node as the RHS */
           t = skv;
           break;
@@ -594,7 +585,7 @@ Node BvInverter::solve_bv_lit(Node sv,
           Node sc = nm->mkNode(IMPLIES, scl, scr);
           status.d_conds.push_back(sc);
           /* t = skv (fresh skolem constant)  */
-          Node skv = getInversionNode(sc, solve_tn);
+          Node skv = getInversionNode(sc, solve_tn, m);
           t = skv;
           break;
         }
@@ -630,7 +621,7 @@ Node BvInverter::solve_bv_lit(Node sv,
             Node sc = nm->mkNode(IMPLIES, scl, scr);
             status.d_conds.push_back(sc);
             /* t = skv (fresh skolem constant)  */
-            Node skv = getInversionNode(sc, solve_tn);
+            Node skv = getInversionNode(sc, solve_tn, m);
             t = skv;
           }
           else
@@ -674,7 +665,7 @@ Node BvInverter::solve_bv_lit(Node sv,
             Node sc = nm->mkNode(IMPLIES, scl, scr);
             status.d_conds.push_back(sc);
             /* t = skv (fresh skolem constant)  */
-            Node skv = getInversionNode(sc, solve_tn);
+            Node skv = getInversionNode(sc, solve_tn, m);
             t = skv;
           }
           else
@@ -744,7 +735,7 @@ Node BvInverter::solve_bv_lit(Node sv,
 
           /* t = skv (fresh skolem constant)
            * get the skolem node for this side condition */
-          Node skv = getInversionNode(sc, solve_tn);
+          Node skv = getInversionNode(sc, solve_tn, m);
           /* now solving with the skolem node as the RHS */
           t = skv;
           break;

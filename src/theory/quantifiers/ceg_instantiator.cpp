@@ -722,6 +722,7 @@ bool CegInstantiator::check() {
   for( unsigned r=0; r<2; r++ ){
     SolvedForm sf;
     d_stack_vars.clear();
+    d_bound_var_index.clear();
     //try to add an instantiation
     if( doAddInstantiation( sf, 0, r==0 ? 0 : 2 ) ){
       return true;
@@ -1000,6 +1001,22 @@ void CegInstantiator::addToAuxVarSubstitution( std::vector< Node >& subs_lhs, st
 
 Node CegInstantiator::getModelValue( Node n ) {
   return d_qe->getModel()->getValue( n );
+}
+
+Node CegInstantiator::getBoundVariable( TypeNode tn ) {
+  unsigned index = 0;
+  std::unordered_map< TypeNode, unsigned, TypeNodeHashFunction >::iterator itb = d_bound_var_index.find( tn );
+  if( itb!=d_bound_var_index.end() ){
+    index = itb->second;    
+  }
+  d_bound_var_index[tn] = index + 1;
+  while( index>=d_bound_var[tn].size() ){
+    std::stringstream ss;
+    ss << "x" << index;
+    Node x = NodeManager::currentNM()->mkBoundVar(ss.str(), tn);
+    d_bound_var[tn].push_back( x );
+  }
+  return d_bound_var[tn][index];
 }
 
 void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) {

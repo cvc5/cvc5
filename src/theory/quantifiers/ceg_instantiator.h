@@ -40,8 +40,10 @@ public:
 
 class Instantiator;
 
-//stores properties for a variable to solve for in CEGQI
-//  For LIA, this includes the coefficient of the variable, and the bound type for the variable
+/** Term Properties
+ * stores properties for a variable to solve for in CEGQI
+ *  For LIA, this includes the coefficient of the variable, and the bound type for the variable.
+ */
 class TermProperties {
 public:
   TermProperties() : d_type(0) {}
@@ -76,9 +78,10 @@ public:
   }
 };
 
-//Solved form
-//  This specifies a substitution:
-//  { d_props[i].getModifiedTerm(d_vars[i]) -> d_subs[i] | i = 0...|d_vars| }
+/** Solved form
+ *  This specifies a substitution:
+ *  { d_props[i].getModifiedTerm(d_vars[i]) -> d_subs[i] | i = 0...|d_vars| }
+ */
 class SolvedForm {
 public:
   // list of variables
@@ -160,7 +163,8 @@ class CegInstantiator {
                      std::unordered_set<Node, NodeHashFunction>,
                      NodeHashFunction>
       d_prog_var;
-  /** the set of terms that we have established are ineligible for instantiation
+  /** cache of the set of terms that we have established are 
+   * ineligible for instantiation.
     */
   std::unordered_set<Node, NodeHashFunction> d_inelig;
   /** current assertions per theory */
@@ -179,15 +183,25 @@ class CegInstantiator {
   std::vector<Node> d_vars;
   /** set form of variables */
   std::unordered_set<Node, NodeHashFunction> d_vars_set;
-  // index of variables reported in instantiation
+  /** index of variables reported in instantiation */
   std::vector<unsigned> d_var_order_index;
   /** are we handled a nested quantified formula? */
   bool d_is_nested_quant;
   /** the atoms of the CE lemma */
   std::vector<Node> d_ce_atoms;
-  // collect atoms
+  /** cache bound variables for type returned 
+   * by getBoundVariable(...).
+   */
+  std::unordered_map< TypeNode, std::vector< Node >, TypeNodeHashFunction > d_bound_var;
+  /** current index of bound variables for type. 
+   * The next call to getBoundVariable(...) for
+   * type tn returns the d_bound_var_index[tn]^th
+   * element of d_bound_var[tn], or a fresh variable
+   * if not in bounds.
+   */
+  std::unordered_map< TypeNode, unsigned, TypeNodeHashFunction > d_bound_var_index;
+  /** collect atoms */
   void collectCeAtoms(Node n, std::map<Node, bool>& visited);
-
  private:
   //map from variables to their instantiators
   std::map< Node, Instantiator * > d_instantiator;
@@ -196,7 +210,7 @@ class CegInstantiator {
   std::map< Node, unsigned > d_curr_index;
   //stack of temporary variables we are solving (e.g. subfields of datatypes)
   std::vector< Node > d_stack_vars;
-  //used instantiators
+  /** for each variable, the instantiator used for that variable */
   std::map< Node, Instantiator * > d_active_instantiators;
   //register variable
   void registerInstantiationVariable( Node v, unsigned index );
@@ -282,8 +296,14 @@ public:
                              bool revertOnSuccess = false);
   /** get the current model value of term n */
   Node getModelValue( Node n );
+  /** get bound variable for type 
+   * 
+   * This gets the next (canonical) bound variable of 
+   * type tn. This can be used for instance when 
+   * constructing instantiations that involve choice expressions.
+   */
+  Node getBoundVariable( TypeNode tn );
   //------------------------------end interface for instantiators
- public:
   unsigned getNumCEAtoms() { return d_ce_atoms.size(); }
   Node getCEAtom( unsigned i ) { return d_ce_atoms[i]; }
   /** is n a term that is eligible for instantiation? */
@@ -294,8 +314,7 @@ public:
   bool useVtsDelta() { return d_use_vts_delta; }
   /** are we using infinity for LRA virtual term substitution? */
   bool useVtsInfinity() { return d_use_vts_inf; }
-  /** is the quantified formula we are processing a nested quantified formula?
-   */
+  /** are we processing a nested quantified formula? */
   bool hasNestedQuantification() { return d_is_nested_quant; }
 };
 

@@ -101,7 +101,7 @@ private:
   /** rewrite assertion for solve pv
   * returns a literal that is equivalent to lit that leads to best solved form for pv
   */
-  Node rewriteAssertionForSolvePv( Node pv, Node lit );
+  Node rewriteAssertionForSolvePv(CegInstantiator* ci, Node pv, Node lit);
   /** rewrite term for solve pv
    * This is a helper function for rewriteAssertionForSolvePv.
    * If this returns non-null value ret, then this indicates

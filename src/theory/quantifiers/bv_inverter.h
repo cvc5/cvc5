@@ -28,12 +28,19 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-// virtual class for model queries
-class BvInverterModelQuery {
+/** BvInverterQuery
+ * 
+ * This is a virtual class for queries
+ * required by the BvInverter class.
+ */
+class BvInverterQuery {
  public:
-  BvInverterModelQuery() {}
-  ~BvInverterModelQuery() {}
+  BvInverterQuery() {}
+  ~BvInverterQuery() {}
+  /** returns the current model value of n */
   virtual Node getModelValue(Node n) = 0;
+  /** returns a bound variable of type tn */
+  virtual Node getBoundVariable(TypeNode tn) = 0;
 };
 
 // class for storing information about the solved status
@@ -53,7 +60,7 @@ class BvInverter {
  public:
   BvInverter() {}
   ~BvInverter() {}
-
+  
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
 
@@ -73,7 +80,7 @@ class BvInverter {
    * getSolveVariable( tn ), then we return t
    * instead of introducing the choice function.
    */
-  Node getInversionNode(Node cond, TypeNode tn);
+  Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
 
   /** Get path to pv in lit, replace that occurrence by sv and all others by
    * pvs. If return value R is non-null, then : lit.path = pv R.path = sv
@@ -87,14 +94,11 @@ class BvInverter {
    * status accumulates side conditions
    */
   Node solve_bv_lit(Node sv, Node lit, std::vector<unsigned>& path,
-                    BvInverterModelQuery* m, BvInverterStatus& status);
+                    BvInverterQuery* m, BvInverterStatus& status);
 
  private:
   /** dummy variables for each type */
   std::map<TypeNode, Node> d_solve_var;
-
-  /** stores the Hilbert choice terms, for each condition */
-  std::unordered_map<Node, Node, NodeHashFunction> d_choice_cache;
 
   /** helper function for getPathToPv */
   Node getPathToPv(Node lit, Node pv, Node sv, std::vector<unsigned>& path,
