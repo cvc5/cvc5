@@ -1719,7 +1719,7 @@ Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
   return ret;
 }
 
-Node QuantifiersEngine::getTermForType( TypeNode tn ) 
+Node QuantifiersEngine::getTermForType(TypeNode tn)
 {
   if (d_term_enum->isClosedEnumerableType(tn))
   {
