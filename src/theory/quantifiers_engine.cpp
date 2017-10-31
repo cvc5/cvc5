@@ -1129,14 +1129,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     Trace("inst-add-debug2") << " -> " << terms[i];
     TypeNode tn = q[0][i].getType();
     if( terms[i].isNull() ){
-      if (d_term_enum->isClosedEnumerableType(tn))
-      {
-        terms[i] = d_term_enum->getEnumerateTerm(tn, 0);
-      }
-      else
-      {
-        terms[i] = d_term_db->getOrMakeTypeGroundTerm(tn);
-      }
+      terms[i] = getTermForType(tn);
     }
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
@@ -1724,6 +1717,18 @@ Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
   Node ret = d_eq_query->getInternalRepresentative( a, q, index );
   d_useModelEe = prevModelEe;
   return ret;
+}
+
+Node QuantifiersEngine::getTermForType( TypeNode tn ) 
+{
+  if (d_term_enum->isClosedEnumerableType(tn))
+  {
+    return d_term_enum->getEnumerateTerm(tn, 0);
+  }
+  else
+  {
+    return d_term_db->getOrMakeTypeGroundTerm(tn);
+  }
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {

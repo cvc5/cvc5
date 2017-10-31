@@ -413,6 +413,17 @@ public:
   void debugPrintEqualityEngine( const char * c );
   /** get internal representative */
   Node getInternalRepresentative( Node a, Node q, int index );
+  /** get term for type 
+   * 
+   * This returns an arbitrary term for type tn.
+   * This term is chosen heuristically to be the best
+   * term for instantiation. Currently, this 
+   * heuristic enumerates the first term of the
+   * type if the type is closed enumerable, otherwise 
+   * an existing ground term from the term database if 
+   * one exists, or otherwise a fresh variable.
+   */
+  Node getTermForType( TypeNode tn );
 public:
   /** print instantiations */
   void printInstantiations( std::ostream& out );
