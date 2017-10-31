@@ -175,6 +175,8 @@ libcvc4_la_SOURCES = \
 	theory/theory_engine.h \
 	theory/theory_model.cpp \
 	theory/theory_model.h \
+	theory/theory_model_builder.cpp \
+	theory/theory_model_builder.h \
 	theory/theory_registrar.h \
 	theory/theory_test_utils.h \
 	theory/type_enumerator.h \
