@@ -387,7 +387,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     if( it->first.isSort() ){
       Trace("fmc") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
       for( size_t a=0; a<it->second.size(); a++ ){
-          Node r = fm->getRepresentative( it->second[a] );
+        Node r = fm->getRepresentative( it->second[a] );
         if( Trace.isOn("fmc-model-debug") ){
           std::vector< Node > eqc;
           d_qe->getEqualityQuery()->getEquivalenceClass( r, eqc );

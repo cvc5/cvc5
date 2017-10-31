@@ -287,7 +287,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     if( options::quantFunWellDefined() ){
       Node hd = QuantAttributes::getFunDefHead( f );
       if( !hd.isNull() ){
-        hd = d_quantEngine->getTermUtil()->getInstConstantNode( hd, f );
+        hd = d_quantEngine->getTermUtil()->substituteBoundVariablesToInstConstants( hd, f );
         patTermsF.push_back( hd );
         tinfo[hd].init( f, hd );
       }

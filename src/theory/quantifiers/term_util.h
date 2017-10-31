@@ -164,7 +164,7 @@ public:
       return a pattern where the variable are replaced by variable for
       instantiation.
    */
-  Node getInstConstantNode( Node n, Node q );
+  Node substituteBoundVariablesToInstConstants( Node n, Node q );
   /** substitute { instantiation constants of q -> bound variables of q } in n */
   Node substituteInstConstantsToBoundVariables( Node n, Node q );
   /** substitute { variables of q -> terms } in n */

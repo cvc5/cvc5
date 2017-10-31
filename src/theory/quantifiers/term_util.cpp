@@ -198,7 +198,7 @@ unsigned TermUtil::getNumInstantiationConstants( Node q ) const {
 Node TermUtil::getInstConstantBody( Node q ){
   std::map< Node, Node >::iterator it = d_inst_const_body.find( q );
   if( it==d_inst_const_body.end() ){
-    Node n = getInstConstantNode( q[1], q );
+    Node n = substituteBoundVariablesToInstConstants( q[1], q );
     d_inst_const_body[ q ] = n;
     return n;
   }else{
@@ -226,7 +226,7 @@ Node TermUtil::getCounterexampleLiteral( Node q ){
   return d_ce_lit[ q ];
 }
 
-Node TermUtil::getInstConstantNode( Node n, Node q ){
+Node TermUtil::substituteBoundVariablesToInstConstants( Node n, Node q ){
   registerQuantifier( q );
   return n.substitute( d_vars[q].begin(), d_vars[q].end(), d_inst_constants[q].begin(), d_inst_constants[q].end() );
 }
@@ -237,11 +237,13 @@ Node TermUtil::substituteInstConstantsToBoundVariables( Node n, Node q ) {
 }
 
 Node TermUtil::substituteBoundVariables( Node n, Node q, std::vector< Node >& terms ) {
+  registerQuantifier( q );
   Assert( d_vars[q].size()==terms.size() );
   return n.substitute( d_vars[q].begin(), d_vars[q].end(), terms.begin(), terms.end() );
 }
 
 Node TermUtil::substituteInstConstants( Node n, Node q, std::vector< Node >& terms ) {
+  registerQuantifier( q );
   Assert( d_inst_constants[q].size()==terms.size() );
   return n.substitute( d_inst_constants[q].begin(), d_inst_constants[q].end(), terms.begin(), terms.end() );
 }
