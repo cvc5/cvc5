@@ -187,21 +187,6 @@ public:
   //quantified simplify (treat free variables in n as quantified and run rewriter)
   static Node getQuantSimplify( Node n );
 
-//for skolem
-private:
-  /** map from universal quantifiers to their skolemized body */
-  std::map< Node, Node > d_skolem_body;
-public:
-  /** map from universal quantifiers to the list of skolem constants */
-  std::map< Node, std::vector< Node > > d_skolem_constants;
-  /** make the skolemized body f[e/x] */
-  static Node mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& fvTypes, std::vector< TNode >& fvs,
-                                std::vector< Node >& sk, Node& sub, std::vector< unsigned >& sub_vars );
-  /** get the skolemized body */
-  Node getSkolemizedBody( Node f);
-  /** is induction variable */
-  static bool isInductionTerm( Node n );
-
 //for ground term enumeration
 private:
   /** ground terms enumerated for types */
@@ -225,12 +210,12 @@ public:
 private:
   /** helper function for compute var contains */
   static void computeVarContains2( Node n, Kind k, std::vector< Node >& varContains, std::map< Node, bool >& visited );
-  /** triggers for each operator */
-  std::map< Node, std::vector< inst::Trigger* > > d_op_triggers;
   /** helper for is instance of */
   static bool isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs );
   /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
   static int isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 );
+  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
+  static int isInstanceOf( Node n1, Node n2 );
 public:
   /** compute var contains */
   static void computeVarContains( Node n, std::vector< Node >& varContains );
@@ -240,12 +225,9 @@ public:
   static void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
   /** compute quant contains */
   static void computeQuantContains( Node n, std::vector< Node >& quantContains );
-  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  static int isInstanceOf( Node n1, Node n2 );
+  // TODO (#1216) : this should be in trigger.h
   /** filter all nodes that have instances */
   static void filterInstances( std::vector< Node >& nodes );
-  /** register trigger (for eager quantifier instantiation) */
-  void registerTrigger( inst::Trigger* tr, Node op );
 
 //for term ordering
 private:

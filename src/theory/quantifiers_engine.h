@@ -54,6 +54,8 @@ namespace quantifiers {
   class TermDb;
   class TermDbSygus;
   class TermUtil;
+  class Skolemize;
+  class TermEnumeration;
   class FirstOrderModel;
   class QuantAttributes;
   class RelevantDomain;
@@ -132,6 +134,10 @@ private:
   quantifiers::TermUtil* d_term_util;
   /** quantifiers attributes */
   std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
+  /** skolemize utility */
+  std::unique_ptr<quantifiers::Skolemize> d_skolemize;
+  /** term enumeration utility */
+  std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
 
  private:
   /** instantiation engine */
@@ -384,6 +390,14 @@ public:
   /** get quantifiers attributes */
   quantifiers::QuantAttributes* getQuantAttributes() {
     return d_quant_attr.get();
+  }
+  /** get skolemize utility */
+  quantifiers::Skolemize* getSkolemize() {
+    return d_skolemize.get();
+  }
+  /** get term enumeration utility */
+  quantifiers::TermEnumeration* getTermEnumeration() {
+    return d_term_enum.get();
   }
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }

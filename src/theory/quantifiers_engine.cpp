@@ -41,8 +41,10 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers/quant_split.h"
@@ -66,6 +68,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      TheoryEngine* te)
     : d_te(te),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
+      d_skolemize(new quantifiers::Skolemize),
+      d_term_enum(new quantifiers::TermEnumeration),
       d_conflict_c(c, false),
       // d_quants(u),
       d_quants_red(u),
@@ -792,7 +796,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     if( !reduceQuantifier( f ) ){
       //do skolemization
       if( d_skolemized.find( f )==d_skolemized.end() ){
-        Node body = d_term_util->getSkolemizedBody( f );
+        Node body = d_skolemize->getSkolemizedBody( f );
         NodeBuilder<> nb(kind::OR);
         nb << f << body.notNode();
         Node lem = nb;
