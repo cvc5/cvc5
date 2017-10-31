@@ -112,72 +112,96 @@ Node TermDb::getOperator(unsigned i)
 }
 
 /** ground terms */
-unsigned TermDb::getNumGroundTerms( Node f ) const {
-  std::map< Node, std::vector< Node > >::const_iterator it = d_op_map.find( f );
-  if( it!=d_op_map.end() ){
-    return it->second.size();
-  }else{
-    return 0;
-  }
-}
-
-Node TermDb::getGroundTerm( Node f, unsigned i ) const {
-  std::map< Node, std::vector< Node > >::const_iterator it = d_op_map.find( f );
-  if( it!=d_op_map.end() ){
-    Assert( i<it->second.size() );
-    return it->second[i];
-  }else{
-    Assert( false );
-    return Node::null();
-  }
-}
-
-unsigned TermDb::getNumTypeGroundTerms( TypeNode tn ) const {
-  std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_map.find( tn );
-  if( it!=d_type_map.end() ){
-    return it->second.size();
-  }else{
-    return 0;
-  }
-}
-
-Node TermDb::getTypeGroundTerm( TypeNode tn, unsigned i ) const {
-  std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_map.find( tn );
-  if( it!=d_type_map.end() ){
-    Assert( i<it->second.size() );
-    return it->second[i];
-  }else{
-    Assert( false );
-    return Node::null();
-  }
-}
-
-Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn) {
-  std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_map.find( tn );
-  if( it!=d_type_map.end() ){
-    Assert( !it->second.empty() );
-    return it->second[0];
-  }else{
-    return getOrMakeTypeFreshVariable( tn );
-  }
-}
-
-Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn) 
+unsigned TermDb::getNumGroundTerms(Node f) const
 {
-  std::unordered_map< TypeNode, Node, TypeNodeHashFunction >::iterator it = d_type_fv.find( tn );
-  if( it==d_type_fv.end() ){
+  std::map<Node, std::vector<Node> >::const_iterator it = d_op_map.find(f);
+  if( it!=d_op_map.end() ){
+    return it->second.size();
+  }else{
+    return 0;
+  }
+}
+
+Node TermDb::getGroundTerm(Node f, unsigned i) const
+{
+  std::map<Node, std::vector<Node> >::const_iterator it = d_op_map.find(f);
+  if (it != d_op_map.end())
+  {
+    Assert(i < it->second.size());
+    return it->second[i];
+  }
+  else
+  {
+    Assert(false);
+    return Node::null();
+  }
+}
+
+unsigned TermDb::getNumTypeGroundTerms(TypeNode tn) const
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_map.find(tn);
+  if( it!=d_type_map.end() ){
+    return it->second.size();
+  }else{
+    return 0;
+  }
+}
+
+Node TermDb::getTypeGroundTerm(TypeNode tn, unsigned i) const
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_map.find(tn);
+  if (it != d_type_map.end())
+  {
+    Assert(i < it->second.size());
+    return it->second[i];
+  }
+  else
+  {
+    Assert(false);
+    return Node::null();
+  }
+}
+
+Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn)
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_map.find(tn);
+  if (it != d_type_map.end())
+  {
+    Assert(!it->second.empty());
+    return it->second[0];
+  }
+  else
+  {
+    return getOrMakeTypeFreshVariable(tn);
+  }
+}
+
+Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
+{
+  std::unordered_map<TypeNode, Node, TypeNodeHashFunction>::iterator it =
+      d_type_fv.find(tn);
+  if (it == d_type_fv.end())
+  {
     std::stringstream ss;
     ss << language::SetLanguage(options::outputLanguage());
     ss << "e_" << tn;
-    Node k = NodeManager::currentNM()->mkSkolem( ss.str(), tn, "is a termDb fresh variable" );
-    Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn << std::endl;
-    if( options::instMaxLevel()!=-1 ){
-      QuantifiersEngine::setInstantiationLevelAttr( k, 0 );
+    Node k = NodeManager::currentNM()->mkSkolem(
+        ss.str(), tn, "is a termDb fresh variable");
+    Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
+                   << std::endl;
+    if (options::instMaxLevel() != -1)
+    {
+      QuantifiersEngine::setInstantiationLevelAttr(k, 0);
     }
     d_type_fv[tn] = k;
     return k;
-  }else{
-    return it->second;    
+  }
+  else
+  {
+    return it->second;
   }
 }
 

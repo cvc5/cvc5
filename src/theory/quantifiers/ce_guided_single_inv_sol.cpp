@@ -677,7 +677,7 @@ Node CegConjectureSingleInvSol::reconstructSolution( Node sol, TypeNode stn, int
       std::vector< TypeNode > to_erase;
       for( std::map< TypeNode, bool >::iterator it = active.begin(); it != active.end(); ++it ){
         TypeNode stn = it->first;
-        Node ns = d_qe->getTermEnumeration()->getEnumerateTerm( stn, index );
+        Node ns = d_qe->getTermEnumeration()->getEnumerateTerm(stn, index);
         if( ns.isNull() ){
           to_erase.push_back( stn );
         }else{

@@ -12,10 +12,10 @@
  ** \brief Implementation of model engine model class
  **/
 
+#include "theory/quantifiers/first_order_model.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ambqi_builder.h"
-#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -202,82 +202,109 @@ bool FirstOrderModel::isQuantifierAsserted( TNode q ) {
   return std::find( d_forall_rlv_assert.begin(), d_forall_rlv_assert.end(), q )!=d_forall_rlv_assert.end();
 }
 
-
-Node FirstOrderModel::getModelBasisTerm( TypeNode tn, int i ){
-  if( d_model_basis_term.find( tn )==d_model_basis_term.end() ){
+Node FirstOrderModel::getModelBasisTerm(TypeNode tn, int i)
+{
+  if (d_model_basis_term.find(tn) == d_model_basis_term.end())
+  {
     Node mbt;
-    if( d_qe->getTermEnumeration()->isClosedEnumerableType( tn ) ){
-      mbt = d_qe->getTermEnumeration()->getEnumerateTerm( tn, 0 );
-    }else{
-      if( options::fmfFreshDistConst() ){
-        mbt = d_qe->getTermDatabase()->getOrMakeTypeFreshVariable( tn );
-      }else{
-        mbt = d_qe->getTermDatabase()->getOrMakeTypeGroundTerm( tn );
+    if (d_qe->getTermEnumeration()->isClosedEnumerableType(tn))
+    {
+      mbt = d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
+    }
+    else
+    {
+      if (options::fmfFreshDistConst())
+      {
+        mbt = d_qe->getTermDatabase()->getOrMakeTypeFreshVariable(tn);
+      }
+      else
+      {
+        mbt = d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
       }
     }
     ModelBasisAttribute mba;
-    mbt.setAttribute(mba,true);
+    mbt.setAttribute(mba, true);
     d_model_basis_term[tn] = mbt;
-    Trace("model-basis-term") << "Choose " << mbt << " as model basis term for " << tn << std::endl;
+    Trace("model-basis-term") << "Choose " << mbt << " as model basis term for "
+                              << tn << std::endl;
   }
   return d_model_basis_term[tn];
 }
 
-bool FirstOrderModel::isModelBasisTerm(Node n) {
-  return n==getModelBasisTerm(n.getType());
+bool FirstOrderModel::isModelBasisTerm(Node n)
+{
+  return n == getModelBasisTerm(n.getType());
 }
 
-Node FirstOrderModel::getModelBasisOpTerm( Node op ){
-  if( d_model_basis_op_term.find( op )==d_model_basis_op_term.end() ){
+Node FirstOrderModel::getModelBasisOpTerm(Node op)
+{
+  if (d_model_basis_op_term.find(op) == d_model_basis_op_term.end())
+  {
     TypeNode t = op.getType();
-    std::vector< Node > children;
-    children.push_back( op );
-    for( int i=0; i<(int)(t.getNumChildren()-1); i++ ){
-      children.push_back( getModelBasisTerm( t[i] ) );
+    std::vector<Node> children;
+    children.push_back(op);
+    for (int i = 0; i < (int)(t.getNumChildren() - 1); i++)
+    {
+      children.push_back(getModelBasisTerm(t[i]));
     }
-    if( children.size()==1 ){
+    if (children.size() == 1)
+    {
       d_model_basis_op_term[op] = op;
-    }else{
-      d_model_basis_op_term[op] = NodeManager::currentNM()->mkNode( APPLY_UF, children );
+    }
+    else
+    {
+      d_model_basis_op_term[op] =
+          NodeManager::currentNM()->mkNode(APPLY_UF, children);
     }
   }
   return d_model_basis_op_term[op];
 }
 
-Node FirstOrderModel::getModelBasis( Node q, Node n ){
-  //make model basis
-  if( d_model_basis_terms.find( q )==d_model_basis_terms.end() ){
-    for( unsigned j=0; j<q[0].getNumChildren(); j++ ){
-      d_model_basis_terms[q].push_back( getModelBasisTerm( q[0][j].getType() ) );
+Node FirstOrderModel::getModelBasis(Node q, Node n)
+{
+  // make model basis
+  if (d_model_basis_terms.find(q) == d_model_basis_terms.end())
+  {
+    for (unsigned j = 0; j < q[0].getNumChildren(); j++)
+    {
+      d_model_basis_terms[q].push_back(getModelBasisTerm(q[0][j].getType()));
     }
   }
-  Node gn = d_qe->getTermUtil()->substituteInstConstants( n, q, d_model_basis_terms[q] );
+  Node gn = d_qe->getTermUtil()->substituteInstConstants(
+      n, q, d_model_basis_terms[q]);
   return gn;
 }
 
-Node FirstOrderModel::getModelBasisBody( Node q ){
-  if( d_model_basis_body.find( q )==d_model_basis_body.end() ){
-    Node n = d_qe->getTermUtil()->getInstConstantBody( q );
-    d_model_basis_body[q] = getModelBasis( q, n );
+Node FirstOrderModel::getModelBasisBody(Node q)
+{
+  if (d_model_basis_body.find(q) == d_model_basis_body.end())
+  {
+    Node n = d_qe->getTermUtil()->getInstConstantBody(q);
+    d_model_basis_body[q] = getModelBasis(q, n);
   }
   return d_model_basis_body[q];
 }
 
-void FirstOrderModel::computeModelBasisArgAttribute( Node n ){
-  if( !n.hasAttribute(ModelBasisArgAttribute()) ){
-    //ensure that the model basis terms have been defined
-    if( n.getKind()==APPLY_UF ){
-      getModelBasisOpTerm( n.getOperator() );
+void FirstOrderModel::computeModelBasisArgAttribute(Node n)
+{
+  if (!n.hasAttribute(ModelBasisArgAttribute()))
+  {
+    // ensure that the model basis terms have been defined
+    if (n.getKind() == APPLY_UF)
+    {
+      getModelBasisOpTerm(n.getOperator());
     }
     uint64_t val = 0;
-    //determine if it has model basis attribute
-    for( unsigned j=0; j<n.getNumChildren(); j++ ){
-      if( n[j].getAttribute(ModelBasisAttribute()) ){
+    // determine if it has model basis attribute
+    for (unsigned j = 0; j < n.getNumChildren(); j++)
+    {
+      if (n[j].getAttribute(ModelBasisAttribute()))
+      {
         val++;
       }
     }
     ModelBasisArgAttribute mbaa;
-    n.setAttribute( mbaa, val );
+    n.setAttribute(mbaa, val);
   }
 }
 

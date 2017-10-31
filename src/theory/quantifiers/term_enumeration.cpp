@@ -14,8 +14,8 @@
 
 #include "theory/quantifiers/term_enumeration.h"
 
-#include "theory/rewriter.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -23,80 +23,109 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Node TermEnumeration::getEnumerateTerm( TypeNode tn, unsigned index ) {
-  Trace("term-db-enum") << "Get enumerate term " << tn << " " << index << std::endl;
-  std::unordered_map< TypeNode, unsigned, TypeNodeHashFunction >::iterator it = d_typ_enum_map.find( tn );
+Node TermEnumeration::getEnumerateTerm(TypeNode tn, unsigned index)
+{
+  Trace("term-db-enum") << "Get enumerate term " << tn << " " << index
+                        << std::endl;
+  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>::iterator it =
+      d_typ_enum_map.find(tn);
   unsigned teIndex;
-  if( it==d_typ_enum_map.end() ){
+  if (it == d_typ_enum_map.end())
+  {
     teIndex = (int)d_typ_enum.size();
     d_typ_enum_map[tn] = teIndex;
-    d_typ_enum.push_back( TypeEnumerator(tn) );
-  }else{
+    d_typ_enum.push_back(TypeEnumerator(tn));
+  }
+  else
+  {
     teIndex = it->second;
   }
-  while( index>=d_enum_terms[tn].size() ){
-    if( d_typ_enum[teIndex].isFinished() ){
+  while (index >= d_enum_terms[tn].size())
+  {
+    if (d_typ_enum[teIndex].isFinished())
+    {
       return Node::null();
     }
-    d_enum_terms[tn].push_back( *d_typ_enum[teIndex] );
+    d_enum_terms[tn].push_back(*d_typ_enum[teIndex]);
     ++d_typ_enum[teIndex];
   }
   return d_enum_terms[tn][index];
 }
 
-bool TermEnumeration::isClosedEnumerableType( TypeNode tn ) {
-  std::unordered_map< TypeNode, bool, TypeNodeHashFunction >::iterator it = d_typ_closed_enum.find( tn );
-  if( it==d_typ_closed_enum.end() ){
+bool TermEnumeration::isClosedEnumerableType(TypeNode tn)
+{
+  std::unordered_map<TypeNode, bool, TypeNodeHashFunction>::iterator it =
+      d_typ_closed_enum.find(tn);
+  if (it == d_typ_closed_enum.end())
+  {
     d_typ_closed_enum[tn] = true;
     bool ret = true;
-    if( tn.isArray() || tn.isSort() || tn.isCodatatype() || tn.isFunction() ){
+    if (tn.isArray() || tn.isSort() || tn.isCodatatype() || tn.isFunction())
+    {
       ret = false;
-    }else if( tn.isSet() ){
-      ret = isClosedEnumerableType( tn.getSetElementType() );
-    }else if( tn.isDatatype() ){
+    }
+    else if (tn.isSet())
+    {
+      ret = isClosedEnumerableType(tn.getSetElementType());
+    }
+    else if (tn.isDatatype())
+    {
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-          TypeNode ctn = TypeNode::fromType( dt[i][j].getRangeType() );
-          if( tn!=ctn && !isClosedEnumerableType( ctn ) ){
+      for (unsigned i = 0; i < dt.getNumConstructors(); i++)
+      {
+        for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
+        {
+          TypeNode ctn = TypeNode::fromType(dt[i][j].getRangeType());
+          if (tn != ctn && !isClosedEnumerableType(ctn))
+          {
             ret = false;
             break;
           }
         }
-        if( !ret ){
+        if (!ret)
+        {
           break;
         }
       }
     }
-    //TODO: other parametric sorts go here
+    // TODO: other parametric sorts go here
     d_typ_closed_enum[tn] = ret;
     return ret;
-  }else{
+  }
+  else
+  {
     return it->second;
   }
 }
 
-//checks whether a type is not Array and is reasonably small enough (<1000) such that all of its domain elements can be enumerated
-bool TermEnumeration::mayComplete( TypeNode tn ) {
-  std::unordered_map< TypeNode, bool, TypeNodeHashFunction >::iterator it = d_may_complete.find( tn );
-  if( it==d_may_complete.end() ){
+// checks whether a type is not Array and is reasonably small enough (<1000)
+// such that all of its domain elements can be enumerated
+bool TermEnumeration::mayComplete(TypeNode tn)
+{
+  std::unordered_map<TypeNode, bool, TypeNodeHashFunction>::iterator it =
+      d_may_complete.find(tn);
+  if (it == d_may_complete.end())
+  {
     bool mc = false;
-    if( isClosedEnumerableType( tn ) && tn.getCardinality().isFinite() && !tn.getCardinality().isLargeFinite() ){
-      Node card = NodeManager::currentNM()->mkConst( Rational(tn.getCardinality().getFiniteCardinality()) );
-      Node oth = NodeManager::currentNM()->mkConst( Rational(1000) );
-      Node eq = NodeManager::currentNM()->mkNode( LEQ, card, oth );
-      eq = Rewriter::rewrite( eq );
+    if (isClosedEnumerableType(tn) && tn.getCardinality().isFinite()
+        && !tn.getCardinality().isLargeFinite())
+    {
+      Node card = NodeManager::currentNM()->mkConst(
+          Rational(tn.getCardinality().getFiniteCardinality()));
+      Node oth = NodeManager::currentNM()->mkConst(Rational(1000));
+      Node eq = NodeManager::currentNM()->mkNode(LEQ, card, oth);
+      eq = Rewriter::rewrite(eq);
       mc = eq.isConst() && eq.getConst<bool>();
     }
     d_may_complete[tn] = mc;
     return mc;
-  }else{
+  }
+  else
+  {
     return it->second;
   }
 }
 
-
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */

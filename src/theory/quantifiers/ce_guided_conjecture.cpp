@@ -297,7 +297,7 @@ void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& mode
     Node dr = Rewriter::rewrite( d[i] );
     if( dr.getKind()==NOT && dr[0].getKind()==FORALL ){
       if( constructed_cand ){
-        ic.push_back( d_qe->getSkolemize()->getSkolemizedBody( dr[0] ).negate() );
+        ic.push_back(d_qe->getSkolemize()->getSkolemizedBody(dr[0]).negate());
       }
       if( sk_refine ){
         Assert( !isGround() );
@@ -348,11 +348,11 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
     Node ce_q = d_ce_sk[0][k];
     if( !ce_q.isNull() ){
       Assert( !d_inner_vars_disj[k].empty() );
-      std::vector< Node > skolems;
-      d_qe->getSkolemize()->getSkolemConstants( ce_q, skolems );
-      Assert( d_inner_vars_disj[k].size()==skolems.size() );
+      std::vector<Node> skolems;
+      d_qe->getSkolemize()->getSkolemConstants(ce_q, skolems);
+      Assert(d_inner_vars_disj[k].size() == skolems.size());
       std::vector< Node > model_values;
-      getModelValues( skolems, model_values );
+      getModelValues(skolems, model_values);
       sk_vars.insert( sk_vars.end(), d_inner_vars_disj[k].begin(), d_inner_vars_disj[k].end() );
       sk_subs.insert( sk_subs.end(), model_values.begin(), model_values.end() );
     }else{

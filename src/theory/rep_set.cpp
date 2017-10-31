@@ -14,12 +14,12 @@
 
 #include <unordered_set>
 
-#include "theory/rep_set.h"
-#include "theory/type_enumerator.h"
 #include "theory/quantifiers/bounded_integers.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_util.h"
+#include "theory/rep_set.h"
+#include "theory/type_enumerator.h"
 
 using namespace std;
 using namespace CVC4;
@@ -218,7 +218,7 @@ bool RepSetIterator::setFunctionDomain( Node op, RepBoundExt* rext ){
 }
 
 // TODO : as part of #1199, the portions of this
-// function which modify d_rep_set should be 
+// function which modify d_rep_set should be
 // moved to TheoryModel.
 bool RepSetIterator::initialize( RepBoundExt* rext ){
   Trace("rsi") << "Initialize rep set iterator..." << std::endl;
@@ -264,7 +264,8 @@ bool RepSetIterator::initialize( RepBoundExt* rext ){
     }
     if( !tn.isSort() ){
       if( inc ){
-        if( d_qe->getTermEnumeration()->mayComplete( tn ) ){
+        if (d_qe->getTermEnumeration()->mayComplete(tn))
+        {
           Trace("rsi") << "  do complete, since cardinality is small (" << tn.getCardinality() << ")..." << std::endl;
           d_rep_set->complete( tn );
           //must have succeeded

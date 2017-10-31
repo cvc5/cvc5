@@ -16,13 +16,13 @@
 
 #include "expr/datatype.h"
 #include "options/base_options.h"
-#include "options/quantifiers_options.h"
 #include "options/datatypes_options.h"
+#include "options/quantifiers_options.h"
 #include "options/uf_options.h"
-#include "theory/theory_engine.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -198,7 +198,7 @@ unsigned TermUtil::getNumInstantiationConstants( Node q ) const {
 Node TermUtil::getInstConstantBody( Node q ){
   std::map< Node, Node >::iterator it = d_inst_const_body.find( q );
   if( it==d_inst_const_body.end() ){
-    Node n = substituteBoundVariablesToInstConstants( q[1], q );
+    Node n = substituteBoundVariablesToInstConstants(q[1], q);
     d_inst_const_body[ q ] = n;
     return n;
   }else{
@@ -226,26 +226,35 @@ Node TermUtil::getCounterexampleLiteral( Node q ){
   return d_ce_lit[ q ];
 }
 
-Node TermUtil::substituteBoundVariablesToInstConstants( Node n, Node q ){
+Node TermUtil::substituteBoundVariablesToInstConstants(Node n, Node q)
+{
   registerQuantifier( q );
   return n.substitute( d_vars[q].begin(), d_vars[q].end(), d_inst_constants[q].begin(), d_inst_constants[q].end() );
 }
 
-Node TermUtil::substituteInstConstantsToBoundVariables( Node n, Node q ) {
+Node TermUtil::substituteInstConstantsToBoundVariables(Node n, Node q)
+{
   registerQuantifier( q );
   return n.substitute( d_inst_constants[q].begin(), d_inst_constants[q].end(), d_vars[q].begin(), d_vars[q].end() );
 }
 
-Node TermUtil::substituteBoundVariables( Node n, Node q, std::vector< Node >& terms ) {
-  registerQuantifier( q );
+Node TermUtil::substituteBoundVariables(Node n,
+                                        Node q,
+                                        std::vector<Node>& terms)
+{
+  registerQuantifier(q);
   Assert( d_vars[q].size()==terms.size() );
   return n.substitute( d_vars[q].begin(), d_vars[q].end(), terms.begin(), terms.end() );
 }
 
-Node TermUtil::substituteInstConstants( Node n, Node q, std::vector< Node >& terms ) {
-  registerQuantifier( q );
-  Assert( d_inst_constants[q].size()==terms.size() );
-  return n.substitute( d_inst_constants[q].begin(), d_inst_constants[q].end(), terms.begin(), terms.end() );
+Node TermUtil::substituteInstConstants(Node n, Node q, std::vector<Node>& terms)
+{
+  registerQuantifier(q);
+  Assert(d_inst_constants[q].size() == terms.size());
+  return n.substitute(d_inst_constants[q].begin(),
+                      d_inst_constants[q].end(),
+                      terms.begin(),
+                      terms.end());
 }
 
 void TermUtil::computeVarContains( Node n, std::vector< Node >& varContains ) {

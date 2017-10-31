@@ -110,7 +110,7 @@ class TermGenerator;
 class TermGenEnv;
 
 /** Term Database
- * 
+ *
  * This class is a key utility used by
  * a number of approaches for quantifier instantiation,
  * including E-matching, conflict-based instantiation,
@@ -120,11 +120,11 @@ class TermGenEnv;
  * (1) Maintain a list of all ground terms that exist in the quantifier-free
  *     solvers, as notified through the master equality engine.
  * (2) Build TermArgTrie objects that index all ground terms, per operator.
- * 
+ *
  * Like other utilities, its reset(...) function is called
- * at the beginning of full or last call effort checks. 
+ * at the beginning of full or last call effort checks.
  * This initializes the database for the round. However,
- * notice that TermArgTrie objects are computed 
+ * notice that TermArgTrie objects are computed
  * lazily for performance reasons.
  */
 class TermDb : public QuantifiersUtil {
@@ -168,13 +168,13 @@ class TermDb : public QuantifiersUtil {
   */
   Node getTypeGroundTerm(TypeNode tn, unsigned i) const;
   /** get or make ground term
-  * Returns the first ground term of type tn, 
+  * Returns the first ground term of type tn,
   * or makes one if none exist.
   */
   Node getOrMakeTypeGroundTerm(TypeNode tn);
-  /** make fresh variable 
+  /** make fresh variable
   * Returns a fresh variable of type tn.
-  * This will return only a single fresh 
+  * This will return only a single fresh
   * variable per type.
   */
   Node getOrMakeTypeFreshVariable(TypeNode tn);
@@ -225,14 +225,14 @@ class TermDb : public QuantifiersUtil {
   /** get congruent term
   * If possible, returns a term t such that:
   * (1) t is a term that is currently indexed by this database,
-  * (2) t is of the form f( t1, ..., tk ) where ti is in the 
+  * (2) t is of the form f( t1, ..., tk ) where ti is in the
   *     equivalence class of args[i] for i=1...k.
   */
   TNode getCongruentTerm(Node f, std::vector<TNode>& args);
   /** in relevant domain
   * Returns true if there is at least one term t such that:
   * (1) t is a term that is currently indexed by this database,
-  * (2) t is of the form f( t1, ..., tk ) and ti is in the 
+  * (2) t is of the form f( t1, ..., tk ) and ti is in the
   *     equivalence class of r.
   */
   bool inRelevantDomain(TNode f, unsigned i, TNode r);
@@ -348,7 +348,7 @@ class TermDb : public QuantifiersUtil {
   /** map from type nodes to terms of that type */
   std::map< TypeNode, std::vector< Node > > d_type_map;
   /** map from type nodes to a fresh variable we introduced */
-  std::unordered_map< TypeNode, Node, TypeNodeHashFunction > d_type_fv;
+  std::unordered_map<TypeNode, Node, TypeNodeHashFunction> d_type_fv;
   /** inactive map */
   NodeBoolMap d_inactive_map;
   /** count of the number of non-redundant ground terms per operator */

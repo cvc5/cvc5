@@ -369,7 +369,9 @@ bool QuantifiersEngine::isFiniteBound( Node q, Node v ) {
     TypeNode tn = v.getType();
     if( tn.isSort() && options::finiteModelFind() ){
       return true;
-    }else if( d_term_enum->mayComplete( tn ) ){
+    }
+    else if (d_term_enum->mayComplete(tn))
+    {
       return true;
     }
   }
@@ -795,8 +797,9 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     //if not reduced
     if( !reduceQuantifier( f ) ){
       //do skolemization
-      Node lem = d_skolemize->process( f );
-      if( !lem.isNull() ){
+      Node lem = d_skolemize->process(f);
+      if (!lem.isNull())
+      {
         if( Trace.isOn("quantifiers-sk-debug") ){
           Node slem = Rewriter::rewrite( lem );
           Trace("quantifiers-sk-debug") << "Skolemize lemma : " << slem << std::endl;
@@ -847,8 +850,8 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
   //only wait if we are doing incremental solving
   if( !d_presolve || !options::incrementalSolving() ){
     std::set< Node > added;
-    d_term_db->addTerm( n, added, withinQuant, withinInstClosure );
-    
+    d_term_db->addTerm(n, added, withinQuant, withinInstClosure);
+
     //added contains also the Node that just have been asserted in this branch
     if( d_quant_rel ){
       for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){
@@ -1126,10 +1129,13 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     Trace("inst-add-debug2") << " -> " << terms[i];
     TypeNode tn = q[0][i].getType();
     if( terms[i].isNull() ){
-      if( d_term_enum->isClosedEnumerableType(tn) ){
-        terms[i] = d_term_enum->getEnumerateTerm(tn,0);
-      }else{
-        terms[i] = d_term_db->getOrMakeTypeGroundTerm( tn );
+      if (d_term_enum->isClosedEnumerableType(tn))
+      {
+        terms[i] = d_term_enum->getEnumerateTerm(tn, 0);
+      }
+      else
+      {
+        terms[i] = d_term_db->getOrMakeTypeGroundTerm(tn);
       }
     }
     if( mkRep ){
@@ -1137,7 +1143,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       terms[i] = getInternalRepresentative( terms[i], q, i );
     }else{
       //ensure the type is correct
-      terms[i] = quantifiers::TermUtil::ensureType( terms[i], tn );
+      terms[i] = quantifiers::TermUtil::ensureType(terms[i], tn);
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if( terms[i].isNull() ){
@@ -1514,8 +1520,9 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
 
   bool printed = false;
   // print the skolemizations
-  if( d_skolemize->printSkolemization(out) ){
-    printed = true;    
+  if (d_skolemize->printSkolemization(out))
+  {
+    printed = true;
   }
   // print the instantiations
   if( options::incrementalSolving() ){

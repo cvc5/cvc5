@@ -473,7 +473,8 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
   Node s;
   if( d_prog_to_sol_index.find( prog )==d_prog_to_sol_index.end() ){
     Trace("csi-sol") << "Get solution for (unconstrained) " << prog << std::endl;
-    s = d_qe->getTermEnumeration()->getEnumerateTerm( TypeNode::fromType( dt.getSygusType() ), 0 );
+    s = d_qe->getTermEnumeration()->getEnumerateTerm(
+        TypeNode::fromType(dt.getSygusType()), 0);
   }else{
     Trace("csi-sol") << "Get solution for " << prog << ", with skolems : ";
     sol_index = d_prog_to_sol_index[prog];

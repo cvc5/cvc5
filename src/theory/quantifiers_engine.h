@@ -390,11 +390,10 @@ public:
     return d_quant_attr.get();
   }
   /** get skolemize utility */
-  quantifiers::Skolemize* getSkolemize() {
-    return d_skolemize.get();
-  }
+  quantifiers::Skolemize* getSkolemize() { return d_skolemize.get(); }
   /** get term enumeration utility */
-  quantifiers::TermEnumeration* getTermEnumeration() {
+  quantifiers::TermEnumeration* getTermEnumeration()
+  {
     return d_term_enum.get();
   }
   /** get trigger database */

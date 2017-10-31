@@ -28,9 +28,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** Term enumeration 
- * 
- * This class has utilities for enumerating terms. It stores 
+/** Term enumeration
+ *
+ * This class has utilities for enumerating terms. It stores
  * a cache of terms enumerated per each type.
  * It also has various utility functions regarding type
  * enumeration.
@@ -38,13 +38,13 @@ namespace quantifiers {
 class TermEnumeration
 {
  public:
-  TermEnumeration(){}
-  ~TermEnumeration(){}
+  TermEnumeration() {}
+  ~TermEnumeration() {}
   /** get i^th term for type tn */
-  Node getEnumerateTerm( TypeNode tn, unsigned i );
-  /** is closed enumerable type 
-   * 
-   * This returns true if this type has an enumerator that produces 
+  Node getEnumerateTerm(TypeNode tn, unsigned i);
+  /** is closed enumerable type
+   *
+   * This returns true if this type has an enumerator that produces
    * constants that are handled by ground theory solvers.
    * Examples of types that are not closed enumerable are:
    * (1) uninterpreted sorts,
@@ -52,29 +52,31 @@ class TermEnumeration
    * (3) codatatypes,
    * (4) parametric sorts involving any of the above.
    */
-  bool isClosedEnumerableType( TypeNode tn );
+  bool isClosedEnumerableType(TypeNode tn);
   /** may complete type
-   * 
-   * Returns true if the type tn is small enough 
+   *
+   * Returns true if the type tn is small enough
    * for finite model finding to enumerate it,
    * by some heuristic (current cardinality < 100).
    */
-  bool mayComplete( TypeNode tn );
+  bool mayComplete(TypeNode tn);
+
  private:
   /** ground terms enumerated for types */
-  std::unordered_map< TypeNode, std::vector< Node >, TypeNodeHashFunction > d_enum_terms;
+  std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
+      d_enum_terms;
   /** map from type to the index of its type enumerator in d_typ_enum. */
-  std::unordered_map< TypeNode, unsigned, TypeNodeHashFunction > d_typ_enum_map;
+  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction> d_typ_enum_map;
   /** type enumerators */
-  std::vector< TypeEnumerator > d_typ_enum;
+  std::vector<TypeEnumerator> d_typ_enum;
   /** closed enumerable type cache */
-  std::unordered_map< TypeNode, bool, TypeNodeHashFunction > d_typ_closed_enum;
+  std::unordered_map<TypeNode, bool, TypeNodeHashFunction> d_typ_closed_enum;
   /** may complete */
-  std::unordered_map< TypeNode, bool, TypeNodeHashFunction > d_may_complete;
+  std::unordered_map<TypeNode, bool, TypeNodeHashFunction> d_may_complete;
 };
-  
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H */

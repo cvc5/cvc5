@@ -12,9 +12,8 @@
  ** \brief Implementation of abstract MBQI builder
  **/
 
-
-#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ambqi_builder.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 

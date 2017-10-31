@@ -1794,7 +1794,8 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
       Node sub;
       std::vector< unsigned > sub_vars;
       //return skolemized body
-      return Skolemize::mkSkolemizedBody( n, nn, fvTypes, fvs, sk, sub, sub_vars );
+      return Skolemize::mkSkolemizedBody(
+          n, nn, fvTypes, fvs, sk, sub, sub_vars);
     }
   }else{
     //check if it contains a quantifier as a subterm
