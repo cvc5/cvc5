@@ -21,21 +21,21 @@
 #include <unordered_set>
 
 #include "smt/model.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/rep_set.h"
 #include "theory/substitutions.h"
 #include "theory/type_enumerator.h"
 #include "theory/type_set.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
 
 /** Theory Model class.
- * 
+ *
  * This class represents a model produced by the TheoryEngine.
  * The data structures used to represent a model are:
  * (1) d_equalityEngine : an equality engine object, which stores
- *     an equivalence relation over all terms that exist in 
+ *     an equivalence relation over all terms that exist in
  *     the current set of assertions.
  * (2) d_substitutions : a substitution map storing cases of
  *     explicitly solved terms, for instance during preprocessing.
@@ -47,26 +47,26 @@ namespace theory {
  * (5) d_rep_set : a data structure that allows interpretations
  *     for types to be represented as terms. This is useful for
  *     finite model finding.
- * 
+ *
  * These data structures are built after a full effort check with
  * no lemmas sent, within a call to:
- *    TheoryEngineModelBuilder::buildModel(...) 
+ *    TheoryEngineModelBuilder::buildModel(...)
  * which includes subcalls to TheoryX::collectModelInfo(...) calls.
- * 
+ *
  * These calls may modify the model object using the interface
  * functions below, including:
- * - assertEquality, assertPredicate, assertRepresentative, 
+ * - assertEquality, assertPredicate, assertRepresentative,
  *   assertEqualityEngine.
  * - assignFunctionDefinition
- * 
+ *
  * During and after this building process, these calls may use
  * interface functions below to guide the model construction:
  * - hasTerm, getRepresentative, areEqual, areDisequal
  * - getEqualityEngine
  * - getRepSet
  * - hasAssignedFunctionDefinition, getFunctionsToAssign
- * 
- * After this building process, the function getValue can be 
+ *
+ * After this building process, the function getValue can be
  * used to query the value of nodes.
  */
 class TheoryModel : public Model
@@ -79,16 +79,15 @@ public:
   /** reset the model */
   virtual void reset();
   /** is built
-   * 
+   *
    * Have we (attempted to) build this model since the last
    * call to reset? Notice for model building techniques
    * that are not guaranteed to succeed (such as
-   * when quantified formulas are enabled), a true return 
+   * when quantified formulas are enabled), a true return
    * value does not imply that this is a model of the
    * current assertions.
    */
   bool isBuilt() { return d_modelBuilt; }
-
   //---------------------------- for building the model
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
@@ -125,17 +124,17 @@ public:
   /** get the equality engine for this model */
   eq::EqualityEngine* getEqualityEngine() { return d_equalityEngine; }
   // ------------------- end general equality queries
-  
-  /** Get value function. 
-   * This should be called only after a ModelBuilder 
-   * has called buildModel(...) on this model. 
-   *   useDontCares is whether to return Node::null() if 
+
+  /** Get value function.
+   * This should be called only after a ModelBuilder
+   * has called buildModel(...) on this model.
+   *   useDontCares is whether to return Node::null() if
    *     n does not occur in the equality engine.
    */
-  Node getValue( TNode n, bool useDontCares = false ) const;
+  Node getValue(TNode n, bool useDontCares = false) const;
   /** get comments */
   void getComments(std::ostream& out) const;
-  
+
   //---------------------------- separation logic
   /** set the heap and value sep.nil is equal to */
   void setHeapModel(Node h, Node neq);
@@ -195,11 +194,11 @@ public:
   Node d_false;
   /** comment stream to include in printing */
   std::stringstream d_comment_str;
-  /** Get model value function.  
-   * 
+  /** Get model value function.
+   *
    * This function is a helper function for getValue.
    *   hasBoundVars is whether n may contain bound variables
-   *   useDontCares is whether to return Node::null() if 
+   *   useDontCares is whether to return Node::null() if
    *     n does not occur in the equality engine.
    */
   Node getModelValue(TNode n,
@@ -209,7 +208,7 @@ public:
  private:
   /** cache for getModelValue */
   mutable std::unordered_map<Node, Node, NodeHashFunction> d_modelCache;
-   
+
   //---------------------------- separation logic
   /** the value of the heap */
   Node d_sep_heap;
