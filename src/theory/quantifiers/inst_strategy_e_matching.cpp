@@ -471,7 +471,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
           if( index<patTerms.size() ){
             //Notice() << "check add additional" << std::endl;
             //check if similar patterns exist, and if so, add them additionally
-            int nqfs_curr = 0;
+            unsigned nqfs_curr = 0;
             if( options::relevantTriggers() ){
               nqfs_curr = d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[0].getOperator() );
             }
