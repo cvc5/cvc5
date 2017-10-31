@@ -46,13 +46,6 @@ typedef expr::Attribute<TermDepthAttributeId, uint64_t> TermDepthAttribute;
 struct ContainsUConstAttributeId {};
 typedef expr::Attribute<ContainsUConstAttributeId, uint64_t> ContainsUConstAttribute;
 
-struct ModelBasisAttributeId {};
-typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
-//for APPLY_UF terms, 1 : term has direct child with model basis attribute,
-//                    0 : term has no direct child with model basis attribute.
-struct ModelBasisArgAttributeId {};
-typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t> ModelBasisArgAttribute;
-
 //for bounded integers
 struct BoundIntLitAttributeId {};
 typedef expr::Attribute<BoundIntLitAttributeId, uint64_t> BoundIntLitAttribute;
@@ -133,6 +126,7 @@ public:
   virtual void registerQuantifier(Node q) override;
   /** identify */
   virtual std::string identify() const override { return "TermUtil"; }
+  
   // for inst constant
  private:
   /** map from universal quantifiers to the list of variables */
@@ -163,14 +157,13 @@ public:
       return a pattern where the variable are replaced by variable for
       instantiation.
    */
-  Node substituteBoundVariablesToInstConstants(Node n, Node q);
-  /** substitute { instantiation constants of q -> bound variables of q } in n
-   */
-  Node substituteInstConstantsToBoundVariables(Node n, Node q);
+  Node substituteBoundVariablesToInstConstants( Node n, Node q );
+  /** substitute { instantiation constants of q -> bound variables of q } in n */
+  Node substituteInstConstantsToBoundVariables( Node n, Node q );
   /** substitute { variables of q -> terms } in n */
-  Node substituteBoundVariables(Node n, Node q, std::vector<Node>& terms);
+  Node substituteBoundVariables( Node n, Node q, std::vector< Node >& terms );
   /** substitute { instantiation constants of q -> terms } in n */
-  Node substituteInstConstants(Node n, Node q, std::vector<Node>& terms);
+  Node substituteInstConstants( Node n, Node q, std::vector< Node >& terms ); 
 
   static Node getInstConstAttr( Node n );
   static bool hasInstConstAttr( Node n );
@@ -199,9 +192,8 @@ private:
   /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
   static int isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 );
   /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  static int isInstanceOf(Node n1, Node n2);
-
- public:
+  static int isInstanceOf( Node n1, Node n2 );
+public:
   /** compute var contains */
   static void computeVarContains( Node n, std::vector< Node >& varContains );
   /** get var contains for each of the patterns in pats */
@@ -298,6 +290,7 @@ public:
   /** is bool connective term */
   static bool isBoolConnectiveTerm( TNode n );
 
+  
 //for higher-order
 private:
   /** dummy predicate that states terms should be considered first-class members of equality engine */
