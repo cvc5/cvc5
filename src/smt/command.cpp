@@ -404,7 +404,7 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine) {
     {
       if (options::sygusOut() == SYGUS_SOL_OUT_STANDARD)
       {
-        d_solution << "fail" << endl;
+        d_solution << "(fail)" << endl;
       }
       else
       {
