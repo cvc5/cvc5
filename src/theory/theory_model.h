@@ -37,30 +37,16 @@ namespace theory {
 class TheoryModel : public Model
 {
   friend class TheoryEngineModelBuilder;
-
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
   virtual ~TheoryModel() throw();
 
-  /** get comments */
-  void getComments(std::ostream& out) const;
+  /** reset the model */
+  virtual void reset();
   /** is built */
   bool isBuilt() { return d_modelBuilt; }
-  /** set need build */
-  void setNeedsBuild() { d_modelBuilt = false; }
-  /**
-   * Get value function.  This should be called only after a ModelBuilder has called buildModel(...)
-   * on this model.
-   */
-  Node getValue( TNode n, bool useDontCares = false ) const;
 
-  //---------------------------- separation logic
-  /** set the heap and value sep.nil is equal to */
-  void setHeapModel(Node h, Node neq);
-  /** get the heap and value sep.nil is equal to */
-  bool getHeapModel(Expr& h, Expr& neq) const;
-  //---------------------------- end separation logic
-
+  //---------------------------- building the model
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
   /** add term function
@@ -82,6 +68,7 @@ public:
     *  functions.
     */
   void assertRepresentative(TNode n);
+  //---------------------------- end building the model
 
   // ------------------- general equality queries
   /** does the equality engine of this model have term a? */
@@ -95,6 +82,21 @@ public:
   /** get the equality engine for this model */
   eq::EqualityEngine* getEqualityEngine() { return d_equalityEngine; }
   // ------------------- end general equality queries
+  
+  /**
+   * Get value function.  This should be called only after a ModelBuilder has called buildModel(...)
+   * on this model.
+   */
+  Node getValue( TNode n, bool useDontCares = false ) const;
+  /** get comments */
+  void getComments(std::ostream& out) const;
+  
+  //---------------------------- separation logic
+  /** set the heap and value sep.nil is equal to */
+  void setHeapModel(Node h, Node neq);
+  /** get the heap and value sep.nil is equal to */
+  bool getHeapModel(Expr& h, Expr& neq) const;
+  //---------------------------- end separation logic
 
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
@@ -146,19 +148,19 @@ public:
   /** true/false nodes */
   Node d_true;
   Node d_false;
-  mutable std::unordered_map<Node, Node, NodeHashFunction> d_modelCache;
   /** comment stream to include in printing */
   std::stringstream d_comment_str;
-  /** reset the model */
-  virtual void reset();
-  /**
-   * Get model value function.  This function is called by getValue
+  /** Get model value function.  
+   * This function is a helper function for getValue.
    */
   Node getModelValue(TNode n,
                      bool hasBoundVars = false,
                      bool useDontCares = false) const;
 
  private:
+  /** cache for getModelValue */
+  mutable std::unordered_map<Node, Node, NodeHashFunction> d_modelCache;
+   
   //---------------------------- separation logic
   /** the value of the heap */
   Node d_sep_heap;
@@ -171,8 +173,7 @@ public:
   bool d_enableFuncModels;
   /** map from function terms to the (lambda) definitions
   * After the model is built, the domain of this map is all terms of function
-  * type
-  * that appear as terms in d_equalityEngine.
+  * type that appear as terms in d_equalityEngine.
   */
   std::map<Node, Node> d_uf_models;
   //---------------------------- end function values

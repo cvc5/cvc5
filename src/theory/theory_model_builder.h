@@ -26,9 +26,14 @@ namespace CVC4 {
 namespace theory {
 
 /** TheoryEngineModelBuilder class
-  *    This model builder will consult all theories in a theory engine for
-  *    collectModelInfo( ... ) when building a model.
-  */
+ * 
+ * This is the model builder class used by TheoryEngine
+ * for constructing TheoryModel objects. The call to
+ * TheoryEngineModelBuilder::buildModel(...) is made after full
+ * effort check passes with no theory solvers adding
+ * lemmas or conflicts, and theory combination passes
+ * with no splits on shared terms.
+ */
 class TheoryEngineModelBuilder : public ModelBuilder
 {
   typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
@@ -37,9 +42,20 @@ public:
   TheoryEngineModelBuilder(TheoryEngine* te);
   virtual ~TheoryEngineModelBuilder(){}
   /** Build model function.
-   * This constructs the model m.
    * 
    * Should be called only on TheoryModels m.
+   * This constructs the model m, via the following steps:
+   * (1) call TheoryEngine::collectModelInfo, 
+   * (2) builder-specified preprocessing,
+   * (3) assign constants to equivalence classes,
+   * (4) 
+   * (5) builder-specific postprocessing.
+   * 
+   * This function returns false if any of the above
+   * steps results in a lemma is sent on an output channel.
+   * Lemmas may be sent on an output channel by this
+   * builder in steps (2) or (5), for instance, if the model we 
+   * are building fails to satisfy a quantified formula.
    */
   virtual bool buildModel(Model* m) override;
   /** Debug check model.
@@ -52,13 +68,20 @@ public:
 protected:
   /** pointer to theory engine */
   TheoryEngine* d_te;
-  NodeMap d_normalizedCache;
-  std::map< Node, Node > d_constantReps;
-
-  /** process build model */
+  //-----------------------------------virtual functions 
+  /** pre-process build model 
+   * Called before we assign values 
+   */
   virtual bool preProcessBuildModel(TheoryModel* m);
+  /** process build model 
+   * Called after we assign values 
+   */
   virtual bool processBuildModel(TheoryModel* m);
+  /** debug the model
+   * Do assertions and debug printing associated with the model. 
+   */
   virtual void debugModel( TheoryModel* m ) {}
+  //-----------------------------------end virtual functions 
   /** normalize representative */
   Node normalize(TheoryModel* m, TNode r, bool evalOnly);
   bool isAssignable(TNode n);
@@ -68,7 +91,7 @@ protected:
   /** is v an excluded codatatype value */
   bool isExcludedCdtValue( Node v, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc );
   bool isCdtValueMatch( Node v, Node r, Node eqc, Node& eqc_m );
-  /** involves usort */
+  /** does type tn involve an uninterpreted sort? */
   bool involvesUSort( TypeNode tn );
   bool isExcludedUSortValue( std::map< TypeNode, unsigned >& eqc_usort_count, Node v, std::map< Node, bool >& visited );
   /** assign function f based on the model m. 
@@ -112,6 +135,14 @@ protected:
   * If ufHo is enabled, we call assignHoFunction.
   */
   void assignFunctions(TheoryModel* m);
+private:
+  /** normalized cache 
+   * The normalized form of a node f(t1...tn) is :
+   *   TODO
+   */
+  NodeMap d_normalizedCache;
+  /** mapping from terms to the constant associated with their equivalence class */
+  std::map< Node, Node > d_constantReps;
 };/* class TheoryEngineModelBuilder */
 
 }/* CVC4::theory namespace */

@@ -197,10 +197,12 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
 
   // buildModel should only be called once per check
   Assert(!tm->isBuilt());
-  tm->d_modelBuilt = true;
 
   // Reset model
   tm->reset();
+  
+  // mark as built
+  tm->d_modelBuilt = true;
 
   // Collect model info from the theories
   Trace("model-builder") << "TheoryEngineModelBuilder: Collect model info..." << std::endl;

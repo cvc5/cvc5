@@ -52,6 +52,7 @@ TheoryModel::~TheoryModel() throw() {
 }
 
 void TheoryModel::reset(){
+  d_modelBuilt = false;
   d_modelCache.clear();
   d_comment_str.clear();
   d_sep_heap = Node::null();
