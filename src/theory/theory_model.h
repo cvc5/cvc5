@@ -30,9 +30,44 @@
 namespace CVC4 {
 namespace theory {
 
-/**
- * Theory Model class.
- *    For Model m, should call m.initialize() before using.
+/** Theory Model class.
+ * 
+ * This class represents a model produced by the TheoryEngine.
+ * The data structures used to represent a model are:
+ * (1) d_equalityEngine : an equality engine object, which stores
+ *     an equivalence relation over all terms that exist in 
+ *     the current set of assertions.
+ * (2) d_substitutions : a substitution map storing cases of
+ *     explicitly solved terms, for instance during preprocessing.
+ * (3) d_reps : a map from equivalence class representatives of
+ *     the equality engine to the (constant) representatives
+ *     assigned to that equivalence class.
+ * (4) d_uf_models : a map from uninterpreted functions to their
+ *     lambda representation.
+ * (5) d_rep_set : a data structure that allows interpretations
+ *     for types to be represented as terms. This is useful for
+ *     finite model finding.
+ * 
+ * These data structures are built after a full effort check with
+ * no lemmas sent, within a call to:
+ *    TheoryEngineModelBuilder::buildModel(...) 
+ * which includes subcalls to TheoryX::collectModelInfo(...) calls.
+ * 
+ * These calls may modify the model object using the interface
+ * functions below, including:
+ * - assertEquality, assertPredicate, assertRepresentative, 
+ *   assertEqualityEngine.
+ * - assignFunctionDefinition
+ * 
+ * During and after this building process, these calls may use
+ * interface functions below to guide the model construction:
+ * - hasTerm, getRepresentative, areEqual, areDisequal
+ * - getEqualityEngine
+ * - getRepSet
+ * - hasAssignedFunctionDefinition, getFunctionsToAssign
+ * 
+ * After this building process, the function getValue can be 
+ * used to query the value of nodes.
  */
 class TheoryModel : public Model
 {
@@ -43,16 +78,24 @@ public:
 
   /** reset the model */
   virtual void reset();
-  /** is built */
+  /** is built
+   * 
+   * Have we (attempted to) build this model since the last
+   * call to reset? Notice for model building techniques
+   * that are not guaranteed to succeed (such as
+   * when quantified formulas are enabled), a true return 
+   * value does not imply that this is a model of the
+   * current assertions.
+   */
   bool isBuilt() { return d_modelBuilt; }
 
-  //---------------------------- building the model
+  //---------------------------- for building the model
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
-  /** add term function
-    *   addTerm( n ) will do any model-specific processing necessary for n,
-    *   such as constraining the interpretation of uninterpreted functions,
-    *   and adding n to the equality engine of this model
+  /** add term
+    *  This will any model-specific processing necessary for n,
+    *  such as constraining the interpretation of uninterpreted functions,
+    *  and adding n to the equality engine of this model.
     */
   virtual void addTerm(TNode n);
   /** assert equality holds in the model */
@@ -83,9 +126,11 @@ public:
   eq::EqualityEngine* getEqualityEngine() { return d_equalityEngine; }
   // ------------------- end general equality queries
   
-  /**
-   * Get value function.  This should be called only after a ModelBuilder has called buildModel(...)
-   * on this model.
+  /** Get value function. 
+   * This should be called only after a ModelBuilder 
+   * has called buildModel(...) on this model. 
+   *   useDontCares is whether to return Node::null() if 
+   *     n does not occur in the equality engine.
    */
   Node getValue( TNode n, bool useDontCares = false ) const;
   /** get comments */
@@ -151,7 +196,11 @@ public:
   /** comment stream to include in printing */
   std::stringstream d_comment_str;
   /** Get model value function.  
+   * 
    * This function is a helper function for getValue.
+   *   hasBoundVars is whether n may contain bound variables
+   *   useDontCares is whether to return Node::null() if 
+   *     n does not occur in the equality engine.
    */
   Node getModelValue(TNode n,
                      bool hasBoundVars = false,
