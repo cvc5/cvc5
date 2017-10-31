@@ -18,6 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
 
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/sygus_invariance.h"
 
 namespace CVC4 {
 namespace theory {
@@ -25,6 +26,7 @@ namespace quantifiers {
 
 class CegConjecture;
 
+// TODO (as part of #1235) move to sygus_invariance.h
 class SygusInvarianceTest {
 protected:
   // check whether nvn[ x ] should be excluded
