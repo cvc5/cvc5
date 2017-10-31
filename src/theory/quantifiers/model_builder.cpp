@@ -143,8 +143,8 @@ void QModelBuilder::debugModel( TheoryModel* m ){
 
 
 
-bool TermArgBasisTrie::addTerm2( FirstOrderModel* fm, Node n, int argIndex ){
-  if( argIndex<(int)n.getNumChildren() ){
+bool TermArgBasisTrie::addTerm( FirstOrderModel* fm, Node n, unsigned argIndex ){
+  if( argIndex<n.getNumChildren() ){
     Node r;
     if( n[ argIndex ].getAttribute(ModelBasisAttribute()) ){
       r = n[ argIndex ];
@@ -153,10 +153,10 @@ bool TermArgBasisTrie::addTerm2( FirstOrderModel* fm, Node n, int argIndex ){
     }
     std::map< Node, TermArgBasisTrie >::iterator it = d_data.find( r );
     if( it==d_data.end() ){
-      d_data[r].addTerm2( fm, n, argIndex+1 );
+      d_data[r].addTerm( fm, n, argIndex+1 );
       return true;
     }else{
-      return it->second.addTerm2( fm, n, argIndex+1 );
+      return it->second.addTerm( fm, n, argIndex+1 );
     }
   }else{
     return false;

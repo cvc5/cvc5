@@ -60,13 +60,11 @@ public:
 
 
 class TermArgBasisTrie {
-private:
-  bool addTerm2( FirstOrderModel* fm, Node n, int argIndex );
 public:
   /** the data */
   std::map< Node, TermArgBasisTrie > d_data;
-public:
-  bool addTerm( FirstOrderModel* fm, Node n ) { return addTerm2( fm, n, 0 ); }
+  /** add term to the trie */
+  bool addTerm( FirstOrderModel* fm, Node n, unsigned argIndex = 0 );
 };/* class TermArgBasisTrie */
 
 /** model builder class

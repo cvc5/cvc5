@@ -69,7 +69,7 @@ typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
 struct LtePartialInstAttributeId {};
 typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribute;
 
-// attribute for "contains instantiation constants from"
+// attribute for sygus proxy variables
 struct SygusProxyAttributeId {};
 typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
 
@@ -114,7 +114,7 @@ class TermUtil : public QuantifiersUtil
 {
   // TODO : remove these
   friend class ::CVC4::theory::QuantifiersEngine;
-  friend class TermDatabase;
+
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
@@ -134,6 +134,7 @@ public:
   virtual void registerQuantifier(Node q) override;
   /** identify */
   virtual std::string identify() const override { return "TermUtil"; }
+  
   // for inst constant
  private:
   /** map from universal quantifiers to the list of variables */
