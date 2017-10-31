@@ -27,12 +27,16 @@ namespace theory {
 
 /** TheoryEngineModelBuilder class
  * 
- * This is the model builder class used by TheoryEngine
- * for constructing TheoryModel objects. The call to
- * TheoryEngineModelBuilder::buildModel(...) is made after full
- * effort check passes with no theory solvers adding
- * lemmas or conflicts, and theory combination passes
- * with no splits on shared terms.
+ * This is the class used by TheoryEngine
+ * for constructing TheoryModel objects, which is the class
+ * that represents models for a set of assertions. 
+ * 
+ * A call to TheoryEngineModelBuilder::buildModel(...) is made 
+ * after a full effort check passes with no theory solvers 
+ * adding lemmas or conflicts, and theory combination passes
+ * with no splits on shared terms. If buildModel is successful, 
+ * this will set up the data structures in TheoryModel to represent 
+ * a model for the current set of assertions.
  */
 class TheoryEngineModelBuilder : public ModelBuilder
 {
@@ -44,10 +48,11 @@ public:
   /** Build model function.
    * 
    * Should be called only on TheoryModels m.
+   * 
    * This constructs the model m, via the following steps:
    * (1) call TheoryEngine::collectModelInfo, 
    * (2) builder-specified pre-processing,
-   * (3) determine equivalence classes of m's
+   * (3) find the equivalence classes of m's
    *     equality engine that initially contain constants,
    * (4) assign constants to all equivalence classes
    *     of m's equality engine, through alternating
@@ -71,34 +76,71 @@ public:
 protected:
   /** pointer to theory engine */
   TheoryEngine* d_te;
+  
   //-----------------------------------virtual functions 
   /** pre-process build model 
+   * Do pre-processing specific to this model builder.
    * Called in step (2) of the build construction,
    * described above.
    */
   virtual bool preProcessBuildModel(TheoryModel* m);
   /** process build model 
+   * Do processing specific to this model builder.
    * Called in step (5) of the build construction,
    * described above.
+   * By default, this assigns values to each function
+   * that appears in m's equality engine.
    */
   virtual bool processBuildModel(TheoryModel* m);
   /** debug the model
-   * Check assertions and printing debug information for the model. 
+   * Check assertions and printing debug information for the model.
+   * Calls after step (5) described above is complete. 
    */
   virtual void debugModel( TheoryModel* m ) {}
   //-----------------------------------end virtual functions 
-  /** normalize representative */
-  Node normalize(TheoryModel* m, TNode r, bool evalOnly);
+  
+  /** is n assignable?
+   * 
+   * A term n is assignable if its value
+   * is unconstrained by a standard model. 
+   * Examples of assignable terms are:
+   * - variables,
+   * - applications of array select,
+   * - applications of datatype selectors,
+   * - applications of uninterpreted functions.
+   * Assignable terms must be first-order, that is,
+   * all instances of the above terms are not 
+   * assignable if they have a higher-order (function) type.
+   */
   bool isAssignable(TNode n);
-  void checkTerms(TNode n, TheoryModel* tm, NodeSet& cache);
+  /** add assignable subterms
+   * Adds all assignable subterms of n to tm's equality engine.
+   */
+  void addAssignableSubterms(TNode n, TheoryModel* tm, NodeSet& cache);
+  /** normalize representative r
+   * 
+   * This returns a term that is equivalent to r's 
+   * interpretation in the model m. It may do so 
+   * by rewriting the application of r's operator to the 
+   * result of normalizing each of r's children, if 
+   * each child is constant.
+   */
+  Node normalize(TheoryModel* m, TNode r, bool evalOnly);
+  /** assign constant representative
+   * 
+   * Called when equivalence class eqc is assigned a constant
+   * representative const_rep. 
+   * 
+   * eqc should be a representative of tm's equality engine.
+   */
   void assignConstantRep( TheoryModel* tm, Node eqc, Node const_rep );
-  void addToTypeList( TypeNode tn, std::vector< TypeNode >& type_list, std::map< TypeNode, bool >& visiting );
-  /** is v an excluded codatatype value */
-  bool isExcludedCdtValue( Node v, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc );
-  bool isCdtValueMatch( Node v, Node r, Node eqc, Node& eqc_m );
-  /** does type tn involve an uninterpreted sort? */
-  bool involvesUSort( TypeNode tn );
-  bool isExcludedUSortValue( std::map< TypeNode, unsigned >& eqc_usort_count, Node v, std::map< Node, bool >& visited );
+  /** add to type list
+   * 
+   * This adds to type_list the list of types that tn is built from.
+   * For example, if tn is (Array Int Bool) and type_list is empty,
+   * then we append ( Int, Bool, (Array Int Bool) ) to type_list.
+   */
+  void addToTypeList( TypeNode tn, std::vector< TypeNode >& type_list, std::unordered_set< TypeNode, TypeNodeHashFunction >& visiting );
   /** assign function f based on the model m. 
   * This construction is based on "table form". For example:
   * (f 0 1) = 1
@@ -134,20 +176,62 @@ protected:
   *                 (ite (= x 1) ((f 1) y) ...))
   */
   void assignHoFunction(TheoryModel* m, Node f);
-  /** Assign all unassigned functions in the model m (those returned by TheoryModel::getFunctionsToAssign), 
-  * using the two functions above. Currently:
-  * If ufHo is disabled, we call assignFunction for all functions. 
-  * If ufHo is enabled, we call assignHoFunction.
-  */
+  /** assign functions
+   * 
+   * Assign all unassigned functions in the model m (those returned by TheoryModel::getFunctionsToAssign), 
+   * using the two functions above. Currently:
+   * If ufHo is disabled, we call assignFunction for all functions. 
+   * If ufHo is enabled, we call assignHoFunction.
+   */
   void assignFunctions(TheoryModel* m);
 private:
   /** normalized cache 
-   * The normalized form of a node f(t1...tn) is :
-   *   TODO
+   * A temporary cache mapping terms to their
+   * normalized form, used during buildModel.
    */
   NodeMap d_normalizedCache;
   /** mapping from terms to the constant associated with their equivalence class */
   std::map< Node, Node > d_constantReps;
+  
+  //------------------------------------for codatatypes
+  /** is v an excluded codatatype value?
+   * 
+   * If this returns true, then v is a value
+   * that cannot be used during enumeration in step (4) 
+   * of model construction.
+   * 
+   * repSet is the set of representatives of the same type as v,
+   * assertedReps is a map from representatives t,
+   * eqc is the equivalence class that v reside.
+   * 
+   * This function is used to avoid alpha-equivalent
+   * assignments for codatatype terms, described in
+   * Reynolds/Blanchette CADE 2015. In particular,
+   * this function returns true if v is in
+   * the set V^{x}_I from page 9, where x is eqc
+   * and I is the model we are building.
+   */
+  bool isExcludedCdtValue( Node v, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc );
+  /** is codatatype value match
+   * 
+   * This returns true if v is r{ eqc -> t } for some t.
+   * If this function returns true, then t above is 
+   * stored in eqc_m.
+   */
+  bool isCdtValueMatch( Node v, Node r, Node eqc, Node& eqc_m );
+  //------------------------------------end for codatatypes  
+  
+  //---------------------------------for debugging finite model finding 
+  /** does type tn involve an uninterpreted sort? */
+  bool involvesUSort( TypeNode tn );
+  /** is v an excluded value based on uninterpreted sorts?
+   * This gives an assertion failure in the case that v contains
+   * an uninterpreted constant whose index is out of the bounds
+   * specified by eqc_usort_count.
+   */
+  bool isExcludedUSortValue( std::map< TypeNode, unsigned >& eqc_usort_count, Node v, std::map< Node, bool >& visited );
+  //---------------------------------end for debugging finite model finding 
+  
 };/* class TheoryEngineModelBuilder */
 
 }/* CVC4::theory namespace */

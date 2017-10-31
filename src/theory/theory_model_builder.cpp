@@ -57,7 +57,7 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
 }
 
 
-void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cache)
+void TheoryEngineModelBuilder::addAssignableSubterms(TNode n, TheoryModel* tm, NodeSet& cache)
 {
   if (n.getKind()==FORALL || n.getKind()==EXISTS) {
     return;
@@ -69,7 +69,7 @@ void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cac
     tm->d_equalityEngine->addTerm(n);
   }
   for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
-    checkTerms(*child_it, tm, cache);
+    addAssignableSubterms(*child_it, tm, cache);
   }
   cache.insert(n);
 }
@@ -162,10 +162,10 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue( std::map< TypeNode, unsigne
 
 
 void TheoryEngineModelBuilder::addToTypeList( TypeNode tn, std::vector< TypeNode >& type_list, 
-                                              std::map< TypeNode, bool >& visiting ){
+                                              std::unordered_set< TypeNode, TypeNodeHashFunction >& visiting ){
   if( std::find( type_list.begin(), type_list.end(), tn )==type_list.end() ){
     if( visiting.find( tn )==visiting.end() ){
-      visiting[tn] = true;
+      visiting.insert(tn);
       /* This must make a recursive call on all types that are subterms of
        * values of the current type.
        * Note that recursive traversal here is over enumerated expressions
@@ -222,7 +222,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     for ( ; !eqcs_i.isFinished(); ++eqcs_i) {
       eq::EqClassIterator eqc_i = eq::EqClassIterator((*eqcs_i),tm->d_equalityEngine);
       for ( ; !eqc_i.isFinished(); ++eqc_i) {
-        checkTerms(*eqc_i, tm, cache);
+        addAssignableSubterms(*eqc_i, tm, cache);
       }
       TypeNode tn = (*eqcs_i).getType();
       if( tn.isSort() ){
@@ -302,12 +302,12 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     else if (!rep.isNull()) {
       assertedReps[eqc] = rep;
       typeRepSet.add(eqct.getBaseType(), eqc);
-      std::map< TypeNode, bool > visiting;
+      std::unordered_set< TypeNode, TypeNodeHashFunction > visiting;
       addToTypeList(eqct.getBaseType(), type_list, visiting);
     }
     else {
       typeNoRepSet.add(eqct, eqc);
-      std::map< TypeNode, bool > visiting;
+      std::unordered_set< TypeNode, TypeNodeHashFunction > visiting;
       addToTypeList(eqct, type_list, visiting);
     }
   }
@@ -518,7 +518,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
               if( success && isCorecursive ){
                 if (repSet != NULL && !repSet->empty()) {
                   // in the case of codatatypes, check if it is in the set of values that we cannot assign
-                  // this will check whether n \not\in V^x_I from page 9 of Reynolds/Blanchette CADE 2015
                   success = !isExcludedCdtValue( n, repSet, assertedReps, *i2 );
                   if( !success ){
                     Trace("model-builder") << "Excluded value : " << n << " due to alpha-equivalent codatatype expression." << std::endl;
