@@ -178,6 +178,8 @@ libcvc4_la_SOURCES = \
 	theory/theory_registrar.h \
 	theory/theory_test_utils.h \
 	theory/type_enumerator.h \
+	theory/type_set.cpp \
+	theory/type_set.h \
 	theory/unconstrained_simplifier.cpp \
 	theory/unconstrained_simplifier.h \
 	theory/valuation.cpp \
