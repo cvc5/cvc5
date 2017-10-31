@@ -19,8 +19,6 @@
 #ifndef __CVC4__THEORY__SEP__THEORY_SEP_TYPE_RULES_H
 #define __CVC4__THEORY__SEP__THEORY_SEP_TYPE_RULES_H
 
-#include "theory/type_enumerator.h"
-
 namespace CVC4 {
 namespace theory {
 namespace sep {
