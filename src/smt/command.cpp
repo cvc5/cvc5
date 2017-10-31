@@ -396,6 +396,7 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine) {
     d_result = smtEngine->checkSynth(d_expr);
     d_commandStatus = CommandSuccess::instance();
     smt::SmtScope scope(smtEngine);
+    d_solution.clear();
     // check whether we should print the status
     if (d_result.asSatisfiabilityResult() != Result::UNSAT
         || options::sygusOut() == SYGUS_SOL_OUT_STATUS_AND_DEF
@@ -414,7 +415,6 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine) {
     if (d_result.asSatisfiabilityResult() == Result::UNSAT
         && options::sygusOut() != SYGUS_SOL_OUT_STATUS)
     {
-      d_solution.clear();
       // printing a synthesis solution is a non-constant
       // method, since it invokes a sophisticated algorithm
       // (Figure 5 of Reynolds et al. CAV 2015).
