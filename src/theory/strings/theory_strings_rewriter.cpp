@@ -1444,11 +1444,11 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
                                   << " " << node[1] << std::endl;
 
   // length entailment
-  //Node len_n1 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0] );
-  //Node len_n2 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[1] );
-  //if( checkEntailArith( len_n2, len_n1, true ) ){
-  //  return NodeManager::currentNM()->mkConst(false);
-  //}
+  Node len_n1 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0] );
+  Node len_n2 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[1] );
+  if( checkEntailArith( len_n2, len_n1, true ) ){
+    return NodeManager::currentNM()->mkConst(false);
+  }
                                   
   // splitting
   if (node[0].getKind() == kind::STRING_CONCAT)
@@ -2152,7 +2152,7 @@ bool TheoryStringsRewriter::checkEntailArithInternal( Node a ) {
     // str.len( t ) >= 0
     return true;      
   }else if( a.getKind()==kind::MULT ){
-    if( a.getNumChildren()==2 && a[0].isConst() ){
+    if( a.getNumChildren()==2 && a[0].isConst() && a[0].getConst<Rational>().sgn()>=0 ){
       // c > 0 ^ t >= 0 => c*t >= 0
       return checkEntailArithInternal( a[1] );
     }
