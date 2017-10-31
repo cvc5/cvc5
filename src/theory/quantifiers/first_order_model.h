@@ -26,12 +26,17 @@ namespace theory {
 
 class QuantifiersEngine;
 
-struct ModelBasisAttributeId {};
+struct ModelBasisAttributeId
+{
+};
 typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
-//for APPLY_UF terms, 1 : term has direct child with model basis attribute,
-//                    0 : term has no direct child with model basis attribute.
-struct ModelBasisArgAttributeId {};
-typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t> ModelBasisArgAttribute;
+// for APPLY_UF terms, 1 : term has direct child with model basis attribute,
+//                     0 : term has no direct child with model basis attribute.
+struct ModelBasisArgAttributeId
+{
+};
+typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t>
+    ModelBasisArgAttribute;
 
 namespace quantifiers {
 
@@ -52,13 +57,13 @@ typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 // TODO (#1301) : document and refactor this class
 class FirstOrderModel : public TheoryModel
 {
-public:
-  FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name );
+ public:
+  FirstOrderModel(QuantifiersEngine* qe, context::Context* c, std::string name);
   virtual ~FirstOrderModel() throw() {}
-  virtual FirstOrderModelIG * asFirstOrderModelIG() { return NULL; }
-  virtual fmcheck::FirstOrderModelFmc * asFirstOrderModelFmc() { return NULL; }
-  virtual FirstOrderModelQInt * asFirstOrderModelQInt() { return NULL; }
-  virtual FirstOrderModelAbs * asFirstOrderModelAbs() { return NULL; }
+  virtual FirstOrderModelIG* asFirstOrderModelIG() { return NULL; }
+  virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return NULL; }
+  virtual FirstOrderModelQInt* asFirstOrderModelQInt() { return NULL; }
+  virtual FirstOrderModelAbs* asFirstOrderModelAbs() { return NULL; }
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
@@ -104,38 +109,40 @@ public:
   unsigned getModelBasisArg(Node n);
   /** get some domain element */
   Node getSomeDomainElement(TypeNode tn);
-protected:
+
+ protected:
   /** quant engine */
-  QuantifiersEngine * d_qe;
+  QuantifiersEngine* d_qe;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
   /** quantified formulas marked as relevant */
   unsigned d_rlv_count;
-  std::map< Node, unsigned > d_forall_rlv;
-  std::vector< Node > d_forall_rlv_vec;
+  std::map<Node, unsigned> d_forall_rlv;
+  std::vector<Node> d_forall_rlv_vec;
   Node d_last_forall_rlv;
-  std::vector< Node > d_forall_rlv_assert;
+  std::vector<Node> d_forall_rlv_assert;
   /** get variable id */
-  std::map< Node, std::map< Node, int > > d_quant_var_id;
+  std::map<Node, std::map<Node, int> > d_quant_var_id;
   /** process initialize model for term */
-  virtual void processInitializeModelForTerm( Node n ) = 0;
+  virtual void processInitializeModelForTerm(Node n) = 0;
   /** process intialize quantifier */
-  virtual void processInitializeQuantifier( Node q ) {}
+  virtual void processInitializeQuantifier(Node q) {}
   /** process initialize */
-  virtual void processInitialize( bool ispre ) = 0;
-private:
-  //list of inactive quantified formulas
-  std::map< TNode, bool > d_quant_active;
+  virtual void processInitialize(bool ispre) = 0;
+
+ private:
+  // list of inactive quantified formulas
+  std::map<TNode, bool> d_quant_active;
   /** map from types to model basis terms */
-  std::map< TypeNode, Node > d_model_basis_term;
+  std::map<TypeNode, Node> d_model_basis_term;
   /** map from ops to model basis terms */
-  std::map< Node, Node > d_model_basis_op_term;
+  std::map<Node, Node> d_model_basis_op_term;
   /** map from instantiation terms to their model basis equivalent */
-  std::map< Node, Node > d_model_basis_body;
+  std::map<Node, Node> d_model_basis_body;
   /** map from universal quantifiers to model basis terms */
-  std::map< Node, std::vector< Node > > d_model_basis_terms;
+  std::map<Node, std::vector<Node> > d_model_basis_terms;
   /** compute model basis arg */
-  void computeModelBasisArgAttribute( Node n );
+  void computeModelBasisArgAttribute(Node n);
 };/* class FirstOrderModel */
 
 
