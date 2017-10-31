@@ -42,7 +42,15 @@ namespace quantifiers {
  * Section 2 of Reynolds et al., "Induction for SMT 
  * Solvers", VMCAI 2015. In the case that x is an inductive
  * datatype or an integer, then we may strengthen the conclusion
- * based on well-founded induction. 
+ * based on weak well-founded induction. For example, for 
+ * quantification on lists, a skolemization with inductive 
+ * strengthening is a lemma of this form:
+ *   (~ forall x : List. P( x ) ) =>
+ *   ~P( k ) ^ ( is-cons( k ) => P( tail( k ) ) )
+ * For the integers it is:
+ *   (~ forall x : Int. P( x ) ) =>
+ *   ~P( k ) ^ ( x>0 => P( x-1 ) )
+ * 
  * 
  * Inductive strenghtening is not enabled by
  * default and can be enabled by option:
@@ -50,26 +58,47 @@ namespace quantifiers {
  */
 class Skolemize
 {
-  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
+  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeNodeMap;
  public:
   Skolemize(QuantifiersEngine * qe, context::UserContext* u);
   ~Skolemize(){}
   /** skolemize quantified formula q 
    * If the return value ret of this function
-   * is non-null, then ret is a skolemization lemma for q.
+   * is non-null, then ret is a new skolemization lemma 
+   * we generated for q. These lemmas are constructed
+   * once per user-context.
    */
   Node process( Node q );
-  /** get skolem constants for quantified q
-   */
+  /** get skolem constants for quantified formula q */
   bool getSkolemConstants( Node q, std::vector< Node >& skolems );
-  /** get skolem constant */
+  /** get the i^th skolem constant for quantified formula q */
   Node getSkolemConstant( Node q, unsigned i );
-  /** make the skolemized body f[e/x] */
-  static Node mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& fvTypes, std::vector< TNode >& fvs,
+  /** make skolemized body 
+   * 
+   * This returns the skolemized body n of a
+   * quantified formula q with inductive strenghtening,
+   * where typically n is q[1]. 
+   * 
+   * The skolem constants/functions we generate by this 
+   * skolemization are added to sk.
+   * 
+   * The arguments fvTypes and fvs are used if we are
+   * performing skolemization within a nested quantified 
+   * formula. In this case, skolem constants we introduce
+   * must be parameterized based on fvTypes and must be
+   * applied to fvs.
+   * 
+   * The last two arguments sub and sub_vars are used for
+   * to carry the body and indices of other induction
+   * variables if a quantified formula to skolemize
+   * has multiple induction variables. See page 5
+   * of Reynolds et al., VMCAI 2015.
+   */
+  static Node mkSkolemizedBody( Node q, Node n, std::vector< TypeNode >& fvTypes, std::vector< TNode >& fvs,
                                 std::vector< Node >& sk, Node& sub, std::vector< unsigned >& sub_vars );
-  /** get the skolemized body */
-  Node getSkolemizedBody( Node f);
-  /** is induction variable */
+  /** get the skolemized body for quantified formula q */
+  Node getSkolemizedBody( Node q );
+  /** is n a variable that we can apply inductive strenghtening to? */
   static bool isInductionTerm( Node n );
   /** print all skolemizations 
    * This is used for the command line option 
@@ -90,11 +119,11 @@ class Skolemize
   static void getSelfSel( const Datatype& dt, const DatatypeConstructor& dc, Node n, TypeNode ntn, std::vector< Node >& selfSel );
   /** quantifiers engine that owns this module */
   QuantifiersEngine* d_quantEngine;
-  /** quantifiers that have been skolemized */
-  BoolMap d_skolemized;
-  /** map from universal quantifiers to the list of skolem constants */
+  /** quantified formulas that have been skolemized */
+  NodeNodeMap d_skolemized;
+  /** map from quantified formulas to the list of skolem constants */
   std::unordered_map< Node, std::vector< Node >, NodeHashFunction > d_skolem_constants;
-  /** map from universal quantifiers to their skolemized body */
+  /** map from quantified formulas to their skolemized body */
   std::unordered_map< Node, Node, NodeHashFunction > d_skolem_body;
 };
   

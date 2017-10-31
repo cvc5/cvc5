@@ -25,7 +25,7 @@ namespace quantifiers {
 
 Node TermEnumeration::getEnumerateTerm( TypeNode tn, unsigned index ) {
   Trace("term-db-enum") << "Get enumerate term " << tn << " " << index << std::endl;
-  std::map< TypeNode, unsigned >::iterator it = d_typ_enum_map.find( tn );
+  std::unordered_map< TypeNode, unsigned, TypeNodeHashFunction >::iterator it = d_typ_enum_map.find( tn );
   unsigned teIndex;
   if( it==d_typ_enum_map.end() ){
     teIndex = (int)d_typ_enum.size();
@@ -45,7 +45,7 @@ Node TermEnumeration::getEnumerateTerm( TypeNode tn, unsigned index ) {
 }
 
 bool TermEnumeration::isClosedEnumerableType( TypeNode tn ) {
-  std::map< TypeNode, bool >::iterator it = d_typ_closed_enum.find( tn );
+  std::unordered_map< TypeNode, bool, TypeNodeHashFunction >::iterator it = d_typ_closed_enum.find( tn );
   if( it==d_typ_closed_enum.end() ){
     d_typ_closed_enum[tn] = true;
     bool ret = true;
@@ -78,7 +78,7 @@ bool TermEnumeration::isClosedEnumerableType( TypeNode tn ) {
 
 //checks whether a type is not Array and is reasonably small enough (<1000) such that all of its domain elements can be enumerated
 bool TermEnumeration::mayComplete( TypeNode tn ) {
-  std::map< TypeNode, bool >::iterator it = d_may_complete.find( tn );
+  std::unordered_map< TypeNode, bool, TypeNodeHashFunction >::iterator it = d_may_complete.find( tn );
   if( it==d_may_complete.end() ){
     bool mc = false;
     if( isClosedEnumerableType( tn ) && tn.getCardinality().isFinite() && !tn.getCardinality().isLargeFinite() ){

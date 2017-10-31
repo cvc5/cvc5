@@ -217,6 +217,9 @@ bool RepSetIterator::setFunctionDomain( Node op, RepBoundExt* rext ){
   return initialize( rext );
 }
 
+// TODO : as part of #1199, the portions of this
+// function which modify d_rep_set should be 
+// moved to TheoryModel.
 bool RepSetIterator::initialize( RepBoundExt* rext ){
   Trace("rsi") << "Initialize rep set iterator..." << std::endl;
   for( unsigned v=0; v<d_types.size(); v++ ){

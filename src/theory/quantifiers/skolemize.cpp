@@ -35,11 +35,11 @@ d_skolemized(u) {
 Node Skolemize::process( Node q ) {
   //do skolemization
   if( d_skolemized.find( q )==d_skolemized.end() ){
-    d_skolemized[q] = true;
     Node body = getSkolemizedBody( q );
     NodeBuilder<> nb(kind::OR);
     nb << q << body.notNode();
     Node lem = nb;
+    d_skolemized[q] = lem;
     return lem;
   }
   return Node::null();
@@ -259,7 +259,7 @@ bool Skolemize::isInductionTerm( Node n ) {
 
 bool Skolemize::printSkolemization( std::ostream& out ) {
   bool printed = false;
-  for( BoolMap::iterator it = d_skolemized.begin(); it != d_skolemized.end(); ++it ){
+  for( NodeNodeMap::iterator it = d_skolemized.begin(); it != d_skolemized.end(); ++it ){
     Node q = (*it).first;
     printed = true;
     out << "(skolem " << q << std::endl;
