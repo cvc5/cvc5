@@ -808,7 +808,7 @@ bool AbsMbqiBuilder::processBuildModel(TheoryModel* m) {
     }
     if( fapps.empty() ){
       //choose arbitrary value
-      Node mbt = d_qe->getTermUtil()->getModelBasisOpTerm(f);
+      Node mbt = fm->getModelBasisOpTerm(f);
       Trace("ambqi-model-debug") << "Initial terms empty, add " << mbt << std::endl;
       fapps.push_back( mbt );
     }

@@ -44,22 +44,13 @@ typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 
 class FirstOrderModel : public TheoryModel
 {
-protected:
-  /** quant engine */
-  QuantifiersEngine * d_qe;
-  /** list of quantifiers asserted in the current context */
-  context::CDList<Node> d_forall_asserts;
-  /** quantified formulas marked as relevant */
-  unsigned d_rlv_count;
-  std::map< Node, unsigned > d_forall_rlv;
-  std::vector< Node > d_forall_rlv_vec;
-  Node d_last_forall_rlv;
-  std::vector< Node > d_forall_rlv_assert;
-  /** get variable id */
-  std::map< Node, std::map< Node, int > > d_quant_var_id;
-  /** get current model value (deprecated) */
-  //virtual Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) = 0;
-public: //for Theory Quantifiers:
+public:
+  FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name );
+  virtual ~FirstOrderModel() throw() {}
+  virtual FirstOrderModelIG * asFirstOrderModelIG() { return NULL; }
+  virtual fmcheck::FirstOrderModelFmc * asFirstOrderModelFmc() { return NULL; }
+  virtual FirstOrderModelQInt * asFirstOrderModelQInt() { return NULL; }
+  virtual FirstOrderModelAbs * asFirstOrderModelAbs() { return NULL; }
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
@@ -68,30 +59,14 @@ public: //for Theory Quantifiers:
   Node getAssertedQuantifier( unsigned i, bool ordered = false );
   /** initialize model for term */
   void initializeModelForTerm( Node n, std::map< Node, bool >& visited );
-  virtual void processInitializeModelForTerm( Node n ) = 0;
-  virtual void processInitializeQuantifier( Node q ) {}
-public:
-  FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name );
-  virtual ~FirstOrderModel() throw() {}
-  virtual FirstOrderModelIG * asFirstOrderModelIG() { return NULL; }
-  virtual fmcheck::FirstOrderModelFmc * asFirstOrderModelFmc() { return NULL; }
-  virtual FirstOrderModelQInt * asFirstOrderModelQInt() { return NULL; }
-  virtual FirstOrderModelAbs * asFirstOrderModelAbs() { return NULL; }
   // initialize the model
   void initialize();
-  virtual void processInitialize( bool ispre ) = 0;
   /** get variable id */
   int getVariableId(TNode q, TNode n) {
     return d_quant_var_id.find( q )!=d_quant_var_id.end() ? d_quant_var_id[q][n] : -1;
   }
-  /** get some domain element */
-  Node getSomeDomainElement(TypeNode tn);
   /** do we need to do any work? */
   bool checkNeeded();
-private:
-  //list of inactive quantified formulas
-  std::map< TNode, bool > d_quant_active;
-public:
   /** reset round */
   void reset_round();
   /** mark quantified formula relevant */
@@ -107,6 +82,52 @@ public:
   bool isQuantifierActive( TNode q );
   /** is quantified formula asserted */
   bool isQuantifierAsserted( TNode q );
+  /** get model basis term */
+  Node getModelBasisTerm(TypeNode tn, int i = 0);
+  /** is model basis term */
+  bool isModelBasisTerm(Node n);
+  /** get model basis term for op */
+  Node getModelBasisOpTerm(Node op);
+  /** get model basis */
+  Node getModelBasis(Node q, Node n);
+  /** get model basis body */
+  Node getModelBasisBody(Node q);
+  /** get model basis arg */
+  unsigned getModelBasisArg(Node n);
+  /** get some domain element */
+  Node getSomeDomainElement(TypeNode tn);
+protected:
+  /** quant engine */
+  QuantifiersEngine * d_qe;
+  /** list of quantifiers asserted in the current context */
+  context::CDList<Node> d_forall_asserts;
+  /** quantified formulas marked as relevant */
+  unsigned d_rlv_count;
+  std::map< Node, unsigned > d_forall_rlv;
+  std::vector< Node > d_forall_rlv_vec;
+  Node d_last_forall_rlv;
+  std::vector< Node > d_forall_rlv_assert;
+  /** get variable id */
+  std::map< Node, std::map< Node, int > > d_quant_var_id;
+  /** process initialize model for term */
+  virtual void processInitializeModelForTerm( Node n ) = 0;
+  /** process intialize quantifier */
+  virtual void processInitializeQuantifier( Node q ) {}
+  /** process initialize */
+  virtual void processInitialize( bool ispre ) = 0;
+private:
+  //list of inactive quantified formulas
+  std::map< TNode, bool > d_quant_active;
+  /** map from types to model basis terms */
+  std::map< TypeNode, Node > d_model_basis_term;
+  /** map from ops to model basis terms */
+  std::map< Node, Node > d_model_basis_op_term;
+  /** map from instantiation terms to their model basis equivalent */
+  std::map< Node, Node > d_model_basis_body;
+  /** map from universal quantifiers to model basis terms */
+  std::map< Node, std::vector< Node > > d_model_basis_terms;
+  /** compute model basis arg */
+  void computeModelBasisArgAttribute( Node n );
 };/* class FirstOrderModel */
 
 
@@ -180,8 +201,6 @@ public:
   bool isStar(Node n);
   Node getStar(TypeNode tn);
   Node getStarElement(TypeNode tn);
-  bool isModelBasisTerm(Node n);
-  Node getModelBasisTerm(TypeNode tn);
   bool isInterval(Node n);
   Node getInterval( Node lb, Node ub );
   bool isInRange( Node v, Node i );

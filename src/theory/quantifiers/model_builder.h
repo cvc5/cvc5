@@ -91,7 +91,7 @@ protected:
   //reset
   virtual void reset( FirstOrderModel* fm ) = 0;
   //initialize quantifiers, return number of lemmas produced
-  virtual int initializeQuantifier( Node f, Node fp );
+  virtual int initializeQuantifier( Node f, Node fp, FirstOrderModel* fm );
   //analyze model
   virtual void analyzeModel( FirstOrderModel* fm );
   //analyze quantifiers

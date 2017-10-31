@@ -189,7 +189,7 @@ bool QModelBuilderIG::processBuildModel( TheoryModel* m ) {
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node q = fm->getAssertedQuantifier( i );
       if( d_qe->getModel()->isQuantifierActive( q ) ){
-        int lems = initializeQuantifier( q, q );
+        int lems = initializeQuantifier( q, q, f );
         d_statistics.d_init_inst_gen_lemmas += lems;
         d_addedLemmas += lems;
         if( d_qe->inConflict() ){
@@ -285,7 +285,7 @@ bool QModelBuilderIG::processBuildModel( TheoryModel* m ) {
   return TheoryEngineModelBuilder::processBuildModel( m );
 }
 
-int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
+int QModelBuilderIG::initializeQuantifier( Node f, Node fp, FirstOrderModel* fm ){
   if( d_quant_basis_match_added.find( f )==d_quant_basis_match_added.end() ){
     //create the basis match if necessary
     if( d_quant_basis_match.find( f )==d_quant_basis_match.end() ){
@@ -304,8 +304,8 @@ int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
       //  }
       //}
       d_quant_basis_match[f] = InstMatch( f );
-      for( int j=0; j<(int)f[0].getNumChildren(); j++ ){
-        Node t = d_qe->getTermUtil()->getModelBasisTerm( f[0][j].getType() );
+      for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
+        Node t = fm->getModelBasisTerm( f[0][j].getType() );
         //calculate the basis match for f
         d_quant_basis_match[f].setValue( j, t );
       }
@@ -540,7 +540,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
     for( std::map< Node, bool >::iterator it = d_phase_reqs[f].d_phase_reqs.begin(); it != d_phase_reqs[f].d_phase_reqs.end(); ++it ){
       //the literal n is phase-required for quantifier f
       Node n = it->first;
-      Node gn = d_qe->getTermUtil()->getModelBasis( f, n );
+      Node gn = fm->getModelBasis( f, n );
       Debug("fmf-model-req") << "   Req: " << n << " -> " << it->second << std::endl;
       bool value;
       //if the corresponding ground abstraction literal has a SAT value
@@ -727,7 +727,7 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
   if( !d_uf_model_constructed[op] ){
     //construct the model for the uninterpretted function/predicate
     bool setDefaultVal = true;
-    Node defaultTerm = d_qe->getTermUtil()->getModelBasisOpTerm( op );
+    Node defaultTerm = fmig->getModelBasisOpTerm( op );
     Trace("fmf-model-cons") << "Construct model for " << op << "..." << std::endl;
     //set the values in the model
     std::map< Node, std::vector< Node > >::iterator itut = fmig->d_uf_terms.find( op );
@@ -770,7 +770,7 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
       if( defaultVal.isNull() ){
         if (!fmig->getRepSet()->hasType(defaultTerm.getType()))
         {
-          Node mbt = d_qe->getTermUtil()->getModelBasisTerm(defaultTerm.getType());
+          Node mbt = fmig->getModelBasisTerm(defaultTerm.getType());
           fmig->getRepSetPtr()->d_type_reps[defaultTerm.getType()].push_back(
               mbt);
         }

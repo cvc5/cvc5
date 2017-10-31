@@ -114,7 +114,6 @@ class TermUtil : public QuantifiersUtil
 {
   // TODO : remove these
   friend class ::CVC4::theory::QuantifiersEngine;
-
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
@@ -166,9 +165,12 @@ public:
       instantiation.
    */
   Node getInstConstantNode( Node n, Node q );
-  Node getVariableNode( Node n, Node q );
-  /** get substituted node */
-  Node getInstantiatedNode( Node n, Node q, std::vector< Node >& terms );
+  /** substitute { instantiation constants of q -> bound variables of q } in n */
+  Node substituteInstConstantsToBoundVariables( Node n, Node q );
+  /** substitute { variables of q -> terms } in n */
+  Node substituteBoundVariables( Node n, Node q, std::vector< Node >& terms );
+  /** substitute { instantiation constants of q -> terms } in n */
+  Node substituteInstConstants( Node n, Node q, std::vector< Node >& terms ); 
 
   static Node getInstConstAttr( Node n );
   static bool hasInstConstAttr( Node n );
@@ -295,30 +297,6 @@ public:
   /** is bool connective term */
   static bool isBoolConnectiveTerm( TNode n );
 
-  // TODO : as part of #1171, these should be moved somewhere else
-  // for model basis
- private:
-  /** map from types to model basis terms */
-  std::map< TypeNode, Node > d_model_basis_term;
-  /** map from ops to model basis terms */
-  std::map< Node, Node > d_model_basis_op_term;
-  /** map from instantiation terms to their model basis equivalent */
-  std::map< Node, Node > d_model_basis_body;
-  /** map from universal quantifiers to model basis terms */
-  std::map< Node, std::vector< Node > > d_model_basis_terms;
-  /** compute model basis arg */
-  void computeModelBasisArgAttribute( Node n );
- public:
-  /** get model basis term */
-  Node getModelBasisTerm(TypeNode tn, int i = 0);
-  /** get model basis term for op */
-  Node getModelBasisOpTerm(Node op);
-  /** get model basis */
-  Node getModelBasis(Node q, Node n);
-  /** get model basis body */
-  Node getModelBasisBody(Node q);
-  /** get model basis arg */
-  unsigned getModelBasisArg(Node n);
   
 //for higher-order
 private:

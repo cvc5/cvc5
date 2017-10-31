@@ -1124,15 +1124,20 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   for( unsigned i=0; i<terms.size(); i++ ){
     Trace("inst-add-debug") << "  " << q[0][i];
     Trace("inst-add-debug2") << " -> " << terms[i];
+    TypeNode tn = q[0][i].getType();
     if( terms[i].isNull() ){
-      terms[i] = d_term_util->getModelBasisTerm( q[0][i].getType() );
+      if( d_term_enum->isClosedEnumerableType(tn) ){
+        terms[i] = d_term_enum->getEnumerateTerm(tn,0);
+      }else{
+        terms[i] = d_term_db->getOrMakeTypeGroundTerm( tn );
+      }
     }
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
       terms[i] = getInternalRepresentative( terms[i], q, i );
     }else{
       //ensure the type is correct
-      terms[i] = quantifiers::TermUtil::ensureType( terms[i], q[0][i].getType() );
+      terms[i] = quantifiers::TermUtil::ensureType( terms[i], tn );
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if( terms[i].isNull() ){

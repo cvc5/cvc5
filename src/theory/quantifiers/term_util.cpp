@@ -231,14 +231,19 @@ Node TermUtil::getInstConstantNode( Node n, Node q ){
   return n.substitute( d_vars[q].begin(), d_vars[q].end(), d_inst_constants[q].begin(), d_inst_constants[q].end() );
 }
 
-Node TermUtil::getVariableNode( Node n, Node q ) {
+Node TermUtil::substituteInstConstantsToBoundVariables( Node n, Node q ) {
   registerQuantifier( q );
   return n.substitute( d_inst_constants[q].begin(), d_inst_constants[q].end(), d_vars[q].begin(), d_vars[q].end() );
 }
 
-Node TermUtil::getInstantiatedNode( Node n, Node q, std::vector< Node >& terms ) {
+Node TermUtil::substituteBoundVariables( Node n, Node q, std::vector< Node >& terms ) {
   Assert( d_vars[q].size()==terms.size() );
   return n.substitute( d_vars[q].begin(), d_vars[q].end(), terms.begin(), terms.end() );
+}
+
+Node TermUtil::substituteInstConstants( Node n, Node q, std::vector< Node >& terms ) {
+  Assert( d_inst_constants[q].size()==terms.size() );
+  return n.substitute( d_inst_constants[q].begin(), d_inst_constants[q].end(), terms.begin(), terms.end() );
 }
 
 void TermUtil::computeVarContains( Node n, std::vector< Node >& varContains ) {
@@ -911,98 +916,6 @@ Node TermUtil::getHoTypeMatchPredicate( TypeNode tn ) {
   }else{
     return ithp->second;  
   }
-}
-
-Node TermUtil::getModelBasisTerm( TypeNode tn, int i ){
-  if( d_model_basis_term.find( tn )==d_model_basis_term.end() ){
-    Node mbt;
-    if( tn.isInteger() || tn.isReal() ){
-      mbt = NodeManager::currentNM()->mkConst(Rational(0));
-    }else if( d_quantEngine->getTermEnumeration()->isClosedEnumerableType( tn ) ){
-      mbt = tn.mkGroundTerm();
-    }else{
-      unsigned num_type_terms = d_quantEngine->getTermDatabase()->getNumTypeGroundTerms( tn );
-      if( options::fmfFreshDistConst() || num_type_terms==0 ){
-        std::stringstream ss;
-        ss << language::SetLanguage(options::outputLanguage());
-        ss << "e_" << tn;
-        mbt = NodeManager::currentNM()->mkSkolem( ss.str(), tn, "is a model basis term" );
-        Trace("mkVar") << "ModelBasis:: Make variable " << mbt << " : " << tn << std::endl;
-        if( options::instMaxLevel()!=-1 ){
-          QuantifiersEngine::setInstantiationLevelAttr( mbt, 0 );
-        }
-      }else{
-        mbt = d_quantEngine->getTermDatabase()->getTypeGroundTerm( tn, 0 );
-      }
-    }
-    ModelBasisAttribute mba;
-    mbt.setAttribute(mba,true);
-    d_model_basis_term[tn] = mbt;
-    Trace("model-basis-term") << "Choose " << mbt << " as model basis term for " << tn << std::endl;
-  }
-  return d_model_basis_term[tn];
-}
-
-Node TermUtil::getModelBasisOpTerm( Node op ){
-  if( d_model_basis_op_term.find( op )==d_model_basis_op_term.end() ){
-    TypeNode t = op.getType();
-    std::vector< Node > children;
-    children.push_back( op );
-    for( int i=0; i<(int)(t.getNumChildren()-1); i++ ){
-      children.push_back( getModelBasisTerm( t[i] ) );
-    }
-    if( children.size()==1 ){
-      d_model_basis_op_term[op] = op;
-    }else{
-      d_model_basis_op_term[op] = NodeManager::currentNM()->mkNode( APPLY_UF, children );
-    }
-  }
-  return d_model_basis_op_term[op];
-}
-
-Node TermUtil::getModelBasis( Node q, Node n ){
-  //make model basis
-  if( d_model_basis_terms.find( q )==d_model_basis_terms.end() ){
-    for( unsigned j=0; j<q[0].getNumChildren(); j++ ){
-      d_model_basis_terms[q].push_back( getModelBasisTerm( q[0][j].getType() ) );
-    }
-  }
-  Node gn = n.substitute( d_quantEngine->getTermUtil()->d_inst_constants[q].begin(), 
-                          d_quantEngine->getTermUtil()->d_inst_constants[q].end(),
-                          d_model_basis_terms[q].begin(), d_model_basis_terms[q].end() );
-  return gn;
-}
-
-Node TermUtil::getModelBasisBody( Node q ){
-  if( d_model_basis_body.find( q )==d_model_basis_body.end() ){
-    Node n = d_quantEngine->getTermUtil()->getInstConstantBody( q );
-    d_model_basis_body[q] = getModelBasis( q, n );
-  }
-  return d_model_basis_body[q];
-}
-
-void TermUtil::computeModelBasisArgAttribute( Node n ){
-  if( !n.hasAttribute(ModelBasisArgAttribute()) ){
-    //ensure that the model basis terms have been defined
-    if( n.getKind()==APPLY_UF ){
-      getModelBasisOpTerm( n.getOperator() );
-    }
-    uint64_t val = 0;
-    //determine if it has model basis attribute
-    for( unsigned j=0; j<n.getNumChildren(); j++ ){
-      if( n[j].getAttribute(ModelBasisAttribute()) ){
-        val++;
-      }
-    }
-    ModelBasisArgAttribute mbaa;
-    n.setAttribute( mbaa, val );
-  }
-}
-
-unsigned TermUtil::getModelBasisArg(Node n)
-{
-  computeModelBasisArgAttribute(n);
-  return n.getAttribute(ModelBasisArgAttribute());
 }
 
 
