@@ -1449,6 +1449,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   Node len_n2 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
   if (checkEntailArith(len_n2, len_n1, true))
   {
+    // len( n2 ) > len( n1 ) => contains( n1, n2 ) ---> false
     return NodeManager::currentNM()->mkConst(false);
   }
 
