@@ -1064,7 +1064,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     if( node[2].isConst() && node[2].getConst<Rational>().sgn()<=0 ) {
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
     }else if( node[1].isConst() ){
-      // TODO (#1168) : use entailment test here
+      // TODO (#1180) : use entailment test here
       if( node[1].getConst<Rational>().sgn()<0 ){
         //bring forward to start at zero?  don't use this semantics, e.g. does not compose well with error conditions for str.indexof.
         //retNode = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, node[0], zero, NodeManager::currentNM()->mkNode( kind::PLUS, node[1], node[2] ) );
@@ -1112,7 +1112,8 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
           }
         }else{
           if( node[1]==zero ){
-            // TODO (#1168) : use entailment test here instead of the special case
+            // TODO (#1180) : use entailment test here instead of the special
+            // case
             if( node[2].getKind() == kind::STRING_LENGTH && node[2][0]==node[0] ){
               retNode = node[0];
             }else{
@@ -1423,10 +1424,10 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   getConcat(node[0], nc1);
   std::vector<Node> nc2;
   getConcat(node[1], nc2);
-  
+
   // component-wise containment
-  std::vector< Node > nc1rb;
-  std::vector< Node > nc1re;
+  std::vector<Node> nc1rb;
+  std::vector<Node> nc1re;
   if (componentContains(nc1, nc2, nc1rb, nc1re) != -1)
   {
     return NodeManager::currentNM()->mkConst(true);
@@ -1444,12 +1445,13 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
                                   << " " << node[1] << std::endl;
 
   // length entailment
-  Node len_n1 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0] );
-  Node len_n2 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[1] );
-  if( checkEntailArith( len_n2, len_n1, true ) ){
+  Node len_n1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[0]);
+  Node len_n2 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
+  if (checkEntailArith(len_n2, len_n1, true))
+  {
     return NodeManager::currentNM()->mkConst(false);
   }
-                                  
+
   // splitting
   if (node[0].getKind() == kind::STRING_CONCAT)
   {
@@ -1603,7 +1605,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   if( node[1]==node[2] ){
     return node[0];
   }else{
-    // TODO (#1168) : try str.contains( node[0], node[1] ) ---> false
+    // TODO (#1180) : try str.contains( node[0], node[1] ) ---> false
     if( node[1].isConst() ){
       if( node[1].getConst<String>().isEmptyString() ){
         return node[0];
@@ -1707,13 +1709,17 @@ bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& first
       }else{
         pos = new_pos + s.size();
       }
-    }else if( n[i].getKind()==kind::STRING_ITOS ){
+    }
+    else if (n[i].getKind() == kind::STRING_ITOS)
+    {
       // find the first occurrence of a digit starting at pos
-      while( pos<tvec.size() && !String::isDigit(tvec[pos]) ){
+      while (pos < tvec.size() && !String::isDigit(tvec[pos]))
+      {
         pos++;
       }
-      if( pos==tvec.size() ){
-        return false;        
+      if (pos == tvec.size())
+      {
+        return false;
       }
       // must consume at least one digit here
       pos++;
@@ -1791,22 +1797,27 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
     {
       Node n1rb;
       Node n1re;
-      if( componentContainsBase(n1[i],n2[0],n1rb,n1re,0,computeRemainder) ){
+      if (componentContainsBase(n1[i], n2[0], n1rb, n1re, 0, computeRemainder))
+      {
         if (computeRemainder)
         {
-          if( remainderDir!=-1 ){
-            if( !n1re.isNull() ){
-              ne.push_back( n1re );
+          if (remainderDir != -1)
+          {
+            if (!n1re.isNull())
+            {
+              ne.push_back(n1re);
             }
             ne.insert(ne.end(), n1.begin() + i + 1, n1.end());
             n1.erase(n1.begin() + i + 1, n1.end());
           }
           n1[i] = n2[0];
-          if( remainderDir!=1 ){
-            nb.insert(nb.end(), n1.begin(), n1.begin()+i);
-            n1.erase(n1.begin(), n1.begin()+i);
-            if( !n1rb.isNull() ){
-              nb.push_back( n1rb );
+          if (remainderDir != 1)
+          {
+            nb.insert(nb.end(), n1.begin(), n1.begin() + i);
+            n1.erase(n1.begin(), n1.begin() + i);
+            if (!n1rb.isNull())
+            {
+              nb.push_back(n1rb);
             }
           }
         }
@@ -1822,35 +1833,46 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
       Node n1rb_first;
       Node n1re_first;
       // first component of n2 must be a suffix
-      if (componentContainsBase( n1[i], n2[0], n1rb_first, n1re_first, 1, computeRemainder ))
+      if (componentContainsBase(
+              n1[i], n2[0], n1rb_first, n1re_first, 1, computeRemainder))
       {
-        Assert( n1re_first.isNull() );
+        Assert(n1re_first.isNull());
         for (unsigned j = 1; j < n2.size(); j++)
         {
           // are we in the last component?
-          if (j + 1 == n2.size() ){
+          if (j + 1 == n2.size())
+          {
             Node n1rb_last;
             Node n1re_last;
             // last component of n2 must be a prefix
-            if( componentContainsBase( n1[i+j], n2[j], n1rb_last, n1re_last, -1, computeRemainder ))
+            if (componentContainsBase(n1[i + j],
+                                      n2[j],
+                                      n1rb_last,
+                                      n1re_last,
+                                      -1,
+                                      computeRemainder))
             {
-              Assert( n1rb_first.isNull() );
+              Assert(n1rb_first.isNull());
               if (computeRemainder)
               {
-                if( remainderDir!=-1 ){
-                  if( !n1re_last.isNull() ){
-                    ne.push_back( n1re_last );
+                if (remainderDir != -1)
+                {
+                  if (!n1re_last.isNull())
+                  {
+                    ne.push_back(n1re_last);
                   }
                   ne.insert(ne.end(), n1.begin() + i + j + 1, n1.end());
                   n1.erase(n1.begin() + i + j + 1, n1.end());
                 }
                 n1[i + j] = n2[j];
                 n1[i] = n2[0];
-                if( remainderDir!=1 ){
-                  nb.insert(nb.end(),n1.begin(), n1.begin()+i);
-                  n1.erase(n1.begin(), n1.begin()+i);
-                  if( !n1rb_first.isNull() ){
-                    nb.push_back( n1rb_first );
+                if (remainderDir != 1)
+                {
+                  nb.insert(nb.end(), n1.begin(), n1.begin() + i);
+                  n1.erase(n1.begin(), n1.begin() + i);
+                  if (!n1rb_first.isNull())
+                  {
+                    nb.push_back(n1rb_first);
                   }
                 }
               }
@@ -1861,7 +1883,7 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
               break;
             }
           }
-          else if(n1[i + j] != n2[j]) 
+          else if (n1[i + j] != n2[j])
           {
             break;
           }
@@ -1872,73 +1894,113 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
   return -1;
 }
 
-bool TheoryStringsRewriter::componentContainsBase(Node n1, Node n2, Node& n1rb, Node& n1re,
-                                                  int dir, bool computeRemainder) {
-  if( n1==n2 ){
-    return true;    
-  }else{
-    if( n1.isConst() && n2.isConst() ){
+bool TheoryStringsRewriter::componentContainsBase(
+    Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder)
+{
+  if (n1 == n2)
+  {
+    return true;
+  }
+  else
+  {
+    if (n1.isConst() && n2.isConst())
+    {
       CVC4::String s = n1.getConst<String>();
       CVC4::String t = n2.getConst<String>();
-      if(t.size() < s.size() ){
-        if( dir==1 ){
-          if( s.suffix(t.size()) == t ){
-            if( computeRemainder ){
-              n1rb = NodeManager::currentNM()->mkConst(::CVC4::String(s.prefix(s.size()-t.size())));
+      if (t.size() < s.size())
+      {
+        if (dir == 1)
+        {
+          if (s.suffix(t.size()) == t)
+          {
+            if (computeRemainder)
+            {
+              n1rb = NodeManager::currentNM()->mkConst(
+                  ::CVC4::String(s.prefix(s.size() - t.size())));
             }
             return true;
           }
-        }else if( dir==-1 ){
-          if( s.prefix(t.size()) == t ){
-            if( computeRemainder ){
-              n1rb = NodeManager::currentNM()->mkConst(::CVC4::String(s.suffix(s.size()-t.size())));
+        }
+        else if (dir == -1)
+        {
+          if (s.prefix(t.size()) == t)
+          {
+            if (computeRemainder)
+            {
+              n1rb = NodeManager::currentNM()->mkConst(
+                  ::CVC4::String(s.suffix(s.size() - t.size())));
             }
             return true;
           }
-        }else{
+        }
+        else
+        {
           size_t f = s.find(t);
-          if( f!=std::string::npos ){
-            if( computeRemainder ){
-              if( f>0 ){
-                n1rb = NodeManager::currentNM()->mkConst(::CVC4::String(s.prefix(f)));
+          if (f != std::string::npos)
+          {
+            if (computeRemainder)
+            {
+              if (f > 0)
+              {
+                n1rb = NodeManager::currentNM()->mkConst(
+                    ::CVC4::String(s.prefix(f)));
               }
-              if( s.size()>f+t.size() ){
-                n1re = NodeManager::currentNM()->mkConst(::CVC4::String(s.suffix(s.size()-(f+t.size()))));
+              if (s.size() > f + t.size())
+              {
+                n1re = NodeManager::currentNM()->mkConst(
+                    ::CVC4::String(s.suffix(s.size() - (f + t.size()))));
               }
             }
             return true;
           }
         }
       }
-    }else{
+    }
+    else
+    {
       // cases for:
       //   n1 = x   containing   n2 = substr( x, n2[1], n2[2] )
-      if( n2.getKind()==kind::STRING_SUBSTR ){
-        if( n2[0]==n1 ){
+      if (n2.getKind() == kind::STRING_SUBSTR)
+      {
+        if (n2[0] == n1)
+        {
           bool success = true;
           Node start_pos = n2[1];
-          Node end_pos = NodeManager::currentNM()->mkNode( kind::PLUS, n2[1], n2[2] );
-          Node len_n2s = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n2[0] );
-          if( dir==1 ){
-            // To be suffix, start + length must be greater than 
+          Node end_pos =
+              NodeManager::currentNM()->mkNode(kind::PLUS, n2[1], n2[2]);
+          Node len_n2s =
+              NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, n2[0]);
+          if (dir == 1)
+          {
+            // To be suffix, start + length must be greater than
             // or equal to the length of the string.
-            success = checkEntailArith( end_pos, len_n2s );
-          }else if( dir==-1 ){
+            success = checkEntailArith(end_pos, len_n2s);
+          }
+          else if (dir == -1)
+          {
             // To be prefix, must literally start at 0, since
             //   if we knew it started at <0, it should be rewritten to "",
-            //   if we knew it started at 0, then n2[1] should be rewritten to 0.
-            success = start_pos.isConst() && start_pos.getConst<Rational>().sgn()==0;
+            //   if we knew it started at 0, then n2[1] should be rewritten to
+            //   0.
+            success = start_pos.isConst()
+                      && start_pos.getConst<Rational>().sgn() == 0;
           }
-          if( success ){
-            if( computeRemainder ){
-              if( dir!=1 ){
-                n1rb = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, n2[0],
-                                                         NodeManager::currentNM()->mkConst(Rational(0)),
-                                                         start_pos );
+          if (success)
+          {
+            if (computeRemainder)
+            {
+              if (dir != 1)
+              {
+                n1rb = NodeManager::currentNM()->mkNode(
+                    kind::STRING_SUBSTR,
+                    n2[0],
+                    NodeManager::currentNM()->mkConst(Rational(0)),
+                    start_pos);
               }
-              if( dir!=-1 ){
-                n1re = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, n2[0],
-                                                         end_pos, len_n2s );
+              if (dir != -1)
+              {
+                n1re = NodeManager::currentNM()->mkNode(
+                    kind::STRING_SUBSTR, n2[0], end_pos, len_n2s);
               }
             }
             return true;
@@ -2125,46 +2187,72 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
   //      which is larger that the upper bound for length of str.substr(y,0,3),
   //      which is 3.
   return changed;
-} 
-
-bool TheoryStringsRewriter::checkEntailArith( Node a, Node b, bool strict ) {
-  Node diff = NodeManager::currentNM()->mkNode( kind::MINUS, a, b );
-  return checkEntailArith( diff, strict );
 }
 
-bool TheoryStringsRewriter::checkEntailArith( Node a, bool strict ) {
-  if( a.isConst() ){
-    return a.getConst<Rational>().sgn()>=( strict ? 1 : 0 );
-  }else{
-    Node ar = strict ? NodeManager::currentNM()->mkNode( kind::MINUS, a,
-      NodeManager::currentNM()->mkConst( Rational(1) ) ) : a;
-    ar = Rewriter::rewrite( ar );
+bool TheoryStringsRewriter::checkEntailArith(Node a, Node b, bool strict)
+{
+  Node diff = NodeManager::currentNM()->mkNode(kind::MINUS, a, b);
+  return checkEntailArith(diff, strict);
+}
+
+bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
+{
+  if (a.isConst())
+  {
+    return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
+  }
+  else
+  {
+    Node ar = strict
+                  ? NodeManager::currentNM()->mkNode(
+                        kind::MINUS,
+                        a,
+                        NodeManager::currentNM()->mkConst(Rational(1)))
+                  : a;
+    ar = Rewriter::rewrite(ar);
+    if( checkEntailArithInternal(ar) )
+    {
+      return true;
+    }
     // TODO (#1180) : abstract interpretation goes here
-    return checkEntailArithInternal( ar );
+    return false;
   }
 }
 
-bool TheoryStringsRewriter::checkEntailArithInternal( Node a ) {
+bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
+{
+  Assert(Rewriter::rewrite(a) == a);
   // check whether a >= 0
-  if( a.isConst() ){
-    return a.getConst<Rational>().sgn()>=0;
-  }else if( a.getKind()==kind::STRING_LENGTH ){
+  if (a.isConst())
+  {
+    return a.getConst<Rational>().sgn() >= 0;
+  }
+  else if (a.getKind() == kind::STRING_LENGTH)
+  {
     // str.len( t ) >= 0
-    return true;      
-  }else if( a.getKind()==kind::MULT ){
-    if( a.getNumChildren()==2 && a[0].isConst() && a[0].getConst<Rational>().sgn()>=0 ){
+    return true;
+  }
+  else if (a.getKind() == kind::MULT)
+  {
+    if (a.getNumChildren() == 2 && a[0].isConst()
+        && a[0].getConst<Rational>().sgn() >= 0)
+    {
       // c > 0 ^ t >= 0 => c*t >= 0
-      return checkEntailArithInternal( a[1] );
+      return checkEntailArithInternal(a[1]);
     }
-  }else if( a.getKind()==kind::PLUS ){
-    for( unsigned i=0; i<a.getNumChildren(); i++ ){
-      if( !checkEntailArithInternal( a[i] ) ){
+  }
+  else if (a.getKind() == kind::PLUS)
+  {
+    for (unsigned i = 0; i < a.getNumChildren(); i++)
+    {
+      if (!checkEntailArithInternal(a[i]))
+      {
         return false;
       }
     }
     // t1 >= 0 ^ ... ^ tn >= 0 => t1 + ... + tn >= 0
     return true;
   }
-  
+
   return false;
 }
