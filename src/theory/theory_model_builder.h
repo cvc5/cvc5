@@ -46,10 +46,13 @@ public:
    * Should be called only on TheoryModels m.
    * This constructs the model m, via the following steps:
    * (1) call TheoryEngine::collectModelInfo, 
-   * (2) builder-specified preprocessing,
-   * (3) assign constants to equivalence classes,
-   * (4) 
-   * (5) builder-specific postprocessing.
+   * (2) builder-specified pre-processing,
+   * (3) determine equivalence classes of m's
+   *     equality engine that initially contain constants,
+   * (4) assign constants to all equivalence classes
+   *     of m's equality engine, through alternating
+   *     iterations of evaluation and enumeration,
+   * (5) builder-specific post-processing.
    * 
    * This function returns false if any of the above
    * steps results in a lemma is sent on an output channel.
@@ -70,15 +73,17 @@ protected:
   TheoryEngine* d_te;
   //-----------------------------------virtual functions 
   /** pre-process build model 
-   * Called before we assign values 
+   * Called in step (2) of the build construction,
+   * described above.
    */
   virtual bool preProcessBuildModel(TheoryModel* m);
   /** process build model 
-   * Called after we assign values 
+   * Called in step (5) of the build construction,
+   * described above.
    */
   virtual bool processBuildModel(TheoryModel* m);
   /** debug the model
-   * Do assertions and debug printing associated with the model. 
+   * Check assertions and printing debug information for the model. 
    */
   virtual void debugModel( TheoryModel* m ) {}
   //-----------------------------------end virtual functions 
