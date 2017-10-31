@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief utilities for skolemization
+ ** \brief utilities for term enumeration
  **/
 
 #include "cvc4_private.h"
