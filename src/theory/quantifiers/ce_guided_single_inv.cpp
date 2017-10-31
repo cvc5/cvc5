@@ -20,6 +20,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
@@ -472,7 +473,7 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
   Node s;
   if( d_prog_to_sol_index.find( prog )==d_prog_to_sol_index.end() ){
     Trace("csi-sol") << "Get solution for (unconstrained) " << prog << std::endl;
-    s = d_qe->getTermUtil()->getEnumerateTerm( TypeNode::fromType( dt.getSygusType() ), 0 );
+    s = d_qe->getTermEnumeration()->getEnumerateTerm( TypeNode::fromType( dt.getSygusType() ), 0 );
   }else{
     Trace("csi-sol") << "Get solution for " << prog << ", with skolems : ";
     sol_index = d_prog_to_sol_index[prog];

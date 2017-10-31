@@ -420,6 +420,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/rewrite_engine.cpp \
 	theory/quantifiers/rewrite_engine.h \
+	theory/quantifiers/skolemize.cpp \
+	theory/quantifiers/skolemize.h \
 	theory/quantifiers/sygus_grammar_cons.cpp \
 	theory/quantifiers/sygus_grammar_cons.h \
 	theory/quantifiers/sygus_process_conj.cpp \
@@ -430,6 +432,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/term_database.h \
 	theory/quantifiers/term_database_sygus.cpp \
 	theory/quantifiers/term_database_sygus.h \
+	theory/quantifiers/term_enumeration.cpp \
+	theory/quantifiers/term_enumeration.h \
 	theory/quantifiers/term_util.cpp \
 	theory/quantifiers/term_util.h \
 	theory/quantifiers/theory_quantifiers.cpp \

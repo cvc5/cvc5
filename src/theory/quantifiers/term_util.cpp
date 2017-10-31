@@ -22,6 +22,7 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_enumeration.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -238,78 +239,6 @@ Node TermUtil::getVariableNode( Node n, Node q ) {
 Node TermUtil::getInstantiatedNode( Node n, Node q, std::vector< Node >& terms ) {
   Assert( d_vars[q].size()==terms.size() );
   return n.substitute( d_vars[q].begin(), d_vars[q].end(), terms.begin(), terms.end() );
-}
-
-Node TermUtil::getEnumerateTerm( TypeNode tn, unsigned index ) {
-  Trace("term-db-enum") << "Get enumerate term " << tn << " " << index << std::endl;
-  std::map< TypeNode, unsigned >::iterator it = d_typ_enum_map.find( tn );
-  unsigned teIndex;
-  if( it==d_typ_enum_map.end() ){
-    teIndex = (int)d_typ_enum.size();
-    d_typ_enum_map[tn] = teIndex;
-    d_typ_enum.push_back( TypeEnumerator(tn) );
-  }else{
-    teIndex = it->second;
-  }
-  while( index>=d_enum_terms[tn].size() ){
-    if( d_typ_enum[teIndex].isFinished() ){
-      return Node::null();
-    }
-    d_enum_terms[tn].push_back( *d_typ_enum[teIndex] );
-    ++d_typ_enum[teIndex];
-  }
-  return d_enum_terms[tn][index];
-}
-
-bool TermUtil::isClosedEnumerableType( TypeNode tn ) {
-  std::map< TypeNode, bool >::iterator it = d_typ_closed_enum.find( tn );
-  if( it==d_typ_closed_enum.end() ){
-    d_typ_closed_enum[tn] = true;
-    bool ret = true;
-    if( tn.isArray() || tn.isSort() || tn.isCodatatype() || tn.isFunction() ){
-      ret = false;
-    }else if( tn.isSet() ){
-      ret = isClosedEnumerableType( tn.getSetElementType() );
-    }else if( tn.isDatatype() ){
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-          TypeNode ctn = TypeNode::fromType( dt[i][j].getRangeType() );
-          if( tn!=ctn && !isClosedEnumerableType( ctn ) ){
-            ret = false;
-            break;
-          }
-        }
-        if( !ret ){
-          break;
-        }
-      }
-    }
-    //TODO: other parametric sorts go here
-    d_typ_closed_enum[tn] = ret;
-    return ret;
-  }else{
-    return it->second;
-  }
-}
-
-//checks whether a type is not Array and is reasonably small enough (<1000) such that all of its domain elements can be enumerated
-bool TermUtil::mayComplete( TypeNode tn ) {
-  std::map< TypeNode, bool >::iterator it = d_may_complete.find( tn );
-  if( it==d_may_complete.end() ){
-    bool mc = false;
-    if( isClosedEnumerableType( tn ) && tn.getCardinality().isFinite() && !tn.getCardinality().isLargeFinite() ){
-      Node card = NodeManager::currentNM()->mkConst( Rational(tn.getCardinality().getFiniteCardinality()) );
-      Node oth = NodeManager::currentNM()->mkConst( Rational(1000) );
-      Node eq = NodeManager::currentNM()->mkNode( LEQ, card, oth );
-      eq = Rewriter::rewrite( eq );
-      mc = eq==d_true;
-    }
-    d_may_complete[tn] = mc;
-    return mc;
-  }else{
-    return it->second;
-  }
 }
 
 void TermUtil::computeVarContains( Node n, std::vector< Node >& varContains ) {
@@ -989,7 +918,7 @@ Node TermUtil::getModelBasisTerm( TypeNode tn, int i ){
     Node mbt;
     if( tn.isInteger() || tn.isReal() ){
       mbt = NodeManager::currentNM()->mkConst(Rational(0));
-    }else if( isClosedEnumerableType( tn ) ){
+    }else if( d_quantEngine->getTermEnumeration()->isClosedEnumerableType( tn ) ){
       mbt = tn.mkGroundTerm();
     }else{
       unsigned num_type_terms = d_quantEngine->getTermDatabase()->getNumTypeGroundTerms( tn );

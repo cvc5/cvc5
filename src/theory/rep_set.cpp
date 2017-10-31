@@ -19,6 +19,7 @@
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/term_enumeration.h"
 
 using namespace std;
 using namespace CVC4;
@@ -260,7 +261,7 @@ bool RepSetIterator::initialize( RepBoundExt* rext ){
     }
     if( !tn.isSort() ){
       if( inc ){
-        if( d_qe->getTermUtil()->mayComplete( tn ) ){
+        if( d_qe->getTermEnumeration()->mayComplete( tn ) ){
           Trace("rsi") << "  do complete, since cardinality is small (" << tn.getCardinality() << ")..." << std::endl;
           d_rep_set->complete( tn );
           //must have succeeded

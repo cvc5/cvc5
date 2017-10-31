@@ -19,6 +19,7 @@
 #include "smt/term_formula_removal.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/trigger.h"
@@ -1100,7 +1101,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
 
 
 Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn ){
-  d_closed_enum_type = qe->getTermUtil()->isClosedEnumerableType( tn );
+  d_closed_enum_type = qe->getTermEnumeration()->isClosedEnumerableType( tn );
 }
 
 

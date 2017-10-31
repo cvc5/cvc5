@@ -69,13 +69,12 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      TheoryEngine* te)
     : d_te(te),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
-      d_skolemize(new quantifiers::Skolemize),
+      d_skolemize(new quantifiers::Skolemize(this, u)),
       d_term_enum(new quantifiers::TermEnumeration),
       d_conflict_c(c, false),
       // d_quants(u),
       d_quants_red(u),
       d_lemmas_produced_c(u),
-      d_skolemized(u),
       d_ierCounter_c(c),
       // d_ierCounter(c),
       // d_ierCounter_lc(c),
@@ -370,7 +369,7 @@ bool QuantifiersEngine::isFiniteBound( Node q, Node v ) {
     TypeNode tn = v.getType();
     if( tn.isSort() && options::finiteModelFind() ){
       return true;
-    }else if( getTermUtil()->mayComplete( tn ) ){
+    }else if( d_term_enum->mayComplete( tn ) ){
       return true;
     }
   }
@@ -796,17 +795,13 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     //if not reduced
     if( !reduceQuantifier( f ) ){
       //do skolemization
-      if( d_skolemized.find( f )==d_skolemized.end() ){
-        Node body = d_skolemize->getSkolemizedBody( f );
-        NodeBuilder<> nb(kind::OR);
-        nb << f << body.notNode();
-        Node lem = nb;
+      Node lem = d_skolemize->process( f );
+      if( !lem.isNull() ){
         if( Trace.isOn("quantifiers-sk-debug") ){
           Node slem = Rewriter::rewrite( lem );
           Trace("quantifiers-sk-debug") << "Skolemize lemma : " << slem << std::endl;
         }
         getOutputChannel().lemma( lem, false, true );
-        d_skolemized[f] = true;
       }
     }
   }else{
@@ -1513,18 +1508,11 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
   }
 
   bool printed = false;
-  for( BoolMap::iterator it = d_skolemized.begin(); it != d_skolemized.end(); ++it ){
-    Node q = (*it).first;
-    printed = true;
-    out << "(skolem " << q << std::endl;
-    out << "  ( ";
-    for( unsigned i=0; i<d_term_util->d_skolem_constants[q].size(); i++ ){
-      if( i>0 ){ out << " "; }
-      out << d_term_util->d_skolem_constants[q][i];
-    }
-    out << " )" << std::endl;
-    out << ")" << std::endl;
+  // print the skolemizations
+  if( d_skolemize->printSkolemization(out) ){
+    printed = true;    
   }
+  // print the instantiations
   if( options::incrementalSolving() ){
     for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
       bool firstTime = true;

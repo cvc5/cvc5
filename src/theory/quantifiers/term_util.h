@@ -187,25 +187,6 @@ public:
   //quantified simplify (treat free variables in n as quantified and run rewriter)
   static Node getQuantSimplify( Node n );
 
-//for ground term enumeration
-private:
-  /** ground terms enumerated for types */
-  std::map< TypeNode, std::vector< Node > > d_enum_terms;
-  //type enumerators
-  std::map< TypeNode, unsigned > d_typ_enum_map;
-  std::vector< TypeEnumerator > d_typ_enum;
-  // closed enumerable type cache
-  std::map< TypeNode, bool > d_typ_closed_enum;
-  /** may complete */
-  std::map< TypeNode, bool > d_may_complete;
-public:
-  //get nth term for type
-  Node getEnumerateTerm( TypeNode tn, unsigned index );
-  //does this type have an enumerator that produces constants that are handled by ground theory solvers
-  bool isClosedEnumerableType( TypeNode tn );
-  // may complete
-  bool mayComplete( TypeNode tn );
-
 //for triggers
 private:
   /** helper function for compute var contains */

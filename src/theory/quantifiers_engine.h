@@ -208,8 +208,6 @@ private:
   std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;
   /** recorded instantiations */
   std::vector< std::pair< Node, std::vector< Node > > > d_recorded_inst;
-  /** quantifiers that have been skolemized */
-  BoolMap d_skolemized;
   /** all triggers will be stored in this trie */
   inst::TriggerTrie* d_tr_trie;
   /** extended model object */
