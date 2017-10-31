@@ -110,13 +110,23 @@ class TermGenerator;
 class TermGenEnv;
 
 /** Term Database
-*
-* The primary responsibilities for this class are to :
-* (1) Maintain a list of all ground terms that exist in the quantifier-free
-*     solvers, as notified through the master equality engine.
-* (2) Build TermArgTrie objects that index all ground terms, per operator. This
-*     is done lazily, for performance reasons.
-*/
+ * 
+ * This class is a key utility used by
+ * a number of approaches for quantifier instantiation,
+ * including E-matching, conflict-based instantiation,
+ * and model-based instantiation.
+ *
+ * The primary responsibilities for this class are to :
+ * (1) Maintain a list of all ground terms that exist in the quantifier-free
+ *     solvers, as notified through the master equality engine.
+ * (2) Build TermArgTrie objects that index all ground terms, per operator.
+ * 
+ * Like other utilities, its reset(...) function is called
+ * at the beginning of full or last call effort checks. 
+ * This initializes the database for the round. However,
+ * notice that TermArgTrie objects are computed 
+ * lazily for performance reasons.
+ */
 class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::QuantifiersEngine;
   // TODO: eliminate these
@@ -297,9 +307,13 @@ class TermDb : public QuantifiersUtil {
   bool hasTermCurrent(Node n, bool useMode = true);
   /** is term eligble for instantiation? */
   bool isTermEligibleForInstantiation(TNode n, TNode f, bool print = false);
-  /** get eligible term in equivalence class */
+  /** get eligible term in equivalence class of r */
   Node getEligibleTermInEqc(TNode r);
-  /** is inst closure */
+  /** is r a inst closure node?
+   * This terminology was used for specifying
+   * a particular status of nodes for
+   * Bansal et al., CAV 2015.
+   */
   bool isInstClosure(Node r);
 
  private:
@@ -365,32 +379,6 @@ class TermDb : public QuantifiersUtil {
   /** get operator representative */
   Node getOperatorRepresentative( TNode op ) const;
   //------------------------------end higher-order term indexing
-
-  // TODO : as part of #1171, these should be moved somewhere else
-  // for model basis
- private:
-  /** map from types to model basis terms */
-  std::map< TypeNode, Node > d_model_basis_term;
-  /** map from ops to model basis terms */
-  std::map< Node, Node > d_model_basis_op_term;
-  /** map from instantiation terms to their model basis equivalent */
-  std::map< Node, Node > d_model_basis_body;
-  /** map from universal quantifiers to model basis terms */
-  std::map< Node, std::vector< Node > > d_model_basis_terms;
-  /** compute model basis arg */
-  void computeModelBasisArgAttribute( Node n );
- public:
-  /** get model basis term */
-  Node getModelBasisTerm(TypeNode tn, int i = 0);
-  /** get model basis term for op */
-  Node getModelBasisOpTerm(Node op);
-  /** get model basis */
-  Node getModelBasis(Node q, Node n);
-  /** get model basis body */
-  Node getModelBasisBody(Node q);
-  /** get model basis arg */
-  unsigned getModelBasisArg(Node n);
-
 };/* class TermDb */
 
 }/* CVC4::theory::quantifiers namespace */

@@ -847,7 +847,7 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
   //only wait if we are doing incremental solving
   if( !d_presolve || !options::incrementalSolving() ){
     std::set< Node > added;
-    getTermDatabase()->addTerm( n, added, withinQuant, withinInstClosure );
+    d_term_db->addTerm( n, added, withinQuant, withinInstClosure );
     
     //added contains also the Node that just have been asserted in this branch
     if( d_quant_rel ){
@@ -1125,7 +1125,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     Trace("inst-add-debug") << "  " << q[0][i];
     Trace("inst-add-debug2") << " -> " << terms[i];
     if( terms[i].isNull() ){
-      terms[i] = d_term_db->getModelBasisTerm( q[0][i].getType() );
+      terms[i] = d_term_util->getModelBasisTerm( q[0][i].getType() );
     }
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term

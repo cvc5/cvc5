@@ -433,7 +433,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     Trace("fmc-model-debug") << std::endl;
     //possibly get default
     if( needsDefault ){
-      Node nmb = d_qe->getTermDatabase()->getModelBasisOpTerm(op);
+      Node nmb = d_qe->getTermUtil()->getModelBasisOpTerm(op);
       //add default value if necessary
       if( fm->hasTerm( nmb ) ){
         Trace("fmc-model-debug") << "Add default " << nmb << std::endl;
@@ -505,7 +505,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     for (int i=0; i<(int)conds.size(); i++) {
       mbas.d_terms.push_back(conds[i]);
       mbas.d_mba_count[conds[i]] =
-          d_qe->getTermDatabase()->getModelBasisArg(conds[i]);
+          d_qe->getTermUtil()->getModelBasisArg(conds[i]);
       indices.push_back(i);
     }
     std::sort( indices.begin(), indices.end(), mbas );
@@ -556,7 +556,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
 void FullModelChecker::preInitializeType( FirstOrderModelFmc * fm, TypeNode tn ){
   if( d_preinitialized_types.find( tn )==d_preinitialized_types.end() ){
     d_preinitialized_types[tn] = true;
-    Node mb = d_qe->getTermDatabase()->getModelBasisTerm(tn);
+    Node mb = d_qe->getTermUtil()->getModelBasisTerm(tn);
     if( !mb.isConst() ){
       Trace("fmc") << "...add model basis term to EE of model " << mb << " " << tn << std::endl;
       fm->d_equalityEngine->addTerm( mb );

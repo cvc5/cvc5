@@ -16,6 +16,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ambqi_builder.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace std;
 using namespace CVC4;
@@ -807,7 +808,7 @@ bool AbsMbqiBuilder::processBuildModel(TheoryModel* m) {
     }
     if( fapps.empty() ){
       //choose arbitrary value
-      Node mbt = d_qe->getTermDatabase()->getModelBasisOpTerm(f);
+      Node mbt = d_qe->getTermUtil()->getModelBasisOpTerm(f);
       Trace("ambqi-model-debug") << "Initial terms empty, add " << mbt << std::endl;
       fapps.push_back( mbt );
     }

@@ -104,7 +104,7 @@ Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
   //check if there is even any domain elements at all
   if (!d_rep_set.hasType(tn)) {
     Trace("fmc-model-debug") << "Must create domain element for " << tn << "..." << std::endl;
-    Node mbt = d_qe->getTermDatabase()->getModelBasisTerm(tn);
+    Node mbt = d_qe->getTermUtil()->getModelBasisTerm(tn);
     Trace("fmc-model-debug") << "Add to representative set..." << std::endl;
     d_rep_set.add(tn, mbt);
   }else if( d_rep_set.d_type_reps[tn].size()==0 ){
@@ -681,7 +681,7 @@ bool FirstOrderModelFmc::isModelBasisTerm(Node n) {
 }
 
 Node FirstOrderModelFmc::getModelBasisTerm(TypeNode tn) {
-  return d_qe->getTermDatabase()->getModelBasisTerm(tn);
+  return d_qe->getTermUtil()->getModelBasisTerm(tn);
 }
 
 Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
