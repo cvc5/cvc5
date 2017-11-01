@@ -63,14 +63,8 @@ void CegInstantiator::computeProgVars( Node n ){
       if( d_inelig.find( n[i] )!=d_inelig.end() ){
         d_inelig.insert(n);
       }
-      // all variables in child are cotained in this
-      for (std::unordered_set<Node, NodeHashFunction>::iterator it =
-               d_prog_var[n[i]].begin();
-           it != d_prog_var[n[i]].end();
-           ++it)
-      {
-        d_prog_var[n].insert(*it);
-      }
+      // all variables in child are contained in this
+      d_prog_var[n].insert( d_prog_var[n[i]].begin(), d_prog_var[n[i]].end() );
     }
     // selectors applied to program variables are also variables
     if (n.getKind() == APPLY_SELECTOR_TOTAL
@@ -1054,10 +1048,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   //Assert( d_vars.empty() );
   d_vars.clear();
   d_vars.insert( d_vars.end(), ce_vars.begin(), ce_vars.end() );
-  for (unsigned i = 0; i < ce_vars.size(); i++)
-  {
-    d_vars_set.insert(ce_vars[i]);
-  }
+  d_vars_set.insert(ce_vars.begin(), ce_vars.end());
 
   //determine variable order: must do Reals before Ints
   if( !d_vars.empty() ){

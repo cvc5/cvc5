@@ -52,9 +52,7 @@ Node BvInverter::getSolveVariable(TypeNode tn)
   std::map<TypeNode, Node>::iterator its = d_solve_var.find(tn);
   if (its == d_solve_var.end())
   {
-    std::stringstream ss;
-    ss << "slv";
-    Node k = NodeManager::currentNM()->mkSkolem(ss.str(), tn);
+    Node k = NodeManager::currentNM()->mkSkolem("slv", tn);
     d_solve_var[tn] = k;
     return k;
   }

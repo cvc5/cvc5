@@ -174,15 +174,45 @@ class CegInstantiator {
   std::map<Node, std::vector<Node> > d_curr_eqc;
   /** map from types to representatives of that type */
   std::map<TypeNode, std::vector<Node> > d_curr_type_eqc;
-  // auxiliary variables
+  /** auxiliary variables 
+   * These variables include the result of removing ITE
+   * terms from the quantified formula we are processing.
+   * These variables must be eliminated from constraints
+   * as a preprocess step to check().
+   */
   std::vector<Node> d_aux_vars;
-  // relevant theory ids
+  /** relevant theory ids
+   * A list of theory ids that contain at least one 
+   * constraint in the body of the quantified formula we
+   * are processing.
+   */
   std::vector<TheoryId> d_tids;
-  // literals to equalities for aux vars
+  /** literals to equalities for aux vars
+   * This stores entries of the form 
+   *   L -> ( k -> t )
+   * where 
+   *   k is a variable in d_aux_vars,
+   *   L is a literal that if asserted implies that our 
+   *    instantiation should map { k -> t }.
+   * For example, if a term of the form 
+   *   ite( C, t1, t2 ) 
+   * was replaced by k, we get this (top-level) assertion:
+   *   ite( C, k=t1, k=t2 )
+   * The vector d_aux_eq contains the exact form of
+   * the literals in the above constraint that they would
+   * appear in assertions, meaning d_aux_eq may contain:
+   *   t1=k -> ( k -> t1 )
+   *   t2=k -> ( k -> t2 )
+   * where t1=k and t2=k are the rewritten form of
+   * k=t1 and k=t2 respectively.
+   */
   std::map<Node, std::map<Node, Node> > d_aux_eq;
-  // the CE variables
+  /** the variables we are instantiating
+   * These are the inst constants of the quantified formula
+   * we are processing.
+   */
   std::vector<Node> d_vars;
-  /** set form of variables */
+  /** set form of d_vars */
   std::unordered_set<Node, NodeHashFunction> d_vars_set;
   /** index of variables reported in instantiation */
   std::vector<unsigned> d_var_order_index;
