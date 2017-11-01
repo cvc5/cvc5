@@ -14,8 +14,8 @@
 
 #include "theory/quantifiers/inst_strategy_e_matching.h"
 #include "theory/quantifiers/inst_match_generator.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quant_relevance.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"

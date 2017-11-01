@@ -21,77 +21,92 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void TermRecBuild::addTerm( Node n ) {
-  d_term.push_back( n );
-  std::vector< Node > currc;
-  d_kind.push_back( n.getKind() );
-  if( n.getMetaKind()==kind::metakind::PARAMETERIZED ){
-    currc.push_back( n.getOperator() );
-    d_has_op.push_back( true );
-  }else{
-    d_has_op.push_back( false );
+void TermRecBuild::addTerm(Node n)
+{
+  d_term.push_back(n);
+  std::vector<Node> currc;
+  d_kind.push_back(n.getKind());
+  if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
+    currc.push_back(n.getOperator());
+    d_has_op.push_back(true);
   }
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    currc.push_back( n[i] );
+  else
+  {
+    d_has_op.push_back(false);
   }
-  d_children.push_back( currc );  
+  for (unsigned i = 0; i < n.getNumChildren(); i++)
+  {
+    currc.push_back(n[i]);
+  }
+  d_children.push_back(currc);
 }
 
-void TermRecBuild::init( Node n ) {
-  Assert( d_term.empty() );
-  addTerm( n );
+void TermRecBuild::init(Node n)
+{
+  Assert(d_term.empty());
+  addTerm(n);
 }
 
-void TermRecBuild::push( unsigned p ) {
-  Assert( !d_term.empty() );
-  unsigned curr = d_term.size()-1;
-  Assert( d_pos.size()==curr );
-  Assert( d_pos.size()+1==d_children.size() );
-  Assert( p<d_term[curr].getNumChildren() );
-  addTerm( d_term[curr][p] );
-  d_pos.push_back( p );
+void TermRecBuild::push(unsigned p)
+{
+  Assert(!d_term.empty());
+  unsigned curr = d_term.size() - 1;
+  Assert(d_pos.size() == curr);
+  Assert(d_pos.size() + 1 == d_children.size());
+  Assert(p < d_term[curr].getNumChildren());
+  addTerm(d_term[curr][p]);
+  d_pos.push_back(p);
 }
 
-void TermRecBuild::pop() {
-  Assert( !d_pos.empty() );
+void TermRecBuild::pop()
+{
+  Assert(!d_pos.empty());
   d_pos.pop_back();
   d_kind.pop_back();
   d_has_op.pop_back();
   d_children.pop_back();
-  d_term.pop_back(); 
+  d_term.pop_back();
 }
 
-void TermRecBuild::replaceChild( unsigned i, Node r ) {
-  Assert( !d_term.empty() );
-  unsigned curr = d_term.size()-1;
+void TermRecBuild::replaceChild(unsigned i, Node r)
+{
+  Assert(!d_term.empty());
+  unsigned curr = d_term.size() - 1;
   unsigned o = d_has_op[curr] ? 1 : 0;
-  d_children[curr][i+o] = r;
+  d_children[curr][i + o] = r;
 }
 
-Node TermRecBuild::getChild( unsigned i ) {
-  unsigned curr = d_term.size()-1;
+Node TermRecBuild::getChild(unsigned i)
+{
+  unsigned curr = d_term.size() - 1;
   unsigned o = d_has_op[curr] ? 1 : 0;
-  return d_children[curr][i+o];
+  return d_children[curr][i + o];
 }
 
-Node TermRecBuild::build( unsigned d ) {
-  Assert( d_pos.size()+1==d_term.size() );
-  Assert( d<d_term.size() );
-  int p = d<d_pos.size() ? d_pos[d] : -2;
-  std::vector< Node > children;
+Node TermRecBuild::build(unsigned d)
+{
+  Assert(d_pos.size() + 1 == d_term.size());
+  Assert(d < d_term.size());
+  int p = d < d_pos.size() ? d_pos[d] : -2;
+  std::vector<Node> children;
   unsigned o = d_has_op[d] ? 1 : 0;
-  for( unsigned i=0; i<d_children[d].size(); i++ ){
+  for (unsigned i = 0; i < d_children[d].size(); i++)
+  {
     Node nc;
-    if( p+o==i ){
-      nc = build( d+1 );
-    }else{
+    if (p + o == i)
+    {
+      nc = build(d + 1);
+    }
+    else
+    {
       nc = d_children[d][i];
     }
-    children.push_back( nc );
+    children.push_back(nc);
   }
-  return NodeManager::currentNM()->mkNode( d_kind[d], children );
+  return NodeManager::currentNM()->mkNode(d_kind[d], children);
 }
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */

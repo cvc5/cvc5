@@ -128,7 +128,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   if( options::relevantTriggers() ){
-    d_quant_rel = new quantifiers::QuantRelevance( false );
+    d_quant_rel = new quantifiers::QuantRelevance(false);
     d_util.push_back(d_quant_rel);
   }else{
     d_quant_rel = NULL;

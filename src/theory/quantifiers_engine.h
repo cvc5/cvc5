@@ -115,7 +115,7 @@ private:
   /** equality inference class */
   quantifiers::EqualityInference* d_eq_inference;
   /** for computing relevance of quantifiers */
-  quantifiers::QuantRelevance * d_quant_rel;
+  quantifiers::QuantRelevance* d_quant_rel;
   /** relevant domain */
   quantifiers::RelevantDomain* d_rel_dom;
   /** inversion utility for BV instantiation */
@@ -125,7 +125,7 @@ private:
   /** model builder */
   quantifiers::QModelBuilder* d_builder;
   /** utility for effectively propositional logic */
-  quantifiers::QuantEPR * d_qepr;
+  quantifiers::QuantEPR* d_qepr;
   /** term database */
   quantifiers::TermDb* d_term_db;
   /** sygus term database */
@@ -255,7 +255,7 @@ public:
   quantifiers::QModelBuilder* getModelBuilder() { return d_builder; }
   /** get utility for EPR */
   quantifiers::QuantEPR* getQuantEPR() { return d_qepr; }
-public:  //modules
+ public:  // modules
   /** get instantiation engine */
   quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }
   /** get model engine */
