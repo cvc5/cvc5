@@ -318,15 +318,15 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas() {
   unsigned numLemmas = 0;
   if( !d_ho_var_types.empty() ){
     // this forces expansion of APPLY_UF terms to curried HO_APPLY chains
-    for( std::map< Node, std::vector< Node > >::iterator it = d_quantEngine->getTermDatabase()->d_op_map.begin(); 
-         it != d_quantEngine->getTermDatabase()->d_op_map.end(); ++it ){
-      if( it->first.isVar() ){
-        TypeNode tn = it->first.getType();
+    for( unsigned j=0; j<d_quantEngine->getTermDatabase()->getNumOperators(); j++ ){
+      Node f = d_quantEngine->getTermDatabase()->getOperator( j );
+      if( f.isVar() ){
+        TypeNode tn = f.getType();
         if( d_ho_var_types.find( tn )!=d_ho_var_types.end() ){
           Node u = d_quantEngine->getTermUtil()->getHoTypeMatchPredicate( tn );
-          Node au = NodeManager::currentNM()->mkNode( kind::APPLY_UF, u, it->first );
+          Node au = NodeManager::currentNM()->mkNode( kind::APPLY_UF, u, f );
           if( d_quantEngine->addLemma( au ) ){
-            //this forces it->first to be a first-class member of the quantifier-free equality engine,
+            //this forces f to be a first-class member of the quantifier-free equality engine,
             //  which in turn forces the quantifier-free theory solver to expand it to HO_APPLY
             Trace("ho-quant") << "Added ho match predicate lemma : " << au << std::endl;
             numLemmas++;
