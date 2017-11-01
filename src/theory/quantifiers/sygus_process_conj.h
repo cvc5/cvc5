@@ -26,15 +26,15 @@ namespace theory {
 namespace quantifiers {
   
 /** This structure stores information regarding
- * an argument of a function to synthesize that 
- * is used to determine whether the argument
+ * an argument of a function to synthesize.
+ * It is used to determine whether the argument
  * position in the function to synthesize is
  * relevant. 
  */
-class SynthFunArgumentProperties
+class CegConjectureProcessArg
 {
 public:
-  SynthFunArgumentProperties() : d_parent(nullptr), d_relevant(false), d_deq_id(0) {}
+  CegConjectureProcessArg() : d_parent(nullptr), d_relevant(false), d_deq_id(0) {}
   /** parent argument 
    * 
     * If non-null, this is a pointer to an argument 
@@ -43,7 +43,7 @@ public:
    * Altogether, this data structure represents
    * a union-find.
    */
-  SynthFunArgumentProperties * d_parent;
+  CegConjectureProcessArg * d_parent;
   /** whether this argument is relevant */
   bool d_relevant;
   /** disequality id of this argument 
@@ -53,20 +53,44 @@ public:
    * conjecture are such that t[i] = t[j].
    */
   unsigned d_deq_id;
+  /** get parent in the union find */
+  CegConjectureProcessArg * getParent();
 };
 
 /** This structure stores information regarding conjecture-specific
 * analysis of a function to synthesize.
+* 
+* It maintains information about each of the function to 
+* synthesize's arguments.
 */
-struct CegSynthFunProcessInfo
+struct CegConjectureProcessFun
 {
  public:
-  CegSynthFunProcessInfo() {}
-  ~CegSynthFunProcessInfo() {}
+  CegConjectureProcessFun() : d_deq_id_counter(0) {}
+  ~CegConjectureProcessFun() {}
+  /** initialize this class for function f */
+  void init(Node f);
+  /** process term 
+  *
+   * n is an f-application to process,
+   * freeVars maps all strict subterms of n to the set 
+   *   of variables (in set synth_fv) they contain.
+   * 
+   * This updates information regarding which arguments
+   * of the function-to-synthesize are relevant.
+   */
+  void processTerm( Node n, 
+                    std::unordered_map<TNode, std::unordered_set< TNode, TNodeHashFunction >, TNodeHashFunction >& freeVars,
+                    std::unordered_set< TNode, TNodeHashFunction >& synth_fv);
+ private:
   /** the synth fun associated with this */
   Node d_synth_fun;
+  /** deq id counter */
+  unsigned d_deq_id_counter;
+  /** deq id equivalence classes */
+  std::unordered_map< unsigned, std::unordered_set< unsigned > > d_deq_id_eqc;
   /** properties of each argument */
-  std::map<unsigned, SynthFunArgumentProperties> d_arg_props;
+  std::map<unsigned, CegConjectureProcessArg> d_arg_props;
   /** the set of arguments that this synth-fun is independent of */
   std::map<unsigned, bool> d_arg_independent;
 };
@@ -119,9 +143,9 @@ class CegConjectureProcess
 
  private:
   /** process conjunct */
-  void processConjunct(Node n, std::unordered_set< TNode, TNodeHashFunction >& synth_fv, unsigned& deq_id_counter);
+  void processConjunct(Node n, std::unordered_set< TNode, TNodeHashFunction >& synth_fv);
   /** for each synth-fun, information that is specific to this conjecture */
-  std::map<Node, CegSynthFunProcessInfo> d_sf_info;
+  std::map<Node, CegConjectureProcessFun> d_sf_info;
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
   /** get component vector */
