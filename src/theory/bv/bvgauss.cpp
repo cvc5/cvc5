@@ -2,12 +2,14 @@
 
 #include <iostream>
 #include <stack>
+#include <unordered_map>
 
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace CVC4;
 using namespace std;
 
+#if 0
 static void
 print_matrix_dbg (std::vector< Integer > & rhs,
                   std::vector< std::vector< Integer >> & lhs)
@@ -22,10 +24,139 @@ print_matrix_dbg (std::vector< Integer > & rhs,
     std::cout << std::endl;
   }
 }
+#endif
+
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
+
+unsigned
+BVGaussElim::getMinBwExpr(Node var)
+{
+  stack<Node> visit;
+  unordered_map<Node, unsigned, NodeHashFunction> visited;
+  unordered_map<Node, unsigned, NodeHashFunction>::iterator it;
+
+  visit.push(var);
+  while (!visit.empty())
+  {
+    Node n = visit.top();
+    visit.pop();
+    it = visited.find(n);
+    if (it == visited.end())
+    {
+      visited[n] = 0;
+      visit.push(n);
+      for (unsigned i = 0, nc = n.getNumChildren(); i < nc; ++i)
+        visit.push(n[i]);
+    }
+    else if (it->second == 0)
+    {
+      Kind k = n.getKind();
+      switch(k)
+      {
+        case kind::CONST_BITVECTOR:
+        {
+          unsigned bwval;
+          Integer val = n.getConst< BitVector >().getValue();
+          for (bwval = 0; val > 0; val = val.divByPow2(1), ++bwval);
+          visited[n] = bwval;
+          break;
+        }
+
+        case kind::BITVECTOR_EXTRACT:
+        {
+          unsigned w = utils::getSize(n);
+          visited[n] = w >= visited[n[0]]
+            ? visited[n] = visited[n[0]]
+            : visited[n] = w;
+          Assert(visited[n] <= visited[n[0]]);
+          break;
+        }
+
+        case kind::BITVECTOR_ZERO_EXTEND:
+          visited[n] = visited[n[0]];
+          break;
+
+        case kind::BITVECTOR_MULT:
+        {
+          unsigned w = 0;
+          for (unsigned i = 0, nc = n.getNumChildren(); i < nc; ++i)
+            w += visited[n[i]];
+          if (w > utils::getSize(n)) return 0;  /* overflow */
+          visited[n] = w;
+          break;
+        }
+
+        case kind::BITVECTOR_CONCAT:
+        {
+          unsigned w;
+          Node zero = utils::mkZero(utils::getSize(n[0]));
+          if (n[0] == zero)
+          {
+            w = visited[n[1]];
+            for (unsigned i = 2, nc = n.getNumChildren(); i < nc; ++i)
+              w += utils::getSize(n[i]);
+          }
+          else
+          {
+            w = visited[n[0]];
+            for (unsigned i = 1, nc = n.getNumChildren(); i < nc; ++i)
+              w += utils::getSize(n[i]);
+          }
+          visited[n] = w;
+          break;
+        }
+
+        case kind::BITVECTOR_UDIV_TOTAL:
+        case kind::BITVECTOR_OR:
+        case kind::BITVECTOR_NOR:
+        case kind::BITVECTOR_XOR:
+        case kind::BITVECTOR_XNOR:
+        case kind::BITVECTOR_AND:
+        case kind::BITVECTOR_NAND:
+        case kind::BITVECTOR_SHL:
+        case kind::BITVECTOR_LSHR:
+        case kind::BITVECTOR_ASHR:
+        {
+          unsigned wmax = 0;
+          for (unsigned i = 0, nc = n.getNumChildren(); i < nc; ++i)
+            if (visited[n[i]] > wmax) wmax = visited[n[i]];
+          visited[n] = wmax;
+          break;
+        }
+
+        case kind::BITVECTOR_UREM_TOTAL:
+          visited[n] = visited[n[1]];
+          break;
+
+        case kind::BITVECTOR_PLUS:
+        case kind::BITVECTOR_SUB:
+        {
+          unsigned w = 0, wmax = visited[n[0]];
+          for (unsigned i = 1, nc = n.getNumChildren(); i < nc; ++i)
+            if (visited[n[i]] > wmax) wmax = visited[n[i]];
+          for (unsigned i = 0, nc = n.getNumChildren(); i < nc; ++i)
+            if (visited[n[i]] >= wmax) w += 1;
+          w += wmax-1;
+          if (w > utils::getSize(n)) return 0;  /* overflow */
+          visited[n] = w;
+          break;
+        }
+
+        case kind::BITVECTOR_NOT:
+        case kind::BITVECTOR_NEG:
+          visited[n] = visited[n[0]];
+          break;
+
+        default:
+          visited[n] = utils::getSize(n);
+      }
+    }
+  }
+  return visited[var];
+}
 
 BVGaussElim::Result
 BVGaussElim:: gaussElim (Integer prime,
@@ -52,7 +183,6 @@ BVGaussElim:: gaussElim (Integer prime,
   resrhs = vector< Integer > (rhs);
   reslhs = vector< vector< Integer>> (lhs);
 
-
   size_t nrows = lhs.size();
   size_t ncols = lhs[0].size();
 
@@ -60,7 +190,6 @@ BVGaussElim:: gaussElim (Integer prime,
   for (size_t i = 1; i < nrows; ++i)
     Assert (lhs[i].size() == ncols);
 #endif
-
   /* (1) if element in pivot column is non-zero and != 1, divide row elements
    *     by element in pivot column modulo prime, i.e., multiply row with
    *     multiplicative inverse of element in pivot column modulo prime
@@ -113,7 +242,6 @@ BVGaussElim:: gaussElim (Integer prime,
           }
         }
       }
-
       /* (1) */
       if (reslhs[j][pcol] != 0)
       {
@@ -139,7 +267,6 @@ BVGaussElim:: gaussElim (Integer prime,
         }
       }
     }
-
     /* (3) */
     for (size_t j = 0; j < prow; ++j)
     {
@@ -176,6 +303,52 @@ BVGaussElim:: gaussElim (Integer prime,
   return BVGaussElim::Result::UNIQUE;
 }
 
+static bool is_bv_const (Node n)
+{
+  for (Kind k = n.getKind();
+       k != kind::CONST_BITVECTOR;
+       k = n.getKind())
+  {
+    if (k == kind::BITVECTOR_CONCAT
+        && n[0] == utils::mkZero(utils::getSize(n[0])))
+    {
+      n = n[1];
+    }
+    else if (k == kind::BITVECTOR_ZERO_EXTEND)
+    {
+      n = n[0];
+    }
+    else
+    {
+      return false;
+    }
+  }
+  return n.getKind() == kind::CONST_BITVECTOR;
+}
+
+static Integer get_bv_const (Node n)
+{
+  Assert (is_bv_const (n));
+
+  for (Kind k = n.getKind();
+       k != kind::CONST_BITVECTOR;
+       k = n.getKind())
+  {
+    if (k == kind::BITVECTOR_CONCAT)
+    {
+      Assert (n[0] == utils::mkZero(utils::getSize(n[0])));
+      n = n[1];
+    }
+    else
+    {
+      Assert (k == kind::BITVECTOR_ZERO_EXTEND);
+      n = n[0];
+    }
+  }
+  Assert (n.getKind() == kind::CONST_BITVECTOR);
+  return n.getConst< BitVector >().getValue();
+}
+
 BVGaussElim::Result
 BVGaussElim::gaussElimRewriteForUrem (
     vector< Node > & equations,
@@ -195,31 +368,32 @@ BVGaussElim::gaussElimRewriteForUrem (
   {
     Node eq = equations[i];
     Assert (eq.getKind() == kind::EQUAL);
-    Node urem;
+    Node urem, eqrhs;
 
     if (eq[0].getKind() == kind::BITVECTOR_UREM)
     {
-      Assert (eq[1].getKind() == kind::CONST_BITVECTOR);
       urem = eq[0];
-      rhs.push_back (eq[1].getConst< BitVector >().getValue());
+      Assert (is_bv_const (eq[1]));
+      eqrhs = eq[1];
     }
     else
     {
       Assert (eq[1].getKind() == kind::BITVECTOR_UREM);
-      Assert (eq[0].getKind() == kind::CONST_BITVECTOR);
       urem = eq[1];
-      rhs.push_back (eq[0].getConst< BitVector >().getValue());
+      Assert (is_bv_const (eq[0]));
+      eqrhs = eq[0];
     }
+    if (getMinBwExpr (urem[0]) == 0) return BVGaussElim::Result::NONE;
+    rhs.push_back (get_bv_const(eqrhs));
 
-    Assert (urem[1].getKind() == kind::CONST_BITVECTOR);
-    Assert (i == 0 || urem[1].getConst< BitVector >().getValue() == iprime);
+    Assert (is_bv_const(urem[1]));
+    Assert (i == 0 || get_bv_const(urem[1]) == iprime);
     if (i == 0)
     {
       prime = urem[1];
-      iprime = prime.getConst< BitVector >().getValue();
+      iprime = get_bv_const(prime);
     }
 
-    //cout << "prime " << iprime << endl;
     unordered_map< Node, Integer, NodeHashFunction > tmp;
     bool isvalid = true;
     stack< Node > stack;
@@ -250,8 +424,7 @@ BVGaussElim::gaussElimRewriteForUrem (
 
           for (size_t j = 0; j < nchild; ++j)
           {
-            if (n0 == Node::null()
-                && n[j].getKind() == kind::CONST_BITVECTOR)
+            if (n0 == Node::null() && is_bv_const (n[j]))
             {
               n0 = n[j];
             }
@@ -274,15 +447,13 @@ BVGaussElim::gaussElimRewriteForUrem (
         }
         else
         {
-          CVC4::Kind kn0 = n0.getKind();
-          CVC4::Kind kn1 = n1.getKind();
-          if (kn0 == kind::CONST_BITVECTOR && kn1 != kind::CONST_BITVECTOR)
+          if (is_bv_const(n0) && !is_bv_const(n1))
           {
-            tmp[n1] += n0.getConst< BitVector >().getValue();
+            tmp[n1] += get_bv_const(n0); 
           }
-          else if (kn0 != kind::CONST_BITVECTOR && kn1 == kind::CONST_BITVECTOR)
+          else if (!is_bv_const(n0) && is_bv_const(n1))
           {
-            tmp[n0] += n1.getConst< BitVector >().getValue();
+            tmp[n0] += get_bv_const(n1);
           }
           else
           {
@@ -327,12 +498,8 @@ BVGaussElim::gaussElimRewriteForUrem (
   if (nrows < 1) return BVGaussElim::Result::NONE;
 
   for (size_t i = 0; i < nrows; ++i)
-  {
     for (auto p : vars)
-    { cout << "var " << p.first << endl;
       lhs[i].push_back (p.second[i]);
-    }
-  }
 
 #ifdef CVC4_ASSERTIONS
   for (size_t i = 0; i < nrows; ++i)
@@ -342,9 +509,7 @@ BVGaussElim::gaussElimRewriteForUrem (
 
   if (lhs.size() > lhs[0].size()) return BVGaussElim::Result::NONE;
 
-  print_matrix_dbg(rhs,lhs);
   Result ret = gaussElim (iprime, rhs, lhs, resrhs, reslhs);
-  print_matrix_dbg(resrhs,reslhs);
   if (ret != BVGaussElim::Result::NONE)
   {
     vector< Node > vvars;
@@ -425,7 +590,7 @@ BVGaussElim::gaussElimRewriteForUrem (
             tmp = nm->mkNode (kind::BITVECTOR_PLUS, tmp, stack.top());
             stack.pop();
           }
-          if (tmp.getKind() == kind::CONST_BITVECTOR)
+          if (is_bv_const(tmp))
           {
  //           Assert (utils::getSize (tmp) == bw);
             res[vvars[pcol]] = tmp;
@@ -472,19 +637,16 @@ BVGaussElim::gaussElimRewrite (std::vector<Node> & assertionsToPreprocess)
     }
     else if (k == kind::EQUAL)
     {
-      CVC4::Kind k0 = a[0].getKind();
-      CVC4::Kind k1 = a[1].getKind();
       Node urem;
 
-      if (k0 == kind::CONST_BITVECTOR && k1 == kind::BITVECTOR_UREM)
+      if (is_bv_const(a[0]) && a[1].getKind() == kind::BITVECTOR_UREM)
         urem = a[1];
-      else if (k1 == kind::CONST_BITVECTOR && k0 == kind::BITVECTOR_UREM)
+      else if (is_bv_const(a[1]) && a[0].getKind() == kind::BITVECTOR_UREM)
         urem = a[0];
       else
         continue;
 
-      if (urem[0].getKind() == kind::BITVECTOR_PLUS
-          && urem[1].getKind() == kind::CONST_BITVECTOR)
+      if (urem[0].getKind() == kind::BITVECTOR_PLUS && is_bv_const(urem[1]))
       {
         equations[urem[1]].push_back (a);
       }
