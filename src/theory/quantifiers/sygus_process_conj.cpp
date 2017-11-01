@@ -46,6 +46,7 @@ void CegConjectureProcessFun::init(Node f) {
   std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction> type_to_init_deq_id;
   std::vector<Type> argTypes = static_cast<FunctionType>(f.getType().toType()).getArgTypes();
   for( unsigned j=0; j<argTypes.size(); j++ ){
+    d_arg_props.push_back(CegConjectureProcessArg());
     // assign the disequality ids to the argument position
     // initially, all variables of the same type have the same deq id
     TypeNode atn = TypeNode::fromType( argTypes[j] );
@@ -57,7 +58,7 @@ void CegConjectureProcessFun::init(Node f) {
     }else{
       deqid = it->second;
     }
-      d_arg_props[j].d_deq_id = deqid;
+    d_arg_props[j].d_deq_id = deqid;
     // add to deq id equivalence class
     d_deq_id_eqc[deqid].insert( j );
   }
@@ -71,9 +72,12 @@ unsigned CegConjectureProcessFun::allocateDeqId() {
 }
 
 void CegConjectureProcessFun::processTerm(Node n, Node k, Node nf,
-                   std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars) {
+                                          std::unordered_set< Node, NodeHashFunction >& synth_fv, 
+                                          std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars) {
   Assert(n.getKind()==APPLY_UF);
   Assert(n.getOperator()==d_synth_fun);
+
+  Trace("sygus-process-arg-deps") << "  process application : " << n << std::endl;
   
   // update the disequality ids
   for( unsigned i=0; i<d_deq_id_counter; i++ ){
@@ -104,6 +108,44 @@ void CegConjectureProcessFun::processTerm(Node n, Node k, Node nf,
       }
     }
   }
+  
+  /*
+  // global partition based on the content of arguments of n
+  std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction > term_to_args;
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    term_to_args[n[i]].push_back(i);
+  }
+  */
+  
+  // process the arguments of n
+  
+  // the relevant variables
+  std::unordered_set< Node, NodeHashFunction > rlv_vars;
+  Assert( free_vars.find(nf)!=free_vars.end());
+  rlv_vars = free_vars[nf];
+  
+  bool changed;
+  do 
+  {
+    changed = false;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      // if argument is currently irrelevant, check whether it remains irrelevant
+      if( !d_arg_props[i].d_relevant ){
+        Node nn = n[i];
+        // it is a synth fun?
+        if( nn.isVar() && synth_fv.find(nn)!=synth_fv.end() ){
+          //is it relevant?
+          if( rlv_vars.find(nn)!=rlv_vars.end() ){
+          
+          }else{
+            
+          }
+        }else{
+          
+        }
+      }
+    }
+  }while(changed);
 }
 
 CegConjectureProcess::CegConjectureProcess(QuantifiersEngine* qe) : d_qe(qe) {}
@@ -163,7 +205,7 @@ void CegConjectureProcess::processConjunct(Node n, std::unordered_set< Node, Nod
   Trace("sygus-process-arg-deps") << "  " << n << std::endl;
   
   // first, flatten the conjunct 
-  // make a copy of free variables
+  // make a copy of free variables since we may add new ones
   std::unordered_set< Node, NodeHashFunction > synth_fv_n = synth_fv;
   std::unordered_map<Node,Node,NodeHashFunction> defs;
   std::unordered_map<Node,std::vector<Node>,NodeHashFunction> fun_to_defs;
@@ -175,18 +217,23 @@ void CegConjectureProcess::processConjunct(Node n, std::unordered_set< Node, Nod
   
   // get free variables in nf
   std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction > free_vars;
-  getFreeVariables(n,synth_fv,free_vars);
+  getFreeVariables(nf,synth_fv,free_vars);
+  // get free variables in each application
+  for(std::unordered_map<Node,Node,NodeHashFunction>::iterator it = defs.begin(); it != defs.end(); ++it ){
+    getFreeVariables(it->second,synth_fv,free_vars);
+  }
   
   // process the applications of synthesis functions
   for(std::unordered_map<Node,std::vector<Node>,NodeHashFunction>::iterator it = fun_to_defs.begin(); it != fun_to_defs.end(); ++it ){
     Node f = it->first;
+    Trace("sygus-process-arg-deps") << "Processing applications of " << f << " : " << std::endl;
     std::map<Node, CegConjectureProcessFun>::iterator its = d_sf_info.find(f);
     if(its!=d_sf_info.end()){
       for( unsigned j=0; j<it->second.size(); j++ ){
         Node k = it->second[j];
         Assert( defs.find(k)!=defs.end() );
         Node fa = defs[k];
-        its->second.processTerm(fa,k,nf,free_vars);
+        its->second.processTerm(fa,k,nf,synth_fv,free_vars);
       }
     }else{
       Assert( false );      
@@ -269,6 +316,7 @@ void CegConjectureProcess::getFreeVariables(Node n, std::unordered_set< Node, No
 
     if (it == visited.end()) {
       visited[cur] = false;
+      visit.push(cur);
       for (unsigned i = 0; i < cur.getNumChildren(); i++) {
         visit.push(cur[i]);
       }
@@ -280,9 +328,8 @@ void CegConjectureProcess::getFreeVariables(Node n, std::unordered_set< Node, No
       else
       {
         // otherwise, carry the free variables from the children
-        std::unordered_set< Node, NodeHashFunction >& fv_cur = free_vars[cur];
         for (unsigned i = 0; i < cur.getNumChildren(); i++) {
-          fv_cur.insert(free_vars[cur[i]].begin(),free_vars[cur[i]].end());
+          free_vars[cur].insert(free_vars[cur[i]].begin(),free_vars[cur[i]].end());
         }
       }
       visited[cur] = true;

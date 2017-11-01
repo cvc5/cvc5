@@ -18,7 +18,13 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_PPROCESS_CONJ_H
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS_PROCESSS_CONJ_H
 
+#include <map>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
 #include "expr/node.h"
+#include "expr/type_node.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -71,15 +77,17 @@ struct CegConjectureProcessFun
   /** initialize this class for function f */
   void init(Node f);
   /** process term 
-  *
+   *
    * n is an f-application to process,
-   * freeVars maps all subterms of n to the set 
+   * nf is the (flattened) form of our conjecture to process,
+   * free_vars maps all subterms of n and nf to the set 
    *   of variables (in set synth_fv) they contain.
    * 
    * This updates information regarding which arguments
    * of the function-to-synthesize are relevant.
    */
   void processTerm(Node n, Node k, Node nf,
+                   std::unordered_set< Node, NodeHashFunction >& synth_fv, 
                    std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars);
  private:
   /** the synth fun associated with this */
@@ -89,9 +97,9 @@ struct CegConjectureProcessFun
   /** deq id equivalence classes */
   std::vector< std::unordered_set< unsigned > > d_deq_id_eqc;
   /** properties of each argument */
-  std::map<unsigned, CegConjectureProcessArg> d_arg_props;
+  std::vector<CegConjectureProcessArg> d_arg_props;
   /** the set of arguments that this synth-fun is independent of */
-  std::map<unsigned, bool> d_arg_independent;
+  std::vector<bool> d_arg_independent;
   /** allocate new deq id */
   unsigned allocateDeqId();
 };
