@@ -5,12 +5,23 @@
 # Tue, 15 Jan 2013 11:11:24 -0500
 #
 
-if [ $# -ne 0 ]; then
-  echo "usage: `basename $0`" >&2
-  echo >&2
-  echo "This script attempts to build CVC4 for Win32/64 using mingw-w64." >&2
-  exit 1
-fi
+export WINDOWS_BUILD=yes
+export MAKE_CFLAGS=
+export MAKE_CXXFLAGS=
+export MAKE_LDFLAGS=
+export BUILD_TYPE="--disable-shared --enable-static"
+while getopts ":s" opt; do
+  case ${opt} in
+    s )
+      MAKE_CFLAGS="-static-libgcc -static-libstdc++"
+      MAKE_CXXFLAGS="-static-libgcc -static-libstdc++"
+      # CVC4 uses some internal symbols of ANTLR, so all symbols need to be
+      # exported
+      MAKE_LDFLAGS="-no-undefined -Wl,--export-all-symbols"
+      BUILD_TYPE="--enable-shared --disable-static"
+      ;;
+  esac
+done
 
 if [ -z "$HOST" ]; then
   HOST=i686-w64-mingw32
@@ -60,7 +71,7 @@ echo ===========================================================================
 echo
 echo "Setting up ANTLR 3.4..."
 echo
-MACHINE_TYPE=x86 ANTLR_CONFIGURE_ARGS=--host=$HOST contrib/get-antlr-3.4 | grep -v 'Now configure CVC4 with' | grep -v '\./configure --with-antlr-dir='
+MACHINE_TYPE="x86_64" ANTLR_CONFIGURE_ARGS="--host=$HOST" contrib/get-antlr-3.4 | grep -v 'Now configure CVC4 with' | grep -v '\./configure --with-antlr-dir='
 [ ${PIPESTATUS[0]} -eq 0 ] || reporterror
 echo
 echo =============================================================================
@@ -76,8 +87,8 @@ echo
   webget ftp://ftp.gmplib.org/pub/gmp-$GMPVERSION/gmp-$GMPVERSION.tar.bz2 gmp-$GMPVERSION.tar.bz2 &&
   tar xfj gmp-$GMPVERSION.tar.bz2 &&
   cd gmp-$GMPVERSION &&
-  ./configure --host=$HOST --prefix="$gmpprefix" --enable-cxx &&
-  make &&
+  ./configure --host=$HOST --prefix="$gmpprefix" --enable-cxx ${BUILD_TYPE} &&
+  make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" LDFLAGS="${MAKE_LDFLAGS}" &&
   make install
 ) || exit 1
 echo
