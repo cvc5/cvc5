@@ -10,48 +10,6 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of higher-order trigger class
- ** 
- ** This class implements higher-order matching via Huet's algorithm.
- ** Examples below (f, x, y are universal variables):
- ** 
- ** 
- ** (f x y) matches (k 0 1) in standard E-matching with:
- **
- ** f -> k, x -> 0, y -> 1
- **
- ** This match is extended to four possible solutions by this class:
- **
- ** f -> \ xy. (k x y), x -> 0, y -> 1
- ** f -> \ xy. (k 0 y), x -> 0, y -> 1
- ** f -> \ xy. (k x 1), x -> 0, y -> 1
- ** f -> \ xy. (k 0 1), x -> 0, y -> 1
- ** 
- ** 
- ** Similarly, (f x y) matches (k 0 0) with possible solutions:
- ** 
- ** f -> \ xy. (k x x), x -> 0, y -> 0
- ** f -> \ xy. (k y x), x -> 0, y -> 0
- ** f -> \ xy. (k 0 x), x -> 0, y -> 0
- ** f -> \ xy. (k x y), x -> 0, y -> 0
- ** f -> \ xy. (k y y), x -> 0, y -> 0
- ** f -> \ xy. (k 0 y), x -> 0, y -> 0
- ** f -> \ xy. (k x 0), x -> 0, y -> 0
- ** f -> \ xy. (k y 0), x -> 0, y -> 0
- ** f -> \ xy. (k 0 0), x -> 0, y -> 0
- ** 
- ** 
- ** (f x y), (f x z) simultaneously match (k 0 1), (k 0 2) with possible solutions:
- ** 
- ** f -> \ xy. (k x y), x -> 0, y -> 1, z -> 2
- ** f -> \ xy. (k 0 y), x -> 0, y -> 1, z -> 2
- ** 
- ** 
- ** This class enumerates the lists above until one instantiation of that form is successfully added
- ** via a call to QuantifiersEngine::addInstantiation(...)
- ** 
- ** It also implements a way of forcing APPLY_UF to expand to curried HO_APPLY to
- ** handle a corner case where matching is stuck (addHoTypeMatchPredicateLemmas).
- ** 
  **/
 
 #include <stack>
@@ -90,9 +48,9 @@ Trigger( qe, q, nodes ), d_ho_var_apps( ho_apps ) {
         Trace("ho-quant-trigger") << "  " << it->second[j] << std::endl;
       }
     }
-    if( std::find( d_ho_var_types.begin(), d_ho_var_types.end(), tn )==d_ho_var_types.end() ){
+    if( d_ho_var_types.find( tn )==d_ho_var_types.end() ){
       Trace("ho-quant-trigger") << "  type " << tn << " needs higher-order matching." << std::endl;
-      d_ho_var_types.push_back( tn );
+      d_ho_var_types.insert( tn );
     }
     // make the bound variable lists
     d_ho_var_bvl[n] = NodeManager::currentNM()->getBoundVarListForFunctionType( tn );
@@ -364,7 +322,7 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas() {
          it != d_quantEngine->getTermDatabase()->d_op_map.end(); ++it ){
       if( it->first.isVar() ){
         TypeNode tn = it->first.getType();
-        if( std::find( d_ho_var_types.begin(), d_ho_var_types.end(), tn )!=d_ho_var_types.end() ){
+        if( d_ho_var_types.find( tn )!=d_ho_var_types.end() ){
           Node u = d_quantEngine->getTermUtil()->getHoTypeMatchPredicate( tn );
           Node au = NodeManager::currentNM()->mkNode( kind::APPLY_UF, u, it->first );
           if( d_quantEngine->addLemma( au ) ){
