@@ -61,7 +61,7 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * (5) builder-specific post-processing.
    *
    * This function returns false if any of the above
-   * steps results in a lemma is sent on an output channel.
+   * steps results in a lemma sent on an output channel.
    * Lemmas may be sent on an output channel by this
    * builder in steps (2) or (5), for instance, if the model we
    * are building fails to satisfy a quantified formula.

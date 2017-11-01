@@ -92,7 +92,7 @@ public:
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
   /** add term
-    *  This will any model-specific processing necessary for n,
+    *  This will do any model-specific processing necessary for n,
     *  such as constraining the interpretation of uninterpreted functions,
     *  and adding n to the equality engine of this model.
     */

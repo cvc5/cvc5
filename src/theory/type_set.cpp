@@ -116,9 +116,8 @@ Node TypeSet::nextTypeEnum(TypeNode t, bool useBaseType)
   s->insert(n);
   // add all subterms of n to this set as well
   // this is necessary for parametric types whose values are constructed from
-  // other types
-  // to ensure that we do not enumerate subterms of other previous enumerated
-  // values
+  // other types to ensure that we do not enumerate subterms of other 
+  // previously enumerated values
   std::unordered_set<TNode, TNodeHashFunction> visited;
   addSubTerms(n, visited);
   ++(*te);
