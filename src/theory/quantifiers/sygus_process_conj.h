@@ -79,17 +79,8 @@ struct CegConjectureProcessFun
    * This updates information regarding which arguments
    * of the function-to-synthesize are relevant.
    */
-  void processTerm(Node n);
-  /** process term arg
-  *
-   * n is an f-application to process,
-   * freeVars maps all subterms of n to the set 
-   *   of variables (in set synth_fv) they contain.
-   */
-  void processTermArg(Node n, unsigned i, 
-              std::unordered_set< Node, NodeHashFunction > curr_free_vars,
-              std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars,
-              std::unordered_set< Node, NodeHashFunction >& synth_fv);
+  void processTerm(Node n, Node k, Node nf,
+                   std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars);
  private:
   /** the synth fun associated with this */
   Node d_synth_fun;
@@ -167,16 +158,18 @@ class CegConjectureProcess
    * are introduced at all positions of functions
    * to synthesize in a bottom-up fashion. For each
    * variable k introduced for a function application
-   * f(t), we add ( k -> f(t) ) to defs.
+   * f(t), we add ( k -> f(t) ) to defs and ( f -> k )
+   * to fun_to_defs.
    */
   Node flatten(Node n, std::unordered_set< Node, NodeHashFunction >& synth_fv, 
-               std::unordered_map<Node,Node,NodeHashFunction>& defs);
+               std::unordered_map<Node,Node,NodeHashFunction>& defs, 
+               std::unordered_map<Node,std::vector<Node>,NodeHashFunction>& fun_to_defs);
   /** get free variables 
    * Constructs a map of all free variables that occur in n
    * from synth_fv and stores them in the map free_vars.
    */
   void getFreeVariables(Node n, std::unordered_set< Node, NodeHashFunction >& synth_fv,
-    std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars );
+                        std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars );
   /** for each synth-fun, information that is specific to this conjecture */
   std::map<Node, CegConjectureProcessFun> d_sf_info;
   /** reference to quantifier engine */

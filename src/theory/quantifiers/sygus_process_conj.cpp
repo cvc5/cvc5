@@ -57,7 +57,7 @@ void CegConjectureProcessFun::init(Node f) {
     }else{
       deqid = it->second;
     }
-    d_arg_props[j].d_deq_id = deqid;
+      d_arg_props[j].d_deq_id = deqid;
     // add to deq id equivalence class
     d_deq_id_eqc[deqid].insert( j );
   }
@@ -70,7 +70,8 @@ unsigned CegConjectureProcessFun::allocateDeqId() {
   return deqid;
 }
 
-void CegConjectureProcessFun::processTerm(Node n) {
+void CegConjectureProcessFun::processTerm(Node n, Node k, Node nf,
+                   std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars) {
   Assert(n.getKind()==APPLY_UF);
   Assert(n.getOperator()==d_synth_fun);
   
@@ -158,21 +159,44 @@ void CegConjectureProcess::initialize(Node n, std::vector<Node>& candidates)
 }
 
 void CegConjectureProcess::processConjunct(Node n, std::unordered_set< Node, NodeHashFunction >& synth_fv) {
+  Trace("sygus-process-arg-deps") << "Process conjunct: " << std::endl;
+  Trace("sygus-process-arg-deps") << "  " << n << std::endl;
+  
   // first, flatten the conjunct 
   // make a copy of free variables
   std::unordered_set< Node, NodeHashFunction > synth_fv_n = synth_fv;
   std::unordered_map<Node,Node,NodeHashFunction> defs;
-  Node nf = flatten(n,synth_fv_n,defs);
+  std::unordered_map<Node,std::vector<Node>,NodeHashFunction> fun_to_defs;
+  Node nf = flatten(n,synth_fv_n,defs,fun_to_defs);
+  
+  
+  Trace("sygus-process-arg-deps") << "Flattened to: " << std::endl;
+  Trace("sygus-process-arg-deps") << "  " << nf << std::endl;
   
   // get free variables in nf
   std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction > free_vars;
   getFreeVariables(n,synth_fv,free_vars);
   
-  
+  // process the applications of synthesis functions
+  for(std::unordered_map<Node,std::vector<Node>,NodeHashFunction>::iterator it = fun_to_defs.begin(); it != fun_to_defs.end(); ++it ){
+    Node f = it->first;
+    std::map<Node, CegConjectureProcessFun>::iterator its = d_sf_info.find(f);
+    if(its!=d_sf_info.end()){
+      for( unsigned j=0; j<it->second.size(); j++ ){
+        Node k = it->second[j];
+        Assert( defs.find(k)!=defs.end() );
+        Node fa = defs[k];
+        its->second.processTerm(fa,k,nf,free_vars);
+      }
+    }else{
+      Assert( false );      
+    }
+  }
 }
 
 Node CegConjectureProcess::CegConjectureProcess::flatten(Node n, std::unordered_set< Node, NodeHashFunction >& synth_fv, 
-                                                         std::unordered_map<Node,Node,NodeHashFunction>& defs) {
+                                                         std::unordered_map<Node,Node,NodeHashFunction>& defs, 
+                                                         std::unordered_map<Node,std::vector<Node>,NodeHashFunction>& fun_to_defs) {
   std::unordered_map<Node, Node, NodeHashFunction> visited;
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
   std::stack<Node> visit;
@@ -214,6 +238,7 @@ Node CegConjectureProcess::CegConjectureProcess::flatten(Node n, std::unordered_
           // if so, flatten
           Node k = NodeManager::currentNM()->mkBoundVar("vf",cur.getType());
           defs[k] = ret;
+          fun_to_defs[f].push_back(k);
           ret = k;
           synth_fv.insert(k);
         }
