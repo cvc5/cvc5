@@ -150,7 +150,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
 
     // The new assertion is the assumption that the body
     // of the choice operator holds for the Skolem
-    newAssertion = node[1].substitute(node[0], skolem);
+    newAssertion = node[1].substitute(node[0][0], skolem);
   }
 
   //if a non-variable Boolean term, replace it

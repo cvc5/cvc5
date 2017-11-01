@@ -135,7 +135,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort)
         Trace("inst-alg") << "-> Ground term instantiate " << f << "..."
                           << std::endl;
       }
-      Assert(rd != NULL);
+      AlwaysAssert(rd);
       Trace("inst-alg-debug") << "Compute relevant domain..." << std::endl;
       rd->compute();
       Trace("inst-alg-debug") << "...finished" << std::endl;
