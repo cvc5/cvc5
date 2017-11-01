@@ -22,6 +22,8 @@ public:
 private:
   enum class Result { UNIQUE, PARTIAL, NONE };
 
+  static unsigned getMinBwExpr(Node var);
+
   static Result gaussElimRewriteForUrem (
       std::vector< Node > & equations,
       std::unordered_map< Node, Node, NodeHashFunction > & res);

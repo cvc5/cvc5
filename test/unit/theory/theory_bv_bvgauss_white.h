@@ -129,6 +129,16 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   Node d_eighteen;
   Node d_twentyfour;
   Node d_thirty;
+  Node d_one32;
+  Node d_two32;
+  Node d_three32;
+  Node d_four32;
+  Node d_five32;
+  Node d_six32;
+  Node d_seven32;
+  Node d_eight32;
+  Node d_nine32;
+  Node d_ten32;
   Node d_x_mul_one;
   Node d_x_mul_two;
   Node d_x_mul_four;
@@ -156,26 +166,52 @@ public:
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
 
-    d_p = d_nm->mkConst<BitVector> (BitVector(16, 11u));
-    d_x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
-    d_y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
-    d_z = d_nm->mkVar("z", d_nm->mkBitVectorType(16));
+    d_zero = mkZero(16);
 
-    d_zero = d_nm->mkConst<BitVector> (BitVector(16, 0u));
-    d_one = d_nm->mkConst<BitVector> (BitVector(16, 1u));
-    d_two = d_nm->mkConst<BitVector> (BitVector(16, 2u));
-    d_three = d_nm->mkConst<BitVector> (BitVector(16, 3u));
-    d_four = d_nm->mkConst<BitVector> (BitVector(16, 4u));
-    d_five = d_nm->mkConst<BitVector> (BitVector(16, 5u));
-    d_six = d_nm->mkConst<BitVector> (BitVector(16, 6u));
-    d_seven = d_nm->mkConst<BitVector> (BitVector(16, 7u));
-    d_eight = d_nm->mkConst<BitVector> (BitVector(16, 8u));
-    d_nine = d_nm->mkConst<BitVector> (BitVector(16, 9u));
-    d_ten = d_nm->mkConst<BitVector> (BitVector(16, 10u));
-    d_twelve = d_nm->mkConst<BitVector> (BitVector(16, 12u));
-    d_eighteen = d_nm->mkConst<BitVector> (BitVector(16, 18u));
-    d_twentyfour = d_nm->mkConst<BitVector> (BitVector(16, 24u));
-    d_thirty = d_nm->mkConst<BitVector> (BitVector(16, 30u));
+    d_p = mkConcat(d_zero, d_nm->mkConst<BitVector> (BitVector(16, 11u)));
+    d_x = mkConcat(d_zero, d_nm->mkVar("x", d_nm->mkBitVectorType(16)));
+    d_y = mkConcat(d_zero, d_nm->mkVar("y", d_nm->mkBitVectorType(16)));
+    d_z = mkConcat(d_zero, d_nm->mkVar("z", d_nm->mkBitVectorType(16)));
+
+    d_one = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 1u)));
+    d_two = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 2u)));
+    d_three = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 3u)));
+    d_four = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 4u)));
+    d_five = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 5u)));
+    d_six = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 6u)));
+    d_seven = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 7u)));
+    d_eight = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 8u)));
+    d_nine = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 9u)));
+    d_ten = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 10u)));
+    d_twelve = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 12u)));
+    d_eighteen = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 18u)));
+    d_twentyfour = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 24u)));
+    d_thirty = mkConcat(d_zero,
+        d_nm->mkConst<BitVector> (BitVector(16, 30u)));
+
+    d_one32 = d_nm->mkConst<BitVector> (BitVector(32, 1u));
+    d_two32 = d_nm->mkConst<BitVector> (BitVector(32, 2u));
+    d_three32 = d_nm->mkConst<BitVector> (BitVector(32, 3u));
+    d_four32 = d_nm->mkConst<BitVector> (BitVector(32, 4u));
+    d_five32 = d_nm->mkConst<BitVector> (BitVector(32, 5u));
+    d_six32 = d_nm->mkConst<BitVector> (BitVector(32, 6u));
+    d_seven32 = d_nm->mkConst<BitVector> (BitVector(32, 7u));
+    d_eight32 = d_nm->mkConst<BitVector> (BitVector(32, 8u));
+    d_nine32 = d_nm->mkConst<BitVector> (BitVector(32, 9u));
+    d_ten32 = d_nm->mkConst<BitVector> (BitVector(32, 10u));
 
     d_x_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_one);
     d_x_mul_two = d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_two);
@@ -191,8 +227,6 @@ public:
     d_z_mul_six = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_six);
     d_z_mul_twelve = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_twelve);
     d_z_mul_nine = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_nine);
-
-
   }
 
   void tearDown()
@@ -217,6 +251,16 @@ public:
     d_eighteen = Node::null();
     d_twentyfour = Node::null();
     d_thirty = Node::null();
+    d_one32 = Node::null();
+    d_two32 = Node::null();
+    d_three32 = Node::null();
+    d_four32 = Node::null();
+    d_five32 = Node::null();
+    d_six32 = Node::null();
+    d_seven32 = Node::null();
+    d_eight32 = Node::null();
+    d_nine32 = Node::null();
+    d_ten32 = Node::null();
     d_x_mul_one = Node::null();
     d_x_mul_two = Node::null();
     d_x_mul_four = Node::null();
@@ -1027,9 +1071,9 @@ public:
     BVGaussElim::Result ret = BVGaussElim::gaussElimRewriteForUrem (eqs, res);
     TS_ASSERT (ret == BVGaussElim::Result::UNIQUE);
     TS_ASSERT (res.size() == 3);
-    TS_ASSERT (res[d_x] == d_nm->mkConst< BitVector > (BitVector (16, 3u)));
-    TS_ASSERT (res[d_y] == d_nm->mkConst< BitVector > (BitVector (16, 4u)));
-    TS_ASSERT (res[d_z] == d_nm->mkConst< BitVector > (BitVector (16, 9u)));
+    TS_ASSERT (res[d_x] == d_three32);
+    TS_ASSERT (res[d_y] == d_four32);
+    TS_ASSERT (res[d_z] == d_nine32);
   }
 
   void testGaussElimRewriteForUremPartial1 ()
@@ -1063,24 +1107,24 @@ public:
 
     Node x1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_seven, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_two)), d_p);
+          d_seven32, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_two32)), d_p);
     Node y1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_nine, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_eight)), d_p);
+          d_nine32, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_eight32)), d_p);
 
     Node x2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_two, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_three)), d_p);
+          d_two32, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_three32)), d_p);
     Node z2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_three, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_seven)), d_p);
+          d_three32, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_seven32)), d_p);
 
     Node y3 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_three, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_four)), d_p);
+          d_three32, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_four32)), d_p);
     Node z3 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_two, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_six)), d_p);
+          d_two32, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_six32)), d_p);
 
     /* result depends on order of variables in matrix */
     if (res.find (d_x) == res.end())
@@ -1159,24 +1203,24 @@ public:
 
     Node x1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_seven, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_two)), d_p);
+          d_seven32, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_two32)), d_p);
     Node y1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-        d_nine, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_eight)), d_p);
+        d_nine32, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_eight32)), d_p);
 
     Node x2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_two, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_three)), d_p);
+          d_two32, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_three32)), d_p);
     Node z2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_three, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_seven)), d_p);
+          d_three32, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_seven32)), d_p);
 
     Node y3 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_three, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_four)), d_p);
+          d_three32, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_four32)), d_p);
     Node z3 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_two, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_six)), d_p);
+          d_two32, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_six32)), d_p);
 
 
     /* result depends on order of variables in matrix */
@@ -1256,10 +1300,10 @@ public:
 
     Node x1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_seven, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_eight)), d_p);
+          d_seven32, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_eight32)), d_p);
     Node y2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_six, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_seven)), d_p);
+          d_six32, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_seven32)), d_p);
 
     /* result depends on order of variables in matrix */
     if (res.find (d_x) == res.end())
@@ -1278,7 +1322,7 @@ public:
        *  1 0 0  9        0 1 3  7
        */
       TS_ASSERT (res[d_y] == y2);
-      TS_ASSERT (res[d_z] == d_nine);
+      TS_ASSERT (res[d_z] == d_nine32);
     }
     else if (res.find (d_y) == res.end())
     {
@@ -1296,7 +1340,7 @@ public:
        *  0 1 0  9        0 1 0  9
        */
       TS_ASSERT (res[d_x] == x1);
-      TS_ASSERT (res[d_z] == d_nine);
+      TS_ASSERT (res[d_z] == d_nine32);
     }
     else
     {
@@ -1339,22 +1383,22 @@ public:
 
     Node x1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_seven, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_two)), d_p);
+          d_seven32, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_two32)), d_p);
     Node y1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_nine, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_eight)), d_p);
+          d_nine32, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_eight32)), d_p);
     Node x2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_two, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_three)), d_p);
+          d_two32, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_three32)), d_p);
     Node z2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_three, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_seven)), d_p);
+          d_three32, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_seven32)), d_p);
     Node y3 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_three, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_four)), d_p);
+          d_three32, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_four32)), d_p);
     Node z3 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_two, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_six)), d_p);
+          d_two32, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_six32)), d_p);
 
     /* result depends on order of variables in matrix */
     if (res.find (d_x) == res.end())
@@ -1446,22 +1490,22 @@ public:
 
     Node x1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_one, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_one)), d_p);
+          d_one32, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_one32)), d_p);
     Node y1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_four, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_nine)), d_p);
+          d_four32, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_nine32)), d_p);
     Node x2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_three, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_five)), d_p);
+          d_three32, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_five32)), d_p);
     Node z2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_two, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_five)), d_p);
+          d_two32, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_five32)), d_p);
     Node y3 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_six, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_nine)), d_p);
+          d_six32, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_nine32)), d_p);
     Node z3 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_ten, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_one)), d_p);
+          d_ten32, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_one32)), d_p);
 
     /* result depends on order of variables in matrix */
     if (res.find (d_x) == res.end())
@@ -1560,9 +1604,9 @@ public:
     TS_ASSERT (res.size() == 1);
 
     Node x1 = d_nm->mkNode(kind::BITVECTOR_UREM,
-        d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_one), d_three);
+        d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_one32), d_three);
     Node y2 = d_nm->mkNode(kind::BITVECTOR_UREM,
-        d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_one), d_three);
+        d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_one32), d_three);
 
     /* result depends on order of variables in matrix */
     if (res.find (d_x) == res.end())
@@ -1630,14 +1674,14 @@ public:
     Node yy = d_nm->mkVar("yy", d_nm->mkBitVectorType(8));
     Node zz = d_nm->mkVar("zz", d_nm->mkBitVectorType(8));
 
-    Node x = d_nm->mkNode(kind::BITVECTOR_CONCAT,
-        zero, mkExtract (d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, xx), 7, 0));
-    Node y = d_nm->mkNode(kind::BITVECTOR_CONCAT,
-        zero, mkExtract (d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, yy), 7, 0));
-    Node z = d_nm->mkNode(kind::BITVECTOR_CONCAT,
-        zero, mkExtract (d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, zz), 7, 0));
-    Node x_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, x, d_one);
-    Node nine_mul_z = d_nm->mkNode(kind::BITVECTOR_MULT, d_nine, z);
+    Node x = mkConcat (d_zero,
+        mkConcat (zero, mkExtract (mkConcat (zero, xx), 7, 0)));
+    Node y = mkConcat (d_zero,
+        mkConcat (zero, mkExtract (mkConcat (zero, yy), 7, 0)));
+    Node z = mkConcat (d_zero,
+        mkConcat (zero, mkExtract (mkConcat (zero, zz), 7, 0)));
+    Node x_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, x, d_one32);
+    Node nine_mul_z = d_nm->mkNode(kind::BITVECTOR_MULT, d_nine32, z);
     Node one_mul_y = d_nm->mkNode(kind::BITVECTOR_MULT, d_one, y);
     Node z_mul_three = d_nm->mkNode(kind::BITVECTOR_MULT, z, d_three);
 
@@ -1660,24 +1704,24 @@ public:
 
     Node x1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_seven, d_nm->mkNode(kind::BITVECTOR_MULT, z, d_two)), d_p);
+          d_seven32, d_nm->mkNode(kind::BITVECTOR_MULT, z, d_two32)), d_p);
     Node y1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_nine, d_nm->mkNode(kind::BITVECTOR_MULT, z, d_eight)), d_p);
+          d_nine32, d_nm->mkNode(kind::BITVECTOR_MULT, z, d_eight32)), d_p);
 
     Node x2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_two, d_nm->mkNode(kind::BITVECTOR_MULT, y, d_three)), d_p);
+          d_two32, d_nm->mkNode(kind::BITVECTOR_MULT, y, d_three32)), d_p);
     Node z2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_three, d_nm->mkNode(kind::BITVECTOR_MULT, y, d_seven)), d_p);
+          d_three32, d_nm->mkNode(kind::BITVECTOR_MULT, y, d_seven32)), d_p);
 
     Node y3 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_three, d_nm->mkNode(kind::BITVECTOR_MULT, x, d_four)), d_p);
+          d_three32, d_nm->mkNode(kind::BITVECTOR_MULT, x, d_four32)), d_p);
     Node z3 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_two, d_nm->mkNode(kind::BITVECTOR_MULT, x, d_six)), d_p);
+          d_two32, d_nm->mkNode(kind::BITVECTOR_MULT, x, d_six32)), d_p);
 
     /* result depends on order of variables in matrix */
     if (res.find (x) == res.end())
@@ -1742,12 +1786,15 @@ public:
     Node yy = d_nm->mkVar("yy", d_nm->mkBitVectorType(8));
     Node zz = d_nm->mkVar("zz", d_nm->mkBitVectorType(8));
 
-    Node x = d_nm->mkNode(kind::BITVECTOR_CONCAT,
-        zero, mkExtract (d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, xx), 7, 0));
-    Node y = d_nm->mkNode(kind::BITVECTOR_CONCAT,
-        zero, mkExtract (d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, yy), 7, 0));
-    Node z = d_nm->mkNode(kind::BITVECTOR_CONCAT,
-        zero, mkExtract (d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, zz), 7, 0));
+    Node x = mkConcat (d_zero,
+        mkConcat (zero,
+          mkExtract (d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, xx), 7, 0)));
+    Node y = mkConcat (d_zero,
+      mkConcat (zero,
+        mkExtract (d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, yy), 7, 0)));
+    Node z = mkConcat (d_zero,
+      mkConcat (zero,
+        mkExtract (d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, zz), 7, 0)));
 
     NodeBuilder<> nbx (d_nm, kind::BITVECTOR_MULT);
     nbx << d_x << d_one << x;
@@ -1789,24 +1836,30 @@ public:
 
     Node x1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_seven, d_nm->mkNode(kind::BITVECTOR_MULT, z_mul_zz, d_two)), d_p);
+          d_seven32,
+          d_nm->mkNode(kind::BITVECTOR_MULT, z_mul_zz, d_two32)), d_p);
     Node y1 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_nine, d_nm->mkNode(kind::BITVECTOR_MULT, z_mul_zz, d_eight)), d_p);
+          d_nine32,
+          d_nm->mkNode(kind::BITVECTOR_MULT, z_mul_zz, d_eight32)), d_p);
 
     Node x2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_two, d_nm->mkNode(kind::BITVECTOR_MULT, y_mul_yy, d_three)), d_p);
+          d_two32,
+          d_nm->mkNode(kind::BITVECTOR_MULT, y_mul_yy, d_three32)), d_p);
     Node z2 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_three, d_nm->mkNode(kind::BITVECTOR_MULT, y_mul_yy, d_seven)), d_p);
+          d_three32,
+          d_nm->mkNode(kind::BITVECTOR_MULT, y_mul_yy, d_seven32)), d_p);
 
     Node y3 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_three, d_nm->mkNode(kind::BITVECTOR_MULT, x_mul_xx, d_four)), d_p);
+          d_three32,
+          d_nm->mkNode(kind::BITVECTOR_MULT, x_mul_xx, d_four32)), d_p);
     Node z3 = d_nm->mkNode(kind::BITVECTOR_UREM,
       d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_two, d_nm->mkNode(kind::BITVECTOR_MULT, x_mul_xx, d_six)), d_p);
+          d_two32,
+          d_nm->mkNode(kind::BITVECTOR_MULT, x_mul_xx, d_six32)), d_p);
 
     /* result depends on order of variables in matrix */
     if (res.find (x_mul_xx) == res.end())
@@ -1865,13 +1918,16 @@ public:
      * y O z = 5
      * ------------------------------------------------------------------- */
 
-    Node n1 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL,
-        d_nm->mkNode(kind::BITVECTOR_MULT, d_three, d_x),
-        d_nm->mkNode(kind::BITVECTOR_MULT, d_two, d_y));
-    Node n2 = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL,
-        d_nm->mkNode(kind::BITVECTOR_MULT, d_two, d_x),
-        d_nm->mkNode(kind::BITVECTOR_MULT, d_five, d_y));
-    Node n3 = mkExtract(d_nm->mkNode(kind::BITVECTOR_CONCAT, d_y, d_z), 15, 0);
+    Node n1 = 
+        d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL,
+          d_nm->mkNode(kind::BITVECTOR_MULT, d_three, d_x),
+          d_nm->mkNode(kind::BITVECTOR_MULT, d_two, d_y));
+    Node n2 = 
+        d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL,
+          d_nm->mkNode(kind::BITVECTOR_MULT, d_two, d_x),
+          d_nm->mkNode(kind::BITVECTOR_MULT, d_five, d_y));
+    Node n3 = mkConcat (d_zero,
+        mkExtract(d_nm->mkNode(kind::BITVECTOR_CONCAT, d_y, d_z), 15, 0));
 
     Node eq1 = d_nm->mkNode(kind::EQUAL,
         d_nm->mkNode(kind::BITVECTOR_UREM, n1, d_p), d_four);
@@ -1887,9 +1943,9 @@ public:
     TS_ASSERT (ret == BVGaussElim::Result::UNIQUE);
     TS_ASSERT (res.size() == 3);
 
-    TS_ASSERT(res[n1] == d_four);
-    TS_ASSERT(res[n2] == d_two);
-    TS_ASSERT(res[n3] == d_five);
+    TS_ASSERT(res[n1] == d_four32);
+    TS_ASSERT(res[n2] == d_two32);
+    TS_ASSERT(res[n3] == d_five32);
   }
 
   void testGaussElimRewriteForUremNotInvalid2 ()
@@ -1903,35 +1959,46 @@ public:
      * 2*x*y + 2*z = 9
      * ------------------------------------------------------------------- */
 
-    Node n1 = d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_y);
+    Node zero32 = mkZero(32);
+
+    Node x = mkConcat(zero32, d_nm->mkVar("x", d_nm->mkBitVectorType(16)));
+    Node y = mkConcat(zero32, d_nm->mkVar("y", d_nm->mkBitVectorType(16)));
+    Node z = mkConcat(zero32, d_nm->mkVar("z", d_nm->mkBitVectorType(16)));
+
+    Node n1 = d_nm->mkNode(kind::BITVECTOR_MULT, x, y);
     Node n2 = d_nm->mkNode(kind::BITVECTOR_MULT,
-        d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_y), d_z);
+        d_nm->mkNode(kind::BITVECTOR_MULT, x, y), z);
     Node n3 = d_nm->mkNode(kind::BITVECTOR_PLUS,
         d_nm->mkNode(kind::BITVECTOR_MULT,
-          d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_y), d_two),
-        d_nm->mkNode(kind::BITVECTOR_MULT, d_two, d_z));
+          d_nm->mkNode(kind::BITVECTOR_MULT, x, y),
+          mkConcat (d_zero, d_two)),
+        d_nm->mkNode(kind::BITVECTOR_MULT,
+          mkConcat (d_zero, d_two), z));
 
     Node eq1 = d_nm->mkNode(kind::EQUAL,
-        d_nm->mkNode(kind::BITVECTOR_UREM, n1, d_p), d_four);
+        d_nm->mkNode(kind::BITVECTOR_UREM, n1, mkConcat(d_zero, d_p)),
+        mkConcat(d_zero, d_four));
 
     Node eq2 = d_nm->mkNode(kind::EQUAL,
-        d_nm->mkNode(kind::BITVECTOR_UREM, n2, d_p), d_two);
+        d_nm->mkNode(kind::BITVECTOR_UREM, n2, mkConcat(d_zero, d_p)),
+        mkConcat(d_zero, d_two));
 
     Node eq3 = d_nm->mkNode(kind::EQUAL,
-        d_nm->mkNode(kind::BITVECTOR_UREM, n3, d_p), d_nine);
+        d_nm->mkNode(kind::BITVECTOR_UREM, n3, mkConcat(d_zero, d_p)),
+        mkConcat(d_zero, d_nine));
 
     std::vector< Node > eqs = { eq1, eq2, eq3 };
     ret = BVGaussElim::gaussElimRewriteForUrem (eqs, res);
     TS_ASSERT (ret == BVGaussElim::Result::UNIQUE);
     TS_ASSERT (res.size() == 3);
 
-    TS_ASSERT(res[n1] == d_four);
-    TS_ASSERT(res[n2] == d_two);
+    TS_ASSERT(res[n1] == mkConst(48, 4));
+    TS_ASSERT(res[n2] == mkConst(48, 2));
 
     Integer twoxy = (res[n1].getConst<BitVector>().getValue()
-                     * Integer(2)).euclidianDivideRemainder(Integer(16));
-    Integer twoz = (res[d_z].getConst<BitVector>().getValue()
-                     * Integer(2)).euclidianDivideRemainder(Integer(16));
+                     * Integer(2)).euclidianDivideRemainder(Integer(48));
+    Integer twoz = (res[z].getConst<BitVector>().getValue()
+                     * Integer(2)).euclidianDivideRemainder(Integer(48));
     Integer r = (twoxy + twoz).euclidianDivideRemainder(Integer(11));
     TS_ASSERT(r == Integer(9));
   }
@@ -1947,20 +2014,30 @@ public:
      * 2*x*y = 9
      * ------------------------------------------------------------------- */
 
-    Node n1 = d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_y);
+    Node zero32 = mkZero(32);
+
+    Node x = mkConcat(zero32, d_nm->mkVar("x", d_nm->mkBitVectorType(16)));
+    Node y = mkConcat(zero32, d_nm->mkVar("y", d_nm->mkBitVectorType(16)));
+    Node z = mkConcat(zero32, d_nm->mkVar("z", d_nm->mkBitVectorType(16)));
+
+    Node n1 = d_nm->mkNode(kind::BITVECTOR_MULT, x, y);
     Node n2 = d_nm->mkNode(kind::BITVECTOR_MULT,
-        d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_y), d_z);
+        d_nm->mkNode(kind::BITVECTOR_MULT, x, y), z);
     Node n3 = d_nm->mkNode(kind::BITVECTOR_MULT,
-          d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_y), d_two);
+          d_nm->mkNode(kind::BITVECTOR_MULT, x, y),
+          mkConcat (d_zero, d_two));
 
     Node eq1 = d_nm->mkNode(kind::EQUAL,
-        d_nm->mkNode(kind::BITVECTOR_UREM, n1, d_p), d_four);
+        d_nm->mkNode(kind::BITVECTOR_UREM, n1, mkConcat(d_zero, d_p)),
+        mkConcat(d_zero, d_four));
 
     Node eq2 = d_nm->mkNode(kind::EQUAL,
-        d_nm->mkNode(kind::BITVECTOR_UREM, n2, d_p), d_two);
+        d_nm->mkNode(kind::BITVECTOR_UREM, n2, mkConcat(d_zero, d_p)),
+        mkConcat(d_zero, d_two));
 
     Node eq3 = d_nm->mkNode(kind::EQUAL,
-        d_nm->mkNode(kind::BITVECTOR_UREM, n3, d_p), d_nine);
+        d_nm->mkNode(kind::BITVECTOR_UREM, n3, mkConcat(d_zero, d_p)),
+        mkConcat(d_zero, d_nine));
 
     std::vector< Node > eqs = { eq1, eq2, eq3 };
     ret = BVGaussElim::gaussElimRewriteForUrem (eqs, res);
@@ -2005,11 +2082,11 @@ public:
     std::unordered_map< Node, Node, NodeHashFunction > res;
     BVGaussElim::gaussElimRewrite (ass);
     Node resx = d_nm->mkNode(kind::EQUAL,
-        d_x, d_nm->mkConst< BitVector > (BitVector (16, 3u)));
+        d_x, d_nm->mkConst< BitVector > (BitVector (32, 3u)));
     Node resy = d_nm->mkNode(kind::EQUAL,
-        d_y, d_nm->mkConst< BitVector > (BitVector (16, 4u)));
+        d_y, d_nm->mkConst< BitVector > (BitVector (32, 4u)));
     Node resz = d_nm->mkNode(kind::EQUAL,
-        d_z, d_nm->mkConst< BitVector > (BitVector (16, 9u)));
+        d_z, d_nm->mkConst< BitVector > (BitVector (32, 9u)));
     TS_ASSERT (ass.size() == 4);
     TS_ASSERT (std::find (ass.begin(), ass.end(), resx) != ass.end()); 
     TS_ASSERT (std::find (ass.begin(), ass.end(), resy) != ass.end()); 
@@ -2073,15 +2150,15 @@ public:
     std::unordered_map< Node, Node, NodeHashFunction > res;
     BVGaussElim::gaussElimRewrite (ass);
     Node resx1 = d_nm->mkNode(kind::EQUAL,
-        d_x, d_nm->mkConst< BitVector > (BitVector (16, 3u)));
+        d_x, d_nm->mkConst< BitVector > (BitVector (32, 3u)));
     Node resx2 = d_nm->mkNode(kind::EQUAL,
-        d_x, d_nm->mkConst< BitVector > (BitVector (16, 3u)));
+        d_x, d_nm->mkConst< BitVector > (BitVector (32, 3u)));
     Node resy1 = d_nm->mkNode(kind::EQUAL,
-        d_y, d_nm->mkConst< BitVector > (BitVector (16, 4u)));
+        d_y, d_nm->mkConst< BitVector > (BitVector (32, 4u)));
     Node resy2 = d_nm->mkNode(kind::EQUAL,
-        d_y, d_nm->mkConst< BitVector > (BitVector (16, 2u)));
+        d_y, d_nm->mkConst< BitVector > (BitVector (32, 2u)));
     Node resz = d_nm->mkNode(kind::EQUAL,
-        d_z, d_nm->mkConst< BitVector > (BitVector (16, 9u)));
+        d_z, d_nm->mkConst< BitVector > (BitVector (32, 9u)));
     TS_ASSERT (ass.size() == 8);
     TS_ASSERT (std::find (ass.begin(), ass.end(), resx1) != ass.end()); 
     TS_ASSERT (std::find (ass.begin(), ass.end(), resx2) != ass.end()); 
@@ -2118,29 +2195,41 @@ public:
     Node resx1 = d_nm->mkNode(kind::EQUAL, d_x,
       d_nm->mkNode(kind::BITVECTOR_UREM,
         d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_seven, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_two)), d_p));
+          d_seven32,
+          d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_two32)),
+        d_p));
     Node resy1 = d_nm->mkNode(kind::EQUAL, d_y,
       d_nm->mkNode(kind::BITVECTOR_UREM,
         d_nm->mkNode(kind::BITVECTOR_PLUS,
-          d_nine, d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_eight)), d_p));
+          d_nine32,
+          d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_eight32)),
+        d_p));
 
     Node resx2 = d_nm->mkNode(kind::EQUAL, d_x,
         d_nm->mkNode(kind::BITVECTOR_UREM,
           d_nm->mkNode(kind::BITVECTOR_PLUS,
-            d_two, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_three)), d_p));
+            d_two32,
+            d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_three32)),
+          d_p));
     Node resz2 = d_nm->mkNode(kind::EQUAL, d_z,
         d_nm->mkNode(kind::BITVECTOR_UREM,
           d_nm->mkNode(kind::BITVECTOR_PLUS,
-            d_three, d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_seven)), d_p));
+            d_three32,
+            d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_seven32)),
+          d_p));
 
     Node resy3 = d_nm->mkNode(kind::EQUAL, d_y,
         d_nm->mkNode(kind::BITVECTOR_UREM,
           d_nm->mkNode(kind::BITVECTOR_PLUS,
-            d_three, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_four)), d_p));
+            d_three32,
+            d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_four32)),
+          d_p));
     Node resz3 = d_nm->mkNode(kind::EQUAL, d_z,
         d_nm->mkNode(kind::BITVECTOR_UREM,
           d_nm->mkNode(kind::BITVECTOR_PLUS,
-            d_two, d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_six)), d_p));
+            d_two32,
+            d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_six32)),
+          d_p));
 
     bool fx1 = std::find (ass.begin(), ass.end(), resx1) != ass.end();
     bool fy1 = std::find (ass.begin(), ass.end(), resy1) != ass.end();
@@ -2151,6 +2240,304 @@ public:
 
     /* result depends on order of variables in matrix */
     TS_ASSERT ((fx1 && fy1) || (fx2 && fz2) || (fy3 && fz3));
+  }
+
+  void testGetMinBw1 ()
+  {
+    Node p = d_nm->mkConst<BitVector> (BitVector(16, 11u));
+    TS_ASSERT (BVGaussElim::getMinBwExpr(p) == 4);
+
+    Node p8 = d_nm->mkConst<BitVector> (BitVector(8, 11u));
+    Node ext = mkExtract(p, 4, 0);
+    Node zextop8 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(8));
+    Node zextop32 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(32));
+    Node zextop40 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(40));
+    Node zext24 = d_nm->mkNode(zextop8, p);
+    Node zext48 = d_nm->mkNode(zextop32, p);
+    Node zext48_2 = d_nm->mkNode(zextop40, p8);
+
+    TS_ASSERT (BVGaussElim::getMinBwExpr(ext) == 4);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(zext24) == 4);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(zext48) == 4);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(zext48_2) == 4);
+
+    Node mult1 = d_nm->mkNode(kind::BITVECTOR_MULT, ext, ext);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(mult1) == 0);
+
+    Node mult2 = d_nm->mkNode(kind::BITVECTOR_MULT, zext24, zext24);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(mult2) == 8);
+
+    NodeBuilder<> nbmult3(kind::BITVECTOR_MULT);
+    nbmult3 << zext48 << zext48 << zext48;
+    Node mult3 = nbmult3;
+    TS_ASSERT (BVGaussElim::getMinBwExpr(mult3) == 12);
+
+    NodeBuilder<> nbmult4(kind::BITVECTOR_MULT);
+    nbmult4 << zext48 << zext48_2 << zext48;
+    Node mult4 = nbmult4;
+    TS_ASSERT (BVGaussElim::getMinBwExpr(mult4) == 12);
+
+    Node concat1 = mkConcat(p, zext48);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(concat1) == 52);
+
+    Node concat2 = mkConcat(mkZero(16), zext48);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(concat2) == 4);
+
+    Node udiv1 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, zext48, zext48);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(udiv1) == 4);
+
+    Node udiv2 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, zext48, zext48_2);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(udiv2) == 4);
+
+    Node urem1 = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48, zext48);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(urem1) == 4);
+
+    Node urem2 = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48, zext48_2);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(urem2) == 4);
+
+    Node urem3 = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48_2, zext48);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(urem3) == 4);
+
+    Node add1 = d_nm->mkNode(kind::BITVECTOR_PLUS, ext, ext);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(add1) == 5);
+
+    Node add2 = d_nm->mkNode(kind::BITVECTOR_PLUS, zext24, zext24);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(add2) == 5);
+
+    NodeBuilder<> nbadd3(kind::BITVECTOR_PLUS);
+    nbadd3 << zext48 << zext48 << zext48;
+    Node add3 = nbadd3;
+    TS_ASSERT (BVGaussElim::getMinBwExpr(add3) == 6);
+
+    NodeBuilder<> nbadd4(kind::BITVECTOR_PLUS);
+    nbadd4 << zext48 << zext48_2 << zext48;
+    Node add4 = nbadd4;
+    TS_ASSERT (BVGaussElim::getMinBwExpr(add4) == 6);
+
+    Node not1 = d_nm->mkNode(kind::BITVECTOR_NOT, zext24);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(not1) == 4);
+  }
+
+  void testGetMinBw2 ()
+  {
+    /* ((_ zero_extend 5)
+     *     ((_ extract 7 0) ((_ zero_extend 15) d_p)))  */
+    Node zextop5 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(5));
+    Node zextop15 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(15));
+    Node zext1 = d_nm->mkNode(zextop15, d_p);
+    Node ext = mkExtract(zext1, 7, 0);
+    Node zext2 = d_nm->mkNode(zextop5, ext);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(zext2) == 4);
+  }
+
+  void testGetMinBw3 ()
+  {
+    /* ((_ zero_extend 5)
+     *     (bvudiv ((_ extract 4 0) ((_ zero_extend 5) (bvudiv x z)))
+     *             ((_ extract 4 0) w)))  */
+    Node zextop5 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(5));
+    Node udiv1 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, d_p, d_nine);
+    Node zext1 = d_nm->mkNode(zextop5, udiv1);
+    Node ext1 = mkExtract(zext1, 4, 0);
+    Node ext2 = mkExtract(d_two, 4, 0);
+    Node udiv2 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1, ext2);
+    Node zext2 = mkConcat(mkZero(5), udiv2);
+    TS_ASSERT (BVGaussElim::getMinBwExpr(zext2) == 4);
+  }
+
+  void testGetMinBw4 ()
+  {
+    /* (bvadd
+     *     ((_ zero_extend 5)
+     *         (bvudiv ((_ extract 4 0) ((_ zero_extend 5) (bvudiv x z)))
+     *                 ((_ extract 4 0) w)))
+     *     ((_ zero_extend 7)
+     *         (bvudiv ((_ extract 2 0) ((_ zero_extend 5) (bvudiv x z)))
+     *                 ((_ extract 2 0) w)))  */
+    Node zextop5 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(5));
+    Node zextop7 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(7));
+
+    Node udiv1 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, d_p, d_nine);
+    Node zext1 = d_nm->mkNode(zextop5, udiv1);
+
+    Node ext1_1 = mkExtract(zext1, 4, 0);
+    Node ext2_1 = mkExtract(d_two, 4, 0);
+    Node udiv2_1 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1_1, ext2_1);
+    Node zext2_1 = mkConcat(mkZero(5), udiv2_1);
+
+    Node ext1_2 = mkExtract(zext1, 2, 0);
+    Node ext2_2 = mkExtract(d_two, 2, 0);
+    Node udiv2_2 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1_2, ext2_2);
+    Node zext2_2 = d_nm->mkNode(zextop7, udiv2_2);
+
+    Node plus = d_nm->mkNode(kind::BITVECTOR_PLUS, zext2_1, zext2_2);
+
+    TS_ASSERT (BVGaussElim::getMinBwExpr(plus) == 4);
+  }
+
+  void testGetMinBw5a ()
+  {
+    /* (bvadd
+     *   (bvadd
+     *     (bvadd
+     *       (bvadd
+     *         (bvadd
+     *           (bvadd
+     *             (bvadd (bvmul (_ bv86 13)
+     *                           ((_ zero_extend 5)
+     *                             ((_ extract 7 0) ((_ zero_extend 15) x))))
+     *                    (bvmul (_ bv41 13)
+     *                           ((_ zero_extend 5)
+     *                             ((_ extract 7 0) ((_ zero_extend 15) y)))))
+     *             (bvmul (_ bv37 13)
+     *                    ((_ zero_extend 5)
+     *                      ((_ extract 7 0) ((_ zero_extend 15) z)))))
+     *           (bvmul (_ bv170 13)
+     *                  ((_ zero_extend 5)
+     *                    ((_ extract 7 0) ((_ zero_extend 15) u)))))
+     *         (bvmul (_ bv112 13)
+     *                ((_ zero_extend 5)
+     *                  ((_ extract 7 0) ((_ zero_extend 15) v)))))
+     *       (bvmul (_ bv195 13) ((_ zero_extend 5) ((_ extract 15 8) s))))
+     *     (bvmul (_ bv124 13) ((_ zero_extend 5) ((_ extract 7 0) s))))
+     *   (bvmul (_ bv83 13)
+     *          ((_ zero_extend 5) ((_ extract 7 0) ((_ zero_extend 15) w)))))
+     */
+    Node x = mkVar(1);
+    Node y = mkVar(1);
+    Node z = mkVar(1);
+    Node u = mkVar(1);
+    Node v = mkVar(1);
+    Node w = mkVar(1);
+    Node s = mkVar(16);
+
+    Node zextop5 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(5));
+    Node zextop15 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(15));
+
+    Node zext15x = d_nm->mkNode(zextop15, x);
+    Node zext15y = d_nm->mkNode(zextop15, y);
+    Node zext15z = d_nm->mkNode(zextop15, z);
+    Node zext15u = d_nm->mkNode(zextop15, u);
+    Node zext15v = d_nm->mkNode(zextop15, v);
+    Node zext15w = d_nm->mkNode(zextop15, w);
+
+    Node ext7x = mkExtract(zext15x, 7, 0);
+    Node ext7y = mkExtract(zext15y, 7, 0);
+    Node ext7z = mkExtract(zext15z, 7, 0);
+    Node ext7u = mkExtract(zext15u, 7, 0);
+    Node ext7v = mkExtract(zext15v, 7, 0);
+    Node ext7w = mkExtract(zext15w, 7, 0);
+    Node ext7s = mkExtract(s, 7, 0);
+    Node ext15s = mkExtract(s, 15, 8);
+
+    Node xx = mkConcat(mkZero(5), ext7x);
+    Node yy = mkConcat(mkZero(5), ext7y);
+    Node zz = mkConcat(mkZero(5), ext7z);
+    Node uu = mkConcat(mkZero(5), ext7u);
+    Node vv = mkConcat(mkZero(5), ext7v);
+    Node ww = mkConcat(mkZero(5), ext7w);
+    Node s7 = mkConcat(mkZero(5), ext7s);
+    Node s15 = mkConcat(mkZero(5), ext15s);
+
+    Node plus1 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 86), xx),
+        d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 41), yy));
+    Node plus2 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        plus1, d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 37), zz));
+    Node plus3 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        plus2, d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 170), uu));
+    Node plus4 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        plus3, d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 112), uu));
+    Node plus5 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        plus4, d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 195), s15));
+    Node plus6 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        plus5, d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 124), s7));
+    Node plus7 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        plus6, d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 83), ww));
+
+    TS_ASSERT (BVGaussElim::getMinBwExpr(plus7) == 0);
+  }
+
+  void testGetMinBw5b ()
+  {
+    /* (bvadd
+     *   (bvadd
+     *     (bvadd
+     *       (bvadd
+     *         (bvadd
+     *           (bvadd
+     *             (bvadd (bvmul (_ bv86 18)
+     *                           ((_ zero_extend 10)
+     *                             ((_ extract 7 0) ((_ zero_extend 15) x))))
+     *                    (bvmul (_ bv41 18)
+     *                           ((_ zero_extend 10)
+     *                             ((_ extract 7 0) ((_ zero_extend 15) y)))))
+     *             (bvmul (_ bv37 18)
+     *                    ((_ zero_extend 10)
+     *                      ((_ extract 7 0) ((_ zero_extend 15) z)))))
+     *           (bvmul (_ bv170 18)
+     *                  ((_ zero_extend 10)
+     *                    ((_ extract 7 0) ((_ zero_extend 15) u)))))
+     *         (bvmul (_ bv112 18)
+     *                ((_ zero_extend 10)
+     *                  ((_ extract 7 0) ((_ zero_extend 15) v)))))
+     *       (bvmul (_ bv195 18) ((_ zero_extend 10) ((_ extract 15 8) s))))
+     *     (bvmul (_ bv124 18) ((_ zero_extend 10) ((_ extract 7 0) s))))
+     *   (bvmul (_ bv83 18)
+     *          ((_ zero_extend 10) ((_ extract 7 0) ((_ zero_extend 15) w)))))
+     */
+    Node x = mkVar(1);
+    Node y = mkVar(1);
+    Node z = mkVar(1);
+    Node u = mkVar(1);
+    Node v = mkVar(1);
+    Node w = mkVar(1);
+    Node s = mkVar(16);
+
+    Node zextop15 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(15));
+
+    Node zext15x = d_nm->mkNode(zextop15, x);
+    Node zext15y = d_nm->mkNode(zextop15, y);
+    Node zext15z = d_nm->mkNode(zextop15, z);
+    Node zext15u = d_nm->mkNode(zextop15, u);
+    Node zext15v = d_nm->mkNode(zextop15, v);
+    Node zext15w = d_nm->mkNode(zextop15, w);
+
+    Node ext7x = mkExtract(zext15x, 7, 0);
+    Node ext7y = mkExtract(zext15y, 7, 0);
+    Node ext7z = mkExtract(zext15z, 7, 0);
+    Node ext7u = mkExtract(zext15u, 7, 0);
+    Node ext7v = mkExtract(zext15v, 7, 0);
+    Node ext7w = mkExtract(zext15w, 7, 0);
+    Node ext7s = mkExtract(s, 7, 0);
+    Node ext15s = mkExtract(s, 15, 8);
+
+    Node xx = mkConcat(mkZero(10), ext7x);
+    Node yy = mkConcat(mkZero(10), ext7y);
+    Node zz = mkConcat(mkZero(10), ext7z);
+    Node uu = mkConcat(mkZero(10), ext7u);
+    Node vv = mkConcat(mkZero(10), ext7v);
+    Node ww = mkConcat(mkZero(10), ext7w);
+    Node s7 = mkConcat(mkZero(10), ext7s);
+    Node s15 = mkConcat(mkZero(10), ext15s);
+
+    Node plus1 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(18, 86), xx),
+        d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(18, 41), yy));
+    Node plus2 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        plus1, d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(18, 37), zz));
+    Node plus3 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        plus2, d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(18, 170), uu));
+    Node plus4 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        plus3, d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(18, 112), uu));
+    Node plus5 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        plus4, d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(18, 195), s15));
+    Node plus6 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        plus5, d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(18, 124), s7));
+    Node plus7 = d_nm->mkNode(kind::BITVECTOR_PLUS,
+        plus6, d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(18, 83), ww));
+
+    TS_ASSERT (BVGaussElim::getMinBwExpr(plus7) == 16);
   }
 
 };
