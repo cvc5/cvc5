@@ -78,17 +78,18 @@ struct CegConjectureProcessFun
   void init(Node f);
   /** process term 
    *
-   * n is an f-application to process,
-   * nf is the (flattened) form of our conjecture to process,
+   * ns are the f-applications to process,
+   * ks are the variables we introduced to flatten them,
+   * nf is the flattened form of our conjecture to process,
    * free_vars maps all subterms of n and nf to the set 
    *   of variables (in set synth_fv) they contain.
    * 
    * This updates information regarding which arguments
    * of the function-to-synthesize are relevant.
    */
-  void processTerm(Node n, Node k, Node nf,
-                   std::unordered_set< Node, NodeHashFunction >& synth_fv, 
-                   std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars);
+  void processTerms(std::vector< Node >& ns, std::vector< Node >& ks, Node nf,
+                    std::unordered_set< Node, NodeHashFunction >& synth_fv, 
+                    std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars);
  private:
   /** the synth fun associated with this */
   Node d_synth_fun;

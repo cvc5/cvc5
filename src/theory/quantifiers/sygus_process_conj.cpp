@@ -71,52 +71,48 @@ unsigned CegConjectureProcessFun::allocateDeqId() {
   return deqid;
 }
 
-void CegConjectureProcessFun::processTerm(Node n, Node k, Node nf,
-                                          std::unordered_set< Node, NodeHashFunction >& synth_fv, 
-                                          std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars) {
-  Assert(n.getKind()==APPLY_UF);
-  Assert(n.getOperator()==d_synth_fun);
-
-  Trace("sygus-process-arg-deps") << "  process application : " << n << std::endl;
+void CegConjectureProcessFun::processTerms(std::vector< Node >& ns, std::vector< Node >& ks, Node nf,
+                                           std::unordered_set< Node, NodeHashFunction >& synth_fv, 
+                                           std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars) {
+  Assert( ns.size()==ks.size() );
+  Trace("sygus-process-arg-deps") << "Process " << ns.size() << " applications of " << d_synth_fun << "..." << std::endl;
   
   // update the disequality ids
-  for( unsigned i=0; i<d_deq_id_counter; i++ ){
-    if( d_deq_id_eqc[i].size()>1 ){
-      // partition based on the content of arguments of n
-      std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction > term_to_args;
-      for( std::unordered_set< unsigned >::iterator it = d_deq_id_eqc[i].begin(); it != d_deq_id_eqc[i].end(); ++it ){
-        unsigned a = (*it);
-        term_to_args[n[a]].push_back(a);
-      }
-      bool firstTime = true;
-      for(std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction >::iterator it = term_to_args.begin();
-          it != term_to_args.end(); ++it ){
-        if( firstTime ){
-          // leave the first set in the original eqc
-          firstTime = false;          
-        }else{
-          unsigned deqid = allocateDeqId();
-          // move to new eqc and update
-          for( unsigned j=0; j<it->second.size(); j++ ){
-            unsigned am = it->second[j];
-            d_deq_id_eqc[i].erase(am);
-            d_deq_id_eqc[deqid].insert(am);
-            Assert(d_arg_props[am].d_deq_id==i);
-            d_arg_props[am].d_deq_id = deqid;
+  for(unsigned index=0; index<ns.size(); index++ ){
+    Node n = ns[index];
+    Assert(n.getKind()==APPLY_UF);
+    Assert(n.getOperator()==d_synth_fun);
+    Trace("sygus-process-arg-deps") << "  process equivalence of arguments for application #" << index << ": " << n << std::endl;
+    for( unsigned i=0; i<d_deq_id_counter; i++ ){
+      if( d_deq_id_eqc[i].size()>1 ){
+        // partition based on the content of arguments of n
+        std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction > term_to_args;
+        for( std::unordered_set< unsigned >::iterator it = d_deq_id_eqc[i].begin(); it != d_deq_id_eqc[i].end(); ++it ){
+          unsigned a = (*it);
+          term_to_args[n[a]].push_back(a);
+        }
+        bool firstTime = true;
+        for(std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction >::iterator it = term_to_args.begin();
+            it != term_to_args.end(); ++it ){
+          if( firstTime ){
+            // leave the first set in the original eqc
+            firstTime = false;          
+          }else{
+            unsigned deqid = allocateDeqId();
+            // move to new eqc and update
+            for( unsigned j=0; j<it->second.size(); j++ ){
+              unsigned am = it->second[j];
+              d_deq_id_eqc[i].erase(am);
+              d_deq_id_eqc[deqid].insert(am);
+              Assert(d_arg_props[am].d_deq_id==i);
+              d_arg_props[am].d_deq_id = deqid;
+            }
           }
         }
       }
     }
   }
-  
-  /*
-  // global partition based on the content of arguments of n
-  std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction > term_to_args;
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    term_to_args[n[i]].push_back(i);
-  }
-  */
-  
+
   // process the arguments of n
   
   // the relevant variables
@@ -127,24 +123,36 @@ void CegConjectureProcessFun::processTerm(Node n, Node k, Node nf,
   bool changed;
   do 
   {
-    changed = false;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      // if argument is currently irrelevant, check whether it remains irrelevant
-      if( !d_arg_props[i].d_relevant ){
-        Node nn = n[i];
-        // it is a synth fun?
-        if( nn.isVar() && synth_fv.find(nn)!=synth_fv.end() ){
-          //is it relevant?
-          if( rlv_vars.find(nn)!=rlv_vars.end() ){
-          
+    std::vector< unsigned > new_rlv_args;
+    for(unsigned index=0; index<ns.size(); index++ ){
+      Node n = ns[index];
+      Trace("sygus-process-arg-deps") << "  process relevance for application #" << index << ": " << n << std::endl;
+      std::vector< unsigned > new_rel_args;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        // if argument is currently irrelevant, check whether it remains irrelevant
+        if( !d_arg_props[i].d_relevant ){
+          Node nn = n[i];
+          Trace("sygus-process-arg-deps") << "    argument #i (" << nn << ")";
+          // it is a synth fun?
+          if( nn.isVar() && synth_fv.find(nn)!=synth_fv.end() ){
+            //is it relevant?
+            if( rlv_vars.find(nn)!=rlv_vars.end() ){
+              d_arg_props[i].d_relevant = true;
+              Trace("sygus-process-arg-deps") << " is a relevant variable." << std::endl;
+            }else{
+              Trace("sygus-process-arg-deps") << " is an irrelevant variable." << std::endl;
+            }
           }else{
-            
+            // this can be more precise
+            d_arg_props[i].d_relevant = true;
+            Trace("sygus-process-arg-deps") << " is a relevant term." << std::endl;
           }
-        }else{
-          
         }
       }
     }
+    
+    changed = false;
+    
   }while(changed);
 }
 
@@ -169,10 +177,10 @@ Node CegConjectureProcess::simplify(Node q)
   std::unordered_set< Node, NodeHashFunction > synth_fv;
   if (base.getKind() == NOT && base[0].getKind() == FORALL)
   {
-    base = base[0][1];
-    for( unsigned j=0; j<base[0].getNumChildren(); j++ ){
-      synth_fv.insert(base[0][j]);
+    for( unsigned j=0; j<base[0][0].getNumChildren(); j++ ){
+      synth_fv.insert(base[0][0][j]);
     }
+    base = base[0][1];
   }
   std::vector< Node > conjuncts;
   getComponentVector( AND, base, conjuncts );
@@ -217,10 +225,10 @@ void CegConjectureProcess::processConjunct(Node n, std::unordered_set< Node, Nod
   
   // get free variables in nf
   std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction > free_vars;
-  getFreeVariables(nf,synth_fv,free_vars);
+  getFreeVariables(nf,synth_fv_n,free_vars);
   // get free variables in each application
   for(std::unordered_map<Node,Node,NodeHashFunction>::iterator it = defs.begin(); it != defs.end(); ++it ){
-    getFreeVariables(it->second,synth_fv,free_vars);
+    getFreeVariables(it->second,synth_fv_n,free_vars);
   }
   
   // process the applications of synthesis functions
@@ -229,12 +237,13 @@ void CegConjectureProcess::processConjunct(Node n, std::unordered_set< Node, Nod
     Trace("sygus-process-arg-deps") << "Processing applications of " << f << " : " << std::endl;
     std::map<Node, CegConjectureProcessFun>::iterator its = d_sf_info.find(f);
     if(its!=d_sf_info.end()){
+      std::vector< Node > ns;
       for( unsigned j=0; j<it->second.size(); j++ ){
         Node k = it->second[j];
         Assert( defs.find(k)!=defs.end() );
-        Node fa = defs[k];
-        its->second.processTerm(fa,k,nf,synth_fv,free_vars);
+        ns.push_back( defs[k] );
       }
+      its->second.processTerms(ns,it->second,nf,synth_fv_n,free_vars);
     }else{
       Assert( false );      
     }
