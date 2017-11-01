@@ -40,6 +40,9 @@ void CegConjectureProcessFun::init(Node f) {
   d_synth_fun = f;
   Assert(f.getType().isFunction());
   d_deq_id_counter = 0;
+  d_deq_id_eqc.clear();
+  
+  // initialize the arguments
   std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction> type_to_init_deq_id;
   std::vector<Type> argTypes = static_cast<FunctionType>(f.getType().toType()).getArgTypes();
   for( unsigned j=0; j<argTypes.size(); j++ ){
@@ -49,9 +52,8 @@ void CegConjectureProcessFun::init(Node f) {
     std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>::iterator it = type_to_init_deq_id.find(atn);
     unsigned deqid;
     if(it==type_to_init_deq_id.end()){
-      deqid = d_deq_id_counter;
-      type_to_init_deq_id[atn] = d_deq_id_counter;
-      d_deq_id_counter++;
+      deqid = allocateDeqId();
+      type_to_init_deq_id[atn] = deqid;
     }else{
       deqid = it->second;
     }
@@ -61,17 +63,46 @@ void CegConjectureProcessFun::init(Node f) {
   }
 }
 
-void CegConjectureProcessFun::processTerm(Node n, 
-                                         std::unordered_map<TNode, std::unordered_set< TNode, TNodeHashFunction >, TNodeHashFunction >& freeVars,
-                                         std::unordered_set< TNode, TNodeHashFunction >& synth_fv) {
+unsigned CegConjectureProcessFun::allocateDeqId() {
+  unsigned deqid = d_deq_id_counter;
+  d_deq_id_counter++;
+  d_deq_id_eqc.push_back(std::unordered_set< unsigned >());
+  return deqid;
+}
+
+void CegConjectureProcessFun::processTerm(Node n) {
+  Assert(n.getKind()==APPLY_UF);
+  Assert(n.getOperator()==d_synth_fun);
+  
   // update the disequality ids
-  
-  
-  // merge equal variables
-  
-  
-  // take free variables in each argument
-        
+  for( unsigned i=0; i<d_deq_id_counter; i++ ){
+    if( d_deq_id_eqc[i].size()>1 ){
+      // partition based on the content of arguments of n
+      std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction > term_to_args;
+      for( std::unordered_set< unsigned >::iterator it = d_deq_id_eqc[i].begin(); it != d_deq_id_eqc[i].end(); ++it ){
+        unsigned a = (*it);
+        term_to_args[n[a]].push_back(a);
+      }
+      bool firstTime = true;
+      for(std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction >::iterator it = term_to_args.begin();
+          it != term_to_args.end(); ++it ){
+        if( firstTime ){
+          // leave the first set in the original eqc
+          firstTime = false;          
+        }else{
+          unsigned deqid = allocateDeqId();
+          // move to new eqc and update
+          for( unsigned j=0; j<it->second.size(); j++ ){
+            unsigned am = it->second[j];
+            d_deq_id_eqc[i].erase(am);
+            d_deq_id_eqc[deqid].insert(am);
+            Assert(d_arg_props[am].d_deq_id==i);
+            d_arg_props[am].d_deq_id = deqid;
+          }
+        }
+      }
+    }
+  }
 }
 
 CegConjectureProcess::CegConjectureProcess(QuantifiersEngine* qe) : d_qe(qe) {}
@@ -92,7 +123,7 @@ Node CegConjectureProcess::simplify(Node q)
   
   // get the base on the conjecture
   Node base = q[1];
-  std::unordered_set< TNode, TNodeHashFunction > synth_fv;
+  std::unordered_set< Node, NodeHashFunction > synth_fv;
   if (base.getKind() == NOT && base[0].getKind() == FORALL)
   {
     base = base[0][1];
@@ -126,16 +157,85 @@ void CegConjectureProcess::initialize(Node n, std::vector<Node>& candidates)
 
 }
 
-void CegConjectureProcess::processConjunct(Node n, std::unordered_set< TNode, TNodeHashFunction >& synth_fv) {
-  // free variables in each node
-  std::unordered_map<TNode, std::unordered_set< TNode, TNodeHashFunction >, TNodeHashFunction > free_vars;
-  // free variables in each arguments
-  std::unordered_map<unsigned, std::unordered_set< TNode, TNodeHashFunction > > free_vars_args;
+void CegConjectureProcess::processConjunct(Node n, std::unordered_set< Node, NodeHashFunction >& synth_fv) {
+  // first, flatten the conjunct 
+  // make a copy of free variables
+  std::unordered_set< Node, NodeHashFunction > synth_fv_n = synth_fv;
+  std::unordered_map<Node,Node,NodeHashFunction> defs;
+  Node nf = flatten(n,synth_fv_n,defs);
   
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
-  std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
-  std::stack<TNode> visit;
-  TNode cur;
+  // get free variables in nf
+  std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction > free_vars;
+  getFreeVariables(n,synth_fv,free_vars);
+  
+  
+}
+
+Node CegConjectureProcess::CegConjectureProcess::flatten(Node n, std::unordered_set< Node, NodeHashFunction >& synth_fv, 
+                                                         std::unordered_map<Node,Node,NodeHashFunction>& defs) {
+  std::unordered_map<Node, Node, NodeHashFunction> visited;
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
+  std::stack<Node> visit;
+  Node cur;
+  visit.push(n);
+  do {
+    cur = visit.top();
+    visit.pop();
+    it = visited.find(cur);
+
+    if (it == visited.end()) {
+      visited[cur] = Node::null();
+      visit.push(cur);
+      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+        visit.push(cur[i]);
+      }
+    } else if (it->second.isNull()) {
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        children.push_back(cur.getOperator());
+      }
+      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+        it = visited.find(cur[i]);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cur[i] != it->second;
+        children.push_back(it->second);
+      }
+      if (childChanged) {
+        ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+      }
+      // is it a function to synthesize?
+      if( cur.getKind()==APPLY_UF ){
+        Node f = cur.getOperator();
+        std::map<Node, CegConjectureProcessFun>::iterator its = d_sf_info.find(f);
+        if(its!=d_sf_info.end()){
+          // if so, flatten
+          Node k = NodeManager::currentNM()->mkBoundVar("vf",cur.getType());
+          defs[k] = ret;
+          ret = k;
+          synth_fv.insert(k);
+        }
+      }
+      //post-rewrite
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
+}
+
+void CegConjectureProcess::getFreeVariables(Node n, std::unordered_set< Node, NodeHashFunction >& synth_fv,
+  std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars ){
+
+  // first must compute free variables in each subterm of n,
+  // as well as contains_synth_fun
+  std::unordered_map<Node, bool, NodeHashFunction> visited;
+  std::unordered_map<Node, bool, NodeHashFunction>::iterator it;
+  std::stack<Node> visit;
+  Node cur;
   visit.push(n);
   do {
     cur = visit.top();
@@ -148,32 +248,18 @@ void CegConjectureProcess::processConjunct(Node n, std::unordered_set< TNode, TN
         visit.push(cur[i]);
       }
     }else if( !it->second ){
-      bool processed = false;
-      if( cur.getKind()==APPLY_UF ){
-        Node f = cur.getOperator();
-        std::map<Node, CegConjectureProcessFun>::iterator its = d_sf_info.find(f);
-        if(its!=d_sf_info.end()){
-          // it is an application of a function to synthesize
-          // process this f-application using the class
-          its->second.processTerm(cur,free_vars,synth_fv);
-          processed = true;
+      if( synth_fv.find(cur)!=synth_fv.end() ){
+        // it is a free variable
+        free_vars[cur].insert(cur);
+      }
+      else
+      {
+        // otherwise, carry the free variables from the children
+        std::unordered_set< Node, NodeHashFunction >& fv_cur = free_vars[cur];
+        for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+          fv_cur.insert(free_vars[cur[i]].begin(),free_vars[cur[i]].end());
         }
       }
-      if( !processed ){
-        if( synth_fv.find(cur)!=synth_fv.end() ){
-          // it is a free variable
-          free_vars[cur].insert(cur);
-        }
-        else
-        {
-          // otherwise, carry the free variables from the children
-          std::unordered_set< TNode, TNodeHashFunction >& fv_cur = free_vars[cur];
-          for (unsigned i = 0; i < cur.getNumChildren(); i++) {
-            fv_cur.insert(free_vars[cur[i]].begin(),free_vars[cur[i]].end());
-          }
-        }
-      }
-      
       visited[cur] = true;
     }
   } while (!visit.empty());
