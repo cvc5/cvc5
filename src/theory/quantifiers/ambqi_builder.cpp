@@ -18,11 +18,13 @@
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
+
 
 void AbsDef::construct_func( FirstOrderModelAbs * m, std::vector< TNode >& fapps, unsigned depth ) {
   d_def.clear();
@@ -958,3 +960,7 @@ bool AbsMbqiBuilder::doCheck( FirstOrderModelAbs * m, TNode q, AbsDef & ad, TNod
     return true;
   }
 }
+
+}/* namespace CVC4::theory::quantifiers */
+}/* namespace CVC4::theory */
+}/* namespace CVC4 */

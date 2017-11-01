@@ -202,7 +202,7 @@ bool FirstOrderModel::isQuantifierAsserted( TNode q ) {
   return std::find( d_forall_rlv_assert.begin(), d_forall_rlv_assert.end(), q )!=d_forall_rlv_assert.end();
 }
 
-Node FirstOrderModel::getModelBasisTerm(TypeNode tn, int i)
+Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
 {
   if (d_model_basis_term.find(tn) == d_model_basis_term.end())
   {

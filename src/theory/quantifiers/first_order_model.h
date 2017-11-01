@@ -60,10 +60,10 @@ class FirstOrderModel : public TheoryModel
  public:
   FirstOrderModel(QuantifiersEngine* qe, context::Context* c, std::string name);
   virtual ~FirstOrderModel() throw() {}
-  virtual FirstOrderModelIG* asFirstOrderModelIG() { return NULL; }
-  virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return NULL; }
-  virtual FirstOrderModelQInt* asFirstOrderModelQInt() { return NULL; }
-  virtual FirstOrderModelAbs* asFirstOrderModelAbs() { return NULL; }
+  virtual FirstOrderModelIG* asFirstOrderModelIG() { return nullptr; }
+  virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
+  virtual FirstOrderModelQInt* asFirstOrderModelQInt() { return nullptr; }
+  virtual FirstOrderModelAbs* asFirstOrderModelAbs() { return nullptr; }
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
@@ -96,7 +96,7 @@ class FirstOrderModel : public TheoryModel
   /** is quantified formula asserted */
   bool isQuantifierAsserted( TNode q );
   /** get model basis term */
-  Node getModelBasisTerm(TypeNode tn, int i = 0);
+  Node getModelBasisTerm(TypeNode tn);
   /** is model basis term */
   bool isModelBasisTerm(Node n);
   /** get model basis term for op */

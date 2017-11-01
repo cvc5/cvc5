@@ -27,12 +27,12 @@ Node TermEnumeration::getEnumerateTerm(TypeNode tn, unsigned index)
 {
   Trace("term-db-enum") << "Get enumerate term " << tn << " " << index
                         << std::endl;
-  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>::iterator it =
+  std::unordered_map<TypeNode, size_t, TypeNodeHashFunction>::iterator it =
       d_typ_enum_map.find(tn);
-  unsigned teIndex;
+  size_t teIndex;
   if (it == d_typ_enum_map.end())
   {
-    teIndex = (int)d_typ_enum.size();
+    teIndex = d_typ_enum.size();
     d_typ_enum_map[tn] = teIndex;
     d_typ_enum.push_back(TypeEnumerator(tn));
   }
@@ -88,7 +88,9 @@ bool TermEnumeration::isClosedEnumerableType(TypeNode tn)
         }
       }
     }
-    // TODO: other parametric sorts go here
+    
+    // other parametric sorts go here
+    
     d_typ_closed_enum[tn] = ret;
     return ret;
   }
@@ -98,7 +100,7 @@ bool TermEnumeration::isClosedEnumerableType(TypeNode tn)
   }
 }
 
-// checks whether a type is not Array and is reasonably small enough (<1000)
+// checks whether a type is closed enumerable and is reasonably small enough (<1000)
 // such that all of its domain elements can be enumerated
 bool TermEnumeration::mayComplete(TypeNode tn)
 {

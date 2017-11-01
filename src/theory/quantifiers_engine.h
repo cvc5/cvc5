@@ -50,6 +50,7 @@ public:
 
 namespace quantifiers {
   //TODO: organize this more/review this, github issue #1163
+  //TODO: include these instead of doing forward declarations? #1307
   //utilities
   class TermDb;
   class TermDbSygus;

@@ -55,9 +55,10 @@ class TermEnumeration
   bool isClosedEnumerableType(TypeNode tn);
   /** may complete type
    *
-   * Returns true if the type tn is small enough
+   * Returns true if the type tn is closed 
+   * enumerable, and is small enough
    * for finite model finding to enumerate it,
-   * by some heuristic (current cardinality < 100).
+   * by some heuristic (current cardinality < 1000).
    */
   bool mayComplete(TypeNode tn);
 
@@ -66,7 +67,7 @@ class TermEnumeration
   std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
       d_enum_terms;
   /** map from type to the index of its type enumerator in d_typ_enum. */
-  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction> d_typ_enum_map;
+  std::unordered_map<TypeNode, size_t, TypeNodeHashFunction> d_typ_enum_map;
   /** type enumerators */
   std::vector<TypeEnumerator> d_typ_enum;
   /** closed enumerable type cache */
