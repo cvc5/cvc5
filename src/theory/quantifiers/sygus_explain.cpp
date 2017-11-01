@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_invariance.cpp
+/*! \file sygus_explain.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,10 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of techniques for sygus invariance tests.
+ ** \brief Implementation of techniques for sygus explanations
  **/
 
-#include "theory/quantifiers/sygus_invariance.h"
+#include "theory/quantifiers/sygus_explain.h"
 
 using namespace CVC4::kind;
 using namespace std;

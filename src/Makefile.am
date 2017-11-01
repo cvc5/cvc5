@@ -424,10 +424,10 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/rewrite_engine.cpp \
 	theory/quantifiers/rewrite_engine.h \
+	theory/quantifiers/sygus_explain.cpp \
+	theory/quantifiers/sygus_explain.h \
 	theory/quantifiers/sygus_grammar_cons.cpp \
 	theory/quantifiers/sygus_grammar_cons.h \
-	theory/quantifiers/sygus_invariance.cpp \
-	theory/quantifiers/sygus_invariance.h \
 	theory/quantifiers/sygus_process_conj.cpp \
 	theory/quantifiers/sygus_process_conj.h \
 	theory/quantifiers/symmetry_breaking.cpp \

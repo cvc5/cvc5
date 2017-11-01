@@ -18,7 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
 
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/sygus_invariance.h"
+#include "theory/quantifiers/sygus_explain.h"
 
 namespace CVC4 {
 namespace theory {
@@ -241,6 +241,7 @@ public: // for symmetry breaking
   int solveForArgument( TypeNode tnp, unsigned cindex, unsigned arg );
   
 //for eager instantiation
+// TODO (as part of #1235) move some of these functions to sygus_explain.h
 private:
   std::map< Node, std::map< Node, bool > > d_subterms;
   std::map< Node, std::vector< Node > > d_evals;

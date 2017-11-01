@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_invariance.h
+/*! \file sygus_explain.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief sygus invariance test
+ ** \brief sygus explanations
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__SYGUS_INVARIANCE_H
-#define __CVC4__SYGUS_INVARIANCE_H
+#ifndef __CVC4__SYGUS_EXPLAIN_H
+#define __CVC4__SYGUS_EXPLAIN_H
 
 #include <vector>
 
@@ -29,7 +29,7 @@ namespace quantifiers {
  *
  * This is a utility used to generate variants
  * of a term n, where subterms of n can be replaced
- * by calls to replaceChild(...).
+ * by others via calls to replaceChild(...).
  * 
  * This class maintains a "context", which indicates
  * a position in term n. Below, we call the subterm of 

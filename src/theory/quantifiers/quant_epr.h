@@ -37,7 +37,12 @@ namespace quantifiers {
  * This class is used in counterexample-guided instantiation
  * for EPR, described in Reynolds et al., 
  * "Reasoning in the Bernays-Schonfinkel-Ramsey Fragment of 
- * Separation Logic", VMCAI 2016.
+ * Separation Logic", VMCAI 2017.
+ * 
+ * Below, we say a type is an "EPR type" if its
+ * Herbrand universe can be restricted to a finite set
+ * based on the set of input assertions,
+ * and a "non-EPR type" otherwise.
  */
 class QuantEPR
 {
@@ -46,8 +51,9 @@ public:
   virtual ~QuantEPR(){}
   /** constants per type */
   std::map< TypeNode, std::vector< Node > > d_consts;
-  /** register assertion with this class 
-   * This updates whether types are EPR are not.
+  /** register an input assertion with this class 
+   * This updates whether types are EPR are not
+   * based on the constraints in assertion.
    */
   void registerAssertion( Node assertion );
   /** finish initialize 
