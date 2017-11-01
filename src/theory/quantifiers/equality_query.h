@@ -17,17 +17,87 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS_EQUALITY_QUERY_H
 #define __CVC4__THEORY__QUANTIFIERS_EQUALITY_QUERY_H
 
+#include "context/cdo.h"
+#include "context/context.h"
+#include "expr/node.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-// TODO : (as part of #1171, #1214) further document and clean this class.
-/** equality query object using theory engine */
+/** EqualityQueryQuantifiersEngine class
+* This is a wrapper class around an equality engine that is used for
+* queries required by algorithms in the quantifiers theory.
+* It uses an equality engine, as determined by the quantifiers engine it points
+* to.
+*
+* The main extension of this class wrt EqualityQuery is the function
+* getInternalRepresentative, which is used by instantiation-based methods
+* that are agnostic with respect to choosing terms within an equivalence class.
+* Examples of such methods are finite model finding and enumerative
+* instantiation.
+* Method getInternalRepresentative returns the "best" representative based on
+* the internal heuristic,
+* which is currently based on choosing the term that was previously chosen as a
+* representative
+* earliest.
+*/
 class EqualityQueryQuantifiersEngine : public EqualityQuery
 {
-private:
+ public:
+  EqualityQueryQuantifiersEngine(context::Context* c, QuantifiersEngine* qe);
+  virtual ~EqualityQueryQuantifiersEngine();
+  /** reset */
+  virtual bool reset(Theory::Effort e);
+  /* Called for new quantifiers */
+  virtual void registerQuantifier(Node q) {}
+  /** identify */
+  virtual std::string identify() const { return "EqualityQueryQE"; }
+  /** does the equality engine have term a */
+  bool hasTerm(Node a);
+  /** get the representative of a */
+  Node getRepresentative(Node a);
+  /** are a and b equal? */
+  bool areEqual(Node a, Node b);
+  /** are a and b disequal? */
+  bool areDisequal(Node a, Node b);
+  /** get equality engine
+  * This may either be the master equality engine or the model's equality
+  * engine.
+  */
+  eq::EqualityEngine* getEngine();
+  /** get list of members in the equivalence class of a */
+  void getEquivalenceClass(Node a, std::vector<Node>& eqc);
+  /** get congruent term
+  * If possible, returns a term n such that:
+  * (1) n is a term in the equality engine from getEngine().
+  * (2) n is of the form f( t1, ..., tk ) where ti is in the equivalence class
+  * of args[i] for i=1...k
+  * Otherwise, returns the null node.
+  *
+  * Notice that f should be a "match operator", returned by
+  * TermDb::getMatchOperator.
+  */
+  TNode getCongruentTerm(Node f, std::vector<TNode>& args);
+  /** gets the current best representative in the equivalence
+   * class of a, based on some heuristic. Currently, the default heuristic
+   * chooses terms that were previously chosen as representatives
+   * on the earliest instantiation round.
+   *
+   * If q is non-null, then q/index is the quantified formula
+   * and variable position that we are choosing for instantiation.
+   *
+   * This function avoids certain terms that are "ineligible" for instantiation.
+   * If cbqi is active, we terms that contain instantiation constants
+   * are ineligible. As a result, this function may return
+   * Node::null() if all terms in the equivalence class of a
+   * are ineligible.
+   */
+  Node getInternalRepresentative(Node a, Node q, int index);
+
+ private:
   /** pointer to theory engine */
   QuantifiersEngine* d_qe;
   /** quantifiers equality inference */
@@ -36,9 +106,8 @@ private:
   std::map< TypeNode, std::map< Node, Node > > d_int_rep;
   /** rep score */
   std::map< Node, int > d_rep_score;
-  /** reset count */
+  /** the number of times reset( e ) has been called */
   int d_reset_count;
-
   /** processInferences : will merge equivalence classes in master equality engine, if possible */
   bool processInferences( Theory::Effort e );
   /** node contains */
@@ -47,26 +116,6 @@ private:
   int getRepScore( Node n, Node f, int index, TypeNode v_tn );
   /** flatten representatives */
   void flattenRepresentatives( std::map< TypeNode, std::vector< Node > >& reps );
-public:
-  EqualityQueryQuantifiersEngine( context::Context* c, QuantifiersEngine* qe );
-  virtual ~EqualityQueryQuantifiersEngine();
-  /** reset */
-  bool reset( Theory::Effort e );
-  /** identify */
-  std::string identify() const { return "EqualityQueryQE"; }
-  /** general queries about equality */
-  bool hasTerm( Node a );
-  Node getRepresentative( Node a );
-  bool areEqual( Node a, Node b );
-  bool areDisequal( Node a, Node b );
-  eq::EqualityEngine* getEngine();
-  void getEquivalenceClass( Node a, std::vector< Node >& eqc );
-  TNode getCongruentTerm( Node f, std::vector< TNode >& args );
-  /** getInternalRepresentative gets the current best representative in the equivalence class of a, based on some criteria.
-      If cbqi is active, this will return a term in the equivalence class of "a" that does
-      not contain instantiation constants, if such a term exists.
-   */
-  Node getInternalRepresentative( Node a, Node f, int index );
 }; /* EqualityQueryQuantifiersEngine */
 
 }/* CVC4::theory::quantifiers namespace */

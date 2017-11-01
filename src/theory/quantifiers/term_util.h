@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/attribute.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/type_enumerator.h"
 
 namespace CVC4 {
@@ -73,8 +74,9 @@ struct SygusProxyAttributeId {};
 typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
 
 // attribute for associating a synthesis function with a first order variable
-struct SygusSynthFunAttributeId {};
-typedef expr::Attribute<SygusSynthFunAttributeId, Node> SygusSynthFunAttribute;
+struct SygusSynthGrammarAttributeId {};
+typedef expr::Attribute<SygusSynthGrammarAttributeId, Node>
+    SygusSynthGrammarAttribute;
 
 // attribute for associating a variable list with a synth fun
 struct SygusSynthFunVarListAttributeId {};
@@ -108,7 +110,8 @@ namespace quantifiers {
 class TermDatabase;
 
 // TODO : #1216 split this class, most of the functions in this class should be dispersed to where they are used.
-class TermUtil {
+class TermUtil : public QuantifiersUtil
+{
   // TODO : remove these
   friend class ::CVC4::theory::QuantifiersEngine;
   friend class TermDatabase;
@@ -125,11 +128,14 @@ public:
   Node d_zero;
   Node d_one;
 
+  /** reset */
+  virtual bool reset(Theory::Effort e) override { return true; }
   /** register quantifier */
-  void registerQuantifier( Node q );
-
-//for inst constant
-private:
+  virtual void registerQuantifier(Node q) override;
+  /** identify */
+  virtual std::string identify() const override { return "TermUtil"; }
+  // for inst constant
+ private:
   /** map from universal quantifiers to the list of variables */
   std::map< Node, std::vector< Node > > d_vars;
   std::map< Node, std::map< Node, unsigned > > d_var_num;

@@ -303,6 +303,8 @@ option cbqiModel --cbqi-model bool :read-write :default true
  guide instantiations by model values for counterexample-based quantifier instantiation
 option cbqiAll --cbqi-all bool :read-write :default false
  apply counterexample-based instantiation to all quantified formulas
+option cbqiMultiInst --cbqi-multi-inst bool :read-write :default false
+ when applicable, do multi instantiations per quantifier per round in counterexample-based quantifier instantiation
  
 # CEGQI for arithmetic
 option cbqiUseInfInt --cbqi-use-inf-int bool :read-write :default false
@@ -334,7 +336,11 @@ option quantEprMatching --quant-epr-match bool :default true
  
 # CEGQI for BV
 option cbqiBv --cbqi-bv bool :read-write :default false
- use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors
+  use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors
+option cbqiBvInterleaveValue --cbqi-bv-interleave-value bool :read-write :default false
+  interleave model value instantiation with word-level inversion approach
+option cbqiBvIneqMode --cbqi-bv-ineq=MODE CVC4::theory::quantifiers::CbqiBvIneqMode :read-write :default CVC4::theory::quantifiers::CBQI_BV_INEQ_EQ_SLACK :include "options/quantifiers_modes.h" :handler stringToCbqiBvIneqMode
+ choose mode for handling bit-vector inequalities with counterexample-guided instantiation
  
 ### local theory extensions options 
 

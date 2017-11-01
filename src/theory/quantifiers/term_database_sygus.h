@@ -23,6 +23,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class CegConjecture;
+
 class SygusInvarianceTest {
 protected:
   // check whether nvn[ x ] should be excluded
@@ -50,6 +52,7 @@ protected:
   bool invariant( quantifiers::TermDbSygus * tds, Node nvn, Node x );
 };
 
+// TODO :issue #1235 split and document this class
 class TermDbSygus {
 private:
   /** reference to the quantifiers engine */
@@ -78,38 +81,48 @@ private:
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 private:
-  // stores root
-  std::map< Node, Node > d_measured_term;
-  std::map< Node, Node > d_measured_term_active_guard;
-  //information for sygus types
-  std::map< TypeNode, TypeNode > d_register;  //stores sygus -> builtin type
-  std::map< TypeNode, std::vector< Node > > d_var_list;
-  std::map< TypeNode, std::map< int, Kind > > d_arg_kind;
-  std::map< TypeNode, std::map< Kind, int > > d_kinds;
-  std::map< TypeNode, std::map< int, Node > > d_arg_const;
-  std::map< TypeNode, std::map< Node, int > > d_consts;
-  std::map< TypeNode, std::map< Node, int > > d_ops;
-  std::map< TypeNode, std::map< int, Node > > d_arg_ops;
-  std::map< TypeNode, std::vector< int > > d_id_funcs;
-  std::map< TypeNode, std::vector< Node > > d_const_list; //sorted list of constants for type
-  std::map< TypeNode, unsigned > d_const_list_pos;
-  std::map< TypeNode, std::map< Node, Node > > d_semantic_skolem;
-  //information for builtin types
-  std::map< TypeNode, std::map< int, Node > > d_type_value;
-  std::map< TypeNode, Node > d_type_max_value;
-  std::map< TypeNode, std::map< Node, std::map< int, Node > > > d_type_value_offset;
-  std::map< TypeNode, std::map< Node, std::map< int, int > > > d_type_value_offset_status;
-  //normalized map
-  std::map< TypeNode, std::map< Node, Node > > d_normalized;
-  std::map< TypeNode, std::map< Node, Node > > d_sygus_to_builtin;
-  std::map< TypeNode, std::map< Node, Node > > d_builtin_const_to_sygus;
-  // grammar information
-  // root -> type -> _
-  std::map< TypeNode, std::map< TypeNode, unsigned > > d_min_type_depth;
-  //std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > > d_consider_const;
-  // type -> cons -> _
-  std::map< TypeNode, unsigned > d_min_term_size;
-  std::map< TypeNode, std::map< unsigned, unsigned > > d_min_cons_term_size;
+ /** mapping from enumerator terms to the conjecture they are associated with */
+ std::map<Node, CegConjecture*> d_enum_to_conjecture;
+ /** mapping from enumerator terms to the function-to-synthesize they are
+  * associated with */
+ std::map<Node, Node> d_enum_to_synth_fun;
+ /** mapping from enumerator terms to the guard they are associated with
+ * The guard G for an enumerator e has the semantics
+ *   "if G is true, then there are more values of e to enumerate".
+ */
+ std::map<Node, Node> d_enum_to_active_guard;
+ // information for sygus types
+ std::map<TypeNode, TypeNode> d_register;  // stores sygus -> builtin type
+ std::map<TypeNode, std::vector<Node> > d_var_list;
+ std::map<TypeNode, std::map<int, Kind> > d_arg_kind;
+ std::map<TypeNode, std::map<Kind, int> > d_kinds;
+ std::map<TypeNode, std::map<int, Node> > d_arg_const;
+ std::map<TypeNode, std::map<Node, int> > d_consts;
+ std::map<TypeNode, std::map<Node, int> > d_ops;
+ std::map<TypeNode, std::map<int, Node> > d_arg_ops;
+ std::map<TypeNode, std::vector<int> > d_id_funcs;
+ std::map<TypeNode, std::vector<Node> >
+     d_const_list;  // sorted list of constants for type
+ std::map<TypeNode, unsigned> d_const_list_pos;
+ std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
+ // information for builtin types
+ std::map<TypeNode, std::map<int, Node> > d_type_value;
+ std::map<TypeNode, Node> d_type_max_value;
+ std::map<TypeNode, std::map<Node, std::map<int, Node> > > d_type_value_offset;
+ std::map<TypeNode, std::map<Node, std::map<int, int> > >
+     d_type_value_offset_status;
+ // normalized map
+ std::map<TypeNode, std::map<Node, Node> > d_normalized;
+ std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
+ std::map<TypeNode, std::map<Node, Node> > d_builtin_const_to_sygus;
+ // grammar information
+ // root -> type -> _
+ std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
+ // std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > >
+ // d_consider_const;
+ // type -> cons -> _
+ std::map<TypeNode, unsigned> d_min_term_size;
+ std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
 public:
   TermDbSygus( context::Context* c, QuantifiersEngine* qe );
   ~TermDbSygus(){}
@@ -118,15 +131,32 @@ public:
 public:
   /** register the sygus type */
   void registerSygusType( TypeNode tn );
-  /** register a term that we will do enumerative search on */
-  void registerMeasuredTerm( Node e, Node root, bool mkActiveGuard = false );
-  /** is measured term */
-  Node isMeasuredTerm( Node e );
-  /** get active guard */
-  Node getActiveGuardForMeasureTerm( Node e );
-  /** get measured terms */
-  void getMeasuredTerms( std::vector< Node >& mts );
-public:  //general sygus utilities
+  /** register a variable e that we will do enumerative search on
+   * conj is the conjecture that the enumeration of e is for.
+   * f is the synth-fun that the enumeration of e is for.
+   * mkActiveGuard is whether we want to make a active guard for e (see
+   * d_enum_to_active_guard)
+   *
+   * Notice that enumerator e may not be equivalent
+   * to f in synthesis-through-unification approaches
+   * (e.g. decision tree construction for PBE synthesis).
+   */
+  void registerEnumerator(Node e,
+                          Node f,
+                          CegConjecture* conj,
+                          bool mkActiveGuard = false);
+  /** is e an enumerator? */
+  bool isEnumerator(Node e) const;
+  /** return the conjecture e is associated with */
+  CegConjecture* getConjectureForEnumerator(Node e);
+  /** return the function-to-synthesize e is associated with */
+  Node getSynthFunForEnumerator(Node e);
+  /** get active guard for e */
+  Node getActiveGuardForEnumerator(Node e);
+  /** get all registered enumerators */
+  void getEnumerators(std::vector<Node>& mts);
+
+ public:  // general sygus utilities
   bool isRegistered( TypeNode tn );
   // get the minimum depth of type in its parent grammar
   unsigned getMinTypeDepth( TypeNode root_tn, TypeNode tn );
@@ -239,7 +269,6 @@ public:
   void getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et );
   // builtin evaluation, returns rewrite( bn [ args / vars(tn) ] )
   Node evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& args );
-  Node evaluateBuiltin( TypeNode tn, Node bn, Node ar, unsigned i );
   // evaluate with unfolding
   Node evaluateWithUnfolding( Node n, std::map< Node, Node >& visited );
   Node evaluateWithUnfolding( Node n );
@@ -256,39 +285,6 @@ private:
 public:
   bool isGenericRedundant( TypeNode tn, unsigned i );
   
-//sygus pbe
-private:
-  std::map< Node, std::vector< std::vector< Node > > > d_pbe_exs;
-  std::map< Node, std::vector< Node > > d_pbe_exos;
-  std::map< Node, unsigned > d_pbe_term_id;
-private:
-  class PbeTrie {
-  private:
-    Node addPbeExampleEval( TypeNode etn, Node e, Node b, std::vector< Node >& ex, quantifiers::TermDbSygus * tds, unsigned index, unsigned ntotal );
-  public:
-    PbeTrie(){}
-    ~PbeTrie(){}
-    Node d_lazy_child;
-    std::map< Node, PbeTrie > d_children;
-    void clear() { d_children.clear(); }
-    Node addPbeExample( TypeNode etn, Node e, Node b, TermDbSygus * tds, unsigned index, unsigned ntotal );
-  };
-  std::map< Node, std::map< TypeNode, PbeTrie > > d_pbe_trie;
-public:
-  /** register examples for an enumerative search term. 
-      This should be a comprehensive set of examples. */
-  void registerPbeExamples( Node e, std::vector< std::vector< Node > >& exs, 
-                            std::vector< Node >& exos, std::vector< Node >& exts );
-  /** get examples */
-  bool hasPbeExamples( Node e );
-  unsigned getNumPbeExamples( Node e );
-  /** return value is the required value for the example */
-  void getPbeExample( Node e, unsigned i, std::vector< Node >& ex );
-  Node getPbeExampleOut( Node e, unsigned i );
-  int getPbeExampleId( Node n );
-  /** add the search val, returns an equivalent value (possibly the same) */
-  Node addPbeSearchVal( TypeNode tn, Node e, Node bvr );
-
 // extended rewriting
 private:
   std::map< Node, Node > d_ext_rewrite_cache;

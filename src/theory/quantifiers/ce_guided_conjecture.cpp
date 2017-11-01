@@ -48,12 +48,14 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
   d_refine_count = 0;
   d_ceg_si = new CegConjectureSingleInv(qe, this);
   d_ceg_pbe = new CegConjecturePbe(qe, this);
+  d_ceg_proc = new CegConjectureProcess(qe);
   d_ceg_gc = new CegGrammarConstructor(qe);
 }
 
 CegConjecture::~CegConjecture() {
   delete d_ceg_si;
   delete d_ceg_pbe;
+  delete d_ceg_proc;
   delete d_ceg_gc;
 }
 
@@ -63,30 +65,34 @@ void CegConjecture::assign( Node q ) {
   Trace("cegqi") << "CegConjecture : assign : " << q << std::endl;
   d_quant = q;
 
+  // simplify the quantified formula based on the process utility
+  d_simp_quant = d_ceg_proc->simplify(d_quant);
+
   std::map< Node, Node > templates; 
   std::map< Node, Node > templates_arg;
   //register with single invocation if applicable
-  if( d_qe->getQuantAttributes()->isSygus( d_quant ) ){
-    d_ceg_si->initialize( d_quant );
-    q = d_ceg_si->getSimplifiedConjecture();
+  if (d_qe->getQuantAttributes()->isSygus(q))
+  {
+    d_ceg_si->initialize(d_simp_quant);
+    d_simp_quant = d_ceg_si->getSimplifiedConjecture();
     // carry the templates
     for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
       Node v = q[0][i];
-      Node sf = v.getAttribute(SygusSynthFunAttribute());
-      Node templ = d_ceg_si->getTemplate(sf);
+      Node templ = d_ceg_si->getTemplate(v);
       if( !templ.isNull() ){
-        templates[sf] = templ;
-        templates_arg[sf] = d_ceg_si->getTemplateArg(sf);
+        templates[v] = templ;
+        templates_arg[v] = d_ceg_si->getTemplateArg(v);
       }
     }
   }
 
   // convert to deep embedding and finalize single invocation here
-  d_embed_quant = d_ceg_gc->process( q, templates, templates_arg );
+  d_embed_quant = d_ceg_gc->process(d_simp_quant, templates, templates_arg);
   Trace("cegqi") << "CegConjecture : converted to embedding : " << d_embed_quant << std::endl;
 
   // we now finalize the single invocation module, based on the syntax restrictions
-  if( d_qe->getQuantAttributes()->isSygus( d_quant ) ){
+  if (d_qe->getQuantAttributes()->isSygus(q))
+  {
     d_ceg_si->finishInit( d_ceg_gc->isSyntaxRestricted(), d_ceg_gc->hasSyntaxITE() );
   }
 
@@ -100,31 +106,25 @@ void CegConjecture::assign( Node q ) {
   Trace("cegqi") << "Base quantified formula is : " << d_embed_quant << std::endl;
   //construct base instantiation
   d_base_inst = Rewriter::rewrite( d_qe->getInstantiation( d_embed_quant, vars, d_candidates ) );
-  
-  // register this term with sygus database
+  Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
+
+  // register this term with sygus database and other utilities that impact
+  // the enumerative sygus search
   std::vector< Node > guarded_lemmas;
   if( !isSingleInvocation() ){
+    d_ceg_proc->initialize(d_base_inst, d_candidates);
     if( options::sygusPbe() ){
-      d_ceg_pbe->initialize( d_base_inst, d_candidates, guarded_lemmas );
-    }
-    for( unsigned i=0; i<d_candidates.size(); i++ ){
-      Node e = d_candidates[i];
-      if( options::sygusPbe() ){
-        std::vector< std::vector< Node > > exs;
-        std::vector< Node > exos;
-        std::vector< Node > exts;
-        // use the PBE examples, regardless of the search algorithm, since these help search space pruning
-        if( d_ceg_pbe->getPbeExamples( e, exs, exos, exts ) ){
-          d_qe->getTermDatabaseSygus()->registerPbeExamples( e, exs, exos, exts );
-        }
-      }else{
-        d_qe->getTermDatabaseSygus()->registerMeasuredTerm( e, e );
+      d_ceg_pbe->initialize(d_base_inst, d_candidates, guarded_lemmas);
+    } else {
+      for (unsigned i = 0; i < d_candidates.size(); i++) {
+        Node e = d_candidates[i];
+        d_qe->getTermDatabaseSygus()->registerEnumerator(e, e, this);
       }
     }
   }
-  
-  Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
-  if( d_qe->getQuantAttributes()->isSygus( d_quant ) ){
+
+  if (d_qe->getQuantAttributes()->isSygus(q))
+  {
     collectDisjuncts( d_base_inst, d_base_disj );
     Trace("cegqi") << "Conjecture has " << d_base_disj.size() << " disjuncts." << std::endl;
     //store the inner variables for each disjunct
@@ -140,7 +140,9 @@ void CegConjecture::assign( Node q ) {
       }
     }
     d_syntax_guided = true;
-  }else if( d_qe->getQuantAttributes()->isSynthesis( d_quant ) ){
+  }
+  else if (d_qe->getQuantAttributes()->isSynthesis(q))
+  {
     d_syntax_guided = false;
   }else{
     Assert( false );
@@ -571,7 +573,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         status = 1;
         
         //check if there was a template
-        Node sf = d_quant[0][i].getAttribute(SygusSynthFunAttribute());
+        Node sf = d_quant[0][i];
         Node templ = d_ceg_si->getTemplate( sf );
         if( !templ.isNull() ){
           Trace("cegqi-inv-debug") << sf << " used template : " << templ << std::endl;
@@ -619,6 +621,33 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       }
       out << ")" << std::endl;
     }
+  }
+}
+
+Node CegConjecture::getSymmetryBreakingPredicate(
+    Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth)
+{
+  std::vector<Node> sb_lemmas;
+
+  // based on simple preprocessing
+  Node ppred =
+      d_ceg_proc->getSymmetryBreakingPredicate(x, e, tn, tindex, depth);
+  if (!ppred.isNull())
+  {
+    sb_lemmas.push_back(ppred);
+  }
+
+  // other static conjecture-dependent symmetry breaking goes here
+
+  if (!sb_lemmas.empty())
+  {
+    return sb_lemmas.size() == 1
+               ? sb_lemmas[0]
+               : NodeManager::currentNM()->mkNode(kind::AND, sb_lemmas);
+  }
+  else
+  {
+    return Node::null();
   }
 }
 

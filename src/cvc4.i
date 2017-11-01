@@ -1,3 +1,10 @@
+// We safely ignore some C++11 keywords that older versions of SWIG cannot
+// handle.
+#if SWIG_VERSION < 0x030000
+%define final %enddef
+%define override %enddef
+#endif
+
 %import "bindings/swig.h"
 
 %include "stdint.i"
@@ -125,7 +132,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
   assert(clazz != NULL && jenv->ExceptionOccurred() == NULL);
   jmethodID method = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
   assert(method != NULL && jenv->ExceptionOccurred() == NULL);
-  jthrowable t = static_cast<jthrowable>(jenv->NewObject(clazz, method, reinterpret_cast<long>(new $1_type($1)), true));
+  jthrowable t = static_cast<jthrowable>(jenv->NewObject(clazz, method, reinterpret_cast<uintptr_t>(new $1_type($1)), true));
   assert(t != NULL && jenv->ExceptionOccurred() == NULL);
   int status = jenv->Throw(t);
   assert(status == 0);
@@ -142,7 +149,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
   assert(clazz != NULL && jenv->ExceptionOccurred() == NULL);
   jmethodID method = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
   assert(method != NULL && jenv->ExceptionOccurred() == NULL);
-  jthrowable t = static_cast<jthrowable>(jenv->NewObject(clazz, method, reinterpret_cast<long>(new $1_type($1)), true));
+  jthrowable t = static_cast<jthrowable>(jenv->NewObject(clazz, method, reinterpret_cast<uintptr_t>(new $1_type($1)), true));
   assert(t != NULL && jenv->ExceptionOccurred() == NULL);
   int status = jenv->Throw(t);
   assert(status == 0);
