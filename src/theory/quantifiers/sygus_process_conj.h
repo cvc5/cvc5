@@ -24,6 +24,36 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+  
+/** This structure stores information regarding
+ * an argument of a function to synthesize that 
+ * is used to determine whether the argument
+ * position in the function to synthesize is
+ * relevant. 
+ */
+class SynthFunArgumentProperties
+{
+public:
+  SynthFunArgumentProperties() : d_parent(nullptr), d_relevant(false), d_deq_id(0) {}
+  /** parent argument 
+   * 
+    * If non-null, this is a pointer to an argument 
+   * whose relevance implies the relevance of this argument
+   * 
+   * Altogether, this data structure represents
+   * a union-find.
+   */
+  SynthFunArgumentProperties * d_parent;
+  /** whether this argument is relevant */
+  bool d_relevant;
+  /** disequality id of this argument 
+   * We ensure that argument positions i and j 
+   * have the same disequality id if and only if 
+   * all f-applications t in our synthesis
+   * conjecture are such that t[i] = t[j].
+   */
+  unsigned d_deq_id;
+};
 
 /** This structure stores information regarding conjecture-specific
 * analysis of a function to synthesize.
@@ -33,6 +63,10 @@ struct CegSynthFunProcessInfo
  public:
   CegSynthFunProcessInfo() {}
   ~CegSynthFunProcessInfo() {}
+  /** the synth fun associated with this */
+  Node d_synth_fun;
+  /** properties of each argument */
+  std::map<unsigned, SynthFunArgumentProperties> d_arg_props;
   /** the set of arguments that this synth-fun is independent of */
   std::map<unsigned, bool> d_arg_independent;
 };
@@ -85,11 +119,13 @@ class CegConjectureProcess
 
  private:
   /** process conjunct */
-  void processConjunct(Node c);
+  void processConjunct(Node n, std::unordered_set< TNode, TNodeHashFunction >& synth_fv, unsigned& deq_id_counter);
   /** for each synth-fun, information that is specific to this conjecture */
   std::map<Node, CegSynthFunProcessInfo> d_sf_info;
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** get component vector */
+  void getComponentVector( Kind k, Node n, std::vector< Node >& args );
 };
 
 } /* namespace CVC4::theory::quantifiers */
