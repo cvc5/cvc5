@@ -174,7 +174,7 @@ class CegInstantiator {
   std::map<Node, std::vector<Node> > d_curr_eqc;
   /** map from types to representatives of that type */
   std::map<TypeNode, std::vector<Node> > d_curr_type_eqc;
-  /** auxiliary variables 
+  /** auxiliary variables
    * These variables include the result of removing ITE
    * terms from the quantified formula we are processing.
    * These variables must be eliminated from constraints
@@ -182,20 +182,20 @@ class CegInstantiator {
    */
   std::vector<Node> d_aux_vars;
   /** relevant theory ids
-   * A list of theory ids that contain at least one 
+   * A list of theory ids that contain at least one
    * constraint in the body of the quantified formula we
    * are processing.
    */
   std::vector<TheoryId> d_tids;
   /** literals to equalities for aux vars
-   * This stores entries of the form 
+   * This stores entries of the form
    *   L -> ( k -> t )
-   * where 
+   * where
    *   k is a variable in d_aux_vars,
-   *   L is a literal that if asserted implies that our 
+   *   L is a literal that if asserted implies that our
    *    instantiation should map { k -> t }.
-   * For example, if a term of the form 
-   *   ite( C, t1, t2 ) 
+   * For example, if a term of the form
+   *   ite( C, t1, t2 )
    * was replaced by k, we get this (top-level) assertion:
    *   ite( C, k=t1, k=t2 )
    * The vector d_aux_eq contains the exact form of

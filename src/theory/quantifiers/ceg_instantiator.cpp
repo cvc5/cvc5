@@ -64,7 +64,7 @@ void CegInstantiator::computeProgVars( Node n ){
         d_inelig.insert(n);
       }
       // all variables in child are contained in this
-      d_prog_var[n].insert( d_prog_var[n[i]].begin(), d_prog_var[n[i]].end() );
+      d_prog_var[n].insert(d_prog_var[n[i]].begin(), d_prog_var[n[i]].end());
     }
     // selectors applied to program variables are also variables
     if (n.getKind() == APPLY_SELECTOR_TOTAL
