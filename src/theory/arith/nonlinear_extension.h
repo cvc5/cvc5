@@ -599,7 +599,9 @@ private:
   /** check monomial inferred bounds
   *
   * Returns a set of valid theory lemmas, based on a
-  * lemma schema
+  * lemma schema that infers new constraints about existing
+  * terms based on mulitplying both sides of an existing
+  * constraint by a term.
   * For more details, see Section 5 of "Design Theory
   * Solvers with Extensions" by Reynolds et al., FroCoS 2017,
   * Figure 5, this is the schema "Multiply".
