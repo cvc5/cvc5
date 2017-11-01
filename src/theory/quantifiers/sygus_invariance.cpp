@@ -61,11 +61,11 @@ void TermRecBuild::pop() {
   d_term.pop_back(); 
 }
 
-void TermRecBuild::replaceChild( unsigned i, Node n ) {
+void TermRecBuild::replaceChild( unsigned i, Node r ) {
   Assert( !d_term.empty() );
   unsigned curr = d_term.size()-1;
   unsigned o = d_has_op[curr] ? 1 : 0;
-  d_children[curr][i+o] = n;
+  d_children[curr][i+o] = r;
 }
 
 Node TermRecBuild::getChild( unsigned i ) {
