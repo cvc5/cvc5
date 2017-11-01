@@ -50,10 +50,13 @@ public:
 
 namespace quantifiers {
   //TODO: organize this more/review this, github issue #1163
+  //TODO: include these instead of doing forward declarations? #1307
   //utilities
   class TermDb;
   class TermDbSygus;
   class TermUtil;
+  class Skolemize;
+  class TermEnumeration;
   class FirstOrderModel;
   class QuantAttributes;
   class QuantEPR;
@@ -134,6 +137,10 @@ private:
   quantifiers::TermUtil* d_term_util;
   /** quantifiers attributes */
   std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
+  /** skolemize utility */
+  std::unique_ptr<quantifiers::Skolemize> d_skolemize;
+  /** term enumeration utility */
+  std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
 
  private:
   /** instantiation engine */
@@ -204,8 +211,6 @@ private:
   std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;
   /** recorded instantiations */
   std::vector< std::pair< Node, std::vector< Node > > > d_recorded_inst;
-  /** quantifiers that have been skolemized */
-  BoolMap d_skolemized;
   /** all triggers will be stored in this trie */
   inst::TriggerTrie* d_tr_trie;
   /** extended model object */
@@ -387,6 +392,13 @@ public:
   quantifiers::QuantAttributes* getQuantAttributes() {
     return d_quant_attr.get();
   }
+  /** get skolemize utility */
+  quantifiers::Skolemize* getSkolemize() { return d_skolemize.get(); }
+  /** get term enumeration utility */
+  quantifiers::TermEnumeration* getTermEnumeration()
+  {
+    return d_term_enum.get();
+  }
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
   /** add term to database */
@@ -404,7 +416,19 @@ public:
   void debugPrintEqualityEngine( const char * c );
   /** get internal representative */
   Node getInternalRepresentative( Node a, Node q, int index );
-public:
+  /** get term for type
+   *
+   * This returns an arbitrary term for type tn.
+   * This term is chosen heuristically to be the best
+   * term for instantiation. Currently, this
+   * heuristic enumerates the first term of the
+   * type if the type is closed enumerable, otherwise
+   * an existing ground term from the term database if
+   * one exists, or otherwise a fresh variable.
+   */
+  Node getTermForType(TypeNode tn);
+
+ public:
   /** print instantiations */
   void printInstantiations( std::ostream& out );
   /** print solution for synthesis conjectures */

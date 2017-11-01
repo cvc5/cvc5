@@ -175,9 +175,13 @@ libcvc4_la_SOURCES = \
 	theory/theory_engine.h \
 	theory/theory_model.cpp \
 	theory/theory_model.h \
+	theory/theory_model_builder.cpp \
+	theory/theory_model_builder.h \
 	theory/theory_registrar.h \
 	theory/theory_test_utils.h \
 	theory/type_enumerator.h \
+	theory/type_set.cpp \
+	theory/type_set.h \
 	theory/unconstrained_simplifier.cpp \
 	theory/unconstrained_simplifier.h \
 	theory/valuation.cpp \
@@ -424,6 +428,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/rewrite_engine.cpp \
 	theory/quantifiers/rewrite_engine.h \
+	theory/quantifiers/skolemize.cpp \
+	theory/quantifiers/skolemize.h \
 	theory/quantifiers/sygus_explain.cpp \
 	theory/quantifiers/sygus_explain.h \
 	theory/quantifiers/sygus_grammar_cons.cpp \
@@ -436,6 +442,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/term_database.h \
 	theory/quantifiers/term_database_sygus.cpp \
 	theory/quantifiers/term_database_sygus.h \
+	theory/quantifiers/term_enumeration.cpp \
+	theory/quantifiers/term_enumeration.h \
 	theory/quantifiers/term_util.cpp \
 	theory/quantifiers/term_util.h \
 	theory/quantifiers/theory_quantifiers.cpp \

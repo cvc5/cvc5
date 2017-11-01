@@ -609,7 +609,8 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
     //check constraints
     for( std::map< Node, bool >::iterator it = d_tconstraints.begin(); it != d_tconstraints.end(); ++it ){
       //apply substitution to the tconstraint
-      Node cons = p->getTermUtil()->getInstantiatedNode( it->first, d_q, terms );
+      Node cons =
+          p->getTermUtil()->substituteBoundVariables(it->first, d_q, terms);
       cons = it->second ? cons : cons.negate();
       if( !entailmentTest( p, cons, p->d_effort==QuantConflictFind::effort_conflict ) ){
         return true;
