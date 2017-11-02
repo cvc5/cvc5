@@ -153,10 +153,10 @@ Node CegConjectureProcessFun::inferDefinition( Node n, std::unordered_map< Node,
   return visited[n];
 }
 
-void CegConjectureProcessFun::assignRelevantDef(Node def, std::vector<unsigned>& args) {
+unsigned CegConjectureProcessFun::assignRelevantDef(Node def, std::vector<unsigned>& args) {
   unsigned id = 0;
-  // prefer one that already has a definition, if one exists
   if( def.isNull() ){
+    // prefer one that already has a definition, if one exists
     for( unsigned j=0; j<args.size(); j++ ){
       unsigned i = args[j];
       if( !d_arg_props[i].d_template.isNull() ){
@@ -165,6 +165,49 @@ void CegConjectureProcessFun::assignRelevantDef(Node def, std::vector<unsigned>&
       }
     }
   }
+  unsigned rid = args[id];
+  // for merging previously equivalent definitions
+  std::unordered_map< Node, unsigned, NodeHashFunction > prev_defs;
+  for( unsigned j=0; j<args.size(); j++ ){
+    unsigned i = args[j];
+    Trace("sygus-process-arg-deps") << "    ...processed arg #" << i;
+    if( !d_arg_props[i].d_template.isNull() ){
+      if( d_arg_props[i].d_template==def ){
+        // definition was consistent
+      }else{
+        Node t = d_arg_props[i].d_template;
+        std::unordered_map< Node, unsigned, NodeHashFunction >::iterator itt = prev_defs.find(t);
+        if(itt != prev_defs.end() ){
+          // merge previously equivalent definitions
+          d_arg_props[i].d_template = d_arg_vars[itt->second];
+          Trace("sygus-process-arg-deps") << " (merged equivalent def from argument ";
+          Trace("sygus-process-arg-deps") << itt->second << ")." << std::endl;
+        }else{
+          // store this as previous
+          prev_defs[t] = i;
+          // now must be relevant
+          d_arg_props[i].d_relevant = true;
+          Trace("sygus-process-arg-deps") << " (marked relevant, overwrite definition)." << std::endl;
+        }
+      }
+    }else{
+      if( def.isNull() ){
+        if( i!=rid ){
+          // marked as relevant, but template can be set equal to master
+          d_arg_props[i].d_template = d_arg_vars[rid];
+          Trace("sygus-process-arg-deps") << " (new definition, map to master " << d_arg_vars[rid] << ")." << std::endl;
+        }else{
+          d_arg_props[i].d_relevant = true;
+          Trace("sygus-process-arg-deps") << " (marked relevant)." << std::endl;
+        }
+      }else{
+        // has new definition
+        d_arg_props[i].d_template = def;
+        Trace("sygus-process-arg-deps") << " (new definition " << def << ")." << std::endl;
+      }
+    }
+  }
+  return rid;
 }
 
 void CegConjectureProcessFun::processTerms(std::vector< Node >& ns, std::vector< Node >& ks, Node nf,
@@ -214,20 +257,17 @@ void CegConjectureProcessFun::processTerms(std::vector< Node >& ns, std::vector<
     // the function to synthesize would use argument a to construct
     // the term t in its definition.
     
-    // the arguments that we have processed
-    std::unordered_set< unsigned > args_unprocessed;
     // map that assumes all arguments carry their respective term
     std::unordered_map< unsigned, Node > n_arg_map;
     // terms to the argument that is carrying it.
     // the arguments in the range of this map must be marked as relevant.
     std::unordered_map< Node, unsigned, NodeHashFunction > term_to_arg_carry;
-    // map of terms to arguments where it occurs
+    // map of terms to (unprocessed) arguments where it occurs
     std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction > term_to_args;
     
     // initialize 
     for( unsigned a=0; a<n.getNumChildren(); a++ ){
-      n_arg_map[a] = n[a];      
-      args_unprocessed.insert( a );
+      n_arg_map[a] = n[a];
     }
     
     for( unsigned a=0; a<n.getNumChildren(); a++ ){
@@ -258,9 +298,7 @@ void CegConjectureProcessFun::processTerms(std::vector< Node >& ns, std::vector<
           }
         }
       }
-      if( processed ){
-        args_unprocessed.erase(a);
-      }else{
+      if( !processed ){
         // otherwise, add it to the list of arguments for this term
         term_to_args[n[a]].push_back(a);
       }
@@ -293,7 +331,7 @@ void CegConjectureProcessFun::processTerms(std::vector< Node >& ns, std::vector<
     }
     
     unsigned arg_list_counter = 0;
-    // TODO : sort by term size
+    // sort arg_list by term size?
     
     while( arg_list_counter<arg_list.size() ){
       Node infer_def_t;
@@ -304,8 +342,10 @@ void CegConjectureProcessFun::processTerms(std::vector< Node >& ns, std::vector<
             it != term_to_args.end(); ++it ){
           Node def = inferDefinition(it->first, term_to_arg_carry, free_vars);
           if( !def.isNull() ){
+            Trace("sygus-process-arg-deps") << "  *** Inferred definition " << def << " for " << it->first << std::endl;
             // assign to each argument
             assignRelevantDef( def, it->second );
+            //term_to_arg_carry[it->first] = rid;
             infer_def_t = it->first;
             break;
           }
@@ -315,20 +355,21 @@ void CegConjectureProcessFun::processTerms(std::vector< Node >& ns, std::vector<
         }
       }while( !infer_def_t.isNull() );
       
-      // decide to make a term relevant
+      // decide to make an argument relevant
       bool success = false;
       while( arg_list_counter<arg_list.size() && !success ){
         Node curr = arg_list[arg_list_counter];
         std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction >::iterator it = term_to_args.find(curr);
         if( it!=term_to_args.end() ){
+          Trace("sygus-process-arg-deps") << "  *** Decide relevant " << curr << std::endl;
           // assign relevant to each
           Node null_def;
-          assignRelevantDef( null_def, it->second );
+          unsigned rid = assignRelevantDef(null_def, it->second);
+          term_to_arg_carry[curr] = rid;
           term_to_args.erase(curr);
           success = true;
-        }else{
-          arg_list_counter++;
         }
+        arg_list_counter++;
       }
     }
   }
@@ -415,8 +456,8 @@ void CegConjectureProcess::processConjunct(Node n, Node f, std::unordered_set< N
   std::vector< Node > ks;
   for(std::unordered_map<Node,Node,NodeHashFunction>::iterator it = defs.begin(); it != defs.end(); ++it ){
     getFreeVariables(it->second,synth_fv_n,free_vars);
-    ns.push_back(it->first);
-    ks.push_back(it->second);
+    ns.push_back(it->second);
+    ks.push_back(it->first);
   }
   
   // process the applications of synthesis functions

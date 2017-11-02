@@ -140,7 +140,7 @@ struct CegConjectureProcessFun
   bool checkMatch( Node cn, Node n, std::unordered_map< unsigned, Node >& n_arg_map ); 
   Node inferDefinition( Node n, std::unordered_map< Node, unsigned, NodeHashFunction >& term_to_arg_carry,
                         std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars);
-  void assignRelevantDef(Node def, std::vector<unsigned>& args);
+  unsigned assignRelevantDef(Node def, std::vector<unsigned>& args);
   bool isArgVar( Node n, unsigned& arg_index );
 };
 
