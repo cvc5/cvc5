@@ -30,10 +30,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-
-CegGrammarConstructor::CegGrammarConstructor( QuantifiersEngine * qe, CegConjecture* p) : 
-d_qe( qe ), d_parent(p), d_is_syntax_restricted(false), d_has_ite(true){
-
+CegGrammarConstructor::CegGrammarConstructor(QuantifiersEngine* qe,
+                                             CegConjecture* p)
+    : d_qe(qe), d_parent(p), d_is_syntax_restricted(false), d_has_ite(true)
+{
 }
 
 void CegGrammarConstructor::collectTerms( Node n, std::map< TypeNode, std::vector< Node > >& consts ){
@@ -93,7 +93,7 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
     Node sfvl = sf.getAttribute(SygusSynthFunVarListAttribute());
     // sfvl may be null for constant synthesis functions
     Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is " << sfvl << std::endl;
-    
+
     TypeNode tn;
     std::stringstream ss;
     ss << sf;
@@ -101,18 +101,22 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
       tn = v.getType();
     }else{
       // check which arguments are irrelevant
-      std::unordered_set< unsigned > arg_irrelevant;
-      d_parent->getProcess()->getIrrelevantArgs( sf, arg_irrelevant );
-      std::unordered_set< Node, NodeHashFunction > term_irrelevant;
+      std::unordered_set<unsigned> arg_irrelevant;
+      d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
+      std::unordered_set<Node, NodeHashFunction> term_irrelevant;
       // convert to term
-      for( std::unordered_set< unsigned >::iterator ita = arg_irrelevant.begin(); ita != arg_irrelevant.end(); ++ita ){
+      for (std::unordered_set<unsigned>::iterator ita = arg_irrelevant.begin();
+           ita != arg_irrelevant.end();
+           ++ita)
+      {
         unsigned arg = *ita;
-        Assert( arg<sfvl.getNumChildren() );
+        Assert(arg < sfvl.getNumChildren());
         term_irrelevant.insert(sfvl[arg]);
       }
-      
+
       // make the default grammar
-      tn = mkSygusDefaultType( v.getType(), sfvl, ss.str(), extra_cons, term_irrelevant );
+      tn = mkSygusDefaultType(
+          v.getType(), sfvl, ss.str(), extra_cons, term_irrelevant);
     }
     // check if there is a template
     std::map< Node, Node >::iterator itt = templates.find( sf );
@@ -297,18 +301,30 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor( TypeNode range, std::ve
   }
 }
 
-void CegGrammarConstructor::mkSygusDefaultGrammar( TypeNode range, Node bvl, const std::string& fun, std::map< TypeNode, std::vector< Node > >& extra_cons,
-                                          std::unordered_set< Node, NodeHashFunction >& term_irrelevant, 
-                                          std::vector< CVC4::Datatype >& datatypes, std::set<Type>& unres ) {
-  Trace("sygus-grammar-def") << "Construct default grammar for " << fun << " " << range << std::endl;
+void CegGrammarConstructor::mkSygusDefaultGrammar(
+    TypeNode range,
+    Node bvl,
+    const std::string& fun,
+    std::map<TypeNode, std::vector<Node> >& extra_cons,
+    std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
+    std::vector<CVC4::Datatype>& datatypes,
+    std::set<Type>& unres)
+{
+  Trace("sygus-grammar-def") << "Construct default grammar for " << fun << " "
+                             << range << std::endl;
   // collect the variables
   std::vector<Node> sygus_vars;
   if( !bvl.isNull() ){
     for( unsigned i=0; i<bvl.getNumChildren(); i++ ){
-      if( term_irrelevant.find(bvl[i])==term_irrelevant.end() ){
-        sygus_vars.push_back( bvl[i] );
-      }else{
-        Trace("sygus-grammar-def") << "...synth var " << bvl[i] << " has been marked irrelevant." << std::endl;
+      if (term_irrelevant.find(bvl[i]) == term_irrelevant.end())
+      {
+        sygus_vars.push_back(bvl[i]);
+      }
+      else
+      {
+        Trace("sygus-grammar-def") << "...synth var " << bvl[i]
+                                   << " has been marked irrelevant."
+                                   << std::endl;
       }
     }
   }
@@ -548,17 +564,21 @@ void CegGrammarConstructor::mkSygusDefaultGrammar( TypeNode range, Node bvl, con
   }
 }
 
-
-TypeNode CegGrammarConstructor::mkSygusDefaultType( TypeNode range, Node bvl, const std::string& fun, 
-                                          std::map< TypeNode, std::vector< Node > >& extra_cons,
-                                          std::unordered_set< Node, NodeHashFunction >& term_irrelevant ) {
+TypeNode CegGrammarConstructor::mkSygusDefaultType(
+    TypeNode range,
+    Node bvl,
+    const std::string& fun,
+    std::map<TypeNode, std::vector<Node> >& extra_cons,
+    std::unordered_set<Node, NodeHashFunction>& term_irrelevant)
+{
   Trace("sygus-grammar-def") << "*** Make sygus default type " << range << ", make datatypes..." << std::endl;
   for( std::map< TypeNode, std::vector< Node > >::iterator it = extra_cons.begin(); it != extra_cons.end(); ++it ){
     Trace("sygus-grammar-def") << "    ...using " << it->second.size() << " extra constants for " << it->first << std::endl;
   }
   std::set<Type> unres;
   std::vector< CVC4::Datatype > datatypes;
-  mkSygusDefaultGrammar( range, bvl, fun, extra_cons, term_irrelevant, datatypes, unres );
+  mkSygusDefaultGrammar(
+      range, bvl, fun, extra_cons, term_irrelevant, datatypes, unres);
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
   Assert( !datatypes.empty() );
   std::vector<DatatypeType> types = NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(datatypes, unres);

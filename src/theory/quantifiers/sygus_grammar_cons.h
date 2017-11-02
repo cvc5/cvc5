@@ -32,28 +32,39 @@ class CegConjecture;
 class CegGrammarConstructor
 {
 public:
-  CegGrammarConstructor(QuantifiersEngine * qe, CegConjecture* p);
-  ~CegGrammarConstructor(){}
-  /** convert node n based on deep embedding (Section 4 of Reynolds et al CAV 2015) */
-  Node process( Node q, std::map< Node, Node >& templates, std::map< Node, Node >& templates_arg );
-  /** is the syntax restricted? */
-  bool isSyntaxRestricted() { return d_is_syntax_restricted; }
-  /** does the syntax allow ITE expressions? */
-  bool hasSyntaxITE() { return d_has_ite; }
-  /** make the default sygus datatype type corresponding to builtin type range
-  *   bvl is the set of free variables to include in the grammar
-  *   fun is for naming
-  *   extra_cons is a set of extra constant symbols to include in the grammar
-  */
-  static TypeNode mkSygusDefaultType( TypeNode range, Node bvl, const std::string& fun, std::map< TypeNode, std::vector< Node > >& extra_cons, 
-                                      std::unordered_set< Node, NodeHashFunction >& term_irrelevant);
-  /** make the default sygus datatype type corresponding to builtin type range */
-  static TypeNode mkSygusDefaultType( TypeNode range, Node bvl, const std::string& fun ){
-    std::map< TypeNode, std::vector< Node > > extra_cons;
-    std::unordered_set< Node, NodeHashFunction > term_irrelevant;
-    return mkSygusDefaultType( range, bvl, fun, extra_cons, term_irrelevant );
+ CegGrammarConstructor(QuantifiersEngine* qe, CegConjecture* p);
+ ~CegGrammarConstructor() {}
+ /** convert node n based on deep embedding (Section 4 of Reynolds et al CAV
+  * 2015) */
+ Node process(Node q,
+              std::map<Node, Node>& templates,
+              std::map<Node, Node>& templates_arg);
+ /** is the syntax restricted? */
+ bool isSyntaxRestricted() { return d_is_syntax_restricted; }
+ /** does the syntax allow ITE expressions? */
+ bool hasSyntaxITE() { return d_has_ite; }
+ /** make the default sygus datatype type corresponding to builtin type range
+ *   bvl is the set of free variables to include in the grammar
+ *   fun is for naming
+ *   extra_cons is a set of extra constant symbols to include in the grammar
+ */
+ static TypeNode mkSygusDefaultType(
+     TypeNode range,
+     Node bvl,
+     const std::string& fun,
+     std::map<TypeNode, std::vector<Node> >& extra_cons,
+     std::unordered_set<Node, NodeHashFunction>& term_irrelevant);
+ /** make the default sygus datatype type corresponding to builtin type range */
+ static TypeNode mkSygusDefaultType(TypeNode range,
+                                    Node bvl,
+                                    const std::string& fun)
+ {
+   std::map<TypeNode, std::vector<Node> > extra_cons;
+   std::unordered_set<Node, NodeHashFunction> term_irrelevant;
+   return mkSygusDefaultType(range, bvl, fun, extra_cons, term_irrelevant);
   }
-  /** make the sygus datatype type that encodes the solution space (lambda templ_arg. templ[templ_arg]) where templ_arg
+  /** make the sygus datatype type that encodes the solution space (lambda
+  * templ_arg. templ[templ_arg]) where templ_arg
   * has syntactic restrictions encoded by sygus type templ_arg_sygus_type
   *   bvl is the set of free variables to include in the frammar
   *   fun is for naming
@@ -82,12 +93,18 @@ private:
   // collect the list of types that depend on type range
   static void collectSygusGrammarTypesFor( TypeNode range, std::vector< TypeNode >& types, std::map< TypeNode, std::vector< DatatypeConstructorArg > >& sels );
   /** helper function for function mkSygusDefaultGrammar
-  *  collects a set of mutually recursive datatypes "datatypes" corresponding to encoding type "range" to SyGuS
+  *  collects a set of mutually recursive datatypes "datatypes" corresponding to
+  * encoding type "range" to SyGuS
   *  unres is used for the resulting call to mkMutualDatatypeTypes
   */
-  static void mkSygusDefaultGrammar( TypeNode range, Node bvl, const std::string& fun, std::map< TypeNode, std::vector< Node > >& extra_cons,
-                                     std::unordered_set< Node, NodeHashFunction >& term_irrelevant, 
-                                     std::vector< CVC4::Datatype >& datatypes, std::set<Type>& unres );
+  static void mkSygusDefaultGrammar(
+      TypeNode range,
+      Node bvl,
+      const std::string& fun,
+      std::map<TypeNode, std::vector<Node> >& extra_cons,
+      std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
+      std::vector<CVC4::Datatype>& datatypes,
+      std::set<Type>& unres);
   // helper function for mkSygusTemplateType
   static TypeNode mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
                                           const std::string& fun, unsigned& tcount );
