@@ -31,6 +31,47 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
   
+  
+/** Argument relevancy for synthesis functions
+ * 
+ * Let F be a synthesis conjecture of the form:
+ *   exists f. forall X. P( f, X )
+ * 
+ * The classes below compute whether certain arguments of
+ * the function-to-synthesize f are irrelevant. 
+ * Assume that f is binary function, where possible solutions
+ * to the above conjecture are of the form:
+ *   f -> (\ xy. t[x,y])
+ * We say e.g. that the 2nd argument of f is irrelevant if we
+ * can determine:
+ *   F has a solution 
+ * if and only if
+ *   F has a solution of the form f -> (\ xy. t[x] )
+ * We conclude that arguments are irrelevant using the following
+ * techniques.
+ * 
+ * 
+ * (1) Argument invariance:
+ * 
+ * Let s[z] be a term whose only free variable is z.
+ * If all occurrences of f-applications in F are of the form:
+ *   (f t s[t])
+ * then:
+ *   f = (\ xy. r[x,y])
+ * is a solution to F only if:
+ *   f = (\ xy. r[x,s[x]])
+ * is as well. 
+ * 
+ * Hence the second argument of f is not relevant.
+ * 
+ * 
+ * (2) Variable irrelevance:
+ * 
+ * TODO
+ * 
+ */
+  
+  
 /** This structure stores information regarding
  * an argument of a function to synthesize.
  * It is used to determine whether the argument
@@ -170,10 +211,10 @@ class CegConjectureProcess
    * is the set of (inner) universal variables in the synthesis
    * conjecture.
    */
-  void processConjunct(Node n, std::unordered_set< Node, NodeHashFunction >& synth_fv);
+  void processConjunct(Node n, Node f, std::unordered_set< Node, NodeHashFunction >& synth_fv);
   /** flatten 
    * 
-   * Flattens all synthesis functions in term n.
+   * Flattens all applications of f in term n.
    * This may add new variables to synth_fv, which
    * are introduced at all positions of functions
    * to synthesize in a bottom-up fashion. For each
@@ -181,9 +222,8 @@ class CegConjectureProcess
    * f(t), we add ( k -> f(t) ) to defs and ( f -> k )
    * to fun_to_defs.
    */
-  Node flatten(Node n, std::unordered_set< Node, NodeHashFunction >& synth_fv, 
-               std::unordered_map<Node,Node,NodeHashFunction>& defs, 
-               std::unordered_map<Node,std::vector<Node>,NodeHashFunction>& fun_to_defs);
+  Node flatten(Node n, Node f, std::unordered_set< Node, NodeHashFunction >& synth_fv, 
+               std::unordered_map<Node,Node,NodeHashFunction>& defs);
   /** get free variables 
    * Constructs a map of all free variables that occur in n
    * from synth_fv and stores them in the map free_vars.
