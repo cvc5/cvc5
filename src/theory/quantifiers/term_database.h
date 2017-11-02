@@ -110,13 +110,23 @@ class TermGenerator;
 class TermGenEnv;
 
 /** Term Database
-*
-* The primary responsibilities for this class are to :
-* (1) Maintain a list of all ground terms that exist in the quantifier-free
-*     solvers, as notified through the master equality engine.
-* (2) Build TermArgTrie objects that index all ground terms, per operator. This
-*     is done lazily, for performance reasons.
-*/
+ *
+ * This class is a key utility used by
+ * a number of approaches for quantifier instantiation,
+ * including E-matching, conflict-based instantiation,
+ * and model-based instantiation.
+ *
+ * The primary responsibilities for this class are to :
+ * (1) Maintain a list of all ground terms that exist in the quantifier-free
+ *     solvers, as notified through the master equality engine.
+ * (2) Build TermArgTrie objects that index all ground terms, per operator.
+ *
+ * Like other utilities, its reset(...) function is called
+ * at the beginning of full or last call effort checks.
+ * This initializes the database for the round. However,
+ * notice that TermArgTrie objects are computed
+ * lazily for performance reasons.
+ */
 class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::QuantifiersEngine;
   // TODO: eliminate these
@@ -144,19 +154,30 @@ class TermDb : public QuantifiersUtil {
   * Get the number of ground terms with operator f that have been added to the
   * database
   */
-  unsigned getNumGroundTerms(Node f);
+  unsigned getNumGroundTerms(Node f) const;
   /** get ground term for operator
   * Get the i^th ground term with operator f that has been added to the database
   */
-  Node getGroundTerm(Node f, unsigned i);
+  Node getGroundTerm(Node f, unsigned i) const;
   /** get num type terms
   * Get the number of ground terms of tn that have been added to the database
   */
-  unsigned getNumTypeGroundTerms(TypeNode tn);
+  unsigned getNumTypeGroundTerms(TypeNode tn) const;
   /** get type ground term
   * Returns the i^th ground term of type tn
   */
-  Node getTypeGroundTerm(TypeNode tn, unsigned i);
+  Node getTypeGroundTerm(TypeNode tn, unsigned i) const;
+  /** get or make ground term
+  * Returns the first ground term of type tn,
+  * or makes one if none exist.
+  */
+  Node getOrMakeTypeGroundTerm(TypeNode tn);
+  /** make fresh variable
+  * Returns a fresh variable of type tn.
+  * This will return only a single fresh
+  * variable per type.
+  */
+  Node getOrMakeTypeFreshVariable(TypeNode tn);
   /** add a term to the database
   * withinQuant is whether n is within the body of a quantified formula
   * withinInstClosure is whether n is within an inst-closure operator (see
@@ -197,21 +218,22 @@ class TermDb : public QuantifiersUtil {
   /** get congruent term
   * If possible, returns a term t such that:
   * (1) t is a term that is currently indexed by this database,
-  * (2) t is of the form f( t1, ..., tk )
+  * (2) t is of the form f( t1, ..., tk ) and n is of the form f( s1, ..., sk ),
+  *     where ti is in the equivalence class of si for i=1...k.
   */
   TNode getCongruentTerm(Node f, Node n);
   /** get congruent term
   * If possible, returns a term t such that:
   * (1) t is a term that is currently indexed by this database,
-  * (2) t is of the form f( t1, ..., tk ) and n is of the form f( s1, ..., sk ),
-  *     where ti is in the equivalence class of si for i=1...k
+  * (2) t is of the form f( t1, ..., tk ) where ti is in the
+  *     equivalence class of args[i] for i=1...k.
   */
   TNode getCongruentTerm(Node f, std::vector<TNode>& args);
   /** in relevant domain
   * Returns true if there is at least one term t such that:
   * (1) t is a term that is currently indexed by this database,
-  * (2) t is of the form f( t1, ..., tk ) and ti is in the equivalence class of
-  * r.
+  * (2) t is of the form f( t1, ..., tk ) and ti is in the
+  *     equivalence class of r.
   */
   bool inRelevantDomain(TNode f, unsigned i, TNode r);
   /** evaluate term
@@ -296,9 +318,13 @@ class TermDb : public QuantifiersUtil {
   bool hasTermCurrent(Node n, bool useMode = true);
   /** is term eligble for instantiation? */
   bool isTermEligibleForInstantiation(TNode n, TNode f, bool print = false);
-  /** get eligible term in equivalence class */
+  /** get eligible term in equivalence class of r */
   Node getEligibleTermInEqc(TNode r);
-  /** is inst closure */
+  /** is r a inst closure node?
+   * This terminology was used for specifying
+   * a particular status of nodes for
+   * Bansal et al., CAV 2015.
+   */
   bool isInstClosure(Node r);
 
  private:
@@ -321,6 +347,8 @@ class TermDb : public QuantifiersUtil {
   std::map< Node, std::vector< Node > > d_op_map;
   /** map from type nodes to terms of that type */
   std::map< TypeNode, std::vector< Node > > d_type_map;
+  /** map from type nodes to a fresh variable we introduced */
+  std::unordered_map<TypeNode, Node, TypeNodeHashFunction> d_type_fv;
   /** inactive map */
   NodeBoolMap d_inactive_map;
   /** count of the number of non-redundant ground terms per operator */
@@ -364,32 +392,6 @@ class TermDb : public QuantifiersUtil {
   /** get operator representative */
   Node getOperatorRepresentative( TNode op ) const;
   //------------------------------end higher-order term indexing
-
-  // TODO : as part of #1171, these should be moved somewhere else
-  // for model basis
- private:
-  /** map from types to model basis terms */
-  std::map< TypeNode, Node > d_model_basis_term;
-  /** map from ops to model basis terms */
-  std::map< Node, Node > d_model_basis_op_term;
-  /** map from instantiation terms to their model basis equivalent */
-  std::map< Node, Node > d_model_basis_body;
-  /** map from universal quantifiers to model basis terms */
-  std::map< Node, std::vector< Node > > d_model_basis_terms;
-  /** compute model basis arg */
-  void computeModelBasisArgAttribute( Node n );
- public:
-  /** get model basis term */
-  Node getModelBasisTerm(TypeNode tn, int i = 0);
-  /** get model basis term for op */
-  Node getModelBasisOpTerm(Node op);
-  /** get model basis */
-  Node getModelBasis(Node q, Node n);
-  /** get model basis body */
-  Node getModelBasisBody(Node q);
-  /** get model basis arg */
-  unsigned getModelBasisArg(Node n);
-
 };/* class TermDb */
 
 }/* CVC4::theory::quantifiers namespace */

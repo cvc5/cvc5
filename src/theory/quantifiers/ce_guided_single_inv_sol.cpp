@@ -21,6 +21,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
@@ -676,7 +677,7 @@ Node CegConjectureSingleInvSol::reconstructSolution( Node sol, TypeNode stn, int
       std::vector< TypeNode > to_erase;
       for( std::map< TypeNode, bool >::iterator it = active.begin(); it != active.end(); ++it ){
         TypeNode stn = it->first;
-        Node ns = d_qe->getTermUtil()->getEnumerateTerm( stn, index );
+        Node ns = d_qe->getTermEnumeration()->getEnumerateTerm(stn, index);
         if( ns.isNull() ){
           to_erase.push_back( stn );
         }else{

@@ -13,10 +13,12 @@
  **
  **/
 
-#include "options/quantifiers_options.h"
 #include "theory/quantifiers/conjecture_generator.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
@@ -398,7 +400,8 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
             std::vector< TNode > args;
             Trace("sg-pat-debug") << "******* Get ground term for " << r << std::endl;
             Node n;
-            if( getTermUtil()->isInductionTerm( r ) ){
+            if (Skolemize::isInductionTerm(r))
+            {
               n = d_op_arg_index[r].getGroundTerm( this, args );
             }else{
               n = r;
@@ -556,12 +559,13 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
         if( std::find( provenConj.begin(), provenConj.end(), q )==provenConj.end() ){
           //check each skolem variable
           bool disproven = true;
-          //std::vector< Node > sk;
-          //getTermUtil()->getSkolemConstants( q, sk, true );
+          std::vector<Node> skolems;
+          d_quantEngine->getSkolemize()->getSkolemConstants(q, skolems);
           Trace("sg-conjecture") << "    CONJECTURE : ";
           std::vector< Node > ce;
-          for( unsigned j=0; j<getTermUtil()->d_skolem_constants[q].size(); j++ ){
-            TNode k = getTermUtil()->d_skolem_constants[q][j];
+          for (unsigned j = 0; j < skolems.size(); j++)
+          {
+            TNode k = skolems[j];
             TNode rk = getRepresentative( k );
             std::map< TNode, Node >::iterator git = d_ground_eqc_map.find( rk );
             //check if it is a ground term
@@ -569,7 +573,11 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
               Trace("sg-conjecture") << "ACTIVE : " << q;
               if( Trace.isOn("sg-gen-eqc") ){
                 Trace("sg-conjecture") << " { ";
-                for( unsigned k=0; k<getTermUtil()->d_skolem_constants[q].size(); k++ ){ Trace("sg-conjecture") << getTermUtil()->d_skolem_constants[q][k] << ( j==k ? "*" : "" ) << " "; }
+                for (unsigned k = 0; k < skolems.size(); k++)
+                {
+                  Trace("sg-conjecture") << skolems[k] << (j == k ? "*" : "")
+                                         << " ";
+                }
                 Trace("sg-conjecture") << "}";
               }
               Trace("sg-conjecture") << std::endl;
@@ -1051,12 +1059,14 @@ Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
 
 void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector< Node >& terms ) {
   if( n.getNumChildren()>0 ){
+    TermEnumeration* te = d_quantEngine->getTermEnumeration();
     std::vector< int > vec;
     std::vector< TypeNode > types;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       vec.push_back( 0 );
       TypeNode tn = n[i].getType();
-      if( getTermUtil()->isClosedEnumerableType( tn ) ){
+      if (te->isClosedEnumerableType(tn))
+      {
         types.push_back( tn );
       }else{
         return;
@@ -1074,7 +1084,9 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
         vec.push_back( size_limit );
       }else{
         //see if we can iterate current
-        if( vec_sum<size_limit && !getTermUtil()->getEnumerateTerm( types[index], vec[index]+1 ).isNull() ){
+        if (vec_sum < size_limit
+            && !te->getEnumerateTerm(types[index], vec[index] + 1).isNull())
+        {
           vec[index]++;
           vec_sum++;
           vec.push_back( size_limit - vec_sum );
@@ -1089,7 +1101,8 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
       }
       if( success ){
         if( vec.size()==n.getNumChildren() ){
-          Node lc = getTermUtil()->getEnumerateTerm( types[vec.size()-1], vec[vec.size()-1] );
+          Node lc =
+              te->getEnumerateTerm(types[vec.size() - 1], vec[vec.size() - 1]);
           if( !lc.isNull() ){
             for( unsigned i=0; i<vec.size(); i++ ){
               Trace("sg-gt-enum-debug") << vec[i] << " ";
@@ -1102,7 +1115,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             std::vector< Node > children;
             children.push_back( n.getOperator() );
             for( unsigned i=0; i<(vec.size()-1); i++ ){
-              Node nn = getTermUtil()->getEnumerateTerm( types[i], vec[i] );
+              Node nn = te->getEnumerateTerm(types[i], vec[i]);
               Assert( !nn.isNull() );
               Assert( nn.getType()==n[i].getType() );
               children.push_back( nn );

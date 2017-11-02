@@ -19,7 +19,7 @@
 
 #include "expr/attribute.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
