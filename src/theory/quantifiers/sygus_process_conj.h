@@ -40,7 +40,7 @@ namespace quantifiers {
 class CegConjectureProcessArg
 {
 public:
-  CegConjectureProcessArg() : d_parent(nullptr), d_relevant(false), d_deq_id(0), d_set_const_arg(false) {}
+  CegConjectureProcessArg() : d_parent(nullptr), d_relevant(false), d_deq_id(0) {}
   /** parent argument 
    * 
     * If non-null, this is a pointer to an argument 
@@ -60,7 +60,6 @@ public:
    */
   unsigned d_deq_id;
   
-  bool d_set_const_arg;
   Node d_const_arg;
   /** get parent in the union find */
   CegConjectureProcessArg * getParent();
@@ -102,10 +101,19 @@ struct CegConjectureProcessFun
   std::vector< std::unordered_set< unsigned > > d_deq_id_eqc;
   /** properties of each argument */
   std::vector<CegConjectureProcessArg> d_arg_props;
+  
+  std::vector< Node > d_arg_vars;
+  std::unordered_map< Node, unsigned, NodeHashFunction > d_arg_var_num;
   /** the set of arguments that this synth-fun is independent of */
   std::vector<bool> d_arg_independent;
   /** allocate new deq id */
   unsigned allocateDeqId();
+
+  
+  bool checkMatch( Node cn, Node n, std::unordered_map< unsigned, Node >& n_arg_map ); 
+  Node inferDefinition( Node n, std::unordered_map< Node, unsigned, NodeHashFunction >& term_to_arg_use,
+                        std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars);
+  bool isArgVar( Node n, unsigned& arg_index );
 };
 
 /** Ceg Conjecture Process
