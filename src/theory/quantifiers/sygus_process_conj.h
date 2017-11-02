@@ -40,7 +40,7 @@ namespace quantifiers {
 class CegConjectureProcessArg
 {
 public:
-  CegConjectureProcessArg() : d_parent(nullptr), d_relevant(false), d_deq_id(0) {}
+  CegConjectureProcessArg() : d_parent(nullptr), d_relevant(false), d_deq_id(0), d_set_const_arg(false) {}
   /** parent argument 
    * 
     * If non-null, this is a pointer to an argument 
@@ -59,6 +59,9 @@ public:
    * conjecture are such that t[i] = t[j].
    */
   unsigned d_deq_id;
+  
+  bool d_set_const_arg;
+  Node d_const_arg;
   /** get parent in the union find */
   CegConjectureProcessArg * getParent();
 };
