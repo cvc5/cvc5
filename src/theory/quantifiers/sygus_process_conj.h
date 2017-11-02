@@ -67,6 +67,16 @@ namespace quantifiers {
  * 
  * (2) Variable irrelevance:
  * 
+ * If F is equivalent to:
+ *   exists f. forall w z u1...un. C1 ^...^Cm,
+ * where for i=1...m, Ci is of the form:
+ *   ( w1 = f(tm1[z], u1) ^
+ *     ... ^
+ *     wn = f(tmn[z], un) ) => Pm(w1...wn, z)
+ * then the second argument of f is irrelevant.
+ * We call u1...un single occurrence variables 
+ * (in Ci).
+ * 
  * TODO
  * 
  */
@@ -81,29 +91,11 @@ namespace quantifiers {
 class CegConjectureProcessArg
 {
 public:
-  CegConjectureProcessArg() : d_parent(nullptr), d_relevant(false), d_deq_id(0) {}
-  /** parent argument 
-   * 
-    * If non-null, this is a pointer to an argument 
-   * whose relevance implies the relevance of this argument
-   * 
-   * Altogether, this data structure represents
-   * a union-find.
-   */
-  CegConjectureProcessArg * d_parent;
+  CegConjectureProcessArg() : d_relevant(false) {}
   /** whether this argument is relevant */
   bool d_relevant;
-  /** disequality id of this argument 
-   * We ensure that argument positions i and j 
-   * have the same disequality id if and only if 
-   * all f-applications t in our synthesis
-   * conjecture are such that t[i] = t[j].
-   */
-  unsigned d_deq_id;
-  
-  Node d_const_arg;
-  /** get parent in the union find */
-  CegConjectureProcessArg * getParent();
+  /** argument template */
+  Node d_template;
 };
 
 /** This structure stores information regarding conjecture-specific
@@ -115,7 +107,7 @@ public:
 struct CegConjectureProcessFun
 {
  public:
-  CegConjectureProcessFun() : d_deq_id_counter(0) {}
+  CegConjectureProcessFun() {}
   ~CegConjectureProcessFun() {}
   /** initialize this class for function f */
   void init(Node f);
@@ -133,27 +125,22 @@ struct CegConjectureProcessFun
   void processTerms(std::vector< Node >& ns, std::vector< Node >& ks, Node nf,
                     std::unordered_set< Node, NodeHashFunction >& synth_fv, 
                     std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars);
+  /** is the i^th argument of the function-to-synthesize of this class relevant? */
+  bool isArgRelevant( unsigned i );
  private:
   /** the synth fun associated with this */
   Node d_synth_fun;
-  /** deq id counter */
-  unsigned d_deq_id_counter;
-  /** deq id equivalence classes */
-  std::vector< std::unordered_set< unsigned > > d_deq_id_eqc;
   /** properties of each argument */
   std::vector<CegConjectureProcessArg> d_arg_props;
   
   std::vector< Node > d_arg_vars;
   std::unordered_map< Node, unsigned, NodeHashFunction > d_arg_var_num;
-  /** the set of arguments that this synth-fun is independent of */
-  std::vector<bool> d_arg_independent;
-  /** allocate new deq id */
-  unsigned allocateDeqId();
 
   
   bool checkMatch( Node cn, Node n, std::unordered_map< unsigned, Node >& n_arg_map ); 
-  Node inferDefinition( Node n, std::unordered_map< Node, unsigned, NodeHashFunction >& term_to_arg_use,
+  Node inferDefinition( Node n, std::unordered_map< Node, unsigned, NodeHashFunction >& term_to_arg_carry,
                         std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars);
+  void assignRelevantDef(Node def, std::vector<unsigned>& args);
   bool isArgVar( Node n, unsigned& arg_index );
 };
 
