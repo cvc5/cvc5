@@ -168,6 +168,9 @@ public:
   }
   ~Rational() {}
 
+  /**
+   * Returns a copy of d_value to enable public access of GMP data.
+   */
   mpq_class get_mpq_copy()
   {
     return mpq_class(d_value.get_mpq_t());

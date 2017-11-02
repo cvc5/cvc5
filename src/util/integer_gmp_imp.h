@@ -78,6 +78,14 @@ public:
 
   ~Integer() {}
 
+  /**
+   * Returns a copy of d_value to enable public access of GMP data.
+   */
+  mpz_class get_mpz_copy()
+  {
+    return mpz_class(d_value.get_mpz_t());
+  }
+
   Integer& operator=(const Integer& x){
     if(this == &x) return *this;
     d_value = x.d_value;
