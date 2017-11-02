@@ -59,6 +59,8 @@ namespace quantifiers {
   class TermEnumeration;
   class FirstOrderModel;
   class QuantAttributes;
+  class QuantEPR;
+  class QuantRelevance;
   class RelevantDomain;
   class BvInverter;
   class InstPropagator;
@@ -116,7 +118,7 @@ private:
   /** equality inference class */
   quantifiers::EqualityInference* d_eq_inference;
   /** for computing relevance of quantifiers */
-  QuantRelevance * d_quant_rel;
+  quantifiers::QuantRelevance* d_quant_rel;
   /** relevant domain */
   quantifiers::RelevantDomain* d_rel_dom;
   /** inversion utility for BV instantiation */
@@ -126,7 +128,7 @@ private:
   /** model builder */
   quantifiers::QModelBuilder* d_builder;
   /** utility for effectively propositional logic */
-  QuantEPR * d_qepr;
+  quantifiers::QuantEPR* d_qepr;
   /** term database */
   quantifiers::TermDb* d_term_db;
   /** sygus term database */
@@ -253,12 +255,12 @@ public:
   /** get the BV inverter utility */
   quantifiers::BvInverter * getBvInverter() { return d_bv_invert; }
   /** get quantifier relevance */
-  QuantRelevance* getQuantifierRelevance() { return d_quant_rel; }
+  quantifiers::QuantRelevance* getQuantifierRelevance() { return d_quant_rel; }
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() { return d_builder; }
   /** get utility for EPR */
-  QuantEPR* getQuantEPR() { return d_qepr; }
-public:  //modules
+  quantifiers::QuantEPR* getQuantEPR() { return d_qepr; }
+ public:  // modules
   /** get instantiation engine */
   quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }
   /** get model engine */

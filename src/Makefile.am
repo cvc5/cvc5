@@ -410,8 +410,12 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/model_engine.h \
 	theory/quantifiers/quant_conflict_find.cpp \
 	theory/quantifiers/quant_conflict_find.h \
+	theory/quantifiers/quant_epr.cpp \
+	theory/quantifiers/quant_epr.h \
 	theory/quantifiers/quant_equality_engine.cpp \
 	theory/quantifiers/quant_equality_engine.h \
+	theory/quantifiers/quant_relevance.cpp \
+	theory/quantifiers/quant_relevance.h \
 	theory/quantifiers/quant_split.cpp \
 	theory/quantifiers/quant_split.h \
 	theory/quantifiers/quant_util.cpp \
@@ -426,6 +430,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/rewrite_engine.h \
 	theory/quantifiers/skolemize.cpp \
 	theory/quantifiers/skolemize.h \
+	theory/quantifiers/sygus_explain.cpp \
+	theory/quantifiers/sygus_explain.h \
 	theory/quantifiers/sygus_grammar_cons.cpp \
 	theory/quantifiers/sygus_grammar_cons.h \
 	theory/quantifiers/sygus_process_conj.cpp \

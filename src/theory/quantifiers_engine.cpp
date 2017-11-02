@@ -39,7 +39,9 @@
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
+#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_equality_engine.h"
+#include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -129,7 +131,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   if( options::relevantTriggers() ){
-    d_quant_rel = new QuantRelevance( false );
+    d_quant_rel = new quantifiers::QuantRelevance(false);
     d_util.push_back(d_quant_rel);
   }else{
     d_quant_rel = NULL;
@@ -137,7 +139,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
 
   if( options::quantEpr() ){
     Assert( !options::incrementalSolving() );
-    d_qepr = new QuantEPR;
+    d_qepr = new quantifiers::QuantEPR;
   }else{
     d_qepr = NULL;
   }
