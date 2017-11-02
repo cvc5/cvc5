@@ -168,6 +168,11 @@ public:
   }
   ~Rational() {}
 
+  mpq_class get_mpq_copy()
+  {
+    return mpq_class(d_value.get_mpq_t());
+  }
+
   /**
    * Returns the value of numerator of the Rational.
    * Note that this makes a deep copy of the numerator.
