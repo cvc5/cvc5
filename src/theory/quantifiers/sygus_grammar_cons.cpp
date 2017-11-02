@@ -18,6 +18,7 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/sygus_process_conj.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -29,8 +30,8 @@ namespace theory {
 namespace quantifiers {
 
 
-CegGrammarConstructor::CegGrammarConstructor( QuantifiersEngine * qe ) : 
-d_qe( qe ), d_is_syntax_restricted(false), d_has_ite(true){
+CegGrammarConstructor::CegGrammarConstructor( QuantifiersEngine * qe, CegConjecture* p) : 
+d_qe( qe ), d_parent(p), d_is_syntax_restricted(false), d_has_ite(true){
 
 }
 

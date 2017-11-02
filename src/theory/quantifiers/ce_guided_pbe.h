@@ -26,8 +26,6 @@ namespace theory {
 namespace quantifiers {
 
 class CegConjecture;
-class CegConjecturePbe;
-class CegEntailmentInfer;
 
 /** CegConjecturePbe
 *
@@ -192,8 +190,7 @@ class CegConjecturePbe {
   Node d_true;
   Node d_false;
   /** parent conjecture
-  * This is the data structure that contains global information about the
-  * conjecture.
+  * This contains global information about the synthesis conjecture.
   */
   CegConjecture* d_parent;
   /** is this a PBE conjecture for any function? */
