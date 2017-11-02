@@ -284,7 +284,9 @@ void CegConjectureProcessFun::processTerms(std::vector< Node >& ns, std::vector<
         // argument already has a definition, see if it is maintained
         if( checkMatch( d_arg_props[a].d_template, n[a], n_arg_map ) ){
           processed = true;
-          Trace("sygus-process-arg-deps") << "    ...processed arg #" << a << " (consistent definition)." << std::endl;
+          Trace("sygus-process-arg-deps") << "    ...processed arg #" << a;
+          Trace("sygus-process-arg-deps") << " (consistent definition " << n[a];
+          Trace("sygus-process-arg-deps") << "with " << d_arg_props[a].d_template << ")." << std::endl;
         }
       }else{
         // check if an irrelevant variable
@@ -294,7 +296,9 @@ void CegConjectureProcessFun::processTerms(std::vector< Node >& ns, std::vector<
           // check if a single-occurrence variable
           if(single_occ_variables[n[a]]){
             processed = true;
-            Trace("sygus-process-arg-deps") << "    ...processed arg #" << a << " (single occurrence variable)." << std::endl;
+            Trace("sygus-process-arg-deps") << "    ...processed arg #" << a;
+            Trace("sygus-process-arg-deps") << " (single occurrence variable ";
+            Trace("sygus-process-arg-deps") << n[a] << ")." << std::endl;
           }
         }
       }
@@ -314,7 +318,8 @@ void CegConjectureProcessFun::processTerms(std::vector< Node >& ns, std::vector<
       Node nn = it->first;
       arg_list.push_back(nn);
       if( Trace.isOn("sygus-process-arg-deps") ){
-        Trace("sygus-process-arg-deps") << "    argument " << nn << " (" << it->second.size() << " positions)";
+        Trace("sygus-process-arg-deps") << "    argument " << nn;
+        Trace("sygus-process-arg-deps") << " (" << it->second.size() << " positions)";
         // check the status of this term
         if( nn.isVar() && synth_fv.find(nn)!=synth_fv.end() ){
           //is it relevant?
@@ -415,6 +420,7 @@ Node CegConjectureProcess::simplify(Node q)
     {
       processConjunct(conjuncts[i], f, synth_fv);
     }
+    
   }
   
   return q;
@@ -431,7 +437,16 @@ void CegConjectureProcess::initialize(Node n, std::vector<Node>& candidates)
       Trace("sygus-process") << "  " << candidates[i] << std::endl;
     }
   }
+}
 
+bool CegConjectureProcess::isArgRelevant( Node f, unsigned i ) {
+  std::map<Node, CegConjectureProcessFun>::iterator its = d_sf_info.find(f);
+  if(its!=d_sf_info.end()){
+    return its->second.isArgRelevant(i);    
+  }else{
+    Assert(false);
+    return false;
+  }
 }
 
 void CegConjectureProcess::processConjunct(Node n, Node f, std::unordered_set< Node, NodeHashFunction >& synth_fv) {

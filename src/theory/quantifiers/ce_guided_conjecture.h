@@ -112,6 +112,8 @@ public:
 
   /** get program by examples utility */
   CegConjecturePbe* getPbe() { return d_ceg_pbe; }
+  /** get utility for static preprocessing and analysis of conjectures */
+  CegConjectureProcess* getProcess() { return d_ceg_proc; }
   /** get the symmetry breaking predicate for type */
   Node getSymmetryBreakingPredicate(
       Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);

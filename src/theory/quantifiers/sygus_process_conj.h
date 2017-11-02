@@ -32,7 +32,8 @@ namespace theory {
 namespace quantifiers {
   
   
-/** Argument relevancy for synthesis functions
+/** This file contains techniques that compute
+ * argument relevancy for synthesis functions
  * 
  * Let F be a synthesis conjecture of the form:
  *   exists f. forall X. P( f, X )
@@ -53,15 +54,14 @@ namespace quantifiers {
  * 
  * (1) Argument invariance:
  * 
- * Let s[z] be a term whose only free variable is z.
+ * Let s[z] be a term whose free variables are contained in { z }.
  * If all occurrences of f-applications in F are of the form:
- *   (f t s[t])
+ *   f(t, s[t])
  * then:
  *   f = (\ xy. r[x,y])
  * is a solution to F only if:
  *   f = (\ xy. r[x,s[x]])
  * is as well. 
- * 
  * Hence the second argument of f is not relevant.
  * 
  * 
@@ -77,14 +77,16 @@ namespace quantifiers {
  * We call u1...un single occurrence variables 
  * (in Ci).
  * 
- * TODO
+ * 
+ * others?
  * 
  */
   
   
 /** This structure stores information regarding
  * an argument of a function to synthesize.
- * It is used to determine whether the argument
+ * 
+ * It is used to store whether the argument
  * position in the function to synthesize is
  * relevant. 
  */
@@ -92,14 +94,24 @@ class CegConjectureProcessArg
 {
 public:
   CegConjectureProcessArg() : d_relevant(false) {}
-  /** whether this argument is relevant */
-  bool d_relevant;
-  /** argument template */
+  /** template definition
+   * This is the term s[z] described
+   * under "Argument Invariance" above.
+   */
   Node d_template;
+  /** whether this argument is relevant 
+   * An argument is marked as relevant if:
+   * (A) it is explicitly marked as relevant
+   *     due to a function application containing
+   *     a relevant term at this argument position, or
+   * (B) if it is given conflicting template definitions.
+   */
+  bool d_relevant;
 };
 
 /** This structure stores information regarding conjecture-specific
-* analysis of a function to synthesize.
+* analysis of a single function to synthesize within
+* a conjecture to synthesize.
 * 
 * It maintains information about each of the function to 
 * synthesize's arguments.
@@ -111,7 +123,10 @@ struct CegConjectureProcessFun
   ~CegConjectureProcessFun() {}
   /** initialize this class for function f */
   void init(Node f);
-  /** process term 
+  /** process terms
+   * 
+   * This is called once per conjunction in
+   * the synthesis conjecture.
    *
    * ns are the f-applications to process,
    * ks are the variables we introduced to flatten them,
@@ -132,15 +147,76 @@ struct CegConjectureProcessFun
   Node d_synth_fun;
   /** properties of each argument */
   std::vector<CegConjectureProcessArg> d_arg_props;
-  
+  /** variables for each argument type of f
+   * 
+   * These are used to express templates for argument
+   * invariance, in the data member
+   * CegConjectureProcessArg::d_template.
+   */
   std::vector< Node > d_arg_vars;
+  /** map from d_arg_vars to the argument #
+   * they represent.
+   */ 
   std::unordered_map< Node, unsigned, NodeHashFunction > d_arg_var_num;
-
-  
+  /** check match
+   * This function returns true iff 
+   *   cn * { x -> n_arg_map[d_arg_var_num[x]] | x in d_arg_vars } = n
+   * In other words, cn and n are matchable
+   * via the substitution mapping argument variables to terms
+   * specified by n_arg_map.
+   * 
+   * For example, if n_arg_map contains { 1 -> t, 2 -> s }, then
+   *   checkMatch( x1+x2, t+s, n_arg_map ) returns true,
+   *   checkMatch( x1+1, t+1, n_arg_map ) returns true,
+   *   checkMatch( 0, 0, n_arg_map ) returns true,
+   *   checkMatch( x1+1, 1+t, n_arg_map ) returns false.
+   */
   bool checkMatch( Node cn, Node n, std::unordered_map< unsigned, Node >& n_arg_map ); 
+  /** infer definition
+   * 
+   * In the following, we say a term is a "emplate
+   * definition" if its free variables 
+   * are a subset of d_arg_vars.
+   * 
+   * If this function returns a non-null node ret, then
+   *   checkMatch( ret, n, term_to_arg_carry^-1 ) returns true.
+   * and ret is a template definition.
+   * 
+   * The free variables for all subterms of n are stored in 
+   * free_vars. The map term_to_arg_carry is injective.
+   * 
+   * For example, if term_to_arg_carry contains { t -> 1, s -> 2 } and 
+   * free_vars is { t -> {y}, r -> {y}, s -> {}, q -> {}, ... -> {} }, then
+   *   inferDefinition( 0, term_to_arg_carry, free_vars ) 
+   *     returns 0
+   *   inferDefinition( t, term_to_arg_carry, free_vars ) 
+   *     returns x1
+   *   inferDefinition( t+s+q, term_to_arg_carry, free_vars ) 
+   *     returns x1+x2+q
+   *   inferDefinition( t+r, term_to_arg_carry, free_vars ) 
+   *     returns null
+   */
   Node inferDefinition( Node n, std::unordered_map< Node, unsigned, NodeHashFunction >& term_to_arg_carry,
                         std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars);
+  /** Assign relevant definition 
+   * 
+   * If def is non-null, 
+   * this function assigns def as a template definition
+   * for the (currently irrelevant) arguments that 
+   * occur in a term of the form f(
+   * 
+   * If def is null, then an argument is marked
+   * as relevant.
+   * 
+   * Returns an value rid such that:
+   * (1) rid occurs in args,
+   * (2) if def is null, then argument rid was marked
+   *     relevant by this call.
+   */
   unsigned assignRelevantDef(Node def, std::vector<unsigned>& args);
+  /** returns true if n is in d_arg_vars, updates arg_index 
+   * to its position in d_arg_vars.
+   */
   bool isArgVar( Node n, unsigned& arg_index );
 };
 
@@ -179,6 +255,8 @@ class CegConjectureProcess
   *   (see CegConjecture::d_base_inst)
   */
   void initialize(Node n, std::vector<Node>& candidates);
+  /** is the i^th argument of the function-to-synthesize f relevant? */
+  bool isArgRelevant( Node f, unsigned i );
   /** get symmetry breaking predicate
   *
   * Returns a formula that restricts the enumerative search space (for a given
@@ -189,7 +267,6 @@ class CegConjectureProcess
       Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
   /** print out debug information about this conjecture */
   void debugPrint(const char* c);
-
  private:
   /** process conjunct 
    * 
