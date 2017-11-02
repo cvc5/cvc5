@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_PPROCESS_CONJ_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_PROCESSS_CONJ_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_PROCESS_CONJ_H
+#define __CVC4__THEORY__QUANTIFIERS__SYGUS_PROCESS_CONJ_H
 
 #include <map>
 #include <unordered_map>
@@ -142,6 +142,8 @@ struct CegConjectureProcessFun
                     std::unordered_map<Node, std::unordered_set< Node, NodeHashFunction >, NodeHashFunction >& free_vars);
   /** is the i^th argument of the function-to-synthesize of this class relevant? */
   bool isArgRelevant( unsigned i );
+  /** get irrelevant arguments for the function-to-synthesize of this class */
+  void getIrrelevantArgs( std::unordered_set< unsigned >& args );
  private:
   /** the synth fun associated with this */
   Node d_synth_fun;
@@ -257,6 +259,10 @@ class CegConjectureProcess
   void initialize(Node n, std::vector<Node>& candidates);
   /** is the i^th argument of the function-to-synthesize f relevant? */
   bool isArgRelevant( Node f, unsigned i );
+  /** get irrelevant arguments for function-to-synthesize f 
+   * returns true if f is a function-to-synthesize.
+   */
+  bool getIrrelevantArgs( Node f, std::unordered_set< unsigned >& args );
   /** get symmetry breaking predicate
   *
   * Returns a formula that restricts the enumerative search space (for a given

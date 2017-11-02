@@ -384,6 +384,14 @@ bool CegConjectureProcessFun::isArgRelevant( unsigned i ) {
   return d_arg_props[i].d_relevant;
 }
 
+void CegConjectureProcessFun::getIrrelevantArgs( std::unordered_set< unsigned >& args ) {
+  for( unsigned i=0; i<d_arg_vars.size(); i++ ){
+    if( !d_arg_props[i].d_relevant ){
+      args.insert( i );
+    }
+  }
+}
+
 CegConjectureProcess::CegConjectureProcess(QuantifiersEngine* qe) : d_qe(qe) {}
 CegConjectureProcess::~CegConjectureProcess() {}
 
@@ -445,6 +453,16 @@ bool CegConjectureProcess::isArgRelevant( Node f, unsigned i ) {
     return its->second.isArgRelevant(i);    
   }else{
     Assert(false);
+    return true;
+  }
+}
+
+bool CegConjectureProcess::getIrrelevantArgs( Node f, std::unordered_set< unsigned >& args ) {
+  std::map<Node, CegConjectureProcessFun>::iterator its = d_sf_info.find(f);
+  if(its!=d_sf_info.end()){
+    its->second.getIrrelevantArgs(args);  
+    return true;
+  }else{
     return false;
   }
 }
