@@ -513,7 +513,6 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
 
   if (ret != BVGaussElim::Result::NONE)
   {
-    Trace("bv-gauss-elim") << "Found result:" << endl;
     vector<Node> vvars;
     for (auto p : vars) vvars.push_back(p.first);
     Assert(nvars == vvars.size());
@@ -529,7 +528,6 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
       {
         res[vvars[i]] = nm->mkConst<BitVector>(
             BitVector(utils::getSize(vvars[i]), resrhs[i]));
-        Trace("bv-gauss-elim") << vvars[i] << " = " << res[vvars[i]] << endl;
       }
     }
     else
@@ -596,8 +594,6 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
             res[vvars[pcol]] = nm->mkNode(kind::BITVECTOR_UREM, tmp, prime);
           }
         }
-        Trace("bv-gauss-elim")
-            << vvars[pcol] << " = " << res[vvars[pcol]] << endl;
       }
     }
   }
