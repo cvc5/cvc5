@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --no-dump-synth
+; COMMAND-LINE: --sygus-out=status
 (set-logic SLIA)
  
 (define-fun cA ((x String) (y String)) String (str.++ (str.++ x "A") y))
