@@ -206,6 +206,9 @@ void Smt1::setLogic(const std::string& name) {
   case QF_SAT:
     /* no extra symbols needed */
     break;
+  case SAT:
+    addTheory(THEORY_QUANTIFIERS);
+    break;
 
   case QF_UFIDL:
   case QF_UFLIA:
