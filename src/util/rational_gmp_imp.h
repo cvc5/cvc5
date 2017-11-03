@@ -171,9 +171,9 @@ public:
   /**
    * Returns a copy of d_value to enable public access of GMP data.
    */
-  mpq_class get_mpq_copy()
+  mpq_class getValue()
   {
-    return mpq_class(d_value.get_mpq_t());
+    return d_value;
   }
 
   /**

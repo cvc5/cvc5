@@ -81,9 +81,9 @@ public:
   /**
    * Returns a copy of d_value to enable public access of GMP data.
    */
-  mpz_class get_mpz_copy()
+  mpz_class getValue()
   {
-    return mpz_class(d_value.get_mpz_t());
+    return d_value;
   }
 
   Integer& operator=(const Integer& x){
