@@ -383,8 +383,8 @@ CheckSynthCommand::CheckSynthCommand() throw() :
   d_expr() {
 }
 
-CheckSynthCommand::CheckSynthCommand(const Expr& expr, bool inUnsatCore) throw() :
-  d_expr(expr), d_inUnsatCore(inUnsatCore) {
+CheckSynthCommand::CheckSynthCommand(const Expr& expr) throw() :
+  d_expr(expr) {
 }
 
 Expr CheckSynthCommand::getExpr() const throw() {
@@ -440,13 +440,13 @@ void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const
 }
 
 Command* CheckSynthCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  CheckSynthCommand* c = new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap), d_inUnsatCore);
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap));
   c->d_result = d_result;
   return c;
 }
 
 Command* CheckSynthCommand::clone() const {
-  CheckSynthCommand* c = new CheckSynthCommand(d_expr, d_inUnsatCore);
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr);
   c->d_result = d_result;
   return c;
 }

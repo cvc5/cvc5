@@ -531,7 +531,7 @@ public:
 class CVC4_PUBLIC CheckSynthCommand : public Command {
 public:
   CheckSynthCommand() throw();
-  CheckSynthCommand(const Expr& expr, bool inUnsatCore = true) throw();
+  CheckSynthCommand(const Expr& expr) throw();
   ~CheckSynthCommand() throw() {}
   Expr getExpr() const throw();
   void invoke(SmtEngine* smtEngine);
@@ -546,8 +546,6 @@ public:
   Expr d_expr;
   /** result of the check-synth call */
   Result d_result;
-  /** whether d_expr is in the unsat core */
-  bool d_inUnsatCore;
   /** string stream that stores the output of the solution */
   std::stringstream d_solution;
 };/* class CheckSynthCommand */
