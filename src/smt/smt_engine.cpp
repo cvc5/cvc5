@@ -1294,6 +1294,13 @@ void SmtEngine::setDefaults() {
     options::bitvectorDivByZeroConst.set(options::inputLanguage()
                                          == language::input::LANG_SMTLIB_V2_6);
   }
+  if (options::inputLanguage() == language::input::LANG_SYGUS)
+  {
+    if (!options::ceGuidedInst.wasSetByUser())
+    {
+      options::ceGuidedInst.set(true);
+    }
+  }
 
   if(options::forceLogicString.wasSetByUser()) {
     d_logic = LogicInfo(options::forceLogicString());
