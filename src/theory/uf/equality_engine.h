@@ -21,6 +21,7 @@
 
 #include <deque>
 #include <queue>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -150,7 +151,8 @@ public:
   virtual ~PathReconstructionNotify() {}
 
   virtual void notify(unsigned reasonType, Node reason, Node a, Node b,
-                      std::vector<TNode>& equalities, EqProof* proof) const = 0;
+                      std::vector<TNode>& equalities,
+                      EqProof* proof) const = 0;
 };
 
 /**
@@ -506,7 +508,7 @@ private:
    * imply t1 = t2. Returns TNodes as the assertion equalities should be hashed somewhere
    * else.
    */
-  void getExplanation(EqualityEdgeId t1Id, EqualityNodeId t2Id, std::vector<TNode>& equalities, EqProof * eqp) const;
+  void getExplanation(EqualityEdgeId t1Id, EqualityNodeId t2Id, std::vector<TNode>& equalities, EqProof* eqp) const;
 
   /**
    * Print the equality graph.
@@ -794,14 +796,17 @@ public:
    * Returns the reasons (added when asserting) that imply it
    * in the assertions vector.
    */
-  void explainEquality(TNode t1, TNode t2, bool polarity, std::vector<TNode>& assertions, EqProof * eqp = NULL) const;
+  void explainEquality(TNode t1, TNode t2, bool polarity,
+                       std::vector<TNode>& assertions,
+                       EqProof* eqp = nullptr) const;
 
   /**
    * Get an explanation of the predicate being true or false.
    * Returns the reasons (added when asserting) that imply imply it
    * in the assertions vector.
    */
-  void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions, EqProof * eqp = NULL) const;
+  void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions,
+                        EqProof* eqp = nullptr) const;
 
   /**
    * Add term to the set of trigger terms with a corresponding tag. The notify class will get
@@ -925,8 +930,9 @@ public:
   EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY){}
   unsigned d_id;
   Node d_node;
-  std::vector< EqProof * > d_children;
-  void debug_print(const char * c, unsigned tb = 0, PrettyPrinter* prettyPrinter = NULL) const;
+  std::vector<std::shared_ptr<EqProof>> d_children;
+  void debug_print(const char* c, unsigned tb = 0,
+                   PrettyPrinter* prettyPrinter = nullptr) const;
 };/* class EqProof */
 
 } // Namespace eq

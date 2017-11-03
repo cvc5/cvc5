@@ -262,7 +262,7 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
       registerSizeTerm( n, lemmas );
       if( d_register_st[n] ){
         d_term_to_anchor[n] = n;
-        d_term_to_anchor_conj[n] = d_tds->getConjectureFor(n);
+        d_term_to_anchor_conj[n] = d_tds->getConjectureForEnumerator(n);
         // this assertion fails if we have a sygus term in the search that is unmeasured
         Assert(d_term_to_anchor_conj[n] != NULL);
         d = 0;
@@ -361,29 +361,54 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   Trace("sygus-sb-fair-debug") << "Tester " << exp << " is for depth " << d << " term in search size " << ssz << std::endl;
   //Assert( d<=ssz );
   if( options::sygusSymBreakLazy() ){
+    // dynamic symmetry breaking
     addSymBreakLemmasFor( ntn, n, d, lemmas );
   }
-     
-  // process simple symmetry breaking
+
   unsigned max_depth = ssz>=d ? ssz-d : 0;
   unsigned min_depth = d_simple_proc[exp];
   if( min_depth<=max_depth ){
     TNode x = getFreeVar( ntn );
-    Node rlv = getRelevancyCondition( n );
-    for( unsigned d=0; d<=max_depth; d++ ){
-      Node simple_sb_pred = getSimpleSymBreakPred( ntn, tindex, d );
-      if( !simple_sb_pred.isNull() ){
-        simple_sb_pred = simple_sb_pred.substitute( x, n );
-        if( !rlv.isNull() ){
-          simple_sb_pred = NodeManager::currentNM()->mkNode( kind::OR, rlv.negate(), simple_sb_pred ); 
-        }
-        lemmas.push_back( simple_sb_pred ); 
+    std::vector<Node> sb_lemmas;
+    for (unsigned ds = 0; ds <= max_depth; ds++)
+    {
+      // static conjecture-independent symmetry breaking
+      Node ipred = getSimpleSymBreakPred(ntn, tindex, ds);
+      if (!ipred.isNull())
+      {
+        sb_lemmas.push_back(ipred);
       }
+      // static conjecture-dependent symmetry breaking
+      std::map<Node, quantifiers::CegConjecture*>::iterator itc =
+          d_term_to_anchor_conj.find(n);
+      if (itc != d_term_to_anchor_conj.end())
+      {
+        quantifiers::CegConjecture* conj = itc->second;
+        Assert(conj != NULL);
+        Node dpred = conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
+        if (!dpred.isNull())
+        {
+          sb_lemmas.push_back(dpred);
+        }
+      }
+    }
+
+    // add the above symmetry breaking predicates to lemmas
+    Node rlv = getRelevancyCondition(n);
+    for (unsigned i = 0; i < sb_lemmas.size(); i++)
+    {
+      Node pred = sb_lemmas[i].substitute(x, n);
+      if (!rlv.isNull())
+      {
+        pred = NodeManager::currentNM()->mkNode(kind::OR, rlv.negate(), pred);
+      }
+      lemmas.push_back(pred);
     }
   }
   d_simple_proc[exp] = max_depth + 1;
-  
-  // add back testers for the children if they exist
+
+  // now activate the children those testers were previously asserted in this
+  // context and are awaiting activation, if they exist.
   if( options::sygusSymBreakLazy() ){
     for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
       Node sel = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex].getSelectorInternal( ntn.toType(), j ) ), n );
@@ -1054,9 +1079,10 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
     if( e.getType().isDatatype() ){
       const Datatype& dt = ((DatatypeType)(e.getType()).toType()).getDatatype();
       if( dt.isSygus() ){
-        if (d_tds->isMeasuredTerm(e)) {
+        if (d_tds->isEnumerator(e))
+        {
           d_register_st[e] = true;
-          Node ag = d_tds->getActiveGuardForMeasureTerm( e );
+          Node ag = d_tds->getActiveGuardForEnumerator(e);
           if( !ag.isNull() ){
             d_anchor_to_active_guard[e] = ag;
           }
@@ -1157,10 +1183,11 @@ unsigned SygusSymBreakNew::getSearchSizeForAnchor( Node a ) {
   Trace("sygus-sb-debug2") << "get search size for anchor : " << a << std::endl;
   std::map< Node, Node >::iterator it = d_anchor_to_measure_term.find( a );
   Assert( it!=d_anchor_to_measure_term.end() );
-  return getSearchSizeForMeasureTerm( it->second );
+  return getSearchSizeForMeasureTerm(it->second);
 }
 
-unsigned SygusSymBreakNew::getSearchSizeForMeasureTerm( Node m ) {
+unsigned SygusSymBreakNew::getSearchSizeForMeasureTerm(Node m)
+{
   Trace("sygus-sb-debug2") << "get search size for measure : " << m << std::endl;
   std::map< Node, SearchSizeInfo * >::iterator its = d_szinfo.find( m );
   Assert( its!=d_szinfo.end() );
@@ -1243,7 +1270,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   }
   //register any measured terms that we haven't encountered yet (should only be invoked on first call to check
   std::vector< Node > mts;
-  d_tds->getMeasuredTerms( mts );
+  d_tds->getEnumerators(mts);
   for( unsigned i=0; i<mts.size(); i++ ){
     registerSizeTerm( mts[i], lemmas );
   }

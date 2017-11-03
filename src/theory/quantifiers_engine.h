@@ -50,12 +50,17 @@ public:
 
 namespace quantifiers {
   //TODO: organize this more/review this, github issue #1163
+  //TODO: include these instead of doing forward declarations? #1307
   //utilities
   class TermDb;
   class TermDbSygus;
   class TermUtil;
+  class Skolemize;
+  class TermEnumeration;
   class FirstOrderModel;
   class QuantAttributes;
+  class QuantEPR;
+  class QuantRelevance;
   class RelevantDomain;
   class BvInverter;
   class InstPropagator;
@@ -74,7 +79,7 @@ namespace quantifiers {
   class AlphaEquivalence;
   class FunDefEngine;
   class QuantEqualityEngine;
-  class FullSaturation;
+  class InstStrategyEnum;
   class InstStrategyCbqi;
   class InstStrategyCegqi;
   class QuantDSplit;
@@ -113,7 +118,7 @@ private:
   /** equality inference class */
   quantifiers::EqualityInference* d_eq_inference;
   /** for computing relevance of quantifiers */
-  QuantRelevance * d_quant_rel;
+  quantifiers::QuantRelevance* d_quant_rel;
   /** relevant domain */
   quantifiers::RelevantDomain* d_rel_dom;
   /** inversion utility for BV instantiation */
@@ -123,8 +128,21 @@ private:
   /** model builder */
   quantifiers::QModelBuilder* d_builder;
   /** utility for effectively propositional logic */
-  QuantEPR * d_qepr;
-private:
+  quantifiers::QuantEPR* d_qepr;
+  /** term database */
+  quantifiers::TermDb* d_term_db;
+  /** sygus term database */
+  quantifiers::TermDbSygus* d_sygus_tdb;
+  /** term utilities */
+  quantifiers::TermUtil* d_term_util;
+  /** quantifiers attributes */
+  std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
+  /** skolemize utility */
+  std::unique_ptr<quantifiers::Skolemize> d_skolemize;
+  /** term enumeration utility */
+  std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
+
+ private:
   /** instantiation engine */
   quantifiers::InstantiationEngine* d_inst_engine;
   /** model engine */
@@ -146,7 +164,7 @@ private:
   /** quantifiers equality engine */
   quantifiers::QuantEqualityEngine * d_uee;
   /** full saturation */
-  quantifiers::FullSaturation * d_fs;
+  quantifiers::InstStrategyEnum* d_fs;
   /** counterexample-based quantifier instantiation */
   quantifiers::InstStrategyCbqi * d_i_cbqi;
   /** quantifiers splitting */
@@ -155,7 +173,8 @@ private:
   quantifiers::QuantAntiSkolem * d_anti_skolem;
   /** quantifiers instantiation propagtor */
   quantifiers::InstPropagator * d_inst_prop;
-public: //effort levels
+
+ public:  // effort levels (TODO : make an enum and use everywhere #1293)
   enum {
     QEFFORT_CONFLICT,
     QEFFORT_STANDARD,
@@ -192,16 +211,6 @@ private:
   std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;
   /** recorded instantiations */
   std::vector< std::pair< Node, std::vector< Node > > > d_recorded_inst;
-  /** quantifiers that have been skolemized */
-  BoolMap d_skolemized;
-  /** term database */
-  quantifiers::TermDb* d_term_db;
-  /** term database */
-  quantifiers::TermDbSygus* d_sygus_tdb;
-  /** term utilities */
-  quantifiers::TermUtil* d_term_util;
-  /** quantifiers attributes */
-  std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
   /** all triggers will be stored in this trie */
   inst::TriggerTrie* d_tr_trie;
   /** extended model object */
@@ -246,12 +255,12 @@ public:
   /** get the BV inverter utility */
   quantifiers::BvInverter * getBvInverter() { return d_bv_invert; }
   /** get quantifier relevance */
-  QuantRelevance* getQuantifierRelevance() { return d_quant_rel; }
+  quantifiers::QuantRelevance* getQuantifierRelevance() { return d_quant_rel; }
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() { return d_builder; }
   /** get utility for EPR */
-  QuantEPR* getQuantEPR() { return d_qepr; }
-public:  //modules
+  quantifiers::QuantEPR* getQuantEPR() { return d_qepr; }
+ public:  // modules
   /** get instantiation engine */
   quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }
   /** get model engine */
@@ -273,7 +282,7 @@ public:  //modules
   /** quantifiers equality engine */
   quantifiers::QuantEqualityEngine * getQuantEqualityEngine() { return d_uee; }
   /** get full saturation */
-  quantifiers::FullSaturation * getFullSaturation() { return d_fs; }
+  quantifiers::InstStrategyEnum* getInstStrategyEnum() { return d_fs; }
   /** get inst strategy cbqi */
   quantifiers::InstStrategyCbqi * getInstStrategyCbqi() { return d_i_cbqi; }
   /** get quantifiers splitting */
@@ -383,6 +392,13 @@ public:
   quantifiers::QuantAttributes* getQuantAttributes() {
     return d_quant_attr.get();
   }
+  /** get skolemize utility */
+  quantifiers::Skolemize* getSkolemize() { return d_skolemize.get(); }
+  /** get term enumeration utility */
+  quantifiers::TermEnumeration* getTermEnumeration()
+  {
+    return d_term_enum.get();
+  }
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
   /** add term to database */
@@ -400,7 +416,19 @@ public:
   void debugPrintEqualityEngine( const char * c );
   /** get internal representative */
   Node getInternalRepresentative( Node a, Node q, int index );
-public:
+  /** get term for type
+   *
+   * This returns an arbitrary term for type tn.
+   * This term is chosen heuristically to be the best
+   * term for instantiation. Currently, this
+   * heuristic enumerates the first term of the
+   * type if the type is closed enumerable, otherwise
+   * an existing ground term from the term database if
+   * one exists, or otherwise a fresh variable.
+   */
+  Node getTermForType(TypeNode tn);
+
+ public:
   /** print instantiations */
   void printInstantiations( std::ostream& out );
   /** print solution for synthesis conjectures */

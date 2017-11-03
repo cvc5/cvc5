@@ -153,7 +153,7 @@ bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
 }
 
 bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
-  Node icn = d_qe->getTermUtil()->getInstConstantNode( n, f );
+  Node icn = d_qe->getTermUtil()->substituteBoundVariablesToInstConstants(n, f);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector< Node > var;
   d_qe->getTermUtil()->getVarContainsNode( f, icn, var );
