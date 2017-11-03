@@ -1912,32 +1912,34 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 void TermDbSygus::registerEvalTerm( Node n ) {
   if( options::sygusDirectEval() ){
     if( n.getKind()==APPLY_UF && !n.getType().isBoolean() ){
-      Trace("sygus-eager") << "TermDbSygus::eager: Register eval term : " << n
-                           << std::endl;
       TypeNode tn = n[0].getType();
       if( tn.isDatatype() ){
         const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
         if( dt.isSygus() ){
           Node f = n.getOperator();
-          Trace("sygus-eager") << "...the evaluation function is : " << f << std::endl;
           if( n[0].getKind()!=APPLY_CONSTRUCTOR ){
-            d_evals[n[0]].push_back( n );
-            TypeNode tn = n[0].getType();
-            Assert( tn.isDatatype() );
-            const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-            Node var_list = Node::fromExpr( dt.getSygusVarList() );
-            Assert( dt.isSygus() );
-            d_eval_args[n[0]].push_back( std::vector< Node >() );
-            bool isConst = true;
-            for( unsigned j=1; j<n.getNumChildren(); j++ ){
-              d_eval_args[n[0]].back().push_back( n[j] );
-              if( !n[j].isConst() ){
-                isConst = false;
+            if( d_eval_processed.find(n)==d_eval_processed.end() ){
+              Trace("sygus-eager") << "TermDbSygus::eager: Register eval term : " << n
+                                   << std::endl;
+              d_eval_processed.insert(n);
+              d_evals[n[0]].push_back( n );
+              TypeNode tn = n[0].getType();
+              Assert( tn.isDatatype() );
+              const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+              Node var_list = Node::fromExpr( dt.getSygusVarList() );
+              Assert( dt.isSygus() );
+              d_eval_args[n[0]].push_back( std::vector< Node >() );
+              bool isConst = true;
+              for( unsigned j=1; j<n.getNumChildren(); j++ ){
+                d_eval_args[n[0]].back().push_back( n[j] );
+                if( !n[j].isConst() ){
+                  isConst = false;
+                }
               }
+              d_eval_args_const[n[0]].push_back( isConst );
+              Node a = getAnchor( n[0] );
+              d_subterms[a][n[0]] = true;
             }
-            d_eval_args_const[n[0]].push_back( isConst );
-            Node a = getAnchor( n[0] );
-            d_subterms[a][n[0]] = true;
           }
         }
       }    
