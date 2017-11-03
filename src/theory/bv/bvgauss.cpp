@@ -509,9 +509,12 @@ BVGaussElim::gaussElimRewriteForUrem (
 
   if (lhs.size() > lhs[0].size()) return BVGaussElim::Result::NONE;
 
+  Trace("bv-gauss-elim") << "Applying Gaussian Elimination..." << endl;
   Result ret = gaussElim (iprime, rhs, lhs, resrhs, reslhs);
+
   if (ret != BVGaussElim::Result::NONE)
   {
+    Trace("bv-gauss-elim") << "Found result:" << endl;
     vector< Node > vvars;
     for (auto p : vars) vvars.push_back (p.first);
     Assert (nvars == vvars.size());
@@ -527,6 +530,7 @@ BVGaussElim::gaussElimRewriteForUrem (
       {
         res[vvars[i]] = nm->mkConst< BitVector > (
             BitVector (utils::getSize (vvars[i]), resrhs[i]));
+        Trace("bv-gauss-elim") << vvars[i] << " = " << res[vvars[i]] << endl;
       }
     }
     else
@@ -562,7 +566,6 @@ BVGaussElim::gaussElimRewriteForUrem (
           //      utils::mkConcat (zerobw, vvars[i]), bv));
           stack.push (mult);
         }
-
 
         if (stack.empty())
         {
@@ -607,6 +610,8 @@ BVGaussElim::gaussElimRewriteForUrem (
 //              0);
           }
         }
+        Trace("bv-gauss-elim") << vvars[pcol] << " = " << res[vvars[pcol]]
+                               << endl;
       }
     }
   }
