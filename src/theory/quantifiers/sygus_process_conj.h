@@ -172,17 +172,18 @@ struct CegConjectureProcessFun
    */
   std::unordered_map<Node, unsigned, NodeHashFunction> d_arg_var_num;
   /** check match
-   * This function returns true iff
+   * This function returns true iff we can infer:
    *   cn * { x -> n_arg_map[d_arg_var_num[x]] | x in d_arg_vars } = n
-   * In other words, cn and n are matchable
+   * In other words, cn and n are equivalent
    * via the substitution mapping argument variables to terms
-   * specified by n_arg_map.
+   * specified by n_arg_map. The rewriter is used for inferring
+   * this equivalence.
    *
    * For example, if n_arg_map contains { 1 -> t, 2 -> s }, then
    *   checkMatch( x1+x2, t+s, n_arg_map ) returns true,
    *   checkMatch( x1+1, t+1, n_arg_map ) returns true,
    *   checkMatch( 0, 0, n_arg_map ) returns true,
-   *   checkMatch( x1+1, 1+t, n_arg_map ) returns false.
+   *   checkMatch( x1+1, s, n_arg_map ) returns false.
    */
   bool checkMatch(Node cn,
                   Node n,
@@ -210,6 +211,11 @@ struct CegConjectureProcessFun
    *     returns x1+x2+q
    *   inferDefinition( t+r, term_to_arg_carry, free_vars )
    *     returns null
+   * 
+   * Notice that multiple definitions are possible, e.g. above:
+   *  inferDefinition( s, term_to_arg_carry, free_vars )
+   *    may return either s or x2     
+   * TODO (#1210) : try multiple definitions?
    */
   Node inferDefinition(
       Node n,
