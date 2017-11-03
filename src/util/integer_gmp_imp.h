@@ -81,7 +81,7 @@ public:
   /**
    * Returns a copy of d_value to enable public access of GMP data.
    */
-  mpz_class getValue()
+  mpz_class getValue() const
   {
     return d_value;
   }

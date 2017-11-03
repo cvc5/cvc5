@@ -171,7 +171,7 @@ public:
   /**
    * Returns a copy of d_value to enable public access of GMP data.
    */
-  mpq_class getValue()
+  mpq_class getValue() const
   {
     return d_value;
   }

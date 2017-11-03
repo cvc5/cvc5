@@ -179,7 +179,7 @@ public:
   /**
    * Returns a copy of d_value to enable public access of CLN data.
    */
-  cln::cl_RA getValue()
+  cln::cl_RA getValue() const
   {
     return d_value;
   }

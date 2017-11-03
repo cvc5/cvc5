@@ -105,7 +105,7 @@ public:
   /**
    * Returns a copy of d_value to enable public access of CLN data.
    */
-  cln::cl_I getValue()
+  cln::cl_I getValue() const
   {
     return d_value;
   }
