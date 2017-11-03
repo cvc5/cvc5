@@ -77,7 +77,7 @@ namespace quantifiers {
  * (in Ci).
  *
  *
- * others?
+ * TODO (#1210) others, generalize (2)?
  *
  */
 
@@ -177,6 +177,10 @@ struct CegConjectureProcessFun
    *   checkMatch( x1+1, t+1, n_arg_map ) returns true,
    *   checkMatch( 0, 0, n_arg_map ) returns true,
    *   checkMatch( x1+1, 1+t, n_arg_map ) returns false.
+   * 
+   * TODO (#1210) 
+   * can improve this for arithmetic via rewriting:
+   *   (cn*sigma - n ) ---> 0
    */
   bool checkMatch(Node cn,
                   Node n,

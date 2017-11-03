@@ -40,7 +40,9 @@ void CegConjectureProcessFun::init(Node f)
   for (unsigned j = 0; j < argTypes.size(); j++)
   {
     TypeNode atn = TypeNode::fromType(argTypes[j]);
-    Node k = NodeManager::currentNM()->mkBoundVar("a", atn);
+    std::stringstream ss;
+    ss << "a" << j;
+    Node k = NodeManager::currentNM()->mkBoundVar(ss.str(), atn);
     d_arg_vars.push_back(k);
     d_arg_var_num[k] = j;
     d_arg_props.push_back(CegConjectureProcessArg());
@@ -397,7 +399,7 @@ void CegConjectureProcessFun::processTerms(
           Trace("sygus-process-arg-deps") << "    ...processed arg #" << a;
           Trace("sygus-process-arg-deps") << " (consistent definition " << n[a];
           Trace("sygus-process-arg-deps")
-              << "with " << d_arg_props[a].d_template << ")." << std::endl;
+              << " with " << d_arg_props[a].d_template << ")." << std::endl;
         }
       }
       else
@@ -515,6 +517,8 @@ void CegConjectureProcessFun::processTerms(
           Node null_def;
           unsigned rid = assignRelevantDef(null_def, it->second);
           term_to_arg_carry[curr] = rid;
+          Trace("sygus-process-arg-deps") << "    carry " << curr
+                                          << " by argument #" << rid << std::endl;
           term_to_args.erase(curr);
           success = true;
         }
