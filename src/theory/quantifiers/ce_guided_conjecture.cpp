@@ -88,7 +88,7 @@ void CegConjecture::assign( Node q ) {
   }
 
   // post-simplify the quantified formula based on the process utility
-  d_simp_quant = d_ceg_proc->postSimplify(d_quant);
+  d_simp_quant = d_ceg_proc->postSimplify(d_simp_quant);
   
   // finished simplifying the quantified formula at this point
   
