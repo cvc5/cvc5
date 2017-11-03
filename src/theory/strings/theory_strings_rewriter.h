@@ -136,13 +136,12 @@ private:
   *
   * For example:
   *
-  * componentContains( { y, z, "abc", x, "def" }, { "c", x, "de" }, {}, true, 1
-  * )
+  * componentContains({ y, z, "abc", x, "def" }, { "c", x, "de" }, {}, true, 1)
   *   returns 2,
   *   n1 is updated to { y, z, "abc", x, "de" },
   *   ne is updated to { "f" }
   *
-  * componentContains( { y, "abc", x, "def" }, { "c", x, "de" }, {}, true, -1 )
+  * componentContains({ y, "abc", x, "def" }, { "c", x, "de" }, {}, true, -1)
   *   returns 1,
   *   n1 is updated to { "c", x, "def" },
   *   nb is updated to { y, "ab" }
@@ -170,15 +169,15 @@ private:
    *
    * For example:
    *
-   * componentContainsBase( "ab", "cabe", n1rb, n1re, 1, false )
+   * componentContainsBase("cabe", "ab", n1rb, n1re, 1, false)
    *   returns false.
    *
-   * componentContainsBase( "ab", "cabe", n1rb, n1re, 0, true )
+   * componentContainsBase("cabe", "ab", n1rb, n1re, 0, true)
    *   returns true,
    *   n1rb is set to "c",
    *   n1re is set to "e".
    *
-   * componentContainsBase( y, str.substr(y,0,5), n1rb, n1re, -1, true )
+   * componentContainsBase(y, str.substr(y,0,5), n1rb, n1re, -1, true)
    *   returns true,
    *   n1re is set to str.substr(y,5,str.len(y)).
    */
@@ -202,11 +201,11 @@ private:
   * It returns true if n1 is modified.
   *
   * For example:
-  * stripConstantEndpoints( { "ab", x, "de" }, { "c" }, {}, {}, 1 ) 
+  * stripConstantEndpoints({ "ab", x, "de" }, { "c" }, {}, {}, 1) 
   *   returns true,
   *   n1 is updated to { x, "de" }
   *   nb is updated to { "ab" }
-  * stripConstantEndpoints( { "ab", x, "de" }, { "bd" }, {}, {}, 0 ) 
+  * stripConstantEndpoints({ "ab", x, "de" }, { "bd" }, {}, {}, 0) 
   *   returns true,
   *   n1 is updated to { "b", x, "d" }
   *   nb is updated to { "a" }
