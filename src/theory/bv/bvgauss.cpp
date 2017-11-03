@@ -14,6 +14,7 @@
  ** Simplify a given equation system modulo a (prime) number via Gaussian
  ** Elimination if possible.
  **/
+
 #include "theory/bv/bvgauss.h"
 
 #include <iostream>
@@ -379,7 +380,13 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
       Assert(is_bv_const(eq[0]));
       eqrhs = eq[0];
     }
-    if (getMinBwExpr(urem[0]) == 0) return BVGaussElim::Result::NONE;
+    if (getMinBwExpr(urem[0]) == 0)
+    {
+      Trace("bv-gauss-elim")
+         << "Minimum required bit-width exceeds given bit-width, "
+            "will not apply Gaussian Elimination." << endl;
+      return BVGaussElim::Result::NONE;
+    }
     rhs.push_back(get_bv_const(eqrhs));
 
     Assert(is_bv_const(urem[1]));
