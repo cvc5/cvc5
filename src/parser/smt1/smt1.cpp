@@ -53,6 +53,7 @@ std::unordered_map<std::string, Smt1::Logic> Smt1::newLogicMap() {
   logicMap["QF_UFNIRA"] = QF_UFNIRA;
   logicMap["QF_AUFLIA"] = QF_AUFLIA;
   logicMap["QF_AUFLIRA"] = QF_AUFLIRA;
+  logicMap["SAT"] = SAT;
   logicMap["UFNIA"] = UFNIA;
   logicMap["UFNIRA"] = UFNIRA;
   logicMap["UFLRA"] = UFLRA;
