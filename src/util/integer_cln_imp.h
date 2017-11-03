@@ -103,7 +103,7 @@ public:
   ~Integer() {}
 
   /**
-   * Returns a copy of d_value to enable public access of GMP data.
+   * Returns a copy of d_value to enable public access of CLN data.
    */
   cln::cl_I getValue()
   {
