@@ -28,7 +28,7 @@ TESTS =	\
 	three.sy \
 	nia-max-square.sy \
 	MPwL_d1s3.sy \
-	process_arg_invariance.sy
+	process-arg-invariance.sy
 
 EXTRA_DIST = $(TESTS)
 
