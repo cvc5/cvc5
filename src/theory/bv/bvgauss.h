@@ -1,3 +1,20 @@
+/*********************                                                        */
+/*! \file bvgauss.h
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Aina Niemetz
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Gaussian Elimination preprocessing pass.
+ **
+ ** Simplify a given equation system modulo a (prime) number via Gaussian
+ ** Elimination if possible.
+ **/
+
 #include "cvc4_private.h"
 
 #ifndef __CVC4__THEORY__BV__BV_GAUSS_ELIM_H
@@ -16,30 +33,102 @@ namespace bv {
 
 class BVGaussElim
 {
-public:
-  static void gaussElimRewrite (std::vector<Node> & assertionsToPreprocess);
+ public:
+  /**
+   * Apply Gaussian Elimination on (possibly multiple) set(s) of equations
+   * modulo some (prime) number given as bit-vector equations.
+   *
+   * Note that these sets of equations do not have to be modulo some prime
+   * but can be modulo any arbitrary number. However, GE is guaranteed to
+   * succeed modulo a prime number, which is not necessarily the case if a
+   * given set of equations is modulo a non-prime number.
+   *
+   * Returns UNIQUE and PARTIAL if GE was successful, and NONE, otherwise. 
+   */
+  static void gaussElimRewrite(std::vector<Node>& assertionsToPreprocess);
 
-private:
-  enum class Result { UNIQUE, PARTIAL, NONE };
+ private:
+  /**
+   *  Represents the result of Gaussian Elimination where the solution
+   *  of the given equation system is
+   *
+   *   UNIQUE  ... determined for all unknowns, e.g., x = 4
+   *   PARTIAL ... e.g., x = 4 - 2z
+   *   NONE    ... no solution
+   *
+   *   Given a matrix A representing an equation system, the resulting
+   *   matrix B after applying GE represents, e.g.:
+   *
+   *   B = 1 0 0 2 <-    UNIQUE
+   *       0 1 0 3 <-
+   *       0 0 1 1 <-
+   *
+   *   B = 1 0 2 4 <-    PARTIAL
+   *       0 1 3 2 <-
+   *       0 0 1 1
+   *
+   *   B = 1 0 0 1       NONE
+   *       0 1 1 2
+   *       0 0 0 2 <-
+   */
+  enum class Result
+  {
+    UNIQUE,
+    PARTIAL,
+    NONE
+  };
 
-  static unsigned getMinBwExpr(Node var);
+  /**
+   * Determines if an overflow may occur in given 'expr'.
+   * 
+   * Returns 0 if an overflow may occur, and the minimum required
+   * bit-width such that no overflow occurs, otherwise.
+   *
+   * Note that it would suffice for this function to be Boolean.
+   * However, it is handy to determine the minimum required bit-width for
+   * debugging purposes.
+   */
+  static unsigned getMinBwExpr(Node expr);
 
-  static Result gaussElimRewriteForUrem (
-      std::vector< Node > & equations,
-      std::unordered_map< Node, Node, NodeHashFunction > & res);
+  /**
+   * Apply Gaussian Elimination on a set of equations modulo some (prime)
+   * number given as bit-vector equations.
+   *
+   * IMPORTANT: Applying GE modulo some number (rather than modulo 2^bw) 
+   * on a set of bit-vector equations is only sound if this set of equations
+   * has a solution that does not produce overflows. Consequently, we only
+   * apply GE if the given bit-width guarantees that no overflows can occur
+   * in the given set of equations.
+   *
+   * Note that the given set of equations does not have to be modulo a prime
+   * but can be modulo any arbitrary number. However, if it is indeed modulo
+   * prime, GE is guaranteed to succeed, which is not the case, otherwise.
+   *
+   * Returns UNIQUE and PARTIAL if GE was successful, and NONE, otherwise. 
+   */
+  static Result gaussElimRewriteForUrem(
+      std::vector<Node>& equations,
+      std::unordered_map<Node, Node, NodeHashFunction>& res);
 
-  static Result gaussElim (
-      Integer prime,
-      std::vector< Integer > & rhs,
-      std::vector< std::vector< Integer >> & lhs,
-      std::vector< Integer > & resrhs,
-      std::vector< std::vector< Integer >> & reslhs);
+  /**
+   * Apply Gaussian Elimination modulo a (prime) number.
+   * The given equation system is represented as a matrix of Integers.
+   *
+   * Note that given 'prime' does not have to be prime but can be any
+   * arbitrary number. However, if 'prime' is indeed prime, GE is guaranteed
+   * to succeed, which is not the case, otherwise.
+   *
+   * Returns UNIQUE and PARTIAL if GE was successful, and NONE, otherwise. 
+   */
+  static Result gaussElim(Integer prime,
+                          std::vector<Integer>& rhs,
+                          std::vector<std::vector<Integer>>& lhs,
+                          std::vector<Integer>& resrhs,
+                          std::vector<std::vector<Integer>>& reslhs);
 };
 
-}/* CVC4::theory::bv namespace */
-}/* CVC4::theory namespace */
-
-}/* CVC4 namespace */
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
 
 #endif
-
