@@ -853,15 +853,22 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
   if( !d_presolve || !options::incrementalSolving() ){
     std::set< Node > added;
     d_term_db->addTerm(n, added, withinQuant, withinInstClosure);
-    
-    if( !withinQuant ){
-      if( d_sygus_tdb ){
-        d_sygus_tdb->registerEvalTerm( n );
+
+    if (!withinQuant)
+    {
+      if (d_sygus_tdb)
+      {
+        d_sygus_tdb->registerEvalTerm(n);
       }
-    
-      //added contains also the Node that just have been asserted in this branch
-      if( d_quant_rel ){
-        for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){
+
+      // added contains also the Node that just have been asserted in this
+      // branch
+      if (d_quant_rel)
+      {
+        for (std::set<Node>::iterator i = added.begin(), end = added.end();
+             i != end;
+             i++)
+        {
           d_quant_rel->setRelevance( i->getOperator(), 0 );
         }
       }

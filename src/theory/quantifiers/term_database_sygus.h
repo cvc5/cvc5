@@ -246,7 +246,7 @@ public: // for symmetry breaking
   // TODO (as part of #1235) move some of these functions to sygus_explain.h
  private:
   /** the set of evaluation terms we have already processed */
-  std::unordered_set< Node, NodeHashFunction > d_eval_processed;
+  std::unordered_set<Node, NodeHashFunction> d_eval_processed;
   std::map< Node, std::map< Node, bool > > d_subterms;
   std::map< Node, std::vector< Node > > d_evals;
   std::map< Node, std::vector< std::vector< Node > > > d_eval_args;
