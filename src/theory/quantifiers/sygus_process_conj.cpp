@@ -52,61 +52,18 @@ void CegConjectureProcessFun::init(Node f)
 bool CegConjectureProcessFun::checkMatch(
     Node cn, Node n, std::unordered_map<unsigned, Node>& n_arg_map)
 {
-  std::unordered_map<TNode, TNode, TNodeHashFunction> visited;
-  std::unordered_map<TNode, TNode, TNodeHashFunction>::iterator it;
-  std::stack<TNode> visit[2];
-  TNode cur[2];
-  visit[0].push(cn);
-  visit[1].push(n);
-  do
-  {
-    for (unsigned r = 0; r < 2; r++)
-    {
-      cur[r] = visit[r].top();
-      visit[r].pop();
-    }
-    it = visited.find(cur[0]);
-
-    if (it == visited.end())
-    {
-      visited[cur[0]] = cur[1];
-      if (cur[0] != cur[1])
-      {
-        unsigned arg_index = 0;
-        if (isArgVar(cur[0], arg_index))
-        {
-          // must map to the correct term
-          std::unordered_map<unsigned, Node>::iterator itn =
-              n_arg_map.find(arg_index);
-          if (itn == n_arg_map.end() || itn->second != cur[1])
-          {
-            return false;
-          }
-        }
-        else if (cur[0].hasOperator() && cur[1].hasOperator()
-                 && cur[0].getNumChildren() == cur[1].getNumChildren()
-                 && cur[0].getOperator() == cur[1].getOperator())
-        {
-          for (unsigned r = 0; r < 2; r++)
-          {
-            for (unsigned i = 0; i < cur[r].getNumChildren(); i++)
-            {
-              visit[r].push(cur[r][i]);
-            }
-          }
-        }
-        else
-        {
-          return false;
-        }
-      }
-    }
-    else if (it->second != cur[1])
-    {
-      return false;
-    }
-  } while (!visit[0].empty());
-  return true;
+  std::vector< Node > vars;
+  std::vector< Node > subs;
+  for(std::unordered_map<unsigned, Node>::iterator it = n_arg_map.begin(); it != n_arg_map.end(); ++it ){
+    Assert(it->first<d_arg_vars.size());
+    Assert(it->second.getType().isComparableTo(d_arg_vars[it->first].getType()));
+    vars.push_back(d_arg_vars[it->first]);
+    subs.push_back(it->second);
+  }
+  Node cn_subs = cn.substitute(vars.begin(),vars.end(),subs.begin(),subs.end());
+  cn_subs = Rewriter::rewrite(cn_subs);
+  Assert( Rewriter::rewrite(n)==n );
+  return cn_subs==n;
 }
 
 bool CegConjectureProcessFun::isArgVar(Node n, unsigned& arg_index)
@@ -390,20 +347,9 @@ void CegConjectureProcessFun::processTerms(
           term_to_arg_carry[n[a]] = a;
         }
       }
-      else if (!d_arg_props[a].d_template.isNull())
-      {
-        // argument already has a definition, see if it is maintained
-        if (checkMatch(d_arg_props[a].d_template, n[a], n_arg_map))
-        {
-          processed = true;
-          Trace("sygus-process-arg-deps") << "    ...processed arg #" << a;
-          Trace("sygus-process-arg-deps") << " (consistent definition " << n[a];
-          Trace("sygus-process-arg-deps")
-              << " with " << d_arg_props[a].d_template << ")." << std::endl;
-        }
-      }
       else
       {
+        // first, check if single occurrence variable
         // check if an irrelevant variable
         if (n[a].isVar() && synth_fv.find(n[a]) != synth_fv.end())
         {
@@ -412,10 +358,29 @@ void CegConjectureProcessFun::processTerms(
           // check if a single-occurrence variable
           if (single_occ_variables[n[a]])
           {
+            // if we do not already have a template definition, or the 
+            // template is a single occurrence variable
+            if (d_arg_props[a].d_template.isNull() || d_arg_props[a].d_var_single_occ)
+            {
+              processed = true;
+              Trace("sygus-process-arg-deps") << "    ...processed arg #" << a;
+              Trace("sygus-process-arg-deps") << " (single occurrence variable ";
+              Trace("sygus-process-arg-deps") << n[a] << ")." << std::endl;
+              d_arg_props[a].d_var_single_occ = true;
+              d_arg_props[a].d_template = n[a];
+            }
+          }
+        }
+        if (!processed && !d_arg_props[a].d_template.isNull() && !d_arg_props[a].d_var_single_occ)
+        {
+          // argument already has a definition, see if it is maintained
+          if (checkMatch(d_arg_props[a].d_template,n[a],n_arg_map))
+          {
             processed = true;
             Trace("sygus-process-arg-deps") << "    ...processed arg #" << a;
-            Trace("sygus-process-arg-deps") << " (single occurrence variable ";
-            Trace("sygus-process-arg-deps") << n[a] << ")." << std::endl;
+            Trace("sygus-process-arg-deps") << " (consistent definition " << n[a];
+            Trace("sygus-process-arg-deps")
+                << " with " << d_arg_props[a].d_template << ")." << std::endl;
           }
         }
       }

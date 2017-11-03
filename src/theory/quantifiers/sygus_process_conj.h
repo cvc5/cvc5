@@ -91,12 +91,18 @@ namespace quantifiers {
 class CegConjectureProcessArg
 {
  public:
-  CegConjectureProcessArg() : d_relevant(false) {}
+  CegConjectureProcessArg() : d_var_single_occ(false), d_relevant(false) {}
   /** template definition
    * This is the term s[z] described
    * under "Argument Invariance" above.
    */
   Node d_template;
+  /** single occurrence 
+   * Whether we are trying to show this argument
+   * is irrelevant by "Variable irrelevance"
+   * described above.
+   */
+  bool d_var_single_occ;
   /** whether this argument is relevant
    * An argument is marked as relevant if:
    * (A) it is explicitly marked as relevant
@@ -177,10 +183,6 @@ struct CegConjectureProcessFun
    *   checkMatch( x1+1, t+1, n_arg_map ) returns true,
    *   checkMatch( 0, 0, n_arg_map ) returns true,
    *   checkMatch( x1+1, 1+t, n_arg_map ) returns false.
-   * 
-   * TODO (#1210) 
-   * can improve this for arithmetic via rewriting:
-   *   (cn*sigma - n ) ---> 0
    */
   bool checkMatch(Node cn,
                   Node n,
