@@ -52,18 +52,23 @@ void CegConjectureProcessFun::init(Node f)
 bool CegConjectureProcessFun::checkMatch(
     Node cn, Node n, std::unordered_map<unsigned, Node>& n_arg_map)
 {
-  std::vector< Node > vars;
-  std::vector< Node > subs;
-  for(std::unordered_map<unsigned, Node>::iterator it = n_arg_map.begin(); it != n_arg_map.end(); ++it ){
-    Assert(it->first<d_arg_vars.size());
-    Assert(it->second.getType().isComparableTo(d_arg_vars[it->first].getType()));
+  std::vector<Node> vars;
+  std::vector<Node> subs;
+  for (std::unordered_map<unsigned, Node>::iterator it = n_arg_map.begin();
+       it != n_arg_map.end();
+       ++it)
+  {
+    Assert(it->first < d_arg_vars.size());
+    Assert(
+        it->second.getType().isComparableTo(d_arg_vars[it->first].getType()));
     vars.push_back(d_arg_vars[it->first]);
     subs.push_back(it->second);
   }
-  Node cn_subs = cn.substitute(vars.begin(),vars.end(),subs.begin(),subs.end());
+  Node cn_subs =
+      cn.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
   cn_subs = Rewriter::rewrite(cn_subs);
-  Assert( Rewriter::rewrite(n)==n );
-  return cn_subs==n;
+  Assert(Rewriter::rewrite(n) == n);
+  return cn_subs == n;
 }
 
 bool CegConjectureProcessFun::isArgVar(Node n, unsigned& arg_index)
@@ -358,27 +363,31 @@ void CegConjectureProcessFun::processTerms(
           // check if a single-occurrence variable
           if (single_occ_variables[n[a]])
           {
-            // if we do not already have a template definition, or the 
+            // if we do not already have a template definition, or the
             // template is a single occurrence variable
-            if (d_arg_props[a].d_template.isNull() || d_arg_props[a].d_var_single_occ)
+            if (d_arg_props[a].d_template.isNull()
+                || d_arg_props[a].d_var_single_occ)
             {
               processed = true;
               Trace("sygus-process-arg-deps") << "    ...processed arg #" << a;
-              Trace("sygus-process-arg-deps") << " (single occurrence variable ";
+              Trace("sygus-process-arg-deps")
+                  << " (single occurrence variable ";
               Trace("sygus-process-arg-deps") << n[a] << ")." << std::endl;
               d_arg_props[a].d_var_single_occ = true;
               d_arg_props[a].d_template = n[a];
             }
           }
         }
-        if (!processed && !d_arg_props[a].d_template.isNull() && !d_arg_props[a].d_var_single_occ)
+        if (!processed && !d_arg_props[a].d_template.isNull()
+            && !d_arg_props[a].d_var_single_occ)
         {
           // argument already has a definition, see if it is maintained
-          if (checkMatch(d_arg_props[a].d_template,n[a],n_arg_map))
+          if (checkMatch(d_arg_props[a].d_template, n[a], n_arg_map))
           {
             processed = true;
             Trace("sygus-process-arg-deps") << "    ...processed arg #" << a;
-            Trace("sygus-process-arg-deps") << " (consistent definition " << n[a];
+            Trace("sygus-process-arg-deps") << " (consistent definition "
+                                            << n[a];
             Trace("sygus-process-arg-deps")
                 << " with " << d_arg_props[a].d_template << ")." << std::endl;
           }
@@ -482,8 +491,8 @@ void CegConjectureProcessFun::processTerms(
           Node null_def;
           unsigned rid = assignRelevantDef(null_def, it->second);
           term_to_arg_carry[curr] = rid;
-          Trace("sygus-process-arg-deps") << "    carry " << curr
-                                          << " by argument #" << rid << std::endl;
+          Trace("sygus-process-arg-deps")
+              << "    carry " << curr << " by argument #" << rid << std::endl;
           term_to_args.erase(curr);
           success = true;
         }
@@ -512,13 +521,12 @@ void CegConjectureProcessFun::getIrrelevantArgs(
 
 CegConjectureProcess::CegConjectureProcess(QuantifiersEngine* qe) : d_qe(qe) {}
 CegConjectureProcess::~CegConjectureProcess() {}
-
 Node CegConjectureProcess::preSimplify(Node q)
 {
   Trace("sygus-process") << "Pre-simplify conjecture : " << q << std::endl;
   return q;
 }
-  
+
 Node CegConjectureProcess::postSimplify(Node q)
 {
   Trace("sygus-process") << "Post-simplify conjecture : " << q << std::endl;

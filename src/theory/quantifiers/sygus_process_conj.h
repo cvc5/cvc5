@@ -97,7 +97,7 @@ class CegConjectureProcessArg
    * under "Argument Invariance" above.
    */
   Node d_template;
-  /** single occurrence 
+  /** single occurrence
    * Whether we are trying to show this argument
    * is irrelevant by "Variable irrelevance"
    * described above.
@@ -267,9 +267,9 @@ class CegConjectureProcess
   * Returns a formula that is equivalent to q.
   * This simplification pass is called before all others
   * in CegConjecture::assign.
-  * 
-  * This function is intended for simplifications that 
-  * impact whether or not the synthesis conjecture is 
+  *
+  * This function is intended for simplifications that
+  * impact whether or not the synthesis conjecture is
   * single-invocation.
   */
   Node preSimplify(Node q);
