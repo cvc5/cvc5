@@ -1151,26 +1151,31 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
                                                 Node lit)
 {
   // result of rewriting the visited term
-  std::stack< std::unordered_map<TNode, Node, TNodeHashFunction> > visited;
-  visited.push( std::unordered_map<TNode, Node, TNodeHashFunction>() );
+  std::stack<std::unordered_map<TNode, Node, TNodeHashFunction> > visited;
+  visited.push(std::unordered_map<TNode, Node, TNodeHashFunction>());
   // whether the visited term contains pv
   std::unordered_map<TNode, bool, TNodeHashFunction> visited_contains_pv;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::unordered_map<TNode, Node, TNodeHashFunction> curr_subs;
-  std::stack< std::stack<TNode> > visit;
+  std::stack<std::stack<TNode> > visit;
   TNode cur;
-  visit.push( std::stack<TNode>() );
+  visit.push(std::stack<TNode>());
   visit.top().push(lit);
   do {
     cur = visit.top().top();
     visit.top().pop();
     it = visited.top().find(cur);
 
-    if (it == visited.top().end()) {
-      std::unordered_map<TNode, Node, TNodeHashFunction>::iterator itc = curr_subs.find(cur);
-      if( itc!=curr_subs.end() ){
+    if (it == visited.top().end())
+    {
+      std::unordered_map<TNode, Node, TNodeHashFunction>::iterator itc =
+          curr_subs.find(cur);
+      if (itc != curr_subs.end())
+      {
         visited.top()[cur] = itc->second;
-      }else{
+      }
+      else
+      {
         if (cur.getKind() == CHOICE)
         {
           // must replace variables of choice functions
@@ -1179,14 +1184,14 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
           // with multiple literals.
           Node bv = ci->getBoundVariable(cur[0][0].getType());
           // should not have captured variables
-          Assert( curr_subs.find(cur[0][0])==curr_subs.end() );
+          Assert(curr_subs.find(cur[0][0]) == curr_subs.end());
           curr_subs[cur[0][0]] = bv;
           // we cannot cache the results of subterms
           // of this choice expression since we are
           // now in the context { cur[0][0] -> bv },
           // hence we push a context here
-          visited.push( std::unordered_map<TNode, Node, TNodeHashFunction>() );
-          visit.push( std::stack<TNode>() );
+          visited.push(std::unordered_map<TNode, Node, TNodeHashFunction>());
+          visit.push(std::stack<TNode>());
         }
         visited.top()[cur] = Node::null();
         visit.top().push(cur);
@@ -1225,21 +1230,22 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       }
       // careful that rewrites above do not affect whether this term contains pv
       visited_contains_pv[cur] = contains_pv;
-      
+
       // if was choice, pop context
-      if( cur.getKind() == CHOICE ){
-        Assert( curr_subs.find(cur[0][0])!=curr_subs.end() );
+      if (cur.getKind() == CHOICE)
+      {
+        Assert(curr_subs.find(cur[0][0]) != curr_subs.end());
         curr_subs.erase(cur[0][0]);
         visited.pop();
         visit.pop();
-        Assert( visited.size()==visit.size() );
-        Assert( !visit.empty() );
+        Assert(visited.size() == visit.size());
+        Assert(!visit.empty());
       }
-      
+
       visited.top()[cur] = ret;
     }
   } while (!visit.top().empty());
-  Assert(visited.size()==1);
+  Assert(visited.size() == 1);
   Assert(visited.top().find(lit) != visited.top().end());
   Assert(!visited.top().find(lit)->second.isNull());
   return visited.top()[lit];
