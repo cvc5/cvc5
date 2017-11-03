@@ -265,6 +265,10 @@ class CegConjectureProcess
   * Returns a formula that is equivalent to q.
   * This simplification pass is called before all others
   * in CegConjecture::assign.
+  * 
+  * This function is intended for simplifications that 
+  * impact whether or not the synthesis conjecture is 
+  * single-invocation.
   */
   Node preSimplify(Node q);
   /** simplify the synthesis conjecture q
