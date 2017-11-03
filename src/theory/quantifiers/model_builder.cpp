@@ -55,7 +55,8 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
     FirstOrderModel * fm = (FirstOrderModel*)m;
     //traverse equality engine
     std::map< TypeNode, bool > eqc_usort;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( fm->d_equalityEngine );
+    eq::EqClassesIterator eqcs_i =
+        eq::EqClassesIterator(fm->getEqualityEngine());
     while( !eqcs_i.isFinished() ){
       TypeNode tr = (*eqcs_i).getType();
       eqc_usort[tr] = true;
@@ -107,7 +108,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
       for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
         vars.push_back( f[0][j] );
       }
-      RepSetIterator riter( d_qe, &(fm->d_rep_set) );
+      RepSetIterator riter(d_qe, fm->getRepSetPtr());
       if( riter.setQuantifier( f ) ){
         while( !riter.isFinished() ){
           tests++;
@@ -117,7 +118,8 @@ void QModelBuilder::debugModel( TheoryModel* m ){
           }
           Node n = d_qe->getInstantiation( f, vars, terms );
           Node val = fm->getValue( n );
-          if( val!=fm->d_true ){
+          if (val != d_qe->getTermUtil()->d_true)
+          {
             Trace("quant-check-model") << "*******  Instantiation " << n << " for " << std::endl;
             Trace("quant-check-model") << "         " << f << std::endl;
             Trace("quant-check-model") << "         Evaluates to " << val << std::endl;
@@ -139,10 +141,10 @@ void QModelBuilder::debugModel( TheoryModel* m ){
   }
 }
 
-
-
-bool TermArgBasisTrie::addTerm2( FirstOrderModel* fm, Node n, int argIndex ){
-  if( argIndex<(int)n.getNumChildren() ){
+bool TermArgBasisTrie::addTerm(FirstOrderModel* fm, Node n, unsigned argIndex)
+{
+  if (argIndex < n.getNumChildren())
+  {
     Node r;
     if( n[ argIndex ].getAttribute(ModelBasisAttribute()) ){
       r = n[ argIndex ];
@@ -151,10 +153,10 @@ bool TermArgBasisTrie::addTerm2( FirstOrderModel* fm, Node n, int argIndex ){
     }
     std::map< Node, TermArgBasisTrie >::iterator it = d_data.find( r );
     if( it==d_data.end() ){
-      d_data[r].addTerm2( fm, n, argIndex+1 );
+      d_data[r].addTerm(fm, n, argIndex + 1);
       return true;
     }else{
-      return it->second.addTerm2( fm, n, argIndex+1 );
+      return it->second.addTerm(fm, n, argIndex + 1);
     }
   }else{
     return false;
@@ -187,7 +189,7 @@ bool QModelBuilderIG::processBuildModel( TheoryModel* m ) {
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node q = fm->getAssertedQuantifier( i );
       if( d_qe->getModel()->isQuantifierActive( q ) ){
-        int lems = initializeQuantifier( q, q );
+        int lems = initializeQuantifier(q, q, f);
         d_statistics.d_init_inst_gen_lemmas += lems;
         d_addedLemmas += lems;
         if( d_qe->inConflict() ){
@@ -283,7 +285,8 @@ bool QModelBuilderIG::processBuildModel( TheoryModel* m ) {
   return TheoryEngineModelBuilder::processBuildModel( m );
 }
 
-int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
+int QModelBuilderIG::initializeQuantifier(Node f, Node fp, FirstOrderModel* fm)
+{
   if( d_quant_basis_match_added.find( f )==d_quant_basis_match_added.end() ){
     //create the basis match if necessary
     if( d_quant_basis_match.find( f )==d_quant_basis_match.end() ){
@@ -302,8 +305,9 @@ int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
       //  }
       //}
       d_quant_basis_match[f] = InstMatch( f );
-      for( int j=0; j<(int)f[0].getNumChildren(); j++ ){
-        Node t = d_qe->getTermDatabase()->getModelBasisTerm( f[0][j].getType() );
+      for (unsigned j = 0; j < f[0].getNumChildren(); j++)
+      {
+        Node t = fm->getModelBasisTerm(f[0][j].getType());
         //calculate the basis match for f
         d_quant_basis_match[f].setValue( j, t );
       }
@@ -411,7 +415,7 @@ QModelBuilderIG::Statistics::~Statistics(){
 //do exhaustive instantiation
 int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   if( optUseModel() ){
-    RepSetIterator riter( d_qe, &(d_qe->getModel()->d_rep_set) );
+    RepSetIterator riter(d_qe, d_qe->getModel()->getRepSetPtr());
     if( riter.setQuantifier( f ) ){
       FirstOrderModelIG * fmig = (FirstOrderModelIG*)d_qe->getModel();
       Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;
@@ -538,7 +542,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
     for( std::map< Node, bool >::iterator it = d_phase_reqs[f].d_phase_reqs.begin(); it != d_phase_reqs[f].d_phase_reqs.end(); ++it ){
       //the literal n is phase-required for quantifier f
       Node n = it->first;
-      Node gn = d_qe->getTermDatabase()->getModelBasis( f, n );
+      Node gn = fm->getModelBasis(f, n);
       Debug("fmf-model-req") << "   Req: " << n << " -> " << it->second << std::endl;
       bool value;
       //if the corresponding ground abstraction literal has a SAT value
@@ -668,7 +672,8 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
       std::vector< Node > tr_terms;
       if( lit.getKind()==APPLY_UF ){
         //only match predicates that are contrary to this one, use literal matching
-        Node eq = NodeManager::currentNM()->mkNode( EQUAL, lit, !phase ? fm->d_true : fm->d_false );
+        Node eq = NodeManager::currentNM()->mkNode(
+            EQUAL, lit, NodeManager::currentNM()->mkConst(!phase));
         tr_terms.push_back( eq );
       }else if( lit.getKind()==EQUAL ){
         //collect trigger terms
@@ -724,7 +729,7 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
   if( !d_uf_model_constructed[op] ){
     //construct the model for the uninterpretted function/predicate
     bool setDefaultVal = true;
-    Node defaultTerm = d_qe->getTermDatabase()->getModelBasisOpTerm( op );
+    Node defaultTerm = fmig->getModelBasisOpTerm(op);
     Trace("fmf-model-cons") << "Construct model for " << op << "..." << std::endl;
     //set the values in the model
     std::map< Node, std::vector< Node > >::iterator itut = fmig->d_uf_terms.find( op );
@@ -733,7 +738,9 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
         Node n = itut->second[i];
         // only consider unique up to congruence (in model equality engine)?
         Node v = fmig->getRepresentative( n );
-        Trace("fmf-model-cons") << "Set term " << n << " : " << fmig->d_rep_set.getIndexFor( v ) << " " << v << std::endl;
+        Trace("fmf-model-cons") << "Set term " << n << " : "
+                                << fmig->getRepSet()->getIndexFor(v) << " " << v
+                                << std::endl;
         //if this assertion did not help the model, just consider it ground
         //set n = v in the model tree
         //set it as ground value
@@ -763,14 +770,19 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
       //chose defaultVal based on heuristic, currently the best ratio of "pro" responses
       Node defaultVal = d_uf_prefs[op].getBestDefaultValue( defaultTerm, fm );
       if( defaultVal.isNull() ){
-        if (!fmig->d_rep_set.hasType(defaultTerm.getType())) {
-          Node mbt = d_qe->getTermDatabase()->getModelBasisTerm(defaultTerm.getType());
-          fmig->d_rep_set.d_type_reps[defaultTerm.getType()].push_back(mbt);
+        if (!fmig->getRepSet()->hasType(defaultTerm.getType()))
+        {
+          Node mbt = fmig->getModelBasisTerm(defaultTerm.getType());
+          fmig->getRepSetPtr()->d_type_reps[defaultTerm.getType()].push_back(
+              mbt);
         }
-        defaultVal = fmig->d_rep_set.d_type_reps[defaultTerm.getType()][0];
+        defaultVal =
+            fmig->getRepSet()->getRepresentative(defaultTerm.getType(), 0);
       }
       Assert( !defaultVal.isNull() );
-      Trace("fmf-model-cons") << "Set default term : " << fmig->d_rep_set.getIndexFor( defaultVal ) << std::endl;
+      Trace("fmf-model-cons")
+          << "Set default term : " << fmig->getRepSet()->getIndexFor(defaultVal)
+          << std::endl;
       fmig->d_uf_model_gen[op].setValue( fm, defaultTerm, defaultVal, false );
     }
     Debug("fmf-model-cons") << "  Making model...";

@@ -1004,33 +1004,54 @@ void CvcPrinter::toStream(std::ostream& out, const Model& m, const Command* c) c
   const theory::TheoryModel& tm = (const theory::TheoryModel&) m;
   if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
     TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
-    if( options::modelUninterpDtEnum() && tn.isSort() &&
-        tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
-      out << "DATATYPE" << std::endl;
-      out << "  " << dynamic_cast<const DeclareTypeCommand*>(c)->getSymbol() << " = ";
-      for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
-        if (i>0) {
-          out << "| ";
+    if (options::modelUninterpDtEnum() && tn.isSort())
+    {
+      const theory::RepSet* rs = tm.getRepSet();
+      if (rs->d_type_reps.find(tn) != rs->d_type_reps.end())
+      {
+        out << "DATATYPE" << std::endl;
+        out << "  " << dynamic_cast<const DeclareTypeCommand*>(c)->getSymbol()
+            << " = ";
+        for (size_t i = 0; i < (*rs->d_type_reps.find(tn)).second.size(); i++)
+        {
+          if (i > 0)
+          {
+            out << "| ";
+          }
+          out << (*rs->d_type_reps.find(tn)).second[i] << " ";
         }
-        out << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << " ";
+        out << std::endl << "END;" << std::endl;
       }
-      out << std::endl << "END;" << std::endl;
-    } else {
-      if( tn.isSort() ){
-        // print the cardinality
-        if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
-          out << "% cardinality of " << tn << " is " << (*tm.d_rep_set.d_type_reps.find(tn)).second.size() << std::endl;
+      else
+      {
+        if (tn.isSort())
+        {
+          // print the cardinality
+          if (rs->d_type_reps.find(tn) != rs->d_type_reps.end())
+          {
+            out << "% cardinality of " << tn << " is "
+                << (*rs->d_type_reps.find(tn)).second.size() << std::endl;
+          }
         }
-      }
-      out << c << std::endl;
-      if( tn.isSort() ){
-        // print the representatives
-        if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
-          for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
-            if( (*tm.d_rep_set.d_type_reps.find(tn)).second[i].isVar() ){
-              out << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << " : " << tn << ";" << std::endl;
-            }else{
-              out << "% rep: " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << std::endl;
+        out << c << std::endl;
+        if (tn.isSort())
+        {
+          // print the representatives
+          if (rs->d_type_reps.find(tn) != rs->d_type_reps.end())
+          {
+            for (size_t i = 0; i < (*rs->d_type_reps.find(tn)).second.size();
+                 i++)
+            {
+              if ((*rs->d_type_reps.find(tn)).second[i].isVar())
+              {
+                out << (*rs->d_type_reps.find(tn)).second[i] << " : " << tn
+                    << ";" << std::endl;
+              }
+              else
+              {
+                out << "% rep: " << (*rs->d_type_reps.find(tn)).second[i]
+                    << std::endl;
+              }
             }
           }
         }
@@ -1056,9 +1077,11 @@ void CvcPrinter::toStream(std::ostream& out, const Model& m, const Command* c) c
     }
     Node val = Node::fromExpr(tm.getSmtEngine()->getValue(n.toExpr()));
     if( options::modelUninterpDtEnum() && val.getKind() == kind::STORE ) {
+      const theory::RepSet* rs = tm.getRepSet();
       TypeNode tn = val[1].getType();
-      if (tn.isSort() && tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
-        Cardinality indexCard((*tm.d_rep_set.d_type_reps.find(tn)).second.size());
+      if (tn.isSort() && rs->d_type_reps.find(tn) != rs->d_type_reps.end())
+      {
+        Cardinality indexCard((*rs->d_type_reps.find(tn)).second.size());
         val = theory::arrays::TheoryArraysRewriter::normalizeConstant( val, indexCard );
       }
     }

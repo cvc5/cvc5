@@ -17,6 +17,8 @@
 
 #include "theory/uf/theory_uf.h"
 
+#include <memory>
+
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
@@ -629,8 +631,9 @@ void TheoryUF::computeCareGraph() {
 }/* TheoryUF::computeCareGraph() */
 
 void TheoryUF::conflict(TNode a, TNode b) {
-  eq::EqProof* pf = d_proofsEnabled ? new eq::EqProof() : NULL;
-  d_conflictNode = explain(a.eqNode(b),pf);
+  std::shared_ptr<eq::EqProof> pf =
+      d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
+  d_conflictNode = explain(a.eqNode(b), pf.get());
   ProofUF* puf = d_proofsEnabled ? new ProofUF( pf ) : NULL;
   d_out->conflict(d_conflictNode, puf);
   d_conflict = true;

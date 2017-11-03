@@ -178,7 +178,9 @@ void InstantiationEngine::registerQuantifier( Node f ){
     //}
     //take into account user patterns
     if( f.getNumChildren()==3 ){
-      Node subsPat = d_quantEngine->getTermUtil()->getInstConstantNode( f[2], f );
+      Node subsPat =
+          d_quantEngine->getTermUtil()->substituteBoundVariablesToInstConstants(
+              f[2], f);
       //add patterns
       for( int i=0; i<(int)subsPat.getNumChildren(); i++ ){
         //Notice() << "Add pattern " << subsPat[i] << " for " << f << std::endl;
