@@ -547,9 +547,16 @@ void CegConjectureProcessFun::getIrrelevantArgs(
 
 CegConjectureProcess::CegConjectureProcess(QuantifiersEngine* qe) : d_qe(qe) {}
 CegConjectureProcess::~CegConjectureProcess() {}
-Node CegConjectureProcess::simplify(Node q)
+
+Node CegConjectureProcess::preSimplify(Node q)
 {
-  Trace("sygus-process") << "Simplify conjecture : " << q << std::endl;
+  Trace("sygus-process") << "Pre-simplify conjecture : " << q << std::endl;
+  return q;
+}
+  
+Node CegConjectureProcess::postSimplify(Node q)
+{
+  Trace("sygus-process") << "Post-simplify conjecture : " << q << std::endl;
   Assert(q.getKind() == FORALL);
 
   // initialize the information about each function to synthesize

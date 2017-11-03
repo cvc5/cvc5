@@ -263,8 +263,16 @@ class CegConjectureProcess
   ~CegConjectureProcess();
   /** simplify the synthesis conjecture q
   * Returns a formula that is equivalent to q.
+  * This simplification pass is called before all others
+  * in CegConjecture::assign.
   */
-  Node simplify(Node q);
+  Node preSimplify(Node q);
+  /** simplify the synthesis conjecture q
+  * Returns a formula that is equivalent to q.
+  * This simplification pass is called after all others
+  * in CegConjecture::assign.
+  */
+  Node postSimplify(Node q);
   /** initialize
   *
   * n is the "base instantiation" of the deep-embedding version of

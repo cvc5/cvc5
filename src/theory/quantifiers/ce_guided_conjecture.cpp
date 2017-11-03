@@ -66,8 +66,8 @@ void CegConjecture::assign( Node q ) {
   Trace("cegqi") << "CegConjecture : assign : " << q << std::endl;
   d_quant = q;
 
-  // simplify the quantified formula based on the process utility
-  d_simp_quant = d_ceg_proc->simplify(d_quant);
+  // pre-simplify the quantified formula based on the process utility
+  d_simp_quant = d_ceg_proc->preSimplify(d_quant);
 
   std::map< Node, Node > templates; 
   std::map< Node, Node > templates_arg;
@@ -87,6 +87,11 @@ void CegConjecture::assign( Node q ) {
     }
   }
 
+  // post-simplify the quantified formula based on the process utility
+  d_simp_quant = d_ceg_proc->postSimplify(d_quant);
+  
+  // finished simplifying the quantified formula at this point
+  
   // convert to deep embedding and finalize single invocation here
   d_embed_quant = d_ceg_gc->process(d_simp_quant, templates, templates_arg);
   Trace("cegqi") << "CegConjecture : converted to embedding : " << d_embed_quant << std::endl;
