@@ -381,8 +381,9 @@ void Smt2::setLogic(std::string name) {
   } else {
     d_logic = name;
   }
-  
-  // if sygus is enabled, we must enable UF, datatypes, integer arithmetic and higher-order
+
+  // if sygus is enabled, we must enable UF, datatypes, integer arithmetic and
+  // higher-order
   if(sygus()) {
     // get unlocked copy, modify, copy and relock
     LogicInfo log(d_logic.getUnlockedCopy());

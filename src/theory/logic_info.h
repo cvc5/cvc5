@@ -53,7 +53,7 @@ class CVC4_PUBLIC LogicInfo {
   bool d_linear; /**< linear-only arithmetic in this logic? */
   bool d_differenceLogic; /**< difference-only arithmetic in this logic? */
   bool d_cardinalityConstraints; /**< cardinality constraints in this logic? */
-  bool d_higherOrder; /**< higher-order constraints in this logic? */
+  bool d_higherOrder;            /**< higher-order constraints in this logic? */
 
   bool d_locked; /**< is this LogicInfo instance locked (and thus immutable)? */
 
@@ -143,8 +143,8 @@ public:
   bool hasCardinalityConstraints() const;
 
   /** Is this a higher order logic? */
-  bool isHigherOrder() const;  
-  
+  bool isHigherOrder() const;
+
   // MUTATORS
 
   /**
@@ -209,19 +209,19 @@ public:
   void arithNonLinear();
 
   // for cardinality constraints
-  
+
   /** Enable the use of cardinality constraints in this logic. */
   void enableCardinalityConstraints();
   /** Disable the use of cardinality constraints in this logic. */
-  void disableCardinalityConstraints();  
-  
+  void disableCardinalityConstraints();
+
   // for higher-order
-  
+
   /** Enable the use of higher-order in this logic. */
   void enableHigherOrder();
   /** Disable the use of higher-order in this logic. */
   void disableHigherOrder();
-  
+
   // LOCKING FUNCTIONALITY
 
   /** Lock this LogicInfo, disabling further mutation and allowing queries */
