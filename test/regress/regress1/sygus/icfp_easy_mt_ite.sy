@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --no-dump-synth
+; COMMAND-LINE: --sygus-out=status
 (set-logic BV)
 
 (define-fun shr1 ((x (BitVec 64))) (BitVec 64) (bvlshr x #x0000000000000001))

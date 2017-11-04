@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=none --no-dump-synth
+; COMMAND-LINE: --cegqi-si=none --sygus-out=status
 (set-logic LIA)
 (synth-fun f ((x Int)) Int
     ((Start Int (Term (+ Start Start)))
