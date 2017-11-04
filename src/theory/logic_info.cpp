@@ -39,6 +39,7 @@ LogicInfo::LogicInfo() :
   d_linear(false),
   d_differenceLogic(false),
   d_cardinalityConstraints(false),
+  d_higherOrder(true),
   d_locked(false) {
 
   for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
@@ -55,6 +56,7 @@ LogicInfo::LogicInfo(std::string logicString) throw(IllegalArgumentException) :
   d_linear(false),
   d_differenceLogic(false),
   d_cardinalityConstraints(false),
+  d_higherOrder(false),
   d_locked(false) {
 
   setLogicString(logicString);
@@ -70,6 +72,7 @@ LogicInfo::LogicInfo(const char* logicString) throw(IllegalArgumentException) :
   d_linear(false),
   d_differenceLogic(false),
   d_cardinalityConstraints(false),
+  d_higherOrder(false),
   d_locked(false) {
 
   setLogicString(logicString);
@@ -96,6 +99,13 @@ bool LogicInfo::isQuantified() const {
   PrettyCheckArgument(d_locked, *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
   return isTheoryEnabled(theory::THEORY_QUANTIFIERS);
+}
+
+/** Is this a higher-order logic? */
+bool LogicInfo::isHigherOrder() const {
+  PrettyCheckArgument(d_locked, *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  return d_higherOrder;
 }
 
 /** Is this the all-inclusive logic? */
@@ -566,6 +576,30 @@ void LogicInfo::arithNonLinear() {
   d_linear = false;
   d_differenceLogic = false;
 }
+
+void LogicInfo::enableCardinalityConstraints() {
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  d_logicString = "";
+  d_cardinalityConstraints = true;
+}
+
+void LogicInfo::disableCardinalityConstraints() {
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  d_logicString = "";
+  d_cardinalityConstraints = false;
+}  
+
+void LogicInfo::enableHigherOrder() {
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  d_logicString = "";
+  d_higherOrder = true;
+}  
+
+void LogicInfo::disableHigherOrder() {
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  d_logicString = "";
+  d_higherOrder = false;
+}  
 
 LogicInfo LogicInfo::getUnlockedCopy() const {
   if(d_locked) {
