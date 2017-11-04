@@ -64,7 +64,13 @@ static void testGaussElimX(Integer prime,
 
   ret = BVGaussElim::gaussElim(prime, rhs, lhs, resrhs, reslhs);
 
-  std::cout << "Result: " << std::endl;
+  std::cout << "Result: " << (ret == BVGaussElim::Result::INVALID
+                                   ? "INVALID"
+                                   : (ret == BVGaussElim::Result::UNIQUE
+                                          ? "UNIQUE"
+                                          : (ret == BVGaussElim::Result::PARTIAL
+                                                 ? "PARTIAL"
+                                                 : "NONE"))) << std::endl;
   print_matrix_dbg(resrhs, reslhs);
 
   TS_ASSERT_EQUALS(expected, ret);
@@ -302,19 +308,19 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     std::cout << "matrix 0, modulo 3" << std::endl;
     testGaussElimX(Integer(3), rhs, lhs, BVGaussElim::Result::UNIQUE);
     std::cout << "matrix 0, modulo 4" << std::endl;  // no inverse
-    testGaussElimX(Integer(4), rhs, lhs, BVGaussElim::Result::NONE);
+    testGaussElimX(Integer(4), rhs, lhs, BVGaussElim::Result::INVALID);
     std::cout << "matrix 0, modulo 5" << std::endl;
     testGaussElimX(Integer(5), rhs, lhs, BVGaussElim::Result::UNIQUE);
     std::cout << "matrix 0, modulo 6" << std::endl;  // no inverse
-    testGaussElimX(Integer(6), rhs, lhs, BVGaussElim::Result::NONE);
+    testGaussElimX(Integer(6), rhs, lhs, BVGaussElim::Result::INVALID);
     std::cout << "matrix 0, modulo 7" << std::endl;
     testGaussElimX(Integer(7), rhs, lhs, BVGaussElim::Result::UNIQUE);
     std::cout << "matrix 0, modulo 8" << std::endl;  // no inverse
-    testGaussElimX(Integer(8), rhs, lhs, BVGaussElim::Result::NONE);
+    testGaussElimX(Integer(8), rhs, lhs, BVGaussElim::Result::INVALID);
     std::cout << "matrix 0, modulo 9" << std::endl;
     testGaussElimX(Integer(9), rhs, lhs, BVGaussElim::Result::UNIQUE);
     std::cout << "matrix 0, modulo 10" << std::endl;  // no inverse
-    testGaussElimX(Integer(10), rhs, lhs, BVGaussElim::Result::NONE);
+    testGaussElimX(Integer(10), rhs, lhs, BVGaussElim::Result::INVALID);
     std::cout << "matrix 0, modulo 11" << std::endl;
     testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
   }
@@ -707,7 +713,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(4), Integer(5), Integer(6)},
            {Integer(3), Integer(1), Integer(-2)}};
     std::cout << "matrix 23, modulo 9" << std::endl;
-    testGaussElimX(Integer(9), rhs, lhs, BVGaussElim::Result::NONE);
+    testGaussElimX(Integer(9), rhs, lhs, BVGaussElim::Result::INVALID);
 
     /* -------------------------------------------------------------------
      *     lhs    rhs       modulo 59
@@ -735,7 +741,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(4), Integer(5), Integer(6)},
            {Integer(2), Integer(7), Integer(12)}};
     std::cout << "matrix 25, modulo 9" << std::endl;
-    testGaussElimX(Integer(9), rhs, lhs, BVGaussElim::Result::NONE);
+    testGaussElimX(Integer(9), rhs, lhs, BVGaussElim::Result::INVALID);
   }
 
   void testGaussElimNoneZero()
@@ -2064,7 +2070,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
     std::vector<Node> eqs = {eq1, eq2, eq3};
     ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::NONE);
+    TS_ASSERT(ret == BVGaussElim::Result::INVALID);
   }
 
   void testGaussElimRewriteUnique1()

@@ -43,7 +43,10 @@ class BVGaussElim
    * succeed modulo a prime number, which is not necessarily the case if a
    * given set of equations is modulo a non-prime number.
    *
-   * Returns UNIQUE and PARTIAL if GE was successful, and NONE, otherwise. 
+   * Returns
+   *   INVALID if GE can not be applied,
+   *   UNIQUE and PARTIAL if GE was successful,
+   *   and NONE, otherwise.
    */
   static void gaussElimRewrite(std::vector<Node>& assertionsToPreprocess);
 
@@ -52,8 +55,18 @@ class BVGaussElim
    *  Represents the result of Gaussian Elimination where the solution
    *  of the given equation system is
    *
+   *   INVALID ... i.e., NOT of the form c1*x1 + c2*x2 + ... % p = b,
+   *               where ci, b and p are
+   *                 - bit-vector constants
+   *                 - extracts or zero extensions on bit-vector constants
+   *                 - of arbitrary nesting level
+   *               and p is co-prime to all bit-vector constants for which
+   *               a multiplicative inverse has to be computed.
+   *
    *   UNIQUE  ... determined for all unknowns, e.g., x = 4
+   *
    *   PARTIAL ... e.g., x = 4 - 2z
+   *
    *   NONE    ... no solution
    *
    *   Given a matrix A representing an equation system, the resulting
@@ -73,6 +86,7 @@ class BVGaussElim
    */
   enum class Result
   {
+    INVALID,
     UNIQUE,
     PARTIAL,
     NONE
@@ -80,7 +94,7 @@ class BVGaussElim
 
   /**
    * Determines if an overflow may occur in given 'expr'.
-   * 
+   *
    * Returns 0 if an overflow may occur, and the minimum required
    * bit-width such that no overflow occurs, otherwise.
    *
@@ -94,7 +108,7 @@ class BVGaussElim
    * Apply Gaussian Elimination on a set of equations modulo some (prime)
    * number given as bit-vector equations.
    *
-   * IMPORTANT: Applying GE modulo some number (rather than modulo 2^bw) 
+   * IMPORTANT: Applying GE modulo some number (rather than modulo 2^bw)
    * on a set of bit-vector equations is only sound if this set of equations
    * has a solution that does not produce overflows. Consequently, we only
    * apply GE if the given bit-width guarantees that no overflows can occur
@@ -104,7 +118,8 @@ class BVGaussElim
    * but can be modulo any arbitrary number. However, if it is indeed modulo
    * prime, GE is guaranteed to succeed, which is not the case, otherwise.
    *
-   * Returns UNIQUE and PARTIAL if GE was successful, and NONE, otherwise. 
+   * Returns INVALID if GE can not be applied, UNIQUE and PARTIAL if GE was
+   * successful, and NONE, otherwise.
    */
   static Result gaussElimRewriteForUrem(
       std::vector<Node>& equations,
@@ -118,7 +133,8 @@ class BVGaussElim
    * arbitrary number. However, if 'prime' is indeed prime, GE is guaranteed
    * to succeed, which is not the case, otherwise.
    *
-   * Returns UNIQUE and PARTIAL if GE was successful, and NONE, otherwise. 
+   * Returns INVALID if GE can not be applied, UNIQUE and PARTIAL if GE was
+   * successful, and NONE, otherwise.
    */
   static Result gaussElim(Integer prime,
                           std::vector<Integer>& rhs,

@@ -164,6 +164,10 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
   return visited[expr];
 }
 
+
+// TODO
+// if eq system is fully defined and has no solution
+// -> UNSAT
 BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
                                            vector<Integer> &rhs,
                                            vector<vector<Integer>> &lhs,
@@ -251,7 +255,10 @@ BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
         if (reslhs[j][pcol] != 1)
         {
           Integer inv = reslhs[j][pcol].modInverse(prime);
-          if (inv == -1) return BVGaussElim::Result::NONE; /* not coprime */
+          if (inv == -1)
+          {
+            return BVGaussElim::Result::INVALID; /* not coprime */
+          }
           for (size_t k = pcol; k < ncols; ++k)
           {
             reslhs[j][k] = reslhs[j][k].modMultiply(inv, prime);
@@ -291,7 +298,7 @@ BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
     if (pcol >= ncols)
     {
       resrhs[i] = resrhs[i].euclidianDivideRemainder(prime);
-      if (resrhs[i] != 0) return BVGaussElim::Result::NONE;
+      if (resrhs[i] != 0) return BVGaussElim::Result::NONE; /* no solution */
       continue;
     }
     for (size_t j = i; j < ncols; ++j)
@@ -385,7 +392,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
       Trace("bv-gauss-elim")
          << "Minimum required bit-width exceeds given bit-width, "
             "will not apply Gaussian Elimination." << endl;
-      return BVGaussElim::Result::NONE;
+      return BVGaussElim::Result::INVALID;
     }
     rhs.push_back(get_bv_const(eqrhs));
 
@@ -485,7 +492,10 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
 
     for (auto p : vars)
     {
-      if (tmp.find(p.first) == tmp.end()) vars[p.first].push_back(Integer(0));
+      if (tmp.find(p.first) == tmp.end())
+      {
+        vars[p.first].push_back(Integer(0));
+      }
     }
   }
 
@@ -496,7 +506,10 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
   for (auto p : vars) Assert(p.second.size() == nrows);
 #endif
 
-  if (nrows < 1) return BVGaussElim::Result::NONE;
+  if (nrows < 1)
+  {
+    return BVGaussElim::Result::INVALID;
+  }
 
   for (size_t i = 0; i < nrows; ++i)
     for (auto p : vars) lhs[i].push_back(p.second[i]);
@@ -506,12 +519,15 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
   Assert(lhs.size() == rhs.size());
 #endif
 
-  if (lhs.size() > lhs[0].size()) return BVGaussElim::Result::NONE;
+  if (lhs.size() > lhs[0].size())
+  {
+    return BVGaussElim::Result::INVALID;
+  }
 
   Trace("bv-gauss-elim") << "Applying Gaussian Elimination..." << endl;
   Result ret = gaussElim(iprime, rhs, lhs, resrhs, reslhs);
 
-  if (ret != BVGaussElim::Result::NONE)
+  if (ret != BVGaussElim::Result::NONE && ret != BVGaussElim::Result::INVALID)
   {
     vector<Node> vvars;
     for (auto p : vars) vvars.push_back(p.first);
@@ -645,13 +661,15 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
     unordered_map<Node, Node, NodeHashFunction> res;
     BVGaussElim::Result ret = gaussElimRewriteForUrem(eq.second, res);
     Trace("bv-gauss-elim") << "result: "
-                           << (ret == BVGaussElim::Result::UNIQUE
-                                   ? "UNIQUE"
-                                   : (ret == BVGaussElim::Result::PARTIAL
-                                          ? "PARTIAL"
-                                          : "NONE"))
+                           << (ret == BVGaussElim::Result::INVALID
+                                   ? "INVALID"
+                                   : (ret == BVGaussElim::Result::UNIQUE
+                                          ? "UNIQUE"
+                                          : (ret == BVGaussElim::Result::PARTIAL
+                                                 ? "PARTIAL"
+                                                 : "NONE")))
                            << endl;
-    if (ret != BVGaussElim::Result::NONE)
+    if (ret != BVGaussElim::Result::NONE && ret != BVGaussElim::Result::INVALID)
     {
       NodeManager *nm = NodeManager::currentNM();
       for (auto p : res)
