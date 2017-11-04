@@ -47,13 +47,18 @@ class CVC4_PUBLIC LogicInfo {
   std::vector<bool> d_theories; /**< set of active theories */
   size_t d_sharingTheories; /**< count of theories that need sharing */
 
-  // for arithmetic
-  bool d_integers; /**< are integers used in this logic? */
-  bool d_reals; /**< are reals used in this logic? */
-  bool d_linear; /**< linear-only arithmetic in this logic? */
-  bool d_differenceLogic; /**< difference-only arithmetic in this logic? */
-  bool d_cardinalityConstraints; /**< cardinality constraints in this logic? */
-  bool d_higherOrder;            /**< higher-order constraints in this logic? */
+  /** are integers used in this logic? */
+  bool d_integers; 
+  /** are reals used in this logic? */
+  bool d_reals; 
+  /** linear-only arithmetic in this logic? */
+  bool d_linear; 
+  /** difference-only arithmetic in this logic? */
+  bool d_differenceLogic; 
+  /** cardinality constraints in this logic? */
+  bool d_cardinalityConstraints; 
+  /** higher-order constraints in this logic? */
+  bool d_higherOrder;            
 
   bool d_locked; /**< is this LogicInfo instance locked (and thus immutable)? */
 
