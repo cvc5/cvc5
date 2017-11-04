@@ -1086,7 +1086,7 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(std::string option
   } else if(optarg == "off") {
     return theory::bv::BITVECTOR_SLICER_OFF;
   } else if(optarg == "help") {
-    puts(s_bitblastingModeHelp.c_str());
+    puts(s_bvSlicerModeHelp.c_str());
     exit(1);
   } else {
     throw OptionException(std::string("unknown option for --bv-eq-slicer: `") +
