@@ -48,17 +48,17 @@ class CVC4_PUBLIC LogicInfo {
   size_t d_sharingTheories; /**< count of theories that need sharing */
 
   /** are integers used in this logic? */
-  bool d_integers; 
+  bool d_integers;
   /** are reals used in this logic? */
-  bool d_reals; 
+  bool d_reals;
   /** linear-only arithmetic in this logic? */
-  bool d_linear; 
+  bool d_linear;
   /** difference-only arithmetic in this logic? */
-  bool d_differenceLogic; 
+  bool d_differenceLogic;
   /** cardinality constraints in this logic? */
-  bool d_cardinalityConstraints; 
+  bool d_cardinalityConstraints;
   /** higher-order constraints in this logic? */
-  bool d_higherOrder;            
+  bool d_higherOrder;
 
   bool d_locked; /**< is this LogicInfo instance locked (and thus immutable)? */
 
