@@ -383,8 +383,8 @@ CheckSynthCommand::CheckSynthCommand() throw() :
   d_expr() {
 }
 
-CheckSynthCommand::CheckSynthCommand(const Expr& expr, bool inUnsatCore) throw() :
-  d_expr(expr), d_inUnsatCore(inUnsatCore) {
+CheckSynthCommand::CheckSynthCommand(const Expr& expr) throw() :
+  d_expr(expr) {
 }
 
 Expr CheckSynthCommand::getExpr() const throw() {
@@ -395,6 +395,33 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->checkSynth(d_expr);
     d_commandStatus = CommandSuccess::instance();
+    smt::SmtScope scope(smtEngine);
+    d_solution.clear();
+    // check whether we should print the status
+    if (d_result.asSatisfiabilityResult() != Result::UNSAT
+        || options::sygusOut() == SYGUS_SOL_OUT_STATUS_AND_DEF
+        || options::sygusOut() == SYGUS_SOL_OUT_STATUS)
+    {
+      if (options::sygusOut() == SYGUS_SOL_OUT_STANDARD)
+      {
+        d_solution << "(fail)" << endl;
+      }
+      else
+      {
+        d_solution << d_result << endl;
+      }
+    }
+    // check whether we should print the solution
+    if (d_result.asSatisfiabilityResult() == Result::UNSAT
+        && options::sygusOut() != SYGUS_SOL_OUT_STATUS)
+    {
+      // printing a synthesis solution is a non-constant
+      // method, since it invokes a sophisticated algorithm
+      // (Figure 5 of Reynolds et al. CAV 2015).
+      // Hence, we must call here print solution here,
+      // instead of during printResult.
+      smtEngine->printSynthSolution(d_solution);
+    }
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
   }
@@ -408,18 +435,18 @@ void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
-    out << d_result << endl;
+    out << d_solution.str();
   }
 }
 
 Command* CheckSynthCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  CheckSynthCommand* c = new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap), d_inUnsatCore);
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap));
   c->d_result = d_result;
   return c;
 }
 
 Command* CheckSynthCommand::clone() const {
-  CheckSynthCommand* c = new CheckSynthCommand(d_expr, d_inUnsatCore);
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr);
   c->d_result = d_result;
   return c;
 }

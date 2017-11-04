@@ -554,7 +554,6 @@ all \n\
 \n\
 ";
 
-
 theory::quantifiers::InstWhenMode OptionsHandler::stringToInstWhenMode(std::string option, std::string optarg) throw(OptionException) {
   if(optarg == "pre-full") {
     return theory::quantifiers::INST_WHEN_PRE_FULL;
@@ -1087,7 +1086,7 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(std::string option
   } else if(optarg == "off") {
     return theory::bv::BITVECTOR_SLICER_OFF;
   } else if(optarg == "help") {
-    puts(s_bitblastingModeHelp.c_str());
+    puts(s_bvSlicerModeHelp.c_str());
     exit(1);
   } else {
     throw OptionException(std::string("unknown option for --bv-eq-slicer: `") +
@@ -1311,6 +1310,56 @@ SimplificationMode OptionsHandler::stringToSimplificationMode(std::string option
   }
 }
 
+const std::string OptionsHandler::s_sygusSolutionOutModeHelp =
+    "\
+Modes for finite model finding bound minimization, supported by --sygus-out:\n\
+\n\
+status \n\
++ Print only status for check-synth calls.\n\
+\n\
+status-and-def (default) \n\
++ Print status followed by definition corresponding to solution.\n\
+\n\
+status-or-def \n\
++ Print status if infeasible, or definition corresponding to\n\
+  solution if feasible.\n\
+\n\
+sygus-standard \n\
++ Print based on SyGuS standard.\n\
+\n\
+";
+
+SygusSolutionOutMode OptionsHandler::stringToSygusSolutionOutMode(
+    std::string option, std::string optarg) throw(OptionException)
+{
+  if (optarg == "status")
+  {
+    return SYGUS_SOL_OUT_STATUS;
+  }
+  else if (optarg == "status-and-def")
+  {
+    return SYGUS_SOL_OUT_STATUS_AND_DEF;
+  }
+  else if (optarg == "status-or-def")
+  {
+    return SYGUS_SOL_OUT_STATUS_OR_DEF;
+  }
+  else if (optarg == "sygus-standard")
+  {
+    return SYGUS_SOL_OUT_STANDARD;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusSolutionOutModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --sygus-out: `")
+                          + optarg
+                          + "'.  Try --sygus-out help.");
+  }
+}
 
 void OptionsHandler::setProduceAssertions(std::string option, bool value) throw() {
   options::produceAssertions.set(value);
