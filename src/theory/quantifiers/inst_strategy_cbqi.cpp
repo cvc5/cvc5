@@ -19,11 +19,12 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/theory_engine.h"
 
 using namespace std;

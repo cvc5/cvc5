@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --no-dump-synth
+; COMMAND-LINE: --cegqi-si=all --sygus-out=status
 (set-logic LIA)
 
 (synth-fun f ((x Int)) Int)

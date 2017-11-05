@@ -187,7 +187,7 @@ int ModelEngine::checkModel(){
         Trace("model-engine-debug") << r << " ";
       }
       Trace("model-engine-debug") << std::endl;
-      Node mbt = d_quantEngine->getTermDatabase()->getModelBasisTerm(it->first);
+      Node mbt = fm->getModelBasisTerm(it->first);
       Trace("model-engine-debug") << "  Basis term : " << mbt << std::endl;
     }
   }

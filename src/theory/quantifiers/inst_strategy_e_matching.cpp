@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/inst_strategy_e_matching.h"
 #include "theory/quantifiers/inst_match_generator.h"
+#include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -287,7 +288,8 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     if( options::quantFunWellDefined() ){
       Node hd = QuantAttributes::getFunDefHead( f );
       if( !hd.isNull() ){
-        hd = d_quantEngine->getTermUtil()->getInstConstantNode( hd, f );
+        hd = d_quantEngine->getTermUtil()
+                 ->substituteBoundVariablesToInstConstants(hd, f);
         patTermsF.push_back( hd );
         tinfo[hd].init( f, hd );
       }
@@ -470,7 +472,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
           if( index<patTerms.size() ){
             //Notice() << "check add additional" << std::endl;
             //check if similar patterns exist, and if so, add them additionally
-            int nqfs_curr = 0;
+            unsigned nqfs_curr = 0;
             if( options::relevantTriggers() ){
               nqfs_curr = d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[0].getOperator() );
             }
@@ -512,7 +514,10 @@ void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
   if( tr ){
     if( d_num_trigger_vars[q]<q[0].getNumChildren() ){
       //partial trigger : generate implication to mark user pattern
-      Node ipl = NodeManager::currentNM()->mkNode( INST_PATTERN_LIST, d_quantEngine->getTermUtil()->getVariableNode( tr->getInstPattern(), q ) );
+      Node pat =
+          d_quantEngine->getTermUtil()->substituteInstConstantsToBoundVariables(
+              tr->getInstPattern(), q);
+      Node ipl = NodeManager::currentNM()->mkNode(INST_PATTERN_LIST, pat);
       Node qq = NodeManager::currentNM()->mkNode( FORALL, d_vc_partition[1][q], NodeManager::currentNM()->mkNode( FORALL, d_vc_partition[0][q], q[1] ), ipl );
       Trace("auto-gen-trigger-partial") << "Make partially specified user pattern: " << std::endl;
       Trace("auto-gen-trigger-partial") << "  " << qq << std::endl;

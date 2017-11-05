@@ -50,7 +50,7 @@ public:
 
   /**
    * By introducing skolem variables, this function removes all occurrences of:
-   * (1) term ITEs
+   * (1) term ITEs,
    * (2) terms of type Boolean that are not Boolean term variables,
    * (3) lambdas, and
    * (4) Hilbert choice expressions.

@@ -246,7 +246,7 @@ option conjectureGenMaxDepth --conjecture-gen-max-depth=N int :default 3
 ### synthesis options 
 
 option ceGuidedInst --cegqi bool :default false :read-write
-  counterexample-guided quantifier instantiation
+  counterexample-guided quantifier instantiation for sygus
 option cegqiSingleInvMode --cegqi-si=MODE CVC4::theory::quantifiers::CegqiSingleInvMode :default CVC4::theory::quantifiers::CEGQI_SI_MODE_NONE :include "options/quantifiers_modes.h" :handler stringToCegqiSingleInvMode :read-write
   mode for processing single invocation synthesis conjectures
 option cegqiSingleInvPartial --cegqi-si-partial bool :default false

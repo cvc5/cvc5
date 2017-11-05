@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
@@ -1793,7 +1794,8 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
       Node sub;
       std::vector< unsigned > sub_vars;
       //return skolemized body
-      return TermUtil::mkSkolemizedBody( n, nn, fvTypes, fvs, sk, sub, sub_vars );
+      return Skolemize::mkSkolemizedBody(
+          n, nn, fvTypes, fvs, sk, sub, sub_vars);
     }
   }else{
     //check if it contains a quantifier as a subterm
