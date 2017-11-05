@@ -216,6 +216,10 @@ private:
                                      std::vector<Node>& nb,
                                      std::vector<Node>& ne,
                                      int dir = 0);
+  /** check arithmetic entailment equal
+   * Returns true if it is always the case that a = b.
+   */
+  static bool checkEntailArithEq(Node a, Node b);
   /** check arithmetic entailment
    * Returns true if it is always the case that a >= b,
    * and a>b if strict is true.

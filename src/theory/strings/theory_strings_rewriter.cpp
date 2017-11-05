@@ -1452,6 +1452,12 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     // len( n2 ) > len( n1 ) => contains( n1, n2 ) ---> false
     return NodeManager::currentNM()->mkConst(false);
   }
+  else if(checkEntailArithEq(len_n1, len_n2))
+  {
+    // len( n2 ) = len( n1 ) => contains( n1, n2 ) ---> n1 = n2
+    return node[0].eqNode(node[1]);
+  }
+  
 
   // splitting
   if (node[0].getKind() == kind::STRING_CONCAT)
@@ -1791,6 +1797,8 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
                                              bool computeRemainder,
                                              int remainderDir)
 {
+  Assert( nb.empty() );
+  Assert( ne.empty() );
   // if n2 is a singleton, we can do optimized version here
   if (n2.size() == 1)
   {
@@ -1898,6 +1906,8 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
 bool TheoryStringsRewriter::componentContainsBase(
     Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder)
 {
+  Assert( n1rb.isNull() );
+  Assert( n1re.isNull() );
   if (n1 == n2)
   {
     return true;
@@ -1928,7 +1938,7 @@ bool TheoryStringsRewriter::componentContainsBase(
           {
             if (computeRemainder)
             {
-              n1rb = NodeManager::currentNM()->mkConst(
+              n1re = NodeManager::currentNM()->mkConst(
                   ::CVC4::String(s.suffix(s.size() - t.size())));
             }
             return true;
@@ -2019,6 +2029,8 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
                                                    std::vector<Node>& ne,
                                                    int dir)
 {
+  Assert( nb.empty() );
+  Assert( ne.empty() );
   bool changed = false;
   // for ( forwards, backwards ) direction
   for (unsigned r = 0; r < 2; r++)
@@ -2190,10 +2202,24 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
   return changed;
 }
 
+bool TheoryStringsRewriter::checkEntailArithEq(Node a, Node b) {
+  if( a==b ){
+    return true;    
+  }else{
+    Node ar = Rewriter::rewrite(a);
+    Node br = Rewriter::rewrite(b);
+    return ar==br;
+  }
+}
+
 bool TheoryStringsRewriter::checkEntailArith(Node a, Node b, bool strict)
 {
-  Node diff = NodeManager::currentNM()->mkNode(kind::MINUS, a, b);
-  return checkEntailArith(diff, strict);
+  if( a==b ){
+    return !strict;
+  }else{
+    Node diff = NodeManager::currentNM()->mkNode(kind::MINUS, a, b);
+    return checkEntailArith(diff, strict);
+  }
 }
 
 bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
@@ -2233,16 +2259,7 @@ bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
     // str.len( t ) >= 0
     return true;
   }
-  else if (a.getKind() == kind::MULT)
-  {
-    if (a.getNumChildren() == 2 && a[0].isConst()
-        && a[0].getConst<Rational>().sgn() >= 0)
-    {
-      // c > 0 ^ t >= 0 => c*t >= 0
-      return checkEntailArithInternal(a[1]);
-    }
-  }
-  else if (a.getKind() == kind::PLUS)
+  else if (a.getKind() == kind::PLUS || a.getKind() == kind::MULT)
   {
     for (unsigned i = 0; i < a.getNumChildren(); i++)
     {
@@ -2251,7 +2268,7 @@ bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
         return false;
       }
     }
-    // t1 >= 0 ^ ... ^ tn >= 0 => t1 + ... + tn >= 0
+    // t1 >= 0 ^ ... ^ tn >= 0 => t1 op ... op tn >= 0
     return true;
   }
 
