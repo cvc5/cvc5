@@ -66,7 +66,8 @@ TESTS = commutative.sy \
         cegar1.sy \
         triv-type-mismatch-si.sy \
         nia-max-square-ns.sy \
-        strings-concat-3-args.sy
+        strings-concat-3-args.sy \
+        ccp16.lus.sy
 
 
 # sygus tests currently taking too long for make regress
