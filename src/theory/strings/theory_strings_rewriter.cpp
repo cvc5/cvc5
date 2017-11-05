@@ -1809,6 +1809,7 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
       {
         if (computeRemainder)
         {
+          n1[i] = n2[0];
           if (remainderDir != -1)
           {
             if (!n1re.isNull())
@@ -1818,7 +1819,10 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
             ne.insert(ne.end(), n1.begin() + i + 1, n1.end());
             n1.erase(n1.begin() + i + 1, n1.end());
           }
-          n1[i] = n2[0];
+          else if (!n1re.isNull())
+          {
+            n1[i] = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::CONCAT, n1[i], n1re) );
+          }
           if (remainderDir != 1)
           {
             nb.insert(nb.end(), n1.begin(), n1.begin() + i);
@@ -1827,6 +1831,10 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
             {
               nb.push_back(n1rb);
             }
+          }
+          else if (!n1rb.isNull())
+          {
+            n1[i] = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::CONCAT, n1rb, n1[i]) );
           }
         }
         return i;
@@ -1871,11 +1879,11 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
                   }
                   ne.insert(ne.end(), n1.begin() + i + j + 1, n1.end());
                   n1.erase(n1.begin() + i + j + 1, n1.end());
+                  n1[i + j] = n2[j];
                 }
-                n1[i + j] = n2[j];
-                n1[i] = n2[0];
                 if (remainderDir != 1)
                 {
+                  n1[i] = n2[0];
                   nb.insert(nb.end(), n1.begin(), n1.begin() + i);
                   n1.erase(n1.begin(), n1.begin() + i);
                   if (!n1rb_first.isNull())
