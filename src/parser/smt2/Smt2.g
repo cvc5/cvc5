@@ -3161,8 +3161,8 @@ FP_RTP_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundTowa
 FP_RTN_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundTowardNegative';
 FP_RTZ_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundTowardZero';
 
-HO_ARROW_TOK : '->';
-HO_LAMBDA_TOK : 'lambda';
+HO_ARROW_TOK : { PARSER_STATE->getLogic().isHigherOrder() }? '->';
+HO_LAMBDA_TOK : { PARSER_STATE->getLogic().isHigherOrder() }? 'lambda';
 
 /**
  * A sequence of printable ASCII characters (except backslash) that starts
