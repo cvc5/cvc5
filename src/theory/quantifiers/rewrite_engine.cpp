@@ -293,7 +293,9 @@ bool RewriteEngine::checkCompleteFor( Node q ) {
 Node RewriteEngine::getInstConstNode( Node n, Node q ) {
   std::map< Node, Node >::iterator it = d_inst_const_node[q].find( n );
   if( it==d_inst_const_node[q].end() ){
-    Node nn = d_quantEngine->getTermUtil()->getInstConstantNode( n, q );
+    Node nn =
+        d_quantEngine->getTermUtil()->substituteBoundVariablesToInstConstants(
+            n, q);
     d_inst_const_node[q][n] = nn;
     return nn;
   }else{

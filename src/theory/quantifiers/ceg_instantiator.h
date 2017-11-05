@@ -40,8 +40,11 @@ public:
 
 class Instantiator;
 
-//stores properties for a variable to solve for in CEGQI
-//  For LIA, this includes the coefficient of the variable, and the bound type for the variable
+/** Term Properties
+ * stores properties for a variable to solve for in CEGQI
+ *  For LIA, this includes the coefficient of the variable, and the bound type
+ * for the variable.
+ */
 class TermProperties {
 public:
   TermProperties() : d_type(0) {}
@@ -76,9 +79,10 @@ public:
   }
 };
 
-//Solved form
-//  This specifies a substitution:
-//  { d_props[i].getModifiedTerm(d_vars[i]) -> d_subs[i] | i = 0...|d_vars| }
+/** Solved form
+ *  This specifies a substitution:
+ *  { d_props[i].getModifiedTerm(d_vars[i]) -> d_subs[i] | i = 0...|d_vars| }
+ */
 class SolvedForm {
 public:
   // list of variables
@@ -89,7 +93,7 @@ public:
   std::vector< TermProperties > d_props;
   // the variables that have non-basic information regarding how they are substituted
   //   an example is for linear arithmetic, we store "substitution with coefficients".
-  std::vector< Node > d_non_basic;
+  std::vector<Node> d_non_basic;
   // push the substitution pv_prop.getModifiedTerm(pv) -> n
   void push_back( Node pv, Node n, TermProperties& pv_prop ){
     d_vars.push_back( pv );
@@ -119,6 +123,8 @@ public:
       d_theta.pop_back();
     }
   }
+  // is this solved form empty?
+  bool empty() { return d_vars.empty(); }
 public:
   // theta values (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
   std::vector< Node > d_theta;
@@ -132,35 +138,105 @@ public:
   }
 };
 
+/** Ceg instantiator
+ *
+ * This class manages counterexample-guided quantifier instantiation
+ * for a single quantified formula.
+ */
 class CegInstantiator {
-private:
-  QuantifiersEngine * d_qe;
-  CegqiOutput * d_out;
+ private:
+  /** quantified formula associated with this instantiator */
+  QuantifiersEngine* d_qe;
+  /** output channel of this instantiator */
+  CegqiOutput* d_out;
+  /** whether we are using delta for virtual term substitution
+    * (for quantified LRA).
+    */
   bool d_use_vts_delta;
+  /** whether we are using infinity for virtual term substitution
+    * (for quantified LRA).
+    */
   bool d_use_vts_inf;
-  //program variable contains cache
-  std::map< Node, std::map< Node, bool > > d_prog_var;
-  std::map< Node, bool > d_inelig;
-  //current assertions
-  std::map< TheoryId, std::vector< Node > > d_curr_asserts;
-  std::map< Node, std::vector< Node > > d_curr_eqc;
-  std::map< TypeNode, std::vector< Node > > d_curr_type_eqc;
-  //auxiliary variables
-  std::vector< Node > d_aux_vars;
-  // relevant theory ids
-  std::vector< TheoryId > d_tids;
-  //literals to equalities for aux vars
-  std::map< Node, std::map< Node, Node > > d_aux_eq;
-  //the CE variables
-  std::vector< Node > d_vars;
-  //index of variables reported in instantiation
-  std::vector< unsigned > d_var_order_index;
-  //atoms of the CE lemma
+  /** cache from nodes to the set of variables it contains
+    * (from the quantified formula we are instantiating).
+    */
+  std::unordered_map<Node,
+                     std::unordered_set<Node, NodeHashFunction>,
+                     NodeHashFunction>
+      d_prog_var;
+  /** cache of the set of terms that we have established are
+   * ineligible for instantiation.
+    */
+  std::unordered_set<Node, NodeHashFunction> d_inelig;
+  /** current assertions per theory */
+  std::map<TheoryId, std::vector<Node> > d_curr_asserts;
+  /** map from representatives to the terms in their equivalence class */
+  std::map<Node, std::vector<Node> > d_curr_eqc;
+  /** map from types to representatives of that type */
+  std::map<TypeNode, std::vector<Node> > d_curr_type_eqc;
+  /** auxiliary variables
+   * These variables include the result of removing ITE
+   * terms from the quantified formula we are processing.
+   * These variables must be eliminated from constraints
+   * as a preprocess step to check().
+   */
+  std::vector<Node> d_aux_vars;
+  /** relevant theory ids
+   * A list of theory ids that contain at least one
+   * constraint in the body of the quantified formula we
+   * are processing.
+   */
+  std::vector<TheoryId> d_tids;
+  /** literals to equalities for aux vars
+   * This stores entries of the form
+   *   L -> ( k -> t )
+   * where
+   *   k is a variable in d_aux_vars,
+   *   L is a literal that if asserted implies that our
+   *    instantiation should map { k -> t }.
+   * For example, if a term of the form
+   *   ite( C, t1, t2 )
+   * was replaced by k, we get this (top-level) assertion:
+   *   ite( C, k=t1, k=t2 )
+   * The vector d_aux_eq contains the exact form of
+   * the literals in the above constraint that they would
+   * appear in assertions, meaning d_aux_eq may contain:
+   *   t1=k -> ( k -> t1 )
+   *   t2=k -> ( k -> t2 )
+   * where t1=k and t2=k are the rewritten form of
+   * k=t1 and k=t2 respectively.
+   */
+  std::map<Node, std::map<Node, Node> > d_aux_eq;
+  /** the variables we are instantiating
+   * These are the inst constants of the quantified formula
+   * we are processing.
+   */
+  std::vector<Node> d_vars;
+  /** set form of d_vars */
+  std::unordered_set<Node, NodeHashFunction> d_vars_set;
+  /** index of variables reported in instantiation */
+  std::vector<unsigned> d_var_order_index;
+  /** are we handled a nested quantified formula? */
   bool d_is_nested_quant;
-  std::vector< Node > d_ce_atoms;
-  //collect atoms
-  void collectCeAtoms( Node n, std::map< Node, bool >& visited );
-private:
+  /** the atoms of the CE lemma */
+  std::vector<Node> d_ce_atoms;
+  /** cache bound variables for type returned
+   * by getBoundVariable(...).
+   */
+  std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
+      d_bound_var;
+  /** current index of bound variables for type.
+   * The next call to getBoundVariable(...) for
+   * type tn returns the d_bound_var_index[tn]^th
+   * element of d_bound_var[tn], or a fresh variable
+   * if not in bounds.
+   */
+  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>
+      d_bound_var_index;
+  /** collect atoms */
+  void collectCeAtoms(Node n, std::map<Node, bool>& visited);
+
+ private:
   //map from variables to their instantiators
   std::map< Node, Instantiator * > d_instantiator;
   //cache of current substitutions tried between register/unregister
@@ -168,7 +244,7 @@ private:
   std::map< Node, unsigned > d_curr_index;
   //stack of temporary variables we are solving (e.g. subfields of datatypes)
   std::vector< Node > d_stack_vars;
-  //used instantiators
+  /** for each variable, the instantiator used for that variable */
   std::map< Node, Instantiator * > d_active_instantiators;
   //register variable
   void registerInstantiationVariable( Node v, unsigned index );
@@ -222,22 +298,57 @@ public:
   CegqiOutput * getOutput() { return d_out; }
   //get quantifiers engine
   QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
-
-//interface for instantiators
-public:
+  //------------------------------interface for instantiators
+  /** push stack variable
+   * This adds a new variable to solve for in the stack
+   * of variables we are processing. This stack is only
+   * used for datatypes, where e.g. the DtInstantiator
+   * solving for a list x may push the stack "variables"
+   * head(x) and tail(x).
+   */
   void pushStackVariable( Node v );
+  /** pop stack variable */
   void popStackVariable();
-  bool doAddInstantiationInc( Node pv, Node n, TermProperties& pv_prop, SolvedForm& sf, unsigned effort );
+  /** do add instantiation increment
+   *
+   * Adds the substitution { pv_prop.getModifiedTerm(pv) -> n } to the current
+   * instantiation, specified by sf.
+   *
+   * This function returns true if a call to
+   * QuantifiersEngine::addInstantiation(...)
+   * was successfully made in a recursive call.
+   *
+   * The solved form sf is reverted to its original state if
+   *   this function returns false, or
+   *   revertOnSuccess is true and this function returns true.
+   */
+  bool doAddInstantiationInc(Node pv,
+                             Node n,
+                             TermProperties& pv_prop,
+                             SolvedForm& sf,
+                             unsigned effort,
+                             bool revertOnSuccess = false);
+  /** get the current model value of term n */
   Node getModelValue( Node n );
-public:
+  /** get bound variable for type
+   *
+   * This gets the next (canonical) bound variable of
+   * type tn. This can be used for instance when
+   * constructing instantiations that involve choice expressions.
+   */
+  Node getBoundVariable(TypeNode tn);
+  //------------------------------end interface for instantiators
   unsigned getNumCEAtoms() { return d_ce_atoms.size(); }
   Node getCEAtom( unsigned i ) { return d_ce_atoms[i]; }
-  // is eligible
+  /** is n a term that is eligible for instantiation? */
   bool isEligible( Node n );
-  // has variable
+  /** does n have variable pv? */
   bool hasVariable( Node n, Node pv );
+  /** are we using delta for LRA virtual term substitution? */
   bool useVtsDelta() { return d_use_vts_delta; }
+  /** are we using infinity for LRA virtual term substitution? */
   bool useVtsInfinity() { return d_use_vts_inf; }
+  /** are we processing a nested quantified formula? */
   bool hasNestedQuantification() { return d_is_nested_quant; }
 };
 

@@ -28,14 +28,15 @@
 #include "options/arith_unate_lemma_mode.h"
 #include "options/base_handlers.h"
 #include "options/bv_bitblast_mode.h"
-#include "options/decision_mode.h"
 #include "options/datatypes_modes.h"
+#include "options/decision_mode.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/options.h"
 #include "options/printer_modes.h"
 #include "options/quantifiers_modes.h"
 #include "options/simplification_mode.h"
+#include "options/sygus_out_mode.h"
 #include "options/theoryof_mode.h"
 #include "options/ufss_mode.h"
 
@@ -98,6 +99,8 @@ public:
   theory::quantifiers::PrenexQuantMode stringToPrenexQuantMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::TermDbMode stringToTermDbMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::IteLiftQuantMode stringToIteLiftQuantMode(std::string option, std::string optarg) throw(OptionException);
+  theory::quantifiers::CbqiBvIneqMode stringToCbqiBvIneqMode(
+      std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::CegqiSingleInvMode stringToCegqiSingleInvMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::MacrosQuantMode stringToMacrosQuantMode(std::string option, std::string optarg) throw(OptionException);
@@ -141,6 +144,8 @@ public:
   void notifyBeforeSearch(const std::string& option) throw(ModalException);
   void notifyDumpMode(std::string option) throw(OptionException);
   SimplificationMode stringToSimplificationMode(std::string option, std::string optarg) throw(OptionException);
+  SygusSolutionOutMode stringToSygusSolutionOutMode(
+      std::string option, std::string optarg) throw(OptionException);
   void setProduceAssertions(std::string option, bool value) throw();
   void proofEnabledBuild(std::string option, bool value) throw(OptionException);
   void LFSCEnabledBuild(std::string option, bool value);
@@ -216,6 +221,8 @@ public:
   static const std::string s_qcfModeHelp;
   static const std::string s_qcfWhenModeHelp;
   static const std::string s_simplificationHelp;
+  static const std::string s_sygusSolutionOutModeHelp;
+  static const std::string s_cbqiBvIneqModeHelp;
   static const std::string s_cegqiSingleInvHelp;
   static const std::string s_sygusInvTemplHelp;
   static const std::string s_termDbModeHelp;

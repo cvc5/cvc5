@@ -19,36 +19,41 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/datatypes/theory_datatypes.h"
-#include "theory/sep/theory_sep.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/ambqi_builder.h"
+#include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/ceg_t_instantiator.h"
 #include "theory/quantifiers/conjecture_generator.h"
+#include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/fun_def_engine.h"
+#include "theory/quantifiers/inst_propagator.h"
 #include "theory/quantifiers/inst_strategy_cbqi.h"
 #include "theory/quantifiers/inst_strategy_e_matching.h"
+#include "theory/quantifiers/inst_strategy_enumerative.h"
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/model_engine.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quant_conflict_find.h"
+#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_equality_engine.h"
+#include "theory/quantifiers/quant_relevance.h"
+#include "theory/quantifiers/quant_split.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
-#include "theory/quantifiers/quant_split.h"
-#include "theory/quantifiers/anti_skolem.h"
-#include "theory/quantifiers/equality_infer.h"
-#include "theory/quantifiers/inst_propagator.h"
+#include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
@@ -62,14 +67,16 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 
 QuantifiersEngine::QuantifiersEngine(context::Context* c,
-                                     context::UserContext* u, TheoryEngine* te)
+                                     context::UserContext* u,
+                                     TheoryEngine* te)
     : d_te(te),
+      d_quant_attr(new quantifiers::QuantAttributes(this)),
+      d_skolemize(new quantifiers::Skolemize(this, u)),
+      d_term_enum(new quantifiers::TermEnumeration),
       d_conflict_c(c, false),
       // d_quants(u),
       d_quants_red(u),
       d_lemmas_produced_c(u),
-      d_skolemized(u),
-      d_quant_attr(new quantifiers::QuantAttributes(this)),
       d_ierCounter_c(c),
       // d_ierCounter(c),
       // d_ierCounter_lc(c),
@@ -78,15 +85,18 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_presolve_in(u),
       d_presolve_cache(u),
       d_presolve_cache_wq(u),
-      d_presolve_cache_wic(u) {
+      d_presolve_cache_wic(u)
+{
   //utilities
   d_eq_query = new quantifiers::EqualityQueryQuantifiersEngine( c, this );
   d_util.push_back( d_eq_query );
 
+  // term util must come first
+  d_term_util = new quantifiers::TermUtil(this);
+  d_util.push_back(d_term_util);
+
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_util.push_back( d_term_db );
-  
-  d_term_util = new quantifiers::TermUtil( this );
   
   if (options::ceGuidedInst()) {
     d_sygus_tdb = new quantifiers::TermDbSygus(c, this);
@@ -121,14 +131,15 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   if( options::relevantTriggers() ){
-    d_quant_rel = new QuantRelevance( false );
+    d_quant_rel = new quantifiers::QuantRelevance(false);
+    d_util.push_back(d_quant_rel);
   }else{
     d_quant_rel = NULL;
   }
 
   if( options::quantEpr() ){
     Assert( !options::incrementalSolving() );
-    d_qepr = new QuantEPR;
+    d_qepr = new quantifiers::QuantEPR;
   }else{
     d_qepr = NULL;
   }
@@ -293,7 +304,7 @@ void QuantifiersEngine::finishInit(){
   }
   //full saturation : instantiate from relevant domain, then arbitrary terms
   if( options::fullSaturateQuant() || options::fullSaturateInterleave() ){
-    d_fs = new quantifiers::FullSaturation( this );
+    d_fs = new quantifiers::InstStrategyEnum(this);
     d_modules.push_back( d_fs );
     needsRelDom = true;
   }
@@ -360,7 +371,9 @@ bool QuantifiersEngine::isFiniteBound( Node q, Node v ) {
     TypeNode tn = v.getType();
     if( tn.isSort() && options::finiteModelFind() ){
       return true;
-    }else if( getTermUtil()->mayComplete( tn ) ){
+    }
+    else if (d_term_enum->mayComplete(tn))
+    {
       return true;
     }
   }
@@ -740,16 +753,14 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       d_quants[f] = false;
       return false;
     }else{
-      // register with utilities : TODO (#1163) make this a standard call
-      
-      d_term_util->registerQuantifier( f );
-      d_term_db->registerQuantifier( f );
-      d_quant_attr->computeAttributes( f );
-      //register with quantifier relevance
-      if( d_quant_rel ){
-        d_quant_rel->registerQuantifier( f );
+      // register with utilities
+      for (unsigned i = 0; i < d_util.size(); i++)
+      {
+        d_util[i]->registerQuantifier(f);
       }
-      
+      // compute attributes
+      d_quant_attr->computeAttributes(f);
+
       for( unsigned i=0; i<d_modules.size(); i++ ){
         Trace("quant-debug") << "pre-register with " << d_modules[i]->identify() << "..." << std::endl;
         d_modules[i]->preRegisterQuantifier( f );
@@ -765,10 +776,6 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       }
       //TODO: remove this
       Node ceBody = d_term_util->getInstConstantBody( f );
-      //also register it with the strong solver
-      //if( options::finiteModelFind() ){
-      //  ((uf::TheoryUF*)d_te->theoryOf( THEORY_UF ))->getStrongSolver()->registerQuantifier( f );
-      //}
       Trace("quant-debug")  << "...finish." << std::endl;
       d_quants[f] = true;
       // flush lemmas
@@ -792,17 +799,14 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     //if not reduced
     if( !reduceQuantifier( f ) ){
       //do skolemization
-      if( d_skolemized.find( f )==d_skolemized.end() ){
-        Node body = d_term_util->getSkolemizedBody( f );
-        NodeBuilder<> nb(kind::OR);
-        nb << f << body.notNode();
-        Node lem = nb;
+      Node lem = d_skolemize->process(f);
+      if (!lem.isNull())
+      {
         if( Trace.isOn("quantifiers-sk-debug") ){
           Node slem = Rewriter::rewrite( lem );
           Trace("quantifiers-sk-debug") << "Skolemize lemma : " << slem << std::endl;
         }
         getOutputChannel().lemma( lem, false, true );
-        d_skolemized[f] = true;
       }
     }
   }else{
@@ -821,9 +825,6 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
 void QuantifiersEngine::propagate( Theory::Effort level ){
   CodeTimer codeTimer(d_statistics.d_time);
 
-  for( int i=0; i<(int)d_modules.size(); i++ ){
-    d_modules[i]->propagate( level );
-  }
 }
 
 Node QuantifiersEngine::getNextDecisionRequest( unsigned& priority ){
@@ -851,8 +852,8 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
   //only wait if we are doing incremental solving
   if( !d_presolve || !options::incrementalSolving() ){
     std::set< Node > added;
-    getTermDatabase()->addTerm( n, added, withinQuant, withinInstClosure );
-    
+    d_term_db->addTerm(n, added, withinQuant, withinInstClosure);
+
     //added contains also the Node that just have been asserted in this branch
     if( d_quant_rel ){
       for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){
@@ -1128,15 +1129,16 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   for( unsigned i=0; i<terms.size(); i++ ){
     Trace("inst-add-debug") << "  " << q[0][i];
     Trace("inst-add-debug2") << " -> " << terms[i];
+    TypeNode tn = q[0][i].getType();
     if( terms[i].isNull() ){
-      terms[i] = d_term_db->getModelBasisTerm( q[0][i].getType() );
+      terms[i] = getTermForType(tn);
     }
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
       terms[i] = getInternalRepresentative( terms[i], q, i );
     }else{
       //ensure the type is correct
-      terms[i] = quantifiers::TermUtil::ensureType( terms[i], q[0][i].getType() );
+      terms[i] = quantifiers::TermUtil::ensureType(terms[i], tn);
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if( terms[i].isNull() ){
@@ -1512,18 +1514,12 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
   }
 
   bool printed = false;
-  for( BoolMap::iterator it = d_skolemized.begin(); it != d_skolemized.end(); ++it ){
-    Node q = (*it).first;
+  // print the skolemizations
+  if (d_skolemize->printSkolemization(out))
+  {
     printed = true;
-    out << "(skolem " << q << std::endl;
-    out << "  ( ";
-    for( unsigned i=0; i<d_term_util->d_skolem_constants[q].size(); i++ ){
-      if( i>0 ){ out << " "; }
-      out << d_term_util->d_skolem_constants[q][i];
-    }
-    out << " )" << std::endl;
-    out << ")" << std::endl;
   }
+  // print the instantiations
   if( options::incrementalSolving() ){
     for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
       bool firstTime = true;
@@ -1711,7 +1707,7 @@ eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine(){
 
 eq::EqualityEngine* QuantifiersEngine::getActiveEqualityEngine() {
   if( d_useModelEe ){
-    return d_model->d_equalityEngine;
+    return d_model->getEqualityEngine();
   }else{
     return d_te->getMasterEqualityEngine();
   }
@@ -1723,6 +1719,18 @@ Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
   Node ret = d_eq_query->getInternalRepresentative( a, q, index );
   d_useModelEe = prevModelEe;
   return ret;
+}
+
+Node QuantifiersEngine::getTermForType(TypeNode tn)
+{
+  if (d_term_enum->isClosedEnumerableType(tn))
+  {
+    return d_term_enum->getEnumerateTerm(tn, 0);
+  }
+  else
+  {
+    return d_term_db->getOrMakeTypeGroundTerm(tn);
+  }
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {

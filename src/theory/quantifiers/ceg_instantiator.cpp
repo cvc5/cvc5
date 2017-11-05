@@ -18,12 +18,12 @@
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
-
 
 using namespace std;
 using namespace CVC4;
@@ -46,24 +46,35 @@ CegInstantiator::~CegInstantiator() {
 void CegInstantiator::computeProgVars( Node n ){
   if( d_prog_var.find( n )==d_prog_var.end() ){
     d_prog_var[n].clear();
-    if( std::find( d_vars.begin(), d_vars.end(), n )!=d_vars.end() ){
-      d_prog_var[n][n] = true;
+    if (n.getKind() == kind::CHOICE)
+    {
+      Assert(d_prog_var.find(n[0][0]) == d_prog_var.end());
+      d_prog_var[n[0][0]].clear();
+    }
+    if (d_vars_set.find(n) != d_vars_set.end())
+    {
+      d_prog_var[n].insert(n);
     }else if( !d_out->isEligibleForInstantiation( n ) ){
-      d_inelig[n] = true;
+      d_inelig.insert(n);
       return;
     }
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       computeProgVars( n[i] );
       if( d_inelig.find( n[i] )!=d_inelig.end() ){
-        d_inelig[n] = true;
+        d_inelig.insert(n);
       }
-      for( std::map< Node, bool >::iterator it = d_prog_var[n[i]].begin(); it != d_prog_var[n[i]].end(); ++it ){
-        d_prog_var[n][it->first] = true;
-      }
-      //selectors applied to program variables are also variables
-      if( n.getKind()==APPLY_SELECTOR_TOTAL && d_prog_var[n].find( n[0] )!=d_prog_var[n].end() ){
-        d_prog_var[n][n] = true;
-      }
+      // all variables in child are contained in this
+      d_prog_var[n].insert(d_prog_var[n[i]].begin(), d_prog_var[n[i]].end());
+    }
+    // selectors applied to program variables are also variables
+    if (n.getKind() == APPLY_SELECTOR_TOTAL
+        && d_prog_var[n].find(n[0]) != d_prog_var[n].end())
+    {
+      d_prog_var[n].insert(n);
+    }
+    if (n.getKind() == kind::CHOICE)
+    {
+      d_prog_var.erase(n[0][0]);
     }
   }
 }
@@ -113,7 +124,8 @@ void CegInstantiator::unregisterInstantiationVariable( Node v ) {
 bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned effort ){
   if( i==d_vars.size() ){
     //solved for all variables, now construct instantiation
-    bool needsPostprocess = false;
+    bool needsPostprocess =
+        sf.d_vars.size() > d_vars.size() || !d_var_order_index.empty();
     std::vector< Instantiator * > pp_inst;
     std::map< Instantiator *, Node > pp_inst_to_var;
     std::vector< Node > lemmas;
@@ -362,7 +374,13 @@ void CegInstantiator::popStackVariable() {
   d_stack_vars.pop_back();
 }
 
-bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv_prop, SolvedForm& sf, unsigned effort ) {
+bool CegInstantiator::doAddInstantiationInc(Node pv,
+                                            Node n,
+                                            TermProperties& pv_prop,
+                                            SolvedForm& sf,
+                                            unsigned effort,
+                                            bool revertOnSuccess)
+{
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
@@ -453,12 +471,14 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
       Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
       unsigned i = d_curr_index[pv];
       success = doAddInstantiation( sf, d_stack_vars.empty() ? i+1 : i, effort );
-      if( !success ){
+      if (!success || revertOnSuccess)
+      {
         Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
         sf.pop_back( pv, n, pv_prop );
       }
     }
-    if( success ){
+    if (success && !revertOnSuccess)
+    {
       return true;
     }else{
       Trace("cbqi-inst-debug2") << "Revert substitutions..." << std::endl;
@@ -472,7 +492,7 @@ bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, TermProperties& pv
       for( unsigned i=0; i<new_non_basic.size(); i++ ){
         sf.d_non_basic.pop_back();
       }
-      return false;
+      return success;
     }
   }else{
     //already tried this substitution
@@ -514,8 +534,13 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
 bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic ){
   Assert( d_prog_var.find( n )!=d_prog_var.end() );
   if( !non_basic.empty() ){
-    for( std::map< Node, bool >::iterator it = d_prog_var[n].begin(); it != d_prog_var[n].end(); ++it ){
-      if( std::find( non_basic.begin(), non_basic.end(), it->first )!=non_basic.end() ){
+    for (std::unordered_set<Node, NodeHashFunction>::iterator it =
+             d_prog_var[n].begin();
+         it != d_prog_var[n].end();
+         ++it)
+    {
+      if (std::find(non_basic.begin(), non_basic.end(), *it) != non_basic.end())
+      {
         return false;
       }
     }
@@ -691,6 +716,7 @@ bool CegInstantiator::check() {
   for( unsigned r=0; r<2; r++ ){
     SolvedForm sf;
     d_stack_vars.clear();
+    d_bound_var_index.clear();
     //try to add an instantiation
     if( doAddInstantiation( sf, 0, r==0 ? 0 : 2 ) ){
       return true;
@@ -971,6 +997,26 @@ Node CegInstantiator::getModelValue( Node n ) {
   return d_qe->getModel()->getValue( n );
 }
 
+Node CegInstantiator::getBoundVariable(TypeNode tn)
+{
+  unsigned index = 0;
+  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>::iterator itb =
+      d_bound_var_index.find(tn);
+  if (itb != d_bound_var_index.end())
+  {
+    index = itb->second;
+  }
+  d_bound_var_index[tn] = index + 1;
+  while (index >= d_bound_var[tn].size())
+  {
+    std::stringstream ss;
+    ss << "x" << index;
+    Node x = NodeManager::currentNM()->mkBoundVar(ss.str(), tn);
+    d_bound_var[tn].push_back(x);
+  }
+  return d_bound_var[tn][index];
+}
+
 void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) {
   if( n.getKind()==FORALL ){
     d_is_nested_quant = true;
@@ -1002,6 +1048,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   //Assert( d_vars.empty() );
   d_vars.clear();
   d_vars.insert( d_vars.end(), ce_vars.begin(), ce_vars.end() );
+  d_vars_set.insert(ce_vars.begin(), ce_vars.end());
 
   //determine variable order: must do Reals before Ints
   if( !d_vars.empty() ){
@@ -1092,7 +1139,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
 
 
 Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn ){
-  d_closed_enum_type = qe->getTermUtil()->isClosedEnumerableType( tn );
+  d_closed_enum_type = qe->getTermEnumeration()->isClosedEnumerableType(tn);
 }
 
 

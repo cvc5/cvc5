@@ -92,21 +92,29 @@ TESTS =	\
 	bug822.smt2 \
 	qbv-test-invert-mul.smt2 \
 	qbv-test-invert-bvand.smt2 \
+	qbv-test-invert-bvcomp.smt2 \
 	qbv-test-invert-bvor.smt2 \
 	qbv-test-invert-bvlshr-0.smt2 \
+	qbv-test-invert-bvashr-0.smt2 \
  	qbv-test-invert-bvurem-1.smt2 \
 	qbv-test-invert-concat-0.smt2 \
 	qbv-test-invert-concat-1.smt2 \
+	qbv-test-invert-disequality.smt2 \
 	qbv-test-invert-shl.smt2 \
 	qbv-test-invert-udiv-0.smt2 \
 	qbv-test-invert-udiv-1.smt2 \
+	qbv-test-invert-sign-extend.smt2 \
+	qbv-test-invert-bvxor.smt2 \
 	qbv-simple-2vars-vo.smt2 \
 	qbv-test-urem-rewrite.smt2 \
 	qbv-inequality2.smt2 \
 	qbv-test-invert-bvult-1.smt2 \
 	intersection-example-onelane.proof-node22337.smt2 \
  	nested9_true-unreach-call.i_575.smt2 \
- 	small-pipeline-fixpoint-3.smt2
+ 	small-pipeline-fixpoint-3.smt2 \
+	NUM878.smt2 \
+	psyco-107-bv.smt2 \
+	ari118-bv-2occ-x.smt2
  
 
 # regression can be solved with --finite-model-find --fmf-inst-engine

@@ -84,11 +84,12 @@ bool String::rstrncmp(const String &y, const std::size_t np) const {
   return true;
 }
 
-std::vector<unsigned> String::toInternal(const std::string &s) {
+std::vector<unsigned> String::toInternal(const std::string &s,
+                                         bool useEscSequences) {
   std::vector<unsigned> str;
   unsigned i = 0;
   while (i < s.size()) {
-    if (s[i] == '\\') {
+    if (s[i] == '\\' && useEscSequences) {
       i++;
       if (i < s.size()) {
         switch (s[i]) {
@@ -140,6 +141,7 @@ std::vector<unsigned> String::toInternal(const std::string &s) {
           } break;
           default: {
             if (isdigit(s[i])) {
+              // octal escape sequences  TODO : revisit (issue #1251).
               int num = (int)s[i] - (int)'0';
               bool flag = num < 4;
               if (i + 1 < s.size() && num < 8 && isdigit(s[i + 1]) &&
@@ -171,7 +173,7 @@ std::vector<unsigned> String::toInternal(const std::string &s) {
         throw CVC4::Exception("should be handled by lexer: \"" + s + "\"");
         // str.push_back( convertCharToUnsignedInt('\\') );
       }
-    } else if ((unsigned)s[i] > 127) {
+    } else if ((unsigned)s[i] > 127 && useEscSequences) {
       throw CVC4::Exception("Illegal String Literal: \"" + s +
                             "\", must use escaped sequence");
     } else {
@@ -211,11 +213,13 @@ std::size_t String::roverlap(const String &y) const {
   return i;
 }
 
-std::string String::toString() const {
+std::string String::toString(bool useEscSequences) const {
   std::string str;
   for (unsigned int i = 0; i < size(); ++i) {
     unsigned char c = convertUnsignedIntToChar(d_str[i]);
-    if (isprint(c)) {
+    if (!useEscSequences) {
+      str += c;
+    } else if (isprint(c)) {
       if (c == '\\') {
         str += "\\\\";
       }
@@ -353,12 +357,18 @@ bool String::isNumber() const {
     return false;
   }
   for (unsigned character : d_str) {
-    unsigned char c = convertUnsignedIntToChar(character);
-    if (c < '0' || c > '9') {
+    if (!isDigit(character))
+    {
       return false;
     }
   }
   return true;
+}
+
+bool String::isDigit(unsigned character)
+{
+  unsigned char c = convertUnsignedIntToChar(character);
+  return c >= '0' && c <= '9';
 }
 
 int String::toNumber() const {
@@ -386,7 +396,7 @@ unsigned char String::hexToDec(unsigned char c) {
 }
 
 std::ostream &operator<<(std::ostream &os, const String &s) {
-  return os << "\"" << s.toString() << "\"";
+  return os << "\"" << s.toString(true) << "\"";
 }
 
 std::ostream &operator<<(std::ostream &out, const RegExp &s) {

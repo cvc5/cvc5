@@ -39,6 +39,8 @@ option dumpProofs --dump-proofs bool :default false :link --proof :link-smt prod
  output proofs after every UNSAT/VALID response
 option dumpInstantiations --dump-instantiations bool :default false
  output instantiations of quantified formulas after every UNSAT/VALID response
+option sygusOut --sygus-out=MODE SygusSolutionOutMode :default SYGUS_SOL_OUT_STATUS_AND_DEF :include "options/sygus_out_mode.h" :handler stringToSygusSolutionOutMode :read-write
+  output mode for sygus
 option dumpSynth --dump-synth bool :read-write :default false
  output solution for synthesis conjectures after every UNSAT/VALID response
 option unsatCores produce-unsat-cores --produce-unsat-cores bool :predicate proofEnabledBuild :notify :notify notifyBeforeSearch

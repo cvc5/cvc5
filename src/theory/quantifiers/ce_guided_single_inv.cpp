@@ -17,10 +17,10 @@
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
-#include "theory/quantifiers/ce_guided_single_inv_ei.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
@@ -126,8 +126,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
   std::vector< Node > progs;
   std::map< Node, std::vector< Node > > prog_vars;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-    Node v = q[0][i];
-    Node sf = v.getAttribute(SygusSynthFunAttribute());
+    Node sf = q[0][i];
     progs.push_back( sf );
     Node sfvl = sf.getAttribute(SygusSynthFunVarListAttribute());
     for( unsigned j=0; j<sfvl.getNumChildren(); j++ ){
@@ -469,12 +468,13 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
   Assert( !d_lemmas_produced.empty() );
   const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
   Node varList = Node::fromExpr( dt.getSygusVarList() );
-  Node prog = d_quant[0][sol_index].getAttribute(SygusSynthFunAttribute());
+  Node prog = d_quant[0][sol_index];
   std::vector< Node > vars;
   Node s;
   if( d_prog_to_sol_index.find( prog )==d_prog_to_sol_index.end() ){
     Trace("csi-sol") << "Get solution for (unconstrained) " << prog << std::endl;
-    s = d_qe->getTermUtil()->getEnumerateTerm( TypeNode::fromType( dt.getSygusType() ), 0 );
+    s = d_qe->getTermEnumeration()->getEnumerateTerm(
+        TypeNode::fromType(dt.getSygusType()), 0);
   }else{
     Trace("csi-sol") << "Get solution for " << prog << ", with skolems : ";
     sol_index = d_prog_to_sol_index[prog];

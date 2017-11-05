@@ -104,9 +104,17 @@ void TermDb::registerQuantifier( Node q ) {
   }
 }
 
+unsigned TermDb::getNumOperators() { return d_ops.size(); }
+Node TermDb::getOperator(unsigned i)
+{
+  Assert(i < d_ops.size());
+  return d_ops[i];
+}
+
 /** ground terms */
-unsigned TermDb::getNumGroundTerms( Node f ) {
-  std::map< Node, std::vector< Node > >::iterator it = d_op_map.find( f );
+unsigned TermDb::getNumGroundTerms(Node f) const
+{
+  std::map<Node, std::vector<Node> >::const_iterator it = d_op_map.find(f);
   if( it!=d_op_map.end() ){
     return it->second.size();
   }else{
@@ -114,13 +122,25 @@ unsigned TermDb::getNumGroundTerms( Node f ) {
   }
 }
 
-Node TermDb::getGroundTerm( Node f, unsigned i ) {
-  Assert( i<d_op_map[f].size() );
-  return d_op_map[f][i];
+Node TermDb::getGroundTerm(Node f, unsigned i) const
+{
+  std::map<Node, std::vector<Node> >::const_iterator it = d_op_map.find(f);
+  if (it != d_op_map.end())
+  {
+    Assert(i < it->second.size());
+    return it->second[i];
+  }
+  else
+  {
+    Assert(false);
+    return Node::null();
+  }
 }
 
-unsigned TermDb::getNumTypeGroundTerms( TypeNode tn ) {
-  std::map< TypeNode, std::vector< Node > >::iterator it = d_type_map.find( tn );
+unsigned TermDb::getNumTypeGroundTerms(TypeNode tn) const
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_map.find(tn);
   if( it!=d_type_map.end() ){
     return it->second.size();
   }else{
@@ -128,9 +148,61 @@ unsigned TermDb::getNumTypeGroundTerms( TypeNode tn ) {
   }
 }
 
-Node TermDb::getTypeGroundTerm( TypeNode tn, unsigned i ) {
-  Assert( i<d_type_map[tn].size() );
-  return d_type_map[tn][i];
+Node TermDb::getTypeGroundTerm(TypeNode tn, unsigned i) const
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_map.find(tn);
+  if (it != d_type_map.end())
+  {
+    Assert(i < it->second.size());
+    return it->second[i];
+  }
+  else
+  {
+    Assert(false);
+    return Node::null();
+  }
+}
+
+Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn)
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_map.find(tn);
+  if (it != d_type_map.end())
+  {
+    Assert(!it->second.empty());
+    return it->second[0];
+  }
+  else
+  {
+    return getOrMakeTypeFreshVariable(tn);
+  }
+}
+
+Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
+{
+  std::unordered_map<TypeNode, Node, TypeNodeHashFunction>::iterator it =
+      d_type_fv.find(tn);
+  if (it == d_type_fv.end())
+  {
+    std::stringstream ss;
+    ss << language::SetLanguage(options::outputLanguage());
+    ss << "e_" << tn;
+    Node k = NodeManager::currentNM()->mkSkolem(
+        ss.str(), tn, "is a termDb fresh variable");
+    Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
+                   << std::endl;
+    if (options::instMaxLevel() != -1)
+    {
+      QuantifiersEngine::setInstantiationLevelAttr(k, 0);
+    }
+    d_type_fv[tn] = k;
+    return k;
+  }
+  else
+  {
+    return it->second;
+  }
 }
 
 Node TermDb::getMatchOperator( Node n ) {
@@ -172,12 +244,10 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
         //if this is an atomic trigger, consider adding it
         if( inst::Trigger::isAtomicTrigger( n ) ){
           Trace("term-db") << "register term in db " << n << std::endl;
-          if( options::finiteModelFind() ){
-            computeModelBasisArgAttribute( n );
-          }
-          
+
           Node op = getMatchOperator( n );
           Trace("term-db-debug") << "  match operator is : " << op << std::endl;
+          d_ops.push_back(op);
           d_op_map[op].push_back( n );
           added.insert( n );
           
@@ -720,7 +790,9 @@ void TermDb::setHasTerm( Node n ) {
 
 void TermDb::presolve() {
   if( options::incrementalSolving() ){
-    //reset the caches that are SAT context-independent
+    // reset the caches that are SAT context-independent but user
+    // context-dependent
+    d_ops.clear();
     d_op_map.clear();
     d_type_map.clear();
     d_processed.clear();
@@ -881,92 +953,6 @@ TNode TermDb::getCongruentTerm( Node f, std::vector< TNode >& args ) {
   }
   computeUfTerms( f );
   return d_func_map_trie[f].existsTerm( args );
-}
-
-
-Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
-  if( d_model_basis_term.find( tn )==d_model_basis_term.end() ){
-    Node mbt;
-    if( tn.isInteger() || tn.isReal() ){
-      mbt = NodeManager::currentNM()->mkConst(Rational(0));
-    }else if( d_quantEngine->getTermUtil()->isClosedEnumerableType( tn ) ){
-      mbt = tn.mkGroundTerm();
-    }else{
-      if( options::fmfFreshDistConst() || d_type_map[ tn ].empty() ){
-        std::stringstream ss;
-        ss << language::SetLanguage(options::outputLanguage());
-        ss << "e_" << tn;
-        mbt = NodeManager::currentNM()->mkSkolem( ss.str(), tn, "is a model basis term" );
-        Trace("mkVar") << "ModelBasis:: Make variable " << mbt << " : " << tn << std::endl;
-        if( options::instMaxLevel()!=-1 ){
-          QuantifiersEngine::setInstantiationLevelAttr( mbt, 0 );
-        }
-      }else{
-        mbt = d_type_map[ tn ][ 0 ];
-      }
-    }
-    ModelBasisAttribute mba;
-    mbt.setAttribute(mba,true);
-    d_model_basis_term[tn] = mbt;
-    Trace("model-basis-term") << "Choose " << mbt << " as model basis term for " << tn << std::endl;
-  }
-  return d_model_basis_term[tn];
-}
-
-Node TermDb::getModelBasisOpTerm( Node op ){
-  if( d_model_basis_op_term.find( op )==d_model_basis_op_term.end() ){
-    TypeNode t = op.getType();
-    std::vector< Node > children;
-    children.push_back( op );
-    for( int i=0; i<(int)(t.getNumChildren()-1); i++ ){
-      children.push_back( getModelBasisTerm( t[i] ) );
-    }
-    if( children.size()==1 ){
-      d_model_basis_op_term[op] = op;
-    }else{
-      d_model_basis_op_term[op] = NodeManager::currentNM()->mkNode( APPLY_UF, children );
-    }
-  }
-  return d_model_basis_op_term[op];
-}
-
-Node TermDb::getModelBasis( Node q, Node n ){
-  //make model basis
-  if( d_model_basis_terms.find( q )==d_model_basis_terms.end() ){
-    for( unsigned j=0; j<q[0].getNumChildren(); j++ ){
-      d_model_basis_terms[q].push_back( getModelBasisTerm( q[0][j].getType() ) );
-    }
-  }
-  Node gn = n.substitute( d_quantEngine->getTermUtil()->d_inst_constants[q].begin(), 
-                          d_quantEngine->getTermUtil()->d_inst_constants[q].end(),
-                          d_model_basis_terms[q].begin(), d_model_basis_terms[q].end() );
-  return gn;
-}
-
-Node TermDb::getModelBasisBody( Node q ){
-  if( d_model_basis_body.find( q )==d_model_basis_body.end() ){
-    Node n = d_quantEngine->getTermUtil()->getInstConstantBody( q );
-    d_model_basis_body[q] = getModelBasis( q, n );
-  }
-  return d_model_basis_body[q];
-}
-
-void TermDb::computeModelBasisArgAttribute( Node n ){
-  if( !n.hasAttribute(ModelBasisArgAttribute()) ){
-    //ensure that the model basis terms have been defined
-    if( n.getKind()==APPLY_UF ){
-      getModelBasisOpTerm( n.getOperator() );
-    }
-    uint64_t val = 0;
-    //determine if it has model basis attribute
-    for( unsigned j=0; j<n.getNumChildren(); j++ ){
-      if( n[j].getAttribute(ModelBasisAttribute()) ){
-        val++;
-      }
-    }
-    ModelBasisArgAttribute mbaa;
-    n.setAttribute( mbaa, val );
-  }
 }
 
 }/* CVC4::theory::quantifiers namespace */

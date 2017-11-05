@@ -50,30 +50,38 @@ public:
 
   /**
    * By introducing skolem variables, this function removes all occurrences of:
-   * (1) term ITEs 
-   * (2) terms of type Boolean that are not Boolean term variables, and
-   * (3) lambdas
+   * (1) term ITEs,
+   * (2) terms of type Boolean that are not Boolean term variables,
+   * (3) lambdas, and
+   * (4) Hilbert choice expressions.
    * from assertions.
    * All additional assertions are pushed into assertions. iteSkolemMap
    * contains a map from introduced skolem variables to the index in
    * assertions containing the new definition created in conjunction
    * with that skolem variable.
    *
-   * As an example of (1): 
+   * As an example of (1):
    *   f( (ite C 0 1)) = 2
-   *   becomes
+   * becomes
    *   f( k ) = 2 ^ ite( C, k=0, k=1 )
    *
    * As an example of (2):
    *   g( (and C1 C2) ) = 3
-   *   becomes
+   * becomes
    *   g( k ) = 3 ^ ( k <=> (and C1 C2) )
    *
-   * As an example of (3): 
+   * As an example of (3):
    *   (lambda x. t[x]) = f
-   *   becomes
+   * becomes
    *   (forall x. k(x) = t[x]) ^ k = f
-   * where k is a fresh skolem. This is sometimes called "lambda lifting"
+   * where k is a fresh skolem function.
+   * This is sometimes called "lambda lifting"
+   *
+   * As an example of (4):
+   *   (choice x. P( x ) ) = t
+   * becomes
+   *   P( k ) ^ k = t
+   * where k is a fresh skolem constant.
    *
    * With reportDeps true, report reasoning dependences to the proof
    * manager (for unsat cores).
