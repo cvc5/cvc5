@@ -201,11 +201,11 @@ private:
   * It returns true if n1 is modified.
   *
   * For example:
-  * stripConstantEndpoints({ "ab", x, "de" }, { "c" }, {}, {}, 1) 
+  * stripConstantEndpoints({ "ab", x, "de" }, { "c" }, {}, {}, 1)
   *   returns true,
   *   n1 is updated to { x, "de" }
   *   nb is updated to { "ab" }
-  * stripConstantEndpoints({ "ab", x, "de" }, { "bd" }, {}, {}, 0) 
+  * stripConstantEndpoints({ "ab", x, "de" }, { "bd" }, {}, {}, 0)
   *   returns true,
   *   n1 is updated to { "b", x, "d" }
   *   nb is updated to { "a" }
