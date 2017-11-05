@@ -1821,8 +1821,8 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
           }
           else if (!n1re.isNull())
           {
-            n1[i] = Rewriter::rewrite(
-                NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, n1[i], n1re));
+            n1[i] = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
+                kind::STRING_CONCAT, n1[i], n1re));
           }
           if (remainderDir != 1)
           {
@@ -1835,8 +1835,8 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
           }
           else if (!n1rb.isNull())
           {
-            n1[i] = Rewriter::rewrite(
-                NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, n1rb, n1[i]));
+            n1[i] = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
+                kind::STRING_CONCAT, n1rb, n1[i]));
           }
         }
         return i;
@@ -1851,8 +1851,12 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
       Node n1rb_first;
       Node n1re_first;
       // first component of n2 must be a suffix
-      if (componentContainsBase(
-              n1[i], n2[0], n1rb_first, n1re_first, 1, computeRemainder && remainderDir!=1))
+      if (componentContainsBase(n1[i],
+                                n2[0],
+                                n1rb_first,
+                                n1re_first,
+                                1,
+                                computeRemainder && remainderDir != 1))
       {
         Assert(n1re_first.isNull());
         for (unsigned j = 1; j < n2.size(); j++)
@@ -1868,7 +1872,7 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
                                       n1rb_last,
                                       n1re_last,
                                       -1,
-                                      computeRemainder && remainderDir!=-1))
+                                      computeRemainder && remainderDir != -1))
             {
               Assert(n1rb_first.isNull());
               if (computeRemainder)
