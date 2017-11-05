@@ -135,13 +135,13 @@ private:
   *     where xn = str.++( xn', y1 ).
   *
   * For example:
-  * 
+  *
   * componentContains({ x, "abc", x }, { "b" }, {}, true, 0)
   *   returns 1,
   *   n1 is updated to { "b" },
   *   nb is updated to { x, "a" },
   *   ne is updated to { "c", x }
-  * 
+  *
   * componentContains({ x, "abc", x }, { "b" }, {}, true, 1)
   *   returns 1,
   *   n1 is updated to { x, "ab" },
