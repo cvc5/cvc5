@@ -336,6 +336,10 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
   } else if(!strcmp(p, "QF_SAT")) {
     // propositional logic only; we're done.
     p += 6;
+  } else if(!strcmp(p, "SAT")) {
+    // quantified Boolean formulas only; we're done.
+    enableQuantifiers();
+    p += 3;
   } else if(!strcmp(p, "QF_ALL_SUPPORTED")) {
     // the "all theories included" logic, no quantifiers
     enableEverything();

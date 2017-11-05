@@ -252,6 +252,7 @@ liboptions_la_SOURCES = \
 	set_language.h \
 	simplification_mode.cpp \
 	simplification_mode.h \
+	sygus_out_mode.h \
 	theoryof_mode.cpp \
 	theoryof_mode.h \
 	ufss_mode.h

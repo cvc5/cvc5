@@ -14,11 +14,12 @@
  ** This class manages integer bounds for quantifiers
  **/
 
-#include "options/quantifiers_options.h"
 #include "theory/quantifiers/bounded_integers.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 
@@ -455,7 +456,9 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if( tn.isSort() || getTermUtil()->mayComplete( tn ) ){
+          if (tn.isSort()
+              || d_quantEngine->getTermEnumeration()->mayComplete(tn))
+          {
             success = true;
             setBoundedVar( f, f[0][i], BOUND_FINITE );
             break;

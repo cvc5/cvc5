@@ -46,13 +46,6 @@ typedef expr::Attribute<TermDepthAttributeId, uint64_t> TermDepthAttribute;
 struct ContainsUConstAttributeId {};
 typedef expr::Attribute<ContainsUConstAttributeId, uint64_t> ContainsUConstAttribute;
 
-struct ModelBasisAttributeId {};
-typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
-//for APPLY_UF terms, 1 : term has direct child with model basis attribute,
-//                    0 : term has no direct child with model basis attribute.
-struct ModelBasisArgAttributeId {};
-typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t> ModelBasisArgAttribute;
-
 //for bounded integers
 struct BoundIntLitAttributeId {};
 typedef expr::Attribute<BoundIntLitAttributeId, uint64_t> BoundIntLitAttribute;
@@ -69,7 +62,7 @@ typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
 struct LtePartialInstAttributeId {};
 typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribute;
 
-// attribute for "contains instantiation constants from"
+// attribute for sygus proxy variables
 struct SygusProxyAttributeId {};
 typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
 
@@ -114,7 +107,6 @@ class TermUtil : public QuantifiersUtil
 {
   // TODO : remove these
   friend class ::CVC4::theory::QuantifiersEngine;
-  friend class TermDatabase;
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
@@ -164,10 +156,14 @@ public:
       return a pattern where the variable are replaced by variable for
       instantiation.
    */
-  Node getInstConstantNode( Node n, Node q );
-  Node getVariableNode( Node n, Node q );
-  /** get substituted node */
-  Node getInstantiatedNode( Node n, Node q, std::vector< Node >& terms );
+  Node substituteBoundVariablesToInstConstants(Node n, Node q);
+  /** substitute { instantiation constants of q -> bound variables of q } in n
+   */
+  Node substituteInstConstantsToBoundVariables(Node n, Node q);
+  /** substitute { variables of q -> terms } in n */
+  Node substituteBoundVariables(Node n, Node q, std::vector<Node>& terms);
+  /** substitute { instantiation constants of q -> terms } in n */
+  Node substituteInstConstants(Node n, Node q, std::vector<Node>& terms);
 
   static Node getInstConstAttr( Node n );
   static bool hasInstConstAttr( Node n );
@@ -187,51 +183,18 @@ public:
   //quantified simplify (treat free variables in n as quantified and run rewriter)
   static Node getQuantSimplify( Node n );
 
-//for skolem
-private:
-  /** map from universal quantifiers to their skolemized body */
-  std::map< Node, Node > d_skolem_body;
-public:
-  /** map from universal quantifiers to the list of skolem constants */
-  std::map< Node, std::vector< Node > > d_skolem_constants;
-  /** make the skolemized body f[e/x] */
-  static Node mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& fvTypes, std::vector< TNode >& fvs,
-                                std::vector< Node >& sk, Node& sub, std::vector< unsigned >& sub_vars );
-  /** get the skolemized body */
-  Node getSkolemizedBody( Node f);
-  /** is induction variable */
-  static bool isInductionTerm( Node n );
-
-//for ground term enumeration
-private:
-  /** ground terms enumerated for types */
-  std::map< TypeNode, std::vector< Node > > d_enum_terms;
-  //type enumerators
-  std::map< TypeNode, unsigned > d_typ_enum_map;
-  std::vector< TypeEnumerator > d_typ_enum;
-  // closed enumerable type cache
-  std::map< TypeNode, bool > d_typ_closed_enum;
-  /** may complete */
-  std::map< TypeNode, bool > d_may_complete;
-public:
-  //get nth term for type
-  Node getEnumerateTerm( TypeNode tn, unsigned index );
-  //does this type have an enumerator that produces constants that are handled by ground theory solvers
-  bool isClosedEnumerableType( TypeNode tn );
-  // may complete
-  bool mayComplete( TypeNode tn );
-
 //for triggers
 private:
   /** helper function for compute var contains */
   static void computeVarContains2( Node n, Kind k, std::vector< Node >& varContains, std::map< Node, bool >& visited );
-  /** triggers for each operator */
-  std::map< Node, std::vector< inst::Trigger* > > d_op_triggers;
   /** helper for is instance of */
   static bool isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs );
   /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
   static int isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 );
-public:
+  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
+  static int isInstanceOf(Node n1, Node n2);
+
+ public:
   /** compute var contains */
   static void computeVarContains( Node n, std::vector< Node >& varContains );
   /** get var contains for each of the patterns in pats */
@@ -240,12 +203,9 @@ public:
   static void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
   /** compute quant contains */
   static void computeQuantContains( Node n, std::vector< Node >& quantContains );
-  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  static int isInstanceOf( Node n1, Node n2 );
+  // TODO (#1216) : this should be in trigger.h
   /** filter all nodes that have instances */
   static void filterInstances( std::vector< Node >& nodes );
-  /** register trigger (for eager quantifier instantiation) */
-  void registerTrigger( inst::Trigger* tr, Node op );
 
 //for term ordering
 private:
