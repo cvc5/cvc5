@@ -196,6 +196,9 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
   return Node::null();
 }
 
+// TODO (#1180) rename this to rewriteConcat
+// TODO (#1180) add rewrite 
+//  str.++( str.substr( x, n1, n2 ), str.substr( x, n1+n2, n3 ) ) ---> str.substr( x, n1, n2+n3 )
 Node TheoryStringsRewriter::rewriteConcatString( TNode node ) {
   Trace("strings-prerewrite") << "Strings::rewriteConcatString start " << node << std::endl;
   Node retNode = node;
@@ -204,6 +207,7 @@ Node TheoryStringsRewriter::rewriteConcatString( TNode node ) {
   for(unsigned int i=0; i<node.getNumChildren(); ++i) {
     Node tmpNode = node[i];
     if(node[i].getKind() == kind::STRING_CONCAT) {
+      // TODO (#1180) is this necessary?
       tmpNode = rewriteConcatString(node[i]);
       if(tmpNode.getKind() == kind::STRING_CONCAT) {
         unsigned j=0;
@@ -1008,6 +1012,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   if(node.getKind() == kind::STRING_CONCAT) {
     retNode = rewriteConcatString(node);
   } else if(node.getKind() == kind::EQUAL) {
+    // TODO (#1180) are these necessary?
     Node leftNode  = node[0];
     if(node[0].getKind() == kind::STRING_CONCAT) {
       leftNode = rewriteConcatString(node[0]);
