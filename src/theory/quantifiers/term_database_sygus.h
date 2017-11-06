@@ -17,7 +17,7 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
 #define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
 
-#include <unordered_map>
+#include <unordered_set>
 
 #include "theory/quantifiers/sygus_explain.h"
 #include "theory/quantifiers/term_database.h"
