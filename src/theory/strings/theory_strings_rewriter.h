@@ -53,8 +53,9 @@ private:
   /** return rewrite
    * Called when node rewrites to ret.
    * The string c indicates the justification
-   * for the justification for the rewrite (for debugging).
-   * This function returns ret
+   * for the rewrite, which is printed by this
+   * function for debugging.
+   * This function returns ret.
    */
   static Node returnRewrite( Node node, Node ret, const char * c );
   

@@ -2521,40 +2521,6 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
   }
 }
 
-bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
-{
-  Assert(Rewriter::rewrite(a) == a);
-  // check whether a >= 0
-  if (a.isConst())
-  {
-    return a.getConst<Rational>().sgn() >= 0;
-  }
-  else if (a.getKind() == kind::STRING_LENGTH)
-  {
-    // str.len( t ) >= 0
-    return true;
-  }
-  else if (a.getKind() == kind::PLUS || a.getKind() == kind::MULT)
-  {
-    for (unsigned i = 0; i < a.getNumChildren(); i++)
-    {
-      if (!checkEntailArithInternal(a[i]))
-      {
-        return false;
-      }
-    }
-    // t1 >= 0 ^ ... ^ tn >= 0 => t1 op ... op tn >= 0
-    return true;
-  }
-
-  return false;
-}
-
-Node TheoryStringsRewriter::returnRewrite( Node node, Node ret, const char * c ) {
-  Trace("strings-rewrite") << "Rewrite " << node << " to " << ret
-                            << " by " << c << "." << std::endl;
-  return ret;
-}
 
 Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
 {
@@ -2621,4 +2587,39 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
     return ar;
   }
   return Node::null();
+}
+
+bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
+{
+  Assert(Rewriter::rewrite(a) == a);
+  // check whether a >= 0
+  if (a.isConst())
+  {
+    return a.getConst<Rational>().sgn() >= 0;
+  }
+  else if (a.getKind() == kind::STRING_LENGTH)
+  {
+    // str.len( t ) >= 0
+    return true;
+  }
+  else if (a.getKind() == kind::PLUS || a.getKind() == kind::MULT)
+  {
+    for (unsigned i = 0; i < a.getNumChildren(); i++)
+    {
+      if (!checkEntailArithInternal(a[i]))
+      {
+        return false;
+      }
+    }
+    // t1 >= 0 ^ ... ^ tn >= 0 => t1 op ... op tn >= 0
+    return true;
+  }
+
+  return false;
+}
+
+Node TheoryStringsRewriter::returnRewrite( Node node, Node ret, const char * c ) {
+  Trace("strings-rewrite") << "Rewrite " << node << " to " << ret
+                            << " by " << c << "." << std::endl;
+  return ret;
 }
