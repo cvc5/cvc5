@@ -50,7 +50,14 @@ private:
    * a is in rewritten form.
    */
   static bool checkEntailArithInternal(Node a);
-
+  /** return rewrite
+   * Called when node rewrites to ret.
+   * The string c indicates the justification
+   * for the justification for the rewrite (for debugging).
+   * This function returns ret
+   */
+  static Node returnRewrite( Node node, Node ret, const char * c );
+  
  public:
   static RewriteResponse postRewrite(TNode node);
   static RewriteResponse preRewrite(TNode node);
@@ -136,16 +143,19 @@ private:
    * For example:
    *
    *  stripSymbolicLength( { x, "abc", y }, {}, 1, str.len(x)+1 )
-   *    returns 1
+   *    returns true
    *    n1 is updated to { "bc", y }
    *    nr is updated to { x, "a" }
-   *    curr is updated to 0
+   *    curr is updated to 0   *  
+   * 
+   * stripSymbolicLength( { x, "abc", y }, {}, 1, str.len(x)-1 )
+   *    returns false
    *
    *  stripSymbolicLength( { y, "abc", x }, {}, 1, str.len(x)+1 )
-   *    returns 0
+   *    returns false
    *
    *  stripSymbolicLength( { x, "abc", y }, {}, -1, 2*str.len(y)+4 )
-   *    returns 2
+   *    returns true
    *    n1 is updated to { x }
    *    nr is updated to { "abc", y }
    *    curr is updated to str.len(y)+1
