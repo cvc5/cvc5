@@ -169,6 +169,14 @@ public:
   ~Rational() {}
 
   /**
+   * Returns a copy of d_value to enable public access of GMP data.
+   */
+  mpq_class getValue() const
+  {
+    return d_value;
+  }
+
+  /**
    * Returns the value of numerator of the Rational.
    * Note that this makes a deep copy of the numerator.
    */

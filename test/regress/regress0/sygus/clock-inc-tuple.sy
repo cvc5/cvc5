@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --no-dump-synth
+; COMMAND-LINE: --cegqi-si=all --sygus-out=status
 
 (set-logic ALL_SUPPORTED)
 (declare-var m Int)
