@@ -1403,7 +1403,6 @@ Node TheoryStringsRewriter::rewriteSubstr( Node node ) {
         }
       }
     }
-    /*
     if( !curr.isNull() ){
       //strip off components while quantity is entailed positive
       int dir = r==0 ? 1 : -1;
@@ -1411,29 +1410,28 @@ Node TheoryStringsRewriter::rewriteSubstr( Node node ) {
       if( stripSymbolicLength( n1, childrenr, dir, curr ) ){
         if( r==0 ){
           Node ret = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, mkConcat( kind::STRING_CONCAT, n1 ), curr, node[2] );
-          Trace("strings-rewrite-advanced") << "Rewrite " << node << " to " << ret << " by substr symbolic start position analysis." << std::endl;
+          Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by substr symbolic start position analysis." << std::endl;
           return ret;
         }else{
           Node ret = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, mkConcat( kind::STRING_CONCAT, n1 ), node[1], node[2] );
-          Trace("strings-rewrite-advanced") << "Rewrite " << node << " to " << ret << " by substr symbolic end position analysis." << std::endl;
+          Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by substr symbolic end position analysis." << std::endl;
           return ret;
         }
       }
     }
-    */
   }  
 
   
   // definite inclusion
   if( node[1]==zero ){
-    Node curr = zero;
+    Node curr = node[2];
     std::vector< Node > childrenr;
     if( stripSymbolicLength( n1, childrenr, 1, curr ) ){
       if( curr!=zero ){
         childrenr.push_back( NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, mkConcat( kind::STRING_CONCAT, n1 ), node[1], curr ) );
       }
       Node ret = mkConcat( kind::STRING_CONCAT, childrenr );
-      Trace("strings-rewrite-advanced") << "Rewrite " << node << " to " << ret << " by substr symbolic length analysis." << std::endl;
+      Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by substr symbolic length analysis." << std::endl;
       return ret;
     }
   }
@@ -1868,7 +1866,7 @@ bool TheoryStringsRewriter::stripSymbolicLength( std::vector< Node >& n1, std::v
     Assert( !curr.isNull() );
     success = false;
     if( curr!=zero && sindex<n1.size() ){
-      unsigned sindex_use = dir==1 ? sindex : ( n1.size()-sindex );
+      unsigned sindex_use = dir==1 ? sindex : ( (n1.size()-1)-sindex );
       if( n1[sindex_use].isConst() ){
         // could strip part of a constant
         Node lowerBound = getConstantArithBound( curr );
