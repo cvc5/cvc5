@@ -579,6 +579,9 @@ public:
    * extended command get-qe-disjunct, which can be used
    * for incrementally computing the result of a
    * quantifier elimination.
+   * 
+   * The argument strict is whether to output
+   * warnings, such as when an unexpected logic is used.
    */
   Expr doQuantifierElimination(const Expr& e, bool doFull,
                                bool strict = true) throw(Exception);
