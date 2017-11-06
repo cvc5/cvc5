@@ -63,6 +63,14 @@ private:
    */
   mpq_class d_value;
 
+public:
+
+  /**
+   * Gets a reference to the gmp data that backs up the rational.
+   * Only accessible to friend classes.
+   */
+  const mpq_class& get_mpq() const { return d_value; }
+
   /**
    * Constructs a Rational from a mpq_class object.
    * Does a deep copy.
@@ -70,8 +78,6 @@ private:
    * have to call canonicalize() on the value.
    */
   Rational(const mpq_class& val) : d_value(val) {  }
-
-public:
 
   /**
    * Creates a rational from a decimal string (e.g., <code>"1.5"</code>).
