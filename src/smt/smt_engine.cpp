@@ -5300,8 +5300,10 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull,
   }
   Trace("smt-qe") << "Do quantifier elimination " << e << std::endl;
   Node n_e = Node::fromExpr( e );
-  if( n_e.getKind()!=kind::EXISTS && n_e.getKind()!=kind::FORALL ){
-    throw ModalException("Expecting a quantified formula as argument to get-qe.");
+  if (n_e.getKind() != kind::EXISTS && n_e.getKind() != kind::FORALL)
+  {
+    throw ModalException(
+        "Expecting a quantified formula as argument to get-qe.");
   }
   //tag the quantified formula with the quant-elim attribute
   TypeNode t = NodeManager::currentNM()->booleanType();
@@ -5312,7 +5314,8 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull,
   n_attr = NodeManager::currentNM()->mkNode(kind::INST_PATTERN_LIST, n_attr);
   std::vector< Node > e_children;
   e_children.push_back( n_e[0] );
-  e_children.push_back( n_e.getKind()==kind::EXISTS ? n_e[1] : n_e[1].negate() );
+  e_children.push_back(n_e.getKind() == kind::EXISTS ? n_e[1]
+                                                     : n_e[1].negate());
   e_children.push_back( n_attr );
   Node nn_e = NodeManager::currentNM()->mkNode( kind::EXISTS, e_children );
   Trace("smt-qe-debug") << "Query for quantifier elimination : " << nn_e << std::endl;
@@ -5336,15 +5339,18 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull,
       Trace("smt-qe") << "Get qe for " << top_q << std::endl;
       ret_n = d_theoryEngine->getInstantiatedConjunction( top_q );
       Trace("smt-qe") << "Returned : " << ret_n << std::endl;
-      if( n_e.getKind()==kind::EXISTS ){
-        ret_n = Rewriter::rewrite( ret_n.negate() );
+      if (n_e.getKind() == kind::EXISTS)
+      {
+        ret_n = Rewriter::rewrite(ret_n.negate());
       }
     }else{
-      ret_n = NodeManager::currentNM()->mkConst(n_e.getKind()!=kind::EXISTS);
+      ret_n = NodeManager::currentNM()->mkConst(n_e.getKind() != kind::EXISTS);
     }
     return ret_n.toExpr();
   }else {
-    return NodeManager::currentNM()->mkConst(n_e.getKind()==kind::EXISTS).toExpr();
+    return NodeManager::currentNM()
+        ->mkConst(n_e.getKind() == kind::EXISTS)
+        .toExpr();
   }
 }
 
