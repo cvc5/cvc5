@@ -57,25 +57,24 @@ private:
 
   static inline void init() {}
   static inline void shutdown() {}
-  
   /** rewrite substr
-  * This is the entry point for post-rewriting terms node of the form 
+  * This is the entry point for post-rewriting terms node of the form
   *   str.substr( s, i1, i2 )
   * Returns the rewritten form of node.
   */
-  static Node rewriteSubstr( Node node );
+  static Node rewriteSubstr(Node node);
   /** rewrite contains
-  * This is the entry point for post-rewriting terms node of the form 
+  * This is the entry point for post-rewriting terms node of the form
   *   str.contains( t, s )
   * Returns the rewritten form of node.
   *
   * For details on some of the basic rewrites done in this function, see Figure
-  * 7 of Reynolds et al "Scaling Up DPLL(T) String Solvers Using 
+  * 7 of Reynolds et al "Scaling Up DPLL(T) String Solvers Using
   * Context-Dependent Rewriting", CAV 2017.
   */
-  static Node rewriteContains( Node node );
-  static Node rewriteIndexof( Node node );
-  static Node rewriteReplace( Node node );
+  static Node rewriteContains(Node node);
+  static Node rewriteIndexof(Node node);
+  static Node rewriteReplace(Node node);
 
   /** gets the "vector form" of term n, adds it to c.
   * For example:
@@ -115,14 +114,13 @@ private:
   static Node getNextConstantAt( std::vector< Node >& vec, unsigned& start_index, unsigned& end_index, bool isRev );
   static Node collectConstantStringAt( std::vector< Node >& vec, unsigned& end_index, bool isRev );
 
-  
   /** strip symbolic length
-   * 
+   *
    * This function strips off components of n1 whose length is less than
    * or equal to argument curr, and stores them in nr. The direction
    * dir determines whether the components are removed from the start
    * or end of n1.
-   * 
+   *
    * In detail, this function updates n1 to n1' such that:
    *   If dir=1,
    *     n1 = str.++( nr, n1' )
@@ -132,27 +130,30 @@ private:
    *   curr' = curr - str.len( str.++( nr ) ), and
    *   curr' >= 0
    * where the latter fact is determined by checkArithEntail.
-   *  
+   *
    * This function returns true if n1 is modified.
-   * 
+   *
    * For example:
-   * 
+   *
    *  stripSymbolicLength( { x, "abc", y }, {}, 1, str.len(x)+1 )
    *    returns 1
    *    n1 is updated to { "bc", y }
    *    nr is updated to { x, "a" }
    *    curr is updated to 0
-   * 
+   *
    *  stripSymbolicLength( { y, "abc", x }, {}, 1, str.len(x)+1 )
    *    returns 0
-   * 
+   *
    *  stripSymbolicLength( { x, "abc", y }, {}, -1, 2*str.len(y)+4 )
    *    returns 2
    *    n1 is updated to { x }
    *    nr is updated to { "abc", y }
    *    curr is updated to str.len(y)+1
    */
-  static bool stripSymbolicLength( std::vector< Node >& n1, std::vector< Node >& nr, int dir, Node& curr );
+  static bool stripSymbolicLength(std::vector<Node>& n1,
+                                  std::vector<Node>& nr,
+                                  int dir,
+                                  Node& curr);
   /** component contains
   * This function is used when rewriting str.contains( t1, t2 ), where
   * n1 is the vector form of t1
@@ -285,13 +286,13 @@ private:
    * Returns true if it is always the case that a >= 0.
    */
   static bool checkEntailArith(Node a, bool strict = false);
-  /** get arithmetic lower bound 
+  /** get arithmetic lower bound
    * If this function returns a non-null Node ret,
    * then ret is a rational constant and
    * we know that n >= ret always if isLower is true,
    * or n <= ret if isLower is false.
    */
-  static Node getConstantArithBound( Node a, bool isLower = true );
+  static Node getConstantArithBound(Node a, bool isLower = true);
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */
