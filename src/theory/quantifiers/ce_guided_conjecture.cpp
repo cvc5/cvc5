@@ -45,21 +45,17 @@ void collectDisjuncts( Node n, std::vector< Node >& d ) {
 }
 
 CegConjecture::CegConjecture(QuantifiersEngine* qe)
-    : d_qe(qe), d_syntax_guided(false) {
-  d_refine_count = 0;
-  d_ceg_si = new CegConjectureSingleInv(qe, this);
-  d_ceg_pbe = new CegConjecturePbe(qe, this);
-  d_ceg_proc = new CegConjectureProcess(qe);
-  d_ceg_gc = new CegGrammarConstructor(qe);
+    : d_qe(qe),
+      d_ceg_si(new CegConjectureSingleInv(qe, this)),
+      d_ceg_pbe(new CegConjecturePbe(qe, this)),
+      d_ceg_proc(new CegConjectureProcess(qe)),
+      d_ceg_gc(new CegGrammarConstructor(qe)),
+      d_refine_count(0),
+      d_syntax_guided(false)
+{
 }
 
-CegConjecture::~CegConjecture() {
-  delete d_ceg_si;
-  delete d_ceg_pbe;
-  delete d_ceg_proc;
-  delete d_ceg_gc;
-}
-
+CegConjecture::~CegConjecture() {}
 void CegConjecture::assign( Node q ) {
   Assert( d_embed_quant.isNull() );
   Assert( q.getKind()==FORALL );

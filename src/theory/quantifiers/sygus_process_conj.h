@@ -18,7 +18,11 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_PPROCESS_CONJ_H
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS_PROCESSS_CONJ_H
 
+#include <map>
+#include <vector>
+
 #include "expr/node.h"
+#include "expr/type_node.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -30,9 +34,6 @@ namespace quantifiers {
 */
 struct CegSynthFunProcessInfo
 {
- public:
-  CegSynthFunProcessInfo() {}
-  ~CegSynthFunProcessInfo() {}
   /** the set of arguments that this synth-fun is independent of */
   std::map<unsigned, bool> d_arg_independent;
 };
@@ -64,14 +65,15 @@ class CegConjectureProcess
   /** simplify the synthesis conjecture q
   * Returns a formula that is equivalent to q.
   */
-  Node simplify(Node q);
+  Node simplify(Node q) const;
   /** initialize
   *
   * n is the "base instantiation" of the deep-embedding version of
   *   the synthesis conjecture under "candidates".
   *   (see CegConjecture::d_base_inst)
   */
-  void initialize(Node n, std::vector<Node>& candidates);
+  void initialize(Node n, const std::vector<Node>& candidates);
+
   /** get symmetry breaking predicate
   *
   * Returns a formula that restricts the enumerative search space (for a given
