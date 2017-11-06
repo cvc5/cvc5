@@ -1874,7 +1874,7 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
                                       -1,
                                       computeRemainder && remainderDir != -1))
             {
-              Assert(n1rb_first.isNull());
+              Assert(n1rb_last.isNull());
               if (computeRemainder)
               {
                 if (remainderDir != -1)
