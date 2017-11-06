@@ -50,7 +50,7 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
   d_ceg_si = new CegConjectureSingleInv(qe, this);
   d_ceg_pbe = new CegConjecturePbe(qe, this);
   d_ceg_proc = new CegConjectureProcess(qe);
-  d_ceg_gc = new CegGrammarConstructor(qe);
+  d_ceg_gc = new CegGrammarConstructor(qe, this);
 }
 
 CegConjecture::~CegConjecture() {
