@@ -35,14 +35,14 @@ public:
  CegGrammarConstructor(QuantifiersEngine* qe, CegConjecture* p);
  ~CegGrammarConstructor() {}
  /** process
-  * This converts node q based on its deep embedding 
+  * This converts node q based on its deep embedding
   * (Section 4 of Reynolds et al CAV 2015).
   * The syntactic restrictions are associated with
-  * the functions-to-synthesize using the attribute 
+  * the functions-to-synthesize using the attribute
   * SygusSynthGrammarAttribute.
-  * The arguments templates and template_args 
+  * The arguments templates and template_args
   * indicate templates for the function to synthesize,
-  * in particular the solution for the i^th function 
+  * in particular the solution for the i^th function
   * to synthesis must be of the form
   *   templates[i]{ templates_arg[i] -> t }
   * for some t if !templates[i].isNull().
@@ -58,7 +58,7 @@ public:
  *   bvl is the set of free variables to include in the grammar
  *   fun is for naming
  *   extra_cons is a set of extra constant symbols to include in the grammar
- *   term_irrelevant is a set of terms that should not be included in the 
+ *   term_irrelevant is a set of terms that should not be included in the
  *      grammar.
  */
  static TypeNode mkSygusDefaultType(
