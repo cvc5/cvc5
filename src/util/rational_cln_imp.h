@@ -176,6 +176,13 @@ public:
 
   ~Rational() {}
 
+  /**
+   * Returns a copy of d_value to enable public access of CLN data.
+   */
+  cln::cl_RA getValue() const
+  {
+    return d_value;
+  }
 
   /**
    * Returns the value of numerator of the Rational.
