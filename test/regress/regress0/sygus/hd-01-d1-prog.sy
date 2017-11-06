@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi --no-dump-synth
+; COMMAND-LINE: --cegqi --sygus-out=status
 
 (set-logic BV)
 
