@@ -3981,7 +3981,8 @@ void SmtEnginePrivate::processAssertions() {
     return;
   }
 
-  if(options::bvGaussElim()){
+  if(options::bvGaussElim())
+  {
     theory::bv::BVGaussElim::gaussElimRewrite(d_assertions.ref());
   }
 

@@ -165,9 +165,6 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
 }
 
 
-// TODO
-// if eq system is fully defined and has no solution
-// -> UNSAT
 BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
                                            vector<Integer> &rhs,
                                            vector<vector<Integer>> &lhs,
@@ -669,14 +666,22 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
                                                  ? "PARTIAL"
                                                  : "NONE")))
                            << endl;
-    if (ret != BVGaussElim::Result::NONE && ret != BVGaussElim::Result::INVALID)
+    if (ret != BVGaussElim::Result::INVALID)
     {
       NodeManager *nm = NodeManager::currentNM();
-      for (auto p : res)
+      if (ret == BVGaussElim::Result::NONE)
       {
-        Node a = nm->mkNode(kind::EQUAL, p.first, p.second);
-        Trace("bv-gauss-elim") << "added assertion: " << a << endl;
-        assertionsToPreprocess.push_back(a);
+        assertionsToPreprocess.clear();
+        assertionsToPreprocess.push_back(nm->mkConst<bool>(false));
+      }
+      else
+      {
+        for (auto p : res)
+        {
+          Node a = nm->mkNode(kind::EQUAL, p.first, p.second);
+          Trace("bv-gauss-elim") << "added assertion: " << a << endl;
+          assertionsToPreprocess.push_back(a);
+        }
       }
     }
   }
