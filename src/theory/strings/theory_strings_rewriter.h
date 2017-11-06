@@ -57,8 +57,8 @@ private:
    * function for debugging.
    * This function returns ret.
    */
-  static Node returnRewrite( Node node, Node ret, const char * c );
-  
+  static Node returnRewrite(Node node, Node ret, const char* c);
+
  public:
   static RewriteResponse postRewrite(TNode node);
   static RewriteResponse preRewrite(TNode node);
@@ -147,8 +147,8 @@ private:
    *    returns true
    *    n1 is updated to { "bc", y }
    *    nr is updated to { x, "a" }
-   *    curr is updated to 0   *  
-   * 
+   *    curr is updated to 0   *
+   *
    * stripSymbolicLength( { x, "abc", y }, {}, 1, str.len(x)-1 )
    *    returns false
    *

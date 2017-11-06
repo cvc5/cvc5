@@ -197,8 +197,9 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
 }
 
 // TODO (#1180) rename this to rewriteConcat
-// TODO (#1180) add rewrite 
-//  str.++( str.substr( x, n1, n2 ), str.substr( x, n1+n2, n3 ) ) ---> str.substr( x, n1, n2+n3 )
+// TODO (#1180) add rewrite
+//  str.++( str.substr( x, n1, n2 ), str.substr( x, n1+n2, n3 ) ) --->
+//  str.substr( x, n1, n2+n3 )
 Node TheoryStringsRewriter::rewriteConcatString( TNode node ) {
   Trace("strings-prerewrite") << "Strings::rewriteConcatString start " << node << std::endl;
   Node retNode = node;
@@ -1338,7 +1339,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
     if (node[0].getConst<String>().size() == 0)
     {
       Node ret = node[0];
-      return returnRewrite( node, ret, "ss-emptystr" );
+      return returnRewrite(node, ret, "ss-emptystr");
     }
     // rewriting for constant arguments
     if (node[1].isConst() && node[2].isConst())
@@ -1350,13 +1351,13 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       {
         // start beyond the end of the string
         Node ret = NodeManager::currentNM()->mkConst(::CVC4::String(""));
-        return returnRewrite( node, ret, "ss-const-start-max-oob" );
+        return returnRewrite(node, ret, "ss-const-start-max-oob");
       }
       else if (node[1].getConst<Rational>().sgn() < 0)
       {
         // start at beginning of the string
         Node ret = NodeManager::currentNM()->mkConst(::CVC4::String(""));
-        return returnRewrite( node, ret, "ss-const-start-neg" );
+        return returnRewrite(node, ret, "ss-const-start-neg");
       }
       else
       {
@@ -1365,7 +1366,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         {
           // start beyond the end of the string
           Node ret = NodeManager::currentNM()->mkConst(::CVC4::String(""));
-          return returnRewrite( node, ret, "ss-const-start-oob" );
+          return returnRewrite(node, ret, "ss-const-start-oob");
         }
       }
       if (node[2].getConst<Rational>() > RMAXINT)
@@ -1373,12 +1374,12 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         // take up to the end of the string
         Node ret = NodeManager::currentNM()->mkConst(
             ::CVC4::String(s.suffix(s.size() - start)));
-        return returnRewrite( node, ret, "ss-const-len-max-oob" );
+        return returnRewrite(node, ret, "ss-const-len-max-oob");
       }
       else if (node[2].getConst<Rational>().sgn() <= 0)
       {
         Node ret = NodeManager::currentNM()->mkConst(::CVC4::String(""));
-        return returnRewrite( node, ret, "ss-const-len-non-pos" );
+        return returnRewrite(node, ret, "ss-const-len-non-pos");
       }
       else
       {
@@ -1388,15 +1389,15 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         {
           // take up to the end of the string
           Node ret = NodeManager::currentNM()->mkConst(
-                  ::CVC4::String(s.suffix(s.size() - start)));
-          return returnRewrite( node, ret, "ss-const-end-oob" );
+              ::CVC4::String(s.suffix(s.size() - start)));
+          return returnRewrite(node, ret, "ss-const-end-oob");
         }
         else
         {
           // compute the substr using the constant string
           Node ret = NodeManager::currentNM()->mkConst(
               ::CVC4::String(s.substr(start, len)));
-          return returnRewrite( node, ret, "ss-const-ss" );
+          return returnRewrite(node, ret, "ss-const-ss");
         }
       }
     }
@@ -1407,12 +1408,12 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
   if (checkEntailArith(zero, node[1], true))
   {
     Node ret = NodeManager::currentNM()->mkConst(::CVC4::String(""));
-    return returnRewrite( node, ret, "ss-start-neg" );
+    return returnRewrite(node, ret, "ss-start-neg");
   }
-  else if( checkEntailArith(zero, node[2]) )
+  else if (checkEntailArith(zero, node[2]))
   {
     Node ret = NodeManager::currentNM()->mkConst(::CVC4::String(""));
-    return returnRewrite( node, ret, "ss-len-non-pos" );
+    return returnRewrite(node, ret, "ss-len-non-pos");
   }
 
   std::vector<Node> n1;
@@ -1434,10 +1435,10 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
                                              curr));
       }
       Node ret = mkConcat(kind::STRING_CONCAT, childrenr);
-      return returnRewrite( node, ret, "ss-len-include" );
+      return returnRewrite(node, ret, "ss-len-include");
     }
   }
-  
+
   // symbolic length analysis
   for (unsigned r = 0; r < 2; r++)
   {
@@ -1464,7 +1465,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
           // end point beyond end point of string, map to tot_len
           Node ret = NodeManager::currentNM()->mkNode(
               kind::STRING_SUBSTR, node[0], node[1], tot_len);
-          return returnRewrite( node, ret, "ss-end-pt-norm" );
+          return returnRewrite(node, ret, "ss-end-pt-norm");
         }
         else
         {
@@ -1488,7 +1489,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
               mkConcat(kind::STRING_CONCAT, n1),
               curr,
               node[2]);
-          return returnRewrite( node, ret, "ss-strip-start-pt" );
+          return returnRewrite(node, ret, "ss-strip-start-pt");
         }
         else
         {
@@ -1497,7 +1498,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
               mkConcat(kind::STRING_CONCAT, n1),
               node[1],
               node[2]);
-          return returnRewrite( node, ret, "ss-strip-end-pt" );
+          return returnRewrite(node, ret, "ss-strip-end-pt");
         }
       }
     }
@@ -1533,8 +1534,8 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
 
 Node TheoryStringsRewriter::rewriteContains( Node node ) {
   if( node[0] == node[1] ){
-    Node ret = NodeManager::currentNM()->mkConst( true );
-    return returnRewrite( node, ret, "ctn-eq" );
+    Node ret = NodeManager::currentNM()->mkConst(true);
+    return returnRewrite(node, ret, "ctn-eq");
   }
   else if (node[0].isConst())
   {
@@ -1542,13 +1543,15 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     if (node[1].isConst())
     {
       CVC4::String t = node[1].getConst<String>();
-      Node ret = NodeManager::currentNM()->mkConst(s.find(t) != std::string::npos);
-      return returnRewrite( node, ret, "ctn-const" );
+      Node ret =
+          NodeManager::currentNM()->mkConst(s.find(t) != std::string::npos);
+      return returnRewrite(node, ret, "ctn-const");
     }else{
       if (s.size() == 0)
       {
-        Node ret = NodeManager::currentNM()->mkNode(kind::EQUAL, node[0], node[1]);
-        return returnRewrite( node, ret, "ctn-emptystr" );
+        Node ret =
+            NodeManager::currentNM()->mkNode(kind::EQUAL, node[0], node[1]);
+        return returnRewrite(node, ret, "ctn-emptystr");
       }
       else if (node[1].getKind() == kind::STRING_CONCAT)
       {
@@ -1556,7 +1559,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
         if (!canConstantContainConcat(node[0], node[1], firstc, lastc))
         {
           Node ret = NodeManager::currentNM()->mkConst(false);
-          return returnRewrite( node, ret, "ctn-nconst-ctn-concat" );
+          return returnRewrite(node, ret, "ctn-nconst-ctn-concat");
         }
       }
     }
@@ -1572,7 +1575,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   if (componentContains(nc1, nc2, nc1rb, nc1re) != -1)
   {
     Node ret = NodeManager::currentNM()->mkConst(true);
-    return returnRewrite( node, ret, "ctn-component" );
+    return returnRewrite(node, ret, "ctn-component");
   }
 
   // strip endpoints
@@ -1582,7 +1585,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   {
     Node ret = NodeManager::currentNM()->mkNode(
         kind::STRING_STRCTN, mkConcat(kind::STRING_CONCAT, nc1), node[1]);
-    return returnRewrite( node, ret, "ctn-strip-endpt" );
+    return returnRewrite(node, ret, "ctn-strip-endpt");
   }
 
   // length entailment
@@ -1592,13 +1595,13 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   {
     // len( n2 ) > len( n1 ) => contains( n1, n2 ) ---> false
     Node ret = NodeManager::currentNM()->mkConst(false);
-    return returnRewrite( node, ret, "ctn-len-ineq" );
+    return returnRewrite(node, ret, "ctn-len-ineq");
   }
   else if (checkEntailArithEq(len_n1, len_n2))
   {
     // len( n2 ) = len( n1 ) => contains( n1, n2 ) ---> n1 = n2
     Node ret = node[0].eqNode(node[1]);
-    return returnRewrite( node, ret, "ctn-len-eq" );
+    return returnRewrite(node, ret, "ctn-len-eq");
   }
 
   // splitting
@@ -1637,13 +1640,13 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
                     kind::STRING_STRCTN,
                     mkConcat(kind::STRING_CONCAT, spl[1]),
                     node[1]));
-            return returnRewrite( node, ret, "ctn-split" );
+            return returnRewrite(node, ret, "ctn-split");
           }
         }
       }
     }
   }
-  
+
   Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
 }
@@ -2526,7 +2529,6 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
   }
 }
 
-
 Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
 {
   Assert(Rewriter::rewrite(a) == a);
@@ -2623,8 +2625,9 @@ bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
   return false;
 }
 
-Node TheoryStringsRewriter::returnRewrite( Node node, Node ret, const char * c ) {
-  Trace("strings-rewrite") << "Rewrite " << node << " to " << ret
-                            << " by " << c << "." << std::endl;
+Node TheoryStringsRewriter::returnRewrite(Node node, Node ret, const char* c)
+{
+  Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by " << c
+                           << "." << std::endl;
   return ret;
 }
