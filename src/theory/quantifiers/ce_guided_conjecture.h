@@ -18,6 +18,8 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_CONJECTURE_H
 #define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_CONJECTURE_H
 
+#include <memory>
+
 #include "theory/quantifiers/ce_guided_pbe.h"
 #include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus_grammar_cons.h"
@@ -111,7 +113,7 @@ public:
   //-----------------------------------end refinement lemmas
 
   /** get program by examples utility */
-  CegConjecturePbe* getPbe() { return d_ceg_pbe; }
+  CegConjecturePbe* getPbe() { return d_ceg_pbe.get(); }
   /** get the symmetry breaking predicate for type */
   Node getSymmetryBreakingPredicate(
       Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
@@ -121,13 +123,13 @@ private:
   /** reference to quantifier engine */
   QuantifiersEngine * d_qe;
   /** single invocation utility */
-  CegConjectureSingleInv * d_ceg_si;
+  std::unique_ptr<CegConjectureSingleInv> d_ceg_si;
   /** program by examples utility */
-  CegConjecturePbe * d_ceg_pbe;
+  std::unique_ptr<CegConjecturePbe> d_ceg_pbe;
   /** utility for static preprocessing and analysis of conjectures */
-  CegConjectureProcess* d_ceg_proc;
+  std::unique_ptr<CegConjectureProcess> d_ceg_proc;
   /** grammar utility */
-  CegGrammarConstructor * d_ceg_gc;
+  std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
   /** list of constants for quantified formula
   * The Skolems for the negation of d_embed_quant.
   */
