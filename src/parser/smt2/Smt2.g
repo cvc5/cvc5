@@ -388,6 +388,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         // if this function has any implicit variables flattenVars,
         // we apply the body of the definition to the flatten vars
         expr = PARSER_STATE->mkHoApply(expr, flattenVars);
+        terms.insert(terms.end(), flattenVars.begin(), flattenVars.end());
       }
       PARSER_STATE->popScope();
       // declare the name down here (while parsing term, signature
@@ -2249,6 +2250,27 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else {
         expr2 = f2;
       }
+    }
+  | /* lambda */
+    LPAREN_TOK HO_LAMBDA_TOK
+    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+    {
+      PARSER_STATE->pushScope(true);
+      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+            sortedVarNames.begin(), iend = sortedVarNames.end();
+          i != iend;
+          ++i) {
+        args.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
+      }
+      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
+      args.clear();
+      args.push_back(bvl);
+    }
+    term[f, f2] RPAREN_TOK
+    {
+      args.push_back( f );
+      PARSER_STATE->popScope();
+      expr = MK_EXPR( CVC4::kind::LAMBDA, args );
     }
     /* constants */
   | INTEGER_LITERAL

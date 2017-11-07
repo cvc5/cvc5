@@ -802,6 +802,8 @@ static string smtKindString(Kind k) throw() {
 
     // uf theory
   case kind::APPLY_UF: break;
+  
+  case kind::LAMBDA: return "lambda";
 
     // arith theory
   case kind::PLUS: return "+";
