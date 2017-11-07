@@ -94,8 +94,45 @@ class TermRecBuild
  * recheck whether the invariant, as specified by T still holds.
  * If it does, then we may exclude the explanation for that that subterm.
  * 
- * For example, 
+ * For example, say we have that the current value of 
+ * (datatype) sygus term n is:
+ *  (if (gt x 0) 0 0)
+ * The explanation returned by getExplanationForConstantEquality
+ * below for n and the above term is:
+ *   { ((_ is if) n), ((_ is geq) n.0), 
+ *     ((_ is x) n.0.0), ((_ is 0) n.0.1), 
+ *     ((_ is 0) n.1), ((_ is 0) n.2) }
  * 
+ * This class can also return more precise
+ * explanations based on a property that holds for
+ * variants of n. For instance,
+ * say we find that its builtin analog rewrites to 0:
+ *  ite( x>0, 0, 0 ) ----> 0
+ * and we would like to find the minimal explanation for 
+ * why the builtin analog of n rewrites to 0.
+ * We use the invariance test EquivSygusInvarianceTest
+ * (see sygus_invariance.h) for doing this.
+ * Using the SygusExplain::getExplanationFor method below,
+ * this will invoke the invariant test to check, e.g.
+ *   ite( x>0, 0, y1 ) ----> 0 ? fail
+ *   ite( x>0, y2, 0 ) ----> 0 ? fail
+ *   ite( y3, 0, 0 ) ----> 0 ? success
+ * where y1, y2, y3 are fresh variables.
+ * Hence the explanation for the condition x>0 is irrelevant.
+ * This gives us the explanation:
+ *   { ((_ is if) n), ((_ is 0) n.1), ((_ is 0) n.2) }
+ * indicating that all terms of the form:
+ *   (if _ 0 0) have a builtin equivalent that rewrites to 0.
+ * 
+ * For details, see Reynolds et al SYNT 2017.
+ * 
+ * Below, we let [[exp]]_n denote the term induced by
+ * the explanation exp for n.
+ * For example:
+ *   exp = { ((_ is plus) n), ((_ is y) n.1) }
+ * is such that:
+ *   [[exp]]_n = (plus _ y)
+ * where _ is a fresh (anonymous) variable.
  */
 class SygusExplain
 {
@@ -117,37 +154,35 @@ public:
    * take an additional argument cexc, which says which
    * children of vn should be excluded from the explanation.
    * 
-   * For example, if vn = plus( x, y ) and cexc is { 0 -> true },
-   * then we appended to exp :
+   * For example, if vn = plus( plus( x, x ), y ) and cexc is { 0 -> true },
+   * then the following is appended to exp :
    *   { ((_ is plus) n), ((_ is y) n.1) }
+   * where notice that the 0^th argument of vn is excluded.
    */
   void getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp, std::map< unsigned, bool >& cexc );
   /** returns the conjunction of exp computed in the above function */
   Node getExplanationForConstantEquality( Node n, Node vn, std::map< unsigned, bool >& cexc );
-  // we have n = vn => eval( n ) = bvr, returns exp => eval( n ) = bvr
-  //   ensures the explanation still allows for vnr
   /** get explanation for 
    * 
-   * As a precondition, we have that:
-   *   n = vn => eval( n ) = bvr 
-   *   sz is the term size of vn
-   * where eval is the sygus evaluation function for n's type 
-   * (see Section 4 of Reynolds et al. CAV 2015).
-   * 
    * This function constructs an explanation, stored in exp, such that:
-   * - All formulas in exp are of the form ((_ is C) n),
-   * - exp => eval( n ) = vn
-   * - (if applicable) exp => ( n != vnr )
-   * - 
+   * - All formulas in exp are of the form ((_ is C) ns), where ns
+   *   is a chain of selectors applied to n, and
+   * - The test et holds for [[exp]]_n, and
+   * - (if applicable) exp => ( n != vnr ).
    * 
-   * It updates sz to be the size of 
+   * This function updates sz to be the term size of [[exp]]_n.
    */
   void getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et, Node vnr, unsigned& sz );
   void getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et );
 private:
   /** sygus term database associated with this utility */
   TermDbSygus * d_tdb;
-  /** Helper function for getExplanationFor */
+  /** Helper function for getExplanationFor 
+   * var_count is the number of free variables we have introduced, 
+   *   per type, for the purposes of generalizing subterms of n.
+   * vnr_exp stores the explanation, if one exists, for
+   *   n != vnr.  It is only non-null if vnr is non-null.
+   */
   void getExplanationFor( TermRecBuild& trb, Node n, Node vn, std::vector< Node >& exp, std::map< TypeNode, int >& var_count,
                           SygusInvarianceTest& et, Node vnr, Node& vnr_exp, int& sz );
 };

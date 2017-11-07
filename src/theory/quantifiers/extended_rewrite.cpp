@@ -73,7 +73,7 @@ Node ExtendedRewriter::extendedRewritePullIte( Node n ) {
 }
 
 Node ExtendedRewriter::extendedRewrite( Node n ) {
-  std::map< Node, Node >::iterator it = d_ext_rewrite_cache.find( n );
+  std::unordered_map< Node, Node, NodeHashFunction >::iterator it = d_ext_rewrite_cache.find( n );
   if( it == d_ext_rewrite_cache.end() ){
     Node ret = n;
     if( n.getNumChildren()>0 ){
