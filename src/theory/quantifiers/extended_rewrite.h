@@ -26,10 +26,12 @@ namespace theory {
 namespace quantifiers {
 
 /** Extended rewriter
+ * 
  * This class is used for all rewriting that is not necessarily
- * useful for quantifier-free solving, but may be helpful 
- * in other contexts such as SyGuS, where rewriting aids
- * in generalizing refinement lemmas.
+ * helpful for quantifier-free solving, but is helpful 
+ * in other use cases. An example of this is SyGuS, where rewriting
+ * can be used for generalizing refinement lemmas, and hence
+ * should be highly aggressive.
  * 
  * This class extended the standard techniques for rewriting
  * with techniques including:

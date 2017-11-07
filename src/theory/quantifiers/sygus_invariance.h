@@ -43,6 +43,15 @@ class CegConjecture;
 */
 class SygusInvarianceTest {
 public:
+  /** Is nvn invariant with respect to this test ?
+   * 
+   * - nvn is the term to check whether it is invariant.
+   * - x is a variable such that the previous call to 
+   *   is_invariant (if any) was with term nvn_prev, and 
+   *   nvn is equal to nvn_prev with some subterm
+   *   position replaced by x. This is typically used
+   *   for debugging only.
+   */
   bool is_invariant( TermDbSygus * tds, Node nvn, Node x ){
     if( invariant( tds, nvn, x ) ){
       d_update_nvn = nvn;
@@ -58,7 +67,7 @@ public:
     d_update_nvn = n; 
   }
 protected:
-  /** result of the node after invariant replacements */
+  /** result of the node that satisfies this invariant */
   Node d_update_nvn;
   /** check whether nvn[ x ] is invariant */
   virtual bool invariant( TermDbSygus * tds, Node nvn, Node x ) = 0;
@@ -81,7 +90,7 @@ protected:
 * 
 * Another example, t = ite( gt( x, y ), x, y ) is such that:
 *   eval( t, 2, 3 ) ----> 3
-* This test is invariant on the "if" branch of t, noting:
+* This test is invariant on the second child of t, noting:
 *   eval( ite( gt( x, y ), _, y ), 2, 3 ) ----> 3
 */
 class EvalSygusInvarianceTest : public SygusInvarianceTest {
@@ -101,11 +110,11 @@ protected:
   /** does d_conj{ d_var -> nvn } still rewrite to d_result? */
   bool invariant( TermDbSygus * tds, Node nvn, Node x );
 private:
-  /** The conjecture */
+  /** the formula we are evaluating */
   Node d_conj;
   /** the variable */
   TNode d_var;
-  /** the result of this evaluation */
+  /** the result of the evaluation */
   Node d_result;
   /** cache of n -> the simplified form of eval( n ) */
   std::unordered_map< Node, Node, NodeHashFunction > d_visited;
@@ -154,7 +163,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest {
   void init(TermDbSygus* tds, TypeNode tn,
             CegConjecture* aconj, Node e, Node bvr);
  protected:
-  /** does nvn still rewrite to d_bvr? */
+  /** checks whether the analog of nvn still rewrites to d_bvr */
   bool invariant(TermDbSygus* tds, Node nvn, Node x);
  private:
   /** the conjecture associated with the enumerator d_enum */
@@ -186,6 +195,7 @@ public:
   ~DivByZeroSygusInvarianceTest(){}
 
 protected:
+  /** checks whether nvn involves division by zero. */
   bool invariant( TermDbSygus * tds, Node nvn, Node x );
 };
 
