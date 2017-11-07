@@ -84,27 +84,66 @@ class TermRecBuild
   void addTerm(Node n);
 };
 
-
-// TODO
+/*The SygusExplain utility
+ * 
+ * This class is used to produce explanations for refinement lemmas
+ * in the counterexample-guided inductive synthesis (CEGIS) loop. 
+ *
+ * When given an invariance test T traverses the AST of a given term, 
+ * uses TermRecBuild to replace various subterms by fresh variables and
+ * recheck whether the invariant, as specified by T still holds.
+ * If it does, then we may exclude the explanation for that that subterm.
+ * 
+ * For example, 
+ * 
+ */
 class SygusExplain
 {
 public:
   SygusExplain( TermDbSygus * tdb ) : d_tdb(tdb){}
   ~SygusExplain(){}
-  // returns straightforward exp => n = vn
+  /** get explanation for constant equality
+   * 
+   * This function constructs an explanation, stored in exp, such that:
+   * - All formulas in exp are of the form ((_ is C) n),
+   * - exp => ( n = vn )
+   */
   void getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp );
-  void getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp, std::map< unsigned, bool >& cexc );
+  /** returns the conjunction of exp computed in the above function */
   Node getExplanationForConstantEquality( Node n, Node vn );
+  /** get explanation for constant equality
+   * This is identical to the above function except that we 
+   * take an additional argument cexc, which 
+   */
+  void getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp, std::map< unsigned, bool >& cexc );
+  /** returns the conjunction of exp computed in the above function */
   Node getExplanationForConstantEquality( Node n, Node vn, std::map< unsigned, bool >& cexc );
   // we have n = vn => eval( n ) = bvr, returns exp => eval( n ) = bvr
   //   ensures the explanation still allows for vnr
+  /** get explanation for 
+   * 
+   * As a precondition, we have that:
+   *   n = vn => eval( n ) = bvr 
+   *   sz is the term size of vn
+   * where eval is the sygus evaluation function for n's type 
+   * (see Section 4 of Reynolds et al. CAV 2015).
+   * 
+   * This function constructs an explanation, stored in exp, such that:
+   * - All formulas in exp are of the form ((_ is C) n),
+   * - exp => eval( n ) = vn
+   * - (if applicable) exp => n != vnr
+   * - 
+   * 
+   * It updates sz to be the size of 
+   */
   void getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et, Node vnr, unsigned& sz );
   void getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et );
 private:
   /** sygus term database associated with this utility */
   TermDbSygus * d_tdb;
+  /** Helper function for getExplanationFor */
   void getExplanationFor( TermRecBuild& trb, Node n, Node vn, std::vector< Node >& exp, std::map< TypeNode, int >& var_count,
-                        SygusInvarianceTest& et, Node vnr, Node& vnr_exp, int& sz );
+                          SygusInvarianceTest& et, Node vnr, Node& vnr_exp, int& sz );
 };
 
 

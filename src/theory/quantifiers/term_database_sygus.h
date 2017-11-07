@@ -84,7 +84,7 @@ class TermDbSygus {
   */
   std::map<Node, Node> d_enum_to_active_guard;
   
-// TODO :issue #1235 below here needs refactor
+// TODO :issue #1235 : below here needs refactor
   
 public:
   Node d_true;

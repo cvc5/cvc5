@@ -40,7 +40,6 @@ bool EvalSygusInvarianceTest::invariant( TermDbSygus * tds, Node nvn, Node x ){
   }
 }
 
-
 void EquivSygusInvarianceTest::init(TermDbSygus* tds, TypeNode tn,
           CegConjecture* aconj, Node e, Node bvr) {
   // compute the current examples

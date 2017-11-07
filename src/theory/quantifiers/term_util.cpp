@@ -919,7 +919,7 @@ bool TermUtil::isBoolConnectiveTerm( TNode n ) {
 
 
 Node TermUtil::getTypeValue( TypeNode tn, int val ) {
-  std::map< int, Node >::iterator it = d_type_value[tn].find( val );
+  std::unordered_map< int, Node >::iterator it = d_type_value[tn].find( val );
   if( it==d_type_value[tn].end() ){
     Node n = mkTypeValue(tn,val);
     d_type_value[tn][val] = n;
@@ -951,7 +951,7 @@ Node TermUtil::mkTypeValue( TypeNode tn, int val ) {
 }
 
 Node TermUtil::getTypeMaxValue( TypeNode tn ) {
-  std::map< TypeNode, Node >::iterator it = d_type_max_value.find( tn );
+  std::unordered_map< TypeNode, Node, TypeNodeHashFunction >::iterator it = d_type_max_value.find( tn );
   if( it==d_type_max_value.end() ){
     Node n = mkTypeMaxValue(tn);
     d_type_max_value[tn] = n;
@@ -972,7 +972,7 @@ Node TermUtil::mkTypeMaxValue( TypeNode tn ) {
 }
 
 Node TermUtil::getTypeValueOffset( TypeNode tn, Node val, int offset, int& status ) {
-  std::map< int, Node >::iterator it = d_type_value_offset[tn][val].find( offset );
+  std::unordered_map< int, Node >::iterator it = d_type_value_offset[tn][val].find( offset );
   if( it==d_type_value_offset[tn][val].end() ){
     Node val_o;
     Node offset_val = getTypeValue( tn, offset );

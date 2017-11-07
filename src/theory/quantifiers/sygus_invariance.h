@@ -30,6 +30,18 @@ class TermDbSygus;
 class CegConjecture;
 
 // TODO
+/* SygusInvarianceTest
+* 
+* This class is the standard interface for term generalization
+* in SyGuS. Its interface is a single function is_variant,
+* 
+* 
+* The common use case of invariance tests is when constructing
+* minimal explanations for refinement lemmas in the
+* counterexample-guided inductive synthesis (CEGIS) loop.
+* For sygus_explain.h for more details.
+* 
+*/
 class SygusInvarianceTest {
 public:
   bool is_invariant( TermDbSygus * tds, Node nvn, Node x ){
@@ -40,17 +52,44 @@ public:
       return false;
     }
   }
-  // TODO : make protected
+  /** get updated term */
+  Node getUpdatedTerm() { return d_update_nvn; }
+  /** get updated term */
+  void setUpdatedTerm( Node n ) { 
+    d_update_nvn = n; 
+  }
+protected:
   /** result of the node after invariant replacements */
   Node d_update_nvn;
-protected:
   /** check whether nvn[ x ] is invariant */
   virtual bool invariant( TermDbSygus * tds, Node nvn, Node x ) = 0;
 };
 
-// TODO
+/** EquivSygusInvarianceTest
+*
+* This class is used to construct a minimal shape of a term that 
+* evaluates via evaluation operators in the deep embedding 
+* (Section 4 of Reynolds et al. CAV 2015) to fixed term d_result.
+* 
+* For example, consider a SyGuS evaluation function eval
+* for a synthesis conjecture with arguments x and y. Say we 
+* wish to generalize the term t = (mult x y) such that:
+* 
+*   eval( t, 0, 1 ) ----> 0
+* 
+* This can be minimized to t = (mul x _), noting that:
+* 
+*   eval( (mult x _), 0, 1 ) ----> 0
+* 
+* Another example, t
+* 
+*   eval( t, 0, 1 ) ----> 0
+* 
+*/
 class EvalSygusInvarianceTest : public SygusInvarianceTest {
 public:
+  EvalSygusInvarianceTest(){}
+  ~EvalSygusInvarianceTest(){}
   Node d_conj;
   TNode d_var;
   std::unordered_map< Node, Node, NodeHashFunction > d_visited;
@@ -63,8 +102,7 @@ protected:
 /** EquivSygusInvarianceTest
 *
 * This class is used to construct a minimal shape of a term that is equivalent
-* up to rewriting to a RHS value,
-* given as input bvr.
+* up to rewriting to a RHS value bvr.
 *
 * For example,
 *
@@ -75,14 +113,16 @@ protected:
 * ite( _, 0, 0 ) + _*0 ----> 0
 *
 * It also manages the case where the rewriting is invariant wrt a finite set of
-* examples occurring in the conjecture.
+* examples occurring in the conjecture.  
+* (EX1) : For example if our input examples are:
+* (x,y,z) = (3,2,4), (5,2,6), (3,2,1)
+* On these examples, we have:
 *
-* It is an instance of SygusInvarianceTest which is the standard
-* interface for term generalization via
-* the TermRecBuild utility, which traverses the AST of a given term, replaces
-* each subterm by a fresh variable and
-* check whether the invariant, as specified by this class (equivalent up to
-* rewriting to a RHS) holds.
+* ite( x>y, z, 0) ---> 4,6,1
+*
+* which can be minimized to:
+*
+* ite( x>y, z, _) ---> 4,6,1
 *
 * For details, see Reynolds et al SYNT 2017.
 */
@@ -109,22 +149,22 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest {
   Node d_enum;
   /** the RHS of the evaluation */
   Node d_bvr;
-  /** the result of the examples
-  * This is a finer-grained version of d_bvr, where for example if our input
-  * examples are:
-  * (x,y,z) = (3,2,4), (5,2,6), (3,2,1)
-  * On these examples, we have:
-  *
-  * ite( x>y, z, 0) ---> 4,6,1
-  *
-  * which can be minimized to:
-  *
-  * ite( x>y, z, _) ---> 4,6,1
-  */
+  /** the result of the examples 
+   * In (EX1), this is (4,6,1)
+   */
   std::vector<Node> d_exo;
 };
 
-// TODO
+/** DivByZeroSygusInvarianceTest 
+ * 
+ * This class is used to construct a minimal shape of a term that involves
+ * division by zero.
+ * 
+ * For example:
+ *    ( x + ( y/0 )*2 )
+ * can be generalized to:
+ *    ( _ + ( _/0 )*_ )
+ */
 class DivByZeroSygusInvarianceTest : public SygusInvarianceTest {
 public:
   DivByZeroSygusInvarianceTest(){}
@@ -161,12 +201,6 @@ protected:
 * str.replace( "de", x1, "b" ) can be minimized to str.replace( "de", x1, _ )
 *   ...since contains( "abc abc", str.replace( "de", "abc", y ) ) ---> false,
 *      for any y.
-*
-* It is an instance of SygusInvarianceTest, which
-* traverses the AST of a given term, replaces each subterm by a
-* fresh variable y and checks whether an invariance test (such as
-* the one specified by this class) holds.
-*
 */
 class NegContainsSygusInvarianceTest : public SygusInvarianceTest {
 public:
@@ -190,8 +224,7 @@ public:
             std::vector<unsigned>& ncind);
 
  protected:
-  /** checks whether contains( out_i, nvn[in_i] ) --> false for some I/O pair i.
-   */
+  /** checks if contains( out_i, nvn[in_i] ) --> false for some I/O pair i. */
   bool invariant( TermDbSygus * tds, Node nvn, Node x );
 
  private:
