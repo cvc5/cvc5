@@ -557,9 +557,9 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
                 Node req_const;
                 if( nk==GT || nk==LT || nk==XOR || nk==MINUS || nk==BITVECTOR_SUB || nk==BITVECTOR_XOR || nk==BITVECTOR_UREM_TOTAL ){
                   //must have the zero element
-                  req_const = d_tds->getTypeValue( tnb, 0 );
+                  req_const = quantifiers::TermUtil::mkTypeValue( tnb, 0 );
                 }else if( nk==EQUAL || nk==LEQ || nk==GEQ || nk==BITVECTOR_XNOR ){
-                  req_const = d_tds->getTypeMaxValue( tnb );
+                  req_const = quantifiers::TermUtil::mkTypeMaxValue( tnb );
                 }
                 // cannot do division since we have to consider when both are zero
                 if( !req_const.isNull() ){

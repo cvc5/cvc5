@@ -269,6 +269,15 @@ private:
   //helper for contains term
   static bool containsTerm2( Node n, Node t, std::map< Node, bool >& visited );
   static bool containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited );
+  /** map from types to Nodes for each value */
+  std::map<TypeNode, std::map<int, Node> > d_type_value;
+  /** the "max" value for each type */
+  std::map<TypeNode, Node> d_type_max_value;
+  /** value offsets */
+  std::map<TypeNode, std::map<Node, std::map<int, Node> > > d_type_value_offset;
+  /** value offset statuses */
+  std::map<TypeNode, std::map<Node, std::map<int, int> > >
+      d_type_value_offset_status;
 public:
   /** simple check for whether n contains t as subterm */
   static bool containsTerm( Node n, Node t );
@@ -290,7 +299,28 @@ public:
   static bool isBoolConnective( Kind k );
   /** is bool connective term */
   static bool isBoolConnectiveTerm( TNode n );
-
+  /** isAntisymmetric */
+  static bool isAntisymmetric( Kind k, Kind& dk );
+  /** get offset arg */
+  static bool hasOffsetArg( Kind ik, int arg, int& offset, Kind& ok );
+  /** is idempotent arg */
+  bool isIdempotentArg( Node n, Kind ik, int arg );
+  /** is singular arg */
+  Node isSingularArg( Node n, Kind ik, int arg );
+  /** get value */
+  Node getTypeValue( TypeNode tn, int val );
+  /** get value offset */
+  Node getTypeValueOffset( TypeNode tn, Node val, int offset, int& status );
+  /** get max value */
+  Node getTypeMaxValue( TypeNode tn );  
+  /** make value */
+  static Node mkTypeValue( TypeNode tn, int val );
+  /** make value offset */
+  static Node mkTypeValueOffset( TypeNode tn, Node val, int offset, int& status );
+  /** make max value */
+  static Node mkTypeMaxValue( TypeNode tn );  
+  
+  
 //for higher-order
 private:
   /** dummy predicate that states terms should be considered first-class members of equality engine */

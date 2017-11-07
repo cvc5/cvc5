@@ -73,8 +73,18 @@ class TermDbSygus {
   std::unique_ptr<SygusExplain> d_syexp;
   /** sygus explanation */
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
-
+  /** mapping from enumerator terms to the conjecture they are associated with */
+  std::map<Node, CegConjecture*> d_enum_to_conjecture;
+  /** mapping from enumerator terms to the function-to-synthesize they are
+    * associated with */
+  std::map<Node, Node> d_enum_to_synth_fun;
+  /** mapping from enumerator terms to the guard they are associated with
+  * The guard G for an enumerator e has the semantics
+  *   "if G is true, then there are more values of e to enumerate".
+  */
+  std::map<Node, Node> d_enum_to_active_guard;
   
+// TODO :issue #1235 below here needs refactor
   
 public:
   Node d_true;
@@ -101,16 +111,6 @@ private:
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 private:
- /** mapping from enumerator terms to the conjecture they are associated with */
- std::map<Node, CegConjecture*> d_enum_to_conjecture;
- /** mapping from enumerator terms to the function-to-synthesize they are
-  * associated with */
- std::map<Node, Node> d_enum_to_synth_fun;
- /** mapping from enumerator terms to the guard they are associated with
- * The guard G for an enumerator e has the semantics
- *   "if G is true, then there are more values of e to enumerate".
- */
- std::map<Node, Node> d_enum_to_active_guard;
  // information for sygus types
  std::map<TypeNode, TypeNode> d_register;  // stores sygus -> builtin type
  std::map<TypeNode, std::vector<Node> > d_var_list;
@@ -125,12 +125,6 @@ private:
      d_const_list;  // sorted list of constants for type
  std::map<TypeNode, unsigned> d_const_list_pos;
  std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
- // information for builtin types
- std::map<TypeNode, std::map<int, Node> > d_type_value;
- std::map<TypeNode, Node> d_type_max_value;
- std::map<TypeNode, std::map<Node, std::map<int, Node> > > d_type_value_offset;
- std::map<TypeNode, std::map<Node, std::map<int, int> > >
-     d_type_value_offset_status;
  // normalized map
  std::map<TypeNode, std::map<Node, Node> > d_normalized;
  std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
@@ -171,20 +165,7 @@ public:
   int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
-  /** isAntisymmetric */
-  bool isAntisymmetric( Kind k, Kind& dk );
-  /** is idempotent arg */
-  bool isIdempotentArg( Node n, Kind ik, int arg );
-  /** is singular arg */
-  Node isSingularArg( Node n, Kind ik, int arg );
-  /** get offset arg */
-  bool hasOffsetArg( Kind ik, int arg, int& offset, Kind& ok );
-  /** get value */
-  Node getTypeValue( TypeNode tn, int val );
-  /** get value */
-  Node getTypeValueOffset( TypeNode tn, Node val, int offset, int& status );
-  /** get value */
-  Node getTypeMaxValue( TypeNode tn );
+
   TypeNode getSygusTypeForVar( Node v );
   Node getGenericBase( TypeNode tn, const Datatype& dt, int c );
   Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );

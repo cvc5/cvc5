@@ -453,136 +453,6 @@ unsigned TermDbSygus::getSygusConstructors( Node n, std::vector< Node >& cons ) 
     return 1+sum;
   }
 }
-  
-bool TermDbSygus::isAntisymmetric( Kind k, Kind& dk ) {
-  if( k==GT ){
-    dk = LT;
-    return true;
-  }else if( k==GEQ ){
-    dk = LEQ;
-    return true;
-  }else if( k==BITVECTOR_UGT ){
-    dk = BITVECTOR_ULT;
-    return true;
-  }else if( k==BITVECTOR_UGE ){
-    dk = BITVECTOR_ULE;
-    return true;
-  }else if( k==BITVECTOR_SGT ){
-    dk = BITVECTOR_SLT;
-    return true;
-  }else if( k==BITVECTOR_SGE ){
-    dk = BITVECTOR_SLE;
-    return true;
-  }else{
-    return false;
-  }
-}
-
-bool TermDbSygus::isIdempotentArg( Node n, Kind ik, int arg ) {
-  // these should all be binary operators
-  //Assert( ik!=DIVISION && ik!=INTS_DIVISION && ik!=INTS_MODULUS && ik!=BITVECTOR_UDIV );
-  TypeNode tn = n.getType();
-  if( n==getTypeValue( tn, 0 ) ){
-    if( ik==PLUS || ik==OR || ik==XOR || ik==BITVECTOR_PLUS || ik==BITVECTOR_OR || ik==BITVECTOR_XOR || ik==STRING_CONCAT ){
-      return true;
-    }else if( ik==MINUS || ik==BITVECTOR_SHL || ik==BITVECTOR_LSHR || ik==BITVECTOR_ASHR || ik==BITVECTOR_SUB || 
-              ik==BITVECTOR_UREM || ik==BITVECTOR_UREM_TOTAL ){
-      return arg==1;
-    }
-  }else if( n==getTypeValue( tn, 1 ) ){
-    if( ik==MULT || ik==BITVECTOR_MULT ){
-      return true;
-    }else if( ik==DIVISION || ik==DIVISION_TOTAL || ik==INTS_DIVISION || ik==INTS_DIVISION_TOTAL || 
-              ik==INTS_MODULUS || ik==INTS_MODULUS_TOTAL || 
-              ik==BITVECTOR_UDIV_TOTAL || ik==BITVECTOR_UDIV || ik==BITVECTOR_SDIV ){
-      return arg==1;
-    }
-  }else if( n==getTypeMaxValue( tn ) ){
-    if( ik==EQUAL || ik==BITVECTOR_AND || ik==BITVECTOR_XNOR ){
-      return true;
-    }
-  }
-  return false;
-}
-
-
-Node TermDbSygus::isSingularArg( Node n, Kind ik, int arg ) {
-  TypeNode tn = n.getType();
-  if( n==getTypeValue( tn, 0 ) ){
-    if( ik==AND || ik==MULT || ik==BITVECTOR_AND || ik==BITVECTOR_MULT ){
-      return n;
-    }else if( ik==BITVECTOR_SHL || ik==BITVECTOR_LSHR || ik==BITVECTOR_ASHR || 
-              ik==BITVECTOR_UREM || ik==BITVECTOR_UREM_TOTAL ){
-      if( arg==0 ){
-        return n;
-      }
-    }else if( ik==BITVECTOR_UDIV_TOTAL || ik==BITVECTOR_UDIV || ik==BITVECTOR_SDIV ){
-      if( arg==0 ){
-        return n;
-      }else if( arg==1 ){
-        return getTypeMaxValue( tn );
-      }
-    }else if( ik==DIVISION || ik==DIVISION_TOTAL || ik==INTS_DIVISION || ik==INTS_DIVISION_TOTAL || 
-              ik==INTS_MODULUS || ik==INTS_MODULUS_TOTAL  ){
-      if( arg==0 ){
-        return n;
-      }else{
-        //TODO?
-      }
-    }else if( ik==STRING_SUBSTR ){
-      if( arg==0 ){
-        return n;
-      }else if( arg==2 ){
-        return getTypeValue( NodeManager::currentNM()->stringType(), 0 );
-      }
-    }else if( ik==STRING_STRIDOF ){
-      if( arg==0 || arg==1 ){
-        return getTypeValue( NodeManager::currentNM()->integerType(), -1 );
-      }
-    }
-  }else if( n==getTypeValue( tn, 1 ) ){
-    if( ik==BITVECTOR_UREM_TOTAL ){
-      return getTypeValue( tn, 0 );
-    }
-  }else if( n==getTypeMaxValue( tn ) ){
-    if( ik==OR || ik==BITVECTOR_OR ){
-      return n;
-    }
-  }else{
-    if( n.getType().isReal() && n.getConst<Rational>().sgn()<0 ){
-      // negative arguments
-      if( ik==STRING_SUBSTR || ik==STRING_CHARAT ){
-        return getTypeValue( NodeManager::currentNM()->stringType(), 0 );
-      }else if( ik==STRING_STRIDOF ){
-        Assert( arg==2 );
-        return getTypeValue( NodeManager::currentNM()->integerType(), -1 );
-      }
-    }
-  }
-  return Node::null();
-}
-
-bool TermDbSygus::hasOffsetArg( Kind ik, int arg, int& offset, Kind& ok ) {
-  if( ik==LT ){
-    Assert( arg==0 || arg==1 );
-    offset = arg==0 ? 1 : -1;
-    ok = LEQ;
-    return true;
-  }else if( ik==BITVECTOR_ULT ){
-    Assert( arg==0 || arg==1 );
-    offset = arg==0 ? 1 : -1;
-    ok = BITVECTOR_ULE;
-    return true;
-  }else if( ik==BITVECTOR_SLT ){
-    Assert( arg==0 || arg==1 );
-    offset = arg==0 ? 1 : -1;
-    ok = BITVECTOR_SLE;
-    return true;
-  }
-  return false;
-}
-
-
 
 class ReqTrie {
 public:
@@ -837,7 +707,7 @@ bool TermDbSygus::considerConst( TypeNode tn, TypeNode tnp, Node c, Kind pk, int
   if( pdt[pc].getNumArgs()==2 ){
     Kind ok;
     int offset;
-    if( hasOffsetArg( pk, arg, offset, ok ) ){
+    if( d_quantEngine->getTermUtil()->hasOffsetArg( pk, arg, offset, ok ) ){
       Trace("sygus-sb-simple-debug") << pk << " has offset arg " << ok << " " << offset << std::endl;
       int ok_arg = getKindConsNum( tnp, ok );
       if( ok_arg!=-1 ){
@@ -845,7 +715,7 @@ bool TermDbSygus::considerConst( TypeNode tn, TypeNode tnp, Node c, Kind pk, int
         //other operator be the same type
         if( isTypeMatch( pdt[ok_arg], pdt[arg] ) ){
           int status;
-          Node co = getTypeValueOffset( c.getType(), c, offset, status );
+          Node co = d_quantEngine->getTermUtil()->getTypeValueOffset( c.getType(), c, offset, status );
           Trace("sygus-sb-simple-debug") << c << " with offset " << offset << " is " << co << ", status=" << status << std::endl;
           if( status==0 && !co.isNull() ){
             if( hasConst( tn, co ) ){
@@ -866,7 +736,7 @@ bool TermDbSygus::considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind
   int pc = getKindConsNum( tnp, pk );
   bool ret = true;
   Trace("sygus-sb-debug") << "Consider sygus const " << c << ", parent = " << pk << ", arg = " << arg << "?" << std::endl;
-  if( isIdempotentArg( c, pk, arg ) ){
+  if( d_quantEngine->getTermUtil()->isIdempotentArg( c, pk, arg ) ){
     if( pdt[pc].getNumArgs()==2 ){
       int oarg = arg==0 ? 1 : 0;
       TypeNode otn = TypeNode::fromType( ((SelectorType)pdt[pc][oarg].getType()).getRangeType() );
@@ -876,7 +746,7 @@ bool TermDbSygus::considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind
       }
     }
   }else{ 
-    Node sc = isSingularArg( c, pk, arg );
+    Node sc = d_quantEngine->getTermUtil()->isSingularArg( c, pk, arg );
     if( !sc.isNull() ){
       if( hasConst( tnp, sc ) ){
         Trace("sygus-sb-simple") << "  sb-simple : " << c << " is singular arg " << arg << " of " << pk << ", evaluating to " << sc << "..." << std::endl;
@@ -887,9 +757,9 @@ bool TermDbSygus::considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind
   if( ret ){
     ReqTrie rt;
     Assert( rt.empty() );
-    Node max_c = getTypeMaxValue( c.getType() );
-    Node zero_c = getTypeValue( c.getType(), 0 );
-    Node one_c = getTypeValue( c.getType(), 1 );
+    Node max_c = d_quantEngine->getTermUtil()->getTypeMaxValue( c.getType() );
+    Node zero_c = d_quantEngine->getTermUtil()->getTypeValue( c.getType(), 0 );
+    Node one_c = d_quantEngine->getTermUtil()->getTypeValue( c.getType(), 1 );
     if( pk==XOR || pk==BITVECTOR_XOR ){
       if( c==max_c ){
         rt.d_req_kind = pk==XOR ? NOT : BITVECTOR_NOT;
@@ -940,7 +810,7 @@ int TermDbSygus::solveForArgument( TypeNode tn, unsigned cindex, unsigned arg ) 
   if( nk==MINUS || nk==BITVECTOR_SUB ){
     if( dt[cindex].getNumArgs()==2 && arg==0 ){
       TypeNode tnco = getArgType( dt[cindex], 1 );
-      Node builtin = getTypeValue( sygusToBuiltinType( tnc ), 0 );
+      Node builtin = d_quantEngine->getTermUtil()->getTypeValue( sygusToBuiltinType( tnc ), 0 );
       solve_ret = getConstConsNum( tn, builtin );
       if( solve_ret!=-1 ){
         // t - s    ----->  ( 0 - s ) + t
@@ -967,73 +837,6 @@ int TermDbSygus::solveForArgument( TypeNode tn, unsigned cindex, unsigned arg ) 
   }
   
   return -1;
-}
-
-Node TermDbSygus::getTypeValue( TypeNode tn, int val ) {
-  std::map< int, Node >::iterator it = d_type_value[tn].find( val );
-  if( it==d_type_value[tn].end() ){
-    Node n;
-    if( tn.isInteger() || tn.isReal() ){
-      Rational c(val);
-      n = NodeManager::currentNM()->mkConst( c );
-    }else if( tn.isBitVector() ){
-      unsigned int uv = val;
-      BitVector bval(tn.getConst<BitVectorSize>(), uv);
-      n = NodeManager::currentNM()->mkConst<BitVector>(bval);
-    }else if( tn.isBoolean() ){
-      if( val==0 ){
-        n = d_false;
-      }
-    }else if( tn.isString() ){
-      if( val==0 ){
-        n = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-      }
-    }
-    d_type_value[tn][val] = n;
-    return n;
-  }else{
-    return it->second;
-  }
-}
-
-Node TermDbSygus::getTypeMaxValue( TypeNode tn ) {
-  std::map< TypeNode, Node >::iterator it = d_type_max_value.find( tn );
-  if( it==d_type_max_value.end() ){
-    Node n;
-    if( tn.isBitVector() ){
-      n = bv::utils::mkOnes(tn.getConst<BitVectorSize>());
-    }else if( tn.isBoolean() ){
-      n = d_true;
-    }
-    d_type_max_value[tn] = n;
-    return n;
-  }else{
-    return it->second;
-  }
-}
-
-Node TermDbSygus::getTypeValueOffset( TypeNode tn, Node val, int offset, int& status ) {
-  std::map< int, Node >::iterator it = d_type_value_offset[tn][val].find( offset );
-  if( it==d_type_value_offset[tn][val].end() ){
-    Node val_o;
-    Node offset_val = getTypeValue( tn, offset );
-    status = -1;
-    if( !offset_val.isNull() ){
-      if( tn.isInteger() || tn.isReal() ){
-        val_o = Rewriter::rewrite( NodeManager::currentNM()->mkNode( PLUS, val, offset_val ) );
-        status = 0;
-      }else if( tn.isBitVector() ){
-        val_o = Rewriter::rewrite( NodeManager::currentNM()->mkNode( BITVECTOR_PLUS, val, offset_val ) );
-        // TODO : enable?  watch for overflows
-      }
-    }
-    d_type_value_offset[tn][val][offset] = val_o;
-    d_type_value_offset_status[tn][val][offset] = status;
-    return val_o;
-  }else{
-    status = d_type_value_offset_status[tn][val][offset];
-    return it->second;
-  }
 }
 
 struct sortConstants {
@@ -1115,7 +918,7 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
         }
         //for constant reconstruction
         Kind ck = getComparisonKind( TypeNode::fromType( dt.getSygusType() ) );
-        Node z = getTypeValue( TypeNode::fromType( dt.getSygusType() ), 0 );
+        Node z = d_quantEngine->getTermUtil()->getTypeValue( TypeNode::fromType( dt.getSygusType() ), 0 );
         d_const_list_pos[tn] = 0;
         //iterate over constructors
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
@@ -1174,7 +977,7 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             Kind ck = getConsNumKind( tn, i );
             if( ck!=UNDEFINED_KIND ){
               Kind dk;
-              if( isAntisymmetric( ck, dk ) ){
+              if( TermUtil::isAntisymmetric( ck, dk ) ){
                 int j = getKindConsNum( tn, dk );
                 if( j!=-1 ){
                   Trace("sygus-split-debug") << "Possible redundant operator : " << ck << " with " << dk << std::endl;
@@ -1225,7 +1028,7 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             }
             std::map< Node, bool > reserved;
             for( unsigned i=0; i<=2; i++ ){
-              Node rsv = i==2 ? getTypeMaxValue( btn ) : getTypeValue( btn, i );
+              Node rsv = i==2 ? d_quantEngine->getTermUtil()->getTypeMaxValue( btn ) : d_quantEngine->getTermUtil()->getTypeValue( btn, i );
               if( !rsv.isNull() ){
                 reserved[ rsv ] = true;
               }
@@ -1691,7 +1494,7 @@ bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
     if( k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL || 
         k==INTS_MODULUS || k==INTS_MODULUS_TOTAL ){
       if( n[1].isConst() ){
-        if( n[1]==getTypeValue( n[1].getType(), 0 ) ){
+        if( n[1]==d_quantEngine->getTermUtil()->getTypeValue( n[1].getType(), 0 ) ){
           return true;
         }
       }else{
