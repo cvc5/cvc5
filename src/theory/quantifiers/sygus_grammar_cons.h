@@ -34,8 +34,19 @@ class CegGrammarConstructor
 public:
  CegGrammarConstructor(QuantifiersEngine* qe, CegConjecture* p);
  ~CegGrammarConstructor() {}
- /** convert node n based on deep embedding (Section 4 of Reynolds et al CAV
-  * 2015) */
+ /** process
+  * This converts node q based on its deep embedding
+  * (Section 4 of Reynolds et al CAV 2015).
+  * The syntactic restrictions are associated with
+  * the functions-to-synthesize using the attribute
+  * SygusSynthGrammarAttribute.
+  * The arguments templates and template_args
+  * indicate templates for the function to synthesize,
+  * in particular the solution for the i^th function
+  * to synthesis must be of the form
+  *   templates[i]{ templates_arg[i] -> t }
+  * for some t if !templates[i].isNull().
+  */
  Node process(Node q,
               std::map<Node, Node>& templates,
               std::map<Node, Node>& templates_arg);
@@ -47,6 +58,8 @@ public:
  *   bvl is the set of free variables to include in the grammar
  *   fun is for naming
  *   extra_cons is a set of extra constant symbols to include in the grammar
+ *   term_irrelevant is a set of terms that should not be included in the
+ *      grammar.
  */
  static TypeNode mkSygusDefaultType(
      TypeNode range,
@@ -66,7 +79,7 @@ public:
   /** make the sygus datatype type that encodes the solution space (lambda
   * templ_arg. templ[templ_arg]) where templ_arg
   * has syntactic restrictions encoded by sygus type templ_arg_sygus_type
-  *   bvl is the set of free variables to include in the frammar
+  *   bvl is the set of free variables to include in the grammar
   *   fun is for naming
   */
   static TypeNode mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, const std::string& fun );
@@ -92,10 +105,10 @@ private:
   static void mkSygusConstantsForType( TypeNode type, std::vector<CVC4::Node>& ops );
   // collect the list of types that depend on type range
   static void collectSygusGrammarTypesFor( TypeNode range, std::vector< TypeNode >& types, std::map< TypeNode, std::vector< DatatypeConstructorArg > >& sels );
-  /** helper function for function mkSygusDefaultGrammar
-  *  collects a set of mutually recursive datatypes "datatypes" corresponding to
-  * encoding type "range" to SyGuS
-  *  unres is used for the resulting call to mkMutualDatatypeTypes
+  /** helper function for function mkSygusDefaultType
+  * Collects a set of mutually recursive datatypes "datatypes" corresponding to
+  * encoding type "range" to SyGuS.
+  *   unres is used for the resulting call to mkMutualDatatypeTypes
   */
   static void mkSygusDefaultGrammar(
       TypeNode range,
