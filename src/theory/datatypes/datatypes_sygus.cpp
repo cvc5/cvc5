@@ -756,26 +756,26 @@ void SygusSymBreakNew::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool
 */
 class EquivSygusInvarianceTest : public quantifiers::SygusInvarianceTest {
 public:
-  EquivSygusInvarianceTest(){}
-  ~EquivSygusInvarianceTest(){}
-  /** initialize this invariance test
+ EquivSygusInvarianceTest() : d_conj(nullptr) {}
+ ~EquivSygusInvarianceTest() {}
+ /** initialize this invariance test
   * tn is the sygus type for e
   * aconj/e are used for conjecture-specific symmetry breaking
   * bvr is the builtin version of the right hand side of the rewrite that we are
   * checking for invariance
   */
-  void init(quantifiers::TermDbSygus* tds, TypeNode tn,
-            quantifiers::CegConjecture* aconj, Node e, Node bvr) {
-    //compute the current examples
-    d_bvr = bvr;
-    if (aconj->getPbe()->hasExamples(e)) {
-      d_conj = aconj;
-      d_enum = e;
-      unsigned nex = aconj->getPbe()->getNumExamples(e);
-      for( unsigned i=0; i<nex; i++ ){
-        d_exo.push_back(d_conj->getPbe()->evaluateBuiltin(tn, bvr, e, i));
-      }
-    }
+ void init(quantifiers::TermDbSygus* tds, TypeNode tn,
+           quantifiers::CegConjecture* aconj, Node e, Node bvr) {
+   // compute the current examples
+   d_bvr = bvr;
+   if (aconj->getPbe()->hasExamples(e)) {
+     d_conj = aconj;
+     d_enum = e;
+     unsigned nex = aconj->getPbe()->getNumExamples(e);
+     for (unsigned i = 0; i < nex; i++) {
+       d_exo.push_back(d_conj->getPbe()->evaluateBuiltin(tn, bvr, e, i));
+     }
+   }
   }
 protected:
  /** does nvn still rewrite to d_bvr? */
