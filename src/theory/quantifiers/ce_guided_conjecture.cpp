@@ -508,7 +508,7 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
                 if( !d_cinfo[cprog].d_inst.empty() ){
                   sol = d_cinfo[cprog].d_inst.back();
                   // add to explanation of exclusion
-                  d_qe->getTermDatabaseSygus()->getExplanationForConstantEquality( cprog, sol, exp );
+                  d_qe->getTermDatabaseSygus()->getExplain()->getExplanationForConstantEquality( cprog, sol, exp );
                 }
                 Trace("cegqi-debug") << "  " << cprog << " -> " << sol << std::endl;
               }

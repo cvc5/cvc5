@@ -21,6 +21,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus_explain.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_model.h"
@@ -913,7 +914,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       Node x = getFreeVar( tn );
       DivByZeroSygusInvarianceTest dbzet;
       Trace("sygus-sb-mexp-debug") << "Minimize explanation for div-by-zero in " << d_tds->sygusToBuiltin( nv ) << std::endl;
-      d_tds->getExplanationFor( x, nv, exp, dbzet, Node::null(), sz );
+      d_tds->getExplain()->getExplanationFor( x, nv, exp, dbzet, Node::null(), sz );
       do_exclude = true;
     }else{
       std::map< Node, Node >::iterator itsv = d_cache[a].d_search_val[tn].find( bvr );
@@ -980,7 +981,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
         EquivSygusInvarianceTest eset;
         eset.init(d_tds, tn, aconj, a, bvr);
         Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;
-        d_tds->getExplanationFor( x, bad_val, exp, eset, bad_val_o, sz );
+        d_tds->getExplain()->getExplanationFor( x, bad_val, exp, eset, bad_val_o, sz );
         do_exclude = true;
       }
     }

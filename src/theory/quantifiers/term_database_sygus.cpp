@@ -42,24 +42,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-bool EvalSygusInvarianceTest::invariant( quantifiers::TermDbSygus * tds, Node nvn, Node x ){
-  TNode tnvn = nvn;
-  Node conj_subs = d_conj.substitute( d_var, tnvn );
-  Node conj_subs_unfold = tds->evaluateWithUnfolding( conj_subs, d_visited );
-  Trace("sygus-cref-eval2-debug") << "  ...check unfolding : " << conj_subs_unfold << std::endl;
-  Trace("sygus-cref-eval2-debug") << "  ......from : " << conj_subs << std::endl;
-  if( conj_subs_unfold==d_result ){
-    Trace("sygus-cref-eval2") << "Evaluation min explain : " << conj_subs << " still evaluates to " << d_result << " regardless of ";
-    Trace("sygus-cref-eval2") << x << std::endl;
-    return true;
-  }else{
-    return false;
-  }
-}
-
 TermDbSygus::TermDbSygus( context::Context* c, QuantifiersEngine* qe ) : d_quantEngine( qe ){
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
+  d_syexp = new SygusExplain(this);
 }
 
 bool TermDbSygus::reset( Theory::Effort e ) { 
@@ -1961,7 +1947,7 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
         unsigned start = d_node_mv_args_proc[n][vn];
         // get explanation in terms of testers
         std::vector< Node > antec_exp;
-        getExplanationForConstantEquality( n, vn, antec_exp );
+        d_syexp->getExplanationForConstantEquality( n, vn, antec_exp );
         Node antec = antec_exp.size()==1 ? antec_exp[0] : NodeManager::currentNM()->mkNode( kind::AND, antec_exp );
         //Node antec = n.eqNode( vn );
         TypeNode tn = n.getType();
@@ -2017,7 +2003,7 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
             
             //evaluate with minimal explanation
             std::vector< Node > mexp;
-            getExplanationFor( n, vn, mexp, esit );
+            d_syexp->getExplanationFor( n, vn, mexp, esit );
             Assert( !mexp.empty() );
             expn = mexp.size()==1 ? mexp[0] : NodeManager::currentNM()->mkNode( kind::AND, mexp );
             
@@ -2054,136 +2040,6 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
       }
     }
   }
-}
-
-void TermDbSygus::getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp ) {
-  std::map< unsigned, bool > cexc;
-  getExplanationForConstantEquality( n, vn, exp, cexc );
-}
-
-void TermDbSygus::getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp, std::map< unsigned, bool >& cexc ) {
-  Assert( vn.getKind()==kind::APPLY_CONSTRUCTOR );
-  Assert( n.getType()==vn.getType() );
-  TypeNode tn = n.getType();
-  Assert( tn.isDatatype() );
-  const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
-  int i = Datatype::indexOf( vn.getOperator().toExpr() );
-  Node tst = datatypes::DatatypesRewriter::mkTester( n, i, dt );
-  exp.push_back( tst );
-  for( unsigned j=0; j<vn.getNumChildren(); j++ ){
-    if( cexc.find( j )==cexc.end() ){
-      Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[i].getSelectorInternal( tn.toType(), j ) ), n );
-      getExplanationForConstantEquality( sel, vn[j], exp );
-    }
-  }
-}
-
-Node TermDbSygus::getExplanationForConstantEquality( Node n, Node vn ) {
-  std::map< unsigned, bool > cexc;
-  return getExplanationForConstantEquality( n, vn, cexc );
-}
-
-Node TermDbSygus::getExplanationForConstantEquality( Node n, Node vn, std::map< unsigned, bool >& cexc ) {
-  std::vector< Node > exp;
-  getExplanationForConstantEquality( n, vn, exp, cexc );
-  Assert( !exp.empty() );
-  return exp.size()==1 ? exp[0] : NodeManager::currentNM()->mkNode( kind::AND, exp );
-}
-
-// we have ( n = vn => eval( n ) = bvr ) ^ vn != vnr , returns exp such that exp => ( eval( n ) = bvr ^ vn != vnr )
-void TermDbSygus::getExplanationFor( TermRecBuild& trb, Node n, Node vn, std::vector< Node >& exp, std::map< TypeNode, int >& var_count,
-                                     SygusInvarianceTest& et, Node vnr, Node& vnr_exp, int& sz ) {
-  Assert( vnr.isNull() || vn!=vnr );
-  Assert( vn.getKind()==APPLY_CONSTRUCTOR );
-  Assert( vnr.isNull() || vnr.getKind()==APPLY_CONSTRUCTOR );
-  Assert( n.getType()==vn.getType() );
-  TypeNode ntn = n.getType();
-  std::map< unsigned, bool > cexc;
-  // for each child, check whether replacing by a fresh variable and rewriting again
-  for( unsigned i=0; i<vn.getNumChildren(); i++ ){
-    TypeNode xtn = vn[i].getType();
-    Node x = getFreeVarInc( xtn, var_count );
-    trb.replaceChild( i, x );
-    Node nvn = trb.build();
-    Assert( nvn.getKind()==kind::APPLY_CONSTRUCTOR );
-    if( et.is_invariant( this, nvn, x ) ){
-      cexc[i] = true;
-      // we are tracking term size if positive
-      if( sz>=0 ){
-        int s = getSygusTermSize( vn[i] );
-        sz = sz - s;
-      }
-    }else{
-      trb.replaceChild( i, vn[i] );
-    }
-  }
-  const Datatype& dt = ((DatatypeType)ntn.toType()).getDatatype();
-  int cindex = Datatype::indexOf( vn.getOperator().toExpr() );
-  Assert( cindex>=0 && cindex<(int)dt.getNumConstructors() );
-  Node tst = datatypes::DatatypesRewriter::mkTester( n, cindex, dt );
-  exp.push_back( tst );
-  // if the operator of vn is different than vnr, then disunification obligation is met
-  if( !vnr.isNull() ){
-    if( vnr.getOperator()!=vn.getOperator() ){
-      vnr = Node::null();
-      vnr_exp = d_true;
-    }
-  }
-  for( unsigned i=0; i<vn.getNumChildren(); i++ ){
-    Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex].getSelectorInternal( ntn.toType(), i ) ), n );
-    Node vnr_c = vnr.isNull() ? vnr : ( vn[i]==vnr[i] ? Node::null() : vnr[i] );
-    if( cexc.find( i )==cexc.end() ){
-      trb.push( i );
-      Node vnr_exp_c;
-      getExplanationFor( trb, sel, vn[i], exp, var_count, et, vnr_c, vnr_exp_c, sz );
-      trb.pop();
-      if( !vnr_c.isNull() ){
-        Assert( !vnr_exp_c.isNull() );
-        if( vnr_exp_c.isConst() || vnr_exp.isNull() ){
-          // recursively satisfied the disunification obligation
-          if( vnr_exp_c.isConst() ){
-            // was successful, don't consider further
-            vnr = Node::null();
-          }
-          vnr_exp = vnr_exp_c;
-        }
-      }
-    }else{
-      // if excluded, we may need to add the explanation for this
-      if( vnr_exp.isNull() && !vnr_c.isNull() ){
-        vnr_exp = getExplanationForConstantEquality( sel, vnr[i] );
-      }
-    }
-  }
-}
-
-void TermDbSygus::getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et, Node vnr, unsigned& sz ) {
-  // naive :
-  //return getExplanationForConstantEquality( n, vn, exp );
-  
-  // set up the recursion object
-  std::map< TypeNode, int > var_count;  
-  TermRecBuild trb;
-  trb.init( vn );
-  Node vnr_exp;
-  int sz_use = sz;
-  getExplanationFor( trb, n, vn, exp, var_count, et, vnr, vnr_exp, sz_use );
-  Assert( sz_use>=0 );
-  sz = sz_use;
-  Assert( vnr.isNull() || !vnr_exp.isNull() );
-  if( !vnr_exp.isNull() && !vnr_exp.isConst() ){
-    exp.push_back( vnr_exp.negate() );
-  }
-}
-
-void TermDbSygus::getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et ) {
-  int sz = -1;
-  std::map< TypeNode, int > var_count;  
-  TermRecBuild trb;
-  trb.init( vn );
-  Node vnr;
-  Node vnr_exp;
-  getExplanationFor( trb, n, vn, exp, var_count, et, vnr, vnr_exp, sz );
 }
 
 Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp ) {
@@ -2330,8 +2186,8 @@ Node TermDbSygus::evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& ar
   }
 }
 
-Node TermDbSygus::evaluateWithUnfolding( Node n, std::map< Node, Node >& visited ) {
-  std::map< Node, Node >::iterator it = visited.find( n );
+Node TermDbSygus::evaluateWithUnfolding( Node n, std::unordered_map< Node, Node, NodeHashFunction >& visited ) {
+  std::unordered_map< Node, Node, NodeHashFunction >::iterator it = visited.find( n );
   if( it==visited.end() ){
     Node ret = n;
     while( ret.getKind()==APPLY_UF && ret[0].getKind()==APPLY_CONSTRUCTOR ){
@@ -2362,7 +2218,7 @@ Node TermDbSygus::evaluateWithUnfolding( Node n, std::map< Node, Node >& visited
 }
 
 Node TermDbSygus::evaluateWithUnfolding( Node n ) {
-  std::map< Node, Node > visited;
+  std::unordered_map< Node, Node, NodeHashFunction > visited;
   return evaluateWithUnfolding( n, visited );
 }
 

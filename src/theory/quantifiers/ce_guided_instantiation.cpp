@@ -277,7 +277,7 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
               vsit.d_conj = lemc.substitute( vs.begin(), vs.end(), msu.begin(), msu.end() );
               // get minimal explanation for this
               Trace("sygus-cref-eval2-debug") << "  compute min explain of : " << vs[k] << " = " << vsit.d_update_nvn << std::endl;
-              d_quantEngine->getTermDatabaseSygus()->getExplanationFor( vs[k], vsit.d_update_nvn, mexp, vsit );
+              d_quantEngine->getTermDatabaseSygus()->getExplain()->getExplanationFor( vs[k], vsit.d_update_nvn, mexp, vsit );
               msu[k] = vsit.d_update_nvn;
             }
             if( !mexp.empty() ){

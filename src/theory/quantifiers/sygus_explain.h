@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/quantifiers/sygus_invariance.h"
 
 namespace CVC4 {
 namespace theory {
@@ -83,8 +84,32 @@ class TermRecBuild
   void addTerm(Node n);
 };
 
+
+// TODO
+class SygusExplain
+{
+public:
+  SygusExplain( TermDbSygus * tdb ) : d_tdb(tdb){}
+  ~SygusExplain(){}
+  // returns straightforward exp => n = vn
+  void getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp );
+  void getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp, std::map< unsigned, bool >& cexc );
+  Node getExplanationForConstantEquality( Node n, Node vn );
+  Node getExplanationForConstantEquality( Node n, Node vn, std::map< unsigned, bool >& cexc );
+  // we have n = vn => eval( n ) = bvr, returns exp => eval( n ) = bvr
+  //   ensures the explanation still allows for vnr
+  void getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et, Node vnr, unsigned& sz );
+  void getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et );
+private:
+  /** sygus term database associated with this utility */
+  TermDbSygus * d_tdb;
+  void getExplanationFor( TermRecBuild& trb, Node n, Node vn, std::vector< Node >& exp, std::map< TypeNode, int >& var_count,
+                        SygusInvarianceTest& et, Node vnr, Node& vnr_exp, int& sz );
+};
+
+
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__SYGUS_INVARIANCE_H */
+#endif /* __CVC4__SYGUS_EXPLAIN_H */
