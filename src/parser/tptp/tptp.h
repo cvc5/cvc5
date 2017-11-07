@@ -146,8 +146,6 @@ class Tptp : public Parser {
 
   bool d_cnf; // in a cnf formula
   bool d_fof; // in an fof formula
-
-  static void myPopCharStream(pANTLR3_LEXER lexer);
 };/* class Tptp */
 
 
