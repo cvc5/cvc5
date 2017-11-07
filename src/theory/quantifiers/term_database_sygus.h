@@ -29,23 +29,61 @@ class CegConjecture;
 
 // TODO :issue #1235 split and document this class
 class TermDbSygus {
-private:
+ public:
+  TermDbSygus( context::Context* c, QuantifiersEngine* qe );
+  ~TermDbSygus(){}
+  /** Reset this utility */
+  bool reset( Theory::Effort e );
+  /** Identify this utility */
+  std::string identify() const { return "TermDbSygus"; }
+  /** register the sygus type */
+  void registerSygusType( TypeNode tn );
+  /** register a variable e that we will do enumerative search on
+   * conj is the conjecture that the enumeration of e is for.
+   * f is the synth-fun that the enumeration of e is for.
+   * mkActiveGuard is whether we want to make a active guard for e (see
+   * d_enum_to_active_guard)
+   *
+   * Notice that enumerator e may not be equivalent
+   * to f in synthesis-through-unification approaches
+   * (e.g. decision tree construction for PBE synthesis).
+   */
+  void registerEnumerator(Node e,
+                          Node f,
+                          CegConjecture* conj,
+                          bool mkActiveGuard = false);
+  /** is e an enumerator? */
+  bool isEnumerator(Node e) const;
+  /** return the conjecture e is associated with */
+  CegConjecture* getConjectureForEnumerator(Node e);
+  /** return the function-to-synthesize e is associated with */
+  Node getSynthFunForEnumerator(Node e);
+  /** get active guard for e */
+  Node getActiveGuardForEnumerator(Node e);
+  /** get all registered enumerators */
+  void getEnumerators(std::vector<Node>& mts);
+  /** get the explanation utility */
+  SygusExplain * getExplain() { return d_syexp.get(); }
+  /** get the extended rewrite utility */
+  ExtendedRewriter * getExtRewriter() { return d_ext_rw.get(); }
+ private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
-  std::map< TypeNode, std::vector< Node > > d_fv[2];
-  std::map< Node, TypeNode > d_fv_stype;
-  std::map< Node, int > d_fv_num;
-  bool hasFreeVar( Node n, std::map< Node, bool >& visited );
   /** sygus explanation */
   std::unique_ptr<SygusExplain> d_syexp;
   /** sygus explanation */
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
-public:
-  SygusExplain * getExplain() { return d_syexp.get(); }
-  ExtendedRewriter * getExtRewriter() { return d_ext_rw.get(); }
+
+  
+  
 public:
   Node d_true;
   Node d_false;
+private:
+  std::map< TypeNode, std::vector< Node > > d_fv[2];
+  std::map< Node, TypeNode > d_fv_stype;
+  std::map< Node, int > d_fv_num;
+  bool hasFreeVar( Node n, std::map< Node, bool >& visited );
 public:
   TNode getFreeVar( TypeNode tn, int i, bool useSygusType = false );
   TNode getFreeVarInc( TypeNode tn, std::map< TypeNode, int >& var_count, bool useSygusType = false );
@@ -105,39 +143,6 @@ private:
  // type -> cons -> _
  std::map<TypeNode, unsigned> d_min_term_size;
  std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
-public:
-  TermDbSygus( context::Context* c, QuantifiersEngine* qe );
-  ~TermDbSygus(){}
-  bool reset( Theory::Effort e );
-  std::string identify() const { return "TermDbSygus"; }
-public:
-  /** register the sygus type */
-  void registerSygusType( TypeNode tn );
-  /** register a variable e that we will do enumerative search on
-   * conj is the conjecture that the enumeration of e is for.
-   * f is the synth-fun that the enumeration of e is for.
-   * mkActiveGuard is whether we want to make a active guard for e (see
-   * d_enum_to_active_guard)
-   *
-   * Notice that enumerator e may not be equivalent
-   * to f in synthesis-through-unification approaches
-   * (e.g. decision tree construction for PBE synthesis).
-   */
-  void registerEnumerator(Node e,
-                          Node f,
-                          CegConjecture* conj,
-                          bool mkActiveGuard = false);
-  /** is e an enumerator? */
-  bool isEnumerator(Node e) const;
-  /** return the conjecture e is associated with */
-  CegConjecture* getConjectureForEnumerator(Node e);
-  /** return the function-to-synthesize e is associated with */
-  Node getSynthFunForEnumerator(Node e);
-  /** get active guard for e */
-  Node getActiveGuardForEnumerator(Node e);
-  /** get all registered enumerators */
-  void getEnumerators(std::vector<Node>& mts);
-
  public:  // general sygus utilities
   bool isRegistered( TypeNode tn );
   // get the minimum depth of type in its parent grammar

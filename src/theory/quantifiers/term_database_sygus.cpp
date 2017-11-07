@@ -2161,7 +2161,6 @@ Node TermDbSygus::evaluateWithUnfolding( Node n, std::unordered_map< Node, Node,
       if( childChanged ){
         ret = NodeManager::currentNM()->mkNode( ret.getKind(), children );
       }
-      // TODO : extended rewrite?
       ret = getExtRewriter()->extendedRewrite( ret );
     }
     visited[n] = ret;
