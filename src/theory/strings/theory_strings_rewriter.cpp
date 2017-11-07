@@ -1057,6 +1057,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
       }
     }else if( node[0].getKind()==kind::STRING_STRREPL ){
       if( node[0][1].isConst() && node[0][2].isConst() ){
+        // TODO (#1180) length entailment here
         if( node[0][1].getConst<String>().size()==node[0][2].getConst<String>().size() ){
           retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0][0] );
         }
@@ -1504,30 +1505,34 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
     }
   }
   // combine substr
-  /*
   if( node[0].getKind()==kind::STRING_SUBSTR ){
     Node start_inner = node[0][1];
     Node start_outer = node[1];
-    if( checkEntailArith( start_inner, zero ) && checkEntailArith( start_outer,
-  zero ) ){
-
+    if( checkEntailArith( start_outer ) && checkEntailArith( start_inner ) ){
+      // both are positive
+      // thus, start point is definitely start_inner+start_outer.
+      // We can rewrite if it for certain what the length is
+      
+      // the length of a string from the inner substr subtracts the start point of the outer substr
+      Node len_from_inner = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::MINUS, node[0][2], start_outer ) );
+      Node len_from_outer = node[2];
+      Node new_len;
+      // take quantity that is for sure smaller than the other
+      if( len_from_inner==len_from_outer ){
+        new_len = len_from_inner;        
+      }else if( checkEntailArith( len_from_inner, len_from_outer ) ){
+        new_len = len_from_outer;
+      }else if( checkEntailArith( len_from_outer, len_from_inner ) ){
+        new_len = len_from_inner;
+      }
+      if( !new_len.isNull() ){
+        Node new_start = NodeManager::currentNM()->mkNode( kind::PLUS, start_inner, start_outer );
+        Node ret = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, new_start, new_len );
+        return returnRewrite(node, ret, "ss-combine");
+      }
     }
 
-
-    Node end_inner = NodeManager::currentNM()->mkNode( kind::PLUS, node[0][1],
-  node[0][2] );
-    Node end_outer = NodeManager::currentNM()->mkNode( kind::PLUS, node[1],
-  node[2] );
-    if(  ){
-      Node ret = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR,
-  node[0][0], NodeManager::currentNM()->mkNode( kind::PLUS, node[0][1], node[1]
-  ), node[2] );
-      Trace("strings-rewrite-advanced") << "Rewrite " << node << " to " << ret
-  << " by combine substr." << std::endl;
-      return ret;
-    }
   }
-  */
   Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
 }
@@ -2525,6 +2530,25 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
       return true;
     }
     // TODO (#1180) : abstract interpretation goes here
+    
+    // over approximation O/U
+
+    // O( x <op> y ) -> O( x ) <op> O( y )
+    // O( len( x ) ) -> ...
+    // O( len( int.to.str( x ) ) ) -> ...
+    // O( len( str.substr( x, n1, n2 ) ) ) -> O( n2 ) | O( len( x ) )
+    // O( len( str.replace( x, y, z ) ) ) -> O( len( x ) ) + O( len( z ) ) - U( len( y ) )
+    // O( indexof( x, y, n ) ) -> O( len( x ) ) - U( len( y ) )
+    // O( str.to.int( x ) ) -> ...
+
+    // U( x <op> y ) -> U( x ) <op> U( y )
+    // U( len( x ) ) -> ...
+    // U( len( int.to.str( x ) ) ) -> 1
+    // U( len( str.substr( x, n1, n2 ) ) ) -> min( U( len( x ) ) - O( n1 ), U( n2 ) )
+    // U( len( str.replace( x, y, z ) ) ) -> U( len( x ) ) + U( len( z ) ) - O( len( y ) ) | 0
+    // U( indexof( x, y, n ) ) -> -1    ?
+    // U( str.to.int( x ) ) -> -1
+
     return false;
   }
 }
