@@ -412,59 +412,11 @@ Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn, int rcons_depth ) {
   }
 }
 
-Node TermDbSygus::getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs ) {
-  return n;
-  /*  TODO?
-  if( n.getKind()==SKOLEM ){
-    std::map< Node, Node >::iterator its = subs.find( n );
-    if( its!=subs.end() ){
-      return its->second;
-    }else{
-      std::map< Node, TypeNode >::iterator it = d_fv_stype.find( n );
-      if( it!=d_fv_stype.end() ){
-        Node v = getVarInc( it->second, var_count );
-        subs[n] = v;
-        return v;
-      }else{
-        return n;
-      }
-    }
-  }else{
-    if( n.getNumChildren()>0 ){
-      std::vector< Node > children;
-      if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-        children.push_back( n.getOperator() );
-      }
-      bool childChanged = false;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Node nc = getSygusNormalized( n[i], var_count, subs );
-        childChanged = childChanged || nc!=n[i];
-        children.push_back( nc );
-      }
-      if( childChanged ){
-        return NodeManager::currentNM()->mkNode( n.getKind(), children );
-      }
-    }
-    return n;
-  }
-  */
-}
-
-Node TermDbSygus::getNormalized( TypeNode t, Node prog, bool do_pre_norm, bool do_post_norm ) {
-  if( do_pre_norm ){
-    std::map< TypeNode, int > var_count;
-    std::map< Node, Node > subs;
-    prog = getSygusNormalized( prog, var_count, subs );
-  }
+Node TermDbSygus::getNormalized( TypeNode t, Node prog ) {
   std::map< Node, Node >::iterator itn = d_normalized[t].find( prog );
   if( itn==d_normalized[t].end() ){
     Node progr = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( prog.toExpr() ) );
     progr = Rewriter::rewrite( progr );
-    if( do_post_norm ){
-      std::map< TypeNode, int > var_count;
-      std::map< Node, Node > subs;
-      progr = getSygusNormalized( progr, var_count, subs );
-    }
     Trace("sygus-sym-break2") << "...rewrites to " << progr << std::endl;
     d_normalized[t][prog] = progr;
     return progr;
@@ -2229,7 +2181,7 @@ bool TermDbSygus::computeGenericRedundant( TypeNode tn, Node g ) {
   std::map< Node, bool >::iterator it = d_gen_redundant[tn].find( g );
   if( it==d_gen_redundant[tn].end() ){
     Trace("sygus-gnf") << "Register generic for " << tn << " : " << g << std::endl;
-    Node gr = getNormalized( tn, g, false );
+    Node gr = getNormalized( tn, g );
     Trace("sygus-gnf-debug") << "Generic " << g << " rewrites to " << gr << std::endl;
     std::map< Node, Node >::iterator itg = d_gen_terms[tn].find( gr );
     bool red = true;

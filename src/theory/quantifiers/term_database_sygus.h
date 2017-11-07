@@ -188,7 +188,7 @@ public:
   Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );
   Node builtinToSygusConst( Node c, TypeNode tn, int rcons_depth = 0 );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
-  Node getNormalized( TypeNode t, Node prog, bool do_pre_norm = false, bool do_post_norm = true );
+  Node getNormalized( TypeNode t, Node prog );
   unsigned getSygusTermSize( Node n );
   // returns size
   unsigned getSygusConstructors( Node n, std::vector< Node >& cons );
