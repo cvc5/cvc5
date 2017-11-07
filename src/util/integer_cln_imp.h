@@ -361,28 +361,30 @@ public:
    * Note that if x and m are coprime, then x^-1 > 0 if m > 1 and x^-1 = 0
    * if m = 1 (the zero ring).
    */
-  Integer modInverse (const Integer & m) const;
+  Integer modInverse(const Integer& m) const;
 
   /**
    * Compute multiplication of this Integer x * y modulo m.
    */
-  Integer modMultiply (const Integer & y, const Integer & m) const {
-    cln::cl_modint_ring ry = cln::find_modint_ring (m.d_value);
-    cln::cl_MI xm = ry->canonhom (d_value);
-    cln::cl_MI ym = ry->canonhom (y.d_value);
+  Integer modMultiply(const Integer& y, const Integer& m) const
+  {
+    cln::cl_modint_ring ry = cln::find_modint_ring(m.d_value);
+    cln::cl_MI xm = ry->canonhom(d_value);
+    cln::cl_MI ym = ry->canonhom(y.d_value);
     cln::cl_MI res = xm * ym;
-    return Integer (ry->retract (res));
+    return Integer(ry->retract(res));
   }
 
   /**
    * Compute addition of this Integer x + y modulo m.
    */
-  Integer modAdd (const Integer & y, const Integer & m) const {
-    cln::cl_modint_ring ry = cln::find_modint_ring (m.d_value);
-    cln::cl_MI xm = ry->canonhom (d_value);
-    cln::cl_MI ym = ry->canonhom (y.d_value);
+  Integer modAdd(const Integer& y, const Integer& m) const
+  {
+    cln::cl_modint_ring ry = cln::find_modint_ring(m.d_value);
+    cln::cl_MI xm = ry->canonhom(d_value);
+    cln::cl_MI ym = ry->canonhom(y.d_value);
     cln::cl_MI res = xm + ym;
-    return Integer (ry->retract (res));
+    return Integer(ry->retract(res));
   }
 
   /**

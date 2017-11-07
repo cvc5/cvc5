@@ -155,14 +155,18 @@ Integer Integer::pow(unsigned long int exp) const {
   }
 }
 
-Integer Integer::modInverse (const Integer & m) const {
-    PrettyCheckArgument (m > 0, m, "m must be greater than zero");
-    cln::cl_modint_ring ry = cln::find_modint_ring (m.d_value);
-    cln::cl_MI xm = ry->canonhom (d_value);
-    /* normalize to modulo m for coprime check */
-    cln::cl_I x = ry->retract (xm);
-    if (x == 0 || cln::gcd (x, m.d_value) != 1) return Integer(-1);
-    cln::cl_MI res = cln::recip (xm);
-    return Integer (ry->retract (res));
+Integer Integer::modInverse(const Integer& m) const
+{
+  PrettyCheckArgument(m > 0, m, "m must be greater than zero");
+  cln::cl_modint_ring ry = cln::find_modint_ring(m.d_value);
+  cln::cl_MI xm = ry->canonhom(d_value);
+  /* normalize to modulo m for coprime check */
+  cln::cl_I x = ry->retract(xm);
+  if (x == 0 || cln::gcd(x, m.d_value) != 1)
+  {
+    return Integer(-1);
   }
+  cln::cl_MI res = cln::recip(xm);
+  return Integer(ry->retract(res));
+}
 } /* namespace CVC4 */

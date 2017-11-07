@@ -482,13 +482,16 @@ public:
         Integer x(i);
         Integer y = x + j;
         Integer yp = x.modAdd(j, 3);
-        for (yy = y; yy >= 3; yy -= 3);
+        for (yy = y; yy >= 3; yy -= 3)
+          ;
         TS_ASSERT(yp == yy);
         yp = x.modAdd(j, 7);
-        for (yy = y; yy >= 7; yy -= 7);
+        for (yy = y; yy >= 7; yy -= 7)
+          ;
         TS_ASSERT(yp == yy);
         yp = x.modAdd(j, 11);
-        for (yy = y; yy >= 11; yy -= 11);
+        for (yy = y; yy >= 11; yy -= 11)
+          ;
         TS_ASSERT(yp == yy);
       }
     }
@@ -504,13 +507,16 @@ public:
         Integer x(i);
         Integer y = x * j;
         Integer yp = x.modMultiply(j, 3);
-        for (yy = y; yy >= 3; yy -= 3);
+        for (yy = y; yy >= 3; yy -= 3)
+          ;
         TS_ASSERT(yp == yy);
         yp = x.modMultiply(j, 7);
-        for (yy = y; yy >= 7; yy -= 7);
+        for (yy = y; yy >= 7; yy -= 7)
+          ;
         TS_ASSERT(yp == yy);
         yp = x.modMultiply(j, 11);
-        for (yy = y; yy >= 11; yy -= 11);
+        for (yy = y; yy >= 11; yy -= 11)
+          ;
         TS_ASSERT(yp == yy);
       }
     }
@@ -524,7 +530,7 @@ public:
       Integer inv = x.modInverse(3);
       if (i == 0 || i == 3 || i == 6 || i == 9)
       {
-        TS_ASSERT(inv == -1);  /* no inverse */
+        TS_ASSERT(inv == -1); /* no inverse */
       }
       else
       {
@@ -533,7 +539,7 @@ public:
       inv = x.modInverse(7);
       if (i == 0 || i == 7)
       {
-        TS_ASSERT(inv == -1);  /* no inverse */
+        TS_ASSERT(inv == -1); /* no inverse */
       }
       else
       {
@@ -542,7 +548,7 @@ public:
       inv = x.modInverse(11);
       if (i == 0)
       {
-        TS_ASSERT(inv == -1);  /* no inverse */
+        TS_ASSERT(inv == -1); /* no inverse */
       }
       else
       {

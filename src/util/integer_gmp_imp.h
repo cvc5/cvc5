@@ -404,26 +404,28 @@ public:
    * Note that if x and m are coprime, then x^-1 > 0 if m > 1 and x^-1 = 0
    * if m = 1 (the zero ring).
    */
-  Integer modInverse (const Integer & m) const;
+  Integer modInverse(const Integer& m) const;
 
   /**
    * Compute multiplication of this Integer x * y modulo m.
    */
-  Integer modMultiply (const Integer & y, const Integer & m) const {
+  Integer modMultiply(const Integer& y, const Integer& m) const
+  {
     mpz_class res;
-    mpz_mul (res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-    mpz_mod (res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
-    return Integer (res);
+    mpz_mul(res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    mpz_mod(res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
+    return Integer(res);
   }
 
   /**
    * Compute addition of this Integer x + y modulo m.
    */
-  Integer modAdd (const Integer & y, const Integer & m) const {
+  Integer modAdd(const Integer& y, const Integer& m) const
+  {
     mpz_class res;
-    mpz_add (res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-    mpz_mod (res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
-    return Integer (res);
+    mpz_add(res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    mpz_mod(res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
+    return Integer(res);
   }
 
   /**
