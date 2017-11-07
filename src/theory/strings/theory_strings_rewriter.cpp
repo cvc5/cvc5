@@ -1539,7 +1539,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         Node new_start = NodeManager::currentNM()->mkNode(
             kind::PLUS, start_inner, start_outer);
         Node ret = NodeManager::currentNM()->mkNode(
-            kind::STRING_SUBSTR, new_start, new_len);
+            kind::STRING_SUBSTR, node[0][0], new_start, new_len);
         return returnRewrite(node, ret, "ss-combine");
       }
     }
