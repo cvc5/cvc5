@@ -79,7 +79,7 @@ class CegEntailmentInfer;
 *     are equivalent up to examples on the above conjecture, since they have the
 *     same value on the points x = 0,5,6. Hence, we need only consider one of
 *     them. The interface for querying this is
-* CegConjecturePbe::addSearchVal(...).
+*       CegConjecturePbe::addSearchVal(...).
 *     For details, see Reynolds et al. SYNT 2017.
 *
 * (5) When the extension of quantifier-free datatypes procedure for SyGuS
@@ -95,8 +95,7 @@ class CegEntailmentInfer;
 *     solution based on the high-level strategy (stored in d_c_info).
 *
 * This class is not designed to work in incremental mode, since there is no way
-* to
-* specify incremental problems in SyguS.
+* to specify incremental problems in SyguS.
 *
 */
 class CegConjecturePbe {

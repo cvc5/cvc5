@@ -18,6 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
 
 #include "theory/quantifiers/sygus_explain.h"
+#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
@@ -36,9 +37,12 @@ private:
   std::map< Node, int > d_fv_num;
   bool hasFreeVar( Node n, std::map< Node, bool >& visited );
   /** sygus explanation */
-  SygusExplain * d_syexp;
+  std::unique_ptr<SygusExplain> d_syexp;
+  /** sygus explanation */
+  std::unique_ptr<ExtendedRewriter> d_ext_rw;
 public:
-  SygusExplain * getExplain() { return d_syexp; }
+  SygusExplain * getExplain() { return d_syexp.get(); }
+  ExtendedRewriter * getExtRewriter() { return d_ext_rw.get(); }
 public:
   Node d_true;
   Node d_false;
@@ -253,13 +257,6 @@ private:
   bool computeGenericRedundant( TypeNode tn, Node g );
 public:
   bool isGenericRedundant( TypeNode tn, unsigned i );
-  
-// extended rewriting
-private:
-  std::map< Node, Node > d_ext_rewrite_cache;
-  Node extendedRewritePullIte( Node n );
-public:
-  Node extendedRewrite( Node n );
 };
 
 }/* CVC4::theory::quantifiers namespace */

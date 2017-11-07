@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/sygus_invariance.h"
 
+#include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/ce_guided_pbe.h"
 #include "theory/quantifiers/term_database_sygus.h"
 
 using namespace CVC4::kind;
@@ -23,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-bool EvalSygusInvarianceTest::invariant( quantifiers::TermDbSygus * tds, Node nvn, Node x ){
+bool EvalSygusInvarianceTest::invariant( TermDbSygus * tds, Node nvn, Node x ){
   TNode tnvn = nvn;
   Node conj_subs = d_conj.substitute( d_var, tnvn );
   Node conj_subs_unfold = tds->evaluateWithUnfolding( conj_subs, d_visited );
@@ -36,6 +38,139 @@ bool EvalSygusInvarianceTest::invariant( quantifiers::TermDbSygus * tds, Node nv
   }else{
     return false;
   }
+}
+
+
+void EquivSygusInvarianceTest::init(TermDbSygus* tds, TypeNode tn,
+          CegConjecture* aconj, Node e, Node bvr) {
+  // compute the current examples
+  d_bvr = bvr;
+  if (aconj->getPbe()->hasExamples(e)) {
+    d_conj = aconj;
+    d_enum = e;
+    unsigned nex = aconj->getPbe()->getNumExamples(e);
+    for (unsigned i = 0; i < nex; i++) {
+      d_exo.push_back(d_conj->getPbe()->evaluateBuiltin(tn, bvr, e, i));
+    }
+  }
+}
+
+bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x) {
+  TypeNode tn = nvn.getType();
+  Node nbv = tds->sygusToBuiltin(nvn, tn);
+  Node nbvr = tds->getExtRewriter()->extendedRewrite(nbv);
+  Trace("sygus-sb-mexp-debug") << "  min-exp check : " << nbv << " -> " << nbvr
+                              << std::endl;
+  bool exc_arg = false;
+  // equivalent / singular up to normalization
+  if (nbvr == d_bvr) {
+    // gives the same result : then the explanation for the child is irrelevant
+    exc_arg = true;
+    Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)
+                          << " is rewritten to " << nbvr;
+    Trace("sygus-sb-mexp") << " regardless of the content of "
+                          << tds->sygusToBuiltin(x) << std::endl;
+  } else {
+    if (nbvr.isVar()) {
+      TypeNode xtn = x.getType();
+      if (xtn == tn) {
+        Node bx = tds->sygusToBuiltin(x, xtn);
+        Assert(bx.getType() == nbvr.getType());
+        if (nbvr == bx) {
+          Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)
+                                << " always rewrites to argument " << nbvr
+                                << std::endl;
+          // rewrites to the variable : then the explanation of this is
+          // irrelevant as well
+          exc_arg = true;
+          d_bvr = nbvr;
+        }
+      }
+    }
+  }
+  // equivalent under examples
+  if (!exc_arg) {
+    if (!d_enum.isNull()) {
+      bool ex_equiv = true;
+      for (unsigned j = 0; j < d_exo.size(); j++) {
+        Node nbvr_ex = d_conj->getPbe()->evaluateBuiltin(tn, nbvr, d_enum, j);
+        if (nbvr_ex != d_exo[j]) {
+          ex_equiv = false;
+          break;
+        }
+      }
+      if (ex_equiv) {
+        Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn);
+        Trace("sygus-sb-mexp")
+            << " is the same w.r.t. examples regardless of the content of "
+            << tds->sygusToBuiltin(x) << std::endl;
+        exc_arg = true;
+      }
+    }
+  }
+  return exc_arg;
+}
+
+bool DivByZeroSygusInvarianceTest::invariant( TermDbSygus * tds, Node nvn, Node x ){
+  TypeNode tn = nvn.getType();
+  Node nbv = tds->sygusToBuiltin( nvn, tn );
+  Node nbvr = tds->getExtRewriter()->extendedRewrite( nbv );
+  if( tds->involvesDivByZero( nbvr ) ){
+    Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin( nvn ) << " involves div-by-zero regardless of " << tds->sygusToBuiltin( x ) << std::endl;
+    return true;
+  }else{
+    return false;
+  }
+}
+
+void NegContainsSygusInvarianceTest::init(CegConjecture* conj,
+            Node e,
+            std::vector<Node>& exo,
+            std::vector<unsigned>& ncind)
+{
+  if (conj->getPbe()->hasExamples(e))
+  {
+    Assert(conj->getPbe()->getNumExamples(e) == exo.size());
+    d_enum = e;
+    d_exo.insert( d_exo.end(), exo.begin(), exo.end() );
+    d_neg_con_indices.insert( d_neg_con_indices.end(), ncind.begin(), ncind.end() );
+    d_conj = conj;
+  }
+}
+
+bool NegContainsSygusInvarianceTest::invariant( TermDbSygus * tds, Node nvn, Node x ){
+  if (!d_enum.isNull())
+  {
+    TypeNode tn = nvn.getType();
+    Node nbv = tds->sygusToBuiltin( nvn, tn );
+    Node nbvr = tds->getExtRewriter()->extendedRewrite( nbv );
+    // if for any of the examples, it is not contained, then we can exclude
+    for( unsigned i=0; i<d_neg_con_indices.size(); i++ ){
+      unsigned ii = d_neg_con_indices[i];
+      Assert( ii<d_exo.size() );
+      Node nbvre = d_conj->getPbe()->evaluateBuiltin(tn, nbvr, d_enum, ii);
+      Node out = d_exo[ii];
+      Node cont = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, out, nbvre );
+      Node contr = Rewriter::rewrite( cont );
+      if( contr==tds->d_false ){
+        if( Trace.isOn("sygus-pbe-cterm") ){
+          Trace("sygus-pbe-cterm") << "PBE-cterm : enumerator : do not consider ";
+          Trace("sygus-pbe-cterm") << nbv << " for any " << tds->sygusToBuiltin( x ) << " since " << std::endl;
+          Trace("sygus-pbe-cterm") << "   PBE-cterm :    for input example : ";
+          std::vector< Node > ex;
+          d_conj->getPbe()->getExample(d_enum, ii, ex);
+          for( unsigned j=0; j<ex.size(); j++ ){
+            Trace("sygus-pbe-cterm") << ex[j] << " ";
+          }
+          Trace("sygus-pbe-cterm") << std::endl;
+          Trace("sygus-pbe-cterm") << "   PBE-cterm :     this rewrites to : " << nbvre << std::endl;
+          Trace("sygus-pbe-cterm") << "   PBE-cterm : and is not in output : " << out << std::endl;
+        }
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 } /* CVC4::theory::quantifiers namespace */
