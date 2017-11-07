@@ -66,21 +66,6 @@ inline Node skolemFunction(const std::string& name, TypeNode dom, TypeNode range
   return currNM->mkSkolem(name, functionType);
 }
 
-/**
- * (For the moment) the type hierarchy goes as:
- * Integer <: Real
- * The type number of a variable is an integer representing the most specific
- * type of the variable. The possible values of type number are:
- */
-enum ArithType {
-  ATReal = 0,
-  ATInteger = 1
-};
-
-inline ArithType nodeToArithType(TNode x) {
-  return (x.getType().isInteger() ? ATInteger : ATReal);
-}
-
 /** \f$ k \in {LT, LEQ, EQ, GEQ, GT} \f$ */
 inline bool isRelationOperator(Kind k){
   using namespace kind;
