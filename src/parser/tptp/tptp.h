@@ -148,7 +148,6 @@ class Tptp : public Parser {
   bool d_fof; // in an fof formula
 
   static void myPopCharStream(pANTLR3_LEXER lexer);
-  void (*d_oldPopCharStream)(pANTLR3_LEXER);
 };/* class Tptp */
 
 
