@@ -720,13 +720,8 @@ public:
    * Construct a timer statistic with the given name.  Newly-constructed
    * timers have a 0.0 value and are not running.
    */
-  TimerStat(const std::string& name) :
-    BackedStat< timespec >(name, timespec()),
-    d_running(false) {
-    /* timespec is POD and so may not be initialized to zero;
-     * here, ensure it is */
-    d_data.tv_sec = d_data.tv_nsec = 0;
-  }
+  TimerStat(const std::string& name)
+      : BackedStat<timespec>(name, {0, 0}), d_start{0, 0}, d_running(false) {}
 
   /** Start the timer. */
   void start();
