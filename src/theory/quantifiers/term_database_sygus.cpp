@@ -1749,12 +1749,11 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
 
             EvalSygusInvarianceTest esit;
             eval_children.insert( eval_children.end(), it->second[i].begin(), it->second[i].end() );
-            esit.d_conj = NodeManager::currentNM()->mkNode( kind::APPLY_UF, eval_children );
-            esit.d_var = n;
+            Node conj = NodeManager::currentNM()->mkNode( kind::APPLY_UF, eval_children );
             eval_children[1] = vn;
             Node eval_fun = NodeManager::currentNM()->mkNode( kind::APPLY_UF, eval_children );
-            esit.d_result = evaluateWithUnfolding( eval_fun );
-            res = esit.d_result;
+            res = evaluateWithUnfolding( eval_fun );
+            esit.init( conj, n, res );
             eval_children.resize( 2 );  
             eval_children[1] = n;
             

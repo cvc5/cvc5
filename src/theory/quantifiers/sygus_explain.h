@@ -105,7 +105,8 @@ public:
   /** get explanation for constant equality
    * 
    * This function constructs an explanation, stored in exp, such that:
-   * - All formulas in exp are of the form ((_ is C) n),
+   * - All formulas in exp are of the form ((_ is C) ns), where ns
+   *   is a chain of selectors applied to n, and
    * - exp => ( n = vn )
    */
   void getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp );
@@ -113,7 +114,12 @@ public:
   Node getExplanationForConstantEquality( Node n, Node vn );
   /** get explanation for constant equality
    * This is identical to the above function except that we 
-   * take an additional argument cexc, which 
+   * take an additional argument cexc, which says which
+   * children of vn should be excluded from the explanation.
+   * 
+   * For example, if vn = plus( x, y ) and cexc is { 0 -> true },
+   * then we appended to exp :
+   *   { ((_ is plus) n), ((_ is y) n.1) }
    */
   void getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp, std::map< unsigned, bool >& cexc );
   /** returns the conjunction of exp computed in the above function */
@@ -131,7 +137,7 @@ public:
    * This function constructs an explanation, stored in exp, such that:
    * - All formulas in exp are of the form ((_ is C) n),
    * - exp => eval( n ) = vn
-   * - (if applicable) exp => n != vnr
+   * - (if applicable) exp => ( n != vnr )
    * - 
    * 
    * It updates sz to be the size of 

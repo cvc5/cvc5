@@ -29,17 +29,16 @@ namespace quantifiers {
 class TermDbSygus;
 class CegConjecture;
 
-// TODO
 /* SygusInvarianceTest
 * 
 * This class is the standard interface for term generalization
 * in SyGuS. Its interface is a single function is_variant,
-* 
+* which is a virtual condition for SyGuS terms. 
 * 
 * The common use case of invariance tests is when constructing
 * minimal explanations for refinement lemmas in the
 * counterexample-guided inductive synthesis (CEGIS) loop.
-* For sygus_explain.h for more details.
+* For sygus_explain.h for more details. 
 * 
 */
 class SygusInvarianceTest {
@@ -54,7 +53,7 @@ public:
   }
   /** get updated term */
   Node getUpdatedTerm() { return d_update_nvn; }
-  /** get updated term */
+  /** set updated term */
   void setUpdatedTerm( Node n ) { 
     d_update_nvn = n; 
   }
@@ -67,60 +66,76 @@ protected:
 
 /** EquivSygusInvarianceTest
 *
-* This class is used to construct a minimal shape of a term that 
-* evaluates via evaluation operators in the deep embedding 
-* (Section 4 of Reynolds et al. CAV 2015) to fixed term d_result.
+* This class tests whether a term evaluates via evaluation 
+* operators in the deep embedding (Section 4 of Reynolds 
+* et al. CAV 2015) to fixed term d_result.
 * 
 * For example, consider a SyGuS evaluation function eval
-* for a synthesis conjecture with arguments x and y. Say we 
-* wish to generalize the term t = (mult x y) such that:
-* 
+* for a synthesis conjecture with arguments x and y. 
+* Notice that the term t = (mult x y) is such that:
 *   eval( t, 0, 1 ) ----> 0
-* 
-* This can be minimized to t = (mul x _), noting that:
-* 
+* This test is invariant on the content of the second
+* argument of t, noting that:
 *   eval( (mult x _), 0, 1 ) ----> 0
+* as well, via a call to EvalSygusInvarianceTest::invariant.
 * 
-* Another example, t
-* 
-*   eval( t, 0, 1 ) ----> 0
-* 
+* Another example, t = ite( gt( x, y ), x, y ) is such that:
+*   eval( t, 2, 3 ) ----> 3
+* This test is invariant on the "if" branch of t, noting:
+*   eval( ite( gt( x, y ), _, y ), 2, 3 ) ----> 3
 */
 class EvalSygusInvarianceTest : public SygusInvarianceTest {
 public:
   EvalSygusInvarianceTest(){}
   ~EvalSygusInvarianceTest(){}
-  Node d_conj;
-  TNode d_var;
-  std::unordered_map< Node, Node, NodeHashFunction > d_visited;
-  Node d_result;
+  /** initialize this invariance test
+    * This sets d_conj/d_var/d_result, where
+    * we are checking whether:
+    *   d_conj { d_var -> n } ----> d_result.
+    * for terms n.
+    */
+  void init(Node conj, Node var, Node res);
+  /** do evaluate with unfolding, using the cache of this class */
+  Node doEvaluateWithUnfolding( TermDbSygus * tds, Node n );
 protected:
+  /** does d_conj{ d_var -> nvn } still rewrite to d_result? */
   bool invariant( TermDbSygus * tds, Node nvn, Node x );
+private:
+  /** The conjecture */
+  Node d_conj;
+  /** the variable */
+  TNode d_var;
+  /** the result of this evaluation */
+  Node d_result;
+  /** cache of n -> the simplified form of eval( n ) */
+  std::unordered_map< Node, Node, NodeHashFunction > d_visited;
 };
 
 
 /** EquivSygusInvarianceTest
 *
-* This class is used to construct a minimal shape of a term that is equivalent
-* up to rewriting to a RHS value bvr.
+* This class tests whether a builtin version of a
+* sygus term is equivalent up to rewriting to a RHS value bvr.
 *
 * For example,
 *
 * ite( t>0, 0, 0 ) + s*0 ----> 0
 *
-* can be minimized to:
+* This test is invariant on the condition t>0 and s, since:
 *
 * ite( _, 0, 0 ) + _*0 ----> 0
+* 
+* for any values of _.
 *
-* It also manages the case where the rewriting is invariant wrt a finite set of
-* examples occurring in the conjecture.  
+* It also manages the case where the rewriting is invariant 
+* wrt a finite set of examples occurring in the conjecture.  
 * (EX1) : For example if our input examples are:
 * (x,y,z) = (3,2,4), (5,2,6), (3,2,1)
 * On these examples, we have:
 *
 * ite( x>y, z, 0) ---> 4,6,1
 *
-* which can be minimized to:
+* which is invariant on the second argument:
 *
 * ite( x>y, z, _) ---> 4,6,1
 *
@@ -157,12 +172,12 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest {
 
 /** DivByZeroSygusInvarianceTest 
  * 
- * This class is used to construct a minimal shape of a term that involves
+ * This class tests whether a sygus term involves
  * division by zero.
  * 
- * For example:
+ * For example the test for:
  *    ( x + ( y/0 )*2 )
- * can be generalized to:
+ * is invariant on the contents of _ below:
  *    ( _ + ( _/0 )*_ )
  */
 class DivByZeroSygusInvarianceTest : public SygusInvarianceTest {
@@ -185,22 +200,20 @@ protected:
 *   f( "abc" ) = "abc abc" ^
 *   f( "de" ) = "de de"
 *
-* Then, this class is used when there is a candidate solution t[x1] such that
-* either
+* Then, this class is used when there is a candidate solution t[x1] 
+* such that either:
 *   contains( "abc abc", t["abc"] ) ---> false or
 *   contains( "de de", t["de"] ) ---> false
 *
-* In particular it is used to determine whether certain generalizations of t[x1]
+* It is used to determine whether certain generalizations of t[x1]
 * are still sufficient to falsify one of the above containments.
 *
 * For example:
 *
-* str.++( x1, "d" ) can be minimized to str.++( _, "d" )
-*   ...since contains( "abc abc", str.++( y, "d" ) ) ---> false,
-*      for any y.
-* str.replace( "de", x1, "b" ) can be minimized to str.replace( "de", x1, _ )
-*   ...since contains( "abc abc", str.replace( "de", "abc", y ) ) ---> false,
-*      for any y.
+* The test for str.++( x1, "d" ) is invariant on its first argument
+*   ...since contains( "abc abc", str.++( _, "d" ) ) ---> false
+* The test for str.replace( "de", x1, "b" ) is invariant on its third argument
+*   ...since contains( "abc abc", str.replace( "de", "abc", _ ) ) ---> false
 */
 class NegContainsSygusInvarianceTest : public SygusInvarianceTest {
 public:

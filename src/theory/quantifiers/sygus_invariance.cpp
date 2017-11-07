@@ -25,10 +25,20 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+void EvalSygusInvarianceTest::init(Node conj, Node var, Node res) {
+  d_conj = conj;
+  d_var = var;
+  d_result = res;
+}
+  
+Node EvalSygusInvarianceTest::doEvaluateWithUnfolding( TermDbSygus * tds, Node n ){
+  return tds->evaluateWithUnfolding( n, d_visited );
+}
+
 bool EvalSygusInvarianceTest::invariant( TermDbSygus * tds, Node nvn, Node x ){
   TNode tnvn = nvn;
   Node conj_subs = d_conj.substitute( d_var, tnvn );
-  Node conj_subs_unfold = tds->evaluateWithUnfolding( conj_subs, d_visited );
+  Node conj_subs_unfold = doEvaluateWithUnfolding( tds, conj_subs );
   Trace("sygus-cref-eval2-debug") << "  ...check unfolding : " << conj_subs_unfold << std::endl;
   Trace("sygus-cref-eval2-debug") << "  ......from : " << conj_subs << std::endl;
   if( conj_subs_unfold==d_result ){
