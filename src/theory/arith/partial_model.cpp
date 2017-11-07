@@ -108,7 +108,7 @@ ArithVariables::var_iterator ArithVariables::var_end() const {
   return var_iterator(&d_vars, d_vars.end());
 }
 bool ArithVariables::isInteger(ArithVar x) const {
-  return d_vars[x].d_type >= ATInteger;
+  return d_vars[x].d_type >= ArithType::Integer;
 }
 
 /** Is the assignment to x integral? */
@@ -124,16 +124,16 @@ bool ArithVariables::isIntegerInput(ArithVar x) const {
 }
 
 ArithVariables::VarInfo::VarInfo()
-  : d_var(ARITHVAR_SENTINEL),
-    d_assignment(0),
-    d_lb(NullConstraint),
-    d_ub(NullConstraint),
-    d_cmpAssignmentLB(1),
-    d_cmpAssignmentUB(-1),
-    d_pushCount(0),
-    d_node(Node::null()),
-    d_auxiliary(false)
-{ }
+    : d_var(ARITHVAR_SENTINEL),
+      d_assignment(0),
+      d_lb(NullConstraint),
+      d_ub(NullConstraint),
+      d_cmpAssignmentLB(1),
+      d_cmpAssignmentUB(-1),
+      d_pushCount(0),
+      d_type(ArithType::Unset),
+      d_node(Node::null()),
+      d_auxiliary(false) {}
 
 bool ArithVariables::VarInfo::initialized() const {
   return d_var != ARITHVAR_SENTINEL;
@@ -154,13 +154,14 @@ void ArithVariables::VarInfo::initialize(ArithVar v, Node n, bool aux){
     //integral.
     //We'll use the isIntegral check from the polynomial package instead.
     Polynomial p = Polynomial::parsePolynomial(n);
-    d_type = p.isIntegral() ? ATInteger : ATReal;
+    d_type = p.isIntegral() ? ArithType::Integer : ArithType::Real;
   }else{
-    d_type = nodeToArithType(n);
+    d_type = n.getType().isInteger() ? ArithType::Integer : ArithType::Real;
   }
 
   Assert(initialized());
 }
+
 void ArithVariables::VarInfo::uninitialize(){
   d_var = ARITHVAR_SENTINEL;
   d_node = Node::null();
