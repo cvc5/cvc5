@@ -100,6 +100,22 @@ Integer Integer::exactQuotient(const Integer& y) const {
   return Integer( q );
 }
 
+Integer Integer::modAdd(const Integer& y, const Integer& m) const
+{
+  mpz_class res;
+  mpz_add(res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+  mpz_mod(res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
+  return Integer(res);
+}
+
+Integer Integer::modMultiply(const Integer& y, const Integer& m) const
+{
+  mpz_class res;
+  mpz_mul(res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+  mpz_mod(res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
+  return Integer(res);
+}
+
 Integer Integer::modInverse(const Integer& m) const
 {
   PrettyCheckArgument(m > 0, m, "m must be greater than zero");

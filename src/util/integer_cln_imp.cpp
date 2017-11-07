@@ -155,6 +155,24 @@ Integer Integer::pow(unsigned long int exp) const {
   }
 }
 
+Integer Integer::modAdd(const Integer& y, const Integer& m) const
+{
+  cln::cl_modint_ring ry = cln::find_modint_ring(m.d_value);
+  cln::cl_MI xm = ry->canonhom(d_value);
+  cln::cl_MI ym = ry->canonhom(y.d_value);
+  cln::cl_MI res = xm + ym;
+  return Integer(ry->retract(res));
+}
+
+Integer Integer::modMultiply(const Integer& y, const Integer& m) const
+{
+  cln::cl_modint_ring ry = cln::find_modint_ring(m.d_value);
+  cln::cl_MI xm = ry->canonhom(d_value);
+  cln::cl_MI ym = ry->canonhom(y.d_value);
+  cln::cl_MI res = xm * ym;
+  return Integer(ry->retract(res));
+}
+
 Integer Integer::modInverse(const Integer& m) const
 {
   PrettyCheckArgument(m > 0, m, "m must be greater than zero");

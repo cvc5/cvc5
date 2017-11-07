@@ -393,6 +393,16 @@ public:
   }
 
   /**
+   * Compute addition of this Integer x + y modulo m.
+   */
+  Integer modAdd(const Integer& y, const Integer& m) const;
+
+  /**
+   * Compute multiplication of this Integer x * y modulo m.
+   */
+  Integer modMultiply(const Integer& y, const Integer& m) const;
+
+  /**
    * Compute modular inverse x^-1 of this Integer x modulo m with m > 0.
    * Returns a value x^-1 with 0 <= x^-1 < m such that x * x^-1 = 1 modulo m
    * if such an inverse exists, and -1 otherwise.
@@ -405,28 +415,6 @@ public:
    * if m = 1 (the zero ring).
    */
   Integer modInverse(const Integer& m) const;
-
-  /**
-   * Compute multiplication of this Integer x * y modulo m.
-   */
-  Integer modMultiply(const Integer& y, const Integer& m) const
-  {
-    mpz_class res;
-    mpz_mul(res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-    mpz_mod(res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
-    return Integer(res);
-  }
-
-  /**
-   * Compute addition of this Integer x + y modulo m.
-   */
-  Integer modAdd(const Integer& y, const Integer& m) const
-  {
-    mpz_class res;
-    mpz_add(res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-    mpz_mod(res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
-    return Integer(res);
-  }
 
   /**
    * All non-zero integers z, z.divide(0)
