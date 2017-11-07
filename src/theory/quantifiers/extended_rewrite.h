@@ -26,13 +26,13 @@ namespace theory {
 namespace quantifiers {
 
 /** Extended rewriter
- * 
+ *
  * This class is used for all rewriting that is not necessarily
- * helpful for quantifier-free solving, but is helpful 
+ * helpful for quantifier-free solving, but is helpful
  * in other use cases. An example of this is SyGuS, where rewriting
  * can be used for generalizing refinement lemmas, and hence
  * should be highly aggressive.
- * 
+ *
  * This class extended the standard techniques for rewriting
  * with techniques including:
  * - ITE branch merging,
@@ -42,27 +42,28 @@ namespace quantifiers {
  */
 class ExtendedRewriter
 {
-public:
+ public:
   ExtendedRewriter();
-  ~ExtendedRewriter(){}
+  ~ExtendedRewriter() {}
   /** return the extended rewritten form of n */
-  Node extendedRewrite( Node n );
-private:
+  Node extendedRewrite(Node n);
+
+ private:
   /** true and false nodes */
   Node d_true;
   Node d_false;
   /** cache for extendedRewrite */
-  std::unordered_map< Node, Node, NodeHashFunction > d_ext_rewrite_cache;
-  /** pull ITE 
+  std::unordered_map<Node, Node, NodeHashFunction> d_ext_rewrite_cache;
+  /** pull ITE
    * Do simple ITE pulling, e.g.:
-   *   C2 --->^E false 
+   *   C2 --->^E false
    * implies:
    *  ite( C, C1, C2 ) --->^E  C ^ C1
    * where ---->^E denotes extended rewriting.
    */
-  Node extendedRewritePullIte( Node n );
+  Node extendedRewritePullIte(Node n);
 };
-  
+
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

@@ -85,30 +85,30 @@ class TermRecBuild
 };
 
 /*The SygusExplain utility
- * 
- * This class is used to produce explanations for refinement lemmas
- * in the counterexample-guided inductive synthesis (CEGIS) loop. 
  *
- * When given an invariance test T traverses the AST of a given term, 
+ * This class is used to produce explanations for refinement lemmas
+ * in the counterexample-guided inductive synthesis (CEGIS) loop.
+ *
+ * When given an invariance test T traverses the AST of a given term,
  * uses TermRecBuild to replace various subterms by fresh variables and
  * recheck whether the invariant, as specified by T still holds.
  * If it does, then we may exclude the explanation for that that subterm.
- * 
- * For example, say we have that the current value of 
+ *
+ * For example, say we have that the current value of
  * (datatype) sygus term n is:
  *  (if (gt x 0) 0 0)
  * The explanation returned by getExplanationForConstantEquality
  * below for n and the above term is:
- *   { ((_ is if) n), ((_ is geq) n.0), 
- *     ((_ is x) n.0.0), ((_ is 0) n.0.1), 
+ *   { ((_ is if) n), ((_ is geq) n.0),
+ *     ((_ is x) n.0.0), ((_ is 0) n.0.1),
  *     ((_ is 0) n.1), ((_ is 0) n.2) }
- * 
+ *
  * This class can also return more precise
  * explanations based on a property that holds for
  * variants of n. For instance,
  * say we find that its builtin analog rewrites to 0:
  *  ite( x>0, 0, 0 ) ----> 0
- * and we would like to find the minimal explanation for 
+ * and we would like to find the minimal explanation for
  * why the builtin analog of n rewrites to 0.
  * We use the invariance test EquivSygusInvarianceTest
  * (see sygus_invariance.h) for doing this.
@@ -123,9 +123,9 @@ class TermRecBuild
  *   { ((_ is if) n), ((_ is 0) n.1), ((_ is 0) n.2) }
  * indicating that all terms of the form:
  *   (if _ 0 0) have a builtin equivalent that rewrites to 0.
- * 
+ *
  * For details, see Reynolds et al SYNT 2017.
- * 
+ *
  * Below, we let [[exp]]_n denote the term induced by
  * the explanation exp for n.
  * For example:
@@ -136,57 +136,79 @@ class TermRecBuild
  */
 class SygusExplain
 {
-public:
-  SygusExplain( TermDbSygus * tdb ) : d_tdb(tdb){}
-  ~SygusExplain(){}
+ public:
+  SygusExplain(TermDbSygus* tdb) : d_tdb(tdb) {}
+  ~SygusExplain() {}
   /** get explanation for constant equality
-   * 
+   *
    * This function constructs an explanation, stored in exp, such that:
    * - All formulas in exp are of the form ((_ is C) ns), where ns
    *   is a chain of selectors applied to n, and
    * - exp => ( n = vn )
    */
-  void getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp );
+  void getExplanationForConstantEquality(Node n,
+                                         Node vn,
+                                         std::vector<Node>& exp);
   /** returns the conjunction of exp computed in the above function */
-  Node getExplanationForConstantEquality( Node n, Node vn );
+  Node getExplanationForConstantEquality(Node n, Node vn);
   /** get explanation for constant equality
-   * This is identical to the above function except that we 
+   * This is identical to the above function except that we
    * take an additional argument cexc, which says which
    * children of vn should be excluded from the explanation.
-   * 
+   *
    * For example, if vn = plus( plus( x, x ), y ) and cexc is { 0 -> true },
    * then the following is appended to exp :
    *   { ((_ is plus) n), ((_ is y) n.1) }
    * where notice that the 0^th argument of vn is excluded.
    */
-  void getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp, std::map< unsigned, bool >& cexc );
+  void getExplanationForConstantEquality(Node n,
+                                         Node vn,
+                                         std::vector<Node>& exp,
+                                         std::map<unsigned, bool>& cexc);
   /** returns the conjunction of exp computed in the above function */
-  Node getExplanationForConstantEquality( Node n, Node vn, std::map< unsigned, bool >& cexc );
-  /** get explanation for 
-   * 
+  Node getExplanationForConstantEquality(Node n,
+                                         Node vn,
+                                         std::map<unsigned, bool>& cexc);
+  /** get explanation for
+   *
    * This function constructs an explanation, stored in exp, such that:
    * - All formulas in exp are of the form ((_ is C) ns), where ns
    *   is a chain of selectors applied to n, and
    * - The test et holds for [[exp]]_n, and
    * - (if applicable) exp => ( n != vnr ).
-   * 
+   *
    * This function updates sz to be the term size of [[exp]]_n.
    */
-  void getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et, Node vnr, unsigned& sz );
-  void getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et );
-private:
+  void getExplanationFor(Node n,
+                         Node vn,
+                         std::vector<Node>& exp,
+                         SygusInvarianceTest& et,
+                         Node vnr,
+                         unsigned& sz);
+  void getExplanationFor(Node n,
+                         Node vn,
+                         std::vector<Node>& exp,
+                         SygusInvarianceTest& et);
+
+ private:
   /** sygus term database associated with this utility */
-  TermDbSygus * d_tdb;
-  /** Helper function for getExplanationFor 
-   * var_count is the number of free variables we have introduced, 
+  TermDbSygus* d_tdb;
+  /** Helper function for getExplanationFor
+   * var_count is the number of free variables we have introduced,
    *   per type, for the purposes of generalizing subterms of n.
    * vnr_exp stores the explanation, if one exists, for
    *   n != vnr.  It is only non-null if vnr is non-null.
    */
-  void getExplanationFor( TermRecBuild& trb, Node n, Node vn, std::vector< Node >& exp, std::map< TypeNode, int >& var_count,
-                          SygusInvarianceTest& et, Node vnr, Node& vnr_exp, int& sz );
+  void getExplanationFor(TermRecBuild& trb,
+                         Node n,
+                         Node vn,
+                         std::vector<Node>& exp,
+                         std::map<TypeNode, int>& var_count,
+                         SygusInvarianceTest& et,
+                         Node vnr,
+                         Node& vnr_exp,
+                         int& sz);
 };
-
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */

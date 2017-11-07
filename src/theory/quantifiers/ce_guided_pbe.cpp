@@ -978,7 +978,7 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
     Node g = it->second.d_active_guard;
     if( exp_exc.isNull() ){
       // if we did not already explain why this should be excluded, use default
-      exp_exc = d_tds->getExplain()->getExplanationForConstantEquality( x, v );
+      exp_exc = d_tds->getExplain()->getExplanationForConstantEquality(x, v);
     }
     Node exlem = NodeManager::currentNM()->mkNode( kind::OR, g.negate(), exp_exc.negate() );
     Trace("sygus-pbe-enum-lemma") << "CegConjecturePbe : enumeration exclude lemma : " << exlem << std::endl;
@@ -1030,7 +1030,7 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude( Node c, Node x, Node 
         //set up the inclusion set
         NegContainsSygusInvarianceTest ncset;
         ncset.init(d_parent, x, itxo->second, cmp_indices);
-        d_tds->getExplain()->getExplanationFor( x, v, exp, ncset );
+        d_tds->getExplain()->getExplanationFor(x, v, exp, ncset);
         Trace("sygus-pbe-cterm") << "PBE-cterm : enumerator exclude " << d_tds->sygusToBuiltin( v ) << " due to negative containment." << std::endl;
         return true;
       }

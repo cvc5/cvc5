@@ -17,8 +17,8 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
 #define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
 
-#include "theory/quantifiers/sygus_explain.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/sygus_explain.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
@@ -30,14 +30,14 @@ class CegConjecture;
 // TODO :issue #1235 split and document this class
 class TermDbSygus {
  public:
-  TermDbSygus( context::Context* c, QuantifiersEngine* qe );
-  ~TermDbSygus(){}
+  TermDbSygus(context::Context* c, QuantifiersEngine* qe);
+  ~TermDbSygus() {}
   /** Reset this utility */
-  bool reset( Theory::Effort e );
+  bool reset(Theory::Effort e);
   /** Identify this utility */
   std::string identify() const { return "TermDbSygus"; }
   /** register the sygus type */
-  void registerSygusType( TypeNode tn );
+  void registerSygusType(TypeNode tn);
   /** register a variable e that we will do enumerative search on
    * conj is the conjecture that the enumeration of e is for.
    * f is the synth-fun that the enumeration of e is for.
@@ -63,9 +63,9 @@ class TermDbSygus {
   /** get all registered enumerators */
   void getEnumerators(std::vector<Node>& mts);
   /** get the explanation utility */
-  SygusExplain * getExplain() { return d_syexp.get(); }
+  SygusExplain* getExplain() { return d_syexp.get(); }
   /** get the extended rewrite utility */
-  ExtendedRewriter * getExtRewriter() { return d_ext_rw.get(); }
+  ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
  private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
@@ -73,7 +73,8 @@ class TermDbSygus {
   std::unique_ptr<SygusExplain> d_syexp;
   /** sygus explanation */
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
-  /** mapping from enumerator terms to the conjecture they are associated with */
+  /** mapping from enumerator terms to the conjecture they are associated with
+   */
   std::map<Node, CegConjecture*> d_enum_to_conjecture;
   /** mapping from enumerator terms to the function-to-synthesize they are
     * associated with */
@@ -83,13 +84,14 @@ class TermDbSygus {
   *   "if G is true, then there are more values of e to enumerate".
   */
   std::map<Node, Node> d_enum_to_active_guard;
-  
-// TODO :issue #1235 : below here needs refactor
-  
-public:
+
+  // TODO :issue #1235 : below here needs refactor
+
+ public:
   Node d_true;
   Node d_false;
-private:
+
+ private:
   std::map< TypeNode, std::vector< Node > > d_fv[2];
   std::map< Node, TypeNode > d_fv_stype;
   std::map< Node, int > d_fv_num;
@@ -174,7 +176,7 @@ public:
   Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );
   Node builtinToSygusConst( Node c, TypeNode tn, int rcons_depth = 0 );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
-  Node getNormalized( TypeNode t, Node prog );
+  Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );
   // returns size
   unsigned getSygusConstructors( Node n, std::vector< Node >& cons );
@@ -229,7 +231,8 @@ public:
   // builtin evaluation, returns rewrite( bn [ args / vars(tn) ] )
   Node evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& args );
   // evaluate with unfolding
-  Node evaluateWithUnfolding( Node n, std::unordered_map< Node, Node, NodeHashFunction >& visited );
+  Node evaluateWithUnfolding(
+      Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
   Node evaluateWithUnfolding( Node n );
 //for calculating redundant operators
 private:

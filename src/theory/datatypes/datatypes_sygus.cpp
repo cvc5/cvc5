@@ -557,9 +557,9 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
                 Node req_const;
                 if( nk==GT || nk==LT || nk==XOR || nk==MINUS || nk==BITVECTOR_SUB || nk==BITVECTOR_XOR || nk==BITVECTOR_UREM_TOTAL ){
                   //must have the zero element
-                  req_const = quantifiers::TermUtil::mkTypeValue( tnb, 0 );
+                  req_const = quantifiers::TermUtil::mkTypeValue(tnb, 0);
                 }else if( nk==EQUAL || nk==LEQ || nk==GEQ || nk==BITVECTOR_XNOR ){
-                  req_const = quantifiers::TermUtil::mkTypeMaxValue( tnb );
+                  req_const = quantifiers::TermUtil::mkTypeMaxValue(tnb);
                 }
                 // cannot do division since we have to consider when both are zero
                 if( !req_const.isNull() ){
@@ -755,7 +755,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
     Trace("sygus-sb-debug") << "  ...register search value " << nv << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin( nv, tn );
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
-    Node bvr = d_tds->getExtRewriter()->extendedRewrite( bv );
+    Node bvr = d_tds->getExtRewriter()->extendedRewrite(bv);
     Trace("sygus-sb-debug") << "  ......rewrites to " << bvr << std::endl;
     unsigned sz = d_tds->getSygusTermSize( nv );      
     std::vector< Node > exp;
@@ -764,7 +764,8 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       Node x = getFreeVar( tn );
       quantifiers::DivByZeroSygusInvarianceTest dbzet;
       Trace("sygus-sb-mexp-debug") << "Minimize explanation for div-by-zero in " << d_tds->sygusToBuiltin( nv ) << std::endl;
-      d_tds->getExplain()->getExplanationFor( x, nv, exp, dbzet, Node::null(), sz );
+      d_tds->getExplain()->getExplanationFor(
+          x, nv, exp, dbzet, Node::null(), sz);
       do_exclude = true;
     }else{
       std::map< Node, Node >::iterator itsv = d_cache[a].d_search_val[tn].find( bvr );
@@ -831,7 +832,8 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
         quantifiers::EquivSygusInvarianceTest eset;
         eset.init(d_tds, tn, aconj, a, bvr);
         Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;
-        d_tds->getExplain()->getExplanationFor( x, bad_val, exp, eset, bad_val_o, sz );
+        d_tds->getExplain()->getExplanationFor(
+            x, bad_val, exp, eset, bad_val_o, sz);
         do_exclude = true;
       }
     }

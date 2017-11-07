@@ -42,10 +42,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermDbSygus::TermDbSygus( context::Context* c, QuantifiersEngine* qe ) : 
-  d_quantEngine( qe ),
-  d_syexp(new SygusExplain(this)),
-  d_ext_rw(new ExtendedRewriter){
+TermDbSygus::TermDbSygus(context::Context* c, QuantifiersEngine* qe)
+    : d_quantEngine(qe),
+      d_syexp(new SygusExplain(this)),
+      d_ext_rw(new ExtendedRewriter)
+{
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 }
@@ -412,7 +413,8 @@ Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn, int rcons_depth ) {
   }
 }
 
-Node TermDbSygus::getNormalized( TypeNode t, Node prog ) {
+Node TermDbSygus::getNormalized(TypeNode t, Node prog)
+{
   std::map< Node, Node >::iterator itn = d_normalized[t].find( prog );
   if( itn==d_normalized[t].end() ){
     Node progr = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( prog.toExpr() ) );
@@ -707,7 +709,8 @@ bool TermDbSygus::considerConst( TypeNode tn, TypeNode tnp, Node c, Kind pk, int
   if( pdt[pc].getNumArgs()==2 ){
     Kind ok;
     int offset;
-    if( d_quantEngine->getTermUtil()->hasOffsetArg( pk, arg, offset, ok ) ){
+    if (d_quantEngine->getTermUtil()->hasOffsetArg(pk, arg, offset, ok))
+    {
       Trace("sygus-sb-simple-debug") << pk << " has offset arg " << ok << " " << offset << std::endl;
       int ok_arg = getKindConsNum( tnp, ok );
       if( ok_arg!=-1 ){
@@ -715,7 +718,8 @@ bool TermDbSygus::considerConst( TypeNode tn, TypeNode tnp, Node c, Kind pk, int
         //other operator be the same type
         if( isTypeMatch( pdt[ok_arg], pdt[arg] ) ){
           int status;
-          Node co = d_quantEngine->getTermUtil()->getTypeValueOffset( c.getType(), c, offset, status );
+          Node co = d_quantEngine->getTermUtil()->getTypeValueOffset(
+              c.getType(), c, offset, status);
           Trace("sygus-sb-simple-debug") << c << " with offset " << offset << " is " << co << ", status=" << status << std::endl;
           if( status==0 && !co.isNull() ){
             if( hasConst( tn, co ) ){
@@ -736,7 +740,8 @@ bool TermDbSygus::considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind
   int pc = getKindConsNum( tnp, pk );
   bool ret = true;
   Trace("sygus-sb-debug") << "Consider sygus const " << c << ", parent = " << pk << ", arg = " << arg << "?" << std::endl;
-  if( d_quantEngine->getTermUtil()->isIdempotentArg( c, pk, arg ) ){
+  if (d_quantEngine->getTermUtil()->isIdempotentArg(c, pk, arg))
+  {
     if( pdt[pc].getNumArgs()==2 ){
       int oarg = arg==0 ? 1 : 0;
       TypeNode otn = TypeNode::fromType( ((SelectorType)pdt[pc][oarg].getType()).getRangeType() );
@@ -745,8 +750,8 @@ bool TermDbSygus::considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind
         ret = false;
       }
     }
-  }else{ 
-    Node sc = d_quantEngine->getTermUtil()->isSingularArg( c, pk, arg );
+  }else{
+    Node sc = d_quantEngine->getTermUtil()->isSingularArg(c, pk, arg);
     if( !sc.isNull() ){
       if( hasConst( tnp, sc ) ){
         Trace("sygus-sb-simple") << "  sb-simple : " << c << " is singular arg " << arg << " of " << pk << ", evaluating to " << sc << "..." << std::endl;
@@ -757,9 +762,9 @@ bool TermDbSygus::considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind
   if( ret ){
     ReqTrie rt;
     Assert( rt.empty() );
-    Node max_c = d_quantEngine->getTermUtil()->getTypeMaxValue( c.getType() );
-    Node zero_c = d_quantEngine->getTermUtil()->getTypeValue( c.getType(), 0 );
-    Node one_c = d_quantEngine->getTermUtil()->getTypeValue( c.getType(), 1 );
+    Node max_c = d_quantEngine->getTermUtil()->getTypeMaxValue(c.getType());
+    Node zero_c = d_quantEngine->getTermUtil()->getTypeValue(c.getType(), 0);
+    Node one_c = d_quantEngine->getTermUtil()->getTypeValue(c.getType(), 1);
     if( pk==XOR || pk==BITVECTOR_XOR ){
       if( c==max_c ){
         rt.d_req_kind = pk==XOR ? NOT : BITVECTOR_NOT;
@@ -810,7 +815,8 @@ int TermDbSygus::solveForArgument( TypeNode tn, unsigned cindex, unsigned arg ) 
   if( nk==MINUS || nk==BITVECTOR_SUB ){
     if( dt[cindex].getNumArgs()==2 && arg==0 ){
       TypeNode tnco = getArgType( dt[cindex], 1 );
-      Node builtin = d_quantEngine->getTermUtil()->getTypeValue( sygusToBuiltinType( tnc ), 0 );
+      Node builtin = d_quantEngine->getTermUtil()->getTypeValue(
+          sygusToBuiltinType(tnc), 0);
       solve_ret = getConstConsNum( tn, builtin );
       if( solve_ret!=-1 ){
         // t - s    ----->  ( 0 - s ) + t
@@ -918,7 +924,8 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
         }
         //for constant reconstruction
         Kind ck = getComparisonKind( TypeNode::fromType( dt.getSygusType() ) );
-        Node z = d_quantEngine->getTermUtil()->getTypeValue( TypeNode::fromType( dt.getSygusType() ), 0 );
+        Node z = d_quantEngine->getTermUtil()->getTypeValue(
+            TypeNode::fromType(dt.getSygusType()), 0);
         d_const_list_pos[tn] = 0;
         //iterate over constructors
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
@@ -977,7 +984,8 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             Kind ck = getConsNumKind( tn, i );
             if( ck!=UNDEFINED_KIND ){
               Kind dk;
-              if( TermUtil::isAntisymmetric( ck, dk ) ){
+              if (TermUtil::isAntisymmetric(ck, dk))
+              {
                 int j = getKindConsNum( tn, dk );
                 if( j!=-1 ){
                   Trace("sygus-split-debug") << "Possible redundant operator : " << ck << " with " << dk << std::endl;
@@ -1028,7 +1036,9 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             }
             std::map< Node, bool > reserved;
             for( unsigned i=0; i<=2; i++ ){
-              Node rsv = i==2 ? d_quantEngine->getTermUtil()->getTypeMaxValue( btn ) : d_quantEngine->getTermUtil()->getTypeValue( btn, i );
+              Node rsv =
+                  i == 2 ? d_quantEngine->getTermUtil()->getTypeMaxValue(btn)
+                         : d_quantEngine->getTermUtil()->getTypeValue(btn, i);
               if( !rsv.isNull() ){
                 reserved[ rsv ] = true;
               }
@@ -1494,7 +1504,9 @@ bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
     if( k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL || 
         k==INTS_MODULUS || k==INTS_MODULUS_TOTAL ){
       if( n[1].isConst() ){
-        if( n[1]==d_quantEngine->getTermUtil()->getTypeValue( n[1].getType(), 0 ) ){
+        if (n[1]
+            == d_quantEngine->getTermUtil()->getTypeValue(n[1].getType(), 0))
+        {
           return true;
         }
       }else{
@@ -1704,7 +1716,7 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
         unsigned start = d_node_mv_args_proc[n][vn];
         // get explanation in terms of testers
         std::vector< Node > antec_exp;
-        d_syexp->getExplanationForConstantEquality( n, vn, antec_exp );
+        d_syexp->getExplanationForConstantEquality(n, vn, antec_exp);
         Node antec = antec_exp.size()==1 ? antec_exp[0] : NodeManager::currentNM()->mkNode( kind::AND, antec_exp );
         //Node antec = n.eqNode( vn );
         TypeNode tn = n.getType();
@@ -1749,17 +1761,18 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
 
             EvalSygusInvarianceTest esit;
             eval_children.insert( eval_children.end(), it->second[i].begin(), it->second[i].end() );
-            Node conj = NodeManager::currentNM()->mkNode( kind::APPLY_UF, eval_children );
+            Node conj =
+                NodeManager::currentNM()->mkNode(kind::APPLY_UF, eval_children);
             eval_children[1] = vn;
             Node eval_fun = NodeManager::currentNM()->mkNode( kind::APPLY_UF, eval_children );
-            res = evaluateWithUnfolding( eval_fun );
-            esit.init( conj, n, res );
+            res = evaluateWithUnfolding(eval_fun);
+            esit.init(conj, n, res);
             eval_children.resize( 2 );  
             eval_children[1] = n;
             
             //evaluate with minimal explanation
             std::vector< Node > mexp;
-            d_syexp->getExplanationFor( n, vn, mexp, esit );
+            d_syexp->getExplanationFor(n, vn, mexp, esit);
             Assert( !mexp.empty() );
             expn = mexp.size()==1 ? mexp[0] : NodeManager::currentNM()->mkNode( kind::AND, mexp );
             
@@ -1942,8 +1955,11 @@ Node TermDbSygus::evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& ar
   }
 }
 
-Node TermDbSygus::evaluateWithUnfolding( Node n, std::unordered_map< Node, Node, NodeHashFunction >& visited ) {
-  std::unordered_map< Node, Node, NodeHashFunction >::iterator it = visited.find( n );
+Node TermDbSygus::evaluateWithUnfolding(
+    Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited)
+{
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
+      visited.find(n);
   if( it==visited.end() ){
     Node ret = n;
     while( ret.getKind()==APPLY_UF && ret[0].getKind()==APPLY_CONSTRUCTOR ){
@@ -1963,7 +1979,7 @@ Node TermDbSygus::evaluateWithUnfolding( Node n, std::unordered_map< Node, Node,
       if( childChanged ){
         ret = NodeManager::currentNM()->mkNode( ret.getKind(), children );
       }
-      ret = getExtRewriter()->extendedRewrite( ret );
+      ret = getExtRewriter()->extendedRewrite(ret);
     }
     visited[n] = ret;
     return ret;
@@ -1973,7 +1989,7 @@ Node TermDbSygus::evaluateWithUnfolding( Node n, std::unordered_map< Node, Node,
 }
 
 Node TermDbSygus::evaluateWithUnfolding( Node n ) {
-  std::unordered_map< Node, Node, NodeHashFunction > visited;
+  std::unordered_map<Node, Node, NodeHashFunction> visited;
   return evaluateWithUnfolding( n, visited );
 }
 
@@ -1982,7 +1998,7 @@ bool TermDbSygus::computeGenericRedundant( TypeNode tn, Node g ) {
   std::map< Node, bool >::iterator it = d_gen_redundant[tn].find( g );
   if( it==d_gen_redundant[tn].end() ){
     Trace("sygus-gnf") << "Register generic for " << tn << " : " << g << std::endl;
-    Node gr = getNormalized( tn, g );
+    Node gr = getNormalized(tn, g);
     Trace("sygus-gnf-debug") << "Generic " << g << " rewrites to " << gr << std::endl;
     std::map< Node, Node >::iterator itg = d_gen_terms[tn].find( gr );
     bool red = true;

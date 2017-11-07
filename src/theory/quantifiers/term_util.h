@@ -265,21 +265,34 @@ public:
   static void getRelevancyCondition( Node n, std::vector< Node >& cond );
   
 //general utilities
-// TODO #1216 : promote these?
-private:
+  // TODO #1216 : promote these?
+ private:
   //helper for contains term
   static bool containsTerm2( Node n, Node t, std::map< Node, bool >& visited );
   static bool containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited );
   /** cache for getTypeValue */
-  std::unordered_map<TypeNode, std::unordered_map<int, Node>, TypeNodeHashFunction > d_type_value;
+  std::unordered_map<TypeNode,
+                     std::unordered_map<int, Node>,
+                     TypeNodeHashFunction>
+      d_type_value;
   /** cache for getTypeMaxValue */
   std::unordered_map<TypeNode, Node, TypeNodeHashFunction> d_type_max_value;
   /** cache for getTypeValueOffset */
-  std::unordered_map<TypeNode, std::unordered_map<Node, std::unordered_map<int, Node>, NodeHashFunction >, TypeNodeHashFunction > d_type_value_offset;
+  std::unordered_map<TypeNode,
+                     std::unordered_map<Node,
+                                        std::unordered_map<int, Node>,
+                                        NodeHashFunction>,
+                     TypeNodeHashFunction>
+      d_type_value_offset;
   /** cache for status of getTypeValueOffset*/
-  std::unordered_map<TypeNode, std::unordered_map<Node, std::unordered_map<int, int>, NodeHashFunction >, TypeNodeHashFunction >
+  std::unordered_map<TypeNode,
+                     std::unordered_map<Node,
+                                        std::unordered_map<int, int>,
+                                        NodeHashFunction>,
+                     TypeNodeHashFunction>
       d_type_value_offset_status;
-public:
+
+ public:
   /** simple check for whether n contains t as subterm */
   static bool containsTerm( Node n, Node t );
   /** simple check for contains term, true if contains at least one term in t */
@@ -295,9 +308,9 @@ public:
   /** is k commutative? */
   static bool isComm( Kind k );
   /** is k non-additive?
-   * Returns true if 
-   *   <k>( <k>( T1, x, T2 ), x ) = 
-   *   <k>( T1, x, T2 ) 
+   * Returns true if
+   *   <k>( <k>( T1, x, T2 ), x ) =
+   *   <k>( T1, x, T2 )
    * always holds, where T1 and T2 are vectors.
    */
   static bool isNonAdditive( Kind k );
@@ -308,8 +321,8 @@ public:
   /** is the kind k antisymmetric?
    * If so, return true and store its inverse kind in dk.
    */
-  static bool isAntisymmetric( Kind k, Kind& dk );
-  /** has offset arg 
+  static bool isAntisymmetric(Kind k, Kind& dk);
+  /** has offset arg
    * Returns true if there is a Kind ok and offset
    * such that
    *   <ik>( ... t_{arg-1}, n, t_{arg+1}... ) =
@@ -318,48 +331,47 @@ public:
    * If so, this function returns true and stores
    * offset and ok in the respective fields.
    */
-  static bool hasOffsetArg( Kind ik, int arg, int& offset, Kind& ok );
-  /** is idempotent arg 
-   * Returns true if 
-   *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = 
+  static bool hasOffsetArg(Kind ik, int arg, int& offset, Kind& ok);
+  /** is idempotent arg
+   * Returns true if
+   *   <k>( ... t_{arg-1}, n, t_{arg+1}...) =
    *   <k>( ... t_{arg-1}, t_{arg+1}...)
    * always holds.
    */
-  bool isIdempotentArg( Node n, Kind ik, int arg );
-  /** is singular arg 
-   * Returns true if 
+  bool isIdempotentArg(Node n, Kind ik, int arg);
+  /** is singular arg
+   * Returns true if
    *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = n
    * always holds.
    */
-  Node isSingularArg( Node n, Kind ik, int arg );
+  Node isSingularArg(Node n, Kind ik, int arg);
   /** get type value
    * This gets the Node that represents value val for Type tn
    * This is used to get simple values, e.g. -1,0,1,
-   * in a uniform way per type. 
+   * in a uniform way per type.
    */
-  Node getTypeValue( TypeNode tn, int val );
-  /** get type value offset 
+  Node getTypeValue(TypeNode tn, int val);
+  /** get type value offset
    * Returns the value of ( val + getTypeValue( tn, offset ) ),
    * where + is the additive operator for the type.
    * Stores the status (0: success, -1: failure) in status.
    */
-  Node getTypeValueOffset( TypeNode tn, Node val, int offset, int& status );
+  Node getTypeValueOffset(TypeNode tn, Node val, int offset, int& status);
   /** get the "max" value for type tn
-   * For example, 
+   * For example,
    *   the max value for Bool is true,
    *   the max value for BitVector is 1..1.
    */
-  Node getTypeMaxValue( TypeNode tn );  
+  Node getTypeMaxValue(TypeNode tn);
   /** make value, static version of get value */
-  static Node mkTypeValue( TypeNode tn, int val );
+  static Node mkTypeValue(TypeNode tn, int val);
   /** make value offset, static version of get value offset */
-  static Node mkTypeValueOffset( TypeNode tn, Node val, int offset, int& status );
+  static Node mkTypeValueOffset(TypeNode tn, Node val, int offset, int& status);
   /** make max value, static version of get max value */
-  static Node mkTypeMaxValue( TypeNode tn );  
-  
-  
-//for higher-order
-private:
+  static Node mkTypeMaxValue(TypeNode tn);
+
+  // for higher-order
+ private:
   /** dummy predicate that states terms should be considered first-class members of equality engine */
   std::map< TypeNode, Node > d_ho_type_match_pred;
 public:

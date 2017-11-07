@@ -110,137 +110,190 @@ Node TermRecBuild::build(unsigned d)
   return NodeManager::currentNM()->mkNode(d_kind[d], children);
 }
 
-
-void SygusExplain::getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp ) {
-  std::map< unsigned, bool > cexc;
-  getExplanationForConstantEquality( n, vn, exp, cexc );
+void SygusExplain::getExplanationForConstantEquality(Node n,
+                                                     Node vn,
+                                                     std::vector<Node>& exp)
+{
+  std::map<unsigned, bool> cexc;
+  getExplanationForConstantEquality(n, vn, exp, cexc);
 }
 
-void SygusExplain::getExplanationForConstantEquality( Node n, Node vn, std::vector< Node >& exp, std::map< unsigned, bool >& cexc ) {
-  Assert( vn.getKind()==kind::APPLY_CONSTRUCTOR );
-  Assert( n.getType()==vn.getType() );
+void SygusExplain::getExplanationForConstantEquality(
+    Node n, Node vn, std::vector<Node>& exp, std::map<unsigned, bool>& cexc)
+{
+  Assert(vn.getKind() == kind::APPLY_CONSTRUCTOR);
+  Assert(n.getType() == vn.getType());
   TypeNode tn = n.getType();
-  Assert( tn.isDatatype() );
+  Assert(tn.isDatatype());
   const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
-  int i = Datatype::indexOf( vn.getOperator().toExpr() );
-  Node tst = datatypes::DatatypesRewriter::mkTester( n, i, dt );
-  exp.push_back( tst );
-  for( unsigned j=0; j<vn.getNumChildren(); j++ ){
-    if( cexc.find( j )==cexc.end() ){
-      Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[i].getSelectorInternal( tn.toType(), j ) ), n );
-      getExplanationForConstantEquality( sel, vn[j], exp );
+  int i = Datatype::indexOf(vn.getOperator().toExpr());
+  Node tst = datatypes::DatatypesRewriter::mkTester(n, i, dt);
+  exp.push_back(tst);
+  for (unsigned j = 0; j < vn.getNumChildren(); j++)
+  {
+    if (cexc.find(j) == cexc.end())
+    {
+      Node sel = NodeManager::currentNM()->mkNode(
+          kind::APPLY_SELECTOR_TOTAL,
+          Node::fromExpr(dt[i].getSelectorInternal(tn.toType(), j)),
+          n);
+      getExplanationForConstantEquality(sel, vn[j], exp);
     }
   }
 }
 
-Node SygusExplain::getExplanationForConstantEquality( Node n, Node vn ) {
-  std::map< unsigned, bool > cexc;
-  return getExplanationForConstantEquality( n, vn, cexc );
+Node SygusExplain::getExplanationForConstantEquality(Node n, Node vn)
+{
+  std::map<unsigned, bool> cexc;
+  return getExplanationForConstantEquality(n, vn, cexc);
 }
 
-Node SygusExplain::getExplanationForConstantEquality( Node n, Node vn, std::map< unsigned, bool >& cexc ) {
-  std::vector< Node > exp;
-  getExplanationForConstantEquality( n, vn, exp, cexc );
-  Assert( !exp.empty() );
-  return exp.size()==1 ? exp[0] : NodeManager::currentNM()->mkNode( kind::AND, exp );
+Node SygusExplain::getExplanationForConstantEquality(
+    Node n, Node vn, std::map<unsigned, bool>& cexc)
+{
+  std::vector<Node> exp;
+  getExplanationForConstantEquality(n, vn, exp, cexc);
+  Assert(!exp.empty());
+  return exp.size() == 1 ? exp[0]
+                         : NodeManager::currentNM()->mkNode(kind::AND, exp);
 }
 
-// we have ( n = vn => eval( n ) = bvr ) ^ vn != vnr , returns exp such that exp => ( eval( n ) = bvr ^ vn != vnr )
-void SygusExplain::getExplanationFor( TermRecBuild& trb, Node n, Node vn, std::vector< Node >& exp, std::map< TypeNode, int >& var_count,
-                                      SygusInvarianceTest& et, Node vnr, Node& vnr_exp, int& sz ) {
-  Assert( vnr.isNull() || vn!=vnr );
-  Assert( vn.getKind()==APPLY_CONSTRUCTOR );
-  Assert( vnr.isNull() || vnr.getKind()==APPLY_CONSTRUCTOR );
-  Assert( n.getType()==vn.getType() );
+// we have ( n = vn => eval( n ) = bvr ) ^ vn != vnr , returns exp such that exp
+// => ( eval( n ) = bvr ^ vn != vnr )
+void SygusExplain::getExplanationFor(TermRecBuild& trb,
+                                     Node n,
+                                     Node vn,
+                                     std::vector<Node>& exp,
+                                     std::map<TypeNode, int>& var_count,
+                                     SygusInvarianceTest& et,
+                                     Node vnr,
+                                     Node& vnr_exp,
+                                     int& sz)
+{
+  Assert(vnr.isNull() || vn != vnr);
+  Assert(vn.getKind() == APPLY_CONSTRUCTOR);
+  Assert(vnr.isNull() || vnr.getKind() == APPLY_CONSTRUCTOR);
+  Assert(n.getType() == vn.getType());
   TypeNode ntn = n.getType();
-  std::map< unsigned, bool > cexc;
-  // for each child, check whether replacing by a fresh variable and rewriting again
-  for( unsigned i=0; i<vn.getNumChildren(); i++ ){
+  std::map<unsigned, bool> cexc;
+  // for each child, check whether replacing by a fresh variable and rewriting
+  // again
+  for (unsigned i = 0; i < vn.getNumChildren(); i++)
+  {
     TypeNode xtn = vn[i].getType();
-    Node x = d_tdb->getFreeVarInc( xtn, var_count );
-    trb.replaceChild( i, x );
+    Node x = d_tdb->getFreeVarInc(xtn, var_count);
+    trb.replaceChild(i, x);
     Node nvn = trb.build();
-    Assert( nvn.getKind()==kind::APPLY_CONSTRUCTOR );
-    if( et.is_invariant( d_tdb, nvn, x ) ){
+    Assert(nvn.getKind() == kind::APPLY_CONSTRUCTOR);
+    if (et.is_invariant(d_tdb, nvn, x))
+    {
       cexc[i] = true;
       // we are tracking term size if positive
-      if( sz>=0 ){
-        int s = d_tdb->getSygusTermSize( vn[i] );
+      if (sz >= 0)
+      {
+        int s = d_tdb->getSygusTermSize(vn[i]);
         sz = sz - s;
       }
-    }else{
-      trb.replaceChild( i, vn[i] );
+    }
+    else
+    {
+      trb.replaceChild(i, vn[i]);
     }
   }
   const Datatype& dt = ((DatatypeType)ntn.toType()).getDatatype();
-  int cindex = Datatype::indexOf( vn.getOperator().toExpr() );
-  Assert( cindex>=0 && cindex<(int)dt.getNumConstructors() );
-  Node tst = datatypes::DatatypesRewriter::mkTester( n, cindex, dt );
-  exp.push_back( tst );
-  // if the operator of vn is different than vnr, then disunification obligation is met
-  if( !vnr.isNull() ){
-    if( vnr.getOperator()!=vn.getOperator() ){
+  int cindex = Datatype::indexOf(vn.getOperator().toExpr());
+  Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
+  Node tst = datatypes::DatatypesRewriter::mkTester(n, cindex, dt);
+  exp.push_back(tst);
+  // if the operator of vn is different than vnr, then disunification obligation
+  // is met
+  if (!vnr.isNull())
+  {
+    if (vnr.getOperator() != vn.getOperator())
+    {
       vnr = Node::null();
       vnr_exp = NodeManager::currentNM()->mkConst(true);
     }
   }
-  for( unsigned i=0; i<vn.getNumChildren(); i++ ){
-    Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex].getSelectorInternal( ntn.toType(), i ) ), n );
-    Node vnr_c = vnr.isNull() ? vnr : ( vn[i]==vnr[i] ? Node::null() : vnr[i] );
-    if( cexc.find( i )==cexc.end() ){
-      trb.push( i );
+  for (unsigned i = 0; i < vn.getNumChildren(); i++)
+  {
+    Node sel = NodeManager::currentNM()->mkNode(
+        kind::APPLY_SELECTOR_TOTAL,
+        Node::fromExpr(dt[cindex].getSelectorInternal(ntn.toType(), i)),
+        n);
+    Node vnr_c = vnr.isNull() ? vnr : (vn[i] == vnr[i] ? Node::null() : vnr[i]);
+    if (cexc.find(i) == cexc.end())
+    {
+      trb.push(i);
       Node vnr_exp_c;
-      getExplanationFor( trb, sel, vn[i], exp, var_count, et, vnr_c, vnr_exp_c, sz );
+      getExplanationFor(
+          trb, sel, vn[i], exp, var_count, et, vnr_c, vnr_exp_c, sz);
       trb.pop();
-      if( !vnr_c.isNull() ){
-        Assert( !vnr_exp_c.isNull() );
-        if( vnr_exp_c.isConst() || vnr_exp.isNull() ){
+      if (!vnr_c.isNull())
+      {
+        Assert(!vnr_exp_c.isNull());
+        if (vnr_exp_c.isConst() || vnr_exp.isNull())
+        {
           // recursively satisfied the disunification obligation
-          if( vnr_exp_c.isConst() ){
+          if (vnr_exp_c.isConst())
+          {
             // was successful, don't consider further
             vnr = Node::null();
           }
           vnr_exp = vnr_exp_c;
         }
       }
-    }else{
+    }
+    else
+    {
       // if excluded, we may need to add the explanation for this
-      if( vnr_exp.isNull() && !vnr_c.isNull() ){
-        vnr_exp = getExplanationForConstantEquality( sel, vnr[i] );
+      if (vnr_exp.isNull() && !vnr_c.isNull())
+      {
+        vnr_exp = getExplanationForConstantEquality(sel, vnr[i]);
       }
     }
   }
 }
 
-void SygusExplain::getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et, Node vnr, unsigned& sz ) {
+void SygusExplain::getExplanationFor(Node n,
+                                     Node vn,
+                                     std::vector<Node>& exp,
+                                     SygusInvarianceTest& et,
+                                     Node vnr,
+                                     unsigned& sz)
+{
   // naive :
-  //return getExplanationForConstantEquality( n, vn, exp );
-  
+  // return getExplanationForConstantEquality( n, vn, exp );
+
   // set up the recursion object
-  std::map< TypeNode, int > var_count;  
+  std::map<TypeNode, int> var_count;
   TermRecBuild trb;
-  trb.init( vn );
+  trb.init(vn);
   Node vnr_exp;
   int sz_use = sz;
-  getExplanationFor( trb, n, vn, exp, var_count, et, vnr, vnr_exp, sz_use );
-  Assert( sz_use>=0 );
+  getExplanationFor(trb, n, vn, exp, var_count, et, vnr, vnr_exp, sz_use);
+  Assert(sz_use >= 0);
   sz = sz_use;
-  Assert( vnr.isNull() || !vnr_exp.isNull() );
-  if( !vnr_exp.isNull() && !vnr_exp.isConst() ){
-    exp.push_back( vnr_exp.negate() );
+  Assert(vnr.isNull() || !vnr_exp.isNull());
+  if (!vnr_exp.isNull() && !vnr_exp.isConst())
+  {
+    exp.push_back(vnr_exp.negate());
   }
 }
 
-void SygusExplain::getExplanationFor( Node n, Node vn, std::vector< Node >& exp, SygusInvarianceTest& et ) {
+void SygusExplain::getExplanationFor(Node n,
+                                     Node vn,
+                                     std::vector<Node>& exp,
+                                     SygusInvarianceTest& et)
+{
   int sz = -1;
-  std::map< TypeNode, int > var_count;  
+  std::map<TypeNode, int> var_count;
   TermRecBuild trb;
-  trb.init( vn );
+  trb.init(vn);
   Node vnr;
   Node vnr_exp;
-  getExplanationFor( trb, n, vn, exp, var_count, et, vnr, vnr_exp, sz );
+  getExplanationFor(trb, n, vn, exp, var_count, et, vnr, vnr_exp, sz);
 }
-
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */

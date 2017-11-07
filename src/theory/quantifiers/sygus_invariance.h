@@ -17,8 +17,8 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
 
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 #include "expr/node.h"
 
@@ -30,73 +30,77 @@ class TermDbSygus;
 class CegConjecture;
 
 /* SygusInvarianceTest
-* 
+*
 * This class is the standard interface for term generalization
 * in SyGuS. Its interface is a single function is_variant,
-* which is a virtual condition for SyGuS terms. 
-* 
+* which is a virtual condition for SyGuS terms.
+*
 * The common use case of invariance tests is when constructing
 * minimal explanations for refinement lemmas in the
 * counterexample-guided inductive synthesis (CEGIS) loop.
-* For sygus_explain.h for more details. 
-* 
+* For sygus_explain.h for more details.
+*
 */
-class SygusInvarianceTest {
-public:
+class SygusInvarianceTest
+{
+ public:
   /** Is nvn invariant with respect to this test ?
-   * 
+   *
    * - nvn is the term to check whether it is invariant.
-   * - x is a variable such that the previous call to 
-   *   is_invariant (if any) was with term nvn_prev, and 
+   * - x is a variable such that the previous call to
+   *   is_invariant (if any) was with term nvn_prev, and
    *   nvn is equal to nvn_prev with some subterm
    *   position replaced by x. This is typically used
    *   for debugging only.
    */
-  bool is_invariant( TermDbSygus * tds, Node nvn, Node x ){
-    if( invariant( tds, nvn, x ) ){
+  bool is_invariant(TermDbSygus* tds, Node nvn, Node x)
+  {
+    if (invariant(tds, nvn, x))
+    {
       d_update_nvn = nvn;
       return true;
-    }else{
+    }
+    else
+    {
       return false;
     }
   }
   /** get updated term */
   Node getUpdatedTerm() { return d_update_nvn; }
   /** set updated term */
-  void setUpdatedTerm( Node n ) { 
-    d_update_nvn = n; 
-  }
-protected:
+  void setUpdatedTerm(Node n) { d_update_nvn = n; }
+ protected:
   /** result of the node that satisfies this invariant */
   Node d_update_nvn;
   /** check whether nvn[ x ] is invariant */
-  virtual bool invariant( TermDbSygus * tds, Node nvn, Node x ) = 0;
+  virtual bool invariant(TermDbSygus* tds, Node nvn, Node x) = 0;
 };
 
 /** EquivSygusInvarianceTest
 *
-* This class tests whether a term evaluates via evaluation 
-* operators in the deep embedding (Section 4 of Reynolds 
+* This class tests whether a term evaluates via evaluation
+* operators in the deep embedding (Section 4 of Reynolds
 * et al. CAV 2015) to fixed term d_result.
-* 
+*
 * For example, consider a SyGuS evaluation function eval
-* for a synthesis conjecture with arguments x and y. 
+* for a synthesis conjecture with arguments x and y.
 * Notice that the term t = (mult x y) is such that:
 *   eval( t, 0, 1 ) ----> 0
 * This test is invariant on the content of the second
 * argument of t, noting that:
 *   eval( (mult x _), 0, 1 ) ----> 0
 * as well, via a call to EvalSygusInvarianceTest::invariant.
-* 
+*
 * Another example, t = ite( gt( x, y ), x, y ) is such that:
 *   eval( t, 2, 3 ) ----> 3
 * This test is invariant on the second child of t, noting:
 *   eval( ite( gt( x, y ), _, y ), 2, 3 ) ----> 3
 */
-class EvalSygusInvarianceTest : public SygusInvarianceTest {
-public:
-  EvalSygusInvarianceTest(){}
-  ~EvalSygusInvarianceTest(){}
+class EvalSygusInvarianceTest : public SygusInvarianceTest
+{
+ public:
+  EvalSygusInvarianceTest() {}
+  ~EvalSygusInvarianceTest() {}
   /** initialize this invariance test
     * This sets d_conj/d_var/d_result, where
     * we are checking whether:
@@ -105,11 +109,13 @@ public:
     */
   void init(Node conj, Node var, Node res);
   /** do evaluate with unfolding, using the cache of this class */
-  Node doEvaluateWithUnfolding( TermDbSygus * tds, Node n );
-protected:
+  Node doEvaluateWithUnfolding(TermDbSygus* tds, Node n);
+
+ protected:
   /** does d_conj{ d_var -> nvn } still rewrite to d_result? */
-  bool invariant( TermDbSygus * tds, Node nvn, Node x );
-private:
+  bool invariant(TermDbSygus* tds, Node nvn, Node x);
+
+ private:
   /** the formula we are evaluating */
   Node d_conj;
   /** the variable */
@@ -117,9 +123,8 @@ private:
   /** the result of the evaluation */
   Node d_result;
   /** cache of n -> the simplified form of eval( n ) */
-  std::unordered_map< Node, Node, NodeHashFunction > d_visited;
+  std::unordered_map<Node, Node, NodeHashFunction> d_visited;
 };
-
 
 /** EquivSygusInvarianceTest
 *
@@ -133,11 +138,11 @@ private:
 * This test is invariant on the condition t>0 and s, since:
 *
 * ite( _, 0, 0 ) + _*0 ----> 0
-* 
+*
 * for any values of _.
 *
-* It also manages the case where the rewriting is invariant 
-* wrt a finite set of examples occurring in the conjecture.  
+* It also manages the case where the rewriting is invariant
+* wrt a finite set of examples occurring in the conjecture.
 * (EX1) : For example if our input examples are:
 * (x,y,z) = (3,2,4), (5,2,6), (3,2,1)
 * On these examples, we have:
@@ -150,21 +155,25 @@ private:
 *
 * For details, see Reynolds et al SYNT 2017.
 */
-class EquivSygusInvarianceTest : public SygusInvarianceTest {
+class EquivSygusInvarianceTest : public SygusInvarianceTest
+{
  public:
   EquivSygusInvarianceTest() : d_conj(nullptr) {}
   ~EquivSygusInvarianceTest() {}
   /** initialize this invariance test
     * tn is the sygus type for e
     * aconj/e are used for conjecture-specific symmetry breaking
-    * bvr is the builtin version of the right hand side of the rewrite that we are
+    * bvr is the builtin version of the right hand side of the rewrite that we
+   * are
     * checking for invariance
     */
-  void init(TermDbSygus* tds, TypeNode tn,
-            CegConjecture* aconj, Node e, Node bvr);
+  void init(
+      TermDbSygus* tds, TypeNode tn, CegConjecture* aconj, Node e, Node bvr);
+
  protected:
   /** checks whether the analog of nvn still rewrites to d_bvr */
   bool invariant(TermDbSygus* tds, Node nvn, Node x);
+
  private:
   /** the conjecture associated with the enumerator d_enum */
   CegConjecture* d_conj;
@@ -173,30 +182,30 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest {
   Node d_enum;
   /** the RHS of the evaluation */
   Node d_bvr;
-  /** the result of the examples 
+  /** the result of the examples
    * In (EX1), this is (4,6,1)
    */
   std::vector<Node> d_exo;
 };
 
-/** DivByZeroSygusInvarianceTest 
- * 
+/** DivByZeroSygusInvarianceTest
+ *
  * This class tests whether a sygus term involves
  * division by zero.
- * 
+ *
  * For example the test for:
  *    ( x + ( y/0 )*2 )
  * is invariant on the contents of _ below:
  *    ( _ + ( _/0 )*_ )
  */
-class DivByZeroSygusInvarianceTest : public SygusInvarianceTest {
-public:
-  DivByZeroSygusInvarianceTest(){}
-  ~DivByZeroSygusInvarianceTest(){}
-
-protected:
+class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
+{
+ public:
+  DivByZeroSygusInvarianceTest() {}
+  ~DivByZeroSygusInvarianceTest() {}
+ protected:
   /** checks whether nvn involves division by zero. */
-  bool invariant( TermDbSygus * tds, Node nvn, Node x );
+  bool invariant(TermDbSygus* tds, Node nvn, Node x);
 };
 
 /** NegContainsSygusInvarianceTest
@@ -210,7 +219,7 @@ protected:
 *   f( "abc" ) = "abc abc" ^
 *   f( "de" ) = "de de"
 *
-* Then, this class is used when there is a candidate solution t[x1] 
+* Then, this class is used when there is a candidate solution t[x1]
 * such that either:
 *   contains( "abc abc", t["abc"] ) ---> false or
 *   contains( "de de", t["de"] ) ---> false
@@ -225,11 +234,11 @@ protected:
 * The test for str.replace( "de", x1, "b" ) is invariant on its third argument
 *   ...since contains( "abc abc", str.replace( "de", "abc", _ ) ) ---> false
 */
-class NegContainsSygusInvarianceTest : public SygusInvarianceTest {
-public:
-  NegContainsSygusInvarianceTest() : d_conj(nullptr){}
-  ~NegContainsSygusInvarianceTest(){}
-
+class NegContainsSygusInvarianceTest : public SygusInvarianceTest
+{
+ public:
+  NegContainsSygusInvarianceTest() : d_conj(nullptr) {}
+  ~NegContainsSygusInvarianceTest() {}
   /** initialize this invariance test
   *  cpbe is the conjecture utility.
   *  e is the enumerator which we are reasoning about (associated with a synth
@@ -248,7 +257,7 @@ public:
 
  protected:
   /** checks if contains( out_i, nvn[in_i] ) --> false for some I/O pair i. */
-  bool invariant( TermDbSygus * tds, Node nvn, Node x );
+  bool invariant(TermDbSygus* tds, Node nvn, Node x);
 
  private:
   /** The enumerator whose value we are considering in this invariance test */

@@ -238,7 +238,7 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
   if( conj->getNumRefinementLemmas()>0 ){
     Assert( vs.size()==ms.size() );
 
-    TermDbSygus * tds = d_quantEngine->getTermDatabaseSygus();
+    TermDbSygus* tds = d_quantEngine->getTermDatabaseSygus();
     Node nfalse = d_quantEngine->getTermUtil()->d_false;
     Node neg_guard = conj->getGuard().negate();
     for( unsigned i=0; i<conj->getNumRefinementLemmas(); i++ ){
@@ -264,22 +264,27 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
           Node cre_lem;
           Node lemcs = lemc.substitute( vs.begin(), vs.end(), ms.begin(), ms.end() );
           Trace("sygus-cref-eval2") << "...under substitution it is : " << lemcs << std::endl;
-          Node lemcsu = vsit.doEvaluateWithUnfolding( tds, lemcs );
+          Node lemcsu = vsit.doEvaluateWithUnfolding(tds, lemcs);
           Trace("sygus-cref-eval2") << "...after unfolding is : " << lemcsu << std::endl;
           if( lemcsu==d_quantEngine->getTermUtil()->d_false ){
             std::vector< Node > msu;
             std::vector< Node > mexp;
             msu.insert( msu.end(), ms.begin(), ms.end() );
             for( unsigned k=0; k<vs.size(); k++ ){
-              vsit.setUpdatedTerm( msu[k] );
+              vsit.setUpdatedTerm(msu[k]);
               msu[k] = vs[k];
               // substitute for everything except this
-              Node sconj = lemc.substitute( vs.begin(), vs.end(), msu.begin(), msu.end() );
-              vsit.init( sconj, vs[k], nfalse );
+              Node sconj =
+                  lemc.substitute(vs.begin(), vs.end(), msu.begin(), msu.end());
+              vsit.init(sconj, vs[k], nfalse);
               // get minimal explanation for this
               Node ut = vsit.getUpdatedTerm();
-              Trace("sygus-cref-eval2-debug") << "  compute min explain of : " << vs[k] << " = " << ut << std::endl;
-              d_quantEngine->getTermDatabaseSygus()->getExplain()->getExplanationFor( vs[k], ut, mexp, vsit );
+              Trace("sygus-cref-eval2-debug")
+                  << "  compute min explain of : " << vs[k] << " = " << ut
+                  << std::endl;
+              d_quantEngine->getTermDatabaseSygus()
+                  ->getExplain()
+                  ->getExplanationFor(vs[k], ut, mexp, vsit);
               msu[k] = ut;
             }
             if( !mexp.empty() ){
