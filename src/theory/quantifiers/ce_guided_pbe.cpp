@@ -1024,8 +1024,9 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
 */
 class NegContainsSygusInvarianceTest : public quantifiers::SygusInvarianceTest {
 public:
-  NegContainsSygusInvarianceTest(){}
+  NegContainsSygusInvarianceTest() : d_cpbe(nullptr){}
   ~NegContainsSygusInvarianceTest(){}
+
   /** initialize this invariance test
   *  cpbe is the conjecture utility.
   *  e is the enumerator which we are reasoning about (associated with a synth
