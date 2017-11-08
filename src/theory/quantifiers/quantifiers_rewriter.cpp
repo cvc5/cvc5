@@ -105,8 +105,9 @@ void QuantifiersRewriter::computeArgs( std::vector< Node >& args, std::map< Node
         activeMap[ n ] = true;
       }
     }else{
-      if( n.hasOperator() ){
-        computeArgs( args, activeMap, n.getOperator(), visited );
+      if (n.hasOperator())
+      {
+        computeArgs(args, activeMap, n.getOperator(), visited);
       }
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
         computeArgs( args, activeMap, n[i], visited );
