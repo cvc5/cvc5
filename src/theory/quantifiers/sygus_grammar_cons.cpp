@@ -347,7 +347,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   std::stringstream ssb;
   ssb << fun << "_Bool";
   std::string dbname = ssb.str();
-  Type unres_bt = mkUnresolvedType(ssb.str(), unres).toType();
+  Type unres_bt = mkUnresolvedType(dbname, unres).toType();
 
   std::vector< Type > unres_types;
   std::map< TypeNode, Type > type_to_unres;
