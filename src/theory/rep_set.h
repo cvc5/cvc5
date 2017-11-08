@@ -179,6 +179,7 @@ public:
  /** debug print methods */
  void debugPrint(const char* c);
  void debugPrintSmall(const char* c);
+ // TODO (#1199): these should be private
  /** enumeration type for each field */
  std::vector<RsiEnumType> d_enum_type;
  /** the current tuple we are considering */
@@ -261,9 +262,12 @@ class RepBoundExt
    * the iterator rsi. It initializes the vector
    * "elements" with all appropriate terms to
    * iterate over in this context.
-   *
    * initial is whether this is the first call
    * to this function for this iterator.
+   * 
+   * This method returns false if the resulting
+   * set of elements is empty, which indicates that
+   * the iterator can terminate.
    */
   virtual bool resetIndex(RepSetIterator* rsi,
                           Node owner,
@@ -281,8 +285,11 @@ class RepBoundExt
    */
   virtual bool initializeRepresentativesForType(TypeNode tn) { return false; }
   /** get variable order
-   * If this returns true, then varOrder is the order
+   * If this method returns true, then varOrder is the order
    * in which we want to consider variables for the iterator.
+   * If this method returns false, then varOrder is unchanged
+   * and the RepSetIterator is free to choose a default 
+   * variable order.
    */
   virtual bool getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
   {
