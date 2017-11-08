@@ -54,6 +54,34 @@ class FirstOrderModelAbs;
 struct IsStarAttributeId {};
 typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 
+
+/** Quantifiers representative bound 
+ * 
+ * This class is used for computing (finite)
+ * bounds for the domain of a quantifier
+ * in the context of a RepSetIterator
+ * (see theory/rep_set.h).
+ */
+class QRepBoundExt : public RepBoundExt {
+ public:
+  QRepBoundExt( QuantifiersEngine * qe ) : d_qe( qe ){}
+  virtual ~QRepBoundExt() {}
+  /** set bound */
+  virtual RepSetIterator::RsiEnumType setBound(Node owner, unsigned i, std::vector< Node >& elements ) override;
+  /** reset index */
+  virtual bool resetIndex(RepSetIterator * rsi, Node owner, unsigned i, bool initial, std::vector< Node >& elements ) override;
+  /** initialize representative set for type */
+  virtual bool initializeRepresentativesForType( TypeNode tn ) override;
+  /** get variable order */
+  virtual bool getVariableOrder( Node owner, std::vector< unsigned >& varOrder ) override;
+ private:
+  /** quantifiers engine associated with this bound */
+  QuantifiersEngine * d_qe;
+  /** indices that are bound integer enumeration */
+  std::map< unsigned, bool > d_bound_int;
+};
+
+
 // TODO (#1301) : document and refactor this class
 class FirstOrderModel : public TheoryModel
 {
@@ -110,6 +138,15 @@ class FirstOrderModel : public TheoryModel
   /** get some domain element */
   Node getSomeDomainElement(TypeNode tn);
   /** initialize representative set for type 
+   * 
+   * This ensures that TheoryModel::d_rep_set 
+   * is initialized for type tn. In particular:
+   * (1) If tn is an uninitialized (unconstrained)
+   * uninterpreted sort, then we interpret it
+   * as a set of size one,
+   * (2) If tn is a "small" enumerable finite type,
+   * then we ensure that all its values are in 
+   * TheoryModel::d_rep_set.
    * 
    * Returns true if the initialization was complete,
    * in that the set for tn in TheoryModel::d_rep_set 

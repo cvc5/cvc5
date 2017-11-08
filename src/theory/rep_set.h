@@ -74,7 +74,7 @@ public:
   unsigned getNumRepresentatives(TypeNode tn) const;
   /** get representative at index */
   Node getRepresentative(TypeNode tn, unsigned i) const;
-  /** get representatives */
+  /** get representatives of type tn, appends them to reps */
   void getRepresentatives(TypeNode tn, std::vector< Node >& reps ) const;
   /** add representative n for type tn, where n has type tn */
   void add( TypeNode tn, Node n );
@@ -115,90 +115,146 @@ public:
 //representative domain
 typedef std::vector< int > RepDomain;
 
+class RepBoundExt;
 
-class RepBoundExt {
- public:
-  virtual ~RepBoundExt() {}
-  virtual bool setBound( Node owner, int i, TypeNode tn, std::vector< Node >& elements ) = 0;
-};
-
-/** this class iterates over a RepSet */
+/** Rep set iterator.
+ *
+ * This class is used for iterating over (tuples of) terms
+ * in the domain(s) of a RepSet.
+ */
 class RepSetIterator {
 public:
-  enum {
+  enum RsiEnumType {
+    ENUM_INVALID = 0,
     ENUM_DEFAULT,
     ENUM_BOUND_INT,
   };
-private:
-  QuantifiersEngine * d_qe;
-  //initialize function
-  bool initialize( RepBoundExt* rext = NULL );
-  //for int ranges
-  std::map< int, Node > d_lower_bounds;
-  //for set ranges
-  std::map< int, std::vector< Node > > d_setm_bounds;
-  //domain size
-  int domainSize( int i );
-  //node this is rep set iterator is for
-  Node d_owner;
-  //reset index, 1:success, 0:empty, -1:fail
-  int resetIndex( int i, bool initial = false );
-  /** set index order */
-  void setIndexOrder( std::vector< int >& indexOrder );
-  /** do reset increment the iterator at index=counter */
-  int do_reset_increment( int counter, bool initial = false );
-  //ordering for variables we are indexing over
-  //  for example, given reps = { a, b } and quantifier forall( x, y, z ) P( x, y, z ) with d_index_order = { 2, 0, 1 },
-  //    then we consider instantiations in this order:
-  //      a/x a/y a/z
-  //      a/x b/y a/z
-  //      b/x a/y a/z
-  //      b/x b/y a/z
-  //      ...
-  std::vector< int > d_index_order;
-  //variables to index they are considered at
-  //  for example, if d_index_order = { 2, 0, 1 }
-  //    then d_var_order = { 0 -> 1, 1 -> 2, 2 -> 0 }
-  std::map< int, int > d_var_order;  
-  //are we only considering a strict subset of the domain of the quantifier?
-  bool d_incomplete;
 public:
-  RepSetIterator( QuantifiersEngine * qe );
+  RepSetIterator( const RepSet * rs, RepBoundExt * rext );
   ~RepSetIterator(){}
-  //set that this iterator will be iterating over instantiations for a quantifier
-  bool setQuantifier( Node f, RepBoundExt* rext = NULL );
-  //set that this iterator will be iterating over the domain of a function
-  bool setFunctionDomain( Node op, RepBoundExt* rext = NULL );
-public:
-  //enumeration type?
-  std::vector< int > d_enum_type;
-  //current tuple we are considering
-  std::vector< int > d_index;
-  //types we are considering
-  std::vector< TypeNode > d_types;
-  //domain we are considering
-  std::vector< std::vector< Node > > d_domain_elements;
-public:
-  /** increment the iterator at index=counter */
-  int increment2( int i );
+  /** set that this iterator will be iterating over instantiations for a quantifier */
+  bool setQuantifier( Node q );
+  /** set that this iterator will be iterating over the domain of a function */
+  bool setFunctionDomain( Node op );
   /** increment the iterator */
   int increment();
+  /** increment the iterator at index */
+  int incrementAtIndex( int i );
   /** is the iterator finished? */
   bool isFinished();
   /** get the i_th term we are considering */
-  Node getCurrentTerm( int v, bool valTerm = false );
+  Node getCurrentTerm( unsigned v, bool valTerm = false );
   /** get the number of terms we are considering */
-  int getNumTerms() { return (int)d_index_order.size(); }
+  unsigned getNumTerms() { return d_index_order.size(); }
+  /** get index order, returns var # */
+  unsigned getIndexOrder( unsigned v ) { return d_index_order[v]; }
+  /** get variable order, returns index # */
+  unsigned getVariableOrder( unsigned i ) { return d_var_order[i]; }
+  /** is incomplete 
+   * 
+   * Returns true if we only iterating over a strict subset of 
+   * the domain of the quantified formula or function
+   */
+  bool isIncomplete() { return d_incomplete; }
   /** debug print */
   void debugPrint( const char* c );
   void debugPrintSmall( const char* c );
-  //get index order, returns var #
-  int getIndexOrder( int v ) { return d_index_order[v]; }
-  //get variable order, returns index #
-  int getVariableOrder( int i ) { return d_var_order[i]; }
-  //is incomplete
-  bool isIncomplete() { return d_incomplete; }
+  /** enumeration type? */
+  std::vector< RsiEnumType > d_enum_type;
+  /** current tuple we are considering */
+  std::vector< int > d_index;
+private:
+  /** rep set associated with this iterator */
+  const RepSet * d_rs;
+  /** rep set external bound information for this iterator */
+  RepBoundExt * d_rext;
+  /** types we are considering */
+  std::vector< TypeNode > d_types;
+  /** for each argument, the domain we are iterating over */
+  std::vector< std::vector< Node > > d_domain_elements;
+  /** initialize */
+  bool initialize();
+  /** get domain size of the i^th field of this iterator */
+  int domainSize( int i );
+  /** owner 
+   * This is the term that we are iterating for, which may either be:
+   * (1) a quantified formula, or
+   * (2) a function.
+   */
+  Node d_owner;
+  /** reset index, 1:success, 0:empty, -1:fail */
+  int resetIndex( unsigned i, bool initial = false );
+  /** set index order */
+  void setIndexOrder( std::vector< unsigned >& indexOrder );
+  /** do reset increment the iterator at index=counter */
+  int do_reset_increment( int counter, bool initial = false );
+  /** ordering for variables we are iterating over
+  *  for example, given reps = { a, b } and quantifier forall( x, y, z ) P( x, y, z ) with d_index_order = { 2, 0, 1 },
+  *    then we consider instantiations in this order:
+  *      a/x a/y a/z
+  *      a/x b/y a/z
+  *      b/x a/y a/z
+  *      b/x b/y a/z
+  *      ...
+  */
+  std::vector< unsigned > d_index_order;
+  /** variables to index they are considered at
+  * for example, if d_index_order = { 2, 0, 1 }
+  *    then d_var_order = { 0 -> 1, 1 -> 2, 2 -> 0 }
+  */
+  std::map< unsigned, unsigned > d_var_order;  
+  /** incomplete flag */
+  bool d_incomplete;
 };/* class RepSetIterator */
+
+/** Representative bound external
+ * 
+ * This class manages bound information 
+ * for an instance of a RepSetIterator.
+ * Its main functionalities are to set
+ * bounds on the domain of the iterator
+ * over quantifiers and function arguments.
+ */
+class RepBoundExt {
+ public:
+  virtual ~RepBoundExt() {}
+  /** set bound
+   * 
+   * This method initializes the vector "elements"
+   * with list of terms to iterate over for the i^th 
+   * field of owner, where owner may be : 
+   * (1) A function, in which case we are iterating 
+   *     over domain elements of its argument type,
+   * (2) A quantified formula, in which case we are 
+   *     iterating over domain elements of the type 
+   *     of its i^th bound variable.
+   */
+  virtual RepSetIterator::RsiEnumType setBound(Node owner, unsigned i, std::vector< Node >& elements ) = 0;
+  /** reset index 
+   * 
+   * This method initializes iteration for the i^th
+   * field of owner, based on the current state of 
+   * the iterator rsi. It initializes the vector
+   * "elements" with all appropriate terms to 
+   * iterate over in this context.
+   * 
+   * initial is whether this is the first call
+   * to this function for this iterator.
+   */
+  virtual bool resetIndex(RepSetIterator * rsi, Node owner, unsigned i, bool initial, std::vector< Node >& elements ){ return true; }
+  /** initialize representative set for type 
+   * 
+   * Returns true if the representative set associated 
+   * with this bound has been given a complete interpretation 
+   * for type tn.
+   */
+  virtual bool initializeRepresentativesForType( TypeNode tn ) { return false; }
+  /** get variable order 
+   * If this returns true, then varOrder is the order 
+   * in which we want to consider variables for the iterator.
+   */
+  virtual bool getVariableOrder( Node owner, std::vector< unsigned >& varOrder ) { return false; }
+};
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

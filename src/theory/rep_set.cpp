@@ -14,19 +14,15 @@
 
 #include <unordered_set>
 
-#include "theory/quantifiers/bounded_integers.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/term_enumeration.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/rep_set.h"
 #include "theory/type_enumerator.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
 
+namespace CVC4 {
+namespace theory {
+  
 void RepSet::clear(){
   d_type_reps.clear();
   d_type_complete.clear();
@@ -193,40 +189,39 @@ void RepSet::toStream(std::ostream& out){
 }
 
 
-RepSetIterator::RepSetIterator( QuantifiersEngine * qe ) : d_qe(qe){
+RepSetIterator::RepSetIterator( const RepSet * rs, RepBoundExt * rext ) : d_rs(rs), d_rext(rext){
   d_incomplete = false;
 }
 
 int RepSetIterator::domainSize( int i ) {
   Assert(i>=0);
-  int v = d_var_order[i];
+  unsigned v = d_var_order[i];
   return d_domain_elements[v].size();
 }
 
-bool RepSetIterator::setQuantifier( Node f, RepBoundExt* rext ){
-  Trace("rsi") << "Make rsi for " << f << std::endl;
+bool RepSetIterator::setQuantifier( Node q){
+  Trace("rsi") << "Make rsi for quantified formula " << q << std::endl;
   Assert( d_types.empty() );
   //store indicies
-  for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-    d_types.push_back( f[0][i].getType() );
+  for( size_t i=0; i<q[0].getNumChildren(); i++ ){
+    d_types.push_back( q[0][i].getType() );
   }
-  d_owner = f;
-  return initialize( rext );
+  d_owner = q;
+  return initialize();
 }
 
-bool RepSetIterator::setFunctionDomain( Node op, RepBoundExt* rext ){
-  Trace("rsi") << "Make rsi for " << op << std::endl;
+bool RepSetIterator::setFunctionDomain( Node op ){
+  Trace("rsi") << "Make rsi for function " << op << std::endl;
   Assert( d_types.empty() );
   TypeNode tn = op.getType();
   for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
     d_types.push_back( tn[i] );
   }
   d_owner = op;
-  return initialize( rext );
+  return initialize();
 }
 
-bool RepSetIterator::initialize( RepBoundExt* rext ){
-  RepSet* rs = d_qe->getModel()->getRepSetPtr();
+bool RepSetIterator::initialize(){
   Trace("rsi") << "Initialize rep set iterator..." << std::endl;
   for( unsigned v=0; v<d_types.size(); v++ ){
     d_index.push_back( 0 );
@@ -238,21 +233,16 @@ bool RepSetIterator::initialize( RepBoundExt* rext ){
     d_domain_elements.push_back( std::vector< Node >() );
     TypeNode tn = d_types[v];
     Trace("rsi") << "Var #" << v << " is type " << tn << "..." << std::endl;
-    bool inc = !d_qe->getModel()->initializeRepresentativesForType( tn );
+    bool inc = true;
+    bool setEnum = false;
     //check if it is externally bound
-    if( rext && rext->setBound( d_owner, v, tn, d_domain_elements[v] ) ){
-      d_enum_type.push_back( ENUM_DEFAULT );
-      inc = false;
-    //builtin: check if it is bound by bounded integer module
-    }else if( d_owner.getKind()==FORALL && d_qe && d_qe->getBoundedIntegers() ){
-      if( d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][v] ) ){
-        unsigned bvt = d_qe->getBoundedIntegers()->getBoundVarType( d_owner, d_owner[0][v] );
-        if( bvt!=quantifiers::BoundedIntegers::BOUND_FINITE ){
-          d_enum_type.push_back( ENUM_BOUND_INT );
-          inc = false;
-        }else{
-          //will treat in default way
-        }
+    if( d_rext ){
+      inc = !d_rext->initializeRepresentativesForType( tn );
+      RsiEnumType rsiet = d_rext->setBound( d_owner, v, d_domain_elements[v] );
+      if( rsiet!=ENUM_INVALID ){
+        d_enum_type.push_back(rsiet);
+        inc = false;
+        setEnum = true;
       }
     }
     if( inc ){
@@ -261,53 +251,44 @@ bool RepSetIterator::initialize( RepBoundExt* rext ){
     }
 
     //if we have yet to determine the type of enumeration
-    if( d_enum_type.size()<=v ){
-      if( rs->hasType( tn ) ){
+    if( !setEnum ){
+      if( d_rs->hasType( tn ) ){
         d_enum_type.push_back( ENUM_DEFAULT );
-        rs->getRepresentatives(tn, d_domain_elements[v]);
+        d_rs->getRepresentatives(tn, d_domain_elements[v]);
       }else{
         Assert( d_incomplete );
         return false;
       }
     }
   }
-  //must set a variable index order based on bounded integers
-  if( d_owner.getKind()==FORALL && d_qe && d_qe->getBoundedIntegers() ){
-    Trace("bound-int-rsi") << "Calculating variable order..." << std::endl;
-    std::vector< int > varOrder;
-    for( unsigned i=0; i<d_qe->getBoundedIntegers()->getNumBoundVars( d_owner ); i++ ){
-      Node v = d_qe->getBoundedIntegers()->getBoundVar( d_owner, i );
-      Trace("bound-int-rsi") << "  bound var #" << i << " is " << v << std::endl;
-      varOrder.push_back( d_qe->getTermUtil()->getVariableNum( d_owner, v ) );
-    }
-    for( unsigned i=0; i<d_owner[0].getNumChildren(); i++) {
-      if( !d_qe->getBoundedIntegers()->isBoundVar(d_owner, d_owner[0][i])) {
-        varOrder.push_back(i);
+  
+  if( d_rext ){
+    std::vector< unsigned > varOrder;
+    if( d_rext->getVariableOrder( d_owner, varOrder ) ){
+      Trace("bound-int-rsi") << "Variable order : ";
+      for( unsigned i=0; i<varOrder.size(); i++) {
+        Trace("bound-int-rsi") << varOrder[i] << " ";
       }
+      Trace("bound-int-rsi") << std::endl;
+      std::vector< unsigned > indexOrder;
+      indexOrder.resize(varOrder.size());
+      for( unsigned i=0; i<varOrder.size(); i++){
+        indexOrder[varOrder[i]] = i;
+      }
+      Trace("bound-int-rsi") << "Will use index order : ";
+      for( unsigned i=0; i<indexOrder.size(); i++) {
+        Trace("bound-int-rsi") << indexOrder[i] << " ";
+      }
+      Trace("bound-int-rsi") << std::endl;
+      setIndexOrder( indexOrder );
     }
-    Trace("bound-int-rsi") << "Variable order : ";
-    for( unsigned i=0; i<varOrder.size(); i++) {
-      Trace("bound-int-rsi") << varOrder[i] << " ";
-    }
-    Trace("bound-int-rsi") << std::endl;
-    std::vector< int > indexOrder;
-    indexOrder.resize(varOrder.size());
-    for( unsigned i=0; i<varOrder.size(); i++){
-      indexOrder[varOrder[i]] = i;
-    }
-    Trace("bound-int-rsi") << "Will use index order : ";
-    for( unsigned i=0; i<indexOrder.size(); i++) {
-      Trace("bound-int-rsi") << indexOrder[i] << " ";
-    }
-    Trace("bound-int-rsi") << std::endl;
-    setIndexOrder( indexOrder );
   }
   //now reset the indices
   do_reset_increment( -1, true );
   return true;
 }
 
-void RepSetIterator::setIndexOrder( std::vector< int >& indexOrder ){
+void RepSetIterator::setIndexOrder( std::vector< unsigned >& indexOrder ){
   d_index_order.clear();
   d_index_order.insert( d_index_order.begin(), indexOrder.begin(), indexOrder.end() );
   //make the d_var_order mapping
@@ -316,20 +297,19 @@ void RepSetIterator::setIndexOrder( std::vector< int >& indexOrder ){
   }
 }
 
-int RepSetIterator::resetIndex( int i, bool initial ) {
+int RepSetIterator::resetIndex( unsigned i, bool initial ) {
   d_index[i] = 0;
-  int v = d_var_order[i];
+  unsigned v = d_var_order[i];
   Trace("bound-int-rsi") << "Reset " << i << ", var order = " << v << ", initial = " << initial << std::endl;
-  if( d_enum_type[v]==ENUM_BOUND_INT ){
-    Assert( d_owner.getKind()==FORALL );
-    if( !d_qe->getBoundedIntegers()->getBoundElements( this, initial, d_owner, d_owner[0][v], d_domain_elements[v] ) ){
+  if( d_rext ){
+    if( !d_rext->resetIndex(this, d_owner, v, initial, d_domain_elements[v]) ){
       return -1;
     }
   }
   return d_domain_elements[v].empty() ? 0 : 1;
 }
 
-int RepSetIterator::increment2( int i ){
+int RepSetIterator::incrementAtIndex( int i ){
   Assert( !isFinished() );
 #ifdef DISABLE_EVAL_SKIP_MULTIPLE
   i = (int)d_index.size()-1;
@@ -381,7 +361,7 @@ int RepSetIterator::do_reset_increment( int i, bool initial ) {
 
 int RepSetIterator::increment(){
   if( !isFinished() ){
-    return increment2( (int)d_index.size()-1 );
+    return incrementAtIndex( d_index.size()-1 );
   }else{
     return -1;
   }
@@ -391,15 +371,15 @@ bool RepSetIterator::isFinished(){
   return d_index.empty();
 }
 
-Node RepSetIterator::getCurrentTerm( int v, bool valTerm ){
-  int ii = d_index_order[v];
-  int curr = d_index[ii];
+Node RepSetIterator::getCurrentTerm( unsigned v, bool valTerm ){
+  unsigned ii = d_index_order[v];
+  unsigned curr = d_index[ii];
   Trace("rsi-debug") << "rsi : get term " << v << ", index order = " << d_index_order[v] << std::endl;
   Trace("rsi-debug") << "rsi : curr = " << curr << " / " << d_domain_elements[v].size() << std::endl;
-  Assert( 0<=curr && curr<(int)d_domain_elements[v].size() );
+  Assert( 0<=curr && curr<d_domain_elements[v].size() );
   Node t = d_domain_elements[v][curr];
   if( valTerm ){
-    Node tt = d_qe->getModel()->getRepSet()->getTermForRepresentative( t );
+    Node tt = d_rs->getTermForRepresentative( t );
     if( !tt.isNull() ){
       return tt;
     }
@@ -420,4 +400,7 @@ void RepSetIterator::debugPrintSmall( const char* c ){
   }
   Debug( c ) << std::endl;
 }
+
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
