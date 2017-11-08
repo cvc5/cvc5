@@ -748,10 +748,10 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
 }
 
 /** Representative bound fmc entry
- * 
+ *
  * This bound information corresponds to one
  * entry in a term definition (see terminology in
- * Chapter 5 of Finite Model Finding for 
+ * Chapter 5 of Finite Model Finding for
  * Satisfiability Modulo Theories thesis).
  * For example, a term definition for the body
  * of a quantified formula:
@@ -763,36 +763,43 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
  * Indicating that the quantified formula evaluates
  * to true in the current model for x=0, y=0, z=0,
  * or y=1, z=2 for any x, and evaluates to false
- * otherwise. 
+ * otherwise.
  * This class is used if we wish
  * to iterate over all values corresponding to one
  * of these entries. For example, for the second entry:
  *   (*, 1, 2 )
- * we iterate over all values of x, but only {1} 
+ * we iterate over all values of x, but only {1}
  * for y and {2} for z.
  */
-class RepBoundFmcEntry : public QRepBoundExt {
-public:
-  RepBoundFmcEntry(QuantifiersEngine * qe, Node e, FirstOrderModelFmc * f) : QRepBoundExt(qe), d_entry(e), d_fm(f){}
-  ~RepBoundFmcEntry(){}
+class RepBoundFmcEntry : public QRepBoundExt
+{
+ public:
+  RepBoundFmcEntry(QuantifiersEngine* qe, Node e, FirstOrderModelFmc* f)
+      : QRepBoundExt(qe), d_entry(e), d_fm(f)
+  {
+  }
+  ~RepBoundFmcEntry() {}
   /** set bound */
-  virtual RepSetIterator::RsiEnumType setBound(Node owner, unsigned i, std::vector< Node >& elements ) override {
+  virtual RepSetIterator::RsiEnumType setBound(
+      Node owner, unsigned i, std::vector<Node>& elements) override
+  {
     if( d_fm->isInterval(d_entry[i]) ){
-      //explicitly add the interval?
+      // explicitly add the interval?
     }else if( d_fm->isStar(d_entry[i]) ){
-      //must add the full range
+      // must add the full range
     }else{
       //only need to consider the single point
       elements.push_back( d_entry[i] );
       return RepSetIterator::ENUM_DEFAULT;
     }
-    return QRepBoundExt::setBound( owner, i, elements );
+    return QRepBoundExt::setBound(owner, i, elements);
   }
-private:
+
+ private:
   /** the entry for this bound */
   Node d_entry;
   /** the model builder associated with this bound */
-  FirstOrderModelFmc * d_fm;
+  FirstOrderModelFmc* d_fm;
 };
 
 bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index) {
@@ -800,10 +807,11 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;
   RepBoundFmcEntry rbfe(d_qe, c, fm);
-  RepSetIterator riter( d_qe->getModel()->getRepSet(), &rbfe );
+  RepSetIterator riter(d_qe->getModel()->getRepSet(), &rbfe);
   Trace("fmc-exh-debug") << "Set quantifier..." << std::endl;
   //initialize
-  if( riter.setQuantifier( f ) ){
+  if (riter.setQuantifier(f))
+  {
     Trace("fmc-exh-debug") << "Set element domains..." << std::endl;
     int addedLemmas = 0;
     //now do full iteration
@@ -812,7 +820,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       Trace("fmc-exh-debug") << "Inst : ";
       std::vector< Node > ev_inst;
       std::vector< Node > inst;
-      for( unsigned i=0; i<riter.getNumTerms(); i++ ){
+      for (unsigned i = 0; i < riter.getNumTerms(); i++)
+      {
         Node rr = riter.getCurrentTerm( i );
         Node r = rr;
         //if( r.getType().isSort() ){
@@ -849,7 +858,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       if( !riter.isFinished() ){
         if (index>=0 && riter.d_index[index]>0 && addedLemmas>0 && riter.d_enum_type[index]==RepSetIterator::ENUM_BOUND_INT ) {
           Trace("fmc-exh-debug") << "Since this is a range enumeration, skip to the next..." << std::endl;
-          riter.incrementAtIndex( index-1 );
+          riter.incrementAtIndex(index - 1);
         }
       }
     }

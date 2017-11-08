@@ -109,12 +109,13 @@ void QModelBuilder::debugModel( TheoryModel* m ){
         vars.push_back( f[0][j] );
       }
       QRepBoundExt qrbe(d_qe);
-      RepSetIterator riter(d_qe->getModel()->getRepSet(),&qrbe);
+      RepSetIterator riter(d_qe->getModel()->getRepSet(), &qrbe);
       if( riter.setQuantifier( f ) ){
         while( !riter.isFinished() ){
           tests++;
           std::vector< Node > terms;
-          for( unsigned k=0; k<riter.getNumTerms(); k++ ){
+          for (unsigned k = 0; k < riter.getNumTerms(); k++)
+          {
             terms.push_back( riter.getCurrentTerm( k ) );
           }
           Node n = d_qe->getInstantiation( f, vars, terms );
@@ -421,7 +422,7 @@ QModelBuilderIG::Statistics::~Statistics(){
 int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   if( optUseModel() ){
     QRepBoundExt qrbe(d_qe);
-    RepSetIterator riter(d_qe->getModel()->getRepSet(),&qrbe);
+    RepSetIterator riter(d_qe->getModel()->getRepSet(), &qrbe);
     if( riter.setQuantifier( f ) ){
       FirstOrderModelIG * fmig = (FirstOrderModelIG*)d_qe->getModel();
       Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;
@@ -454,11 +455,12 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
         }
         if( eval==1 ){
           //instantiation is already true -> skip
-          riter.incrementAtIndex( depIndex );
+          riter.incrementAtIndex(depIndex);
         }else{
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
-          for( unsigned i=0; i<riter.getNumTerms(); i++ ){
+          for (unsigned i = 0; i < riter.getNumTerms(); i++)
+          {
             m.set( d_qe, i, riter.getCurrentTerm( i ) );
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
@@ -470,7 +472,7 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
             }
             //if the instantiation is show to be false, and we wish to skip multiple instantiations at once
             if( eval==-1 ){
-              riter.incrementAtIndex( depIndex );
+              riter.incrementAtIndex(depIndex);
             }else{
               riter.increment();
             }

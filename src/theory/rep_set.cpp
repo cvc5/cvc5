@@ -22,7 +22,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
-  
+
 void RepSet::clear(){
   d_type_reps.clear();
   d_type_complete.clear();
@@ -60,12 +60,12 @@ Node RepSet::getRepresentative(TypeNode tn, unsigned i) const
   return it->second[i];
 }
 
-void RepSet::getRepresentatives(TypeNode tn, std::vector< Node >& reps ) const 
+void RepSet::getRepresentatives(TypeNode tn, std::vector<Node>& reps) const
 {
   std::map<TypeNode, std::vector<Node> >::const_iterator it =
       d_type_reps.find(tn);
-  Assert( it!=d_type_reps.end() );
-  reps.insert( reps.end(), it->second.begin(), it->second.end() );
+  Assert(it != d_type_reps.end());
+  reps.insert(reps.end(), it->second.begin(), it->second.end());
 }
 
 bool containsStoreAll(Node n, std::unordered_set<Node, NodeHashFunction>& cache)
@@ -188,28 +188,33 @@ void RepSet::toStream(std::ostream& out){
   }
 }
 
-
-RepSetIterator::RepSetIterator( const RepSet * rs, RepBoundExt * rext ) : d_rs(rs), d_rext(rext){
+RepSetIterator::RepSetIterator(const RepSet* rs, RepBoundExt* rext)
+    : d_rs(rs), d_rext(rext)
+{
   d_incomplete = false;
 }
 
-unsigned RepSetIterator::domainSize( unsigned i ) {
+unsigned RepSetIterator::domainSize(unsigned i)
+{
   unsigned v = d_var_order[i];
   return d_domain_elements[v].size();
 }
 
-bool RepSetIterator::setQuantifier( Node q){
+bool RepSetIterator::setQuantifier(Node q)
+{
   Trace("rsi") << "Make rsi for quantified formula " << q << std::endl;
   Assert( d_types.empty() );
   //store indicies
-  for( size_t i=0; i<q[0].getNumChildren(); i++ ){
-    d_types.push_back( q[0][i].getType() );
+  for (size_t i = 0; i < q[0].getNumChildren(); i++)
+  {
+    d_types.push_back(q[0][i].getType());
   }
   d_owner = q;
   return initialize();
 }
 
-bool RepSetIterator::setFunctionDomain( Node op ){
+bool RepSetIterator::setFunctionDomain(Node op)
+{
   Trace("rsi") << "Make rsi for function " << op << std::endl;
   Assert( d_types.empty() );
   TypeNode tn = op.getType();
@@ -220,7 +225,8 @@ bool RepSetIterator::setFunctionDomain( Node op ){
   return initialize();
 }
 
-bool RepSetIterator::initialize(){
+bool RepSetIterator::initialize()
+{
   Trace("rsi") << "Initialize rep set iterator..." << std::endl;
   for( unsigned v=0; v<d_types.size(); v++ ){
     d_index.push_back( 0 );
@@ -235,23 +241,29 @@ bool RepSetIterator::initialize(){
     bool inc = true;
     bool setEnum = false;
     //check if it is externally bound
-    if( d_rext ){
-      inc = !d_rext->initializeRepresentativesForType( tn );
-      RsiEnumType rsiet = d_rext->setBound( d_owner, v, d_domain_elements[v] );
-      if( rsiet!=ENUM_INVALID ){
+    if (d_rext)
+    {
+      inc = !d_rext->initializeRepresentativesForType(tn);
+      RsiEnumType rsiet = d_rext->setBound(d_owner, v, d_domain_elements[v]);
+      if (rsiet != ENUM_INVALID)
+      {
         d_enum_type.push_back(rsiet);
         inc = false;
         setEnum = true;
       }
     }
-    if( inc ){
-      Trace("fmf-incomplete") << "Incomplete because of quantification of type " << tn << std::endl;
+    if (inc)
+    {
+      Trace("fmf-incomplete") << "Incomplete because of quantification of type "
+                              << tn << std::endl;
       d_incomplete = true;
     }
 
     //if we have yet to determine the type of enumeration
-    if( !setEnum ){
-      if( d_rs->hasType( tn ) ){
+    if (!setEnum)
+    {
+      if (d_rs->hasType(tn))
+      {
         d_enum_type.push_back( ENUM_DEFAULT );
         d_rs->getRepresentatives(tn, d_domain_elements[v]);
       }else{
@@ -260,26 +272,31 @@ bool RepSetIterator::initialize(){
       }
     }
   }
-  
-  if( d_rext ){
-    std::vector< unsigned > varOrder;
-    if( d_rext->getVariableOrder( d_owner, varOrder ) ){
+
+  if (d_rext)
+  {
+    std::vector<unsigned> varOrder;
+    if (d_rext->getVariableOrder(d_owner, varOrder))
+    {
       Trace("bound-int-rsi") << "Variable order : ";
-      for( unsigned i=0; i<varOrder.size(); i++) {
+      for (unsigned i = 0; i < varOrder.size(); i++)
+      {
         Trace("bound-int-rsi") << varOrder[i] << " ";
       }
       Trace("bound-int-rsi") << std::endl;
-      std::vector< unsigned > indexOrder;
+      std::vector<unsigned> indexOrder;
       indexOrder.resize(varOrder.size());
-      for( unsigned i=0; i<varOrder.size(); i++){
+      for (unsigned i = 0; i < varOrder.size(); i++)
+      {
         indexOrder[varOrder[i]] = i;
       }
       Trace("bound-int-rsi") << "Will use index order : ";
-      for( unsigned i=0; i<indexOrder.size(); i++) {
+      for (unsigned i = 0; i < indexOrder.size(); i++)
+      {
         Trace("bound-int-rsi") << indexOrder[i] << " ";
       }
       Trace("bound-int-rsi") << std::endl;
-      setIndexOrder( indexOrder );
+      setIndexOrder(indexOrder);
     }
   }
   //now reset the indices
@@ -287,7 +304,8 @@ bool RepSetIterator::initialize(){
   return true;
 }
 
-void RepSetIterator::setIndexOrder( std::vector< unsigned >& indexOrder ){
+void RepSetIterator::setIndexOrder(std::vector<unsigned>& indexOrder)
+{
   d_index_order.clear();
   d_index_order.insert( d_index_order.begin(), indexOrder.begin(), indexOrder.end() );
   //make the d_var_order mapping
@@ -296,19 +314,23 @@ void RepSetIterator::setIndexOrder( std::vector< unsigned >& indexOrder ){
   }
 }
 
-int RepSetIterator::resetIndex( unsigned i, bool initial ) {
+int RepSetIterator::resetIndex(unsigned i, bool initial)
+{
   d_index[i] = 0;
   unsigned v = d_var_order[i];
   Trace("bound-int-rsi") << "Reset " << i << ", var order = " << v << ", initial = " << initial << std::endl;
-  if( d_rext ){
-    if( !d_rext->resetIndex(this, d_owner, v, initial, d_domain_elements[v]) ){
+  if (d_rext)
+  {
+    if (!d_rext->resetIndex(this, d_owner, v, initial, d_domain_elements[v]))
+    {
       return -1;
     }
   }
   return d_domain_elements[v].empty() ? 0 : 1;
 }
 
-int RepSetIterator::incrementAtIndex( int i ){
+int RepSetIterator::incrementAtIndex(int i)
+{
   Assert( !isFinished() );
 #ifdef DISABLE_EVAL_SKIP_MULTIPLE
   i = (int)d_index.size()-1;
@@ -360,26 +382,26 @@ int RepSetIterator::do_reset_increment( int i, bool initial ) {
 
 int RepSetIterator::increment(){
   if( !isFinished() ){
-    return incrementAtIndex( d_index.size()-1 );
+    return incrementAtIndex(d_index.size() - 1);
   }else{
     return -1;
   }
 }
 
-bool RepSetIterator::isFinished() const{
-  return d_index.empty();
-}
-
-Node RepSetIterator::getCurrentTerm( unsigned v, bool valTerm ){
+bool RepSetIterator::isFinished() const { return d_index.empty(); }
+Node RepSetIterator::getCurrentTerm(unsigned v, bool valTerm)
+{
   unsigned ii = d_index_order[v];
   unsigned curr = d_index[ii];
   Trace("rsi-debug") << "rsi : get term " << v << ", index order = " << d_index_order[v] << std::endl;
   Trace("rsi-debug") << "rsi : curr = " << curr << " / " << d_domain_elements[v].size() << std::endl;
-  Assert( 0<=curr && curr<d_domain_elements[v].size() );
+  Assert(0 <= curr && curr < d_domain_elements[v].size());
   Node t = d_domain_elements[v][curr];
-  if( valTerm ){
-    Node tt = d_rs->getTermForRepresentative( t );
-    if( !tt.isNull() ){
+  if (valTerm)
+  {
+    Node tt = d_rs->getTermForRepresentative(t);
+    if (!tt.isNull())
+    {
       return tt;
     }
   }
@@ -400,6 +422,5 @@ void RepSetIterator::debugPrintSmall( const char* c ){
   Debug( c ) << std::endl;
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */
