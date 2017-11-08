@@ -183,15 +183,12 @@ void FirstOrderModel::initializeModelForTerm( Node n, std::map< Node, bool >& vi
 
 Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
   //check if there is even any domain elements at all
-  if (!d_rep_set.hasType(tn)) {
+  if (!d_rep_set.hasType(tn) || d_rep_set.d_type_reps[tn].size()==0) {
     Trace("fm-debug") << "Must create domain element for " << tn << "..."
                       << std::endl;
     Node mbt = getModelBasisTerm(tn);
     Trace("fm-debug") << "Add to representative set..." << std::endl;
     d_rep_set.add(tn, mbt);
-  }else if( d_rep_set.d_type_reps[tn].size()==0 ){
-    Message() << "empty reps" << std::endl;
-    exit(0);
   }
   return d_rep_set.d_type_reps[tn][0];
 }
@@ -203,12 +200,9 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
     // must ensure uninterpreted type is non-empty.
     if (!d_rep_set.hasType(tn))
     {
-      // FIXME:
       // terms in rep_set are now constants which mapped to terms through
-      // TheoryModel
-      // thus, should introduce a constant and a term.  for now, just a term.
-
-      // Node c = d_qe->getTermUtil()->getEnumerateTerm( tn, 0 );
+      // TheoryModel. Thus, should introduce a constant and a term.  
+      // For now, we just add an arbitrary term.
       Node var = d_qe->getModel()->getSomeDomainElement(tn);
       Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn
                      << std::endl;
