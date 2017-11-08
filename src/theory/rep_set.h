@@ -132,6 +132,7 @@ class RepBoundExt;
  * domains of the owner of this iterator using:
  * - increment and incrementAtIndex
  *
+ * TODO (#1199): this class needs further documentation.
  */
 class RepSetIterator {
 public:
