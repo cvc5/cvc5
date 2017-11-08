@@ -116,43 +116,6 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     return;
   }
 
-  if( !force_nt.isNull() && n.getKind()!=kind::CONST_RATIONAL ){
-    if( n.getType()!=force_nt ){
-      if( force_nt.isReal() ){
-        out << "(" << smtKindString( force_nt.isInteger() ? kind::TO_INTEGER : kind::TO_REAL) << " ";
-        toStream(out, n, toDepth, types, TypeNode::null());
-        out << ")";
-      }else{            
-        Node nn = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                                                   NodeManager::currentNM()->mkConst(AscriptionType(force_nt.toType())), n );
-        toStream(out, nn, toDepth, types, TypeNode::null());                                 
-      }
-      return;  
-    }
-  }
-
-  // variable
-  if(n.isVar()) {
-    string s;
-    if(n.getAttribute(expr::VarNameAttr(), s)) {
-      out << maybeQuoteSymbol(s);
-    } else {
-      if(n.getKind() == kind::VARIABLE) {
-        out << "var_";
-      } else {
-        out << n.getKind() << '_';
-      }
-      out << n.getId();
-    }
-    if(types) {
-      // print the whole type, but not *its* type
-      out << ":";
-      n.getType().toStream(out, language::output::LANG_SMTLIB_V2_5);
-    }
-
-    return;
-  }
-
   // constant
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     switch(n.getKind()) {
@@ -322,6 +285,43 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       }
       out << ')';
     }
+    return;
+  }
+  
+  if( !force_nt.isNull() ){
+    if( n.getType()!=force_nt ){
+      if( force_nt.isReal() ){
+        out << "(" << smtKindString( force_nt.isInteger() ? kind::TO_INTEGER : kind::TO_REAL) << " ";
+        toStream(out, n, toDepth, types, TypeNode::null());
+        out << ")";
+      }else{            
+        Node nn = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                                                   NodeManager::currentNM()->mkConst(AscriptionType(force_nt.toType())), n );
+        toStream(out, nn, toDepth, types, TypeNode::null());                                 
+      }
+      return;  
+    }
+  }
+
+  // variable
+  if(n.isVar()) {
+    string s;
+    if(n.getAttribute(expr::VarNameAttr(), s)) {
+      out << maybeQuoteSymbol(s);
+    } else {
+      if(n.getKind() == kind::VARIABLE) {
+        out << "var_";
+      } else {
+        out << n.getKind() << '_';
+      }
+      out << n.getId();
+    }
+    if(types) {
+      // print the whole type, but not *its* type
+      out << ":";
+      n.getType().toStream(out, language::output::LANG_SMTLIB_V2_5);
+    }
+
     return;
   }
 
