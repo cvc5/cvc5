@@ -102,6 +102,14 @@ public:
 
   ~Integer() {}
 
+  /**
+   * Returns a copy of d_value to enable public access of CLN data.
+   */
+  cln::cl_I getValue() const
+  {
+    return d_value;
+  }
+
   Integer& operator=(const Integer& x){
     if(this == &x) return *this;
     d_value = x.d_value;
