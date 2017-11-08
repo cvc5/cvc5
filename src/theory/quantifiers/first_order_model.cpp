@@ -27,13 +27,14 @@
 #define USE_INDEX_ORDERING
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::quantifiers::fmcheck;
 
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
+  
 struct sortQuantifierRelevance {
   FirstOrderModel * d_fm;
   bool operator() (Node i, Node j) {
@@ -1105,3 +1106,7 @@ void FirstOrderModelAbs::processInitializeQuantifier( Node q ) {
 Node FirstOrderModelAbs::getVariable( Node q, unsigned i ) {
   return q[0][d_var_order[q][i]];
 }
+
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

@@ -750,8 +750,26 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
 /** Representative bound fmc entry
  * 
  * This bound information corresponds to one
- * entry in a definition.
- * TODO
+ * entry in a term definition (see terminology in
+ * Chapter 5 of Finite Model Finding for 
+ * Satisfiability Modulo Theories thesis).
+ * For example, a term definition for the body
+ * of a quantified formula:
+ *   forall xyz. P( x, y, z )
+ * may be:
+ *   ( 0, 0, 0 ) -> true
+ *   ( *, 1, 2 ) -> true
+ *   ( *, *, * ) -> false
+ * Indicating that the quantified formula evaluates
+ * to true in the current model for x=0, y=0, z=0,
+ * or y=1, z=2 for any x, and evaluates to false
+ * otherwise. 
+ * This class is used if we wish
+ * to iterate over all values corresponding to one
+ * of these entries. For example, for the second entry:
+ *   (*, 1, 2 )
+ * we iterate over all values of x, but only {1} 
+ * for y and {2} for z.
  */
 class RepBoundFmcEntry : public QRepBoundExt {
 public:

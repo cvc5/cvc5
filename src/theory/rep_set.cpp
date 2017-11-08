@@ -193,8 +193,7 @@ RepSetIterator::RepSetIterator( const RepSet * rs, RepBoundExt * rext ) : d_rs(r
   d_incomplete = false;
 }
 
-int RepSetIterator::domainSize( int i ) {
-  Assert(i>=0);
+unsigned RepSetIterator::domainSize( unsigned i ) {
   unsigned v = d_var_order[i];
   return d_domain_elements[v].size();
 }
@@ -367,7 +366,7 @@ int RepSetIterator::increment(){
   }
 }
 
-bool RepSetIterator::isFinished(){
+bool RepSetIterator::isFinished() const{
   return d_index.empty();
 }
 

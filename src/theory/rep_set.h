@@ -120,7 +120,18 @@ class RepBoundExt;
 /** Rep set iterator.
  *
  * This class is used for iterating over (tuples of) terms
- * in the domain(s) of a RepSet.
+ * in the domain(s) of a RepSet. 
+ * 
+ * To use it, first it must 
+ * be initialized with a call to:
+ * - setQuantifier or setFunctionDomain
+ * which initializes the d_owner field and sets up 
+ * initial information.
+ * 
+ * Then, we increment over the tuples of terms in the
+ * domains of the owner of this iterator using:
+ * - increment and incrementAtIndex
+ * 
  */
 class RepSetIterator {
 public:
@@ -138,10 +149,16 @@ public:
   bool setFunctionDomain( Node op );
   /** increment the iterator */
   int increment();
-  /** increment the iterator at index */
+  /** increment the iterator at index 
+   * This increments the i^th field of the 
+   * iterator, for examples, see operator next_i 
+   * in Figure 2 of Reynolds et al. CADE 2013.
+   */
   int incrementAtIndex( int i );
   /** is the iterator finished? */
-  bool isFinished();
+  bool isFinished() const;
+  /** get domain size of the i^th field of this iterator */
+  unsigned domainSize( unsigned i );
   /** get the i_th term we are considering */
   Node getCurrentTerm( unsigned v, bool valTerm = false );
   /** get the number of terms we are considering */
@@ -151,17 +168,16 @@ public:
   /** get variable order, returns index # */
   unsigned getVariableOrder( unsigned i ) { return d_var_order[i]; }
   /** is incomplete 
-   * 
    * Returns true if we only iterating over a strict subset of 
    * the domain of the quantified formula or function
    */
   bool isIncomplete() { return d_incomplete; }
-  /** debug print */
+  /** debug print methods */
   void debugPrint( const char* c );
   void debugPrintSmall( const char* c );
-  /** enumeration type? */
+  /** enumeration type for each field */
   std::vector< RsiEnumType > d_enum_type;
-  /** current tuple we are considering */
+  /** the current tuple we are considering */
   std::vector< int > d_index;
 private:
   /** rep set associated with this iterator */
@@ -174,8 +190,6 @@ private:
   std::vector< std::vector< Node > > d_domain_elements;
   /** initialize */
   bool initialize();
-  /** get domain size of the i^th field of this iterator */
-  int domainSize( int i );
   /** owner 
    * This is the term that we are iterating for, which may either be:
    * (1) a quantified formula, or
@@ -184,12 +198,14 @@ private:
   Node d_owner;
   /** reset index, 1:success, 0:empty, -1:fail */
   int resetIndex( unsigned i, bool initial = false );
-  /** set index order */
+  /** set index order (see below) */
   void setIndexOrder( std::vector< unsigned >& indexOrder );
   /** do reset increment the iterator at index=counter */
   int do_reset_increment( int counter, bool initial = false );
   /** ordering for variables we are iterating over
-  *  for example, given reps = { a, b } and quantifier forall( x, y, z ) P( x, y, z ) with d_index_order = { 2, 0, 1 },
+  *  For example, given reps = { a, b } and quantifier 
+  *    forall( x, y, z ) P( x, y, z )
+  *  with d_index_order = { 2, 0, 1 },
   *    then we consider instantiations in this order:
   *      a/x a/y a/z
   *      a/x b/y a/z
@@ -199,7 +215,7 @@ private:
   */
   std::vector< unsigned > d_index_order;
   /** variables to index they are considered at
-  * for example, if d_index_order = { 2, 0, 1 }
+  * For example, if d_index_order = { 2, 0, 1 }
   *    then d_var_order = { 0 -> 1, 1 -> 2, 2 -> 0 }
   */
   std::map< unsigned, unsigned > d_var_order;  
