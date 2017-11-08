@@ -108,7 +108,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
       for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
         vars.push_back( f[0][j] );
       }
-      RepSetIterator riter(d_qe, fm->getRepSetPtr());
+      RepSetIterator riter(d_qe);
       if( riter.setQuantifier( f ) ){
         while( !riter.isFinished() ){
           tests++;
@@ -419,7 +419,7 @@ QModelBuilderIG::Statistics::~Statistics(){
 //do exhaustive instantiation
 int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   if( optUseModel() ){
-    RepSetIterator riter(d_qe, d_qe->getModel()->getRepSetPtr());
+    RepSetIterator riter(d_qe);
     if( riter.setQuantifier( f ) ){
       FirstOrderModelIG * fmig = (FirstOrderModelIG*)d_qe->getModel();
       Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;

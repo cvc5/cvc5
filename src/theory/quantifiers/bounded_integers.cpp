@@ -739,14 +739,8 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
     Trace("bound-int-rsi") << "Look up the value for " << d_set[q][i] << " " << i << std::endl;
     int v = rsi->getVariableOrder( i );
     Assert( q[0][v]==d_set[q][i] );
-    Node t = rsi->getCurrentTerm( v );
+    Node t = rsi->getCurrentTerm( v, true );
     Trace("bound-int-rsi") << "term : " << t << std::endl;
-    Node tt = rsi->d_rep_set->getTermForRepresentative(t);
-    if (!tt.isNull())
-    {
-      t = tt;
-      Trace("bound-int-rsi") << "term (post-rep) : " << t << std::endl;
-    }
     vars.push_back( d_set[q][i] );
     subs.push_back( t );
   }

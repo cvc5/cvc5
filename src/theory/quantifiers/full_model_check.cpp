@@ -767,7 +767,7 @@ public:
 };
 
 bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index) {
-  RepSetIterator riter( d_qe, &(fm->d_rep_set) );
+  RepSetIterator riter( d_qe );
   Trace("fmc-exh") << "----Exhaustive instantiate based on index " << c_index << " : " << c << " ";
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;

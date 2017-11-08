@@ -74,6 +74,8 @@ public:
   unsigned getNumRepresentatives(TypeNode tn) const;
   /** get representative at index */
   Node getRepresentative(TypeNode tn, unsigned i) const;
+  /** get representatives */
+  void getRepresentatives(TypeNode tn, std::vector< Node >& reps ) const;
   /** add representative n for type tn, where n has type tn */
   void add( TypeNode tn, Node n );
   /** returns index in d_type_reps for node n */
@@ -161,15 +163,13 @@ private:
   //are we only considering a strict subset of the domain of the quantifier?
   bool d_incomplete;
 public:
-  RepSetIterator( QuantifiersEngine * qe, RepSet* rs );
+  RepSetIterator( QuantifiersEngine * qe );
   ~RepSetIterator(){}
   //set that this iterator will be iterating over instantiations for a quantifier
   bool setQuantifier( Node f, RepBoundExt* rext = NULL );
   //set that this iterator will be iterating over the domain of a function
   bool setFunctionDomain( Node op, RepBoundExt* rext = NULL );
 public:
-  //pointer to model
-  RepSet* d_rep_set;
   //enumeration type?
   std::vector< int > d_enum_type;
   //current tuple we are considering
@@ -186,7 +186,7 @@ public:
   /** is the iterator finished? */
   bool isFinished();
   /** get the i_th term we are considering */
-  Node getCurrentTerm( int v );
+  Node getCurrentTerm( int v, bool valTerm = false );
   /** get the number of terms we are considering */
   int getNumTerms() { return (int)d_index_order.size(); }
   /** debug print */

@@ -64,6 +64,14 @@ Node RepSet::getRepresentative(TypeNode tn, unsigned i) const
   return it->second[i];
 }
 
+void RepSet::getRepresentatives(TypeNode tn, std::vector< Node >& reps ) const 
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_reps.find(tn);
+  Assert( it!=d_type_reps.end() );
+  reps.insert( reps.end(), it->second.begin(), it->second.end() );
+}
+
 bool containsStoreAll(Node n, std::unordered_set<Node, NodeHashFunction>& cache)
 {
   if( std::find( cache.begin(), cache.end(), n )==cache.end() ){
@@ -185,7 +193,7 @@ void RepSet::toStream(std::ostream& out){
 }
 
 
-RepSetIterator::RepSetIterator( QuantifiersEngine * qe, RepSet* rs ) : d_qe(qe), d_rep_set( rs ){
+RepSetIterator::RepSetIterator( QuantifiersEngine * qe ) : d_qe(qe){
   d_incomplete = false;
 }
 
@@ -217,10 +225,8 @@ bool RepSetIterator::setFunctionDomain( Node op, RepBoundExt* rext ){
   return initialize( rext );
 }
 
-// TODO : as part of #1199, the portions of this
-// function which modify d_rep_set should be
-// moved to TheoryModel.
 bool RepSetIterator::initialize( RepBoundExt* rext ){
+  RepSet* rs = d_qe->getModel()->getRepSetPtr();
   Trace("rsi") << "Initialize rep set iterator..." << std::endl;
   for( unsigned v=0; v<d_types.size(); v++ ){
     d_index.push_back( 0 );
@@ -232,20 +238,7 @@ bool RepSetIterator::initialize( RepBoundExt* rext ){
     d_domain_elements.push_back( std::vector< Node >() );
     TypeNode tn = d_types[v];
     Trace("rsi") << "Var #" << v << " is type " << tn << "..." << std::endl;
-    if( tn.isSort() ){
-      //must ensure uninterpreted type is non-empty.
-      if( !d_rep_set->hasType( tn ) ){
-        //FIXME:
-        // terms in rep_set are now constants which mapped to terms through TheoryModel
-        // thus, should introduce a constant and a term.  for now, just a term.
-
-        //Node c = d_qe->getTermUtil()->getEnumerateTerm( tn, 0 );
-        Node var = d_qe->getModel()->getSomeDomainElement( tn );
-        Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn << std::endl;
-        d_rep_set->add( tn, var );
-      }
-    }
-    bool inc = true;
+    bool inc = !d_qe->getModel()->initializeRepresentativesForType( tn );
     //check if it is externally bound
     if( rext && rext->setBound( d_owner, v, tn, d_domain_elements[v] ) ){
       d_enum_type.push_back( ENUM_DEFAULT );
@@ -262,30 +255,16 @@ bool RepSetIterator::initialize( RepBoundExt* rext ){
         }
       }
     }
-    if( !tn.isSort() ){
-      if( inc ){
-        if (d_qe->getTermEnumeration()->mayComplete(tn))
-        {
-          Trace("rsi") << "  do complete, since cardinality is small (" << tn.getCardinality() << ")..." << std::endl;
-          d_rep_set->complete( tn );
-          //must have succeeded
-          Assert( d_rep_set->hasType( tn ) );
-        }else{
-          Trace("rsi") << "  variable cannot be bounded." << std::endl;
-          Trace("fmf-incomplete") << "Incomplete because of quantification of type " << tn << std::endl;
-          d_incomplete = true;
-        }
-      }
+    if( inc ){
+      Trace("fmf-incomplete") << "Incomplete because of quantification of type " << tn << std::endl;
+      d_incomplete = true;
     }
 
     //if we have yet to determine the type of enumeration
     if( d_enum_type.size()<=v ){
-      if( d_rep_set->hasType( tn ) ){
+      if( rs->hasType( tn ) ){
         d_enum_type.push_back( ENUM_DEFAULT );
-        for( unsigned j=0; j<d_rep_set->d_type_reps[tn].size(); j++ ){
-          //d_domain[v].push_back( j );
-          d_domain_elements[v].push_back( d_rep_set->d_type_reps[tn][j] );
-        }
+        rs->getRepresentatives(tn, d_domain_elements[v]);
       }else{
         Assert( d_incomplete );
         return false;
@@ -412,13 +391,20 @@ bool RepSetIterator::isFinished(){
   return d_index.empty();
 }
 
-Node RepSetIterator::getCurrentTerm( int v ){
+Node RepSetIterator::getCurrentTerm( int v, bool valTerm ){
   int ii = d_index_order[v];
   int curr = d_index[ii];
   Trace("rsi-debug") << "rsi : get term " << v << ", index order = " << d_index_order[v] << std::endl;
   Trace("rsi-debug") << "rsi : curr = " << curr << " / " << d_domain_elements[v].size() << std::endl;
   Assert( 0<=curr && curr<(int)d_domain_elements[v].size() );
-  return d_domain_elements[v][curr];
+  Node t = d_domain_elements[v][curr];
+  if( valTerm ){
+    Node tt = d_qe->getModel()->getRepSet()->getTermForRepresentative( t );
+    if( !tt.isNull() ){
+      return tt;
+    }
+  }
+  return t;
 }
 
 void RepSetIterator::debugPrint( const char* c ){

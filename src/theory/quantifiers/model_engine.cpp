@@ -277,8 +277,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       Trace("fmf-exh-inst-debug") << std::endl;
     }
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
-    RepSetIterator riter(d_quantEngine,
-                         d_quantEngine->getModel()->getRepSetPtr());
+    RepSetIterator riter(d_quantEngine);
     if( riter.setQuantifier( f ) ){
       Trace("fmf-exh-inst") << "...exhaustive instantiation set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
       if( !riter.isIncomplete() ){

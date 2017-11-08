@@ -109,7 +109,14 @@ class FirstOrderModel : public TheoryModel
   unsigned getModelBasisArg(Node n);
   /** get some domain element */
   Node getSomeDomainElement(TypeNode tn);
-
+  /** initialize representative set for type 
+   * 
+   * Returns true if the initialization was complete,
+   * in that the set for tn in TheoryModel::d_rep_set 
+   * has all representatives of type tn.
+   */
+  bool initializeRepresentativesForType(TypeNode tn);
+  
  protected:
   /** quant engine */
   QuantifiersEngine* d_qe;

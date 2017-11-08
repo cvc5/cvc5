@@ -105,15 +105,45 @@ void FirstOrderModel::initializeModelForTerm( Node n, std::map< Node, bool >& vi
 Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
   //check if there is even any domain elements at all
   if (!d_rep_set.hasType(tn)) {
-    Trace("fmc-model-debug") << "Must create domain element for " << tn << "..." << std::endl;
+    Trace("fm-debug") << "Must create domain element for " << tn << "..." << std::endl;
     Node mbt = getModelBasisTerm(tn);
-    Trace("fmc-model-debug") << "Add to representative set..." << std::endl;
+    Trace("fm-debug") << "Add to representative set..." << std::endl;
     d_rep_set.add(tn, mbt);
   }else if( d_rep_set.d_type_reps[tn].size()==0 ){
     Message() << "empty reps" << std::endl;
     exit(0);
   }
   return d_rep_set.d_type_reps[tn][0];
+}
+
+bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn) {
+  if( tn.isSort() ){
+    //must ensure uninterpreted type is non-empty.
+    if( !d_rep_set.hasType( tn ) ){
+      //FIXME:
+      // terms in rep_set are now constants which mapped to terms through TheoryModel
+      // thus, should introduce a constant and a term.  for now, just a term.
+
+      //Node c = d_qe->getTermUtil()->getEnumerateTerm( tn, 0 );
+      Node var = d_qe->getModel()->getSomeDomainElement( tn );
+      Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn << std::endl;
+      d_rep_set.add( tn, var );
+    }
+    return true;
+  }else{
+    // can we complete it?
+    if (d_qe->getTermEnumeration()->mayComplete(tn))
+    {
+      Trace("fm-debug") << "  do complete, since cardinality is small (" << tn.getCardinality() << ")..." << std::endl;
+      d_rep_set.complete( tn );
+      //must have succeeded
+      Assert( d_rep_set.hasType( tn ) );
+      return true;
+    }else{
+      Trace("fm-debug") << "  variable cannot be bounded." << std::endl;
+      return false;
+    }
+  }
 }
 
 /** needs check */
