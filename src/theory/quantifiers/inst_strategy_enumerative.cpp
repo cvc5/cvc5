@@ -129,16 +129,15 @@ bool InstStrategyEnum::process(Node f, bool fullEffort)
       {
         Trace("inst-alg") << "-> Relevant domain instantiate " << f << "..."
                           << std::endl;
+        Trace("inst-alg-debug") << "Compute relevant domain..." << std::endl;
+        rd->compute();
+        Trace("inst-alg-debug") << "...finished" << std::endl;
       }
       else
       {
         Trace("inst-alg") << "-> Ground term instantiate " << f << "..."
                           << std::endl;
       }
-      AlwaysAssert(rd);
-      Trace("inst-alg-debug") << "Compute relevant domain..." << std::endl;
-      rd->compute();
-      Trace("inst-alg-debug") << "...finished" << std::endl;
       unsigned final_max_i = 0;
       std::vector<unsigned> maxs;
       std::vector<bool> max_zero;
@@ -170,11 +169,11 @@ bool InstStrategyEnum::process(Node f, bool fullEffort)
               if (!options::cbqi()
                   || !quantifiers::TermUtil::hasInstConstAttr(gt))
               {
-                Node r =
+                Node rep =
                     d_quantEngine->getEqualityQuery()->getRepresentative(gt);
-                if (reps_found.find(r) == reps_found.end())
+                if (reps_found.find(rep) == reps_found.end())
                 {
-                  reps_found[r] = gt;
+                  reps_found[rep] = gt;
                   term_db_list[tn].push_back(gt);
                 }
               }
