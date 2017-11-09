@@ -378,7 +378,7 @@ class CVC4_PUBLIC DatatypeConstructor {
    * where C is this constructor, and T is the type
    * of the index^th field of this constructor. 
    * The semantics of sel_{dtt}^{T,n}( t ) is the n^th field of 
-   * type T of constructor term t if one exists, is 
+   * type T of constructor term t if one exists, or is 
    * unconstrained otherwise.
    */
   Expr getSelectorInternal(Type dtt, size_t index) const;
