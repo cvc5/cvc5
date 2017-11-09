@@ -254,9 +254,8 @@ public:
    * This method returns the operator or 
    * term that this constructor represents
    * in the sygus encoding. This may be a
-   * builtin operator, 
-   * defined function, variable, or constant 
-   * that this constructor encodes in this 
+   * builtin operator, defined function, variable, 
+   * or constant that this constructor encodes in this 
    * deep embedding.
    */
   Expr getSygusOp() const;
@@ -276,7 +275,7 @@ public:
    * TODO 
    */
   unsigned getNumSygusLetInputArgs() const;
-  /** is this a sygus identity function 
+  /** is this a sygus identity function?
    * TODO
    */
   bool isSygusIdFunc() const;
@@ -359,15 +358,33 @@ public:
   Expr getSelector(std::string name) const;
 
 
-  /**
-   * Get the internal selector for a constructor argument.
-   * TODO
+  /** get selector internal
+   * 
+   * This gets selector for the index^th argument 
+   * of this constructor. The type dtt is the datatype 
+   * type whose datatype is the owner of this constructor, 
+   * where this type may be an instantiated parametric datatype.
+   * 
+   * If shared selectors are enabled, 
+   * this returns a shared (constructor-agnotic) selector, which
+   * in the terminology of "Datatypes with Shared Selectors", is:
+   *   sel_{dtt}^{T,atos(T,C,index)}
+   * where C is this constructor, and T is the type 
+   * of the index^th field of this constructor.
    */
-  Expr getSelectorInternal( Type domainType, size_t index ) const;
+  Expr getSelectorInternal( Type dtt, size_t index ) const;
   
-  /** 
-   * Get the index for the selector
-   * TODO
+  /** get selector index internal
+   * 
+   * This gets the argument number of this constructor 
+   * that the selector sel accesses. It returns -1 if the 
+   * selector sel is not a selector for this constructor.
+   * 
+   * In the terminology of "Datatypes with Shared Selectors", 
+   * if sel is sel_{dtt}^{T,index} for some (T, index), where 
+   * dtt is the datatype type whose datatype is the owner 
+   * of this constructor, then this method returns
+   *   stoa(T,C,index)
    */
   int getSelectorIndexInternal( Expr sel ) const;
   
@@ -383,7 +400,9 @@ public:
   bool involvesUninterpretedType() const;
 
   /** set sygus
-   * TODO 
+   * 
+   * Set that this constructor is a sygus datatype 
+   * constructor that encodes operator op.
    */
   void setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_argus );
 private:
@@ -405,11 +424,22 @@ private:
   unsigned d_sygus_num_let_input_args;
   
   /** shared selectors for each type 
-   * TODO
+   * This stores the shared (constructor-agnotic) 
+   * selectors that access the fields of this datatype.
+   * In the terminology of "Datatypes with Shared Selectors", 
+   * this stores:
+   *   sel_{dtt}^{T1,atos(T1,C,1)}, ...,
+   *   sel_{dtt}^{Tn,atos(Tn,C,n)}
+   * where C is this constructor, which has type 
+   * T1 x ... x Tn -> dtt above.
+   * We store this information for (possibly multiple) 
+   * datatype types dtt, since this constructor may be 
+   * for a parametric datatype, where dtt is an instantiated
+   * parametric datatype.
    */
   mutable std::map< Type, std::vector< Expr > > d_shared_selectors;
-  /** for each type, a mapping from shared selectors to
-   * its index in this constructor.
+  /** for each type, a cache mapping from shared selectors to
+   * its argument index for this constructor.
    */
   mutable std::map< Type, std::map< Expr, unsigned > > d_shared_selector_index;
   /** resolve */
@@ -441,7 +471,7 @@ private:
   /** compute ground term */
   Expr computeGroundTerm( Type t, std::vector< Type >& processing, std::map< Type, Expr >& gt ) const throw(IllegalArgumentException);
   /** compute shared selectors 
-   * TODO
+   * This computes the maps d_shared_selectors and d_shared_selector_index.
    */
   void computeSharedSelectors( Type domainType ) const;  
 };/* class DatatypeConstructor */
@@ -542,8 +572,9 @@ public:
 
   ~Datatype();
 
-  /**
-   * Add a constructor to this Datatype. Constructor names need not
+  /** Add a constructor to this Datatype. 
+   * 
+   * Notice that constructor names need not
    * be unique; they are for convenience and pretty-printing only.
    */
   void addConstructor(const DatatypeConstructor& c);
@@ -551,22 +582,49 @@ public:
   /** set sygus 
    * 
    * This marks this datatype as a sygus datatype.
-   * A sygus datatype is one that encodes builtin terms 
+   * A sygus datatype is one that represents terms of type st
    * via a deep embedding described in Section 5 of
-   * Reynolds et al. CAV 2015.
-   *   st : the builtin type for this datatype
-   *   bvl : the list of arguments for the synth-fun
-   *   allow_const : whether all constants are (implicitly) allowed by the datatype
-   *   allow_all : whether all terms are (implicitly) allowed by the datatype
+   * Reynolds et al. CAV 2015. We say that this sygus datatype 
+   * "encodes" its sygus type st in the following.
+   * 
+   * st : the type this datatype encodes (this can be Int, Bool, etc.),
+   * bvl : the list of arguments for the synth-fun
+   * allow_const : whether all constants are (implicitly) allowed by the datatype
+   * allow_all : whether all terms are (implicitly) allowed by the datatype
+   * 
    * Notice that allow_const/allow_all do not reflect the constructors 
-   * for this datatype, and are used solely for relaxing the
+   * for this datatype, and instead are used solely for relaxing constraints 
+   * when doing solution reconstruction (Figure 5 of Reynolds et al. 
+   * CAV 2015).
    */
   void setSygus( Type st, Expr bvl, bool allow_const, bool allow_all );
   /** add sygus constructor 
-   * TODO
+   * 
+   * This adds a sygus constructor to this datatype, where
+   * this datatype should be currently unresolved.
+   * 
+   * op : the builtin operator, constant, or variable that 
+   *      this constructor encodes
+   * cname : the name of the constructor (for printing only)
+   * cargs : the arguments of the constructor
+   * 
+   * It should be the case that cargs are sygus datatypes that 
+   * encode the arguments of op. For example, a sygus constructor 
+   * with op = PLUS should be such that cargs.size()>=2 and 
+   * the sygus type of cargs[i] is Real/Int for each i.
    */
   void addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs );
   /** add sygus constructor (for let expression constructors)
+   * 
+   * This adds a sygus constructor to this datatype, where
+   * this datatype should be currently unresolved.
+   * 
+   * In contrast to the above function, the constructor we
+   * add may correspond to a let expression if let_body is 
+   * non-null. In detail, the sygus official format 
+   * (http://www.sygus.org/SyGuS-COMP2015.html)
+   * allows for let expressions to occur in grammars.
+   * 
    * TODO
    */
   void addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
@@ -615,7 +673,9 @@ public:
    * Return the cardinality of this datatype.  
    * The Datatype must be resolved.
    * 
-   * The version of this method that takes Type t is required for parametric datatypes.
+   * The version of this method that takes Type t is required 
+   * for parametric datatypes, where t is an instantiated 
+   * parametric datatype type whose datatype is this class.
    */
   Cardinality getCardinality( Type t ) const throw(IllegalArgumentException);
   Cardinality getCardinality() const throw(IllegalArgumentException);
@@ -625,7 +685,9 @@ public:
    * datatype is not well-founded, this method returns false. The
    * Datatype must be resolved or an exception is thrown.
    * 
-   * The version of this method that takes Type t is required for parametric datatypes.
+   * The version of this method that takes Type t is required 
+   * for parametric datatypes, where t is an instantiated 
+   * parametric datatype type whose datatype is this class.
    */
   bool isFinite( Type t ) const throw(IllegalArgumentException);
   bool isFinite() const throw(IllegalArgumentException);
@@ -637,37 +699,46 @@ public:
    * datatype is  not well-founded, this method returns false.  The
    * Datatype must be resolved or an exception is thrown.
    * 
-   * The version of this method that takes Type t is required for parametric datatypes.
+   * The versions of these methods that takes Type t is required 
+   * for parametric datatypes, where t is an instantiated 
+   * parametric datatype type whose datatype is this class.
    */
   bool isInterpretedFinite( Type t ) const throw(IllegalArgumentException);
   bool isInterpretedFinite() const throw(IllegalArgumentException);
 
-  /**
+  /** is well-founded
+   * 
    * Return true iff this datatype is well-founded (there exist finite
-   * values of this type). The Datatype must be resolved or an exception is thrown.
+   * values of this type). 
+   * This datatype must be resolved or an exception is thrown.
    */
   bool isWellFounded() const throw(IllegalArgumentException);
 
-  /**
+  /** is recursive singleton 
+   * 
    * Return true iff this datatype is a recursive singleton 
    * (a recursive singleton is a recursive datatype with only 
    * one infinite value). For details, see Reynolds et al. CADE 2015.
    * 
-   * The version of this method that takes Type t is required 
-   * for parametric datatypes.
+   * The versions of these methods that takes Type t is required 
+   * for parametric datatypes, where t is an instantiated 
+   * parametric datatype type whose datatype is this class.
    */
   bool isRecursiveSingleton( Type t ) const throw(IllegalArgumentException);
   bool isRecursiveSingleton() const throw(IllegalArgumentException);
 
 
-  /** 
+  /** recursive single arguments 
+   * 
    * Get recursive singleton argument types (uninterpreted sorts that the cardinality 
    * of this datatype is dependent upon). For example, for :
    *   stream :=  cons( head1 : U1, head2 : U2, tail : stream )
    * Then, the recursive singleton argument types of stream are { U1, U2 }, since
    * if U1 and U2 have cardinality one, then stream has cardinality one as well.
    * 
-   * The version of these functions that take Type t are required for parametric datatypes.
+   * The versions of these methods that takes Type t is required 
+   * for parametric datatypes, where t is an instantiated 
+   * parametric datatype type whose datatype is this class.
   */
   unsigned getNumRecursiveSingletonArgTypes( Type t ) const throw(IllegalArgumentException);
   Type getRecursiveSingletonArgType( Type t, unsigned i ) const throw(IllegalArgumentException);
@@ -678,6 +749,10 @@ public:
    * Construct and return a ground term of this Datatype.  The
    * Datatype must be both resolved and well-founded, or else an
    * exception is thrown.
+   * 
+   * This method takes a Type t, which is a datatype type whose 
+   * datatype is this class, which may be an instantiated datatype 
+   * type if this datatype is parametric.
    */
   Expr mkGroundTerm( Type t ) const throw(IllegalArgumentException);
 
@@ -745,10 +820,10 @@ public:
   /** get sygus type 
    * This gets the built-in type associated with
    * this sygus datatype, i.e. the type of the
-   * term that this sygus datatype is an 
-   * encoding for.
+   * term that this sygus datatype encodes.
    */
   Type getSygusType() const;
+  
   /** get sygus var list
    * This gets the variable list of the function
    * to synthesize using this sygus datatype. 
@@ -756,10 +831,11 @@ public:
    * function f where solutions are of the form: 
    *   f = (\ xy. t[x,y])
    * In this case, this method returns the 
-   * BOUND_VAR_LIST containing x and y.
+   * bound variable list containing x and y.
    */
   Expr getSygusVarList() const;
   /** get sygus allow constants
+   * 
    * Does this sygus datatype allow constants? 
    * Notice that this is not a property of the 
    * constructors of this datatype. Instead, it is
@@ -768,6 +844,7 @@ public:
    */
   bool getSygusAllowConst() const;
   /** get sygus allow all
+   * 
    * Does this sygus datatype allow all terms? 
    * Notice that this is not a property of the 
    * constructors of this datatype. Instead, it is
@@ -776,6 +853,7 @@ public:
    */
   bool getSygusAllowAll() const;
   /** get sygus evaluation function
+   * 
    * This gets the evaluation function for this datatype 
    * for the deep embedding. This is a function of type:
    *   D x T1 x ... x Tn -> T
@@ -903,7 +981,14 @@ private:
   /** compute ground term */
   Expr computeGroundTerm( Type t, std::vector< Type >& processing ) const throw(IllegalArgumentException);  
   /** Get the shared selector 
-   * TODO
+   * 
+   * This returns the index^th (constructor-agnostic)
+   * selector for type t. The type dtt is the datatype 
+   * type whose datatype is this class, where this may 
+   * be an instantiated parametric datatype.
+   * 
+   * In the terminology of "Datatypes with Shared Selectors", 
+   * this returns the term sel_{dtt}^{t,index}.
    */
   Expr getSharedSelector( Type dtt, Type t, unsigned index ) const;
 };/* class Datatype */
