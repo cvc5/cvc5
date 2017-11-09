@@ -376,9 +376,10 @@ class CVC4_PUBLIC DatatypeConstructor {
    * in the terminology of "Datatypes with Shared Selectors", is:
    *   sel_{dtt}^{T,atos(T,C,index)}
    * where C is this constructor, and T is the type
-   * of the index^th field of this constructor. The semantics 
-   * of sel_{dtt}^{T,n} is "return the n^th field of type T in 
-   * any constructor", where n is an integer.
+   * of the index^th field of this constructor. 
+   * The semantics of sel_{dtt}^{T,n}( t ) is the n^th field of 
+   * type T of constructor term t if one exists, is 
+   * unconstrained otherwise.
    */
   Expr getSelectorInternal(Type dtt, size_t index) const;
 
