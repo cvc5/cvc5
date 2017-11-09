@@ -363,12 +363,13 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     break;
   case kind::CHAIN: break;
   case kind::FUNCTION_TYPE:
-    out << "->";
-    for(size_t i = 0; i < n.getNumChildren(); ++i) {
-      out << " ";
-      toStream(out, n[i], toDepth, types, TypeNode::null());
+    for(size_t i = 0; i < n.getNumChildren() - 1; ++i) {
+      if(i > 0) {
+        out << ' ';
+      }
+      out << n[i];
     }
-    out << ")";
+    out << ") " << n[n.getNumChildren() - 1];
     return;
   case kind::SEXPR: break;
 
@@ -382,10 +383,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
     // uf theory
   case kind::APPLY_UF: typeChildren = true; break;
-    // higher-order
-  case kind::HO_APPLY: break;
-  case kind::LAMBDA: out << smtKindString(k) << " "; break;
-  
+
     // arith theory
   case kind::PLUS:
   case kind::MULT:
@@ -819,8 +817,6 @@ static string smtKindString(Kind k) throw() {
 
     // uf theory
   case kind::APPLY_UF: break;
-  
-  case kind::LAMBDA: return "lambda";
 
     // arith theory
   case kind::PLUS: return "+";
