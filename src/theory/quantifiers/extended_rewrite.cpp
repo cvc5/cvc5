@@ -74,8 +74,8 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
           new_children.push_back(rem_eq);
           Node nc = NodeManager::currentNM()->mkNode(new_k, new_children);
           Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
-                                     << nc << " by simple ITE pulling."
-                                     << std::endl;
+                                 << nc << " by simple ITE pulling."
+                                 << std::endl;
           // recurse
           return extendedRewrite(nc);
         }
@@ -113,7 +113,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
     ret = Rewriter::rewrite(ret);
     Trace("q-ext-rewrite-debug") << "Do extended rewrite on : " << ret
-                                     << " (from " << n << ")" << std::endl;
+                                 << " (from " << n << ")" << std::endl;
 
     Node new_ret;
     if (ret.getKind() == kind::EQUAL)
@@ -144,9 +144,9 @@ Node ExtendedRewriter::extendedRewrite(Node n)
                 if (!isSameFix)
                 {
                   Trace("q-ext-rewrite") << "sygus-extr : " << ret
-                                             << " rewrites to false due to "
-                                                "disequal string prefix/suffix."
-                                             << std::endl;
+                                         << " rewrites to false due to "
+                                            "disequal string prefix/suffix."
+                                         << std::endl;
                   new_ret = d_false;
                   break;
                 }
@@ -182,9 +182,9 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         {
           if (ret[1] == ret[0][i] && ret[2] == ret[0][1 - i])
           {
-            Trace("q-ext-rewrite")
-                << "sygus-extr : " << ret << " rewrites to " << ret[2]
-                << " due to simple invariant ITE." << std::endl;
+            Trace("q-ext-rewrite") << "sygus-extr : " << ret << " rewrites to "
+                                   << ret[2] << " due to simple invariant ITE."
+                                   << std::endl;
             new_ret = ret[2];
             break;
           }
@@ -242,22 +242,22 @@ Node ExtendedRewriter::extendedRewrite(Node n)
                                                    : INTS_MODULUS_TOTAL));
         new_ret = NodeManager::currentNM()->mkNode(new_k, children);
         Trace("q-ext-rewrite") << "sygus-extr : " << ret << " rewrites to "
-                                   << new_ret << " due to total interpretation."
-                                   << std::endl;
+                               << new_ret << " due to total interpretation."
+                               << std::endl;
       }
     }
     // more expensive rewrites
     if (new_ret.isNull())
     {
       Trace("q-ext-rewrite-debug2") << "Do expensive rewrites on " << ret
-                                        << std::endl;
+                                    << std::endl;
       bool polarity = ret.getKind() != NOT;
       Node ret_atom = ret.getKind() == NOT ? ret[0] : ret;
       if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isReal())
           || ret_atom.getKind() == GEQ)
       {
         Trace("q-ext-rewrite-debug2") << "Compute monomial sum " << ret_atom
-                                          << std::endl;
+                                      << std::endl;
         // compute monomial sum
         std::map<Node, Node> msum;
         if (QuantArith::getMonomialSumLit(ret_atom, msum))
@@ -267,8 +267,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
                ++itm)
           {
             Node v = itm->first;
-            Trace("q-ext-rewrite-debug2") << itm->first << " * "
-                                              << itm->second << std::endl;
+            Trace("q-ext-rewrite-debug2") << itm->first << " * " << itm->second
+                                          << std::endl;
             if (v.getKind() == ITE)
             {
               Node veq;
@@ -292,7 +292,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
               else
               {
                 Trace("q-ext-rewrite-debug") << "  failed to isolate " << v
-                                                 << " in " << ret << std::endl;
+                                             << " in " << ret << std::endl;
               }
             }
           }
@@ -300,7 +300,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         else
         {
           Trace("q-ext-rewrite-debug") << "  failed to get monomial sum of "
-                                           << ret << std::endl;
+                                       << ret << std::endl;
         }
       }
       else if (ret_atom.getKind() == ITE)
