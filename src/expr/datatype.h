@@ -181,6 +181,7 @@ private:
  * A constructor for a Datatype.
  */
 class CVC4_PUBLIC DatatypeConstructor {
+  friend class Datatype;
 public:
   /** The type for iterators over constructor arguments. */
   typedef DatatypeConstructorArgIterator iterator;
@@ -249,26 +250,35 @@ public:
   Expr getTester() const;
 
   /** get sygus op 
-   * In syntax-guided synthesis (sygus), 
-   * builtin terms are encoded in a deep embedding
-   * as datatype terms, see Section 4 of 
-   * Reynolds et al. CAV 2015.
-   * This function returns a builtin operator, 
+   * 
+   * This method returns the operator or 
+   * term that this constructor represents
+   * in the sygus encoding. This may be a
+   * builtin operator, 
    * defined function, variable, or constant 
    * that this constructor encodes in this 
    * deep embedding.
    */
   Expr getSygusOp() const;
   /** get sygus let body 
+   * TODO
    */
   Expr getSygusLetBody() const;
-  /** get number of sygus let args */
+  /** get number of sygus let args 
+   * TODO
+   */
   unsigned getNumSygusLetArgs() const;
-  /** get sygus let arg */
+  /** get sygus let arg 
+   * TODO
+   */
   Expr getSygusLetArg( unsigned i ) const;
-  /** get number of let arguments that should be printed as arguments to let */
+  /** get number of let arguments that should be printed as arguments to let
+   * TODO 
+   */
   unsigned getNumSygusLetInputArgs() const;
-  /** is this a sygus identity function */
+  /** is this a sygus identity function 
+   * TODO
+   */
   bool isSygusIdFunc() const;
 
   /**
@@ -351,29 +361,35 @@ public:
 
   /**
    * Get the internal selector for a constructor argument.
+   * TODO
    */
   Expr getSelectorInternal( Type domainType, size_t index ) const;
   
   /** 
    * Get the index for the selector
+   * TODO
    */
   int getSelectorIndexInternal( Expr sel ) const;
   
-  /**
-   * Get whether this datatype involves an external type.  If so,
-   * then we will pose additional requirements for sharing.
+  /** involves external type
+   * Get whether this constructor has a subfield 
+   * in any constructor that is not a datatype type.
    */
   bool involvesExternalType() const;
+  /** involves external type
+   * Get whether this constructor has a subfield 
+   * in any constructor that is an uninterpreted type.
+   */  
   bool involvesUninterpretedType() const;
 
-  /** set sygus */
+  /** set sygus
+   * TODO 
+   */
   void setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_argus );
 private:
   /** the name of the constructor */
   std::string d_name;
-  /** the constructor expression
-   * This is the operator in APPLY_CONSTRUCTOR nodes.
-   */
+  /** the constructor expression */
   Expr d_constructor;
   /** the tester for this constructor */
   Expr d_tester;
@@ -381,18 +397,22 @@ private:
   std::vector<DatatypeConstructorArg> d_args;
   /** sygus operator */
   Expr d_sygus_op;
+  /** sygus let body */
   Expr d_sygus_let_body;
+  /** sygus let args */
   std::vector< Expr > d_sygus_let_args;
+  /** sygus num let input args */
   unsigned d_sygus_num_let_input_args;
   
   /** shared selectors for each type 
+   * TODO
    */
   mutable std::map< Type, std::vector< Expr > > d_shared_selectors;
   /** for each type, a mapping from shared selectors to
    * its index in this constructor.
    */
   mutable std::map< Type, std::map< Expr, unsigned > > d_shared_selector_index;
-
+  /** resolve */
   void resolve(ExprManager* em, DatatypeType self,
                const std::map<std::string, DatatypeType>& resolutions,
                const std::vector<Type>& placeholders,
@@ -400,7 +420,6 @@ private:
                const std::vector< SortConstructorType >& paramTypes,
                const std::vector< DatatypeType >& paramReplacements, size_t cindex)
     throw(IllegalArgumentException, DatatypeResolutionException);
-  friend class Datatype;
 
   /** Helper function for resolving parametric datatypes.
       This replaces instances of the SortConstructorType produced for unresolved
@@ -421,7 +440,9 @@ private:
   bool computeWellFounded( std::vector< Type >& processing ) const throw(IllegalArgumentException);
   /** compute ground term */
   Expr computeGroundTerm( Type t, std::vector< Type >& processing, std::map< Type, Expr >& gt ) const throw(IllegalArgumentException);
-  /** compute shared selectors */
+  /** compute shared selectors 
+   * TODO
+   */
   void computeSharedSelectors( Type domainType ) const;  
 };/* class DatatypeConstructor */
 
@@ -542,10 +563,11 @@ public:
    */
   void setSygus( Type st, Expr bvl, bool allow_const, bool allow_all );
   /** add sygus constructor 
+   * TODO
    */
   void addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs );
-  /** add sygus constructor (for let expressions)
-   * 
+  /** add sygus constructor (for let expression constructors)
+   * TODO
    */
   void addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
                             CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args );
@@ -600,22 +622,22 @@ public:
 
   /**
    * Return true iff this Datatype has finite cardinality. If the
-   * datatype is not well-founded, this function returns false. The
+   * datatype is not well-founded, this method returns false. The
    * Datatype must be resolved or an exception is thrown.
    * 
-   * The version of this function that takes Type t is required for parametric datatypes.
+   * The version of this method that takes Type t is required for parametric datatypes.
    */
   bool isFinite( Type t ) const throw(IllegalArgumentException);
   bool isFinite() const throw(IllegalArgumentException);
   
   /**
-   * Return  true iff this  Datatype is  finite (all  constructors are
-   * finite,  i.e., there  are finitely  many ground  terms) under the
-   * assumption unintepreted sorts are finite.   If the
-   * datatype is  not well-founded, this function  returns false.  The
+   * Return true iff this  Datatype is finite (all constructors are
+   * finite, i.e., there  are finitely  many ground terms) under the
+   * assumption unintepreted sorts are finite. If the
+   * datatype is  not well-founded, this method returns false.  The
    * Datatype must be resolved or an exception is thrown.
    * 
-   * The version of this function that takes Type t is required for parametric datatypes.
+   * The version of this method that takes Type t is required for parametric datatypes.
    */
   bool isInterpretedFinite( Type t ) const throw(IllegalArgumentException);
   bool isInterpretedFinite() const throw(IllegalArgumentException);
@@ -770,14 +792,17 @@ public:
    * in any constructor that is not a datatype type.
    */
   bool involvesExternalType() const;
-  /** involves external type
+  /** involves uninterpreted type
    * Get whether this datatype has a subfield 
    * in any constructor that is an uninterpreted type.
    */  
   bool involvesUninterpretedType() const;
   
 private:
+  /** name of this datatype */
   std::string d_name;
+  /** the type parameters of this datatype (if this is a parametric datatype) 
+   */
   std::vector<Type> d_params;
   /** whether the datatype is a codatatype. */
   bool d_isCo;
@@ -792,29 +817,46 @@ private:
   /** whether this datatype has been resolved */
   bool d_resolved;
   Type d_self;
+  /** cache for involves external type */
   bool d_involvesExt;
+  /** cache for involves uninterpreted type */
   bool d_involvesUt;
-  /** information for sygus */
+  /** the builtin type that this sygus type encodes */
   Type d_sygus_type;
+  /** the variable list for the sygus function to synthesize */
   Expr d_sygus_bvl;
+  /** whether all constants are allowed as solutions */
   bool d_sygus_allow_const;
+  /** whether all terms are allowed as solutions */
   bool d_sygus_allow_all;
+  /** the evaluation function for this sygus datatype */
   Expr d_sygus_eval;
 
-  // "mutable" because computing the cardinality can be expensive,
-  // and so it's computed just once, on demand---this is the cache
+  /** the cardinality of this datatype
+  * "mutable" because computing the cardinality can be expensive,
+  * and so it's computed just once, on demand---this is the cache
+  */
   mutable Cardinality d_card;
 
-  // is this type a recursive singleton type
+  /** is this type a recursive singleton type? 
+   * The range of this map stores 
+   * 0 if the field has not been computed,
+   * 1 if this datatype is a recursive singleton type,
+   * -1 if this datatype is not a recursive singleton type.
+   * For definition of (co)recursive singleton, see
+   * Section 2 of Reynolds et al. CADE 2015.
+   */
   mutable std::map< Type, int > d_card_rec_singleton;
-  // if d_card_rec_singleton is true,
-  // infinite cardinality depends on at least one of the following uninterpreted sorts having cardinality > 1
+  /** if d_card_rec_singleton is true,
+  * This datatype has infinite cardinality if at least one of the 
+  * following uninterpreted sorts having cardinality > 1.
+  */
   mutable std::map< Type, std::vector< Type > > d_card_u_assume;
-  // is this well-founded
+  /** cache of whether this datatype is well-founded */
   mutable int d_well_founded;
-  // ground term for this datatype
+  /** cache of ground term for this datatype */
   mutable std::map< Type, Expr > d_ground_term;
-  // shared selectors
+  /** cache of shared selectors for this datatype */
   mutable std::map< Type, std::map< Type, std::map< unsigned, Expr > > > d_shared_sel;
 
   /**
@@ -860,7 +902,9 @@ private:
   bool computeWellFounded( std::vector< Type >& processing ) const throw(IllegalArgumentException);
   /** compute ground term */
   Expr computeGroundTerm( Type t, std::vector< Type >& processing ) const throw(IllegalArgumentException);  
-  /** Get the shared selector */
+  /** Get the shared selector 
+   * TODO
+   */
   Expr getSharedSelector( Type dtt, Type t, unsigned index ) const;
 };/* class Datatype */
 
