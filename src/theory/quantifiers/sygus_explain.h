@@ -92,11 +92,12 @@ class TermRecBuild
  * When given an invariance test T traverses the AST of a given term,
  * uses TermRecBuild to replace various subterms by fresh variables and
  * recheck whether the invariant, as specified by T still holds.
- * If it does, then we may exclude the explanation for that that subterm.
+ * If it does, then we may exclude the explanation for that subterm.
  *
  * For example, say we have that the current value of
  * (datatype) sygus term n is:
  *  (if (gt x 0) 0 0)
+ * where if, gt, x, 0 are datatype constructors.
  * The explanation returned by getExplanationForConstantEquality
  * below for n and the above term is:
  *   { ((_ is if) n), ((_ is geq) n.0),
@@ -106,7 +107,7 @@ class TermRecBuild
  * This class can also return more precise
  * explanations based on a property that holds for
  * variants of n. For instance,
- * say we find that its builtin analog rewrites to 0:
+ * say we find that n's builtin analog rewrites to 0:
  *  ite( x>0, 0, 0 ) ----> 0
  * and we would like to find the minimal explanation for
  * why the builtin analog of n rewrites to 0.
@@ -131,8 +132,8 @@ class TermRecBuild
  * For example:
  *   exp = { ((_ is plus) n), ((_ is y) n.1) }
  * is such that:
- *   [[exp]]_n = (plus _ y)
- * where _ is a fresh (anonymous) variable.
+ *   [[exp]]_n = (plus w y)
+ * where w is a fresh variable.
  */
 class SygusExplain
 {

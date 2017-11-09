@@ -34,7 +34,7 @@ namespace quantifiers {
  * should be highly aggressive.
  *
  * This class extended the standard techniques for rewriting
- * with techniques including:
+ * with techniques, including but not limited to:
  * - ITE branch merging,
  * - ITE conditional variable elimination,
  * - ITE condition subsumption, and
