@@ -452,7 +452,12 @@ class CVC4_PUBLIC DatatypeConstructor {
    * its argument index for this constructor.
    */
   mutable std::map<Type, std::map<Expr, unsigned> > d_shared_selector_index;
-  /** resolve */
+  /** resolve 
+   * 
+   * This resolves (initializes) the constructor. For details 
+   * on how datatypes and their constructors are resolved, see 
+   * documentation for Datatype::resolve.
+   */
   void resolve(ExprManager* em,
                DatatypeType self,
                const std::map<std::string, DatatypeType>& resolutions,
@@ -464,18 +469,20 @@ class CVC4_PUBLIC DatatypeConstructor {
                                     DatatypeResolutionException);
 
   /** Helper function for resolving parametric datatypes.
-      This replaces instances of the SortConstructorType produced for unresolved
-      parametric datatypes, with the corresponding resolved DatatypeType.  For
-     example, take
-      the parametric definition of a list, list[T] = cons(car : T, cdr :
-     list[T]) | null.
-      If "range" is the unresolved parametric datatype:
-        DATATYPE list = cons(car: SORT_TAG_1, cdr: SORT_TAG_2(SORT_TAG_1)) |
-     null END;,
-      this function will return the resolved type:
-        DATATYPE list = cons(car: SORT_TAG_1, cdr: (list PARAMETERIC_DATATYPE
-     SORT_TAG_1)) | null END;
-    */
+   * 
+   * This replaces instances of the SortConstructorType produced for unresolved
+   * parametric datatypes, with the corresponding resolved DatatypeType.  For
+   * example, take the parametric definition of a list, 
+   *    list[T] = cons(car : T, cdr : list[T]) | null.
+   * If "range" is the unresolved parametric datatype:
+   *   DATATYPE list = 
+   *    cons(car: SORT_TAG_1, 
+   *         cdr: SORT_TAG_2(SORT_TAG_1)) | null END;,
+   * this function will return the resolved type:
+   *   DATATYPE list = 
+   *    cons(car: SORT_TAG_1, 
+   *         cdr: (list PARAMETERIC_DATATYPE SORT_TAG_1)) | null END;
+   */
   Type doParametricSubstitution(
       Type range,
       const std::vector<SortConstructorType>& paramTypes,
@@ -750,12 +757,11 @@ public:
   /** recursive single arguments
    *
    * Get recursive singleton argument types (uninterpreted sorts that the
-   * cardinality
-   * of this datatype is dependent upon). For example, for :
+   * cardinality of this datatype is dependent upon). For example, for :
    *   stream :=  cons( head1 : U1, head2 : U2, tail : stream )
    * Then, the recursive singleton argument types of stream are { U1, U2 },
-   * since
-   * if U1 and U2 have cardinality one, then stream has cardinality one as well.
+   * since if U1 and U2 have cardinality one, then stream has cardinality 
+   * one as well.
    *
    * The versions of these methods that takes Type t is required
    * for parametric datatypes, where t is an instantiated
