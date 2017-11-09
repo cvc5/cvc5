@@ -1064,6 +1064,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     if( node[2].isConst() && node[2].getConst<Rational>().sgn()<=0 ) {
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
     }else if( node[1].isConst() ){
+      // TODO (#1180) : use entailment test here
       if( node[1].getConst<Rational>().sgn()<0 ){
         //bring forward to start at zero?  don't use this semantics, e.g. does not compose well with error conditions for str.indexof.
         //retNode = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, node[0], zero, NodeManager::currentNM()->mkNode( kind::PLUS, node[1], node[2] ) );
@@ -1111,6 +1112,8 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
           }
         }else{
           if( node[1]==zero ){
+            // TODO (#1180) : use entailment test here instead of the special
+            // case
             if( node[2].getKind() == kind::STRING_LENGTH && node[2][0]==node[0] ){
               retNode = node[0];
             }else{
@@ -1421,10 +1424,11 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   getConcat(node[0], nc1);
   std::vector<Node> nc2;
   getConcat(node[1], nc2);
-  std::vector<Node> nr;
 
   // component-wise containment
-  if (componentContains(nc1, nc2, nr) != -1)
+  std::vector<Node> nc1rb;
+  std::vector<Node> nc1re;
+  if (componentContains(nc1, nc2, nc1rb, nc1re) != -1)
   {
     return NodeManager::currentNM()->mkConst(true);
   }
@@ -1439,6 +1443,20 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   }
   Trace("strings-rewrite-debug2") << "No constant endpoints for " << node[0]
                                   << " " << node[1] << std::endl;
+
+  // length entailment
+  Node len_n1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[0]);
+  Node len_n2 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
+  if (checkEntailArith(len_n2, len_n1, true))
+  {
+    // len( n2 ) > len( n1 ) => contains( n1, n2 ) ---> false
+    return NodeManager::currentNM()->mkConst(false);
+  }
+  else if (checkEntailArithEq(len_n1, len_n2))
+  {
+    // len( n2 ) = len( n1 ) => contains( n1, n2 ) ---> n1 = n2
+    return node[0].eqNode(node[1]);
+  }
 
   // splitting
   if (node[0].getKind() == kind::STRING_CONCAT)
@@ -1593,6 +1611,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   if( node[1]==node[2] ){
     return node[0];
   }else{
+    // TODO (#1180) : try str.contains( node[0], node[1] ) ---> false
     if( node[1].isConst() ){
       if( node[1].getConst<String>().isEmptyString() ){
         return node[0];
@@ -1679,6 +1698,7 @@ Node TheoryStringsRewriter::splitConstant( Node a, Node b, int& index, bool isRe
 bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& firstc, int& lastc ) {
   Assert( c.isConst() );
   CVC4::String t = c.getConst<String>();
+  const std::vector<unsigned>& tvec = t.getVec();
   Assert( n.getKind()==kind::STRING_CONCAT );
   //must find constant components in order
   size_t pos = 0;
@@ -1695,6 +1715,20 @@ bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& first
       }else{
         pos = new_pos + s.size();
       }
+    }
+    else if (n[i].getKind() == kind::STRING_ITOS)
+    {
+      // find the first occurrence of a digit starting at pos
+      while (pos < tvec.size() && !String::isDigit(tvec[pos]))
+      {
+        pos++;
+      }
+      if (pos == tvec.size())
+      {
+        return false;
+      }
+      // must consume at least one digit here
+      pos++;
     }
   }
   return true;
@@ -1757,35 +1791,55 @@ Node TheoryStringsRewriter::collectConstantStringAt( std::vector< Node >& vec, u
 
 int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
                                              std::vector<Node>& n2,
-                                             std::vector<Node>& nr,
-                                             bool computeRemainder)
+                                             std::vector<Node>& nb,
+                                             std::vector<Node>& ne,
+                                             bool computeRemainder,
+                                             int remainderDir)
 {
-  if (n2.size() == 1 && n2[0].isConst())
+  Assert(nb.empty());
+  Assert(ne.empty());
+  // if n2 is a singleton, we can do optimized version here
+  if (n2.size() == 1)
   {
-    CVC4::String t = n2[0].getConst<String>();
     for (unsigned i = 0; i < n1.size(); i++)
     {
-      if (n1[i].isConst())
+      Node n1rb;
+      Node n1re;
+      if (componentContainsBase(n1[i], n2[0], n1rb, n1re, 0, computeRemainder))
       {
-        CVC4::String s = n1[i].getConst<String>();
-        size_t f = s.find(t);
-        if (f != std::string::npos)
+        if (computeRemainder)
         {
-          if (computeRemainder)
+          n1[i] = n2[0];
+          if (remainderDir != -1)
           {
-            Assert(s.size() >= f + t.size());
-            if (s.size() > f + t.size())
+            if (!n1re.isNull())
             {
-              nr.push_back(NodeManager::currentNM()->mkConst(::CVC4::String(
-                  s.substr(f + t.size(), s.size() - (f + t.size())))));
+              ne.push_back(n1re);
             }
-            nr.insert(nr.end(), n1.begin() + i + 1, n1.end());
-            n1[i] = NodeManager::currentNM()->mkConst(
-                ::CVC4::String(s.substr(0, f + t.size())));
+            ne.insert(ne.end(), n1.begin() + i + 1, n1.end());
             n1.erase(n1.begin() + i + 1, n1.end());
           }
-          return i;
+          else if (!n1re.isNull())
+          {
+            n1[i] = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
+                kind::STRING_CONCAT, n1[i], n1re));
+          }
+          if (remainderDir != 1)
+          {
+            nb.insert(nb.end(), n1.begin(), n1.begin() + i);
+            n1.erase(n1.begin(), n1.begin() + i);
+            if (!n1rb.isNull())
+            {
+              nb.push_back(n1rb);
+            }
+          }
+          else if (!n1rb.isNull())
+          {
+            n1[i] = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
+                kind::STRING_CONCAT, n1rb, n1[i]));
+          }
         }
+        return i;
       }
     }
   }
@@ -1794,73 +1848,192 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
     unsigned diff = n1.size() - n2.size();
     for (unsigned i = 0; i <= diff; i++)
     {
-      bool check = false;
-      if (n1[i] == n2[0])
+      Node n1rb_first;
+      Node n1re_first;
+      // first component of n2 must be a suffix
+      if (componentContainsBase(n1[i],
+                                n2[0],
+                                n1rb_first,
+                                n1re_first,
+                                1,
+                                computeRemainder && remainderDir != 1))
       {
-        check = true;
-      }
-      else if (n1[i].isConst() && n2[0].isConst())
-      {
-        // could be suffix
-        CVC4::String s = n1[i].getConst<String>();
-        CVC4::String t = n2[0].getConst<String>();
-        if (t.size() < s.size() && s.suffix(t.size()) == t)
-        {
-          check = true;
-        }
-      }
-      if (check)
-      {
-        bool success = true;
+        Assert(n1re_first.isNull());
         for (unsigned j = 1; j < n2.size(); j++)
         {
-          if (n1[i + j] != n2[j])
+          // are we in the last component?
+          if (j + 1 == n2.size())
           {
-            if (j + 1 == n2.size() && n1[i + j].isConst() && n2[j].isConst())
+            Node n1rb_last;
+            Node n1re_last;
+            // last component of n2 must be a prefix
+            if (componentContainsBase(n1[i + j],
+                                      n2[j],
+                                      n1rb_last,
+                                      n1re_last,
+                                      -1,
+                                      computeRemainder && remainderDir != -1))
             {
-              // could be prefix
-              CVC4::String s = n1[i + j].getConst<String>();
-              CVC4::String t = n2[j].getConst<String>();
-              if (t.size() < s.size() && s.prefix(t.size()) == t)
+              Assert(n1rb_last.isNull());
+              if (computeRemainder)
               {
-                if (computeRemainder)
+                if (remainderDir != -1)
                 {
-                  if (s.size() > t.size())
+                  if (!n1re_last.isNull())
                   {
-                    nr.push_back(
-                        NodeManager::currentNM()->mkConst(::CVC4::String(
-                            s.substr(t.size(), s.size() - t.size()))));
+                    ne.push_back(n1re_last);
                   }
-                  n1[i + j] = NodeManager::currentNM()->mkConst(
-                      ::CVC4::String(s.substr(0, t.size())));
+                  ne.insert(ne.end(), n1.begin() + i + j + 1, n1.end());
+                  n1.erase(n1.begin() + i + j + 1, n1.end());
+                  n1[i + j] = n2[j];
+                }
+                if (remainderDir != 1)
+                {
+                  n1[i] = n2[0];
+                  nb.insert(nb.end(), n1.begin(), n1.begin() + i);
+                  n1.erase(n1.begin(), n1.begin() + i);
+                  if (!n1rb_first.isNull())
+                  {
+                    nb.push_back(n1rb_first);
+                  }
                 }
               }
-              else
-              {
-                success = false;
-                break;
-              }
+              return i;
             }
             else
             {
-              success = false;
               break;
             }
           }
-        }
-        if (success)
-        {
-          if (computeRemainder)
+          else if (n1[i + j] != n2[j])
           {
-            nr.insert(nr.end(), n1.begin() + i + n2.size(), n1.end());
-            n1.erase(n1.begin() + i + n2.size(), n1.end());
+            break;
           }
-          return i;
         }
       }
     }
   }
   return -1;
+}
+
+bool TheoryStringsRewriter::componentContainsBase(
+    Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder)
+{
+  Assert(n1rb.isNull());
+  Assert(n1re.isNull());
+  if (n1 == n2)
+  {
+    return true;
+  }
+  else
+  {
+    if (n1.isConst() && n2.isConst())
+    {
+      CVC4::String s = n1.getConst<String>();
+      CVC4::String t = n2.getConst<String>();
+      if (t.size() < s.size())
+      {
+        if (dir == 1)
+        {
+          if (s.suffix(t.size()) == t)
+          {
+            if (computeRemainder)
+            {
+              n1rb = NodeManager::currentNM()->mkConst(
+                  ::CVC4::String(s.prefix(s.size() - t.size())));
+            }
+            return true;
+          }
+        }
+        else if (dir == -1)
+        {
+          if (s.prefix(t.size()) == t)
+          {
+            if (computeRemainder)
+            {
+              n1re = NodeManager::currentNM()->mkConst(
+                  ::CVC4::String(s.suffix(s.size() - t.size())));
+            }
+            return true;
+          }
+        }
+        else
+        {
+          size_t f = s.find(t);
+          if (f != std::string::npos)
+          {
+            if (computeRemainder)
+            {
+              if (f > 0)
+              {
+                n1rb = NodeManager::currentNM()->mkConst(
+                    ::CVC4::String(s.prefix(f)));
+              }
+              if (s.size() > f + t.size())
+              {
+                n1re = NodeManager::currentNM()->mkConst(
+                    ::CVC4::String(s.suffix(s.size() - (f + t.size()))));
+              }
+            }
+            return true;
+          }
+        }
+      }
+    }
+    else
+    {
+      // cases for:
+      //   n1 = x   containing   n2 = substr( x, n2[1], n2[2] )
+      if (n2.getKind() == kind::STRING_SUBSTR)
+      {
+        if (n2[0] == n1)
+        {
+          bool success = true;
+          Node start_pos = n2[1];
+          Node end_pos =
+              NodeManager::currentNM()->mkNode(kind::PLUS, n2[1], n2[2]);
+          Node len_n2s =
+              NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, n2[0]);
+          if (dir == 1)
+          {
+            // To be suffix, start + length must be greater than
+            // or equal to the length of the string.
+            success = checkEntailArith(end_pos, len_n2s);
+          }
+          else if (dir == -1)
+          {
+            // To be prefix, must literally start at 0, since
+            //   if we knew it started at <0, it should be rewritten to "",
+            //   if we knew it started at 0, then n2[1] should be rewritten to
+            //   0.
+            success = start_pos.isConst()
+                      && start_pos.getConst<Rational>().sgn() == 0;
+          }
+          if (success)
+          {
+            if (computeRemainder)
+            {
+              if (dir != 1)
+              {
+                n1rb = NodeManager::currentNM()->mkNode(
+                    kind::STRING_SUBSTR,
+                    n2[0],
+                    NodeManager::currentNM()->mkConst(Rational(0)),
+                    start_pos);
+              }
+              if (dir != -1)
+              {
+                n1re = NodeManager::currentNM()->mkNode(
+                    kind::STRING_SUBSTR, n2[0], end_pos, len_n2s);
+              }
+            }
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
 }
 
 bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
@@ -1869,6 +2042,8 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
                                                    std::vector<Node>& ne,
                                                    int dir)
 {
+  Assert(nb.empty());
+  Assert(ne.empty());
   bool changed = false;
   // for ( forwards, backwards ) direction
   for (unsigned r = 0; r < 2; r++)
@@ -2038,4 +2213,84 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
   //      which is larger that the upper bound for length of str.substr(y,0,3),
   //      which is 3.
   return changed;
+}
+
+bool TheoryStringsRewriter::checkEntailArithEq(Node a, Node b)
+{
+  if (a == b)
+  {
+    return true;
+  }
+  else
+  {
+    Node ar = Rewriter::rewrite(a);
+    Node br = Rewriter::rewrite(b);
+    return ar == br;
+  }
+}
+
+bool TheoryStringsRewriter::checkEntailArith(Node a, Node b, bool strict)
+{
+  if (a == b)
+  {
+    return !strict;
+  }
+  else
+  {
+    Node diff = NodeManager::currentNM()->mkNode(kind::MINUS, a, b);
+    return checkEntailArith(diff, strict);
+  }
+}
+
+bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
+{
+  if (a.isConst())
+  {
+    return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
+  }
+  else
+  {
+    Node ar = strict
+                  ? NodeManager::currentNM()->mkNode(
+                        kind::MINUS,
+                        a,
+                        NodeManager::currentNM()->mkConst(Rational(1)))
+                  : a;
+    ar = Rewriter::rewrite(ar);
+    if (checkEntailArithInternal(ar))
+    {
+      return true;
+    }
+    // TODO (#1180) : abstract interpretation goes here
+    return false;
+  }
+}
+
+bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
+{
+  Assert(Rewriter::rewrite(a) == a);
+  // check whether a >= 0
+  if (a.isConst())
+  {
+    return a.getConst<Rational>().sgn() >= 0;
+  }
+  else if (a.getKind() == kind::STRING_LENGTH)
+  {
+    // str.len( t ) >= 0
+    return true;
+  }
+  else if (a.getKind() == kind::PLUS || a.getKind() == kind::MULT)
+  {
+    for (unsigned i = 0; i < a.getNumChildren(); i++)
+    {
+      if (!checkEntailArithInternal(a[i]))
+      {
+        return false;
+      }
+    }
+    // t1 >= 0 ^ ... ^ tn >= 0 => t1 op ... op tn >= 0
+    return true;
+  }
+
+  return false;
 }

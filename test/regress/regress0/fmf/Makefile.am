@@ -78,7 +78,8 @@ TESTS =	\
 	cruanes-no-minimal-unk.smt2 \
 	no-minimal-sat.smt2 \
 	issue916-fmf-or.smt2 \
-	pow2-bool.smt2 
+	pow2-bool.smt2 \
+	sat-logic.smt2 
 
 EXTRA_DIST = $(TESTS)
 
