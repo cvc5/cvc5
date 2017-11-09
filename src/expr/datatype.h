@@ -260,6 +260,11 @@ public:
    */
   Expr getSygusOp() const;
   /** get sygus let body 
+   * 
+   * The sygus official format 
+   * (http://www.sygus.org/SyGuS-COMP2015.html)
+   * allows for let expressions to occur in grammars.
+   * 
    * TODO
    */
   Expr getSygusLetBody() const;
@@ -403,6 +408,9 @@ public:
    * 
    * Set that this constructor is a sygus datatype 
    * constructor that encodes operator op.
+   * The remaining arguments are for handling 
+   * let expressions in user-provided sygus 
+   * grammars (see above).
    */
   void setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_argus );
 private:
@@ -620,12 +628,9 @@ public:
    * this datatype should be currently unresolved.
    * 
    * In contrast to the above function, the constructor we
-   * add may correspond to a let expression if let_body is 
-   * non-null. In detail, the sygus official format 
-   * (http://www.sygus.org/SyGuS-COMP2015.html)
-   * allows for let expressions to occur in grammars.
-   * 
-   * TODO
+   * add corresponds to a let expression if let_body is 
+   * non-null. For details, see documentation for 
+   * DatatypeConstructor::getSygusLetBody above.
    */
   void addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
                             CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args );
