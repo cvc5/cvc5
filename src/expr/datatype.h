@@ -869,7 +869,7 @@ public:
    * Does this sygus datatype allow constants?
    * Notice that this is not a property of the
    * constructors of this datatype. Instead, it is
-   * pan auxiliary flag (provided in the call
+   * an auxiliary flag (provided in the call
    * to setSygus).
    */
   bool getSygusAllowConst() const;
