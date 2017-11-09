@@ -265,23 +265,23 @@ public:
    * (http://www.sygus.org/SyGuS-COMP2015.html)
    * allows for let expressions to occur in grammars.
    * 
-   * TODO
+   * TODO (#1344) refactor this
    */
   Expr getSygusLetBody() const;
   /** get number of sygus let args 
-   * TODO
+   * TODO (#1344) refactor this
    */
   unsigned getNumSygusLetArgs() const;
   /** get sygus let arg 
-   * TODO
+   * TODO (#1344) refactor this
    */
   Expr getSygusLetArg( unsigned i ) const;
   /** get number of let arguments that should be printed as arguments to let
-   * TODO 
+   * TODO (#1344) refactor this
    */
   unsigned getNumSygusLetInputArgs() const;
   /** is this a sygus identity function?
-   * TODO
+   * TODO (#1344) refactor this
    */
   bool isSygusIdFunc() const;
 
@@ -591,7 +591,7 @@ public:
    * 
    * This marks this datatype as a sygus datatype.
    * A sygus datatype is one that represents terms of type st
-   * via a deep embedding described in Section 5 of
+   * via a deep embedding described in Section 4 of
    * Reynolds et al. CAV 2015. We say that this sygus datatype 
    * "encodes" its sygus type st in the following.
    * 
