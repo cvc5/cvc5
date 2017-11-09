@@ -22,8 +22,8 @@
 #include "expr/kind.h"
 #include "expr/type_node.h"
 #include "expr/uninterpreted_constant.h"
-#include "theory/type_enumerator.h"
 #include "theory/builtin/theory_builtin_rewriter.h"
+#include "theory/type_enumerator.h"
 #include "util/integer.h"
 
 namespace CVC4 {
@@ -76,30 +76,29 @@ public:
 
 };/* class UninterpretedSortEnumerator */
 
-
-/** FunctionEnumerator 
+/** FunctionEnumerator
 * This enumerates function values, based on the enumerator for the
 * array type corresponding to the given function type.
 */
-class FunctionEnumerator : public TypeEnumeratorBase<FunctionEnumerator> {
-public:
-  FunctionEnumerator(TypeNode type, TypeEnumeratorProperties * tep = nullptr);
+class FunctionEnumerator : public TypeEnumeratorBase<FunctionEnumerator>
+{
+ public:
+  FunctionEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
   /** Get the current term of the enumerator. */
   Node operator*() override;
   /** Increment the enumerator. */
   FunctionEnumerator& operator++() throw() override;
   /** is the enumerator finished? */
-  bool isFinished() throw() override{
-    return d_arrayEnum.isFinished();
-  }
-private:
+  bool isFinished() throw() override { return d_arrayEnum.isFinished(); }
+ private:
   /** Enumerates arrays, which we convert to functions. */
   TypeEnumerator d_arrayEnum;
   /** The bound variable list for the function type we are enumerating.
-  * All terms output by this enumerator are of the form (LAMBDA d_bvl t) for some term t.
+  * All terms output by this enumerator are of the form (LAMBDA d_bvl t) for
+  * some term t.
   */
   Node d_bvl;
-};/* class FunctionEnumerator */
+}; /* class FunctionEnumerator */
 
 }/* CVC4::theory::builtin namespace */
 }/* CVC4::theory namespace */

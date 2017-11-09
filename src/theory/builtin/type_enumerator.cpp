@@ -20,26 +20,31 @@ namespace CVC4 {
 namespace theory {
 namespace builtin {
 
-FunctionEnumerator::FunctionEnumerator(TypeNode type, TypeEnumeratorProperties * tep) :
-  TypeEnumeratorBase<FunctionEnumerator>(type),
-  d_arrayEnum(TheoryBuiltinRewriter::getArrayTypeForFunctionType(type), tep) {
+FunctionEnumerator::FunctionEnumerator(TypeNode type,
+                                       TypeEnumeratorProperties* tep)
+    : TypeEnumeratorBase<FunctionEnumerator>(type),
+      d_arrayEnum(TheoryBuiltinRewriter::getArrayTypeForFunctionType(type), tep)
+{
   Assert(type.getKind() == kind::FUNCTION_TYPE);
-  d_bvl = NodeManager::currentNM()->getBoundVarListForFunctionType( type );
+  d_bvl = NodeManager::currentNM()->getBoundVarListForFunctionType(type);
 }
 
-Node FunctionEnumerator::operator*() {
-  if(isFinished()) {
+Node FunctionEnumerator::operator*()
+{
+  if (isFinished())
+  {
     throw NoMoreValuesException(getType());
   }
   Node a = *d_arrayEnum;
-  return TheoryBuiltinRewriter::getLambdaForArrayRepresentation( a, d_bvl );
+  return TheoryBuiltinRewriter::getLambdaForArrayRepresentation(a, d_bvl);
 }
 
-FunctionEnumerator& FunctionEnumerator::operator++() throw() {
+FunctionEnumerator& FunctionEnumerator::operator++() throw()
+{
   ++d_arrayEnum;
   return *this;
 }
-  
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+
+} /* CVC4::theory::builtin namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */
