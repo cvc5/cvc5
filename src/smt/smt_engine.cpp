@@ -53,6 +53,7 @@
 #include "options/datatypes_options.h"
 #include "options/decision_mode.h"
 #include "options/decision_options.h"
+#include "options/language.h"
 #include "options/main_options.h"
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
@@ -60,6 +61,7 @@
 #include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
+#include "options/sep_options.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
@@ -68,16 +70,15 @@
 #include "printer/printer.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
-#include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
-#include "smt/term_formula_removal.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
@@ -101,7 +102,6 @@
 #include "util/hash.h"
 #include "util/proof.h"
 #include "util/resource_manager.h"
-#include "options/sep_options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -808,6 +808,12 @@ public:
   }
 
   /**
+   * Apply the substitutions in d_topLevelAssertions and the rewriter to each of
+   * the assertions in d_assertions, and store the result back in d_assertions.
+   */
+  void applySubstitutionsToAssertions();
+  
+  /**
    * Process the assertions that have been asserted.
    */
   void processAssertions();
@@ -1282,6 +1288,20 @@ void SmtEngine::setLogicInternal() throw() {
 }
 
 void SmtEngine::setDefaults() {
+  // Language-based defaults
+  if (!options::bitvectorDivByZeroConst.wasSetByUser())
+  {
+    options::bitvectorDivByZeroConst.set(options::inputLanguage()
+                                         == language::input::LANG_SMTLIB_V2_6);
+  }
+  if (options::inputLanguage() == language::input::LANG_SYGUS)
+  {
+    if (!options::ceGuidedInst.wasSetByUser())
+    {
+      options::ceGuidedInst.set(true);
+    }
+  }
+
   if(options::forceLogicString.wasSetByUser()) {
     d_logic = LogicInfo(options::forceLogicString());
   }else if (options::solveIntAsBV() > 0) {
@@ -1413,7 +1433,15 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off repeat-simp to support unsat-cores" << endl;
       setOption("repeat-simp", false);
     }
+  }
 
+  if (options::cbqiBv()) {
+    if(options::boolToBitvector.wasSetByUser()) {
+      throw OptionException("bool-to-bv not supported with CBQI BV");
+    }
+    Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
+             << endl;
+    options::boolToBitvector.set(false);
   }
 
   if(options::produceAssignments() && !options::produceModels()) {
@@ -2092,6 +2120,8 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
         (value.isRational() && value.getRationalValue() == Rational(2)) ||
         value.getValue() == "2" ||
         value.getValue() == "2.0" ) {
+      options::inputLanguage.set(language::input::LANG_SMTLIB_V2_0);
+
       // supported SMT-LIB version
       if(!options::outputLanguage.wasSetByUser() &&
          ( options::outputLanguage() == language::output::LANG_SMTLIB_V2_5 || options::outputLanguage() == language::output::LANG_SMTLIB_V2_6 )) {
@@ -2101,6 +2131,8 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       return;
     } else if( (value.isRational() && value.getRationalValue() == Rational(5, 2)) ||
                value.getValue() == "2.5" ) {
+      options::inputLanguage.set(language::input::LANG_SMTLIB_V2_5);
+
       // supported SMT-LIB version
       if(!options::outputLanguage.wasSetByUser() &&
          options::outputLanguage() == language::output::LANG_SMTLIB_V2_0) {
@@ -2110,6 +2142,8 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       return;
     } else if( (value.isRational() && value.getRationalValue() == Rational(13, 5)) ||
                value.getValue() == "2.6" ) {
+      options::inputLanguage.set(language::input::LANG_SMTLIB_V2_6);
+
       // supported SMT-LIB version
       if(!options::outputLanguage.wasSetByUser() &&
          options::outputLanguage() == language::output::LANG_SMTLIB_V2_0) {
@@ -3909,6 +3943,30 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, unordered_map<N
   return false;
 }
 
+void SmtEnginePrivate::applySubstitutionsToAssertions() {
+  if(!options::unsatCores()) {
+    Chat() << "applying substitutions..." << endl;
+    Trace("simplify") << "SmtEnginePrivate::processAssertions(): "
+                      << "applying substitutions" << endl;
+    // TODO(b/1255): Substitutions in incremental mode should be managed with a
+    // proper data structure.
+
+    // When solving incrementally, all substitutions are piled into the
+    // assertion at d_substitutionsIndex: we don't want to apply substitutions
+    // to this assertion or information will be lost.
+    unsigned substitutionAssertion = d_substitutionsIndex > 0 ? d_substitutionsIndex : d_assertions.size();
+    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+      if (i == substitutionAssertion) {
+        continue;
+      }
+      Trace("simplify") << "applying to " << d_assertions[i] << endl;
+      spendResource(options::preprocessStep());
+      d_assertions.replace(i, Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertions[i])));
+      Trace("simplify") << "  got " << d_assertions[i] << endl;
+    }
+  }
+}
+
 void SmtEnginePrivate::processAssertions() {
   TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
   spendResource(options::preprocessStep());
@@ -3929,6 +3987,9 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if (d_assertionsProcessed && options::incrementalSolving()) {
+    // TODO(b/1255): Substitutions in incremental mode should be managed with a
+    // proper data structure.
+
     // Placeholder for storing substitutions
     d_substitutionsIndex = d_assertions.size();
     d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
@@ -4062,18 +4123,7 @@ void SmtEnginePrivate::processAssertions() {
       d_assertions.replace(i, Rewriter::rewrite(d_assertions[i]));
     }
   } else {
-    // Apply the substitutions we already have, and normalize
-    if(!options::unsatCores()) {
-      Chat() << "applying substitutions..." << endl;
-      Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                        << "applying substitutions" << endl;
-      for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-        Trace("simplify") << "applying to " << d_assertions[i] << endl;
-        spendResource(options::preprocessStep());
-        d_assertions.replace(i, Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertions[i])));
-        Trace("simplify") << "  got " << d_assertions[i] << endl;
-      }
-    }
+    applySubstitutionsToAssertions();
   }
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-substitution" << endl;
   dumpAssertions("post-substitution", d_assertions);
@@ -4216,6 +4266,10 @@ void SmtEnginePrivate::processAssertions() {
     // Remove ITEs, updating d_iteSkolemMap
     d_smt.d_stats->d_numAssertionsPre += d_assertions.size();
     removeITEs();
+    // This is needed because when solving incrementally, removeITEs may introduce
+    // skolems that were solved for earlier and thus appear in the substitution
+    // map.
+    applySubstitutionsToAssertions();
     d_smt.d_stats->d_numAssertionsPost += d_assertions.size();
   }
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-ite-removal" << endl;
@@ -4283,10 +4337,10 @@ void SmtEnginePrivate::processAssertions() {
         }
         d_assertions[d_realAssertionsEnd - 1] = Rewriter::rewrite(Node(builder));
       }
-      // For some reason this is needed for some benchmarks, such as
+      // TODO(b/1256): For some reason this is needed for some benchmarks, such as
       // http://cvc4.cs.nyu.edu/benchmarks/smtlib2/QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
-      // Figure it out later
       removeITEs();
+      applySubstitutionsToAssertions();
       //      Assert(iteRewriteAssertionsEnd == d_assertions.size());
     }
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-repeat-simplify" << endl;
@@ -4548,12 +4602,7 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
       Trace("smt-synth") << "Compute single invocation for " << conj_se << "..." << std::endl;
       quantifiers::SingleInvocationPartition sip;
       std::vector< Node > funcs;
-      for( unsigned i=0; i<conj[0].getNumChildren(); i++ ){
-        // TODO : revisit this when addressing #1205
-        Node sf = conj[0][i].getAttribute(theory::SygusSynthFunAttribute());
-        Assert( !sf.isNull() );
-        funcs.push_back( sf );
-      }
+      funcs.insert(funcs.end(), conj[0].begin(), conj[0].end());
       sip.init( funcs, conj_se );
       Trace("smt-synth") << "...finished, got:" << std::endl;
       sip.debugPrint("smt-synth");
@@ -5251,8 +5300,10 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull,
   }
   Trace("smt-qe") << "Do quantifier elimination " << e << std::endl;
   Node n_e = Node::fromExpr( e );
-  if( n_e.getKind()!=kind::EXISTS ){
-    throw ModalException("Expecting an existentially quantified formula as argument to get-qe.");
+  if (n_e.getKind() != kind::EXISTS && n_e.getKind() != kind::FORALL)
+  {
+    throw ModalException(
+        "Expecting a quantified formula as argument to get-qe.");
   }
   //tag the quantified formula with the quant-elim attribute
   TypeNode t = NodeManager::currentNM()->booleanType();
@@ -5263,7 +5314,8 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull,
   n_attr = NodeManager::currentNM()->mkNode(kind::INST_PATTERN_LIST, n_attr);
   std::vector< Node > e_children;
   e_children.push_back( n_e[0] );
-  e_children.push_back( n_e[1] );
+  e_children.push_back(n_e.getKind() == kind::EXISTS ? n_e[1]
+                                                     : n_e[1].negate());
   e_children.push_back( n_attr );
   Node nn_e = NodeManager::currentNM()->mkNode( kind::EXISTS, e_children );
   Trace("smt-qe-debug") << "Query for quantifier elimination : " << nn_e << std::endl;
@@ -5287,13 +5339,18 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull,
       Trace("smt-qe") << "Get qe for " << top_q << std::endl;
       ret_n = d_theoryEngine->getInstantiatedConjunction( top_q );
       Trace("smt-qe") << "Returned : " << ret_n << std::endl;
-      ret_n = Rewriter::rewrite( ret_n.negate() );
+      if (n_e.getKind() == kind::EXISTS)
+      {
+        ret_n = Rewriter::rewrite(ret_n.negate());
+      }
     }else{
-      ret_n = NodeManager::currentNM()->mkConst(false);
+      ret_n = NodeManager::currentNM()->mkConst(n_e.getKind() != kind::EXISTS);
     }
     return ret_n.toExpr();
   }else {
-    return NodeManager::currentNM()->mkConst(true).toExpr();
+    return NodeManager::currentNM()
+        ->mkConst(n_e.getKind() == kind::EXISTS)
+        .toExpr();
   }
 }
 

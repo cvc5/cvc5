@@ -22,13 +22,14 @@
 #include <iostream>
 #include <map>
 
-#include "expr/node.h"
-#include "expr/datatype.h"
-#include "context/context.h"
 #include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdo.h"
+#include "context/context.h"
+#include "expr/datatype.h"
+#include "expr/node.h"
+#include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
@@ -55,7 +56,6 @@ class SygusSymBreakNew
 private:
   TheoryDatatypes * d_td;
   quantifiers::TermDbSygus * d_tds;
-  context::Context* d_context;
   typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
@@ -69,7 +69,7 @@ private:
   Node d_zero;
 private:
   std::map< Node, Node > d_term_to_anchor;
-  std::map< Node, Node > d_term_to_anchor_root;
+  std::map<Node, quantifiers::CegConjecture*> d_term_to_anchor_conj;
   std::map< Node, unsigned > d_term_to_depth;
   std::map< Node, bool > d_is_top_level;
   void registerTerm( Node n, std::vector< Node >& lemmas );
@@ -146,8 +146,9 @@ private:
   void registerMeasureTerm( Node m );
   unsigned getSearchSizeFor( Node n );
   unsigned getSearchSizeForAnchor( Node n );
-  unsigned getSearchSizeForMeasureTerm( Node m );
-private:
+  unsigned getSearchSizeForMeasureTerm(Node m);
+
+ private:
   unsigned processSelectorChain( Node n, std::map< TypeNode, Node >& top_level, 
                                  std::map< Node, unsigned >& tdepth, std::vector< Node >& lemmas );
   bool debugTesters( Node n, Node vn, int ind, std::vector< Node >& lemmas );

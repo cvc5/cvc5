@@ -149,6 +149,16 @@ enum IteLiftQuantMode {
   ITE_LIFT_QUANT_MODE_ALL,
 };
 
+enum CbqiBvIneqMode
+{
+  /** solve for inequalities using slack values in model */
+  CBQI_BV_INEQ_EQ_SLACK,
+  /** solve for inequalities using boundary points */
+  CBQI_BV_INEQ_EQ_BOUNDARY,
+  /** solve for inequalities directly, using side conditions */
+  CBQI_BV_INEQ_KEEP,
+};
+
 enum CegqiSingleInvMode {
   /** do not use single invocation techniques */
   CEGQI_SI_MODE_NONE,

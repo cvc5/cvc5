@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --no-dump-synth
+; COMMAND-LINE: --sygus-out=status
 (set-logic SLIA)
  
 (synth-fun f ((name String)) String

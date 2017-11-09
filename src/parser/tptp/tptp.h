@@ -91,7 +91,20 @@ class Tptp : public Parser {
   void makeApplication(Expr& expr, std::string& name, std::vector<Expr>& args,
                        bool term);
 
-  Command* makeCommand(FormulaRole fr, Expr& expr, bool cnf);
+  /** get assertion expression, based on the formula role.
+  * expr should have Boolean type.
+  * This returns the expression that should be asserted, given the formula role fr.
+  * For example, if the role is "conjecture", then the return value is the negation of expr.
+  */
+  Expr getAssertionExpr(FormulaRole fr, Expr expr);
+  
+  /** returns the appropriate AssertCommand, given a role, expression expr to assert,
+  * and information about the assertion.
+  *   The assertion expr is literally what should be asserted (it is already been processed
+  *   with getAssertionExpr above).
+  *   This may set a flag in the parser to mark that we have asserted a conjecture.
+  */
+  Command* makeAssertCommand(FormulaRole fr, Expr expr, bool cnf, bool inUnsatCore);
 
   /** Ugly hack because I don't know how to return an expression from a
       token */
@@ -124,15 +137,15 @@ class Tptp : public Parser {
   // TPTP directory where to find includes;
   // empty if none could be determined
   std::string d_tptpDir;
+  
+  // the null expression
+  Expr d_nullExpr;
 
   // hack to make output SZS ontology-compliant
   bool d_hasConjecture;
 
   bool d_cnf; // in a cnf formula
   bool d_fof; // in an fof formula
-
-  static void myPopCharStream(pANTLR3_LEXER lexer);
-  void (*d_oldPopCharStream)(pANTLR3_LEXER);
 };/* class Tptp */
 
 

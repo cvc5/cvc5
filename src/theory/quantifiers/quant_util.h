@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <map>
+#include <vector>
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -33,100 +34,286 @@ namespace quantifiers {
   class TermUtil;
 }
 
+/** QuantifiersModule class
+*
+* This is the virtual class for defining subsolvers of the quantifiers theory.
+* It has a similar interface to a Theory object.
+*/
 class QuantifiersModule {
-protected:
-  QuantifiersEngine* d_quantEngine;
 public:
   QuantifiersModule( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
   virtual ~QuantifiersModule(){}
-  //get quantifiers engine
-  QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
-  /** presolve */
+  /** Presolve.
+   *
+   * Called at the beginning of check-sat call.
+   */
   virtual void presolve() {}
-  /* whether this module needs to check this round */
+  /** Needs check.
+   *
+   * Returns true if this module wishes a call to be made
+   * to check(e) during QuantifiersEngine::check(e).
+   */
   virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
-  /* whether this module needs a model built */
+  /** Needs model.
+   *
+   * Whether this module needs a model built during a
+   * call to QuantifiersEngine::check(e)
+   * It returns one of QEFFORT_* from quantifiers_engine.h,
+   * which specifies the quantifiers effort in which it requires the model to
+   * be built.
+   */
   virtual unsigned needsModel( Theory::Effort e );
-  /* reset at a round */
+  /** Reset.
+   *
+   * Called at the beginning of QuantifiersEngine::check(e).
+   */
   virtual void reset_round( Theory::Effort e ){}
-  /* Call during quantifier engine's check */
+  /** Check.
+   *
+   *   Called during QuantifiersEngine::check(e) depending
+   *   if needsCheck(e) returns true.
+   */
   virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
-  /* check was complete, return false if there is no way to answer "SAT", true if maybe can answer "SAT" */
+  /** Check complete?
+   *
+   * Returns false if the module's reasoning was globally incomplete
+   * (e.g. "sat" must be replaced with "incomplete").
+   *
+   * This is called just before the quantifiers engine will return
+   * with no lemmas added during a LAST_CALL effort check.
+   */
   virtual bool checkComplete() { return true; }
-  /* check was complete for quantified formula q (e.g. no lemmas implies a model) */
+  /** Check was complete for quantified formula q
+   *
+   * If for each quantified formula q, some module returns true for
+   * checkCompleteFor( q ),
+   * and no lemmas are added by the quantifiers theory, then we may answer
+   * "sat", unless
+   * we are incomplete for other reasons.
+   */
   virtual bool checkCompleteFor( Node q ) { return false; }
-  /* Called for new quantified formulas */
+  /** Pre register quantifier.
+   *
+   * Called once for new quantified formulas that are
+   * pre-registered by the quantifiers theory.
+   */
   virtual void preRegisterQuantifier( Node q ) { }
-  /* Called for new quantifiers after owners are finalized */
+  /** Register quantifier
+   *
+   * Called once for new quantified formulas that are
+   * pre-registered by the quantifiers theory, after
+   * internal ownership of quantified formulas is finalized.
+   */
   virtual void registerQuantifier( Node q ) = 0;
-  virtual void assertNode( Node n ) {}
-  virtual void propagate( Theory::Effort level ){}
+  /** Assert node.
+   *
+   * Called when a quantified formula q is asserted to the quantifiers theory
+   */
+  virtual void assertNode(Node q) {}
+  /* Get the next decision request.
+   *
+   * Identical to Theory::getNextDecisionRequest(...)
+   */
   virtual Node getNextDecisionRequest( unsigned& priority ) { return TNode::null(); }
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
-public:
+  //----------------------------general queries
+  /** get currently used the equality engine */
   eq::EqualityEngine * getEqualityEngine();
-  bool areDisequal( TNode n1, TNode n2 );
+  /** are n1 and n2 equal in the current used equality engine? */
   bool areEqual( TNode n1, TNode n2 );
+  /** are n1 and n2 disequal in the current used equality engine? */
+  bool areDisequal(TNode n1, TNode n2);
+  /** get the representative of n in the current used equality engine */
   TNode getRepresentative( TNode n );
+  /** get quantifiers engine that owns this module */
+  QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
+  /** get currently used term database */
   quantifiers::TermDb * getTermDatabase();
+  /** get currently used term utility object */
   quantifiers::TermUtil * getTermUtil();
+  //----------------------------end general queries
+ protected:
+  /** pointer to the quantifiers engine that owns this module */
+  QuantifiersEngine* d_quantEngine;
 };/* class QuantifiersModule */
 
+/** Quantifiers utility
+*
+* This is a lightweight version of a quantifiers module that does not implement
+* methods
+* for checking satisfiability.
+*/
 class QuantifiersUtil {
 public:
   QuantifiersUtil(){}
   virtual ~QuantifiersUtil(){}
-  /* reset at a round */
+  /* reset
+  * Called at the beginning of an instantiation round
+  * Returns false if the reset failed. When reset fails, the utility should have
+  * added a lemma
+  * via a call to qe->addLemma. TODO: improve this contract #1163
+  */
   virtual bool reset( Theory::Effort e ) = 0;
+  /* Called for new quantifiers */
+  virtual void registerQuantifier(Node q) = 0;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
 };
 
-
+/** Arithmetic utilities regarding monomial sums.
+ *
+ * Note the following terminology:
+ *
+ *   We say Node c is a {monomial constant} (or m-constant) if either:
+ *   (a) c is a constant Rational, or
+ *   (b) c is null.
+ *
+ *   We say Node v is a {monomial variable} (or m-variable) if either:
+ *   (a) v.getType().isReal() and v is not a constant, or
+ *   (b) v is null.
+ *
+ *   For m-constant or m-variable t, we write [t] to denote 1 if t.isNull() and
+ *   t otherwise.
+ *
+ *   A monomial m is a pair ( mvariable, mconstant ) of the form ( v, c ), which
+ *   is interpreted as [c]*[v].
+ *
+ *   A {monmoial sum} msum is represented by a std::map< Node, Node > having
+ *   key-value pairs of the form ( mvariable, mconstant ).
+ *   It is interpreted as:
+ *   [msum] = sum_{( v, c ) \in msum } [c]*[v]
+ *   It is critical that this map is ordered so that operations like adding
+ *   two monomial sums can be done efficiently. The ordering itself is not 
+ *   important, and currently corresponds to the default ordering on Nodes.
+ *
+ * The following has utilities involving monmoial sums.
+ *
+ */
 class QuantArith
 {
 public:
-  static bool getMonomial( Node n, Node& c, Node& v );
-  static bool getMonomial( Node n, std::map< Node, Node >& msum );
-  static bool getMonomialSum( Node n, std::map< Node, Node >& msum );
-  static bool getMonomialSumLit( Node lit, std::map< Node, Node >& msum );
-  static Node mkNode( std::map< Node, Node >& msum );
-  static Node mkCoeffTerm( Node coeff, Node t );
-  //return 1 : solved on LHS, return -1 : solved on RHS, return 0: failed
-  static int isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Node & val, Kind k );
-  static int isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind k, bool doCoeff = false );
-  static Node solveEqualityFor( Node lit, Node v );
-  static Node negate( Node t );
-  static Node offset( Node t, int i );
-  static void debugPrintMonomialSum( std::map< Node, Node >& msum, const char * c );
-};
+ /** get monomial
+  *
+  * If n = n[0]*n[1] where n[0] is constant and n[1] is not,
+  * this function returns true, sets c to n[0] and v to n[1].
+  */
+ static bool getMonomial(Node n, Node& c, Node& v);
 
+ /** get monomial
+  *
+  * If this function returns true, it adds the ( m-constant, m-variable )
+  * pair corresponding to the monomial representation of n to the
+  * monomial sum msum.
+  *
+  * This function returns false if the m-variable of n is already
+  * present in n.
+  */
+ static bool getMonomial(Node n, std::map<Node, Node>& msum);
 
-class QuantRelevance
-{
-private:
-  /** for computing relevance */
-  bool d_computeRel;
-  /** map from quantifiers to symbols they contain */
-  std::map< Node, std::vector< Node > > d_syms;
-  /** map from symbols to quantifiers */
-  std::map< Node, std::vector< Node > > d_syms_quants;
-  /** relevance for quantifiers and symbols */
-  std::map< Node, int > d_relevance;
-  /** compute symbols */
-  void computeSymbols( Node n, std::vector< Node >& syms );
-public:
-  QuantRelevance( bool cr ) : d_computeRel( cr ){}
-  ~QuantRelevance(){}
-  /** register quantifier */
-  void registerQuantifier( Node f );
-  /** set relevance */
-  void setRelevance( Node s, int r );
-  /** get relevance */
-  int getRelevance( Node s ) { return d_relevance.find( s )==d_relevance.end() ? -1 : d_relevance[s]; }
-  /** get number of quantifiers for symbol s */
-  int getNumQuantifiersForSymbol( Node s ) { return (int)d_syms_quants[s].size(); }
+ /** get monomial sum for real-valued term n
+  *
+  * If this function returns true, it sets msum to a monmoial sum such that
+  *   [msum] is equivalent to n
+  *
+  * This function may return false if n is not a sum of monomials
+  * whose variables are pairwise unique.
+  * If term n is in rewritten form, this function should always return true.
+  */
+ static bool getMonomialSum(Node n, std::map<Node, Node>& msum);
+
+ /** get monmoial sum literal for literal lit
+  *
+  * If this function returns true, it sets msum to a monmoial sum such that
+  *   [msum] <k> 0  is equivalent to lit[0] <k> lit[1]
+  * where k is the Kind of lit, one of { EQUAL, GEQ }.
+  *
+  * This function may return false if either side of lit is not a sum
+  * of monomials whose variables are pairwise unique on that side.
+  * If literal lit is in rewritten form, this function should always return
+  * true.
+  */
+ static bool getMonomialSumLit(Node lit, std::map<Node, Node>& msum);
+
+ /** make node for monomial sum
+  *
+  * Make the Node corresponding to the interpretation of msum, [msum], where:
+  *   [msum] = sum_{( v, c ) \in msum } [c]*[v]
+  */
+ static Node mkNode(std::map<Node, Node>& msum);
+
+ /** make coefficent term
+  *
+  * Input coeff is a m-constant.
+  * Returns the term t if coeff.isNull() or coeff*t otherwise.
+  */
+ static Node mkCoeffTerm(Node coeff, Node t);
+
+ /** isolate variable v in constraint ([msum] <k> 0)
+  *
+  * If this function returns a value ret where ret != 0, then
+  * veq_c is set to m-constant, and val is set to a term such that:
+  *    If ret=1, then ([veq_c] * v <k> val) is equivalent to [msum] <k> 0.
+  *   If ret=-1, then (val <k> [veq_c] * v) is equivalent to [msum] <k> 0.
+  *   If veq_c is non-null, then it is a positive constant Rational.
+  * The returned value of veq_c is only non-null if v has integer type.
+  *
+  * This function returns 0 indicating a failure if msum does not contain
+  * a (non-zero) monomial having mvariable v.
+  */
+ static int isolate(
+     Node v, std::map<Node, Node>& msum, Node& veq_c, Node& val, Kind k);
+
+ /** isolate variable v in constraint ([msum] <k> 0)
+  *
+  * If this function returns a value ret where ret != 0, then veq
+  * is set to a literal that is equivalent to ([msum] <k> 0), and:
+  *    If ret=1, then veq is of the form ( v <k> val) if veq_c.isNull(),
+  *                   or ([veq_c] * v <k> val) if !veq_c.isNull().
+  *   If ret=-1, then veq is of the form ( val <k> v) if veq_c.isNull(),
+  *                   or (val <k> [veq_c] * v) if !veq_c.isNull().
+  * If doCoeff = false or v does not have Integer type, then veq_c is null.
+  *
+  * This function returns 0 indiciating a failure if msum does not contain
+  * a (non-zero) monomial having variable v, or if veq_c must be non-null
+  * for an integer constraint and doCoeff is false.
+  */
+ static int isolate(Node v,
+                    std::map<Node, Node>& msum,
+                    Node& veq,
+                    Kind k,
+                    bool doCoeff = false);
+
+ /** solve equality lit for variable
+  *
+  * If return value ret is non-null, then:
+  *    v = ret is equivalent to lit.
+  *
+  * This function may return false if lit does not contain v,
+  * or if lit is an integer equality with a coefficent on v,
+  * e.g. 3*v = 7.
+  */
+ static Node solveEqualityFor(Node lit, Node v);
+
+ /** decompose real-valued term n
+ *
+ * If this function returns true, then
+ *   ([coeff]*v + rem) is equivalent to n
+ * where coeff is non-zero m-constant.
+ *
+ * This function will return false if n is not a monomial sum containing
+ * a monomial with factor v.
+ */
+ static bool decompose(Node n, Node v, Node& coeff, Node& rem);
+
+ /** return the rewritten form of (UMINUS t) */
+ static Node negate(Node t);
+
+ /** return the rewritten form of (PLUS t (CONST_RATIONAL i)) */
+ static Node offset(Node t, int i);
+
+ /** debug print for a monmoial sum, prints to Trace(c) */
+ static void debugPrintMonomialSum(std::map<Node, Node>& msum, const char* c);
 };
 
 class QuantPhaseReq
@@ -152,7 +339,9 @@ public:
   static void getEntailPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol );
 };
 
-
+/** EqualityQuery
+* This is a wrapper class around equality engine.
+*/
 class EqualityQuery : public QuantifiersUtil {
 public:
   EqualityQuery(){}
@@ -171,62 +360,12 @@ public:
   virtual eq::EqualityEngine* getEngine() = 0;
   /** get the equivalence class of a */
   virtual void getEquivalenceClass( Node a, std::vector< Node >& eqc ) = 0;
-  /** get the term that exists in EE that is congruent to f with args (f is returned by TermDb::getMatchOperator(...) */
+  /** get the term that exists in EE that is congruent to f with args (f is
+   * returned by TermDb::getMatchOperator(...)) */
   virtual TNode getCongruentTerm( Node f, std::vector< TNode >& args ) = 0;
 };/* class EqualityQuery */
 
-class QuantEPR
-{
-private:
-  void registerNode( Node n, std::map< int, std::map< Node, bool > >& visited, bool beneathQuant, bool hasPol, bool pol );
-  /** non-epr */
-  std::map< TypeNode, bool > d_non_epr;
-  /** axioms for epr */
-  std::map< TypeNode, Node > d_epr_axiom;
-public:
-  QuantEPR(){}
-  virtual ~QuantEPR(){}
-  /** constants per type */
-  std::map< TypeNode, std::vector< Node > > d_consts;
-  /* reset */
-  //bool reset( Theory::Effort e ) {}
-  /** identify */
-  //std::string identify() const { return "QuantEPR"; }
-  /** register assertion */
-  void registerAssertion( Node assertion );
-  /** finish init */
-  void finishInit();
-  /** is EPR */
-  bool isEPR( TypeNode tn ) const { return d_non_epr.find( tn )==d_non_epr.end(); }
-  /** is EPR constant */
-  bool isEPRConstant( TypeNode tn, Node k ); 
-  /** add EPR constant */
-  void addEPRConstant( TypeNode tn, Node k ); 
-  /** get EPR axiom */
-  Node mkEPRAxiom( TypeNode tn );
-  /** has EPR axiom */
-  bool hasEPRAxiom( TypeNode tn ) const { return d_epr_axiom.find( tn )!=d_epr_axiom.end(); }
-};
-
-class TermRecBuild {
-private:
-  std::vector< Node > d_term;
-  std::vector< std::vector< Node > > d_children;
-  std::vector< Kind > d_kind;
-  std::vector< bool > d_has_op;
-  std::vector< unsigned > d_pos;
-  void addTerm( Node n );
-public:
-  TermRecBuild(){}
-  void init( Node n );
-  void push( unsigned p );
-  void pop();
-  void replaceChild( unsigned i, Node n );
-  Node getChild( unsigned i );
-  Node build( unsigned p=0 );
-};
-
 }
 }
 
-#endif
+#endif /* __CVC4__THEORY__QUANT_UTIL_H */

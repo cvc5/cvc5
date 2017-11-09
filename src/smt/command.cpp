@@ -383,8 +383,8 @@ CheckSynthCommand::CheckSynthCommand() throw() :
   d_expr() {
 }
 
-CheckSynthCommand::CheckSynthCommand(const Expr& expr, bool inUnsatCore) throw() :
-  d_expr(expr), d_inUnsatCore(inUnsatCore) {
+CheckSynthCommand::CheckSynthCommand(const Expr& expr) throw() :
+  d_expr(expr) {
 }
 
 Expr CheckSynthCommand::getExpr() const throw() {
@@ -395,6 +395,33 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->checkSynth(d_expr);
     d_commandStatus = CommandSuccess::instance();
+    smt::SmtScope scope(smtEngine);
+    d_solution.clear();
+    // check whether we should print the status
+    if (d_result.asSatisfiabilityResult() != Result::UNSAT
+        || options::sygusOut() == SYGUS_SOL_OUT_STATUS_AND_DEF
+        || options::sygusOut() == SYGUS_SOL_OUT_STATUS)
+    {
+      if (options::sygusOut() == SYGUS_SOL_OUT_STANDARD)
+      {
+        d_solution << "(fail)" << endl;
+      }
+      else
+      {
+        d_solution << d_result << endl;
+      }
+    }
+    // check whether we should print the solution
+    if (d_result.asSatisfiabilityResult() == Result::UNSAT
+        && options::sygusOut() != SYGUS_SOL_OUT_STATUS)
+    {
+      // printing a synthesis solution is a non-constant
+      // method, since it invokes a sophisticated algorithm
+      // (Figure 5 of Reynolds et al. CAV 2015).
+      // Hence, we must call here print solution here,
+      // instead of during printResult.
+      smtEngine->printSynthSolution(d_solution);
+    }
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
   }
@@ -408,18 +435,18 @@ void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
-    out << d_result << endl;
+    out << d_solution.str();
   }
 }
 
 Command* CheckSynthCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  CheckSynthCommand* c = new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap), d_inUnsatCore);
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap));
   c->d_result = d_result;
   return c;
 }
 
 Command* CheckSynthCommand::clone() const {
-  CheckSynthCommand* c = new CheckSynthCommand(d_expr, d_inUnsatCore);
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr);
   c->d_result = d_result;
   return c;
 }
@@ -850,43 +877,46 @@ Command* DefineNamedFunctionCommand::clone() const {
 
 /* class SetUserAttribute */
 
-SetUserAttributeCommand::SetUserAttributeCommand( const std::string& attr, Expr expr ) throw() :
-  d_attr( attr ), d_expr( expr ){
-}
+SetUserAttributeCommand::SetUserAttributeCommand(
+    const std::string& attr, Expr expr, const std::vector<Expr>& expr_values,
+    const std::string& str_value) throw()
+    : d_attr(attr),
+      d_expr(expr),
+      d_expr_values(expr_values),
+      d_str_value(str_value) {}
 
-SetUserAttributeCommand::SetUserAttributeCommand( const std::string& attr, Expr expr,
-                                                  std::vector<Expr>& values ) throw() :
-  d_attr( attr ), d_expr( expr ){
-  d_expr_values.insert( d_expr_values.begin(), values.begin(), values.end() );
-}
+SetUserAttributeCommand::SetUserAttributeCommand(const std::string& attr,
+                                                 Expr expr) throw()
+    : SetUserAttributeCommand(attr, expr, {}, "") {}
 
-SetUserAttributeCommand::SetUserAttributeCommand( const std::string& attr, Expr expr,
-                                                  const std::string& value ) throw() :
-  d_attr( attr ), d_expr( expr ), d_str_value( value ){
-}
+SetUserAttributeCommand::SetUserAttributeCommand(
+    const std::string& attr, Expr expr, const std::vector<Expr>& values) throw()
+    : SetUserAttributeCommand(attr, expr, values, "") {}
+
+SetUserAttributeCommand::SetUserAttributeCommand(
+    const std::string& attr, Expr expr, const std::string& value) throw()
+    : SetUserAttributeCommand(attr, expr, {}, value) {}
 
 void SetUserAttributeCommand::invoke(SmtEngine* smtEngine) {
   try {
-    if(!d_expr.isNull()) {
-      smtEngine->setUserAttribute( d_attr, d_expr, d_expr_values, d_str_value );
+    if (!d_expr.isNull()) {
+      smtEngine->setUserAttribute(d_attr, d_expr, d_expr_values, d_str_value);
     }
     d_commandStatus = CommandSuccess::instance();
-  } catch(exception& e) {
+  } catch (exception& e) {
     d_commandStatus = new CommandFailure(e.what());
   }
 }
 
-Command* SetUserAttributeCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap){
+Command* SetUserAttributeCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   Expr expr = d_expr.exportTo(exprManager, variableMap);
-  SetUserAttributeCommand * c = new SetUserAttributeCommand( d_attr, expr, d_str_value );
-  c->d_expr_values.insert( c->d_expr_values.end(), d_expr_values.begin(), d_expr_values.end() );
-  return c;
+  return new SetUserAttributeCommand(d_attr, expr, d_expr_values, d_str_value);
 }
 
-Command* SetUserAttributeCommand::clone() const{
-  SetUserAttributeCommand * c = new SetUserAttributeCommand( d_attr, d_expr, d_str_value );
-  c->d_expr_values.insert( c->d_expr_values.end(), d_expr_values.begin(), d_expr_values.end() );
-  return c;
+Command* SetUserAttributeCommand::clone() const {
+  return new SetUserAttributeCommand(d_attr, d_expr, d_expr_values,
+                                     d_str_value);
 }
 
 std::string SetUserAttributeCommand::getCommandName() const throw() {

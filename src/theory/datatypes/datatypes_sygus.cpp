@@ -14,14 +14,15 @@
  ** Implementation of sygus utilities for theory of datatypes
  **/
 
+#include "theory/datatypes/datatypes_sygus.h"
 
 #include "expr/node_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/datatypes/datatypes_sygus.h"
+#include "theory/datatypes/theory_datatypes.h"
+#include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/datatypes/theory_datatypes.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4;
@@ -64,11 +65,17 @@ void SygusSplitNew::getSygusSplits( Node n, const Datatype& dt, std::vector< Nod
   splits.insert( splits.end(), d_splits[n].begin(), d_splits[n].end() );
 }
 
-
-SygusSymBreakNew::SygusSymBreakNew( TheoryDatatypes * td, quantifiers::TermDbSygus * tds, context::Context* c ) : 
-d_td( td ), d_tds( tds ), d_context( c ), 
-d_testers( c ), d_is_const( c ), d_testers_exp( c ), d_active_terms( c ), d_currTermSize( c ) {
-  d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
+SygusSymBreakNew::SygusSymBreakNew(TheoryDatatypes* td,
+                                   quantifiers::TermDbSygus* tds,
+                                   context::Context* c)
+    : d_td(td),
+      d_tds(tds),
+      d_testers(c),
+      d_is_const(c),
+      d_testers_exp(c),
+      d_active_terms(c),
+      d_currTermSize(c) {
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
 }
 
 SygusSymBreakNew::~SygusSymBreakNew() {
@@ -246,7 +253,7 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
       std::map< Node, Node >::iterator it = d_term_to_anchor.find( n[0] );
       if( it!=d_term_to_anchor.end() ) {
         d_term_to_anchor[n] = it->second;
-        d_term_to_anchor_root[n] = d_term_to_anchor_root[n[0]];
+        d_term_to_anchor_conj[n] = d_term_to_anchor_conj[n[0]];
         d = d_term_to_depth[n[0]] + 1;
         is_top_level = computeTopLevel( tn, n[0] );
         success = true;
@@ -255,9 +262,9 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
       registerSizeTerm( n, lemmas );
       if( d_register_st[n] ){
         d_term_to_anchor[n] = n;
-        d_term_to_anchor_root[n] = d_tds->isMeasuredTerm( n );
+        d_term_to_anchor_conj[n] = d_tds->getConjectureForEnumerator(n);
         // this assertion fails if we have a sygus term in the search that is unmeasured
-        Assert( !d_term_to_anchor_root[n].isNull() );
+        Assert(d_term_to_anchor_conj[n] != NULL);
         d = 0;
         is_top_level = true;
         success = true;
@@ -354,29 +361,54 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   Trace("sygus-sb-fair-debug") << "Tester " << exp << " is for depth " << d << " term in search size " << ssz << std::endl;
   //Assert( d<=ssz );
   if( options::sygusSymBreakLazy() ){
+    // dynamic symmetry breaking
     addSymBreakLemmasFor( ntn, n, d, lemmas );
   }
-     
-  // process simple symmetry breaking
+
   unsigned max_depth = ssz>=d ? ssz-d : 0;
   unsigned min_depth = d_simple_proc[exp];
   if( min_depth<=max_depth ){
     TNode x = getFreeVar( ntn );
-    Node rlv = getRelevancyCondition( n );
-    for( unsigned d=0; d<=max_depth; d++ ){
-      Node simple_sb_pred = getSimpleSymBreakPred( ntn, tindex, d );
-      if( !simple_sb_pred.isNull() ){
-        simple_sb_pred = simple_sb_pred.substitute( x, n );
-        if( !rlv.isNull() ){
-          simple_sb_pred = NodeManager::currentNM()->mkNode( kind::OR, rlv.negate(), simple_sb_pred ); 
-        }
-        lemmas.push_back( simple_sb_pred ); 
+    std::vector<Node> sb_lemmas;
+    for (unsigned ds = 0; ds <= max_depth; ds++)
+    {
+      // static conjecture-independent symmetry breaking
+      Node ipred = getSimpleSymBreakPred(ntn, tindex, ds);
+      if (!ipred.isNull())
+      {
+        sb_lemmas.push_back(ipred);
       }
+      // static conjecture-dependent symmetry breaking
+      std::map<Node, quantifiers::CegConjecture*>::iterator itc =
+          d_term_to_anchor_conj.find(n);
+      if (itc != d_term_to_anchor_conj.end())
+      {
+        quantifiers::CegConjecture* conj = itc->second;
+        Assert(conj != NULL);
+        Node dpred = conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
+        if (!dpred.isNull())
+        {
+          sb_lemmas.push_back(dpred);
+        }
+      }
+    }
+
+    // add the above symmetry breaking predicates to lemmas
+    Node rlv = getRelevancyCondition(n);
+    for (unsigned i = 0; i < sb_lemmas.size(); i++)
+    {
+      Node pred = sb_lemmas[i].substitute(x, n);
+      if (!rlv.isNull())
+      {
+        pred = NodeManager::currentNM()->mkNode(kind::OR, rlv.negate(), pred);
+      }
+      lemmas.push_back(pred);
     }
   }
   d_simple_proc[exp] = max_depth + 1;
-  
-  // add back testers for the children if they exist
+
+  // now activate the children those testers were previously asserted in this
+  // context and are awaiting activation, if they exist.
   if( options::sygusSymBreakLazy() ){
     for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
       Node sel = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex].getSelectorInternal( ntn.toType(), j ) ), n );
@@ -696,72 +728,134 @@ void SygusSymBreakNew::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool
   }
 }
 
+/** EquivSygusInvarianceTest
+*
+* This class is used to construct a minimal shape of a term that is equivalent
+* up to rewriting to a RHS value,
+* given as input bvr.
+*
+* For example,
+*
+* ite( t>0, 0, 0 ) + s*0 ----> 0
+*
+* can be minimized to:
+*
+* ite( _, 0, 0 ) + _*0 ----> 0
+*
+* It also manages the case where the rewriting is invariant wrt a finite set of
+* examples occurring in the conjecture.
+*
+* It is an instance of quantifiers::SygusInvarianceTest which is the standard
+* interface for term generalization via
+* the TermRecBuild utility, which traverses the AST of a given term, replaces
+* each subterm by a fresh variable and
+* check whether the invariant, as specified by this class (equivalent up to
+* rewriting to a RHS) holds.
+*
+* For details, see Reynolds et al SYNT 2017.
+*/
 class EquivSygusInvarianceTest : public quantifiers::SygusInvarianceTest {
 public:
-  EquivSygusInvarianceTest(){}
-  ~EquivSygusInvarianceTest(){}
-  Node d_ex_ar;
-  Node d_bvr;
-  std::vector< Node > d_exo;
-  void init( quantifiers::TermDbSygus * tds, TypeNode tn, Node ar, Node bvr ) {
-    //compute the current examples
-    d_bvr = bvr;
-    if( tds->hasPbeExamples( ar ) ){
-      d_ex_ar = ar;
-      unsigned nex = tds->getNumPbeExamples( ar );
-      for( unsigned i=0; i<nex; i++ ){
-        d_exo.push_back( tds->evaluateBuiltin( tn, bvr, ar, i ) );
-      }
-    }
+ EquivSygusInvarianceTest() : d_conj(nullptr) {}
+ ~EquivSygusInvarianceTest() {}
+ /** initialize this invariance test
+  * tn is the sygus type for e
+  * aconj/e are used for conjecture-specific symmetry breaking
+  * bvr is the builtin version of the right hand side of the rewrite that we are
+  * checking for invariance
+  */
+ void init(quantifiers::TermDbSygus* tds, TypeNode tn,
+           quantifiers::CegConjecture* aconj, Node e, Node bvr) {
+   // compute the current examples
+   d_bvr = bvr;
+   if (aconj->getPbe()->hasExamples(e)) {
+     d_conj = aconj;
+     d_enum = e;
+     unsigned nex = aconj->getPbe()->getNumExamples(e);
+     for (unsigned i = 0; i < nex; i++) {
+       d_exo.push_back(d_conj->getPbe()->evaluateBuiltin(tn, bvr, e, i));
+     }
+   }
   }
 protected:
-  bool invariant( quantifiers::TermDbSygus * tds, Node nvn, Node x ){
-    TypeNode tn = nvn.getType();
-    Node nbv = tds->sygusToBuiltin( nvn, tn );
-    Node nbvr = tds->extendedRewrite( nbv );
-    Trace("sygus-sb-mexp-debug") << "  min-exp check : " << nbv << " -> " << nbvr << std::endl;
-    bool exc_arg = false;
-    // equivalent / singular up to normalization
-    if( nbvr==d_bvr ){
-      // gives the same result : then the explanation for the child is irrelevant 
-      exc_arg = true;
-      Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin( nvn ) << " is rewritten to " << nbvr;
-      Trace("sygus-sb-mexp") << " regardless of the content of " << tds->sygusToBuiltin( x ) << std::endl;
-    }else{
-      if( nbvr.isVar() ){
-        TypeNode xtn = x.getType();
-        if( xtn==tn ){
-          Node bx = tds->sygusToBuiltin( x, xtn );
-          Assert( bx.getType()==nbvr.getType() );
-          if( nbvr==bx ){
-            Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin( nvn ) << " always rewrites to argument " << nbvr << std::endl;
-            // rewrites to the variable : then the explanation of this is irrelevant as well
-            exc_arg = true;
-            d_bvr = nbvr;
-          }
-        }
-      }
-    }
-    // equivalent under examples
-    if( !exc_arg ){
-      if( !d_ex_ar.isNull() ){
-        bool ex_equiv = true;
-        for( unsigned j=0; j<d_exo.size(); j++ ){
-          Node nbvr_ex = tds->evaluateBuiltin( tn, nbvr, d_ex_ar, j );
-          if( nbvr_ex!=d_exo[j] ){
-            ex_equiv = false;
-            break;
-          }
-        }
-        if( ex_equiv ){
-          Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin( nvn );
-          Trace("sygus-sb-mexp") << " is the same w.r.t. examples regardless of the content of " << tds->sygusToBuiltin( x ) << std::endl;
-          exc_arg = true;
-        }
-      }
-    }
-    return exc_arg;
+ /** does nvn still rewrite to d_bvr? */
+ bool invariant(quantifiers::TermDbSygus* tds, Node nvn, Node x) {
+   TypeNode tn = nvn.getType();
+   Node nbv = tds->sygusToBuiltin(nvn, tn);
+   Node nbvr = tds->extendedRewrite(nbv);
+   Trace("sygus-sb-mexp-debug") << "  min-exp check : " << nbv << " -> " << nbvr
+                                << std::endl;
+   bool exc_arg = false;
+   // equivalent / singular up to normalization
+   if (nbvr == d_bvr) {
+     // gives the same result : then the explanation for the child is irrelevant
+     exc_arg = true;
+     Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)
+                            << " is rewritten to " << nbvr;
+     Trace("sygus-sb-mexp") << " regardless of the content of "
+                            << tds->sygusToBuiltin(x) << std::endl;
+   } else {
+     if (nbvr.isVar()) {
+       TypeNode xtn = x.getType();
+       if (xtn == tn) {
+         Node bx = tds->sygusToBuiltin(x, xtn);
+         Assert(bx.getType() == nbvr.getType());
+         if (nbvr == bx) {
+           Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)
+                                  << " always rewrites to argument " << nbvr
+                                  << std::endl;
+           // rewrites to the variable : then the explanation of this is
+           // irrelevant as well
+           exc_arg = true;
+           d_bvr = nbvr;
+         }
+       }
+     }
+   }
+   // equivalent under examples
+   if (!exc_arg) {
+     if (!d_enum.isNull()) {
+       bool ex_equiv = true;
+       for (unsigned j = 0; j < d_exo.size(); j++) {
+         Node nbvr_ex = d_conj->getPbe()->evaluateBuiltin(tn, nbvr, d_enum, j);
+         if (nbvr_ex != d_exo[j]) {
+           ex_equiv = false;
+           break;
+         }
+       }
+       if (ex_equiv) {
+         Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn);
+         Trace("sygus-sb-mexp")
+             << " is the same w.r.t. examples regardless of the content of "
+             << tds->sygusToBuiltin(x) << std::endl;
+         exc_arg = true;
+       }
+     }
+   }
+   return exc_arg;
   }
+
+ private:
+  /** the conjecture associated with the enumerator d_enum */
+  quantifiers::CegConjecture* d_conj;
+  /** the enumerator associated with the term we are doing an invariance test
+   * for */
+  Node d_enum;
+  /** the RHS of the evaluation */
+  Node d_bvr;
+  /** the result of the examples
+  * This is a finer-grained version of d_bvr, where for example if our input
+  * examples are:
+  * (x,y,z) = (3,2,4), (5,2,6), (3,2,1)
+  * On these examples, we have:
+  *
+  * ite( x>y, z, 0) ---> 4,6,1
+  *
+  * which can be minimized to:
+  *
+  * ite( x>y, z, _) ---> 4,6,1
+  */
+  std::vector<Node> d_exo;
 };
 
 
@@ -804,9 +898,9 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
   if( d_cache[a].d_search_val_proc.find( nv )==d_cache[a].d_search_val_proc.end() ){
     d_cache[a].d_search_val_proc[nv] = true;
     // get the root (for PBE symmetry breaking)
-    Assert( d_term_to_anchor_root.find( a )!=d_term_to_anchor_root.end() );
-    Node ar = d_term_to_anchor_root[a];
-    Assert( !ar.isNull() );
+    Assert(d_term_to_anchor_conj.find(a) != d_term_to_anchor_conj.end());
+    quantifiers::CegConjecture* aconj = d_term_to_anchor_conj[a];
+    Assert(aconj != NULL);
     Trace("sygus-sb-debug") << "  ...register search value " << nv << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin( nv, tn );
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
@@ -826,8 +920,14 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       Node bad_val_bvr;
       bool by_examples = false;
       if( itsv==d_cache[a].d_search_val[tn].end() ){
+        // TODO (github #1210) conjecture-specific symmetry breaking
+        // this should be generalized and encapsulated within the CegConjecture
+        // class
         // is it equivalent under examples?
-        Node bvr_equiv = d_tds->addPbeSearchVal( tn, ar, bvr );
+        Node bvr_equiv;
+        if (aconj->getPbe()->hasExamples(a)) {
+          bvr_equiv = aconj->getPbe()->addSearchVal(tn, a, bvr);
+        }
         if( !bvr_equiv.isNull() ){
           if( bvr_equiv!=bvr ){
             Trace("sygus-sb-debug") << "......adding search val for " << bvr << " returned " << bvr_equiv << std::endl;
@@ -878,7 +978,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
         
         // do analysis of the evaluation  FIXME: does not work (evaluation is non-constant)
         EquivSygusInvarianceTest eset;
-        eset.init( d_tds, tn, ar, bvr );
+        eset.init(d_tds, tn, aconj, a, bvr);
         Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;
         d_tds->getExplanationFor( x, bad_val, exp, eset, bad_val_o, sz );
         do_exclude = true;
@@ -979,9 +1079,10 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
     if( e.getType().isDatatype() ){
       const Datatype& dt = ((DatatypeType)(e.getType()).toType()).getDatatype();
       if( dt.isSygus() ){
-        if( !d_tds->isMeasuredTerm( e ).isNull() ){
+        if (d_tds->isEnumerator(e))
+        {
           d_register_st[e] = true;
-          Node ag = d_tds->getActiveGuardForMeasureTerm( e );
+          Node ag = d_tds->getActiveGuardForEnumerator(e);
           if( !ag.isNull() ){
             d_anchor_to_active_guard[e] = ag;
           }
@@ -1082,10 +1183,11 @@ unsigned SygusSymBreakNew::getSearchSizeForAnchor( Node a ) {
   Trace("sygus-sb-debug2") << "get search size for anchor : " << a << std::endl;
   std::map< Node, Node >::iterator it = d_anchor_to_measure_term.find( a );
   Assert( it!=d_anchor_to_measure_term.end() );
-  return getSearchSizeForMeasureTerm( it->second );
+  return getSearchSizeForMeasureTerm(it->second);
 }
 
-unsigned SygusSymBreakNew::getSearchSizeForMeasureTerm( Node m ) {
+unsigned SygusSymBreakNew::getSearchSizeForMeasureTerm(Node m)
+{
   Trace("sygus-sb-debug2") << "get search size for measure : " << m << std::endl;
   std::map< Node, SearchSizeInfo * >::iterator its = d_szinfo.find( m );
   Assert( its!=d_szinfo.end() );
@@ -1168,7 +1270,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   }
   //register any measured terms that we haven't encountered yet (should only be invoked on first call to check
   std::vector< Node > mts;
-  d_tds->getMeasuredTerms( mts );
+  d_tds->getEnumerators(mts);
   for( unsigned i=0; i<mts.size(); i++ ){
     registerSizeTerm( mts[i], lemmas );
   }
@@ -1272,6 +1374,12 @@ Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDat
   if( options::sygusFair()!=SYGUS_FAIR_NONE ){
     std::map< unsigned, Node >::iterator it = d_lits.find( s );
     if( it==d_lits.end() ){
+      if (options::sygusAbortSize() != -1 &&
+          static_cast<int>(s) > options::sygusAbortSize()) {
+        Message() << "Maximum term size (" << options::sygusAbortSize()
+                  << ") for enumerative SyGuS exceeded." << std::endl;
+        exit(1);
+      }
       Assert( !d_this.isNull() );
       Node c = NodeManager::currentNM()->mkConst( Rational( s ) );
       Node lit = NodeManager::currentNM()->mkNode( DT_SYGUS_BOUND, d_this, c );

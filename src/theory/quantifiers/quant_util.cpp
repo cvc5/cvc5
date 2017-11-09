@@ -19,11 +19,11 @@
 #include "theory/quantifiers_engine.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
 
+namespace CVC4 {
+namespace theory {
 
 unsigned QuantifiersModule::needsModel( Theory::Effort e ) {
   return QuantifiersEngine::QEFFORT_NONE;
@@ -149,9 +149,6 @@ Node QuantArith::mkCoeffTerm( Node coeff, Node t ) {
   }
 }
 
-// given (msum <k> 0), solve (veq_c * v <k> val) or (val <k> veq_c * v), where:
-// veq_c is either null (meaning 1), or positive.
-// return value 1: veq_c*v is RHS, -1: veq_c*v is LHS, 0: failed.
 int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Node & val, Kind k ) {
   std::map< Node, Node >::iterator itv = msum.find( v );
   if( itv!=msum.end() ){
@@ -229,6 +226,9 @@ Node QuantArith::solveEqualityFor( Node lit, Node v ) {
         Node val, veqc;
         if( QuantArith::isolate( v, msum, veqc, val, EQUAL )!=0 ){
           if( veqc.isNull() ){
+            // in this case, we have an integer equality with a coefficient
+            // on the variable we solved for that could not be eliminated,
+            // hence we fail.
             return val;
           }
         }
@@ -236,6 +236,30 @@ Node QuantArith::solveEqualityFor( Node lit, Node v ) {
     }
   }
   return Node::null();
+}
+
+bool QuantArith::decompose(Node n, Node v, Node& coeff, Node& rem)
+{
+  std::map<Node, Node> msum;
+  if (getMonomialSum(n, msum))
+  {
+    std::map<Node, Node>::iterator it = msum.find(v);
+    if (it == msum.end())
+    {
+      return false;
+    }
+    else
+    {
+      coeff = it->second;
+      msum.erase(v);
+      rem = mkNode(msum);
+      return true;
+    }
+  }
+  else
+  {
+    return false;
+  }
 }
 
 Node QuantArith::negate( Node t ) {
@@ -266,62 +290,6 @@ void QuantArith::debugPrintMonomialSum( std::map< Node, Node >& msum, const char
   }
   Trace(c) << std::endl;
 }
-
-
-void QuantRelevance::registerQuantifier( Node f ){
-  //compute symbols in f
-  std::vector< Node > syms;
-  computeSymbols( f[1], syms );
-  d_syms[f].insert( d_syms[f].begin(), syms.begin(), syms.end() );
-  //set initial relevance
-  int minRelevance = -1;
-  for( int i=0; i<(int)syms.size(); i++ ){
-    d_syms_quants[ syms[i] ].push_back( f );
-    int r = getRelevance( syms[i] );
-    if( r!=-1 && ( minRelevance==-1 || r<minRelevance ) ){
-      minRelevance = r;
-    }
-  }
-  if( minRelevance!=-1 ){
-    setRelevance( f, minRelevance+1 );
-  }
-}
-
-
-/** compute symbols */
-void QuantRelevance::computeSymbols( Node n, std::vector< Node >& syms ){
-  if( n.getKind()==APPLY_UF ){
-    Node op = n.getOperator();
-    if( std::find( syms.begin(), syms.end(), op )==syms.end() ){
-      syms.push_back( op );
-    }
-  }
-  if( n.getKind()!=FORALL ){
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      computeSymbols( n[i], syms );
-    }
-  }
-}
-
-/** set relevance */
-void QuantRelevance::setRelevance( Node s, int r ){
-  if( d_computeRel ){
-    int rOld = getRelevance( s );
-    if( rOld==-1 || r<rOld ){
-      d_relevance[s] = r;
-      if( s.getKind()==FORALL ){
-        for( int i=0; i<(int)d_syms[s].size(); i++ ){
-          setRelevance( d_syms[s][i], r );
-        }
-      }else{
-        for( int i=0; i<(int)d_syms_quants[s].size(); i++ ){
-          setRelevance( d_syms_quants[s][i], r+1 );
-        }
-      }
-    }
-  }
-}
-
 
 QuantPhaseReq::QuantPhaseReq( Node n, bool computeEq ){
   initialize( n, computeEq );
@@ -432,179 +400,5 @@ void QuantPhaseReq::getEntailPolarity( Node n, int child, bool hasPol, bool pol,
   }
 }
 
-void QuantEPR::registerNode( Node n, std::map< int, std::map< Node, bool > >& visited, bool beneathQuant, bool hasPol, bool pol ) {
-  int vindex = hasPol ? ( pol ? 1 : -1 ) : 0;
-  if( visited[vindex].find( n )==visited[vindex].end() ){
-    visited[vindex][n] = true;
-    Trace("quant-epr-debug") << "QuantEPR::registerNode " << n << std::endl;
-    if( n.getKind()==FORALL ){
-      if( beneathQuant || !hasPol || !pol ){
-        for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
-          TypeNode tn = n[0][i].getType();
-          if( d_non_epr.find( tn )==d_non_epr.end() ){
-            Trace("quant-epr") << "Sort " << tn << " is non-EPR because of nested or possible existential quantification." << std::endl;
-            d_non_epr[tn] = true;
-          }
-        }
-      }else{
-        beneathQuant = true;
-      }
-    }
-    TypeNode tn = n.getType();
-    
-    if( n.getNumChildren()>0 ){
-      if( tn.isSort() ){
-        if( d_non_epr.find( tn )==d_non_epr.end() ){
-          Trace("quant-epr") << "Sort " << tn << " is non-EPR because of " << n << std::endl;
-          d_non_epr[tn] = true;
-        }
-      }
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        bool newHasPol;
-        bool newPol;
-        QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
-        registerNode( n[i], visited, beneathQuant, newHasPol, newPol );
-      }
-    }else if( tn.isSort() ){
-      if( n.getKind()==BOUND_VARIABLE ){
-        if( d_consts.find( tn )==d_consts.end() ){
-          //mark that at least one constant must occur
-          d_consts[tn].clear();
-        }
-      }else if( std::find( d_consts[tn].begin(), d_consts[tn].end(), n )==d_consts[tn].end() ){
-        d_consts[tn].push_back( n );
-        Trace("quant-epr") << "...constant of type " << tn << " : " << n << std::endl;
-      }
-    }
-  }
-}
-
-void QuantEPR::registerAssertion( Node assertion ) {
-  std::map< int, std::map< Node, bool > > visited;
-  registerNode( assertion, visited, false, true, true );
-}
-
-void QuantEPR::finishInit() {
-  Trace("quant-epr-debug") << "QuantEPR::finishInit" << std::endl;
-  for( std::map< TypeNode, std::vector< Node > >::iterator it = d_consts.begin(); it != d_consts.end(); ++it ){
-    Assert( d_epr_axiom.find( it->first )==d_epr_axiom.end() );
-    Trace("quant-epr-debug") << "process " << it->first << std::endl;
-    if( d_non_epr.find( it->first )!=d_non_epr.end() ){
-      Trace("quant-epr-debug") << "...non-epr" << std::endl;
-      it->second.clear();
-    }else{
-      Trace("quant-epr-debug") << "...epr, #consts = " << it->second.size() << std::endl;
-      if( it->second.empty() ){
-        it->second.push_back( NodeManager::currentNM()->mkSkolem( "e", it->first, "EPR base constant" ) );
-      }
-      if( Trace.isOn("quant-epr") ){
-        Trace("quant-epr") << "Type " << it->first << " is EPR, with constants : " << std::endl;
-        for( unsigned i=0; i<it->second.size(); i++ ){
-          Trace("quant-epr") << "  " << it->second[i] << std::endl;
-        }
-      }
-    }
-  }
-}
-
-bool QuantEPR::isEPRConstant( TypeNode tn, Node k ) {
-  return std::find( d_consts[tn].begin(), d_consts[tn].end(), k )!=d_consts[tn].end();
-}
-
-void QuantEPR::addEPRConstant( TypeNode tn, Node k ) {
-  Assert( isEPR( tn ) );
-  Assert( d_epr_axiom.find( tn )==d_epr_axiom.end() );
-  if( !isEPRConstant( tn, k ) ){
-    d_consts[tn].push_back( k );
-  }
-}
-
-Node QuantEPR::mkEPRAxiom( TypeNode tn ) {
-  Assert( isEPR( tn ) );
-  std::map< TypeNode, Node >::iterator ita = d_epr_axiom.find( tn );
-  if( ita==d_epr_axiom.end() ){
-    std::vector< Node > disj;
-    Node x = NodeManager::currentNM()->mkBoundVar( tn );
-    for( unsigned i=0; i<d_consts[tn].size(); i++ ){
-      disj.push_back( NodeManager::currentNM()->mkNode( EQUAL, x, d_consts[tn][i] ) );
-    }
-    Assert( !disj.empty() );
-    d_epr_axiom[tn] = NodeManager::currentNM()->mkNode( FORALL, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, x ), disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( OR, disj ) );
-    return d_epr_axiom[tn];
-  }else{
-    return ita->second;
-  }
-}
-
-
-void TermRecBuild::addTerm( Node n ) {
-  d_term.push_back( n );
-  std::vector< Node > currc;
-  d_kind.push_back( n.getKind() );
-  if( n.getMetaKind()==kind::metakind::PARAMETERIZED ){
-    currc.push_back( n.getOperator() );
-    d_has_op.push_back( true );
-  }else{
-    d_has_op.push_back( false );
-  }
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    currc.push_back( n[i] );
-  }
-  d_children.push_back( currc );  
-}
-
-void TermRecBuild::init( Node n ) {
-  Assert( d_term.empty() );
-  addTerm( n );
-}
-
-void TermRecBuild::push( unsigned p ) {
-  Assert( !d_term.empty() );
-  unsigned curr = d_term.size()-1;
-  Assert( d_pos.size()==curr );
-  Assert( d_pos.size()+1==d_children.size() );
-  Assert( p<d_term[curr].getNumChildren() );
-  addTerm( d_term[curr][p] );
-  d_pos.push_back( p );
-}
-
-void TermRecBuild::pop() {
-  Assert( !d_pos.empty() );
-  d_pos.pop_back();
-  d_kind.pop_back();
-  d_has_op.pop_back();
-  d_children.pop_back();
-  d_term.pop_back(); 
-}
-
-void TermRecBuild::replaceChild( unsigned i, Node n ) {
-  Assert( !d_term.empty() );
-  unsigned curr = d_term.size()-1;
-  unsigned o = d_has_op[curr] ? 1 : 0;
-  d_children[curr][i+o] = n;
-}
-
-Node TermRecBuild::getChild( unsigned i ) {
-  unsigned curr = d_term.size()-1;
-  unsigned o = d_has_op[curr] ? 1 : 0;
-  return d_children[curr][i+o];
-}
-
-Node TermRecBuild::build( unsigned d ) {
-  Assert( d_pos.size()+1==d_term.size() );
-  Assert( d<d_term.size() );
-  int p = d<d_pos.size() ? d_pos[d] : -2;
-  std::vector< Node > children;
-  unsigned o = d_has_op[d] ? 1 : 0;
-  for( unsigned i=0; i<d_children[d].size(); i++ ){
-    Node nc;
-    if( p+o==i ){
-      nc = build( d+1 );
-    }else{
-      nc = d_children[d][i];
-    }
-    children.push_back( nc );
-  }
-  return NodeManager::currentNM()->mkNode( d_kind[d], children );
-}
-
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */

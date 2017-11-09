@@ -446,6 +446,23 @@ all \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_cbqiBvIneqModeHelp =
+    "\
+Modes for single invocation techniques, supported by --cbqi-bv-ineq:\n\
+\n\
+eq-slack (default)  \n\
++ Solve for the inequality using the slack value in the model, e.g.,\
+  t > s becomes t = s + ( t-s )^M.\n\
+\n\
+eq-boundary \n\
++ Solve for the boundary point of the inequality, e.g.,\
+  t > s becomes t = s+1.\n\
+\n\
+keep  \n\
++ Solve for the inequality directly using side conditions for invertibility.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_cegqiSingleInvHelp = "\
 Modes for single invocation techniques, supported by --cegqi-si:\n\
 \n\
@@ -536,7 +553,6 @@ all \n\
 + Minimize all inferred bounds.\n\
 \n\
 ";
-
 
 theory::quantifiers::InstWhenMode OptionsHandler::stringToInstWhenMode(std::string option, std::string optarg) throw(OptionException) {
   if(optarg == "pre-full") {
@@ -769,6 +785,34 @@ theory::quantifiers::IteLiftQuantMode OptionsHandler::stringToIteLiftQuantMode(s
   } else {
     throw OptionException(std::string("unknown option for --ite-lift-quant: `") +
                           optarg + "'.  Try --ite-lift-quant help.");
+  }
+}
+
+theory::quantifiers::CbqiBvIneqMode OptionsHandler::stringToCbqiBvIneqMode(
+    std::string option, std::string optarg) throw(OptionException)
+{
+  if (optarg == "eq-slack")
+  {
+    return theory::quantifiers::CBQI_BV_INEQ_EQ_SLACK;
+  }
+  else if (optarg == "eq-boundary")
+  {
+    return theory::quantifiers::CBQI_BV_INEQ_EQ_BOUNDARY;
+  }
+  else if (optarg == "keep")
+  {
+    return theory::quantifiers::CBQI_BV_INEQ_KEEP;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_cbqiBvIneqModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --cbqi-bv-ineq: `")
+                          + optarg
+                          + "'.  Try --cbqi-bv-ineq help.");
   }
 }
 
@@ -1042,7 +1086,7 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(std::string option
   } else if(optarg == "off") {
     return theory::bv::BITVECTOR_SLICER_OFF;
   } else if(optarg == "help") {
-    puts(s_bitblastingModeHelp.c_str());
+    puts(s_bvSlicerModeHelp.c_str());
     exit(1);
   } else {
     throw OptionException(std::string("unknown option for --bv-eq-slicer: `") +
@@ -1266,6 +1310,56 @@ SimplificationMode OptionsHandler::stringToSimplificationMode(std::string option
   }
 }
 
+const std::string OptionsHandler::s_sygusSolutionOutModeHelp =
+    "\
+Modes for finite model finding bound minimization, supported by --sygus-out:\n\
+\n\
+status \n\
++ Print only status for check-synth calls.\n\
+\n\
+status-and-def (default) \n\
++ Print status followed by definition corresponding to solution.\n\
+\n\
+status-or-def \n\
++ Print status if infeasible, or definition corresponding to\n\
+  solution if feasible.\n\
+\n\
+sygus-standard \n\
++ Print based on SyGuS standard.\n\
+\n\
+";
+
+SygusSolutionOutMode OptionsHandler::stringToSygusSolutionOutMode(
+    std::string option, std::string optarg) throw(OptionException)
+{
+  if (optarg == "status")
+  {
+    return SYGUS_SOL_OUT_STATUS;
+  }
+  else if (optarg == "status-and-def")
+  {
+    return SYGUS_SOL_OUT_STATUS_AND_DEF;
+  }
+  else if (optarg == "status-or-def")
+  {
+    return SYGUS_SOL_OUT_STATUS_OR_DEF;
+  }
+  else if (optarg == "sygus-standard")
+  {
+    return SYGUS_SOL_OUT_STANDARD;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusSolutionOutModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --sygus-out: `")
+                          + optarg
+                          + "'.  Try --sygus-out help.");
+  }
+}
 
 void OptionsHandler::setProduceAssertions(std::string option, bool value) throw() {
   options::produceAssertions.set(value);

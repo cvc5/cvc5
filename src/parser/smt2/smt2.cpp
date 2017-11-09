@@ -381,14 +381,16 @@ void Smt2::setLogic(std::string name) {
   } else {
     d_logic = name;
   }
-  
-  // if sygus is enabled, we must enable UF, datatypes and integer arithmetic
+
+  // if sygus is enabled, we must enable UF, datatypes, integer arithmetic and
+  // higher-order
   if(sygus()) {
     // get unlocked copy, modify, copy and relock
     LogicInfo log(d_logic.getUnlockedCopy());
     log.enableTheory(theory::THEORY_UF);
     log.enableTheory(theory::THEORY_DATATYPES);
     log.enableIntegers();
+    log.enableHigherOrder();
     d_logic = log;
     d_logic.lock();
   }
@@ -1081,13 +1083,17 @@ const void Smt2::getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed ) {
 }
 
 const void Smt2::addSygusFunSymbol( Type t, Expr synth_fun ){
-  //FIXME #1205 : we should not create a proxy, instead quantify on synth_fun and set Type t as an attribute
+  // When constructing the synthesis conjecture, we quantify on the
+  // (higher-order) bound variable synth_fun.
+  d_sygusFunSymbols.push_back(synth_fun);
+
+  // Variable "sfproxy" carries the type, which may be a SyGuS datatype
+  // that corresponds to syntactic restrictions.
   Expr sym = mkBoundVar("sfproxy", t);
-  d_sygusFunSymbols.push_back(sym);
-  
   std::vector< Expr > attr_value;
-  attr_value.push_back( synth_fun );
-  Command* cattr = new SetUserAttributeCommand("sygus-synth-fun", sym, attr_value);
+  attr_value.push_back(sym);
+  Command* cattr =
+      new SetUserAttributeCommand("sygus-synth-grammar", synth_fun, attr_value);
   cattr->setMuted(true);
   preemptCommand(cattr);
 }

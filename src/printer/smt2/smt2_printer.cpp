@@ -94,7 +94,7 @@ static std::string maybeQuoteSymbol(const std::string& s) {
 
 static bool stringifyRegexp(Node n, stringstream& ss) {
   if(n.getKind() == kind::STRING_TO_REGEXP) {
-    ss << n[0].getConst<String>().toString();
+    ss << n[0].getConst<String>().toString(true);
   } else if(n.getKind() == kind::REGEXP_CONCAT) {
     for(unsigned i = 0; i < n.getNumChildren(); ++i) {
       if(!stringifyRegexp(n[i], ss)) {
@@ -256,7 +256,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
     case kind::CONST_STRING: {
       //const std::vector<unsigned int>& s = n.getConst<String>().getVec();
-      std::string s = n.getConst<String>().toString();
+      std::string s = n.getConst<String>().toString(true);
       out << '"';
       for(size_t i = 0; i < s.size(); ++i) {
         //char c = String::convertUnsignedIntToChar(s[i]);
@@ -1187,7 +1187,8 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
   const theory::TheoryModel& tm = (const theory::TheoryModel&) m;
   if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
     TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
-    const std::map< TypeNode, std::vector< Node > >& type_reps = tm.d_rep_set.d_type_reps;
+    const theory::RepSet* rs = tm.getRepSet();
+    const std::map<TypeNode, std::vector<Node> >& type_reps = rs->d_type_reps;
 
     std::map< TypeNode, std::vector< Node > >::const_iterator tn_iterator = type_reps.find( tn );
     if( options::modelUninterpDtEnum() && tn.isSort() && tn_iterator != type_reps.end() ){
@@ -1241,8 +1242,10 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
     } else {
       if( options::modelUninterpDtEnum() && val.getKind() == kind::STORE ) {
         TypeNode tn = val[1].getType();
-        if (tn.isSort() && tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
-          Cardinality indexCard((*tm.d_rep_set.d_type_reps.find(tn)).second.size());
+        const theory::RepSet* rs = tm.getRepSet();
+        if (tn.isSort() && rs->d_type_reps.find(tn) != rs->d_type_reps.end())
+        {
+          Cardinality indexCard((*rs->d_type_reps.find(tn)).second.size());
           val = theory::arrays::TheoryArraysRewriter::normalizeConstant( val, indexCard );
         }
       }

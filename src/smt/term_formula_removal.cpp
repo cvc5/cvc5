@@ -116,7 +116,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   }
   //if a lambda, do lambda-lifting
   if( node.getKind() == kind::LAMBDA && !inQuant ){
-    // Make the skolem to represent the ITE
+    // Make the skolem to represent the lambda
     skolem = nodeManager->mkSkolem("lambdaF", nodeType, "a function introduced due to term-level lambda removal");
 
     // The new assertion
@@ -134,6 +134,25 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
     // axiom defining skolem
     newAssertion = nodeManager->mkNode( kind::FORALL, children );
   }
+
+  // If a Hilbert choice function, witness the choice.
+  //   For details on this operator, see
+  //   http://planetmath.org/hilbertsvarepsilonoperator.
+  if (node.getKind() == kind::CHOICE && !inQuant)
+  {
+    // Make the skolem to witness the choice
+    skolem = nodeManager->mkSkolem(
+        "choiceK",
+        nodeType,
+        "a skolem introduced due to term-level Hilbert choice removal");
+
+    Assert(node[0].getNumChildren() == 1);
+
+    // The new assertion is the assumption that the body
+    // of the choice operator holds for the Skolem
+    newAssertion = node[1].substitute(node[0][0], skolem);
+  }
+
   //if a non-variable Boolean term, replace it
   if(node.getKind()!=kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean() && inTerm && !inQuant ){//(!inQuant || !node.hasBoundVar())){
 
