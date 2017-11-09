@@ -350,6 +350,16 @@ public:
   }
 
   /**
+   * Compute addition of this Integer x + y modulo m.
+   */
+  Integer modAdd(const Integer& y, const Integer& m) const;
+
+  /**
+   * Compute multiplication of this Integer x * y modulo m.
+   */
+  Integer modMultiply(const Integer& y, const Integer& m) const;
+
+  /**
    * Compute modular inverse x^-1 of this Integer x modulo m with m > 0.
    * Returns a value x^-1 with 0 <= x^-1 < m such that x * x^-1 = 1 modulo m
    * if such an inverse exists, and -1 otherwise.
@@ -361,29 +371,7 @@ public:
    * Note that if x and m are coprime, then x^-1 > 0 if m > 1 and x^-1 = 0
    * if m = 1 (the zero ring).
    */
-  Integer modInverse (const Integer & m) const;
-
-  /**
-   * Compute multiplication of this Integer x * y modulo m.
-   */
-  Integer modMultiply (const Integer & y, const Integer & m) const {
-    cln::cl_modint_ring ry = cln::find_modint_ring (m.d_value);
-    cln::cl_MI xm = ry->canonhom (d_value);
-    cln::cl_MI ym = ry->canonhom (y.d_value);
-    cln::cl_MI res = xm * ym;
-    return Integer (ry->retract (res));
-  }
-
-  /**
-   * Compute addition of this Integer x + y modulo m.
-   */
-  Integer modAdd (const Integer & y, const Integer & m) const {
-    cln::cl_modint_ring ry = cln::find_modint_ring (m.d_value);
-    cln::cl_MI xm = ry->canonhom (d_value);
-    cln::cl_MI ym = ry->canonhom (y.d_value);
-    cln::cl_MI res = xm + ym;
-    return Integer (ry->retract (res));
-  }
+  Integer modInverse(const Integer& m) const;
 
   /**
    * Return true if *this exactly divides y.
