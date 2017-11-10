@@ -364,7 +364,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::CHAIN: break;
   case kind::FUNCTION_TYPE:
     out << "->";
-    for(size_t i = 0; i < n.getNumChildren(); ++i) {
+    for (size_t i = 0; i < n.getNumChildren(); ++i)
+    {
       out << " ";
       toStream(out, n[i], toDepth, types, TypeNode::null());
     }
@@ -382,11 +383,13 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
     // uf theory
   case kind::APPLY_UF: typeChildren = true; break;
-    // higher-order
+  // higher-order
   case kind::HO_APPLY: break;
-  case kind::LAMBDA: out << smtKindString(k) << " "; break;
-  
-    // arith theory
+  case kind::LAMBDA:
+    out << smtKindString(k) << " ";
+    break;
+
+  // arith theory
   case kind::PLUS:
   case kind::MULT:
   case kind::NONLINEAR_MULT:
@@ -819,10 +822,11 @@ static string smtKindString(Kind k) throw() {
 
     // uf theory
   case kind::APPLY_UF: break;
-  
-  case kind::LAMBDA: return "lambda";
 
-    // arith theory
+  case kind::LAMBDA:
+    return "lambda";
+
+  // arith theory
   case kind::PLUS: return "+";
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
@@ -1310,32 +1314,43 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
   }
 }
 
-void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const throw() {
-  if( n.getKind()==kind::APPLY_CONSTRUCTOR ){
+void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const throw()
+{
+  if (n.getKind() == kind::APPLY_CONSTRUCTOR)
+  {
     TypeNode tn = n.getType();
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-    if( dt.isSygus() ){
-      int cIndex = Datatype::indexOf( n.getOperator().toExpr() );
-      Assert( !dt[cIndex].getSygusOp().isNull() );
-      SygusPrintCallback * spc = dt[cIndex].getSygusPrintCallback();
-      if( spc!=nullptr ){
-        spc->toStreamSygus( this, out, n.toExpr() );        
-      }else{
-        if( n.getNumChildren()>0 ){
+    if (dt.isSygus())
+    {
+      int cIndex = Datatype::indexOf(n.getOperator().toExpr());
+      Assert(!dt[cIndex].getSygusOp().isNull());
+      SygusPrintCallback* spc = dt[cIndex].getSygusPrintCallback();
+      if (spc != nullptr)
+      {
+        spc->toStreamSygus(this, out, n.toExpr());
+      }
+      else
+      {
+        if (n.getNumChildren() > 0)
+        {
           out << "(";
         }
         out << dt[cIndex].getSygusOp();
-        if( n.getNumChildren()>0 ){
-          for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if (n.getNumChildren() > 0)
+        {
+          for (unsigned i = 0; i < n.getNumChildren(); i++)
+          {
             out << " ";
-            toStreamSygus( out, n[i] );
+            toStreamSygus(out, n[i]);
           }
           out << ")";
         }
       }
       return;
     }
-  }else{
+  }
+  else
+  {
     // cannot convert term to analog, print original
     toStream(out, n, -1, false, 1);
   }
@@ -1764,7 +1779,7 @@ static OutputLanguage variantToLanguage(Variant variant) throw() {
     return language::output::LANG_SMTLIB_V2_5;
   }
 }
-  
+
 }/* CVC4::printer::smt2 namespace */
 }/* CVC4::printer namespace */
 }/* CVC4 namespace */

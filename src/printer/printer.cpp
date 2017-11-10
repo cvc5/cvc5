@@ -70,7 +70,8 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   }
 }/* Printer::makePrinter() */
 
-void Printer::toStreamSygus(std::ostream& out, TNode n) const throw() {
+void Printer::toStreamSygus(std::ostream& out, TNode n) const throw()
+{
   // no sygus-specific printing associated with this printer,
   // just print the original term
   toStream(out, n, -1, false, 1);

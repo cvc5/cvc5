@@ -61,7 +61,7 @@ public:
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n,
                         int toDepth, bool types, size_t dag) const throw() = 0;
-                        
+
   /** Write a Command out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const Command* c,
                         int toDepth, bool types, size_t dag) const throw() = 0;
@@ -75,18 +75,18 @@ public:
   /** Write an UnsatCore out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const UnsatCore& core) const throw();
 
-  /** 
-   * Write the term that sygus datatype term n 
+  /**
+   * Write the term that sygus datatype term n
    * encodes to a stream with this Printer.
-   * For example, consider the datatype term 
-   *   (C_plus (C_minus C_x C_0) C_y) 
+   * For example, consider the datatype term
+   *   (C_plus (C_minus C_x C_0) C_y)
    * where C_plus, C_minus, C_x, C_0, C_y are constructors
    * whose sygus operators PLUS, MINUS, x, 0, y.
    * This is equivalent to printing the integer term:
    *   (PLUS (MINUS x 0) y)
    */
   virtual void toStreamSygus(std::ostream& out, TNode n) const throw();
-  
+
 };/* class Printer */
 
 }/* CVC4 namespace */
