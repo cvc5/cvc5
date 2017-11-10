@@ -4617,7 +4617,7 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
         quantifiers::SingleInvocationPartition sip;
         std::vector<Node> funcs;
         funcs.insert(funcs.end(), conj[0].begin(), conj[0].end());
-        sip.init(funcs, conj_se);
+        sip.init(funcs, conj_se.negate());
         Trace("smt-synth") << "...finished, got:" << std::endl;
         sip.debugPrint("smt-synth");
 
@@ -4682,7 +4682,7 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
           conj_se_ngsi_subs = NodeManager::currentNM()->mkNode(
               kind::EXISTS,
               NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, qe_vars),
-              conj_se_ngsi_subs);
+              conj_se_ngsi_subs.negate());
 
           Trace("smt-synth") << "Run quantifier elimination on "
                              << conj_se_ngsi_subs << std::endl;
