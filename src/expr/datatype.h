@@ -376,9 +376,9 @@ class CVC4_PUBLIC DatatypeConstructor {
    * in the terminology of "Datatypes with Shared Selectors", is:
    *   sel_{dtt}^{T,atos(T,C,index)}
    * where C is this constructor, and T is the type
-   * of the index^th field of this constructor. 
-   * The semantics of sel_{dtt}^{T,n}( t ) is the n^th field of 
-   * type T of constructor term t if one exists, or is 
+   * of the index^th field of this constructor.
+   * The semantics of sel_{dtt}^{T,n}( t ) is the n^th field of
+   * type T of constructor term t if one exists, or is
    * unconstrained otherwise.
    */
   Expr getSelectorInternal(Type dtt, size_t index) const;
@@ -455,10 +455,10 @@ class CVC4_PUBLIC DatatypeConstructor {
    * its argument index for this constructor.
    */
   mutable std::map<Type, std::map<Expr, unsigned> > d_shared_selector_index;
-  /** resolve 
-   * 
-   * This resolves (initializes) the constructor. For details 
-   * on how datatypes and their constructors are resolved, see 
+  /** resolve
+   *
+   * This resolves (initializes) the constructor. For details
+   * on how datatypes and their constructors are resolved, see
    * documentation for Datatype::resolve.
    */
   void resolve(ExprManager* em,
@@ -472,18 +472,18 @@ class CVC4_PUBLIC DatatypeConstructor {
                                     DatatypeResolutionException);
 
   /** Helper function for resolving parametric datatypes.
-   * 
+   *
    * This replaces instances of the SortConstructorType produced for unresolved
    * parametric datatypes, with the corresponding resolved DatatypeType.  For
-   * example, take the parametric definition of a list, 
+   * example, take the parametric definition of a list,
    *    list[T] = cons(car : T, cdr : list[T]) | null.
    * If "range" is the unresolved parametric datatype:
-   *   DATATYPE list = 
-   *    cons(car: SORT_TAG_1, 
+   *   DATATYPE list =
+   *    cons(car: SORT_TAG_1,
    *         cdr: SORT_TAG_2(SORT_TAG_1)) | null END;,
    * this function will return the resolved type:
-   *   DATATYPE list = 
-   *    cons(car: SORT_TAG_1, 
+   *   DATATYPE list =
+   *    cons(car: SORT_TAG_1,
    *         cdr: (list PARAMETERIC_DATATYPE SORT_TAG_1)) | null END;
    */
   Type doParametricSubstitution(
@@ -763,7 +763,7 @@ public:
    * cardinality of this datatype is dependent upon). For example, for :
    *   stream :=  cons( head1 : U1, head2 : U2, tail : stream )
    * Then, the recursive singleton argument types of stream are { U1, U2 },
-   * since if U1 and U2 have cardinality one, then stream has cardinality 
+   * since if U1 and U2 have cardinality one, then stream has cardinality
    * one as well.
    *
    * The versions of these methods that takes Type t is required
