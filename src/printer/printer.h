@@ -76,7 +76,7 @@ public:
   virtual void toStream(std::ostream& out, const UnsatCore& core) const throw();
 
   /** 
-   * Write the term that sygus datatype term node n 
+   * Write the term that sygus datatype term n 
    * encodes to a stream with this Printer.
    * For example, consider the datatype term 
    *   (C_plus (C_minus C_x C_0) C_y) 

@@ -34,8 +34,7 @@ void SygusLetExpressionConstructorPrinter::doStrReplace(std::string& str, const 
   }
 }
   
-void SygusLetExpressionConstructorPrinter::toStreamSygus( std::ostream& out, Expr e,
-                                                          OutputLanguage language ) 
+void SygusLetExpressionConstructorPrinter::toStreamSygus( Printer * p, std::ostream& out, Expr e ) 
 {
   std::stringstream let_out;
   //print as let term
@@ -56,7 +55,7 @@ void SygusLetExpressionConstructorPrinter::toStreamSygus( std::ostream& out, Exp
       //it should be printed as a let argument
       let_out << "(";
       let_out << lv << " " << lv.getType() << " ";
-      Printer::getPrinter(language)->toStreamSygus( let_out, e[i] );
+      p->toStreamSygus( let_out, e[i] );
       let_out << ")";
     }
   }
@@ -66,7 +65,7 @@ void SygusLetExpressionConstructorPrinter::toStreamSygus( std::ostream& out, Exp
   //print the body
   Node slet_body = d_let_body.substitute( subs_lvs.begin(), subs_lvs.end(), new_lvs.begin(), new_lvs.end() );
   new_lvs.insert( new_lvs.end(), lvs.begin(), lvs.end() );
-  Printer::getPrinter(language)->toStreamSygus( let_out, slet_body );
+  p->toStreamSygus( let_out, slet_body );
   if( d_sygus_num_let_input_args>0 ){
     let_out << ")";
   }
@@ -78,7 +77,7 @@ void SygusLetExpressionConstructorPrinter::toStreamSygus( std::ostream& out, Exp
     old_str << new_lvs[i];
     std::stringstream new_str;
     if( i>=d_sygus_num_let_input_args ){
-      Printer::getPrinter(language)->toStreamSygus( new_str, Node::fromExpr( e[i] ) );
+      p->toStreamSygus( new_str, Node::fromExpr( e[i] ) );
     }else{
       new_str << d_sygus_let_args[i];
     }
@@ -93,8 +92,7 @@ d_name(name) {
   
 }
 
-void SygusNamedConstructorPrinter::toStreamSygus( std::ostream& out, Expr e,
-                                                  OutputLanguage language ) 
+void SygusNamedConstructorPrinter::toStreamSygus( Printer * p, std::ostream& out, Expr e ) 
 {
   if( e.getNumChildren()>0 ){
     out << "(";
@@ -103,7 +101,7 @@ void SygusNamedConstructorPrinter::toStreamSygus( std::ostream& out, Expr e,
   if( e.getNumChildren()>0 ){
     for( unsigned i=0; i<e.getNumChildren(); i++ ){
       out << " ";
-      Printer::getPrinter(language)->toStreamSygus( out, e[i] );
+      p->toStreamSygus( out, e[i] );
     }
     out << ")";
   }

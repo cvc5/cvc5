@@ -176,6 +176,8 @@ public:
 
 };/* class DatatypeConstructorArg */
 
+class Printer;
+
 /** sygus datatype constructor printer 
  * 
  * This is a virtual class that is used to specify
@@ -187,9 +189,14 @@ class CVC4_PUBLIC SygusPrintCallback {
 public:
   SygusPrintCallback(){}
   ~SygusPrintCallback(){}
-  /** prints term e to output stream out */
-  virtual void toStreamSygus( std::ostream& out, Expr e,
-                              OutputLanguage = language::output::LANG_AUTO ) = 0;
+  /** 
+   * Writes the term that sygus datatype expression e
+   * encodes to stream out. p is the printer that 
+   * requested that expression e be written on output
+   * stream out. Calls may be made to p to print 
+   * subterms of e.
+   */
+  virtual void toStreamSygus( const Printer * p, std::ostream& out, Expr e ) const = 0;
 };
 
 /**

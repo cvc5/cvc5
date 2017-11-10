@@ -52,9 +52,8 @@ class SygusLetExpressionConstructorPrinter : public SygusDatatypeConstructorPrin
 public:
   SygusLetExpressionPrinter( Node let_body, std::vector< Node >& let_args, unsigned ninput_args );
   ~SygusLetExpressionPrinter(){}
-  /** print sygus term */
-  virtual void toStreamSygus( std::ostream& out, Expr e,
-                              OutputLanguage language = language::output::LANG_AUTO ) override;
+  /** print sygus term e on output out using printer p */
+  virtual void toStreamSygus(const Printer * p, std::ostream& out, Expr e) const override;
 private:
   /** let body of the sygus term */
   Node d_sygus_let_body;
@@ -87,9 +86,8 @@ class SygusNamedConstructorPrinter : public SygusDatatypeConstructorPrinter
 public:
   SygusNamedConstructorPrinter( std::string name );
   ~SygusNamedConstructorPrinter(){}
-  /** print sygus term */
-  virtual void toStreamSygus( std::ostream& out, Expr e,
-                              OutputLanguage language = language::output::LANG_AUTO ) override;
+  /** print sygus term e on output out using printer p */
+  virtual void toStreamSygus(const Printer * p, std::ostream& out, Expr e) const override;
 private:
   /** the defined function name */
   std::string d_name;
