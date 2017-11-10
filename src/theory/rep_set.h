@@ -163,17 +163,17 @@ public:
  bool isFinished() const;
  /** get domain size of the i^th field of this iterator */
  unsigned domainSize(unsigned i);
- /** get the i_th term we are considering */
+ /** get the i^th term in the tuple we are considering */
  Node getCurrentTerm(unsigned v, bool valTerm = false);
- /** get the number of terms we are considering */
+ /** get the number of terms in the tuple we are considering */
  unsigned getNumTerms() { return d_index_order.size(); }
  /** get index order, returns var # */
  unsigned getIndexOrder(unsigned v) { return d_index_order[v]; }
  /** get variable order, returns index # */
  unsigned getVariableOrder(unsigned i) { return d_var_order[i]; }
  /** is incomplete
-  * Returns true if we only iterating over a strict subset of
-  * the domain of the quantified formula or function
+  * Returns true if we are iterating over a strict subset of
+  * the domain of the quantified formula or function.
   */
  bool isIncomplete() { return d_incomplete; }
  /** debug print methods */
@@ -194,7 +194,13 @@ private:
  std::vector<TypeNode> d_types;
  /** for each argument, the domain we are iterating over */
  std::vector<std::vector<Node> > d_domain_elements;
- /** initialize */
+ /** initialize 
+  * This is called when the owner of this iterator is set.
+  * It initializes the typing information for the types 
+  * that are involved in this iterator, initializes the
+  * domain elements we are iterating over, and variable
+  * and index orderings we are considering.
+  */
  bool initialize();
  /** owner
   * This is the term that we are iterating for, which may either be:
@@ -220,7 +226,7 @@ private:
  *      ...
  */
  std::vector<unsigned> d_index_order;
- /** variables to index they are considered at
+ /** Map from variables to the index they are considered at
  * For example, if d_index_order = { 2, 0, 1 }
  *    then d_var_order = { 0 -> 1, 1 -> 2, 2 -> 0 }
  */
@@ -265,9 +271,10 @@ class RepBoundExt
    * initial is whether this is the first call
    * to this function for this iterator.
    *
-   * This method returns false if the resulting
-   * set of elements is empty, which indicates that
-   * the iterator can terminate.
+   * This method returns false if we were unable 
+   * to establish (finite) bounds for the current 
+   * field we are considering, which indicates that
+   * the iterator will terminate with a failure.
    */
   virtual bool resetIndex(RepSetIterator* rsi,
                           Node owner,

@@ -757,12 +757,12 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
  * of a quantified formula:
  *   forall xyz. P( x, y, z )
  * may be:
- *   ( 0, 0, 0 ) -> true
- *   ( *, 1, 2 ) -> true
- *   ( *, *, * ) -> false
+ *   ( 0, 0, 0 ) -> false
+ *   ( *, 1, 2 ) -> false
+ *   ( *, *, * ) -> true
  * Indicating that the quantified formula evaluates
- * to true in the current model for x=0, y=0, z=0,
- * or y=1, z=2 for any x, and evaluates to false
+ * to false in the current model for x=0, y=0, z=0,
+ * or y=1, z=2 for any x, and evaluates to true
  * otherwise.
  * This class is used if we wish
  * to iterate over all values corresponding to one
@@ -783,16 +783,16 @@ class RepBoundFmcEntry : public QRepBoundExt
   virtual RepSetIterator::RsiEnumType setBound(
       Node owner, unsigned i, std::vector<Node>& elements) override
   {
-    if( d_fm->isInterval(d_entry[i]) ){
-      // explicitly add the interval?
-    }else if( d_fm->isStar(d_entry[i]) ){
-      // must add the full range
-    }else{
-      //only need to consider the single point
-      elements.push_back( d_entry[i] );
-      return RepSetIterator::ENUM_DEFAULT;
-    }
-    return QRepBoundExt::setBound(owner, i, elements);
+  if( d_fm->isInterval(d_entry[i]) ){
+    // explicitly add the interval?
+  }else if( d_fm->isStar(d_entry[i]) ){
+    // must add the full range
+  }else{
+    //only need to consider the single point
+    elements.push_back( d_entry[i] );
+    return RepSetIterator::ENUM_DEFAULT;
+  }
+  return QRepBoundExt::setBound(owner, i, elements);
   }
 
  private:

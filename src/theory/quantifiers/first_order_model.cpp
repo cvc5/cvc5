@@ -223,11 +223,8 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
       Assert(d_rep_set.hasType(tn));
       return true;
     }
-    else
-    {
-      Trace("fm-debug") << "  variable cannot be bounded." << std::endl;
-      return false;
-    }
+    Trace("fm-debug") << "  variable cannot be bounded." << std::endl;
+    return false;
   }
 }
 
