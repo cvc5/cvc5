@@ -580,8 +580,8 @@ public:
    * function, then this function returns range itself.
    *
    * If range is a function type, we add its function argument sorts to sorts
-   * and consider its function range as the new range. For each sort S added 
-   * to sorts in this process, we add a new bound variable of sort S to 
+   * and consider its function range as the new range. For each sort S added
+   * to sorts in this process, we add a new bound variable of sort S to
    * flattenVars.
    *
    * For example:
@@ -607,7 +607,7 @@ public:
    *    (define-fun Q ((x Int)) (-> Int Int) (lambda y (P x)))
    * is equivalent to the command:
    *    (define-fun Q ((x Int) (z Int)) Int (@ (lambda y (P x)) z))
-   * where @ is (higher-order) application. In this example, z is added to 
+   * where @ is (higher-order) application. In this example, z is added to
    * flattenVars.
    */
   Type mkFlatFunctionType(std::vector<Type>& sorts,
