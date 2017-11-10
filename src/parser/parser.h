@@ -584,24 +584,28 @@ public:
    * in this process, we add a new bound variable of sort S to flattenVars.
    *
    * For example:
-   *   mkFlattenFunctionType( { Int, (-> Real Real) }, (-> Int Bool), {} ) will:
-   *   * returns the the function type (-> Int (-> Real Real) Int Bool)
-   *   * updates sorts to { Int, (-> Real Real), Int },
-   *   * updates flattenVars to { x }, where x is bound variable of type Int.
+   * mkFlattenFunctionType( { Int, (-> Real Real) }, (-> Int Bool), {} ) will:
+   * - returns the the function type (-> Int (-> Real Real) Int Bool)
+   * - updates sorts to { Int, (-> Real Real), Int },
+   * - updates flattenVars to { x }, where x is bound variable of type Int.
    *
-   * Only one iteration of flattening is run.
+   * Notice that this method performs only one level of flattening, for example,
+   * mkFlattenFunctionType( { Int, (-> Real Real) }, (-> Int (-> Int Bool)), {} ) will:
+   * - returns the the function type (-> Int (-> Real Real) Int (-> Int Bool))
+   * - updates sorts to { Int, (-> Real Real), Int },
+   * - updates flattenVars to { x }, where x is bound variable of type Int.
    *
    * This method is required so that we do not return functions
    * that have function return type (these give an unhandled exception 
    * in the ExprManager). For examples of the equivalence between function
    * definitions in the proposed higher-order extension of the smt2 language,         
-   * see page 3 of http://matryoshka.gforge.inria.fr/pubs/PxTP2017.pdf
+   * see page 3 of http://matryoshka.gforge.inria.fr/pubs/PxTP2017.pdf.
    *
    * The argument flattenVars is needed in the case of defined functions
    * with function return type. These have implicit arguments, for instance:
    *    (define-fun Q ((x Int)) (-> Int Int) (lambda y (P x)))
    * is equivalent to the command:
-   *    (define-fun Q ((x Int) (z Int)) Int ((lambda y (P x)) z))
+   *    (define-fun Q ((x Int) (z Int)) Int (lambda y (P x)))
    * In this example, z is added to flattenVars.
    */
   Type mkFlatFunctionType(std::vector<Type>& sorts, 
@@ -622,7 +626,9 @@ public:
   *  (HO_APPLY (HO_APPLY f a) b)
   *
   * If args is non-empty, the type of expr should be (-> T0 ... Tn T),
-  * where args[i-startIndex].getType() = Ti for each i where startIndex <= i < args.size().
+  * where args[i-startIndex].getType() = Ti for each i where 
+  * startIndex <= i < args.size(), otherwise the returned expression
+  * will not be well-typed.
   */
   Expr mkHoApply( Expr expr, std::vector<Expr>& args, unsigned startIndex=0 );
   

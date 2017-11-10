@@ -384,15 +384,7 @@ void Smt2::pushDefineFunRecScope(
     bvs.push_back( v );
     f_app.push_back( v );
   }
-  
-  // Check whether the function has any additional arguments that are not explicitly
-  // named. This can happen when we have define-fun-rec whose return type is a function.
-  // a function. Note the equivalence:
-  //    (define-fun-rec Q ((x Int)) (-> Int Int) ( (lambda y (P x y))))
-  // which is equivalent to:
-  //    (define-fun-rec Q ((x Int) (z Int)) Int ( ((lambda y (P x y)) z)))
-  // Here, z is a member of flattenVars and hence is added to bvs.
-  
+
   bvs.insert( bvs.end(), flattenVars.begin(), flattenVars.end() );
   
   // make the function application
