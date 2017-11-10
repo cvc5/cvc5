@@ -210,10 +210,10 @@ struct CegConjectureProcessFun
    *     returns x1+x2+q
    *   inferDefinition( t+r, term_to_arg_carry, free_vars )
    *     returns null
-   * 
+   *
    * Notice that multiple definitions are possible, e.g. above:
    *  inferDefinition( s, term_to_arg_carry, free_vars )
-   *    may return either s or x2     
+   *    may return either s or x2
    * TODO (#1210) : try multiple definitions?
    */
   Node inferDefinition(
@@ -227,18 +227,18 @@ struct CegConjectureProcessFun
    * If def is non-null,
    * this function assigns def as a template definition
    * for the argument positions in args.
-   * This is called when there exists a term of the form  
+   * This is called when there exists a term of the form
    *   f( t1....tn )
    * in the synthesis conjecture that we are processing,
-   * where t_i = def * sigma for all i \in args, 
+   * where t_i = def * sigma for all i \in args,
    * for some substitution sigma, where def is a template
    * definition.
    *
-   * If def is null, then there exists a term of the form  
+   * If def is null, then there exists a term of the form
    *   f( t1....tn )
-   * where t_i = s for for all i \in args, and s is not 
+   * where t_i = s for for all i \in args, and s is not
    * a template definition. In this case, at least one
-   * argument in args must be marked as a relevant 
+   * argument in args must be marked as a relevant
    * argument position.
    *
    * Returns a value rid such that:
