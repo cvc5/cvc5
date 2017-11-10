@@ -859,7 +859,7 @@ public:
    * to synthesize using this sygus datatype.
    * For example, if we are synthesizing a binary
    * function f where solutions are of the form:
-   *   f = (\ xy. t[x,y])
+   *   f = (lambda (xy) t[x,y])
    * In this case, this method returns the
    * bound variable list containing x and y.
    */
@@ -889,8 +889,7 @@ public:
    *   D x T1 x ... x Tn -> T
    * where:
    *   D is the datatype type for this datatype,
-   *   T1...Tn are the types of the variables in
-   *     getSygusVarList(),
+   *   T1...Tn are the types of the variables in getSygusVarList(),
    *   T is getSygusType().
    */
   Expr getSygusEvaluationFunc() const;
