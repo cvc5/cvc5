@@ -191,7 +191,6 @@ void RepSet::toStream(std::ostream& out){
 RepSetIterator::RepSetIterator(const RepSet* rs, RepBoundExt* rext)
     : d_rs(rs), d_rext(rext), d_incomplete(false)
 {
-
 }
 
 unsigned RepSetIterator::domainSize(unsigned i)
@@ -278,7 +277,8 @@ bool RepSetIterator::initialize()
     std::vector<unsigned> varOrder;
     if (d_rext->getVariableOrder(d_owner, varOrder))
     {
-      if(Trace.isOn("bound-int-rsi")){
+      if (Trace.isOn("bound-int-rsi"))
+      {
         Trace("bound-int-rsi") << "Variable order : ";
         for (unsigned i = 0; i < varOrder.size(); i++)
         {
@@ -290,10 +290,11 @@ bool RepSetIterator::initialize()
       indexOrder.resize(varOrder.size());
       for (unsigned i = 0; i < varOrder.size(); i++)
       {
-        Assert(varOrder[i]<indexOrder.size());
+        Assert(varOrder[i] < indexOrder.size());
         indexOrder[varOrder[i]] = i;
       }
-      if(Trace.isOn("bound-int-rsi")){
+      if (Trace.isOn("bound-int-rsi"))
+      {
         Trace("bound-int-rsi") << "Will use index order : ";
         for (unsigned i = 0; i < indexOrder.size(); i++)
         {

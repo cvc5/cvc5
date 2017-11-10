@@ -783,16 +783,21 @@ class RepBoundFmcEntry : public QRepBoundExt
   virtual RepSetIterator::RsiEnumType setBound(
       Node owner, unsigned i, std::vector<Node>& elements) override
   {
-  if( d_fm->isInterval(d_entry[i]) ){
-    // explicitly add the interval?
-  }else if( d_fm->isStar(d_entry[i]) ){
-    // must add the full range
-  }else{
-    //only need to consider the single point
-    elements.push_back( d_entry[i] );
-    return RepSetIterator::ENUM_DEFAULT;
-  }
-  return QRepBoundExt::setBound(owner, i, elements);
+    if (d_fm->isInterval(d_entry[i]))
+    {
+      // explicitly add the interval?
+    }
+    else if (d_fm->isStar(d_entry[i]))
+    {
+      // must add the full range
+    }
+    else
+    {
+      // only need to consider the single point
+      elements.push_back(d_entry[i]);
+      return RepSetIterator::ENUM_DEFAULT;
+    }
+    return QRepBoundExt::setBound(owner, i, elements);
   }
 
  private:

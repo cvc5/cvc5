@@ -194,9 +194,9 @@ private:
  std::vector<TypeNode> d_types;
  /** for each argument, the domain we are iterating over */
  std::vector<std::vector<Node> > d_domain_elements;
- /** initialize 
+ /** initialize
   * This is called when the owner of this iterator is set.
-  * It initializes the typing information for the types 
+  * It initializes the typing information for the types
   * that are involved in this iterator, initializes the
   * domain elements we are iterating over, and variable
   * and index orderings we are considering.
@@ -271,8 +271,8 @@ class RepBoundExt
    * initial is whether this is the first call
    * to this function for this iterator.
    *
-   * This method returns false if we were unable 
-   * to establish (finite) bounds for the current 
+   * This method returns false if we were unable
+   * to establish (finite) bounds for the current
    * field we are considering, which indicates that
    * the iterator will terminate with a failure.
    */
