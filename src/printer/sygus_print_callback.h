@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_print.h
+/*! \file sygus_print_callback.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -78,9 +78,9 @@ private:
  *   A -> f( A ) | 0
  * where f is defined as:
  *   (define-fun ((x Int)) Int (+ x 1))
- * this constructor can be used to name the first 
- * sygus datatype constructor f, whose analog 
- * operator is (lambda (x) (+ x 1)).
+ * this class can be used as a callback for printing 
+ * the first sygus datatype constructor f, where we use
+ * analog operator (lambda (x) (+ x 1)). 
  */
 class SygusNamedConstructorPrinter : public SygusDatatypeConstructorPrinter
 {
