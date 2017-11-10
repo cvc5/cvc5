@@ -580,20 +580,18 @@ public:
    * function, then this function returns range itself.
    *
    * If range is a function type, we add its function argument sorts to sorts
-   * and
-   * consider its function range as the new range. For each sort S added to
-   * sorts
-   * in this process, we add a new bound variable of sort S to flattenVars.
+   * and consider its function range as the new range. For each sort S added 
+   * to sorts in this process, we add a new bound variable of sort S to 
+   * flattenVars.
    *
    * For example:
-   * mkFlattenFunctionType( { Int, (-> Real Real) }, (-> Int Bool), {} ) will:
+   * mkFlattenFunctionType( { Int, (-> Real Real) }, (-> Int Bool), {} ):
    * - returns the the function type (-> Int (-> Real Real) Int Bool)
    * - updates sorts to { Int, (-> Real Real), Int },
    * - updates flattenVars to { x }, where x is bound variable of type Int.
    *
    * Notice that this method performs only one level of flattening, for example,
-   * mkFlattenFunctionType( { Int, (-> Real Real) }, (-> Int (-> Int Bool)), {}
-   * ) will:
+   * mkFlattenFunctionType({ Int, (-> Real Real) }, (-> Int (-> Int Bool)), {}):
    * - returns the the function type (-> Int (-> Real Real) Int (-> Int Bool))
    * - updates sorts to { Int, (-> Real Real), Int },
    * - updates flattenVars to { x }, where x is bound variable of type Int.
@@ -618,15 +616,13 @@ public:
   /** mkFlatFunctionType
    * Same as above, but does not take argument flattenVars.
    * This is used when the arguments of the function are not important (for
-   * instance,
-   * if we are only using this type in a declare-fun).
+   * instance, if we are only using this type in a declare-fun).
    */
   Type mkFlatFunctionType(std::vector<Type>& sorts, Type range);
 
   /** mkHoApply
   * This returns the left-associative curried application of (function) expr to
-  * the
-  * arguments in args, starting at index startIndex.
+  * the arguments in args, starting at index startIndex.
   *
   * For example, mkHoApply( f, { a, b }, 0 ) returns
   *  (HO_APPLY (HO_APPLY f a) b)
