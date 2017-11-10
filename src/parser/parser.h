@@ -606,8 +606,9 @@ public:
    * with function return type. These have implicit arguments, for instance:
    *    (define-fun Q ((x Int)) (-> Int Int) (lambda y (P x)))
    * is equivalent to the command:
-   *    (define-fun Q ((x Int) (z Int)) Int (lambda y (P x)))
-   * In this example, z is added to flattenVars.
+   *    (define-fun Q ((x Int) (z Int)) Int (@ (lambda y (P x)) z))
+   * where @ is (higher-order) application. In this example, z is added to 
+   * flattenVars.
    */
   Type mkFlatFunctionType(std::vector<Type>& sorts,
                           Type range,
