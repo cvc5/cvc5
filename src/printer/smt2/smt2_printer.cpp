@@ -1306,6 +1306,36 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
   }
 }
 
+void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const throw() {
+  if( n.getKind()==kind::APPLY_CONSTRUCTOR ){
+    TypeNode tn = n.getType();
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    if( dt.isSygus() ){
+      int cIndex = Datatype::indexOf( n.getOperator().toExpr() );
+      Assert( !dt[cIndex].getSygusOp().isNull() );
+      SygusPrintCallback * spc = dt[cIndex].getSygusPrintCallback();
+      if( spc!=nullptr ){
+        spc->toStreamSygus( out, n.toExpr() );        
+      }else{
+        if( n.getNumChildren()>0 ){
+          out << "(";
+        }
+        out << dt[cIndex].getSygusOp();
+        if( n.getNumChildren()>0 ){
+          for( unsigned i=0; i<n.getNumChildren(); i++ ){
+            out << " ";
+            toStreamSygus( out, n[i] );
+          }
+          out << ")";
+        }
+      }
+      return;
+    }
+  }else{
+    // cannot convert term to analog, print original
+    toStream(out, n, -1, false, 1);
+  }
+}
 
 static void toStream(std::ostream& out, const AssertCommand* c) throw() {
   out << "(assert " << c->getExpr() << ")";
@@ -1730,7 +1760,7 @@ static OutputLanguage variantToLanguage(Variant variant) throw() {
     return language::output::LANG_SMTLIB_V2_5;
   }
 }
-
+  
 }/* CVC4::printer::smt2 namespace */
 }/* CVC4::printer namespace */
 }/* CVC4 namespace */

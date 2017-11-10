@@ -53,6 +53,11 @@ public:
   * with the core (UnsatCore::getSmtEngine) for printing named assertions.
   */
   void toStream(std::ostream& out, const UnsatCore& core) const throw();
+  /** 
+   * Write the term that sygus datatype term node n 
+   * encodes to a stream with this Printer.
+   */
+  virtual void toStreamSygus(std::ostream& out, TNode n) const throw() override;
 };/* class Smt2Printer */
 
 }/* CVC4::printer::smt2 namespace */
