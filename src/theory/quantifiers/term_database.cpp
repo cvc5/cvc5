@@ -14,20 +14,12 @@
 
 #include "theory/quantifiers/term_database.h"
 
-#include "expr/datatype.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
-#include "options/datatypes_options.h"
 #include "options/uf_options.h"
-#include "theory/quantifiers/ce_guided_instantiation.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fun_def_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/rewrite_engine.h"
-#include "theory/quantifiers/theory_quantifiers.h"
-#include "theory/quantifiers/trigger.h"
-#include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
@@ -250,10 +242,6 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
           d_ops.push_back(op);
           d_op_map[op].push_back( n );
           added.insert( n );
-          
-          if( d_quantEngine->getTermDatabaseSygus() ){
-            d_quantEngine->getTermDatabaseSygus()->registerEvalTerm( n );
-          }
         }
       }else{
         setTermInactive( n );

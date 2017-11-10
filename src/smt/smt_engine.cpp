@@ -2424,8 +2424,10 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
           fm = def.getFormula();
         }
 
-        Node instance = fm.substitute(formals.begin(), formals.end(),
-                                      n.begin(), n.end());
+        Node instance = fm.substitute(formals.begin(),
+                                      formals.end(),
+                                      n.begin(),
+                                      n.begin() + formals.size());
         Debug("expand") << "made : " << instance << endl;
 
         Node expanded = expandDefinitions(instance, cache, expandOnly);

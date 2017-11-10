@@ -92,7 +92,6 @@ private:
   /** The trail of elements. */
   KDTVec d_kdts;
 
-
   typedef std::unordered_map<Key, size_t, HashFcn> PositionMap;
   typedef typename PositionMap::iterator PM_iterator;
   typedef typename PositionMap::const_iterator PM_const_iterator;
@@ -124,13 +123,15 @@ private:
   }
 
 public:
-  /**
-   * Constant iterator for TrailHashMap.
-   * Only supports forward iteration.
-   * This always points at the end or a current element in the trail.
-   * This is done by iterating over the trail.
-   */
-  class const_iterator {
+ TrailHashMap() : d_kdts{}, d_posMap{}, d_uniqueKeys(0) {}
+
+ /**
+  * Constant iterator for TrailHashMap.
+  * Only supports forward iteration.
+  * This always points at the end or a current element in the trail.
+  * This is done by iterating over the trail.
+  */
+ class const_iterator {
   private:
     /** A vector iterator. */
     KDTVec_const_iterator d_it;
