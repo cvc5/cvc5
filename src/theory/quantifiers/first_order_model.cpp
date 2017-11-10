@@ -183,7 +183,8 @@ void FirstOrderModel::initializeModelForTerm( Node n, std::map< Node, bool >& vi
 
 Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
   //check if there is even any domain elements at all
-  if (!d_rep_set.hasType(tn) || d_rep_set.d_type_reps[tn].size()==0) {
+  if (!d_rep_set.hasType(tn) || d_rep_set.d_type_reps[tn].size() == 0)
+  {
     Trace("fm-debug") << "Must create domain element for " << tn << "..."
                       << std::endl;
     Node mbt = getModelBasisTerm(tn);
@@ -201,7 +202,7 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
     if (!d_rep_set.hasType(tn))
     {
       // terms in rep_set are now constants which mapped to terms through
-      // TheoryModel. Thus, should introduce a constant and a term.  
+      // TheoryModel. Thus, should introduce a constant and a term.
       // For now, we just add an arbitrary term.
       Node var = d_qe->getModel()->getSomeDomainElement(tn);
       Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn

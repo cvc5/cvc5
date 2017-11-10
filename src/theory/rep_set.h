@@ -264,7 +264,7 @@ class RepBoundExt
    * iterate over in this context.
    * initial is whether this is the first call
    * to this function for this iterator.
-   * 
+   *
    * This method returns false if the resulting
    * set of elements is empty, which indicates that
    * the iterator can terminate.
@@ -288,7 +288,7 @@ class RepBoundExt
    * If this method returns true, then varOrder is the order
    * in which we want to consider variables for the iterator.
    * If this method returns false, then varOrder is unchanged
-   * and the RepSetIterator is free to choose a default 
+   * and the RepSetIterator is free to choose a default
    * variable order.
    */
   virtual bool getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
