@@ -395,6 +395,7 @@ int RepSetIterator::increment(){
 }
 
 bool RepSetIterator::isFinished() const { return d_index.empty(); }
+
 Node RepSetIterator::getCurrentTerm(unsigned v, bool valTerm)
 {
   unsigned ii = d_index_order[v];
