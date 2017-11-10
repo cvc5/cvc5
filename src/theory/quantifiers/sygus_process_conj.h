@@ -39,14 +39,14 @@ namespace quantifiers {
  *
  * The classes below compute whether certain arguments of
  * the function-to-synthesize f are irrelevant.
- * Assume that f is binary function, where possible solutions
+ * Assume that f is a binary function, where possible solutions
  * to the above conjecture are of the form:
- *   f -> (\ xy. t[x,y])
+ *   f -> (lambda (xy) t[x,y])
  * We say e.g. that the 2nd argument of f is irrelevant if we
  * can determine:
  *   F has a solution
  * if and only if
- *   F has a solution of the form f -> (\ xy. t[x] )
+ *   F has a solution of the form f -> (lambda (xy) t[x] )
  * We conclude that arguments are irrelevant using the following
  * techniques.
  *
@@ -57,9 +57,9 @@ namespace quantifiers {
  * If all occurrences of f-applications in F are of the form:
  *   f(t, s[t])
  * then:
- *   f = (\ xy. r[x,y])
+ *   f = (lambda (xy) r[x,y])
  * is a solution to F only if:
- *   f = (\ xy. r[x,s[x]])
+ *   f = (lambda (xy) r[x,s[x]])
  * is as well.
  * Hence the second argument of f is not relevant.
  *
@@ -190,9 +190,8 @@ struct CegConjectureProcessFun
                   std::unordered_map<unsigned, Node>& n_arg_map);
   /** infer definition
    *
-   * In the following, we say a term is a "emplate
-   * definition" if its free variables
-   * are a subset of d_arg_vars.
+   * In the following, we say a term is a "template
+   * definition" if its free variables are a subset of d_arg_vars.
    *
    * If this function returns a non-null node ret, then
    *   checkMatch( ret, n, term_to_arg_carry^-1 ) returns true.
@@ -227,13 +226,22 @@ struct CegConjectureProcessFun
    *
    * If def is non-null,
    * this function assigns def as a template definition
-   * for the (currently irrelevant) arguments that
-   * occur in a term of the form f(
+   * for the argument positions in args.
+   * This is called when there exists a term of the form  
+   *   f( t1....tn )
+   * in the synthesis conjecture that we are processing,
+   * where t_i = def * sigma for all i \in args, 
+   * for some substitution sigma, where def is a template
+   * definition.
    *
-   * If def is null, then an argument is marked
-   * as relevant.
+   * If def is null, then there exists a term of the form  
+   *   f( t1....tn )
+   * where t_i = s for for all i \in args, and s is not 
+   * a template definition. In this case, at least one
+   * argument in args must be marked as a relevant 
+   * argument position.
    *
-   * Returns an value rid such that:
+   * Returns a value rid such that:
    * (1) rid occurs in args,
    * (2) if def is null, then argument rid was marked
    *     relevant by this call.

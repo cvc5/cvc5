@@ -591,11 +591,8 @@ bool CegConjectureProcess::isArgRelevant(Node f, unsigned i)
   {
     return its->second.isArgRelevant(i);
   }
-  else
-  {
-    Assert(false);
-    return true;
-  }
+  Assert(false);
+  return true;
 }
 
 bool CegConjectureProcess::getIrrelevantArgs(Node f,
@@ -607,10 +604,7 @@ bool CegConjectureProcess::getIrrelevantArgs(Node f,
     its->second.getIrrelevantArgs(args);
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 void CegConjectureProcess::processConjunct(
