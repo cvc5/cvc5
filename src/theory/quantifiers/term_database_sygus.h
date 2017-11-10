@@ -79,12 +79,13 @@ class TermDbSygus {
    */
   std::map<Node, CegConjecture*> d_enum_to_conjecture;
   /** mapping from enumerator terms to the function-to-synthesize they are
-    * associated with */
+   * associated with 
+   */
   std::map<Node, Node> d_enum_to_synth_fun;
   /** mapping from enumerator terms to the guard they are associated with
-  * The guard G for an enumerator e has the semantics
-  *   "if G is true, then there are more values of e to enumerate".
-  */
+   * The guard G for an enumerator e has the semantics
+   *   if G is true, then there are more values of e to enumerate".
+   */
   std::map<Node, Node> d_enum_to_active_guard;
 
   // TODO :issue #1235 : below here needs refactor

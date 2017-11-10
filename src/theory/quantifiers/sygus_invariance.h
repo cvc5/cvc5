@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_explain.h
+/*! \file sygus_invariance.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -38,8 +38,7 @@ class CegConjecture;
 * The common use case of invariance tests is when constructing
 * minimal explanations for refinement lemmas in the
 * counterexample-guided inductive synthesis (CEGIS) loop.
-* For sygus_explain.h for more details.
-*
+* See sygus_explain.h for more details.
 */
 class SygusInvarianceTest
 {
@@ -60,10 +59,7 @@ class SygusInvarianceTest
       d_update_nvn = nvn;
       return true;
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
   /** get updated term */
   Node getUpdatedTerm() { return d_update_nvn; }
@@ -161,12 +157,11 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
   EquivSygusInvarianceTest() : d_conj(nullptr) {}
   ~EquivSygusInvarianceTest() {}
   /** initialize this invariance test
-    * tn is the sygus type for e
-    * aconj/e are used for conjecture-specific symmetry breaking
-    * bvr is the builtin version of the right hand side of the rewrite that we
-   * are
-    * checking for invariance
-    */
+   * tn is the sygus type for e
+   * aconj/e are used for conjecture-specific symmetry breaking
+   * bvr is the builtin version of the right hand side of the rewrite that we
+   * are checking for invariance
+   */
   void init(
       TermDbSygus* tds, TypeNode tn, CegConjecture* aconj, Node e, Node bvr);
 
@@ -177,8 +172,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
  private:
   /** the conjecture associated with the enumerator d_enum */
   CegConjecture* d_conj;
-  /** the enumerator associated with the term we are doing an invariance test
-   * for */
+  /** the enumerator associated with the term for which this test is for */
   Node d_enum;
   /** the RHS of the evaluation */
   Node d_bvr;
@@ -240,16 +234,16 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
   NegContainsSygusInvarianceTest() : d_conj(nullptr) {}
   ~NegContainsSygusInvarianceTest() {}
   /** initialize this invariance test
-  *  cpbe is the conjecture utility.
-  *  e is the enumerator which we are reasoning about (associated with a synth
-  *    fun).
-  *  exo is the list of outputs of the PBE conjecture.
-  *  ncind is the set of possible indices of the PBE conjecture to check
-  *    invariance of non-containment.
-  *    For example, in the above example, when t[x1] = "ab", then this
-  *    has the index 1 since contains("de de", "ab") ---> false but not
-  *    the index 0 since contains("abc abc","ab") ---> true.
-  */
+   *  cpbe is the conjecture utility.
+   *  e is the enumerator which we are reasoning about (associated with a synth
+   *    fun).
+   *  exo is the list of outputs of the PBE conjecture.
+   *  ncind is the set of possible indices of the PBE conjecture to check
+   *    invariance of non-containment.
+   *    For example, in the above example, when t[x1] = "ab", then this
+   *    has the index 1 since contains("de de", "ab") ---> false but not
+   *    the index 0 since contains("abc abc","ab") ---> true.
+   */
   void init(CegConjecture* conj,
             Node e,
             std::vector<Node>& exo,

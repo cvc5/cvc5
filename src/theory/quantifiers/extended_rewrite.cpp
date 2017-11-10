@@ -189,18 +189,16 @@ Node ExtendedRewriter::extendedRewrite(Node n)
             break;
           }
         }
-        // notice this is strictly more general that the above
+        // notice this is strictly more general than the above
         if (new_ret.isNull())
         {
           // simple substitution
           for (unsigned i = 0; i < 2; i++)
-          {
-            if (ret[0][i].isVar()
-                && ((ret[0][1 - i].isVar() && ret[0][i] < ret[0][1 - i])
-                    || ret[0][1 - i].isConst()))
+          {              
+            TNode r1 = ret[0][i];
+            TNode r2 = ret[0][1 - i];
+            if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
             {
-              TNode r1 = ret[0][i];
-              TNode r2 = ret[0][1 - i];
               Node retn = ret[1].substitute(r1, r2);
               if (retn != ret[1])
               {

@@ -176,8 +176,9 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   Assert(n.getType() == vn.getType());
   TypeNode ntn = n.getType();
   std::map<unsigned, bool> cexc;
-  // for each child, check whether replacing by a fresh variable and rewriting
-  // again
+  // for each child, 
+  // check whether replacing that child by a fresh variable
+  // also satisfies the invariance test.
   for (unsigned i = 0; i < vn.getNumChildren(); i++)
   {
     TypeNode xtn = vn[i].getType();

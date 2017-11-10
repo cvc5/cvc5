@@ -54,10 +54,7 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
     Trace("sygus-cref-eval2") << x << std::endl;
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 void EquivSygusInvarianceTest::init(
@@ -157,10 +154,7 @@ bool DivByZeroSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
                            << tds->sygusToBuiltin(x) << std::endl;
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 void NegContainsSygusInvarianceTest::init(CegConjecture* conj,

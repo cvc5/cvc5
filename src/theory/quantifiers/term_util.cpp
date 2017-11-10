@@ -926,10 +926,7 @@ Node TermUtil::getTypeValue(TypeNode tn, int val)
     d_type_value[tn][val] = n;
     return n;
   }
-  else
-  {
-    return it->second;
-  }
+  return it->second;
 }
 
 Node TermUtil::mkTypeValue(TypeNode tn, int val)
@@ -973,10 +970,7 @@ Node TermUtil::getTypeMaxValue(TypeNode tn)
     d_type_max_value[tn] = n;
     return n;
   }
-  else
-  {
-    return it->second;
-  }
+  return it->second;
 }
 
 Node TermUtil::mkTypeMaxValue(TypeNode tn)
@@ -1024,11 +1018,8 @@ Node TermUtil::getTypeValueOffset(TypeNode tn,
     d_type_value_offset_status[tn][val][offset] = status;
     return val_o;
   }
-  else
-  {
-    status = d_type_value_offset_status[tn][val][offset];
-    return it->second;
-  }
+  status = d_type_value_offset_status[tn][val][offset];
+  return it->second;
 }
 
 bool TermUtil::isAntisymmetric(Kind k, Kind& dk)
@@ -1063,10 +1054,7 @@ bool TermUtil::isAntisymmetric(Kind k, Kind& dk)
     dk = BITVECTOR_SLE;
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
