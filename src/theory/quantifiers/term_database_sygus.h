@@ -43,8 +43,8 @@ class TermDbSygus {
   /** register a variable e that we will do enumerative search on
    * conj is the conjecture that the enumeration of e is for.
    * f is the synth-fun that the enumeration of e is for.
-   * mkActiveGuard is whether we want to make a active guard for e (see
-   * d_enum_to_active_guard)
+   * mkActiveGuard is whether we want to make an active guard for e 
+   * (see d_enum_to_active_guard).
    *
    * Notice that enumerator e may not be equivalent
    * to f in synthesis-through-unification approaches
