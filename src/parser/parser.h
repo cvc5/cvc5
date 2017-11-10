@@ -573,14 +573,16 @@ public:
   std::vector<DatatypeType>
   mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, bool doOverload=false);
 
-  /** mkFlatFunctionType 
+  /** mkFlatFunctionType
    * Returns the "flat" function type correspond to the function taking argument
    * types "sorts" and range type "range".  A flat function type is one whose
-   * range is not a function. Notice that if sorts is empty and range is not a 
+   * range is not a function. Notice that if sorts is empty and range is not a
    * function, then this function returns range itself.
    *
-   * If range is a function type, we add its function argument sorts to sorts and 
-   * consider its function range as the new range. For each sort S added to sorts
+   * If range is a function type, we add its function argument sorts to sorts
+   * and
+   * consider its function range as the new range. For each sort S added to
+   * sorts
    * in this process, we add a new bound variable of sort S to flattenVars.
    *
    * For example:
@@ -590,15 +592,16 @@ public:
    * - updates flattenVars to { x }, where x is bound variable of type Int.
    *
    * Notice that this method performs only one level of flattening, for example,
-   * mkFlattenFunctionType( { Int, (-> Real Real) }, (-> Int (-> Int Bool)), {} ) will:
+   * mkFlattenFunctionType( { Int, (-> Real Real) }, (-> Int (-> Int Bool)), {}
+   * ) will:
    * - returns the the function type (-> Int (-> Real Real) Int (-> Int Bool))
    * - updates sorts to { Int, (-> Real Real), Int },
    * - updates flattenVars to { x }, where x is bound variable of type Int.
    *
    * This method is required so that we do not return functions
-   * that have function return type (these give an unhandled exception 
+   * that have function return type (these give an unhandled exception
    * in the ExprManager). For examples of the equivalence between function
-   * definitions in the proposed higher-order extension of the smt2 language,         
+   * definitions in the proposed higher-order extension of the smt2 language,
    * see page 3 of http://matryoshka.gforge.inria.fr/pubs/PxTP2017.pdf.
    *
    * The argument flattenVars is needed in the case of defined functions
@@ -608,30 +611,33 @@ public:
    *    (define-fun Q ((x Int) (z Int)) Int (lambda y (P x)))
    * In this example, z is added to flattenVars.
    */
-  Type mkFlatFunctionType(std::vector<Type>& sorts, 
-                          Type range, std::vector<Expr>& flattenVars);
-      
-  /** mkFlatFunctionType 
+  Type mkFlatFunctionType(std::vector<Type>& sorts,
+                          Type range,
+                          std::vector<Expr>& flattenVars);
+
+  /** mkFlatFunctionType
    * Same as above, but does not take argument flattenVars.
-   * This is used when the arguments of the function are not important (for instance,
+   * This is used when the arguments of the function are not important (for
+   * instance,
    * if we are only using this type in a declare-fun).
    */
   Type mkFlatFunctionType(std::vector<Type>& sorts, Type range);
-  
+
   /** mkHoApply
-  * This returns the left-associative curried application of (function) expr to the 
+  * This returns the left-associative curried application of (function) expr to
+  * the
   * arguments in args, starting at index startIndex.
   *
   * For example, mkHoApply( f, { a, b }, 0 ) returns
   *  (HO_APPLY (HO_APPLY f a) b)
   *
   * If args is non-empty, the type of expr should be (-> T0 ... Tn T),
-  * where args[i-startIndex].getType() = Ti for each i where 
+  * where args[i-startIndex].getType() = Ti for each i where
   * startIndex <= i < args.size(), otherwise the returned expression
   * will not be well-typed.
   */
-  Expr mkHoApply( Expr expr, std::vector<Expr>& args, unsigned startIndex=0 );
-  
+  Expr mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex = 0);
+
   /**
    * Add an operator to the current legal set.
    *
