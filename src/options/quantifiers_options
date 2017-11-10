@@ -263,6 +263,8 @@ option cegqiSingleInvAbort --cegqi-si-abort bool :default false
   abort if synthesis conjecture is not single invocation
 option sygusPbe --sygus-pbe bool :default true
   sygus advanced pruning based on examples
+option sygusQePreproc --sygus-qe-preproc bool :default true
+  use quantifier elimination as a preprocessing step for sygus
   
 option sygusMinGrammar --sygus-min-grammar bool :default true
   statically minimize sygus grammars
