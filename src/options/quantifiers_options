@@ -270,6 +270,8 @@ option sygusMinGrammarAgg --sygus-min-grammar-agg bool :default false
   aggressively minimize sygus grammars
 option sygusAddConstGrammar --sygus-add-const-grammar bool :default true
   statically add constants appearing in conjecture to grammars
+option sygusNormalizeGrammar --sygus-norm-grammar bool :default false
+  statically normalize sygus grammars based on flattening
 option sygusTemplEmbedGrammar --sygus-templ-embed-grammar bool :default false
   embed sygus templates into grammars
   
