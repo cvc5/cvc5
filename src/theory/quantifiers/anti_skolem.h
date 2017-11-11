@@ -20,10 +20,10 @@
 #include <map>
 #include <vector>
 
-#include "expr/node.h"
-#include "expr/type_node.h"
 #include "context/cdhashset.h"
 #include "context/cdo.h"
+#include "expr/node.h"
+#include "expr/type_node.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers_engine.h"
 

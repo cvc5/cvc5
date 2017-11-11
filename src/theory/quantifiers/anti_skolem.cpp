@@ -114,9 +114,10 @@ void QuantAntiSkolem::check( Theory::Effort e, unsigned quant_e ) {
         }
         if( success ){
           //sort the argument variables
-          std::vector< Node > sivars;
+          std::vector<Node> sivars;
           d_quant_sip[q].getSingleInvocationVariables(sivars);
-          for( unsigned j=0; j<sivars.size(); j++ ){
+          for (unsigned j = 0; j < sivars.size(); j++)
+          {
             d_ask_types[q].push_back(sivars[j].getType());
           }
           std::map< TypeNode, std::vector< unsigned > > indices;
@@ -167,9 +168,10 @@ bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool 
       for( unsigned i=0; i<quants.size(); i++ ){
         Node q = quants[i];
         std::vector< int > eqcs;
-        std::vector< Node > funcs;
+        std::vector<Node> funcs;
         d_quant_sip[q].getFunctions(funcs);
-        for( unsigned j=0; j<funcs.size(); j++ ){
+        for (unsigned j = 0; j < funcs.size(); j++)
+        {
           Node f = funcs[j];
           std::map< Node, int >::iterator itf = func_to_eqc.find( f );
           if( itf == func_to_eqc.end() ){
@@ -241,17 +243,20 @@ bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool 
       std::vector< Node > subs_rhs;
       //get outer variable substitution
       Assert( d_ask_types_index[q].size()==d_ask_types[q].size() );
-      std::vector< Node > sivars;
+      std::vector<Node> sivars;
       d_quant_sip[q].getSingleInvocationVariables(sivars);
       for( unsigned j=0; j<d_ask_types_index[q].size(); j++ ){
-        Trace("anti-sk-debug") << " o_subs : " << sivars[d_ask_types_index[q][j]] << " -> " << outer_vars[j] << std::endl;
-        subs_lhs.push_back( sivars[d_ask_types_index[q][j]] );
+        Trace("anti-sk-debug")
+            << " o_subs : " << sivars[d_ask_types_index[q][j]] << " -> "
+            << outer_vars[j] << std::endl;
+        subs_lhs.push_back(sivars[d_ask_types_index[q][j]]);
         subs_rhs.push_back( outer_vars[j] );
       }
       //get function substitution
-      std::vector< Node > funcs;
+      std::vector<Node> funcs;
       d_quant_sip[q].getFunctions(funcs);
-      for(unsigned i=0; i<funcs.size(); i++ ){
+      for (unsigned i = 0; i < funcs.size(); i++)
+      {
         Node f = funcs[i];
         Node fv = d_quant_sip[q].getFirstOrderVariableForFunction(f);
         if( func_to_var.find( f )==func_to_var.end() ){

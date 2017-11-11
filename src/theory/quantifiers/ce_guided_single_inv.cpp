@@ -146,10 +146,11 @@ void CegConjectureSingleInv::initialize( Node q ) {
       std::map< Node, Node > single_inv_app_map;
       for( unsigned j=0; j<progs.size(); j++ ){
         Node prog = progs[j];
-        Node pv = d_sip->getFirstOrderVariableForFunction( prog );
-        if( !pv.isNull() ){
+        Node pv = d_sip->getFirstOrderVariableForFunction(prog);
+        if (!pv.isNull())
+        {
           Node inv = d_sip->getFunctionInvocationFor(prog);
-          Assert( !inv.isNull() );
+          Assert(!inv.isNull());
           single_inv_app_map[prog] = inv;
           Trace("cegqi-si") << "  " << pv << ", " << inv << " is associated with program " << prog << std::endl;
           d_prog_to_sol_index[prog] = order_vars.size();
@@ -165,7 +166,8 @@ void CegConjectureSingleInv::initialize( Node q ) {
       
 
       //check if it is single invocation
-      if( !d_sip->isPurelySingleInvocation() ){
+      if (!d_sip->isPurelySingleInvocation())
+      {
         if( options::sygusInvTemplMode() != SYGUS_INV_TEMPL_MODE_NONE ){
           //if we are doing invariant templates, then construct the template
           Trace("cegqi-si") << "- Do transition inference..." << std::endl;
@@ -180,19 +182,25 @@ void CegConjectureSingleInv::initialize( Node q ) {
             d_trans_post[prog] = d_ti[q].getComponent( -1 );
             Trace("cegqi-inv") << "   precondition : " << d_trans_pre[prog] << std::endl;
             Trace("cegqi-inv") << "  postcondition : " << d_trans_post[prog] << std::endl;
-            std::vector< Node > sivars;
+            std::vector<Node> sivars;
             d_sip->getSingleInvocationVariables(sivars);
             Node invariant = single_inv_app_map[prog];
-            invariant = invariant.substitute( sivars.begin(), sivars.end(), prog_templ_vars.begin(), prog_templ_vars.end() );
+            invariant = invariant.substitute(sivars.begin(),
+                                             sivars.end(),
+                                             prog_templ_vars.begin(),
+                                             prog_templ_vars.end());
             Trace("cegqi-inv") << "      invariant : " << invariant << std::endl;
             
             // store simplified version of quantified formula
             d_simp_quant = d_sip->getFullSpecification();
             std::vector< Node > new_bv;
-            for( unsigned j=0; j<sivars.size(); j++ ){
-              new_bv.push_back( NodeManager::currentNM()->mkBoundVar( sivars[j].getType() ) );
+            for (unsigned j = 0; j < sivars.size(); j++)
+            {
+              new_bv.push_back(
+                  NodeManager::currentNM()->mkBoundVar(sivars[j].getType()));
             }
-            d_simp_quant = d_simp_quant.substitute( sivars.begin(), sivars.end(), new_bv.begin(), new_bv.end() );
+            d_simp_quant = d_simp_quant.substitute(
+                sivars.begin(), sivars.end(), new_bv.begin(), new_bv.end());
             Assert( q[1].getKind()==NOT && q[1][0].getKind()==FORALL );
             for( unsigned j=0; j<q[1][0][0].getNumChildren(); j++ ){
               new_bv.push_back( q[1][0][0][j] );
@@ -282,14 +290,18 @@ void CegConjectureSingleInv::finishInit( bool syntaxRestricted, bool hasItes ) {
       d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, d_single_inv );
     }
     //now, introduce the skolems
-    std::vector< Node > sivars;
+    std::vector<Node> sivars;
     d_sip->getSingleInvocationVariables(sivars);
-    for( unsigned i=0; i<sivars.size(); i++ ){
-      Node v = NodeManager::currentNM()->mkSkolem( "a", sivars[i].getType(), "single invocation arg" );
+    for (unsigned i = 0; i < sivars.size(); i++)
+    {
+      Node v = NodeManager::currentNM()->mkSkolem(
+          "a", sivars[i].getType(), "single invocation arg");
       d_single_inv_arg_sk.push_back( v );
     }
-    d_single_inv = d_single_inv.substitute( sivars.begin(), sivars.end(),
-                                            d_single_inv_arg_sk.begin(), d_single_inv_arg_sk.end() );
+    d_single_inv = d_single_inv.substitute(sivars.begin(),
+                                           sivars.end(),
+                                           d_single_inv_arg_sk.begin(),
+                                           d_single_inv_arg_sk.end());
     Trace("cegqi-si") << "Single invocation formula is : " << d_single_inv << std::endl;
     if( options::cbqiPreRegInst() && d_single_inv.getKind()==FORALL ){
       //just invoke the presolve now
