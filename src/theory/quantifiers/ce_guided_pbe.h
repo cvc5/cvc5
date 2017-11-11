@@ -58,15 +58,15 @@ class CegConjecture;
 * Points (1)-(3) happen within a call to CegConjecturePbe::initialize(...).
 *
 * Notice that each enumerator is associated with a single
-* function-to-synthesize,
-* but a function-to-sythesize may be mapped to multiple enumerators.
-* Some public functions of this class expect an enumerator as input, which we
-* map to a function-to-synthesize via TermDatabaseSygus::getSynthFunFor(e).
+* function-to-synthesize, but a function-to-sythesize may be mapped to multiple 
+* enumerators. Some public functions of this class expect an enumerator as 
+* input, which we map to a function-to-synthesize via 
+* TermDatabaseSygus::getSynthFunFor(e).
 *
 * An enumerator is initially "active" but may become inactive if the enumeration
 * exhausts all possible values in the datatype corresponding to syntactic
-* restrictions
-* for it. The search may continue unless all enumerators become inactive.
+* restrictions for it. The search may continue unless all enumerators become 
+* inactive.
 *
 * (4) During search, the extension of quantifier-free datatypes procedure for
 *     SyGuS datatypes may ask this class whether current candidates can be
@@ -93,9 +93,7 @@ class CegConjecture;
 *     solution based on the high-level strategy (stored in d_c_info).
 *
 * This class is not designed to work in incremental mode, since there is no way
-* to
-* specify incremental problems in SyguS.
-*
+* to specify incremental problems in SyguS.
 */
 class CegConjecturePbe {
  public:
@@ -161,8 +159,8 @@ class CegConjecturePbe {
   * tn is a sygus datatype that encodes a subsignature of the integers.
   *
   * This returns either:
-  * - A SyGuS term whose analog is equivalent to bvr up to examples, in the
-  *   above example,
+  * - A SyGuS term whose analog is equivalent to bvr up to examples
+  *   In the above example,
   *   it may return a term t of the form Plus( One(), x() ), such that this
   *   function was previously called with t as input.
   * - e, indicating that no previous terms are equivalent to e up to examples.
@@ -189,9 +187,7 @@ class CegConjecturePbe {
   /** true and false nodes */
   Node d_true;
   Node d_false;
-  /** parent conjecture
-  * This contains global information about the synthesis conjecture.
-  */
+  /** A reference to the conjecture that owns this class. */
   CegConjecture* d_parent;
   /** is this a PBE conjecture for any function? */
   bool d_is_pbe;
