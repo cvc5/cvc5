@@ -34,11 +34,11 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-
-QModelBuilder::QModelBuilder( context::Context* c, QuantifiersEngine* qe ) :
-TheoryEngineModelBuilder( qe->getTheoryEngine() ), d_qe( qe ){
-
-}
+QModelBuilder::QModelBuilder(context::Context* c, QuantifiersEngine* qe)
+    : TheoryEngineModelBuilder(qe->getTheoryEngine()),
+      d_qe(qe),
+      d_addedLemmas(0),
+      d_triedLemmas(0) {}
 
 bool QModelBuilder::optUseModel() {
   return options::mbqiMode()!=MBQI_NONE || options::fmfBound();
@@ -163,11 +163,15 @@ bool TermArgBasisTrie::addTerm(FirstOrderModel* fm, Node n, unsigned argIndex)
   }
 }
 
-
-QModelBuilderIG::QModelBuilderIG( context::Context* c, QuantifiersEngine* qe ) :
-QModelBuilder( c, qe ), d_basisNoMatch( c ) {
-
-}
+QModelBuilderIG::QModelBuilderIG(context::Context* c, QuantifiersEngine* qe)
+    : QModelBuilder(c, qe),
+      d_basisNoMatch(c),
+      d_didInstGen(false),
+      d_numQuantSat(0),
+      d_numQuantInstGen(0),
+      d_numQuantNoInstGen(0),
+      d_numQuantNoSelForm(0),
+      d_instGenMatches(0) {}
 
 /*
 Node QModelBuilderIG::getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::vector< Node > & args, bool partial ) {
