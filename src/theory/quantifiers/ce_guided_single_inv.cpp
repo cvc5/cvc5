@@ -173,7 +173,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
       
 
       //check if it is single invocation
-      if( !d_sip->d_conjuncts[1].empty() ){
+      if( !d_sip->isPurelySingleInvocation() ){
         if( options::sygusInvTemplMode() != SYGUS_INV_TEMPL_MODE_NONE ){
           //if we are doing invariant templates, then construct the template
           Trace("cegqi-si") << "- Do transition inference..." << std::endl;
@@ -193,7 +193,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
             Trace("cegqi-inv") << "      invariant : " << invariant << std::endl;
             
             // store simplified version of quantified formula
-            d_simp_quant = d_sip->d_conjuncts[2].size()==1 ? d_sip->d_conjuncts[2][0] : NodeManager::currentNM()->mkNode( AND, d_sip->d_conjuncts[2] );
+            d_simp_quant = d_sip->getFullSpecification();
             std::vector< Node > new_bv;
             for( unsigned j=0; j<d_sip->d_si_vars.size(); j++ ){
               new_bv.push_back( NodeManager::currentNM()->mkBoundVar( d_sip->d_si_vars[j].getType() ) );
