@@ -248,14 +248,19 @@ class CegConjectureSingleInv {
  * This is a utility to group formulas into single invocation/non-single
  * invocation parts, relative to a set of "input functions". 
  * It can be used when either the set of input functions is fixed,
- * or is unknown.
+ * or is unknown. 
  * 
+ * (EX1) For example, if input functions are { f }, 
+ * then the formula is ( f( x, y ) = g( y ) V f( x, y ) = b )
+ * is single invocation since there is only one
+ * unique application of f, that is, f( x, y ).
  * 
+ * When handling multiple input functions, we only infer a formula
+ * is single invocation if all (relevant) input functions have the
+ * same argument types. An input function is relevant if it is 
+ * specified by the input in a call to init() or occurs in the 
+ * formula we are processing.
  * 
- * 
- * this class only processes functions having argument types 
- * exactly matching "d_arg_types", and all invocations are in the same 
- * order across all functions.
  * 
  */
 class SingleInvocationPartition {
@@ -265,13 +270,11 @@ public:
   /** initialize this partition for formula n, with input functions funcs 
    * 
    * This initializes this class to check whether formula n is single 
-   * invocation with respect to the functions in funcs only. For 
-   * example, in the input :
-   *   funcs = { f }, n = ( f( x ) = g( y ) V f( x ) = b )
-   * we infer that n is single invocation since there is only one
-   * unique application of f.
-   * 
+   * invocation with respect to the input functions in funcs only.
    * Below, we call n the "processed formula".
+   * 
+   * This method returns true if all input functions have identical 
+   * argument type lists.
    */
   bool init( std::vector< Node >& funcs, Node n );
   /** initialize this partition for formula n
@@ -297,42 +300,84 @@ public:
    * where f1...fn are the input functions.
    */
   bool isNonGroundSingleInvocation() { return d_conjuncts[3].size()==d_conjuncts[1].size(); }
-  /** Get the (portion of) the processed formula that is single invocation */
+  /** Get the (portion of) the processed formula that is single invocation
+   * 
+   * Notice this method returns the anti-skolemized version of the input formula.
+   * In (EX1), this method returns:
+   *   z = g( y ) V z = b
+   * where z is the first-order variable for f (see getFirstOrderVariableForFunction).
+   */
   Node getSingleInvocation() { return getConjunct( 0 ); }
   /** Get the (portion of) the processed formula that is not single invocation
+   * 
    * This formula and the above form a partition of the conjuncts of the 
    * processed formula, that is:
-   *   getSingleInvocation() ^ getNonSingleInvocation()
-   * is equivalent to the processed formula.
+   *   getSingleInvocation() * sigma ^ getNonSingleInvocation()
+   * is equivalent to the processed formula, where sigma is a substitution of the form:
+   *   z_1 -> f_1( x ) .... z_n -> f_n( x )
+   * where z_i are the first-order variables for input functions f_i
+   * for all i=1,...,n, and x are the single invocation arguments of the input formulas
+   * (see d_si_vars).
    */
   Node getNonSingleInvocation() { return getConjunct( 1 ); }
   /** get full specification 
-   * This returns getSingleInvocation() ^ getNonSingleInvocation().
+   * 
+   * This returns getSingleInvocation() * sigma ^ getNonSingleInvocation(),
+   * which is equivalent to the processed formula, where sigma is the substitution
+   * described above.
    */
   Node getFullSpecification() { return getConjunct( 2 ); }
-  /** */
-  Node getSpecificationInst( int index, std::map< Node, Node >& lam );
   
-  /** */
-  std::map< Node, Node > d_inv_to_func;
-  /** */
-  std::map< Node, Node > d_fo_var_to_func;
+  /** get first order variable for input function f
+   * This corresponds to the variable that we used when anti-skolemized
+   * function f. For example, in (EX1), if getSingleInvocation() returns:
+   *   z = g( y ) V z = b
+   * Then, getFirstOrderVariableForFunction(f) = z.
+   */
+  Node getFirstOrderVariableForFunction( Node f ) const;
+  /** get function for first order variable 
+   * Opposite direction of above, where:
+   *   getFunctionForFirstOrderVariable(z) = f.
+   */
+  Node getFunctionForFirstOrderVariable( Node v ) const;
+  /** get function invocation for 
+   * Returns f( x ) where x are the single invocation arguments of the input formulas
+   * (see d_si_vars). If f is not an input function, this returns null.
+   */
+  Node getFunctionInvocationFor( Node f ) const;
+  
+  
+  /** map from input functions to whether they have an anti-skolemizable type
+   * An anti-skolemizable type is one of the form:
+   *   ( T1, ..., Tn ) -> T
+   * where Ti = d_arg_types[i] for i = 1,...,n.
+   */
   std::map< Node, bool > d_funcs;
+  /** map from functions to the invocation we inferred for them */
   std::map< Node, Node > d_func_inv;
-  /** the first-order variables corresponding to all functions */
+  /** map from first-order variables to input functions */
   std::vector< Node > d_func_vars;
-  /** the arguments that we based the anti-skolemization on */
+  /** the arguments that we based the anti-skolemization on 
+   * In (EX1), this is the list { x, y }.
+   */
   std::vector< Node > d_si_vars;
   /** every free variable of conjuncts[2] */
   std::vector< Node > d_all_vars;
   /** */
   std::map< Node, Node > d_func_fo_var;
-  /** */
+  /** map from first-order variables to the function anti-skolemized */
+  std::map< Node, Node > d_fo_var_to_func;
+  /** The argument types for this single invocation partition.
+   * These are the argument types of the input functions we are
+   * processing, where notice that:
+   *   d_si_vars[i].getType()==d_arg_types[i]
+   */
   std::vector< TypeNode > d_arg_types;  
+  /** print debugging information on Trace c */
   void debugPrint( const char * c );
 private:
-  /** the list of conjuncts of :
-   * 0 : the single invocation conjuncts,
+  /** the list of conjuncts with various properties :
+   * 0 : the single invocation conjuncts (stored in anti-skolemized form),
    * 1 : the non-single invocation conjuncts,
    * 2 : all conjuncts,
    * 3 : non-ground single invocation conjuncts.
@@ -352,8 +397,8 @@ private:
    */
   bool inferArgTypes( Node n, std::vector< TypeNode >& typs, std::map< Node, bool >& visited );
   /** is anti-skolemizable type 
-   * 
-   * 
+   * This method returns true if f's argument types are equal to the 
+   * argument types we have fixed in this class (see d_arg_types).
    */
   bool isAntiSkolemizableType( Node f );  
   /** This is the entry point for initializing this class, 
@@ -364,17 +409,20 @@ private:
    *   has_funcs is whether input functions were explicitly provided.
    */
   bool init( std::vector< Node >& funcs, std::vector< TypeNode >& typs, Node n, bool has_funcs );
-  /** process the term n */
+  /** process the term n 
+   * 
+   * 
+   */
   void process( Node n );
   /** collect the top-level conjuncts of the formula (equivalent to) 
-   * n (or the negation of n if pol=false), and store them in conj.
+   * n or the negation of n if pol=false, and store them in conj.
    */
   bool collectConjuncts( Node n, bool pol, std::vector< Node >& conj );
-  /** */
+  /** process conjunct n
+   * 
+   */
   bool processConjunct( Node n, std::map< Node, bool >& visited, std::vector< Node >& args,
                         std::vector< Node >& terms, std::vector< Node >& subs );
-  /** */
-  Node getSpecificationInst( Node n, std::map< Node, Node >& lam, std::map< Node, Node >& visited );
   /** get the and node corresponding to d_conjuncts[index] */
   Node getConjunct( int index );
 };

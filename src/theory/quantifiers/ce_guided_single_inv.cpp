@@ -931,7 +931,6 @@ bool SingleInvocationPartition::isAntiSkolemizableType( Node f ) {
           t = children[0];
         }
         d_func_inv[f] = t;
-        d_inv_to_func[t] = f;
         std::stringstream ss;
         ss << "F_" << f;
         TypeNode rt;
@@ -954,65 +953,6 @@ bool SingleInvocationPartition::isAntiSkolemizableType( Node f ) {
 Node SingleInvocationPartition::getConjunct( int index ) {
   return d_conjuncts[index].empty() ? NodeManager::currentNM()->mkConst( true ) :
           ( d_conjuncts[index].size()==1 ? d_conjuncts[index][0] : NodeManager::currentNM()->mkNode( AND, d_conjuncts[index] ) );
-}
-
-Node SingleInvocationPartition::getSpecificationInst( Node n, std::map< Node, Node >& lam, std::map< Node, Node >& visited ) {
-  std::map< Node, Node >::iterator it = visited.find( n );
-  if( it!=visited.end() ){
-    return it->second;
-  }else{
-    bool childChanged = false;
-    std::vector< Node > children;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      Node nn = getSpecificationInst( n[i], lam, visited );
-      children.push_back( nn );
-      childChanged = childChanged || ( nn!=n[i] );
-    }
-    Node ret;
-    Node f;
-    bool success = false;
-    if( d_has_input_funcs ){
-      f = n.hasOperator() ? n.getOperator() : n;
-      if( std::find( d_input_funcs.begin(), d_input_funcs.end(), f )!=d_input_funcs.end() ){
-        success = true;
-      }
-    }else{
-      if( n.getKind()==APPLY_UF ){
-        f = n.getOperator();
-        success = true;
-      }
-    }
-    if( success ){
-      std::map< Node, Node >::iterator itl = lam.find( f );
-      if( itl!=lam.end() ){
-        Assert( itl->second[0].getNumChildren()==children.size() );
-        std::vector< Node > terms;
-        std::vector< Node > subs;
-        for( unsigned i=0; i<itl->second[0].getNumChildren(); i++ ){
-          terms.push_back( itl->second[0][i] );
-          subs.push_back( children[i] );
-        }
-        ret = itl->second[1].substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
-        ret = Rewriter::rewrite( ret );
-      }
-    }
-    if( ret.isNull() ){
-      ret = n;
-      if( childChanged ){
-        if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-          children.insert( children.begin(), n.getOperator() );
-        }
-        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-      }
-    }
-    return ret;
-  }
-}
-
-Node SingleInvocationPartition::getSpecificationInst( int index, std::map< Node, Node >& lam ) {
-  Node conj = getConjunct( index );
-  std::map< Node, Node > visited;
-  return getSpecificationInst( conj, lam, visited );
 }
 
 void SingleInvocationPartition::debugPrint( const char * c ) {
