@@ -153,11 +153,10 @@ void CegConjectureSingleInv::initialize( Node q ) {
       std::map< Node, Node > single_inv_app_map;
       for( unsigned j=0; j<progs.size(); j++ ){
         Node prog = progs[j];
-        std::map< Node, Node >::iterator it_fov = d_sip->d_func_fo_var.find( prog );
-        if( it_fov!=d_sip->d_func_fo_var.end() ){
-          Node pv = it_fov->second;
-          Assert( d_sip->d_func_inv.find( prog )!=d_sip->d_func_inv.end() );
-          Node inv = d_sip->d_func_inv[prog];
+        Node pv = d_sip->getFirstOrderVariableForFunction( prog );
+        if( !pv.isNull() ){
+          Node inv = d_sip->getFunctionInvocationFor(prog);
+          Assert( !inv.isNull() );
           single_inv_app_map[prog] = inv;
           Trace("cegqi-si") << "  " << pv << ", " << inv << " is associated with program " << prog << std::endl;
           d_prog_to_sol_index[prog] = order_vars.size();
@@ -188,17 +187,19 @@ void CegConjectureSingleInv::initialize( Node q ) {
             d_trans_post[prog] = d_ti[q].getComponent( -1 );
             Trace("cegqi-inv") << "   precondition : " << d_trans_pre[prog] << std::endl;
             Trace("cegqi-inv") << "  postcondition : " << d_trans_post[prog] << std::endl;
+            std::vector< Node > sivars;
+            d_sip->getSingleInvocationVariables(sivars);
             Node invariant = single_inv_app_map[prog];
-            invariant = invariant.substitute( d_sip->d_si_vars.begin(), d_sip->d_si_vars.end(), prog_templ_vars.begin(), prog_templ_vars.end() );
+            invariant = invariant.substitute( sivars.begin(), sivars.end(), prog_templ_vars.begin(), prog_templ_vars.end() );
             Trace("cegqi-inv") << "      invariant : " << invariant << std::endl;
             
             // store simplified version of quantified formula
             d_simp_quant = d_sip->getFullSpecification();
             std::vector< Node > new_bv;
-            for( unsigned j=0; j<d_sip->d_si_vars.size(); j++ ){
-              new_bv.push_back( NodeManager::currentNM()->mkBoundVar( d_sip->d_si_vars[j].getType() ) );
+            for( unsigned j=0; j<sivars.size(); j++ ){
+              new_bv.push_back( NodeManager::currentNM()->mkBoundVar( sivars[j].getType() ) );
             }
-            d_simp_quant = d_simp_quant.substitute( d_sip->d_si_vars.begin(), d_sip->d_si_vars.end(), new_bv.begin(), new_bv.end() );
+            d_simp_quant = d_simp_quant.substitute( sivars.begin(), sivars.end(), new_bv.begin(), new_bv.end() );
             Assert( q[1].getKind()==NOT && q[1][0].getKind()==FORALL );
             for( unsigned j=0; j<q[1][0][0].getNumChildren(); j++ ){
               new_bv.push_back( q[1][0][0][j] );
@@ -288,11 +289,13 @@ void CegConjectureSingleInv::finishInit( bool syntaxRestricted, bool hasItes ) {
       d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, d_single_inv );
     }
     //now, introduce the skolems
-    for( unsigned i=0; i<d_sip->d_si_vars.size(); i++ ){
-      Node v = NodeManager::currentNM()->mkSkolem( "a", d_sip->d_si_vars[i].getType(), "single invocation arg" );
+    std::vector< Node > sivars;
+    d_sip->getSingleInvocationVariables(sivars);
+    for( unsigned i=0; i<sivars.size(); i++ ){
+      Node v = NodeManager::currentNM()->mkSkolem( "a", sivars[i].getType(), "single invocation arg" );
       d_single_inv_arg_sk.push_back( v );
     }
-    d_single_inv = d_single_inv.substitute( d_sip->d_si_vars.begin(), d_sip->d_si_vars.end(),
+    d_single_inv = d_single_inv.substitute( sivars.begin(), sivars.end(),
                                             d_single_inv_arg_sk.begin(), d_single_inv_arg_sk.end() );
     Trace("cegqi-si") << "Single invocation formula is : " << d_single_inv << std::endl;
     if( options::cbqiPreRegInst() && d_single_inv.getKind()==FORALL ){
@@ -317,10 +320,9 @@ bool CegConjectureSingleInv::doAddInstantiation( std::vector< Node >& subs ){
   if( Trace.isOn("cegqi-si-inst-debug") || Trace.isOn("cegqi-engine") ){
     siss << "  * single invocation: " << std::endl;
     for( unsigned j=0; j<d_single_inv_sk.size(); j++ ){
-      Assert( d_sip->d_fo_var_to_func.find( d_single_inv[0][j] )!=d_sip->d_fo_var_to_func.end() );
-      Node op = d_sip->d_fo_var_to_func[d_single_inv[0][j]];
-      Node prog = op;
-      siss << "    * " << prog;
+      Node op = d_sip->getFunctionForFirstOrderVariable(d_single_inv[0][j]);
+      Assert(!op.isNull());
+      siss << "    * " << op;
       siss << " (" << d_single_inv_sk[j] << ")";
       siss << " -> " << subs[j] << std::endl;
     }
@@ -627,6 +629,46 @@ bool SingleInvocationPartition::init( Node n ) {
     Trace("si-prt") << "Could not infer argument types." << std::endl;
     return false;
   }
+}
+
+Node SingleInvocationPartition::getFirstOrderVariableForFunction( Node f ) const {
+  std::map< Node, Node >::const_iterator it = d_func_fo_var.find(f);
+  if(it!=d_func_fo_var.end() ){
+    return it->second;
+  }
+  return Node::null();
+}
+
+Node SingleInvocationPartition::getFunctionForFirstOrderVariable( Node v ) const {
+  std::map< Node, Node >::const_iterator it = d_fo_var_to_func.find(v);
+  if(it!=d_fo_var_to_func.end() ){
+    return it->second;
+  }
+  return Node::null();
+}
+
+Node SingleInvocationPartition::getFunctionInvocationFor( Node f ) const {
+  std::map< Node, Node >::const_iterator it = d_func_inv.find(f);
+  if(it!=d_func_inv.end() ){
+    return it->second;
+  }
+  return Node::null();
+}
+
+void SingleInvocationPartition::getFunctionVariables( std::vector< Node >& fvars ) const {
+  fvars.insert( fvars.end(), d_func_vars.begin(), d_func_vars.end() );
+}
+
+void SingleInvocationPartition::getFunctions(std::vector< Node >& fs) const {
+  fs.insert( fs.end(), d_all_funcs.begin(), d_all_funcs.end() );
+}
+
+void SingleInvocationPartition::getSingleInvocationVariables( std::vector< Node >& sivars ) const {
+  sivars.insert( sivars.end(), d_si_vars.begin(), d_si_vars.end() );
+}
+
+void SingleInvocationPartition::getAllVariables( std::vector< Node >& vars ) const {
+  vars.insert( vars.end(), d_all_vars.begin(), d_all_vars.end() );
 }
 
 // gets the argument type list for the first APPLY_UF we see
@@ -943,6 +985,7 @@ bool SingleInvocationPartition::isAntiSkolemizableType( Node f ) {
         d_func_fo_var[f] = v;
         d_fo_var_to_func[v] = f;
         d_func_vars.push_back( v );
+        d_all_funcs.push_back(f);
       }
     }
     d_funcs[f] = ret;

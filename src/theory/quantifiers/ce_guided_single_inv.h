@@ -254,13 +254,20 @@ class CegConjectureSingleInv {
  * then the formula is ( f( x, y ) = g( y ) V f( x, y ) = b )
  * is single invocation since there is only one
  * unique application of f, that is, f( x, y ).
- * 
+ * Notice that 
+ *   exists f. forall xy. f( x, y ) = g( y ) V f( x, y ) = b
+ * is equivalent to:
+ *   forall xy. exists z. z = g( y ) V z = b
+ *   
  * When handling multiple input functions, we only infer a formula
  * is single invocation if all (relevant) input functions have the
  * same argument types. An input function is relevant if it is 
  * specified by the input in a call to init() or occurs in the 
  * formula we are processing.
  * 
+ * Notice that this class may introduce auxiliary variables to 
+ * coerce a formula into being single invocation. For example,
+ * see Example 5 of Reynolds et al. SYNT 2017.
  * 
  */
 class SingleInvocationPartition {
@@ -274,7 +281,9 @@ public:
    * Below, we call n the "processed formula".
    * 
    * This method returns true if all input functions have identical 
-   * argument type lists.
+   * argument type lists, and false otherwise. Notice that all
+   * access functions below are only valid if this class is 
+   * successfully initialized.
    */
   bool init( std::vector< Node >& funcs, Node n );
   /** initialize this partition for formula n
@@ -346,6 +355,23 @@ public:
    */
   Node getFunctionInvocationFor( Node f ) const;
   
+  /** get single invocation variables, appends them to sivars */
+  void getSingleInvocationVariables( std::vector< Node >& sivars ) const;
+  /** get all free variables of the processed formula, appends them to vars */
+  void getAllVariables( std::vector< Node >& vars ) const;
+  /** get function variables
+   * Appends all first-order variables corresponding to input functions to fvars.
+   */
+  void getFunctionVariables( std::vector< Node >& fvars ) const;
+  /** get functions 
+   * Gets all input functions. This has the same order as the list of 
+   * function variables above.
+   */
+  void getFunctions(std::vector< Node >& fs) const;
+  
+  /** print debugging information on Trace c */
+  void debugPrint( const char * c );
+  
   
   /** map from input functions to whether they have an anti-skolemizable type
    * An anti-skolemizable type is one of the form:
@@ -355,15 +381,17 @@ public:
   std::map< Node, bool > d_funcs;
   /** map from functions to the invocation we inferred for them */
   std::map< Node, Node > d_func_inv;
-  /** map from first-order variables to input functions */
+  /** the list of first-order variables for functions
+   * In (EX1), this is the list { z }.
+   */
   std::vector< Node > d_func_vars;
-  /** the arguments that we based the anti-skolemization on 
+  /** the arguments that we based the anti-skolemization on.
    * In (EX1), this is the list { x, y }.
    */
   std::vector< Node > d_si_vars;
   /** every free variable of conjuncts[2] */
   std::vector< Node > d_all_vars;
-  /** */
+  /** map from functions to first-order variables that anti-skolemized them */
   std::map< Node, Node > d_func_fo_var;
   /** map from first-order variables to the function anti-skolemized */
   std::map< Node, Node > d_fo_var_to_func;
@@ -373,8 +401,6 @@ public:
    *   d_si_vars[i].getType()==d_arg_types[i]
    */
   std::vector< TypeNode > d_arg_types;  
-  /** print debugging information on Trace c */
-  void debugPrint( const char * c );
 private:
   /** the list of conjuncts with various properties :
    * 0 : the single invocation conjuncts (stored in anti-skolemized form),
@@ -387,6 +413,9 @@ private:
   bool d_has_input_funcs;
   /** the input functions we initialized this class with */
   std::vector< Node > d_input_funcs;
+  /** all input functions */
+  std::vector< Node > d_all_funcs;
+  
   /** infer the argument types of uninterpreted function applications 
    * 
    * If this method returns true, then the contents of typs contains
