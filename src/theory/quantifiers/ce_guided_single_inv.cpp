@@ -729,13 +729,6 @@ bool SingleInvocationPartition::init( std::vector< Node >& funcs, std::vector< T
     Node si_v = NodeManager::currentNM()->mkBoundVar( ss.str(), d_arg_types[j] );
     d_si_vars.push_back( si_v );
   }
-  Trace("si-prt") << "Process the formula..." << std::endl;
-  process( n );
-  return true;
-}
-
-
-void SingleInvocationPartition::process( Node n ) {
   Assert( d_si_vars.size()==d_arg_types.size() );
   Trace("si-prt") << "SingleInvocationPartition::process " << n << std::endl;
   Trace("si-prt") << "Get conjuncts..." << std::endl;
@@ -860,6 +853,7 @@ void SingleInvocationPartition::process( Node n ) {
   }else{
     Trace("si-prt") << "...failed." << std::endl;
   }
+  return true;
 }
 
 bool SingleInvocationPartition::collectConjuncts( Node n, bool pol, std::vector< Node >& conj ) {
