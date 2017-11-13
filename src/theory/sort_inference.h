@@ -90,8 +90,9 @@ private:
   Node mkInjection( TypeNode tn1, TypeNode tn2 );
   //reset
   void reset();
-public:
-  SortInference() : sortCount( 1 ){}
+
+ public:
+  SortInference() : sortCount(1), initialSortCount() {}
   ~SortInference(){}
 
   void simplify( std::vector< Node >& assertions, bool doSortInference, bool doMonotonicyInference );
