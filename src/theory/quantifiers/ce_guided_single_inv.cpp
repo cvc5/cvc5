@@ -159,11 +159,6 @@ void CegConjectureSingleInv::initialize( Node q ) {
           Trace("cegqi-si") << "  " << prog << " has no fo var." << std::endl;
         }
       }
-      //reorder the variables
-      Assert( d_sip->d_func_vars.size()==order_vars.size() );
-      d_sip->d_func_vars.clear();
-      d_sip->d_func_vars.insert( d_sip->d_func_vars.begin(), order_vars.begin(), order_vars.end() );
-      
 
       //check if it is single invocation
       if (!d_sip->isPurelySingleInvocation())
@@ -285,8 +280,10 @@ void CegConjectureSingleInv::finishInit( bool syntaxRestricted, bool hasItes ) {
   if( d_single_invocation ){
     d_single_inv = d_sip->getSingleInvocation();
     d_single_inv = TermUtil::simpleNegate( d_single_inv );
-    if( !d_sip->d_func_vars.empty() ){
-      Node pbvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, d_sip->d_func_vars );
+    std::vector< Node > func_vars;
+    d_sip->getFunctionVariables(func_vars);
+    if( !func_vars.empty() ){
+      Node pbvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, func_vars );
       d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, d_single_inv );
     }
     //now, introduce the skolems

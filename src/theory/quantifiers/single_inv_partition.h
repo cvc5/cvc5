@@ -166,6 +166,7 @@ class SingleInvocationPartition
   /** print debugging information on Trace c */
   void debugPrint(const char* c);
 
+ private:
   /** map from input functions to whether they have an anti-skolemizable type
    * An anti-skolemizable type is one of the form:
    *   ( T1, ..., Tn ) -> T
@@ -195,7 +196,6 @@ class SingleInvocationPartition
    */
   std::vector<TypeNode> d_arg_types;
 
- private:
   /** the list of conjuncts with various properties :
    * 0 : the single invocation conjuncts (stored in anti-skolemized form),
    * 1 : the non-single invocation conjuncts,

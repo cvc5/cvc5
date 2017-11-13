@@ -4629,13 +4629,16 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
                               "QE to obtain single invocation."
                            << std::endl;
         // partition variables
+        std::vector<Node> all_vars;
+        sip.getAllVariables(all_vars);
+        std::vector<Node> si_vars;
+        sip.getSingleInvocationVariables(si_vars);
         std::vector<Node> qe_vars;
         std::vector<Node> nqe_vars;
-        for (unsigned i = 0; i < sip.d_all_vars.size(); i++)
+        for (unsigned i = 0; i < all_vars.size(); i++)
         {
-          Node v = sip.d_all_vars[i];
-          if (std::find(sip.d_si_vars.begin(), sip.d_si_vars.end(), v)
-              == sip.d_si_vars.end())
+          Node v = all_vars[i];
+          if (std::find(si_vars.begin(), si_vars.end(), v) == si_vars.end())
           {
             qe_vars.push_back(v);
           }
@@ -4658,17 +4661,21 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
           Trace("smt-synth") << "  subs : " << nqe_vars[i] << " -> " << k
                              << std::endl;
         }
-        for (std::map<Node, bool>::iterator it = sip.d_funcs.begin();
-             it != sip.d_funcs.end();
-             ++it)
+        std::vector< Node > funcs;
+        sip.getFunctions(funcs);
+        for( unsigned i=0; i<funcs.size(); i++ )
         {
-          orig.push_back(sip.d_func_inv[it->first]);
+          Node f = funcs[i];
+          Node fi = sip.getFunctionInvocationFor(f);
+          Node fv = sip.getFirstOrderVariableForFunction(f);
+          Assert(!fi.isNull());
+          orig.push_back(fi);
           Node k = NodeManager::currentNM()->mkSkolem(
               "k",
-              sip.d_func_fo_var[it->first].getType(),
+              fv.getType(),
               "qe for function in non-ground single invocation");
           subs.push_back(k);
-          Trace("smt-synth") << "  subs : " << sip.d_func_inv[it->first]
+          Trace("smt-synth") << "  subs : " << fi
                              << " -> " << k << std::endl;
         }
         Node conj_se_ngsi = sip.getFullSpecification();
