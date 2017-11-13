@@ -351,7 +351,7 @@ struct TriggerInfo {
   Node trigger;
   /** Polarity of the trigger */
   bool polarity;
-  TriggerInfo() : polarity() {}
+  TriggerInfo() : polarity(false) {}
   TriggerInfo(Node trigger, bool polarity)
       : trigger(trigger), polarity(polarity) {}
 };
