@@ -606,7 +606,7 @@ InstPropagator::InstPropagator(QuantifiersEngine* qe)
       d_qy(qe),
       d_icount(1),
       d_conflict(false),
-      d_has_relevant_inst() {}
+      d_has_relevant_inst(false) {}
 
 bool InstPropagator::reset( Theory::Effort e ) {
   d_icount = 1;
