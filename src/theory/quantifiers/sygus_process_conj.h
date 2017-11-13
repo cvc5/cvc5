@@ -88,8 +88,6 @@ class CegConjectureProcess
   void processConjunct(Node c);
   /** for each synth-fun, information that is specific to this conjecture */
   std::map<Node, CegSynthFunProcessInfo> d_sf_info;
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
 };
 
 } /* namespace CVC4::theory::quantifiers */

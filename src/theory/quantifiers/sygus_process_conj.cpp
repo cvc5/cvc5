@@ -27,7 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegConjectureProcess::CegConjectureProcess(QuantifiersEngine* qe) : d_qe(qe) {}
+CegConjectureProcess::CegConjectureProcess(QuantifiersEngine* qe) {}
 CegConjectureProcess::~CegConjectureProcess() {}
 Node CegConjectureProcess::simplify(Node q)
 {

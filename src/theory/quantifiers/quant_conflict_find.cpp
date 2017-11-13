@@ -1906,7 +1906,6 @@ bool MatchGen::isHandled( TNode n ) {
 QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe, context::Context* c)
     : QuantifiersModule(qe),
       d_conflict(c, false),
-      d_fid_count(0),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),
       d_false(NodeManager::currentNM()->mkConst<bool>(false)),
       d_effort(Effort::Unset),
@@ -2106,7 +2105,8 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                             Node inst = d_quantEngine->getInstantiation( q, terms );
                             Debug("qcf-check-inst") << "Check instantiation " << inst << "..." << std::endl;
                             Assert( !getTermDatabase()->isEntailed( inst, true ) );
-                            Assert( getTermDatabase()->isEntailed( inst, false ) || e>effort_conflict );
+                            Assert(getTermDatabase()->isEntailed(inst, false) ||
+                                   e > Effort::Conflict);
                           }
                           if( d_quantEngine->addInstantiation( q, terms ) ){
                             Trace("qcf-check") << "   ... Added instantiation" << std::endl;

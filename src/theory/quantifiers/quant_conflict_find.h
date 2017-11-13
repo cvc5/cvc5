@@ -205,7 +205,6 @@ private:
   void setIrrelevantFunction( TNode f );
 private:
   std::map< Node, Node > d_op_node;
-  int d_fid_count;
   std::map< Node, int > d_fid;
   Node mkEqNode( Node a, Node b );
 public:  //for ground terms
