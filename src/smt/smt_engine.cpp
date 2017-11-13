@@ -4610,8 +4610,8 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
     {
       Node conj_se = Node::fromExpr(expandDefinitions(conj[1][1].toExpr()));
 
-      Trace("smt-synth") << "Compute single invocation for " << conj_se
-                          << "..." << std::endl;
+      Trace("smt-synth") << "Compute single invocation for " << conj_se << "..."
+                         << std::endl;
       quantifiers::SingleInvocationPartition sip;
       std::vector<Node> funcs;
       funcs.insert(funcs.end(), conj[0].begin(), conj[0].end());
@@ -4619,15 +4619,14 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
       Trace("smt-synth") << "...finished, got:" << std::endl;
       sip.debugPrint("smt-synth");
 
-      if (!sip.isPurelySingleInvocation()
-          && sip.isNonGroundSingleInvocation())
+      if (!sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation())
       {
         // create new smt engine to do quantifier elimination
         SmtEngine smt_qe(d_exprManager);
         smt_qe.setLogic(getLogicInfo());
         Trace("smt-synth") << "Property is non-ground single invocation, run "
                               "QE to obtain single invocation."
-                            << std::endl;
+                           << std::endl;
         // partition variables
         std::vector<Node> qe_vars;
         std::vector<Node> nqe_vars;
@@ -4656,11 +4655,11 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
           orig.push_back(nqe_vars[i]);
           subs.push_back(k);
           Trace("smt-synth") << "  subs : " << nqe_vars[i] << " -> " << k
-                              << std::endl;
+                             << std::endl;
         }
         for (std::map<Node, bool>::iterator it = sip.d_funcs.begin();
-              it != sip.d_funcs.end();
-              ++it)
+             it != sip.d_funcs.end();
+             ++it)
         {
           orig.push_back(sip.d_func_inv[it->first]);
           Node k = NodeManager::currentNM()->mkSkolem(
@@ -4669,11 +4668,11 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
               "qe for function in non-ground single invocation");
           subs.push_back(k);
           Trace("smt-synth") << "  subs : " << sip.d_func_inv[it->first]
-                              << " -> " << k << std::endl;
+                             << " -> " << k << std::endl;
         }
         Node conj_se_ngsi = sip.getFullSpecification();
         Trace("smt-synth") << "Full specification is " << conj_se_ngsi
-                            << std::endl;
+                           << std::endl;
         Node conj_se_ngsi_subs = conj_se_ngsi.substitute(
             orig.begin(), orig.end(), subs.begin(), subs.end());
         Assert(!qe_vars.empty());
@@ -4683,7 +4682,7 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
             conj_se_ngsi_subs.negate());
 
         Trace("smt-synth") << "Run quantifier elimination on "
-                            << conj_se_ngsi_subs << std::endl;
+                           << conj_se_ngsi_subs << std::endl;
         Expr qe_res = smt_qe.doQuantifierElimination(
             conj_se_ngsi_subs.toExpr(), true, false);
         Trace("smt-synth") << "Result : " << qe_res << std::endl;
@@ -4696,15 +4695,14 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
         {
           qe_res_n = NodeManager::currentNM()->mkNode(
               kind::EXISTS,
-              NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST,
-                                                nqe_vars),
+              NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, nqe_vars),
               qe_res_n);
         }
         Assert(conj.getNumChildren() == 3);
         qe_res_n = NodeManager::currentNM()->mkNode(
             kind::FORALL, conj[0], qe_res_n, conj[2]);
         Trace("smt-synth") << "Converted conjecture after QE : " << qe_res_n
-                            << std::endl;
+                           << std::endl;
         e_check = qe_res_n.toExpr();
       }
     }
