@@ -246,9 +246,25 @@ class CegInstantiator {
   std::vector< Node > d_stack_vars;
   /** for each variable, the instantiator used for that variable */
   std::map< Node, Instantiator * > d_active_instantiators;
-  //register variable
+  /** register instantiation variable v at index 
+   * This is called when v is a variable (inst constant)
+   * for the quantified formula we are instantiating.
+   */
   void registerInstantiationVariable( Node v, unsigned index );
+  /** unregister instantiation variable 
+   * 
+   */
   void unregisterInstantiationVariable( Node v );
+  /** registers all theory ids associated with type tn 
+   * This recursively calls registerTheoryId for typeOf(tn') for 
+   * all parameters and datatype subfields of type tn.
+   * visited stores the types we have already visited.
+   */
+  void registerTheoryIds( TypeNode tn, std::map< TypeNode, bool >& visited );
+  /** registers theory id tid 
+   * 
+   */
+  void registerTheoryId( TheoryId tid );
 private:
   //for adding instantiations during check
   void computeProgVars( Node n );

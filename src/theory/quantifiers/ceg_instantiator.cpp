@@ -116,6 +116,30 @@ void CegInstantiator::registerInstantiationVariable( Node v, unsigned index ) {
   d_curr_index[v] = index;
 }
 
+void CegInstantiator::registerTheoryIds( TypeNode tn, std::map< TypeNode, bool >& visited ){
+  std::map< TypeNode, bool >::iterator itt = visited.find( tn );
+  if( itt==visited.end() ){
+    visited[tn] = true;
+    TheoryId tid = Theory::theoryOf( tn );
+    registerTheoryId( tid );
+    if( tn.isDatatype() ){
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+        for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
+          registerTheoryIds( TypeNode::fromType( ((SelectorType)dt[i][j].getType()).getRangeType() ), visited );
+        }
+      }
+    }
+  }
+}
+
+void CegInstantiator::registerTheoryId( TheoryId tid ){
+  if( std::find( d_tids.begin(), d_tids.end(), tid )==d_tids.end() ){
+    // TODO
+    d_tids.push_back( tid );
+  }
+}
+
 void CegInstantiator::unregisterInstantiationVariable( Node v ) {
   d_curr_subs_proc.erase( v );
   d_curr_index.erase( v );
@@ -792,25 +816,6 @@ void CegInstantiator::presolve( Node q ) {
   }
 }
 
-void collectTheoryIds( TypeNode tn, std::map< TypeNode, bool >& visited, std::vector< TheoryId >& tids ){
-  std::map< TypeNode, bool >::iterator itt = visited.find( tn );
-  if( itt==visited.end() ){
-    visited[tn] = true;
-    TheoryId tid = Theory::theoryOf( tn );
-    if( std::find( tids.begin(), tids.end(), tid )==tids.end() ){
-      tids.push_back( tid );
-    }
-    if( tn.isDatatype() ){
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-          collectTheoryIds( TypeNode::fromType( ((SelectorType)dt[i][j].getType()).getRangeType() ), visited, tids );
-        }
-      }
-    }
-  }
-}
-
 void CegInstantiator::processAssertions() {
   Trace("cbqi-proc") << "--- Process assertions, #var = " << d_vars.size() << ", #aux-var = " << d_aux_vars.size() << std::endl;
   d_curr_asserts.clear();
@@ -1132,7 +1137,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
       Trace("cbqi-proc-debug") << "Collect theory ids from type " << pvtn << " of " << pv << std::endl;
       //collect relevant theories
       std::map< TypeNode, bool > visited;
-      collectTheoryIds( pvtn, visited, d_tids );
+      registerTheoryIds( pvtn, visited );
     }
   }
 }
