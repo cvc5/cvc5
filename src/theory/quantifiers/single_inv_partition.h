@@ -141,7 +141,7 @@ class SingleInvocationPartition
   Node getFunctionForFirstOrderVariable(Node v) const;
   /** get function invocation for
    * Returns f( x ) where x are the single invocation arguments of the input
-   * formulas (see d_si_vars). 
+   * formulas (see d_si_vars).
    * If f is not an input function, this returns null.
    */
   Node getFunctionInvocationFor(Node f) const;

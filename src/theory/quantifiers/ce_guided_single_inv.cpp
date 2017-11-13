@@ -280,10 +280,11 @@ void CegConjectureSingleInv::finishInit( bool syntaxRestricted, bool hasItes ) {
   if( d_single_invocation ){
     d_single_inv = d_sip->getSingleInvocation();
     d_single_inv = TermUtil::simpleNegate( d_single_inv );
-    std::vector< Node > func_vars;
+    std::vector<Node> func_vars;
     d_sip->getFunctionVariables(func_vars);
-    if( !func_vars.empty() ){
-      Node pbvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, func_vars );
+    if (!func_vars.empty())
+    {
+      Node pbvl = NodeManager::currentNM()->mkNode(BOUND_VAR_LIST, func_vars);
       d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, d_single_inv );
     }
     //now, introduce the skolems

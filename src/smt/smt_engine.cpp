@@ -4661,9 +4661,9 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
           Trace("smt-synth") << "  subs : " << nqe_vars[i] << " -> " << k
                              << std::endl;
         }
-        std::vector< Node > funcs;
+        std::vector<Node> funcs;
         sip.getFunctions(funcs);
-        for( unsigned i=0; i<funcs.size(); i++ )
+        for (unsigned i = 0; i < funcs.size(); i++)
         {
           Node f = funcs[i];
           Node fi = sip.getFunctionInvocationFor(f);
@@ -4675,8 +4675,7 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
               fv.getType(),
               "qe for function in non-ground single invocation");
           subs.push_back(k);
-          Trace("smt-synth") << "  subs : " << fi
-                             << " -> " << k << std::endl;
+          Trace("smt-synth") << "  subs : " << fi << " -> " << k << std::endl;
         }
         Node conj_se_ngsi = sip.getFullSpecification();
         Trace("smt-synth") << "Full specification is " << conj_se_ngsi
