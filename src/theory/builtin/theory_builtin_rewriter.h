@@ -63,27 +63,27 @@ private:
   static Node getArrayRepresentationForLambdaRec( TNode n, bool reqConst, TypeNode retType );
 public:
  /** Get function type for array type
- * This returns the function type of terms returned by the function
- * getLambdaForArrayRepresentation( t, bvl ),
- * where t.getType()=atn.
- *
- * bvl should be a bound variable list whose variables correspond to in-order to
- * the index types of the
- * (curried) Array type. For example a bound variable list bvl whose variables
- * have types (Int, Real) would be a proper
- * input when paired with atn = (Array Int (Array Real Bool)), or (Array Int
- * (Array Real (Array Bool Bool))).
- * This function returns (-> Int Real Bool) and (-> Int Real (Array Bool Bool))
- * respectively in these cases.
- * Whereas bvl is not a proper input for atn = (Array Int (Array Bool Bool)) or
- * (Array Int Int).
- */
+  * 
+  * This returns the function type of terms returned by the function
+  * getLambdaForArrayRepresentation( t, bvl ),
+  * where t.getType()=atn.
+  *
+  * bvl should be a bound variable list whose variables correspond in-order 
+  * to the index types of the (curried) Array type. For example, a bound 
+  * variable list bvl whose variables have types (Int, Real) can be given as
+  * input when paired with atn = (Array Int (Array Real Bool)), or (Array Int
+  * (Array Real (Array Bool Bool))). This function returns (-> Int Real Bool) 
+  * and (-> Int Real (Array Bool Bool)) respectively in these cases. 
+  * On the other hand, the above bvl is not a proper input for 
+  * atn = (Array Int (Array Bool Bool)) or (Array Int Int). 
+  * If the types of bvl and atn do not match, we throw an assertion failure.
+  */
  static TypeNode getFunctionTypeForArrayType(TypeNode atn, Node bvl);
  /** Get array type for function type
- * This returns the array type of terms returned
- * getArrayRepresentationForLambda( t ),
- * where t.getType()=ftn.
- */
+  * 
+  * This returns the array type of terms returned by
+  * getArrayRepresentationForLambda( t ), where t.getType()=ftn.
+  */
  static TypeNode getArrayTypeForFunctionType(TypeNode ftn);
  /**
   * Given an array constant a, returns a lambda expression that it corresponds
