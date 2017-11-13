@@ -321,6 +321,9 @@ cardinality FUNCTION_TYPE \
     "::CVC4::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 well-founded FUNCTION_TYPE false
+enumerator FUNCTION_TYPE \
+    ::CVC4::theory::builtin::FunctionEnumerator \
+    "theory/builtin/type_enumerator.h"
 operator SEXPR_TYPE 0: "the type of a symbolic expression"
 cardinality SEXPR_TYPE \
     "::CVC4::theory::builtin::SExprProperties::computeCardinality(%TYPE%)" \
