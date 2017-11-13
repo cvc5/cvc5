@@ -39,6 +39,7 @@ public:
 };
 
 class Instantiator;
+class InstantiatorPreprocess;
 
 /** Term Properties
  * stores properties for a variable to solve for in CEGQI
@@ -187,6 +188,8 @@ class CegInstantiator {
    * are processing.
    */
   std::vector<TheoryId> d_tids;
+  /** map from theory ids to instantiator preprocessors */
+  std::map<TheoryId, InstantiatorPreprocess*> d_tipp;
   /** literals to equalities for aux vars
    * This stores entries of the form
    *   L -> ( k -> t )
@@ -247,22 +250,34 @@ class CegInstantiator {
   /** for each variable, the instantiator used for that variable */
   std::map< Node, Instantiator * > d_active_instantiators;
   /** register instantiation variable v at index 
-   * This is called when v is a variable (inst constant)
-   * for the quantified formula we are instantiating.
+   * 
+   * This is called when variable (inst constant) v is activated
+   * for the quantified formula we are processing.
+   * This method initializes the instantiator class for 
+   * that variable if necessary, where this class is 
+   * determined by the type of v. It also initializes
+   * the cache of values we have tried substituting for v 
+   * (in d_curr_subs_proc), and stores its index.
    */
   void registerInstantiationVariable( Node v, unsigned index );
   /** unregister instantiation variable 
    * 
+   * This is called when variable (inst constant) v is deactivated
+   * for the quantified formula we are processing.
    */
   void unregisterInstantiationVariable( Node v );
   /** registers all theory ids associated with type tn 
+   * 
    * This recursively calls registerTheoryId for typeOf(tn') for 
    * all parameters and datatype subfields of type tn.
    * visited stores the types we have already visited.
    */
   void registerTheoryIds( TypeNode tn, std::map< TypeNode, bool >& visited );
-  /** registers theory id tid 
+  /** register theory id tid 
    * 
+   * This is called when the quantified formula we are processing
+   * with this class involves theory tid. In this case, we will
+   * based instantiations based on the assertion list of this theory.
    */
   void registerTheoryId( TheoryId tid );
 private:
@@ -369,8 +384,17 @@ public:
 };
 
 
-// an instantiator for individual variables
-//   will make calls into CegInstantiator::doAddInstantiationInc
+/** Instantiator class
+ * 
+ * This is a virtual class that is used for methods for constructing 
+ * substitutions for individual variables in counterexample-guided 
+ * instantiation techniques.
+ * 
+ * This class contains a set of interface functions below, which are called
+ * based on a fixed instantiation method implemented by CegInstantiator.
+ * In these calls, the Instantiator in turn makes calls to methods in 
+ * CegInstanatior (primarily doAddInstantiationInc).
+ */
 class Instantiator {
 protected:
   TypeNode d_type;
@@ -378,39 +402,62 @@ protected:
 public:
   Instantiator( QuantifiersEngine * qe, TypeNode tn );
   virtual ~Instantiator(){}
+  /** reset 
+   * This is called once, prior to any of the below methods are called.
+   * This function sets up any initial information necessary for constructing 
+   * instantiations for pv based on the current context.
+   */
   virtual void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {}
 
-  //  Called when the entailment:
-  //    E |= pv_prop.getModifiedTerm(pv) = n
-  //  holds in the current context E, and n is eligible for instantiation.
+  /** process equal term
+   * 
+   * This method is called when the entailment:
+   *   E |= pv_prop.getModifiedTerm(pv) = n
+   * holds in the current context E, and n is eligible for instantiation.
+   * 
+   * Returns true if an instantiation was successfully added via a call to 
+   * CegInstantiator::doAddInstantiationInc.
+   */
   virtual bool processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, TermProperties& pv_prop, Node n, unsigned effort );
-  //  Called about process equal term, where eqc is the list of eligible terms in the equivalence class of pv
+  /** process equal terms 
+   * 
+   * This method is called after process equal term, where eqc is the list of 
+   * eligible terms in the equivalence class of pv.
+   * 
+   * Returns true if an instantiation was successfully added via a call to 
+   * CegInstantiator::doAddInstantiationInc.
+   */
   virtual bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort ) { return false; }
 
-  // whether the instantiator implements processEquality
+  /** whether the instantiator implements processEquality */
   virtual bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
-  //  term_props.size() = terms.size() = 2
-  //  Called when the entailment:
-  //    E ^ term_props[0].getModifiedTerm(x0) = terms[0] ^ term_props[1].getModifiedTerm(x1) = terms[1] |= x0 = x1
-  //  holds in current context E for fresh variables xi, terms[i] are eligible, and at least one terms[i] contains pv for i = 0,1.
-  //  Notice in the basic case, E |= terms[0] = terms[1].
-  //  Returns true if an instantiation was successfully added via a recursive call
+  /** process equality 
+   *  The input is such that term_props.size() = terms.size() = 2
+   *  This method is called when the entailment:
+   *    E ^ term_props[0].getModifiedTerm(x0) = 
+   *    terms[0] ^ term_props[1].getModifiedTerm(x1) = terms[1] |= x0 = x1
+   *  holds in current context E for fresh variables xi, terms[i] are eligible, 
+   *  and at least one terms[i] contains pv for i = 0,1.
+   *  Notice in the basic case, E |= terms[0] = terms[1].
+   * 
+   *  Returns true if an instantiation was successfully added via a call to 
+   *  CegInstantiator::doAddInstantiationInc.
+   */
   virtual bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort ) { return false; }
 
-  // whether the instantiator implements processAssertion for any literal
+  /** whether the instantiator implements processAssertion for any literal */
   virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
   /** has process assertion
   *
-  * Called when the entailment:
+  * This method is called when the entailment:
   *   E |= lit
   * holds in current context E. Typically, lit belongs to the list of current
   * assertions.
   *
-  * This function is used to determine whether the instantiator implements
+  * This method is used to determine whether the instantiator implements
   * processAssertion for literal lit.
-  *   If this function returns null, then this intantiator does not handle the
-  * literal lit
-  *   Otherwise, this function returns a literal lit' with the properties:
+  *   If this method returns null, then this intantiator does not handle the
+  *   literal lit. Otherwise, this method returns a literal lit' such that:
   *   (1) lit' is true in the current model,
   *   (2) lit' implies lit.
   *   where typically lit' = lit.
@@ -420,35 +467,46 @@ public:
     return Node::null();
   }
   /** process assertion
-  * Processes the assertion slit for variable pv
-  *
-  * lit is the substituted form (under sf) of a literal returned by
-  * hasProcessAssertion
-  * alit is the asserted literal, given as input to hasProcessAssertion
-  *
-  * Returns true if an instantiation was successfully added via a recursive call
-  */
+   * This method processes the assertion slit for variable pv.
+   * lit : the substituted form (under sf) of a literal returned by
+   *       hasProcessAssertion
+   * alit : the asserted literal, given as input to hasProcessAssertion
+   *
+   *  Returns true if an instantiation was successfully added via a call to 
+   *  CegInstantiator::doAddInstantiationInc.
+   */
   virtual bool processAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv,
                                 Node lit, Node alit, unsigned effort) {
     return false;
   }
   /** process assertions
-  * Called after processAssertion is called for each literal asserted to the
-  * instantiator.
-  */
+   * 
+   * Called after processAssertion is called for each literal asserted to the
+   * instantiator.
+   * 
+   * Returns true if an instantiation was successfully added via a call to 
+   * CegInstantiator::doAddInstantiationInc.
+   */
   virtual bool processAssertions(CegInstantiator* ci, SolvedForm& sf, Node pv,
                                  unsigned effort) {
     return false;
   }
 
-  //do we use the model value as instantiation for pv
+  /** do we use the model value as instantiation for pv? 
+   * This method returns true if we use model value instantiations 
+   * prior to 
+   */
   virtual bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
-  //do we allow the model value as instantiation for pv
+  /** do we allow the model value as instantiation for pv? */
   virtual bool allowModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return d_closed_enum_type; }
 
-  //do we need to postprocess the solved form for pv?
+  /** do we need to postprocess the solved form for pv? */
   virtual bool needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
-  //postprocess the solved form for pv, returns true if we successfully postprocessed, lemmas is a set of lemmas we wish to return along with the instantiation
+  /** postprocess the solved form for pv
+   * 
+   * This method returns true if we successfully postprocessed the solved form.
+   * lemmas is a set of lemmas we wish to return along with the instantiation.
+   */
   virtual bool postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, std::vector< Node >& lemmas ) { return true; }
 
   /** Identify this module (for debugging) */
@@ -461,6 +519,18 @@ public:
   virtual ~ModelValueInstantiator(){}
   bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
   std::string identify() const { return "ModelValue"; }
+};
+
+/** instantiator preprocess
+ * 
+ * This class implements techniques for preprocessing the counterexample lemma
+ * generated for counterexample-guided quantifier instantiation.
+ */
+class InstantiatorPreprocess
+{
+public:
+  InstantiatorPreprocess(){}
+  ~InstantiatorPreprocess(){}
 };
 
 }

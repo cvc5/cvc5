@@ -135,7 +135,9 @@ void CegInstantiator::registerTheoryIds( TypeNode tn, std::map< TypeNode, bool >
 
 void CegInstantiator::registerTheoryId( TheoryId tid ){
   if( std::find( d_tids.begin(), d_tids.end(), tid )==d_tids.end() ){
-    // TODO
+    if( tid==THEORY_BV ){
+    
+    }
     d_tids.push_back( tid );
   }
 }
