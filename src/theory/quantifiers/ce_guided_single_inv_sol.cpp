@@ -34,9 +34,8 @@ using namespace std;
 
 namespace CVC4 {
 
-CegConjectureSingleInvSol::CegConjectureSingleInvSol( QuantifiersEngine * qe ) : d_qe( qe ){
-  d_id_count = 0;
-}
+CegConjectureSingleInvSol::CegConjectureSingleInvSol(QuantifiersEngine* qe)
+    : d_qe(qe), d_id_count(0), d_root_id() {}
 
 bool CegConjectureSingleInvSol::debugSolution( Node sol ) {
   if( sol.getKind()==SKOLEM ){
