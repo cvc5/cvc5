@@ -29,9 +29,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusGrammarSimplifier::SygusGrammarSimplifier(QuantifiersEngine* qe,
-                                             CegConjecture* p)
-    : d_qe(qe), d_parent(p), d_is_syntax_restricted(false), d_has_ite(true)
+SygusGrammarSimplifier::SygusGrammarSimplifier(CegConjecture* p)
+    : d_parent(p), d_is_syntax_restricted(false), d_has_ite(true)
 {
 }
 

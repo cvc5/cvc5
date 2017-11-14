@@ -32,7 +32,7 @@ class CegConjecture;
 class SygusGrammarSimplifier
 {
 public:
- SygusGrammarSimplifier(QuantifiersEngine* qe, CegConjecture* p);
+ SygusGrammarSimplifier(CegConjecture* p);
  ~SygusGrammarSimplifier() {}
   /** helper function for function process
    * Creates a normalized type from a given type
@@ -55,10 +55,8 @@ public:
    * IntCC -> 1
    * IntV -> 0 | c1...cn
    */
-  static TypeNode normalizeSygusType(TypeNode tn);
+  TypeNode normalizeSygusType(TypeNode tn);
 private:
-  /** reference to quantifier engine */
-  QuantifiersEngine * d_qe;
   /** parent conjecture
   * This contains global information about the synthesis conjecture.
   */
