@@ -265,7 +265,7 @@ bool ArithInstantiator::processEquality(CegInstantiator* ci,
   int ires = solve_arith( ci, pv, eq, pv_prop.d_coeff, val, vts_coeff_inf, vts_coeff_delta );
   if( ires!=0 ){
     pv_prop.d_type = 0;
-    if (ci->doAddInstantiationInc(pv, val, pv_prop, sf))
+    if (ci->constructInstantiationInc(pv, val, pv_prop, sf))
     {
       return true;
     }
@@ -398,7 +398,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       }else{
         //try this bound
         pv_prop.d_type = uires>0 ? 1 : -1;
-        if (ci->doAddInstantiationInc(pv, uval, pv_prop, sf))
+        if (ci->constructInstantiationInc(pv, uval, pv_prop, sf))
         {
           return true;
         }
@@ -441,7 +441,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             val = Rewriter::rewrite( val );
           }
           TermProperties pv_prop_no_bound;
-          if (ci->doAddInstantiationInc(pv, val, pv_prop_no_bound, sf))
+          if (ci->constructInstantiationInc(pv, val, pv_prop_no_bound, sf))
           {
             return true;
           }
@@ -539,7 +539,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
               TermProperties pv_prop_bound;
               pv_prop_bound.d_coeff = d_mbp_coeff[rr][best];
               pv_prop_bound.d_type = rr==0 ? 1 : -1;
-              if (ci->doAddInstantiationInc(pv, val, pv_prop_bound, sf))
+              if (ci->constructInstantiationInc(pv, val, pv_prop_bound, sf))
               {
                 return true;
               }
@@ -555,7 +555,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       Node theta = sf.getTheta();
       val = getModelBasedProjectionValue( ci, pv, val, true, pv_prop_zero.d_coeff, pv_value, zero, sf.getTheta(), Node::null(), Node::null() );
       if( !val.isNull() ){
-        if (ci->doAddInstantiationInc(pv, val, pv_prop_zero, sf))
+        if (ci->constructInstantiationInc(pv, val, pv_prop_zero, sf))
         {
           return true;
         }
@@ -598,7 +598,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       Trace("cegqi-arith-bound") << "Midpoint value : " << val << std::endl;
       if( !val.isNull() ){
         TermProperties pv_prop_midpoint;
-        if (ci->doAddInstantiationInc(pv, val, pv_prop_midpoint, sf))
+        if (ci->constructInstantiationInc(pv, val, pv_prop_midpoint, sf))
         {
           return true;
         }
@@ -620,7 +620,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
               TermProperties pv_prop_nopt_bound;
               pv_prop_nopt_bound.d_coeff = d_mbp_coeff[rr][j];
               pv_prop_nopt_bound.d_type = rr==0 ? 1 : -1;
-              if (ci->doAddInstantiationInc(pv, val, pv_prop_nopt_bound, sf))
+              if (ci->constructInstantiationInc(pv, val, pv_prop_nopt_bound, sf))
               {
                 return true;
               }
@@ -772,7 +772,7 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
       }
       Node val = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
       TermProperties pv_prop_dt;
-      if (ci->doAddInstantiationInc(pv, val, pv_prop_dt, sf))
+      if (ci->constructInstantiationInc(pv, val, pv_prop_dt, sf))
       {
         return true;
       }else{
@@ -797,7 +797,7 @@ bool DtInstantiator::processEquality(CegInstantiator* ci,
   Node val = solve_dt( pv, terms[0], terms[1], terms[0], terms[1] );
   if( !val.isNull() ){
     TermProperties pv_prop;
-    if (ci->doAddInstantiationInc(pv, val, pv_prop, sf))
+    if (ci->constructInstantiationInc(pv, val, pv_prop, sf))
     {
       return true;
     }
@@ -826,7 +826,7 @@ bool EprInstantiator::processEqualTerm(CegInstantiator* ci,
     return false;
   }else{
     pv_prop.d_type = 0;
-    return ci->doAddInstantiationInc(pv, n, pv_prop, sf);
+    return ci->constructInstantiationInc(pv, n, pv_prop, sf);
   }
 }
 
@@ -898,7 +898,7 @@ bool EprInstantiator::processEqualTerms(CegInstantiator* ci,
     TermProperties pv_prop;
     pv_prop.d_type = 0;
     for( unsigned i=0; i<d_equal_terms.size(); i++ ){
-      if (ci->doAddInstantiationInc(pv, d_equal_terms[i], pv_prop, sf))
+      if (ci->constructInstantiationInc(pv, d_equal_terms[i], pv_prop, sf))
       {
         return true;
       }
@@ -1201,7 +1201,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
         Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term
                           << std::endl;
         d_var_to_curr_inst_id[pv] = inst_id;
-        if (ci->doAddInstantiationInc(
+        if (ci->constructInstantiationInc(
                 pv, inst_term, pv_prop_bv, sf, revertOnSuccess))
         {
           ret = true;

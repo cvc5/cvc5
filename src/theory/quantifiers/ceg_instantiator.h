@@ -58,7 +58,7 @@ public:
   // for arithmetic
   Node d_coeff;
   // get cache node 
-  // we consider terms + TermProperties that are unique up to their cache node (see doAddInstantiationInc)
+  // we consider terms + TermProperties that are unique up to their cache node (see constructInstantiationInc)
   virtual Node getCacheNode() const { return d_coeff; }
   // is non-basic 
   virtual bool isBasic() const { return d_coeff.isNull(); }
@@ -199,9 +199,10 @@ class CegInstantiator {
                                    std::vector<Node>& ce_vars);
   /** get the output channel of this class */
   CegqiOutput* getOutput() { return d_out; }
-  // get quantifiers engine
-  QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
+  
   //------------------------------interface for instantiators
+  /** get quantifiers engine */
+  QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
   /** push stack variable
    * This adds a new variable to solve for in the stack
    * of variables we are processing. This stack is only
@@ -212,7 +213,7 @@ class CegInstantiator {
   void pushStackVariable(Node v);
   /** pop stack variable */
   void popStackVariable();
-  /** do add instantiation increment
+  /** construct instantiation increment
    *
    * Adds the substitution { pv_prop.getModifiedTerm(pv) -> n } to the current
    * instantiation, specified by sf.
@@ -225,11 +226,11 @@ class CegInstantiator {
    *   this function returns false, or
    *   revertOnSuccess is true and this function returns true.
    */
-  bool doAddInstantiationInc(Node pv,
-                             Node n,
-                             TermProperties& pv_prop,
-                             SolvedForm& sf,
-                             bool revertOnSuccess = false);
+  bool constructInstantiationInc(Node pv,
+                                 Node n,
+                              TermProperties& pv_prop,
+                              SolvedForm& sf,
+                              bool revertOnSuccess = false);
   /** get the current model value of term n */
   Node getModelValue(Node n);
   /** get bound variable for type
@@ -477,13 +478,13 @@ class CegInstantiator {
   /** map from variables to their instantiators */
   std::map<Node, Instantiator*> d_instantiator;
 
-  /** do add instantiation
+  /** construct instantiation
    * This method constructs the current instantiation, where we
    * are currently processing the i^th variable in d_vars.
    * It returns true if a successful call to the output channel's
    * doAddInstantiation was made.
    */
-  bool doAddInstantiation(SolvedForm& sf, unsigned i);
+  bool constructInstantiation(SolvedForm& sf, unsigned i);
   /** do add instantiation
    * This method is called by the above function after we finalize the
    * variables/substitution and auxiliary lemmas.
@@ -504,7 +505,7 @@ class CegInstantiator {
  * This class contains a set of interface functions below, which are called
  * based on a fixed instantiation method implemented by CegInstantiator.
  * In these calls, the Instantiator in turn makes calls to methods in
- * CegInstanatior (primarily doAddInstantiationInc).
+ * CegInstanatior (primarily constructInstantiationInc).
  */
 class Instantiator {
 public:
@@ -529,7 +530,7 @@ public:
    * holds in the current context E, and n is eligible for instantiation.
    *
    * Returns true if an instantiation was successfully added via a call to
-   * CegInstantiator::doAddInstantiationInc.
+   * CegInstantiator::constructInstantiationInc.
    */
   virtual bool processEqualTerm(CegInstantiator* ci,
                                 SolvedForm& sf,
@@ -543,7 +544,7 @@ public:
    * eligible terms in the equivalence class of pv.
    *
    * Returns true if an instantiation was successfully added via a call to
-   * CegInstantiator::doAddInstantiationInc.
+   * CegInstantiator::constructInstantiationInc.
    */
   virtual bool processEqualTerms(CegInstantiator* ci,
                                  SolvedForm& sf,
@@ -572,7 +573,7 @@ public:
    *  Notice in the basic case, E |= terms[0] = terms[1].
    *
    *  Returns true if an instantiation was successfully added via a call to
-   *  CegInstantiator::doAddInstantiationInc.
+   *  CegInstantiator::constructInstantiationInc.
    */
   virtual bool processEquality(CegInstantiator* ci,
                                SolvedForm& sf,
@@ -619,7 +620,7 @@ public:
    * alit : the asserted literal, given as input to hasProcessAssertion
    *
    *  Returns true if an instantiation was successfully added via a call to
-   *  CegInstantiator::doAddInstantiationInc.
+   *  CegInstantiator::constructInstantiationInc.
    */
   virtual bool processAssertion(CegInstantiator* ci,
                                 SolvedForm& sf,
@@ -636,7 +637,7 @@ public:
    * instantiator.
    *
    * Returns true if an instantiation was successfully added via a call to
-   * CegInstantiator::doAddInstantiationInc.
+   * CegInstantiator::constructInstantiationInc.
    */
   virtual bool processAssertions(CegInstantiator* ci,
                                  SolvedForm& sf,

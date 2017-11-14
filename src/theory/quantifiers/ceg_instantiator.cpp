@@ -196,7 +196,7 @@ void CegInstantiator::deactivateInstantiationVariable(Node v)
   d_curr_index.erase( v );
 }
 
-bool CegInstantiator::doAddInstantiation(SolvedForm& sf, unsigned i)
+bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
 {
   if( i==d_vars.size() ){
     //solved for all variables, now construct instantiation
@@ -449,7 +449,7 @@ bool CegInstantiator::doAddInstantiation(SolvedForm& sf, unsigned i)
         // update the effort level to indicate we have used a model value
         d_effort = INST_EFFORT_STANDARD_MV;
       }
-      if (doAddInstantiationInc(pv, mv, pv_prop_m, sf))
+      if (constructInstantiationInc(pv, mv, pv_prop_m, sf))
       {
         return true;
       }
@@ -474,7 +474,7 @@ void CegInstantiator::popStackVariable() {
   d_stack_vars.pop_back();
 }
 
-bool CegInstantiator::doAddInstantiationInc(Node pv,
+bool CegInstantiator::constructInstantiationInc(Node pv,
                                             Node n,
                                             TermProperties& pv_prop,
                                             SolvedForm& sf,
@@ -569,7 +569,7 @@ bool CegInstantiator::doAddInstantiationInc(Node pv,
       sf.push_back( pv, n, pv_prop );
       Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
       unsigned i = d_curr_index[pv];
-      success = doAddInstantiation(sf, d_stack_vars.empty() ? i + 1 : i);
+      success = constructInstantiation(sf, d_stack_vars.empty() ? i + 1 : i);
       if (!success || revertOnSuccess)
       {
         Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
@@ -824,7 +824,7 @@ bool CegInstantiator::check() {
     d_stack_vars.clear();
     d_bound_var_index.clear();
     //try to add an instantiation
-    if (doAddInstantiation(sf, 0))
+    if (constructInstantiation(sf, 0))
     {
       return true;
     }
@@ -1261,7 +1261,7 @@ bool Instantiator::processEqualTerm(CegInstantiator* ci,
                                     InstEffort effort)
 {
   pv_prop.d_type = 0;
-  return ci->doAddInstantiationInc(pv, n, pv_prop, sf);
+  return ci->constructInstantiationInc(pv, n, pv_prop, sf);
 }
 
 
