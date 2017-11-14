@@ -164,8 +164,11 @@ enum InstEffort
  * (for linear arithmetic), see Reynolds/King/Kuncak FMSD 2017.
  */
 class CegInstantiator {
-public:
-  CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta = true, bool use_vts_inf = true );
+ public:
+  CegInstantiator(QuantifiersEngine* qe,
+                  CegqiOutput* out,
+                  bool use_vts_delta = true,
+                  bool use_vts_inf = true);
   virtual ~CegInstantiator();
   /** check
    * This adds instantiations based on the state of d_vars in current context
@@ -177,7 +180,7 @@ public:
    * This initializes formulas that help static learning of the quantifier-free
    * solver. It is only called if the option --cbqi-prereg-inst is used.
    */
-  void presolve( Node q );
+  void presolve(Node q);
   /** Register the counterexample lemma
    *
    * lems contains the conjuncts of the counterexample lemma of the quantified
@@ -192,12 +195,12 @@ public:
    * - Theory-specific preprocessing of instantiation lemmas.
    * It may also introduce new variables to ce_vars if necessary.
    */
-  void registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars );
+  void registerCounterexampleLemma(std::vector<Node>& lems,
+                                   std::vector<Node>& ce_vars);
   /** get the output channel of this class */
-  CegqiOutput * getOutput() { return d_out; }
-  //get quantifiers engine
+  CegqiOutput* getOutput() { return d_out; }
+  // get quantifiers engine
   QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
-  
   //------------------------------interface for instantiators
   /** push stack variable
    * This adds a new variable to solve for in the stack
@@ -206,7 +209,7 @@ public:
    * solving for a list x may push the stack "variables"
    * head(x) and tail(x).
    */
-  void pushStackVariable( Node v );
+  void pushStackVariable(Node v);
   /** pop stack variable */
   void popStackVariable();
   /** do add instantiation increment
@@ -228,7 +231,7 @@ public:
                              SolvedForm& sf,
                              bool revertOnSuccess = false);
   /** get the current model value of term n */
-  Node getModelValue( Node n );
+  Node getModelValue(Node n);
   /** get bound variable for type
    *
    * This gets the next (canonical) bound variable of
@@ -237,21 +240,21 @@ public:
    */
   Node getBoundVariable(TypeNode tn);
   //------------------------------end interface for instantiators
-  
-  /** 
-   * Get the number of atoms in the counterexample lemma of the quantified 
+
+  /**
+   * Get the number of atoms in the counterexample lemma of the quantified
    * formula we are processing with this class.
    */
   unsigned getNumCEAtoms() { return d_ce_atoms.size(); }
-  /** 
-   * Get the i^th atom of the counterexample lemma of the quantified 
+  /**
+   * Get the i^th atom of the counterexample lemma of the quantified
    * formula we are processing with this class.
-   */ 
-  Node getCEAtom( unsigned i ) { return d_ce_atoms[i]; }
+   */
+  Node getCEAtom(unsigned i) { return d_ce_atoms[i]; }
   /** is n a term that is eligible for instantiation? */
-  bool isEligible( Node n );
+  bool isEligible(Node n);
   /** does n have variable pv? */
-  bool hasVariable( Node n, Node pv );
+  bool hasVariable(Node n, Node pv);
   /** are we using delta for LRA virtual term substitution? */
   bool useVtsDelta() { return d_use_vts_delta; }
   /** are we using infinity for LRA virtual term substitution? */
@@ -285,7 +288,7 @@ public:
     */
   std::unordered_set<Node, NodeHashFunction> d_inelig;
   /** ensures n is in d_prog_var and d_inelig. */
-  void computeProgVars( Node n );
+  void computeProgVars(Node n);
   //-------------------------------end globally cached
 
   //-------------------------------cached per round
@@ -295,18 +298,21 @@ public:
   std::map<Node, std::vector<Node> > d_curr_eqc;
   /** map from types to representatives of that type */
   std::map<TypeNode, std::vector<Node> > d_curr_type_eqc;
-  /** process assertions 
+  /** process assertions
    * This is called once at the beginning of check to
    * set up all necessary information for constructing instantiations,
    * such as the above data structures.
    */
   void processAssertions();
   /** add to auxiliary variable substitution
-   * This adds the substitution l -> r to the auxiliary 
+   * This adds the substitution l -> r to the auxiliary
    * variable substitution subs_lhs -> subs_rhs, and serializes
    * it (applies it to existing substitutions).
    */
-  void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
+  void addToAuxVarSubstitution(std::vector<Node>& subs_lhs,
+                               std::vector<Node>& subs_rhs,
+                               Node l,
+                               Node r);
   /** cache bound variables for type returned
    * by getBoundVariable(...).
    */
@@ -405,7 +411,7 @@ public:
 
   //-------------------------------current state
   /** the current effort level of the instantiator
-   * This indicates the effort Instantiator objects 
+   * This indicates the effort Instantiator objects
    * will put into the terms they return.
    */
   InstEffort d_effort;
@@ -467,9 +473,9 @@ public:
   Node applySubstitutionToLiteral( Node lit, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
                                    std::vector< Node >& non_basic );
   //---------------------------------end for applying substitutions
-  
+
   /** map from variables to their instantiators */
-  std::map< Node, Instantiator * > d_instantiator;
+  std::map<Node, Instantiator*> d_instantiator;
 
   /** do add instantiation
    * This method constructs the current instantiation, where we
@@ -479,12 +485,14 @@ public:
    */
   bool doAddInstantiation(SolvedForm& sf, unsigned i);
   /** do add instantiation
-   * This method is called by the above function after we finalize the 
+   * This method is called by the above function after we finalize the
    * variables/substitution and auxiliary lemmas.
    * It returns true if a successful call to the output channel's
    * doAddInstantiation was made.
    */
-  bool doAddInstantiation( std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& lemmas );  
+  bool doAddInstantiation(std::vector<Node>& vars,
+                          std::vector<Node>& subs,
+                          std::vector<Node>& lemmas);
 };
 
 /** Instantiator class
