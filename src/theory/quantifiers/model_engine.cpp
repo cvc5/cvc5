@@ -277,8 +277,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       Trace("fmf-exh-inst-debug") << std::endl;
     }
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
-    RepSetIterator riter(d_quantEngine,
-                         d_quantEngine->getModel()->getRepSetPtr());
+    QRepBoundExt qrbe(d_quantEngine);
+    RepSetIterator riter(d_quantEngine->getModel()->getRepSet(), &qrbe);
     if( riter.setQuantifier( f ) ){
       Trace("fmf-exh-inst") << "...exhaustive instantiation set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
       if( !riter.isIncomplete() ){
@@ -287,7 +287,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
         while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
-          for( int i=0; i<riter.getNumTerms(); i++ ){
+          for (unsigned i = 0; i < riter.getNumTerms(); i++)
+          {
             m.set( d_quantEngine, i, riter.getCurrentTerm( i ) );
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;

@@ -16,6 +16,7 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ambqi_builder.h"
+#include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -26,12 +27,13 @@
 #define USE_INDEX_ORDERING
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::quantifiers::fmcheck;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 struct sortQuantifierRelevance {
   FirstOrderModel * d_fm;
@@ -45,6 +47,83 @@ struct sortQuantifierRelevance {
     }
   }
 };
+
+RepSetIterator::RsiEnumType QRepBoundExt::setBound(Node owner,
+                                                   unsigned i,
+                                                   std::vector<Node>& elements)
+{
+  // builtin: check if it is bound by bounded integer module
+  if (owner.getKind() == FORALL && d_qe->getBoundedIntegers())
+  {
+    if (d_qe->getBoundedIntegers()->isBoundVar(owner, owner[0][i]))
+    {
+      unsigned bvt =
+          d_qe->getBoundedIntegers()->getBoundVarType(owner, owner[0][i]);
+      if (bvt != BoundedIntegers::BOUND_FINITE)
+      {
+        d_bound_int[i] = true;
+        return RepSetIterator::ENUM_BOUND_INT;
+      }
+      else
+      {
+        // indicates the variable is finitely bound due to
+        // the (small) cardinality of its type,
+        // will treat in default way
+      }
+    }
+  }
+  return RepSetIterator::ENUM_INVALID;
+}
+
+bool QRepBoundExt::resetIndex(RepSetIterator* rsi,
+                              Node owner,
+                              unsigned i,
+                              bool initial,
+                              std::vector<Node>& elements)
+{
+  if (d_bound_int.find(i) != d_bound_int.end())
+  {
+    Assert(owner.getKind() == FORALL);
+    Assert(d_qe->getBoundedIntegers() != nullptr);
+    if (!d_qe->getBoundedIntegers()->getBoundElements(
+            rsi, initial, owner, owner[0][i], elements))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool QRepBoundExt::initializeRepresentativesForType(TypeNode tn)
+{
+  return d_qe->getModel()->initializeRepresentativesForType(tn);
+}
+
+bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
+{
+  // must set a variable index order based on bounded integers
+  if (owner.getKind() == FORALL && d_qe->getBoundedIntegers())
+  {
+    Trace("bound-int-rsi") << "Calculating variable order..." << std::endl;
+    for (unsigned i = 0; i < d_qe->getBoundedIntegers()->getNumBoundVars(owner);
+         i++)
+    {
+      Node v = d_qe->getBoundedIntegers()->getBoundVar(owner, i);
+      Trace("bound-int-rsi") << "  bound var #" << i << " is " << v
+                             << std::endl;
+      varOrder.push_back(d_qe->getTermUtil()->getVariableNum(owner, v));
+    }
+    for (unsigned i = 0; i < owner[0].getNumChildren(); i++)
+    {
+      if (!d_qe->getBoundedIntegers()->isBoundVar(owner, owner[0][i]))
+      {
+        varOrder.push_back(i);
+      }
+    }
+    return true;
+  }
+  return false;
+}
 
 FirstOrderModel::FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name ) :
 TheoryModel( c, name, true ),
@@ -104,16 +183,49 @@ void FirstOrderModel::initializeModelForTerm( Node n, std::map< Node, bool >& vi
 
 Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
   //check if there is even any domain elements at all
-  if (!d_rep_set.hasType(tn)) {
-    Trace("fmc-model-debug") << "Must create domain element for " << tn << "..." << std::endl;
+  if (!d_rep_set.hasType(tn) || d_rep_set.d_type_reps[tn].size() == 0)
+  {
+    Trace("fm-debug") << "Must create domain element for " << tn << "..."
+                      << std::endl;
     Node mbt = getModelBasisTerm(tn);
-    Trace("fmc-model-debug") << "Add to representative set..." << std::endl;
+    Trace("fm-debug") << "Add to representative set..." << std::endl;
     d_rep_set.add(tn, mbt);
-  }else if( d_rep_set.d_type_reps[tn].size()==0 ){
-    Message() << "empty reps" << std::endl;
-    exit(0);
   }
   return d_rep_set.d_type_reps[tn][0];
+}
+
+bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
+{
+  if (tn.isSort())
+  {
+    // must ensure uninterpreted type is non-empty.
+    if (!d_rep_set.hasType(tn))
+    {
+      // terms in rep_set are now constants which mapped to terms through
+      // TheoryModel. Thus, should introduce a constant and a term.
+      // For now, we just add an arbitrary term.
+      Node var = d_qe->getModel()->getSomeDomainElement(tn);
+      Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn
+                     << std::endl;
+      d_rep_set.add(tn, var);
+    }
+    return true;
+  }
+  else
+  {
+    // can we complete it?
+    if (d_qe->getTermEnumeration()->mayComplete(tn))
+    {
+      Trace("fm-debug") << "  do complete, since cardinality is small ("
+                        << tn.getCardinality() << ")..." << std::endl;
+      d_rep_set.complete(tn);
+      // must have succeeded
+      Assert(d_rep_set.hasType(tn));
+      return true;
+    }
+    Trace("fm-debug") << "  variable cannot be bounded." << std::endl;
+    return false;
+  }
 }
 
 /** needs check */
@@ -1022,3 +1134,7 @@ void FirstOrderModelAbs::processInitializeQuantifier( Node q ) {
 Node FirstOrderModelAbs::getVariable( Node q, unsigned i ) {
   return q[0][d_var_order[q][i]];
 }
+
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */
