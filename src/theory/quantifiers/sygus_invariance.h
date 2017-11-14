@@ -97,6 +97,7 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
  public:
   EvalSygusInvarianceTest() {}
   ~EvalSygusInvarianceTest() {}
+  
   /** initialize this invariance test
     * This sets d_conj/d_var/d_result, where
     * we are checking whether:
@@ -104,6 +105,7 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
     * for terms n.
     */
   void init(Node conj, Node var, Node res);
+  
   /** do evaluate with unfolding, using the cache of this class */
   Node doEvaluateWithUnfolding(TermDbSygus* tds, Node n);
 
@@ -156,6 +158,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
  public:
   EquivSygusInvarianceTest() : d_conj(nullptr) {}
   ~EquivSygusInvarianceTest() {}
+  
   /** initialize this invariance test
    * tn is the sygus type for e
    * aconj/e are used for conjecture-specific symmetry breaking
@@ -233,6 +236,7 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
  public:
   NegContainsSygusInvarianceTest() : d_conj(nullptr) {}
   ~NegContainsSygusInvarianceTest() {}
+  
   /** initialize this invariance test
    *  cpbe is the conjecture utility.
    *  e is the enumerator which we are reasoning about (associated with a synth
