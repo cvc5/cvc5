@@ -44,12 +44,15 @@ bool CegInstantiation::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort CegInstantiation::needsModel( Theory::Effort e ) {
+QuantifiersModule::QEffort CegInstantiation::needsModel(Theory::Effort e)
+{
   return d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
 }
 
-void CegInstantiation::check( Theory::Effort e, QEffort quant_e ) {
-  unsigned echeck = d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
+void CegInstantiation::check(Theory::Effort e, QEffort quant_e)
+{
+  unsigned echeck =
+      d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
   if( quant_e==echeck ){
     Trace("cegqi-engine") << "---Counterexample Guided Instantiation Engine---" << std::endl;
     Trace("cegqi-engine-debug") << std::endl;

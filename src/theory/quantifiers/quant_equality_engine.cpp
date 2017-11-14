@@ -74,7 +74,8 @@ void QuantEqualityEngine::reset_round( Theory::Effort e ){
 }
 
 /* Call during quantifier engine's check */
-void QuantEqualityEngine::check( Theory::Effort e, QEffort quant_e ) {
+void QuantEqualityEngine::check(Theory::Effort e, QEffort quant_e)
+{
   //TODO
 }
 

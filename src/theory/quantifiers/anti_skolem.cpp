@@ -92,8 +92,10 @@ QuantAntiSkolem::QuantAntiSkolem(QuantifiersEngine* qe)
 QuantAntiSkolem::~QuantAntiSkolem() { delete d_sqc; }
 
 /* Call during quantifier engine's check */
-void QuantAntiSkolem::check( Theory::Effort e, QEffort quant_e ) {
-  if( quant_e==QEFFORT_STANDARD ){
+void QuantAntiSkolem::check(Theory::Effort e, QEffort quant_e)
+{
+  if (quant_e == QEFFORT_STANDARD)
+  {
     d_sqtc.clear();
     for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );

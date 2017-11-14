@@ -40,7 +40,7 @@ public:
                                bool pconnected = true );
 
   /* Call during quantifier engine's check */
-  void check( Theory::Effort e, QEffort quant_e );
+  void check(Theory::Effort e, QEffort quant_e);
   /* Called for new quantifiers */
   void registerQuantifier( Node q ) {}
   void assertNode( Node n ) {}

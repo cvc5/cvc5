@@ -33,7 +33,7 @@ namespace quantifiers {
   class TermDb;
   class TermUtil;
 }
-  
+
 /** QuantifiersModule class
 *
 * This is the virtual class for defining subsolvers of the quantifiers theory.
@@ -42,14 +42,16 @@ namespace quantifiers {
 class QuantifiersModule {
  public:
   // quantifiers effort levels
-  enum QEffort {
+  enum QEffort
+  {
     QEFFORT_CONFLICT,
     QEFFORT_STANDARD,
     QEFFORT_MODEL,
     QEFFORT_LAST_CALL,
-    //none
+    // none
     QEFFORT_NONE,
-  };  
+  };
+
  public:
   QuantifiersModule( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
   virtual ~QuantifiersModule(){}
@@ -72,7 +74,7 @@ class QuantifiersModule {
    * which specifies the quantifiers effort in which it requires the model to
    * be built.
    */
-  virtual QEffort needsModel( Theory::Effort e );
+  virtual QEffort needsModel(Theory::Effort e);
   /** Reset.
    *
    * Called at the beginning of QuantifiersEngine::check(e).
@@ -83,7 +85,7 @@ class QuantifiersModule {
    *   Called during QuantifiersEngine::check(e) depending
    *   if needsCheck(e) returns true.
    */
-  virtual void check( Theory::Effort e, QEffort quant_e ) = 0;
+  virtual void check(Theory::Effort e, QEffort quant_e) = 0;
   /** Check complete?
    *
    * Returns false if the module's reasoning was globally incomplete
