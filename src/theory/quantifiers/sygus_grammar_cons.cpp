@@ -19,6 +19,7 @@
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus_process_conj.h"
 #include "theory/quantifiers/sygus_grammar_simp.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -102,7 +103,7 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
     }else{
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
-      // TODO (#1210) : get arg irrelevant based on conjecture-specific analysis
+      d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
       std::unordered_set<Node, NodeHashFunction> term_irrelevant;
       // convert to term
       for (std::unordered_set<unsigned>::iterator ita = arg_irrelevant.begin();
@@ -136,7 +137,7 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
         Trace("cegqi-debug") << "  embed this template as a grammar..." << std::endl;
         tn = mkSygusTemplateType( templ, templ_arg, tn, sfvl, ss.str() );
       }else{
-        // otherwise, apply it as a preprocessing pass 
+        // otherwise, apply it as a preprocessing pass
         Trace("cegqi-debug") << "  apply this template as a substituion during preprocess..." << std::endl;
         std::vector< Node > schildren;
         std::vector< Node > largs;
@@ -195,7 +196,7 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
   }
   return NodeManager::currentNM()->mkNode( kind::FORALL, qchildren );
 }
-  
+
 Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars ){
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -562,7 +563,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   }
   //sorts.push_back( btype );
   Trace("sygus-grammar-def") << "...finished make default grammar for " << fun << " " << range << std::endl;
-  
+
   if( startIndex>0 ){
     CVC4::Datatype tmp_dt = datatypes[0];
     datatypes[0] = datatypes[startIndex];
@@ -592,7 +593,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   return TypeNode::fromType( types[0] );
 }
 
-TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
+TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl,
                                               const std::string& fun, unsigned& tcount ) {
   if( templ==templ_arg ){
     //Assert( templ_arg.getType()==sygusToBuiltinType( templ_arg_sygus_type ) );
@@ -632,7 +633,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
   }
 }
 
-TypeNode CegGrammarConstructor::mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
+TypeNode CegGrammarConstructor::mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl,
                                                      const std::string& fun ) {
   unsigned tcount = 0;
   return mkSygusTemplateTypeRec( templ, templ_arg, templ_arg_sygus_type, bvl, fun, tcount );

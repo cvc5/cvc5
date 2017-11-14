@@ -600,11 +600,13 @@ void InstPropagator::InstInfo::init( Node q, Node lem, std::vector< Node >& term
   d_curr_exp.push_back( body );
 }
 
-InstPropagator::InstPropagator( QuantifiersEngine* qe ) :
-d_qe( qe ), d_notify(*this), d_qy( qe ){
-  d_icount = 1;
-  d_conflict = false;
-}
+InstPropagator::InstPropagator(QuantifiersEngine* qe)
+    : d_qe(qe),
+      d_notify(*this),
+      d_qy(qe),
+      d_icount(1),
+      d_conflict(false),
+      d_has_relevant_inst(false) {}
 
 bool InstPropagator::reset( Theory::Effort e ) {
   d_icount = 1;
