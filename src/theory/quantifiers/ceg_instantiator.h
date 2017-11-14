@@ -184,12 +184,12 @@ class CegInstantiator {
   void presolve(Node q);
   /** Register the counterexample lemma
    *
-   * lems : contains the conjuncts of the counterexample lemma of the 
-   *        quantified formula we are processing. The counterexample 
-   *        lemma is the formula { ~phi[e/x] } in Figure 1 of Reynolds 
+   * lems : contains the conjuncts of the counterexample lemma of the
+   *        quantified formula we are processing. The counterexample
+   *        lemma is the formula { ~phi[e/x] } in Figure 1 of Reynolds
    *        et al. FMSD 2017.
    * ce_vars : contains the variables e. Notice these are variables of
-   *           INST_CONSTANT kind, since we do not permit bound 
+   *           INST_CONSTANT kind, since we do not permit bound
    *           variables in assertions.
    *
    * This method may modify the set of lemmas lems based on:

@@ -426,8 +426,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     }
 
     //[4] resort to using value in model. We do so if:
-    // - we are in a higher effort than INST_EFFORT_STANDARD, 
-    // - if the variable is Boolean, or 
+    // - we are in a higher effort than INST_EFFORT_STANDARD,
+    // - if the variable is Boolean, or
     // - if we are solving for a subfield of a datatype.
     bool use_model_value = vinst->useModelValue(this, sf, pv, d_effort);
     if ((d_effort > INST_EFFORT_STANDARD || use_model_value || is_cv)
