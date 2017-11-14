@@ -669,6 +669,13 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
       }
       else
       {
+        /* delete (= substitute with true) obsolete assertions */
+        unordered_map<Node, Node, NodeHashFunction> subst;
+        for (Node e : eq.second)
+          subst[e] = nm->mkConst<bool>(true);
+        for (Node a : assertionsToPreprocess)
+          a.substitute(subst.begin(), subst.end());
+        /* add resulting constraints */
         for (auto p : res)
         {
           Node a = nm->mkNode(kind::EQUAL, p.first, p.second);
