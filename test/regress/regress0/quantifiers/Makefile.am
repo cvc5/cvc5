@@ -114,8 +114,7 @@ TESTS =	\
  	small-pipeline-fixpoint-3.smt2 \
 	NUM878.smt2 \
 	psyco-107-bv.smt2 \
-	ari118-bv-2occ-x.smt2 \
-	extract-nproc.smt2
+	ari118-bv-2occ-x.smt2
  
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
@@ -130,7 +129,7 @@ TESTS =	\
 #		javafe.tc.CheckCompilationUnit.001.smt2 \
 #		javafe.tc.FlowInsensitiveChecks.682.smt2 \
 #		clock-10.smt2
-#
+#		extract-nproc.smt2
 
 # FIXME: I've disabled these since they give different error messages on production and debug
 #	macro-subtype-param.smt2 

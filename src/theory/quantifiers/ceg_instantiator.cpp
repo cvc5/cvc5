@@ -26,11 +26,12 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 CegInstantiator::CegInstantiator(QuantifiersEngine* qe,
                                  CegqiOutput* out,
@@ -160,10 +161,8 @@ void CegInstantiator::registerTheoryId(TheoryId tid)
 {
   if (std::find(d_tids.begin(), d_tids.end(), tid) == d_tids.end())
   {
-    if (tid == THEORY_BV)
-    {
-      d_tipp[tid] = new BvInstantiatorPreprocess;
-    }
+    // setup any theory-specific preprocessors here
+    
     d_tids.push_back(tid);
   }
 }
@@ -1264,4 +1263,6 @@ bool Instantiator::processEqualTerm(CegInstantiator* ci,
   return ci->constructInstantiationInc(pv, n, pv_prop, sf);
 }
 
-
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */

@@ -732,8 +732,9 @@ class InstantiatorPreprocess
   {
   }
 };
-}
-}
-}
+
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */
 
 #endif
