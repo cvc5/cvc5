@@ -83,7 +83,12 @@ public:
   std::string identify() const { return "Epr"; }
 };
 
-
+/** Bitvector instantiator 
+ * 
+ * This implements an approach for counterexample-guided instantiation
+ * for bit-vector variables based on word-level inversions. 
+ * It is enabled by --cbqi-bv.
+ */
 class BvInstantiator : public Instantiator {
 private:
   // point to the bv inverter class
@@ -141,6 +146,29 @@ private:
   std::string identify() const { return "Bv"; }
 };
 
+/** Bitvector instantiator preprocess 
+ * 
+ * This class implements preprocess techniques that are helpful for 
+ * counterexample-guided instantiation, such as introducing variables 
+ * that refer to disjoint bit-vector extracts.
+ */
+class BvInstantiatorPreprocess : public InstantiatorPreprocess
+{
+public:
+  BvInstantiatorPreprocess(){}
+  virtual ~BvInstantiatorPreprocess(){}
+  /** register counterexample lemma */
+  virtual void registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars ) override;
+private:
+  /** map from terms to bitvector extracts applied to that term */
+  std::map< Node, std::vector< Node > > d_extract_map;
+  /** process 
+   * This method collects all extract terms in lem 
+   * and stores them in d_extract_map. 
+   * visited is the terms we've already visited.
+   */
+  void process( Node lem, std::unordered_set<TNode, TNodeHashFunction>& visited );
+};
 
 }
 }

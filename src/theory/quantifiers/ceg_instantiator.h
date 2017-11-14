@@ -214,6 +214,15 @@ class CegInstantiator {
   unsigned d_num_input_variables;
   //-------------------------------the variables
   
+  //-------------------------------quantified formula info
+  /** are we processing a nested quantified formula? */
+  bool d_is_nested_quant;
+  /** the atoms of the CE lemma */
+  std::vector<Node> d_ce_atoms;
+  /** collect atoms */
+  void collectCeAtoms(Node n, std::map<Node, bool>& visited);
+  //-------------------------------end quantified formula info
+  
   
   /** literals to equalities for aux vars
    * This stores entries of the form
@@ -246,10 +255,6 @@ class CegInstantiator {
    * e.g. subfields of datatypes.
    */
   std::vector< Node > d_stack_vars;
-  /** are we handled a nested quantified formula? */
-  bool d_is_nested_quant;
-  /** the atoms of the CE lemma */
-  std::vector<Node> d_ce_atoms;
   /** cache bound variables for type returned
    * by getBoundVariable(...).
    */
@@ -263,19 +268,19 @@ class CegInstantiator {
    */
   std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>
       d_bound_var_index;
-  /** collect atoms */
-  void collectCeAtoms(Node n, std::map<Node, bool>& visited);
+    
 
   /** map from variables to their instantiators */
   std::map< Node, Instantiator * > d_instantiator;
+  /** for each variable, the instantiator used for that variable */
+  std::map< Node, Instantiator * > d_active_instantiators;
   /** cache of current substitutions tried between register/unregister */
   std::map< Node, std::map< Node, std::map< Node, bool > > > d_curr_subs_proc;
   /** map from variables to the index in the prefix of the quantified 
    * formula we are processing. 
    */
   std::map< Node, unsigned > d_curr_index;
-  /** for each variable, the instantiator used for that variable */
-  std::map< Node, Instantiator * > d_active_instantiators;
+  
   /** activate instantiation variable v at index 
    * 
    * This is called when variable (inst constant) v is activated
@@ -581,7 +586,7 @@ class InstantiatorPreprocess
 {
 public:
   InstantiatorPreprocess(){}
-  ~InstantiatorPreprocess(){}
+  virtual ~InstantiatorPreprocess(){}
   /** register counterexample lemma 
    * This implements theory-specific preprocessing and registration 
    * of counterexample lemmas, with the same contract as 
