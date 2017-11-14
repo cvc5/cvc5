@@ -1372,7 +1372,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
             if (diff > 1)
             {
               Node ex =
-                  bv::utils::mkExtract(es.first, curr_index - 1, bounds[0][n]);
+                  bv::utils::mkExtract(es.first, curr_index - 1, bounds[0][n]+1);
               children.push_back(ex);
             }
 

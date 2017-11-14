@@ -311,7 +311,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       /// iterate over equivalence classes to find cases where we can solve for
       /// the variable
       if( vinst->hasProcessEquality( this, sf, pv, effort ) ){
-        Trace("cbqi-inst-debug") << "[3] try based on solving equalities." << std::endl;
+        Trace("cbqi-inst-debug") << "[2] try based on solving equalities." << std::endl;
         for( unsigned k=0; k<d_curr_type_eqc[pvtnb].size(); k++ ){
           Node r = d_curr_type_eqc[pvtnb][k];
           std::map< Node, std::vector< Node > >::iterator it_reqc = d_curr_eqc.find( r );
@@ -369,7 +369,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
 
       //[3] directly look at assertions
       if( vinst->hasProcessAssertion( this, sf, pv, effort ) ){
-        Trace("cbqi-inst-debug") << "[4] try based on assertions." << std::endl;
+        Trace("cbqi-inst-debug") << "[3] try based on assertions." << std::endl;
         std::unordered_set< Node, NodeHashFunction > lits;
         //unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
         for( unsigned r=0; r<2; r++ ){
@@ -425,7 +425,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
 #endif
       Node mv = getModelValue( pv );
       TermProperties pv_prop_m;
-      Trace("cbqi-inst-debug") << "[5] " << i << "...try model value " << mv << std::endl;
+      Trace("cbqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
       int new_effort = use_model_value ? effort : 1;
       if( doAddInstantiationInc( pv, mv, pv_prop_m, sf, new_effort ) ){
         return true;
@@ -585,7 +585,7 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
       subs_map[vars[i]] = subs[i];
     }
     subs.clear();
-    for (unsigned i = 0; i < d_num_input_variables; i++)
+    for (unsigned i = 0; i < d_vars.size(); i++)
     {
       std::map< Node, Node >::iterator it = subs_map.find( d_vars[i] );
       Assert( it!=subs_map.end() );
@@ -594,14 +594,18 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
       subs.push_back( n );
     }
   }
+  Trace("cbqi-inst-debug") << "Sort based on order...." << std::endl;
   if( !d_var_order_index.empty() ){
     std::vector< Node > subs_orig;
     subs_orig.insert( subs_orig.end(), subs.begin(), subs.end() );
     subs.clear();
     for( unsigned i=0; i<subs_orig.size(); i++ ){
+      Assert(d_var_order_index[i]<subs_orig.size());
       subs.push_back( subs_orig[d_var_order_index[i]] );
     }
   }
+  subs.resize(d_num_input_variables);
+  Trace("cbqi-inst-debug") << "Do the instantiation...." << std::endl;
   bool ret = d_out->doAddInstantiation( subs );
   for( unsigned i=0; i<lemmas.size(); i++ ){
     d_out->addLemma( lemmas[i] );
@@ -1104,12 +1108,14 @@ struct sortCegVarOrder {
 
 
 void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars ) {
+  Trace("cbqi-reg") << "Register counterexample lemma..." << std::endl;
   //Assert( d_vars.empty() );
   d_vars.clear();
   d_num_input_variables = ce_vars.size();
   registerTheoryId(THEORY_UF);
   for (unsigned i = 0; i < ce_vars.size(); i++)
   {
+    Trace("cbqi-reg") << "  register input variable : " << ce_vars[i] << std::endl;
     registerVariable(ce_vars[i]);
   }
 
@@ -1120,7 +1126,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   d_aux_vars.clear();
   d_aux_eq.clear();
   for(IteSkolemMap::iterator i = iteSkolemMap.begin(); i != iteSkolemMap.end(); ++i) {
-    Trace("cbqi-debug") << "  Auxiliary var (from ITE) : " << i->first << std::endl;
+    Trace("cbqi-reg") << "  register aux variable : " << i->first << std::endl;
     registerVariable(i->first, true);
   }
   for( unsigned i=0; i<lems.size(); i++ ){
@@ -1169,8 +1175,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
                       << std::endl;
   for (unsigned i = d_num_input_variables; i < pvars.size(); i++)
   {
-    Trace("cbqi-debug") << "  register variable #" << i << " : " << pvars[i]
-                        << std::endl;
+    Trace("cbqi-reg") << "  register theory preprocess variable : " << pvars[i] << std::endl;
     registerVariable(pvars[i]);
   }
 
