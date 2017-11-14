@@ -79,7 +79,7 @@ TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn)
       {
         Trace("sygus-grammar-normalize")
             << "SygusOp " << op << " is MINUS" << std::endl;
-        for (unsigned j = 0; j < dt[i].getNumArgs(); k++)
+        for (unsigned j = 0; j < dt[i].getNumArgs(); ++j)
         {
           TypeNode ct = TypeNode::fromType(dt[i][j].getRangeType());
           Trace("sygus-grammar-normalize")
@@ -92,7 +92,7 @@ TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn)
       {
         Trace("sygus-grammar-normalize")
             << "SygusOp " << op << " is PLUS" << std::endl;
-        for (unsigned j = 0; j < dt[i].getNumArgs(); k++)
+        for (unsigned j = 0; j < dt[i].getNumArgs(); ++j)
         {
           TypeNode ct = TypeNode::fromType(dt[i][j].getRangeType());
           Trace("sygus-grammar-normalize")
@@ -105,7 +105,7 @@ TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn)
       {
         Trace("sygus-grammar-normalize")
             << "SygusOp " << op << " is something else" << std::endl;
-        for (unsigned j = 0; j < dt[i].getNumArgs(); k++)
+        for (unsigned j = 0; j < dt[i].getNumArgs(); ++j)
         {
           TypeNode ct = TypeNode::fromType(dt[i][j].getRangeType());
           Trace("sygus-grammar-normalize")
