@@ -307,7 +307,7 @@ public:
   static bool isAssoc( Kind k );
   /** is k commutative? */
   static bool isComm( Kind k );
-  
+
   /** is k non-additive?
    * Returns true if
    *   <k>( <k>( T1, x, T2 ), x ) =
@@ -319,12 +319,12 @@ public:
   static bool isBoolConnective( Kind k );
   /** is n a bool connective term? */
   static bool isBoolConnectiveTerm( TNode n );
-  
+
   /** is the kind k antisymmetric?
    * If so, return true and store its inverse kind in dk.
    */
   static bool isAntisymmetric(Kind k, Kind& dk);
-  
+
   /** has offset arg
    * Returns true if there is a Kind ok and offset
    * such that
@@ -335,7 +335,7 @@ public:
    * offset and ok in the respective fields.
    */
   static bool hasOffsetArg(Kind ik, int arg, int& offset, Kind& ok);
-  
+
   /** is idempotent arg
    * Returns true if
    *   <k>( ... t_{arg-1}, n, t_{arg+1}...) =
@@ -343,35 +343,35 @@ public:
    * always holds.
    */
   bool isIdempotentArg(Node n, Kind ik, int arg);
-  
+
   /** is singular arg
    * Returns true if
    *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = n
    * always holds.
    */
   Node isSingularArg(Node n, Kind ik, int arg);
-  
+
   /** get type value
    * This gets the Node that represents value val for Type tn
    * This is used to get simple values, e.g. -1,0,1,
    * in a uniform way per type.
    */
   Node getTypeValue(TypeNode tn, int val);
-  
+
   /** get type value offset
    * Returns the value of ( val + getTypeValue( tn, offset ) ),
    * where + is the additive operator for the type.
    * Stores the status (0: success, -1: failure) in status.
    */
   Node getTypeValueOffset(TypeNode tn, Node val, int offset, int& status);
-  
+
   /** get the "max" value for type tn
    * For example,
    *   the max value for Bool is true,
    *   the max value for BitVector is 1..1.
    */
   Node getTypeMaxValue(TypeNode tn);
-  
+
   /** make value, static version of get value */
   static Node mkTypeValue(TypeNode tn, int val);
   /** make value offset, static version of get value offset */

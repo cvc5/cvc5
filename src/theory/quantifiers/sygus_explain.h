@@ -41,14 +41,13 @@ class TermRecBuild
 {
  public:
   TermRecBuild() {}
-  
   /** set the initial term to n
    *
    * The context initially empty, that is,
    * the active term is initially n.
    */
   void init(Node n);
-  
+
   /** push the context
    *
    * This updates the context so that the
@@ -56,7 +55,7 @@ class TermRecBuild
    * curr is the previously active term.
    */
   void push(unsigned p);
-  
+
   /** pop the context */
   void pop();
   /** indicates that the i^th child of the active
@@ -143,7 +142,6 @@ class SygusExplain
  public:
   SygusExplain(TermDbSygus* tdb) : d_tdb(tdb) {}
   ~SygusExplain() {}
-  
   /** get explanation for constant equality
    *
    * This function constructs an explanation, stored in exp, such that:
@@ -156,7 +154,7 @@ class SygusExplain
                                          std::vector<Node>& exp);
   /** returns the conjunction of exp computed in the above function */
   Node getExplanationForConstantEquality(Node n, Node vn);
-  
+
   /** get explanation for constant equality
    * This is identical to the above function except that we
    * take an additional argument cexc, which says which
@@ -175,7 +173,7 @@ class SygusExplain
   Node getExplanationForConstantEquality(Node n,
                                          Node vn,
                                          std::map<unsigned, bool>& cexc);
-  
+
   /** get explanation for
    *
    * This function constructs an explanation, stored in exp, such that:
