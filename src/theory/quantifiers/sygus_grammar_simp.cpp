@@ -40,11 +40,55 @@ TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn)
 {
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Trace("sygus-grammar-normalize")
-    << "Normalizing type " << tn << ", from datatype\n"
-    << dt << std::endl;
+      << "Normalizing type " << tn << ", from datatype\n"
+      << dt << std::endl;
+
+  // Accumulate shallow elements and operators to normalize
+  std::vector<Node> ctes, vars;
+  std::vector<Kind> ops;
+  for (unsigned i = 0; i < dt.getNumConstructors(); ++i)
+  {
+    Node op = Node::fromExpr(dt[i].getSygusOp());
+    Trace("sygus-grammar-normalize")
+        << "SygusOp " << op << " has kind " << op.getKind() << std::endl;
+    if (op.getKind() == CONST_RATIONAL)
+    {
+      ctes.push_back(op);
+    }
+    else if (op.getKind() == BOUND_VARIABLE)
+    {
+      vars.push_back(op);
+    }
+    else if (op.getKind() == BUILTIN)
+    {
+      Kind op_actual_kind = NodeManager::operatorToKind(op);
+      if (op_actual_kind == ITE)
+      {
+        Trace("sygus-grammar-normalize")
+            << "SygusOp " << op << " is ITE" << std::endl;
+      }
+      else if (op_actual_kind == MINUS)
+      {
+        Trace("sygus-grammar-normalize")
+            << "SygusOp " << op << " is MINUS" << std::endl;
+      }
+      else if (op_actual_kind == PLUS)
+      {
+        Trace("sygus-grammar-normalize")
+            << "SygusOp " << op << " is PLUS" << std::endl;
+      }
+      else
+      {
+        Trace("sygus-grammar-normalize")
+            << "SygusOp " << op << " is something else" << std::endl;
+      }
+    }
+  }
+  Trace("sygus-grammar-normalize") << "Shallow, ctes: " << ctes << std::endl;
+  Trace("sygus-grammar-normalize") << "Shallow, vars: " << vars << std::endl;
+
   return tn;
 }
-
 
 }/* namespace CVC4::theory::quantifiers */
 }/* namespace CVC4::theory */
