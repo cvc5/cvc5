@@ -161,7 +161,9 @@ void CegInstantiator::registerTheoryId(TheoryId tid)
   if (std::find(d_tids.begin(), d_tids.end(), tid) == d_tids.end())
   {
     // setup any theory-specific preprocessors here
-
+    if( tid==THEORY_BV ){
+      d_tipp[tid] = new BvInstantiatorPreprocess;      
+    }
     d_tids.push_back(tid);
   }
 }

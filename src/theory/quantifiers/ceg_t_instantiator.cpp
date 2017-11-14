@@ -1360,6 +1360,214 @@ Node BvInstantiator::rewriteTermForSolvePv(
   return Node::null();
 }
 
+
+/** sort bv extract interval
+ *
+ * This sorts lists of bitvector extract terms where
+ * ((_ extract i1 i2) t) < ((_ extract j1 j2) t)
+ * if i1>j1 or i1=j1 and i2>j2.
+ */
+struct SortBvExtractInterval
+{
+  bool operator()(Node i, Node j)
+  {
+    Assert(i.getKind() == BITVECTOR_EXTRACT);
+    Assert(j.getKind() == BITVECTOR_EXTRACT);
+    BitVectorExtract ie = i.getOperator().getConst<BitVectorExtract>();
+    BitVectorExtract je = j.getOperator().getConst<BitVectorExtract>();
+    if (ie.high > je.high)
+    {
+      return true;
+    }
+    else if (ie.high == je.high)
+    {
+      Assert(ie.low != je.low);
+      return ie.low > je.low;
+    }
+    else
+    {
+      return false;
+    }
+  }
+};
+
+void BvInstantiatorPreprocess::registerCounterexampleLemma(
+    std::vector<Node>& lems, std::vector<Node>& ce_vars)
+{
+  // new variables
+  std::vector<Node> vars;
+  // new substitution, will apply { subs -> vars }
+  std::vector<Node> subs;
+  // new lemmas
+  std::vector<Node> new_lems;
+
+  if (options::cbqiBvRmExtract())
+  {
+    d_extract_map.clear();
+    std::unordered_set<TNode, TNodeHashFunction> visited;
+    for (unsigned i = 0; i < lems.size(); i++)
+    {
+      Trace("cegqi-bv-pp") << "Register ce lemma # " << i << " : " << lems[i]
+                           << std::endl;
+      process(lems[i], visited);
+    }
+    for (std::pair<Node, std::vector<Node> > es : d_extract_map)
+    {
+      if (es.second.size() > 1)
+      {
+        // sort based on the extract start position
+        std::vector<Node> curr_vec;
+        curr_vec.insert(curr_vec.end(), es.second.begin(), es.second.end());
+
+        SortBvExtractInterval sbei;
+        std::sort(curr_vec.begin(), curr_vec.end(), sbei);
+
+        std::map<Node, unsigned> bounds[2];
+        Trace("cegqi-bv-pp") << "For term " << es.first << " : " << std::endl;
+        for (unsigned i = 0; i < curr_vec.size(); i++)
+        {
+          Trace("cegqi-bv-pp") << "  " << i << " : " << curr_vec[i]
+                               << std::endl;
+          BitVectorExtract e =
+              curr_vec[i].getOperator().getConst<BitVectorExtract>();
+          bounds[0][curr_vec[i]] = e.high;
+          bounds[1][curr_vec[i]] = e.low;
+        }
+
+        bool success = false;
+        std::map<Node, bool> processed;
+        TypeNode tn = es.first.getType();
+        Assert(tn.isBitVector());
+        unsigned width = tn.getBitVectorSize();
+        Trace("cegqi-bv-pp") << "Width is " << width << std::endl;
+        do
+        {
+          success = false;
+          std::vector<Node> next_vec;
+          std::vector<Node> tmp_vars;
+          std::vector<Node> tmp_subs;
+          // the children of the concat we will construct
+          std::vector<Node> children;
+          unsigned curr_index = width;
+          for (unsigned i = 0; i < curr_vec.size(); i++)
+          {
+            Node n = curr_vec[i];
+            if (bounds[0][n] < curr_index)
+            {
+              // if more than one less than curr_index, we add filler
+              unsigned diff = curr_index - bounds[0][n];
+              if (diff > 1)
+              {
+                Node ex = bv::utils::mkExtract(
+                    es.first, curr_index - 1, bounds[0][n] + 1);
+                children.push_back(ex);
+              }
+
+              // make a variable corresponding to this segment
+              Node var = NodeManager::currentNM()->mkSkolem(
+                  "ek",
+                  n.getType(),
+                  "variable to represent disjoint extract region");
+              children.push_back(var);
+              tmp_vars.push_back(var);
+              tmp_subs.push_back(n);
+
+              // update the current index
+              curr_index = bounds[1][n];
+              if (curr_index == 0)
+              {
+                break;
+              }
+            }
+            else
+            {
+              // could not fit into concat, keep for next
+              next_vec.push_back(n);
+            }
+          }
+          if (tmp_vars.size() > 1)
+          {
+            // filler to the beginning
+            if (curr_index > 0)
+            {
+              Node ex = bv::utils::mkExtract(es.first, curr_index - 1, 0);
+              children.push_back(ex);
+            }
+            success = true;
+            Node conc = NodeManager::currentNM()->mkNode(kind::BITVECTOR_CONCAT,
+                                                         children);
+            Assert(conc.getType() == es.first.getType());
+            Node eq_lem = conc.eqNode(es.first);
+            Trace("cegqi-bv-pp") << "Introduced : " << eq_lem << std::endl;
+            new_lems.push_back(eq_lem);
+
+            // add to global substitution
+            vars.insert(vars.end(), tmp_vars.begin(), tmp_vars.end());
+            subs.insert(subs.end(), tmp_subs.begin(), tmp_subs.end());
+
+            curr_vec.clear();
+            curr_vec.insert(curr_vec.end(), next_vec.begin(), next_vec.end());
+          }
+        } while (success);
+        Trace("cegqi-bv-pp") << "...finished processing extracts for term "
+                             << es.first << std::endl;
+      }
+    }
+  }
+
+  if (!vars.empty())
+  {
+    // do subs -> vars
+    for (unsigned i = 0; i < lems.size(); i++)
+    {
+      Node slem = lems[i].substitute(
+          subs.begin(), subs.end(), vars.begin(), vars.end());
+      if (slem != lems[i])
+      {
+        Trace("cegqi-bv-pp-debug") << "Substitution applied to lemma # " << i
+                                   << " : " << std::endl;
+        Trace("cegqi-bv-pp-debug") << "   " << lems[i] << std::endl;
+        Trace("cegqi-bv-pp-debug") << "-> " << slem << std::endl;
+        lems[i] = slem;
+      }
+    }
+    Trace("cegqi-bv-pp-debug") << "Adding " << new_lems.size() << " lemmas..."
+                               << std::endl;
+    lems.insert(lems.end(), new_lems.begin(), new_lems.end());
+    Trace("cegqi-bv-pp-debug") << "Adding " << vars.size() << " variables..."
+                               << std::endl;
+    ce_vars.insert(ce_vars.end(), vars.begin(), vars.end());
+  }
+}
+
+void BvInstantiatorPreprocess::process(
+    Node lem, std::unordered_set<TNode, TNodeHashFunction>& visited)
+{
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(lem);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+
+      if (cur.getKind() == BITVECTOR_EXTRACT)
+      {
+        d_extract_map[cur[0]].push_back(cur);
+      }
+
+      for (unsigned i = 0; i < cur.getNumChildren(); i++)
+      {
+        visit.push_back(cur[i]);
+      }
+    }
+  } while (!visit.empty());
+}
+
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
