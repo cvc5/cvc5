@@ -69,8 +69,8 @@ bool RewriteEngine::needsCheck( Theory::Effort e ){
   //return e>=Theory::EFFORT_LAST_CALL;
 }
 
-void RewriteEngine::check( Theory::Effort e, unsigned quant_e ) {
-  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+void RewriteEngine::check( Theory::Effort e, QEffort quant_e ) {
+  if( quant_e==QEFFORT_STANDARD ){
     Assert( !d_quantEngine->inConflict() );
     Trace("rewrite-engine") << "---Rewrite Engine Round, effort = " << e << "---" << std::endl;
     //if( e==Theory::EFFORT_LAST_CALL ){

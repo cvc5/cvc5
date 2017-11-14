@@ -100,9 +100,9 @@ public:
   bool doCbqi( Node q );
   /** process functions */
   bool needsCheck( Theory::Effort e );
-  unsigned needsModel( Theory::Effort e );
+  QEffort needsModel( Theory::Effort e );
   void reset_round( Theory::Effort e );
-  void check( Theory::Effort e, unsigned quant_e );
+  void check( Theory::Effort e, QEffort quant_e );
   bool checkComplete();
   bool checkCompleteFor( Node q );
   void preRegisterQuantifier( Node q );

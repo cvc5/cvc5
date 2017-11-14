@@ -55,19 +55,19 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
 }
 
 void InstStrategyEnum::reset_round(Theory::Effort e) {}
-void InstStrategyEnum::check(Theory::Effort e, unsigned quant_e)
+void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   bool fullEffort = false;
   if (options::fullSaturateInterleave())
   {
     // we only add when interleaved with other strategies
-    doCheck = quant_e == QuantifiersEngine::QEFFORT_STANDARD
+    doCheck = quant_e == QEFFORT_STANDARD
               && d_quantEngine->hasAddedLemma();
   }
   if (options::fullSaturateQuant() && !doCheck)
   {
-    doCheck = quant_e == QuantifiersEngine::QEFFORT_LAST_CALL;
+    doCheck = quant_e == QEFFORT_LAST_CALL;
     fullEffort = !d_quantEngine->hasAddedLemma();
   }
   if (doCheck)

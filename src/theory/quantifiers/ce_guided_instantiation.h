@@ -44,9 +44,9 @@ public:
   ~CegInstantiation();
 public:
   bool needsCheck( Theory::Effort e );
-  unsigned needsModel( Theory::Effort e );
+  QEffort needsModel( Theory::Effort e );
   /* Call during quantifier engine's check */
-  void check( Theory::Effort e, unsigned quant_e );
+  void check( Theory::Effort e, QEffort quant_e );
   /* Called for new quantifiers */
   void registerQuantifier( Node q );
   /** get the next decision request */

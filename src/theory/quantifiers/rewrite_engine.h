@@ -53,7 +53,7 @@ public:
   ~RewriteEngine() throw() {}
 
   bool needsCheck( Theory::Effort e );
-  void check( Theory::Effort e, unsigned quant_e );
+  void check( Theory::Effort e, QEffort quant_e );
   void registerQuantifier( Node f );
   void assertNode( Node n );
   bool checkCompleteFor( Node q );

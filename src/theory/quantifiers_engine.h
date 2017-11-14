@@ -44,7 +44,7 @@ class InstantiationNotify {
 public:
   InstantiationNotify(){}
   virtual ~InstantiationNotify() {}
-  virtual bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) = 0;
+  virtual bool notifyInstantiation( QuantifiersModule::QEffort quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) = 0;
   virtual void filterInstantiations() = 0;
 };
 
@@ -141,8 +141,6 @@ private:
   std::unique_ptr<quantifiers::Skolemize> d_skolemize;
   /** term enumeration utility */
   std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
-
- private:
   /** instantiation engine */
   quantifiers::InstantiationEngine* d_inst_engine;
   /** model engine */
@@ -174,18 +172,9 @@ private:
   /** quantifiers instantiation propagtor */
   quantifiers::InstPropagator * d_inst_prop;
 
- public:  // effort levels (TODO : make an enum and use everywhere #1293)
-  enum {
-    QEFFORT_CONFLICT,
-    QEFFORT_STANDARD,
-    QEFFORT_MODEL,
-    QEFFORT_LAST_CALL,
-    //none
-    QEFFORT_NONE,
-  };
 private:  //this information is reset during check
   /** current effort level */
-  unsigned d_curr_effort_level;
+  QuantifiersModule::QEffort d_curr_effort_level;
   /** are we in conflict */
   bool d_conflict;
   context::CDO< bool > d_conflict_c;

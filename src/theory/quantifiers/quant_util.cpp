@@ -25,8 +25,8 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 
-unsigned QuantifiersModule::needsModel( Theory::Effort e ) {
-  return QuantifiersEngine::QEFFORT_NONE;
+QuantifiersModule::QEffort QuantifiersModule::needsModel( Theory::Effort e ) {
+  return QEFFORT_NONE;
 }
 
 eq::EqualityEngine * QuantifiersModule::getEqualityEngine() {

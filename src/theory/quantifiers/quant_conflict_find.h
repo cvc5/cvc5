@@ -243,7 +243,7 @@ public:
   /** reset round */
   void reset_round( Theory::Effort level );
   /** check */
-  void check( Theory::Effort level, unsigned quant_e );
+  void check( Theory::Effort level, QEffort quant_e );
 private:
   bool d_needs_computeRelEqr;
 public:
