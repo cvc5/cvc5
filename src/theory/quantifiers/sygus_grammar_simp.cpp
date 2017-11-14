@@ -66,11 +66,11 @@ TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn)
       {
         Trace("sygus-grammar-normalize")
             << "SygusOp " << op << " is ITE" << std::endl;
-        for (unsigned j = 0; j < dt[i].getNumArgs(); k++)
+        for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
         {
           TypeNode ct = TypeNode::fromType(dt[i][j].getRangeType());
           Trace("sygus-grammar-normalize")
-              << "   Child type " << k << " : "
+              << "   Child type " << j << " : "
               << static_cast<DatatypeType>(ct.toType()).getDatatype().getName()
               << std::endl;
         }
