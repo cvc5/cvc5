@@ -66,21 +66,53 @@ TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn)
       {
         Trace("sygus-grammar-normalize")
             << "SygusOp " << op << " is ITE" << std::endl;
+        for (unsigned j = 0; k < dt[i].getNumArgs(); k++)
+        {
+          TypeNode ct = TypeNode::fromType(dt[i][j].getRangeType());
+          Trace("sygus-grammar-normalize")
+              << "   Child type " << k << " : "
+              << static_cast<DatatypeType>(ct).toType()).getDatatype().getName()
+              << std::endl;
+        }
       }
       else if (op_actual_kind == MINUS)
       {
         Trace("sygus-grammar-normalize")
             << "SygusOp " << op << " is MINUS" << std::endl;
+        for (unsigned j = 0; k < dt[i].getNumArgs(); k++)
+        {
+          TypeNode ct = TypeNode::fromType(dt[i][j].getRangeType());
+          Trace("sygus-grammar-normalize")
+              << "   Child type " << k << " : "
+              << static_cast<DatatypeType>(ct).toType()).getDatatype().getName()
+              << std::endl;
+        }
       }
       else if (op_actual_kind == PLUS)
       {
         Trace("sygus-grammar-normalize")
             << "SygusOp " << op << " is PLUS" << std::endl;
+        for (unsigned j = 0; k < dt[i].getNumArgs(); k++)
+        {
+          TypeNode ct = TypeNode::fromType(dt[i][j].getRangeType());
+          Trace("sygus-grammar-normalize")
+              << "   Child type " << k << " : "
+              << static_cast<DatatypeType>(ct).toType()).getDatatype().getName()
+              << std::endl;
+        }
       }
       else
       {
         Trace("sygus-grammar-normalize")
             << "SygusOp " << op << " is something else" << std::endl;
+        for (unsigned j = 0; k < dt[i].getNumArgs(); k++)
+        {
+          TypeNode ct = TypeNode::fromType(dt[i][j].getRangeType());
+          Trace("sygus-grammar-normalize")
+              << "   Child type " << k << " : "
+              << static_cast<DatatypeType>(ct).toType()).getDatatype().getName()
+              << std::endl;
+        }
       }
     }
   }
