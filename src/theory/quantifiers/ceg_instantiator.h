@@ -164,215 +164,6 @@ enum InstEffort
  * (for linear arithmetic), see Reynolds/King/Kuncak FMSD 2017.
  */
 class CegInstantiator {
- private:
-  /** quantified formula associated with this instantiator */
-  QuantifiersEngine* d_qe;
-  /** output channel of this instantiator */
-  CegqiOutput* d_out;
-  /** whether we are using delta for virtual term substitution
-    * (for quantified LRA).
-    */
-  bool d_use_vts_delta;
-  /** whether we are using infinity for virtual term substitution
-    * (for quantified LRA).
-    */
-  bool d_use_vts_inf;
-
-  //-------------------------------globally cached
-  /** cache from nodes to the set of variables it contains
-    * (from the quantified formula we are instantiating).
-    */
-  std::unordered_map<Node,
-                     std::unordered_set<Node, NodeHashFunction>,
-                     NodeHashFunction>
-      d_prog_var;
-  /** cache of the set of terms that we have established are
-   * ineligible for instantiation.
-    */
-  std::unordered_set<Node, NodeHashFunction> d_inelig;
-  //-------------------------------end globally cached
-
-  //-------------------------------cached per round
-  /** current assertions per theory */
-  std::map<TheoryId, std::vector<Node> > d_curr_asserts;
-  /** map from representatives to the terms in their equivalence class */
-  std::map<Node, std::vector<Node> > d_curr_eqc;
-  /** map from types to representatives of that type */
-  std::map<TypeNode, std::vector<Node> > d_curr_type_eqc;
-  //-------------------------------end cached per round
-
-  //-------------------------------data per theory
-  /** relevant theory ids
-   * A list of theory ids that contain at least one
-   * constraint in the body of the quantified formula we
-   * are processing.
-   */
-  std::vector<TheoryId> d_tids;
-  /** map from theory ids to instantiator preprocessors */
-  std::map<TheoryId, InstantiatorPreprocess*> d_tipp;
-  //-------------------------------end data per theory
-
-  //-------------------------------the variables
-  /** the variables we are instantiating
-   * For a quantified formula with n variables,
-   * the first n terms in d_vars are the instantiation
-   * constants corresponding to these variables.
-   */
-  std::vector<Node> d_vars;
-  /** set form of d_vars */
-  std::unordered_set<Node, NodeHashFunction> d_vars_set;
-  /** index of variables reported in instantiation */
-  std::vector<unsigned> d_var_order_index;
-  /** number of input variables
-   * This is n for quantified formulas with n variables,
-   * and is at most the size of d_vars.
-   */
-  unsigned d_num_input_variables;
-  //-------------------------------the variables
-
-  //-------------------------------quantified formula info
-  /** are we processing a nested quantified formula? */
-  bool d_is_nested_quant;
-  /** the atoms of the CE lemma */
-  std::vector<Node> d_ce_atoms;
-  /** collect atoms */
-  void collectCeAtoms(Node n, std::map<Node, bool>& visited);
-  //-------------------------------end quantified formula info
-
-  //-------------------------------current state
-  /** the current effort level of the instantiator
-   * This indicates the kinds of instantiations we allow.
-   */
-  InstEffort d_effort;
-  /** for each variable, the instantiator used for that variable */
-  std::map<Node, Instantiator*> d_active_instantiators;
-  //-------------------------------end current state
-
-  /** literals to equalities for aux vars
-   * This stores entries of the form
-   *   L -> ( k -> t )
-   * where
-   *   k is a variable in d_aux_vars,
-   *   L is a literal that if asserted implies that our
-   *    instantiation should map { k -> t }.
-   * For example, if a term of the form
-   *   ite( C, t1, t2 )
-   * was replaced by k, we get this (top-level) assertion:
-   *   ite( C, k=t1, k=t2 )
-   * The vector d_aux_eq contains the exact form of
-   * the literals in the above constraint that they would
-   * appear in assertions, meaning d_aux_eq may contain:
-   *   t1=k -> ( k -> t1 )
-   *   t2=k -> ( k -> t2 )
-   * where t1=k and t2=k are the rewritten form of
-   * k=t1 and k=t2 respectively.
-   */
-  std::map<Node, std::map<Node, Node> > d_aux_eq;
-  /** auxiliary variables
-   * These variables include the result of removing ITE
-   * terms from the quantified formula we are processing.
-   * These variables must be eliminated from constraints
-   * as a preprocess step to check().
-   */
-  std::vector<Node> d_aux_vars;
-  /** stack of temporary variables we are solving for,
-   * e.g. subfields of datatypes.
-   */
-  std::vector<Node> d_stack_vars;
-  /** cache bound variables for type returned
-   * by getBoundVariable(...).
-   */
-  std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
-      d_bound_var;
-  /** current index of bound variables for type.
-   * The next call to getBoundVariable(...) for
-   * type tn returns the d_bound_var_index[tn]^th
-   * element of d_bound_var[tn], or a fresh variable
-   * if not in bounds.
-   */
-  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>
-      d_bound_var_index;
-
-  /** map from variables to their instantiators */
-  std::map< Node, Instantiator * > d_instantiator;
-  /** cache of current substitutions tried between register/unregister */
-  std::map<Node, std::map<Node, std::map<Node, bool> > > d_curr_subs_proc;
-  /** map from variables to the index in the prefix of the quantified
-   * formula we are processing.
-   */
-  std::map<Node, unsigned> d_curr_index;
-
-  /** activate instantiation variable v at index
-   *
-   * This is called when variable (inst constant) v is activated
-   * for the quantified formula we are processing.
-   * This method initializes the instantiator class for
-   * that variable if necessary, where this class is
-   * determined by the type of v. It also initializes
-   * the cache of values we have tried substituting for v
-   * (in d_curr_subs_proc), and stores its index.
-   */
-  void activateInstantiationVariable(Node v, unsigned index);
-  /** deactivate instantiation variable
-   *
-   * This is called when variable (inst constant) v is deactivated
-   * for the quantified formula we are processing.
-   */
-  void deactivateInstantiationVariable(Node v);
-  /** registers all theory ids associated with type tn
-   *
-   * This recursively calls registerTheoryId for typeOf(tn') for
-   * all parameters and datatype subfields of type tn.
-   * visited stores the types we have already visited.
-   */
-  void registerTheoryIds(TypeNode tn, std::map<TypeNode, bool>& visited);
-  /** register theory id tid
-   *
-   * This is called when the quantified formula we are processing
-   * with this class involves theory tid. In this case, we will
-   * based instantiations based on the assertion list of this theory.
-   */
-  void registerTheoryId(TheoryId tid);
-  /** register variable */
-  void registerVariable(Node v, bool is_aux = false);
-  /** ensures n is in d_prog_var and d_inelig. */
-  void computeProgVars( Node n );
-  /** do add instantiation
-   * This method constructs the current instantiation, where we
-   * are currently processing the i^th variable in d_vars.
-   */
-  bool doAddInstantiation(SolvedForm& sf, unsigned i);
-  // called by the above function after we finalize the variables/substitution and auxiliary lemmas
-  bool doAddInstantiation( std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& lemmas );
-  //process
-  void processAssertions();
-  void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
-private:
-  /** can use basic substitution */
-  bool canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic );
-  /** apply substitution
-  * We wish to process the substitution: 
-  *   ( pv = n * sf )
-  * where pv is a variable with type tn, and * denotes application of substitution.
-  * The return value "ret" and pv_prop is such that the above equality is equivalent to
-  *   ( pv_prop.getModifiedTerm(pv) = ret )
-  */
-  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, TermProperties& pv_prop, bool try_coeff = true ) {
-    return applySubstitution( tn, n, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic, pv_prop, try_coeff );
-  }
-  /** apply substitution, with solved form expanded to subs/prop/non_basic/vars */
-  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
-                          std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff = true );
-  /** apply substitution to literal lit 
-  * The return value is equivalent to ( lit * sf )
-  * where * denotes application of substitution.
-  */
-  Node applySubstitutionToLiteral( Node lit, SolvedForm& sf ) {
-    return applySubstitutionToLiteral( lit, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic );
-  }
-  /** apply substitution to literal lit, with solved form expanded to subs/prop/non_basic/vars */
-  Node applySubstitutionToLiteral( Node lit, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
-                                   std::vector< Node >& non_basic );
 public:
   CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta = true, bool use_vts_inf = true );
   virtual ~CegInstantiator();
@@ -406,6 +197,7 @@ public:
   CegqiOutput * getOutput() { return d_out; }
   //get quantifiers engine
   QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
+  
   //------------------------------interface for instantiators
   /** push stack variable
    * This adds a new variable to solve for in the stack
@@ -445,7 +237,16 @@ public:
    */
   Node getBoundVariable(TypeNode tn);
   //------------------------------end interface for instantiators
+  
+  /** 
+   * Get the number of atoms in the counterexample lemma of the quantified 
+   * formula we are processing with this class.
+   */
   unsigned getNumCEAtoms() { return d_ce_atoms.size(); }
+  /** 
+   * Get the i^th atom of the counterexample lemma of the quantified 
+   * formula we are processing with this class.
+   */ 
   Node getCEAtom( unsigned i ) { return d_ce_atoms[i]; }
   /** is n a term that is eligible for instantiation? */
   bool isEligible( Node n );
@@ -457,6 +258,233 @@ public:
   bool useVtsInfinity() { return d_use_vts_inf; }
   /** are we processing a nested quantified formula? */
   bool hasNestedQuantification() { return d_is_nested_quant; }
+ private:
+  /** quantified formula associated with this instantiator */
+  QuantifiersEngine* d_qe;
+  /** output channel of this instantiator */
+  CegqiOutput* d_out;
+  /** whether we are using delta for virtual term substitution
+    * (for quantified LRA).
+    */
+  bool d_use_vts_delta;
+  /** whether we are using infinity for virtual term substitution
+    * (for quantified LRA).
+    */
+  bool d_use_vts_inf;
+
+  //-------------------------------globally cached
+  /** cache from nodes to the set of variables it contains
+    * (from the quantified formula we are instantiating).
+    */
+  std::unordered_map<Node,
+                     std::unordered_set<Node, NodeHashFunction>,
+                     NodeHashFunction>
+      d_prog_var;
+  /** cache of the set of terms that we have established are
+   * ineligible for instantiation.
+    */
+  std::unordered_set<Node, NodeHashFunction> d_inelig;
+  /** ensures n is in d_prog_var and d_inelig. */
+  void computeProgVars( Node n );
+  //-------------------------------end globally cached
+
+  //-------------------------------cached per round
+  /** current assertions per theory */
+  std::map<TheoryId, std::vector<Node> > d_curr_asserts;
+  /** map from representatives to the terms in their equivalence class */
+  std::map<Node, std::vector<Node> > d_curr_eqc;
+  /** map from types to representatives of that type */
+  std::map<TypeNode, std::vector<Node> > d_curr_type_eqc;
+  /** process assertions 
+   * This is called once at the beginning of check to
+   * set up all necessary information for constructing instantiations,
+   * such as the above data structures.
+   */
+  void processAssertions();
+  /** add to auxiliary variable substitution
+   * This adds the substitution l -> r to the auxiliary 
+   * variable substitution subs_lhs -> subs_rhs, and serializes
+   * it (applies it to existing substitutions).
+   */
+  void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
+  /** cache bound variables for type returned
+   * by getBoundVariable(...).
+   */
+  std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
+      d_bound_var;
+  /** current index of bound variables for type.
+   * The next call to getBoundVariable(...) for
+   * type tn returns the d_bound_var_index[tn]^th
+   * element of d_bound_var[tn], or a fresh variable
+   * if not in bounds.
+   */
+  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>
+      d_bound_var_index;
+  //-------------------------------end cached per round
+
+  //-------------------------------data per theory
+  /** relevant theory ids
+   * A list of theory ids that contain at least one
+   * constraint in the body of the quantified formula we
+   * are processing.
+   */
+  std::vector<TheoryId> d_tids;
+  /** map from theory ids to instantiator preprocessors */
+  std::map<TheoryId, InstantiatorPreprocess*> d_tipp;
+  /** registers all theory ids associated with type tn
+   *
+   * This recursively calls registerTheoryId for typeOf(tn') for
+   * all parameters and datatype subfields of type tn.
+   * visited stores the types we have already visited.
+   */
+  void registerTheoryIds(TypeNode tn, std::map<TypeNode, bool>& visited);
+  /** register theory id tid
+   *
+   * This is called when the quantified formula we are processing
+   * with this class involves theory tid. In this case, we will
+   * based instantiations based on the assertion list of this theory.
+   */
+  void registerTheoryId(TheoryId tid);
+  //-------------------------------end data per theory
+
+  //-------------------------------the variables
+  /** the variables we are instantiating
+   * For a quantified formula with n variables,
+   * the first n terms in d_vars are the instantiation
+   * constants corresponding to these variables.
+   */
+  std::vector<Node> d_vars;
+  /** set form of d_vars */
+  std::unordered_set<Node, NodeHashFunction> d_vars_set;
+  /** index of variables reported in instantiation */
+  std::vector<unsigned> d_var_order_index;
+  /** number of input variables
+   * This is n for quantified formulas with n variables,
+   * and is at most the size of d_vars.
+   */
+  unsigned d_num_input_variables;
+  /** literals to equalities for aux vars
+   * This stores entries of the form
+   *   L -> ( k -> t )
+   * where
+   *   k is a variable in d_aux_vars,
+   *   L is a literal that if asserted implies that our
+   *    instantiation should map { k -> t }.
+   * For example, if a term of the form
+   *   ite( C, t1, t2 )
+   * was replaced by k, we get this (top-level) assertion:
+   *   ite( C, k=t1, k=t2 )
+   * The vector d_aux_eq contains the exact form of
+   * the literals in the above constraint that they would
+   * appear in assertions, meaning d_aux_eq may contain:
+   *   t1=k -> ( k -> t1 )
+   *   t2=k -> ( k -> t2 )
+   * where t1=k and t2=k are the rewritten form of
+   * k=t1 and k=t2 respectively.
+   */
+  std::map<Node, std::map<Node, Node> > d_aux_eq;
+  /** auxiliary variables
+   * These variables include the result of removing ITE
+   * terms from the quantified formula we are processing.
+   * These variables must be eliminated from constraints
+   * as a preprocess step to check().
+   */
+  std::vector<Node> d_aux_vars;
+  /** register variable */
+  void registerVariable(Node v, bool is_aux = false);
+  //-------------------------------the variables
+
+  //-------------------------------quantified formula info
+  /** are we processing a nested quantified formula? */
+  bool d_is_nested_quant;
+  /** the atoms of the CE lemma */
+  std::vector<Node> d_ce_atoms;
+  /** collect atoms */
+  void collectCeAtoms(Node n, std::map<Node, bool>& visited);
+  //-------------------------------end quantified formula info
+
+  //-------------------------------current state
+  /** the current effort level of the instantiator
+   * This indicates the effort Instantiator objects 
+   * will put into the terms they return.
+   */
+  InstEffort d_effort;
+  /** for each variable, the instantiator used for that variable */
+  std::map<Node, Instantiator*> d_active_instantiators;
+  /** map from variables to the index in the prefix of the quantified
+   * formula we are processing.
+   */
+  std::map<Node, unsigned> d_curr_index;
+  /** cache of current substitutions tried between activate/deactivate */
+  std::map<Node, std::map<Node, std::map<Node, bool> > > d_curr_subs_proc;
+  /** stack of temporary variables we are solving for,
+   * e.g. subfields of datatypes.
+   */
+  std::vector<Node> d_stack_vars;
+  /** activate instantiation variable v at index
+   *
+   * This is called when variable (inst constant) v is activated
+   * for the quantified formula we are processing.
+   * This method initializes the instantiator class for
+   * that variable if necessary, where this class is
+   * determined by the type of v. It also initializes
+   * the cache of values we have tried substituting for v
+   * (in d_curr_subs_proc), and stores its index.
+   */
+  void activateInstantiationVariable(Node v, unsigned index);
+  /** deactivate instantiation variable
+   *
+   * This is called when variable (inst constant) v is deactivated
+   * for the quantified formula we are processing.
+   */
+  void deactivateInstantiationVariable(Node v);
+  //-------------------------------end current state
+
+  //---------------------------------for applying substitutions
+  /** can use basic substitution */
+  bool canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic );
+  /** apply substitution
+  * We wish to process the substitution: 
+  *   ( pv = n * sf )
+  * where pv is a variable with type tn, and * denotes application of substitution.
+  * The return value "ret" and pv_prop is such that the above equality is equivalent to
+  *   ( pv_prop.getModifiedTerm(pv) = ret )
+  */
+  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, TermProperties& pv_prop, bool try_coeff = true ) {
+    return applySubstitution( tn, n, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic, pv_prop, try_coeff );
+  }
+  /** apply substitution, with solved form expanded to subs/prop/non_basic/vars */
+  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
+                          std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff = true );
+  /** apply substitution to literal lit 
+  * The return value is equivalent to ( lit * sf )
+  * where * denotes application of substitution.
+  */
+  Node applySubstitutionToLiteral( Node lit, SolvedForm& sf ) {
+    return applySubstitutionToLiteral( lit, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic );
+  }
+  /** apply substitution to literal lit, with solved form expanded to subs/prop/non_basic/vars */
+  Node applySubstitutionToLiteral( Node lit, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
+                                   std::vector< Node >& non_basic );
+  //---------------------------------end for applying substitutions
+  
+  /** map from variables to their instantiators */
+  std::map< Node, Instantiator * > d_instantiator;
+
+  /** do add instantiation
+   * This method constructs the current instantiation, where we
+   * are currently processing the i^th variable in d_vars.
+   * It returns true if a successful call to the output channel's
+   * doAddInstantiation was made.
+   */
+  bool doAddInstantiation(SolvedForm& sf, unsigned i);
+  /** do add instantiation
+   * This method is called by the above function after we finalize the 
+   * variables/substitution and auxiliary lemmas.
+   * It returns true if a successful call to the output channel's
+   * doAddInstantiation was made.
+   */
+  bool doAddInstantiation( std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& lemmas );  
 };
 
 /** Instantiator class
@@ -612,7 +640,7 @@ public:
 
   /** do we use the model value as instantiation for pv?
    * This method returns true if we use model value instantiations
-   * at the same effort level as those determined by
+   * at the same effort level as those determined by this instantiator.
    */
   virtual bool useModelValue(CegInstantiator* ci,
                              SolvedForm& sf,
