@@ -137,8 +137,8 @@ class BVGaussElim
    * successful, and NONE, otherwise.
    */
   static Result gaussElim(Integer prime,
-                          std::vector<Integer>& rhs,
-                          std::vector<std::vector<Integer>>& lhs,
+                          const std::vector<Integer>& rhs,
+                          const std::vector<std::vector<Integer>>& lhs,
                           std::vector<Integer>& resrhs,
                           std::vector<std::vector<Integer>>& reslhs);
 };

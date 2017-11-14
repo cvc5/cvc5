@@ -46,8 +46,7 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
     {
       visited[n] = 0;
       visit.push(n);
-      for (unsigned i = 0, nc = n.getNumChildren(); i < nc; ++i)
-        visit.push(n[i]);
+      for (Node child : n) visit.push(child);
     }
     else if (it->second == 0)
     {
@@ -67,8 +66,7 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
         case kind::BITVECTOR_EXTRACT:
         {
           unsigned w = utils::getSize(n);
-          visited[n] =
-              w >= visited[n[0]] ? visited[n] = visited[n[0]] : visited[n] = w;
+          visited[n] = w >= visited[n[0]] ? visited[n[0]] : w;
           Assert(visited[n] <= visited[n[0]]);
           break;
         }
@@ -95,15 +93,16 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
           Node zero = utils::mkZero(utils::getSize(n[0]));
           if (n[0] == zero)
           {
-            w = visited[n[1]];
-            for (unsigned i = 2, nc = n.getNumChildren(); i < nc; ++i)
-              w += utils::getSize(n[i]);
+            w = visited[n[1]]
+                /* add bw of children n[2] to n[n.getNumChildren()] */
+                + utils::getSize(n) - utils::getSize(n[0])
+                - utils::getSize(n[1]);
           }
           else
           {
-            w = visited[n[0]];
-            for (unsigned i = 1, nc = n.getNumChildren(); i < nc; ++i)
-              w += utils::getSize(n[i]);
+            w = visited[n[0]]
+              /* add bw of children n[1] to n[n.getNumChildren()] */
+              +  utils::getSize(n) - utils::getSize(n[0]);
           }
           visited[n] = w;
           break;
@@ -154,9 +153,7 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
           break;
         }
 
-        default:
-        {
-          visited[n] = utils::getSize(n);
+        default: { visited[n] = utils::getSize(n);
         }
       }
     }
@@ -164,10 +161,9 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
   return visited[expr];
 }
 
-
 BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
-                                           vector<Integer> &rhs,
-                                           vector<vector<Integer>> &lhs,
+                                           const vector<Integer> &rhs,
+                                           const vector<vector<Integer>> &lhs,
                                            vector<Integer> &resrhs,
                                            vector<vector<Integer>> &reslhs)
 
@@ -228,12 +224,8 @@ BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
             reslhs[k][pcol] = reslhs[k][pcol].euclidianDivideRemainder(prime);
             if (reslhs[k][pcol] != 0)
             {
-              Integer itmp = resrhs[j];
-              resrhs[j] = resrhs[k];
-              resrhs[k] = itmp;
-              vector<Integer> tmp = reslhs[j];
-              reslhs[j] = reslhs[k];
-              reslhs[k] = tmp;
+              std::swap(resrhs[j], resrhs[k]);
+              std::swap(reslhs[j], reslhs[k]);
               break;
             }
           }
@@ -387,8 +379,9 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
     if (getMinBwExpr(urem[0]) == 0)
     {
       Trace("bv-gauss-elim")
-         << "Minimum required bit-width exceeds given bit-width, "
-            "will not apply Gaussian Elimination." << endl;
+          << "Minimum required bit-width exceeds given bit-width, "
+             "will not apply Gaussian Elimination."
+          << endl;
       return BVGaussElim::Result::INVALID;
     }
     rhs.push_back(get_bv_const(eqrhs));
@@ -409,11 +402,10 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
     {
       Node n = stack.top();
       stack.pop();
-      CVC4::Kind k = n.getKind();
+      Kind k = n.getKind();
       if (k == kind::BITVECTOR_PLUS)
       {
-        for (size_t j = 0, nchild = n.getNumChildren(); j < nchild; ++j)
-          stack.push(n[j]);
+        for (Node child : n) stack.push(child);
       }
       else if (k == kind::BITVECTOR_MULT)
       {
@@ -563,7 +555,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
           continue;
         }
         Assert(reslhs[prow][pcol] == 1);
-        stack<Node> stack;
+        vector<Node> stack;
         while (reslhs[prow][pcol] == 0) pcol += 1;
         for (size_t i = pcol + 1; i < nvars; ++i)
         {
@@ -574,7 +566,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
           Node bv =
               nm->mkConst<BitVector>(BitVector(utils::getSize(vvars[i]), m));
           Node mult = nm->mkNode(kind::BITVECTOR_MULT, vvars[i], bv);
-          stack.push(mult);
+          stack.push_back(mult);
         }
 
         if (stack.empty())
@@ -584,8 +576,8 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
         }
         else
         {
-          Node tmp = stack.top();
-          stack.pop();
+          Node tmp = stack.back();
+          stack.pop_back();
           if (resrhs[prow] != 0)
           {
             tmp = nm->mkNode(kind::BITVECTOR_PLUS,
@@ -595,8 +587,8 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
           }
           while (!stack.empty())
           {
-            tmp = nm->mkNode(kind::BITVECTOR_PLUS, tmp, stack.top());
-            stack.pop();
+            tmp = nm->mkNode(kind::BITVECTOR_PLUS, tmp, stack.back());
+            stack.pop_back();
           }
           if (is_bv_const(tmp))
           {
@@ -615,24 +607,23 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
 
 void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
 {
-  stack<Node> assertions;
+  vector<Node> assertions;
   unordered_map<Node, vector<Node>, NodeHashFunction> equations;
   vector<Integer> resrhs;
   vector<vector<Integer>> reslhs;
 
   for (size_t i = 0, nass = assertionsToPreprocess.size(); i < nass; ++i)
-    assertions.push(assertionsToPreprocess[i]);
+    assertions.push_back(assertionsToPreprocess[i]);
 
   while (!assertions.empty())
   {
-    Node a = assertions.top();
+    Node a = assertions.back();
+    assertions.pop_back();
     CVC4::Kind k = a.getKind();
-    assertions.pop();
 
     if (k == kind::AND)
     {
-      for (size_t i = 0, nchild = a.getNumChildren(); i < nchild; ++i)
-        assertions.push(a[i]);
+      for (Node aa : a) assertions.push_back(aa);
     }
     else if (k == kind::EQUAL)
     {
