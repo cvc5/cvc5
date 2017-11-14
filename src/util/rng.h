@@ -15,6 +15,7 @@
  ** (see S. Vigna, An experimental exploration of Marsaglia's xorshift
  ** generators, scrambled. ACM Trans. Math. Softw. 42(4): 30:1-30:23, 2016).
  **/
+
 #include "cvc4_private.h"
 
 #ifndef __CVC4__RNG_H

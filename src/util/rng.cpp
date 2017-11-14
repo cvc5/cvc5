@@ -1,3 +1,21 @@
+/*********************                                                        */
+/*! \file rng.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Aina Niemetz
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief A Random Number Generator.
+ **
+ ** A random number generator, implements the xorshift* generator
+ ** (see S. Vigna, An experimental exploration of Marsaglia's xorshift
+ ** generators, scrambled. ACM Trans. Math. Softw. 42(4): 30:1-30:23, 2016).
+ **/
+
 #include "util/rng.h"
 
 #include <cfloat>
