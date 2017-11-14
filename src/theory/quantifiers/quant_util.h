@@ -41,12 +41,16 @@ namespace quantifiers {
 */
 class QuantifiersModule {
  public:
-  // quantifiers effort levels
+  /** effort levels for quantifiers modules check */
   enum QEffort
   {
+    // conflict effort, for conflict-based instantiation
     QEFFORT_CONFLICT,
+    // standard effort, for heuristic instantiation
     QEFFORT_STANDARD,
+    // model effort, for model-based instantiation
     QEFFORT_MODEL,
+    // last call effort, for last resort techniques
     QEFFORT_LAST_CALL,
     // none
     QEFFORT_NONE,
