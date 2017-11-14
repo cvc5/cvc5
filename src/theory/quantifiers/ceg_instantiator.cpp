@@ -32,17 +32,26 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-CegInstantiator::CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta, bool use_vts_inf ) :
-d_qe( qe ), d_out( out ), d_use_vts_delta( use_vts_delta ), d_use_vts_inf( use_vts_inf ), d_num_input_variables(0),
-d_is_nested_quant(false){
-
+CegInstantiator::CegInstantiator(QuantifiersEngine* qe,
+                                 CegqiOutput* out,
+                                 bool use_vts_delta,
+                                 bool use_vts_inf)
+    : d_qe(qe),
+      d_out(out),
+      d_use_vts_delta(use_vts_delta),
+      d_use_vts_inf(use_vts_inf),
+      d_num_input_variables(0),
+      d_is_nested_quant(false)
+{
 }
 
 CegInstantiator::~CegInstantiator() {
-  for( std::pair< Node, Instantiator * > inst : d_instantiator ){
+  for (std::pair<Node, Instantiator*> inst : d_instantiator)
+  {
     delete inst.second;
   }
-  for( std::pair<TheoryId, InstantiatorPreprocess*> instp : d_tipp ){
+  for (std::pair<TheoryId, InstantiatorPreprocess*> instp : d_tipp)
+  {
     delete instp.second;
   }
 }
@@ -94,8 +103,8 @@ bool CegInstantiator::hasVariable( Node n, Node pv ) {
   return d_prog_var[n].find( pv )!=d_prog_var[n].end();
 }
 
-
-void CegInstantiator::activateInstantiationVariable( Node v, unsigned index ) {
+void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
+{
   if( d_instantiator.find( v )==d_instantiator.end() ){
     TypeNode tn = v.getType();
     Instantiator * vinst;
@@ -120,49 +129,68 @@ void CegInstantiator::activateInstantiationVariable( Node v, unsigned index ) {
   d_curr_index[v] = index;
 }
 
-void CegInstantiator::registerTheoryIds( TypeNode tn, std::map< TypeNode, bool >& visited ){
-  std::map< TypeNode, bool >::iterator itt = visited.find( tn );
-  if( itt==visited.end() ){
+void CegInstantiator::registerTheoryIds(TypeNode tn,
+                                        std::map<TypeNode, bool>& visited)
+{
+  std::map<TypeNode, bool>::iterator itt = visited.find(tn);
+  if (itt == visited.end())
+  {
     visited[tn] = true;
-    TheoryId tid = Theory::theoryOf( tn );
-    registerTheoryId( tid );
-    if( tn.isDatatype() ){
+    TheoryId tid = Theory::theoryOf(tn);
+    registerTheoryId(tid);
+    if (tn.isDatatype())
+    {
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-          registerTheoryIds( TypeNode::fromType( ((SelectorType)dt[i][j].getType()).getRangeType() ), visited );
+      for (unsigned i = 0; i < dt.getNumConstructors(); i++)
+      {
+        for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
+        {
+          registerTheoryIds(
+              TypeNode::fromType(
+                  ((SelectorType)dt[i][j].getType()).getRangeType()),
+              visited);
         }
       }
     }
   }
 }
 
-void CegInstantiator::registerTheoryId( TheoryId tid ){
-  if( std::find( d_tids.begin(), d_tids.end(), tid )==d_tids.end() ){
-    if( tid==THEORY_BV ){
+void CegInstantiator::registerTheoryId(TheoryId tid)
+{
+  if (std::find(d_tids.begin(), d_tids.end(), tid) == d_tids.end())
+  {
+    if (tid == THEORY_BV)
+    {
       d_tipp[tid] = new BvInstantiatorPreprocess;
     }
-    d_tids.push_back( tid );
+    d_tids.push_back(tid);
   }
 }
 
-void CegInstantiator::registerVariable( Node v, bool is_aux ) {
-  Assert( std::find( d_vars.begin(), d_vars.end(), v )==d_vars.end() );
-  Assert( std::find( d_aux_vars.begin(), d_aux_vars.end(), v )==d_aux_vars.end() );
-  if( !is_aux ){
+void CegInstantiator::registerVariable(Node v, bool is_aux)
+{
+  Assert(std::find(d_vars.begin(), d_vars.end(), v) == d_vars.end());
+  Assert(std::find(d_aux_vars.begin(), d_aux_vars.end(), v)
+         == d_aux_vars.end());
+  if (!is_aux)
+  {
     d_vars.push_back(v);
     d_vars_set.insert(v);
-  }else{
+  }
+  else
+  {
     d_aux_vars.push_back(v);
   }
   TypeNode vtn = v.getType();
-  Trace("cbqi-proc-debug") << "Collect theory ids from type " << vtn << " of " << v << std::endl;
-  //collect relevant theories for this variable
-  std::map< TypeNode, bool > visited;
-  registerTheoryIds( vtn, visited );
+  Trace("cbqi-proc-debug") << "Collect theory ids from type " << vtn << " of "
+                           << v << std::endl;
+  // collect relevant theories for this variable
+  std::map<TypeNode, bool> visited;
+  registerTheoryIds(vtn, visited);
 }
 
-void CegInstantiator::deactivateInstantiationVariable( Node v ) {
+void CegInstantiator::deactivateInstantiationVariable(Node v)
+{
   d_curr_subs_proc.erase( v );
   d_curr_index.erase( v );
 }
@@ -210,7 +238,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       is_cv = true;
       d_stack_vars.pop_back();
     }
-    activateInstantiationVariable( pv, i );
+    activateInstantiationVariable(pv, i);
 
     //get the instantiator object
     Instantiator * vinst = NULL;
@@ -280,7 +308,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       }
 
       //[2] : we can solve an equality for pv
-      ///iterate over equivalence classes to find cases where we can solve for the variable
+      /// iterate over equivalence classes to find cases where we can solve for
+      /// the variable
       if( vinst->hasProcessEquality( this, sf, pv, effort ) ){
         Trace("cbqi-inst-debug") << "[3] try based on solving equalities." << std::endl;
         for( unsigned k=0; k<d_curr_type_eqc[pvtnb].size(); k++ ){
@@ -384,7 +413,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
     }
 
     //[4] resort to using value in model
-    // do so if we are in effort=1, or if the variable is boolean, or if we are solving for a subfield of a datatype
+    // do so if we are in effort=1, or if the variable is boolean, or if we are
+    // solving for a subfield of a datatype
     bool use_model_value = vinst->useModelValue( this, sf, pv, effort );
     if( ( effort>0 || use_model_value || is_cv ) && vinst->allowModelValue( this, sf, pv, effort ) ){
 #ifdef CVC4_ASSERTIONS
@@ -406,7 +436,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       d_stack_vars.push_back( pv );
     }
     d_active_instantiators.erase( pv );
-    deactivateInstantiationVariable( pv );
+    deactivateInstantiationVariable(pv);
     return false;
   }
 }
@@ -547,14 +577,16 @@ bool CegInstantiator::doAddInstantiationInc(Node pv,
 }
 
 bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& lemmas ) {
-  if( vars.size()>d_num_input_variables ){
+  if (vars.size() > d_num_input_variables)
+  {
     Trace("cbqi-inst-debug") << "Reconstructing instantiations...." << std::endl;
     std::map< Node, Node > subs_map;
     for( unsigned i=0; i<subs.size(); i++ ){
       subs_map[vars[i]] = subs[i];
     }
     subs.clear();
-    for( unsigned i=0; i<d_num_input_variables; i++ ){
+    for (unsigned i = 0; i < d_num_input_variables; i++)
+    {
       std::map< Node, Node >::iterator it = subs_map.find( d_vars[i] );
       Assert( it!=subs_map.end() );
       Node n = it->second;
@@ -1076,7 +1108,8 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   d_vars.clear();
   d_num_input_variables = ce_vars.size();
   registerTheoryId(THEORY_UF);
-  for( unsigned i=0; i<ce_vars.size(); i++ ){
+  for (unsigned i = 0; i < ce_vars.size(); i++)
+  {
     registerVariable(ce_vars[i]);
   }
 
@@ -1117,49 +1150,66 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     }*/
     lems[i] = rlem;
   }
-  
+
   // preprocess with all relevant instantiator preprocessors
-  Trace("cbqi-debug") << "Preprocess based on theory-specific methods..." << std::endl;
-  std::vector< Node > pvars;
-  pvars.insert(pvars.end(),d_vars.begin(),d_vars.end());
-  for( std::map<TheoryId, InstantiatorPreprocess*>::iterator it = d_tipp.begin(); it != d_tipp.end(); ++it ){
+  Trace("cbqi-debug") << "Preprocess based on theory-specific methods..."
+                      << std::endl;
+  std::vector<Node> pvars;
+  pvars.insert(pvars.end(), d_vars.begin(), d_vars.end());
+  for (std::map<TheoryId, InstantiatorPreprocess*>::iterator it =
+           d_tipp.begin();
+       it != d_tipp.end();
+       ++it)
+  {
     it->second->registerCounterexampleLemma(lems, pvars);
   }
   // must register variables generated by preprocessors
-  Trace("cbqi-debug") << "Register variables from theory-specific methods " << d_num_input_variables << " " << d_vars.size() << " ..." << std::endl;
-  for( unsigned i=d_num_input_variables; i<pvars.size(); i++ ){
-    Trace("cbqi-debug") << "  register variable #" << i << " : " << pvars[i] << std::endl;
+  Trace("cbqi-debug") << "Register variables from theory-specific methods "
+                      << d_num_input_variables << " " << d_vars.size() << " ..."
+                      << std::endl;
+  for (unsigned i = d_num_input_variables; i < pvars.size(); i++)
+  {
+    Trace("cbqi-debug") << "  register variable #" << i << " : " << pvars[i]
+                        << std::endl;
     registerVariable(pvars[i]);
   }
-  
-  //determine variable order: must do Reals before Ints
+
+  // determine variable order: must do Reals before Ints
   Trace("cbqi-debug") << "Determine variable order..." << std::endl;
-  if( !d_vars.empty() ){
+  if (!d_vars.empty())
+  {
     TypeNode tn0 = d_vars[0].getType();
     bool doSort = false;
-    std::map< Node, unsigned > voo;
-    for( unsigned i=0; i<d_vars.size(); i++ ){
+    std::map<Node, unsigned> voo;
+    for (unsigned i = 0; i < d_vars.size(); i++)
+    {
       voo[d_vars[i]] = i;
-      d_var_order_index.push_back( 0 );
-      if( d_vars[i].getType()!=tn0 ){
+      d_var_order_index.push_back(0);
+      if (d_vars[i].getType() != tn0)
+      {
         doSort = true;
       }
     }
-    if( doSort ){
+    if (doSort)
+    {
       Trace("cbqi-debug") << "Sort variables based on ordering." << std::endl;
       sortCegVarOrder scvo;
-      std::sort( d_vars.begin(), d_vars.end(), scvo );
+      std::sort(d_vars.begin(), d_vars.end(), scvo);
       Trace("cbqi-debug") << "Consider variables in this order : " << std::endl;
-      for( unsigned i=0; i<d_vars.size(); i++ ){
+      for (unsigned i = 0; i < d_vars.size(); i++)
+      {
         d_var_order_index[voo[d_vars[i]]] = i;
-        Trace("cbqi-debug") << "  " << d_vars[i] << " : " << d_vars[i].getType() << ", index was : " << voo[d_vars[i]] << std::endl;
+        Trace("cbqi-debug") << "  " << d_vars[i] << " : " << d_vars[i].getType()
+                            << ", index was : " << voo[d_vars[i]] << std::endl;
       }
       Trace("cbqi-debug") << std::endl;
-    }else{
+    }
+    else
+    {
       d_var_order_index.clear();
     }
   }
-  
+
   //collect atoms from all lemmas: we will only do bounds coming from original body
   d_is_nested_quant = false;
   std::map< Node, bool > visited;

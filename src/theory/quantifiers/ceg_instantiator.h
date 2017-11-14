@@ -42,10 +42,10 @@ class Instantiator;
 class InstantiatorPreprocess;
 
 /** Term Properties
- * 
- * Stores properties for a variable to solve for in counterexample-guided 
+ *
+ * Stores properties for a variable to solve for in counterexample-guided
  * instantiation.
- * 
+ *
  * For LIA, this includes the coefficient of the variable, and the bound type
  * for the variable.
  */
@@ -145,10 +145,10 @@ public:
 /** Ceg instantiator
  *
  * This class manages counterexample-guided quantifier instantiation
- * for a single quantified formula. 
- * 
+ * for a single quantified formula.
+ *
  * For details on counterexample-guided quantifier instantiation
- * (for linear arithmetic), see Reynolds/King/Kuncak FMSD 2017. 
+ * (for linear arithmetic), see Reynolds/King/Kuncak FMSD 2017.
  */
 class CegInstantiator {
  private:
@@ -164,8 +164,8 @@ class CegInstantiator {
     * (for quantified LRA).
     */
   bool d_use_vts_inf;
-  
-  //-------------------------------cached per round 
+
+  //-------------------------------cached per round
   /** cache from nodes to the set of variables it contains
     * (from the quantified formula we are instantiating).
     */
@@ -183,8 +183,8 @@ class CegInstantiator {
   std::map<Node, std::vector<Node> > d_curr_eqc;
   /** map from types to representatives of that type */
   std::map<TypeNode, std::vector<Node> > d_curr_type_eqc;
-  //-------------------------------end cached per round 
-  
+  //-------------------------------end cached per round
+
   //-------------------------------data per theory
   /** relevant theory ids
    * A list of theory ids that contain at least one
@@ -195,25 +195,25 @@ class CegInstantiator {
   /** map from theory ids to instantiator preprocessors */
   std::map<TheoryId, InstantiatorPreprocess*> d_tipp;
   //-------------------------------end data per theory
-  
+
   //-------------------------------the variables
   /** the variables we are instantiating
    * For a quantified formula with n variables,
    * the first n terms in d_vars are the instantiation
    * constants corresponding to these variables.
    */
-  std::vector<Node> d_vars;  
+  std::vector<Node> d_vars;
   /** set form of d_vars */
   std::unordered_set<Node, NodeHashFunction> d_vars_set;
   /** index of variables reported in instantiation */
   std::vector<unsigned> d_var_order_index;
-  /** number of input variables 
+  /** number of input variables
    * This is n for quantified formulas with n variables,
    * and is at most the size of d_vars.
    */
   unsigned d_num_input_variables;
   //-------------------------------the variables
-  
+
   //-------------------------------quantified formula info
   /** are we processing a nested quantified formula? */
   bool d_is_nested_quant;
@@ -222,8 +222,7 @@ class CegInstantiator {
   /** collect atoms */
   void collectCeAtoms(Node n, std::map<Node, bool>& visited);
   //-------------------------------end quantified formula info
-  
-  
+
   /** literals to equalities for aux vars
    * This stores entries of the form
    *   L -> ( k -> t )
@@ -254,7 +253,7 @@ class CegInstantiator {
   /** stack of temporary variables we are solving for,
    * e.g. subfields of datatypes.
    */
-  std::vector< Node > d_stack_vars;
+  std::vector<Node> d_stack_vars;
   /** cache bound variables for type returned
    * by getBoundVariable(...).
    */
@@ -268,52 +267,51 @@ class CegInstantiator {
    */
   std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>
       d_bound_var_index;
-    
 
   /** map from variables to their instantiators */
   std::map< Node, Instantiator * > d_instantiator;
   /** for each variable, the instantiator used for that variable */
   std::map< Node, Instantiator * > d_active_instantiators;
   /** cache of current substitutions tried between register/unregister */
-  std::map< Node, std::map< Node, std::map< Node, bool > > > d_curr_subs_proc;
-  /** map from variables to the index in the prefix of the quantified 
-   * formula we are processing. 
+  std::map<Node, std::map<Node, std::map<Node, bool> > > d_curr_subs_proc;
+  /** map from variables to the index in the prefix of the quantified
+   * formula we are processing.
    */
-  std::map< Node, unsigned > d_curr_index;
-  
-  /** activate instantiation variable v at index 
-   * 
+  std::map<Node, unsigned> d_curr_index;
+
+  /** activate instantiation variable v at index
+   *
    * This is called when variable (inst constant) v is activated
    * for the quantified formula we are processing.
-   * This method initializes the instantiator class for 
-   * that variable if necessary, where this class is 
+   * This method initializes the instantiator class for
+   * that variable if necessary, where this class is
    * determined by the type of v. It also initializes
-   * the cache of values we have tried substituting for v 
+   * the cache of values we have tried substituting for v
    * (in d_curr_subs_proc), and stores its index.
    */
-  void activateInstantiationVariable( Node v, unsigned index );
-  /** deactivate instantiation variable 
-   * 
+  void activateInstantiationVariable(Node v, unsigned index);
+  /** deactivate instantiation variable
+   *
    * This is called when variable (inst constant) v is deactivated
    * for the quantified formula we are processing.
    */
-  void deactivateInstantiationVariable( Node v );
-  /** registers all theory ids associated with type tn 
-   * 
-   * This recursively calls registerTheoryId for typeOf(tn') for 
+  void deactivateInstantiationVariable(Node v);
+  /** registers all theory ids associated with type tn
+   *
+   * This recursively calls registerTheoryId for typeOf(tn') for
    * all parameters and datatype subfields of type tn.
    * visited stores the types we have already visited.
    */
-  void registerTheoryIds( TypeNode tn, std::map< TypeNode, bool >& visited );
-  /** register theory id tid 
-   * 
+  void registerTheoryIds(TypeNode tn, std::map<TypeNode, bool>& visited);
+  /** register theory id tid
+   *
    * This is called when the quantified formula we are processing
    * with this class involves theory tid. In this case, we will
    * based instantiations based on the assertion list of this theory.
    */
-  void registerTheoryId( TheoryId tid );
+  void registerTheoryId(TheoryId tid);
   /** register variable */
-  void registerVariable( Node v, bool is_aux=false );
+  void registerVariable(Node v, bool is_aux = false);
   /** ensures n is in d_prog_var and d_inelig. */
   void computeProgVars( Node n );
   // effort=0 : do not use model value, 1: use model value, 2: one must use model value
@@ -352,26 +350,26 @@ private:
 public:
   CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta = true, bool use_vts_inf = true );
   virtual ~CegInstantiator();
-  /** check 
+  /** check
    * This adds instantiations based on the state of d_vars in current context
    * on the output channel d_out of this class.
    */
   bool check();
   /** presolve for quantified formula
-   * 
+   *
    * This initializes formulas that help static learning of the quantifier-free
    * solver. It is only called if the option --cbqi-prereg-inst is used.
    */
   void presolve( Node q );
   /** Register the counterexample lemma
-   * 
-   * lems contains the conjuncts of the counterexample lemma of the quantified 
-   *   formula we are processing. The counterexample lemma is the formula 
+   *
+   * lems contains the conjuncts of the counterexample lemma of the quantified
+   *   formula we are processing. The counterexample lemma is the formula
    *   { ~phi[e/x] } in Figure 1 of Reynolds et al. FMSD 2017.
-   * ce_vars contains the variables e. Notice these are variables of 
-   *   INST_CONSTANT kind, since we do not permit bound variables in 
+   * ce_vars contains the variables e. Notice these are variables of
+   *   INST_CONSTANT kind, since we do not permit bound variables in
    *   assertions.
-   * 
+   *
    * This method may modify the set of lemmas lems based on:
    * - ITE removal,
    * - Theory-specific preprocessing of instantiation lemmas.
@@ -436,61 +434,60 @@ public:
   bool hasNestedQuantification() { return d_is_nested_quant; }
 };
 
-
 /** Instantiator class
- * 
- * This is a virtual class that is used for methods for constructing 
- * substitutions for individual variables in counterexample-guided 
+ *
+ * This is a virtual class that is used for methods for constructing
+ * substitutions for individual variables in counterexample-guided
  * instantiation techniques.
- * 
+ *
  * This class contains a set of interface functions below, which are called
  * based on a fixed instantiation method implemented by CegInstantiator.
- * In these calls, the Instantiator in turn makes calls to methods in 
+ * In these calls, the Instantiator in turn makes calls to methods in
  * CegInstanatior (primarily doAddInstantiationInc).
  */
 class Instantiator {
 public:
   Instantiator( QuantifiersEngine * qe, TypeNode tn );
   virtual ~Instantiator(){}
-  /** reset 
+  /** reset
    * This is called once, prior to any of the below methods are called.
-   * This function sets up any initial information necessary for constructing 
+   * This function sets up any initial information necessary for constructing
    * instantiations for pv based on the current context.
    */
   virtual void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {}
 
   /** process equal term
-   * 
+   *
    * This method is called when the entailment:
    *   E |= pv_prop.getModifiedTerm(pv) = n
    * holds in the current context E, and n is eligible for instantiation.
-   * 
-   * Returns true if an instantiation was successfully added via a call to 
+   *
+   * Returns true if an instantiation was successfully added via a call to
    * CegInstantiator::doAddInstantiationInc.
    */
   virtual bool processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, TermProperties& pv_prop, Node n, unsigned effort );
-  /** process equal terms 
-   * 
-   * This method is called after process equal term, where eqc is the list of 
+  /** process equal terms
+   *
+   * This method is called after process equal term, where eqc is the list of
    * eligible terms in the equivalence class of pv.
-   * 
-   * Returns true if an instantiation was successfully added via a call to 
+   *
+   * Returns true if an instantiation was successfully added via a call to
    * CegInstantiator::doAddInstantiationInc.
    */
   virtual bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort ) { return false; }
 
   /** whether the instantiator implements processEquality */
   virtual bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
-  /** process equality 
+  /** process equality
    *  The input is such that term_props.size() = terms.size() = 2
    *  This method is called when the entailment:
-   *    E ^ term_props[0].getModifiedTerm(x0) = 
+   *    E ^ term_props[0].getModifiedTerm(x0) =
    *    terms[0] ^ term_props[1].getModifiedTerm(x1) = terms[1] |= x0 = x1
-   *  holds in current context E for fresh variables xi, terms[i] are eligible, 
+   *  holds in current context E for fresh variables xi, terms[i] are eligible,
    *  and at least one terms[i] contains pv for i = 0,1.
    *  Notice in the basic case, E |= terms[0] = terms[1].
-   * 
-   *  Returns true if an instantiation was successfully added via a call to 
+   *
+   *  Returns true if an instantiation was successfully added via a call to
    *  CegInstantiator::doAddInstantiationInc.
    */
   virtual bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort ) { return false; }
@@ -522,7 +519,7 @@ public:
    *       hasProcessAssertion
    * alit : the asserted literal, given as input to hasProcessAssertion
    *
-   *  Returns true if an instantiation was successfully added via a call to 
+   *  Returns true if an instantiation was successfully added via a call to
    *  CegInstantiator::doAddInstantiationInc.
    */
   virtual bool processAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv,
@@ -530,11 +527,11 @@ public:
     return false;
   }
   /** process assertions
-   * 
+   *
    * Called after processAssertion is called for each literal asserted to the
    * instantiator.
-   * 
-   * Returns true if an instantiation was successfully added via a call to 
+   *
+   * Returns true if an instantiation was successfully added via a call to
    * CegInstantiator::doAddInstantiationInc.
    */
   virtual bool processAssertions(CegInstantiator* ci, SolvedForm& sf, Node pv,
@@ -542,9 +539,9 @@ public:
     return false;
   }
 
-  /** do we use the model value as instantiation for pv? 
-   * This method returns true if we use model value instantiations 
-   * prior to 
+  /** do we use the model value as instantiation for pv?
+   * This method returns true if we use model value instantiations
+   * prior to
    */
   virtual bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
   /** do we allow the model value as instantiation for pv? */
@@ -553,7 +550,7 @@ public:
   /** do we need to postprocess the solved form for pv? */
   virtual bool needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return false; }
   /** postprocess the solved form for pv
-   * 
+   *
    * This method returns true if we successfully postprocessed the solved form.
    * lemmas is a set of lemmas we wish to return along with the instantiation.
    */
@@ -561,8 +558,7 @@ public:
 
   /** Identify this module (for debugging) */
   virtual std::string identify() const { return "Default"; }
-  
-protected:
+ protected:
   /** the type of the variable we are instantiating */
   TypeNode d_type;
   /** whether d_type is a closed enumerable type */
@@ -578,23 +574,25 @@ public:
 };
 
 /** instantiator preprocess
- * 
+ *
  * This class implements techniques for preprocessing the counterexample lemma
  * generated for counterexample-guided quantifier instantiation.
  */
 class InstantiatorPreprocess
 {
-public:
-  InstantiatorPreprocess(){}
-  virtual ~InstantiatorPreprocess(){}
-  /** register counterexample lemma 
-   * This implements theory-specific preprocessing and registration 
-   * of counterexample lemmas, with the same contract as 
+ public:
+  InstantiatorPreprocess() {}
+  virtual ~InstantiatorPreprocess() {}
+  /** register counterexample lemma
+   * This implements theory-specific preprocessing and registration
+   * of counterexample lemmas, with the same contract as
    * CegInstantiation::registerCounterexampleLemma.
    */
-  virtual void registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars ) {}
+  virtual void registerCounterexampleLemma(std::vector<Node>& lems,
+                                           std::vector<Node>& ce_vars)
+  {
+  }
 };
-
 }
 }
 }
