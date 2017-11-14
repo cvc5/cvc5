@@ -475,10 +475,10 @@ void CegInstantiator::popStackVariable() {
 }
 
 bool CegInstantiator::constructInstantiationInc(Node pv,
-                                            Node n,
-                                            TermProperties& pv_prop,
-                                            SolvedForm& sf,
-                                            bool revertOnSuccess)
+                                                Node n,
+                                                TermProperties& pv_prop,
+                                                SolvedForm& sf,
+                                                bool revertOnSuccess)
 {
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){

@@ -57,8 +57,9 @@ public:
   int d_type;
   // for arithmetic
   Node d_coeff;
-  // get cache node 
-  // we consider terms + TermProperties that are unique up to their cache node (see constructInstantiationInc)
+  // get cache node
+  // we consider terms + TermProperties that are unique up to their cache node
+  // (see constructInstantiationInc)
   virtual Node getCacheNode() const { return d_coeff; }
   // is non-basic 
   virtual bool isBasic() const { return d_coeff.isNull(); }
@@ -199,7 +200,6 @@ class CegInstantiator {
                                    std::vector<Node>& ce_vars);
   /** get the output channel of this class */
   CegqiOutput* getOutput() { return d_out; }
-  
   //------------------------------interface for instantiators
   /** get quantifiers engine */
   QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
@@ -228,9 +228,9 @@ class CegInstantiator {
    */
   bool constructInstantiationInc(Node pv,
                                  Node n,
-                              TermProperties& pv_prop,
-                              SolvedForm& sf,
-                              bool revertOnSuccess = false);
+                                 TermProperties& pv_prop,
+                                 SolvedForm& sf,
+                                 bool revertOnSuccess = false);
   /** get the current model value of term n */
   Node getModelValue(Node n);
   /** get bound variable for type

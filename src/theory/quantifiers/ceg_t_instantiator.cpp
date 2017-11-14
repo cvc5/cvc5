@@ -620,7 +620,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
               TermProperties pv_prop_nopt_bound;
               pv_prop_nopt_bound.d_coeff = d_mbp_coeff[rr][j];
               pv_prop_nopt_bound.d_type = rr==0 ? 1 : -1;
-              if (ci->constructInstantiationInc(pv, val, pv_prop_nopt_bound, sf))
+              if (ci->constructInstantiationInc(
+                      pv, val, pv_prop_nopt_bound, sf))
               {
                 return true;
               }
