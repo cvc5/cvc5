@@ -343,8 +343,6 @@ option cbqiBvInterleaveValue --cbqi-bv-interleave-value bool :read-write :defaul
   interleave model value instantiation with word-level inversion approach
 option cbqiBvIneqMode --cbqi-bv-ineq=MODE CVC4::theory::quantifiers::CbqiBvIneqMode :read-write :default CVC4::theory::quantifiers::CBQI_BV_INEQ_EQ_SLACK :include "options/quantifiers_modes.h" :handler stringToCbqiBvIneqMode
  choose mode for handling bit-vector inequalities with counterexample-guided instantiation
-option cbqiBvRmExtract --cbqi-bv-rm-extract bool :read-write :default false 
-  replaces extract terms with variables for counterexample-guided instantiation for bit-vectors
  
 ### local theory extensions options 
 
