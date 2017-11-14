@@ -612,8 +612,8 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
   vector<Integer> resrhs;
   vector<vector<Integer>> reslhs;
 
-  for (size_t i = 0, nass = assertionsToPreprocess.size(); i < nass; ++i)
-    assertions.push_back(assertionsToPreprocess[i]);
+  for (Node aa : assertionsToPreprocess)
+    assertions.push_back(aa);
 
   while (!assertions.empty())
   {
