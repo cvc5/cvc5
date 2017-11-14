@@ -83,7 +83,7 @@ TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn)
         {
           TypeNode ct = TypeNode::fromType(dt[i][j].getRangeType());
           Trace("sygus-grammar-normalize")
-              << "   Child type " << k << " : "
+              << "   Child type " << j << " : "
               << static_cast<DatatypeType>(ct.toType()).getDatatype().getName()
               << std::endl;
         }
@@ -96,7 +96,7 @@ TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn)
         {
           TypeNode ct = TypeNode::fromType(dt[i][j].getRangeType());
           Trace("sygus-grammar-normalize")
-              << "   Child type " << k << " : "
+              << "   Child type " << j << " : "
               << static_cast<DatatypeType>(ct.toType()).getDatatype().getName()
               << std::endl;
         }
@@ -109,7 +109,7 @@ TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn)
         {
           TypeNode ct = TypeNode::fromType(dt[i][j].getRangeType());
           Trace("sygus-grammar-normalize")
-              << "   Child type " << k << " : "
+              << "   Child type " << j << " : "
               << static_cast<DatatypeType>(ct.toType()).getDatatype().getName()
               << std::endl;
         }
