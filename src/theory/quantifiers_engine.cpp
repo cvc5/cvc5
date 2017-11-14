@@ -35,7 +35,6 @@
 #include "theory/quantifiers/inst_strategy_cbqi.h"
 #include "theory/quantifiers/inst_strategy_e_matching.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
-#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/model_engine.h"
