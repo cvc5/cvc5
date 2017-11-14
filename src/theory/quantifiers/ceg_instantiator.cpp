@@ -134,8 +134,7 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
 void CegInstantiator::registerTheoryIds(TypeNode tn,
                                         std::map<TypeNode, bool>& visited)
 {
-  std::map<TypeNode, bool>::iterator itt = visited.find(tn);
-  if (itt == visited.end())
+  if (visited.find(tn) == visited.end())
   {
     visited[tn] = true;
     TheoryId tid = Theory::theoryOf(tn);
@@ -268,7 +267,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       Trace("cbqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
     }
 
-    // if in  d_effort is full, we must choose at least one model value
+    // if d_effort is full, we must choose at least one model value
     if ((i + 1) < d_vars.size() || d_effort != INST_EFFORT_FULL)
     {
       //[1] easy case : pv is in the equivalence class as another term not containing pv
@@ -426,9 +425,10 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       }
     }
 
-    //[4] resort to using value in model
-    // do so if we are in effort=1, or if the variable is boolean, or if we are
-    // solving for a subfield of a datatype
+    //[4] resort to using value in model. We do so if:
+    // - we are in a higher effort than INST_EFFORT_STANDARD, 
+    // - if the variable is Boolean, or 
+    // - if we are solving for a subfield of a datatype.
     bool use_model_value = vinst->useModelValue(this, sf, pv, d_effort);
     if ((d_effort > INST_EFFORT_STANDARD || use_model_value || is_cv)
         && vinst->allowModelValue(this, sf, pv, d_effort))

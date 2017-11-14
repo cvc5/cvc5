@@ -184,12 +184,13 @@ class CegInstantiator {
   void presolve(Node q);
   /** Register the counterexample lemma
    *
-   * lems contains the conjuncts of the counterexample lemma of the quantified
-   *   formula we are processing. The counterexample lemma is the formula
-   *   { ~phi[e/x] } in Figure 1 of Reynolds et al. FMSD 2017.
-   * ce_vars contains the variables e. Notice these are variables of
-   *   INST_CONSTANT kind, since we do not permit bound variables in
-   *   assertions.
+   * lems : contains the conjuncts of the counterexample lemma of the 
+   *        quantified formula we are processing. The counterexample 
+   *        lemma is the formula { ~phi[e/x] } in Figure 1 of Reynolds 
+   *        et al. FMSD 2017.
+   * ce_vars : contains the variables e. Notice these are variables of
+   *           INST_CONSTANT kind, since we do not permit bound 
+   *           variables in assertions.
    *
    * This method may modify the set of lemmas lems based on:
    * - ITE removal,
@@ -349,7 +350,7 @@ class CegInstantiator {
    *
    * This is called when the quantified formula we are processing
    * with this class involves theory tid. In this case, we will
-   * based instantiations based on the assertion list of this theory.
+   * construct instantiations based on the assertion list of this theory.
    */
   void registerTheoryId(TheoryId tid);
   //-------------------------------end data per theory

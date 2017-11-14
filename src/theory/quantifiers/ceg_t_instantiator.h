@@ -27,6 +27,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+/** TODO (#1367) : document these classes, also move to separate files. */
+  
 class ArithInstantiator : public Instantiator {
  public:
   ArithInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
