@@ -36,11 +36,11 @@ class ArithInstantiator : public Instantiator {
   virtual void reset(CegInstantiator* ci,
                      SolvedForm& sf,
                      Node pv,
-                     InstEffort effort) override;
+                     CegInstEffort effort) override;
   virtual bool hasProcessEquality(CegInstantiator* ci,
                                   SolvedForm& sf,
                                   Node pv,
-                                  InstEffort effort) override
+                                  CegInstEffort effort) override
   {
     return true;
   }
@@ -49,11 +49,11 @@ class ArithInstantiator : public Instantiator {
                                Node pv,
                                std::vector<TermProperties>& term_props,
                                std::vector<Node>& terms,
-                               InstEffort effort) override;
+                               CegInstEffort effort) override;
   virtual bool hasProcessAssertion(CegInstantiator* ci,
                                    SolvedForm& sf,
                                    Node pv,
-                                   InstEffort effort) override
+                                   CegInstEffort effort) override
   {
     return true;
   }
@@ -61,24 +61,24 @@ class ArithInstantiator : public Instantiator {
                                    SolvedForm& sf,
                                    Node pv,
                                    Node lit,
-                                   InstEffort effort) override;
+                                   CegInstEffort effort) override;
   virtual bool processAssertion(CegInstantiator* ci,
                                 SolvedForm& sf,
                                 Node pv,
                                 Node lit,
                                 Node alit,
-                                InstEffort effort) override;
+                                CegInstEffort effort) override;
   virtual bool processAssertions(CegInstantiator* ci,
                                  SolvedForm& sf,
                                  Node pv,
-                                 InstEffort effort) override;
+                                 CegInstEffort effort) override;
   virtual bool needsPostProcessInstantiationForVariable(
-      CegInstantiator* ci, SolvedForm& sf, Node pv, InstEffort effort) override;
+      CegInstantiator* ci, SolvedForm& sf, Node pv, CegInstEffort effort) override;
   virtual bool postProcessInstantiationForVariable(
       CegInstantiator* ci,
       SolvedForm& sf,
       Node pv,
-      InstEffort effort,
+      CegInstEffort effort,
       std::vector<Node>& lemmas) override;
   virtual std::string identify() const override { return "Arith"; }
  private:
@@ -113,16 +113,16 @@ public:
   virtual void reset(CegInstantiator* ci,
                      SolvedForm& sf,
                      Node pv,
-                     InstEffort effort) override;
+                     CegInstEffort effort) override;
   virtual bool processEqualTerms(CegInstantiator* ci,
                                  SolvedForm& sf,
                                  Node pv,
                                  std::vector<Node>& eqc,
-                                 InstEffort effort) override;
+                                 CegInstEffort effort) override;
   virtual bool hasProcessEquality(CegInstantiator* ci,
                                   SolvedForm& sf,
                                   Node pv,
-                                  InstEffort effort) override
+                                  CegInstEffort effort) override
   {
     return true;
   }
@@ -131,7 +131,7 @@ public:
                                Node pv,
                                std::vector<TermProperties>& term_props,
                                std::vector<Node>& terms,
-                               InstEffort effort) override;
+                               CegInstEffort effort) override;
   virtual std::string identify() const override { return "Dt"; }
  private:
   Node solve_dt(Node v, Node a, Node b, Node sa, Node sb);
@@ -146,18 +146,18 @@ class EprInstantiator : public Instantiator {
   virtual void reset(CegInstantiator* ci,
                      SolvedForm& sf,
                      Node pv,
-                     InstEffort effort) override;
+                     CegInstEffort effort) override;
   virtual bool processEqualTerm(CegInstantiator* ci,
                                 SolvedForm& sf,
                                 Node pv,
                                 TermProperties& pv_prop,
                                 Node n,
-                                InstEffort effort) override;
+                                CegInstEffort effort) override;
   virtual bool processEqualTerms(CegInstantiator* ci,
                                  SolvedForm& sf,
                                  Node pv,
                                  std::vector<Node>& eqc,
-                                 InstEffort effort) override;
+                                 CegInstEffort effort) override;
   virtual std::string identify() const override { return "Epr"; }
  private:
   std::vector<Node> d_equal_terms;
@@ -188,11 +188,11 @@ class BvInstantiator : public Instantiator {
   virtual void reset(CegInstantiator* ci,
                      SolvedForm& sf,
                      Node pv,
-                     InstEffort effort) override;
+                     CegInstEffort effort) override;
   virtual bool hasProcessAssertion(CegInstantiator* ci,
                                    SolvedForm& sf,
                                    Node pv,
-                                   InstEffort effort) override
+                                   CegInstEffort effort) override
   {
     return true;
   }
@@ -200,21 +200,21 @@ class BvInstantiator : public Instantiator {
                                    SolvedForm& sf,
                                    Node pv,
                                    Node lit,
-                                   InstEffort effort) override;
+                                   CegInstEffort effort) override;
   virtual bool processAssertion(CegInstantiator* ci,
                                 SolvedForm& sf,
                                 Node pv,
                                 Node lit,
                                 Node alit,
-                                InstEffort effort) override;
+                                CegInstEffort effort) override;
   virtual bool processAssertions(CegInstantiator* ci,
                                  SolvedForm& sf,
                                  Node pv,
-                                 InstEffort effort) override;
+                                 CegInstEffort effort) override;
   virtual bool useModelValue(CegInstantiator* ci,
                              SolvedForm& sf,
                              Node pv,
-                             InstEffort effort) override
+                             CegInstEffort effort) override
   {
     return true;
   }
@@ -262,7 +262,7 @@ class BvInstantiator : public Instantiator {
                       Node pv,
                       Node lit,
                       Node alit,
-                      InstEffort effort);
+                      CegInstEffort effort);
 };
 
 /** Bitvector instantiator preprocess
