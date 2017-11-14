@@ -143,16 +143,17 @@ public:
 };
 
 /** instantiation effort levels */
-enum InstEffort{
+enum InstEffort
+{
   // uninitialized
-  INST_EFFORT_NONE,     
+  INST_EFFORT_NONE,
   // standard effort level
   INST_EFFORT_STANDARD,
   // standard effort level, but we have used model values
   INST_EFFORT_STANDARD_MV,
   // full effort level
   INST_EFFORT_FULL
-}; 
+};
 
 /** Ceg instantiator
  *
@@ -190,7 +191,7 @@ class CegInstantiator {
     */
   std::unordered_set<Node, NodeHashFunction> d_inelig;
   //-------------------------------end globally cached
-  
+
   //-------------------------------cached per round
   /** current assertions per theory */
   std::map<TheoryId, std::vector<Node> > d_curr_asserts;
@@ -244,10 +245,9 @@ class CegInstantiator {
    */
   InstEffort d_effort;
   /** for each variable, the instantiator used for that variable */
-  std::map< Node, Instantiator * > d_active_instantiators;
+  std::map<Node, Instantiator*> d_active_instantiators;
   //-------------------------------end current state
-  
-  
+
   /** literals to equalities for aux vars
    * This stores entries of the form
    *   L -> ( k -> t )
@@ -338,7 +338,7 @@ class CegInstantiator {
   /** ensures n is in d_prog_var and d_inelig. */
   void computeProgVars( Node n );
   /** do add instantiation
-   * This method constructs the current instantiation, where we 
+   * This method constructs the current instantiation, where we
    * are currently processing the i^th variable in d_vars.
    */
   bool doAddInstantiation(SolvedForm& sf, unsigned i);
@@ -433,7 +433,7 @@ public:
   bool doAddInstantiationInc(Node pv,
                              Node n,
                              TermProperties& pv_prop,
-                             SolvedForm& sf, 
+                             SolvedForm& sf,
                              bool revertOnSuccess = false);
   /** get the current model value of term n */
   Node getModelValue( Node n );
@@ -479,7 +479,12 @@ public:
    * This function sets up any initial information necessary for constructing
    * instantiations for pv based on the current context.
    */
-  virtual void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort ) {}
+  virtual void reset(CegInstantiator* ci,
+                     SolvedForm& sf,
+                     Node pv,
+                     InstEffort effort)
+  {
+  }
 
   /** process equal term
    *
@@ -490,7 +495,12 @@ public:
    * Returns true if an instantiation was successfully added via a call to
    * CegInstantiator::doAddInstantiationInc.
    */
-  virtual bool processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, TermProperties& pv_prop, Node n, InstEffort effort );
+  virtual bool processEqualTerm(CegInstantiator* ci,
+                                SolvedForm& sf,
+                                Node pv,
+                                TermProperties& pv_prop,
+                                Node n,
+                                InstEffort effort);
   /** process equal terms
    *
    * This method is called after process equal term, where eqc is the list of
@@ -499,10 +509,23 @@ public:
    * Returns true if an instantiation was successfully added via a call to
    * CegInstantiator::doAddInstantiationInc.
    */
-  virtual bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, InstEffort effort ) { return false; }
+  virtual bool processEqualTerms(CegInstantiator* ci,
+                                 SolvedForm& sf,
+                                 Node pv,
+                                 std::vector<Node>& eqc,
+                                 InstEffort effort)
+  {
+    return false;
+  }
 
   /** whether the instantiator implements processEquality */
-  virtual bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort ) { return false; }
+  virtual bool hasProcessEquality(CegInstantiator* ci,
+                                  SolvedForm& sf,
+                                  Node pv,
+                                  InstEffort effort)
+  {
+    return false;
+  }
   /** process equality
    *  The input is such that term_props.size() = terms.size() = 2
    *  This method is called when the entailment:
@@ -515,10 +538,24 @@ public:
    *  Returns true if an instantiation was successfully added via a call to
    *  CegInstantiator::doAddInstantiationInc.
    */
-  virtual bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, InstEffort effort ) { return false; }
+  virtual bool processEquality(CegInstantiator* ci,
+                               SolvedForm& sf,
+                               Node pv,
+                               std::vector<TermProperties>& term_props,
+                               std::vector<Node>& terms,
+                               InstEffort effort)
+  {
+    return false;
+  }
 
   /** whether the instantiator implements processAssertion for any literal */
-  virtual bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort ) { return false; }
+  virtual bool hasProcessAssertion(CegInstantiator* ci,
+                                   SolvedForm& sf,
+                                   Node pv,
+                                   InstEffort effort)
+  {
+    return false;
+  }
   /** has process assertion
   *
   * This method is called when the entailment:
@@ -534,8 +571,9 @@ public:
   *   (2) lit' implies lit.
   *   where typically lit' = lit.
   */
-  virtual Node hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv,
-                                   Node lit, InstEffort effort) {
+  virtual Node hasProcessAssertion(
+      CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit, InstEffort effort)
+  {
     return Node::null();
   }
   /** process assertion
@@ -547,8 +585,13 @@ public:
    *  Returns true if an instantiation was successfully added via a call to
    *  CegInstantiator::doAddInstantiationInc.
    */
-  virtual bool processAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv,
-                                Node lit, Node alit, InstEffort effort) {
+  virtual bool processAssertion(CegInstantiator* ci,
+                                SolvedForm& sf,
+                                Node pv,
+                                Node lit,
+                                Node alit,
+                                InstEffort effort)
+  {
     return false;
   }
   /** process assertions
@@ -559,27 +602,55 @@ public:
    * Returns true if an instantiation was successfully added via a call to
    * CegInstantiator::doAddInstantiationInc.
    */
-  virtual bool processAssertions(CegInstantiator* ci, SolvedForm& sf, Node pv,
-                                 InstEffort effort) {
+  virtual bool processAssertions(CegInstantiator* ci,
+                                 SolvedForm& sf,
+                                 Node pv,
+                                 InstEffort effort)
+  {
     return false;
   }
 
   /** do we use the model value as instantiation for pv?
    * This method returns true if we use model value instantiations
-   * at the same effort level as those determined by 
+   * at the same effort level as those determined by
    */
-  virtual bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort ) { return false; }
+  virtual bool useModelValue(CegInstantiator* ci,
+                             SolvedForm& sf,
+                             Node pv,
+                             InstEffort effort)
+  {
+    return false;
+  }
   /** do we allow the model value as instantiation for pv? */
-  virtual bool allowModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort ) { return d_closed_enum_type; }
+  virtual bool allowModelValue(CegInstantiator* ci,
+                               SolvedForm& sf,
+                               Node pv,
+                               InstEffort effort)
+  {
+    return d_closed_enum_type;
+  }
 
   /** do we need to postprocess the solved form for pv? */
-  virtual bool needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort ) { return false; }
+  virtual bool needsPostProcessInstantiationForVariable(CegInstantiator* ci,
+                                                        SolvedForm& sf,
+                                                        Node pv,
+                                                        InstEffort effort)
+  {
+    return false;
+  }
   /** postprocess the solved form for pv
    *
    * This method returns true if we successfully postprocessed the solved form.
    * lemmas is a set of lemmas we wish to return along with the instantiation.
    */
-  virtual bool postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort, std::vector< Node >& lemmas ) { return true; }
+  virtual bool postProcessInstantiationForVariable(CegInstantiator* ci,
+                                                   SolvedForm& sf,
+                                                   Node pv,
+                                                   InstEffort effort,
+                                                   std::vector<Node>& lemmas)
+  {
+    return true;
+  }
 
   /** Identify this module (for debugging) */
   virtual std::string identify() const { return "Default"; }
@@ -594,7 +665,13 @@ class ModelValueInstantiator : public Instantiator {
 public:
   ModelValueInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
   virtual ~ModelValueInstantiator(){}
-  bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort ) { return true; }
+  bool useModelValue(CegInstantiator* ci,
+                     SolvedForm& sf,
+                     Node pv,
+                     InstEffort effort)
+  {
+    return true;
+  }
   std::string identify() const { return "ModelValue"; }
 };
 

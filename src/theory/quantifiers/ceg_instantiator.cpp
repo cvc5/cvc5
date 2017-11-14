@@ -196,7 +196,8 @@ void CegInstantiator::deactivateInstantiationVariable(Node v)
   d_curr_index.erase( v );
 }
 
-bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
+bool CegInstantiator::doAddInstantiation(SolvedForm& sf, unsigned i)
+{
   if( i==d_vars.size() ){
     //solved for all variables, now construct instantiation
     bool needsPostprocess =
@@ -205,7 +206,9 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
     std::map< Instantiator *, Node > pp_inst_to_var;
     std::vector< Node > lemmas;
     for( std::map< Node, Instantiator * >::iterator ita = d_active_instantiators.begin(); ita != d_active_instantiators.end(); ++ita ){
-      if( ita->second->needsPostProcessInstantiationForVariable( this, sf, ita->first, d_effort ) ){
+      if (ita->second->needsPostProcessInstantiationForVariable(
+              this, sf, ita->first, d_effort))
+      {
         needsPostprocess = true;
         pp_inst_to_var[ ita->second ] = ita->first;
       }
@@ -215,7 +218,9 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
       SolvedForm sf_tmp = sf;
       bool postProcessSuccess = true;
       for( std::map< Instantiator *, Node >::iterator itp = pp_inst_to_var.begin(); itp != pp_inst_to_var.end(); ++itp ){
-        if( !itp->first->postProcessInstantiationForVariable( this, sf_tmp, itp->second, d_effort, lemmas ) ){
+        if (!itp->first->postProcessInstantiationForVariable(
+                this, sf_tmp, itp->second, d_effort, lemmas))
+        {
           postProcessSuccess = false;
           break;
         }
@@ -249,7 +254,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
     }
     Assert( vinst!=NULL );
     d_active_instantiators[pv] = vinst;
-    vinst->reset( this, sf, pv, d_effort );
+    vinst->reset(this, sf, pv, d_effort);
 
     TypeNode pvtn = pv.getType();
     TypeNode pvtnb = pvtn.getBaseType();
@@ -264,9 +269,9 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
       Trace("cbqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
     }
 
-    //if in  d_effort is full, we must choose at least one model value
-    if( (i+1)<d_vars.size() || d_effort!=INST_EFFORT_FULL ){
-
+    // if in  d_effort is full, we must choose at least one model value
+    if ((i + 1) < d_vars.size() || d_effort != INST_EFFORT_FULL)
+    {
       //[1] easy case : pv is in the equivalence class as another term not containing pv
       Trace("cbqi-inst-debug") << "[1] try based on equivalence class." << std::endl;
       std::map< Node, std::vector< Node > >::iterator it_eqc = d_curr_eqc.find( pvr );
@@ -294,14 +299,17 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
                 proc = true;
               }
               if( proc ){
-                if( vinst->processEqualTerm( this, sf, pv, pv_prop, ns, d_effort ) ){
+                if (vinst->processEqualTerm(
+                        this, sf, pv, pv_prop, ns, d_effort))
+                {
                   return true;
                 }
               }
             }
           }
         }
-        if( vinst->processEqualTerms( this, sf, pv, it_eqc->second, d_effort ) ){
+        if (vinst->processEqualTerms(this, sf, pv, it_eqc->second, d_effort))
+        {
           return true;
         }
       }else{
@@ -311,7 +319,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
       //[2] : we can solve an equality for pv
       /// iterate over equivalence classes to find cases where we can solve for
       /// the variable
-      if( vinst->hasProcessEquality( this, sf, pv, d_effort ) ){
+      if (vinst->hasProcessEquality(this, sf, pv, d_effort))
+      {
         Trace("cbqi-inst-debug") << "[2] try based on solving equalities." << std::endl;
         for( unsigned k=0; k<d_curr_type_eqc[pvtnb].size(); k++ ){
           Node r = d_curr_type_eqc[pvtnb][k];
@@ -348,7 +357,9 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
                     Trace("cbqi-inst-debug") << "... " << i << "...try based on equality " << lhs[j] << " = " << ns << std::endl;
                     term_props.push_back( lhs_prop[j] );
                     terms.push_back( lhs[j] );
-                    if( vinst->processEquality( this, sf, pv, term_props, terms, d_effort ) ){
+                    if (vinst->processEquality(
+                            this, sf, pv, term_props, terms, d_effort))
+                    {
                       return true;
                     }
                     term_props.pop_back();
@@ -369,7 +380,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
       }
 
       //[3] directly look at assertions
-      if( vinst->hasProcessAssertion( this, sf, pv, d_effort ) ){
+      if (vinst->hasProcessAssertion(this, sf, pv, d_effort))
+      {
         Trace("cbqi-inst-debug") << "[3] try based on assertions." << std::endl;
         std::unordered_set< Node, NodeHashFunction > lits;
         //unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
@@ -396,8 +408,9 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
                     Trace("cbqi-inst-debug") << "...try based on literal " << slit << std::endl;
                     // check if contains pv
                     if( hasVariable( slit, pv ) ){
-                      if (vinst->processAssertion(this, sf, pv, slit, lit,
-                                                  d_effort)) {
+                      if (vinst->processAssertion(
+                              this, sf, pv, slit, lit, d_effort))
+                      {
                         return true;
                       }
                     }
@@ -407,7 +420,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
             }
           }
         }
-        if (vinst->processAssertions(this, sf, pv, d_effort)) {
+        if (vinst->processAssertions(this, sf, pv, d_effort))
+        {
           return true;
         }
       }
@@ -416,8 +430,10 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
     //[4] resort to using value in model
     // do so if we are in effort=1, or if the variable is boolean, or if we are
     // solving for a subfield of a datatype
-    bool use_model_value = vinst->useModelValue( this, sf, pv, d_effort );
-    if( ( d_effort>INST_EFFORT_STANDARD || use_model_value || is_cv ) && vinst->allowModelValue( this, sf, pv, d_effort ) ){
+    bool use_model_value = vinst->useModelValue(this, sf, pv, d_effort);
+    if ((d_effort > INST_EFFORT_STANDARD || use_model_value || is_cv)
+        && vinst->allowModelValue(this, sf, pv, d_effort))
+    {
 #ifdef CVC4_ASSERTIONS
       if( pvtn.isReal() && options::cbqiNestedQE() && !options::cbqiAll() ){
         Trace("cbqi-warn") << "Had to resort to model value." << std::endl;
@@ -427,12 +443,14 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i ){
       Node mv = getModelValue( pv );
       TermProperties pv_prop_m;
       Trace("cbqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
-      InstEffort prev = d_effort; 
-      if( !use_model_value ){
+      InstEffort prev = d_effort;
+      if (!use_model_value)
+      {
         // update the effort level to indicate we have used a model value
         d_effort = INST_EFFORT_STANDARD_MV;
       }
-      if( doAddInstantiationInc( pv, mv, pv_prop_m, sf ) ){
+      if (doAddInstantiationInc(pv, mv, pv_prop_m, sf))
+      {
         return true;
       }
       d_effort = prev;
@@ -551,7 +569,7 @@ bool CegInstantiator::doAddInstantiationInc(Node pv,
       sf.push_back( pv, n, pv_prop );
       Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
       unsigned i = d_curr_index[pv];
-      success = doAddInstantiation( sf, d_stack_vars.empty() ? i+1 : i );
+      success = doAddInstantiation(sf, d_stack_vars.empty() ? i + 1 : i);
       if (!success || revertOnSuccess)
       {
         Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
@@ -801,12 +819,13 @@ bool CegInstantiator::check() {
   }
   processAssertions();
   for( unsigned r=0; r<2; r++ ){
-    d_effort = r==0 ? INST_EFFORT_STANDARD : INST_EFFORT_FULL;
+    d_effort = r == 0 ? INST_EFFORT_STANDARD : INST_EFFORT_FULL;
     SolvedForm sf;
     d_stack_vars.clear();
     d_bound_var_index.clear();
     //try to add an instantiation
-    if( doAddInstantiation( sf, 0 ) ){
+    if (doAddInstantiation(sf, 0))
+    {
       return true;
     }
   }
@@ -1234,10 +1253,15 @@ Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn )
   d_closed_enum_type = qe->getTermEnumeration()->isClosedEnumerableType(tn);
 }
 
-
-bool Instantiator::processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, TermProperties& pv_prop, Node n, InstEffort effort ) {
+bool Instantiator::processEqualTerm(CegInstantiator* ci,
+                                    SolvedForm& sf,
+                                    Node pv,
+                                    TermProperties& pv_prop,
+                                    Node n,
+                                    InstEffort effort)
+{
   pv_prop.d_type = 0;
-  return ci->doAddInstantiationInc( pv, n, pv_prop, sf );
+  return ci->doAddInstantiationInc(pv, n, pv_prop, sf);
 }
 
 

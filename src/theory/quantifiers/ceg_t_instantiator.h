@@ -39,18 +39,51 @@ private:
 public:
   ArithInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
   virtual ~ArithInstantiator(){}
-  void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort );
-  bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort ) { return true; }
-  bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, InstEffort effort );
-  bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort ) { return true; }
-  Node hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv,
-                           Node lit, InstEffort effort);
-  bool processAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit,
-                        Node alit, InstEffort effort);
-  bool processAssertions(CegInstantiator* ci, SolvedForm& sf, Node pv,
+  void reset(CegInstantiator* ci, SolvedForm& sf, Node pv, InstEffort effort);
+  bool hasProcessEquality(CegInstantiator* ci,
+                          SolvedForm& sf,
+                          Node pv,
+                          InstEffort effort)
+  {
+    return true;
+  }
+  bool processEquality(CegInstantiator* ci,
+                       SolvedForm& sf,
+                       Node pv,
+                       std::vector<TermProperties>& term_props,
+                       std::vector<Node>& terms,
+                       InstEffort effort);
+  bool hasProcessAssertion(CegInstantiator* ci,
+                           SolvedForm& sf,
+                           Node pv,
+                           InstEffort effort)
+  {
+    return true;
+  }
+  Node hasProcessAssertion(CegInstantiator* ci,
+                           SolvedForm& sf,
+                           Node pv,
+                           Node lit,
+                           InstEffort effort);
+  bool processAssertion(CegInstantiator* ci,
+                        SolvedForm& sf,
+                        Node pv,
+                        Node lit,
+                        Node alit,
+                        InstEffort effort);
+  bool processAssertions(CegInstantiator* ci,
+                         SolvedForm& sf,
+                         Node pv,
                          InstEffort effort);
-  bool needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort );
-  bool postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort, std::vector< Node >& lemmas );
+  bool needsPostProcessInstantiationForVariable(CegInstantiator* ci,
+                                                SolvedForm& sf,
+                                                Node pv,
+                                                InstEffort effort);
+  bool postProcessInstantiationForVariable(CegInstantiator* ci,
+                                           SolvedForm& sf,
+                                           Node pv,
+                                           InstEffort effort,
+                                           std::vector<Node>& lemmas);
   std::string identify() const { return "Arith"; }
 };
 
@@ -60,10 +93,25 @@ private:
 public:
   DtInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
   virtual ~DtInstantiator(){}
-  void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort );
-  bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, InstEffort effort );
-  bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort ) { return true; }
-  bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, InstEffort effort );
+  void reset(CegInstantiator* ci, SolvedForm& sf, Node pv, InstEffort effort);
+  bool processEqualTerms(CegInstantiator* ci,
+                         SolvedForm& sf,
+                         Node pv,
+                         std::vector<Node>& eqc,
+                         InstEffort effort);
+  bool hasProcessEquality(CegInstantiator* ci,
+                          SolvedForm& sf,
+                          Node pv,
+                          InstEffort effort)
+  {
+    return true;
+  }
+  bool processEquality(CegInstantiator* ci,
+                       SolvedForm& sf,
+                       Node pv,
+                       std::vector<TermProperties>& term_props,
+                       std::vector<Node>& terms,
+                       InstEffort effort);
   std::string identify() const { return "Dt"; }
 };
 
@@ -77,9 +125,18 @@ private:
 public:
   EprInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
   virtual ~EprInstantiator(){}
-  void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort );
-  bool processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, TermProperties& pv_prop, Node n, InstEffort effort );
-  bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, InstEffort effort );
+  void reset(CegInstantiator* ci, SolvedForm& sf, Node pv, InstEffort effort);
+  bool processEqualTerm(CegInstantiator* ci,
+                        SolvedForm& sf,
+                        Node pv,
+                        TermProperties& pv_prop,
+                        Node n,
+                        InstEffort effort);
+  bool processEqualTerms(CegInstantiator* ci,
+                         SolvedForm& sf,
+                         Node pv,
+                         std::vector<Node>& eqc,
+                         InstEffort effort);
   std::string identify() const { return "Epr"; }
 };
 
@@ -128,21 +185,46 @@ private:
   * internal rules here.
   * alit is the asserted literal that lit is derived from.
   */
-  void processLiteral(CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit,
-                      Node alit, InstEffort effort);
+  void processLiteral(CegInstantiator* ci,
+                      SolvedForm& sf,
+                      Node pv,
+                      Node lit,
+                      Node alit,
+                      InstEffort effort);
 
  public:
   BvInstantiator( QuantifiersEngine * qe, TypeNode tn );
   virtual ~BvInstantiator();
-  void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort );
-  bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort ) { return true; }
-  Node hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv,
-                           Node lit, InstEffort effort);
-  bool processAssertion(CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit,
-                        Node alit, InstEffort effort);
-  bool processAssertions(CegInstantiator* ci, SolvedForm& sf, Node pv,
+  void reset(CegInstantiator* ci, SolvedForm& sf, Node pv, InstEffort effort);
+  bool hasProcessAssertion(CegInstantiator* ci,
+                           SolvedForm& sf,
+                           Node pv,
+                           InstEffort effort)
+  {
+    return true;
+  }
+  Node hasProcessAssertion(CegInstantiator* ci,
+                           SolvedForm& sf,
+                           Node pv,
+                           Node lit,
+                           InstEffort effort);
+  bool processAssertion(CegInstantiator* ci,
+                        SolvedForm& sf,
+                        Node pv,
+                        Node lit,
+                        Node alit,
+                        InstEffort effort);
+  bool processAssertions(CegInstantiator* ci,
+                         SolvedForm& sf,
+                         Node pv,
                          InstEffort effort);
-  bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, InstEffort effort ) { return true; }
+  bool useModelValue(CegInstantiator* ci,
+                     SolvedForm& sf,
+                     Node pv,
+                     InstEffort effort)
+  {
+    return true;
+  }
   std::string identify() const { return "Bv"; }
 };
 
