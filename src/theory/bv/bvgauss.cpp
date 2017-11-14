@@ -94,14 +94,14 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
           if (n[0] == zero)
           {
             w = visited[n[1]]
-                /* add bw of children n[2] to n[n.getNumChildren()] */
+                /* add bw of children n[2] to n[n.getNumChildren()-1] */
                 + utils::getSize(n) - utils::getSize(n[0])
                 - utils::getSize(n[1]);
           }
           else
           {
             w = visited[n[0]]
-              /* add bw of children n[1] to n[n.getNumChildren()] */
+              /* add bw of children n[1] to n[n.getNumChildren()-1] */
               +  utils::getSize(n) - utils::getSize(n[0]);
           }
           visited[n] = w;
@@ -153,7 +153,9 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
           break;
         }
 
-        default: { visited[n] = utils::getSize(n);
+        default:
+        {
+          visited[n] = utils::getSize(n);
         }
       }
     }
