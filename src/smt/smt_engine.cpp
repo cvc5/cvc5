@@ -102,6 +102,7 @@
 #include "util/hash.h"
 #include "util/proof.h"
 #include "util/resource_manager.h"
+#include "util/rng.h"
 
 using namespace std;
 using namespace CVC4;
@@ -1288,6 +1289,7 @@ void SmtEngine::setLogicInternal() throw() {
 }
 
 void SmtEngine::setDefaults() {
+  RNG::getRNG().setSeed(options::seed());
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
