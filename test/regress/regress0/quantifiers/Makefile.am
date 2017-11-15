@@ -115,7 +115,13 @@ TESTS =	\
 	NUM878.smt2 \
 	psyco-107-bv.smt2 \
 	ari118-bv-2occ-x.smt2 \
-	extract-nproc.smt2
+	extract-nproc.smt2 \
+	javafe.ast.StandardPrettyPrint.319.smt2 \
+	javafe.ast.StmtVec.009.smt2 \
+	javafe.ast.WhileStmt.447.smt2 \
+	clock-10.smt2 \
+	javafe.tc.FlowInsensitiveChecks.682.smt2 \
+	javafe.tc.CheckCompilationUnit.001.smt2
  
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
@@ -123,13 +129,7 @@ TESTS =	\
 
 
 # removed because they take more than 20s
-#		javafe.ast.ArrayInit.35.smt2 \
-#		javafe.ast.StandardPrettyPrint.319.smt2 \
-#		javafe.ast.StmtVec.009.smt2 \
-#		javafe.ast.WhileStmt.447.smt2 \
-#		javafe.tc.CheckCompilationUnit.001.smt2 \
-#		javafe.tc.FlowInsensitiveChecks.682.smt2 \
-#		clock-10.smt2
+#		javafe.ast.ArrayInit.35.smt2
 
 # FIXME: I've disabled these since they give different error messages on production and debug
 #	macro-subtype-param.smt2 
