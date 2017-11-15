@@ -364,10 +364,10 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::CHAIN: break;
   case kind::FUNCTION_TYPE:
     out << "->";
-    for (size_t i = 0; i < n.getNumChildren(); ++i)
+    for (Node nc : n)
     {
       out << " ";
-      toStream(out, n[i], toDepth, types, TypeNode::null());
+      toStream(out, nc, toDepth, types, TypeNode::null());
     }
     out << ")";
     return;
@@ -1338,10 +1338,10 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const throw()
         out << dt[cIndex].getSygusOp();
         if (n.getNumChildren() > 0)
         {
-          for (unsigned i = 0; i < n.getNumChildren(); i++)
+          for (Node nc : n)
           {
             out << " ";
-            toStreamSygus(out, n[i]);
+            toStreamSygus(out, nc);
           }
           out << ")";
         }

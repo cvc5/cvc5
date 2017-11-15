@@ -117,10 +117,10 @@ void SygusNamedConstructorPrinter::toStreamSygus(Printer* p,
   out << d_name;
   if (e.getNumChildren() > 0)
   {
-    for (unsigned i = 0; i < e.getNumChildren(); i++)
+    for (Expr ec : e)
     {
       out << " ";
-      p->toStreamSygus(out, e[i]);
+      p->toStreamSygus(out, ec);
     }
     out << ")";
   }
