@@ -73,7 +73,10 @@ class ArithInstantiator : public Instantiator {
                                  Node pv,
                                  CegInstEffort effort) override;
   virtual bool needsPostProcessInstantiationForVariable(
-      CegInstantiator* ci, SolvedForm& sf, Node pv, CegInstEffort effort) override;
+      CegInstantiator* ci,
+      SolvedForm& sf,
+      Node pv,
+      CegInstEffort effort) override;
   virtual bool postProcessInstantiationForVariable(
       CegInstantiator* ci,
       SolvedForm& sf,
@@ -276,8 +279,8 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
  public:
   BvInstantiatorPreprocess() {}
   virtual ~BvInstantiatorPreprocess() {}
-  /** register counterexample lemma 
-   * 
+  /** register counterexample lemma
+   *
    * This method modifies the contents of lems based on removing extract terms
    * when the option --cbqi-bv-rm-extract is enabled, for example:
    *   P[ ((extract 7 4) t), ((extract 3 0) t)]

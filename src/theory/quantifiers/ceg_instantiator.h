@@ -143,8 +143,8 @@ public:
   }
 };
 
-/** instantiation effort levels 
- * 
+/** instantiation effort levels
+ *
  * This effort is used to stratify the construction of
  * instantiations for some theories that may result to
  * using model value instantiations.
@@ -164,8 +164,8 @@ enum CegInstEffort
 std::ostream& operator<<(std::ostream& os, CegInstEffort e);
 
 /** instantiation phase for variables
- * 
- * This indicates the phase in which we constructed 
+ *
+ * This indicates the phase in which we constructed
  * a substitution for individual variables.
  */
 enum CegInstPhase
@@ -174,7 +174,7 @@ enum CegInstPhase
   CEG_INST_PHASE_NONE,
   // instantiation constructed during traversal of equivalence classes
   CEG_INST_PHASE_EQC,
-  // instantiation constructed during solving equalities 
+  // instantiation constructed during solving equalities
   CEG_INST_PHASE_EQUAL,
   // instantiation constructed by looking at theory assertions
   CEG_INST_PHASE_ASSERTION,
@@ -385,8 +385,8 @@ class CegInstantiator {
 
   //-------------------------------the variables
   /** the variables we are instantiating
-   * 
-   * This is a superset of the variables for the instantiations we are 
+   *
+   * This is a superset of the variables for the instantiations we are
    * generating and sending on the output channel of this class.
    */
   std::vector<Node> d_vars;
@@ -395,11 +395,11 @@ class CegInstantiator {
   /** index of variables reported in instantiation */
   std::vector<unsigned> d_var_order_index;
   /** number of input variables
-   * 
+   *
    * These are the variables, in order, for the instantiations we are generating
    * and sending on the output channel of this class.
    */
-  std::vector< Node > d_input_vars;
+  std::vector<Node> d_input_vars;
   /** literals to equalities for aux vars
    * This stores entries of the form
    *   L -> ( k -> t )
@@ -640,8 +640,11 @@ public:
   *   (2) lit' implies lit.
   *   where typically lit' = lit.
   */
-  virtual Node hasProcessAssertion(
-      CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit, CegInstEffort effort)
+  virtual Node hasProcessAssertion(CegInstantiator* ci,
+                                   SolvedForm& sf,
+                                   Node pv,
+                                   Node lit,
+                                   CegInstEffort effort)
   {
     return Node::null();
   }

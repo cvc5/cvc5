@@ -275,8 +275,11 @@ bool ArithInstantiator::processEquality(CegInstantiator* ci,
   return false;
 }
 
-Node ArithInstantiator::hasProcessAssertion(
-    CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit, CegInstEffort effort)
+Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
+                                            SolvedForm& sf,
+                                            Node pv,
+                                            Node lit,
+                                            CegInstEffort effort)
 {
   Node atom = lit.getKind()==NOT ? lit[0] : lit;
   bool pol = lit.getKind()!=NOT;
@@ -756,8 +759,9 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
                                        std::vector<Node>& eqc,
                                        CegInstEffort effort)
 {
-  Trace("cegqi-dt-debug") << "try based on constructors in equivalence class." << std::endl;
-  //look in equivalence class for a constructor
+  Trace("cegqi-dt-debug") << "try based on constructors in equivalence class."
+                          << std::endl;
+  // look in equivalence class for a constructor
   for( unsigned k=0; k<eqc.size(); k++ ){
     Node n = eqc[k];
     if( n.getKind()==APPLY_CONSTRUCTOR ){
@@ -990,8 +994,11 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
   }
 }
 
-Node BvInstantiator::hasProcessAssertion(
-    CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit, CegInstEffort effort)
+Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
+                                         SolvedForm& sf,
+                                         Node pv,
+                                         Node lit,
+                                         CegInstEffort effort)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool pol = lit.getKind() != NOT;
@@ -1322,9 +1329,13 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       }
 
       visited.top()[cur] = ret;
-    }else{
-      if( cur==pv ){
-        Trace("cegqi-bv-nl") << "NONLINEAR LITERAL for " << pv << " : " << lit << std::endl;
+    }
+    else
+    {
+      if (cur == pv)
+      {
+        Trace("cegqi-bv-nl") << "NONLINEAR LITERAL for " << pv << " : " << lit
+                             << std::endl;
       }
     }
   } while (!visit.top().empty());
@@ -1363,7 +1374,6 @@ Node BvInstantiator::rewriteTermForSolvePv(
 
   return Node::null();
 }
-
 
 /** sort bv extract interval
  *
@@ -1475,7 +1485,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
               children.push_back(var);
               tmp_vars.push_back(var);
               tmp_subs.push_back(n);
-              Trace("cegqi-bv-pp") << "  " << n << " -> "<< var << std::endl;
+              Trace("cegqi-bv-pp") << "  " << n << " -> " << var << std::endl;
 
               // update the current index
               curr_index = bounds[1][n];
@@ -1524,10 +1534,10 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   if (!vars.empty())
   {
     Trace("cegqi-bv-pp") << "Adding " << new_lems.size() << " lemmas..."
-                               << std::endl;
+                         << std::endl;
     lems.insert(lems.end(), new_lems.begin(), new_lems.end());
     Trace("cegqi-bv-pp") << "Adding " << vars.size() << " variables..."
-                               << std::endl;
+                         << std::endl;
     ce_vars.insert(ce_vars.end(), vars.begin(), vars.end());
   }
 }
