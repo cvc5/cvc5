@@ -29,11 +29,9 @@ bool ArithMSum::getMonomial(Node n, Node& c, Node& v)
     v = n[1];
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
+
 bool ArithMSum::getMonomial(Node n, std::map<Node, Node>& msum)
 {
   if (n.isConst())
@@ -67,19 +65,16 @@ bool ArithMSum::getMonomialSum(Node n, std::map<Node, Node>& msum)
 {
   if (n.getKind() == PLUS)
   {
-    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    for (Node nc : n)
     {
-      if (!getMonomial(n[i], msum))
+      if (!getMonomial(nc, msum))
       {
         return false;
       }
     }
     return true;
   }
-  else
-  {
-    return getMonomial(n, msum);
-  }
+  return getMonomial(n, msum);
 }
 
 bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
@@ -96,6 +91,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
       {
         // subtract the other side
         std::map<Node, Node> msum2;
+        NodeManager * nm = NodeManager::currentNM();
         if (getMonomialSum(lit[1], msum2))
         {
           for (std::map<Node, Node>::iterator it = msum2.begin();
@@ -105,13 +101,13 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
             std::map<Node, Node>::iterator it2 = msum.find(it->first);
             if (it2 != msum.end())
             {
-              Node r = NodeManager::currentNM()->mkNode(
+              Node r = nm->mkNode(
                   MINUS,
                   it2->second.isNull()
-                      ? NodeManager::currentNM()->mkConst(Rational(1))
+                      ? nm->mkConst(Rational(1))
                       : it2->second,
                   it->second.isNull()
-                      ? NodeManager::currentNM()->mkConst(Rational(1))
+                      ? nm->mkConst(Rational(1))
                       : it->second);
               msum[it->first] = Rewriter::rewrite(r);
             }
@@ -119,7 +115,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
             {
               msum[it->first] =
                   it->second.isNull()
-                      ? NodeManager::currentNM()->mkConst(Rational(-1))
+                      ? nm->mkConst(Rational(-1))
                       : negate(it->second);
             }
           }
@@ -133,6 +129,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
 
 Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
 {
+  NodeManager * nm = NodeManager::currentNM();
   std::vector<Node> children;
   for (std::map<Node, Node>::const_iterator it = msum.begin(); it != msum.end();
        ++it)
@@ -140,14 +137,7 @@ Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
     Node m;
     if (!it->first.isNull())
     {
-      if (!it->second.isNull())
-      {
-        m = NodeManager::currentNM()->mkNode(MULT, it->second, it->first);
-      }
-      else
-      {
-        m = it->first;
-      }
+      m = mkCoeffTerm( it->second, it->first );
     }
     else
     {
@@ -157,22 +147,10 @@ Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
     children.push_back(m);
   }
   return children.size() > 1
-             ? NodeManager::currentNM()->mkNode(PLUS, children)
+             ? nm->mkNode(PLUS, children)
              : (children.size() == 1
                     ? children[0]
-                    : NodeManager::currentNM()->mkConst(Rational(0)));
-}
-
-Node ArithMSum::mkCoeffTerm(Node coeff, Node t)
-{
-  if (coeff.isNull())
-  {
-    return t;
-  }
-  else
-  {
-    return NodeManager::currentNM()->mkNode(kind::MULT, coeff, t);
-  }
+                    : nm->mkConst(Rational(0)));
 }
 
 int ArithMSum::isolate(
@@ -195,14 +173,7 @@ int ArithMSum::isolate(
           Node m;
           if (!it->first.isNull())
           {
-            if (!it->second.isNull())
-            {
-              m = NodeManager::currentNM()->mkNode(MULT, it->second, it->first);
-            }
-            else
-            {
-              m = it->first;
-            }
+            m = mkCoeffTerm( it->second, it->first );
           }
           else
           {
@@ -323,10 +294,7 @@ bool ArithMSum::decompose(Node n, Node v, Node& coeff, Node& rem)
       return true;
     }
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 Node ArithMSum::negate(Node t)

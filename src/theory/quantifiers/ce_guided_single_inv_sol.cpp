@@ -16,7 +16,6 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
-#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -296,15 +295,6 @@ bool CegConjectureSingleInvSol::getAssignEquality( Node eq, std::vector< Node >&
       }
     }
   }
-  /*
-  TypeNode tn = eq[0].getType();
-  if( tn.isInteger() || tn.isReal() ){
-    std::map< Node, Node > msum;
-    if( ArithMSum::getMonomialSumLit( eq, msum ) ){
-
-    }
-  }
-  */
   return false;
 }
 

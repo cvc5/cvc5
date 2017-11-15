@@ -107,10 +107,14 @@ class ArithMSum
 
   /** make coefficent term
    *
-   * Input coeff is a m-constant.
-   * Returns the term t if coeff.isNull() or coeff*t otherwise.
+   * Input c is a m-constant.
+   * Returns the term t if c.isNull() or c*t otherwise.
    */
-  static Node mkCoeffTerm(Node coeff, Node t);
+  static inline Node mkCoeffTerm(Node c, Node t)
+  {
+    return c.isNull() ? t : NodeManager::currentNM()->mkNode(kind::MULT, c, t);
+  }
+
 
   /** isolate variable v in constraint ([msum] <k> 0)
    *
@@ -121,7 +125,7 @@ class ArithMSum
    *   If veq_c is non-null, then it is a positive constant Rational.
    * The returned value of veq_c is only non-null if v has integer type.
    *
-   * This function returns 0 indicating a failure if msum does not contain
+   * This function returns 0, indicating a failure, if msum does not contain
    * a (non-zero) monomial having mvariable v.
    */
   static int isolate(
