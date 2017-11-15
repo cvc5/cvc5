@@ -1403,12 +1403,13 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
 
   if (options::cbqiBvRmExtract())
   {
+    Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     d_extract_map.clear();
     std::unordered_set<TNode, TNodeHashFunction> visited;
     for (unsigned i = 0; i < lems.size(); i++)
     {
-      Trace("cegqi-bv-pp") << "Register ce lemma # " << i << " : " << lems[i]
-                           << std::endl;
+      Trace("cegqi-bv-pp-debug2") << "Register ce lemma # " << i << " : "
+                                  << lems[i] << std::endl;
       process(lems[i], visited);
     }
     for (std::pair<Node, std::vector<Node> > es : d_extract_map)
@@ -1435,7 +1436,6 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         }
 
         bool success = false;
-        std::map<Node, bool> processed;
         TypeNode tn = es.first.getType();
         Assert(tn.isBitVector());
         unsigned width = tn.getBitVectorSize();
@@ -1471,6 +1471,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
               children.push_back(var);
               tmp_vars.push_back(var);
               tmp_subs.push_back(n);
+              Trace("cegqi-bv-pp") << "  " << n << " -> "<< var << std::endl;
 
               // update the current index
               curr_index = bounds[1][n];
@@ -1513,6 +1514,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
                              << es.first << std::endl;
       }
     }
+    Trace("cegqi-bv-pp") << "-----done remove extracts" << std::endl;
   }
 
   if (!vars.empty())
@@ -1524,6 +1526,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
           subs.begin(), subs.end(), vars.begin(), vars.end());
       if (slem != lems[i])
       {
+        slem = Rewriter::rewrite( slem );
         Trace("cegqi-bv-pp-debug") << "Substitution applied to lemma # " << i
                                    << " : " << std::endl;
         Trace("cegqi-bv-pp-debug") << "   " << lems[i] << std::endl;
@@ -1531,10 +1534,13 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         lems[i] = slem;
       }
     }
-    Trace("cegqi-bv-pp-debug") << "Adding " << new_lems.size() << " lemmas..."
+    for( unsigned i=0; i<subs.size(); i++ ){
+      new_lems.push_back( subs[i].eqNode( vars[i] ) );
+    }
+    Trace("cegqi-bv-pp") << "Adding " << new_lems.size() << " lemmas..."
                                << std::endl;
     lems.insert(lems.end(), new_lems.begin(), new_lems.end());
-    Trace("cegqi-bv-pp-debug") << "Adding " << vars.size() << " variables..."
+    Trace("cegqi-bv-pp") << "Adding " << vars.size() << " variables..."
                                << std::endl;
     ce_vars.insert(ce_vars.end(), vars.begin(), vars.end());
   }
