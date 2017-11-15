@@ -29,7 +29,7 @@ namespace printer {
  * This class is used for printing sygus
  * datatype constructor terms whose top symbol
  * is a let expression.
- * For example, for example:
+ * For example, for grammar:
  *   A -> (let ((x B)) (+ A 1)) | x | (+ A A) | 0
  *   B -> 0 | 1
  * the first constructor for A takes as arguments
