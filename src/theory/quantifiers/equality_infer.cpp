@@ -17,6 +17,7 @@
 #include "theory/quantifiers/equality_infer.h"
 
 #include "context/context_mm.h"
+#include "theory/rewriter.h"
 #include "theory/arith/arith_msum.h"
 
 using namespace CVC4;
