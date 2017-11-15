@@ -40,6 +40,21 @@ using namespace std;
 
 namespace CVC4 {
 
+namespace {
+
+std::vector<Expr> ExportTo(ExprManager* exprManager,
+                           ExprManagerMapCollection& variableMap,
+                           const std::vector<Expr>& exprs) {
+  std::vector<Expr> exported;
+  exported.reserve(exprs.size());
+  for (const Expr& expr : exprs) {
+    exported.push_back(expr.exportTo(exprManager, variableMap));
+  }
+  return exported;
+}
+
+}  // namespace
+
 const int CommandPrintSuccess::s_iosIndex = std::ios_base::xalloc();
 const CommandSuccess* CommandSuccess::s_instance = new CommandSuccess();
 const CommandInterrupted* CommandInterrupted::s_instance = new CommandInterrupted();
@@ -1844,27 +1859,15 @@ void RewriteRuleCommand::invoke(SmtEngine* smtEngine) {
 
 Command* RewriteRuleCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   /** Convert variables */
-  VExpr vars; vars.reserve(d_vars.size());
-  for(VExpr::iterator i = d_vars.begin(), end = d_vars.end();
-      i == end; ++i){
-    vars.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr vars = ExportTo(exprManager, variableMap, d_vars);
   /** Convert guards */
-  VExpr guards; guards.reserve(d_guards.size());
-  for(VExpr::iterator i = d_guards.begin(), end = d_guards.end();
-      i == end; ++i){
-    guards.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr guards = ExportTo(exprManager, variableMap, d_guards);
   /** Convert triggers */
-  Triggers triggers; triggers.resize(d_triggers.size());
-  for(size_t i = 0, end = d_triggers.size();
-      i < end; ++i){
-    triggers[i].reserve(d_triggers[i].size());
-    for(VExpr::iterator j = d_triggers[i].begin(), jend = d_triggers[i].end();
-        j == jend; ++i){
-      triggers[i].push_back(j->exportTo(exprManager, variableMap));
-    };
-  };
+  Triggers triggers;
+  triggers.reserve(d_triggers.size());
+  for (const std::vector<Expr>& trigger_list : d_triggers) {
+    triggers.push_back(ExportTo(exprManager, variableMap, trigger_list));
+  }
   /** Convert head and body */
   Expr head = d_head.exportTo(exprManager, variableMap);
   Expr body = d_body.exportTo(exprManager, variableMap);
@@ -1960,33 +1963,17 @@ void PropagateRuleCommand::invoke(SmtEngine* smtEngine) {
 
 Command* PropagateRuleCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   /** Convert variables */
-  VExpr vars; vars.reserve(d_vars.size());
-  for(VExpr::iterator i = d_vars.begin(), end = d_vars.end();
-      i == end; ++i){
-    vars.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr vars = ExportTo(exprManager, variableMap, d_vars);
   /** Convert guards */
-  VExpr guards; guards.reserve(d_guards.size());
-  for(VExpr::iterator i = d_guards.begin(), end = d_guards.end();
-      i == end; ++i){
-    guards.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr guards = ExportTo(exprManager, variableMap, d_guards);
   /** Convert heads */
-  VExpr heads; heads.reserve(d_heads.size());
-  for(VExpr::iterator i = d_heads.begin(), end = d_heads.end();
-      i == end; ++i){
-    heads.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr heads = ExportTo(exprManager, variableMap, d_heads);
   /** Convert triggers */
-  Triggers triggers; triggers.resize(d_triggers.size());
-  for(size_t i = 0, end = d_triggers.size();
-      i < end; ++i){
-    triggers[i].reserve(d_triggers[i].size());
-    for(VExpr::iterator j = d_triggers[i].begin(), jend = d_triggers[i].end();
-        j == jend; ++i){
-      triggers[i].push_back(j->exportTo(exprManager, variableMap));
-    };
-  };
+  Triggers triggers;
+  triggers.reserve(d_triggers.size());
+  for (const std::vector<Expr>& trigger_list : d_triggers) {
+    triggers.push_back(ExportTo(exprManager, variableMap, trigger_list));
+  }
   /** Convert head and body */
   Expr body = d_body.exportTo(exprManager, variableMap);
   /** Create the converted rules */

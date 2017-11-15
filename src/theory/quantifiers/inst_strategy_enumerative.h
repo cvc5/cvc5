@@ -71,7 +71,7 @@ class InstStrategyEnum : public QuantifiersModule
    * Adds instantiations for all currently asserted
    * quantified formulas via calls to process(...)
    */
-  void check(Theory::Effort e, unsigned quant_e) override;
+  void check(Theory::Effort e, QEffort quant_e) override;
   /** Register quantifier. */
   void registerQuantifier(Node q) override;
   /** Identify. */
