@@ -776,25 +776,27 @@ Type DatatypeConstructor::doParametricSubstitution( Type range,
   }
 }
 
-DatatypeConstructor::DatatypeConstructor(std::string name) :
-  // We don't want to introduce a new data member, because eventually
-  // we're going to be a constant stuffed inside a node.  So we stow
-  // the tester name away inside the constructor name until
-  // resolution.
-  d_name(name + '\0' + "is_" + name), // default tester name is "is_FOO"
-  d_tester(),
-  d_args() {
+DatatypeConstructor::DatatypeConstructor(std::string name)
+    :  // We don't want to introduce a new data member, because eventually
+       // we're going to be a constant stuffed inside a node.  So we stow
+       // the tester name away inside the constructor name until
+       // resolution.
+      d_name(name + '\0' + "is_" + name),  // default tester name is "is_FOO"
+      d_tester(),
+      d_args(),
+      d_sygus_num_let_input_args(0) {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
 }
 
-DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester) :
-  // We don't want to introduce a new data member, because eventually
-  // we're going to be a constant stuffed inside a node.  So we stow
-  // the tester name away inside the constructor name until
-  // resolution.
-  d_name(name + '\0' + tester),
-  d_tester(),
-  d_args() {
+DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester)
+    :  // We don't want to introduce a new data member, because eventually
+       // we're going to be a constant stuffed inside a node.  So we stow
+       // the tester name away inside the constructor name until
+       // resolution.
+      d_name(name + '\0' + tester),
+      d_tester(),
+      d_args(),
+      d_sygus_num_let_input_args(0) {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
   PrettyCheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
 }
