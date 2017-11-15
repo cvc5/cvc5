@@ -182,7 +182,8 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
 }
 
 void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
-                                    CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args ) {
+                                    CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args,
+                                    SygusPrintCallback * spc ) {
   Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
   if( !let_body.isNull() ){
     Debug("dt-sygus") << "    let body = " << let_body << ", args = " << let_args.size() << "," << let_num_input_args << std::endl;
@@ -196,10 +197,8 @@ void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vect
   std::string name = getName() + "_" + cname;
   std::string testerId("is-");
   testerId.append(name);
-  //checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
-  //checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
   CVC4::DatatypeConstructor c(name, testerId );
-  c.setSygus( op, let_body, let_args, let_num_input_args );
+  c.setSygus( op, let_body, let_args, let_num_input_args, spc );
   for( unsigned j=0; j<cargs.size(); j++ ){
     Debug("parser-sygus-debug") << "  arg " << j << " : " << cargs[j] << std::endl;
     std::stringstream sname;
@@ -209,7 +208,8 @@ void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vect
   addConstructor(c);
 }
 
-void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs ) {
+void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
+    SygusPrintCallback * spc ) {
   CVC4::Expr let_body; 
   std::vector< CVC4::Expr > let_args; 
   unsigned let_num_input_args = 0;
@@ -784,7 +784,8 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
       d_name(name + '\0' + "is_" + name),  // default tester name is "is_FOO"
       d_tester(),
       d_args(),
-      d_sygus_num_let_input_args(0) {
+      d_sygus_num_let_input_args(0),
+      d_sygus_pc(nullptr) {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
 }
 
@@ -796,16 +797,23 @@ DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester)
       d_name(name + '\0' + tester),
       d_tester(),
       d_args(),
-      d_sygus_num_let_input_args(0) {
+      d_sygus_num_let_input_args(0),
+      d_sygus_pc(nullptr) {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
   PrettyCheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
 }
 
-void DatatypeConstructor::setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_args ){
+DatatypeConstructor::~DatatypeConstructor() 
+{
+  delete d_sygus_pc;
+}
+
+void DatatypeConstructor::setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_args, SygusPrintCallback* spc ){
   d_sygus_op = op;
   d_sygus_let_body = let_body;
   d_sygus_let_args.insert( d_sygus_let_args.end(), let_args.begin(), let_args.end() );
   d_sygus_num_let_input_args = num_let_input_args;
+  d_sygus_pc = spc;
 }
 
 void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
@@ -911,8 +919,7 @@ SygusPrintCallback* DatatypeConstructor::getSygusPrintCallback() const
 {
   PrettyCheckArgument(
       isResolved(), this, "this datatype constructor is not yet resolved");
-  // TODO  (#1344) return the stored callback
-  return nullptr;
+  return d_sygus_pc;
 }
 
 Cardinality DatatypeConstructor::getCardinality( Type t ) const throw(IllegalArgumentException) {

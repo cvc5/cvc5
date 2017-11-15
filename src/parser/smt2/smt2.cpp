@@ -1048,6 +1048,15 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           
           //d_sygus_defined_funs.push_back( id_op );
           //preemptCommand( new DefineFunctionCommand(ssid.str(), id_op, let_args, let_body) );
+          
+          //std::vector< Expr > lchildren;
+          //lchildren.push_back(getExprManager()->mkExpr(BOUND_VAR_LIST,let_
+          
+          
+          // empty sygus callback (should not be printed)
+          //SygusEmptyConstructorPrinter* secp = new SygusEmptyConstructorPrinter;
+          
+          
           //make the sygus argument list
           std::vector< Type > id_carg;
           id_carg.push_back( t );

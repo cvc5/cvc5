@@ -21,8 +21,11 @@ namespace CVC4 {
 namespace printer {
 
 SygusLetExpressionPrinter::SygusLetExpressionPrinter(
-    Node let_body, std::vector<Node>& let_args, unsigned ninput_args)
+    Expr let_body, std::vector<Expr>& let_args, unsigned ninput_args) :
+d_let_body(let_body),
+d_sygus_num_let_input_args(ninput_args)
 {
+  d_sygus_let_args.insert(d_sygus_let_args.end(),let_args.begin(),let_args.end());
 }
 
 void SygusLetExpressionConstructorPrinter::doStrReplace(
