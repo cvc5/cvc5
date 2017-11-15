@@ -88,6 +88,7 @@
 #include "theory/bv/bvintropow2.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
+#include "theory/quantifiers/cbqi_global_negate.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/macros.h"
@@ -4163,6 +4164,23 @@ void SmtEnginePrivate::processAssertions() {
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
 
+    // if cbqi is enabled, and the logic is satisfaction complete, 
+    // try a global negation of the formula
+    if( options::cbqi() )
+    {
+      if(d_smt.d_logic.isPure(THEORY_ARITH) || d_smt.d_logic.isPure(THEORY_BV))
+      {
+        quantifiers::CbqiGlobalNegate cgn;
+        std::vector< Node > new_assertions;
+        if( cgn.simplify( d_assertions.ref(), new_assertions ) )
+        {
+          for( unsigned i=0; i<new_assertions.size(); i++ ){
+            addFormula(new_assertions[i], false);
+          }
+        }
+      }
+    }
+    
     dumpAssertions("pre-skolem-quant", d_assertions);
     //remove rewrite rules, apply pre-skolemization to existential quantifiers
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {
