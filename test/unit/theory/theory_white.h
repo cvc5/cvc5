@@ -15,9 +15,9 @@
  **/
 
 #include <cxxtest/TestSuite.h>
+#include <memory>
 #include <vector>
 
-// taking: Add include for Proof*.
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
@@ -25,7 +25,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
-
+#include "util/proof.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -46,8 +46,8 @@ class TestOutputChannel : public OutputChannel {
   ~TestOutputChannel() override {}
 
   void safePoint(uint64_t amount) override {}
-
-  void conflict(TNode n, Proof* pf = nullptr) override {
+  void conflict(TNode n, std::unique_ptr<Proof> pf) override
+  {
     push(CONFLICT, n);
   }
 

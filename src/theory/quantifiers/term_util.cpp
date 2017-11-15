@@ -917,6 +917,319 @@ bool TermUtil::isBoolConnectiveTerm( TNode n ) {
          ( n.getKind()!=ITE || n.getType().isBoolean() );
 }
 
+Node TermUtil::getTypeValue(TypeNode tn, int val)
+{
+  std::unordered_map<int, Node>::iterator it = d_type_value[tn].find(val);
+  if (it == d_type_value[tn].end())
+  {
+    Node n = mkTypeValue(tn, val);
+    d_type_value[tn][val] = n;
+    return n;
+  }
+  return it->second;
+}
+
+Node TermUtil::mkTypeValue(TypeNode tn, int val)
+{
+  Node n;
+  if (tn.isInteger() || tn.isReal())
+  {
+    Rational c(val);
+    n = NodeManager::currentNM()->mkConst(c);
+  }
+  else if (tn.isBitVector())
+  {
+    unsigned int uv = val;
+    BitVector bval(tn.getConst<BitVectorSize>(), uv);
+    n = NodeManager::currentNM()->mkConst<BitVector>(bval);
+  }
+  else if (tn.isBoolean())
+  {
+    if (val == 0)
+    {
+      n = NodeManager::currentNM()->mkConst(false);
+    }
+  }
+  else if (tn.isString())
+  {
+    if (val == 0)
+    {
+      n = NodeManager::currentNM()->mkConst(::CVC4::String(""));
+    }
+  }
+  return n;
+}
+
+Node TermUtil::getTypeMaxValue(TypeNode tn)
+{
+  std::unordered_map<TypeNode, Node, TypeNodeHashFunction>::iterator it =
+      d_type_max_value.find(tn);
+  if (it == d_type_max_value.end())
+  {
+    Node n = mkTypeMaxValue(tn);
+    d_type_max_value[tn] = n;
+    return n;
+  }
+  return it->second;
+}
+
+Node TermUtil::mkTypeMaxValue(TypeNode tn)
+{
+  Node n;
+  if (tn.isBitVector())
+  {
+    n = bv::utils::mkOnes(tn.getConst<BitVectorSize>());
+  }
+  else if (tn.isBoolean())
+  {
+    n = NodeManager::currentNM()->mkConst(true);
+  }
+  return n;
+}
+
+Node TermUtil::getTypeValueOffset(TypeNode tn,
+                                  Node val,
+                                  int offset,
+                                  int& status)
+{
+  std::unordered_map<int, Node>::iterator it =
+      d_type_value_offset[tn][val].find(offset);
+  if (it == d_type_value_offset[tn][val].end())
+  {
+    Node val_o;
+    Node offset_val = getTypeValue(tn, offset);
+    status = -1;
+    if (!offset_val.isNull())
+    {
+      if (tn.isInteger() || tn.isReal())
+      {
+        val_o = Rewriter::rewrite(
+            NodeManager::currentNM()->mkNode(PLUS, val, offset_val));
+        status = 0;
+      }
+      else if (tn.isBitVector())
+      {
+        val_o = Rewriter::rewrite(
+            NodeManager::currentNM()->mkNode(BITVECTOR_PLUS, val, offset_val));
+        // TODO : enable?  watch for overflows
+      }
+    }
+    d_type_value_offset[tn][val][offset] = val_o;
+    d_type_value_offset_status[tn][val][offset] = status;
+    return val_o;
+  }
+  status = d_type_value_offset_status[tn][val][offset];
+  return it->second;
+}
+
+bool TermUtil::isAntisymmetric(Kind k, Kind& dk)
+{
+  if (k == GT)
+  {
+    dk = LT;
+    return true;
+  }
+  else if (k == GEQ)
+  {
+    dk = LEQ;
+    return true;
+  }
+  else if (k == BITVECTOR_UGT)
+  {
+    dk = BITVECTOR_ULT;
+    return true;
+  }
+  else if (k == BITVECTOR_UGE)
+  {
+    dk = BITVECTOR_ULE;
+    return true;
+  }
+  else if (k == BITVECTOR_SGT)
+  {
+    dk = BITVECTOR_SLT;
+    return true;
+  }
+  else if (k == BITVECTOR_SGE)
+  {
+    dk = BITVECTOR_SLE;
+    return true;
+  }
+  return false;
+}
+
+bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
+{
+  // these should all be binary operators
+  // Assert( ik!=DIVISION && ik!=INTS_DIVISION && ik!=INTS_MODULUS &&
+  // ik!=BITVECTOR_UDIV );
+  TypeNode tn = n.getType();
+  if (n == getTypeValue(tn, 0))
+  {
+    if (ik == PLUS || ik == OR || ik == XOR || ik == BITVECTOR_PLUS
+        || ik == BITVECTOR_OR
+        || ik == BITVECTOR_XOR
+        || ik == STRING_CONCAT)
+    {
+      return true;
+    }
+    else if (ik == MINUS || ik == BITVECTOR_SHL || ik == BITVECTOR_LSHR
+             || ik == BITVECTOR_ASHR
+             || ik == BITVECTOR_SUB
+             || ik == BITVECTOR_UREM
+             || ik == BITVECTOR_UREM_TOTAL)
+    {
+      return arg == 1;
+    }
+  }
+  else if (n == getTypeValue(tn, 1))
+  {
+    if (ik == MULT || ik == BITVECTOR_MULT)
+    {
+      return true;
+    }
+    else if (ik == DIVISION || ik == DIVISION_TOTAL || ik == INTS_DIVISION
+             || ik == INTS_DIVISION_TOTAL
+             || ik == INTS_MODULUS
+             || ik == INTS_MODULUS_TOTAL
+             || ik == BITVECTOR_UDIV_TOTAL
+             || ik == BITVECTOR_UDIV
+             || ik == BITVECTOR_SDIV)
+    {
+      return arg == 1;
+    }
+  }
+  else if (n == getTypeMaxValue(tn))
+  {
+    if (ik == EQUAL || ik == BITVECTOR_AND || ik == BITVECTOR_XNOR)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+Node TermUtil::isSingularArg(Node n, Kind ik, int arg)
+{
+  TypeNode tn = n.getType();
+  if (n == getTypeValue(tn, 0))
+  {
+    if (ik == AND || ik == MULT || ik == BITVECTOR_AND || ik == BITVECTOR_MULT)
+    {
+      return n;
+    }
+    else if (ik == BITVECTOR_SHL || ik == BITVECTOR_LSHR || ik == BITVECTOR_ASHR
+             || ik == BITVECTOR_UREM
+             || ik == BITVECTOR_UREM_TOTAL)
+    {
+      if (arg == 0)
+      {
+        return n;
+      }
+    }
+    else if (ik == BITVECTOR_UDIV_TOTAL || ik == BITVECTOR_UDIV
+             || ik == BITVECTOR_SDIV)
+    {
+      if (arg == 0)
+      {
+        return n;
+      }
+      else if (arg == 1)
+      {
+        return getTypeMaxValue(tn);
+      }
+    }
+    else if (ik == DIVISION || ik == DIVISION_TOTAL || ik == INTS_DIVISION
+             || ik == INTS_DIVISION_TOTAL
+             || ik == INTS_MODULUS
+             || ik == INTS_MODULUS_TOTAL)
+    {
+      if (arg == 0)
+      {
+        return n;
+      }
+      else
+      {
+        // TODO?
+      }
+    }
+    else if (ik == STRING_SUBSTR)
+    {
+      if (arg == 0)
+      {
+        return n;
+      }
+      else if (arg == 2)
+      {
+        return getTypeValue(NodeManager::currentNM()->stringType(), 0);
+      }
+    }
+    else if (ik == STRING_STRIDOF)
+    {
+      if (arg == 0 || arg == 1)
+      {
+        return getTypeValue(NodeManager::currentNM()->integerType(), -1);
+      }
+    }
+  }
+  else if (n == getTypeValue(tn, 1))
+  {
+    if (ik == BITVECTOR_UREM_TOTAL)
+    {
+      return getTypeValue(tn, 0);
+    }
+  }
+  else if (n == getTypeMaxValue(tn))
+  {
+    if (ik == OR || ik == BITVECTOR_OR)
+    {
+      return n;
+    }
+  }
+  else
+  {
+    if (n.getType().isReal() && n.getConst<Rational>().sgn() < 0)
+    {
+      // negative arguments
+      if (ik == STRING_SUBSTR || ik == STRING_CHARAT)
+      {
+        return getTypeValue(NodeManager::currentNM()->stringType(), 0);
+      }
+      else if (ik == STRING_STRIDOF)
+      {
+        Assert(arg == 2);
+        return getTypeValue(NodeManager::currentNM()->integerType(), -1);
+      }
+    }
+  }
+  return Node::null();
+}
+
+bool TermUtil::hasOffsetArg(Kind ik, int arg, int& offset, Kind& ok)
+{
+  if (ik == LT)
+  {
+    Assert(arg == 0 || arg == 1);
+    offset = arg == 0 ? 1 : -1;
+    ok = LEQ;
+    return true;
+  }
+  else if (ik == BITVECTOR_ULT)
+  {
+    Assert(arg == 0 || arg == 1);
+    offset = arg == 0 ? 1 : -1;
+    ok = BITVECTOR_ULE;
+    return true;
+  }
+  else if (ik == BITVECTOR_SLT)
+  {
+    Assert(arg == 0 || arg == 1);
+    offset = arg == 0 ? 1 : -1;
+    ok = BITVECTOR_SLE;
+    return true;
+  }
+  return false;
+}
+
 Node TermUtil::getHoTypeMatchPredicate( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator ithp = d_ho_type_match_pred.find( tn );
   if( ithp==d_ho_type_match_pred.end() ){

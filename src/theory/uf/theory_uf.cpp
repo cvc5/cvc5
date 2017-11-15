@@ -634,8 +634,8 @@ void TheoryUF::conflict(TNode a, TNode b) {
   std::shared_ptr<eq::EqProof> pf =
       d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
   d_conflictNode = explain(a.eqNode(b), pf.get());
-  ProofUF* puf = d_proofsEnabled ? new ProofUF( pf ) : NULL;
-  d_out->conflict(d_conflictNode, puf);
+  std::unique_ptr<ProofUF> puf(d_proofsEnabled ? new ProofUF(pf) : nullptr);
+  d_out->conflict(d_conflictNode, std::move(puf));
   d_conflict = true;
 }
 
