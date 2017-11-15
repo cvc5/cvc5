@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file rng.h
+/*! \file random.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz
@@ -18,25 +18,27 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__RNG_H
-#define __CVC4__RNG_H
+#ifndef __CVC4__UTIL__RANDOM_H
+#define __CVC4__UTIL__RANDOM_H
+
+#include "base/tls.h"
 
 namespace CVC4 {
 
-class RNG
+class Random
 {
  public:
-  RNG(RNG const&) = delete;
-  void operator=(RNG const&) = delete;
+  Random(const Random&) = delete;
+  void operator=(const Random&) = delete;
 
   /* Get current RNG (singleton).  */
-  static RNG& getRNG()
+  static Random& getRandom()
   {
-    static RNG s_current(0);
+    static CVC4_THREAD_LOCAL Random s_current(0);
     return s_current;
   }
 
-  /* Set seed of RNG.  */
+  /* Set seed of Random.  */
   void setSeed(uint64_t seed)
   {
     d_seed = seed;
@@ -53,7 +55,7 @@ class RNG
   bool pickWithProb(double probability);
 
  private:
-  RNG(uint64_t seed) : d_seed(seed), d_state(seed) {}
+  Random(uint64_t seed) : d_seed(seed), d_state(seed) {}
   /* The seed of the RNG. */
   uint64_t d_seed;
   /* The current state of the RNG. */

@@ -44,8 +44,8 @@ libutil_la_SOURCES = \
 	resource_manager.cpp \
 	resource_manager.h \
 	result.cpp \
-	rng.h \
-	rng.cpp \
+	random.h \
+	random.cpp \
 	result.h \
 	safe_print.cpp \
 	safe_print.h \

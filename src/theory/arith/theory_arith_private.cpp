@@ -70,9 +70,9 @@
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
+#include "util/random.h"
 #include "util/rational.h"
 #include "util/result.h"
-#include "util/rng.h"
 #include "util/statistics_registry.h"
 
 using namespace std;
@@ -2205,7 +2205,7 @@ bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool em
   {
     double d = (double)(d_solveIntMaybeHelp + 1)
                / (d_solveIntAttempts + 1 + level * level);
-    double t = RNG::getRNG().pickDouble(0.0, 1.0);
+    double t = Random::getRandom().pickDouble(0.0, 1.0);
     if (t < d)
     {
       return getSolveIntegerResource();
@@ -4817,7 +4817,7 @@ bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
 
   if (rowLength >= options::arithPropagateMaxLength())
   {
-    if (RNG::getRNG().pickDouble(0.0, 1.0)
+    if (Random::getRandom().pickDouble(0.0, 1.0)
         >= double(options::arithPropagateMaxLength()) / rowLength)
     {
       return false;

@@ -26,7 +26,7 @@
 #include "theory/arith/theory_arith_private.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
-#include "util/rng.h"
+#include "util/random.h"
 
 #include <algorithm>
 #include <stack>
@@ -1036,7 +1036,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
   if( iti!=d_var_to_inst_id.end() ){
     Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv << std::endl;
     // if interleaving, do not do inversion half the time
-    if (!options::cbqiBvInterleaveValue() || RNG::getRNG().pickWithProb(0.5))
+    if (!options::cbqiBvInterleaveValue() || Random::getRandom().pickWithProb(0.5))
     {
       bool firstVar = sf.empty();
       // get inst id list

@@ -24,7 +24,7 @@
 #include "theory/rewriter.h"
 #include "smt/term_formula_removal.h"
 #include "smt/smt_statistics_registry.h"
-#include "util/rng.h"
+#include "util/random.h"
 
 namespace CVC4 {
 
@@ -306,7 +306,7 @@ DecisionWeight JustificationHeuristic::getWeight(TNode n) {
       if (options::decisionRandomWeight() != 0)
       {
         n.setAttribute(DecisionWeightAttr(),
-                       RNG::getRNG().rand() % options::decisionRandomWeight());
+            Random::getRandom().pick(0, options::decisionRandomWeight()-1));
       }
     }
     else if (combiningFn == DECISION_WEIGHT_INTERNAL_MAX)
