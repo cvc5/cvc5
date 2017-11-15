@@ -34,11 +34,11 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-
-QModelBuilder::QModelBuilder( context::Context* c, QuantifiersEngine* qe ) :
-TheoryEngineModelBuilder( qe->getTheoryEngine() ), d_qe( qe ){
-
-}
+QModelBuilder::QModelBuilder(context::Context* c, QuantifiersEngine* qe)
+    : TheoryEngineModelBuilder(qe->getTheoryEngine()),
+      d_qe(qe),
+      d_addedLemmas(0),
+      d_triedLemmas(0) {}
 
 bool QModelBuilder::optUseModel() {
   return options::mbqiMode()!=MBQI_NONE || options::fmfBound();
@@ -108,12 +108,14 @@ void QModelBuilder::debugModel( TheoryModel* m ){
       for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
         vars.push_back( f[0][j] );
       }
-      RepSetIterator riter(d_qe, fm->getRepSetPtr());
+      QRepBoundExt qrbe(d_qe);
+      RepSetIterator riter(d_qe->getModel()->getRepSet(), &qrbe);
       if( riter.setQuantifier( f ) ){
         while( !riter.isFinished() ){
           tests++;
           std::vector< Node > terms;
-          for( int k=0; k<riter.getNumTerms(); k++ ){
+          for (unsigned k = 0; k < riter.getNumTerms(); k++)
+          {
             terms.push_back( riter.getCurrentTerm( k ) );
           }
           Node n = d_qe->getInstantiation( f, vars, terms );
@@ -163,11 +165,15 @@ bool TermArgBasisTrie::addTerm(FirstOrderModel* fm, Node n, unsigned argIndex)
   }
 }
 
-
-QModelBuilderIG::QModelBuilderIG( context::Context* c, QuantifiersEngine* qe ) :
-QModelBuilder( c, qe ), d_basisNoMatch( c ) {
-
-}
+QModelBuilderIG::QModelBuilderIG(context::Context* c, QuantifiersEngine* qe)
+    : QModelBuilder(c, qe),
+      d_basisNoMatch(c),
+      d_didInstGen(false),
+      d_numQuantSat(0),
+      d_numQuantInstGen(0),
+      d_numQuantNoInstGen(0),
+      d_numQuantNoSelForm(0),
+      d_instGenMatches(0) {}
 
 /*
 Node QModelBuilderIG::getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::vector< Node > & args, bool partial ) {
@@ -415,7 +421,8 @@ QModelBuilderIG::Statistics::~Statistics(){
 //do exhaustive instantiation
 int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   if( optUseModel() ){
-    RepSetIterator riter(d_qe, d_qe->getModel()->getRepSetPtr());
+    QRepBoundExt qrbe(d_qe);
+    RepSetIterator riter(d_qe->getModel()->getRepSet(), &qrbe);
     if( riter.setQuantifier( f ) ){
       FirstOrderModelIG * fmig = (FirstOrderModelIG*)d_qe->getModel();
       Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;
@@ -448,11 +455,12 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
         }
         if( eval==1 ){
           //instantiation is already true -> skip
-          riter.increment2( depIndex );
+          riter.incrementAtIndex(depIndex);
         }else{
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
-          for( int i=0; i<riter.getNumTerms(); i++ ){
+          for (unsigned i = 0; i < riter.getNumTerms(); i++)
+          {
             m.set( d_qe, i, riter.getCurrentTerm( i ) );
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
@@ -464,7 +472,7 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
             }
             //if the instantiation is show to be false, and we wish to skip multiple instantiations at once
             if( eval==-1 ){
-              riter.increment2( depIndex );
+              riter.incrementAtIndex(depIndex);
             }else{
               riter.increment();
             }

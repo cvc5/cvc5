@@ -351,11 +351,10 @@ struct TriggerInfo {
   Node trigger;
   /** Polarity of the trigger */
   bool polarity;
-  TriggerInfo() {}
+  TriggerInfo() : polarity(false) {}
   TriggerInfo(Node trigger, bool polarity)
-  : trigger(trigger), polarity(polarity) {}
-  };
-
+      : trigger(trigger), polarity(polarity) {}
+};
 
 } // namespace eq
 } // namespace theory

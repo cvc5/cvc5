@@ -79,7 +79,7 @@ class InstantiationEngine : public QuantifiersModule {
   void presolve();
   bool needsCheck(Theory::Effort e);
   void reset_round(Theory::Effort e);
-  void check(Theory::Effort e, unsigned quant_e);
+  void check(Theory::Effort e, QEffort quant_e);
   bool checkCompleteFor(Node q);
   void preRegisterQuantifier(Node q);
   void registerQuantifier(Node q);

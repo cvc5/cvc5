@@ -471,4 +471,89 @@ public:
     Integer one_from_string(leadingZeroes,2);
     TS_ASSERT_EQUALS(one, one_from_string);
   }
+
+  void testModAdd()
+  {
+    for (unsigned i = 0; i <= 10; ++i)
+    {
+      for (unsigned j = 0; j <= 10; ++j)
+      {
+        Integer yy;
+        Integer x(i);
+        Integer y = x + j;
+        Integer yp = x.modAdd(j, 3);
+        for (yy = y; yy >= 3; yy -= 3)
+          ;
+        TS_ASSERT(yp == yy);
+        yp = x.modAdd(j, 7);
+        for (yy = y; yy >= 7; yy -= 7)
+          ;
+        TS_ASSERT(yp == yy);
+        yp = x.modAdd(j, 11);
+        for (yy = y; yy >= 11; yy -= 11)
+          ;
+        TS_ASSERT(yp == yy);
+      }
+    }
+  }
+
+  void testModMultiply()
+  {
+    for (unsigned i = 0; i <= 10; ++i)
+    {
+      for (unsigned j = 0; j <= 10; ++j)
+      {
+        Integer yy;
+        Integer x(i);
+        Integer y = x * j;
+        Integer yp = x.modMultiply(j, 3);
+        for (yy = y; yy >= 3; yy -= 3)
+          ;
+        TS_ASSERT(yp == yy);
+        yp = x.modMultiply(j, 7);
+        for (yy = y; yy >= 7; yy -= 7)
+          ;
+        TS_ASSERT(yp == yy);
+        yp = x.modMultiply(j, 11);
+        for (yy = y; yy >= 11; yy -= 11)
+          ;
+        TS_ASSERT(yp == yy);
+      }
+    }
+  }
+
+  void testModInverse()
+  {
+    for (unsigned i = 0; i <= 10; ++i)
+    {
+      Integer x(i);
+      Integer inv = x.modInverse(3);
+      if (i == 0 || i == 3 || i == 6 || i == 9)
+      {
+        TS_ASSERT(inv == -1); /* no inverse */
+      }
+      else
+      {
+        TS_ASSERT(x.modMultiply(inv, 3) == 1);
+      }
+      inv = x.modInverse(7);
+      if (i == 0 || i == 7)
+      {
+        TS_ASSERT(inv == -1); /* no inverse */
+      }
+      else
+      {
+        TS_ASSERT(x.modMultiply(inv, 7) == 1);
+      }
+      inv = x.modInverse(11);
+      if (i == 0)
+      {
+        TS_ASSERT(inv == -1); /* no inverse */
+      }
+      else
+      {
+        TS_ASSERT(x.modMultiply(inv, 11) == 1);
+      }
+    }
+  }
 };

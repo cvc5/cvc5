@@ -120,7 +120,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   }
 
   d_tr_trie = new inst::TriggerTrie;
-  d_curr_effort_level = QEFFORT_NONE;
+  d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
   d_conflict = false;
   d_hasAddedLemma = false;
   d_useModelEe = false;
@@ -444,7 +444,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     return;
   }
   bool needsCheck = !d_lemmas_waiting.empty();
-  unsigned needsModelE = QEFFORT_NONE;
+  QuantifiersModule::QEffort needsModelE = QuantifiersModule::QEFFORT_NONE;
   std::vector< QuantifiersModule* > qm;
   if( d_model->checkNeeded() ){
     needsCheck = needsCheck || e>=Theory::EFFORT_LAST_CALL;  //always need to check at or above last call
@@ -454,7 +454,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
         needsCheck = true;
         //can only request model at last call since theory combination can find inconsistencies
         if( e>=Theory::EFFORT_LAST_CALL ){
-          unsigned me = d_modules[i]->needsModel( e );
+          QuantifiersModule::QEffort me = d_modules[i]->needsModel(e);
           needsModelE = me<needsModelE ? me : needsModelE;
         }
       }
@@ -559,7 +559,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
       ++(d_statistics.d_instantiation_rounds);
     }
     Trace("quant-engine-debug") << "Check modules that needed check..." << std::endl;
-    for( unsigned quant_e = QEFFORT_CONFLICT; quant_e<=QEFFORT_LAST_CALL; quant_e++ ){
+    for (unsigned qef = QuantifiersModule::QEFFORT_CONFLICT;
+         qef <= QuantifiersModule::QEFFORT_LAST_CALL;
+         ++qef)
+    {
+      QuantifiersModule::QEffort quant_e =
+          static_cast<QuantifiersModule::QEffort>(qef);
       d_curr_effort_level = quant_e;
       //build the model if any module requested it
       if( needsModelE==quant_e && !d_model->isBuilt() ){
@@ -590,7 +595,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
         break;
       }else{
         Assert( !d_conflict );
-        if( quant_e==QEFFORT_CONFLICT ){
+        if (quant_e == QuantifiersModule::QEFFORT_CONFLICT)
+        {
           if( e==Theory::EFFORT_FULL ){
             //increment if a last call happened, we are not strictly enforcing interleaving, or already were in phase
             if( d_ierCounterLastLc!=d_ierCounter_lc || !options::instWhenStrictInterleave() || d_ierCounter%d_inst_when_phase!=0 ){
@@ -601,7 +607,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
           }else if( e==Theory::EFFORT_LAST_CALL ){
             d_ierCounter_lc = d_ierCounter_lc + 1;
           }
-        }else if( quant_e==QEFFORT_MODEL ){
+        }
+        else if (quant_e == QuantifiersModule::QEFFORT_MODEL)
+        {
           if( e==Theory::EFFORT_LAST_CALL ){
             //sources of incompleteness
             if( !d_recorded_inst.empty() ){
@@ -655,7 +663,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
         }
       }
     }
-    d_curr_effort_level = QEFFORT_NONE;
+    d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
     if( d_hasAddedLemma ){
       //debug information
@@ -854,10 +862,21 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
     std::set< Node > added;
     d_term_db->addTerm(n, added, withinQuant, withinInstClosure);
 
-    //added contains also the Node that just have been asserted in this branch
-    if( d_quant_rel ){
-      for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){
-        if( !withinQuant ){
+    if (!withinQuant)
+    {
+      if (d_sygus_tdb)
+      {
+        d_sygus_tdb->registerEvalTerm(n);
+      }
+
+      // added contains also the Node that just have been asserted in this
+      // branch
+      if (d_quant_rel)
+      {
+        for (std::set<Node>::iterator i = added.begin(), end = added.end();
+             i != end;
+             i++)
+        {
           d_quant_rel->setRelevance( i->getOperator(), 0 );
         }
       }
@@ -1282,7 +1301,9 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
         setInstantiationLevelAttr( orig_body, q[1], maxInstLevel+1 );
       }
     }
-    if( d_curr_effort_level>QEFFORT_CONFLICT && d_curr_effort_level<QEFFORT_NONE ){
+    if (d_curr_effort_level > QuantifiersModule::QEFFORT_CONFLICT
+        && d_curr_effort_level < QuantifiersModule::QEFFORT_NONE)
+    {
       //notify listeners
       for( unsigned j=0; j<d_inst_notify.size(); j++ ){
         if( !d_inst_notify[j]->notifyInstantiation( d_curr_effort_level, q, lem, terms, body ) ){
