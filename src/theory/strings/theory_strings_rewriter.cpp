@@ -1387,7 +1387,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       {
         unsigned len =
             node[2].getConst<Rational>().getNumerator().toUnsignedInt();
-        if (start + len >= s.size())
+        if (start + len > s.size())
         {
           // take up to the end of the string
           Node ret = NodeManager::currentNM()->mkConst(
