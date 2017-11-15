@@ -82,7 +82,7 @@ public:
    *   (C_plus (C_minus C_x C_0) C_y)
    * where C_plus, C_minus, C_x, C_0, C_y are constructors
    * whose sygus operators are PLUS, MINUS, x, 0, y.
-   * In this case, this method is equivalent to printing 
+   * In this case, this method is equivalent to printing
    * the integer term:
    *   (PLUS (MINUS x 0) y)
    * This method may make calls to sygus printing callback
