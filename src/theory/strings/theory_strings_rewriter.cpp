@@ -1350,7 +1350,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       unsigned start;
       if (node[1].getConst<Rational>() > RMAXINT)
       {
-        // start beyond the maximum size of strings 
+        // start beyond the maximum size of strings
         // thus, it must be beyond the end point of this string
         Node ret = NodeManager::currentNM()->mkConst(::CVC4::String(""));
         return returnRewrite(node, ret, "ss-const-start-max-oob");
@@ -2550,7 +2550,7 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
     // O( len( x ) ) -> len( x )
     // O( len( int.to.str( x ) ) ) -> len( int.to.str( x ) )
     // O( len( str.substr( x, n1, n2 ) ) ) -> O( n2 ) | O( len( x ) )
-    // O( len( str.replace( x, y, z ) ) ) -> 
+    // O( len( str.replace( x, y, z ) ) ) ->
     //   O( len( x ) ) + O( len( z ) ) - U( len( y ) )
     // O( indexof( x, y, n ) ) -> O( len( x ) ) - U( len( y ) )
     // O( str.to.int( x ) ) -> str.to.int( x )
@@ -2559,9 +2559,9 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
     // U( c * x ) -> U( x ) if c > 0, O( x ) if c < 0
     // U( len( x ) ) -> len( x )
     // U( len( int.to.str( x ) ) ) -> 1
-    // U( len( str.substr( x, n1, n2 ) ) ) -> 
+    // U( len( str.substr( x, n1, n2 ) ) ) ->
     //   min( U( len( x ) ) - O( n1 ), U( n2 ) )
-    // U( len( str.replace( x, y, z ) ) ) -> 
+    // U( len( str.replace( x, y, z ) ) ) ->
     //   U( len( x ) ) + U( len( z ) ) - O( len( y ) ) | 0
     // U( indexof( x, y, n ) ) -> -1    ?
     // U( str.to.int( x ) ) -> -1
@@ -2624,7 +2624,8 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
         }
       }
     }
-    if( success ){
+    if (success)
+    {
       if (children.empty())
       {
         ret = NodeManager::currentNM()->mkConst(Rational(0));
@@ -2640,10 +2641,16 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
       }
     }
   }
-  Trace("strings-rewrite-cbound") << "Constant " << ( isLower ? "lower" : "upper" ) << " bound for " << a << " is " << ret << std::endl;
-  Assert( ret.isNull() || ret.isConst() );
-  Assert( !isLower || ( ret.isNull() || ret.getConst<Rational>().sgn()<0 )!=checkEntailArith( a, false ) );
-  Assert( !isLower || ( ret.isNull() || ret.getConst<Rational>().sgn()<=0 )!=checkEntailArith( a, true ) );
+  Trace("strings-rewrite-cbound")
+      << "Constant " << (isLower ? "lower" : "upper") << " bound for " << a
+      << " is " << ret << std::endl;
+  Assert(ret.isNull() || ret.isConst());
+  Assert(!isLower
+         || (ret.isNull() || ret.getConst<Rational>().sgn() < 0)
+                != checkEntailArith(a, false));
+  Assert(!isLower
+         || (ret.isNull() || ret.getConst<Rational>().sgn() <= 0)
+                != checkEntailArith(a, true));
   return ret;
 }
 

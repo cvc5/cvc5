@@ -302,9 +302,9 @@ private:
    * then ret is a rational constant and
    * we know that n >= ret always if isLower is true,
    * or n <= ret if isLower is false.
-   * 
-   * Notice the following invariant. 
-   * If getConstantArithBound(a, true) = ret where ret is non-null, then for 
+   *
+   * Notice the following invariant.
+   * If getConstantArithBound(a, true) = ret where ret is non-null, then for
    * strict = { true, false } :
    *   ret >= strict ? 1 : 0
    *     if and only if
