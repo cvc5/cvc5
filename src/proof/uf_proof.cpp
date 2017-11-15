@@ -66,21 +66,24 @@ inline static bool match(TNode n1, TNode n2) {
   return true;
 }
 
-
-void ProofUF::toStream(std::ostream& out) {
+void ProofUF::toStream(std::ostream& out) const
+{
   ProofLetMap map;
   toStream(out, map);
 }
 
-void ProofUF::toStream(std::ostream& out, const ProofLetMap& map) {
+void ProofUF::toStream(std::ostream& out, const ProofLetMap& map) const
+{
   Trace("theory-proof-debug") << "; Print UF proof..." << std::endl;
   //AJR : carry this further?
   toStreamLFSC(out, ProofManager::getUfProof(), *d_proof, map);
 }
 
-void ProofUF::toStreamLFSC(std::ostream& out, TheoryProof* tp,
+void ProofUF::toStreamLFSC(std::ostream& out,
+                           TheoryProof* tp,
                            const theory::eq::EqProof& pf,
-                           const ProofLetMap& map) {
+                           const ProofLetMap& map)
+{
   Debug("pf::uf") << "ProofUF::toStreamLFSC starting" << std::endl;
   Debug("lfsc-uf") << "Printing uf proof in LFSC : " << std::endl;
   pf.debug_print("lfsc-uf");
@@ -88,9 +91,12 @@ void ProofUF::toStreamLFSC(std::ostream& out, TheoryProof* tp,
   toStreamRecLFSC( out, tp, pf, 0, map );
 }
 
-Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
+Node ProofUF::toStreamRecLFSC(std::ostream& out,
+                              TheoryProof* tp,
                               const theory::eq::EqProof& pf,
-                              unsigned tb, const ProofLetMap& map) {
+                              unsigned tb,
+                              const ProofLetMap& map)
+{
   Debug("pf::uf") << std::endl
                   << std::endl
                   << "toStreamRecLFSC called. tb = " << tb

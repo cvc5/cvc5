@@ -16,13 +16,14 @@
 #ifndef __CVC4__PROOF_OUTPUT_CHANNEL_H
 #define __CVC4__PROOF_OUTPUT_CHANNEL_H
 
+#include <memory>
 #include <set>
 #include <unordered_set>
 
 #include "expr/node.h"
-#include "util/proof.h"
 #include "theory/output_channel.h"
 #include "theory/theory.h"
+#include "util/proof.h"
 
 namespace CVC4 {
 
@@ -35,7 +36,7 @@ class ProofOutputChannel : public theory::OutputChannel {
    * This may be called at most once per ProofOutputChannel.
    * Requires that `n` and `pf` are non-null.
    */
-  void conflict(TNode n, Proof* pf) override;
+  void conflict(TNode n, std::unique_ptr<Proof> pf) override;
   bool propagate(TNode x) override;
   theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) override;
   theory::LemmaStatus splitLemma(TNode, bool) override;
@@ -50,12 +51,12 @@ class ProofOutputChannel : public theory::OutputChannel {
    * Returns the proof passed into the conflict() call.
    * Requires hasConflict() to hold.
    */
-  Proof* getConflictProof();
+  const Proof& getConflictProof() const;
   Node getLastLemma() const { return d_lemma; }
 
  private:
   Node d_conflict;
-  Proof* d_proof;
+  std::unique_ptr<Proof> d_proof;
   Node d_lemma;
   std::set<Node> d_propagations;
 }; /* class ProofOutputChannel */
