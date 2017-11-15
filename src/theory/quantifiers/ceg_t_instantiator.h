@@ -276,7 +276,15 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
  public:
   BvInstantiatorPreprocess() {}
   virtual ~BvInstantiatorPreprocess() {}
-  /** register counterexample lemma */
+  /** register counterexample lemma 
+   * 
+   * This method modifies the contents of lems based on removing extract terms
+   * when the option --cbqi-bv-rm-extract is enabled, for example:
+   *   P[ ((extract 7 4) t), ((extract 3 0) t)]
+   *     becomes:
+   *   P[x,y] ^ t = concat( x, y )
+   * where x and y are fresh variables.
+   */
   virtual void registerCounterexampleLemma(std::vector<Node>& lems,
                                            std::vector<Node>& ce_vars) override;
 
