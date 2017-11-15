@@ -288,15 +288,17 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
   }else if( n.getKind()==GEQ ){
     if( n[0].getType().isInteger() ){
       std::map< Node, Node > msum;
-      if( ArithMSum::getMonomialSumLit( n, msum ) ){
+      if (ArithMSum::getMonomialSumLit(n, msum))
+      {
         Trace("bound-int-debug") << "literal (polarity = " << pol << ") " << n << " is monomial sum : " << std::endl;
-        ArithMSum::debugPrintMonomialSum( msum, "bound-int-debug" );
+        ArithMSum::debugPrintMonomialSum(msum, "bound-int-debug");
         for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
           if ( !it->first.isNull() && it->first.getKind()==BOUND_VARIABLE && !isBound( q, it->first ) ){
             //if not bound in another way
             if( bound_lit_type_map.find( it->first )==bound_lit_type_map.end() || bound_lit_type_map[it->first] == BOUND_INT_RANGE ){
               Node veq;
-              if( ArithMSum::isolate( it->first, msum, veq, GEQ )!=0 ){
+              if (ArithMSum::isolate(it->first, msum, veq, GEQ) != 0)
+              {
                 Node n1 = veq[0];
                 Node n2 = veq[1];
                 if(pol){
@@ -304,9 +306,9 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
                   n1 = veq[1];
                   n2 = veq[0];
                   if( n1.getKind()==BOUND_VARIABLE ){
-                    n2 = ArithMSum::offset( n2, 1 );
+                    n2 = ArithMSum::offset(n2, 1);
                   }else{
-                    n1 = ArithMSum::offset( n1, -1 );
+                    n1 = ArithMSum::offset(n1, -1);
                   }
                   veq = NodeManager::currentNM()->mkNode( GEQ, n1, n2 );
                 }

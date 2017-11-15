@@ -1411,7 +1411,9 @@ Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
       Node nc;
       if( n[r].getKind()==PLUS ){
         for( unsigned i=0; i<n[r].getNumChildren(); i++ ){
-          if( ArithMSum::getMonomial( n[r][i], c, nc ) && c.getConst<Rational>().isNegativeOne() ){
+          if (ArithMSum::getMonomial(n[r][i], c, nc)
+              && c.getConst<Rational>().isNegativeOne())
+          {
             mon[ro].push_back( nc );
             changed = true;
           }else{
@@ -1421,7 +1423,9 @@ Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
           }
         }
       }else{
-        if( ArithMSum::getMonomial( n[r], c, nc ) && c.getConst<Rational>().isNegativeOne() ){
+        if (ArithMSum::getMonomial(n[r], c, nc)
+            && c.getConst<Rational>().isNegativeOne())
+        {
           mon[ro].push_back( nc );
           changed = true;
         }else{

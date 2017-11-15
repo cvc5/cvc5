@@ -1129,12 +1129,14 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
       if( v.isNull() ){
         //solve for var
         std::map< Node, Node > msum;
-        if( ArithMSum::getMonomialSumLit( slit, msum ) ){
+        if (ArithMSum::getMonomialSumLit(slit, msum))
+        {
           for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
             if( std::find( vars.begin(), vars.end(), itm->first )!=vars.end() ){  
               Node veq_c;
               Node val;
-              int ires = ArithMSum::isolate( itm->first, msum, veq_c, val, EQUAL );
+              int ires =
+                  ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
               if( ires!=0 && veq_c.isNull() && !TermUtil::containsTerm( val, itm->first ) ){
                 v = itm->first;
                 s = val;
