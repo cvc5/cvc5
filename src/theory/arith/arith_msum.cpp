@@ -201,14 +201,7 @@ int ArithMSum::isolate(
               NodeManager::currentNM()->mkConst(Rational(1) / r.abs()));
         }
       }
-      if (r.sgn() == 1)
-      {
-        val = negate(val);
-      }
-      else
-      {
-        val = Rewriter::rewrite(val);
-      }
+      val = r.sgn()==1 ? negate(val) : Rewriter::rewrite(val);
       return (r.sgn() == 1 || k == EQUAL) ? 1 : -1;
     }
   }
