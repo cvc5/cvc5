@@ -756,8 +756,8 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
                                        std::vector<Node>& eqc,
                                        CegInstEffort effort)
 {
-  Trace("cegqi-dt-debug") << "[2] try based on constructors in equivalence class." << std::endl;
-  //[2] look in equivalence class for a constructor
+  Trace("cegqi-dt-debug") << "try based on constructors in equivalence class." << std::endl;
+  //look in equivalence class for a constructor
   for( unsigned k=0; k<eqc.size(); k++ ){
     Node n = eqc[k];
     if( n.getKind()==APPLY_CONSTRUCTOR ){
@@ -1523,21 +1523,6 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
 
   if (!vars.empty())
   {
-    // do subs -> vars
-    for (unsigned i = 0; i < lems.size(); i++)
-    {
-      Node slem = lems[i].substitute(
-          subs.begin(), subs.end(), vars.begin(), vars.end());
-      if (slem != lems[i])
-      {
-        slem = Rewriter::rewrite( slem );
-        Trace("cegqi-bv-pp-debug") << "Substitution applied to lemma # " << i
-                                   << " : " << std::endl;
-        Trace("cegqi-bv-pp-debug") << "   " << lems[i] << std::endl;
-        Trace("cegqi-bv-pp-debug") << "-> " << slem << std::endl;
-        //lems[i] = slem;
-      }
-    }
     Trace("cegqi-bv-pp") << "Adding " << new_lems.size() << " lemmas..."
                                << std::endl;
     lems.insert(lems.end(), new_lems.begin(), new_lems.end());
