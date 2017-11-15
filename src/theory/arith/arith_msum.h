@@ -140,7 +140,7 @@ class ArithMSum
    *                   or (val <k> [veq_c] * v) if !veq_c.isNull().
    * If doCoeff = false or v does not have Integer type, then veq_c is null.
    *
-   * This function returns 0 indiciating a failure if msum does not contain
+   * This function returns 0 indicating a failure if msum does not contain
    * a (non-zero) monomial having variable v, or if veq_c must be non-null
    * for an integer constraint and doCoeff is false.
    */
