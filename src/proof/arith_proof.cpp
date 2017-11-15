@@ -67,26 +67,31 @@ inline static bool match(TNode n1, TNode n2) {
   return true;
 }
 
-
-void ProofArith::toStream(std::ostream& out) {
+void ProofArith::toStream(std::ostream& out) const
+{
   Trace("theory-proof-debug") << "; Print Arith proof..." << std::endl;
   //AJR : carry this further?
   ProofLetMap map;
   toStreamLFSC(out, ProofManager::getArithProof(), *d_proof, map);
 }
 
-void ProofArith::toStreamLFSC(std::ostream& out, TheoryProof* tp,
+void ProofArith::toStreamLFSC(std::ostream& out,
+                              TheoryProof* tp,
                               const theory::eq::EqProof& pf,
-                              const ProofLetMap& map) {
+                              const ProofLetMap& map)
+{
   Debug("lfsc-arith") << "Printing arith proof in LFSC : " << std::endl;
   pf.debug_print("lfsc-arith");
   Debug("lfsc-arith") << std::endl;
   toStreamRecLFSC(out, tp, pf, 0, map);
 }
 
-Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
-                                 const theory::eq::EqProof& pf, unsigned tb,
-                                 const ProofLetMap& map) {
+Node ProofArith::toStreamRecLFSC(std::ostream& out,
+                                 TheoryProof* tp,
+                                 const theory::eq::EqProof& pf,
+                                 unsigned tb,
+                                 const ProofLetMap& map)
+{
   Debug("pf::arith") << std::endl
                      << std::endl
                      << "toStreamRecLFSC called. tb = " << tb
