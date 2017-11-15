@@ -1322,6 +1322,10 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       }
 
       visited.top()[cur] = ret;
+    }else{
+      if( cur==pv ){
+        Trace("cegqi-bv-nl") << "NONLINEAR LITERAL for " << pv << " : " << lit << std::endl;
+      }
     }
   } while (!visit.top().empty());
   Assert(visited.size() == 1);
@@ -1531,11 +1535,8 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
                                    << " : " << std::endl;
         Trace("cegqi-bv-pp-debug") << "   " << lems[i] << std::endl;
         Trace("cegqi-bv-pp-debug") << "-> " << slem << std::endl;
-        lems[i] = slem;
+        //lems[i] = slem;
       }
-    }
-    for( unsigned i=0; i<subs.size(); i++ ){
-      new_lems.push_back( subs[i].eqNode( vars[i] ) );
     }
     Trace("cegqi-bv-pp") << "Adding " << new_lems.size() << " lemmas..."
                                << std::endl;
