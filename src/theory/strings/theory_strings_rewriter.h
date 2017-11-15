@@ -134,7 +134,7 @@ private:
    *     n1 = str.++( nr, n1' )
    *   If dir=-1
    *     n1 = str.++( n1', nr )
-   * If updates curr to curr' such that:
+   * It updates curr to curr' such that:
    *   curr' = curr - str.len( str.++( nr ) ), and
    *   curr' >= 0
    * where the latter fact is determined by checkArithEntail.
@@ -302,6 +302,13 @@ private:
    * then ret is a rational constant and
    * we know that n >= ret always if isLower is true,
    * or n <= ret if isLower is false.
+   * 
+   * Notice the following invariant. 
+   * If getConstantArithBound(a, true) = ret where ret is non-null, then for 
+   * strict = { true, false } :
+   *   ret >= strict ? 1 : 0
+   *     if and only if
+   *   checkEntailArith( a, strict ) = true.
    */
   static Node getConstantArithBound(Node a, bool isLower = true);
 };/* class TheoryStringsRewriter */

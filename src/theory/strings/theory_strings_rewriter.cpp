@@ -1350,13 +1350,14 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       unsigned start;
       if (node[1].getConst<Rational>() > RMAXINT)
       {
-        // start beyond the end of the string
+        // start beyond the maximum size of strings 
+        // thus, it must be beyond the end point of this string
         Node ret = NodeManager::currentNM()->mkConst(::CVC4::String(""));
         return returnRewrite(node, ret, "ss-const-start-max-oob");
       }
       else if (node[1].getConst<Rational>().sgn() < 0)
       {
-        // start at beginning of the string
+        // start before the beginning of the string
         Node ret = NodeManager::currentNM()->mkConst(::CVC4::String(""));
         return returnRewrite(node, ret, "ss-const-start-neg");
       }
@@ -1427,7 +1428,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
     std::vector<Node> childrenr;
     if (stripSymbolicLength(n1, childrenr, 1, curr))
     {
-      if (curr != zero)
+      if (curr != zero && !n1.empty())
       {
         childrenr.push_back(
             NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR,
@@ -2544,17 +2545,19 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
 
     // over approximation O/U
 
-    // O( x <op> y ) -> O( x ) <op> O( y )
-    // O( len( x ) ) -> ...
-    // O( len( int.to.str( x ) ) ) -> ...
+    // O( x + y ) -> O( x ) + O( y )
+    // O( c * x ) -> O( x ) if c > 0, U( x ) if c < 0
+    // O( len( x ) ) -> len( x )
+    // O( len( int.to.str( x ) ) ) -> len( int.to.str( x ) )
     // O( len( str.substr( x, n1, n2 ) ) ) -> O( n2 ) | O( len( x ) )
     // O( len( str.replace( x, y, z ) ) ) -> 
     //   O( len( x ) ) + O( len( z ) ) - U( len( y ) )
     // O( indexof( x, y, n ) ) -> O( len( x ) ) - U( len( y ) )
-    // O( str.to.int( x ) ) -> ...
+    // O( str.to.int( x ) ) -> str.to.int( x )
 
-    // U( x <op> y ) -> U( x ) <op> U( y )
-    // U( len( x ) ) -> ...
+    // U( x + y ) -> U( x ) + U( y )
+    // U( c * x ) -> U( x ) if c > 0, O( x ) if c < 0
+    // U( len( x ) ) -> len( x )
     // U( len( int.to.str( x ) ) ) -> 1
     // U( len( str.substr( x, n1, n2 ) ) ) -> 
     //   min( U( len( x ) ) - O( n1 ), U( n2 ) )
@@ -2570,27 +2573,30 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
 Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
 {
   Assert(Rewriter::rewrite(a) == a);
-  // check whether a >= 0
+  Node ret;
   if (a.isConst())
   {
-    return a;
+    ret = a;
   }
   else if (a.getKind() == kind::STRING_LENGTH)
   {
     if (isLower)
     {
-      return NodeManager::currentNM()->mkConst(Rational(0));
+      ret = NodeManager::currentNM()->mkConst(Rational(0));
     }
   }
   else if (a.getKind() == kind::PLUS || a.getKind() == kind::MULT)
   {
     std::vector<Node> children;
+    bool success = true;
     for (unsigned i = 0; i < a.getNumChildren(); i++)
     {
       Node ac = getConstantArithBound(a[i], isLower);
       if (ac.isNull())
       {
-        return ac;
+        ret = ac;
+        success = false;
+        break;
       }
       else
       {
@@ -2598,7 +2604,9 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
         {
           if (a.getKind() == kind::MULT)
           {
-            return ac;
+            ret = ac;
+            success = false;
+            break;
           }
         }
         else
@@ -2607,31 +2615,36 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
           {
             if ((ac.getConst<Rational>().sgn() > 0) != isLower)
             {
-              return Node::null();
+              ret = Node::null();
+              success = false;
+              break;
             }
           }
           children.push_back(ac);
         }
       }
     }
-    Node ar;
-    if (children.empty())
-    {
-      ar = NodeManager::currentNM()->mkConst(Rational(0));
+    if( success ){
+      if (children.empty())
+      {
+        ret = NodeManager::currentNM()->mkConst(Rational(0));
+      }
+      else if (children.size() == 1)
+      {
+        ret = children[0];
+      }
+      else
+      {
+        ret = NodeManager::currentNM()->mkNode(a.getKind(), children);
+        ret = Rewriter::rewrite(ret);
+      }
     }
-    else if (children.size() == 1)
-    {
-      ar = children[0];
-    }
-    else
-    {
-      ar = NodeManager::currentNM()->mkNode(a.getKind(), children);
-      ar = Rewriter::rewrite(ar);
-    }
-    Assert(ar.isConst());
-    return ar;
   }
-  return Node::null();
+  Trace("strings-rewrite-cbound") << "Constant " << ( isLower ? "lower" : "upper" ) << " bound for " << a << " is " << ret << std::endl;
+  Assert( ret.isNull() || ret.isConst() );
+  Assert( !isLower || ( ret.isNull() || ret.getConst<Rational>().sgn()<0 )!=checkEntailArith( a, false ) );
+  Assert( !isLower || ( ret.isNull() || ret.getConst<Rational>().sgn()<=0 )!=checkEntailArith( a, true ) );
+  return ret;
 }
 
 bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
