@@ -91,7 +91,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
       {
         // subtract the other side
         std::map<Node, Node> msum2;
-        NodeManager * nm = NodeManager::currentNM();
+        NodeManager* nm = NodeManager::currentNM();
         if (getMonomialSum(lit[1], msum2))
         {
           for (std::map<Node, Node>::iterator it = msum2.begin();
@@ -103,20 +103,14 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
             {
               Node r = nm->mkNode(
                   MINUS,
-                  it2->second.isNull()
-                      ? nm->mkConst(Rational(1))
-                      : it2->second,
-                  it->second.isNull()
-                      ? nm->mkConst(Rational(1))
-                      : it->second);
+                  it2->second.isNull() ? nm->mkConst(Rational(1)) : it2->second,
+                  it->second.isNull() ? nm->mkConst(Rational(1)) : it->second);
               msum[it->first] = Rewriter::rewrite(r);
             }
             else
             {
-              msum[it->first] =
-                  it->second.isNull()
-                      ? nm->mkConst(Rational(-1))
-                      : negate(it->second);
+              msum[it->first] = it->second.isNull() ? nm->mkConst(Rational(-1))
+                                                    : negate(it->second);
             }
           }
           return true;
@@ -129,7 +123,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
 
 Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
   for (std::map<Node, Node>::const_iterator it = msum.begin(); it != msum.end();
        ++it)
@@ -137,7 +131,7 @@ Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
     Node m;
     if (!it->first.isNull())
     {
-      m = mkCoeffTerm( it->second, it->first );
+      m = mkCoeffTerm(it->second, it->first);
     }
     else
     {
@@ -148,9 +142,7 @@ Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
   }
   return children.size() > 1
              ? nm->mkNode(PLUS, children)
-             : (children.size() == 1
-                    ? children[0]
-                    : nm->mkConst(Rational(0)));
+             : (children.size() == 1 ? children[0] : nm->mkConst(Rational(0)));
 }
 
 int ArithMSum::isolate(
@@ -173,7 +165,7 @@ int ArithMSum::isolate(
           Node m;
           if (!it->first.isNull())
           {
-            m = mkCoeffTerm( it->second, it->first );
+            m = mkCoeffTerm(it->second, it->first);
           }
           else
           {
@@ -201,7 +193,7 @@ int ArithMSum::isolate(
               NodeManager::currentNM()->mkConst(Rational(1) / r.abs()));
         }
       }
-      val = r.sgn()==1 ? negate(val) : Rewriter::rewrite(val);
+      val = r.sgn() == 1 ? negate(val) : Rewriter::rewrite(val);
       return (r.sgn() == 1 || k == EQUAL) ? 1 : -1;
     }
   }

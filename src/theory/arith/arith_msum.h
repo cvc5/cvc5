@@ -115,7 +115,6 @@ class ArithMSum
     return c.isNull() ? t : NodeManager::currentNM()->mkNode(kind::MULT, c, t);
   }
 
-
   /** isolate variable v in constraint ([msum] <k> 0)
    *
    * If this function returns a value ret where ret != 0, then
