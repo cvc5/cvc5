@@ -276,13 +276,6 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int 
       ret = children[0];
     }else{
       ret = NodeManager::currentNM()->mkNode( ok, children );
-      /*
-      Node n = NodeManager::currentNM()->mkNode( APPLY, children );
-      //must expand definitions
-      Node ne = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( n.toExpr() ) );
-      Trace("sygus-db-debug") << "Expanded definitions in " << n << " to " << ne << std::endl;
-      return ne;
-      */
     }
   }
   Trace("sygus-db-debug") << "...returning " << ret << std::endl;
@@ -350,7 +343,6 @@ Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn, int rcons_depth ) {
     }else{
       int carg = getOpConsNum( tn, c );
       if( carg!=-1 ){
-        //sc = Node::fromExpr( dt[carg].getSygusOp() );
         sc = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[carg].getConstructor() ) );
       }else{
         //identity functions
@@ -1540,7 +1532,8 @@ void doStrReplace(std::string& str, const std::string& oldStr, const std::string
 
 Kind TermDbSygus::getOperatorKind( Node op ) {
   Assert( op.getKind()!=BUILTIN );
-  if( smt::currentSmtEngine()->isDefinedFunction( op.toExpr() ) ){
+  if( op.getKind()==LAMBDA || 
+      smt::currentSmtEngine()->isDefinedFunction( op.toExpr() ) ){
     return APPLY;
   }else{
     TypeNode tn = op.getType();
@@ -1550,6 +1543,8 @@ Kind TermDbSygus::getOperatorKind( Node op ) {
       return APPLY_SELECTOR;
     }else if( tn.isTester() ){
       return APPLY_TESTER;
+    }else if( tn.isFunction() ){
+      return APPLY_UF;
     }else{
       return NodeManager::operatorToKind( op );
     }
