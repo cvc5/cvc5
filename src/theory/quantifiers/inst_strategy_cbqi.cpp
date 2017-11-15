@@ -53,14 +53,15 @@ bool InstStrategyCbqi::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_LAST_CALL;
 }
 
-unsigned InstStrategyCbqi::needsModel( Theory::Effort e ) {
+QuantifiersModule::QEffort InstStrategyCbqi::needsModel(Theory::Effort e)
+{
   for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
-      return QuantifiersEngine::QEFFORT_STANDARD;
+      return QEFFORT_STANDARD;
     }
   }
-  return QuantifiersEngine::QEFFORT_NONE;
+  return QEFFORT_NONE;
 }
 
 bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
@@ -239,8 +240,10 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
   processResetInstantiationRound( effort );
 }
 
-void InstStrategyCbqi::check( Theory::Effort e, unsigned quant_e ) {
-  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+void InstStrategyCbqi::check(Theory::Effort e, QEffort quant_e)
+{
+  if (quant_e == QEFFORT_STANDARD)
+  {
     Assert( !d_quantEngine->inConflict() );
     double clSet = 0;
     if( Trace.isOn("cbqi-engine") ){

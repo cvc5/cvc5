@@ -623,7 +623,12 @@ bool InstPropagator::reset( Theory::Effort e ) {
   return d_qy.reset( e );
 }
 
-bool InstPropagator::notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) {
+bool InstPropagator::notifyInstantiation(QuantifiersModule::QEffort quant_e,
+                                         Node q,
+                                         Node lem,
+                                         std::vector<Node>& terms,
+                                         Node body)
+{
   if( !d_conflict ){
     if( Trace.isOn("qip-prop") ){
       Trace("qip-prop") << "InstPropagator:: Notify instantiation " << q << " : " << std::endl;

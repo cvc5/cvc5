@@ -350,8 +350,10 @@ bool BoundedIntegers::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
-void BoundedIntegers::check( Theory::Effort e, unsigned quant_e ) {
-  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
+{
+  if (quant_e == QEFFORT_STANDARD)
+  {
     Trace("bint-engine") << "---Bounded Integers---" << std::endl;
     bool addedLemma = false;
     //make sure proxies are up-to-date with range
