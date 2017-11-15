@@ -103,6 +103,27 @@ class SygusNamedConstructorPrinter : public SygusDatatypeConstructorPrinter
   std::string d_name;
 };
 
+/** sygus empty printer
+ *
+ * This callback is used for printing constructors whose operators are 
+ * implicit, such as identity functions. For example, for grammar :
+ *   A -> B
+ *   B -> x | 0 | 1
+ * The first constructor of A, call it cons, has sygus operator (lambda (x) x).
+ * Call toStreamSygus on cons( t ) should call toStreamSygus on t directly.
+ */
+class SygusEmptyConstructorPrinter : public SygusDatatypeConstructorPrinter
+{
+ public:
+  SygusEmptyConstructorPrinter(std::string name);
+  ~SygusEmptyConstructorPrinter() {}
+  /** print sygus term e on output out using printer p */
+  virtual void toStreamSygus(const Printer* p,
+                             std::ostream& out,
+                             Expr e) const override;
+};
+
+
 } /* CVC4::printer namespace */
 } /* CVC4 namespace */
 

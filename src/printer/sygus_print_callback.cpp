@@ -126,5 +126,16 @@ void SygusNamedConstructorPrinter::toStreamSygus(Printer* p,
   }
 }
 
+void SygusEmptyConstructorPrinter::toStreamSygus(const Printer* p,
+                   std::ostream& out,
+                   Expr e) 
+{
+  if( e.getNumChildren()==1 ){
+    p->toStreamSygus(out,e[0]);
+  }else{
+    Assert(false);
+  }
+}
+                             
 } /* CVC4::printer namespace */
 } /* CVC4 namespace */
