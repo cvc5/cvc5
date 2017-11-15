@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CEG_CEG_INSTANTIATOR_H
-#define __CVC4__CEG_CEG_INSTANTIATOR_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__CEG_INSTANTIATOR_H
+#define __CVC4__THEORY__QUANTIFIERS__CEG_INSTANTIATOR_H
 
 #include "theory/quantifiers_engine.h"
 #include "util/statistics_registry.h"
