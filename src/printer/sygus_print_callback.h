@@ -105,7 +105,7 @@ class SygusNamedConstructorPrinter : public SygusDatatypeConstructorPrinter
 
 /** sygus empty printer
  *
- * This callback is used for printing constructors whose operators are 
+ * This callback is used for printing constructors whose operators are
  * implicit, such as identity functions. For example, for grammar :
  *   A -> B
  *   B -> x | 0 | 1
@@ -122,7 +122,6 @@ class SygusEmptyConstructorPrinter : public SygusDatatypeConstructorPrinter
                              std::ostream& out,
                              Expr e) const override;
 };
-
 
 } /* CVC4::printer namespace */
 } /* CVC4 namespace */
