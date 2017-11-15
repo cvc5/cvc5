@@ -14,8 +14,8 @@
 
 #include "theory/quantifiers/extended_rewrite.h"
 
+#include "theory/arith/arith_msum.h"
 #include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/quantifiers/quant_util.h"  // for QuantArith
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_rewriter.h"
 
@@ -258,7 +258,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
                                       << std::endl;
         // compute monomial sum
         std::map<Node, Node> msum;
-        if (QuantArith::getMonomialSumLit(ret_atom, msum))
+        if (ArithMSum::getMonomialSumLit(ret_atom, msum))
         {
           for (std::map<Node, Node>::iterator itm = msum.begin();
                itm != msum.end();
@@ -270,7 +270,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
             if (v.getKind() == ITE)
             {
               Node veq;
-              int res = QuantArith::isolate(v, msum, veq, ret_atom.getKind());
+              int res = ArithMSum::isolate(v, msum, veq, ret_atom.getKind());
               if (res != 0)
               {
                 Trace("q-ext-rewrite-debug")

@@ -12,6 +12,7 @@
  ** \brief Implementation of relevant domain class
  **/
 
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_database.h"
@@ -245,7 +246,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
         //solve the inequality for one/two variables, if possible
         if( n[0].getType().isReal() ){
           std::map< Node, Node > msum;
-          if( QuantArith::getMonomialSumLit( n, msum ) ){
+          if( ArithMSum::getMonomialSumLit( n, msum ) ){
             Node var;
             Node var2;
             bool hasNonVar = false;
@@ -267,7 +268,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
                 //single variable solve
                 Node veq_c;
                 Node val;
-                int ires = QuantArith::isolate( var, msum, veq_c, val, n.getKind() );
+                int ires = ArithMSum::isolate( var, msum, veq_c, val, n.getKind() );
                 if( ires!=0 ){
                   if( veq_c.isNull() ){
                     r_add = val;
@@ -302,10 +303,10 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
       if( ( !hasPol || pol ) && n[0].getType().isInteger() ){
         if( n.getKind()==EQUAL ){
           for( unsigned i=0; i<2; i++ ){
-            d_rel_dom_lit[hasPol][pol][n].d_val.push_back( QuantArith::offset( r_add, i==0 ? 1 : -1 )  );
+            d_rel_dom_lit[hasPol][pol][n].d_val.push_back( ArithMSum::offset( r_add, i==0 ? 1 : -1 )  );
           }
         }else if( n.getKind()==GEQ ){
-          d_rel_dom_lit[hasPol][pol][n].d_val.push_back( QuantArith::offset( r_add, varLhs ? 1 : -1 ) );
+          d_rel_dom_lit[hasPol][pol][n].d_val.push_back( ArithMSum::offset( r_add, varLhs ? 1 : -1 ) );
         }
       }
     }else{
