@@ -517,14 +517,14 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
-    if( Trace.isOn("cbqi-inst") ){
+    if( Trace.isOn("cbqi-inst-debug") ){
       for( unsigned j=0; j<sf.d_subs.size(); j++ ){
-        Trace("cbqi-inst") << " ";
+        Trace("cbqi-inst-debug") << " ";
       }
-      Trace("cbqi-inst") << sf.d_subs.size() << ": (" << d_curr_iphase[pv]
+      Trace("cbqi-inst-debug") << sf.d_subs.size() << ": (" << d_curr_iphase[pv]
                          << ") ";
       Node mod_pv = pv_prop.getModifiedTerm( pv );
-      Trace("cbqi-inst") << mod_pv << " -> " << n << std::endl;
+      Trace("cbqi-inst-debug") << mod_pv << " -> " << n << std::endl;
       Assert( n.getType().isSubtypeOf( pv.getType() ) );
     }
     //must ensure variables have been computed for n
@@ -656,12 +656,13 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
   }
   if (Trace.isOn("cbqi-inst"))
   {
-    Trace("cbqi-inst") << "Finalized instantiation : " << std::endl;
+    Trace("cbqi-inst") << "Ceg Instantiator produced : " << std::endl;
     for (unsigned i = 0; i < d_input_vars.size(); i++)
     {
-      Trace("cbqi-inst") << i << ": " << d_input_vars[i] << " -> " << subs[i]
-                         << std::endl;
-      Assert(subs[i].getType().isSubtypeOf(d_input_vars[i].getType()));
+      Node v = d_input_vars[i];
+      Trace("cbqi-inst") << i << " (" << d_curr_iphase[v] << ") : " 
+                         << v << " -> " << subs[i] << std::endl;
+      Assert(subs[i].getType().isSubtypeOf(v.getType()));
     }
   }
   Trace("cbqi-inst-debug") << "Do the instantiation...." << std::endl;

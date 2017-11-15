@@ -1167,18 +1167,6 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
             Trace("cegqi-bv") << "   ...with slack value : " << curr_slack_val
                               << std::endl;
           }
-          // process information about solved status
-          std::unordered_map<unsigned, BvInverterStatus>::iterator its =
-              d_inst_id_to_status.find(inst_id);
-          Assert(its != d_inst_id_to_status.end());
-          if (!its->second.d_conds.empty()) {
-            Trace("cegqi-bv") << "   ...with " << its->second.d_conds.size()
-                              << " side conditions : " << std::endl;
-            for (unsigned k = 0; k < its->second.d_conds.size(); k++) {
-              Node cond = its->second.d_conds[k];
-              Trace("cegqi-bv") << "       " << cond << std::endl;
-            }
-          }
           Trace("cegqi-bv") << std::endl;
         }
 
