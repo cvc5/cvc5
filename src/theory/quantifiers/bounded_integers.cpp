@@ -350,8 +350,10 @@ bool BoundedIntegers::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
-void BoundedIntegers::check( Theory::Effort e, unsigned quant_e ) {
-  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
+{
+  if (quant_e == QEFFORT_STANDARD)
+  {
     Trace("bint-engine") << "---Bounded Integers---" << std::endl;
     bool addedLemma = false;
     //make sure proxies are up-to-date with range
@@ -739,14 +741,8 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
     Trace("bound-int-rsi") << "Look up the value for " << d_set[q][i] << " " << i << std::endl;
     int v = rsi->getVariableOrder( i );
     Assert( q[0][v]==d_set[q][i] );
-    Node t = rsi->getCurrentTerm( v );
+    Node t = rsi->getCurrentTerm(v, true);
     Trace("bound-int-rsi") << "term : " << t << std::endl;
-    Node tt = rsi->d_rep_set->getTermForRepresentative(t);
-    if (!tt.isNull())
-    {
-      t = tt;
-      Trace("bound-int-rsi") << "term (post-rep) : " << t << std::endl;
-    }
     vars.push_back( d_set[q][i] );
     subs.push_back( t );
   }

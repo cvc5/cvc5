@@ -20,6 +20,7 @@
 #define __CVC4__THEORY_ENGINE_H
 
 #include <deque>
+#include <memory>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -63,8 +64,7 @@ struct NodeTheoryPair {
   size_t timestamp;
   NodeTheoryPair(TNode node, theory::TheoryId theory, size_t timestamp = 0)
   : node(node), theory(theory), timestamp(timestamp) {}
-  NodeTheoryPair()
-  : theory(theory::THEORY_LAST) {}
+  NodeTheoryPair() : theory(theory::THEORY_LAST), timestamp() {}
   // Comparison doesn't take into account the timestamp
   bool operator == (const NodeTheoryPair& pair) const {
     return node == pair.node && theory == pair.theory;
@@ -266,7 +266,8 @@ class TheoryEngine {
       }
     }
 
-    void conflict(TNode conflictNode, Proof* pf = nullptr) override;
+    void conflict(TNode conflictNode,
+                  std::unique_ptr<Proof> pf = nullptr) override;
     bool propagate(TNode literal) override;
 
     theory::LemmaStatus lemma(TNode lemma, ProofRule rule,
