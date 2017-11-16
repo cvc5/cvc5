@@ -23,15 +23,19 @@ using namespace std;
 namespace CVC4 {
 namespace printer {
 
-SygusLetExprPrintCallback::SygusLetExprPrintCallback(
-    Expr let_body, std::vector<Expr>& let_args, unsigned ninput_args) :
-d_let_body(let_body),
-d_num_let_input_args(ninput_args)
-{
-  d_let_args.insert(d_let_args.end(),let_args.begin(),let_args.end());
+SygusExprPrintCallback::SygusExprPrintCallback(Expr body, std::vector<Expr>& args) :
+d_body(body),
+d_body_argument(-1){
+  d_args.insert(d_args.end(),args.begin(),args.end());
+  for (unsigned i = 0; i < d_args.size(); i++)
+  {
+    if( d_args[i]==d_body ){
+      d_body_argument = static_cast<int>(i);      
+    }
+  }
 }
 
-void SygusLetExprPrintCallback::doStrReplace(
+void SygusExprPrintCallback::doStrReplace(
     std::string& str, const std::string& oldStr, const std::string& newStr) const
 {
   size_t pos = 0;
@@ -40,6 +44,56 @@ void SygusLetExprPrintCallback::doStrReplace(
     str.replace(pos, oldStr.length(), newStr);
     pos += newStr.length();
   }
+}
+
+void SygusExprPrintCallback::toStreamSygus(const Printer* p,
+                                                         std::ostream& out,
+                                                         Expr e) const
+{
+  // optimization: if body is equal to an argument, then just print that one
+  if( d_body_argument>=0 ){
+    p->toStreamSygus(out, Node::fromExpr(e[d_body_argument]));
+  }else{
+    // make substitution
+    std::vector<Node> vars;
+    std::vector<Node> subs;
+    for (unsigned i = 0; i < d_args.size(); i++)
+    {
+      vars.push_back( Node::fromExpr( d_args[i] ) );
+      std::stringstream ss;
+      ss << "_setpc_var_" << i;
+      Node lv = NodeManager::currentNM()->mkBoundVar(ss.str(), TypeNode::fromType(d_args[i].getType()));
+      subs.push_back( lv );
+    }
+    
+    // the substituted body should be a non-sygus term
+    Node sbody = Node::fromExpr( d_body );
+    sbody = sbody.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+    
+    std::stringstream body_out;
+    body_out << sbody;
+    
+    // do string substitution
+    Assert(e.getNumChildren()==d_args.size());
+    std::string str_body = body_out.str();
+    for (unsigned i = 0; i < d_args.size(); i++)
+    {
+      std::stringstream old_str;
+      old_str << subs[i];
+      std::stringstream new_str;
+      p->toStreamSygus(new_str, Node::fromExpr(e[i]));
+      doStrReplace(str_body, old_str.str().c_str(), new_str.str().c_str());
+    }
+    out << str_body;
+  }
+}
+  
+SygusLetExprPrintCallback::SygusLetExprPrintCallback(
+    Expr let_body, std::vector<Expr>& let_args, unsigned ninput_args) :
+SygusExprPrintCallback(let_body,let_args),
+d_num_let_input_args(ninput_args)
+{
+  
 }
 
 void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
@@ -54,9 +108,9 @@ void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
   }
   std::vector<Node> subs_lvs;
   std::vector<Node> new_lvs;
-  for (unsigned i = 0; i < d_let_args.size(); i++)
+  for (unsigned i = 0; i < d_args.size(); i++)
   {
-    Node v = d_let_args[i];
+    Node v = d_args[i];
     subs_lvs.push_back(v);
     std::stringstream ss;
     ss << "_l_" << new_lvs.size();
@@ -77,7 +131,7 @@ void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
     let_out << ") ";
   }
   // print the body
-  Node slet_body = Node::fromExpr( d_let_body );
+  Node slet_body = Node::fromExpr( d_body );
   slet_body = slet_body.substitute(
       subs_lvs.begin(), subs_lvs.end(), new_lvs.begin(), new_lvs.end());
   //new_lvs.insert(new_lvs.end(), lvs.begin(), lvs.end());
@@ -90,7 +144,7 @@ void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
   // ASSUMING : let_vars are interpreted literally and do not represent a class
   // of variables
   std::string lbody = let_out.str();
-  for (unsigned i = 0; i < d_let_args.size(); i++)
+  for (unsigned i = 0; i < d_args.size(); i++)
   {
     std::stringstream old_str;
     old_str << new_lvs[i];
@@ -101,7 +155,7 @@ void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
     }
     else
     {
-      new_str << d_let_args[i];
+      new_str << d_args[i];
     }
     doStrReplace(lbody, old_str.str().c_str(), new_str.str().c_str());
   }
@@ -111,6 +165,7 @@ void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
 SygusNamedPrintCallback::SygusNamedPrintCallback(std::string name)
     : d_name(name)
 {
+  
 }
 
 void SygusNamedPrintCallback::toStreamSygus(const Printer* p,

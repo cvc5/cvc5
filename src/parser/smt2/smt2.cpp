@@ -981,12 +981,19 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       Expr body = getExprManager()->mkExpr( sk, children );
       Debug("parser-sygus") << ": new body of function is " << body << std::endl;
       // TODO : expand definitions in body
+      Expr ebody = body;
       
       // replace by lambda
-      ops[i] = getExprManager()->mkExpr( kind::LAMBDA, lbvl, body );
+      ops[i] = getExprManager()->mkExpr( kind::LAMBDA, lbvl, ebody );
       
-      // empty sygus callback (should not be printed)
-      printer::SygusEmptyPrintCallback* sepc = new printer::SygusEmptyPrintCallback;
+      Debug("parser-sygus") << ": operator is " << ops[i] << std::endl;
+      
+      // expression 
+      //printer::SygusExprPrintCallback* sepc = new printer::SygusExprPrintCallback( body, largs );
+      printer::SygusEmptyPrintCallback* sepc = nullptr; //new printer::SygusEmptyPrintCallback;
+      
+      
+      Debug("parser-sygus") << ": finished making print callback" << std::endl;
 
       std::stringstream ss;
       ss << dt.getName() << "_df_" << i;

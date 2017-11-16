@@ -25,6 +25,48 @@
 namespace CVC4 {
 namespace printer {
 
+/** sygus expression constructor printer
+ *
+ * This class is used for printing sygus datatype constructor terms whose top 
+ * symbol is an expression, such as a custom defined lambda. For example, for 
+ * sygus grammar: 
+ *    A -> (+ x A B) | x | y
+ *    B -> 0 | 1
+ * The first constructor, call it C_f for A takes two arguments (A, B) and has 
+ * sygus operator
+ *   (lambda ((z Int) (w Int)) (+ x z w))
+ * For this operator, we set a print callback that prints, e.g. the term 
+ *   C_f( t1, t2 )
+ * is printed as:
+ *   "(+ x [out1] [out2])"
+ * where out1 is the result of p->toStreamSygus(out,t1) and
+ *       out2 is the result of p->toStreamSygus(out,t2).
+ */
+class CVC4_PUBLIC SygusExprPrintCallback : public SygusPrintCallback
+{
+ public:
+  SygusExprPrintCallback(Expr body, std::vector<Expr>& args);
+  ~SygusExprPrintCallback() {}
+  /** print sygus term e on output out using printer p */
+  virtual void toStreamSygus(const Printer* p,
+                             std::ostream& out,
+                             Expr e) const override;
+
+ protected:
+  /** body of the sygus term */
+  Expr d_body;
+  /** arguments */
+  std::vector<Expr> d_args;
+  /** body argument */
+  int d_body_argument;
+  /** do string replace
+   * Replaces all occurrences of oldStr with newStr in str.
+   */
+  void doStrReplace(std::string& str,
+                    const std::string& oldStr,
+                    const std::string& newStr) const;
+};
+  
 /** sygus let expression constructor printer
  *
  * This class is used for printing sygus
@@ -34,8 +76,8 @@ namespace printer {
  *   A -> (let ((x B)) (+ A 1)) | x | (+ A A) | 0
  *   B -> 0 | 1
  * the first constructor for A takes as arguments
- * (B,A) and has operator
- *   (lambda ((y B) (z A)) (+ z 1))
+ * (B,A) and has sygus operator
+ *   (lambda ((y Int) (z Int)) (+ z 1))
  * CVC4's support for let expressions in grammars
  * is highly limited, since notice that the
  * argument y : B is unused.
@@ -47,7 +89,7 @@ namespace printer {
  *     y is an original input argument of the
  *     let expression, but z is not.
  */
-class CVC4_PUBLIC SygusLetExprPrintCallback : public SygusPrintCallback
+class CVC4_PUBLIC SygusLetExprPrintCallback : public SygusExprPrintCallback
 {
  public:
   SygusLetExprPrintCallback(Expr let_body,
@@ -60,18 +102,8 @@ class CVC4_PUBLIC SygusLetExprPrintCallback : public SygusPrintCallback
                              Expr e) const override;
 
  private:
-  /** let body of the sygus term */
-  Expr d_let_body;
-  /** let arguments */
-  std::vector<Expr> d_let_args;
   /** number of arguments that are interpreted as input arguments */
   unsigned d_num_let_input_args;
-  /** do string replace
-   * Replaces all occurrences of oldStr with newStr in str.
-   */
-  void doStrReplace(std::string& str,
-                    const std::string& oldStr,
-                    const std::string& newStr) const;
 };
 
 /** sygus named constructor printer

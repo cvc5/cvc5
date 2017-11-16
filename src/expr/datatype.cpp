@@ -214,7 +214,7 @@ void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vect
   CVC4::Expr let_body; 
   std::vector< CVC4::Expr > let_args; 
   unsigned let_num_input_args = 0;
-  addSygusConstructor( op, cname, cargs, let_body, let_args, let_num_input_args );
+  addSygusConstructor( op, cname, cargs, let_body, let_args, let_num_input_args, spc );
 }
                                     
 void Datatype::setTuple() {
@@ -913,7 +913,8 @@ unsigned DatatypeConstructor::getNumSygusLetInputArgs() const {
 
 bool DatatypeConstructor::isSygusIdFunc() const {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-  return d_sygus_let_args.size()==1 && d_sygus_let_args[0]==d_sygus_let_body;
+  return ( d_sygus_let_args.size()==1 && d_sygus_let_args[0]==d_sygus_let_body ) ||
+         ( d_sygus_op.getKind()==kind::LAMBDA && d_sygus_op[0].getNumChildren()==1 && d_sygus_op[0][0]==d_sygus_op[1] );
 }
 
 SygusPrintCallback* DatatypeConstructor::getSygusPrintCallback() const
