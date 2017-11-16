@@ -5294,7 +5294,8 @@ UnsatCore SmtEngine::getUnsatCore() {
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-Proof* SmtEngine::getProof() {
+const Proof& SmtEngine::getProof()
+{
   Trace("smt") << "SMT getProof()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();

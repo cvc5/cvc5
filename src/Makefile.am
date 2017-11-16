@@ -449,6 +449,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
 	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/extended_rewrite.cpp \
+	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/first_order_model.cpp \
 	theory/quantifiers/first_order_model.h \
 	theory/quantifiers/full_model_check.cpp \
@@ -503,6 +505,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/skolemize.h \
 	theory/quantifiers/sygus_explain.cpp \
 	theory/quantifiers/sygus_explain.h \
+	theory/quantifiers/sygus_invariance.cpp \
+	theory/quantifiers/sygus_invariance.h \
 	theory/quantifiers/sygus_grammar_cons.cpp \
 	theory/quantifiers/sygus_grammar_cons.h \
 	theory/quantifiers/sygus_process_conj.cpp \
