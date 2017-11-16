@@ -19,6 +19,7 @@
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus_process_conj.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -101,7 +102,7 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
     }else{
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
-      // TODO (#1210) : get arg irrelevant based on conjecture-specific analysis
+      d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
       std::unordered_set<Node, NodeHashFunction> term_irrelevant;
       // convert to term
       for (std::unordered_set<unsigned>::iterator ita = arg_irrelevant.begin();
