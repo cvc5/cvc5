@@ -185,6 +185,7 @@ void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vect
                                     CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args,
                                     SygusPrintCallback * spc ) {
   Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
+  Debug("dt-sygus") << "    sygus op : " << op << std::endl;
   if( !let_body.isNull() ){
     Debug("dt-sygus") << "    let body = " << let_body << ", args = " << let_args.size() << "," << let_num_input_args << std::endl;
     //TODO : remove arguments not occurring in body
