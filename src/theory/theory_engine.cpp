@@ -202,7 +202,8 @@ bool TheoryEngine::EngineOutputChannel::propagate(TNode literal) {
 }
 
 void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
-                                                 Proof* proof) {
+                                                 std::unique_ptr<Proof> proof)
+{
   Trace("theory::conflict")
       << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
       << ")" << std::endl;
