@@ -55,6 +55,9 @@ typedef expr::Attribute< SygusAttributeId, bool > SygusAttribute;
 struct SynthesisAttributeId {};
 typedef expr::Attribute< SynthesisAttributeId, bool > SynthesisAttribute;
 
+struct InstLevelAttributeId {};
+typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
+
 namespace quantifiers {
 
 /** Attribute priority for rewrite rules */
@@ -150,7 +153,7 @@ public:
   static Node getFunDefBody( Node q );
   /** is quant elim annotation */
   static bool checkQuantElimAnnotation( Node ipl );
-
+  
   /** is conjecture */
   bool isConjecture( Node q );
   /** is axiom */
@@ -174,6 +177,11 @@ public:
   /** get quant id num */
   Node getQuantIdNumNode( Node q );
 
+  /** set instantiation level attr */
+  static void setInstantiationLevelAttr( Node n, uint64_t level );
+  /** set instantiation level attr */
+  static void setInstantiationLevelAttr( Node n, Node qn, uint64_t level );
+  
 private:
   /** pointer to quantifiers engine */
   QuantifiersEngine * d_quantEngine;

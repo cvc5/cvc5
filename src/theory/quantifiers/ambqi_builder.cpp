@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/ambqi_builder.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -165,7 +166,7 @@ bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, 
       return true;
     }else{
       if( depth==q[0].getNumChildren() ){
-        if( qe->addInstantiation( q, terms, true ) ){
+        if( qe->getInstantiate()->addInstantiation( q, terms, true ) ){
           Trace("ambqi-inst-debug") << "-> Added instantiation." << std::endl;
           inst++;
           return true;

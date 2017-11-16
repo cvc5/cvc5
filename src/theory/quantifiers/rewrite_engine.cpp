@@ -18,6 +18,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/inst_match_generator.h"
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -159,7 +160,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
                 if( inst.size()>f[0].getNumChildren() ){
                   inst.resize( f[0].getNumChildren() );
                 }
-                if( d_quantEngine->addInstantiation( f, inst ) ){
+                if( d_quantEngine->getInstantiate()->addInstantiation( f, inst ) ){
                   addedLemmas++;
                   tempAddedLemmas++;
                   /*

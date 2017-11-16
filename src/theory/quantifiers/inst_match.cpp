@@ -13,6 +13,8 @@
  **/
 
 #include "theory/quantifiers/inst_match.h"
+
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers_engine.h"
@@ -262,7 +264,7 @@ void InstMatchTrie::getInstantiations( std::vector< Node >& insts, Node q, std::
       if( hasInstLemma() ){
         insts.push_back( getInstLemma() );
       }else{
-        insts.push_back( qe->getInstantiation( q, terms, true ) );
+        insts.push_back( qe->getInstantiate()->getInstantiation( q, terms, true ) );
       }
     }
   }else{
@@ -442,7 +444,7 @@ void CDInstMatchTrie::getInstantiations( std::vector< Node >& insts, Node q, std
         if( hasInstLemma() ){
           insts.push_back( getInstLemma() );
         }else{
-          insts.push_back( qe->getInstantiation( q, terms, true ) );
+          insts.push_back( qe->getInstantiate()->getInstantiation( q, terms, true ) );
         }
       }
     }else{

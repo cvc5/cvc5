@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {

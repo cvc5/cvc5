@@ -19,6 +19,7 @@
 #include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database_sygus.h"
@@ -106,7 +107,7 @@ void CegConjecture::assign( Node q ) {
   }
   Trace("cegqi") << "Base quantified formula is : " << d_embed_quant << std::endl;
   //construct base instantiation
-  d_base_inst = Rewriter::rewrite( d_qe->getInstantiation( d_embed_quant, vars, d_candidates ) );
+  d_base_inst = Rewriter::rewrite( d_qe->getInstantiate()->getInstantiation( d_embed_quant, vars, d_candidates ) );
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
 
   // register this term with sygus database and other utilities that impact
@@ -222,7 +223,7 @@ void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
   getCandidateList( clist, true );
   Assert( clist.size()==d_quant[0].getNumChildren() );
   getModelValues( clist, model_terms );
-  if( d_qe->addInstantiation( d_quant, model_terms ) ){
+  if( d_qe->getInstantiate()->addInstantiation( d_quant, model_terms ) ){
     //record the instantiation
     recordInstantiation( model_terms );
   }else{

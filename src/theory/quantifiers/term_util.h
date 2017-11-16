@@ -34,9 +34,6 @@ typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
 struct BoundVarAttributeId {};
 typedef expr::Attribute<BoundVarAttributeId, Node> BoundVarAttribute;
 
-struct InstLevelAttributeId {};
-typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
-
 struct InstVarNumAttributeId {};
 typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 
@@ -101,12 +98,14 @@ namespace inst{
 namespace quantifiers {
 
 class TermDatabase;
+class Instantiate;
 
 // TODO : #1216 split this class, most of the functions in this class should be dispersed to where they are used.
 class TermUtil : public QuantifiersUtil
 {
   // TODO : remove these
   friend class ::CVC4::theory::QuantifiersEngine;
+  friend class Instantiate;
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;

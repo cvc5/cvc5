@@ -18,6 +18,7 @@
 #include "theory/quantifiers/ambqi_builder.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -295,7 +296,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;
           //add as instantiation
-          if( d_quantEngine->addInstantiation( f, m, true ) ){
+          if( d_quantEngine->getInstantiate()->addInstantiation( f, m, true ) ){
             addedLemmas++;
             if( d_quantEngine->inConflict() ){
               break;
