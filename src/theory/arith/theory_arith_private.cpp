@@ -2201,15 +2201,10 @@ bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool em
 
   if(!options::trySolveIntStandardEffort()){ return false; }
 
-  if (d_lastContextIntegerAttempted <= (level >> 2))
+  if (d_lastContextIntegerAttempted <= (level >> 2)
+      && Random::getRandom().pickWithProb(0.5))
   {
-    double d = (double)(d_solveIntMaybeHelp + 1)
-               / (d_solveIntAttempts + 1 + level * level);
-    double t = Random::getRandom().pickDouble(0.0, 1.0);
-    if (t < d)
-    {
-      return getSolveIntegerResource();
-    }
+    return getSolveIntegerResource();
   }
   return false;
 }
@@ -4815,13 +4810,10 @@ bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
   Debug("arith::prop")
     << "propagateCandidateRow " << instance << " attempt " << rowLength << " " <<  hasCount << endl;
 
-  if (rowLength >= options::arithPropagateMaxLength())
+  if (rowLength >= options::arithPropagateMaxLength()
+      && Random::getRandom().pickWithProb(0.5))
   {
-    if (Random::getRandom().pickDouble(0.0, 1.0)
-        >= double(options::arithPropagateMaxLength()) / rowLength)
-    {
-      return false;
-    }
+    return false;
   }
 
   if(hasCount.lowerBoundCount() == rowLength){

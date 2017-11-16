@@ -28,8 +28,7 @@ namespace CVC4 {
 class Random
 {
  public:
-  Random(const Random&) = delete;
-  void operator=(const Random&) = delete;
+  Random(uint64_t seed) : d_seed(seed), d_state(seed) {}
 
   /* Get current RNG (singleton).  */
   static Random& getRandom()
@@ -55,7 +54,6 @@ class Random
   bool pickWithProb(double probability);
 
  private:
-  Random(uint64_t seed) : d_seed(seed), d_state(seed) {}
   /* The seed of the RNG. */
   uint64_t d_seed;
   /* The current state of the RNG. */
