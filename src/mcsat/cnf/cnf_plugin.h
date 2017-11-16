@@ -33,7 +33,7 @@ class CNFPlugin : public SolverPlugin {
 public:
 
   /** Constructor */
-  CNFPlugin(ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request);
+  CNFPlugin(ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request, StatisticsRegistry* registry);
 
   /** Notified by the solver of new assertions */
   void notifyAssertion(TNode assertion);

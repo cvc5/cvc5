@@ -55,7 +55,7 @@ class FourierMotzkinRule : public ProofRule {
 public:
 
   /** Create a new Fourier-Motzkin resolution */
-  FourierMotzkinRule(ClauseDatabase& clauseDB, const SolverTrail& trail);
+  FourierMotzkinRule(ClauseDatabase& clauseDB, const SolverTrail& trail, StatisticsRegistry* registry);
 
   /** Start the resolution */
   void start(Literal ineq);
@@ -93,7 +93,7 @@ class FourierMotzkinRuleDiseq : public ProofRule {
 
 public:
 
-  FourierMotzkinRuleDiseq(ClauseDatabase& clauseDB, const SolverTrail& trail);
+  FourierMotzkinRuleDiseq(ClauseDatabase& clauseDB, const SolverTrail& trail, StatisticsRegistry* registry);
 
   /**
    * Do the disequality derivation.

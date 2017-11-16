@@ -6,7 +6,7 @@
 #include "context/cdo.h"
 #include "context/cdlist.h"
 #include "util/statistics_registry.h"
-#include "util/selective_skolemization.h"
+#include "mcsat/util/selective_skolemization.h" //TODO REPLACEMENT
 
 #include "mcsat/solver_trail.h"
 #include "mcsat/clause/clause_db.h"
@@ -14,13 +14,19 @@
 #include "mcsat/rules/resolution_rule.h"
 #include "mcsat/util/var_priority_queue.h"
 
-#include "util/ite_removal.h"
+// possible replacment/redundancy? #include "smt/term_formula_removal.h"
+#include "mcsat/util/ite_removal.h"
+
+#include <unordered_map>
+#include <unordered_set>
+
 
 namespace CVC4 {
 namespace mcsat {
 
 /** Statistics for the bas Solver */
 struct SolverStats {
+  StatisticsRegistry* d_registry;
   /** Number of conflicts */
   IntStat conflicts;
   /** Number of decisions */
@@ -30,23 +36,24 @@ struct SolverStats {
   /** NUmber of GC calls */
   IntStat gc;
   
-  SolverStats() 
-  : conflicts("mcsat::solver::conflicts", 0)
+  SolverStats(StatisticsRegistry* registry)
+  : d_registry(registry)
+  , conflicts("mcsat::solver::conflicts", 0)
   , decisions("mcsat::solver::decisions", 0)
   , restarts("mcsat::solver::restarts", 0)
   , gc("mcsat::solver::gc", 0)
   {
-    StatisticsRegistry::registerStat(&conflicts);  
-    StatisticsRegistry::registerStat(&decisions);  
-    StatisticsRegistry::registerStat(&restarts);
-    StatisticsRegistry::registerStat(&gc);
+    d_registry->registerStat(&conflicts);  
+    d_registry->registerStat(&decisions);  
+    d_registry->registerStat(&restarts);
+    d_registry->registerStat(&gc);
   }
   
   ~SolverStats() {
-    StatisticsRegistry::unregisterStat(&conflicts);  
-    StatisticsRegistry::unregisterStat(&decisions);  
-    StatisticsRegistry::unregisterStat(&restarts);
-    StatisticsRegistry::unregisterStat(&gc);
+    d_registry->unregisterStat(&conflicts);  
+    d_registry->unregisterStat(&decisions);  
+    d_registry->unregisterStat(&restarts);
+    d_registry->unregisterStat(&gc);
   }
 };
 
@@ -76,6 +83,8 @@ public:
   void addPlugin(std::string plugin);
 
 private:
+ 
+  StatisticsRegistry* d_registry;
 
   /** Solver statistics */
   SolverStats d_stats;
@@ -181,7 +190,7 @@ private:
   }
 
   /** Scores of learnt clauses */
-  std::hash_map<CRef, double, CRefHashFunction> d_learntClausesScore;
+  std::unordered_map<CRef, double, CRefHashFunction> d_learntClausesScore;
 
   /** Maximal score */
   double d_learntClausesScoreMax;
@@ -225,7 +234,7 @@ private:
     VariableDatabase& d_varDb;
 
     /** Set of already visited nodes */
-    std::hash_set<TNode, TNodeHashFunction> d_visited;
+    std::unordered_set<TNode, TNodeHashFunction> d_visited;
 
     /** The list of all variables */
     std::vector<Variable> d_variables;

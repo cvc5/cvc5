@@ -3,7 +3,7 @@
 using namespace CVC4;
 using namespace mcsat;
 
-CVC4_THREADLOCAL(VariableDatabase*) VariableDatabase::s_current = 0;
+CVC4_THREAD_LOCAL VariableDatabase* VariableDatabase::s_current = 0;
 
 VariableDatabase::Backtracker::Backtracker(context::Context* context, VariableDatabase& db)
 : ContextNotifyObj(context)

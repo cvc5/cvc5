@@ -13,7 +13,7 @@ namespace rules {
  */
 class IntSplitRule : public ProofRule {
 public:
-  IntSplitRule(ClauseDatabase& clauseDB, const SolverTrail& trail);
+  IntSplitRule(ClauseDatabase& clauseDB, const SolverTrail& trail, StatisticsRegistry* registry);
   CRef split(Variable x, SolverTrail::PropagationToken& propToken);
 };
 

@@ -1,7 +1,7 @@
 #include "mcsat/fm/linear_constraint.h"
 #include "mcsat/variable/variable_db.h"
 #include "mcsat/solver_trail.h"
-#include "mcsat/options.h"
+#include "options/mcsat_options.h"
 
 #include "theory/rewriter.h"
 

@@ -12,7 +12,7 @@ namespace rules {
  */
 class AckermannRule : public ProofRule {
 public:
-  AckermannRule(ClauseDatabase& clauseDB, const SolverTrail& trail);
+  AckermannRule(ClauseDatabase& clauseDB, const SolverTrail& trail, StatisticsRegistry* registry);
   CRef apply(Variable f1, Variable f2, SolverTrail::PropagationToken& propToken, std::set<Variable>& out_vars);
 };
 

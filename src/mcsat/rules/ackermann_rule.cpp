@@ -5,8 +5,8 @@ using namespace CVC4;
 using namespace mcsat;
 using namespace rules;
 
-AckermannRule::AckermannRule(ClauseDatabase& clauseDB, const SolverTrail& trail) 
-: ProofRule("mcsat::ackermann_rule", clauseDB, trail)
+AckermannRule::AckermannRule(ClauseDatabase& clauseDB, const SolverTrail& trail, StatisticsRegistry* registry) 
+: ProofRule("mcsat::ackermann_rule", clauseDB, trail, registry)
 {
 }
 

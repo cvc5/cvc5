@@ -3,7 +3,7 @@
 # See src/options/base_options for a description of this file format
 #
 
-module MCSAT "mcsat/options.h" MCSAT framework
+module MCSAT "options/mcsat_options.h" MCSAT framework
 
 option mcsat --enable-mcsat/--disable-mcsat bool :default false :read-write
  turns on mcsat in the cvc4 main solver

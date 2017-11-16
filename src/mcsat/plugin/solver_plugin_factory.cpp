@@ -11,12 +11,12 @@
 using namespace CVC4;
 using namespace CVC4::mcsat;
 
-SolverPlugin* SolverPluginFactory::create(std::string name, ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request)
+SolverPlugin* SolverPluginFactory::create(std::string name, ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request, StatisticsRegistry* registry)
   throw(SolverPluginFactoryException)
 {
   ISolverPluginConstructor* constructor = SolverPluginRegistry::getConstructor(name);
   if (constructor) {
-    return constructor->construct(clauseDb, trail, request);
+    return constructor->construct(clauseDb, trail, request, registry);
   } else {
 
     std::stringstream ss;

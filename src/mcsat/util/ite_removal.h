@@ -20,13 +20,15 @@
 
 #include <vector>
 #include "expr/node.h"
-#include "util/dump.h"
+#include "smt/dump.h"
 #include "context/context.h"
 #include "context/cdhashmap.h"
+#include <unordered_map>
+
 
 namespace CVC4 {
 
-typedef std::hash_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
+typedef std::unordered_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
 
 class RemoveITE {
   typedef context::CDHashMap<Node, Node, NodeHashFunction> ITECache;

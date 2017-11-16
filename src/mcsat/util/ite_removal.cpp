@@ -16,10 +16,10 @@
 
 #include <vector>
 
-#include "util/ite_removal.h"
+#include "mcsat/util/ite_removal.h"
 #include "theory/rewriter.h"
-#include "expr/command.h"
-#include "theory/quantifiers/options.h"
+#include "smt/command.h"
+//#include "options/quantifier_options.h"
 
 using namespace CVC4;
 using namespace std;
@@ -99,7 +99,7 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
   }
 
   // If not an ITE, go deep
-  if( ( node.getKind() != kind::FORALL || options::iteRemoveQuant() ) &&
+  if( ( node.getKind() != kind::FORALL /*|| options::iteRemoveQuant() */ ) &&
       node.getKind() != kind::EXISTS &&
       node.getKind() != kind::REWRITE_RULE ) {
     std::vector< Node > newQuantVar;

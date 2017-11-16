@@ -2,9 +2,11 @@
 
 #include "cvc4_private.h"
 
-#include "util/tls.h"
+#include "base/tls.h"
 #include "context/context.h"
 #include "context/cdo.h"
+
+#include <unordered_map>
 
 #include "variable.h"
 
@@ -91,7 +93,7 @@ private:
   std::vector<TypeNode> d_variableTypes;
 
   /** Map from Types to type-id */
-  typedef std::hash_map<TypeNode, size_t, TypeNodeHashFunction> typenode_to_id_map;
+  typedef std::unordered_map<TypeNode, size_t, TypeNodeHashFunction> typenode_to_id_map;
   typenode_to_id_map d_typenodeToIdMap;
 
   /** Nodes of the variables */
@@ -100,7 +102,7 @@ private:
   /** Recylcling of variables */
   std::vector< std::vector<Variable> > d_variablesToRecycle;
 
-  typedef std::hash_map<TNode, Variable, TNodeHashFunction> node_to_variable_map;
+  typedef std::unordered_map<TNode, Variable, TNodeHashFunction> node_to_variable_map;
 
   /** Map from nodes to variable id's */
   node_to_variable_map d_nodeToVariableMap;
@@ -121,7 +123,7 @@ private:
   std::vector<INewVariableNotify*> d_cd_notifySubscribers;
 
   /** Clause database we're using */
-  static CVC4_THREADLOCAL(VariableDatabase*) s_current;
+  static CVC4_THREAD_LOCAL VariableDatabase* s_current;
   
   /** Pop notifications go through this class */
   class Backtracker : public context::ContextNotifyObj {

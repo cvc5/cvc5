@@ -1,13 +1,13 @@
 #include "solver.h"
 
-#include "mcsat/options.h"
+#include "options/mcsat_options.h"
 #include "mcsat/rules/proof_rule.h"
 #include "mcsat/plugin/solver_plugin_factory.h"
 
 #include "theory/theory.h"
 #include "theory/rewriter.h"
-#include "util/node_visitor.h"
-
+#include "smt_util/node_visitor.h"
+#include "smt/smt_statistics_registry.h"
 
 #include <algorithm>
 
@@ -65,11 +65,13 @@ void Solver::NewVariableNotify::newVariable(Variable var) {
 }
 
 Solver::Solver(context::UserContext* userContext, context::Context* searchContext) 
-: d_variableDatabase(searchContext)
+: d_registry(smtStatisticsRegistry())
+, d_stats(d_registry) 
+, d_variableDatabase(searchContext)
 , d_clauseFarm(searchContext)
 , d_clauseDatabase(d_clauseFarm.newClauseDB("problem_clauses"))
 , d_trail(searchContext)
-, d_rule_Resolution(d_clauseDatabase, d_trail)
+, d_rule_Resolution(d_clauseDatabase, d_trail, d_registry)
 , d_featuresDispatch(d_trail)
 , d_request(false)
 , d_backtrackRequested(false)
@@ -85,7 +87,7 @@ Solver::Solver(context::UserContext* userContext, context::Context* searchContex
 , d_learntsLimitInc(options::mcsat_learnts_limit_inc())
 , d_removeITE(userContext)
 , d_variableRegister(d_variableDatabase)
-, d_purifyRunner(userContext)
+, d_purifyRunner(userContext) 
 {
   // Repeatable
   srand(0);
@@ -120,6 +122,9 @@ void Solver::addAssertion(TNode assertion, bool process) {
   for (unsigned i = 0; i < assertionVector.size(); ++ i) {
     assertionVector[i] = theory::Rewriter::rewrite(assertionVector[i]);
   }
+
+
+  //TODO figure out what this is supposed to be, if anything
 
   // Purify any shared terms 
   d_purifyRunner.run(assertionVector);
@@ -430,7 +435,7 @@ bool Solver::check() {
 void Solver::addPlugin(std::string pluginId) {
 
   d_pluginRequests.push_back(new SolverPluginRequest(this));
-  SolverPlugin* plugin = SolverPluginFactory::create(pluginId, d_clauseDatabase, d_trail, *d_pluginRequests.back());
+  SolverPlugin* plugin = SolverPluginFactory::create(pluginId, d_clauseDatabase, d_trail, *d_pluginRequests.back(), d_registry);
   d_plugins.push_back(plugin);
   d_notifyDispatch.addPlugin(plugin);
   d_featuresDispatch.addPlugin(plugin);
@@ -594,7 +599,7 @@ void Solver::analyzeConflicts() {
 }
 
 void Solver::bumpClause(CRef cRef) {
-  std::hash_map<CRef, double, CRefHashFunction>::iterator find = d_learntClausesScore.find(cRef);
+  std::unordered_map<CRef, double, CRefHashFunction>::iterator find = d_learntClausesScore.find(cRef);
   
   if (find == d_learntClausesScore.end()) {
     return;
@@ -607,8 +612,8 @@ void Solver::bumpClause(CRef cRef) {
   }
 
   if (find->second > d_learntClausesScoreMaxBeforeScaling) {
-    std::hash_map<CRef, double, CRefHashFunction>::iterator it = d_learntClausesScore.begin();
-    std::hash_map<CRef, double, CRefHashFunction>::iterator it_end = d_learntClausesScore.begin();
+    std::unordered_map<CRef, double, CRefHashFunction>::iterator it = d_learntClausesScore.begin();
+    std::unordered_map<CRef, double, CRefHashFunction>::iterator it_end = d_learntClausesScore.begin();
     for (; it != it_end; ++ it)  {
       it->second /= d_learntClausesScoreMaxBeforeScaling;
     }
@@ -619,9 +624,9 @@ void Solver::bumpClause(CRef cRef) {
 
 struct learnt_cmp_by_score {
 
-  const std::hash_map<CRef, double, CRefHashFunction>& d_scoreMap;
+  const std::unordered_map<CRef, double, CRefHashFunction>& d_scoreMap;
 
-  learnt_cmp_by_score(const std::hash_map<CRef, double, CRefHashFunction>& map)
+  learnt_cmp_by_score(const std::unordered_map<CRef, double, CRefHashFunction>& map)
   : d_scoreMap(map)
   {}
 
@@ -726,9 +731,9 @@ void Solver::performGC() {
   // Clauses
   clauseRelocationInfo.relocate(d_learntClauses);
   // Clause scores
-  std::hash_map<CRef, double, CRefHashFunction> learntClausesScoreNew;
-  std::hash_map<CRef, double, CRefHashFunction>::const_iterator s_it = d_learntClausesScore.begin();
-  std::hash_map<CRef, double, CRefHashFunction>::const_iterator s_it_end = d_learntClausesScore.end();
+  std::unordered_map<CRef, double, CRefHashFunction> learntClausesScoreNew;
+  std::unordered_map<CRef, double, CRefHashFunction>::const_iterator s_it = d_learntClausesScore.begin();
+  std::unordered_map<CRef, double, CRefHashFunction>::const_iterator s_it_end = d_learntClausesScore.end();
   for (; s_it != s_it_end; ++ s_it) {
     CRef refNew = clauseRelocationInfo.relocate(s_it->first);
     if (!refNew.isNull()) {

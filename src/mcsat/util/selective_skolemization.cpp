@@ -16,7 +16,7 @@
 
 #include <vector>
 
-#include "util/selective_skolemization.h"
+#include "mcsat/util/selective_skolemization.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4;

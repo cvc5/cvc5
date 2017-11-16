@@ -92,6 +92,15 @@ endif
 		if test -x ../src/main/$$binary; then \
 			ln -sf ../src/main/$$binary \
 				. ; \
+		else \
+			rm -f "$$binary"; \
+		fi; \
+	done
+#	set up builds/doc and builds/examples
+	$(AM_V_at)rm -f bin; ln -sf $(CURRENT_BUILD)/bin bin
+	$(AM_V_at)rm -f lib; ln -sf $(CURRENT_BUILD)/lib lib
+	$(AM_V_at)rm -f doc; ln -sf $(CURRENT_BUILD)/doc doc
+	$(AM_V_at)rm -f examples; ln -sf $(CURRENT_BUILD)/examples examples
 
 # The descent into "src" with target "check" is to build check
 # prerequisites (e.g. CHECK_PROGRAMS, CHECK_LTLIBRARIES, ...).

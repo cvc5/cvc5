@@ -1,6 +1,6 @@
 #include "mcsat/util/var_priority_queue.h"
 #include "mcsat/variable/variable_db.h"
-#include "mcsat/options.h"
+#include "options/mcsat_options.h"
 
 #include <limits>
 
@@ -14,6 +14,8 @@ using namespace util;
 static unsigned leftChild(unsigned i)  { return 2*i+1; }
 static unsigned rightChild(unsigned i) { return 2*i+2; }
 static unsigned parent(unsigned i)     { Assert(i > 0); return (i-1)/2; }
+
+const unsigned VariablePriorityQueue::null_index = boost::integer_traits<unsigned>::const_max;
 
 VariablePriorityQueue::VariablePriorityQueue()
 : d_variableScoresMax(1)

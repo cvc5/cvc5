@@ -72,7 +72,7 @@ PREFIX=$(realpath `pwd`/../..)
 rm -rf src/antlr3debughandlers.c && touch src/antlr3debughandlers.c
 if [ ${MACHINE_TYPE} == 'x86_64' ]; then
   # 64-bit stuff here
-  ./configure --enable-64bit --disable-antlrdebug --prefix="${PREFIX}" $ANTLR_CONFIGURE_ARGS $BUILD_TYPE
+  ./configure --with-pic --enable-64bit --disable-antlrdebug --prefix="${PREFIX}" $ANTLR_CONFIGURE_ARGS $BUILD_TYPE
 else
   # 32-bit stuff here
   ./configure --disable-antlrdebug --prefix="${PREFIX}" $ANTLR_CONFIGURE_ARGS $BUILD_TYPE

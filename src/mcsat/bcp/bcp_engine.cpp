@@ -1,5 +1,5 @@
 #include "mcsat/bcp/bcp_engine.h"
-#include "mcsat/options.h"
+#include "options/mcsat_options.h"
 
 using namespace CVC4;
 using namespace mcsat;
@@ -25,8 +25,8 @@ void BCPEngine::NewVariableNotify::newVariable(Variable var) {
   }
 }
 
-BCPEngine::BCPEngine(ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request)
-: SolverPlugin(clauseDb, trail, request)
+BCPEngine::BCPEngine(ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request, StatisticsRegistry* registry)
+: SolverPlugin(clauseDb, trail, request, registry)
 , d_boolTypeIndex(VariableDatabase::getCurrentDB()->getTypeIndex(NodeManager::currentNM()->booleanType()))
 , d_newClauseNotify(*this)
 , d_newVariableNotify(*this)

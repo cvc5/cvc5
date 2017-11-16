@@ -105,7 +105,7 @@ public:
   /**
    * Destructor.
    */
-  CVC4_PUBLIC virtual ~PropEngine();
+  virtual CVC4_PUBLIC ~PropEngine();
 
   /**
    * This is called by SmtEngine, at shutdown time, just before
@@ -134,7 +134,7 @@ public:
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic (or not)
    */
-  void assertLemma(TNode node, bool negated, bool removable, ProofRule rule, TNode from = TNode::null());
+  virtual void assertLemma(TNode node, bool negated, bool removable, ProofRule rule, TNode from = TNode::null());
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This
@@ -171,7 +171,7 @@ public:
    * Checks the current context for satisfiability.
    *
    */
-  Result checkSat();
+  virtual Result checkSat();
 
   /**
    * Get the value of a boolean variable.

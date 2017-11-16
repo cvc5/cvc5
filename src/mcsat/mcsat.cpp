@@ -1,6 +1,7 @@
 #include "mcsat/mcsat.h"
 #include "mcsat/solver.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/smt_engine.h"
 
 using namespace CVC4;
 using namespace mcsat;

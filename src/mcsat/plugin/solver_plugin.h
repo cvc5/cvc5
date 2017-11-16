@@ -86,7 +86,7 @@ protected:
   SolverPluginRequest& d_request;
 
   /** Construct the plugin. */
-  SolverPlugin(ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request)
+  SolverPlugin(ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request, StatisticsRegistry* registry)
   : d_clauseDb(clauseDb)
   , d_trail(trail)
   , d_request(request)

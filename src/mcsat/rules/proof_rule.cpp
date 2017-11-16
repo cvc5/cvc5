@@ -79,16 +79,17 @@ CRef ProofRule::commit(LiteralHashSet& literals) {
   return commit(literalVector);
 }
 
-ProofRule::ProofRule(string name, ClauseDatabase& clauseDb, const SolverTrail& trail)
-: d_name(name)
+ProofRule::ProofRule(string name, ClauseDatabase& clauseDb, const SolverTrail& trail, StatisticsRegistry* registry)
+: d_registry(registry)
+, d_name(name)
 , d_applications(name, 0)
 , d_clauseDB(clauseDb)
 , d_id(clauseDb.registerRule())
 , d_trail(trail)
 {
-  StatisticsRegistry::registerStat(&d_applications);  
+  d_registry->registerStat(&d_applications);  
 }
 
 ProofRule::~ProofRule() {
-  StatisticsRegistry::unregisterStat(&d_applications);
+  d_registry->unregisterStat(&d_applications);
 }

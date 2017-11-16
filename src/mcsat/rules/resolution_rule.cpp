@@ -4,8 +4,8 @@ using namespace CVC4;
 using namespace mcsat;
 using namespace rules;
 
-BooleanResolutionRule::BooleanResolutionRule(ClauseDatabase& clauseDB, const SolverTrail& trail)
-: ProofRule("mcsat::resolution_rule", clauseDB, trail)
+BooleanResolutionRule::BooleanResolutionRule(ClauseDatabase& clauseDB, const SolverTrail& trail, StatisticsRegistry* registry)
+: ProofRule("mcsat::resolution_rule", clauseDB, trail, registry)
 , d_stepsCount(0)
 {
 }

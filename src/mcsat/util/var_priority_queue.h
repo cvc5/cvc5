@@ -29,7 +29,7 @@ class VariablePriorityQueue {
   }
 
   /** Null index in the heap */
-  static const unsigned null_index = boost::integer_traits<unsigned>::const_max;
+  static const unsigned null_index;// = boost::integer_traits<unsigned>::const_max;
   
   /** Positions of the variables in the heap */
   std::vector< std::vector<unsigned> > d_variableIndices;

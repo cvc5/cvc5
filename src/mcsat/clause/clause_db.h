@@ -4,9 +4,9 @@
 
 #include <vector>
 #include <iostream>
-#include <hash_map>
+#include <unordered_map>
 
-#include "util/tls.h"
+#include "base/tls.h"
 #include "context/context.h"
 #include "context/cdo.h"
 
@@ -23,7 +23,7 @@ class ProofRule;
 /** Class containing all the information needed to relocate the variables. */
 class ClauseRelocationInfo {
 
-  typedef std::hash_map<CRef, CRef, CRefHashFunction> relocation_map;
+  typedef std::unordered_map<CRef, CRef, CRefHashFunction> relocation_map;
 
   /** Map from old variables to new variable */
   relocation_map d_map;
@@ -213,7 +213,7 @@ inline std::ostream& operator << (std::ostream& out, const ClauseDatabase& db) {
 class ClauseFarm {
 
   /** Default clause farm to use */
-  static CVC4_THREADLOCAL(ClauseFarm*) s_current;
+  static CVC4_THREAD_LOCAL ClauseFarm* s_current;
   
   /** The databases of this farm */
   std::vector<ClauseDatabase*> d_databases;

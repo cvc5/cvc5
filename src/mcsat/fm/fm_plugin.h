@@ -27,26 +27,29 @@ struct FMPluginStats {
   IntStat propagationD;
   /** Number of [.... selections */
 
-  FMPluginStats ()
+  StatisticsRegistry* d_registry;
+
+  FMPluginStats (StatisticsRegistry* registry)
   : decisions("mcsat::fm::decisions", 0)
   , decisions_f("mcsat::fm::decisions_f", 0)
   , conflicts("mcsat::fm::conflicts", 0)
   , propagationS("mcsat::fm::propagations_s", 0)
   , propagationD("mcsat::fm::propagations_d", 0)
+  , d_registry(registry)
   {
-    StatisticsRegistry::registerStat(&decisions);
-    StatisticsRegistry::registerStat(&decisions_f);
-    StatisticsRegistry::registerStat(&conflicts);
-    StatisticsRegistry::registerStat(&propagationS);
-    StatisticsRegistry::registerStat(&propagationD);
+    d_registry->registerStat(&decisions);
+    d_registry->registerStat(&decisions_f);
+    d_registry->registerStat(&conflicts);
+    d_registry->registerStat(&propagationS);
+    d_registry->registerStat(&propagationD);
   }
 
   ~FMPluginStats () {
-    StatisticsRegistry::unregisterStat(&decisions);
-    StatisticsRegistry::unregisterStat(&decisions_f);
-    StatisticsRegistry::unregisterStat(&conflicts);
-    StatisticsRegistry::unregisterStat(&propagationS);
-    StatisticsRegistry::unregisterStat(&propagationD);
+    d_registry->unregisterStat(&decisions);
+    d_registry->unregisterStat(&decisions_f);
+    d_registry->unregisterStat(&conflicts);
+    d_registry->unregisterStat(&propagationS);
+    d_registry->unregisterStat(&propagationD);
   }
 };
 
@@ -247,7 +250,7 @@ class FMPlugin : public SolverPlugin {
 public:
 
   /** Constructor */
-  FMPlugin(ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request);
+  FMPlugin(ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request, StatisticsRegistry* registry);
 
   ~FMPlugin();
 

@@ -20,7 +20,8 @@ class PropEngine : public CVC4::prop::PropEngine {
 
 public:
 
-  PropEngine(TheoryEngine*, DecisionEngine*, context::Context* satContext, context::UserContext* userContext);
+  PropEngine(TheoryEngine*, DecisionEngine*, context::Context* satContext, context::UserContext* userContext,
+             std::ostream* replayLog, ExprStream* replayStream, LemmaChannels* channels);
 
   ~PropEngine();
 

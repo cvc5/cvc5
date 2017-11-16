@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <iostream>
+#include <unordered_map>
 
 namespace CVC4 {
 namespace mcsat {
@@ -19,7 +20,7 @@ namespace fm {
 typedef std::pair<Variable, Rational> var_rational_pair;
 
 /** Map from variables to coefficients, null is the constant term */
-typedef std::hash_map<Variable, Rational, VariableHashFunction> var_to_rational_map;
+typedef std::unordered_map<Variable, Rational, VariableHashFunction> var_to_rational_map;
 
 typedef std::vector<var_rational_pair> var_rational_pair_vector;
 

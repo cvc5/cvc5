@@ -16,22 +16,26 @@ namespace mcsat {
 
 /** Statistics for the value selection */
 struct UFPluginStats {
+  
   /** Conflicts */
   IntStat conflicts;
   /** UF Applications */
   IntStat applications;
 
-  UFPluginStats()
+  StatisticsRegistry* d_registry;
+
+  UFPluginStats(StatisticsRegistry* registry)
   : conflicts("mcsat::uf::conflicts", 0)
   , applications("mcsat::uf::applications", 0)
+  , d_registry(registry)
   {
-    StatisticsRegistry::registerStat(&conflicts);
-    StatisticsRegistry::registerStat(&applications);
+    d_registry->registerStat(&conflicts);
+    d_registry->registerStat(&applications);
   }
 
   ~UFPluginStats() {
-    StatisticsRegistry::unregisterStat(&conflicts);
-    StatisticsRegistry::unregisterStat(&applications);
+    d_registry->unregisterStat(&conflicts);
+    d_registry->unregisterStat(&applications);
   }
 };
 
@@ -95,7 +99,7 @@ class UFPlugin : public SolverPlugin {
     
 public:
 
-  UFPlugin(ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request);
+  UFPlugin(ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request, StatisticsRegistry* registry);
   
   /** Perform propagation */
   void propagate(SolverTrail::PropagationToken& out);

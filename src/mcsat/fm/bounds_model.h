@@ -7,6 +7,8 @@
 #include "mcsat/fm/linear_constraint.h"
 #include "util/statistics_registry.h"
 
+#include <unordered_map>
+
 #include <iostream>
 #include <boost/integer_traits.hpp>
 
@@ -28,30 +30,33 @@ struct BoundStats {
   IntStat pickUpper;
   /** Number of .... selections */
   IntStat pickNone;
-  
-  BoundStats() 
+ 
+  StatisticsRegistry* d_registry;
+ 
+  BoundStats(StatisticsRegistry* registry) 
   : pickZero("mcsat::fm::value_zero", 0)
   , pickCached("mcsat::fm::value_cached", 0)
   , pickBoth("mcsat::fm::value_both", 0)
   , pickLower("mcsat::fm::value_lower", 0)
   , pickUpper("mcsat::fm::value_upper", 0)
   , pickNone("mcsat::fm::value_none", 0)
+  , d_registry(registry)
   {
-    StatisticsRegistry::registerStat(&pickZero);  
-    StatisticsRegistry::registerStat(&pickCached);  
-    StatisticsRegistry::registerStat(&pickBoth);  
-    StatisticsRegistry::registerStat(&pickLower);  
-    StatisticsRegistry::registerStat(&pickUpper);
-    StatisticsRegistry::registerStat(&pickNone);
+    d_registry->registerStat(&pickZero);
+    d_registry->registerStat(&pickCached);
+    d_registry->registerStat(&pickBoth);
+    d_registry->registerStat(&pickLower);
+    d_registry->registerStat(&pickUpper);
+    d_registry->registerStat(&pickNone);
   }
   
   ~BoundStats() {
-    StatisticsRegistry::unregisterStat(&pickZero);  
-    StatisticsRegistry::unregisterStat(&pickCached);  
-    StatisticsRegistry::unregisterStat(&pickBoth);  
-    StatisticsRegistry::unregisterStat(&pickLower);  
-    StatisticsRegistry::unregisterStat(&pickUpper);
-    StatisticsRegistry::unregisterStat(&pickNone);
+    d_registry->unregisterStat(&pickZero);
+    d_registry->unregisterStat(&pickCached);
+    d_registry->unregisterStat(&pickBoth);
+    d_registry->unregisterStat(&pickLower);
+    d_registry->unregisterStat(&pickUpper);
+    d_registry->unregisterStat(&pickNone);
   }
 };
 
@@ -99,7 +104,7 @@ class CDBoundsModel : public context::ContextNotifyObj {
   static const BoundInfoIndex null_bound_index = boost::integer_traits<BoundInfoIndex>::const_max;
   
   /** Map from variables to the index of the bound information in the bound trail */
-  typedef std::hash_map<Variable, BoundInfoIndex, VariableHashFunction> bound_map;
+  typedef std::unordered_map<Variable, BoundInfoIndex, VariableHashFunction> bound_map;
     
   /** Lower bounds map */
   bound_map d_lowerBounds;
@@ -108,7 +113,7 @@ class CDBoundsModel : public context::ContextNotifyObj {
   bound_map d_upperBounds;
 
   /** Map from variables to their cached values */
-  typedef std::hash_map<Variable, Rational, VariableHashFunction> var_to_rational_map;
+  typedef std::unordered_map<Variable, Rational, VariableHashFunction> var_to_rational_map;
   
   /** Cache of values */
   var_to_rational_map d_valueCache;
@@ -145,7 +150,7 @@ class CDBoundsModel : public context::ContextNotifyObj {
   static const DisequalInfoIndex null_diseqal_index = boost::integer_traits<DisequalInfoIndex>::const_max;
 
   /** Map from variables to the head of their value list */
-  typedef std::hash_map<Variable, DisequalInfoIndex, VariableHashFunction> disequal_map;
+  typedef std::unordered_map<Variable, DisequalInfoIndex, VariableHashFunction> disequal_map;
 
   /** The map from variables to it's diseqality lists */
   disequal_map d_disequalValues;
@@ -212,10 +217,10 @@ class CDBoundsModel : public context::ContextNotifyObj {
 
 public:
   
-  ~CDBoundsModel() throw(AssertionException) {}
+  ~CDBoundsModel(){}
   
   /** Construct it */
-  CDBoundsModel(context::Context* context);
+  CDBoundsModel(context::Context* context, StatisticsRegistry* registry);
   
   struct update_info {
     /** Did the update actually update */

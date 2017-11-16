@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "context/context.h"
-#include "util/exception.h"
+#include "base/exception.h"
 
 #include "mcsat/plugin/solver_plugin.h"
 
@@ -22,7 +22,7 @@ public:
 
 class SolverPluginFactory {
 public:
-  static SolverPlugin* create(std::string name, ClauseDatabase& clauseDb, const SolverTrail& d_trail, SolverPluginRequest& request)
+  static SolverPlugin* create(std::string name, ClauseDatabase& clauseDb, const SolverTrail& d_trail, SolverPluginRequest& request, StatisticsRegistry* registry)
     throw(SolverPluginFactoryException);
 };
 

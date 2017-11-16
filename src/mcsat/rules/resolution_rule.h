@@ -24,7 +24,7 @@ class BooleanResolutionRule : public ProofRule {
 public:
 
   /** Create a new Boolean resolution starting from the given initial clause */
-  BooleanResolutionRule(ClauseDatabase& clauseDB, const SolverTrail& trail);
+  BooleanResolutionRule(ClauseDatabase& clauseDB, const SolverTrail& trail, StatisticsRegistry* registry);
 
   /** Start the resolution */
   void start(CRef initialClause);

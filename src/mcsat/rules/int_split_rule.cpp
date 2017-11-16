@@ -5,8 +5,8 @@ using namespace CVC4;
 using namespace mcsat;
 using namespace rules;
 
-IntSplitRule::IntSplitRule(ClauseDatabase& clauseDB, const SolverTrail& trail) 
-: ProofRule("mcsat::int_split_rule", clauseDB, trail)
+IntSplitRule::IntSplitRule(ClauseDatabase& clauseDB, const SolverTrail& trail, StatisticsRegistry* registry) 
+: ProofRule("mcsat::int_split_rule", clauseDB, trail, registry)
 {
 }
 

@@ -3,10 +3,10 @@
 using namespace CVC4;
 using namespace mcsat;
 
-CNFPlugin::CNFPlugin(ClauseDatabase& database, const SolverTrail& trail, SolverPluginRequest& request)
-: SolverPlugin(database, trail, request)
+CNFPlugin::CNFPlugin(ClauseDatabase& database, const SolverTrail& trail, SolverPluginRequest& request, StatisticsRegistry* registry)
+: SolverPlugin(database, trail, request, registry)
 , d_cnfStreamListener(*this)
-, d_inputClauseRule(database, trail)
+, d_inputClauseRule(database, trail, registry)
 {
   // We want to know about any assertions
   addNotification(NOTIFY_ASSERTION);

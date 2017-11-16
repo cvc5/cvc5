@@ -133,7 +133,7 @@ Literal TseitinCnfStream::handleImplies(TNode impliesNode) {
 
 Literal TseitinCnfStream::handleIff(TNode iffNode) {
   Assert(!alreadyTranslated(iffNode), "Atom already mapped!");
-  Assert(iffNode.getKind() == kind::IFF, "Expecting an IFF expression!");
+  Assert(iffNode.getKind() == kind::EQUAL, "Expecting an IFF expression!");
   Assert(iffNode.getNumChildren() == 2, "Expecting exactly 2 children!");
 
   Debug("mcsat::cnf") << "handleIff(" << iffNode << ")" << endl;
@@ -232,9 +232,6 @@ Literal TseitinCnfStream::toCnfRecursive(TNode node, bool negated) {
     case kind::ITE:
       nodeLit = handleIte(node);
       break;
-    case kind::IFF:
-      nodeLit = handleIff(node);
-      break;
     case kind::IMPLIES:
       nodeLit = handleImplies(node);
       break;
@@ -247,7 +244,7 @@ Literal TseitinCnfStream::toCnfRecursive(TNode node, bool negated) {
     case kind::EQUAL:
       if(node[0].getType().isBoolean()) {
         // normally this is an IFF, but EQUAL is possible with pseudobooleans
-        nodeLit = handleIff(node[0].iffNode(node[1]));
+        nodeLit = handleIff(node[0].eqNode(node[1]));
       } else {
         nodeLit = convertAtom(node);
       }
@@ -416,9 +413,6 @@ void TseitinCnfStream::convert(TNode node, bool negated) {
     break;
   case kind::OR:
     topLevelOr(node, negated);
-    break;
-  case kind::IFF:
-    topLevelIff(node, negated);
     break;
   case kind::XOR:
     topLevelXor(node, negated);

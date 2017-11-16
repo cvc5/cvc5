@@ -1,5 +1,5 @@
 #include "mcsat/uf/uf_plugin.h"
-#include "mcsat/options.h"
+#include "options/mcsat_options.h"
 
 using namespace CVC4;
 using namespace mcsat;
@@ -24,13 +24,14 @@ void UFPlugin::NewVariableNotify::newVariable(Variable var) {
   }
 }
 
-UFPlugin::UFPlugin(ClauseDatabase& database, const SolverTrail& trail, SolverPluginRequest& request)
-: SolverPlugin(database, trail, request)
+UFPlugin::UFPlugin(ClauseDatabase& database, const SolverTrail& trail, SolverPluginRequest& request, StatisticsRegistry* registry)
+: SolverPlugin(database, trail, request, registry)
+, d_stats(registry)
 , d_newVariableNotify(*this)
 , d_trailHead(trail.getSearchContext(), 0)
 , d_valueMap(trail.getSearchContext())
 , d_appEvaluation(trail.getSearchContext())
-, d_ackermannRule(database, trail)
+, d_ackermannRule(database, trail, registry)
 {
   Debug("mcsat::uf") << "UFPlugin::UFPlugin()" << std::endl;
 

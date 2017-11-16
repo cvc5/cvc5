@@ -6,6 +6,8 @@
 #include <tr1/functional>
 #include <boost/static_assert.hpp>
 
+#include <unordered_set>
+
 #include "mcsat/variable/variable.h"
 
 namespace CVC4 {
@@ -123,7 +125,7 @@ public:
 };
 
 /** Hash-set of literals */
-typedef std::hash_set<Literal, LiteralHashFunction> LiteralHashSet;
+typedef std::unordered_set<Literal, LiteralHashFunction> LiteralHashSet;
 
 /** Output operator for a literal */
 inline std::ostream& operator << (std::ostream& out, const Literal& lit) {

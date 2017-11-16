@@ -72,7 +72,7 @@ class BCPEngine : public SolverPlugin {
 public:
   
   /** New propagation engine */
-  BCPEngine(ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request);
+  BCPEngine(ClauseDatabase& clauseDb, const SolverTrail& trail, SolverPluginRequest& request, StatisticsRegistry* registry);
   
   /** Perform a propagation */
   void propagate(SolverTrail::PropagationToken& out);

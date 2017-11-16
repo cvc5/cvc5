@@ -4,7 +4,7 @@
 
 #include <set>
 #include <vector>
-#include <hash_set>
+#include <unordered_set>
 
 #include <boost/static_assert.hpp>
 #include <boost/integer/integer_mask.hpp>
@@ -141,7 +141,7 @@ public:
 };
 
 /** A hash set of variables */
-typedef std::hash_set<Variable, VariableHashFunction> VariableHashSet;
+typedef std::unordered_set<Variable, VariableHashFunction> VariableHashSet;
 
 inline std::ostream& operator << (std::ostream& out, const VariableVector& vars) {
   out << "Variables[";

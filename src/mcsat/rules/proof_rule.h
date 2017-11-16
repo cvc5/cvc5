@@ -21,7 +21,7 @@ namespace rules {
  */
 class ProofRule {
 private:
-
+  StatisticsRegistry* d_registry;
   /** Descriptive name of the proof rule */
   std::string d_name;
   /** Statistic for number of applications */
@@ -41,7 +41,7 @@ protected:
    * @param name the name of the rule (for use in statistics)
    * @param clauseDB the database the rule will output to
    */
-  ProofRule(std::string name, ClauseDatabase& clauseDB, const SolverTrail& trail);
+  ProofRule(std::string name, ClauseDatabase& clauseDB, const SolverTrail& trail, StatisticsRegistry* registry);
   /** Commit the result of the proof rule */
   CRef commit(LiteralVector& literals);
   /** Commit the result of the proof rule */

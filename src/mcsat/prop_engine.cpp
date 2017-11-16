@@ -1,11 +1,12 @@
 #include "mcsat/prop_engine.h"
 #include "mcsat/solver.h"
-
+#include "smt/smt_statistics_registry.h"
 using namespace CVC4;
 using namespace mcsat;
 
-PropEngine::PropEngine(TheoryEngine* te, DecisionEngine* de, context::Context* sc, context::UserContext* uc)
-: CVC4::prop::PropEngine(te, de, sc, uc)
+PropEngine::PropEngine(TheoryEngine* te, DecisionEngine* de, context::Context* sc, context::UserContext* uc,
+                       std::ostream* replayLog, ExprStream* replayStream, LemmaChannels* channels)
+: CVC4::prop::PropEngine(te, de, sc, uc, replayLog, replayStream, channels)
 {
   d_mySC = new context::Context();
   d_myUC = new context::UserContext();

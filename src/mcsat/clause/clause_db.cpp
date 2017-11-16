@@ -10,7 +10,7 @@ using namespace CVC4::mcsat;
 
 static const size_t d_initialMemorySize = 100000;
 
-CVC4_THREADLOCAL(ClauseFarm*) ClauseFarm::s_current = 0;
+CVC4_THREAD_LOCAL ClauseFarm* ClauseFarm::s_current = 0;
 
 ClauseDatabase::Backtracker::Backtracker(context::Context* context, ClauseDatabase& db)
 : ContextNotifyObj(context)

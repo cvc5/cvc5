@@ -1,12 +1,13 @@
 #include "mcsat/fm/bounds_model.h"
-#include "mcsat/options.h"
+#include "options/mcsat_options.h"
 
 using namespace CVC4;
 using namespace mcsat;
 using namespace fm;
 
-CDBoundsModel::CDBoundsModel(context::Context* context)
+CDBoundsModel::CDBoundsModel(context::Context* context, StatisticsRegistry* registry)
 : context::ContextNotifyObj(context)
+, d_stats(registry)
 , d_boundTrailSize(context, 0)
 , d_disequalTrailSize(context, 0)
 , d_constraintCMP(0)

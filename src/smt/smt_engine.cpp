@@ -45,6 +45,7 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
+#include "mcsat/prop_engine.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
 #include "options/base_options.h"
@@ -55,6 +56,7 @@
 #include "options/decision_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
+#include "options/mcsat_options.h"
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
 #include "options/printer_options.h"
@@ -102,9 +104,6 @@
 #include "util/hash.h"
 #include "util/proof.h"
 #include "util/resource_manager.h"
-
-#include "mcsat/options.h"
-#include "mcsat/prop_engine.h"
 
 using namespace std;
 using namespace CVC4;
@@ -1083,9 +1082,15 @@ void SmtEngine::finishInit() {
   d_decisionEngine->init();   // enable appropriate strategies
 
   Trace("smt-debug") << "Making prop engine..." << std::endl;
-  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context,
+  if (options::mcsat()) {
+    d_propEngine = new mcsat::PropEngine(d_theoryEngine, d_decisionEngine, d_context,
+                                       d_userContext, d_private->getReplayLog(),
+                                       d_replayStream, d_channels);
+  } else {
+    d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context,
                                 d_userContext, d_private->getReplayLog(),
                                 d_replayStream, d_channels);
+  }
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(d_propEngine);

@@ -5,8 +5,8 @@ using namespace mcsat;
 using namespace rules;
 using namespace fm;
 
-FourierMotzkinRule::FourierMotzkinRule(ClauseDatabase& clauseDB, const SolverTrail& trail)
-: ProofRule("mcsat::fourier_motzkin_rule", clauseDB, trail)
+FourierMotzkinRule::FourierMotzkinRule(ClauseDatabase& clauseDB, const SolverTrail& trail, StatisticsRegistry* registry)
+: ProofRule("mcsat::fourier_motzkin_rule", clauseDB, trail, registry)
 , d_trueCount(0)
 {
 }
@@ -126,8 +126,8 @@ CRef FourierMotzkinRule::finish(SolverTrail::PropagationToken& propToken) {
   return commit(lits);
 }
 
-FourierMotzkinRuleDiseq::FourierMotzkinRuleDiseq(ClauseDatabase& clauseDB, const SolverTrail& trail)
-: ProofRule("mcsat::fourier_motzkin_rule_diseq", clauseDB, trail)
+FourierMotzkinRuleDiseq::FourierMotzkinRuleDiseq(ClauseDatabase& clauseDB, const SolverTrail& trail, StatisticsRegistry* registry)
+: ProofRule("mcsat::fourier_motzkin_rule_diseq", clauseDB, trail, registry)
 {
 }
 

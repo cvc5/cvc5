@@ -1,10 +1,10 @@
 #include "mcsat/solver_trail.h"
 #include "mcsat/clause/clause_db.h"
 #include "mcsat/variable/variable_db.h"
-#include "mcsat/options.h"
+#include "options/mcsat_options.h"
 
 #include "theory/rewriter.h"
-#include "util/node_visitor.h"
+#include "smt_util/node_visitor.h"
 
 using namespace CVC4;
 using namespace CVC4::mcsat;
@@ -34,7 +34,7 @@ SolverTrail::~SolverTrail() {
 struct SubstituteVisitor {
   const SolverTrail& trail;
   unsigned level;
-  std::hash_map<TNode, Node, TNodeHashFunction> d_evaluation;
+  std::unordered_map<TNode, Node, TNodeHashFunction> d_evaluation;
 public:
   SubstituteVisitor(const SolverTrail& trail, unsigned level) 
   : trail(trail), level(level) {}

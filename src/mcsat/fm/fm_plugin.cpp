@@ -1,5 +1,5 @@
 #include "mcsat/fm/fm_plugin.h"
-#include "mcsat/options.h"
+#include "options/mcsat_options.h"
 
 using namespace CVC4;
 using namespace mcsat;
@@ -66,8 +66,9 @@ public:
   }
 };
 
-FMPlugin::FMPlugin(ClauseDatabase& database, const SolverTrail& trail, SolverPluginRequest& request)
-: SolverPlugin(database, trail, request)
+FMPlugin::FMPlugin(ClauseDatabase& database, const SolverTrail& trail, SolverPluginRequest& request, StatisticsRegistry* registry)
+: SolverPlugin(database, trail, request, registry)
+, d_stats(registry)
 , d_newVariableNotify(*this)
 , d_intTypeIndex(VariableDatabase::getCurrentDB()->getTypeIndex(NodeManager::currentNM()->integerType()))
 , d_realTypeIndex(VariableDatabase::getCurrentDB()->getTypeIndex(NodeManager::currentNM()->realType()))
@@ -78,10 +79,10 @@ FMPlugin::FMPlugin(ClauseDatabase& database, const SolverTrail& trail, SolverPlu
 , d_constraintsCount(0)
 , d_constraintsSizeSum(0)
 , d_trailHead(trail.getSearchContext(), 0)
-, d_bounds(trail.getSearchContext())
-, d_fmRule(database, trail)
-, d_fmRuleDiseq(database, trail)
-, d_splitRule(database, trail)
+, d_bounds(trail.getSearchContext(), registry)
+, d_fmRule(database, trail, registry)
+, d_fmRuleDiseq(database, trail, registry)
+, d_splitRule(database, trail, registry)
 , d_constraintDiscriminator(new ConstraintDiscriminator(d_trail, d_constraints, options::mcsat_fm_discriminate_size(), options::mcsat_fm_discriminate_level()))
 , d_reasonProvider(*this, trail.getSearchContext())
 {
