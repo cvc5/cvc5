@@ -14,22 +14,25 @@
 
 #include "printer/sygus_print_callback.h"
 
+#include "expr/node.h"
+#include "printer/printer.h"
+
 using namespace CVC4::kind;
 using namespace std;
 
 namespace CVC4 {
 namespace printer {
 
-SygusLetExpressionPrinter::SygusLetExpressionPrinter(
+SygusLetExprPrintCallback::SygusLetExprPrintCallback(
     Expr let_body, std::vector<Expr>& let_args, unsigned ninput_args) :
 d_let_body(let_body),
-d_sygus_num_let_input_args(ninput_args)
+d_num_let_input_args(ninput_args)
 {
-  d_sygus_let_args.insert(d_sygus_let_args.end(),let_args.begin(),let_args.end());
+  d_let_args.insert(d_let_args.end(),let_args.begin(),let_args.end());
 }
 
-void SygusLetExpressionConstructorPrinter::doStrReplace(
-    std::string& str, const std::string& oldStr, const std::string& newStr)
+void SygusLetExprPrintCallback::doStrReplace(
+    std::string& str, const std::string& oldStr, const std::string& newStr) const
 {
   size_t pos = 0;
   while ((pos = str.find(oldStr, pos)) != std::string::npos)
@@ -39,28 +42,28 @@ void SygusLetExpressionConstructorPrinter::doStrReplace(
   }
 }
 
-void SygusLetExpressionConstructorPrinter::toStreamSygus(Printer* p,
+void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
                                                          std::ostream& out,
-                                                         Expr e)
+                                                         Expr e) const
 {
   std::stringstream let_out;
   // print as let term
-  if (d_sygus_num_let_input_args > 0)
+  if (d_num_let_input_args > 0)
   {
     let_out << "(let (";
   }
   std::vector<Node> subs_lvs;
   std::vector<Node> new_lvs;
-  for (unsigned i = 0; i < d_sygus_let_args.size(); i++)
+  for (unsigned i = 0; i < d_let_args.size(); i++)
   {
-    Node v = d_sygus_let_args[i];
+    Node v = d_let_args[i];
     subs_lvs.push_back(v);
     std::stringstream ss;
     ss << "_l_" << new_lvs.size();
     Node lv = NodeManager::currentNM()->mkBoundVar(ss.str(), v.getType());
     new_lvs.push_back(lv);
     // map free variables to proper terms
-    if (i < d_sygus_num_let_input_args)
+    if (i < d_num_let_input_args)
     {
       // it should be printed as a let argument
       let_out << "(";
@@ -69,16 +72,17 @@ void SygusLetExpressionConstructorPrinter::toStreamSygus(Printer* p,
       let_out << ")";
     }
   }
-  if (d_sygus_num_let_input_args > 0)
+  if (d_num_let_input_args > 0)
   {
     let_out << ") ";
   }
   // print the body
-  Node slet_body = d_let_body.substitute(
+  Node slet_body = Node::fromExpr( d_let_body );
+  slet_body = slet_body.substitute(
       subs_lvs.begin(), subs_lvs.end(), new_lvs.begin(), new_lvs.end());
-  new_lvs.insert(new_lvs.end(), lvs.begin(), lvs.end());
+  //new_lvs.insert(new_lvs.end(), lvs.begin(), lvs.end());
   p->toStreamSygus(let_out, slet_body);
-  if (d_sygus_num_let_input_args > 0)
+  if (d_num_let_input_args > 0)
   {
     let_out << ")";
   }
@@ -86,32 +90,32 @@ void SygusLetExpressionConstructorPrinter::toStreamSygus(Printer* p,
   // ASSUMING : let_vars are interpreted literally and do not represent a class
   // of variables
   std::string lbody = let_out.str();
-  for (unsigned i = 0; i < d_sygus_let_args.size(); i++)
+  for (unsigned i = 0; i < d_let_args.size(); i++)
   {
     std::stringstream old_str;
     old_str << new_lvs[i];
     std::stringstream new_str;
-    if (i >= d_sygus_num_let_input_args)
+    if (i >= d_num_let_input_args)
     {
       p->toStreamSygus(new_str, Node::fromExpr(e[i]));
     }
     else
     {
-      new_str << d_sygus_let_args[i];
+      new_str << d_let_args[i];
     }
     doStrReplace(lbody, old_str.str().c_str(), new_str.str().c_str());
   }
   out << lbody;
 }
 
-SygusNamedConstructorPrinter::SygusNamedConstructorPrinter(std::string name)
+SygusNamedPrintCallback::SygusNamedPrintCallback(std::string name)
     : d_name(name)
 {
 }
 
-void SygusNamedConstructorPrinter::toStreamSygus(Printer* p,
+void SygusNamedPrintCallback::toStreamSygus(const Printer* p,
                                                  std::ostream& out,
-                                                 Expr e)
+                                                 Expr e) const
 {
   if (e.getNumChildren() > 0)
   {
@@ -129,9 +133,9 @@ void SygusNamedConstructorPrinter::toStreamSygus(Printer* p,
   }
 }
 
-void SygusEmptyConstructorPrinter::toStreamSygus(const Printer* p,
+void SygusEmptyPrintCallback::toStreamSygus(const Printer* p,
                                                  std::ostream& out,
-                                                 Expr e)
+                                                 Expr e) const
 {
   if (e.getNumChildren() == 1)
   {

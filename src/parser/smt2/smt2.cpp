@@ -21,6 +21,7 @@
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
 #include "parser/smt2/smt2_input.h"
+#include "printer/sygus_print_callback.h"
 #include "smt/command.h"
 #include "util/bitvector.h"
 
@@ -1030,6 +1031,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           //identity element
           Type bt = dt.getSygusType();
           Debug("parser-sygus") << ":  make identity function for " << bt << ", argument type " << t << std::endl;
+          /*
           std::stringstream ss;
           ss << t << "_x_id";
           Expr let_body = mkBoundVar(ss.str(), bt);
@@ -1048,19 +1050,24 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           
           //d_sygus_defined_funs.push_back( id_op );
           //preemptCommand( new DefineFunctionCommand(ssid.str(), id_op, let_args, let_body) );
+          */
           
-          //std::vector< Expr > lchildren;
-          //lchildren.push_back(getExprManager()->mkExpr(BOUND_VAR_LIST,let_
-          
+          std::stringstream ss;
+          ss << t << "_x";
+          Expr var = mkBoundVar(ss.str(), bt);
+          std::vector< Expr > lchildren;
+          lchildren.push_back(getExprManager()->mkExpr(kind::BOUND_VAR_LIST,var));
+          lchildren.push_back(var);
+          Expr id_op = getExprManager()->mkExpr(kind::LAMBDA,lchildren);
           
           // empty sygus callback (should not be printed)
-          //SygusEmptyConstructorPrinter* secp = new SygusEmptyConstructorPrinter;
-          
+          printer::SygusEmptyPrintCallback* sepc = new printer::SygusEmptyPrintCallback;
           
           //make the sygus argument list
           std::vector< Type > id_carg;
           id_carg.push_back( t );
-          dt.addSygusConstructor( id_op, unresolved_gterm_sym[i], id_carg, let_body, let_args, 0 );
+          dt.addSygusConstructor( id_op, unresolved_gterm_sym[i], id_carg, sepc );
+          
           //add to operators
           ops.push_back( id_op );
         }

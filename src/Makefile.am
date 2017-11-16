@@ -67,6 +67,8 @@ libcvc4_la_SOURCES = \
 	printer/dagification_visitor.h \
 	printer/printer.cpp \
 	printer/printer.h \
+	printer/sygus_print_callback.cpp \
+	printer/sygus_print_callback.h \
 	printer/ast/ast_printer.cpp \
 	printer/ast/ast_printer.h \
 	printer/cvc/cvc_printer.cpp \

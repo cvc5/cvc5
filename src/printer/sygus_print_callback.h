@@ -47,14 +47,13 @@ namespace printer {
  *     y is an original input argument of the
  *     let expression, but z is not.
  */
-class CVC4_PUBLIC SygusLetExpressionConstructorPrinter
-    : public SygusDatatypeConstructorPrinter
+class CVC4_PUBLIC SygusLetExprPrintCallback : public SygusPrintCallback
 {
  public:
-  SygusLetExpressionConstructorPrinter(Expr let_body,
+  SygusLetExprPrintCallback(Expr let_body,
                                        std::vector<Expr>& let_args,
                                       unsigned ninput_args);
-  ~SygusLetExpressionConstructorPrinter() {}
+  ~SygusLetExprPrintCallback() {}
   /** print sygus term e on output out using printer p */
   virtual void toStreamSygus(const Printer* p,
                              std::ostream& out,
@@ -62,11 +61,11 @@ class CVC4_PUBLIC SygusLetExpressionConstructorPrinter
 
  private:
   /** let body of the sygus term */
-  Expr d_sygus_let_body;
+  Expr d_let_body;
   /** let arguments */
-  std::vector<Expr> d_sygus_let_args;
+  std::vector<Expr> d_let_args;
   /** number of arguments that are interpreted as input arguments */
-  unsigned d_sygus_num_let_input_args;
+  unsigned d_num_let_input_args;
   /** do string replace
    * Replaces all occurrences of oldStr with newStr in str.
    */
@@ -89,11 +88,11 @@ class CVC4_PUBLIC SygusLetExpressionConstructorPrinter
  * the first sygus datatype constructor f, where we use
  * analog operator (lambda (x) (+ x 1)).
  */
-class CVC4_PUBLIC SygusNamedConstructorPrinter : public SygusDatatypeConstructorPrinter
+class CVC4_PUBLIC SygusNamedPrintCallback : public SygusPrintCallback
 {
  public:
-  SygusNamedConstructorPrinter(std::string name);
-  ~SygusNamedConstructorPrinter() {}
+  SygusNamedPrintCallback(std::string name);
+  ~SygusNamedPrintCallback() {}
   /** print sygus term e on output out using printer p */
   virtual void toStreamSygus(const Printer* p,
                              std::ostream& out,
@@ -113,11 +112,11 @@ class CVC4_PUBLIC SygusNamedConstructorPrinter : public SygusDatatypeConstructor
  * The first constructor of A, call it cons, has sygus operator (lambda (x) x).
  * Call toStreamSygus on cons( t ) should call toStreamSygus on t directly.
  */
-class CVC4_PUBLIC SygusEmptyConstructorPrinter : public SygusDatatypeConstructorPrinter
+class CVC4_PUBLIC SygusEmptyPrintCallback : public SygusPrintCallback
 {
  public:
-  SygusEmptyConstructorPrinter(std::string name);
-  ~SygusEmptyConstructorPrinter() {}
+  SygusEmptyPrintCallback(){}
+  ~SygusEmptyPrintCallback() {}
   /** print sygus term e on output out using printer p */
   virtual void toStreamSygus(const Printer* p,
                              std::ostream& out,

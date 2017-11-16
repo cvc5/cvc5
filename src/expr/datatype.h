@@ -191,7 +191,7 @@ class CVC4_PUBLIC SygusPrintCallback
 {
  public:
   SygusPrintCallback() {}
-  ~SygusPrintCallback() {}
+  virtual ~SygusPrintCallback() {}
   /**
    * Writes the term that sygus datatype expression e
    * encodes to stream out. p is the printer that
