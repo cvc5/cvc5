@@ -1042,7 +1042,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           Expr id_op = getExprManager()->mkExpr(kind::LAMBDA,lchildren);
           
           // empty sygus callback (should not be printed)
-          printer::SygusEmptyPrintCallback* sepc = new printer::SygusEmptyPrintCallback;
+          printer::SygusEmptyPrintCallback* sepc = nullptr;// new printer::SygusEmptyPrintCallback;
           
           //make the sygus argument list
           std::vector< Type > id_carg;
