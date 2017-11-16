@@ -178,6 +178,32 @@ public:
   DatatypeConstructorArg(std::string name, Expr selector);
 };/* class DatatypeConstructorArg */
 
+class Printer;
+
+/** sygus datatype constructor printer
+ *
+ * This is a virtual class that is used to specify
+ * a custom printing callback for sygus terms. This is
+ * useful for sygus grammars that include defined
+ * functions or let expressions.
+ */
+class CVC4_PUBLIC SygusPrintCallback
+{
+ public:
+  SygusPrintCallback() {}
+  ~SygusPrintCallback() {}
+  /**
+   * Writes the term that sygus datatype expression e
+   * encodes to stream out. p is the printer that
+   * requested that expression e be written on output
+   * stream out. Calls may be made to p to print
+   * subterms of e.
+   */
+  virtual void toStreamSygus(const Printer* p,
+                             std::ostream& out,
+                             Expr e) const = 0;
+};
+
 /**
  * A constructor for a Datatype.
  */
@@ -286,6 +312,13 @@ class CVC4_PUBLIC DatatypeConstructor {
    * TODO (#1344) refactor this
    */
   bool isSygusIdFunc() const;
+  /** get sygus print callback
+   * This class stores custom ways of printing
+   * sygus datatype constructors, for instance,
+   * to handle defined or let expressions that
+   * appear in user-provided grammars.
+   */
+  SygusPrintCallback* getSygusPrintCallback() const;
 
   /**
    * Get the tester name for this Datatype constructor.
