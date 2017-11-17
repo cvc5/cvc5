@@ -59,7 +59,6 @@ class SingleInvocationPartition
  public:
   SingleInvocationPartition() : d_has_input_funcs(false) {}
   ~SingleInvocationPartition() {}
-  
   /** initialize this partition for formula n, with input functions funcs
    *
    * This initializes this class to check whether formula n is single
@@ -91,7 +90,6 @@ class SingleInvocationPartition
    * Notice that the free variables of t are exactly x.
    */
   bool isPurelySingleInvocation() { return d_conjuncts[1].empty(); }
-  
   /** is the processed formula non-ground single invocation?
    *
    * A formula is non-ground single invocation if it is equivalent to:
@@ -112,7 +110,6 @@ class SingleInvocationPartition
    * getFirstOrderVariableForFunction).
    */
   Node getSingleInvocation() { return getConjunct(0); }
-  
   /** Get the (portion of) the processed formula that is not single invocation
    *
    * This formula and the above form a partition of the conjuncts of the
@@ -126,7 +123,6 @@ class SingleInvocationPartition
    * formulas (see d_si_vars).
    */
   Node getNonSingleInvocation() { return getConjunct(1); }
-  
   /** get full specification
    *
    * This returns getSingleInvocation() * sigma ^ getNonSingleInvocation(),
@@ -134,7 +130,6 @@ class SingleInvocationPartition
    * substitution described above.
    */
   Node getFullSpecification() { return getConjunct(2); }
-  
   /** get first order variable for input function f
    *
    * This corresponds to the variable that we used when anti-skolemizing
