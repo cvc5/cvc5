@@ -189,7 +189,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
             // store simplified version of quantified formula
             d_simp_quant = d_sip->getFullSpecification();
             std::vector< Node > new_bv;
-            for (unsigned j = 0; j < sivars.size(); j++)
+            for (unsigned j = 0, size = sivars.size(); j < size; j++)
             {
               new_bv.push_back(
                   NodeManager::currentNM()->mkBoundVar(sivars[j].getType()));
@@ -290,7 +290,7 @@ void CegConjectureSingleInv::finishInit( bool syntaxRestricted, bool hasItes ) {
     //now, introduce the skolems
     std::vector<Node> sivars;
     d_sip->getSingleInvocationVariables(sivars);
-    for (unsigned i = 0; i < sivars.size(); i++)
+    for (unsigned i = 0, size = sivars.size(); i < size; i++)
     {
       Node v = NodeManager::currentNM()->mkSkolem(
           "a", sivars[i].getType(), "single invocation arg");
