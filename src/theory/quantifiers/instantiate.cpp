@@ -192,12 +192,19 @@ bool Instantiate::addInstantiation(
   }
 
   // check for term vector duplication  TODO
+  /*
+  if( existsInstantiation(q,terms,modEq) ){
+    Trace("inst-add-debug") << " --> Already exists." << std::endl;
+    ++(d_statistics.d_inst_duplicate_eq);
+    return false;
+  }
+  */
 
   // check for positive entailment
   if (options::instNoEntail())
   {
-    // TODO: check consistency of equality engine (if not aborting on utility's
-    // reset)
+    // should check consistency of equality engine 
+    // (if not aborting on utility's reset)
     std::map<TNode, TNode> subs;
     for (unsigned i = 0, size = terms.size(); i < size; i++)
     {
@@ -209,9 +216,6 @@ bool Instantiate::addInstantiation(
       ++(d_statistics.d_inst_duplicate_ent);
       return false;
     }
-    // Node eval = d_term_db->evaluateTerm( q[1], subs, false, true );
-    // Trace("inst-add-debug2") << "Instantiation evaluates to : " << std::endl;
-    // Trace("inst-add-debug2") << "   " << eval << std::endl;
   }
 
   // check based on instantiation level
@@ -227,10 +231,10 @@ bool Instantiate::addInstantiation(
   }
 
   // record the instantiation
-  bool alreadyExists = !recordInstantiationInternal(q, terms, modEq);
-  if (alreadyExists)
+  bool recorded = recordInstantiationInternal(q, terms, modEq);
+  if (!recorded)
   {
-    Trace("inst-add-debug") << " --> Already exists." << std::endl;
+    Trace("inst-add-debug") << " --> Already exists (no record)." << std::endl;
     ++(d_statistics.d_inst_duplicate_eq);
     return false;
   }
@@ -238,20 +242,22 @@ bool Instantiate::addInstantiation(
   // construct the instantiation
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   Assert(d_term_util->d_vars[q].size() == terms.size());
-  Node body = getInstantiation(
-      q, d_term_util->d_vars[q], terms, doVts);  // do virtual term substitution
+  // get the instantiation
+  Node body = getInstantiation(q, d_term_util->d_vars[q], terms, doVts);  
   Node orig_body = body;
-  InstStrategyCbqi* icbqi = d_qe->getInstStrategyCbqi();
-  if (options::cbqiNestedQE() && icbqi)
+  if (options::cbqiNestedQE())
   {
-    body = icbqi->doNestedQE(q, terms, body, doVts);
+    InstStrategyCbqi* icbqi = d_qe->getInstStrategyCbqi();
+    if (icbqi)
+    {
+      body = icbqi->doNestedQE(q, terms, body, doVts);
+    }
   }
   body = quantifiers::QuantifiersRewriter::preprocess(body, true);
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
 
   // construct the lemma
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
-  body = Rewriter::rewrite(body);
 
   if (d_qe->usingModelEqualityEngine() && options::instNoModelTrue())
   {
@@ -381,10 +387,7 @@ bool Instantiate::removeInstantiation(Node q,
   {
     return removeInstantiationInternal(q, terms);
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 bool Instantiate::recordInstantiation(Node q,
@@ -393,6 +396,27 @@ bool Instantiate::recordInstantiation(Node q,
                                       bool addedLem)
 {
   return recordInstantiationInternal(q, terms, modEq, addedLem);
+}
+
+bool Instantiate::existsInstantiation(Node q,
+                                      std::vector<Node>& terms,
+                                      bool modEq)
+{
+  if (options::incrementalSolving())
+  {
+    std::map<Node, inst::CDInstMatchTrie*>::iterator it =
+        d_c_inst_match_trie.find(q);
+    if (it != d_c_inst_match_trie.end())
+    {
+      return it->second->existsInstMatch(d_qe, q, terms, d_qe->getUserContext(), modEq);
+    }
+  }else{
+    std::map< Node,inst::InstMatchTrie>::iterator it = d_inst_match_trie.find( q );
+    if( it!=d_inst_match_trie.end() ){
+      return it->second.existsInstMatch(d_qe, q, terms, modEq);
+    }
+  }
+  return false;
 }
 
 Node Instantiate::getInstantiation(Node q,
@@ -477,15 +501,9 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
     {
       return it->second->removeInstMatch(q, terms);
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
-  else
-  {
-    return d_inst_match_trie[q].removeInstMatch(q, terms);
-  }
+  return d_inst_match_trie[q].removeInstMatch(q, terms);
 }
 
 Node Instantiate::getTermForType(TypeNode tn)
@@ -559,33 +577,28 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
 {
   // only if unsat core available
-  bool isUnsatCoreAvailable = false;
   if (options::proof())
   {
-    isUnsatCoreAvailable = ProofManager::currentPM()->unsatCoreAvailable();
-  }
-  if (isUnsatCoreAvailable)
-  {
-    Trace("inst-unsat-core") << "Get instantiations in unsat core..."
-                             << std::endl;
-    ProofManager::currentPM()->getLemmasInUnsatCore(theory::THEORY_QUANTIFIERS,
-                                                    active_lemmas);
-    if (Trace.isOn("inst-unsat-core"))
-    {
-      Trace("inst-unsat-core") << "Quantifiers lemmas in unsat core: "
-                               << std::endl;
-      for (unsigned i = 0; i < active_lemmas.size(); ++i)
-      {
-        Trace("inst-unsat-core") << "  " << active_lemmas[i] << std::endl;
-      }
-      Trace("inst-unsat-core") << std::endl;
+    if( !ProofManager::currentPM()->unsatCoreAvailable() ){
+      return false;
     }
-    return true;
   }
-  else
+  
+  Trace("inst-unsat-core") << "Get instantiations in unsat core..."
+                            << std::endl;
+  ProofManager::currentPM()->getLemmasInUnsatCore(theory::THEORY_QUANTIFIERS,
+                                                  active_lemmas);
+  if (Trace.isOn("inst-unsat-core"))
   {
-    return false;
+    Trace("inst-unsat-core") << "Quantifiers lemmas in unsat core: "
+                              << std::endl;
+    for (unsigned i = 0; i < active_lemmas.size(); ++i)
+    {
+      Trace("inst-unsat-core") << "  " << active_lemmas[i] << std::endl;
+    }
+    Trace("inst-unsat-core") << std::endl;
   }
+  return true;
 }
 
 bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas,
@@ -606,10 +619,7 @@ bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas,
     }
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 void Instantiate::getInstantiationTermVectors(
@@ -675,10 +685,7 @@ void Instantiate::getExplanationForInstLemmas(
     }
 #endif
   }
-  else
-  {
-    Assert(false);
-  }
+  Assert(false);
 }
 
 void Instantiate::getInstantiations(std::map<Node, std::vector<Node> >& insts)

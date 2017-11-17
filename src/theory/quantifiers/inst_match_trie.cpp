@@ -35,16 +35,16 @@ bool InstMatchTrie::addInstMatch(QuantifiersEngine* qe,
                                  bool modEq,
                                  ImtIndexOrder* imtio,
                                  bool onlyExist,
-                                 int index)
+                                 unsigned index)
 {
-  if (index == (int)f[0].getNumChildren()
-      || (imtio && index == (int)imtio->d_order.size()))
+  if (index == f[0].getNumChildren()
+      || (imtio && index == imtio->d_order.size()))
   {
     return false;
   }
   else
   {
-    int i_index = imtio ? imtio->d_order[index] : index;
+    unsigned i_index = imtio ? imtio->d_order[index] : index;
     Node n = m[i_index];
     std::map<Node, InstMatchTrie>::iterator it = d_data.find(n);
     if (it != d_data.end())
@@ -94,17 +94,17 @@ bool InstMatchTrie::addInstMatch(QuantifiersEngine* qe,
 bool InstMatchTrie::removeInstMatch(Node q,
                                     std::vector<Node>& m,
                                     ImtIndexOrder* imtio,
-                                    int index)
+                                    unsigned index)
 {
-  Assert(index < (int)q[0].getNumChildren());
-  Assert(!imtio || index < (int)imtio->d_order.size());
-  int i_index = imtio ? imtio->d_order[index] : index;
+  Assert(index < q[0].getNumChildren());
+  Assert(!imtio || index < imtio->d_order.size());
+  unsigned i_index = imtio ? imtio->d_order[index] : index;
   Node n = m[i_index];
   std::map<Node, InstMatchTrie>::iterator it = d_data.find(n);
   if (it != d_data.end())
   {
-    if ((index + 1) == (int)q[0].getNumChildren()
-        || (imtio && (index + 1) == (int)imtio->d_order.size()))
+    if ((index + 1) == q[0].getNumChildren()
+        || (imtio && (index + 1) == imtio->d_order.size()))
     {
       d_data.erase(n);
       return true;
@@ -121,17 +121,17 @@ bool InstMatchTrie::removeInstMatch(Node q,
 }
 
 bool InstMatchTrie::recordInstLemma(
-    Node q, std::vector<Node>& m, Node lem, ImtIndexOrder* imtio, int index)
+    Node q, std::vector<Node>& m, Node lem, ImtIndexOrder* imtio, unsigned index)
 {
-  if (index == (int)q[0].getNumChildren()
-      || (imtio && index == (int)imtio->d_order.size()))
+  if (index == q[0].getNumChildren()
+      || (imtio && index == imtio->d_order.size()))
   {
     setInstLemma(lem);
     return true;
   }
   else
   {
-    int i_index = imtio ? imtio->d_order[index] : index;
+    unsigned i_index = imtio ? imtio->d_order[index] : index;
     std::map<Node, InstMatchTrie>::iterator it = d_data.find(m[i_index]);
     if (it != d_data.end())
     {
@@ -178,7 +178,7 @@ void InstMatchTrie::print(std::ostream& out,
         firstTime = false;
       }
       out << "  ( ";
-      for (unsigned i = 0; i < terms.size(); i++)
+      for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
         if (i > 0)
         {
@@ -292,7 +292,7 @@ bool CDInstMatchTrie::addInstMatch(QuantifiersEngine* qe,
                                    std::vector<Node>& m,
                                    context::Context* c,
                                    bool modEq,
-                                   int index,
+                                   unsigned index,
                                    bool onlyExist)
 {
   bool reset = false;
@@ -308,7 +308,7 @@ bool CDInstMatchTrie::addInstMatch(QuantifiersEngine* qe,
       reset = true;
     }
   }
-  if (index == (int)f[0].getNumChildren())
+  if (index == f[0].getNumChildren())
   {
     return reset;
   }
@@ -365,19 +365,16 @@ bool CDInstMatchTrie::addInstMatch(QuantifiersEngine* qe,
   }
 }
 
-bool CDInstMatchTrie::removeInstMatch(Node q, std::vector<Node>& m, int index)
+bool CDInstMatchTrie::removeInstMatch(Node q, std::vector<Node>& m, unsigned index)
 {
-  if (index == (int)q[0].getNumChildren())
+  if (index == q[0].getNumChildren())
   {
     if (d_valid.get())
     {
       d_valid.set(false);
       return true;
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
   else
   {
@@ -386,29 +383,23 @@ bool CDInstMatchTrie::removeInstMatch(Node q, std::vector<Node>& m, int index)
     {
       return it->second->removeInstMatch(q, m, index + 1);
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
 }
 
 bool CDInstMatchTrie::recordInstLemma(Node q,
                                       std::vector<Node>& m,
                                       Node lem,
-                                      int index)
+                                      unsigned index)
 {
-  if (index == (int)q[0].getNumChildren())
+  if (index == q[0].getNumChildren())
   {
     if (d_valid.get())
     {
       setInstLemma(lem);
       return true;
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
   else
   {
@@ -417,10 +408,7 @@ bool CDInstMatchTrie::recordInstLemma(Node q,
     {
       return it->second->recordInstLemma(q, m, lem, index + 1);
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
 }
 

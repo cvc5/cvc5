@@ -164,15 +164,22 @@ class Instantiate : public QuantifiersUtil
   bool removeInstantiation(Node q, Node lem, std::vector<Node>& terms);
   /** record instantiation
    *
-   * Explicitly record that q has been instantiated with terms.
-   * This is the same as addInstantiation, but does not enqueue an instantiation
-   * lemma.
+   * Explicitly record that q has been instantiated with terms. This is the 
+   * same as addInstantiation, but does not enqueue an instantiation lemma.
    */
   bool recordInstantiation(Node q,
                            std::vector<Node>& terms,
                            bool modEq = false,
                            bool addedLem = true);
-
+  /** exists instantiation 
+   * 
+   * Returns true if and only if the instantiation already was added or 
+   * recorded by this class.
+   *   modEq : whether to check for duplication modulo equality
+   */
+  bool existsInstantiation(Node q,
+                           std::vector<Node>& terms,
+                           bool modEq = false);
   //--------------------------------------general utilities
   /** get instantiation
    *
@@ -306,7 +313,13 @@ class Instantiate : public QuantifiersUtil
   Statistics d_statistics;
 
  private:
-  /** record instantiation, return true if it was not a duplicate */
+  /** record instantiation, return true if it was not a duplicate 
+   * 
+   * addedLem : whether an instantiation lemma was added for the vector we are
+   *            recording. If this is false, we bookkeep the vector.
+   * modEq : whether to check for duplication modulo equality in instantiation
+   *         tries (for performance),
+   */
   bool recordInstantiationInternal(Node q,
                                    std::vector<Node>& terms,
                                    bool modEq = false,

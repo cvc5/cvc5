@@ -44,7 +44,7 @@ class InstMatchTrie
   class ImtIndexOrder
   {
    public:
-    std::vector<int> d_order;
+    std::vector<unsigned> d_order;
   };
 
  public:
@@ -63,7 +63,7 @@ class InstMatchTrie
                        InstMatch& m,
                        bool modEq = false,
                        ImtIndexOrder* imtio = NULL,
-                       int index = 0)
+                       unsigned index = 0)
   {
     return !addInstMatch(qe, q, m, modEq, imtio, true, index);
   }
@@ -73,7 +73,7 @@ class InstMatchTrie
                        std::vector<Node>& m,
                        bool modEq = false,
                        ImtIndexOrder* imtio = NULL,
-                       int index = 0)
+                       unsigned index = 0)
   {
     return !addInstMatch(qe, q, m, modEq, imtio, true, index);
   }
@@ -91,7 +91,7 @@ class InstMatchTrie
                     bool modEq = false,
                     ImtIndexOrder* imtio = NULL,
                     bool onlyExist = false,
-                    int index = 0)
+                    unsigned index = 0)
   {
     return addInstMatch(qe, q, m.d_vals, modEq, imtio, onlyExist, index);
   }
@@ -102,7 +102,7 @@ class InstMatchTrie
                     bool modEq = false,
                     ImtIndexOrder* imtio = NULL,
                     bool onlyExist = false,
-                    int index = 0);
+                    unsigned index = 0);
   /** remove inst match
    *
    * This removes (the suffix of) m starting at the given index from this trie.
@@ -112,7 +112,7 @@ class InstMatchTrie
   bool removeInstMatch(Node f,
                        std::vector<Node>& m,
                        ImtIndexOrder* imtio = NULL,
-                       int index = 0);
+                       unsigned index = 0);
   /** record instantiation lemma
    *
    * This records that the instantiation lemma lem corresponds to the entry
@@ -122,7 +122,7 @@ class InstMatchTrie
                        std::vector<Node>& m,
                        Node lem,
                        ImtIndexOrder* imtio = NULL,
-                       int index = 0);
+                       unsigned index = 0);
 
   /** get instantiations
    *
@@ -236,7 +236,7 @@ class CDInstMatchTrie
                        InstMatch& m,
                        context::Context* c,
                        bool modEq = false,
-                       int index = 0)
+                       unsigned index = 0)
   {
     return !addInstMatch(qe, q, m, c, modEq, index, true);
   }
@@ -246,7 +246,7 @@ class CDInstMatchTrie
                        std::vector<Node>& m,
                        context::Context* c,
                        bool modEq = false,
-                       int index = 0)
+                       unsigned index = 0)
   {
     return !addInstMatch(qe, q, m, c, modEq, index, true);
   }
@@ -264,7 +264,7 @@ class CDInstMatchTrie
                     InstMatch& m,
                     context::Context* c,
                     bool modEq = false,
-                    int index = 0,
+                    unsigned index = 0,
                     bool onlyExist = false)
   {
     return addInstMatch(qe, q, m.d_vals, c, modEq, index, onlyExist);
@@ -275,7 +275,7 @@ class CDInstMatchTrie
                     std::vector<Node>& m,
                     context::Context* c,
                     bool modEq = false,
-                    int index = 0,
+                    unsigned index = 0,
                     bool onlyExist = false);
   /** remove inst match
    *
@@ -283,13 +283,13 @@ class CDInstMatchTrie
    * It returns true if and only if this entry existed in this trie.
    * The domain of m is the bound variables of quantified formula q.
    */
-  bool removeInstMatch(Node q, std::vector<Node>& m, int index = 0);
+  bool removeInstMatch(Node q, std::vector<Node>& m, unsigned index = 0);
   /** record instantiation lemma
    *
    * This records that the instantiation lemma lem corresponds to the entry
    * given by (the suffix of) m starting at the given index.
    */
-  bool recordInstLemma(Node q, std::vector<Node>& m, Node lem, int index = 0);
+  bool recordInstLemma(Node q, std::vector<Node>& m, Node lem, unsigned index = 0);
 
   /** get instantiations
    *

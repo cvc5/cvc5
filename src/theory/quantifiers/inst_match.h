@@ -35,7 +35,7 @@ namespace inst {
  * that is passed to its constructor.
  *
  * The values of d_vals may be null, which indicate that the field has
- * yet to be specified.
+ * yet to be initialized.
  */
 class InstMatch {
 public:
@@ -46,14 +46,15 @@ public:
   std::vector<Node> d_vals;
   /** add match m
    *
-   * This adds all non-null fields of m to this class, overwriting the existing
-   * fields of this class.
+   * This adds the initialized fields of m to this match for each field that is
+   * not already initialized in this match.
    */
   void add(InstMatch& m);
   /** merge with match m
    *
-   * This method returns true if the merge was successful, that is, all fields
-   * of this class and m are equivalent modulo the equalities given by q.
+   * This method returns true if the merge was successful, that is, all jointly
+   * initialized fields of this class and m are equivalent modulo the equalities
+   * given by q.
    */
   bool merge( EqualityQuery* q, InstMatch& m );
   /** is this complete, i.e. are all fields non-null? */
