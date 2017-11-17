@@ -229,12 +229,6 @@ private:
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
-  /**
-   * Whether proofs are enabled
-   *
-   */
-  bool d_proofEnabled;
-
 public:
 
   /**

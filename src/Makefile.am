@@ -190,6 +190,8 @@ libcvc4_la_SOURCES = \
 	theory/arith/approx_simplex.h \
 	theory/arith/arith_ite_utils.cpp \
 	theory/arith/arith_ite_utils.h \
+	theory/arith/arith_msum.cpp \
+	theory/arith/arith_msum.h \
 	theory/arith/arith_rewriter.cpp \
 	theory/arith/arith_rewriter.h \
 	theory/arith/arith_static_learner.cpp \
@@ -277,6 +279,7 @@ libcvc4_la_SOURCES = \
 	theory/builtin/theory_builtin_rewriter.cpp \
 	theory/builtin/theory_builtin_rewriter.h \
 	theory/builtin/theory_builtin_type_rules.h \
+	theory/builtin/type_enumerator.cpp \
 	theory/builtin/type_enumerator.h \
 	theory/bv/abstraction.cpp \
 	theory/bv/abstraction.h \
@@ -378,6 +381,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
 	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/extended_rewrite.cpp \
+	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/first_order_model.cpp \
 	theory/quantifiers/first_order_model.h \
 	theory/quantifiers/full_model_check.cpp \
@@ -432,6 +437,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/skolemize.h \
 	theory/quantifiers/sygus_explain.cpp \
 	theory/quantifiers/sygus_explain.h \
+	theory/quantifiers/sygus_invariance.cpp \
+	theory/quantifiers/sygus_invariance.h \
 	theory/quantifiers/sygus_grammar_cons.cpp \
 	theory/quantifiers/sygus_grammar_cons.h \
 	theory/quantifiers/sygus_process_conj.cpp \

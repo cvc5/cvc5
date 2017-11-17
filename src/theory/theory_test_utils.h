@@ -20,6 +20,7 @@
 #define __CVC4__THEORY__THEORY_TEST_UTILS_H
 
 #include <iostream>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -27,6 +28,7 @@
 #include "expr/node.h"
 #include "theory/interrupted.h"
 #include "theory/output_channel.h"
+#include "util/proof.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
@@ -67,8 +69,8 @@ public:
   ~TestOutputChannel() override {}
 
   void safePoint(uint64_t amount) override {}
-
-  void conflict(TNode n, Proof* pf = nullptr) override {
+  void conflict(TNode n, std::unique_ptr<Proof> pf) override
+  {
     push(CONFLICT, n);
   }
 
