@@ -31,9 +31,9 @@ class CegConjecture;
  */
 class SygusGrammarSimplifier
 {
-public:
- SygusGrammarSimplifier(CegConjecture* p);
- ~SygusGrammarSimplifier() {}
+ public:
+  SygusGrammarSimplifier(QuantifiersEngine* qe, CegConjecture* p);
+  ~SygusGrammarSimplifier() {}
   /** helper function for function process
    * Creates a normalized type from a given type
    * For now only normalizes integer types, e.g.:
@@ -56,19 +56,33 @@ public:
    * IntV -> 0 | c1...cn
    */
   TypeNode normalizeSygusType(TypeNode tn);
-private:
+
+ private:
+  /** reference to quantifier engine */
+  QuantifiersEngine * d_qe;
   /** parent conjecture
-  * This contains global information about the synthesis conjecture.
-  */
+   *
+   * This contains global information about the synthesis conjecture.
+   */
   CegConjecture* d_parent;
   /** is the syntax restricted? */
   bool d_is_syntax_restricted;
   /** does the syntax allow ITE expressions? */
   bool d_has_ite;
+
+  /** sygus term database associated with this utility */
+  TermDbSygus* d_tds;
+
+  void collectSygusGrammarTypesFor(
+      TypeNode range,
+      std::vector<TypeNode>& types,
+      std::map<TypeNode, std::vector<DatatypeConstructorArg>>& sels,
+      TypeNode& bool_type);
+  /* TODO add kinds to be normalized: PLUS, MINUS if ZERO is present */
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
+} // namespace quantifiers
+} // namespace theory
 } /* namespace CVC4 */
 
 #endif
