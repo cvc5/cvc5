@@ -83,6 +83,7 @@
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
 #include "smt_util/node_visitor.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/arith/pseudoboolean_proc.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/bv/bvintropow2.h"
@@ -2736,7 +2737,8 @@ Node SmtEnginePrivate::realToInt(TNode n, NodeMap& cache, std::vector< Node >& v
           Node ret_lit = ret.getKind()==kind::NOT ? ret[0] : ret;
           bool ret_pol = ret.getKind()!=kind::NOT;
           std::map< Node, Node > msum;
-          if( QuantArith::getMonomialSumLit( ret_lit, msum ) ){
+          if (ArithMSum::getMonomialSumLit(ret_lit, msum))
+          {
             //get common coefficient
             std::vector< Node > coeffs;
             for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
@@ -5294,7 +5296,8 @@ UnsatCore SmtEngine::getUnsatCore() {
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-Proof* SmtEngine::getProof() {
+const Proof& SmtEngine::getProof()
+{
   Trace("smt") << "SMT getProof()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();

@@ -600,11 +600,13 @@ void InstPropagator::InstInfo::init( Node q, Node lem, std::vector< Node >& term
   d_curr_exp.push_back( body );
 }
 
-InstPropagator::InstPropagator( QuantifiersEngine* qe ) :
-d_qe( qe ), d_notify(*this), d_qy( qe ){
-  d_icount = 1;
-  d_conflict = false;
-}
+InstPropagator::InstPropagator(QuantifiersEngine* qe)
+    : d_qe(qe),
+      d_notify(*this),
+      d_qy(qe),
+      d_icount(1),
+      d_conflict(false),
+      d_has_relevant_inst(false) {}
 
 bool InstPropagator::reset( Theory::Effort e ) {
   d_icount = 1;
@@ -621,7 +623,12 @@ bool InstPropagator::reset( Theory::Effort e ) {
   return d_qy.reset( e );
 }
 
-bool InstPropagator::notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) {
+bool InstPropagator::notifyInstantiation(QuantifiersModule::QEffort quant_e,
+                                         Node q,
+                                         Node lem,
+                                         std::vector<Node>& terms,
+                                         Node body)
+{
   if( !d_conflict ){
     if( Trace.isOn("qip-prop") ){
       Trace("qip-prop") << "InstPropagator:: Notify instantiation " << q << " : " << std::endl;

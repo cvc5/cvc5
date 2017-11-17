@@ -83,9 +83,11 @@ bool QuantDSplit::checkCompleteFor( Node q ) {
 }
 
 /* Call during quantifier engine's check */
-void QuantDSplit::check( Theory::Effort e, unsigned quant_e ) {
+void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
+{
   //add lemmas ASAP (they are a reduction)
-  if( quant_e==QuantifiersEngine::QEFFORT_CONFLICT ){
+  if (quant_e == QEFFORT_CONFLICT)
+  {
     std::vector< Node > lemmas;
     for(std::map< Node, int >::iterator it = d_quant_to_reduce.begin(); it != d_quant_to_reduce.end(); ++it) {
       Node q = it->first;

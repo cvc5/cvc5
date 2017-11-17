@@ -15,6 +15,7 @@
 #include "theory/quantifiers/ce_guided_single_inv.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -709,12 +710,14 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
       if( v.isNull() ){
         //solve for var
         std::map< Node, Node > msum;
-        if( QuantArith::getMonomialSumLit( slit, msum ) ){
+        if (ArithMSum::getMonomialSumLit(slit, msum))
+        {
           for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
             if( std::find( vars.begin(), vars.end(), itm->first )!=vars.end() ){  
               Node veq_c;
               Node val;
-              int ires = QuantArith::isolate( itm->first, msum, veq_c, val, EQUAL );
+              int ires =
+                  ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
               if( ires!=0 && veq_c.isNull() && !TermUtil::containsTerm( val, itm->first ) ){
                 v = itm->first;
                 s = val;
