@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --no-dump-synth
+; COMMAND-LINE: --sygus-out=status
 ; Synthesize the maximum of 2 integers, but property has 4 variables (requires 2 passes)
 (set-logic LIA)
 (synth-fun max2 ((x Int) (y Int)) Int)

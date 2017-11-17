@@ -229,12 +229,6 @@ private:
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
-  /**
-   * Whether proofs are enabled
-   *
-   */
-  bool d_proofEnabled;
-
 public:
 
   /**
@@ -523,11 +517,10 @@ public:
 
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
-
   /**
    * Return a decision request, if the theory has one, or the NULL node
    * otherwise.
-   * If returning non-null node, hould set priority to
+   * If returning non-null node, should set priority to
    *                        0 if decision is necessary for model-soundness,
    *                        1 if decision is necessary for completeness,
    *                        >1 otherwise.

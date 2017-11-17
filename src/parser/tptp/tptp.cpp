@@ -29,8 +29,11 @@
 namespace CVC4 {
 namespace parser {
 
-Tptp::Tptp(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
-  Parser(exprManager,input,strictMode,parseOnly) {
+Tptp::Tptp(ExprManager* exprManager, Input* input, bool strictMode,
+           bool parseOnly)
+    : Parser(exprManager, input, strictMode, parseOnly),
+      d_cnf(false),
+      d_fof(false) {
   addTheory(Tptp::THEORY_CORE);
 
   /* Try to find TPTP dir */
@@ -135,14 +138,6 @@ bool newInputStream(std::string fileName, pANTLR3_LEXER lexer, std::vector< pANT
   return true;
 }
 
-/* overridden popCharStream for the lexer - necessary if we had symbol
- * filtering in file inclusion.
-void Tptp::myPopCharStream(pANTLR3_LEXER lexer) {
-  ((Tptp*)lexer->super)->d_oldPopCharStream(lexer);
-  ((Tptp*)lexer->super)->popScope();
-}
-*/
-
 void Tptp::includeFile(std::string fileName) {
   // security for online version
   if(!canIncludeFile()) {
@@ -152,15 +147,6 @@ void Tptp::includeFile(std::string fileName) {
   // Get the lexer
   AntlrInput * ai = static_cast<AntlrInput *>(getInput());
   pANTLR3_LEXER lexer = ai->getAntlr3Lexer();
-
-  // set up popCharStream - would be necessary for handling symbol
-  // filtering in inclusions
-  /*
-  if(d_oldPopCharStream == NULL) {
-    d_oldPopCharStream = lexer->popCharStream;
-    lexer->popCharStream = myPopCharStream;
-  }
-  */
 
   // push the inclusion scope; will be popped by our special popCharStream
   // would be necessary for handling symbol filtering in inclusions
@@ -312,13 +298,8 @@ void Tptp::makeApplication(Expr& expr, std::string& name,
   }
 }
 
-Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf) {
-  // For SZS ontology compliance.
-  // if we're in cnf() though, conjectures don't result in "Theorem" or
-  // "CounterSatisfiable".
-  if (!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE)) {
-    d_hasConjecture = true;
-  }
+
+Expr Tptp::getAssertionExpr(FormulaRole fr, Expr expr) {
   switch (fr) {
     case FR_AXIOM:
     case FR_HYPOTHESIS:
@@ -329,19 +310,36 @@ Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf) {
     case FR_NEGATED_CONJECTURE:
     case FR_PLAIN:
       // it's a usual assert
-      return new AssertCommand(expr);
+      return expr;
     case FR_CONJECTURE:
-      // something to prove
-      return new AssertCommand(getExprManager()->mkExpr(kind::NOT, expr));
+      // it should be negated when asserted
+      return getExprManager()->mkExpr(kind::NOT, expr);
     case FR_UNKNOWN:
     case FR_FI_DOMAIN:
     case FR_FI_FUNCTORS:
     case FR_FI_PREDICATES:
     case FR_TYPE:
-      return new EmptyCommand("Untreated role");
+      // it does not correspond to an assertion
+      return d_nullExpr;
+      break;
   }
   assert(false);  // unreachable
-  return nullptr;
+  return d_nullExpr;
+}
+
+Command* Tptp::makeAssertCommand(FormulaRole fr, Expr expr, bool cnf, bool inUnsatCore) {
+  // For SZS ontology compliance.
+  // if we're in cnf() though, conjectures don't result in "Theorem" or
+  // "CounterSatisfiable".
+  if (!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE)) {
+    d_hasConjecture = true;
+    assert(!expr.isNull());
+  }
+  if( expr.isNull() ){
+    return new EmptyCommand("Untreated role for expression");
+  }else{
+    return new AssertCommand(expr, inUnsatCore);
+  }
 }
 
 }/* CVC4::parser namespace */

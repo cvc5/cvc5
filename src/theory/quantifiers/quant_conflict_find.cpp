@@ -609,7 +609,8 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
     //check constraints
     for( std::map< Node, bool >::iterator it = d_tconstraints.begin(); it != d_tconstraints.end(); ++it ){
       //apply substitution to the tconstraint
-      Node cons = p->getTermUtil()->getInstantiatedNode( it->first, d_q, terms );
+      Node cons =
+          p->getTermUtil()->substituteBoundVariables(it->first, d_q, terms);
       cons = it->second ? cons : cons.negate();
       if( !entailmentTest( p, cons, p->d_effort==QuantConflictFind::effort_conflict ) ){
         return true;
@@ -2030,9 +2031,11 @@ void QuantConflictFind::setIrrelevantFunction( TNode f ) {
 }
 
 /** check */
-void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
+void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
+{
   CodeTimer codeTimer(d_quantEngine->d_statistics.d_qcf_time);
-  if( quant_e==QuantifiersEngine::QEFFORT_CONFLICT ){
+  if (quant_e == QEFFORT_CONFLICT)
+  {
     Trace("qcf-check") << "QCF : check : " << level << std::endl;
     if( d_conflict ){
       Trace("qcf-check2") << "QCF : finished check : already in conflict." << std::endl;

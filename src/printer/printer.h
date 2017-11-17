@@ -69,16 +69,26 @@ public:
   /** Write a CommandStatus out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const CommandStatus* s) const throw() = 0;
 
-
-
   /** Write a Model out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const Model& m) const throw();
 
   /** Write an UnsatCore out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const UnsatCore& core) const throw();
 
-  /** Write an UnsatCore out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw();
+  /**
+   * Write the term that sygus datatype term n
+   * encodes to a stream with this Printer.
+   * For example, consider the datatype term
+   *   (C_plus (C_minus C_x C_0) C_y)
+   * where C_plus, C_minus, C_x, C_0, C_y are constructors
+   * whose sygus operators are PLUS, MINUS, x, 0, y.
+   * In this case, this method is equivalent to printing
+   * the integer term:
+   *   (PLUS (MINUS x 0) y)
+   * This method may make calls to sygus printing callback
+   * methods stored in sygus datatype constructors.
+   */
+  virtual void toStreamSygus(std::ostream& out, TNode n) const throw();
 
 };/* class Printer */
 

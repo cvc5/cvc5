@@ -11,8 +11,8 @@ EXTRA_DIST = \
 	configure-in-place \
 	depgraph \
 	get-antlr-3.4 \
+	get-win-dependencies \
 	mac-build \
-	win-build \
 	run-script-smtcomp2014 \
 	run-script-cascj7-fnt \
 	run-script-cascj7-fof \

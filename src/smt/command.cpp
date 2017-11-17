@@ -40,6 +40,21 @@ using namespace std;
 
 namespace CVC4 {
 
+namespace {
+
+std::vector<Expr> ExportTo(ExprManager* exprManager,
+                           ExprManagerMapCollection& variableMap,
+                           const std::vector<Expr>& exprs) {
+  std::vector<Expr> exported;
+  exported.reserve(exprs.size());
+  for (const Expr& expr : exprs) {
+    exported.push_back(expr.exportTo(exprManager, variableMap));
+  }
+  return exported;
+}
+
+}  // namespace
+
 const int CommandPrintSuccess::s_iosIndex = std::ios_base::xalloc();
 const CommandSuccess* CommandSuccess::s_instance = new CommandSuccess();
 const CommandInterrupted* CommandInterrupted::s_instance = new CommandInterrupted();
@@ -383,8 +398,8 @@ CheckSynthCommand::CheckSynthCommand() throw() :
   d_expr() {
 }
 
-CheckSynthCommand::CheckSynthCommand(const Expr& expr, bool inUnsatCore) throw() :
-  d_expr(expr), d_inUnsatCore(inUnsatCore) {
+CheckSynthCommand::CheckSynthCommand(const Expr& expr) throw() :
+  d_expr(expr) {
 }
 
 Expr CheckSynthCommand::getExpr() const throw() {
@@ -395,6 +410,33 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->checkSynth(d_expr);
     d_commandStatus = CommandSuccess::instance();
+    smt::SmtScope scope(smtEngine);
+    d_solution.clear();
+    // check whether we should print the status
+    if (d_result.asSatisfiabilityResult() != Result::UNSAT
+        || options::sygusOut() == SYGUS_SOL_OUT_STATUS_AND_DEF
+        || options::sygusOut() == SYGUS_SOL_OUT_STATUS)
+    {
+      if (options::sygusOut() == SYGUS_SOL_OUT_STANDARD)
+      {
+        d_solution << "(fail)" << endl;
+      }
+      else
+      {
+        d_solution << d_result << endl;
+      }
+    }
+    // check whether we should print the solution
+    if (d_result.asSatisfiabilityResult() == Result::UNSAT
+        && options::sygusOut() != SYGUS_SOL_OUT_STATUS)
+    {
+      // printing a synthesis solution is a non-constant
+      // method, since it invokes a sophisticated algorithm
+      // (Figure 5 of Reynolds et al. CAV 2015).
+      // Hence, we must call here print solution here,
+      // instead of during printResult.
+      smtEngine->printSynthSolution(d_solution);
+    }
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
   }
@@ -408,18 +450,18 @@ void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
-    out << d_result << endl;
+    out << d_solution.str();
   }
 }
 
 Command* CheckSynthCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  CheckSynthCommand* c = new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap), d_inUnsatCore);
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap));
   c->d_result = d_result;
   return c;
 }
 
 Command* CheckSynthCommand::clone() const {
-  CheckSynthCommand* c = new CheckSynthCommand(d_expr, d_inUnsatCore);
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr);
   c->d_result = d_result;
   return c;
 }
@@ -850,43 +892,46 @@ Command* DefineNamedFunctionCommand::clone() const {
 
 /* class SetUserAttribute */
 
-SetUserAttributeCommand::SetUserAttributeCommand( const std::string& attr, Expr expr ) throw() :
-  d_attr( attr ), d_expr( expr ){
-}
+SetUserAttributeCommand::SetUserAttributeCommand(
+    const std::string& attr, Expr expr, const std::vector<Expr>& expr_values,
+    const std::string& str_value) throw()
+    : d_attr(attr),
+      d_expr(expr),
+      d_expr_values(expr_values),
+      d_str_value(str_value) {}
 
-SetUserAttributeCommand::SetUserAttributeCommand( const std::string& attr, Expr expr,
-                                                  std::vector<Expr>& values ) throw() :
-  d_attr( attr ), d_expr( expr ){
-  d_expr_values.insert( d_expr_values.begin(), values.begin(), values.end() );
-}
+SetUserAttributeCommand::SetUserAttributeCommand(const std::string& attr,
+                                                 Expr expr) throw()
+    : SetUserAttributeCommand(attr, expr, {}, "") {}
 
-SetUserAttributeCommand::SetUserAttributeCommand( const std::string& attr, Expr expr,
-                                                  const std::string& value ) throw() :
-  d_attr( attr ), d_expr( expr ), d_str_value( value ){
-}
+SetUserAttributeCommand::SetUserAttributeCommand(
+    const std::string& attr, Expr expr, const std::vector<Expr>& values) throw()
+    : SetUserAttributeCommand(attr, expr, values, "") {}
+
+SetUserAttributeCommand::SetUserAttributeCommand(
+    const std::string& attr, Expr expr, const std::string& value) throw()
+    : SetUserAttributeCommand(attr, expr, {}, value) {}
 
 void SetUserAttributeCommand::invoke(SmtEngine* smtEngine) {
   try {
-    if(!d_expr.isNull()) {
-      smtEngine->setUserAttribute( d_attr, d_expr, d_expr_values, d_str_value );
+    if (!d_expr.isNull()) {
+      smtEngine->setUserAttribute(d_attr, d_expr, d_expr_values, d_str_value);
     }
     d_commandStatus = CommandSuccess::instance();
-  } catch(exception& e) {
+  } catch (exception& e) {
     d_commandStatus = new CommandFailure(e.what());
   }
 }
 
-Command* SetUserAttributeCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap){
+Command* SetUserAttributeCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   Expr expr = d_expr.exportTo(exprManager, variableMap);
-  SetUserAttributeCommand * c = new SetUserAttributeCommand( d_attr, expr, d_str_value );
-  c->d_expr_values.insert( c->d_expr_values.end(), d_expr_values.begin(), d_expr_values.end() );
-  return c;
+  return new SetUserAttributeCommand(d_attr, expr, d_expr_values, d_str_value);
 }
 
-Command* SetUserAttributeCommand::clone() const{
-  SetUserAttributeCommand * c = new SetUserAttributeCommand( d_attr, d_expr, d_str_value );
-  c->d_expr_values.insert( c->d_expr_values.end(), d_expr_values.begin(), d_expr_values.end() );
-  return c;
+Command* SetUserAttributeCommand::clone() const {
+  return new SetUserAttributeCommand(d_attr, d_expr, d_expr_values,
+                                     d_str_value);
 }
 
 std::string SetUserAttributeCommand::getCommandName() const throw() {
@@ -1165,12 +1210,12 @@ std::string GetModelCommand::getCommandName() const throw() {
 /* class GetProofCommand */
 
 GetProofCommand::GetProofCommand() throw()
-    : d_result(nullptr), d_smtEngine(nullptr) {}
+  : d_smtEngine(nullptr), d_result(nullptr) {}
 
 void GetProofCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_smtEngine = smtEngine;
-    d_result = smtEngine->getProof();
+    d_result = &smtEngine->getProof();
     d_commandStatus = CommandSuccess::instance();
   } catch (RecoverableModalException& e) {
     d_commandStatus = new CommandRecoverableFailure(e.what());
@@ -1181,10 +1226,7 @@ void GetProofCommand::invoke(SmtEngine* smtEngine) {
   }
 }
 
-Proof* GetProofCommand::getResult() const throw() {
-  return d_result;
-}
-
+const Proof& GetProofCommand::getResult() const throw() { return *d_result; }
 void GetProofCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
@@ -1353,9 +1395,6 @@ std::string GetQuantifierEliminationCommand::getCommandName() const throw() {
 GetUnsatCoreCommand::GetUnsatCoreCommand() throw() {
 }
 
-GetUnsatCoreCommand::GetUnsatCoreCommand(const std::map<Expr, std::string>& names) throw() : d_names(names) {
-}
-
 void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getUnsatCore();
@@ -1371,7 +1410,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out, uint32_t verbosity) con
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
-    d_result.toStream(out, d_names);
+    d_result.toStream(out);
   }
 }
 
@@ -1381,13 +1420,13 @@ const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const throw() {
 }
 
 Command* GetUnsatCoreCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  GetUnsatCoreCommand* c = new GetUnsatCoreCommand(d_names);
+  GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
   c->d_result = d_result;
   return c;
 }
 
 Command* GetUnsatCoreCommand::clone() const {
-  GetUnsatCoreCommand* c = new GetUnsatCoreCommand(d_names);
+  GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
   c->d_result = d_result;
   return c;
 }
@@ -1692,6 +1731,33 @@ std::string GetOptionCommand::getCommandName() const throw() {
   return "get-option";
 }
 
+
+/* class SetExpressionNameCommand */
+
+SetExpressionNameCommand::SetExpressionNameCommand(Expr expr, std::string name) throw() :
+d_expr(expr), d_name(name) {
+
+}
+
+void SetExpressionNameCommand::invoke(SmtEngine* smtEngine) {
+  smtEngine->setExpressionName(d_expr, d_name);
+  d_commandStatus = CommandSuccess::instance();
+}
+
+Command* SetExpressionNameCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  SetExpressionNameCommand* c = new SetExpressionNameCommand(d_expr.exportTo(exprManager, variableMap), d_name);
+  return c;
+}
+
+Command* SetExpressionNameCommand::clone() const {
+  SetExpressionNameCommand* c = new SetExpressionNameCommand(d_expr, d_name);
+  return c;
+}
+
+std::string SetExpressionNameCommand::getCommandName() const throw() {
+  return "set-expr-name";
+}
+
 /* class DatatypeDeclarationCommand */
 
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(const DatatypeType& datatype) throw() :
@@ -1793,27 +1859,15 @@ void RewriteRuleCommand::invoke(SmtEngine* smtEngine) {
 
 Command* RewriteRuleCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   /** Convert variables */
-  VExpr vars; vars.reserve(d_vars.size());
-  for(VExpr::iterator i = d_vars.begin(), end = d_vars.end();
-      i == end; ++i){
-    vars.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr vars = ExportTo(exprManager, variableMap, d_vars);
   /** Convert guards */
-  VExpr guards; guards.reserve(d_guards.size());
-  for(VExpr::iterator i = d_guards.begin(), end = d_guards.end();
-      i == end; ++i){
-    guards.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr guards = ExportTo(exprManager, variableMap, d_guards);
   /** Convert triggers */
-  Triggers triggers; triggers.resize(d_triggers.size());
-  for(size_t i = 0, end = d_triggers.size();
-      i < end; ++i){
-    triggers[i].reserve(d_triggers[i].size());
-    for(VExpr::iterator j = d_triggers[i].begin(), jend = d_triggers[i].end();
-        j == jend; ++i){
-      triggers[i].push_back(j->exportTo(exprManager, variableMap));
-    };
-  };
+  Triggers triggers;
+  triggers.reserve(d_triggers.size());
+  for (const std::vector<Expr>& trigger_list : d_triggers) {
+    triggers.push_back(ExportTo(exprManager, variableMap, trigger_list));
+  }
   /** Convert head and body */
   Expr head = d_head.exportTo(exprManager, variableMap);
   Expr body = d_body.exportTo(exprManager, variableMap);
@@ -1909,33 +1963,17 @@ void PropagateRuleCommand::invoke(SmtEngine* smtEngine) {
 
 Command* PropagateRuleCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   /** Convert variables */
-  VExpr vars; vars.reserve(d_vars.size());
-  for(VExpr::iterator i = d_vars.begin(), end = d_vars.end();
-      i == end; ++i){
-    vars.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr vars = ExportTo(exprManager, variableMap, d_vars);
   /** Convert guards */
-  VExpr guards; guards.reserve(d_guards.size());
-  for(VExpr::iterator i = d_guards.begin(), end = d_guards.end();
-      i == end; ++i){
-    guards.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr guards = ExportTo(exprManager, variableMap, d_guards);
   /** Convert heads */
-  VExpr heads; heads.reserve(d_heads.size());
-  for(VExpr::iterator i = d_heads.begin(), end = d_heads.end();
-      i == end; ++i){
-    heads.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr heads = ExportTo(exprManager, variableMap, d_heads);
   /** Convert triggers */
-  Triggers triggers; triggers.resize(d_triggers.size());
-  for(size_t i = 0, end = d_triggers.size();
-      i < end; ++i){
-    triggers[i].reserve(d_triggers[i].size());
-    for(VExpr::iterator j = d_triggers[i].begin(), jend = d_triggers[i].end();
-        j == jend; ++i){
-      triggers[i].push_back(j->exportTo(exprManager, variableMap));
-    };
-  };
+  Triggers triggers;
+  triggers.reserve(d_triggers.size());
+  for (const std::vector<Expr>& trigger_list : d_triggers) {
+    triggers.push_back(ExportTo(exprManager, variableMap, trigger_list));
+  }
   /** Convert head and body */
   Expr body = d_body.exportTo(exprManager, variableMap);
   /** Create the converted rules */

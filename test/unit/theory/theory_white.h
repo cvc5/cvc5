@@ -15,9 +15,9 @@
  **/
 
 #include <cxxtest/TestSuite.h>
+#include <memory>
 #include <vector>
 
-// taking: Add include for Proof*.
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
@@ -25,7 +25,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
-
+#include "util/proof.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -41,83 +41,54 @@ using namespace std;
  */
 enum OutputChannelCallType{CONFLICT, PROPAGATE, LEMMA, EXPLANATION};
 class TestOutputChannel : public OutputChannel {
-private:
-  void push(OutputChannelCallType call, TNode n) {
-    d_callHistory.push_back(make_pair(call, n));
-  }
-
-public:
-  vector< pair<OutputChannelCallType, Node> > d_callHistory;
-
+ public:
   TestOutputChannel() {}
+  ~TestOutputChannel() override {}
 
-  ~TestOutputChannel() {}
-
-  void safePoint(uint64_t amount)
-      throw(Interrupted, UnsafeInterruptException, AssertionException)
-  {}
-
-  void conflict(TNode n, Proof* pf = NULL)
-    throw(AssertionException) {
+  void safePoint(uint64_t amount) override {}
+  void conflict(TNode n, std::unique_ptr<Proof> pf) override
+  {
     push(CONFLICT, n);
   }
 
-  bool propagate(TNode n)
-    throw(AssertionException) {
+  bool propagate(TNode n) override {
     push(PROPAGATE, n);
     return true;
   }
 
-  void propagateAsDecision(TNode n)
-    throw(AssertionException) {
-    // ignore
-  }
-
-  LemmaStatus lemma(TNode n, ProofRule rule,
-                    bool removable = false,
-                    bool preprocess = false,
-                    bool sendAtoms = false)
-    throw(AssertionException) {
+  LemmaStatus lemma(TNode n, ProofRule rule, bool removable = false,
+                    bool preprocess = false, bool sendAtoms = false) override {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
 
-  LemmaStatus splitLemma(TNode n, bool removable) throw (TypeCheckingExceptionPrivate, AssertionException){
+  LemmaStatus splitLemma(TNode n, bool removable) override {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
 
-  void requirePhase(TNode, bool)
-    throw(Interrupted, AssertionException) {
-    Unreachable();
-  }
+  void requirePhase(TNode, bool) override { Unreachable(); }
+  bool flipDecision() override { Unreachable(); }
+  void setIncomplete() override { Unreachable(); }
 
-  bool flipDecision()
-    throw(Interrupted, AssertionException) {
-    Unreachable();
-  }
+  void clear() { d_callHistory.clear(); }
 
-  void setIncomplete()
-    throw(AssertionException) {
-    Unreachable();
-  }
-
-  void clear() {
-    d_callHistory.clear();
-  }
-
-  Node getIthNode(int i) {
+  Node getIthNode(int i) const {
     Node tmp = (d_callHistory[i]).second;
     return tmp;
   }
 
-  OutputChannelCallType getIthCallType(int i) {
+  OutputChannelCallType getIthCallType(int i) const {
     return (d_callHistory[i]).first;
   }
 
-  unsigned getNumCalls() {
-    return d_callHistory.size();
+  unsigned getNumCalls() const { return d_callHistory.size(); }
+
+ private:
+  void push(OutputChannelCallType call, TNode n) {
+    d_callHistory.push_back(make_pair(call, n));
   }
+  vector<pair<OutputChannelCallType, Node> > d_callHistory;
 };
 
 class DummyTheory : public Theory {
