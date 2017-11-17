@@ -260,7 +260,7 @@ bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool 
       //get function substitution
       std::vector<Node> funcs;
       d_quant_sip[q].getFunctions(funcs);
-      for (unsigned i = 0; i < funcs.size(); i++)
+      for (unsigned i = 0, size = funcs.size(); i < size; i++)
       {
         Node f = funcs[i];
         Node fv = d_quant_sip[q].getFirstOrderVariableForFunction(f);
