@@ -19,6 +19,7 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers_engine.h"
@@ -675,16 +676,17 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
     }
     if( !rew_vts_inf.isNull()  || rew_delta ){
       std::map< Node, Node > msum;
-      if( QuantArith::getMonomialSumLit( n, msum ) ){
+      if (ArithMSum::getMonomialSumLit(n, msum))
+      {
         if( Trace.isOn("quant-vts-debug") ){
           Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
-          QuantArith::debugPrintMonomialSum( msum, "quant-vts-debug" );
+          ArithMSum::debugPrintMonomialSum(msum, "quant-vts-debug");
         }
         Node vts_sym = !rew_vts_inf.isNull() ? rew_vts_inf : d_vts_delta;
         Assert( !vts_sym.isNull() );
         Node iso_n;
         Node nlit;
-        int res = QuantArith::isolate( vts_sym, msum, iso_n, n.getKind(), true );
+        int res = ArithMSum::isolate(vts_sym, msum, iso_n, n.getKind(), true);
         if( res!=0 ){
           Trace("quant-vts-debug") << "VTS isolated :  -> " << iso_n << ", res = " << res << std::endl;
           Node slv = iso_n[res==1 ? 1 : 0];

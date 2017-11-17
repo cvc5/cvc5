@@ -18,6 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
 
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
