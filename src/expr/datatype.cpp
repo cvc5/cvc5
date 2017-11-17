@@ -924,14 +924,6 @@ SygusPrintCallback* DatatypeConstructor::getSygusPrintCallback() const
   return d_sygus_pc;
 }
 
-SygusPrintCallback* DatatypeConstructor::getSygusPrintCallback() const
-{
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
-  // TODO  (#1344) return the stored callback
-  return nullptr;
-}
-
 Cardinality DatatypeConstructor::getCardinality( Type t ) const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
 
