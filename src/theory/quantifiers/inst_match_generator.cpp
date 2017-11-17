@@ -15,8 +15,8 @@
 #include "theory/quantifiers/inst_match_generator.h"
 
 #include "expr/datatype.h"
-#include "options/quantifiers_options.h"
 #include "options/datatypes_options.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/candidate_generator.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
@@ -313,7 +313,7 @@ int InstMatchGenerator::continueNextMatch( Node f, InstMatch& m, QuantifiersEngi
     return d_next->getNextMatch( f, m, qe );
   }else{
     if( d_active_add ){
-      return qe->getInstantiate()->addInstantiation( f, m ) ? 1 : -1;
+      return qe->getInstantiate()->addInstantiation(f, m) ? 1 : -1;
     }else{
       return 1;
     }
@@ -414,7 +414,8 @@ int InstMatchGenerator::addInstantiations( Node f, InstMatch& baseMatch, Quantif
   while( getNextMatch( f, m, qe )>0 ){
     if( !d_active_add ){
       m.add( baseMatch );
-      if( qe->getInstantiate()->addInstantiation( f, m ) ){
+      if (qe->getInstantiate()->addInstantiation(f, m))
+      {
         addedLemmas++;
         if( qe->inConflict() ){
           break;
@@ -878,7 +879,8 @@ void InstMatchGeneratorMulti::processNewInstantiations2( QuantifiersEngine* qe, 
     }
   }else{
     //m is an instantiation
-    if( qe->getInstantiate()->addInstantiation( d_f, m ) ){
+    if (qe->getInstantiate()->addInstantiation(d_f, m))
+    {
       addedLemmas++;
       Trace("multi-trigger-cache-debug") << "-> Produced instantiation " << m << std::endl;
     }
@@ -964,7 +966,8 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
         m.setValue( it->second, t[it->first] );
       }
     }
-    if( qe->getInstantiate()->addInstantiation( d_f, m ) ){
+    if (qe->getInstantiate()->addInstantiation(d_f, m))
+    {
       addedLemmas++;
       Debug("simple-trigger") << "-> Produced instantiation " << m << std::endl;
     }

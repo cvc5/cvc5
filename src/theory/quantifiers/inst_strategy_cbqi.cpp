@@ -729,12 +729,15 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   if( d_quantEngine->getQuantAttributes()->isQuantElimPartial( d_curr_quant ) ){
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
-    d_quantEngine->getInstantiate()->recordInstantiation( d_curr_quant, subs, false, false );
+    d_quantEngine->getInstantiate()->recordInstantiation(
+        d_curr_quant, subs, false, false);
     return true;
   }else{
     //check if we need virtual term substitution (if used delta or infinity)
     bool used_vts = d_quantEngine->getTermUtil()->containsVtsTerm( subs, false );
-    if( d_quantEngine->getInstantiate()->addInstantiation( d_curr_quant, subs, false, false, used_vts ) ){
+    if (d_quantEngine->getInstantiate()->addInstantiation(
+            d_curr_quant, subs, false, false, used_vts))
+    {
       ++(d_quantEngine->d_statistics.d_instantiations_cbqi);
       //d_added_inst.insert( d_curr_quant );
       return true;

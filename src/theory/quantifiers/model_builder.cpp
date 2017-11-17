@@ -119,7 +119,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
           {
             terms.push_back( riter.getCurrentTerm( k ) );
           }
-          Node n = d_qe->getInstantiate()->getInstantiation( f, vars, terms );
+          Node n = d_qe->getInstantiate()->getInstantiation(f, vars, terms);
           Node val = fm->getValue( n );
           if (val != d_qe->getTermUtil()->d_true)
           {
@@ -323,7 +323,8 @@ int QModelBuilderIG::initializeQuantifier(Node f, Node fp, FirstOrderModel* fm)
     //try to add it
     Trace("inst-fmf-init") << "Init: try to add match " << d_quant_basis_match[f] << std::endl;
     //add model basis instantiation
-    if( d_qe->getInstantiate()->addInstantiation( fp, d_quant_basis_match[f] ) ){
+    if (d_qe->getInstantiate()->addInstantiation(fp, d_quant_basis_match[f]))
+    {
       d_quant_basis_match_added[f] = true;
       return 1;
     }else{
@@ -466,7 +467,8 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           //add as instantiation
-          if( d_qe->getInstantiate()->addInstantiation( f, m, true ) ){
+          if (d_qe->getInstantiate()->addInstantiation(f, m, true))
+          {
             d_addedLemmas++;
             if( d_qe->inConflict() ){
               break;

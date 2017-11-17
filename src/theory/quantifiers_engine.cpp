@@ -31,11 +31,11 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/fun_def_engine.h"
-#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/inst_propagator.h"
 #include "theory/quantifiers/inst_strategy_cbqi.h"
 #include "theory/quantifiers/inst_strategy_e_matching.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/model_engine.h"
@@ -110,7 +110,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
     // notice that this option is incompatible with options::qcfAllConflict()
     d_inst_prop = new quantifiers::InstPropagator( this );
     d_util.push_back( d_inst_prop );
-    d_instantiate->addNotify( d_inst_prop->getInstantiationNotify() );
+    d_instantiate->addNotify(d_inst_prop->getInstantiationNotify());
   }else{
     d_inst_prop = NULL;
   }
@@ -120,7 +120,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   }else{
     d_eq_inference = NULL;
   }
-  
+
   d_util.push_back(d_instantiate.get());
 
   d_tr_trie = new inst::TriggerTrie;
@@ -401,7 +401,8 @@ void QuantifiersEngine::ppNotifyAssertions(
       d_qepr != NULL) {
     for (unsigned i = 0; i < assertions.size(); i++) {
       if (options::instLevelInputOnly() && options::instMaxLevel() != -1) {
-        quantifiers::QuantAttributes::setInstantiationLevelAttr(assertions[i], 0);
+        quantifiers::QuantAttributes::setInstantiationLevelAttr(assertions[i],
+                                                                0);
       }
       if (d_qepr != NULL) {
         d_qepr->registerAssertion(assertions[i]);
@@ -599,9 +600,13 @@ void QuantifiersEngine::check( Theory::Effort e ){
         {
           if( e==Theory::EFFORT_LAST_CALL ){
             //sources of incompleteness
-            for( unsigned i=0; i<d_util.size(); i++ ){
-              if( !d_util[i]->checkComplete() ){
-                Trace("quant-engine-debug") << "Set incomplete because utility " << d_modules[i]->identify().c_str() << " was incomplete." << std::endl;
+            for (unsigned i = 0; i < d_util.size(); i++)
+            {
+              if (!d_util[i]->checkComplete())
+              {
+                Trace("quant-engine-debug") << "Set incomplete because utility "
+                                            << d_modules[i]->identify().c_str()
+                                            << " was incomplete." << std::endl;
                 setIncomplete = true;
               }
             }
@@ -610,7 +615,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
               //check if we should set the incomplete flag
               for( unsigned i=0; i<d_modules.size(); i++ ){
                 if( !d_modules[i]->checkComplete() ){
-                  Trace("quant-engine-debug") << "Set incomplete because module " << d_modules[i]->identify().c_str() << " was incomplete." << std::endl;
+                  Trace("quant-engine-debug")
+                      << "Set incomplete because module "
+                      << d_modules[i]->identify().c_str() << " was incomplete."
+                      << std::endl;
                   setIncomplete = true;
                   break;
                 }
@@ -1000,9 +1008,10 @@ quantifiers::UserPatMode QuantifiersEngine::getInstUserPatMode() {
 void QuantifiersEngine::flushLemmas(){
   if( !d_lemmas_waiting.empty() ){
     //filter based on notify classes
-    if( d_instantiate->hasNotify() ){
+    if (d_instantiate->hasNotify())
+    {
       unsigned prev_lem_sz = d_lemmas_waiting.size();
-      d_instantiate->notifyFlushLemmas(); 
+      d_instantiate->notifyFlushLemmas();
       if( prev_lem_sz!=d_lemmas_waiting.size() ){
         Trace("quant-engine") << "...filtered instances : " << d_lemmas_waiting.size() << " / " << prev_lem_sz << std::endl;
       }
@@ -1029,19 +1038,23 @@ bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas )
 }
 
 bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas, std::map< Node, Node >& weak_imp ) {
-  return d_instantiate->getUnsatCoreLemmas(active_lemmas,weak_imp);
+  return d_instantiate->getUnsatCoreLemmas(active_lemmas, weak_imp);
 }
 
 void QuantifiersEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
-  d_instantiate->getInstantiationTermVectors(q,tvecs);
+  d_instantiate->getInstantiationTermVectors(q, tvecs);
 }
 
 void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts ) {
   d_instantiate->getInstantiationTermVectors(insts);
 }
 
-void QuantifiersEngine::getExplanationForInstLemmas( const std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) {
-  d_instantiate->getExplanationForInstLemmas(lems,quant,tvec);
+void QuantifiersEngine::getExplanationForInstLemmas(
+    const std::vector<Node>& lems,
+    std::map<Node, Node>& quant,
+    std::map<Node, std::vector<Node> >& tvec)
+{
+  d_instantiate->getExplanationForInstLemmas(lems, quant, tvec);
 }
 
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
@@ -1052,7 +1065,8 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
     printed = true;
   }
   // print the instantiations
-  if( d_instantiate->printInstantiations(out)){
+  if (d_instantiate->printInstantiations(out))
+  {
     printed = true;
   }
   if( !printed ){
@@ -1077,7 +1091,7 @@ void QuantifiersEngine::getInstantiations( std::map< Node, std::vector< Node > >
 }
 
 void QuantifiersEngine::getInstantiations( Node q, std::vector< Node >& insts  ) {
-  d_instantiate->getInstantiations(q,insts);
+  d_instantiate->getInstantiations(q, insts);
 }
 
 Node QuantifiersEngine::getInstantiatedConjunction( Node q ) {

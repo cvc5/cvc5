@@ -12,9 +12,9 @@
  ** \brief Implementation of full model check class
  **/
 
+#include "theory/quantifiers/full_model_check.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -695,7 +695,8 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
               }else{
                 //just add the instance
                 d_triedLemmas++;
-                if( d_qe->getInstantiate()->addInstantiation( f, inst, true ) ){
+                if (d_qe->getInstantiate()->addInstantiation(f, inst, true))
+                {
                   Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
                   d_addedLemmas++;
                   if( d_qe->inConflict() || options::fmfOneInstPerRound() ){
@@ -846,7 +847,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       if (ev!=d_true) {
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
-        if( d_qe->getInstantiate()->addInstantiation( f, inst, true ) ){
+        if (d_qe->getInstantiate()->addInstantiation(f, inst, true))
+        {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
           if( d_qe->inConflict() || options::fmfOneInstPerRound() ){

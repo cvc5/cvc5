@@ -86,7 +86,7 @@ namespace inst {
 
 
 class QuantifiersEngine {
-  //TODO: remove these github issue #1163
+  // TODO: remove these github issue #1163
   friend class quantifiers::InstantiationEngine;
   friend class quantifiers::InstStrategyCbqi;
   friend class quantifiers::InstStrategyCegqi;
@@ -392,7 +392,9 @@ public:
   bool getUnsatCoreLemmas( std::vector< Node >& active_lemmas );
   bool getUnsatCoreLemmas( std::vector< Node >& active_lemmas, std::map< Node, Node >& weak_imp );
   /** get inst for lemmas */
-  void getExplanationForInstLemmas( const std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ); 
+  void getExplanationForInstLemmas(const std::vector<Node>& lems,
+                                   std::map<Node, Node>& quant,
+                                   std::map<Node, std::vector<Node> >& tvec);
   /** statistics class */
   class Statistics {
   public:

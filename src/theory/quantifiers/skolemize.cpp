@@ -287,7 +287,8 @@ Node Skolemize::mkSkolemizedBody(Node f,
   // if it has an instantiation level, set the skolemized body to that level
   if (f.hasAttribute(InstLevelAttribute()))
   {
-    QuantAttributes::setInstantiationLevelAttr(ret, f.getAttribute(InstLevelAttribute()));
+    QuantAttributes::setInstantiationLevelAttr(
+        ret, f.getAttribute(InstLevelAttribute()));
   }
 
   if (Trace.isOn("quantifiers-sk"))

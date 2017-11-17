@@ -106,7 +106,8 @@ class TermUtil : public QuantifiersUtil
   // TODO : remove these
   friend class ::CVC4::theory::QuantifiersEngine;
   friend class Instantiate;
-private:
+
+ private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
 public:

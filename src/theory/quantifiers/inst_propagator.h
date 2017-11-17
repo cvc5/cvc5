@@ -18,14 +18,14 @@
 #define __CVC4__QUANTIFIERS_INST_PROPAGATOR_H
 
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {

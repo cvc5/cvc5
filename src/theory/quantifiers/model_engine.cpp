@@ -296,7 +296,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;
           //add as instantiation
-          if( d_quantEngine->getInstantiate()->addInstantiation( f, m, true ) ){
+          if (d_quantEngine->getInstantiate()->addInstantiation(f, m, true))
+          {
             addedLemmas++;
             if( d_quantEngine->inConflict() ){
               break;
