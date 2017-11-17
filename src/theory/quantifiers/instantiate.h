@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/inst_match.h"
+#include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
 
@@ -35,7 +35,9 @@ class TermUtil;
 /** instantiation notify 
  * 
  * This class is a listener for all instantiations generated with quantifiers.
- * No instances of notify classes are enabled by default in CVC4.
+ * By default, no notify classes are used, however, --inst-prop enables a
+ * notify class that recognizes when the set of enqueued instantiations form 
+ * a conflict.
  */
 class InstantiationNotify {
 public:
@@ -98,12 +100,22 @@ public:
   /** check incomplete */
   virtual bool checkComplete() override;
   
-  /** add instantiation notify */
+  //--------------------------------------notify objects
+  /** add instantiation notify 
+   * 
+   * Adds an instantiation notify class to listen to the instantiations reported
+   * to this class.
+   */
   void addNotify( InstantiationNotify* in );
-  /** get num instantiation notify */
+  /** get number of instantiation notify added to this class */
   bool hasNotify() const { return !d_inst_notify.empty(); }
-  /** notify flush lemmas */
+  /** notify flush lemmas 
+   * 
+   * This is called just before the quantifiers engine flushes its lemmas to 
+   * the output channel.
+   */
   void notifyFlushLemmas();
+  //--------------------------------------end notify objects
   
   /** do instantiation specified by m 
    * 
@@ -199,15 +211,15 @@ public:
   void getInstantiatedQuantifiedFormulas( std::vector< Node >& qs );
   /** get instantiations 
    *
-   * Get all instantiation lemmas added in the current user context for 
-   * quantified formula q, store them in insts.
+   * Get the body of all instantiation lemmas added in the current user context 
+   * for quantified formula q, store them in insts.
    */
   void getInstantiations( Node q, std::vector< Node >& insts );
   /** get instantiations 
    * 
-   * Get all instantiation lemmas added in the current user context for all 
-   * quantified formulas stored in the domain of insts, store them in the range 
-   * of insts.
+   * Get the body of all instantiation lemmas added in the current user context 
+   * for all quantified formulas stored in the domain of insts, store them in 
+   * the range of insts.
    */
   void getInstantiations( std::map< Node, std::vector< Node > >& insts );
   /** get instantiation term vectors 
@@ -222,13 +234,41 @@ public:
    * context for quantified formula q, store them in tvecs.
    */
   void getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts );
-  /** get instantiated conjunction */
+  /** get instantiated conjunction 
+   * 
+   * This gets a conjunction of the bodies of instantiation lemmas added in the
+   * current user context for quantified formula q.  For example, if we added:
+   *   ~forall x. P( x ) V P( a )
+   *   ~forall x. P( x ) V P( b )
+   * Then, this method returns P( a ) ^ P( b ).
+   */
   Node getInstantiatedConjunction( Node q );
-  /** get unsat core lemmas */
+  /** get unsat core lemmas 
+   * 
+   * If this method returns true, then it appends to active_lemmas all lemmas 
+   * that are in the unsat core that originated from the theory of quantifiers. 
+   * This method returns false if the unsat core is not available.
+   */
   bool getUnsatCoreLemmas( std::vector< Node >& active_lemmas );
+  /** get unsat core lemmas
+   * 
+   * If this method returns true, then it appends to active_lemmas all lemmas 
+   * that are in the unsat core that originated from the theory of quantifiers. 
+   * This method returns false if the unsat core is not available.
+   * 
+   * It also computes a weak implicant for each of these lemmas. For each lemma
+   * L in active_lemmas, this is a formula L' such that:
+   *   L => L'
+   * and replacing L by L' in the unsat core results in a set that is still 
+   * unsatisfiable. The map weak_imp stores this formula for each formula in 
+   * active_lemmas.
+   */
   bool getUnsatCoreLemmas( std::vector< Node >& active_lemmas, std::map< Node, Node >& weak_imp );
-  /** get inst for lemmas */
-  void getExplanationForInstLemmas( std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ); 
+  /** get explanation for instantiation lemmas
+   * 
+   * 
+   */
+  void getExplanationForInstLemmas( const std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ); 
   //--------------------------------------end user-level interface utilities
   
   /** statistics class */
@@ -271,8 +311,8 @@ private:
   
   /** list of all instantiations produced for each quantifier 
    * 
-   * We store context (dependent, independent) versions. Depending on whether
-   * incremental solving is enabled, we use one or the other.
+   * We store context (dependent, independent) versions. If incremental solving
+   * is disabled, we use d_inst_match_trie for performance reasons.
    */
   std::map< Node, inst::InstMatchTrie > d_inst_match_trie;
   std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;

@@ -392,12 +392,12 @@ bool Instantiate::removeInstantiationInternal( Node q, std::vector< Node >& term
   if( options::incrementalSolving() ){
     std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.find( q );
     if( it!=d_c_inst_match_trie.end() ){
-      return it->second->removeInstMatch( d_qe, q, terms );
+      return it->second->removeInstMatch( q, terms );
     }else{
       return false;
     }
   }else{
-    return d_inst_match_trie[q].removeInstMatch( d_qe, q, terms );
+    return d_inst_match_trie[q].removeInstMatch( q, terms );
   }
 }
 
@@ -514,7 +514,7 @@ void Instantiate::getInstantiationTermVectors( std::map< Node, std::vector< std:
   }
 }
 
-void Instantiate::getExplanationForInstLemmas( std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) {
+void Instantiate::getExplanationForInstLemmas( const std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) {
   if( options::trackInstLemmas() ){
     if( options::incrementalSolving() ){
       for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){

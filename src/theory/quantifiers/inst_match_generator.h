@@ -17,7 +17,7 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_H
 #define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_H
 
-#include "theory/quantifiers/inst_match.h"
+#include "theory/quantifiers/inst_match_trie.h"
 #include <map>
 
 namespace CVC4 {

@@ -22,6 +22,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/ce_guided_single_inv_sol.h"
 #include "theory/quantifiers/inst_strategy_cbqi.h"
+#include "theory/quantifiers/inst_match_trie.h"
 
 namespace CVC4 {
 namespace theory {
