@@ -14,15 +14,19 @@
 
 #include "printer/sygus_print_callback.h"
 
+<<<<<<< HEAD
 #include "expr/node.h"
 #include "printer/printer.h"
 
+=======
+>>>>>>> 6c6f4e23aea405a812b1c6a3dd4d80696eb34741
 using namespace CVC4::kind;
 using namespace std;
 
 namespace CVC4 {
 namespace printer {
 
+<<<<<<< HEAD
 SygusExprPrintCallback::SygusExprPrintCallback(Expr body, std::vector<Expr>& args) :
 d_body(body),
 d_body_argument(-1){
@@ -37,6 +41,15 @@ d_body_argument(-1){
 
 void SygusExprPrintCallback::doStrReplace(
     std::string& str, const std::string& oldStr, const std::string& newStr) const
+=======
+SygusLetExpressionPrinter::SygusLetExpressionPrinter(
+    Node let_body, std::vector<Node>& let_args, unsigned ninput_args)
+{
+}
+
+void SygusLetExpressionConstructorPrinter::doStrReplace(
+    std::string& str, const std::string& oldStr, const std::string& newStr)
+>>>>>>> 6c6f4e23aea405a812b1c6a3dd4d80696eb34741
 {
   size_t pos = 0;
   while ((pos = str.find(oldStr, pos)) != std::string::npos)
@@ -46,6 +59,7 @@ void SygusExprPrintCallback::doStrReplace(
   }
 }
 
+<<<<<<< HEAD
 void SygusExprPrintCallback::toStreamSygus(const Printer* p,
                                                          std::ostream& out,
                                                          Expr e) const
@@ -103,21 +117,40 @@ void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
   std::stringstream let_out;
   // print as let term
   if (d_num_let_input_args > 0)
+=======
+void SygusLetExpressionConstructorPrinter::toStreamSygus(Printer* p,
+                                                         std::ostream& out,
+                                                         Expr e)
+{
+  std::stringstream let_out;
+  // print as let term
+  if (d_sygus_num_let_input_args > 0)
+>>>>>>> 6c6f4e23aea405a812b1c6a3dd4d80696eb34741
   {
     let_out << "(let (";
   }
   std::vector<Node> subs_lvs;
   std::vector<Node> new_lvs;
+<<<<<<< HEAD
   for (unsigned i = 0; i < d_args.size(); i++)
   {
     Node v = d_args[i];
+=======
+  for (unsigned i = 0; i < d_sygus_let_args.size(); i++)
+  {
+    Node v = d_sygus_let_args[i];
+>>>>>>> 6c6f4e23aea405a812b1c6a3dd4d80696eb34741
     subs_lvs.push_back(v);
     std::stringstream ss;
     ss << "_l_" << new_lvs.size();
     Node lv = NodeManager::currentNM()->mkBoundVar(ss.str(), v.getType());
     new_lvs.push_back(lv);
     // map free variables to proper terms
+<<<<<<< HEAD
     if (i < d_num_let_input_args)
+=======
+    if (i < d_sygus_num_let_input_args)
+>>>>>>> 6c6f4e23aea405a812b1c6a3dd4d80696eb34741
     {
       // it should be printed as a let argument
       let_out << "(";
@@ -126,17 +159,29 @@ void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
       let_out << ")";
     }
   }
+<<<<<<< HEAD
   if (d_num_let_input_args > 0)
+=======
+  if (d_sygus_num_let_input_args > 0)
+>>>>>>> 6c6f4e23aea405a812b1c6a3dd4d80696eb34741
   {
     let_out << ") ";
   }
   // print the body
+<<<<<<< HEAD
   Node slet_body = Node::fromExpr( d_body );
   slet_body = slet_body.substitute(
       subs_lvs.begin(), subs_lvs.end(), new_lvs.begin(), new_lvs.end());
   //new_lvs.insert(new_lvs.end(), lvs.begin(), lvs.end());
   p->toStreamSygus(let_out, slet_body);
   if (d_num_let_input_args > 0)
+=======
+  Node slet_body = d_let_body.substitute(
+      subs_lvs.begin(), subs_lvs.end(), new_lvs.begin(), new_lvs.end());
+  new_lvs.insert(new_lvs.end(), lvs.begin(), lvs.end());
+  p->toStreamSygus(let_out, slet_body);
+  if (d_sygus_num_let_input_args > 0)
+>>>>>>> 6c6f4e23aea405a812b1c6a3dd4d80696eb34741
   {
     let_out << ")";
   }
@@ -144,24 +189,37 @@ void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
   // ASSUMING : let_vars are interpreted literally and do not represent a class
   // of variables
   std::string lbody = let_out.str();
+<<<<<<< HEAD
   for (unsigned i = 0; i < d_args.size(); i++)
+=======
+  for (unsigned i = 0; i < d_sygus_let_args.size(); i++)
+>>>>>>> 6c6f4e23aea405a812b1c6a3dd4d80696eb34741
   {
     std::stringstream old_str;
     old_str << new_lvs[i];
     std::stringstream new_str;
+<<<<<<< HEAD
     if (i >= d_num_let_input_args)
+=======
+    if (i >= d_sygus_num_let_input_args)
+>>>>>>> 6c6f4e23aea405a812b1c6a3dd4d80696eb34741
     {
       p->toStreamSygus(new_str, Node::fromExpr(e[i]));
     }
     else
     {
+<<<<<<< HEAD
       new_str << d_args[i];
+=======
+      new_str << d_sygus_let_args[i];
+>>>>>>> 6c6f4e23aea405a812b1c6a3dd4d80696eb34741
     }
     doStrReplace(lbody, old_str.str().c_str(), new_str.str().c_str());
   }
   out << lbody;
 }
 
+<<<<<<< HEAD
 SygusNamedPrintCallback::SygusNamedPrintCallback(std::string name)
     : d_name(name)
 {
@@ -171,6 +229,16 @@ SygusNamedPrintCallback::SygusNamedPrintCallback(std::string name)
 void SygusNamedPrintCallback::toStreamSygus(const Printer* p,
                                                  std::ostream& out,
                                                  Expr e) const
+=======
+SygusNamedConstructorPrinter::SygusNamedConstructorPrinter(std::string name)
+    : d_name(name)
+{
+}
+
+void SygusNamedConstructorPrinter::toStreamSygus(Printer* p,
+                                                 std::ostream& out,
+                                                 Expr e)
+>>>>>>> 6c6f4e23aea405a812b1c6a3dd4d80696eb34741
 {
   if (e.getNumChildren() > 0)
   {
@@ -188,9 +256,15 @@ void SygusNamedPrintCallback::toStreamSygus(const Printer* p,
   }
 }
 
+<<<<<<< HEAD
 void SygusEmptyPrintCallback::toStreamSygus(const Printer* p,
                                                  std::ostream& out,
                                                  Expr e) const
+=======
+void SygusEmptyConstructorPrinter::toStreamSygus(const Printer* p,
+                                                 std::ostream& out,
+                                                 Expr e)
+>>>>>>> 6c6f4e23aea405a812b1c6a3dd4d80696eb34741
 {
   if (e.getNumChildren() == 1)
   {
