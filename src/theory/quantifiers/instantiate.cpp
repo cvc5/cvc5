@@ -200,7 +200,7 @@ bool Instantiate::addInstantiation(
   // existsInstantiation here, where this would return the node in the trie
   // where we determined that there is definitely no duplication, and then
   // continue from that point in recordInstantiation below. However, for 
-  // code clarity, we do not pursue this option (as it would likely only
+  // simplicity, we do not pursue this option (as it would likely only
   // lead to very small gains).
   
   // check for positive entailment

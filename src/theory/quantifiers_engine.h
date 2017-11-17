@@ -374,27 +374,33 @@ public:
   Node getInternalRepresentative( Node a, Node q, int index );
 
  public:
-  /** print instantiations */
-  void printInstantiations( std::ostream& out );
-  /** print solution for synthesis conjectures */
-  void printSynthSolution( std::ostream& out );
-  /** get list of quantified formulas that were instantiated */
-  void getInstantiatedQuantifiedFormulas( std::vector< Node >& qs );
-  /** get instantiations */
-  void getInstantiations( Node q, std::vector< Node >& insts );
-  void getInstantiations( std::map< Node, std::vector< Node > >& insts );
-  /** get instantiation term vectors */
-  void getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs );
-  void getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts );
-  /** get instantiated conjunction */
-  Node getInstantiatedConjunction( Node q );
-  /** get unsat core lemmas */
-  bool getUnsatCoreLemmas( std::vector< Node >& active_lemmas );
-  bool getUnsatCoreLemmas( std::vector< Node >& active_lemmas, std::map< Node, Node >& weak_imp );
-  /** get inst for lemmas */
-  void getExplanationForInstLemmas(const std::vector<Node>& lems,
-                                   std::map<Node, Node>& quant,
-                                   std::map<Node, std::vector<Node> >& tvec);
+  //----------user interface for instantiations (see quantifiers/instantiate.h)
+/** print instantiations */
+void printInstantiations( std::ostream& out );
+/** print solution for synthesis conjectures */
+void printSynthSolution( std::ostream& out );
+/** get list of quantified formulas that were instantiated */
+void getInstantiatedQuantifiedFormulas( std::vector< Node >& qs );
+/** get instantiations */
+void getInstantiations( Node q, std::vector< Node >& insts );
+void getInstantiations( std::map< Node, std::vector< Node > >& insts );
+/** get instantiation term vectors */
+void getInstantiationTermVectors( Node q, 
+                                  std::vector< std::vector< Node > >& tvecs );
+void getInstantiationTermVectors( 
+std::map< Node, std::vector< std::vector< Node > > >& insts );
+/** get instantiated conjunction */
+Node getInstantiatedConjunction( Node q );
+/** get unsat core lemmas */
+bool getUnsatCoreLemmas( std::vector< Node >& active_lemmas );
+bool getUnsatCoreLemmas( std::vector< Node >& active_lemmas, 
+                          std::map< Node, Node >& weak_imp );
+/** get explanation for instantiation lemmas */
+void getExplanationForInstLemmas(const std::vector<Node>& lems,
+                                  std::map<Node, Node>& quant,
+                                  std::map<Node, std::vector<Node> >& tvec);
+  //----------end user interface for instantiations
+  
   /** statistics class */
   class Statistics {
   public:
