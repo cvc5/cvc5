@@ -103,6 +103,7 @@
 #include "theory/theory_traits.h"
 #include "util/hash.h"
 #include "util/proof.h"
+#include "util/random.h"
 #include "util/resource_manager.h"
 
 using namespace std;
@@ -1290,6 +1291,7 @@ void SmtEngine::setLogicInternal() throw() {
 }
 
 void SmtEngine::setDefaults() {
+  Random::getRandom().setSeed(options::seed());
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
