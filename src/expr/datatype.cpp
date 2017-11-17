@@ -181,9 +181,14 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
   d_sygus_allow_all = allow_all;
 }
 
-void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
-                                    CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args,
-                                    SygusPrintCallback * spc ) {
+void Datatype::addSygusConstructor(CVC4::Expr op,
+                                   std::string& cname,
+                                   std::vector<CVC4::Type>& cargs,
+                                   CVC4::Expr& let_body,
+                                   std::vector<CVC4::Expr>& let_args,
+                                   unsigned let_num_input_args,
+                                   SygusPrintCallback* spc)
+{
   Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
   Debug("dt-sygus") << "    sygus op : " << op << std::endl;
   if( !let_body.isNull() ){
@@ -199,7 +204,7 @@ void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vect
   std::string testerId("is-");
   testerId.append(name);
   CVC4::DatatypeConstructor c(name, testerId );
-  c.setSygus( op, let_body, let_args, let_num_input_args, spc );
+  c.setSygus(op, let_body, let_args, let_num_input_args, spc);
   for( unsigned j=0; j<cargs.size(); j++ ){
     Debug("parser-sygus-debug") << "  arg " << j << " : " << cargs[j] << std::endl;
     std::stringstream sname;
@@ -209,12 +214,16 @@ void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vect
   addConstructor(c);
 }
 
-void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
-    SygusPrintCallback * spc ) {
+void Datatype::addSygusConstructor(CVC4::Expr op,
+                                   std::string& cname,
+                                   std::vector<CVC4::Type>& cargs,
+                                   SygusPrintCallback* spc)
+{
   CVC4::Expr let_body; 
   std::vector< CVC4::Expr > let_args; 
   unsigned let_num_input_args = 0;
-  addSygusConstructor( op, cname, cargs, let_body, let_args, let_num_input_args, spc );
+  addSygusConstructor(
+      op, cname, cargs, let_body, let_args, let_num_input_args, spc);
 }
                                     
 void Datatype::setTuple() {
@@ -786,7 +795,8 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
       d_tester(),
       d_args(),
       d_sygus_num_let_input_args(0),
-      d_sygus_pc(nullptr) {
+      d_sygus_pc(nullptr)
+{
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
 }
 
@@ -799,17 +809,19 @@ DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester)
       d_tester(),
       d_args(),
       d_sygus_num_let_input_args(0),
-      d_sygus_pc(nullptr) {
+      d_sygus_pc(nullptr)
+{
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
   PrettyCheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
 }
 
-DatatypeConstructor::~DatatypeConstructor() 
+DatatypeConstructor::~DatatypeConstructor() { delete d_sygus_pc; }
+void DatatypeConstructor::setSygus(Expr op,
+                                   Expr let_body,
+                                   std::vector<Expr>& let_args,
+                                   unsigned num_let_input_args,
+                                   SygusPrintCallback* spc)
 {
-  delete d_sygus_pc;
-}
-
-void DatatypeConstructor::setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_args, SygusPrintCallback* spc ){
   d_sygus_op = op;
   d_sygus_let_body = let_body;
   d_sygus_let_args.insert( d_sygus_let_args.end(), let_args.begin(), let_args.end() );
@@ -913,8 +925,11 @@ unsigned DatatypeConstructor::getNumSygusLetInputArgs() const {
 
 bool DatatypeConstructor::isSygusIdFunc() const {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-  return ( d_sygus_let_args.size()==1 && d_sygus_let_args[0]==d_sygus_let_body ) ||
-         ( d_sygus_op.getKind()==kind::LAMBDA && d_sygus_op[0].getNumChildren()==1 && d_sygus_op[0][0]==d_sygus_op[1] );
+  return (d_sygus_let_args.size() == 1
+          && d_sygus_let_args[0] == d_sygus_let_body)
+         || (d_sygus_op.getKind() == kind::LAMBDA
+             && d_sygus_op[0].getNumChildren() == 1
+             && d_sygus_op[0][0] == d_sygus_op[1]);
 }
 
 SygusPrintCallback* DatatypeConstructor::getSygusPrintCallback() const

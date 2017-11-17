@@ -965,53 +965,59 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
         std::stringstream ss;
         ss << dt.getName() << "_x_" << i << "_" << j;
         Expr v = mkBoundVar(ss.str(), bt);
-        largs.push_back( v );
+        largs.push_back(v);
         Debug("parser-sygus") << ": var " << i << " " << v << " with type " << bt << " from " << cargs[i][j] << std::endl;
       }
-      Expr lbvl = getExprManager()->mkExpr( kind::BOUND_VAR_LIST, largs );
-      
+      Expr lbvl = getExprManager()->mkExpr(kind::BOUND_VAR_LIST, largs);
+
       //make the let_body
       std::vector< Expr > children;
       if( ops[i].getKind() != kind::BUILTIN ){
         children.push_back( ops[i] );
       }
-      children.insert( children.end(), largs.begin(), largs.end() );
+      children.insert(children.end(), largs.begin(), largs.end());
       Kind sk = ops[i].getKind() != kind::BUILTIN ? kind::APPLY : getExprManager()->operatorToKind(ops[i]);
       Debug("parser-sygus") << ": replace " << ops[i] << " " << ops[i].getKind() << " " << sk << std::endl;
-      Expr body = getExprManager()->mkExpr( sk, children );
-      Debug("parser-sygus") << ": new body of function is " << body << std::endl;
+      Expr body = getExprManager()->mkExpr(sk, children);
+      Debug("parser-sygus") << ": new body of function is " << body
+                            << std::endl;
       // TODO : expand definitions in body
       Expr ebody = body;
-      
+
       // replace by lambda
-      ops[i] = getExprManager()->mkExpr( kind::LAMBDA, lbvl, ebody );
-      
+      ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, ebody);
+
       Debug("parser-sygus") << ": operator is " << ops[i] << std::endl;
-      
-      // expression 
-      //printer::SygusExprPrintCallback* sepc = new printer::SygusExprPrintCallback( body, largs );
-      printer::SygusEmptyPrintCallback* sepc = nullptr; //new printer::SygusEmptyPrintCallback;
-      
-      
+
+      // expression
+      // printer::SygusExprPrintCallback* sepc = new
+      // printer::SygusExprPrintCallback( body, largs );
+      printer::SygusEmptyPrintCallback* sepc =
+          nullptr;  // new printer::SygusEmptyPrintCallback;
+
       Debug("parser-sygus") << ": finished making print callback" << std::endl;
 
       std::stringstream ss;
       ss << dt.getName() << "_df_" << i;
       cnames[i] = ss.str();
-      
-      dt.addSygusConstructor( ops[i], cnames[i], cargs[i], sepc );
+
+      dt.addSygusConstructor(ops[i], cnames[i], cargs[i], sepc);
     }else{
       std::map< CVC4::Expr, CVC4::Expr >::iterator it = d_sygus_let_func_to_body.find( ops[i] );
       Expr let_body;
-      std::vector< Expr > let_args;
+      std::vector<Expr> let_args;
       unsigned let_num_input_args = 0;
       if( it!=d_sygus_let_func_to_body.end() ){
         let_body = it->second;
         let_args.insert( let_args.end(), d_sygus_let_func_to_vars[ops[i]].begin(), d_sygus_let_func_to_vars[ops[i]].end() );
         let_num_input_args = d_sygus_let_func_to_num_input_vars[ops[i]];
-      }else if( ops[i].getType().isBitVector() && ops[i].isConst() ){
+      }
+      else if (ops[i].getType().isBitVector() && ops[i].isConst())
+      {
         // TODO
-      }else if( ops[i].getKind()!=kind::BUILTIN ){
+      }
+      else if (ops[i].getKind() != kind::BUILTIN)
+      {
         // TODO
       }
       dt.addSygusConstructor( ops[i], cnames[i], cargs[i], let_body, let_args, let_num_input_args );
@@ -1032,23 +1038,25 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           //identity element
           Type bt = dt.getSygusType();
           Debug("parser-sygus") << ":  make identity function for " << bt << ", argument type " << t << std::endl;
-          
+
           std::stringstream ss;
           ss << t << "_x";
           Expr var = mkBoundVar(ss.str(), bt);
-          std::vector< Expr > lchildren;
-          lchildren.push_back(getExprManager()->mkExpr(kind::BOUND_VAR_LIST,var));
+          std::vector<Expr> lchildren;
+          lchildren.push_back(
+              getExprManager()->mkExpr(kind::BOUND_VAR_LIST, var));
           lchildren.push_back(var);
-          Expr id_op = getExprManager()->mkExpr(kind::LAMBDA,lchildren);
-          
+          Expr id_op = getExprManager()->mkExpr(kind::LAMBDA, lchildren);
+
           // empty sygus callback (should not be printed)
-          printer::SygusEmptyPrintCallback* sepc = nullptr;// new printer::SygusEmptyPrintCallback;
-          
+          printer::SygusEmptyPrintCallback* sepc =
+              nullptr;  // new printer::SygusEmptyPrintCallback;
+
           //make the sygus argument list
           std::vector< Type > id_carg;
           id_carg.push_back( t );
-          dt.addSygusConstructor( id_op, unresolved_gterm_sym[i], id_carg, sepc );
-          
+          dt.addSygusConstructor(id_op, unresolved_gterm_sym[i], id_carg, sepc);
+
           //add to operators
           ops.push_back( id_op );
         }

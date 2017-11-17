@@ -23,20 +23,23 @@ using namespace std;
 namespace CVC4 {
 namespace printer {
 
-SygusExprPrintCallback::SygusExprPrintCallback(Expr body, std::vector<Expr>& args) :
-d_body(body),
-d_body_argument(-1){
-  d_args.insert(d_args.end(),args.begin(),args.end());
+SygusExprPrintCallback::SygusExprPrintCallback(Expr body,
+                                               std::vector<Expr>& args)
+    : d_body(body), d_body_argument(-1)
+{
+  d_args.insert(d_args.end(), args.begin(), args.end());
   for (unsigned i = 0; i < d_args.size(); i++)
   {
-    if( d_args[i]==d_body ){
-      d_body_argument = static_cast<int>(i);      
+    if (d_args[i] == d_body)
+    {
+      d_body_argument = static_cast<int>(i);
     }
   }
 }
 
-void SygusExprPrintCallback::doStrReplace(
-    std::string& str, const std::string& oldStr, const std::string& newStr) const
+void SygusExprPrintCallback::doStrReplace(std::string& str,
+                                          const std::string& oldStr,
+                                          const std::string& newStr) const
 {
   size_t pos = 0;
   while ((pos = str.find(oldStr, pos)) != std::string::npos)
@@ -47,34 +50,39 @@ void SygusExprPrintCallback::doStrReplace(
 }
 
 void SygusExprPrintCallback::toStreamSygus(const Printer* p,
-                                                         std::ostream& out,
-                                                         Expr e) const
+                                           std::ostream& out,
+                                           Expr e) const
 {
   // optimization: if body is equal to an argument, then just print that one
-  if( d_body_argument>=0 ){
+  if (d_body_argument >= 0)
+  {
     p->toStreamSygus(out, Node::fromExpr(e[d_body_argument]));
-  }else{
+  }
+  else
+  {
     // make substitution
     std::vector<Node> vars;
     std::vector<Node> subs;
     for (unsigned i = 0; i < d_args.size(); i++)
     {
-      vars.push_back( Node::fromExpr( d_args[i] ) );
+      vars.push_back(Node::fromExpr(d_args[i]));
       std::stringstream ss;
       ss << "_setpc_var_" << i;
-      Node lv = NodeManager::currentNM()->mkBoundVar(ss.str(), TypeNode::fromType(d_args[i].getType()));
-      subs.push_back( lv );
+      Node lv = NodeManager::currentNM()->mkBoundVar(
+          ss.str(), TypeNode::fromType(d_args[i].getType()));
+      subs.push_back(lv);
     }
-    
+
     // the substituted body should be a non-sygus term
-    Node sbody = Node::fromExpr( d_body );
-    sbody = sbody.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-    
+    Node sbody = Node::fromExpr(d_body);
+    sbody =
+        sbody.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+
     std::stringstream body_out;
     body_out << sbody;
-    
+
     // do string substitution
-    Assert(e.getNumChildren()==d_args.size());
+    Assert(e.getNumChildren() == d_args.size());
     std::string str_body = body_out.str();
     for (unsigned i = 0; i < d_args.size(); i++)
     {
@@ -87,18 +95,17 @@ void SygusExprPrintCallback::toStreamSygus(const Printer* p,
     out << str_body;
   }
 }
-  
+
 SygusLetExprPrintCallback::SygusLetExprPrintCallback(
-    Expr let_body, std::vector<Expr>& let_args, unsigned ninput_args) :
-SygusExprPrintCallback(let_body,let_args),
-d_num_let_input_args(ninput_args)
+    Expr let_body, std::vector<Expr>& let_args, unsigned ninput_args)
+    : SygusExprPrintCallback(let_body, let_args),
+      d_num_let_input_args(ninput_args)
 {
-  
 }
 
 void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
-                                                         std::ostream& out,
-                                                         Expr e) const
+                                              std::ostream& out,
+                                              Expr e) const
 {
   std::stringstream let_out;
   // print as let term
@@ -131,10 +138,10 @@ void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
     let_out << ") ";
   }
   // print the body
-  Node slet_body = Node::fromExpr( d_body );
+  Node slet_body = Node::fromExpr(d_body);
   slet_body = slet_body.substitute(
       subs_lvs.begin(), subs_lvs.end(), new_lvs.begin(), new_lvs.end());
-  //new_lvs.insert(new_lvs.end(), lvs.begin(), lvs.end());
+  // new_lvs.insert(new_lvs.end(), lvs.begin(), lvs.end());
   p->toStreamSygus(let_out, slet_body);
   if (d_num_let_input_args > 0)
   {
@@ -165,12 +172,11 @@ void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
 SygusNamedPrintCallback::SygusNamedPrintCallback(std::string name)
     : d_name(name)
 {
-  
 }
 
 void SygusNamedPrintCallback::toStreamSygus(const Printer* p,
-                                                 std::ostream& out,
-                                                 Expr e) const
+                                            std::ostream& out,
+                                            Expr e) const
 {
   if (e.getNumChildren() > 0)
   {
@@ -189,8 +195,8 @@ void SygusNamedPrintCallback::toStreamSygus(const Printer* p,
 }
 
 void SygusEmptyPrintCallback::toStreamSygus(const Printer* p,
-                                                 std::ostream& out,
-                                                 Expr e) const
+                                            std::ostream& out,
+                                            Expr e) const
 {
   if (e.getNumChildren() == 1)
   {

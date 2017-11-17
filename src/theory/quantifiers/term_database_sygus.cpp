@@ -1537,8 +1537,9 @@ void doStrReplace(std::string& str, const std::string& oldStr, const std::string
 
 Kind TermDbSygus::getOperatorKind( Node op ) {
   Assert( op.getKind()!=BUILTIN );
-  if( op.getKind()==LAMBDA || 
-      smt::currentSmtEngine()->isDefinedFunction( op.toExpr() ) ){
+  if (op.getKind() == LAMBDA
+      || smt::currentSmtEngine()->isDefinedFunction(op.toExpr()))
+  {
     return APPLY;
   }else{
     TypeNode tn = op.getType();
@@ -1548,7 +1549,9 @@ Kind TermDbSygus::getOperatorKind( Node op ) {
       return APPLY_SELECTOR;
     }else if( tn.isTester() ){
       return APPLY_TESTER;
-    }else if( tn.isFunction() ){
+    }
+    else if (tn.isFunction())
+    {
       return APPLY_UF;
     }else{
       return NodeManager::operatorToKind( op );

@@ -19,23 +19,23 @@
 
 #include <vector>
 
-#include "expr/expr.h"
 #include "expr/datatype.h"
+#include "expr/expr.h"
 
 namespace CVC4 {
 namespace printer {
 
 /** sygus expression constructor printer
  *
- * This class is used for printing sygus datatype constructor terms whose top 
- * symbol is an expression, such as a custom defined lambda. For example, for 
- * sygus grammar: 
+ * This class is used for printing sygus datatype constructor terms whose top
+ * symbol is an expression, such as a custom defined lambda. For example, for
+ * sygus grammar:
  *    A -> (+ x A B) | x | y
  *    B -> 0 | 1
- * The first constructor, call it C_f for A takes two arguments (A, B) and has 
+ * The first constructor, call it C_f for A takes two arguments (A, B) and has
  * sygus operator
  *   (lambda ((z Int) (w Int)) (+ x z w))
- * For this operator, we set a print callback that prints, e.g. the term 
+ * For this operator, we set a print callback that prints, e.g. the term
  *   C_f( t1, t2 )
  * is printed as:
  *   "(+ x [out1] [out2])"
@@ -66,7 +66,7 @@ class CVC4_PUBLIC SygusExprPrintCallback : public SygusPrintCallback
                     const std::string& oldStr,
                     const std::string& newStr) const;
 };
-  
+
 /** sygus let expression constructor printer
  *
  * This class is used for printing sygus
@@ -93,8 +93,8 @@ class CVC4_PUBLIC SygusLetExprPrintCallback : public SygusExprPrintCallback
 {
  public:
   SygusLetExprPrintCallback(Expr let_body,
-                                       std::vector<Expr>& let_args,
-                                      unsigned ninput_args);
+                            std::vector<Expr>& let_args,
+                            unsigned ninput_args);
   ~SygusLetExprPrintCallback() {}
   /** print sygus term e on output out using printer p */
   virtual void toStreamSygus(const Printer* p,
@@ -147,7 +147,7 @@ class CVC4_PUBLIC SygusNamedPrintCallback : public SygusPrintCallback
 class CVC4_PUBLIC SygusEmptyPrintCallback : public SygusPrintCallback
 {
  public:
-  SygusEmptyPrintCallback(){}
+  SygusEmptyPrintCallback() {}
   ~SygusEmptyPrintCallback() {}
   /** print sygus term e on output out using printer p */
   virtual void toStreamSygus(const Printer* p,
