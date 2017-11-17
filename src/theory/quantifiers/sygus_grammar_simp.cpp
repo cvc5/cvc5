@@ -198,12 +198,12 @@ TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn)
       }
       unsigned name_count = 0;
       /* Build normalized minus if has 0 and minus */
-      std::vector<Node> consts = d_tds->getConstList(types[i]);
-      std::vector<Node> vars = d_tds->getVarList(types[i]);
-      Trace("sygus-grammar-normalize")
-          << "...have to add vars " << vars << std::endl;
-      Trace("sygus-grammar-normalize")
-          << "...have to add consts " << consts << std::endl;
+      /* std::vector<Node> consts = d_tds->getConstList(types[i]); */
+      /* std::vector<Node> vars = d_tds->getVarList(types[i]); */
+      /* Trace("sygus-grammar-normalize") */
+      /*     << "...have to add vars " << vars << std::endl; */
+      /* Trace("sygus-grammar-normalize") */
+      /*     << "...have to add consts " << consts << std::endl; */
       if (d_tds->hasKind(types[i], MINUS) && d_tds->hasConst(types[i], zero))
       {
         Trace("sygus-grammar-normalize") << "\tHas minus and 0\n";
