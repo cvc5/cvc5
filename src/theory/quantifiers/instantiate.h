@@ -306,13 +306,6 @@ class Instantiate : public QuantifiersUtil
   Statistics d_statistics;
 
  private:
-  /** compute term vector
-   *
-   */
-  void computeTermVector(Node q,
-                         InstMatch& m,
-                         std::vector<Node>& vars,
-                         std::vector<Node>& terms);
   /** record instantiation, return true if it was not a duplicate */
   bool recordInstantiationInternal(Node q,
                                    std::vector<Node>& terms,

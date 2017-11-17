@@ -115,7 +115,6 @@ bool Instantiate::addInstantiation(
   Assert(d_term_util != nullptr);
   Trace("inst-add-debug") << "For quantified formula " << q
                           << ", add instantiation: " << std::endl;
-  std::vector<Node> rlv_cond;
   for (unsigned i = 0, size = terms.size(); i < size; i++)
   {
     Trace("inst-add-debug") << "  " << q[0][i];
@@ -143,14 +142,6 @@ bool Instantiate::addInstantiation(
           << " --> Failed to make term vector, due to term/type restrictions."
           << std::endl;
       return false;
-    }
-    else
-    {
-      // get relevancy conditions
-      if (options::instRelevantCond())
-      {
-        quantifiers::TermUtil::getRelevancyCondition(terms[i], rlv_cond);
-      }
     }
 #ifdef CVC4_ASSERTIONS
     bool bad_inst = false;
@@ -200,18 +191,8 @@ bool Instantiate::addInstantiation(
 #endif
   }
 
-  // check based on instantiation level
-  if (options::instMaxLevel() != -1 || options::lteRestrictInstClosure())
-  {
-    for (unsigned i = 0; i < terms.size(); i++)
-    {
-      if (!d_term_db->isTermEligibleForInstantiation(terms[i], q, true))
-      {
-        return false;
-      }
-    }
-  }
-
+  // check for term vector duplication  TODO
+  
   // check for positive entailment
   if (options::instNoEntail())
   {
@@ -232,8 +213,20 @@ bool Instantiate::addInstantiation(
     // Trace("inst-add-debug2") << "Instantiation evaluates to : " << std::endl;
     // Trace("inst-add-debug2") << "   " << eval << std::endl;
   }
+  
+  // check based on instantiation level
+  if (options::instMaxLevel() != -1 || options::lteRestrictInstClosure())
+  {
+    for (unsigned i = 0, size = terms.size(); i < size; i++)
+    {
+      if (!d_term_db->isTermEligibleForInstantiation(terms[i], q, true))
+      {
+        return false;
+      }
+    }
+  }
 
-  // check for term vector duplication
+  // record the instantiation
   bool alreadyExists = !recordInstantiationInternal(q, terms, modEq);
   if (alreadyExists)
   {
@@ -271,17 +264,23 @@ bool Instantiate::addInstantiation(
     }
   }
 
-  Node lem;
-  if (rlv_cond.empty())
+  Node lem = NodeManager::currentNM()->mkNode(kind::OR, q.negate(), body);
+  
+  // get relevancy conditions
+  if (options::instRelevantCond())
   {
-    lem = NodeManager::currentNM()->mkNode(kind::OR, q.negate(), body);
+    std::vector<Node> rlv_cond;
+    for (unsigned i = 0, size = terms.size(); i < size; i++)
+    {
+      quantifiers::TermUtil::getRelevancyCondition(terms[i], rlv_cond);
+    }
+    if (!rlv_cond.empty())
+    {
+      rlv_cond.push_back(lem);
+      lem = NodeManager::currentNM()->mkNode(kind::OR, rlv_cond);
+    }
   }
-  else
-  {
-    rlv_cond.push_back(q.negate());
-    rlv_cond.push_back(body);
-    lem = NodeManager::currentNM()->mkNode(kind::OR, rlv_cond);
-  }
+  
   lem = Rewriter::rewrite(lem);
 
   // check for lemma duplication
@@ -318,14 +317,11 @@ bool Instantiate::addInstantiation(
       else
       {
         uint64_t maxInstLevel = 0;
-        for (unsigned i = 0; i < terms.size(); i++)
+        for (const Node& tc : terms)
         {
-          if (terms[i].hasAttribute(InstLevelAttribute()))
+          if (tc.hasAttribute(InstLevelAttribute()) && tc.getAttribute(InstLevelAttribute()) > maxInstLevel)
           {
-            if (terms[i].getAttribute(InstLevelAttribute()) > maxInstLevel)
-            {
-              maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
-            }
+            maxInstLevel = tc.getAttribute(InstLevelAttribute());
           }
         }
         QuantAttributes::setInstantiationLevelAttr(
@@ -424,37 +420,14 @@ Node Instantiate::getInstantiation(Node q,
 Node Instantiate::getInstantiation(Node q, InstMatch& m, bool doVts)
 {
   Assert(d_term_util->d_vars.find(q) != d_term_util->d_vars.end());
-  if( m.d_vals.size()==q[0].getNumChildren() ){
-    return getInstantiation( q, d_term_util->d_vars[q], m.d_vals, doVts );
-  }else{
-    Assert( false );
-    std::vector<Node> vars;
-    std::vector<Node> terms;
-    computeTermVector(q, m, vars, terms);
-    return getInstantiation(q, vars, terms, doVts);
-  }
+  Assert( m.d_vals.size()==q[0].getNumChildren() );
+  return getInstantiation( q, d_term_util->d_vars[q], m.d_vals, doVts );
 }
 
 Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
 {
   Assert(d_term_util->d_vars.find(q) != d_term_util->d_vars.end());
   return getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
-}
-
-void Instantiate::computeTermVector(Node f,
-                                    InstMatch& m,
-                                    std::vector<Node>& vars,
-                                    std::vector<Node>& terms)
-{
-  for (size_t i = 0, size = f[0].getNumChildren(); i < size; i++)
-  {
-    Node n = m.get(i);
-    if (!n.isNull())
-    {
-      vars.push_back(f[0][i]);
-      terms.push_back(n);
-    }
-  }
 }
 
 bool Instantiate::recordInstantiationInternal(Node q,
