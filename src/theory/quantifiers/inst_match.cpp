@@ -29,27 +29,28 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-InstMatch::InstMatch( TNode f ) {
-  for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-    d_vals.push_back( Node::null() );
-  }
+InstMatch::InstMatch( TNode q ) {
+  d_vals.resize(q[0].getNumChildren());
+  Assert( !d_vals.empty() );
+  // resize must initialize with null nodes
+  Assert( d_vals[0].isNull() );
 }
 
 InstMatch::InstMatch( InstMatch* m ) {
   d_vals.insert( d_vals.end(), m->d_vals.begin(), m->d_vals.end() );
 }
 
-bool InstMatch::add( InstMatch& m ){
-  for( unsigned i=0; i<d_vals.size(); i++ ){
+void InstMatch::add( InstMatch& m ){
+  for( unsigned i=0, size = d_vals.size(); i<size; i++ ){
     if( d_vals[i].isNull() ){
       d_vals[i] = m.d_vals[i];
     }
   }
-  return true;
 }
 
 bool InstMatch::merge( EqualityQuery* q, InstMatch& m ){
-  for( unsigned i=0; i<m.d_vals.size(); i++ ){
+  Assert( d_vals.size()==m.d_vals.size());
+  for( unsigned i=0, size = d_vals.size(); i<size; i++ ){
     if( !m.d_vals[i].isNull() ){
       if( d_vals[i].isNull() ){
         d_vals[i] = m.d_vals[i];
@@ -65,7 +66,7 @@ bool InstMatch::merge( EqualityQuery* q, InstMatch& m ){
 }
 
 void InstMatch::debugPrint( const char* c ){
-  for( unsigned i=0; i<d_vals.size(); i++ ){
+  for( unsigned i=0, size = d_vals.size(); i<size; i++ ){
     if( !d_vals[i].isNull() ){
       Debug( c ) << "   " << i << " -> " << d_vals[i] << std::endl;
     }
@@ -73,7 +74,7 @@ void InstMatch::debugPrint( const char* c ){
 }
 
 bool InstMatch::isComplete() {
-  for( unsigned i=0; i<d_vals.size(); i++ ){
+  for( unsigned i=0, size = d_vals.size(); i<size; i++ ){
     if( d_vals[i].isNull() ){
       return false;
     }
@@ -82,30 +83,12 @@ bool InstMatch::isComplete() {
 }
 
 bool InstMatch::empty() {
-  for( unsigned i=0; i<d_vals.size(); i++ ){
+  for( unsigned i=0, size = d_vals.size(); i<size; i++ ){
     if( !d_vals[i].isNull() ){
       return false;
     }
   }
   return true;
-}
-
-void InstMatch::makeRepresentative( QuantifiersEngine* qe ){
-  for( unsigned i=0; i<d_vals.size(); i++ ){
-    if( !d_vals[i].isNull() ){
-      if( qe->getEqualityQuery()->getEngine()->hasTerm( d_vals[i] ) ){
-        d_vals[i] = qe->getEqualityQuery()->getEngine()->getRepresentative( d_vals[i] );
-      }
-    }
-  }
-}
-
-void InstMatch::applyRewrite(){
-  for( unsigned i=0; i<d_vals.size(); i++ ){
-    if( !d_vals[i].isNull() ){
-      d_vals[i] = Rewriter::rewrite( d_vals[i] );
-    }
-  }
 }
 
 void InstMatch::clear() {
@@ -114,26 +97,23 @@ void InstMatch::clear() {
   }
 }
 
-/** get value */
-
-Node InstMatch::get( int i ) {
+Node InstMatch::get( int i ) const {
   return d_vals[i];
 }
 
-void InstMatch::getTerms( Node f, std::vector< Node >& inst ){
-  for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-    inst.push_back( d_vals[i] );
-  }
+void InstMatch::getInst( std::vector< Node >& inst ) const 
+{
+  inst.insert( inst.end(), d_vals.begin(), d_vals.end() );
 }
 
 void InstMatch::setValue( int i, TNode n ) {
   d_vals[i] = n;
 }
 
-bool InstMatch::set( QuantifiersEngine* qe, int i, TNode n ) {
+bool InstMatch::set( EqualityQuery* q, int i, TNode n ) {
   Assert( i>=0 );
   if( !d_vals[i].isNull() ){
-    if( qe->getEqualityQuery()->areEqual( d_vals[i], n ) ){
+    if( q->areEqual( d_vals[i], n ) ){
       return true;
     }else{
       return false;

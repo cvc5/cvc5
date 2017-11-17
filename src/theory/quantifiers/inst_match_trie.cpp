@@ -191,12 +191,10 @@ void InstMatchTrie::print(std::ostream& out,
   }
   else
   {
-    for (std::map<Node, InstMatchTrie>::const_iterator it = d_data.begin();
-         it != d_data.end();
-         ++it)
+    for (const std::pair<const Node, InstMatchTrie>& d : d_data)
     {
-      terms.push_back(it->first);
-      it->second.print(out, q, terms, firstTime, useActive, active);
+      terms.push_back(d.first);
+      d.second.print(out, q, terms, firstTime, useActive, active);
       terms.pop_back();
     }
   }
@@ -236,12 +234,10 @@ void InstMatchTrie::getInstantiations(std::vector<Node>& insts,
   }
   else
   {
-    for (std::map<Node, InstMatchTrie>::const_iterator it = d_data.begin();
-         it != d_data.end();
-         ++it)
+    for (const std::pair<const Node, InstMatchTrie>& d : d_data)
     {
-      terms.push_back(it->first);
-      it->second.getInstantiations(insts, q, terms, qe, useActive, active);
+      terms.push_back(d.first);
+      d.second.getInstantiations(insts, q, terms, qe, useActive, active);
       terms.pop_back();
     }
   }
@@ -269,12 +265,10 @@ void InstMatchTrie::getExplanationForInstLemmas(
   }
   else
   {
-    for (std::map<Node, InstMatchTrie>::const_iterator it = d_data.begin();
-         it != d_data.end();
-         ++it)
+    for (const std::pair<const Node, InstMatchTrie>& d : d_data)
     {
-      terms.push_back(it->first);
-      it->second.getExplanationForInstLemmas(q, terms, lems, quant, tvec);
+      terms.push_back(d.first);
+      d.second.getExplanationForInstLemmas(q, terms, lems, quant, tvec);
       terms.pop_back();
     }
   }
@@ -476,12 +470,10 @@ void CDInstMatchTrie::print(std::ostream& out,
     }
     else
     {
-      for (std::map<Node, CDInstMatchTrie*>::const_iterator it = d_data.begin();
-           it != d_data.end();
-           ++it)
+      for (const std::pair<const Node, CDInstMatchTrie*>& d : d_data)
       {
-        terms.push_back(it->first);
-        it->second->print(out, q, terms, firstTime, useActive, active);
+        terms.push_back(d.first);
+        d.second->print(out, q, terms, firstTime, useActive, active);
         terms.pop_back();
       }
     }
@@ -525,12 +517,10 @@ void CDInstMatchTrie::getInstantiations(std::vector<Node>& insts,
     }
     else
     {
-      for (std::map<Node, CDInstMatchTrie*>::const_iterator it = d_data.begin();
-           it != d_data.end();
-           ++it)
+      for (const std::pair<const Node, CDInstMatchTrie*>& d : d_data)
       {
-        terms.push_back(it->first);
-        it->second->getInstantiations(insts, q, terms, qe, useActive, active);
+        terms.push_back(d.first);
+        d.second->getInstantiations(insts, q, terms, qe, useActive, active);
         terms.pop_back();
       }
     }
@@ -561,12 +551,10 @@ void CDInstMatchTrie::getExplanationForInstLemmas(
     }
     else
     {
-      for (std::map<Node, CDInstMatchTrie*>::const_iterator it = d_data.begin();
-           it != d_data.end();
-           ++it)
+      for (const std::pair<const Node, CDInstMatchTrie*>& d : d_data)
       {
-        terms.push_back(it->first);
-        it->second->getExplanationForInstLemmas(q, terms, lems, quant, tvec);
+        terms.push_back(d.first);
+        d.second->getExplanationForInstLemmas(q, terms, lems, quant, tvec);
         terms.pop_back();
       }
     }

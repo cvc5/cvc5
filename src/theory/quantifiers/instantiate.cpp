@@ -100,9 +100,8 @@ void Instantiate::notifyFlushLemmas()
 bool Instantiate::addInstantiation(
     Node q, InstMatch& m, bool mkRep, bool modEq, bool doVts)
 {
-  std::vector<Node> terms;
-  m.getTerms(q, terms);
-  return addInstantiation(q, terms, mkRep, modEq, doVts);
+  Assert( q[0].getNumChildren()==m.d_vals.size() );
+  return addInstantiation(q, m.d_vals, mkRep, modEq, doVts);
 }
 
 bool Instantiate::addInstantiation(
@@ -117,7 +116,7 @@ bool Instantiate::addInstantiation(
   Trace("inst-add-debug") << "For quantified formula " << q
                           << ", add instantiation: " << std::endl;
   std::vector<Node> rlv_cond;
-  for (unsigned i = 0; i < terms.size(); i++)
+  for (unsigned i = 0, size = terms.size(); i < size; i++)
   {
     Trace("inst-add-debug") << "  " << q[0][i];
     Trace("inst-add-debug2") << " -> " << terms[i];
@@ -219,7 +218,7 @@ bool Instantiate::addInstantiation(
     // TODO: check consistency of equality engine (if not aborting on utility's
     // reset)
     std::map<TNode, TNode> subs;
-    for (unsigned i = 0; i < terms.size(); i++)
+    for (unsigned i = 0, size = terms.size(); i < size; i++)
     {
       subs[q[0][i]] = terms[i];
     }
@@ -335,10 +334,11 @@ bool Instantiate::addInstantiation(
     }
     QuantifiersModule::QEffort elevel = d_qe->getCurrentQEffort();
     if (elevel > QuantifiersModule::QEFFORT_CONFLICT
-        && elevel < QuantifiersModule::QEFFORT_NONE)
+        && elevel < QuantifiersModule::QEFFORT_NONE &&
+        !d_inst_notify.empty() )
     {
       // notify listeners
-      for (unsigned j = 0; j < d_inst_notify.size(); j++)
+      for (unsigned j = 0, size = d_inst_notify.size(); j < size; j++)
       {
         if (!d_inst_notify[j]->notifyInstantiation(elevel, q, lem, terms, body))
         {
@@ -405,35 +405,9 @@ Node Instantiate::getInstantiation(Node q,
 {
   Node body;
   Assert(vars.size() == terms.size());
-  // process partial instantiation if necessary
-  if (q[0].getNumChildren() != vars.size())
-  {
-    body =
-        q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
-    std::vector<Node> uninst_vars;
-    // doing a partial instantiation, must add quantifier for all uninstantiated
-    // variables
-    for (unsigned i = 0; i < q[0].getNumChildren(); i++)
-    {
-      if (std::find(vars.begin(), vars.end(), q[0][i]) == vars.end())
-      {
-        uninst_vars.push_back(q[0][i]);
-      }
-    }
-    Trace("partial-inst") << "Partially instantiating with " << vars.size()
-                          << " / " << q[0].getNumChildren() << " for " << q
-                          << std::endl;
-    Assert(!uninst_vars.empty());
-    Node bvl = NodeManager::currentNM()->mkNode(BOUND_VAR_LIST, uninst_vars);
-    body = NodeManager::currentNM()->mkNode(FORALL, bvl, body);
-    Trace("partial-inst") << "Partial instantiation : " << q << std::endl;
-    Trace("partial-inst") << "                      : " << body << std::endl;
-  }
-  else
-  {
-    body =
-        q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
-  }
+  Assert(q[0].getNumChildren()==vars.size());
+  // TODO (#1386) : optimize this
+  body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
   if (doVts)
   {
     // do virtual term substitution
@@ -449,10 +423,16 @@ Node Instantiate::getInstantiation(Node q,
 
 Node Instantiate::getInstantiation(Node q, InstMatch& m, bool doVts)
 {
-  std::vector<Node> vars;
-  std::vector<Node> terms;
-  computeTermVector(q, m, vars, terms);
-  return getInstantiation(q, vars, terms, doVts);
+  Assert(d_term_util->d_vars.find(q) != d_term_util->d_vars.end());
+  if( m.d_vals.size()==q[0].getNumChildren() ){
+    return getInstantiation( q, d_term_util->d_vars[q], m.d_vals, doVts );
+  }else{
+    Assert( false );
+    std::vector<Node> vars;
+    std::vector<Node> terms;
+    computeTermVector(q, m, vars, terms);
+    return getInstantiation(q, vars, terms, doVts);
+  }
 }
 
 Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
@@ -466,7 +446,7 @@ void Instantiate::computeTermVector(Node f,
                                     std::vector<Node>& vars,
                                     std::vector<Node>& terms)
 {
-  for (size_t i = 0; i < f[0].getNumChildren(); i++)
+  for (size_t i = 0, size = f[0].getNumChildren(); i < size; i++)
   {
     Node n = m.get(i);
     if (!n.isNull())
@@ -557,13 +537,10 @@ bool Instantiate::printInstantiations(std::ostream& out)
   bool printed = false;
   if (options::incrementalSolving())
   {
-    for (std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-             d_c_inst_match_trie.begin();
-         it != d_c_inst_match_trie.end();
-         ++it)
+    for (std::pair< const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
     {
       bool firstTime = true;
-      it->second->print(out, it->first, firstTime, useUnsatCore, active_lemmas);
+      t.second->print(out, t.first, firstTime, useUnsatCore, active_lemmas);
       if (!firstTime)
       {
         out << ")" << std::endl;
@@ -573,13 +550,10 @@ bool Instantiate::printInstantiations(std::ostream& out)
   }
   else
   {
-    for (std::map<Node, inst::InstMatchTrie>::iterator it =
-             d_inst_match_trie.begin();
-         it != d_inst_match_trie.end();
-         ++it)
+    for (std::pair< const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
       bool firstTime = true;
-      it->second.print(out, it->first, firstTime, useUnsatCore, active_lemmas);
+      t.second.print(out, t.first, firstTime, useUnsatCore, active_lemmas);
       if (!firstTime)
       {
         out << ")" << std::endl;
@@ -594,22 +568,16 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   if (options::incrementalSolving())
   {
-    for (std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-             d_c_inst_match_trie.begin();
-         it != d_c_inst_match_trie.end();
-         ++it)
+    for (std::pair<const Node, inst::CDInstMatchTrie*>&  t : d_c_inst_match_trie)
     {
-      qs.push_back(it->first);
+      qs.push_back(t.first);
     }
   }
   else
   {
-    for (std::map<Node, inst::InstMatchTrie>::iterator it =
-             d_inst_match_trie.begin();
-         it != d_inst_match_trie.end();
-         ++it)
+    for (std::pair< const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
-      qs.push_back(it->first);
+      qs.push_back(t.first);
     }
   }
 }
@@ -651,7 +619,7 @@ bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas,
 {
   if (getUnsatCoreLemmas(active_lemmas))
   {
-    for (unsigned i = 0; i < active_lemmas.size(); ++i)
+    for (unsigned i = 0, size = active_lemmas.size(); i < size; ++i)
     {
       Node n = ProofManager::currentPM()->getWeakestImplicantInUnsatCore(
           active_lemmas[i]);
@@ -678,11 +646,9 @@ void Instantiate::getInstantiationTermVectors(
   std::map<Node, Node> quant;
   std::map<Node, std::vector<Node> > tvec;
   getExplanationForInstLemmas(lemmas, quant, tvec);
-  for (std::map<Node, std::vector<Node> >::iterator it = tvec.begin();
-       it != tvec.end();
-       ++it)
+  for (std::pair< const Node, std::vector<Node> >& t : tvec)
   {
-    tvecs.push_back(it->second);
+    tvecs.push_back(t.second);
   }
 }
 
@@ -691,22 +657,16 @@ void Instantiate::getInstantiationTermVectors(
 {
   if (options::incrementalSolving())
   {
-    for (std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-             d_c_inst_match_trie.begin();
-         it != d_c_inst_match_trie.end();
-         ++it)
+    for (std::pair<const Node, inst::CDInstMatchTrie*>&  t : d_c_inst_match_trie)
     {
-      getInstantiationTermVectors(it->first, insts[it->first]);
+      getInstantiationTermVectors(t.first, insts[t.first]);
     }
   }
   else
   {
-    for (std::map<Node, inst::InstMatchTrie>::iterator it =
-             d_inst_match_trie.begin();
-         it != d_inst_match_trie.end();
-         ++it)
+    for (std::pair< const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
-      getInstantiationTermVectors(it->first, insts[it->first]);
+      getInstantiationTermVectors(t.first, insts[t.first]);
     }
   }
 }
@@ -720,22 +680,16 @@ void Instantiate::getExplanationForInstLemmas(
   {
     if (options::incrementalSolving())
     {
-      for (std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-               d_c_inst_match_trie.begin();
-           it != d_c_inst_match_trie.end();
-           ++it)
+      for (std::pair<const Node, inst::CDInstMatchTrie*>&  t : d_c_inst_match_trie)
       {
-        it->second->getExplanationForInstLemmas(it->first, lems, quant, tvec);
+        t.second->getExplanationForInstLemmas(t.first, lems, quant, tvec);
       }
     }
     else
     {
-      for (std::map<Node, inst::InstMatchTrie>::iterator it =
-               d_inst_match_trie.begin();
-           it != d_inst_match_trie.end();
-           ++it)
+      for (std::pair< const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
       {
-        it->second.getExplanationForInstLemmas(it->first, lems, quant, tvec);
+        t.second.getExplanationForInstLemmas(t.first, lems, quant, tvec);
       }
     }
 #ifdef CVC4_ASSERTIONS
@@ -763,24 +717,18 @@ void Instantiate::getInstantiations(std::map<Node, std::vector<Node> >& insts)
 
   if (options::incrementalSolving())
   {
-    for (std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-             d_c_inst_match_trie.begin();
-         it != d_c_inst_match_trie.end();
-         ++it)
+    for (std::pair<const Node, inst::CDInstMatchTrie*>&  t : d_c_inst_match_trie)
     {
-      it->second->getInstantiations(
-          insts[it->first], it->first, d_qe, useUnsatCore, active_lemmas);
+      t.second->getInstantiations(
+          insts[t.first], t.first, d_qe, useUnsatCore, active_lemmas);
     }
   }
   else
   {
-    for (std::map<Node, inst::InstMatchTrie>::iterator it =
-             d_inst_match_trie.begin();
-         it != d_inst_match_trie.end();
-         ++it)
+    for (std::pair< const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
-      it->second.getInstantiations(
-          insts[it->first], it->first, d_qe, useUnsatCore, active_lemmas);
+      t.second.getInstantiations(
+          insts[t.first], t.first, d_qe, useUnsatCore, active_lemmas);
     }
   }
 }
@@ -844,13 +792,11 @@ void Instantiate::debugPrint()
   // debug information
   if (Trace.isOn("inst-per-quant-round"))
   {
-    for (std::map<Node, int>::iterator it = d_temp_inst_debug.begin();
-         it != d_temp_inst_debug.end();
-         ++it)
+    for (std::pair< const Node, int>& i : d_temp_inst_debug)
     {
-      Trace("inst-per-quant-round") << " * " << it->second << " for "
-                                    << it->first << std::endl;
-      d_temp_inst_debug[it->first] = 0;
+      Trace("inst-per-quant-round") << " * " << i.second << " for "
+                                    << i.first << std::endl;
+      d_temp_inst_debug[i.first] = 0;
     }
   }
 }
@@ -859,11 +805,9 @@ void Instantiate::debugPrintModel()
 {
   if (Trace.isOn("inst-per-quant"))
   {
-    for (std::map<Node, int>::iterator it = d_total_inst_debug.begin();
-         it != d_total_inst_debug.end();
-         ++it)
+    for (std::pair< const Node, int>& i : d_total_inst_debug)
     {
-      Trace("inst-per-quant") << " * " << it->second << " for " << it->first
+      Trace("inst-per-quant") << " * " << i.second << " for " << i.first
                               << std::endl;
     }
   }

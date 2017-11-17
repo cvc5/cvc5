@@ -430,6 +430,9 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
       Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;
       fmig->resetEvaluate();
       Debug("inst-fmf-ei") << "Begin instantiation..." << std::endl;
+      EqualityQuery* qy = d_qe->getEqualityQuery();
+      Instantiate * inst = d_qe->getInstantiate();
+      TermUtil * util = d_qe->getTermUtil();
       while( !riter.isFinished() && ( d_addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
         d_triedLemmas++;
         if( Debug.isOn("inst-fmf-ei-debug") ){
@@ -448,8 +451,8 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
         //if evaluate(...)==1, then the instantiation is already true in the model
         //  depIndex is the index of the least significant variable that this evaluation relies upon
         depIndex = riter.getNumTerms()-1;
-        Debug("fmf-model-eval") << "We will evaluate " << d_qe->getTermUtil()->getInstConstantBody( f ) << std::endl;
-        eval = fmig->evaluate( d_qe->getTermUtil()->getInstConstantBody( f ), depIndex, &riter );
+        Debug("fmf-model-eval") << "We will evaluate " << util->getInstConstantBody( f ) << std::endl;
+        eval = fmig->evaluate( util->getInstConstantBody( f ), depIndex, &riter );
         if( eval==1 ){
           Debug("fmf-model-eval") << "  Returned success with depIndex = " << depIndex << std::endl;
         }else{
@@ -463,11 +466,11 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
           InstMatch m( f );
           for (unsigned i = 0; i < riter.getNumTerms(); i++)
           {
-            m.set( d_qe, i, riter.getCurrentTerm( i ) );
+            m.set( qy, i, riter.getCurrentTerm( i ) );
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           //add as instantiation
-          if (d_qe->getInstantiate()->addInstantiation(f, m, true))
+          if (inst->addInstantiation(f, m, true))
           {
             d_addedLemmas++;
             if( d_qe->inConflict() ){
