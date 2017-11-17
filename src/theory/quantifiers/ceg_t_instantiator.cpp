@@ -1386,10 +1386,7 @@ struct SortBvExtractInterval
       Assert(ie.low != je.low);
       return ie.low > je.low;
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
 };
 
@@ -1408,13 +1405,13 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     d_extract_map.clear();
     std::unordered_set<TNode, TNodeHashFunction> visited;
-    for (unsigned i = 0; i < lems.size(); i++)
+    for (unsigned i = 0, size = lems.size(); i < size; i++)
     {
       Trace("cegqi-bv-pp-debug2") << "Register ce lemma # " << i << " : "
                                   << lems[i] << std::endl;
       process(lems[i], visited);
     }
-    for (std::pair<Node, std::vector<Node> > es : d_extract_map)
+    for (std::pair<const Node, std::vector<Node> >& es : d_extract_map)
     {
       if (es.second.size() > 1)
       {
@@ -1427,7 +1424,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
 
         std::map<Node, unsigned> bounds[2];
         Trace("cegqi-bv-pp") << "For term " << es.first << " : " << std::endl;
-        for (unsigned i = 0; i < curr_vec.size(); i++)
+        for (unsigned i = 0, size = curr_vec.size(); i < size; i++)
         {
           Trace("cegqi-bv-pp") << "  " << i << " : " << curr_vec[i]
                                << std::endl;
@@ -1451,7 +1448,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
           // the children of the concat we will construct
           std::vector<Node> children;
           unsigned curr_index = width;
-          for (unsigned i = 0; i < curr_vec.size(); i++)
+          for (unsigned i = 0, size = curr_vec.size(); i < size; i++)
           {
             Node n = curr_vec[i];
             if (bounds[0][n] < curr_index)
@@ -1550,9 +1547,9 @@ void BvInstantiatorPreprocess::process(
         d_extract_map[cur[0]].push_back(cur);
       }
 
-      for (unsigned i = 0; i < cur.getNumChildren(); i++)
+      for (const Node& nc : cur)
       {
-        visit.push_back(cur[i]);
+        visit.push_back(nc);
       }
     }
   } while (!visit.empty());
