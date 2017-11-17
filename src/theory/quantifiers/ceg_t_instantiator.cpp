@@ -1320,7 +1320,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
 
       visited.top()[cur] = ret;
     }
-    else if( Trace.isOn("cegqi-bv-nl") )
+    else if (Trace.isOn("cegqi-bv-nl"))
     {
       if (cur == pv)
       {
@@ -1399,7 +1399,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   std::vector<Node> vars;
   // new lemmas
   std::vector<Node> new_lems;
-  
+
   if (options::cbqiBvRmExtract())
   {
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
@@ -1423,13 +1423,13 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         std::sort(curr_vec.begin(), curr_vec.end(), sbei);
 
         unsigned width = es.first.getType().getBitVectorSize();
-        
+
         // list of points b such that:
         //   b>0 and we must start a segment at (b-1)  or  b==0
-        std::vector< unsigned > boundaries;
+        std::vector<unsigned> boundaries;
         boundaries.push_back(width);
         boundaries.push_back(0);
-        
+
         Trace("cegqi-bv-pp") << "For term " << es.first << " : " << std::endl;
         for (unsigned i = 0, size = curr_vec.size(); i < size; i++)
         {
@@ -1437,35 +1437,40 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
                                << std::endl;
           BitVectorExtract e =
               curr_vec[i].getOperator().getConst<BitVectorExtract>();
-          for( unsigned r=0; r<2; r++ ){
-            unsigned b = r==0 ? e.high+1 : e.low;
-            if( std::find( boundaries.begin(), boundaries.end(), b)==boundaries.end() ){
-              boundaries.push_back( b );
+          for (unsigned r = 0; r < 2; r++)
+          {
+            unsigned b = r == 0 ? e.high + 1 : e.low;
+            if (std::find(boundaries.begin(), boundaries.end(), b)
+                == boundaries.end())
+            {
+              boundaries.push_back(b);
             }
           }
         }
-        if( boundaries.size()>0 ){
-          std::sort( boundaries.rbegin(), boundaries.rend() );
-          
-          // make the extract variables 
+        if (boundaries.size() > 0)
+        {
+          std::sort(boundaries.rbegin(), boundaries.rend());
+
+          // make the extract variables
           std::vector<Node> children;
-          for( unsigned i=1; i<boundaries.size(); i++ ){
-            Assert( boundaries[i-1]>0 );
+          for (unsigned i = 1; i < boundaries.size(); i++)
+          {
+            Assert(boundaries[i - 1] > 0);
             Node ex = bv::utils::mkExtract(
-                es.first, boundaries[i-1]-1, boundaries[i]);
+                es.first, boundaries[i - 1] - 1, boundaries[i]);
             Node var = NodeManager::currentNM()->mkSkolem(
-              "ek",
-              ex.getType(),
-              "variable to represent disjoint extract region");
+                "ek",
+                ex.getType(),
+                "variable to represent disjoint extract region");
             Node ceq_lem = var.eqNode(ex);
             Trace("cegqi-bv-pp") << "Introduced : " << ceq_lem << std::endl;
-            new_lems.push_back( ceq_lem );
+            new_lems.push_back(ceq_lem);
             children.push_back(var);
             vars.push_back(var);
           }
-          
+
           Node conc = NodeManager::currentNM()->mkNode(kind::BITVECTOR_CONCAT,
-                                                        children);
+                                                       children);
           Assert(conc.getType() == es.first.getType());
           Node eq_lem = conc.eqNode(es.first);
           Trace("cegqi-bv-pp") << "Introduced : " << eq_lem << std::endl;
@@ -1482,7 +1487,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   {
     // could try applying subs -> vars here
     // in practice, this led to worse performance
-    
+
     Trace("cegqi-bv-pp") << "Adding " << new_lems.size() << " lemmas..."
                          << std::endl;
     lems.insert(lems.end(), new_lems.begin(), new_lems.end());
@@ -1493,7 +1498,9 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
 }
 
 void BvInstantiatorPreprocess::collectExtracts(
-    Node lem, std::map<Node, std::vector<Node> >& extract_map, std::unordered_set<TNode, TNodeHashFunction>& visited)
+    Node lem,
+    std::map<Node, std::vector<Node> >& extract_map,
+    std::unordered_set<TNode, TNodeHashFunction>& visited)
 {
   std::vector<TNode> visit;
   TNode cur;

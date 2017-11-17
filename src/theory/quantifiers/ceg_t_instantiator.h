@@ -293,12 +293,14 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
 
  private:
   /** collect extracts
-   * 
+   *
    * This method collects all extract terms in lem
    * and stores them in d_extract_map.
    * visited is the terms we've already visited.
    */
-  void collectExtracts(Node lem, std::map<Node, std::vector<Node> >& extract_map, std::unordered_set<TNode, TNodeHashFunction>& visited);
+  void collectExtracts(Node lem,
+                       std::map<Node, std::vector<Node> >& extract_map,
+                       std::unordered_set<TNode, TNodeHashFunction>& visited);
 };
 
 } /* CVC4::theory::quantifiers namespace */
