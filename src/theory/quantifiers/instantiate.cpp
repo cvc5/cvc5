@@ -191,15 +191,18 @@ bool Instantiate::addInstantiation(
 #endif
   }
 
-  // check for term vector duplication  TODO
-  /*
-  if( existsInstantiation(q,terms,modEq) ){
-    Trace("inst-add-debug") << " --> Already exists." << std::endl;
-    ++(d_statistics.d_inst_duplicate_eq);
-    return false;
-  }
-  */
-
+  // Note we check for entailment before checking for term vector duplication.
+  // Although checking for term vector duplication is a faster check, it is 
+  // included automatically with recordInstantiationInternal, hence we prefer 
+  // two checks instead of three. In experiments, it is 1% slower or so to call 
+  // existsInstantiation here.
+  // Alternatively, we could return an (index, trie node) in the call to
+  // existsInstantiation here, where this would return the node in the trie
+  // where we determined that there is definitely no duplication, and then
+  // continue from that point in recordInstantiation below. However, for 
+  // code clarity, we do not pursue this option (as it would likely only
+  // lead to very small gains).
+  
   // check for positive entailment
   if (options::instNoEntail())
   {
