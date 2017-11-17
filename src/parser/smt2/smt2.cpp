@@ -989,11 +989,8 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
 
       Debug("parser-sygus") << ": operator is " << ops[i] << std::endl;
 
-      // expression
-      // printer::SygusExprPrintCallback* sepc = new
-      // printer::SygusExprPrintCallback( body, largs );
-      printer::SygusEmptyPrintCallback* sepc =
-          nullptr;  // new printer::SygusEmptyPrintCallback;
+      // expression printer
+      printer::SygusExprPrintCallback* sepc = new printer::SygusExprPrintCallback( body, largs );
 
       Debug("parser-sygus") << ": finished making print callback" << std::endl;
 
@@ -1015,6 +1012,15 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       else if (ops[i].getType().isBitVector() && ops[i].isConst())
       {
         // TODO
+        /*
+          std::stringstream ss;
+          ss << dt[cIndex].getName();
+          std::string str = ss.str();
+          std::size_t found = str.find_last_of("_");
+          Assert( found!=std::string::npos );
+          std::string name = std::string( str.begin() + found +1, str.end() );
+          out << name;
+          */
       }
       else if (ops[i].getKind() != kind::BUILTIN)
       {
@@ -1049,8 +1055,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           Expr id_op = getExprManager()->mkExpr(kind::LAMBDA, lchildren);
 
           // empty sygus callback (should not be printed)
-          printer::SygusEmptyPrintCallback* sepc =
-              nullptr;  // new printer::SygusEmptyPrintCallback;
+          printer::SygusEmptyPrintCallback* sepc = new printer::SygusEmptyPrintCallback;
 
           //make the sygus argument list
           std::vector< Type > id_carg;

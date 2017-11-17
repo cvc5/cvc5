@@ -232,7 +232,7 @@ class CVC4_PUBLIC DatatypeConstructor {
    */
   DatatypeConstructor(std::string name, std::string tester);
 
-  ~DatatypeConstructor();
+  ~DatatypeConstructor() {}
 
   /**
    * Add an argument (i.e., a data field) of the given name and type

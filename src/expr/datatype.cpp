@@ -815,7 +815,6 @@ DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester)
   PrettyCheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
 }
 
-DatatypeConstructor::~DatatypeConstructor() { delete d_sygus_pc; }
 void DatatypeConstructor::setSygus(Expr op,
                                    Expr let_body,
                                    std::vector<Expr>& let_args,
