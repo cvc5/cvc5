@@ -19,6 +19,7 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -1410,7 +1411,9 @@ Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
       Node nc;
       if( n[r].getKind()==PLUS ){
         for( unsigned i=0; i<n[r].getNumChildren(); i++ ){
-          if( QuantArith::getMonomial( n[r][i], c, nc ) && c.getConst<Rational>().isNegativeOne() ){
+          if (ArithMSum::getMonomial(n[r][i], c, nc)
+              && c.getConst<Rational>().isNegativeOne())
+          {
             mon[ro].push_back( nc );
             changed = true;
           }else{
@@ -1420,7 +1423,9 @@ Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
           }
         }
       }else{
-        if( QuantArith::getMonomial( n[r], c, nc ) && c.getConst<Rational>().isNegativeOne() ){
+        if (ArithMSum::getMonomial(n[r], c, nc)
+            && c.getConst<Rational>().isNegativeOne())
+        {
           mon[ro].push_back( nc );
           changed = true;
         }else{
