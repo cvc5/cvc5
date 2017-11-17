@@ -292,14 +292,13 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
                                            std::vector<Node>& ce_vars) override;
 
  private:
-  /** map from terms to bitvector extracts applied to that term */
-  std::map<Node, std::vector<Node> > d_extract_map;
-  /** process
+  /** collect extracts
+   * 
    * This method collects all extract terms in lem
    * and stores them in d_extract_map.
    * visited is the terms we've already visited.
    */
-  void process(Node lem, std::unordered_set<TNode, TNodeHashFunction>& visited);
+  void collectExtracts(Node lem, std::map<Node, std::vector<Node> >& extract_map, std::unordered_set<TNode, TNodeHashFunction>& visited);
 };
 
 } /* CVC4::theory::quantifiers namespace */
