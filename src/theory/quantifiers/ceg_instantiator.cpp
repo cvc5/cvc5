@@ -1188,7 +1188,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
                       << std::endl;
   std::vector<Node> pvars;
   pvars.insert(pvars.end(), d_vars.begin(), d_vars.end());
-  for (std::pair< const TheoryId, InstantiatorPreprocess*>& p : d_tipp)
+  for (std::pair<const TheoryId, InstantiatorPreprocess*>& p : d_tipp)
   {
     p.second->registerCounterexampleLemma(lems, pvars);
   }
