@@ -83,6 +83,7 @@
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
 #include "smt_util/node_visitor.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/arith/pseudoboolean_proc.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/bv/bvintropow2.h"
@@ -101,6 +102,7 @@
 #include "theory/theory_traits.h"
 #include "util/hash.h"
 #include "util/proof.h"
+#include "util/random.h"
 #include "util/resource_manager.h"
 
 using namespace std;
@@ -1288,6 +1290,7 @@ void SmtEngine::setLogicInternal() throw() {
 }
 
 void SmtEngine::setDefaults() {
+  Random::getRandom().setSeed(options::seed());
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
@@ -2735,7 +2738,8 @@ Node SmtEnginePrivate::realToInt(TNode n, NodeMap& cache, std::vector< Node >& v
           Node ret_lit = ret.getKind()==kind::NOT ? ret[0] : ret;
           bool ret_pol = ret.getKind()!=kind::NOT;
           std::map< Node, Node > msum;
-          if( QuantArith::getMonomialSumLit( ret_lit, msum ) ){
+          if (ArithMSum::getMonomialSumLit(ret_lit, msum))
+          {
             //get common coefficient
             std::vector< Node > coeffs;
             for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
