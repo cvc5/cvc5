@@ -4630,7 +4630,7 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
         Trace("smt-synth") << "Property is non-ground single invocation, run "
                               "QE to obtain single invocation."
                            << std::endl;
-        NodeManager * nm = NodeManager::currentNM();
+        NodeManager* nm = NodeManager::currentNM();
         // partition variables
         std::vector<Node> all_vars;
         sip.getAllVariables(all_vars);
@@ -4655,10 +4655,9 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
         // skolemize non-qe variables
         for (unsigned i = 0; i < nqe_vars.size(); i++)
         {
-          Node k = nm->mkSkolem(
-              "k",
-              nqe_vars[i].getType(),
-              "qe for non-ground single invocation");
+          Node k = nm->mkSkolem("k",
+                                nqe_vars[i].getType(),
+                                "qe for non-ground single invocation");
           orig.push_back(nqe_vars[i]);
           subs.push_back(k);
           Trace("smt-synth") << "  subs : " << nqe_vars[i] << " -> " << k
@@ -4673,10 +4672,10 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
           Node fv = sip.getFirstOrderVariableForFunction(f);
           Assert(!fi.isNull());
           orig.push_back(fi);
-          Node k = nm->mkSkolem(
-              "k",
-              fv.getType(),
-              "qe for function in non-ground single invocation");
+          Node k =
+              nm->mkSkolem("k",
+                           fv.getType(),
+                           "qe for function in non-ground single invocation");
           subs.push_back(k);
           Trace("smt-synth") << "  subs : " << fi << " -> " << k << std::endl;
         }
@@ -4686,10 +4685,10 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
         Node conj_se_ngsi_subs = conj_se_ngsi.substitute(
             orig.begin(), orig.end(), subs.begin(), subs.end());
         Assert(!qe_vars.empty());
-        conj_se_ngsi_subs = nm->mkNode(
-            kind::EXISTS,
-            nm->mkNode(kind::BOUND_VAR_LIST, qe_vars),
-            conj_se_ngsi_subs.negate());
+        conj_se_ngsi_subs =
+            nm->mkNode(kind::EXISTS,
+                       nm->mkNode(kind::BOUND_VAR_LIST, qe_vars),
+                       conj_se_ngsi_subs.negate());
 
         Trace("smt-synth") << "Run quantifier elimination on "
                            << conj_se_ngsi_subs << std::endl;
@@ -4703,14 +4702,12 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
             subs.begin(), subs.end(), orig.begin(), orig.end());
         if (!nqe_vars.empty())
         {
-          qe_res_n = nm->mkNode(
-              kind::EXISTS,
-              nm->mkNode(kind::BOUND_VAR_LIST, nqe_vars),
-              qe_res_n);
+          qe_res_n = nm->mkNode(kind::EXISTS,
+                                nm->mkNode(kind::BOUND_VAR_LIST, nqe_vars),
+                                qe_res_n);
         }
         Assert(conj.getNumChildren() == 3);
-        qe_res_n = nm->mkNode(
-            kind::FORALL, conj[0], qe_res_n, conj[2]);
+        qe_res_n = nm->mkNode(kind::FORALL, conj[0], qe_res_n, conj[2]);
         Trace("smt-synth") << "Converted conjecture after QE : " << qe_res_n
                            << std::endl;
         e_check = qe_res_n.toExpr();
