@@ -173,9 +173,8 @@ bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool 
         std::vector< int > eqcs;
         std::vector<Node> funcs;
         d_quant_sip[q].getFunctions(funcs);
-        for (unsigned j = 0, size = funcs.size(); j < size; j++)
+        for (const Node& f : funcs)
         {
-          Node f = funcs[j];
           std::map< Node, int >::iterator itf = func_to_eqc.find( f );
           if( itf == func_to_eqc.end() ){
             if( eqcs.empty() ){
@@ -260,9 +259,8 @@ bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool 
       //get function substitution
       std::vector<Node> funcs;
       d_quant_sip[q].getFunctions(funcs);
-      for (unsigned i = 0, size = funcs.size(); i < size; i++)
+      for (const Node& f : funcs)
       {
-        Node f = funcs[i];
         Node fv = d_quant_sip[q].getFirstOrderVariableForFunction(f);
         if( func_to_var.find( f )==func_to_var.end() ){
           Node v = NodeManager::currentNM()->mkBoundVar( fv.getType() );
