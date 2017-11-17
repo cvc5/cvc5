@@ -29,19 +29,22 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-InstMatch::InstMatch( TNode q ) {
+InstMatch::InstMatch(TNode q)
+{
   d_vals.resize(q[0].getNumChildren());
-  Assert( !d_vals.empty() );
+  Assert(!d_vals.empty());
   // resize must initialize with null nodes
-  Assert( d_vals[0].isNull() );
+  Assert(d_vals[0].isNull());
 }
 
 InstMatch::InstMatch( InstMatch* m ) {
   d_vals.insert( d_vals.end(), m->d_vals.begin(), m->d_vals.end() );
 }
 
-void InstMatch::add( InstMatch& m ){
-  for( unsigned i=0, size = d_vals.size(); i<size; i++ ){
+void InstMatch::add(InstMatch& m)
+{
+  for (unsigned i = 0, size = d_vals.size(); i < size; i++)
+  {
     if( d_vals[i].isNull() ){
       d_vals[i] = m.d_vals[i];
     }
@@ -49,8 +52,9 @@ void InstMatch::add( InstMatch& m ){
 }
 
 bool InstMatch::merge( EqualityQuery* q, InstMatch& m ){
-  Assert( d_vals.size()==m.d_vals.size());
-  for( unsigned i=0, size = d_vals.size(); i<size; i++ ){
+  Assert(d_vals.size() == m.d_vals.size());
+  for (unsigned i = 0, size = d_vals.size(); i < size; i++)
+  {
     if( !m.d_vals[i].isNull() ){
       if( d_vals[i].isNull() ){
         d_vals[i] = m.d_vals[i];
@@ -66,7 +70,8 @@ bool InstMatch::merge( EqualityQuery* q, InstMatch& m ){
 }
 
 void InstMatch::debugPrint( const char* c ){
-  for( unsigned i=0, size = d_vals.size(); i<size; i++ ){
+  for (unsigned i = 0, size = d_vals.size(); i < size; i++)
+  {
     if( !d_vals[i].isNull() ){
       Debug( c ) << "   " << i << " -> " << d_vals[i] << std::endl;
     }
@@ -74,7 +79,8 @@ void InstMatch::debugPrint( const char* c ){
 }
 
 bool InstMatch::isComplete() {
-  for( unsigned i=0, size = d_vals.size(); i<size; i++ ){
+  for (unsigned i = 0, size = d_vals.size(); i < size; i++)
+  {
     if( d_vals[i].isNull() ){
       return false;
     }
@@ -83,7 +89,8 @@ bool InstMatch::isComplete() {
 }
 
 bool InstMatch::empty() {
-  for( unsigned i=0, size = d_vals.size(); i<size; i++ ){
+  for (unsigned i = 0, size = d_vals.size(); i < size; i++)
+  {
     if( !d_vals[i].isNull() ){
       return false;
     }
@@ -97,23 +104,21 @@ void InstMatch::clear() {
   }
 }
 
-Node InstMatch::get( int i ) const {
-  return d_vals[i];
-}
-
-void InstMatch::getInst( std::vector< Node >& inst ) const 
+Node InstMatch::get(int i) const { return d_vals[i]; }
+void InstMatch::getInst(std::vector<Node>& inst) const
 {
-  inst.insert( inst.end(), d_vals.begin(), d_vals.end() );
+  inst.insert(inst.end(), d_vals.begin(), d_vals.end());
 }
 
 void InstMatch::setValue( int i, TNode n ) {
   d_vals[i] = n;
 }
-
-bool InstMatch::set( EqualityQuery* q, int i, TNode n ) {
+bool InstMatch::set(EqualityQuery* q, int i, TNode n)
+{
   Assert( i>=0 );
   if( !d_vals[i].isNull() ){
-    if( q->areEqual( d_vals[i], n ) ){
+    if (q->areEqual(d_vals[i], n))
+    {
       return true;
     }else{
       return false;

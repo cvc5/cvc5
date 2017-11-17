@@ -28,31 +28,31 @@ class EqualityQuery;
 
 namespace inst {
 
-/** Inst match 
- * 
- * This is the basic class specifying an instantiation. Its domain size (the 
- * size of d_vals) is the number of bound variables of the quantified formula 
+/** Inst match
+ *
+ * This is the basic class specifying an instantiation. Its domain size (the
+ * size of d_vals) is the number of bound variables of the quantified formula
  * that is passed to its constructor.
- * 
+ *
  * The values of d_vals may be null, which indicate that the field has
  * yet to be specified.
  */
 class InstMatch {
 public:
   InstMatch(){}
-  explicit InstMatch( TNode q );
+  explicit InstMatch(TNode q);
   InstMatch( InstMatch* m );
   /* map from variable to ground terms */
-  std::vector< Node > d_vals;
+  std::vector<Node> d_vals;
   /** add match m
-   * 
-   * This adds all non-null fields of m to this class, overwriting the existing 
+   *
+   * This adds all non-null fields of m to this class, overwriting the existing
    * fields of this class.
    */
-  void add( InstMatch& m );
+  void add(InstMatch& m);
   /** merge with match m
-   * 
-   * This method returns true if the merge was successful, that is, all fields 
+   *
+   * This method returns true if the merge was successful, that is, all fields
    * of this class and m are equivalent modulo the equalities given by q.
    */
   bool merge( EqualityQuery* q, InstMatch& m );
@@ -63,7 +63,7 @@ public:
   /** clear the instantiation, i.e. set all fields to the null node */
   void clear();
   /** debug print method */
-  void debugPrint( const char* c );
+  void debugPrint(const char* c);
   /** to stream */
   inline void toStream(std::ostream& out) const {
     out << "INST_MATCH( ";
@@ -78,17 +78,17 @@ public:
     out << " )";
   }
   /** get the i^th term in the instantiation */
-  Node get( int i ) const;
+  Node get(int i) const;
   /** append the terms of this instantiation to inst */
-  void getInst( std::vector< Node >& inst ) const;
+  void getInst(std::vector<Node>& inst) const;
   /** set/overwrites the i^th field in the instantiation with n */
   void setValue( int i, TNode n );
   /** set the i^th term in the instantiation to n
-   * 
+   *
    * This method returns true if the i^th field was previously uninitialized,
    * or is equivalent to n modulo the equalities given by q.
    */
-  bool set( EqualityQuery* q, int i, TNode n );
+  bool set(EqualityQuery* q, int i, TNode n);
 };
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {

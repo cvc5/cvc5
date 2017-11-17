@@ -217,7 +217,8 @@ int InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngin
       if( d_children_types[i]==0 ){
         Trace("matching-debug2") << "Setting " << d_var_num[i] << " to " << t[i] << "..." << std::endl;
         bool addToPrev = m.get( d_var_num[i] ).isNull();
-        if( !m.set( q, d_var_num[i], t[i] ) ){
+        if (!m.set(q, d_var_num[i], t[i]))
+        {
           //match is in conflict
           Trace("matching-fail") << "Match fail: " << m.get(d_var_num[i]) << " and " << t[i] << std::endl;
           success = false;
@@ -239,7 +240,8 @@ int InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngin
     //for variable matching
     if( d_match_pattern.getKind()==INST_CONSTANT ){
       bool addToPrev = m.get( d_var_num[0] ).isNull();
-      if( !m.set( q, d_var_num[0], t ) ){
+      if (!m.set(q, d_var_num[0], t))
+      {
         success = false;
       }else{
         if( addToPrev ){
@@ -275,7 +277,8 @@ int InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngin
       }
       if( !t_match.isNull() ){
         bool addToPrev = m.get( v ).isNull();
-        if( !m.set( q, v, t_match ) ){
+        if (!m.set(q, v, t_match))
+        {
           success = false;
         }else if( addToPrev ){
           prev.push_back( v );
@@ -504,7 +507,8 @@ int VarMatchGeneratorBooleanTerm::getNextMatch( Node q, InstMatch& m, Quantifier
     Node s = NodeManager::currentNM()->mkConst(qe->getEqualityQuery()->areEqual( d_eq_class, d_pattern ));
     d_eq_class = Node::null();
     d_rm_prev = m.get( d_var_num[0] ).isNull();
-    if( !m.set( qe->getEqualityQuery(), d_var_num[0], s ) ){
+    if (!m.set(qe->getEqualityQuery(), d_var_num[0], s))
+    {
       return -1;
     }else{
       ret_val = continueNextMatch( q, m, qe );
@@ -536,7 +540,8 @@ int VarMatchGeneratorTermSubs::getNextMatch( Node q, InstMatch& m, QuantifiersEn
     d_eq_class = Node::null();
     //if( s.getType().isSubtypeOf( d_var_type ) ){
     d_rm_prev = m.get( d_var_num[0] ).isNull();
-    if( !m.set( qe->getEqualityQuery(), d_var_num[0], s ) ){
+    if (!m.set(qe->getEqualityQuery(), d_var_num[0], s))
+    {
       return -1;
     }else{
       ret_val = continueNextMatch( q, m, qe );

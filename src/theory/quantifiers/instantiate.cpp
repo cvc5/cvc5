@@ -100,7 +100,7 @@ void Instantiate::notifyFlushLemmas()
 bool Instantiate::addInstantiation(
     Node q, InstMatch& m, bool mkRep, bool modEq, bool doVts)
 {
-  Assert( q[0].getNumChildren()==m.d_vals.size() );
+  Assert(q[0].getNumChildren() == m.d_vals.size());
   return addInstantiation(q, m.d_vals, mkRep, modEq, doVts);
 }
 
@@ -192,7 +192,7 @@ bool Instantiate::addInstantiation(
   }
 
   // check for term vector duplication  TODO
-  
+
   // check for positive entailment
   if (options::instNoEntail())
   {
@@ -213,7 +213,7 @@ bool Instantiate::addInstantiation(
     // Trace("inst-add-debug2") << "Instantiation evaluates to : " << std::endl;
     // Trace("inst-add-debug2") << "   " << eval << std::endl;
   }
-  
+
   // check based on instantiation level
   if (options::instMaxLevel() != -1 || options::lteRestrictInstClosure())
   {
@@ -265,7 +265,7 @@ bool Instantiate::addInstantiation(
   }
 
   Node lem = NodeManager::currentNM()->mkNode(kind::OR, q.negate(), body);
-  
+
   // get relevancy conditions
   if (options::instRelevantCond())
   {
@@ -280,7 +280,7 @@ bool Instantiate::addInstantiation(
       lem = NodeManager::currentNM()->mkNode(kind::OR, rlv_cond);
     }
   }
-  
+
   lem = Rewriter::rewrite(lem);
 
   // check for lemma duplication
@@ -319,7 +319,8 @@ bool Instantiate::addInstantiation(
         uint64_t maxInstLevel = 0;
         for (const Node& tc : terms)
         {
-          if (tc.hasAttribute(InstLevelAttribute()) && tc.getAttribute(InstLevelAttribute()) > maxInstLevel)
+          if (tc.hasAttribute(InstLevelAttribute())
+              && tc.getAttribute(InstLevelAttribute()) > maxInstLevel)
           {
             maxInstLevel = tc.getAttribute(InstLevelAttribute());
           }
@@ -330,8 +331,8 @@ bool Instantiate::addInstantiation(
     }
     QuantifiersModule::QEffort elevel = d_qe->getCurrentQEffort();
     if (elevel > QuantifiersModule::QEFFORT_CONFLICT
-        && elevel < QuantifiersModule::QEFFORT_NONE &&
-        !d_inst_notify.empty() )
+        && elevel < QuantifiersModule::QEFFORT_NONE
+        && !d_inst_notify.empty())
     {
       // notify listeners
       for (unsigned j = 0, size = d_inst_notify.size(); j < size; j++)
@@ -401,7 +402,7 @@ Node Instantiate::getInstantiation(Node q,
 {
   Node body;
   Assert(vars.size() == terms.size());
-  Assert(q[0].getNumChildren()==vars.size());
+  Assert(q[0].getNumChildren() == vars.size());
   // TODO (#1386) : optimize this
   body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
   if (doVts)
@@ -420,8 +421,8 @@ Node Instantiate::getInstantiation(Node q,
 Node Instantiate::getInstantiation(Node q, InstMatch& m, bool doVts)
 {
   Assert(d_term_util->d_vars.find(q) != d_term_util->d_vars.end());
-  Assert( m.d_vals.size()==q[0].getNumChildren() );
-  return getInstantiation( q, d_term_util->d_vars[q], m.d_vals, doVts );
+  Assert(m.d_vals.size() == q[0].getNumChildren());
+  return getInstantiation(q, d_term_util->d_vars[q], m.d_vals, doVts);
 }
 
 Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
@@ -510,7 +511,7 @@ bool Instantiate::printInstantiations(std::ostream& out)
   bool printed = false;
   if (options::incrementalSolving())
   {
-    for (std::pair< const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
+    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
     {
       bool firstTime = true;
       t.second->print(out, t.first, firstTime, useUnsatCore, active_lemmas);
@@ -523,7 +524,7 @@ bool Instantiate::printInstantiations(std::ostream& out)
   }
   else
   {
-    for (std::pair< const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
       bool firstTime = true;
       t.second.print(out, t.first, firstTime, useUnsatCore, active_lemmas);
@@ -541,14 +542,14 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   if (options::incrementalSolving())
   {
-    for (std::pair<const Node, inst::CDInstMatchTrie*>&  t : d_c_inst_match_trie)
+    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
     {
       qs.push_back(t.first);
     }
   }
   else
   {
-    for (std::pair< const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
       qs.push_back(t.first);
     }
@@ -619,7 +620,7 @@ void Instantiate::getInstantiationTermVectors(
   std::map<Node, Node> quant;
   std::map<Node, std::vector<Node> > tvec;
   getExplanationForInstLemmas(lemmas, quant, tvec);
-  for (std::pair< const Node, std::vector<Node> >& t : tvec)
+  for (std::pair<const Node, std::vector<Node> >& t : tvec)
   {
     tvecs.push_back(t.second);
   }
@@ -630,14 +631,14 @@ void Instantiate::getInstantiationTermVectors(
 {
   if (options::incrementalSolving())
   {
-    for (std::pair<const Node, inst::CDInstMatchTrie*>&  t : d_c_inst_match_trie)
+    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
     {
       getInstantiationTermVectors(t.first, insts[t.first]);
     }
   }
   else
   {
-    for (std::pair< const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
       getInstantiationTermVectors(t.first, insts[t.first]);
     }
@@ -653,14 +654,15 @@ void Instantiate::getExplanationForInstLemmas(
   {
     if (options::incrementalSolving())
     {
-      for (std::pair<const Node, inst::CDInstMatchTrie*>&  t : d_c_inst_match_trie)
+      for (std::pair<const Node, inst::CDInstMatchTrie*>& t :
+           d_c_inst_match_trie)
       {
         t.second->getExplanationForInstLemmas(t.first, lems, quant, tvec);
       }
     }
     else
     {
-      for (std::pair< const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+      for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
       {
         t.second.getExplanationForInstLemmas(t.first, lems, quant, tvec);
       }
@@ -690,7 +692,7 @@ void Instantiate::getInstantiations(std::map<Node, std::vector<Node> >& insts)
 
   if (options::incrementalSolving())
   {
-    for (std::pair<const Node, inst::CDInstMatchTrie*>&  t : d_c_inst_match_trie)
+    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
     {
       t.second->getInstantiations(
           insts[t.first], t.first, d_qe, useUnsatCore, active_lemmas);
@@ -698,7 +700,7 @@ void Instantiate::getInstantiations(std::map<Node, std::vector<Node> >& insts)
   }
   else
   {
-    for (std::pair< const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
       t.second.getInstantiations(
           insts[t.first], t.first, d_qe, useUnsatCore, active_lemmas);
@@ -765,10 +767,10 @@ void Instantiate::debugPrint()
   // debug information
   if (Trace.isOn("inst-per-quant-round"))
   {
-    for (std::pair< const Node, int>& i : d_temp_inst_debug)
+    for (std::pair<const Node, int>& i : d_temp_inst_debug)
     {
-      Trace("inst-per-quant-round") << " * " << i.second << " for "
-                                    << i.first << std::endl;
+      Trace("inst-per-quant-round") << " * " << i.second << " for " << i.first
+                                    << std::endl;
       d_temp_inst_debug[i.first] = 0;
     }
   }
@@ -778,7 +780,7 @@ void Instantiate::debugPrintModel()
 {
   if (Trace.isOn("inst-per-quant"))
   {
-    for (std::pair< const Node, int>& i : d_total_inst_debug)
+    for (std::pair<const Node, int>& i : d_total_inst_debug)
     {
       Trace("inst-per-quant") << " * " << i.second << " for " << i.first
                               << std::endl;
