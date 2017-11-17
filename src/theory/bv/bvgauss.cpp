@@ -645,6 +645,9 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
     }
   }
 
+  unordered_map<Node, Node, NodeHashFunction> subst;
+  unsigned size = assertionsToPreprocess.size();
+
   for (auto eq : equations)
   {
     if (eq.second.size() <= 1) continue;
@@ -669,12 +672,7 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
       }
       else
       {
-        /* delete (= substitute with true) obsolete assertions */
-        unordered_map<Node, Node, NodeHashFunction> subst;
-        for (Node e : eq.second)
-          subst[e] = nm->mkConst<bool>(true);
-        for (Node a : assertionsToPreprocess)
-          a.substitute(subst.begin(), subst.end());
+        for (Node e : eq.second) subst[e] = nm->mkConst<bool>(true);
         /* add resulting constraints */
         for (auto p : res)
         {
@@ -683,6 +681,16 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
           assertionsToPreprocess.push_back(a);
         }
       }
+    }
+  }
+
+  if (!subst.empty())
+  {
+    /* delete (= substitute with true) obsolete assertions */
+    for (unsigned i = 0; i < size; ++i)
+    {
+      assertionsToPreprocess[i] =
+          assertionsToPreprocess[i].substitute(subst.begin(), subst.end());
     }
   }
 }
