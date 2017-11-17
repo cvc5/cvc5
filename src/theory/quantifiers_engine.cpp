@@ -605,7 +605,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
               if (!d_util[i]->checkComplete())
               {
                 Trace("quant-engine-debug") << "Set incomplete because utility "
-                                            << d_modules[i]->identify().c_str()
+                                            << d_util[i]->identify().c_str()
                                             << " was incomplete." << std::endl;
                 setIncomplete = true;
               }

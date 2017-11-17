@@ -84,7 +84,7 @@ class InstantiationNotify
  * engine via calls to QuantifiersEngine::addLemma.
  *
  * It also has utilities for constructing instantiations, and interfaces for
- * getting the results of
+ * getting the results of the instantiations produced during check-sat calls.
  */
 class Instantiate : public QuantifiersUtil
 {
