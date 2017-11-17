@@ -78,6 +78,10 @@ class SygusGrammarSimplifier
       std::vector<TypeNode>& types,
       std::map<TypeNode, std::vector<DatatypeConstructorArg>>& sels,
       TypeNode& bool_type);
+
+  void collectSygusGrammarVars(TypeNode tn,
+                               std::vector<Node>& vars,
+                               std::map<TypeNode, bool>& visited);
   /* TODO add kinds to be normalized: PLUS, MINUS if ZERO is present */
 };
 
