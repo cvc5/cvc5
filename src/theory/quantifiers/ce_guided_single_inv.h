@@ -22,10 +22,7 @@
 #include "theory/quantifiers/ce_guided_single_inv_sol.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/inst_strategy_cbqi.h"
-<<<<<<< HEAD
-=======
 #include "theory/quantifiers/single_inv_partition.h"
->>>>>>> a7524f1f72c324dae36bd4a461d31e5e26fdca15
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
