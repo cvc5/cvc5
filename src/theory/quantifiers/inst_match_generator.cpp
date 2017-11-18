@@ -134,7 +134,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     if( d_match_pattern.getKind()==INST_CONSTANT ){
       d_var_num[0] = d_match_pattern.getAttribute(InstVarNumAttribute());
     }else{
-      for( unsigned i=0; i<d_match_pattern.getNumChildren(); i++ ){
+      for( unsigned i=0, size = d_match_pattern.getNumChildren(); i<size; i++ ){
         Node qa = quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i]);
         if( !qa.isNull() ){
           InstMatchGenerator * cimg = getInstMatchGenerator( q, d_match_pattern[i] );
@@ -499,27 +499,24 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator( Node q, std::vecto
 InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator( Node q, Node n ) {
   if( n.getKind()==INST_CONSTANT ){
     return NULL;
-  }else{
-    Trace("var-trigger-debug") << "Is " << n << " a variable trigger?" << std::endl;
-    if( Trigger::isBooleanTermTrigger( n ) ){
-      VarMatchGeneratorBooleanTerm* vmg = new VarMatchGeneratorBooleanTerm( n[0], n[1] );
-      Trace("var-trigger") << "Boolean term trigger : " << n << ", var = " << n[0] << std::endl;
-      return vmg;
-    }else{
-      Node x;
-      if( options::purifyTriggers() ){
-        x = Trigger::getInversionVariable( n );
-      }
-      if( !x.isNull() ){
-        Node s = Trigger::getInversion( n, x );
-        VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs( x, s );
-        Trace("var-trigger") << "Term substitution trigger : " << n << ", var = " << x << ", subs = " << s << std::endl;
-        return vmg;
-      }else{
-        return new InstMatchGenerator( n );
-      }
-    }
   }
+  Trace("var-trigger-debug") << "Is " << n << " a variable trigger?" << std::endl;
+  if( Trigger::isBooleanTermTrigger( n ) ){
+    VarMatchGeneratorBooleanTerm* vmg = new VarMatchGeneratorBooleanTerm( n[0], n[1] );
+    Trace("var-trigger") << "Boolean term trigger : " << n << ", var = " << n[0] << std::endl;
+    return vmg;
+  }
+  Node x;
+  if( options::purifyTriggers() ){
+    x = Trigger::getInversionVariable( n );
+  }
+  if( !x.isNull() ){
+    Node s = Trigger::getInversion( n, x );
+    VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs( x, s );
+    Trace("var-trigger") << "Term substitution trigger : " << n << ", var = " << x << ", subs = " << s << std::endl;
+    return vmg;
+  }
+  return new InstMatchGenerator( n );
 }
 
 VarMatchGeneratorBooleanTerm::VarMatchGeneratorBooleanTerm( Node var, Node comp ) :
@@ -834,41 +831,40 @@ void InstMatchGeneratorMulti::processNewInstantiations( QuantifiersEngine* qe, T
     Node n = m.get( curr_index );
     if( n.isNull() ){
       //add to InstMatch
-      for( std::map< Node, InstMatchTrie >::iterator it = tr->d_data.begin(); it != tr->d_data.end(); ++it ){
+      for( std::pair< const Node, InstMatchTrie >& d : tr->d_data ){
         InstMatch mn( &m );
-        mn.setValue( curr_index, it->first);
-        processNewInstantiations( qe, tparent, mn, addedLemmas, &(it->second), 
+        mn.setValue( curr_index, d.first);
+        processNewInstantiations( qe, tparent, mn, addedLemmas, &(d.second), 
                                   trieIndex+1, childIndex, endChildIndex, modEq );
         if( qe->inConflict() ){
           break;
         }
       }
-    }else{
-      //shared and set variable, try to merge
-      std::map< Node, InstMatchTrie >::iterator it = tr->d_data.find( n );
-      if( it!=tr->d_data.end() ){
-        processNewInstantiations( qe, tparent, m, addedLemmas, &(it->second),
-                                  trieIndex+1, childIndex, endChildIndex, modEq );
-      }
-      if( modEq ){
-        //check modulo equality for other possible instantiations
-        if( qe->getEqualityQuery()->getEngine()->hasTerm( n ) ){
-          eq::EqClassIterator eqc( qe->getEqualityQuery()->getEngine()->getRepresentative( n ),
-                                   qe->getEqualityQuery()->getEngine() );
-          while( !eqc.isFinished() ){
-            Node en = (*eqc);
-            if( en!=n ){
-              std::map< Node, InstMatchTrie >::iterator itc = tr->d_data.find( en );
-              if( itc!=tr->d_data.end() ){
-                processNewInstantiations( qe, tparent, m, addedLemmas, &(itc->second), 
-                                          trieIndex+1, childIndex, endChildIndex, modEq );
-                if( qe->inConflict() ){
-                  break;
-                }
+    }
+    //shared and set variable, try to merge
+    std::map< Node, InstMatchTrie >::iterator it = tr->d_data.find( n );
+    if( it!=tr->d_data.end() ){
+      processNewInstantiations( qe, tparent, m, addedLemmas, &(it->second),
+                                trieIndex+1, childIndex, endChildIndex, modEq );
+    }
+    if( modEq ){
+      //check modulo equality for other possible instantiations
+      if( qe->getEqualityQuery()->getEngine()->hasTerm( n ) ){
+        eq::EqClassIterator eqc( qe->getEqualityQuery()->getEngine()->getRepresentative( n ),
+                                  qe->getEqualityQuery()->getEngine() );
+        while( !eqc.isFinished() ){
+          Node en = (*eqc);
+          if( en!=n ){
+            std::map< Node, InstMatchTrie >::iterator itc = tr->d_data.find( en );
+            if( itc!=tr->d_data.end() ){
+              processNewInstantiations( qe, tparent, m, addedLemmas, &(itc->second), 
+                                        trieIndex+1, childIndex, endChildIndex, modEq );
+              if( qe->inConflict() ){
+                break;
               }
             }
-            ++eqc;
           }
+          ++eqc;
         }
       }
     }
