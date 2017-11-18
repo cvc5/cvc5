@@ -24,24 +24,25 @@ namespace theory {
 namespace strings {
 
 RegExpOpr::RegExpOpr()
-  : d_lastchar( options::stdASCII()? '\x7f' : '\xff' ),
-    RMAXINT( LONG_MAX )
-{
-  d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
-  d_emptySingleton = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, d_emptyString );
-  d_zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
-  d_one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
-  std::vector< Node > nvec;
-  d_emptyRegexp = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
-  d_sigma = NodeManager::currentNM()->mkNode( kind::REGEXP_SIGMA, nvec );
-  d_sigma_star = NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, d_sigma );
-}
+    : d_lastchar(options::stdASCII() ? '\x7f' : '\xff'),
+      d_emptyString(NodeManager::currentNM()->mkConst(::CVC4::String(""))),
+      d_true(NodeManager::currentNM()->mkConst(true)),
+      d_false(NodeManager::currentNM()->mkConst(false)),
+      d_emptySingleton(NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP,
+                                                        d_emptyString)),
+      d_emptyRegexp(NodeManager::currentNM()->mkNode(kind::REGEXP_EMPTY,
+                                                     std::vector<Node>{})),
+      d_zero(NodeManager::currentNM()->mkConst(::CVC4::Rational(0))),
+      d_one(NodeManager::currentNM()->mkConst(::CVC4::Rational(1))),
+      RMAXINT(LONG_MAX),
+      d_char_start(),
+      d_char_end(),
+      d_sigma(NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA,
+                                               std::vector<Node>{})),
+      d_sigma_star(
+          NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma)) {}
 
-RegExpOpr::~RegExpOpr(){ 
-
-}
+RegExpOpr::~RegExpOpr() {}
 
 int RegExpOpr::gcd ( int a, int b ) {
   int c;
