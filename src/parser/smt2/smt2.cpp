@@ -981,7 +981,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       Expr body = getExprManager()->mkExpr(sk, children);
       Debug("parser-sygus") << ": new body of function is " << body
                             << std::endl;
-      // TODO : expand definitions in body
+      // TODO : expand definitions in body?
       Expr ebody = body;
 
       // replace by lambda
@@ -1004,29 +1004,29 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       Expr let_body;
       std::vector<Expr> let_args;
       unsigned let_num_input_args = 0;
+      std::shared_ptr< SygusPrintCallback > spc;
       if( it!=d_sygus_let_func_to_body.end() ){
+        Debug("parser-sygus") << "--> Let expression" << std::endl;
         let_body = it->second;
         let_args.insert( let_args.end(), d_sygus_let_func_to_vars[ops[i]].begin(), d_sygus_let_func_to_vars[ops[i]].end() );
         let_num_input_args = d_sygus_let_func_to_num_input_vars[ops[i]];
       }
       else if (ops[i].getType().isBitVector() && ops[i].isConst())
       {
-        // TODO
-        /*
-          std::stringstream ss;
-          ss << dt[cIndex].getName();
-          std::string str = ss.str();
-          std::size_t found = str.find_last_of("_");
-          Assert( found!=std::string::npos );
-          std::string name = std::string( str.begin() + found +1, str.end() );
-          out << name;
-          */
+        Debug("parser-sygus") << "--> Bit-vector constant " << cnames[i] << std::endl;
+        // since there are multiple output formats for bit-vectors,
+        // we are required to print in the exact input format given
+        // hence we use a print callback to custom print the name
+        spc = std::make_shared<printer::SygusNamedPrintCallback >(cnames[i]);
       }
-      else if (ops[i].getKind() != kind::BUILTIN)
+      else if (ops[i].getKind() == kind::BUILTIN)
       {
+        Debug("parser-sygus") << "--> Not builtin" << std::endl;
         // TODO
+      }else{
+        Debug("parser-sygus") << "--> Builtin" << std::endl;
       }
-      dt.addSygusConstructor( ops[i], cnames[i], cargs[i], let_body, let_args, let_num_input_args );
+      dt.addSygusConstructor( ops[i], cnames[i], cargs[i], let_body, let_args, let_num_input_args, spc );
     }
   }
 
