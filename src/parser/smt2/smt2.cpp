@@ -1010,6 +1010,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
         let_body = it->second;
         let_args.insert( let_args.end(), d_sygus_let_func_to_vars[ops[i]].begin(), d_sygus_let_func_to_vars[ops[i]].end() );
         let_num_input_args = d_sygus_let_func_to_num_input_vars[ops[i]];
+        spc = std::make_shared<printer::SygusLetExprPrintCallback>(let_body,let_args,let_num_input_args);
       }
       else if (ops[i].getType().isBitVector() && ops[i].isConst())
       {
@@ -1022,7 +1023,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       else if (ops[i].getKind() == kind::BUILTIN)
       {
         Debug("parser-sygus") << "--> Not builtin" << std::endl;
-        // TODO
+        // TODO?
       }else{
         Debug("parser-sygus") << "--> Builtin" << std::endl;
       }
