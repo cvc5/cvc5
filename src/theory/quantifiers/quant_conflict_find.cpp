@@ -560,9 +560,7 @@ bool QuantInfo::isMatchSpurious( QuantConflictFind * p ) {
   for( int i=0; i<getNumVars(); i++ ){
     //std::map< int, TNode >::iterator it = d_match.find( i );
     if( !d_match[i].isNull() ){
-      if (!getCurrentCanBeEqual(
-              p, i, d_match[i],
-              p->d_effort == QuantConflictFind::Effort::Conflict)) {
+      if (!getCurrentCanBeEqual(p, i, d_match[i], p->atConflictEffort())) {
         return true;
       }
     }
@@ -573,7 +571,7 @@ bool QuantInfo::isMatchSpurious( QuantConflictFind * p ) {
 bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node >& terms ) {
   if( options::qcfEagerTest() ){
     //check whether the instantiation evaluates as expected
-    if (p->d_effort == QuantConflictFind::Effort::Conflict) {
+    if (p->atConflictEffort()) {
       Trace("qcf-instance-check") << "Possible conflict instance for " << d_q << " : " << std::endl;
       std::map< TNode, TNode > subs;
       for( unsigned i=0; i<terms.size(); i++ ){
@@ -614,8 +612,7 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
       Node cons =
           p->getTermUtil()->substituteBoundVariables(it->first, d_q, terms);
       cons = it->second ? cons : cons.negate();
-      if (!entailmentTest(p, cons,
-                          p->d_effort == QuantConflictFind::Effort::Conflict)) {
+      if (!entailmentTest(p, cons, p->atConflictEffort())) {
         return true;
       }
     }
@@ -724,7 +721,7 @@ bool QuantInfo::completeMatch( QuantConflictFind * p, std::vector< int >& assign
               if( slv_v==-1 ){
                 Trace("qcf-tconstraint-debug") << "...will solve for var #" << vn << std::endl;
                 slv_v = vn;
-                if (p->d_effort != QuantConflictFind::Effort::Conflict) {
+                if (!p->atConflictEffort()) {
                   break;
                 }
               }else{
@@ -761,7 +758,7 @@ bool QuantInfo::completeMatch( QuantConflictFind * p, std::vector< int >& assign
             if( v==d_vars[index] ){
               sum = lhs;
             }else{
-              if (p->d_effort == QuantConflictFind::Effort::Conflict) {
+              if (p->atConflictEffort()) {
                 Kind kn = k;
                 if( d_vars[index].getKind()==PLUS ){
                   kn = MINUS;
@@ -1337,7 +1334,7 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
       if( d_tgt ){
         success = p->areMatchEqual( nn[0], nn[1] );
       }else{
-        if (p->d_effort == QuantConflictFind::Effort::Conflict) {
+        if (p->atConflictEffort()) {
           success = p->areDisequal( nn[0], nn[1] );
         }else{
           success = p->areMatchDisequal( nn[0], nn[1] );
@@ -1380,8 +1377,7 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     }else{
       if( d_tgt && d_n.getKind()==FORALL ){
         //fail
-      } else if (d_n.getKind() == FORALL &&
-                 p->d_effort == QuantConflictFind::Effort::Conflict &&
+      } else if (d_n.getKind() == FORALL && p->atConflictEffort() &&
                  !options::qcfNestedConflict()) {
         //fail
       }else{
@@ -1908,7 +1904,7 @@ QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe, context::Context* c)
       d_conflict(c, false),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),
       d_false(NodeManager::currentNM()->mkConst<bool>(false)),
-      d_effort(Effort::Unset),
+      d_effort(EFFORT_INVALID),
       d_needs_computeRelEqr() {}
 
 Node QuantConflictFind::mkEqNode( Node a, Node b ) {
@@ -1946,16 +1942,6 @@ void QuantConflictFind::registerQuantifier( Node q ) {
       }
       Trace("qcf-qregister") << "Done registering quantifier." << std::endl;
     }
-  }
-}
-
-std::vector<QuantConflictFind::Effort> QuantConflictFind::getQcfEfforts() {
-  if( options::qcfMode()==QCF_CONFLICT_ONLY ){
-    return {Effort::Conflict};
-  }else if( options::qcfMode()==QCF_PROP_EQ || options::qcfMode()==QCF_PARTIAL ){
-    return {Effort::Conflict, Effort::PropEq};
-  }else{
-    return {Effort::Conflict};
   }
 }
 
@@ -2034,6 +2020,29 @@ void QuantConflictFind::setIrrelevantFunction( TNode f ) {
   }
 }
 
+namespace {
+
+// Returns the beginning of a range of efforts. The range can be iterated
+// through as unsigned using operator++.
+inline QuantConflictFind::Effort QcfEffortStart() {
+  return QuantConflictFind::EFFORT_CONFLICT;
+}
+
+// Returns the beginning of a range of efforts. The value returned is included
+// in the range.
+inline QuantConflictFind::Effort QcfEffortEnd() {
+  switch (options::qcfMode()) {
+    case QCF_PROP_EQ:
+    case QCF_PARTIAL:
+      return QuantConflictFind::EFFORT_PROP_EQ;
+    case QCF_CONFLICT_ONLY:
+    default:
+      return QuantConflictFind::EFFORT_PROP_EQ;
+  }
+}
+
+}  // namespace
+
 /** check */
 void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
   CodeTimer codeTimer(d_quantEngine->d_statistics.d_qcf_time);
@@ -2066,8 +2075,8 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
         Trace("qcf-debug") << std::endl;
       }
       bool isConflict = false;
-      for (Effort e : getQcfEfforts()) {
-        d_effort = e;
+      for (unsigned e = QcfEffortStart(), end = QcfEffortEnd(); e <= end; ++e) {
+        d_effort = static_cast<Effort>(e);
         Trace("qcf-check") << "Checking quantified formulas at effort " << e << "..." << std::endl;
         for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
           Node q = d_quantEngine->getModel()->getAssertedQuantifier( i, true );
@@ -2106,7 +2115,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                             Debug("qcf-check-inst") << "Check instantiation " << inst << "..." << std::endl;
                             Assert( !getTermDatabase()->isEntailed( inst, true ) );
                             Assert(getTermDatabase()->isEntailed(inst, false) ||
-                                   e > Effort::Conflict);
+                                   e > EFFORT_CONFLICT);
                           }
                           if( d_quantEngine->addInstantiation( q, terms ) ){
                             Trace("qcf-check") << "   ... Added instantiation" << std::endl;
@@ -2114,7 +2123,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                             qi->debugPrintMatch("qcf-inst");
                             Trace("qcf-inst") << std::endl;
                             ++addedLemmas;
-                            if (e == Effort::Conflict) {
+                            if (e == EFFORT_CONFLICT) {
                               d_quantEngine->markRelevant( q );
                               ++(d_quantEngine->d_statistics.d_instantiations_qcf);
                               if( options::qcfAllConflict() ){
@@ -2123,7 +2132,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                                 d_conflict.set( true );
                               }
                               break;
-                            } else if (e == Effort::PropEq) {
+                            } else if (e == EFFORT_PROP_EQ) {
                               d_quantEngine->markRelevant( q );
                               ++(d_quantEngine->d_statistics.d_instantiations_qcf);
                             }
@@ -2168,9 +2177,9 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
         if( addedLemmas>0 ){
           Trace("qcf-engine")
               << ", effort = "
-              << (d_effort == Effort::Conflict
+              << (d_effort == EFFORT_CONFLICT
                       ? "conflict"
-                      : (d_effort == Effort::PropEq ? "prop_eq" : "mc"));
+                      : (d_effort == EFFORT_PROP_EQ ? "prop_eq" : "mc"));
           Trace("qcf-engine") << ", addedLemmas = " << addedLemmas;
         }
         Trace("qcf-engine") << std::endl;
@@ -2284,13 +2293,13 @@ TNode QuantConflictFind::getZero( Kind k ) {
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e) {
   switch (e) {
-    case QuantConflictFind::Effort::Unset:
-      os << "Unset";
+    case QuantConflictFind::EFFORT_INVALID:
+      os << "Invalid";
       break;
-    case QuantConflictFind::Effort::Conflict:
+    case QuantConflictFind::EFFORT_CONFLICT:
       os << "Conflict";
       break;
-    case QuantConflictFind::Effort::PropEq:
+    case QuantConflictFind::EFFORT_PROP_EQ:
       os << "PropEq";
       break;
   }

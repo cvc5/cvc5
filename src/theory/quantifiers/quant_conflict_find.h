@@ -218,17 +218,19 @@ private:  //for equivalence classes
   std::map< TypeNode, std::vector< TNode > > d_eqcs;
 
  public:
-  enum class Effort {
-    Unset,
-    Conflict,
-    PropEq,
+  enum Effort : unsigned {
+    EFFORT_CONFLICT,
+    EFFORT_PROP_EQ,
+    EFFORT_INVALID,
   };
   void setEffort(Effort e) { d_effort = e; }
 
+  inline bool atConflictEffort() const {
+    return d_effort == QuantConflictFind::EFFORT_CONFLICT;
+  }
+
  private:
   Effort d_effort;
-  // Returns a non-empty list of efforts to try.
-  static std::vector<Effort> getQcfEfforts();
 
  public:
   bool areMatchEqual( TNode n1, TNode n2 );
