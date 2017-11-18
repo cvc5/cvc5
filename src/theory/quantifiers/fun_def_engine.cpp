@@ -39,7 +39,8 @@ void FunDefEngine::reset_round( Theory::Effort e ){
 }
 
 /* Call during quantifier engine's check */
-void FunDefEngine::check( Theory::Effort e, unsigned quant_e ) {
+void FunDefEngine::check(Theory::Effort e, QEffort quant_e)
+{
   //TODO
 }
 

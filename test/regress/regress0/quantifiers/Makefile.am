@@ -129,7 +129,7 @@ TESTS =	\
 #		javafe.tc.CheckCompilationUnit.001.smt2 \
 #		javafe.tc.FlowInsensitiveChecks.682.smt2 \
 #		clock-10.smt2
-#
+#		extract-nproc.smt2
 
 # FIXME: I've disabled these since they give different error messages on production and debug
 #	macro-subtype-param.smt2 
