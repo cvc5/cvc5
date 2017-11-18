@@ -13,8 +13,8 @@
  **/
 
 #include "theory/quantifiers/trigger.h"
-#include "theory/quantifiers/ho_trigger.h"
 #include "theory/quantifiers/candidate_generator.h"
+#include "theory/quantifiers/ho_trigger.h"
 #include "theory/quantifiers/inst_match_generator.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -22,7 +22,6 @@
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
-
 
 using namespace std;
 using namespace CVC4::kind;
@@ -99,12 +98,17 @@ Node Trigger::getInstPattern(){
   return NodeManager::currentNM()->mkNode( INST_PATTERN, d_nodes );
 }
 
-int Trigger::addInstantiations( InstMatch& baseMatch ) {
-  int addedLemmas = d_mg->addInstantiations( d_f, baseMatch, d_quantEngine, this );
+int Trigger::addInstantiations(InstMatch& baseMatch)
+{
+  int addedLemmas =
+      d_mg->addInstantiations(d_f, baseMatch, d_quantEngine, this);
   if( addedLemmas>0 ){
-    if( Debug.isOn("inst-trigger") ){
-      Debug("inst-trigger") << "Added " << addedLemmas << " lemmas, trigger was ";
-      for( unsigned i=0; i<d_nodes.size(); i++ ){
+    if (Debug.isOn("inst-trigger"))
+    {
+      Debug("inst-trigger") << "Added " << addedLemmas
+                            << " lemmas, trigger was ";
+      for (unsigned i = 0; i < d_nodes.size(); i++)
+      {
         Debug("inst-trigger") << d_nodes[i] << " ";
       }
       Debug("inst-trigger") << std::endl;
@@ -113,8 +117,9 @@ int Trigger::addInstantiations( InstMatch& baseMatch ) {
   return addedLemmas;
 }
 
-bool Trigger::sendInstantiation( InstMatch& m ) {
-  return d_quantEngine->addInstantiation( d_f, m );  
+bool Trigger::sendInstantiation(InstMatch& m)
+{
+  return d_quantEngine->addInstantiation(d_f, m);
 }
 
 bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_vars, std::vector< Node >& trNodes ) {
@@ -215,15 +220,18 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
 
   // check if higher-order
   Trace("trigger") << "Collect higher-order variable triggers..." << std::endl;
-  std::map< Node, std::vector< Node > > ho_apps;
-  HigherOrderTrigger::collectHoVarApplyTerms( f, trNodes, ho_apps );
+  std::map<Node, std::vector<Node> > ho_apps;
+  HigherOrderTrigger::collectHoVarApplyTerms(f, trNodes, ho_apps);
   Trigger* t;
-  if( !ho_apps.empty() ){
-    t = new HigherOrderTrigger( qe, f, trNodes, ho_apps );  
-  }else{
-    t = new Trigger( qe, f, trNodes );
+  if (!ho_apps.empty())
+  {
+    t = new HigherOrderTrigger(qe, f, trNodes, ho_apps);
   }
-  
+  else
+  {
+    t = new Trigger(qe, f, trNodes);
+  }
+
   qe->getTriggerDatabase()->addTrigger( trNodes, t );
   return t;
 }
@@ -362,10 +370,11 @@ bool Trigger::isAtomicTrigger( Node n ){
 }
 
 bool Trigger::isAtomicTriggerKind( Kind k ) {
-  return k==APPLY_UF || k==SELECT || k==STORE ||
-         k==APPLY_CONSTRUCTOR || k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER ||
-         k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON || 
-         k==SEP_PTO || k==BITVECTOR_TO_NAT || k==INT_TO_BITVECTOR || k==HO_APPLY;
+  return k == APPLY_UF || k == SELECT || k == STORE || k == APPLY_CONSTRUCTOR
+         || k == APPLY_SELECTOR_TOTAL || k == APPLY_TESTER || k == UNION
+         || k == INTERSECTION || k == SUBSET || k == SETMINUS || k == MEMBER
+         || k == SINGLETON || k == SEP_PTO || k == BITVECTOR_TO_NAT
+         || k == INT_TO_BITVECTOR || k == HO_APPLY;
 }
 
 bool Trigger::isRelationalTrigger( Node n ) {
@@ -402,8 +411,9 @@ bool Trigger::isSimpleTrigger( Node n ){
     if( options::purifyDtTriggers() && t.getKind()==APPLY_SELECTOR_TOTAL ){
       return false;
     }
-    if( t.getKind()==HO_APPLY && t[0].getKind()==INST_CONSTANT ){
-      return false;    
+    if (t.getKind() == HO_APPLY && t[0].getKind() == INST_CONSTANT)
+    {
+      return false;
     }
     return true;
   }else{
@@ -708,12 +718,13 @@ Node Trigger::getInversion( Node n, Node x ) {
   return Node::null();
 }
 
-void Trigger::getTriggerVariables( Node n, Node q, std::vector< Node >& t_vars ) {
+void Trigger::getTriggerVariables(Node n, Node q, std::vector<Node>& t_vars)
+{
   std::vector< Node > patTerms;
   std::map< Node, TriggerTermInfo > tinfo;
-  //collect all patterns from n
+  // collect all patterns from n
   std::vector< Node > exclude;
-  collectPatTerms( q, n, patTerms, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo );
+  collectPatTerms(q, n, patTerms, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo);
   //collect all variables from all patterns in patTerms, add to t_vars
   for( unsigned i=0; i<patTerms.size(); i++ ){
     quantifiers::TermUtil::getVarContainsNode( q, patTerms[i], t_vars );
@@ -740,40 +751,50 @@ TriggerTrie::~TriggerTrie() {
   }
 }
 
-inst::Trigger* TriggerTrie::getTrigger( std::vector< Node >& nodes ){
-  std::vector< Node > temp;
-  temp.insert( temp.begin(), nodes.begin(), nodes.end() );
-  std::sort( temp.begin(), temp.end() );
-  TriggerTrie * tt = this;
-  for( const Node& n : temp ){
-    std::map< TNode, TriggerTrie* >::iterator itt = tt->d_children.find( n );
-    if( itt==tt->d_children.end() ){
+inst::Trigger* TriggerTrie::getTrigger(std::vector<Node>& nodes)
+{
+  std::vector<Node> temp;
+  temp.insert(temp.begin(), nodes.begin(), nodes.end());
+  std::sort(temp.begin(), temp.end());
+  TriggerTrie* tt = this;
+  for (const Node& n : temp)
+  {
+    std::map<TNode, TriggerTrie*>::iterator itt = tt->d_children.find(n);
+    if (itt == tt->d_children.end())
+    {
       return NULL;
-    }else{
+    }
+    else
+    {
       tt = itt->second;
     }
   }
   return tt->d_tr.empty() ? NULL : tt->d_tr[0];
 }
-  
-void TriggerTrie::addTrigger( std::vector< Node >& nodes, inst::Trigger* t ){
-  std::vector< Node > temp;
-  temp.insert( temp.begin(), nodes.begin(), nodes.end() );
-  std::sort( temp.begin(), temp.end() );
-  TriggerTrie * tt = this;
-  for( const Node& n : temp ){
-    std::map< TNode, TriggerTrie* >::iterator itt = tt->d_children.find( n );
-    if( itt==tt->d_children.end() ){
-      TriggerTrie * ttn = new TriggerTrie;
+
+void TriggerTrie::addTrigger(std::vector<Node>& nodes, inst::Trigger* t)
+{
+  std::vector<Node> temp;
+  temp.insert(temp.begin(), nodes.begin(), nodes.end());
+  std::sort(temp.begin(), temp.end());
+  TriggerTrie* tt = this;
+  for (const Node& n : temp)
+  {
+    std::map<TNode, TriggerTrie*>::iterator itt = tt->d_children.find(n);
+    if (itt == tt->d_children.end())
+    {
+      TriggerTrie* ttn = new TriggerTrie;
       tt->d_children[n] = ttn;
       tt = ttn;
-    }else{
+    }
+    else
+    {
       tt = itt->second;
     }
   }
-  tt->d_tr.push_back( t );
+  tt->d_tr.push_back(t);
 }
-  
+
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
