@@ -187,7 +187,7 @@ void Datatype::addSygusConstructor(CVC4::Expr op,
                                    CVC4::Expr& let_body,
                                    std::vector<CVC4::Expr>& let_args,
                                    unsigned let_num_input_args,
-                                   SygusPrintCallback* spc)
+                                   std::shared_ptr< SygusPrintCallback > spc)
 {
   Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
   Debug("dt-sygus") << "    sygus op : " << op << std::endl;
@@ -217,7 +217,7 @@ void Datatype::addSygusConstructor(CVC4::Expr op,
 void Datatype::addSygusConstructor(CVC4::Expr op,
                                    std::string& cname,
                                    std::vector<CVC4::Type>& cargs,
-                                   SygusPrintCallback* spc)
+                                   std::shared_ptr< SygusPrintCallback > spc )
 {
   CVC4::Expr let_body; 
   std::vector< CVC4::Expr > let_args; 
@@ -819,7 +819,7 @@ void DatatypeConstructor::setSygus(Expr op,
                                    Expr let_body,
                                    std::vector<Expr>& let_args,
                                    unsigned num_let_input_args,
-                                   SygusPrintCallback* spc)
+                                   std::shared_ptr< SygusPrintCallback > spc)
 {
   d_sygus_op = op;
   d_sygus_let_body = let_body;
@@ -935,7 +935,7 @@ SygusPrintCallback* DatatypeConstructor::getSygusPrintCallback() const
 {
   PrettyCheckArgument(
       isResolved(), this, "this datatype constructor is not yet resolved");
-  return d_sygus_pc;
+  return d_sygus_pc.get();
 }
 
 Cardinality DatatypeConstructor::getCardinality( Type t ) const throw(IllegalArgumentException) {

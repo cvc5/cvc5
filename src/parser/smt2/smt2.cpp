@@ -990,7 +990,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       Debug("parser-sygus") << ": operator is " << ops[i] << std::endl;
 
       // expression printer
-      printer::SygusExprPrintCallback* sepc = new printer::SygusExprPrintCallback( body, largs );
+      std::shared_ptr< SygusPrintCallback > sepc = std::make_shared<printer::SygusExprPrintCallback>(body, largs );
 
       Debug("parser-sygus") << ": finished making print callback" << std::endl;
 
@@ -1055,8 +1055,8 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           Expr id_op = getExprManager()->mkExpr(kind::LAMBDA, lchildren);
 
           // empty sygus callback (should not be printed)
-          printer::SygusEmptyPrintCallback* sepc = new printer::SygusEmptyPrintCallback;
-
+          std::shared_ptr< SygusPrintCallback > sepc = std::make_shared<printer::SygusEmptyPrintCallback>();
+          
           //make the sygus argument list
           std::vector< Type > id_carg;
           id_carg.push_back( t );

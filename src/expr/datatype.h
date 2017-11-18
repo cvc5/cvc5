@@ -458,7 +458,7 @@ class CVC4_PUBLIC DatatypeConstructor {
                 Expr let_body,
                 std::vector<Expr>& let_args,
                 unsigned num_let_input_args,
-                SygusPrintCallback* spc);
+                std::shared_ptr< SygusPrintCallback > spc);
 
  private:
   /** the name of the constructor */
@@ -478,7 +478,7 @@ class CVC4_PUBLIC DatatypeConstructor {
   /** sygus num let input args */
   unsigned d_sygus_num_let_input_args;
   /** sygus print callback */
-  SygusPrintCallback* d_sygus_pc;
+  std::shared_ptr< SygusPrintCallback > d_sygus_pc;
 
   /** shared selectors for each type
    * This stores the shared (constructor-agnotic)
@@ -695,7 +695,7 @@ public:
   void addSygusConstructor(CVC4::Expr op,
                            std::string& cname,
                            std::vector<CVC4::Type>& cargs,
-                           SygusPrintCallback* spc = NULL);
+                           std::shared_ptr< SygusPrintCallback > spc = nullptr);
   /** add sygus constructor (for let expression constructors)
    *
    * This adds a sygus constructor to this datatype, where
@@ -712,7 +712,7 @@ public:
                            CVC4::Expr& let_body,
                            std::vector<CVC4::Expr>& let_args,
                            unsigned let_num_input_args,
-                           SygusPrintCallback* spc = NULL);
+                           std::shared_ptr< SygusPrintCallback > spc = nullptr);
 
   /** set that this datatype is a tuple */
   void setTuple();
