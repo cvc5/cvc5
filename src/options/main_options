@@ -18,6 +18,9 @@ common-option - --show-config void :handler showConfiguration
 common-option - --copyright void :handler copyright
  show CVC4 copyright information
 
+common-option seed -s --seed uint64_t :default 0
+ seed for random number generator
+
 option - --show-debug-tags void :handler showDebugTags
  show all available tags for debugging
 option - --show-trace-tags void :handler showTraceTags

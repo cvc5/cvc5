@@ -116,43 +116,6 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     return;
   }
 
-  if( !force_nt.isNull() && n.getKind()!=kind::CONST_RATIONAL ){
-    if( n.getType()!=force_nt ){
-      if( force_nt.isReal() ){
-        out << "(" << smtKindString( force_nt.isInteger() ? kind::TO_INTEGER : kind::TO_REAL) << " ";
-        toStream(out, n, toDepth, types, TypeNode::null());
-        out << ")";
-      }else{            
-        Node nn = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                                                   NodeManager::currentNM()->mkConst(AscriptionType(force_nt.toType())), n );
-        toStream(out, nn, toDepth, types, TypeNode::null());                                 
-      }
-      return;  
-    }
-  }
-
-  // variable
-  if(n.isVar()) {
-    string s;
-    if(n.getAttribute(expr::VarNameAttr(), s)) {
-      out << maybeQuoteSymbol(s);
-    } else {
-      if(n.getKind() == kind::VARIABLE) {
-        out << "var_";
-      } else {
-        out << n.getKind() << '_';
-      }
-      out << n.getId();
-    }
-    if(types) {
-      // print the whole type, but not *its* type
-      out << ":";
-      n.getType().toStream(out, language::output::LANG_SMTLIB_V2_5);
-    }
-
-    return;
-  }
-
   // constant
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     switch(n.getKind()) {
@@ -325,6 +288,61 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     return;
   }
 
+  if (!force_nt.isNull())
+  {
+    if (n.getType() != force_nt)
+    {
+      if (force_nt.isReal())
+      {
+        out << "(" << smtKindString(force_nt.isInteger() ? kind::TO_INTEGER
+                                                         : kind::TO_REAL)
+            << " ";
+        toStream(out, n, toDepth, types, TypeNode::null());
+        out << ")";
+      }
+      else
+      {
+        Node nn = NodeManager::currentNM()->mkNode(
+            kind::APPLY_TYPE_ASCRIPTION,
+            NodeManager::currentNM()->mkConst(
+                AscriptionType(force_nt.toType())),
+            n);
+        toStream(out, nn, toDepth, types, TypeNode::null());
+      }
+      return;
+    }
+  }
+
+  // variable
+  if (n.isVar())
+  {
+    string s;
+    if (n.getAttribute(expr::VarNameAttr(), s))
+    {
+      out << maybeQuoteSymbol(s);
+    }
+    else
+    {
+      if (n.getKind() == kind::VARIABLE)
+      {
+        out << "var_";
+      }
+      else
+      {
+        out << n.getKind() << '_';
+      }
+      out << n.getId();
+    }
+    if (types)
+    {
+      // print the whole type, but not *its* type
+      out << ":";
+      n.getType().toStream(out, language::output::LANG_SMTLIB_V2_5);
+    }
+
+    return;
+  }
+
   bool stillNeedToPrintParams = true;
   bool forceBinary = false; // force N-ary to binary when outputing children
   bool parametricTypeChildren = false;   // parametric operators that are (op t1 ... tn) where t1...tn must have same type
@@ -345,13 +363,13 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     break;
   case kind::CHAIN: break;
   case kind::FUNCTION_TYPE:
-    for(size_t i = 0; i < n.getNumChildren() - 1; ++i) {
-      if(i > 0) {
-        out << ' ';
-      }
-      out << n[i];
+    out << "->";
+    for (Node nc : n)
+    {
+      out << " ";
+      toStream(out, nc, toDepth, types, TypeNode::null());
     }
-    out << ") " << n[n.getNumChildren() - 1];
+    out << ")";
     return;
   case kind::SEXPR: break;
 
@@ -365,8 +383,13 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
     // uf theory
   case kind::APPLY_UF: typeChildren = true; break;
+  // higher-order
+  case kind::HO_APPLY: break;
+  case kind::LAMBDA:
+    out << smtKindString(k) << " ";
+    break;
 
-    // arith theory
+  // arith theory
   case kind::PLUS:
   case kind::MULT:
   case kind::NONLINEAR_MULT:
@@ -800,7 +823,10 @@ static string smtKindString(Kind k) throw() {
     // uf theory
   case kind::APPLY_UF: break;
 
-    // arith theory
+  case kind::LAMBDA:
+    return "lambda";
+
+  // arith theory
   case kind::PLUS: return "+";
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
@@ -1288,6 +1314,47 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
   }
 }
 
+void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const throw()
+{
+  if (n.getKind() == kind::APPLY_CONSTRUCTOR)
+  {
+    TypeNode tn = n.getType();
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    if (dt.isSygus())
+    {
+      int cIndex = Datatype::indexOf(n.getOperator().toExpr());
+      Assert(!dt[cIndex].getSygusOp().isNull());
+      SygusPrintCallback* spc = dt[cIndex].getSygusPrintCallback();
+      if (spc != nullptr)
+      {
+        spc->toStreamSygus(this, out, n.toExpr());
+      }
+      else
+      {
+        if (n.getNumChildren() > 0)
+        {
+          out << "(";
+        }
+        out << dt[cIndex].getSygusOp();
+        if (n.getNumChildren() > 0)
+        {
+          for (Node nc : n)
+          {
+            out << " ";
+            toStreamSygus(out, nc);
+          }
+          out << ")";
+        }
+      }
+      return;
+    }
+  }
+  else
+  {
+    // cannot convert term to analog, print original
+    toStream(out, n, -1, false, 1);
+  }
+}
 
 static void toStream(std::ostream& out, const AssertCommand* c) throw() {
   out << "(assert " << c->getExpr() << ")";

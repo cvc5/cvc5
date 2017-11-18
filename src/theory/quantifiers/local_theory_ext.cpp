@@ -128,9 +128,11 @@ bool LtePartialInst::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_FULL && d_needsCheck;
 }
 /* Call during quantifier engine's check */
-void LtePartialInst::check( Theory::Effort e, unsigned quant_e ) {
+void LtePartialInst::check(Theory::Effort e, QEffort quant_e)
+{
   //flush lemmas ASAP (they are a reduction)
-  if( quant_e==QuantifiersEngine::QEFFORT_CONFLICT && d_needsCheck ){
+  if (quant_e == QEFFORT_CONFLICT && d_needsCheck)
+  {
     std::vector< Node > lemmas;
     getInstantiations( lemmas );
     //add lemmas to quantifiers engine

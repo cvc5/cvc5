@@ -40,7 +40,23 @@ namespace quantifiers {
 * It has a similar interface to a Theory object.
 */
 class QuantifiersModule {
-public:
+ public:
+  /** effort levels for quantifiers modules check */
+  enum QEffort
+  {
+    // conflict effort, for conflict-based instantiation
+    QEFFORT_CONFLICT,
+    // standard effort, for heuristic instantiation
+    QEFFORT_STANDARD,
+    // model effort, for model-based instantiation
+    QEFFORT_MODEL,
+    // last call effort, for last resort techniques
+    QEFFORT_LAST_CALL,
+    // none
+    QEFFORT_NONE,
+  };
+
+ public:
   QuantifiersModule( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
   virtual ~QuantifiersModule(){}
   /** Presolve.
@@ -62,7 +78,7 @@ public:
    * which specifies the quantifiers effort in which it requires the model to
    * be built.
    */
-  virtual unsigned needsModel( Theory::Effort e );
+  virtual QEffort needsModel(Theory::Effort e);
   /** Reset.
    *
    * Called at the beginning of QuantifiersEngine::check(e).
@@ -73,7 +89,7 @@ public:
    *   Called during QuantifiersEngine::check(e) depending
    *   if needsCheck(e) returns true.
    */
-  virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
+  virtual void check(Theory::Effort e, QEffort quant_e) = 0;
   /** Check complete?
    *
    * Returns false if the module's reasoning was globally incomplete
@@ -316,41 +332,6 @@ public:
  static void debugPrintMonomialSum(std::map<Node, Node>& msum, const char* c);
 };
 
-/** QuantRelevance
-* This class is used for implementing SinE-style heuristics (e.g. see Hoder et
-* al CADE 2011)
-* This is enabled by the option --relevant-triggers.
-*/
-class QuantRelevance : public QuantifiersUtil
-{
-private:
-  /** for computing relevance */
-  bool d_computeRel;
-  /** map from quantifiers to symbols they contain */
-  std::map< Node, std::vector< Node > > d_syms;
-  /** map from symbols to quantifiers */
-  std::map< Node, std::vector< Node > > d_syms_quants;
-  /** relevance for quantifiers and symbols */
-  std::map< Node, int > d_relevance;
-  /** compute symbols */
-  void computeSymbols( Node n, std::vector< Node >& syms );
-public:
-  QuantRelevance( bool cr ) : d_computeRel( cr ){}
-  ~QuantRelevance(){}
-  virtual bool reset(Theory::Effort e) override { return true; }
-  /** Called for new quantifiers after ownership of quantified formulas are
-   * finalized */
-  virtual void registerQuantifier(Node q) override;
-  /** Identify this module (for debugging, dynamic configuration, etc..) */
-  virtual std::string identify() const override { return "QuantRelevance"; }
-  /** set relevance */
-  void setRelevance( Node s, int r );
-  /** get relevance */
-  int getRelevance( Node s ) { return d_relevance.find( s )==d_relevance.end() ? -1 : d_relevance[s]; }
-  /** get number of quantifiers for symbol s */
-  int getNumQuantifiersForSymbol( Node s ) { return (int)d_syms_quants[s].size(); }
-};
-
 class QuantPhaseReq
 {
 private:
@@ -400,58 +381,7 @@ public:
   virtual TNode getCongruentTerm( Node f, std::vector< TNode >& args ) = 0;
 };/* class EqualityQuery */
 
-class QuantEPR
-{
-private:
-  void registerNode( Node n, std::map< int, std::map< Node, bool > >& visited, bool beneathQuant, bool hasPol, bool pol );
-  /** non-epr */
-  std::map< TypeNode, bool > d_non_epr;
-  /** axioms for epr */
-  std::map< TypeNode, Node > d_epr_axiom;
-public:
-  QuantEPR(){}
-  virtual ~QuantEPR(){}
-  /** constants per type */
-  std::map< TypeNode, std::vector< Node > > d_consts;
-  /* reset */
-  //bool reset( Theory::Effort e ) {}
-  /** identify */
-  //std::string identify() const { return "QuantEPR"; }
-  /** register assertion */
-  void registerAssertion( Node assertion );
-  /** finish init */
-  void finishInit();
-  /** is EPR */
-  bool isEPR( TypeNode tn ) const { return d_non_epr.find( tn )==d_non_epr.end(); }
-  /** is EPR constant */
-  bool isEPRConstant( TypeNode tn, Node k ); 
-  /** add EPR constant */
-  void addEPRConstant( TypeNode tn, Node k ); 
-  /** get EPR axiom */
-  Node mkEPRAxiom( TypeNode tn );
-  /** has EPR axiom */
-  bool hasEPRAxiom( TypeNode tn ) const { return d_epr_axiom.find( tn )!=d_epr_axiom.end(); }
-};
-
-class TermRecBuild {
-private:
-  std::vector< Node > d_term;
-  std::vector< std::vector< Node > > d_children;
-  std::vector< Kind > d_kind;
-  std::vector< bool > d_has_op;
-  std::vector< unsigned > d_pos;
-  void addTerm( Node n );
-public:
-  TermRecBuild(){}
-  void init( Node n );
-  void push( unsigned p );
-  void pop();
-  void replaceChild( unsigned i, Node n );
-  Node getChild( unsigned i );
-  Node build( unsigned p=0 );
-};
-
 }
 }
 
-#endif
+#endif /* __CVC4__THEORY__QUANT_UTIL_H */

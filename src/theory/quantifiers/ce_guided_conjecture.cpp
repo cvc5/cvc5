@@ -20,6 +20,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
@@ -44,20 +45,15 @@ void collectDisjuncts( Node n, std::vector< Node >& d ) {
 }
 
 CegConjecture::CegConjecture(QuantifiersEngine* qe)
-    : d_qe(qe), d_syntax_guided(false) {
-  d_refine_count = 0;
-  d_ceg_si = new CegConjectureSingleInv(qe, this);
-  d_ceg_pbe = new CegConjecturePbe(qe, this);
-  d_ceg_proc = new CegConjectureProcess(qe);
-  d_ceg_gc = new CegGrammarConstructor(qe);
-}
+    : d_qe(qe),
+      d_ceg_si(new CegConjectureSingleInv(qe, this)),
+      d_ceg_pbe(new CegConjecturePbe(qe, this)),
+      d_ceg_proc(new CegConjectureProcess(qe)),
+      d_ceg_gc(new CegGrammarConstructor(qe, this)),
+      d_refine_count(0),
+      d_syntax_guided(false) {}
 
-CegConjecture::~CegConjecture() {
-  delete d_ceg_si;
-  delete d_ceg_pbe;
-  delete d_ceg_proc;
-  delete d_ceg_gc;
-}
+CegConjecture::~CegConjecture() {}
 
 void CegConjecture::assign( Node q ) {
   Assert( d_embed_quant.isNull() );
@@ -65,8 +61,8 @@ void CegConjecture::assign( Node q ) {
   Trace("cegqi") << "CegConjecture : assign : " << q << std::endl;
   d_quant = q;
 
-  // simplify the quantified formula based on the process utility
-  d_simp_quant = d_ceg_proc->simplify(d_quant);
+  // pre-simplify the quantified formula based on the process utility
+  d_simp_quant = d_ceg_proc->preSimplify(d_quant);
 
   std::map< Node, Node > templates; 
   std::map< Node, Node > templates_arg;
@@ -85,6 +81,11 @@ void CegConjecture::assign( Node q ) {
       }
     }
   }
+
+  // post-simplify the quantified formula based on the process utility
+  d_simp_quant = d_ceg_proc->postSimplify(d_simp_quant);
+
+  // finished simplifying the quantified formula at this point
 
   // convert to deep embedding and finalize single invocation here
   d_embed_quant = d_ceg_gc->process(d_simp_quant, templates, templates_arg);
@@ -296,7 +297,7 @@ void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& mode
     Node dr = Rewriter::rewrite( d[i] );
     if( dr.getKind()==NOT && dr[0].getKind()==FORALL ){
       if( constructed_cand ){
-        ic.push_back( d_qe->getTermUtil()->getSkolemizedBody( dr[0] ).negate() );
+        ic.push_back(d_qe->getSkolemize()->getSkolemizedBody(dr[0]).negate());
       }
       if( sk_refine ){
         Assert( !isGround() );
@@ -347,9 +348,11 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
     Node ce_q = d_ce_sk[0][k];
     if( !ce_q.isNull() ){
       Assert( !d_inner_vars_disj[k].empty() );
-      Assert( d_inner_vars_disj[k].size()==d_qe->getTermUtil()->d_skolem_constants[ce_q].size() );
+      std::vector<Node> skolems;
+      d_qe->getSkolemize()->getSkolemConstants(ce_q, skolems);
+      Assert(d_inner_vars_disj[k].size() == skolems.size());
       std::vector< Node > model_values;
-      getModelValues( d_qe->getTermUtil()->d_skolem_constants[ce_q], model_values );
+      getModelValues(skolems, model_values);
       sk_vars.insert( sk_vars.end(), d_inner_vars_disj[k].begin(), d_inner_vars_disj[k].end() );
       sk_subs.insert( sk_subs.end(), model_values.begin(), model_values.end() );
     }else{
@@ -510,7 +513,9 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
                 if( !d_cinfo[cprog].d_inst.empty() ){
                   sol = d_cinfo[cprog].d_inst.back();
                   // add to explanation of exclusion
-                  d_qe->getTermDatabaseSygus()->getExplanationForConstantEquality( cprog, sol, exp );
+                  d_qe->getTermDatabaseSygus()
+                      ->getExplain()
+                      ->getExplanationForConstantEquality(cprog, sol, exp);
                 }
                 Trace("cegqi-debug") << "  " << cprog << " -> " << sol << std::endl;
               }

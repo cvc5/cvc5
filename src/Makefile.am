@@ -175,9 +175,13 @@ libcvc4_la_SOURCES = \
 	theory/theory_engine.h \
 	theory/theory_model.cpp \
 	theory/theory_model.h \
+	theory/theory_model_builder.cpp \
+	theory/theory_model_builder.h \
 	theory/theory_registrar.h \
 	theory/theory_test_utils.h \
 	theory/type_enumerator.h \
+	theory/type_set.cpp \
+	theory/type_set.h \
 	theory/unconstrained_simplifier.cpp \
 	theory/unconstrained_simplifier.h \
 	theory/valuation.cpp \
@@ -186,6 +190,8 @@ libcvc4_la_SOURCES = \
 	theory/arith/approx_simplex.h \
 	theory/arith/arith_ite_utils.cpp \
 	theory/arith/arith_ite_utils.h \
+	theory/arith/arith_msum.cpp \
+	theory/arith/arith_msum.h \
 	theory/arith/arith_rewriter.cpp \
 	theory/arith/arith_rewriter.h \
 	theory/arith/arith_static_learner.cpp \
@@ -273,6 +279,7 @@ libcvc4_la_SOURCES = \
 	theory/builtin/theory_builtin_rewriter.cpp \
 	theory/builtin/theory_builtin_rewriter.h \
 	theory/builtin/theory_builtin_type_rules.h \
+	theory/builtin/type_enumerator.cpp \
 	theory/builtin/type_enumerator.h \
 	theory/bv/abstraction.cpp \
 	theory/bv/abstraction.h \
@@ -374,6 +381,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
 	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/extended_rewrite.cpp \
+	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/first_order_model.cpp \
 	theory/quantifiers/first_order_model.h \
 	theory/quantifiers/full_model_check.cpp \
@@ -408,8 +417,12 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/model_engine.h \
 	theory/quantifiers/quant_conflict_find.cpp \
 	theory/quantifiers/quant_conflict_find.h \
+	theory/quantifiers/quant_epr.cpp \
+	theory/quantifiers/quant_epr.h \
 	theory/quantifiers/quant_equality_engine.cpp \
 	theory/quantifiers/quant_equality_engine.h \
+	theory/quantifiers/quant_relevance.cpp \
+	theory/quantifiers/quant_relevance.h \
 	theory/quantifiers/quant_split.cpp \
 	theory/quantifiers/quant_split.h \
 	theory/quantifiers/quant_util.cpp \
@@ -422,6 +435,14 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/rewrite_engine.cpp \
 	theory/quantifiers/rewrite_engine.h \
+	theory/quantifiers/single_inv_partition.cpp \
+	theory/quantifiers/single_inv_partition.h \
+	theory/quantifiers/skolemize.cpp \
+	theory/quantifiers/skolemize.h \
+	theory/quantifiers/sygus_explain.cpp \
+	theory/quantifiers/sygus_explain.h \
+	theory/quantifiers/sygus_invariance.cpp \
+	theory/quantifiers/sygus_invariance.h \
 	theory/quantifiers/sygus_grammar_cons.cpp \
 	theory/quantifiers/sygus_grammar_cons.h \
 	theory/quantifiers/sygus_process_conj.cpp \
@@ -432,6 +453,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/term_database.h \
 	theory/quantifiers/term_database_sygus.cpp \
 	theory/quantifiers/term_database_sygus.h \
+	theory/quantifiers/term_enumeration.cpp \
+	theory/quantifiers/term_enumeration.h \
 	theory/quantifiers/term_util.cpp \
 	theory/quantifiers/term_util.h \
 	theory/quantifiers/theory_quantifiers.cpp \

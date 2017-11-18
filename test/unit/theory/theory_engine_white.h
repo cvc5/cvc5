@@ -22,6 +22,7 @@
 
 #include <deque>
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "base/cvc4_assert.h"
@@ -39,6 +40,7 @@
 #include "theory/theory_engine.h"
 #include "theory/valuation.h"
 #include "util/integer.h"
+#include "util/proof.h"
 #include "util/rational.h"
 
 using namespace CVC4;
@@ -52,7 +54,10 @@ using namespace CVC4::theory::bv;
 using namespace std;
 
 class FakeOutputChannel : public OutputChannel {
-  void conflict(TNode n, Proof* pf) override { Unimplemented(); }
+  void conflict(TNode n, std::unique_ptr<Proof> pf) override
+  {
+    Unimplemented();
+  }
   bool propagate(TNode n) override { Unimplemented(); }
   LemmaStatus lemma(TNode n, ProofRule rule, bool removable, bool preprocess,
                     bool sendAtoms) override {

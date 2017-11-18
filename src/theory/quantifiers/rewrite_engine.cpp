@@ -69,8 +69,10 @@ bool RewriteEngine::needsCheck( Theory::Effort e ){
   //return e>=Theory::EFFORT_LAST_CALL;
 }
 
-void RewriteEngine::check( Theory::Effort e, unsigned quant_e ) {
-  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+void RewriteEngine::check(Theory::Effort e, QEffort quant_e)
+{
+  if (quant_e == QEFFORT_STANDARD)
+  {
     Assert( !d_quantEngine->inConflict() );
     Trace("rewrite-engine") << "---Rewrite Engine Round, effort = " << e << "---" << std::endl;
     //if( e==Theory::EFFORT_LAST_CALL ){
@@ -293,7 +295,9 @@ bool RewriteEngine::checkCompleteFor( Node q ) {
 Node RewriteEngine::getInstConstNode( Node n, Node q ) {
   std::map< Node, Node >::iterator it = d_inst_const_node[q].find( n );
   if( it==d_inst_const_node[q].end() ){
-    Node nn = d_quantEngine->getTermUtil()->getInstConstantNode( n, q );
+    Node nn =
+        d_quantEngine->getTermUtil()->substituteBoundVariablesToInstConstants(
+            n, q);
     d_inst_const_node[q][n] = nn;
     return nn;
   }else{

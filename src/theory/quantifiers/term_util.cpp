@@ -16,12 +16,14 @@
 
 #include "expr/datatype.h"
 #include "options/base_options.h"
-#include "options/quantifiers_options.h"
 #include "options/datatypes_options.h"
+#include "options/quantifiers_options.h"
 #include "options/uf_options.h"
-#include "theory/theory_engine.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -197,7 +199,7 @@ unsigned TermUtil::getNumInstantiationConstants( Node q ) const {
 Node TermUtil::getInstConstantBody( Node q ){
   std::map< Node, Node >::iterator it = d_inst_const_body.find( q );
   if( it==d_inst_const_body.end() ){
-    Node n = getInstConstantNode( q[1], q );
+    Node n = substituteBoundVariablesToInstConstants(q[1], q);
     d_inst_const_body[ q ] = n;
     return n;
   }else{
@@ -225,273 +227,35 @@ Node TermUtil::getCounterexampleLiteral( Node q ){
   return d_ce_lit[ q ];
 }
 
-Node TermUtil::getInstConstantNode( Node n, Node q ){
+Node TermUtil::substituteBoundVariablesToInstConstants(Node n, Node q)
+{
   registerQuantifier( q );
   return n.substitute( d_vars[q].begin(), d_vars[q].end(), d_inst_constants[q].begin(), d_inst_constants[q].end() );
 }
 
-Node TermUtil::getVariableNode( Node n, Node q ) {
+Node TermUtil::substituteInstConstantsToBoundVariables(Node n, Node q)
+{
   registerQuantifier( q );
   return n.substitute( d_inst_constants[q].begin(), d_inst_constants[q].end(), d_vars[q].begin(), d_vars[q].end() );
 }
 
-Node TermUtil::getInstantiatedNode( Node n, Node q, std::vector< Node >& terms ) {
+Node TermUtil::substituteBoundVariables(Node n,
+                                        Node q,
+                                        std::vector<Node>& terms)
+{
+  registerQuantifier(q);
   Assert( d_vars[q].size()==terms.size() );
   return n.substitute( d_vars[q].begin(), d_vars[q].end(), terms.begin(), terms.end() );
 }
 
-
-void getSelfSel( const Datatype& dt, const DatatypeConstructor& dc, Node n, TypeNode ntn, std::vector< Node >& selfSel ){
-  TypeNode tspec;
-  if( dt.isParametric() ){
-    tspec = TypeNode::fromType( dc.getSpecializedConstructorType(n.getType().toType()) );
-    Trace("sk-ind-debug") << "Specialized constructor type : " << tspec << std::endl;
-    Assert( tspec.getNumChildren()==dc.getNumArgs() );
-  }
-  Trace("sk-ind-debug") << "Check self sel " << dc.getName() << " " << dt.getName() << std::endl;
-  for( unsigned j=0; j<dc.getNumArgs(); j++ ){
-    std::vector< Node > ssc;
-    if( dt.isParametric() ){
-      Trace("sk-ind-debug") << "Compare " << tspec[j] << " " << ntn << std::endl;
-      if( tspec[j]==ntn ){
-        ssc.push_back( n );
-      }
-    }else{
-      TypeNode tn = TypeNode::fromType( dc[j].getRangeType() );
-      Trace("sk-ind-debug") << "Compare " << tn << " " << ntn << std::endl;
-      if( tn==ntn ){
-        ssc.push_back( n );
-      }
-    }
-    /* TODO: more than weak structural induction
-    else if( tn.isDatatype() && std::find( visited.begin(), visited.end(), tn )==visited.end() ){
-      visited.push_back( tn );
-      const Datatype& dt = ((DatatypeType)(subs[0].getType()).toType()).getDatatype();
-      std::vector< Node > disj;
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        getSelfSel( dt[i], n, ntn, ssc );
-      }
-      visited.pop_back();
-    }
-    */
-    for( unsigned k=0; k<ssc.size(); k++ ){
-      Node ss = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, dc.getSelectorInternal( n.getType().toType(), j ), n );
-      if( std::find( selfSel.begin(), selfSel.end(), ss )==selfSel.end() ){
-        selfSel.push_back( ss );
-      }
-    }
-  }
-}
-
-
-Node TermUtil::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes, std::vector< TNode >& fvs,
-                               std::vector< Node >& sk, Node& sub, std::vector< unsigned >& sub_vars ) {
-  Assert( sk.empty() || sk.size()==f[0].getNumChildren() );
-  //calculate the variables and substitution
-  std::vector< TNode > ind_vars;
-  std::vector< unsigned > ind_var_indicies;
-  std::vector< TNode > vars;
-  std::vector< unsigned > var_indicies;
-  for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-    if( isInductionTerm( f[0][i] ) ){
-      ind_vars.push_back( f[0][i] );
-      ind_var_indicies.push_back( i );
-    }else{
-      vars.push_back( f[0][i] );
-      var_indicies.push_back( i );
-    }
-    Node s;
-    //make the new function symbol or use existing
-    if( i>=sk.size() ){
-      if( argTypes.empty() ){
-        s = NodeManager::currentNM()->mkSkolem( "skv", f[0][i].getType(), "created during skolemization" );
-      }else{
-        TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, f[0][i].getType() );
-        Node op = NodeManager::currentNM()->mkSkolem( "skop", typ, "op created during pre-skolemization" );
-        //DOTHIS: set attribute on op, marking that it should not be selected as trigger
-        std::vector< Node > funcArgs;
-        funcArgs.push_back( op );
-        funcArgs.insert( funcArgs.end(), fvs.begin(), fvs.end() );
-        s = NodeManager::currentNM()->mkNode( kind::APPLY_UF, funcArgs );
-      }
-      sk.push_back( s );
-    }else{
-      Assert( sk[i].getType()==f[0][i].getType() );
-    }
-  }
-  Node ret;
-  if( vars.empty() ){
-    ret = n;
-  }else{
-    std::vector< Node > var_sk;
-    for( unsigned i=0; i<var_indicies.size(); i++ ){
-      var_sk.push_back( sk[var_indicies[i]] );
-    }
-    Assert( vars.size()==var_sk.size() );
-    ret = n.substitute( vars.begin(), vars.end(), var_sk.begin(), var_sk.end() );
-  }
-  if( !ind_vars.empty() ){
-    Trace("sk-ind") << "Ind strengthen : (not " << f << ")" << std::endl;
-    Trace("sk-ind") << "Skolemized is : " << ret << std::endl;
-    Node n_str_ind;
-    TypeNode tn = ind_vars[0].getType();
-    Node k = sk[ind_var_indicies[0]];
-    Node nret = ret.substitute( ind_vars[0], k );
-    //note : everything is under a negation
-    //the following constructs ~( R( x, k ) => ~P( x ) )
-    if( options::dtStcInduction() && tn.isDatatype() ){
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      std::vector< Node > disj;
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        std::vector< Node > selfSel;
-        getSelfSel( dt, dt[i], k, tn, selfSel );
-        std::vector< Node > conj;
-        conj.push_back( NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), k ).negate() );
-        for( unsigned j=0; j<selfSel.size(); j++ ){
-          conj.push_back( ret.substitute( ind_vars[0], selfSel[j] ).negate() );
-        }
-        disj.push_back( conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( OR, conj ) );
-      }
-      Assert( !disj.empty() );
-      n_str_ind = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( AND, disj );
-    }else if( options::intWfInduction() && tn.isInteger() ){
-      Node icond = NodeManager::currentNM()->mkNode( GEQ, k, NodeManager::currentNM()->mkConst( Rational(0) ) );
-      Node iret = ret.substitute( ind_vars[0], NodeManager::currentNM()->mkNode( MINUS, k, NodeManager::currentNM()->mkConst( Rational(1) ) ) ).negate();
-      n_str_ind = NodeManager::currentNM()->mkNode( OR, icond.negate(), iret );
-      n_str_ind = NodeManager::currentNM()->mkNode( AND, icond, n_str_ind );
-    }else{
-      Trace("sk-ind") << "Unknown induction for term : " << ind_vars[0] << ", type = " << tn << std::endl;
-      Assert( false );
-    }
-    Trace("sk-ind") << "Strengthening is : " << n_str_ind << std::endl;
-
-    std::vector< Node > rem_ind_vars;
-    rem_ind_vars.insert( rem_ind_vars.end(), ind_vars.begin()+1, ind_vars.end() );
-    if( !rem_ind_vars.empty() ){
-      Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, rem_ind_vars );
-      nret = NodeManager::currentNM()->mkNode( FORALL, bvl, nret );
-      nret = Rewriter::rewrite( nret );
-      sub = nret;
-      sub_vars.insert( sub_vars.end(), ind_var_indicies.begin()+1, ind_var_indicies.end() );
-      n_str_ind = NodeManager::currentNM()->mkNode( FORALL, bvl, n_str_ind.negate() ).negate();
-    }
-    ret = NodeManager::currentNM()->mkNode( OR, nret, n_str_ind );
-  }
-  Trace("quantifiers-sk-debug") << "mkSkolem body for " << f << " returns : " << ret << std::endl;
-  //if it has an instantiation level, set the skolemized body to that level
-  if( f.hasAttribute(InstLevelAttribute()) ){
-    theory::QuantifiersEngine::setInstantiationLevelAttr( ret, f.getAttribute(InstLevelAttribute()) );
-  }
-
-  if( Trace.isOn("quantifiers-sk") ){
-    Trace("quantifiers-sk") << "Skolemize : ";
-    for( unsigned i=0; i<sk.size(); i++ ){
-      Trace("quantifiers-sk") << sk[i] << " ";
-    }
-    Trace("quantifiers-sk") << "for " << std::endl;
-    Trace("quantifiers-sk") << "   " << f << std::endl;
-  }
-
-  return ret;
-}
-
-Node TermUtil::getSkolemizedBody( Node f ){
-  Assert( f.getKind()==FORALL );
-  if( d_skolem_body.find( f )==d_skolem_body.end() ){
-    std::vector< TypeNode > fvTypes;
-    std::vector< TNode > fvs;
-    Node sub;
-    std::vector< unsigned > sub_vars;
-    d_skolem_body[ f ] = mkSkolemizedBody( f, f[1], fvTypes, fvs, d_skolem_constants[f], sub, sub_vars );
-    //store sub quantifier information
-    if( !sub.isNull() ){
-      //if we are skolemizing one at a time, we already know the skolem constants of the sub-quantified formula, store them
-      Assert( d_skolem_constants[sub].empty() );
-      for( unsigned i=0; i<sub_vars.size(); i++ ){
-        d_skolem_constants[sub].push_back( d_skolem_constants[f][sub_vars[i]] );
-      }
-    }
-    Assert( d_skolem_constants[f].size()==f[0].getNumChildren() );
-    if( options::sortInference() ){
-      for( unsigned i=0; i<d_skolem_constants[f].size(); i++ ){
-        //carry information for sort inference
-        d_quantEngine->getTheoryEngine()->getSortInference()->setSkolemVar( f, f[0][i], d_skolem_constants[f][i] );
-      }
-    }
-  }
-  return d_skolem_body[ f ];
-}
-
-Node TermUtil::getEnumerateTerm( TypeNode tn, unsigned index ) {
-  Trace("term-db-enum") << "Get enumerate term " << tn << " " << index << std::endl;
-  std::map< TypeNode, unsigned >::iterator it = d_typ_enum_map.find( tn );
-  unsigned teIndex;
-  if( it==d_typ_enum_map.end() ){
-    teIndex = (int)d_typ_enum.size();
-    d_typ_enum_map[tn] = teIndex;
-    d_typ_enum.push_back( TypeEnumerator(tn) );
-  }else{
-    teIndex = it->second;
-  }
-  while( index>=d_enum_terms[tn].size() ){
-    if( d_typ_enum[teIndex].isFinished() ){
-      return Node::null();
-    }
-    d_enum_terms[tn].push_back( *d_typ_enum[teIndex] );
-    ++d_typ_enum[teIndex];
-  }
-  return d_enum_terms[tn][index];
-}
-
-bool TermUtil::isClosedEnumerableType( TypeNode tn ) {
-  std::map< TypeNode, bool >::iterator it = d_typ_closed_enum.find( tn );
-  if( it==d_typ_closed_enum.end() ){
-    d_typ_closed_enum[tn] = true;
-    bool ret = true;
-    if( tn.isArray() || tn.isSort() || tn.isCodatatype() || tn.isFunction() ){
-      ret = false;
-    }else if( tn.isSet() ){
-      ret = isClosedEnumerableType( tn.getSetElementType() );
-    }else if( tn.isDatatype() ){
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-          TypeNode ctn = TypeNode::fromType( dt[i][j].getRangeType() );
-          if( tn!=ctn && !isClosedEnumerableType( ctn ) ){
-            ret = false;
-            break;
-          }
-        }
-        if( !ret ){
-          break;
-        }
-      }
-    }
-    //TODO: other parametric sorts go here
-    d_typ_closed_enum[tn] = ret;
-    return ret;
-  }else{
-    return it->second;
-  }
-}
-
-//checks whether a type is not Array and is reasonably small enough (<1000) such that all of its domain elements can be enumerated
-bool TermUtil::mayComplete( TypeNode tn ) {
-  std::map< TypeNode, bool >::iterator it = d_may_complete.find( tn );
-  if( it==d_may_complete.end() ){
-    bool mc = false;
-    if( isClosedEnumerableType( tn ) && tn.getCardinality().isFinite() && !tn.getCardinality().isLargeFinite() ){
-      Node card = NodeManager::currentNM()->mkConst( Rational(tn.getCardinality().getFiniteCardinality()) );
-      Node oth = NodeManager::currentNM()->mkConst( Rational(1000) );
-      Node eq = NodeManager::currentNM()->mkNode( LEQ, card, oth );
-      eq = Rewriter::rewrite( eq );
-      mc = eq==d_true;
-    }
-    d_may_complete[tn] = mc;
-    return mc;
-  }else{
-    return it->second;
-  }
+Node TermUtil::substituteInstConstants(Node n, Node q, std::vector<Node>& terms)
+{
+  registerQuantifier(q);
+  Assert(d_inst_constants[q].size() == terms.size());
+  return n.substitute(d_inst_constants[q].begin(),
+                      d_inst_constants[q].end(),
+                      terms.begin(),
+                      terms.end());
 }
 
 void TermUtil::computeVarContains( Node n, std::vector< Node >& varContains ) {
@@ -912,16 +676,17 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
     }
     if( !rew_vts_inf.isNull()  || rew_delta ){
       std::map< Node, Node > msum;
-      if( QuantArith::getMonomialSumLit( n, msum ) ){
+      if (ArithMSum::getMonomialSumLit(n, msum))
+      {
         if( Trace.isOn("quant-vts-debug") ){
           Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
-          QuantArith::debugPrintMonomialSum( msum, "quant-vts-debug" );
+          ArithMSum::debugPrintMonomialSum(msum, "quant-vts-debug");
         }
         Node vts_sym = !rew_vts_inf.isNull() ? rew_vts_inf : d_vts_delta;
         Assert( !vts_sym.isNull() );
         Node iso_n;
         Node nlit;
-        int res = QuantArith::isolate( vts_sym, msum, iso_n, n.getKind(), true );
+        int res = ArithMSum::isolate(vts_sym, msum, iso_n, n.getKind(), true);
         if( res!=0 ){
           Trace("quant-vts-debug") << "VTS isolated :  -> " << iso_n << ", res = " << res << std::endl;
           Node slv = iso_n[res==1 ? 1 : 0];
@@ -1154,10 +919,317 @@ bool TermUtil::isBoolConnectiveTerm( TNode n ) {
          ( n.getKind()!=ITE || n.getType().isBoolean() );
 }
 
-void TermUtil::registerTrigger( theory::inst::Trigger* tr, Node op ){
-  if( std::find( d_op_triggers[op].begin(), d_op_triggers[op].end(), tr )==d_op_triggers[op].end() ){
-    d_op_triggers[op].push_back( tr );
+Node TermUtil::getTypeValue(TypeNode tn, int val)
+{
+  std::unordered_map<int, Node>::iterator it = d_type_value[tn].find(val);
+  if (it == d_type_value[tn].end())
+  {
+    Node n = mkTypeValue(tn, val);
+    d_type_value[tn][val] = n;
+    return n;
   }
+  return it->second;
+}
+
+Node TermUtil::mkTypeValue(TypeNode tn, int val)
+{
+  Node n;
+  if (tn.isInteger() || tn.isReal())
+  {
+    Rational c(val);
+    n = NodeManager::currentNM()->mkConst(c);
+  }
+  else if (tn.isBitVector())
+  {
+    unsigned int uv = val;
+    BitVector bval(tn.getConst<BitVectorSize>(), uv);
+    n = NodeManager::currentNM()->mkConst<BitVector>(bval);
+  }
+  else if (tn.isBoolean())
+  {
+    if (val == 0)
+    {
+      n = NodeManager::currentNM()->mkConst(false);
+    }
+  }
+  else if (tn.isString())
+  {
+    if (val == 0)
+    {
+      n = NodeManager::currentNM()->mkConst(::CVC4::String(""));
+    }
+  }
+  return n;
+}
+
+Node TermUtil::getTypeMaxValue(TypeNode tn)
+{
+  std::unordered_map<TypeNode, Node, TypeNodeHashFunction>::iterator it =
+      d_type_max_value.find(tn);
+  if (it == d_type_max_value.end())
+  {
+    Node n = mkTypeMaxValue(tn);
+    d_type_max_value[tn] = n;
+    return n;
+  }
+  return it->second;
+}
+
+Node TermUtil::mkTypeMaxValue(TypeNode tn)
+{
+  Node n;
+  if (tn.isBitVector())
+  {
+    n = bv::utils::mkOnes(tn.getConst<BitVectorSize>());
+  }
+  else if (tn.isBoolean())
+  {
+    n = NodeManager::currentNM()->mkConst(true);
+  }
+  return n;
+}
+
+Node TermUtil::getTypeValueOffset(TypeNode tn,
+                                  Node val,
+                                  int offset,
+                                  int& status)
+{
+  std::unordered_map<int, Node>::iterator it =
+      d_type_value_offset[tn][val].find(offset);
+  if (it == d_type_value_offset[tn][val].end())
+  {
+    Node val_o;
+    Node offset_val = getTypeValue(tn, offset);
+    status = -1;
+    if (!offset_val.isNull())
+    {
+      if (tn.isInteger() || tn.isReal())
+      {
+        val_o = Rewriter::rewrite(
+            NodeManager::currentNM()->mkNode(PLUS, val, offset_val));
+        status = 0;
+      }
+      else if (tn.isBitVector())
+      {
+        val_o = Rewriter::rewrite(
+            NodeManager::currentNM()->mkNode(BITVECTOR_PLUS, val, offset_val));
+        // TODO : enable?  watch for overflows
+      }
+    }
+    d_type_value_offset[tn][val][offset] = val_o;
+    d_type_value_offset_status[tn][val][offset] = status;
+    return val_o;
+  }
+  status = d_type_value_offset_status[tn][val][offset];
+  return it->second;
+}
+
+bool TermUtil::isAntisymmetric(Kind k, Kind& dk)
+{
+  if (k == GT)
+  {
+    dk = LT;
+    return true;
+  }
+  else if (k == GEQ)
+  {
+    dk = LEQ;
+    return true;
+  }
+  else if (k == BITVECTOR_UGT)
+  {
+    dk = BITVECTOR_ULT;
+    return true;
+  }
+  else if (k == BITVECTOR_UGE)
+  {
+    dk = BITVECTOR_ULE;
+    return true;
+  }
+  else if (k == BITVECTOR_SGT)
+  {
+    dk = BITVECTOR_SLT;
+    return true;
+  }
+  else if (k == BITVECTOR_SGE)
+  {
+    dk = BITVECTOR_SLE;
+    return true;
+  }
+  return false;
+}
+
+bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
+{
+  // these should all be binary operators
+  // Assert( ik!=DIVISION && ik!=INTS_DIVISION && ik!=INTS_MODULUS &&
+  // ik!=BITVECTOR_UDIV );
+  TypeNode tn = n.getType();
+  if (n == getTypeValue(tn, 0))
+  {
+    if (ik == PLUS || ik == OR || ik == XOR || ik == BITVECTOR_PLUS
+        || ik == BITVECTOR_OR
+        || ik == BITVECTOR_XOR
+        || ik == STRING_CONCAT)
+    {
+      return true;
+    }
+    else if (ik == MINUS || ik == BITVECTOR_SHL || ik == BITVECTOR_LSHR
+             || ik == BITVECTOR_ASHR
+             || ik == BITVECTOR_SUB
+             || ik == BITVECTOR_UREM
+             || ik == BITVECTOR_UREM_TOTAL)
+    {
+      return arg == 1;
+    }
+  }
+  else if (n == getTypeValue(tn, 1))
+  {
+    if (ik == MULT || ik == BITVECTOR_MULT)
+    {
+      return true;
+    }
+    else if (ik == DIVISION || ik == DIVISION_TOTAL || ik == INTS_DIVISION
+             || ik == INTS_DIVISION_TOTAL
+             || ik == INTS_MODULUS
+             || ik == INTS_MODULUS_TOTAL
+             || ik == BITVECTOR_UDIV_TOTAL
+             || ik == BITVECTOR_UDIV
+             || ik == BITVECTOR_SDIV)
+    {
+      return arg == 1;
+    }
+  }
+  else if (n == getTypeMaxValue(tn))
+  {
+    if (ik == EQUAL || ik == BITVECTOR_AND || ik == BITVECTOR_XNOR)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+Node TermUtil::isSingularArg(Node n, Kind ik, int arg)
+{
+  TypeNode tn = n.getType();
+  if (n == getTypeValue(tn, 0))
+  {
+    if (ik == AND || ik == MULT || ik == BITVECTOR_AND || ik == BITVECTOR_MULT)
+    {
+      return n;
+    }
+    else if (ik == BITVECTOR_SHL || ik == BITVECTOR_LSHR || ik == BITVECTOR_ASHR
+             || ik == BITVECTOR_UREM
+             || ik == BITVECTOR_UREM_TOTAL)
+    {
+      if (arg == 0)
+      {
+        return n;
+      }
+    }
+    else if (ik == BITVECTOR_UDIV_TOTAL || ik == BITVECTOR_UDIV
+             || ik == BITVECTOR_SDIV)
+    {
+      if (arg == 0)
+      {
+        return n;
+      }
+      else if (arg == 1)
+      {
+        return getTypeMaxValue(tn);
+      }
+    }
+    else if (ik == DIVISION || ik == DIVISION_TOTAL || ik == INTS_DIVISION
+             || ik == INTS_DIVISION_TOTAL
+             || ik == INTS_MODULUS
+             || ik == INTS_MODULUS_TOTAL)
+    {
+      if (arg == 0)
+      {
+        return n;
+      }
+      else
+      {
+        // TODO?
+      }
+    }
+    else if (ik == STRING_SUBSTR)
+    {
+      if (arg == 0)
+      {
+        return n;
+      }
+      else if (arg == 2)
+      {
+        return getTypeValue(NodeManager::currentNM()->stringType(), 0);
+      }
+    }
+    else if (ik == STRING_STRIDOF)
+    {
+      if (arg == 0 || arg == 1)
+      {
+        return getTypeValue(NodeManager::currentNM()->integerType(), -1);
+      }
+    }
+  }
+  else if (n == getTypeValue(tn, 1))
+  {
+    if (ik == BITVECTOR_UREM_TOTAL)
+    {
+      return getTypeValue(tn, 0);
+    }
+  }
+  else if (n == getTypeMaxValue(tn))
+  {
+    if (ik == OR || ik == BITVECTOR_OR)
+    {
+      return n;
+    }
+  }
+  else
+  {
+    if (n.getType().isReal() && n.getConst<Rational>().sgn() < 0)
+    {
+      // negative arguments
+      if (ik == STRING_SUBSTR || ik == STRING_CHARAT)
+      {
+        return getTypeValue(NodeManager::currentNM()->stringType(), 0);
+      }
+      else if (ik == STRING_STRIDOF)
+      {
+        Assert(arg == 2);
+        return getTypeValue(NodeManager::currentNM()->integerType(), -1);
+      }
+    }
+  }
+  return Node::null();
+}
+
+bool TermUtil::hasOffsetArg(Kind ik, int arg, int& offset, Kind& ok)
+{
+  if (ik == LT)
+  {
+    Assert(arg == 0 || arg == 1);
+    offset = arg == 0 ? 1 : -1;
+    ok = LEQ;
+    return true;
+  }
+  else if (ik == BITVECTOR_ULT)
+  {
+    Assert(arg == 0 || arg == 1);
+    offset = arg == 0 ? 1 : -1;
+    ok = BITVECTOR_ULE;
+    return true;
+  }
+  else if (ik == BITVECTOR_SLT)
+  {
+    Assert(arg == 0 || arg == 1);
+    offset = arg == 0 ? 1 : -1;
+    ok = BITVECTOR_SLE;
+    return true;
+  }
+  return false;
 }
 
 Node TermUtil::getHoTypeMatchPredicate( TypeNode tn ) {
@@ -1172,17 +1244,6 @@ Node TermUtil::getHoTypeMatchPredicate( TypeNode tn ) {
   }
 }
 
-bool TermUtil::isInductionTerm( Node n ) {
-  TypeNode tn = n.getType();
-  if( options::dtStcInduction() && tn.isDatatype() ){
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    return !dt.isCodatatype();
-  }
-  if( options::intWfInduction() && n.getType().isInteger() ){
-    return true;
-  }
-  return false;
-}
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

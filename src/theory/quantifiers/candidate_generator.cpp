@@ -302,7 +302,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
   if( d_firstTime ){
     //must return something
     d_firstTime = false;
-    return d_qe->getTermDatabase()->getModelBasisTerm( d_match_pattern_type );
+    return d_qe->getTermForType(d_match_pattern_type);
   }
   return Node::null();
 }

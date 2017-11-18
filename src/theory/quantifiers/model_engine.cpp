@@ -53,25 +53,26 @@ bool ModelEngine::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
-unsigned ModelEngine::needsModel( Theory::Effort e ) {
+QuantifiersModule::QEffort ModelEngine::needsModel(Theory::Effort e)
+{
   if( options::mbqiInterleave() ){
-    return QuantifiersEngine::QEFFORT_STANDARD;
+    return QEFFORT_STANDARD;
   }else{
-    return QuantifiersEngine::QEFFORT_MODEL;
+    return QEFFORT_MODEL;
   }
 }
 
 void ModelEngine::reset_round( Theory::Effort e ) {
   d_incomplete_check = true;
 }
-
-void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
+void ModelEngine::check(Theory::Effort e, QEffort quant_e)
+{
   bool doCheck = false;
   if( options::mbqiInterleave() ){
-    doCheck = quant_e==QuantifiersEngine::QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+    doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
   }
   if( !doCheck ){
-    doCheck = quant_e==QuantifiersEngine::QEFFORT_MODEL;
+    doCheck = quant_e == QEFFORT_MODEL;
   }
   if( doCheck ){
     Assert( !d_quantEngine->inConflict() );
@@ -187,7 +188,7 @@ int ModelEngine::checkModel(){
         Trace("model-engine-debug") << r << " ";
       }
       Trace("model-engine-debug") << std::endl;
-      Node mbt = d_quantEngine->getTermDatabase()->getModelBasisTerm(it->first);
+      Node mbt = fm->getModelBasisTerm(it->first);
       Trace("model-engine-debug") << "  Basis term : " << mbt << std::endl;
     }
   }
@@ -277,8 +278,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       Trace("fmf-exh-inst-debug") << std::endl;
     }
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
-    RepSetIterator riter(d_quantEngine,
-                         d_quantEngine->getModel()->getRepSetPtr());
+    QRepBoundExt qrbe(d_quantEngine);
+    RepSetIterator riter(d_quantEngine->getModel()->getRepSet(), &qrbe);
     if( riter.setQuantifier( f ) ){
       Trace("fmf-exh-inst") << "...exhaustive instantiation set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
       if( !riter.isIncomplete() ){
@@ -287,7 +288,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
         while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
-          for( int i=0; i<riter.getNumTerms(); i++ ){
+          for (unsigned i = 0; i < riter.getNumTerms(); i++)
+          {
             m.set( d_quantEngine, i, riter.getCurrentTerm( i ) );
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;

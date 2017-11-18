@@ -29,8 +29,11 @@
 namespace CVC4 {
 namespace parser {
 
-Tptp::Tptp(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
-  Parser(exprManager,input,strictMode,parseOnly) {
+Tptp::Tptp(ExprManager* exprManager, Input* input, bool strictMode,
+           bool parseOnly)
+    : Parser(exprManager, input, strictMode, parseOnly),
+      d_cnf(false),
+      d_fof(false) {
   addTheory(Tptp::THEORY_CORE);
 
   /* Try to find TPTP dir */
@@ -135,14 +138,6 @@ bool newInputStream(std::string fileName, pANTLR3_LEXER lexer, std::vector< pANT
   return true;
 }
 
-/* overridden popCharStream for the lexer - necessary if we had symbol
- * filtering in file inclusion.
-void Tptp::myPopCharStream(pANTLR3_LEXER lexer) {
-  ((Tptp*)lexer->super)->d_oldPopCharStream(lexer);
-  ((Tptp*)lexer->super)->popScope();
-}
-*/
-
 void Tptp::includeFile(std::string fileName) {
   // security for online version
   if(!canIncludeFile()) {
@@ -152,15 +147,6 @@ void Tptp::includeFile(std::string fileName) {
   // Get the lexer
   AntlrInput * ai = static_cast<AntlrInput *>(getInput());
   pANTLR3_LEXER lexer = ai->getAntlr3Lexer();
-
-  // set up popCharStream - would be necessary for handling symbol
-  // filtering in inclusions
-  /*
-  if(d_oldPopCharStream == NULL) {
-    d_oldPopCharStream = lexer->popCharStream;
-    lexer->popCharStream = myPopCharStream;
-  }
-  */
 
   // push the inclusion scope; will be popped by our special popCharStream
   // would be necessary for handling symbol filtering in inclusions

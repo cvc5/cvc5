@@ -40,6 +40,21 @@ using namespace std;
 
 namespace CVC4 {
 
+namespace {
+
+std::vector<Expr> ExportTo(ExprManager* exprManager,
+                           ExprManagerMapCollection& variableMap,
+                           const std::vector<Expr>& exprs) {
+  std::vector<Expr> exported;
+  exported.reserve(exprs.size());
+  for (const Expr& expr : exprs) {
+    exported.push_back(expr.exportTo(exprManager, variableMap));
+  }
+  return exported;
+}
+
+}  // namespace
+
 const int CommandPrintSuccess::s_iosIndex = std::ios_base::xalloc();
 const CommandSuccess* CommandSuccess::s_instance = new CommandSuccess();
 const CommandInterrupted* CommandInterrupted::s_instance = new CommandInterrupted();
@@ -383,8 +398,8 @@ CheckSynthCommand::CheckSynthCommand() throw() :
   d_expr() {
 }
 
-CheckSynthCommand::CheckSynthCommand(const Expr& expr, bool inUnsatCore) throw() :
-  d_expr(expr), d_inUnsatCore(inUnsatCore) {
+CheckSynthCommand::CheckSynthCommand(const Expr& expr) throw() :
+  d_expr(expr) {
 }
 
 Expr CheckSynthCommand::getExpr() const throw() {
@@ -395,6 +410,33 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->checkSynth(d_expr);
     d_commandStatus = CommandSuccess::instance();
+    smt::SmtScope scope(smtEngine);
+    d_solution.clear();
+    // check whether we should print the status
+    if (d_result.asSatisfiabilityResult() != Result::UNSAT
+        || options::sygusOut() == SYGUS_SOL_OUT_STATUS_AND_DEF
+        || options::sygusOut() == SYGUS_SOL_OUT_STATUS)
+    {
+      if (options::sygusOut() == SYGUS_SOL_OUT_STANDARD)
+      {
+        d_solution << "(fail)" << endl;
+      }
+      else
+      {
+        d_solution << d_result << endl;
+      }
+    }
+    // check whether we should print the solution
+    if (d_result.asSatisfiabilityResult() == Result::UNSAT
+        && options::sygusOut() != SYGUS_SOL_OUT_STATUS)
+    {
+      // printing a synthesis solution is a non-constant
+      // method, since it invokes a sophisticated algorithm
+      // (Figure 5 of Reynolds et al. CAV 2015).
+      // Hence, we must call here print solution here,
+      // instead of during printResult.
+      smtEngine->printSynthSolution(d_solution);
+    }
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
   }
@@ -408,18 +450,18 @@ void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
-    out << d_result << endl;
+    out << d_solution.str();
   }
 }
 
 Command* CheckSynthCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  CheckSynthCommand* c = new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap), d_inUnsatCore);
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap));
   c->d_result = d_result;
   return c;
 }
 
 Command* CheckSynthCommand::clone() const {
-  CheckSynthCommand* c = new CheckSynthCommand(d_expr, d_inUnsatCore);
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr);
   c->d_result = d_result;
   return c;
 }
@@ -1168,12 +1210,12 @@ std::string GetModelCommand::getCommandName() const throw() {
 /* class GetProofCommand */
 
 GetProofCommand::GetProofCommand() throw()
-    : d_result(nullptr), d_smtEngine(nullptr) {}
+  : d_smtEngine(nullptr), d_result(nullptr) {}
 
 void GetProofCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_smtEngine = smtEngine;
-    d_result = smtEngine->getProof();
+    d_result = &smtEngine->getProof();
     d_commandStatus = CommandSuccess::instance();
   } catch (RecoverableModalException& e) {
     d_commandStatus = new CommandRecoverableFailure(e.what());
@@ -1184,10 +1226,7 @@ void GetProofCommand::invoke(SmtEngine* smtEngine) {
   }
 }
 
-Proof* GetProofCommand::getResult() const throw() {
-  return d_result;
-}
-
+const Proof& GetProofCommand::getResult() const throw() { return *d_result; }
 void GetProofCommand::printResult(std::ostream& out, uint32_t verbosity) const {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
@@ -1820,27 +1859,15 @@ void RewriteRuleCommand::invoke(SmtEngine* smtEngine) {
 
 Command* RewriteRuleCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   /** Convert variables */
-  VExpr vars; vars.reserve(d_vars.size());
-  for(VExpr::iterator i = d_vars.begin(), end = d_vars.end();
-      i == end; ++i){
-    vars.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr vars = ExportTo(exprManager, variableMap, d_vars);
   /** Convert guards */
-  VExpr guards; guards.reserve(d_guards.size());
-  for(VExpr::iterator i = d_guards.begin(), end = d_guards.end();
-      i == end; ++i){
-    guards.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr guards = ExportTo(exprManager, variableMap, d_guards);
   /** Convert triggers */
-  Triggers triggers; triggers.resize(d_triggers.size());
-  for(size_t i = 0, end = d_triggers.size();
-      i < end; ++i){
-    triggers[i].reserve(d_triggers[i].size());
-    for(VExpr::iterator j = d_triggers[i].begin(), jend = d_triggers[i].end();
-        j == jend; ++i){
-      triggers[i].push_back(j->exportTo(exprManager, variableMap));
-    };
-  };
+  Triggers triggers;
+  triggers.reserve(d_triggers.size());
+  for (const std::vector<Expr>& trigger_list : d_triggers) {
+    triggers.push_back(ExportTo(exprManager, variableMap, trigger_list));
+  }
   /** Convert head and body */
   Expr head = d_head.exportTo(exprManager, variableMap);
   Expr body = d_body.exportTo(exprManager, variableMap);
@@ -1936,33 +1963,17 @@ void PropagateRuleCommand::invoke(SmtEngine* smtEngine) {
 
 Command* PropagateRuleCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   /** Convert variables */
-  VExpr vars; vars.reserve(d_vars.size());
-  for(VExpr::iterator i = d_vars.begin(), end = d_vars.end();
-      i == end; ++i){
-    vars.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr vars = ExportTo(exprManager, variableMap, d_vars);
   /** Convert guards */
-  VExpr guards; guards.reserve(d_guards.size());
-  for(VExpr::iterator i = d_guards.begin(), end = d_guards.end();
-      i == end; ++i){
-    guards.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr guards = ExportTo(exprManager, variableMap, d_guards);
   /** Convert heads */
-  VExpr heads; heads.reserve(d_heads.size());
-  for(VExpr::iterator i = d_heads.begin(), end = d_heads.end();
-      i == end; ++i){
-    heads.push_back(i->exportTo(exprManager, variableMap));
-  };
+  VExpr heads = ExportTo(exprManager, variableMap, d_heads);
   /** Convert triggers */
-  Triggers triggers; triggers.resize(d_triggers.size());
-  for(size_t i = 0, end = d_triggers.size();
-      i < end; ++i){
-    triggers[i].reserve(d_triggers[i].size());
-    for(VExpr::iterator j = d_triggers[i].begin(), jend = d_triggers[i].end();
-        j == jend; ++i){
-      triggers[i].push_back(j->exportTo(exprManager, variableMap));
-    };
-  };
+  Triggers triggers;
+  triggers.reserve(d_triggers.size());
+  for (const std::vector<Expr>& trigger_list : d_triggers) {
+    triggers.push_back(ExportTo(exprManager, variableMap, trigger_list));
+  }
   /** Convert head and body */
   Expr body = d_body.exportTo(exprManager, variableMap);
   /** Create the converted rules */

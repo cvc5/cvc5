@@ -55,19 +55,18 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
 }
 
 void InstStrategyEnum::reset_round(Theory::Effort e) {}
-void InstStrategyEnum::check(Theory::Effort e, unsigned quant_e)
+void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   bool fullEffort = false;
   if (options::fullSaturateInterleave())
   {
     // we only add when interleaved with other strategies
-    doCheck = quant_e == QuantifiersEngine::QEFFORT_STANDARD
-              && d_quantEngine->hasAddedLemma();
+    doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
   }
   if (options::fullSaturateQuant() && !doCheck)
   {
-    doCheck = quant_e == QuantifiersEngine::QEFFORT_LAST_CALL;
+    doCheck = quant_e == QEFFORT_LAST_CALL;
     fullEffort = !d_quantEngine->hasAddedLemma();
   }
   if (doCheck)
@@ -129,16 +128,15 @@ bool InstStrategyEnum::process(Node f, bool fullEffort)
       {
         Trace("inst-alg") << "-> Relevant domain instantiate " << f << "..."
                           << std::endl;
+        Trace("inst-alg-debug") << "Compute relevant domain..." << std::endl;
+        rd->compute();
+        Trace("inst-alg-debug") << "...finished" << std::endl;
       }
       else
       {
         Trace("inst-alg") << "-> Ground term instantiate " << f << "..."
                           << std::endl;
       }
-      AlwaysAssert(rd);
-      Trace("inst-alg-debug") << "Compute relevant domain..." << std::endl;
-      rd->compute();
-      Trace("inst-alg-debug") << "...finished" << std::endl;
       unsigned final_max_i = 0;
       std::vector<unsigned> maxs;
       std::vector<bool> max_zero;
@@ -170,11 +168,11 @@ bool InstStrategyEnum::process(Node f, bool fullEffort)
               if (!options::cbqi()
                   || !quantifiers::TermUtil::hasInstConstAttr(gt))
               {
-                Node r =
+                Node rep =
                     d_quantEngine->getEqualityQuery()->getRepresentative(gt);
-                if (reps_found.find(r) == reps_found.end())
+                if (reps_found.find(rep) == reps_found.end())
                 {
-                  reps_found[r] = gt;
+                  reps_found[rep] = gt;
                   term_db_list[tn].push_back(gt);
                 }
               }
