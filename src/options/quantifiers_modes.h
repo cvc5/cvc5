@@ -115,6 +115,9 @@ enum UserPatMode {
 *
 * These modes are used for determining which terms to select 
 * as triggers for quantified formulas, when necessary, during E-matching.
+* In the following, note the following terminology. A trigger is a set of terms,
+* where a single trigger is a singleton set and a multi-trigger is a set of more
+* than one term.
 *
 * TRIGGER_SEL_MIN selects single triggers of minimal term size.
 * TRIGGER_SEL_MAX selects single triggers of maximal term size.
@@ -125,10 +128,11 @@ enum UserPatMode {
 * TRIGGER_SEL_MIN will select g( x, y ) and Q( f( x ), y ).
 * TRIGGER_SEL_MAX will select P( f( g( x ) ) ) and Q( f( x ), y ).
 *
-* The remaining three trigger selections make a difference for multi-triggers only.
-* For quantified formulas that require multi-triggers, we build a set of partial triggers
-* that don't contain all variables, call this set S. Then, multi-triggers are built
-* by taking a random subset of S that collectively contains all variables.
+* The remaining three trigger selections make a difference for multi-triggers 
+* only. For quantified formulas that require multi-triggers, we build a set of 
+* partial triggers that don't contain all variables, call this set S. Then, 
+* multi-triggers are built by taking a random subset of S that collectively 
+* contains all variables.
 *
 * Consider the quantified formula :
 *   forall xyz. P( h( x ), y ) V Q( y, z )
@@ -138,8 +142,8 @@ enum UserPatMode {
 * For TRIGGER_SEL_MIN_SINGLE_MAX, 
 *   S = { P( h( x ), y ), Q( y, z ) }.
 *
-* Furthermore, TRIGGER_SEL_MIN_SINGLE_ALL and TRIGGER_SEL_MIN_SINGLE_MAX
-* select only single triggers of minimal term size.
+* Furthermore, TRIGGER_SEL_MIN_SINGLE_ALL and TRIGGER_SEL_MIN_SINGLE_MAX, when
+* selecting single triggers, only select terms of minimal size.
 */ 
 enum TriggerSelMode {
   /** only consider minimal terms for triggers */

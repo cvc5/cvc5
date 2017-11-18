@@ -102,11 +102,13 @@ Node Trigger::getInstPattern(){
 int Trigger::addInstantiations( InstMatch& baseMatch ) {
   int addedLemmas = d_mg->addInstantiations( d_f, baseMatch, d_quantEngine, this );
   if( addedLemmas>0 ){
-    Debug("inst-trigger") << "Added " << addedLemmas << " lemmas, trigger was ";
-    for( unsigned i=0; i<d_nodes.size(); i++ ){
-      Debug("inst-trigger") << d_nodes[i] << " ";
+    if( Debug.isOn("inst-trigger") ){
+      Debug("inst-trigger") << "Added " << addedLemmas << " lemmas, trigger was ";
+      for( unsigned i=0; i<d_nodes.size(); i++ ){
+        Debug("inst-trigger") << d_nodes[i] << " ";
+      }
+      Debug("inst-trigger") << std::endl;
     }
-    Debug("inst-trigger") << std::endl;
   }
   return addedLemmas;
 }
@@ -743,8 +745,7 @@ inst::Trigger* TriggerTrie::getTrigger( std::vector< Node >& nodes ){
   temp.insert( temp.begin(), nodes.begin(), nodes.end() );
   std::sort( temp.begin(), temp.end() );
   TriggerTrie * tt = this;
-  for( unsigned i=0; i<temp.size(); i++ ){
-    Node n = temp[i];
+  for( const Node& n : temp ){
     std::map< TNode, TriggerTrie* >::iterator itt = tt->d_children.find( n );
     if( itt==tt->d_children.end() ){
       return NULL;
@@ -760,8 +761,7 @@ void TriggerTrie::addTrigger( std::vector< Node >& nodes, inst::Trigger* t ){
   temp.insert( temp.begin(), nodes.begin(), nodes.end() );
   std::sort( temp.begin(), temp.end() );
   TriggerTrie * tt = this;
-  for( unsigned i=0; i<temp.size(); i++ ){
-    Node n = temp[i];
+  for( const Node& n : temp ){
     std::map< TNode, TriggerTrie* >::iterator itt = tt->d_children.find( n );
     if( itt==tt->d_children.end() ){
       TriggerTrie * ttn = new TriggerTrie;

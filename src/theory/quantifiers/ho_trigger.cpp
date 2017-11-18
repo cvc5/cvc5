@@ -23,9 +23,7 @@
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/hash.h"
 
-using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {
@@ -34,18 +32,19 @@ namespace inst {
 HigherOrderTrigger::HigherOrderTrigger( QuantifiersEngine* qe, Node q, std::vector< Node >& nodes, 
                                         std::map< Node, std::vector< Node > >& ho_apps ) :
 Trigger( qe, q, nodes ), d_ho_var_apps( ho_apps ) {
+  NodeManager * nm = NodeManager::currentNM();
   // process the higher-order variable applications
-  for( std::map< Node, std::vector< Node > >::iterator it = d_ho_var_apps.begin(); 
-       it != d_ho_var_apps.end(); ++it ){
-    Node n = it->first;
+  for( std::pair< const Node, std::vector< Node > >& as : d_ho_var_apps )
+  {
+    Node n = as.first;
     d_ho_var_list.push_back( n );
     TypeNode tn = n.getType();
     Assert( tn.isFunction() );
     if( Trace.isOn("ho-quant-trigger") ){
-      Trace("ho-quant-trigger") << "  have " << it->second.size();
+      Trace("ho-quant-trigger") << "  have " << as.second.size();
       Trace("ho-quant-trigger") << " patterns with variable operator " << n << ":" << std::endl;
-      for( unsigned j=0; j<it->second.size(); j++ ){
-        Trace("ho-quant-trigger") << "  " << it->second[j] << std::endl;
+      for( unsigned j=0; j<as.second.size(); j++ ){
+        Trace("ho-quant-trigger") << "  " << as.second[j] << std::endl;
       }
     }
     if( d_ho_var_types.find( tn )==d_ho_var_types.end() ){
@@ -53,9 +52,9 @@ Trigger( qe, q, nodes ), d_ho_var_apps( ho_apps ) {
       d_ho_var_types.insert( tn );
     }
     // make the bound variable lists
-    d_ho_var_bvl[n] = NodeManager::currentNM()->getBoundVarListForFunctionType( tn );
-    for( unsigned j=0; j<d_ho_var_bvl[n].getNumChildren(); j++ ){
-      d_ho_var_bvs[n].push_back( d_ho_var_bvl[n][j] );
+    d_ho_var_bvl[n] = nm->getBoundVarListForFunctionType( tn );
+    for( const Node& nc : d_ho_var_bvl[n] ){
+      d_ho_var_bvs[n].push_back( nc );
     }
   }
 }
@@ -74,7 +73,6 @@ void HigherOrderTrigger::collectHoVarApplyTerms( Node q, std::vector< Node >& ns
   std::unordered_set<TNode, TNodeHashFunction> visited;
   // whether the visited node is a child of a HO_APPLY chain
   std::unordered_map<TNode, bool, TNodeHashFunction> withinApply;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
   std::stack<TNode> visit;
   TNode cur;
   for( unsigned i=0; i<ns.size(); i++ ){
@@ -83,9 +81,8 @@ void HigherOrderTrigger::collectHoVarApplyTerms( Node q, std::vector< Node >& ns
     do {
       cur = visit.top();
       visit.pop();
-      it = visited.find(cur);
 
-      if (it == visited.end()) {
+      if (visited.find(cur) == visited.end()) {
         visited.insert(cur);
         bool curWithinApply = withinApply[cur];
         if( !curWithinApply ){
@@ -100,7 +97,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms( Node q, std::vector< Node >& ns
             }
           }
           if( !op.isNull() ){
-            if( op.getKind()==INST_CONSTANT ){
+            if( op.getKind()==kind::INST_CONSTANT ){
               Assert( quantifiers::TermUtil::getInstConstAttr(cur)==q );
               Trace("ho-quant-trigger-debug") << "Ho variable apply term : " << cur << " with head " << op << std::endl;
               Node app = cur;
@@ -121,7 +118,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms( Node q, std::vector< Node >& ns
         }
         // do not look in nested quantifiers
         if( cur.getKind()!=FORALL ){
-          for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+          for (unsigned i = 0, size = cur.getNumChildren(); i < size; i++) {
             withinApply[cur[i]] = curWithinApply && i==0;
             visit.push(cur[i]);
           }
@@ -144,7 +141,7 @@ bool HigherOrderTrigger::sendInstantiation( InstMatch& m ) {
     // get substitution corresponding to m
     std::vector< TNode > vars;
     std::vector< TNode > subs;
-    for( unsigned i=0; i<d_f[0].getNumChildren(); i++ ){
+    for( unsigned i=0, size = d_f[0].getNumChildren(); i<size; i++ ){
       subs.push_back( m.d_vals[i] );
       vars.push_back( d_quantEngine->getTermUtil()->getInstantiationConstant( d_f, i ) ) ;
     }
@@ -153,11 +150,10 @@ bool HigherOrderTrigger::sendInstantiation( InstMatch& m ) {
 
     // get the substituted form of all variable-operator ho application terms
     std::map< TNode, std::vector< Node > > ho_var_apps_subs;
-    for( std::map< Node, std::vector< Node > >::iterator it = d_ho_var_apps.begin(); 
-         it != d_ho_var_apps.end(); ++it ){
-      TNode var = it->first;
-      for( unsigned j=0; j<it->second.size(); j++ ){
-        TNode app = it->second[j];
+    for( std::pair< const Node, std::vector< Node > >& ha : d_ho_var_apps ){
+      TNode var = ha.first;
+      for( unsigned j=0, size = ha.second.size(); j<size; j++ ){
+        TNode app = ha.second[j];
         Node sapp = app.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
         ho_var_apps_subs[var].push_back( sapp );
         Trace("ho-unif-debug") << "  app[" << var << "] : " << app << " -> " << sapp << std::endl;
@@ -169,9 +165,8 @@ bool HigherOrderTrigger::sendInstantiation( InstMatch& m ) {
     d_arg_to_arg_rep.clear();
     d_arg_vector.clear();
     EqualityQuery* eq = d_quantEngine->getEqualityQuery();
-    for( std::map< TNode, std::vector< Node > >::iterator ith = ho_var_apps_subs.begin();
-         ith != ho_var_apps_subs.end(); ++ith ){
-      TNode var = ith->first;
+    for( std::pair< const TNode, std::vector< Node > >& ha : ho_var_apps_subs ){
+      TNode var = ha.first;
       unsigned vnum = var.getAttribute(InstVarNumAttribute());
       Node value = m.d_vals[vnum];
       Trace("ho-unif-debug") << "  val[" << var << "] = " << value << std::endl;
@@ -186,11 +181,11 @@ bool HigherOrderTrigger::sendInstantiation( InstMatch& m ) {
       Trace("ho-unif-debug2") << "compute fixed arguments..." << std::endl;
       // compute for each argument if it is only applied to a fixed value modulo equality
       std::map< unsigned, Node > fixed_vals;
-      for( unsigned i=0; i<ith->second.size(); i++ ){
+      for( unsigned i=0; i<ha.second.size(); i++ ){
         std::vector<TNode> args;
-        Node f = uf::TheoryUfRewriter::decomposeHoApply( ith->second[i], args );
+        Node f = uf::TheoryUfRewriter::decomposeHoApply( ha.second[i], args );
         //Assert( f==value );
-        for( unsigned k=0; k<args.size(); k++ ){
+        for( unsigned k=0, size = args.size(); k<size; k++ ){
           Node val = args[k];
           std::map< unsigned, Node >::iterator itf = fixed_vals.find( k );
           if( itf==fixed_vals.end() ){
@@ -213,7 +208,7 @@ bool HigherOrderTrigger::sendInstantiation( InstMatch& m ) {
       // now construct argument vectors
       Trace("ho-unif-debug2") << "compute argument vectors..." << std::endl;
       std::map< Node, unsigned > arg_to_rep;
-      for( unsigned index=0; index<ithb->second.size(); index++ ){
+      for( unsigned index=0, size =ithb->second.size(); index<size; index++ ){
         Node bv_at_index = ithb->second[index];
         std::map< unsigned, Node >::iterator itf = fixed_vals.find( index );
         Trace("ho-unif-debug") << "  * arg[" << var << "][" << index << "]";
@@ -300,7 +295,7 @@ bool HigherOrderTrigger::sendInstantiationArg( InstMatch& m, unsigned var_index,
     Node prev = lbvl[arg_index];
     bool ret = false;
     // try each argument in the vector
-    for( unsigned i=0; i<itv->second.size(); i++ ){
+    for( unsigned i=0, size = itv->second.size(); i<size; i++ ){
       bool new_arg_changed = arg_changed || prev!=itv->second[i];
       d_lchildren[vnum][arg_index+1] = itv->second[i];
       if( sendInstantiationArg( m, var_index, vnum, arg_index+1, lbvl, new_arg_changed ) ){
@@ -318,7 +313,8 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas() {
   unsigned numLemmas = 0;
   if( !d_ho_var_types.empty() ){
     // this forces expansion of APPLY_UF terms to curried HO_APPLY chains
-    for( unsigned j=0; j<d_quantEngine->getTermDatabase()->getNumOperators(); j++ ){
+    unsigned size = d_quantEngine->getTermDatabase()->getNumOperators();
+    for( unsigned j=0; j<size; j++ ){
       Node f = d_quantEngine->getTermDatabase()->getOperator( j );
       if( f.isVar() ){
         TypeNode tn = f.getType();

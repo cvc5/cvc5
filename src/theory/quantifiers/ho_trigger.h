@@ -33,13 +33,16 @@ class Trigger;
 
 /** HigherOrder trigger 
  *
- * This extends the trigger class with techniques that post-process instantiations, specified by
- * InstMatch objects, according to higher-order preunification (also called Huet's algorithm). 
+ * This extends the trigger class with techniques that post-process 
+ * instantiations, specified by InstMatch objects, according to a variant of
+ * Huet's algorithm. For details, see Chapter 16 of the Handbook of Automated 
+ * Reasoning (vol. 2), by Gilles Dowek.
  *
- * The main difference between HigherOrderTrigger and Trigger is the function sendInstantiation(...).
- * Recall that this function is called when its underlying IMGenerator generates
- * an InstMatch m using E-matching technique. We enumerate additional instantiations based on m
- * when the domain of m contains function variables.
+ * The main difference between HigherOrderTrigger and Trigger is the function 
+ * sendInstantiation(...). Recall that this function is called when its 
+ * underlying IMGenerator generates an InstMatch m using E-matching technique. 
+ * We enumerate additional instantiations based on m, when the domain of m 
+ * contains variables of function type.
  *
  * Examples below (f, x, y are universal variables):
  * 
@@ -68,20 +71,22 @@ class Trigger;
  * f -> \ xy. (k 0 0), x -> 0, y -> 0
  * 
  * 
- * (EX3): (f x y), (f x z) simultaneously match (k 0 1), (k 0 2) with possible solutions:
+ * (EX3): (f x y), (f x z) simultaneously match (k 0 1), (k 0 2) with possible 
+ * solutions:
  * 
  * f -> \ xy. (k x y), x -> 0, y -> 1, z -> 2
  * f -> \ xy. (k 0 y), x -> 0, y -> 1, z -> 2
  * 
  * 
- * This class enumerates the lists above until one instantiation of that form is successfully added
- * via a call to QuantifiersEngine::addInstantiation(...)
+ * This class enumerates the lists above until one instantiation of that form is
+ * successfully added via a call to Instantiate::addInstantiation(...)
  * 
  * 
  * It also implements a way of forcing APPLY_UF to expand to curried HO_APPLY to
- * handle a corner case where matching is stuck (addHoTypeMatchPredicateLemmas).
+ * handle a corner case where there are no matchable ground terms
+ * (addHoTypeMatchPredicateLemmas).
  * 
-*/
+ */
 class HigherOrderTrigger : public Trigger {
   friend class Trigger;
 private:
@@ -89,23 +94,39 @@ private:
                       std::map< Node, std::vector< Node > >& ho_apps );
   virtual ~HigherOrderTrigger();
 public:
-  /** collect all top-level HO_APPLY terms in n whose head is a variable in quantified formula q, store in apps */
+  /** Collect higher order var apply terms 
+   * 
+   * Collect all top-level HO_APPLY terms in n whose head is a variable in 
+   * quantified formula q. Append all such terms in apps. 
+   */
   static void collectHoVarApplyTerms( Node q, TNode n, std::map< Node, std::vector< Node > >& apps );
-  /** collect all top-level HO_APPLY terms in terms ns whose head is a variable in quantified formula q, store in apps */
+  /** Collect higher order var apply terms 
+   * 
+   * Collect all top-level HO_APPLY terms in terms ns whose head is a variable 
+   * in quantified formula q, store in apps.
+   */
   static void collectHoVarApplyTerms( Node q, std::vector< Node >& ns, std::map< Node, std::vector< Node > >& apps );  
   /** add all available instantiations, based on the current context
    * 
-   * extends Trigger::addInstantiations to also send
+   * Extends Trigger::addInstantiations to also send
    * lemmas based on addHoTypeMatchPredicateLemmas.
    */
   virtual int addInstantiations( InstMatch& baseMatch ) override;
 protected: 
-  /** map from function-typed variables to their applications in the quantified formula d_f (member of Trigger) */
+  /** 
+   * Map from function-typed variables to their applications in the quantified 
+   * formula d_f (member of Trigger).
+   */
   std::map< Node, std::vector< Node > > d_ho_var_apps;
-  /** list of all function-typed variables that occur as the head of function applications in d_f */
+  /** 
+   * List of all function-typed variables that occur as the head of function 
+   * applications in d_f.
+   */
   std::vector< Node > d_ho_var_list;
-  /** cached bound variables, bound variable list for each ho variable
-   * These are used for constructing lambda terms in instantiations.
+  /** 
+   * Cached bound variables and bound variable list for each variable of
+   * function type. These are used for constructing lambda terms in 
+   * instantiations.
    */
   std::map< TNode, std::vector< Node > > d_ho_var_bvs;
   std::map< TNode, Node > d_ho_var_bvl;
@@ -116,27 +137,31 @@ protected:
    * Adds lemmas of the form P( f ), where P is the predicate 
    * returned by TermUtil::getHoTypeMatchPredicate( f.getType() ).
    * These lemmas force certain functions f of type tn to appear as 
-   * first-class representatives in the quantifier-free UF solver. 
-   * These functions f are all operators that have at least one
+   * first-class terms in the quantifier-free UF solver, where recall a 
+   * first-class term is one that occurs as an (external) term in its equality 
+   * engine. These functions f are all operators that have at least one
    * term f(t1...tn) indexed by TermDabatase and are such that
    * f's type is the same as a function-typed variable we 
    * are considering in this class (in d_ho_var_apps).
    * 
-   * TODO: we may eliminate this depending on how github issue #1115 is resolved.
+   * TODO: we may eliminate this based on how github issue #1115 is resolved.
    */
   int addHoTypeMatchPredicateLemmas();
   /** send instantiation 
    * 
-  * Sends an instantiation that is equivalent to m via d_quantEngine->addInstantiation(...).
-  * This method may modify m based on imitations and projections (Huet's algorithm)
-  * if m was generated by matching ground terms to function applications
-  * with variable heads, see examples (EX1)-(EX3) above.
+  * Sends an instantiation that is equivalent to m via 
+  * Instantiate::addInstantiation(...). This method may modify m based on 
+  * imitations and projections (Huet's algorithm), if m was generated by 
+  * matching ground terms to function applications with variable heads.
+  * See examples (EX1)-(EX3) above.
   */
   virtual bool sendInstantiation( InstMatch& m );
 private:
   
   //-------------------- current information about the match
-  /** map from variable position to the arguments of the lambda we generated for that variable
+  /** 
+   * Map from variable position to the arguments of the lambda we generated 
+   * for that variable.
    * 
    * For example (EX4), take a quantified formula:
    *   forall x f1 y f2. (...)
@@ -187,7 +212,7 @@ private:
   * 
   * This is a helper function of sendInstantiation( m ) above.
   *
-  * var_index is the index of the variable in m that are we currently processing
+  * var_index is the index of the variable in m that we are currently processing
   *   i.e. we are processing the var_index^{th} higher-order variable.
   * 
   * For example, say we are processing the match from (EX4) above.
@@ -199,7 +224,7 @@ private:
    * Sends an instantiation that is equivalent to m via d_quantEngine->addInstantiation(...).
    * This is a helper function of sendInstantiation( m, var_index ) above.
    *
-   * var_index is the index of the variable in m that are we currently processing
+   * var_index is the index of the variable in m that we are currently processing
    *   i.e. we are processing the var_index^{th} higher-order variable.
    * vnum maps var_index to the actual variable number in m
    * arg_index is the argument of the lambda term we are currently considering
