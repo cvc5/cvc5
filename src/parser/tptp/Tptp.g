@@ -769,8 +769,7 @@ tffLetTermDefn[CVC4::Expr& lhs, CVC4::Expr& rhs]
 
 tffLetTermBinding[std::vector<CVC4::Expr>& bvlist, CVC4::Expr& lhs, CVC4::Expr& rhs]
   : term[lhs] EQUAL_TOK term[rhs]
-    { std::sort(bvlist.begin(), bvlist.end());
-      PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
+    { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
       rhs = MK_EXPR(CVC4::kind::LAMBDA, MK_EXPR(CVC4::kind::BOUND_VAR_LIST, lhs.getChildren()), rhs);
       lhs = lhs.getOperator();
     }
@@ -787,8 +786,7 @@ tffLetFormulaDefn[CVC4::Expr& lhs, CVC4::Expr& rhs]
 
 tffLetFormulaBinding[std::vector<CVC4::Expr>& bvlist, CVC4::Expr& lhs, CVC4::Expr& rhs]
   : atomicFormula[lhs] IFF_TOK tffUnitaryFormula[rhs]
-    { std::sort(bvlist.begin(), bvlist.end());
-      PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
+    { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
       rhs = MK_EXPR(CVC4::kind::LAMBDA, MK_EXPR(CVC4::kind::BOUND_VAR_LIST, lhs.getChildren()), rhs);
       lhs = lhs.getOperator();
     }
