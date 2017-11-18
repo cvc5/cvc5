@@ -24,18 +24,19 @@
 namespace CVC4 {
 
 ProofOutputChannel::ProofOutputChannel() : d_conflict(), d_proof(nullptr) {}
-
-Proof* ProofOutputChannel::getConflictProof() {
+const Proof& ProofOutputChannel::getConflictProof() const
+{
   Assert(hasConflict());
-  return d_proof;
+  return *d_proof;
 }
 
-void ProofOutputChannel::conflict(TNode n, Proof* pf) {
+void ProofOutputChannel::conflict(TNode n, std::unique_ptr<Proof> pf)
+{
   Trace("pf::tp") << "ProofOutputChannel: CONFLICT: " << n << std::endl;
   Assert(!hasConflict());
   Assert(!d_proof);
   d_conflict = n;
-  d_proof = pf;
+  d_proof = std::move(pf);
   Assert(hasConflict());
   Assert(d_proof);
 }

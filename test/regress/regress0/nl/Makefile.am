@@ -68,8 +68,6 @@ TESTS =	\
   nta/sin-init-tangents.smt2 \
   nta/cos1-tc.smt2
 
-# unsolved : garbage_collect.cvc
-
 EXTRA_DIST = $(TESTS)
 
 # synonyms for "check"
