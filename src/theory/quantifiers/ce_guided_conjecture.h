@@ -18,9 +18,12 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_CONJECTURE_H
 #define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_CONJECTURE_H
 
-#include "theory/quantifiers/ce_guided_single_inv.h"
+#include <memory>
+
 #include "theory/quantifiers/ce_guided_pbe.h"
+#include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus_process_conj.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -31,10 +34,8 @@ namespace quantifiers {
  * This class implements approaches for a synthesis conecjture, given by data
  * member d_quant.
  * This includes both approaches for synthesis in Reynolds et al CAV 2015. It
- * determines
- * which approach and optimizations are applicable to the conjecture, and has
- * interfaces for
- * implementing them.
+ * determines which approach and optimizations are applicable to the
+ * conjecture, and has interfaces for implementing them.
  */
 class CegConjecture {
 public:
@@ -46,7 +47,10 @@ public:
   Node getEmbeddedConjecture() { return d_embed_quant; }
   /** get next decision request */
   Node getNextDecisionRequest( unsigned& priority );
-  /** increment the number of times we have successfully done candidate refinement */
+
+  //-------------------------------for counterexample-guided check/refine
+  /** increment the number of times we have successfully done candidate
+   * refinement */
   void incrementRefineCount() { d_refine_count++; }
   /** whether the conjecture is waiting for a call to doCheck below */
   bool needsCheck( std::vector< Node >& lem );
@@ -73,6 +77,8 @@ public:
   /** Print the synthesis solution
    * singleInvocation is whether the solution was found by single invocation techniques.
    */
+  //-------------------------------end for counterexample-guided check/refine
+
   void printSynthSolution( std::ostream& out, bool singleInvocation );
   /** get guard, this is "G" in Figure 3 of Reynolds et al CAV 2015 */
   Node getGuard();
@@ -96,28 +102,44 @@ public:
   void getModelValues( std::vector< Node >& n, std::vector< Node >& v );
   /** get model value for term n */
   Node getModelValue( Node n );
+
+  //-----------------------------------refinement lemmas
   /** get number of refinement lemmas we have added so far */
   unsigned getNumRefinementLemmas() { return d_refinement_lemmas.size(); }
   /** get refinement lemma */
   Node getRefinementLemma( unsigned i ) { return d_refinement_lemmas[i]; }
   /** get refinement lemma */
   Node getRefinementBaseLemma( unsigned i ) { return d_refinement_lemmas_base[i]; }
+  //-----------------------------------end refinement lemmas
+
   /** get program by examples utility */
-  CegConjecturePbe* getPbe() { return d_ceg_pbe; }
+  CegConjecturePbe* getPbe() { return d_ceg_pbe.get(); }
+  /** get utility for static preprocessing and analysis of conjectures */
+  CegConjectureProcess* getProcess() { return d_ceg_proc.get(); }
+  /** get the symmetry breaking predicate for type */
+  Node getSymmetryBreakingPredicate(
+      Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
   /** print out debug information about this conjecture */
   void debugPrint( const char * c );
 private:
   /** reference to quantifier engine */
   QuantifiersEngine * d_qe;
   /** single invocation utility */
-  CegConjectureSingleInv * d_ceg_si;
+  std::unique_ptr<CegConjectureSingleInv> d_ceg_si;
   /** program by examples utility */
-  CegConjecturePbe * d_ceg_pbe;
+  std::unique_ptr<CegConjecturePbe> d_ceg_pbe;
+  /** utility for static preprocessing and analysis of conjectures */
+  std::unique_ptr<CegConjectureProcess> d_ceg_proc;
   /** grammar utility */
-  CegGrammarConstructor * d_ceg_gc;
-  /** list of constants for quantified formula */
+  std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
+  /** list of constants for quantified formula
+  * The Skolems for the negation of d_embed_quant.
+  */
   std::vector< Node > d_candidates;
-  /** base instantiation */
+  /** base instantiation
+  * If d_embed_quant is forall d. exists y. P( d, y ), then
+  * this is the formula  P( candidates, y ).
+  */
   Node d_base_inst;
   /** expand base inst to disjuncts */
   std::vector< Node > d_base_disj;
@@ -126,12 +148,18 @@ private:
   std::vector< std::vector< Node > > d_inner_vars_disj;
   /** current extential quantifeirs whose couterexamples we must refine */
   std::vector< std::vector< Node > > d_ce_sk;
+
+  //-----------------------------------refinement lemmas
   /** refinement lemmas */
   std::vector< Node > d_refinement_lemmas;
   std::vector< Node > d_refinement_lemmas_base;
+  //-----------------------------------end refinement lemmas
+
   /** quantified formula asserted */
   Node d_quant;
-  /** quantified formula (after processing) */
+  /** quantified formula (after simplification) */
+  Node d_simp_quant;
+  /** quantified formula (after simplification, conversion to deep embedding) */
   Node d_embed_quant;
   /** candidate information */
   class CandidateInfo {

@@ -87,6 +87,11 @@ public:
 
 };/* class TypeEnumeratorBase */
 
+/** Type enumerator class.
+ * Enumerates values for a type.
+ * Its constructor takes the type to enumerate and a pointer to a
+ * TypeEnumeratorProperties class, which this type enumerator does not own.
+ */
 class TypeEnumerator {
   TypeEnumeratorInterface* d_te;
 

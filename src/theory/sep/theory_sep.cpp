@@ -14,20 +14,20 @@
  ** Implementation of the theory of sep.
  **/
 
-
 #include "theory/sep/theory_sep.h"
-#include "theory/valuation.h"
-#include "expr/kind.h"
 #include <map>
-#include "theory/rewriter.h"
-#include "theory/theory_model.h"
+#include "expr/kind.h"
+#include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
 #include "smt/logic_exception.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "options/quantifiers_options.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
+#include "theory/valuation.h"
 
 using namespace std;
 
@@ -1089,7 +1089,9 @@ void TheorySep::initializeBounds() {
     for( std::map< TypeNode, TypeNode >::iterator it = d_loc_to_data_type.begin(); it != d_loc_to_data_type.end(); ++it ){
       TypeNode tn = it->first;
       Trace("sep-bound")  << "Initialize bounds for " << tn << "..." << std::endl;
-      QuantEPR * qepr = getLogicInfo().isQuantified() ? getQuantifiersEngine()->getQuantEPR() : NULL;
+      quantifiers::QuantEPR* qepr = getLogicInfo().isQuantified()
+                                        ? getQuantifiersEngine()->getQuantEPR()
+                                        : NULL;
       //if pto had free variable reference      
       if( d_bound_kind[tn]==bound_herbrand ){
         //include Herbrand universe of tn

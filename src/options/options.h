@@ -242,8 +242,6 @@ public:
 
 
   // TODO: Document these.
-  void setCeGuidedInst(bool);
-  void setDumpSynth(bool);
   void setInputLanguage(InputLanguage);
   void setInteractive(bool);
   void setOut(std::ostream*);

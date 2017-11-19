@@ -1064,6 +1064,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     if( node[2].isConst() && node[2].getConst<Rational>().sgn()<=0 ) {
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
     }else if( node[1].isConst() ){
+      // TODO (#1180) : use entailment test here
       if( node[1].getConst<Rational>().sgn()<0 ){
         //bring forward to start at zero?  don't use this semantics, e.g. does not compose well with error conditions for str.indexof.
         //retNode = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, node[0], zero, NodeManager::currentNM()->mkNode( kind::PLUS, node[1], node[2] ) );
@@ -1111,6 +1112,8 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
           }
         }else{
           if( node[1]==zero ){
+            // TODO (#1180) : use entailment test here instead of the special
+            // case
             if( node[2].getKind() == kind::STRING_LENGTH && node[2][0]==node[0] ){
               retNode = node[0];
             }else{
@@ -1394,89 +1397,105 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
 Node TheoryStringsRewriter::rewriteContains( Node node ) {
   if( node[0] == node[1] ){
     return NodeManager::currentNM()->mkConst( true );
-  }else if( node[0].isConst() && node[1].isConst() ){
+  }
+  else if (node[0].isConst())
+  {
     CVC4::String s = node[0].getConst<String>();
-    CVC4::String t = node[1].getConst<String>();
-    if( s.find(t) != std::string::npos ){
-      return NodeManager::currentNM()->mkConst( true );
+    if (node[1].isConst())
+    {
+      CVC4::String t = node[1].getConst<String>();
+      return NodeManager::currentNM()->mkConst(s.find(t) != std::string::npos);
     }else{
-      return NodeManager::currentNM()->mkConst( false );
-    }
-  }else if( node[0].getKind()==kind::STRING_CONCAT ){
-    //component-wise containment
-    unsigned n1 = node[0].getNumChildren();
-    std::vector< Node > nc1;
-    getConcat( node[1], nc1 );
-    unsigned n2 = nc1.size();
-    if( n1>n2 ){
-      unsigned diff = n1-n2;
-      for(unsigned i=0; i<diff; i++) {
-        if( node[0][i]==nc1[0] ){
-          bool flag = true;
-          for(unsigned j=1; j<n2; j++) {
-            if( node[0][i+j]!=nc1[j] ){
-              flag = false;
-              break;
-            }
-          }
-          if(flag) {
-            return NodeManager::currentNM()->mkConst( true );
-          }
+      if (s.size() == 0)
+      {
+        return NodeManager::currentNM()->mkNode(kind::EQUAL, node[0], node[1]);
+      }
+      else if (node[1].getKind() == kind::STRING_CONCAT)
+      {
+        int firstc, lastc;
+        if (!canConstantContainConcat(node[0], node[1], firstc, lastc))
+        {
+          return NodeManager::currentNM()->mkConst(false);
         }
       }
     }
+  }
+  std::vector<Node> nc1;
+  getConcat(node[0], nc1);
+  std::vector<Node> nc2;
+  getConcat(node[1], nc2);
+
+  // component-wise containment
+  std::vector<Node> nc1rb;
+  std::vector<Node> nc1re;
+  if (componentContains(nc1, nc2, nc1rb, nc1re) != -1)
+  {
+    return NodeManager::currentNM()->mkConst(true);
+  }
+
+  // strip endpoints
+  std::vector<Node> nb;
+  std::vector<Node> ne;
+  if (stripConstantEndpoints(nc1, nc2, nb, ne))
+  {
+    return NodeManager::currentNM()->mkNode(
+        kind::STRING_STRCTN, mkConcat(kind::STRING_CONCAT, nc1), node[1]);
+  }
+  Trace("strings-rewrite-debug2") << "No constant endpoints for " << node[0]
+                                  << " " << node[1] << std::endl;
+
+  // length entailment
+  Node len_n1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[0]);
+  Node len_n2 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
+  if (checkEntailArith(len_n2, len_n1, true))
+  {
+    // len( n2 ) > len( n1 ) => contains( n1, n2 ) ---> false
+    return NodeManager::currentNM()->mkConst(false);
+  }
+  else if (checkEntailArithEq(len_n1, len_n2))
+  {
+    // len( n2 ) = len( n1 ) => contains( n1, n2 ) ---> n1 = n2
+    return node[0].eqNode(node[1]);
+  }
+
+  // splitting
+  if (node[0].getKind() == kind::STRING_CONCAT)
+  {
     if( node[1].isConst() ){
       CVC4::String t = node[1].getConst<String>();
-      for(unsigned i=0; i<node[0].getNumChildren(); i++){
+      // Below, we are looking for a constant component of node[0]
+      // has no overlap with node[1], which means we can split.
+      // Notice that if the first or last components had no
+      // overlap, these would have been removed by strip
+      // constant endpoints above.
+      // Hence, we consider only the inner children.
+      for (unsigned i = 1; i < (node[0].getNumChildren() - 1); i++)
+      {
         //constant contains
         if( node[0][i].isConst() ){
           CVC4::String s = node[0][i].getConst<String>();
-          if( s.find(t)!=std::string::npos ) {
-            return NodeManager::currentNM()->mkConst( true );
-          }else{
-            //if no overlap, we can split into disjunction
-            // if first child, only require no left overlap
-            // if last child, only require no right overlap
-            if( i==0 || i==node[0].getNumChildren()-1 || t.find(s)==std::string::npos ){
-              bool do_split = false;
-              int sot = s.overlap( t );
-              Trace("strings-ext-rewrite") << "Overlap " << s << " " << t << " is " << sot << std::endl;
-              if( sot==0 ){
-                do_split = i==0;
-              }
-              if( !do_split && ( i==(node[0].getNumChildren()-1) || sot==0 ) ){
-                int tos = t.overlap( s );
-                Trace("strings-ext-rewrite") << "Overlap " << t << " " << s << " is " << tos << std::endl;
-                if( tos==0 ){
-                  do_split = true;
-                }
-              }
-              if( do_split ){
-                std::vector< Node > nc0;
-                getConcat( node[0], nc0 );
-                std::vector< Node > spl[2];
-                if( i>0 ){
-                  spl[0].insert( spl[0].end(), nc0.begin(), nc0.begin()+i );
-                }
-                if( i<nc0.size()-1 ){
-                  spl[1].insert( spl[1].end(), nc0.begin()+i+1, nc0.end() );
-                }
-                return NodeManager::currentNM()->mkNode( kind::OR,
-                            NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, spl[0] ), node[1] ),
-                            NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, spl[1] ), node[1] ) );
-              }
-            }
+          // if no overlap, we can split into disjunction
+          if (t.find(s) == std::string::npos && s.overlap(t) == 0
+              && t.overlap(s) == 0)
+          {
+            std::vector<Node> nc0;
+            getConcat(node[0], nc0);
+            std::vector<Node> spl[2];
+            spl[0].insert(spl[0].end(), nc0.begin(), nc0.begin() + i);
+            Assert(i < nc0.size() - 1);
+            spl[1].insert(spl[1].end(), nc0.begin() + i + 1, nc0.end());
+            return NodeManager::currentNM()->mkNode(
+                kind::OR,
+                NodeManager::currentNM()->mkNode(
+                    kind::STRING_STRCTN,
+                    mkConcat(kind::STRING_CONCAT, spl[0]),
+                    node[1]),
+                NodeManager::currentNM()->mkNode(
+                    kind::STRING_STRCTN,
+                    mkConcat(kind::STRING_CONCAT, spl[1]),
+                    node[1]));
           }
         }
-      }
-    }
-  }else if( node[0].isConst() ){
-    if( node[0].getConst<String>().size()==0 ){
-      return NodeManager::currentNM()->mkNode( kind::EQUAL, node[0], node[1] );
-    }else if( node[1].getKind()==kind::STRING_CONCAT ){
-      int firstc, lastc;
-      if( !canConstantContainConcat( node[0], node[1], firstc, lastc ) ){
-        return NodeManager::currentNM()->mkConst( false );
       }
     }
   }
@@ -1592,6 +1611,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   if( node[1]==node[2] ){
     return node[0];
   }else{
+    // TODO (#1180) : try str.contains( node[0], node[1] ) ---> false
     if( node[1].isConst() ){
       if( node[1].getConst<String>().isEmptyString() ){
         return node[0];
@@ -1678,6 +1698,7 @@ Node TheoryStringsRewriter::splitConstant( Node a, Node b, int& index, bool isRe
 bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& firstc, int& lastc ) {
   Assert( c.isConst() );
   CVC4::String t = c.getConst<String>();
+  const std::vector<unsigned>& tvec = t.getVec();
   Assert( n.getKind()==kind::STRING_CONCAT );
   //must find constant components in order
   size_t pos = 0;
@@ -1694,6 +1715,20 @@ bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& first
       }else{
         pos = new_pos + s.size();
       }
+    }
+    else if (n[i].getKind() == kind::STRING_ITOS)
+    {
+      // find the first occurrence of a digit starting at pos
+      while (pos < tvec.size() && !String::isDigit(tvec[pos]))
+      {
+        pos++;
+      }
+      if (pos == tvec.size())
+      {
+        return false;
+      }
+      // must consume at least one digit here
+      pos++;
     }
   }
   return true;
@@ -1754,3 +1789,508 @@ Node TheoryStringsRewriter::collectConstantStringAt( std::vector< Node >& vec, u
   }
 }
 
+int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
+                                             std::vector<Node>& n2,
+                                             std::vector<Node>& nb,
+                                             std::vector<Node>& ne,
+                                             bool computeRemainder,
+                                             int remainderDir)
+{
+  Assert(nb.empty());
+  Assert(ne.empty());
+  // if n2 is a singleton, we can do optimized version here
+  if (n2.size() == 1)
+  {
+    for (unsigned i = 0; i < n1.size(); i++)
+    {
+      Node n1rb;
+      Node n1re;
+      if (componentContainsBase(n1[i], n2[0], n1rb, n1re, 0, computeRemainder))
+      {
+        if (computeRemainder)
+        {
+          n1[i] = n2[0];
+          if (remainderDir != -1)
+          {
+            if (!n1re.isNull())
+            {
+              ne.push_back(n1re);
+            }
+            ne.insert(ne.end(), n1.begin() + i + 1, n1.end());
+            n1.erase(n1.begin() + i + 1, n1.end());
+          }
+          else if (!n1re.isNull())
+          {
+            n1[i] = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
+                kind::STRING_CONCAT, n1[i], n1re));
+          }
+          if (remainderDir != 1)
+          {
+            nb.insert(nb.end(), n1.begin(), n1.begin() + i);
+            n1.erase(n1.begin(), n1.begin() + i);
+            if (!n1rb.isNull())
+            {
+              nb.push_back(n1rb);
+            }
+          }
+          else if (!n1rb.isNull())
+          {
+            n1[i] = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
+                kind::STRING_CONCAT, n1rb, n1[i]));
+          }
+        }
+        return i;
+      }
+    }
+  }
+  else if (n1.size() >= n2.size())
+  {
+    unsigned diff = n1.size() - n2.size();
+    for (unsigned i = 0; i <= diff; i++)
+    {
+      Node n1rb_first;
+      Node n1re_first;
+      // first component of n2 must be a suffix
+      if (componentContainsBase(n1[i],
+                                n2[0],
+                                n1rb_first,
+                                n1re_first,
+                                1,
+                                computeRemainder && remainderDir != 1))
+      {
+        Assert(n1re_first.isNull());
+        for (unsigned j = 1; j < n2.size(); j++)
+        {
+          // are we in the last component?
+          if (j + 1 == n2.size())
+          {
+            Node n1rb_last;
+            Node n1re_last;
+            // last component of n2 must be a prefix
+            if (componentContainsBase(n1[i + j],
+                                      n2[j],
+                                      n1rb_last,
+                                      n1re_last,
+                                      -1,
+                                      computeRemainder && remainderDir != -1))
+            {
+              Assert(n1rb_last.isNull());
+              if (computeRemainder)
+              {
+                if (remainderDir != -1)
+                {
+                  if (!n1re_last.isNull())
+                  {
+                    ne.push_back(n1re_last);
+                  }
+                  ne.insert(ne.end(), n1.begin() + i + j + 1, n1.end());
+                  n1.erase(n1.begin() + i + j + 1, n1.end());
+                  n1[i + j] = n2[j];
+                }
+                if (remainderDir != 1)
+                {
+                  n1[i] = n2[0];
+                  nb.insert(nb.end(), n1.begin(), n1.begin() + i);
+                  n1.erase(n1.begin(), n1.begin() + i);
+                  if (!n1rb_first.isNull())
+                  {
+                    nb.push_back(n1rb_first);
+                  }
+                }
+              }
+              return i;
+            }
+            else
+            {
+              break;
+            }
+          }
+          else if (n1[i + j] != n2[j])
+          {
+            break;
+          }
+        }
+      }
+    }
+  }
+  return -1;
+}
+
+bool TheoryStringsRewriter::componentContainsBase(
+    Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder)
+{
+  Assert(n1rb.isNull());
+  Assert(n1re.isNull());
+  if (n1 == n2)
+  {
+    return true;
+  }
+  else
+  {
+    if (n1.isConst() && n2.isConst())
+    {
+      CVC4::String s = n1.getConst<String>();
+      CVC4::String t = n2.getConst<String>();
+      if (t.size() < s.size())
+      {
+        if (dir == 1)
+        {
+          if (s.suffix(t.size()) == t)
+          {
+            if (computeRemainder)
+            {
+              n1rb = NodeManager::currentNM()->mkConst(
+                  ::CVC4::String(s.prefix(s.size() - t.size())));
+            }
+            return true;
+          }
+        }
+        else if (dir == -1)
+        {
+          if (s.prefix(t.size()) == t)
+          {
+            if (computeRemainder)
+            {
+              n1re = NodeManager::currentNM()->mkConst(
+                  ::CVC4::String(s.suffix(s.size() - t.size())));
+            }
+            return true;
+          }
+        }
+        else
+        {
+          size_t f = s.find(t);
+          if (f != std::string::npos)
+          {
+            if (computeRemainder)
+            {
+              if (f > 0)
+              {
+                n1rb = NodeManager::currentNM()->mkConst(
+                    ::CVC4::String(s.prefix(f)));
+              }
+              if (s.size() > f + t.size())
+              {
+                n1re = NodeManager::currentNM()->mkConst(
+                    ::CVC4::String(s.suffix(s.size() - (f + t.size()))));
+              }
+            }
+            return true;
+          }
+        }
+      }
+    }
+    else
+    {
+      // cases for:
+      //   n1 = x   containing   n2 = substr( x, n2[1], n2[2] )
+      if (n2.getKind() == kind::STRING_SUBSTR)
+      {
+        if (n2[0] == n1)
+        {
+          bool success = true;
+          Node start_pos = n2[1];
+          Node end_pos =
+              NodeManager::currentNM()->mkNode(kind::PLUS, n2[1], n2[2]);
+          Node len_n2s =
+              NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, n2[0]);
+          if (dir == 1)
+          {
+            // To be suffix, start + length must be greater than
+            // or equal to the length of the string.
+            success = checkEntailArith(end_pos, len_n2s);
+          }
+          else if (dir == -1)
+          {
+            // To be prefix, must literally start at 0, since
+            //   if we knew it started at <0, it should be rewritten to "",
+            //   if we knew it started at 0, then n2[1] should be rewritten to
+            //   0.
+            success = start_pos.isConst()
+                      && start_pos.getConst<Rational>().sgn() == 0;
+          }
+          if (success)
+          {
+            if (computeRemainder)
+            {
+              if (dir != 1)
+              {
+                n1rb = NodeManager::currentNM()->mkNode(
+                    kind::STRING_SUBSTR,
+                    n2[0],
+                    NodeManager::currentNM()->mkConst(Rational(0)),
+                    start_pos);
+              }
+              if (dir != -1)
+              {
+                n1re = NodeManager::currentNM()->mkNode(
+                    kind::STRING_SUBSTR, n2[0], end_pos, len_n2s);
+              }
+            }
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
+                                                   std::vector<Node>& n2,
+                                                   std::vector<Node>& nb,
+                                                   std::vector<Node>& ne,
+                                                   int dir)
+{
+  Assert(nb.empty());
+  Assert(ne.empty());
+  bool changed = false;
+  // for ( forwards, backwards ) direction
+  for (unsigned r = 0; r < 2; r++)
+  {
+    if (dir == 0 || (r == 0 && dir == -1) || (r == 1 && dir == 1))
+    {
+      unsigned index0 = r == 0 ? 0 : n1.size() - 1;
+      unsigned index1 = r == 0 ? 0 : n2.size() - 1;
+      bool removeComponent = false;
+      Trace("strings-rewrite-debug2") << "stripConstantEndpoints : Compare "
+                                      << n1[index0] << " " << n2[index1]
+                                      << ", dir = " << dir << std::endl;
+      if (n1[index0].isConst())
+      {
+        CVC4::String s = n1[index0].getConst<String>();
+        // overlap is an overapproximation of the number of characters
+        // n2[index1] can match in s
+        unsigned overlap = s.size();
+        if (n2[index1].isConst())
+        {
+          CVC4::String t = n2[index1].getConst<String>();
+          std::size_t ret = s.find(t);
+          if (ret == std::string::npos)
+          {
+            if (n1.size() == 1)
+            {
+              // can remove everything
+              //   e.g. str.contains( "abc", str.++( "ba", x ) ) -->
+              //   str.contains( "", str.++( "ba", x ) )
+              removeComponent = true;
+            }
+            else
+            {
+              // check how much overlap there is
+              // This is used to partially strip off the endpoint
+              // e.g. str.contains( str.++( "abc", x ), str.++( "cd", y ) ) -->
+              // str.contains( str.++( "c", x ), str.++( "cd", y ) )
+              overlap = r == 0 ? s.overlap(t) : t.overlap(s);
+            }
+          }
+          else
+          {
+            Assert(ret < s.size());
+            // can strip off up to the find position
+            // e.g. str.contains( str.++( "abc", x ), str.++( "b", y ) ) -->
+            // str.contains( str.++( "bc", x ), str.++( "b", y ) )
+            overlap = s.size() - ret;
+          }
+        }
+        else if (n2[index1].getKind() == kind::STRING_ITOS)
+        {
+          const std::vector<unsigned>& svec = s.getVec();
+          // can remove up to the first occurrence of a non-digit
+          for (unsigned i = 0; i < svec.size(); i++)
+          {
+            unsigned sindex = r == 0 ? i : svec.size() - i;
+            if (String::isDigit(svec[sindex]))
+            {
+              break;
+            }
+            else
+            {
+              // e.g. str.contains( str.++( "a", x ), str.to.int(y) ) -->
+              // str.contains( x, str.to.int(y) )
+              overlap--;
+            }
+          }
+        }
+        else
+        {
+          // inconclusive
+        }
+        // process the overlap
+        if (overlap < s.size())
+        {
+          changed = true;
+          if (overlap == 0)
+          {
+            removeComponent = true;
+          }
+          else
+          {
+            // can drop the prefix (resp. suffix) from the first (resp. last)
+            // component
+            if (r == 0)
+            {
+              nb.push_back(
+                  NodeManager::currentNM()->mkConst(s.prefix(overlap)));
+              n1[index0] = NodeManager::currentNM()->mkConst(s.suffix(overlap));
+            }
+            else
+            {
+              ne.push_back(
+                  NodeManager::currentNM()->mkConst(s.suffix(overlap)));
+              n1[index0] = NodeManager::currentNM()->mkConst(s.prefix(overlap));
+            }
+          }
+        }
+      }
+      else if (n1[index0].getKind() == kind::STRING_ITOS)
+      {
+        if (n2[index1].isConst())
+        {
+          CVC4::String t = n2[index1].getConst<String>();
+
+          if (n1.size() == 1)
+          {
+            // if n1.size()==1, then if n2[index1] is not a number, we can drop
+            // the entire component
+            //    e.g. str.contains( str.to.int(x), "123a45") --> false
+            if (!t.isNumber())
+            {
+              removeComponent = true;
+            }
+          }
+          else
+          {
+            const std::vector<unsigned>& tvec = t.getVec();
+            Assert(tvec.size() > 0);
+
+            // if n1.size()>1, then if the first (resp. last) character of
+            // n2[index1]
+            //  is not a digit, we can drop the entire component, e.g.:
+            //    str.contains( str.++( str.to.int(x), y ), "a12") -->
+            //    str.contains( y, "a12" )
+            //    str.contains( str.++( y, str.to.int(x) ), "a0b") -->
+            //    str.contains( y, "a0b" )
+            unsigned i = r == 0 ? 0 : (tvec.size() - 1);
+            if (!String::isDigit(tvec[i]))
+            {
+              removeComponent = true;
+            }
+          }
+        }
+      }
+      if (removeComponent)
+      {
+        // can drop entire first (resp. last) component
+        if (r == 0)
+        {
+          nb.push_back(n1[index0]);
+          n1.erase(n1.begin(), n1.begin() + 1);
+        }
+        else
+        {
+          ne.push_back(n1[index0]);
+          n1.pop_back();
+        }
+        if (n1.empty())
+        {
+          // if we've removed everything, just return (we will rewrite to false)
+          return true;
+        }
+        else
+        {
+          changed = true;
+        }
+      }
+    }
+  }
+  // TODO (#1180) : computing the maximal overlap in this function may be
+  // important.
+  // str.contains( str.++( str.to.int(x), str.substr(y,0,3) ), "2aaaa" ) --->
+  // false
+  //   ...since str.to.int(x) can contain at most 1 character from "2aaaa",
+  //   leaving 4 characters
+  //      which is larger that the upper bound for length of str.substr(y,0,3),
+  //      which is 3.
+  return changed;
+}
+
+bool TheoryStringsRewriter::checkEntailArithEq(Node a, Node b)
+{
+  if (a == b)
+  {
+    return true;
+  }
+  else
+  {
+    Node ar = Rewriter::rewrite(a);
+    Node br = Rewriter::rewrite(b);
+    return ar == br;
+  }
+}
+
+bool TheoryStringsRewriter::checkEntailArith(Node a, Node b, bool strict)
+{
+  if (a == b)
+  {
+    return !strict;
+  }
+  else
+  {
+    Node diff = NodeManager::currentNM()->mkNode(kind::MINUS, a, b);
+    return checkEntailArith(diff, strict);
+  }
+}
+
+bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
+{
+  if (a.isConst())
+  {
+    return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
+  }
+  else
+  {
+    Node ar = strict
+                  ? NodeManager::currentNM()->mkNode(
+                        kind::MINUS,
+                        a,
+                        NodeManager::currentNM()->mkConst(Rational(1)))
+                  : a;
+    ar = Rewriter::rewrite(ar);
+    if (checkEntailArithInternal(ar))
+    {
+      return true;
+    }
+    // TODO (#1180) : abstract interpretation goes here
+    return false;
+  }
+}
+
+bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
+{
+  Assert(Rewriter::rewrite(a) == a);
+  // check whether a >= 0
+  if (a.isConst())
+  {
+    return a.getConst<Rational>().sgn() >= 0;
+  }
+  else if (a.getKind() == kind::STRING_LENGTH)
+  {
+    // str.len( t ) >= 0
+    return true;
+  }
+  else if (a.getKind() == kind::PLUS || a.getKind() == kind::MULT)
+  {
+    for (unsigned i = 0; i < a.getNumChildren(); i++)
+    {
+      if (!checkEntailArithInternal(a[i]))
+      {
+        return false;
+      }
+    }
+    // t1 >= 0 ^ ... ^ tn >= 0 => t1 op ... op tn >= 0
+    return true;
+  }
+
+  return false;
+}

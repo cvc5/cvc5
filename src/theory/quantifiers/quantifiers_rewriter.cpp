@@ -15,7 +15,9 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
@@ -104,6 +106,10 @@ void QuantifiersRewriter::computeArgs( std::vector< Node >& args, std::map< Node
         activeMap[ n ] = true;
       }
     }else{
+      if (n.hasOperator())
+      {
+        computeArgs(args, activeMap, n.getOperator(), visited);
+      }
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
         computeArgs( args, activeMap, n[i], visited );
       }
@@ -937,7 +943,8 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
       ( ( lit.getKind()==GEQ || lit.getKind()==GT ) && options::varIneqElimQuant() ) ){
     //for arithmetic, solve the (in)equality
     std::map< Node, Node > msum;
-    if( QuantArith::getMonomialSumLit( lit, msum ) ){
+    if (ArithMSum::getMonomialSumLit(lit, msum))
+    {
       for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
         if( !itm->first.isNull() ){
           std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), itm->first );
@@ -946,7 +953,8 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
               Assert( pol );
               Node veq_c;
               Node val;
-              int ires = QuantArith::isolate( itm->first, msum, veq_c, val, EQUAL );
+              int ires =
+                  ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
               if( ires!=0 && veq_c.isNull() && isVariableElim( itm->first, val ) ){
                 Trace("var-elim-quant") << "Variable eliminate based on solved equality : " << itm->first << " -> " << val << std::endl;
                 vars.push_back( itm->first );
@@ -959,7 +967,8 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
               //store that this literal is upper/lower bound for itm->first
               Node veq_c;
               Node val;
-              int ires = QuantArith::isolate( itm->first, msum, veq_c, val, lit.getKind() );
+              int ires = ArithMSum::isolate(
+                  itm->first, msum, veq_c, val, lit.getKind());
               if( ires!=0 && veq_c.isNull() ){
                 bool is_upper = pol!=( ires==1 );
                 Trace("var-elim-ineq-debug") << lit << " is a " << ( is_upper ? "upper" : "lower" ) << " bound for " << itm->first << std::endl;
@@ -1793,7 +1802,8 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
       Node sub;
       std::vector< unsigned > sub_vars;
       //return skolemized body
-      return TermUtil::mkSkolemizedBody( n, nn, fvTypes, fvs, sk, sub, sub_vars );
+      return Skolemize::mkSkolemizedBody(
+          n, nn, fvTypes, fvs, sk, sub, sub_vars);
     }
   }else{
     //check if it contains a quantifier as a subterm

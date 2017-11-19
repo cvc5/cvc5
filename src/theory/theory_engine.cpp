@@ -202,7 +202,8 @@ bool TheoryEngine::EngineOutputChannel::propagate(TNode literal) {
 }
 
 void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
-                                                 Proof* proof) {
+                                                 std::unique_ptr<Proof> proof)
+{
   Trace("theory::conflict")
       << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
       << ")" << std::endl;
@@ -596,7 +597,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         printAssertions("theory::assertions-model");
       }
       //checks for theories requiring the model go at last call
-      d_curr_model->setNeedsBuild();
+      d_curr_model->reset();
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
         if( theoryId!=THEORY_QUANTIFIERS ){
           Theory* theory = d_theoryTable[theoryId];
