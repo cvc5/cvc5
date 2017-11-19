@@ -318,6 +318,16 @@ private:
                                    std::vector<CVC4::Expr>& sygus_vars,
                                    std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin,
                                    std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr );
+  
+  /** make sygus bound var list 
+   * 
+   * This is used for converting non-builtin sygus operators to lambda
+   * expressions. It takes as input a datatype and constructor index (for 
+   * naming) and a vector of type ltypes.  
+   * It appends a bound variable to lvars for each type in ltypes, and returns 
+   * a bound variable list whose children are lvars.
+   */
+  CVC4::Expr makeSygusBoundVarList( CVC4::Datatype& dt, unsigned i, const std::vector< CVC4::Type>& ltypes, std::vector< CVC4::Expr >& lvars );
 
   void addArithmeticOperators();
 
