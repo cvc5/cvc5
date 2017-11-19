@@ -184,7 +184,7 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
 void Datatype::addSygusConstructor(CVC4::Expr op,
                                    std::string& cname,
                                    std::vector<CVC4::Type>& cargs,
-                                   std::shared_ptr< SygusPrintCallback > spc)
+                                   std::shared_ptr<SygusPrintCallback> spc)
 {
   Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
   Debug("dt-sygus") << "    sygus op : " << op << std::endl;
@@ -790,9 +790,10 @@ DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester)
 }
 
 void DatatypeConstructor::setSygus(Expr op,
-                                   std::shared_ptr< SygusPrintCallback > spc)
+                                   std::shared_ptr<SygusPrintCallback> spc)
 {
-  PrettyCheckArgument(!isResolved(), this, "cannot modify a finalized Datatype constructor");
+  PrettyCheckArgument(
+      !isResolved(), this, "cannot modify a finalized Datatype constructor");
   d_sygus_op = op;
   d_sygus_pc = spc;
 }
@@ -874,8 +875,8 @@ Expr DatatypeConstructor::getSygusOp() const {
 bool DatatypeConstructor::isSygusIdFunc() const {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return (d_sygus_op.getKind() == kind::LAMBDA
-             && d_sygus_op[0].getNumChildren() == 1
-             && d_sygus_op[0][0] == d_sygus_op[1]);
+          && d_sygus_op[0].getNumChildren() == 1
+          && d_sygus_op[0][0] == d_sygus_op[1]);
 }
 
 SygusPrintCallback* DatatypeConstructor::getSygusPrintCallback() const

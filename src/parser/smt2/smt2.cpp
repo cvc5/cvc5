@@ -990,7 +990,8 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       Debug("parser-sygus") << ": operator is " << ops[i] << std::endl;
 
       // expression printer
-      std::shared_ptr< SygusPrintCallback > sepc = std::make_shared<printer::SygusExprPrintCallback>(body, largs );
+      std::shared_ptr<SygusPrintCallback> sepc =
+          std::make_shared<printer::SygusExprPrintCallback>(body, largs);
 
       Debug("parser-sygus") << ": finished making print callback" << std::endl;
 
@@ -1004,45 +1005,50 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       Expr let_body;
       std::vector<Expr> let_args;
       unsigned let_num_input_args = 0;
-      std::shared_ptr< SygusPrintCallback > spc;
+      std::shared_ptr<SygusPrintCallback> spc;
       if( it!=d_sygus_let_func_to_body.end() ){
         Debug("parser-sygus") << "--> Let expression" << std::endl;
         let_body = it->second;
         let_args.insert( let_args.end(), d_sygus_let_func_to_vars[ops[i]].begin(), d_sygus_let_func_to_vars[ops[i]].end() );
         let_num_input_args = d_sygus_let_func_to_num_input_vars[ops[i]];
-        spc = std::make_shared<printer::SygusLetExprPrintCallback>(let_body,let_args,let_num_input_args);
+        spc = std::make_shared<printer::SygusLetExprPrintCallback>(
+            let_body, let_args, let_num_input_args);
         // the operator is just the body for the arguments
         Debug("parser-sygus") << "  body is " << let_body << std::endl;
-        std::vector< Expr > largs;
-        for( unsigned j=0, size = let_args.size(); j<size; j++ ){
+        std::vector<Expr> largs;
+        for (unsigned j = 0, size = let_args.size(); j < size; j++)
+        {
           std::stringstream ss;
           ss << dt.getName() << "_x_" << i << "_" << j;
           Expr v = mkBoundVar(ss.str(), let_args[j].getType());
-          largs.push_back(v);          
+          largs.push_back(v);
         }
         Expr lbvl = getExprManager()->mkExpr(kind::BOUND_VAR_LIST, largs);
-        Expr sbody = let_body.substitute( let_args, largs );
+        Expr sbody = let_body.substitute(let_args, largs);
         ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, sbody);
 
         Debug("parser-sygus") << ": operator is " << ops[i] << std::endl;
       }
       else if (ops[i].getType().isBitVector() && ops[i].isConst())
       {
-        Debug("parser-sygus") << "--> Bit-vector constant " << cnames[i] << std::endl;
+        Debug("parser-sygus") << "--> Bit-vector constant " << cnames[i]
+                              << std::endl;
         // Since there are multiple output formats for bit-vectors and
-        // we are required by sygus standards to print in the exact input format 
-        // given by the user, we use a print callback to custom print 
+        // we are required by sygus standards to print in the exact input format
+        // given by the user, we use a print callback to custom print
         // the given name.
-        spc = std::make_shared<printer::SygusNamedPrintCallback >(cnames[i]);
+        spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
       }
       else if (ops[i].getKind() == kind::BUILTIN)
       {
         Debug("parser-sygus") << "--> Not builtin" << std::endl;
         // TODO?
-      }else{
+      }
+      else
+      {
         Debug("parser-sygus") << "--> Builtin" << std::endl;
       }
-      dt.addSygusConstructor( ops[i], cnames[i], cargs[i], spc );
+      dt.addSygusConstructor(ops[i], cnames[i], cargs[i], spc);
     }
   }
 
@@ -1071,8 +1077,9 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           Expr id_op = getExprManager()->mkExpr(kind::LAMBDA, lchildren);
 
           // empty sygus callback (should not be printed)
-          std::shared_ptr< SygusPrintCallback > sepc = std::make_shared<printer::SygusEmptyPrintCallback>();
-          
+          std::shared_ptr<SygusPrintCallback> sepc =
+              std::make_shared<printer::SygusEmptyPrintCallback>();
+
           //make the sygus argument list
           std::vector< Type > id_carg;
           id_carg.push_back( t );

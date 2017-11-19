@@ -233,7 +233,6 @@ class CVC4_PUBLIC DatatypeConstructor {
   DatatypeConstructor(std::string name, std::string tester);
 
   ~DatatypeConstructor() {}
-
   /**
    * Add an argument (i.e., a data field) of the given name and type
    * to this Datatype constructor.  Selector names need not be unique;
@@ -290,7 +289,7 @@ class CVC4_PUBLIC DatatypeConstructor {
    */
   Expr getSygusOp() const;
   /** is this a sygus identity function?
-   * 
+   *
    * This returns true if the sygus operator of this datatype constructor is
    * of the form (lambda (x) x).
    */
@@ -414,13 +413,13 @@ class CVC4_PUBLIC DatatypeConstructor {
   int getSelectorIndexInternal( Expr sel ) const;
 
   /** involves external type
-   * 
+   *
    * Get whether this constructor has a subfield
    * in any constructor that is not a datatype type.
    */
   bool involvesExternalType() const;
   /** involves external type
-   * 
+   *
    * Get whether this constructor has a subfield
    * in any constructor that is an uninterpreted type.
    */
@@ -428,11 +427,11 @@ class CVC4_PUBLIC DatatypeConstructor {
 
   /** set sygus
    *
-   * Set that this constructor is a sygus datatype constructor that encodes 
-   * operator op. spc is the sygus callback of this datatype constructor, 
+   * Set that this constructor is a sygus datatype constructor that encodes
+   * operator op. spc is the sygus callback of this datatype constructor,
    * which is stored in a shared pointer.
    */
-  void setSygus(Expr op, std::shared_ptr< SygusPrintCallback > spc);
+  void setSygus(Expr op, std::shared_ptr<SygusPrintCallback> spc);
 
  private:
   /** the name of the constructor */
@@ -446,10 +445,10 @@ class CVC4_PUBLIC DatatypeConstructor {
   /** sygus operator */
   Expr d_sygus_op;
   /** sygus print callback */
-  std::shared_ptr< SygusPrintCallback > d_sygus_pc;
+  std::shared_ptr<SygusPrintCallback> d_sygus_pc;
 
   /** shared selectors for each type
-   * 
+   *
    * This stores the shared (constructor-agnotic)
    * selectors that access the fields of this datatype.
    * In the terminology of "Datatypes with Shared Selectors",
@@ -664,7 +663,7 @@ public:
   void addSygusConstructor(CVC4::Expr op,
                            std::string& cname,
                            std::vector<CVC4::Type>& cargs,
-                           std::shared_ptr< SygusPrintCallback > spc = nullptr);
+                           std::shared_ptr<SygusPrintCallback> spc = nullptr);
 
   /** set that this datatype is a tuple */
   void setTuple();

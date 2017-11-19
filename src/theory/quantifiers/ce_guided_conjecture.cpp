@@ -15,8 +15,8 @@
 #include "theory/quantifiers/ce_guided_conjecture.h"
 
 #include "expr/datatype.h"
-#include "options/quantifiers_options.h"
 #include "options/base_options.h"
+#include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
@@ -430,8 +430,8 @@ void CegConjecture::getModelValues( std::vector< Node >& n, std::vector< Node >&
       TypeNode tn = nv.getType();
       Trace("cegqi-engine") << n[i] << " -> ";
       std::stringstream ss;
-      //std::vector< Node > lvs;
-      //TermDbSygus::printSygusTerm( ss, nv, lvs );
+      // std::vector< Node > lvs;
+      // TermDbSygus::printSygusTerm( ss, nv, lvs );
       Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, nv);
       Trace("cegqi-engine") << ss.str() << " ";
     }
@@ -624,8 +624,8 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       if( status==0 ){
         out << sol;
       }else{
-        //std::vector< Node > lvs;
-        //TermDbSygus::printSygusTerm( out, sol, lvs );
+        // std::vector< Node > lvs;
+        // TermDbSygus::printSygusTerm( out, sol, lvs );
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
       }
       out << ")" << std::endl;
