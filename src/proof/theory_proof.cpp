@@ -1057,7 +1057,7 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
     th->check(theory::Theory::EFFORT_FULL);
   } else {
     Debug("pf::tp") << "Calling   oc.d_proof->toStream(os)" << std::endl;
-    oc.getConflictProof()->toStream(os, map);
+    oc.getConflictProof().toStream(os, map);
     Debug("pf::tp") << "Calling   oc.d_proof->toStream(os) -- DONE!" << std::endl;
   }
 
