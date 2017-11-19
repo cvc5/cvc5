@@ -20,6 +20,7 @@
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"

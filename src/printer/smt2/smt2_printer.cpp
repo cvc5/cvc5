@@ -25,7 +25,6 @@
 #include "options/language.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
-#include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/node_visitor.h"
@@ -1350,11 +1349,14 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const throw()
       return;
     }
   }
-  else if( !n.getAttribute(SygusPrintProxyAttribute()).isNull() ){
-    out << n.getAttribute(SygusPrintProxyAttribute());
-  }else{
-    // cannot convert term to analog, print original
-    out << n;
+  else{
+    Node p = n.getAttribute(theory::SygusPrintProxyAttribute());
+    if( !p.isNull() ){
+      out << p;
+    }else{
+      // cannot convert term to analog, print original
+      out << n;
+    }
   }
 }
 
