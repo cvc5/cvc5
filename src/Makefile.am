@@ -391,6 +391,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/fun_def_engine.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_process.h \
+	theory/quantifiers/ho_trigger.cpp \
+	theory/quantifiers/ho_trigger.h \
 	theory/quantifiers/inst_match.cpp \
 	theory/quantifiers/inst_match.h \
 	theory/quantifiers/inst_match_generator.cpp \
