@@ -3260,6 +3260,18 @@ fragment NUMERAL
   ;
 
 /**
+ * Taken from CVC.g for tuple selector: Same as an integer 
+ * literal converted to an unsigned int, but
+ * slightly more convenient AND works around a strange ANTLR bug (?)
+ * in the BVPLUS/BVMINUS/BVMULT rules where $INTEGER_LITERAL was
+ * returning a reference to the wrong token?!
+ */
+numeral returns [unsigned k = 0]
+  : INTEGER_LITERAL
+    { $k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL); }
+  ;
+
+/**
  * Matches a decimal constant from the input.
  */
 DECIMAL_LITERAL
