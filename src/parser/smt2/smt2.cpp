@@ -930,10 +930,12 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
   
   Debug("parser-sygus") << "SMT2 sygus parser : Making constructors for sygus datatype " << dt.getName() << std::endl;
   Debug("parser-sygus") << "  add constructors..." << std::endl;
-  for( unsigned i=0; i<cnames.size(); i++ ){
+  for (unsigned i = 0; i < cnames.size(); i++)
+  {
     bool is_dup = false;
     bool is_dup_op = false;
-    for( unsigned j=0; j<i; j++ ){
+    for (unsigned j = 0; j < i; j++)
+    {
       if( ops[i]==ops[j] ){
         is_dup_op = true;
         if( cargs[i].size()==cargs[j].size() ){
@@ -959,23 +961,29 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       i--;
     }else{
       std::shared_ptr<SygusPrintCallback> spc;
-      if( is_dup_op ){
-        Debug("parser-sygus") << "--> Duplicate gterm operator : " << ops[i] << std::endl;
-        //make into define-fun
+      if (is_dup_op)
+      {
+        Debug("parser-sygus") << "--> Duplicate gterm operator : " << ops[i]
+                              << std::endl;
+        // make into define-fun
         std::vector<Type> ltypes;
-        for( unsigned j=0, size = cargs[i].size(); j<size; j++ ){
+        for (unsigned j = 0, size = cargs[i].size(); j < size; j++)
+        {
           ltypes.push_back(sygus_to_builtin[cargs[i][j]]);
         }
         std::vector<Expr> largs;
-        Expr lbvl = makeSygusBoundVarList( dt, i, ltypes, largs);
+        Expr lbvl = makeSygusBoundVarList(dt, i, ltypes, largs);
 
-        //make the let_body
-        std::vector< Expr > children;
-        if( ops[i].getKind() != kind::BUILTIN ){
-          children.push_back( ops[i] );
+        // make the let_body
+        std::vector<Expr> children;
+        if (ops[i].getKind() != kind::BUILTIN)
+        {
+          children.push_back(ops[i]);
         }
         children.insert(children.end(), largs.begin(), largs.end());
-        Kind sk = ops[i].getKind() != kind::BUILTIN ? kind::APPLY : getExprManager()->operatorToKind(ops[i]);
+        Kind sk = ops[i].getKind() != kind::BUILTIN
+                      ? kind::APPLY
+                      : getExprManager()->operatorToKind(ops[i]);
         Expr body = getExprManager()->mkExpr(sk, children);
         // replace by lambda
         ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
@@ -986,21 +994,26 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
         std::stringstream ss;
         ss << dt.getName() << "_df_" << i;
         cnames[i] = ss.str();
-      }else{
-        std::map< CVC4::Expr, CVC4::Expr >::iterator it = d_sygus_let_func_to_body.find( ops[i] );
-        if( it!=d_sygus_let_func_to_body.end() ){
+      }
+      else
+      {
+        std::map<CVC4::Expr, CVC4::Expr>::iterator it =
+            d_sygus_let_func_to_body.find(ops[i]);
+        if (it != d_sygus_let_func_to_body.end())
+        {
           Debug("parser-sygus") << "--> Let expression " << ops[i] << std::endl;
           Expr let_body = it->second;
           std::vector<Expr> let_args = d_sygus_let_func_to_vars[ops[i]];
-          unsigned let_num_input_args = d_sygus_let_func_to_num_input_vars[ops[i]];
+          unsigned let_num_input_args =
+              d_sygus_let_func_to_num_input_vars[ops[i]];
           // the operator is just the body for the arguments
           std::vector<Type> ltypes;
           for (unsigned j = 0, size = let_args.size(); j < size; j++)
           {
-            ltypes.push_back( let_args[j].getType() );
+            ltypes.push_back(let_args[j].getType());
           }
           std::vector<Expr> largs;
-          Expr lbvl = makeSygusBoundVarList( dt, i, ltypes, largs );
+          Expr lbvl = makeSygusBoundVarList(dt, i, ltypes, largs);
           Expr sbody = let_body.substitute(let_args, largs);
           ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, sbody);
           Debug("parser-sygus") << "  ...replace op : " << ops[i] << std::endl;
@@ -1010,28 +1023,32 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
         }
         else if (ops[i].getType().isBitVector() && ops[i].isConst())
         {
-          Debug("parser-sygus") << "--> Bit-vector constant " << ops[i] << " (" << cnames[i]
-                                << ")" << std::endl;
+          Debug("parser-sygus") << "--> Bit-vector constant " << ops[i] << " ("
+                                << cnames[i] << ")" << std::endl;
           // Since there are multiple output formats for bit-vectors and
-          // we are required by sygus standards to print in the exact input 
+          // we are required by sygus standards to print in the exact input
           // format given by the user, we use a print callback to custom print
           // the given name.
           spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
         }
         else if (isDefinedFunction(ops[i]))
         {
-          Debug("parser-sygus") << "--> Defined function " << ops[i] << std::endl;
+          Debug("parser-sygus") << "--> Defined function " << ops[i]
+                                << std::endl;
           // turn f into (lammbda (x) (f x))
-          // in a degenerate case, ops[i] may be a defined constant, 
+          // in a degenerate case, ops[i] may be a defined constant,
           // in which case we do not replace by a lambda.
-          if( ops[i].getType().isFunction() ){
-            std::vector<Type> ftypes = static_cast<FunctionType>(ops[i].getType()).getArgTypes();
+          if (ops[i].getType().isFunction())
+          {
+            std::vector<Type> ftypes =
+                static_cast<FunctionType>(ops[i].getType()).getArgTypes();
             std::vector<Expr> largs;
             Expr lbvl = makeSygusBoundVarList(dt, i, ftypes, largs);
-            largs.insert(largs.begin(),ops[i]);
-            Expr body = getExprManager()->mkExpr(kind::APPLY,largs);
+            largs.insert(largs.begin(), ops[i]);
+            Expr body = getExprManager()->mkExpr(kind::APPLY, largs);
             ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
-            Debug("parser-sygus") << "  ...replace op : " << ops[i] << std::endl;
+            Debug("parser-sygus") << "  ...replace op : " << ops[i]
+                                  << std::endl;
           }
           // keep a callback to say it should be printed with the defined name
           spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
@@ -1089,10 +1106,13 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
   }
 }
 
-Expr Smt2::makeSygusBoundVarList( CVC4::Datatype& dt, unsigned i, 
-                                  const std::vector< CVC4::Type>& ltypes, 
-                                  std::vector< CVC4::Expr >& lvars ) {
-  for( unsigned j=0, size = ltypes.size(); j<size; j++ ){
+Expr Smt2::makeSygusBoundVarList(CVC4::Datatype& dt,
+                                 unsigned i,
+                                 const std::vector<CVC4::Type>& ltypes,
+                                 std::vector<CVC4::Expr>& lvars)
+{
+  for (unsigned j = 0, size = ltypes.size(); j < size; j++)
+  {
     std::stringstream ss;
     ss << dt.getName() << "_x_" << i << "_" << j;
     Expr v = mkBoundVar(ss.str(), ltypes[j]);
