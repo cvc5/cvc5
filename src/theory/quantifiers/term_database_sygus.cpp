@@ -1547,10 +1547,11 @@ Kind TermDbSygus::getOperatorKind( Node op ) {
     if( tn.isConstructor() ){
       return APPLY_CONSTRUCTOR;
     }
-    else if( tn.isSelector() ){
+    else if (tn.isSelector())
+    {
       return APPLY_SELECTOR;
     }
-    else if( tn.isTester() )
+    else if (tn.isTester())
     {
       return APPLY_TESTER;
     }
@@ -1558,7 +1559,7 @@ Kind TermDbSygus::getOperatorKind( Node op ) {
     {
       return APPLY_UF;
     }
-    return NodeManager::operatorToKind( op );
+    return NodeManager::operatorToKind(op);
   }
 }
 

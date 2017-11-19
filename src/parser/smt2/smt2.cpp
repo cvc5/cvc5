@@ -959,7 +959,9 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       cnames.erase( cnames.begin() + i, cnames.begin() + i + 1 );
       cargs.erase( cargs.begin() + i, cargs.begin() + i + 1 );
       i--;
-    }else{
+    }
+    else
+    {
       std::shared_ptr<SygusPrintCallback> spc;
       if (is_dup_op)
       {
@@ -1045,7 +1047,9 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
             ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
             Debug("parser-sygus") << "  ...replace op : " << ops[i]
                                   << std::endl;
-          }else{
+          }
+          else
+          {
             ops[i] = getExprManager()->mkExpr(kind::APPLY, ops[i]);
             Debug("parser-sygus") << "  ...replace op : " << ops[i]
                                   << std::endl;
