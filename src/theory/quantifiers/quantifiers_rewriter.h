@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class QAttributes;
+struct QAttributes;
 
 class QuantifiersRewriter {
 private:
