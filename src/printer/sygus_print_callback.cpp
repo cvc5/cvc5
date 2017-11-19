@@ -28,7 +28,7 @@ SygusExprPrintCallback::SygusExprPrintCallback(Expr body,
     : d_body(body), d_body_argument(-1)
 {
   d_args.insert(d_args.end(), args.begin(), args.end());
-  for (unsigned i = 0; i < d_args.size(); i++)
+  for (unsigned i = 0, size = d_args.size(); i < size; i++)
   {
     if (d_args[i] == d_body)
     {
@@ -63,7 +63,7 @@ void SygusExprPrintCallback::toStreamSygus(const Printer* p,
     // make substitution
     std::vector<Node> vars;
     std::vector<Node> subs;
-    for (unsigned i = 0; i < d_args.size(); i++)
+    for (unsigned i = 0, size = d_args.size(); i < size; i++)
     {
       vars.push_back(Node::fromExpr(d_args[i]));
       std::stringstream ss;
@@ -84,7 +84,7 @@ void SygusExprPrintCallback::toStreamSygus(const Printer* p,
     // do string substitution
     Assert(e.getNumChildren() == d_args.size());
     std::string str_body = body_out.str();
-    for (unsigned i = 0; i < d_args.size(); i++)
+    for (unsigned i = 0, size = d_args.size(); i < size; i++)
     {
       std::stringstream old_str;
       old_str << subs[i];
@@ -115,7 +115,7 @@ void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
   }
   std::vector<Node> subs_lvs;
   std::vector<Node> new_lvs;
-  for (unsigned i = 0; i < d_args.size(); i++)
+  for (unsigned i = 0, size = d_args.size(); i < size; i++)
   {
     Node v = d_args[i];
     subs_lvs.push_back(v);
@@ -151,7 +151,7 @@ void SygusLetExprPrintCallback::toStreamSygus(const Printer* p,
   // ASSUMING : let_vars are interpreted literally and do not represent a class
   // of variables
   std::string lbody = let_out.str();
-  for (unsigned i = 0; i < d_args.size(); i++)
+  for (unsigned i = 0, size = d_args.size(); i < size; i++)
   {
     std::stringstream old_str;
     old_str << new_lvs[i];

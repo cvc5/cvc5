@@ -145,7 +145,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
       //map from program to bound variables
       std::vector<Node> funcs;
       d_sip->getFunctions(funcs);
-      for (unsigned j = 0; j < funcs.size(); j++)
+      for (unsigned j = 0, size = funcs.size(); j < size; j++)
       {
         Assert(std::find(progs.begin(), progs.end(), funcs[j]) != progs.end());
         d_prog_to_sol_index[funcs[j]] = j;
