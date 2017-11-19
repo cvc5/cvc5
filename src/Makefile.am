@@ -393,6 +393,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/fun_def_engine.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_process.h \
+	theory/quantifiers/ho_trigger.cpp \
+	theory/quantifiers/ho_trigger.h \
 	theory/quantifiers/inst_match.cpp \
 	theory/quantifiers/inst_match.h \
 	theory/quantifiers/inst_match_generator.cpp \
@@ -435,6 +437,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/rewrite_engine.cpp \
 	theory/quantifiers/rewrite_engine.h \
+	theory/quantifiers/single_inv_partition.cpp \
+	theory/quantifiers/single_inv_partition.h \
 	theory/quantifiers/skolemize.cpp \
 	theory/quantifiers/skolemize.h \
 	theory/quantifiers/sygus_explain.cpp \
