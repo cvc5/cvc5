@@ -143,10 +143,11 @@ void CegConjectureSingleInv::initialize( Node q ) {
       d_sip->debugPrint( "cegqi-si" );
 
       //map from program to bound variables
-      std::vector< Node > funcs;
+      std::vector<Node> funcs;
       d_sip->getFunctions(funcs);
-      for( unsigned j=0; j<funcs.size(); j++ ){
-        Assert(std::find(progs.begin(),progs.end(),funcs[j])!=progs.end());
+      for (unsigned j = 0; j < funcs.size(); j++)
+      {
+        Assert(std::find(progs.begin(), progs.end(), funcs[j]) != progs.end());
         d_prog_to_sol_index[funcs[j]] = j;
       }
 
@@ -170,7 +171,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
             std::vector<Node> sivars;
             d_sip->getSingleInvocationVariables(sivars);
             Node invariant = d_sip->getFunctionInvocationFor(prog);
-            Assert( !invariant.isNull() );
+            Assert(!invariant.isNull());
             invariant = invariant.substitute(sivars.begin(),
                                              sivars.end(),
                                              prog_templ_vars.begin(),
