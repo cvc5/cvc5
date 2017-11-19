@@ -3160,6 +3160,7 @@ EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
 UNIVSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'univset';
 NILREF_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SEP) }? 'sep.nil';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }? 'mkTuple';
+TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }? 'tupSel';
 // Other set theory operators are not
 // tokenized and handled directly when
 // processing a term
