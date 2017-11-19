@@ -338,7 +338,7 @@ Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn, int rcons_depth ) {
     // if we are not interested in reconstructing constants, or the grammar allows them, return a proxy
     if( !options::cegqiSingleInvReconstructConst() || dt.getSygusAllowConst() ){
       Node k = NodeManager::currentNM()->mkSkolem( "sy", tn, "sygus proxy" );
-      SygusProxyAttribute spa;
+      SygusPrintProxyAttribute spa;
       k.setAttribute(spa,c);
       sc = k;
     }else{
@@ -1556,97 +1556,6 @@ Kind TermDbSygus::getOperatorKind( Node op ) {
     }else{
       return NodeManager::operatorToKind( op );
     }
-  }
-}
-
-void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >& lvs ) {
-  if( n.getKind()==APPLY_CONSTRUCTOR ){
-    TypeNode tn = n.getType();
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    if( dt.isSygus() ){
-      int cIndex = Datatype::indexOf( n.getOperator().toExpr() );
-      Assert( !dt[cIndex].getSygusOp().isNull() );
-      if( dt[cIndex].getSygusLetBody().isNull() ){
-        if( n.getNumChildren()>0 ){
-          out << "(";
-        }
-        Node op = dt[cIndex].getSygusOp();
-        if( op.getType().isBitVector() && op.isConst() ){
-          //print in the style it was given
-          Trace("sygus-print-bvc") << "[Print " << op << " " << dt[cIndex].getName() << "]" << std::endl;
-          std::stringstream ss;
-          ss << dt[cIndex].getName();
-          std::string str = ss.str();
-          std::size_t found = str.find_last_of("_");
-          Assert( found!=std::string::npos );
-          std::string name = std::string( str.begin() + found +1, str.end() );
-          out << name;
-        }else{
-          out << op;
-        }
-        if( n.getNumChildren()>0 ){
-          for( unsigned i=0; i<n.getNumChildren(); i++ ){
-            out << " ";
-            printSygusTerm( out, n[i], lvs );
-          }
-          out << ")";
-        }
-      }else{
-        std::stringstream let_out;
-        //print as let term
-        if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
-          let_out << "(let (";
-        }
-        std::vector< Node > subs_lvs;
-        std::vector< Node > new_lvs;
-        for( unsigned i=0; i<dt[cIndex].getNumSygusLetArgs(); i++ ){
-          Node v = Node::fromExpr( dt[cIndex].getSygusLetArg( i ) );
-          subs_lvs.push_back( v );
-          std::stringstream ss;
-          ss << "_l_" << new_lvs.size();
-          Node lv = NodeManager::currentNM()->mkBoundVar( ss.str(), v.getType() );
-          new_lvs.push_back( lv );
-          //map free variables to proper terms
-          if( i<dt[cIndex].getNumSygusLetInputArgs() ){
-            //it should be printed as a let argument
-            let_out << "(";
-            let_out << lv << " " << lv.getType() << " ";
-            printSygusTerm( let_out, n[i], lvs );
-            let_out << ")";
-          }
-        }
-        if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
-          let_out << ") ";
-        }
-        //print the body
-        Node let_body = Node::fromExpr( dt[cIndex].getSygusLetBody() );
-        let_body = let_body.substitute( subs_lvs.begin(), subs_lvs.end(), new_lvs.begin(), new_lvs.end() );
-        new_lvs.insert( new_lvs.end(), lvs.begin(), lvs.end() );
-        printSygusTerm( let_out, let_body, new_lvs );
-        if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
-          let_out << ")";
-        }
-        //do variable substitutions since ASSUMING : let_vars are interpreted literally and do not represent a class of variables
-        std::string lbody = let_out.str();
-        for( unsigned i=0; i<dt[cIndex].getNumSygusLetArgs(); i++ ){
-          std::stringstream old_str;
-          old_str << new_lvs[i];
-          std::stringstream new_str;
-          if( i>=dt[cIndex].getNumSygusLetInputArgs() ){
-            printSygusTerm( new_str, n[i], lvs );
-          }else{
-            new_str << Node::fromExpr( dt[cIndex].getSygusLetArg( i ) );
-          }
-          doStrReplace( lbody, old_str.str().c_str(), new_str.str().c_str() );
-        }
-        out << lbody;
-      }
-      return;
-    }
-  }else if( !n.getAttribute(SygusProxyAttribute()).isNull() ){
-    out << n.getAttribute(SygusProxyAttribute());
-  }else{
-    out << n;
   }
 }
 

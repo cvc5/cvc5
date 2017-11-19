@@ -20,10 +20,15 @@
 #include <vector>
 
 #include "expr/datatype.h"
+#include "expr/attribute.h"
 #include "expr/expr.h"
 
 namespace CVC4 {
 namespace printer {
+  
+// attribute for sygus proxy variables
+struct SygusPrintProxyAttributeId {};
+typedef expr::Attribute<SygusPrintProxyAttributeId, Node> SygusPrintProxyAttribute;
 
 /** sygus expression constructor printer
  *
