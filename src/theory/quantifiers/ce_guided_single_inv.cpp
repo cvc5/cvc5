@@ -143,22 +143,11 @@ void CegConjectureSingleInv::initialize( Node q ) {
       d_sip->debugPrint( "cegqi-si" );
 
       //map from program to bound variables
-      std::vector< Node > order_vars;
-      std::map< Node, Node > single_inv_app_map;
-      for( unsigned j=0; j<progs.size(); j++ ){
-        Node prog = progs[j];
-        Node pv = d_sip->getFirstOrderVariableForFunction(prog);
-        if (!pv.isNull())
-        {
-          Node inv = d_sip->getFunctionInvocationFor(prog);
-          Assert(!inv.isNull());
-          single_inv_app_map[prog] = inv;
-          Trace("cegqi-si") << "  " << pv << ", " << inv << " is associated with program " << prog << std::endl;
-          d_prog_to_sol_index[prog] = order_vars.size();
-          order_vars.push_back( pv );
-        }else{
-          Trace("cegqi-si") << "  " << prog << " has no fo var." << std::endl;
-        }
+      std::vector< Node > funcs;
+      d_sip->getFunctions(funcs);
+      for( unsigned j=0; j<funcs.size(); j++ ){
+        Assert(std::find(progs.begin(),progs.end(),funcs[j])!=progs.end());
+        d_prog_to_sol_index[funcs[j]] = j;
       }
 
       //check if it is single invocation
@@ -180,7 +169,8 @@ void CegConjectureSingleInv::initialize( Node q ) {
             Trace("cegqi-inv") << "  postcondition : " << d_trans_post[prog] << std::endl;
             std::vector<Node> sivars;
             d_sip->getSingleInvocationVariables(sivars);
-            Node invariant = single_inv_app_map[prog];
+            Node invariant = d_sip->getFunctionInvocationFor(prog);
+            Assert( !invariant.isNull() );
             invariant = invariant.substitute(sivars.begin(),
                                              sivars.end(),
                                              prog_templ_vars.begin(),
