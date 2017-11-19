@@ -990,10 +990,6 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
         Debug("parser-sygus") << "  ...replace op : " << ops[i] << std::endl;
         // callback prints as the expression
         spc = std::make_shared<printer::SygusExprPrintCallback>(body, largs);
-        // must rename to avoid duplication
-        std::stringstream ss;
-        ss << dt.getName() << "_df_" << i;
-        cnames[i] = ss.str();
       }
       else
       {
@@ -1049,6 +1045,10 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
             ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
             Debug("parser-sygus") << "  ...replace op : " << ops[i]
                                   << std::endl;
+          }else{
+            ops[i] = getExprManager()->mkExpr(kind::APPLY, ops[i]);
+            Debug("parser-sygus") << "  ...replace op : " << ops[i]
+                                  << std::endl;
           }
           // keep a callback to say it should be printed with the defined name
           spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
@@ -1058,6 +1058,10 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           Debug("parser-sygus") << "--> Default case " << ops[i] << std::endl;
         }
       }
+      // must rename to avoid duplication
+      std::stringstream ss;
+      ss << dt.getName() << "_" << i << "_" << cnames[i];
+      cnames[i] = ss.str();
       // add the sygus constructor
       dt.addSygusConstructor(ops[i], cnames[i], cargs[i], spc);
     }
