@@ -152,7 +152,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
                     Trace("rewrite-engine-inst-debug") << inst[i] << std::endl;
                   }else{
                     Trace("rewrite-engine-inst-debug") << "OUT_OF_RANGE" << std::endl;
-                    Assert( false );
+                    Unreachable();
                   }
                 }
                 //resize to remove auxiliary variables

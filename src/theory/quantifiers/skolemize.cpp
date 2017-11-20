@@ -260,7 +260,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
     {
       Trace("sk-ind") << "Unknown induction for term : " << ind_vars[0]
                       << ", type = " << tn << std::endl;
-      Assert(false);
+      Unreachable();
     }
     Trace("sk-ind") << "Strengthening is : " << n_str_ind << std::endl;
 

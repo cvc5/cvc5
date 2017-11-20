@@ -1018,7 +1018,7 @@ void SygusSymBreakNew::notifySearchSize( Node m, unsigned s, Node exp, std::vect
         Node exp = (*itx).second;
         assertTester( tindex, n, exp, lemmas );
       }else{
-        Assert( false );
+        Unreachable();
       }
     }
     */
@@ -1093,7 +1093,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
       if( !debugTesters( prog, progv, 0, lemmas ) ){
         Trace("sygus-sb") << "  SygusSymBreakNew::check: ...WARNING: considered missing split for " << prog << "." << std::endl;
         // this should not happen generally, it is caused by a sygus term not being assigned a tester
-        //Assert( false );
+        //Unreachable();
       }else{
         //debugging : ensure fairness was properly handled
         if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){  
@@ -1103,12 +1103,12 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
             
           Trace("sygus-sb") << "  Mv[" << prog << "] = " << progv << ", size = " << prog_szv << std::endl;
           if( prog_szv.getConst<Rational>().getNumerator().toUnsignedInt() > getSearchSizeForAnchor( prog ) ){
-            AlwaysAssert( false );
-            Node szlem = NodeManager::currentNM()->mkNode( kind::OR, prog.eqNode( progv ).negate(),
-                                                                     prog_sz.eqNode( progv_sz ) );
-            Trace("sygus-sb-warn") << "SygusSymBreak : WARNING : adding size correction : " << szlem << std::endl;
-            lemmas.push_back( szlem );                                                     
-            return;
+            Unreachable();
+            // Node szlem = NodeManager::currentNM()->mkNode( kind::OR, prog.eqNode( progv ).negate(),
+            //                                                          prog_sz.eqNode( progv_sz ) );
+            // Trace("sygus-sb-warn") << "SygusSymBreak : WARNING : adding size correction : " << szlem << std::endl;
+            // lemmas.push_back( szlem );                                                     
+            // return;
           }
         }
         

@@ -1198,10 +1198,8 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
   case kind::INTS_MODULUS:
   case kind::DIVISION:
     // these should be removed during expand definitions
-    Assert( false );
-    break;
-  
-  case kind::INTS_DIVISION_TOTAL: 
+    Unreachable();
+  case kind::INTS_DIVISION_TOTAL:
   case kind::INTS_MODULUS_TOTAL: {
     Node den = Rewriter::rewrite(n[1]);
     if(!options::rewriteDivk() && den.isConst()) {
@@ -1515,8 +1513,7 @@ void TheoryArithPrivate::setupDivLike(const Variable& v){
   case INTS_DIVISION:
   case INTS_MODULUS:
     // these should be removed during expand definitions
-    Assert( false );
-    break;
+    Unreachable();
   case DIVISION_TOTAL:
     lem = axiomIteForTotalDivision(vnode);
     break;

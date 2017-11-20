@@ -575,17 +575,14 @@ void TheorySetsPrivate::fullEffortCheck(){
             Node s = d_equalityEngine.getRepresentative( n[1] );
             Node x = d_equalityEngine.getRepresentative( n[0] );
             int pindex = eqc==d_true ? 0 : ( eqc==d_false ? 1 : -1 );
-            if( pindex!=-1  ){
-              if( d_pol_mems[pindex][s].find( x )==d_pol_mems[pindex][s].end() ){
-                d_pol_mems[pindex][s][x] = n;
-                Trace("sets-debug2") << "Membership[" << x << "][" << s << "] : " << n << ", pindex = " << pindex << std::endl;
-              }
-              if( d_members_index[s].find( x )==d_members_index[s].end() ){
-                d_members_index[s][x] = n;
-                d_op_list[kind::MEMBER].push_back( n );
-              }
-            }else{
-              Assert( false );
+            AlwaysAssert( pindex!=-1  );
+            if( d_pol_mems[pindex][s].find( x )==d_pol_mems[pindex][s].end() ){
+              d_pol_mems[pindex][s][x] = n;
+              Trace("sets-debug2") << "Membership[" << x << "][" << s << "] : " << n << ", pindex = " << pindex << std::endl;
+            }
+            if( d_members_index[s].find( x )==d_members_index[s].end() ){
+              d_members_index[s][x] = n;
+              d_op_list[kind::MEMBER].push_back( n );
             }
           }
         }else if( n.getKind()==kind::SINGLETON || n.getKind()==kind::UNION || n.getKind()==kind::INTERSECTION || 
@@ -1090,19 +1087,16 @@ void TheorySetsPrivate::checkCardCycles( std::vector< Node >& lemmas ) {
 void TheorySetsPrivate::checkCardCyclesRec( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp, std::vector< Node >& lemmas ) {
   if( std::find( curr.begin(), curr.end(), eqc )!=curr.end() ){
     Trace("sets-debug") << "Found venn region loop..." << std::endl;
-    if( curr.size()>1 ){
-      //all regions must be equal
-      std::vector< Node > conc;
-      for( unsigned i=1; i<curr.size(); i++ ){
-        conc.push_back( curr[0].eqNode( curr[i] ) );
-      }
-      Node fact = conc.size()==1 ? conc[0] : NodeManager::currentNM()->mkNode( kind::AND, conc );
-      assertInference( fact, exp, lemmas, "card_cycle" );
-      flushLemmas( lemmas );
-    }else{
-      //should be guaranteed based on not exploring equal parents
-      Assert( false );
+    //should be guaranteed based on not exploring equal parents
+    AlwaysAssert( curr.size()>1 );
+    //all regions must be equal
+    std::vector< Node > conc;
+    for( unsigned i=1; i<curr.size(); i++ ){
+      conc.push_back( curr[0].eqNode( curr[i] ) );
     }
+    Node fact = conc.size()==1 ? conc[0] : NodeManager::currentNM()->mkNode( kind::AND, conc );
+    assertInference( fact, exp, lemmas, "card_cycle" );
+    flushLemmas( lemmas );
   }else if( std::find( d_set_eqc.begin(), d_set_eqc.end(), eqc )==d_set_eqc.end() ){
     curr.push_back( eqc );
     TypeNode tn = eqc.getType();
@@ -1475,7 +1469,7 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
         Trace("sets-nf") << "----> N " << eqc << " => F " << base << std::endl;
       }else{
         Trace("sets-nf") << "failed to build N " << eqc << std::endl;
-        Assert( false );
+        Unreachable();
       }
     }else{
       //normal form is this equivalence class

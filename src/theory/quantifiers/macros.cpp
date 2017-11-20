@@ -424,7 +424,7 @@ Node QuantifierMacros::simplify( Node n ){
             if( etc.isNull() ){
               //if this does fail, we are incomplete, since we are eliminating quantified formula corresponding to op, 
               //  and not ensuring it applies to n when its types are correct.
-              //Assert( false );
+              //Unreachable();
               success = false;
               break;
             }else if( !etc.isConst() ){

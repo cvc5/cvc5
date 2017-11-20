@@ -523,7 +523,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
           return;
         }else{
           //should only fail reset if added a lemma
-          Assert( false );
+          Unreachable();
         }
       }
     }
@@ -1195,7 +1195,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       for( unsigned j=0; j<terms.size(); j++ ){
         Trace("inst") << "   " << terms[j] << std::endl;
       }
-      Assert( false );
+      Unreachable();
     }
 #endif
   }
@@ -1288,7 +1288,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     if( options::instMaxLevel()!=-1 ){
       if( doVts ){
         //virtual term substitution/instantiation level features are incompatible
-        Assert( false );
+        Unreachable();
       }else{
         uint64_t maxInstLevel = 0;
         for( unsigned i=0; i<terms.size(); i++ ){
@@ -1523,7 +1523,7 @@ void QuantifiersEngine::getExplanationForInstLemmas( std::vector< Node >& lems, 
     }
 #endif
   }else{
-    Assert( false );
+    Unreachable();
   }
 }
 

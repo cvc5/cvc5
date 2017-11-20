@@ -5326,11 +5326,8 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
     out << "% SZS output start Proof for " << d_filename.c_str() << std::endl;
   }
-  if( d_theoryEngine ){
-    d_theoryEngine->printInstantiations( out );
-  }else{
-    Assert( false );
-  }
+  AlwaysAssert(d_theoryEngine);
+  d_theoryEngine->printInstantiations( out );
   if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
     out << "% SZS output end Proof for " << d_filename.c_str() << std::endl;
   }
@@ -5338,11 +5335,8 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
 
 void SmtEngine::printSynthSolution( std::ostream& out ) {
   SmtScope smts(this);
-  if( d_theoryEngine ){
-    d_theoryEngine->printSynthSolution( out );
-  }else{
-    Assert( false );
-  }
+  AlwaysAssert(d_theoryEngine);
+  d_theoryEngine->printSynthSolution( out );
 }
 
 Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull,
@@ -5409,45 +5403,36 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull,
 
 void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
   SmtScope smts(this);
-  if( d_theoryEngine ){
-    std::vector< Node > qs_n;
-    d_theoryEngine->getInstantiatedQuantifiedFormulas( qs_n );
-    for( unsigned i=0; i<qs_n.size(); i++ ){
-      qs.push_back( qs_n[i].toExpr() );
-    }
-  }else{
-    Assert( false );
+  AlwaysAssert(d_theoryEngine);
+  std::vector< Node > qs_n;
+  d_theoryEngine->getInstantiatedQuantifiedFormulas( qs_n );
+  for( unsigned i=0; i<qs_n.size(); i++ ){
+    qs.push_back( qs_n[i].toExpr() );
   }
 }
 
 void SmtEngine::getInstantiations( Expr q, std::vector< Expr >& insts ) {
   SmtScope smts(this);
-  if( d_theoryEngine ){
-    std::vector< Node > insts_n;
-    d_theoryEngine->getInstantiations( Node::fromExpr( q ), insts_n );
-    for( unsigned i=0; i<insts_n.size(); i++ ){
-      insts.push_back( insts_n[i].toExpr() );
-    }
-  }else{
-    Assert( false );
+  AlwaysAssert(d_theoryEngine);
+  std::vector< Node > insts_n;
+  d_theoryEngine->getInstantiations( Node::fromExpr( q ), insts_n );
+  for( unsigned i=0; i<insts_n.size(); i++ ){
+    insts.push_back( insts_n[i].toExpr() );
   }
 }
 
 void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< Expr > >& tvecs ) {
   SmtScope smts(this);
   Assert(options::trackInstLemmas());
-  if( d_theoryEngine ){
-    std::vector< std::vector< Node > > tvecs_n;
-    d_theoryEngine->getInstantiationTermVectors( Node::fromExpr( q ), tvecs_n );
-    for( unsigned i=0; i<tvecs_n.size(); i++ ){
-      std::vector< Expr > tvec;
-      for( unsigned j=0; j<tvecs_n[i].size(); j++ ){
-        tvec.push_back( tvecs_n[i][j].toExpr() );
-      }
-      tvecs.push_back( tvec );
+  AlwaysAssert(d_theoryEngine);
+  std::vector< std::vector< Node > > tvecs_n;
+  d_theoryEngine->getInstantiationTermVectors( Node::fromExpr( q ), tvecs_n );
+  for( unsigned i=0; i<tvecs_n.size(); i++ ){
+    std::vector< Expr > tvec;
+    for( unsigned j=0; j<tvecs_n[i].size(); j++ ){
+      tvec.push_back( tvecs_n[i][j].toExpr() );
     }
-  }else{
-    Assert( false );
+    tvecs.push_back( tvec );
   }
 }
 

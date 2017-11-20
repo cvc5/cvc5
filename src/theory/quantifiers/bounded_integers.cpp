@@ -499,7 +499,7 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
           Trace("bound-int") << "  " << v << " has small finite type." << std::endl;
         }else{
           Trace("bound-int") << "  " << v << " has unknown bound." << std::endl;
-          Assert( false );
+          Unreachable();
         }
       }else{
         Trace("bound-int") << "  " << "*** " << v << " is unbounded." << std::endl;

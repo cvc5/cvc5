@@ -2054,7 +2054,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
       Trace("qcf-check2") << "QCF : finished check : already in conflict." << std::endl;
       if( level>=Theory::EFFORT_FULL ){
         Trace("qcf-warn") << "ALREADY IN CONFLICT? " << level << std::endl;
-        //Assert( false );
+        //Unreachable();
       }
     }else{
       int addedLemmas = 0;

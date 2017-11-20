@@ -491,7 +491,7 @@ void TheoryStrings::collectModelInfo( TheoryModel* m ) {
         values_used[ lvalue ] = true;
       }else{
         //Trace("strings-model-warn") << "No length for eqc " << col[i][0] << std::endl;
-        //Assert( false );
+        //Unreachable();
         lts_values.push_back( Node::null() );
       }
     }
@@ -1912,7 +1912,7 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
                   }
                   Trace("strings-error") << "Looping term should be congruent : " << n << " " << eqc << " " << ncy << std::endl;
                   //should find a non-empty component, otherwise would have been singular congruent (I_Norm_S)
-                  Assert( false );
+                  Unreachable();
                 }else{
                   return ncy;
                 }
@@ -3034,7 +3034,7 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
         index++;
       }
     }
-    Assert( false );
+    Unreachable();
   }
 }
 
@@ -4063,13 +4063,10 @@ bool TheoryStrings::normalizePosMemberships(std::map< Node, std::vector< Node > 
     Node x = (*itr_xr).first;
     Node nf_x = x;
     std::vector< Node > nf_x_exp;
-    if(d_normal_forms.find( x ) != d_normal_forms.end()) {
-      //nf_x = mkConcat( d_normal_forms[x] );
-      nf_x_exp.insert(nf_x_exp.end(), d_normal_forms_exp[x].begin(), d_normal_forms_exp[x].end());
-      //Debug("regexp-nf") << "Term: " << x << " has a normal form " << ret << std::endl;
-    } else {
-      Assert(false);
-    }
+    AlwaysAssert(d_normal_forms.find( x ) != d_normal_forms.end());
+    //nf_x = mkConcat( d_normal_forms[x] );
+    nf_x_exp.insert(nf_x_exp.end(), d_normal_forms_exp[x].begin(), d_normal_forms_exp[x].end());
+    //Debug("regexp-nf") << "Term: " << x << " has a normal form " << ret << std::endl;
     Trace("regexp-nf") << "Checking Memberships for N(" << x << ") = " << nf_x << " :" << std::endl;
 
     std::vector< Node > vec_x;
@@ -4292,7 +4289,7 @@ bool TheoryStrings::checkMemberships2() {
         }
         */ 
       }
-      Assert(false); //TODO:tmp
+      Unreachable(); //TODO:tmp
     }
   }
 
@@ -4898,7 +4895,7 @@ Node TheoryStrings::getNormalSymRegExp(Node r, std::vector<Node> &nf_exp) {
     //case kind::REGEXP_RANGE:
     default: {
       Trace("strings-error") << "Unsupported term: " << r << " in normalization SymRegExp." << std::endl;
-      Assert( false );
+      Unreachable();
       //return Node::null();
     }
   }

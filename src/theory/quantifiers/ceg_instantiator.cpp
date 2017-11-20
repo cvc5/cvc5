@@ -436,7 +436,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
 #ifdef CVC4_ASSERTIONS
       if( pvtn.isReal() && options::cbqiNestedQE() && !options::cbqiAll() ){
         Trace("cbqi-warn") << "Had to resort to model value." << std::endl;
-        Assert( false );
+        Unreachable();
       }
 #endif
       Node mv = getModelValue( pv );
@@ -1000,7 +1000,7 @@ void CegInstantiator::processAssertions() {
       addToAuxVarSubstitution( subs_lhs, subs_rhs, r, it->second );
     }else{
       Trace("cbqi-proc") << "....no substitution found for auxiliary variable " << r << "!!! type is " << r.getType() << std::endl;
-      Assert( false );
+      Unreachable();
     }
   }
 

@@ -117,16 +117,9 @@ unsigned TermDb::getNumGroundTerms(Node f) const
 Node TermDb::getGroundTerm(Node f, unsigned i) const
 {
   std::map<Node, std::vector<Node> >::const_iterator it = d_op_map.find(f);
-  if (it != d_op_map.end())
-  {
-    Assert(i < it->second.size());
-    return it->second[i];
-  }
-  else
-  {
-    Assert(false);
-    return Node::null();
-  }
+  AlwaysAssert(it != d_op_map.end());
+  Assert(i < it->second.size());
+  return it->second[i];
 }
 
 unsigned TermDb::getNumTypeGroundTerms(TypeNode tn) const
@@ -144,16 +137,9 @@ Node TermDb::getTypeGroundTerm(TypeNode tn, unsigned i) const
 {
   std::map<TypeNode, std::vector<Node> >::const_iterator it =
       d_type_map.find(tn);
-  if (it != d_type_map.end())
-  {
-    Assert(i < it->second.size());
-    return it->second[i];
-  }
-  else
-  {
-    Assert(false);
-    return Node::null();
-  }
+  AlwaysAssert(it != d_type_map.end());
+  Assert(i < it->second.size());
+  return it->second[i];
 }
 
 Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn)
@@ -358,7 +344,7 @@ void TermDb::computeUfTerms( TNode f ) {
                           lits.push_back( atf.eqNode( nf ).negate() );
                         }else{
                           success = false;
-                          Assert( false );
+                          Unreachable();
                         }
                       }
                     }
@@ -697,9 +683,8 @@ bool TermDb::hasTermCurrent( Node n, bool useMode ) {
       return true;
     }else if( options::termDbMode()==TERM_DB_RELEVANT ){
       return d_has_map.find( n )!=d_has_map.end();
-    }else{
-      Assert( false );
-      return false;
+    } else {
+      Unreachable();
     }
   }
 }

@@ -62,7 +62,7 @@ bool EqualityQueryQuantifiersEngine::processInferences( Theory::Effort e ) {
           if( !d_qe->getTheoryEngine()->needCheck() ){
             Trace("term-db-lemma") << "  all theories passed with no lemmas." << std::endl;
             //this should really never happen (implies arithmetic is incomplete when sharing is enabled)
-            Assert( false );
+            Unreachable();
           }
           Trace("term-db-lemma") << "  add split on : " << eq << std::endl;
         }
@@ -136,7 +136,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
           if( r.getType().isSort() ){
             Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
             //should never happen : UF constants should never escape model
-            Assert( false );
+            Unreachable();
           }
         }
       }

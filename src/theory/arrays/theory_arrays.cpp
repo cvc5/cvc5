@@ -921,7 +921,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
   switch (eqStatusDomain) {
     case EQUALITY_TRUE_AND_PROPAGATED:
       // Should have been propagated to us
-      Assert(false);
+      Unreachable();
       break;
     case EQUALITY_TRUE:
       // Missed propagation - need to add the pair so that theory engine can force propagation
@@ -929,7 +929,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
       break;
     case EQUALITY_FALSE_AND_PROPAGATED:
       // Should have been propagated to us
-      Assert(false);
+      Unreachable();
     case EQUALITY_FALSE:
     case EQUALITY_FALSE_IN_MODEL:
       // This is unlikely, but I think it could happen

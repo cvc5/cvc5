@@ -146,7 +146,7 @@ void CegConjecture::assign( Node q ) {
   {
     d_syntax_guided = false;
   }else{
-    Assert( false );
+    Unreachable();
   }
   
   // initialize the guard
@@ -197,13 +197,10 @@ bool CegConjecture::needsCheck( std::vector< Node >& lem ) {
     bool value;
     Assert( !getGuard().isNull() );
     // non or fully single invocation : look at guard only
-    if( d_qe->getValuation().hasSatValue( getGuard(), value ) ) {
-      if( !value ){
-        Trace("cegqi-engine-debug") << "Conjecture is infeasible." << std::endl;
-        return false;
-      }
-    }else{
-      Assert( false );
+    AlwaysAssert(d_qe->getValuation().hasSatValue( getGuard(), value ) );
+    if( !value ){
+      Trace("cegqi-engine-debug") << "Conjecture is infeasible." << std::endl;
+      return false;
     }
     return true;
   }
@@ -222,12 +219,9 @@ void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
   getCandidateList( clist, true );
   Assert( clist.size()==d_quant[0].getNumChildren() );
   getModelValues( clist, model_terms );
-  if( d_qe->addInstantiation( d_quant, model_terms ) ){
-    //record the instantiation
-    recordInstantiation( model_terms );
-  }else{
-    Assert( false );
-  }
+  AlwaysAssert( d_qe->addInstantiation( d_quant, model_terms ) );
+  //record the instantiation
+  recordInstantiation( model_terms );
 }
 
 bool CegConjecture::needsRefinement() { 

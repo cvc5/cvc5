@@ -100,8 +100,8 @@ SatValue DecisionEngine::getPolarity(SatVariable var)
 
 void DecisionEngine::addAssertions(const vector<Node> &assertions)
 {
-  Assert(false);  // doing this so that we revisit what to do
-                  // here. Currently not being used.
+  // Doing this so that we revisit what to do here. Currently not being used.
+  Unimplemented();
 
   // d_result = SAT_VALUE_UNKNOWN;
   // d_assertions.reserve(assertions.size());

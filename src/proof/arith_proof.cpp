@@ -500,7 +500,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
                 } else {
                   Debug("pf::arith") << "Error: identical equalities over, but hands don't match what we're proving."
                                      << std::endl;
-                  Assert(false);
+                  Unreachable();
                 }
               } else {
                 // We have a "next node". Use it to guide us.
@@ -521,7 +521,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
 
                 } else {
                   Debug("pf::arith") << "Error: even length sequence, but I don't know which hand to keep!" << std::endl;
-                  Assert(false);
+                  Unreachable();
                 }
               }
 
@@ -634,8 +634,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
     Assert(!pf.d_node.isNull());
     Assert(pf.d_children.empty());
     Debug("pf::arith") << "theory proof: " << pf.d_node << " by rule " << int(pf.d_id) << std::endl;
-    AlwaysAssert(false);
-    return pf.d_node;
+    Unreachable();
   }
 }
 

@@ -677,16 +677,10 @@ void ExtTheory::markCongruent( Node a, Node b ) {
   registerTerm( a );
   registerTerm( b );
   NodeBoolMap::const_iterator it = d_ext_func_terms.find( b );
-  if( it!=d_ext_func_terms.end() ){
-    if( d_ext_func_terms.find( a )!=d_ext_func_terms.end() ){
-      d_ext_func_terms[a] = d_ext_func_terms[a] && (*it).second;
-    }else{
-      Assert( false );
-    }
-    d_ext_func_terms[b] = false;
-  }else{
-    Assert( false );
-  }
+  AlwaysAssert( it!=d_ext_func_terms.end() );
+  AlwaysAssert( d_ext_func_terms.find( a )!=d_ext_func_terms.end() );
+  d_ext_func_terms[a] = d_ext_func_terms[a] && (*it).second;
+  d_ext_func_terms[b] = false;
 }
 
 bool ExtTheory::isContextIndependentInactive(Node n) const {

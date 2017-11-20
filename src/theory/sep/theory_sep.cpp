@@ -438,7 +438,7 @@ void TheorySep::check(Effort e) {
 
             }else{
               //labeled emp should be rewritten
-              Assert( false );
+              Unreachable();
             }
             d_red_conc[s_lbl][s_atom] = conc;
           }else{
@@ -1051,7 +1051,6 @@ void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom ){
       std::stringstream ss;
       ss << "ERROR: specifying heap constraints for two different types : " << tn1 << " -> " << tn2 << " and " << te1 << " -> " << d_loc_to_data_type[te1] << std::endl;
       throw LogicException(ss.str());
-      Assert( false );
     }
     if( tn2.isNull() ){
       Trace("sep-type") << "Sep: assume location type " << tn1 << " (from " << atom << ")" << std::endl;
@@ -1075,7 +1074,6 @@ void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom ){
           std::stringstream ss;
           ss << "ERROR: location type " << tn1 << " is already associated with data type " << itt->second << ", offending atom is " << atom << " with data type " << tn2 << std::endl;
           throw LogicException(ss.str());
-          Assert( false );
         }
       }
     }
@@ -1529,7 +1527,6 @@ void TheorySep::computeLabelModel( Node lbl ) {
         d_label_model[lbl].d_heap_locs_model.push_back( v_val );
       }else{
         throw Exception("Could not establish value of heap in model.");
-        Assert( false );
       }
     }
     for( unsigned j=0; j<d_label_model[lbl].d_heap_locs_model.size(); j++ ){
@@ -1540,7 +1537,7 @@ void TheorySep::computeLabelModel( Node lbl ) {
       std::map< Node, Node >::iterator itm = d_tmodel.find( u );
       if( itm==d_tmodel.end() ) {
         //Trace("sep-process") << "WARNING: could not find symbolic term in model for " << u << std::endl;
-        //Assert( false );
+        //Unreachable();
         //tt = u;
         //TypeNode tn = u.getType().getRefConstituentType();
         TypeNode tn = u.getType();

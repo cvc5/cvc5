@@ -202,7 +202,7 @@ void QuantAttributes::computeAttributes( Node q ) {
     Node f = d_qattr[q].d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
       Message() << "Cannot define function " << f << " more than once." << std::endl;
-      AlwaysAssert(false);
+      Unreachable();
     }
     d_fun_defs[f] = true;
     d_quantEngine->setOwner( q, d_quantEngine->getFunDefEngine(), 2 );

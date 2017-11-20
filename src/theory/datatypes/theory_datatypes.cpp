@@ -1541,9 +1541,8 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m ){
     bool addCons = false;
     Type tt = eqc.getType().toType();
     const Datatype& dt = ((DatatypeType)tt).getDatatype();
-    if( !d_equalityEngine.hasTerm( eqc ) ){
-      Assert( false );
-    }else{
+    AlwaysAssert(d_equalityEngine.hasTerm( eqc ));
+    
       Trace("dt-cmi") << "NOTICE : Datatypes: no constructor in equivalence class " << eqc << std::endl;
       Trace("dt-cmi") << "   Type : " << eqc.getType() << std::endl;
       EqcInfo* ei = getOrMakeEqcInfo( eqc );
@@ -1573,7 +1572,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m ){
         }
       }
       addCons = true;
-    }
+    
     if( !neqc.isNull() ){
       Trace("dt-cmi") << "Assign : " << neqc << std::endl;
       m->assertEquality( eqc, neqc, true );

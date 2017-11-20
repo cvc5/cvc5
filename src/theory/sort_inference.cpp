@@ -632,7 +632,7 @@ Node SortInference::simplifyNode( Node n, std::map< Node, Node >& var_bound, Typ
       if( !tn1.isSubtypeOf( tn2 ) && !tn2.isSubtypeOf( tn1 ) ){
         Trace("sort-inference-warn") << "Sort inference created bad equality: " << children[0] << " = " << children[1] << std::endl;
         Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
-        Assert( false );
+        Unreachable();
       }
       ret = NodeManager::currentNM()->mkNode( kind::EQUAL, children );
     }else if( n.getKind()==kind::APPLY_UF ){
@@ -669,7 +669,7 @@ Node SortInference::simplifyNode( Node n, std::map< Node, Node >& var_bound, Typ
         TypeNode tna = getTypeForId( d_op_arg_types[op][i] );
         if( tn!=tna ){
           Trace("sort-inference-warn") << "Sort inference created bad child: " << n << " " << n[i] << " " << tn << " " << tna << std::endl;
-          Assert( false );
+          Unreachable();
         }
       }
       ret = NodeManager::currentNM()->mkNode( kind::APPLY_UF, children );

@@ -1828,11 +1828,8 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
     Node ev = en[0];
     if( track_exp ){
       std::map< Node, Node >::iterator itv = vtm.find( en[0] );
-      if( itv!=vtm.end() ){
-        ev = itv->second;
-      }else{
-        Assert( false );
-      }
+      AlwaysAssert( itv!=vtm.end() );
+      ev = itv->second;
       Assert( en[0].getType()==ev.getType() );
       Assert( ev.isConst() );
     }
