@@ -2374,6 +2374,25 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         args.insert( args.begin(), dt[0].getConstructor() );
         expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
      }
+
+  | LAPREN_TOK LPAREN_TOK INDEX_TOK TUPLE_SEL_TOK k=numeral RPAREN_TOK term[expr, expr2] RPAREN_TOK
+    {
+      Type t = expr.getType();
+      if(! t.isTuple()) {
+        PARSER_STATE->parseError("tupSel applied to non-tuple");
+      }
+      size_t length = ((DatatypeType)t).getTupleLength();
+      if(k >= length) {
+        std::stringstream ss;
+        ss << "tuple is of length " << length << "; cannot access index " << k;
+        PARSER_STATE->parseError(ss.str());
+      }
+      const Datatype & dt = ((DatatypeType)t).getDatatype();
+      std::vector<Expr> sargs;
+      sargs.push_back( dt[0][k].getSelector() );
+      sargs.push_back( expr );
+      expr = MK_EXPR(CVC4::kind::APPLY_SELECTOR,sargs);
+    }
   ;
 
 /**
