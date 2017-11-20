@@ -183,6 +183,8 @@ public:
 };/* class AssertionPipeline */
 
 struct SmtEngineStatistics {
+  /** time spent in gaussian elimination */
+  TimerStat d_gaussElimTime;
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
   /** time spent in non-clausal simplification */
@@ -230,6 +232,7 @@ struct SmtEngineStatistics {
   ReferenceStat<uint64_t> d_resourceUnitsUsed;
 
   SmtEngineStatistics() :
+    d_gaussElimTime("smt::SmtEngine::gaussElimTime"),
     d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
     d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
     d_miplibPassTime("smt::SmtEngine::miplibPassTime"),
@@ -254,6 +257,7 @@ struct SmtEngineStatistics {
     d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
  {
 
+    smtStatisticsRegistry()->registerStat(&d_gaussElimTime);
     smtStatisticsRegistry()->registerStat(&d_definitionExpansionTime);
     smtStatisticsRegistry()->registerStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->registerStat(&d_miplibPassTime);
@@ -279,6 +283,7 @@ struct SmtEngineStatistics {
   }
 
   ~SmtEngineStatistics() {
+    smtStatisticsRegistry()->unregisterStat(&d_gaussElimTime);
     smtStatisticsRegistry()->unregisterStat(&d_definitionExpansionTime);
     smtStatisticsRegistry()->unregisterStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->unregisterStat(&d_miplibPassTime);
@@ -3992,6 +3997,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if(options::bvGaussElim())
   {
+    TimerStat::CodeTimer gaussElimTimer(d_smt.d_stats->d_gaussElimTime);
     theory::bv::BVGaussElim::gaussElimRewrite(d_assertions.ref());
   }
 
