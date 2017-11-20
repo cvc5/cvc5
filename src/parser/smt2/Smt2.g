@@ -2015,6 +2015,29 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     ( /* An indexed function application */
       indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK
       { 
+        if(kind==CVC4::kind::APPLY_SELECTOR){
+          unsigned int n = 0; /*Should be extracting the value of n from op, this is a dummy value*/
+          if(args.size()>1){
+            PARSER_STATE->parseError("tupSel applied to more than one tuple argument");
+          }
+          Type t = args[0].getType();
+          if(! t.isTuple()) {
+            PARSER_STATE->parseError("tupSel applied to non-tuple");
+          }
+          size_t length = ((DatatypeType)t).getTupleLength();
+          if(n >= length) {
+            std::stringstream ss;
+            ss << "tuple is of length " << length << "; cannot access index " << n;
+            PARSER_STATE->parseError(ss.str());
+          }
+          
+          const Datatype & dt = ((DatatypeType)t).getDatatype();
+          std::vector<Expr> sargs;
+          sargs.push_back( dt[0][n].getSelector() );
+          sargs.push_back( expr );
+          op = MK_EXPR(CVC4::kind::APPLY_SELECTOR,sargs);
+          std::cout<<"so far so good";
+        }
         if( kind!=kind::NULL_EXPR ){
           expr = MK_EXPR( kind, op, args );
         }else{
@@ -2374,25 +2397,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         args.insert( args.begin(), dt[0].getConstructor() );
         expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
      }
-
-  | LAPREN_TOK LPAREN_TOK INDEX_TOK TUPLE_SEL_TOK k=numeral RPAREN_TOK term[expr, expr2] RPAREN_TOK
-    {
-      Type t = expr.getType();
-      if(! t.isTuple()) {
-        PARSER_STATE->parseError("tupSel applied to non-tuple");
-      }
-      size_t length = ((DatatypeType)t).getTupleLength();
-      if(k >= length) {
-        std::stringstream ss;
-        ss << "tuple is of length " << length << "; cannot access index " << k;
-        PARSER_STATE->parseError(ss.str());
-      }
-      const Datatype & dt = ((DatatypeType)t).getDatatype();
-      std::vector<Expr> sargs;
-      sargs.push_back( dt[0][k].getSelector() );
-      sargs.push_back( expr );
-      expr = MK_EXPR(CVC4::kind::APPLY_SELECTOR,sargs);
-    }
   ;
 
 /**
@@ -2611,6 +2615,10 @@ indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
         op = Datatype::datatypeOf(expr)[Datatype::indexOf(expr)].getTester();
         kind = CVC4::kind::APPLY_TESTER;
       }
+    | TUPLE_SEL_TOK m=INTEGER_LITERAL {
+      kind = CVC4::kind::APPLY_SELECTOR;
+      op = MK_CONST(Rational(AntlrInput::tokenToUnsigned($m)));
+      } 
     | badIndexedFunctionName
     )
     RPAREN_TOK
