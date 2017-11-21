@@ -519,7 +519,7 @@ void CegConjectureProcessFun::getIrrelevantArgs(
   }
 }
 
-CegConjectureProcess::CegConjectureProcess(QuantifiersEngine* qe) : d_qe(qe) {}
+CegConjectureProcess::CegConjectureProcess(QuantifiersEngine* qe) {}
 CegConjectureProcess::~CegConjectureProcess() {}
 Node CegConjectureProcess::preSimplify(Node q)
 {
