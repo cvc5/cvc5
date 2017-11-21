@@ -26,48 +26,73 @@ namespace quantifiers {
 
 class CegConjecture;
 
-class TypeObject
+/** Keeps the necessary information in building a normalized type:
+ *
+ * the original typenode, from which the datatype representation can be
+ * extracted the operators, names and argument types for each costructor the
+ * unresolved type used as placeholder for references of yet to be built type a
+ * datatype to represent the typenode for the new type */
+struct TypeObject
 {
- public:
-  TypeObject(TypeNode tn);
+  /* Both constructors create an unresolved type and datatype with the given
+   * name. An original typenode is optional, since normalized types can be
+   * created from scratch during normalization */
+  TypeObject(TypeNode src_tn, std::string type_name);
+  TypeObject(std::string type_name);
   ~TypeObject() {}
 
-  TypeNode d_tn;
+  /* The original typenode this TypeObject is normalizing */
+  TypeNode tn;
+  /* Operators for each construct. */
   std::vector<Expr> ops;
+  /* Names for each construct. */
   std::vector<std::string> cons_names;
-  std::vector<std::vector<Type>> cons_args;
+  /* List of argument types for each constructor */
+  std::vector<std::vector<Type>> cons_args_t;
+  /* Unresolved type placeholder */
   Type unres_t;
-  Datatype* unres_dt;
+  /* Datatype to represent type's structure */
+  Datatype unres_dt;
 };
 
-/** utility for simplifying grammar and the respective datatypes to avoid
- * spurious enumarations
+/** Utility for simplifying SyGuS grammars and avoid spurious enumarations
+ *
+ * Uses the datatype representation of a SyGuS grammar to identify entries that
+ * can normalized in order to have less possible enumerations. An example is
+ * with integer types, e.g.:
+ *
+ * Int -> x | y | Int + Int | Int - Int | 0 | 1 | ite( Bool, Int, Int ) |
+ *        c1...cn
+ *
+ * where c1...cn are additional constants (in the case of large constants
+ * appearing in the conjecture).
+ *
+ * becomes
+ *
+ * Int -> ite( Bool, Int, Int ) | IntN
+ * IntN -> IntX | Int0 - IntX
+ * Int0 -> 0
+ * IntX -> IntXX + IntX | IntY
+ * IntXX -> x
+ * IntY -> IntYY + IntY | IntC
+ * IntYY -> y
+ * IntC -> IntCC + IntC | IntV
+ * IntCC -> 1
+ * IntV -> 0 | c1...cn
  */
 class SygusGrammarSimplifier
 {
  public:
   SygusGrammarSimplifier(QuantifiersEngine* qe, CegConjecture* p);
   ~SygusGrammarSimplifier() {}
-  /** helper function for function process
-   * Creates a normalized type from a given type
-   * For now only normalizes integer types, e.g.:
-   * Int -> x | y | Int + Int | Int - Int | 0 | 1 | ite( Bool, Int, Int ) |
-   * c1...cn
+  /** creates a normalized typenode from a given one.
    *
-   * where c1...cn are additional constants (in the case of large constants
-   * appearing in the conjecture).
+   * In a normalized typenode all of its types that can be normalized (e.g. Int)
+   * are so and its other types are structurally identical to the original
+   * typenode it normalizes.
    *
-   * becomes
-   *
-   * Int -> ite( Bool, Int, Int ) | IntN
-   * IntN -> IntX | 0 - IntX
-   * IntX -> IntXX + IntX | IntY
-   * IntXX -> x
-   * IntY -> IntYY + IntY | IntC
-   * IntYY -> y
-   * IntC -> IntCC + IntC | IntV
-   * IntCC -> 1
-   * IntV -> 0 | c1...cn
+   * sygus_vars are the input variables for the function to be synthesized,
+   * which are used as input for the built datatypes.
    */
   TypeNode normalizeSygusType(TypeNode tn, Node sygus_vars);
 
@@ -83,17 +108,31 @@ class SygusGrammarSimplifier
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
 
-  void processTypeObject(unsigned index,
-                         Node sygus_vars,
+  /** normalize integer type
+   *
+   * new types created during normalization will be added to tos and
+   * sygus_type_to_unres */
+  void normalizeSygusInt(unsigned ind,
                          std::vector<TypeObject>& tos,
-                         std::map<TypeNode, Type>& tn_to_unres,
-                         std::set<Type>& unres_all);
+                         std::map<Type, Type>& sygus_type_to_unres,
+                         Node sygus_vars);
 
+  /** Traverses the datatype representing a typenode and collects the types it
+   * contains
+   *
+   * for each new typenode a TypeObject is created, with an unresolved type and
+   * a datatype to be later resolved and constructed, respectively. These are
+   * accumulated in tos.
+   *
+   * sygus_type_to_unres maps the sygus types that the typenodes stand for into
+   * the unresolved type to be built for the typenodes normalizations.
+   *
+   * visited caches visited nodes
+   */
   void collectInfoFor(
       TypeNode src_tn,
       std::vector<TypeObject>& tos,
-      std::map<TypeNode, Type>& tn_to_unres,
-      std::set<Type>& unres_all,
+      std::map<Type, Type>& sygus_type_to_unres,
       std::map<TypeNode, bool>& visited);
 };
 
