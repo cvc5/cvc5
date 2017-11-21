@@ -1402,6 +1402,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
 
   if (options::cbqiBvRmExtract())
   {
+    NodeManager * nm = NodeManager::currentNM();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;
@@ -1437,14 +1438,15 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
                                << std::endl;
           BitVectorExtract e =
               curr_vec[i].getOperator().getConst<BitVectorExtract>();
-          for (unsigned r = 0; r < 2; r++)
+          if (std::find(boundaries.begin(), boundaries.end(), e.high + 1)
+              == boundaries.end())
           {
-            unsigned b = r == 0 ? e.high + 1 : e.low;
-            if (std::find(boundaries.begin(), boundaries.end(), b)
-                == boundaries.end())
-            {
-              boundaries.push_back(b);
-            }
+            boundaries.push_back(e.high + 1);
+          }
+          if (std::find(boundaries.begin(), boundaries.end(), e.low)
+              == boundaries.end())
+          {
+            boundaries.push_back(e.low);
           }
         }
         std::sort(boundaries.rbegin(), boundaries.rend());
@@ -1456,7 +1458,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
           Assert(boundaries[i - 1] > 0);
           Node ex = bv::utils::mkExtract(
               es.first, boundaries[i - 1] - 1, boundaries[i]);
-          Node var = NodeManager::currentNM()->mkSkolem(
+          Node var = nm->mkSkolem(
               "ek",
               ex.getType(),
               "variable to represent disjoint extract region");
@@ -1467,7 +1469,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
           vars.push_back(var);
         }
 
-        Node conc = NodeManager::currentNM()->mkNode(kind::BITVECTOR_CONCAT,
+        Node conc = nm->mkNode(kind::BITVECTOR_CONCAT,
                                                       children);
         Assert(conc.getType() == es.first.getType());
         Node eq_lem = conc.eqNode(es.first);
