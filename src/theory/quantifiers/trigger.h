@@ -280,6 +280,29 @@ class Trigger {
   static void collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt,
                                std::vector< Node >& exclude, std::map< Node, TriggerTermInfo >& tinfo,
                                bool filterInst = false );
+
+  /** filter all nodes that have instances 
+   * 
+   * This updates nodes so that no pairs of distinct nodes (i,j)
+   * is such that i is an instance of j or vice versa (see below).
+   */
+  static void filterInstances( std::vector< Node >& nodes );
+  
+  /** is instance of 
+   * 
+   * We say a term t is an instance of term s if
+   *   t = s * { x1 -> t[x1] ... xn -> t[xn] }
+   * that is, t is the result of applying to s a substitution whose range terms 
+   * have free variables contained in their domains.
+   * For example, f( a ) and f( g( x ) ) are instances of f( x ), but
+   * f( g( y ) ) is not an instance of f( x ).
+   * 
+   * When this method returns -1, n1 is an instance of n2, 
+   * When this method returns 1, n1 is an instance of n2.
+   */
+  static int isInstanceOf( Node n1, Node n2 );
+
+  
   /** Is n a usable trigger in quantified formula q?
    *
    * A usable trigger is one that is matchable and contains free variables only

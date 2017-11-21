@@ -183,17 +183,9 @@ public:
   //quantified simplify (treat free variables in n as quantified and run rewriter)
   static Node getQuantSimplify( Node n );
 
-//for triggers
-private:
+ private:
   /** helper function for compute var contains */
   static void computeVarContains2( Node n, Kind k, std::vector< Node >& varContains, std::map< Node, bool >& visited );
-  /** helper for is instance of */
-  static bool isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs );
-  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  static int isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 );
-  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  static int isInstanceOf(Node n1, Node n2);
-
  public:
   /** compute var contains */
   static void computeVarContains( Node n, std::vector< Node >& varContains );

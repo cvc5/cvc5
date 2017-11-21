@@ -605,7 +605,7 @@ void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, qu
     collectPatTerms( q, n, patTerms2, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo2, false );
     std::vector< Node > temp;
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
-    quantifiers::TermUtil::filterInstances( temp );
+    filterInstances( temp );
     if( temp.size()!=patTerms2.size() ){
       Trace("trigger-filter-instance") << "Filtered an instance: " << std::endl;
       Trace("trigger-filter-instance") << "Old: ";
@@ -641,6 +641,118 @@ void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, qu
   for( std::map< Node, TriggerTermInfo >::iterator it = tinfo.begin(); it != tinfo.end(); ++it ){
     patTerms.push_back( it->first );
   }
+}
+
+
+int Trigger::isInstanceOf( Node n1, Node n2 ) {
+  std::map< Node, std::vector< Node > > free_vars;
+  std::unordered_map<TNode, std::unordered_set<TNode, TNodeHashFunction >, TNodeHashFunction> visited;
+  std::unordered_map<TNode, std::unordered_map<TNode, int, TNodeHashFunction >, TNodeHashFunction > status;
+  std::map<TNode, bool > subs_vars;
+  std::vector<TNode> visit[2];
+  TNode cur1;
+  TNode cur2;
+  visit[0].push_back(n1);
+  visit[1].push_back(n2);
+  do {
+    cur1 = visit[0].back();
+    visit[0].pop_back();
+    cur2 = visit[1].back();
+    visit[1].pop_back();
+    
+    if (visited[cur1].find(cur2)==visited[cur1].end()) {
+      visited[cur1].insert(cur2);
+      Assert( cur1!=cur2 );
+      if( cur1.hasOperator() && cur2.hasOperator() &&
+          cur1.getNumChildren()==cur2.getNumChildren() && 
+          cur1.getOperator()==cur2.getOperator() ){
+        visit[0].push_back(cur1);
+        visit[1].push_back(cur2);
+        for (unsigned i = 0; i < cur1.getNumChildren(); i++) {
+          if(cur1[i]!=cur2[i] ){
+            visit[0].push_back(cur1[i]);
+            visit[1].push_back(cur2[i]);
+          }
+        }
+      }else{
+        int cstatus = 0;
+        // check if we are in a unifiable instance case
+        // must be only this case 
+        for( unsigned r=0; r<2; r++ ){
+          Node ni = r==0 ? n1 : n2;
+          if( ni.getKind()==INST_CONSTANT && subs_vars.find(ni)==subs_vars.end() ){
+            Node nj = r==0 ? n2 : n1;
+            // we are an instance if the free variables of nj is contained in { ni }
+            std::map< Node, std::vector< Node > >::iterator it = free_vars.find(nj);
+            if( it==free_vars.end() ){
+              quantifiers::TermUtil::computeVarContains(nj,free_vars[nj]);
+              it = free_vars.find(nj);
+            }
+            if( it->second.empty() || it->second.size()==1 && it->second[0]==ni ){
+              cstatus = r==0 ? 1 : -1;
+              subs_vars[ni] = true;
+              break;
+            }
+          }
+        }
+        status[cur1][cur2] = cstatus;          
+      }
+    }else{
+      Assert( cur1.getNumChildren()==cur2.getNumChildren() );
+      int result = 0;
+      for( unsigned i=0; i<cur1.getNumChildren(); i++ ){
+        TNode nc1 = cur1[i];
+        TNode nc2 = cur2[i];
+        if( nc1!=nc2 ){
+          Assert(status.find(nc1)!=status.end());
+          Assert(status[nc1].find(nc2)!=status[nc1].end());
+          int cresult = status[nc1][nc2];
+          if( cresult==0 ){
+            result = 0;
+            break;
+          }else if( cresult!=result ){
+            if( result!=0 ){
+              result = 0;
+              break;
+            }else{
+              result = cresult;
+            }
+          }
+        }
+      }
+      status[cur1][cur2] = result;
+    }
+  }while (!visit[0].empty());
+  Assert( status.find(n1)!=status.end() );
+  Assert( status[n1].find(n2)!=status[n1].end() );
+  return status[n1][n2];
+}
+
+void Trigger::filterInstances( std::vector< Node >& nodes ){
+  std::vector< bool > active;
+  active.resize( nodes.size(), true );
+  for( unsigned i=0; i<nodes.size(); i++ ){
+    for( unsigned j=i+1; j<nodes.size(); j++ ){
+      if( active[i] && active[j] ){
+        int result = isInstanceOf( nodes[i], nodes[j] );
+        if( result==1 ){
+          Trace("filter-instances") << nodes[j] << " is an instance of " << nodes[i] << std::endl;
+          active[j] = false;
+        }else if( result==-1 ){
+          Trace("filter-instances") << nodes[i] << " is an instance of " << nodes[j] << std::endl;
+          active[i] = false;
+        }
+      }
+    }
+  }
+  std::vector< Node > temp;
+  for( unsigned i=0; i<nodes.size(); i++ ){
+    if( active[i] ){
+      temp.push_back( nodes[i] );
+    }
+  }
+  nodes.clear();
+  nodes.insert( nodes.begin(), temp.begin(), temp.end() );
 }
 
 Node Trigger::getInversionVariable( Node n ) {
