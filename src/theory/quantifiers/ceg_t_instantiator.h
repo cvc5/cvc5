@@ -283,28 +283,28 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
    *
    * This method modifies the contents of lems based on removing extract terms
    * when the option --cbqi-bv-rm-extract is enabled.
-   * 
+   *
    * For example:
    *   P[ ((extract 7 4) t), ((extract 3 0) t)]
    *     becomes:
-   *   P[((extract 7 4) t), ((extract 3 0) t)] ^ 
+   *   P[((extract 7 4) t), ((extract 3 0) t)] ^
    *   t = concat( x74, x30 ) ^
    *   x74 = ((extract 7 4) t) ^
    *   x30 = ((extract 3 0) t)
    * where x74 and x30 are fresh variables.
-   * 
+   *
    * Another example:
    *   P[ ((extract 7 3) t), ((extract 4 0) t)]
    *     becomes:
-   *   P[((extract 7 4) t), ((extract 3 0) t)] ^ 
+   *   P[((extract 7 4) t), ((extract 3 0) t)] ^
    *   t = concat( x75, x44, x30 ) ^
    *   x75 = ((extract 7 5) t) ^
    *   x44 = ((extract 4 4) t) ^
    *   x30 = ((extract 3 0) t)
    * where x75, x44 and x30 are fresh variables.
-   * 
+   *
    * Notice we leave the original conjecture alone. This is done for performance
-   * since the added equalities ensure we are able to construct the proper 
+   * since the added equalities ensure we are able to construct the proper
    * solved forms for variables in t and for the intermediate variables above.
    */
   virtual void registerCounterexampleLemma(std::vector<Node>& lems,
