@@ -26,6 +26,20 @@ namespace quantifiers {
 
 class CegConjecture;
 
+class TypeObject
+{
+ public:
+  TypeObject(TypeNode tn);
+  ~TypeObject() {}
+
+  TypeNode d_tn;
+  std::vector<Expr> ops;
+  std::vector<std::string> cons_names;
+  std::vector<std::vector<Type>> cons_args;
+  Type unres_t;
+  Datatype* unres_dt;
+};
+
 /** utility for simplifying grammar and the respective datatypes to avoid
  * spurious enumarations
  */
@@ -55,7 +69,7 @@ class SygusGrammarSimplifier
    * IntCC -> 1
    * IntV -> 0 | c1...cn
    */
-  TypeNode normalizeSygusType(TypeNode tn);
+  TypeNode normalizeSygusType(TypeNode tn, Node sygus_vars);
 
  private:
   /** reference to quantifier engine */
@@ -65,24 +79,22 @@ class SygusGrammarSimplifier
    * This contains global information about the synthesis conjecture.
    */
   CegConjecture* d_parent;
-  /** is the syntax restricted? */
-  bool d_is_syntax_restricted;
-  /** does the syntax allow ITE expressions? */
-  bool d_has_ite;
 
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
 
-  void collectSygusGrammarTypesFor(
-      TypeNode range,
-      std::vector<TypeNode>& types,
-      std::map<TypeNode, std::vector<DatatypeConstructorArg>>& sels,
-      TypeNode& bool_type);
+  void processTypeObject(unsigned index,
+                         Node sygus_vars,
+                         std::vector<TypeObject>& tos,
+                         std::map<TypeNode, Type>& tn_to_unres,
+                         std::set<Type>& unres_all);
 
-  void collectSygusGrammarVars(TypeNode tn,
-                               std::vector<Node>& vars,
-                               std::map<TypeNode, bool>& visited);
-  /* TODO add kinds to be normalized: PLUS, MINUS if ZERO is present */
+  void collectInfoFor(
+      TypeNode src_tn,
+      std::vector<TypeObject>& tos,
+      std::map<TypeNode, Type>& tn_to_unres,
+      std::set<Type>& unres_all,
+      std::map<TypeNode, bool>& visited);
 };
 
 } // namespace quantifiers

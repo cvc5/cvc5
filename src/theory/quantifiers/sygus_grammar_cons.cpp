@@ -122,7 +122,7 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
     if (options::sygusNormalizeGrammar())
     {
       SygusGrammarSimplifier sygus_simp(d_qe, d_parent);
-      tn = sygus_simp.normalizeSygusType(tn);
+      tn = sygus_simp.normalizeSygusType(tn, sfvl);
     }
     // check if there is a template
     std::map< Node, Node >::iterator itt = templates.find( sf );

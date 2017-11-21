@@ -29,19 +29,32 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+TypeObject::TypeObject(TypeNode tn)
+{
+  d_tn = tn;
+  /* Create new datatype */
+  std::stringstream ss;
+  ss << tn << "_norm";
+  std::string dt_name = ss.str();
+  Datatype* tmp_dt = new Datatype(dt_name);
+  unres_dt = tmp_dt;
+  /* Create an unresolved type */
+  unres_t = NodeManager::currentNM()
+                ->mkSort(dt_name, ExprManager::SORT_FLAG_PLACEHOLDER)
+                .toType();
+}
+
 SygusGrammarSimplifier::SygusGrammarSimplifier(QuantifiersEngine* qe,
                                                CegConjecture* p)
-    : d_qe(qe),
-      d_parent(p),
-      d_tds(d_qe->getTermDatabaseSygus()),
-      d_is_syntax_restricted(false),
-      d_has_ite(true)
+    : d_qe(qe), d_parent(p), d_tds(d_qe->getTermDatabaseSygus())
 {
 }
 
-void SygusGrammarSimplifier::collectSygusGrammarVars(
+void SygusGrammarSimplifier::collectInfoFor(
     TypeNode tn,
-    std::vector<Node>& vars,
+    std::vector<TypeObject>& tos,
+    std::map<TypeNode, Type>& tn_to_unres,
+    std::set<Type>& unres_all,
     std::map<TypeNode, bool>& visited)
 {
   if (visited.find(tn) != visited.end())
@@ -50,259 +63,251 @@ void SygusGrammarSimplifier::collectSygusGrammarVars(
   }
   visited[tn] = true;
   Assert(tn.isDatatype());
-  /* Look for variables */
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  for (unsigned i = 0, size_dt = dt.getNumConstructors(); i < size_dt; ++i)
-  {
-    Node sygus_opn = Node::fromExpr(dt[i].getSygusOp());
-    if (sygus_opn.getKind() == BOUND_VARIABLE)
-    {
-      vars.push_back(sygus_opn);
-      continue;
-    }
-    /* if (sygus_opn.getKind() == BOUND_VARIABLE) */
-    /* { */
-    /*   vars.push_back(sygus_opn); */
-    /*   continue; */
-    /* } */
-    for (unsigned j = 0, size_cons = dt[i].getNumArgs(); j < size_cons; ++j)
-    {
-      TypeNode cons_range = TypeNode::fromType(
-          static_cast<SelectorType>(dt[i][j].getType()).getRangeType());
-      collectSygusGrammarVars(cons_range, vars, visited);
-    }
-  }
-}
-
-void SygusGrammarSimplifier::collectSygusGrammarTypesFor(
-    TypeNode range,
-    std::vector<TypeNode>& types,
-    std::map<TypeNode, std::vector<DatatypeConstructorArg>>& sels,
-    TypeNode& bool_type)
-{
-  Assert(range.isDatatype());
-  const Datatype& dt = static_cast<DatatypeType>(range.toType()).getDatatype();
-  /* Whether there is a dependency on booleans */
-  if (dt.getSygusType().isBoolean())
-  {
-    bool_type = range;
-    return;
-  }
-  /* Dependencies already taken */
-  if (std::find(types.begin(), types.end(), range) != types.end())
-  {
-    return;
-  }
   Trace("sygus-grammar-normalize")
-      << "...will need a grammar for " << range << std::endl;
-  types.push_back(range);
+      << "...will need to rebuild " << tn << std::endl;
+  /* Add to global accumulators */
+  tos.push_back(TypeObject(tn));
+  tn_to_unres[tn] = tos.back().unres_t;
+  unres_all.insert(tos.back().unres_t);
+  /* Visit types of constructor arguments */
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   for (const DatatypeConstructor& cons : dt)
   {
     for (const DatatypeConstructorArg& arg : cons)
     {
-      TypeNode cons_range = TypeNode::fromType(
-          static_cast<SelectorType>(arg.getType()).getRangeType());
-      sels[cons_range].push_back(arg);
-      collectSygusGrammarTypesFor(cons_range, types, sels, bool_type);
+      collectInfoFor(
+          TypeNode::fromType(
+              static_cast<SelectorType>(arg.getType()).getRangeType()),
+          tos,
+          tn_to_unres,
+          unres_all,
+          visited);
     }
   }
 }
 
-TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn)
+/* Make int_type and zero */
+/* const Type& int_type = nm->integerType().toType(); */
+/* Node zero = */
+/*     d_qe->getTermUtil()->getTypeValue(TypeNode::fromType(int_type), 0); */
+
+/* /\* Normalize integer type *\/ */
+/* if (dt.getSygusType() == int_type) */
+/* { */
+/*   Trace("sygus-grammar-normalize") */
+/*       << "Normalizing integer type " << tn << " from datatype\n" */
+/*       << dt << std::endl; */
+/*   /\* Initialize term database utilities for the given typenode and retrieve
+ */
+/*    * some stuff *\/ */
+/*   d_tds->registerSygusType(type_nodes[i]); */
+/*   /\* Build ITE if it has ITE *\/ */
+/*   int ite_cons_pos = d_tds->getKindConsNum(type_nodes[i], ITE); */
+/*   if (ite_cons_pos != -1) */
+/*   { */
+/*     Trace("sygus-grammar-normalize") << "...add for " << ITE << std::endl; */
+/*     ops[i].push_back(nm->operatorOf(ITE).toExpr()); */
+/*     cons_names.push_back(kindToString(ITE)); */
+/*     cons_args.push_back(std::vector<Type>()); */
+/*     cons_args.back().push_back(unres_bt); */
+/*     cons_args.back().push_back(unres_t); */
+/*     cons_args.back().push_back(unres_t); */
+/*   } */
+/*   unsigned name_count = 0; */
+/*   /\* Build normalized minus if has 0 and minus *\/ */
+/*   /\* std::vector<Node> consts = d_tds->getConstList(type_nodes[i]); *\/ */
+/*   /\* std::vector<Node> vars = d_tds->getVarList(type_nodes[i]); *\/ */
+/*   /\* Trace("sygus-grammar-normalize") *\/ */
+/*   /\*     << "...have to add vars " << vars << std::endl; *\/ */
+/*   /\* Trace("sygus-grammar-normalize") *\/ */
+/*   /\*     << "...have to add consts " << consts << std::endl; *\/ */
+/*   if (d_tds->hasKind(type_nodes[i], MINUS) */
+/*       && d_tds->hasConst(type_nodes[i], zero)) */
+/*   { */
+/*     Trace("sygus-grammar-normalize") << "\tHas minus and 0\n"; */
+/*     ops[i].push_back(nm->operatorOf(MINUS).toExpr()); */
+/*     cons_names.push_back(kindToString(MINUS)); */
+/*     cons_args.push_back(std::vector<Type>()); */
+/*     /\* Create type of zero *\/ */
+/*     std::stringstream ss; */
+/*     ss << type_nodes[i] << "_zero"; */
+/*     std::string name_zero = ss.str(); */
+/*     Type unres_zero = */
+/*         nm->mkSort(name_zero, ExprManager::SORT_FLAG_PLACEHOLDER).toType();
+ */
+/*     unres_types.push_back(unres_zero); */
+/*     unres_all.insert(unres_zero); */
+
+/*     /\* Adding type of zero and rest to minus *\/ */
+/*     cons_args.back().push_back(unres_zero); */
+/*     /\* For now have rest as int *\/ */
+/*     cons_args.back().push_back(unres_t); */
+
+/*     /\* std::stringstream ss; *\/ */
+/*     /\* ss << type_nodes[i] << name_count++; *\/ */
+/*     /\* std::string name_arg2 = ss.str(); *\/ */
+/*     /\* Datatype dt_minus_arg2 = Datatype(name_arg2); *\/ */
+/*     /\* /\\* Add placeholder for operators this datatype will have *\\/ *\/
+ */
+/*     /\* ops.push_back(std::vector<Expr>()); *\/ */
+/*     /\* /\\* Create an unresolved type to stand for this datatype when */
+/*      * resolved *\\/ *\/ */
+/*     /\* Type unres_minus = *\/ */
+/*     /\*     nm->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER).toType();
+ * *\/ */
+/*     /\* unres_types.push_back(unres_minus); *\/ */
+/*     /\* unres_all.insert(unres_t); *\/ */
+/*   } */
+/* } */
+
+/* add this:     gr = Node::fromExpr(
+ * smt::currentSmtEngine()->expandDefinitions( gr.toExpr() ) ); */
+
+/* void SygusGrammarSimplifier::processTypeObject( */
+/*     unsigned index, */
+/*     Node sygus_vars, */
+/*     std::vector<DatatypeConstructorArg> sels, */
+/*     std::vector<TypeObject>& tos, */
+/*     std::map<TypeNode, Type>& tn_to_unres, */
+/*     std::set<Type>& unres_all) */
+/* { */
+/*   Trace("sygus-grammar-normalize") */
+/*       << "Type " << tos[index].tn << " will be have the same structure as
+ * before\n"; */
+/*   for (const DatatypeConstructor& cons : tos[index].dt) */
+/*   { */
+/*     Trace("sygus-grammar-normalize") */
+/*         << "...for " << cons.getName() << std::endl; */
+/*     tos[index].ops.push_back(cons.getConstructor()); */
+/*     tos[index].cons_names.push_back(cons.getName()); */
+/*     for (const DatatypeConstructorArg& arg : cons) */
+/*     { */
+/*       tos[index].cons_args.push_back(tn_to_unres[TypeNode::fromType( */
+/*           static_cast<SelectorType>(arg.getType()).getRangeType())]); */
+/*     } */
+/*   } */
+/*   /\* Add for all selectors to this type *\/ */
+/*   if (!sels.empty()) */
+/*   { */
+/*     Trace("sygus-grammar-normalize") << "...add for selectors" << std::endl;
+ */
+/*     for (const DatatypeConstructorArg& arg : sels) */
+/*     { */
+/*       Trace("sygus-grammar-normalize") */
+/*           << "\t...for " << arg.getName() << std::endl; */
+/*       tos[index].ops.push_back(arg.getSelector()); */
+/*       tos[index].cons_names.push_back(arg.getName()); */
+/*       tos[index].cons_args.push_back(tn_to_unres[TypeNode::fromType( */
+/*           static_cast<SelectorType>(arg.getType()).getDomain())]); */
+/*     } */
+/*   } */
+/*   Trace("sygus-grammar-normalize") */
+/*       << "...make datatype " << tos[index].unres_dt << std::endl; */
+/*   tos[index].unres_dt.setSygus(tos[index].t, sygus_vars.toExpr(), true,
+ * true); */
+/*   for (unsigned i = 0, size_ops = tos[index].ops.size(); i < size_ops; ++i)
+ */
+/*   { */
+/*     tos[index].unres_dt.addSygusConstructor( */
+/*         tos[index].ops[i], tos[index].cons_names[i],
+ * tos[index].cons_args[i]); */
+/*   } */
+/*   Trace("sygus-grammar-normalize") */
+/*       << "...result is " << tos[index].unres_dt << std::endl; */
+/* } */
+
+TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn,
+                                                    Node sygus_vars)
 {
-  /* Accumulate types to be reconstructed. Bool is special? */
-  TypeNode bool_type = TypeNode::null();
-  std::vector<TypeNode> type_nodes;
-  std::map<TypeNode, std::vector<DatatypeConstructorArg>> sels;
-  collectSygusGrammarTypesFor(tn, type_nodes, sels, bool_type);
-  /* Accumulates variables occurring in tn */
-  NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> tn_vars;
-  std::map<TypeNode, bool> visited;
-  collectSygusGrammarVars(tn, tn_vars, visited);
-  std::string bool_name;
-  Type unres_bt;
-  if (!bool_type.isNull())
-  {
-    Trace("sygus-grammar-normalize")
-        << "Has bool type " << bool_type << std::endl;
-    /* Create unresolved boolean type */
-    std::stringstream ss;
-    ss << bool_type;
-    bool_name = ss.str();
-    unres_bt =
-        nm->mkSort(bool_name, ExprManager::SORT_FLAG_PLACEHOLDER).toType();
-  }
-  else
-  {
-    Trace("sygus-grammar-normalize") << "No previous boolean type\n";
-  }
-  /* Datatypes for each type */
-  std::vector<Datatype> datatypes;
-  /* Operators */
-  std::vector<std::vector<Expr>> ops;
-  /* Accomulator of all unresolved types */
+  /* Accumulates all typing information for normalization and reconstruction */
+  std::vector<TypeObject> tos;
+  /* Allows retrieving respective unresolved types for typenodes */
+  std::map<TypeNode, Type> tn_to_unres;
+  /* Accomulator of all unresolved types and datypes */
   std::set<Type> unres_all;
-  /* All unresolved types. This vector is "synced" with the types one */
-  std::vector<Type> unres_types;
-  /* Maintains the relation between types and their unresolved correspondents */
-  std::map<TypeNode, Type> type_to_unres;
-  for (const TypeNode type_node : type_nodes)
+  std::map<TypeNode, bool> visited;
+  collectInfoFor(tn, tos, tn_to_unres, unres_all, visited);
+  /* Build datatypes TODO and normalize accordingly */
+  for (unsigned i = 0, size = tos.size(); i < size; ++i)
   {
-    /* Create datatype */
-    std::stringstream ss;
-    ss << type_node;
-    std::string dt_name = ss.str();
-    datatypes.push_back(Datatype(dt_name));
-    /* Add placeholder for operators this datatype will have */
-    ops.push_back(std::vector<Expr>());
-    /* Create an unresolved type to stand for this datatype when resolved */
-    Type unres_t =
-        nm->mkSort(dt_name, ExprManager::SORT_FLAG_PLACEHOLDER).toType();
-    unres_types.push_back(unres_t);
-    type_to_unres[type_node] = unres_t;
-    unres_all.insert(unres_t);
+    /* processTypeObject(i, sygus_vars, tos, tn_to_unres,
+     * unres_all);
+     */
+    const Datatype& dt =
+        static_cast<DatatypeType>(tos[i].d_tn.toType()).getDatatype();
+    Trace("sygus-grammar-normalize")
+        << "Type " << tos[i].d_tn << " whose sygus type is "
+        << dt.getSygusType() << " to be normalized with datatype " << dt
+        << std::endl;
+    for (const DatatypeConstructor& cons : dt)
+    {
+      Trace("sygus-grammar-normalize")
+          << "...for " << cons.getName() << std::endl;
+      tos[i].ops.push_back(cons.getConstructor());
+      tos[i].cons_names.push_back(cons.getName());
+      tos[i].cons_args.push_back(std::vector<Type>());
+      for (const DatatypeConstructorArg& arg : cons)
+      {
+        tos[i].cons_args.back().push_back(tn_to_unres[TypeNode::fromType(
+            static_cast<SelectorType>(arg.getType()).getRangeType())]);
+      }
+    }
+    Trace("sygus-grammar-normalize")
+        << "...make datatype " << *tos[i].unres_dt << std::endl;
+    /* Use original type represented */
+    tos[i].unres_dt->setSygus(
+        tos[i].d_tn.toType(), sygus_vars.toExpr(), true, true);
+    for (unsigned j = 0, size_ops = tos[i].ops.size(); j < size_ops; ++j)
+    {
+      tos[i].unres_dt->addSygusConstructor(
+          tos[i].ops[j], tos[i].cons_names[j], tos[i].cons_args[j]);
+    }
+    Trace("sygus-grammar-normalize")
+        << "...result is " << *tos[i].unres_dt << std::endl;
   }
+  /* Resolve types */
+  Trace("sygus-grammar-normalize")
+      << "...made " << tos.size()
+      << " datatypes, now make mutual datatype types..." << std::endl;
+  std::vector<Datatype> dts;
+  for (TypeObject& to : tos)
+  {
+    dts.push_back(*to.unres_dt);
+  }
+  std::vector<DatatypeType> types =
+      NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
+          dts, unres_all);
+  Assert(types.size() == dts.size());
+  TypeNode tn_norm = TypeNode::fromType(types[0]);
+  const Datatype& dt = static_cast<DatatypeType>(tn_norm.toType()).getDatatype();
+  Trace("sygus-grammar-normalize")
+      << "Made typenode " << tn_norm << " with datatype " << dt
+      << " which has sygus type " << dt.getSygusType() << " while " << tn
+      << " had sygus type "
+      << static_cast<DatatypeType>(tn.toType()).getDatatype().getSygusType()
+      << "\n";
   /* Make int_type and zero */
+  NodeManager* nm = NodeManager::currentNM();
   const Type& int_type = nm->integerType().toType();
   Node zero =
       d_qe->getTermUtil()->getTypeValue(TypeNode::fromType(int_type), 0);
-  /* Build datatypes TODO and normalize accordingly */
-  for (unsigned i = 0, size = type_nodes.size(); i < size; ++i)
+  d_tds->registerSygusType(tn_norm);
+  d_tds->registerSygusType(tn);
+  if (d_tds->hasKind(tn_norm, MINUS) && d_tds->hasConst(tn_norm, zero))
   {
-    std::vector<std::string> cons_names;
-    std::vector<std::vector<Type>> cons_args;
-    Type unres_t = unres_types[i];
-    /* Retrieve datatype encoding given typenode */
-    const Datatype& dt =
-        static_cast<DatatypeType>(type_nodes[i].toType()).getDatatype();
-    /* Normalize integer type */
-    if (dt.getSygusType() == int_type)
-    {
-      Trace("sygus-grammar-normalize")
-          << "Normalizing integer type " << tn << " from datatype\n"
-          << dt << std::endl;
-      /* Initialize term database utilities for the given typenode and retrieve
-       * some stuff */
-      d_tds->registerSygusType(type_nodes[i]);
-      /* Build ITE if it has ITE */
-      if (d_tds->hasKind(type_nodes[i], ITE))
-      {
-        Trace("sygus-grammar-normalize") << "...add for " << ITE << std::endl;
-        ops[i].push_back(nm->operatorOf(ITE).toExpr());
-        cons_names.push_back(kindToString(ITE));
-        cons_args.push_back(std::vector<Type>());
-        cons_args.back().push_back(unres_bt);
-        cons_args.back().push_back(unres_t);
-        cons_args.back().push_back(unres_t);
-      }
-      unsigned name_count = 0;
-      /* Build normalized minus if has 0 and minus */
-      /* std::vector<Node> consts = d_tds->getConstList(type_nodes[i]); */
-      /* std::vector<Node> vars = d_tds->getVarList(type_nodes[i]); */
-      /* Trace("sygus-grammar-normalize") */
-      /*     << "...have to add vars " << vars << std::endl; */
-      /* Trace("sygus-grammar-normalize") */
-      /*     << "...have to add consts " << consts << std::endl; */
-      if (d_tds->hasKind(type_nodes[i], MINUS)
-          && d_tds->hasConst(type_nodes[i], zero))
-      {
-        Trace("sygus-grammar-normalize") << "\tHas minus and 0\n";
-        ops[i].push_back(nm->operatorOf(MINUS).toExpr());
-        cons_names.push_back(kindToString(MINUS));
-        cons_args.push_back(std::vector<Type>());
-        /* Create type of zero */
-        std::stringstream ss;
-        ss << type_nodes[i] << "_zero";
-        std::string name_zero = ss.str();
-        Type unres_zero =
-            nm->mkSort(name_zero, ExprManager::SORT_FLAG_PLACEHOLDER).toType();
-        unres_types.push_back(unres_zero);
-        unres_all.insert(unres_zero);
-
-        /* Adding type of zero and rest to minus */
-        cons_args.back().push_back(unres_zero);
-        /* For now have rest as int */
-        cons_args.back().push_back(unres_t);
-
-        /* std::stringstream ss; */
-        /* ss << type_nodes[i] << name_count++; */
-        /* std::string name_arg2 = ss.str(); */
-        /* Datatype dt_minus_arg2 = Datatype(name_arg2); */
-        /* /\* Add placeholder for operators this datatype will have *\/ */
-        /* ops.push_back(std::vector<Expr>()); */
-        /* /\* Create an unresolved type to stand for this datatype when
-         * resolved *\/ */
-        /* Type unres_minus = */
-        /*     nm->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER).toType(); */
-        /* unres_types.push_back(unres_minus); */
-        /* unres_all.insert(unres_t); */
-      }
-    }
-    else /* Types that cannot be normalized are built normally */
-    {
-      Trace("sygus-grammar-normalize")
-          << "Type " << type_nodes[i]
-          << " will be have the same structure as before\n";
-      for (unsigned j = 0, size_dt = dt.getNumConstructors(); j < size_dt; ++j)
-      {
-        Trace("sygus-grammar-normalize")
-            << "...for " << dt[j].getName() << std::endl;
-        ops[i].push_back(dt[j].getConstructor());
-        cons_names.push_back(dt[j].getName());
-        cons_args.push_back(std::vector<Type>());
-        for (unsigned k = 0, size_cons = dt[j].getNumArgs(); k < size_cons; ++k)
-        {
-          TypeNode cons_range = TypeNode::fromType(
-              static_cast<SelectorType>(dt[j][k].getType()).getRangeType());
-          cons_args.back().push_back(type_to_unres[cons_range]);
-        }
-      }
-      /* Add for all selectors to this type */
-      if (!sels[type_nodes[i]].empty())
-      {
-        Trace("sygus-grammar-normalize") << "...add for selectors" << std::endl;
-        for (const DatatypeConstructorArg& arg : sels[type_nodes[i]])
-        {
-          Trace("sygus-grammar-normalize")
-              << "\t...for " << arg.getName() << std::endl;
-          TypeNode arg_tn = TypeNode::fromType(
-              static_cast<SelectorType>(arg.getType()).getDomain());
-          ops[i].push_back(arg.getSelector());
-          cons_names.push_back(arg.getName());
-          cons_args.push_back(std::vector<CVC4::Type>());
-          cons_args.back().push_back(type_to_unres[arg_tn]);
-        }
-      }
-    }
-    Trace("sygus-grammar-normalize")
-        << "...make datatype " << datatypes.back() << std::endl;
-    datatypes[i].setSygus(type_nodes[i].toType(),
-                          nm->mkNode(BOUND_VAR_LIST, tn_vars).toExpr(),
-                          true,
-                          true);
-    for (unsigned j = 0, size_ops = ops[i].size(); j < size_ops; ++j)
-    {
-      datatypes[i].addSygusConstructor(ops[i][j], cons_names[j], cons_args[j]);
-    }
-    Trace("sygus-grammar-normalize")
-        << "...result is " << datatypes.back() << std::endl;
+    Trace("sygus-grammar-normalize") << tn_norm << " has minus and 0\n";
   }
-  /* Build boolean type */
-  datatypes.push_back(Datatype(bool_name));
-  ops.push_back(std::vector<Expr>());
-  Trace("sygus-grammar-def") << "Make grammar for " << bool_type << " "
-                             << datatypes.back() << std::endl;
-  /* TODO take the vars */
-  /* TODO take the constants */
-  /* TODO recreate the operators */
-  /* TODO recreate the predicates */
-
-  /* Resolve types */
-
-  return tn;
+  else if (d_tds->hasKind(tn, MINUS) && d_tds->hasConst(tn, zero))
+  {
+    Trace("sygus-grammar-normalize") << tn_norm << " does not have minus and 0 but " << tn << " does\n";
+  }
+  else
+  {
+    Trace("sygus-grammar-normalize") << tn_norm << " nor " << tn << " has minus and 0\n";
+  }
+  return tn_norm;
 }
 
-}/* namespace CVC4::theory::quantifiers */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
