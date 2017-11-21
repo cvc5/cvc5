@@ -930,7 +930,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
   
   Debug("parser-sygus") << "SMT2 sygus parser : Making constructors for sygus datatype " << dt.getName() << std::endl;
   Debug("parser-sygus") << "  add constructors..." << std::endl;
-  for (unsigned i = 0; i < cnames.size(); i++)
+  for (unsigned i = 0, size = cnames.size(); i < size; i++)
   {
     bool is_dup = false;
     bool is_dup_op = false;
@@ -995,7 +995,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       }
       else
       {
-        std::map<CVC4::Expr, CVC4::Expr>::iterator it =
+        std::map<Expr, Expr>::iterator it =
             d_sygus_let_func_to_body.find(ops[i]);
         if (it != d_sygus_let_func_to_body.end())
         {
@@ -1114,10 +1114,10 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
   }
 }
 
-Expr Smt2::makeSygusBoundVarList(CVC4::Datatype& dt,
+Expr Smt2::makeSygusBoundVarList(Datatype& dt,
                                  unsigned i,
-                                 const std::vector<CVC4::Type>& ltypes,
-                                 std::vector<CVC4::Expr>& lvars)
+                                 const std::vector<Type>& ltypes,
+                                 std::vector<Expr>& lvars)
 {
   for (unsigned j = 0, size = ltypes.size(); j < size; j++)
   {

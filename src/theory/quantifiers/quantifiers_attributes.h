@@ -56,9 +56,9 @@ struct SynthesisAttributeId {};
 typedef expr::Attribute< SynthesisAttributeId, bool > SynthesisAttribute;
 
 /** Attribute for setting printing information for sygus variables
+ * 
  * For variable d of sygus datatype type, if
- * d.getAttribute(SygusPrintProxyAttribute) = t, then printing d will result
- * in printing t.
+ * d.getAttribute(SygusPrintProxyAttribute) = t, then printing d will print t.
  */
 struct SygusPrintProxyAttributeId
 {

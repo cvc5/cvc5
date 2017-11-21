@@ -327,10 +327,10 @@ private:
    * It appends a bound variable to lvars for each type in ltypes, and returns
    * a bound variable list whose children are lvars.
    */
-  CVC4::Expr makeSygusBoundVarList(CVC4::Datatype& dt,
+  Expr makeSygusBoundVarList(Datatype& dt,
                                    unsigned i,
-                                   const std::vector<CVC4::Type>& ltypes,
-                                   std::vector<CVC4::Expr>& lvars);
+                                   const std::vector<Type>& ltypes,
+                                   std::vector<Expr>& lvars);
 
   void addArithmeticOperators();
 

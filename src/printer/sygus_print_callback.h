@@ -60,6 +60,7 @@ class CVC4_PUBLIC SygusExprPrintCallback : public SygusPrintCallback
   /** body argument */
   int d_body_argument;
   /** do string replace
+   * 
    * Replaces all occurrences of oldStr with newStr in str.
    */
   void doStrReplace(std::string& str,
