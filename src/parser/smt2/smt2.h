@@ -328,9 +328,9 @@ private:
    * a bound variable list whose children are lvars.
    */
   Expr makeSygusBoundVarList(Datatype& dt,
-                                   unsigned i,
-                                   const std::vector<Type>& ltypes,
-                                   std::vector<Expr>& lvars);
+                             unsigned i,
+                             const std::vector<Type>& ltypes,
+                             std::vector<Expr>& lvars);
 
   void addArithmeticOperators();
 
