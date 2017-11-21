@@ -54,6 +54,7 @@ SygusGrammarSimplifier::SygusGrammarSimplifier(QuantifiersEngine* qe,
 {
 }
 
+/* recursion depth is limited by the height of the types, which is small  */
 void SygusGrammarSimplifier::collectInfoFor(
     TypeNode tn,
     std::vector<TypeObject>& tos,

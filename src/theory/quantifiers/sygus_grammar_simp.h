@@ -12,7 +12,6 @@
  ** \brief class for simplifying SyGuS grammars after they are encoded into
  ** datatypes.
  **/
-
 #include "cvc4_private.h"
 
 #ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_SIMP_H
@@ -78,8 +77,7 @@ struct TypeObject
  * IntYY -> y
  * IntC -> IntCC + IntC | IntV
  * IntCC -> 1
- * IntV -> 0 | c1...cn
- */
+ * IntV -> 0 | c1...cn */
 class SygusGrammarSimplifier
 {
  public:
@@ -92,17 +90,15 @@ class SygusGrammarSimplifier
    * typenode it normalizes.
    *
    * sygus_vars are the input variables for the function to be synthesized,
-   * which are used as input for the built datatypes.
-   */
+   * which are used as input for the built datatypes. */
   TypeNode normalizeSygusType(TypeNode tn, Node sygus_vars);
 
  private:
   /** reference to quantifier engine */
-  QuantifiersEngine * d_qe;
+  QuantifiersEngine* d_qe;
   /** parent conjecture
    *
-   * This contains global information about the synthesis conjecture.
-   */
+   * This contains global information about the synthesis conjecture. */
   CegConjecture* d_parent;
 
   /** sygus term database associated with this utility */
@@ -110,8 +106,14 @@ class SygusGrammarSimplifier
 
   /** normalize integer type
    *
+   * TODO actually perform the normalization
+   *
+   * ind is the indice of the analyzed typeobject in tos
+   *
    * new types created during normalization will be added to tos and
-   * sygus_type_to_unres */
+   * tn_to_unres
+   *
+   * sygus_vars is used as above for datatype construction */
   void normalizeSygusInt(unsigned ind,
                          std::vector<TypeObject>& tos,
                          std::map<TypeNode, Type>& tn_to_unres,
@@ -137,6 +139,6 @@ class SygusGrammarSimplifier
 
 } // namespace quantifiers
 } // namespace theory
-} /* namespace CVC4 */
+} // namespace CVC4
 
 #endif
