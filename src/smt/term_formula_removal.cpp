@@ -26,7 +26,8 @@ using namespace std;
 namespace CVC4 {
 
 RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u)
-  : d_iteCache(u)
+  : d_tfCache(u),
+  d_skolem_cache(u)
 {
   d_containsVisitor = new theory::ContainsTermITEVisitor();
 }
@@ -44,7 +45,7 @@ theory::ContainsTermITEVisitor* RemoveTermFormulas::getContainsVisitor() {
 }
 
 size_t RemoveTermFormulas::collectedCacheSizes() const{
-  return d_containsVisitor->cache_size() + d_iteCache.size();
+  return d_containsVisitor->cache_size() + d_tfCache.size();
 }
 
 void RemoveTermFormulas::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap, bool reportDeps)
@@ -91,8 +92,8 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   int cv = cacheVal( inQuant, inTerm );
   std::pair<Node, int> cacheKey(node, cv);
   NodeManager *nodeManager = NodeManager::currentNM();
-  ITECache::const_iterator i = d_iteCache.find(cacheKey);
-  if(i != d_iteCache.end()) {
+  TermFormulaCache::const_iterator i = d_tfCache.find(cacheKey);
+  if(i != d_tfCache.end()) {
     Node cached = (*i).second;
     Debug("ite") << "removeITEs: in-cache: " << cached << endl;
     return cached.isNull() ? Node(node) : cached;
@@ -105,34 +106,43 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   Node newAssertion;
   if(node.getKind() == kind::ITE) {
     if(!nodeType.isBoolean() && (!inQuant || !node.hasBoundVar())) {
-      // Make the skolem to represent the ITE
-      skolem = nodeManager->mkSkolem("termITE", nodeType, "a variable introduced due to term-level ITE removal");
+      skolem = getSkolemForNode(node);
+      if(skolem.isNull()){
+        // Make the skolem to represent the ITE
+        skolem = nodeManager->mkSkolem("termITE", nodeType, "a variable introduced due to term-level ITE removal");
+        d_skolem_cache.insert(node, skolem);
 
-      // The new assertion
-      newAssertion =
-        nodeManager->mkNode(kind::ITE, node[0], skolem.eqNode(node[1]),
-                            skolem.eqNode(node[2]));
+        // The new assertion
+        newAssertion =
+          nodeManager->mkNode(kind::ITE, node[0], skolem.eqNode(node[1]),
+                              skolem.eqNode(node[2]));
+      }
     }
   }
+  
   //if a lambda, do lambda-lifting
   if( node.getKind() == kind::LAMBDA && !inQuant ){
-    // Make the skolem to represent the lambda
-    skolem = nodeManager->mkSkolem("lambdaF", nodeType, "a function introduced due to term-level lambda removal");
-
-    // The new assertion
-    std::vector< Node > children;
-    // bound variable list
-    children.push_back( node[0] );
-    // body
-    std::vector< Node > skolem_app_c;
-    skolem_app_c.push_back( skolem );
-    for( unsigned i=0; i<node[0].getNumChildren(); i++ ){
-      skolem_app_c.push_back( node[0][i] );
+    skolem = getSkolemForNode(node);
+    if(skolem.isNull()){
+      // Make the skolem to represent the lambda
+      skolem = nodeManager->mkSkolem("lambdaF", nodeType, "a function introduced due to term-level lambda removal");
+      d_skolem_cache.insert(node, skolem);
+      
+      // The new assertion
+      std::vector< Node > children;
+      // bound variable list
+      children.push_back( node[0] );
+      // body
+      std::vector< Node > skolem_app_c;
+      skolem_app_c.push_back( skolem );
+      for( unsigned i=0; i<node[0].getNumChildren(); i++ ){
+        skolem_app_c.push_back( node[0][i] );
+      }
+      Node skolem_app = nodeManager->mkNode( kind::APPLY_UF, skolem_app_c );
+      children.push_back( skolem_app.eqNode( node[1] ) );
+      // axiom defining skolem
+      newAssertion = nodeManager->mkNode( kind::FORALL, children );
     }
-    Node skolem_app = nodeManager->mkNode( kind::APPLY_UF, skolem_app_c );
-    children.push_back( skolem_app.eqNode( node[1] ) );
-    // axiom defining skolem
-    newAssertion = nodeManager->mkNode( kind::FORALL, children );
   }
 
   // If a Hilbert choice function, witness the choice.
@@ -140,42 +150,52 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   //   http://planetmath.org/hilbertsvarepsilonoperator.
   if (node.getKind() == kind::CHOICE && !inQuant)
   {
-    // Make the skolem to witness the choice
-    skolem = nodeManager->mkSkolem(
-        "choiceK",
-        nodeType,
-        "a skolem introduced due to term-level Hilbert choice removal");
+    skolem = getSkolemForNode(node);
+    if(skolem.isNull()){
+      // Make the skolem to witness the choice
+      skolem = nodeManager->mkSkolem(
+          "choiceK",
+          nodeType,
+          "a skolem introduced due to term-level Hilbert choice removal");
+      d_skolem_cache.insert(node, skolem);
 
-    Assert(node[0].getNumChildren() == 1);
+      Assert(node[0].getNumChildren() == 1);
 
-    // The new assertion is the assumption that the body
-    // of the choice operator holds for the Skolem
-    newAssertion = node[1].substitute(node[0][0], skolem);
+      // The new assertion is the assumption that the body
+      // of the choice operator holds for the Skolem
+      newAssertion = node[1].substitute(node[0][0], skolem);
+    }
   }
 
   //if a non-variable Boolean term, replace it
   if(node.getKind()!=kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean() && inTerm && !inQuant ){//(!inQuant || !node.hasBoundVar())){
+    skolem = getSkolemForNode(node);
+    if(skolem.isNull()){
+      // Make the skolem to represent the Boolean term
+      //skolem = nodeManager->mkSkolem("termBT", nodeType, "a variable introduced due to Boolean term removal");
+      skolem = nodeManager->mkBooleanTermVariable();
+      d_skolem_cache.insert(node, skolem);
 
-    // Make the skolem to represent the Boolean term
-    //skolem = nodeManager->mkSkolem("termBT", nodeType, "a variable introduced due to Boolean term removal");
-    skolem = nodeManager->mkBooleanTermVariable();
-
-    // The new assertion
-    newAssertion = skolem.eqNode( node );
+      // The new assertion
+      newAssertion = skolem.eqNode( node );
+    }
   }
 
-  // if we introduced a skolem
+  // if the term should be replaced by a skolem
   if( !skolem.isNull() ){
-    Debug("ite") << "removeITEs(" << node << ") => " << newAssertion << endl;
+    // if the skolem was introduced in this call
+    if( !newAssertion.isNull() ){
+      Debug("ite") << "*** term formula removal introduced " << skolem << " for " << node << std::endl;
 
-    // Attach the skolem
-    d_iteCache.insert(cacheKey, skolem);
+      // Attach the skolem
+      d_tfCache.insert(cacheKey, skolem);
 
-    // Remove ITEs from the new assertion, rewrite it and push it to the output
-    newAssertion = run(newAssertion, output, iteSkolemMap, false, false);
+      // Remove ITEs from the new assertion, rewrite it and push it to the output
+      newAssertion = run(newAssertion, output, iteSkolemMap, false, false);
 
-    iteSkolemMap[skolem] = output.size();
-    output.push_back(newAssertion);
+      iteSkolemMap[skolem] = output.size();
+      output.push_back(newAssertion);
+    }
 
     // The representation is now the skolem
     return skolem;
@@ -206,12 +226,20 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   // If changes, we rewrite
   if(somethingChanged) {
     Node cached = nodeManager->mkNode(node.getKind(), newChildren);
-    d_iteCache.insert(cacheKey, cached);
+    d_tfCache.insert(cacheKey, cached);
     return cached;
   } else {
-    d_iteCache.insert(cacheKey, Node::null());
+    d_tfCache.insert(cacheKey, Node::null());
     return node;
   }
+}
+
+Node RemoveTermFormulas::getSkolemForNode( Node node ) const {
+  context::CDInsertHashMap< Node, Node, NodeHashFunction >::const_iterator itk = d_skolem_cache.find(node);
+  if(itk!=d_skolem_cache.end()){
+    return itk->second;
+  }
+  return Node::null();
 }
 
 Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
@@ -227,8 +255,8 @@ Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
   // Check the cache
   NodeManager *nodeManager = NodeManager::currentNM();
   int cv = cacheVal( inQuant, inTerm );
-  ITECache::const_iterator i = d_iteCache.find(make_pair(node, cv));
-  if(i != d_iteCache.end()) {
+  TermFormulaCache::const_iterator i = d_tfCache.find(make_pair(node, cv));
+  if(i != d_tfCache.end()) {
     Node cached = (*i).second;
     return cached.isNull() ? Node(node) : cached;
   }
