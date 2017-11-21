@@ -295,7 +295,7 @@ class Trigger {
    * that is, t is the result of applying to s a substitution whose range terms 
    * have free variables contained in their domains.
    * For example, f( a ) and f( g( x ) ) are instances of f( x ), but
-   * f( g( y ) ) is not an instance of f( x ).
+   * f( g( y ) ) and g( x ) are not instances of f( x ).
    * 
    * When this method returns -1, n1 is an instance of n2, 
    * When this method returns 1, n1 is an instance of n2.
