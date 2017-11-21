@@ -1359,6 +1359,19 @@ Node BvInstantiator::rewriteTermForSolvePv(
                      children[1]));
     }
   }
+  else if (n.getKind() == EQUAL)
+  {
+    if ((n[0] == pv && n[1].getKind() == BITVECTOR_MULT && n[1][0] == pv
+         && n[1][1] == pv)
+        || (n[1] == pv && n[0].getKind() == BITVECTOR_MULT && n[0][0] == pv
+            && n[0][1] == pv))
+    {
+      return nm->mkNode(
+          BITVECTOR_ULT,
+          pv,
+          bv::utils::mkConst(BitVector(bv::utils::getSize(pv), Integer(2))));
+    }
+  }
 
   // [2] try to rewrite non-linear literals -> linear literals
 
