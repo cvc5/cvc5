@@ -20,11 +20,11 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus_process_conj.h"
+#include "theory/quantifiers/sygus_grammar_norm.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;
-using namespace std;
 
 namespace CVC4 {
 namespace theory {
@@ -117,6 +117,12 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
       // make the default grammar
       tn = mkSygusDefaultType(
           v.getType(), sfvl, ss.str(), extra_cons, term_irrelevant);
+    }
+    // normalize type
+    if (options::sygusNormalizeGrammar())
+    {
+      SygusGrammarNorm sygus_norm(d_qe, d_parent);
+      tn = sygus_norm.normalizeSygusType(tn, sfvl);
     }
     // check if there is a template
     std::map< Node, Node >::iterator itt = templates.find( sf );
