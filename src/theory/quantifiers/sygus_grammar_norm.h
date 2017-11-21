@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_grammar_proc.h
+/*! \file sygus_grammar_norm.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Haniel Barbosa
@@ -28,9 +28,11 @@ class CegConjecture;
 /** Keeps the necessary information in building a normalized type:
  *
  * the original typenode, from which the datatype representation can be
- * extracted the operators, names and argument types for each costructor the
- * unresolved type used as placeholder for references of yet to be built type a
- * datatype to represent the typenode for the new type */
+ * extracted
+ * the operators, names and argument types for each constructor
+ * the unresolved type used as placeholder for references of the yet to be built
+ * type
+ * a datatype to represent the structure of the typenode for the new type */
 struct TypeObject
 {
   /* Both constructors create an unresolved type and datatype with the given
@@ -41,20 +43,20 @@ struct TypeObject
   ~TypeObject() {}
 
   /* The original typenode this TypeObject is normalizing */
-  TypeNode tn;
-  /* Operators for each construct. */
-  std::vector<Expr> ops;
-  /* Names for each construct. */
-  std::vector<std::string> cons_names;
+  TypeNode d_tn;
+  /* Operators for each constructor. */
+  std::vector<Expr> d_ops;
+  /* Names for each constructor. */
+  std::vector<std::string> d_cons_names;
   /* List of argument types for each constructor */
-  std::vector<std::vector<Type>> cons_args_t;
+  std::vector<std::vector<Type>> d_cons_args_t;
   /* Unresolved type placeholder */
-  Type unres_t;
+  Type d_unres_t;
   /* Datatype to represent type's structure */
-  Datatype unres_dt;
+  Datatype d_dt;
 };
 
-/** Utility for simplifying SyGuS grammars and avoid spurious enumarations
+/** Utility for normalizing SyGuS grammars and avoid spurious enumarations
  *
  * Uses the datatype representation of a SyGuS grammar to identify entries that
  * can normalized in order to have less possible enumerations. An example is
@@ -78,11 +80,11 @@ struct TypeObject
  * IntC -> IntCC + IntC | IntV
  * IntCC -> 1
  * IntV -> 0 | c1...cn */
-class SygusGrammarSimplifier
+class SygusGrammarNorm
 {
  public:
-  SygusGrammarSimplifier(QuantifiersEngine* qe, CegConjecture* p);
-  ~SygusGrammarSimplifier() {}
+  SygusGrammarNorm(QuantifiersEngine* qe, CegConjecture* p);
+  ~SygusGrammarNorm() {}
   /** creates a normalized typenode from a given one.
    *
    * In a normalized typenode all of its types that can be normalized (e.g. Int)
@@ -106,11 +108,11 @@ class SygusGrammarSimplifier
 
   /** normalize integer type
    *
-   * TODO actually perform the normalization
+   * TODO actually perform the normalization #1304
    *
-   * ind is the indice of the analyzed typeobject in tos
+   * ind is the index of the analyzed typeobject in tos
    *
-   * new types created during normalization will be added to tos and
+   * New types created during normalization will be added to tos and
    * tn_to_unres
    *
    * sygus_vars is used as above for datatype construction */
@@ -119,14 +121,14 @@ class SygusGrammarSimplifier
                          std::map<TypeNode, Type>& tn_to_unres,
                          Node sygus_vars);
 
-  /** Traverses the datatype representing a typenode and collects the types it
+  /** Traverses the datatype representation of src_tn and collects the types it
    * contains
    *
-   * for each new typenode a TypeObject is created, with an unresolved type and
+   * For each new typenode a TypeObject is created, with an unresolved type and
    * a datatype to be later resolved and constructed, respectively. These are
    * accumulated in tos.
    *
-   * sygus_type_to_unres maps the sygus types that the typenodes stand for into
+   * tn_to_unres maps the sygus types that the typenodes stand for into
    * the unresolved type to be built for the typenodes normalizations.
    *
    * visited caches visited nodes
@@ -137,8 +139,8 @@ class SygusGrammarSimplifier
                       std::map<TypeNode, bool>& visited);
 };
 
-} // namespace quantifiers
-} // namespace theory
-} // namespace CVC4
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif

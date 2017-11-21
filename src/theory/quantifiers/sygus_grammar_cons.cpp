@@ -20,7 +20,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus_process_conj.h"
-#include "theory/quantifiers/sygus_grammar_simp.h"
+#include "theory/quantifiers/sygus_grammar_norm.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -121,8 +121,8 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
     // normalize type
     if (options::sygusNormalizeGrammar())
     {
-      SygusGrammarSimplifier sygus_simp(d_qe, d_parent);
-      tn = sygus_simp.normalizeSygusType(tn, sfvl);
+      SygusGrammarNorm sygus_norm(d_qe, d_parent);
+      tn = sygus_norm.normalizeSygusType(tn, sfvl);
     }
     // check if there is a template
     std::map< Node, Node >::iterator itt = templates.find( sf );

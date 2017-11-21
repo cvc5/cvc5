@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_grammar_cons.cpp
+/*! \file sygus_grammar_norm.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Haniel Barbosa
@@ -13,7 +13,7 @@
  ** are encoded into datatypes.
  **/
 
-#include "theory/quantifiers/sygus_grammar_simp.h"
+#include "theory/quantifiers/sygus_grammar_norm.h"
 
 #include <stack>
 
@@ -29,37 +29,35 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TypeObject::TypeObject(std::string type_name) : unres_dt(Datatype(type_name))
+TypeObject::TypeObject(std::string type_name) : d_dt(Datatype(type_name))
 {
-  tn = TypeNode::null();
+  d_tn = TypeNode::null();
   /* Create an unresolved type */
-  unres_t = NodeManager::currentNM()
-                ->mkSort(type_name, ExprManager::SORT_FLAG_PLACEHOLDER)
-                .toType();
+  d_unres_t = NodeManager::currentNM()
+                  ->mkSort(type_name, ExprManager::SORT_FLAG_PLACEHOLDER)
+                  .toType();
 }
 
 TypeObject::TypeObject(TypeNode src_tn, std::string type_name)
-    : unres_dt(Datatype(type_name))
+    : d_dt(Datatype(type_name))
 {
-  tn = src_tn;
+  d_tn = src_tn;
   /* Create an unresolved type */
-  unres_t = NodeManager::currentNM()
-                ->mkSort(type_name, ExprManager::SORT_FLAG_PLACEHOLDER)
-                .toType();
+  d_unres_t = NodeManager::currentNM()
+                  ->mkSort(type_name, ExprManager::SORT_FLAG_PLACEHOLDER)
+                  .toType();
 }
 
-SygusGrammarSimplifier::SygusGrammarSimplifier(QuantifiersEngine* qe,
-                                               CegConjecture* p)
+SygusGrammarNorm::SygusGrammarNorm(QuantifiersEngine* qe, CegConjecture* p)
     : d_qe(qe), d_parent(p), d_tds(d_qe->getTermDatabaseSygus())
 {
 }
 
 /* recursion depth is limited by the height of the types, which is small  */
-void SygusGrammarSimplifier::collectInfoFor(
-    TypeNode tn,
-    std::vector<TypeObject>& tos,
-    std::map<TypeNode, Type>& tn_to_unres,
-    std::map<TypeNode, bool>& visited)
+void SygusGrammarNorm::collectInfoFor(TypeNode tn,
+                                      std::vector<TypeObject>& tos,
+                                      std::map<TypeNode, Type>& tn_to_unres,
+                                      std::map<TypeNode, bool>& visited)
 {
   if (visited.find(tn) != visited.end())
   {
@@ -74,7 +72,7 @@ void SygusGrammarSimplifier::collectInfoFor(
   /* Add to global accumulators */
   tos.push_back(TypeObject(tn, type_name));
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  tn_to_unres[tn] = tos.back().unres_t;
+  tn_to_unres[tn] = tos.back().d_unres_t;
   /* Visit types of constructor arguments */
   for (const DatatypeConstructor& cons : dt)
   {
@@ -90,21 +88,19 @@ void SygusGrammarSimplifier::collectInfoFor(
   }
 }
 
-void SygusGrammarSimplifier::normalizeSygusInt(
-    unsigned ind,
-    std::vector<TypeObject>& tos,
-    std::map<TypeNode, Type>& tn_to_unres,
-    Node sygus_vars)
+void SygusGrammarNorm::normalizeSygusInt(unsigned ind,
+                                         std::vector<TypeObject>& tos,
+                                         std::map<TypeNode, Type>& tn_to_unres,
+                                         Node sygus_vars)
 {
   const Datatype& dt =
-      static_cast<DatatypeType>(tos[ind].tn.toType()).getDatatype();
+      static_cast<DatatypeType>(tos[ind].d_tn.toType()).getDatatype();
   Trace("sygus-grammar-normalize")
-      << "Normalizing integer type " << tos[ind].tn << " from datatype\n"
+      << "Normalizing integer type " << tos[ind].d_tn << " from datatype\n"
       << dt << std::endl;
 }
 
-TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn,
-                                                    Node sygus_vars)
+TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
 {
   /* Make int_type and zero */
   NodeManager* nm = NodeManager::currentNM();
@@ -119,9 +115,9 @@ TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn,
   for (unsigned i = 0, size = tos.size(); i < size; ++i)
   {
     const Datatype& dt =
-        static_cast<DatatypeType>(tos[i].tn.toType()).getDatatype();
+        static_cast<DatatypeType>(tos[i].d_tn.toType()).getDatatype();
     Trace("sygus-grammar-normalize")
-        << "Rebuild " << tos[i].tn << " from " << dt << std::endl;
+        << "Rebuild " << tos[i].d_tn << " from " << dt << std::endl;
     /* Collect information to rebuild constructors */
     for (const DatatypeConstructor& cons : dt)
     {
@@ -129,38 +125,38 @@ TypeNode SygusGrammarSimplifier::normalizeSygusType(TypeNode tn,
           << "...for " << cons.getName() << std::endl;
       /* Recover the sygus operator to not lose reference to the original
        * operator (NOT, ITE, etc) */
-      tos[i].ops.push_back(cons.getSygusOp());
-      tos[i].cons_names.push_back(cons.getName());
-      tos[i].cons_args_t.push_back(std::vector<Type>());
+      tos[i].d_ops.push_back(cons.getSygusOp());
+      tos[i].d_cons_names.push_back(cons.getName());
+      tos[i].d_cons_args_t.push_back(std::vector<Type>());
       for (const DatatypeConstructorArg& arg : cons)
       {
         /* Collect unresolved types corresponding to the typenode of the
          * arguments */
-        tos[i].cons_args_t.back().push_back(tn_to_unres[TypeNode::fromType(
+        tos[i].d_cons_args_t.back().push_back(tn_to_unres[TypeNode::fromType(
             static_cast<SelectorType>(arg.getType()).getRangeType())]);
       }
     }
     /* Use the sygus type to not lose reference to the original types (Bool,
      * Int, etc) */
-    tos[i].unres_dt.setSygus(dt.getSygusType(),
-                             sygus_vars.toExpr(),
-                             dt.getSygusAllowConst(),
-                             dt.getSygusAllowAll());
-    for (unsigned j = 0, size_ops = tos[i].ops.size(); j < size_ops; ++j)
+    tos[i].d_dt.setSygus(dt.getSygusType(),
+                         sygus_vars.toExpr(),
+                         dt.getSygusAllowConst(),
+                         dt.getSygusAllowAll());
+    for (unsigned j = 0, size_d_ops = tos[i].d_ops.size(); j < size_d_ops; ++j)
     {
-      tos[i].unres_dt.addSygusConstructor(
-          tos[i].ops[j], tos[i].cons_names[j], tos[i].cons_args_t[j]);
+      tos[i].d_dt.addSygusConstructor(
+          tos[i].d_ops[j], tos[i].d_cons_names[j], tos[i].d_cons_args_t[j]);
     }
     Trace("sygus-grammar-normalize")
-        << "...built datatype " << tos[i].unres_dt << std::endl;
+        << "...built datatype " << tos[i].d_dt << std::endl;
   }
   /* Resolve types */
   std::vector<Datatype> dts;
   std::set<Type> unres_all;
   for (TypeObject& to : tos)
   {
-    dts.push_back(to.unres_dt);
-    unres_all.insert(to.unres_t);
+    dts.push_back(to.d_dt);
+    unres_all.insert(to.d_unres_t);
   }
   std::vector<DatatypeType> types =
       nm->toExprManager()->mkMutualDatatypeTypes(dts, unres_all);
