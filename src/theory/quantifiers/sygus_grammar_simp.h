@@ -114,7 +114,7 @@ class SygusGrammarSimplifier
    * sygus_type_to_unres */
   void normalizeSygusInt(unsigned ind,
                          std::vector<TypeObject>& tos,
-                         std::map<Type, Type>& sygus_type_to_unres,
+                         std::map<TypeNode, Type>& tn_to_unres,
                          Node sygus_vars);
 
   /** Traverses the datatype representing a typenode and collects the types it
@@ -129,11 +129,10 @@ class SygusGrammarSimplifier
    *
    * visited caches visited nodes
    */
-  void collectInfoFor(
-      TypeNode src_tn,
-      std::vector<TypeObject>& tos,
-      std::map<Type, Type>& sygus_type_to_unres,
-      std::map<TypeNode, bool>& visited);
+  void collectInfoFor(TypeNode src_tn,
+                      std::vector<TypeObject>& tos,
+                      std::map<TypeNode, Type>& tn_to_unres,
+                      std::map<TypeNode, bool>& visited);
 };
 
 } // namespace quantifiers
