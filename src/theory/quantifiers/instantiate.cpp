@@ -565,7 +565,11 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   if (options::incrementalSolving())
   {
-    for( context::CDHashSet<Node, NodeHashFunction>::const_iterator it = d_c_inst_match_trie_dom.begin(); it != d_c_inst_match_trie_dom.end(); ++it ){
+    for (context::CDHashSet<Node, NodeHashFunction>::const_iterator it =
+             d_c_inst_match_trie_dom.begin();
+         it != d_c_inst_match_trie_dom.end();
+         ++it)
+    {
       qs.push_back(*it);
     }
   }

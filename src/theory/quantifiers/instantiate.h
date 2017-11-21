@@ -350,9 +350,9 @@ class Instantiate : public QuantifiersUtil
    */
   std::map<Node, inst::InstMatchTrie> d_inst_match_trie;
   std::map<Node, inst::CDInstMatchTrie*> d_c_inst_match_trie;
-  /** 
-   * The list of quantified formulas for which the domain of d_c_inst_match_trie 
-   * is valid. 
+  /**
+   * The list of quantified formulas for which the domain of d_c_inst_match_trie
+   * is valid.
    */
   context::CDHashSet<Node, NodeHashFunction> d_c_inst_match_trie_dom;
 
