@@ -194,14 +194,14 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
 
   // if the term should be replaced by a skolem
   if( !skolem.isNull() ){
+    // Attach the skolem
+    d_tfCache.insert(cacheKey, skolem);
+
     // if the skolem was introduced in this call
     if (!newAssertion.isNull())
     {
       Debug("ite") << "*** term formula removal introduced " << skolem
                    << " for " << node << std::endl;
-
-      // Attach the skolem
-      d_tfCache.insert(cacheKey, skolem);
 
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
