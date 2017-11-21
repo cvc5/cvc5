@@ -1931,8 +1931,10 @@ void SmtEngine::setDefaults() {
         options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
       }
     }else{
-      //only supported in pure arithmetic
-      options::cbqiNestedQE.set(false);
+      //only supported in pure arithmetic or pure BV
+      if( d_logic.isPure(THEORY_BV) ){
+        options::cbqiNestedQE.set(false);
+      }
     }
   }
   //implied options...
