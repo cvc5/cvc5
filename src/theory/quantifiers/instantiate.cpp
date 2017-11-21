@@ -36,7 +36,8 @@ Instantiate::Instantiate(QuantifiersEngine* qe, context::UserContext* u)
     : d_qe(qe),
       d_term_db(nullptr),
       d_term_util(nullptr),
-      d_total_inst_count_debug(0)
+      d_total_inst_count_debug(0),
+      d_c_inst_match_trie_dom(u)
 {
 }
 
@@ -485,6 +486,7 @@ bool Instantiate::recordInstantiationInternal(Node q,
       imt = new inst::CDInstMatchTrie(d_qe->getUserContext());
       d_c_inst_match_trie[q] = imt;
     }
+    d_c_inst_match_trie_dom.insert(q);
     return imt->addInstMatch(d_qe, q, terms, d_qe->getUserContext(), modEq);
   }
   else
@@ -563,9 +565,8 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   if (options::incrementalSolving())
   {
-    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
-    {
-      qs.push_back(t.first);
+    for( context::CDHashSet<Node, NodeHashFunction>::const_iterator it = d_c_inst_match_trie_dom.begin(); it != d_c_inst_match_trie_dom.end(); ++it ){
+      qs.push_back(*it);
     }
   }
   else
