@@ -136,7 +136,7 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
         Trace("cegqi-debug") << "  embed this template as a grammar..." << std::endl;
         tn = mkSygusTemplateType( templ, templ_arg, tn, sfvl, ss.str() );
       }else{
-        // otherwise, apply it as a preprocessing pass
+        // otherwise, apply it as a preprocessing pass 
         Trace("cegqi-debug") << "  apply this template as a substituion during preprocess..." << std::endl;
         std::vector< Node > schildren;
         std::vector< Node > largs;
@@ -195,7 +195,7 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
   }
   return NodeManager::currentNM()->mkNode( kind::FORALL, qchildren );
 }
-
+  
 Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars ){
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -354,7 +354,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   std::stringstream ssb;
   ssb << fun << "_Bool";
   std::string dbname = ssb.str();
-  Type unres_bt = mkUnresolvedType(dbname, unres).toType();
+  Type unres_bt = mkUnresolvedType(ssb.str(), unres).toType();
 
   std::vector< Type > unres_types;
   std::map< TypeNode, Type > type_to_unres;
@@ -562,7 +562,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   }
   //sorts.push_back( btype );
   Trace("sygus-grammar-def") << "...finished make default grammar for " << fun << " " << range << std::endl;
-
+  
   if( startIndex>0 ){
     CVC4::Datatype tmp_dt = datatypes[0];
     datatypes[0] = datatypes[startIndex];
@@ -592,7 +592,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   return TypeNode::fromType( types[0] );
 }
 
-TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl,
+TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
                                               const std::string& fun, unsigned& tcount ) {
   if( templ==templ_arg ){
     //Assert( templ_arg.getType()==sygusToBuiltinType( templ_arg_sygus_type ) );
@@ -632,7 +632,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
   }
 }
 
-TypeNode CegGrammarConstructor::mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl,
+TypeNode CegGrammarConstructor::mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
                                                      const std::string& fun ) {
   unsigned tcount = 0;
   return mkSygusTemplateTypeRec( templ, templ_arg, templ_arg_sygus_type, bvl, fun, tcount );
