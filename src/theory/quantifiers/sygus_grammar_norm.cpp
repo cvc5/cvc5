@@ -15,8 +15,6 @@
 
 #include "theory/quantifiers/sygus_grammar_norm.h"
 
-#include <stack>
-
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
@@ -111,7 +109,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   std::map<TypeNode, Type> tn_to_unres;
   std::map<TypeNode, bool> visited;
   collectInfoFor(tn, tos, tn_to_unres, visited);
-  /* Build datatypes TODO and normalize accordingly */
+  /* Build datatypes TODO and normalize accordingly #1304 */
   for (unsigned i = 0, size = tos.size(); i < size; ++i)
   {
     const Datatype& dt =

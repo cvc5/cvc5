@@ -25,13 +25,16 @@ namespace quantifiers {
 
 class CegConjecture;
 
-/** Keeps the necessary information in building a normalized type:
+/** Keeps the necessary information about a sygus type:
  *
  * the original typenode, from which the datatype representation can be
  * extracted
+ *
  * the operators, names and argument types for each constructor
+ *
  * the unresolved type used as placeholder for references of the yet to be built
  * type
+ *
  * a datatype to represent the structure of the typenode for the new type */
 struct TypeObject
 {
@@ -42,7 +45,7 @@ struct TypeObject
   TypeObject(std::string type_name);
   ~TypeObject() {}
 
-  /* The original typenode this TypeObject is normalizing */
+  /* The original typenode this TypeObject is built from */
   TypeNode d_tn;
   /* Operators for each constructor. */
   std::vector<Expr> d_ops;
