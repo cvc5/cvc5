@@ -353,8 +353,7 @@ class CegConjectureProcess
                          NodeHashFunction>& free_vars);
   /** for each synth-fun, information that is specific to this conjecture */
   std::map<Node, CegConjectureProcessFun> d_sf_info;
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
+
   /** get component vector */
   void getComponentVector(Kind k, Node n, std::vector<Node>& args);
 };
