@@ -220,7 +220,8 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
   }
 
   // check if higher-order
-  Trace("trigger-debug") << "Collect higher-order variable triggers..." << std::endl;
+  Trace("trigger-debug") << "Collect higher-order variable triggers..."
+                         << std::endl;
   std::map<Node, std::vector<Node> > ho_apps;
   HigherOrderTrigger::collectHoVarApplyTerms(f, trNodes, ho_apps);
   Trigger* t;
@@ -488,10 +489,13 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
               tinfo.erase( added2[i] );
             }else{
               if( tinfo[ nu ].d_fv.size()==tinfo[ added2[i] ].d_fv.size() ){
-                if( tinfo[ nu ].d_weight>=tinfo[ added2[i] ].d_weight )
+                if (tinfo[nu].d_weight >= tinfo[added2[i]].d_weight)
                 {
-                  //discard if we added a subterm as a trigger with all variables that nu has
-                  Trace("auto-gen-trigger-debug2") << "......subsumes parent " << tinfo[ nu ].d_weight << " " << tinfo[ added2[i] ].d_weight << "." << std::endl;
+                  // discard if we added a subterm as a trigger with all
+                  // variables that nu has
+                  Trace("auto-gen-trigger-debug2")
+                      << "......subsumes parent " << tinfo[nu].d_weight << " "
+                      << tinfo[added2[i]].d_weight << "." << std::endl;
                   rm_nu = true;
                 }
               }
@@ -551,9 +555,12 @@ bool Trigger::isPureTheoryTrigger( Node n ) {
 }
 
 int Trigger::getTriggerWeight( Node n ) {
-  if( n.getKind()==APPLY_UF ){
+  if (n.getKind() == APPLY_UF)
+  {
     return 0;
-  }else if( isAtomicTrigger( n ) ){
+  }
+  else if (isAtomicTrigger(n))
+  {
     return 1;
   }else{
     if( options::relationalTriggers() ){
@@ -612,15 +619,20 @@ void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, qu
     std::vector< Node > temp;
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
     filterInstances(temp);
-    if( Trace.isOn("trigger-filter-instance") ){
-      if( temp.size()!=patTerms2.size() ){
-        Trace("trigger-filter-instance") << "Filtered an instance: " << std::endl;
+    if (Trace.isOn("trigger-filter-instance"))
+    {
+      if (temp.size() != patTerms2.size())
+      {
+        Trace("trigger-filter-instance") << "Filtered an instance: "
+                                         << std::endl;
         Trace("trigger-filter-instance") << "Old: ";
-        for( unsigned i=0; i<patTerms2.size(); i++ ){
+        for (unsigned i = 0; i < patTerms2.size(); i++)
+        {
           Trace("trigger-filter-instance") << patTerms2[i] << " ";
         }
         Trace("trigger-filter-instance") << std::endl << "New: ";
-        for( unsigned i=0; i<temp.size(); i++ ){
+        for (unsigned i = 0; i < temp.size(); i++)
+        {
           Trace("trigger-filter-instance") << temp[i] << " ";
         }
         Trace("trigger-filter-instance") << std::endl;
@@ -651,17 +663,25 @@ void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, qu
   }
 }
 
-int Trigger::isTriggerInstanceOf(Node n1, Node n2, std::vector< Node >& fv1, std::vector< Node >& fv2)
+int Trigger::isTriggerInstanceOf(Node n1,
+                                 Node n2,
+                                 std::vector<Node>& fv1,
+                                 std::vector<Node>& fv2)
 {
   Assert(n1 != n2);
   int status = 0;
-  std::unordered_set<TNode, TNodeHashFunction > subs_vars; 
-  std::unordered_set<std::pair<TNode, TNode>, PairHashFunction<TNode, TNode, TNodeHashFunction, TNodeHashFunction> > visited;
-  std::vector<std::pair<TNode, TNode> > visit;  
-  std::pair<TNode,TNode> cur;
+  std::unordered_set<TNode, TNodeHashFunction> subs_vars;
+  std::unordered_set<std::pair<TNode, TNode>,
+                     PairHashFunction<TNode,
+                                      TNode,
+                                      TNodeHashFunction,
+                                      TNodeHashFunction> >
+      visited;
+  std::vector<std::pair<TNode, TNode> > visit;
+  std::pair<TNode, TNode> cur;
   TNode cur1;
   TNode cur2;
-  visit.push_back(std::pair<TNode, TNode>(n1,n2));
+  visit.push_back(std::pair<TNode, TNode>(n1, n2));
   do
   {
     cur = visit.back();
@@ -677,16 +697,16 @@ int Trigger::isTriggerInstanceOf(Node n1, Node n2, std::vector< Node >& fv1, std
           && cur1.getNumChildren() == cur2.getNumChildren()
           && cur1.getOperator() == cur2.getOperator())
       {
-        visit.push_back(std::pair<TNode, TNode>(cur1,cur2));
+        visit.push_back(std::pair<TNode, TNode>(cur1, cur2));
         for (unsigned i = 0, size = cur1.getNumChildren(); i < size; i++)
         {
           if (cur1[i] != cur2[i])
           {
-            visit.push_back(std::pair<TNode, TNode>(cur1[i],cur2[i]));
+            visit.push_back(std::pair<TNode, TNode>(cur1[i], cur2[i]));
           }
-          else if( cur1[i].getKind()==INST_CONSTANT )
+          else if (cur1[i].getKind() == INST_CONSTANT)
           {
-            if( subs_vars.find(cur1[i])!=subs_vars.end() )
+            if (subs_vars.find(cur1[i]) != subs_vars.end())
             {
               return 0;
             }
@@ -702,18 +722,20 @@ int Trigger::isTriggerInstanceOf(Node n1, Node n2, std::vector< Node >& fv1, std
         // must be only this case
         for (unsigned r = 0; r < 2; r++)
         {
-          if( status==0 || ( (status==1)==(r==0) ) ){
+          if (status == 0 || ((status == 1) == (r == 0)))
+          {
             TNode curi = r == 0 ? cur1 : cur2;
             if (curi.getKind() == INST_CONSTANT
                 && subs_vars.find(curi) == subs_vars.end())
             {
               TNode curj = r == 0 ? cur2 : cur1;
               // RHS must be a simple trigger
-              if( getTriggerWeight(curj)==0 ){
-              
+              if (getTriggerWeight(curj) == 0)
+              {
                 // must occur in the free variables in the other
-                std::vector< Node >& free_vars = r==0 ? fv2 : fv1;
-                if( std::find( free_vars.begin(), free_vars.end(), curi )!=free_vars.end() )
+                std::vector<Node>& free_vars = r == 0 ? fv2 : fv1;
+                if (std::find(free_vars.begin(), free_vars.end(), curi)
+                    != free_vars.end())
                 {
                   status = r == 0 ? 1 : -1;
                   subs_vars.insert(curi);
@@ -724,7 +746,7 @@ int Trigger::isTriggerInstanceOf(Node n1, Node n2, std::vector< Node >& fv1, std
             }
           }
         }
-        if( !success )
+        if (!success)
         {
           return 0;
         }
@@ -736,16 +758,17 @@ int Trigger::isTriggerInstanceOf(Node n1, Node n2, std::vector< Node >& fv1, std
 
 void Trigger::filterInstances(std::vector<Node>& nodes)
 {
-  std::map< unsigned, std::vector< Node > > fvs;
-  for( unsigned i=0, size = nodes.size(); i < size; i++ ){
-    quantifiers::TermUtil::computeVarContains( nodes[i], fvs[i] );
+  std::map<unsigned, std::vector<Node> > fvs;
+  for (unsigned i = 0, size = nodes.size(); i < size; i++)
+  {
+    quantifiers::TermUtil::computeVarContains(nodes[i], fvs[i]);
   }
   std::vector<bool> active;
   active.resize(nodes.size(), true);
-  for( unsigned i=0, size = nodes.size(); i < size; i++ )
+  for (unsigned i = 0, size = nodes.size(); i < size; i++)
   {
-    std::vector< Node >& fvsi = fvs[i];
-    if( active[i] )
+    std::vector<Node>& fvsi = fvs[i];
+    if (active[i])
     {
       for (unsigned j = i + 1, size2 = nodes.size(); j < size2; j++)
       {
