@@ -40,6 +40,7 @@ TypeObject::TypeObject(TypeNode src_tn, std::string type_name)
     : d_dt(Datatype(type_name))
 {
   d_tn = src_tn;
+  d_t = src_tn.toType();
   /* Create an unresolved type */
   d_unres_t = NodeManager::currentNM()
                   ->mkSort(type_name, ExprManager::SORT_FLAG_PLACEHOLDER)
@@ -69,7 +70,7 @@ void SygusGrammarNorm::collectInfoFor(TypeNode tn,
   std::string type_name = ss.str();
   /* Add to global accumulators */
   tos.push_back(TypeObject(tn, type_name));
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  const Datatype& dt = static_cast<DatatypeType>(tos.back().d_t).getDatatype();
   tn_to_unres[tn] = tos.back().d_unres_t;
   /* Visit types of constructor arguments */
   for (const DatatypeConstructor& cons : dt)
@@ -92,7 +93,7 @@ void SygusGrammarNorm::normalizeSygusInt(unsigned ind,
                                          Node sygus_vars)
 {
   const Datatype& dt =
-      static_cast<DatatypeType>(tos[ind].d_tn.toType()).getDatatype();
+      static_cast<DatatypeType>(tos[ind].d_t).getDatatype();
   Trace("sygus-grammar-normalize")
       << "Normalizing integer type " << tos[ind].d_tn << " from datatype\n"
       << dt << std::endl;
@@ -113,7 +114,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   for (unsigned i = 0, size = tos.size(); i < size; ++i)
   {
     const Datatype& dt =
-        static_cast<DatatypeType>(tos[i].d_tn.toType()).getDatatype();
+        static_cast<DatatypeType>(tos[i].d_t).getDatatype();
     Trace("sygus-grammar-normalize")
         << "Rebuild " << tos[i].d_tn << " from " << dt << std::endl;
     /* Collect information to rebuild constructors */

@@ -47,6 +47,8 @@ struct TypeObject
 
   /* The original typenode this TypeObject is built from */
   TypeNode d_tn;
+  /* The type represented by the typenode */
+  Type d_t;
   /* Operators for each constructor. */
   std::vector<Expr> d_ops;
   /* Names for each constructor. */
