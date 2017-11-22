@@ -100,12 +100,13 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   }
 
 
-  // If an ITE, replace it
   TypeNode nodeType = node.getType();
   Node skolem;
   Node newAssertion;
   if(node.getKind() == kind::ITE) {
-    if(!nodeType.isBoolean() && (!inQuant || !node.hasBoundVar())) {
+    // If an ITE, replace it
+    if(!nodeType.isBoolean() && (!inQuant || !node.hasBoundVar())) 
+    {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
@@ -122,10 +123,11 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       }
     }
   }
-  else if( node.getKind() == kind::LAMBDA )
+  else if (node.getKind() == kind::LAMBDA)
   {
-    //if a lambda, do lambda-lifting
-    if( !inQuant ){
+    // if a lambda, do lambda-lifting
+    if (!inQuant)
+    {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
@@ -159,7 +161,8 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
     // If a Hilbert choice function, witness the choice.
     //   For details on this operator, see
     //   http://planetmath.org/hilbertsvarepsilonoperator.
-    if( !inQuant ){
+    if (!inQuant)
+    {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
@@ -177,9 +180,12 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
         newAssertion = node[1].substitute(node[0][0], skolem);
       }
     }
-  }else if(node.getKind()!=kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean() && inTerm && !inQuant ){
-    
-    //if a non-variable Boolean term, replace it
+  }
+  else if (node.getKind() != kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean()
+           && inTerm
+           && !inQuant)
+  {
+    // if a non-variable Boolean term, replace it
     skolem = getSkolemForNode(node);
     if (skolem.isNull())
     {
