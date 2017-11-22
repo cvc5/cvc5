@@ -149,9 +149,6 @@ public:
   /** Returns true if e contains a term ite. */
   bool containsTermITE(TNode e) const;
 
-  /** Returns the collected size of the caches. */
-  size_t collectedCacheSizes() const;
-
   /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
 

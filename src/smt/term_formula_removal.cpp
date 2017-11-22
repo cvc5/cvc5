@@ -43,10 +43,6 @@ theory::ContainsTermITEVisitor* RemoveTermFormulas::getContainsVisitor() {
   return d_containsVisitor;
 }
 
-size_t RemoveTermFormulas::collectedCacheSizes() const{
-  return d_containsVisitor->cache_size() + d_tfCache.size();
-}
-
 void RemoveTermFormulas::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap, bool reportDeps)
 {
   size_t n = output.size();
