@@ -176,6 +176,9 @@ option nlExtFactor --nl-ext-factor bool :default true
  
 option nlExtTangentPlanes --nl-ext-tplanes bool :default false
  use non-terminating tangent plane strategy for non-linear
+ 
+option nlExtTfTangentPlanes --nl-ext-tf-tplanes bool :default false
+ use non-terminating tangent plane strategy for transcendental functions for non-linear
 
 option nlExtEntailConflicts --nl-ext-ent-conf bool :default false
  check for entailed conflicts in non-linear solver

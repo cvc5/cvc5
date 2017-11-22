@@ -704,7 +704,65 @@ private:
   * PI > x > y > PI/2 => sin( x ) < sin( y )
   */
   std::vector<Node> checkTranscendentalMonotonic();
-
+  
+  /** check transcendental tangent planes
+  *
+  * Returns a set of valid theory lemmas, based on
+  * computing a "incremental linearization" of
+  * transcendental functions based on the model values
+  * of transcendental functions and their arguments.
+  * It is based on Figure 3 of "Satisfiability 
+  * Modulo Transcendental Functions via Incremental 
+  * Linearization" by Cimatti et al., CADE 2017.
+  * This schema is not terminating in general.
+  * It is not enabled by default, and can
+  * be enabled by --nl-ext-tf-tplanes.
+  * 
+  * Example:
+  *
+  * Assume we have a term sin(y) where y^M = 1, note that
+  *   sin(1) ~= .841471
+  * 
+  * The Taylor series and remainder of sin(y) of degree 7 is
+  *   P_{7,sin(0)}( x ) = x + (-1/6)*x^3 + (1/20)*x^5
+  *   R_{7,sin(0),b}( x ) = (-1/5040)*x^7
+  * 
+  * This gives us lower and upper bounds :
+  *   P_u( x ) = P_{7,sin(0)}( x ) + R_{7,sin(0),b}( x ) 
+  *     ...where note P_u( 1 ) = 4243/5040 ~= .841865
+  *   P_l( x ) = P_{7,sin(0)}( x ) - R_{7,sin(0),b}( x )
+  *     ...where note P_l( 1 ) = 4241/5040 ~= .841468
+  * 
+  * Assume that sin(y)^M > P_u( 1 ). 
+  * Since the concavity of sine in the region 0 < x < PI/2 is -1, 
+  * we add a tangent plane refinement. 
+  * The tangent plane at the point 1 in P_u is
+  * given by the formula:
+  *   T( x ) = P_u( 1 ) + ((d/dx)(P_u(x)))( 1 )*( x - 1 )
+  * We add the lemma:
+  *   ( 0 < y < PI/2 ) => sin( y ) <= T( y )
+  * which is:
+  *   ( 0 < y < PI/2 ) => sin( y ) <= (391/720)*(y - 2737/1506)
+  * 
+  * Assume that sin(y)^M < P_u( 1 ). 
+  * Since the concavity of sine in the region 0 < x < PI/2 is -1, 
+  * we add a secant plane refinement for some constants ( l, u )
+  * such that 0 <= l < y^M < u <= PI/2. Assume we choose
+  * l = 0 and u = (PI/2)^M = 150517/47912. 
+  * The secant planes at point 1 for P_l
+  * are given by the formulas:
+  *   S_l( x ) = (x-l)*(P_l( l )-P_l(c))/(l-1) + P_l( l )
+  *   S_u( x ) = (x-u)*(P_l( u )-P_l(c))/(u-1) + P_l( u )
+  * We add the lemmas:
+  *   ( 0 < y < 1 ) => sin( y ) >= S_l( y )
+  *   ( 1 < y < PI/2 ) => sin( y ) >= S_u( y )
+  * which are:
+  *   ( 0 < y < 1 ) => (sin y) >= 4251/5040*y
+  *   ( 1 < y < PI/2 ) => (sin y) >= c1*(y+c2)
+  *     where c1, c2 are rationals (for brevity, omitted here) 
+  *     such that c1 ~= .277 and c2 ~= 2.032.
+  */
+  std::vector<Node> checkTranscendentalTangentPlanes();
   //-------------------------------------------- end lemma schemas
 }; /* class NonlinearExtension */
 
