@@ -17,6 +17,8 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -124,8 +126,15 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
           << "...for " << cons.getName() << std::endl;
       /* Recover the sygus operator to not lose reference to the original
        * operator (NOT, ITE, etc) */
-      tos[i].d_ops.push_back(cons.getSygusOp());
+      Node exp_sop_n = Node::fromExpr(
+          smt::currentSmtEngine()->expandDefinitions(cons.getSygusOp()));
+      Trace("sygus-grammar-normalize")
+          << "\tOriginal op: " << cons.getSygusOp()
+          << "\n\tExpanded one: " << exp_sop_n
+          << "\n\tRewritten one: " << Rewriter::rewrite(exp_sop_n) << std::endl;
+      tos[i].d_ops.push_back(Rewriter::rewrite(exp_sop_n));
       tos[i].d_cons_names.push_back(cons.getName());
+      tos[i].d_pcb.push_back(cons.getSygusPrintCallback());
       tos[i].d_cons_args_t.push_back(std::vector<Type>());
       for (const DatatypeConstructorArg& arg : cons)
       {
@@ -143,8 +152,10 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
                          dt.getSygusAllowAll());
     for (unsigned j = 0, size_d_ops = tos[i].d_ops.size(); j < size_d_ops; ++j)
     {
-      tos[i].d_dt.addSygusConstructor(
-          tos[i].d_ops[j], tos[i].d_cons_names[j], tos[i].d_cons_args_t[j]);
+      tos[i].d_dt.addSygusConstructor(tos[i].d_ops[j].toExpr(),
+                                      tos[i].d_cons_names[j],
+                                      tos[i].d_cons_args_t[j],
+                                      tos[i].d_pcb[j]);
     }
     Trace("sygus-grammar-normalize")
         << "...built datatype " << tos[i].d_dt << std::endl;

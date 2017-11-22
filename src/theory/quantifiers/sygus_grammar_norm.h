@@ -50,9 +50,11 @@ struct TypeObject
   /* The type represented by the typenode */
   Type d_t;
   /* Operators for each constructor. */
-  std::vector<Expr> d_ops;
+  std::vector<Node> d_ops;
   /* Names for each constructor. */
   std::vector<std::string> d_cons_names;
+  /* Print callbacks for each constructor */
+  std::vector<std::shared_ptr<SygusPrintCallback>> d_pcb;
   /* List of argument types for each constructor */
   std::vector<std::vector<Type>> d_cons_args_t;
   /* Unresolved type placeholder */
