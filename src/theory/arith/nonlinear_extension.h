@@ -48,25 +48,25 @@ typedef std::map<Node, unsigned> NodeMultiset;
  *
  * This class implements model-based refinement schemes
  * for non-linear arithmetic, described in:
- * 
+ *
  * - "Invariant Checking of NRA Transition Systems
  * via Incremental Reduction to LRA with EUF" by
  * Cimatti et al., TACAS 2017.
- * 
+ *
  * - Section 5 of "Desiging Theory Solvers with
  * Extensions" by Reynolds et al., FroCoS 2017.
- * 
- * - "Satisfiability Modulo Transcendental 
- * Functions via Incremental Linearization" by Cimatti 
+ *
+ * - "Satisfiability Modulo Transcendental
+ * Functions via Incremental Linearization" by Cimatti
  * et al., CADE 2017.
- * 
- * It's main functionality is a check(...) method, 
+ *
+ * It's main functionality is a check(...) method,
  * which is called by TheoryArithPrivate either:
  * (1) at full effort with no conflicts or lemmas emitted,
  * or
  * (2) at last call effort.
  * In this method, this class calls d_out->lemma(...)
- * for valid arithmetic theory lemmas, based on the current set of assertions, 
+ * for valid arithmetic theory lemmas, based on the current set of assertions,
  * where d_out is the output channel of TheoryArith.
  */
 class NonlinearExtension {
@@ -74,17 +74,17 @@ class NonlinearExtension {
   NonlinearExtension(TheoryArith& containing, eq::EqualityEngine* ee);
   ~NonlinearExtension();
   /** Get current substitution
-   * 
-   * This function and the one below are 
-   * used for context-dependent 
-   * simplification, see Section 3.1 of 
+   *
+   * This function and the one below are
+   * used for context-dependent
+   * simplification, see Section 3.1 of
    * "Designing Theory Solvers with Extensions"
    * by Reynolds et al. FroCoS 2017.
-   * 
+   *
    * effort : an identifier indicating the stage where
    *          we are performing context-dependent simplification,
    * vars : a set of arithmetic variables.
-   * 
+   *
    * This function populates subs and exp, such that for 0 <= i < vars.size():
    *   ( exp[vars[i]] ) => vars[i] = subs[i]
    * where exp[vars[i]] is a set of assertions
@@ -95,14 +95,14 @@ class NonlinearExtension {
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node> >& exp);
   /** Is the term n in reduced form?
-   * 
+   *
    * Used for context-dependent simplification.
-   * 
+   *
    * effort : an identifier indicating the stage where
    *          we are performing context-dependent simplification,
    * on : the original term that we reduced to n,
    * exp : an explanation such that ( exp => on = n ).
-   * 
+   *
    * We return a pair ( b, exp' ) such that
    *   if b is true, then:
    *     n is in reduced form
@@ -168,12 +168,12 @@ class NonlinearExtension {
   }; /* struct ConstraintInfo */
 
   /** check last call
-   * 
+   *
    * Check assertions for consistency in the effort LAST_CALL with a subset of
    * the assertions, false_asserts, that evaluate to false in the current model.
-   * 
+   *
    * xts : the list of (non-reduced) extended terms in the current context.
-   * 
+   *
    * This method returns the number of lemmas added on the output channel of
    * TheoryArith.
    */
@@ -198,10 +198,10 @@ class NonlinearExtension {
 
   void registerConstraint(Node atom);
   /** compute model value
-   * 
-   * This computes model values for terms based on two semantics, a "concrete" 
+   *
+   * This computes model values for terms based on two semantics, a "concrete"
    * semantics and an "abstract" semantics.
-   * 
+   *
    * index = 0 means compute the value of n based on its children recursively.
    *          (we call this its "concrete" value)
    * index = 1 means lookup the value of n in the model.
@@ -210,10 +210,10 @@ class NonlinearExtension {
    * function applications as variables, whereas index = 0 computes their
    * actual values. This is a key distinction used in the model-based
    * refinement scheme in Cimatti et al. TACAS 2017.
-   * 
+   *
    * For example, if M( a ) = 2, M( b ) = 3, M( a * b ) = 5, then :
-   * 
-   *   computeModelValue( a*b, 0 ) = 
+   *
+   *   computeModelValue( a*b, 0 ) =
    *   computeModelValue( a, 0 )*computeModelValue( b, 0 ) = 2*3 = 6
    * whereas:
    *   computeModelValue( a*b, 1 ) = 5
@@ -264,30 +264,30 @@ class NonlinearExtension {
   * This function returns true if we can infer a valid
   * arithmetic lemma of the form :
   *    P => abs( a ) >= abs( b )
-  * where P is true and abs( a ) >= abs( b ) is false in the 
+  * where P is true and abs( a ) >= abs( b ) is false in the
   * current model.
-  * 
+  *
   * This function is implemented by "processing" factors
   * of monomials a and b until an inference of the above
   * form can be made. For example, if :
   *   a = x*x*y and b = z*w
   * Assuming we are trying to show abs( a ) >= abs( c ),
-  * then if abs( M( x ) ) >= abs( M( z ) ) where M is the current model, 
-  * then we can add abs( x ) >= abs( z ) to our explanation, and 
-  * mark one factor of x as processed in a, and 
-  * one factor of z as processed in b. The number of processed factors of a 
+  * then if abs( M( x ) ) >= abs( M( z ) ) where M is the current model,
+  * then we can add abs( x ) >= abs( z ) to our explanation, and
+  * mark one factor of x as processed in a, and
+  * one factor of z as processed in b. The number of processed factors of a
   * and b are stored in a_exp_proc and b_exp_proc respectively.
   *
   * cmp_infers stores information that is helpful
   * in discarding redundant inferences.  For example,
   * we do not want to infer abs( x ) >= abs( z ) if
-  * we have already inferred abs( x ) >= abs( y ) and 
-  * abs( y ) >= abs( z ). 
+  * we have already inferred abs( x ) >= abs( y ) and
+  * abs( y ) >= abs( z ).
   * It stores entries of the form (status,t1,t2)->F,
   * which indicates that we constructed a lemma F that
   * showed t1 <status> t2.
-  *   
-  * We add lemmas to lem of the form given by the 
+  *
+  * We add lemmas to lem of the form given by the
   * lemma schema checkMagnitude(...).
   */
   bool compareMonomial(
@@ -295,8 +295,8 @@ class NonlinearExtension {
       NodeMultiset& b_exp_proc, std::vector<Node>& exp, std::vector<Node>& lem,
       std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
   /** helper function for above
-   * 
-   * The difference is the inputs a_index and b_index, which are the indices of 
+   *
+   * The difference is the inputs a_index and b_index, which are the indices of
    * children (factors) in monomials a and b which we are currently looking at.
    */
   bool compareMonomial(
@@ -304,8 +304,8 @@ class NonlinearExtension {
       Node b, unsigned b_index, NodeMultiset& b_exp_proc, int status,
       std::vector<Node>& exp, std::vector<Node>& lem,
       std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
-  /** Check whether we have already inferred a relationship between monomials 
-   * x and y based on the information in cmp_infers. This computes the 
+  /** Check whether we have already inferred a relationship between monomials
+   * x and y based on the information in cmp_infers. This computes the
    * transitive closure of the relation stored in cmp_infers.
    */
   bool cmp_holds(Node x, Node y,
@@ -315,7 +315,7 @@ class NonlinearExtension {
   bool isEntailed(Node n, bool pol);
 
   /** flush lemmas
-   * 
+   *
    * Potentially sends lem on the output channel if lem has not been sent on the
    * output channel in this context. Returns the number of lemmas sent on the
    * output channel of TheoryArith.
@@ -361,10 +361,10 @@ class NonlinearExtension {
   Node d_neg_one;
   Node d_true;
   Node d_false;
-  /** PI 
-   * 
-   * Note that PI is a (symbolic, non-constant) nullary operator. This is 
-   * because its value cannot be computed exactly. We constraint PI to concrete 
+  /** PI
+   *
+   * Note that PI is a (symbolic, non-constant) nullary operator. This is
+   * because its value cannot be computed exactly. We constraint PI to concrete
    * lower and upper bounds stored in d_pi_bound below.
    */
   Node d_pi;
@@ -392,9 +392,9 @@ class NonlinearExtension {
 
   // model values/orderings
   /** cache of model values
-   * 
+   *
    * Stores the the concrete/abstract model values
-   * at indices 0 and 1 respectively. 
+   * at indices 0 and 1 respectively.
    */
   std::map<Node, Node> d_mv[2];
 
@@ -458,7 +458,7 @@ private:
   std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_secant_points;
 
   /** get Taylor series of degree n for function fa centered around point fa[0].
-   * 
+   *
    * Return value is ( P_{n,f(a)}( x ), R_{n+1,f(a)}( x ) ) where
    * the first part of the pair is the Taylor series expansion :
    *    P_{n,f(a)}( x ) = sum_{i=0}^n (f^i( a )/i!)*(x-a)^i
@@ -475,7 +475,7 @@ private:
    */
   std::pair<Node, Node> getTaylor(TNode fa, unsigned n);
 
-  /** internal variables used for constructing (cached) versions of the Taylor 
+  /** internal variables used for constructing (cached) versions of the Taylor
    * series above.
    */
   Node d_taylor_real_fv;           // x above
@@ -510,44 +510,44 @@ private:
   */
   std::unordered_map<Node, int, NodeHashFunction> d_tf_region;
   /** get monotonicity direction
-   * 
+   *
   * Returns whether the slope is positive (+1) or negative(-1)
   * in region of transcendental function with kind k.
   * Returns 0 if region is invalid.
   */
   int regionToMonotonicityDir(Kind k, int region);
   /** get concavity
-   * 
+   *
   * Returns whether we are concave (+1) or convex (-1)
   * in region of transcendental function with kind k,
   * where region is defined above.
   * Returns 0 if region is invalid.
   */
   int regionToConcavity(Kind k, int region);
-  /** region to lower bound 
-   * 
+  /** region to lower bound
+   *
    * Returns the term corresponding to the lower
    * bound of the region of transcendental function
-   * with kind k. Returns Node::null if the region 
-   * is invalid, or there is no lower bound for the 
+   * with kind k. Returns Node::null if the region
+   * is invalid, or there is no lower bound for the
    * region.
    */
   Node regionToLowerBound(Kind k, int region);
   /** region to upper bound
-   * 
+   *
    * Returns the term corresponding to the upper
    * bound of the region of transcendental function
-   * with kind k. Returns Node::null if the region 
-   * is invalid, or there is no upper bound for the 
+   * with kind k. Returns Node::null if the region
+   * is invalid, or there is no upper bound for the
    * region.
    */
   Node regionToUpperBound(Kind k, int region);
   /** get derivative
-   * 
+   *
    * Returns d/dx n. Supports cases of n
-   * for transcendental functions applied to x, 
+   * for transcendental functions applied to x,
    * multiplication, addition, constants and variables.
-   * Returns Node::null() if derivative is an 
+   * Returns Node::null() if derivative is an
    * unhandled case.
    */
   Node getDerivative(Node n, Node x);
