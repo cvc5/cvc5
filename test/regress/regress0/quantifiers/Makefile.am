@@ -115,6 +115,7 @@ TESTS =	\
 	NUM878.smt2 \
 	psyco-107-bv.smt2 \
 	ari118-bv-2occ-x.smt2 \
+	extract-nproc.smt2 \
 	javafe.ast.StandardPrettyPrint.319.smt2 \
 	javafe.ast.StmtVec.009.smt2 \
 	javafe.ast.WhileStmt.447.smt2 \
