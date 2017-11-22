@@ -42,7 +42,7 @@ class RemoveTermFormulas {
                       Node,
                       PairHashFunction<Node, int, NodeHashFunction> >
           TermFormulaCache;
-  /** ite cache
+  /** term formula removal cache
    *
    * This stores the results of term formula removal for inputs to the run(...)
    * function below, where the integer in the pair we hash on is the

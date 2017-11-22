@@ -268,11 +268,6 @@ Node RemoveTermFormulas::getSkolemForNode(Node node) const
 }
 
 Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
-  //if(node.isVar() || node.isConst()){
-  //   (options::biasedITERemoval() && !containsTermITE(node))){
-  //if(node.isVar()){
-  //  return Node(node);
-  //}
   if( node.getKind()==kind::INST_PATTERN_LIST ){
     return Node(node);
   }
