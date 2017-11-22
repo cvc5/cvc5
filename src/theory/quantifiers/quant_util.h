@@ -40,7 +40,23 @@ namespace quantifiers {
 * It has a similar interface to a Theory object.
 */
 class QuantifiersModule {
-public:
+ public:
+  /** effort levels for quantifiers modules check */
+  enum QEffort
+  {
+    // conflict effort, for conflict-based instantiation
+    QEFFORT_CONFLICT,
+    // standard effort, for heuristic instantiation
+    QEFFORT_STANDARD,
+    // model effort, for model-based instantiation
+    QEFFORT_MODEL,
+    // last call effort, for last resort techniques
+    QEFFORT_LAST_CALL,
+    // none
+    QEFFORT_NONE,
+  };
+
+ public:
   QuantifiersModule( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
   virtual ~QuantifiersModule(){}
   /** Presolve.
@@ -62,7 +78,7 @@ public:
    * which specifies the quantifiers effort in which it requires the model to
    * be built.
    */
-  virtual unsigned needsModel( Theory::Effort e );
+  virtual QEffort needsModel(Theory::Effort e);
   /** Reset.
    *
    * Called at the beginning of QuantifiersEngine::check(e).
@@ -73,7 +89,7 @@ public:
    *   Called during QuantifiersEngine::check(e) depending
    *   if needsCheck(e) returns true.
    */
-  virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
+  virtual void check(Theory::Effort e, QEffort quant_e) = 0;
   /** Check complete?
    *
    * Returns false if the module's reasoning was globally incomplete

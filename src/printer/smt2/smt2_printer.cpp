@@ -364,9 +364,10 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::CHAIN: break;
   case kind::FUNCTION_TYPE:
     out << "->";
-    for(size_t i = 0; i < n.getNumChildren(); ++i) {
+    for (Node nc : n)
+    {
       out << " ";
-      toStream(out, n[i], toDepth, types, TypeNode::null());
+      toStream(out, nc, toDepth, types, TypeNode::null());
     }
     out << ")";
     return;
@@ -382,11 +383,13 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
     // uf theory
   case kind::APPLY_UF: typeChildren = true; break;
-    // higher-order
+  // higher-order
   case kind::HO_APPLY: break;
-  case kind::LAMBDA: out << smtKindString(k) << " "; break;
-  
-    // arith theory
+  case kind::LAMBDA:
+    out << smtKindString(k) << " ";
+    break;
+
+  // arith theory
   case kind::PLUS:
   case kind::MULT:
   case kind::NONLINEAR_MULT:
@@ -819,10 +822,11 @@ static string smtKindString(Kind k) throw() {
 
     // uf theory
   case kind::APPLY_UF: break;
-  
-  case kind::LAMBDA: return "lambda";
 
-    // arith theory
+  case kind::LAMBDA:
+    return "lambda";
+
+  // arith theory
   case kind::PLUS: return "+";
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
@@ -1310,6 +1314,47 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
   }
 }
 
+void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const throw()
+{
+  if (n.getKind() == kind::APPLY_CONSTRUCTOR)
+  {
+    TypeNode tn = n.getType();
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    if (dt.isSygus())
+    {
+      int cIndex = Datatype::indexOf(n.getOperator().toExpr());
+      Assert(!dt[cIndex].getSygusOp().isNull());
+      SygusPrintCallback* spc = dt[cIndex].getSygusPrintCallback();
+      if (spc != nullptr)
+      {
+        spc->toStreamSygus(this, out, n.toExpr());
+      }
+      else
+      {
+        if (n.getNumChildren() > 0)
+        {
+          out << "(";
+        }
+        out << dt[cIndex].getSygusOp();
+        if (n.getNumChildren() > 0)
+        {
+          for (Node nc : n)
+          {
+            out << " ";
+            toStreamSygus(out, nc);
+          }
+          out << ")";
+        }
+      }
+      return;
+    }
+  }
+  else
+  {
+    // cannot convert term to analog, print original
+    toStream(out, n, -1, false, 1);
+  }
+}
 
 static void toStream(std::ostream& out, const AssertCommand* c) throw() {
   out << "(assert " << c->getExpr() << ")";

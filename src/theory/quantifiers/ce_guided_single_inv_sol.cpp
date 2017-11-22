@@ -19,7 +19,6 @@
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
@@ -34,9 +33,8 @@ using namespace std;
 
 namespace CVC4 {
 
-CegConjectureSingleInvSol::CegConjectureSingleInvSol( QuantifiersEngine * qe ) : d_qe( qe ){
-  d_id_count = 0;
-}
+CegConjectureSingleInvSol::CegConjectureSingleInvSol(QuantifiersEngine* qe)
+    : d_qe(qe), d_id_count(0), d_root_id() {}
 
 bool CegConjectureSingleInvSol::debugSolution( Node sol ) {
   if( sol.getKind()==SKOLEM ){
@@ -297,15 +295,6 @@ bool CegConjectureSingleInvSol::getAssignEquality( Node eq, std::vector< Node >&
       }
     }
   }
-  /*
-  TypeNode tn = eq[0].getType();
-  if( tn.isInteger() || tn.isReal() ){
-    std::map< Node, Node > msum;
-    if( QuantArith::getMonomialSumLit( eq, msum ) ){
-
-    }
-  }
-  */
   return false;
 }
 

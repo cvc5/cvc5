@@ -263,6 +263,8 @@ option cegqiSingleInvAbort --cegqi-si-abort bool :default false
   abort if synthesis conjecture is not single invocation
 option sygusPbe --sygus-pbe bool :default true
   sygus advanced pruning based on examples
+option sygusQePreproc --sygus-qe-preproc bool :default false
+  use quantifier elimination as a preprocessing step for sygus
   
 option sygusMinGrammar --sygus-min-grammar bool :default true
   statically minimize sygus grammars
@@ -270,6 +272,8 @@ option sygusMinGrammarAgg --sygus-min-grammar-agg bool :default false
   aggressively minimize sygus grammars
 option sygusAddConstGrammar --sygus-add-const-grammar bool :default true
   statically add constants appearing in conjecture to grammars
+option sygusNormalizeGrammar --sygus-norm-grammar bool :default false
+  statically normalize sygus grammars based on flattening
 option sygusTemplEmbedGrammar --sygus-templ-embed-grammar bool :default false
   embed sygus templates into grammars
   
@@ -341,6 +345,8 @@ option cbqiBvInterleaveValue --cbqi-bv-interleave-value bool :read-write :defaul
   interleave model value instantiation with word-level inversion approach
 option cbqiBvIneqMode --cbqi-bv-ineq=MODE CVC4::theory::quantifiers::CbqiBvIneqMode :read-write :default CVC4::theory::quantifiers::CBQI_BV_INEQ_EQ_SLACK :include "options/quantifiers_modes.h" :handler stringToCbqiBvIneqMode
  choose mode for handling bit-vector inequalities with counterexample-guided instantiation
+option cbqiBvRmExtract --cbqi-bv-rm-extract bool :read-write :default false 
+  replaces extract terms with variables for counterexample-guided instantiation for bit-vectors
  
 ### local theory extensions options 
 

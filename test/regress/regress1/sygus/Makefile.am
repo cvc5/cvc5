@@ -27,7 +27,8 @@ TESTS =	\
 	icfp_easy_mt_ite.sy \
 	three.sy \
 	nia-max-square.sy \
-	MPwL_d1s3.sy
+	MPwL_d1s3.sy \
+	process-arg-invariance.sy
 
 EXTRA_DIST = $(TESTS)
 

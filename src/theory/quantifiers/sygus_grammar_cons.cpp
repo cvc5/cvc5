@@ -19,11 +19,12 @@
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus_process_conj.h"
+#include "theory/quantifiers/sygus_grammar_norm.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;
-using namespace std;
 
 namespace CVC4 {
 namespace theory {
@@ -101,7 +102,7 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
     }else{
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
-      // TODO (#1210) : get arg irrelevant based on conjecture-specific analysis
+      d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
       std::unordered_set<Node, NodeHashFunction> term_irrelevant;
       // convert to term
       for (std::unordered_set<unsigned>::iterator ita = arg_irrelevant.begin();
@@ -116,6 +117,12 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
       // make the default grammar
       tn = mkSygusDefaultType(
           v.getType(), sfvl, ss.str(), extra_cons, term_irrelevant);
+    }
+    // normalize type
+    if (options::sygusNormalizeGrammar())
+    {
+      SygusGrammarNorm sygus_norm(d_qe, d_parent);
+      tn = sygus_norm.normalizeSygusType(tn, sfvl);
     }
     // check if there is a template
     std::map< Node, Node >::iterator itt = templates.find( sf );

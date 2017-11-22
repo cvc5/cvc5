@@ -19,6 +19,8 @@
 #ifndef __CVC4__THEORY__OUTPUT_CHANNEL_H
 #define __CVC4__THEORY__OUTPUT_CHANNEL_H
 
+#include <memory>
+
 #include "base/cvc4_assert.h"
 #include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
@@ -97,7 +99,7 @@ class OutputChannel {
    * @param pf - a proof of the conflict. This is only non-null if proofs
    * are enabled.
    */
-  virtual void conflict(TNode n, Proof* pf = nullptr) = 0;
+  virtual void conflict(TNode n, std::unique_ptr<Proof> pf = nullptr) = 0;
 
   /**
    * Propagate a theory literal.

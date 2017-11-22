@@ -19,6 +19,7 @@
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/datatypes/datatypes_rewriter.h"
+#include "util/random.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -978,7 +979,7 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
     Node g = it->second.d_active_guard;
     if( exp_exc.isNull() ){
       // if we did not already explain why this should be excluded, use default
-      exp_exc = d_tds->getExplanationForConstantEquality( x, v );
+      exp_exc = d_tds->getExplain()->getExplanationForConstantEquality(x, v);
     }
     Node exlem = NodeManager::currentNM()->mkNode( kind::OR, g.negate(), exp_exc.negate() );
     Trace("sygus-pbe-enum-lemma") << "CegConjecturePbe : enumeration exclude lemma : " << exlem << std::endl;
@@ -987,123 +988,6 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
     Trace("sygus-pbe-enum-debug") << "  ...guard is inactive." << std::endl;
   }
 }
-
-/** NegContainsSygusInvarianceTest
-*
-* This class is used to construct a minimal shape of a term that cannot
-* be contained in at least one output of an I/O pair.
-*
-* Say our PBE conjecture is:
-*
-* exists f.
-*   f( "abc" ) = "abc abc" ^
-*   f( "de" ) = "de de"
-*
-* Then, this class is used when there is a candidate solution t[x1] such that
-* either
-*   contains( "abc abc", t["abc"] ) ---> false or
-*   contains( "de de", t["de"] ) ---> false
-*
-* In particular it is used to determine whether certain generalizations of t[x1]
-* are still sufficient to falsify one of the above containments.
-*
-* For example:
-*
-* str.++( x1, "d" ) can be minimized to str.++( _, "d" )
-*   ...since contains( "abc abc", str.++( y, "d" ) ) ---> false,
-*      for any y.
-* str.replace( "de", x1, "b" ) can be minimized to str.replace( "de", x1, _ )
-*   ...since contains( "abc abc", str.replace( "de", "abc", y ) ) ---> false,
-*      for any y.
-*
-* It is an instance of quantifiers::SygusInvarianceTest, which
-* traverses the AST of a given term, replaces each subterm by a
-* fresh variable y and checks whether an invariance test (such as
-* the one specified by this class) holds.
-*
-*/
-class NegContainsSygusInvarianceTest : public quantifiers::SygusInvarianceTest {
-public:
-  NegContainsSygusInvarianceTest() : d_cpbe(nullptr){}
-  ~NegContainsSygusInvarianceTest(){}
-
-  /** initialize this invariance test
-  *  cpbe is the conjecture utility.
-  *  e is the enumerator which we are reasoning about (associated with a synth
-  *    fun).
-  *  exo is the list of outputs of the PBE conjecture.
-  *  ncind is the set of possible indices of the PBE conjecture to check
-  *    invariance of non-containment.
-  *    For example, in the above example, when t[x1] = "ab", then this
-  *    has the index 1 since contains("de de", "ab") ---> false but not
-  *    the index 0 since contains("abc abc","ab") ---> true.
-  */
-  void init(quantifiers::CegConjecturePbe* cpbe,
-            Node e,
-            std::vector<Node>& exo,
-            std::vector<unsigned>& ncind)
-  {
-    if (cpbe->hasExamples(e))
-    {
-      Assert(cpbe->getNumExamples(e) == exo.size());
-      d_enum = e;
-      d_exo.insert( d_exo.end(), exo.begin(), exo.end() );
-      d_neg_con_indices.insert( d_neg_con_indices.end(), ncind.begin(), ncind.end() );
-      d_cpbe = cpbe;
-    }
-  }
-
- protected:
-  /** checks whether contains( out_i, nvn[in_i] ) --> false for some I/O pair i.
-   */
-  bool invariant( quantifiers::TermDbSygus * tds, Node nvn, Node x ){
-    if (!d_enum.isNull())
-    {
-      TypeNode tn = nvn.getType();
-      Node nbv = tds->sygusToBuiltin( nvn, tn );
-      Node nbvr = tds->extendedRewrite( nbv );
-      // if for any of the examples, it is not contained, then we can exclude
-      for( unsigned i=0; i<d_neg_con_indices.size(); i++ ){
-        unsigned ii = d_neg_con_indices[i];
-        Assert( ii<d_exo.size() );
-        Node nbvre = d_cpbe->evaluateBuiltin(tn, nbvr, d_enum, ii);
-        Node out = d_exo[ii];
-        Node cont = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, out, nbvre );
-        Node contr = Rewriter::rewrite( cont );
-        if( contr==tds->d_false ){
-          if( Trace.isOn("sygus-pbe-cterm") ){
-            Trace("sygus-pbe-cterm") << "PBE-cterm : enumerator : do not consider ";
-            Trace("sygus-pbe-cterm") << nbv << " for any " << tds->sygusToBuiltin( x ) << " since " << std::endl;
-            Trace("sygus-pbe-cterm") << "   PBE-cterm :    for input example : ";
-            std::vector< Node > ex;
-            d_cpbe->getExample(d_enum, ii, ex);
-            for( unsigned j=0; j<ex.size(); j++ ){
-              Trace("sygus-pbe-cterm") << ex[j] << " ";
-            }
-            Trace("sygus-pbe-cterm") << std::endl;
-            Trace("sygus-pbe-cterm") << "   PBE-cterm :     this rewrites to : " << nbvre << std::endl;
-            Trace("sygus-pbe-cterm") << "   PBE-cterm : and is not in output : " << out << std::endl;
-          }
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
- private:
-  /** The enumerator whose value we are considering in this invariance test */
-  Node d_enum;
-  /** The output examples for the enumerator */
-  std::vector<Node> d_exo;
-  /** The set of I/O pair indices i such that
-   *    contains( out_i, nvn[in_i] ) ---> false
-   */
-  std::vector<unsigned> d_neg_con_indices;
-  /** reference to the PBE utility */
-  quantifiers::CegConjecturePbe* d_cpbe;
-};
-
 
 bool CegConjecturePbe::getExplanationForEnumeratorExclude( Node c, Node x, Node v, std::vector< Node >& results, EnumInfo& ei, std::vector< Node >& exp ) {
   if( ei.d_enum_slave.size()==1 ){
@@ -1146,8 +1030,8 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude( Node c, Node x, Node 
       if( !cmp_indices.empty() ){
         //set up the inclusion set
         NegContainsSygusInvarianceTest ncset;
-        ncset.init(this, x, itxo->second, cmp_indices);
-        d_tds->getExplanationFor( x, v, exp, ncset );
+        ncset.init(d_parent, x, itxo->second, cmp_indices);
+        d_tds->getExplain()->getExplanationFor(x, v, exp, ncset);
         Trace("sygus-pbe-cterm") << "PBE-cterm : enumerator exclude " << d_tds->sygusToBuiltin( v ) << " due to negative containment." << std::endl;
         return true;
       }
@@ -1502,7 +1386,7 @@ Node CegConjecturePbe::constructBestSolvedConditional( std::vector< Node >& solv
 Node CegConjecturePbe::constructBestConditional( std::vector< Node >& conds, UnifContext& x ) {
   Assert( !conds.empty() );
   // TODO
-  double r = (double)(rand())/((double)(RAND_MAX));
+  double r = Random::getRandom().pickDouble(0.0, 1.0);
   unsigned cindex = r*conds.size();
   if( cindex>conds.size() ){
     cindex = conds.size() - 1;
@@ -1516,7 +1400,7 @@ Node CegConjecturePbe::constructBestStringToConcat( std::vector< Node > strs,
                                                     UnifContext& x ) {
   Assert( !strs.empty() );
   // TODO
-  double r = (double)(rand())/((double)(RAND_MAX));
+  double r = Random::getRandom().pickDouble(0.0, 1.0);
   unsigned cindex = r*strs.size();
   if( cindex>strs.size() ){
     cindex = strs.size() - 1;
