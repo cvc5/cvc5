@@ -1212,7 +1212,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         if( itrm!=d_tf_rep_map[a.getKind()].end() ){
           //verify they have the same model value
           if( d_mv[1][a]!=d_mv[1][itrm->second] ){
-            //if not, add congruence lemma
+            // if not, add congruence lemma
             Node cong_lemma = NodeManager::currentNM()->mkNode( kind::IMPLIES, a[0].eqNode( itrm->second[0] ), a.eqNode( itrm->second ) );
             lemmas.push_back( cong_lemma );
             //Assert( false );

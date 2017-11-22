@@ -113,7 +113,7 @@ class NonlinearExtension {
   std::pair<bool, Node> isExtfReduced(int effort, Node n, Node on,
                                       const std::vector<Node>& exp) const;
   /** Check at effort level e.
-   * 
+   *
    * This call may result in (possibly multiple)
    * calls to d_out->lemma(...) where d_out
    * is the output channel of TheoryArith.
@@ -122,14 +122,14 @@ class NonlinearExtension {
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** Compare arithmetic terms i and j based an ordering.
-   * 
+   *
    * orderType = 0 : compare concrete model values
    * orderType = 1 : compare abstract model values
    * orderType = 2 : compare abs of concrete model values
-   * orderType = 3 : compare abs of abstract model values  
+   * orderType = 3 : compare abs of abstract model values
    * TODO (#1287) make this an enum?
-   * 
-   * For definitions of concrete vs abstract model values, 
+   *
+   * For definitions of concrete vs abstract model values,
    * see computeModelValue below.
    */
   int compare(Node i, Node j, unsigned orderType) const;
@@ -137,9 +137,10 @@ class NonlinearExtension {
    * orderType is the same as above.
    */
   int compare_value(Node i, Node j, unsigned orderType) const;
+
  private:
   /** returns true if the multiset containing the
-   * factors of monomial a is a subset of the multiset 
+   * factors of monomial a is a subset of the multiset
    * containing the factors of monomial b.
    */
   bool isMonomialSubset(Node a, Node b) const;
@@ -219,7 +220,7 @@ class NonlinearExtension {
    *   computeModelValue( a*b, 1 ) = 5
    */
   Node computeModelValue(Node n, unsigned index = 0);
-  /** returns the Node corresponding to the value of i in the 
+  /** returns the Node corresponding to the value of i in the
    * type of order orderType, which is one of values
    * described above ::compare(...).
    */
@@ -248,10 +249,10 @@ class NonlinearExtension {
   * This function iterates over the factors of a,
   * where a_index is the index of the factor in a
   * we are currently looking at.
-  * 
+  *
   * This function returns a status, which indicates
   * a's relationship to 0.
-  * We add lemmas to lem of the form given by the 
+  * We add lemmas to lem of the form given by the
   * lemma schema checkSign(...).
   */
   int compareSign(Node oa, Node a, unsigned a_index, int status,
@@ -376,7 +377,7 @@ class NonlinearExtension {
   Node d_pi_neg;
   /** the concrete lower and upper bounds for PI */
   Node d_pi_bound[2];
-  
+
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
 
@@ -429,9 +430,9 @@ private:
   std::map<Node, std::map<Node, std::map<Node, Kind> > > d_ci;
   std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
   std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
-  
-  /** transcendental function representative map 
-   * 
+
+  /** transcendental function representative map
+   *
    * For each transcendental function n = tf( x ),
    * this stores ( n.getKind(), r ) -> n
    * where r is the current representative of x
@@ -446,9 +447,9 @@ private:
   // tangent plane bounds
   std::map< Node, std::map< Node, Node > > d_tangent_val_bound[4];
 
-  /** secant points (sorted list) for transcendental functions 
-   * 
-   * This is used for tangent plane refinements for 
+  /** secant points (sorted list) for transcendental functions
+   *
+   * This is used for tangent plane refinements for
    * transcendental functions. This is the set
    * "get-previous-secant-points" in "Satisfiability
    * Modulo Transcendental Functions via Incremental
@@ -610,7 +611,7 @@ private:
   *
   * x > 0 ^ (y > z + w) => x*y > x*(z+w)
   * x < 0 ^ (y > z + w) => x*y < x*(z+w)
-  *   ...where (y > z + w) and x*y are a constraint and term 
+  *   ...where (y > z + w) and x*y are a constraint and term
   *      that occur in the current context.
   */
   std::vector<Node> checkMonomialInferBounds( std::vector<Node>& nt_lemmas,
@@ -641,7 +642,7 @@ private:
   * Examples:
   *
   *  ( y>=0 ^ s <= x*z ^ x*y <= t ) => y*s <= z*t
-  *  ...where s <= x*z and x*y <= t are constraints 
+  *  ...where s <= x*z and x*y <= t are constraints
   *     that occur in the current context.
   */
   std::vector<Node> checkMonomialInferResBounds();
