@@ -56,7 +56,7 @@ class InstMatchGenerator;
 */
 class TriggerTermInfo {
 public:
-  TriggerTermInfo() : d_reqPol(0){}
+  TriggerTermInfo() : d_reqPol(0), d_weight(0){}
   ~TriggerTermInfo(){}
   /** The free variables in the node
   *
@@ -89,6 +89,8 @@ public:
   *   d_reqPolEq = false
   */
   Node d_reqPolEq;
+  /** the weight of the trigger (see Trigger::getTriggerWeight). */
+  int d_weight;
   /** Initialize this information class (can be called more than once).
   * q is the quantified formula that n is a trigger term for
   * n is the trigger term
@@ -290,17 +292,16 @@ class Trigger {
 
   /** is instance of
    *
-   * We say a term t is an instance of term s if
-   *   t = s * { x1 -> t[x1] ... xn -> t[xn] }
-   * that is, t is the result of applying to s a substitution whose range terms
-   * have free variables contained in their domains.
+   * We say a term t is an trigger instance of term s if
+   * (1) t = s * { x1 -> t1 ... xn -> tn }
+   * (2) { x1, ..., xn } are a subset of FV( t ).
    * For example, f( a ) and f( g( x ) ) are instances of f( x ), but
    * f( g( y ) ) and g( x ) are not instances of f( x ).
    *
    * When this method returns -1, n1 is an instance of n2,
    * When this method returns 1, n1 is an instance of n2.
    */
-  static int isInstanceOf(Node n1, Node n2);
+  static int isTriggerInstanceOf(Node n1, Node n2, std::vector< Node >& fv1, std::vector< Node >& fv2);
 
   /** Is n a usable trigger in quantified formula q?
    *
