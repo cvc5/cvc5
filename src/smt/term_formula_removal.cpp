@@ -122,62 +122,64 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       }
     }
   }
-
-  //if a lambda, do lambda-lifting
-  if( node.getKind() == kind::LAMBDA && !inQuant ){
-    skolem = getSkolemForNode(node);
-    if (skolem.isNull())
-    {
-      // Make the skolem to represent the lambda
-      skolem = nodeManager->mkSkolem(
-          "lambdaF",
-          nodeType,
-          "a function introduced due to term-level lambda removal");
-      d_skolem_cache.insert(node, skolem);
-
-      // The new assertion
-      std::vector<Node> children;
-      // bound variable list
-      children.push_back(node[0]);
-      // body
-      std::vector<Node> skolem_app_c;
-      skolem_app_c.push_back(skolem);
-      for (unsigned i = 0; i < node[0].getNumChildren(); i++)
-      {
-        skolem_app_c.push_back(node[0][i]);
-      }
-      Node skolem_app = nodeManager->mkNode(kind::APPLY_UF, skolem_app_c);
-      children.push_back(skolem_app.eqNode(node[1]));
-      // axiom defining skolem
-      newAssertion = nodeManager->mkNode(kind::FORALL, children);
-    }
-  }
-
-  // If a Hilbert choice function, witness the choice.
-  //   For details on this operator, see
-  //   http://planetmath.org/hilbertsvarepsilonoperator.
-  if (node.getKind() == kind::CHOICE && !inQuant)
+  else if( node.getKind() == kind::LAMBDA )
   {
-    skolem = getSkolemForNode(node);
-    if (skolem.isNull())
-    {
-      // Make the skolem to witness the choice
-      skolem = nodeManager->mkSkolem(
-          "choiceK",
-          nodeType,
-          "a skolem introduced due to term-level Hilbert choice removal");
-      d_skolem_cache.insert(node, skolem);
+    //if a lambda, do lambda-lifting
+    if( !inQuant ){
+      skolem = getSkolemForNode(node);
+      if (skolem.isNull())
+      {
+        // Make the skolem to represent the lambda
+        skolem = nodeManager->mkSkolem(
+            "lambdaF",
+            nodeType,
+            "a function introduced due to term-level lambda removal");
+        d_skolem_cache.insert(node, skolem);
 
-      Assert(node[0].getNumChildren() == 1);
-
-      // The new assertion is the assumption that the body
-      // of the choice operator holds for the Skolem
-      newAssertion = node[1].substitute(node[0][0], skolem);
+        // The new assertion
+        std::vector<Node> children;
+        // bound variable list
+        children.push_back(node[0]);
+        // body
+        std::vector<Node> skolem_app_c;
+        skolem_app_c.push_back(skolem);
+        for (unsigned i = 0; i < node[0].getNumChildren(); i++)
+        {
+          skolem_app_c.push_back(node[0][i]);
+        }
+        Node skolem_app = nodeManager->mkNode(kind::APPLY_UF, skolem_app_c);
+        children.push_back(skolem_app.eqNode(node[1]));
+        // axiom defining skolem
+        newAssertion = nodeManager->mkNode(kind::FORALL, children);
+      }
     }
   }
+  else if (node.getKind() == kind::CHOICE)
+  {
+    // If a Hilbert choice function, witness the choice.
+    //   For details on this operator, see
+    //   http://planetmath.org/hilbertsvarepsilonoperator.
+    if( !inQuant ){
+      skolem = getSkolemForNode(node);
+      if (skolem.isNull())
+      {
+        // Make the skolem to witness the choice
+        skolem = nodeManager->mkSkolem(
+            "choiceK",
+            nodeType,
+            "a skolem introduced due to term-level Hilbert choice removal");
+        d_skolem_cache.insert(node, skolem);
 
-  //if a non-variable Boolean term, replace it
-  if(node.getKind()!=kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean() && inTerm && !inQuant ){//(!inQuant || !node.hasBoundVar())){
+        Assert(node[0].getNumChildren() == 1);
+
+        // The new assertion is the assumption that the body
+        // of the choice operator holds for the Skolem
+        newAssertion = node[1].substitute(node[0][0], skolem);
+      }
+    }
+  }else if(node.getKind()!=kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean() && inTerm && !inQuant ){
+    
+    //if a non-variable Boolean term, replace it
     skolem = getSkolemForNode(node);
     if (skolem.isNull())
     {
