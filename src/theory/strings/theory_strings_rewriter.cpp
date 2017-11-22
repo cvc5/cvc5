@@ -1983,7 +1983,7 @@ bool TheoryStringsRewriter::stripSymbolicLength(std::vector<Node>& n1,
           Rational lbr = lowerBound.getConst<Rational>();
           if (lbr.sgn() > 0)
           {
-            Assert(checkEntailArith(curr));
+            Assert(checkEntailArith(curr, true));
             CVC4::String s = n1[sindex_use].getConst<String>();
             Node ncl =
                 NodeManager::currentNM()->mkConst(CVC4::Rational(s.size()));
