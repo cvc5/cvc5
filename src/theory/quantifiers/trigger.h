@@ -55,48 +55,48 @@ class InstMatchGenerator;
 * This example is referenced for each of the functions below.
 */
 class TriggerTermInfo {
-public:
- TriggerTermInfo() : d_reqPol(0), d_weight(0) {}
- ~TriggerTermInfo() {}
- /** The free variables in the node
- *
- * In the trigger term info for f( x ) in the above example, d_fv = { x }
- * In the trigger term info for g( y ) in the above example, d_fv = { y }
- * In the trigger term info for P( y, z ) in the above example, d_fv = { y, z }
- */
- std::vector<Node> d_fv;
- /** Required polarity:  1 for equality, -1 for disequality, 0 for none
- *
- * In the trigger term info for f( x ) in the above example, d_reqPol = -1
- * In the trigger term info for g( y ) in the above example, d_reqPol = 0
- * In the trigger term info for P( y, z ) in the above example,  d_reqPol = 1
- */
- int d_reqPol;
- /** Required polarity equal term
- *
- * If d_reqPolEq is not null,
- *   if d_reqPol = 1, then this trigger term must be matched to terms in the
- *                    equivalence class of d_reqPolEq,
- *   if d_reqPol = -1, then this trigger term must be matched to terms *not* in
- *                     the equivalence class of d_reqPolEq.
- *
- * This information is typically chosen by analyzing the entailed equalities
- * and disequalities of quantified formulas.
- * In the trigger term info for f( x ) in the above example, d_reqPolEq = b
- * In the trigger term info for g( y ) in the above example,
- *   d_reqPolEq = Node::null()
- * In the trigger term info for P( y, z ) in the above example,
- *   d_reqPolEq = false
- */
- Node d_reqPolEq;
- /** the weight of the trigger (see Trigger::getTriggerWeight). */
- int d_weight;
- /** Initialize this information class (can be called more than once).
- * q is the quantified formula that n is a trigger term for
- * n is the trigger term
- * reqPol/reqPolEq are described above
- */
- void init(Node q, Node n, int reqPol = 0, Node reqPolEq = Node::null());
+ public:
+  TriggerTermInfo() : d_reqPol(0), d_weight(0) {}
+  ~TriggerTermInfo() {}
+  /** The free variables in the node
+  *
+  * In the trigger term info for f( x ) in the above example, d_fv = { x }
+  * In the trigger term info for g( y ) in the above example, d_fv = { y }
+  * In the trigger term info for P( y, z ) in the above example, d_fv = { y, z }
+  */
+  std::vector<Node> d_fv;
+  /** Required polarity:  1 for equality, -1 for disequality, 0 for none
+  *
+  * In the trigger term info for f( x ) in the above example, d_reqPol = -1
+  * In the trigger term info for g( y ) in the above example, d_reqPol = 0
+  * In the trigger term info for P( y, z ) in the above example,  d_reqPol = 1
+  */
+  int d_reqPol;
+  /** Required polarity equal term
+  *
+  * If d_reqPolEq is not null,
+  *   if d_reqPol = 1, then this trigger term must be matched to terms in the
+  *                    equivalence class of d_reqPolEq,
+  *   if d_reqPol = -1, then this trigger term must be matched to terms *not* in
+  *                     the equivalence class of d_reqPolEq.
+  *
+  * This information is typically chosen by analyzing the entailed equalities
+  * and disequalities of quantified formulas.
+  * In the trigger term info for f( x ) in the above example, d_reqPolEq = b
+  * In the trigger term info for g( y ) in the above example,
+  *   d_reqPolEq = Node::null()
+  * In the trigger term info for P( y, z ) in the above example,
+  *   d_reqPolEq = false
+  */
+  Node d_reqPolEq;
+  /** the weight of the trigger (see Trigger::getTriggerWeight). */
+  int d_weight;
+  /** Initialize this information class (can be called more than once).
+  * q is the quantified formula that n is a trigger term for
+  * n is the trigger term
+  * reqPol/reqPolEq are described above
+  */
+  void init(Node q, Node n, int reqPol = 0, Node reqPolEq = Node::null());
 };
 
 /** A collection of nodes representing a trigger.
