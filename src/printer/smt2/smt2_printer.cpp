@@ -1325,7 +1325,7 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const throw()
       int cIndex = Datatype::indexOf(n.getOperator().toExpr());
       Assert(!dt[cIndex].getSygusOp().isNull());
       SygusPrintCallback* spc = dt[cIndex].getSygusPrintCallback();
-      if (spc != nullptr)
+      if (spc != nullptr && options::sygusPrintCallbacks())
       {
         spc->toStreamSygus(this, out, n.toExpr());
       }
@@ -1351,8 +1351,16 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const throw()
   }
   else
   {
-    // cannot convert term to analog, print original
-    toStream(out, n, -1, false, 1);
+    Node p = n.getAttribute(theory::SygusPrintProxyAttribute());
+    if (!p.isNull())
+    {
+      out << p;
+    }
+    else
+    {
+      // cannot convert term to analog, print original
+      out << n;
+    }
   }
 }
 

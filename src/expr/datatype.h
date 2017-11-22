@@ -191,7 +191,7 @@ class CVC4_PUBLIC SygusPrintCallback
 {
  public:
   SygusPrintCallback() {}
-  ~SygusPrintCallback() {}
+  virtual ~SygusPrintCallback() {}
   /**
    * Writes the term that sygus datatype expression e
    * encodes to stream out. p is the printer that
@@ -232,6 +232,7 @@ class CVC4_PUBLIC DatatypeConstructor {
    */
   DatatypeConstructor(std::string name, std::string tester);
 
+  ~DatatypeConstructor() {}
   /**
    * Add an argument (i.e., a data field) of the given name and type
    * to this Datatype constructor.  Selector names need not be unique;
@@ -287,29 +288,10 @@ class CVC4_PUBLIC DatatypeConstructor {
    * deep embedding.
    */
   Expr getSygusOp() const;
-  /** get sygus let body
-   *
-   * The sygus official format
-   * (http://www.sygus.org/SyGuS-COMP2015.html)
-   * allows for let expressions to occur in grammars.
-   *
-   * TODO (#1344) refactor this
-   */
-  Expr getSygusLetBody() const;
-  /** get number of sygus let args
-   * TODO (#1344) refactor this
-   */
-  unsigned getNumSygusLetArgs() const;
-  /** get sygus let arg
-   * TODO (#1344) refactor this
-   */
-  Expr getSygusLetArg( unsigned i ) const;
-  /** get number of let arguments that should be printed as arguments to let
-   * TODO (#1344) refactor this
-   */
-  unsigned getNumSygusLetInputArgs() const;
   /** is this a sygus identity function?
-   * TODO (#1344) refactor this
+   *
+   * This returns true if the sygus operator of this datatype constructor is
+   * of the form (lambda (x) x).
    */
   bool isSygusIdFunc() const;
   /** get sygus print callback
@@ -431,11 +413,13 @@ class CVC4_PUBLIC DatatypeConstructor {
   int getSelectorIndexInternal( Expr sel ) const;
 
   /** involves external type
+   *
    * Get whether this constructor has a subfield
    * in any constructor that is not a datatype type.
    */
   bool involvesExternalType() const;
   /** involves external type
+   *
    * Get whether this constructor has a subfield
    * in any constructor that is an uninterpreted type.
    */
@@ -443,13 +427,11 @@ class CVC4_PUBLIC DatatypeConstructor {
 
   /** set sygus
    *
-   * Set that this constructor is a sygus datatype
-   * constructor that encodes operator op.
-   * The remaining arguments are for handling
-   * let expressions in user-provided sygus
-   * grammars (see above).
+   * Set that this constructor is a sygus datatype constructor that encodes
+   * operator op. spc is the sygus callback of this datatype constructor,
+   * which is stored in a shared pointer.
    */
-  void setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_argus );
+  void setSygus(Expr op, std::shared_ptr<SygusPrintCallback> spc);
 
  private:
   /** the name of the constructor */
@@ -462,14 +444,11 @@ class CVC4_PUBLIC DatatypeConstructor {
   std::vector<DatatypeConstructorArg> d_args;
   /** sygus operator */
   Expr d_sygus_op;
-  /** sygus let body */
-  Expr d_sygus_let_body;
-  /** sygus let args */
-  std::vector<Expr> d_sygus_let_args;
-  /** sygus num let input args */
-  unsigned d_sygus_num_let_input_args;
+  /** sygus print callback */
+  std::shared_ptr<SygusPrintCallback> d_sygus_pc;
 
   /** shared selectors for each type
+   *
    * This stores the shared (constructor-agnotic)
    * selectors that access the fields of this datatype.
    * In the terminology of "Datatypes with Shared Selectors",
@@ -673,25 +652,18 @@ public:
    *      this constructor encodes
    * cname : the name of the constructor (for printing only)
    * cargs : the arguments of the constructor
+   * spc : an (optional) callback that is used for custom printing. This is
+   *       to accomodate user-provided grammars in the sygus format.
    *
    * It should be the case that cargs are sygus datatypes that
    * encode the arguments of op. For example, a sygus constructor
    * with op = PLUS should be such that cargs.size()>=2 and
    * the sygus type of cargs[i] is Real/Int for each i.
    */
-  void addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs );
-  /** add sygus constructor (for let expression constructors)
-   *
-   * This adds a sygus constructor to this datatype, where
-   * this datatype should be currently unresolved.
-   *
-   * In contrast to the above function, the constructor we
-   * add corresponds to a let expression if let_body is
-   * non-null. For details, see documentation for
-   * DatatypeConstructor::getSygusLetBody above.
-   */
-  void addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
-                            CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args );
+  void addSygusConstructor(CVC4::Expr op,
+                           std::string& cname,
+                           std::vector<CVC4::Type>& cargs,
+                           std::shared_ptr<SygusPrintCallback> spc = nullptr);
 
   /** set that this datatype is a tuple */
   void setTuple();
