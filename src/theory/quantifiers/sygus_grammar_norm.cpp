@@ -128,11 +128,11 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
        * operator (NOT, ITE, etc) */
       Node exp_sop_n = Node::fromExpr(
           smt::currentSmtEngine()->expandDefinitions(cons.getSygusOp()));
+      tos[i].d_ops.push_back(Rewriter::rewrite(exp_sop_n));
       Trace("sygus-grammar-normalize")
           << "\tOriginal op: " << cons.getSygusOp()
           << "\n\tExpanded one: " << exp_sop_n
-          << "\n\tRewritten one: " << Rewriter::rewrite(exp_sop_n) << std::endl;
-      tos[i].d_ops.push_back(Rewriter::rewrite(exp_sop_n));
+          << "\n\tRewritten one: " << tos[i].d_ops.back() << std::endl;
       tos[i].d_cons_names.push_back(cons.getName());
       tos[i].d_pcb.push_back(cons.getSygusPrintCallback());
       tos[i].d_cons_args_t.push_back(std::vector<Type>());
