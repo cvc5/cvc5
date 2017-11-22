@@ -681,7 +681,7 @@ std::pair<bool, Node> NonlinearExtension::isExtfReduced(
     // minimize explanation if a substitution+rewrite results in zero
     const std::set<Node> vars(on.begin(), on.end());
 
-    for (unsigned i = 0; i < exp.size(); i++)
+    for (unsigned i = 0, size = exp.size(); i < size; i++)
     {
       Trace("nl-ext-zero-exp") << "  exp[" << i << "] = " << exp[i]
                                << std::endl;
@@ -692,11 +692,11 @@ std::pair<bool, Node> NonlinearExtension::isExtfReduced(
       }
       else if (exp[i].getKind() == kind::AND)
       {
-        for (unsigned j = 0; j < exp[i].getNumChildren(); j++)
+        for (const Node& ec : exp[i])
         {
-          if (exp[i][j].getKind() == kind::EQUAL)
+          if (ec.getKind() == kind::EQUAL)
           {
-            eqs.push_back(exp[i][j]);
+            eqs.push_back(ec);
           }
         }
       }
@@ -1640,16 +1640,13 @@ Node NonlinearExtension::get_compare_value(Node i, unsigned orderType) const {
   {
     return i;
   }
-  else
-  {
-    Trace("nl-ext-debug") << "Compare variable " << i << " " << orderType
-                          << std::endl;
-    Assert(orderType >= 0 && orderType <= 3);
-    unsigned mindex = orderType <= 1 ? 0 : 1;
-    std::map<Node, Node>::const_iterator iti = d_mv[mindex].find(i);
-    Assert(iti != d_mv[mindex].end());
-    return iti->second;
-  }
+  Trace("nl-ext-debug") << "Compare variable " << i << " " << orderType
+                        << std::endl;
+  Assert(orderType >= 0 && orderType <= 3);
+  unsigned mindex = orderType <= 1 ? 0 : 1;
+  std::map<Node, Node>::const_iterator iti = d_mv[mindex].find(i);
+  Assert(iti != d_mv[mindex].end());
+  return iti->second;
 }
 
 // show a <> 0 by inequalities between variables in monomial a w.r.t 0
@@ -3017,10 +3014,6 @@ Node NonlinearExtension::getDerivative(Node n, Node x)
     {
       return n;
     }
-    else
-    {
-      //return d_zero;
-    }
   }
   else if (n.getKind() == kind::SINE)
   {
@@ -3030,10 +3023,6 @@ Node NonlinearExtension::getDerivative(Node n, Node x)
       Node ret = NodeManager::currentNM()->mkNode(kind::SINE, na);
       ret = Rewriter::rewrite(ret);
       return ret;
-    }
-    else
-    {
-      //return d_zero;
     }
   }
   else if (n.getKind() == kind::PLUS)
@@ -3066,7 +3055,7 @@ Node NonlinearExtension::getDerivative(Node n, Node x)
     unsigned xcount = 0;
     std::vector<Node> children;
     unsigned xindex = 0;
-    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
     {
       if (n[i] == x)
       {

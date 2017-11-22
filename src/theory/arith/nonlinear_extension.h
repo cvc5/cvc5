@@ -49,7 +49,7 @@ typedef std::map<Node, unsigned> NodeMultiset;
  * This class implements model-based refinement schemes
  * for non-linear arithmetic, described in:
  * 
- * - "Invariant Checking of NRA Transistion Systems
+ * - "Invariant Checking of NRA Transition Systems
  * via Incremental Reduction to LRA with EUF" by
  * Cimatti et al., TACAS 2017.
  * 
@@ -66,9 +66,8 @@ typedef std::map<Node, unsigned> NodeMultiset;
  * or
  * (2) at last call effort.
  * In this method, this class calls d_out->lemma(...)
- * for valid arithmetic theory lemmas, based on
- * the current set of assertions, where d_out is the
- * output channel of TheoryArith.
+ * for valid arithmetic theory lemmas, based on the current set of assertions, 
+ * where d_out is the output channel of TheoryArith.
  */
 class NonlinearExtension {
  public:
@@ -82,18 +81,15 @@ class NonlinearExtension {
    * "Designing Theory Solvers with Extensions"
    * by Reynolds et al. FroCoS 2017.
    * 
-   * effort is an identifier indicating the stage where
-   *   we are performing context-dependent simplification,
-   * vars is a set of arithmetic variables.
+   * effort : an identifier indicating the stage where
+   *          we are performing context-dependent simplification,
+   * vars : a set of arithmetic variables.
    * 
-   * This function populates subs and exp,
-   * such that for each 0 <= i < vars.size()
-   * ( exp[vars[i]] ) => vars[i] = subs[i]
+   * This function populates subs and exp, such that for 0 <= i < vars.size():
+   *   ( exp[vars[i]] ) => vars[i] = subs[i]
    * where exp[vars[i]] is a set of assertions
-   * that hold in the current context.
-   * We call { vars -> subs } a "derivable
-   * substituion" (see Reynolds et al. 
-   * FroCoS 2017).
+   * that hold in the current context. We call { vars -> subs } a "derivable
+   * substituion" (see Reynolds et al. FroCoS 2017).
    */
   bool getCurrentSubstitution(int effort, const std::vector<Node>& vars,
                               std::vector<Node>& subs,
@@ -102,19 +98,17 @@ class NonlinearExtension {
    * 
    * Used for context-dependent simplification.
    * 
-   * effort is an identifier indicating the stage where
-   *   we are performing context-dependent simplification,
-   * on is the original term that we reduced to n,
-   * exp is an explanation such that ( exp => on = n ).
+   * effort : an identifier indicating the stage where
+   *          we are performing context-dependent simplification,
+   * on : the original term that we reduced to n,
+   * exp : an explanation such that ( exp => on = n ).
    * 
    * We return a pair ( b, exp' ) such that
    *   if b is true, then:
    *     n is in reduced form
    *     if exp' is non-null, then ( exp' => on = n )
    * The second part of the pair is used for constructing
-   * minimal explanations for context-dependent
-   * simplifications.
-   * 
+   * minimal explanations for context-dependent simplifications.
    */
   std::pair<bool, Node> isExtfReduced(int effort, Node n, Node on,
                                       const std::vector<Node>& exp) const;
@@ -174,11 +168,15 @@ class NonlinearExtension {
   }; /* struct ConstraintInfo */
 
   /** check last call
-  * Check assertions for consistency in the effort LAST_CALL with a subset of
-  * the assertions, false_asserts, evaluate to false in the current model.
-  * xts is the list of (non-reduced) extended terms in the current context.
-  * Returns the number of lemmas added on the output channel.
-  */
+   * 
+   * Check assertions for consistency in the effort LAST_CALL with a subset of
+   * the assertions, false_asserts, that evaluate to false in the current model.
+   * 
+   * xts : the list of (non-reduced) extended terms in the current context.
+   * 
+   * This method returns the number of lemmas added on the output channel of
+   * TheoryArith.
+   */
   int checkLastCall(const std::vector<Node>& assertions,
                     const std::set<Node>& false_asserts,
                     const std::vector<Node>& xts);
@@ -201,8 +199,8 @@ class NonlinearExtension {
   void registerConstraint(Node atom);
   /** compute model value
    * 
-   * This computes model values for term based on two semantics,
-   *   a "concrete" semantics and an "abstract" semantics.
+   * This computes model values for terms based on two semantics, a "concrete" 
+   * semantics and an "abstract" semantics.
    * 
    * index = 0 means compute the value of n based on its children recursively.
    *          (we call this its "concrete" value)
@@ -274,12 +272,11 @@ class NonlinearExtension {
   * form can be made. For example, if :
   *   a = x*x*y and b = z*w
   * Assuming we are trying to show abs( a ) >= abs( c ),
-  * then if abs( x^M ) >= abs( z^M ), then we can add
-  * abs( x ) >= abs( z ) to our explanation, and 
+  * then if abs( M( x ) ) >= abs( M( z ) ) where M is the current model, 
+  * then we can add abs( x ) >= abs( z ) to our explanation, and 
   * mark one factor of x as processed in a, and 
-  * one factor of z as processed in b.
-  * The number of processed factors of a and b are stored
-  * in a_exp_proc and b_exp_proc respectively.
+  * one factor of z as processed in b. The number of processed factors of a 
+  * and b are stored in a_exp_proc and b_exp_proc respectively.
   *
   * cmp_infers stores information that is helpful
   * in discarding redundant inferences.  For example,
@@ -298,33 +295,30 @@ class NonlinearExtension {
       NodeMultiset& b_exp_proc, std::vector<Node>& exp, std::vector<Node>& lem,
       std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
   /** helper function for above
-  * The difference is the inputs a_index and b_index,
-  * which are the indices of children (factors) in
-  * monomials a and b which we are currently looking at.
-  */
+   * 
+   * The difference is the inputs a_index and b_index, which are the indices of 
+   * children (factors) in monomials a and b which we are currently looking at.
+   */
   bool compareMonomial(
       Node oa, Node a, unsigned a_index, NodeMultiset& a_exp_proc, Node ob,
       Node b, unsigned b_index, NodeMultiset& b_exp_proc, int status,
       std::vector<Node>& exp, std::vector<Node>& lem,
       std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
-  /** check whether we have already inferred a 
-  * relationship between monomials x and y
-  * based on the information in cmp_infers.
-  * This traverses the transitive closure
-  * of the relation stored in cmp_infers.
-  */
+  /** Check whether we have already inferred a relationship between monomials 
+   * x and y based on the information in cmp_infers. This computes the 
+   * transitive closure of the relation stored in cmp_infers.
+   */
   bool cmp_holds(Node x, Node y,
                  std::map<Node, std::map<Node, Node> >& cmp_infers,
                  std::vector<Node>& exp, std::map<Node, bool>& visited);
-  /** Is the assertion n entailed with polarity
-   * pol in the current context?
-   */
+  /** Is n entailed with polarity pol in the current context? */
   bool isEntailed(Node n, bool pol);
 
   /** flush lemmas
+   * 
    * Potentially sends lem on the output channel if lem has not been sent on the
    * output channel in this context. Returns the number of lemmas sent on the
-   * output channel.
+   * output channel of TheoryArith.
    */
   int flushLemma(Node lem);
 
@@ -368,11 +362,10 @@ class NonlinearExtension {
   Node d_true;
   Node d_false;
   /** PI 
-   * Note that PI is a (symbolic, non-constant)
-   * nullary operator. This is because its value
-   * cannot be computed exactly. We bound PI
-   * to concrete lower and upper bounds stored
-   * in d_pi_bound below.
+   * 
+   * Note that PI is a (symbolic, non-constant) nullary operator. This is 
+   * because its value cannot be computed exactly. We constraint PI to concrete 
+   * lower and upper bounds stored in d_pi_bound below.
    */
   Node d_pi;
   /** PI/2 */
@@ -399,6 +392,7 @@ class NonlinearExtension {
 
   // model values/orderings
   /** cache of model values
+   * 
    * Stores the the concrete/abstract model values
    * at indices 0 and 1 respectively. 
    */
@@ -464,6 +458,7 @@ private:
   std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_secant_points;
 
   /** get Taylor series of degree n for function fa centered around point fa[0].
+   * 
    * Return value is ( P_{n,f(a)}( x ), R_{n+1,f(a)}( x ) ) where
    * the first part of the pair is the Taylor series expansion :
    *    P_{n,f(a)}( x ) = sum_{i=0}^n (f^i( a )/i!)*(x-a)^i
@@ -480,9 +475,9 @@ private:
    */
   std::pair<Node, Node> getTaylor(TNode fa, unsigned n);
 
-  /** internal variables used for constructing (cached) versions
-  * the Taylor series above.
-  */
+  /** internal variables used for constructing (cached) versions of the Taylor 
+   * series above.
+   */
   Node d_taylor_real_fv;           // x above
   Node d_taylor_real_fv_base;      // a above
   Node d_taylor_real_fv_base_rem;  // b above
@@ -515,12 +510,14 @@ private:
   */
   std::unordered_map<Node, int, NodeHashFunction> d_tf_region;
   /** get monotonicity direction
+   * 
   * Returns whether the slope is positive (+1) or negative(-1)
   * in region of transcendental function with kind k.
   * Returns 0 if region is invalid.
   */
   int regionToMonotonicityDir(Kind k, int region);
   /** get concavity
+   * 
   * Returns whether we are concave (+1) or convex (-1)
   * in region of transcendental function with kind k,
   * where region is defined above.
@@ -528,6 +525,7 @@ private:
   */
   int regionToConcavity(Kind k, int region);
   /** region to lower bound 
+   * 
    * Returns the term corresponding to the lower
    * bound of the region of transcendental function
    * with kind k. Returns Node::null if the region 
@@ -536,6 +534,7 @@ private:
    */
   Node regionToLowerBound(Kind k, int region);
   /** region to upper bound
+   * 
    * Returns the term corresponding to the upper
    * bound of the region of transcendental function
    * with kind k. Returns Node::null if the region 
@@ -543,13 +542,14 @@ private:
    * region.
    */
   Node regionToUpperBound(Kind k, int region);
-  /** Get derivative.
-  * Returns d/dx n. Supports cases of n
-  * for transcendental functions applied to x, 
-  * multiplication, addition, constants and variables.
-  * Returns Node::null() if derivative is an 
-  * unhandled case.
-  */
+  /** get derivative
+   * 
+   * Returns d/dx n. Supports cases of n
+   * for transcendental functions applied to x, 
+   * multiplication, addition, constants and variables.
+   * Returns Node::null() if derivative is an 
+   * unhandled case.
+   */
   Node getDerivative(Node n, Node x);
 
  private:
@@ -648,7 +648,7 @@ private:
 
   /** check tangent planes
   *
-  * Returns a set of valid theory lemmas, based on a
+  * Returns a set of valid theory lemmas, based on an
   * "incremental linearization" of non-linear monomials.
   * This linearization is accomplished by adding constraints
   * corresponding to "tangent planes" at the current
