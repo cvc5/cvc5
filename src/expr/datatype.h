@@ -300,7 +300,7 @@ class CVC4_PUBLIC DatatypeConstructor {
    * to handle defined or let expressions that
    * appear in user-provided grammars.
    */
-  SygusPrintCallback* getSygusPrintCallback() const;
+  std::shared_ptr<SygusPrintCallback> getSygusPrintCallback() const;
 
   /**
    * Get the tester name for this Datatype constructor.

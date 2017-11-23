@@ -879,11 +879,11 @@ bool DatatypeConstructor::isSygusIdFunc() const {
           && d_sygus_op[0][0] == d_sygus_op[1]);
 }
 
-SygusPrintCallback* DatatypeConstructor::getSygusPrintCallback() const
+std::shared_ptr<SygusPrintCallback> DatatypeConstructor::getSygusPrintCallback() const
 {
   PrettyCheckArgument(
       isResolved(), this, "this datatype constructor is not yet resolved");
-  return d_sygus_pc.get();
+  return d_sygus_pc;
 }
 
 Cardinality DatatypeConstructor::getCardinality( Type t ) const throw(IllegalArgumentException) {
