@@ -36,7 +36,7 @@ class TermUtil;
  *
  * This class is a listener for all instantiations generated with quantifiers.
  * By default, no notify classes are used. For an example of an instantiation
- * notify class, see quantifiers/inst_propagate.h, which has a notify class 
+ * notify class, see quantifiers/inst_propagate.h, which has a notify class
  * that recognizes when the set of enqueued instantiations form a conflict.
  */
 class InstantiationNotify
@@ -164,16 +164,16 @@ class Instantiate : public QuantifiersUtil
   bool removeInstantiation(Node q, Node lem, std::vector<Node>& terms);
   /** record instantiation
    *
-   * Explicitly record that q has been instantiated with terms. This is the 
+   * Explicitly record that q has been instantiated with terms. This is the
    * same as addInstantiation, but does not enqueue an instantiation lemma.
    */
   bool recordInstantiation(Node q,
                            std::vector<Node>& terms,
                            bool modEq = false,
                            bool addedLem = true);
-  /** exists instantiation 
-   * 
-   * Returns true if and only if the instantiation already was added or 
+  /** exists instantiation
+   *
+   * Returns true if and only if the instantiation already was added or
    * recorded by this class.
    *   modEq : whether to check for duplication modulo equality
    */
@@ -298,9 +298,9 @@ class Instantiate : public QuantifiersUtil
                                    std::map<Node, std::vector<Node> >& tvec);
   //--------------------------------------end user-level interface utilities
 
-  /** statistics class 
-   * 
-   * This tracks statistics on the number of instantiations successfully 
+  /** statistics class
+   *
+   * This tracks statistics on the number of instantiations successfully
    * enqueued on the quantifiers output channel, and the number of redundant
    * instantiations encountered by various criteria.
    */
@@ -318,8 +318,8 @@ class Instantiate : public QuantifiersUtil
   Statistics d_statistics;
 
  private:
-  /** record instantiation, return true if it was not a duplicate 
-   * 
+  /** record instantiation, return true if it was not a duplicate
+   *
    * addedLem : whether an instantiation lemma was added for the vector we are
    *            recording. If this is false, we bookkeep the vector.
    * modEq : whether to check for duplication modulo equality in instantiation

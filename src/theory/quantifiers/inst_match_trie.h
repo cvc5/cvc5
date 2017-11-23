@@ -36,7 +36,7 @@ namespace inst {
  *
  * This class is used for storing instantiations of a quantified formula q.
  * It is a trie data structure for which entries can be added and removed.
- * This class has interfaces for adding instantiations that are either 
+ * This class has interfaces for adding instantiations that are either
  * represented by std::vectors or InstMatch objects (see inst_match.h).
  */
 class InstMatchTrie
@@ -291,7 +291,10 @@ class CDInstMatchTrie
    * This records that the instantiation lemma lem corresponds to the entry
    * given by (the suffix of) m starting at the given index.
    */
-  bool recordInstLemma(Node q, std::vector<Node>& m, Node lem, unsigned index = 0);
+  bool recordInstLemma(Node q,
+                       std::vector<Node>& m,
+                       Node lem,
+                       unsigned index = 0);
 
   /** get instantiations
    *

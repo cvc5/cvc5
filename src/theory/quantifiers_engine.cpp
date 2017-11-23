@@ -444,10 +444,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
   std::vector< QuantifiersModule* > qm;
   if( d_model->checkNeeded() ){
     needsCheck = needsCheck || e>=Theory::EFFORT_LAST_CALL;  //always need to check at or above last call
-    for( QuantifiersModule*& mdl : d_modules )
+    for (QuantifiersModule*& mdl : d_modules)
     {
-      if( mdl->needsCheck( e ) ){
-        qm.push_back( mdl );
+      if (mdl->needsCheck(e))
+      {
+        qm.push_back(mdl);
         needsCheck = true;
         //can only request model at last call since theory combination can find inconsistencies
         if( e>=Theory::EFFORT_LAST_CALL ){
@@ -504,10 +505,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
     //reset utilities
     Trace("quant-engine-debug") << "Resetting all utilities..." << std::endl;
-    for (QuantifiersUtil*& util : d_util )
+    for (QuantifiersUtil*& util : d_util)
     {
-      Trace("quant-engine-debug2") << "Reset " << util->identify().c_str() << "..." << std::endl;
-      if( !util->reset( e ) ){
+      Trace("quant-engine-debug2") << "Reset " << util->identify().c_str()
+                                   << "..." << std::endl;
+      if (!util->reset(e))
+      {
         flushLemmas();
         if( d_hasAddedLemma ){
           return;
@@ -529,10 +532,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
     //reset the modules
     Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
-    for( QuantifiersModule*& mdl : d_modules )
+    for (QuantifiersModule*& mdl : d_modules)
     {
-      Trace("quant-engine-debug2") << "Reset " << mdl->identify().c_str() << std::endl;
-      mdl->reset_round( e );
+      Trace("quant-engine-debug2") << "Reset " << mdl->identify().c_str()
+                                   << std::endl;
+      mdl->reset_round(e);
     }
     Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
     //reset may have added lemmas
@@ -570,10 +574,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
       if( !d_hasAddedLemma ){
         //check each module
-        for( QuantifiersModule*& mdl : qm )
+        for (QuantifiersModule*& mdl : qm)
         {
-          Trace("quant-engine-debug") << "Check " << mdl->identify().c_str() << " at effort " << quant_e << "..." << std::endl;
-          mdl->check( e, quant_e );
+          Trace("quant-engine-debug") << "Check " << mdl->identify().c_str()
+                                      << " at effort " << quant_e << "..."
+                                      << std::endl;
+          mdl->check(e, quant_e);
           if( d_conflict ){
             Trace("quant-engine-debug") << "...conflict!" << std::endl;
             break;
@@ -604,7 +610,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
         {
           if( e==Theory::EFFORT_LAST_CALL ){
             //sources of incompleteness
-            for (QuantifiersUtil*& util : d_util )
+            for (QuantifiersUtil*& util : d_util)
             {
               if (!util->checkComplete())
               {
@@ -617,8 +623,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
             //if we have a chance not to set incomplete
             if( !setIncomplete ){
               //check if we should set the incomplete flag
-              for( QuantifiersModule*& mdl : d_modules ){
-                if( !mdl->checkComplete() ){
+              for (QuantifiersModule*& mdl : d_modules)
+              {
+                if (!mdl->checkComplete())
+                {
                   Trace("quant-engine-debug")
                       << "Set incomplete because module "
                       << mdl->identify().c_str() << " was incomplete."

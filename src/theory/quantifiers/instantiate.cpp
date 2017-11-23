@@ -42,7 +42,7 @@ Instantiate::Instantiate(QuantifiersEngine* qe, context::UserContext* u)
 
 Instantiate::~Instantiate()
 {
-  for(std::pair<const Node, inst::CDInstMatchTrie * >& t : d_c_inst_match_trie)
+  for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
   {
     delete t.second;
   }
@@ -241,7 +241,7 @@ bool Instantiate::addInstantiation(
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   Assert(d_term_util->d_vars[q].size() == terms.size());
   // get the instantiation
-  Node body = getInstantiation(q, d_term_util->d_vars[q], terms, doVts);  
+  Node body = getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
   Node orig_body = body;
   if (options::cbqiNestedQE())
   {
@@ -404,11 +404,16 @@ bool Instantiate::existsInstantiation(Node q,
         d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
-      return it->second->existsInstMatch(d_qe, q, terms, d_qe->getUserContext(), modEq);
+      return it->second->existsInstMatch(
+          d_qe, q, terms, d_qe->getUserContext(), modEq);
     }
-  }else{
-    std::map< Node,inst::InstMatchTrie>::iterator it = d_inst_match_trie.find( q );
-    if( it!=d_inst_match_trie.end() ){
+  }
+  else
+  {
+    std::map<Node, inst::InstMatchTrie>::iterator it =
+        d_inst_match_trie.find(q);
+    if (it != d_inst_match_trie.end())
+    {
       return it->second.existsInstMatch(d_qe, q, terms, modEq);
     }
   }
@@ -573,19 +578,20 @@ bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
   // only if unsat core available
   if (options::proof())
   {
-    if( !ProofManager::currentPM()->unsatCoreAvailable() ){
+    if (!ProofManager::currentPM()->unsatCoreAvailable())
+    {
       return false;
     }
   }
-  
+
   Trace("inst-unsat-core") << "Get instantiations in unsat core..."
-                            << std::endl;
+                           << std::endl;
   ProofManager::currentPM()->getLemmasInUnsatCore(theory::THEORY_QUANTIFIERS,
                                                   active_lemmas);
   if (Trace.isOn("inst-unsat-core"))
   {
     Trace("inst-unsat-core") << "Quantifiers lemmas in unsat core: "
-                              << std::endl;
+                             << std::endl;
     for (const Node& lem : active_lemmas)
     {
       Trace("inst-unsat-core") << "  " << lem << std::endl;

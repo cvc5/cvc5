@@ -71,7 +71,6 @@ struct SygusPrintProxyAttributeId
 typedef expr::Attribute<SygusPrintProxyAttributeId, Node>
     SygusPrintProxyAttribute;
 
-
 namespace quantifiers {
 
 /** Attribute priority for rewrite rules */

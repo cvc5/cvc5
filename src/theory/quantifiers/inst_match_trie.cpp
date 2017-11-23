@@ -107,8 +107,11 @@ bool InstMatchTrie::removeInstMatch(Node q,
   return false;
 }
 
-bool InstMatchTrie::recordInstLemma(
-    Node q, std::vector<Node>& m, Node lem, ImtIndexOrder* imtio, unsigned index)
+bool InstMatchTrie::recordInstLemma(Node q,
+                                    std::vector<Node>& m,
+                                    Node lem,
+                                    ImtIndexOrder* imtio,
+                                    unsigned index)
 {
   if (index == q[0].getNumChildren()
       || (imtio && index == imtio->d_order.size()))
@@ -257,7 +260,7 @@ void InstMatchTrie::getExplanationForInstLemmas(
 
 CDInstMatchTrie::~CDInstMatchTrie()
 {
-  for( std::pair<const Node, CDInstMatchTrie *>& d : d_data ) 
+  for (std::pair<const Node, CDInstMatchTrie*>& d : d_data)
   {
     CDInstMatchTrie* current = d.second;
     delete current;
@@ -317,8 +320,7 @@ bool CDInstMatchTrie::addInstMatch(QuantifiersEngine* qe,
           std::map<Node, CDInstMatchTrie*>::iterator itc = d_data.find(en);
           if (itc != d_data.end())
           {
-            if (itc->second->addInstMatch(
-                    qe, f, m, c, modEq, index + 1, true))
+            if (itc->second->addInstMatch(qe, f, m, c, modEq, index + 1, true))
             {
               return false;
             }
@@ -340,7 +342,9 @@ bool CDInstMatchTrie::addInstMatch(QuantifiersEngine* qe,
   return true;
 }
 
-bool CDInstMatchTrie::removeInstMatch(Node q, std::vector<Node>& m, unsigned index)
+bool CDInstMatchTrie::removeInstMatch(Node q,
+                                      std::vector<Node>& m,
+                                      unsigned index)
 {
   if (index == q[0].getNumChildren())
   {
