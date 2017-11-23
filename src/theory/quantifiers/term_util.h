@@ -59,10 +59,6 @@ typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
 struct LtePartialInstAttributeId {};
 typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribute;
 
-// attribute for sygus proxy variables
-struct SygusProxyAttributeId {};
-typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
-
 // attribute for associating a synthesis function with a first order variable
 struct SygusSynthGrammarAttributeId {};
 typedef expr::Attribute<SygusSynthGrammarAttributeId, Node>
