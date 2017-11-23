@@ -561,7 +561,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
     {
       Assert(ret == BVGaussElim::Result::PARTIAL);
 
-      for (size_t pcol = 0, prow = 0; pcol < nvars && pcol < nrows;
+      for (size_t pcol = 0, prow = 0; pcol < nvars && prow < nrows;
            ++pcol, ++prow)
       {
         Assert(reslhs[prow][pcol] == 0 || reslhs[prow][pcol] == 1);
@@ -614,7 +614,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
           }
           if (is_bv_const(tmp))
           {
-            res[vvars[pcol]] = tmp;
+            res[vvars[pcol]] = get_bv_const(tmp);
           }
           else
           {
