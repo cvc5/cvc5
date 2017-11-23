@@ -629,7 +629,7 @@ bool InstPropagator::notifyInstantiation(QuantifiersModule::QEffort quant_e,
                                          std::vector<Node>& terms,
                                          Node body)
 {
-  if( !d_conflict ){
+  AlwaysAssert( !d_conflict );
     if( Trace.isOn("qip-prop") ){
       Trace("qip-prop") << "InstPropagator:: Notify instantiation " << q << " : " << std::endl;
       for( unsigned i=0; i<terms.size(); i++ ){
@@ -657,10 +657,6 @@ bool InstPropagator::notifyInstantiation(QuantifiersModule::QEffort quant_e,
     }
     Trace("qip-prop") << "...finished notify instantiation." << std::endl;
     return !d_conflict;
-  }else{
-    Assert( false );
-    return false;
-  }
 }
 
 void InstPropagator::filterInstantiations() {
@@ -672,7 +668,7 @@ void InstPropagator::filterInstantiations() {
         if( d_relevant_inst.find( it->first )==d_relevant_inst.end() ){
           if( !d_qe->removeInstantiation( it->second.d_q, it->second.d_lem, it->second.d_terms ) ){
             Trace("qip-warn") << "WARNING : did not remove instantiation id " << it->first << std::endl;
-            Assert( false );
+            Unreachable();
           }else{
             Trace("qip-prop-debug") << it->first << " ";
           }

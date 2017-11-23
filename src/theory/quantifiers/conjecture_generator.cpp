@@ -1644,8 +1644,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
       }
     }
   }
-  Assert( false );
-  return false;
+  Unreachable();
 }
 
 unsigned TermGenerator::getDepth( TermGenEnv * s ) {
@@ -1714,10 +1713,8 @@ Node TermGenerator::getTerm( TermGenEnv * s ) {
       }
       return NodeManager::currentNM()->mkNode( s->d_func_kind[f], children );
     }
-  }else{
-    Assert( false );
   }
-  return Node::null();
+  Unreachable();
 }
 
 void TermGenerator::debugPrint( TermGenEnv * s, const char * c, const char * cd ) {
@@ -1898,7 +1895,7 @@ bool TermGenEnv::considerCurrentTerm() {
   }else if( d_tg_alloc[i-1].d_status==5 ){
   }else{
     Trace("sg-gen-tg-debug") << "Bad tg: " << &d_tg_alloc[i-1] << std::endl;
-    Assert( false );
+    Unreachable();
   }
   */
   //if equated two variables, first check if context-independent TODO

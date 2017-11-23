@@ -286,25 +286,18 @@ void CegConjecturePbe::getExample(Node e, unsigned i, std::vector<Node>& ex) {
   Assert(!e.isNull());
   std::map<Node, std::vector<std::vector<Node> > >::iterator it =
       d_examples.find(e);
-  if (it != d_examples.end()) {
-    Assert(i < it->second.size());
-    ex.insert(ex.end(), it->second[i].begin(), it->second[i].end());
-  } else {
-    Assert(false);
-  }
+  AlwaysAssert(it != d_examples.end());
+  Assert(i < it->second.size());
+  ex.insert(ex.end(), it->second[i].begin(), it->second[i].end());
 }
 
 Node CegConjecturePbe::getExampleOut(Node e, unsigned i) {
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, std::vector<Node> >::iterator it = d_examples_out.find(e);
-  if (it != d_examples_out.end()) {
-    Assert(i < it->second.size());
-    return it->second[i];
-  } else {
-    Assert(false);
-    return Node::null();
-  }
+  AlwaysAssert(it != d_examples_out.end());
+  Assert(i < it->second.size());
+  return it->second[i];
 }
 
 Node CegConjecturePbe::addSearchVal(TypeNode tn, Node e, Node bvr) {

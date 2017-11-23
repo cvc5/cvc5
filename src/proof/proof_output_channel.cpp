@@ -62,8 +62,7 @@ theory::LemmaStatus ProofOutputChannel::lemma(TNode n, ProofRule rule, bool,
 }
 
 theory::LemmaStatus ProofOutputChannel::splitLemma(TNode, bool) {
-  AlwaysAssert(false);
-  return theory::LemmaStatus(TNode::null(), 0);
+  Unimplemented();
 }
 
 void ProofOutputChannel::requirePhase(TNode n, bool b) {
@@ -73,13 +72,12 @@ void ProofOutputChannel::requirePhase(TNode n, bool b) {
 
 bool ProofOutputChannel::flipDecision() {
   Debug("pf::tp") << "ProofOutputChannel::flipDecision called" << std::endl;
-  AlwaysAssert(false);
-  return false;
+  Unimplemented();
 }
 
 void ProofOutputChannel::setIncomplete() {
   Debug("pf::tp") << "ProofOutputChannel::setIncomplete called" << std::endl;
-  AlwaysAssert(false);
+  Unimplemented();
 }
 
 

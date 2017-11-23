@@ -310,12 +310,9 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
 }
 
 void CegInstantiation::printSynthSolution( std::ostream& out ) {
-  if( d_conj->isAssigned() ){
-    // print the conjecture
-    d_conj->printSynthSolution( out, d_last_inst_si );
-  }else{
-    Assert( false );
-  }
+  AlwaysAssert( d_conj->isAssigned() );
+  // print the conjecture
+  d_conj->printSynthSolution( out, d_last_inst_si );
 }
 
 void CegInstantiation::preregisterAssertion( Node n ) {

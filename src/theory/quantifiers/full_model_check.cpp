@@ -476,7 +476,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         }
         if( !isStar && !ri.isConst() ){
           Trace("fmc-warn") << "Warning : model for " << op << " has non-constant argument in model " << ri << " (from " << c[i] << ")" << std::endl;
-          Assert( false );
+          Unreachable();
         }
         entry_children.push_back(ri);
       }
@@ -484,7 +484,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       Node nv = fm->getRepresentative( v );
       if( !nv.isConst() ){
         Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
-        Assert( false );
+        Unreachable();
       }
       Node en = (useSimpleModels() && hasNonStar) ? n : NodeManager::currentNM()->mkNode( APPLY_UF, entry_children );
       if( std::find(conds.begin(), conds.end(), n )==conds.end() ){

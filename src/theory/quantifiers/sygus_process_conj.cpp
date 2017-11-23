@@ -587,12 +587,8 @@ void CegConjectureProcess::initialize(Node n, std::vector<Node>& candidates)
 bool CegConjectureProcess::isArgRelevant(Node f, unsigned i)
 {
   std::map<Node, CegConjectureProcessFun>::iterator its = d_sf_info.find(f);
-  if (its != d_sf_info.end())
-  {
-    return its->second.isArgRelevant(i);
-  }
-  Assert(false);
-  return true;
+  AlwaysAssert(its != d_sf_info.end());
+  return its->second.isArgRelevant(i);
 }
 
 bool CegConjectureProcess::getIrrelevantArgs(Node f,

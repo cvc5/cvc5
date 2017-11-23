@@ -92,19 +92,16 @@ bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
             if( qepr->isEPR( tn ) ){
               //add totality lemma
               std::map< TypeNode, std::vector< Node > >::iterator itc = qepr->d_consts.find( tn );
-              if( itc!=qepr->d_consts.end() ){
-                Assert( !itc->second.empty() );
-                Node ic = d_quantEngine->getTermUtil()->getInstantiationConstant( q, i );
-                std::vector< Node > disj;
-                for( unsigned j=0; j<itc->second.size(); j++ ){
-                  disj.push_back( ic.eqNode( itc->second[j] ) );
-                }
-                Node tlem = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( kind::OR, disj );
-                Trace("cbqi-lemma") << "EPR totality lemma : " << tlem << std::endl;
-                d_quantEngine->getOutputChannel().lemma( tlem );
-              }else{
-                Assert( false );
-              }                  
+              AlwaysAssert(itc!=qepr->d_consts.end());
+              Assert( !itc->second.empty() );
+              Node ic = d_quantEngine->getTermUtil()->getInstantiationConstant( q, i );
+              std::vector< Node > disj;
+              for( unsigned j=0; j<itc->second.size(); j++ ){
+                disj.push_back( ic.eqNode( itc->second[j] ) );
+              }
+              Node tlem = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( kind::OR, disj );
+              Trace("cbqi-lemma") << "EPR totality lemma : " << tlem << std::endl;
+              d_quantEngine->getOutputChannel().lemma( tlem );
             }else{
               Assert( !options::cbqiAll() );
             }
@@ -265,7 +262,7 @@ void InstStrategyCbqi::check(Theory::Effort e, QEffort quant_e)
           }
         }else{
           Trace("cbqi-warn") << "CBQI : Cannot process already eliminated quantified formula " << q << std::endl;
-          Assert( false );
+          Unreachable();
         }
       }
       if( d_quantEngine->inConflict() || d_quantEngine->getNumLemmasWaiting()>lastWaiting ){

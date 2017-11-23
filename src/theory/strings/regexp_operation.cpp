@@ -908,7 +908,7 @@ bool RegExpOpr::follow( Node r, CVC4::String c, std::vector< unsigned char > &ve
       break;
     default: {
       Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in follow of RegExp." << std::endl;
-      //AlwaysAssert( false );
+      //Unreachable();
       //return Node::null();
       return false;
     }
@@ -1937,7 +1937,7 @@ void RegExpOpr::splitRegExp(Node r, std::vector< PairNodes > &pset) {
       }
       default: {
         Trace("strings-error") << "Unsupported term: " << r << " in splitRegExp." << std::endl;
-        Assert( false );
+        Unreachable();
         //return Node::null();
       }
     }
@@ -1946,54 +1946,54 @@ void RegExpOpr::splitRegExp(Node r, std::vector< PairNodes > &pset) {
 }
 
 void RegExpOpr::flattenRegExp(Node r, std::vector< std::pair< CVC4::String, unsigned > > &fvec) {
-  Assert(false);
-  Assert(checkConstRegExp(r));
-  switch( r.getKind() ) {
-      case kind::REGEXP_EMPTY: {
-        //TODO
-        break;
-      }
-      case kind::REGEXP_SIGMA: {
-        CVC4::String s("a");
-        std::pair< CVC4::String, unsigned > tmp(s, 0);
-        //TODO
-        break;
-      }
-      case kind::STRING_TO_REGEXP: {
-        Assert(r[0].isConst());
-        CVC4::String s = r[0].getConst< CVC4::String >();
-        std::pair< CVC4::String, unsigned > tmp(s, 0);
-        //TODO
-        break;
-      }
-      case kind::REGEXP_CONCAT: {
-        for(unsigned i=0; i<r.getNumChildren(); i++) {
-          //TODO
-        }
-        break;
-      }
-      case kind::REGEXP_UNION: {
-        for(unsigned i=0; i<r.getNumChildren(); ++i) {
-          //TODO
-        }
-        break;
-      }
-      case kind::REGEXP_INTER: {
-        //TODO
-        break;
-      }
-      case kind::REGEXP_STAR: {
-        //TODO
-        break;
-      }
-      case kind::REGEXP_LOOP: {
-        //TODO
-        break;
-      }
-      default: {
-        Unreachable();
-      }
-  }
+  Unimplemented();
+  // Assert(checkConstRegExp(r));
+  // switch( r.getKind() ) {
+  //     case kind::REGEXP_EMPTY: {
+  //       //TODO
+  //       break;
+  //     }
+  //     case kind::REGEXP_SIGMA: {
+  //       CVC4::String s("a");
+  //       std::pair< CVC4::String, unsigned > tmp(s, 0);
+  //       //TODO
+  //       break;
+  //     }
+  //     case kind::STRING_TO_REGEXP: {
+  //       Assert(r[0].isConst());
+  //       CVC4::String s = r[0].getConst< CVC4::String >();
+  //       std::pair< CVC4::String, unsigned > tmp(s, 0);
+  //       //TODO
+  //       break;
+  //     }
+  //     case kind::REGEXP_CONCAT: {
+  //       for(unsigned i=0; i<r.getNumChildren(); i++) {
+  //         //TODO
+  //       }
+  //       break;
+  //     }
+  //     case kind::REGEXP_UNION: {
+  //       for(unsigned i=0; i<r.getNumChildren(); ++i) {
+  //         //TODO
+  //       }
+  //       break;
+  //     }
+  //     case kind::REGEXP_INTER: {
+  //       //TODO
+  //       break;
+  //     }
+  //     case kind::REGEXP_STAR: {
+  //       //TODO
+  //       break;
+  //     }
+  //     case kind::REGEXP_LOOP: {
+  //       //TODO
+  //       break;
+  //     }
+  //     default: {
+  //       Unreachable();
+  //     }
+  // }
 }
 
 void RegExpOpr::disjunctRegExp(Node r, std::vector<Node> &vec_or) {
@@ -2165,7 +2165,7 @@ std::string RegExpOpr::mkString( Node r ) {
       }
       default:
         Trace("strings-error") << "Unsupported term: " << r << " in RegExp." << std::endl;
-        //Assert( false );
+        //Unreachable();
         //return Node::null();
     }
   }

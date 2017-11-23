@@ -445,7 +445,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       sserr << "No implementation for default Sygus grammar of type " << types[i] << std::endl;
       //AlwaysAssert( false, sserr.str() );
       // FIXME
-      AlwaysAssert( false );
+      Unreachable();
     }
     //add for all selectors to this type
     if( !sels[types[i]].empty() ){

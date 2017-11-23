@@ -416,20 +416,17 @@ bool NonLinearExtentionSubstitutionSolver::solve(
                 for (std::map<Node, Node>::iterator itm = msum.begin();
                      itm != msum.end(); ++itm) {
                   if (!itm->first.isNull()) {
-                    if (d_ee->hasTerm(itm->first)) {
-                      Trace("nl-subs-debug")
-                          << "      ...monomial " << itm->first << std::endl;
-                      Node cr = d_ee->getRepresentative(itm->first);
-                      d_term_to_sum[n].push_back(itm->first);
-                      d_term_to_rep_sum[n].push_back(cr);
-                      if (!Contains(d_rep_to_const, cr)) {
-                        if (!IsInVector(d_reps_to_parent_terms[cr], n)) {
-                          d_reps_to_parent_terms[cr].push_back(n);
-                          nconst_count++;
-                        }
+                    AlwaysAssert(d_ee->hasTerm(itm->first));
+                    Trace("nl-subs-debug")
+                        << "      ...monomial " << itm->first << std::endl;
+                    Node cr = d_ee->getRepresentative(itm->first);
+                    d_term_to_sum[n].push_back(itm->first);
+                    d_term_to_rep_sum[n].push_back(cr);
+                    if (!Contains(d_rep_to_const, cr)) {
+                      if (!IsInVector(d_reps_to_parent_terms[cr], n)) {
+                        d_reps_to_parent_terms[cr].push_back(n);
+                        nconst_count++;
                       }
-                    } else {
-                      Assert( false );
                     }
                   }
                 }
@@ -1037,7 +1034,7 @@ int NonlinearExtension::flushLemma(Node lem) {
     Trace("nl-ext-lemma-debug")
         << "NonlinearExtension::Lemma duplicate : " << lem << std::endl;
     // should not generate duplicates
-    // Assert( false );
+    // Unreachable();
     return 0;
   }
   d_lemmas.insert(lem);
@@ -1215,7 +1212,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
             // if not, add congruence lemma
             Node cong_lemma = NodeManager::currentNM()->mkNode( kind::IMPLIES, a[0].eqNode( itrm->second[0] ), a.eqNode( itrm->second ) );
             lemmas.push_back( cong_lemma );
-            //Assert( false );
+            //Unreachable();
           }
         }else{
           d_tf_rep_map[a.getKind()][r] = a;
@@ -1223,8 +1220,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       }
     }else if( a.getKind()==kind::PI ){
       //TODO?
-    }else{
-      Assert( false );
+    } else {
+      Unreachable();
     }
   }
   

@@ -761,7 +761,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     {
       Trace("model-builder") << "***Non-empty repSet, size = " << repSet.size()
                              << ", first = " << *(repSet.begin()) << endl;
-      Assert(false);
+      Unreachable();
     }
   }
 #endif /* CVC4_ASSERTIONS */

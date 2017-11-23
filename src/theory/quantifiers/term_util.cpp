@@ -623,9 +623,8 @@ Node TermUtil::getVtsInfinityIndex( int i, bool isFree, bool create ) {
     return getVtsInfinity( NodeManager::currentNM()->realType(), isFree, create );
   }else if( i==1 ){
     return getVtsInfinity( NodeManager::currentNM()->integerType(), isFree, create );
-  }else{
-    Assert( false );
-    return Node::null();
+  } else {
+    Unreachable();
   }
 }
 
@@ -695,7 +694,7 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
             Trace("quant-vts-warn") << "Bad vts literal : " << n << ", contains " << vts_sym << " but bad solved form " << slv << "." << std::endl;
             nlit = substituteVtsFreeTerms( n );
             Trace("quant-vts-debug") << "...return " << nlit << std::endl;
-            //Assert( false );
+            //Unreachable();
             //safe case: just convert to free symbols
             return nlit;
           }else{
@@ -719,7 +718,7 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
           //safe case: just convert to free symbols
           nlit = substituteVtsFreeTerms( n );
           Trace("quant-vts-debug") << "...return " << nlit << std::endl;
-          //Assert( false );
+          //Unreachable();
           return nlit;
         }
       }

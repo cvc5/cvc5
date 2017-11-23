@@ -871,7 +871,7 @@ bool SortModel::minimize( OutputChannel* out, TheoryModel* m ){
           }
           ++eqcs_i;
         }
-        Assert( false );
+        Unreachable();
       }
 #endif
     }else{
@@ -1983,7 +1983,7 @@ void StrongSolverTheoryUF::check( Theory::Effort level ){
       }
     }else{
       // unhandled uf ss mode
-      Assert( false );
+      Unreachable();
     }
     Trace("uf-ss-solver") << "Done StrongSolverTheoryUF: check " << level << std::endl;
   }

@@ -129,7 +129,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
             Node conc = cons.size()==1 ? cons[0] : NodeManager::currentNM()->mkNode( kind::AND, cons );
             disj.push_back( conc );
           }else{
-            Assert( false );
+            Unreachable();
           }
           lemmas.push_back( disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( kind::OR, disj ) );
         }
@@ -144,4 +144,3 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
     //d_quant_to_reduce.clear();
   }
 }
-

@@ -198,14 +198,8 @@ void SygusEmptyPrintCallback::toStreamSygus(const Printer* p,
                                             std::ostream& out,
                                             Expr e) const
 {
-  if (e.getNumChildren() == 1)
-  {
-    p->toStreamSygus(out, e[0]);
-  }
-  else
-  {
-    Assert(false);
-  }
+  AlwaysAssert(e.getNumChildren() == 1);
+  p->toStreamSygus(out, e[0]);
 }
 
 } /* CVC4::printer namespace */

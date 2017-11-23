@@ -1473,52 +1473,33 @@ void TheoryEngine::printSynthSolution( std::ostream& out ) {
 }
 
 void TheoryEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiatedQuantifiedFormulas( qs );
-  }else{
-    Assert( false );
-  }
+  AlwaysAssert( d_quantEngine );
+  d_quantEngine->getInstantiatedQuantifiedFormulas( qs );
 }
 
 void TheoryEngine::getInstantiations( Node q, std::vector< Node >& insts ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiations( q, insts );
-  }else{
-    Assert( false );
-  }
+  AlwaysAssert( d_quantEngine );
+  d_quantEngine->getInstantiations( q, insts );
 }
 
 void TheoryEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiationTermVectors( q, tvecs );
-  }else{
-    Assert( false );
-  }
+  AlwaysAssert( d_quantEngine );
+  d_quantEngine->getInstantiationTermVectors( q, tvecs );
 }
 
 void TheoryEngine::getInstantiations( std::map< Node, std::vector< Node > >& insts ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiations( insts );
-  }else{
-    Assert( false );
-  }
+  AlwaysAssert( d_quantEngine );
+  d_quantEngine->getInstantiations( insts );
 }
 
 void TheoryEngine::getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiationTermVectors( insts );
-  }else{
-    Assert( false );
-  }
+  AlwaysAssert( d_quantEngine );
+  d_quantEngine->getInstantiationTermVectors( insts );
 }
 
 Node TheoryEngine::getInstantiatedConjunction( Node q ) {
-  if( d_quantEngine ){
-    return d_quantEngine->getInstantiatedConjunction( q );
-  }else{
-    Assert( false );
-    return Node::null();
-  }
+  AlwaysAssert( d_quantEngine );
+  return d_quantEngine->getInstantiatedConjunction( q );
 }
 
 
