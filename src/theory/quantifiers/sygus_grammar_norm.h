@@ -78,15 +78,15 @@ struct TypeObject
  * becomes
  *
  * Int -> ite( Bool, Int, Int ) | IntN
- * IntN -> IntX | Int0 - IntX
+ * IntN -> IntX | Int0 | Int0 - IntX
  * Int0 -> 0
  * IntX -> IntXX + IntX | IntY
  * IntXX -> x
  * IntY -> IntYY + IntY | IntC
  * IntYY -> y
- * IntC -> IntCC + IntC | IntV
- * IntCC -> 1
- * IntV -> 0 | c1...cn */
+ * IntC -> Int1 + IntC | IntCC
+ * Int1 -> 1
+ * IntCC -> c1...cn */
 class SygusGrammarNorm
 {
  public:
@@ -103,6 +103,10 @@ class SygusGrammarNorm
   TypeNode normalizeSygusType(TypeNode tn, Node sygus_vars);
 
  private:
+  /** reference to current node manager */
+  NodeManager* d_nm;
+  /** reference to smt engine */
+  SmtEngine* d_smte;
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
   /** parent conjecture
@@ -113,19 +117,28 @@ class SygusGrammarNorm
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
 
+  /* Types that can be normalized and are cached for avoiding building types */
+  const Type& int_type = NodeManager::currentNM()->integerType().toType();
+
   /** normalize integer type
    *
-   * TODO actually perform the normalization #1304
+   * Perform aggressive normalization of integer types: the grammar does not
+   * allow the derivation of distinct terms that are equivalent w.r.t.
+   * - commutativity of + and -
+   * - associativity of + and -
+   * - neutral element of - and +
    *
    * ind is the index of the analyzed typeobject in tos
    *
    * New types created during normalization will be added to tos and
    * tn_to_unres
    *
+   * dt is the datatype of the typenode being normalized
    * sygus_vars is used as above for datatype construction */
   void normalizeSygusInt(unsigned ind,
                          std::vector<TypeObject>& tos,
                          std::map<TypeNode, Type>& tn_to_unres,
+                         const Datatype& dt,
                          Node sygus_vars);
 
   /** Traverses the datatype representation of src_tn and collects the types it
