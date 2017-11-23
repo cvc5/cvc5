@@ -574,9 +574,9 @@ public:
   mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, bool doOverload=false);
 
   /** make flat function type
-   * 
-   * Returns the "flat" function type corresponding to the function taking 
-   * argument types "sorts" and range type "range".  A flat function type is 
+   *
+   * Returns the "flat" function type corresponding to the function taking
+   * argument types "sorts" and range type "range".  A flat function type is
    * one whose range is not a function. Notice that if sorts is empty and range
    * is not a function, then this function returns range itself.
    *
@@ -616,15 +616,15 @@ public:
                           std::vector<Expr>& flattenVars);
 
   /** make flat function type
-   * 
+   *
    * Same as above, but does not take argument flattenVars.
    * This is used when the arguments of the function are not important (for
    * instance, if we are only using this type in a declare-fun).
    */
   Type mkFlatFunctionType(std::vector<Type>& sorts, Type range);
 
-  /** make higher-order apply 
-   * 
+  /** make higher-order apply
+   *
    * This returns the left-associative curried application of (function) expr to
    * the arguments in args, starting at index startIndex.
    *
@@ -632,8 +632,8 @@ public:
    *  (HO_APPLY (HO_APPLY f a) b)
    *
    * If args is non-empty, the expected type of expr is (-> T0 ... Tn T), where
-   *    args[i-startIndex].getType() = Ti 
-   * for each i where startIndex <= i < args.size(). If expr is not of this 
+   *    args[i-startIndex].getType() = Ti
+   * for each i where startIndex <= i < args.size(). If expr is not of this
    * type, the expression returned by this method will not be well typed.
    */
   Expr mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex = 0);

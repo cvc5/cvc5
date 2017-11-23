@@ -98,7 +98,7 @@ public:
   * t : the range type of the function we are defining.
   *
   * This function will create a bind a new function term to name fname.
-  * The type of this function is 
+  * The type of this function is
   * Parser::mkFlatFunctionType(sorts,t,flattenVars),
   * where sorts are the types in the second components of sortedVarNames.
   * As descibed in Parser::mkFlatFunctionType, new bound variables may be
@@ -112,7 +112,7 @@ public:
       std::vector<Expr>& flattenVars);
 
   /** Push scope for define-fun-rec
-   * 
+   *
   * This calls Parser::pushScope(bindingLevel) and sets up
   * initial information for reading a body of a function definition
   * in the define-fun-rec and define-funs-rec command.
