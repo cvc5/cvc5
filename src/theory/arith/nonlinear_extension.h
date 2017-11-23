@@ -708,7 +708,7 @@ private:
   /** check transcendental tangent planes
   *
   * Returns a set of valid theory lemmas, based on
-  * computing a "incremental linearization" of
+  * computing an "incremental linearization" of
   * transcendental functions based on the model values
   * of transcendental functions and their arguments.
   * It is based on Figure 3 of "Satisfiability
@@ -720,7 +720,8 @@ private:
   *
   * Example:
   *
-  * Assume we have a term sin(y) where y^M = 1, note that
+  * Assume we have a term sin(y) where M( y ) = 1 where M is the current model.
+  * Note that:
   *   sin(1) ~= .841471
   *
   * The Taylor series and remainder of sin(y) of degree 7 is
@@ -733,7 +734,7 @@ private:
   *   P_l( x ) = P_{7,sin(0)}( x ) - R_{7,sin(0),b}( x )
   *     ...where note P_l( 1 ) = 4241/5040 ~= .841468
   *
-  * Assume that sin(y)^M > P_u( 1 ).
+  * Assume that M( sin(y) ) > P_u( 1 ).
   * Since the concavity of sine in the region 0 < x < PI/2 is -1,
   * we add a tangent plane refinement.
   * The tangent plane at the point 1 in P_u is
@@ -744,11 +745,11 @@ private:
   * which is:
   *   ( 0 < y < PI/2 ) => sin( y ) <= (391/720)*(y - 2737/1506)
   *
-  * Assume that sin(y)^M < P_u( 1 ).
+  * Assume that M( sin(y) ) < P_u( 1 ).
   * Since the concavity of sine in the region 0 < x < PI/2 is -1,
   * we add a secant plane refinement for some constants ( l, u )
-  * such that 0 <= l < y^M < u <= PI/2. Assume we choose
-  * l = 0 and u = (PI/2)^M = 150517/47912.
+  * such that 0 <= l < M( y ) < u <= PI/2. Assume we choose
+  * l = 0 and u = M( PI/2 ) = 150517/47912.
   * The secant planes at point 1 for P_l
   * are given by the formulas:
   *   S_l( x ) = (x-l)*(P_l( l )-P_l(c))/(l-1) + P_l( l )
