@@ -456,7 +456,7 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts,
   {
     std::vector<Type> domainTypes =
         (static_cast<FunctionType>(range)).getArgTypes();
-    for (unsigned i = 0; i < domainTypes.size(); i++)
+    for (unsigned i = 0, size = domainTypes.size(); i < size; i++)
     {
       sorts.push_back(domainTypes[i]);
       // the introduced variable is internal (not parsable)
@@ -471,10 +471,7 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts,
   {
     return range;
   }
-  else
-  {
-    return d_exprManager->mkFunctionType(sorts, range);
-  }
+  return d_exprManager->mkFunctionType(sorts, range);
 }
 
 Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
@@ -484,24 +481,21 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
     // no difference
     return range;
   }
-  else
+  while (range.isFunction())
   {
-    while (range.isFunction())
-    {
-      std::vector<Type> domainTypes =
-          static_cast<FunctionType>(range).getArgTypes();
-      sorts.insert(sorts.end(), domainTypes.begin(), domainTypes.end());
-      range = static_cast<FunctionType>(range).getRangeType();
-    }
-    return d_exprManager->mkFunctionType(sorts, range);
+    std::vector<Type> domainTypes =
+        static_cast<FunctionType>(range).getArgTypes();
+    sorts.insert(sorts.end(), domainTypes.begin(), domainTypes.end());
+    range = static_cast<FunctionType>(range).getRangeType();
   }
+  return d_exprManager->mkFunctionType(sorts, range);
 }
 
 Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex)
 {
   for (unsigned i = startIndex; i < args.size(); i++)
   {
-    expr = d_exprManager->mkExpr(kind::HO_APPLY, expr, args[i]);
+    expr = d_exprManager->mkExpr(HO_APPLY, expr, args[i]);
   }
   return expr;
 }

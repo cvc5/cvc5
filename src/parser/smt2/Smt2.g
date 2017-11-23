@@ -383,7 +383,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
     }
     term[expr, expr2]
-    { 
+    {
       if( !flattenVars.empty() ){
         // if this function has any implicit variables flattenVars,
         // we apply the body of the definition to the flatten vars
@@ -1205,7 +1205,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     { PARSER_STATE->checkUserSymbol(fname); }
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
-    { 
+    {
       func = PARSER_STATE->mkDefineFunRec(fname, sortedVarNames, t, flattenVars);
       seq->addCommand(new DeclareFunctionCommand(fname, func, t));
       PARSER_STATE->pushDefineFunRecScope(sortedVarNames, func, flattenVars, func_app, bvs, true );
@@ -1239,16 +1239,16 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       { PARSER_STATE->checkUserSymbol(fname); }
       LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
       sortSymbol[t,CHECK_DECLARED]
-      { 
+      {
         flattenVars.clear();
         func = PARSER_STATE->mkDefineFunRec( fname, sortedVarNames, t, flattenVars );
         seq->addCommand(new DeclareFunctionCommand(fname, func, t));
         funcs.push_back( func );
-        
+
         // add to lists (need to remember for when parsing the bodies)
         sortedVarNamesList.push_back( sortedVarNames );
         flattenVarsList.push_back( flattenVars );
-        
+
         // set up parsing the next variable list block
         sortedVarNames.clear();
         flattenVars.clear();
@@ -1264,7 +1264,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
                                  "define-funs-rec");
       }
       bvs.clear();
-      PARSER_STATE->pushDefineFunRecScope( sortedVarNamesList[0], funcs[0], 
+      PARSER_STATE->pushDefineFunRecScope( sortedVarNamesList[0], funcs[0],
                                            flattenVarsList[0], func_app, bvs, true);
     }
     (
@@ -1978,17 +1978,17 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       if(isBuiltinOperator) {
         PARSER_STATE->checkOperator(kind, args.size());
       }
-      // may be partially applied function, in this case we should use HO_APPLY     
+      // may be partially applied function, in this case we should use HO_APPLY
       if( args.size()>=2 && args[0].getType().isFunction() &&
           (args.size()-1)<((FunctionType)args[0].getType()).getArity() ){
         Debug("parser") << "Partial application of " << args[0];
-        Debug("parser") << " : #argTypes = " << ((FunctionType)args[0].getType()).getArity();  
-        Debug("parser") << ", #args = " << args.size()-1 << std::endl;  
+        Debug("parser") << " : #argTypes = " << ((FunctionType)args[0].getType()).getArity();
+        Debug("parser") << ", #args = " << args.size()-1 << std::endl;
         // must curry the application
         expr = args[0];
         expr = PARSER_STATE->mkHoApply( expr, args, 1 );
       }else{
-        expr = MK_EXPR(kind, args); 
+        expr = MK_EXPR(kind, args);
       }
     }
 
@@ -2256,11 +2256,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
       PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end();
-          i != iend;
-          ++i) {
-        args.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
+      for(const std::pair<std::string, CVC4::Type>& svn : sortedVarNames){
+        args.push_back(PARSER_STATE->mkBoundVar(svn.first, svn.second));
       }
       Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
       args.clear();
@@ -2880,7 +2877,7 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
       }
     ) RPAREN_TOK
   | LPAREN_TOK HO_ARROW_TOK sortList[args] RPAREN_TOK
-    { 
+    {
       if(args.size()<2) {
         PARSER_STATE->parseError("Arrow types must have at least 2 arguments");
       }

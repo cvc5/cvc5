@@ -355,13 +355,9 @@ Expr Smt2::mkDefineFunRec(
     std::vector<Expr>& flattenVars)
 {
   std::vector<Type> sorts;
-  for (std::vector<std::pair<std::string, CVC4::Type> >::const_iterator
-           i = sortedVarNames.begin(),
-           iend = sortedVarNames.end();
-       i != iend;
-       ++i)
+  for(const std::pair<std::string, CVC4::Type>& svn : sortedVarNames)
   {
-    sorts.push_back((*i).second);
+    sorts.push_back(svn.second);
   }
 
   // make the flattened function type, add bound variables
@@ -386,13 +382,9 @@ void Smt2::pushDefineFunRecScope(
   f_app.push_back(func);
   // bound variables are those that are explicitly named in the preamble
   // of the define-fun(s)-rec command, we define them here
-  for (std::vector<std::pair<std::string, CVC4::Type> >::const_iterator
-           i = sortedVarNames.begin(),
-           iend = sortedVarNames.end();
-       i != iend;
-       ++i)
+  for(const std::pair<std::string, CVC4::Type>& svn : sortedVarNames)
   {
-    Expr v = mkBoundVar((*i).first, (*i).second);
+    Expr v = mkBoundVar(svn.first, svn.second);
     bvs.push_back(v);
     f_app.push_back(v);
   }

@@ -573,11 +573,12 @@ public:
   std::vector<DatatypeType>
   mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, bool doOverload=false);
 
-  /** mkFlatFunctionType
-   * Returns the "flat" function type correspond to the function taking argument
-   * types "sorts" and range type "range".  A flat function type is one whose
-   * range is not a function. Notice that if sorts is empty and range is not a
-   * function, then this function returns range itself.
+  /** make flat function type
+   * 
+   * Returns the "flat" function type corresponding to the function taking 
+   * argument types "sorts" and range type "range".  A flat function type is 
+   * one whose range is not a function. Notice that if sorts is empty and range
+   * is not a function, then this function returns range itself.
    *
    * If range is a function type, we add its function argument sorts to sorts
    * and consider its function range as the new range. For each sort S added
@@ -614,25 +615,27 @@ public:
                           Type range,
                           std::vector<Expr>& flattenVars);
 
-  /** mkFlatFunctionType
+  /** make flat function type
+   * 
    * Same as above, but does not take argument flattenVars.
    * This is used when the arguments of the function are not important (for
    * instance, if we are only using this type in a declare-fun).
    */
   Type mkFlatFunctionType(std::vector<Type>& sorts, Type range);
 
-  /** mkHoApply
-  * This returns the left-associative curried application of (function) expr to
-  * the arguments in args, starting at index startIndex.
-  *
-  * For example, mkHoApply( f, { a, b }, 0 ) returns
-  *  (HO_APPLY (HO_APPLY f a) b)
-  *
-  * If args is non-empty, the type of expr should be (-> T0 ... Tn T),
-  * where args[i-startIndex].getType() = Ti for each i where
-  * startIndex <= i < args.size(), otherwise the returned expression
-  * will not be well-typed.
-  */
+  /** make higher-order apply 
+   * 
+   * This returns the left-associative curried application of (function) expr to
+   * the arguments in args, starting at index startIndex.
+   *
+   * For example, mkHoApply( f, { a, b }, 0 ) returns
+   *  (HO_APPLY (HO_APPLY f a) b)
+   *
+   * If args is non-empty, the expected type of expr is (-> T0 ... Tn T), where
+   *    args[i-startIndex].getType() = Ti 
+   * for each i where startIndex <= i < args.size(). If expr is not of this 
+   * type, the expression returned by this method will not be well typed.
+   */
   Expr mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex = 0);
 
   /**
