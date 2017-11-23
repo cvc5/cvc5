@@ -1324,7 +1324,7 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const throw()
     {
       int cIndex = Datatype::indexOf(n.getOperator().toExpr());
       Assert(!dt[cIndex].getSygusOp().isNull());
-      SygusPrintCallback* spc = dt[cIndex].getSygusPrintCallback();
+      SygusPrintCallback* spc = dt[cIndex].getSygusPrintCallback().get();
       if (spc != nullptr && options::sygusPrintCallbacks())
       {
         spc->toStreamSygus(this, out, n.toExpr());
