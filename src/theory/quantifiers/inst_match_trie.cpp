@@ -257,7 +257,7 @@ void InstMatchTrie::getExplanationForInstLemmas(
 
 CDInstMatchTrie::~CDInstMatchTrie()
 {
-  for( std::pair<const Node, CDInstMatchTrie *> d : d_data ) 
+  for( std::pair<const Node, CDInstMatchTrie *>& d : d_data ) 
   {
     CDInstMatchTrie* current = d.second;
     delete current;
