@@ -457,8 +457,6 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
         {
           n1 = nb_nonconsts[0];
         }
-        cout << "n0 " << n0 << endl;
-        cout << "n1 " << n1 << endl;
         if (!isvalid)
         {
           tmp[n] += Integer(1);
@@ -490,7 +488,6 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
     for (auto p : tmp)
     {
       Node var = p.first;
-      cout << "var " << var << endl;
       Integer val = p.second;
       if (i > 0 && vars.find(var) == vars.end())
       {
