@@ -19,12 +19,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers_engine.h"
 
-using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-
 namespace CVC4 {
 namespace theory {
 namespace inst {
@@ -79,9 +73,9 @@ void InstMatch::debugPrint( const char* c ){
 }
 
 bool InstMatch::isComplete() {
-  for (unsigned i = 0, size = d_vals.size(); i < size; i++)
+  for (Node& v : d_vals)
   {
-    if( d_vals[i].isNull() ){
+    if( v.isNull() ){
       return false;
     }
   }
@@ -89,9 +83,9 @@ bool InstMatch::isComplete() {
 }
 
 bool InstMatch::empty() {
-  for (unsigned i = 0, size = d_vals.size(); i < size; i++)
+  for (Node& v : d_vals)
   {
-    if( !d_vals[i].isNull() ){
+    if( !v.isNull() ){
       return false;
     }
   }

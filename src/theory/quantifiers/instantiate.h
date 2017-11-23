@@ -35,9 +35,9 @@ class TermUtil;
 /** instantiation notify
  *
  * This class is a listener for all instantiations generated with quantifiers.
- * By default, no notify classes are used, however, --inst-prop enables a
- * notify class that recognizes when the set of enqueued instantiations form
- * a conflict.
+ * By default, no notify classes are used. For an example of an instantiation
+ * notify class, see quantifiers/inst_propagate.h, which has a notify class 
+ * that recognizes when the set of enqueued instantiations form a conflict.
  */
 class InstantiationNotify
 {
@@ -298,7 +298,12 @@ class Instantiate : public QuantifiersUtil
                                    std::map<Node, std::vector<Node> >& tvec);
   //--------------------------------------end user-level interface utilities
 
-  /** statistics class */
+  /** statistics class 
+   * 
+   * This tracks statistics on the number of instantiations successfully 
+   * enqueued on the quantifiers output channel, and the number of redundant
+   * instantiations encountered by various criteria.
+   */
   class Statistics
   {
    public:

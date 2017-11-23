@@ -24,7 +24,6 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace std;
 using namespace CVC4::kind;
 using namespace CVC4::context;
 
@@ -43,13 +42,9 @@ Instantiate::Instantiate(QuantifiersEngine* qe, context::UserContext* u)
 
 Instantiate::~Instantiate()
 {
-  for (std::map<Node, inst::CDInstMatchTrie *>::iterator
-           i = d_c_inst_match_trie.begin(),
-           iend = d_c_inst_match_trie.end();
-       i != iend;
-       ++i)
+  for(std::pair<const Node, inst::CDInstMatchTrie * >& t : d_c_inst_match_trie)
   {
-    delete (*i).second;
+    delete t.second;
   }
   d_c_inst_match_trie.clear();
 }
@@ -61,10 +56,9 @@ bool Instantiate::reset(Theory::Effort e)
     Trace("quant-engine-debug") << "Removing " << d_recorded_inst.size()
                                 << " instantiations..." << std::endl;
     // remove explicitly recorded instantiations
-    for (unsigned i = 0; i < d_recorded_inst.size(); i++)
+    for (std::pair<Node, std::vector<Node> >& r : d_recorded_inst)
     {
-      removeInstantiationInternal(d_recorded_inst[i].first,
-                                  d_recorded_inst[i].second);
+      removeInstantiationInternal(r.first, r.second);
     }
     d_recorded_inst.clear();
   }
@@ -92,9 +86,9 @@ void Instantiate::addNotify(InstantiationNotify* in)
 
 void Instantiate::notifyFlushLemmas()
 {
-  for (unsigned j = 0; j < d_inst_notify.size(); j++)
+  for (InstantiationNotify*& in : d_inst_notify)
   {
-    d_inst_notify[j]->filterInstantiations();
+    in->filterInstantiations();
   }
 }
 
@@ -207,7 +201,7 @@ bool Instantiate::addInstantiation(
   // check for positive entailment
   if (options::instNoEntail())
   {
-    // should check consistency of equality engine 
+    // should check consistency of equality engine
     // (if not aborting on utility's reset)
     std::map<TNode, TNode> subs;
     for (unsigned i = 0, size = terms.size(); i < size; i++)
@@ -225,9 +219,9 @@ bool Instantiate::addInstantiation(
   // check based on instantiation level
   if (options::instMaxLevel() != -1 || options::lteRestrictInstClosure())
   {
-    for (unsigned i = 0, size = terms.size(); i < size; i++)
+    for (Node& t : terms)
     {
-      if (!d_term_db->isTermEligibleForInstantiation(terms[i], q, true))
+      if (!d_term_db->isTermEligibleForInstantiation(t, q, true))
       {
         return false;
       }
@@ -294,92 +288,90 @@ bool Instantiate::addInstantiation(
   lem = Rewriter::rewrite(lem);
 
   // check for lemma duplication
-  if (d_qe->addLemma(lem, true, false))
-  {
-    d_total_inst_debug[q]++;
-    d_temp_inst_debug[q]++;
-    d_total_inst_count_debug++;
-    if (Trace.isOn("inst"))
-    {
-      Trace("inst") << "*** Instantiate " << q << " with " << std::endl;
-      for (unsigned i = 0; i < terms.size(); i++)
-      {
-        if (Trace.isOn("inst"))
-        {
-          Trace("inst") << "   " << terms[i];
-          if (Trace.isOn("inst-debug"))
-          {
-            Trace("inst-debug") << ", type=" << terms[i].getType()
-                                << ", var_type=" << q[0][i].getType();
-          }
-          Trace("inst") << std::endl;
-        }
-      }
-    }
-    if (options::instMaxLevel() != -1)
-    {
-      if (doVts)
-      {
-        // virtual term substitution/instantiation level features are
-        // incompatible
-        Assert(false);
-      }
-      else
-      {
-        uint64_t maxInstLevel = 0;
-        for (const Node& tc : terms)
-        {
-          if (tc.hasAttribute(InstLevelAttribute())
-              && tc.getAttribute(InstLevelAttribute()) > maxInstLevel)
-          {
-            maxInstLevel = tc.getAttribute(InstLevelAttribute());
-          }
-        }
-        QuantAttributes::setInstantiationLevelAttr(
-            orig_body, q[1], maxInstLevel + 1);
-      }
-    }
-    QuantifiersModule::QEffort elevel = d_qe->getCurrentQEffort();
-    if (elevel > QuantifiersModule::QEFFORT_CONFLICT
-        && elevel < QuantifiersModule::QEFFORT_NONE
-        && !d_inst_notify.empty())
-    {
-      // notify listeners
-      for (unsigned j = 0, size = d_inst_notify.size(); j < size; j++)
-      {
-        if (!d_inst_notify[j]->notifyInstantiation(elevel, q, lem, terms, body))
-        {
-          Trace("inst-add-debug") << "...we are in conflict." << std::endl;
-          d_qe->setConflict();
-          Assert(d_qe->getNumLemmasWaiting() > 0);
-          break;
-        }
-      }
-    }
-    if (options::trackInstLemmas())
-    {
-      bool recorded;
-      if (options::incrementalSolving())
-      {
-        recorded = d_c_inst_match_trie[q]->recordInstLemma(q, terms, lem);
-      }
-      else
-      {
-        recorded = d_inst_match_trie[q].recordInstLemma(q, terms, lem);
-      }
-      Trace("inst-add-debug") << "...was recorded : " << recorded << std::endl;
-      Assert(recorded);
-    }
-    Trace("inst-add-debug") << " --> Success." << std::endl;
-    ++(d_statistics.d_instantiations);
-    return true;
-  }
-  else
+  if (!d_qe->addLemma(lem, true, false))
   {
     Trace("inst-add-debug") << " --> Lemma already exists." << std::endl;
     ++(d_statistics.d_inst_duplicate);
     return false;
   }
+
+  d_total_inst_debug[q]++;
+  d_temp_inst_debug[q]++;
+  d_total_inst_count_debug++;
+  if (Trace.isOn("inst"))
+  {
+    Trace("inst") << "*** Instantiate " << q << " with " << std::endl;
+    for (unsigned i = 0, size = terms.size(); i < size; i++)
+    {
+      if (Trace.isOn("inst"))
+      {
+        Trace("inst") << "   " << terms[i];
+        if (Trace.isOn("inst-debug"))
+        {
+          Trace("inst-debug") << ", type=" << terms[i].getType()
+                              << ", var_type=" << q[0][i].getType();
+        }
+        Trace("inst") << std::endl;
+      }
+    }
+  }
+  if (options::instMaxLevel() != -1)
+  {
+    if (doVts)
+    {
+      // virtual term substitution/instantiation level features are
+      // incompatible
+      Assert(false);
+    }
+    else
+    {
+      uint64_t maxInstLevel = 0;
+      for (const Node& tc : terms)
+      {
+        if (tc.hasAttribute(InstLevelAttribute())
+            && tc.getAttribute(InstLevelAttribute()) > maxInstLevel)
+        {
+          maxInstLevel = tc.getAttribute(InstLevelAttribute());
+        }
+      }
+      QuantAttributes::setInstantiationLevelAttr(
+          orig_body, q[1], maxInstLevel + 1);
+    }
+  }
+  QuantifiersModule::QEffort elevel = d_qe->getCurrentQEffort();
+  if (elevel > QuantifiersModule::QEFFORT_CONFLICT
+      && elevel < QuantifiersModule::QEFFORT_NONE
+      && !d_inst_notify.empty())
+  {
+    // notify listeners
+    for (InstantiationNotify*& in : d_inst_notify)
+    {
+      if (!in->notifyInstantiation(elevel, q, lem, terms, body))
+      {
+        Trace("inst-add-debug") << "...we are in conflict." << std::endl;
+        d_qe->setConflict();
+        Assert(d_qe->getNumLemmasWaiting() > 0);
+        break;
+      }
+    }
+  }
+  if (options::trackInstLemmas())
+  {
+    bool recorded;
+    if (options::incrementalSolving())
+    {
+      recorded = d_c_inst_match_trie[q]->recordInstLemma(q, terms, lem);
+    }
+    else
+    {
+      recorded = d_inst_match_trie[q].recordInstLemma(q, terms, lem);
+    }
+    Trace("inst-add-debug") << "...was recorded : " << recorded << std::endl;
+    Assert(recorded);
+  }
+  Trace("inst-add-debug") << " --> Success." << std::endl;
+  ++(d_statistics.d_instantiations);
+  return true;
 }
 
 bool Instantiate::removeInstantiation(Node q,
@@ -489,11 +481,8 @@ bool Instantiate::recordInstantiationInternal(Node q,
     d_c_inst_match_trie_dom.insert(q);
     return imt->addInstMatch(d_qe, q, terms, d_qe->getUserContext(), modEq);
   }
-  else
-  {
-    Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
-    return d_inst_match_trie[q].addInstMatch(d_qe, q, terms, modEq);
-  }
+  Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
+  return d_inst_match_trie[q].addInstMatch(d_qe, q, terms, modEq);
 }
 
 bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
@@ -517,10 +506,7 @@ Node Instantiate::getTermForType(TypeNode tn)
   {
     return d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
   }
-  else
-  {
-    return d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
-  }
+  return d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
 }
 
 bool Instantiate::printInstantiations(std::ostream& out)
@@ -600,9 +586,9 @@ bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
   {
     Trace("inst-unsat-core") << "Quantifiers lemmas in unsat core: "
                               << std::endl;
-    for (unsigned i = 0; i < active_lemmas.size(); ++i)
+    for (const Node& lem : active_lemmas)
     {
-      Trace("inst-unsat-core") << "  " << active_lemmas[i] << std::endl;
+      Trace("inst-unsat-core") << "  " << lem << std::endl;
     }
     Trace("inst-unsat-core") << std::endl;
   }
@@ -758,23 +744,21 @@ Node Instantiate::getInstantiatedConjunction(Node q)
   {
     return NodeManager::currentNM()->mkConst(true);
   }
+  Node ret;
+  if (insts.size() == 1)
+  {
+    ret = insts[0];
+  }
   else
   {
-    Node ret;
-    if (insts.size() == 1)
-    {
-      ret = insts[0];
-    }
-    else
-    {
-      ret = NodeManager::currentNM()->mkNode(kind::AND, insts);
-    }
-    // have to remove q, TODO: avoid this in a better way
-    TNode tq = q;
-    TNode tt = NodeManager::currentNM()->mkConst(true);
-    ret = ret.substitute(tq, tt);
-    return ret;
+    ret = NodeManager::currentNM()->mkNode(kind::AND, insts);
   }
+  // have to remove q
+  // may want to do this in a better way
+  TNode tq = q;
+  TNode tt = NodeManager::currentNM()->mkConst(true);
+  ret = ret.substitute(tq, tt);
+  return ret;
 }
 
 void Instantiate::debugPrint()

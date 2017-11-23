@@ -36,6 +36,8 @@ namespace inst {
  *
  * This class is used for storing instantiations of a quantified formula q.
  * It is a trie data structure for which entries can be added and removed.
+ * This class has interfaces for adding instantiations that are either 
+ * represented by std::vectors or InstMatch objects (see inst_match.h).
  */
 class InstMatchTrie
 {

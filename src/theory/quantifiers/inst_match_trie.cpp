@@ -19,11 +19,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers_engine.h"
 
-using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
 
 namespace CVC4 {
 namespace theory {
@@ -42,53 +38,50 @@ bool InstMatchTrie::addInstMatch(QuantifiersEngine* qe,
   {
     return false;
   }
-  else
+  unsigned i_index = imtio ? imtio->d_order[index] : index;
+  Node n = m[i_index];
+  std::map<Node, InstMatchTrie>::iterator it = d_data.find(n);
+  if (it != d_data.end())
   {
-    unsigned i_index = imtio ? imtio->d_order[index] : index;
-    Node n = m[i_index];
-    std::map<Node, InstMatchTrie>::iterator it = d_data.find(n);
-    if (it != d_data.end())
+    bool ret =
+        it->second.addInstMatch(qe, f, m, modEq, imtio, onlyExist, index + 1);
+    if (!onlyExist || !ret)
     {
-      bool ret =
-          it->second.addInstMatch(qe, f, m, modEq, imtio, onlyExist, index + 1);
-      if (!onlyExist || !ret)
-      {
-        return ret;
-      }
+      return ret;
     }
-    if (modEq)
+  }
+  if (modEq)
+  {
+    // check modulo equality if any other instantiation match exists
+    if (!n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm(n))
     {
-      // check modulo equality if any other instantiation match exists
-      if (!n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm(n))
+      eq::EqClassIterator eqc(
+          qe->getEqualityQuery()->getEngine()->getRepresentative(n),
+          qe->getEqualityQuery()->getEngine());
+      while (!eqc.isFinished())
       {
-        eq::EqClassIterator eqc(
-            qe->getEqualityQuery()->getEngine()->getRepresentative(n),
-            qe->getEqualityQuery()->getEngine());
-        while (!eqc.isFinished())
+        Node en = (*eqc);
+        if (en != n)
         {
-          Node en = (*eqc);
-          if (en != n)
+          std::map<Node, InstMatchTrie>::iterator itc = d_data.find(en);
+          if (itc != d_data.end())
           {
-            std::map<Node, InstMatchTrie>::iterator itc = d_data.find(en);
-            if (itc != d_data.end())
+            if (itc->second.addInstMatch(
+                    qe, f, m, modEq, imtio, true, index + 1))
             {
-              if (itc->second.addInstMatch(
-                      qe, f, m, modEq, imtio, true, index + 1))
-              {
-                return false;
-              }
+              return false;
             }
           }
-          ++eqc;
         }
+        ++eqc;
       }
     }
-    if (!onlyExist)
-    {
-      d_data[n].addInstMatch(qe, f, m, modEq, imtio, false, index + 1);
-    }
-    return true;
   }
+  if (!onlyExist)
+  {
+    d_data[n].addInstMatch(qe, f, m, modEq, imtio, false, index + 1);
+  }
+  return true;
 }
 
 bool InstMatchTrie::removeInstMatch(Node q,
@@ -109,15 +102,9 @@ bool InstMatchTrie::removeInstMatch(Node q,
       d_data.erase(n);
       return true;
     }
-    else
-    {
-      return it->second.removeInstMatch(q, m, imtio, index + 1);
-    }
+    return it->second.removeInstMatch(q, m, imtio, index + 1);
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 bool InstMatchTrie::recordInstLemma(
@@ -129,19 +116,13 @@ bool InstMatchTrie::recordInstLemma(
     setInstLemma(lem);
     return true;
   }
-  else
+  unsigned i_index = imtio ? imtio->d_order[index] : index;
+  std::map<Node, InstMatchTrie>::iterator it = d_data.find(m[i_index]);
+  if (it != d_data.end())
   {
-    unsigned i_index = imtio ? imtio->d_order[index] : index;
-    std::map<Node, InstMatchTrie>::iterator it = d_data.find(m[i_index]);
-    if (it != d_data.end())
-    {
-      return it->second.recordInstLemma(q, m, lem, imtio, index + 1);
-    }
-    else
-    {
-      return false;
-    }
+    return it->second.recordInstLemma(q, m, lem, imtio, index + 1);
   }
+  return false;
 }
 
 void InstMatchTrie::print(std::ostream& out,
@@ -276,12 +257,9 @@ void InstMatchTrie::getExplanationForInstLemmas(
 
 CDInstMatchTrie::~CDInstMatchTrie()
 {
-  for (std::map<Node, CDInstMatchTrie *>::iterator i = d_data.begin(),
-                                                   iend = d_data.end();
-       i != iend;
-       ++i)
+  for( std::pair<const Node, CDInstMatchTrie *> d : d_data ) 
   {
-    CDInstMatchTrie* current = (*i).second;
+    CDInstMatchTrie* current = d.second;
     delete current;
   }
   d_data.clear();
@@ -312,57 +290,54 @@ bool CDInstMatchTrie::addInstMatch(QuantifiersEngine* qe,
   {
     return reset;
   }
-  else
+  Node n = m[index];
+  std::map<Node, CDInstMatchTrie*>::iterator it = d_data.find(n);
+  if (it != d_data.end())
   {
-    Node n = m[index];
-    std::map<Node, CDInstMatchTrie*>::iterator it = d_data.find(n);
-    if (it != d_data.end())
+    bool ret =
+        it->second->addInstMatch(qe, f, m, c, modEq, index + 1, onlyExist);
+    if (!onlyExist || !ret)
     {
-      bool ret =
-          it->second->addInstMatch(qe, f, m, c, modEq, index + 1, onlyExist);
-      if (!onlyExist || !ret)
-      {
-        return reset || ret;
-      }
+      return reset || ret;
     }
-    if (modEq)
+  }
+  if (modEq)
+  {
+    // check modulo equality if any other instantiation match exists
+    if (!n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm(n))
     {
-      // check modulo equality if any other instantiation match exists
-      if (!n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm(n))
+      eq::EqClassIterator eqc(
+          qe->getEqualityQuery()->getEngine()->getRepresentative(n),
+          qe->getEqualityQuery()->getEngine());
+      while (!eqc.isFinished())
       {
-        eq::EqClassIterator eqc(
-            qe->getEqualityQuery()->getEngine()->getRepresentative(n),
-            qe->getEqualityQuery()->getEngine());
-        while (!eqc.isFinished())
+        Node en = (*eqc);
+        if (en != n)
         {
-          Node en = (*eqc);
-          if (en != n)
+          std::map<Node, CDInstMatchTrie*>::iterator itc = d_data.find(en);
+          if (itc != d_data.end())
           {
-            std::map<Node, CDInstMatchTrie*>::iterator itc = d_data.find(en);
-            if (itc != d_data.end())
+            if (itc->second->addInstMatch(
+                    qe, f, m, c, modEq, index + 1, true))
             {
-              if (itc->second->addInstMatch(
-                      qe, f, m, c, modEq, index + 1, true))
-              {
-                return false;
-              }
+              return false;
             }
           }
-          ++eqc;
         }
+        ++eqc;
       }
     }
-
-    if (!onlyExist)
-    {
-      // std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );
-      CDInstMatchTrie* imt = new CDInstMatchTrie(c);
-      Assert(d_data.find(n) == d_data.end());
-      d_data[n] = imt;
-      imt->addInstMatch(qe, f, m, c, modEq, index + 1, false);
-    }
-    return true;
   }
+
+  if (!onlyExist)
+  {
+    // std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );
+    CDInstMatchTrie* imt = new CDInstMatchTrie(c);
+    Assert(d_data.find(n) == d_data.end());
+    d_data[n] = imt;
+    imt->addInstMatch(qe, f, m, c, modEq, index + 1, false);
+  }
+  return true;
 }
 
 bool CDInstMatchTrie::removeInstMatch(Node q, std::vector<Node>& m, unsigned index)
@@ -376,15 +351,12 @@ bool CDInstMatchTrie::removeInstMatch(Node q, std::vector<Node>& m, unsigned ind
     }
     return false;
   }
-  else
+  std::map<Node, CDInstMatchTrie*>::iterator it = d_data.find(m[index]);
+  if (it != d_data.end())
   {
-    std::map<Node, CDInstMatchTrie*>::iterator it = d_data.find(m[index]);
-    if (it != d_data.end())
-    {
-      return it->second->removeInstMatch(q, m, index + 1);
-    }
-    return false;
+    return it->second->removeInstMatch(q, m, index + 1);
   }
+  return false;
 }
 
 bool CDInstMatchTrie::recordInstLemma(Node q,

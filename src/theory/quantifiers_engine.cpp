@@ -444,13 +444,14 @@ void QuantifiersEngine::check( Theory::Effort e ){
   std::vector< QuantifiersModule* > qm;
   if( d_model->checkNeeded() ){
     needsCheck = needsCheck || e>=Theory::EFFORT_LAST_CALL;  //always need to check at or above last call
-    for( unsigned i=0; i<d_modules.size(); i++ ){
-      if( d_modules[i]->needsCheck( e ) ){
-        qm.push_back( d_modules[i] );
+    for( QuantifiersModule*& mdl : d_modules )
+    {
+      if( mdl->needsCheck( e ) ){
+        qm.push_back( mdl );
         needsCheck = true;
         //can only request model at last call since theory combination can find inconsistencies
         if( e>=Theory::EFFORT_LAST_CALL ){
-          QuantifiersModule::QEffort me = d_modules[i]->needsModel(e);
+          QuantifiersModule::QEffort me = mdl->needsModel(e);
           needsModelE = me<needsModelE ? me : needsModelE;
         }
       }
@@ -503,9 +504,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
     //reset utilities
     Trace("quant-engine-debug") << "Resetting all utilities..." << std::endl;
-    for( unsigned i=0; i<d_util.size(); i++ ){
-      Trace("quant-engine-debug2") << "Reset " << d_util[i]->identify().c_str() << "..." << std::endl;
-      if( !d_util[i]->reset( e ) ){
+    for (QuantifiersUtil*& util : d_util )
+    {
+      Trace("quant-engine-debug2") << "Reset " << util->identify().c_str() << "..." << std::endl;
+      if( !util->reset( e ) ){
         flushLemmas();
         if( d_hasAddedLemma ){
           return;
@@ -527,9 +529,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
     //reset the modules
     Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
-    for( unsigned i=0; i<d_modules.size(); i++ ){
-      Trace("quant-engine-debug2") << "Reset " << d_modules[i]->identify().c_str() << std::endl;
-      d_modules[i]->reset_round( e );
+    for( QuantifiersModule*& mdl : d_modules )
+    {
+      Trace("quant-engine-debug2") << "Reset " << mdl->identify().c_str() << std::endl;
+      mdl->reset_round( e );
     }
     Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
     //reset may have added lemmas
@@ -567,9 +570,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
       if( !d_hasAddedLemma ){
         //check each module
-        for( unsigned i=0; i<qm.size(); i++ ){
-          Trace("quant-engine-debug") << "Check " << qm[i]->identify().c_str() << " at effort " << quant_e << "..." << std::endl;
-          qm[i]->check( e, quant_e );
+        for( QuantifiersModule*& mdl : qm )
+        {
+          Trace("quant-engine-debug") << "Check " << mdl->identify().c_str() << " at effort " << quant_e << "..." << std::endl;
+          mdl->check( e, quant_e );
           if( d_conflict ){
             Trace("quant-engine-debug") << "...conflict!" << std::endl;
             break;
@@ -600,12 +604,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
         {
           if( e==Theory::EFFORT_LAST_CALL ){
             //sources of incompleteness
-            for (unsigned i = 0; i < d_util.size(); i++)
+            for (QuantifiersUtil*& util : d_util )
             {
-              if (!d_util[i]->checkComplete())
+              if (!util->checkComplete())
               {
                 Trace("quant-engine-debug") << "Set incomplete because utility "
-                                            << d_util[i]->identify().c_str()
+                                            << util->identify().c_str()
                                             << " was incomplete." << std::endl;
                 setIncomplete = true;
               }
@@ -613,11 +617,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
             //if we have a chance not to set incomplete
             if( !setIncomplete ){
               //check if we should set the incomplete flag
-              for( unsigned i=0; i<d_modules.size(); i++ ){
-                if( !d_modules[i]->checkComplete() ){
+              for( QuantifiersModule*& mdl : d_modules ){
+                if( !mdl->checkComplete() ){
                   Trace("quant-engine-debug")
                       << "Set incomplete because module "
-                      << d_modules[i]->identify().c_str() << " was incomplete."
+                      << mdl->identify().c_str() << " was incomplete."
                       << std::endl;
                   setIncomplete = true;
                   break;
