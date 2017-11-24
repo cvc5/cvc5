@@ -377,15 +377,12 @@ bool CDInstMatchTrie::recordInstLemma(Node q,
     }
     return false;
   }
-  else
+  std::map<Node, CDInstMatchTrie*>::iterator it = d_data.find(m[index]);
+  if (it != d_data.end())
   {
-    std::map<Node, CDInstMatchTrie*>::iterator it = d_data.find(m[index]);
-    if (it != d_data.end())
-    {
-      return it->second->recordInstLemma(q, m, lem, index + 1);
-    }
-    return false;
+    return it->second->recordInstLemma(q, m, lem, index + 1);
   }
+  return false;
 }
 
 void CDInstMatchTrie::print(std::ostream& out,

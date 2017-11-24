@@ -274,9 +274,9 @@ bool Instantiate::addInstantiation(
   if (options::instRelevantCond())
   {
     std::vector<Node> rlv_cond;
-    for (unsigned i = 0, size = terms.size(); i < size; i++)
+    for (Node& t : terms)
     {
-      quantifiers::TermUtil::getRelevancyCondition(terms[i], rlv_cond);
+      quantifiers::TermUtil::getRelevancyCondition(t, rlv_cond);
     }
     if (!rlv_cond.empty())
     {
