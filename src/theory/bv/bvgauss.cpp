@@ -241,7 +241,7 @@ BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
    *       beforehand but on-the-fly. */
 
   /* pivot = reslhs[pcol][pcol] */
-  for (size_t pcol = 0, prow = 0; pcol < ncols && pcol < nrows; ++pcol, ++prow)
+  for (size_t pcol = 0, prow = 0; pcol < ncols && prow < nrows; ++pcol, ++prow)
   {
     /* reslhs[j][pcol]: element in pivot column */
     for (size_t j = prow; j < nrows; ++j)
@@ -403,13 +403,22 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
     }
 
     unordered_map<Node, Integer, NodeHashFunction> tmp;
-    bool isvalid = true;
     stack<Node> stack;
     stack.push(urem[0]);
     while (!stack.empty())
     {
       Node n = stack.top();
       stack.pop();
+
+      /* Subtract from rhs if const */
+      if (is_bv_const(n))
+      {
+        Integer val = get_bv_const_value(n);
+        if (val > 0) rhs.back() -= val;
+        continue;
+      }
+
+      /* Split into matrix columns */
       Kind k = n.getKind();
       if (k == kind::BITVECTOR_PLUS)
       {
@@ -420,7 +429,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
         Node n0, n1;
         /* Flatten mult expression. */
         n = RewriteRule<FlattenAssocCommut>::run<true>(n);
-        /* Create mult with const and non-const operand */
+        /* Split operands into consts and non-consts */
         NodeBuilder<> nb_consts(NodeManager::currentNM(), k);
         NodeBuilder<> nb_nonconsts(NodeManager::currentNM(), k);
         for (const Node& nn : n)
@@ -436,6 +445,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
           }
         }
         Assert(nb_nonconsts.getNumChildren() > 0);
+        /* n0 is const */
         unsigned nc = nb_consts.getNumChildren();
         if (nc > 1)
         {
@@ -449,6 +459,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
         {
           n0 = utils::mkOne(utils::getSize(n));
         }
+        /* n1 is a mult with non-const operands */
         if (nb_nonconsts.getNumChildren() > 1)
         {
           n1 = Rewriter::rewrite(nb_nonconsts.constructNode());
@@ -457,25 +468,9 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
         {
           n1 = nb_nonconsts[0];
         }
-        if (!isvalid)
-        {
-          tmp[n] += Integer(1);
-        }
-        else
-        {
-          if (is_bv_const(n0) && !is_bv_const(n1))
-          {
-            tmp[n1] += get_bv_const_value(n0);
-          }
-          else if (!is_bv_const(n0) && is_bv_const(n1))
-          {
-            tmp[n0] += get_bv_const_value(n1);
-          }
-          else
-          {
-            tmp[n] += Integer(1);
-          }
-        }
+        Assert(is_bv_const(n0));
+        Assert(!is_bv_const(n1));
+        tmp[n1] += get_bv_const_value(n0);
       }
       else
       {

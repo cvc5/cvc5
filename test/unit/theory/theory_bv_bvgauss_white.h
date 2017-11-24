@@ -793,7 +793,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::NONE);
   }
 
-  void testGaussElimPartial()
+  void testGaussElimPartial1()
   {
     std::vector<Integer> rhs, resrhs;
     std::vector<std::vector<Integer>> lhs, reslhs;
@@ -904,6 +904,26 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
         Integer(3), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
   }
 
+  void testGaussElimPartial2()
+  {
+    std::vector<Integer> rhs;
+    std::vector<std::vector<Integer>> lhs;
+
+    /* -------------------------------------------------------------------
+     *    lhs    rhs  -->    lhs    rhs  modulo 11
+     *  ---^---   ^        ---^---   ^
+     *  x y z w            x y z w
+     *  1 2 0 6   2        1 2 0 0   1 
+     *  0 0 2 2   2        0 0 1 0   10
+     *  0 0 0 1   2        0 0 0 1   2 
+     * ------------------------------------------------------------------- */
+    rhs = {Integer(2), Integer(2), Integer(2)};
+    lhs = {{Integer(1), Integer(2), Integer(6), Integer(0)},
+           {Integer(0), Integer(0), Integer(2), Integer(2)},
+           {Integer(0), Integer(0), Integer(1), Integer(0)}};
+    std::cout << "matrix 34, modulo 11" << std::endl;
+    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::PARTIAL);
+  }
   void testGaussElimRewriteForUremUnique1()
   {
     /* -------------------------------------------------------------------
@@ -1688,7 +1708,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
        *  5 4  6  24       0 0 0 0
        *  7 2 12  30       0 0 0 0
        *
-         y  z x            y z x
+       *  y  z x            y z x
        *  4  6 2  18  -->  1 0 2  0
        *  5  6 4  24       0 0 0  0
        *  7 12 2  30       0 0 0  0
@@ -1721,6 +1741,93 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
        *
        */
       TS_ASSERT(res[d_x] == x1);
+    }
+    else
+    {
+      TS_ASSERT(false);
+    }
+  }
+
+  void testGaussElimRewriteForUremPartial6()
+  {
+    std::unordered_map<Node, Node, NodeHashFunction> res;
+    BVGaussElim::Result ret;
+
+    /* -------------------------------------------------------------------
+     *    lhs    rhs  -->    lhs    rhs  modulo 11
+     *  ---^---   ^        ---^---   ^
+     *  x y z w            x y z w
+     *  1 2 0 6   2        1 2 0 6   2
+     *  0 0 2 2   2        0 0 1 1   1
+     *  0 0 0 1   2        0 0 0 1   2
+     * ------------------------------------------------------------------- */
+
+    Node y_mul_two = d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_two);
+    Node z_mul_two = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_two);
+    Node w = mkConcat(d_zero, d_nm->mkVar("w", d_nm->mkBitVectorType(16)));
+    Node w_mul_six = d_nm->mkNode(kind::BITVECTOR_MULT, w, d_six);
+    Node w_mul_two = d_nm->mkNode(kind::BITVECTOR_MULT, w, d_two);
+
+    Node eq1 = d_nm->mkNode(
+        kind::EQUAL,
+        d_nm->mkNode(
+            kind::BITVECTOR_UREM,
+            d_nm->mkNode(
+                kind::BITVECTOR_PLUS,
+                  d_nm->mkNode(kind::BITVECTOR_PLUS, d_x_mul_one, y_mul_two),
+                  w_mul_six),
+            d_p),
+        d_two);
+
+    Node eq2 = d_nm->mkNode(
+        kind::EQUAL,
+        d_nm->mkNode(
+            kind::BITVECTOR_UREM,
+            d_nm->mkNode(kind::BITVECTOR_PLUS, z_mul_two, w_mul_two),
+            d_p),
+        d_two);
+
+    Node eq3 = d_nm->mkNode(
+        kind::EQUAL,
+        d_nm->mkNode(
+            kind::BITVECTOR_UREM, w, d_p),
+        d_two);
+
+    std::vector<Node> eqs = {eq1, eq2, eq3};
+    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == BVGaussElim::Result::PARTIAL);
+    TS_ASSERT(res.size() == 3);
+
+    Node x1 = d_nm->mkNode(
+        kind::BITVECTOR_UREM,
+        d_nm->mkNode(kind::BITVECTOR_PLUS,
+                     d_one32,
+                     d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_nine32)),
+        d_p);
+    Node z1 = d_ten32;
+    Node w1 = d_two32;
+
+    Node y2 = d_nm->mkNode(
+        kind::BITVECTOR_UREM,
+        d_nm->mkNode(kind::BITVECTOR_PLUS,
+                     d_six32,
+                     d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_five32)),
+        d_p);
+    Node z2 = d_ten32;
+    Node w2 = d_two32;
+
+    /* result depends on order of variables in matrix */
+    if (res.find(d_x) == res.end())
+    {
+      TS_ASSERT(res[d_y] == y2);
+      TS_ASSERT(res[d_z] == z2);
+      TS_ASSERT(res[w] == w2);
+    }
+    else if (res.find(d_y) == res.end())
+    {
+      TS_ASSERT(res[d_x] == x1);
+      TS_ASSERT(res[d_z] == z1);
+      TS_ASSERT(res[w] == w1);
     }
     else
     {
