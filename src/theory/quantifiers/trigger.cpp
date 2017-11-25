@@ -16,6 +16,7 @@
 #include "theory/quantifiers/candidate_generator.h"
 #include "theory/quantifiers/ho_trigger.h"
 #include "theory/quantifiers/inst_match_generator.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -119,7 +120,7 @@ int Trigger::addInstantiations(InstMatch& baseMatch)
 
 bool Trigger::sendInstantiation(InstMatch& m)
 {
-  return d_quantEngine->addInstantiation(d_f, m);
+  return d_quantEngine->getInstantiate()->addInstantiation(d_f, m);
 }
 
 bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_vars, std::vector< Node >& trNodes ) {

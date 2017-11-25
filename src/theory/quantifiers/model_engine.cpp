@@ -18,6 +18,7 @@
 #include "theory/quantifiers/ambqi_builder.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -285,17 +286,20 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       if( !riter.isIncomplete() ){
         int triedLemmas = 0;
         int addedLemmas = 0;
+        EqualityQuery* qy = d_quantEngine->getEqualityQuery();
+        Instantiate* inst = d_quantEngine->getInstantiate();
         while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
           for (unsigned i = 0; i < riter.getNumTerms(); i++)
           {
-            m.set( d_quantEngine, i, riter.getCurrentTerm( i ) );
+            m.set(qy, i, riter.getCurrentTerm(i));
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;
           //add as instantiation
-          if( d_quantEngine->addInstantiation( f, m, true ) ){
+          if (inst->addInstantiation(f, m, true))
+          {
             addedLemmas++;
             if( d_quantEngine->inConflict() ){
               break;

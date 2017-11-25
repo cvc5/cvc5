@@ -15,6 +15,7 @@
 #include <stack>
 
 #include "theory/quantifiers/ho_trigger.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -325,7 +326,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
   else
   {
     // do not run higher-order matching
-    return d_quantEngine->addInstantiation(d_f, m);
+    return d_quantEngine->getInstantiate()->addInstantiation(d_f, m);
   }
 }
 
@@ -336,7 +337,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m, unsigned var_index)
   if (var_index == d_ho_var_list.size())
   {
     // we now have an instantiation to try
-    return d_quantEngine->addInstantiation(d_f, m);
+    return d_quantEngine->getInstantiate()->addInstantiation(d_f, m);
   }
   else
   {
