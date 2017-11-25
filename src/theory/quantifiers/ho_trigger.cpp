@@ -77,7 +77,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
   std::vector<Node> ns;
   ns.push_back(n);
   collectHoVarApplyTerms(q, ns, apps);
-  Assert( ns.size()==1 );
+  Assert(ns.size() == 1);
   n = ns[0];
 }
 
@@ -119,27 +119,31 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
           }
         }
       }
-      else if( it->second.isNull() )
+      else if (it->second.isNull())
       {
         // carry the conversion
         Node ret = cur;
         bool childChanged = false;
         std::vector<Node> children;
-        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
           children.push_back(cur.getOperator());
         }
-        for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+        for (unsigned i = 0; i < cur.getNumChildren(); i++)
+        {
           it = visited.find(cur[i]);
           Assert(it != visited.end());
           Assert(!it->second.isNull());
           childChanged = childChanged || cur[i] != it->second;
           children.push_back(it->second);
         }
-        if (childChanged) {
+        if (childChanged)
+        {
           ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
         }
         // now, convert and store the application
-        if( !withinApply[cur] ){
+        if (!withinApply[cur])
+        {
           TNode op;
           if (ret.getKind() == kind::APPLY_UF)
           {
@@ -175,10 +179,12 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
         visited[cur] = ret;
       }
     } while (!visit.empty());
-    
+
     // store the conversion
-    std::unordered_map<TNode, Node, TNodeHashFunction>::iterator itv = visited.find(ns[i]);
-    if( itv!=visited.end() ){
+    std::unordered_map<TNode, Node, TNodeHashFunction>::iterator itv =
+        visited.find(ns[i]);
+    if (itv != visited.end())
+    {
       ns[i] = itv->second;
     }
   }

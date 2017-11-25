@@ -223,7 +223,8 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
   Trace("trigger") << "Collect higher-order variable triggers..." << std::endl;
   std::map<Node, std::vector<Node> > ho_apps;
   HigherOrderTrigger::collectHoVarApplyTerms(f, trNodes, ho_apps);
-  Trace("trigger") << "...got " << ho_apps.size() << " higher-order applications." << std::endl;
+  Trace("trigger") << "...got " << ho_apps.size()
+                   << " higher-order applications." << std::endl;
   Trigger* t;
   if (!ho_apps.empty())
   {
