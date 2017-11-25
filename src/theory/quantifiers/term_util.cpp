@@ -119,7 +119,7 @@ Node TermUtil::getInstConstAttr( Node n ) {
     }
     if (q.isNull())
     {
-      for (const Node& nc : n )
+      for (const Node& nc : n)
       {
         q = getInstConstAttr(nc);
         if (!q.isNull())

@@ -103,8 +103,8 @@ class HigherOrderTrigger : public Trigger
    *
    * Collect all top-level HO_APPLY terms in n whose head is a variable x in
    * quantified formula q. Append all such terms in apps[x].
-   * This method may modify n so that it is in the expected form required for 
-   * higher-order matching, in particular, APPLY_UF terms with variable 
+   * This method may modify n so that it is in the expected form required for
+   * higher-order matching, in particular, APPLY_UF terms with variable
    * operators are converted to curried applications of HO_APPLY.
    */
   static void collectHoVarApplyTerms(Node q,

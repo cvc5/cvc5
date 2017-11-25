@@ -181,7 +181,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
     } while (!visit.empty());
 
     // store the conversion
-    Assert( visited.find(ns[i])!=visited.end() );
+    Assert(visited.find(ns[i]) != visited.end());
     ns[i] = visited[ns[i]];
   }
 }
