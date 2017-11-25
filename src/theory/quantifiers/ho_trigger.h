@@ -105,7 +105,7 @@ class HigherOrderTrigger : public Trigger
    * quantified formula q. Append all such terms in apps.
    */
   static void collectHoVarApplyTerms(Node q,
-                                     TNode n,
+                                     Node& n,
                                      std::map<Node, std::vector<Node> >& apps);
   /** Collect higher order var apply terms
    *

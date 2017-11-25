@@ -37,18 +37,16 @@ TESTS = \
   ho-std-fmf.smt2 \
   fta0409.smt2 \
   auth0068.smt2 \
-  modulo-func-equality.smt2
-
+  modulo-func-equality.smt2 \
+  ho-matching-enum.smt2 \
+  ho-matching-enum-2.smt2 \
+  ho-matching-nested-app.smt2 \
+  simple-matching.smt2 \
+  simple-matching-partial.smt2
+  
 EXTRA_DIST = $(TESTS)
 
-# need PR 1204 : 
-
 # hoa0102.smt2
-# ho-matching-enum.smt2 
-# ho-matching-enum-2.smt2
-# ho-matching-nested-app.smt2
-# simple-matching.smt2
-# simple-matching-partial.smt2
 
 
 #if CVC4_BUILD_PROFILE_COMPETITION

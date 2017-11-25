@@ -72,45 +72,83 @@ HigherOrderTrigger::HigherOrderTrigger(
 
 HigherOrderTrigger::~HigherOrderTrigger() {}
 void HigherOrderTrigger::collectHoVarApplyTerms(
-    Node q, TNode n, std::map<Node, std::vector<Node> >& apps)
+    Node q, Node& n, std::map<Node, std::vector<Node> >& apps)
 {
   std::vector<Node> ns;
   ns.push_back(n);
   collectHoVarApplyTerms(q, ns, apps);
+  Assert( ns.size()==1 );
+  n = ns[0];
 }
 
 void HigherOrderTrigger::collectHoVarApplyTerms(
     Node q, std::vector<Node>& ns, std::map<Node, std::vector<Node> >& apps)
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   // whether the visited node is a child of a HO_APPLY chain
   std::unordered_map<TNode, bool, TNodeHashFunction> withinApply;
-  std::stack<TNode> visit;
+  std::vector<TNode> visit;
   TNode cur;
-  for (unsigned i = 0; i < ns.size(); i++)
+  for (unsigned i = 0, size = ns.size(); i < size; i++)
   {
-    visit.push(ns[i]);
+    visit.push_back(ns[i]);
     withinApply[ns[i]] = false;
     do
     {
-      cur = visit.top();
-      visit.pop();
+      cur = visit.back();
+      visit.pop_back();
 
-      if (visited.find(cur) == visited.end())
+      it = visited.find(cur);
+      if (it == visited.end())
       {
-        visited.insert(cur);
         bool curWithinApply = withinApply[cur];
-        if (!curWithinApply)
+        // do not look in nested quantifiers
+        if (cur.getKind() == FORALL)
         {
+          visited[cur] = cur;
+        }
+        else
+        {
+          visited[cur] = Node::null();
+          visit.push_back(cur);
+          for (unsigned i = 0, size = cur.getNumChildren(); i < size; i++)
+          {
+            withinApply[cur[i]] = curWithinApply && i == 0;
+            visit.push_back(cur[i]);
+          }
+        }
+      }
+      else if( it->second.isNull() )
+      {
+        // carry the conversion
+        Node ret = cur;
+        bool childChanged = false;
+        std::vector<Node> children;
+        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+          children.push_back(cur.getOperator());
+        }
+        for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+          it = visited.find(cur[i]);
+          Assert(it != visited.end());
+          Assert(!it->second.isNull());
+          childChanged = childChanged || cur[i] != it->second;
+          children.push_back(it->second);
+        }
+        if (childChanged) {
+          ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+        }
+        // now, convert and store the application
+        if( !withinApply[cur] ){
           TNode op;
-          if (cur.getKind() == kind::APPLY_UF)
+          if (ret.getKind() == kind::APPLY_UF)
           {
             // could be a fully applied function variable
-            op = cur.getOperator();
+            op = ret.getOperator();
           }
-          else if (cur.getKind() == kind::HO_APPLY)
+          else if (ret.getKind() == kind::HO_APPLY)
           {
-            op = cur;
+            op = ret;
             while (op.getKind() == kind::HO_APPLY)
             {
               op = op[0];
@@ -120,42 +158,29 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
           {
             if (op.getKind() == kind::INST_CONSTANT)
             {
-              Assert(quantifiers::TermUtil::getInstConstAttr(cur) == q);
+              Assert(quantifiers::TermUtil::getInstConstAttr(ret) == q);
               Trace("ho-quant-trigger-debug")
-                  << "Ho variable apply term : " << cur << " with head " << op
+                  << "Ho variable apply term : " << ret << " with head " << op
                   << std::endl;
-              Node app = cur;
-              if (app.getKind() == kind::APPLY_UF)
+              if (ret.getKind() == kind::APPLY_UF)
               {
+                Node prev = ret;
                 // for consistency, convert to HO_APPLY if fully applied
-                app = uf::TheoryUfRewriter::getHoApplyForApplyUf(app);
+                ret = uf::TheoryUfRewriter::getHoApplyForApplyUf(ret);
               }
-              apps[op].push_back(cur);
-            }
-            if (cur.getKind() == kind::HO_APPLY)
-            {
-              curWithinApply = true;
+              apps[op].push_back(ret);
             }
           }
         }
-        else
-        {
-          if (cur.getKind() != HO_APPLY)
-          {
-            curWithinApply = false;
-          }
-        }
-        // do not look in nested quantifiers
-        if (cur.getKind() != FORALL)
-        {
-          for (unsigned i = 0, size = cur.getNumChildren(); i < size; i++)
-          {
-            withinApply[cur[i]] = curWithinApply && i == 0;
-            visit.push(cur[i]);
-          }
-        }
+        visited[cur] = ret;
       }
     } while (!visit.empty());
+    
+    // store the conversion
+    std::unordered_map<TNode, Node, TNodeHashFunction>::iterator itv = visited.find(ns[i]);
+    if( itv!=visited.end() ){
+      ns[i] = itv->second;
+    }
   }
 }
 
