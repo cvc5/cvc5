@@ -42,11 +42,6 @@ class BVGaussElim
    * but can be modulo any arbitrary number. However, GE is guaranteed to
    * succeed modulo a prime number, which is not necessarily the case if a
    * given set of equations is modulo a non-prime number.
-   *
-   * Returns
-   *   INVALID if GE can not be applied,
-   *   UNIQUE and PARTIAL if GE was successful,
-   *   and NONE, otherwise.
    */
   static void gaussElimRewrite(std::vector<Node>& assertionsToPreprocess);
 
@@ -120,9 +115,13 @@ class BVGaussElim
    *
    * Returns INVALID if GE can not be applied, UNIQUE and PARTIAL if GE was
    * successful, and NONE, otherwise.
+   *
+   * The resulting constraints are stored in 'res' as a mapping of unknown
+   * to result (modulo prime). These mapped results are added as constraints
+   * of the form 'unknown = mapped result' in gaussElimRewrite.
    */
   static Result gaussElimRewriteForUrem(
-      std::vector<Node>& equations,
+      const std::vector<Node>& equations,
       std::unordered_map<Node, Node, NodeHashFunction>& res);
 
   /**
@@ -135,6 +134,13 @@ class BVGaussElim
    *
    * Returns INVALID if GE can not be applied, UNIQUE and PARTIAL if GE was
    * successful, and NONE, otherwise.
+   *
+   * Vectors 'rhs' and 'lhs' represent the right hand side and left hand side
+   * of the given matrix, respectively. Similarly, the resulting matrix (in
+   * row echelon form) is stored in 'resrhs' and 'reslhs'. We keep these two
+   * matrixes separate for debugging purposes (copying rhs and lhs does not
+   * introduce any significant overhead since it happens only once and these
+   * vectors are usually quite small).
    */
   static Result gaussElim(Integer prime,
                           const std::vector<Integer>& rhs,

@@ -17,7 +17,6 @@
 
 #include "theory/bv/bvgauss.h"
 
-#include <iostream>
 #include <stack>
 #include <unordered_map>
 
@@ -351,7 +350,8 @@ BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
 }
 
 BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
-    vector<Node> &equations, unordered_map<Node, Node, NodeHashFunction> &res)
+    const vector<Node>& equations,
+    unordered_map<Node, Node, NodeHashFunction>& res)
 {
   Assert(res.empty());
 
@@ -480,7 +480,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
 
     /* Note: "var" is not necessarily a VARIABLE but can be an arbitrary expr */
 
-    for (auto p : tmp)
+    for (const auto& p : tmp)
     {
       Node var = p.first;
       Integer val = p.second;
@@ -491,7 +491,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
       vars[var].push_back(val);
     }
 
-    for (auto p : vars)
+    for (const auto& p : vars)
     {
       if (tmp.find(p.first) == tmp.end())
       {
@@ -504,7 +504,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
   Assert(nvars);
   size_t nrows = vars.begin()->second.size();
 #ifdef CVC4_ASSERTIONS
-  for (auto p : vars) Assert(p.second.size() == nrows);
+  for (const auto& p : vars) { Assert(p.second.size() == nrows); }
 #endif
 
   if (nrows < 1)
@@ -514,7 +514,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
 
   for (size_t i = 0; i < nrows; ++i)
   {
-    for (auto p : vars)
+    for (const auto& p : vars)
     {
       lhs[i].push_back(p.second[i]);
     }
@@ -536,7 +536,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
   if (ret != BVGaussElim::Result::NONE && ret != BVGaussElim::Result::INVALID)
   {
     vector<Node> vvars;
-    for (auto p : vars) { vvars.push_back(p.first); }
+    for (const auto& p : vars) { vvars.push_back(p.first); }
     Assert(nvars == vvars.size());
     Assert(lhs[0].size() == reslhs[0].size());
     Assert(nrows == lhs.size());
@@ -573,7 +573,6 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
         }
         Assert(reslhs[prow][pcol] == 1);
         vector<Node> stack;
-        while (reslhs[prow][pcol] == 0) pcol += 1;
         for (size_t i = pcol + 1; i < nvars; ++i)
         {
           if (reslhs[prow][i] == 0) continue;
@@ -593,8 +592,10 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
         }
         else
         {
-          Node tmp = stack.back();
-          stack.pop_back();
+          Node tmp = stack.size() == 1
+                         ? stack[0]
+                         : nm->mkNode(kind::BITVECTOR_PLUS, stack);
+
           if (resrhs[prow] != 0)
           {
             tmp = nm->mkNode(kind::BITVECTOR_PLUS,
@@ -602,19 +603,8 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
                                  utils::getSize(vvars[pcol]), resrhs[prow])),
                              tmp);
           }
-          while (!stack.empty())
-          {
-            tmp = nm->mkNode(kind::BITVECTOR_PLUS, tmp, stack.back());
-            stack.pop_back();
-          }
-          if (is_bv_const(tmp))
-          {
-            res[vvars[pcol]] = get_bv_const(tmp);
-          }
-          else
-          {
-            res[vvars[pcol]] = nm->mkNode(kind::BITVECTOR_UREM, tmp, prime);
-          }
+          Assert(!is_bv_const(tmp));
+          res[vvars[pcol]] = nm->mkNode(kind::BITVECTOR_UREM, tmp, prime);
         }
       }
     }
@@ -624,15 +614,10 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
 
 void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
 {
-  vector<Node> assertions;
+  vector<Node> assertions(assertionsToPreprocess);
   unordered_map<Node, vector<Node>, NodeHashFunction> equations;
   vector<Integer> resrhs;
   vector<vector<Integer>> reslhs;
-
-  for (const Node& aa : assertionsToPreprocess)
-  {
-    assertions.push_back(aa);
-  }
 
   while (!assertions.empty())
   {
@@ -674,7 +659,7 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
   unordered_map<Node, Node, NodeHashFunction> subst;
   unsigned size = assertionsToPreprocess.size();
 
-  for (auto eq : equations)
+  for (const auto& eq : equations)
   {
     if (eq.second.size() <= 1) { continue; }
 
