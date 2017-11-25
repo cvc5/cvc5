@@ -119,9 +119,9 @@ Node TermUtil::getInstConstAttr( Node n ) {
     }
     if (q.isNull())
     {
-      for (unsigned i = 0; i < n.getNumChildren(); i++)
+      for (const Node& nc : n )
       {
-        q = getInstConstAttr(n[i]);
+        q = getInstConstAttr(nc);
         if (!q.isNull())
         {
           break;

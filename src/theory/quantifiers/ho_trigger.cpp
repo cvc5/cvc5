@@ -102,7 +102,6 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
       it = visited.find(cur);
       if (it == visited.end())
       {
-        bool curWithinApply = withinApply[cur];
         // do not look in nested quantifiers
         if (cur.getKind() == FORALL)
         {
@@ -110,12 +109,13 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
         }
         else
         {
+          bool curWithinApply = withinApply[cur];
           visited[cur] = Node::null();
           visit.push_back(cur);
-          for (unsigned i = 0, size = cur.getNumChildren(); i < size; i++)
+          for (unsigned j = 0, size = cur.getNumChildren(); j < size; j++)
           {
-            withinApply[cur[i]] = curWithinApply && i == 0;
-            visit.push_back(cur[i]);
+            withinApply[cur[j]] = curWithinApply && j == 0;
+            visit.push_back(cur[j]);
           }
         }
       }
@@ -129,12 +129,12 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
         {
           children.push_back(cur.getOperator());
         }
-        for (unsigned i = 0; i < cur.getNumChildren(); i++)
+        for (const Node& nc : cur)
         {
-          it = visited.find(cur[i]);
+          it = visited.find(nc);
           Assert(it != visited.end());
           Assert(!it->second.isNull());
-          childChanged = childChanged || cur[i] != it->second;
+          childChanged = childChanged || nc != it->second;
           children.push_back(it->second);
         }
         if (childChanged)
@@ -181,12 +181,8 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
     } while (!visit.empty());
 
     // store the conversion
-    std::unordered_map<TNode, Node, TNodeHashFunction>::iterator itv =
-        visited.find(ns[i]);
-    if (itv != visited.end())
-    {
-      ns[i] = itv->second;
-    }
+    Assert( visited.find(ns[i])!=visited.end() );
+    ns[i] = visited[ns[i]];
   }
 }
 
