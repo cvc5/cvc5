@@ -34,9 +34,6 @@ typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
 struct BoundVarAttributeId {};
 typedef expr::Attribute<BoundVarAttributeId, Node> BoundVarAttribute;
 
-struct InstLevelAttributeId {};
-typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
-
 struct InstVarNumAttributeId {};
 typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 
@@ -61,10 +58,6 @@ typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
 /** Attribute true for quantifiers that do not need to be partially instantiated */
 struct LtePartialInstAttributeId {};
 typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribute;
-
-// attribute for sygus proxy variables
-struct SygusProxyAttributeId {};
-typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
 
 // attribute for associating a synthesis function with a first order variable
 struct SygusSynthGrammarAttributeId {};
@@ -101,13 +94,16 @@ namespace inst{
 namespace quantifiers {
 
 class TermDatabase;
+class Instantiate;
 
 // TODO : #1216 split this class, most of the functions in this class should be dispersed to where they are used.
 class TermUtil : public QuantifiersUtil
 {
   // TODO : remove these
   friend class ::CVC4::theory::QuantifiersEngine;
-private:
+  friend class Instantiate;
+
+ private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
 public:

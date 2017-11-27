@@ -186,7 +186,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
                    << std::endl;
     if (options::instMaxLevel() != -1)
     {
-      QuantifiersEngine::setInstantiationLevelAttr(k, 0);
+      QuantAttributes::setInstantiationLevelAttr(k, 0);
     }
     d_type_fv[tn] = k;
     return k;

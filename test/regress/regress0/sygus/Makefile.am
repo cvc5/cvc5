@@ -70,7 +70,8 @@ TESTS = commutative.sy \
         process-10-vars.sy \
         process-10-vars-2fun.sy \
         inv-unused.sy \
-        ccp16.lus.sy
+        ccp16.lus.sy \
+        Base16_1.sy
 
 
 # sygus tests currently taking too long for make regress

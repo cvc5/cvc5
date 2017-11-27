@@ -36,11 +36,11 @@ class ArithInstantiator : public Instantiator {
   virtual void reset(CegInstantiator* ci,
                      SolvedForm& sf,
                      Node pv,
-                     InstEffort effort) override;
+                     CegInstEffort effort) override;
   virtual bool hasProcessEquality(CegInstantiator* ci,
                                   SolvedForm& sf,
                                   Node pv,
-                                  InstEffort effort) override
+                                  CegInstEffort effort) override
   {
     return true;
   }
@@ -49,11 +49,11 @@ class ArithInstantiator : public Instantiator {
                                Node pv,
                                std::vector<TermProperties>& term_props,
                                std::vector<Node>& terms,
-                               InstEffort effort) override;
+                               CegInstEffort effort) override;
   virtual bool hasProcessAssertion(CegInstantiator* ci,
                                    SolvedForm& sf,
                                    Node pv,
-                                   InstEffort effort) override
+                                   CegInstEffort effort) override
   {
     return true;
   }
@@ -61,24 +61,27 @@ class ArithInstantiator : public Instantiator {
                                    SolvedForm& sf,
                                    Node pv,
                                    Node lit,
-                                   InstEffort effort) override;
+                                   CegInstEffort effort) override;
   virtual bool processAssertion(CegInstantiator* ci,
                                 SolvedForm& sf,
                                 Node pv,
                                 Node lit,
                                 Node alit,
-                                InstEffort effort) override;
+                                CegInstEffort effort) override;
   virtual bool processAssertions(CegInstantiator* ci,
                                  SolvedForm& sf,
                                  Node pv,
-                                 InstEffort effort) override;
+                                 CegInstEffort effort) override;
   virtual bool needsPostProcessInstantiationForVariable(
-      CegInstantiator* ci, SolvedForm& sf, Node pv, InstEffort effort) override;
+      CegInstantiator* ci,
+      SolvedForm& sf,
+      Node pv,
+      CegInstEffort effort) override;
   virtual bool postProcessInstantiationForVariable(
       CegInstantiator* ci,
       SolvedForm& sf,
       Node pv,
-      InstEffort effort,
+      CegInstEffort effort,
       std::vector<Node>& lemmas) override;
   virtual std::string identify() const override { return "Arith"; }
  private:
@@ -113,16 +116,16 @@ public:
   virtual void reset(CegInstantiator* ci,
                      SolvedForm& sf,
                      Node pv,
-                     InstEffort effort) override;
+                     CegInstEffort effort) override;
   virtual bool processEqualTerms(CegInstantiator* ci,
                                  SolvedForm& sf,
                                  Node pv,
                                  std::vector<Node>& eqc,
-                                 InstEffort effort) override;
+                                 CegInstEffort effort) override;
   virtual bool hasProcessEquality(CegInstantiator* ci,
                                   SolvedForm& sf,
                                   Node pv,
-                                  InstEffort effort) override
+                                  CegInstEffort effort) override
   {
     return true;
   }
@@ -131,7 +134,7 @@ public:
                                Node pv,
                                std::vector<TermProperties>& term_props,
                                std::vector<Node>& terms,
-                               InstEffort effort) override;
+                               CegInstEffort effort) override;
   virtual std::string identify() const override { return "Dt"; }
  private:
   Node solve_dt(Node v, Node a, Node b, Node sa, Node sb);
@@ -146,18 +149,18 @@ class EprInstantiator : public Instantiator {
   virtual void reset(CegInstantiator* ci,
                      SolvedForm& sf,
                      Node pv,
-                     InstEffort effort) override;
+                     CegInstEffort effort) override;
   virtual bool processEqualTerm(CegInstantiator* ci,
                                 SolvedForm& sf,
                                 Node pv,
                                 TermProperties& pv_prop,
                                 Node n,
-                                InstEffort effort) override;
+                                CegInstEffort effort) override;
   virtual bool processEqualTerms(CegInstantiator* ci,
                                  SolvedForm& sf,
                                  Node pv,
                                  std::vector<Node>& eqc,
-                                 InstEffort effort) override;
+                                 CegInstEffort effort) override;
   virtual std::string identify() const override { return "Epr"; }
  private:
   std::vector<Node> d_equal_terms;
@@ -188,11 +191,11 @@ class BvInstantiator : public Instantiator {
   virtual void reset(CegInstantiator* ci,
                      SolvedForm& sf,
                      Node pv,
-                     InstEffort effort) override;
+                     CegInstEffort effort) override;
   virtual bool hasProcessAssertion(CegInstantiator* ci,
                                    SolvedForm& sf,
                                    Node pv,
-                                   InstEffort effort) override
+                                   CegInstEffort effort) override
   {
     return true;
   }
@@ -200,21 +203,21 @@ class BvInstantiator : public Instantiator {
                                    SolvedForm& sf,
                                    Node pv,
                                    Node lit,
-                                   InstEffort effort) override;
+                                   CegInstEffort effort) override;
   virtual bool processAssertion(CegInstantiator* ci,
                                 SolvedForm& sf,
                                 Node pv,
                                 Node lit,
                                 Node alit,
-                                InstEffort effort) override;
+                                CegInstEffort effort) override;
   virtual bool processAssertions(CegInstantiator* ci,
                                  SolvedForm& sf,
                                  Node pv,
-                                 InstEffort effort) override;
+                                 CegInstEffort effort) override;
   virtual bool useModelValue(CegInstantiator* ci,
                              SolvedForm& sf,
                              Node pv,
-                             InstEffort effort) override
+                             CegInstEffort effort) override
   {
     return !d_tried_assertion_inst;
   }
@@ -264,7 +267,61 @@ class BvInstantiator : public Instantiator {
                       Node pv,
                       Node lit,
                       Node alit,
-                      InstEffort effort);
+                      CegInstEffort effort);
+};
+
+/** Bitvector instantiator preprocess
+ *
+ * This class implements preprocess techniques that are helpful for
+ * counterexample-guided instantiation, such as introducing variables
+ * that refer to disjoint bit-vector extracts.
+ */
+class BvInstantiatorPreprocess : public InstantiatorPreprocess
+{
+ public:
+  BvInstantiatorPreprocess() {}
+  virtual ~BvInstantiatorPreprocess() {}
+  /** register counterexample lemma
+   *
+   * This method modifies the contents of lems based on removing extract terms
+   * when the option --cbqi-bv-rm-extract is enabled.
+   *
+   * For example:
+   *   P[ ((extract 7 4) t), ((extract 3 0) t)]
+   *     becomes:
+   *   P[((extract 7 4) t), ((extract 3 0) t)] ^
+   *   t = concat( x74, x30 ) ^
+   *   x74 = ((extract 7 4) t) ^
+   *   x30 = ((extract 3 0) t)
+   * where x74 and x30 are fresh variables.
+   *
+   * Another example:
+   *   P[ ((extract 7 3) t), ((extract 4 0) t)]
+   *     becomes:
+   *   P[((extract 7 4) t), ((extract 3 0) t)] ^
+   *   t = concat( x75, x44, x30 ) ^
+   *   x75 = ((extract 7 5) t) ^
+   *   x44 = ((extract 4 4) t) ^
+   *   x30 = ((extract 3 0) t)
+   * where x75, x44 and x30 are fresh variables.
+   *
+   * Notice we leave the original conjecture alone. This is done for performance
+   * since the added equalities ensure we are able to construct the proper
+   * solved forms for variables in t and for the intermediate variables above.
+   */
+  virtual void registerCounterexampleLemma(std::vector<Node>& lems,
+                                           std::vector<Node>& ce_vars) override;
+
+ private:
+  /** collect extracts
+   *
+   * This method collects all extract terms in lem
+   * and stores them in d_extract_map.
+   * visited is the terms we've already visited.
+   */
+  void collectExtracts(Node lem,
+                       std::map<Node, std::vector<Node> >& extract_map,
+                       std::unordered_set<TNode, TNodeHashFunction>& visited);
 };
 
 } /* CVC4::theory::quantifiers namespace */

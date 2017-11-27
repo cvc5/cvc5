@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CEG_INSTANTIATOR_H
-#define __CVC4__CEG_INSTANTIATOR_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__CEG_INSTANTIATOR_H
+#define __CVC4__THEORY__QUANTIFIERS__CEG_INSTANTIATOR_H
 
 #include "theory/quantifiers_engine.h"
 #include "util/statistics_registry.h"
@@ -143,18 +143,46 @@ public:
   }
 };
 
-/** instantiation effort levels */
-enum InstEffort
+/** instantiation effort levels
+ *
+ * This effort is used to stratify the construction of
+ * instantiations for some theories that may result to
+ * using model value instantiations.
+ */
+enum CegInstEffort
 {
   // uninitialized
-  INST_EFFORT_NONE,
+  CEG_INST_EFFORT_NONE,
   // standard effort level
-  INST_EFFORT_STANDARD,
+  CEG_INST_EFFORT_STANDARD,
   // standard effort level, but we have used model values
-  INST_EFFORT_STANDARD_MV,
+  CEG_INST_EFFORT_STANDARD_MV,
   // full effort level
-  INST_EFFORT_FULL
+  CEG_INST_EFFORT_FULL
 };
+
+std::ostream& operator<<(std::ostream& os, CegInstEffort e);
+
+/** instantiation phase for variables
+ *
+ * This indicates the phase in which we constructed
+ * a substitution for individual variables.
+ */
+enum CegInstPhase
+{
+  // uninitialized
+  CEG_INST_PHASE_NONE,
+  // instantiation constructed during traversal of equivalence classes
+  CEG_INST_PHASE_EQC,
+  // instantiation constructed during solving equalities
+  CEG_INST_PHASE_EQUAL,
+  // instantiation constructed by looking at theory assertions
+  CEG_INST_PHASE_ASSERTION,
+  // instantiation constructed by querying model value
+  CEG_INST_PHASE_MVALUE,
+};
+
+std::ostream& operator<<(std::ostream& os, CegInstPhase phase);
 
 /** Ceg instantiator
  *
@@ -357,9 +385,9 @@ class CegInstantiator {
 
   //-------------------------------the variables
   /** the variables we are instantiating
-   * For a quantified formula with n variables,
-   * the first n terms in d_vars are the instantiation
-   * constants corresponding to these variables.
+   *
+   * This is a superset of the variables for the instantiations we are
+   * generating and sending on the output channel of this class.
    */
   std::vector<Node> d_vars;
   /** set form of d_vars */
@@ -367,10 +395,11 @@ class CegInstantiator {
   /** index of variables reported in instantiation */
   std::vector<unsigned> d_var_order_index;
   /** number of input variables
-   * This is n for quantified formulas with n variables,
-   * and is at most the size of d_vars.
+   *
+   * These are the variables, in order, for the instantiations we are generating
+   * and sending on the output channel of this class.
    */
-  unsigned d_num_input_variables;
+  std::vector<Node> d_input_vars;
   /** literals to equalities for aux vars
    * This stores entries of the form
    *   L -> ( k -> t )
@@ -416,13 +445,15 @@ class CegInstantiator {
    * This indicates the effort Instantiator objects
    * will put into the terms they return.
    */
-  InstEffort d_effort;
+  CegInstEffort d_effort;
   /** for each variable, the instantiator used for that variable */
   std::map<Node, Instantiator*> d_active_instantiators;
   /** map from variables to the index in the prefix of the quantified
    * formula we are processing.
    */
   std::map<Node, unsigned> d_curr_index;
+  /** map from variables to the phase in which we instantiated them */
+  std::map<Node, CegInstPhase> d_curr_iphase;
   /** cache of current substitutions tried between activate/deactivate */
   std::map<Node, std::map<Node, std::map<Node, bool> > > d_curr_subs_proc;
   /** stack of temporary variables we are solving for,
@@ -520,7 +551,7 @@ public:
   virtual void reset(CegInstantiator* ci,
                      SolvedForm& sf,
                      Node pv,
-                     InstEffort effort)
+                     CegInstEffort effort)
   {
   }
 
@@ -538,7 +569,7 @@ public:
                                 Node pv,
                                 TermProperties& pv_prop,
                                 Node n,
-                                InstEffort effort);
+                                CegInstEffort effort);
   /** process equal terms
    *
    * This method is called after process equal term, where eqc is the list of
@@ -551,7 +582,7 @@ public:
                                  SolvedForm& sf,
                                  Node pv,
                                  std::vector<Node>& eqc,
-                                 InstEffort effort)
+                                 CegInstEffort effort)
   {
     return false;
   }
@@ -560,7 +591,7 @@ public:
   virtual bool hasProcessEquality(CegInstantiator* ci,
                                   SolvedForm& sf,
                                   Node pv,
-                                  InstEffort effort)
+                                  CegInstEffort effort)
   {
     return false;
   }
@@ -581,7 +612,7 @@ public:
                                Node pv,
                                std::vector<TermProperties>& term_props,
                                std::vector<Node>& terms,
-                               InstEffort effort)
+                               CegInstEffort effort)
   {
     return false;
   }
@@ -590,7 +621,7 @@ public:
   virtual bool hasProcessAssertion(CegInstantiator* ci,
                                    SolvedForm& sf,
                                    Node pv,
-                                   InstEffort effort)
+                                   CegInstEffort effort)
   {
     return false;
   }
@@ -609,8 +640,11 @@ public:
   *   (2) lit' implies lit.
   *   where typically lit' = lit.
   */
-  virtual Node hasProcessAssertion(
-      CegInstantiator* ci, SolvedForm& sf, Node pv, Node lit, InstEffort effort)
+  virtual Node hasProcessAssertion(CegInstantiator* ci,
+                                   SolvedForm& sf,
+                                   Node pv,
+                                   Node lit,
+                                   CegInstEffort effort)
   {
     return Node::null();
   }
@@ -628,7 +662,7 @@ public:
                                 Node pv,
                                 Node lit,
                                 Node alit,
-                                InstEffort effort)
+                                CegInstEffort effort)
   {
     return false;
   }
@@ -643,7 +677,7 @@ public:
   virtual bool processAssertions(CegInstantiator* ci,
                                  SolvedForm& sf,
                                  Node pv,
-                                 InstEffort effort)
+                                 CegInstEffort effort)
   {
     return false;
   }
@@ -655,7 +689,7 @@ public:
   virtual bool useModelValue(CegInstantiator* ci,
                              SolvedForm& sf,
                              Node pv,
-                             InstEffort effort)
+                             CegInstEffort effort)
   {
     return effort > INST_EFFORT_STANDARD;
   }
@@ -663,7 +697,7 @@ public:
   virtual bool allowModelValue(CegInstantiator* ci,
                                SolvedForm& sf,
                                Node pv,
-                               InstEffort effort)
+                               CegInstEffort effort)
   {
     return d_closed_enum_type;
   }
@@ -672,7 +706,7 @@ public:
   virtual bool needsPostProcessInstantiationForVariable(CegInstantiator* ci,
                                                         SolvedForm& sf,
                                                         Node pv,
-                                                        InstEffort effort)
+                                                        CegInstEffort effort)
   {
     return false;
   }
@@ -684,7 +718,7 @@ public:
   virtual bool postProcessInstantiationForVariable(CegInstantiator* ci,
                                                    SolvedForm& sf,
                                                    Node pv,
-                                                   InstEffort effort,
+                                                   CegInstEffort effort,
                                                    std::vector<Node>& lemmas)
   {
     return true;
@@ -706,7 +740,7 @@ public:
   bool useModelValue(CegInstantiator* ci,
                      SolvedForm& sf,
                      Node pv,
-                     InstEffort effort)
+                     CegInstEffort effort)
   {
     return true;
   }
