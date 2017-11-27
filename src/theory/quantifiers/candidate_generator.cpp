@@ -12,9 +12,10 @@
  ** \brief Implementation of theory uf candidate generator class
  **/
 
-#include "options/quantifiers_options.h"
 #include "theory/quantifiers/candidate_generator.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/inst_match.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -302,7 +303,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
   if( d_firstTime ){
     //must return something
     d_firstTime = false;
-    return d_qe->getTermForType(d_match_pattern_type);
+    return d_qe->getInstantiate()->getTermForType(d_match_pattern_type);
   }
   return Node::null();
 }
