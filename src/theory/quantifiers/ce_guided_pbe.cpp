@@ -62,7 +62,8 @@ void CegConjecturePbe::print_strat(const char* c, unsigned s)
   switch (s)
   {
     case CegConjecturePbe::strat_ITE: Trace(c) << "ITE"; break;
-    case CegConjecturePbe::strat_CONCAT: Trace(c) << "CONCAT"; break;
+    case CegConjecturePbe::strat_CONCAT_PREFIX: Trace(c) << "CONCAT_PREFIX"; break;
+    case CegConjecturePbe::strat_CONCAT_SUFFIX: Trace(c) << "CONCAT_SUFFIX"; break;
     case CegConjecturePbe::strat_ID: Trace(c) << "ID"; break;
     default: Trace(c) << "strat_" << s; break;
   }
@@ -392,162 +393,175 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
       std::map< Node, unsigned > cop_to_strat;
       std::map< Node, unsigned > cop_to_cindex;
 
-      // look at builtin operartors first (when r=0), then defined operators
-      // (when r=1)
-      for( unsigned r=0; r<2; r++ ){
-        for( unsigned j=0; j<dt.getNumConstructors(); j++ ){
-          Node cop = Node::fromExpr( dt[j].getConstructor() );
-          Node op = Node::fromExpr( dt[j].getSygusOp() );
-          if( r==0 ){
-            cop_to_cindex[cop] = j;
-            if( op.getKind() == kind::BUILTIN ){
-              Kind sk = NodeManager::operatorToKind( op );
-              if( sk==kind::ITE ){
-                // we can do unification
-                Assert( dt[j].getNumArgs()==3 );
-                cop_to_strat[cop] = strat_ITE;
-              }else if( sk==kind::STRING_CONCAT ){
-                if( dt[j].getNumArgs()==2 ) {
-                  cop_to_strat[cop] = strat_CONCAT;
-                }
-              }
-              if( cop_to_strat.find( cop )!=cop_to_strat.end() ){
-                Trace("sygus-unif") << "...type " << dt.getName()
-                                    << " has strategy ";
-                print_strat("sygus-unif", cop_to_strat[cop]);
-                Trace("sygus-unif") << "..." << std::endl;
-                // add child types
-                for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
-                  TypeNode ct = TypeNode::fromType( dt[j][k].getRangeType() );
-                  Trace("sygus-unif") << "   Child type " << k << " : " << ((DatatypeType)ct.toType()).getDatatype().getName() << std::endl;
-                  cop_to_child_types[cop].push_back( ct );
-                }
-              }
-            }
-          }else if( cop_to_strat.find( cop )==cop_to_strat.end() ){
-            // could be a defined function (this handles the ICFP benchmarks)
-            std::vector< Node > utchildren;
-            utchildren.push_back( cop );
-            std::vector< Node > sks;
-            std::vector< TypeNode > sktns;
-            for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
-              Type t = dt[j][k].getRangeType();
-              TypeNode ttn = TypeNode::fromType( t );
-              Node kv = NodeManager::currentNM()->mkSkolem( "ut", ttn );
-              sks.push_back( kv );
-              sktns.push_back( ttn );
-              utchildren.push_back( kv );
-            }
-            Node ut = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, utchildren );
-            std::vector< Node > echildren;
-            echildren.push_back( Node::fromExpr( dt.getSygusEvaluationFunc() ) );
-            echildren.push_back( ut );
-            Node sbvl = Node::fromExpr( dt.getSygusVarList() );
-            for( unsigned k=0; k<sbvl.getNumChildren(); k++ ){
-              echildren.push_back( sbvl[k] );
-            }
-            Node eut = NodeManager::currentNM()->mkNode( kind::APPLY_UF, echildren );
-            Trace("sygus-unif-debug2") << "Test evaluation of " << eut << "..." << std::endl;
-            eut = d_qe->getTermDatabaseSygus()->unfold( eut );
-            Trace("sygus-unif-debug2") << "...got " << eut << std::endl;       
-            Trace("sygus-unif-debug2") << "Type : " << eut.getType() << std::endl;     
+      for( unsigned j=0; j<dt.getNumConstructors(); j++ )
+      {
+        Node cop = Node::fromExpr( dt[j].getConstructor() );
+        Node op = Node::fromExpr( dt[j].getSygusOp() );
 
-            if( eut.getKind()==kind::ITE ){
-              if( dt[j].getNumArgs()>=eut.getNumChildren() ){
-                cop_to_strat[cop] = strat_ITE;
-              }
-            }else if( eut.getKind()==kind::STRING_CONCAT ){
-              if (dt[j].getNumArgs() >= eut.getNumChildren()
-                  && eut.getNumChildren() == 2)
-              {
-                cop_to_strat[cop] = strat_CONCAT;
-              }
-            }else if( eut.getKind()==kind::APPLY_UF ){
-              // identity operator?
-              if( dt[j].getNumArgs()==1 ){
-                cop_to_strat[cop] = strat_ID;
+        // expand the evaluation to see if this constuctor induces a strategy
+        std::vector< Node > utchildren;
+        utchildren.push_back( cop );
+        std::vector< Node > sks;
+        std::vector< TypeNode > sktns;
+        for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
+          Type t = dt[j][k].getRangeType();
+          TypeNode ttn = TypeNode::fromType( t );
+          Node kv = NodeManager::currentNM()->mkSkolem( "ut", ttn );
+          sks.push_back( kv );
+          sktns.push_back( ttn );
+          utchildren.push_back( kv );
+        }
+        Node ut = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, utchildren );
+        std::vector< Node > echildren;
+        echildren.push_back( Node::fromExpr( dt.getSygusEvaluationFunc() ) );
+        echildren.push_back( ut );
+        Node sbvl = Node::fromExpr( dt.getSygusVarList() );
+        for( unsigned k=0; k<sbvl.getNumChildren(); k++ ){
+          echildren.push_back( sbvl[k] );
+        }
+        Node eut = NodeManager::currentNM()->mkNode( kind::APPLY_UF, echildren );
+        Trace("sygus-unif-debug2") << "Test evaluation of " << eut << "..." << std::endl;
+        eut = d_qe->getTermDatabaseSygus()->unfold( eut );
+        Trace("sygus-unif-debug2") << "...got " << eut << std::endl;       
+        Trace("sygus-unif-debug2") << "Type : " << eut.getType() << std::endl; 
+        
+        // infer an injection from the arguments of the datatype
+        bool foundInjection = true;
+        std::map< unsigned, unsigned > templ_injection;
+        std::vector< Node > vs;
+        std::vector< Node > ss;
+        std::map< Node, unsigned > templ_var_index;
+        for( unsigned k=0; k<sks.size(); k++ ){
+          Assert( sks[k].getType().isDatatype() );
+          const Datatype& cdt = ((DatatypeType)sks[k].getType().toType()).getDatatype();
+          echildren[0] = Node::fromExpr( cdt.getSygusEvaluationFunc() );
+          echildren[1] = sks[k];
+          Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k] << std::endl;
+          Node esk = NodeManager::currentNM()->mkNode( kind::APPLY_UF, echildren );
+          vs.push_back( esk );
+          Node tvar = NodeManager::currentNM()->mkSkolem( "templ", esk.getType() );
+          templ_var_index[tvar] = k;
+          Trace("sygus-unif-debug2") << "* template inference : looking for " << tvar << " for arg " << k << std::endl;
+          ss.push_back( tvar );
+          Trace("sygus-unif-debug2") << "* substitute : " << esk << " -> " << tvar << std::endl;
+        }
+        eut = eut.substitute( vs.begin(), vs.end(), ss.begin(), ss.end() );
+        Trace("sygus-unif-debug2") << "Constructor " << j << ", base term is " << eut << std::endl;
+        std::map< unsigned, Node > test_args;
+        if( dt[j].getNumArgs()==1 )
+        {
+          test_args[0] = eut;
+        }
+        else
+        {
+          for( unsigned k=0; k<eut.getNumChildren(); k++ ){
+            test_args[k] = eut[k];
+          }
+        }
+        
+        bool isAssoc = TermUtil::isAssoc( eut.getKind() );
+        std::map< unsigned, std::vector< unsigned > > assoc_combine;
+        std::vector< unsigned > assoc_waiting;
+        int assoc_last_valid_index = -1;
+        for( std::map< unsigned, Node >::iterator it = test_args.begin(); it != test_args.end(); ++it )
+        {
+          unsigned k = it->first;
+          Node eut_c = it->second;
+          //success if we can find a injection from args to sygus args
+          if( !inferTemplate( k, eut_c, templ_var_index, templ_injection ) )
+          {
+            Trace("sygus-unif-debug2") << "...failed to find injection (range)." << std::endl;
+            foundInjection = false;
+            break;
+          }
+          std::map< unsigned, unsigned >::iterator itti = templ_injection.find( k );
+          if( itti!=templ_injection.end() )
+          {
+            // if associative, combine arguments if it is the same variable     
+            if( isAssoc && assoc_last_valid_index>=0 && itti->second==templ_injection[assoc_last_valid_index] )
+            {
+              templ_injection.erase(k);
+              assoc_combine[assoc_last_valid_index].push_back(k);
+            }
+            else
+            {
+              assoc_last_valid_index = (int)k;
+              if( !assoc_waiting.empty() ){
+                assoc_combine[k].insert( assoc_combine[k].end(), assoc_waiting.begin(), assoc_waiting.end() );
+                assoc_waiting.clear();
               }
             }
-            
-            if( cop_to_strat.find( cop )!=cop_to_strat.end() ){
-              std::map< unsigned, unsigned > templ_injection;
-              std::vector< Node > vs;
-              std::vector< Node > ss;
-              std::map< Node, unsigned > templ_var_index;
-              for( unsigned k=0; k<sks.size(); k++ ){
-                Assert( sks[k].getType().isDatatype() );
-                const Datatype& cdt = ((DatatypeType)sks[k].getType().toType()).getDatatype();
-                echildren[0] = Node::fromExpr( cdt.getSygusEvaluationFunc() );
-                echildren[1] = sks[k];
-                Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k] << std::endl;
-                Node esk = NodeManager::currentNM()->mkNode( kind::APPLY_UF, echildren );
-                vs.push_back( esk );
-                Node tvar = NodeManager::currentNM()->mkSkolem( "templ", esk.getType() );
-                templ_var_index[tvar] = k;
-                Trace("sygus-unif-debug2") << "* template inference : looking for " << tvar << " for arg " << k << std::endl;
-                ss.push_back( tvar );
-                Trace("sygus-unif-debug2") << "* substitute : " << esk << " -> " << tvar << std::endl;
-              }
-              eut = eut.substitute( vs.begin(), vs.end(), ss.begin(), ss.end() );
-              Trace("sygus-unif-debug2") << "Defined constructor " << j << ", base term is " << eut << std::endl;
-              std::map< unsigned, Node > test_args;
-              if( cop_to_strat[cop] == strat_ID ){
-                test_args[0] = eut;
+          }
+          else
+          {
+            // a ground argument
+            if( !isAssoc ){
+              Trace("sygus-unif-debug2") << "...failed to find injection (functional)." << std::endl;
+              foundInjection = false;
+              break;
+            }else{
+              if( assoc_last_valid_index>=0 ){
+                assoc_combine[assoc_last_valid_index].push_back(k);
               }else{
-                for( unsigned k=0; k<eut.getNumChildren(); k++ ){
-                  test_args[k] = eut[k];
-                }
-              }
-              for( std::map< unsigned, Node >::iterator it = test_args.begin(); it != test_args.end(); ++it ){
-                unsigned k = it->first;
-                Node eut_c = it->second;
-                //success if we can find a injection from args to sygus args
-                if( !inferTemplate( k, eut_c, templ_var_index, templ_injection ) ){
-                  Trace("sygus-unif-debug2") << "...failed to find injection (range)." << std::endl;
-                  cop_to_strat.erase( cop );
-                  break;
-                }
-                if( templ_injection.find( k )==templ_injection.end() ){
-                  Trace("sygus-unif-debug2") << "...failed to find injection (domain)." << std::endl;
-                  cop_to_strat.erase( cop );
-                  break;
-                }
-              }
-              if( cop_to_strat.find( cop )!=cop_to_strat.end() ){
-                Trace("sygus-unif") << "...type " << dt.getName() << " has defined constructor matching strategy ";
-                print_strat("sygus-unif", cop_to_strat[cop]);
-                Trace("sygus-unif") << "..." << std::endl;
-                for( unsigned k=0; k<eut.getNumChildren(); k++ ){
-                  Assert( templ_injection.find( k )!=templ_injection.end() );
-                  unsigned sk_index = templ_injection[k];
-                  //also store the template information, if necessary
-                  Node teut = eut[k];
-                  if( !teut.isVar() ){
-                    if( cop_to_strat[cop] == strat_ID ){
-                      Trace("sygus-unif-debug") << "...cannot use template with ID strategy." << std::endl;
-                      cop_to_strat.erase( cop );
-                    }else{
-                      cop_to_child_templ[cop][k] = teut;
-                      cop_to_child_templ_arg[cop][k] = ss[sk_index];
-                      Trace("sygus-unif") << "  Arg " << k << " : template : " << teut << ", arg " << ss[sk_index] << std::endl;
-                    }
-                  }else{
-                    Assert( teut==ss[sk_index] );
-                  }
-                }
-                // collect children types
-                for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
-                  Trace("sygus-unif") << "   Child type " << k << " : " << ((DatatypeType)sktns[k].toType()).getDatatype().getName() << std::endl;
-                  cop_to_child_types[cop].push_back( sktns[k] );
-                }
+                assoc_waiting.push_back(k);
               }
             }
           }
         }
+        if( foundInjection && !assoc_waiting.empty() )
+        {
+          // could not find a way to fit some arguments into injection
+          foundInjection = false;
+        }
+        if( foundInjection )
+        {
+          // add the strategy TODO
+          if( eut.getKind()==kind::ITE ){
+            if( dt[j].getNumArgs()>=eut.getNumChildren() ){
+              cop_to_strat[cop] = strat_ITE;
+            }
+          }else if( eut.getKind()==kind::STRING_CONCAT ){
+            //TODO : get the proper strategy
+            //cop_to_strat[cop] = strat_CONCAT;
+          }else if( eut.getKind()==kind::APPLY_UF ){
+            // identity operator?
+            if( dt[j].getNumArgs()==1 ){
+              cop_to_strat[cop] = strat_ID;
+            }
+          }
+          
+          Trace("sygus-unif") << "...type " << dt.getName() << " has defined constructor matching strategy ";
+          print_strat("sygus-unif", cop_to_strat[cop]);
+          Trace("sygus-unif") << "..." << std::endl;
+          for( unsigned k=0; k<eut.getNumChildren(); k++ ){
+            Assert( templ_injection.find( k )!=templ_injection.end() );
+            unsigned sk_index = templ_injection[k];
+            //also store the template information, if necessary
+            Node teut = eut[k];
+            if( !teut.isVar() ){
+              if( cop_to_strat[cop] == strat_ID ){
+                Trace("sygus-unif-debug") << "...cannot use template with ID strategy." << std::endl;
+                cop_to_strat.erase( cop );
+              }else{
+                cop_to_child_templ[cop][k] = teut;
+                cop_to_child_templ_arg[cop][k] = ss[sk_index];
+                Trace("sygus-unif") << "  Arg " << k << " : template : " << teut << ", arg " << ss[sk_index] << std::endl;
+              }
+            }else{
+              Assert( teut==ss[sk_index] );
+            }
+          }
+          // collect children types
+          for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
+            Trace("sygus-unif") << "   Child type " << k << " : " << ((DatatypeType)sktns[k].toType()).getDatatype().getName() << std::endl;
+            cop_to_child_types[cop].push_back( sktns[k] );
+          }
+        }
       }
+      // check whether we should also enumerate the current type
       bool search_this = true;
       for( std::map< Node, unsigned >::iterator itc = cop_to_strat.begin(); itc != cop_to_strat.end(); ++itc ){
-        if( itc->second==strat_CONCAT || ( itc->second==strat_ID && dt.getNumConstructors()==1 ) ){
+        if( itc->second==strat_CONCAT_PREFIX || itc->second==strat_CONCAT_SUFFIX || ( itc->second==strat_ID && dt.getNumConstructors()==1 ) ){
           search_this = false;
           break;
         }
@@ -576,7 +590,7 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
               }else{
                 // role is the same as parent
               }
-            }else if( strat==strat_CONCAT ){
+            }else if( strat==strat_CONCAT_PREFIX || strat==strat_CONCAT_SUFFIX ){
               enum_role_c = enum_concat_term;
             }else if( strat==strat_ID ){
               // role is the same as parent
@@ -637,6 +651,7 @@ bool CegConjecturePbe::inferTemplate( unsigned k, Node n, std::map< Node, unsign
         Trace("sygus-unif-debug") << "...set template injection " << k <<  " -> " << kk << std::endl;
         templ_injection[k] = kk;
       }else if( itti->second!=kk ){
+        // two distinct variables in this term, we fail
         return false;
       }
     }
@@ -689,6 +704,8 @@ void CegConjecturePbe::staticLearnRedundantOps( Node c, Node e, std::map< Node, 
     indent("sygus-unif", ind);
     Trace("sygus-unif") << e << " : role : ";
     print_role("sygus-unif", itn->second.getRole());
+    Trace("sygus-unif") << " : type : ";
+    Trace("sygus-unif") << ((DatatypeType)e.getType().toType()).getDatatype().getName();
     Trace("sygus-unif") << " : ";
 
     if( itn->second.isTemplated() ){
@@ -715,7 +732,7 @@ void CegConjecturePbe::staticLearnRedundantOps( Node c, Node e, std::map< Node, 
             if( itts->second.d_csol_cts[i]==etn ){
               if( strat==strat_ITE && i!=0 ){
                 no_repeat_op = true;
-              }else if( strat==strat_CONCAT || strat==strat_ID ){
+              }else if( strat==strat_CONCAT_PREFIX || strat==strat_CONCAT_SUFFIX ||strat==strat_ID ){
                 no_repeat_op = true;
               }
             }
@@ -1517,35 +1534,13 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
 
           // construct the child order based on heuristics
           std::vector< unsigned > corder;
-          std::unordered_set<unsigned> cused;
-          if( strat==strat_CONCAT ){
-            for( unsigned r=0; r<2; r++ ){
-              // Concatenate strategy can only be applied from the endpoints.
-              // This chooses the appropriate endpoint for which we stay within
-              // the same SyGuS type.
-              // In other words, if we are synthesizing based on a production
-              // rule ( T -> str.++( T1, ..., Tn ) ), then we
-              // prefer recursing on the 1st argument of the concat if T1 = T,
-              // and the last argument if Tn = T.
-              unsigned sc = r==0 ? 0 : itts->second.d_cenum.size()-1;
-              Node ce = itts->second.d_cenum[sc];
-              if( ce.getType()==etn ){
-                // prefer simple recursion (self type)
-                Assert( d_einfo.find( ce )!=d_einfo.end() );
-                Assert(d_einfo[ce].getRole() == enum_concat_term);
-                corder.push_back( sc );
-                cused.insert(sc);
-                break;
-              }
-            }
-          }
           // fill remaining children for which there is no preference
           for (unsigned sc = 0; sc < itts->second.d_cenum.size(); sc++)
           {
-            if (cused.find(sc) == cused.end())
-            {
-              corder.push_back( sc );
-            }
+            corder.push_back( sc );
+          }
+          if( strat==strat_CONCAT_SUFFIX ){
+            std::reverse(corder.begin(),corder.end());
           }
           Assert( corder.size()==itts->second.d_cenum.size() );
             
@@ -1669,15 +1664,15 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
                   Assert( split_cond_res_index>=0 );
                   Assert( split_cond_res_index<(int)itnc->second.d_enum_vals_res.size() );
                 }
-              }else if( strat==strat_CONCAT && scc==0 ){
+              }else if( ( strat==strat_CONCAT_SUFFIX || strat==strat_CONCAT_PREFIX ) && scc==0 ){
                 std::map< Node, EnumInfo >::iterator itsc = d_einfo.find( ce );
                 Assert( itsc!=d_einfo.end() );
                 // ensured by the child order we set above
                 Assert(itsc->second.getRole() == enum_concat_term);
                 // check if each return value is a prefix/suffix of all open examples
-                incr_type = sc==0 ? -1 : 1;
+                incr_type = strat==strat_CONCAT_PREFIX ? -1 : 1;
                 if( x.d_has_string_pos==0 || x.d_has_string_pos==incr_type ){
-                  bool isPrefix = incr_type==-1;
+                  bool isPrefix = strat==strat_CONCAT_PREFIX;
                   std::map< Node, unsigned > total_inc;
                   std::vector< Node > inc_strs;
                   std::map< Node, std::vector< Node > >::iterator itx = d_examples_out.find( c );
@@ -1739,7 +1734,7 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
                   Assert( split_cond_res_index<(int)itnc->second.d_enum_vals_res.size() );
                   prev = x.d_vals;
                   ret = x.updateContext( this, itnc->second.d_enum_vals_res[split_cond_res_index], sc==1 );
-                }else if( strat==strat_CONCAT ){
+                }else if( strat==strat_CONCAT_PREFIX || strat==strat_CONCAT_SUFFIX ){
                   prev_str_pos = x.d_str_pos;
                   prev_has_str_pos = x.d_has_string_pos;
                   Assert( incr.find( incr_val )!=incr.end() );
@@ -1756,7 +1751,7 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
                   //revert context
                   if( strat==strat_ITE ){
                     x.d_vals = prev;
-                  }else if( strat==strat_CONCAT ){
+                  }else if(strat==strat_CONCAT_PREFIX || strat==strat_CONCAT_SUFFIX){
                     x.d_str_pos = prev_str_pos;
                     x.d_has_string_pos = prev_has_str_pos;
                   }

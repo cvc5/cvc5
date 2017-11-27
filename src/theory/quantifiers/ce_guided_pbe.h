@@ -329,7 +329,8 @@ class CegConjecturePbe {
   enum
   {
     strat_ITE,
-    strat_CONCAT,
+    strat_CONCAT_PREFIX,
+    strat_CONCAT_SUFFIX,
     strat_ID,
   };
   /** print the strategy with Trace c. */
