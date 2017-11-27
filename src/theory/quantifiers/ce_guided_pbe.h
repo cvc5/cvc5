@@ -25,6 +25,41 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+/** roles for enumerators */
+enum EnumRole
+{
+  enum_invalid,
+  enum_io,
+  enum_ite_condition,
+  enum_concat_term,
+};
+std::ostream& operator<<(std::ostream& os, EnumRole r);
+
+/** roles for strategy nodes */
+enum NodeRole
+{
+  role_invalid,
+  role_equal,
+  role_string_prefix,
+  role_string_suffix,
+  role_ite_condition,
+};
+std::ostream& operator<<(std::ostream& os, NodeRole r);
+
+/** enumerator role for node role */
+EnumRole getEnumeratorRoleForNodeRole(NodeRole r);
+
+/** strategies for SyGuS datatype types */
+enum StrategyType
+{
+  strat_INVALID,
+  strat_ITE,
+  strat_CONCAT_PREFIX,
+  strat_CONCAT_SUFFIX,
+  strat_ID,
+};
+std::ostream& operator<<(std::ostream& os, StrategyType st);
+
 class CegConjecture;
 
 /** CegConjecturePbe
@@ -316,26 +351,6 @@ class CegConjecturePbe {
 
   //------------------------------ representation of a enumeration strategy
 
-  /** roles for enumerators */
-  enum {
-    enum_io,
-    enum_ite_condition,
-    enum_concat_term,
-    enum_any,
-  };
-  /** print the role with Trace c. */
-  static void print_role(const char* c, unsigned r);
-  /** strategies for SyGuS datatype types */
-  enum
-  {
-    strat_ITE,
-    strat_CONCAT_PREFIX,
-    strat_CONCAT_SUFFIX,
-    strat_ID,
-  };
-  /** print the strategy with Trace c. */
-  static void print_strat(const char* c, unsigned s);
-
   /** information about an enumerator */
   class EnumInfo {
   public:
@@ -345,7 +360,7 @@ class CegConjecturePbe {
     * role is the "role" the enumerator plays in the high-level strategy,
     *   which is one of enum_* above.
     */
-    void initialize(Node c, unsigned role)
+    void initialize(Node c, EnumRole role)
     {
       d_parent_candidate = c;
       d_role = role;
@@ -357,7 +372,7 @@ class CegConjecturePbe {
     void setSolved(Node slv);
     bool isSolved() { return !d_enum_solved.isNull(); }
     Node getSolved() { return d_enum_solved; }
-    unsigned getRole() { return d_role; }
+    EnumRole getRole() { return d_role; }
     Node d_parent_candidate;
     // for template
     Node d_template;
@@ -380,35 +395,48 @@ class CegConjecturePbe {
      * conjecture */
     Node d_enum_solved;
     /** the role of this enumerator (one of enum_* above). */
-    unsigned d_role;
+    EnumRole d_role;
   };
   /** maps enumerators to the information above */
   std::map< Node, EnumInfo > d_einfo;
 
   class CandidateInfo;
+  
   /** represents a strategy for a SyGuS datatype type */
   class EnumTypeInfoStrat {
   public:
-    unsigned d_this;
+    StrategyType d_this;
+    Node d_cons;
     /** conditional solutions */
     std::vector< TypeNode > d_csol_cts;
-    std::vector< Node > d_cenum;
-    std::vector< unsigned > d_carg_list;
+    std::vector< std::pair< Node, NodeRole > > d_cenum;
+    std::vector< Node > d_sol_templ_args;
+    Node d_sol_templ;
   };
-
+  
+  /** represents a node in the strategy graph */
+  class StrategyNode {
+  public:
+    StrategyNode() {}
+    ~StrategyNode();
+    /** a set of strategies to try */
+    std::vector< EnumTypeInfoStrat * > d_strats;
+  };
+  
   /** stores enumerators and strategies for a SyGuS datatype type */
   class EnumTypeInfo {
   public:
     EnumTypeInfo() : d_parent( NULL ){}
     CandidateInfo * d_parent;
-    // role -> _
-    std::map< unsigned, Node > d_enum;
+    // enum role -> enumerators
+    std::map< EnumRole, Node > d_enum;
     TypeNode d_this_type;
-    // strategies for enum_io role
-    std::map< Node, EnumTypeInfoStrat > d_strat;
+    // node role -> strategy node
+    std::map< NodeRole, StrategyNode > d_snodes;
+    /** is solved? */
     bool isSolved( CegConjecturePbe * pbe );
   };
-
+  
   /** stores strategy and enumeration information for a function-to-synthesize
    */
   class CandidateInfo {
@@ -433,6 +461,7 @@ class CegConjecturePbe {
     void initialize( Node c );
     void initializeType( TypeNode tn );
     Node getRootEnumerator();
+    TypeNode getRootType() { return d_root; }
     bool isNonTrivial();
   };
   /** maps a function-to-synthesize to the above information */
@@ -444,12 +473,13 @@ class CegConjecturePbe {
   bool getExplanationForEnumeratorExclude( Node c, Node x, Node v, std::vector< Node >& results, EnumInfo& ei, std::vector< Node >& exp );
 
   //------------------------------ strategy registration
-  void collectEnumeratorTypes(Node c, TypeNode tn, unsigned enum_role);
+  void collectEnumeratorTypes(Node c, TypeNode tn, NodeRole enum_role);
   void registerEnumerator(
-      Node et, Node c, TypeNode tn, unsigned enum_role, bool inSearch);
+      Node et, Node c, TypeNode tn, EnumRole enum_role, bool inSearch);
   void staticLearnRedundantOps(Node c, std::vector<Node>& lemmas);
   void staticLearnRedundantOps(Node c,
                                Node e,
+                               NodeRole nrole,
                                std::map<Node, bool>& visited,
                                std::vector<Node>& redundant,
                                std::vector<Node>& lemmas,
@@ -465,7 +495,7 @@ class CegConjecturePbe {
   //------------------------------ constructing solutions
   class UnifContext {
   public:
-    UnifContext() : d_has_string_pos(0), d_ret_val_will_modify(false) {}
+    UnifContext() : d_has_string_pos(role_invalid), d_ret_val_will_modify(false) {}
     //IndexFilter d_filter;
     // the value of the context conditional
     std::vector< Node > d_vals;
@@ -474,7 +504,7 @@ class CegConjecturePbe {
     // the position in the strings
     std::vector< unsigned > d_str_pos;
     // 0 : pos not modified, 1 : pos indicates suffix incremented, -1 : pos indicates prefix incremented
-    int d_has_string_pos;
+    NodeRole d_has_string_pos;
     /** will we further modify the string */
     bool d_ret_val_will_modify;
     // update the string examples
@@ -486,11 +516,6 @@ class CegConjecturePbe {
      * for a prefix.
      */
     bool isReturnValueModified();
-    /** will return value be modified?
-     * 
-     * This returns true if later nodes will modify the return value.
-     */
-    bool willReturnValueModify();
     class UEnumInfo {
     public:
       UEnumInfo() : d_status(-1){}
@@ -506,13 +531,15 @@ class CegConjecturePbe {
                              std::vector< Node >& vals, std::vector< unsigned >& inc, unsigned& tot );
     bool isStringSolved( CegConjecturePbe * pbe, std::vector< CVC4::String >& ex_vals, std::vector< Node >& vals );
   };
+
   /** construct solution */
   Node constructSolution( Node c );
   /** helper function for construct solution.
+   * 
   * Construct a solution based on enumerator e for function-to-synthesize c,
   * in context x, where ind is the term depth of the context.
   */
-  Node constructSolution( Node c, Node e, UnifContext& x, int ind );
+  Node constructSolution( Node c, Node e, NodeRole nrole, UnifContext& x, int ind );
   /** Heuristically choose the best solved term from solved in context x,
    * currently return the first. */
   Node constructBestSolvedTerm( std::vector< Node >& solved, UnifContext& x );
@@ -544,7 +571,6 @@ class CegConjecturePbe {
   */
   int getGuardStatus(Node g);
 };
-
 
 }/* namespace CVC4::theory::quantifiers */
 }/* namespace CVC4::theory */

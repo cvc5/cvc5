@@ -1,3 +1,4 @@
+AJR-BROKEN
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-out=status
 (set-logic SLIA)
