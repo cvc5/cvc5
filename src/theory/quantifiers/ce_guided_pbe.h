@@ -464,7 +464,7 @@ class CegConjecturePbe {
   //------------------------------ constructing solutions
   class UnifContext {
   public:
-    UnifContext() : d_has_string_pos(0) {}
+    UnifContext() : d_has_string_pos(0), d_ret_val_will_modify(false) {}
     //IndexFilter d_filter;
     // the value of the context conditional
     std::vector< Node > d_vals;
@@ -474,10 +474,22 @@ class CegConjecturePbe {
     std::vector< unsigned > d_str_pos;
     // 0 : pos not modified, 1 : pos indicates suffix incremented, -1 : pos indicates prefix incremented
     int d_has_string_pos;
+    /** will we further modify the string */
+    bool d_ret_val_will_modify;
     // update the string examples
     bool updateStringPosition( CegConjecturePbe * pbe, std::vector< unsigned >& pos );
-    // is return value modified 
+    /** is return value modified? 
+     * 
+     * This returns true if we are currently in a state where the return value
+     * of the solution has been modified, e.g. by a previous node that solved
+     * for a prefix.
+     */
     bool isReturnValueModified();
+    /** will return value be modified?
+     * 
+     * This returns true if later nodes will modify the return value.
+     */
+    bool willReturnValueModified();
     class UEnumInfo {
     public:
       UEnumInfo() : d_status(-1){}

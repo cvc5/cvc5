@@ -367,276 +367,325 @@ void CegConjecturePbe::registerEnumerator( Node et, Node c, TypeNode tn, unsigne
   }
 }
 
-void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enum_role ) {
-  if( d_cinfo[e].d_tinfo.find( tn )==d_cinfo[e].d_tinfo.end() ){
+void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enum_role ) 
+{
+  if( d_cinfo[e].d_tinfo.find( tn )==d_cinfo[e].d_tinfo.end() )
+  {
     // register type
     Trace("sygus-unif") << "Register enumerating type : " << tn << std::endl;
     d_cinfo[e].initializeType( tn );
   }
-  if( d_cinfo[e].d_tinfo[tn].d_enum.find( enum_role )==d_cinfo[e].d_tinfo[tn].d_enum.end() ){
+  if( d_cinfo[e].d_tinfo[tn].d_enum.find( enum_role )!=d_cinfo[e].d_tinfo[tn].d_enum.end() )
+  {
+    return;
+  }
+
+  Node ee = NodeManager::currentNM()->mkSkolem( "ee", tn );
+  d_cinfo[e].d_tinfo[tn].d_enum[enum_role] = ee;
+  Trace("sygus-unif-debug") << "...enumerator " << ee << " for " << ((DatatypeType)tn.toType()).getDatatype().getName() << ", role = ";
+  print_role( "sygus-unif-debug", enum_role );
+  Trace("sygus-unif-debug") << std::endl;
+  // wait to register : may or may not actually be enumerating it
   
-    Node ee = NodeManager::currentNM()->mkSkolem( "ee", tn );
-    d_cinfo[e].d_tinfo[tn].d_enum[enum_role] = ee;
-    Trace("sygus-unif-debug") << "...enumerator " << ee << " for " << ((DatatypeType)tn.toType()).getDatatype().getName() << ", role = ";
-    print_role( "sygus-unif-debug", enum_role );
-    Trace("sygus-unif-debug") << std::endl;
-    // wait to register : may or may not actually be enumerating it
 
-    if( enum_role==enum_io ){
-      // look at information on how we will construct solutions for this type
-      Assert( tn.isDatatype() );
-      const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
-      Assert( dt.isSygus() );
-      std::map< Node, std::vector< TypeNode > > cop_to_child_types;
-      std::map< Node, std::map< unsigned, Node > > cop_to_child_templ;
-      std::map< Node, std::map< unsigned, Node > > cop_to_child_templ_arg;
-      std::map< Node, unsigned > cop_to_strat;
-      std::map< Node, unsigned > cop_to_cindex;
+  if( enum_role!=enum_io ){
+    Trace("sygus-unif-debug") << "...this register (non-io)" << std::endl;
+    registerEnumerator( ee, e, tn, enum_role, true );
+    return;
+  }
+  
+  
+  // look at information on how we will construct solutions for this type
+  Assert( tn.isDatatype() );
+  const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
+  Assert( dt.isSygus() );
+  
+  std::map< Node, unsigned > cop_to_strat;
+  std::map< Node, unsigned > cop_to_cindex;
+  std::map< Node, std::map< unsigned, Node > > cop_to_child_templ;
+  std::map< Node, std::map< unsigned, Node > > cop_to_child_templ_arg;
+  std::map< Node, std::vector< unsigned > > cop_to_carg_list;
+  std::map< Node, std::vector< TypeNode > > cop_to_child_types;
+        
+  // whether we will enumerate the current type
+  bool search_this = false;
+  for( unsigned j=0; j<dt.getNumConstructors(); j++ )
+  {
+    Node cop = Node::fromExpr( dt[j].getConstructor() );
+    Node op = Node::fromExpr( dt[j].getSygusOp() );
+    Trace("sygus-unif-debug") << "--- Infer strategy from " << cop << " with sygus op " << op << "..." << std::endl;
+    
 
-      for( unsigned j=0; j<dt.getNumConstructors(); j++ )
+    // expand the evaluation to see if this constuctor induces a strategy
+    std::vector< Node > utchildren;
+    utchildren.push_back( cop );
+    std::vector< Node > sks;
+    std::vector< TypeNode > sktns;
+    for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
+      Type t = dt[j][k].getRangeType();
+      TypeNode ttn = TypeNode::fromType( t );
+      Node kv = NodeManager::currentNM()->mkSkolem( "ut", ttn );
+      sks.push_back( kv );
+      sktns.push_back( ttn );
+      utchildren.push_back( kv );
+    }
+    Node ut = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, utchildren );
+    std::vector< Node > echildren;
+    echildren.push_back( Node::fromExpr( dt.getSygusEvaluationFunc() ) );
+    echildren.push_back( ut );
+    Node sbvl = Node::fromExpr( dt.getSygusVarList() );
+    for( unsigned k=0; k<sbvl.getNumChildren(); k++ ){
+      echildren.push_back( sbvl[k] );
+    }
+    Node eut = NodeManager::currentNM()->mkNode( kind::APPLY_UF, echildren );
+    Trace("sygus-unif-debug2") << "  Test evaluation of " << eut << "..." << std::endl;
+    eut = d_qe->getTermDatabaseSygus()->unfold( eut );
+    Trace("sygus-unif-debug2") << "  ...got " << eut << std::endl;       
+    Trace("sygus-unif-debug2") << "  Type : " << eut.getType() << std::endl;
+    
+    // candidate strategy
+    if( eut.getKind()==kind::ITE ){
+      cop_to_strat[cop] = strat_ITE;
+    }else if( eut.getKind()==kind::STRING_CONCAT ){
+      cop_to_strat[cop] = strat_CONCAT_PREFIX;
+    }else if( eut.getKind()==kind::APPLY_UF ){
+      cop_to_strat[cop] = strat_ID;
+    }
+    
+    // the kinds for which there is a strategy
+    if( cop_to_strat.find(cop)!=cop_to_strat.end() ){
+      // infer an injection from the arguments of the datatype
+      std::map< unsigned, unsigned > templ_injection;
+      std::vector< Node > vs;
+      std::vector< Node > ss;
+      std::map< Node, unsigned > templ_var_index;
+      for( unsigned k=0; k<sks.size(); k++ )
       {
-        Node cop = Node::fromExpr( dt[j].getConstructor() );
-        Node op = Node::fromExpr( dt[j].getSygusOp() );
-
-        // expand the evaluation to see if this constuctor induces a strategy
-        std::vector< Node > utchildren;
-        utchildren.push_back( cop );
-        std::vector< Node > sks;
-        std::vector< TypeNode > sktns;
-        for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
-          Type t = dt[j][k].getRangeType();
-          TypeNode ttn = TypeNode::fromType( t );
-          Node kv = NodeManager::currentNM()->mkSkolem( "ut", ttn );
-          sks.push_back( kv );
-          sktns.push_back( ttn );
-          utchildren.push_back( kv );
+        Assert( sks[k].getType().isDatatype() );
+        const Datatype& cdt = ((DatatypeType)sks[k].getType().toType()).getDatatype();
+        echildren[0] = Node::fromExpr( cdt.getSygusEvaluationFunc() );
+        echildren[1] = sks[k];
+        Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k] << std::endl;
+        Node esk = NodeManager::currentNM()->mkNode( kind::APPLY_UF, echildren );
+        vs.push_back( esk );
+        Node tvar = NodeManager::currentNM()->mkSkolem( "templ", esk.getType() );
+        templ_var_index[tvar] = k;
+        Trace("sygus-unif-debug2") << "* template inference : looking for " << tvar << " for arg " << k << std::endl;
+        ss.push_back( tvar );
+        Trace("sygus-unif-debug2") << "* substitute : " << esk << " -> " << tvar << std::endl;
+      }
+      eut = eut.substitute( vs.begin(), vs.end(), ss.begin(), ss.end() );
+      Trace("sygus-unif-debug2") << "Constructor " << j << ", base term is " << eut << std::endl;
+      std::map< unsigned, Node > test_args;
+      if( dt[j].getNumArgs()==1 )
+      {
+        test_args[0] = eut;
+      }
+      else
+      {
+        for( unsigned k=0; k<eut.getNumChildren(); k++ ){
+          test_args[k] = eut[k];
         }
-        Node ut = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, utchildren );
-        std::vector< Node > echildren;
-        echildren.push_back( Node::fromExpr( dt.getSygusEvaluationFunc() ) );
-        echildren.push_back( ut );
-        Node sbvl = Node::fromExpr( dt.getSygusVarList() );
-        for( unsigned k=0; k<sbvl.getNumChildren(); k++ ){
-          echildren.push_back( sbvl[k] );
-        }
-        Node eut = NodeManager::currentNM()->mkNode( kind::APPLY_UF, echildren );
-        Trace("sygus-unif-debug2") << "Test evaluation of " << eut << "..." << std::endl;
-        eut = d_qe->getTermDatabaseSygus()->unfold( eut );
-        Trace("sygus-unif-debug2") << "...got " << eut << std::endl;       
-        Trace("sygus-unif-debug2") << "Type : " << eut.getType() << std::endl; 
-        
-        // infer an injection from the arguments of the datatype
-        bool foundInjection = true;
-        std::map< unsigned, unsigned > templ_injection;
-        std::vector< Node > vs;
-        std::vector< Node > ss;
-        std::map< Node, unsigned > templ_var_index;
-        for( unsigned k=0; k<sks.size(); k++ ){
-          Assert( sks[k].getType().isDatatype() );
-          const Datatype& cdt = ((DatatypeType)sks[k].getType().toType()).getDatatype();
-          echildren[0] = Node::fromExpr( cdt.getSygusEvaluationFunc() );
-          echildren[1] = sks[k];
-          Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k] << std::endl;
-          Node esk = NodeManager::currentNM()->mkNode( kind::APPLY_UF, echildren );
-          vs.push_back( esk );
-          Node tvar = NodeManager::currentNM()->mkSkolem( "templ", esk.getType() );
-          templ_var_index[tvar] = k;
-          Trace("sygus-unif-debug2") << "* template inference : looking for " << tvar << " for arg " << k << std::endl;
-          ss.push_back( tvar );
-          Trace("sygus-unif-debug2") << "* substitute : " << esk << " -> " << tvar << std::endl;
-        }
-        eut = eut.substitute( vs.begin(), vs.end(), ss.begin(), ss.end() );
-        Trace("sygus-unif-debug2") << "Constructor " << j << ", base term is " << eut << std::endl;
-        std::map< unsigned, Node > test_args;
-        if( dt[j].getNumArgs()==1 )
+      }
+      
+      bool isAssoc = TermUtil::isAssoc( eut.getKind() );
+      std::map< unsigned, std::vector< unsigned > > assoc_combine;
+      std::vector< unsigned > assoc_waiting;
+      int assoc_last_valid_index = -1;
+      for( std::map< unsigned, Node >::iterator it = test_args.begin(); it != test_args.end(); ++it )
+      {
+        unsigned k = it->first;
+        Node eut_c = it->second;
+        //success if we can find a injection from args to sygus args
+        if( !inferTemplate( k, eut_c, templ_var_index, templ_injection ) )
         {
-          test_args[0] = eut;
+          Trace("sygus-unif-debug") << "...fail: could not find injection (range)." << std::endl;
+          cop_to_strat.erase(cop);
+          break;
         }
-        else
+        std::map< unsigned, unsigned >::iterator itti = templ_injection.find( k );
+        if( itti!=templ_injection.end() )
         {
-          for( unsigned k=0; k<eut.getNumChildren(); k++ ){
-            test_args[k] = eut[k];
-          }
-        }
-        
-        bool isAssoc = TermUtil::isAssoc( eut.getKind() );
-        std::map< unsigned, std::vector< unsigned > > assoc_combine;
-        std::vector< unsigned > assoc_waiting;
-        int assoc_last_valid_index = -1;
-        for( std::map< unsigned, Node >::iterator it = test_args.begin(); it != test_args.end(); ++it )
-        {
-          unsigned k = it->first;
-          Node eut_c = it->second;
-          //success if we can find a injection from args to sygus args
-          if( !inferTemplate( k, eut_c, templ_var_index, templ_injection ) )
+          // if associative, combine arguments if it is the same variable     
+          if( isAssoc && assoc_last_valid_index>=0 && itti->second==templ_injection[assoc_last_valid_index] )
           {
-            Trace("sygus-unif-debug2") << "...failed to find injection (range)." << std::endl;
-            foundInjection = false;
-            break;
-          }
-          std::map< unsigned, unsigned >::iterator itti = templ_injection.find( k );
-          if( itti!=templ_injection.end() )
-          {
-            // if associative, combine arguments if it is the same variable     
-            if( isAssoc && assoc_last_valid_index>=0 && itti->second==templ_injection[assoc_last_valid_index] )
-            {
-              templ_injection.erase(k);
-              assoc_combine[assoc_last_valid_index].push_back(k);
-            }
-            else
-            {
-              assoc_last_valid_index = (int)k;
-              if( !assoc_waiting.empty() ){
-                assoc_combine[k].insert( assoc_combine[k].end(), assoc_waiting.begin(), assoc_waiting.end() );
-                assoc_waiting.clear();
-              }
-            }
+            templ_injection.erase(k);
+            assoc_combine[assoc_last_valid_index].push_back(k);
           }
           else
           {
-            // a ground argument
-            if( !isAssoc ){
-              Trace("sygus-unif-debug2") << "...failed to find injection (functional)." << std::endl;
-              foundInjection = false;
-              break;
+            assoc_last_valid_index = (int)k;
+            if( !assoc_waiting.empty() ){
+              assoc_combine[k].insert( assoc_combine[k].end(), assoc_waiting.begin(), assoc_waiting.end() );
+              assoc_waiting.clear();
+            }
+            assoc_combine[k].push_back(k);
+          }
+        }
+        else
+        {
+          // a ground argument
+          if( !isAssoc ){
+            Trace("sygus-unif-debug") << "...fail: could not find injection (functional)." << std::endl;
+            cop_to_strat.erase(cop);
+            break;
+          }else{
+            if( assoc_last_valid_index>=0 ){
+              assoc_combine[assoc_last_valid_index].push_back(k);
             }else{
-              if( assoc_last_valid_index>=0 ){
-                assoc_combine[assoc_last_valid_index].push_back(k);
-              }else{
-                assoc_waiting.push_back(k);
-              }
+              assoc_waiting.push_back(k);
             }
           }
         }
-        if( foundInjection && !assoc_waiting.empty() )
+      }
+      if( cop_to_strat.find(cop)!=cop_to_strat.end() )
+      {
+        // construct the templates
+        if( !assoc_waiting.empty() )
         {
           // could not find a way to fit some arguments into injection
-          foundInjection = false;
+          cop_to_strat.erase(cop);
         }
-        if( foundInjection )
+        else
         {
-          // add the strategy TODO
-          if( eut.getKind()==kind::ITE ){
-            if( dt[j].getNumArgs()>=eut.getNumChildren() ){
-              cop_to_strat[cop] = strat_ITE;
-            }
-          }else if( eut.getKind()==kind::STRING_CONCAT ){
-            //TODO : get the proper strategy
-            //cop_to_strat[cop] = strat_CONCAT;
-          }else if( eut.getKind()==kind::APPLY_UF ){
-            // identity operator?
-            if( dt[j].getNumArgs()==1 ){
-              cop_to_strat[cop] = strat_ID;
-            }
-          }
-          
           Trace("sygus-unif") << "...type " << dt.getName() << " has defined constructor matching strategy ";
           print_strat("sygus-unif", cop_to_strat[cop]);
           Trace("sygus-unif") << "..." << std::endl;
           for( unsigned k=0; k<eut.getNumChildren(); k++ ){
-            Assert( templ_injection.find( k )!=templ_injection.end() );
-            unsigned sk_index = templ_injection[k];
-            //also store the template information, if necessary
-            Node teut = eut[k];
-            if( !teut.isVar() ){
-              if( cop_to_strat[cop] == strat_ID ){
-                Trace("sygus-unif-debug") << "...cannot use template with ID strategy." << std::endl;
+            if( templ_injection.find( k )!=templ_injection.end() )
+            {
+              unsigned sk_index = templ_injection[k];
+              if( std::find( cop_to_carg_list[cop].begin(), cop_to_carg_list[cop].end(), sk_index )==cop_to_carg_list[cop].end() ){
+                cop_to_carg_list[cop].push_back( sk_index );
+              }else{
+                Trace("sygus-unif-debug") << "...fail: duplicate argument used" << std::endl;
                 cop_to_strat.erase( cop );
-              }else{
-                cop_to_child_templ[cop][k] = teut;
-                cop_to_child_templ_arg[cop][k] = ss[sk_index];
-                Trace("sygus-unif") << "  Arg " << k << " : template : " << teut << ", arg " << ss[sk_index] << std::endl;
+                break;
               }
-            }else{
-              Assert( teut==ss[sk_index] );
+              //also store the template information, if necessary
+              Node teut;
+              if( isAssoc ){
+                std::vector< unsigned > & ac = assoc_combine[k];
+                Assert( !ac.empty() );
+                std::vector< Node > children;
+                for( unsigned ack=0, size_ac = ac.size(); ack<size_ac; ack++ ){
+                  children.push_back( eut[ac[ack]] );
+                }
+                teut = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( eut.getKind(), children );
+                teut = Rewriter::rewrite( teut );
+              }else{
+                teut = eut[k];
+              }
+              
+              if( !teut.isVar() ){
+                if( cop_to_strat[cop] == strat_ID ){
+                  Trace("sygus-unif-debug") << "...fail: cannot use template with ID strategy." << std::endl;
+                  cop_to_strat.erase( cop );
+                  break;
+                }else{
+                  cop_to_child_templ[cop][k] = teut;
+                  cop_to_child_templ_arg[cop][k] = ss[sk_index];
+                  Trace("sygus-unif") << "  Arg " << k << " (template : " << teut << "), arg " << ss[sk_index] << std::endl;
+                }
+              }else{
+                Trace("sygus-unif") << "  Arg " << k << ", arg " << ss[sk_index] << std::endl;
+                Assert( teut==ss[sk_index] );
+              }
+            }
+            else
+            {
+              Assert( isAssoc );
             }
           }
+        }
+        if( cop_to_strat.find(cop)!=cop_to_strat.end() )
+        {
           // collect children types
-          for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
-            Trace("sygus-unif") << "   Child type " << k << " : " << ((DatatypeType)sktns[k].toType()).getDatatype().getName() << std::endl;
-            cop_to_child_types[cop].push_back( sktns[k] );
+          for( unsigned k=0; k<cop_to_carg_list[cop].size(); k++ ){
+            TypeNode tn = sktns[cop_to_carg_list[cop][k]];
+            Trace("sygus-unif-debug") << "   Child type " << k << " : " << static_cast<DatatypeType>(tn.toType()).getDatatype().getName() << std::endl;
+            cop_to_child_types[cop].push_back( tn );
           }
         }
       }
-      // check whether we should also enumerate the current type
-      bool search_this = true;
-      for( std::map< Node, unsigned >::iterator itc = cop_to_strat.begin(); itc != cop_to_strat.end(); ++itc ){
-        if( itc->second==strat_CONCAT_PREFIX || itc->second==strat_CONCAT_SUFFIX || ( itc->second==strat_ID && dt.getNumConstructors()==1 ) ){
-          search_this = false;
-          break;
-        }
-      }
-      Trace("sygus-unif-debug2") << "...this register..." << std::endl;
-      registerEnumerator( ee, e, tn, enum_role, search_this );
+    }
+    
+    if( cop_to_strat.find(cop)==cop_to_strat.end() )
+    {
+      Trace("sygus-unif") << "...constructor " << cop << " does not correspond to a strategy." << std::endl;
+      search_this = true;
+    }
+  }
+  
+  // check whether we should also enumerate the current type
+  Trace("sygus-unif-debug2") << "...this register..." << std::endl;
+  registerEnumerator( ee, e, tn, enum_role, search_this );
+  
+  if( cop_to_strat.empty() ){
+    Trace("sygus-unif") << "...consider " << dt.getName() << " a basic type" << std::endl;
+  }else{
+    for( std::map< Node, unsigned >::iterator itct = cop_to_strat.begin(); itct != cop_to_strat.end(); ++itct ){
+      Node cop = itct->first;
+      unsigned strat = itct->second;
       
-      if( cop_to_child_types.empty() ){
-        Trace("sygus-unif") << "...consider " << dt.getName() << " a basic type" << std::endl;
-      }else{
-        for( std::map< Node, std::vector< TypeNode > >::iterator itct = cop_to_child_types.begin(); itct != cop_to_child_types.end(); ++itct ){
-          Node cop = itct->first;
-          Assert( cop_to_strat.find( cop )!=cop_to_strat.end() );
-          unsigned strat = cop_to_strat[cop];
-          d_cinfo[e].d_tinfo[tn].d_strat[cop].d_this = strat;
-          Trace("sygus-unif-debug") << "Process strategy for operator : " << cop << " : ";
-          print_strat("sygus-unif-debug", strat );
-          Trace("sygus-unif-debug") << std::endl;
+      d_cinfo[e].d_tinfo[tn].d_strat[cop].d_this = strat;
+      Trace("sygus-unif-debug") << "Process strategy for operator : " << cop << " : ";
+      print_strat("sygus-unif-debug", strat );
+      Trace("sygus-unif-debug") << std::endl;
+      Assert( cop_to_child_types.find(cop)!=cop_to_child_types.end() );
+      std::vector< TypeNode >& childTypes = cop_to_child_types[cop];
 
-          for( unsigned j=0; j<itct->second.size(); j++ ){
-            //calculate if we should allocate a new enumerator : should be true if we have a new role
-            unsigned enum_role_c = enum_role;
-            if( strat==strat_ITE ){
-              if( j==0 ){
-                enum_role_c = enum_ite_condition;
-              }else{
-                // role is the same as parent
-              }
-            }else if( strat==strat_CONCAT_PREFIX || strat==strat_CONCAT_SUFFIX ){
-              enum_role_c = enum_concat_term;
-            }else if( strat==strat_ID ){
-              // role is the same as parent
-            }
-            
-            // register the child type
-            TypeNode ct = itct->second[j];
-            d_cinfo[e].d_tinfo[tn].d_strat[cop].d_csol_cts.push_back( ct );
-            
-            // make the enumerator
-            Node et;
-            if( cop_to_child_templ[cop].find( j )!=cop_to_child_templ[cop].end() ){
-              // it is templated, allocate a fresh variable
-              et = NodeManager::currentNM()->mkSkolem( "et", ct );
-              Trace("sygus-unif-debug") << "...enumerate " << et << " of type " << ((DatatypeType)ct.toType()).getDatatype().getName();
-              Trace("sygus-unif-debug") << " for arg " << j << " of " << ((DatatypeType)tn.toType()).getDatatype().getName() << std::endl;
-              registerEnumerator( et, e, ct, enum_role_c, true );
-              d_einfo[et].d_template = cop_to_child_templ[cop][j];
-              d_einfo[et].d_template_arg = cop_to_child_templ_arg[cop][j];
-              Assert( !d_einfo[et].d_template.isNull() );
-              Assert( !d_einfo[et].d_template_arg.isNull() );
-            }else{
-              Trace("sygus-unif-debug") << "...child type enumerate " << ((DatatypeType)ct.toType()).getDatatype().getName() << ", role = ";
-              print_role( "sygus-unif-debug", enum_role_c );
-              Trace("sygus-unif-debug") << std::endl;
-              collectEnumeratorTypes( e, ct, enum_role_c );
-              // otherwise use the previous
-              Assert( d_cinfo[e].d_tinfo[ct].d_enum.find( enum_role_c )!=d_cinfo[e].d_tinfo[ct].d_enum.end() );
-              et = d_cinfo[e].d_tinfo[ct].d_enum[enum_role_c];
-            }
-            Trace("sygus-unif-debug") << "Register child enumerator " << et << ", arg " << j << " of " << cop << ", role = ";
-            print_role( "sygus-unif-debug", enum_role_c );
-            Trace("sygus-unif-debug") << std::endl;
-            Assert( !et.isNull() );
-            d_cinfo[e].d_tinfo[tn].d_strat[cop].d_cenum.push_back( et );
+      for( unsigned j=0; j<childTypes.size(); j++ ){
+        //calculate if we should allocate a new enumerator : should be true if we have a new role
+        unsigned enum_role_c = enum_role;
+        if( strat==strat_ITE ){
+          if( j==0 ){
+            enum_role_c = enum_ite_condition;
+          }else{
+            // role is the same as parent
           }
-          Trace("sygus-unif") << "Initialized strategy ";
-          print_strat( "sygus-unif", strat );
-          Trace("sygus-unif") << " for " << ((DatatypeType)tn.toType()).getDatatype().getName() << ", operator " << cop;
-          Trace("sygus-unif") << ", #children = " << d_cinfo[e].d_tinfo[tn].d_strat[cop].d_cenum.size() << std::endl;
-          Assert( d_cinfo[e].d_tinfo[tn].d_strat[cop].d_cenum.size()==d_cinfo[e].d_tinfo[tn].d_strat[cop].d_csol_cts.size() );
+        }else if( strat==strat_CONCAT_PREFIX || strat==strat_CONCAT_SUFFIX ){
+          enum_role_c = enum_concat_term;
+        }else if( strat==strat_ID ){
+          // role is the same as parent
         }
+        
+        // register the child type
+        TypeNode ct = childTypes[j];
+        d_cinfo[e].d_tinfo[tn].d_strat[cop].d_csol_cts.push_back( ct );
+        
+        // make the enumerator
+        Node et;
+        if( cop_to_child_templ[cop].find( j )!=cop_to_child_templ[cop].end() ){
+          // it is templated, allocate a fresh variable
+          et = NodeManager::currentNM()->mkSkolem( "et", ct );
+          Trace("sygus-unif-debug") << "...enumerate " << et << " of type " << ((DatatypeType)ct.toType()).getDatatype().getName();
+          Trace("sygus-unif-debug") << " for arg " << j << " of " << ((DatatypeType)tn.toType()).getDatatype().getName() << std::endl;
+          registerEnumerator( et, e, ct, enum_role_c, true );
+          d_einfo[et].d_template = cop_to_child_templ[cop][j];
+          d_einfo[et].d_template_arg = cop_to_child_templ_arg[cop][j];
+          Assert( !d_einfo[et].d_template.isNull() );
+          Assert( !d_einfo[et].d_template_arg.isNull() );
+        }else{
+          Trace("sygus-unif-debug") << "...child type enumerate " << ((DatatypeType)ct.toType()).getDatatype().getName() << ", role = ";
+          print_role( "sygus-unif-debug", enum_role_c );
+          Trace("sygus-unif-debug") << std::endl;
+          collectEnumeratorTypes( e, ct, enum_role_c );
+          // otherwise use the previous
+          Assert( d_cinfo[e].d_tinfo[ct].d_enum.find( enum_role_c )!=d_cinfo[e].d_tinfo[ct].d_enum.end() );
+          et = d_cinfo[e].d_tinfo[ct].d_enum[enum_role_c];
+        }
+        Trace("sygus-unif-debug") << "Register child enumerator " << et << ", arg " << j << " of " << cop << ", role = ";
+        print_role( "sygus-unif-debug", enum_role_c );
+        Trace("sygus-unif-debug") << std::endl;
+        Assert( !et.isNull() );
+        d_cinfo[e].d_tinfo[tn].d_strat[cop].d_cenum.push_back( et );
       }
-    }else{
-      Trace("sygus-unif-debug") << "...this register (non-io)" << std::endl;
-      registerEnumerator( ee, e, tn, enum_role, true );
+      Trace("sygus-unif") << "Initialized strategy ";
+      print_strat( "sygus-unif", strat );
+      Trace("sygus-unif") << " for " << ((DatatypeType)tn.toType()).getDatatype().getName() << ", operator " << cop;
+      Trace("sygus-unif") << ", #children = " << d_cinfo[e].d_tinfo[tn].d_strat[cop].d_cenum.size() << std::endl;
+      Assert( d_cinfo[e].d_tinfo[tn].d_strat[cop].d_cenum.size()==d_cinfo[e].d_tinfo[tn].d_strat[cop].d_csol_cts.size() );
     }
   }
 }
@@ -709,7 +758,7 @@ void CegConjecturePbe::staticLearnRedundantOps( Node c, Node e, std::map< Node, 
     Trace("sygus-unif") << " : ";
 
     if( itn->second.isTemplated() ){
-      Trace("sygus-unif") << "basic, templated : \\ " << itn->second.d_template_arg << ". " << itn->second.d_template << std::endl;
+      Trace("sygus-unif") << "basic, templated : (lambda " << itn->second.d_template_arg << " " << itn->second.d_template << ")" << std::endl;
     }else{
       TypeNode etn = e.getType();
       std::map< TypeNode, EnumTypeInfo >::iterator itt = d_cinfo[c].d_tinfo.find( etn );
@@ -1837,6 +1886,10 @@ bool CegConjecturePbe::UnifContext::isReturnValueModified() {
     return true;
   }
   return false;
+}
+
+bool CegConjecturePbe::UnifContext::willReturnValueModified() { 
+  return d_ret_val_will_modify;
 }
 
 void CegConjecturePbe::UnifContext::initialize( CegConjecturePbe * pbe, Node c ) {
