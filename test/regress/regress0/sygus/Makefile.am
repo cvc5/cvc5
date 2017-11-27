@@ -66,7 +66,6 @@ TESTS = commutative.sy \
         cegar1.sy \
         triv-type-mismatch-si.sy \
         nia-max-square-ns.sy \
-        strings-concat-3-args.sy \
         process-10-vars.sy \
         process-10-vars-2fun.sy \
         inv-unused.sy \
@@ -80,6 +79,8 @@ EXTRA_DIST = $(TESTS) \
   max.smt2 \
   sygus-uf.sl \
   enum-test.sy 
+  
+# strings-concat-3-args.sy
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

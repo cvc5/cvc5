@@ -490,7 +490,7 @@ class CegConjecturePbe {
      * 
      * This returns true if later nodes will modify the return value.
      */
-    bool willReturnValueModified();
+    bool willReturnValueModify();
     class UEnumInfo {
     public:
       UEnumInfo() : d_status(-1){}

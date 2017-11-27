@@ -448,7 +448,7 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
       cop_to_strat[cop] = strat_ITE;
     }else if( eut.getKind()==kind::STRING_CONCAT ){
       cop_to_strat[cop] = strat_CONCAT_PREFIX;
-    }else if( eut.getKind()==kind::APPLY_UF ){
+    }else if( dt[j].isSygusIdFunc() ){
       cop_to_strat[cop] = strat_ID;
     }
     
@@ -478,7 +478,7 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
       eut = eut.substitute( vs.begin(), vs.end(), ss.begin(), ss.end() );
       Trace("sygus-unif-debug2") << "Constructor " << j << ", base term is " << eut << std::endl;
       std::map< unsigned, Node > test_args;
-      if( dt[j].getNumArgs()==1 )
+      if( cop_to_strat[cop]==strat_ID )
       {
         test_args[0] = eut;
       }
@@ -490,6 +490,7 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
       }
       
       bool isAssoc = TermUtil::isAssoc( eut.getKind() );
+      Trace("sygus-unif-debug2") << eut.getKind() << " isAssoc = " << isAssoc << std::endl;
       std::map< unsigned, std::vector< unsigned > > assoc_combine;
       std::vector< unsigned > assoc_waiting;
       int assoc_last_valid_index = -1;
@@ -552,7 +553,10 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
           Trace("sygus-unif") << "...type " << dt.getName() << " has defined constructor matching strategy ";
           print_strat("sygus-unif", cop_to_strat[cop]);
           Trace("sygus-unif") << "..." << std::endl;
-          for( unsigned k=0; k<eut.getNumChildren(); k++ ){
+          for( std::map< unsigned, Node >::iterator it = test_args.begin(); it != test_args.end(); ++it )
+          {
+            unsigned k = it->first;
+            Trace("sygus-unif-debug2") << "- processing argument " << k << "..." << std::endl;
             if( templ_injection.find( k )!=templ_injection.end() )
             {
               unsigned sk_index = templ_injection[k];
@@ -574,8 +578,10 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
                 }
                 teut = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( eut.getKind(), children );
                 teut = Rewriter::rewrite( teut );
-              }else{
-                teut = eut[k];
+              }
+              else
+              {
+                teut = it->second;
               }
               
               if( !teut.isVar() ){
@@ -1504,7 +1510,7 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
     TypeNode etn = e.getType();
     std::map< TypeNode, EnumTypeInfo >::iterator itt = d_cinfo[c].d_tinfo.find( etn );
     Assert( itt!=d_cinfo[c].d_tinfo.end() );
-    if( d_tds->sygusToBuiltinType( e.getType() ).isString() ){
+    if( d_tds->sygusToBuiltinType( e.getType() ).isString() && !x.willReturnValueModify() ){
       // check if a current value that closes all examples
       
       // get the term enumerator for this type
@@ -1893,7 +1899,7 @@ bool CegConjecturePbe::UnifContext::isReturnValueModified() {
   return false;
 }
 
-bool CegConjecturePbe::UnifContext::willReturnValueModified() { 
+bool CegConjecturePbe::UnifContext::willReturnValueModify() { 
   return d_ret_val_will_modify;
 }
 
