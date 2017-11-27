@@ -480,7 +480,7 @@ class CegConjecturePbe {
   void staticLearnRedundantOps(Node c,
                                Node e,
                                NodeRole nrole,
-                               std::map<Node, bool>& visited,
+                               std::map< Node, std::map< NodeRole, bool > >& visited,
                                std::vector<Node>& redundant,
                                std::vector<Node>& lemmas,
                                int ind);
