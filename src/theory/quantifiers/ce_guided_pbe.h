@@ -393,6 +393,7 @@ class CegConjecturePbe {
     /** conditional solutions */
     std::vector< TypeNode > d_csol_cts;
     std::vector< Node > d_cenum;
+    std::vector< unsigned > d_carg_list;
   };
 
   /** stores enumerators and strategies for a SyGuS datatype type */

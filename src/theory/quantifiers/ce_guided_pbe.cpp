@@ -440,8 +440,8 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
     Node eut = NodeManager::currentNM()->mkNode( kind::APPLY_UF, echildren );
     Trace("sygus-unif-debug2") << "  Test evaluation of " << eut << "..." << std::endl;
     eut = d_qe->getTermDatabaseSygus()->unfold( eut );
-    Trace("sygus-unif-debug2") << "  ...got " << eut << std::endl;       
-    Trace("sygus-unif-debug2") << "  Type : " << eut.getType() << std::endl;
+    Trace("sygus-unif-debug2") << "  ...got " << eut;       
+    Trace("sygus-unif-debug2") << ", type : " << eut.getType() << std::endl;
     
     // candidate strategy
     if( eut.getKind()==kind::ITE ){
@@ -453,7 +453,8 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
     }
     
     // the kinds for which there is a strategy
-    if( cop_to_strat.find(cop)!=cop_to_strat.end() ){
+    if( cop_to_strat.find(cop)!=cop_to_strat.end() )
+    {
       // infer an injection from the arguments of the datatype
       std::map< unsigned, unsigned > templ_injection;
       std::vector< Node > vs;
@@ -585,10 +586,10 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
                 }else{
                   cop_to_child_templ[cop][k] = teut;
                   cop_to_child_templ_arg[cop][k] = ss[sk_index];
-                  Trace("sygus-unif") << "  Arg " << k << " (template : " << teut << "), arg " << ss[sk_index] << std::endl;
+                  Trace("sygus-unif") << "  Arg " << k << " (template : " << teut << " arg " << ss[sk_index] << "), index " << sk_index << std::endl;
                 }
               }else{
-                Trace("sygus-unif") << "  Arg " << k << ", arg " << ss[sk_index] << std::endl;
+                Trace("sygus-unif") << "  Arg " << k << ", index " << sk_index << std::endl;
                 Assert( teut==ss[sk_index] );
               }
             }
@@ -609,7 +610,6 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
         }
       }
     }
-    
     if( cop_to_strat.find(cop)==cop_to_strat.end() )
     {
       Trace("sygus-unif") << "...constructor " << cop << " does not correspond to a strategy." << std::endl;
@@ -618,7 +618,7 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
   }
   
   // check whether we should also enumerate the current type
-  Trace("sygus-unif-debug2") << "...this register..." << std::endl;
+  Trace("sygus-unif-debug2") << "  register this enumerator..." << std::endl;
   registerEnumerator( ee, e, tn, enum_role, search_this );
   
   if( cop_to_strat.empty() ){
@@ -634,6 +634,8 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
       Trace("sygus-unif-debug") << std::endl;
       Assert( cop_to_child_types.find(cop)!=cop_to_child_types.end() );
       std::vector< TypeNode >& childTypes = cop_to_child_types[cop];
+      Assert( cop_to_carg_list.find(cop)!=cop_to_carg_list.end() );
+      std::vector< unsigned >& cargList = cop_to_carg_list[cop];
 
       for( unsigned j=0; j<childTypes.size(); j++ ){
         //calculate if we should allocate a new enumerator : should be true if we have a new role
@@ -653,6 +655,7 @@ void CegConjecturePbe::collectEnumeratorTypes( Node e, TypeNode tn, unsigned enu
         // register the child type
         TypeNode ct = childTypes[j];
         d_cinfo[e].d_tinfo[tn].d_strat[cop].d_csol_cts.push_back( ct );
+        d_cinfo[e].d_tinfo[tn].d_strat[cop].d_carg_list.push_back( cargList[j] );
         
         // make the enumerator
         Node et;
@@ -1819,10 +1822,12 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, UnifContext& x, int in
             Assert( !itts->first.isNull() );
             dt_children.push_back( itts->first );
             for( unsigned sc=0; sc<itts->second.d_cenum.size(); sc++ ){
-              std::map< unsigned, Node >::iterator itdc = dt_children_cons.find( sc );
+              // take into account child order
+              unsigned scu = itts->second.d_carg_list[sc];
+              std::map< unsigned, Node >::iterator itdc = dt_children_cons.find( scu );
               Assert( itdc!=dt_children_cons.end() );
               dt_children.push_back( itdc->second );
-            }         
+            }
             ret_dt = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, dt_children );
             indent("sygus-pbe-dt-debug", ind);
             Trace("sygus-pbe-dt-debug") << "PBE: success : constructed for strategy ";
