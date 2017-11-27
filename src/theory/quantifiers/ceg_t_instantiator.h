@@ -216,7 +216,7 @@ class BvInstantiator : public Instantiator {
                              Node pv,
                              InstEffort effort) override
   {
-    return true;
+    return !d_tried_assertion_inst;
   }
   virtual std::string identify() const { return "Bv"; }
  private:
@@ -232,6 +232,8 @@ class BvInstantiator : public Instantiator {
   std::unordered_map< Node, unsigned, NodeHashFunction > d_var_to_curr_inst_id;
   /** the amount of slack we added for asserted literals */
   std::unordered_map<Node, Node, NodeHashFunction> d_alit_to_model_slack;
+  /** whether we have tried an instantiation based on assertion in this round */
+  bool d_tried_assertion_inst;
   /** rewrite assertion for solve pv
   * returns a literal that is equivalent to lit that leads to best solved form for pv
   */

@@ -426,11 +426,9 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     }
 
     //[4] resort to using value in model. We do so if:
-    // - we are in a higher effort than INST_EFFORT_STANDARD,
-    // - if the variable is Boolean, or
-    // - if we are solving for a subfield of a datatype.
-    bool use_model_value = vinst->useModelValue(this, sf, pv, d_effort);
-    if ((d_effort > INST_EFFORT_STANDARD || use_model_value || is_cv)
+    // - if the instantiator uses model values at this effort, or
+    // - if we are solving for a subfield of a datatype (is_cv).
+    if ((vinst->useModelValue(this, sf, pv, d_effort) || is_cv)
         && vinst->allowModelValue(this, sf, pv, d_effort))
     {
 #ifdef CVC4_ASSERTIONS
@@ -443,7 +441,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       TermProperties pv_prop_m;
       Trace("cbqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
       InstEffort prev = d_effort;
-      if (!use_model_value)
+      if (d_effort<INST_EFFORT_STANDARD_MV)
       {
         // update the effort level to indicate we have used a model value
         d_effort = INST_EFFORT_STANDARD_MV;

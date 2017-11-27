@@ -657,7 +657,7 @@ public:
                              Node pv,
                              InstEffort effort)
   {
-    return false;
+    return effort > INST_EFFORT_STANDARD;
   }
   /** do we allow the model value as instantiation for pv? */
   virtual bool allowModelValue(CegInstantiator* ci,
