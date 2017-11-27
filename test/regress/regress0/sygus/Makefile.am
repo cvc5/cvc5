@@ -71,7 +71,8 @@ TESTS = commutative.sy \
         process-10-vars-2fun.sy \
         inv-unused.sy \
         ccp16.lus.sy \
-        Base16_1.sy
+        Base16_1.sy \
+        icfp_14.12-flip-args.sy
 
 
 # sygus tests currently taking too long for make regress
