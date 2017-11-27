@@ -1004,7 +1004,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                          Node lit,
                                          CegInstEffort effort)
 {
-  if( effort==INST_EFFORT_FULL ){
+  if( effort==CEG_INST_EFFORT_FULL ){
     // always use model values at full effort
     return Node::null();
   }
