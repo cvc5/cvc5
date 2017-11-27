@@ -480,7 +480,8 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
       Integer val = p.second;
       if (i > 0 && vars.find(var) == vars.end())
       {
-        for (size_t j = 0; j < i; ++j) { vars[var].push_back(Integer(0)); }
+        /* Add column and fill column elements of rows above with 0. */
+        vars[var].insert(vars[var].end(), i, Integer(0));
       }
       vars[var].push_back(val);
     }
@@ -683,7 +684,7 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
           subst[e] = nm->mkConst<bool>(true);
         }
         /* add resulting constraints */
-        for (auto p : res)
+        for (const auto& p : res)
         {
           Node a = nm->mkNode(kind::EQUAL, p.first, p.second);
           Trace("bv-gauss-elim") << "added assertion: " << a << endl;
@@ -696,10 +697,9 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
   if (!subst.empty())
   {
     /* delete (= substitute with true) obsolete assertions */
-    for (unsigned i = 0; i < size; ++i)
+    for (auto& a : assertionsToPreprocess)
     {
-      assertionsToPreprocess[i] =
-          assertionsToPreprocess[i].substitute(subst.begin(), subst.end());
+      a = a.substitute(subst.begin(), subst.end());
     }
   }
 }
