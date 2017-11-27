@@ -23,7 +23,6 @@
 #include "expr/node.h"
 #include "util/bitvector.h"
 
-#include <iostream>
 #include <unordered_map>
 #include <vector>
 

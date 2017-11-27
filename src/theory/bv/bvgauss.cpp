@@ -61,9 +61,6 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
   unordered_map<Node, unsigned, NodeHashFunction> visited;
   unordered_map<Node, unsigned, NodeHashFunction>::iterator it;
 
-  /* Rewrite const expr, overflows in consts are irrelevant. */
-  if (is_bv_const(expr)) { expr = get_bv_const(expr); }
-
   visit.push(expr);
   while (!visit.empty())
   {
@@ -72,28 +69,25 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
     it = visited.find(n);
     if (it == visited.end())
     {
-      visited[n] = 0;
-      visit.push(n);
-      for (const Node &nn : n)
+      if (is_bv_const(n))
       {
-        visit.push(nn);
+        /* Rewrite const expr, overflows in consts are irrelevant. */
+        visited[n] = get_bv_const(n).getConst<BitVector>().getValue().length();
+      }
+      else
+      {
+        visited[n] = 0;
+        visit.push(n);
+        for (const Node &nn : n) { visit.push(nn); }
       }
     }
     else if (it->second == 0)
     {
-      /* Rewrite const expr, overflows in consts are irrelevant. */
-      if (is_bv_const(n)) { n = get_bv_const(n); }
-
       Kind k = n.getKind();
-
+      Assert(k != kind::CONST_BITVECTOR);
+      Assert(!is_bv_const(n));
       switch (k)
       {
-        case kind::CONST_BITVECTOR:
-        {
-          visited[n] = n.getConst<BitVector>().getValue().length();
-          break;
-        }
-
         case kind::BITVECTOR_EXTRACT:
         {
           unsigned w = utils::getSize(n);
@@ -193,7 +187,7 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
     }
   }
   Assert(visited.find(expr) != visited.end());
-  return is_bv_const(expr) ? visited[get_bv_const(expr)] : visited[expr];
+  return visited[expr];
 }
 
 BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
@@ -234,7 +228,7 @@ BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
    * (2) subtract pivot row from all rows below pivot row
    *
    * (3) subtract (multiple of) current row from all rows above s.t. all
-   *     elements in current pivot column of rows above equal to one
+   *     elements in current pivot column above current row become equal to one
    *
    * Note: we do not normalize the given matrix to values modulo prime
    *       beforehand but on-the-fly. */
@@ -288,7 +282,7 @@ BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
           for (size_t k = pcol; k < ncols; ++k)
           {
             reslhs[j][k] = reslhs[j][k].modMultiply(inv, prime);
-            if (j <= prow) continue; /** pivot */
+            if (j <= prow) continue; /* pivot */
             reslhs[j][k] = reslhs[j][k].modAdd(-reslhs[prow][k], prime);
           }
           resrhs[j] = resrhs[j].modMultiply(inv, prime);
@@ -521,7 +515,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
   }
 
 #ifdef CVC4_ASSERTIONS
-  for (size_t i = 0; i < nrows; ++i) { Assert(lhs[i].size() == nvars); }
+  for (const auto& row : lhs) { Assert(row.size() == nvars); }
   Assert(lhs.size() == rhs.size());
 #endif
 
