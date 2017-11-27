@@ -25,6 +25,7 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
@@ -1320,19 +1321,185 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
 
       visited.top()[cur] = ret;
     }
-    else if (Trace.isOn("cegqi-bv-nl"))
-    {
-      if (cur == pv)
-      {
-        Trace("cegqi-bv-nl") << "NONLINEAR LITERAL for " << pv << " : " << lit
-                             << std::endl;
-      }
-    }
   } while (!visit.top().empty());
   Assert(visited.size() == 1);
   Assert(visited.top().find(lit) != visited.top().end());
   Assert(!visited.top().find(lit)->second.isNull());
+
+  if (Trace.isOn("cegqi-bv-nl"))
+  {
+    std::vector<TNode> trace_visit;
+    std::unordered_set<TNode, TNodeHashFunction> trace_visited;
+
+    trace_visit.push_back(visited.top()[lit]);
+    do
+    {
+      cur = trace_visit.back();
+      trace_visit.pop_back();
+
+      if (trace_visited.find(cur) == trace_visited.end())
+      {
+        trace_visited.insert(cur);
+        trace_visit.insert(trace_visit.end(), cur.begin(), cur.end());
+      }
+      else if (cur == pv)
+      {
+        Trace("cegqi-bv-nl") << "NONLINEAR LITERAL for " << pv << " : " << lit
+                             << std::endl;
+      }
+    } while (!trace_visit.empty());
+  }
+
   return visited.top()[lit];
+}
+
+static Node getPvCoeff(
+    const TNode pv,
+    const TNode n,
+    bool neg,
+    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
+{
+  Assert(contains_pv[n]);
+  Assert(pv == n || n.getKind() == BITVECTOR_MULT);
+
+  Node fact;
+  if (n == pv)
+    fact = bv::utils::mkOne(bv::utils::getSize(pv));
+  else
+  {
+    Assert(n.getKind() == BITVECTOR_MULT);
+
+    Node flat_mult = bv::RewriteRule<bv::FlattenAssocCommut>::run<true>(n);
+
+    bool found_pv = false;
+    NodeBuilder<> nb(BITVECTOR_MULT);
+    for (const auto& nc : flat_mult)
+    {
+      if (nc == pv)
+      {
+        if (found_pv)
+          return Node::null(); /* non-linear */
+        found_pv = true;
+      }
+      else if (nc.getKind() == BITVECTOR_NEG && nc[0] == pv)
+      {
+        if (found_pv)
+          return Node::null(); /* non-linear */
+        found_pv = true;
+        neg = !neg;
+      }
+      else if (contains_pv[nc])
+      {
+        return Node::null(); /* non-linear */
+      }
+      else
+      {
+        nb << nc;
+      }
+    }
+    Assert(nb.getNumChildren() > 0);
+
+    if (!found_pv)
+      return Node::null(); /* can't get coefficient for 'pv' */
+
+    if (nb.getNumChildren() == 1)
+      fact = nb[0];
+    else
+      fact = nb.constructNode();
+  }
+  Assert(!fact.isNull());
+
+  if (neg)
+    return NodeManager::currentNM()->mkNode(BITVECTOR_NEG, fact);
+  return fact;
+}
+
+static bool
+collectPvCoeffs(
+    Node pv,
+    Node t,
+    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv,
+    std::vector<Node>& coeffs,
+    std::vector<Node>& leafs)
+{
+  TNode cur;
+  bool neg;
+  std::vector<TNode> visit;
+  std::vector<bool> visit_neg;
+
+  visit.push_back(t);
+  visit_neg.push_back(t.getKind() == BITVECTOR_NEG);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    neg = visit_neg.back();
+    visit_neg.pop_back();
+
+    if ((cur.getKind() != BITVECTOR_PLUS && cur.getKind() != BITVECTOR_NEG)
+        || !contains_pv[cur])
+    {
+      if (contains_pv[cur])
+      {
+        if (cur == pv || cur.getKind() == BITVECTOR_MULT)
+        {
+          Node coeff = getPvCoeff (pv, cur, neg, contains_pv);
+          if (!coeff.isNull())
+          {
+            coeffs.push_back(coeff);
+            continue;
+          }
+        }
+        /* can't collect coefficients of 'pv' in 'cur' -> non-linear */
+        return false;
+      }
+      leafs.push_back(cur);
+      continue;
+    }
+
+    if (cur.getKind() == BITVECTOR_NEG)
+      neg = !neg;
+
+    for (const auto& nc : cur)
+    {
+      visit.push_back(nc);
+      visit_neg.push_back(neg);
+    }
+  }
+  while (!visit.empty());
+  return true;
+}
+
+static Node linearizePv(
+    Node pv,
+    Node t,
+    std::vector<Node>& children,
+    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
+{
+  Assert(t.getKind() == EQUAL);
+
+  bool lhs_ok, rhs_ok;
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> lhs_coeffs, rhs_coeffs, lhs_leafs, rhs_leafs;
+
+  lhs_ok = collectPvCoeffs(pv, children[0], contains_pv, lhs_coeffs, lhs_leafs);
+  rhs_ok = collectPvCoeffs(pv, children[1], contains_pv, rhs_coeffs, rhs_leafs);
+
+  if (lhs_ok && rhs_ok && (lhs_coeffs.size() + rhs_coeffs.size() > 1))
+  {
+    unsigned size_pv = bv::utils::getSize(pv);
+    // pv * (sum(lhs_coeffs) - sum(rhs_coeffs)) = sum(rhs_leafs) - sum(lhs_leafs)
+    Node leafs_sum = nm->mkNode(BITVECTOR_SUB,
+                                bv::utils::mkSum(rhs_leafs, size_pv),
+                                bv::utils::mkSum(lhs_leafs, size_pv));
+    Node coeffs_sum = nm->mkNode(BITVECTOR_SUB,
+                                 bv::utils::mkSum(lhs_coeffs, size_pv),
+                                 bv::utils::mkSum(rhs_coeffs, size_pv));
+    Node pv_mul_coeffs_sum = nm->mkNode(BITVECTOR_MULT, pv, Rewriter::rewrite(coeffs_sum));
+    Node result = pv_mul_coeffs_sum.eqNode(Rewriter::rewrite(leafs_sum));
+    return result;
+  }
+  return Node::null();
 }
 
 Node BvInstantiator::rewriteTermForSolvePv(
@@ -1361,15 +1528,56 @@ Node BvInstantiator::rewriteTermForSolvePv(
   }
   else if (n.getKind() == EQUAL)
   {
-    if ((n[0] == pv && n[1].getKind() == BITVECTOR_MULT && n[1][0] == pv
-         && n[1][1] == pv)
-        || (n[1] == pv && n[0].getKind() == BITVECTOR_MULT && n[0][0] == pv
-            && n[0][1] == pv))
+    TNode lhs = n[0];
+    TNode rhs = n[1];
+    TNode mult;
+
+    if (lhs == pv && rhs.getKind() == BITVECTOR_MULT)
+      mult = rhs;
+    else if (rhs == pv && lhs.getKind() == BITVECTOR_MULT)
+      mult = lhs;
+
+    if (mult.getNumChildren() == 2)
     {
-      return nm->mkNode(
-          BITVECTOR_ULT,
-          pv,
-          bv::utils::mkConst(BitVector(bv::utils::getSize(pv), Integer(2))));
+      unsigned size_pv = bv::utils::getSize(pv);
+      /* rewrite: x * x = x -> x < 2 */
+      if (mult[0] == pv && mult[0] == mult[1])
+      {
+        return nm->mkNode(BITVECTOR_ULT,
+                          pv,
+                          bv::utils::mkConst(BitVector(size_pv, Integer(2))));
+      }
+      /* t * x = x -> t = 1 */
+      else if (mult[0] == pv)
+      {
+        return mult[1].eqNode(bv::utils::mkOne(size_pv));
+      }
+      /* x * t = x -> t = 1 */
+      else if (mult[1] == pv)
+      {
+        return mult[0].eqNode(bv::utils::mkOne(size_pv));
+      }
+    }
+
+    Node linear_n = linearizePv(pv, n, children, contains_pv);
+    if (!linear_n.isNull())
+      return linear_n;
+  }
+  else if (n.getKind() == BITVECTOR_PLUS && contains_pv[n])
+  {
+    std::vector<Node> coeffs, leafs;
+    bool ok;
+
+    ok = collectPvCoeffs(pv, n, contains_pv, coeffs, leafs);
+
+    if (ok && coeffs.size() > 1)
+    {
+      unsigned size_pv = bv::utils::getSize(pv);
+      Node leafs_sum = bv::utils::mkSum(leafs, size_pv);
+      Node coeffs_sum = bv::utils::mkSum(coeffs, size_pv);
+      Node pv_mul_coeffs_sum =
+          nm->mkNode(BITVECTOR_MULT, pv, Rewriter::rewrite(coeffs_sum));
+      return nm->mkNode(BITVECTOR_PLUS, pv_mul_coeffs_sum, leafs_sum);
     }
   }
 
