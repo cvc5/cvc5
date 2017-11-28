@@ -135,7 +135,6 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
         }
 
         case kind::BITVECTOR_UREM_TOTAL:
-        case kind::BITVECTOR_SHL:
         case kind::BITVECTOR_LSHR:
         case kind::BITVECTOR_ASHR:
         {
@@ -180,7 +179,8 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
         {
           /* BITVECTOR_UDIV_TOTAL (since x / 0 = -1)
            * BITVECTOR_NOT
-           * BITVECTOR_NEG */
+           * BITVECTOR_NEG
+           * BITVECTOR_SHL */
           visited[n] = utils::getSize(n);
         }
       }
