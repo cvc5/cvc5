@@ -198,8 +198,6 @@ public:
   
   /** get operator kind */
   static Kind getOperatorKind( Node op );
-  /** print sygus term */
-  static void printSygusTerm( std::ostream& out, Node n, std::vector< Node >& lvs );
 
   /** get anchor */
   static Node getAnchor( Node n );

@@ -1,0 +1,10 @@
+; COMMAND-LINE: --nl-ext-tf-tplanes
+; EXPECT: unsat
+(set-logic QF_NRA)
+(declare-fun x () Real)
+
+(assert (> (exp (- (/ 1 2))) 0.65))
+(assert (= x (exp (- (/ 1 2)))))
+
+
+(check-sat)
