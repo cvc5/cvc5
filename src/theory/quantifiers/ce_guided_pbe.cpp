@@ -647,9 +647,6 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
         }
         else
         {
-          Trace("sygus-unif") << "...type " << dt.getName()
-                              << " has defined constructor matching strategy "
-                              << eut.getKind() << "..." << std::endl;
           for (std::pair<const unsigned, Node>& ta : test_args)
           {
             unsigned k = ta.first;
@@ -696,13 +693,13 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
               {
                 cop_to_child_templ[cop][k] = teut;
                 cop_to_child_templ_arg[cop][k] = ss[sk_index];
-                Trace("sygus-unif") << "  Arg " << k << " (template : " << teut
+                Trace("sygus-unif-debug") << "  Arg " << k << " (template : " << teut
                                     << " arg " << ss[sk_index] << "), index "
                                     << sk_index << std::endl;
               }
               else
               {
-                Trace("sygus-unif") << "  Arg " << k << ", index " << sk_index
+                Trace("sygus-unif-debug") << "  Arg " << k << ", index " << sk_index
                                     << std::endl;
                 Assert(teut == ss[sk_index]);
               }
@@ -713,21 +710,6 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
             }
           }
         }
-        if (cop_to_strat.find(cop) != cop_to_strat.end())
-        {
-          // collect children types
-          for (unsigned k = 0, size = cop_to_carg_list[cop].size(); k < size;
-               k++)
-          {
-            TypeNode tn = sktns[cop_to_carg_list[cop][k]];
-            Trace("sygus-unif-debug") << "   Child type " << k << " : "
-                                      << static_cast<DatatypeType>(tn.toType())
-                                             .getDatatype()
-                                             .getName()
-                                      << std::endl;
-            cop_to_child_types[cop].push_back(tn);
-          }
-        }
       }
     }
     if (cop_to_strat.find(cop) == cop_to_strat.end())
@@ -735,6 +717,21 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
       Trace("sygus-unif") << "...constructor " << cop
                           << " does not correspond to a strategy." << std::endl;
       search_this = true;
+    }
+    else 
+    {
+      Trace("sygus-unif") << "-> constructor " << cop << " matches strategy for " << eut.getKind() << "..." << std::endl;
+      // collect children types
+      for (unsigned k = 0, size = cop_to_carg_list[cop].size(); k < size; k++)
+      {
+        TypeNode tn = sktns[cop_to_carg_list[cop][k]];
+        Trace("sygus-unif-debug") << "   Child type " << k << " : "
+                                  << static_cast<DatatypeType>(tn.toType())
+                                          .getDatatype()
+                                          .getName()
+                                  << std::endl;
+        cop_to_child_types[cop].push_back(tn);
+      }
     }
   }
 
@@ -749,20 +746,18 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
   }
   else
   {
-    for (std::map<Node, std::vector<StrategyType> >::iterator itct =
-             cop_to_strat.begin();
-         itct != cop_to_strat.end();
-         ++itct)
+    for( std::pair< const Node, std::vector<StrategyType> >& cstr : cop_to_strat )
     {
-      Node cop = itct->first;
-      for (unsigned s = 0, ssize = itct->second.size(); s < ssize; s++)
+      Node cop = cstr.first;
+      Trace("sygus-unif-debug") << "Constructor " << cop << " has " << cstr.second.size() << " strategies..." << std::endl;
+      for (unsigned s = 0, ssize = cstr.second.size(); s < ssize; s++)
       {
         EnumTypeInfoStrat* cons_strat = new EnumTypeInfoStrat;
-        StrategyType strat = itct->second[s];
+        StrategyType strat = cstr.second[s];
 
         cons_strat->d_this = strat;
-        cons_strat->d_cons = itct->first;
-        Trace("sygus-unif-debug") << "Process strategy for operator : " << cop
+        cons_strat->d_cons = cop;
+        Trace("sygus-unif-debug") << "Process strategy #" << s << " for operator : " << cop
                                   << " : " << strat << std::endl;
         Assert(cop_to_child_types.find(cop) != cop_to_child_types.end());
         std::vector<TypeNode>& childTypes = cop_to_child_types[cop];
@@ -959,17 +954,16 @@ void CegConjecturePbe::staticLearnRedundantOps(
     visited[e][nrole] = true;
 
     indent("sygus-unif", ind);
-    Trace("sygus-unif") << e << " : enum role : " << itn->second.getRole();
-    Trace("sygus-unif") << " : type : ";
-    Trace("sygus-unif")
-        << ((DatatypeType)e.getType().toType()).getDatatype().getName();
-    Trace("sygus-unif") << " : node role : " << nrole << " : ";
+    Trace("sygus-unif") << e << " :: node role : " << nrole;
+    Trace("sygus-unif") << ", type : " << ((DatatypeType)e.getType().toType()).getDatatype().getName();
+    Trace("sygus-unif") << ", enum role : " << itn->second.getRole();
 
     if( itn->second.isTemplated() ){
-      Trace("sygus-unif") << "basic, templated : (lambda "
+      Trace("sygus-unif") << ", templated : (lambda "
                           << itn->second.d_template_arg << " "
                           << itn->second.d_template << ")" << std::endl;
     }else{
+      Trace("sygus-unif") << std::endl;
       TypeNode etn = e.getType();
 
       // enumerator type info
@@ -983,11 +977,8 @@ void CegConjecturePbe::staticLearnRedundantOps(
       Assert(itsn != tinfo.d_snodes.end());
       StrategyNode& snode = itsn->second;
 
-      if (snode.d_strats.empty())
+      if (!snode.d_strats.empty())
       {
-        Trace("sygus-unif") << "basic" << std::endl;
-      }else{
-        Trace("sygus-unif") << "compound" << std::endl;
         // various strategies
         for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
         {
@@ -1055,7 +1046,7 @@ void CegConjecturePbe::staticLearnRedundantOps(
     }
   }else{
     indent("sygus-unif", ind);
-    Trace("sygus-unif") << e << " : node role : " << nrole << std::endl;
+    Trace("sygus-unif") << e << " :: node role : " << nrole << std::endl;
   }
   if( !redundant.empty() ){
     // TODO : if this becomes more general, must get master enumerator here
