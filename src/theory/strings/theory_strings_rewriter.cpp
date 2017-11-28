@@ -1776,83 +1776,114 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
 Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   if( node[1]==node[2] ){
     return returnRewrite(node, node[0], "rpl-id");
-  }else if( node[0]==node[1] ){
+  }
+  else if (node[0] == node[1])
+  {
     return returnRewrite(node, node[2], "rpl-replace");
-  }else if( node[1].isConst() ){
-    if( node[1].getConst<String>().isEmptyString() ){
+  }
+  else if (node[1].isConst())
+  {
+    if (node[1].getConst<String>().isEmptyString())
+    {
       return returnRewrite(node, node[0], "rpl-empty");
-    }else if( node[0].isConst() ){
+    }
+    else if (node[0].isConst())
+    {
       CVC4::String s = node[0].getConst<String>();
       CVC4::String t = node[1].getConst<String>();
       std::size_t p = s.find(t);
-      if( p==std::string::npos ){
+      if (p == std::string::npos)
+      {
         return returnRewrite(node, node[0], "rpl-const-nfind");
-      }else{
+      }
+      else
+      {
         CVC4::String s1 = s.substr(0, (int)p);
         CVC4::String s3 = s.substr((int)p + (int)t.size());
-        Node ns1 = NodeManager::currentNM()->mkConst( ::CVC4::String(s1) );
-        Node ns3 = NodeManager::currentNM()->mkConst( ::CVC4::String(s3) );
-        Node ret = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, ns1, node[2], ns3 );
+        Node ns1 = NodeManager::currentNM()->mkConst(::CVC4::String(s1));
+        Node ns3 = NodeManager::currentNM()->mkConst(::CVC4::String(s3));
+        Node ret = NodeManager::currentNM()->mkNode(
+            kind::STRING_CONCAT, ns1, node[2], ns3);
         return returnRewrite(node, ret, "rpl-const-find");
       }
     }
   }
 
-  std::vector< Node > children0;
-  getConcat( node[0], children0 );
-  std::vector< Node > children1;
-  getConcat( node[1], children1 );
-  
+  std::vector<Node> children0;
+  getConcat(node[0], children0);
+  std::vector<Node> children1;
+  getConcat(node[1], children1);
+
   // check if contains definitely (does not) hold
-  Node cmp_con = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, node[0], node[1] );
-  Node cmp_conr = Rewriter::rewrite( cmp_con );
-  if( cmp_conr.isConst() ){
-    if( cmp_conr.getConst<bool>() ){
-      //component-wise containment
-      std::vector< Node > cb;
-      std::vector< Node > ce;
-      int cc = componentContains( children0, children1, cb, ce, true, 1 );
-      if( cc!=-1 ){
-        if( cc==0 && children0[0]==children1[0] ){
+  Node cmp_con =
+      NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, node[0], node[1]);
+  Node cmp_conr = Rewriter::rewrite(cmp_con);
+  if (cmp_conr.isConst())
+  {
+    if (cmp_conr.getConst<bool>())
+    {
+      // component-wise containment
+      std::vector<Node> cb;
+      std::vector<Node> ce;
+      int cc = componentContains(children0, children1, cb, ce, true, 1);
+      if (cc != -1)
+      {
+        if (cc == 0 && children0[0] == children1[0])
+        {
           // definitely a prefix, can do the replace
-          std::vector< Node > cres;
-          cres.push_back( node[2] );
-          cres.insert( cres.end(), ce.begin(), ce.end() );
-          Node ret = mkConcat( kind::STRING_CONCAT, cres );
+          std::vector<Node> cres;
+          cres.push_back(node[2]);
+          cres.insert(cres.end(), ce.begin(), ce.end());
+          Node ret = mkConcat(kind::STRING_CONCAT, cres);
           return returnRewrite(node, ret, "rpl-cctn-rpl");
-        }else if( ce.empty() ){
-          //we can pull remainder past first definite containment
-          std::vector< Node > cc;
-          cc.push_back( NodeManager::currentNM()->mkNode( kind::STRING_STRREPL, mkConcat( kind::STRING_CONCAT, children0 ), node[1], node[2] ) );
-          cc.insert( cc.end(), ce.begin(), ce.end() );
-          Node ret = mkConcat( kind::STRING_CONCAT, cc );
+        }
+        else if (ce.empty())
+        {
+          // we can pull remainder past first definite containment
+          std::vector<Node> cc;
+          cc.push_back(NodeManager::currentNM()->mkNode(
+              kind::STRING_STRREPL,
+              mkConcat(kind::STRING_CONCAT, children0),
+              node[1],
+              node[2]));
+          cc.insert(cc.end(), ce.begin(), ce.end());
+          Node ret = mkConcat(kind::STRING_CONCAT, cc);
           return returnRewrite(node, ret, "rpl-cctn");
         }
       }
-    }else{
+    }
+    else
+    {
       // ~contains( t, s ) => ( replace( t, s, r ) ----> t )
       return returnRewrite(node, node[0], "rpl-nctn");
     }
-  }else if( cmp_conr!=cmp_con ){
+  }
+  else if (cmp_conr != cmp_con)
+  {
     // pull endpoints that can be stripped
-    std::vector< Node > cb;
-    std::vector< Node > ce;
-    if( stripConstantEndpoints( children0, children1, cb, ce ) ){
-      std::vector< Node > cc;
-      cc.insert( cc.end(), cb.begin(), cb.end() );
-      cc.push_back( NodeManager::currentNM()->mkNode( kind::STRING_STRREPL, mkConcat( kind::STRING_CONCAT, children0 ), node[1], node[2] ) );
-      cc.insert( cc.end(), ce.begin(), ce.end() );
-      Node ret = mkConcat( kind::STRING_CONCAT, cc );
+    std::vector<Node> cb;
+    std::vector<Node> ce;
+    if (stripConstantEndpoints(children0, children1, cb, ce))
+    {
+      std::vector<Node> cc;
+      cc.insert(cc.end(), cb.begin(), cb.end());
+      cc.push_back(NodeManager::currentNM()->mkNode(
+          kind::STRING_STRREPL,
+          mkConcat(kind::STRING_CONCAT, children0),
+          node[1],
+          node[2]));
+      cc.insert(cc.end(), ce.begin(), ce.end());
+      Node ret = mkConcat(kind::STRING_CONCAT, cc);
       return returnRewrite(node, ret, "rpl-pull-endpt");
     }
   }
-  
-  // contains( t, s ) =>   
+
+  // contains( t, s ) =>
   //   replace( replace( x, t, s ), s, r ) ----> replace( x, t, r )
-  
-  // contains( t, s ) =>   
+
+  // contains( t, s ) =>
   //   contains( replace( t, s, r ), r ) ----> true
-  
+
   Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
 }

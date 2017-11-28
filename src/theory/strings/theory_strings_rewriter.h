@@ -83,11 +83,11 @@ private:
   static Node rewriteContains(Node node);
   static Node rewriteIndexof(Node node);
   /** rewrite replace
-  * This is the entry point for post-rewriting terms n of the form 
+  * This is the entry point for post-rewriting terms n of the form
   *   str.replace( s, t, r )
   * Returns the rewritten form of n.
   */
-  static Node rewriteReplace( Node n );
+  static Node rewriteReplace(Node n);
 
   /** gets the "vector form" of term n, adds it to c.
   * For example:
