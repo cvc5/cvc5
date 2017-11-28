@@ -698,7 +698,8 @@ int Trigger::isTriggerInstanceOf(Node n1,
       // recurse if they have the same operator
       if (cur1.hasOperator() && cur2.hasOperator()
           && cur1.getNumChildren() == cur2.getNumChildren()
-          && cur1.getOperator() == cur2.getOperator())
+          && cur1.getOperator() == cur2.getOperator()
+          && cur1.getOperator().getKind()!=INST_CONSTANT)
       {
         visit.push_back(std::pair<TNode, TNode>(cur1, cur2));
         for (unsigned i = 0, size = cur1.getNumChildren(); i < size; i++)
