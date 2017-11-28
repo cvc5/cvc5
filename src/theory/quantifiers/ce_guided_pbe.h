@@ -397,28 +397,29 @@ class CegConjecturePbe {
   std::map< Node, EnumInfo > d_einfo;
 
   class CandidateInfo;
-  
+
   /** represents a strategy for a SyGuS datatype type */
   class EnumTypeInfoStrat {
   public:
-    StrategyType d_this;
-    Node d_cons;
-    /** conditional solutions */
-    std::vector< TypeNode > d_csol_cts;
-    std::vector< std::pair< Node, NodeRole > > d_cenum;
-    std::vector< Node > d_sol_templ_args;
-    Node d_sol_templ;
+   StrategyType d_this;
+   Node d_cons;
+   /** conditional solutions */
+   std::vector<TypeNode> d_csol_cts;
+   std::vector<std::pair<Node, NodeRole> > d_cenum;
+   std::vector<Node> d_sol_templ_args;
+   Node d_sol_templ;
   };
-  
+
   /** represents a node in the strategy graph */
-  class StrategyNode {
-  public:
+  class StrategyNode
+  {
+   public:
     StrategyNode() {}
     ~StrategyNode();
     /** the set of strategies to try at this node in the strategy graph */
-    std::vector< EnumTypeInfoStrat * > d_strats;
+    std::vector<EnumTypeInfoStrat*> d_strats;
   };
-  
+
   /** stores enumerators and strategies for a SyGuS datatype type */
   class EnumTypeInfo {
   public:
@@ -428,18 +429,18 @@ class CegConjecturePbe {
     /** the type that this information is for */
     TypeNode d_this_type;
     /** map from enum roles to enumerators for this type */
-    std::map< EnumRole, Node > d_enum;
+    std::map<EnumRole, Node> d_enum;
     /** map from node roles to strategy nodes */
-    std::map< NodeRole, StrategyNode > d_snodes;
+    std::map<NodeRole, StrategyNode> d_snodes;
   };
-  
+
   /** stores strategy and enumeration information for a function-to-synthesize
    */
   class CandidateInfo {
   public:
     CandidateInfo() : d_check_sol( false ), d_cond_count( 0 ){}
     Node d_this_candidate;
-    /** 
+    /**
      * The root sygus datatype for the function-to-synthesize,
      * which encodes the overall syntactic restrictions on the space
      * of solutions.
@@ -449,7 +450,7 @@ class CegConjecturePbe {
     std::map< TypeNode, EnumTypeInfo > d_tinfo;
     /** list of all enumerators for the function-to-synthesize */
     std::vector< Node > d_esym_list;
-    /** 
+    /**
      * Maps sygus datatypes to their search enumerator. This is the (single)
      * enumerator of that type that we enumerate values for.
      */
@@ -475,13 +476,14 @@ class CegConjecturePbe {
   void registerEnumerator(
       Node et, Node c, TypeNode tn, EnumRole enum_role, bool inSearch);
   void staticLearnRedundantOps(Node c, std::vector<Node>& lemmas);
-  void staticLearnRedundantOps(Node c,
-                               Node e,
-                               NodeRole nrole,
-                               std::map< Node, std::map< NodeRole, bool > >& visited,
-                               std::vector<Node>& redundant,
-                               std::vector<Node>& lemmas,
-                               int ind);
+  void staticLearnRedundantOps(
+      Node c,
+      Node e,
+      NodeRole nrole,
+      std::map<Node, std::map<NodeRole, bool> >& visited,
+      std::vector<Node>& redundant,
+      std::vector<Node>& lemmas,
+      int ind);
 
   /** register candidate conditional */
   bool inferTemplate(unsigned k,
@@ -493,127 +495,136 @@ class CegConjecturePbe {
   //------------------------------ constructing solutions
   class UnifContext {
   public:
-    UnifContext() : d_has_string_pos(role_invalid) {}
-    
-    /** this intiializes this context for function-to-synthesize c */
-    void initialize( CegConjecturePbe * pbe, Node c );
-    
-    //----------for ITE strategy
-    /** the value of the context conditional 
-     * 
-     * This stores a list of Boolean constants that is the same length of the 
-     * number of input/output example pairs we are considering. For each i,
-     * if d_vals[i] = true, i/o pair #i is active according to this context
-     * if d_vals[i] = false, i/o pair #i is inactive according to this context
-     */
-    std::vector< Node > d_vals;
-    /** update the examples 
-     * 
-     * if pol=true, this method updates d_vals to d_vals & vals
-     * if pol=false, this method updates d_vals to d_vals & ( ~vals )
-     */
-    bool updateContext( CegConjecturePbe * pbe, std::vector< Node >& vals, bool pol );
-    //----------end for ITE strategy
-    
-    //----------for CONCAT strategies
-    /** the position in the strings
-     * 
-     * For each i/o example pair, this stores the length of the current solution
-     * for the input the pair, where the solution for that input is a prefix or 
-     * suffix of the output of the pair. For example, if our i/o pairs are:
-     *   f( "abcd" ) = "abcdcd"
-     *   f( "aa" ) = "aacd"
-     * If the solution we have currently constructed is str.++( x1, "c", ... ),
-     * then d_str_pos = ( 5, 3 ), where notice that 
-     *   str.++( "abc", "c" ) is a prefix of "abcdcd" and 
-     *   str.++( "aa", "c" ) is a prefix of "aacd".
-     */
-    std::vector< unsigned > d_str_pos;
-    /** has string position
-     * 
-     * Whether the solution positions indicate a prefix or suffix of the output
-     * examples. If this is role_invalid, then we have not updated the string
-     * position.
-     */
-    NodeRole d_has_string_pos;
-    /** update the string examples
-     * 
-     * This method updates d_str_pos to d_str_pos + pos.
-     */
-    bool updateStringPosition( CegConjecturePbe * pbe, std::vector< unsigned >& pos );
-    /** get current strings 
-     * 
-     * This returns the prefix/suffix of the string constants stored in vals
-     * of size d_str_pos, and stores the result in ex_vals.
-     */
-    void getCurrentStrings( CegConjecturePbe * pbe, const std::vector< Node >& vals, std::vector< CVC4::String >& ex_vals );
-    /** get string increment
-     * 
-     * If this method returns true, then inc and tot are updated such that 
-     *   for all active indices i, 
-     *      vals[i] is a prefix (or suffix if isPrefix=false) of ex_vals[i], and
-     *      inc[i] = str.len(vals[i])
-     *   for all inactive indices i, inc[i] = 0
-     *   We set tot = sum_i inc[i].
-     */
-    bool getStringIncrement( CegConjecturePbe * pbe, bool isPrefix, const std::vector< CVC4::String >& ex_vals, 
-                             const std::vector< Node >& vals, std::vector< unsigned >& inc, unsigned& tot );
-    /** returns true if ex_vals[i] = vals[i] for all active indices i. */
-    bool isStringSolved( CegConjecturePbe * pbe, const std::vector< CVC4::String >& ex_vals, const std::vector< Node >& vals );
-    //----------end for CONCAT strategies
-    
-    /** is return value modified? 
-     * 
-     * This returns true if we are currently in a state where the return value
-     * of the solution has been modified, e.g. by a previous node that solved
-     * for a prefix.
-     */
-    bool isReturnValueModified();
-    /** returns true if argument is valid strategy in this context */
-    bool isValidStrategy( EnumTypeInfoStrat* etis );
-    /** visited role 
-     * 
-     * This is the current set of enumerator/node role pairs we are currently
-     * visiting. This set is cleared when the context is updated.
-     */
-    std::map< Node, std::map< NodeRole, bool > > d_visit_role;
-    
-    /** unif context enumerator information */
-    class UEnumInfo {
+   UnifContext() : d_has_string_pos(role_invalid) {}
+   /** this intiializes this context for function-to-synthesize c */
+   void initialize(CegConjecturePbe* pbe, Node c);
+
+   //----------for ITE strategy
+   /** the value of the context conditional
+    *
+    * This stores a list of Boolean constants that is the same length of the
+    * number of input/output example pairs we are considering. For each i,
+    * if d_vals[i] = true, i/o pair #i is active according to this context
+    * if d_vals[i] = false, i/o pair #i is inactive according to this context
+    */
+   std::vector<Node> d_vals;
+   /** update the examples
+    *
+    * if pol=true, this method updates d_vals to d_vals & vals
+    * if pol=false, this method updates d_vals to d_vals & ( ~vals )
+    */
+   bool updateContext(CegConjecturePbe* pbe, std::vector<Node>& vals, bool pol);
+   //----------end for ITE strategy
+
+   //----------for CONCAT strategies
+   /** the position in the strings
+    *
+    * For each i/o example pair, this stores the length of the current solution
+    * for the input the pair, where the solution for that input is a prefix or
+    * suffix of the output of the pair. For example, if our i/o pairs are:
+    *   f( "abcd" ) = "abcdcd"
+    *   f( "aa" ) = "aacd"
+    * If the solution we have currently constructed is str.++( x1, "c", ... ),
+    * then d_str_pos = ( 5, 3 ), where notice that
+    *   str.++( "abc", "c" ) is a prefix of "abcdcd" and
+    *   str.++( "aa", "c" ) is a prefix of "aacd".
+    */
+   std::vector<unsigned> d_str_pos;
+   /** has string position
+    *
+    * Whether the solution positions indicate a prefix or suffix of the output
+    * examples. If this is role_invalid, then we have not updated the string
+    * position.
+    */
+   NodeRole d_has_string_pos;
+   /** update the string examples
+    *
+    * This method updates d_str_pos to d_str_pos + pos.
+    */
+   bool updateStringPosition(CegConjecturePbe* pbe, std::vector<unsigned>& pos);
+   /** get current strings
+    *
+    * This returns the prefix/suffix of the string constants stored in vals
+    * of size d_str_pos, and stores the result in ex_vals.
+    */
+   void getCurrentStrings(CegConjecturePbe* pbe,
+                          const std::vector<Node>& vals,
+                          std::vector<CVC4::String>& ex_vals);
+   /** get string increment
+    *
+    * If this method returns true, then inc and tot are updated such that
+    *   for all active indices i,
+    *      vals[i] is a prefix (or suffix if isPrefix=false) of ex_vals[i], and
+    *      inc[i] = str.len(vals[i])
+    *   for all inactive indices i, inc[i] = 0
+    *   We set tot = sum_i inc[i].
+    */
+   bool getStringIncrement(CegConjecturePbe* pbe,
+                           bool isPrefix,
+                           const std::vector<CVC4::String>& ex_vals,
+                           const std::vector<Node>& vals,
+                           std::vector<unsigned>& inc,
+                           unsigned& tot);
+   /** returns true if ex_vals[i] = vals[i] for all active indices i. */
+   bool isStringSolved(CegConjecturePbe* pbe,
+                       const std::vector<CVC4::String>& ex_vals,
+                       const std::vector<Node>& vals);
+   //----------end for CONCAT strategies
+
+   /** is return value modified?
+    *
+    * This returns true if we are currently in a state where the return value
+    * of the solution has been modified, e.g. by a previous node that solved
+    * for a prefix.
+    */
+   bool isReturnValueModified();
+   /** returns true if argument is valid strategy in this context */
+   bool isValidStrategy(EnumTypeInfoStrat* etis);
+   /** visited role
+    *
+    * This is the current set of enumerator/node role pairs we are currently
+    * visiting. This set is cleared when the context is updated.
+    */
+   std::map<Node, std::map<NodeRole, bool> > d_visit_role;
+
+   /** unif context enumerator information */
+   class UEnumInfo
+   {
     public:
-      UEnumInfo(){}
-      /** map from conditions and branch positions to a solved node
-       * 
-       * For example, if we have:
-       *   f( 1 ) = 2 ^ f( 3 ) = 4 ^ f( -1 ) = 1
-       * Then, a valid entry in this map is:
-       *   d_look_ahead_sols[x>0][1] = x+1
-       * Since for all input examples such that x>0 evaluates to true, which 
-       * are (1) and (3), we have that their output values for x+1 under the
-       * substitution that maps x to the input value, resulting in 2 and 4,
-       * are equal to the output value for the respective pairs.
-       */
-      std::map< Node, std::map< unsigned, Node > > d_look_ahead_sols;
+     UEnumInfo() {}
+     /** map from conditions and branch positions to a solved node
+      *
+      * For example, if we have:
+      *   f( 1 ) = 2 ^ f( 3 ) = 4 ^ f( -1 ) = 1
+      * Then, a valid entry in this map is:
+      *   d_look_ahead_sols[x>0][1] = x+1
+      * Since for all input examples such that x>0 evaluates to true, which
+      * are (1) and (3), we have that their output values for x+1 under the
+      * substitution that maps x to the input value, resulting in 2 and 4,
+      * are equal to the output value for the respective pairs.
+      */
+     std::map<Node, std::map<unsigned, Node> > d_look_ahead_sols;
     };
     /** map from enumerators to the above info class */
     std::map< Node, UEnumInfo > d_uinfo;
   };
 
-  /** construct solution 
-   * 
+  /** construct solution
+   *
    * This method tries to construct a solution for function-to-synthesize c
-   * based on the strategy stored for c in d_c_info, which may include 
+   * based on the strategy stored for c in d_c_info, which may include
    * synthesis-by-unification approaches for ite and string concatenation terms.
    * If it cannot construct a solution, it returns the null node.
    */
   Node constructSolution( Node c );
   /** helper function for construct solution.
-   * 
+   *
    * Construct a solution based on enumerator e for function-to-synthesize c
    * with node role nrole in context x.
    * ind is the term depth of the context (for debugging).
    */
-  Node constructSolution( Node c, Node e, NodeRole nrole, UnifContext& x, int ind );
+  Node constructSolution(
+      Node c, Node e, NodeRole nrole, UnifContext& x, int ind);
   /** Heuristically choose the best solved term from solved in context x,
    * currently return the first. */
   Node constructBestSolvedTerm( std::vector< Node >& solved, UnifContext& x );
@@ -639,7 +650,7 @@ class CegConjecturePbe {
   //------------------------------ end constructing solutions
 
   /** get guard status
-   * 
+   *
    * Returns 1 if g is asserted true in the SAT solver.
    * Returns -1 if g is asserted false in the SAT solver.
    * Returns 0 otherwise.
