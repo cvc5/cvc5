@@ -104,10 +104,11 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
   int ires = 0;
   Trace("cegqi-arith-debug") << "isolate for " << pv << " in " << atom << std::endl;
   std::map< Node, Node > msum;
-  if( ArithMSum::getMonomialSumLit( atom, msum ) ){
+  if (ArithMSum::getMonomialSumLit(atom, msum))
+  {
     Trace("cegqi-arith-debug") << "got monomial sum: " << std::endl;
     if( Trace.isOn("cegqi-arith-debug") ){
-      ArithMSum::debugPrintMonomialSum( msum, "cegqi-arith-debug" );
+      ArithMSum::debugPrintMonomialSum(msum, "cegqi-arith-debug");
     }
     TypeNode pvtn = pv.getType();
     //remove vts symbols from polynomial
@@ -141,7 +142,7 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
       }
     }
 
-    ires = ArithMSum::isolate( pv, msum, veq_c, val, atom.getKind() );
+    ires = ArithMSum::isolate(pv, msum, veq_c, val, atom.getKind());
     if( ires!=0 ){
       Node realPart;
       if( Trace.isOn("cegqi-arith-debug") ){
@@ -195,7 +196,7 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
         Assert( ci->getOutput()->isEligibleForInstantiation( realPart ) );
         //re-isolate
         Trace("cegqi-arith-debug") << "Re-isolate..." << std::endl;
-        ires = ArithMSum::isolate( pv, msum, veq_c, val, atom.getKind() );
+        ires = ArithMSum::isolate(pv, msum, veq_c, val, atom.getKind());
         Trace("cegqi-arith-debug") << "Isolate for mixed Int/Real : " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << std::endl;
         Trace("cegqi-arith-debug") << "                 real part : " << realPart << std::endl;
         if( ires!=0 ){
@@ -670,13 +671,16 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
   eq = Rewriter::rewrite( eq );
   Trace("cegqi-arith-debug") << "...equality is " << eq << std::endl;
   std::map< Node, Node > msum;
-  if( ArithMSum::getMonomialSumLit( eq, msum ) ){
+  if (ArithMSum::getMonomialSumLit(eq, msum))
+  {
     Node veq;
-    if( ArithMSum::isolate( sf.d_vars[index], msum, veq, EQUAL, true )!=0 ){
+    if (ArithMSum::isolate(sf.d_vars[index], msum, veq, EQUAL, true) != 0)
+    {
       Node veq_c;
       if( veq[0]!=sf.d_vars[index] ){
         Node veq_v;
-        if( ArithMSum::getMonomial( veq[0], veq_c, veq_v ) ){
+        if (ArithMSum::getMonomial(veq[0], veq_c, veq_v))
+        {
           Assert( veq_v==sf.d_vars[index] );
         }
       }

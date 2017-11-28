@@ -727,7 +727,8 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
     }else if( try_coeff ){
       //must convert to monomial representation
       std::map< Node, Node > msum;
-      if( ArithMSum::getMonomialSum( n, msum ) ){
+      if (ArithMSum::getMonomialSum(n, msum))
+      {
         std::map< Node, Node > msum_coeff;
         std::map< Node, Node > msum_term;
         for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){

@@ -358,7 +358,8 @@ bool NonLinearExtentionSubstitutionSolver::solve(
         if (!n.isConst()) {
           Trace("nl-subs-debug") << "Look at term : " << n << std::endl;
           std::map<Node, Node> msum;
-          if (ArithMSum::getMonomialSum(n, msum)) {
+          if (ArithMSum::getMonomialSum(n, msum))
+          {
             int nconst_count = 0;
             bool evaluatable = true;
             //first, collect sums of equal terms
@@ -403,7 +404,8 @@ bool NonLinearExtentionSubstitutionSolver::solve(
                 }else{
                   //recompute the monomial
                   msum.clear();
-                  if (!ArithMSum::getMonomialSum(ns, msum)) {
+                  if (!ArithMSum::getMonomialSum(ns, msum))
+                  {
                     success = false;
                   }else{
                     d_rep_sum_unique_exp[n] =
@@ -838,7 +840,8 @@ void NonlinearExtension::registerConstraint(Node atom) {
     d_constraints.push_back(atom);
     Trace("nl-ext-debug") << "Register constraint : " << atom << std::endl;
     std::map<Node, Node> msum;
-    if (ArithMSum::getMonomialSumLit(atom, msum)) {
+    if (ArithMSum::getMonomialSumLit(atom, msum))
+    {
       Trace("nl-ext-debug") << "got monomial sum: " << std::endl;
       if (Trace.isOn("nl-ext-debug")) {
         ArithMSum::debugPrintMonomialSum(msum, "nl-ext-debug");
@@ -2513,7 +2516,8 @@ std::vector<Node> NonlinearExtension::checkFactoring( const std::set<Node>& fals
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
     if( false_asserts.find(lit) != false_asserts.end() || d_skolem_atoms.find(atom)!=d_skolem_atoms.end() ){
       std::map<Node, Node> msum;
-      if (ArithMSum::getMonomialSumLit(atom, msum)) {
+      if (ArithMSum::getMonomialSumLit(atom, msum))
+      {
         Trace("nl-ext-factor") << "Factoring for literal " << lit << ", monomial sum is : " << std::endl;
         if (Trace.isOn("nl-ext-factor")) {
           ArithMSum::debugPrintMonomialSum(msum, "nl-ext-factor");
@@ -2564,7 +2568,8 @@ std::vector<Node> NonlinearExtension::checkFactoring( const std::set<Node>& fals
             Assert( itfo!=factor_to_mono_orig.end() );
             for( std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
               if( std::find( itfo->second.begin(), itfo->second.end(), itm->first )==itfo->second.end() ){
-                poly.push_back( ArithMSum::mkCoeffTerm(itm->second, itm->first.isNull() ? d_one : itm->first) );
+                poly.push_back(ArithMSum::mkCoeffTerm(
+                    itm->second, itm->first.isNull() ? d_one : itm->first));
               }
             }
             Node polyn = poly.size() == 1
