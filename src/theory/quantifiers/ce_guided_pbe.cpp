@@ -1693,13 +1693,16 @@ Node CegConjecturePbe::constructBestStringToConcat( std::vector< Node > strs,
                                                     std::map< Node, std::vector< unsigned > > incr,
                                                     UnifContext& x ) {
   Assert( !strs.empty() );
-  // TODO
-  double r = Random::getRandom().pickDouble(0.0, 1.0);
-  unsigned cindex = r*strs.size();
-  if( cindex>strs.size() ){
-    cindex = strs.size() - 1;
+  std::random_shuffle( strs.begin(), strs.end() );
+  // prefer one that has incremented by more than 0
+  for( const Node& ns : strs )
+  {
+    if( total_inc[ns]>0 ){
+      return ns;
+    }
   }
-  return strs[cindex];
+  // TODO : more sophisticated heuristic?
+  return strs[0];
 }
 
 Node CegConjecturePbe::constructSolution(
@@ -1865,10 +1868,6 @@ Node CegConjecturePbe::constructSolution(
                                               einfo.d_enum_vals_res[i],
                                               incr[val_t],
                                               tot);
-        if (tot == 0)
-        {
-          exsuccess = false;
-        }
         if (!exsuccess)
         {
           incr.erase(val_t);
@@ -1893,7 +1892,7 @@ Node CegConjecturePbe::constructSolution(
                               << d_tds->sygusToBuiltin(ret_dt) << std::endl;
         // update the context
         bool ret = x.updateStringPosition(this, incr[ret_dt]);
-        AlwaysAssert(ret);
+        AlwaysAssert(ret==(total_inc[ret_dt]>0));
         x.d_has_string_pos = nrole;
       }else{
         indent("sygus-pbe-dt", ind);
