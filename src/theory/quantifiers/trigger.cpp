@@ -618,7 +618,7 @@ void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, qu
     collectPatTerms( q, n, patTerms2, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo2, false );
     std::vector< Node > temp;
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
-    filterInstances(temp);
+    filterTriggerInstances(temp);
     if (Trace.isOn("trigger-filter-instance"))
     {
       if (temp.size() != patTerms2.size())
@@ -756,7 +756,7 @@ int Trigger::isTriggerInstanceOf(Node n1,
   return status;
 }
 
-void Trigger::filterInstances(std::vector<Node>& nodes)
+void Trigger::filterTriggerInstances(std::vector<Node>& nodes)
 {
   std::map<unsigned, std::vector<Node> > fvs;
   for (unsigned i = 0, size = nodes.size(); i < size; i++)
