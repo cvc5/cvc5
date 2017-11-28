@@ -275,10 +275,12 @@ void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions) {
       assumptions.push_back( tassumptions[i] );
     }
   }
-  if( Debug.isOn("strings-explain-debug") )
+  if (Debug.isOn("strings-explain-debug"))
   {
-    Debug("strings-explain-debug") << "Explanation for " << literal << " was " << std::endl;
-    for( unsigned i=ps; i<assumptions.size(); i++ ){
+    Debug("strings-explain-debug") << "Explanation for " << literal << " was "
+                                   << std::endl;
+    for (unsigned i = ps; i < assumptions.size(); i++)
+    {
       Debug("strings-explain-debug") << "   " << assumptions[i] << std::endl;
     }
   }
@@ -3283,7 +3285,8 @@ void TheoryStrings::sendInference( std::vector< Node >& exp, std::vector< Node >
         }
       }
       // if we have unexplained literals, this lemma is not a conflict
-      if( eq==d_false && !exp_n.empty() ){
+      if (eq == d_false && !exp_n.empty())
+      {
         eq = eq_exp.negate();
         eq_exp = d_true;
       }

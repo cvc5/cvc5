@@ -199,13 +199,14 @@ public:
                      bool hasBoundVars = false,
                      bool useDontCares = false) const;
   /** add term internal
-   * 
+   *
    * This will do any model-specific processing necessary for n,
    * such as constraining the interpretation of uninterpreted functions.
    * This is called once for all terms in the equality engine, just before
    * a model builder constructs this model.
    */
   virtual void addTermInternal(TNode n);
+
  private:
   /** cache for getModelValue */
   mutable std::unordered_map<Node, Node, NodeHashFunction> d_modelCache;

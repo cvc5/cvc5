@@ -351,8 +351,8 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   // AJR: build ordered list of types that ensures that base types are
   // enumerated first.
   // (I think) this is only strictly necessary for finite model finding +
-  // parametric types instantiated with uninterpreted sorts, but is probably 
-  // a good idea to do in general since it leads to models with smaller term 
+  // parametric types instantiated with uninterpreted sorts, but is probably
+  // a good idea to do in general since it leads to models with smaller term
   // sizes.
   std::vector<TypeNode> type_list;
   eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);

@@ -557,11 +557,14 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
 void FullModelChecker::preInitializeType( FirstOrderModelFmc * fm, TypeNode tn ){
   if( d_preinitialized_types.find( tn )==d_preinitialized_types.end() ){
     d_preinitialized_types[tn] = true;
-    if( !tn.isFunction() || options::ufHo() ){
+    if (!tn.isFunction() || options::ufHo())
+    {
       Node mb = fm->getModelBasisTerm(tn);
-      if( !mb.isConst() ){
-        Trace("fmc") << "...add model basis term to EE of model " << mb << " " << tn << std::endl;
-        fm->d_equalityEngine->addTerm( mb );
+      if (!mb.isConst())
+      {
+        Trace("fmc") << "...add model basis term to EE of model " << mb << " "
+                     << tn << std::endl;
+        fm->d_equalityEngine->addTerm(mb);
       }
     }
   }
