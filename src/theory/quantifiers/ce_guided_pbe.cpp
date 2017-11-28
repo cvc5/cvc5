@@ -411,6 +411,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
                                               TypeNode tn,
                                               NodeRole nrole)
 {
+  NodeManager * nm = NodeManager::currentNM();
   if (d_cinfo[e].d_tinfo.find(tn) == d_cinfo[e].d_tinfo.end())
   {
     // register type
@@ -433,7 +434,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
   std::map<EnumRole, Node>::iterator iten = eti.d_enum.find(erole);
   if (iten == eti.d_enum.end())
   {
-    ee = NodeManager::currentNM()->mkSkolem("ee", tn);
+    ee = nm->mkSkolem("ee", tn);
     eti.d_enum[erole] = ee;
     Trace("sygus-unif-debug")
         << "...enumerator " << ee << " for "
@@ -468,7 +469,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
 
   // whether we will enumerate the current type
   bool search_this = false;
-  for (unsigned j = 0; j < dt.getNumConstructors(); j++)
+  for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
   {
     Node cop = Node::fromExpr(dt[j].getConstructor());
     Node op = Node::fromExpr(dt[j].getSygusOp());
@@ -480,27 +481,27 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
     utchildren.push_back(cop);
     std::vector<Node> sks;
     std::vector<TypeNode> sktns;
-    for (unsigned k = 0; k < dt[j].getNumArgs(); k++)
+    for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
     {
       Type t = dt[j][k].getRangeType();
       TypeNode ttn = TypeNode::fromType(t);
-      Node kv = NodeManager::currentNM()->mkSkolem("ut", ttn);
+      Node kv = nm->mkSkolem("ut", ttn);
       sks.push_back(kv);
       cop_to_sks[cop].push_back(kv);
       sktns.push_back(ttn);
       utchildren.push_back(kv);
     }
     Node ut =
-        NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, utchildren);
+        nm->mkNode(kind::APPLY_CONSTRUCTOR, utchildren);
     std::vector<Node> echildren;
     echildren.push_back(Node::fromExpr(dt.getSygusEvaluationFunc()));
     echildren.push_back(ut);
     Node sbvl = Node::fromExpr(dt.getSygusVarList());
-    for (unsigned k = 0; k < sbvl.getNumChildren(); k++)
+    for( const Node& sbv : sbvl )
     {
-      echildren.push_back(sbvl[k]);
+      echildren.push_back(sbv);
     }
-    Node eut = NodeManager::currentNM()->mkNode(kind::APPLY_UF, echildren);
+    Node eut = nm->mkNode(kind::APPLY_UF, echildren);
     Trace("sygus-unif-debug2") << "  Test evaluation of " << eut << "..."
                                << std::endl;
     eut = d_qe->getTermDatabaseSygus()->unfold(eut);
@@ -536,7 +537,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
       std::vector<Node> vs;
       std::vector<Node> ss;
       std::map<Node, unsigned> templ_var_index;
-      for (unsigned k = 0; k < sks.size(); k++)
+      for (unsigned k = 0, sksize = sks.size(); k < sksize; k++)
       {
         Assert(sks[k].getType().isDatatype());
         const Datatype& cdt =
@@ -545,9 +546,9 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
         echildren[1] = sks[k];
         Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k]
                                    << std::endl;
-        Node esk = NodeManager::currentNM()->mkNode(kind::APPLY_UF, echildren);
+        Node esk = nm->mkNode(kind::APPLY_UF, echildren);
         vs.push_back(esk);
-        Node tvar = NodeManager::currentNM()->mkSkolem("templ", esk.getType());
+        Node tvar = nm->mkSkolem("templ", esk.getType());
         templ_var_index[tvar] = k;
         Trace("sygus-unif-debug2") << "* template inference : looking for "
                                    << tvar << " for arg " << k << std::endl;
@@ -565,7 +566,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
       }
       else
       {
-        for (unsigned k = 0; k < eut.getNumChildren(); k++)
+        for (unsigned k = 0, size = eut.getNumChildren(); k < size; k++)
         {
           test_args[k] = eut[k];
         }
@@ -578,12 +579,10 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
       std::map<unsigned, std::vector<unsigned> > assoc_combine;
       std::vector<unsigned> assoc_waiting;
       int assoc_last_valid_index = -1;
-      for (std::map<unsigned, Node>::iterator it = test_args.begin();
-           it != test_args.end();
-           ++it)
+      for(std::pair<const unsigned, Node >& ta : test_args )
       {
-        unsigned k = it->first;
-        Node eut_c = it->second;
+        unsigned k = ta.first;
+        Node eut_c = ta.second;
         // success if we can find a injection from args to sygus args
         if (!inferTemplate(k, eut_c, templ_var_index, templ_injection))
         {
@@ -652,11 +651,9 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
           Trace("sygus-unif") << "...type " << dt.getName()
                               << " has defined constructor matching strategy "
                               << eut.getKind() << "..." << std::endl;
-          for (std::map<unsigned, Node>::iterator it = test_args.begin();
-               it != test_args.end();
-               ++it)
+          for(std::pair<const unsigned, Node >& ta : test_args )
           {
-            unsigned k = it->first;
+            unsigned k = ta.first;
             Trace("sygus-unif-debug2") << "- processing argument " << k << "..."
                                        << std::endl;
             if (templ_injection.find(k) != templ_injection.end())
@@ -687,13 +684,13 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
                   children.push_back(eut[ac[ack]]);
                 }
                 teut = children.size() == 1 ? children[0]
-                                            : NodeManager::currentNM()->mkNode(
+                                            : nm->mkNode(
                                                   eut.getKind(), children);
                 teut = Rewriter::rewrite(teut);
               }
               else
               {
-                teut = it->second;
+                teut = ta.second;
               }
 
               if (!teut.isVar())
@@ -720,7 +717,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
         if (cop_to_strat.find(cop) != cop_to_strat.end())
         {
           // collect children types
-          for (unsigned k = 0; k < cop_to_carg_list[cop].size(); k++)
+          for (unsigned k = 0, size = cop_to_carg_list[cop].size(); k < size; k++)
           {
             TypeNode tn = sktns[cop_to_carg_list[cop][k]];
             Trace("sygus-unif-debug") << "   Child type " << k << " : "
@@ -775,7 +772,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
         std::vector<Node> sol_templ_children;
         sol_templ_children.resize(cop_to_sks[cop].size());
 
-        for (unsigned j = 0; j < childTypes.size(); j++)
+        for (unsigned j = 0, csize = childTypes.size(); j < csize; j++)
         {
           // calculate if we should allocate a new enumerator : should be true
           // if we have a new role
@@ -816,7 +813,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
           if (cop_to_child_templ[cop].find(j) != cop_to_child_templ[cop].end())
           {
             // it is templated, allocate a fresh variable
-            et = NodeManager::currentNM()->mkSkolem("et", ct);
+            et = nm->mkSkolem("et", ct);
             Trace("sygus-unif-debug")
                 << "...enumerate " << et << " of type "
                 << ((DatatypeType)ct.toType()).getDatatype().getName();
@@ -849,7 +846,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
           cons_strat->d_cenum.push_back(std::pair<Node, NodeRole>(et, nrole_c));
         }
         // children that are unused in the strategy can be arbitrary
-        for (unsigned j = 0; j < sol_templ_children.size(); j++)
+        for (unsigned j = 0, stsize = sol_templ_children.size(); j < stsize; j++)
         {
           if (sol_templ_children[j].isNull())
           {
@@ -857,7 +854,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
           }
         }
         sol_templ_children.insert(sol_templ_children.begin(), cop);
-        cons_strat->d_sol_templ = NodeManager::currentNM()->mkNode(
+        cons_strat->d_sol_templ = nm->mkNode(
             APPLY_CONSTRUCTOR, sol_templ_children);
         if (strat == strat_CONCAT_SUFFIX)
         {
@@ -873,11 +870,9 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
           Trace("sygus-unif") << " for " << ((DatatypeType)tn.toType()).getDatatype().getName() << ", operator " << cop;
           Trace("sygus-unif") << ", #children = " << cons_strat->d_cenum.size()
                               << ", solution template = (lambda ( ";
-          for (unsigned i = 0, size = cons_strat->d_sol_templ_args.size();
-               i < size;
-               i++)
+          for (const Node& targ : cons_strat->d_sol_templ_args)
           {
-            Trace("sygus-unif") << cons_strat->d_sol_templ_args[i] << " ";
+            Trace("sygus-unif") << targ << " ";
           }
           Trace("sygus-unif") << ") " << cons_strat->d_sol_templ << ")";
           Trace("sygus-unif") << std::endl;
@@ -1745,12 +1740,6 @@ Node CegConjecturePbe::constructSolution(
   Assert(itt != d_cinfo[c].d_tinfo.end());
   EnumTypeInfo& tinfo = itt->second;
 
-  // get the enumerator for this role
-  // EnumRole erole = getEnumeratorRoleForNodeRole( nrole );
-  // std::map< EnumRole, Node >::iterator iten = tinfo.d_enum.find(erole);
-  // Assert( iten!=tinfo.d_enum.end() );
-  // Node e = iten->second;
-
   // get the enumerator information
   std::map< Node, EnumInfo >::iterator itn = d_einfo.find( e );
   Assert( itn!=d_einfo.end() );
@@ -1874,7 +1863,7 @@ Node CegConjecturePbe::constructSolution(
       // examples
       Assert(einfo.d_enum_vals.size() == einfo.d_enum_vals_res.size());
 
-      for (unsigned i = 0; i < einfo.d_enum_vals.size(); i++)
+      for (unsigned i = 0, size = einfo.d_enum_vals.size(); i < size; i++)
       {
         Node val_t = einfo.d_enum_vals[i];
         indent("sygus-pbe-dt-debug", ind);
@@ -2048,7 +2037,7 @@ Node CegConjecturePbe::constructSolution(
                   bool branch_pol = (i == 1);
                   // for each condition, get terms that satisfy it in this
                   // branch
-                  for (unsigned k = 0; k < einfo_child.d_enum_vals.size(); k++)
+                  for (unsigned k = 0, size = einfo_child.d_enum_vals.size(); k < size; k++)
                   {
                     Node cond = einfo_child.d_enum_vals[k];
                     std::vector<Node> solved;
@@ -2088,15 +2077,17 @@ Node CegConjecturePbe::constructSolution(
                 possible_cond.find(0);
             if (itpc != possible_cond.end())
             {
-              indent("sygus-pbe-dt-debug", ind + 1);
-              Trace("sygus-pbe-dt-debug")
-                  << "PBE : We have " << itpc->second.size()
-                  << " distinguishable conditionals:" << std::endl;
-              for (unsigned k = 0; k < itpc->second.size(); k++)
-              {
-                indent("sygus-pbe-dt-debug", ind + 2);
+              if( Trace.isOn("sygus-pbe-dt-debug") ){
+                indent("sygus-pbe-dt-debug", ind + 1);
                 Trace("sygus-pbe-dt-debug")
-                    << d_tds->sygusToBuiltin(itpc->second[k]) << std::endl;
+                    << "PBE : We have " << itpc->second.size()
+                    << " distinguishable conditionals:" << std::endl;
+                for (Node& cond : itpc->second)
+                {
+                  indent("sygus-pbe-dt-debug", ind + 2);
+                  Trace("sygus-pbe-dt-debug")
+                      << d_tds->sygusToBuiltin(cond) << std::endl;
+                }
               }
 
               // static look ahead conditional : choose conditionals that have
@@ -2107,9 +2098,8 @@ Node CegConjecturePbe::constructSolution(
               {
                 Assert(x.d_uinfo.find(ce) != x.d_uinfo.end());
                 int solve_max = 0;
-                for (unsigned k = 0; k < itpc->second.size(); k++)
+                for (Node& cond : itpc->second)
                 {
-                  Node cond = itpc->second[k];
                   std::map<Node, std::map<unsigned, Node> >::iterator itla =
                       x.d_uinfo[ce].d_look_ahead_sols.find(cond);
                   if (itla != x.d_uinfo[ce].d_look_ahead_sols.end())
@@ -2133,12 +2123,9 @@ Node CegConjecturePbe::constructSolution(
                     std::map<Node, std::map<unsigned, Node> >::iterator itla =
                         x.d_uinfo[ce].d_look_ahead_sols.find(rec_c);
                     Assert(itla != x.d_uinfo[ce].d_look_ahead_sols.end());
-                    for (std::map<unsigned, Node>::iterator itla2 =
-                             itla->second.begin();
-                         itla2 != itla->second.end();
-                         ++itla2)
+                    for( std::pair<const unsigned, Node>& las : itla->second )
                     {
-                      look_ahead_solved_children[itla2->first] = itla2->second;
+                      look_ahead_solved_children[las.first] = las.second;
                     }
                     break;
                   }
