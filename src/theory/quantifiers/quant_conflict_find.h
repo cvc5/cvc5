@@ -18,9 +18,9 @@
 #define QUANT_CONFLICT_FIND
 
 #include "context/cdhashmap.h"
-#include "context/cdchunk_list.h"
-#include "theory/quantifiers_engine.h"
+#include "context/cdlist.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -188,7 +188,6 @@ class QuantConflictFind : public QuantifiersModule
 {
   friend class MatchGen;
   friend class QuantInfo;
-  typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
   context::CDO< bool > d_conflict;

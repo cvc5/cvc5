@@ -22,8 +22,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include "context/cdchunk_list.h"
 #include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "options/quantifiers_modes.h"
 #include "theory/quantifiers/inst_match.h"
@@ -101,8 +101,8 @@ class QuantifiersEngine {
   friend class quantifiers::QuantConflictFind;
   friend class inst::InstMatch;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDChunkList<Node> NodeList;
-  typedef context::CDChunkList<bool> BoolList;
+  typedef context::CDList<Node> NodeList;
+  typedef context::CDList<bool> BoolList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 private:
   /** reference to theory engine object */

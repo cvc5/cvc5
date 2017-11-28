@@ -18,7 +18,6 @@
 #ifndef __CVC4__REWRITE_ENGINE_H
 #define __CVC4__REWRITE_ENGINE_H
 
-#include "context/cdchunk_list.h"
 #include "context/context.h"
 #include "context/context_mm.h"
 #include "theory/quantifiers/trigger.h"

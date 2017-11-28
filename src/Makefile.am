@@ -36,7 +36,6 @@ libcvc4_la_SOURCES = \
 	git_versioninfo.cpp \
 	svn_versioninfo.cpp \
 	context/backtrackable.h \
-	context/cdchunk_list.h \
 	context/cddense_set.h \
 	context/cdhashmap.h \
 	context/cdhashmap_forward.h \
