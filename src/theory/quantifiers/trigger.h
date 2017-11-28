@@ -398,8 +398,8 @@ class Trigger {
 
   /** filter all nodes that have trigger instances
    *
-   * This is used during collectModelInfo to filter certain trigger terms, 
-   * stored in nodes. This updates nodes so that no pairs of distinct nodes 
+   * This is used during collectModelInfo to filter certain trigger terms,
+   * stored in nodes. This updates nodes so that no pairs of distinct nodes
    * (i,j) is such that i is a trigger instance of j or vice versa (see below).
    */
   static void filterTriggerInstances(std::vector<Node>& nodes);
@@ -409,13 +409,13 @@ class Trigger {
    * We say a term t is an trigger instance of term s if
    * (1) t = s * { x1 -> t1 ... xn -> tn }
    * (2) { x1, ..., xn } are a subset of FV( t ).
-   * For example, f( g( h( x, x ) ) ) and f( g( x ) ) are instances of f( x ), 
+   * For example, f( g( h( x, x ) ) ) and f( g( x ) ) are instances of f( x ),
    * but f( g( y ) ) and g( x ) are not instances of f( x ).
    *
    * When this method returns -1, n1 is an instance of n2,
    * When this method returns 1, n1 is an instance of n2.
-   * 
-   * The motivation for this method is to discard triggers s that are less 
+   *
+   * The motivation for this method is to discard triggers s that are less
    * restrictive (criteria (1)) and serve to bind the same variables (criteria
    * (2)) as another trigger t. This often helps avoiding matching loops.
    */
@@ -423,7 +423,7 @@ class Trigger {
                                  Node n2,
                                  std::vector<Node>& fv1,
                                  std::vector<Node>& fv2);
-  
+
   /** add an instantiation (called by InstMatchGenerator)
    *
    * This calls Instantiate::addInstantiation(...) for instantiations
