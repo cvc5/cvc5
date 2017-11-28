@@ -78,7 +78,7 @@ class RemoveTermFormulas {
    * This returns the d_skolem_cache value for node, if it exists as a key
    * in the above map, or the null node otherwise.
    */
-  Node getSkolemForNode(Node node) const;
+  inline Node getSkolemForNode(Node node) const;
 
   static bool hasNestedTermChildren( TNode node );
 public:
