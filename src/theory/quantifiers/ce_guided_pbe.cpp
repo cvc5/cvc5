@@ -693,14 +693,14 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
               {
                 cop_to_child_templ[cop][k] = teut;
                 cop_to_child_templ_arg[cop][k] = ss[sk_index];
-                Trace("sygus-unif-debug") << "  Arg " << k << " (template : " << teut
-                                    << " arg " << ss[sk_index] << "), index "
-                                    << sk_index << std::endl;
+                Trace("sygus-unif-debug")
+                    << "  Arg " << k << " (template : " << teut << " arg "
+                    << ss[sk_index] << "), index " << sk_index << std::endl;
               }
               else
               {
-                Trace("sygus-unif-debug") << "  Arg " << k << ", index " << sk_index
-                                    << std::endl;
+                Trace("sygus-unif-debug") << "  Arg " << k << ", index "
+                                          << sk_index << std::endl;
                 Assert(teut == ss[sk_index]);
               }
             }
@@ -718,18 +718,19 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
                           << " does not correspond to a strategy." << std::endl;
       search_this = true;
     }
-    else 
+    else
     {
-      Trace("sygus-unif") << "-> constructor " << cop << " matches strategy for " << eut.getKind() << "..." << std::endl;
+      Trace("sygus-unif") << "-> constructor " << cop
+                          << " matches strategy for " << eut.getKind() << "..."
+                          << std::endl;
       // collect children types
       for (unsigned k = 0, size = cop_to_carg_list[cop].size(); k < size; k++)
       {
         TypeNode tn = sktns[cop_to_carg_list[cop][k]];
-        Trace("sygus-unif-debug") << "   Child type " << k << " : "
-                                  << static_cast<DatatypeType>(tn.toType())
-                                          .getDatatype()
-                                          .getName()
-                                  << std::endl;
+        Trace("sygus-unif-debug")
+            << "   Child type " << k << " : "
+            << static_cast<DatatypeType>(tn.toType()).getDatatype().getName()
+            << std::endl;
         cop_to_child_types[cop].push_back(tn);
       }
     }
@@ -746,10 +747,12 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
   }
   else
   {
-    for( std::pair< const Node, std::vector<StrategyType> >& cstr : cop_to_strat )
+    for (std::pair<const Node, std::vector<StrategyType> >& cstr : cop_to_strat)
     {
       Node cop = cstr.first;
-      Trace("sygus-unif-debug") << "Constructor " << cop << " has " << cstr.second.size() << " strategies..." << std::endl;
+      Trace("sygus-unif-debug") << "Constructor " << cop << " has "
+                                << cstr.second.size() << " strategies..."
+                                << std::endl;
       for (unsigned s = 0, ssize = cstr.second.size(); s < ssize; s++)
       {
         EnumTypeInfoStrat* cons_strat = new EnumTypeInfoStrat;
@@ -757,8 +760,9 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
 
         cons_strat->d_this = strat;
         cons_strat->d_cons = cop;
-        Trace("sygus-unif-debug") << "Process strategy #" << s << " for operator : " << cop
-                                  << " : " << strat << std::endl;
+        Trace("sygus-unif-debug") << "Process strategy #" << s
+                                  << " for operator : " << cop << " : " << strat
+                                  << std::endl;
         Assert(cop_to_child_types.find(cop) != cop_to_child_types.end());
         std::vector<TypeNode>& childTypes = cop_to_child_types[cop];
         Assert(cop_to_carg_list.find(cop) != cop_to_carg_list.end());
@@ -955,7 +959,9 @@ void CegConjecturePbe::staticLearnRedundantOps(
 
     indent("sygus-unif", ind);
     Trace("sygus-unif") << e << " :: node role : " << nrole;
-    Trace("sygus-unif") << ", type : " << ((DatatypeType)e.getType().toType()).getDatatype().getName();
+    Trace("sygus-unif")
+        << ", type : "
+        << ((DatatypeType)e.getType().toType()).getDatatype().getName();
     Trace("sygus-unif") << ", enum role : " << itn->second.getRole();
 
     if( itn->second.isTemplated() ){
