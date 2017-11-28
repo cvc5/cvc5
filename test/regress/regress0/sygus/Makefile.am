@@ -74,8 +74,9 @@ TESTS = commutative.sy \
         Base16_1.sy \
         icfp_14.12-flip-args.sy \
         strings-template-infer-unused.sy \
-        strings-trivial-two-type.sy  \
-        strings-double-rec.sy
+        strings-trivial-two-type.sy \
+        strings-double-rec.sy \
+        hd-19-dt-prog-dup-op.sy
 
 
 # sygus tests currently taking too long for make regress
