@@ -17,6 +17,7 @@
 
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
@@ -726,7 +727,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
     }else if( try_coeff ){
       //must convert to monomial representation
       std::map< Node, Node > msum;
-      if( QuantArith::getMonomialSum( n, msum ) ){
+      if( ArithMSum::getMonomialSum( n, msum ) ){
         std::map< Node, Node > msum_coeff;
         std::map< Node, Node > msum_term;
         for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){

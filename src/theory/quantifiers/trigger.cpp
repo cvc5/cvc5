@@ -13,6 +13,8 @@
  **/
 
 #include "theory/quantifiers/trigger.h"
+
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/candidate_generator.h"
 #include "theory/quantifiers/ho_trigger.h"
 #include "theory/quantifiers/inst_match_generator.h"
@@ -320,7 +322,7 @@ Node Trigger::getIsUsableTrigger( Node n, Node q ) {
     if( rtr.isNull() && n[0].getType().isReal() ){
       //try to solve relation
       std::map< Node, Node > m;
-      if( QuantArith::getMonomialSumLit(n, m) ){
+      if( ArithMSum::getMonomialSumLit(n, m) ){
         for( std::map< Node, Node >::iterator it = m.begin(); it!=m.end(); ++it ){
           bool trySolve = false;
           if( !it->first.isNull() ){
@@ -333,7 +335,7 @@ Node Trigger::getIsUsableTrigger( Node n, Node q ) {
           if( trySolve ){
             Trace("trigger-debug") << "Try to solve for " << it->first << std::endl;
             Node veq;
-            if( QuantArith::isolate( it->first, m, veq, n.getKind() )!=0 ){
+            if( ArithMSum::isolate( it->first, m, veq, n.getKind() )!=0 ){
               rtr = getIsUsableEq( q, veq );
             }
             //either all solves will succeed or all solves will fail
