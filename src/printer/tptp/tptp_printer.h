@@ -30,9 +30,15 @@ namespace tptp {
 class TptpPrinter : public CVC4::Printer {
  public:
   using CVC4::Printer::toStream;
-  void toStream(std::ostream& out, TNode n, int toDepth, bool types,
+  void toStream(std::ostream& out,
+                TNode n,
+                int toDepth,
+                bool types,
                 size_t dag) const override;
-  void toStream(std::ostream& out, const Command* c, int toDepth, bool types,
+  void toStream(std::ostream& out,
+                const Command* c,
+                int toDepth,
+                bool types,
                 size_t dag) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
   void toStream(std::ostream& out, const Model& m) const override;
@@ -43,7 +49,8 @@ class TptpPrinter : public CVC4::Printer {
   void toStream(std::ostream& out, const UnsatCore& core) const override;
 
  private:
-  void toStream(std::ostream& out, const Model& m,
+  void toStream(std::ostream& out,
+                const Model& m,
                 const Command* c) const override;
 };/* class TptpPrinter */
 

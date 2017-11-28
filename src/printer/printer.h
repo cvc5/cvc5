@@ -47,12 +47,16 @@ protected:
  virtual ~Printer() {}
 
  /** write model response to command */
- virtual void toStream(std::ostream& out, const Model& m,
+ virtual void toStream(std::ostream& out,
+                       const Model& m,
                        const Command* c) const = 0;
 
  /** write model response to command using another language printer */
- void toStreamUsing(OutputLanguage lang, std::ostream& out, const Model& m,
-                    const Command* c) const {
+ void toStreamUsing(OutputLanguage lang,
+                    std::ostream& out,
+                    const Model& m,
+                    const Command* c) const
+ {
    getPrinter(lang)->toStream(out, m, c);
   }
 
@@ -61,12 +65,18 @@ protected:
   static Printer* getPrinter(OutputLanguage lang);
 
   /** Write a Node out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out, TNode n, int toDepth, bool types,
+  virtual void toStream(std::ostream& out,
+                        TNode n,
+                        int toDepth,
+                        bool types,
                         size_t dag) const = 0;
 
   /** Write a Command out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out, const Command* c, int toDepth,
-                        bool types, size_t dag) const = 0;
+  virtual void toStream(std::ostream& out,
+                        const Command* c,
+                        int toDepth,
+                        bool types,
+                        size_t dag) const = 0;
 
   /** Write a CommandStatus out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const CommandStatus* s) const = 0;
