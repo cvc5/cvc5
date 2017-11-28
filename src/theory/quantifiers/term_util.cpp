@@ -19,6 +19,7 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers_engine.h"
@@ -112,10 +113,19 @@ Node TermUtil::getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited ) 
 Node TermUtil::getInstConstAttr( Node n ) {
   if (!n.hasAttribute(InstConstantAttribute()) ){
     Node q;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      q = getInstConstAttr(n[i]);
-      if( !q.isNull() ){
-        break;
+    if (n.hasOperator())
+    {
+      q = getInstConstAttr(n.getOperator());
+    }
+    if (q.isNull())
+    {
+      for (const Node& nc : n)
+      {
+        q = getInstConstAttr(nc);
+        if (!q.isNull())
+        {
+          break;
+        }
       }
     }
     InstConstantAttribute ica;
@@ -276,6 +286,10 @@ void TermUtil::computeVarContains2( Node n, Kind k, std::vector< Node >& varCont
         varContains.push_back( n );
       }
     }else{
+      if (n.hasOperator())
+      {
+        computeVarContains2(n.getOperator(), k, varContains, visited);
+      }
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         computeVarContains2( n[i], k, varContains, visited );
       }
@@ -675,16 +689,17 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
     }
     if( !rew_vts_inf.isNull()  || rew_delta ){
       std::map< Node, Node > msum;
-      if( QuantArith::getMonomialSumLit( n, msum ) ){
+      if (ArithMSum::getMonomialSumLit(n, msum))
+      {
         if( Trace.isOn("quant-vts-debug") ){
           Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
-          QuantArith::debugPrintMonomialSum( msum, "quant-vts-debug" );
+          ArithMSum::debugPrintMonomialSum(msum, "quant-vts-debug");
         }
         Node vts_sym = !rew_vts_inf.isNull() ? rew_vts_inf : d_vts_delta;
         Assert( !vts_sym.isNull() );
         Node iso_n;
         Node nlit;
-        int res = QuantArith::isolate( vts_sym, msum, iso_n, n.getKind(), true );
+        int res = ArithMSum::isolate(vts_sym, msum, iso_n, n.getKind(), true);
         if( res!=0 ){
           Trace("quant-vts-debug") << "VTS isolated :  -> " << iso_n << ", res = " << res << std::endl;
           Node slv = iso_n[res==1 ? 1 : 0];

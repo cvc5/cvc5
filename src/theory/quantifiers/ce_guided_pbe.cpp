@@ -19,6 +19,7 @@
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/datatypes/datatypes_rewriter.h"
+#include "util/random.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -1385,7 +1386,7 @@ Node CegConjecturePbe::constructBestSolvedConditional( std::vector< Node >& solv
 Node CegConjecturePbe::constructBestConditional( std::vector< Node >& conds, UnifContext& x ) {
   Assert( !conds.empty() );
   // TODO
-  double r = (double)(rand())/((double)(RAND_MAX));
+  double r = Random::getRandom().pickDouble(0.0, 1.0);
   unsigned cindex = r*conds.size();
   if( cindex>conds.size() ){
     cindex = conds.size() - 1;
@@ -1399,7 +1400,7 @@ Node CegConjecturePbe::constructBestStringToConcat( std::vector< Node > strs,
                                                     UnifContext& x ) {
   Assert( !strs.empty() );
   // TODO
-  double r = (double)(rand())/((double)(RAND_MAX));
+  double r = Random::getRandom().pickDouble(0.0, 1.0);
   unsigned cindex = r*strs.size();
   if( cindex>strs.size() ){
     cindex = strs.size() - 1;

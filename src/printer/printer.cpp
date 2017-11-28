@@ -31,7 +31,8 @@ namespace CVC4 {
 
 Printer* Printer::d_printers[language::output::LANG_MAX];
 
-Printer* Printer::makePrinter(OutputLanguage lang) throw() {
+Printer* Printer::makePrinter(OutputLanguage lang)
+{
   using namespace CVC4::language::output;
 
   switch(lang) {
@@ -70,9 +71,15 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   }
 }/* Printer::makePrinter() */
 
+void Printer::toStreamSygus(std::ostream& out, TNode n) const
+{
+  // no sygus-specific printing associated with this printer,
+  // just print the original term
+  toStream(out, n, -1, false, 1);
+}
 
-
-void Printer::toStream(std::ostream& out, const Model& m) const throw() {
+void Printer::toStream(std::ostream& out, const Model& m) const
+{
   for(size_t i = 0; i < m.getNumCommands(); ++i) {
     const Command* cmd = m.getCommand(i);
     const DeclareFunctionCommand* dfc = dynamic_cast<const DeclareFunctionCommand*>(cmd);
@@ -83,7 +90,8 @@ void Printer::toStream(std::ostream& out, const Model& m) const throw() {
   }
 }/* Printer::toStream(Model) */
 
-void Printer::toStream(std::ostream& out, const UnsatCore& core) const throw() {
+void Printer::toStream(std::ostream& out, const UnsatCore& core) const
+{
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     AssertCommand cmd(*i);
     toStream(out, &cmd, -1, false, -1);
@@ -91,7 +99,8 @@ void Printer::toStream(std::ostream& out, const UnsatCore& core) const throw() {
   }
 }/* Printer::toStream(UnsatCore) */
 
-Printer* Printer::getPrinter(OutputLanguage lang) throw() {
+Printer* Printer::getPrinter(OutputLanguage lang)
+{
   if(lang == language::output::LANG_AUTO) {
   // Infer the language to use for output.
   //
