@@ -41,6 +41,7 @@ subdirs_to_check = \
 	regress/regress0/decision \
 	regress/regress0/expect \
 	regress/regress0/fmf \
+	regress/regress0/ho \
 	regress/regress0/lemmas \
 	regress/regress0/nl \
 	regress/regress0/parser \

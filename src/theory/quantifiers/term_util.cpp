@@ -113,10 +113,19 @@ Node TermUtil::getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited ) 
 Node TermUtil::getInstConstAttr( Node n ) {
   if (!n.hasAttribute(InstConstantAttribute()) ){
     Node q;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      q = getInstConstAttr(n[i]);
-      if( !q.isNull() ){
-        break;
+    if (n.hasOperator())
+    {
+      q = getInstConstAttr(n.getOperator());
+    }
+    if (q.isNull())
+    {
+      for (const Node& nc : n)
+      {
+        q = getInstConstAttr(nc);
+        if (!q.isNull())
+        {
+          break;
+        }
       }
     }
     InstConstantAttribute ica;
@@ -277,6 +286,10 @@ void TermUtil::computeVarContains2( Node n, Kind k, std::vector< Node >& varCont
         varContains.push_back( n );
       }
     }else{
+      if (n.hasOperator())
+      {
+        computeVarContains2(n.getOperator(), k, varContains, visited);
+      }
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         computeVarContains2( n[i], k, varContains, visited );
       }

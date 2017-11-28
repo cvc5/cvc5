@@ -16,6 +16,7 @@
 #include "theory/quantifiers/candidate_generator.h"
 #include "theory/quantifiers/ho_trigger.h"
 #include "theory/quantifiers/inst_match_generator.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -119,7 +120,7 @@ int Trigger::addInstantiations(InstMatch& baseMatch)
 
 bool Trigger::sendInstantiation(InstMatch& m)
 {
-  return d_quantEngine->addInstantiation(d_f, m);
+  return d_quantEngine->getInstantiate()->addInstantiation(d_f, m);
 }
 
 bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_vars, std::vector< Node >& trNodes ) {
@@ -222,6 +223,8 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
   Trace("trigger") << "Collect higher-order variable triggers..." << std::endl;
   std::map<Node, std::vector<Node> > ho_apps;
   HigherOrderTrigger::collectHoVarApplyTerms(f, trNodes, ho_apps);
+  Trace("trigger") << "...got " << ho_apps.size()
+                   << " higher-order applications." << std::endl;
   Trigger* t;
   if (!ho_apps.empty())
   {
