@@ -89,14 +89,10 @@ public:
   * using the implemented matching algorithm. It typically is implemented as a
   * fixed point of getNextMatch above.
   *
-  * baseMatch is a mapping of default values that should be used for variables
-  * that are not bound by this (not frequently used). (TODO remove #1389)
-  *
   * It returns the number of instantiations added using calls to calls to
   * Instantiate::addInstantiation(...).
   */
   virtual int addInstantiations(Node q,
-                                InstMatch& baseMatch,
                                 QuantifiersEngine* qe,
                                 Trigger* tparent)
   {
@@ -198,14 +194,7 @@ class InstMatchGenerator : public IMGenerator {
 public:
  /** destructor */
  virtual ~InstMatchGenerator() throw();
- enum
- {
-   // options for producing matches
-   MATCH_GEN_DEFAULT = 0,
-   // others (internally used)
-   MATCH_GEN_INTERNAL_ERROR,
- };
-
+ 
  /** Reset instantiation round. */
  void resetInstantiationRound(QuantifiersEngine* qe) override;
  /** Reset. */
@@ -217,7 +206,6 @@ public:
                   Trigger* tparent) override;
  /** Add instantiations. */
  int addInstantiations(Node q,
-                       InstMatch& baseMatch,
                        QuantifiersEngine* qe,
                        Trigger* tparent) override;
 
@@ -329,11 +317,6 @@ protected:
   * (e.g. a matchable term, a variable, a relation, etc.).
   */
  CandidateGenerator* d_cg;
- /** policy to use for matching
-  * This is one of MATCH_GEN_* above.
-  * TODO: this can be simplified/removed (#1283).
-  */
- int d_matchPolicy;
  /** children generators
   * These match generators correspond to the children of the term
   * we are matching with this generator.
@@ -347,7 +330,16 @@ protected:
   * of the term.
   */
  std::vector<int> d_children_index;
- /** children types 0 : variable, 1 : child term, -1 : ground term */
+ /** children types 
+  *
+  * If d_match_pattern is an instantiation constant, then this is a singleton 
+  * vector containing the variable number of the d_match_pattern itself.
+  * If d_match_patterm is a term of the form f( t1, ..., tn ), then for each 
+  * index i, d_children[i] stores the type of node ti is, where:
+  *   >= 0 : variable (indicates its number), 
+  *   -1 : ground term,
+  *   -2 : child term.
+  */
  std::vector<int> d_children_types;
  /** The next generator in the linked list
   * that this generator is a part of.
@@ -358,13 +350,6 @@ protected:
  /** If non-null, then this is a relational trigger of the form x ~
   * d_eq_class_rel. */
  Node d_eq_class_rel;
- /** For each child index of this node, the variable numbers of the children.
- * For example, if this is generator is for the term f( x3, a, x1, x2 )
- *  the quantified formula
- *    forall x1 x2 x3. (...).
- * Then d_var_num[0] = 2, d_var_num[2] = 0 and d_var_num[3] = 1.
- */
- std::map<int, int> d_var_num;
  /** Excluded matches
  * Stores the terms we are not allowed to match.
  * These can for instance be specified by the smt2
@@ -575,7 +560,6 @@ class InstMatchGeneratorMulti : public IMGenerator {
   bool reset(Node eqc, QuantifiersEngine* qe) override;
   /** Add instantiations. */
   int addInstantiations(Node q,
-                        InstMatch& baseMatch,
                         QuantifiersEngine* qe,
                         Trigger* tparent) override;
 
@@ -663,7 +647,6 @@ class InstMatchGeneratorSimple : public IMGenerator {
   void resetInstantiationRound(QuantifiersEngine* qe) override;
   /** Add instantiations. */
   int addInstantiations(Node q,
-                        InstMatch& baseMatch,
                         QuantifiersEngine* qe,
                         Trigger* tparent) override;
   /** Get active score. */

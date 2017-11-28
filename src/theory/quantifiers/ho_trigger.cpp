@@ -186,10 +186,10 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
   }
 }
 
-int HigherOrderTrigger::addInstantiations(InstMatch& baseMatch)
+int HigherOrderTrigger::addInstantiations()
 {
   // call the base class implementation
-  int addedFoLemmas = Trigger::addInstantiations(baseMatch);
+  int addedFoLemmas = Trigger::addInstantiations();
   // also adds predicate lemms to force app completion
   int addedHoLemmas = addHoTypeMatchPredicateLemmas();
   return addedHoLemmas + addedFoLemmas;
@@ -202,11 +202,11 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
     // get substitution corresponding to m
     std::vector<TNode> vars;
     std::vector<TNode> subs;
-    for (unsigned i = 0, size = d_f[0].getNumChildren(); i < size; i++)
+    for (unsigned i = 0, size = d_quant[0].getNumChildren(); i < size; i++)
     {
       subs.push_back(m.d_vals[i]);
       vars.push_back(
-          d_quantEngine->getTermUtil()->getInstantiationConstant(d_f, i));
+          d_quantEngine->getTermUtil()->getInstantiationConstant(d_quant, i));
     }
 
     Trace("ho-unif-debug") << "Run higher-order unification..." << std::endl;
@@ -353,7 +353,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
   else
   {
     // do not run higher-order matching
-    return d_quantEngine->getInstantiate()->addInstantiation(d_f, m);
+    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
   }
 }
 
@@ -364,7 +364,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m, unsigned var_index)
   if (var_index == d_ho_var_list.size())
   {
     // we now have an instantiation to try
-    return d_quantEngine->getInstantiate()->addInstantiation(d_f, m);
+    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
   }
   else
   {

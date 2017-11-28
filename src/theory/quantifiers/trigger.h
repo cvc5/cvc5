@@ -118,10 +118,9 @@ class TriggerTermInfo {
 * t->resetInstantiationRound();
 * // will produce instantiations based on matching with all terms
 * t->reset( Node::null() );
-* InstMatch baseMatch;
 * // add all instantiations based on E-matching with this trigger and the
 * // current context
-* t->addInstantiations( baseMatch );
+* t->addInstantiations();
 *
 * This will result in (a set of) calls to
 * Instantiate::addInstantiation(q, m1)...Instantiate::addInstantiation(q, mn),
@@ -187,13 +186,8 @@ class Trigger {
   * of the underlying match generator. It can be extended to
   * produce instantiations beyond what is produced by the match generator
   * (for example, see theory/quantifiers/ho_trigger.h).
-  *
-  * baseMatch : a mapping of default values that should be used for variables
-  *             that are not bound as a result of matching terms from this
-  *             trigger. These default values are not frequently used in
-  *             instantiations.  (TODO : remove #1389)
   */
-  virtual int addInstantiations(InstMatch& baseMatch);
+  virtual int addInstantiations();
   /** Return whether this is a multi-trigger. */
   bool isMultiTrigger() { return d_nodes.size()>1; }
   /** Get instantiation pattern list associated with this trigger.
@@ -367,7 +361,7 @@ class Trigger {
 
  protected:
   /** trigger constructor, intentionally protected (use Trigger::mkTrigger). */
-  Trigger( QuantifiersEngine* ie, Node f, std::vector< Node >& nodes );
+  Trigger( QuantifiersEngine* ie, Node q, std::vector< Node >& nodes );
   /** is subterm of trigger usable (helper function for isUsableTrigger) */
   static bool isUsable( Node n, Node q );
   /** returns an equality that is equivalent to the equality eq and
@@ -437,7 +431,7 @@ class Trigger {
   /** The quantifiers engine associated with this trigger. */
   QuantifiersEngine* d_quantEngine;
   /** The quantified formula this trigger is for. */
-  Node d_f;
+  Node d_quant;
   /** match generator
    *
   * This is the back-end utility that implements the underlying matching

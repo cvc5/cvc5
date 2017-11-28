@@ -46,24 +46,24 @@ void TriggerTermInfo::init( Node q, Node n, int reqPol, Node reqPolEq ){
 }
 
 /** trigger class constructor */
-Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes )
-    : d_quantEngine( qe ), d_f( f ) {
+Trigger::Trigger( QuantifiersEngine* qe, Node q, std::vector< Node >& nodes )
+    : d_quantEngine( qe ), d_quant( q ) {
   d_nodes.insert( d_nodes.begin(), nodes.begin(), nodes.end() );
-  Trace("trigger") << "Trigger for " << f << ": " << std::endl;
+  Trace("trigger") << "Trigger for " << q << ": " << std::endl;
   for( unsigned i=0; i<d_nodes.size(); i++ ){
     Trace("trigger") << "   " << d_nodes[i] << std::endl;
   }
   if( d_nodes.size()==1 ){
     if( isSimpleTrigger( d_nodes[0] ) ){
-      d_mg = new InstMatchGeneratorSimple( f, d_nodes[0], qe );
+      d_mg = new InstMatchGeneratorSimple( q, d_nodes[0], qe );
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGenerator( f, d_nodes[0], qe );
+      d_mg = InstMatchGenerator::mkInstMatchGenerator( q, d_nodes[0], qe );
     }
   }else{
     if( options::multiTriggerCache() ){
-      d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe );
+      d_mg = new InstMatchGeneratorMulti( q, d_nodes, qe );
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti( f, d_nodes, qe );
+      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti( q, d_nodes, qe );
     }
   }
   if( d_nodes.size()==1 ){
@@ -73,14 +73,14 @@ Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes )
       ++(qe->d_statistics.d_simple_triggers);
     }
   }else{
-    Trace("multi-trigger") << "Trigger for " << f << ": " << std::endl;
+    Trace("multi-trigger") << "Trigger for " << q << ": " << std::endl;
     for( unsigned i=0; i<d_nodes.size(); i++ ){
       Trace("multi-trigger") << "   " << d_nodes[i] << std::endl;
     }
     ++(qe->d_statistics.d_multi_triggers);
   }
 
-  //Notice() << "Trigger : " << (*this) << "  for " << f << std::endl;
+  //Notice() << "Trigger : " << (*this) << "  for " << q << std::endl;
   Trace("trigger-debug") << "Finished making trigger." << std::endl;
 }
 
@@ -100,10 +100,10 @@ Node Trigger::getInstPattern(){
   return NodeManager::currentNM()->mkNode( INST_PATTERN, d_nodes );
 }
 
-int Trigger::addInstantiations(InstMatch& baseMatch)
+int Trigger::addInstantiations()
 {
   int addedLemmas =
-      d_mg->addInstantiations(d_f, baseMatch, d_quantEngine, this);
+      d_mg->addInstantiations(d_quant, d_quantEngine, this);
   if( addedLemmas>0 ){
     if (Debug.isOn("inst-trigger"))
     {
@@ -121,7 +121,7 @@ int Trigger::addInstantiations(InstMatch& baseMatch)
 
 bool Trigger::sendInstantiation(InstMatch& m)
 {
-  return d_quantEngine->getInstantiate()->addInstantiation(d_f, m);
+  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
 }
 
 bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_vars, std::vector< Node >& trNodes ) {
