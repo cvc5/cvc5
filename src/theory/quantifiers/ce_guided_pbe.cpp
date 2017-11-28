@@ -929,16 +929,30 @@ void CegConjecturePbe::staticLearnRedundantOps( Node c, std::vector< Node >& lem
   Trace("sygus-unif") << std::endl;
   Trace("sygus-unif") << "Strategy for candidate " << c << " is : " << std::endl;
   std::map<Node, std::map<NodeRole, bool> > visited;
-  std::vector< Node > redundant;
+  std::map< Node, std::map< unsigned, bool > > needs_cons;
   staticLearnRedundantOps(c,
                           d_cinfo[c].getRootEnumerator(),
                           role_equal,
                           visited,
-                          redundant,
-                          lemmas,
+                          needs_cons,
                           0);
-  for( unsigned i=0; i<lemmas.size(); i++ ){  
-    Trace("sygus-unif") << "...can exclude based on  : " << lemmas[i] << std::endl;
+  // now, check the needs_cons map
+  for( std::pair< const Node, std::map< unsigned, bool > >& nce : needs_cons )
+  {
+    Node em = nce.first;
+    const Datatype& dt = static_cast<DatatypeType>(em.getType().toType()).getDatatype();
+    for( std::pair< const unsigned, bool >& nc : nce.second )
+    {
+      Assert( nc.first<dt.getNumConstructors() );
+      if( !nc.second )
+      {
+        Node tst = datatypes::DatatypesRewriter::mkTester( em, nc.first, dt ).negate();
+        if( std::find( lemmas.begin(), lemmas.end(), tst )==lemmas.end() ){
+          Trace("sygus-unif") << "...can exclude based on  : " << tst << std::endl;
+          lemmas.push_back( tst );
+        }
+      }
+    }
   }
 }
 
@@ -947,8 +961,7 @@ void CegConjecturePbe::staticLearnRedundantOps(
     Node e,
     NodeRole nrole,
     std::map<Node, std::map<NodeRole, bool> >& visited,
-    std::vector<Node>& redundant,
-    std::vector<Node>& lemmas,
+    std::map<Node, std::map< unsigned, bool > >& needs_cons,
     int ind)
 {
   std::map< Node, EnumInfo >::iterator itn = d_einfo.find( e );
@@ -985,67 +998,52 @@ void CegConjecturePbe::staticLearnRedundantOps(
 
       if (!snode.d_strats.empty())
       {
+        std::map< unsigned, bool > needs_cons_curr;
         // various strategies
         for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
         {
           EnumTypeInfoStrat* etis = snode.d_strats[j];
           StrategyType strat = etis->d_this;
           indent("sygus-unif", ind+1);
-          Trace("sygus-unif") << "Strategy : " << strat << std::endl;
+          Trace("sygus-unif") << "Strategy : " << strat << ", from cons : " << etis->d_cons << std::endl;
+          int cindex = Datatype::indexOf( etis->d_cons.toExpr() );
+          Assert( cindex!=-1 );
+          needs_cons_curr[static_cast<unsigned>(cindex)] = false;
           for (unsigned i = 0, csize = etis->d_cenum.size(); i < csize; i++)
           {
-            std::vector< Node > redundant_c;
-            bool no_repeat_op = false;
-            // do not repeat operators that the strategy uses
-            if (etis->d_csol_cts[i] == etn)
-            {
-              if( strat==strat_ITE && i!=0 ){
-                no_repeat_op = true;
-              }
-              else if (strat == strat_CONCAT_PREFIX
-                       || strat == strat_CONCAT_SUFFIX
-                       || strat == strat_ID)
-              {
-                no_repeat_op = true;
-              }
-            }
-            if( no_repeat_op ){
-              redundant_c.push_back(etis->d_cons);
-            }
-            //do not use standard Boolean connectives in ITE conditions
-            if (strat == strat_ITE && i == 0
-                && etis->d_csol_cts[1] == etis->d_csol_cts[2])
-            {
-              TypeNode ctn = etis->d_csol_cts[0];
-              const Datatype& cdt = ((DatatypeType)ctn.toType()).getDatatype();
-              for( unsigned j=0; j<cdt.getNumConstructors(); j++ ){
-                Kind ck = d_tds->getConsNumKind( ctn, j );
-                if( ck!=UNDEFINED_KIND && TermUtil::isBoolConnective( ck ) ){
-                  bool typeCorrect = true;
-                  for( unsigned k=0; k<cdt[j].getNumArgs(); k++ ){
-                    if( d_tds->getArgType( cdt[j], k )!=ctn ){
-                      typeCorrect = false;
-                      break;
-                    }
-                  }
-                  if( typeCorrect ){
-                    Trace("sygus-unif-debug") << "Exclude Boolean connective in ITE conditional : " << ck << " in conditional type " << cdt.getName() << std::endl;
-                    Node exc_cons = Node::fromExpr( cdt[j].getConstructor() );
-                    if( std::find( redundant_c.begin(), redundant_c.end(), exc_cons )==redundant_c.end() ){
-                      redundant_c.push_back( exc_cons );
-                    }
-                  }
-                }
-              }
-            }
             // recurse
             staticLearnRedundantOps(c,
                                     etis->d_cenum[i].first,
                                     etis->d_cenum[i].second,
                                     visited,
-                                    redundant_c,
-                                    lemmas,
+                                    needs_cons,
                                     ind + 2);
+          }
+        }
+        // get the master enumerator for the type of this enumerator
+        std::map< TypeNode, Node >::iterator itse = d_cinfo[c].d_search_enum.find(etn);
+        if( itse!=d_cinfo[c].d_search_enum.end() )
+        {
+          Node em = itse->second;
+          Assert( !em.isNull() );
+          // get the current datatype 
+          const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
+          // all constructors that are not a part of a strategy are needed
+          for( unsigned j=0, size = dt.getNumConstructors(); j<size; j++ ){
+            if( needs_cons_curr.find(j)==needs_cons_curr.end() ){
+              needs_cons_curr[j] = true;
+            }
+          }
+          // update the constructors that the master enumerator needs
+          if( needs_cons.find(em)==needs_cons.end() )
+          {
+            needs_cons[em] = needs_cons_curr;
+          }
+          else
+          {
+            for( unsigned j=0, size = dt.getNumConstructors(); j<size; j++ ){
+              needs_cons[em][j] = needs_cons[em][j] || needs_cons_curr[j];
+            }
           }
         }
       }
@@ -1053,20 +1051,6 @@ void CegConjecturePbe::staticLearnRedundantOps(
   }else{
     indent("sygus-unif", ind);
     Trace("sygus-unif") << e << " :: node role : " << nrole << std::endl;
-  }
-  if( !redundant.empty() ){
-    // TODO : if this becomes more general, must get master enumerator here
-    if( itn->second.d_enum_slave.size()==1 ){
-      for( unsigned i=0; i<redundant.size(); i++ ){
-        int cindex = Datatype::indexOf( redundant[i].toExpr() );
-        Assert( cindex!=-1 );
-        const Datatype& dt = Datatype::datatypeOf( redundant[i].toExpr() );
-        Node tst = datatypes::DatatypesRewriter::mkTester( e, cindex, dt ).negate();
-        if( std::find( lemmas.begin(), lemmas.end(), tst )==lemmas.end() ){
-          lemmas.push_back( tst );
-        }
-      }
-    }
   }
 }
 
