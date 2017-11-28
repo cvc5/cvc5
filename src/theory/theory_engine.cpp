@@ -2193,8 +2193,11 @@ void TheoryEngine::ppUnconstrainedSimp(vector<Node>& assertions)
   d_unconstrainedSimp->processAssertions(assertions);
 }
 
-
-void TheoryEngine::setUserAttribute(const std::string& attr, Node n, const std::vector<Node>& node_values, const std::string& str_value) {
+void TheoryEngine::setUserAttribute(const std::string& attr,
+                                    Node n,
+                                    const std::vector<Node>& node_values,
+                                    const std::string& str_value)
+{
   Trace("te-attr") << "set user attribute " << attr << " " << n << endl;
   if( d_attr_handle.find( attr )!=d_attr_handle.end() ){
     for( size_t i=0; i<d_attr_handle[attr].size(); i++ ){

@@ -769,7 +769,10 @@ public:
    * This function is called when an attribute is set by a user.
    * In SMT-LIBv2 this is done via the syntax (! expr :attr)
    */
-  void setUserAttribute(const std::string& attr, Expr expr, const std::vector<Expr>& expr_values, const std::string& str_value);
+  void setUserAttribute(const std::string& attr,
+                        Expr expr,
+                        const std::vector<Expr>& expr_values,
+                        const std::string& str_value);
 
   /**
    * Set print function in model

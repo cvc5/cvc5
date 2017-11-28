@@ -862,20 +862,23 @@ public:
    * This function is called when an attribute is set by a user.  In SMT-LIBv2 this is done
    * via the syntax (! n :attr)
    */
-  void setUserAttribute(const std::string& attr, Node n, const std::vector<Node>& node_values, const std::string& str_value);
+ void setUserAttribute(const std::string& attr,
+                       Node n,
+                       const std::vector<Node>& node_values,
+                       const std::string& str_value);
 
-  /**
-   * Handle user attribute.
-   * Associates theory t with the attribute attr.  Theory t will be
-   * notified whenever an attribute of name attr is set.
-   */
-  void handleUserAttribute(const char* attr, theory::Theory* t);
+ /**
+  * Handle user attribute.
+  * Associates theory t with the attribute attr.  Theory t will be
+  * notified whenever an attribute of name attr is set.
+  */
+ void handleUserAttribute(const char* attr, theory::Theory* t);
 
-  /**
-   * Check that the theory assertions are satisfied in the model.
-   * This function is called from the smt engine's checkModel routine.
-   */
-  void checkTheoryAssertionsWithModel(bool hardFailure);
+ /**
+  * Check that the theory assertions are satisfied in the model.
+  * This function is called from the smt engine's checkModel routine.
+  */
+ void checkTheoryAssertionsWithModel(bool hardFailure);
 
 private:
   IntStat d_arithSubstitutionsAdded;
