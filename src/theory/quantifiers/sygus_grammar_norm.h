@@ -38,11 +38,9 @@ class CegConjecture;
  * a datatype to represent the structure of the typenode for the new type */
 struct TypeObject
 {
-  /* Both constructors create an unresolved type and datatype with the given
-   * name. An original typenode is optional, since normalized types can be
-   * created from scratch during normalization */
-  TypeObject(TypeNode src_tn, std::string type_name);
-  TypeObject(std::string type_name);
+  /* Creates an unresolved type and datatype with the given name. These will be
+   * used for the normalization of the given type node */
+  TypeObject(TypeNode src_tn, Type src_t, std::string type_name);
   ~TypeObject() {}
 
   /* The original typenode this TypeObject is built from */
@@ -54,7 +52,7 @@ struct TypeObject
   /* Names for each constructor. */
   std::vector<std::string> d_cons_names;
   /* Print callbacks for each constructor */
-  std::vector<std::shared_ptr<SygusPrintCallback>> d_pcb;
+  std::vector<std::shared_ptr<SygusPrintCallback>> d_pc;
   /* List of argument types for each constructor */
   std::vector<std::vector<Type>> d_cons_args_t;
   /* Unresolved type placeholder */
@@ -80,11 +78,11 @@ struct TypeObject
  * Int -> ite( Bool, Int, Int ) | IntN
  * IntN -> IntX | Int0 | Int0 - IntX
  * Int0 -> 0
- * IntX -> IntXX + IntX | IntY
+ * IntX -> IntXX | IntXX + IntX | IntY
  * IntXX -> x
- * IntY -> IntYY + IntY | IntC
+ * IntY -> IntYY | IntYY + IntY | IntC
  * IntYY -> y
- * IntC -> Int1 + IntC | IntCC
+ * IntC -> Int1 | Int1 + IntC | IntCC
  * Int1 -> 1
  * IntCC -> c1...cn */
 class SygusGrammarNorm
