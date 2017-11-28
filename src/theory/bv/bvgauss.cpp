@@ -91,7 +91,8 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
         case kind::BITVECTOR_EXTRACT:
         {
           unsigned w = utils::getSize(n);
-          visited[n] = std::min(w, visited[n[0]]);
+          visited[n] = std::min(
+              w, std::max(visited[n[0]] - utils::getExtractLow(n), 0u));
           Assert(visited[n] <= visited[n[0]]);
           break;
         }
@@ -104,11 +105,19 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
 
         case kind::BITVECTOR_MULT:
         {
-          unsigned w = 0;
-          for (unsigned i = 0, nc = n.getNumChildren(); i < nc; ++i)
+          Integer maxval = Integer(1);
+          for (const Node& nn : n)
           {
-            w += visited[n[i]];
+            if (is_bv_const(nn))
+            {
+              maxval *= get_bv_const_value(nn);
+            }
+            else
+            {
+              maxval *= utils::mkBitVectorOnes(visited[nn]).getValue();
+            }
           }
+          unsigned w = maxval.length();
           if (w > utils::getSize(n)) { return 0; } /* overflow */
           visited[n] = w;
           break;
@@ -162,12 +171,18 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
         }
 
         case kind::BITVECTOR_PLUS:
-        case kind::BITVECTOR_SUB:
         {
           Integer maxval = Integer(0);
           for (const Node& nn : n)
           {
-            maxval += utils::mkBitVectorOnes(visited[nn]).getValue();
+            if (is_bv_const(nn))
+            {
+              maxval += get_bv_const_value(nn);
+            }
+            else
+            {
+              maxval += utils::mkBitVectorOnes(visited[nn]).getValue();
+            }
           }
           unsigned w = maxval.length();
           if (w > utils::getSize(n)) { return 0; } /* overflow */
@@ -652,7 +667,6 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
   }
 
   unordered_map<Node, Node, NodeHashFunction> subst;
-  unsigned size = assertionsToPreprocess.size();
 
   for (const auto& eq : equations)
   {
