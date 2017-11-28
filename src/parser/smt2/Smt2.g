@@ -1215,18 +1215,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       if( !flattenVars.empty() ){
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
-      Expr as = MK_EXPR( kind::EQUAL, func_app, expr);
-      if( !bvs.empty() ){
-        std::string attr_name("fun-def");
-        aexpr = MK_EXPR(kind::INST_ATTRIBUTE, func_app);
-        aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr);
-        //set the attribute to denote this is a function definition
-        seq->addCommand( new SetUserAttributeCommand( attr_name, func_app ) );
-        //assert it
-        Expr boundVars = EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs);
-        as = EXPR_MANAGER->mkExpr(kind::FORALL, boundVars, as, aexpr);
-      }
-      seq->addCommand( new AssertCommand(as, false) );
+      seq->addCommand( new DefineFunctionRecCommand(func,bvs,expr) );
       cmd->reset(seq.release());
     }
   | DEFINE_FUNS_REC_TOK
