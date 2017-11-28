@@ -361,7 +361,10 @@ void Smt2::reset() {
 }
 
 void Smt2::resetAssertions() {
-  this->Parser::reset();
+  // Remove all declarations except the ones at level 0.
+  while (this->scopeLevel() > 0) {
+    this->popScope();
+  }
 }
 
 void Smt2::setLogic(std::string name) {
