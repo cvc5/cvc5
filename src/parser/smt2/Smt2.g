@@ -1264,20 +1264,9 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
         expr = PARSER_STATE->mkHoApply( expr, flattenVarsList[j] );
       }
       func_defs.push_back( expr );
+      Expr func = funcs[j];
       j++;
-      Expr as = MK_EXPR( kind::EQUAL, func_app, expr );
-      if( !bvs.empty() ){
-        std::string attr_name("fun-def");
-        aexpr = MK_EXPR(kind::INST_ATTRIBUTE, func_app);
-        aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr );
-        //set the attribute to denote these are function definitions
-        seq->addCommand( new SetUserAttributeCommand( attr_name, func_app ) );
-        //assert it
-        as = EXPR_MANAGER->mkExpr( kind::FORALL,
-                      EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs),
-                      as, aexpr);
-      }
-      seq->addCommand( new AssertCommand(as, false) );
+      seq->addCommand( new DefineFunctionRecCommand(func,bvs,expr) );
       //set up the next scope 
       PARSER_STATE->popScope();
       if( func_defs.size()<funcs.size() ){
