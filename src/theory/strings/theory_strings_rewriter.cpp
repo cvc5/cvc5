@@ -196,20 +196,17 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
   return Node::null();
 }
 
-// TODO (#1180) rename this to rewriteConcat
 // TODO (#1180) add rewrite
 //  str.++( str.substr( x, n1, n2 ), str.substr( x, n1+n2, n3 ) ) --->
 //  str.substr( x, n1, n2+n3 )
-Node TheoryStringsRewriter::rewriteConcatString( TNode node ) {
-  Trace("strings-prerewrite") << "Strings::rewriteConcatString start " << node << std::endl;
+Node TheoryStringsRewriter::rewriteConcat( Node node ) {
+  Trace("strings-prerewrite") << "Strings::rewriteConcat start " << node << std::endl;
   Node retNode = node;
   std::vector<Node> node_vec;
   Node preNode = Node::null();
   for(unsigned int i=0; i<node.getNumChildren(); ++i) {
     Node tmpNode = node[i];
     if(node[i].getKind() == kind::STRING_CONCAT) {
-      // TODO (#1180) is this necessary?
-      tmpNode = rewriteConcatString(node[i]);
       if(tmpNode.getKind() == kind::STRING_CONCAT) {
         unsigned j=0;
         if(!preNode.isNull()) {
@@ -249,7 +246,7 @@ Node TheoryStringsRewriter::rewriteConcatString( TNode node ) {
     node_vec.push_back( preNode );
   }
   retNode = mkConcat( kind::STRING_CONCAT, node_vec );
-  Trace("strings-prerewrite") << "Strings::rewriteConcatString end " << retNode << std::endl;
+  Trace("strings-prerewrite") << "Strings::rewriteConcat end " << retNode << std::endl;
   return retNode;
 }
 
@@ -270,7 +267,7 @@ void TheoryStringsRewriter::shrinkConVec(std::vector<Node> &vec) {
       vec.erase(vec.begin() + i);
     } else if(vec[i].getKind()==kind::STRING_TO_REGEXP && i<vec.size()-1 && vec[i+1].getKind()==kind::STRING_TO_REGEXP) {
       Node tmp = NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, vec[i][0], vec[i+1][0]);
-      tmp = rewriteConcatString(tmp);
+      tmp = rewriteConcat(tmp);
       vec[i] = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, tmp);
       vec.erase(vec.begin() + i + 1);
     } else {
@@ -568,7 +565,7 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
         unsigned j=0;
         if(!preNode.isNull()) {
           if(tmpNode[0].getKind() == kind::STRING_TO_REGEXP) {
-            preNode = rewriteConcatString(
+            preNode = rewriteConcat(
               NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, preNode, tmpNode[0][0] ) );
             node_vec.push_back( NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, preNode ) );
             preNode = Node::null();
@@ -589,7 +586,7 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
       if(preNode.isNull()) {
         preNode = tmpNode[0];
       } else {
-        preNode = rewriteConcatString(
+        preNode = rewriteConcat(
         NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, preNode, tmpNode[0] ) );
       }
     } else if( tmpNode.getKind() == kind::REGEXP_EMPTY ) {
@@ -899,10 +896,6 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
   Node x = node[0];
   Node r = node[1];//applyAX(node[1]);
 
-  if(node[0].getKind() == kind::STRING_CONCAT) {
-    x = rewriteConcatString(node[0]);
-  }
-
   if(r.getKind() == kind::REGEXP_EMPTY) {
     retNode = NodeManager::currentNM()->mkConst( false );
   } else if(x.getKind()==kind::CONST_STRING && isConstRegExp(r)) {
@@ -1011,32 +1004,22 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   Node orig = retNode;
 
   if(node.getKind() == kind::STRING_CONCAT) {
-    retNode = rewriteConcatString(node);
+    retNode = rewriteConcat(node);
   } else if(node.getKind() == kind::EQUAL) {
-    // TODO (#1180) are these necessary?
     Node leftNode  = node[0];
-    if(node[0].getKind() == kind::STRING_CONCAT) {
-      leftNode = rewriteConcatString(node[0]);
-    }
     Node rightNode = node[1];
-    if(node[1].getKind() == kind::STRING_CONCAT) {
-      rightNode = rewriteConcatString(node[1]);
-    }
-
     if(leftNode == rightNode) {
       retNode = NodeManager::currentNM()->mkConst(true);
     } else if(leftNode.isConst() && rightNode.isConst()) {
       retNode = NodeManager::currentNM()->mkConst(false);
     } else if(leftNode > rightNode) {
       retNode = NodeManager::currentNM()->mkNode(kind::EQUAL, rightNode, leftNode);
-    } else if( leftNode != node[0] || rightNode != node[1]) {
-      retNode = NodeManager::currentNM()->mkNode(kind::EQUAL, leftNode, rightNode);
     }
   } else if(node.getKind() == kind::STRING_LENGTH) {
     if( node[0].isConst() ){
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
     }else if( node[0].getKind() == kind::STRING_CONCAT ){
-      Node tmpNode = rewriteConcatString(node[0]);
+      Node tmpNode = node[0];
       if(tmpNode.isConst()) {
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode.getConst<String>().size() ) );
       //} else if(tmpNode.getKind() == kind::STRING_SUBSTR) {
@@ -1171,9 +1154,7 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
   Node orig = retNode;
   Trace("strings-prerewrite") << "Strings::preRewrite start " << node << std::endl;
 
-  if(node.getKind() == kind::STRING_CONCAT) {
-    retNode = rewriteConcatString(node);
-  }else if(node.getKind() == kind::REGEXP_CONCAT) {
+  if(node.getKind() == kind::REGEXP_CONCAT) {
     retNode = prerewriteConcatRegExp(node);
   } else if(node.getKind() == kind::REGEXP_UNION) {
     retNode = prerewriteOrRegExp(node);
@@ -1814,7 +1795,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   std::vector<Node> children1;
   getConcat(node[1], children1);
 
-  // check if contains definitely (does not) hold
+  // check if contains definitely does (or does not) hold
   Node cmp_con =
       NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, node[0], node[1]);
   Node cmp_conr = Rewriter::rewrite(cmp_con);
