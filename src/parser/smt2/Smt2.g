@@ -1151,7 +1151,6 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   SExpr sexpr;
   Type t;
   Expr func;
-  Expr func_app;
   std::vector<Expr> bvs;
   std::vector< std::vector<std::pair<std::string, Type> > > sortedVarNamesList;
   std::vector<std::vector<Expr>> flattenVarsList;
@@ -1208,7 +1207,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     {
       func = PARSER_STATE->mkDefineFunRec(fname, sortedVarNames, t, flattenVars);
       seq->addCommand(new DeclareFunctionCommand(fname, func, t));
-      PARSER_STATE->pushDefineFunRecScope(sortedVarNames, func, flattenVars, func_app, bvs, true );
+      PARSER_STATE->pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs, true );
     }
     term[expr, expr2]
     { PARSER_STATE->popScope(); 
@@ -1254,7 +1253,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       }
       bvs.clear();
       PARSER_STATE->pushDefineFunRecScope( sortedVarNamesList[0], funcs[0],
-                                           flattenVarsList[0], func_app, bvs, true);
+                                           flattenVarsList[0], bvs, true);
     }
     (
     term[expr,expr2]
@@ -1272,7 +1271,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       if( func_defs.size()<funcs.size() ){
         bvs.clear();
         PARSER_STATE->pushDefineFunRecScope( sortedVarNamesList[j], funcs[j], 
-                                             flattenVarsList[j], func_app, bvs, true);
+                                             flattenVarsList[j], bvs, true);
       }
     }
     )+
