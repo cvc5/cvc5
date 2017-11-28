@@ -51,6 +51,7 @@ TESTS =	\
   div-mod-partial.smt2 \
   all-logic.smt2 \
   sqrt-problem-1.smt2 \
+  real-as-int.smt2 \
   nta/bad-050217.smt2 \
   nta/cos-bound.smt2 \
   nta/cos-sig-value.smt2 \
