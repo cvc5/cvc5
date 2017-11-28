@@ -361,7 +361,7 @@ class Trigger {
 
  protected:
   /** trigger constructor, intentionally protected (use Trigger::mkTrigger). */
-  Trigger( QuantifiersEngine* ie, Node q, std::vector< Node >& nodes );
+  Trigger(QuantifiersEngine* ie, Node q, std::vector<Node>& nodes);
   /** is subterm of trigger usable (helper function for isUsableTrigger) */
   static bool isUsable( Node n, Node q );
   /** returns an equality that is equivalent to the equality eq and

@@ -194,7 +194,7 @@ class InstMatchGenerator : public IMGenerator {
 public:
  /** destructor */
  virtual ~InstMatchGenerator() throw();
- 
+
  /** Reset instantiation round. */
  void resetInstantiationRound(QuantifiersEngine* qe) override;
  /** Reset. */
@@ -330,13 +330,13 @@ protected:
   * of the term.
   */
  std::vector<int> d_children_index;
- /** children types 
+ /** children types
   *
-  * If d_match_pattern is an instantiation constant, then this is a singleton 
+  * If d_match_pattern is an instantiation constant, then this is a singleton
   * vector containing the variable number of the d_match_pattern itself.
-  * If d_match_patterm is a term of the form f( t1, ..., tn ), then for each 
+  * If d_match_patterm is a term of the form f( t1, ..., tn ), then for each
   * index i, d_children[i] stores the type of node ti is, where:
-  *   >= 0 : variable (indicates its number), 
+  *   >= 0 : variable (indicates its number),
   *   -1 : ground term,
   *   -2 : child term.
   */
