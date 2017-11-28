@@ -63,7 +63,7 @@ private:
 
   static inline void init() {}
   static inline void shutdown() {}
-  /** rewrite concat 
+  /** rewrite concat
   * This is the entry point for post-rewriting terms node of the form
   *   str.++( t1, .., tn )
   * Returns the rewritten form of node.
