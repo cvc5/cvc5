@@ -103,7 +103,8 @@ void SygusGrammarNorm::normalizeSygusInt(unsigned ind,
       d_qe->getTermUtil()->getTypeValue(TypeNode::fromType(int_type), 0);
   Node one = d_qe->getTermUtil()->getTypeValue(TypeNode::fromType(int_type), 1);
   /* TODO fix this */
-  /* SygusEmptyPrintCallback empty_pc; */
+  std::shared_ptr<printer::SygusEmptyPrintCallback> empty_pc;
+  empty_pc = std::make_shared<printer::SygusEmptyPrintCallback>();
   /* Build integer identity operator */
   vars.push_back(d_nm->mkBoundVar(TypeNode::fromType(int_type)));
   Node iden_op = d_nm->mkNode(LAMBDA, d_nm->mkNode(BOUND_VAR_LIST, vars), vars.back());
@@ -194,7 +195,7 @@ void SygusGrammarNorm::normalizeSygusInt(unsigned ind,
   /* Add to integer type */
   tos[ind].d_ops.push_back(iden_op);
   tos[ind].d_cons_names.push_back("id_next");
-  tos[ind].d_pc.push_back(nullptr);
+  tos[ind].d_pc.push_back(empty_pc);
   tos[ind].d_cons_args_t.push_back(std::vector<Type>());
   tos[ind].d_cons_args_t.back().push_back(tos.back().d_unres_t);
   /* Assign next root position */
@@ -217,7 +218,7 @@ void SygusGrammarNorm::normalizeSygusInt(unsigned ind,
         << "\tAdding Int0 to " << tos[r_pos].d_unres_t << " with op "
         << tos[r_pos].d_ops.back() << "\n";
     tos[r_pos].d_cons_names.push_back("id_zero");
-    tos[r_pos].d_pc.push_back(nullptr);
+    tos[r_pos].d_pc.push_back(empty_pc);
     tos[r_pos].d_cons_args_t.push_back(std::vector<Type>());
     tos[r_pos].d_cons_args_t.back().push_back(tos.back().d_unres_t);
     /* Creates IntNext */
@@ -229,7 +230,7 @@ void SygusGrammarNorm::normalizeSygusInt(unsigned ind,
     /* adds IntNext to Root */
     tos[r_pos].d_ops.push_back(iden_op);
     tos[r_pos].d_cons_names.push_back("id_next");
-    tos[r_pos].d_pc.push_back(nullptr);
+    tos[r_pos].d_pc.push_back(empty_pc);
     tos[r_pos].d_cons_args_t.push_back(std::vector<Type>());
     tos[r_pos].d_cons_args_t.back().push_back(tos.back().d_unres_t);
     Trace("sygus-grammar-normalize-int")
@@ -266,7 +267,7 @@ void SygusGrammarNorm::normalizeSygusInt(unsigned ind,
       /* Adds to Root: IntV */
       tos[r_pos].d_ops.push_back(iden_op);
       tos[r_pos].d_cons_names.push_back("id_v");
-      tos[r_pos].d_pc.push_back(nullptr);
+      tos[r_pos].d_pc.push_back(empty_pc);
       tos[r_pos].d_cons_args_t.push_back(std::vector<Type>());
       tos[r_pos].d_cons_args_t.back().push_back(tos.back().d_unres_t);
       /* Adds to Root: IntV + Root */
@@ -282,7 +283,7 @@ void SygusGrammarNorm::normalizeSygusInt(unsigned ind,
       tos.push_back(TypeObject(tos[ind].d_tn, tos[ind].d_t, type_name.str()));
       tos[r_pos].d_ops.push_back(iden_op);
       tos[r_pos].d_cons_names.push_back("id_next");
-      tos[r_pos].d_pc.push_back(nullptr);
+      tos[r_pos].d_pc.push_back(empty_pc);
       tos[r_pos].d_cons_args_t.push_back(std::vector<Type>());
       tos[r_pos].d_cons_args_t.back().push_back(tos.back().d_unres_t);
       /* Updates root position */
@@ -304,7 +305,7 @@ void SygusGrammarNorm::normalizeSygusInt(unsigned ind,
       /* adds to Root: Int1 */
       tos[r_pos].d_ops.push_back(iden_op);
       tos[r_pos].d_cons_names.push_back("id_one");
-      tos[r_pos].d_pc.push_back(nullptr);
+      tos[r_pos].d_pc.push_back(empty_pc);
       tos[r_pos].d_cons_args_t.push_back(std::vector<Type>());
       tos[r_pos].d_cons_args_t.back().push_back(tos.back().d_unres_t);
       Trace("sygus-grammar-normalize-int")
@@ -328,7 +329,7 @@ void SygusGrammarNorm::normalizeSygusInt(unsigned ind,
       /* Adds to Root: IntC */
       tos[r_pos].d_ops.push_back(iden_op);
       tos[r_pos].d_cons_names.push_back("id_C");
-      tos[r_pos].d_pc.push_back(nullptr);
+      tos[r_pos].d_pc.push_back(empty_pc);
       tos[r_pos].d_cons_args_t.push_back(std::vector<Type>());
       tos[r_pos].d_cons_args_t.back().push_back(tos.back().d_unres_t);
       Trace("sygus-grammar-normalize-int")
