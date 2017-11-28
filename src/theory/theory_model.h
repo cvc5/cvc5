@@ -91,12 +91,6 @@ public:
   //---------------------------- for building the model
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
-  /** add term
-    *  This will do any model-specific processing necessary for n,
-    *  such as constraining the interpretation of uninterpreted functions,
-    *  and adding n to the equality engine of this model.
-    */
-  virtual void addTerm(TNode n);
   /** assert equality holds in the model */
   void assertEquality(TNode a, TNode b, bool polarity);
   /** assert predicate holds in the model */
@@ -204,7 +198,14 @@ public:
   Node getModelValue(TNode n,
                      bool hasBoundVars = false,
                      bool useDontCares = false) const;
-
+  /** add term internal
+   * 
+   * This will do any model-specific processing necessary for n,
+   * such as constraining the interpretation of uninterpreted functions.
+   * This is called once for all terms in the equality engine, just before
+   * a model builder constructs this model.
+   */
+  virtual void addTermInternal(TNode n);
  private:
   /** cache for getModelValue */
   mutable std::unordered_map<Node, Node, NodeHashFunction> d_modelCache;

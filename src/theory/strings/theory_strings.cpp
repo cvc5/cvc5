@@ -275,9 +275,12 @@ void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions) {
       assumptions.push_back( tassumptions[i] );
     }
   }
-  Debug("strings-explain-debug") << "Explanation for " << literal << " was " << std::endl;
-  for( unsigned i=ps; i<assumptions.size(); i++ ){
-    Debug("strings-explain-debug") << "   " << assumptions[i] << std::endl;
+  if( Debug.isOn("strings-explain-debug") )
+  {
+    Debug("strings-explain-debug") << "Explanation for " << literal << " was " << std::endl;
+    for( unsigned i=ps; i<assumptions.size(); i++ ){
+      Debug("strings-explain-debug") << "   " << assumptions[i] << std::endl;
+    }
   }
 }
 
@@ -3279,6 +3282,11 @@ void TheoryStrings::sendInference( std::vector< Node >& exp, std::vector< Node >
           eq_exp = NodeManager::currentNM()->mkNode( kind::AND, ev );
         }
       }
+      // if we have unexplained literals, this lemma is not a conflict
+      if( eq==d_false && !exp_n.empty() ){
+        eq = eq_exp.negate();
+        eq_exp = d_true;
+      }
       sendLemma( eq_exp, eq, c );
     }else{
       sendInfer( mkAnd( exp ), eq, c );
@@ -3338,7 +3346,6 @@ void TheoryStrings::sendInfer( Node eq_exp, Node eq, const char * c ) {
   d_pending_exp[eq] = eq_exp;
   d_infer.push_back( eq );
   d_infer_exp.push_back( eq_exp );
-
 }
 
 void TheoryStrings::sendSplit( Node a, Node b, const char * c, bool preq ) {
