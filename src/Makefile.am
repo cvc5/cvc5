@@ -67,6 +67,8 @@ libcvc4_la_SOURCES = \
 	printer/dagification_visitor.h \
 	printer/printer.cpp \
 	printer/printer.h \
+	printer/sygus_print_callback.cpp \
+	printer/sygus_print_callback.h \
 	printer/ast/ast_printer.cpp \
 	printer/ast/ast_printer.h \
 	printer/cvc/cvc_printer.cpp \
@@ -391,8 +393,14 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/fun_def_engine.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_process.h \
+	theory/quantifiers/ho_trigger.cpp \
+	theory/quantifiers/ho_trigger.h \
+	theory/quantifiers/instantiate.cpp \
+	theory/quantifiers/instantiate.h \
 	theory/quantifiers/inst_match.cpp \
 	theory/quantifiers/inst_match.h \
+	theory/quantifiers/inst_match_trie.cpp \
+	theory/quantifiers/inst_match_trie.h \
 	theory/quantifiers/inst_match_generator.cpp \
 	theory/quantifiers/inst_match_generator.h \
 	theory/quantifiers/inst_propagator.cpp \
@@ -443,6 +451,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus_invariance.h \
 	theory/quantifiers/sygus_grammar_cons.cpp \
 	theory/quantifiers/sygus_grammar_cons.h \
+	theory/quantifiers/sygus_grammar_norm.cpp \
+	theory/quantifiers/sygus_grammar_norm.h \
 	theory/quantifiers/sygus_process_conj.cpp \
 	theory/quantifiers/sygus_process_conj.h \
 	theory/quantifiers/symmetry_breaking.cpp \
