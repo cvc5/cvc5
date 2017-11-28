@@ -1326,12 +1326,14 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
   Assert(visited.top().find(lit) != visited.top().end());
   Assert(!visited.top().find(lit)->second.isNull());
 
+  Node result = visited.top()[lit];
+
   if (Trace.isOn("cegqi-bv-nl"))
   {
     std::vector<TNode> trace_visit;
     std::unordered_set<TNode, TNodeHashFunction> trace_visited;
 
-    trace_visit.push_back(visited.top()[lit]);
+    trace_visit.push_back(result);
     do
     {
       cur = trace_visit.back();
@@ -1350,7 +1352,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
     } while (!trace_visit.empty());
   }
 
-  return visited.top()[lit];
+  return result;
 }
 
 static Node getPvCoeff(
@@ -1537,33 +1539,30 @@ Node BvInstantiator::rewriteTermForSolvePv(
     else if (rhs == pv && lhs.getKind() == BITVECTOR_MULT)
       mult = lhs;
 
-    if (mult.getNumChildren() == 2)
+    if (!mult.isNull())
     {
-      unsigned size_pv = bv::utils::getSize(pv);
-      /* rewrite: x * x = x -> x < 2 */
-      if (mult[0] == pv && mult[0] == mult[1])
+      if (mult.getNumChildren() == 2)
       {
-        return nm->mkNode(BITVECTOR_ULT,
-                          pv,
-                          bv::utils::mkConst(BitVector(size_pv, Integer(2))));
-      }
-      /* t * x = x -> t = 1 */
-      else if (mult[0] == pv)
-      {
-        return mult[1].eqNode(bv::utils::mkOne(size_pv));
-      }
-      /* x * t = x -> t = 1 */
-      else if (mult[1] == pv)
-      {
-        return mult[0].eqNode(bv::utils::mkOne(size_pv));
+        unsigned size_pv = bv::utils::getSize(pv);
+        /* rewrite: x * x = x -> x < 2 */
+        if (mult[0] == pv && mult[0] == mult[1])
+        {
+          return nm->mkNode(BITVECTOR_ULT,
+                            pv,
+                            bv::utils::mkConst(BitVector(size_pv, Integer(2))));
+        }
       }
     }
 
-    Node linear_n = linearizePv(pv, n, children, contains_pv);
-    if (!linear_n.isNull())
-      return linear_n;
+    if (options::cbqiBvLinearize())
+    {
+      Node linear_n = linearizePv(pv, n, children, contains_pv);
+      if (!linear_n.isNull())
+        return linear_n;
+    }
   }
-  else if (n.getKind() == BITVECTOR_PLUS && contains_pv[n])
+  else if (options::cbqiBvLinearize() && n.getKind() == BITVECTOR_PLUS
+           && contains_pv[n])
   {
     std::vector<Node> coeffs, leafs;
     bool ok;
