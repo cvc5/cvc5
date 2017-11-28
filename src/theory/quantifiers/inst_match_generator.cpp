@@ -15,9 +15,10 @@
 #include "theory/quantifiers/inst_match_generator.h"
 
 #include "expr/datatype.h"
-#include "options/quantifiers_options.h"
 #include "options/datatypes_options.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/candidate_generator.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
@@ -238,7 +239,8 @@ int InstMatchGenerator::getMatch(
       if( d_children_types[i]==0 ){
         Trace("matching-debug2") << "Setting " << d_var_num[i] << " to " << t[i] << "..." << std::endl;
         bool addToPrev = m.get( d_var_num[i] ).isNull();
-        if( !m.set( qe, d_var_num[i], t[i] ) ){
+        if (!m.set(q, d_var_num[i], t[i]))
+        {
           //match is in conflict
           Trace("matching-fail") << "Match fail: " << m.get(d_var_num[i]) << " and " << t[i] << std::endl;
           success = false;
@@ -260,7 +262,8 @@ int InstMatchGenerator::getMatch(
     //for variable matching
     if( d_match_pattern.getKind()==INST_CONSTANT ){
       bool addToPrev = m.get( d_var_num[0] ).isNull();
-      if( !m.set( qe, d_var_num[0], t ) ){
+      if (!m.set(q, d_var_num[0], t))
+      {
         success = false;
       }else{
         if( addToPrev ){
@@ -296,7 +299,8 @@ int InstMatchGenerator::getMatch(
       }
       if( !t_match.isNull() ){
         bool addToPrev = m.get( v ).isNull();
-        if( !m.set( qe, v, t_match ) ){
+        if (!m.set(q, v, t_match))
+        {
           success = false;
         }else if( addToPrev ){
           prev.push_back( v );
@@ -572,7 +576,8 @@ int VarMatchGeneratorBooleanTerm::getNextMatch(Node q,
     Node s = NodeManager::currentNM()->mkConst(qe->getEqualityQuery()->areEqual( d_eq_class, d_pattern ));
     d_eq_class = Node::null();
     d_rm_prev = m.get( d_var_num[0] ).isNull();
-    if( !m.set( qe, d_var_num[0], s ) ){
+    if (!m.set(qe->getEqualityQuery(), d_var_num[0], s))
+    {
       return -1;
     }else{
       ret_val = continueNextMatch(q, m, qe, tparent);
@@ -608,7 +613,8 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q,
     d_eq_class = Node::null();
     //if( s.getType().isSubtypeOf( d_var_type ) ){
     d_rm_prev = m.get( d_var_num[0] ).isNull();
-    if( !m.set( qe, d_var_num[0], s ) ){
+    if (!m.set(qe->getEqualityQuery(), d_var_num[0], s))
+    {
       return -1;
     }else{
       ret_val = continueNextMatch(q, m, qe, tparent);
@@ -1087,7 +1093,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     }
     // we do not need the trigger parent for simple triggers (no post-processing
     // required)
-    if (qe->addInstantiation(d_quant, m))
+    if (qe->getInstantiate()->addInstantiation(d_quant, m))
     {
       addedLemmas++;
       Debug("simple-trigger") << "-> Produced instantiation " << m << std::endl;

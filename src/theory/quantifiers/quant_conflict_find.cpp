@@ -19,11 +19,12 @@
 
 #include "options/quantifiers_options.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
-#include "theory/quantifiers/first_order_model.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -33,9 +34,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QuantInfo::QuantInfo()
-    : d_mg( NULL )
-{}
+QuantInfo::QuantInfo() : d_mg(NULL), d_unassigned_nvar(0), d_una_index(0) {}
 
 QuantInfo::~QuantInfo() {
   delete d_mg;
@@ -588,7 +587,8 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
         return true;
       }
     }else{
-      Node inst = p->d_quantEngine->getInstantiation( d_q, terms );
+      Node inst =
+          p->d_quantEngine->getInstantiate()->getInstantiation(d_q, terms);
       Node inst_eval = p->getTermDatabase()->evaluateTerm( inst, NULL, options::qcfTConstraint() );
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
@@ -2113,13 +2113,16 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
                         if( !tcs ){
                           //for debugging
                           if( Debug.isOn("qcf-check-inst") ){
-                            Node inst = d_quantEngine->getInstantiation( q, terms );
+                            Node inst = d_quantEngine->getInstantiate()
+                                            ->getInstantiation(q, terms);
                             Debug("qcf-check-inst") << "Check instantiation " << inst << "..." << std::endl;
                             Assert( !getTermDatabase()->isEntailed( inst, true ) );
                             Assert(getTermDatabase()->isEntailed(inst, false) ||
                                    e > EFFORT_CONFLICT);
                           }
-                          if( d_quantEngine->addInstantiation( q, terms ) ){
+                          if (d_quantEngine->getInstantiate()->addInstantiation(
+                                  q, terms))
+                          {
                             Trace("qcf-check") << "   ... Added instantiation" << std::endl;
                             Trace("qcf-inst") << "*** Was from effort " << e << " : " << std::endl;
                             qi->debugPrintMatch("qcf-inst");

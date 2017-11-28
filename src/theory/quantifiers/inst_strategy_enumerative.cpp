@@ -15,6 +15,7 @@
 #include "theory/quantifiers/inst_strategy_enumerative.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -273,7 +274,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort)
                                        << std::endl;
                 }
               }
-              if (d_quantEngine->addInstantiation(f, terms))
+              if (d_quantEngine->getInstantiate()->addInstantiation(f, terms))
               {
                 Trace("inst-alg-rd") << "Success!" << std::endl;
                 ++(d_quantEngine->d_statistics.d_instantiations_guess);
