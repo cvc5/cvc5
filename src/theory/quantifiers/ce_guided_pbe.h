@@ -472,43 +472,43 @@ class CegConjecturePbe {
   bool getExplanationForEnumeratorExclude( Node c, Node x, Node v, std::vector< Node >& results, EnumInfo& ei, std::vector< Node >& exp );
 
   //------------------------------ strategy registration
-  /** collect enumerator types 
-   * 
-   * This builds the strategy for enumerated values of type tn for the given 
+  /** collect enumerator types
+   *
+   * This builds the strategy for enumerated values of type tn for the given
    * role of nrole, for solutions to function-to-synthesize c.
    */
   void collectEnumeratorTypes(Node c, TypeNode tn, NodeRole nrole);
-  /** register enumerator 
-   * 
+  /** register enumerator
+   *
    * This registers that et is an enumerator for function-to-synthesize c
    * of type tn, having enumerator role enum_role.
-   * 
-   * inSearch is whether we will enumerate values for this enumerator. If this 
+   *
+   * inSearch is whether we will enumerate values for this enumerator. If this
    * flag is false, then the enumerator is a placeholder for a compound
    * strategy.
    */
   void registerEnumerator(
       Node et, Node c, TypeNode tn, EnumRole enum_role, bool inSearch);
-  /** infer template 
+  /** infer template
    */
   bool inferTemplate(unsigned k,
                      Node n,
                      std::map<Node, unsigned>& templ_var_index,
                      std::map<unsigned, unsigned>& templ_injection);
-  /** static learn redundant operators 
-   * 
-   * This learns static lemmas for pruning enumerative space based on the 
+  /** static learn redundant operators
+   *
+   * This learns static lemmas for pruning enumerative space based on the
    * strategy for the function-to-synthesize c, and stores these into lemmas.
    */
   void staticLearnRedundantOps(Node c, std::vector<Node>& lemmas);
-  /** helper for static learn redundant operators 
-   * 
-   * (e,nrole) specify the strategy node in the graph we are currently 
+  /** helper for static learn redundant operators
+   *
+   * (e,nrole) specify the strategy node in the graph we are currently
    * analyzing, visited stores the nodes we have already visited.
-   * 
+   *
    * This method builds the mapping needs_cons, which maps (master) enumerators
    * to a map from the constructors that it needs.
-   * 
+   *
    * ind is the depth in the strategy graph we are at (for debugging).
    */
   void staticLearnRedundantOps(
@@ -516,7 +516,7 @@ class CegConjecturePbe {
       Node e,
       NodeRole nrole,
       std::map<Node, std::map<NodeRole, bool> >& visited,
-      std::map<Node, std::map< unsigned, bool > >& needs_cons,
+      std::map<Node, std::map<unsigned, bool> >& needs_cons,
       int ind);
   //------------------------------ end strategy registration
 
