@@ -1217,6 +1217,12 @@ void CegConjecturePbe::EnumInfo::addEnumValue( CegConjecturePbe * pbe, Node v, s
   */
 }
 
+void CegConjecturePbe::EnumInfo::initialize(Node c, EnumRole role)
+{
+  d_parent_candidate = c;
+  d_role = role;
+}
+
 void CegConjecturePbe::EnumInfo::setSolved( Node slv ) {
   d_enum_solved = slv;
   //d_enum_total_true = true;
@@ -1806,7 +1812,6 @@ Node CegConjecturePbe::constructSolution( Node c, Node e, NodeRole nrole, UnifCo
             if( !x.isReturnValueModified() ){
               if( x.d_uinfo.find( ce )==x.d_uinfo.end() ){
                 Trace("sygus-pbe-dt-debug2") << "  reg : PBE: Look for direct solutions for conditional enumerator " << ce << " ... " << std::endl;
-                x.d_uinfo[ce].d_status = 0;
                 Assert( einfo_child.d_enum_vals.size()==einfo_child.d_enum_vals_res.size() );
                 for( unsigned i=1; i<=2; i++ ){
                   std::pair< Node, NodeRole >& te_pair = etis->d_cenum[i];
@@ -2068,7 +2073,7 @@ bool CegConjecturePbe::UnifContext::getStringIncrement( CegConjecturePbe * pbe, 
   }
   return true;
 }
-bool CegConjecturePbe::UnifContext::isStringSolved( CegConjecturePbe * pbe, std::vector< CVC4::String >& ex_vals, std::vector< Node >& vals ) {
+bool CegConjecturePbe::UnifContext::isStringSolved( CegConjecturePbe * pbe, const std::vector< CVC4::String >& ex_vals, const std::vector< Node >& vals ) {
   for( unsigned j=0; j<vals.size(); j++ ){
     if( d_vals[j]==pbe->d_true ){
       // example is active in this context

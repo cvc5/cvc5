@@ -360,11 +360,7 @@ class CegConjecturePbe {
     * role is the "role" the enumerator plays in the high-level strategy,
     *   which is one of enum_* above.
     */
-    void initialize(Node c, EnumRole role)
-    {
-      d_parent_candidate = c;
-      d_role = role;
-    }
+    void initialize(Node c, EnumRole role);
     bool isTemplated() { return !d_template.isNull(); }
     void addEnumValue(CegConjecturePbe* pbe,
                       Node v,
@@ -435,8 +431,6 @@ class CegConjecturePbe {
     std::map< EnumRole, Node > d_enum;
     /** map from node roles to strategy nodes */
     std::map< NodeRole, StrategyNode > d_snodes;
-    /** is solved? */
-    bool isSolved( CegConjecturePbe * pbe );
   };
   
   /** stores strategy and enumeration information for a function-to-synthesize
@@ -446,17 +440,19 @@ class CegConjecturePbe {
     CandidateInfo() : d_check_sol( false ), d_cond_count( 0 ){}
     Node d_this_candidate;
     /** 
-     * The root SyGuS datatype for the function-to-synthesize,
+     * The root sygus datatype for the function-to-synthesize,
      * which encodes the overall syntactic restrictions on the space
      * of solutions.
      */
     TypeNode d_root;
-    /** Information for each SyGuS datatype type occurring in a field of d_root
-     */
+    /** Info for sygus datatype type occurring in a field of d_root */
     std::map< TypeNode, EnumTypeInfo > d_tinfo;
     /** list of all enumerators for the function-to-synthesize */
     std::vector< Node > d_esym_list;
-    /** maps sygus datatypes to their enumerator */
+    /** 
+     * Maps sygus datatypes to their search enumerator. This is the (single)
+     * enumerator of that type that we enumerate values for.
+     */
     std::map< TypeNode, Node > d_search_enum;
     bool d_check_sol;
     unsigned d_cond_count;
@@ -547,13 +543,23 @@ class CegConjecturePbe {
     bool updateStringPosition( CegConjecturePbe * pbe, std::vector< unsigned >& pos );
     /** get current strings 
      * 
-     * This returns the prefix/suffix of the (constant) strings stored in vals
+     * This returns the prefix/suffix of the string constants stored in vals
      * of size d_str_pos, and stores the result in ex_vals.
      */
     void getCurrentStrings( CegConjecturePbe * pbe, const std::vector< Node >& vals, std::vector< CVC4::String >& ex_vals );
+    /** get string increment
+     * 
+     * If this method returns true, then inc and tot are updated such that 
+     *   for all active indices i, 
+     *      vals[i] is a prefix (or suffix if isPrefix=false) of ex_vals[i], and
+     *      inc[i] = str.len(vals[i])
+     *   for all inactive indices i, inc[i] = 0
+     *   We set tot = sum_i inc[i].
+     */
     bool getStringIncrement( CegConjecturePbe * pbe, bool isPrefix, const std::vector< CVC4::String >& ex_vals, 
                              const std::vector< Node >& vals, std::vector< unsigned >& inc, unsigned& tot );
-    bool isStringSolved( CegConjecturePbe * pbe, std::vector< CVC4::String >& ex_vals, std::vector< Node >& vals );
+    /** returns true if ex_vals[i] = vals[i] for all active indices i. */
+    bool isStringSolved( CegConjecturePbe * pbe, const std::vector< CVC4::String >& ex_vals, const std::vector< Node >& vals );
     //----------end for CONCAT strategies
     
     /** is return value modified? 
@@ -568,15 +574,25 @@ class CegConjecturePbe {
     /** visited role 
      * 
      * This is the current set of enumerator/node role pairs we are currently
-     * visiting. This set is clearer when the context is updated.
+     * visiting. This set is cleared when the context is updated.
      */
     std::map< Node, std::map< NodeRole, bool > > d_visit_role;
+    
     /** unif context enumerator information */
     class UEnumInfo {
     public:
-      UEnumInfo() : d_status(-1){}
-      int d_status;
-      // enum val -> polarity -> solved
+      UEnumInfo(){}
+      /** map from conditions and branch positions to a solved node
+       * 
+       * For example, if we have:
+       *   f( 1 ) = 2 ^ f( 3 ) = 4 ^ f( -1 ) = 1
+       * Then, a valid entry in this map is:
+       *   d_look_ahead_sols[x>0][1] = x+1
+       * Since for all input examples such that x>0 evaluates to true, which 
+       * are (1) and (3), we have that their output values for x+1 under the
+       * substitution that maps x to the input value, resulting in 2 and 4,
+       * are equal to the output value for the respective pairs.
+       */
       std::map< Node, std::map< unsigned, Node > > d_look_ahead_sols;
     };
     /** map from enumerators to the above info class */
@@ -585,14 +601,18 @@ class CegConjecturePbe {
 
   /** construct solution 
    * 
-   * TODO
+   * This method tries to construct a solution for function-to-synthesize c
+   * based on the strategy stored for c in d_c_info, which may include 
+   * synthesis-by-unification approaches for ite and string concatenation terms.
+   * If it cannot construct a solution, it returns the null node.
    */
   Node constructSolution( Node c );
   /** helper function for construct solution.
    * 
-  * Construct a solution based on enumerator e for function-to-synthesize c,
-  * in context x, where ind is the term depth of the context.
-  */
+   * Construct a solution based on enumerator e for function-to-synthesize c
+   * with node role nrole in context x.
+   * ind is the term depth of the context (for debugging).
+   */
   Node constructSolution( Node c, Node e, NodeRole nrole, UnifContext& x, int ind );
   /** Heuristically choose the best solved term from solved in context x,
    * currently return the first. */
@@ -600,13 +620,13 @@ class CegConjecturePbe {
   /** Heuristically choose the best solved string term  from solved in context
    * x, currently  return the first. */
   Node constructBestStringSolvedTerm( std::vector< Node >& solved, UnifContext& x );
-  /** heuristically choose the best solved conditional term  from solved in
+  /** Heuristically choose the best solved conditional term  from solved in
    * context x, currently random */
   Node constructBestSolvedConditional( std::vector< Node >& solved, UnifContext& x );
-  /** heuristically choose the best conditional term  from conds in context x,
+  /** Heuristically choose the best conditional term  from conds in context x,
    * currently random */
   Node constructBestConditional( std::vector< Node >& conds, UnifContext& x );
-  /** heuristically choose the best string to concatenate from strs to the
+  /** Heuristically choose the best string to concatenate from strs to the
   * solution in context x, currently random
   * incr stores the vector of indices that are incremented by this solution in
   * example outputs.
@@ -619,10 +639,11 @@ class CegConjecturePbe {
   //------------------------------ end constructing solutions
 
   /** get guard status
-  * Returns 1 if g is asserted true in the SAT solver.
-  * Returns -1 if g is asserted false in the SAT solver.
-  * Returns 0 otherwise.
-  */
+   * 
+   * Returns 1 if g is asserted true in the SAT solver.
+   * Returns -1 if g is asserted false in the SAT solver.
+   * Returns 0 otherwise.
+   */
   int getGuardStatus(Node g);
 };
 

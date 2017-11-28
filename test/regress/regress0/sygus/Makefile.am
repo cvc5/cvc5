@@ -74,7 +74,7 @@ TESTS = commutative.sy \
         Base16_1.sy \
         icfp_14.12-flip-args.sy \
         strings-template-infer-unused.sy \
-        strings-trivial-two-types.sy  \
+        strings-trivial-two-type.sy  \
         strings-double-rec.sy
 
 
