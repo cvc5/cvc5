@@ -34,9 +34,6 @@ typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
 struct BoundVarAttributeId {};
 typedef expr::Attribute<BoundVarAttributeId, Node> BoundVarAttribute;
 
-struct InstLevelAttributeId {};
-typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
-
 struct InstVarNumAttributeId {};
 typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 
@@ -61,10 +58,6 @@ typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
 /** Attribute true for quantifiers that do not need to be partially instantiated */
 struct LtePartialInstAttributeId {};
 typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribute;
-
-// attribute for sygus proxy variables
-struct SygusProxyAttributeId {};
-typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
 
 // attribute for associating a synthesis function with a first order variable
 struct SygusSynthGrammarAttributeId {};
@@ -101,13 +94,16 @@ namespace inst{
 namespace quantifiers {
 
 class TermDatabase;
+class Instantiate;
 
 // TODO : #1216 split this class, most of the functions in this class should be dispersed to where they are used.
 class TermUtil : public QuantifiersUtil
 {
   // TODO : remove these
   friend class ::CVC4::theory::QuantifiersEngine;
-private:
+  friend class Instantiate;
+
+ private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
 public:
@@ -183,17 +179,9 @@ public:
   //quantified simplify (treat free variables in n as quantified and run rewriter)
   static Node getQuantSimplify( Node n );
 
-//for triggers
-private:
+ private:
   /** helper function for compute var contains */
   static void computeVarContains2( Node n, Kind k, std::vector< Node >& varContains, std::map< Node, bool >& visited );
-  /** helper for is instance of */
-  static bool isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs );
-  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  static int isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 );
-  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  static int isInstanceOf(Node n1, Node n2);
-
  public:
   /** compute var contains */
   static void computeVarContains( Node n, std::vector< Node >& varContains );

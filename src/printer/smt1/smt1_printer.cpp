@@ -31,26 +31,35 @@ namespace CVC4 {
 namespace printer {
 namespace smt1 {
 
-void Smt1Printer::toStream(std::ostream& out, TNode n,
-                           int toDepth, bool types, size_t dag) const throw() {
+void Smt1Printer::toStream(
+    std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
+{
   n.toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
 }/* Smt1Printer::toStream() */
 
-void Smt1Printer::toStream(std::ostream& out, const Command* c,
-                           int toDepth, bool types, size_t dag) const throw() {
+void Smt1Printer::toStream(std::ostream& out,
+                           const Command* c,
+                           int toDepth,
+                           bool types,
+                           size_t dag) const
+{
   c->toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
 }/* Smt1Printer::toStream() */
 
-void Smt1Printer::toStream(std::ostream& out, const CommandStatus* s) const throw() {
+void Smt1Printer::toStream(std::ostream& out, const CommandStatus* s) const
+{
   s->toStream(out, language::output::LANG_SMTLIB_V2_5);
 }/* Smt1Printer::toStream() */
 
-
-void Smt1Printer::toStream(std::ostream& out, const Model& m) const throw() {
+void Smt1Printer::toStream(std::ostream& out, const Model& m) const
+{
   Printer::getPrinter(language::output::LANG_SMTLIB_V2_5)->toStream(out, m);
 }
 
-void Smt1Printer::toStream(std::ostream& out, const Model& m, const Command* c) const throw() {
+void Smt1Printer::toStream(std::ostream& out,
+                           const Model& m,
+                           const Command* c) const
+{
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
 }
