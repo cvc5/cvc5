@@ -1154,6 +1154,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   std::vector<Expr> bvs;
   std::vector< std::vector<std::pair<std::string, Type> > > sortedVarNamesList;
   std::vector<std::vector<Expr>> flattenVarsList;
+  std::vector<std::vector<Expr>> formals;
   std::vector<Expr> funcs;
   std::vector<Expr> func_defs;
   Expr aexpr;
@@ -1197,16 +1198,13 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       PARSER_STATE->resetAssertions();
     }
   | DEFINE_FUN_REC_TOK
-    { PARSER_STATE->checkThatLogicIsSet();
-      seq.reset(new CVC4::CommandSequence());
-    }
+    { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[fname,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(fname); }
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
     {
       func = PARSER_STATE->mkDefineFunRec(fname, sortedVarNames, t, flattenVars);
-      seq->addCommand(new DeclareFunctionCommand(fname, func, t));
       PARSER_STATE->pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs, true );
     }
     term[expr, expr2]
@@ -1214,13 +1212,10 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       if( !flattenVars.empty() ){
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
-      seq->addCommand( new DefineFunctionRecCommand(func,bvs,expr) );
-      cmd->reset(seq.release());
+      cmd->reset(new DefineFunctionRecCommand(func,bvs,expr));
     }
   | DEFINE_FUNS_REC_TOK
-    { PARSER_STATE->checkThatLogicIsSet();
-      seq.reset(new CVC4::CommandSequence());
-    }
+    { PARSER_STATE->checkThatLogicIsSet();}
     LPAREN_TOK
     ( LPAREN_TOK
       symbol[fname,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -1230,7 +1225,6 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       {
         flattenVars.clear();
         func = PARSER_STATE->mkDefineFunRec( fname, sortedVarNames, t, flattenVars );
-        seq->addCommand(new DeclareFunctionCommand(fname, func, t));
         funcs.push_back( func );
 
         // add to lists (need to remember for when parsing the bodies)
@@ -1263,9 +1257,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
         expr = PARSER_STATE->mkHoApply( expr, flattenVarsList[j] );
       }
       func_defs.push_back( expr );
-      Expr func = funcs[j];
+      formals.push_back(bvs);
       j++;
-      seq->addCommand( new DefineFunctionRecCommand(func,bvs,expr) );
       //set up the next scope 
       PARSER_STATE->popScope();
       if( func_defs.size()<funcs.size() ){
@@ -1281,7 +1274,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
             "Number of functions defined does not match number listed in "
             "define-funs-rec"));
       }
-      cmd->reset(seq.release());
+      cmd->reset( new DefineFunctionRecCommand(funcs,formals,func_defs));
     }
   // CHECK_SAT_ASSUMING still being discussed
   // GET_UNSAT_ASSUMPTIONS
