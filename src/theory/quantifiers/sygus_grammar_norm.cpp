@@ -571,7 +571,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   /* Normalize all types in tn */
   normalizeSygusRec(tn, sygus_vars);
   /* Resolve created types */
-  Assert(d_dt_all.empty() && d_unres_t_all.empty());
+  Assert(!d_dt_all.empty() && !d_unres_t_all.empty());
   Trace("sygus-grammar-normalize")
       << "making mutual datatyes with datatypes \n";
   for (unsigned i = 0, size = d_dt_all.size(); i < size; ++i)
