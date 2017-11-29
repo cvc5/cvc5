@@ -115,7 +115,7 @@ class Tptp : public Parser {
   void includeFile(std::string fileName);
 
   /** Check a TPTP let binding for well-formedness. */
-  void checkLetBinding(std::vector<Expr>& bvlist, Expr lhs, Expr rhs,
+  void checkLetBinding(const std::vector<Expr>& bvlist, Expr lhs, Expr rhs,
                        bool formula);
 
  private:
