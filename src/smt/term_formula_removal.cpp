@@ -141,7 +141,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
         // body
         std::vector<Node> skolem_app_c;
         skolem_app_c.push_back(skolem);
-        skolem_app_c.insert(skolem_app_c.end(),node[0].begin(), node[0].end());
+        skolem_app_c.insert(skolem_app_c.end(), node[0].begin(), node[0].end());
         Node skolem_app = nodeManager->mkNode(kind::APPLY_UF, skolem_app_c);
         children.push_back(skolem_app.eqNode(node[1]));
         // axiom defining skolem
