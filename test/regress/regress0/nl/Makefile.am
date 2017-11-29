@@ -51,6 +51,7 @@ TESTS =	\
   div-mod-partial.smt2 \
   all-logic.smt2 \
   sqrt-problem-1.smt2 \
+  real-as-int.smt2 \
   nta/bad-050217.smt2 \
   nta/cos-bound.smt2 \
   nta/cos-sig-value.smt2 \
@@ -66,7 +67,20 @@ TESTS =	\
   nta/tan-rewrite.smt2 \
   nta/arrowsmith-050317.smt2 \
   nta/sin-init-tangents.smt2 \
-  nta/cos1-tc.smt2
+  nta/cos1-tc.smt2 \
+  nta/sin1-ub.smt2 \
+  nta/sin1-lb.smt2 \
+  nta/sin2-ub.smt2 \
+  nta/sin2-lb.smt2 \
+  nta/exp1-ub.smt2 \
+  nta/exp1-lb.smt2 \
+  nta/exp-4.5-lt.smt2 \
+  nta/exp-n0.5-ub.smt2 \
+  nta/exp-n0.5-lb.smt2 \
+  nta/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2 \
+  nta/NAVIGATION2.smt2
+
+# unsolved : garbage_collect.cvc
 
 EXTRA_DIST = $(TESTS)
 
