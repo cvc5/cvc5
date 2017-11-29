@@ -215,7 +215,7 @@ class BvInstantiator : public Instantiator {
                                  Node pv,
                                  CegInstEffort effort) override;
   /** use model value
-   * 
+   *
    * We allow model values if we have not already tried an assertion,
    * and only at levels below full if cbqiFullEffort is false.
    */

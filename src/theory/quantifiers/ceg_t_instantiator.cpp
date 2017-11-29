@@ -1121,12 +1121,12 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci,
 }
 
 bool BvInstantiator::useModelValue(CegInstantiator* ci,
-                            SolvedForm& sf,
-                            Node pv,
-                            CegInstEffort effort)
+                                   SolvedForm& sf,
+                                   Node pv,
+                                   CegInstEffort effort)
 {
-  return !d_tried_assertion_inst && 
-          ( effort<CEG_INST_EFFORT_FULL || options::cbqiFullEffort() );
+  return !d_tried_assertion_inst
+         && (effort < CEG_INST_EFFORT_FULL || options::cbqiFullEffort());
 }
 
 bool BvInstantiator::processAssertions(CegInstantiator* ci,

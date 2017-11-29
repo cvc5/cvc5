@@ -1913,9 +1913,11 @@ void SmtEngine::setDefaults() {
       options::cbqi.set( true );
     }
     // check whether we should apply full cbqi
-    if( d_logic.isPure(THEORY_BV) ){
-      if( !options::cbqiFullEffort.wasSetByUser() ){
-        options::cbqiFullEffort.set( true );
+    if (d_logic.isPure(THEORY_BV))
+    {
+      if (!options::cbqiFullEffort.wasSetByUser())
+      {
+        options::cbqiFullEffort.set(true);
       }
     }
   }
