@@ -297,6 +297,12 @@ inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero) {
   return n.eqNode(zero).iteNode(q.eqNode(if_zero), q.eqNode(not_zero));
 }
 
+inline Node mkPi()
+{
+  return NodeManager::currentNM()->mkNullaryOperator(
+      NodeManager::currentNM()->realType(), kind::PI);
+}
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
