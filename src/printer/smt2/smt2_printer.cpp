@@ -1128,6 +1128,7 @@ void Smt2Printer::toStream(std::ostream& out,
      tryToStream<DefineTypeCommand>(out, c) ||
      tryToStream<DefineNamedFunctionCommand>(out, c) ||
      tryToStream<DefineFunctionCommand>(out, c) ||
+     tryToStream<DefineFunctionRecCommand>(out, c) ||
      tryToStream<SimplifyCommand>(out, c) ||
      tryToStream<GetValueCommand>(out, c) ||
      tryToStream<GetModelCommand>(out, c) ||
@@ -1499,6 +1500,60 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c)
     type = FunctionType(type).getRangeType();
   }
   out << ") " << type << " " << formula << ")";
+}
+
+static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
+{
+  const vector<Expr>& funcs = c->getFunctions();
+  const vector< vector<Expr> >& formals = c->getFormals();
+  out << "(define-fun";
+  if( funcs.size()>0 ){
+    out << "s";
+  }
+  out << "-rec ";
+  if( funcs.size()>1 ){
+    out << "(";
+  }
+  for( unsigned i=0, size = funcs.size(); i<size; i++ ){
+    if( funcs.size()>1 ){
+      if( i>0 ){
+        out << " ";        
+      }
+      out << "(";
+    }
+    out << funcs[i] << " (";
+    // print its type signature
+    vector<Expr>::const_iterator itf = formals[i].begin();
+    for(;;) {
+      out << "(" << (*itf) << " " << (*itf).getType() << ")";
+      ++itf;
+      if(itf != formals[i].end()) {
+        out << " ";
+      } else {
+        break;
+      }
+    }
+    Type type = funcs[i].getType();
+    type = static_cast<FunctionType>(type).getRangeType();
+    out << ") " << type;
+    if( funcs.size()>1 ){
+      out << ")";
+    }
+  }
+  if( funcs.size()>1 ){
+    out << ") (";
+  }
+  const vector<Expr>& formulas = c->getFormulas();
+  for( unsigned i=0, size = formulas.size(); i<size; i++ ){
+    if( i>0 ){
+      out << " ";
+    }
+    out << formulas[i];
+  }
+  if( funcs.size()>1 ){
+    out << ")";
+  }
+  out << ")";
 }
 
 static void toStreamRational(std::ostream& out, const Rational& r, bool decimal)

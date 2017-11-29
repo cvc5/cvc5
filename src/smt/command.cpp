@@ -910,6 +910,18 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
   d_formulas.insert(d_formulas.end(), formulas.begin(), formulas.end());
 }
 
+const std::vector< Expr >& DefineFunctionRecCommand::getFunctions() const throw() {
+  return d_funcs;
+}
+
+const std::vector< std::vector<Expr> >& DefineFunctionRecCommand::getFormals() const throw() {
+  return d_formals;
+}
+
+const std::vector< Expr >& DefineFunctionRecCommand::getFormulas() const throw() {
+  return d_formulas;
+}
+  
 void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
 {
   try
@@ -995,7 +1007,7 @@ Command* DefineFunctionRecCommand::clone() const
 
 std::string DefineFunctionRecCommand::getCommandName() const throw()
 {
-  return d_funcs.size() == 1 ? "define-fun-rec" : "define-funs-rec";
+  return "define-fun-rec";
 }
 
 /* class SetUserAttribute */
