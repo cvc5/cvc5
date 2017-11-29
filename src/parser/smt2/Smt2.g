@@ -2016,11 +2016,11 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK
       { 
         if(kind==CVC4::kind::APPLY_SELECTOR){
-          /*FAILED
-          CVC4::Rational r = (CVC4::Rational)op;
-          double d = r.getDouble(); 
-          std::cout<<"The double value is "<<d<<"\n";*/
-          unsigned int n = 0; /*Should be extracting the value of n from op, this is a dummy value*/
+          /*FAILED TYPING
+          unsigned int n = (unsigned int)op.getConst<CVC4::Rational>();*/
+          
+          std::string nstr = op.toString();
+          unsigned int n = std::stoi(nstr); 
           if(args.size()>1){
             PARSER_STATE->parseError("tupSel applied to more than one tuple argument");
           }
