@@ -930,7 +930,7 @@ void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    smtEngine->defineFunctionsRec(d_funcs,d_formals,d_formulas);
+    smtEngine->defineFunctionsRec(d_funcs, d_formals, d_formulas);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

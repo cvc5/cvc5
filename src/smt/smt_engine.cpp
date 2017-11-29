@@ -2325,20 +2325,21 @@ void SmtEngine::defineFunction(Expr func,
   d_definedFunctions->insert(funcNode, def);
 }
 
-
-void SmtEngine::defineFunctionsRec(const std::vector<Expr>& funcs,
-                        const std::vector<std::vector<Expr> >& formals,
-                        const std::vector<Expr>& formulas) 
+void SmtEngine::defineFunctionsRec(
+    const std::vector<Expr>& funcs,
+    const std::vector<std::vector<Expr> >& formals,
+    const std::vector<Expr>& formulas)
 {
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
   Trace("smt") << "SMT defineFunctionsRec(...)" << endl;
-  
-  if (Dump.isOn("raw-benchmark")) {
-    Dump("raw-benchmark") << DefineFunctionRecCommand(funcs,formals,formulas);
+
+  if (Dump.isOn("raw-benchmark"))
+  {
+    Dump("raw-benchmark") << DefineFunctionRecCommand(funcs, formals, formulas);
   }
-  
+
   ExprManager* em = getExprManager();
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
@@ -2354,7 +2355,7 @@ void SmtEngine::defineFunctionsRec(const std::vector<Expr>& funcs,
     {
       std::vector<Expr> children;
       children.push_back(funcs[i]);
-      children.insert( children.end(), formals[i].begin(), formals[i].end());
+      children.insert(children.end(), formals[i].begin(), formals[i].end());
       func_app = em->mkExpr(kind::APPLY_UF, children);
     }
     Expr lem = em->mkExpr(kind::EQUAL, func_app, formulas[i]);
@@ -2372,10 +2373,11 @@ void SmtEngine::defineFunctionsRec(const std::vector<Expr>& funcs,
       lem = em->mkExpr(kind::FORALL, boundVars, lem, aexpr);
     }
     // assert the quantified formula
-    //   notice we don't call assertFormula directly, since this would 
+    //   notice we don't call assertFormula directly, since this would
     //   duplicate the output on raw-benchmark.
     Expr e = d_private->substituteAbstractValues(Node::fromExpr(lem)).toExpr();
-    if(d_assertionList != NULL) {
+    if (d_assertionList != NULL)
+    {
       d_assertionList->push_back(e);
     }
     d_private->addFormula(e.getNode(), false);
@@ -2383,17 +2385,17 @@ void SmtEngine::defineFunctionsRec(const std::vector<Expr>& funcs,
 }
 
 void SmtEngine::defineFunctionRec(Expr func,
-                    const std::vector<Expr>& formals,
-                    Expr formula) {
-  std::vector< Expr > funcs;
+                                  const std::vector<Expr>& formals,
+                                  Expr formula)
+{
+  std::vector<Expr> funcs;
   funcs.push_back(func);
-  std::vector< std::vector< Expr > > formals_multi;
+  std::vector<std::vector<Expr> > formals_multi;
   formals_multi.push_back(formals);
-  std::vector< Expr > formulas;
-  formulas.push_back( formula );
-  defineFunctionsRec( funcs, formals_multi, formulas );
+  std::vector<Expr> formulas;
+  formulas.push_back(formula);
+  defineFunctionsRec(funcs, formals_multi, formulas);
 }
-  
 
 bool SmtEngine::isDefinedFunction( Expr func ){
   Node nf = Node::fromExpr( func );

@@ -441,7 +441,7 @@ public:
    * This adds func to the list of defined functions, which indicates that
    * all occurrences of func should be expanded during expandDefinitions.
    * This method expects input such that:
-   * - func : a variable of function type that expects the arguments in 
+   * - func : a variable of function type that expects the arguments in
    *          formals,
    * - formals : a list of BOUND_VARIABLE expressions,
    * - formula does not contain func.
@@ -449,13 +449,12 @@ public:
   void defineFunction(Expr func,
                       const std::vector<Expr>& formals,
                       Expr formula);
-  
+
   /** is defined function */
   bool isDefinedFunction(Expr func);
 
-  
-  /** Define functions recursive 
-   * 
+  /** Define functions recursive
+   *
    * For each i, this contrains funcs[i] in the current context to be:
    *   (lambda (formals[i]) formulas[i])
    * where formulas[i] may contain variables from funcs. Unlike defineFunction
@@ -464,22 +463,22 @@ public:
    *   forall formals[i]. f(formals[i]) = formulas[i]
    * to the set of assertions in the current context.
    * This method expects input such that for each i:
-   * - func[i] : a variable of function type that expects the arguments in 
+   * - func[i] : a variable of function type that expects the arguments in
    *             formals[i], and
    * - formals[i] : a list of BOUND_VARIABLE expressions.
    */
   void defineFunctionsRec(const std::vector<Expr>& funcs,
                           const std::vector<std::vector<Expr> >& formals,
                           const std::vector<Expr>& formulas);
-  
+
   /** Define function recursive
-   * 
+   *
    * Same as above, but for a single function.
    */
   void defineFunctionRec(Expr func,
-                      const std::vector<Expr>& formals,
-                      Expr formula);
-  
+                         const std::vector<Expr>& formals,
+                         Expr formula);
+
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
