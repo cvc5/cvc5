@@ -12,17 +12,61 @@
  ** \brief sygus print callback functions
  **/
 
-#include "cvc4_private.h"
+#include "cvc4_public.h"
 
 #ifndef __CVC4__PRINTER__SYGUS_PRINT_CALLBACK_H
 #define __CVC4__PRINTER__SYGUS_PRINT_CALLBACK_H
 
 #include <vector>
 
-#include "expr/node.h"
+#include "expr/datatype.h"
+#include "expr/expr.h"
 
 namespace CVC4 {
 namespace printer {
+
+/** sygus expression constructor printer
+ *
+ * This class is used for printing sygus datatype constructor terms whose top
+ * symbol is an expression, such as a custom defined lambda. For example, for
+ * sygus grammar:
+ *    A -> (+ x A B) | x | y
+ *    B -> 0 | 1
+ * The first constructor, call it C_f for A takes two arguments (A, B) and has
+ * sygus operator
+ *   (lambda ((z Int) (w Int)) (+ x z w))
+ * For this operator, we set a print callback that prints, e.g. the term
+ *   C_f( t1, t2 )
+ * is printed as:
+ *   "(+ x [out1] [out2])"
+ * where out1 is the result of p->toStreamSygus(out,t1) and
+ *       out2 is the result of p->toStreamSygus(out,t2).
+ */
+class CVC4_PUBLIC SygusExprPrintCallback : public SygusPrintCallback
+{
+ public:
+  SygusExprPrintCallback(Expr body, std::vector<Expr>& args);
+  ~SygusExprPrintCallback() {}
+  /** print sygus term e on output out using printer p */
+  virtual void toStreamSygus(const Printer* p,
+                             std::ostream& out,
+                             Expr e) const override;
+
+ protected:
+  /** body of the sygus term */
+  Expr d_body;
+  /** arguments */
+  std::vector<Expr> d_args;
+  /** body argument */
+  int d_body_argument;
+  /** do string replace
+   *
+   * Replaces all occurrences of oldStr with newStr in str.
+   */
+  void doStrReplace(std::string& str,
+                    const std::string& oldStr,
+                    const std::string& newStr) const;
+};
 
 /** sygus let expression constructor printer
  *
@@ -33,8 +77,8 @@ namespace printer {
  *   A -> (let ((x B)) (+ A 1)) | x | (+ A A) | 0
  *   B -> 0 | 1
  * the first constructor for A takes as arguments
- * (B,A) and has operator
- *   (lambda ((y B) (z A)) (+ z 1))
+ * (B,A) and has sygus operator
+ *   (lambda ((y Int) (z Int)) (+ z 1))
  * CVC4's support for let expressions in grammars
  * is highly limited, since notice that the
  * argument y : B is unused.
@@ -46,32 +90,21 @@ namespace printer {
  *     y is an original input argument of the
  *     let expression, but z is not.
  */
-class SygusLetExpressionConstructorPrinter
-    : public SygusDatatypeConstructorPrinter
+class CVC4_PUBLIC SygusLetExprPrintCallback : public SygusExprPrintCallback
 {
  public:
-  SygusLetExpressionPrinter(Node let_body,
-                            std::vector<Node>& let_args,
+  SygusLetExprPrintCallback(Expr let_body,
+                            std::vector<Expr>& let_args,
                             unsigned ninput_args);
-  ~SygusLetExpressionPrinter() {}
+  ~SygusLetExprPrintCallback() {}
   /** print sygus term e on output out using printer p */
   virtual void toStreamSygus(const Printer* p,
                              std::ostream& out,
                              Expr e) const override;
 
  private:
-  /** let body of the sygus term */
-  Node d_sygus_let_body;
-  /** let arguments */
-  std::vector<Node> d_sygus_let_args;
   /** number of arguments that are interpreted as input arguments */
-  unsigned d_sygus_num_let_input_args;
-  /** do string replace
-   * Replaces all occurrences of oldStr with newStr in str.
-   */
-  void doStrReplace(std::string& str,
-                    const std::string& oldStr,
-                    const std::string& newStr) const;
+  unsigned d_num_let_input_args;
 };
 
 /** sygus named constructor printer
@@ -88,11 +121,11 @@ class SygusLetExpressionConstructorPrinter
  * the first sygus datatype constructor f, where we use
  * analog operator (lambda (x) (+ x 1)).
  */
-class SygusNamedConstructorPrinter : public SygusDatatypeConstructorPrinter
+class CVC4_PUBLIC SygusNamedPrintCallback : public SygusPrintCallback
 {
  public:
-  SygusNamedConstructorPrinter(std::string name);
-  ~SygusNamedConstructorPrinter() {}
+  SygusNamedPrintCallback(std::string name);
+  ~SygusNamedPrintCallback() {}
   /** print sygus term e on output out using printer p */
   virtual void toStreamSygus(const Printer* p,
                              std::ostream& out,
@@ -112,11 +145,11 @@ class SygusNamedConstructorPrinter : public SygusDatatypeConstructorPrinter
  * The first constructor of A, call it cons, has sygus operator (lambda (x) x).
  * Call toStreamSygus on cons( t ) should call toStreamSygus on t directly.
  */
-class SygusEmptyConstructorPrinter : public SygusDatatypeConstructorPrinter
+class CVC4_PUBLIC SygusEmptyPrintCallback : public SygusPrintCallback
 {
  public:
-  SygusEmptyConstructorPrinter(std::string name);
-  ~SygusEmptyConstructorPrinter() {}
+  SygusEmptyPrintCallback() {}
+  ~SygusEmptyPrintCallback() {}
   /** print sygus term e on output out using printer p */
   virtual void toStreamSygus(const Printer* p,
                              std::ostream& out,

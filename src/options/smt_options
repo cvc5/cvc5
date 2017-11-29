@@ -40,7 +40,9 @@ option dumpProofs --dump-proofs bool :default false :link --proof :link-smt prod
 option dumpInstantiations --dump-instantiations bool :default false
  output instantiations of quantified formulas after every UNSAT/VALID response
 option sygusOut --sygus-out=MODE SygusSolutionOutMode :default SYGUS_SOL_OUT_STATUS_AND_DEF :include "options/sygus_out_mode.h" :handler stringToSygusSolutionOutMode :read-write
-  output mode for sygus
+ output mode for sygus
+option sygusPrintCallbacks --sygus-print-callbacks bool :default true
+ use sygus print callbacks to print sygus terms in the user-provided form (disable for debugging)
 option dumpSynth --dump-synth bool :read-write :default false
  output solution for synthesis conjectures after every UNSAT/VALID response
 option unsatCores produce-unsat-cores --produce-unsat-cores bool :predicate proofEnabledBuild :notify :notify notifyBeforeSearch

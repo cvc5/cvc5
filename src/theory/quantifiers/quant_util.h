@@ -167,14 +167,19 @@ public:
   /* reset
   * Called at the beginning of an instantiation round
   * Returns false if the reset failed. When reset fails, the utility should have
-  * added a lemma
-  * via a call to qe->addLemma. TODO: improve this contract #1163
+  * added a lemma via a call to qe->addLemma. TODO: improve this contract #1163
   */
   virtual bool reset( Theory::Effort e ) = 0;
   /* Called for new quantifiers */
   virtual void registerQuantifier(Node q) = 0;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
+  /** Check complete?
+   *
+   * Returns false if the utility's reasoning was globally incomplete
+   * (e.g. "sat" must be replaced with "incomplete").
+   */
+  virtual bool checkComplete() { return true; }
 };
 
 /** Arithmetic utilities regarding monomial sums.
