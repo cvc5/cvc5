@@ -14,8 +14,8 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_SIMP_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_SIMP_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
+#define __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
 
 #include "theory/quantifiers_engine.h"
 
@@ -38,15 +38,14 @@ class CegConjecture;
  * a datatype to represent the structure of the typenode for the new type */
 struct TypeObject
 {
+  /* TODO fix doc */
   /* Creates an unresolved type and datatype with the given name. These will be
    * used for the normalization of the given type node */
-  TypeObject(TypeNode src_tn, Type src_t, std::string type_name);
+  TypeObject(TypeNode src_tn, TypeNode unres_tn, Type unres_t);
   ~TypeObject() {}
 
   /* The original typenode this TypeObject is built from */
   TypeNode d_tn;
-  /* The type represented by d_tn */
-  Type d_t;
   /* Operators for each constructor. */
   std::vector<Node> d_ops;
   /* Names for each constructor. */
@@ -55,11 +54,73 @@ struct TypeObject
   std::vector<std::shared_ptr<SygusPrintCallback>> d_pc;
   /* List of argument types for each constructor */
   std::vector<std::vector<Type>> d_cons_args_t;
+  /* Unresolved type node placeholder */
+  TypeNode d_unres_tn;
   /* Unresolved type placeholder */
   Type d_unres_t;
   /* Datatype to represent type's structure */
   Datatype d_dt;
 };
+
+/** Type operators trie class
+ *
+ * This data structure stores a type, indexed by operators used in its
+ * constructors
+ *
+ * For example, consider the entries
+ *
+ * (A, {x, 0, 1, +}) -> A1
+ * (A, {x}) -> AX
+ * (A, {0}) -> AZ
+ * (A, {1}) -> AO
+ *
+ * and the order x < 0 < 1 < + for operators. The TypeOpTrie T we build for this
+ * type is :
+ *
+ * T[A] :
+ *      T[A].d_data[1] :
+ *        T[A].d_data[1].d_data[1] :
+ *          T[A].d_data[1].d_data[1].d_data[1] :
+ *            T[A].d_data[1].d_data[1].d_data[1].d_data[1] : A1
+ *        T[A].d_data[1].d_data[0] :
+ *          T[A].d_data[1].d_data[0].d_data[0] :
+ *            T[A].d_data[1].d_data[0].d_data[0].d_data[0] : AX
+ *      T[A].d_data[0] :
+ *        T[A].d_data[0].d_data[1] :
+ *          T[A].d_data[0].d_data[1].d_data[0] :
+ *            T[A].d_data[0].d_data[1].d_data[0].d_data[0] : AZ
+ *        T[A].d_data[0].d_data[0] :
+ *          T[A].d_data[0].d_data[0].d_data[1] :
+ *            T[A].d_data[0].d_data[0].d_data[1].d_data[0] : AO
+ *
+ * Leaf nodes store the types that are indexed by the type and operator flags,
+ * for example type AZ is indexed by the type A and operator flags (0, 1, 0, 0),
+ * and is stored as a the (single) key in the data of
+ * T[A].d_data[0].d_data[1].d_data[0].d_data[0]
+ */
+class TypeOpTrie
+{
+ public:
+  /** type retrieval/addition
+   *
+   * if type indexed by the given operators is already in the trie then unres_t
+   * becomes the indexed type and true is returned. Otherwise a new type is
+   * created, indexed by the given ops, and assigned to unres_t, with false
+   * being returned.
+   */
+  bool getOrMakeType(TypeNode tn,
+                     TypeNode& unres_tn,
+                     std::vector<bool> op_flags,
+                     unsigned ind = 0);
+  /** clear all data from this trie */
+  void clear() { d_children.clear(); }
+
+ private:
+  /** the data (only set for leafs) */
+  TypeNode d_unres_tn;
+  /* the children of the trie node */
+  std::map<bool, TypeOpTrie> d_children;
+}; /* class TermArgTrie */
 
 /** Utility for normalizing SyGuS grammars and avoid spurious enumarations
  *
@@ -88,7 +149,7 @@ struct TypeObject
 class SygusGrammarNorm
 {
  public:
-  SygusGrammarNorm(QuantifiersEngine* qe, CegConjecture* p);
+  SygusGrammarNorm(QuantifiersEngine* qe);
   ~SygusGrammarNorm() {}
   /** creates a normalized typenode from a given one.
    *
@@ -97,7 +158,8 @@ class SygusGrammarNorm
    * typenode it normalizes.
    *
    * sygus_vars are the input variables for the function to be synthesized,
-   * which are used as input for the built datatypes. */
+   * which are used as input for the built datatypes.
+   */
   TypeNode normalizeSygusType(TypeNode tn, Node sygus_vars);
 
  private:
@@ -107,16 +169,39 @@ class SygusGrammarNorm
   SmtEngine* d_smte;
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
-  /** parent conjecture
-   *
-   * This contains global information about the synthesis conjecture. */
-  CegConjecture* d_parent;
-
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
 
-  /* Types that can be normalized and are cached for avoiding building types */
-  const Type& int_type = NodeManager::currentNM()->integerType().toType();
+  /* Datatypes to be resolved */
+  std::vector<Datatype> d_dt_all;
+  /* Types to be resolved */
+  std::set<Type> d_unres_t_all;
+
+  /* Caches types of type nodes to avoid recomputing types */
+  std::map<TypeNode, Type> d_tn_to_t;
+  /* Associates type nodes with TypeOpTries */
+  std::map<TypeNode, TypeOpTrie> d_tries;
+  /* For each type node associates operators with their positions in the cons list */
+  std::map<TypeNode, std::map<Node, unsigned>> d_tn_to_op_to_pos;
+
+  /* Types that can be normalized and are cached to avoid building types */
+  const Type& d_int_type = NodeManager::currentNM()->integerType().toType();
+
+  /* Simplifying (Int, {x, 0, 1, +})
+   *
+   * A -> x | 0 | 1 | A + A
+   *
+   * becomes
+   *
+   * A1 -> A2 | AZ
+   * AZ -> 0
+   * A2 -> AX | AX + A2 | A3
+   * AX -> x
+   * A3 -> AY | AY + A3 | A4
+   * AY -> y
+   * A4 -> AO | AO + A4
+   * AO -> 1
+   */
 
   /** normalize integer type
    *
@@ -132,12 +217,23 @@ class SygusGrammarNorm
    * tn_to_unres
    *
    * dt is the datatype of the typenode being normalized
-   * sygus_vars is used as above for datatype construction */
+   * sygus_vars is used as above for datatype construction
+   */
   void normalizeSygusInt(unsigned ind,
                          std::vector<TypeObject>& tos,
                          std::map<TypeNode, Type>& tn_to_unres,
                          const Datatype& dt,
                          Node sygus_vars);
+
+  TypeNode normalizeSygusRec(TypeNode tn, Node sygus_vars);
+
+  /* recursion depth is limited by the height of the types, which is small  */
+  TypeNode normalizeSygusRec(TypeNode tn,
+                             const Datatype& dt,
+                             std::vector<unsigned> op_pos,
+                             Node sygus_vars);
+
+  std::vector<bool> get_op_flags(std::vector<unsigned> ops, unsigned num_cons);
 
   /** Traverses the datatype representation of src_tn and collects the types it
    * contains
