@@ -2816,6 +2816,8 @@ Node SmtEnginePrivate::realToInt(TNode n, NodeMap& cache, std::vector< Node >& v
         if( !n.getType().isInteger() ){
           ret = NodeManager::currentNM()->mkSkolem("__realToInt_var", NodeManager::currentNM()->integerType(), "Variable introduced in realToInt pass");
           var_eq.push_back( n.eqNode( ret ) );
+          TheoryModel* m = d_smt.d_theoryEngine->getModel();
+          m->addSubstitution(n,ret);
         }
       }
     }
