@@ -184,6 +184,17 @@ class SygusGrammarNorm
   /* For each type node associates operators with their positions in the cons list */
   std::map<TypeNode, std::map<Node, unsigned>> d_tn_to_op_to_pos;
 
+  enum {
+    OP_PLUS, // collect plus
+    OP_MINUS, // collect minus
+    VARS, // collect variables
+    CONST_ZERO, // collect 0
+    CONST_ONE, // collect 1
+    NON_ZERO_CONSTS, // collect numbers and ITEs
+    A_VAR, // collect any variable
+    A_NON_ZERO_CONST // collect any number or ITE
+  };
+
   /* Types that can be normalized and are cached to avoid building types */
   const Type& d_int_type = NodeManager::currentNM()->integerType().toType();
 
@@ -232,6 +243,14 @@ class SygusGrammarNorm
                              const Datatype& dt,
                              std::vector<unsigned> op_pos,
                              Node sygus_vars);
+
+  bool collect(const Datatype& dt,
+               std::vector<unsigned>& op_pos,
+               std::vector<unsigned> to_collect,
+               std::vector<unsigned>& collected);
+
+  void addConsInfo(TypeObject& to, const DatatypeConstructor& cons, Node sygus_vars);
+  void buildDatatype(TypeObject& to, const Datatype& dt, Node sygus_vars);
 
   std::vector<bool> get_op_flags(std::vector<unsigned> ops, unsigned num_cons);
 
