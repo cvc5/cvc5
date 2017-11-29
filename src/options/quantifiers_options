@@ -299,6 +299,8 @@ option sygusStream --sygus-stream bool :default false
 # CEGQI applied to general quantified formulas
 option cbqi --cbqi bool :read-write :default false
  turns on counterexample-based quantifier instantiation
+option cbqiFullEffort --cbqi-full bool :read-write :default false
+ turns on full effort counterexample-based quantifier instantiation, which may resort to model-value instantiation
 option recurseCbqi --cbqi-recurse bool :default true
  turns on recursive counterexample-based quantifier instantiation
 option cbqiSat --cbqi-sat bool :read-write :default true
@@ -339,11 +341,11 @@ option quantEprMatching --quant-epr-match bool :default true
  use matching heuristics for EPR instantiation
  
 # CEGQI for BV
-option cbqiBv --cbqi-bv bool :read-write :default false
+option cbqiBv --cbqi-bv bool :read-write :default true
   use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors
 option cbqiBvInterleaveValue --cbqi-bv-interleave-value bool :read-write :default false
   interleave model value instantiation with word-level inversion approach
-option cbqiBvIneqMode --cbqi-bv-ineq=MODE CVC4::theory::quantifiers::CbqiBvIneqMode :read-write :default CVC4::theory::quantifiers::CBQI_BV_INEQ_EQ_SLACK :include "options/quantifiers_modes.h" :handler stringToCbqiBvIneqMode
+option cbqiBvIneqMode --cbqi-bv-ineq=MODE CVC4::theory::quantifiers::CbqiBvIneqMode :read-write :default CVC4::theory::quantifiers::CBQI_BV_INEQ_EQ_BOUNDARY :include "options/quantifiers_modes.h" :handler stringToCbqiBvIneqMode
  choose mode for handling bit-vector inequalities with counterexample-guided instantiation
 option cbqiBvRmExtract --cbqi-bv-rm-extract bool :read-write :default true 
   replaces extract terms with variables for counterexample-guided instantiation for bit-vectors

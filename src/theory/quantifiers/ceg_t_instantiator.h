@@ -214,13 +214,15 @@ class BvInstantiator : public Instantiator {
                                  SolvedForm& sf,
                                  Node pv,
                                  CegInstEffort effort) override;
+  /** use model value
+   * 
+   * We allow model values if we have not already tried an assertion,
+   * and only at levels below full if cbqiFullEffort is false.
+   */
   virtual bool useModelValue(CegInstantiator* ci,
                              SolvedForm& sf,
                              Node pv,
-                             CegInstEffort effort) override
-  {
-    return !d_tried_assertion_inst;
-  }
+                             CegInstEffort effort) override;
   virtual std::string identify() const { return "Bv"; }
  private:
   // point to the bv inverter class
