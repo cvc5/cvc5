@@ -476,7 +476,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       Trace("cbqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
       d_curr_iphase[pv] = CEG_INST_PHASE_MVALUE;
       CegInstEffort prev = d_effort;
-      if (d_effort<CEG_INST_EFFORT_STANDARD_MV)
+      if (d_effort < CEG_INST_EFFORT_STANDARD_MV)
       {
         // update the effort level to indicate we have used a model value
         d_effort = CEG_INST_EFFORT_STANDARD_MV;

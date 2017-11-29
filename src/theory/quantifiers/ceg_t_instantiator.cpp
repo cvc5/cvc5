@@ -934,10 +934,9 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
   CegInstantiator * d_ci;
 };
 
-
-BvInstantiator::BvInstantiator( QuantifiersEngine * qe, TypeNode tn ) : 
-Instantiator( qe, tn ),
-d_tried_assertion_inst(false){
+BvInstantiator::BvInstantiator(QuantifiersEngine* qe, TypeNode tn)
+    : Instantiator(qe, tn), d_tried_assertion_inst(false)
+{
   // get the global inverter utility
   // this must be global since we need to:
   // * process Skolem functions properly across multiple variables within the same quantifier
@@ -1004,7 +1003,8 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                          Node lit,
                                          CegInstEffort effort)
 {
-  if( effort==CEG_INST_EFFORT_FULL ){
+  if (effort == CEG_INST_EFFORT_FULL)
+  {
     // always use model values at full effort
     return Node::null();
   }
