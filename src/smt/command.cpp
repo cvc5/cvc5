@@ -930,43 +930,7 @@ void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    ExprManager* em = smtEngine->getExprManager();
-    for (unsigned i = 0, size = d_funcs.size(); i < size; i++)
-    {
-      // we assert a quantified formula
-      Expr func_app;
-      // make the function application
-      if (d_formals[i].empty())
-      {
-        // it has no arguments
-        func_app = d_funcs[i];
-      }
-      else
-      {
-        std::vector<Expr> children;
-        children.push_back(d_funcs[i]);
-        children.insert(
-            children.end(), d_formals[i].begin(), d_formals[i].end());
-        func_app = em->mkExpr(kind::APPLY_UF, children);
-      }
-      Expr lem = em->mkExpr(kind::EQUAL, func_app, d_formulas[i]);
-      if (!d_formals[i].empty())
-      {
-        // set the attribute to denote this is a function definition
-        std::string attr_name("fun-def");
-        Expr aexpr = em->mkExpr(kind::INST_ATTRIBUTE, func_app);
-        aexpr = em->mkExpr(kind::INST_PATTERN_LIST, aexpr);
-        std::vector<Expr> expr_values;
-        std::string str_value;
-        smtEngine->setUserAttribute(
-            attr_name, func_app, expr_values, str_value);
-        // make the quantified formula
-        Expr boundVars = em->mkExpr(kind::BOUND_VAR_LIST, d_formals[i]);
-        lem = em->mkExpr(kind::FORALL, boundVars, lem, aexpr);
-      }
-      // assert the quantified formula
-      smtEngine->assertFormula(lem, false);
-    }
+    smtEngine->defineFunctionsRec(d_funcs,d_formals,d_formulas);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
