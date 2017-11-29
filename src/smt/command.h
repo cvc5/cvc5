@@ -478,9 +478,9 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
                            const std::vector<std::vector<Expr> >& formals,
                            const std::vector<Expr>& formula) throw();
   ~DefineFunctionRecCommand() throw() {}
-  const std::vector< Expr >& getFunctions() const throw();
-  const std::vector< std::vector<Expr> >& getFormals() const throw();
-  const std::vector< Expr >& getFormulas() const throw();
+  const std::vector<Expr>& getFunctions() const throw();
+  const std::vector<std::vector<Expr> >& getFormals() const throw();
+  const std::vector<Expr>& getFormulas() const throw();
   void invoke(SmtEngine* smtEngine) override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
