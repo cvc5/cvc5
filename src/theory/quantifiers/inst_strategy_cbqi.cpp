@@ -19,6 +19,7 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -53,14 +54,15 @@ bool InstStrategyCbqi::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_LAST_CALL;
 }
 
-unsigned InstStrategyCbqi::needsModel( Theory::Effort e ) {
+QuantifiersModule::QEffort InstStrategyCbqi::needsModel(Theory::Effort e)
+{
   for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
-      return QuantifiersEngine::QEFFORT_STANDARD;
+      return QEFFORT_STANDARD;
     }
   }
-  return QuantifiersEngine::QEFFORT_NONE;
+  return QEFFORT_NONE;
 }
 
 bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
@@ -239,8 +241,10 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
   processResetInstantiationRound( effort );
 }
 
-void InstStrategyCbqi::check( Theory::Effort e, unsigned quant_e ) {
-  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+void InstStrategyCbqi::check(Theory::Effort e, QEffort quant_e)
+{
+  if (quant_e == QEFFORT_STANDARD)
+  {
     Assert( !d_quantEngine->inConflict() );
     double clSet = 0;
     if( Trace.isOn("cbqi-engine") ){
@@ -725,12 +729,15 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   if( d_quantEngine->getQuantAttributes()->isQuantElimPartial( d_curr_quant ) ){
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
-    d_quantEngine->recordInstantiationInternal( d_curr_quant, subs, false, false );
+    d_quantEngine->getInstantiate()->recordInstantiation(
+        d_curr_quant, subs, false, false);
     return true;
   }else{
     //check if we need virtual term substitution (if used delta or infinity)
     bool used_vts = d_quantEngine->getTermUtil()->containsVtsTerm( subs, false );
-    if( d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, used_vts ) ){
+    if (d_quantEngine->getInstantiate()->addInstantiation(
+            d_curr_quant, subs, false, false, used_vts))
+    {
       ++(d_quantEngine->d_statistics.d_instantiations_cbqi);
       //d_added_inst.insert( d_curr_quant );
       return true;

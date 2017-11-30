@@ -18,13 +18,14 @@
 #define __CVC4__QUANTIFIERS_INST_PROPAGATOR_H
 
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -113,14 +114,23 @@ private:
     InstPropagator& d_ip;
   public:
     InstantiationNotifyInstPropagator(InstPropagator& ip): d_ip(ip) {}
-    virtual bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) {
+    virtual bool notifyInstantiation(QuantifiersModule::QEffort quant_e,
+                                     Node q,
+                                     Node lem,
+                                     std::vector<Node>& terms,
+                                     Node body)
+    {
       return d_ip.notifyInstantiation( quant_e, q, lem, terms, body );
     }
     virtual void filterInstantiations() { d_ip.filterInstantiations(); }
   };
   InstantiationNotifyInstPropagator d_notify;
   /** notify instantiation method */
-  bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body );
+  bool notifyInstantiation(QuantifiersModule::QEffort quant_e,
+                           Node q,
+                           Node lem,
+                           std::vector<Node>& terms,
+                           Node body);
   /** remove instance ids */
   void filterInstantiations();  
   /** allocate instantiation */

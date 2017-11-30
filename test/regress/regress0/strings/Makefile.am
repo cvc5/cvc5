@@ -91,7 +91,10 @@ TESTS = \
   strings-charat.cvc \
   issue1105.smt2 \
   issue1189.smt2 \
-  rewrites-v2.smt2
+  rewrites-v2.smt2 \
+  substr-rewrites.smt2 \
+  norn-ab.smt2 \
+  type002.smt2
 
 FAILING_TESTS =
 
@@ -101,8 +104,7 @@ EXTRA_DIST = $(TESTS)
 EXTRA_DIST +=
 
 #norn-dis-0707-3.smt2
-#norn-ab.smt2
-#type002.smt2
+
 
 # synonyms for "check"
 .PHONY: regress regress0 test

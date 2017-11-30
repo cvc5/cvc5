@@ -15,8 +15,9 @@
 #include <vector>
 
 #include "theory/quantifiers/inst_propagator.h"
-#include "theory/rewriter.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4;
 using namespace std;
@@ -600,11 +601,13 @@ void InstPropagator::InstInfo::init( Node q, Node lem, std::vector< Node >& term
   d_curr_exp.push_back( body );
 }
 
-InstPropagator::InstPropagator( QuantifiersEngine* qe ) :
-d_qe( qe ), d_notify(*this), d_qy( qe ){
-  d_icount = 1;
-  d_conflict = false;
-}
+InstPropagator::InstPropagator(QuantifiersEngine* qe)
+    : d_qe(qe),
+      d_notify(*this),
+      d_qy(qe),
+      d_icount(1),
+      d_conflict(false),
+      d_has_relevant_inst(false) {}
 
 bool InstPropagator::reset( Theory::Effort e ) {
   d_icount = 1;
@@ -621,7 +624,12 @@ bool InstPropagator::reset( Theory::Effort e ) {
   return d_qy.reset( e );
 }
 
-bool InstPropagator::notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) {
+bool InstPropagator::notifyInstantiation(QuantifiersModule::QEffort quant_e,
+                                         Node q,
+                                         Node lem,
+                                         std::vector<Node>& terms,
+                                         Node body)
+{
   if( !d_conflict ){
     if( Trace.isOn("qip-prop") ){
       Trace("qip-prop") << "InstPropagator:: Notify instantiation " << q << " : " << std::endl;
@@ -663,7 +671,9 @@ void InstPropagator::filterInstantiations() {
     for( std::map< unsigned, InstInfo >::iterator it = d_ii.begin(); it != d_ii.end(); ++it ){
       if( !it->second.d_q.isNull() ){
         if( d_relevant_inst.find( it->first )==d_relevant_inst.end() ){
-          if( !d_qe->removeInstantiation( it->second.d_q, it->second.d_lem, it->second.d_terms ) ){
+          if (!d_qe->getInstantiate()->removeInstantiation(
+                  it->second.d_q, it->second.d_lem, it->second.d_terms))
+          {
             Trace("qip-warn") << "WARNING : did not remove instantiation id " << it->first << std::endl;
             Assert( false );
           }else{

@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
@@ -108,15 +109,17 @@ void QModelBuilder::debugModel( TheoryModel* m ){
       for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
         vars.push_back( f[0][j] );
       }
-      RepSetIterator riter(d_qe, fm->getRepSetPtr());
+      QRepBoundExt qrbe(d_qe);
+      RepSetIterator riter(d_qe->getModel()->getRepSet(), &qrbe);
       if( riter.setQuantifier( f ) ){
         while( !riter.isFinished() ){
           tests++;
           std::vector< Node > terms;
-          for( int k=0; k<riter.getNumTerms(); k++ ){
+          for (unsigned k = 0; k < riter.getNumTerms(); k++)
+          {
             terms.push_back( riter.getCurrentTerm( k ) );
           }
-          Node n = d_qe->getInstantiation( f, vars, terms );
+          Node n = d_qe->getInstantiate()->getInstantiation(f, vars, terms);
           Node val = fm->getValue( n );
           if (val != d_qe->getTermUtil()->d_true)
           {
@@ -320,7 +323,8 @@ int QModelBuilderIG::initializeQuantifier(Node f, Node fp, FirstOrderModel* fm)
     //try to add it
     Trace("inst-fmf-init") << "Init: try to add match " << d_quant_basis_match[f] << std::endl;
     //add model basis instantiation
-    if( d_qe->addInstantiation( fp, d_quant_basis_match[f] ) ){
+    if (d_qe->getInstantiate()->addInstantiation(fp, d_quant_basis_match[f]))
+    {
       d_quant_basis_match_added[f] = true;
       return 1;
     }else{
@@ -419,12 +423,16 @@ QModelBuilderIG::Statistics::~Statistics(){
 //do exhaustive instantiation
 int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   if( optUseModel() ){
-    RepSetIterator riter(d_qe, d_qe->getModel()->getRepSetPtr());
+    QRepBoundExt qrbe(d_qe);
+    RepSetIterator riter(d_qe->getModel()->getRepSet(), &qrbe);
     if( riter.setQuantifier( f ) ){
       FirstOrderModelIG * fmig = (FirstOrderModelIG*)d_qe->getModel();
       Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;
       fmig->resetEvaluate();
       Debug("inst-fmf-ei") << "Begin instantiation..." << std::endl;
+      EqualityQuery* qy = d_qe->getEqualityQuery();
+      Instantiate* inst = d_qe->getInstantiate();
+      TermUtil* util = d_qe->getTermUtil();
       while( !riter.isFinished() && ( d_addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
         d_triedLemmas++;
         if( Debug.isOn("inst-fmf-ei-debug") ){
@@ -443,8 +451,9 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
         //if evaluate(...)==1, then the instantiation is already true in the model
         //  depIndex is the index of the least significant variable that this evaluation relies upon
         depIndex = riter.getNumTerms()-1;
-        Debug("fmf-model-eval") << "We will evaluate " << d_qe->getTermUtil()->getInstConstantBody( f ) << std::endl;
-        eval = fmig->evaluate( d_qe->getTermUtil()->getInstConstantBody( f ), depIndex, &riter );
+        Debug("fmf-model-eval") << "We will evaluate "
+                                << util->getInstConstantBody(f) << std::endl;
+        eval = fmig->evaluate(util->getInstConstantBody(f), depIndex, &riter);
         if( eval==1 ){
           Debug("fmf-model-eval") << "  Returned success with depIndex = " << depIndex << std::endl;
         }else{
@@ -452,23 +461,25 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
         }
         if( eval==1 ){
           //instantiation is already true -> skip
-          riter.increment2( depIndex );
+          riter.incrementAtIndex(depIndex);
         }else{
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
-          for( int i=0; i<riter.getNumTerms(); i++ ){
-            m.set( d_qe, i, riter.getCurrentTerm( i ) );
+          for (unsigned i = 0; i < riter.getNumTerms(); i++)
+          {
+            m.set(qy, i, riter.getCurrentTerm(i));
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           //add as instantiation
-          if( d_qe->addInstantiation( f, m, true ) ){
+          if (inst->addInstantiation(f, m, true))
+          {
             d_addedLemmas++;
             if( d_qe->inConflict() ){
               break;
             }
             //if the instantiation is show to be false, and we wish to skip multiple instantiations at once
             if( eval==-1 ){
-              riter.increment2( depIndex );
+              riter.incrementAtIndex(depIndex);
             }else{
               riter.increment();
             }

@@ -15,10 +15,13 @@
 #include "theory/quantifiers/ce_guided_conjecture.h"
 
 #include "expr/datatype.h"
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "printer/printer.h"
 #include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database_sygus.h"
@@ -61,8 +64,8 @@ void CegConjecture::assign( Node q ) {
   Trace("cegqi") << "CegConjecture : assign : " << q << std::endl;
   d_quant = q;
 
-  // simplify the quantified formula based on the process utility
-  d_simp_quant = d_ceg_proc->simplify(d_quant);
+  // pre-simplify the quantified formula based on the process utility
+  d_simp_quant = d_ceg_proc->preSimplify(d_quant);
 
   std::map< Node, Node > templates; 
   std::map< Node, Node > templates_arg;
@@ -81,6 +84,11 @@ void CegConjecture::assign( Node q ) {
       }
     }
   }
+
+  // post-simplify the quantified formula based on the process utility
+  d_simp_quant = d_ceg_proc->postSimplify(d_simp_quant);
+
+  // finished simplifying the quantified formula at this point
 
   // convert to deep embedding and finalize single invocation here
   d_embed_quant = d_ceg_gc->process(d_simp_quant, templates, templates_arg);
@@ -101,7 +109,8 @@ void CegConjecture::assign( Node q ) {
   }
   Trace("cegqi") << "Base quantified formula is : " << d_embed_quant << std::endl;
   //construct base instantiation
-  d_base_inst = Rewriter::rewrite( d_qe->getInstantiation( d_embed_quant, vars, d_candidates ) );
+  d_base_inst = Rewriter::rewrite(d_qe->getInstantiate()->getInstantiation(
+      d_embed_quant, vars, d_candidates));
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
 
   // register this term with sygus database and other utilities that impact
@@ -217,7 +226,8 @@ void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
   getCandidateList( clist, true );
   Assert( clist.size()==d_quant[0].getNumChildren() );
   getModelValues( clist, model_terms );
-  if( d_qe->addInstantiation( d_quant, model_terms ) ){
+  if (d_qe->getInstantiate()->addInstantiation(d_quant, model_terms))
+  {
     //record the instantiation
     recordInstantiation( model_terms );
   }else{
@@ -423,8 +433,7 @@ void CegConjecture::getModelValues( std::vector< Node >& n, std::vector< Node >&
       TypeNode tn = nv.getType();
       Trace("cegqi-engine") << n[i] << " -> ";
       std::stringstream ss;
-      std::vector< Node > lvs;
-      TermDbSygus::printSygusTerm( ss, nv, lvs );
+      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, nv);
       Trace("cegqi-engine") << ss.str() << " ";
     }
     Assert( !nv.isNull() );
@@ -508,7 +517,9 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
                 if( !d_cinfo[cprog].d_inst.empty() ){
                   sol = d_cinfo[cprog].d_inst.back();
                   // add to explanation of exclusion
-                  d_qe->getTermDatabaseSygus()->getExplanationForConstantEquality( cprog, sol, exp );
+                  d_qe->getTermDatabaseSygus()
+                      ->getExplain()
+                      ->getExplanationForConstantEquality(cprog, sol, exp);
                 }
                 Trace("cegqi-debug") << "  " << cprog << " -> " << sol << std::endl;
               }
@@ -614,8 +625,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       if( status==0 ){
         out << sol;
       }else{
-        std::vector< Node > lvs;
-        TermDbSygus::printSygusTerm( out, sol, lvs );
+        Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
       }
       out << ")" << std::endl;
     }
