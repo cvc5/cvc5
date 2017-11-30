@@ -55,16 +55,16 @@ class InstMatchGenerator;
 * This example is referenced for each of the functions below.
 */
 class TriggerTermInfo {
-public:
-  TriggerTermInfo() : d_reqPol(0){}
-  ~TriggerTermInfo(){}
+ public:
+  TriggerTermInfo() : d_reqPol(0), d_weight(0) {}
+  ~TriggerTermInfo() {}
   /** The free variables in the node
   *
   * In the trigger term info for f( x ) in the above example, d_fv = { x }
   * In the trigger term info for g( y ) in the above example, d_fv = { y }
   * In the trigger term info for P( y, z ) in the above example, d_fv = { y, z }
   */
-  std::vector< Node > d_fv;
+  std::vector<Node> d_fv;
   /** Required polarity:  1 for equality, -1 for disequality, 0 for none
   *
   * In the trigger term info for f( x ) in the above example, d_reqPol = -1
@@ -89,12 +89,14 @@ public:
   *   d_reqPolEq = false
   */
   Node d_reqPolEq;
+  /** the weight of the trigger (see Trigger::getTriggerWeight). */
+  int d_weight;
   /** Initialize this information class (can be called more than once).
   * q is the quantified formula that n is a trigger term for
   * n is the trigger term
   * reqPol/reqPolEq are described above
   */
-  void init( Node q, Node n, int reqPol = 0, Node reqPolEq = Node::null() );
+  void init(Node q, Node n, int reqPol = 0, Node reqPolEq = Node::null());
 };
 
 /** A collection of nodes representing a trigger.
@@ -280,6 +282,7 @@ class Trigger {
   static void collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt,
                                std::vector< Node >& exclude, std::map< Node, TriggerTermInfo >& tinfo,
                                bool filterInst = false );
+
   /** Is n a usable trigger in quantified formula q?
    *
    * A usable trigger is one that is matchable and contains free variables only
@@ -392,6 +395,34 @@ class Trigger {
   static void collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Node > >& visited, std::map< Node, TriggerTermInfo >& tinfo, 
                                 quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, std::vector< Node >& added,
                                 bool pol, bool hasPol, bool epol, bool hasEPol, bool knowIsUsable = false );
+
+  /** filter all nodes that have trigger instances
+   *
+   * This is used during collectModelInfo to filter certain trigger terms,
+   * stored in nodes. This updates nodes so that no pairs of distinct nodes
+   * (i,j) is such that i is a trigger instance of j or vice versa (see below).
+   */
+  static void filterTriggerInstances(std::vector<Node>& nodes);
+
+  /** is instance of
+   *
+   * We say a term t is an trigger instance of term s if
+   * (1) t = s * { x1 -> t1 ... xn -> tn }
+   * (2) { x1, ..., xn } are a subset of FV( t ).
+   * For example, f( g( h( x, x ) ) ) and f( g( x ) ) are instances of f( x ),
+   * but f( g( y ) ) and g( x ) are not instances of f( x ).
+   *
+   * When this method returns -1, n1 is an instance of n2,
+   * When this method returns 1, n1 is an instance of n2.
+   *
+   * The motivation for this method is to discard triggers s that are less
+   * restrictive (criteria (1)) and serve to bind the same variables (criteria
+   * (2)) as another trigger t. This often helps avoiding matching loops.
+   */
+  static int isTriggerInstanceOf(Node n1,
+                                 Node n2,
+                                 std::vector<Node>& fv1,
+                                 std::vector<Node>& fv2);
 
   /** add an instantiation (called by InstMatchGenerator)
    *
