@@ -21,6 +21,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/trigger.h"
 
+#include "theory/arith/arith_msum.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
@@ -103,10 +104,11 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
   int ires = 0;
   Trace("cegqi-arith-debug") << "isolate for " << pv << " in " << atom << std::endl;
   std::map< Node, Node > msum;
-  if( QuantArith::getMonomialSumLit( atom, msum ) ){
+  if (ArithMSum::getMonomialSumLit(atom, msum))
+  {
     Trace("cegqi-arith-debug") << "got monomial sum: " << std::endl;
     if( Trace.isOn("cegqi-arith-debug") ){
-      QuantArith::debugPrintMonomialSum( msum, "cegqi-arith-debug" );
+      ArithMSum::debugPrintMonomialSum(msum, "cegqi-arith-debug");
     }
     TypeNode pvtn = pv.getType();
     //remove vts symbols from polynomial
@@ -124,13 +126,13 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
           if( itv!=msum.end() ){
             //multiply by the coefficient we will isolate for
             if( itv->second.isNull() ){
-              vts_coeff[t] = QuantArith::negate(vts_coeff[t]);
+              vts_coeff[t] = ArithMSum::negate(vts_coeff[t]);
             }else{
               if( !pvtn.isInteger() ){
                 vts_coeff[t] = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( Rational(-1) / itv->second.getConst<Rational>() ), vts_coeff[t] );
                 vts_coeff[t] = Rewriter::rewrite( vts_coeff[t] );
               }else if( itv->second.getConst<Rational>().sgn()==1 ){
-                vts_coeff[t] = QuantArith::negate(vts_coeff[t]);
+                vts_coeff[t] = ArithMSum::negate(vts_coeff[t]);
               }
             }
           }
@@ -140,7 +142,7 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
       }
     }
 
-    ires = QuantArith::isolate( pv, msum, veq_c, val, atom.getKind() );
+    ires = ArithMSum::isolate(pv, msum, veq_c, val, atom.getKind());
     if( ires!=0 ){
       Node realPart;
       if( Trace.isOn("cegqi-arith-debug") ){
@@ -194,7 +196,7 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
         Assert( ci->getOutput()->isEligibleForInstantiation( realPart ) );
         //re-isolate
         Trace("cegqi-arith-debug") << "Re-isolate..." << std::endl;
-        ires = QuantArith::isolate( pv, msum, veq_c, val, atom.getKind() );
+        ires = ArithMSum::isolate(pv, msum, veq_c, val, atom.getKind());
         Trace("cegqi-arith-debug") << "Isolate for mixed Int/Real : " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << std::endl;
         Trace("cegqi-arith-debug") << "                 real part : " << realPart << std::endl;
         if( ires!=0 ){
@@ -669,13 +671,16 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
   eq = Rewriter::rewrite( eq );
   Trace("cegqi-arith-debug") << "...equality is " << eq << std::endl;
   std::map< Node, Node > msum;
-  if( QuantArith::getMonomialSumLit( eq, msum ) ){
+  if (ArithMSum::getMonomialSumLit(eq, msum))
+  {
     Node veq;
-    if( QuantArith::isolate( sf.d_vars[index], msum, veq, EQUAL, true )!=0 ){
+    if (ArithMSum::isolate(sf.d_vars[index], msum, veq, EQUAL, true) != 0)
+    {
       Node veq_c;
       if( veq[0]!=sf.d_vars[index] ){
         Node veq_v;
-        if( QuantArith::getMonomial( veq[0], veq_c, veq_v ) ){
+        if (ArithMSum::getMonomial(veq[0], veq_c, veq_v))
+        {
           Assert( veq_v==sf.d_vars[index] );
         }
       }
