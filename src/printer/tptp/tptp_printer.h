@@ -28,18 +28,30 @@ namespace printer {
 namespace tptp {
 
 class TptpPrinter : public CVC4::Printer {
-  void toStream(std::ostream& out, const Model& m, const Command* c) const throw();
-public:
+ public:
   using CVC4::Printer::toStream;
-  void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();
-  void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
-  void toStream(std::ostream& out, const CommandStatus* s) const throw();
-  void toStream(std::ostream& out, const Model& m) const throw();
+  void toStream(std::ostream& out,
+                TNode n,
+                int toDepth,
+                bool types,
+                size_t dag) const override;
+  void toStream(std::ostream& out,
+                const Command* c,
+                int toDepth,
+                bool types,
+                size_t dag) const override;
+  void toStream(std::ostream& out, const CommandStatus* s) const override;
+  void toStream(std::ostream& out, const Model& m) const override;
   /** print unsat core to stream
   * We use the expression names stored in the SMT engine associated with the unsat core
   * with UnsatCore::getSmtEngine.
   */
-  void toStream(std::ostream& out, const UnsatCore& core) const throw();
+  void toStream(std::ostream& out, const UnsatCore& core) const override;
+
+ private:
+  void toStream(std::ostream& out,
+                const Model& m,
+                const Command* c) const override;
 };/* class TptpPrinter */
 
 }/* CVC4::printer::tptp namespace */

@@ -37,25 +37,21 @@ enum SubTheory {
   SUB_ALGEBRAIC = 4
 };
 
-inline std::ostream& operator << (std::ostream& out, SubTheory subtheory) {
+inline std::ostream& operator<<(std::ostream& out, SubTheory subtheory) {
   switch (subtheory) {
-  case SUB_BITBLAST:
-    out << "BITBLASTER";
-    break;
-  case SUB_CORE:
-    out << "BV_CORE_SUBTHEORY";
-    break;
-  case SUB_INEQUALITY:
-    out << "BV_INEQUALITY_SUBTHEORY";
-  case SUB_ALGEBRAIC:
-    out << "BV_ALGEBRAIC_SUBTHEORY";
-  default:
-    Unreachable();
-    break;
+    case SUB_BITBLAST:
+      return out << "BITBLASTER";
+    case SUB_CORE:
+      return out << "BV_CORE_SUBTHEORY";
+    case SUB_INEQUALITY:
+      return out << "BV_INEQUALITY_SUBTHEORY";
+    case SUB_ALGEBRAIC:
+      return out << "BV_ALGEBRAIC_SUBTHEORY";
+    default:
+      break;
   }
-  return out;
+  Unreachable();
 }
-
 
 // forward declaration
 class TheoryBV;

@@ -26,16 +26,18 @@
 #include "theory/arith/theory_arith_private.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
+#include "util/random.h"
 
 #include <algorithm>
 #include <stack>
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 Node ArithInstantiator::getModelBasedProjectionValue( CegInstantiator * ci, Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta, Node inf_coeff, Node delta_coeff ) {
   Node val = t;
@@ -214,7 +216,11 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
   return ires;
 }
 
-void ArithInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
+void ArithInstantiator::reset(CegInstantiator* ci,
+                              SolvedForm& sf,
+                              Node pv,
+                              CegInstEffort effort)
+{
   d_vts_sym[0] = ci->getQuantifiersEngine()->getTermUtil()->getVtsInfinity( d_type, false, false );
   d_vts_sym[1] = ci->getQuantifiersEngine()->getTermUtil()->getVtsDelta( false, false );
   for( unsigned i=0; i<2; i++ ){
@@ -227,7 +233,13 @@ void ArithInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, un
   }
 }
 
-bool ArithInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort ) {
+bool ArithInstantiator::processEquality(CegInstantiator* ci,
+                                        SolvedForm& sf,
+                                        Node pv,
+                                        std::vector<TermProperties>& term_props,
+                                        std::vector<Node>& terms,
+                                        CegInstEffort effort)
+{
   Node eq_lhs = terms[0];
   Node eq_rhs = terms[1];
   Node lhs_coeff = term_props[0].d_coeff;
@@ -255,7 +267,8 @@ bool ArithInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, N
   int ires = solve_arith( ci, pv, eq, pv_prop.d_coeff, val, vts_coeff_inf, vts_coeff_delta );
   if( ires!=0 ){
     pv_prop.d_type = 0;
-    if( ci->doAddInstantiationInc( pv, val, pv_prop, sf, effort ) ){
+    if (ci->constructInstantiationInc(pv, val, pv_prop, sf))
+    {
       return true;
     }
   }
@@ -263,9 +276,12 @@ bool ArithInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, N
   return false;
 }
 
-Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
-                                            Node pv, Node lit,
-                                            unsigned effort) {
+Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
+                                            SolvedForm& sf,
+                                            Node pv,
+                                            Node lit,
+                                            CegInstEffort effort)
+{
   Node atom = lit.getKind()==NOT ? lit[0] : lit;
   bool pol = lit.getKind()!=NOT;
   //arithmetic inequalities and disequalities
@@ -277,9 +293,13 @@ Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
   }
 }
 
-bool ArithInstantiator::processAssertion(CegInstantiator* ci, SolvedForm& sf,
-                                         Node pv, Node lit, Node alit,
-                                         unsigned effort) {
+bool ArithInstantiator::processAssertion(CegInstantiator* ci,
+                                         SolvedForm& sf,
+                                         Node pv,
+                                         Node lit,
+                                         Node alit,
+                                         CegInstEffort effort)
+{
   Node atom = lit.getKind()==NOT ? lit[0] : lit;
   bool pol = lit.getKind()!=NOT;
   //arithmetic inequalities and disequalities
@@ -383,7 +403,8 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci, SolvedForm& sf,
       }else{
         //try this bound
         pv_prop.d_type = uires>0 ? 1 : -1;
-        if( ci->doAddInstantiationInc( pv, uval, pv_prop, sf, effort ) ){
+        if (ci->constructInstantiationInc(pv, uval, pv_prop, sf))
+        {
           return true;
         }
       }
@@ -394,8 +415,11 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci, SolvedForm& sf,
   return false;
 }
 
-bool ArithInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
-                                          Node pv, unsigned effort) {
+bool ArithInstantiator::processAssertions(CegInstantiator* ci,
+                                          SolvedForm& sf,
+                                          Node pv,
+                                          CegInstEffort effort)
+{
   if (options::cbqiModel()) {
     bool use_inf = ci->useVtsInfinity() && ( d_type.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal() );
     bool upper_first = false;
@@ -422,7 +446,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
             val = Rewriter::rewrite( val );
           }
           TermProperties pv_prop_no_bound;
-          if( ci->doAddInstantiationInc( pv, val, pv_prop_no_bound, sf, effort ) ){
+          if (ci->constructInstantiationInc(pv, val, pv_prop_no_bound, sf))
+          {
             return true;
           }
         }
@@ -519,7 +544,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
               TermProperties pv_prop_bound;
               pv_prop_bound.d_coeff = d_mbp_coeff[rr][best];
               pv_prop_bound.d_type = rr==0 ? 1 : -1;
-              if( ci->doAddInstantiationInc( pv, val, pv_prop_bound, sf, effort ) ){
+              if (ci->constructInstantiationInc(pv, val, pv_prop_bound, sf))
+              {
                 return true;
               }
             }
@@ -534,7 +560,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
       Node theta = sf.getTheta();
       val = getModelBasedProjectionValue( ci, pv, val, true, pv_prop_zero.d_coeff, pv_value, zero, sf.getTheta(), Node::null(), Node::null() );
       if( !val.isNull() ){
-        if( ci->doAddInstantiationInc( pv, val, pv_prop_zero, sf, effort ) ){
+        if (ci->constructInstantiationInc(pv, val, pv_prop_zero, sf))
+        {
           return true;
         }
       }
@@ -576,7 +603,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
       Trace("cegqi-arith-bound") << "Midpoint value : " << val << std::endl;
       if( !val.isNull() ){
         TermProperties pv_prop_midpoint;
-        if( ci->doAddInstantiationInc( pv, val, pv_prop_midpoint, sf, effort ) ){
+        if (ci->constructInstantiationInc(pv, val, pv_prop_midpoint, sf))
+        {
           return true;
         }
       }
@@ -597,7 +625,9 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
               TermProperties pv_prop_nopt_bound;
               pv_prop_nopt_bound.d_coeff = d_mbp_coeff[rr][j];
               pv_prop_nopt_bound.d_type = rr==0 ? 1 : -1;
-              if( ci->doAddInstantiationInc( pv, val, pv_prop_nopt_bound, sf, effort ) ){
+              if (ci->constructInstantiationInc(
+                      pv, val, pv_prop_nopt_bound, sf))
+              {
                 return true;
               }
             }
@@ -609,12 +639,19 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
   return false;
 }
 
-bool ArithInstantiator::needsPostProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
+bool ArithInstantiator::needsPostProcessInstantiationForVariable(
+    CegInstantiator* ci, SolvedForm& sf, Node pv, CegInstEffort effort)
+{
   return std::find( sf.d_non_basic.begin(), sf.d_non_basic.end(), pv )!=sf.d_non_basic.end();
 }
 
-bool ArithInstantiator::postProcessInstantiationForVariable( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort, 
-                                                             std::vector< Node >& lemmas ) {
+bool ArithInstantiator::postProcessInstantiationForVariable(
+    CegInstantiator* ci,
+    SolvedForm& sf,
+    Node pv,
+    CegInstEffort effort,
+    std::vector<Node>& lemmas)
+{
   Assert( std::find( sf.d_non_basic.begin(), sf.d_non_basic.end(), pv )!=sf.d_non_basic.end() );
   Assert( std::find( sf.d_vars.begin(), sf.d_vars.end(), pv )!=sf.d_vars.end() );
   unsigned index = std::find( sf.d_vars.begin(), sf.d_vars.end(), pv )-sf.d_vars.begin();
@@ -669,8 +706,11 @@ bool ArithInstantiator::postProcessInstantiationForVariable( CegInstantiator * c
   return true;
 }
 
-void DtInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
-
+void DtInstantiator::reset(CegInstantiator* ci,
+                           SolvedForm& sf,
+                           Node pv,
+                           CegInstEffort effort)
+{
 }
 
 Node DtInstantiator::solve_dt( Node v, Node a, Node b, Node sa, Node sb ) {
@@ -714,9 +754,15 @@ Node DtInstantiator::solve_dt( Node v, Node a, Node b, Node sa, Node sb ) {
   return ret;
 }
 
-bool DtInstantiator::processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort ) {
-  Trace("cegqi-dt-debug") << "[2] try based on constructors in equivalence class." << std::endl;
-  //[2] look in equivalence class for a constructor
+bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
+                                       SolvedForm& sf,
+                                       Node pv,
+                                       std::vector<Node>& eqc,
+                                       CegInstEffort effort)
+{
+  Trace("cegqi-dt-debug") << "try based on constructors in equivalence class."
+                          << std::endl;
+  // look in equivalence class for a constructor
   for( unsigned k=0; k<eqc.size(); k++ ){
     Node n = eqc[k];
     if( n.getKind()==APPLY_CONSTRUCTOR ){
@@ -733,7 +779,8 @@ bool DtInstantiator::processEqualTerms( CegInstantiator * ci, SolvedForm& sf, No
       }
       Node val = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
       TermProperties pv_prop_dt;
-      if( ci->doAddInstantiationInc( pv, val, pv_prop_dt, sf, effort ) ){
+      if (ci->constructInstantiationInc(pv, val, pv_prop_dt, sf))
+      {
         return true;
       }else{
         //cleanup
@@ -747,29 +794,46 @@ bool DtInstantiator::processEqualTerms( CegInstantiator * ci, SolvedForm& sf, No
   return false;
 }
 
-bool DtInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< TermProperties >& term_props, std::vector< Node >& terms, unsigned effort ) {
+bool DtInstantiator::processEquality(CegInstantiator* ci,
+                                     SolvedForm& sf,
+                                     Node pv,
+                                     std::vector<TermProperties>& term_props,
+                                     std::vector<Node>& terms,
+                                     CegInstEffort effort)
+{
   Node val = solve_dt( pv, terms[0], terms[1], terms[0], terms[1] );
   if( !val.isNull() ){
     TermProperties pv_prop;
-    if( ci->doAddInstantiationInc( pv, val, pv_prop, sf, effort ) ){
+    if (ci->constructInstantiationInc(pv, val, pv_prop, sf))
+    {
       return true;
     }
   }
   return false;
 }
 
-void EprInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
+void EprInstantiator::reset(CegInstantiator* ci,
+                            SolvedForm& sf,
+                            Node pv,
+                            CegInstEffort effort)
+{
   d_equal_terms.clear();
 }
 
-bool EprInstantiator::processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, TermProperties& pv_prop, Node n, unsigned effort ) {
+bool EprInstantiator::processEqualTerm(CegInstantiator* ci,
+                                       SolvedForm& sf,
+                                       Node pv,
+                                       TermProperties& pv_prop,
+                                       Node n,
+                                       CegInstEffort effort)
+{
   if( options::quantEprMatching() ){
     Assert( pv_prop.isBasic() );
     d_equal_terms.push_back( n );
     return false;
   }else{
     pv_prop.d_type = 0;
-    return ci->doAddInstantiationInc( pv, n, pv_prop, sf, effort );
+    return ci->constructInstantiationInc(pv, n, pv_prop, sf);
   }
 }
 
@@ -823,8 +887,12 @@ struct sortEqTermsMatch {
   }
 };
 
-
-bool EprInstantiator::processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort ) {
+bool EprInstantiator::processEqualTerms(CegInstantiator* ci,
+                                        SolvedForm& sf,
+                                        Node pv,
+                                        std::vector<Node>& eqc,
+                                        CegInstEffort effort)
+{
   if( options::quantEprMatching() ){
     //heuristic for best matching constant
     sortEqTermsMatch setm;
@@ -837,7 +905,8 @@ bool EprInstantiator::processEqualTerms( CegInstantiator * ci, SolvedForm& sf, N
     TermProperties pv_prop;
     pv_prop.d_type = 0;
     for( unsigned i=0; i<d_equal_terms.size(); i++ ){
-      if( ci->doAddInstantiationInc( pv, d_equal_terms[i], pv_prop, sf, effort ) ){
+      if (ci->constructInstantiationInc(pv, d_equal_terms[i], pv_prop, sf))
+      {
         return true;
       }
     }
@@ -865,8 +934,9 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
   CegInstantiator * d_ci;
 };
 
-
-BvInstantiator::BvInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){
+BvInstantiator::BvInstantiator(QuantifiersEngine* qe, TypeNode tn)
+    : Instantiator(qe, tn), d_tried_assertion_inst(false)
+{
   // get the global inverter utility
   // this must be global since we need to:
   // * process Skolem functions properly across multiple variables within the same quantifier
@@ -877,8 +947,11 @@ BvInstantiator::BvInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instanti
 BvInstantiator::~BvInstantiator(){
 
 }
-
-void BvInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {
+void BvInstantiator::reset(CegInstantiator* ci,
+                           SolvedForm& sf,
+                           Node pv,
+                           CegInstEffort effort)
+{
   d_inst_id_counter = 0;
   d_var_to_inst_id.clear();
   d_inst_id_to_term.clear();
@@ -886,11 +959,16 @@ void BvInstantiator::reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsig
   d_inst_id_to_alit.clear();
   d_var_to_curr_inst_id.clear();
   d_alit_to_model_slack.clear();
+  d_tried_assertion_inst = false;
 }
 
-void BvInstantiator::processLiteral(CegInstantiator* ci, SolvedForm& sf,
-                                    Node pv, Node lit, Node alit,
-                                    unsigned effort) {
+void BvInstantiator::processLiteral(CegInstantiator* ci,
+                                    SolvedForm& sf,
+                                    Node pv,
+                                    Node lit,
+                                    Node alit,
+                                    CegInstEffort effort)
+{
   Assert( d_inverter!=NULL );
   // find path to pv
   std::vector< unsigned > path;
@@ -919,8 +997,17 @@ void BvInstantiator::processLiteral(CegInstantiator* ci, SolvedForm& sf,
   }
 }
 
-Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
-                                         Node pv, Node lit, unsigned effort) {
+Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
+                                         SolvedForm& sf,
+                                         Node pv,
+                                         Node lit,
+                                         CegInstEffort effort)
+{
+  if (effort == CEG_INST_EFFORT_FULL)
+  {
+    // always use model values at full effort
+    return Node::null();
+  }
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool pol = lit.getKind() != NOT;
   Kind k = atom.getKind();
@@ -1010,9 +1097,13 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci, SolvedForm& sf,
   return Node::null();
 }
 
-bool BvInstantiator::processAssertion(CegInstantiator* ci, SolvedForm& sf,
-                                      Node pv, Node lit, Node alit,
-                                      unsigned effort) {
+bool BvInstantiator::processAssertion(CegInstantiator* ci,
+                                      SolvedForm& sf,
+                                      Node pv,
+                                      Node lit,
+                                      Node alit,
+                                      CegInstEffort effort)
+{
   // if option enabled, use approach for word-level inversion for BV instantiation
   if( options::cbqiBv() ){
     // get the best rewritten form of lit for solving for pv 
@@ -1029,13 +1120,26 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci, SolvedForm& sf,
   return false;
 }
 
-bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
-                                       Node pv, unsigned effort) {
+bool BvInstantiator::useModelValue(CegInstantiator* ci,
+                                   SolvedForm& sf,
+                                   Node pv,
+                                   CegInstEffort effort)
+{
+  return !d_tried_assertion_inst
+         && (effort < CEG_INST_EFFORT_FULL || options::cbqiFullEffort());
+}
+
+bool BvInstantiator::processAssertions(CegInstantiator* ci,
+                                       SolvedForm& sf,
+                                       Node pv,
+                                       CegInstEffort effort)
+{
   std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction >::iterator iti = d_var_to_inst_id.find( pv );
   if( iti!=d_var_to_inst_id.end() ){
     Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv << std::endl;
     // if interleaving, do not do inversion half the time
-    if (!options::cbqiBvInterleaveValue() || rand() % 2 == 0) {
+    if (!options::cbqiBvInterleaveValue() || Random::getRandom().pickWithProb(0.5))
+    {
       bool firstVar = sf.empty();
       // get inst id list
       if (Trace.isOn("cegqi-bv"))
@@ -1081,18 +1185,6 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
             Trace("cegqi-bv") << "   ...with slack value : " << curr_slack_val
                               << std::endl;
           }
-          // process information about solved status
-          std::unordered_map<unsigned, BvInverterStatus>::iterator its =
-              d_inst_id_to_status.find(inst_id);
-          Assert(its != d_inst_id_to_status.end());
-          if (!its->second.d_conds.empty()) {
-            Trace("cegqi-bv") << "   ...with " << its->second.d_conds.size()
-                              << " side conditions : " << std::endl;
-            for (unsigned k = 0; k < its->second.d_conds.size(); k++) {
-              Node cond = its->second.d_conds[k];
-              Trace("cegqi-bv") << "       " << cond << std::endl;
-            }
-          }
           Trace("cegqi-bv") << std::endl;
         }
 
@@ -1124,8 +1216,9 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci, SolvedForm& sf,
         Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term
                           << std::endl;
         d_var_to_curr_inst_id[pv] = inst_id;
-        if (ci->doAddInstantiationInc(
-                pv, inst_term, pv_prop_bv, sf, effort, revertOnSuccess))
+        d_tried_assertion_inst = true;
+        if (ci->constructInstantiationInc(
+                pv, inst_term, pv_prop_bv, sf, revertOnSuccess))
         {
           ret = true;
         }
@@ -1244,6 +1337,14 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
 
       visited.top()[cur] = ret;
     }
+    else if (Trace.isOn("cegqi-bv-nl"))
+    {
+      if (cur == pv)
+      {
+        Trace("cegqi-bv-nl") << "NONLINEAR LITERAL for " << pv << " : " << lit
+                             << std::endl;
+      }
+    }
   } while (!visit.top().empty());
   Assert(visited.size() == 1);
   Assert(visited.top().find(lit) != visited.top().end());
@@ -1280,3 +1381,166 @@ Node BvInstantiator::rewriteTermForSolvePv(
 
   return Node::null();
 }
+
+/** sort bv extract interval
+ *
+ * This sorts lists of bitvector extract terms where
+ * ((_ extract i1 i2) t) < ((_ extract j1 j2) t)
+ * if i1>j1 or i1=j1 and i2>j2.
+ */
+struct SortBvExtractInterval
+{
+  bool operator()(Node i, Node j)
+  {
+    Assert(i.getKind() == BITVECTOR_EXTRACT);
+    Assert(j.getKind() == BITVECTOR_EXTRACT);
+    BitVectorExtract ie = i.getOperator().getConst<BitVectorExtract>();
+    BitVectorExtract je = j.getOperator().getConst<BitVectorExtract>();
+    if (ie.high > je.high)
+    {
+      return true;
+    }
+    else if (ie.high == je.high)
+    {
+      Assert(ie.low != je.low);
+      return ie.low > je.low;
+    }
+    return false;
+  }
+};
+
+void BvInstantiatorPreprocess::registerCounterexampleLemma(
+    std::vector<Node>& lems, std::vector<Node>& ce_vars)
+{
+  // new variables
+  std::vector<Node> vars;
+  // new lemmas
+  std::vector<Node> new_lems;
+
+  if (options::cbqiBvRmExtract())
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
+    // map from terms to bitvector extracts applied to that term
+    std::map<Node, std::vector<Node> > extract_map;
+    std::unordered_set<TNode, TNodeHashFunction> visited;
+    for (unsigned i = 0, size = lems.size(); i < size; i++)
+    {
+      Trace("cegqi-bv-pp-debug2") << "Register ce lemma # " << i << " : "
+                                  << lems[i] << std::endl;
+      collectExtracts(lems[i], extract_map, visited);
+    }
+    for (std::pair<const Node, std::vector<Node> >& es : extract_map)
+    {
+      if (es.second.size() > 1)
+      {
+        // sort based on the extract start position
+        std::vector<Node>& curr_vec = es.second;
+
+        SortBvExtractInterval sbei;
+        std::sort(curr_vec.begin(), curr_vec.end(), sbei);
+
+        unsigned width = es.first.getType().getBitVectorSize();
+
+        // list of points b such that:
+        //   b>0 and we must start a segment at (b-1)  or  b==0
+        std::vector<unsigned> boundaries;
+        boundaries.push_back(width);
+        boundaries.push_back(0);
+
+        Trace("cegqi-bv-pp") << "For term " << es.first << " : " << std::endl;
+        for (unsigned i = 0, size = curr_vec.size(); i < size; i++)
+        {
+          Trace("cegqi-bv-pp") << "  " << i << " : " << curr_vec[i]
+                               << std::endl;
+          BitVectorExtract e =
+              curr_vec[i].getOperator().getConst<BitVectorExtract>();
+          if (std::find(boundaries.begin(), boundaries.end(), e.high + 1)
+              == boundaries.end())
+          {
+            boundaries.push_back(e.high + 1);
+          }
+          if (std::find(boundaries.begin(), boundaries.end(), e.low)
+              == boundaries.end())
+          {
+            boundaries.push_back(e.low);
+          }
+        }
+        std::sort(boundaries.rbegin(), boundaries.rend());
+
+        // make the extract variables
+        std::vector<Node> children;
+        for (unsigned i = 1; i < boundaries.size(); i++)
+        {
+          Assert(boundaries[i - 1] > 0);
+          Node ex = bv::utils::mkExtract(
+              es.first, boundaries[i - 1] - 1, boundaries[i]);
+          Node var =
+              nm->mkSkolem("ek",
+                           ex.getType(),
+                           "variable to represent disjoint extract region");
+          Node ceq_lem = var.eqNode(ex);
+          Trace("cegqi-bv-pp") << "Introduced : " << ceq_lem << std::endl;
+          new_lems.push_back(ceq_lem);
+          children.push_back(var);
+          vars.push_back(var);
+        }
+
+        Node conc = nm->mkNode(kind::BITVECTOR_CONCAT, children);
+        Assert(conc.getType() == es.first.getType());
+        Node eq_lem = conc.eqNode(es.first);
+        Trace("cegqi-bv-pp") << "Introduced : " << eq_lem << std::endl;
+        new_lems.push_back(eq_lem);
+      }
+      Trace("cegqi-bv-pp") << "...finished processing extracts for term "
+                            << es.first << std::endl;
+    }
+    Trace("cegqi-bv-pp") << "-----done remove extracts" << std::endl;
+  }
+
+  if (!vars.empty())
+  {
+    // could try applying subs -> vars here
+    // in practice, this led to worse performance
+
+    Trace("cegqi-bv-pp") << "Adding " << new_lems.size() << " lemmas..."
+                         << std::endl;
+    lems.insert(lems.end(), new_lems.begin(), new_lems.end());
+    Trace("cegqi-bv-pp") << "Adding " << vars.size() << " variables..."
+                         << std::endl;
+    ce_vars.insert(ce_vars.end(), vars.begin(), vars.end());
+  }
+}
+
+void BvInstantiatorPreprocess::collectExtracts(
+    Node lem,
+    std::map<Node, std::vector<Node> >& extract_map,
+    std::unordered_set<TNode, TNodeHashFunction>& visited)
+{
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(lem);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+
+      if (cur.getKind() == BITVECTOR_EXTRACT)
+      {
+        extract_map[cur[0]].push_back(cur);
+      }
+
+      for (const Node& nc : cur)
+      {
+        visit.push_back(nc);
+      }
+    }
+  } while (!visit.empty());
+}
+
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */

@@ -16,9 +16,9 @@
 
 #include "theory/quantifiers/bounded_integers.h"
 #include "options/quantifiers_options.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/model_engine.h"
-#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
@@ -288,15 +288,17 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
   }else if( n.getKind()==GEQ ){
     if( n[0].getType().isInteger() ){
       std::map< Node, Node > msum;
-      if( QuantArith::getMonomialSumLit( n, msum ) ){
+      if (ArithMSum::getMonomialSumLit(n, msum))
+      {
         Trace("bound-int-debug") << "literal (polarity = " << pol << ") " << n << " is monomial sum : " << std::endl;
-        QuantArith::debugPrintMonomialSum( msum, "bound-int-debug" );
+        ArithMSum::debugPrintMonomialSum(msum, "bound-int-debug");
         for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
           if ( !it->first.isNull() && it->first.getKind()==BOUND_VARIABLE && !isBound( q, it->first ) ){
             //if not bound in another way
             if( bound_lit_type_map.find( it->first )==bound_lit_type_map.end() || bound_lit_type_map[it->first] == BOUND_INT_RANGE ){
               Node veq;
-              if( QuantArith::isolate( it->first, msum, veq, GEQ )!=0 ){
+              if (ArithMSum::isolate(it->first, msum, veq, GEQ) != 0)
+              {
                 Node n1 = veq[0];
                 Node n2 = veq[1];
                 if(pol){
@@ -304,9 +306,9 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
                   n1 = veq[1];
                   n2 = veq[0];
                   if( n1.getKind()==BOUND_VARIABLE ){
-                    n2 = QuantArith::offset( n2, 1 );
+                    n2 = ArithMSum::offset(n2, 1);
                   }else{
-                    n1 = QuantArith::offset( n1, -1 );
+                    n1 = ArithMSum::offset(n1, -1);
                   }
                   veq = NodeManager::currentNM()->mkNode( GEQ, n1, n2 );
                 }
@@ -350,8 +352,10 @@ bool BoundedIntegers::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
-void BoundedIntegers::check( Theory::Effort e, unsigned quant_e ) {
-  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
+{
+  if (quant_e == QEFFORT_STANDARD)
+  {
     Trace("bint-engine") << "---Bounded Integers---" << std::endl;
     bool addedLemma = false;
     //make sure proxies are up-to-date with range

@@ -26,20 +26,61 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
 
-CegInstantiator::CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta, bool use_vts_inf ) :
-d_qe( qe ), d_out( out ), d_use_vts_delta( use_vts_delta ), d_use_vts_inf( use_vts_inf ){
-  d_is_nested_quant = false;
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
+
+std::ostream& operator<<(std::ostream& os, CegInstEffort e)
+{
+  switch (e)
+  {
+    case CEG_INST_EFFORT_NONE: os << "?"; break;
+    case CEG_INST_EFFORT_STANDARD: os << "STANDARD"; break;
+    case CEG_INST_EFFORT_STANDARD_MV: os << "STANDARD_MV"; break;
+    case CEG_INST_EFFORT_FULL: os << "FULL"; break;
+    default: Unreachable();
+  }
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, CegInstPhase phase)
+{
+  switch (phase)
+  {
+    case CEG_INST_PHASE_NONE: os << "?"; break;
+    case CEG_INST_PHASE_EQC: os << "eqc"; break;
+    case CEG_INST_PHASE_EQUAL: os << "eq"; break;
+    case CEG_INST_PHASE_ASSERTION: os << "as"; break;
+    case CEG_INST_PHASE_MVALUE: os << "mv"; break;
+    default: Unreachable();
+  }
+  return os;
+}
+
+CegInstantiator::CegInstantiator(QuantifiersEngine* qe,
+                                 CegqiOutput* out,
+                                 bool use_vts_delta,
+                                 bool use_vts_inf)
+    : d_qe(qe),
+      d_out(out),
+      d_use_vts_delta(use_vts_delta),
+      d_use_vts_inf(use_vts_inf),
+      d_is_nested_quant(false),
+      d_effort(CEG_INST_EFFORT_NONE)
+{
 }
 
 CegInstantiator::~CegInstantiator() {
-  for( std::map< Node, Instantiator * >::iterator it = d_instantiator.begin(); it != d_instantiator.end(); ++it ){
-    delete it->second;
+  for (std::pair<Node, Instantiator*> inst : d_instantiator)
+  {
+    delete inst.second;
+  }
+  for (std::pair<TheoryId, InstantiatorPreprocess*> instp : d_tipp)
+  {
+    delete instp.second;
   }
 }
 
@@ -90,8 +131,8 @@ bool CegInstantiator::hasVariable( Node n, Node pv ) {
   return d_prog_var[n].find( pv )!=d_prog_var[n].end();
 }
 
-
-void CegInstantiator::registerInstantiationVariable( Node v, unsigned index ) {
+void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
+{
   if( d_instantiator.find( v )==d_instantiator.end() ){
     TypeNode tn = v.getType();
     Instantiator * vinst;
@@ -114,23 +155,89 @@ void CegInstantiator::registerInstantiationVariable( Node v, unsigned index ) {
   }
   d_curr_subs_proc[v].clear();
   d_curr_index[v] = index;
+  d_curr_iphase[v] = CEG_INST_PHASE_NONE;
 }
 
-void CegInstantiator::unregisterInstantiationVariable( Node v ) {
+void CegInstantiator::registerTheoryIds(TypeNode tn,
+                                        std::map<TypeNode, bool>& visited)
+{
+  if (visited.find(tn) == visited.end())
+  {
+    visited[tn] = true;
+    TheoryId tid = Theory::theoryOf(tn);
+    registerTheoryId(tid);
+    if (tn.isDatatype())
+    {
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      for (unsigned i = 0; i < dt.getNumConstructors(); i++)
+      {
+        for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
+        {
+          registerTheoryIds(
+              TypeNode::fromType(
+                  ((SelectorType)dt[i][j].getType()).getRangeType()),
+              visited);
+        }
+      }
+    }
+  }
+}
+
+void CegInstantiator::registerTheoryId(TheoryId tid)
+{
+  if (std::find(d_tids.begin(), d_tids.end(), tid) == d_tids.end())
+  {
+    // setup any theory-specific preprocessors here
+    if (tid == THEORY_BV)
+    {
+      d_tipp[tid] = new BvInstantiatorPreprocess;
+    }
+    d_tids.push_back(tid);
+  }
+}
+
+void CegInstantiator::registerVariable(Node v, bool is_aux)
+{
+  Assert(std::find(d_vars.begin(), d_vars.end(), v) == d_vars.end());
+  Assert(std::find(d_aux_vars.begin(), d_aux_vars.end(), v)
+         == d_aux_vars.end());
+  if (!is_aux)
+  {
+    d_vars.push_back(v);
+    d_vars_set.insert(v);
+  }
+  else
+  {
+    d_aux_vars.push_back(v);
+  }
+  TypeNode vtn = v.getType();
+  Trace("cbqi-proc-debug") << "Collect theory ids from type " << vtn << " of "
+                           << v << std::endl;
+  // collect relevant theories for this variable
+  std::map<TypeNode, bool> visited;
+  registerTheoryIds(vtn, visited);
+}
+
+void CegInstantiator::deactivateInstantiationVariable(Node v)
+{
   d_curr_subs_proc.erase( v );
   d_curr_index.erase( v );
+  d_curr_iphase.erase(v);
 }
 
-bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned effort ){
+bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
+{
   if( i==d_vars.size() ){
     //solved for all variables, now construct instantiation
     bool needsPostprocess =
-        sf.d_vars.size() > d_vars.size() || !d_var_order_index.empty();
+        sf.d_vars.size() > d_input_vars.size() || !d_var_order_index.empty();
     std::vector< Instantiator * > pp_inst;
     std::map< Instantiator *, Node > pp_inst_to_var;
     std::vector< Node > lemmas;
     for( std::map< Node, Instantiator * >::iterator ita = d_active_instantiators.begin(); ita != d_active_instantiators.end(); ++ita ){
-      if( ita->second->needsPostProcessInstantiationForVariable( this, sf, ita->first, effort ) ){
+      if (ita->second->needsPostProcessInstantiationForVariable(
+              this, sf, ita->first, d_effort))
+      {
         needsPostprocess = true;
         pp_inst_to_var[ ita->second ] = ita->first;
       }
@@ -140,7 +247,9 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       SolvedForm sf_tmp = sf;
       bool postProcessSuccess = true;
       for( std::map< Instantiator *, Node >::iterator itp = pp_inst_to_var.begin(); itp != pp_inst_to_var.end(); ++itp ){
-        if( !itp->first->postProcessInstantiationForVariable( this, sf_tmp, itp->second, effort, lemmas ) ){
+        if (!itp->first->postProcessInstantiationForVariable(
+                this, sf_tmp, itp->second, d_effort, lemmas))
+        {
           postProcessSuccess = false;
           break;
         }
@@ -164,7 +273,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       is_cv = true;
       d_stack_vars.pop_back();
     }
-    registerInstantiationVariable( pv, i );
+    activateInstantiationVariable(pv, i);
 
     //get the instantiator object
     Instantiator * vinst = NULL;
@@ -174,7 +283,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
     }
     Assert( vinst!=NULL );
     d_active_instantiators[pv] = vinst;
-    vinst->reset( this, sf, pv, effort );
+    vinst->reset(this, sf, pv, d_effort);
 
     TypeNode pvtn = pv.getType();
     TypeNode pvtnb = pvtn.getBaseType();
@@ -189,11 +298,12 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       Trace("cbqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
     }
 
-    //if in effort=2, we must choose at least one model value
-    if( (i+1)<d_vars.size() || effort!=2 ){
-
+    // if d_effort is full, we must choose at least one model value
+    if ((i + 1) < d_vars.size() || d_effort != CEG_INST_EFFORT_FULL)
+    {
       //[1] easy case : pv is in the equivalence class as another term not containing pv
       Trace("cbqi-inst-debug") << "[1] try based on equivalence class." << std::endl;
+      d_curr_iphase[pv] = CEG_INST_PHASE_EQC;
       std::map< Node, std::vector< Node > >::iterator it_eqc = d_curr_eqc.find( pvr );
       if( it_eqc!=d_curr_eqc.end() ){
         //std::vector< Node > eq_candidates;
@@ -219,24 +329,30 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
                 proc = true;
               }
               if( proc ){
-                if( vinst->processEqualTerm( this, sf, pv, pv_prop, ns, effort ) ){
+                if (vinst->processEqualTerm(
+                        this, sf, pv, pv_prop, ns, d_effort))
+                {
                   return true;
                 }
               }
             }
           }
         }
-        if( vinst->processEqualTerms( this, sf, pv, it_eqc->second, effort ) ){
+        if (vinst->processEqualTerms(this, sf, pv, it_eqc->second, d_effort))
+        {
           return true;
         }
       }else{
         Trace("cbqi-inst-debug2") << "...eqc not found." << std::endl;
       }
 
-      //[3] : we can solve an equality for pv
-      ///iterate over equivalence classes to find cases where we can solve for the variable
-      if( vinst->hasProcessEquality( this, sf, pv, effort ) ){
-        Trace("cbqi-inst-debug") << "[3] try based on solving equalities." << std::endl;
+      //[2] : we can solve an equality for pv
+      /// iterate over equivalence classes to find cases where we can solve for
+      /// the variable
+      if (vinst->hasProcessEquality(this, sf, pv, d_effort))
+      {
+        Trace("cbqi-inst-debug") << "[2] try based on solving equalities." << std::endl;
+        d_curr_iphase[pv] = CEG_INST_PHASE_EQUAL;
         for( unsigned k=0; k<d_curr_type_eqc[pvtnb].size(); k++ ){
           Node r = d_curr_type_eqc[pvtnb][k];
           std::map< Node, std::vector< Node > >::iterator it_reqc = d_curr_eqc.find( r );
@@ -272,7 +388,9 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
                     Trace("cbqi-inst-debug") << "... " << i << "...try based on equality " << lhs[j] << " = " << ns << std::endl;
                     term_props.push_back( lhs_prop[j] );
                     terms.push_back( lhs[j] );
-                    if( vinst->processEquality( this, sf, pv, term_props, terms, effort ) ){
+                    if (vinst->processEquality(
+                            this, sf, pv, term_props, terms, d_effort))
+                    {
                       return true;
                     }
                     term_props.pop_back();
@@ -292,9 +410,11 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
         }
       }
 
-      //[4] directly look at assertions
-      if( vinst->hasProcessAssertion( this, sf, pv, effort ) ){
-        Trace("cbqi-inst-debug") << "[4] try based on assertions." << std::endl;
+      //[3] directly look at assertions
+      if (vinst->hasProcessAssertion(this, sf, pv, d_effort))
+      {
+        Trace("cbqi-inst-debug") << "[3] try based on assertions." << std::endl;
+        d_curr_iphase[pv] = CEG_INST_PHASE_ASSERTION;
         std::unordered_set< Node, NodeHashFunction > lits;
         //unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
         for( unsigned r=0; r<2; r++ ){
@@ -307,7 +427,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
               if( lits.find(lit)==lits.end() ){
                 lits.insert(lit);
                 Node plit =
-                    vinst->hasProcessAssertion(this, sf, pv, lit, effort);
+                    vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
                 if (!plit.isNull()) {
                   Trace("cbqi-inst-debug2") << "  look at " << lit;
                   if (plit != lit) {
@@ -320,8 +440,9 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
                     Trace("cbqi-inst-debug") << "...try based on literal " << slit << std::endl;
                     // check if contains pv
                     if( hasVariable( slit, pv ) ){
-                      if (vinst->processAssertion(this, sf, pv, slit, lit,
-                                                  effort)) {
+                      if (vinst->processAssertion(
+                              this, sf, pv, slit, lit, d_effort))
+                      {
                         return true;
                       }
                     }
@@ -331,16 +452,19 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
             }
           }
         }
-        if (vinst->processAssertions(this, sf, pv, effort)) {
+        if (vinst->processAssertions(this, sf, pv, d_effort))
+        {
           return true;
         }
       }
     }
 
-    //[5] resort to using value in model
-    // do so if we are in effort=1, or if the variable is boolean, or if we are solving for a subfield of a datatype
-    bool use_model_value = vinst->useModelValue( this, sf, pv, effort );
-    if( ( effort>0 || use_model_value || is_cv ) && vinst->allowModelValue( this, sf, pv, effort ) ){
+    //[4] resort to using value in model. We do so if:
+    // - if the instantiator uses model values at this effort, or
+    // - if we are solving for a subfield of a datatype (is_cv).
+    if ((vinst->useModelValue(this, sf, pv, d_effort) || is_cv)
+        && vinst->allowModelValue(this, sf, pv, d_effort))
+    {
 #ifdef CVC4_ASSERTIONS
       if( pvtn.isReal() && options::cbqiNestedQE() && !options::cbqiAll() ){
         Trace("cbqi-warn") << "Had to resort to model value." << std::endl;
@@ -349,18 +473,26 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
 #endif
       Node mv = getModelValue( pv );
       TermProperties pv_prop_m;
-      Trace("cbqi-inst-debug") << "[5] " << i << "...try model value " << mv << std::endl;
-      int new_effort = use_model_value ? effort : 1;
-      if( doAddInstantiationInc( pv, mv, pv_prop_m, sf, new_effort ) ){
+      Trace("cbqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
+      d_curr_iphase[pv] = CEG_INST_PHASE_MVALUE;
+      CegInstEffort prev = d_effort;
+      if (d_effort < CEG_INST_EFFORT_STANDARD_MV)
+      {
+        // update the effort level to indicate we have used a model value
+        d_effort = CEG_INST_EFFORT_STANDARD_MV;
+      }
+      if (constructInstantiationInc(pv, mv, pv_prop_m, sf))
+      {
         return true;
       }
+      d_effort = prev;
     }
     Trace("cbqi-inst-debug") << "[No instantiation found for " << pv << "]" << std::endl;
     if( is_cv ){
       d_stack_vars.push_back( pv );
     }
     d_active_instantiators.erase( pv );
-    unregisterInstantiationVariable( pv );
+    deactivateInstantiationVariable(pv);
     return false;
   }
 }
@@ -374,23 +506,23 @@ void CegInstantiator::popStackVariable() {
   d_stack_vars.pop_back();
 }
 
-bool CegInstantiator::doAddInstantiationInc(Node pv,
-                                            Node n,
-                                            TermProperties& pv_prop,
-                                            SolvedForm& sf,
-                                            unsigned effort,
-                                            bool revertOnSuccess)
+bool CegInstantiator::constructInstantiationInc(Node pv,
+                                                Node n,
+                                                TermProperties& pv_prop,
+                                                SolvedForm& sf,
+                                                bool revertOnSuccess)
 {
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
-    if( Trace.isOn("cbqi-inst") ){
+    if( Trace.isOn("cbqi-inst-debug") ){
       for( unsigned j=0; j<sf.d_subs.size(); j++ ){
-        Trace("cbqi-inst") << " ";
+        Trace("cbqi-inst-debug") << " ";
       }
-      Trace("cbqi-inst") << sf.d_subs.size() << ": ";
+      Trace("cbqi-inst-debug") << sf.d_subs.size() << ": (" << d_curr_iphase[pv]
+                         << ") ";
       Node mod_pv = pv_prop.getModifiedTerm( pv );
-      Trace("cbqi-inst") << mod_pv << " -> " << n << std::endl;
+      Trace("cbqi-inst-debug") << mod_pv << " -> " << n << std::endl;
       Assert( n.getType().isSubtypeOf( pv.getType() ) );
     }
     //must ensure variables have been computed for n
@@ -470,7 +602,7 @@ bool CegInstantiator::doAddInstantiationInc(Node pv,
       sf.push_back( pv, n, pv_prop );
       Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
       unsigned i = d_curr_index[pv];
-      success = doAddInstantiation( sf, d_stack_vars.empty() ? i+1 : i, effort );
+      success = constructInstantiation(sf, d_stack_vars.empty() ? i + 1 : i);
       if (!success || revertOnSuccess)
       {
         Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
@@ -501,29 +633,37 @@ bool CegInstantiator::doAddInstantiationInc(Node pv,
 }
 
 bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& lemmas ) {
-  if( vars.size()>d_vars.size() ){
+  if (vars.size() > d_input_vars.size() || !d_var_order_index.empty())
+  {
     Trace("cbqi-inst-debug") << "Reconstructing instantiations...." << std::endl;
     std::map< Node, Node > subs_map;
     for( unsigned i=0; i<subs.size(); i++ ){
       subs_map[vars[i]] = subs[i];
     }
     subs.clear();
-    for( unsigned i=0; i<d_vars.size(); i++ ){
-      std::map< Node, Node >::iterator it = subs_map.find( d_vars[i] );
+    for (unsigned i = 0, size = d_input_vars.size(); i < size; ++i)
+    {
+      std::map<Node, Node>::iterator it = subs_map.find(d_input_vars[i]);
       Assert( it!=subs_map.end() );
       Node n = it->second;
-      Trace("cbqi-inst-debug") << "  " << d_vars[i] << " -> " << n << std::endl;
+      Trace("cbqi-inst-debug") << "  " << d_input_vars[i] << " -> " << n
+                               << std::endl;
+      Assert(n.getType().isSubtypeOf(d_input_vars[i].getType()));
       subs.push_back( n );
     }
   }
-  if( !d_var_order_index.empty() ){
-    std::vector< Node > subs_orig;
-    subs_orig.insert( subs_orig.end(), subs.begin(), subs.end() );
-    subs.clear();
-    for( unsigned i=0; i<subs_orig.size(); i++ ){
-      subs.push_back( subs_orig[d_var_order_index[i]] );
+  if (Trace.isOn("cbqi-inst"))
+  {
+    Trace("cbqi-inst") << "Ceg Instantiator produced : " << std::endl;
+    for (unsigned i = 0, size = d_input_vars.size(); i < size; ++i)
+    {
+      Node v = d_input_vars[i];
+      Trace("cbqi-inst") << i << " (" << d_curr_iphase[v] << ") : " 
+                         << v << " -> " << subs[i] << std::endl;
+      Assert(subs[i].getType().isSubtypeOf(v.getType()));
     }
   }
+  Trace("cbqi-inst-debug") << "Do the instantiation...." << std::endl;
   bool ret = d_out->doAddInstantiation( subs );
   for( unsigned i=0; i<lemmas.size(); i++ ){
     d_out->addLemma( lemmas[i] );
@@ -714,11 +854,13 @@ bool CegInstantiator::check() {
   }
   processAssertions();
   for( unsigned r=0; r<2; r++ ){
+    d_effort = r == 0 ? CEG_INST_EFFORT_STANDARD : CEG_INST_EFFORT_FULL;
     SolvedForm sf;
     d_stack_vars.clear();
     d_bound_var_index.clear();
     //try to add an instantiation
-    if( doAddInstantiation( sf, 0, r==0 ? 0 : 2 ) ){
+    if (constructInstantiation(sf, 0))
+    {
       return true;
     }
   }
@@ -788,25 +930,6 @@ void CegInstantiator::presolve( Node q ) {
       lem = NodeManager::currentNM()->mkNode( OR, g, lem );
       Trace("cbqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
       d_qe->getOutputChannel().lemma( lem, false, true );
-    }
-  }
-}
-
-void collectTheoryIds( TypeNode tn, std::map< TypeNode, bool >& visited, std::vector< TheoryId >& tids ){
-  std::map< TypeNode, bool >::iterator itt = visited.find( tn );
-  if( itt==visited.end() ){
-    visited[tn] = true;
-    TheoryId tid = Theory::theoryOf( tn );
-    if( std::find( tids.begin(), tids.end(), tid )==tids.end() ){
-      tids.push_back( tid );
-    }
-    if( tn.isDatatype() ){
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-          collectTheoryIds( TypeNode::fromType( ((SelectorType)dt[i][j].getType()).getRangeType() ), visited, tids );
-        }
-      }
     }
   }
 }
@@ -1045,36 +1168,37 @@ struct sortCegVarOrder {
 
 
 void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars ) {
+  Trace("cbqi-reg") << "Register counterexample lemma..." << std::endl;
+  d_input_vars.clear();
+  d_input_vars.insert(d_input_vars.end(), ce_vars.begin(), ce_vars.end());
+
   //Assert( d_vars.empty() );
   d_vars.clear();
-  d_vars.insert( d_vars.end(), ce_vars.begin(), ce_vars.end() );
-  d_vars_set.insert(ce_vars.begin(), ce_vars.end());
+  registerTheoryId(THEORY_UF);
+  for (unsigned i = 0; i < ce_vars.size(); i++)
+  {
+    Trace("cbqi-reg") << "  register input variable : " << ce_vars[i] << std::endl;
+    registerVariable(ce_vars[i]);
+  }
 
-  //determine variable order: must do Reals before Ints
-  if( !d_vars.empty() ){
-    TypeNode tn0 = d_vars[0].getType();
-    bool doSort = false;
-    std::map< Node, unsigned > voo;
-    for( unsigned i=0; i<d_vars.size(); i++ ){
-      voo[d_vars[i]] = i;
-      d_var_order_index.push_back( 0 );
-      if( d_vars[i].getType()!=tn0 ){
-        doSort = true;
-      }
-    }
-    if( doSort ){
-      Trace("cbqi-debug") << "Sort variables based on ordering." << std::endl;
-      sortCegVarOrder scvo;
-      std::sort( d_vars.begin(), d_vars.end(), scvo );
-      Trace("cbqi-debug") << "Consider variables in this order : " << std::endl;
-      for( unsigned i=0; i<d_vars.size(); i++ ){
-        d_var_order_index[voo[d_vars[i]]] = i;
-        Trace("cbqi-debug") << "  " << d_vars[i] << " : " << d_vars[i].getType() << ", index was : " << voo[d_vars[i]] << std::endl;
-      }
-      Trace("cbqi-debug") << std::endl;
-    }else{
-      d_var_order_index.clear();
-    }
+  // preprocess with all relevant instantiator preprocessors
+  Trace("cbqi-debug") << "Preprocess based on theory-specific methods..."
+                      << std::endl;
+  std::vector<Node> pvars;
+  pvars.insert(pvars.end(), d_vars.begin(), d_vars.end());
+  for (std::pair<const TheoryId, InstantiatorPreprocess*>& p : d_tipp)
+  {
+    p.second->registerCounterexampleLemma(lems, pvars);
+  }
+  // must register variables generated by preprocessors
+  Trace("cbqi-debug") << "Register variables from theory-specific methods "
+                      << d_input_vars.size() << " " << pvars.size() << " ..."
+                      << std::endl;
+  for (unsigned i = d_input_vars.size(), size = pvars.size(); i < size; ++i)
+  {
+    Trace("cbqi-reg") << "  register theory preprocess variable : " << pvars[i]
+                      << std::endl;
+    registerVariable(pvars[i]);
   }
 
   //remove ITEs
@@ -1084,8 +1208,8 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   d_aux_vars.clear();
   d_aux_eq.clear();
   for(IteSkolemMap::iterator i = iteSkolemMap.begin(); i != iteSkolemMap.end(); ++i) {
-    Trace("cbqi-debug") << "  Auxiliary var (from ITE) : " << i->first << std::endl;
-    d_aux_vars.push_back( i->first );
+    Trace("cbqi-reg") << "  register aux variable : " << i->first << std::endl;
+    registerVariable(i->first, true);
   }
   for( unsigned i=0; i<lems.size(); i++ ){
     Trace("cbqi-debug") << "Counterexample lemma (pre-rewrite)  " << i << " : " << lems[i] << std::endl;
@@ -1114,26 +1238,48 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     }*/
     lems[i] = rlem;
   }
+
+  // determine variable order: must do Reals before Ints
+  Trace("cbqi-debug") << "Determine variable order..." << std::endl;
+  if (!d_vars.empty())
+  {
+    TypeNode tn0 = d_vars[0].getType();
+    bool doSort = false;
+    std::map<Node, unsigned> voo;
+    for (unsigned i = 0; i < d_vars.size(); i++)
+    {
+      voo[d_vars[i]] = i;
+      d_var_order_index.push_back(0);
+      if (d_vars[i].getType() != tn0)
+      {
+        doSort = true;
+      }
+    }
+    if (doSort)
+    {
+      Trace("cbqi-debug") << "Sort variables based on ordering." << std::endl;
+      sortCegVarOrder scvo;
+      std::sort(d_vars.begin(), d_vars.end(), scvo);
+      Trace("cbqi-debug") << "Consider variables in this order : " << std::endl;
+      for (unsigned i = 0; i < d_vars.size(); i++)
+      {
+        d_var_order_index[voo[d_vars[i]]] = i;
+        Trace("cbqi-debug") << "  " << d_vars[i] << " : " << d_vars[i].getType()
+                            << ", index was : " << voo[d_vars[i]] << std::endl;
+      }
+      Trace("cbqi-debug") << std::endl;
+    }
+    else
+    {
+      d_var_order_index.clear();
+    }
+  }
+
   //collect atoms from all lemmas: we will only do bounds coming from original body
   d_is_nested_quant = false;
   std::map< Node, bool > visited;
   for( unsigned i=0; i<lems.size(); i++ ){
     collectCeAtoms( lems[i], visited );
-  }
-
-  //compute the theory ids
-  d_tids.clear();
-  d_tids.push_back(THEORY_UF);
-  for( unsigned r=0; r<2; r++ ){
-    unsigned sz = r==0 ? d_vars.size() : d_aux_vars.size();
-    for( unsigned i=0; i<sz; i++ ){
-      Node pv = r==0 ? d_vars[i] : d_aux_vars[i];
-      TypeNode pvtn = pv.getType();
-      Trace("cbqi-proc-debug") << "Collect theory ids from type " << pvtn << " of " << pv << std::endl;
-      //collect relevant theories
-      std::map< TypeNode, bool > visited;
-      collectTheoryIds( pvtn, visited, d_tids );
-    }
   }
 }
 
@@ -1142,10 +1288,17 @@ Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn )
   d_closed_enum_type = qe->getTermEnumeration()->isClosedEnumerableType(tn);
 }
 
-
-bool Instantiator::processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, TermProperties& pv_prop, Node n, unsigned effort ) {
+bool Instantiator::processEqualTerm(CegInstantiator* ci,
+                                    SolvedForm& sf,
+                                    Node pv,
+                                    TermProperties& pv_prop,
+                                    Node n,
+                                    CegInstEffort effort)
+{
   pv_prop.d_type = 0;
-  return ci->doAddInstantiationInc( pv, n, pv_prop, sf, effort );
+  return ci->constructInstantiationInc(pv, n, pv_prop, sf);
 }
 
-
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */

@@ -18,6 +18,7 @@
 #include "theory/quantifiers/ambqi_builder.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -53,25 +54,26 @@ bool ModelEngine::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
-unsigned ModelEngine::needsModel( Theory::Effort e ) {
+QuantifiersModule::QEffort ModelEngine::needsModel(Theory::Effort e)
+{
   if( options::mbqiInterleave() ){
-    return QuantifiersEngine::QEFFORT_STANDARD;
+    return QEFFORT_STANDARD;
   }else{
-    return QuantifiersEngine::QEFFORT_MODEL;
+    return QEFFORT_MODEL;
   }
 }
 
 void ModelEngine::reset_round( Theory::Effort e ) {
   d_incomplete_check = true;
 }
-
-void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
+void ModelEngine::check(Theory::Effort e, QEffort quant_e)
+{
   bool doCheck = false;
   if( options::mbqiInterleave() ){
-    doCheck = quant_e==QuantifiersEngine::QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+    doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
   }
   if( !doCheck ){
-    doCheck = quant_e==QuantifiersEngine::QEFFORT_MODEL;
+    doCheck = quant_e == QEFFORT_MODEL;
   }
   if( doCheck ){
     Assert( !d_quantEngine->inConflict() );
@@ -284,17 +286,20 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       if( !riter.isIncomplete() ){
         int triedLemmas = 0;
         int addedLemmas = 0;
+        EqualityQuery* qy = d_quantEngine->getEqualityQuery();
+        Instantiate* inst = d_quantEngine->getInstantiate();
         while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
           for (unsigned i = 0; i < riter.getNumTerms(); i++)
           {
-            m.set( d_quantEngine, i, riter.getCurrentTerm( i ) );
+            m.set(qy, i, riter.getCurrentTerm(i));
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;
           //add as instantiation
-          if( d_quantEngine->addInstantiation( f, m, true ) ){
+          if (inst->addInstantiation(f, m, true))
+          {
             addedLemmas++;
             if( d_quantEngine->inConflict() ){
               break;

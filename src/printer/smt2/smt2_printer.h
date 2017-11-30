@@ -36,23 +36,42 @@ enum Variant {
 };/* enum Variant */
 
 class Smt2Printer : public CVC4::Printer {
-  Variant d_variant;
-
-  void toStream(std::ostream& out, TNode n, int toDepth, bool types, TypeNode nt) const throw();
-  void toStream(std::ostream& out, const Model& m, const Command* c) const throw();
-public:
+ public:
   Smt2Printer(Variant variant = no_variant) : d_variant(variant) { }
   using CVC4::Printer::toStream;
-  void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();
-  void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
-  void toStream(std::ostream& out, const CommandStatus* s) const throw();
-  void toStream(std::ostream& out, const SExpr& sexpr) const throw();
-  void toStream(std::ostream& out, const Model& m) const throw();
-  /** print the unsat core to the stream out.
-  * We use the expression names that are stored in the SMT engine associated 
-  * with the core (UnsatCore::getSmtEngine) for printing named assertions.
-  */
-  void toStream(std::ostream& out, const UnsatCore& core) const throw();
+  void toStream(std::ostream& out,
+                TNode n,
+                int toDepth,
+                bool types,
+                size_t dag) const override;
+  void toStream(std::ostream& out,
+                const Command* c,
+                int toDepth,
+                bool types,
+                size_t dag) const override;
+  void toStream(std::ostream& out, const CommandStatus* s) const override;
+  void toStream(std::ostream& out, const Model& m) const override;
+  /**
+   * Writes the unsat core to the stream out.
+   * We use the expression names that are stored in the SMT engine associated
+   * with the core (UnsatCore::getSmtEngine) for printing named assertions.
+   */
+  void toStream(std::ostream& out, const UnsatCore& core) const override;
+  /**
+   * Write the term that sygus datatype term node n
+   * encodes to a stream with this Printer.
+   */
+  void toStreamSygus(std::ostream& out, TNode n) const override;
+
+ private:
+  void toStream(
+      std::ostream& out, TNode n, int toDepth, bool types, TypeNode nt) const;
+  void toStream(std::ostream& out,
+                const Model& m,
+                const Command* c) const override;
+  void toStream(std::ostream& out, const SExpr& sexpr) const;
+
+  Variant d_variant;
 };/* class Smt2Printer */
 
 }/* CVC4::printer::smt2 namespace */
@@ -60,4 +79,3 @@ public:
 }/* CVC4 namespace */
 
 #endif /* __CVC4__PRINTER__SMT2_PRINTER_H */
-
