@@ -214,13 +214,15 @@ class BvInstantiator : public Instantiator {
                                  SolvedForm& sf,
                                  Node pv,
                                  CegInstEffort effort) override;
+  /** use model value
+   *
+   * We allow model values if we have not already tried an assertion,
+   * and only at levels below full if cbqiFullEffort is false.
+   */
   virtual bool useModelValue(CegInstantiator* ci,
                              SolvedForm& sf,
                              Node pv,
-                             CegInstEffort effort) override
-  {
-    return true;
-  }
+                             CegInstEffort effort) override;
   virtual std::string identify() const { return "Bv"; }
  private:
   // point to the bv inverter class
@@ -235,6 +237,8 @@ class BvInstantiator : public Instantiator {
   std::unordered_map< Node, unsigned, NodeHashFunction > d_var_to_curr_inst_id;
   /** the amount of slack we added for asserted literals */
   std::unordered_map<Node, Node, NodeHashFunction> d_alit_to_model_slack;
+  /** whether we have tried an instantiation based on assertion in this round */
+  bool d_tried_assertion_inst;
   /** rewrite assertion for solve pv
   * returns a literal that is equivalent to lit that leads to best solved form for pv
   */
