@@ -18,12 +18,13 @@
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
 
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/term_util.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class CegConjecture;
+class SygusGrammarNorm;
 
 /** Keeps the necessary information about a sygus type:
  *
@@ -36,16 +37,23 @@ class CegConjecture;
  * type
  *
  * a datatype to represent the structure of the typenode for the new type */
-struct TypeObject
+class TypeObject
 {
+ public:
   /* TODO fix doc */
   /* Creates an unresolved type and datatype with the given name. These will be
    * used for the normalization of the given type node */
-  TypeObject(TypeNode src_tn, TypeNode unres_tn, Type unres_t);
+  TypeObject(TypeNode src_tn, TypeNode unres_tn);
   ~TypeObject() {}
+
+  // original
 
   /* The original typenode this TypeObject is built from */
   TypeNode d_tn;
+  // -------------------------------
+
+  // info to build normalized type node
+
   /* Operators for each constructor. */
   std::vector<Node> d_ops;
   /* Names for each constructor. */
@@ -56,11 +64,9 @@ struct TypeObject
   std::vector<std::vector<Type>> d_cons_args_t;
   /* Unresolved type node placeholder */
   TypeNode d_unres_tn;
-  /* Unresolved type placeholder */
-  Type d_unres_t;
   /* Datatype to represent type's structure */
   Datatype d_dt;
-};
+}; /* class TypeObject */
 
 /** Type operators trie class
  *
@@ -122,6 +128,42 @@ class TypeOpTrie
   std::map<bool, TypeOpTrie> d_children;
 }; /* class TermArgTrie */
 
+class Strat
+{
+ public:
+  virtual void buildType(SygusGrammarNorm* sygus_norm,
+                         TypeObject& to,
+                         const Datatype& dt,
+                         std::vector<unsigned>& op_pos) = 0;
+}; /* class Strat */
+
+class StratChain : public Strat
+{
+ private:
+  unsigned d_chain_op_pos;
+  std::vector<unsigned> d_elem_pos;
+
+ public:
+  StratChain(unsigned chain_op_pos, std::vector<unsigned> elem_pos)
+      : d_chain_op_pos(chain_op_pos), d_elem_pos(elem_pos){};
+
+  virtual void buildType(SygusGrammarNorm* sygus_norm,
+                         TypeObject& to,
+                         const Datatype& dt,
+                         std::vector<unsigned>& op_pos) override;
+
+  enum Block {OP, ELEMS_ID};
+
+  static std::map<TypeNode, std::map<Block, Node>> d_assoc;
+  static inline void addType(TypeNode tn, std::map<Block, Node> assoc)
+  {
+    if (d_assoc.find(tn) == d_assoc.end())
+    {
+      d_assoc[tn] = assoc;
+    }
+  }
+}; /* class StratChain */
+
 /** Utility for normalizing SyGuS grammars and avoid spurious enumarations
  *
  * Uses the datatype representation of a SyGuS grammar to identify entries that
@@ -162,7 +204,12 @@ class SygusGrammarNorm
    */
   TypeNode normalizeSygusType(TypeNode tn, Node sygus_vars);
 
- private:
+  TypeNode normalizeSygusRec(TypeNode tn);
+
+  /* recursion depth is limited by the height of the types, which is small  */
+  TypeNode normalizeSygusRec(TypeNode tn,
+                             const Datatype& dt,
+                             std::vector<unsigned> op_pos);
   /** reference to current node manager */
   NodeManager* d_nm;
   /** reference to smt engine */
@@ -171,32 +218,35 @@ class SygusGrammarNorm
   QuantifiersEngine* d_qe;
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
-
+ private:
+  /** List of variable inputs of function being synthesized.
+   *
+   * This information is needed in the construction of each datatype
+   * representation of type nodes contained in the type node being normalized
+   */
+  TNode d_sygus_vars;
   /* Datatypes to be resolved */
   std::vector<Datatype> d_dt_all;
   /* Types to be resolved */
   std::set<Type> d_unres_t_all;
 
-  /* Caches types of type nodes to avoid recomputing types */
-  std::map<TypeNode, Type> d_tn_to_t;
   /* Associates type nodes with TypeOpTries */
   std::map<TypeNode, TypeOpTrie> d_tries;
-  /* For each type node associates operators with their positions in the cons list */
+  /* For each type node associates operators with their positions in the cons
+   * list */
   std::map<TypeNode, std::map<Node, unsigned>> d_tn_to_op_to_pos;
 
-  enum {
-    OP_PLUS, // collect plus
-    OP_MINUS, // collect minus
-    VARS, // collect variables
-    CONST_ZERO, // collect 0
-    CONST_ONE, // collect 1
-    NON_ZERO_CONSTS, // collect numbers and ITEs
-    A_VAR, // collect any variable
-    A_NON_ZERO_CONST // collect any number or ITE
+  enum
+  {
+    OP_PLUS,          // collect plus
+    OP_MINUS,         // collect minus
+    VARS,             // collect variables
+    CONST_ZERO,       // collect 0
+    CONST_ONE,        // collect 1
+    NON_ZERO_CONSTS,  // collect numbers and ITEs
+    A_VAR,            // collect any variable
+    A_NON_ZERO_CONST  // collect any number or ITE
   };
-
-  /* Types that can be normalized and are cached to avoid building types */
-  const Type& d_int_type = NodeManager::currentNM()->integerType().toType();
 
   /* Simplifying (Int, {x, 0, 1, +})
    *
@@ -233,24 +283,14 @@ class SygusGrammarNorm
   void normalizeSygusInt(unsigned ind,
                          std::vector<TypeObject>& tos,
                          std::map<TypeNode, Type>& tn_to_unres,
-                         const Datatype& dt,
-                         Node sygus_vars);
+                         const Datatype& dt);
 
-  TypeNode normalizeSygusRec(TypeNode tn, Node sygus_vars);
+  Strat* inferStrategy(const Datatype& dt, std::vector<unsigned>& op_pos);
 
-  /* recursion depth is limited by the height of the types, which is small  */
-  TypeNode normalizeSygusRec(TypeNode tn,
-                             const Datatype& dt,
-                             std::vector<unsigned> op_pos,
-                             Node sygus_vars);
+  void addConsInfo(TypeObject& to,
+                   const DatatypeConstructor& cons);
 
-  bool collect(const Datatype& dt,
-               std::vector<unsigned>& op_pos,
-               std::vector<unsigned> to_collect,
-               std::vector<unsigned>& collected);
-
-  void addConsInfo(TypeObject& to, const DatatypeConstructor& cons, Node sygus_vars);
-  void buildDatatype(TypeObject& to, const Datatype& dt, Node sygus_vars);
+  void buildDatatype(TypeObject& to, const Datatype& dt);
 
   std::vector<bool> get_op_flags(std::vector<unsigned> ops, unsigned num_cons);
 
