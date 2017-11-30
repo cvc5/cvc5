@@ -206,29 +206,22 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
 }
 
 BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
-                                         const vector<Integer> &rhs,
-                                         const vector<vector<Integer>> &lhs,
-                                         vector<Integer> &resrhs,
-                                         vector<vector<Integer>> &reslhs)
-
+                                         vector<Integer> &rhs,
+                                         vector<vector<Integer>> &lhs)
 {
   Assert(prime > 0);
   Assert(lhs.size());
   Assert(lhs.size() == rhs.size());
   Assert(lhs.size() <= lhs[0].size());
-  Assert(resrhs.empty());
-  Assert(reslhs.empty());
 
   /* special case: zero ring */
   if (prime == 1)
   {
-    resrhs.resize(rhs.size(), Integer(0));
-    reslhs.resize(lhs.size(), vector<Integer>(lhs[0].size(), Integer(0)));
+    rhs = vector<Integer>(rhs.size(), Integer(0));
+    lhs = vector<vector<Integer>>(
+        lhs.size(), vector<Integer>(lhs[0].size(), Integer(0)));
     return BVGaussElim::Result::UNIQUE;
   }
-
-  resrhs = vector<Integer>(rhs);
-  reslhs = vector<vector<Integer>>(lhs);
 
   size_t nrows = lhs.size();
   size_t ncols = lhs[0].size();
@@ -248,79 +241,83 @@ BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
    * Note: we do not normalize the given matrix to values modulo prime
    *       beforehand but on-the-fly. */
 
-  /* pivot = reslhs[pcol][pcol] */
+  /* pivot = lhs[pcol][pcol] */
   for (size_t pcol = 0, prow = 0; pcol < ncols && prow < nrows; ++pcol, ++prow)
   {
-    /* reslhs[j][pcol]: element in pivot column */
+    /* lhs[j][pcol]: element in pivot column */
     for (size_t j = prow; j < nrows; ++j)
     {
 #ifdef CVC4_ASSERTIONS
-      for (size_t k = 0; k < pcol; ++k) Assert(reslhs[j][k] == 0);
+      for (size_t k = 0; k < pcol; ++k) { Assert(lhs[j][k] == 0); }
 #endif
       /* normalize element in pivot column to modulo prime */
-      reslhs[j][pcol] = reslhs[j][pcol].euclidianDivideRemainder(prime);
+      lhs[j][pcol] = lhs[j][pcol].euclidianDivideRemainder(prime);
       /* exchange rows if pivot elem is 0 */
       if (j == prow)
       {
-        while (reslhs[j][pcol] == 0)
+        while (lhs[j][pcol] == 0)
         {
           for (size_t k = prow + 1; k < nrows; ++k)
           {
-            reslhs[k][pcol] = reslhs[k][pcol].euclidianDivideRemainder(prime);
-            if (reslhs[k][pcol] != 0)
+            lhs[k][pcol] = lhs[k][pcol].euclidianDivideRemainder(prime);
+            if (lhs[k][pcol] != 0)
             {
-              std::swap(resrhs[j], resrhs[k]);
-              std::swap(reslhs[j], reslhs[k]);
+              std::swap(rhs[j], rhs[k]);
+              std::swap(lhs[j], lhs[k]);
               break;
             }
           }
           if (pcol >= ncols - 1) break;
-          if (reslhs[j][pcol] == 0)
+          if (lhs[j][pcol] == 0)
           {
             pcol += 1;
-            if (reslhs[j][pcol] != 0)
-              reslhs[j][pcol] = reslhs[j][pcol].euclidianDivideRemainder(prime);
+            if (lhs[j][pcol] != 0)
+              lhs[j][pcol] = lhs[j][pcol].euclidianDivideRemainder(prime);
           }
         }
       }
 
-      if (reslhs[j][pcol] != 0)
+      if (lhs[j][pcol] != 0)
       {
         /* (1) */
-        if (reslhs[j][pcol] != 1)
+        if (lhs[j][pcol] != 1)
         {
-          Integer inv = reslhs[j][pcol].modInverse(prime);
+          Integer inv = lhs[j][pcol].modInverse(prime);
           if (inv == -1)
           {
             return BVGaussElim::Result::INVALID; /* not coprime */
           }
           for (size_t k = pcol; k < ncols; ++k)
           {
-            reslhs[j][k] = reslhs[j][k].modMultiply(inv, prime);
+            lhs[j][k] = lhs[j][k].modMultiply(inv, prime);
             if (j <= prow) continue; /* pivot */
-            reslhs[j][k] = reslhs[j][k].modAdd(-reslhs[prow][k], prime);
+            lhs[j][k] = lhs[j][k].modAdd(-lhs[prow][k], prime);
           }
-          resrhs[j] = resrhs[j].modMultiply(inv, prime);
-          if (j > prow) resrhs[j] = resrhs[j].modAdd(-resrhs[prow], prime);
+          rhs[j] = rhs[j].modMultiply(inv, prime);
+          if (j > prow) { rhs[j] = rhs[j].modAdd(-rhs[prow], prime); }
         }
         /* (2) */
         else if (j != prow)
         {
           for (size_t k = pcol; k < ncols; ++k)
-            reslhs[j][k] = reslhs[j][k].modAdd(-reslhs[prow][k], prime);
-          resrhs[j] = resrhs[j].modAdd(-resrhs[prow], prime);
+          {
+            lhs[j][k] = lhs[j][k].modAdd(-lhs[prow][k], prime);
+          }
+          rhs[j] = rhs[j].modAdd(-rhs[prow], prime);
         }
       }
     }
     /* (3) */
     for (size_t j = 0; j < prow; ++j)
     {
-      Integer mul = reslhs[j][pcol];
+      Integer mul = lhs[j][pcol];
       if (mul != 0)
       {
         for (size_t k = pcol; k < ncols; ++k)
-          reslhs[j][k] = reslhs[j][k].modAdd(-reslhs[prow][k] * mul, prime);
-        resrhs[j] = resrhs[j].modAdd(-resrhs[prow] * mul, prime);
+        {
+          lhs[j][k] = lhs[j][k].modAdd(-lhs[prow][k] * mul, prime);
+        }
+        rhs[j] = rhs[j].modAdd(-rhs[prow] * mul, prime);
       }
     }
   }
@@ -329,11 +326,11 @@ BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
   for (size_t i = 0; i < nrows; ++i)
   {
     size_t pcol = i;
-    while (pcol < ncols && reslhs[i][pcol] == 0) ++pcol;
+    while (pcol < ncols && lhs[i][pcol] == 0) ++pcol;
     if (pcol >= ncols)
     {
-      resrhs[i] = resrhs[i].euclidianDivideRemainder(prime);
-      if (resrhs[i] != 0)
+      rhs[i] = rhs[i].euclidianDivideRemainder(prime);
+      if (rhs[i] != 0)
       {
         /* no solution */
         return BVGaussElim::Result::NONE;
@@ -342,11 +339,11 @@ BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
     }
     for (size_t j = i; j < ncols; ++j)
     {
-      if (reslhs[i][j] >= prime || reslhs[i][j] <= -prime)
+      if (lhs[i][j] >= prime || lhs[i][j] <= -prime)
       {
-        reslhs[i][j] = reslhs[i][j].euclidianDivideRemainder(prime);
+        lhs[i][j] = lhs[i][j].euclidianDivideRemainder(prime);
       }
-      if (j > pcol && reslhs[i][j] != 0)
+      if (j > pcol && lhs[i][j] != 0)
       {
         ispart = true;
       }
@@ -368,9 +365,9 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
   Integer iprime;
   unordered_map<Node, vector<Integer>, NodeHashFunction> vars;
   size_t neqs = equations.size();
-  vector<Integer> resrhs, rhs;
-  vector<vector<Integer>> reslhs,
-      lhs = vector<vector<Integer>>(neqs, vector<Integer>());
+  vector<Integer> rhs;
+  vector<vector<Integer>> lhs =
+      vector<vector<Integer>>(neqs, vector<Integer>());
 
   res = unordered_map<Node, Node, NodeHashFunction>();
 
@@ -541,25 +538,22 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
   }
 
   Trace("bv-gauss-elim") << "Applying Gaussian Elimination..." << endl;
-  Result ret = gaussElim(iprime, rhs, lhs, resrhs, reslhs);
+  Result ret = gaussElim(iprime, rhs, lhs);
 
   if (ret != BVGaussElim::Result::NONE && ret != BVGaussElim::Result::INVALID)
   {
     vector<Node> vvars;
     for (const auto& p : vars) { vvars.push_back(p.first); }
     Assert(nvars == vvars.size());
-    Assert(lhs[0].size() == reslhs[0].size());
     Assert(nrows == lhs.size());
-    Assert(lhs.size() == reslhs.size());
     Assert(nrows == rhs.size());
-    Assert(rhs.size() == resrhs.size());
     NodeManager *nm = NodeManager::currentNM();
     if (ret == BVGaussElim::Result::UNIQUE)
     {
       for (size_t i = 0; i < nvars; ++i)
       {
         res[vvars[i]] = nm->mkConst<BitVector>(
-            BitVector(utils::getSize(vvars[i]), resrhs[i]));
+            BitVector(utils::getSize(vvars[i]), rhs[i]));
       }
     }
     else
@@ -569,26 +563,26 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
       for (size_t pcol = 0, prow = 0; pcol < nvars && prow < nrows;
            ++pcol, ++prow)
       {
-        Assert(reslhs[prow][pcol] == 0 || reslhs[prow][pcol] == 1);
-        while (pcol < nvars && reslhs[prow][pcol] == 0) pcol += 1;
+        Assert(lhs[prow][pcol] == 0 || lhs[prow][pcol] == 1);
+        while (pcol < nvars && lhs[prow][pcol] == 0) pcol += 1;
         if (pcol >= nvars)
         {
-          Assert(resrhs[prow] == 0);
+          Assert(rhs[prow] == 0);
           break;
         }
-        if (reslhs[prow][pcol] == 0)
+        if (lhs[prow][pcol] == 0)
         {
-          Assert(resrhs[prow] == 0);
+          Assert(rhs[prow] == 0);
           continue;
         }
-        Assert(reslhs[prow][pcol] == 1);
+        Assert(lhs[prow][pcol] == 1);
         vector<Node> stack;
         for (size_t i = pcol + 1; i < nvars; ++i)
         {
-          if (reslhs[prow][i] == 0) continue;
+          if (lhs[prow][i] == 0) continue;
           /* Normalize (no negative numbers, hence no subtraction)
            * e.g., x = 4 - 2y  --> x = 4 + 9y (modulo 11) */
-          Integer m = iprime - reslhs[prow][i];
+          Integer m = iprime - lhs[prow][i];
           Node bv =
               nm->mkConst<BitVector>(BitVector(utils::getSize(vvars[i]), m));
           Node mult = nm->mkNode(kind::BITVECTOR_MULT, vvars[i], bv);
@@ -598,7 +592,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
         if (stack.empty())
         {
           res[vvars[pcol]] = nm->mkConst<BitVector>(
-              BitVector(utils::getSize(vvars[pcol]), resrhs[prow]));
+              BitVector(utils::getSize(vvars[pcol]), rhs[prow]));
         }
         else
         {
@@ -606,11 +600,11 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
                          ? stack[0]
                          : nm->mkNode(kind::BITVECTOR_PLUS, stack);
 
-          if (resrhs[prow] != 0)
+          if (rhs[prow] != 0)
           {
             tmp = nm->mkNode(kind::BITVECTOR_PLUS,
                              nm->mkConst<BitVector>(BitVector(
-                                 utils::getSize(vvars[pcol]), resrhs[prow])),
+                                 utils::getSize(vvars[pcol]), rhs[prow])),
                              tmp);
           }
           Assert(!is_bv_const(tmp));
@@ -626,8 +620,6 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
 {
   vector<Node> assertions(assertionsToPreprocess);
   unordered_map<Node, vector<Node>, NodeHashFunction> equations;
-  vector<Integer> resrhs;
-  vector<vector<Integer>> reslhs;
 
   while (!assertions.empty())
   {

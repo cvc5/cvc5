@@ -57,21 +57,23 @@ static void testGaussElimX(Integer prime,
   size_t nrows = lhs.size();
   size_t ncols = lhs[0].size();
   BVGaussElim::Result ret;
-  std::vector<Integer> resrhs;
-  std::vector<std::vector<Integer>> reslhs;
+  std::vector<Integer> resrhs = std::vector<Integer>(rhs);
+  std::vector<std::vector<Integer>> reslhs =
+      std::vector<std::vector<Integer>>(lhs);
 
   std::cout << "Input: " << std::endl;
   print_matrix_dbg(rhs, lhs);
 
-  ret = BVGaussElim::gaussElim(prime, rhs, lhs, resrhs, reslhs);
+  ret = BVGaussElim::gaussElim(prime, resrhs, reslhs);
 
-  std::cout << "Result: " << (ret == BVGaussElim::Result::INVALID
-                                   ? "INVALID"
-                                   : (ret == BVGaussElim::Result::UNIQUE
-                                          ? "UNIQUE"
-                                          : (ret == BVGaussElim::Result::PARTIAL
-                                                 ? "PARTIAL"
-                                                 : "NONE"))) << std::endl;
+  const char *res =
+      (ret == BVGaussElim::Result::INVALID
+         ? "INVALID"
+         : (ret == BVGaussElim::Result::UNIQUE
+              ? "UNIQUE"
+              : (ret == BVGaussElim::Result::PARTIAL ? "PARTIAL" : "NONE")));
+
+  std::cout << "Result: " << res << std::endl;
   print_matrix_dbg(resrhs, reslhs);
 
   TS_ASSERT_EQUALS(expected, ret);
@@ -118,9 +120,7 @@ static void testGaussElimT(Integer prime,
                            std::vector<Integer> rhs,
                            std::vector<std::vector<Integer>> lhs)
 {
-  std::vector<Integer> resrhs;
-  std::vector<std::vector<Integer>> reslhs;
-  TS_ASSERT_THROWS(BVGaussElim::gaussElim(prime, rhs, lhs, resrhs, reslhs), T);
+  TS_ASSERT_THROWS(BVGaussElim::gaussElim(prime, rhs, lhs), T);
 }
 
 class TheoryBVGaussWhite : public CxxTest::TestSuite
@@ -747,8 +747,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
   void testGaussElimNoneZero()
   {
-    std::vector<Integer> rhs, resrhs;
-    std::vector<std::vector<Integer>> lhs, reslhs;
+    std::vector<Integer> rhs;
+    std::vector<std::vector<Integer>> lhs;
 
     /* -------------------------------------------------------------------
      *   lhs   rhs  modulo 11

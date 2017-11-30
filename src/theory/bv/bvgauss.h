@@ -135,17 +135,13 @@ class BVGaussElim
    * successful, and NONE, otherwise.
    *
    * Vectors 'rhs' and 'lhs' represent the right hand side and left hand side
-   * of the given matrix, respectively. Similarly, the resulting matrix (in
-   * row echelon form) is stored in 'resrhs' and 'reslhs'. We keep these two
-   * matrixes separate for debugging purposes (copying rhs and lhs does not
-   * introduce any significant overhead since it happens only once and these
-   * vectors are usually quite small).
+   * of the given matrix, respectively. The resulting matrix (in row echelon
+   * form) is stored in 'rhs' and 'lhs', i.e., the given matrix is overwritten
+   * with the resulting matrix.
    */
   static Result gaussElim(Integer prime,
-                          const std::vector<Integer>& rhs,
-                          const std::vector<std::vector<Integer>>& lhs,
-                          std::vector<Integer>& resrhs,
-                          std::vector<std::vector<Integer>>& reslhs);
+                          std::vector<Integer>& rhs,
+                          std::vector<std::vector<Integer>>& lhs);
 };
 
 }  // namespace bv
