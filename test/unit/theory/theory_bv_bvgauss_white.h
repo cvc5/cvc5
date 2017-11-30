@@ -66,14 +66,14 @@ static void testGaussElimX(Integer prime,
 
   ret = BVGaussElim::gaussElim(prime, resrhs, reslhs);
 
-  const char *res =
-      (ret == BVGaussElim::Result::INVALID
-         ? "INVALID"
-         : (ret == BVGaussElim::Result::UNIQUE
-              ? "UNIQUE"
-              : (ret == BVGaussElim::Result::PARTIAL ? "PARTIAL" : "NONE")));
-
-  std::cout << "Result: " << res << std::endl;
+  std::cout << "Result: "
+            << (ret == BVGaussElim::Result::INVALID
+                    ? "INVALID"
+                    : (ret == BVGaussElim::Result::UNIQUE
+                           ? "UNIQUE"
+                           : (ret == BVGaussElim::Result::PARTIAL ? "PARTIAL"
+                                                                  : "NONE")))
+            << std::endl;
   print_matrix_dbg(resrhs, reslhs);
 
   TS_ASSERT_EQUALS(expected, ret);

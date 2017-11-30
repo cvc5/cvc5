@@ -17,7 +17,6 @@
 
 #include "theory/bv/bvgauss.h"
 
-#include <stack>
 #include <unordered_map>
 
 #include "theory/rewriter.h"
@@ -25,7 +24,6 @@
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 
 using namespace CVC4;
-using namespace std;
 
 namespace CVC4 {
 namespace theory {
@@ -56,16 +54,16 @@ static Integer get_bv_const_value(Node n)
  * necessarily the minimum. */
 unsigned BVGaussElim::getMinBwExpr(Node expr)
 {
-  stack<Node> visit;
+  std::vector<Node> visit;
   /* Maps visited nodes to the determined minimum bit-width required. */
-  unordered_map<Node, unsigned, NodeHashFunction> visited;
-  unordered_map<Node, unsigned, NodeHashFunction>::iterator it;
+  std::unordered_map<Node, unsigned, NodeHashFunction> visited;
+  std::unordered_map<Node, unsigned, NodeHashFunction>::iterator it;
 
-  visit.push(expr);
+  visit.push_back(expr);
   while (!visit.empty())
   {
-    Node n = visit.top();
-    visit.pop();
+    Node n = visit.back();
+    visit.pop_back();
     it = visited.find(n);
     if (it == visited.end())
     {
@@ -77,8 +75,8 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
       else
       {
         visited[n] = 0;
-        visit.push(n);
-        for (const Node &nn : n) { visit.push(nn); }
+        visit.push_back(n);
+        for (const Node &nn : n) { visit.push_back(nn); }
       }
     }
     else if (it->second == 0)
@@ -205,9 +203,10 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
   return visited[expr];
 }
 
-BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
-                                         vector<Integer> &rhs,
-                                         vector<vector<Integer>> &lhs)
+BVGaussElim::Result BVGaussElim::gaussElim(
+    Integer prime,
+    std::vector<Integer>& rhs,
+    std::vector<std::vector<Integer>>& lhs)
 {
   Assert(prime > 0);
   Assert(lhs.size());
@@ -217,9 +216,9 @@ BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
   /* special case: zero ring */
   if (prime == 1)
   {
-    rhs = vector<Integer>(rhs.size(), Integer(0));
-    lhs = vector<vector<Integer>>(
-        lhs.size(), vector<Integer>(lhs[0].size(), Integer(0)));
+    rhs = std::vector<Integer>(rhs.size(), Integer(0));
+    lhs = std::vector<std::vector<Integer>>(
+        lhs.size(), std::vector<Integer>(lhs[0].size(), Integer(0)));
     return BVGaussElim::Result::UNIQUE;
   }
 
@@ -356,20 +355,20 @@ BVGaussElim::Result BVGaussElim::gaussElim(Integer prime,
 }
 
 BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
-    const vector<Node>& equations,
-    unordered_map<Node, Node, NodeHashFunction>& res)
+    const std::vector<Node>& equations,
+    std::unordered_map<Node, Node, NodeHashFunction>& res)
 {
   Assert(res.empty());
 
   Node prime;
   Integer iprime;
-  unordered_map<Node, vector<Integer>, NodeHashFunction> vars;
+  std::unordered_map<Node, std::vector<Integer>, NodeHashFunction> vars;
   size_t neqs = equations.size();
-  vector<Integer> rhs;
-  vector<vector<Integer>> lhs =
-      vector<vector<Integer>>(neqs, vector<Integer>());
+  std::vector<Integer> rhs;
+  std::vector<std::vector<Integer>> lhs =
+      std::vector<std::vector<Integer>>(neqs, std::vector<Integer>());
 
-  res = unordered_map<Node, Node, NodeHashFunction>();
+  res = std::unordered_map<Node, Node, NodeHashFunction>();
 
   for (size_t i = 0; i < neqs; ++i)
   {
@@ -395,7 +394,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
       Trace("bv-gauss-elim")
           << "Minimum required bit-width exceeds given bit-width, "
              "will not apply Gaussian Elimination."
-          << endl;
+          << std::endl;
       return BVGaussElim::Result::INVALID;
     }
     rhs.push_back(get_bv_const_value(eqrhs));
@@ -408,13 +407,13 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
       iprime = get_bv_const_value(prime);
     }
 
-    unordered_map<Node, Integer, NodeHashFunction> tmp;
-    stack<Node> stack;
-    stack.push(urem[0]);
+    std::unordered_map<Node, Integer, NodeHashFunction> tmp;
+    std::vector<Node> stack;
+    stack.push_back(urem[0]);
     while (!stack.empty())
     {
-      Node n = stack.top();
-      stack.pop();
+      Node n = stack.back();
+      stack.pop_back();
 
       /* Subtract from rhs if const */
       if (is_bv_const(n))
@@ -428,7 +427,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
       Kind k = n.getKind();
       if (k == kind::BITVECTOR_PLUS)
       {
-        for (const Node& nn : n) { stack.push(nn); }
+        for (const Node& nn : n) { stack.push_back(nn); }
       }
       else if (k == kind::BITVECTOR_MULT)
       {
@@ -537,12 +536,12 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
     return BVGaussElim::Result::INVALID;
   }
 
-  Trace("bv-gauss-elim") << "Applying Gaussian Elimination..." << endl;
+  Trace("bv-gauss-elim") << "Applying Gaussian Elimination..." << std::endl;
   Result ret = gaussElim(iprime, rhs, lhs);
 
   if (ret != BVGaussElim::Result::NONE && ret != BVGaussElim::Result::INVALID)
   {
-    vector<Node> vvars;
+    std::vector<Node> vvars;
     for (const auto& p : vars) { vvars.push_back(p.first); }
     Assert(nvars == vvars.size());
     Assert(nrows == lhs.size());
@@ -576,7 +575,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
           continue;
         }
         Assert(lhs[prow][pcol] == 1);
-        vector<Node> stack;
+        std::vector<Node> stack;
         for (size_t i = pcol + 1; i < nvars; ++i)
         {
           if (lhs[prow][i] == 0) continue;
@@ -618,8 +617,8 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
 
 void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
 {
-  vector<Node> assertions(assertionsToPreprocess);
-  unordered_map<Node, vector<Node>, NodeHashFunction> equations;
+  std::vector<Node> assertions(assertionsToPreprocess);
+  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> equations;
 
   while (!assertions.empty())
   {
@@ -658,13 +657,13 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
     }
   }
 
-  unordered_map<Node, Node, NodeHashFunction> subst;
+  std::unordered_map<Node, Node, NodeHashFunction> subst;
 
   for (const auto& eq : equations)
   {
     if (eq.second.size() <= 1) { continue; }
 
-    unordered_map<Node, Node, NodeHashFunction> res;
+    std::unordered_map<Node, Node, NodeHashFunction> res;
     BVGaussElim::Result ret = gaussElimRewriteForUrem(eq.second, res);
     Trace("bv-gauss-elim") << "result: "
                            << (ret == BVGaussElim::Result::INVALID
@@ -674,7 +673,7 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
                                           : (ret == BVGaussElim::Result::PARTIAL
                                                  ? "PARTIAL"
                                                  : "NONE")))
-                           << endl;
+                           << std::endl;
     if (ret != BVGaussElim::Result::INVALID)
     {
       NodeManager *nm = NodeManager::currentNM();
@@ -693,7 +692,7 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
         for (const auto& p : res)
         {
           Node a = nm->mkNode(kind::EQUAL, p.first, p.second);
-          Trace("bv-gauss-elim") << "added assertion: " << a << endl;
+          Trace("bv-gauss-elim") << "added assertion: " << a << std::endl;
           assertionsToPreprocess.push_back(a);
         }
       }
