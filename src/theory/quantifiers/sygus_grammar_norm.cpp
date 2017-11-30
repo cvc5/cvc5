@@ -41,13 +41,13 @@ TypeObject::TypeObject(TypeNode src_tn, TypeNode unres_tn)
   d_unres_tn = unres_tn;
 }
 
-bool TypeOpTrie::getOrMakeType(TypeNode tn,
-                               TypeNode& unres_tn,
-                               std::vector<bool> op_flags,
-                               unsigned ind)
+bool OpPosTrie::getOrMakeType(TypeNode tn,
+                              TypeNode& unres_tn,
+                              std::vector<unsigned> op_pos,
+                              unsigned ind)
 {
-  Assert(ind != op_flags.size() || d_children.empty());
-  if (ind == op_flags.size())
+  Assert(ind != op_pos.size() || d_children.empty());
+  if (ind == op_pos.size())
   {
     /* Found type */
     if (!d_unres_tn.isNull())
@@ -60,12 +60,9 @@ bool TypeOpTrie::getOrMakeType(TypeNode tn,
     /* Creating unresolved type */
     std::stringstream ss;
     ss << tn << "_";
-    for (unsigned i = 0, size = op_flags.size(); i < size; ++i)
+    for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
     {
-      if (op_flags[i])
-      {
-        ss << "_" << std::to_string(i);
-      }
+      ss << "_" << std::to_string(op_pos[i]);
     }
     d_unres_tn = NodeManager::currentNM()->mkSort(
         ss.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
@@ -75,8 +72,7 @@ bool TypeOpTrie::getOrMakeType(TypeNode tn,
     return false;
   }
   /* Go to next node */
-  return d_children[op_flags[ind]].getOrMakeType(
-      tn, unres_tn, op_flags, ind + 1);
+  return d_children[op_pos[ind]].getOrMakeType(tn, unres_tn, op_pos, ind + 1);
 }
 
 std::map<TypeNode, std::map<StratChain::Block, Node>> StratChain::d_assoc = {};
@@ -499,30 +495,6 @@ void SygusGrammarNorm::normalizeSygusInt(unsigned ind,
 
 #endif
 
-std::vector<bool> SygusGrammarNorm::get_op_flags(std::vector<unsigned> op_pos,
-                                                 unsigned num_cons)
-{
-  std::vector<bool> op_flags(num_cons);
-  std::fill(op_flags.begin(), op_flags.end(), false);
-  for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
-  {
-    Assert(op_pos[i] < op_flags.size());
-    op_flags[op_pos[i]] = true;
-  }
-  Trace("sygus-grammar-normalize-trie") << "get_op_flags for op_pos ";
-  for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
-  {
-    Trace("sygus-grammar-normalize-trie") << op_pos[i] << " ";
-  }
-  Trace("sygus-grammar-normalize-trie") << " yields ";
-  for (unsigned i = 0, size = op_flags.size(); i < size; ++i)
-  {
-    Trace("sygus-grammar-normalize-trie") << op_flags[i] << " ";
-  }
-  Trace("sygus-grammar-normalize-trie") << "\n";
-  return op_flags;
-}
-
 void SygusGrammarNorm::addConsInfo(TypeObject& to,
                                    const DatatypeConstructor& cons)
 {
@@ -825,42 +797,42 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   /* Corresponding type node to tn with the given operator positions. To be
    * retrieved (if cached) or defined (otherwise) */
   TypeNode unres_tn;
-  if (Trace.isOn("sygus-grammar-normalize-rec"))
+  if (Trace.isOn("sygus-grammar-normalize-trie"))
   {
-    Trace("sygus-grammar-normalize-rec")
+    Trace("sygus-grammar-normalize-trie")
         << "\tRecursing on " << tn << " with op_positions ";
     for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
     {
-      Trace("sygus-grammar-normalize-rec") << op_pos[i] << " ";
+      Trace("sygus-grammar-normalize-trie") << op_pos[i] << " ";
     }
-    Trace("sygus-grammar-normalize-rec") << "\n";
+    Trace("sygus-grammar-normalize-trie") << "\n";
   }
   /* Checks if unresolved type already created (and returns) or creates it
    * (and then proceeds to definition) */
-  if (d_tries[tn].getOrMakeType(
-          tn, unres_tn, get_op_flags(op_pos, dt.getNumConstructors())))
+  std::sort(op_pos.begin(), op_pos.end());
+  if (d_tries[tn].getOrMakeType(tn, unres_tn, op_pos))
   {
-    if (Trace.isOn("sygus-grammar-normalize-rec"))
+    if (Trace.isOn("sygus-grammar-normalize-trie"))
     {
-      Trace("sygus-grammar-normalize-rec")
+      Trace("sygus-grammar-normalize-trie")
           << "\tTypenode " << tn << " has already been normalized with op_pos ";
       for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
       {
-        Trace("sygus-grammar-normalize-rec") << op_pos[i] << " ";
+        Trace("sygus-grammar-normalize-trie") << op_pos[i] << " ";
       }
-      Trace("sygus-grammar-normalize-rec") << " with tn " << unres_tn << "\n";
+      Trace("sygus-grammar-normalize-trie") << " with tn " << unres_tn << "\n";
     }
     return unres_tn;
   }
-  if (Trace.isOn("sygus-grammar-normalize-rec"))
+  if (Trace.isOn("sygus-grammar-normalize-trie"))
   {
-    Trace("sygus-grammar-normalize-rec")
+    Trace("sygus-grammar-normalize-trie")
         << "\tTypenode " << tn << " not yet normalized with op_pos ";
     for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
     {
-      Trace("sygus-grammar-normalize-rec") << op_pos[i] << " ";
+      Trace("sygus-grammar-normalize-trie") << op_pos[i] << " ";
     }
-    Trace("sygus-grammar-normalize-rec") << "\n";
+    Trace("sygus-grammar-normalize-trie") << "\n";
   }
   /* Creates type object for normalization */
   TypeObject to(tn, unres_tn);

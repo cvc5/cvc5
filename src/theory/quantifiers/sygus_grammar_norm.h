@@ -17,8 +17,8 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
 
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -68,64 +68,65 @@ class TypeObject
   Datatype d_dt;
 }; /* class TypeObject */
 
-/** Type operators trie class
+/** Operator position trie class
  *
- * This data structure stores a type, indexed by operators used in its
- * constructors
+ * This data structure stores an unresolved type corresponding to the
+ * normalization of a type. This unresolved type is indexed by the positions of
+ * the construtors of the datatype associated with the original type. The list
+ * of positions represent the operators, associated with the respective
+ * considered constructors, that were used for building the unresolved type.
  *
- * For example, consider the entries
+ * Example:
  *
- * (A, {x, 0, 1, +}) -> A1
- * (A, {x}) -> AX
- * (A, {0}) -> AZ
- * (A, {1}) -> AO
+ * Let A be a type defined by the grammar "A -> x | 0 | 1 | A + A". In its
+ * datatype representation the operator for "x" is in position 0, for "0" in
+ * position "1" and so on. Consider entries (T, [op_1, ..., op_n]) -> T' to
+ * represent that a type T is normalized with operators [op_1, ..., op_n] into
+ * the type T'. For entries
  *
- * and the order x < 0 < 1 < + for operators. The TypeOpTrie T we build for this
- * type is :
+ * (A, [x, 0, 1, +]) -> A1
+ * (A, [x, 1, +]) -> A2
+ * (A, [1, +]) -> A3
+ * (A, [0]) -> AZ
+ * (A, [x]) -> AX
+ * (A, [1]) -> AO
+ *
+ * the OpPosTrie T we build for this type is :
  *
  * T[A] :
- *      T[A].d_data[1] :
- *        T[A].d_data[1].d_data[1] :
- *          T[A].d_data[1].d_data[1].d_data[1] :
- *            T[A].d_data[1].d_data[1].d_data[1].d_data[1] : A1
- *        T[A].d_data[1].d_data[0] :
- *          T[A].d_data[1].d_data[0].d_data[0] :
- *            T[A].d_data[1].d_data[0].d_data[0].d_data[0] : AX
- *      T[A].d_data[0] :
- *        T[A].d_data[0].d_data[1] :
- *          T[A].d_data[0].d_data[1].d_data[0] :
- *            T[A].d_data[0].d_data[1].d_data[0].d_data[0] : AZ
- *        T[A].d_data[0].d_data[0] :
- *          T[A].d_data[0].d_data[0].d_data[1] :
- *            T[A].d_data[0].d_data[0].d_data[1].d_data[0] : AO
+ *      T[A].d_children[0] : AX
+ *        T[A].d_children[0].d_children[1] :
+ *          T[A].d_children[0].d_children[1].d_children[2] :
+ *            T[A].d_children[0].d_children[1].d_children[2].d_children[3] : A1
+ *        T[A].d_children[0].d_children[2] :
+ *          T[A].d_children[0].d_children[2].d_children[3] : A2
+ *      T[A].d_children[1] : AZ
+ *      T[A].d_children[2] : AO
+ *        T[A].d_children[2].d_children[4] : A3
  *
- * Leaf nodes store the types that are indexed by the type and operator flags,
- * for example type AZ is indexed by the type A and operator flags (0, 1, 0, 0),
- * and is stored as a the (single) key in the data of
- * T[A].d_data[0].d_data[1].d_data[0].d_data[0]
+ * Nodes store the types built for the path of positions up to that point, if any.
  */
-class TypeOpTrie
+class OpPosTrie
 {
  public:
   /** type retrieval/addition
    *
-   * if type indexed by the given operators is already in the trie then unres_t
-   * becomes the indexed type and true is returned. Otherwise a new type is
-   * created, indexed by the given ops, and assigned to unres_t, with false
-   * being returned.
+   * if type indexed by the given operator positions is already in the trie then
+   * unres_t becomes the indexed type and true is returned. Otherwise a new type
+   * is created, indexed by the given positions, and assigned to unres_t, with
+   * false being returned.
    */
   bool getOrMakeType(TypeNode tn,
                      TypeNode& unres_tn,
-                     std::vector<bool> op_flags,
+                     std::vector<unsigned> op_pos,
                      unsigned ind = 0);
   /** clear all data from this trie */
   void clear() { d_children.clear(); }
-
  private:
-  /** the data (only set for leafs) */
+  /** the data (only set for the final node of an inserted path) */
   TypeNode d_unres_tn;
   /* the children of the trie node */
-  std::map<bool, TypeOpTrie> d_children;
+  std::map<unsigned, OpPosTrie> d_children;
 }; /* class TermArgTrie */
 
 class Strat
@@ -152,7 +153,11 @@ class StratChain : public Strat
                          const Datatype& dt,
                          std::vector<unsigned>& op_pos) override;
 
-  enum Block {OP, ELEMS_ID};
+  enum Block
+  {
+    OP,
+    ELEMS_ID
+  };
 
   static std::map<TypeNode, std::map<Block, Node>> d_assoc;
   static inline void addType(TypeNode tn, std::map<Block, Node> assoc)
@@ -218,6 +223,7 @@ class SygusGrammarNorm
   QuantifiersEngine* d_qe;
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
+
  private:
   /** List of variable inputs of function being synthesized.
    *
@@ -230,8 +236,8 @@ class SygusGrammarNorm
   /* Types to be resolved */
   std::set<Type> d_unres_t_all;
 
-  /* Associates type nodes with TypeOpTries */
-  std::map<TypeNode, TypeOpTrie> d_tries;
+  /* Associates type nodes with OpPosTries */
+  std::map<TypeNode, OpPosTrie> d_tries;
   /* For each type node associates operators with their positions in the cons
    * list */
   std::map<TypeNode, std::map<Node, unsigned>> d_tn_to_op_to_pos;
@@ -287,12 +293,9 @@ class SygusGrammarNorm
 
   Strat* inferStrategy(const Datatype& dt, std::vector<unsigned>& op_pos);
 
-  void addConsInfo(TypeObject& to,
-                   const DatatypeConstructor& cons);
+  void addConsInfo(TypeObject& to, const DatatypeConstructor& cons);
 
   void buildDatatype(TypeObject& to, const Datatype& dt);
-
-  std::vector<bool> get_op_flags(std::vector<unsigned> ops, unsigned num_cons);
 
   /** Traverses the datatype representation of src_tn and collects the types it
    * contains
