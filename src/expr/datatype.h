@@ -679,9 +679,9 @@ public:
    * constructor, which is 0 for nullary constructors and 1 for non-nullary
    * constructors.
    */
-  void addSygusConstructor(CVC4::Expr op,
+  void addSygusConstructor(Expr op,
                            std::string& cname,
-                           std::vector<CVC4::Type>& cargs,
+                           std::vector<Type>& cargs,
                            std::shared_ptr<SygusPrintCallback> spc = nullptr,
                            int weight = -1);
 

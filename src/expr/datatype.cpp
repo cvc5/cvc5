@@ -181,9 +181,9 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
   d_sygus_allow_all = allow_all;
 }
 
-void Datatype::addSygusConstructor(CVC4::Expr op,
+void Datatype::addSygusConstructor(Expr op,
                                    std::string& cname,
-                                   std::vector<CVC4::Type>& cargs,
+                                   std::vector<Type>& cargs,
                                    std::shared_ptr<SygusPrintCallback> spc,
                                    int weight)
 {
@@ -193,7 +193,7 @@ void Datatype::addSygusConstructor(CVC4::Expr op,
   std::string testerId("is-");
   testerId.append(name);
   unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
-  CVC4::DatatypeConstructor c(name, testerId, cweight);
+  DatatypeConstructor c(name, testerId, cweight);
   c.setSygus(op, spc);
   for( unsigned j=0; j<cargs.size(); j++ ){
     Debug("parser-sygus-debug") << "  arg " << j << " : " << cargs[j] << std::endl;
