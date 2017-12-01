@@ -2016,16 +2016,12 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK
       { 
         if(kind==CVC4::kind::APPLY_SELECTOR){
-          /*FAILED TYPING
-          unsigned int n = (unsigned int)op.getConst<CVC4::Rational>();*/
-          
-          std::string nstr = op.toString();
-          unsigned int n = std::stoi(nstr); 
+          unsigned int n = op.getConst<CVC4::Rational>().getNumerator().toUnsignedInt();
           if(args.size()>1){
             PARSER_STATE->parseError("tupSel applied to more than one tuple argument");
           }
           Type t = args[0].getType();
-          if(! t.isTuple()) {
+          if(!t.isTuple()) {
             PARSER_STATE->parseError("tupSel applied to non-tuple");
           }
           size_t length = ((DatatypeType)t).getTupleLength();
@@ -2034,7 +2030,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
             ss << "tuple is of length " << length << "; cannot access index " << n;
             PARSER_STATE->parseError(ss.str());
           }
-          
           const Datatype & dt = ((DatatypeType)t).getDatatype();
           op = dt[0][n].getSelector();
         }
