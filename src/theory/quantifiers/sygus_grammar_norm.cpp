@@ -66,9 +66,9 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
   return d_children[op_pos[ind]].getOrMakeType(tn, unres_tn, op_pos, ind + 1);
 }
 
-std::map<TypeNode, std::map<StratChain::Block, Node>> StratChain::d_assoc = {};
+std::map<TypeNode, std::map<TransfChain::Block, Node>> TransfChain::d_assoc = {};
 
-void StratChain::buildType(SygusGrammarNorm* sygus_norm,
+void TransfChain::buildType(SygusGrammarNorm* sygus_norm,
                            TypeObject& to,
                            const Datatype& dt,
                            std::vector<unsigned>& op_pos)
@@ -78,7 +78,7 @@ void StratChain::buildType(SygusGrammarNorm* sygus_norm,
   claimed.push_back(d_chain_op_pos);
   unsigned nb_op_pos = op_pos.size();
   /* TODO do this properly */
-  /* Remove from op_pos the positions claimed by the strategy */
+  /* Remove from op_pos the positions claimed by the transformation */
   std::sort(op_pos.begin(), op_pos.end());
   std::sort(claimed.begin(), claimed.end());
   std::vector<unsigned> difference;
@@ -222,23 +222,23 @@ std::map<TypeNode, Node> SygusGrammarNorm::d_tn_to_id = {};
  *
  * returns true if collected anything
  */
-Strat* SygusGrammarNorm::inferStrategy(const Datatype& dt,
+Transf* SygusGrammarNorm::inferTransf(const Datatype& dt,
                                        std::vector<unsigned>& op_pos)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode tn = TypeNode::fromType(dt.getSygusType());
   /* TODO #1304: step 0: look for singleton */
   /* step 1: look for chain */
-  std::map<StratChain::Block, Node> assoc = StratChain::getTypeAssoc(tn);
-  /* No chain strategy for type */
+  std::map<TransfChain::Block, Node> assoc = TransfChain::getTypeAssoc(tn);
+  /* No chain transformation for type */
   if (assoc.empty())
   {
     return nullptr;
   }
   unsigned chain_op_pos = dt.getNumConstructors();
   std::vector<unsigned> elem_pos;
-  Node id = assoc[StratChain::ELEMS_ID];
-  Kind op = nm->operatorToKind(assoc[StratChain::OP].toExpr());
+  Node id = assoc[TransfChain::ELEMS_ID];
+  Kind op = nm->operatorToKind(assoc[TransfChain::OP].toExpr());
   Trace("sygus-grammar-normalize-infer")
       << "Looking for op " << op << " and elems diff from " << id << "\n";
   for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
@@ -267,11 +267,12 @@ Strat* SygusGrammarNorm::inferStrategy(const Datatype& dt,
       elem_pos.push_back(op_pos[i]);
     }
   }
-  /* Typenode admits a chain strategy for normalization */
+  /* Typenode admits a chain transformation for normalization */
   if (chain_op_pos != dt.getNumConstructors() && !elem_pos.empty())
   {
-    Trace("sygus-grammar-normalize-infer") << "\tInfering chain strategy\n";
-    return new StratChain(chain_op_pos, elem_pos);
+    Trace("sygus-grammar-normalize-infer")
+        << "\tInfering chain transformation\n";
+    return new TransfChain(chain_op_pos, elem_pos);
   }
   return nullptr;
 }
@@ -322,12 +323,12 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   }
   /* Creates type object for normalization */
   TypeObject to(tn, unres_tn);
-  /* Determine normalization strategy based on sygus type and given operators */
-  Strat* strategy = inferStrategy(dt, op_pos);
-  /* If a strategy was selected, apply it */
-  if (strategy != nullptr)
+  /* Determine normalization transformation based on sygus type and given operators */
+  Transf* transformation = inferTransf(dt, op_pos);
+  /* If a transformation was selected, apply it */
+  if (transformation != nullptr)
   {
-    strategy->buildType(this, to, dt, op_pos);
+    transformation->buildType(this, to, dt, op_pos);
   }
   /* Remaining operators are rebuilt as they are */
   for (unsigned i = 0, size = op_pos.size(); i < size; ++i)

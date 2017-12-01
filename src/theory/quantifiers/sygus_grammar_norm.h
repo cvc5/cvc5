@@ -160,12 +160,12 @@ class OpPosTrie
   std::map<unsigned, OpPosTrie> d_children;
 }; /* class OpPosTrie */
 
-/** Strategy abstract class
+/** Transformation abstract class
  *
- * Classes extending this one will define specif strategies for building
+ * Classes extending this one will define specif transformationst for building
  * normalized types based on applications of specific operators
  */
-class Strat
+class Transf
 {
  public:
   /** abstract function for building normalized types
@@ -179,9 +179,9 @@ class Strat
                          TypeObject& to,
                          const Datatype& dt,
                          std::vector<unsigned>& op_pos) = 0;
-}; /* class Strat */
+}; /* class Transf */
 
-/** Chain strategy class
+/** Chain transformation class
  *
  * Determines how to build normalized types by chaining the application of one
  * of its operators. The resulting type should admit the same terms as the
@@ -189,7 +189,7 @@ class Strat
  * element.
  *
  * TODO: #1304:
- * - define this strategy for more than just PLUS for Int.
+ * - define this transformation for more than just PLUS for Int.
  * - improve the building such that elements that should not be entitled a "link
  *   in the chain" (such as 5 in opposition to variables and 1) do not get one
  * - consider the case when operator is applied to different types, e.g.:
@@ -198,10 +198,10 @@ class Strat
  *   argument type of itself, e.g.:
  *   A -> (B + B) + B | x; B -> 0 | 1
  */
-class StratChain : public Strat
+class TransfChain : public Transf
 {
  public:
-  StratChain(unsigned chain_op_pos, std::vector<unsigned> elem_pos)
+  TransfChain(unsigned chain_op_pos, std::vector<unsigned> elem_pos)
       : d_chain_op_pos(chain_op_pos), d_elem_pos(elem_pos){};
 
   /** builds types encoding a chain in which each link contains a repetition of
@@ -226,7 +226,8 @@ class StratChain : public Strat
    * The types composing links in the chain are built recursively by invoking
    * sygus_norm, which caches results and handles the global normalization, on
    * the operators not used in a given link, which will lead to recalling this
-   * strategy and so on until all operators originally given are considered.
+   * transformation and so on until all operators originally given are
+   * considered.
    */
   virtual void buildType(SygusGrammarNorm* sygus_norm,
                          TypeObject& to,
@@ -234,7 +235,7 @@ class StratChain : public Strat
                          std::vector<unsigned>& op_pos) override;
 
   /** Which sort of operators to look for in a type to determine if amenable for
-   * this strategy
+   * this transformation
    *
    * OP indicates which operator (e.g. PLUS for Int)
    * ELEMS_ID indicates which element is the identitiy for the chain operator
@@ -271,8 +272,8 @@ class StratChain : public Strat
    * of elements the chain operator is applied to */
   std::vector<unsigned> d_elem_pos;
 
-  /** associates elements to the strategy blocks for the given type node. Which
-   * elements these are is defined here.
+  /** associates elements to the transformation blocks for the given type
+   * node. Which elements these are is defined here.
    *
    * returns the built map
    *
@@ -283,15 +284,15 @@ class StratChain : public Strat
     if (tn.isInteger())
     {
       std::map<Block, Node> map = {
-          {StratChain::OP, NodeManager::currentNM()->operatorOf(kind::PLUS)},
-          {StratChain::ELEMS_ID, TermUtil::mkTypeValue(tn, 0)}};
+          {TransfChain::OP, NodeManager::currentNM()->operatorOf(kind::PLUS)},
+          {TransfChain::ELEMS_ID, TermUtil::mkTypeValue(tn, 0)}};
       d_assoc[tn] = map;
       return map;
     }
     d_assoc[tn] = {};
     return {};
   }
-}; /* class StratChain */
+}; /* class TransfChain */
 
 /** Utility for normalizing SyGuS grammars to avoid spurious enumerations
  *
@@ -355,18 +356,18 @@ class SygusGrammarNorm
    * with an OpPosTrie. New types and datatypes created during normalization are
    * accumulated grobally to be later resolved.
    *
-   * The normalization occurs following some inferred strategy based on the
-   * sygus type (e.g. Int) of tn, and the operators being considered.
+   * The normalization occurs following some inferred transformation based on
+   * the sygus type (e.g. Int) of tn, and the operators being considered.
    *
    * Example: Let A be the type node encoding the grammar
    *
    * Int -> x | y | Int + Int | 0 | 1 | ite(Bool, Int, Int)
    *
    * and assume all its datatype constructors are being used for
-   * normalization. The inferred normalization strategy will consider the
+   * normalization. The inferred normalization transformation will consider the
    * non-zero elements {x, y, 1, ite(...)} and the operator {+} to build a chain
    * of monomials, as seen above. The operator for "0" is rebuilt as is (the
-   * default behaviour of operators not selected for strategies).
+   * default behaviour of operators not selected for transformations).
    *
    * recursion depth is limited by the height of the types, which is small
    */
@@ -415,12 +416,12 @@ class SygusGrammarNorm
   /* Associates type nodes with OpPosTries */
   std::map<TypeNode, OpPosTrie> d_tries;
 
-  /** infers a strategy for normalizing "dt" when allowed to use the operators
-   * in the positions "op_pos".
+  /** infers a transformation for normalizing "dt" when allowed to use the
+   * operators in the positions "op_pos".
    *
-   * TODO: #1304: Infer more complex strategies
+   * TODO: #1304: Infer more complex transformations
    */
-  Strat* inferStrategy(const Datatype& dt, std::vector<unsigned>& op_pos);
+  Transf* inferTransf(const Datatype& dt, std::vector<unsigned>& op_pos);
 
   /* Map of type nodes into their identity operators (\lambda x. x) */
   static std::map<TypeNode, Node> d_tn_to_id;
