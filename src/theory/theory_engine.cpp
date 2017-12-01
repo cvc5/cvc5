@@ -639,14 +639,9 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       if (d_curr_model->isBuilt())
       {
-        if (!d_curr_model->isBuiltSuccess())
-        {
-          // model building should not fail (unless lemmas were added)
-          Assert(false);
-          // incomplete if model building failed
-          d_incomplete = true;
-        }
-        else if (options::produceModels())
+        // model construction should always succeed unless lemmas were added
+        AlwaysAssert(d_curr_model->isBuiltSuccess());
+        if (options::produceModels())
         {
           d_curr_model_builder->debugCheckModel(d_curr_model);
           // Do post-processing of model from the theories (used for THEORY_SEP
