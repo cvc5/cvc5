@@ -706,6 +706,7 @@ class CegConjecturePbe {
    * This method tries to construct a solution for function-to-synthesize c
    * based on the strategy stored for c in d_cinfo, which may include
    * synthesis-by-unification approaches for ite and string concatenation terms.
+   * These approaches include the work of Alur et al. TACAS 2017.
    * If it cannot construct a solution, it returns the null node.
    */
   Node constructSolution( Node c );
