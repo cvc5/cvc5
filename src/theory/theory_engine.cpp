@@ -634,14 +634,15 @@ void TheoryEngine::check(Theory::Effort effort) {
         AlwaysAssert(d_masterEqualityEngine->consistent());
       }
       if( options::produceModels() ){
-        if( !d_curr_model->isBuiltSuccess() )
+        if (!d_curr_model->isBuiltSuccess())
         {
           d_incomplete = true;
         }
         else
         {
-          d_curr_model_builder->debugCheckModel(d_curr_model);  
-          // Do post-processing of model from the theories (used for THEORY_SEP to construct heap model)
+          d_curr_model_builder->debugCheckModel(d_curr_model);
+          // Do post-processing of model from the theories (used for THEORY_SEP
+          // to construct heap model)
           postProcessModel(d_curr_model);
         }
       }

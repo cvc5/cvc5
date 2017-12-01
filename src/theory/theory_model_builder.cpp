@@ -291,7 +291,8 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   // Collect model info from the theories
   Trace("model-builder") << "TheoryEngineModelBuilder: Collect model info..."
                          << std::endl;
-  if( !d_te->collectModelInfo(tm) ){
+  if (!d_te->collectModelInfo(tm))
+  {
     return false;
   }
 

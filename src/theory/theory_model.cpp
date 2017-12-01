@@ -25,8 +25,13 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 
-TheoryModel::TheoryModel(context::Context* c, std::string name, bool enableFuncModels) :
-  d_substitutions(c, false), d_modelBuilt(false), d_modelBuiltSuccess(false), d_enableFuncModels(enableFuncModels)
+TheoryModel::TheoryModel(context::Context* c,
+                         std::string name,
+                         bool enableFuncModels)
+    : d_substitutions(c, false),
+      d_modelBuilt(false),
+      d_modelBuiltSuccess(false),
+      d_enableFuncModels(enableFuncModels)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );

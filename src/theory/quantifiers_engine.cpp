@@ -562,19 +562,22 @@ void QuantifiersEngine::check( Theory::Effort e ){
           static_cast<QuantifiersModule::QEffort>(qef);
       d_curr_effort_level = quant_e;
       //build the model if any module requested it
-      if( needsModelE==quant_e ){
-        if( !d_model->isBuilt() )
+      if (needsModelE == quant_e)
+      {
+        if (!d_model->isBuilt())
         {
-          // theory engine's model builder is quantifier engine's builder if it has one
-          Assert( !d_builder || d_builder==d_te->getModelBuilder() );
+          // theory engine's model builder is quantifier engine's builder if it
+          // has one
+          Assert(!d_builder || d_builder == d_te->getModelBuilder());
           Trace("quant-engine-debug") << "Build model..." << std::endl;
-          if( !d_te->getModelBuilder()->buildModel( d_model ) ){
-            //we are done if model building was unsuccessful
+          if (!d_te->getModelBuilder()->buildModel(d_model))
+          {
+            // we are done if model building was unsuccessful
             Trace("quant-engine-debug") << "...added lemmas." << std::endl;
             flushLemmas();
           }
         }
-        else if( !d_model->isBuiltSuccess() )
+        else if (!d_model->isBuiltSuccess())
         {
           setIncomplete = true;
           break;
