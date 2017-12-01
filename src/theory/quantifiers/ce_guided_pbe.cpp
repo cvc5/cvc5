@@ -539,7 +539,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
       {
         Assert(sks[k].getType().isDatatype());
         const Datatype& cdt =
-           static_cast<DatatypeType>(sks[k].getType().toType()).getDatatype();
+            static_cast<DatatypeType>(sks[k].getType().toType()).getDatatype();
         echildren[0] = Node::fromExpr(cdt.getSygusEvaluationFunc());
         echildren[1] = sks[k];
         Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k]
@@ -1005,15 +1005,11 @@ void CegConjecturePbe::staticLearnRedundantOps(
           int cindex = Datatype::indexOf(etis->d_cons.toExpr());
           Assert(cindex != -1);
           needs_cons_curr[static_cast<unsigned>(cindex)] = false;
-          for( std::pair< Node, NodeRole >& cec : etis->d_cenum )
+          for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
           {
             // recurse
-            staticLearnRedundantOps(c,
-                                    cec.first,
-                                    cec.second,
-                                    visited,
-                                    needs_cons,
-                                    ind + 2);
+            staticLearnRedundantOps(
+                c, cec.first, cec.second, visited, needs_cons, ind + 2);
           }
         }
         // get the master enumerator for the type of this enumerator
@@ -1220,7 +1216,9 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
           std::vector< Node > exp_exc_vec;
           if( getExplanationForEnumeratorExclude( c, x, v, results, it->second, exp_exc_vec ) ){
             Assert( !exp_exc_vec.empty() );
-            exp_exc = exp_exc_vec.size()==1 ? exp_exc_vec[0] : NodeManager::currentNM()->mkNode( AND, exp_exc_vec );
+            exp_exc = exp_exc_vec.size() == 1
+                          ? exp_exc_vec[0]
+                          : NodeManager::currentNM()->mkNode(AND, exp_exc_vec);
             Trace("sygus-pbe-enum") << "  ...fail : term is excluded (domain-specific)" << std::endl;
           }else{
             //if( cond_vals.size()!=2 ){
@@ -1264,7 +1262,8 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
       // if we did not already explain why this should be excluded, use default
       exp_exc = d_tds->getExplain()->getExplanationForConstantEquality(x, v);
     }
-    Node exlem = NodeManager::currentNM()->mkNode( OR, g.negate(), exp_exc.negate() );
+    Node exlem =
+        NodeManager::currentNM()->mkNode(OR, g.negate(), exp_exc.negate());
     Trace("sygus-pbe-enum-lemma") << "CegConjecturePbe : enumeration exclude lemma : " << exlem << std::endl;
     lems.push_back( exlem );
   }else{
@@ -1300,7 +1299,8 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude( Node c, Node x, Node 
         cmp_indices[index].push_back( i );
         */
         Trace("sygus-pbe-cterm-debug") << "  " << results[i] << " <> " << itxo->second[i];
-        Node cont = NodeManager::currentNM()->mkNode( STRING_STRCTN, itxo->second[i], results[i] );
+        Node cont = NodeManager::currentNM()->mkNode(
+            STRING_STRCTN, itxo->second[i], results[i]);
         Node contr = Rewriter::rewrite( cont );
         if( contr==d_false ){
           cmp_indices.push_back( i );
@@ -1795,7 +1795,8 @@ Node CegConjecturePbe::constructSolution(
 
           // test each example in the term enumerator for the type
           std::vector<Node> str_solved;
-          for (unsigned i = 0, size = itet->second.d_enum_vals.size(); i < size; i++)
+          for (unsigned i = 0, size = itet->second.d_enum_vals.size(); i < size;
+               i++)
           {
             if (x.isStringSolved(
                     this, ex_vals, itet->second.d_enum_vals_res[i]))
@@ -2131,7 +2132,8 @@ Node CegConjecturePbe::constructSolution(
             }
             else
             {
-              // TODO (#1250) : degenerate case where children have different types?
+              // TODO (#1250) : degenerate case where children have different
+              // types?
               indent("sygus-pbe-dt", ind);
               Trace("sygus-pbe-dt") << "return PBE: failed ITE strategy, "
                                        "cannot find a distinguishable condition"
