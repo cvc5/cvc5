@@ -618,6 +618,8 @@ void TheoryEngine::check(Theory::Effort effort) {
           // quantifiers engine must check at last call effort
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
         } 
+      }
+      if( ! d_inConflict && ! needCheck() ){
         if(options::produceModels() && !d_curr_model->isBuilt()) {
           // must build model at this point
           d_curr_model_builder->buildModel(d_curr_model);
