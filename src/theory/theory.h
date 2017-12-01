@@ -512,6 +512,9 @@ public:
    * Get all relevant information in this theory regarding the current
    * model.  This should be called after a call to check( FULL_EFFORT )
    * for all theories with no conflicts and no lemmas added.
+   * 
+   * This method returns true if and only if the equality engine of m is 
+   * consistent as a result of this call.
    */
   virtual bool collectModelInfo( TheoryModel* m ){ return true; }
 
