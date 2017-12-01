@@ -249,7 +249,7 @@ class TheoryArrays : public Theory {
 
   public:
 
-  void collectModelInfo(TheoryModel* m);
+  bool collectModelInfo(TheoryModel* m) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // NOTIFICATIONS

@@ -1912,14 +1912,16 @@ EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b) {
 /******************** Model generation ********************/
 
 
-void TheorySetsPrivate::collectModelInfo(TheoryModel* m) {
+bool TheorySetsPrivate::collectModelInfo(TheoryModel* m) {
   Trace("sets-model") << "Set collect model info" << std::endl;
   set<Node> termSet;
   // Compute terms appearing in assertions and shared terms
   d_external.computeRelevantTerms(termSet);
   
   // Assert equalities and disequalities to the model
-  m->assertEqualityEngine(&d_equalityEngine,&termSet);
+  if( !m->assertEqualityEngine(&d_equalityEngine,&termSet) ){
+    return false;
+  }
   
   std::map< Node, Node > mvals;
   for( int i=(int)(d_set_eqc.size()-1); i>=0; i-- ){
@@ -1970,10 +1972,13 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m) {
       rep = Rewriter::rewrite( rep );
       Trace("sets-model") << "* Assign representative of " << eqc << " to " << rep << std::endl;
       mvals[eqc] = rep;
-      m->assertEquality( eqc, rep, true );
+      if( !m->assertEquality( eqc, rep, true ) ){
+        return false;
+      }
       m->assertRepresentative( rep );
     }
   }
+  return true;
 }
 
 /********************** Helper functions ***************************/

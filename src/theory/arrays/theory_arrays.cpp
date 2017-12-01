@@ -1039,7 +1039,7 @@ void TheoryArrays::computeCareGraph()
 /////////////////////////////////////////////////////////////////////////////
 
 
-void TheoryArrays::collectModelInfo( TheoryModel* m )
+bool TheoryArrays::collectModelInfo( TheoryModel* m )
 {
   set<Node> termSet;
 
@@ -1140,7 +1140,9 @@ void TheoryArrays::collectModelInfo( TheoryModel* m )
   } while (changed);
 
   // Send the equality engine information to the model
-  m->assertEqualityEngine(&d_equalityEngine, &termSet);
+  if( !m->assertEqualityEngine(&d_equalityEngine, &termSet) ){
+    return false;
+  }
 
   // Build a list of all the relevant reads, indexed by the store representative
   std::map<Node, std::vector<Node> > selects;
@@ -1215,11 +1217,14 @@ void TheoryArrays::collectModelInfo( TheoryModel* m )
     for (unsigned j = 0; j < reads.size(); ++j) {
       rep = nm->mkNode(kind::STORE, rep, reads[j][1], reads[j]);
     }
-    m->assertEquality(n, rep, true);
+    if( !m->assertEquality(n, rep, true) ){
+      return false;
+    }
     if (!n.isConst()) {
       m->assertRepresentative(rep);
     }
   }
+  return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////

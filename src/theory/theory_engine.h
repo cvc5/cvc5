@@ -707,7 +707,7 @@ public:
   /**
    * collect model info
    */
-  void collectModelInfo( theory::TheoryModel* m );
+  bool collectModelInfo( theory::TheoryModel* m );
   /** post process model */
   void postProcessModel( theory::TheoryModel* m );
 

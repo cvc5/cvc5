@@ -110,7 +110,7 @@ class TheorySep : public Theory {
 
   public:
 
-  void collectModelInfo(TheoryModel* m);
+  bool collectModelInfo(TheoryModel* m) override;
   void postProcessModel(TheoryModel* m);
 
   /////////////////////////////////////////////////////////////////////////////
