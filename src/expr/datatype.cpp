@@ -193,7 +193,7 @@ void Datatype::addSygusConstructor(CVC4::Expr op,
   std::string testerId("is-");
   testerId.append(name);
   unsigned cweight = weight>=0 ? weight : ( cargs.empty() ? 0 : 1 );
-  CVC4::DatatypeConstructor c(name, testerId, weight);
+  CVC4::DatatypeConstructor c(name, testerId, cweight);
   c.setSygus(op, spc);
   for( unsigned j=0; j<cargs.size(); j++ ){
     Debug("parser-sygus-debug") << "  arg " << j << " : " << cargs[j] << std::endl;
