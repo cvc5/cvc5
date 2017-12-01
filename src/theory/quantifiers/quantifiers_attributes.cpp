@@ -388,6 +388,44 @@ Node QuantAttributes::getQuantIdNumNode( Node q ) {
   }
 }
 
+void QuantAttributes::setInstantiationLevelAttr(Node n, Node qn, uint64_t level)
+{
+  Trace("inst-level-debug2") << "IL : " << n << " " << qn << " " << level
+                             << std::endl;
+  // if not from the vector of terms we instantiatied
+  if (qn.getKind() != BOUND_VARIABLE && n != qn)
+  {
+    // if this is a new term, without an instantiation level
+    if (!n.hasAttribute(InstLevelAttribute()))
+    {
+      InstLevelAttribute ila;
+      n.setAttribute(ila, level);
+      Trace("inst-level-debug") << "Set instantiation level " << n << " to "
+                                << level << std::endl;
+      Assert(n.getNumChildren() == qn.getNumChildren());
+      for (unsigned i = 0; i < n.getNumChildren(); i++)
+      {
+        setInstantiationLevelAttr(n[i], qn[i], level);
+      }
+    }
+  }
+}
+
+void QuantAttributes::setInstantiationLevelAttr(Node n, uint64_t level)
+{
+  if (!n.hasAttribute(InstLevelAttribute()))
+  {
+    InstLevelAttribute ila;
+    n.setAttribute(ila, level);
+    Trace("inst-level-debug") << "Set instantiation level " << n << " to "
+                              << level << std::endl;
+    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    {
+      setInstantiationLevelAttr(n[i], level);
+    }
+  }
+}
+
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

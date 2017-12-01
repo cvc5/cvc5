@@ -55,6 +55,22 @@ typedef expr::Attribute< SygusAttributeId, bool > SygusAttribute;
 struct SynthesisAttributeId {};
 typedef expr::Attribute< SynthesisAttributeId, bool > SynthesisAttribute;
 
+struct InstLevelAttributeId
+{
+};
+typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
+
+/** Attribute for setting printing information for sygus variables
+ *
+ * For variable d of sygus datatype type, if
+ * d.getAttribute(SygusPrintProxyAttribute) = t, then printing d will print t.
+ */
+struct SygusPrintProxyAttributeId
+{
+};
+typedef expr::Attribute<SygusPrintProxyAttributeId, Node>
+    SygusPrintProxyAttribute;
+
 namespace quantifiers {
 
 /** Attribute priority for rewrite rules */
@@ -174,7 +190,12 @@ public:
   /** get quant id num */
   Node getQuantIdNumNode( Node q );
 
-private:
+  /** set instantiation level attr */
+  static void setInstantiationLevelAttr(Node n, uint64_t level);
+  /** set instantiation level attr */
+  static void setInstantiationLevelAttr(Node n, Node qn, uint64_t level);
+
+ private:
   /** pointer to quantifiers engine */
   QuantifiersEngine * d_quantEngine;
   /** cache of attributes */

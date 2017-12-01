@@ -12,9 +12,11 @@
  ** \brief Implementation of full model check class
  **/
 
-#include "options/quantifiers_options.h"
-#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/full_model_check.h"
+#include "options/quantifiers_options.h"
+#include "options/uf_options.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -555,11 +557,15 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
 void FullModelChecker::preInitializeType( FirstOrderModelFmc * fm, TypeNode tn ){
   if( d_preinitialized_types.find( tn )==d_preinitialized_types.end() ){
     d_preinitialized_types[tn] = true;
-    Node mb = fm->getModelBasisTerm(tn);
-    if( !mb.isConst() ){
-      Trace("fmc") << "...add model basis term to EE of model " << mb << " " << tn << std::endl;
-      fm->d_equalityEngine->addTerm( mb );
-      fm->addTerm( mb );
+    if (!tn.isFunction() || options::ufHo())
+    {
+      Node mb = fm->getModelBasisTerm(tn);
+      if (!mb.isConst())
+      {
+        Trace("fmc") << "...add model basis term to EE of model " << mb << " "
+                     << tn << std::endl;
+        fm->d_equalityEngine->addTerm(mb);
+      }
     }
   }
 }
@@ -694,7 +700,8 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
               }else{
                 //just add the instance
                 d_triedLemmas++;
-                if( d_qe->addInstantiation( f, inst, true ) ){
+                if (d_qe->getInstantiate()->addInstantiation(f, inst, true))
+                {
                   Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
                   d_addedLemmas++;
                   if( d_qe->inConflict() || options::fmfOneInstPerRound() ){
@@ -845,7 +852,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       if (ev!=d_true) {
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
-        if( d_qe->addInstantiation( f, inst, true ) ){
+        if (d_qe->getInstantiate()->addInstantiation(f, inst, true))
+        {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
           if( d_qe->inConflict() || options::fmfOneInstPerRound() ){

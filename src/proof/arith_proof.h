@@ -33,7 +33,8 @@ namespace CVC4 {
 class ProofArith : public Proof {
  public:
   ProofArith(std::shared_ptr<theory::eq::EqProof> pf) : d_proof(pf) {}
-  void toStream(std::ostream& out) override;
+  void toStream(std::ostream& out) const override;
+
  private:
   static void toStreamLFSC(std::ostream& out, TheoryProof* tp,
                            const theory::eq::EqProof& pf,
