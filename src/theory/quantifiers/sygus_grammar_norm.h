@@ -89,6 +89,8 @@ class TypeObject
   std::vector<std::string> d_cons_names;
   /* Print callbacks for each constructor */
   std::vector<std::shared_ptr<SygusPrintCallback>> d_pc;
+  /* Weights for each constructor */
+  std::vector<int> d_weight;
   /* List of argument types for each constructor */
   std::vector<std::vector<Type>> d_cons_args_t;
   /* Unresolved type node placeholder */
@@ -417,12 +419,14 @@ class SygusGrammarNorm
   /* Associates type nodes with OpPosTries */
   std::map<TypeNode, OpPosTrie> d_tries;
 
-  /** infers a transformation for normalizing "dt" when allowed to use the
-   * operators in the positions "op_pos".
+  /** infers a transformation for normalizing dt when allowed to use the
+   * operators in the positions op_pos.
    *
    * TODO: #1304: Infer more complex transformations
    */
-  Transf* inferTransf(const Datatype& dt, std::vector<unsigned>& op_pos);
+  Transf* inferTransf(TypeNode tn,
+                      const Datatype& dt,
+                      std::vector<unsigned>& op_pos);
 
   /* Map of type nodes into their identity operators (\lambda x. x) */
   static std::map<TypeNode, Node> d_tn_to_id;

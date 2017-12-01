@@ -37,7 +37,6 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
                               std::vector<unsigned> op_pos,
                               unsigned ind)
 {
-  Assert(ind != op_pos.size() || d_children.empty());
   if (ind == op_pos.size())
   {
     /* Found type */
@@ -111,6 +110,8 @@ void TransfChain::buildType(SygusGrammarNorm* sygus_norm,
   /* If all operators are claimed, create a monomial */
   if (nb_op_pos == d_elem_pos.size() + 1)
   {
+    Trace("sygus-grammar-normalize-chain")
+        << "\tCreating id type for " << d_elem_pos.back() << "\n";
     /* creates type for element */
     Type t = sygus_norm->normalizeSygusRec(to.d_tn, dt, {d_elem_pos.back()})
                  .toType();
@@ -120,6 +121,8 @@ void TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     to.d_ops.push_back(iden_op);
     to.d_cons_names.push_back("id");
     to.d_pc.push_back(printer::SygusEmptyPrintCallback::empty_pc);
+    /* Identity operators should not increase the size of terms */
+    to.d_weight.push_back(0);
     to.d_cons_args_t.push_back(std::vector<Type>());
     to.d_cons_args_t.back().push_back(t);
     Trace("sygus-grammar-normalize-chain")
@@ -128,6 +131,7 @@ void TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     to.d_ops.push_back(nm->operatorOf(PLUS));
     to.d_cons_names.push_back(kindToString(PLUS));
     to.d_pc.push_back(nullptr);
+    to.d_weight.push_back(-1);
     to.d_cons_args_t.push_back(std::vector<Type>());
     to.d_cons_args_t.back().push_back(t);
     to.d_cons_args_t.back().push_back(to.d_unres_tn.toType());
@@ -162,6 +166,7 @@ void TransfChain::buildType(SygusGrammarNorm* sygus_norm,
   to.d_ops.push_back(iden_op);
   to.d_cons_names.push_back("id_next");
   to.d_pc.push_back(printer::SygusEmptyPrintCallback::empty_pc);
+  to.d_weight.push_back(0);
   to.d_cons_args_t.push_back(std::vector<Type>());
   to.d_cons_args_t.back().push_back(
       sygus_norm->normalizeSygusRec(to.d_tn, dt, d_elem_pos).toType());
@@ -182,6 +187,7 @@ void TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
       << "\n\tRewritten one: " << d_ops.back() << "\n\n";
   d_cons_names.push_back(cons.getName());
   d_pc.push_back(cons.getSygusPrintCallback());
+  d_weight.push_back(cons.getWeight());
   d_cons_args_t.push_back(std::vector<Type>());
   for (const DatatypeConstructorArg& arg : cons)
   {
@@ -205,13 +211,17 @@ void TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm, const Datatype& dt)
                 dt.getSygusAllowAll());
   for (unsigned i = 0, size_d_ops = d_ops.size(); i < size_d_ops; ++i)
   {
-    d_dt.addSygusConstructor(
-        d_ops[i].toExpr(), d_cons_names[i], d_cons_args_t[i], d_pc[i]);
+    d_dt.addSygusConstructor(d_ops[i].toExpr(),
+                             d_cons_names[i],
+                             d_cons_args_t[i],
+                             d_pc[i],
+                             d_weight[i]);
   }
-  Trace("sygus-grammar-normalize") << "...built datatype " << d_dt << "\n";
+  Trace("sygus-grammar-normalize") << "...built datatype " << d_dt << " ";
   /* Add to global accumulators */
   sygus_norm->addDatatype(d_dt);
   sygus_norm->addUnresType(d_unres_tn.toType());
+  Trace("sygus-grammar-normalize") << "---------------------------------\n";
 }
 
 std::map<TypeNode, Node> SygusGrammarNorm::d_tn_to_id = {};
@@ -222,15 +232,17 @@ std::map<TypeNode, Node> SygusGrammarNorm::d_tn_to_id = {};
  *
  * returns true if collected anything
  */
-Transf* SygusGrammarNorm::inferTransf(const Datatype& dt,
-                                       std::vector<unsigned>& op_pos)
+Transf* SygusGrammarNorm::inferTransf(TypeNode tn,
+                                      const Datatype& dt,
+                                      std::vector<unsigned>& op_pos)
 {
   NodeManager* nm = NodeManager::currentNM();
-  TypeNode tn = TypeNode::fromType(dt.getSygusType());
   /* TODO #1304: step 0: look for singleton */
   /* TODO #1304: step 1: look for redundant constructors to drop */
   /* step 2: look for chain */
-  std::map<TransfChain::Block, Node> assoc = TransfChain::getTypeAssoc(tn);
+  /* Retrive requirements for transformation for the given sygus type */
+  std::map<TransfChain::Block, Node> assoc =
+      TransfChain::getTypeAssoc(TypeNode::fromType(dt.getSygusType()));
   /* No chain transformation for type */
   if (assoc.empty())
   {
@@ -249,6 +261,26 @@ Transf* SygusGrammarNorm::inferTransf(const Datatype& dt,
     /* Collects a chainable operator such as PLUS */
     if (sop.getKind() == BUILTIN && nm->operatorToKind(sop) == op)
     {
+      /* For now only transforms applications whose arguments have the same
+       * type node as the root */
+      bool same_type_plus = true;
+      for (const DatatypeConstructorArg& arg : dt[op_pos[i]])
+      {
+        if (TypeNode::fromType(
+                static_cast<SelectorType>(arg.getType()).getRangeType())
+            != tn)
+        {
+          same_type_plus = false;
+          break;
+        }
+      }
+      if (!same_type_plus)
+      {
+        Trace("sygus-grammar-normalize-infer")
+            << "\tFor OP " << op << " did not collecting sop " << sop
+            << " in position " << op_pos[i] << "\n";
+        continue;
+      }
       Assert(chain_op_pos == dt.getNumConstructors());
       Trace("sygus-grammar-normalize-infer")
           << "\tFor OP " << op << " collecting sop " << sop << " in position "
@@ -329,7 +361,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   {
     /* Determine normalization transformation based on sygus type and given
      * operators */
-    Transf* transformation = inferTransf(dt, op_pos);
+    Transf* transformation = inferTransf(tn, dt, op_pos);
     /* If a transformation was selected, apply it */
     if (transformation != nullptr)
     {
@@ -343,6 +375,16 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     to.addConsInfo(this, dt[op_pos[i]]);
   }
   /* Build normalize datatype */
+  if (Trace.isOn("sygus-grammar-normalize"))
+  {
+    Trace("sygus-grammar-normalize")
+        << "\nFor positions ";
+    for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
+    {
+      Trace("sygus-grammar-normalize") << op_pos[i] << " ";
+    }
+    Trace("sygus-grammar-normalize") << " and datatype " << dt << " \n";
+  }
   to.buildDatatype(this, dt);
   return to.d_unres_tn;
 }
@@ -358,9 +400,6 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn)
 
 TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
 {
-  Trace("sygus-grammar-normalize")
-      << "Will normalize " << tn << " with datatype "
-      << static_cast<DatatypeType>(tn.toType()).getDatatype() << "\n";
   /* Normalize all types in tn */
   d_sygus_vars = sygus_vars;
   normalizeSygusRec(tn);
