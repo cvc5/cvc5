@@ -181,17 +181,19 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
   d_sygus_allow_all = allow_all;
 }
 
-void Datatype::addSygusConstructor(CVC4::Expr op,
+void Datatype::addSygusConstructor(Expr op,
                                    std::string& cname,
-                                   std::vector<CVC4::Type>& cargs,
-                                   std::shared_ptr<SygusPrintCallback> spc)
+                                   std::vector<Type>& cargs,
+                                   std::shared_ptr<SygusPrintCallback> spc,
+                                   int weight)
 {
   Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
   Debug("dt-sygus") << "    sygus op : " << op << std::endl;
   std::string name = getName() + "_" + cname;
   std::string testerId("is-");
   testerId.append(name);
-  CVC4::DatatypeConstructor c(name, testerId );
+  unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
+  DatatypeConstructor c(name, testerId, cweight);
   c.setSygus(op, spc);
   for( unsigned j=0; j<cargs.size(); j++ ){
     Debug("parser-sygus-debug") << "  arg " << j << " : " << cargs[j] << std::endl;
@@ -770,12 +772,15 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
       d_name(name + '\0' + "is_" + name),  // default tester name is "is_FOO"
       d_tester(),
       d_args(),
-      d_sygus_pc(nullptr)
+      d_sygus_pc(nullptr),
+      d_weight(1)
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
 }
 
-DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester)
+DatatypeConstructor::DatatypeConstructor(std::string name,
+                                         std::string tester,
+                                         unsigned weight)
     :  // We don't want to introduce a new data member, because eventually
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
@@ -783,7 +788,8 @@ DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester)
       d_name(name + '\0' + tester),
       d_tester(),
       d_args(),
-      d_sygus_pc(nullptr)
+      d_sygus_pc(nullptr),
+      d_weight(weight)
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
   PrettyCheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
@@ -877,6 +883,13 @@ bool DatatypeConstructor::isSygusIdFunc() const {
   return (d_sygus_op.getKind() == kind::LAMBDA
           && d_sygus_op[0].getNumChildren() == 1
           && d_sygus_op[0][0] == d_sygus_op[1]);
+}
+
+unsigned DatatypeConstructor::getWeight() const
+{
+  PrettyCheckArgument(
+      isResolved(), this, "this datatype constructor is not yet resolved");
+  return d_weight;
 }
 
 std::shared_ptr<SygusPrintCallback> DatatypeConstructor::getSygusPrintCallback() const
