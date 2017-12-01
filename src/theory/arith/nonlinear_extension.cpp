@@ -21,6 +21,7 @@
 
 #include "expr/node_builder.h"
 #include "options/arith_options.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/quantifiers/quant_util.h"
@@ -111,7 +112,7 @@ std::vector<Node> ExpandMultiset(const NodeMultiset& a) {
 }
 
 void debugPrintBound(const char* c, Node coeff, Node x, Kind type, Node rhs) {
-  Node t = QuantArith::mkCoeffTerm(coeff, x);
+  Node t = ArithMSum::mkCoeffTerm(coeff, x);
   Trace(c) << t << " " << type << " " << rhs;
 }
 
@@ -357,7 +358,8 @@ bool NonLinearExtentionSubstitutionSolver::solve(
         if (!n.isConst()) {
           Trace("nl-subs-debug") << "Look at term : " << n << std::endl;
           std::map<Node, Node> msum;
-          if (QuantArith::getMonomialSum(n, msum)) {
+          if (ArithMSum::getMonomialSum(n, msum))
+          {
             int nconst_count = 0;
             bool evaluatable = true;
             //first, collect sums of equal terms
@@ -402,7 +404,8 @@ bool NonLinearExtentionSubstitutionSolver::solve(
                 }else{
                   //recompute the monomial
                   msum.clear();
-                  if (!QuantArith::getMonomialSum(ns, msum)) {
+                  if (!ArithMSum::getMonomialSum(ns, msum))
+                  {
                     success = false;
                   }else{
                     d_rep_sum_unique_exp[n] =
@@ -562,7 +565,7 @@ bool NonLinearExtentionSubstitutionSolver::setSubstitutionConst(
               d_term_to_sum[m], d_term_to_rep_sum[m], d_rep_to_const,
               d_rep_to_const_exp, d_rep_to_const_base);
           Node eq = (result.term).eqNode(d_rep_to_const[r]);
-          Node v_c = QuantArith::solveEqualityFor(eq, result.variable_term);
+          Node v_c = ArithMSum::solveEqualityFor(eq, result.variable_term);
           if (!v_c.isNull()) {
             Assert(v_c.isConst());
             if (Contains(new_const, result.variable_term)) {
@@ -596,7 +599,7 @@ bool NonLinearExtentionSubstitutionSolver::setSubstitutionConst(
         Node v = result.variable_term;
         Node m_t = result.term;
         Node eq = m_t.eqNode(r_c);
-        Node v_c = QuantArith::solveEqualityFor(eq, v);
+        Node v_c = ArithMSum::solveEqualityFor(eq, v);
         Trace("nl-subs-debug") << "Solved equality " << eq << " for " << v << ", got = " << v_c << std::endl;
         if (!v_c.isNull()) {
           Assert(v_c.isConst());
@@ -837,10 +840,11 @@ void NonlinearExtension::registerConstraint(Node atom) {
     d_constraints.push_back(atom);
     Trace("nl-ext-debug") << "Register constraint : " << atom << std::endl;
     std::map<Node, Node> msum;
-    if (QuantArith::getMonomialSumLit(atom, msum)) {
+    if (ArithMSum::getMonomialSumLit(atom, msum))
+    {
       Trace("nl-ext-debug") << "got monomial sum: " << std::endl;
       if (Trace.isOn("nl-ext-debug")) {
-        QuantArith::debugPrintMonomialSum(msum, "nl-ext-debug");
+        ArithMSum::debugPrintMonomialSum(msum, "nl-ext-debug");
       }
       unsigned max_degree = 0;
       std::vector<Node> all_m;
@@ -867,7 +871,7 @@ void NonlinearExtension::registerConstraint(Node atom) {
       for (unsigned i = 0; i < all_m.size(); i++) {
         Node m = all_m[i];
         Node rhs, coeff;
-        int res = QuantArith::isolate(m, msum, coeff, rhs, atom.getKind());
+        int res = ArithMSum::isolate(m, msum, coeff, rhs, atom.getKind());
         if (res != 0) {
           Kind type = atom.getKind();
           if (res == -1) {
@@ -2272,7 +2276,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds( std::vector<Node
           {
             // we will take the strict inequality in the direction of the
             // model
-            Node lhs = QuantArith::mkCoeffTerm(coeff, x);
+            Node lhs = ArithMSum::mkCoeffTerm(coeff, x);
             Node query = NodeManager::currentNM()->mkNode(GT, lhs, rhs);
             Node query_mv = computeModelValue(query, 1);
             if (query_mv == d_true) {
@@ -2290,7 +2294,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds( std::vector<Node
         // add to status if maximal degree
         d_ci_max[x][coeff][rhs] = itcm->second.find(x) != itcm->second.end();
         if (Trace.isOn("nl-ext-bound-debug2")) {
-          Node t = QuantArith::mkCoeffTerm(coeff, x);
+          Node t = ArithMSum::mkCoeffTerm(coeff, x);
           Trace("nl-ext-bound-debug2")
               << "Add Bound: " << t << " " << type << " " << rhs << " by "
               << exp << std::endl;
@@ -2416,7 +2420,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds( std::vector<Node
                  itc->second.begin();
              itcc != itc->second.end(); ++itcc) {
           Node coeff = itcc->first;
-          Node t = QuantArith::mkCoeffTerm(coeff, x);
+          Node t = ArithMSum::mkCoeffTerm(coeff, x);
           for (std::map<Node, Kind>::iterator itcr = itcc->second.begin();
                itcr != itcc->second.end(); ++itcr) {
             Node rhs = itcr->first;
@@ -2512,10 +2516,11 @@ std::vector<Node> NonlinearExtension::checkFactoring( const std::set<Node>& fals
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
     if( false_asserts.find(lit) != false_asserts.end() || d_skolem_atoms.find(atom)!=d_skolem_atoms.end() ){
       std::map<Node, Node> msum;
-      if (QuantArith::getMonomialSumLit(atom, msum)) {
+      if (ArithMSum::getMonomialSumLit(atom, msum))
+      {
         Trace("nl-ext-factor") << "Factoring for literal " << lit << ", monomial sum is : " << std::endl;
         if (Trace.isOn("nl-ext-factor")) {
-          QuantArith::debugPrintMonomialSum(msum, "nl-ext-factor");
+          ArithMSum::debugPrintMonomialSum(msum, "nl-ext-factor");
         }
         std::map< Node, std::vector< Node > > factor_to_mono;
         std::map< Node, std::vector< Node > > factor_to_mono_orig;
@@ -2563,7 +2568,8 @@ std::vector<Node> NonlinearExtension::checkFactoring( const std::set<Node>& fals
             Assert( itfo!=factor_to_mono_orig.end() );
             for( std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
               if( std::find( itfo->second.begin(), itfo->second.end(), itm->first )==itfo->second.end() ){
-                poly.push_back( QuantArith::mkCoeffTerm(itm->second, itm->first.isNull() ? d_one : itm->first) );
+                poly.push_back(ArithMSum::mkCoeffTerm(
+                    itm->second, itm->first.isNull() ? d_one : itm->first));
               }
             }
             Node polyn = poly.size() == 1
@@ -2665,14 +2671,14 @@ std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {
                        itcbc != itcb->second.end(); ++itcbc) {
                     Node coeff_b = itcbc->first;
                     Node rhs_a_res =
-                        QuantArith::mkCoeffTerm(coeff_b, rhs_a_res_base);
+                        ArithMSum::mkCoeffTerm(coeff_b, rhs_a_res_base);
                     for (std::map<Node, Kind>::iterator itcbr =
                              itcbc->second.begin();
                          itcbr != itcbc->second.end(); ++itcbr) {
                       Node rhs_b = itcbr->first;
                       Node rhs_b_res = NodeManager::currentNM()->mkNode(
                           MULT, ita->second, rhs_b);
-                      rhs_b_res = QuantArith::mkCoeffTerm(coeff_a, rhs_b_res);
+                      rhs_b_res = ArithMSum::mkCoeffTerm(coeff_a, rhs_b_res);
                       rhs_b_res = Rewriter::rewrite(rhs_b_res);
                       if (!hasNewMonomials(rhs_b_res, d_ms)) {
                         Kind type_b = itcbr->second;
