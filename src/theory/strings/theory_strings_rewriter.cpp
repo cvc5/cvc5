@@ -1816,7 +1816,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
         if (cc == 0 && children0[0] == children1[0])
         {
           // definitely a prefix, can do the replace
-          // for example, 
+          // for example,
           //   str.replace( str.++( x, "ab" ), str.++( x, "a" ), y )  --->
           //   str.++( y, "b" )
           std::vector<Node> cres;
@@ -1828,7 +1828,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
         else if (!ce.empty())
         {
           // we can pull remainder past first definite containment
-          // for example, 
+          // for example,
           //   str.replace( str.++( x, "ab" ), "a", y ) --->
           //   str.++( str.replace( str.++( x, "a" ), "a", y ), "b" )
           std::vector<Node> cc;
@@ -1849,11 +1849,11 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       return returnRewrite(node, node[0], "rpl-nctn");
     }
   }
-  
+
   if (cmp_conr != cmp_con)
   {
     // pull endpoints that can be stripped
-    // for example, 
+    // for example,
     //   str.replace( str.++( "b", x, "b" ), "a", y ) --->
     //   str.++( "b", str.replace( x, "a", y ), "b" )
     std::vector<Node> cb;
@@ -1872,7 +1872,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       return returnRewrite(node, ret, "rpl-pull-endpt");
     }
   }
-  
+
   // TODO (#1180) incorporate these?
   // contains( t, s ) =>
   //   replace( replace( x, t, s ), s, r ) ----> replace( x, t, r )
