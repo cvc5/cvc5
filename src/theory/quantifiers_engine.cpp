@@ -698,23 +698,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   //SAT case
   if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
-    if( options::produceModels() ){
-      if( !d_model->isBuilt() ){
-        //use default model builder when no module built the model
-        Trace("quant-engine-debug") << "Build the default model..." << std::endl;
-        if( !d_te->getModelBuilder()->buildModel( d_model ) )
-        {
-          flushLemmas();
-        }
-        Trace("quant-engine-debug") << "Done building the model." << std::endl;
-      }
-    }
-    if( !d_hasAddedLemma )
-    {
-      if( setIncomplete ){
-        Trace("quant-engine") << "Set incomplete flag." << std::endl;
-        getOutputChannel().setIncomplete();
-      }
+    if( setIncomplete ){
+      Trace("quant-engine") << "Set incomplete flag." << std::endl;
+      getOutputChannel().setIncomplete();
     }
     //output debug stats
     d_instantiate->debugPrintModel();

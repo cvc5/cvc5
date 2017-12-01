@@ -615,10 +615,10 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       if( ! d_inConflict && ! needCheck() ){
         if(d_logicInfo.isQuantified()) {
-          // quantifiers engine must pass effort last call check
+          // quantifiers engine must check at last call effort
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
-          // if returning incomplete or SAT, we have ensured that d_curr_model has been built
-        } else if(options::produceModels() && !d_curr_model->isBuilt()) {
+        } 
+        if(options::produceModels() && !d_curr_model->isBuilt()) {
           // must build model at this point
           d_curr_model_builder->buildModel(d_curr_model);
         }
@@ -629,7 +629,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     Debug("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
     if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
-      //we will answer SAT
+      // case where we are about to answer SAT
       if( d_masterEqualityEngine != NULL ){
         AlwaysAssert(d_masterEqualityEngine->consistent());
       }
@@ -640,7 +640,7 @@ void TheoryEngine::check(Theory::Effort effort) {
           // incomplete if model building failed
           d_incomplete = true;
         }
-        else
+        else if(options::produceModels())
         {
           d_curr_model_builder->debugCheckModel(d_curr_model);
           // Do post-processing of model from the theories (used for THEORY_SEP
