@@ -154,6 +154,8 @@ class CVC4_PUBLIC SygusEmptyPrintCallback : public SygusPrintCallback
   virtual void toStreamSygus(const Printer* p,
                              std::ostream& out,
                              Expr e) const override;
+  /* empty callback object */
+  static const std::shared_ptr<SygusEmptyPrintCallback> empty_pc;
 };
 
 } /* CVC4::printer namespace */
