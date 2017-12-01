@@ -605,8 +605,6 @@ void TheoryEngine::check(Theory::Effort effort) {
             if( theory->needsCheckLastEffort() ){
               if( !d_curr_model->isBuilt() ){
                 if( !d_curr_model_builder->buildModel(d_curr_model) ){
-                  //model building should fail only if the model builder adds lemmas		
-                  Assert( needCheck() );
                   break;
                 }
               }
@@ -643,6 +641,8 @@ void TheoryEngine::check(Theory::Effort effort) {
       {
         if (!d_curr_model->isBuiltSuccess())
         {
+          //model building should fail only if the model builder adds lemmas		
+          Assert( needCheck() );
           // incomplete if model building failed
           d_incomplete = true;
         }
