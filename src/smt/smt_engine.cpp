@@ -5621,6 +5621,7 @@ void SmtEngine::reset() throw() {
 
 void SmtEngine::resetAssertions() throw() {
   SmtScope smts(this);
+  doPendingPops();
 
   Trace("smt") << "SMT resetAssertions()" << endl;
   if(Dump.isOn("benchmark")) {
