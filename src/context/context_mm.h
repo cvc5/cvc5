@@ -20,11 +20,14 @@
 #ifndef __CVC4__CONTEXT__CONTEXT_MM_H
 #define __CVC4__CONTEXT__CONTEXT_MM_H
 
-#include <vector>
 #include <deque>
+#include <limits>
+#include <vector>
 
 namespace CVC4 {
 namespace context {
+
+#ifdef CVC4_CONTEXT_MEMORY_MANAGER
 
 /**
  * Region-based memory manager for contexts.  Calls to newData provide memory
@@ -101,8 +104,15 @@ class ContextMemoryManager {
    */
   void newChunk();
 
-public:
+#ifdef CVC4_VALGRIND
+  /**
+   * Vector of allocations for each level. Used for accurately marking
+   * allocations as free'd in Valgrind.
+   */
+  std::vector<std::vector<char*>> d_allocations;
+#endif
 
+ public:
   /**
    * Get the maximum allocation size for this memory manager.
    */
@@ -137,6 +147,47 @@ public:
   void pop();
 
 };/* class ContextMemoryManager */
+
+#else /* CVC4_CONTEXT_MEMORY_MANAGER */
+
+/**
+ * Dummy implementation of the ContextMemoryManager for debugging purposes. Use
+ * the configure flag "--disable-context-memory-manager" to use this
+ * implementation.
+ */
+class ContextMemoryManager
+{
+ public:
+  static unsigned getMaxAllocationSize()
+  {
+    return std::numeric_limits<unsigned>::max();
+  }
+
+  ContextMemoryManager() { d_allocations.push_back(std::vector<char*>()); }
+
+  void* newData(size_t size)
+  {
+    void* alloc = malloc(size);
+    d_allocations.back().push_back(static_cast<char*>(alloc));
+    return alloc;
+  }
+
+  void push() { d_allocations.push_back(std::vector<char*>()); }
+
+  void pop()
+  {
+    for (auto alloc : d_allocations.back())
+    {
+      free(alloc);
+    }
+    d_allocations.pop_back();
+  }
+
+ private:
+  std::vector<std::vector<char*>> d_allocations;
+}; /* ContextMemoryManager */
+
+#endif /* CVC4_CONTEXT_MEMORY_MANAGER */
 
 /**
  * An STL-like allocator class for allocating from context memory.

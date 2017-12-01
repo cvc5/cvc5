@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/full_model_check.h"
 #include "options/quantifiers_options.h"
+#include "options/uf_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
@@ -556,11 +557,15 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
 void FullModelChecker::preInitializeType( FirstOrderModelFmc * fm, TypeNode tn ){
   if( d_preinitialized_types.find( tn )==d_preinitialized_types.end() ){
     d_preinitialized_types[tn] = true;
-    Node mb = fm->getModelBasisTerm(tn);
-    if( !mb.isConst() ){
-      Trace("fmc") << "...add model basis term to EE of model " << mb << " " << tn << std::endl;
-      fm->d_equalityEngine->addTerm( mb );
-      fm->addTerm( mb );
+    if (!tn.isFunction() || options::ufHo())
+    {
+      Node mb = fm->getModelBasisTerm(tn);
+      if (!mb.isConst())
+      {
+        Trace("fmc") << "...add model basis term to EE of model " << mb << " "
+                     << tn << std::endl;
+        fm->d_equalityEngine->addTerm(mb);
+      }
     }
   }
 }
