@@ -396,7 +396,8 @@ bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
   return utils::isEqualityTerm(term, seen); 
 }
 
-bool CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
+bool CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel)
+{
   if (d_useSlicer) {
     Unreachable(); 
   }
@@ -409,7 +410,8 @@ bool CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
   }
   set<Node> termSet;
   d_bv->computeRelevantTerms(termSet);
-  if( !m->assertEqualityEngine(&d_equalityEngine, &termSet) ){
+  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
+  {
     return false;
   }
   if (isComplete()) {
@@ -418,8 +420,9 @@ bool CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
       Node a = it->first;
       Node b = it->second;
       Debug("bitvector-model") << "CoreSolver::collectModelInfo modelValues "
-                               << a << " => " << b <<")\n"; 
-      if( !m->assertEquality(a, b, true) ){
+                               << a << " => " << b <<")\n";
+      if (!m->assertEquality(a, b, true))
+      {
         return false;
       }
     }

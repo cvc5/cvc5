@@ -80,7 +80,7 @@ public:
 
   Node explain(TNode n);
 
-  bool collectModelInfo( TheoryModel* m ) override;
+  bool collectModelInfo(TheoryModel* m) override;
 
   std::string identify() const { return std::string("TheoryBV"); }
 

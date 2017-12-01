@@ -333,7 +333,8 @@ void TheoryModel::addTermInternal(TNode n)
 }
 
 /** assert equality */
-bool TheoryModel::assertEquality(TNode a, TNode b, bool polarity ){
+bool TheoryModel::assertEquality(TNode a, TNode b, bool polarity)
+{
   if (a == b && polarity) {
     return true;
   }
@@ -343,7 +344,8 @@ bool TheoryModel::assertEquality(TNode a, TNode b, bool polarity ){
 }
 
 /** assert predicate */
-bool TheoryModel::assertPredicate(TNode a, bool polarity ){
+bool TheoryModel::assertPredicate(TNode a, bool polarity)
+{
   if ((a == d_true && polarity) ||
       (a == d_false && (!polarity))) {
     return true;
@@ -359,7 +361,8 @@ bool TheoryModel::assertPredicate(TNode a, bool polarity ){
 }
 
 /** assert equality engine */
-bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* termSet)
+bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
+                                       set<Node>* termSet)
 {
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   for (; !eqcs_i.isFinished(); ++eqcs_i) {
@@ -384,8 +387,10 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
         continue;
       }
       if (predicate) {
-        if (predTrue || predFalse) {
-          if( !assertPredicate(*eqc_i, predTrue) ){
+        if (predTrue || predFalse)
+        {
+          if (!assertPredicate(*eqc_i, predTrue))
+          {
             return false;
           }
         }
@@ -397,7 +402,8 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
           else {
             Trace("model-builder-assertions") << "(assert (= " << *eqc_i << " " << rep << "));" << endl;
             d_equalityEngine->mergePredicates(*eqc_i, rep, Node::null());
-            if(!d_equalityEngine->consistent()){
+            if (!d_equalityEngine->consistent())
+            {
               return false;
             }
           }
@@ -414,7 +420,8 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
           first = false;
         }
         else {
-          if( !assertEquality(*eqc_i, rep, true) ){
+          if (!assertEquality(*eqc_i, rep, true))
+          {
             return false;
           }
         }

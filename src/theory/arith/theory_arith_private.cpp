@@ -4252,7 +4252,8 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   return belowMin;
 }
 
-bool TheoryArithPrivate::collectModelInfo( TheoryModel* m ){
+bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
+{
   AlwaysAssert(d_qflraStatus ==  Result::SAT);
   //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
 
@@ -4288,7 +4289,8 @@ bool TheoryArithPrivate::collectModelInfo( TheoryModel* m ){
         Node qNode = mkRationalNode(qmodel);
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
 
-        if( !m->assertEquality(term, qNode, true) ){
+        if (!m->assertEquality(term, qNode, true))
+        {
           return false;
         }
       }else{

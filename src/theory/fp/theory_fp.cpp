@@ -578,7 +578,8 @@ Node TheoryFp::getModelValue(TNode var) {
   return d_conv.getValue(d_valuation, var);
 }
 
-bool TheoryFp::collectModelInfo(TheoryModel *m) {
+bool TheoryFp::collectModelInfo(TheoryModel *m)
+{
   std::set<Node> relevantTerms;
 
   Trace("fp-collectModelInfo")
@@ -632,7 +633,8 @@ bool TheoryFp::collectModelInfo(TheoryModel *m) {
         << "TheoryFp::collectModelInfo(): relevantVariable " << node
         << std::endl;
 
-    if( !m->assertEquality(node, d_conv.getValue(d_valuation, node), true) ){
+    if (!m->assertEquality(node, d_conv.getValue(d_valuation, node), true))
+    {
       return false;
     }
   }

@@ -330,14 +330,16 @@ Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
   return mkAnd(assumptions);
 }
 
-bool TheoryUF::collectModelInfo( TheoryModel* m ){
+bool TheoryUF::collectModelInfo(TheoryModel* m)
+{
   Debug("uf") << "UF : collectModelInfo " << std::endl;
   set<Node> termSet;
 
   // Compute terms appearing in assertions and shared terms
   computeRelevantTerms(termSet);
 
-  if( !m->assertEqualityEngine( &d_equalityEngine, &termSet ) ){
+  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
+  {
     return false;
   }
 
@@ -347,7 +349,8 @@ bool TheoryUF::collectModelInfo( TheoryModel* m ){
       if( n.getKind()==kind::APPLY_UF ){
         // for model-building with ufHo, we require that APPLY_UF is always expanded to HO_APPLY
         Node hn = TheoryUfRewriter::getHoApplyForApplyUf( n );
-        if( !m->assertEquality( n, hn, true ) ){
+        if (!m->assertEquality(n, hn, true))
+        {
           return false;
         }
       }

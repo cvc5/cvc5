@@ -576,11 +576,12 @@ bool TheoryBV::doExtfReductions( std::vector< Node >& terms ) {
 bool TheoryBV::needsCheckLastEffort() {
   return d_needsLastCallCheck;
 }
-
-bool TheoryBV::collectModelInfo( TheoryModel* m ){
+bool TheoryBV::collectModelInfo(TheoryModel* m)
+{
   Assert(!inConflict());
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    if( !d_eagerSolver->collectModelInfo(m, true) ){
+    if (!d_eagerSolver->collectModelInfo(m, true))
+    {
       return false;
     }
   }

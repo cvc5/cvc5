@@ -1038,8 +1038,7 @@ void TheoryArrays::computeCareGraph()
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
 
-
-bool TheoryArrays::collectModelInfo( TheoryModel* m )
+bool TheoryArrays::collectModelInfo(TheoryModel* m)
 {
   set<Node> termSet;
 
@@ -1140,7 +1139,8 @@ bool TheoryArrays::collectModelInfo( TheoryModel* m )
   } while (changed);
 
   // Send the equality engine information to the model
-  if( !m->assertEqualityEngine(&d_equalityEngine, &termSet) ){
+  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
+  {
     return false;
   }
 
@@ -1217,7 +1217,8 @@ bool TheoryArrays::collectModelInfo( TheoryModel* m )
     for (unsigned j = 0; j < reads.size(); ++j) {
       rep = nm->mkNode(kind::STORE, rep, reads[j][1], reads[j]);
     }
-    if( !m->assertEquality(n, rep, true) ){
+    if (!m->assertEquality(n, rep, true))
+    {
       return false;
     }
     if (!n.isConst()) {

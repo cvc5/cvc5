@@ -123,7 +123,8 @@ bool EagerBitblastSolver::hasAssertions(const std::vector<TNode>& formulas) {
   return true;
 }
 
-bool EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
+bool EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
+{
   AlwaysAssert(!d_useAig && d_bitblaster);
   return d_bitblaster->collectModelInfo(m, fullModel);
 }

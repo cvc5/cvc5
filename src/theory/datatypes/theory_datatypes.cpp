@@ -1487,7 +1487,8 @@ void TheoryDatatypes::computeCareGraph(){
   Trace("dt-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;
 }
 
-bool TheoryDatatypes::collectModelInfo( TheoryModel* m ){
+bool TheoryDatatypes::collectModelInfo(TheoryModel* m)
+{
   Trace("dt-cmi") << "Datatypes : Collect model info " << d_equalityEngine.consistent() << std::endl;
   Trace("dt-model") << std::endl;
   printModelDebug( "dt-model" );
@@ -1499,7 +1500,8 @@ bool TheoryDatatypes::collectModelInfo( TheoryModel* m ){
   getRelevantTerms(termSet);
 
   //combine the equality engine
-  if( !m->assertEqualityEngine( &d_equalityEngine, &termSet ) ){
+  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
+  {
     return false;
   }
 
@@ -1578,7 +1580,8 @@ bool TheoryDatatypes::collectModelInfo( TheoryModel* m ){
     }
     if( !neqc.isNull() ){
       Trace("dt-cmi") << "Assign : " << neqc << std::endl;
-      if( !m->assertEquality( eqc, neqc, true ) ){
+      if (!m->assertEquality(eqc, neqc, true))
+      {
         return false;
       }
       eqc_cons[ eqc ] = neqc;
@@ -1599,7 +1602,8 @@ bool TheoryDatatypes::collectModelInfo( TheoryModel* m ){
         std::map< Node, int > vmap;
         Node v = getCodatatypesValue( it->first, eqc_cons, vmap, 0 );
         Trace("dt-cmi") << "  EQC(" << it->first << "), constructor is " << it->second << ", value is " << v << ", const = " << v.isConst() << std::endl;
-        if( !m->assertEquality( eqc, v, true ) ){
+        if (!m->assertEquality(eqc, v, true))
+        {
           return false;
         }
         m->assertRepresentative( v );

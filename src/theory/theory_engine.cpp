@@ -846,7 +846,8 @@ bool TheoryEngine::properExplanation(TNode node, TNode expl) const {
   return true;
 }
 
-bool TheoryEngine::collectModelInfo( theory::TheoryModel* m ){
+bool TheoryEngine::collectModelInfo(theory::TheoryModel* m)
+{
   //have shared term engine collectModelInfo
   //  d_sharedTerms.collectModelInfo( m );
   // Consult each active theory to get all relevant information
@@ -854,7 +855,8 @@ bool TheoryEngine::collectModelInfo( theory::TheoryModel* m ){
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
     if(d_logicInfo.isTheoryEnabled(theoryId)) {
       Trace("model-builder") << "  CollectModelInfo on theory: " << theoryId << endl;
-      if( !d_theoryTable[theoryId]->collectModelInfo( m ) ){
+      if (!d_theoryTable[theoryId]->collectModelInfo(m))
+      {
         return false;
       }
     }
@@ -872,7 +874,8 @@ bool TheoryEngine::collectModelInfo( theory::TheoryModel* m ){
       value = false;
     }
     Trace("model-builder-assertions") << "(assert" << (value ? " " : " (not ") << var << (value ? ");" : "));") << endl;
-    if( !m->assertPredicate(var, value) ){
+    if (!m->assertPredicate(var, value))
+    {
       return false;
     }
   }

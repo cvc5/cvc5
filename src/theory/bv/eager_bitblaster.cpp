@@ -219,7 +219,8 @@ Node EagerBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
   return utils::mkConst(BitVector(bits.size(), value));
 }
 
-bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
+bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
+{
   TNodeSet::iterator it = d_variables.begin();
   for (; it != d_variables.end(); ++it) {
     TNode var = *it;
@@ -234,7 +235,8 @@ bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
         Debug("bitvector-model")
             << "EagerBitblaster::collectModelInfo (assert (= " << var << " "
             << const_value << "))\n";
-        if( !m->assertEquality(var, const_value, true) ){
+        if (!m->assertEquality(var, const_value, true))
+        {
           return false;
         }
       }

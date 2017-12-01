@@ -676,7 +676,8 @@ void AlgebraicSolver::assertFact(TNode fact) {
 EqualityStatus AlgebraicSolver::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_UNKNOWN;
 }
-bool AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
+bool AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel)
+{
   Debug("bitvector-model") << "AlgebraicSolver::collectModelInfo\n";
   AlwaysAssert (!d_quickSolver->inConflict());
   set<Node> termSet;
@@ -729,7 +730,8 @@ bool AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
     Debug("bitvector-model") << "AlgebraicSolver:   " << variables[i] << " => " << subst << "\n";
     // Doesn't have to be constant as it may be irrelevant
     Assert (subst.getKind() == kind::CONST_BITVECTOR);
-    if( !model->assertEquality(variables[i], subst, true) ){
+    if (!model->assertEquality(variables[i], subst, true))
+    {
       return false;
     }
   }

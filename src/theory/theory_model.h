@@ -91,24 +91,25 @@ public:
   //---------------------------- for building the model
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
-  /** assert equality holds in the model 
-   * 
+  /** assert equality holds in the model
+   *
    * This method returns true if the equality engine of this model is consistent
    * after asserting the equality to this model.
    */
   bool assertEquality(TNode a, TNode b, bool polarity);
-  /** assert predicate holds in the model 
-   * 
+  /** assert predicate holds in the model
+   *
    * This method returns true if the equality engine of this model is consistent
    * after asserting the predicate to this model.
    */
   bool assertPredicate(TNode a, bool polarity);
   /** assert all equalities/predicates in equality engine hold in the model
-   * 
+   *
    * This method returns true if the equality engine of this model is consistent
    * after asserting the equality engine to this model.
    */
-  bool assertEqualityEngine(const eq::EqualityEngine* ee, std::set<Node>* termSet = NULL);
+  bool assertEqualityEngine(const eq::EqualityEngine* ee,
+                            std::set<Node>* termSet = NULL);
   /** assert representative
     *  This function tells the model that n should be the representative of its equivalence class.
     *  It should be called during model generation, before final representatives are chosen.  In the

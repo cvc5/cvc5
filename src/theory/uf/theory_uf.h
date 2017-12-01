@@ -242,7 +242,7 @@ public:
   void preRegisterTerm(TNode term);
   Node explain(TNode n);
 
-  bool collectModelInfo( TheoryModel* m ) override;
+  bool collectModelInfo(TheoryModel* m) override;
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
   void presolve();
