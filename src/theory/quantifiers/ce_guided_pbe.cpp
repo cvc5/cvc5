@@ -1062,7 +1062,8 @@ void CegConjecturePbe::getCandidateList( std::vector< Node >& candidates, std::v
         Node e = it->second.d_esym_list[j];
         std::map< Node, EnumInfo >::iterator it = d_einfo.find( e );
         Assert( it != d_einfo.end() );
-        if( getGuardStatus( it->second.d_active_guard )==1 ){
+        Node gstatus = d_qe->getValuation().getSatValue( it->second.d_active_guard );
+        if( !gstatus.isNull() && gstatus.getConst<bool>() ){
           clist.push_back( e );
         }
       }
@@ -1112,7 +1113,8 @@ bool CegConjecturePbe::constructCandidates( std::vector< Node >& enums, std::vec
 void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& lems ) {
   std::map< Node, EnumInfo >::iterator it = d_einfo.find( x );
   Assert( it != d_einfo.end() );
-  if( getGuardStatus( it->second.d_active_guard )==1 ){
+  Node gstatus = d_qe->getValuation().getSatValue( it->second.d_active_guard );
+  if( !gstatus.isNull() && gstatus.getConst<bool>() ){
     Assert( std::find( it->second.d_enum_vals.begin(), it->second.d_enum_vals.end(), v )==it->second.d_enum_vals.end() );
     Node c = it->second.d_parent_candidate;
     Node exp_exc;
@@ -2354,19 +2356,6 @@ bool CegConjecturePbe::UnifContext::isStringSolved(
     }
   }
   return true;
-}
-
-int CegConjecturePbe::getGuardStatus( Node g ) {
-  bool value;
-  if( d_qe->getValuation().hasSatValue( g, value ) ) {
-    if( value ){
-      return 1;
-    }else{
-      return -1;
-    }
-  }else{
-    return 0;
-  }
 }
 
 CegConjecturePbe::StrategyNode::~StrategyNode()
