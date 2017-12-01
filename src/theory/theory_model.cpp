@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 
 TheoryModel::TheoryModel(context::Context* c, std::string name, bool enableFuncModels) :
-  d_substitutions(c, false), d_modelBuilt(false), d_enableFuncModels(enableFuncModels)
+  d_substitutions(c, false), d_modelBuilt(false), d_modelBuiltSuccess(false), d_enableFuncModels(enableFuncModels)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
@@ -53,6 +53,7 @@ TheoryModel::~TheoryModel() throw() {
 
 void TheoryModel::reset(){
   d_modelBuilt = false;
+  d_modelBuiltSuccess = false;
   d_modelCache.clear();
   d_comment_str.clear();
   d_sep_heap = Node::null();

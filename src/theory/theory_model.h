@@ -80,7 +80,7 @@ public:
   virtual void reset();
   /** is built
    *
-   * Have we (attempted to) build this model since the last
+   * Have we attempted to build this model since the last
    * call to reset? Notice for model building techniques
    * that are not guaranteed to succeed (such as
    * when quantified formulas are enabled), a true return
@@ -88,6 +88,11 @@ public:
    * current assertions.
    */
   bool isBuilt() { return d_modelBuilt; }
+  /** is built success
+   *
+   * Was this model successfully built since the last call to reset?
+   */
+  bool isBuiltSuccess() { return d_modelBuiltSuccess; }
   //---------------------------- for building the model
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
@@ -184,8 +189,10 @@ public:
  protected:
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
-  /** whether this model has been built */
+  /** whether we have tried to build this model in the current context */
   bool d_modelBuilt;
+  /** whether this model has been built successfully */
+  bool d_modelBuiltSuccess;
   /** special local context for our equalityEngine so we can clear it
    * independently of search context */
   context::Context* d_eeContext;

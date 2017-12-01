@@ -605,8 +605,6 @@ void TheoryEngine::check(Theory::Effort effort) {
             if( theory->needsCheckLastEffort() ){
               if( !d_curr_model->isBuilt() ){
                 if( !d_curr_model_builder->buildModel(d_curr_model) ){
-                  //model building should fail only if the model builder adds lemmas
-                  Assert( needCheck() );
                   break;
                 }
               }
@@ -636,9 +634,16 @@ void TheoryEngine::check(Theory::Effort effort) {
         AlwaysAssert(d_masterEqualityEngine->consistent());
       }
       if( options::produceModels() ){
-        d_curr_model_builder->debugCheckModel(d_curr_model);  
-        // Do post-processing of model from the theories (used for THEORY_SEP to construct heap model)
-        postProcessModel(d_curr_model);
+        if( !d_curr_model->isBuiltSuccess() )
+        {
+          d_incomplete = true;
+        }
+        else
+        {
+          d_curr_model_builder->debugCheckModel(d_curr_model);  
+          // Do post-processing of model from the theories (used for THEORY_SEP to construct heap model)
+          postProcessModel(d_curr_model);
+        }
       }
     }
   } catch(const theory::Interrupted&) {
