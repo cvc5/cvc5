@@ -742,14 +742,6 @@ class CegConjecturePbe {
                                     std::map< Node, std::vector< unsigned > > incr,
                                     UnifContext& x );
   //------------------------------ end constructing solutions
-
-  /** get guard status
-   *
-   * Returns 1 if g is asserted true in the SAT solver.
-   * Returns -1 if g is asserted false in the SAT solver.
-   * Returns 0 otherwise.
-   */
-  int getGuardStatus(Node g);
 };
 
 }/* namespace CVC4::theory::quantifiers */
