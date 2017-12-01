@@ -641,8 +641,8 @@ void TheoryEngine::check(Theory::Effort effort) {
       {
         if (!d_curr_model->isBuiltSuccess())
         {
-          // model building should fail only if the model builder adds lemmas
-          Assert(needCheck());
+          // model building should not fail (unless lemmas were added)
+          Assert(false);
           // incomplete if model building failed
           d_incomplete = true;
         }
