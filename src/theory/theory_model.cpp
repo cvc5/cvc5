@@ -341,6 +341,7 @@ void TheoryModel::addTermInternal(TNode n)
 /** assert equality */
 bool TheoryModel::assertEquality(TNode a, TNode b, bool polarity)
 {
+  Assert(d_equalityEngine->consistent());
   if (a == b && polarity) {
     return true;
   }
@@ -352,6 +353,7 @@ bool TheoryModel::assertEquality(TNode a, TNode b, bool polarity)
 /** assert predicate */
 bool TheoryModel::assertPredicate(TNode a, bool polarity)
 {
+  Assert(d_equalityEngine->consistent());
   if ((a == d_true && polarity) ||
       (a == d_false && (!polarity))) {
     return true;
@@ -370,6 +372,7 @@ bool TheoryModel::assertPredicate(TNode a, bool polarity)
 bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
                                        set<Node>* termSet)
 {
+  Assert(d_equalityEngine->consistent());
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   for (; !eqcs_i.isFinished(); ++eqcs_i) {
     Node eqc = (*eqcs_i);
