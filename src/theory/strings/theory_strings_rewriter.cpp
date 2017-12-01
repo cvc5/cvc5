@@ -1816,15 +1816,21 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
         if (cc == 0 && children0[0] == children1[0])
         {
           // definitely a prefix, can do the replace
+          // for example, 
+          //   str.replace( str.++( x, "ab" ), str.++( x, "a" ), y )  --->
+          //   str.++( y, "b" )
           std::vector<Node> cres;
           cres.push_back(node[2]);
           cres.insert(cres.end(), ce.begin(), ce.end());
           Node ret = mkConcat(kind::STRING_CONCAT, cres);
           return returnRewrite(node, ret, "rpl-cctn-rpl");
         }
-        else if (ce.empty())
+        else if (!ce.empty())
         {
           // we can pull remainder past first definite containment
+          // for example, 
+          //   str.replace( str.++( x, "ab" ), "a", y ) --->
+          //   str.++( str.replace( str.++( x, "a" ), "a", y ), "b" )
           std::vector<Node> cc;
           cc.push_back(NodeManager::currentNM()->mkNode(
               kind::STRING_STRREPL,
@@ -1843,9 +1849,13 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       return returnRewrite(node, node[0], "rpl-nctn");
     }
   }
-  else if (cmp_conr != cmp_con)
+  
+  if (cmp_conr != cmp_con)
   {
     // pull endpoints that can be stripped
+    // for example, 
+    //   str.replace( str.++( "b", x, "b" ), "a", y ) --->
+    //   str.++( "b", str.replace( x, "a", y ), "b" )
     std::vector<Node> cb;
     std::vector<Node> ce;
     if (stripConstantEndpoints(children0, children1, cb, ce))
@@ -1862,10 +1872,10 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       return returnRewrite(node, ret, "rpl-pull-endpt");
     }
   }
-
+  
+  // TODO (#1180) incorporate these?
   // contains( t, s ) =>
   //   replace( replace( x, t, s ), s, r ) ----> replace( x, t, r )
-
   // contains( t, s ) =>
   //   contains( replace( t, s, r ), r ) ----> true
 
