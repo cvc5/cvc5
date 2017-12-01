@@ -233,7 +233,9 @@ class CVC4_PUBLIC DatatypeConstructor {
    * For example, if A, B, C have weights 0, 1, and 3 respectively, then
    * C( B( A() ), B( A() ) ) has size 5.
    */
-  DatatypeConstructor(std::string name, std::string tester, unsigned weight = 1);
+  DatatypeConstructor(std::string name,
+                      std::string tester,
+                      unsigned weight = 1);
 
   ~DatatypeConstructor() {}
   /**
@@ -298,15 +300,15 @@ class CVC4_PUBLIC DatatypeConstructor {
    */
   bool isSygusIdFunc() const;
   /** get sygus print callback
-   * 
+   *
    * This class stores custom ways of printing
    * sygus datatype constructors, for instance,
    * to handle defined or let expressions that
    * appear in user-provided grammars.
    */
   std::shared_ptr<SygusPrintCallback> getSygusPrintCallback() const;
-  /** get weight 
-   * 
+  /** get weight
+   *
    * Get the weight of this constructor. This value is used when computing the
    * size of datatype terms that involve this constructor.
    */
@@ -671,9 +673,9 @@ public:
    * encode the arguments of op. For example, a sygus constructor
    * with op = PLUS should be such that cargs.size()>=2 and
    * the sygus type of cargs[i] is Real/Int for each i.
-   * 
-   * weight denotes the value added by the constructor when computing the size 
-   * of datatype terms. Passing a value <0 denotes the default weight for the 
+   *
+   * weight denotes the value added by the constructor when computing the size
+   * of datatype terms. Passing a value <0 denotes the default weight for the
    * constructor, which is 0 for nullary constructors and 1 for non-nullary
    * constructors.
    */

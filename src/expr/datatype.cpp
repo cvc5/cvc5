@@ -192,7 +192,7 @@ void Datatype::addSygusConstructor(CVC4::Expr op,
   std::string name = getName() + "_" + cname;
   std::string testerId("is-");
   testerId.append(name);
-  unsigned cweight = weight>=0 ? weight : ( cargs.empty() ? 0 : 1 );
+  unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
   CVC4::DatatypeConstructor c(name, testerId, cweight);
   c.setSygus(op, spc);
   for( unsigned j=0; j<cargs.size(); j++ ){
@@ -778,7 +778,9 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
 }
 
-DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester, unsigned weight)
+DatatypeConstructor::DatatypeConstructor(std::string name,
+                                         std::string tester,
+                                         unsigned weight)
     :  // We don't want to introduce a new data member, because eventually
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
@@ -883,8 +885,10 @@ bool DatatypeConstructor::isSygusIdFunc() const {
           && d_sygus_op[0][0] == d_sygus_op[1]);
 }
 
-unsigned DatatypeConstructor::getWeight() const {
-  PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+unsigned DatatypeConstructor::getWeight() const
+{
+  PrettyCheckArgument(
+      isResolved(), this, "this datatype constructor is not yet resolved");
   return d_weight;
 }
 
