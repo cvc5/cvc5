@@ -23,7 +23,6 @@
 
 using namespace CVC4;
 using namespace CVC4::kind;
-using namespace std;
 
 namespace CVC4 {
 namespace theory {
@@ -456,7 +455,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
 
   // look at information on how we will construct solutions for this type
   Assert(tn.isDatatype());
-  const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert(dt.isSygus());
 
   std::map<Node, std::vector<StrategyType> > cop_to_strat;
@@ -491,7 +490,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
       sktns.push_back(ttn);
       utchildren.push_back(kv);
     }
-    Node ut = nm->mkNode(kind::APPLY_CONSTRUCTOR, utchildren);
+    Node ut = nm->mkNode(APPLY_CONSTRUCTOR, utchildren);
     std::vector<Node> echildren;
     echildren.push_back(Node::fromExpr(dt.getSygusEvaluationFunc()));
     echildren.push_back(ut);
@@ -500,7 +499,7 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
     {
       echildren.push_back(sbv);
     }
-    Node eut = nm->mkNode(kind::APPLY_UF, echildren);
+    Node eut = nm->mkNode(APPLY_UF, echildren);
     Trace("sygus-unif-debug2") << "  Test evaluation of " << eut << "..."
                                << std::endl;
     eut = d_qe->getTermDatabaseSygus()->unfold(eut);
@@ -508,11 +507,11 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
     Trace("sygus-unif-debug2") << ", type : " << eut.getType() << std::endl;
 
     // candidate strategy
-    if (eut.getKind() == kind::ITE)
+    if (eut.getKind() == ITE)
     {
       cop_to_strat[cop].push_back(strat_ITE);
     }
-    else if (eut.getKind() == kind::STRING_CONCAT)
+    else if (eut.getKind() == STRING_CONCAT)
     {
       if (nrole != role_string_suffix)
       {
@@ -540,12 +539,12 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
       {
         Assert(sks[k].getType().isDatatype());
         const Datatype& cdt =
-            ((DatatypeType)sks[k].getType().toType()).getDatatype();
+           static_cast<DatatypeType>(sks[k].getType().toType()).getDatatype();
         echildren[0] = Node::fromExpr(cdt.getSygusEvaluationFunc());
         echildren[1] = sks[k];
         Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k]
                                    << std::endl;
-        Node esk = nm->mkNode(kind::APPLY_UF, echildren);
+        Node esk = nm->mkNode(APPLY_UF, echildren);
         vs.push_back(esk);
         Node tvar = nm->mkSkolem("templ", esk.getType());
         templ_var_index[tvar] = k;
@@ -801,7 +800,6 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
 
           // register the child type
           TypeNode ct = childTypes[j];
-          cons_strat->d_csol_cts.push_back(ct);
           Node csk = cop_to_sks[cop][cargList[j]];
           cons_strat->d_sol_templ_args.push_back(csk);
           sol_templ_children[cargList[j]] = csk;
@@ -859,8 +857,6 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
         if (strat == strat_CONCAT_SUFFIX)
         {
           std::reverse(cons_strat->d_cenum.begin(), cons_strat->d_cenum.end());
-          std::reverse(cons_strat->d_csol_cts.begin(),
-                       cons_strat->d_csol_cts.end());
           std::reverse(cons_strat->d_sol_templ_args.begin(),
                        cons_strat->d_sol_templ_args.end());
         }
@@ -877,7 +873,6 @@ void CegConjecturePbe::collectEnumeratorTypes(Node e,
           Trace("sygus-unif") << ") " << cons_strat->d_sol_templ << ")";
           Trace("sygus-unif") << std::endl;
         }
-        Assert(cons_strat->d_cenum.size() == cons_strat->d_csol_cts.size());
         // make the strategy
         snode.d_strats.push_back(cons_strat);
       }
@@ -1010,12 +1005,12 @@ void CegConjecturePbe::staticLearnRedundantOps(
           int cindex = Datatype::indexOf(etis->d_cons.toExpr());
           Assert(cindex != -1);
           needs_cons_curr[static_cast<unsigned>(cindex)] = false;
-          for (unsigned i = 0, csize = etis->d_cenum.size(); i < csize; i++)
+          for( std::pair< Node, NodeRole >& cec : etis->d_cenum )
           {
             // recurse
             staticLearnRedundantOps(c,
-                                    etis->d_cenum[i].first,
-                                    etis->d_cenum[i].second,
+                                    cec.first,
+                                    cec.second,
                                     visited,
                                     needs_cons,
                                     ind + 2);
@@ -1225,7 +1220,7 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
           std::vector< Node > exp_exc_vec;
           if( getExplanationForEnumeratorExclude( c, x, v, results, it->second, exp_exc_vec ) ){
             Assert( !exp_exc_vec.empty() );
-            exp_exc = exp_exc_vec.size()==1 ? exp_exc_vec[0] : NodeManager::currentNM()->mkNode( kind::AND, exp_exc_vec );
+            exp_exc = exp_exc_vec.size()==1 ? exp_exc_vec[0] : NodeManager::currentNM()->mkNode( AND, exp_exc_vec );
             Trace("sygus-pbe-enum") << "  ...fail : term is excluded (domain-specific)" << std::endl;
           }else{
             //if( cond_vals.size()!=2 ){
@@ -1269,7 +1264,7 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
       // if we did not already explain why this should be excluded, use default
       exp_exc = d_tds->getExplain()->getExplanationForConstantEquality(x, v);
     }
-    Node exlem = NodeManager::currentNM()->mkNode( kind::OR, g.negate(), exp_exc.negate() );
+    Node exlem = NodeManager::currentNM()->mkNode( OR, g.negate(), exp_exc.negate() );
     Trace("sygus-pbe-enum-lemma") << "CegConjecturePbe : enumeration exclude lemma : " << exlem << std::endl;
     lems.push_back( exlem );
   }else{
@@ -1305,7 +1300,7 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude( Node c, Node x, Node 
         cmp_indices[index].push_back( i );
         */
         Trace("sygus-pbe-cterm-debug") << "  " << results[i] << " <> " << itxo->second[i];
-        Node cont = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, itxo->second[i], results[i] );
+        Node cont = NodeManager::currentNM()->mkNode( STRING_STRCTN, itxo->second[i], results[i] );
         Node contr = Rewriter::rewrite( cont );
         if( contr==d_false ){
           cmp_indices.push_back( i );
@@ -1702,7 +1697,6 @@ Node CegConjecturePbe::constructBestStringToConcat( std::vector< Node > strs,
       return ns;
     }
   }
-  // TODO : more sophisticated heuristic?
   return strs[0];
 }
 
@@ -1794,14 +1788,14 @@ Node CegConjecturePbe::constructSolution(
           std::map<Node, std::vector<Node> >::iterator itx =
               d_examples_out.find(c);
           Assert(itx != d_examples_out.end());
-          std::vector<CVC4::String> ex_vals;
+          std::vector<String> ex_vals;
           x.getCurrentStrings(this, itx->second, ex_vals);
           Assert(itn->second.d_enum_vals.size()
                  == itn->second.d_enum_vals_res.size());
 
           // test each example in the term enumerator for the type
           std::vector<Node> str_solved;
-          for (unsigned i = 0; i < itet->second.d_enum_vals.size(); i++)
+          for (unsigned i = 0, size = itet->second.d_enum_vals.size(); i < size; i++)
           {
             if (x.isStringSolved(
                     this, ex_vals, itet->second.d_enum_vals_res[i]))
@@ -1838,7 +1832,7 @@ Node CegConjecturePbe::constructSolution(
       std::map<Node, std::vector<Node> >::iterator itx = d_examples_out.find(c);
       Assert(itx != d_examples_out.end());
       // make the value of the examples
-      std::vector<CVC4::String> ex_vals;
+      std::vector<String> ex_vals;
       x.getCurrentStrings(this, itx->second, ex_vals);
       if (Trace.isOn("sygus-pbe-dt-debug"))
       {
@@ -2137,7 +2131,7 @@ Node CegConjecturePbe::constructSolution(
             }
             else
             {
-              // TODO : degenerate case where children have different types?
+              // TODO (#1250) : degenerate case where children have different types?
               indent("sygus-pbe-dt", ind);
               Trace("sygus-pbe-dt") << "return PBE: failed ITE strategy, "
                                        "cannot find a distinguishable condition"
@@ -2177,7 +2171,7 @@ Node CegConjecturePbe::constructSolution(
       if (success)
       {
         Assert(dt_children_cons.size() == etis->d_sol_templ_args.size());
-        // ret_dt = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR,
+        // ret_dt = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR,
         // dt_children );
         ret_dt = etis->d_sol_templ;
         ret_dt = ret_dt.substitute(etis->d_sol_templ_args.begin(),
@@ -2287,17 +2281,17 @@ void CegConjecturePbe::UnifContext::initialize( CegConjecturePbe * pbe, Node c )
 void CegConjecturePbe::UnifContext::getCurrentStrings(
     CegConjecturePbe* pbe,
     const std::vector<Node>& vals,
-    std::vector<CVC4::String>& ex_vals)
+    std::vector<String>& ex_vals)
 {
   bool isPrefix = d_has_string_pos == role_string_prefix;
-  CVC4::String dummy;
+  String dummy;
   for( unsigned i=0; i<vals.size(); i++ ){
     if( d_vals[i]==pbe->d_true ){
       Assert( vals[i].isConst() );
       unsigned pos_value = d_str_pos[i];
       if( pos_value>0 ){
         Assert(d_has_string_pos != role_invalid);
-        CVC4::String s = vals[i].getConst<String>();
+        String s = vals[i].getConst<String>();
         Assert( pos_value<=s.size() );
         ex_vals.push_back( isPrefix ? s.suffix( s.size()-pos_value ) : 
                                       s.prefix( s.size()-pos_value ) );
@@ -2314,7 +2308,7 @@ void CegConjecturePbe::UnifContext::getCurrentStrings(
 bool CegConjecturePbe::UnifContext::getStringIncrement(
     CegConjecturePbe* pbe,
     bool isPrefix,
-    const std::vector<CVC4::String>& ex_vals,
+    const std::vector<String>& ex_vals,
     const std::vector<Node>& vals,
     std::vector<unsigned>& inc,
     unsigned& tot)
@@ -2324,7 +2318,7 @@ bool CegConjecturePbe::UnifContext::getStringIncrement(
     if( d_vals[j]==pbe->d_true ){
       // example is active in this context
       Assert( vals[j].isConst() );
-      CVC4::String mystr = vals[j].getConst<String>();
+      String mystr = vals[j].getConst<String>();
       ival = mystr.size();
       if( mystr.size()<=ex_vals[j].size() ){
         if( !( isPrefix ? ex_vals[j].strncmp(mystr, ival) : ex_vals[j].rstrncmp(mystr, ival) ) ){
@@ -2344,14 +2338,14 @@ bool CegConjecturePbe::UnifContext::getStringIncrement(
 }
 bool CegConjecturePbe::UnifContext::isStringSolved(
     CegConjecturePbe* pbe,
-    const std::vector<CVC4::String>& ex_vals,
+    const std::vector<String>& ex_vals,
     const std::vector<Node>& vals)
 {
   for( unsigned j=0; j<vals.size(); j++ ){
     if( d_vals[j]==pbe->d_true ){
       // example is active in this context
       Assert( vals[j].isConst() );
-      CVC4::String mystr = vals[j].getConst<String>();
+      String mystr = vals[j].getConst<String>();
       if( ex_vals[j]!=mystr ){
         return false;
       }
