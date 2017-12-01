@@ -617,10 +617,12 @@ void TheoryEngine::check(Theory::Effort effort) {
         if(d_logicInfo.isQuantified()) {
           // quantifiers engine must check at last call effort
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
-        } 
+        }
       }
-      if( ! d_inConflict && ! needCheck() ){
-        if(options::produceModels() && !d_curr_model->isBuilt()) {
+      if (!d_inConflict && !needCheck())
+      {
+        if (options::produceModels() && !d_curr_model->isBuilt())
+        {
           // must build model at this point
           d_curr_model_builder->buildModel(d_curr_model);
         }
@@ -635,14 +637,14 @@ void TheoryEngine::check(Theory::Effort effort) {
       if( d_masterEqualityEngine != NULL ){
         AlwaysAssert(d_masterEqualityEngine->consistent());
       }
-      if (d_curr_model->isBuilt() )
+      if (d_curr_model->isBuilt())
       {
-        if( !d_curr_model->isBuiltSuccess())
+        if (!d_curr_model->isBuiltSuccess())
         {
           // incomplete if model building failed
           d_incomplete = true;
         }
-        else if(options::produceModels())
+        else if (options::produceModels())
         {
           d_curr_model_builder->debugCheckModel(d_curr_model);
           // Do post-processing of model from the theories (used for THEORY_SEP
