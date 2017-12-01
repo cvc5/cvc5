@@ -319,7 +319,8 @@ class TransfChain : public Transf
  *
  * This class also performs more straightforward normalizations, such as
  * expanding definitions of functions declared with a "define-fun" command.
- *
+ * These lighweight transformations are always applied, independently of the
+ * normalization option being enabled.
  */
 class SygusGrammarNorm
 {

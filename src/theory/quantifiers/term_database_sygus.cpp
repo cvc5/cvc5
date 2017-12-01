@@ -237,8 +237,6 @@ Node TermDbSygus::getGenericBase( TypeNode tn, const Datatype& dt, int c ) {
     Trace("sygus-db-debug") << "Sygus DB : Generic is " << g << std::endl;
     Node gr = Rewriter::rewrite( g );
     Trace("sygus-db-debug") << "Sygus DB : Generic rewritten is " << gr << std::endl;
-    gr = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( gr.toExpr() ) );
-    Trace("sygus-db-debug") << "Sygus DB : Generic base " << dt[c].getName() << " : " << gr << std::endl;
     d_generic_base[tn][c] = gr;
     return gr;
   }else{
@@ -411,8 +409,7 @@ Node TermDbSygus::getNormalized(TypeNode t, Node prog)
 {
   std::map< Node, Node >::iterator itn = d_normalized[t].find( prog );
   if( itn==d_normalized[t].end() ){
-    Node progr = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( prog.toExpr() ) );
-    progr = Rewriter::rewrite( progr );
+    Node progr = Rewriter::rewrite( prog );
     Trace("sygus-sym-break2") << "...rewrites to " << progr << std::endl;
     d_normalized[t][prog] = progr;
     return progr;

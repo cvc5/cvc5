@@ -228,7 +228,8 @@ Transf* SygusGrammarNorm::inferTransf(const Datatype& dt,
   NodeManager* nm = NodeManager::currentNM();
   TypeNode tn = TypeNode::fromType(dt.getSygusType());
   /* TODO #1304: step 0: look for singleton */
-  /* step 1: look for chain */
+  /* TODO #1304: step 1: look for redundant constructors to drop */
+  /* step 2: look for chain */
   std::map<TransfChain::Block, Node> assoc = TransfChain::getTypeAssoc(tn);
   /* No chain transformation for type */
   if (assoc.empty())
@@ -323,12 +324,17 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   }
   /* Creates type object for normalization */
   TypeObject to(tn, unres_tn);
-  /* Determine normalization transformation based on sygus type and given operators */
-  Transf* transformation = inferTransf(dt, op_pos);
-  /* If a transformation was selected, apply it */
-  if (transformation != nullptr)
+  /* If normalization option enabled, infer transformations to be applied in the type */
+  if (options::sygusGrammarNorm())
   {
-    transformation->buildType(this, to, dt, op_pos);
+    /* Determine normalization transformation based on sygus type and given
+     * operators */
+    Transf* transformation = inferTransf(dt, op_pos);
+    /* If a transformation was selected, apply it */
+    if (transformation != nullptr)
+    {
+      transformation->buildType(this, to, dt, op_pos);
+    }
   }
   /* Remaining operators are rebuilt as they are */
   for (unsigned i = 0, size = op_pos.size(); i < size; ++i)

@@ -119,11 +119,8 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
           v.getType(), sfvl, ss.str(), extra_cons, term_irrelevant);
     }
     // normalize type
-    if (options::sygusNormalizeGrammar())
-    {
-      SygusGrammarNorm sygus_norm(d_qe);
-      tn = sygus_norm.normalizeSygusType(tn, sfvl);
-    }
+    SygusGrammarNorm sygus_norm(d_qe);
+    tn = sygus_norm.normalizeSygusType(tn, sfvl);
     // check if there is a template
     std::map< Node, Node >::iterator itt = templates.find( sf );
     if( itt!=templates.end() ){
