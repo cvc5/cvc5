@@ -572,14 +572,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
           Trace("quant-engine-debug") << "Build model..." << std::endl;
           if (!d_te->getModelBuilder()->buildModel(d_model))
           {
-            // we are done if model building was unsuccessful
-            Trace("quant-engine-debug") << "...added lemmas." << std::endl;
             flushLemmas();
           }
         }
-        else if (!d_model->isBuiltSuccess())
+        if (!d_model->isBuiltSuccess())
         {
-          setIncomplete = true;
           break;
         }
       }
@@ -702,18 +699,22 @@ void QuantifiersEngine::check( Theory::Effort e ){
   //SAT case
   if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
     if( options::produceModels() ){
-      if( d_model->isBuilt() ){
-        Trace("quant-engine-debug") << "Already built model using model builder, finish..." << std::endl;
-      }else{
+      if( !d_model->isBuilt() ){
         //use default model builder when no module built the model
         Trace("quant-engine-debug") << "Build the default model..." << std::endl;
-        d_te->getModelBuilder()->buildModel( d_model );
+        if( !d_te->getModelBuilder()->buildModel( d_model ) )
+        {
+          flushLemmas();
+        }
         Trace("quant-engine-debug") << "Done building the model." << std::endl;
       }
     }
-    if( setIncomplete ){
-      Trace("quant-engine") << "Set incomplete flag." << std::endl;
-      getOutputChannel().setIncomplete();
+    if( !d_hasAddedLemma )
+    {
+      if( setIncomplete ){
+        Trace("quant-engine") << "Set incomplete flag." << std::endl;
+        getOutputChannel().setIncomplete();
+      }
     }
     //output debug stats
     d_instantiate->debugPrintModel();

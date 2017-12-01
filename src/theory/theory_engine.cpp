@@ -633,9 +633,11 @@ void TheoryEngine::check(Theory::Effort effort) {
       if( d_masterEqualityEngine != NULL ){
         AlwaysAssert(d_masterEqualityEngine->consistent());
       }
-      if( options::produceModels() ){
-        if (!d_curr_model->isBuiltSuccess())
+      if (d_curr_model->isBuilt() )
+      {
+        if( !d_curr_model->isBuiltSuccess())
         {
+          // incomplete if model building failed
           d_incomplete = true;
         }
         else
