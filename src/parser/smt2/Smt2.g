@@ -2016,7 +2016,11 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK
       { 
         if(kind==CVC4::kind::APPLY_SELECTOR){
-          unsigned int n = op.getConst<CVC4::Rational>().getNumerator().toUnsignedInt();
+          Integer x = op.getConst<CVC4::Rational>().getNumerator();
+          if(!x.fitsUnsignedInt()){
+              PARSER_STATE->parseError("index of tupSel is larger than size of unsigned int");
+          }
+          unsigned int n = x.toUnsignedInt();
           if(args.size()>1){
             PARSER_STATE->parseError("tupSel applied to more than one tuple argument");
           }
