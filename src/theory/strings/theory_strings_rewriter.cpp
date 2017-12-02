@@ -196,6 +196,66 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
   return Node::null();
 }
 
+Node TheoryStringsRewriter::rewriteEquality(Node node) 
+{
+  if(node[0] == node[1]) {
+    return NodeManager::currentNM()->mkConst(true);
+  } else if(node[0].isConst() && node[1].isConst()) {
+    return NodeManager::currentNM()->mkConst(false);  
+  }
+  // ( ~contains( s, t ) V ~contains( t, s ) ) => ( s == t ---> false )
+  for( unsigned r=0; r<2; r++ ){
+    Node ctn = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, node[r], node[1-r] );
+    // must call rewrite contains directly to avoid infinite loop
+    ctn = rewriteContains( ctn );
+    if( ctn.isConst() && !ctn.getConst<bool>() ){
+      return ctn;
+    }
+  }
+  
+  std::vector<Node> c[2];
+  for (unsigned i = 0; i < 2; i++)
+  {
+    strings::TheoryStringsRewriter::getConcat(node[i], c[i]);
+  }
+  
+  // check if the prefix, suffix mismatches
+  //   For example, str.++( x, "a", y ) == str.++( x, "bc", z ) ---> false
+  for (unsigned r = 0; r < 2; r++)
+  {
+    for( unsigned i=0, size = c[0].size(); i<size; i++ ){
+      if( i==c[1].size() )
+      {
+        break;
+      }
+      unsigned index1 = r == 0 ? i : (c[0].size() - 1)-i;
+      unsigned index2 = r == 0 ? i : (c[1].size() - 1)-i;
+      if (c[0][index1].isConst() && c[1][index2].isConst())
+      {
+        CVC4::String s = c[0][index1].getConst<String>();
+        CVC4::String t = c[1][index2].getConst<String>();
+        unsigned len_short = s.size() <= t.size() ? s.size() : t.size();
+        bool isSameFix =
+            r == 1 ? s.rstrncmp(t, len_short) : s.strncmp(t, len_short);
+        if (!isSameFix)
+        {
+          return NodeManager::currentNM()->mkConst(false);
+        }
+      }
+      if( c[0][index1]!=c[1][index2] ){
+        break;
+      }
+    }
+  }
+  
+  // standard ordering
+  if(node[0] > node[1]) {
+    return NodeManager::currentNM()->mkNode(kind::EQUAL, node[1], node[0]);
+  }else{
+    return node;
+  }
+}
+
 // TODO (#1180) add rewrite
 //  str.++( str.substr( x, n1, n2 ), str.substr( x, n1+n2, n3 ) ) --->
 //  str.substr( x, n1, n2+n3 )
@@ -1009,6 +1069,8 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   if(node.getKind() == kind::STRING_CONCAT) {
     retNode = rewriteConcat(node);
   } else if(node.getKind() == kind::EQUAL) {
+    retNode = rewriteEquality(node);
+    /*
     Node leftNode  = node[0];
     Node rightNode = node[1];
     if(leftNode == rightNode) {
@@ -1018,6 +1080,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     } else if(leftNode > rightNode) {
       retNode = NodeManager::currentNM()->mkNode(kind::EQUAL, rightNode, leftNode);
     }
+    */
   } else if(node.getKind() == kind::STRING_LENGTH) {
     if( node[0].isConst() ){
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
@@ -1599,7 +1662,42 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     Node ret = NodeManager::currentNM()->mkConst(false);
     return returnRewrite(node, ret, "ctn-len-ineq");
   }
-  else if (checkEntailArithEq(len_n1, len_n2))
+  
+  /*
+  // multi-set reasoning
+  //   For example, contains( str.++( x, "b" ), str.++( "a", x ) ) ---> false
+  //   since the number of a's in the right hand side is greater than the number 
+  //   of a's in the left hand side.
+  std::map< Node, unsigned > num_nconst[2];
+  std::vector< Node > constants[2];
+  for( unsigned j=0; j<2; j++ ){
+    for( unsigned i=0, size = c[j].size(); i<size; i++ ){
+      if( c[j][i].isConst() ){
+        num_nconst[j][c[j][i]]++;
+      }else{
+        constants[j].push_back(c[j][i]);
+      }
+    }
+  }
+  bool ms_success = true;
+  for( std::map< const Node, unsigned >& nncp : num_nconst[0] )
+  {
+    if( nncp.first>num_nconst[1][nncp.second] ){
+      ms_success = false;
+      break;
+    }
+  }
+  if( ms_success ){
+    // count the number of constant characters
+    std::map< Node, unsigned > num_const;
+    for( unsigned j=0; j<2; j++ ){
+      
+    }
+  }
+  */
+  
+  
+  if (checkEntailArithEq(len_n1, len_n2))
   {
     // len( n2 ) = len( n1 ) => contains( n1, n2 ) ---> n1 = n2
     Node ret = node[0].eqNode(node[1]);

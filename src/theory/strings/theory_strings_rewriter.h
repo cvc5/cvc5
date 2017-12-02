@@ -63,6 +63,13 @@ private:
 
   static inline void init() {}
   static inline void shutdown() {}
+  
+  /** rewrite equality
+   * 
+   * This method returns a formula that is equivalent to the equality between
+   * two strings, given by node.
+   */
+  static Node rewriteEquality(Node node);
   /** rewrite concat
   * This is the entry point for post-rewriting terms node of the form
   *   str.++( t1, .., tn )
