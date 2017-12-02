@@ -27,78 +27,6 @@ namespace quantifiers {
 
 class SygusGrammarNorm;
 
-/** Keeps the necessary information for bulding a normalized type:
- *
- * the original typenode, from which the datatype representation can be
- * extracted
- *
- * the operators, names, print callbacks and list of argument types for each
- * constructor
- *
- * the unresolved type node used as placeholder for references of the yet to be
- * built normalized type
- *
- * a datatype to represent the structure of the type node for the normalized
- * type
- */
-class TypeObject
-{
- public:
-  /* Stores the original type node and the unresolved placeholder. The datatype
-   * for the latter is created with the respective name. */
-  TypeObject(TypeNode src_tn, TypeNode unres_tn)
-      : d_tn(src_tn),
-        d_unres_tn(unres_tn),
-        d_dt(Datatype(unres_tn.getAttribute(expr::VarNameAttr())))
-  {
-  }
-  ~TypeObject() {}
-
-  /** adds information in "cons" (operator, name, print callback, argument
-   * types) as it is into "to"
-   *
-   * A side effect of this procedure is to expand the definitions in the sygus
-   * operator of "cons"
-   *
-   * The types of the arguments of "cons" are recursively normalized
-   */
-  void addConsInfo(SygusGrammarNorm* sygus_norm,
-                   const DatatypeConstructor& cons);
-
-  /** builds a datatype with the information in the type object
-   *
-   * "dt" is the datatype of the original typenode. It is necessary for
-   * retrieving ancillary information during the datatype building, such as its
-   * sygus type (e.g. Int)
-   *
-   * The built datatype and its unresolved type are saved in the global
-   * accumulators of "sygus_norm"
-   */
-  void buildDatatype(SygusGrammarNorm* sygus_norm, const Datatype& dt);
-
-  //---------- information stored from original type node
-
-  /* The original typenode this TypeObject is built from */
-  TypeNode d_tn;
-
-  //---------- information to build normalized type node
-
-  /* Operators for each constructor. */
-  std::vector<Node> d_ops;
-  /* Names for each constructor. */
-  std::vector<std::string> d_cons_names;
-  /* Print callbacks for each constructor */
-  std::vector<std::shared_ptr<SygusPrintCallback>> d_pc;
-  /* Weights for each constructor */
-  std::vector<int> d_weight;
-  /* List of argument types for each constructor */
-  std::vector<std::vector<Type>> d_cons_args_t;
-  /* Unresolved type node placeholder */
-  TypeNode d_unres_tn;
-  /* Datatype to represent type's structure */
-  Datatype d_dt;
-}; /* class TypeObject */
-
 /** Operator position trie class
  *
  * This data structure stores an unresolved type corresponding to the
@@ -162,140 +90,6 @@ class OpPosTrie
   std::map<unsigned, OpPosTrie> d_children;
 }; /* class OpPosTrie */
 
-/** Transformation abstract class
- *
- * Classes extending this one will define specif transformationst for building
- * normalized types based on applications of specific operators
- */
-class Transf
-{
- public:
-  /** abstract function for building normalized types
-   *
-   * Builds normalized types for the operators specifed by the positions in
-   * op_pos of constructors from dt. The built types are associated with the
-   * given type object and accumulated in the sygus_norm object, whose utilities
-   * for any extra necessary normalization.
-   */
-  virtual void buildType(SygusGrammarNorm* sygus_norm,
-                         TypeObject& to,
-                         const Datatype& dt,
-                         std::vector<unsigned>& op_pos) = 0;
-}; /* class Transf */
-
-/** Chain transformation class
- *
- * Determines how to build normalized types by chaining the application of one
- * of its operators. The resulting type should admit the same terms as the
- * previous one modulo commutativity, associativity and identity of the neutral
- * element.
- *
- * TODO: #1304:
- * - define this transformation for more than just PLUS for Int.
- * - improve the building such that elements that should not be entitled a "link
- *   in the chain" (such as 5 in opposition to variables and 1) do not get one
- * - consider the case when operator is applied to different types, e.g.:
- *   A -> B + B | x; B -> 0 | 1
- * - consider the case in which in which the operator occurs nested in an
- *   argument type of itself, e.g.:
- *   A -> (B + B) + B | x; B -> 0 | 1
- */
-class TransfChain : public Transf
-{
- public:
-  TransfChain(unsigned chain_op_pos, std::vector<unsigned> elem_pos)
-      : d_chain_op_pos(chain_op_pos), d_elem_pos(elem_pos){};
-
-  /** builds types encoding a chain in which each link contains a repetition of
-   * the application of the chain operator over a non-identity element
-   *
-   * Example: when considering, over the integers, the operator "+" and the
-   * elemenst "1", "x" and "y", the built chain is e.g.
-   *
-   * x + ... + x + y + ... + y + 1 + ...+ 1
-   *
-   * whose encoding in types would be e.g.
-   *
-   * A  -> AX | AX + A | B
-   * AX -> x
-   * B  -> BY | BY + B | C
-   * BY -> y
-   * C  -> C1 | C1 + C
-   * C1 -> 1
-   *
-   * ++++++++
-   *
-   * The types composing links in the chain are built recursively by invoking
-   * sygus_norm, which caches results and handles the global normalization, on
-   * the operators not used in a given link, which will lead to recalling this
-   * transformation and so on until all operators originally given are
-   * considered.
-   */
-  virtual void buildType(SygusGrammarNorm* sygus_norm,
-                         TypeObject& to,
-                         const Datatype& dt,
-                         std::vector<unsigned>& op_pos) override;
-
-  /** Which sort of operators to look for in a type to determine if amenable for
-   * this transformation
-   *
-   * OP indicates which operator (e.g. PLUS for Int)
-   * ELEMS_ID indicates which element is the identitiy for the chain operator
-   * (e.g. ZERO for Int)
-   */
-  enum Block
-  {
-    OP,
-    ELEMS_ID
-  };
-
-  /** Specifies for each type node which are the elements of each block
-   *
-   * For example, for Int the map is {OP -> +, ELEMS_ID -> 0}
-   */
-  static std::map<TypeNode, std::map<Block, Node>> d_assoc;
-
-  /* Retrives, or, if none, creates, stores and returns, the map from block to
-   * nodes for the given type */
-  static inline std::map<Block, Node> getTypeAssoc(TypeNode tn)
-  {
-    auto it = d_assoc.find(tn);
-    if (it == d_assoc.end())
-    {
-      return addTypeAssoc(tn);
-    }
-    return it->second;
-  }
-
- private:
-  /* Position of chain operator */
-  unsigned d_chain_op_pos;
-  /* Positions (of constructors in the datatype whose type is being normalized)
-   * of elements the chain operator is applied to */
-  std::vector<unsigned> d_elem_pos;
-
-  /** associates elements to the transformation blocks for the given type
-   * node. Which elements these are is defined here.
-   *
-   * returns the built map
-   *
-   * TODO: #1304: Cover more types, make this robust to more complex grammars
-   */
-  static inline std::map<Block, Node> addTypeAssoc(TypeNode tn)
-  {
-    if (tn.isInteger())
-    {
-      std::map<Block, Node> map = {
-          {TransfChain::OP, NodeManager::currentNM()->operatorOf(kind::PLUS)},
-          {TransfChain::ELEMS_ID, TermUtil::mkTypeValue(tn, 0)}};
-      d_assoc[tn] = map;
-      return map;
-    }
-    d_assoc[tn] = {};
-    return {};
-  }
-}; /* class TransfChain */
-
 /** Utility for normalizing SyGuS grammars to avoid spurious enumerations
  *
  * Uses the datatype representation of a SyGuS grammar to identify entries that
@@ -348,6 +142,234 @@ class SygusGrammarNorm
    */
   TypeNode normalizeSygusType(TypeNode tn, Node sygus_vars);
 
+  /* Retrives, or, if none, creates, stores and returns, the node for the
+   * identity operator (\lambda x. x) for the given type node */
+  static inline Node getIdOp(TypeNode tn)
+  {
+    auto it = d_tn_to_id.find(tn);
+    if (it == d_tn_to_id.end())
+    {
+      std::vector<Node> vars = {NodeManager::currentNM()->mkBoundVar(tn)};
+      Node n = NodeManager::currentNM()->mkNode(
+          kind::LAMBDA,
+          NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, vars),
+          vars.back());
+      d_tn_to_id[tn] = n;
+      return n;
+    }
+    return it->second;
+  }
+
+ private:
+  /** Keeps the necessary information for bulding a normalized type:
+   *
+   * the original typenode, from which the datatype representation can be
+   * extracted
+   *
+   * the operators, names, print callbacks and list of argument types for each
+   * constructor
+   *
+   * the unresolved type node used as placeholder for references of the yet to
+   * be built normalized type
+   *
+   * a datatype to represent the structure of the type node for the normalized
+   * type
+   */
+  class TypeObject
+  {
+   public:
+    /* Stores the original type node and the unresolved placeholder. The
+     * datatype for the latter is created with the respective name. */
+    TypeObject(TypeNode src_tn, TypeNode unres_tn)
+        : d_tn(src_tn),
+          d_unres_tn(unres_tn),
+          d_dt(Datatype(unres_tn.getAttribute(expr::VarNameAttr())))
+    {
+    }
+    ~TypeObject() {}
+
+    /** adds information in "cons" (operator, name, print callback, argument
+     * types) as it is into "to"
+     *
+     * A side effect of this procedure is to expand the definitions in the sygus
+     * operator of "cons"
+     *
+     * The types of the arguments of "cons" are recursively normalized
+     */
+    void addConsInfo(SygusGrammarNorm* sygus_norm,
+                     const DatatypeConstructor& cons);
+
+    /** builds a datatype with the information in the type object
+     *
+     * "dt" is the datatype of the original typenode. It is necessary for
+     * retrieving ancillary information during the datatype building, such as
+     * its sygus type (e.g. Int)
+     *
+     * The built datatype and its unresolved type are saved in the global
+     * accumulators of "sygus_norm"
+     */
+    void buildDatatype(SygusGrammarNorm* sygus_norm, const Datatype& dt);
+
+    //---------- information stored from original type node
+
+    /* The original typenode this TypeObject is built from */
+    TypeNode d_tn;
+
+    //---------- information to build normalized type node
+
+    /* Operators for each constructor. */
+    std::vector<Node> d_ops;
+    /* Names for each constructor. */
+    std::vector<std::string> d_cons_names;
+    /* Print callbacks for each constructor */
+    std::vector<std::shared_ptr<SygusPrintCallback>> d_pc;
+    /* Weights for each constructor */
+    std::vector<int> d_weight;
+    /* List of argument types for each constructor */
+    std::vector<std::vector<Type>> d_cons_args_t;
+    /* Unresolved type node placeholder */
+    TypeNode d_unres_tn;
+    /* Datatype to represent type's structure */
+    Datatype d_dt;
+  }; /* class TypeObject */
+
+  /** Transformation abstract class
+   *
+   * Classes extending this one will define specif transformationst for building
+   * normalized types based on applications of specific operators
+   */
+  class Transf
+  {
+   public:
+    /** abstract function for building normalized types
+     *
+     * Builds normalized types for the operators specifed by the positions in
+     * op_pos of constructors from dt. The built types are associated with the
+     * given type object and accumulated in the sygus_norm object, whose
+     * utilities for any extra necessary normalization.
+     */
+    virtual void buildType(SygusGrammarNorm* sygus_norm,
+                           TypeObject& to,
+                           const Datatype& dt,
+                           std::vector<unsigned>& op_pos) = 0;
+  }; /* class Transf */
+
+  /** Chain transformation class
+   *
+   * Determines how to build normalized types by chaining the application of one
+   * of its operators. The resulting type should admit the same terms as the
+   * previous one modulo commutativity, associativity and identity of the
+   * neutral element.
+   *
+   * TODO: #1304:
+   * - define this transformation for more than just PLUS for Int.
+   * - improve the building such that elements that should not be entitled a
+   * "link in the chain" (such as 5 in opposition to variables and 1) do not get
+   * one
+   * - consider the case when operator is applied to different types, e.g.:
+   *   A -> B + B | x; B -> 0 | 1
+   * - consider the case in which in which the operator occurs nested in an
+   *   argument type of itself, e.g.:
+   *   A -> (B + B) + B | x; B -> 0 | 1
+   */
+  class TransfChain : public Transf
+  {
+   public:
+    TransfChain(unsigned chain_op_pos, std::vector<unsigned> elem_pos)
+        : d_chain_op_pos(chain_op_pos), d_elem_pos(elem_pos){};
+
+    /** builds types encoding a chain in which each link contains a repetition
+     * of the application of the chain operator over a non-identity element
+     *
+     * Example: when considering, over the integers, the operator "+" and the
+     * elemenst "1", "x" and "y", the built chain is e.g.
+     *
+     * x + ... + x + y + ... + y + 1 + ...+ 1
+     *
+     * whose encoding in types would be e.g.
+     *
+     * A  -> AX | AX + A | B
+     * AX -> x
+     * B  -> BY | BY + B | C
+     * BY -> y
+     * C  -> C1 | C1 + C
+     * C1 -> 1
+     *
+     * ++++++++
+     *
+     * The types composing links in the chain are built recursively by invoking
+     * sygus_norm, which caches results and handles the global normalization, on
+     * the operators not used in a given link, which will lead to recalling this
+     * transformation and so on until all operators originally given are
+     * considered.
+     */
+    virtual void buildType(SygusGrammarNorm* sygus_norm,
+                           TypeObject& to,
+                           const Datatype& dt,
+                           std::vector<unsigned>& op_pos) override;
+
+    /** Whether operator is chainable for the type (e.g. PLUS for Int)
+     *
+     *  Since the map this function depends on cannot be built statically, this
+     *  function first build maps the first time a type is checked. As a
+     *  consequence the list of chainabel operators is hardcoded in the map
+     *  building.
+     *
+     * TODO: #1304: Cover more types and operators, make this robust to more
+     * complex grammars
+     */
+    static bool isChainable(TypeNode tn, Node op);
+    /* Whether element is identity for the chain operator of the type (e.g. 0
+     *  for PLUS for Int)
+     *
+     * TODO: #1304: Cover more types, make this robust to more complex grammars
+     */
+    static bool isId(TypeNode tn, Kind op_k, Node elem);
+
+   private:
+    /* TODO #1304: this should admit more than one, as well as which elements
+     * are associated with which operator */
+    /* Position of chain operator */
+    unsigned d_chain_op_pos;
+    /* Positions (of constructors in the datatype whose type is being
+     * normalized) of elements the chain operator is applied to */
+    std::vector<unsigned> d_elem_pos;
+    /** Specifies for each type node which are its chainable operators
+     *
+     * For example, for Int the map is {OP -> [+]}
+     *
+     * TODO #1304: consider more operators
+     */
+    static std::map<TypeNode, std::vector<Kind>> d_chain_ops;
+    /** Specifies for each type node and chainable operator its identity
+     *
+     * For example, for Int and PLUS the map is {Int -> {+ -> 0}}
+     *
+     * TODO #1304: consider more operators
+     */
+    static std::map<TypeNode, std::map<Kind, Node>> d_chain_op_id;
+
+  }; /* class TransfChain */
+
+  /** reference to quantifier engine */
+  QuantifiersEngine* d_qe;
+  /** sygus term database associated with this utility */
+  TermDbSygus* d_tds;
+  /** List of variable inputs of function-to-synthesize.
+   *
+   * This information is needed in the construction of each datatype
+   * representation of type nodes contained in the type node being normalized
+   */
+  TNode d_sygus_vars;
+  /* Datatypes to be resolved */
+  std::vector<Datatype> d_dt_all;
+  /* Types to be resolved */
+  std::set<Type> d_unres_t_all;
+  /* Associates type nodes with OpPosTries */
+  std::map<TypeNode, OpPosTrie> d_tries;
+  /* Map of type nodes into their identity operators (\lambda x. x) */
+  static std::map<TypeNode, Node> d_tn_to_id;
+
   /** recursively traverses a typenode normalizing all of its elements
    *
    * "tn" is the typenode to be normalized
@@ -384,41 +406,6 @@ class SygusGrammarNorm
    */
   TypeNode normalizeSygusRec(TypeNode tn);
 
-  /** List of variable inputs of function-to-synthesize.
-   *
-   * This information is needed in the construction of each datatype
-   * representation of type nodes contained in the type node being normalized
-   */
-  TNode d_sygus_vars;
-
-  /* adds datatypes /unresolved types to global accumulators */
-  inline void addDatatype(Datatype dt) { d_dt_all.push_back(dt); }
-  inline void addUnresType(Type t) { d_unres_t_all.insert(t); }
-
-  /* Retrives, or, if none, creates, store and return, the node for the identity
-   * operator (\lambda x. x) for the given type node */
-  static inline Node getIdOp(TypeNode tn)
-  {
-    auto it = d_tn_to_id.find(tn);
-    if (it == d_tn_to_id.end())
-    {
-      return addIdOp(tn);
-    }
-    return it->second;
-  }
-
- private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
-  /** sygus term database associated with this utility */
-  TermDbSygus* d_tds;
-  /* Datatypes to be resolved */
-  std::vector<Datatype> d_dt_all;
-  /* Types to be resolved */
-  std::set<Type> d_unres_t_all;
-  /* Associates type nodes with OpPosTries */
-  std::map<TypeNode, OpPosTrie> d_tries;
-
   /** infers a transformation for normalizing dt when allowed to use the
    * operators in the positions op_pos.
    *
@@ -427,25 +414,6 @@ class SygusGrammarNorm
   Transf* inferTransf(TypeNode tn,
                       const Datatype& dt,
                       std::vector<unsigned>& op_pos);
-
-  /* Map of type nodes into their identity operators (\lambda x. x) */
-  static std::map<TypeNode, Node> d_tn_to_id;
-
-  /** associates identity operator with the given type node
-   *
-   * returns the built node
-   */
-  static inline Node addIdOp(TypeNode tn)
-  {
-    std::vector<Node> vars = {NodeManager::currentNM()->mkBoundVar(tn)};
-    Node n = NodeManager::currentNM()->mkNode(
-        kind::LAMBDA,
-        NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, vars),
-        vars.back());
-    d_tn_to_id[tn] = n;
-    return n;
-  }
-
 }; /* class SygusGrammarNorm */
 
 }  // namespace quantifiers
