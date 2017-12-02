@@ -202,11 +202,11 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
     // get substitution corresponding to m
     std::vector<TNode> vars;
     std::vector<TNode> subs;
+    quantifiers::TermUtil* tutil = d_quantEngine->getTermUtil();
     for (unsigned i = 0, size = d_quant[0].getNumChildren(); i < size; i++)
     {
       subs.push_back(m.d_vals[i]);
-      vars.push_back(
-          d_quantEngine->getTermUtil()->getInstantiationConstant(d_quant, i));
+      vars.push_back(tutil->getInstantiationConstant(d_quant, i));
     }
 
     Trace("ho-unif-debug") << "Run higher-order unification..." << std::endl;
