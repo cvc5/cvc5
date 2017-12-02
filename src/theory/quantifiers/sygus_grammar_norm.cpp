@@ -118,7 +118,8 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
   Trace("sygus-grammar-normalize") << "---------------------------------\n";
 }
 
-std::map<TypeNode, std::vector<Kind>> SygusGrammarNorm::TransfChain::d_chain_ops = {};
+std::map<TypeNode, std::vector<Kind>>
+    SygusGrammarNorm::TransfChain::d_chain_ops = {};
 std::map<TypeNode, std::map<Kind, Node>>
     SygusGrammarNorm::TransfChain::d_chain_op_id = {};
 
@@ -131,11 +132,7 @@ bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
   {
     if (tn.isInteger())
     {
-      ops = {kind::PLUS};
-    }
-    else
-    {
-      ops = {};
+      ops.push_back(PLUS);
     }
     d_chain_ops[tn] = ops;
   }
@@ -153,7 +150,7 @@ bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
          != ops.end();
 }
 
-bool SygusGrammarNorm::TransfChain::isId(TypeNode tn, Kind op_k, Node elem)
+bool SygusGrammarNorm::TransfChain::isId(TypeNode tn, Node op, Node elem)
 {
   std::map<Kind, Node> op_to_id;
   auto it = d_chain_op_id.find(tn);
@@ -164,14 +161,10 @@ bool SygusGrammarNorm::TransfChain::isId(TypeNode tn, Kind op_k, Node elem)
     {
       op_to_id[PLUS] = TermUtil::mkTypeValue(tn, 0);
     }
-    else
-    {
-     op_to_id = {};
-    }
     d_chain_op_id[tn] = op_to_id;
   }
   /* Checks whether elem is the identity of op_k */
-  auto itt = op_to_id.find(op_k);
+  auto itt = op_to_id.find(NodeManager::currentNM()->operatorToKind(op));
   if (itt == op_to_id.end())
   {
     return false;
@@ -226,8 +219,9 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     Trace("sygus-grammar-normalize-chain")
         << "\tCreating id type for " << d_elem_pos.back() << "\n";
     /* creates type for element */
-    Type t = sygus_norm->normalizeSygusRec(to.d_tn, dt, {d_elem_pos.back()})
-                 .toType();
+    std::vector<unsigned> tmp;
+    tmp.push_back(d_elem_pos.back());
+    Type t = sygus_norm->normalizeSygusRec(to.d_tn, dt, tmp).toType();
     /* consumes element */
     d_elem_pos.pop_back();
     /* adds to Root: "type" */
@@ -294,12 +288,12 @@ std::map<TypeNode, Node> SygusGrammarNorm::d_tn_to_id = {};
  * returns true if collected anything
  */
 SygusGrammarNorm::Transf* SygusGrammarNorm::inferTransf(
-    TypeNode tn, const Datatype& dt, std::vector<unsigned>& op_pos)
+    TypeNode tn, const Datatype& dt, const std::vector<unsigned>& op_pos)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
-  /* TODO #1304: step 0: look for singleton */
-  /* TODO #1304: step 1: look for redundant constructors to drop */
+  /* TODO #1304: step 0: look for redundant constructors to drop */
+  /* TODO #1304: step 1: look for singleton */
   /* step 2: look for chain */
   unsigned chain_op_pos = dt.getNumConstructors();
   std::vector<unsigned> elem_pos;
@@ -345,7 +339,7 @@ SygusGrammarNorm::Transf* SygusGrammarNorm::inferTransf(
     Kind actual_sop_k = nm->operatorToKind(sop);
     if (sop.getKind() == BOUND_VARIABLE
         || ((sop.getKind() != BUILTIN || actual_sop_k == ITE) && sop.isConst()
-            && !TransfChain::isId(sygus_tn, PLUS, Node::fromExpr(sop))))
+            && !TransfChain::isId(sygus_tn, nm->operatorOf(PLUS), Node::fromExpr(sop))))
     {
       Trace("sygus-grammar-normalize-infer")
           << "\tCollecting For NON_ID_ELEMS collecting sop " << sop
@@ -365,7 +359,7 @@ SygusGrammarNorm::Transf* SygusGrammarNorm::inferTransf(
 
 TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
                                              const Datatype& dt,
-                                             std::vector<unsigned> op_pos)
+                                             std::vector<unsigned>& op_pos)
 {
   /* Corresponding type node to tn with the given operator positions. To be
    * retrieved (if cached) or defined (otherwise) */

@@ -157,12 +157,16 @@ class CVC4_PUBLIC SygusEmptyPrintCallback : public SygusPrintCallback
   /* Retrieves empty callback pointer */
   static inline std::shared_ptr<SygusEmptyPrintCallback> getEmptyPC()
   {
+    if (!d_empty_pc)
+    {
+      d_empty_pc = std::make_shared<SygusEmptyPrintCallback>();
+    }
     return d_empty_pc;
   }
 
  private:
   /* empty callback object */
-  static const std::shared_ptr<SygusEmptyPrintCallback> d_empty_pc;
+  static std::shared_ptr<SygusEmptyPrintCallback> d_empty_pc;
 };
 
 } /* CVC4::printer namespace */

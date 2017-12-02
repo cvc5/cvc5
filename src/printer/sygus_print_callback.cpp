@@ -208,8 +208,7 @@ void SygusEmptyPrintCallback::toStreamSygus(const Printer* p,
   }
 }
 
-const std::shared_ptr<SygusEmptyPrintCallback> SygusEmptyPrintCallback::d_empty_pc =
-    std::make_shared<SygusEmptyPrintCallback>();
+std::shared_ptr<SygusEmptyPrintCallback> SygusEmptyPrintCallback::d_empty_pc = nullptr;
 
 } /* CVC4::printer namespace */
 } /* CVC4 namespace */

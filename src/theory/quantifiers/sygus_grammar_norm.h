@@ -324,7 +324,7 @@ class SygusGrammarNorm
      *
      * TODO: #1304: Cover more types, make this robust to more complex grammars
      */
-    static bool isId(TypeNode tn, Kind op_k, Node elem);
+    static bool isId(TypeNode tn, Node op, Node elem);
 
    private:
     /* TODO #1304: this should admit more than one, as well as which elements
@@ -398,7 +398,7 @@ class SygusGrammarNorm
    */
   TypeNode normalizeSygusRec(TypeNode tn,
                              const Datatype& dt,
-                             std::vector<unsigned> op_pos);
+                             std::vector<unsigned>& op_pos);
 
   /** wrapper for the above function
    *
@@ -413,7 +413,7 @@ class SygusGrammarNorm
    */
   Transf* inferTransf(TypeNode tn,
                       const Datatype& dt,
-                      std::vector<unsigned>& op_pos);
+                      const std::vector<unsigned>& op_pos);
 }; /* class SygusGrammarNorm */
 
 }  // namespace quantifiers
