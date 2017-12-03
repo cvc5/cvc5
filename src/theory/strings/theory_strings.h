@@ -410,7 +410,7 @@ protected:
   void sendInference( std::vector< Node >& exp, Node eq, const char * c, bool asLemma = false );
   void sendLemma( Node ant, Node conc, const char * c );
   void sendInfer( Node eq_exp, Node eq, const char * c );
-  void sendSplit( Node a, Node b, const char * c, bool preq = true );
+  bool sendSplit( Node a, Node b, const char * c, bool preq = true );
   void sendLengthLemma( Node n );
   /** mkConcat **/
   inline Node mkConcat( Node n1, Node n2 );

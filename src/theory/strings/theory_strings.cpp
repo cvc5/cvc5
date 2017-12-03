@@ -1438,7 +1438,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
       if( ( in.d_pol==1 && nr[1].getKind()==kind::STRING_CONCAT ) || ( in.d_pol==-1 && nr[0].getKind()==kind::STRING_CONCAT ) ){
         if( d_extf_infer_cache.find( nr )==d_extf_infer_cache.end() ){
           d_extf_infer_cache.insert( nr );
-          /*
+          
           //one argument does (not) contain each of the components of the other argument
           int index = in.d_pol==1 ? 1 : 0;
           std::vector< Node > children;
@@ -1452,7 +1452,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
             getExtTheory()->markReduced( conc );
             sendInference( in.d_exp, in.d_pol==1 ? conc : conc.negate(), "CTN_Decompose" );
           }
-          */
+          
         }
       }else{
         //store this (reduced) assertion
@@ -2968,11 +2968,9 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                     return;
                   }else if( !areEqual( firstChar, nconst_k ) ){
                     //splitting on demand : try to make them disequal
-                    Node eq = firstChar.eqNode( nconst_k );
-                    sendSplit( firstChar, nconst_k, "S-Split(DEQL-Const)" );
-                    eq = Rewriter::rewrite( eq );
-                    d_pending_req_phase[ eq ] = false;
-                    return;
+                    if( sendSplit( firstChar, nconst_k, "S-Split(DEQL-Const)", false ) ){
+                      return;
+                    }
                   }
                 }else{
                   Node sk = mkSkolemCached( nconst_k, firstChar, sk_id_dc_spt, "dc_spt", 2 );
@@ -3022,18 +3020,14 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
           }else if( areEqual( li, lj ) ){
             Assert( !areDisequal( i, j ) );
             //splitting on demand : try to make them disequal
-            Node eq = i.eqNode( j );
-            sendSplit( i, j, "S-Split(DEQL)" );
-            eq = Rewriter::rewrite( eq );
-            d_pending_req_phase[ eq ] = false;
-            return;
+            if( sendSplit( i, j, "S-Split(DEQL)", false ) ){
+              return;
+            }
           }else{
             //splitting on demand : try to make lengths equal
-            Node eq = li.eqNode( lj );
-            sendSplit( li, lj, "D-Split" );
-            eq = Rewriter::rewrite( eq );
-            d_pending_req_phase[ eq ] = true;
-            return;
+            if( sendSplit( li, lj, "D-Split" ) ){
+              return;
+            }
           }
         }
         index++;
@@ -3351,15 +3345,20 @@ void TheoryStrings::sendInfer( Node eq_exp, Node eq, const char * c ) {
   d_infer_exp.push_back( eq_exp );
 }
 
-void TheoryStrings::sendSplit( Node a, Node b, const char * c, bool preq ) {
+bool TheoryStrings::sendSplit( Node a, Node b, const char * c, bool preq ) {
   Node eq = a.eqNode( b );
   eq = Rewriter::rewrite( eq );
-  Node neq = NodeManager::currentNM()->mkNode( kind::NOT, eq );
-  Node lemma_or = NodeManager::currentNM()->mkNode( kind::OR, eq, neq );
-  Trace("strings-lemma") << "Strings::Lemma " << c << " SPLIT : " << lemma_or << std::endl;
-  d_lemma_cache.push_back(lemma_or);
-  d_pending_req_phase[eq] = preq;
-  ++(d_statistics.d_splits);
+  if( !eq.isConst() )
+  {
+    Node neq = NodeManager::currentNM()->mkNode( kind::NOT, eq );
+    Node lemma_or = NodeManager::currentNM()->mkNode( kind::OR, eq, neq );
+    Trace("strings-lemma") << "Strings::Lemma " << c << " SPLIT : " << lemma_or << std::endl;
+    d_lemma_cache.push_back(lemma_or);
+    d_pending_req_phase[eq] = preq;
+    ++(d_statistics.d_splits);
+    return true;
+  }
+  return false;
 }
 
 
@@ -3757,8 +3756,9 @@ void TheoryStrings::checkCardinality() {
             itr2 != cols[i].end(); ++itr2) {
             if(!areDisequal( *itr1, *itr2 )) {
               // add split lemma
-              sendSplit( *itr1, *itr2, "CARD-SP" );
-              return;
+              if( sendSplit( *itr1, *itr2, "CARD-SP" ) ){
+                return;
+              }
             }
           }
         }
