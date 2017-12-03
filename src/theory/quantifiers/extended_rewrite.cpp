@@ -118,14 +118,6 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     Node new_ret;
     if (ret.getKind() == kind::EQUAL)
     {
-      // string equalities with disequal prefix or suffix
-      if (ret[0].getType().isString())
-      {
-        Node retr = strings::TheoryStringsRewriter::rewriteEquality(ret);
-        if( retr!=ret ){
-          new_ret = retr;
-        }
-      }
       if (new_ret.isNull())
       {
         // simple ITE pulling

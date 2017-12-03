@@ -3917,11 +3917,7 @@ Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
 
 Node TheoryStrings::ppRewrite(TNode atom) {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
-  if( atom.getKind()==kind::EQUAL )
-  {
-    atom = TheoryStringsRewriter::rewriteEquality( atom );
-  }
-  else if( !options::stringLazyPreproc() ){
+  if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;
     Node ret = d_preproc.processAssertion( atom, new_nodes );
