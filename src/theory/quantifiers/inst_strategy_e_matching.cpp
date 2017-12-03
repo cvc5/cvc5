@@ -106,8 +106,7 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
           Trace("process-trigger") << "  Process (user) ";
           d_user_gen[f][i]->debugPrint("process-trigger");
           Trace("process-trigger") << "..." << std::endl;
-          InstMatch baseMatch( f );
-          int numInst = d_user_gen[f][i]->addInstantiations( baseMatch );
+          int numInst = d_user_gen[f][i]->addInstantiations();
           Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
           d_quantEngine->d_statistics.d_instantiations_user_patterns += numInst;
           if( d_user_gen[f][i]->isMultiTrigger() ){
@@ -249,8 +248,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
               Trace("process-trigger") << "  Process ";
               tr->debugPrint("process-trigger");
               Trace("process-trigger") << "..." << std::endl;
-              InstMatch baseMatch( f );
-              int numInst = tr->addInstantiations( baseMatch );
+              int numInst = tr->addInstantiations();
               hasInst = numInst>0 || hasInst;
               Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
               d_quantEngine->d_statistics.d_instantiations_auto_gen += numInst;
