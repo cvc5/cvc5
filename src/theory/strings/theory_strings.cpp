@@ -1439,6 +1439,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
         if( d_extf_infer_cache.find( nr )==d_extf_infer_cache.end() ){
           d_extf_infer_cache.insert( nr );
           
+
           //one argument does (not) contain each of the components of the other argument
           int index = in.d_pol==1 ? 1 : 0;
           std::vector< Node > children;
@@ -1448,9 +1449,17 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
           for( unsigned i=0; i<nr[index].getNumChildren(); i++ ){
             children[index] = nr[index][i];
             Node conc = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, children );
-            //can mark as reduced, since model for n => model for conc
-            getExtTheory()->markReduced( conc );
-            sendInference( in.d_exp, in.d_pol==1 ? conc : conc.negate(), "CTN_Decompose" );
+            conc = Rewriter::rewrite( in.d_pol==1 ? conc : conc.negate() );
+            // check if it already (does not) hold
+            if( hasTerm( conc ) )
+            {
+              // can mark as reduced, since model for n => model for conc
+              getExtTheory()->markReduced( conc );
+              if( areEqual( conc, d_false ) ){
+                // should be a conflict
+                sendInference( in.d_exp, conc, "CTN_Decompose" );
+              }
+            }
           }
           
         }
