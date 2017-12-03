@@ -1438,7 +1438,6 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
       if( ( in.d_pol==1 && nr[1].getKind()==kind::STRING_CONCAT ) || ( in.d_pol==-1 && nr[0].getKind()==kind::STRING_CONCAT ) ){
         if( d_extf_infer_cache.find( nr )==d_extf_infer_cache.end() ){
           d_extf_infer_cache.insert( nr );
-          
 
           //one argument does (not) contain each of the components of the other argument
           int index = in.d_pol==1 ? 1 : 0;
@@ -1449,15 +1448,16 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
           for( unsigned i=0; i<nr[index].getNumChildren(); i++ ){
             children[index] = nr[index][i];
             Node conc = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, children );
-            conc = Rewriter::rewrite( in.d_pol==1 ? conc : conc.negate() );
+            conc = Rewriter::rewrite(in.d_pol == 1 ? conc : conc.negate());
             // check if it already (does not) hold
-            if( hasTerm( conc ) )
+            if (hasTerm(conc))
             {
               // can mark as reduced, since model for n => model for conc
-              getExtTheory()->markReduced( conc );
-              if( areEqual( conc, d_false ) ){
+              getExtTheory()->markReduced(conc);
+              if (areEqual(conc, d_false))
+              {
                 // should be a conflict
-                sendInference( in.d_exp, conc, "CTN_Decompose" );
+                sendInference(in.d_exp, conc, "CTN_Decompose");
               }
             }
           }
@@ -2977,7 +2977,9 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                     return;
                   }else if( !areEqual( firstChar, nconst_k ) ){
                     //splitting on demand : try to make them disequal
-                    if( sendSplit( firstChar, nconst_k, "S-Split(DEQL-Const)", false ) ){
+                    if (sendSplit(
+                            firstChar, nconst_k, "S-Split(DEQL-Const)", false))
+                    {
                       return;
                     }
                   }
@@ -3029,12 +3031,14 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
           }else if( areEqual( li, lj ) ){
             Assert( !areDisequal( i, j ) );
             //splitting on demand : try to make them disequal
-            if( sendSplit( i, j, "S-Split(DEQL)", false ) ){
+            if (sendSplit(i, j, "S-Split(DEQL)", false))
+            {
               return;
             }
           }else{
             //splitting on demand : try to make lengths equal
-            if( sendSplit( li, lj, "D-Split" ) ){
+            if (sendSplit(li, lj, "D-Split"))
+            {
               return;
             }
           }
@@ -3354,14 +3358,16 @@ void TheoryStrings::sendInfer( Node eq_exp, Node eq, const char * c ) {
   d_infer_exp.push_back( eq_exp );
 }
 
-bool TheoryStrings::sendSplit( Node a, Node b, const char * c, bool preq ) {
+bool TheoryStrings::sendSplit(Node a, Node b, const char* c, bool preq)
+{
   Node eq = a.eqNode( b );
   eq = Rewriter::rewrite( eq );
-  if( !eq.isConst() )
+  if (!eq.isConst())
   {
-    Node neq = NodeManager::currentNM()->mkNode( kind::NOT, eq );
-    Node lemma_or = NodeManager::currentNM()->mkNode( kind::OR, eq, neq );
-    Trace("strings-lemma") << "Strings::Lemma " << c << " SPLIT : " << lemma_or << std::endl;
+    Node neq = NodeManager::currentNM()->mkNode(kind::NOT, eq);
+    Node lemma_or = NodeManager::currentNM()->mkNode(kind::OR, eq, neq);
+    Trace("strings-lemma") << "Strings::Lemma " << c << " SPLIT : " << lemma_or
+                           << std::endl;
     d_lemma_cache.push_back(lemma_or);
     d_pending_req_phase[eq] = preq;
     ++(d_statistics.d_splits);
@@ -3765,7 +3771,8 @@ void TheoryStrings::checkCardinality() {
             itr2 != cols[i].end(); ++itr2) {
             if(!areDisequal( *itr1, *itr2 )) {
               // add split lemma
-              if( sendSplit( *itr1, *itr2, "CARD-SP" ) ){
+              if (sendSplit(*itr1, *itr2, "CARD-SP"))
+              {
                 return;
               }
             }
