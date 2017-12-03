@@ -1438,7 +1438,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
       if( ( in.d_pol==1 && nr[1].getKind()==kind::STRING_CONCAT ) || ( in.d_pol==-1 && nr[0].getKind()==kind::STRING_CONCAT ) ){
         if( d_extf_infer_cache.find( nr )==d_extf_infer_cache.end() ){
           d_extf_infer_cache.insert( nr );
-          
+          /*
           //one argument does (not) contain each of the components of the other argument
           int index = in.d_pol==1 ? 1 : 0;
           std::vector< Node > children;
@@ -1452,7 +1452,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
             getExtTheory()->markReduced( conc );
             sendInference( in.d_exp, in.d_pol==1 ? conc : conc.negate(), "CTN_Decompose" );
           }
-          
+          */
         }
       }else{
         //store this (reduced) assertion
@@ -3908,7 +3908,11 @@ Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
 
 Node TheoryStrings::ppRewrite(TNode atom) {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
-  if( !options::stringLazyPreproc() ){
+  if( atom.getKind()==kind::EQUAL )
+  {
+    atom = TheoryStringsRewriter::rewriteEquality( atom );
+  }
+  else if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;
     Node ret = d_preproc.processAssertion( atom, new_nodes );

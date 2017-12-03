@@ -1069,8 +1069,6 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   if(node.getKind() == kind::STRING_CONCAT) {
     retNode = rewriteConcat(node);
   } else if(node.getKind() == kind::EQUAL) {
-    retNode = rewriteEquality(node);
-    /*
     Node leftNode  = node[0];
     Node rightNode = node[1];
     if(leftNode == rightNode) {
@@ -1080,7 +1078,6 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     } else if(leftNode > rightNode) {
       retNode = NodeManager::currentNM()->mkNode(kind::EQUAL, rightNode, leftNode);
     }
-    */
   } else if(node.getKind() == kind::STRING_LENGTH) {
     if( node[0].isConst() ){
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
