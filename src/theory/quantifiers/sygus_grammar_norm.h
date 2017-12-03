@@ -319,12 +319,12 @@ class SygusGrammarNorm
      * complex grammars
      */
     static bool isChainable(TypeNode tn, Node op);
-    /* Whether element is identity for the chain operator of the type (e.g. 0
-     *  for PLUS for Int)
+    /* Whether n is the identity for the chain operator of the type (e.g. 1 is
+     * not the identity 0 for PLUS for Int)
      *
      * TODO: #1304: Cover more types, make this robust to more complex grammars
      */
-    static bool isId(TypeNode tn, Node op, Node elem);
+    static bool isId(TypeNode tn, Node op, Node n);
 
    private:
     /* TODO #1304: this should admit more than one, as well as which elements

@@ -118,58 +118,30 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
   Trace("sygus-grammar-normalize") << "---------------------------------\n";
 }
 
-std::map<TypeNode, std::vector<Kind>>
-    SygusGrammarNorm::TransfChain::d_chain_ops = {};
-std::map<TypeNode, std::map<Kind, Node>>
-    SygusGrammarNorm::TransfChain::d_chain_op_id = {};
-
+/* TODO #1304: have more operators and types. Moreover, have more general ways
+   of finding kind of operator, e.g. if op is (\lambda xy. x + y) this
+   function should realize that it is chainable for integers */
 bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
 {
-  std::vector<Kind> ops;
-  auto it = d_chain_ops.find(tn);
-  /* Creates map for type node */
-  if (it == d_chain_ops.end())
+  /* Checks whether operator occurs chainable for its type */
+  if (tn.isInteger() && NodeManager::currentNM()->operatorToKind(op) == PLUS)
   {
-    if (tn.isInteger())
-    {
-      ops.push_back(PLUS);
-    }
-    d_chain_ops[tn] = ops;
+    return true;
   }
-  else
-  {
-    ops = it->second;
-  }
-  /* TODO #1304: have more general ways of finding kind of operator, e.g. if op
-     is (\lambda xy. x + y) this function should realize that it is chainable
-     for integers */
-  /* Checks whether operator occurs in list of chainable ones */
-  return std::find(ops.begin(),
-                   ops.end(),
-                   NodeManager::currentNM()->operatorToKind(op))
-         != ops.end();
+  return false;
 }
 
-bool SygusGrammarNorm::TransfChain::isId(TypeNode tn, Node op, Node elem)
+/* TODO #1304: have more operators and types. Moreover, have more general ways
+   of finding kind of operator, e.g. if op is (\lambda xy. x + y) this
+   function should realize that it is chainable for integers */
+bool SygusGrammarNorm::TransfChain::isId(TypeNode tn, Node op, Node n)
 {
-  std::map<Kind, Node> op_to_id;
-  auto it = d_chain_op_id.find(tn);
-  /* Creates map for type node */
-  if (it == d_chain_op_id.end())
+  if (tn.isInteger() && NodeManager::currentNM()->operatorToKind(op) == PLUS
+      && n == TermUtil::mkTypeValue(tn, 0))
   {
-    if (tn.isInteger())
-    {
-      op_to_id[PLUS] = TermUtil::mkTypeValue(tn, 0);
-    }
-    d_chain_op_id[tn] = op_to_id;
+    return true;
   }
-  /* Checks whether elem is the identity of op_k */
-  auto itt = op_to_id.find(NodeManager::currentNM()->operatorToKind(op));
-  if (itt == op_to_id.end())
-  {
-    return false;
-  }
-  return itt->second == elem;
+  return false;
 }
 
 void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
@@ -335,14 +307,11 @@ SygusGrammarNorm::Transf* SygusGrammarNorm::inferTransf(
       continue;
     }
     /* TODO #1304: check this for each operator */
-    /* Collects elements different from the identity (e.g. zero) */
-    Kind actual_sop_k = nm->operatorToKind(sop);
-    if (sop.getKind() == BOUND_VARIABLE
-        || ((sop.getKind() != BUILTIN || actual_sop_k == ITE) && sop.isConst()
-            && !TransfChain::isId(sygus_tn, nm->operatorOf(PLUS), Node::fromExpr(sop))))
+    /* Collects elements that are not the identity (e.g. 0 is the id of PLUS) */
+    if (!TransfChain::isId(sygus_tn, nm->operatorOf(PLUS), Node::fromExpr(sop)))
     {
       Trace("sygus-grammar-normalize-infer")
-          << "\tCollecting For NON_ID_ELEMS collecting sop " << sop
+          << "\tCollecting for NON_ID_ELEMS the sop " << sop
           << " in position " << op_pos[i] << "\n";
       elem_pos.push_back(op_pos[i]);
     }
