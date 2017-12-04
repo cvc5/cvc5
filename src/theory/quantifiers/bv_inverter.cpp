@@ -492,21 +492,24 @@ Node BvInverter::solve_bv_lit(Node sv,
           {
             /* s % x = t
              * with side condition:
-             * s > t
-             * && s-t > t
-             * && (t = 0 || t != s-1)  */
-            Node s_gt_t = nm->mkNode(BITVECTOR_UGT, s, t);
-            Node s_m_t = nm->mkNode(BITVECTOR_SUB, s, t);
-            Node smt_gt_t = nm->mkNode(BITVECTOR_UGT, s_m_t, t);
-            Node t_eq_z = nm->mkNode(EQUAL,
-                t, bv::utils::mkZero(bv::utils::getSize(t)));
-            Node s_m_o = nm->mkNode(BITVECTOR_SUB,
-                s, bv::utils::mkOne(bv::utils::getSize(s)));
-            Node t_d_smo = nm->mkNode(DISTINCT, t, s_m_o);
+             * s = t
+             * ||
+             * ( s > t
+             *   && s-t > t
+             *   && (t = 0 || t != s-1) )  */
 
-            scl = nm->mkNode(AND,
-                             nm->mkNode(AND, s_gt_t, smt_gt_t),
-                             nm->mkNode(OR, t_eq_z, t_d_smo));
+            Node a1 =  // s > t
+              nm->mkNode(BITVECTOR_UGT, s, t);
+            Node a2 =  // s-t > t
+              nm->mkNode(BITVECTOR_UGT, nm->mkNode(BITVECTOR_SUB, s, t), t);
+            Node a3 =  // (t = 0 || t != s-1)
+              nm->mkNode(OR,
+                  t.eqNode(bv::utils::mkZero(bv::utils::getSize(t))),
+                  t.eqNode(bv::utils::mkDec(s)).notNode());
+
+            scl = nm->mkNode(OR,
+                t.eqNode(s),
+                nm->mkNode(AND, a1, nm->mkNode(AND, a2, a3)));
             scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UREM_TOTAL, s, x), t);
           }
           Node sc = nm->mkNode(IMPLIES, scl, scr);
