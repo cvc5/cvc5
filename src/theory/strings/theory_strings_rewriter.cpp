@@ -212,10 +212,23 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
     Node ctn = NodeManager::currentNM()->mkNode(
         kind::STRING_STRCTN, node[r], node[1 - r]);
     // must call rewrite contains directly to avoid infinite loop
-    ctn = rewriteContains(ctn);
-    if (ctn.isConst() && !ctn.getConst<bool>())
+    // we do a fix point since we may rewrite contains terms to simpler 
+    // contains terms.
+    Node prev;
+    do
     {
-      return ctn;
+      prev = ctn;
+      ctn = rewriteContains(ctn);
+    }while( prev!=ctn && ctn.getKind()==kind::STRING_STRCTN );
+    if (ctn.isConst())
+    {
+      if(!ctn.getConst<bool>()){
+        return returnRewrite(node,ctn,"eq-nctn");
+      }else{
+        //definite contains but not syntactically equal
+        // We may be able to simplify, e.g.
+        //  str.++( x, "a" ) == "a"  ----> x = ""
+      }
     }
   }
 
@@ -246,7 +259,8 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
             r == 1 ? s.rstrncmp(t, len_short) : s.strncmp(t, len_short);
         if (!isSameFix)
         {
-          return NodeManager::currentNM()->mkConst(false);
+          Node ret = NodeManager::currentNM()->mkConst(false);
+          return returnRewrite(node,ret,"eq-nfix");
         }
       }
       if (c[0][index1] != c[1][index2])
@@ -1662,38 +1676,44 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     Node ret = NodeManager::currentNM()->mkConst(false);
     return returnRewrite(node, ret, "ctn-len-ineq");
   }
-
+  
   /*
   // multi-set reasoning
   //   For example, contains( str.++( x, "b" ), str.++( "a", x ) ) ---> false
   //   since the number of a's in the right hand side is greater than the number
   //   of a's in the left hand side.
   std::map< Node, unsigned > num_nconst[2];
-  std::vector< Node > constants[2];
+  std::map< Node, unsigned > num_const[2];
   for( unsigned j=0; j<2; j++ ){
-    for( unsigned i=0, size = c[j].size(); i<size; i++ ){
-      if( c[j][i].isConst() ){
-        num_nconst[j][c[j][i]]++;
+    std::vector< Node >& ncj = j==0 ? nc1 : nc2;
+    for( const Node& cc : ncj ){
+      if( cc.isConst() ){
+        num_const[j][cc]++;
       }else{
-        constants[j].push_back(c[j][i]);
+        num_nconst[j][cc]++;
       }
     }
   }
   bool ms_success = true;
-  for( std::map< const Node, unsigned >& nncp : num_nconst[0] )
+  for( std::pair< const Node, unsigned >& nncp : num_nconst[0] )
   {
-    if( nncp.first>num_nconst[1][nncp.second] ){
+    if( nncp.second>num_nconst[1][nncp.first] ){
       ms_success = false;
       break;
     }
   }
   if( ms_success ){
-    // count the number of constant characters
-    std::map< Node, unsigned > num_const;
-    for( unsigned j=0; j<2; j++ ){
-
+    // count the number of constant characters in the first argument
+    std::map< Node, unsigned > count_const;
+    for( std::pair< const Node, unsigned >& ncp : num_const[0] )
+    {
+      Node cn = ncp.first;
+      Assert(cn.isConst());
+      
     }
   }
+  // TODO (#1180): abstract interpretation with multi-set domain
+  // to show first argument is a strict subset of second argument
   */
 
   if (checkEntailArithEq(len_n1, len_n2))
@@ -2523,7 +2543,7 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
             // can strip off up to the find position
             // e.g. str.contains( str.++( "abc", x ), str.++( "b", y ) ) -->
             // str.contains( str.++( "bc", x ), str.++( "b", y ) )
-            overlap = s.size() - ret;
+            overlap = r==0 ? ( s.size() - ret ) : (ret+1);
           }
         }
         else if (n2[index1].getKind() == kind::STRING_ITOS)
