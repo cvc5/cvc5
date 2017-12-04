@@ -1381,8 +1381,8 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       }
       else if (cur == pv)
       {
-        Trace("cegqi-bv-nl") << "NONLINEAR LITERAL for " << pv << " : " << lit
-                             << std::endl;
+        Trace("cegqi-bv-nl")
+            << "NONLINEAR LITERAL for " << pv << " : " << lit << std::endl;
       }
     } while (!trace_visit.empty());
   }
@@ -1509,6 +1509,7 @@ static Node getPvCoeff(TNode pv, TNode n)
   return coeff;
 }
 
+#ifdef CVC4_ASSERTIONS
 static bool isLinearPlus(
     TNode n,
     TNode pv,
@@ -1530,6 +1531,7 @@ static bool isLinearPlus(
   Assert(!contains_pv[coeff]);
   return true;
 }
+#endif
 
 /**
  * Normalizes the children of a BITVECTOR_PLUS w.r.t. pv.
@@ -1711,7 +1713,6 @@ Node BvInstantiator::rewriteTermForSolvePv(
             coeffs[i] = getPvCoeff(pv, child);
           }
         }
-
         if (neg)
         {
           if (!coeffs[i].isNull())
