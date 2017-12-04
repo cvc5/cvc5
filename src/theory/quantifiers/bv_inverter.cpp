@@ -458,18 +458,19 @@ Node BvInverter::solve_bv_lit(Node sv,
           /* with side condition:
            * ctz(t) >= ctz(s) <-> x * s = t
            * where
-           * ctz(t) >= ctz(s) -> (t & -t) >= (s & -s) /\ s != 0 */
+           * ctz(t) >= ctz(s) -> t = 0 \/ ((t & -t) >= (s & -s) /\ s != 0) */
           TypeNode solve_tn = sv_t[index].getType();
           Node x = getSolveVariable(solve_tn);
+          Node zero = bv::utils::mkZero(bv::utils::getSize(s));
           /* left hand side of side condition  */
-          Node scl = nm->mkNode(
-              AND,
-              nm->mkNode(
-                  BITVECTOR_UGE,
-                  nm->mkNode(BITVECTOR_AND, t, nm->mkNode(BITVECTOR_NEG, t)),
-                  nm->mkNode(BITVECTOR_AND, s, nm->mkNode(BITVECTOR_NEG, s))),
-              nm->mkNode(
-                  DISTINCT, s, bv::utils::mkZero(bv::utils::getSize(s))));
+          Node t_uge_s = nm->mkNode(
+                   BITVECTOR_UGE,
+                   nm->mkNode(BITVECTOR_AND, t, nm->mkNode(BITVECTOR_NEG, t)),
+                   nm->mkNode(BITVECTOR_AND, s, nm->mkNode(BITVECTOR_NEG, s)));
+          Node scl =
+              nm->mkNode(OR,
+                         t.eqNode(zero),
+                         nm->mkNode(AND, t_uge_s, s.eqNode(zero).notNode()));
           /* right hand side of side condition  */
           Node scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_MULT, x, s), t);
           /* overall side condition  */
