@@ -1677,7 +1677,6 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     return returnRewrite(node, ret, "ctn-len-ineq");
   }
   
-  /*
   // multi-set reasoning
   //   For example, contains( str.++( x, "b" ), str.++( "a", x ) ) ---> false
   //   since the number of a's in the second argument is greater than the number
@@ -1705,6 +1704,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   if( ms_success ){
     // count the number of constant characters in the first argument
     std::map< Node, unsigned > count_const[2];
+    std::vector< Node > chars;
     for( unsigned j=0; j<2; j++ ){
       for( std::pair< const Node, unsigned >& ncp : num_const[j] )
       {
@@ -1715,16 +1715,37 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
         {
           // make the character
           std::vector< unsigned > cc_vec;
-          cc_vec.insert( chars.end(), cvec.begin()+i, cvec.begin()+i+1 );
+          cc_vec.insert( cc_vec.end(), cvec.begin()+i, cvec.begin()+i+1 );
           Node ch = NodeManager::currentNM()->mkConst( String( cc_vec ) );
-          count_const[2][ch] += ncp.second;
+          count_const[j][ch] += ncp.second;
+          if( std::find( chars.begin(), chars.end(), ch )==chars.end() ){
+            chars.push_back( ch );
+          }
         }
       }
     }
+    Trace("strings-rewrite-multiset") << "For " << node << " : " << std::endl;
+    for( Node& ch : chars )
+    {
+      Trace("strings-rewrite-multiset") << "  # occurrences of substring ";
+      Trace("strings-rewrite-multiset") << ch << " in arguments is ";
+      Trace("strings-rewrite-multiset") << count_const[0][ch] << " / " << count_const[1][ch] << std::endl;
+      if( count_const[0][ch]<count_const[1][ch] )
+      {
+        Node ret = NodeManager::currentNM()->mkConst(false);
+        return returnRewrite(node, ret, "ctn-mset-nss");
+      }
+    }
+    // TODO (#1180): count the number of 2,3,4,.. character substrings
+    // for example:
+    // str.contains( str.++( x, "cbabc" ), str.++( "cabbc", x ) ) ---> false
+    // since the second argument contains more occurrences of "bb".
+    // note this is orthogonal reasoning to inductive reasoning
+    // via regular membership reduction in Liang et al CAV 2015.
   }
   // TODO (#1180): abstract interpretation with multi-set domain
   // to show first argument is a strict subset of second argument
-  */
+
 
   if (checkEntailArithEq(len_n1, len_n2))
   {
