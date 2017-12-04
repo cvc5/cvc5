@@ -2,38 +2,24 @@
 /*! \file term_database_sygus.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynoldsg
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of term databse class
+ ** \brief Implementation of term database sygus class
  **/
 
 #include "theory/quantifiers/term_database_sygus.h"
 
-#include "expr/datatype.h"
-#include "options/base_options.h"
-#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
-
-//for sygus
-#include "smt/smt_engine_scope.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "util/bitvector.h"
-#include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/strings/theory_strings_rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -1535,7 +1521,6 @@ void doStrReplace(std::string& str, const std::string& oldStr, const std::string
 
 Kind TermDbSygus::getOperatorKind( Node op ) {
   Assert( op.getKind()!=BUILTIN );
-  Assert(!smt::currentSmtEngine()->isDefinedFunction(op.toExpr()));
   if (op.getKind() == LAMBDA)
   {
     // we use APPLY_UF instead of APPLY, since the rewriter for APPLY_UF
