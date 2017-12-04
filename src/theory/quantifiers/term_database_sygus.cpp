@@ -300,8 +300,8 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
       }
       ret = mkGeneric( dt, i, var_count, pre );
       Trace("sygus-db-debug") << "SygusToBuiltin : Generic is " << ret << std::endl;
-      ret = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( ret.toExpr() ) );
-      Trace("sygus-db-debug") << "SygusToBuiltin : After expand definitions " << ret << std::endl;
+      ret = Rewriter::rewrite( ret );
+      Trace("sygus-db-debug") << "SygusToBuiltin : After rewriting " << ret << std::endl;
       d_sygus_to_builtin[tn][n] = ret;
     }else{
       Assert( isFreeVar( n ) );
@@ -1538,7 +1538,9 @@ Kind TermDbSygus::getOperatorKind( Node op ) {
   Assert(!smt::currentSmtEngine()->isDefinedFunction(op.toExpr()));
   if (op.getKind() == LAMBDA)
   {
-    return APPLY;
+    // we use APPLY_UF instead of APPLY, since the rewriter for APPLY_UF
+    // does beta-reduction but does not for APPLY
+    return APPLY_UF;
   }else{
     TypeNode tn = op.getType();
     if( tn.isConstructor() ){
@@ -1788,9 +1790,8 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
       int i = ret.getAttribute(SygusVarNumAttribute());
       Assert( Node::fromExpr( dt.getSygusVarList() )[i]==ret );
       ret = args[i];
-    }else if( ret.getKind()==APPLY ){
-      //must expand definitions to account for defined functions in sygus grammars
-      ret = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( ret.toExpr() ) );
+    }else{
+      ret = Rewriter::rewrite( ret );
     }
     return ret;
   }else{
