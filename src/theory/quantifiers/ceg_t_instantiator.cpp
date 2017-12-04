@@ -1603,7 +1603,6 @@ static Node normalizePvPlus(
     return Node::null();
   }
   Assert(nb_c.getNumChildren() > 0);
-  Assert(nb_c.getNumChildren() + nb_l.getNumChildren() == children.size());
 
   Node coeffs = (nb_c.getNumChildren() == 1) ? nb_c[0] : nb_c.constructNode();
   coeffs = Rewriter::rewrite(coeffs);
