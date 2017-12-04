@@ -2245,7 +2245,7 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
   }
 }
 
-void SmtEngine::debugCheckFormals( const std::vector< Expr >& formals, Expr func ) 
+void SmtEngine::debugCheckFormals(const std::vector<Expr>& formals, Expr func)
 {
   for(std::vector<Expr>::const_iterator i = formals.begin(); i != formals.end(); ++i) {
     if((*i).getKind() != kind::BOUND_VARIABLE) {
@@ -2259,7 +2259,9 @@ void SmtEngine::debugCheckFormals( const std::vector< Expr >& formals, Expr func
   }
 }
 
-void SmtEngine::debugCheckFunctionBody( Expr formula, const std::vector< Expr >& formals, Expr func ) 
+void SmtEngine::debugCheckFunctionBody(Expr formula,
+                                       const std::vector<Expr>& formals,
+                                       Expr func)
 {
   Type formulaType = formula.getType(options::typeChecking());
   Type funcType = func.getType();
@@ -2291,31 +2293,34 @@ void SmtEngine::debugCheckFunctionBody( Expr formula, const std::vector< Expr >&
     }
   }
 }
-  
+
 void SmtEngine::defineFunction(Expr func,
                                const std::vector<Expr>& formals,
-                               Expr formula) {
+                               Expr formula)
+{
   SmtScope smts(this);
   doPendingPops();
   Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
-  debugCheckFormals( formals, func );
+  debugCheckFormals(formals, func);
 
   stringstream ss;
-  ss << language::SetLanguage(language::SetLanguage::getLanguage(Dump.getStream()))
+  ss << language::SetLanguage(
+            language::SetLanguage::getLanguage(Dump.getStream()))
      << func;
   DefineFunctionCommand c(ss.str(), func, formals, formula);
-  addToModelCommandAndDump(c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
+  addToModelCommandAndDump(
+      c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
-
-  PROOF( if (options::checkUnsatCores()) {
-      d_defineCommands.push_back(c.clone());
-    });
+  PROOF(if (options::checkUnsatCores()) {
+    d_defineCommands.push_back(c.clone());
+  });
 
   // type check body
-  debugCheckFunctionBody( formula, formals, func );  
+  debugCheckFunctionBody(formula, formals, func);
 
   // Substitute out any abstract values in formula
-  Expr form = d_private->substituteAbstractValues(Node::fromExpr(formula)).toExpr();
+  Expr form =
+      d_private->substituteAbstractValues(Node::fromExpr(formula)).toExpr();
 
   TNode funcNode = func.getTNode();
   vector<Node> formalsNodes;
@@ -2343,22 +2348,26 @@ void SmtEngine::defineFunctionsRec(
   finalOptionsAreSet();
   doPendingPops();
   Trace("smt") << "SMT defineFunctionsRec(...)" << endl;
-  
-  if(funcs.size()!=formals.size() && funcs.size()!=formulas.size()) {
+
+  if (funcs.size() != formals.size() && funcs.size() != formulas.size())
+  {
     stringstream ss;
-    ss << "Number of functions, formals, and function bodies passed to defineFunctionsRec do not match:" << "\n"
+    ss << "Number of functions, formals, and function bodies passed to "
+          "defineFunctionsRec do not match:"
+       << "\n"
        << "        #functions : " << funcs.size() << "\n"
        << "        #arg lists : " << formals.size() << "\n"
        << "  #function bodies : " << formulas.size() << "\n";
     throw ModalException(ss.str());
   }
-  for( unsigned i=0,size=funcs.size(); i<size; i++ ){
+  for (unsigned i = 0, size = funcs.size(); i < size; i++)
+  {
     // check formal argument list
-    debugCheckFormals( formals[i], funcs[i] );
+    debugCheckFormals(formals[i], funcs[i]);
     // type check body
-    debugCheckFunctionBody( formulas[i], formals[i], funcs[i] );  
+    debugCheckFunctionBody(formulas[i], formals[i], funcs[i]);
   }
-    
+
   if (Dump.isOn("raw-benchmark"))
   {
     Dump("raw-benchmark") << DefineFunctionRecCommand(funcs, formals, formulas);

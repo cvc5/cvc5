@@ -380,21 +380,24 @@ class CVC4_PUBLIC SmtEngine {
 
   //check satisfiability (for query and check-sat)
   Result checkSatisfiability(const Expr& e, bool inUnsatCore, bool isQuery);
-  
+
   /**
-   * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is 
+   * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
    * the function that the formal argument list is for. This method is used
    * as a helper function when defining (recursive) functions.
    */
-  void debugCheckFormals( const std::vector< Expr >& formals, Expr func );
-  
-  /** 
-   * Checks whether formula is a valid function body for func whose formal 
+  void debugCheckFormals(const std::vector<Expr>& formals, Expr func);
+
+  /**
+   * Checks whether formula is a valid function body for func whose formal
    * argument list is stored in formals. This method is
    * used as a helper function when defining (recursive) functions.
    */
-  void debugCheckFunctionBody( Expr formula, const std::vector< Expr >& formals, Expr func );
-public:
+  void debugCheckFunctionBody(Expr formula,
+                              const std::vector<Expr>& formals,
+                              Expr func);
+
+ public:
 
   /**
    * Construct an SmtEngine with the given expression manager.
