@@ -1507,7 +1507,7 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
   const vector<Expr>& funcs = c->getFunctions();
   const vector<vector<Expr> >& formals = c->getFormals();
   out << "(define-fun";
-  if (funcs.size() > 0)
+  if (funcs.size() > 1)
   {
     out << "s";
   }
