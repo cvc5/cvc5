@@ -272,10 +272,7 @@ void CegGrammarConstructor::mkSygusConstantsForType( TypeNode type, std::vector<
   if (type.isReal())
   {
     ops.push_back(NodeManager::currentNM()->mkConst(Rational(0)));
-    if (tn.isInteger())
-    {
-      ops.push_back(NodeManager::currentNM()->mkConst(Rational(1)));
-    }
+    ops.push_back(NodeManager::currentNM()->mkConst(Rational(1)));
   }else if( type.isBitVector() ){
     unsigned sz = ((BitVectorType)type.toType()).getSize();
     BitVector bval0(sz, (unsigned int)0);
@@ -431,6 +428,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       }
       if (!types[i].isInteger())
       {
+        Trace("sygus-grammar-def") << "...Dedicate to Real\n";
         /* Creating type for positive integers */
         std::stringstream ss;
         ss << fun << "_PosInt";
@@ -443,29 +441,36 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         std::vector<Expr> ops_pos_int;
         std::vector<std::string> cnames_pos_int;
         std::vector<std::vector<Type>> cargs_pos_int;
-        /* Add operators */
-        ops_pos_int.push_back(NodeManager::currentNM()->mkConst(Rational(1)));
+        /* Add operator 1 */
+        Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
+        ops_pos_int.push_back(
+            NodeManager::currentNM()->mkConst(Rational(1)).toExpr());
+        ss << "_1";
+        cnames_pos_int.push_back(ss.str());
+        cargs_pos_int.push_back(std::vector<Type>());
+        /* Add operator PLUS */
         Kind k = PLUS;
+        Trace("sygus-grammar-def") << "\t...add for PLUS to Pos_Int\n";
         ops_pos_int.push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
         cnames_pos_int.push_back(kindToString(k));
         cargs_pos_int.push_back(std::vector<Type>());
         cargs_pos_int.back().push_back(unres_pos_int_t);
         cargs_pos_int.back().push_back(unres_pos_int_t);
-        Trace("sygus-grammar-def")
-            << "...make datatype " << datatypes.back() << std::endl;
         datatypes.back().setSygus(types[i].toType(), bvl.toExpr(), true, true);
         for (unsigned j = 0; j < ops_pos_int.size(); j++)
         {
           datatypes.back().addSygusConstructor(
               ops_pos_int[j], cnames_pos_int[j], cargs_pos_int[j]);
         }
+        Trace("sygus-grammar-def")
+            << "...built datatype " << datatypes.back() << " ";
         /* Adding division at root */
-        Kind k = DIVISION;
-        Trace("sygus-grammar-def") << "...add for " << k << std::endl;
+        k = DIVISION;
+        Trace("sygus-grammar-def") << "\t...add for " << k << std::endl;
         ops[i].push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
         cnames.push_back(kindToString(k));
         cargs.push_back(std::vector<Type>());
-        cargs.back().push_back(unres_pos_int_t);
+        cargs.back().push_back(unres_t);
         cargs.back().push_back(unres_pos_int_t);
       }
     }else if( types[i].isDatatype() ){
@@ -502,11 +507,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         cargs.back().push_back( type_to_unres[arg_type] );
       }
     }
-    Trace("sygus-grammar-def") << "...make datatype " << datatypes.back() << std::endl;
+    Trace("sygus-grammar-def") << "...make datatype " << datatypes[i] << std::endl;
     datatypes[i].setSygus( types[i].toType(), bvl.toExpr(), true, true );
     for( unsigned j=0; j<ops[i].size(); j++ ){
       datatypes[i].addSygusConstructor( ops[i][j], cnames[j], cargs[j] );
     }
+    Trace("sygus-grammar-def")
+        << "...built datatype " << datatypes[i] << " ";
     //sorts.push_back( types[i] );
     //set start index if applicable
     if( types[i]==range ){
