@@ -18,6 +18,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/inst_strategy_e_matching.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 
@@ -29,30 +30,27 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
-InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe ) :
-QuantifiersModule( qe ){
-  if( options::eMatching() ){
-    //these are the instantiation strategies for E-matching
-    //user-provided patterns
-    if( options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
-      d_isup = new InstStrategyUserPatterns( d_quantEngine );
-      d_instStrategies.push_back( d_isup );
+InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
+    : QuantifiersModule(qe),
+      d_instStrategies(),
+      d_isup(),
+      d_i_ag(),
+      d_quants() {
+  if (options::eMatching()) {
+    // these are the instantiation strategies for E-matching
+    // user-provided patterns
+    if (options::userPatternsQuant() != USER_PAT_MODE_IGNORE) {
+      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine));
+      d_instStrategies.push_back(d_isup.get());
     }
 
-    //auto-generated patterns
-    d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine );
-    d_instStrategies.push_back( d_i_ag );
-  }else{
-    d_isup = NULL;
-    d_i_ag = NULL;
+    // auto-generated patterns
+    d_i_ag.reset(new InstStrategyAutoGenTriggers(d_quantEngine));
+    d_instStrategies.push_back(d_i_ag.get());
   }
 }
 
-InstantiationEngine::~InstantiationEngine() {
-  delete d_i_ag;
-  delete d_isup;
-}
-
+InstantiationEngine::~InstantiationEngine() {}
 
 void InstantiationEngine::presolve() {
   for( unsigned i=0; i<d_instStrategies.size(); ++i ){
@@ -113,9 +111,11 @@ void InstantiationEngine::reset_round( Theory::Effort e ){
   }
 }
 
-void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
+void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
+{
   CodeTimer codeTimer(d_quantEngine->d_statistics.d_ematching_time);
-  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+  if (quant_e == QEFFORT_STANDARD)
+  {
     double clSet = 0;
     if( Trace.isOn("inst-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
@@ -180,7 +180,9 @@ void InstantiationEngine::registerQuantifier( Node f ){
     //}
     //take into account user patterns
     if( f.getNumChildren()==3 ){
-      Node subsPat = d_quantEngine->getTermDatabase()->getInstConstantNode( f[2], f );
+      Node subsPat =
+          d_quantEngine->getTermUtil()->substituteBoundVariablesToInstConstants(
+              f[2], f);
       //add patterns
       for( int i=0; i<(int)subsPat.getNumChildren(); i++ ){
         //Notice() << "Add pattern " << subsPat[i] << " for " << f << std::endl;
@@ -194,14 +196,14 @@ void InstantiationEngine::registerQuantifier( Node f ){
   }
 }
 
-void InstantiationEngine::addUserPattern( Node q, Node pat ){
-  if( d_isup ){
-    d_isup->addUserPattern( q, pat );
+void InstantiationEngine::addUserPattern(Node q, Node pat) {
+  if (d_isup) {
+    d_isup->addUserPattern(q, pat);
   }
 }
 
-void InstantiationEngine::addUserNoPattern( Node q, Node pat ){
-  if( d_i_ag ){
-    d_i_ag->addUserNoPattern( q, pat );
+void InstantiationEngine::addUserNoPattern(Node q, Node pat) {
+  if (d_i_ag) {
+    d_i_ag->addUserNoPattern(q, pat);
   }
 }

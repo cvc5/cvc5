@@ -255,6 +255,7 @@ class CVC4_PUBLIC SmtEngine {
    * Verbosity of various commands.
    */
   std::map<std::string, Integer> d_commandVerbosity;
+  
 
   /** ReplayStream for the solver. */
   ExprStream* d_replayStream;
@@ -468,19 +469,20 @@ public:
    * of assertions by asserting the query expression's negation and
    * calling check().  Returns valid, invalid, or unknown result.
    */
-  Result query(const Expr& e, bool inUnsatCore = true) throw(TypeCheckingException, ModalException, LogicException);
+  Result query(const Expr& e, bool inUnsatCore = true) throw(Exception);
 
   /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSat(const Expr& e = Expr(), bool inUnsatCore = true) throw(TypeCheckingException, ModalException, LogicException);
+  Result checkSat(const Expr& e = Expr(),
+                  bool inUnsatCore = true) throw(Exception);
 
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSynth(const Expr& e) throw(TypeCheckingException, ModalException, LogicException);
+  Result checkSynth(const Expr& e) throw(Exception);
 
   /**
    * Simplify a formula without doing "much" work.  Does not involve
@@ -528,8 +530,11 @@ public:
    * Get the last proof (only if immediately preceded by an UNSAT
    * or VALID query).  Only permitted if CVC4 was built with proof
    * support and produce-proofs is on.
+   *
+   * The Proof object is owned by this SmtEngine until the SmtEngine is
+   * destroyed.
    */
-  Proof* getProof();
+  const Proof& getProof();
 
   /**
    * Print all instantiations made by the quantifiers module.
@@ -542,9 +547,53 @@ public:
   void printSynthSolution( std::ostream& out );
 
   /**
-   * Do quantifier elimination, doFull false means just output one disjunct, strict is whether to output warnings.
+   * Do quantifier elimination.
+   *
+   * This function takes as input a quantified formula e
+   * of the form:
+   *   Q x1...xn. P( x1...xn, y1...yn )
+   * where P( x1...xn, y1...yn ) is a quantifier-free
+   * formula in a logic that supports quantifier elimination.
+   * Currently, the only logics supported by quantifier
+   * elimination is LRA and LIA.
+   *
+   * This function returns a formula ret such that, given
+   * the current set of formulas A asserted to this SmtEngine :
+   *
+   * If doFull = true, then
+   *   - ( A ^ e ) and ( A ^ ret ) are equivalent
+   *   - ret is quantifier-free formula containing
+   *     only free variables in y1...yn.
+   *
+   * If doFull = false, then
+   *   - (A ^ e) => (A ^ ret) if Q is forall or
+   *     (A ^ ret) => (A ^ e) if Q is exists,
+   *   - ret is quantifier-free formula containing
+   *     only free variables in y1...yn,
+   *   - If Q is exists, let A^Q_n be the formula
+   *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
+   *     where for each i=1,...n, formula ret^Q_i
+   *     is the result of calling doQuantifierElimination
+   *     for e with the set of assertions A^Q_{i-1}.
+   *     Similarly, if Q is forall, then let A^Q_n be
+   *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
+   *     where ret^Q_i is the same as above.
+   *     In either case, we have that ret^Q_j will
+   *     eventually be true or false, for some finite j.
+   *
+   * The former feature is quantifier elimination, and
+   * is run on invocations of the smt2 extended command get-qe.
+   * The latter feature is referred to as partial quantifier
+   * elimination, and is run on invocations of the smt2
+   * extended command get-qe-disjunct, which can be used
+   * for incrementally computing the result of a
+   * quantifier elimination.
+   * 
+   * The argument strict is whether to output
+   * warnings, such as when an unexpected logic is used.
    */
-  Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict=true) throw(TypeCheckingException, ModalException, LogicException);
+  Expr doQuantifierElimination(const Expr& e, bool doFull,
+                               bool strict = true) throw(Exception);
 
   /**
    * Get list of quantified formulas that were instantiated
@@ -746,6 +795,19 @@ public:
    * translation.
    */
   void setReplayStream(ExprStream* exprStream);
+  
+  /** get expression name
+  * Returns true if e has an expression name in the current context.
+  * If it returns true, the name of e is stored in name.
+  */
+  bool getExpressionName(Expr e, std::string& name) const;
+  
+  /** set expression name 
+  * Sets the expression name of e to name.
+  * This information is user-context-dependent.
+  * If e already has a name, it is overwritten.
+  */
+  void setExpressionName(Expr e, const std::string& name);
 
 };/* class SmtEngine */
 

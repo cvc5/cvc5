@@ -1,4 +1,4 @@
-SUBDIRS = . expect arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess tptp unconstrained decision fmf strings sets rels parser sygus sep nl
+SUBDIRS = . expect arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess tptp unconstrained decision fmf strings sets rels parser sygus sep nl ho
 DIST_SUBDIRS = $(SUBDIRS)
 
 # don't override a BINARY imported from a personal.mk
@@ -69,7 +69,15 @@ SMT2_TESTS = \
 	hung10_itesdk_output1.smt2 \
 	hung13sdk_output2.smt2 \
 	declare-funs.smt2 \
-	declare-fun-is-match.smt2
+	declare-fun-is-match.smt2 \
+	issue1063-overloading-dt-cons.smt2 \
+	issue1063-overloading-dt-sel.smt2 \
+	issue1063-overloading-dt-fun.smt2 \
+	non-fatal-errors.smt2 \
+	reset-assertions.smt2 \
+	sqrt2-sort-inf-unk.smt2 \
+	rec-fun-const-parse-bug.smt2
+
 
 # Regression tests for PL inputs
 CVC_TESTS = \
@@ -180,7 +188,8 @@ BUG_TESTS = \
 	bug605.cvc \
 	bug639.smt2 \
 	bt-test-00.smt2 \
-	bt-test-01.smt2
+	bt-test-01.smt2 \
+	bug1247.smt2
 #bug590.smt2
 
 TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
@@ -189,6 +198,7 @@ TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 # we have a minimized version still getting tested
 # bug639 -- still fails, reopened bug
 # bug585 -- contains subrange type (not supported)
+# issue1048-arrays-int-real.smt2 -- different errors on debug and production
 DISABLED_TESTS = \
 	bug512.smt2 \
 	bug585.cvc

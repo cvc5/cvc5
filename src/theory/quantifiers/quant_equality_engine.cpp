@@ -16,7 +16,7 @@
 
 #include "theory/quantifiers/quant_equality_engine.h"
 #include "theory/rewriter.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace CVC4;
 using namespace std;
@@ -74,7 +74,8 @@ void QuantEqualityEngine::reset_round( Theory::Effort e ){
 }
 
 /* Call during quantifier engine's check */
-void QuantEqualityEngine::check( Theory::Effort e, unsigned quant_e ) {
+void QuantEqualityEngine::check(Theory::Effort e, QEffort quant_e)
+{
   //TODO
 }
 
@@ -94,11 +95,11 @@ void QuantEqualityEngine::assertNode( Node n ) {
     Node t1;
     Node t2;
     if( lit.getKind()==APPLY_UF || lit.getKind()==EQUAL ){
-      lit = getTermDatabase()->getCanonicalTerm( lit );
+      lit = getTermUtil()->getCanonicalTerm( lit );
       Trace("qee-debug") << "Canonical :  " << lit << ", pol = " << pol << std::endl;
       if( lit.getKind()==APPLY_UF ){
         t1 = getFunctionAppForPredicateApp( lit );
-        t2 = pol ? getTermDatabase()->d_one : getTermDatabase()->d_zero;
+        t2 = pol ? getTermUtil()->d_one : getTermUtil()->d_zero;
         pol = true;
         lit = NodeManager::currentNM()->mkNode( EQUAL, t1, t2 );
       }else if( lit.getKind()==EQUAL ){

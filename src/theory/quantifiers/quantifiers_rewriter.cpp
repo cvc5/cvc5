@@ -15,7 +15,11 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/arith/arith_msum.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 
 using namespace std;
@@ -102,6 +106,10 @@ void QuantifiersRewriter::computeArgs( std::vector< Node >& args, std::map< Node
         activeMap[ n ] = true;
       }
     }else{
+      if (n.hasOperator())
+      {
+        computeArgs(args, activeMap, n.getOperator(), visited);
+      }
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
         computeArgs( args, activeMap, n[i], visited );
       }
@@ -196,7 +204,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
     }else{
       //compute attributes
       QAttributes qa;
-      TermDb::computeQuantAttributes( in, qa );
+      QuantAttributes::computeQuantAttributes( in, qa );
       if( !qa.isRewriteRule() ){
         for( int op=0; op<COMPUTE_LAST; op++ ){
           if( doOperation( in, op, qa ) ){
@@ -504,10 +512,10 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
   std::map< Node, Node > cache;
   std::map< Node, Node > icache;
   if( qa.isFunDef() ){
-    Node h = TermDb::getFunDefHead( q );
+    Node h = QuantAttributes::getFunDefHead( q );
     Assert( !h.isNull() );
     // if it is a function definition, rewrite the body independently
-    Node fbody = TermDb::getFunDefBody( q );
+    Node fbody = QuantAttributes::getFunDefBody( q );
     Assert( !body.isNull() );
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
     Node r = computeProcessTerms2( fbody, true, true, curr_cond, 0, cache, icache, new_vars, new_conds, false );
@@ -745,7 +753,7 @@ bool QuantifiersRewriter::isConditionalVariableElim( Node n, int pol ){
   }else if( n.getKind()==EQUAL ){
     for( unsigned i=0; i<2; i++ ){
       if( n[i].getKind()==BOUND_VARIABLE ){
-        if( !TermDb::containsTerm( n[1-i], n[i] ) ){
+        if( !TermUtil::containsTerm( n[1-i], n[i] ) ){
           return true;
         }
       }
@@ -843,7 +851,7 @@ Node QuantifiersRewriter::computeCondSplit( Node body, QAttributes& qa ){
 }
 
 bool QuantifiersRewriter::isVariableElim( Node v, Node s ) {
-  if( TermDb::containsTerm( s, v ) || !s.getType().isSubtypeOf( v.getType() ) ){
+  if( TermUtil::containsTerm( s, v ) || !s.getType().isSubtypeOf( v.getType() ) ){
     return false;
   }else{
     return true;
@@ -931,10 +939,12 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
       return true;
     }
   }
-  if( ( lit.getKind()==EQUAL && lit[0].getType().isReal() && pol ) || ( ( lit.getKind()==GEQ || lit.getKind()==GT ) && options::varIneqElimQuant() ) ){
+  if( ( lit.getKind()==EQUAL && lit[0].getType().isReal() && pol && options::varElimQuant() ) || 
+      ( ( lit.getKind()==GEQ || lit.getKind()==GT ) && options::varIneqElimQuant() ) ){
     //for arithmetic, solve the (in)equality
     std::map< Node, Node > msum;
-    if( QuantArith::getMonomialSumLit( lit, msum ) ){
+    if (ArithMSum::getMonomialSumLit(lit, msum))
+    {
       for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
         if( !itm->first.isNull() ){
           std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), itm->first );
@@ -943,7 +953,8 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
               Assert( pol );
               Node veq_c;
               Node val;
-              int ires = QuantArith::isolate( itm->first, msum, veq_c, val, EQUAL );
+              int ires =
+                  ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
               if( ires!=0 && veq_c.isNull() && isVariableElim( itm->first, val ) ){
                 Trace("var-elim-quant") << "Variable eliminate based on solved equality : " << itm->first << " -> " << val << std::endl;
                 vars.push_back( itm->first );
@@ -956,7 +967,8 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
               //store that this literal is upper/lower bound for itm->first
               Node veq_c;
               Node val;
-              int ires = QuantArith::isolate( itm->first, msum, veq_c, val, lit.getKind() );
+              int ires = ArithMSum::isolate(
+                  itm->first, msum, veq_c, val, lit.getKind());
               if( ires!=0 && veq_c.isNull() ){
                 bool is_upper = pol!=( ires==1 );
                 Trace("var-elim-ineq-debug") << lit << " is a " << ( is_upper ? "upper" : "lower" ) << " bound for " << itm->first << std::endl;
@@ -972,7 +984,7 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
             if( lit.getKind()==GEQ || lit.getKind()==GT ){
               //compute variables in itm->first, these are not eligible for elimination
               std::vector< Node > bvs;
-              TermDb::getBoundVars( itm->first, bvs );
+              TermUtil::getBoundVars( itm->first, bvs );
               for( unsigned j=0; j<bvs.size(); j++ ){
                 Trace("var-elim-ineq-debug") << "...ineligible " << bvs[j] << " since it is contained in monomial." << std::endl;
                 num_bounds[bvs[j]][true].clear();
@@ -1409,7 +1421,7 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
       NodeBuilder<> tb(kind::OR);
       for( unsigned i=0; i<body.getNumChildren(); i++ ){
         Node trm = body[i];
-        if( TermDb::containsTerms( body[i], args ) ){
+        if( TermUtil::containsTerms( body[i], args ) ){
           tb << trm;
         }else{
           body_split << trm;
@@ -1790,7 +1802,8 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
       Node sub;
       std::vector< unsigned > sub_vars;
       //return skolemized body
-      return TermDb::mkSkolemizedBody( n, nn, fvTypes, fvs, sk, sub, sub_vars );
+      return Skolemize::mkSkolemizedBody(
+          n, nn, fvTypes, fvs, sk, sub, sub_vars);
     }
   }else{
     //check if it contains a quantifier as a subterm

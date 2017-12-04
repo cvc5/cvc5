@@ -500,6 +500,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
+    if test -z "${enable_valgrind+set}"     ; then enable_valgrind=no               ; fi
     ;;
   debug) # unoptimized, debug symbols, assertions, tracing, dumping
     CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_DEBUG"
@@ -516,6 +517,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
+    if test -z "${enable_valgrind+set}"     ; then enable_valgrind=optional         ; fi
     ;;
   default) # moderately optimized, assertions, tracing, dumping
     CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }"
@@ -533,6 +535,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
+    if test -z "${enable_valgrind+set}"     ; then enable_valgrind=no               ; fi
     ;;
   competition) # maximally optimized, no assertions, no tracing, no dumping, muzzled
     CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_COMPETITION_MODE"
@@ -550,6 +553,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=no                ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=yes                ; fi
+    if test -z "${enable_valgrind+set}"     ; then enable_valgrind=no               ; fi
     if test -z "${user_specified_enable_or_disable_shared}"; then enable_shared=no; fi
     if test -z "${user_specified_enable_or_disable_static}"; then enable_static=yes; fi
     if test -z "${enable_static_binary+set}"; then enable_static_binary=yes         ; fi
@@ -643,6 +647,47 @@ AC_MSG_RESULT([$enable_debug_symbols])
 if test "$enable_debug_symbols" = yes; then
   CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }-ggdb3"
   CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-ggdb3"
+fi
+
+AC_MSG_CHECKING([whether to enable Valgrind instrumentation])
+
+AC_ARG_ENABLE([valgrind],
+  [AS_HELP_STRING([--enable-valgrind],
+     [enable Valgrind instrumentation])])
+
+if test -z "${enable_valgrind+set}"; then
+  enable_valgrind=no
+fi
+
+AC_MSG_RESULT([$enable_valgrind])
+
+if test "$enable_valgrind" != no; then
+  # Valgrind instrumentation is either explicitly enabled (enable_valgrind=yes)
+  # or enabled if available (enable_valgrind=optional)
+  AC_CHECK_HEADER([valgrind/memcheck.h],
+                  [CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_VALGRIND"],
+                  [if test "$enable_valgrind" = yes; then
+                    AC_MSG_ERROR([Need valgrind/memcheck.h to enable Valgrind instrumentation])
+                   else
+                    AC_MSG_NOTICE([valgrind/memcheck.h missing, Valgrind instrumentation disabled])
+                   fi
+                  ])
+fi
+
+AC_MSG_CHECKING([whether to use the context memory manager])
+
+AC_ARG_ENABLE([context-memory-manager],
+  [AS_HELP_STRING([--disable-context-memory-manager],
+     [do not use the context memory manager])])
+
+if test -z "${enable_context_memory_manager+set}"; then
+  enable_context_memory_manager=yes
+fi
+
+AC_MSG_RESULT([$enable_context_memory_manager])
+
+if test "$enable_context_memory_manager" = yes; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_CONTEXT_MEMORY_MANAGER"
 fi
 
 AC_MSG_CHECKING([whether to include statistics are turned on in libcvc4])
@@ -1305,11 +1350,15 @@ LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 
 # visibility flag not supported for Windows builds
 # also increase default stack size for Windows binaries
+windows_build=no
 case $host_os in
   (*mingw*) FLAG_VISIBILITY_HIDDEN=
             cvc4_LDFLAGS=-Wl,--stack,134217728
             pcvc4_LDFLAGS=-Wl,--stack,134217728
+            windows_build=yes
 esac
+
+AM_CONDITIONAL([CVC4_WINDOWS_BUILD], [test "$windows_build" = "yes"])
 
 AC_SUBST(FLAG_VISIBILITY_HIDDEN)
 AC_SUBST(cvc4_LDFLAGS)
@@ -1512,9 +1561,11 @@ Bindings     : $bindings_to_be_built
 Multithreaded: $support_multithreaded
 Portfolio    : $with_portfolio
 
-MP library   : $mplibrary
-GLPK         : $with_glpk
 ABC          : $with_abc
+Cryptominisat: $with_cryptominisat
+GLPK         : $with_glpk
+LFSC         : $with_lfsc
+MP library   : $mplibrary
 Readline     : $with_readline
 
 CPPFLAGS     : $CPPFLAGS

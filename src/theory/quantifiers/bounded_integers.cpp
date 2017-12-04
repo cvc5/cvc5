@@ -14,12 +14,13 @@
  ** This class manages integer bounds for quantifiers
  **/
 
-#include "options/quantifiers_options.h"
 #include "theory/quantifiers/bounded_integers.h"
+#include "options/quantifiers_options.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/model_engine.h"
-#include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4;
@@ -241,7 +242,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
       //if we are ( x != t1 ^ ...^ x != tn ), then x can be bound to { t1...tn }
       Node conj = n;
       if( !pol ){
-        conj = TermDb::simpleNegate( conj );
+        conj = TermUtil::simpleNegate( conj );
       }
       Trace("bound-int-debug") << "Process possible finite disequality conjunction : " << conj << std::endl;
       Assert( conj.getKind()==AND );
@@ -287,15 +288,17 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
   }else if( n.getKind()==GEQ ){
     if( n[0].getType().isInteger() ){
       std::map< Node, Node > msum;
-      if( QuantArith::getMonomialSumLit( n, msum ) ){
+      if (ArithMSum::getMonomialSumLit(n, msum))
+      {
         Trace("bound-int-debug") << "literal (polarity = " << pol << ") " << n << " is monomial sum : " << std::endl;
-        QuantArith::debugPrintMonomialSum( msum, "bound-int-debug" );
+        ArithMSum::debugPrintMonomialSum(msum, "bound-int-debug");
         for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
           if ( !it->first.isNull() && it->first.getKind()==BOUND_VARIABLE && !isBound( q, it->first ) ){
             //if not bound in another way
             if( bound_lit_type_map.find( it->first )==bound_lit_type_map.end() || bound_lit_type_map[it->first] == BOUND_INT_RANGE ){
               Node veq;
-              if( QuantArith::isolate( it->first, msum, veq, GEQ )!=0 ){
+              if (ArithMSum::isolate(it->first, msum, veq, GEQ) != 0)
+              {
                 Node n1 = veq[0];
                 Node n2 = veq[1];
                 if(pol){
@@ -303,9 +306,9 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
                   n1 = veq[1];
                   n2 = veq[0];
                   if( n1.getKind()==BOUND_VARIABLE ){
-                    n2 = QuantArith::offset( n2, 1 );
+                    n2 = ArithMSum::offset(n2, 1);
                   }else{
-                    n1 = QuantArith::offset( n1, -1 );
+                    n1 = ArithMSum::offset(n1, -1);
                   }
                   veq = NodeManager::currentNM()->mkNode( GEQ, n1, n2 );
                 }
@@ -349,8 +352,10 @@ bool BoundedIntegers::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
-void BoundedIntegers::check( Theory::Effort e, unsigned quant_e ) {
-  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
+{
+  if (quant_e == QEFFORT_STANDARD)
+  {
     Trace("bint-engine") << "---Bounded Integers---" << std::endl;
     bool addedLemma = false;
     //make sure proxies are up-to-date with range
@@ -455,7 +460,9 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if( tn.isSort() || getTermDatabase()->mayComplete( tn ) ){
+          if (tn.isSort()
+              || d_quantEngine->getTermEnumeration()->mayComplete(tn))
+          {
             success = true;
             setBoundedVar( f, f[0][i], BOUND_FINITE );
             break;
@@ -736,12 +743,8 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
     Trace("bound-int-rsi") << "Look up the value for " << d_set[q][i] << " " << i << std::endl;
     int v = rsi->getVariableOrder( i );
     Assert( q[0][v]==d_set[q][i] );
-    Node t = rsi->getCurrentTerm( v );
+    Node t = rsi->getCurrentTerm(v, true);
     Trace("bound-int-rsi") << "term : " << t << std::endl;
-    if( rsi->d_rep_set->d_values_to_terms.find( t )!=rsi->d_rep_set->d_values_to_terms.end() ){
-      t = rsi->d_rep_set->d_values_to_terms[t];
-      Trace("bound-int-rsi") << "term (post-rep) : " << t << std::endl;
-    }
     vars.push_back( d_set[q][i] );
     subs.push_back( t );
   }
@@ -808,7 +811,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
         Assert( !tl.isNull() && !tu.isNull() );
-        if( ra==d_quantEngine->getTermDatabase()->d_true ){
+        if( ra==d_quantEngine->getTermUtil()->d_true ){
           long rr = range.getConst<Rational>().getNumerator().getLong()+1;
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
           for( unsigned k=0; k<rr; k++ ){

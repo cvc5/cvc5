@@ -181,25 +181,20 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
   d_sygus_allow_all = allow_all;
 }
 
-void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
-                                    CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args ) {
+void Datatype::addSygusConstructor(Expr op,
+                                   std::string& cname,
+                                   std::vector<Type>& cargs,
+                                   std::shared_ptr<SygusPrintCallback> spc,
+                                   int weight)
+{
   Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
-  if( !let_body.isNull() ){
-    Debug("dt-sygus") << "    let body = " << let_body << ", args = " << let_args.size() << "," << let_num_input_args << std::endl;
-    //TODO : remove arguments not occurring in body
-    //if this is a self identity function, ignore
-    if( let_args.size()==0 && let_args[0]==let_body ){
-      Debug("dt-sygus") << "    identity function " << cargs[0] << " to " << getName() << std::endl;
-      //TODO
-    }
-  }
+  Debug("dt-sygus") << "    sygus op : " << op << std::endl;
   std::string name = getName() + "_" + cname;
   std::string testerId("is-");
   testerId.append(name);
-  //checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
-  //checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
-  CVC4::DatatypeConstructor c(name, testerId );
-  c.setSygus( op, let_body, let_args, let_num_input_args );
+  unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
+  DatatypeConstructor c(name, testerId, cweight);
+  c.setSygus(op, spc);
   for( unsigned j=0; j<cargs.size(); j++ ){
     Debug("parser-sygus-debug") << "  arg " << j << " : " << cargs[j] << std::endl;
     std::stringstream sname;
@@ -207,13 +202,6 @@ void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vect
     c.addArg(sname.str(), cargs[j]);
   }
   addConstructor(c);
-}
-
-void Datatype::addSygusConstructor( CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs ) {
-  CVC4::Expr let_body; 
-  std::vector< CVC4::Expr > let_args; 
-  unsigned let_num_input_args = 0;
-  addSygusConstructor( op, cname, cargs, let_body, let_args, let_num_input_args );
 }
                                     
 void Datatype::setTuple() {
@@ -776,34 +764,44 @@ Type DatatypeConstructor::doParametricSubstitution( Type range,
   }
 }
 
-DatatypeConstructor::DatatypeConstructor(std::string name) :
-  // We don't want to introduce a new data member, because eventually
-  // we're going to be a constant stuffed inside a node.  So we stow
-  // the tester name away inside the constructor name until
-  // resolution.
-  d_name(name + '\0' + "is_" + name), // default tester name is "is_FOO"
-  d_tester(),
-  d_args() {
+DatatypeConstructor::DatatypeConstructor(std::string name)
+    :  // We don't want to introduce a new data member, because eventually
+       // we're going to be a constant stuffed inside a node.  So we stow
+       // the tester name away inside the constructor name until
+       // resolution.
+      d_name(name + '\0' + "is_" + name),  // default tester name is "is_FOO"
+      d_tester(),
+      d_args(),
+      d_sygus_pc(nullptr),
+      d_weight(1)
+{
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
 }
 
-DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester) :
-  // We don't want to introduce a new data member, because eventually
-  // we're going to be a constant stuffed inside a node.  So we stow
-  // the tester name away inside the constructor name until
-  // resolution.
-  d_name(name + '\0' + tester),
-  d_tester(),
-  d_args() {
+DatatypeConstructor::DatatypeConstructor(std::string name,
+                                         std::string tester,
+                                         unsigned weight)
+    :  // We don't want to introduce a new data member, because eventually
+       // we're going to be a constant stuffed inside a node.  So we stow
+       // the tester name away inside the constructor name until
+       // resolution.
+      d_name(name + '\0' + tester),
+      d_tester(),
+      d_args(),
+      d_sygus_pc(nullptr),
+      d_weight(weight)
+{
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
   PrettyCheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
 }
 
-void DatatypeConstructor::setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_args ){
+void DatatypeConstructor::setSygus(Expr op,
+                                   std::shared_ptr<SygusPrintCallback> spc)
+{
+  PrettyCheckArgument(
+      !isResolved(), this, "cannot modify a finalized Datatype constructor");
   d_sygus_op = op;
-  d_sygus_let_body = let_body;
-  d_sygus_let_args.insert( d_sygus_let_args.end(), let_args.begin(), let_args.end() );
-  d_sygus_num_let_input_args = num_let_input_args;
+  d_sygus_pc = spc;
 }
 
 void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
@@ -880,29 +878,25 @@ Expr DatatypeConstructor::getSygusOp() const {
   return d_sygus_op;
 }
 
-Expr DatatypeConstructor::getSygusLetBody() const {
-  PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-  return d_sygus_let_body;
-}
-
-unsigned DatatypeConstructor::getNumSygusLetArgs() const {
-  PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-  return d_sygus_let_args.size();
-}
-
-Expr DatatypeConstructor::getSygusLetArg( unsigned i ) const {
-  PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-  return d_sygus_let_args[i];
-}
-
-unsigned DatatypeConstructor::getNumSygusLetInputArgs() const {
-  PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-  return d_sygus_num_let_input_args;
-}
-
 bool DatatypeConstructor::isSygusIdFunc() const {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-  return d_sygus_let_args.size()==1 && d_sygus_let_args[0]==d_sygus_let_body;
+  return (d_sygus_op.getKind() == kind::LAMBDA
+          && d_sygus_op[0].getNumChildren() == 1
+          && d_sygus_op[0][0] == d_sygus_op[1]);
+}
+
+unsigned DatatypeConstructor::getWeight() const
+{
+  PrettyCheckArgument(
+      isResolved(), this, "this datatype constructor is not yet resolved");
+  return d_weight;
+}
+
+std::shared_ptr<SygusPrintCallback> DatatypeConstructor::getSygusPrintCallback() const
+{
+  PrettyCheckArgument(
+      isResolved(), this, "this datatype constructor is not yet resolved");
+  return d_sygus_pc;
 }
 
 Cardinality DatatypeConstructor::getCardinality( Type t ) const throw(IllegalArgumentException) {

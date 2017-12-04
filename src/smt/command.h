@@ -189,6 +189,24 @@ public:
   std::string getMessage() const throw() { return d_message; }
 };/* class CommandFailure */
 
+/**
+ * The execution of the command resulted in a non-fatal error and further
+ * commands can be processed. This status is for example used when a user asks
+ * for an unsat core in a place that is not immediately preceded by an
+ * unsat/valid response.
+ */
+class CVC4_PUBLIC CommandRecoverableFailure : public CommandStatus {
+  std::string d_message;
+
+ public:
+  CommandRecoverableFailure(std::string message) throw() : d_message(message) {}
+  CommandRecoverableFailure& clone() const {
+    return *new CommandRecoverableFailure(*this);
+  }
+  ~CommandRecoverableFailure() throw() {}
+  std::string getMessage() const throw() { return d_message; }
+}; /* class CommandRecoverableFailure */
+
 class CVC4_PUBLIC Command {
 protected:
   /**
@@ -450,21 +468,30 @@ public:
  *  via the syntax (! expr :attr)
  */
 class CVC4_PUBLIC SetUserAttributeCommand : public Command {
-protected:
-  std::string d_attr;
-  Expr d_expr;
-  std::vector<Expr> d_expr_values;
-  std::string d_str_value;
-public:
-  SetUserAttributeCommand( const std::string& attr, Expr expr ) throw();
-  SetUserAttributeCommand( const std::string& attr, Expr expr, std::vector<Expr>& values ) throw();
-  SetUserAttributeCommand( const std::string& attr, Expr expr, const std::string& value ) throw();
-  ~SetUserAttributeCommand() throw() {}
-  void invoke(SmtEngine* smtEngine);
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
-  Command* clone() const;
-  std::string getCommandName() const throw();
-};/* class SetUserAttributeCommand */
+ public:
+  SetUserAttributeCommand(const std::string& attr, Expr expr) throw();
+  SetUserAttributeCommand(const std::string& attr, Expr expr,
+                          const std::vector<Expr>& values) throw();
+  SetUserAttributeCommand(const std::string& attr, Expr expr,
+                          const std::string& value) throw();
+  ~SetUserAttributeCommand() throw() override {}
+
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const throw() override;
+
+ private:
+  SetUserAttributeCommand(const std::string& attr, Expr expr,
+                          const std::vector<Expr>& expr_values,
+                          const std::string& str_value) throw();
+
+  const std::string d_attr;
+  const Expr d_expr;
+  const std::vector<Expr> d_expr_values;
+  const std::string d_str_value;
+}; /* class SetUserAttributeCommand */
 
 class CVC4_PUBLIC CheckSatCommand : public Command {
 protected:
@@ -502,13 +529,9 @@ public:
 };/* class QueryCommand */
 
 class CVC4_PUBLIC CheckSynthCommand : public Command {
-protected:
-  Expr d_expr;
-  Result d_result;
-  bool d_inUnsatCore;
 public:
   CheckSynthCommand() throw();
-  CheckSynthCommand(const Expr& expr, bool inUnsatCore = true) throw();
+  CheckSynthCommand(const Expr& expr) throw();
   ~CheckSynthCommand() throw() {}
   Expr getExpr() const throw();
   void invoke(SmtEngine* smtEngine);
@@ -517,6 +540,14 @@ public:
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
+
+ protected:
+  /** the assertion of check-synth */
+  Expr d_expr;
+  /** result of the check-synth call */
+  Result d_result;
+  /** string stream that stores the output of the solution */
+  std::stringstream d_solution;
 };/* class CheckSynthCommand */
 
 // this is TRANSFORM in the CVC presentation language
@@ -584,63 +615,71 @@ public:
 };/* class GetAssignmentCommand */
 
 class CVC4_PUBLIC GetModelCommand : public Command {
-protected:
-  Model* d_result;
-  SmtEngine* d_smtEngine;
-public:
+ public:
   GetModelCommand() throw();
   ~GetModelCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
   // Model is private to the library -- for now
-  //Model* getResult() const throw();
+  // Model* getResult() const throw();
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class GetModelCommand */
+
+ protected:
+  Model* d_result;
+  SmtEngine* d_smtEngine;
+}; /* class GetModelCommand */
 
 class CVC4_PUBLIC GetProofCommand : public Command {
-protected:
-  Proof* d_result;
-  SmtEngine* d_smtEngine;
-public:
+ public:
   GetProofCommand() throw();
   ~GetProofCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
-  Proof* getResult() const throw();
+  const Proof& getResult() const throw();
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class GetProofCommand */
+
+ protected:
+  SmtEngine* d_smtEngine;
+  // d_result is owned by d_smtEngine.
+  const Proof* d_result;
+}; /* class GetProofCommand */
 
 class CVC4_PUBLIC GetInstantiationsCommand : public Command {
-protected:
-  //Instantiations* d_result;
-  SmtEngine* d_smtEngine;
-public:
+ public:
   GetInstantiationsCommand() throw();
   ~GetInstantiationsCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
-  //Instantiations* getResult() const throw();
+  // Instantiations* getResult() const throw();
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class GetInstantiationsCommand */
+
+ protected:
+  SmtEngine* d_smtEngine;
+}; /* class GetInstantiationsCommand */
 
 class CVC4_PUBLIC GetSynthSolutionCommand : public Command {
-protected:
-  SmtEngine* d_smtEngine;
-public:
+ public:
   GetSynthSolutionCommand() throw();
   ~GetSynthSolutionCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
-  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
-};/* class GetSynthSolutionCommand */
+
+ protected:
+  SmtEngine* d_smtEngine;
+}; /* class GetSynthSolutionCommand */
 
 class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command {
 protected:
@@ -662,12 +701,8 @@ public:
 };/* class GetQuantifierEliminationCommand */
 
 class CVC4_PUBLIC GetUnsatCoreCommand : public Command {
-protected:
-  UnsatCore d_result;
-  std::map<Expr, std::string> d_names;
 public:
   GetUnsatCoreCommand() throw();
-  GetUnsatCoreCommand(const std::map<Expr, std::string>& names) throw();
   ~GetUnsatCoreCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
@@ -675,6 +710,10 @@ public:
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
+
+protected:
+  // the result of the unsat core call
+  UnsatCore d_result;
 };/* class GetUnsatCoreCommand */
 
 class CVC4_PUBLIC GetAssertionsCommand : public Command {
@@ -778,6 +817,27 @@ public:
   Command* clone() const;
   std::string getCommandName() const throw();
 };/* class GetOptionCommand */
+
+// Set expression name command
+// Note this is not an official smt2 command
+// Conceptually:
+//   (assert (! expr :named name))
+// is converted to
+//   (assert expr)
+//   (set-expr-name expr name)
+class CVC4_PUBLIC SetExpressionNameCommand : public Command {
+protected:
+  Expr d_expr;
+  std::string d_name;
+public:
+  SetExpressionNameCommand(Expr expr, std::string name) throw();
+  ~SetExpressionNameCommand() throw() {}
+  void invoke(SmtEngine* smtEngine);
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+};/* class SetExpressionNameCommand */
+
 
 class CVC4_PUBLIC DatatypeDeclarationCommand : public Command {
 private:

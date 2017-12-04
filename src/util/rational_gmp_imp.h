@@ -20,6 +20,13 @@
 #ifndef __CVC4__RATIONAL_H
 #define __CVC4__RATIONAL_H
 
+/*
+ * Older versions of GMP in combination with newer versions of GCC and C++11
+ * cause errors: https://gcc.gnu.org/gcc-4.9/porting_to.html
+ * Including <cstddef> is a workaround for this issue.
+ */
+#include <cstddef>
+
 #include <gmp.h>
 #include <string>
 
@@ -160,6 +167,14 @@ public:
     d_value.canonicalize();
   }
   ~Rational() {}
+
+  /**
+   * Returns a copy of d_value to enable public access of GMP data.
+   */
+  mpq_class getValue() const
+  {
+    return d_value;
+  }
 
   /**
    * Returns the value of numerator of the Rational.

@@ -19,9 +19,13 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quant_epr.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -50,14 +54,15 @@ bool InstStrategyCbqi::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_LAST_CALL;
 }
 
-unsigned InstStrategyCbqi::needsModel( Theory::Effort e ) {
+QuantifiersModule::QEffort InstStrategyCbqi::needsModel(Theory::Effort e)
+{
   for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
-      return QuantifiersEngine::QEFFORT_STANDARD;
+      return QEFFORT_STANDARD;
     }
   }
-  return QuantifiersEngine::QEFFORT_NONE;
+  return QEFFORT_NONE;
 }
 
 bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
@@ -66,8 +71,8 @@ bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
     Trace("cbqi-debug") << "Do cbqi for " << q << std::endl;
     //add cbqi lemma
     //get the counterexample literal
-    Node ceLit = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( q );
-    Node ceBody = d_quantEngine->getTermDatabase()->getInstConstantBody( q );
+    Node ceLit = d_quantEngine->getTermUtil()->getCounterexampleLiteral( q );
+    Node ceBody = d_quantEngine->getTermUtil()->getInstConstantBody( q );
     if( !ceBody.isNull() ){
       //add counterexample lemma
       Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
@@ -90,7 +95,7 @@ bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
               std::map< TypeNode, std::vector< Node > >::iterator itc = qepr->d_consts.find( tn );
               if( itc!=qepr->d_consts.end() ){
                 Assert( !itc->second.empty() );
-                Node ic = d_quantEngine->getTermDatabase()->getInstantiationConstant( q, i );
+                Node ic = d_quantEngine->getTermUtil()->getInstantiationConstant( q, i );
                 std::vector< Node > disj;
                 for( unsigned j=0; j<itc->second.size(); j++ ){
                   disj.push_back( ic.eqNode( itc->second[j] ) );
@@ -111,7 +116,7 @@ bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
       //compute dependencies between quantified formulas
       if( options::cbqiLitDepend() || options::cbqiInnermost() ){
         std::vector< Node > ics;
-        TermDb::computeVarContains( q, ics );
+        TermUtil::computeVarContains( q, ics );
         d_parent_quant[q].clear();
         d_children_quant[q].clear();
         std::vector< Node > dep;
@@ -121,7 +126,7 @@ bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
             d_parent_quant[q].push_back( qi );
             d_children_quant[qi].push_back( q );
             Assert( hasAddedCbqiLemma( qi ) );
-            Node qicel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( qi );
+            Node qicel = d_quantEngine->getTermUtil()->getCounterexampleLiteral( qi );
             dep.push_back( qi );
             dep.push_back( qicel );
           }
@@ -135,7 +140,7 @@ bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
       
       //must register all sub-quantifiers of counterexample lemma, register their lemmas
       std::vector< Node > quants;
-      TermDb::computeQuantContains( lem, quants );
+      TermUtil::computeQuantContains( lem, quants );
       for( unsigned i=0; i<quants.size(); i++ ){
         if( doCbqi( quants[i] ) ){
           registerCbqiLemma( quants[i] );
@@ -143,7 +148,7 @@ bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
         if( options::cbqiNestedQE() ){
           //record these as counterexample quantifiers
           QAttributes qa;
-          TermDb::computeQuantAttributes( quants[i], qa );
+          QuantAttributes::computeQuantAttributes( quants[i], qa );
           if( !qa.d_qid_num.isNull() ){
             d_id_to_ce_quant[ qa.d_qid_num ] = quants[i];
             d_ce_quant_to_id[ quants[i] ] = qa.d_qid_num;
@@ -167,13 +172,11 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
     if( doCbqi( q ) ){
-      if( registerCbqiLemma( q ) ){
-        Debug("cbqi-debug") << "Registered cbqi lemma." << std::endl;
-      //set inactive the quantified formulas whose CE literals are asserted false
-      }else if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
+      Assert( hasAddedCbqiLemma( q ) );
+      if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
         d_active_quant[q] = true;
         Debug("cbqi-debug") << "Check quantified formula " << q << "..." << std::endl;
-        Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( q );
+        Node cel = d_quantEngine->getTermUtil()->getCounterexampleLiteral( q );
         bool value;
         if( d_quantEngine->getValuation().hasSatValue( cel, value ) ){
           Debug("cbqi-debug") << "...CE Literal has value " << value << std::endl;
@@ -238,8 +241,10 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
   processResetInstantiationRound( effort );
 }
 
-void InstStrategyCbqi::check( Theory::Effort e, unsigned quant_e ) {
-  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+void InstStrategyCbqi::check(Theory::Effort e, QEffort quant_e)
+{
+  if (quant_e == QEFFORT_STANDARD)
+  {
     Assert( !d_quantEngine->inConflict() );
     double clSet = 0;
     if( Trace.isOn("cbqi-engine") ){
@@ -301,7 +306,7 @@ Node InstStrategyCbqi::getIdMarkedQuantNode( Node n, std::map< Node, Node >& vis
     Node ret = n;
     if( n.getKind()==FORALL ){
       QAttributes qa;
-      TermDb::computeQuantAttributes( n, qa );
+      QuantAttributes::computeQuantAttributes( n, qa );
       if( qa.d_qid_num.isNull() ){
         std::vector< Node > rc;
         rc.push_back( n[0] );
@@ -373,7 +378,11 @@ void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
 }
 
 void InstStrategyCbqi::registerQuantifier( Node q ) {
-
+  if( doCbqi( q ) ){
+    if( registerCbqiLemma( q ) ){
+      Trace("cbqi") << "Registered cbqi lemma for quantifier : " << q << std::endl;
+    }
+  }
 }
 
 Node InstStrategyCbqi::doNestedQENode( Node q, Node ceq, Node n, std::vector< Node >& inst_terms, bool doVts ) {
@@ -390,15 +399,15 @@ Node InstStrategyCbqi::doNestedQENode( Node q, Node ceq, Node n, std::vector< No
     //should not contain quantifiers
     Assert( !QuantifiersRewriter::containsQuantifiers( d_nested_qe[ceq] ) );
   }
-  Assert( d_quantEngine->getTermDatabase()->d_inst_constants[q].size()==inst_terms.size() );
+  Assert( d_quantEngine->getTermUtil()->d_inst_constants[q].size()==inst_terms.size() );
   //replace inst constants with instantiation
-  Node ret = d_nested_qe[ceq].substitute( d_quantEngine->getTermDatabase()->d_inst_constants[q].begin(),
-                                          d_quantEngine->getTermDatabase()->d_inst_constants[q].end(),
+  Node ret = d_nested_qe[ceq].substitute( d_quantEngine->getTermUtil()->d_inst_constants[q].begin(),
+                                          d_quantEngine->getTermUtil()->d_inst_constants[q].end(),
                                           inst_terms.begin(), inst_terms.end() );
   if( doVts ){
     //do virtual term substitution
     ret = Rewriter::rewrite( ret );
-    ret = d_quantEngine->getTermDatabase()->rewriteVtsSymbols( ret );
+    ret = d_quantEngine->getTermUtil()->rewriteVtsSymbols( ret );
   }
   Trace("cbqi-nqe") << "Nested quantifier elimination: " << std::endl;
   Trace("cbqi-nqe") << "  " << n << std::endl; 
@@ -411,7 +420,7 @@ Node InstStrategyCbqi::doNestedQERec( Node q, Node n, std::map< Node, Node >& vi
     Node ret = n;
     if( n.getKind()==FORALL ){
       QAttributes qa;
-      TermDb::computeQuantAttributes( n, qa );
+      QuantAttributes::computeQuantAttributes( n, qa );
       if( !qa.d_qid_num.isNull() ){
         //if it has an id, check whether we have done quantifier elimination for this id
         std::map< Node, Node >::iterator it = d_id_to_ce_quant.find( qa.d_qid_num );
@@ -476,7 +485,7 @@ void InstStrategyCbqi::registerCounterexampleLemma( Node q, Node lem ){
 bool InstStrategyCbqi::hasNonCbqiOperator( Node n, std::map< Node, bool >& visited ){
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( n.getKind()!=BOUND_VARIABLE && TermDb::hasBoundVarAttr( n ) ){
+    if( n.getKind()!=BOUND_VARIABLE && TermUtil::hasBoundVarAttr( n ) ){
       if( !inst::Trigger::isCbqiKind( n.getKind() ) ){
         Trace("cbqi-debug2") << "Non-cbqi kind : " << n.getKind() << " in " << n  << std::endl;
         return true;
@@ -552,7 +561,8 @@ bool InstStrategyCbqi::doCbqi( Node q ){
   std::map< Node, int >::iterator it = d_do_cbqi.find( q );
   if( it==d_do_cbqi.end() ){
     int ret = 2;
-    if( !d_quantEngine->getTermDatabase()->isQAttrQuantElim( q ) ){
+    if( !d_quantEngine->getQuantAttributes()->isQuantElim( q ) ){
+      Assert( !d_quantEngine->getQuantAttributes()->isQuantElimPartial( q ) );
       //if has an instantiation pattern, don't do it
       if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
         for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
@@ -561,7 +571,7 @@ bool InstStrategyCbqi::doCbqi( Node q ){
           }
         }
       }
-      if( d_quantEngine->getTermDatabase()->isQAttrSygus( q ) ){
+      if( d_quantEngine->getQuantAttributes()->isSygus( q ) ){
         ret = 0;
       }
       if( ret!=0 ){
@@ -613,7 +623,7 @@ Node InstStrategyCbqi::getNextDecisionRequestProc( Node q, std::map< Node, bool 
     }
     //then check self
     if( hasAddedCbqiLemma( q ) ){
-      Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( q );
+      Node cel = d_quantEngine->getTermUtil()->getCounterexampleLiteral( q );
       bool value;
       if( !d_quantEngine->getValuation().hasSatValue( cel, value ) ){
         Trace("cbqi-dec") << "CBQI: get next decision " << cel << std::endl;
@@ -696,14 +706,14 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
       d_small_const = NodeManager::currentNM()->mkNode( MULT, d_small_const, d_small_const );
       d_small_const = Rewriter::rewrite( d_small_const );
       //heuristic for now, until we know how to do nested quantification
-      Node delta = d_quantEngine->getTermDatabase()->getVtsDelta( true, false );
+      Node delta = d_quantEngine->getTermUtil()->getVtsDelta( true, false );
       if( !delta.isNull() ){
         Trace("quant-vts-debug") << "Delta lemma for " << d_small_const << std::endl;
         Node delta_lem_ub = NodeManager::currentNM()->mkNode( LT, delta, d_small_const );
         d_quantEngine->getOutputChannel().lemma( delta_lem_ub );
       }
       std::vector< Node > inf;
-      d_quantEngine->getTermDatabase()->getVtsTerms( inf, true, false, false );
+      d_quantEngine->getTermUtil()->getVtsTerms( inf, true, false, false );
       for( unsigned i=0; i<inf.size(); i++ ){
         Trace("quant-vts-debug") << "Infinity lemma for " << inf[i] << " " << d_small_const << std::endl;
         Node inf_lem_lb = NodeManager::currentNM()->mkNode( GT, inf[i], NodeManager::currentNM()->mkConst( Rational(1)/d_small_const.getConst<Rational>() ) );
@@ -716,15 +726,18 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert( !d_curr_quant.isNull() );
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
-  if( d_quantEngine->getTermDatabase()->isQAttrQuantElimPartial( d_curr_quant ) ){
+  if( d_quantEngine->getQuantAttributes()->isQuantElimPartial( d_curr_quant ) ){
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
-    d_quantEngine->recordInstantiationInternal( d_curr_quant, subs, false, false );
+    d_quantEngine->getInstantiate()->recordInstantiation(
+        d_curr_quant, subs, false, false);
     return true;
   }else{
     //check if we need virtual term substitution (if used delta or infinity)
-    bool used_vts = d_quantEngine->getTermDatabase()->containsVtsTerm( subs, false );
-    if( d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, used_vts ) ){
+    bool used_vts = d_quantEngine->getTermUtil()->containsVtsTerm( subs, false );
+    if (d_quantEngine->getInstantiate()->addInstantiation(
+            d_curr_quant, subs, false, false, used_vts))
+    {
       ++(d_quantEngine->d_statistics.d_instantiations_cbqi);
       //d_added_inst.insert( d_curr_quant );
       return true;
@@ -743,7 +756,8 @@ bool InstStrategyCegqi::addLemma( Node lem ) {
 
 bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
   if( n.getKind()==INST_CONSTANT || n.getKind()==SKOLEM ){
-    if( n.getKind()==SKOLEM && d_quantEngine->getTermDatabase()->containsVtsTerm( n ) ){
+    if( n.getAttribute(VirtualTermSkolemAttribute()) ){
+      // virtual terms are allowed
       return true;
     }else{
       TypeNode tn = n.getType();
@@ -757,7 +771,7 @@ bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
         }
       }
       //only legal if current quantified formula contains n
-      return TermDb::containsTerm( d_curr_quant, n );
+      return TermUtil::containsTerm( d_curr_quant, n );
     }
   }else{
     return true;
@@ -776,10 +790,14 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
 }
 
 void InstStrategyCegqi::registerQuantifier( Node q ) {
-  if( options::cbqiPreRegInst() ){
-    if( doCbqi( q ) ){
-      //just get the instantiator
+  if( doCbqi( q ) ){
+    // get the instantiator  
+    if( options::cbqiPreRegInst() ){
       getInstantiator( q );
+    }
+    // register the cbqi lemma
+    if( registerCbqiLemma( q ) ){
+      Trace("cbqi") << "Registered cbqi lemma for quantifier : " << q << std::endl;
     }
   }
 }
@@ -788,8 +806,8 @@ void InstStrategyCegqi::registerCounterexampleLemma( Node q, Node lem ) {
   //must register with the instantiator
   //must explicitly remove ITEs so that we record dependencies
   std::vector< Node > ce_vars;
-  for( unsigned i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( q ); i++ ){
-    ce_vars.push_back( d_quantEngine->getTermDatabase()->getInstantiationConstant( q, i ) );
+  for( unsigned i=0; i<d_quantEngine->getTermUtil()->getNumInstantiationConstants( q ); i++ ){
+    ce_vars.push_back( d_quantEngine->getTermUtil()->getInstantiationConstant( q, i ) );
   }
   std::vector< Node > lems;
   lems.push_back( lem );

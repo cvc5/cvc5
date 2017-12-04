@@ -18,6 +18,7 @@
 #ifndef __CVC4__CEG_T_INSTANTIATOR_H
 #define __CVC4__CEG_T_INSTANTIATOR_H
 
+#include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/ceg_instantiator.h"
 
 #include <unordered_set>
@@ -26,127 +27,307 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+/** TODO (#1367) : document these classes, also move to separate files. */
+
 class ArithInstantiator : public Instantiator {
-private:
-  Node d_vts_sym[2];
-  std::vector< Node > d_mbp_bounds[2];
-  std::vector< Node > d_mbp_coeff[2];
-  std::vector< Node > d_mbp_vts_coeff[2][2];
-  std::vector< Node > d_mbp_lit[2];
-  int solve_arith( CegInstantiator * ci, Node v, Node atom, Node & veq_c, Node & val, Node& vts_coeff_inf, Node& vts_coeff_delta );
-  Node getModelBasedProjectionValue( CegInstantiator * ci, Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta, Node inf_coeff, Node delta_coeff );
-public:
+ public:
   ArithInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
   virtual ~ArithInstantiator(){}
-  void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
-  bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
-  bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort );
-  bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
-  bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
-  bool processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
-  bool processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort );
-  bool needsPostProcessInstantiation( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
-  bool postProcessInstantiation( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
-  std::string identify() const { return "Arith"; }
+  virtual void reset(CegInstantiator* ci,
+                     SolvedForm& sf,
+                     Node pv,
+                     CegInstEffort effort) override;
+  virtual bool hasProcessEquality(CegInstantiator* ci,
+                                  SolvedForm& sf,
+                                  Node pv,
+                                  CegInstEffort effort) override
+  {
+    return true;
+  }
+  virtual bool processEquality(CegInstantiator* ci,
+                               SolvedForm& sf,
+                               Node pv,
+                               std::vector<TermProperties>& term_props,
+                               std::vector<Node>& terms,
+                               CegInstEffort effort) override;
+  virtual bool hasProcessAssertion(CegInstantiator* ci,
+                                   SolvedForm& sf,
+                                   Node pv,
+                                   CegInstEffort effort) override
+  {
+    return true;
+  }
+  virtual Node hasProcessAssertion(CegInstantiator* ci,
+                                   SolvedForm& sf,
+                                   Node pv,
+                                   Node lit,
+                                   CegInstEffort effort) override;
+  virtual bool processAssertion(CegInstantiator* ci,
+                                SolvedForm& sf,
+                                Node pv,
+                                Node lit,
+                                Node alit,
+                                CegInstEffort effort) override;
+  virtual bool processAssertions(CegInstantiator* ci,
+                                 SolvedForm& sf,
+                                 Node pv,
+                                 CegInstEffort effort) override;
+  virtual bool needsPostProcessInstantiationForVariable(
+      CegInstantiator* ci,
+      SolvedForm& sf,
+      Node pv,
+      CegInstEffort effort) override;
+  virtual bool postProcessInstantiationForVariable(
+      CegInstantiator* ci,
+      SolvedForm& sf,
+      Node pv,
+      CegInstEffort effort,
+      std::vector<Node>& lemmas) override;
+  virtual std::string identify() const override { return "Arith"; }
+ private:
+  Node d_vts_sym[2];
+  std::vector<Node> d_mbp_bounds[2];
+  std::vector<Node> d_mbp_coeff[2];
+  std::vector<Node> d_mbp_vts_coeff[2][2];
+  std::vector<Node> d_mbp_lit[2];
+  int solve_arith(CegInstantiator* ci,
+                  Node v,
+                  Node atom,
+                  Node& veq_c,
+                  Node& val,
+                  Node& vts_coeff_inf,
+                  Node& vts_coeff_delta);
+  Node getModelBasedProjectionValue(CegInstantiator* ci,
+                                    Node e,
+                                    Node t,
+                                    bool isLower,
+                                    Node c,
+                                    Node me,
+                                    Node mt,
+                                    Node theta,
+                                    Node inf_coeff,
+                                    Node delta_coeff);
 };
 
 class DtInstantiator : public Instantiator {
-private:
-  Node solve_dt( Node v, Node a, Node b, Node sa, Node sb );
 public:
   DtInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
   virtual ~DtInstantiator(){}
-  void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
-  bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort );
-  bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
-  bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort );
-  std::string identify() const { return "Dt"; }
+  virtual void reset(CegInstantiator* ci,
+                     SolvedForm& sf,
+                     Node pv,
+                     CegInstEffort effort) override;
+  virtual bool processEqualTerms(CegInstantiator* ci,
+                                 SolvedForm& sf,
+                                 Node pv,
+                                 std::vector<Node>& eqc,
+                                 CegInstEffort effort) override;
+  virtual bool hasProcessEquality(CegInstantiator* ci,
+                                  SolvedForm& sf,
+                                  Node pv,
+                                  CegInstEffort effort) override
+  {
+    return true;
+  }
+  virtual bool processEquality(CegInstantiator* ci,
+                               SolvedForm& sf,
+                               Node pv,
+                               std::vector<TermProperties>& term_props,
+                               std::vector<Node>& terms,
+                               CegInstEffort effort) override;
+  virtual std::string identify() const override { return "Dt"; }
+ private:
+  Node solve_dt(Node v, Node a, Node b, Node sa, Node sb);
 };
 
 class TermArgTrie;
 
 class EprInstantiator : public Instantiator {
-private:
-  std::vector< Node > d_equal_terms;
-  void computeMatchScore( CegInstantiator * ci, Node pv, Node catom, std::vector< Node >& arg_reps, TermArgTrie * tat, unsigned index, std::map< Node, int >& match_score );
-  void computeMatchScore( CegInstantiator * ci, Node pv, Node catom, Node eqc, std::map< Node, int >& match_score );
-public:
+ public:
   EprInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
   virtual ~EprInstantiator(){}
-  void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
-  bool processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, Node pv_coeff, Node n, unsigned effort );
-  bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort );
-  std::string identify() const { return "Epr"; }
+  virtual void reset(CegInstantiator* ci,
+                     SolvedForm& sf,
+                     Node pv,
+                     CegInstEffort effort) override;
+  virtual bool processEqualTerm(CegInstantiator* ci,
+                                SolvedForm& sf,
+                                Node pv,
+                                TermProperties& pv_prop,
+                                Node n,
+                                CegInstEffort effort) override;
+  virtual bool processEqualTerms(CegInstantiator* ci,
+                                 SolvedForm& sf,
+                                 Node pv,
+                                 std::vector<Node>& eqc,
+                                 CegInstEffort effort) override;
+  virtual std::string identify() const override { return "Epr"; }
+ private:
+  std::vector<Node> d_equal_terms;
+  void computeMatchScore(CegInstantiator* ci,
+                         Node pv,
+                         Node catom,
+                         std::vector<Node>& arg_reps,
+                         TermArgTrie* tat,
+                         unsigned index,
+                         std::map<Node, int>& match_score);
+  void computeMatchScore(CegInstantiator* ci,
+                         Node pv,
+                         Node catom,
+                         Node eqc,
+                         std::map<Node, int>& match_score);
 };
 
-
-// virtual class for model queries
-class BvInverterModelQuery {
-public:
-  BvInverterModelQuery(){}
-  virtual Node getModelValue( Node n ) = 0;
-};
-
-// class for storing information about the solved status
-class BvInverterStatus {
-public:
-  BvInverterStatus() : d_status(0) {}
-  int d_status;
-  std::vector< Node > d_conds;
-};
-
-// inverter class
-// TODO : move to theory/bv/ if generally useful?
-class BvInverter {
-private:
-  std::map< TypeNode, Node > d_solve_var;
-  Node getPathToPv( Node lit, Node pv, Node sv, std::vector< unsigned >& path, std::unordered_set< TNode, TNodeHashFunction >& visited );
-public:
-  // get dummy fresh variable of type tn, used as argument for sv 
-  Node getSolveVariable( TypeNode tn );
-  // Get path to pv in lit, replace that occurrence by sv and all others by pvs.
-  // e.g. if return value R is non-null, then:
-  //   lit.path = pv
-  //   R.path = sv
-  //   R.path' = pvs for all lit.path' = pv, where path' != path
-  Node getPathToPv( Node lit, Node pv, Node sv, Node pvs, std::vector< unsigned >& path );
-public:
-  // solve for sv in constraint ( (pol ? _ : not) sv_t <rk> t ), where sv_t.path = sv
-  // status accumulates side conditions
-  Node solve_bv_constraint( Node sv, Node sv_t, Node t, Kind rk, bool pol, std::vector< unsigned >& path,
-                            BvInverterModelQuery * m, BvInverterStatus& status );
-  // solve for sv in lit, where lit.path = sv
-  // status accumulates side conditions
-  Node solve_bv_lit( Node sv, Node lit, bool pol, std::vector< unsigned >& path,
-                     BvInverterModelQuery * m, BvInverterStatus& status );
-};
-
+/** Bitvector instantiator
+ *
+ * This implements an approach for counterexample-guided instantiation
+ * for bit-vector variables based on word-level inversions.
+ * It is enabled by --cbqi-bv.
+ */
 class BvInstantiator : public Instantiator {
-private:
-  BvInverter d_inverter;
+ public:
+  BvInstantiator(QuantifiersEngine* qe, TypeNode tn);
+  virtual ~BvInstantiator();
+  virtual void reset(CegInstantiator* ci,
+                     SolvedForm& sf,
+                     Node pv,
+                     CegInstEffort effort) override;
+  virtual bool hasProcessAssertion(CegInstantiator* ci,
+                                   SolvedForm& sf,
+                                   Node pv,
+                                   CegInstEffort effort) override
+  {
+    return true;
+  }
+  virtual Node hasProcessAssertion(CegInstantiator* ci,
+                                   SolvedForm& sf,
+                                   Node pv,
+                                   Node lit,
+                                   CegInstEffort effort) override;
+  virtual bool processAssertion(CegInstantiator* ci,
+                                SolvedForm& sf,
+                                Node pv,
+                                Node lit,
+                                Node alit,
+                                CegInstEffort effort) override;
+  virtual bool processAssertions(CegInstantiator* ci,
+                                 SolvedForm& sf,
+                                 Node pv,
+                                 CegInstEffort effort) override;
+  /** use model value
+   *
+   * We allow model values if we have not already tried an assertion,
+   * and only at levels below full if cbqiFullEffort is false.
+   */
+  virtual bool useModelValue(CegInstantiator* ci,
+                             SolvedForm& sf,
+                             Node pv,
+                             CegInstEffort effort) override;
+  virtual std::string identify() const { return "Bv"; }
+ private:
+  // point to the bv inverter class
+  BvInverter * d_inverter;
   unsigned d_inst_id_counter;
-  std::map< Node, std::vector< unsigned > > d_var_to_inst_id;
-  std::map< unsigned, Node > d_inst_id_to_term;
-  std::map< unsigned, BvInverterStatus > d_inst_id_to_status;
-private:
-  void processLiteral( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
-public:
-  BvInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
-  virtual ~BvInstantiator(){}
-  void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
-  bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
-  bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort );
-  bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
-  bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
-  bool processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort );
-  bool processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort );
-  bool useModelValue( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
-  std::string identify() const { return "Bv"; }
+  /** information about solved forms */
+  std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction > d_var_to_inst_id;
+  std::unordered_map< unsigned, Node > d_inst_id_to_term;
+  std::unordered_map< unsigned, BvInverterStatus > d_inst_id_to_status;
+  std::unordered_map<unsigned, Node> d_inst_id_to_alit;
+  // variable to current id we are processing
+  std::unordered_map< Node, unsigned, NodeHashFunction > d_var_to_curr_inst_id;
+  /** the amount of slack we added for asserted literals */
+  std::unordered_map<Node, Node, NodeHashFunction> d_alit_to_model_slack;
+  /** whether we have tried an instantiation based on assertion in this round */
+  bool d_tried_assertion_inst;
+  /** rewrite assertion for solve pv
+  * returns a literal that is equivalent to lit that leads to best solved form for pv
+  */
+  Node rewriteAssertionForSolvePv(CegInstantiator* ci, Node pv, Node lit);
+  /** rewrite term for solve pv
+   * This is a helper function for rewriteAssertionForSolvePv.
+   * If this returns non-null value ret, then this indicates
+   * that n should be rewritten to ret. It is called as
+   * a "post-rewrite", that is, after the children of n
+   * have been rewritten and stored in the vector children.
+   *
+   * contains_pv stores whether certain nodes contain pv.
+   * where we guarantee that all subterms of terms in children
+   * appear in the domain of contains_pv.
+   */
+  Node rewriteTermForSolvePv(
+      Node pv,
+      Node n,
+      std::vector<Node>& children,
+      std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv);
+  /** process literal, called from processAssertion
+  * lit is the literal to solve for pv that has been rewritten according to
+  * internal rules here.
+  * alit is the asserted literal that lit is derived from.
+  */
+  void processLiteral(CegInstantiator* ci,
+                      SolvedForm& sf,
+                      Node pv,
+                      Node lit,
+                      Node alit,
+                      CegInstEffort effort);
 };
 
+/** Bitvector instantiator preprocess
+ *
+ * This class implements preprocess techniques that are helpful for
+ * counterexample-guided instantiation, such as introducing variables
+ * that refer to disjoint bit-vector extracts.
+ */
+class BvInstantiatorPreprocess : public InstantiatorPreprocess
+{
+ public:
+  BvInstantiatorPreprocess() {}
+  virtual ~BvInstantiatorPreprocess() {}
+  /** register counterexample lemma
+   *
+   * This method modifies the contents of lems based on removing extract terms
+   * when the option --cbqi-bv-rm-extract is enabled.
+   *
+   * For example:
+   *   P[ ((extract 7 4) t), ((extract 3 0) t)]
+   *     becomes:
+   *   P[((extract 7 4) t), ((extract 3 0) t)] ^
+   *   t = concat( x74, x30 ) ^
+   *   x74 = ((extract 7 4) t) ^
+   *   x30 = ((extract 3 0) t)
+   * where x74 and x30 are fresh variables.
+   *
+   * Another example:
+   *   P[ ((extract 7 3) t), ((extract 4 0) t)]
+   *     becomes:
+   *   P[((extract 7 4) t), ((extract 3 0) t)] ^
+   *   t = concat( x75, x44, x30 ) ^
+   *   x75 = ((extract 7 5) t) ^
+   *   x44 = ((extract 4 4) t) ^
+   *   x30 = ((extract 3 0) t)
+   * where x75, x44 and x30 are fresh variables.
+   *
+   * Notice we leave the original conjecture alone. This is done for performance
+   * since the added equalities ensure we are able to construct the proper
+   * solved forms for variables in t and for the intermediate variables above.
+   */
+  virtual void registerCounterexampleLemma(std::vector<Node>& lems,
+                                           std::vector<Node>& ce_vars) override;
 
-}
-}
-}
+ private:
+  /** collect extracts
+   *
+   * This method collects all extract terms in lem
+   * and stores them in d_extract_map.
+   * visited is the terms we've already visited.
+   */
+  void collectExtracts(Node lem,
+                       std::map<Node, std::vector<Node> >& extract_map,
+                       std::unordered_set<TNode, TNodeHashFunction>& visited);
+};
+
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */
 
 #endif

@@ -21,6 +21,7 @@
 
 #include <deque>
 #include <queue>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -150,7 +151,8 @@ public:
   virtual ~PathReconstructionNotify() {}
 
   virtual void notify(unsigned reasonType, Node reason, Node a, Node b,
-                      std::vector<TNode>& equalities, EqProof* proof) const = 0;
+                      std::vector<TNode>& equalities,
+                      EqProof* proof) const = 0;
 };
 
 /**
@@ -229,6 +231,9 @@ private:
 
   /** The map of kinds to be treated as interpreted function applications (for evaluation of constants) */
   KindMap d_congruenceKindsInterpreted;
+
+  /** The map of kinds with operators to be considered external (for higher-order) */
+  KindMap d_congruenceKindsExtOperators;
 
   /** Objects that need to be notified during equality path reconstruction */
   std::map<unsigned, const PathReconstructionNotify*> d_pathReconstructionTriggers;
@@ -503,7 +508,7 @@ private:
    * imply t1 = t2. Returns TNodes as the assertion equalities should be hashed somewhere
    * else.
    */
-  void getExplanation(EqualityEdgeId t1Id, EqualityNodeId t2Id, std::vector<TNode>& equalities, EqProof * eqp) const;
+  void getExplanation(EqualityEdgeId t1Id, EqualityNodeId t2Id, std::vector<TNode>& equalities, EqProof* eqp) const;
 
   /**
    * Print the equality graph.
@@ -714,9 +719,13 @@ public:
   }
 
   /**
-   * Add a kind to treat as function applications.
+   * Add a kind to treat as function applications. 
+   * When extOperator is true, this equality engine will treat the operators of this kind 
+   * as "external" e.g. not internal nodes (see d_isInternal). This means that we will 
+   * consider equivalence classes containing the operators of such terms, and "hasTerm" will
+   * return true.
    */
-  void addFunctionKind(Kind fun, bool interpreted = false);
+  void addFunctionKind(Kind fun, bool interpreted = false, bool extOperator = false);
 
   /**
    * Returns true if this kind is used for congruence closure.
@@ -730,6 +739,13 @@ public:
    */
   bool isInterpretedFunctionKind(Kind fun) const {
     return d_congruenceKindsInterpreted.tst(fun);
+  }
+
+  /**
+   * Returns true if this kind has an operator that is considered external (e.g. not internal).
+   */
+  bool isExternalOperatorKind(Kind fun) const {
+    return d_congruenceKindsExtOperators.tst(fun);
   }
 
   /**
@@ -780,14 +796,17 @@ public:
    * Returns the reasons (added when asserting) that imply it
    * in the assertions vector.
    */
-  void explainEquality(TNode t1, TNode t2, bool polarity, std::vector<TNode>& assertions, EqProof * eqp = NULL) const;
+  void explainEquality(TNode t1, TNode t2, bool polarity,
+                       std::vector<TNode>& assertions,
+                       EqProof* eqp = nullptr) const;
 
   /**
    * Get an explanation of the predicate being true or false.
    * Returns the reasons (added when asserting) that imply imply it
    * in the assertions vector.
    */
-  void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions, EqProof * eqp = NULL) const;
+  void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions,
+                        EqProof* eqp = nullptr) const;
 
   /**
    * Add term to the set of trigger terms with a corresponding tag. The notify class will get
@@ -911,8 +930,9 @@ public:
   EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY){}
   unsigned d_id;
   Node d_node;
-  std::vector< EqProof * > d_children;
-  void debug_print(const char * c, unsigned tb = 0, PrettyPrinter* prettyPrinter = NULL) const;
+  std::vector<std::shared_ptr<EqProof>> d_children;
+  void debug_print(const char* c, unsigned tb = 0,
+                   PrettyPrinter* prettyPrinter = nullptr) const;
 };/* class EqProof */
 
 } // Namespace eq

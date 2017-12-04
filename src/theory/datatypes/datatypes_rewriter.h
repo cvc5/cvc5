@@ -36,29 +36,11 @@ public:
     Trace("datatypes-rewrite-debug") << "post-rewriting " << in << std::endl;
 
     if(in.getKind() == kind::APPLY_CONSTRUCTOR ){
+      /*
       TypeNode tn = in.getType();
       Type t = tn.toType();
       DatatypeType dt = DatatypeType(t);
-      //check for parametric datatype constructors
-      // to ensure a normal form, all parameteric datatype constructors must have a type ascription
-      if( dt.isParametric() ){
-        if( in.getOperator().getKind()!=kind::APPLY_TYPE_ASCRIPTION ){
-          Trace("datatypes-rewrite-debug") << "Ascribing type to parametric datatype constructor " << in << std::endl;
-          Node op = in.getOperator();
-          //get the constructor object
-          const DatatypeConstructor& dtc = Datatype::datatypeOf(op.toExpr())[Datatype::indexOf(op.toExpr())];
-          //create ascribed constructor type
-          Node tc = NodeManager::currentNM()->mkConst(AscriptionType(dtc.getSpecializedConstructorType(t)));
-          Node op_new = NodeManager::currentNM()->mkNode( kind::APPLY_TYPE_ASCRIPTION, tc, op );
-          //make new node
-          std::vector< Node > children;
-          children.push_back( op_new );
-          children.insert( children.end(), in.begin(), in.end() );
-          Node inr = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
-          Trace("datatypes-rewrite-debug") << "Created " << inr << std::endl;
-          return RewriteResponse(REWRITE_DONE, inr);
-        }
-      }
+      // enable this rewrite if we support subtypes of tuples
       if( tn.isTuple() ){
         Node nn = normalizeTupleConstructorApp( in );
         if( nn!=in ){
@@ -66,6 +48,7 @@ public:
           return RewriteResponse(REWRITE_AGAIN_FULL, nn);
         }
       }
+      */
       if( in.isConst() ){
         Trace("datatypes-rewrite-debug") << "Normalizing constant " << in << std::endl;
         Node inn = normalizeConstant( in );
@@ -176,13 +159,15 @@ public:
             children.push_back( NodeManager::currentNM()->mkNode( kind::DT_SIZE, in[0][i] ) );
           }
         }
-        Node res;
-        if( !children.empty() ){
-          children.push_back( NodeManager::currentNM()->mkConst( Rational(1) ) );
-          res = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::PLUS, children );
-        }else{
-          res = NodeManager::currentNM()->mkConst( Rational(0) );
-        }
+        TNode constructor = in[0].getOperator();
+        size_t constructorIndex = Datatype::indexOf(constructor.toExpr());
+        const Datatype& dt = Datatype::datatypeOf(constructor.toExpr());
+        const DatatypeConstructor& c = dt[constructorIndex];
+        unsigned weight = c.getWeight();
+        children.push_back(NodeManager::currentNM()->mkConst(Rational(weight)));
+        Node res = children.size() == 1
+                       ? children[0]
+                       : NodeManager::currentNM()->mkNode(kind::PLUS, children);
         Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: rewrite size " << in << " to " << res << std::endl;
         return RewriteResponse(REWRITE_AGAIN_FULL, res );
       }
@@ -241,6 +226,33 @@ public:
 
   static RewriteResponse preRewrite(TNode in) {
     Trace("datatypes-rewrite-debug") << "pre-rewriting " << in << std::endl;
+    //must prewrite to apply type ascriptions since rewriting does not preserve types
+    if(in.getKind() == kind::APPLY_CONSTRUCTOR ){
+      TypeNode tn = in.getType();
+      Type t = tn.toType();
+      DatatypeType dt = DatatypeType(t);
+      
+      //check for parametric datatype constructors
+      // to ensure a normal form, all parameteric datatype constructors must have a type ascription
+      if( dt.isParametric() ){
+        if( in.getOperator().getKind()!=kind::APPLY_TYPE_ASCRIPTION ){
+          Trace("datatypes-rewrite-debug") << "Ascribing type to parametric datatype constructor " << in << std::endl;
+          Node op = in.getOperator();
+          //get the constructor object
+          const DatatypeConstructor& dtc = Datatype::datatypeOf(op.toExpr())[Datatype::indexOf(op.toExpr())];
+          //create ascribed constructor type
+          Node tc = NodeManager::currentNM()->mkConst(AscriptionType(dtc.getSpecializedConstructorType(t)));
+          Node op_new = NodeManager::currentNM()->mkNode( kind::APPLY_TYPE_ASCRIPTION, tc, op );
+          //make new node
+          std::vector< Node > children;
+          children.push_back( op_new );
+          children.insert( children.end(), in.begin(), in.end() );
+          Node inr = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
+          Trace("datatypes-rewrite-debug") << "Created " << inr << std::endl;
+          return RewriteResponse(REWRITE_DONE, inr);
+        }
+      }
+    }
     return RewriteResponse(REWRITE_DONE, in);
   }
 
@@ -251,10 +263,11 @@ public:
     Trace("datatypes-rewrite-debug") << "Check clash : " << n1 << " " << n2 << std::endl;
     if( n1.getKind() == kind::APPLY_CONSTRUCTOR && n2.getKind() == kind::APPLY_CONSTRUCTOR ) {
       if( n1.getOperator() != n2.getOperator()) {
-        if( n1.getNumChildren() != n2.getNumChildren() || !n1.getType().isTuple() || !n2.getType().isTuple() ){
-          Trace("datatypes-rewrite-debug") << "Clash operators : " << n1 << " " << n2 << " " << n1.getOperator() << " " << n2.getOperator() << std::endl;
-          return true;
-        }
+        //enable this check if we support subtypes with tuples
+        //if( n1.getNumChildren() != n2.getNumChildren() || !n1.getType().isTuple() || !n2.getType().isTuple() ){
+        Trace("datatypes-rewrite-debug") << "Clash operators : " << n1 << " " << n2 << " " << n1.getOperator() << " " << n2.getOperator() << std::endl;
+        return true;
+        //}
       }
       Assert( n1.getNumChildren() == n2.getNumChildren() );
       for( unsigned i=0; i<n1.getNumChildren(); i++ ) {
@@ -649,9 +662,11 @@ public:
   static Node normalizeConstant( Node n ){
     TypeNode tn = n.getType();
     if( tn.isDatatype() ){
-      if( tn.isTuple() ){
-        return normalizeTupleConstructorApp( n );
-      }else if( tn.isCodatatype() ){
+      // enable this if we support subtyping with tuples
+      //if( tn.isTuple() ){
+      //  return normalizeTupleConstructorApp( n );
+      //} 
+      if( tn.isCodatatype() ){
         return normalizeCodatatypeConstant( n );
       }else{
         std::vector< Node > children;

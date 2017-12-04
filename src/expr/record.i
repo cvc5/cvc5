@@ -9,8 +9,7 @@
 #endif /* SWIGJAVA */
 %}
 
-%rename(equals) CVC4::RecordSelect::operator==(const RecordSelect&) const;
-%ignore CVC4::RecordSelect::operator!=(const RecordSelect&) const;
+%include "stdint.i"
 
 %rename(equals) CVC4::RecordUpdate::operator==(const RecordUpdate&) const;
 %ignore CVC4::RecordUpdate::operator!=(const RecordUpdate&) const;
@@ -20,11 +19,9 @@
 %rename(getField) CVC4::Record::operator[](size_t) const;
 
 %rename(apply) CVC4::RecordHashFunction::operator()(const Record&) const;
-%rename(apply) CVC4::RecordSelectHashFunction::operator()(const RecordSelect&) const;
 %rename(apply) CVC4::RecordUpdateHashFunction::operator()(const RecordUpdate&) const;
 
 %ignore CVC4::operator<<(std::ostream&, const Record&);
-%ignore CVC4::operator<<(std::ostream&, const RecordSelect&);
 %ignore CVC4::operator<<(std::ostream&, const RecordUpdate&);
 
 #ifdef SWIGJAVA
@@ -40,7 +37,7 @@
       jenv->SetObjectArrayElement($result, 0, jenv->NewStringUTF($1.first.c_str()));
       jclass clazz = jenv->FindClass("edu/nyu/acsys/CVC4/Type");
       jmethodID methodid = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
-      jenv->SetObjectArrayElement($result, 1, jenv->NewObject(clazz, methodid, reinterpret_cast<long>(new CVC4::Type($1.second)), true));
+      jenv->SetObjectArrayElement($result, 1, jenv->NewObject(clazz, methodid, reinterpret_cast<uintptr_t>(new CVC4::Type($1.second)), true));
     };
 
 

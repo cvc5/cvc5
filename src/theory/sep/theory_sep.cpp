@@ -14,19 +14,20 @@
  ** Implementation of the theory of sep.
  **/
 
-
 #include "theory/sep/theory_sep.h"
-#include "theory/valuation.h"
-#include "expr/kind.h"
 #include <map>
-#include "theory/rewriter.h"
-#include "theory/theory_model.h"
+#include "expr/kind.h"
+#include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
 #include "smt/logic_exception.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/term_database.h"
-#include "options/quantifiers_options.h"
+#include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
+#include "theory/valuation.h"
 
 using namespace std;
 
@@ -816,10 +817,10 @@ Node TheorySep::getNextDecisionRequest( unsigned& priority ) {
     if( getLogicInfo().isQuantified() ){
       Assert( d_guard_to_assertion.find( g )!= d_guard_to_assertion.end() );
       Node a = d_guard_to_assertion[g];
-      Node q = quantifiers::TermDb::getInstConstAttr( a );
+      Node q = quantifiers::TermUtil::getInstConstAttr( a );
       if( !q.isNull() ){
         //must wait to decide on counterexample literal from quantified formula
-        Node cel = getQuantifiersEngine()->getTermDatabase()->getCounterexampleLiteral( q );
+        Node cel = getQuantifiersEngine()->getTermUtil()->getCounterexampleLiteral( q );
         bool value;
         if( d_valuation.hasSatValue( cel, value ) ){
           Trace("sep-dec-debug") << "TheorySep::getNextDecisionRequest : dependent guard " << g << " depends on value for guard for quantified formula : " << value << std::endl;
@@ -925,7 +926,7 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
       TypeNode tn1 = n[0].getType();
       TypeNode tn2 = n[1].getType();
       registerRefDataTypes( tn1, tn2, n );
-      if( quantifiers::TermDb::hasBoundVarAttr( n[0] ) ){
+      if( quantifiers::TermUtil::hasBoundVarAttr( n[0] ) ){
         if( d_bound_kind[tn1]!=bound_strict && d_bound_kind[tn1]!=bound_invalid ){
           if( options::quantEpr() && n[0].getKind()==kind::BOUND_VARIABLE ){
             // still valid : bound on heap models will include Herbrand universe of n[0].getType()
@@ -1088,7 +1089,9 @@ void TheorySep::initializeBounds() {
     for( std::map< TypeNode, TypeNode >::iterator it = d_loc_to_data_type.begin(); it != d_loc_to_data_type.end(); ++it ){
       TypeNode tn = it->first;
       Trace("sep-bound")  << "Initialize bounds for " << tn << "..." << std::endl;
-      QuantEPR * qepr = getLogicInfo().isQuantified() ? getQuantifiersEngine()->getQuantEPR() : NULL;
+      quantifiers::QuantEPR* qepr = getLogicInfo().isQuantified()
+                                        ? getQuantifiersEngine()->getQuantEPR()
+                                        : NULL;
       //if pto had free variable reference      
       if( d_bound_kind[tn]==bound_herbrand ){
         //include Herbrand universe of tn

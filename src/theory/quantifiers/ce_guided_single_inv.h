@@ -17,11 +17,13 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
 #define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
 
-#include "context/cdhashmap.h"
 #include "context/cdchunk_list.h"
-#include "theory/quantifiers_engine.h"
+#include "context/cdhashmap.h"
 #include "theory/quantifiers/ce_guided_single_inv_sol.h"
+#include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/inst_strategy_cbqi.h"
+#include "theory/quantifiers/single_inv_partition.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -40,9 +42,6 @@ public:
   bool isEligibleForInstantiation( Node n );
   bool addLemma( Node lem );
 };
-
-
-class SingleInvocationPartition;
 
 class DetTrace {
 private:
@@ -95,19 +94,17 @@ public:
   Node constructFormulaTrace( DetTrace& dt );
 };
 
-
+// this class infers whether a conjecture is single invocation (Reynolds et al CAV 2015), and sets up the
+// counterexample-guided quantifier instantiation utility (d_cinst), and methods for solution
+// reconstruction (d_sol).
+// It also has more advanced techniques for:
+// (1) partitioning a conjecture into single invocation / non-single invocation portions for invariant synthesis,
+// (2) inferring whether the conjecture corresponds to a deterministic transistion system (by utility d_ti).
+// For these techniques, we may generate a template (d_templ) which specifies a restricted
+// solution space. We may in turn embed this template as a SyGuS grammar.
 class CegConjectureSingleInv {
  private:
   friend class CegqiOutputSingleInv;
-  // for recognizing templates for invariant synthesis
-  Node substituteInvariantTemplates(
-      Node n, std::map<Node, Node>& prog_templ,
-      std::map<Node, std::vector<Node> >& prog_templ_vars);
-  // partially single invocation
-  Node removeDeepEmbedding( Node n, std::vector< Node >& progs,
-                            std::vector< TypeNode >& types, int& type_valid,
-                            std::map< Node, Node >& visited );
-  Node addDeepEmbedding( Node n, std::map< Node, Node >& visited );
   //presolve
   void collectPresolveEqTerms( Node n,
                                std::map< Node, std::vector< Node > >& teq );
@@ -119,16 +116,18 @@ class CegConjectureSingleInv {
   Node constructSolution(std::vector<unsigned>& indices, unsigned i,
                          unsigned index, std::map<Node, Node>& weak_imp);
   Node postProcessSolution(Node n);
-
  private:
   QuantifiersEngine* d_qe;
   CegConjecture* d_parent;
+  // single invocation inference utility
   SingleInvocationPartition* d_sip;
+  // transition inference module for each function to synthesize
   std::map< Node, TransitionInference > d_ti;
+  // solution reconstruction
   CegConjectureSingleInvSol* d_sol;
-  CegEntailmentInfer* d_ei;
-  // the instantiator
+  // the instantiator's output channel
   CegqiOutputSingleInv* d_cosi;
+  // the instantiator
   CegInstantiator* d_cinst;
 
   // list of skolems for each argument of programs
@@ -148,6 +147,7 @@ class CegConjectureSingleInv {
   Node d_orig_solution;
   Node d_solution;
   Node d_sygus_solution;
+  // whether the grammar for our solution allows ITEs, this tells us when reconstruction is infeasible
   bool d_has_ites;
 
  public:
@@ -163,37 +163,39 @@ class CegConjectureSingleInv {
   bool isEligibleForInstantiation( Node n );
   // add lemma
   bool addLemma( Node lem );
- public:
-  CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p );
-  ~CegConjectureSingleInv();
-  // original conjecture
+  // conjecture
   Node d_quant;
+  Node d_simp_quant;
+  // are we single invocation?
+  bool d_single_invocation;
   // single invocation portion of quantified formula
   Node d_single_inv;
   Node d_si_guard;
-  // non-single invocation portion of quantified formula
-  Node d_nsingle_inv;
-  Node d_ns_guard;
-  // full version quantified formula
-  Node d_full_inv;
-  Node d_full_guard;
-  //explanation for current single invocation conjecture
-  Node d_single_inv_exp;
   // transition relation version per program
   std::map< Node, Node > d_trans_pre;
   std::map< Node, Node > d_trans_post;
-  std::map< Node, std::vector< Node > > d_prog_templ_vars;
+  // the template for each function to synthesize
   std::map< Node, Node > d_templ;
+  // the template argument for each function to synthesize (occurs in exactly one position of its template)
   std::map< Node, Node > d_templ_arg;
-  //the non-single invocation portion of the quantified formula
-  std::map< Node, Node > d_nsi_op_map;
-  std::map< Node, Node > d_nsi_op_map_to_prog;
-  std::map< Node, Node > d_prog_to_eval_op;
+  
+ public:
+  CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p );
+  ~CegConjectureSingleInv();
+
+  // get simplified conjecture
+  Node getSimplifiedConjecture() { return d_simp_quant; }
+  // get single invocation guard
+  Node getGuard() { return d_si_guard; }
  public:
   //get the single invocation lemma(s)
   void getInitialSingleInvLemma( std::vector< Node >& lems );
-  //initialize
+  // initialize this class for synthesis conjecture q
   void initialize( Node q );
+  // finish initialize, sets up final decisions about whether to use single invocation techniques
+  //  syntaxRestricted is whether the syntax for solutions for the initialized conjecture is restricted
+  //  hasItes is whether the syntax for solutions for the initialized conjecture allows ITEs
+  void finishInit( bool syntaxRestricted, bool hasItes );
   //check
   bool check( std::vector< Node >& lems );
   //get solution
@@ -205,16 +207,10 @@ class CegConjectureSingleInv {
   bool hasITEs() { return d_has_ites; }
   // is single invocation
   bool isSingleInvocation() const { return !d_single_inv.isNull(); }
-  // is single invocation
-  bool isFullySingleInvocation() const {
-    return !d_single_inv.isNull() && d_nsingle_inv.isNull();
-  }
   //needs check
   bool needsCheck();
   /** preregister conjecture */
   void preregisterConjecture( Node q );
-  //initialize next candidate si conjecture (if not fully single invocation)
-  void initializeNextSiConjecture();
 
   Node getTransPre(Node prog) const {
     std::map<Node, Node>::const_iterator location = d_trans_pre.find(prog);
@@ -225,6 +221,7 @@ class CegConjectureSingleInv {
     std::map<Node, Node>::const_iterator location = d_trans_post.find(prog);
     return location->second;
   }
+  // get template for program prog. This returns a term of the form t[x] where x is the template argument (see below)
   Node getTemplate(Node prog) const {
     std::map<Node, Node>::const_iterator tmpl = d_templ.find(prog);
     if( tmpl!=d_templ.end() ){
@@ -233,6 +230,8 @@ class CegConjectureSingleInv {
       return Node::null();
     }
   }
+  // get the template argument for program prog.
+  // This is a variable which indicates the position of the function/predicate to synthesize.
   Node getTemplateArg(Node prog) const {
     std::map<Node, Node>::const_iterator tmpla = d_templ_arg.find(prog);
     if( tmpla != d_templ_arg.end() ){
@@ -241,59 +240,7 @@ class CegConjectureSingleInv {
       return Node::null();
     }
   }
-
 };
-
-// partitions any formulas given to it into single invocation/non-single
-// invocation only processes functions having argument types exactly matching
-// "d_arg_types",  and all invocations are in the same order across all
-// functions
-class SingleInvocationPartition {
-private:
-  bool d_has_input_funcs;
-  std::vector< Node > d_input_funcs;
-  //options
-  bool inferArgTypes( Node n, std::vector< TypeNode >& typs, std::map< Node, bool >& visited );
-  void process( Node n );
-  bool collectConjuncts( Node n, bool pol, std::vector< Node >& conj );
-  bool processConjunct( Node n, std::map< Node, bool >& visited, std::vector< Node >& args,
-                        std::vector< Node >& terms, std::vector< Node >& subs );
-  Node getSpecificationInst( Node n, std::map< Node, Node >& lam, std::map< Node, Node >& visited );
-  bool init( std::vector< Node >& funcs, std::vector< TypeNode >& typs, Node n, bool has_funcs );
-public:
-  SingleInvocationPartition() : d_has_input_funcs( false ){}
-  ~SingleInvocationPartition(){}
-  bool init( Node n );
-  bool init( std::vector< Node >& funcs, Node n );
-
-  //outputs (everything is with bound var)
-  std::vector< TypeNode > d_arg_types;
-  std::map< Node, bool > d_funcs;
-  std::map< Node, Node > d_func_inv;
-  std::map< Node, Node > d_inv_to_func;
-  std::map< Node, Node > d_func_fo_var;
-  std::map< Node, Node > d_fo_var_to_func;
-  std::vector< Node > d_func_vars; //the first-order variables corresponding to all functions
-  std::vector< Node > d_si_vars;   //the arguments that we based the anti-skolemization on
-  std::vector< Node > d_all_vars;  //every free variable of conjuncts[2]
-  // si, nsi, all, non-ground si
-  std::vector< Node > d_conjuncts[4];
-
-  bool isAntiSkolemizableType( Node f );
-
-  Node getConjunct( int index );
-  Node getSingleInvocation() { return getConjunct( 0 ); }
-  Node getNonSingleInvocation() { return getConjunct( 1 ); }
-  Node getFullSpecification() { return getConjunct( 2 ); }
-
-  Node getSpecificationInst( int index, std::map< Node, Node >& lam );
-
-  bool isPurelySingleInvocation() { return d_conjuncts[1].empty(); }
-  bool isNonGroundSingleInvocation() { return d_conjuncts[3].size()==d_conjuncts[1].size(); }
-
-  void debugPrint( const char * c );
-};
-
 
 }/* namespace CVC4::theory::quantifiers */
 }/* namespace CVC4::theory */

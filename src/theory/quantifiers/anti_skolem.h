@@ -20,11 +20,11 @@
 #include <map>
 #include <vector>
 
-#include "expr/node.h"
-#include "expr/type_node.h"
 #include "context/cdhashset.h"
 #include "context/cdo.h"
-#include "theory/quantifiers/ce_guided_single_inv.h"
+#include "expr/node.h"
+#include "expr/type_node.h"
+#include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -40,7 +40,7 @@ public:
                                bool pconnected = true );
 
   /* Call during quantifier engine's check */
-  void check( Theory::Effort e, unsigned quant_e );
+  void check(Theory::Effort e, QEffort quant_e);
   /* Called for new quantifiers */
   void registerQuantifier( Node q ) {}
   void assertNode( Node n ) {}

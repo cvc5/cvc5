@@ -158,7 +158,9 @@ parseCommand returns [CVC4::Command* cmd = NULL]
 }
 //  : LPAREN_TOK c = command RPAREN_TOK { $cmd = c; }
   : CNF_TOK LPAREN_TOK nameN[name] COMMA_TOK formulaRole[fr] COMMA_TOK
-  { PARSER_STATE->cnf = true; PARSER_STATE->fof = false; PARSER_STATE->pushScope(); }
+  { PARSER_STATE->setCnf(true);
+    PARSER_STATE->setFof(false);
+    PARSER_STATE->pushScope(); }
     cnfFormula[expr]
   { PARSER_STATE->popScope();
     std::vector<Expr> bvl = PARSER_STATE->getFreeVar();
@@ -168,21 +170,45 @@ parseCommand returns [CVC4::Command* cmd = NULL]
   }
     (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ true);
+      Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+      if( !aexpr.isNull() ){
+        // set the expression name (e.g. used with unsat core printing)
+        Command* csen = new SetExpressionNameCommand(aexpr, name);
+        csen->setMuted(true);
+        PARSER_STATE->preemptCommand(csen);
+      }
+      // make the command to assert the formula
+      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ true, true);
     }
   | FOF_TOK LPAREN_TOK nameN[name] COMMA_TOK formulaRole[fr] COMMA_TOK
-    { PARSER_STATE->cnf = false; PARSER_STATE->fof = true; }
+    { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(true); }
     fofFormula[expr] (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ false);
+      Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+      if( !aexpr.isNull() ){
+        // set the expression name (e.g. used with unsat core printing)
+        Command* csen = new SetExpressionNameCommand(aexpr, name);
+        csen->setMuted(true);
+        PARSER_STATE->preemptCommand(csen);
+      }
+      // make the command to assert the formula
+      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
     }
   | TFF_TOK LPAREN_TOK nameN[name] COMMA_TOK
     ( TYPE_TOK COMMA_TOK tffTypedAtom[cmd]
     | formulaRole[fr] COMMA_TOK
-      { PARSER_STATE->cnf = false; PARSER_STATE->fof = false; }
+      { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(false); }
       tffFormula[expr] (COMMA_TOK anything*)?
       {
-        cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ false);
+        Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+        if( !aexpr.isNull() ){
+          // set the expression name (e.g. used with unsat core printing)
+          Command* csen = new SetExpressionNameCommand(aexpr, name);
+          csen->setMuted(true);
+          PARSER_STATE->preemptCommand(csen);
+        }
+        // make the command to assert the formula
+        cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
       }
     ) RPAREN_TOK DOT_TOK
   | INCLUDE_TOK LPAREN_TOK unquotedFileName[name]
@@ -506,11 +532,11 @@ variable[CVC4::Expr& expr]
   : UPPER_WORD
     {
       std::string name = AntlrInput::tokenText($UPPER_WORD);
-      if(!PARSER_STATE->cnf || PARSER_STATE->isDeclared(name)) {
+      if(!PARSER_STATE->cnf() || PARSER_STATE->isDeclared(name)) {
         expr = PARSER_STATE->getVariable(name);
       } else {
         expr = PARSER_STATE->mkBoundVar(name, PARSER_STATE->d_unsorted);
-        if(PARSER_STATE->cnf) PARSER_STATE->addFreeVar(expr);
+        if(PARSER_STATE->cnf()) PARSER_STATE->addFreeVar(expr);
       }
     }
     ;
@@ -1023,7 +1049,7 @@ NUMBER
         PARSER_STATE->d_tmp_expr = MK_CONST(Rational(pos ? inum : -inum, iden));
       }
     )
-    { if(PARSER_STATE->cnf || PARSER_STATE->fof) {
+    { if(PARSER_STATE->cnf() || PARSER_STATE->fof()) {
         // We're in an unsorted context, so put a conversion around it
         PARSER_STATE->d_tmp_expr = PARSER_STATE->convertRatToUnsorted( PARSER_STATE->d_tmp_expr );
       }

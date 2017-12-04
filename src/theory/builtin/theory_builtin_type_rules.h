@@ -23,6 +23,7 @@
 #include "expr/type_node.h"
 #include "expr/expr.h"
 #include "theory/rewriter.h"
+#include "theory/builtin/theory_builtin_rewriter.h" // for array and lambda representation
 
 #include <sstream>
 
@@ -76,10 +77,7 @@ class EqualityTypeRule {
     if( check ) {
       TypeNode lhsType = n[0].getType(check);
       TypeNode rhsType = n[1].getType(check);
-
-      // TODO : we may want to limit cases where we have equalities between terms of different types 
-      //   equalities between (Set Int) and (Set Real) already cause strange issues in theory solver for sets
-      //   one possibility is to only allow this for Int/Real
+      
       if ( TypeNode::leastCommonTypeNode(lhsType, rhsType).isNull() ) {
         std::stringstream ss;
         ss << "Subexpressions must have a common base type:" << std::endl;
@@ -89,6 +87,7 @@ class EqualityTypeRule {
 
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
+      // TODO : check isFirstClass for these types? (github issue #1202)
     }
     return booleanType;
   }
@@ -161,7 +160,72 @@ public:
     TypeNode rangeType = n[1].getType(check);
     return nodeManager->mkFunctionType(argTypes, rangeType);
   }
+  // computes whether a lambda is a constant value, via conversion to array representation
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+    throw (AssertionException) {
+    Assert(n.getKind() == kind::LAMBDA);
+    //get array representation of this function, if possible
+    Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda( n, true );
+    if( !na.isNull() ){
+      Assert( na.getType().isArray() );
+      Trace("lambda-const") << "Array representation for " << n << " is " << na << " " << na.getType() << std::endl;
+      // must have the standard bound variable list
+      Node bvl = NodeManager::currentNM()->getBoundVarListForFunctionType( n.getType() );
+      if( bvl==n[0] ){
+        //array must be constant
+        if( na.isConst() ){
+          Trace("lambda-const") << "*** Constant lambda : " << n;
+          Trace("lambda-const") << " since its array representation : " << na << " is constant." << std::endl;
+          return true;
+        }else{
+          Trace("lambda-const") << "Non-constant lambda : " << n << " since array is not constant." << std::endl;
+        } 
+      }else{
+        Trace("lambda-const") << "Non-constant lambda : " << n << " since its varlist is not standard." << std::endl;
+        Trace("lambda-const") << "  standard : " << bvl << std::endl;
+        Trace("lambda-const") << "   current : " << n[0] << std::endl;
+      } 
+    }else{
+      Trace("lambda-const") << "Non-constant lambda : " << n << " since it has no array representation." << std::endl;
+    } 
+    return false;
+  }
 };/* class LambdaTypeRule */
+
+class ChoiceTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    if (n[0].getType(check) != nodeManager->boundVarListType())
+    {
+      std::stringstream ss;
+      ss << "expected a bound var list for CHOICE expression, got `"
+         << n[0].getType().toString() << "'";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (n[0].getNumChildren() != 1)
+    {
+      std::stringstream ss;
+      ss << "expected a bound var list with one argument for CHOICE expression";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (check)
+    {
+      TypeNode rangeType = n[1].getType(check);
+      if (!rangeType.isBoolean())
+      {
+        std::stringstream ss;
+        ss << "expected a body of a CHOICE expression to have Boolean type";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+    // The type of a choice function is the type of its bound variable.
+    return n[0][0].getType();
+  }
+}; /* class ChoiceTypeRule */
 
 class ChainTypeRule {
 public:

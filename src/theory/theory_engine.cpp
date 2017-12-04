@@ -193,19 +193,22 @@ theory::LemmaStatus TheoryEngine::EngineOutputChannel::splitLemma(
   return result;
 }
 
-bool TheoryEngine::EngineOutputChannel::propagate(TNode literal)
-  throw(AssertionException, UnsafeInterruptException) {
-  Debug("theory::propagate") << "EngineOutputChannel<" << d_theory << ">::propagate(" << literal << ")" << std::endl;
-  ++ d_statistics.propagations;
+bool TheoryEngine::EngineOutputChannel::propagate(TNode literal) {
+  Debug("theory::propagate") << "EngineOutputChannel<" << d_theory
+                             << ">::propagate(" << literal << ")" << std::endl;
+  ++d_statistics.propagations;
   d_engine->d_outputChannelUsed = true;
   return d_engine->propagate(literal, d_theory);
 }
 
-void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode, Proof* pf)
-  throw(AssertionException, UnsafeInterruptException) {
-  Trace("theory::conflict") << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode << ")" << std::endl;
-  Assert (pf == NULL); // Theory shouldn't be producing proofs yet
-  ++ d_statistics.conflicts;
+void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
+                                                 std::unique_ptr<Proof> proof)
+{
+  Trace("theory::conflict")
+      << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
+      << ")" << std::endl;
+  Assert(!proof);  // Theory shouldn't be producing proofs yet
+  ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
   d_engine->conflict(conflictNode, d_theory);
 }
@@ -594,7 +597,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         printAssertions("theory::assertions-model");
       }
       //checks for theories requiring the model go at last call
-      d_curr_model->setNeedsBuild();
+      d_curr_model->reset();
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
         if( theoryId!=THEORY_QUANTIFIERS ){
           Theory* theory = d_theoryTable[theoryId];
@@ -2208,7 +2211,7 @@ void TheoryEngine::handleUserAttribute(const char* attr, Theory* t) {
   d_attr_handle[ str ].push_back( t );
 }
 
-void TheoryEngine::checkTheoryAssertionsWithModel() {
+void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
@@ -2223,7 +2226,9 @@ void TheoryEngine::checkTheoryAssertionsWithModel() {
           ss << theoryId << " has an asserted fact that the model doesn't satisfy." << endl
              << "The fact: " << assertion << endl
              << "Model value: " << val << endl;
-          InternalError(ss.str());
+	  if(hardFailure) {
+	    InternalError(ss.str());
+	  }
         }
       }
     }

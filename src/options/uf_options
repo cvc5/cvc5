@@ -22,7 +22,7 @@ option ufssTotalityLimited --uf-ss-totality-limited=N int :default -1
 option ufssTotalitySymBreak --uf-ss-totality-sym-break bool :default false
  apply symmetry breaking for totality axioms
 option ufssAbortCardinality --uf-ss-abort-card=N int :default -1
- tells the uf strong solver a cardinality to abort at (-1 == no limit, default)
+ tells the uf strong solver to only consider models that interpret uninterpreted sorts of cardinality at most N (-1 == no limit, default)
 option ufssExplainedCliques --uf-ss-explained-cliques bool :default false
  use explained clique lemmas for uf strong solver
 option ufssSimpleCliques --uf-ss-simple-cliques bool :default true
@@ -40,5 +40,10 @@ option ufssFairness --uf-ss-fair bool :default true
  use fair strategy for finite model finding multiple sorts
 option ufssFairnessMonotone --uf-ss-fair-monotone bool :read-write :default false
  group monotone sorts when enforcing fairness for finite model finding
+
+option ufHo --uf-ho bool :read-write :default false
+ enable support for higher-order reasoning
+option ufHoExt --uf-ho-ext bool :read-write :default true
+ apply extensionality on function symbols
 
 endmodule

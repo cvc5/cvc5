@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --no-dump-synth
+; COMMAND-LINE: --cegqi-si=all --sygus-out=status
 (set-logic LIA)
 
 ;; f1 is x plus 2 ;; f2 is 2x plus 5

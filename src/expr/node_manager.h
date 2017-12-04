@@ -491,6 +491,9 @@ public:
   Node mkBoundVar(const TypeNode& type);
   Node* mkBoundVarPtr(const TypeNode& type);
 
+  /** get the canonical bound variable list for function type tn */
+  static Node getBoundVarListForFunctionType( TypeNode tn );
+
   /**
    * Optional flags used to control behavior of NodeManager::mkSkolem().
    * They should be composed with a bitwise OR (e.g.,
@@ -1072,10 +1075,12 @@ NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts) {
   Assert(sorts.size() >= 2);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0; i < sorts.size(); ++ i) {
-    CheckArgument(!sorts[i].isFunctionLike(), sorts,
-                  "cannot create higher-order function types");
+    CheckArgument(sorts[i].isFirstClass(), sorts,
+                  "cannot create function types for argument types that are not first-class");
     sortNodes.push_back(sorts[i]);
   }
+  CheckArgument(!sorts[sorts.size()-1].isFunction(), sorts[sorts.size()-1],
+                "must flatten function types");
   return mkTypeNode(kind::FUNCTION_TYPE, sortNodes);
 }
 
@@ -1084,8 +1089,8 @@ NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
   Assert(sorts.size() >= 1);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0; i < sorts.size(); ++ i) {
-    CheckArgument(!sorts[i].isFunctionLike(), sorts,
-                  "cannot create higher-order function types");
+    CheckArgument(sorts[i].isFirstClass(), sorts,
+                  "cannot create predicate types for argument types that are not first-class");
     sortNodes.push_back(sorts[i]);
   }
   sortNodes.push_back(booleanType());
@@ -1118,10 +1123,10 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                 "unexpected NULL index type");
   CheckArgument(!constituentType.isNull(), constituentType,
                 "unexpected NULL constituent type");
-  CheckArgument(!indexType.isFunctionLike(), indexType,
-                "cannot index arrays by a function-like type");
-  CheckArgument(!constituentType.isFunctionLike(), constituentType,
-                "cannot store function-like types in arrays");
+  CheckArgument(indexType.isFirstClass(), indexType,
+                "cannot index arrays by types that are not first-class");
+  CheckArgument(constituentType.isFirstClass(), constituentType,
+                "cannot store types that are not first-class in arrays");
   Debug("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
@@ -1130,24 +1135,23 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
 inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
   CheckArgument(!elementType.isNull(), elementType,
                 "unexpected NULL element type");
-  // TODO: Confirm meaning of isFunctionLike(). --K
-  CheckArgument(!elementType.isFunctionLike(), elementType,
-                "cannot store function-like types in sets");
+  CheckArgument(elementType.isFirstClass(), elementType,
+                "cannot store types that are not first-class in sets");
   Debug("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
 }
 
 inline TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range) {
-  CheckArgument(!domain.isFunctionLike(), domain,
-                "cannot create higher-order function types");
-  CheckArgument(!range.isFunctionLike(), range,
-                "cannot create higher-order function types");
+  CheckArgument(domain.isDatatype(), domain,
+                "cannot create non-datatype selector type");
+  CheckArgument(range.isFirstClass(), range,
+                "cannot have selector fields that are not first-class types");
   return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
 }
 
 inline TypeNode NodeManager::mkTesterType(TypeNode domain) {
-  CheckArgument(!domain.isFunctionLike(), domain,
-                "cannot create higher-order function types");
+  CheckArgument(domain.isDatatype(), domain,
+                "cannot create non-datatype tester");
   return mkTypeNode(kind::TESTER_TYPE, domain );
 }
 

@@ -30,48 +30,51 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
-LogicInfo::LogicInfo() :
-  d_logicString(""),
-  d_theories(THEORY_LAST, false),
-  d_sharingTheories(0),
-  d_integers(true),
-  d_reals(true),
-  d_linear(false),
-  d_differenceLogic(false),
-  d_cardinalityConstraints(false),
-  d_locked(false) {
-
+LogicInfo::LogicInfo()
+    : d_logicString(""),
+      d_theories(THEORY_LAST, false),
+      d_sharingTheories(0),
+      d_integers(true),
+      d_reals(true),
+      d_linear(false),
+      d_differenceLogic(false),
+      d_cardinalityConstraints(false),
+      d_higherOrder(true),
+      d_locked(false)
+{
   for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
     enableTheory(id);
   }
 }
 
-LogicInfo::LogicInfo(std::string logicString) throw(IllegalArgumentException) :
-  d_logicString(""),
-  d_theories(THEORY_LAST, false),
-  d_sharingTheories(0),
-  d_integers(false),
-  d_reals(false),
-  d_linear(false),
-  d_differenceLogic(false),
-  d_cardinalityConstraints(false),
-  d_locked(false) {
-
+LogicInfo::LogicInfo(std::string logicString) throw(IllegalArgumentException)
+    : d_logicString(""),
+      d_theories(THEORY_LAST, false),
+      d_sharingTheories(0),
+      d_integers(false),
+      d_reals(false),
+      d_linear(false),
+      d_differenceLogic(false),
+      d_cardinalityConstraints(false),
+      d_higherOrder(false),
+      d_locked(false)
+{
   setLogicString(logicString);
   lock();
 }
 
-LogicInfo::LogicInfo(const char* logicString) throw(IllegalArgumentException) :
-  d_logicString(""),
-  d_theories(THEORY_LAST, false),
-  d_sharingTheories(0),
-  d_integers(false),
-  d_reals(false),
-  d_linear(false),
-  d_differenceLogic(false),
-  d_cardinalityConstraints(false),
-  d_locked(false) {
-
+LogicInfo::LogicInfo(const char* logicString) throw(IllegalArgumentException)
+    : d_logicString(""),
+      d_theories(THEORY_LAST, false),
+      d_sharingTheories(0),
+      d_integers(false),
+      d_reals(false),
+      d_linear(false),
+      d_differenceLogic(false),
+      d_cardinalityConstraints(false),
+      d_higherOrder(false),
+      d_locked(false)
+{
   setLogicString(logicString);
   lock();
 }
@@ -96,6 +99,15 @@ bool LogicInfo::isQuantified() const {
   PrettyCheckArgument(d_locked, *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
   return isTheoryEnabled(theory::THEORY_QUANTIFIERS);
+}
+
+/** Is this a higher-order logic? */
+bool LogicInfo::isHigherOrder() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  return d_higherOrder;
 }
 
 /** Is this the all-inclusive logic? */
@@ -336,6 +348,10 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
   } else if(!strcmp(p, "QF_SAT")) {
     // propositional logic only; we're done.
     p += 6;
+  } else if(!strcmp(p, "SAT")) {
+    // quantified Boolean formulas only; we're done.
+    enableQuantifiers();
+    p += 3;
   } else if(!strcmp(p, "QF_ALL_SUPPORTED")) {
     // the "all theories included" logic, no quantifiers
     enableEverything();
@@ -565,6 +581,38 @@ void LogicInfo::arithNonLinear() {
   d_logicString = "";
   d_linear = false;
   d_differenceLogic = false;
+}
+
+void LogicInfo::enableCardinalityConstraints()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  d_logicString = "";
+  d_cardinalityConstraints = true;
+}
+
+void LogicInfo::disableCardinalityConstraints()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  d_logicString = "";
+  d_cardinalityConstraints = false;
+}
+
+void LogicInfo::enableHigherOrder()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  d_logicString = "";
+  d_higherOrder = true;
+}
+
+void LogicInfo::disableHigherOrder()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  d_logicString = "";
+  d_higherOrder = false;
 }
 
 LogicInfo LogicInfo::getUnlockedCopy() const {

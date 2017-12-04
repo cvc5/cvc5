@@ -34,17 +34,7 @@ class Type;
 
 namespace CVC4 {
 
-// operators for record select and update
-
-class CVC4_PUBLIC RecordSelect {
-  std::string d_field;
-public:
-  RecordSelect(const std::string& field) throw() : d_field(field) { }
-  std::string getField() const throw() { return d_field; }
-  bool operator==(const RecordSelect& t) const throw() { return d_field == t.d_field; }
-  bool operator!=(const RecordSelect& t) const throw() { return d_field != t.d_field; }
-};/* class RecordSelect */
-
+// operators for record update
 class CVC4_PUBLIC RecordUpdate {
   std::string d_field;
 public:
@@ -54,19 +44,12 @@ public:
   bool operator!=(const RecordUpdate& t) const throw() { return d_field != t.d_field; }
 };/* class RecordUpdate */
 
-struct CVC4_PUBLIC RecordSelectHashFunction {
-  inline size_t operator()(const RecordSelect& t) const {
-    return std::hash<std::string>()(t.getField());
-  }
-};/* struct RecordSelectHashFunction */
-
 struct CVC4_PUBLIC RecordUpdateHashFunction {
   inline size_t operator()(const RecordUpdate& t) const {
     return std::hash<std::string>()(t.getField());
   }
 };/* struct RecordUpdateHashFunction */
 
-std::ostream& operator<<(std::ostream& out, const RecordSelect& t) CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) CVC4_PUBLIC;
 
 // now an actual record definition

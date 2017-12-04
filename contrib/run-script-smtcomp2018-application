@@ -1,0 +1,57 @@
+#!/bin/bash
+
+cvc4=./cvc4-application
+
+line=""
+while [[ -z "$line" ]]; do
+  read line
+done
+if [ "$line" != '(set-option :print-success true)' ]; then
+  echo 'ERROR: first line supposed to be set-option :print-success, but got: "'"$line"'"' >&2
+  exit 1
+fi
+echo success
+line=""
+while [[ -z "$line" ]]; do
+  read line
+done
+logic=$(expr "$line" : ' *(set-logic  *\([A-Z_]*\) *) *$')
+if [ -z "$logic" ]; then
+  echo 'ERROR: second line supposed to be set-logic, but got: "'"$line"'"' >&2
+  exit 1
+fi
+echo success
+
+function runcvc4 {
+  # we run in this way for line-buffered input, otherwise memory's a
+  # concern (plus it mimics what we'll end up getting from an
+  # application-track trace runner?)
+  $cvc4 --force-logic="$logic" -L smt2.6 --print-success --no-checking --no-interactive "$@" <&0-
+}
+
+case "$logic" in
+
+ALIA|QF_ALIA|QF_LRA|QF_UFLIA|QF_UFLRA|UFLRA)
+  runcvc4 --incremental
+  ;;
+ANIA|QF_ANIA|QF_NIA|QF_UFNIA|QF_NRA)
+  runcvc4 --nl-ext --tear-down-incremental=1
+  ;;
+LIA|LRA)
+  runcvc4 --incremental --cbqi
+  ;;
+QF_AUFLIA)
+  runcvc4 --no-arrays-eager-index --arrays-eager-lemmas --incremental
+  ;;
+QF_BV)
+  runcvc4 --tear-down-incremental=4 --bv-eq-slicer=auto --bv-div-zero-const --bv-intro-pow2
+  ;;
+QF_LIA)
+  runcvc4 --tear-down-incremental=1 --unconstrained-simp
+  ;;
+*)
+  # just run the default
+  runcvc4 --incremental
+  ;;
+
+esac
