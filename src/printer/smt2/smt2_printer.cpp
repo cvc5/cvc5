@@ -248,8 +248,12 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       {
         const Datatype & dt = (NodeManager::currentNM()->getDatatypeForIndex( n.getConst< DatatypeIndexConstant >().getIndex() ));
         if(dt.isTuple()){
-          //Call Smt2Printer recursively on dt[0][0]...dt[0][2]
-          out << "(Tuple "<<dt[0][0]<<" "<<dt[0][1]<<" "<<dt[0][2]<<")";
+          unsigned int n = dt[0].getNumArgs();
+          out << "(Tuple";
+          for(unsigned int i = 0; i < n; i++){
+            out <<" "<<dt[0][i].getRangeType();
+          }
+          out<<")";
         }
         else{
           out << maybeQuoteSymbol(dt.getName());
@@ -627,7 +631,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     typeChildren = true;
     const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
     if(dt.isTuple()){
-      out<<"mkTuple";
+      stillNeedToPrintParams = false;
+      out<<"mkTuple ";
     }
   }
   case kind::APPLY_TESTER:
@@ -1647,46 +1652,44 @@ static void toStream(std::ostream& out, const Datatype & d) {
 
 static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c, Variant v) throw() {
   const vector<DatatypeType>& datatypes = c->getDatatypes();
-  if(!datatypes[0].isTuple()){//Don't print corresponding datatype details if its a Tuple type
-    out << "(declare-";
-    Assert( !datatypes.empty() );
-    if( datatypes[0].getDatatype().isCodatatype() ){
-      out << "co";
+  out << "(declare-";
+  Assert( !datatypes.empty() );
+  if( datatypes[0].getDatatype().isCodatatype() ){
+    out << "co";
+  }
+  out << "datatypes";
+  if(v == smt2_6_variant) {
+    out << " (";
+    for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
+          i_end = datatypes.end();
+        i != i_end; ++i) {
+      const Datatype & d = i->getDatatype();
+      out << "(" << maybeQuoteSymbol(d.getName());
+      out << " " << d.getNumParameters() << ")";
     }
-    out << "datatypes";
-    if(v == smt2_6_variant) {
-      out << " (";
-      for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
-            i_end = datatypes.end();
-          i != i_end; ++i) {
-        const Datatype & d = i->getDatatype();
-        out << "(" << maybeQuoteSymbol(d.getName());
-        out << " " << d.getNumParameters() << ")";
-      }
-      out << ") (";
-      for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
-            i_end = datatypes.end();
-          i != i_end; ++i) {
-        const Datatype & d = i->getDatatype();
-        out << "(";
-        toStream( out, d );
-        out << ")" << endl;
-      }
-      out << ")";
-    }else{
-      out << " () (";
-      for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
-            i_end = datatypes.end();
-          i != i_end; ++i) {
-        const Datatype & d = i->getDatatype();
-        out << "(" << maybeQuoteSymbol(d.getName()) << " ";
-        toStream( out, d );
-        out << ")" << endl;
-      }
-      out << ")";
+    out << ") (";
+    for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
+          i_end = datatypes.end();
+        i != i_end; ++i) {
+      const Datatype & d = i->getDatatype();
+      out << "(";
+      toStream( out, d );
+      out << ")" << endl;
+    }
+    out << ")";
+  }else{
+    out << " () (";
+    for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
+          i_end = datatypes.end();
+        i != i_end; ++i) {
+      const Datatype & d = i->getDatatype();
+      out << "(" << maybeQuoteSymbol(d.getName()) << " ";
+      toStream( out, d );
+      out << ")" << endl;
     }
     out << ")";
   }
+  out << ")";
 }
 
 static void toStream(std::ostream& out, const CommentCommand* c, Variant v) throw() {
