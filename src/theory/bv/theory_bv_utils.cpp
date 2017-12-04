@@ -31,9 +31,13 @@ Node mkSum(std::vector<Node>& children, unsigned width)
   std::size_t nchildren = children.size();
 
   if (nchildren == 0)
+  {
     return mkZero(width);
+  }
   else if (nchildren == 1)
+  {
     return children[0];
+  }
   return NodeManager::currentNM()->mkNode(kind::BITVECTOR_PLUS, children);
 }
 
