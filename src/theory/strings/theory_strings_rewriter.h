@@ -33,8 +33,6 @@ private:
   static bool isConstRegExp( TNode t );
   static bool testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r );
 
-  static Node rewriteConcatString(TNode node);
-
   static void mergeInto(std::vector<Node> &t, const std::vector<Node> &s);
   static void shrinkConVec(std::vector<Node> &vec);
   static Node applyAX( TNode node );
@@ -65,6 +63,12 @@ private:
 
   static inline void init() {}
   static inline void shutdown() {}
+  /** rewrite concat
+  * This is the entry point for post-rewriting terms node of the form
+  *   str.++( t1, .., tn )
+  * Returns the rewritten form of node.
+  */
+  static Node rewriteConcat(Node node);
   /** rewrite substr
   * This is the entry point for post-rewriting terms node of the form
   *   str.substr( s, i1, i2 )
@@ -82,7 +86,12 @@ private:
   */
   static Node rewriteContains(Node node);
   static Node rewriteIndexof(Node node);
-  static Node rewriteReplace(Node node);
+  /** rewrite replace
+  * This is the entry point for post-rewriting terms n of the form
+  *   str.replace( s, t, r )
+  * Returns the rewritten form of n.
+  */
+  static Node rewriteReplace(Node n);
 
   /** gets the "vector form" of term n, adds it to c.
   * For example:
