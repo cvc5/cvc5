@@ -286,8 +286,9 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
       }
       ret = mkGeneric( dt, i, var_count, pre );
       Trace("sygus-db-debug") << "SygusToBuiltin : Generic is " << ret << std::endl;
-      ret = Rewriter::rewrite( ret );
-      Trace("sygus-db-debug") << "SygusToBuiltin : After rewriting " << ret << std::endl;
+      ret = Rewriter::rewrite(ret);
+      Trace("sygus-db-debug") << "SygusToBuiltin : After rewriting " << ret
+                              << std::endl;
       d_sygus_to_builtin[tn][n] = ret;
     }else{
       Assert( isFreeVar( n ) );
@@ -1775,8 +1776,10 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
       int i = ret.getAttribute(SygusVarNumAttribute());
       Assert( Node::fromExpr( dt.getSygusVarList() )[i]==ret );
       ret = args[i];
-    }else{
-      ret = Rewriter::rewrite( ret );
+    }
+    else
+    {
+      ret = Rewriter::rewrite(ret);
     }
     return ret;
   }else{
