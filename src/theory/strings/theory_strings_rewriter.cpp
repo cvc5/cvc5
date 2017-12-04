@@ -1680,8 +1680,8 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   /*
   // multi-set reasoning
   //   For example, contains( str.++( x, "b" ), str.++( "a", x ) ) ---> false
-  //   since the number of a's in the right hand side is greater than the number
-  //   of a's in the left hand side.
+  //   since the number of a's in the second argument is greater than the number
+  //   of a's in the first argument
   std::map< Node, unsigned > num_nconst[2];
   std::map< Node, unsigned > num_const[2];
   for( unsigned j=0; j<2; j++ ){
@@ -1704,12 +1704,22 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   }
   if( ms_success ){
     // count the number of constant characters in the first argument
-    std::map< Node, unsigned > count_const;
-    for( std::pair< const Node, unsigned >& ncp : num_const[0] )
-    {
-      Node cn = ncp.first;
-      Assert(cn.isConst());
-      
+    std::map< Node, unsigned > count_const[2];
+    for( unsigned j=0; j<2; j++ ){
+      for( std::pair< const Node, unsigned >& ncp : num_const[j] )
+      {
+        Node cn = ncp.first;
+        Assert(cn.isConst());
+        const std::vector<unsigned>& cvec = cn.getConst<String>().getVec();
+        for( unsigned i=0, size = cvec.size(); i<size; i++ )
+        {
+          // make the character
+          std::vector< unsigned > cc_vec;
+          cc_vec.insert( chars.end(), cvec.begin()+i, cvec.begin()+i+1 );
+          Node ch = NodeManager::currentNM()->mkConst( String( cc_vec ) );
+          count_const[2][ch] += ncp.second;
+        }
+      }
     }
   }
   // TODO (#1180): abstract interpretation with multi-set domain
