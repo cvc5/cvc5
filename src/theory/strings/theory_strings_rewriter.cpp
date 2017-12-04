@@ -2518,7 +2518,7 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
         if (n2[index1].isConst())
         {
           CVC4::String t = n2[index1].getConst<String>();
-          std::size_t ret = s.find(t);
+          std::size_t ret = r==0 ? s.find(t) : s.rfind(t);
           if (ret == std::string::npos)
           {
             if (n1.size() == 1)
@@ -2540,10 +2540,13 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
           else
           {
             Assert(ret < s.size());
-            // can strip off up to the find position
-            // e.g. str.contains( str.++( "abc", x ), str.++( "b", y ) ) -->
-            // str.contains( str.++( "bc", x ), str.++( "b", y ) )
-            overlap = r==0 ? ( s.size() - ret ) : (ret+1);
+            // can strip off up to the find position, e.g.
+            // str.contains( str.++( "abc", x ), str.++( "b", y ) ) -->
+            // str.contains( str.++( "bc", x ), str.++( "b", y ) ),
+            // and
+            // str.contains( str.++( x, "abbd" ), str.++( y, "b" ) ) -->
+            // str.contains( str.++( x, "abb" ), str.++( y, "b" ) )
+            overlap = s.size() - ret;
           }
         }
         else if (n2[index1].getKind() == kind::STRING_ITOS)
