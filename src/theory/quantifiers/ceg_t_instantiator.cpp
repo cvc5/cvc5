@@ -1640,7 +1640,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
     std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
 {
   NodeManager* nm = NodeManager::currentNM();
-  BVLinearAttribute is_linear_attrib;
+  BVLinearAttribute is_linear;
 
   // [1] rewrite cases of non-invertible operators
 
@@ -1699,7 +1699,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
           neg = true;
           child = child[0];
         }
-        if (child.getAttribute(is_linear_attrib) || child == pv)
+        if (child.getAttribute(is_linear) || child == pv)
         {
           if (child.getKind() == BITVECTOR_PLUS)
           {
@@ -1730,7 +1730,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
       {
         Node coeff = nm->mkNode(BITVECTOR_SUB, coeffs[0], coeffs[1]);
         Node pv_mult_coeff = nm->mkNode(BITVECTOR_MULT, pv, coeff);
-        pv_mult_coeff.setAttribute(is_linear_attrib, true);
+        pv_mult_coeff.setAttribute(is_linear, true);
         contains_pv[pv_mult_coeff] = true;
 
         Node leaf;
@@ -1774,7 +1774,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
       }
       if (!result.isNull())
       {
-        result.setAttribute(is_linear_attrib, true);
+        result.setAttribute(is_linear, true);
         Trace("cegqi-bv-nl")
             << "Normalize " << n << " to " << result << std::endl;
         return result;
