@@ -472,7 +472,7 @@ class CVC4_PUBLIC SmtEngine {
 
   /** Define functions recursive
    *
-   * For each i, this contrains funcs[i] in the current context to be:
+   * For each i, this constrains funcs[i] in the current context to be:
    *   (lambda (formals[i]) formulas[i])
    * where formulas[i] may contain variables from funcs. Unlike defineFunction
    * above, we do not add funcs[i] to the set of defined functions. Instead,
