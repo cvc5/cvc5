@@ -257,7 +257,8 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
       if( it!=d_term_to_anchor.end() ) {
         d_term_to_anchor[n] = it->second;
         d_term_to_anchor_conj[n] = d_term_to_anchor_conj[n[0]];
-        d = d_term_to_depth[n[0]] + 1;
+        unsigned sel_weight = d_tds->getSelectorWeight(n[0].getType(), n.getOperator());
+        d = d_term_to_depth[n[0]] + sel_weight;
         is_top_level = computeTopLevel( tn, n[0] );
         success = true;
       }

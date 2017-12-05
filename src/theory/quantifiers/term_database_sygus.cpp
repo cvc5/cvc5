@@ -1248,6 +1248,30 @@ unsigned TermDbSygus::getMinConsTermSize( TypeNode tn, unsigned cindex ) {
   }
 }
 
+unsigned TermDbSygus::getSelectorWeight( TypeNode tn, Node sel ) 
+{
+  std::map< TypeNode, std::map< Node, unsigned > >::iterator itsw = d_sel_weight.find( tn );
+  if( itsw==d_sel_weight.end() )
+  {
+    d_sel_weight[tn].clear();
+    itsw = d_sel_weight.find( tn );
+    Type t = tn.toType();
+    const Datatype& dt = static_cast<DatatypeType>(t).getDatatype();
+    for( unsigned i=0, size = dt.getNumConstructors(); i<size; i++ )
+    {
+      unsigned cw = dt[i].getWeight();
+      for( unsigned j=0, size2 = dt[i].getNumArgs(); j<size2; j++ ){
+        Node csel = Node::fromExpr( dt[i].getSelectorInternal(t,j) );
+        std::map< Node, unsigned >::iterator its = itsw->second.find( sel );
+        if( its==itsw->second.end() || cw<its->second ){
+          d_sel_weight[tn][csel] = cw;
+        }
+      }
+    }
+  }
+  Assert( itsw->second.find( sel )!=itsw->second.end() );
+  return itsw->second[sel];
+}
 
 int TermDbSygus::getKindConsNum( TypeNode tn, Kind k ) {
   Assert( isRegistered( tn ) );
