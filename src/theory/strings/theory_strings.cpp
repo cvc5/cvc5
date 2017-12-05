@@ -1456,7 +1456,8 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
               {
                 // should be a conflict
                 sendInference(in.d_exp, conc, "CTN_Decompose");
-              }else if( getExtTheory()->hasFunctionKind( conc.getKind() ) )
+              }
+              else if (getExtTheory()->hasFunctionKind(conc.getKind()))
               {
                 // can mark as reduced, since model for n => model for conc
                 getExtTheory()->markReduced(conc);
