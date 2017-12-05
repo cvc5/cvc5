@@ -281,6 +281,8 @@ Node BvInverter::solve_bv_lit(Node sv,
           sc = nm->mkNode(NOT, nm->mkNode(k, t, x));
         }
       }
+      Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc
+                         << std::endl;
       status.d_conds.push_back(sc);
       /* t = skv (fresh skolem constant)  */
       Node skv = getInversionNode(sc, solve_tn, m);
@@ -337,6 +339,8 @@ Node BvInverter::solve_bv_lit(Node sv,
           sc = nm->mkNode(NOT, nm->mkNode(k, t, x));
         }
       }
+      Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc
+                         << std::endl;
       status.d_conds.push_back(sc);
       /* t = skv (fresh skolem constant)  */
       Node skv = getInversionNode(sc, solve_tn, m);
@@ -370,6 +374,8 @@ Node BvInverter::solve_bv_lit(Node sv,
             nm->mkNode(DISTINCT, t, bv::utils::mkOnes(w)));
         Node scr = nm->mkNode(DISTINCT, x, t);
         Node sc = nm->mkNode(IMPLIES, scl, scr);
+        Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc
+                           << std::endl;
         status.d_conds.push_back(sc);
         /* t = skv (fresh skolem constant)  */
         Node skv = getInversionNode(sc, solve_tn, m);
@@ -452,18 +458,25 @@ Node BvInverter::solve_bv_lit(Node sv,
           /* with side condition:
            * ctz(t) >= ctz(s) <-> x * s = t
            * where
-           * ctz(t) >= ctz(s) -> (t & -t) >= (s & -s)  */
+           * ctz(t) >= ctz(s) -> t = 0 \/ ((t & -t) >= (s & -s) /\ s != 0) */
           TypeNode solve_tn = sv_t[index].getType();
           Node x = getSolveVariable(solve_tn);
+          Node zero = bv::utils::mkZero(bv::utils::getSize(s));
           /* left hand side of side condition  */
-          Node scl = nm->mkNode(
-              BITVECTOR_UGE,
-              nm->mkNode(BITVECTOR_AND, t, nm->mkNode(BITVECTOR_NEG, t)),
-              nm->mkNode(BITVECTOR_AND, s, nm->mkNode(BITVECTOR_NEG, s)));
+          Node t_uge_s = nm->mkNode(
+                   BITVECTOR_UGE,
+                   nm->mkNode(BITVECTOR_AND, t, nm->mkNode(BITVECTOR_NEG, t)),
+                   nm->mkNode(BITVECTOR_AND, s, nm->mkNode(BITVECTOR_NEG, s)));
+          Node scl =
+              nm->mkNode(OR,
+                         t.eqNode(zero),
+                         nm->mkNode(AND, t_uge_s, s.eqNode(zero).notNode()));
           /* right hand side of side condition  */
           Node scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_MULT, x, s), t);
           /* overall side condition  */
           Node sc = nm->mkNode(IMPLIES, scl, scr);
+          Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc
+                             << std::endl;
           /* add side condition  */
           status.d_conds.push_back(sc);
 
@@ -513,6 +526,8 @@ Node BvInverter::solve_bv_lit(Node sv,
             scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UREM_TOTAL, s, x), t);
           }
           Node sc = nm->mkNode(IMPLIES, scl, scr);
+          Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc
+                             << std::endl;
           status.d_conds.push_back(sc);
           Node skv = getInversionNode(sc, solve_tn, m);
           t = skv;
@@ -588,6 +603,9 @@ Node BvInverter::solve_bv_lit(Node sv,
 
           /* overall side condition */
           Node sc = nm->mkNode(IMPLIES, scl, scr);
+          Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc
+                             << std::endl;
+          status.d_conds.push_back(sc);
           /* add side condition */
           status.d_conds.push_back(sc);
 
@@ -610,6 +628,8 @@ Node BvInverter::solve_bv_lit(Node sv,
           Node scl = nm->mkNode(EQUAL, t, nm->mkNode(k, t, s));
           Node scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
           Node sc = nm->mkNode(IMPLIES, scl, scr);
+          Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc
+                             << std::endl;
           status.d_conds.push_back(sc);
           /* t = skv (fresh skolem constant)  */
           Node skv = getInversionNode(sc, solve_tn, m);
@@ -646,6 +666,8 @@ Node BvInverter::solve_bv_lit(Node sv,
                 nm->mkNode(EQUAL, ext, z));
             scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_LSHR, x, s), t);
             Node sc = nm->mkNode(IMPLIES, scl, scr);
+            Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc
+                               << std::endl;
             status.d_conds.push_back(sc);
             /* t = skv (fresh skolem constant)  */
             Node skv = getInversionNode(sc, solve_tn, m);
@@ -690,6 +712,8 @@ Node BvInverter::solve_bv_lit(Node sv,
                 nm->mkNode(EQUAL, ext, s2));
             scr = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_LSHR, x, s), t);
             Node sc = nm->mkNode(IMPLIES, scl, scr);
+            Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc
+                               << std::endl;
             status.d_conds.push_back(sc);
             /* t = skv (fresh skolem constant)  */
             Node skv = getInversionNode(sc, solve_tn, m);
@@ -757,6 +781,8 @@ Node BvInverter::solve_bv_lit(Node sv,
 
           /* overall side condition */
           Node sc = nm->mkNode(IMPLIES, scl, scr);
+          Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc
+                             << std::endl;
           /* add side condition */
           status.d_conds.push_back(sc);
 
