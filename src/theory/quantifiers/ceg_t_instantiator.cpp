@@ -26,7 +26,6 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
