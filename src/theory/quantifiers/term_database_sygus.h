@@ -115,6 +115,7 @@ public:
 private:
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
+
  private:
   // information for sygus types
   std::map<TypeNode, TypeNode> d_register;  // stores sygus -> builtin type
@@ -143,7 +144,8 @@ private:
   std::map<TypeNode, unsigned> d_min_term_size;
   std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
   /** a cache for getSelectorWeight */
-  std::map< TypeNode, std::map< Node, unsigned > > d_sel_weight;
+  std::map<TypeNode, std::map<Node, unsigned> > d_sel_weight;
+
  public:  // general sygus utilities
   bool isRegistered( TypeNode tn );
   // get the minimum depth of type in its parent grammar
@@ -152,8 +154,9 @@ private:
   unsigned getMinTermSize( TypeNode tn );
   unsigned getMinConsTermSize( TypeNode tn, unsigned cindex );
   /** get the weight of the selector, where tn is the domain of sel */
-  unsigned getSelectorWeight( TypeNode tn, Node sel );
-public:
+  unsigned getSelectorWeight(TypeNode tn, Node sel);
+
+ public:
   TypeNode sygusToBuiltinType( TypeNode tn );
   int getKindConsNum( TypeNode tn, Kind k );
   int getConstConsNum( TypeNode tn, Node n );

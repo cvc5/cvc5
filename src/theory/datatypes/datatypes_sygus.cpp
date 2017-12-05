@@ -17,7 +17,9 @@
 #include "theory/datatypes/datatypes_sygus.h"
 
 #include "expr/node_manager.h"
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "printer/printer.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
@@ -25,8 +27,6 @@
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_model.h"
-#include "options/base_options.h"
-#include "printer/printer.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -257,7 +257,8 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
       if( it!=d_term_to_anchor.end() ) {
         d_term_to_anchor[n] = it->second;
         d_term_to_anchor_conj[n] = d_term_to_anchor_conj[n[0]];
-        unsigned sel_weight = d_tds->getSelectorWeight(n[0].getType(), n.getOperator());
+        unsigned sel_weight =
+            d_tds->getSelectorWeight(n[0].getType(), n.getOperator());
         d = d_term_to_depth[n[0]] + sel_weight;
         is_top_level = computeTopLevel( tn, n[0] );
         success = true;
@@ -858,7 +859,9 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       */
       Trace("sygus-sb-exc") << "  ........exc lemma is " << lem << ", size = " << sz << std::endl;
       registerSymBreakLemma( tn, lem, sz, a, lemmas );
-      Trace("dt-sygus") << "  ...excluded by dynamic symmetry breaking, based on " << n << " == " << bvr << std::endl;
+      Trace("dt-sygus")
+          << "  ...excluded by dynamic symmetry breaking, based on " << n
+          << " == " << bvr << std::endl;
       return false;
     }
   }
@@ -1094,10 +1097,12 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
     if( it->second ){
       Node prog = it->first;
       Node progv = d_td->getValuation().getModel()->getValue( prog );
-      if( Trace.isOn("dt-sygus") ){
+      if (Trace.isOn("dt-sygus"))
+      {
         Trace("dt-sygus") << "* DT model : " << prog << " -> ";
         std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, progv);
+        Printer::getPrinter(options::outputLanguage())
+            ->toStreamSygus(ss, progv);
         Trace("dt-sygus") << ss.str() << std::endl;
       }
       // TODO : remove this step (ensure there is no way a sygus term cannot be assigned a tester before this point)
