@@ -1564,11 +1564,11 @@ void OptionsHandler::showDebugTags(std::string option) {
 
 void OptionsHandler::showTraceTags(std::string option) {
   if(Configuration::isTracingBuild()) {
-    std::cout << "available tags:";
+    std::cout << "available tags:" << std::endl;
     unsigned ntags = Configuration::getNumTraceTags();
     char const* const* tags = Configuration::getTraceTags();
     for (unsigned i = 0; i < ntags; ++ i) {
-      std::cout << tags[i];
+      std::cout << "  " << tags[i] << std::endl;
     }
     std::cout << std::endl;
   } else {
