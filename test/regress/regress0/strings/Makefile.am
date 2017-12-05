@@ -94,7 +94,8 @@ TESTS = \
   rewrites-v2.smt2 \
   substr-rewrites.smt2 \
   norn-ab.smt2 \
-  type002.smt2
+  type002.smt2 \
+  strip-endpt-sound.smt2
 
 FAILING_TESTS =
 
