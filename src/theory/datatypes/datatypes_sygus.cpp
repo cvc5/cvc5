@@ -25,6 +25,8 @@
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_model.h"
+#include "options/base_options.h"
+#include "printer/printer.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -757,6 +759,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
     Node bvr = d_tds->getExtRewriter()->extendedRewrite(bv);
     Trace("sygus-sb-debug") << "  ......rewrites to " << bvr << std::endl;
+    Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
     unsigned sz = d_tds->getSygusTermSize( nv );      
     std::vector< Node > exp;
     bool do_exclude = false;
@@ -854,6 +857,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       */
       Trace("sygus-sb-exc") << "  ........exc lemma is " << lem << ", size = " << sz << std::endl;
       registerSymBreakLemma( tn, lem, sz, a, lemmas );
+      Trace("dt-sygus") << "  ...excluded by dynamic symmetry breaking, based on " << n << " == " << bvr << std::endl;
       return false;
     }
   }
@@ -1089,6 +1093,12 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
     if( it->second ){
       Node prog = it->first;
       Node progv = d_td->getValuation().getModel()->getValue( prog );
+      if( Trace.isOn("dt-sygus") ){
+        Trace("dt-sygus") << "* DT model : " << prog << " -> ";
+        std::stringstream ss;
+        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, progv);
+        Trace("dt-sygus") << ss.str() << std::endl;
+      }
       // TODO : remove this step (ensure there is no way a sygus term cannot be assigned a tester before this point)
       if( !debugTesters( prog, progv, 0, lemmas ) ){
         Trace("sygus-sb") << "  SygusSymBreakNew::check: ...WARNING: considered missing split for " << prog << "." << std::endl;
@@ -1116,6 +1126,10 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
         if( options::sygusSymBreakDynamic() ){
           if( !registerSearchValue( prog, prog, progv, 0, lemmas ) ){
             Trace("sygus-sb") << "  SygusSymBreakNew::check: ...added new symmetry breaking lemma for " << prog << "." << std::endl;
+          }
+          else
+          {
+            Trace("dt-sygus") << "  ...success." << std::endl;
           }
         }
       }

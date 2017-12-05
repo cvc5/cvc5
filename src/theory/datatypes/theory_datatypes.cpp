@@ -311,10 +311,10 @@ void TheoryDatatypes::check(Effort e) {
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     std::vector< Node > children;
                     if( dt.isSygus() && d_sygus_split ){
-                      Trace("dt-sygus") << "DtSygus : split on " << n << std::endl;
+                      Trace("dt-split") << "DtSygus : split on " << n << std::endl;
                       std::vector< Node > lemmas;
                       d_sygus_split->getSygusSplits( n, dt, children, lemmas );
-                      Trace("dt-sygus") << "Finished compute split, returned " << lemmas.size() << " lemmas." << std::endl;
+                      Trace("dt-split") << "Finished compute split, returned " << lemmas.size() << " lemmas." << std::endl;
                       for( unsigned i=0; i<lemmas.size(); i++ ){
                         Trace("dt-lemma-sygus") << "Dt sygus lemma : " << lemmas[i] << std::endl;
                         doSendLemma( lemmas[i] );
@@ -501,11 +501,11 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
     Trace("dt-tester") << "Done pending merges." << std::endl;
     if( !d_conflict && polarity ){
       if( d_sygus_sym_break ){
-        Trace("dt-sygus") << "Assert tester to sygus : " << atom << std::endl;
+        Trace("dt-tester") << "Assert tester to sygus : " << atom << std::endl;
         //Assert( !d_sygus_util->d_conflict );
         std::vector< Node > lemmas;
         d_sygus_sym_break->assertTester( tindex, t_arg, atom, lemmas );
-        Trace("dt-sygus") << "Done assert tester to sygus." << std::endl;
+        Trace("dt-tester") << "Done assert tester to sygus." << std::endl;
         doSendLemmas( lemmas );
       }
     }

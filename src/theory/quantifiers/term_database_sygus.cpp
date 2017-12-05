@@ -286,9 +286,6 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
       }
       ret = mkGeneric( dt, i, var_count, pre );
       Trace("sygus-db-debug") << "SygusToBuiltin : Generic is " << ret << std::endl;
-      ret = Rewriter::rewrite(ret);
-      Trace("sygus-db-debug") << "SygusToBuiltin : After rewriting " << ret
-                              << std::endl;
       d_sygus_to_builtin[tn][n] = ret;
     }else{
       Assert( isFreeVar( n ) );
@@ -409,11 +406,16 @@ unsigned TermDbSygus::getSygusTermSize( Node n ){
   if( n.getNumChildren()==0 ){
     return 0;
   }else{
+    Assert( n.getKind()==APPLY_CONSTRUCTOR );
     unsigned sum = 0;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       sum += getSygusTermSize( n[i] );
     }
-    return 1+sum;
+    const Datatype& dt = Datatype::datatypeOf( n.getOperator().toExpr() );
+    int cindex = Datatype::indexOf( n.getOperator().toExpr() );
+    Assert( cindex>=0 && cindex<dt.getNumConstructors() );
+    unsigned weight = dt[cindex].getWeight();
+    return weight+sum;
   }
 }
 
