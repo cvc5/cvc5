@@ -567,9 +567,9 @@ Node BvInverter::solve_bv_lit(Node sv,
 
             Node ule1 = nm->mkNode(BITVECTOR_PLUS,
                 bv::utils::mkOne(w),
-                nm->mkNode(BITVECTOR_UDIV,
+                nm->mkNode(BITVECTOR_UDIV_TOTAL,
                   s, nm->mkNode(BITVECTOR_PLUS, t, bv::utils::mkOne(w))));
-            Node ule2 = nm->mkNode(BITVECTOR_UDIV, s, t);
+            Node ule2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, s, t);
             Node oo2 = nm->mkNode(BITVECTOR_ULE, ule1, ule2);
 
             Node a1 = nm->mkNode(BITVECTOR_UGE, s, t);
