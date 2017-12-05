@@ -413,7 +413,7 @@ unsigned TermDbSygus::getSygusTermSize( Node n ){
     }
     const Datatype& dt = Datatype::datatypeOf( n.getOperator().toExpr() );
     int cindex = Datatype::indexOf( n.getOperator().toExpr() );
-    Assert( cindex>=0 && cindex<dt.getNumConstructors() );
+    Assert( cindex>=0 && cindex<(int)dt.getNumConstructors() );
     unsigned weight = dt[cindex].getWeight();
     return weight+sum;
   }
@@ -1815,13 +1815,13 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
           for( unsigned j=1; j<n.getNumChildren(); j++ ){
             Node nc = getEagerUnfold( n[j], visited );
             subs.push_back( nc );
-            Assert( subs[j-1].getType()==var_list[j-1].getType() );
+            Assert( subs[j-1].getType().isComparableTo( var_list[j-1].getType() ) );
           }
           Assert( vars.size()==subs.size() );
           bTerm = bTerm.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
           Trace("cegqi-eager") << "Built-in term after subs : " << bTerm << std::endl;
           Trace("cegqi-eager-debug") << "Types : " << bTerm.getType() << " " << n.getType() << std::endl;
-          Assert( n.getType()==bTerm.getType() );
+          Assert( n.getType().isComparableTo( bTerm.getType() ) );
           ret = bTerm; 
         }
       }
