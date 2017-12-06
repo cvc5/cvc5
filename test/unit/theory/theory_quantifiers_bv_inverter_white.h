@@ -217,10 +217,36 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     runTest(BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
   }
 
-  //void testGetScBvAndOr()
+  void testGetScBvAnd0()
+  {
+    runTest(BITVECTOR_AND, 0, getScBvAndOr);
+  }
+
+  void testGetScBvAnd1()
+  {
+    runTest(BITVECTOR_AND, 1, getScBvAndOr);
+  }
+
+  void testGetScBvOr0()
+  {
+    runTest(BITVECTOR_OR, 0, getScBvAndOr);
+  }
+
+  void testGetScBvOr1()
+  {
+    runTest(BITVECTOR_OR, 1, getScBvAndOr);
+  }
+
+  //void testGetScBvLshr0()
   //{
+  //  runTest(BITVECTOR_LSHR, 0, getScBvLshr);
   //}
 
+  //void testGetScBvLshr1()
+  //{
+  //  TS_ASSERT_THROWS(runTest(BITVECTOR_LSHR, 1, getScBvLshr),
+  //                   AssertionException);
+  //}
   //void testGetScBvLshr()
   //{
   //}
