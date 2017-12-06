@@ -40,24 +40,25 @@ namespace quantifiers{
 namespace datatypes {
 
 class TheoryDatatypes : public Theory {
-private:
- typedef context::CDList<Node> NodeList;
- typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
- typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
- typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
+ private:
+  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
- /** transitive closure to record equivalence/subterm relation.  */
- // TransitiveClosureNode d_cycle_check;
- /** has seen cycle */
- context::CDO<bool> d_hasSeenCycle;
- /** inferences */
- NodeList d_infer;
- NodeList d_infer_exp;
- Node d_true;
- Node d_zero;
- /** mkAnd */
- Node mkAnd(std::vector<TNode>& assumptions);
-private:
+  /** transitive closure to record equivalence/subterm relation.  */
+  // TransitiveClosureNode d_cycle_check;
+  /** has seen cycle */
+  context::CDO<bool> d_hasSeenCycle;
+  /** inferences */
+  NodeList d_infer;
+  NodeList d_infer_exp;
+  Node d_true;
+  Node d_zero;
+  /** mkAnd */
+  Node mkAnd(std::vector<TNode>& assumptions);
+
+ private:
   //notification class for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
     TheoryDatatypes& d_dt;
