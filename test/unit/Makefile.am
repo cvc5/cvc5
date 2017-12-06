@@ -13,6 +13,7 @@ UNIT_TESTS += \
 	theory/theory_arith_white \
 	theory/theory_bv_white \
 	theory/theory_bv_bvgauss_white \
+	theory/theory_quantifiers_bv_instantiator_white \
 	theory/type_enumerator_white \
 	expr/node_white \
 	expr/node_black \

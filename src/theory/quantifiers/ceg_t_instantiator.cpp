@@ -40,8 +40,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-struct BVLinearAttributeId {};
-using BVLinearAttribute = expr::Attribute<BVLinearAttributeId, bool>;
+struct BvLinearAttributeId {};
+using BvLinearAttribute = expr::Attribute<BvLinearAttributeId, bool>;
 
 Node ArithInstantiator::getModelBasedProjectionValue( CegInstantiator * ci, Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta, Node inf_coeff, Node delta_coeff ) {
   Node val = t;
@@ -1390,6 +1390,52 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
 }
 
 /**
+ * Determine coefficient of pv in term n, where n has the form pv, -pv, pv * t,
+ * or -pv * t. Extracting the coefficient of multiplications only succeeds if
+ * the multiplication are normalized with normalizePvMult.
+ *
+ * If sucessful it returns
+ *   1    if n ==  pv,
+ *  -1    if n == -pv,
+ *   t    if n ==  pv * t,
+ *  -t    if n == -pv * t.
+ * If n is not a linear term, a null node is returned.
+ */
+static Node getPvCoeff(TNode pv, TNode n)
+{
+  bool neg = false;
+  Node coeff;
+
+  if (n.getKind() == BITVECTOR_NEG)
+  {
+    neg = true;
+    n = n[0];
+  }
+
+  if (n == pv)
+  {
+    coeff = bv::utils::mkOne(bv::utils::getSize(pv));
+  }
+  /* All multiplications are normalized to pv * (t1 * t2). */
+  else if (n.getKind() == BITVECTOR_MULT && n.getAttribute(BvLinearAttribute()))
+  {
+    Assert(n.getNumChildren() == 2);
+    Assert(n[0] == pv);
+    coeff = n[1];
+  }
+  else /* n is in no form to extract the coefficient for pv */
+  {
+    Trace("cegqi-bv-nl") << "Cannot extract coefficient for " << pv << " in "
+                         << n << std::endl;
+    return Node::null();
+  }
+  Assert(!coeff.isNull());
+
+  if (neg) return NodeManager::currentNM()->mkNode(BITVECTOR_NEG, coeff);
+  return coeff;
+}
+
+/**
  * Normalizes the children of a BITVECTOR_MULT w.r.t. pv.
  * For example,
  *
@@ -1404,17 +1450,17 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
  */
 static Node normalizePvMult(
     TNode pv,
-    std::vector<Node>& children,
+    const std::vector<Node>& children,
     std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
 {
   bool neg, neg_coeff = false;
   bool found_pv = false;
   NodeManager* nm;
   NodeBuilder<> nb(BITVECTOR_MULT);
-  BVLinearAttribute is_linear;
+  BvLinearAttribute is_linear;
 
   nm = NodeManager::currentNM();
-  for (Node& nc : children)
+  for (TNode nc : children)
   {
     if (!contains_pv[nc])
     {
@@ -1456,56 +1502,20 @@ static Node normalizePvMult(
     coeff = nm->mkNode(BITVECTOR_NEG, coeff);
   }
   coeff = Rewriter::rewrite(coeff);
+  unsigned size_coeff = bv::utils::getSize(coeff);
+  Node zero = bv::utils::mkZero(size_coeff);
+  if (coeff == zero)
+  {
+    return zero;
+  }
+  else if (coeff == bv::utils::mkOne(size_coeff))
+  {
+    return pv;
+  }
   Node result = nm->mkNode(BITVECTOR_MULT, pv, coeff);
   contains_pv[result] = true;
   result.setAttribute(is_linear, true);
   return result;
-}
-
-/**
- * Determine coefficient of pv in term n, where n has the form pv, -pv, pv * t,
- * or -pv * t. Extracting the coefficient of multiplications only succeeds if
- * the multiplication are normalized with normalizePvMult.
- *
- * If sucessful it returns
- *   1    if n ==  pv,
- *  -1    if n == -pv,
- *   t    if n ==  pv * t,
- *  -t    if n == -pv * t.
- * If n is not a linear term, a null node is returned.
- */
-static Node getPvCoeff(TNode pv, TNode n)
-{
-  bool neg = false;
-  Node coeff;
-
-  if (n.getKind() == BITVECTOR_NEG)
-  {
-    neg = true;
-    n = n[0];
-  }
-
-  if (n == pv)
-  {
-    coeff = bv::utils::mkOne(bv::utils::getSize(pv));
-  }
-  /* All multiplications are normalized to pv * (t1 * t2). */
-  else if (n.getKind() == BITVECTOR_MULT && n.getAttribute(BVLinearAttribute()))
-  {
-    Assert(n.getNumChildren() == 2);
-    Assert(n[0] == pv);
-    coeff = n[1];
-  }
-  else /* n is in no form to extract the coefficient for pv */
-  {
-    Trace("cegqi-bv-nl") << "Cannot extract coefficient for " << pv << " in "
-                         << n << std::endl;
-    return Node::null();
-  }
-  Assert(!coeff.isNull());
-
-  if (neg) return NodeManager::currentNM()->mkNode(BITVECTOR_NEG, coeff);
-  return coeff;
 }
 
 #ifdef CVC4_ASSERTIONS
@@ -1515,7 +1525,7 @@ static bool isLinearPlus(
     std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
 {
   Node coeff;
-  Assert(n.getAttribute(BVLinearAttribute()));
+  Assert(n.getAttribute(BvLinearAttribute()));
   Assert(n.getNumChildren() == 2);
   if (n[0] != pv)
   {
@@ -1547,17 +1557,17 @@ static bool isLinearPlus(
  */
 static Node normalizePvPlus(
     Node pv,
-    std::vector<Node>& children,
+    const std::vector<Node>& children,
     std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
 {
   NodeManager* nm;
   NodeBuilder<> nb_c(BITVECTOR_PLUS);
   NodeBuilder<> nb_l(BITVECTOR_PLUS);
-  BVLinearAttribute is_linear;
+  BvLinearAttribute is_linear;
   bool neg;
 
   nm = NodeManager::currentNM();
-  for (Node& nc : children)
+  for (TNode nc : children)
   {
     if (!contains_pv[nc])
     {
@@ -1605,30 +1615,128 @@ static Node normalizePvPlus(
 
   Node coeffs = (nb_c.getNumChildren() == 1) ? nb_c[0] : nb_c.constructNode();
   coeffs = Rewriter::rewrite(coeffs);
-  Node pv_mult_coeffs;
-  /* Do not introduce a multiplication in case of 1 * pv. */
-  if (coeffs == bv::utils::mkOne(bv::utils::getSize(coeffs)))
-  {
-    pv_mult_coeffs = pv;
-  }
-  else
-  {
-    pv_mult_coeffs = nm->mkNode(BITVECTOR_MULT, pv, coeffs);
-  }
-  pv_mult_coeffs.setAttribute(BVLinearAttribute(), true);
-  contains_pv[pv_mult_coeffs] = true;
-  pv_mult_coeffs.setAttribute(is_linear, true);
+
+  std::vector<Node> mult_children = {pv, coeffs};
+  Node pv_mult_coeffs = normalizePvMult(pv, mult_children, contains_pv);
 
   if (nb_l.getNumChildren() > 0)
   {
     Node leafs = (nb_l.getNumChildren() == 1) ? nb_l[0] : nb_l.constructNode();
     leafs = Rewriter::rewrite(leafs);
-    Node result = nm->mkNode(BITVECTOR_PLUS, pv_mult_coeffs, leafs);
-    contains_pv[result] = true;
-    result.setAttribute(is_linear, true);
+    Node zero = bv::utils::mkZero(bv::utils::getSize(pv));
+    Node result;
+    /* pv * 0 + t --> t */
+    if (pv_mult_coeffs == zero)
+    {
+      result = leafs;
+    }
+    else
+    {
+      result = nm->mkNode(BITVECTOR_PLUS, pv_mult_coeffs, leafs);
+      contains_pv[result] = true;
+      result.setAttribute(is_linear, true);
+    }
     return result;
   }
   return pv_mult_coeffs;
+}
+
+/**
+ * Linearize an equality w.r.t. pv such that pv only occurs once.
+ * For example, equality
+ *
+ *   -pv * a + b = c + pv
+ *
+ * rewrites to
+ *
+ *   pv * (-a - 1) = c - b.
+ */
+static Node normalizePvEqual(
+    Node pv,
+    const std::vector<Node>& children,
+    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
+{
+  Assert(children.size() == 2);
+
+  NodeManager* nm = NodeManager::currentNM();
+  BvLinearAttribute is_linear;
+  Node coeffs[2], leafs[2];
+  bool neg;
+  TNode child;
+
+  for (unsigned i = 0; i < 2; ++i)
+  {
+    child = children[i];
+    neg = false;
+    if (child.getKind() == BITVECTOR_NEG)
+    {
+      neg = true;
+      child = child[0];
+    }
+    if (child.getAttribute(is_linear) || child == pv)
+    {
+      if (child.getKind() == BITVECTOR_PLUS)
+      {
+        Assert(isLinearPlus(child, pv, contains_pv));
+        coeffs[i] = getPvCoeff(pv, child[0]);
+        leafs[i] = child[1];
+      }
+      else
+      {
+        Assert(child.getKind() == BITVECTOR_MULT || child == pv);
+        coeffs[i] = getPvCoeff(pv, child);
+      }
+    }
+    if (neg)
+    {
+      if (!coeffs[i].isNull())
+      {
+        coeffs[i] = nm->mkNode(BITVECTOR_NEG, coeffs[i]);
+      }
+      if (!leafs[i].isNull())
+      {
+        leafs[i] = nm->mkNode(BITVECTOR_NEG, leafs[i]);
+      }
+    }
+  }
+
+  if (coeffs[0].isNull() || coeffs[1].isNull())
+  {
+    return Node::null();
+  }
+
+  Node coeff = nm->mkNode(BITVECTOR_SUB, coeffs[0], coeffs[1]);
+  coeff = Rewriter::rewrite(coeff);
+  std::vector<Node> mult_children = {pv, coeff};
+  Node lhs = normalizePvMult(pv, mult_children, contains_pv);
+
+  Node rhs;
+  if (!leafs[0].isNull() && !leafs[1].isNull())
+  {
+    rhs = nm->mkNode(BITVECTOR_SUB, leafs[1], leafs[0]);
+  }
+  else if (!leafs[0].isNull())
+  {
+    rhs = nm->mkNode(BITVECTOR_NEG, leafs[0]);
+  }
+  else if (!leafs[1].isNull())
+  {
+    rhs = leafs[1];
+  }
+  else
+  {
+    rhs = bv::utils::mkZero(bv::utils::getSize(pv));
+  }
+  rhs = Rewriter::rewrite(rhs);
+
+  if (lhs == rhs)
+  {
+    return bv::utils::mkTrue();
+  }
+
+  Node result = lhs.eqNode(rhs);
+  contains_pv[result] = true;
+  return result;
 }
 
 Node BvInstantiator::rewriteTermForSolvePv(
@@ -1638,7 +1746,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
     std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
 {
   NodeManager* nm = NodeManager::currentNM();
-  BVLinearAttribute is_linear;
+  BvLinearAttribute is_linear;
 
   // [1] rewrite cases of non-invertible operators
 
@@ -1673,88 +1781,20 @@ Node BvInstantiator::rewriteTermForSolvePv(
           bv::utils::mkConst(BitVector(bv::utils::getSize(pv), Integer(2))));
     }
 
-    /**
-     * Linearize an equality w.r.t. pv such that pv only occurs once.
-     * For example, equality
-     *
-     *   -pv * a + b = c + pv
-     *
-     * rewrites to
-     *
-     *   pv * (-a - 1) = c - b.
-     */
     if (options::cbqiBvLinearize() && contains_pv[lhs] && contains_pv[rhs])
     {
-      Node coeffs[2], leafs[2];
-      bool neg;
-      TNode child;
-      for (unsigned i = 0; i < 2; ++i)
+      Node result = normalizePvEqual(pv, children, contains_pv);
+      if (!result.isNull())
       {
-        child = children[i];
-        neg = false;
-        if (child.getKind() == BITVECTOR_NEG)
-        {
-          neg = true;
-          child = child[0];
-        }
-        if (child.getAttribute(is_linear) || child == pv)
-        {
-          if (child.getKind() == BITVECTOR_PLUS)
-          {
-            Assert(isLinearPlus(child, pv, contains_pv));
-            coeffs[i] = getPvCoeff(pv, child[0]);
-            leafs[i] = child[1];
-          }
-          else
-          {
-            Assert(child.getKind() == BITVECTOR_MULT || child == pv);
-            coeffs[i] = getPvCoeff(pv, child);
-          }
-        }
-        if (neg)
-        {
-          if (!coeffs[i].isNull())
-          {
-            coeffs[i] = nm->mkNode(BITVECTOR_NEG, coeffs[i]);
-          }
-          if (!leafs[i].isNull())
-          {
-            leafs[i] = nm->mkNode(BITVECTOR_NEG, leafs[i]);
-          }
-        }
-      }
-
-      if (!coeffs[0].isNull() && !coeffs[1].isNull())
-      {
-        Node coeff = nm->mkNode(BITVECTOR_SUB, coeffs[0], coeffs[1]);
-        Node pv_mult_coeff = nm->mkNode(BITVECTOR_MULT, pv, coeff);
-        pv_mult_coeff.setAttribute(is_linear, true);
-        contains_pv[pv_mult_coeff] = true;
-
-        Node leaf;
-        if (!leafs[0].isNull() && !leafs[1].isNull())
-        {
-          leaf = nm->mkNode(BITVECTOR_SUB, leafs[1], leafs[0]);
-        }
-        else if (!leafs[0].isNull())
-        {
-          leaf = nm->mkNode(BITVECTOR_NEG, leafs[0]);
-        }
-        else if (!leafs[1].isNull())
-        {
-          leaf = leafs[1];
-        }
-        else
-        {
-          leaf = bv::utils::mkZero(bv::utils::getSize(pv));
-        }
-
-        Node result = pv_mult_coeff.eqNode(leaf);
-        contains_pv[result] = true;
         Trace("cegqi-bv-nl")
             << "Normalize " << n << " to " << result << std::endl;
-        return result;
       }
+      else
+      {
+        Trace("cegqi-bv-nl")
+            << "Nonlinear " << n.getKind() << " " << n << std::endl;
+      }
+      return result;
     }
   }
   else if (n.getKind() == BITVECTOR_MULT || n.getKind() == BITVECTOR_PLUS)
