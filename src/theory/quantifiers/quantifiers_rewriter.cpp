@@ -516,8 +516,8 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
     Assert( !h.isNull() );
     // if it is a function definition, rewrite the body independently
     Node fbody = QuantAttributes::getFunDefBody( q );
-    Assert( !body.isNull() );
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
+    Assert( !fbody.isNull() );
     Node r = computeProcessTerms2( fbody, true, true, curr_cond, 0, cache, icache, new_vars, new_conds, false );
     Assert( new_vars.size()==h.getNumChildren() );
     return Rewriter::rewrite( NodeManager::currentNM()->mkNode( EQUAL, h, r ) );
@@ -1774,7 +1774,11 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
     Node nn = preSkolemizeQuantifiers( n[0], !polarity, fvTypes, fvs );
     return nn.negate();
   }else if( n.getKind()==kind::FORALL ){
-    if( polarity ){
+    if( n.getNumChildren()==3 ){
+      // cannot pre-skolemize non-standard quantifiers
+      // like recursive function definitions, or sygus conjectures
+      return n;
+    }else if( polarity ){
       if( options::preSkolemQuant() && options::preSkolemQuantNested() ){
         vector< Node > children;
         children.push_back( n[0] );
@@ -1789,9 +1793,6 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
         }
         //process body
         children.push_back( preSkolemizeQuantifiers( n[1], polarity, fvt, fvss ) );
-        if( n.getNumChildren()==3 ){
-          children.push_back( n[2] );
-        }
         //return processed quantifier
         return NodeManager::currentNM()->mkNode( kind::FORALL, children );
       }
