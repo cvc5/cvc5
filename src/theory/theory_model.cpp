@@ -302,7 +302,8 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
 }
 
 /** add term */
-void TheoryModel::addTerm(TNode n ){
+void TheoryModel::addTermInternal(TNode n)
+{
   Assert(d_equalityEngine->hasTerm(n));
   Trace("model-builder-debug2") << "TheoryModel::addTerm : " << n << std::endl;
   //must collect UF terms
@@ -512,6 +513,7 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
 
   if( options::ufHo() ){
     Trace("model-builder-debug") << "  ...function is first-class member of equality engine" << std::endl;
+    Assert(d_equalityEngine->hasTerm(f));
     // assign to representative if higher-order
     Node r = d_equalityEngine->getRepresentative( f );
     //always replace the representative, since it is initially assigned to itself

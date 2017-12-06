@@ -717,7 +717,7 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
         tr->reset( Node::null() );
         //d_qe->d_optInstMakeRepresentative = false;
         //d_qe->d_optMatchIgnoreModelBasis = true;
-        addedLemmas += tr->addInstantiations( d_quant_basis_match[f] );
+        addedLemmas += tr->addInstantiations();
       }
     }
   }

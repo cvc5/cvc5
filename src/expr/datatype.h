@@ -229,8 +229,13 @@ class CVC4_PUBLIC DatatypeConstructor {
    * Create a new Datatype constructor with the given name for the
    * constructor and the given name for the tester.  The actual
    * constructor and tester aren't created until resolution time.
+   * weight is the value that this constructor carries when computing size.
+   * For example, if A, B, C have weights 0, 1, and 3 respectively, then
+   * C( B( A() ), B( A() ) ) has size 5.
    */
-  DatatypeConstructor(std::string name, std::string tester);
+  DatatypeConstructor(std::string name,
+                      std::string tester,
+                      unsigned weight = 1);
 
   ~DatatypeConstructor() {}
   /**
@@ -295,12 +300,19 @@ class CVC4_PUBLIC DatatypeConstructor {
    */
   bool isSygusIdFunc() const;
   /** get sygus print callback
+   *
    * This class stores custom ways of printing
    * sygus datatype constructors, for instance,
    * to handle defined or let expressions that
    * appear in user-provided grammars.
    */
   std::shared_ptr<SygusPrintCallback> getSygusPrintCallback() const;
+  /** get weight
+   *
+   * Get the weight of this constructor. This value is used when computing the
+   * size of datatype terms that involve this constructor.
+   */
+  unsigned getWeight() const;
 
   /**
    * Get the tester name for this Datatype constructor.
@@ -446,6 +458,8 @@ class CVC4_PUBLIC DatatypeConstructor {
   Expr d_sygus_op;
   /** sygus print callback */
   std::shared_ptr<SygusPrintCallback> d_sygus_pc;
+  /** weight */
+  unsigned d_weight;
 
   /** shared selectors for each type
    *
@@ -659,11 +673,17 @@ public:
    * encode the arguments of op. For example, a sygus constructor
    * with op = PLUS should be such that cargs.size()>=2 and
    * the sygus type of cargs[i] is Real/Int for each i.
+   *
+   * weight denotes the value added by the constructor when computing the size
+   * of datatype terms. Passing a value <0 denotes the default weight for the
+   * constructor, which is 0 for nullary constructors and 1 for non-nullary
+   * constructors.
    */
-  void addSygusConstructor(CVC4::Expr op,
+  void addSygusConstructor(Expr op,
                            std::string& cname,
-                           std::vector<CVC4::Type>& cargs,
-                           std::shared_ptr<SygusPrintCallback> spc = nullptr);
+                           std::vector<Type>& cargs,
+                           std::shared_ptr<SygusPrintCallback> spc = nullptr,
+                           int weight = -1);
 
   /** set that this datatype is a tuple */
   void setTuple();

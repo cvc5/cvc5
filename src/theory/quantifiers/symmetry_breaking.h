@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 
-#include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "context/context_mm.h"

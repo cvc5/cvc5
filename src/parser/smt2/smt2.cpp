@@ -405,7 +405,10 @@ void Smt2::reset() {
 }
 
 void Smt2::resetAssertions() {
-  this->Parser::reset();
+  // Remove all declarations except the ones at level 0.
+  while (this->scopeLevel() > 0) {
+    this->popScope();
+  }
 }
 
 void Smt2::setLogic(std::string name) {
@@ -973,7 +976,8 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
   
   Debug("parser-sygus") << "SMT2 sygus parser : Making constructors for sygus datatype " << dt.getName() << std::endl;
   Debug("parser-sygus") << "  add constructors..." << std::endl;
-  for (unsigned i = 0, size = cnames.size(); i < size; i++)
+  // size of cnames changes, this loop must check size
+  for (unsigned i = 0; i < cnames.size(); i++)
   {
     bool is_dup = false;
     bool is_dup_op = false;
@@ -1109,8 +1113,12 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       std::stringstream ss;
       ss << dt.getName() << "_" << i << "_" << cnames[i];
       cnames[i] = ss.str();
+      Debug("parser-sygus") << "  construct the datatype " << cnames[i] << "..."
+                            << std::endl;
       // add the sygus constructor
       dt.addSygusConstructor(ops[i], cnames[i], cargs[i], spc);
+      Debug("parser-sygus") << "  finished constructing the datatype"
+                            << std::endl;
     }
   }
 
