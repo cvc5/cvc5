@@ -44,12 +44,15 @@ bool CegInstantiation::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_LAST_CALL;
 }
 
-unsigned CegInstantiation::needsModel( Theory::Effort e ) {
-  return d_conj->isSingleInvocation() ? QuantifiersEngine::QEFFORT_STANDARD : QuantifiersEngine::QEFFORT_MODEL;
+QuantifiersModule::QEffort CegInstantiation::needsModel(Theory::Effort e)
+{
+  return d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
 }
 
-void CegInstantiation::check( Theory::Effort e, unsigned quant_e ) {
-  unsigned echeck = d_conj->isSingleInvocation() ? QuantifiersEngine::QEFFORT_STANDARD : QuantifiersEngine::QEFFORT_MODEL;
+void CegInstantiation::check(Theory::Effort e, QEffort quant_e)
+{
+  unsigned echeck =
+      d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
   if( quant_e==echeck ){
     Trace("cegqi-engine") << "---Counterexample Guided Instantiation Engine---" << std::endl;
     Trace("cegqi-engine-debug") << std::endl;
@@ -238,6 +241,8 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
   if( conj->getNumRefinementLemmas()>0 ){
     Assert( vs.size()==ms.size() );
 
+    TermDbSygus* tds = d_quantEngine->getTermDatabaseSygus();
+    Node nfalse = d_quantEngine->getTermUtil()->d_false;
     Node neg_guard = conj->getGuard().negate();
     for( unsigned i=0; i<conj->getNumRefinementLemmas(); i++ ){
       Node lem;
@@ -255,7 +260,6 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
           lem_conj.push_back( lem );
         }
         EvalSygusInvarianceTest vsit;
-        vsit.d_result = d_quantEngine->getTermUtil()->d_false;
         for( unsigned j=0; j<lem_conj.size(); j++ ){
           Node lemc = lem_conj[j];
           Trace("sygus-cref-eval") << "Check refinement lemma conjunct " << lemc << " against current model." << std::endl;
@@ -263,22 +267,28 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
           Node cre_lem;
           Node lemcs = lemc.substitute( vs.begin(), vs.end(), ms.begin(), ms.end() );
           Trace("sygus-cref-eval2") << "...under substitution it is : " << lemcs << std::endl;
-          Node lemcsu = d_quantEngine->getTermDatabaseSygus()->evaluateWithUnfolding( lemcs, vsit.d_visited );
+          Node lemcsu = vsit.doEvaluateWithUnfolding(tds, lemcs);
           Trace("sygus-cref-eval2") << "...after unfolding is : " << lemcsu << std::endl;
           if( lemcsu==d_quantEngine->getTermUtil()->d_false ){
             std::vector< Node > msu;
             std::vector< Node > mexp;
             msu.insert( msu.end(), ms.begin(), ms.end() );
             for( unsigned k=0; k<vs.size(); k++ ){
-              vsit.d_var = vs[k];
-              vsit.d_update_nvn = msu[k];
+              vsit.setUpdatedTerm(msu[k]);
               msu[k] = vs[k];
               // substitute for everything except this
-              vsit.d_conj = lemc.substitute( vs.begin(), vs.end(), msu.begin(), msu.end() );
+              Node sconj =
+                  lemc.substitute(vs.begin(), vs.end(), msu.begin(), msu.end());
+              vsit.init(sconj, vs[k], nfalse);
               // get minimal explanation for this
-              Trace("sygus-cref-eval2-debug") << "  compute min explain of : " << vs[k] << " = " << vsit.d_update_nvn << std::endl;
-              d_quantEngine->getTermDatabaseSygus()->getExplanationFor( vs[k], vsit.d_update_nvn, mexp, vsit );
-              msu[k] = vsit.d_update_nvn;
+              Node ut = vsit.getUpdatedTerm();
+              Trace("sygus-cref-eval2-debug")
+                  << "  compute min explain of : " << vs[k] << " = " << ut
+                  << std::endl;
+              d_quantEngine->getTermDatabaseSygus()
+                  ->getExplain()
+                  ->getExplanationFor(vs[k], ut, mexp, vsit);
+              msu[k] = ut;
             }
             if( !mexp.empty() ){
               Node en = mexp.size()==1 ? mexp[0] : NodeManager::currentNM()->mkNode( kind::AND, mexp );

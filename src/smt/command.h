@@ -637,7 +637,7 @@ class CVC4_PUBLIC GetProofCommand : public Command {
   GetProofCommand() throw();
   ~GetProofCommand() throw() {}
   void invoke(SmtEngine* smtEngine);
-  Proof* getResult() const throw();
+  const Proof& getResult() const throw();
   void printResult(std::ostream& out, uint32_t verbosity = 2) const;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap);
@@ -645,8 +645,9 @@ class CVC4_PUBLIC GetProofCommand : public Command {
   std::string getCommandName() const throw();
 
  protected:
-  Proof* d_result;
   SmtEngine* d_smtEngine;
+  // d_result is owned by d_smtEngine.
+  const Proof* d_result;
 }; /* class GetProofCommand */
 
 class CVC4_PUBLIC GetInstantiationsCommand : public Command {

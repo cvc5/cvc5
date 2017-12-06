@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
@@ -118,7 +119,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
           {
             terms.push_back( riter.getCurrentTerm( k ) );
           }
-          Node n = d_qe->getInstantiation( f, vars, terms );
+          Node n = d_qe->getInstantiate()->getInstantiation(f, vars, terms);
           Node val = fm->getValue( n );
           if (val != d_qe->getTermUtil()->d_true)
           {
@@ -322,7 +323,8 @@ int QModelBuilderIG::initializeQuantifier(Node f, Node fp, FirstOrderModel* fm)
     //try to add it
     Trace("inst-fmf-init") << "Init: try to add match " << d_quant_basis_match[f] << std::endl;
     //add model basis instantiation
-    if( d_qe->addInstantiation( fp, d_quant_basis_match[f] ) ){
+    if (d_qe->getInstantiate()->addInstantiation(fp, d_quant_basis_match[f]))
+    {
       d_quant_basis_match_added[f] = true;
       return 1;
     }else{
@@ -428,6 +430,9 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
       Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;
       fmig->resetEvaluate();
       Debug("inst-fmf-ei") << "Begin instantiation..." << std::endl;
+      EqualityQuery* qy = d_qe->getEqualityQuery();
+      Instantiate* inst = d_qe->getInstantiate();
+      TermUtil* util = d_qe->getTermUtil();
       while( !riter.isFinished() && ( d_addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
         d_triedLemmas++;
         if( Debug.isOn("inst-fmf-ei-debug") ){
@@ -446,8 +451,9 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
         //if evaluate(...)==1, then the instantiation is already true in the model
         //  depIndex is the index of the least significant variable that this evaluation relies upon
         depIndex = riter.getNumTerms()-1;
-        Debug("fmf-model-eval") << "We will evaluate " << d_qe->getTermUtil()->getInstConstantBody( f ) << std::endl;
-        eval = fmig->evaluate( d_qe->getTermUtil()->getInstConstantBody( f ), depIndex, &riter );
+        Debug("fmf-model-eval") << "We will evaluate "
+                                << util->getInstConstantBody(f) << std::endl;
+        eval = fmig->evaluate(util->getInstConstantBody(f), depIndex, &riter);
         if( eval==1 ){
           Debug("fmf-model-eval") << "  Returned success with depIndex = " << depIndex << std::endl;
         }else{
@@ -461,11 +467,12 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
           InstMatch m( f );
           for (unsigned i = 0; i < riter.getNumTerms(); i++)
           {
-            m.set( d_qe, i, riter.getCurrentTerm( i ) );
+            m.set(qy, i, riter.getCurrentTerm(i));
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           //add as instantiation
-          if( d_qe->addInstantiation( f, m, true ) ){
+          if (inst->addInstantiation(f, m, true))
+          {
             d_addedLemmas++;
             if( d_qe->inConflict() ){
               break;
@@ -710,7 +717,7 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
         tr->reset( Node::null() );
         //d_qe->d_optInstMakeRepresentative = false;
         //d_qe->d_optMatchIgnoreModelBasis = true;
-        addedLemmas += tr->addInstantiations( d_quant_basis_match[f] );
+        addedLemmas += tr->addInstantiations();
       }
     }
   }

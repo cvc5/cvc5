@@ -159,13 +159,15 @@ public:
             children.push_back( NodeManager::currentNM()->mkNode( kind::DT_SIZE, in[0][i] ) );
           }
         }
-        Node res;
-        if( !children.empty() ){
-          children.push_back( NodeManager::currentNM()->mkConst( Rational(1) ) );
-          res = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::PLUS, children );
-        }else{
-          res = NodeManager::currentNM()->mkConst( Rational(0) );
-        }
+        TNode constructor = in[0].getOperator();
+        size_t constructorIndex = Datatype::indexOf(constructor.toExpr());
+        const Datatype& dt = Datatype::datatypeOf(constructor.toExpr());
+        const DatatypeConstructor& c = dt[constructorIndex];
+        unsigned weight = c.getWeight();
+        children.push_back(NodeManager::currentNM()->mkConst(Rational(weight)));
+        Node res = children.size() == 1
+                       ? children[0]
+                       : NodeManager::currentNM()->mkNode(kind::PLUS, children);
         Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: rewrite size " << in << " to " << res << std::endl;
         return RewriteResponse(REWRITE_AGAIN_FULL, res );
       }

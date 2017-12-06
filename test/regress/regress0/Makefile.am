@@ -1,4 +1,4 @@
-SUBDIRS = . expect arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess tptp unconstrained decision fmf strings sets rels parser sygus sep nl
+SUBDIRS = . expect arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess tptp unconstrained decision fmf strings sets rels parser sygus sep nl ho
 DIST_SUBDIRS = $(SUBDIRS)
 
 # don't override a BINARY imported from a personal.mk
@@ -75,8 +75,8 @@ SMT2_TESTS = \
 	issue1063-overloading-dt-fun.smt2 \
 	non-fatal-errors.smt2 \
 	reset-assertions.smt2 \
-	sqrt2-sort-inf-unk.smt2
-
+	sqrt2-sort-inf-unk.smt2 \
+	rec-fun-const-parse-bug.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = \

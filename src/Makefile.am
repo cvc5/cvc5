@@ -66,6 +66,8 @@ libcvc4_la_SOURCES = \
 	printer/dagification_visitor.h \
 	printer/printer.cpp \
 	printer/printer.h \
+	printer/sygus_print_callback.cpp \
+	printer/sygus_print_callback.h \
 	printer/ast/ast_printer.cpp \
 	printer/ast/ast_printer.h \
 	printer/cvc/cvc_printer.cpp \
@@ -189,6 +191,8 @@ libcvc4_la_SOURCES = \
 	theory/arith/approx_simplex.h \
 	theory/arith/arith_ite_utils.cpp \
 	theory/arith/arith_ite_utils.h \
+	theory/arith/arith_msum.cpp \
+	theory/arith/arith_msum.h \
 	theory/arith/arith_rewriter.cpp \
 	theory/arith/arith_rewriter.h \
 	theory/arith/arith_static_learner.cpp \
@@ -301,6 +305,8 @@ libcvc4_la_SOURCES = \
 	theory/bv/bv_subtheory_inequality.h \
 	theory/bv/bv_to_bool.cpp \
 	theory/bv/bv_to_bool.h \
+	theory/bv/bvgauss.cpp \
+	theory/bv/bvgauss.h \
 	theory/bv/bvintropow2.cpp \
 	theory/bv/bvintropow2.h \
 	theory/bv/cd_set_collection.h \
@@ -378,6 +384,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
 	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/extended_rewrite.cpp \
+	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/first_order_model.cpp \
 	theory/quantifiers/first_order_model.h \
 	theory/quantifiers/full_model_check.cpp \
@@ -386,8 +394,14 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/fun_def_engine.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_process.h \
+	theory/quantifiers/ho_trigger.cpp \
+	theory/quantifiers/ho_trigger.h \
+	theory/quantifiers/instantiate.cpp \
+	theory/quantifiers/instantiate.h \
 	theory/quantifiers/inst_match.cpp \
 	theory/quantifiers/inst_match.h \
+	theory/quantifiers/inst_match_trie.cpp \
+	theory/quantifiers/inst_match_trie.h \
 	theory/quantifiers/inst_match_generator.cpp \
 	theory/quantifiers/inst_match_generator.h \
 	theory/quantifiers/inst_propagator.cpp \
@@ -428,12 +442,18 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/rewrite_engine.cpp \
 	theory/quantifiers/rewrite_engine.h \
+	theory/quantifiers/single_inv_partition.cpp \
+	theory/quantifiers/single_inv_partition.h \
 	theory/quantifiers/skolemize.cpp \
 	theory/quantifiers/skolemize.h \
 	theory/quantifiers/sygus_explain.cpp \
 	theory/quantifiers/sygus_explain.h \
+	theory/quantifiers/sygus_invariance.cpp \
+	theory/quantifiers/sygus_invariance.h \
 	theory/quantifiers/sygus_grammar_cons.cpp \
 	theory/quantifiers/sygus_grammar_cons.h \
+	theory/quantifiers/sygus_grammar_norm.cpp \
+	theory/quantifiers/sygus_grammar_norm.h \
 	theory/quantifiers/sygus_process_conj.cpp \
 	theory/quantifiers/sygus_process_conj.h \
 	theory/quantifiers/symmetry_breaking.cpp \

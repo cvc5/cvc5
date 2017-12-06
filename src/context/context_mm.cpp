@@ -74,7 +74,7 @@ ContextMemoryManager::ContextMemoryManager() : d_indexChunkList(0) {
 #ifdef CVC4_VALGRIND
   VALGRIND_CREATE_MEMPOOL(this, 0, false);
   VALGRIND_MAKE_MEM_NOACCESS(d_nextFree, chunkSizeBytes);
-  d_allocations.push_back(std::vector<void*>());
+  d_allocations.push_back(std::vector<char*>());
 #endif /* CVC4_VALGRIND */
 }
 

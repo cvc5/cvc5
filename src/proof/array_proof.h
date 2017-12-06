@@ -38,15 +38,20 @@ class ProofArray : public Proof {
 
   void registerSkolem(Node equality, Node skolem);
 
-  void toStream(std::ostream& out);
-  void toStream(std::ostream& out, const ProofLetMap& map);
- private:
-  void toStreamLFSC(std::ostream& out, TheoryProof* tp,
-                    const theory::eq::EqProof& pf, const ProofLetMap& map);
+  void toStream(std::ostream& out) const override;
+  void toStream(std::ostream& out, const ProofLetMap& map) const override;
 
-  Node toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
-                       const theory::eq::EqProof& pf, unsigned tb,
-                       const ProofLetMap& map);
+ private:
+  void toStreamLFSC(std::ostream& out,
+                    TheoryProof* tp,
+                    const theory::eq::EqProof& pf,
+                    const ProofLetMap& map) const;
+
+  Node toStreamRecLFSC(std::ostream& out,
+                       TheoryProof* tp,
+                       const theory::eq::EqProof& pf,
+                       unsigned tb,
+                       const ProofLetMap& map) const;
 
   // It is simply an equality engine proof.
   std::shared_ptr<theory::eq::EqProof> d_proof;
