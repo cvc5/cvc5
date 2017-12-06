@@ -1746,7 +1746,6 @@ Node BvInstantiator::rewriteTermForSolvePv(
     std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
 {
   NodeManager* nm = NodeManager::currentNM();
-  BvLinearAttribute is_linear;
 
   // [1] rewrite cases of non-invertible operators
 
@@ -1812,7 +1811,6 @@ Node BvInstantiator::rewriteTermForSolvePv(
       }
       if (!result.isNull())
       {
-        result.setAttribute(is_linear, true);
         Trace("cegqi-bv-nl")
             << "Normalize " << n << " to " << result << std::endl;
         return result;
