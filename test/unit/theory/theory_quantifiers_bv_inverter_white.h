@@ -40,13 +40,17 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   Node d_x;
   Node d_bvarlist;
 
-  void runTestPred(bool pol, Kind k, unsigned idx)
+  void runTestPred(bool pol,
+                   Kind k,
+                   unsigned idx,
+                   Node (*getsc)(bool, Kind, unsigned, Node, Node))
   {
     Assert(k == kind::BITVECTOR_ULT
         || k == kind::BITVECTOR_SLT
         || k == kind::EQUAL);
+    Assert(k != kind::EQUAL || pol == false);
 
-    Node sc = getScBvUlt(pol, k, idx, d_sk, d_t);
+    Node sc = getsc(pol, k, idx, d_sk, d_t);
     Kind ksc = sc.getKind();
     TS_ASSERT((k == kind::BITVECTOR_ULT && pol == false)
            || (k == kind::BITVECTOR_SLT && pol == false)
@@ -99,33 +103,55 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
 
   void testGetScBvUltTrue0()
   {
-    runTestPred(true, BITVECTOR_ULT, 0);
+    runTestPred(true, BITVECTOR_ULT, 0, getScBvUlt);
   }
 
   void testGetScBvUltTrue1()
   {
-    runTestPred(true, BITVECTOR_ULT, 1);
+    runTestPred(true, BITVECTOR_ULT, 1, getScBvUlt);
   }
 
   void testGetScBvUltFalse0()
   {
-    runTestPred(false, BITVECTOR_ULT, 0);
+    runTestPred(false, BITVECTOR_ULT, 0, getScBvUlt);
   }
 
   void testGetScBvUltFalse1()
   {
-    runTestPred(false, BITVECTOR_ULT, 1);
+    runTestPred(false, BITVECTOR_ULT, 1, getScBvUlt);
   }
 
-  //void testGetScBvSlt()
-  //{
-  //}
+  void testGetScBvSltTrue0()
+  {
+    runTestPred(true, BITVECTOR_SLT, 0, getScBvSlt);
+  }
 
-  //void testGetScBvNeq()
-  //{
-  //}
+  void testGetScBvSltTrue1()
+  {
+    runTestPred(true, BITVECTOR_SLT, 1, getScBvSlt);
+  }
 
-  //void testGetScBvMUlt()
+  void testGetScBvSltFalse0()
+  {
+    runTestPred(false, BITVECTOR_SLT, 0, getScBvSlt);
+  }
+
+  void testGetScBvSltFalse1()
+  {
+    runTestPred(false, BITVECTOR_SLT, 1, getScBvSlt);
+  }
+
+  void testGetScBvEq0()
+  {
+    runTestPred(false, EQUAL, 0, getScBvEq);
+  }
+
+  void testGetScBvEq1()
+  {
+    runTestPred(false, EQUAL, 1, getScBvEq);
+  }
+
+  //void testGetScBvMult()
   //{
   //}
 

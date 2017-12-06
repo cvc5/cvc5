@@ -295,9 +295,10 @@ static Node getScBvSlt(bool pol, Kind k, unsigned idx, Node x, Node t)
   return sc;
 }
 
-static Node getScBvNeq(Kind k, unsigned idx, Node x, Node t)
+static Node getScBvEq(bool pol, Kind k, unsigned idx, Node x, Node t)
 {
   Assert(k == EQUAL);
+  Assert(pol == false);
 
   NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(t);
@@ -634,7 +635,7 @@ Node BvInverter::solveBvLit(Node sv,
       if (pol == false)
       {
         TypeNode solve_tn = sv_t.getType();
-        Node sc = getScBvNeq(k, index, getSolveVariable(solve_tn), t);
+        Node sc = getScBvEq(pol, k, index, getSolveVariable(solve_tn), t);
         /* t = fresh skolem constant  */
         t = getInversionNode(sc, solve_tn, m);
         if (!path.empty())
