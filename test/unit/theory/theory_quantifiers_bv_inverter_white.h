@@ -259,7 +259,15 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
                      AssertionException);
   }
 
-  //void testGetScBvShl()
-  //{
-  //}
+  void testGetScBvShl0()
+  {
+    runTest(BITVECTOR_SHL, 0, getScBvShl);
+  }
+
+  void testGetScBvShl1()
+  {
+    TS_ASSERT_THROWS(runTest(BITVECTOR_SHL, 1, getScBvShl),
+                     AssertionException);
+  }
+
 };
