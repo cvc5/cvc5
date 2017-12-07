@@ -65,14 +65,14 @@ namespace theory {
  * - getRepSet
  * - hasAssignedFunctionDefinition, getFunctionsToAssign
  * - getValue
- * 
- * The above functions can be used for a model m after it has been 
+ *
+ * The above functions can be used for a model m after it has been
  * successfully built, i.e. when m->isBuiltSuccess() returns true.
- * 
+ *
  * Additionally, all of the above functions, with the exception of getValue,
- * can be used during step (5) of TheoryEngineModelBuilder::buildModel, as 
+ * can be used during step (5) of TheoryEngineModelBuilder::buildModel, as
  * documented in theory_model_builder.h. In particular, we make calls to the
- * above functions such as getRepresentative() when assigning total 
+ * above functions such as getRepresentative() when assigning total
  * interpretations for uninterpreted functions.
  */
 class TheoryModel : public Model
@@ -104,37 +104,37 @@ public:
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
   /** assert equality holds in the model
    *
-   * This method returns true if and only if the equality engine of this model 
+   * This method returns true if and only if the equality engine of this model
    * is consistent after asserting the equality to this model.
    */
   bool assertEquality(TNode a, TNode b, bool polarity);
   /** assert predicate holds in the model
    *
-   * This method returns true if and only if the equality engine of this model 
+   * This method returns true if and only if the equality engine of this model
    * is consistent after asserting the predicate to this model.
    */
   bool assertPredicate(TNode a, bool polarity);
   /** assert all equalities/predicates in equality engine hold in the model
    *
-   * This method returns true if and only if the equality engine of this model 
+   * This method returns true if and only if the equality engine of this model
    * is consistent after asserting the equality engine to this model.
    */
   bool assertEqualityEngine(const eq::EqualityEngine* ee,
                             std::set<Node>* termSet = NULL);
   /** assert representative
-   * 
-   * This function tells the model that all terms in the equivalence class of n 
-   * be interpreted based on n. 
-   * 
+   *
+   * This function tells the model that all terms in the equivalence class of n
+   * be interpreted based on n.
+   *
    * In detail, this model m will interpret the equivalence class of n as a
    * term that is equivalent to one that maps all the non-constant subterms
    * of n to their (constant) interpretation in m. For example, if we call
    * assertRepresentative on (C x y) where C is a datatype constructor, then
    * the equivalence class of (C x y) will be interpreted in m as (C x^m y^m)
    * where x^m = m->getValue( x ), y^m = m->getValue( y ).
-   * 
-   * It should be called during model generation, before final representatives 
-   * are chosen.  In the case of TheoryEngineModelBuilder, it should be called 
+   *
+   * It should be called during model generation, before final representatives
+   * are chosen.  In the case of TheoryEngineModelBuilder, it should be called
    * during Theory's collectModelInfo( ... ) functions.
    */
   void assertRepresentative(TNode n);
