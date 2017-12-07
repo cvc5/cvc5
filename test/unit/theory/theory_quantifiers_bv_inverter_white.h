@@ -110,7 +110,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_smt->setOption("cbqi-bv", CVC4::SExpr(false));
-    d_smt->setOption("trace", "theory::assertions");
+    //d_smt->setOption("trace", "theory::assertions");
     d_scope = new SmtScope(d_smt);
 
     d_s = d_nm->mkVar("s", d_nm->mkBitVectorType(4));
@@ -248,13 +248,16 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
                      AssertionException);
   }
 
-  //void testGetScBvLshr()
-  //{
-  //}
+  void testGetScBvAshr0()
+  {
+    runTest(BITVECTOR_ASHR, 0, getScBvAshr);
+  }
 
-  //void testGetScBvAshr()
-  //{
-  //}
+  void testGetScBvAshr1()
+  {
+    TS_ASSERT_THROWS(runTest(BITVECTOR_ASHR, 1, getScBvAshr),
+                     AssertionException);
+  }
 
   //void testGetScBvShl()
   //{
