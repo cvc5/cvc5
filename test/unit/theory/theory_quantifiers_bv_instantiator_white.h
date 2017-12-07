@@ -18,8 +18,8 @@
 #include "expr/node_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/rewriter.h"
 #include "util/bitvector.h"
 
 #include "theory/quantifiers/ceg_t_instantiator.cpp"
@@ -47,10 +47,10 @@ class BvInstantiatorWhite : public CxxTest::TestSuite
   void testNormalizePvEqual();
 
  private:
-  ExprManager *d_em;
-  NodeManager *d_nm;
-  SmtEngine *d_smt;
-  SmtScope *d_scope;
+  ExprManager* d_em;
+  NodeManager* d_nm;
+  SmtEngine* d_smt;
+  SmtScope* d_scope;
 
   Node mkNeg(TNode n);
   Node mkMult(TNode a, TNode b);
@@ -117,20 +117,25 @@ void BvInstantiatorWhite::testGetPvCoeff()
   Node one = mkOne(32);
   BvLinearAttribute is_linear;
 
+  /* x -> 1 */
   Node coeff_x = getPvCoeff(x, x);
   TS_ASSERT(coeff_x == one);
 
+  /* -x -> -1 */
   Node coeff_neg_x = getPvCoeff(x, mkNeg(x));
   TS_ASSERT(coeff_neg_x == mkNeg(one));
 
+  /* x * a -> null (since x * a not a normalized) */
   Node x_mult_a = mkMult(x, a);
   Node coeff_x_mult_a = getPvCoeff(x, x_mult_a);
   TS_ASSERT(coeff_x_mult_a.isNull());
 
+  /* x * a -> a */
   x_mult_a.setAttribute(is_linear, true);
   coeff_x_mult_a = getPvCoeff(x, x_mult_a);
   TS_ASSERT(coeff_x_mult_a == a);
 
+  /* x * -a -> -a */
   Node x_mult_neg_a = mkMult(x, mkNeg(a));
   x_mult_neg_a.setAttribute(is_linear, true);
   Node coeff_x_mult_neg_a = getPvCoeff(x, x_mult_neg_a);
@@ -152,6 +157,10 @@ void BvInstantiatorWhite::testNormalizePvMult()
 
   contains_x[x] = true;
   contains_x[neg_x] = true;
+
+  /* x * -x -> null (since non linear) */
+  Node norm_xx = normalizePvMult(x, {x, neg_x}, contains_x);
+  TS_ASSERT(norm_xx.isNull());
 
   /* normalize x * a -> x * a */
   Node norm_xa = normalizePvMult(x, {x, a}, contains_x);
@@ -243,7 +252,13 @@ void BvInstantiatorWhite::testNormalizePvPlus()
   contains_x[x] = true;
   contains_x[neg_x] = true;
 
-  /* normalize x + a -> x + a */
+  /* a + b * x -> null (since b * x not normalized) */
+  Node mult_bx = mkMult(b, x);
+  contains_x[mult_bx] = true;
+  Node norm_abx = normalizePvPlus(x, {a, mult_bx}, contains_x);
+  TS_ASSERT(norm_abx.isNull());
+
+  /* x + a -> x + a */
   Node norm_xa = normalizePvPlus(x, {x, a}, contains_x);
   TS_ASSERT(contains_x[norm_xa]);
   TS_ASSERT(norm_xa.getAttribute(is_linear));
@@ -252,7 +267,7 @@ void BvInstantiatorWhite::testNormalizePvPlus()
   TS_ASSERT(norm_xa[0] == x);
   TS_ASSERT(norm_xa[1] == a);
 
-  /* normalize a * x -> x * a */
+  /* a * x -> x * a */
   Node norm_ax = normalizePvPlus(x, {a, x}, contains_x);
   TS_ASSERT(contains_x[norm_ax]);
   TS_ASSERT(norm_ax.getAttribute(is_linear));
@@ -261,7 +276,7 @@ void BvInstantiatorWhite::testNormalizePvPlus()
   TS_ASSERT(norm_ax[0] == x);
   TS_ASSERT(norm_ax[1] == a);
 
-  /* normalize a + -x -> (x * -1) + a */
+  /* a + -x -> (x * -1) + a */
   Node norm_neg_ax = normalizePvPlus(x, {a, neg_x}, contains_x);
   TS_ASSERT(contains_x[norm_neg_ax]);
   TS_ASSERT(norm_neg_ax.getAttribute(is_linear));
@@ -275,11 +290,9 @@ void BvInstantiatorWhite::testNormalizePvPlus()
   TS_ASSERT(norm_neg_ax[0][1] == Rewriter::rewrite(mkNeg(one)));
   TS_ASSERT(norm_neg_ax[1] == a);
 
-  /* normalize -x + -a * x -> x * (-1 - a) */
+  /* -x + -a * x -> x * (-1 - a) */
   Node norm_xax = normalizePvPlus(
-      x,
-      {mkNeg(x), normalizePvMult(x, {mkNeg(a), x}, contains_x)},
-      contains_x);
+      x, {mkNeg(x), normalizePvMult(x, {mkNeg(a), x}, contains_x)}, contains_x);
   TS_ASSERT(contains_x[norm_xax]);
   TS_ASSERT(norm_xax.getAttribute(is_linear));
   TS_ASSERT(norm_xax.getKind() == kind::BITVECTOR_MULT);
@@ -287,7 +300,7 @@ void BvInstantiatorWhite::testNormalizePvPlus()
   TS_ASSERT(norm_xax[0] == x);
   TS_ASSERT(norm_xax[1] == Rewriter::rewrite(mkPlus(mkNeg(one), mkNeg(a))));
 
-  /* normalize a + b + c + x + d -> x + (a + b + c + d) */
+  /* a + b + c + x + d -> x + (a + b + c + d) */
   Node norm_abcxd = normalizePvPlus(x, {a, b, c, x, d}, contains_x);
   TS_ASSERT(contains_x[norm_abcxd]);
   TS_ASSERT(norm_abcxd.getAttribute(is_linear));
@@ -296,7 +309,7 @@ void BvInstantiatorWhite::testNormalizePvPlus()
   TS_ASSERT(norm_abcxd[0] == x);
   TS_ASSERT(norm_abcxd[1] == Rewriter::rewrite(mkPlus({a, b, c, d})));
 
-  /* normalize a + b + c + -x + d -> (x * -1) + (a + b + c + d) */
+  /* a + b + c + -x + d -> (x * -1) + (a + b + c + d) */
   Node norm_neg_abcxd = normalizePvPlus(x, {a, b, c, neg_x, d}, contains_x);
   TS_ASSERT(contains_x[norm_neg_abcxd]);
   TS_ASSERT(norm_neg_abcxd.getAttribute(is_linear));
@@ -310,7 +323,7 @@ void BvInstantiatorWhite::testNormalizePvPlus()
   TS_ASSERT(norm_neg_abcxd[0][1] == Rewriter::rewrite(mkNeg(one)));
   TS_ASSERT(norm_neg_abcxd[1] == Rewriter::rewrite(mkPlus({a, b, c, d})));
 
-  /* normalize b + (x + a) -> x + (b + a) */
+  /* b + (x + a) -> x + (b + a) */
   Node norm_bxa = normalizePvPlus(x, {b, norm_ax}, contains_x);
   TS_ASSERT(contains_x[norm_bxa]);
   TS_ASSERT(norm_bxa.getAttribute(is_linear));
@@ -319,7 +332,7 @@ void BvInstantiatorWhite::testNormalizePvPlus()
   TS_ASSERT(norm_bxa[0] == x);
   TS_ASSERT(norm_bxa[1] == Rewriter::rewrite(mkPlus(b, a)));
 
-  /* normalize b + -(x + a) -> (x * -1) + b - a */
+  /* b + -(x + a) -> (x * -1) + b - a */
   Node neg_norm_ax = mkNeg(norm_ax);
   contains_x[neg_norm_ax] = true;
   Node norm_neg_bxa = normalizePvPlus(x, {b, neg_norm_ax}, contains_x);
@@ -357,6 +370,10 @@ void BvInstantiatorWhite::testNormalizePvEqual()
 
   contains_x[x] = true;
   contains_x[neg_x] = true;
+
+  /* x = a -> null (nothing to normalize) */
+  Node norm_xa = normalizePvEqual(x, {x, a}, contains_x);
+  TS_ASSERT(norm_xa.isNull());
 
   /* x = x -> true */
   Node norm_xx = normalizePvEqual(x, {x, x}, contains_x);
@@ -405,11 +422,10 @@ void BvInstantiatorWhite::testNormalizePvEqual()
   TS_ASSERT(norm_mult_axx[1] == zero);
 
   /* a * x = x + b -> x * (a - 1) = b */
-  Node norm_axxb = normalizePvEqual(
-      x,
-      {normalizePvMult(x, {a, x}, contains_x),
-       normalizePvPlus(x, {b, x}, contains_x)},
-      contains_x);
+  Node norm_axxb = normalizePvEqual(x,
+                                    {normalizePvMult(x, {a, x}, contains_x),
+                                     normalizePvPlus(x, {b, x}, contains_x)},
+                                    contains_x);
   TS_ASSERT(norm_axxb.getKind() == kind::EQUAL);
   TS_ASSERT(norm_axxb[0].getKind() == kind::BITVECTOR_MULT);
   TS_ASSERT(norm_axxb[0].getNumChildren() == 2);
