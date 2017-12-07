@@ -1332,6 +1332,9 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
         }
       }
 
+      /* We need to update contains_pv also for rewritten nodes, since
+       * the normalizePv* functions rely on the information if pv occurs in a
+       * rewritten node or not. */
       if (ret != cur)
       {
         contains_pv = (ret == pv);
@@ -1436,7 +1439,8 @@ static Node getPvCoeff(TNode pv, TNode n)
 }
 
 /**
- * Normalizes the children of a BITVECTOR_MULT w.r.t. pv.
+ * Normalizes the children of a BITVECTOR_MULT w.r.t. pv. contains_pv marks
+ * terms in which pv occurs.
  * For example,
  *
  *  a * -pv * b * c
@@ -1543,7 +1547,8 @@ static bool isLinearPlus(
 #endif
 
 /**
- * Normalizes the children of a BITVECTOR_PLUS w.r.t. pv.
+ * Normalizes the children of a BITVECTOR_PLUS w.r.t. pv. contains_pv marks
+ * terms in which pv occurs.
  * For example,
  *
  *  a * pv + b + c * -pv
@@ -1642,7 +1647,8 @@ static Node normalizePvPlus(
 }
 
 /**
- * Linearize an equality w.r.t. pv such that pv only occurs once.
+ * Linearize an equality w.r.t. pv such that pv only occurs once. contains_pv
+ * marks terms in which pv occurs.
  * For example, equality
  *
  *   -pv * a + b = c + pv
