@@ -538,7 +538,9 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
           Trace("cegqi-arith-bound") << std::endl;
           best_used[rr] = best;
           //if using cbqiMidpoint, only add the instance based on one bound if the bound is non-strict
-          if( !options::cbqiMidpoint() || d_type.isInteger() || d_mbp_vts_coeff[rr][1][best].isNull() ){
+          if (!options::cbqiMidpoint() || d_type.isInteger()
+              || (ci->useVtsDelta() && d_mbp_vts_coeff[rr][1][best].isNull()))
+          {
             Node val = d_mbp_bounds[rr][best];
             val = getModelBasedProjectionValue( ci, pv, val, rr==0, d_mbp_coeff[rr][best], pv_value, t_values[rr][best], sf.getTheta(),
                                                 d_mbp_vts_coeff[rr][0][best], d_mbp_vts_coeff[rr][1][best] );

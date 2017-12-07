@@ -1310,6 +1310,11 @@ void SmtEngine::setDefaults() {
     {
       options::ceGuidedInst.set(true);
     }
+    // must use Ferrante/Rackoff for real arithmetic
+    if (!options::cbqiMidpoint.wasSetByUser())
+    {
+      options::cbqiMidpoint.set(true);
+    }
   }
 
   if(options::forceLogicString.wasSetByUser()) {

@@ -28,7 +28,9 @@ TESTS =	\
 	three.sy \
 	nia-max-square.sy \
 	MPwL_d1s3.sy \
-	process-arg-invariance.sy
+	process-arg-invariance.sy \
+	real-grammar.sy \
+        lustre-real.sy
 
 EXTRA_DIST = $(TESTS)
 

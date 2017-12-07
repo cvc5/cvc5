@@ -286,9 +286,6 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
       }
       ret = mkGeneric( dt, i, var_count, pre );
       Trace("sygus-db-debug") << "SygusToBuiltin : Generic is " << ret << std::endl;
-      ret = Rewriter::rewrite(ret);
-      Trace("sygus-db-debug") << "SygusToBuiltin : After rewriting " << ret
-                              << std::endl;
       d_sygus_to_builtin[tn][n] = ret;
     }else{
       Assert( isFreeVar( n ) );
@@ -409,11 +406,16 @@ unsigned TermDbSygus::getSygusTermSize( Node n ){
   if( n.getNumChildren()==0 ){
     return 0;
   }else{
+    Assert(n.getKind() == APPLY_CONSTRUCTOR);
     unsigned sum = 0;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       sum += getSygusTermSize( n[i] );
     }
-    return 1+sum;
+    const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
+    int cindex = Datatype::indexOf(n.getOperator().toExpr());
+    Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
+    unsigned weight = dt[cindex].getWeight();
+    return weight + sum;
   }
 }
 
@@ -1246,6 +1248,36 @@ unsigned TermDbSygus::getMinConsTermSize( TypeNode tn, unsigned cindex ) {
   }
 }
 
+unsigned TermDbSygus::getSelectorWeight(TypeNode tn, Node sel)
+{
+  std::map<TypeNode, std::map<Node, unsigned> >::iterator itsw =
+      d_sel_weight.find(tn);
+  if (itsw == d_sel_weight.end())
+  {
+    d_sel_weight[tn].clear();
+    itsw = d_sel_weight.find(tn);
+    Type t = tn.toType();
+    const Datatype& dt = static_cast<DatatypeType>(t).getDatatype();
+    Trace("sygus-db") << "Compute selector weights for " << dt.getName()
+                      << std::endl;
+    for (unsigned i = 0, size = dt.getNumConstructors(); i < size; i++)
+    {
+      unsigned cw = dt[i].getWeight();
+      for (unsigned j = 0, size2 = dt[i].getNumArgs(); j < size2; j++)
+      {
+        Node csel = Node::fromExpr(dt[i].getSelectorInternal(t, j));
+        std::map<Node, unsigned>::iterator its = itsw->second.find(csel);
+        if (its == itsw->second.end() || cw < its->second)
+        {
+          d_sel_weight[tn][csel] = cw;
+          Trace("sygus-db") << "  w(" << csel << ") <= " << cw << std::endl;
+        }
+      }
+    }
+  }
+  Assert(itsw->second.find(sel) != itsw->second.end());
+  return itsw->second[sel];
+}
 
 int TermDbSygus::getKindConsNum( TypeNode tn, Kind k ) {
   Assert( isRegistered( tn ) );
@@ -1813,13 +1845,14 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
           for( unsigned j=1; j<n.getNumChildren(); j++ ){
             Node nc = getEagerUnfold( n[j], visited );
             subs.push_back( nc );
-            Assert( subs[j-1].getType()==var_list[j-1].getType() );
+            Assert(subs[j - 1].getType().isComparableTo(
+                var_list[j - 1].getType()));
           }
           Assert( vars.size()==subs.size() );
           bTerm = bTerm.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
           Trace("cegqi-eager") << "Built-in term after subs : " << bTerm << std::endl;
           Trace("cegqi-eager-debug") << "Types : " << bTerm.getType() << " " << n.getType() << std::endl;
-          Assert( n.getType()==bTerm.getType() );
+          Assert(n.getType().isComparableTo(bTerm.getType()));
           ret = bTerm; 
         }
       }
