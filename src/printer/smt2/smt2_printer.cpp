@@ -1113,38 +1113,39 @@ void Smt2Printer::toStream(std::ostream& out,
   expr::ExprPrintTypes::Scope ptScope(out, types);
   expr::ExprDag::Scope dagScope(out, dag);
 
-  if(tryToStream<AssertCommand>(out, c) ||
-     tryToStream<PushCommand>(out, c) ||
-     tryToStream<PopCommand>(out, c) ||
-     tryToStream<CheckSatCommand>(out, c) ||
-     tryToStream<QueryCommand>(out, c) ||
-     tryToStream<ResetCommand>(out, c) ||
-     tryToStream<ResetAssertionsCommand>(out, c) ||
-     tryToStream<QuitCommand>(out, c) ||
-     tryToStream<DeclarationSequence>(out, c) ||
-     tryToStream<CommandSequence>(out, c) ||
-     tryToStream<DeclareFunctionCommand>(out, c) ||
-     tryToStream<DeclareTypeCommand>(out, c) ||
-     tryToStream<DefineTypeCommand>(out, c) ||
-     tryToStream<DefineNamedFunctionCommand>(out, c) ||
-     tryToStream<DefineFunctionCommand>(out, c) ||
-     tryToStream<SimplifyCommand>(out, c) ||
-     tryToStream<GetValueCommand>(out, c) ||
-     tryToStream<GetModelCommand>(out, c) ||
-     tryToStream<GetAssignmentCommand>(out, c) ||
-     tryToStream<GetAssertionsCommand>(out, c) ||
-     tryToStream<GetProofCommand>(out, c) ||
-     tryToStream<GetUnsatCoreCommand>(out, c) ||
-     tryToStream<SetBenchmarkStatusCommand>(out, c, d_variant) ||
-     tryToStream<SetBenchmarkLogicCommand>(out, c, d_variant) ||
-     tryToStream<SetInfoCommand>(out, c, d_variant) ||
-     tryToStream<GetInfoCommand>(out, c) ||
-     tryToStream<SetOptionCommand>(out, c) ||
-     tryToStream<GetOptionCommand>(out, c) ||
-     tryToStream<DatatypeDeclarationCommand>(out, c, d_variant) ||
-     tryToStream<CommentCommand>(out, c, d_variant) ||
-     tryToStream<EmptyCommand>(out, c) ||
-     tryToStream<EchoCommand>(out, c, d_variant)) {
+  if (tryToStream<AssertCommand>(out, c) || tryToStream<PushCommand>(out, c)
+      || tryToStream<PopCommand>(out, c)
+      || tryToStream<CheckSatCommand>(out, c)
+      || tryToStream<QueryCommand>(out, c)
+      || tryToStream<ResetCommand>(out, c)
+      || tryToStream<ResetAssertionsCommand>(out, c)
+      || tryToStream<QuitCommand>(out, c)
+      || tryToStream<DeclarationSequence>(out, c)
+      || tryToStream<CommandSequence>(out, c)
+      || tryToStream<DeclareFunctionCommand>(out, c)
+      || tryToStream<DeclareTypeCommand>(out, c)
+      || tryToStream<DefineTypeCommand>(out, c)
+      || tryToStream<DefineNamedFunctionCommand>(out, c)
+      || tryToStream<DefineFunctionCommand>(out, c)
+      || tryToStream<DefineFunctionRecCommand>(out, c)
+      || tryToStream<SimplifyCommand>(out, c)
+      || tryToStream<GetValueCommand>(out, c)
+      || tryToStream<GetModelCommand>(out, c)
+      || tryToStream<GetAssignmentCommand>(out, c)
+      || tryToStream<GetAssertionsCommand>(out, c)
+      || tryToStream<GetProofCommand>(out, c)
+      || tryToStream<GetUnsatCoreCommand>(out, c)
+      || tryToStream<SetBenchmarkStatusCommand>(out, c, d_variant)
+      || tryToStream<SetBenchmarkLogicCommand>(out, c, d_variant)
+      || tryToStream<SetInfoCommand>(out, c, d_variant)
+      || tryToStream<GetInfoCommand>(out, c)
+      || tryToStream<SetOptionCommand>(out, c)
+      || tryToStream<GetOptionCommand>(out, c)
+      || tryToStream<DatatypeDeclarationCommand>(out, c, d_variant)
+      || tryToStream<CommentCommand>(out, c, d_variant)
+      || tryToStream<EmptyCommand>(out, c)
+      || tryToStream<EchoCommand>(out, c, d_variant))
+  {
     return;
   }
 
@@ -1499,6 +1500,74 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c)
     type = FunctionType(type).getRangeType();
   }
   out << ") " << type << " " << formula << ")";
+}
+
+static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
+{
+  const vector<Expr>& funcs = c->getFunctions();
+  const vector<vector<Expr> >& formals = c->getFormals();
+  out << "(define-fun";
+  if (funcs.size() > 1)
+  {
+    out << "s";
+  }
+  out << "-rec ";
+  if (funcs.size() > 1)
+  {
+    out << "(";
+  }
+  for (unsigned i = 0, size = funcs.size(); i < size; i++)
+  {
+    if (funcs.size() > 1)
+    {
+      if (i > 0)
+      {
+        out << " ";
+      }
+      out << "(";
+    }
+    out << funcs[i] << " (";
+    // print its type signature
+    vector<Expr>::const_iterator itf = formals[i].begin();
+    for (;;)
+    {
+      out << "(" << (*itf) << " " << (*itf).getType() << ")";
+      ++itf;
+      if (itf != formals[i].end())
+      {
+        out << " ";
+      }
+      else
+      {
+        break;
+      }
+    }
+    Type type = funcs[i].getType();
+    type = static_cast<FunctionType>(type).getRangeType();
+    out << ") " << type;
+    if (funcs.size() > 1)
+    {
+      out << ")";
+    }
+  }
+  if (funcs.size() > 1)
+  {
+    out << ") (";
+  }
+  const vector<Expr>& formulas = c->getFormulas();
+  for (unsigned i = 0, size = formulas.size(); i < size; i++)
+  {
+    if (i > 0)
+    {
+      out << " ";
+    }
+    out << formulas[i];
+  }
+  if (funcs.size() > 1)
+  {
+    out << ")";
+  }
+  out << ")";
 }
 
 static void toStreamRational(std::ostream& out, const Rational& r, bool decimal)

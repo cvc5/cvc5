@@ -19,13 +19,13 @@
 #ifndef __CVC4__THEORY__SEP__THEORY_SEP_H
 #define __CVC4__THEORY__SEP__THEORY_SEP_H
 
-#include "theory/theory.h"
-#include "util/statistics_registry.h"
-#include "theory/uf/equality_engine.h"
-#include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "context/cdqueue.h"
+#include "theory/theory.h"
+#include "theory/uf/equality_engine.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -35,7 +35,7 @@ class TheoryModel;
 namespace sep {
 
 class TheorySep : public Theory {
-  typedef context::CDChunkList<Node> NodeList;
+  typedef context::CDList<Node> NodeList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
