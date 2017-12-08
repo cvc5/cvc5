@@ -25,8 +25,13 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 
-TheoryModel::TheoryModel(context::Context* c, std::string name, bool enableFuncModels) :
-  d_substitutions(c, false), d_modelBuilt(false), d_enableFuncModels(enableFuncModels)
+TheoryModel::TheoryModel(context::Context* c,
+                         std::string name,
+                         bool enableFuncModels)
+    : d_substitutions(c, false),
+      d_modelBuilt(false),
+      d_modelBuiltSuccess(false),
+      d_enableFuncModels(enableFuncModels)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
@@ -53,6 +58,7 @@ TheoryModel::~TheoryModel() throw() {
 
 void TheoryModel::reset(){
   d_modelBuilt = false;
+  d_modelBuiltSuccess = false;
   d_modelCache.clear();
   d_comment_str.clear();
   d_sep_heap = Node::null();
@@ -333,20 +339,24 @@ void TheoryModel::addTermInternal(TNode n)
 }
 
 /** assert equality */
-void TheoryModel::assertEquality(TNode a, TNode b, bool polarity ){
+bool TheoryModel::assertEquality(TNode a, TNode b, bool polarity)
+{
+  Assert(d_equalityEngine->consistent());
   if (a == b && polarity) {
-    return;
+    return true;
   }
   Trace("model-builder-assertions") << "(assert " << (polarity ? "(= " : "(not (= ") << a << " " << b << (polarity ? "));" : ")));") << endl;
   d_equalityEngine->assertEquality( a.eqNode(b), polarity, Node::null() );
-  Assert(d_equalityEngine->consistent());
+  return d_equalityEngine->consistent();
 }
 
 /** assert predicate */
-void TheoryModel::assertPredicate(TNode a, bool polarity ){
+bool TheoryModel::assertPredicate(TNode a, bool polarity)
+{
+  Assert(d_equalityEngine->consistent());
   if ((a == d_true && polarity) ||
       (a == d_false && (!polarity))) {
-    return;
+    return true;
   }
   if (a.getKind() == EQUAL) {
     Trace("model-builder-assertions") << "(assert " << (polarity ? " " : "(not ") << a << (polarity ? ");" : "));") << endl;
@@ -354,13 +364,15 @@ void TheoryModel::assertPredicate(TNode a, bool polarity ){
   } else {
     Trace("model-builder-assertions") << "(assert " << (polarity ? "" : "(not ") << a << (polarity ? ");" : "));") << endl;
     d_equalityEngine->assertPredicate( a, polarity, Node::null() );
-    Assert(d_equalityEngine->consistent());
   }
+  return d_equalityEngine->consistent();
 }
 
 /** assert equality engine */
-void TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* termSet)
+bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
+                                       set<Node>* termSet)
 {
+  Assert(d_equalityEngine->consistent());
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   for (; !eqcs_i.isFinished(); ++eqcs_i) {
     Node eqc = (*eqcs_i);
@@ -384,11 +396,12 @@ void TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
         continue;
       }
       if (predicate) {
-        if (predTrue) {
-          assertPredicate(*eqc_i, true);
-        }
-        else if (predFalse) {
-          assertPredicate(*eqc_i, false);
+        if (predTrue || predFalse)
+        {
+          if (!assertPredicate(*eqc_i, predTrue))
+          {
+            return false;
+          }
         }
         else {
           if (first) {
@@ -398,7 +411,10 @@ void TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
           else {
             Trace("model-builder-assertions") << "(assert (= " << *eqc_i << " " << rep << "));" << endl;
             d_equalityEngine->mergePredicates(*eqc_i, rep, Node::null());
-            Assert(d_equalityEngine->consistent());
+            if (!d_equalityEngine->consistent())
+            {
+              return false;
+            }
           }
         }
       } else {
@@ -413,17 +429,22 @@ void TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
           first = false;
         }
         else {
-          assertEquality(*eqc_i, rep, true);
+          if (!assertEquality(*eqc_i, rep, true))
+          {
+            return false;
+          }
         }
       }
     }
   }
+  return true;
 }
 
-void TheoryModel::assertRepresentative(TNode n )
+void TheoryModel::assertSkeleton(TNode n)
 {
-  Trace("model-builder-reps") << "Assert rep : " << n << std::endl;
-  Trace("model-builder-reps") << "Rep eqc is : " << getRepresentative( n ) << std::endl;
+  Trace("model-builder-reps") << "Assert skeleton : " << n << std::endl;
+  Trace("model-builder-reps") << "...rep eqc is : " << getRepresentative(n)
+                              << std::endl;
   d_reps[ n ] = n;
 }
 

@@ -562,14 +562,22 @@ void QuantifiersEngine::check( Theory::Effort e ){
           static_cast<QuantifiersModule::QEffort>(qef);
       d_curr_effort_level = quant_e;
       //build the model if any module requested it
-      if( needsModelE==quant_e && !d_model->isBuilt() ){
-        // theory engine's model builder is quantifier engine's builder if it has one
-        Assert( !d_builder || d_builder==d_te->getModelBuilder() );
-        Trace("quant-engine-debug") << "Build model..." << std::endl;
-        if( !d_te->getModelBuilder()->buildModel( d_model ) ){
-          //we are done if model building was unsuccessful
-          Trace("quant-engine-debug") << "...added lemmas." << std::endl;
-          flushLemmas();
+      if (needsModelE == quant_e)
+      {
+        if (!d_model->isBuilt())
+        {
+          // theory engine's model builder is quantifier engine's builder if it
+          // has one
+          Assert(!d_builder || d_builder == d_te->getModelBuilder());
+          Trace("quant-engine-debug") << "Build model..." << std::endl;
+          if (!d_te->getModelBuilder()->buildModel(d_model))
+          {
+            flushLemmas();
+          }
+        }
+        if (!d_model->isBuiltSuccess())
+        {
+          break;
         }
       }
       if( !d_hasAddedLemma ){
@@ -690,16 +698,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   //SAT case
   if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
-    if( options::produceModels() ){
-      if( d_model->isBuilt() ){
-        Trace("quant-engine-debug") << "Already built model using model builder, finish..." << std::endl;
-      }else{
-        //use default model builder when no module built the model
-        Trace("quant-engine-debug") << "Build the default model..." << std::endl;
-        d_te->getModelBuilder()->buildModel( d_model );
-        Trace("quant-engine-debug") << "Done building the model." << std::endl;
-      }
-    }
     if( setIncomplete ){
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
       getOutputChannel().setIncomplete();
