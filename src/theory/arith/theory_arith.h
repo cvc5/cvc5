@@ -61,7 +61,7 @@ public:
   bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
   bool isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp );
 
-  void collectModelInfo( TheoryModel* m );
+  bool collectModelInfo(TheoryModel* m) override;
 
   void shutdown(){ }
 

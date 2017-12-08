@@ -46,7 +46,7 @@ class TheoryFp : public Theory {
   void check(Effort);
 
   Node getModelValue(TNode var);
-  void collectModelInfo(TheoryModel* m);
+  bool collectModelInfo(TheoryModel* m) override;
 
   std::string identify() const { return "THEORY_FP"; }
 

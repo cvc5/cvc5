@@ -55,19 +55,25 @@ namespace theory {
  *
  * These calls may modify the model object using the interface
  * functions below, including:
- * - assertEquality, assertPredicate, assertRepresentative,
+ * - assertEquality, assertPredicate, assertSkeleton,
  *   assertEqualityEngine.
  * - assignFunctionDefinition
  *
- * During and after this building process, these calls may use
- * interface functions below to guide the model construction:
+ * This class provides several interface functions:
  * - hasTerm, getRepresentative, areEqual, areDisequal
  * - getEqualityEngine
  * - getRepSet
  * - hasAssignedFunctionDefinition, getFunctionsToAssign
+ * - getValue
  *
- * After this building process, the function getValue can be
- * used to query the value of nodes.
+ * The above functions can be used for a model m after it has been
+ * successfully built, i.e. when m->isBuiltSuccess() returns true.
+ *
+ * Additionally, all of the above functions, with the exception of getValue,
+ * can be used during step (5) of TheoryEngineModelBuilder::buildModel, as
+ * documented in theory_model_builder.h. In particular, we make calls to the
+ * above functions such as getRepresentative() when assigning total
+ * interpretations for uninterpreted functions.
  */
 class TheoryModel : public Model
 {
@@ -80,7 +86,7 @@ public:
   virtual void reset();
   /** is built
    *
-   * Have we (attempted to) build this model since the last
+   * Have we attempted to build this model since the last
    * call to reset? Notice for model building techniques
    * that are not guaranteed to succeed (such as
    * when quantified formulas are enabled), a true return
@@ -88,22 +94,51 @@ public:
    * current assertions.
    */
   bool isBuilt() { return d_modelBuilt; }
+  /** is built success
+   *
+   * Was this model successfully built since the last call to reset?
+   */
+  bool isBuiltSuccess() { return d_modelBuiltSuccess; }
   //---------------------------- for building the model
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
-  /** assert equality holds in the model */
-  void assertEquality(TNode a, TNode b, bool polarity);
-  /** assert predicate holds in the model */
-  void assertPredicate(TNode a, bool polarity);
-  /** assert all equalities/predicates in equality engine hold in the model */
-  void assertEqualityEngine(const eq::EqualityEngine* ee, std::set<Node>* termSet = NULL);
-  /** assert representative
-    *  This function tells the model that n should be the representative of its equivalence class.
-    *  It should be called during model generation, before final representatives are chosen.  In the
-    *  case of TheoryEngineModelBuilder, it should be called during Theory's collectModelInfo( ... )
-    *  functions.
-    */
-  void assertRepresentative(TNode n);
+  /** assert equality holds in the model
+   *
+   * This method returns true if and only if the equality engine of this model
+   * is consistent after asserting the equality to this model.
+   */
+  bool assertEquality(TNode a, TNode b, bool polarity);
+  /** assert predicate holds in the model
+   *
+   * This method returns true if and only if the equality engine of this model
+   * is consistent after asserting the predicate to this model.
+   */
+  bool assertPredicate(TNode a, bool polarity);
+  /** assert all equalities/predicates in equality engine hold in the model
+   *
+   * This method returns true if and only if the equality engine of this model
+   * is consistent after asserting the equality engine to this model.
+   */
+  bool assertEqualityEngine(const eq::EqualityEngine* ee,
+                            std::set<Node>* termSet = NULL);
+  /** assert skeleton
+   *
+   * This method gives a "skeleton" for the model value of the equivalence
+   * class containing n. This should be an application of interpreted function
+   * (e.g. datatype constructor, array store, set union chain). The subterms of
+   * this term that are variables or terms that belong to other theories will
+   * be filled in with model values.
+   *
+   * For example, if we call assertSkeleton on (C x y) where C is a datatype
+   * constructor and x and y are variables, then the equivalence class of
+   * (C x y) will be interpreted in m as (C x^m y^m) where
+   * x^m = m->getValue( x ) and y^m = m->getValue( y ).
+   *
+   * It should be called during model generation, before final representatives
+   * are chosen. In the case of TheoryEngineModelBuilder, it should be called
+   * during Theory's collectModelInfo( ... ) functions.
+   */
+  void assertSkeleton(TNode n);
   //---------------------------- end building the model
 
   // ------------------- general equality queries
@@ -171,8 +206,10 @@ public:
  protected:
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
-  /** whether this model has been built */
+  /** whether we have tried to build this model in the current context */
   bool d_modelBuilt;
+  /** whether this model has been built successfully */
+  bool d_modelBuiltSuccess;
   /** special local context for our equalityEngine so we can clear it
    * independently of search context */
   context::Context* d_eeContext;
