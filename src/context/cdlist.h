@@ -419,7 +419,6 @@ public:
 template <class T, class CleanUp>
 class CDList<T, CleanUp, ContextMemoryAllocator<T> > : public ContextObj {
   /* CDList is incompatible for use with a ContextMemoryAllocator.
-   * Consider using CDChunkList<T> instead.
    *
    * Explanation:
    * If ContextMemoryAllocator is used and d_list grows at a deeper context

@@ -200,15 +200,15 @@ void TheorySep::computeCareGraph() {
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
 
-
-void TheorySep::collectModelInfo( TheoryModel* m ){
+bool TheorySep::collectModelInfo(TheoryModel* m)
+{
   set<Node> termSet;
 
   // Compute terms appearing in assertions and shared terms
   computeRelevantTerms(termSet);
 
   // Send the equality engine information to the model
-  m->assertEqualityEngine( &d_equalityEngine, &termSet );
+  return m->assertEqualityEngine(&d_equalityEngine, &termSet);
 }
 
 void TheorySep::postProcessModel( TheoryModel* m ){

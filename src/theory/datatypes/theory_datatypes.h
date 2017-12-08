@@ -22,13 +22,13 @@
 #include <iostream>
 #include <map>
 
-#include "context/cdchunk_list.h"
+#include "context/cdlist.h"
+#include "expr/attribute.h"
 #include "expr/datatype.h"
 #include "theory/datatypes/datatypes_sygus.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
-#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
@@ -40,24 +40,25 @@ namespace quantifiers{
 namespace datatypes {
 
 class TheoryDatatypes : public Theory {
-private:
-  typedef context::CDChunkList<Node> NodeList;
-  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
+ private:
+  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
   /** transitive closure to record equivalence/subterm relation.  */
-  //TransitiveClosureNode d_cycle_check;
+  // TransitiveClosureNode d_cycle_check;
   /** has seen cycle */
-  context::CDO< bool > d_hasSeenCycle;
+  context::CDO<bool> d_hasSeenCycle;
   /** inferences */
   NodeList d_infer;
   NodeList d_infer_exp;
   Node d_true;
   Node d_zero;
   /** mkAnd */
-  Node mkAnd( std::vector< TNode >& assumptions );
-private:
+  Node mkAnd(std::vector<TNode>& assumptions);
+
+ private:
   //notification class for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
     TheoryDatatypes& d_dt;
@@ -263,7 +264,7 @@ public:
   void presolve();
   void addSharedTerm(TNode t);
   EqualityStatus getEqualityStatus(TNode a, TNode b);
-  void collectModelInfo( TheoryModel* m );
+  bool collectModelInfo(TheoryModel* m) override;
   void shutdown() { }
   std::string identify() const { return std::string("TheoryDatatypes"); }
   /** equality engine */
