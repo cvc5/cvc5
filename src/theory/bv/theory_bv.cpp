@@ -576,18 +576,21 @@ bool TheoryBV::doExtfReductions( std::vector< Node >& terms ) {
 bool TheoryBV::needsCheckLastEffort() {
   return d_needsLastCallCheck;
 }
-
-void TheoryBV::collectModelInfo( TheoryModel* m ){
+bool TheoryBV::collectModelInfo(TheoryModel* m)
+{
   Assert(!inConflict());
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    d_eagerSolver->collectModelInfo(m, true);
+    if (!d_eagerSolver->collectModelInfo(m, true))
+    {
+      return false;
+    }
   }
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     if (d_subtheories[i]->isComplete()) {
-      d_subtheories[i]->collectModelInfo(m, true);
-      return;
+      return d_subtheories[i]->collectModelInfo(m, true);
     }
   }
+  return true;
 }
 
 Node TheoryBV::getModelValue(TNode var) {

@@ -76,7 +76,9 @@ TESTS = commutative.sy \
         strings-template-infer-unused.sy \
         strings-trivial-two-type.sy \
         strings-double-rec.sy \
-        hd-19-d1-prog-dup-op.sy
+        hd-19-d1-prog-dup-op.sy \
+        real-grammar-neg.sy \
+        real-si-all.sy
 
 
 # sygus tests currently taking too long for make regress

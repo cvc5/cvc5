@@ -580,7 +580,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     cargs.back().push_back(unres_types[i]);
     cargs.back().push_back(unres_types[i]);
     //type specific predicates
-    if( types[i].isInteger() ){
+    if (types[i].isReal())
+    {
       CVC4::Kind k = kind::LEQ;
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
       ops.back().push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
