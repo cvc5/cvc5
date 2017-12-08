@@ -123,15 +123,15 @@ public:
                             std::set<Node>* termSet = NULL);
   /** assert skeleton
    *
-   * This method gives a "skeleton" for the model value of the equivalence 
-   * class containing n. This should be an application of interpreted function 
-   * (e.g. datatype constructor, array store, set union chain). The subterms of 
-   * this term that are variables or terms that belong to other theories will 
+   * This method gives a "skeleton" for the model value of the equivalence
+   * class containing n. This should be an application of interpreted function
+   * (e.g. datatype constructor, array store, set union chain). The subterms of
+   * this term that are variables or terms that belong to other theories will
    * be filled in with model values.
    *
-   * For example, if we call assertSkeleton on (C x y) where C is a datatype 
-   * constructor and x and y are variables, then the equivalence class of 
-   * (C x y) will be interpreted in m as (C x^m y^m) where 
+   * For example, if we call assertSkeleton on (C x y) where C is a datatype
+   * constructor and x and y are variables, then the equivalence class of
+   * (C x y) will be interpreted in m as (C x^m y^m) where
    * x^m = m->getValue( x ) and y^m = m->getValue( y ).
    *
    * It should be called during model generation, before final representatives

@@ -1606,11 +1606,11 @@ bool TheoryDatatypes::collectModelInfo(TheoryModel* m)
         {
           return false;
         }
-        m->assertSkeleton( v );
+        m->assertSkeleton(v);
       }
     }else{
       Trace("dt-cmi") << "Datatypes : assert representative " << it->second << " for " << it->first << std::endl;
-      m->assertSkeleton( it->second );
+      m->assertSkeleton(it->second);
     }
   }
   return true;
