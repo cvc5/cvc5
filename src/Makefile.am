@@ -328,6 +328,7 @@ libcvc4_la_SOURCES = \
 	theory/bv/theory_bv_utils.cpp \
 	theory/bv/theory_bv_utils.h \
 	theory/bv/type_enumerator.h \
+	theory/datatypes/datatypes_rewriter.cpp \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/datatypes_sygus.cpp \
 	theory/datatypes/datatypes_sygus.h \
