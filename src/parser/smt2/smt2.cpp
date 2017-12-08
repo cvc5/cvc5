@@ -239,14 +239,22 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::INSERT, "insert");
     addOperator(kind::CARD, "card");
     addOperator(kind::COMPLEMENT, "complement");
+    addOperator(kind::JOIN, "join");
+    addOperator(kind::PRODUCT, "product");
+    addOperator(kind::TRANSPOSE, "transpose");
+    addOperator(kind::TCLOSURE, "tclosure");
     break;
 
-  case THEORY_DATATYPES:
+  case THEORY_DATATYPES: {
+    const std::vector<Type> types;
+    const std::vector<Type>& types2 = types;
+    defineType("Tuple", getExprManager()->mkTupleType(types2));
     Parser::addOperator(kind::APPLY_CONSTRUCTOR);
     Parser::addOperator(kind::APPLY_TESTER);
     Parser::addOperator(kind::APPLY_SELECTOR);
     Parser::addOperator(kind::APPLY_SELECTOR_TOTAL);
     break;
+  }
 
   case THEORY_STRINGS:
     defineType("String", getExprManager()->stringType());

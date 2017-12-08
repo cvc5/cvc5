@@ -2395,6 +2395,14 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       args.insert(args.begin(), dt[0].getConstructor());
       expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
     }
+  
+  | TUPLE_CONST_TOK
+    { std::vector<Type> types;
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      args.insert(args.begin(), dt[0].getConstructor());
+      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    }
   ;
 
 /**

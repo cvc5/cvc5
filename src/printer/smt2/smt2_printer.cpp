@@ -629,9 +629,13 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::APPLY_CONSTRUCTOR: {
     typeChildren = true;
     const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
-    if(dt.isTuple()) {
+    if (dt.isTuple()) {
       stillNeedToPrintParams = false;
-      out<<"mkTuple ";
+      if (dt[0].getNumArgs() == 0) {
+        out<<"mkTuple";
+      } else {
+        out<<"mkTuple ";
+      }
     }
   }
   
