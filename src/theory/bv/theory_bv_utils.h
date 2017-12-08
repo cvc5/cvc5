@@ -208,6 +208,12 @@ inline Node mkZero(unsigned size) { return mkConst(size, 0u); }
 
 inline Node mkOne(unsigned size) { return mkConst(size, 1u); }
 
+/* Increment */
+Node mkInc(TNode t);
+
+/* Decrement */
+Node mkDec(TNode t);
+
 /* Unsigned multiplication overflow detection.
  * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
  * overflow detection circuits", 2001.

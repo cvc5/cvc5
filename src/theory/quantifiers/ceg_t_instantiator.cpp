@@ -987,7 +987,8 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
     CegInstantiatorBvInverterQuery m(ci);
     unsigned iid = d_inst_id_counter;
     Trace("cegqi-bv") << "Solve lit to bv inverter : " << slit << std::endl;
-    Node inst = d_inverter->solve_bv_lit( sv, slit, path, &m, d_inst_id_to_status[iid] );
+    Node inst =
+        d_inverter->solveBvLit(sv, slit, path, &m, d_inst_id_to_status[iid]);
     if( !inst.isNull() ){
       inst = Rewriter::rewrite(inst);
       Trace("cegqi-bv") << "...solved form is " << inst << std::endl;
