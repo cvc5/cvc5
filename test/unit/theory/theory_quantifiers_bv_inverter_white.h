@@ -110,7 +110,6 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_smt->setOption("cbqi-bv", CVC4::SExpr(false));
-    //d_smt->setOption("trace", "theory::assertions");
     d_scope = new SmtScope(d_smt);
 
     d_s = d_nm->mkVar("s", d_nm->mkBitVectorType(4));
