@@ -17,7 +17,6 @@
 #ifndef __CVC4__THEORY_UF_STRONG_SOLVER_H
 #define __CVC4__THEORY_UF_STRONG_SOLVER_H
 
-#include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "context/context_mm.h"

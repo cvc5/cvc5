@@ -127,13 +127,11 @@ public:
   * (1) Calls Parser::pushScope(bindingLevel).
   * (2) Computes the bound variable list for the quantified formula
   *     that defined this definition and stores it in bvs.
-  * (3) Sets func_app to the APPLY_UF with func applied to bvs.
   */
   void pushDefineFunRecScope(
       const std::vector<std::pair<std::string, Type> >& sortedVarNames,
       Expr func,
       const std::vector<Expr>& flattenVars,
-      Expr& func_app,
       std::vector<Expr>& bvs,
       bool bindingLevel = false);
 

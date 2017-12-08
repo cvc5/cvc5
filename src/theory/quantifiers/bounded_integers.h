@@ -23,7 +23,6 @@
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "context/cdchunk_list.h"
 
 namespace CVC4 {
 namespace theory {

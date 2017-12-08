@@ -48,7 +48,6 @@ InstMatchGenerator::InstMatchGenerator( Node pat ){
   d_match_pattern = pat;
   d_match_pattern_type = pat.getType();
   d_next = NULL;
-  d_matchPolicy = MATCH_GEN_DEFAULT;
   d_independent_gen = false;
 }
 
@@ -57,7 +56,6 @@ InstMatchGenerator::InstMatchGenerator() {
   d_needsReset = true;
   d_active_add = true;
   d_next = NULL;
-  d_matchPolicy = MATCH_GEN_DEFAULT;
   d_independent_gen = false;
 }
 
@@ -135,7 +133,8 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     //now, collect children of d_match_pattern
     if (d_match_pattern.getKind() == INST_CONSTANT)
     {
-      d_var_num[0] = d_match_pattern.getAttribute(InstVarNumAttribute());
+      d_children_types.push_back(
+          d_match_pattern.getAttribute(InstVarNumAttribute()));
     }
     else
     {
@@ -151,13 +150,12 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
           {
             d_children.push_back(cimg);
             d_children_index.push_back(i);
-            d_children_types.push_back(1);
+            d_children_types.push_back(-2);
           }else{
             if (d_match_pattern[i].getKind() == INST_CONSTANT && qa == q)
             {
-              d_var_num[i] =
-                  d_match_pattern[i].getAttribute(InstVarNumAttribute());
-              d_children_types.push_back(0);
+              d_children_types.push_back(
+                  d_match_pattern[i].getAttribute(InstVarNumAttribute()));
             }
             else
             {
@@ -204,9 +202,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
         d_cg = new inst::CandidateGeneratorQELitDeq( qe, d_match_pattern );
       }
     }else{
-      d_cg = new CandidateGeneratorQueue( qe );
       Trace("inst-match-gen-warn") << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
-      d_matchPolicy = MATCH_GEN_INTERNAL_ERROR;
     }
   }
   gens.insert( gens.end(), d_children.begin(), d_children.end() );
@@ -219,7 +215,8 @@ int InstMatchGenerator::getMatch(
   Trace("matching") << "Matching " << t << " against pattern " << d_match_pattern << " ("
                     << m << ")" << ", " << d_children.size() << ", pattern is " << d_pattern << std::endl;
   Assert( !d_match_pattern.isNull() );
-  if( d_matchPolicy==MATCH_GEN_INTERNAL_ERROR ){
+  if (d_cg == nullptr)
+  {
     Trace("matching-fail") << "Internal error for match generator." << std::endl;
     return -2;
   }else{
@@ -235,21 +232,28 @@ int InstMatchGenerator::getMatch(
     Assert( !Trigger::isAtomicTrigger( d_match_pattern ) || t.getOperator()==d_match_pattern.getOperator() );
     //first, check if ground arguments are not equal, or a match is in conflict
     Trace("matching-debug2") << "Setting immediate matches..." << std::endl;
-    for( unsigned i=0; i<d_match_pattern.getNumChildren(); i++ ){
-      if( d_children_types[i]==0 ){
-        Trace("matching-debug2") << "Setting " << d_var_num[i] << " to " << t[i] << "..." << std::endl;
-        bool addToPrev = m.get( d_var_num[i] ).isNull();
-        if (!m.set(q, d_var_num[i], t[i]))
+    for (unsigned i = 0, size = d_match_pattern.getNumChildren(); i < size; i++)
+    {
+      int ct = d_children_types[i];
+      if (ct >= 0)
+      {
+        Trace("matching-debug2") << "Setting " << ct << " to " << t[i] << "..."
+                                 << std::endl;
+        bool addToPrev = m.get(ct).isNull();
+        if (!m.set(q, ct, t[i]))
         {
           //match is in conflict
-          Trace("matching-fail") << "Match fail: " << m.get(d_var_num[i]) << " and " << t[i] << std::endl;
+          Trace("matching-fail") << "Match fail: " << m.get(ct) << " and "
+                                 << t[i] << std::endl;
           success = false;
           break;
         }else if( addToPrev ){
           Trace("matching-debug2") << "Success." << std::endl;
-          prev.push_back( d_var_num[i] );
+          prev.push_back(ct);
         }
-      }else if( d_children_types[i]==-1 ){
+      }
+      else if (ct == -1)
+      {
         if( !q->areEqual( d_match_pattern[i], t[i] ) ){
           Trace("matching-fail") << "Match fail arg: " << d_match_pattern[i] << " and " << t[i] << std::endl;
           //ground arguments are not equal
@@ -261,13 +265,13 @@ int InstMatchGenerator::getMatch(
     Trace("matching-debug2") << "Done setting immediate matches, success = " << success << "." << std::endl;
     //for variable matching
     if( d_match_pattern.getKind()==INST_CONSTANT ){
-      bool addToPrev = m.get( d_var_num[0] ).isNull();
-      if (!m.set(q, d_var_num[0], t))
+      bool addToPrev = m.get(d_children_types[0]).isNull();
+      if (!m.set(q, d_children_types[0], t))
       {
         success = false;
       }else{
         if( addToPrev ){
-          prev.push_back( d_var_num[0] );
+          prev.push_back(d_children_types[0]);
         }
       }
     //for relational matching
@@ -312,7 +316,8 @@ int InstMatchGenerator::getMatch(
       Trace("matching-debug2") << "Reset children..." << std::endl;
       //now, fit children into match
       //we will be requesting candidates for matching terms for each child
-      for( unsigned i=0; i<d_children.size(); i++ ){
+      for (unsigned i = 0, size = d_children.size(); i < size; i++)
+      {
         if( !d_children[i]->reset( t[ d_children_index[i] ], qe ) ){
           success = false;
           break;
@@ -324,9 +329,9 @@ int InstMatchGenerator::getMatch(
       }
     }
     if( ret_val<0 ){
-      //m = InstMatch( &prev );
-      for( unsigned i=0; i<prev.size(); i++ ){
-        m.d_vals[prev[i]] = Node::null();
+      for (int& pv : prev)
+      {
+        m.d_vals[pv] = Node::null();
       }
     }
     return ret_val;
@@ -439,7 +444,6 @@ int InstMatchGenerator::getNextMatch(Node f,
 }
 
 int InstMatchGenerator::addInstantiations(Node f,
-                                          InstMatch& baseMatch,
                                           QuantifiersEngine* qe,
                                           Trigger* tparent)
 {
@@ -449,7 +453,6 @@ int InstMatchGenerator::addInstantiations(Node f,
   while (getNextMatch(f, m, qe, tparent) > 0)
   {
     if( !d_active_add ){
-      m.add( baseMatch );
       if (sendInstantiation(tparent, m))
       {
         addedLemmas++;
@@ -563,7 +566,7 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Node q, Node n)
 
 VarMatchGeneratorBooleanTerm::VarMatchGeneratorBooleanTerm( Node var, Node comp ) :
   InstMatchGenerator(), d_comp( comp ), d_rm_prev( false ) {
-  d_var_num[0] = var.getAttribute(InstVarNumAttribute());
+  d_children_types.push_back(var.getAttribute(InstVarNumAttribute()));
 }
 
 int VarMatchGeneratorBooleanTerm::getNextMatch(Node q,
@@ -575,8 +578,8 @@ int VarMatchGeneratorBooleanTerm::getNextMatch(Node q,
   if( !d_eq_class.isNull() ){
     Node s = NodeManager::currentNM()->mkConst(qe->getEqualityQuery()->areEqual( d_eq_class, d_pattern ));
     d_eq_class = Node::null();
-    d_rm_prev = m.get( d_var_num[0] ).isNull();
-    if (!m.set(qe->getEqualityQuery(), d_var_num[0], s))
+    d_rm_prev = m.get(d_children_types[0]).isNull();
+    if (!m.set(qe->getEqualityQuery(), d_children_types[0], s))
     {
       return -1;
     }else{
@@ -587,7 +590,7 @@ int VarMatchGeneratorBooleanTerm::getNextMatch(Node q,
     }
   }
   if( d_rm_prev ){
-    m.d_vals[d_var_num[0]] = Node::null();
+    m.d_vals[d_children_types[0]] = Node::null();
     d_rm_prev = false;
   }
   return ret_val;
@@ -595,7 +598,7 @@ int VarMatchGeneratorBooleanTerm::getNextMatch(Node q,
 
 VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs( Node var, Node subs ) :
   InstMatchGenerator(), d_var( var ), d_subs( subs ), d_rm_prev( false ){
-  d_var_num[0] = d_var.getAttribute(InstVarNumAttribute());
+  d_children_types.push_back(d_var.getAttribute(InstVarNumAttribute()));
   d_var_type = d_var.getType();
 }
 
@@ -612,8 +615,8 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q,
     Trace("var-trigger-matching") << "...got " << s << ", " << s.getKind() << std::endl;
     d_eq_class = Node::null();
     //if( s.getType().isSubtypeOf( d_var_type ) ){
-    d_rm_prev = m.get( d_var_num[0] ).isNull();
-    if (!m.set(qe->getEqualityQuery(), d_var_num[0], s))
+    d_rm_prev = m.get(d_children_types[0]).isNull();
+    if (!m.set(qe->getEqualityQuery(), d_children_types[0], s))
     {
       return -1;
     }else{
@@ -624,7 +627,7 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q,
     }
   }
   if( d_rm_prev ){
-    m.d_vals[d_var_num[0]] = Node::null();
+    m.d_vals[d_children_types[0]] = Node::null();
     d_rm_prev = false;
   }
   return -1;
@@ -838,7 +841,6 @@ bool InstMatchGeneratorMulti::reset( Node eqc, QuantifiersEngine* qe ){
 }
 
 int InstMatchGeneratorMulti::addInstantiations(Node q,
-                                               InstMatch& baseMatch,
                                                QuantifiersEngine* qe,
                                                Trigger* tparent)
 {
@@ -1033,7 +1035,6 @@ void InstMatchGeneratorSimple::resetInstantiationRound( QuantifiersEngine* qe ) 
   
 }
 int InstMatchGeneratorSimple::addInstantiations(Node q,
-                                                InstMatch& baseMatch,
                                                 QuantifiersEngine* qe,
                                                 Trigger* tparent)
 {
@@ -1052,7 +1053,6 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
         for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
           if( it->first!=r ){
             InstMatch m( q );
-            m.add( baseMatch );
             addInstantiations( m, qe, addedLemmas, 0, &(it->second) );
             if( qe->inConflict() ){
               break;
@@ -1066,7 +1066,6 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
   Debug("simple-trigger-debug") << "Adding instantiations based on " << tat << " from " << d_op << " " << d_eqc << std::endl;
   if( tat ){
     InstMatch m( q );
-    m.add( baseMatch );
     addInstantiations( m, qe, addedLemmas, 0, tat );
   }
   return addedLemmas;

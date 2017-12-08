@@ -19,14 +19,13 @@
 #ifndef __CVC4__THEORY__STRINGS__THEORY_STRINGS_H
 #define __CVC4__THEORY__STRINGS__THEORY_STRINGS_H
 
+#include "context/cdhashset.h"
+#include "context/cdlist.h"
+#include "expr/attribute.h"
+#include "theory/strings/regexp_operation.h"
+#include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/strings/theory_strings_preprocess.h"
-#include "theory/strings/regexp_operation.h"
-
-#include "context/cdchunk_list.h"
-#include "context/cdhashset.h"
-#include "expr/attribute.h"
 
 #include <climits>
 #include <deque>
@@ -49,7 +48,7 @@ struct StringsProxyVarAttributeId {};
 typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
 
 class TheoryStrings : public Theory {
-  typedef context::CDChunkList<Node> NodeList;
+  typedef context::CDList<Node> NodeList;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
