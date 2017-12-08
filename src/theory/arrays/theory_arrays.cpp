@@ -1222,7 +1222,7 @@ bool TheoryArrays::collectModelInfo(TheoryModel* m)
       return false;
     }
     if (!n.isConst()) {
-      m->assertRepresentative(rep);
+      m->assertSkeleton(rep);
     }
   }
   return true;

@@ -440,10 +440,10 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
   return true;
 }
 
-void TheoryModel::assertRepresentative(TNode n )
+void TheoryModel::assertSkeleton(TNode n )
 {
-  Trace("model-builder-reps") << "Assert rep : " << n << std::endl;
-  Trace("model-builder-reps") << "Rep eqc is : " << getRepresentative( n ) << std::endl;
+  Trace("model-builder-reps") << "Assert skeleton : " << n << std::endl;
+  Trace("model-builder-reps") << "...rep eqc is : " << getRepresentative( n ) << std::endl;
   d_reps[ n ] = n;
 }
 

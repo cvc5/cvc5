@@ -55,7 +55,7 @@ namespace theory {
  *
  * These calls may modify the model object using the interface
  * functions below, including:
- * - assertEquality, assertPredicate, assertRepresentative,
+ * - assertEquality, assertPredicate, assertSkeleton,
  *   assertEqualityEngine.
  * - assignFunctionDefinition
  *
@@ -121,23 +121,24 @@ public:
    */
   bool assertEqualityEngine(const eq::EqualityEngine* ee,
                             std::set<Node>* termSet = NULL);
-  /** assert representative
+  /** assert skeleton
    *
-   * This function tells the model that all terms in the equivalence class of n
-   * be interpreted based on n.
+   * This method gives a "skeleton" for the model value of the equivalence 
+   * class containing n. This should be an application of interpreted function 
+   * (e.g. datatype constructor, array store, set union chain). The subterms of 
+   * this term that are variables or terms that belong to other theories will 
+   * be filled in with model values.
    *
-   * In detail, this model m will interpret the equivalence class of n as a
-   * term that is equivalent to one that maps all the non-constant subterms
-   * of n to their (constant) interpretation in m. For example, if we call
-   * assertRepresentative on (C x y) where C is a datatype constructor, then
-   * the equivalence class of (C x y) will be interpreted in m as (C x^m y^m)
-   * where x^m = m->getValue( x ), y^m = m->getValue( y ).
+   * For example, if we call assertSkeleton on (C x y) where C is a datatype 
+   * constructor and x and y are variables, then the equivalence class of 
+   * (C x y) will be interpreted in m as (C x^m y^m) where 
+   * x^m = m->getValue( x ) and y^m = m->getValue( y ).
    *
    * It should be called during model generation, before final representatives
-   * are chosen.  In the case of TheoryEngineModelBuilder, it should be called
+   * are chosen. In the case of TheoryEngineModelBuilder, it should be called
    * during Theory's collectModelInfo( ... ) functions.
    */
-  void assertRepresentative(TNode n);
+  void assertSkeleton(TNode n);
   //---------------------------- end building the model
 
   // ------------------- general equality queries

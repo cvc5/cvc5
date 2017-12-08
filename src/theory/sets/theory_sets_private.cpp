@@ -1977,7 +1977,7 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
       {
         return false;
       }
-      m->assertRepresentative( rep );
+      m->assertSkeleton( rep );
     }
   }
   return true;
