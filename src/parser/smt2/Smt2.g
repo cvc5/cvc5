@@ -2386,9 +2386,9 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     // NOTE: Theory constants go here
 
   | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
-        types.push_back((*i).getType());
     { std::vector<Type> types;
       for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
+        types.push_back((*i).getType());
       }
       DatatypeType t = EXPR_MANAGER->mkTupleType(types);
       const Datatype& dt = t.getDatatype();
