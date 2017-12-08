@@ -244,22 +244,20 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       break;
     }
 
-    case kind::DATATYPE_TYPE:
-      {
-        const Datatype & dt = (NodeManager::currentNM()->getDatatypeForIndex( n.getConst< DatatypeIndexConstant >().getIndex() ));
-        if(dt.isTuple()){
-          unsigned int n = dt[0].getNumArgs();
-          out << "(Tuple";
-          for(unsigned int i = 0; i < n; i++){
-            out <<" "<<dt[0][i].getRangeType();
-          }
-          out<<")";
+    case kind::DATATYPE_TYPE: {
+      const Datatype & dt = (NodeManager::currentNM()->getDatatypeForIndex( n.getConst< DatatypeIndexConstant >().getIndex() ));
+      if(dt.isTuple()) {
+        unsigned int n = dt[0].getNumArgs();
+        out << "(Tuple";
+        for(unsigned int i = 0; i < n; i++) {
+          out <<" "<<dt[0][i].getRangeType();
         }
-        else{
-          out << maybeQuoteSymbol(dt.getName());
-        }
+        out<<")";
+      } else {
+        out << maybeQuoteSymbol(dt.getName());
       }
       break;
+    }
 
     case kind::UNINTERPRETED_CONSTANT: {
       const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
@@ -627,14 +625,16 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       return;
     }
     break;
+
   case kind::APPLY_CONSTRUCTOR: {
     typeChildren = true;
     const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
-    if(dt.isTuple()){
+    if(dt.isTuple()) {
       stillNeedToPrintParams = false;
       out<<"mkTuple ";
     }
   }
+  
   case kind::APPLY_TESTER:
   case kind::APPLY_SELECTOR:
   case kind::APPLY_SELECTOR_TOTAL:

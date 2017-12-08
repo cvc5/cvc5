@@ -2013,23 +2013,23 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
 
   | LPAREN_TOK
     ( /* An indexed function application */
-      indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK
-      { 
-        if(kind==CVC4::kind::APPLY_SELECTOR){
+      indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK { 
+        if(kind==CVC4::kind::APPLY_SELECTOR) {
+          //tuple selector case
           Integer x = op.getConst<CVC4::Rational>().getNumerator();
-          if(!x.fitsUnsignedInt()){
-              PARSER_STATE->parseError("index of tupSel is larger than size of unsigned int");
+          if (!x.fitsUnsignedInt()) {
+            PARSER_STATE->parseError("index of tupSel is larger than size of unsigned int");
           }
           unsigned int n = x.toUnsignedInt();
-          if(args.size()>1){
+          if (args.size()>1) {
             PARSER_STATE->parseError("tupSel applied to more than one tuple argument");
           }
           Type t = args[0].getType();
-          if(!t.isTuple()) {
+          if (!t.isTuple()) {
             PARSER_STATE->parseError("tupSel applied to non-tuple");
           }
           size_t length = ((DatatypeType)t).getTupleLength();
-          if(n >= length) {
+          if (n >= length) {
             std::stringstream ss;
             ss << "tuple is of length " << length << "; cannot access index " << n;
             PARSER_STATE->parseError(ss.str());
@@ -2037,9 +2037,9 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           const Datatype & dt = ((DatatypeType)t).getDatatype();
           op = dt[0][n].getSelector();
         }
-        if( kind!=kind::NULL_EXPR ){
+        if (kind!=kind::NULL_EXPR) {
           expr = MK_EXPR( kind, op, args );
-        }else{
+        } else {
           expr = MK_EXPR(op, args);
         }
         PARSER_STATE->checkOperator(expr.getKind(), args.size());
@@ -2386,16 +2386,15 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     // NOTE: Theory constants go here
 
   | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
-     {
-     	std::vector<Type> types;
-        for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
-          types.push_back((*i).getType());
-        }
-        DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-        const Datatype& dt = t.getDatatype();
-        args.insert( args.begin(), dt[0].getConstructor() );
-        expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
-     }
+        types.push_back((*i).getType());
+    { std::vector<Type> types;
+      for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
+      }
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      args.insert(args.begin(), dt[0].getConstructor());
+      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    }
   ;
 
 /**
@@ -2615,8 +2614,9 @@ indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
         kind = CVC4::kind::APPLY_TESTER;
       }
     | TUPLE_SEL_TOK m=INTEGER_LITERAL {
-      kind = CVC4::kind::APPLY_SELECTOR;
-      op = MK_CONST(Rational(AntlrInput::tokenToUnsigned($m)));
+        kind = CVC4::kind::APPLY_SELECTOR;
+        //put m in op so that the caller (termNonVariable) can deal with this case
+        op = MK_CONST(Rational(AntlrInput::tokenToUnsigned($m)));
       } 
     | badIndexedFunctionName
     )
@@ -2897,9 +2897,6 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
           }
           t = EXPR_MANAGER->mkSetType( args[0] );
         } else if(name == "Tuple") {
-          if(args.size() == 0) {
-            PARSER_STATE->parseError("Illegal tuple type.");
-          }
           t = EXPR_MANAGER->mkTupleType(args); 
         } else if(check == CHECK_DECLARED ||
                   PARSER_STATE->isDeclared(name, SYM_SORT)) {
@@ -3283,18 +3280,6 @@ fragment NUMERAL
     { !PARSER_STATE->strictModeEnabled() ||
       *start != '0' ||
       start == (char*)(GETCHARINDEX() - 1) }?
-  ;
-
-/**
- * Taken from CVC.g for tuple selector: Same as an integer 
- * literal converted to an unsigned int, but
- * slightly more convenient AND works around a strange ANTLR bug (?)
- * in the BVPLUS/BVMINUS/BVMULT rules where $INTEGER_LITERAL was
- * returning a reference to the wrong token?!
- */
-numeral returns [unsigned k = 0]
-  : INTEGER_LITERAL
-    { $k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL); }
   ;
 
 /**
