@@ -182,15 +182,19 @@ void InequalitySolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 void InequalitySolver::propagate(Theory::Effort e) {
   Assert (false);
 }
-
-void InequalitySolver::collectModelInfo(TheoryModel* m, bool fullModel) {
+bool InequalitySolver::collectModelInfo(TheoryModel* m, bool fullModel)
+{
   Debug("bitvector-model") << "InequalitySolver::collectModelInfo \n";
   std::vector<Node> model;
   d_inequalityGraph.getAllValuesInModel(model);
   for (unsigned i = 0; i < model.size(); ++i) {
     Assert (model[i].getKind() == kind::EQUAL);
-    m->assertEquality(model[i][0], model[i][1], true);
+    if (!m->assertEquality(model[i][0], model[i][1], true))
+    {
+      return false;
+    }
   }
+  return true;
 }
 
 Node InequalitySolver::getModelValue(TNode var) {

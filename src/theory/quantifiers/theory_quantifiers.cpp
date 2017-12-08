@@ -120,16 +120,24 @@ void TheoryQuantifiers::computeCareGraph() {
   //do nothing
 }
 
-void TheoryQuantifiers::collectModelInfo(TheoryModel* m) {
+bool TheoryQuantifiers::collectModelInfo(TheoryModel* m)
+{
   for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
     if((*i).assertion.getKind() == kind::NOT) {
       Debug("quantifiers::collectModelInfo") << "got quant FALSE: " << (*i).assertion[0] << endl;
-      m->assertPredicate((*i).assertion[0], false);
+      if (!m->assertPredicate((*i).assertion[0], false))
+      {
+        return false;
+      }
     } else {
       Debug("quantifiers::collectModelInfo") << "got quant TRUE : " << *i << endl;
-      m->assertPredicate(*i, true);
+      if (!m->assertPredicate(*i, true))
+      {
+        return false;
+      }
     }
   }
+  return true;
 }
 
 void TheoryQuantifiers::check(Effort e) {

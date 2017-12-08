@@ -264,7 +264,7 @@ public:
   void presolve();
   void addSharedTerm(TNode t);
   EqualityStatus getEqualityStatus(TNode a, TNode b);
-  void collectModelInfo( TheoryModel* m );
+  bool collectModelInfo(TheoryModel* m) override;
   void shutdown() { }
   std::string identify() const { return std::string("TheoryDatatypes"); }
   /** equality engine */

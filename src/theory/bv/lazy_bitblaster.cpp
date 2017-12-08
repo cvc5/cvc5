@@ -484,7 +484,8 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
   return utils::mkConst(BitVector(bits.size(), value));
 }
 
-void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
+bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
+{
   std::set<Node> termSet;
   d_bv->computeRelevantTerms(termSet);
 
@@ -504,9 +505,13 @@ void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
       Debug("bitvector-model") << "TLazyBitblaster::collectModelInfo (assert (= "
                                << var << " "
                                << const_value << "))\n";
-        m->assertEquality(var, const_value, true);
+      if (!m->assertEquality(var, const_value, true))
+      {
+        return false;
+      }
     }
   }
+  return true;
 }
 
 void TLazyBitblaster::setProofLog( BitVectorProof * bvp ){
