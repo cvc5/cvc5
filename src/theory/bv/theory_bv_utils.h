@@ -156,9 +156,9 @@ inline Node mkExtract(TNode node, unsigned high, unsigned low) {
 inline Node mkBitOf(TNode node, unsigned index) {
   Node bitOfOp = NodeManager::currentNM()->mkConst<BitVectorBitOf>(BitVectorBitOf(index));
   return NodeManager::currentNM()->mkNode(bitOfOp, node); 
-                                        
 }
 
+Node mkSum(std::vector<Node>& children, unsigned width);
 
 inline Node mkConcat(TNode node, unsigned repeat) {
   Assert (repeat); 
