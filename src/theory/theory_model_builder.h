@@ -58,7 +58,8 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * (4) assign constants to all equivalence classes
    *     of m's equality engine, through alternating
    *     iterations of evaluation and enumeration,
-   * (5) builder-specific post-processing.
+   * (5) builder-specific processing, which includes assigning total
+   *     interpretations to uninterpreted functions.
    *
    * This function returns false if any of the above
    * steps results in a lemma sent on an output channel.
