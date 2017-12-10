@@ -9,11 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation for preprocessing pass registry
+ ** \brief The preprocessing pass registry
  **
- ** Implementation for preprocessing pass registry, which facilitates
- ** registering passes and deals with ownership of them to make sure that
- ** passes are properly disposed of.
+ ** The preprocessing pass registry keeps track of all the instances of
+ ** preprocessing passes. Upon creation, preprocessing passes are registered in
+ ** the registry, which then takes ownership of them.
  **/
 #include "cvc4_private.h"
 

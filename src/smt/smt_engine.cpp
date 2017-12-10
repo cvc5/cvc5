@@ -551,7 +551,8 @@ public:
 
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
-  /* Method that finished the initialization of variables like the preprocessing pass registry and Context */
+
+  /* Finishes the initialization of the private portion of SMTEngine. */
   void finishInit();
 
  private:

@@ -9,13 +9,14 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Preprocessing pass super class
+ ** \brief The preprocessing pass super class
  **
  ** Preprocessing pass super class.
  **/
 
 #include "preprocessing/preprocessing_pass.h"
 
+#include "expr/node_manager.h"
 #include "proof/proof.h"
 #include "smt/dump.h"
 #include "smt/smt_statistics_registry.h"
@@ -26,6 +27,31 @@ namespace preprocessing {
 void AssertionPipeline::replace(size_t i, Node n) {
   PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
   d_nodes[i] = n;
+}
+
+void AssertionPipeline::replace(size_t i,
+                                Node n,
+                                const std::vector<Node>& addnDeps)
+{
+  PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]);
+        for (const auto& addnDep
+             : addnDeps) {
+          ProofManager::currentPM()->addDependence(n, addnDep);
+        });
+  d_nodes[i] = n;
+}
+
+void AssertionPipeline::replace(size_t i, const std::vector<Node>& ns)
+{
+  PROOF(
+      for (const auto& n
+           : ns) { ProofManager::currentPM()->addDependence(n, d_nodes[i]); });
+  d_nodes[i] = NodeManager::currentNM()->mkConst<bool>(true);
+
+  for (const auto& n : ns)
+  {
+    d_nodes.push_back(n);
+  }
 }
 
 PreprocessingPassResult PreprocessingPass::apply(
@@ -44,8 +70,7 @@ void PreprocessingPass::dumpAssertions(const char* key,
                                        const AssertionPipeline& assertionList) {
   if (Dump.isOn("assertions") && Dump.isOn(std::string("assertions::") + key)) {
     // Push the simplified assertions to the dump output stream
-    for (unsigned i = 0; i < assertionList.size(); ++i) {
-      TNode n = assertionList[i];
+    for (const auto& n : assertionList) {
       Dump("assertions") << AssertCommand(Expr(n.toExpr()));
     }
   }

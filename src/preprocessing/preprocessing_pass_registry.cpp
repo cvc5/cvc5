@@ -9,11 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Preprocessing pass registry
+ ** \brief The preprocessing pass registry
  **
- ** Preprocessing pass registry that uses a name to store instances of
- ** classes in a map. Makes sure passes are properly disposed of when
- ** registry is destroyed.
+ ** The preprocessing pass registry keeps track of all the instances of
+ ** preprocessing passes. Upon creation, preprocessing passes are registered in
+ ** the registry, which then takes ownership of them.
  **/
 
 #include "preprocessing/preprocessing_pass_registry.h"

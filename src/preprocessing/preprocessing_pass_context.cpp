@@ -9,11 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation for preprocessing pass API for passes
+ ** \brief The preprocessing pass context for passes
  **
- ** Implementation for preprocessing pass Context for passes.
- ** Stores a pointer to the SMTEngine that is was created in
- ** and exposes parts of the solver to the preprocessing passes.
+ ** Implementation of the preprocessing pass context for passes. This context
+ ** allows preprocessing passes to retrieve information besides the assertions
+ ** from the solver and interact with it without getting full access.
  **/
 
 #include "preprocessing_pass_context.h"

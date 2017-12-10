@@ -9,11 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Preprocessing pass API for passes
+ ** \brief The preprocessing pass context for passes
  **
- ** The preprocessing pass API is the interface between solver and
- ** preprocessing passes. Passes are expected to use API for
- ** read only access.
+ ** Implementation of the preprocessing pass context for passes. This context
+ ** allows preprocessing passes to retrieve information besides the assertions
+ ** from the solver and interact with it without getting full access.
  **/
 
 #include "cvc4_private.h"

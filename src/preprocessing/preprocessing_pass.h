@@ -9,15 +9,21 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation for preprocessing pass super class
+ ** \brief The preprocessing pass super class
  **
- ** Implementation for preprocessing pass super class. Includes a generalized
- ** structure for the apply method, which includes dumping assertions before
- ** and after the pass, initializing the Timer, and Tracing and Chatting.
- ** For new classes, a name is necessary to register the pass, and
- ** an apply internal method is necessary that takes in
- ** the AssertionPipeline to perform the pass. An init Internal method
- ** is optional to initialize variables that are not a part of the Context.
+ ** Implementation of the preprocessing pass super class. Preprocessing passes
+ ** that inherit from this class, need to pass their name to the constructor to
+ ** register the pass appropriately. The core of a preprocessing pass lives
+ ** in applyInternal(), which operates on a list of assertions and is called
+ ** from apply() in the super class. The apply() method automatically takes
+ ** care of the following:
+ **
+ ** - Dumping assertions before and after the pass
+ ** - Initializing the timer
+ ** - Tracing and chatting
+ **
+ ** Optionally, preprocessing passes can overwrite the initInteral() method to
+ ** do work that only needs to be done once.
  **/
 
 #include "cvc4_private.h"
@@ -28,7 +34,7 @@
 #include <string>
 #include <vector>
 
-#include "expr/expr.h"
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_engine_scope.h"
 
@@ -53,21 +59,42 @@ class AssertionPipeline {
   std::vector<Node>& ref() { return d_nodes; }
   const std::vector<Node>& ref() const { return d_nodes; }
 
+  std::vector<Node>::const_iterator begin() const { return d_nodes.cbegin(); }
+  std::vector<Node>::const_iterator end() const { return d_nodes.cend(); }
+
+  /*
+   * Replaces assertion i with node n and records the dependency between the
+   * original assertion and its replacement.
+   */
   void replace(size_t i, Node n);
+
+  /*
+   * Replaces assertion i with node n and records that this replacement depends
+   * on assertion i and the nodes listed in addnDeps. The dependency
+   * information is used for unsat cores and proofs.
+   */
+  void replace(size_t i, Node n, const std::vector<Node>& addnDeps);
+
+  /*
+   * Replaces an assertion with a vector of assertions and records the
+   * dependencies.
+   */
+  void replace(size_t i, const std::vector<Node>& ns);
 }; /* class AssertionPipeline */
 
-/* Enumeration of the values returned when applying preprocessing pass */
+/**
+ * Preprocessing passes return a result which indicates whether a conflict has
+ * been detected during preprocessing.
+ */
 enum PreprocessingPassResult { CONFLICT, NO_CONFLICT };
 
 class PreprocessingPass {
  public:
-  /* Takes a collection of assertions and preprocesses them, modifying
-   * assertionsToPreprocess. Supports timing and output of debugging
-   * information  */
+  /* Preprocesses a list of assertions assertionsToPreprocess */
   PreprocessingPassResult apply(AssertionPipeline* assertionsToPreprocess);
+
   PreprocessingPass(PreprocessingPassContext* preprocContext,
                     const std::string& name);
-
   virtual ~PreprocessingPass();
 
  protected:
