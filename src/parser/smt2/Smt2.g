@@ -1455,6 +1455,8 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
   std::vector<CVC4::Datatype> dts;
   std::string name;
   std::vector<Type> sorts;
+  std::vector<std::string> dnames;
+  std::vector<unsigned> arities;
 }
   : { PARSER_STATE->checkThatLogicIsSet();
     /* open a scope to keep the UnresolvedTypes contained */
@@ -1474,15 +1476,16 @@ datatypeDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
   std::string name;
+  std::vector<std::string> dnames;
+  std::vector<int> arities;
 }
  : { PARSER_STATE->checkThatLogicIsSet(); }
- symbol[name,CHECK_UNDECLARED,SYM_SORT] LPAREN_TOK
- { std::vector<Type> params;
-   dts.push_back(Datatype(name,params,isCo));
+ symbol[name,CHECK_UNDECLARED,SYM_SORT]
+ {
+   dnames.push_back(name);
+   arities.push_back(-1);
  }
- ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
- RPAREN_TOK
- { cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts, true))); }
+ datatypesDef[isCo, dnames, arities, cmd]
  ;
   
 datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
@@ -1490,28 +1493,39 @@ datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
   std::vector<CVC4::Datatype> dts;
   std::string name;
   std::vector<std::string> dnames;
-  std::vector<unsigned> arities;
-  std::vector<Type> params;
+  std::vector<int> arities;
 }
-  : { PARSER_STATE->checkThatLogicIsSet(); PARSER_STATE->pushScope(true); }
-  LPAREN_TOK /* sorts */
+  : { PARSER_STATE->checkThatLogicIsSet(); }
+  LPAREN_TOK /* datatype definition prelude */
   ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=INTEGER_LITERAL RPAREN_TOK
     { unsigned arity = AntlrInput::tokenToUnsigned(n);
-      //Type type;
-      //if(arity == 0) {
-      //  type = PARSER_STATE->mkSort(name);
-      //} else {
-      //  type = PARSER_STATE->mkSortConstructor(name, arity);
-      //}
-      //types.push_back(type);
       Debug("parser-dt") << "Datatype : " << name << ", arity = " << arity << std::endl;
       dnames.push_back(name);
-      arities.push_back( arity );
+      arities.push_back( static_cast<int>(arity) );
     }
   )*
   RPAREN_TOK 
   LPAREN_TOK 
-  ( LPAREN_TOK { 
+  datatypesDef[isCo, dnames, arities, cmd]
+  RPAREN_TOK
+  ;
+
+/**
+ * Read a list of datatype definitions for datatypes with names dnames and
+ * parametric arities arities. A negative value in arities indicates that the
+ * arity for the corresponding datatype has not been fixed.
+ */
+datatypesDef[bool isCo,
+             const std::vector<std::string>& dnames,
+             const std::vector<int>& arities,
+             std::unique_ptr<CVC4::Command>* cmd]
+@declarations {
+  std::vector<CVC4::Datatype> dts;
+  std::string name;
+  std::vector<Type> params;
+}
+  : { PARSER_STATE->pushScope(true); }
+    ( LPAREN_TOK {
       params.clear(); 
       Debug("parser-dt") << "Processing datatype #" << dts.size() << std::endl;
       if( dts.size()>=dnames.size() ){
@@ -1523,7 +1537,8 @@ datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
         { params.push_back( PARSER_STATE->mkSort(name) ); }
       )*
       RPAREN_TOK {
-        if( params.size()!=arities[dts.size()] ){
+        // if the arity was fixed by prelude and is not equal to the number of parameters
+        if( arities[dts.size()]>=0 && static_cast<int>(params.size())!=arities[dts.size()] ){
           PARSER_STATE->parseError("Wrong number of parameters for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
@@ -1532,7 +1547,8 @@ datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
       LPAREN_TOK
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
       RPAREN_TOK { PARSER_STATE->popScope(); } 
-    | { if( 0!=arities[dts.size()] ){
+    | { // if the arity was fixed by prelude and is not equal to 0
+        if( arities[dts.size()]>0 ){
           PARSER_STATE->parseError("No parameters given for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
@@ -1542,8 +1558,8 @@ datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
     )
     RPAREN_TOK
     )+
-  RPAREN_TOK
-  { PARSER_STATE->popScope();
+  {
+    PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts, true))); 
   }
   ;
