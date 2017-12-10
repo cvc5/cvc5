@@ -234,7 +234,8 @@ EqualityStatus BitblastSolver::getEqualityStatus(TNode a, TNode b) {
   return d_bitblaster->getEqualityStatus(a, b);
 }
 
-void BitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
+bool BitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
+{
   return d_bitblaster->collectModelInfo(m, fullModel);
 }
 

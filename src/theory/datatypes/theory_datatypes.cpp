@@ -311,10 +311,13 @@ void TheoryDatatypes::check(Effort e) {
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     std::vector< Node > children;
                     if( dt.isSygus() && d_sygus_split ){
-                      Trace("dt-sygus") << "DtSygus : split on " << n << std::endl;
+                      Trace("dt-split") << "DtSygus : split on " << n
+                                        << std::endl;
                       std::vector< Node > lemmas;
                       d_sygus_split->getSygusSplits( n, dt, children, lemmas );
-                      Trace("dt-sygus") << "Finished compute split, returned " << lemmas.size() << " lemmas." << std::endl;
+                      Trace("dt-split") << "Finished compute split, returned "
+                                        << lemmas.size() << " lemmas."
+                                        << std::endl;
                       for( unsigned i=0; i<lemmas.size(); i++ ){
                         Trace("dt-lemma-sygus") << "Dt sygus lemma : " << lemmas[i] << std::endl;
                         doSendLemma( lemmas[i] );
@@ -501,11 +504,11 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
     Trace("dt-tester") << "Done pending merges." << std::endl;
     if( !d_conflict && polarity ){
       if( d_sygus_sym_break ){
-        Trace("dt-sygus") << "Assert tester to sygus : " << atom << std::endl;
+        Trace("dt-tester") << "Assert tester to sygus : " << atom << std::endl;
         //Assert( !d_sygus_util->d_conflict );
         std::vector< Node > lemmas;
         d_sygus_sym_break->assertTester( tindex, t_arg, atom, lemmas );
-        Trace("dt-sygus") << "Done assert tester to sygus." << std::endl;
+        Trace("dt-tester") << "Done assert tester to sygus." << std::endl;
         doSendLemmas( lemmas );
       }
     }
@@ -1487,7 +1490,8 @@ void TheoryDatatypes::computeCareGraph(){
   Trace("dt-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;
 }
 
-void TheoryDatatypes::collectModelInfo( TheoryModel* m ){
+bool TheoryDatatypes::collectModelInfo(TheoryModel* m)
+{
   Trace("dt-cmi") << "Datatypes : Collect model info " << d_equalityEngine.consistent() << std::endl;
   Trace("dt-model") << std::endl;
   printModelDebug( "dt-model" );
@@ -1499,7 +1503,10 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m ){
   getRelevantTerms(termSet);
 
   //combine the equality engine
-  m->assertEqualityEngine( &d_equalityEngine, &termSet );
+  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
+  {
+    return false;
+  }
 
   //get all constructors
   eq::EqClassesIterator eqccs_i = eq::EqClassesIterator( &d_equalityEngine );
@@ -1576,7 +1583,10 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m ){
     }
     if( !neqc.isNull() ){
       Trace("dt-cmi") << "Assign : " << neqc << std::endl;
-      m->assertEquality( eqc, neqc, true );
+      if (!m->assertEquality(eqc, neqc, true))
+      {
+        return false;
+      }
       eqc_cons[ eqc ] = neqc;
     }
     if( addCons ){
@@ -1595,14 +1605,18 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m ){
         std::map< Node, int > vmap;
         Node v = getCodatatypesValue( it->first, eqc_cons, vmap, 0 );
         Trace("dt-cmi") << "  EQC(" << it->first << "), constructor is " << it->second << ", value is " << v << ", const = " << v.isConst() << std::endl;
-        m->assertEquality( eqc, v, true );
-        m->assertRepresentative( v );
+        if (!m->assertEquality(eqc, v, true))
+        {
+          return false;
+        }
+        m->assertSkeleton(v);
       }
     }else{
       Trace("dt-cmi") << "Datatypes : assert representative " << it->second << " for " << it->first << std::endl;
-      m->assertRepresentative( it->second );
+      m->assertSkeleton(it->second);
     }
   }
+  return true;
 }
 
 

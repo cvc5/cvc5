@@ -56,7 +56,7 @@ public:
   void check(Effort e);
   Node getNextDecisionRequest( unsigned& priority );
   Node getValue(TNode n);
-  void collectModelInfo( TheoryModel* m );
+  bool collectModelInfo(TheoryModel* m) override;
   void shutdown() { }
   std::string identify() const { return std::string("TheoryQuantifiers"); }
   void setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value);

@@ -115,33 +115,37 @@ public:
 private:
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
-private:
- // information for sygus types
- std::map<TypeNode, TypeNode> d_register;  // stores sygus -> builtin type
- std::map<TypeNode, std::vector<Node> > d_var_list;
- std::map<TypeNode, std::map<int, Kind> > d_arg_kind;
- std::map<TypeNode, std::map<Kind, int> > d_kinds;
- std::map<TypeNode, std::map<int, Node> > d_arg_const;
- std::map<TypeNode, std::map<Node, int> > d_consts;
- std::map<TypeNode, std::map<Node, int> > d_ops;
- std::map<TypeNode, std::map<int, Node> > d_arg_ops;
- std::map<TypeNode, std::vector<int> > d_id_funcs;
- std::map<TypeNode, std::vector<Node> >
-     d_const_list;  // sorted list of constants for type
- std::map<TypeNode, unsigned> d_const_list_pos;
- std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
- // normalized map
- std::map<TypeNode, std::map<Node, Node> > d_normalized;
- std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
- std::map<TypeNode, std::map<Node, Node> > d_builtin_const_to_sygus;
- // grammar information
- // root -> type -> _
- std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
- // std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > >
- // d_consider_const;
- // type -> cons -> _
- std::map<TypeNode, unsigned> d_min_term_size;
- std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
+
+ private:
+  // information for sygus types
+  std::map<TypeNode, TypeNode> d_register;  // stores sygus -> builtin type
+  std::map<TypeNode, std::vector<Node> > d_var_list;
+  std::map<TypeNode, std::map<int, Kind> > d_arg_kind;
+  std::map<TypeNode, std::map<Kind, int> > d_kinds;
+  std::map<TypeNode, std::map<int, Node> > d_arg_const;
+  std::map<TypeNode, std::map<Node, int> > d_consts;
+  std::map<TypeNode, std::map<Node, int> > d_ops;
+  std::map<TypeNode, std::map<int, Node> > d_arg_ops;
+  std::map<TypeNode, std::vector<int> > d_id_funcs;
+  std::map<TypeNode, std::vector<Node> >
+      d_const_list;  // sorted list of constants for type
+  std::map<TypeNode, unsigned> d_const_list_pos;
+  std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
+  // normalized map
+  std::map<TypeNode, std::map<Node, Node> > d_normalized;
+  std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
+  std::map<TypeNode, std::map<Node, Node> > d_builtin_const_to_sygus;
+  // grammar information
+  // root -> type -> _
+  std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
+  // std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > >
+  // d_consider_const;
+  // type -> cons -> _
+  std::map<TypeNode, unsigned> d_min_term_size;
+  std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
+  /** a cache for getSelectorWeight */
+  std::map<TypeNode, std::map<Node, unsigned> > d_sel_weight;
+
  public:  // general sygus utilities
   bool isRegistered( TypeNode tn );
   // get the minimum depth of type in its parent grammar
@@ -149,7 +153,10 @@ private:
   // get the minimum size for a constructor term
   unsigned getMinTermSize( TypeNode tn );
   unsigned getMinConsTermSize( TypeNode tn, unsigned cindex );
-public:
+  /** get the weight of the selector, where tn is the domain of sel */
+  unsigned getSelectorWeight(TypeNode tn, Node sel);
+
+ public:
   TypeNode sygusToBuiltinType( TypeNode tn );
   int getKindConsNum( TypeNode tn, Kind k );
   int getConstConsNum( TypeNode tn, Node n );
