@@ -9,6 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
+ ** \brief The preprocessing pass registry
+ **
+ ** The preprocessing pass registry.
  **/
 
 #include "preprocessing/preprocessing_pass_registry.h"
