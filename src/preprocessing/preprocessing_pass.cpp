@@ -9,9 +9,6 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The preprocessing pass super class
- **
- ** Preprocessing pass super class.
  **/
 
 #include "preprocessing/preprocessing_pass.h"

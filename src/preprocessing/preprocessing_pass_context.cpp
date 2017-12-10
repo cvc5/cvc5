@@ -9,11 +9,6 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The preprocessing pass context for passes
- **
- ** Implementation of the preprocessing pass context for passes. This context
- ** allows preprocessing passes to retrieve information besides the assertions
- ** from the solver and interact with it without getting full access.
  **/
 
 #include "preprocessing_pass_context.h"

@@ -9,11 +9,6 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The preprocessing pass registry
- **
- ** The preprocessing pass registry keeps track of all the instances of
- ** preprocessing passes. Upon creation, preprocessing passes are registered in
- ** the registry, which then takes ownership of them.
  **/
 
 #include "preprocessing/preprocessing_pass_registry.h"
