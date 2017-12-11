@@ -1,18 +1,23 @@
 ; COMMAND-LINE: --macros-quant
-; EXPECT: unknown
-; this will fail if type rule for APPLY_UF requires to be subtypes
+; EXPECT: (error "argument type is not a subtype of the function's argument type:
+; EXPECT: argument:  x
+; EXPECT: has type:  (List Int)
+; EXPECT: not subtype: (List Real)
+; EXPECT: in term : (R (as x (List Real)))")
+; EXIT: 1
+
 (set-logic ALL_SUPPORTED)
 
-(declare-datatypes (T) ((List (cons (hd T) (tl (List T))) (nil))))
+(declare-datatypes ((List 1)) ((par (T) ((cons (hd T) (tl (List T))) (nil)))))
 
-(declare-fun R ((List Int)) Bool)
+(declare-fun R ((List Real)) Bool)
 (assert (forall ((x (List Int))) (R x)))
 (declare-fun j1 () (List Real))
 (assert (not (R j1)))
 
-(declare-fun Q ((Array Real Int)) Bool)
+(declare-fun Q ((Array Int Real)) Bool)
 (assert (forall ((x (Array Real Int))) (Q x)))
-(declare-fun j2 () (Array Int Real))
+(declare-fun j2 () (Array Real Real))
 (assert (not (Q j2)))
 
 (check-sat)

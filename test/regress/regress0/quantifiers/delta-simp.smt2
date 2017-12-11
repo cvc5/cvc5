@@ -1,3 +1,5 @@
+; COMMAND-LINE: --no-check-models
+; EXPECT: sat
 (set-logic LRA)
 (set-info :status sat)
 (declare-fun c () Real)

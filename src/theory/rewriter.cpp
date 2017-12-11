@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Morgan Deters, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,7 +35,7 @@ static TheoryId theoryOf(TNode node) {
 }
 
 #ifdef CVC4_ASSERTIONS
-static CVC4_THREADLOCAL(std::hash_set<Node, NodeHashFunction>*) s_rewriteStack = NULL;
+static CVC4_THREAD_LOCAL std::unordered_set<Node, NodeHashFunction>* s_rewriteStack = NULL;
 #endif /* CVC4_ASSERTIONS */
 
 class RewriterInitializer {
@@ -94,7 +94,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
   bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
 
   if(s_rewriteStack == NULL) {
-    s_rewriteStack = new std::hash_set<Node, NodeHashFunction>();
+    s_rewriteStack = new std::unordered_set<Node, NodeHashFunction>();
   }
 #endif
 

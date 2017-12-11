@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Kshitij Bansal, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,12 +18,14 @@
 #  include <sys/resource.h>
 #endif /* ! __WIN32__ */
 
+#include <cassert>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "main/main.h"
 #include "smt/command.h"
-
 
 namespace CVC4 {
 namespace main {
@@ -130,15 +132,15 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 
   // dump the model/proof/unsat core if option is set
   if (status) {
-    Command* g = NULL;
+    std::vector<std::unique_ptr<Command> > getterCommands;
     if (d_options.getProduceModels() && d_options.getDumpModels() &&
         (res.asSatisfiabilityResult() == Result::SAT ||
          (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) {
-      g = new GetModelCommand();
+      getterCommands.emplace_back(new GetModelCommand());
     }
     if (d_options.getProof() && d_options.getDumpProofs() &&
         res.asSatisfiabilityResult() == Result::UNSAT) {
-      g = new GetProofCommand();
+      getterCommands.emplace_back(new GetProofCommand());
     }
 
     if (d_options.getDumpInstantiations() &&
@@ -146,26 +148,30 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
           (res.asSatisfiabilityResult() == Result::SAT ||
            (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) ||
          res.asSatisfiabilityResult() == Result::UNSAT)) {
-      g = new GetInstantiationsCommand();
+      getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
     if (d_options.getDumpSynth() &&
         res.asSatisfiabilityResult() == Result::UNSAT) {
-      g = new GetSynthSolutionCommand();
+      getterCommands.emplace_back(new GetSynthSolutionCommand());
     }
 
     if (d_options.getDumpUnsatCores() &&
         res.asSatisfiabilityResult() == Result::UNSAT) {
-      g = new GetUnsatCoreCommand();
+      getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
-    if (g != NULL) {
+    if (!getterCommands.empty()) {
       // set no time limit during dumping if applicable
       if (d_options.getForceNoLimitCpuWhileDump()) {
         setNoLimitCPU();
       }
-      status = doCommandSingleton(g);
-      delete g;
+      for (const auto& getterCommand : getterCommands) {
+        status = doCommandSingleton(getterCommand.get());
+        if (!status && !d_options.getContinuedExecution()) {
+          break;
+        }
+      }
     }
   }
   return status;

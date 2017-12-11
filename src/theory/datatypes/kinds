@@ -7,7 +7,7 @@
 theory THEORY_DATATYPES ::CVC4::theory::datatypes::TheoryDatatypes "theory/datatypes/theory_datatypes.h"
 typechecker "theory/datatypes/theory_datatypes_type_rules.h"
 
-properties check presolve parametric propagate
+properties check presolve parametric propagate getNextDecisionRequest
 
 rewriter ::CVC4::theory::datatypes::DatatypesRewriter "theory/datatypes/datatypes_rewriter.h"
 
@@ -106,6 +106,18 @@ operator DT_SIZE 1 "datatypes size"
 typerule DT_SIZE ::CVC4::theory::datatypes::DtSizeTypeRule
 
 operator DT_HEIGHT_BOUND 2 "datatypes height bound"
-typerule DT_HEIGHT_BOUND ::CVC4::theory::datatypes::DtHeightBoundTypeRule
+typerule DT_HEIGHT_BOUND ::CVC4::theory::datatypes::DtBoundTypeRule
+
+operator DT_SIZE_BOUND 2 "datatypes height bound"
+typerule DT_SIZE_BOUND ::CVC4::theory::datatypes::DtBoundTypeRule
+
+operator DT_SYGUS_BOUND 2 "datatypes sygus bound"
+typerule DT_SYGUS_BOUND ::CVC4::theory::datatypes::DtSygusBoundTypeRule
+
+operator DT_SYGUS_TERM_ORDER 2 "datatypes sygus term order"
+typerule DT_SYGUS_TERM_ORDER ::CVC4::theory::datatypes::DtSygusPredTypeRule
+
+operator DT_SYGUS_IS_CONST 1 "datatypes sygus is constant"
+typerule DT_SYGUS_IS_CONST ::CVC4::theory::datatypes::DtSygusPredTypeRule
 
 endtheory

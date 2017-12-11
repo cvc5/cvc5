@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -44,9 +44,9 @@
 
 #pragma once
 
-#include <boost/static_assert.hpp>
-#include <ext/hash_map>
 #include <deque>
+#include <functional>
+#include <unordered_map>
 #include <utility>
 
 #include "base/cvc4_assert.h"
@@ -59,7 +59,7 @@ namespace CVC4 {
 namespace context {
 
 
-template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> >
+template <class Key, class Data, class HashFcn = std::hash<Key> >
 class TrailHashMap {
 public:
   /** A pair of Key and Data that mirrors hash_map::value_type. */
@@ -92,8 +92,7 @@ private:
   /** The trail of elements. */
   KDTVec d_kdts;
 
-
-  typedef __gnu_cxx::hash_map<Key, size_t, HashFcn> PositionMap;
+  typedef std::unordered_map<Key, size_t, HashFcn> PositionMap;
   typedef typename PositionMap::iterator PM_iterator;
   typedef typename PositionMap::const_iterator PM_const_iterator;
 
@@ -124,13 +123,15 @@ private:
   }
 
 public:
-  /**
-   * Constant iterator for TrailHashMap.
-   * Only supports forward iteration.
-   * This always points at the end or a current element in the trail.
-   * This is done by iterating over the trail.
-   */
-  class const_iterator {
+ TrailHashMap() : d_kdts{}, d_posMap{}, d_uniqueKeys(0) {}
+
+ /**
+  * Constant iterator for TrailHashMap.
+  * Only supports forward iteration.
+  * This always points at the end or a current element in the trail.
+  * This is done by iterating over the trail.
+  */
+ class const_iterator {
   private:
     /** A vector iterator. */
     KDTVec_const_iterator d_it;
@@ -551,7 +552,7 @@ public:
 };/* class CDTrailHashMap<> */
 
 template <class Data, class HashFcn>
-class CDTrailHashMap <TNode, Data, HashFcn > : public ContextObj {
+class CDTrailHashMap<TNode, Data, HashFcn> : public ContextObj {
   /* CDTrailHashMap is challenging to get working with TNode.
    * Consider using CDHashMap<TNode,...> instead.
    *
@@ -563,7 +564,8 @@ class CDTrailHashMap <TNode, Data, HashFcn > : public ContextObj {
    * hashed. Getting the order right with a guarantee is too hard.
    */
 
-  BOOST_STATIC_ASSERT(sizeof(Data) == 0);
+  static_assert(sizeof(Data) == 0,
+                "Cannot create a CDTrailHashMap with TNode keys");
 };
 
 }/* CVC4::context namespace */

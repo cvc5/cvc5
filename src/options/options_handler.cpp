@@ -2,9 +2,9 @@
 /*! \file options_handler.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds
+ **   Tim King, Andrew Reynolds, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,11 +23,13 @@
 #include "cvc4autoconfig.h"
 
 #include "base/configuration.h"
+#include "base/configuration_private.h"
 #include "base/cvc4_assert.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "lib/strtok_r.h"
+#include "gmp.h"
 #include "options/arith_heuristic_pivot_rule.h"
 #include "options/arith_propagation_mode.h"
 #include "options/arith_unate_lemma_mode.h"
@@ -36,6 +38,7 @@
 #include "options/bv_options.h"
 #include "options/decision_mode.h"
 #include "options/decision_options.h"
+#include "options/datatypes_modes.h"
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
@@ -399,10 +402,13 @@ norm \n\
 ";
 
 const std::string OptionsHandler::s_cegqiFairModeHelp = "\
-Modes for enforcing fairness for counterexample guided quantifier instantion, supported by --cegqi-fair:\n\
+Modes for enforcing fairness for counterexample guided quantifier instantion, supported by --sygus-fair:\n\
 \n\
 uf-dt-size \n\
 + Enforce fairness using an uninterpreted function for datatypes size.\n\
+\n\
+direct \n\
++ Enforce fairness using direct conflict lemmas.\n\
 \n\
 default | dt-size \n\
 + Default, enforce fairness using size operator.\n\
@@ -437,6 +443,23 @@ simple  \n\
 \n\
 all \n\
 + Lift if-then-else in quantified formulas. \n\
+\n\
+";
+
+const std::string OptionsHandler::s_cbqiBvIneqModeHelp =
+    "\
+Modes for single invocation techniques, supported by --cbqi-bv-ineq:\n\
+\n\
+eq-slack (default)  \n\
++ Solve for the inequality using the slack value in the model, e.g.,\
+  t > s becomes t = s + ( t-s )^M.\n\
+\n\
+eq-boundary \n\
++ Solve for the boundary point of the inequality, e.g.,\
+  t > s becomes t = s+1.\n\
+\n\
+keep  \n\
++ Solve for the inequality directly using side conditions for invertibility.\n\
 \n\
 ";
 
@@ -530,7 +553,6 @@ all \n\
 + Minimize all inferred bounds.\n\
 \n\
 ";
-
 
 theory::quantifiers::InstWhenMode OptionsHandler::stringToInstWhenMode(std::string option, std::string optarg) throw(OptionException) {
   if(optarg == "pre-full") {
@@ -716,17 +738,17 @@ theory::quantifiers::PrenexQuantMode OptionsHandler::stringToPrenexQuantMode(std
   }
 }
 
-theory::quantifiers::CegqiFairMode OptionsHandler::stringToCegqiFairMode(std::string option, std::string optarg) throw(OptionException) {
-  if(optarg == "uf-dt-size" ) {
-    return theory::quantifiers::CEGQI_FAIR_UF_DT_SIZE;
+theory::SygusFairMode OptionsHandler::stringToSygusFairMode(std::string option, std::string optarg) throw(OptionException) {
+  if(optarg == "direct") {
+    return theory::SYGUS_FAIR_DIRECT;
   } else if(optarg == "default" || optarg == "dt-size") {
-    return theory::quantifiers::CEGQI_FAIR_DT_SIZE;
+    return theory::SYGUS_FAIR_DT_SIZE;
   } else if(optarg == "dt-height-bound" ){
-    return theory::quantifiers::CEGQI_FAIR_DT_HEIGHT_PRED;
-  //} else if(optarg == "dt-size-bound" ){
-  //  return theory::quantifiers::CEGQI_FAIR_DT_SIZE_PRED;
+    return theory::SYGUS_FAIR_DT_HEIGHT_PRED;
+  } else if(optarg == "dt-size-bound" ){
+    return theory::SYGUS_FAIR_DT_SIZE_PRED;
   } else if(optarg == "none") {
-    return theory::quantifiers::CEGQI_FAIR_NONE;
+    return theory::SYGUS_FAIR_NONE;
   } else if(optarg ==  "help") {
     puts(s_cegqiFairModeHelp.c_str());
     exit(1);
@@ -763,6 +785,34 @@ theory::quantifiers::IteLiftQuantMode OptionsHandler::stringToIteLiftQuantMode(s
   } else {
     throw OptionException(std::string("unknown option for --ite-lift-quant: `") +
                           optarg + "'.  Try --ite-lift-quant help.");
+  }
+}
+
+theory::quantifiers::CbqiBvIneqMode OptionsHandler::stringToCbqiBvIneqMode(
+    std::string option, std::string optarg) throw(OptionException)
+{
+  if (optarg == "eq-slack")
+  {
+    return theory::quantifiers::CBQI_BV_INEQ_EQ_SLACK;
+  }
+  else if (optarg == "eq-boundary")
+  {
+    return theory::quantifiers::CBQI_BV_INEQ_EQ_BOUNDARY;
+  }
+  else if (optarg == "keep")
+  {
+    return theory::quantifiers::CBQI_BV_INEQ_KEEP;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_cbqiBvIneqModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --cbqi-bv-ineq: `")
+                          + optarg
+                          + "'.  Try --cbqi-bv-ineq help.");
   }
 }
 
@@ -958,7 +1008,7 @@ const std::string OptionsHandler::s_bitblastingModeHelp = "\
 Bit-blasting modes currently supported by the --bitblast option:\n\
 \n\
 lazy (default)\n\
-+ Separate boolean structure and term reasoning betwen the core\n\
++ Separate boolean structure and term reasoning between the core\n\
   SAT solver and the bv SAT solver\n\
 \n\
 eager\n\
@@ -1036,7 +1086,7 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(std::string option
   } else if(optarg == "off") {
     return theory::bv::BITVECTOR_SLICER_OFF;
   } else if(optarg == "help") {
-    puts(s_bitblastingModeHelp.c_str());
+    puts(s_bvSlicerModeHelp.c_str());
     exit(1);
   } else {
     throw OptionException(std::string("unknown option for --bv-eq-slicer: `") +
@@ -1260,6 +1310,56 @@ SimplificationMode OptionsHandler::stringToSimplificationMode(std::string option
   }
 }
 
+const std::string OptionsHandler::s_sygusSolutionOutModeHelp =
+    "\
+Modes for finite model finding bound minimization, supported by --sygus-out:\n\
+\n\
+status \n\
++ Print only status for check-synth calls.\n\
+\n\
+status-and-def (default) \n\
++ Print status followed by definition corresponding to solution.\n\
+\n\
+status-or-def \n\
++ Print status if infeasible, or definition corresponding to\n\
+  solution if feasible.\n\
+\n\
+sygus-standard \n\
++ Print based on SyGuS standard.\n\
+\n\
+";
+
+SygusSolutionOutMode OptionsHandler::stringToSygusSolutionOutMode(
+    std::string option, std::string optarg) throw(OptionException)
+{
+  if (optarg == "status")
+  {
+    return SYGUS_SOL_OUT_STATUS;
+  }
+  else if (optarg == "status-and-def")
+  {
+    return SYGUS_SOL_OUT_STATUS_AND_DEF;
+  }
+  else if (optarg == "status-or-def")
+  {
+    return SYGUS_SOL_OUT_STATUS_OR_DEF;
+  }
+  else if (optarg == "sygus-standard")
+  {
+    return SYGUS_SOL_OUT_STANDARD;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusSolutionOutModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --sygus-out: `")
+                          + optarg
+                          + "'.  Try --sygus-out help.");
+  }
+}
 
 void OptionsHandler::setProduceAssertions(std::string option, bool value) throw() {
   options::produceAssertions.set(value);
@@ -1275,6 +1375,17 @@ void OptionsHandler::proofEnabledBuild(std::string option, bool value) throw(Opt
     throw OptionException(ss.str());
   }
 #endif /* CVC4_PROOF */
+}
+
+void OptionsHandler::LFSCEnabledBuild(std::string option, bool value) {
+#ifndef CVC4_USE_LFSC
+  if (value) {
+    std::stringstream ss;
+    ss << "option `" << option << "' requires a build of CVC4 with integrated "
+                                  "LFSC; this binary was not built with LFSC";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC4_USE_LFSC */
 }
 
 void OptionsHandler::notifyDumpToFile(std::string option) {
@@ -1353,66 +1464,96 @@ void OptionsHandler::notifySetPrintExprTypes(std::string option) {
 
 
 // main/options_handlers.h
+
+static void print_config (const char * str, std::string config) {
+  std::string s(str);
+  unsigned sz = 14;
+  if (s.size() < sz) s.resize(sz, ' ');
+  std::cout << s << ": " << config << std::endl;
+}
+
+static void print_config_cond (const char * str, bool cond = false) {
+  print_config(str, cond ? "yes" : "no");
+}
+
+void OptionsHandler::copyright(std::string option) {
+  std::cout << Configuration::copyright() << std::endl;
+  exit(0);
+}
+
 void OptionsHandler::showConfiguration(std::string option) {
-  fputs(Configuration::about().c_str(), stdout);
-  printf("\n");
-  printf("version    : %s\n", Configuration::getVersionString().c_str());
+  std::cout << Configuration::about() << std::endl;
+
+  print_config ("version", Configuration::getVersionString());
+
   if(Configuration::isGitBuild()) {
     const char* branchName = Configuration::getGitBranchName();
-    if(*branchName == '\0') {
-      branchName = "-";
-    }
-    printf("scm        : git [%s %s%s]\n",
-           branchName,
-           std::string(Configuration::getGitCommit()).substr(0, 8).c_str(),
-           Configuration::hasGitModifications() ?
-             " (with modifications)" : "");
+    if(*branchName == '\0')  { branchName = "-"; }
+    std::stringstream ss;
+    ss << "git ["
+       << branchName << " "
+       << std::string(Configuration::getGitCommit()).substr(0, 8)
+       << (Configuration::hasGitModifications() ? " (with modifications)" : "")
+       << "]";
+    print_config("scm", ss.str());
   } else if(Configuration::isSubversionBuild()) {
-    printf("scm        : svn [%s r%u%s]\n",
-           Configuration::getSubversionBranchName(),
-           Configuration::getSubversionRevision(),
-           Configuration::hasSubversionModifications() ?
-             " (with modifications)" : "");
+    std::stringstream ss;
+    ss << "svn ["
+       << Configuration::getSubversionBranchName() << " r"
+       << Configuration::getSubversionRevision()
+       << (Configuration::hasSubversionModifications()
+           ? " (with modifications)" : "")
+       << "]";
+    print_config("scm", ss.str());
   } else {
-    printf("scm        : no\n");
+    print_config_cond("scm", false);
   }
-  printf("\n");
-  printf("library    : %u.%u.%u\n",
-         Configuration::getVersionMajor(),
-         Configuration::getVersionMinor(),
-         Configuration::getVersionRelease());
-  printf("\n");
-  printf("debug code : %s\n", Configuration::isDebugBuild() ? "yes" : "no");
-  printf("statistics : %s\n", Configuration::isStatisticsBuild() ? "yes" : "no");
-  printf("replay     : %s\n", Configuration::isReplayBuild() ? "yes" : "no");
-  printf("tracing    : %s\n", Configuration::isTracingBuild() ? "yes" : "no");
-  printf("dumping    : %s\n", Configuration::isDumpingBuild() ? "yes" : "no");
-  printf("muzzled    : %s\n", Configuration::isMuzzledBuild() ? "yes" : "no");
-  printf("assertions : %s\n", Configuration::isAssertionBuild() ? "yes" : "no");
-  printf("proof      : %s\n", Configuration::isProofBuild() ? "yes" : "no");
-  printf("coverage   : %s\n", Configuration::isCoverageBuild() ? "yes" : "no");
-  printf("profiling  : %s\n", Configuration::isProfilingBuild() ? "yes" : "no");
-  printf("competition: %s\n", Configuration::isCompetitionBuild() ? "yes" : "no");
-  printf("\n");
-  printf("cudd       : %s\n", Configuration::isBuiltWithCudd() ? "yes" : "no");
-  printf("cln        : %s\n", Configuration::isBuiltWithCln() ? "yes" : "no");
-  printf("gmp        : %s\n", Configuration::isBuiltWithGmp() ? "yes" : "no");
-  printf("glpk       : %s\n", Configuration::isBuiltWithGlpk() ? "yes" : "no");
-  printf("abc        : %s\n", Configuration::isBuiltWithAbc() ? "yes" : "no");
-  printf("readline   : %s\n", Configuration::isBuiltWithReadline() ? "yes" : "no");
-  printf("tls        : %s\n", Configuration::isBuiltWithTlsSupport() ? "yes" : "no");
+  
+  std::cout << std::endl;
+
+  std::stringstream ss;
+  ss << Configuration::getVersionMajor() << "."
+     << Configuration::getVersionMinor() << "."
+     << Configuration::getVersionRelease();
+  print_config("library", ss.str());
+  
+  std::cout << std::endl;
+
+  print_config_cond("debug code", Configuration::isDebugBuild());
+  print_config_cond("statistics", Configuration::isStatisticsBuild());
+  print_config_cond("replay", Configuration::isReplayBuild());
+  print_config_cond("tracing", Configuration::isTracingBuild());
+  print_config_cond("dumping", Configuration::isDumpingBuild());
+  print_config_cond("muzzled", Configuration::isMuzzledBuild());
+  print_config_cond("assertions", Configuration::isAssertionBuild());
+  print_config_cond("proof", Configuration::isProofBuild());
+  print_config_cond("coverage", Configuration::isCoverageBuild());
+  print_config_cond("profiling", Configuration::isProfilingBuild());
+  print_config_cond("competition", Configuration::isCompetitionBuild());
+  
+  std::cout << std::endl;
+  
+  print_config_cond("abc", Configuration::isBuiltWithAbc());
+  print_config_cond("cln", Configuration::isBuiltWithCln());
+  print_config_cond("glpk", Configuration::isBuiltWithGlpk());
+  print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
+  print_config_cond("gmp", Configuration::isBuiltWithGmp());
+  print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
+  print_config_cond("readline", Configuration::isBuiltWithReadline());
+  print_config_cond("tls", Configuration::isBuiltWithTlsSupport());
+  
   exit(0);
 }
 
 void OptionsHandler::showDebugTags(std::string option) {
   if(Configuration::isDebugBuild() && Configuration::isTracingBuild()) {
-    printf("available tags:");
+    std::cout << "available tags:";
     unsigned ntags = Configuration::getNumDebugTags();
     char const* const* tags = Configuration::getDebugTags();
     for(unsigned i = 0; i < ntags; ++ i) {
-      printf(" %s", tags[i]);
+      std::cout << tags[i];
     }
-    printf("\n");
+    std::cout << std::endl;
   } else if(! Configuration::isDebugBuild()) {
     throw OptionException("debug tags not available in non-debug builds");
   } else {
@@ -1423,13 +1564,13 @@ void OptionsHandler::showDebugTags(std::string option) {
 
 void OptionsHandler::showTraceTags(std::string option) {
   if(Configuration::isTracingBuild()) {
-    printf("available tags:");
+    std::cout << "available tags:" << std::endl;
     unsigned ntags = Configuration::getNumTraceTags();
     char const* const* tags = Configuration::getTraceTags();
     for (unsigned i = 0; i < ntags; ++ i) {
-      printf(" %s", tags[i]);
+      std::cout << "  " << tags[i] << std::endl;
     }
-    printf("\n");
+    std::cout << std::endl;
   } else {
     throw OptionException("trace tags not available in non-tracing build");
   }
@@ -1514,13 +1655,13 @@ void OptionsHandler::addTraceTag(std::string option, std::string optarg) {
     if(!Configuration::isTraceTag(optarg.c_str())) {
 
       if(optarg == "help") {
-        printf("available tags:");
+        std::cout << "available tags:";
         unsigned ntags = Configuration::getNumTraceTags();
         char const* const* tags = Configuration::getTraceTags();
         for(unsigned i = 0; i < ntags; ++ i) {
-          printf(" %s", tags[i]);
+          std::cout << tags[i];
         }
-        printf("\n");
+        std::cout << std::endl;
         exit(0);
       }
 
@@ -1540,13 +1681,13 @@ void OptionsHandler::addDebugTag(std::string option, std::string optarg) {
        !Configuration::isTraceTag(optarg.c_str())) {
 
       if(optarg == "help") {
-        printf("available tags:");
+        std::cout << "available tags:";
         unsigned ntags = Configuration::getNumDebugTags();
         char const* const* tags = Configuration::getDebugTags();
         for(unsigned i = 0; i < ntags; ++ i) {
-          printf(" %s", tags[i]);
+          std::cout << tags[i];
         }
-        printf("\n");
+        std::cout << std::endl;
         exit(0);
       }
 

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,17 +14,24 @@
 
 #include "theory/quantifiers/inst_strategy_e_matching.h"
 #include "theory/quantifiers/inst_match_generator.h"
-#include "theory/quantifiers/relevant_domain.h"
+#include "theory/quantifiers/quant_relevance.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::inst;
-using namespace CVC4::theory::quantifiers;
+
+namespace CVC4 {
+
+using namespace kind;
+using namespace context;
+
+namespace theory {
+
+using namespace inst;
+
+namespace quantifiers {
 
 //priority levels :
 //1 : user patterns (when user-pat!={resort,ignore}), auto-gen patterns (for non-user pattern quantifiers, or when user-pat={resort,ignore})
@@ -99,8 +106,7 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
           Trace("process-trigger") << "  Process (user) ";
           d_user_gen[f][i]->debugPrint("process-trigger");
           Trace("process-trigger") << "..." << std::endl;
-          InstMatch baseMatch( f );
-          int numInst = d_user_gen[f][i]->addInstantiations( baseMatch );
+          int numInst = d_user_gen[f][i]->addInstantiations();
           Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
           d_quantEngine->d_statistics.d_instantiations_user_patterns += numInst;
           if( d_user_gen[f][i]->isMultiTrigger() ){
@@ -242,8 +248,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
               Trace("process-trigger") << "  Process ";
               tr->debugPrint("process-trigger");
               Trace("process-trigger") << "..." << std::endl;
-              InstMatch baseMatch( f );
-              int numInst = tr->addInstantiations( baseMatch );
+              int numInst = tr->addInstantiations();
               hasInst = numInst>0 || hasInst;
               Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
               d_quantEngine->d_statistics.d_instantiations_auto_gen += numInst;
@@ -279,16 +284,17 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     std::map< Node, inst::TriggerTermInfo > tinfo;
     //well-defined function: can assume LHS is only trigger
     if( options::quantFunWellDefined() ){
-      Node hd = TermDb::getFunDefHead( f );
+      Node hd = QuantAttributes::getFunDefHead( f );
       if( !hd.isNull() ){
-        hd = d_quantEngine->getTermDatabase()->getInstConstantNode( hd, f );
+        hd = d_quantEngine->getTermUtil()
+                 ->substituteBoundVariablesToInstConstants(hd, f);
         patTermsF.push_back( hd );
         tinfo[hd].init( f, hd );
       }
     }
     //otherwise, use algorithm for collecting pattern terms
     if( patTermsF.empty() ){
-      Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
+      Node bd = d_quantEngine->getTermUtil()->getInstConstantBody( f );
       Trigger::collectPatTerms( f, bd, patTermsF, d_tr_strategy, d_user_no_gen[f], tinfo, true );
       if( ntrivTriggers ){
         sortTriggers st;
@@ -332,7 +338,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       if( options::partialTriggers() ){
         std::vector< Node > vcs[2];
         for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-          Node ic = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i );
+          Node ic = d_quantEngine->getTermUtil()->getInstantiationConstant( f, i );
           vcs[ vcMap.find( ic )==vcMap.end() ? 0 : 1 ].push_back( f[0][i] );
         }
         for( unsigned i=0; i<2; i++ ){
@@ -464,7 +470,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
           if( index<patTerms.size() ){
             //Notice() << "check add additional" << std::endl;
             //check if similar patterns exist, and if so, add them additionally
-            int nqfs_curr = 0;
+            unsigned nqfs_curr = 0;
             if( options::relevantTriggers() ){
               nqfs_curr = d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[0].getOperator() );
             }
@@ -506,7 +512,10 @@ void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
   if( tr ){
     if( d_num_trigger_vars[q]<q[0].getNumChildren() ){
       //partial trigger : generate implication to mark user pattern
-      Node ipl = NodeManager::currentNM()->mkNode( INST_PATTERN_LIST, d_quantEngine->getTermDatabase()->getVariableNode( tr->getInstPattern(), q ) );
+      Node pat =
+          d_quantEngine->getTermUtil()->substituteInstConstantsToBoundVariables(
+              tr->getInstPattern(), q);
+      Node ipl = NodeManager::currentNM()->mkNode(INST_PATTERN_LIST, pat);
       Node qq = NodeManager::currentNM()->mkNode( FORALL, d_vc_partition[1][q], NodeManager::currentNM()->mkNode( FORALL, d_vc_partition[0][q], q[1] ), ipl );
       Trace("auto-gen-trigger-partial") << "Make partially specified user pattern: " << std::endl;
       Trace("auto-gen-trigger-partial") << "  " << qq << std::endl;
@@ -567,7 +576,7 @@ bool InstStrategyLocalTheoryExt::isLocalTheoryExt( Node f ) {
   std::map< Node, bool >::iterator itq = d_quant.find( f );
   if( itq==d_quant.end() ){
     //generate triggers
-    Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
+    Node bd = d_quantEngine->getTermUtil()->getInstConstantBody( f );
     std::vector< Node > vars;
     std::vector< Node > patTerms;
     bool ret = Trigger::isLocalTheoryExt( bd, vars, patTerms );
@@ -575,7 +584,7 @@ bool InstStrategyLocalTheoryExt::isLocalTheoryExt( Node f ) {
       d_quant[f] = ret;
       //add all variables to trigger that don't already occur
       for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-        Node x = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i );
+        Node x = d_quantEngine->getTermUtil()->getInstantiationConstant( f, i );
         if( std::find( vars.begin(), vars.end(), x )==vars.end() ){
           patTerms.push_back( x );
         }
@@ -598,180 +607,7 @@ bool InstStrategyLocalTheoryExt::isLocalTheoryExt( Node f ) {
   }
 }
 */
-FullSaturation::FullSaturation( QuantifiersEngine* qe ) : QuantifiersModule( qe ){
 
-}
-
-bool FullSaturation::needsCheck( Theory::Effort e ){
-  if( options::fullSaturateInst() ){
-    if( d_quantEngine->getInstWhenNeedsCheck( e ) ){
-      return true;
-    }
-  }
-  if( options::fullSaturateQuant() ){
-    if( e>=Theory::EFFORT_LAST_CALL ){
-      return true;
-    }
-  }
-  return false;
-}
-
-void FullSaturation::reset_round( Theory::Effort e ) {
-
-}
-
-void FullSaturation::check( Theory::Effort e, unsigned quant_e ) {
-  bool doCheck = false;
-  bool fullEffort = false;
-  if( options::fullSaturateInst() ){
-    //we only add when interleaved with other strategies
-    doCheck = quant_e==QuantifiersEngine::QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
-  }
-  if( options::fullSaturateQuant() && !doCheck ){
-    doCheck = quant_e==QuantifiersEngine::QEFFORT_LAST_CALL;
-    fullEffort = !d_quantEngine->hasAddedLemma();
-  }
-  if( doCheck ){
-    double clSet = 0;
-    if( Trace.isOn("fs-engine") ){
-      clSet = double(clock())/double(CLOCKS_PER_SEC);
-      Trace("fs-engine") << "---Full Saturation Round, effort = " << e << "---" << std::endl;
-    }
-    int addedLemmas = 0;
-    for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-      Node q = d_quantEngine->getModel()->getAssertedQuantifier( i, true );
-      if( d_quantEngine->hasOwnership( q, this ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
-        if( process( q, fullEffort ) ){
-          //added lemma
-          addedLemmas++;
-          if( d_quantEngine->inConflict() ){
-            break;
-          }
-        }
-      }
-    }
-    if( Trace.isOn("fs-engine") ){
-      Trace("fs-engine") << "Added lemmas = " << addedLemmas  << std::endl;
-      double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-      Trace("fs-engine") << "Finished instantiation engine, time = " << (clSet2-clSet) << std::endl;
-    }
-  }
-}
-
-bool FullSaturation::process( Node f, bool fullEffort ){
-  //first, try from relevant domain
-  RelevantDomain * rd = d_quantEngine->getRelevantDomain();
-  unsigned rstart = options::fullSaturateQuantRd() ? 0 : 1;
-  unsigned rend = fullEffort ? 1 : rstart;
-  for( unsigned r=rstart; r<=rend; r++ ){
-    if( rd || r>0 ){
-      if( r==0 ){
-        Trace("inst-alg") << "-> Relevant domain instantiate " << f << "..." << std::endl;
-      }else{
-        Trace("inst-alg") << "-> Ground term instantiate " << f << "..." << std::endl;
-      }
-      Assert( rd!=NULL );
-      rd->compute();
-      unsigned final_max_i = 0;
-      std::vector< unsigned > maxs;
-      std::vector< bool > max_zero;
-      bool has_zero = false;
-      for(unsigned i=0; i<f[0].getNumChildren(); i++ ){
-        unsigned ts;
-        if( r==0 ){
-          ts = rd->getRDomain( f, i )->d_terms.size();
-        }else{
-          ts = d_quantEngine->getTermDatabase()->getNumTypeGroundTerms( f[0][i].getType() );
-        }
-        max_zero.push_back( fullEffort && ts==0 );
-        ts = ( fullEffort && ts==0 ) ? 1 : ts;
-        Trace("inst-alg-rd") << "Variable " << i << " has " << ts << " in relevant domain." << std::endl;
-        if( ts==0 ){
-          has_zero = true;
-          break;
-        }else{
-          maxs.push_back( ts );
-          if( ts>final_max_i ){
-            final_max_i = ts;
-          }
-        }
-      }
-      if( !has_zero ){
-        std::vector< TypeNode > ftypes;
-        for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-          ftypes.push_back( f[0][i].getType() );
-        }
-      
-        Trace("inst-alg-rd") << "Will do " << final_max_i << " stages of instantiation." << std::endl;
-        unsigned max_i = 0;
-        bool success;
-        while( max_i<=final_max_i ){
-          Trace("inst-alg-rd") << "Try stage " << max_i << "..." << std::endl;
-          std::vector< unsigned > childIndex;
-          int index = 0;
-          do {
-            while( index>=0 && index<(int)f[0].getNumChildren() ){
-              if( index==(int)childIndex.size() ){
-                childIndex.push_back( -1 );
-              }else{
-                Assert( index==(int)(childIndex.size())-1 );
-                unsigned nv = childIndex[index]+1;
-                if( options::cbqi() && r==1 && !max_zero[index] ){
-                  //skip inst constant nodes
-                  while( nv<maxs[index] && nv<=max_i &&
-                          quantifiers::TermDb::hasInstConstAttr( d_quantEngine->getTermDatabase()->getTypeGroundTerm( ftypes[index], nv ) ) ){
-                    nv++;
-                  }
-                }
-                if( nv<maxs[index] && nv<=max_i ){
-                  childIndex[index] = nv;
-                  index++;
-                }else{
-                  childIndex.pop_back();
-                  index--;
-                }
-              }
-            }
-            success = index>=0;
-            if( success ){
-              Trace("inst-alg-rd") << "Try instantiation { ";
-              for( unsigned j=0; j<childIndex.size(); j++ ){
-                Trace("inst-alg-rd") << childIndex[j] << " ";
-              }
-              Trace("inst-alg-rd") << "}" << std::endl;
-              //try instantiation
-              std::vector< Node > terms;
-              for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-                if( max_zero[i] ){
-                  //no terms available, will report incomplete instantiation
-                  terms.push_back( Node::null() );
-                  Trace("inst-alg-rd") << "  null" << std::endl;
-                }else if( r==0 ){
-                  terms.push_back( rd->getRDomain( f, i )->d_terms[childIndex[i]] );
-                  Trace("inst-alg-rd") << "  " << rd->getRDomain( f, i )->d_terms[childIndex[i]] << std::endl;
-                }else{
-                  terms.push_back( d_quantEngine->getTermDatabase()->getTypeGroundTerm( ftypes[i], childIndex[i] ) );
-                  Trace("inst-alg-rd") << "  " << d_quantEngine->getTermDatabase()->getTypeGroundTerm( ftypes[i], childIndex[i] ) << std::endl;
-                }
-              }
-              if( d_quantEngine->addInstantiation( f, terms ) ){
-                Trace("inst-alg-rd") << "Success!" << std::endl;
-                ++(d_quantEngine->d_statistics.d_instantiations_guess);
-                return true;
-              }else{
-                index--;
-              }
-            }
-          }while( success );
-          max_i++;
-        }
-      }
-    }
-  }
-  //term enumerator?
-  return false;
-}
-
-void FullSaturation::registerQuantifier( Node q ) {
-
-}
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */

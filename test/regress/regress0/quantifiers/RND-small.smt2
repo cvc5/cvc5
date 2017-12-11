@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-recurse
+; COMMAND-LINE: --no-check-models
 ; EXPECT: sat
 (set-logic LRA)
 (declare-fun y1 () Real)

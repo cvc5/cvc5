@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,6 @@
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "context/cdchunk_list.h"
 
 namespace CVC4 {
 namespace theory {
@@ -146,7 +145,7 @@ public:
   
   void presolve();
   bool needsCheck( Theory::Effort e );
-  void check( Theory::Effort e, unsigned quant_e );
+  void check(Theory::Effort e, QEffort quant_e);
   void registerQuantifier( Node q );
   void preRegisterQuantifier( Node q );
   void assertNode( Node n );

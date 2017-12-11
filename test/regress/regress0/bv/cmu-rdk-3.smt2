@@ -1,3 +1,5 @@
+; COMMAND-LINE: --rewrite-divk
+; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
 

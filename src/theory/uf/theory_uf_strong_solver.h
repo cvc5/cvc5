@@ -2,9 +2,9 @@
 /*! \file theory_uf_strong_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Tim King, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,7 +17,6 @@
 #ifndef __CVC4__THEORY_UF_STRONG_SOLVER_H
 #define __CVC4__THEORY_UF_STRONG_SOLVER_H
 
-#include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "context/context_mm.h"
@@ -396,8 +395,6 @@ public:
   void check( Theory::Effort level );
   /** presolve */
   void presolve();
-  /** propagate */
-  void propagate( Theory::Effort level );
   /** get next decision request */
   Node getNextDecisionRequest( unsigned& priority );
   /** preregister a term */

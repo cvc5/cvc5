@@ -2,9 +2,9 @@
 /*! \file simplex.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Clark Barrett
+ **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -52,6 +52,8 @@
 #include "cvc4_private.h"
 
 #pragma once
+
+#include <unordered_map>
 
 #include "theory/arith/arithvar.h"
 #include "theory/arith/delta_rational.h"
@@ -199,7 +201,7 @@ protected:
     }
   };
 
-  typedef std::hash_map< std::pair<ArithVar, int>, ArithVarVec, ArithVarIntPairHashFunc> sgn_table;
+  typedef std::unordered_map< std::pair<ArithVar, int>, ArithVarVec, ArithVarIntPairHashFunc> sgn_table;
 
   static inline int determinizeSgn(int sgn){
     return sgn < 0 ? -1 : (sgn == 0 ? 0 : 1);

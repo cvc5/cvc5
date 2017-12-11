@@ -1,0 +1,17 @@
+% EXPECT: sat
+OPTION "sets-ext";
+OPTION "logic" "ALL_SUPPORTED";
+
+a : SET OF [REAL, INT];
+b : SET OF [INT, REAL];
+
+x : [ REAL, REAL ];
+
+ASSERT NOT x = (0.0,0.0);
+
+ASSERT (x.0, FLOOR(x.1)) IS_IN a;
+ASSERT (FLOOR(x.0), x.1) IS_IN b;
+
+ASSERT NOT x.0 = x.1;
+
+CHECKSAT;

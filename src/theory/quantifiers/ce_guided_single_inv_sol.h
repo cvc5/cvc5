@@ -2,9 +2,9 @@
 /*! \file ce_guided_single_inv_sol.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,7 +18,6 @@
 #define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_SOL_H
 
 #include "context/cdhashmap.h"
-#include "context/cdchunk_list.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {

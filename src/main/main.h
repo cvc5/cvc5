@@ -2,9 +2,9 @@
 /*! \file main.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Tim King, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,8 +17,8 @@
 #include <exception>
 #include <string>
 
-#include "base/exception.h"
 #include "base/tls.h"
+#include "base/exception.h"
 #include "cvc4autoconfig.h"
 #include "expr/expr_manager.h"
 #include "options/options.h"
@@ -38,7 +38,7 @@ class CommandExecutor;
 extern const char* progPath;
 
 /** Just the basename component of argv[0] */
-extern const char* progName;
+extern const std::string* progName;
 
 /** A reference for use by the signal handlers to print statistics */
 extern CVC4::main::CommandExecutor* pExecutor;
@@ -54,7 +54,7 @@ extern CVC4::TimerStat* pTotalTime;
 extern bool segvSpin;
 
 /** A pointer to the options in play */
-extern CVC4_THREADLOCAL(Options*) pOptions;
+extern CVC4_THREAD_LOCAL Options* pOptions;
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
 void cvc4_init() throw(Exception);

@@ -2,9 +2,9 @@
 /*! \file term_registration_visitor.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Dejan Jovanovic, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,7 @@
 #include "context/context.h"
 #include "theory/shared_terms_database.h"
 
-#include <ext/hash_map>
+#include <unordered_map>
 
 namespace CVC4 {
 
@@ -105,7 +105,7 @@ class SharedTermsVisitor {
   /**
    * Cache from preprocessing of atoms.
    */
-  typedef std::hash_map<TNode, theory::Theory::Set, TNodeHashFunction> TNodeVisitedMap;
+  typedef std::unordered_map<TNode, theory::Theory::Set, TNodeHashFunction> TNodeVisitedMap;
   TNodeVisitedMap d_visited;
 
   /**

@@ -2,9 +2,9 @@
 /*! \file theory_arrays_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Clark Barrett, Guy Katz
+ **   Morgan Deters, Clark Barrett, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -36,7 +36,7 @@ struct ArraySelectTypeRule {
         throw TypeCheckingExceptionPrivate(n, "array select operating on non-array");
       }
       TypeNode indexType = n[1].getType(check);
-      if(!indexType.isComparableTo(arrayType.getArrayIndexType())){
+      if(!indexType.isSubtypeOf(arrayType.getArrayIndexType())){ 
         throw TypeCheckingExceptionPrivate(n, "array select not indexed with correct type for array");
       }
     }
@@ -55,10 +55,10 @@ struct ArrayStoreTypeRule {
         }
         TypeNode indexType = n[1].getType(check);
         TypeNode valueType = n[2].getType(check);
-        if(!indexType.isComparableTo(arrayType.getArrayIndexType())){
+        if(!indexType.isSubtypeOf(arrayType.getArrayIndexType())){
           throw TypeCheckingExceptionPrivate(n, "array store not indexed with correct type for array");
         }
-        if(!valueType.isComparableTo(arrayType.getArrayConstituentType())){
+        if(!valueType.isSubtypeOf(arrayType.getArrayConstituentType())){
           Debug("array-types") << "array type: "<< arrayType.getArrayConstituentType() << std::endl;
           Debug("array-types") << "value types: " << valueType << std::endl;
           throw TypeCheckingExceptionPrivate(n, "array store not assigned with correct type for array");

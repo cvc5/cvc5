@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,6 +16,8 @@
 
 #ifndef __CVC4__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H
 #define __CVC4__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H
+
+#include <memory>
 
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
@@ -53,42 +55,41 @@ public:
   //virtual void registerQuantifier( Node q ) {}
 };/* class InstStrategy */
 
-class InstantiationEngine : public QuantifiersModule
-{
-private:
+class InstantiationEngine : public QuantifiersModule {
+ private:
   /** instantiation strategies */
-  std::vector< InstStrategy* > d_instStrategies;
+  std::vector<InstStrategy*> d_instStrategies;
   /** user-pattern instantiation strategy */
-  InstStrategyUserPatterns* d_isup;
+  std::unique_ptr<InstStrategyUserPatterns> d_isup;
   /** auto gen triggers; only kept for destructor cleanup */
-  InstStrategyAutoGenTriggers* d_i_ag;
-private:
-  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
+  std::unique_ptr<InstStrategyAutoGenTriggers> d_i_ag;
+
+  typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
   /** current processing quantified formulas */
-  std::vector< Node > d_quants;
-private:
+  std::vector<Node> d_quants;
+
   /** is the engine incomplete for this quantifier */
-  bool isIncomplete( Node q );
+  bool isIncomplete(Node q);
   /** do instantiation round */
-  void doInstantiationRound( Theory::Effort effort );
-public:
-  InstantiationEngine( QuantifiersEngine* qe );
+  void doInstantiationRound(Theory::Effort effort);
+
+ public:
+  InstantiationEngine(QuantifiersEngine* qe);
   ~InstantiationEngine();
   void presolve();
-  bool needsCheck( Theory::Effort e );
-  void reset_round( Theory::Effort e );
-  void check( Theory::Effort e, unsigned quant_e );
-  bool checkCompleteFor( Node q );
-  void preRegisterQuantifier( Node q );
-  void registerQuantifier( Node q );
-  Node explain(TNode n){ return Node::null(); }
+  bool needsCheck(Theory::Effort e);
+  void reset_round(Theory::Effort e);
+  void check(Theory::Effort e, QEffort quant_e);
+  bool checkCompleteFor(Node q);
+  void preRegisterQuantifier(Node q);
+  void registerQuantifier(Node q);
+  Node explain(TNode n) { return Node::null(); }
   /** add user pattern */
-  void addUserPattern( Node q, Node pat );
-  void addUserNoPattern( Node q, Node pat );
-public:
+  void addUserPattern(Node q, Node pat);
+  void addUserNoPattern(Node q, Node pat);
   /** Identify this module */
   std::string identify() const { return "InstEngine"; }
-};/* class InstantiationEngine */
+}; /* class InstantiationEngine */
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

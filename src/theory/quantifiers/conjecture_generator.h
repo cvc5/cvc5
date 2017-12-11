@@ -2,9 +2,9 @@
 /*! \file conjecture_generator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Tim King, Andrew Reynolds
+ **   Clark Barrett, Paul Meng, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,7 +18,6 @@
 #define CONJECTURE_GENERATOR_H
 
 #include "context/cdhashmap.h"
-#include "context/cdchunk_list.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/type_enumerator.h"
 
@@ -229,7 +228,6 @@ class ConjectureGenerator : public QuantifiersModule
   friend class SubsEqcIndex;
   friend class TermGenerator;
   friend class TermGenEnv;
-  typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
 //this class maintains a congruence closure for *universal* facts
@@ -407,7 +405,7 @@ public:
   /* reset at a round */
   void reset_round( Theory::Effort e );
   /* Call during quantifier engine's check */
-  void check( Theory::Effort e, unsigned quant_e );
+  void check(Theory::Effort e, QEffort quant_e);
   /* Called for new quantifiers */
   void registerQuantifier( Node q );
   void assertNode( Node n );

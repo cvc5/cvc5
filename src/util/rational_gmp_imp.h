@@ -2,9 +2,9 @@
 /*! \file rational_gmp_imp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
+ **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,13 @@
 
 #ifndef __CVC4__RATIONAL_H
 #define __CVC4__RATIONAL_H
+
+/*
+ * Older versions of GMP in combination with newer versions of GCC and C++11
+ * cause errors: https://gcc.gnu.org/gcc-4.9/porting_to.html
+ * Including <cstddef> is a workaround for this issue.
+ */
+#include <cstddef>
 
 #include <gmp.h>
 #include <string>
@@ -160,6 +167,14 @@ public:
     d_value.canonicalize();
   }
   ~Rational() {}
+
+  /**
+   * Returns a copy of d_value to enable public access of GMP data.
+   */
+  mpq_class getValue() const
+  {
+    return d_value;
+  }
 
   /**
    * Returns the value of numerator of the Rational.

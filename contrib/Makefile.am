@@ -9,10 +9,13 @@ EXTRA_DIST = \
 	addsourcedir \
 	new-theory \
 	configure-in-place \
+	cryptominisat-4.2.0.patch \
+	cryptominisat-4.2.0.second.patch \
 	depgraph \
 	get-antlr-3.4 \
+	get-cryptominisat4 \
+	get-win-dependencies \
 	mac-build \
-	win-build \
 	run-script-smtcomp2014 \
 	run-script-cascj7-fnt \
 	run-script-cascj7-fof \

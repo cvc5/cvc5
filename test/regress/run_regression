@@ -5,10 +5,16 @@
 #
 # usage:
 #
-#     run_regression cvc4-binary [ --proof | --dump ] [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]
+#     run_regression [ --proof | --dump ] [ wrapper ] cvc4-binary [ benchmark.cvc | benchmark.smt | benchmark.smt2 | benchmark.p ]
 #
 # Runs benchmark and checks for correct exit status and output.
 #
+# The TEST_GROUP and TEST_GROUPS environment variables can be used to split the
+# benchmarks into groups and only run one of the groups. The benchmarks are
+# associated with a group based on a hash of their name. TEST_GROUPS controls
+# how many groups are created while TEST_GROUP specifies the group to run.
+# Currently, the primary use case for this is to split the benchmarks across
+# multiple Travis jobs.
 
 # ulimit -t 1    # For detecting long running regressions
 ulimit -s 65000  # Needed for some (esp. portfolio and model-building)
@@ -49,6 +55,16 @@ cvc4=$1
 benchmark_orig=$2
 benchmark="$benchmark_orig"
 
+if [ -n "$TEST_GROUP" ]; then
+  # Use the checksum of the benchmark name to determine the group of the
+  # benchmark
+  benchmark_group=$(( $(echo "$benchmark" | cksum | cut -d " " -f1) % $TEST_GROUPS ))
+  if (( $benchmark_group != $TEST_GROUP )); then
+    # Skip the benchmark if it is not in the expected test group
+    exit 77
+  fi
+fi
+
 function error {
   echo "$prog: error: $*"
   exit 1
@@ -78,6 +94,7 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   lang=smt1
   if test -e "$benchmark.expect"; then
     scrubber=`grep '^% SCRUBBER: ' "$benchmark.expect" | sed 's,^% SCRUBBER: ,,'`
+    errscrubber=`grep '^% ERROR-SCRUBBER: ' "$benchmark.expect" | sed 's,^% ERROR-SCRUBBER: ,,'`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -85,8 +102,9 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     if [ -z "$expected_exit_status" ]; then
       expected_exit_status=0
     fi
-  elif grep '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\|SCRUBBER\): ' "$benchmark" "$benchmark" &>/dev/null; then
+  elif grep '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\|SCRUBBER\|ERROR-SCRUBBER\): ' "$benchmark" "$benchmark" &>/dev/null; then
     scrubber=`grep '^% SCRUBBER: ' "$benchmark" | sed 's,^% SCRUBBER: ,,'`
+    errscrubber=`grep '^% ERROR-SCRUBBER: ' "$benchmark" | sed 's,^% ERROR-SCRUBBER: ,,'`
     expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -94,7 +112,7 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     # old mktemp from coreutils 7.x is broken, can't do XXXX in the middle
     # this frustrates our auto-language-detection
     gettemp tmpbenchmark cvc4_benchmark.smt.$$.XXXXXXXXXX
-    grep -v '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\|SCRUBBER\): ' "$benchmark" >"$tmpbenchmark"
+    grep -v '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\|SCRUBBER\|ERROR-SCRUBBER\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
       expected_exit_status=0
     fi
@@ -112,8 +130,18 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   fi
 elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
   lang=smt2
+
+  # If this test case requires unsat cores but CVC4 is not built with proof
+  # support, skip it. Note: checking $CVC4_REGRESSION_ARGS instead of $proof
+  # here because $proof is not set for the second run.
+  requires_proof=`grep '(get-unsat-core)' "$benchmark"`
+  if [[ ! "$CVC4_REGRESSION_ARGS" = *"--proof"* ]] && [ -n "$requires_proof" ]; then
+    exit 77
+  fi
+
   if test -e "$benchmark.expect"; then
     scrubber=`grep '^% SCRUBBER: ' "$benchmark.expect" | sed 's,^% SCRUBBER: ,,'`
+    errscrubber=`grep '^% ERROR-SCRUBBER: ' "$benchmark.expect" | sed 's,^% ERROR-SCRUBBER: ,,'`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -121,8 +149,9 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     if [ -z "$expected_exit_status" ]; then
       expected_exit_status=0
     fi
-  elif grep '^; \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\|SCRUBBER\): ' "$benchmark" "$benchmark" &>/dev/null; then
+  elif grep '^; \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\|SCRUBBER\|ERROR-SCRUBBER\): ' "$benchmark" "$benchmark" &>/dev/null; then
     scrubber=`grep '^; SCRUBBER: ' "$benchmark" | sed 's,^; SCRUBBER: ,,'`
+    errscrubber=`grep '^; ERROR-SCRUBBER: ' "$benchmark" | sed 's,^; ERROR-SCRUBBER: ,,'`
     expected_output=`grep '^; EXPECT: ' "$benchmark" | sed 's,^; EXPECT: ,,'`
     expected_error=`grep '^; EXPECT-ERROR: ' "$benchmark" | sed 's,^; EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^; EXIT: ' "$benchmark" | perl -pe 's,^; EXIT: ,,;s,\r,,'`
@@ -144,6 +173,7 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
 elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
   lang=cvc4
   scrubber=`grep '^% SCRUBBER: ' "$benchmark" | sed 's,^% SCRUBBER: ,,'`
+  errscrubber=`grep '^% ERROR-SCRUBBER: ' "$benchmark" | sed 's,^% ERROR-SCRUBBER: ,,'`
   expected_output=$(grep '^% EXPECT: ' "$benchmark")
   expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
   if [ -z "$expected_output" -a -z "$expected_error" ]; then
@@ -160,6 +190,7 @@ elif expr "$benchmark" : '.*\.p$' &>/dev/null; then
   lang=tptp
   command_line=--finite-model-find
   scrubber=`grep '^% SCRUBBER: ' "$benchmark" | sed 's,^% SCRUBBER: ,,'`
+  errscrubber=`grep '^% ERROR-SCRUBBER: ' "$benchmark" | sed 's,^% ERROR-SCRUBBER: ,,'`
   expected_output=$(grep '^% EXPECT: ' "$benchmark")
   expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
   if [ -z "$expected_output" -a -z "$expected_error" ]; then
@@ -189,6 +220,7 @@ elif expr "$benchmark" : '.*\.sy$' &>/dev/null; then
   lang=sygus
   if test -e "$benchmark.expect"; then
     scrubber=`grep '^% SCRUBBER: ' "$benchmark.expect" | sed 's,^% SCRUBBER: ,,'`
+    errscrubber=`grep '^% ERROR-SCRUBBER: ' "$benchmark.expect" | sed 's,^% ERROR-SCRUBBER: ,,'`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -196,8 +228,9 @@ elif expr "$benchmark" : '.*\.sy$' &>/dev/null; then
     if [ -z "$expected_exit_status" ]; then
       expected_exit_status=0
     fi
-  elif grep '^; \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\|SCRUBBER\): ' "$benchmark" "$benchmark" &>/dev/null; then
+  elif grep '^; \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\|SCRUBBER\|ERROR-SCRUBBER\): ' "$benchmark" "$benchmark" &>/dev/null; then
     scrubber=`grep '^; SCRUBBER: ' "$benchmark" | sed 's,^; SCRUBBER: ,,'`
+    errscrubber=`grep '^; ERROR-SCRUBBER: ' "$benchmark" | sed 's,^; ERROR-SCRUBBER: ,,'`
     expected_output=`grep '^; EXPECT: ' "$benchmark" | sed 's,^; EXPECT: ,,'`
     expected_error=`grep '^; EXPECT-ERROR: ' "$benchmark" | sed 's,^; EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^; EXIT: ' "$benchmark" | perl -pe 's,^; EXIT: ,,;s,\r,,'`
@@ -264,6 +297,7 @@ if [ "$proof" = yes ]; then
     fi
   fi
 fi
+
 if [ -z "$expected_error" ]; then
   # in case expected stderr output is empty, make sure we don't differ
   # by a newline, which we would if we echo "" >"$experrfile"
@@ -321,6 +355,15 @@ if [ -n "$scrubber" ]; then
   cat "$outfile.prescrub" | eval $scrubber >"$outfile"
 else
   echo "not scrubbing"
+fi
+
+# Scrub the error file if a scrubber has been specified.
+if [ -n "$errscrubber" ]; then
+  echo "About to scrub $errfilefix using $errscrubber"
+  mv "$errfilefix" "$errfilefix.prescrub"
+  cat "$errfilefix.prescrub" | eval $errscrubber >"$errfilefix"
+else
+  echo "not scrubbing error file"
 fi
 
 diffs=`diff -u --strip-trailing-cr "$expoutfile" "$outfile"`

@@ -2,14 +2,14 @@
 /*! \file bv_inequality_graph.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King
+ **   Liana Hadarean, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Algebraic solver. 
+ ** \brief Algebraic solver.
  **
  ** Algebraic solver.
  **/
@@ -19,23 +19,25 @@
 #ifndef __CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
 #define __CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
 
-#include "context/context.h"
-#include "context/cdqueue.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/theory.h"
-#include <queue>
 #include <list>
+#include <queue>
+#include <unordered_map>
+#include <unordered_set>
+
+#include "context/cdqueue.h"
+#include "context/context.h"
+#include "theory/theory.h"
+#include "theory/uf/equality_engine.h"
+
 namespace CVC4 {
 namespace theory {
-
-
 namespace bv {
 
-typedef unsigned TermId; 
+typedef unsigned TermId;
 typedef unsigned ReasonId;
 extern const TermId UndefinedTermId;
 extern const ReasonId UndefinedReasonId;
-extern const ReasonId AxiomReasonId; 
+extern const ReasonId AxiomReasonId;
 
 class InequalityGraph : public context::ContextNotifyObj{
 
@@ -100,15 +102,15 @@ class InequalityGraph : public context::ContextNotifyObj{
     }
   }; 
 
-  typedef __gnu_cxx::hash_map<TNode, ReasonId, TNodeHashFunction> ReasonToIdMap;
-  typedef __gnu_cxx::hash_map<TNode, TermId, TNodeHashFunction> TermNodeToIdMap;
+  typedef std::unordered_map<TNode, ReasonId, TNodeHashFunction> ReasonToIdMap;
+  typedef std::unordered_map<TNode, TermId, TNodeHashFunction> TermNodeToIdMap;
 
   typedef std::vector<InequalityEdge> Edges; 
-  typedef __gnu_cxx::hash_set<TermId> TermIdSet;
+  typedef std::unordered_set<TermId> TermIdSet;
 
   typedef std::priority_queue<TermId, std::vector<TermId>, QueueComparator> BFSQueue; 
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
   std::vector<InequalityNode> d_ineqNodes;
   std::vector< Edges > d_ineqEdges;

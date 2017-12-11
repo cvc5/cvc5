@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_sep_type_rules.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Typing and cardinality rules for the theory of sep
  **
@@ -18,8 +18,6 @@
 
 #ifndef __CVC4__THEORY__SEP__THEORY_SEP_TYPE_RULES_H
 #define __CVC4__THEORY__SEP__THEORY_SEP_TYPE_RULES_H
-
-#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -98,6 +96,17 @@ struct SepLabelTypeRule {
     return btype;
   }
 };/* struct SepLabelTypeRule */
+
+struct SepNilTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::SEP_NIL);
+    Assert(check);
+    TypeNode type = n.getType();
+    return type;
+  }
+};/* struct SepLabelTypeRule */
+
 
 }/* CVC4::theory::sep namespace */
 }/* CVC4::theory namespace */

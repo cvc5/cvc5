@@ -2,9 +2,9 @@
 /*! \file sha1.hpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Dejan Jovanovic, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,9 +30,9 @@
 // Note: this implementation does not handle message longer than
 //       2^32 bytes.
 
-#pragma once 
+#ifndef __CVC4__EXAMPLES__HASHSMT__SHA1_H
+#define __CVC4__EXAMPLES__HASHSMT__SHA1_H
 
-#include <boost/static_assert.hpp>
 #include <cstddef>
 
 #include "word.h"
@@ -45,8 +45,10 @@ namespace std {
 
 namespace hashsmt {
 
-BOOST_STATIC_ASSERT(sizeof(unsigned char)*8 == 8);
-BOOST_STATIC_ASSERT(sizeof(unsigned int)*8 == 32);
+static_assert(sizeof(unsigned char)*8 == 8,
+              "Unexpected size for unsigned char");
+static_assert(sizeof(unsigned int)*8 == 32,
+              "Unexpected size for unsigned int");
 
 inline cvc4_uint32 left_rotate(cvc4_uint32 x, std::size_t n)
 {
@@ -224,3 +226,4 @@ inline void sha1::get_digest(digest_type digest)
 
 } // namespace hashsmt
 
+#endif /* __CVC4__EXAMPLES__HASHSMT__SHA1_H */

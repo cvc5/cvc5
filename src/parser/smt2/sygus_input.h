@@ -2,9 +2,9 @@
 /*! \file sygus_input.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Paul Meng, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -43,9 +43,6 @@ class SygusInput : public AntlrInput {
 
   /** The ANTLR3 SMT2 parser for the input. */
   pSmt2Parser d_pSmt2Parser;
-
-  /** Which (variant of the) input language we're using */
-  InputLanguage d_lang;
 
   /**
    * Initialize the class. Called from the constructors once the input

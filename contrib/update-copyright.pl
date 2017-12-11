@@ -34,12 +34,21 @@
 # the license.)
 #
 
-my $excluded_directories = '^(minisat|bvminisat|CVS|generated)$';
-my $excluded_paths = '^(src/parser/antlr_input_imports.cpp|src/bindings/compat/.*|src/util/channel.h)$';
+my $excluded_directories = '^(CVS|generated)$';
+my $excluded_paths = '^(';
+$excluded_paths .= 'src/bindings/compat/.*';
+# different license
+$excluded_paths .= '|src/util/channel.h';
+# minisat license
+$excluded_paths .= '|src/prop/(bv)?minisat/core/.*';
+$excluded_paths .= '|src/prop/(bv)?minisat/mtl/.*';
+$excluded_paths .= '|src/prop/(bv)?minisat/simp/.*';
+$excluded_paths .= '|src/prop/(bv)?minisat/utils/.*';
+$excluded_paths .= '$)';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
-my $years = '2009-2016';
+my $years = '2009-2017';
 
 my $standard_template = <<EOF;
  ** This file is part of the CVC4 project.
@@ -108,6 +117,7 @@ print "Updating sources...\n";
 
 while($#searchdirs >= 0) {
   my $dir = shift @searchdirs;
+  $dir =~ s,\/$,,;              # remove trailing slash from directory
   my $mode = (stat($dir))[2] || warn "file or directory \`$dir' does not exist!";
   my $is_directory = S_ISDIR($mode);
   if($is_directory) {
@@ -139,7 +149,7 @@ sub handleFile {
   my $authors = <$AUTHOR>; chomp $authors;
   close $AUTHOR;
   $_ = <$IN>;
-  if(m,^(%{)?/\*(\*| )\*\*\*,) {
+  if(m,^(%\{)?/\*(\*| )\*\*\*,) {
     print "updating\n";
     if($file =~ /\.(y|yy|ypp|Y)$/) {
       print $OUT "%{/*******************                                                        */\n";
@@ -201,7 +211,7 @@ $line";
     if($file =~ /\.(y|yy|ypp|Y)$/) {
       while(my $line = <$IN>) {
         chomp $line;
-        if($line =~ '\s*%{(.*)') {
+        if($line =~ '\s*%\{(.*)') {
           print $OUT "$1\n";
           last;
         }

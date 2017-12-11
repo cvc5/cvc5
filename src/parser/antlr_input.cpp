@@ -2,9 +2,9 @@
 /*! \file antlr_input.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Kshitij Bansal, Tim King
+ **   Christopher L. Conway, Kshitij Bansal, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -50,23 +50,26 @@ namespace parser {
 // These functions exactly wrap the antlr3 source inconsistencies.
 // These are the only location CVC4_ANTLR3_OLD_INPUT_STREAM ifdefs appear.
 // No other sanity checking happens;
-pANTLR3_INPUT_STREAM newAntlr3BufferedStream(std::istream& input, const std::string& name);
+pANTLR3_INPUT_STREAM newAntlr3BufferedStream(std::istream& input,
+                                             const std::string& name,
+                                             LineBuffer* line_buffer);
 pANTLR3_INPUT_STREAM newAntlr3FileStream(const std::string& name);
 pANTLR3_INPUT_STREAM newAntrl3InPlaceStream(pANTLR3_UINT8 basep,
                                             uint32_t size,
                                             const std::string& name);
 
-pANTLR3_INPUT_STREAM
-newAntlr3BufferedStream(std::istream& input, const std::string& name){
+pANTLR3_INPUT_STREAM newAntlr3BufferedStream(std::istream& input,
+                                             const std::string& name,
+                                             LineBuffer* line_buffer) {
   pANTLR3_INPUT_STREAM inputStream = NULL;
   pANTLR3_UINT8 name_duplicate = (pANTLR3_UINT8) strdup(name.c_str());
 
 #ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
   inputStream =
-    antlr3LineBufferedStreamNew(input, 0, name_duplicate);
+      antlr3LineBufferedStreamNew(input, 0, name_duplicate, line_buffer);
 #else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
-  inputStream =
-    antlr3LineBufferedStreamNew(input, ANTLR3_ENC_8BIT, name_duplicate);
+  inputStream = antlr3LineBufferedStreamNew(input, ANTLR3_ENC_8BIT,
+                                            name_duplicate, line_buffer);
 #endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
 
   free(name_duplicate);
@@ -107,14 +110,14 @@ pANTLR3_INPUT_STREAM newAntrl3InPlaceStream(pANTLR3_UINT8 basep,
   return inputStream;
 }
 
-AntlrInputStream::AntlrInputStream(std::string name,
-                                   pANTLR3_INPUT_STREAM input,
+AntlrInputStream::AntlrInputStream(std::string name, pANTLR3_INPUT_STREAM input,
                                    bool fileIsTemporary,
-                                   pANTLR3_UINT8 inputString) :
-  InputStream(name, fileIsTemporary),
-  d_input(input),
-  d_inputString(inputString)
-{
+                                   pANTLR3_UINT8 inputString,
+                                   LineBuffer* line_buffer)
+    : InputStream(name, fileIsTemporary),
+      d_input(input),
+      d_inputString(inputString),
+      d_line_buffer(line_buffer) {
   assert( input != NULL );
   input->fileName = input->strFactory->newStr8(input->strFactory, (pANTLR3_UINT8)name.c_str());
 }
@@ -123,6 +126,9 @@ AntlrInputStream::~AntlrInputStream() {
   d_input->free(d_input);
   if(d_inputString != NULL){
     free(d_inputString);
+  }
+  if (d_line_buffer != NULL) {
+    delete d_line_buffer;
   }
 }
 
@@ -150,7 +156,7 @@ AntlrInputStream::newFileInputStream(const std::string& name,
   if(input == NULL) {
     throw InputStreamException("Couldn't open file: " + name);
   }
-  return new AntlrInputStream( name, input, false, NULL );
+  return new AntlrInputStream(name, input, false, NULL, NULL);
 }
 
 
@@ -162,9 +168,11 @@ AntlrInputStream::newStreamInputStream(std::istream& input,
 
   pANTLR3_INPUT_STREAM inputStream = NULL;
   pANTLR3_UINT8 inputStringCopy = NULL;
+  LineBuffer* line_buffer = NULL;
 
   if(lineBuffered) {
-    inputStream = newAntlr3BufferedStream(input, name);
+    line_buffer = new LineBuffer(&input);
+    inputStream = newAntlr3BufferedStream(input, name, line_buffer);
   } else {
 
     // Since these are all NULL on entry, realloc will be called
@@ -207,7 +215,8 @@ AntlrInputStream::newStreamInputStream(std::istream& input,
     throw InputStreamException("Couldn't initialize input: " + name);
   }
 
-  return new AntlrInputStream( name, inputStream, false, inputStringCopy );
+  return new AntlrInputStream(name, inputStream, false, inputStringCopy,
+                              line_buffer);
 }
 
 
@@ -230,7 +239,7 @@ AntlrInputStream::newStringInputStream(const std::string& input,
   if( inputStream==NULL ) {
     throw InputStreamException("Couldn't initialize string input: '" + input + "'");
   }
-  return new AntlrInputStream( name, inputStream, false, input_duplicate );
+  return new AntlrInputStream(name, inputStream, false, input_duplicate, NULL);
 }
 
 AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStream) {

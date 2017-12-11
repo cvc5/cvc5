@@ -2,9 +2,9 @@
 /*! \file theory_bv_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Morgan Deters, Clark Barrett
+ **   Liana Hadarean, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,8 +30,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
 
-// CVC4_THREADLOCAL(AllRewriteRules*) TheoryBVRewriter::s_allRules = NULL;
-// CVC4_THREADLOCAL(TimerStat*) TheoryBVRewriter::d_rewriteTimer = NULL;
+// CVC4_THREAD_LOCAL AllRewriteRules* TheoryBVRewriter::s_allRules = NULL;
+// CVC4_THREAD_LOCAL TimerStat* TheoryBVRewriter::d_rewriteTimer = NULL;
 RewriteFunction TheoryBVRewriter::d_rewriteTable[kind::LAST_KIND]; 
 void TheoryBVRewriter::init() {
    // s_allRules = new AllRewriteRules;
@@ -68,10 +68,10 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
 RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite) {
   // reduce common subexpressions on both sides
   Node resultNode = LinearRewriteStrategy
-    < RewriteRule<EvalUlt>,
-      // if both arguments are constants evaluates
-      RewriteRule<UltZero>
-      // a < 0 rewrites to false
+    < RewriteRule<EvalUlt>, // if both arguments are constants evaluates
+      RewriteRule<UltZero>, // a < 0 rewrites to false,
+      RewriteRule<SignExtendUltConst>,
+      RewriteRule<ZeroExtendUltConst>
        >::apply(node);
   
   return RewriteResponse(REWRITE_DONE, resultNode); 
@@ -440,8 +440,8 @@ RewriteResponse TheoryBVRewriter::RewriteUdivTotal(TNode node, bool prerewrite){
   }
 
   resultNode =
-      LinearRewriteStrategy<RewriteRule<EvalUdiv>, RewriteRule<UdivOne>,
-                            RewriteRule<UdivSelf> >::apply(node);
+      LinearRewriteStrategy<RewriteRule<EvalUdiv>, RewriteRule<UdivZero>,
+                            RewriteRule<UdivOne> >::apply(node);
 
   if (RewriteRule<UdivConst>::applies(resultNode)) {
     resultNode = RewriteRule<UdivConst>::run<false>(resultNode);

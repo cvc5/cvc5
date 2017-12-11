@@ -6,26 +6,23 @@ the copyright and licensing of CVC4.
 
 The core designers and authors of CVC4 are:
 
-  Kshitij Bansal, New York University, Google, Inc.
-  Clark Barrett, New York University, Google, Inc.
+  Kshitij Bansal, New York University, Google
+  Clark Barrett, New York University, Google, Stanford University
   Francois Bobot, The University of Iowa, Commissariat a l'Energie Atomique
   Martin Brain, University of Oxford
-  Christopher Conway, New York University, Google, Inc.
+  Christopher Conway, New York University, Google
   Morgan Deters, New York University
   Liana Hadarean, New York University, Mentor Graphics Corporation
   Dejan Jovanovic, New York University, SRI International
-  Guy Katz, New York University
-  Tim King, New York University, Universite Joseph Fourier, Google, Inc.
+  Guy Katz, New York University, Stanford University
+  Tim King, New York University, Universite Joseph Fourier, Google
   Tianyi Liang, The University of Iowa
+  Paul Meng, The University of Iowa
+  Andres Noetzli, Stanford University
   Andrew Reynolds, The University of Iowa, EPFL
   Cesare Tinelli, The University of Iowa
 
-Contributors to the CVC4 codebase additionally include:
-
-  Peter Collingbourne, the Multicore Programming Group at Imperial College
-    London (headed by Alastair Donaldson)
-  Finn Haedicke, University of Bremen, Germany
-  Google, Inc.
+Other contributors to the CVC4 codebase are listed in the THANKS file.
 
 CVC4 is the fourth in the CVC series of tools (CVC, CVC Lite, CVC3) but does
 not directly incorporate code from any previous version.  Information about

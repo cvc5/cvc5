@@ -1,5 +1,5 @@
-CVC4 is copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016 by its
-authors and contributors (see the file AUTHORS) and their institutional
+CVC4 is copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 by
+its authors and contributors (see the file AUTHORS) and their institutional
 affiliations.  All rights reserved.
 
 The source code of CVC4 is open and available to students, researchers,
@@ -39,273 +39,81 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------
 
-CVC4 incorporates MiniSat code, excluded from the above copyright.
-See src/sat/minisat.  Its copyright:
+-------------------------------------------------------------------------------
+ Third-Party Software
+-------------------------------------------------------------------------------
 
-  MiniSat -- Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
-             Copyright (c) 2007-2010  Niklas Sorensson
+The CVC4 source code includes third-party software which has its own copyright
+and licensing terms, as described below.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the
-  "Software"), to deal in the Software without restriction, including
-  without limitation the rights to use, copy, modify, merge, publish,
-  distribute, sublicense, and/or sell copies of the Software, and to
-  permit persons to whom the Software is furnished to do so, subject to
-  the following conditions:
+Each of the following files contains third-party software.
 
-  The above copyright notice and this permission notice shall be included
-  in all copies or substantial portions of the Software.
+  autogen.sh
+  config/ax_cxx_compile_stdcxx.m4
+  config/ax_cxx_compile_stdcxx_11.m4
+  config/ax_prog_doxygen.m4
+  config/boost.m4
+  config/doxygen.am
+  config/pkg.m4
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+The copyright and licensing information for each of these files is in the
+header of the corresponding file.
 
-CVC4 incorporates the script "autogen.sh", excluded from the above copyright.
-See autogen.sh.  Its copyright:
+CVC4 incorporates MiniSat code (see src/prop/minisat and src/prop/bvminisat),
+excluded from the above copyright.  See src/prop/minisat/LICENSE and
+src/prop/bvminisat/LICENSE for copyright and licensing information.
 
-  Copyright (c) 2005-2009 United States Government as represented by
-  the U.S. Army Research Laboratory.
+CVC4 incorporates some code from Boost (see src/util/channel.h), excluded from
+the above copyright.  See licenses/channel.h-LICENSE for copyright and
+licensing information.
 
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions
-  are met:
+CVC4 incorporates code from ANTLR3 (http://www.antlr3.org/), the files
+src/parser/bounded_token_buffer.h, src/parser/bounded_token_buffer.cpp, and
+src/parser/antlr_input_imports.cpp are excluded from the above copyright.
+See licenses/antlr3-LICENSE for copyright and licensing information.
 
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
+CVC4 by default links against The GNU Multiple Precision (GMP) Arithmetic
+Library, which is licensed under GNU LGPL v3. See the file
+licenses/lgpl-3.0.txt for a copy of that license.  Note that according to the
+terms of the LGPL, both CVC4's source, and the combined work (CVC4 linked with
+GMP) may (and do) remain under the more permissive modified BSD license.
 
-  2. Redistributions in binary form must reproduce the above
-  copyright notice, this list of conditions and the following
-  disclaimer in the documentation and/or other materials provided
-  with the distribution.
+CVC4 optionally links against the following libraries:
 
-  3. The name of the author may not be used to endorse or promote
-  products derived from this software without specific prior written
-  permission.
+  ABC                (https://bitbucket.org/alanmi/abc)
+  Cryptominisat4.0   (https://github.com/msoos/cryptominisat)
+  LFSC checker       (https://github.com/CVC4/LFSC)
 
-  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
-  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-  GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+Linking CVC4 against these libraries does not affect the license terms of the
+CVC4 code.  See the respective projects for copyright and licensing
+information.
 
-CVC4 incorporates the script "doxygen.am", excluded from the above copyright.
-See config/doxygen.am.  Its copyright:
 
-  Copyright (C) 2004 Oren Ben-Kiki
-  This file is distributed under the same terms as the Automake macro files.
+-------------------------------------------------------------------------------
+ OPTIONAL GPLv3 libraries
+-------------------------------------------------------------------------------
 
-CVC4 incorporates the m4 macro file "pkg.m4", excluded from the above
-copyright.  See config/pkg.m4.  Its copyright:
-
-  Copyright (c) 2004 Scott James Remnant <scott@netsplit.com>.
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-  As a special exception to the GNU General Public License, if you
-  distribute this file as part of a program that contains a
-  configuration script generated by Autoconf, you may include it under
-  the same distribution terms that you use for the rest of that program.
-
-CVC4 incorporates the m4 macro file "ax_tls.m4", excluded from the above
-copyright and downloaded from
-http://www.gnu.org/software/autoconf-archive/ax_tls.html.
-See config/ax_tls.m4.  Its copyright:
-
-  Copyright (c) 2008 Alan Woodland <ajw05@aber.ac.uk>
-  Copyright (c) 2010 Diego Elio Petteno` <flameeyes@gmail.com>
-
-  This program is free software: you can redistribute it and/or modify it
-  under the terms of the GNU General Public License as published by the
-  Free Software Foundation, either version 3 of the License, or (at your
-  option) any later version.
-
-  This program is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-  Public License for more details.
-
-  You should have received a copy of the GNU General Public License along
-  with this program. If not, see <http://www.gnu.org/licenses/>.
-
-  As a special exception, the respective Autoconf Macro's copyright owner
-  gives unlimited permission to copy, distribute and modify the configure
-  scripts that are the output of Autoconf when processing the Macro. You
-  need not follow the terms of the GNU General Public License when using
-  or distributing such scripts, even though portions of the text of the
-  Macro appear in them. The GNU General Public License (GPL) does govern
-  all other use of the material that constitutes the Autoconf Macro.
-
-  This special exception to the GPL applies to versions of the Autoconf
-  Macro released by the Autoconf Archive. When you make and distribute a
-  modified version of the Autoconf Macro, you may extend this special
-  exception to the GPL to apply to your modified version as well.
-
-CVC4 incorporates the m4 macro file "boost.m4", excluded from the above
-copyright and downloaded from http://github.com/tsuna/boost.m4 .
-See config/boost.m4.  Its copyright:
-
-  Copyright (C) 2007  Benoit Sigoure <tsuna@lrde.epita.fr>
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-  Additional permission under section 7 of the GNU General Public
-  License, version 3 ("GPLv3"):
-
-  If you convey this file as part of a work that contains a
-  configuration script generated by Autoconf, you may do so under
-  terms of your choice.
-
-CVC4 incorporates some code from Boost (see src/util/channel.h).  This
-is covered by the Boost Software License, version 1.0, available at
-http://www.boost.org/LICENSE_1_0.txt and reprinted below:
-
-  Boost Software License - Version 1.0 - August 17th, 2003
- 
-  Permission is hereby granted, free of charge, to any person or organization
-  obtaining a copy of the software and accompanying documentation covered by
-  this license (the "Software") to use, reproduce, display, distribute,
-  execute, and transmit the Software, and to prepare derivative works of the
-  Software, and to permit third-parties to whom the Software is furnished to
-  do so, all subject to the following:
-
-  The copyright notices in the Software and this entire statement, including
-  the above license grant, this restriction and the following disclaimer,
-  must be included in all copies of the Software, in whole or in part, and
-  all derivative works of the Software, unless such copies or derivative
-  works are solely in the form of machine-executable object code generated by
-  a source language processor.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
-  SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
-  FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
-  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
-
-CVC4 incorporates code from ANTLR3, excluded from the above copyright.
-See http://www.antlr3.org/, and the files src/parser/bounded_token_buffer.h,
-src/parser/bounded_token_buffer.cpp, and src/parser/antlr_input_imports.cpp.
-Their copyright:
-
-  [The "BSD licence"]
-  Copyright (c) 2005-2009 Jim Idle, Temporal Wave LLC
-  http://www.temporal-wave.com
-  http://www.linkedin.com/in/jimidle
-
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions
-  are met:
-  1. Redistributions of source code must retain the above copyright
-     notice, this list of conditions and the following disclaimer.
-  2. Redistributions in binary form must reproduce the above copyright
-     notice, this list of conditions and the following disclaimer in the
-     documentation and/or other materials provided with the distribution.
-  3. The name of the author may not be used to endorse or promote products
-     derived from this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+Please be advised that the following libraries are covered under the GPLv3
+license.  If you choose to link CVC4 against one of these libraries, the
+resulting combined work is also covered under the GPLv3. If you want to make
+sure you build a version of CVC4 that uses no GPLed libraries, configure CVC4
+with the "--bsd" option before building (which is the default).  CVC4 can then
+be used in contexts where you want to use CVC4 under the terms of the
+(modified) BSD license.  See licenses/gpl-3.0.txt for more information.
 
 CVC4 can be optionally configured to link against CLN, the Class Library for
 Numbers, available here:
 
   http://www.ginac.de/CLN/
 
-Please be advised that as this library is covered under the GPLv3, if you
-choose to use the combined work, "CVC4+CLN," by building CVC4 with CLN,
-then it is also covered under the GPLv3.  If you want to make sure you build
-a version of CVC4 that uses no GPLed libraries, configure CVC4 with the
-"--bsd" option before building (which is the default).  CVC4 can then be used
-in contexts where you want to license CVC4 under the (modified) BSD license.
+CVC4 can be optionally configured to link against glpk-cut-log, a modified
+version of GLPK, the GNU Linear Programming Kit, available here:
 
-CVC4 can be optionally configured to link against GLPK, the GNU Linear
-Programming Kit, available here:
-
-  http://www.gnu.org/software/glpk/
-
-Please be advised that as this library is covered under the GPLv3, if
-you choose to use the combined work, "CVC4+GLPK," by building CVC4 with
-GLPK, then it is also covered under the GPLv3.  If you want to make sure you
-build a version of CVC4 that uses no GPLed libraries, configure CVC4 with the
-"--bsd" option before building (which is the default).  CVC4 can then be used
-in contexts where you want to license CVC4 under the (modified) BSD license.
+  https://github.com/timothy-king/glpk-cut-log
 
 CVC4 can be optionally configured to link against GNU Readline for improved
 text-editing support in interactive mode.  GNU Readline is available here:
 
   http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
 
-Please be advised that as this library is covered under the GPLv3, if
-you choose to use the combined work, "CVC4+Readline," by building CVC4 with
-Readline, then it is also covered under the GPLv3.  If you want to make sure
-you build a version of CVC4 that uses no GPLed libraries, configure CVC4 with
-the "--bsd" option before building (which is the default).  CVC4 can then be
-used in contexts where you want to license CVC4 under the (modified) BSD
-license.
-
-CVC4 sources incorporate those of the LFSC proof checker, which is
-covered by the following license:
-
-  LFSC is copyright (C) 2012, 2013 The University of Iowa. All rights
-  reserved.
-
-  LFSC is open-source; distribution is under the terms of the modified
-  BSD license.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT OWNERS AND CONTRIBUTORS
-  AS IS AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  OWNERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

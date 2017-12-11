@@ -3,7 +3,7 @@
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
 (declare-sort U 0)
-(declare-datatypes () ((D (cons (x Int) (y U)))))
+(declare-datatypes ((D 0)) (((cons (x Int) (y U)))))
 (declare-fun d1 () D)
 (declare-fun d2 () D)
 (declare-fun d3 () D)

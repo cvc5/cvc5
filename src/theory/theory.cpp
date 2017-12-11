@@ -2,9 +2,9 @@
 /*! \file theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Clark Barrett
+ **   Tim King, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -220,8 +220,8 @@ void Theory::debugPrintFacts() const{
   printFacts(DebugChannel.getStream());
 }
 
-std::hash_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
-  std::hash_set<TNode, TNodeHashFunction> currentlyShared;
+std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
+  std::unordered_set<TNode, TNodeHashFunction> currentlyShared;
   for (shared_terms_iterator i = shared_terms_begin(),
            i_end = shared_terms_end(); i != i_end; ++i) {
     currentlyShared.insert (*i);
@@ -271,12 +271,12 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isUninterpretedVar() && !in[1].hasSubterm(in[0]) &&
+    if (in[0].isVar() && !in[1].hasSubterm(in[0]) &&
         (in[1].getType()).isSubtypeOf(in[0].getType()) ){
       outSubstitutions.addSubstitution(in[0], in[1]);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[1].isUninterpretedVar() && !in[0].hasSubterm(in[1]) &&
+    if (in[1].isVar() && !in[0].hasSubterm(in[1]) &&
         (in[0].getType()).isSubtypeOf(in[1].getType())){
       outSubstitutions.addSubstitution(in[1], in[0]);
       return PP_ASSERT_STATUS_SOLVED;

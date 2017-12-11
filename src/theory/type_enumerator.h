@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,39 +28,40 @@ namespace CVC4 {
 namespace theory {
 
 class NoMoreValuesException : public Exception {
-public:
+ public:
   NoMoreValuesException(TypeNode n) throw() :
     Exception("No more values for type `" + n.toString() + "'") {
   }
 };/* class NoMoreValuesException */
 
 class TypeEnumeratorInterface {
-  TypeNode d_type;
-
-public:
-
-  TypeEnumeratorInterface(TypeNode type) :
-    d_type(type) {
-  }
+ public:
+  TypeEnumeratorInterface(TypeNode type) : d_type(type) {}
 
   virtual ~TypeEnumeratorInterface() {}
 
   /** Is this enumerator out of constants to enumerate? */
-  virtual bool isFinished() throw() = 0;
+  virtual bool isFinished() = 0;
 
-  /** Get the current constant of this type (throws if no such constant exists) */
+  /**
+   * Get the current constant of this type.
+   *
+   * @throws NoMoreValuesException if no such constant exists.
+   */
   virtual Node operator*() = 0;
 
-  /** Increment the pointer to the next available constant */
+  /** Increment the pointer to the next available constant. */
   virtual TypeEnumeratorInterface& operator++() = 0;
 
-  /** Clone this enumerator */
+  /** Clone this enumerator. */
   virtual TypeEnumeratorInterface* clone() const = 0;
 
-  /** Get the type from which we're enumerating constants */
-  TypeNode getType() const throw() { return d_type; }
+  /** Get the type from which we're enumerating constants. */
+  TypeNode getType() const { return d_type; }
 
-};/* class TypeEnumeratorInterface */
+ private:
+  const TypeNode d_type;
+}; /* class TypeEnumeratorInterface */
 
 // AJR: This class stores particular information that is relevant to type enumeration.
 //      For finite model finding, we set d_fixed_usort=true,
@@ -86,6 +87,11 @@ public:
 
 };/* class TypeEnumeratorBase */
 
+/** Type enumerator class.
+ * Enumerates values for a type.
+ * Its constructor takes the type to enumerate and a pointer to a
+ * TypeEnumeratorProperties class, which this type enumerator does not own.
+ */
 class TypeEnumerator {
   TypeEnumeratorInterface* d_te;
 

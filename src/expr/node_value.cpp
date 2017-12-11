@@ -2,9 +2,9 @@
 /*! \file node_value.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Clark Barrett
+ **   Morgan Deters, Tim King, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -60,7 +60,7 @@ void NodeValue::printAst(std::ostream& out, int ind) const {
   indent(out, ind);
   out << '(';
   out << getKind();
-  if (getMetaKind() == kind::metakind::VARIABLE) {
+  if (getMetaKind() == kind::metakind::VARIABLE || getMetaKind() == kind::metakind::NULLARY_OPERATOR ) {
     out << ' ' << getId();
   } else if (getMetaKind() == kind::metakind::CONSTANT) {
     out << ' ';

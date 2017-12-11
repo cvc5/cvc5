@@ -2,9 +2,9 @@
 /*! \file sort_inference.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -540,7 +540,8 @@ TypeNode SortInference::getTypeForId( int t ){
 }
 
 Node SortInference::getNewSymbol( Node old, TypeNode tn ){
-  if( tn.isNull() || tn==old.getType() ){
+  // if no sort was inferred for this node, return original
+  if( tn.isNull() || tn.isComparableTo( old.getType() ) ){
     return old;
   }else if( old.isConst() ){
     //must make constant of type tn

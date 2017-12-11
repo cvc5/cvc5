@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,8 +19,9 @@
 #ifndef __CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 #define __CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 
-#include <vector>
 #include <functional>
+#include <unordered_map>
+#include <vector>
 
 #include "theory/theory.h"
 #include "context/context.h"
@@ -64,7 +65,7 @@ public:
     else return ASSIGNED_TO_TRUE;
   }
 
-  typedef std::hash_map<Node, std::vector<Node>, NodeHashFunction> BackEdgesMap;
+  typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction> BackEdgesMap;
 
 private:
 

@@ -2,9 +2,9 @@
 /*! \file swig.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Paul Meng, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,15 +26,9 @@
 #endif /* SWIG_VERSION */
 
 %import "cvc4_public.h"
-#warning "Working around a SWIG segfault in C++ template parsing."
-//%import "base/tls.h"
-#define CVC4_THREADLOCAL(__type...) __type
-#define CVC4_THREADLOCAL_PUBLIC(__type...) CVC4_PUBLIC __type
-#define CVC4_THREADLOCAL_TYPE(__type...) __type
+%import "base/tls.h"
 
-// swig doesn't like the __thread storage class...
-#define __thread
-// ...or GCC attributes
+// swig doesn't like GCC attributes
 #define __attribute__(x)
 
 #endif /* __CVC4__BINDINGS__SWIG_H */

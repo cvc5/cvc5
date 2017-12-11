@@ -2,9 +2,9 @@
 /*! \file regexp_operation.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tianyi Liang, Tim King
+ **   Morgan Deters, Tianyi Liang, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,24 +24,25 @@ namespace theory {
 namespace strings {
 
 RegExpOpr::RegExpOpr()
-  : d_lastchar( options::stdASCII()? '\x7f' : '\xff' ),
-    RMAXINT( LONG_MAX )
-{
-  d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
-  d_emptySingleton = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, d_emptyString );
-  d_zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
-  d_one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
-  std::vector< Node > nvec;
-  d_emptyRegexp = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
-  d_sigma = NodeManager::currentNM()->mkNode( kind::REGEXP_SIGMA, nvec );
-  d_sigma_star = NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, d_sigma );
-}
+    : d_lastchar(options::stdASCII() ? '\x7f' : '\xff'),
+      d_emptyString(NodeManager::currentNM()->mkConst(::CVC4::String(""))),
+      d_true(NodeManager::currentNM()->mkConst(true)),
+      d_false(NodeManager::currentNM()->mkConst(false)),
+      d_emptySingleton(NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP,
+                                                        d_emptyString)),
+      d_emptyRegexp(NodeManager::currentNM()->mkNode(kind::REGEXP_EMPTY,
+                                                     std::vector<Node>{})),
+      d_zero(NodeManager::currentNM()->mkConst(::CVC4::Rational(0))),
+      d_one(NodeManager::currentNM()->mkConst(::CVC4::Rational(1))),
+      RMAXINT(LONG_MAX),
+      d_char_start(),
+      d_char_end(),
+      d_sigma(NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA,
+                                               std::vector<Node>{})),
+      d_sigma_star(
+          NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma)) {}
 
-RegExpOpr::~RegExpOpr(){ 
-
-}
+RegExpOpr::~RegExpOpr() {}
 
 int RegExpOpr::gcd ( int a, int b ) {
   int c;
@@ -1326,14 +1327,14 @@ void RegExpOpr::getCharSet( Node r, std::set<unsigned char> &pcset, SetNodes &pv
         Node st = Rewriter::rewrite(r[0]);
         if(st.isConst()) {
           CVC4::String s = st.getConst< CVC4::String >();
-          s.getCharSet( cset );
+          cset.insert(s.getVec().begin(), s.getVec().end());
         } else if(st.getKind() == kind::VARIABLE) {
           vset.insert( st );
         } else {
           for(unsigned i=0; i<st.getNumChildren(); i++) {
             if(st[i].isConst()) {
               CVC4::String s = st[i].getConst< CVC4::String >();
-              s.getCharSet( cset );
+              cset.insert(s.getVec().begin(), s.getVec().end());
             } else {
               vset.insert( st[i] );
             }

@@ -1,12 +1,17 @@
-; COMMAND-LINE: 
-; EXPECT: unknown
+; COMMAND-LINE: --lang=smt2.5
+; EXPECT: (error "argument type is not a subtype of the function's argument type:
+; EXPECT: argument:  x
+; EXPECT: has type:  (List Int)
+; EXPECT: not subtype: (List Real)
+; EXPECT: in term : (R (as x (List Real)))")
+; EXIT: 1
+
 ; this will fail if type rule for APPLY_UF requires arguments to be subtypes
 (set-logic ALL_SUPPORTED)
 
 (declare-datatypes (T) ((List (cons (hd T) (tl (List T))) (nil))))
 
-(declare-fun R ((List Int)) Bool)
-
+(declare-fun R ((List Real)) Bool)
 (assert (forall ((x (List Int))) (R x)))
 (declare-fun j1 () (List Real))
 (assert (not (R j1)))

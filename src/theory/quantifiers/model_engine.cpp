@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,8 +18,10 @@
 #include "theory/quantifiers/ambqi_builder.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
@@ -52,16 +54,28 @@ bool ModelEngine::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
-unsigned ModelEngine::needsModel( Theory::Effort e ) {
-  return QuantifiersEngine::QEFFORT_MODEL;
+QuantifiersModule::QEffort ModelEngine::needsModel(Theory::Effort e)
+{
+  if( options::mbqiInterleave() ){
+    return QEFFORT_STANDARD;
+  }else{
+    return QEFFORT_MODEL;
+  }
 }
 
 void ModelEngine::reset_round( Theory::Effort e ) {
   d_incomplete_check = true;
 }
-
-void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
-  if( quant_e==QuantifiersEngine::QEFFORT_MODEL ){
+void ModelEngine::check(Theory::Effort e, QEffort quant_e)
+{
+  bool doCheck = false;
+  if( options::mbqiInterleave() ){
+    doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+  }
+  if( !doCheck ){
+    doCheck = quant_e == QEFFORT_MODEL;
+  }
+  if( doCheck ){
     Assert( !d_quantEngine->inConflict() );
     int addedLemmas = 0;
     FirstOrderModel* fm = d_quantEngine->getModel();
@@ -153,11 +167,15 @@ int ModelEngine::checkModel(){
 
   //flatten the representatives
   //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
-  //d_quantEngine->getEqualityQuery()->flattenRepresentatives( fm->d_rep_set.d_type_reps );
+  // d_quantEngine->getEqualityQuery()->flattenRepresentatives(
+  // fm->getRepSet()->d_type_reps );
 
   //for debugging, setup
-  for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
-       it != fm->d_rep_set.d_type_reps.end(); ++it ){
+  for (std::map<TypeNode, std::vector<Node> >::iterator it =
+           fm->getRepSetPtr()->d_type_reps.begin();
+       it != fm->getRepSetPtr()->d_type_reps.end();
+       ++it)
+  {
     if( it->first.isSort() ){
       Trace("model-engine") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
       Trace("model-engine-debug") << "        Reps : ";
@@ -171,7 +189,7 @@ int ModelEngine::checkModel(){
         Trace("model-engine-debug") << r << " ";
       }
       Trace("model-engine-debug") << std::endl;
-      Node mbt = d_quantEngine->getTermDatabase()->getModelBasisTerm(it->first);
+      Node mbt = fm->getModelBasisTerm(it->first);
       Trace("model-engine-debug") << "  Basis term : " << mbt << std::endl;
     }
   }
@@ -187,8 +205,10 @@ int ModelEngine::checkModel(){
         int totalInst = 1;
         for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
           TypeNode tn = f[0][j].getType();
-          if( fm->d_rep_set.hasType( tn ) ){
-            totalInst = totalInst * (int)fm->d_rep_set.d_type_reps[ tn ].size();
+          if (fm->getRepSet()->hasType(tn))
+          {
+            totalInst =
+                totalInst * (int)fm->getRepSet()->getNumRepresentatives(tn);
           }
         }
         d_totalLemmas += totalInst;
@@ -254,27 +274,32 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
       for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-        Trace("fmf-exh-inst-debug") << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) << " ";
+        Trace("fmf-exh-inst-debug") << d_quantEngine->getTermUtil()->getInstantiationConstant( f, i ) << " ";
       }
       Trace("fmf-exh-inst-debug") << std::endl;
     }
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
-    RepSetIterator riter( d_quantEngine, &(d_quantEngine->getModel()->d_rep_set) );
+    QRepBoundExt qrbe(d_quantEngine);
+    RepSetIterator riter(d_quantEngine->getModel()->getRepSet(), &qrbe);
     if( riter.setQuantifier( f ) ){
       Trace("fmf-exh-inst") << "...exhaustive instantiation set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
       if( !riter.isIncomplete() ){
         int triedLemmas = 0;
         int addedLemmas = 0;
+        EqualityQuery* qy = d_quantEngine->getEqualityQuery();
+        Instantiate* inst = d_quantEngine->getInstantiate();
         while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
-          for( int i=0; i<riter.getNumTerms(); i++ ){
-            m.set( d_quantEngine, i, riter.getCurrentTerm( i ) );
+          for (unsigned i = 0; i < riter.getNumTerms(); i++)
+          {
+            m.set(qy, i, riter.getCurrentTerm(i));
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;
           //add as instantiation
-          if( d_quantEngine->addInstantiation( f, m, true ) ){
+          if (inst->addInstantiation(f, m, true))
+          {
             addedLemmas++;
             if( d_quantEngine->inConflict() ){
               break;

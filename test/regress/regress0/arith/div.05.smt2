@@ -1,7 +1,7 @@
-; EXPECT: unknown
+; EXPECT: sat
 (set-logic QF_NRA)
 (set-info :smt-lib-version 2.0)
-(set-info :status unknown)
+(set-info :status sat)
 (declare-fun x () Real)
 (declare-fun y () Real)
 (declare-fun n () Real)

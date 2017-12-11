@@ -2,9 +2,9 @@
 /*! \file type_checker_template.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Tim King, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -61,7 +61,7 @@ ${typerules}
 bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
   throw (AssertionException) {
 
-  Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED);
+  Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
 
   switch(n.getKind()) {
 ${construles}
@@ -78,7 +78,7 @@ ${construles}
 bool TypeChecker::neverIsConst(NodeManager* nodeManager, TNode n)
   throw (AssertionException) {
 
-  Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED);
+  Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
 
   switch(n.getKind()) {
 ${neverconstrules}

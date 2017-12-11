@@ -2,9 +2,9 @@
 /*! \file bv_subtheory_algebraic.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Morgan Deters, Tim King
+ **   Liana Hadarean, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,12 +14,16 @@
  ** Algebraic solver.
  **/
 
+#include "cvc4_private.h"
+
 #pragma once
 
-#include "cvc4_private.h"
+#include <unordered_map>
+#include <unordered_set>
+
 #include "theory/bv/bv_subtheory.h"
-#include "theory/substitutions.h"
 #include "theory/bv/slicer.h"
+#include "theory/substitutions.h"
 
 namespace CVC4 {
 namespace theory {
@@ -60,8 +64,8 @@ class SubstitutionEx {
     {}
   };
 
-  typedef __gnu_cxx::hash_map<Node, SubstitutionElement, NodeHashFunction> Substitutions;
-  typedef __gnu_cxx::hash_map<Node, SubstitutionElement, NodeHashFunction> SubstitutionsCache;
+  typedef std::unordered_map<Node, SubstitutionElement, NodeHashFunction> Substitutions;
+  typedef std::unordered_map<Node, SubstitutionElement, NodeHashFunction> SubstitutionsCache;
 
   Substitutions d_substitutions;
   SubstitutionsCache d_cache;
@@ -104,9 +108,9 @@ struct WorklistElement {
 }; 
 
 
-typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeNodeMap;
-typedef __gnu_cxx::hash_map<Node, unsigned, NodeHashFunction> NodeIdMap;
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
+typedef std::unordered_map<Node, unsigned, NodeHashFunction> NodeIdMap;
+typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
 
 
 class ExtractSkolemizer {
@@ -123,7 +127,7 @@ class ExtractSkolemizer {
     ExtractList() : base(1), extracts() {}
     void addExtract(Extract& e); 
   };
-  typedef   __gnu_cxx::hash_map<Node, ExtractList, NodeHashFunction> VarExtractMap;
+  typedef   std::unordered_map<Node, ExtractList, NodeHashFunction> VarExtractMap;
   context::Context d_emptyContext;
   VarExtractMap d_varToExtract;
   theory::SubstitutionMap* d_modelMap;
@@ -223,8 +227,8 @@ public:
   void  preRegister(TNode node) {}
   bool  check(Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions) {Unreachable("AlgebraicSolver does not propagate.\n");}
-  EqualityStatus getEqualityStatus(TNode a, TNode b); 
-  void collectModelInfo(TheoryModel* m, bool fullModel); 
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
+  bool collectModelInfo(TheoryModel* m, bool fullModel);
   Node getModelValue(TNode node); 
   bool isComplete();
   virtual void assertFact(TNode fact);

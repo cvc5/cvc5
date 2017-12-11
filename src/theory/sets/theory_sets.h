@@ -2,9 +2,9 @@
 /*! \file theory_sets.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King
+ **   Kshitij Bansal, Paul Meng, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -49,8 +49,10 @@ public:
   void addSharedTerm(TNode);
 
   void check(Effort);
+  
+  bool needsCheckLastEffort();
 
-  void collectModelInfo(TheoryModel* m);
+  bool collectModelInfo(TheoryModel* m) override;
 
   void computeCareGraph();
 
@@ -63,6 +65,10 @@ public:
   std::string identify() const { return "THEORY_SETS"; }
 
   void preRegisterTerm(TNode node);
+
+  Node expandDefinition(LogicRequest &logicRequest, Node n);
+
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
 
   void presolve();
 

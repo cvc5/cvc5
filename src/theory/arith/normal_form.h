@@ -2,9 +2,9 @@
 /*! \file normal_form.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
+ **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,10 +22,6 @@
 
 #include <algorithm>
 #include <list>
-
-#if IS_SORTED_IN_GNUCXX_NAMESPACE
-#  include <ext/algorithm>
-#endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
 
 #include "base/output.h"
 #include "expr/node.h"
@@ -245,6 +241,12 @@ public:
     case kind::INTS_MODULUS_TOTAL:
     case kind::DIVISION_TOTAL:
       return isDivMember(n);
+    case kind::EXPONENTIAL:
+    case kind::SINE:
+    case kind::COSINE:
+    case kind::TANGENT:
+    case kind::PI:
+      return isTranscendentalMember(n);      
     case kind::ABS:
     case kind::TO_INTEGER:
       // Treat to_int as a variable; it is replaced in early preprocessing
@@ -260,6 +262,7 @@ public:
   bool isDivLike() const{
     return isDivMember(getNode());
   }
+  static bool isTranscendentalMember(Node n);
 
   bool isNormalForm() { return isMember(getNode()); }
 
@@ -277,7 +280,7 @@ public:
   }
 
   struct VariableNodeCmp {
-    static inline int cmp(Node n, Node m) {
+    static inline int cmp(const Node& n, const Node& m) {
       if ( n == m ) { return 0; }
 
       // this is now slightly off of the old variable order.
@@ -313,7 +316,7 @@ public:
       }
     }
 
-    bool operator()(Node n, Node m) const {
+    bool operator()(const Node& n, const Node& m) const {
       return VariableNodeCmp::cmp(n,m) < 0;
     }
   };
@@ -423,56 +426,6 @@ inline Node makeNode(Kind k, GetNodeIterator start, GetNodeIterator end) {
 
   return Node(nb);
 }/* makeNode<GetNodeIterator>(Kind, iterator, iterator) */
-
-
-template <class GetNodeIterator, class T>
-static void copy_range(GetNodeIterator begin, GetNodeIterator end, std::vector<T>& result){
-  while(begin != end){
-    result.push_back(*begin);
-    ++begin;
-  }
-}
-
-template <class GetNodeIterator, class T>
-static void merge_ranges(GetNodeIterator first1,
-                  GetNodeIterator last1,
-                  GetNodeIterator first2,
-                  GetNodeIterator last2,
-                  std::vector<T>& result) {
-
-  while(first1 != last1 && first2 != last2){
-    if( (*first1) < (*first2) ){
-      result.push_back(*first1);
-      ++ first1;
-    }else{
-      result.push_back(*first2);
-      ++ first2;
-    }
-  }
-  copy_range(first1, last1, result);
-  copy_range(first2, last2, result);
-}
-
-template <class GetNodeIterator, class T, class Cmp>
-static void merge_ranges(GetNodeIterator first1,
-                         GetNodeIterator last1,
-                         GetNodeIterator first2,
-                         GetNodeIterator last2,
-                         std::vector<T>& result,
-                         const Cmp& cmp) {
-
-  while(first1 != last1 && first2 != last2){
-    if( cmp(*first1, *first2) ){
-      result.push_back(*first1);
-      ++ first1;
-    }else{
-      result.push_back(*first2);
-      ++ first2;
-    }
-  }
-  copy_range(first1, last1, result);
-  copy_range(first2, last2, result);
-}
 
 /**
  * A VarList is a sorted list of variables representing a product.
@@ -742,11 +695,7 @@ public:
   }
 
   static bool isSorted(const std::vector<Monomial>& m) {
-#if IS_SORTED_IN_GNUCXX_NAMESPACE
-    return __gnu_cxx::is_sorted(m.begin(), m.end());
-#else /* IS_SORTED_IN_GNUCXX_NAMESPACE */
     return std::is_sorted(m.begin(), m.end());
-#endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
   }
 
   static bool isStrictlySorted(const std::vector<Monomial>& m) {
@@ -845,7 +794,7 @@ private:
 public:
   static bool isMember(TNode n);
 
-  class iterator {
+  class iterator : public std::iterator<std::input_iterator_tag, Monomial> {
   private:
     internal_iterator d_iter;
 
@@ -947,7 +896,7 @@ public:
     iterator tailStart = begin();
     ++tailStart;
     std::vector<Monomial> subrange;
-    copy_range(tailStart, end(), subrange);
+    std::copy(tailStart, end(), std::back_inserter(subrange));
     return mkPolynomial(subrange);
   }
 

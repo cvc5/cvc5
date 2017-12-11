@@ -2,9 +2,9 @@
 /*! \file abstraction.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King
+ **   Liana Hadarean, Guy Katz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,8 +19,8 @@
 #ifndef __CVC4__THEORY__BV__ABSTRACTION_H
 #define __CVC4__THEORY__BV__ABSTRACTION_H
 
-#include <ext/hash_map>
-#include <ext/hash_set>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "expr/node.h"
 #include "theory/substitutions.h"
@@ -64,10 +64,10 @@ class AbstractionModule {
   };
 
   class ArgsTable {
-    __gnu_cxx::hash_map<TNode, ArgsTableEntry, TNodeHashFunction > d_data;
+    std::unordered_map<TNode, ArgsTableEntry, TNodeHashFunction > d_data;
     bool hasEntry(TNode signature) const;
   public:
-    typedef __gnu_cxx::hash_map<TNode, ArgsTableEntry, TNodeHashFunction >::iterator iterator;
+    typedef std::unordered_map<TNode, ArgsTableEntry, TNodeHashFunction >::iterator iterator;
     ArgsTable() {}
     void addEntry(TNode signature, const ArgsVec& args);
     ArgsTableEntry& getEntry(TNode signature);
@@ -122,16 +122,16 @@ class AbstractionModule {
 
   };
 
-  typedef __gnu_cxx::hash_map<Node, std::vector<Node>, NodeHashFunction> NodeVecMap;
-  typedef __gnu_cxx::hash_map<Node, TNode, NodeHashFunction> NodeTNodeMap;
-  typedef __gnu_cxx::hash_map<TNode, TNode, TNodeHashFunction> TNodeTNodeMap;
-  typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeNodeMap;
-  typedef __gnu_cxx::hash_map<Node, TNode, NodeHashFunction> TNodeNodeMap;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef __gnu_cxx::hash_map<unsigned, Node> IntNodeMap;
-  typedef __gnu_cxx::hash_map<unsigned, unsigned> IndexMap;
-  typedef __gnu_cxx::hash_map<unsigned, std::vector<Node> > SkolemMap;
-  typedef __gnu_cxx::hash_map<TNode, unsigned, TNodeHashFunction > SignatureMap;
+  typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction> NodeVecMap;
+  typedef std::unordered_map<Node, TNode, NodeHashFunction> NodeTNodeMap;
+  typedef std::unordered_map<TNode, TNode, TNodeHashFunction> TNodeTNodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef std::unordered_map<Node, TNode, NodeHashFunction> TNodeNodeMap;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_map<unsigned, Node> IntNodeMap;
+  typedef std::unordered_map<unsigned, unsigned> IndexMap;
+  typedef std::unordered_map<unsigned, std::vector<Node> > SkolemMap;
+  typedef std::unordered_map<TNode, unsigned, TNodeHashFunction > SignatureMap;
 
   ArgsTable d_argsTable;
 

@@ -2,9 +2,9 @@
 /*! \file theory_proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Tim King
+ **   Guy Katz, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,8 +20,9 @@
 #ifndef __CVC4__THEORY_PROOF_H
 #define __CVC4__THEORY_PROOF_H
 
-#include <ext/hash_set>
 #include <iosfwd>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "expr/expr.h"
 #include "proof/clause_id.h"
@@ -35,11 +36,11 @@ namespace theory {
 class Theory;
 } /* namespace CVC4::theory */
 
-typedef __gnu_cxx::hash_map < ClauseId, prop::SatClause* > IdToSatClause;
+typedef std::unordered_map < ClauseId, prop::SatClause* > IdToSatClause;
 
 class TheoryProof;
 
-typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
+typedef std::unordered_set<Expr, ExprHashFunction > ExprSet;
 typedef std::map<theory::TheoryId, TheoryProof* > TheoryProofTable;
 
 typedef std::set<theory::TheoryId> TheoryIdSet;

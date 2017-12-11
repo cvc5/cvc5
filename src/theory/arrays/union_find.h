@@ -2,9 +2,9 @@
 /*! \file union_find.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 
 #include <utility>
 #include <vector>
-#include <ext/hash_map>
+#include <unordered_map>
 
 #include "expr/node.h"
 #include "context/cdo.h"
@@ -41,7 +41,7 @@ namespace arrays {
 template <class NodeType, class NodeHash>
 class UnionFind : context::ContextNotifyObj {
   /** Our underlying map type. */
-  typedef __gnu_cxx::hash_map<NodeType, NodeType, NodeHash> MapType;
+  typedef std::unordered_map<NodeType, NodeType, NodeHash> MapType;
 
   /**
    * Our map of Nodes to their canonical representatives.

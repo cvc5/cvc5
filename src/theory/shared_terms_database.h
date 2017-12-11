@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,6 +16,8 @@
 #include "cvc4_private.h"
 
 #pragma once
+
+#include <unordered_map>
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
@@ -43,7 +45,7 @@ private:
   IntStat d_statSharedTerms;
 
   // Needs to be a map from Nodes as after a backtrack they might not exist
-  typedef std::hash_map<Node, shared_terms_list, TNodeHashFunction> SharedTermsMap;
+  typedef std::unordered_map<Node, shared_terms_list, TNodeHashFunction> SharedTermsMap;
 
   /** A map from atoms to a list of shared terms */
   SharedTermsMap d_atomsToTerms;

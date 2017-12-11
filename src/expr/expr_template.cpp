@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Kshitij Bansal, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
  **/
 #include "expr/expr.h"
 
+#include <iostream>
 #include <iterator>
 #include <utility>
 #include <vector>
@@ -31,7 +32,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 35 "${template}"
+#line 36 "${template}"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -115,7 +116,7 @@ static Node exportConstant(TNode n, NodeManager* to, ExprManagerMapCollection& v
 
 class ExportPrivate {
 private:
-  typedef std::hash_map <NodeTemplate<false>, NodeTemplate<true>, TNodeHashFunction> ExportCache;
+  typedef std::unordered_map <NodeTemplate<false>, NodeTemplate<true>, TNodeHashFunction> ExportCache;
   ExprManager* from;
   ExprManager* to;
   ExprManagerMapCollection& vmap;
@@ -137,7 +138,12 @@ public:
         return to->mkConst(::CVC4::EmptySet(type));
       }
       return exportConstant(n, NodeManager::fromExprManager(to), vmap);
-    } else if(n.isVar()) {
+    } else if(n.getMetaKind() == metakind::NULLARY_OPERATOR ){
+      Expr from_e(from, new Node(n));
+      Type type = from->exportType(from_e.getType(), to, vmap);
+      NodeManagerScope nullScope(NULL);
+      return to->mkNullaryOperator(type, n.getKind()); // FIXME thread safety
+    } else if(n.getMetaKind() == metakind::VARIABLE) {
       Expr from_e(from, new Node(n));
       Expr& to_e = vmap.d_typeMap[from_e];
       if(! to_e.isNull()) {
@@ -388,27 +394,27 @@ static inline NodePairIteratorAdaptor<Iterator> mkNodePairIteratorAdaptor(Iterat
   return NodePairIteratorAdaptor<Iterator>(i);
 }
 
-Expr Expr::substitute(const std::hash_map<Expr, Expr, ExprHashFunction> map) const {
+Expr Expr::substitute(const std::unordered_map<Expr, Expr, ExprHashFunction> map) const {
   ExprManagerScope ems(*this);
   return Expr(d_exprManager, new Node(d_node->substitute(mkNodePairIteratorAdaptor(map.begin()), mkNodePairIteratorAdaptor(map.end()))));
 }
 
-Expr::const_iterator::const_iterator() :
-  d_iterator(NULL) {
-}
-Expr::const_iterator::const_iterator(ExprManager* em, void* v) :
-  d_exprManager(em),
-  d_iterator(v) {
-}
-Expr::const_iterator::const_iterator(const const_iterator& it) {
-  if(it.d_iterator == NULL) {
-    d_iterator = NULL;
-  } else {
+Expr::const_iterator::const_iterator()
+    : d_exprManager(nullptr), d_iterator(nullptr) {}
+
+Expr::const_iterator::const_iterator(ExprManager* em, void* v)
+    : d_exprManager(em), d_iterator(v) {}
+
+Expr::const_iterator::const_iterator(const const_iterator& it)
+    : d_exprManager(nullptr), d_iterator(nullptr) {
+  if (it.d_iterator != nullptr) {
     d_exprManager = it.d_exprManager;
     ExprManagerScope ems(*d_exprManager);
-    d_iterator = new Node::iterator(*reinterpret_cast<Node::iterator*>(it.d_iterator));
+    d_iterator =
+        new Node::iterator(*reinterpret_cast<Node::iterator*>(it.d_iterator));
   }
 }
+
 Expr::const_iterator& Expr::const_iterator::operator=(const const_iterator& it) {
   if(d_iterator != NULL) {
     ExprManagerScope ems(*d_exprManager);

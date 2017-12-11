@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,14 +20,15 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <new>
 
 // This must come before PORTFOLIO_BUILD.
 #include "cvc4autoconfig.h"
 
+#include "base/tls.h"
 #include "base/configuration.h"
 #include "base/output.h"
-#include "base/ptr_closer.h"
 #include "expr/expr_iomanip.h"
 #include "expr/expr_manager.h"
 #include "main/command_executor.h"
@@ -55,13 +56,13 @@ using namespace CVC4::main;
 namespace CVC4 {
   namespace main {
     /** Global options variable */
-    CVC4_THREADLOCAL(Options*) pOptions;
+    CVC4_THREAD_LOCAL Options* pOptions;
 
     /** Full argv[0] */
     const char *progPath;
 
     /** Just the basename component of argv[0] */
-    const char *progName;
+    const std::string *progName;
 
     /** A pointer to the CommandExecutor (the signal handlers need it) */
     CVC4::main::CommandExecutor* pExecutor = NULL;
@@ -112,7 +113,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 # endif
 
-  progName = opts.getBinaryName().c_str();
+  string progNameStr = opts.getBinaryName();
+  progName = &progNameStr;
 
   if( opts.getHelp() ) {
     printUsage(opts, true);
@@ -146,16 +148,22 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 
   // Auto-detect input language by filename extension
-  const char* filename = inputFromStdin ? "<stdin>" : filenames[0].c_str();
+  std::string filenameStr("<stdin>");
+  if (!inputFromStdin) {
+    // Use swap to avoid copying the string
+    // TODO: use std::move() when switching to c++11
+    filenameStr.swap(filenames[0]);
+  }
+  const char* filename = filenameStr.c_str();
 
   if(opts.getInputLanguage() == language::input::LANG_AUTO) {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
       opts.setInputLanguage(language::input::LANG_CVC4);
     } else {
-      unsigned len = strlen(filename);
+      unsigned len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
-        opts.setInputLanguage(language::input::LANG_SMTLIB_V2_5);
+        opts.setInputLanguage(language::input::LANG_SMTLIB_V2_6);
       } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
         opts.setInputLanguage(language::input::LANG_SMTLIB_V1);
       } else if(len >= 5 && !strcmp(".smt1", filename + len - 5)) {
@@ -177,16 +185,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   if(opts.getOutputLanguage() == language::output::LANG_AUTO) {
     opts.setOutputLanguage(language::toOutputLanguage(opts.getInputLanguage()));
-  }
-
-  // if doing sygus, turn on CEGQI by default
-  if(opts.getInputLanguage() == language::input::LANG_SYGUS ){
-    if( !opts.wasSetByUserCeGuidedInst()) {
-      opts.setCeGuidedInst(true);
-    }
-    if( !opts.wasSetByUserDumpSynth()) {
-      opts.setDumpSynth(true);
-    }
   }
 
   // Determine which messages to show based on smtcomp_mode and verbosity
@@ -242,7 +240,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 # endif
 
-  PtrCloser<Parser> replayParser;
+  std::unique_ptr<Parser> replayParser;
   if( opts.getReplayInputFilename() != "" ) {
     std::string replayFilename = opts.getReplayInputFilename();
     ParserBuilder replayParserBuilder(exprMgr, replayFilename, opts);
@@ -264,7 +262,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                                     pTotalTime);
 
     // Filename statistics
-    ReferenceStat< const char* > s_statFilename("filename", filename);
+    ReferenceStat<std::string> s_statFilename("filename", filenameStr);
     RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
                                       &s_statFilename);
 
@@ -296,7 +294,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
                   << " assertions:"
                   << (Configuration::isAssertionBuild() ? "on" : "off")
-                  << endl;
+                  << endl << endl;
+        Message() << Configuration::copyright() << endl;
       }
       if(replayParser) {
         // have the replay parser use the declarations input interactively
@@ -350,7 +349,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
       vector< vector<Command*> > allCommands;
       allCommands.push_back(vector<Command*>());
-      PtrCloser<Parser> parser(parserBuilder.build());
+      std::unique_ptr<Parser> parser(parserBuilder.build());
       if(replayParser) {
         // have the replay parser use the file's declarations
         replayParser->useDeclarationsFrom(parser.get());
@@ -505,7 +504,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 #endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
       }
 
-      PtrCloser<Parser> parser(parserBuilder.build());
+      std::unique_ptr<Parser> parser(parserBuilder.build());
       if(replayParser) {
         // have the replay parser use the file's declarations
         replayParser->useDeclarationsFrom(parser.get());

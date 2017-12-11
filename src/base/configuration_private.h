@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, ACSYS
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -120,7 +120,13 @@ namespace CVC4 {
 #  define IS_CRYPTOMINISAT_BUILD false
 #endif /* CVC4_USE_CRYPTOMINISAT */
 
-#ifdef HAVE_LIBREADLINE
+#if CVC4_USE_LFSC
+#define IS_LFSC_BUILD true
+#else /* CVC4_USE_LFSC */
+#define IS_LFSC_BUILD false
+#endif /* CVC4_USE_LFSC */
+
+#if HAVE_LIBREADLINE
 #  define IS_READLINE_BUILD true
 #else /* HAVE_LIBREADLINE */
 #  define IS_READLINE_BUILD false
@@ -137,33 +143,6 @@ namespace CVC4 {
 #else /* TLS */
 #  define USING_TLS false
 #endif /* TLS */
-
-#define CVC4_ABOUT_STRING ( ::std::string("\
-This is CVC4 version " CVC4_RELEASE_STRING ) + \
-    ( ::CVC4::Configuration::isGitBuild() \
-        ? ( ::std::string(" [") + ::CVC4::Configuration::getGitId() + "]" ) \
-        : \
-    ( ::CVC4::Configuration::isSubversionBuild() \
-        ? ( ::std::string(" [") + ::CVC4::Configuration::getSubversionId() + "]" ) \
-        : ::std::string("") \
-    )) + "\n\
-compiled with " + ::CVC4::Configuration::getCompiler() + "\n\
-on " + ::CVC4::Configuration::getCompiledDateTime() + "\n\n\
-Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014\n\
-  New York University and The University of Iowa\n\n" + \
-    ( IS_GPL_BUILD ? "\
-This build of CVC4 uses GPLed libraries, and is thus covered by the GNU\n\
-General Public License (GPL) version 3.  Versions of CVC4 are available\n\
-that are covered by the (modified) BSD license.  If you want to license\n\
-CVC4 under this license, please configure CVC4 with the \"--bsd\" option\n\
-before building from sources.\n\
-" : \
-"This CVC4 library uses GMP as its multi-precision arithmetic library.\n\n\
-CVC4 is open-source and is covered by the BSD license (modified).\n\n\
-" ) + "\
-THIS SOFTWARE PROVIDED AS-IS, WITHOUT ANY WARRANTIES. USE AT YOUR OWN RISK.\n\n\
-See the file COPYING (distributed with the source code, and with all binaries)\n\
-for the full CVC4 copyright, licensing, and (lack of) warranty information.\n" )
 
 }/* CVC4 namespace */
 

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -257,10 +257,10 @@ public:
     tryBadInput("a : INT; a: INT = 5;"); // can't define after decl
     tryBadInput("a : INT = 5; a: BOOLEAN;"); // decl w/ incompatible type
     tryBadInput("a : TYPE; a : INT; a : a;"); // ok except a is both INT and sort `a'
-    tryBadInput("a : [1..-1];"); // bad subrange
-    tryBadInput("a : [0. .0];"); // bad subrange
-    tryBadInput("a : [..0];"); // bad subrange
-    tryBadInput("a : [0.0];"); // bad subrange
+    //tryBadInput("a : [1..-1];"); // bad subrange
+    //tryBadInput("a : [0. .0];"); // bad subrange
+    //tryBadInput("a : [..0];"); // bad subrange
+    //tryBadInput("a : [0.0];"); // bad subrange
     tryBadInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE list = nil | cons(car:INT,cdr:list) END;");
     tryBadInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE list2 = nil END;");
     tryBadInput("DATATYPE tree = node(data:(list,list,ARRAY trex OF list)), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");

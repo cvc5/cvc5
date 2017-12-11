@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -329,20 +329,6 @@ bool Type::isSortConstructor() const {
   return d_typeNode->isSortConstructor();
 }
 
-/** Is this a predicate subtype */
-/* - not in release 1.0
-bool Type::isPredicateSubtype() const {
-  NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->isPredicateSubtype();
-}
-*/
-
-/** Is this an integer subrange */
-bool Type::isSubrange() const {
-  NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->isSubrange();
-}
-
 size_t FunctionType::getArity() const {
   return d_typeNode->getNumChildren() - 1;
 }
@@ -505,20 +491,6 @@ SortConstructorType::SortConstructorType(const Type& t)
   PrettyCheckArgument(isNull() || isSortConstructor(), this);
 }
 
-/* - not in release 1.0
-PredicateSubtype::PredicateSubtype(const Type& t)
-  throw(IllegalArgumentException) :
-  Type(t) {
-  PrettyCheckArgument(isNull() || isPredicateSubtype(), this);
-}
-*/
-
-SubrangeType::SubrangeType(const Type& t)
-  throw(IllegalArgumentException) :
-  Type(t) {
-  PrettyCheckArgument(isNull() || isSubrange(), this);
-}
-
 unsigned BitVectorType::getSize() const {
   return d_typeNode->getBitVectorSize();
 }
@@ -665,11 +637,6 @@ Type PredicateSubtype::getParentType() const {
   return d_typeNode->getSubtypeParentType().toType();
 }
 */
-
-SubrangeBounds SubrangeType::getSubrangeBounds() const {
-  NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getSubrangeBounds();
-}
 
 size_t TypeHashFunction::operator()(const Type& t) const {
   return TypeNodeHashFunction()(NodeManager::fromType(t));

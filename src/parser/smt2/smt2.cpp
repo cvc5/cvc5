@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Kshitij Bansal, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,8 +21,11 @@
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
 #include "parser/smt2/smt2_input.h"
+#include "printer/sygus_print_callback.h"
 #include "smt/command.h"
 #include "util/bitvector.h"
+
+#include <algorithm>
 
 // ANTLR defines these, which is really bad!
 #undef true
@@ -33,9 +36,7 @@ namespace parser {
 
 Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
   Parser(exprManager,input,strictMode,parseOnly),
-  d_logicSet(false),
-  d_nextSygusFun(0) {
-  d_unsatCoreNames.push(std::map<Expr, std::string>());
+  d_logicSet(false) {
   if( !strictModeEnabled() ) {
     addTheory(Smt2::THEORY_CORE);
   }
@@ -54,6 +55,12 @@ void Smt2::addArithmeticOperators() {
   Parser::addOperator(kind::LEQ);
   Parser::addOperator(kind::GT);
   Parser::addOperator(kind::GEQ);
+  
+  addOperator(kind::POW, "^");
+  addOperator(kind::EXPONENTIAL, "exp");
+  addOperator(kind::SINE, "sin");
+  addOperator(kind::COSINE, "cos");
+  addOperator(kind::TANGENT, "tan");
 }
 
 void Smt2::addBitvectorOperators() {
@@ -113,10 +120,6 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
   addOperator(kind::STRING_ITOS, "int.to.str" );
   addOperator(kind::STRING_STOI, "str.to.int" );
-  addOperator(kind::STRING_U16TOS, "u16.to.str" );
-  addOperator(kind::STRING_STOU16, "str.to.u16" );
-  addOperator(kind::STRING_U32TOS, "u32.to.str" );
-  addOperator(kind::STRING_STOU32, "str.to.u32" );
   addOperator(kind::STRING_IN_REGEXP, "str.in.re");
   addOperator(kind::STRING_TO_REGEXP, "str.to.re");
   addOperator(kind::REGEXP_CONCAT, "re.++");
@@ -334,48 +337,88 @@ bool Smt2::logicIsSet() {
   return d_logicSet;
 }
 
+Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
+  if(sygus() && name[0]=='-' && 
+    name.find_first_not_of("0123456789", 1) == std::string::npos) {
+    //allow unary minus in sygus
+    return getExprManager()->mkConst(Rational(name));
+  }else if(isAbstractValue(name)) {
+    return mkAbstractValue(name);
+  }else{
+    return Parser::getExpressionForNameAndType(name, t);
+  }
+}
+
+Expr Smt2::mkDefineFunRec(
+    const std::string& fname,
+    const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+    Type t,
+    std::vector<Expr>& flattenVars)
+{
+  std::vector<Type> sorts;
+  for (const std::pair<std::string, CVC4::Type>& svn : sortedVarNames)
+  {
+    sorts.push_back(svn.second);
+  }
+
+  // make the flattened function type, add bound variables
+  // to flattenVars if the defined function was given a function return type.
+  Type ft = mkFlatFunctionType(sorts, t, flattenVars);
+
+  // allow overloading
+  return mkVar(fname, ft, ExprManager::VAR_FLAG_NONE, true);
+}
+
+void Smt2::pushDefineFunRecScope(
+    const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+    Expr func,
+    const std::vector<Expr>& flattenVars,
+    std::vector<Expr>& bvs,
+    bool bindingLevel)
+{
+  pushScope(bindingLevel);
+
+  std::vector<Expr> f_app;
+  f_app.push_back(func);
+  // bound variables are those that are explicitly named in the preamble
+  // of the define-fun(s)-rec command, we define them here
+  for (const std::pair<std::string, CVC4::Type>& svn : sortedVarNames)
+  {
+    Expr v = mkBoundVar(svn.first, svn.second);
+    bvs.push_back(v);
+    f_app.push_back(v);
+  }
+
+  bvs.insert(bvs.end(), flattenVars.begin(), flattenVars.end());
+}
+
 void Smt2::reset() {
   d_logicSet = false;
   d_logic = LogicInfo();
   operatorKindMap.clear();
   d_lastNamedTerm = std::pair<Expr, std::string>();
-  d_unsatCoreNames = std::stack< std::map<Expr, std::string> >();
   this->Parser::reset();
 
-  d_unsatCoreNames.push(std::map<Expr, std::string>());
   if( !strictModeEnabled() ) {
     addTheory(Smt2::THEORY_CORE);
   }
 }
 
 void Smt2::resetAssertions() {
-  this->Parser::reset();
+  // Remove all declarations except the ones at level 0.
+  while (this->scopeLevel() > 0) {
+    this->popScope();
+  }
 }
 
 void Smt2::setLogic(std::string name) {
+
   if(sygus()) {
+    // non-smt2-standard sygus logic names go here (http://sygus.seas.upenn.edu/files/sygus.pdf Section 3.2)
     if(name == "Arrays") {
-      name = "AUF";
-    } else if(name == "Reals") {
-      name = "UFLRA";
-    } else if(name == "LIA") {
-      name = "UFLIA";
-    } else if(name == "LRA") {
-      name = "UFLRA";
-    } else if(name == "LIRA") {
-      name = "UFLIRA";
-    } else if(name == "BV") {
-      name = "UFBV";
-    } else if(name == "SLIA") {
-      name = "UFSLIA";
-    } else if(name == "SAT") {
-      name = "UF";
-    } else if(name == "ALL" || name == "ALL_SUPPORTED") {
-      //no change
-    } else {
-      std::stringstream ss;
-      ss << "Unknown SyGuS background logic `" << name << "'";
-      parseError(ss.str());
+      name = "A";
+    }else if(name == "Reals") {
+      name = "LRA";
     }
   }
 
@@ -384,6 +427,19 @@ void Smt2::setLogic(std::string name) {
     d_logic = getForcedLogic();
   } else {
     d_logic = name;
+  }
+
+  // if sygus is enabled, we must enable UF, datatypes, integer arithmetic and
+  // higher-order
+  if(sygus()) {
+    // get unlocked copy, modify, copy and relock
+    LogicInfo log(d_logic.getUnlockedCopy());
+    log.enableTheory(theory::THEORY_UF);
+    log.enableTheory(theory::THEORY_DATATYPES);
+    log.enableIntegers();
+    log.enableHigherOrder();
+    d_logic = log;
+    d_logic.lock();
   }
 
   // Core theory belongs to every logic
@@ -452,16 +508,12 @@ void Smt2::checkThatLogicIsSet() {
     if(strictModeEnabled()) {
       parseError("set-logic must appear before this point.");
     } else {
-      if(sygus()) {
-        setLogic("LIA");
-      } else {
-        warning("No set-logic command was given before this point.");
-        warning("CVC4 will make all theories available.");
-        warning("Consider setting a stricter logic for (likely) better performance.");
-        warning("To suppress this warning in the future use (set-logic ALL).");
+      warning("No set-logic command was given before this point.");
+      warning("CVC4 will make all theories available.");
+      warning("Consider setting a stricter logic for (likely) better performance.");
+      warning("To suppress this warning in the future use (set-logic ALL).");
 
-        setLogic("ALL");
-      }
+      setLogic("ALL");
 
       Command* c = new SetBenchmarkLogicCommand("ALL");
       c->setMuted(true);
@@ -542,246 +594,6 @@ Expr Smt2::mkSygusVar(const std::string& name, const Type& type, bool isPrimed) 
     d_sygusVarPrimed[ep] = true;
   }
   return e;
-}
-
-void collectSygusGrammarTypesFor( Type range, std::vector< Type >& types, std::map< Type, std::vector< DatatypeConstructorArg > >& sels ){
-  if( !range.isBoolean() ){
-    if( std::find( types.begin(), types.end(), range )==types.end() ){
-      Debug("parser-sygus") << "...will make grammar for " << range << std::endl;
-      types.push_back( range );
-      if( range.isDatatype() ){
-        const Datatype& dt = ((DatatypeType)range).getDatatype();
-        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-          for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-            Type crange = ((SelectorType)dt[i][j].getType()).getRangeType();
-            sels[crange].push_back( dt[i][j] );
-            collectSygusGrammarTypesFor( crange, types, sels );
-          }
-        }
-      }
-    }
-  }
-}
-
-void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::string& fun, std::vector<CVC4::Datatype>& datatypes,
-                                  std::vector<Type>& sorts, std::vector< std::vector<Expr> >& ops, std::vector<Expr> sygus_vars, int& startIndex ) {
-
-  //if( !range.isBoolean() && !range.isInteger() && !range.isBitVector() && !range.isDatatype() ){
-  //  parseError("No default grammar for type.");
-  //}
-  startIndex = -1;
-  Debug("parser-sygus") << "Construct default grammar for " << fun << " " << range << std::endl;
-  std::map< CVC4::Type, CVC4::Type > sygus_to_builtin;
-
-  std::vector< Type > types;
-  std::map< Type, std::vector< DatatypeConstructorArg > > sels;
-  //types for each of the variables
-  for( unsigned i=0; i<sygus_vars.size(); i++ ){
-    collectSygusGrammarTypesFor( sygus_vars[i].getType(), types, sels );
-  }
-  //types connected to range
-  collectSygusGrammarTypesFor( range, types, sels );
-
-  //name of boolean sort
-  std::stringstream ssb;
-  ssb << fun << "_Bool";
-  std::string dbname = ssb.str();
-  Type unres_bt = mkUnresolvedType(ssb.str());
-
-  std::vector< Type > unres_types;
-  std::map< Type, Type > type_to_unres;
-  for( unsigned i=0; i<types.size(); i++ ){
-    std::stringstream ss;
-    ss << fun << "_" << types[i];
-    std::string dname = ss.str();
-    datatypes.push_back(Datatype(dname));
-    ops.push_back(std::vector<Expr>());
-    //make unresolved type
-    Type unres_t = mkUnresolvedType(dname);
-    unres_types.push_back(unres_t);
-    type_to_unres[types[i]] = unres_t;
-    sygus_to_builtin[unres_t] = types[i];
-  }
-  for( unsigned i=0; i<types.size(); i++ ){
-    Debug("parser-sygus") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
-    std::vector<std::string> cnames;
-    std::vector<std::vector<CVC4::Type> > cargs;
-    std::vector<std::string> unresolved_gterm_sym;
-    Type unres_t = unres_types[i];
-    //add variables
-    for( unsigned j=0; j<sygus_vars.size(); j++ ){
-      if( sygus_vars[j].getType()==types[i] ){
-        std::stringstream ss;
-        ss << sygus_vars[j];
-        Debug("parser-sygus") << "...add for variable " << ss.str() << std::endl;
-        ops[i].push_back( sygus_vars[j] );
-        cnames.push_back( ss.str() );
-        cargs.push_back( std::vector< CVC4::Type >() );
-      }
-    }
-    //add constants
-    std::vector< Expr > consts;
-    mkSygusConstantsForType( types[i], consts );
-    for( unsigned j=0; j<consts.size(); j++ ){
-      std::stringstream ss;
-      ss << consts[j];
-      Debug("parser-sygus") << "...add for constant " << ss.str() << std::endl;
-      ops[i].push_back( consts[j] );
-      cnames.push_back( ss.str() );
-      cargs.push_back( std::vector< CVC4::Type >() );
-    }
-    //ITE
-    CVC4::Kind k = kind::ITE;
-    Debug("parser-sygus") << "...add for " << k << std::endl;
-    ops[i].push_back(getExprManager()->operatorOf(k));
-    cnames.push_back( kind::kindToString(k) );
-    cargs.push_back( std::vector< CVC4::Type >() );
-    cargs.back().push_back(unres_bt);
-    cargs.back().push_back(unres_t);
-    cargs.back().push_back(unres_t);
-
-    if( types[i].isInteger() ){
-      for( unsigned j=0; j<2; j++ ){
-        CVC4::Kind k = j==0 ? kind::PLUS : kind::MINUS;
-        Debug("parser-sygus") << "...add for " << k << std::endl;
-        ops[i].push_back(getExprManager()->operatorOf(k));
-        cnames.push_back(kind::kindToString(k));
-        cargs.push_back( std::vector< CVC4::Type >() );
-        cargs.back().push_back(unres_t);
-        cargs.back().push_back(unres_t);
-      }
-    }else if( types[i].isDatatype() ){
-      Debug("parser-sygus") << "...add for constructors" << std::endl;
-      const Datatype& dt = ((DatatypeType)types[i]).getDatatype();
-      for( unsigned k=0; k<dt.getNumConstructors(); k++ ){
-        Debug("parser-sygus") << "...for " << dt[k].getName() << std::endl;
-        ops[i].push_back( dt[k].getConstructor() );
-        cnames.push_back( dt[k].getName() );
-        cargs.push_back( std::vector< CVC4::Type >() );
-        for( unsigned j=0; j<dt[k].getNumArgs(); j++ ){
-          Type crange = ((SelectorType)dt[k][j].getType()).getRangeType();
-          //Assert( type_to_unres.find(crange)!=type_to_unres.end() );
-          cargs.back().push_back( type_to_unres[crange] );
-        }
-      }
-    }else{
-      std::stringstream sserr;
-      sserr << "No implementation for default Sygus grammar of type " << types[i] << std::endl;
-      warning(sserr.str());
-    }
-    //add for all selectors to this type
-    if( !sels[types[i]].empty() ){
-      Debug("parser-sygus") << "...add for selectors" << std::endl;
-      for( unsigned j=0; j<sels[types[i]].size(); j++ ){
-        Debug("parser-sygus") << "...for " << sels[types[i]][j].getName() << std::endl;
-        Type arg_type = ((SelectorType)sels[types[i]][j].getType()).getDomain();
-        ops[i].push_back( sels[types[i]][j].getSelector() );
-        cnames.push_back( sels[types[i]][j].getName() );
-        cargs.push_back( std::vector< CVC4::Type >() );
-        //Assert( type_to_unres.find(arg_type)!=type_to_unres.end() );
-        cargs.back().push_back( type_to_unres[arg_type] );
-      }
-    }
-    Debug("parser-sygus") << "...make datatype " << datatypes.back() << std::endl;
-    datatypes[i].setSygus( types[i], bvl, true, true );
-    mkSygusDatatype( datatypes[i], ops[i], cnames, cargs, unresolved_gterm_sym, sygus_to_builtin );
-    sorts.push_back( types[i] );
-    //set start index if applicable
-    if( types[i]==range ){
-      startIndex = i;
-    }
-  }
-
-  //make Boolean type
-  Type btype = getExprManager()->booleanType();
-  datatypes.push_back(Datatype(dbname));
-  ops.push_back(std::vector<Expr>());
-  std::vector<std::string> cnames;
-  std::vector<std::vector<CVC4::Type> > cargs;
-  std::vector<std::string> unresolved_gterm_sym;
-  Debug("parser-sygus") << "Make grammar for " << btype << " " << datatypes.back() << std::endl;
-  //add variables
-  for( unsigned i=0; i<sygus_vars.size(); i++ ){
-    if( sygus_vars[i].getType().isBoolean() ){
-      std::stringstream ss;
-      ss << sygus_vars[i];
-      Debug("parser-sygus") << "...add for variable " << ss.str() << std::endl;
-      ops.back().push_back( sygus_vars[i] );
-      cnames.push_back( ss.str() );
-      cargs.push_back( std::vector< CVC4::Type >() );
-    }
-  }
-  //add constants if no variables and no connected types
-  if( ops.back().empty() && types.empty() ){
-    std::vector< Expr > consts;
-    mkSygusConstantsForType( btype, consts );
-    for( unsigned j=0; j<consts.size(); j++ ){
-      std::stringstream ss;
-      ss << consts[j];
-      Debug("parser-sygus") << "...add for constant " << ss.str() << std::endl;
-      ops.back().push_back( consts[j] );
-      cnames.push_back( ss.str() );
-      cargs.push_back( std::vector< CVC4::Type >() );
-    }
-  }
-  //add operators
-  for( unsigned i=0; i<3; i++ ){
-    CVC4::Kind k = i==0 ? kind::NOT : ( i==1 ? kind::AND : kind::OR );
-    Debug("parser-sygus") << "...add for " << k << std::endl;
-    ops.back().push_back(getExprManager()->operatorOf(k));
-    cnames.push_back(kind::kindToString(k));
-    cargs.push_back( std::vector< CVC4::Type >() );
-    if( k==kind::NOT ){
-      cargs.back().push_back(unres_bt);
-    }else if( k==kind::AND || k==kind::OR ){
-      cargs.back().push_back(unres_bt);
-      cargs.back().push_back(unres_bt);
-    }
-  }
-  //add predicates for types
-  for( unsigned i=0; i<types.size(); i++ ){
-    Debug("parser-sygus") << "...add predicates for " << types[i] << std::endl;
-    //add equality per type
-    CVC4::Kind k = kind::EQUAL;
-    Debug("parser-sygus") << "...add for " << k << std::endl;
-    ops.back().push_back(getExprManager()->operatorOf(k));
-    std::stringstream ss;
-    ss << kind::kindToString(k) << "_" << types[i];
-    cnames.push_back(ss.str());
-    cargs.push_back( std::vector< CVC4::Type >() );
-    cargs.back().push_back(unres_types[i]);
-    cargs.back().push_back(unres_types[i]);
-    //type specific predicates
-    if( types[i].isInteger() ){
-      CVC4::Kind k = kind::LEQ;
-      Debug("parser-sygus") << "...add for " << k << std::endl;
-      ops.back().push_back(getExprManager()->operatorOf(k));
-      cnames.push_back(kind::kindToString(k));
-      cargs.push_back( std::vector< CVC4::Type >() );
-      cargs.back().push_back(unres_types[i]);
-      cargs.back().push_back(unres_types[i]);
-    }else if( types[i].isDatatype() ){
-      //add for testers
-      Debug("parser-sygus") << "...add for testers" << std::endl;
-      const Datatype& dt = ((DatatypeType)types[i]).getDatatype();
-      for( unsigned k=0; k<dt.getNumConstructors(); k++ ){
-        Debug("parser-sygus") << "...for " << dt[k].getTesterName() << std::endl;
-        ops.back().push_back(dt[k].getTester());
-        cnames.push_back(dt[k].getTesterName());
-        cargs.push_back( std::vector< CVC4::Type >() );
-        cargs.back().push_back(unres_types[i]);
-      }
-    }
-  }
-  if( range==btype ){
-    startIndex = sorts.size();
-  }
-  Debug("parser-sygus") << "...make datatype " << datatypes.back() << std::endl;
-  datatypes.back().setSygus( btype, bvl, true, true );
-  mkSygusDatatype( datatypes.back(), ops.back(), cnames, cargs, unresolved_gterm_sym, sygus_to_builtin );
-  sorts.push_back( btype );
-
-  Debug("parser-sygus") << "...finished make default grammar for " << fun << " " << range << std::endl;
 }
 
 void Smt2::mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops ) {
@@ -1155,84 +967,22 @@ void Smt2::setSygusStartIndex( std::string& fun, int startIndex,
   }
 }
 
-void Smt2::defineSygusFuns() {
-  // only define each one once
-  while(d_nextSygusFun < d_sygusFuns.size()) {
-    std::pair<std::string, Expr> p = d_sygusFuns[d_nextSygusFun];
-    std::string fun = p.first;
-    Debug("parser-sygus") << "Sygus : define fun " << fun << std::endl;
-    Expr eval = p.second;
-    FunctionType evalType = eval.getType();
-    std::vector<Type> argTypes = evalType.getArgTypes();
-    Type rangeType = evalType.getRangeType();
-    Debug("parser-sygus") << "...eval type : " << evalType << ", #args=" << argTypes.size() << std::endl;
-
-    // first make the function type
-    std::vector<Expr> sygusVars;
-    std::vector<Type> funType;
-    for(size_t j = 1; j < argTypes.size(); ++j) {
-      funType.push_back(argTypes[j]);
-      std::stringstream ss;
-      ss << fun << "_v_" << j;
-      sygusVars.push_back(getExprManager()->mkBoundVar(ss.str(), argTypes[j]));
-    }
-    Type funt;
-    if( !funType.empty() ){
-      funt = getExprManager()->mkFunctionType(funType, rangeType);
-      Debug("parser-sygus") << "...eval function type : " << funt << std::endl;
-
-      // copy the bound vars
-      /*
-      std::vector<Expr> sygusVars;
-      //std::vector<Type> types;
-      for(size_t i = 0; i < d_sygusVars.size(); ++i) {
-        std::stringstream ss;
-        ss << d_sygusVars[i];
-        Type type = d_sygusVars[i].getType();
-        sygusVars.push_back(getExprManager()->mkBoundVar(ss.str(), type));
-        //types.push_back(type);
-      }
-      Debug("parser-sygus") << "...made vars, #vars=" << sygusVars.size() << std::endl;
-      */
-
-      //Type t = getExprManager()->mkFunctionType(types, rangeType);
-      //Debug("parser-sygus") << "...function type : " << t << std::endl;
-    }else{
-      funt = rangeType;
-    }
-    Expr lambda = mkFunction(fun, funt, ExprManager::VAR_FLAG_DEFINED);
-    Debug("parser-sygus") << "...made function : " << lambda << std::endl;
-    std::vector<Expr> applyv;
-    Expr funbv = getExprManager()->mkBoundVar(std::string("f") + fun, argTypes[0]);
-    d_sygusFunSymbols.push_back(funbv);
-    applyv.push_back(eval);
-    applyv.push_back(funbv);
-    for(size_t i = 0; i < sygusVars.size(); ++i) {
-      applyv.push_back(sygusVars[i]);
-    }
-    Expr apply = getExprManager()->mkExpr(kind::APPLY_UF, applyv);
-    Debug("parser-sygus") << "...made apply " << apply << std::endl;
-    Debug("parser-sygus") << "--> Define " << fun << " as " << lambda << " " << apply << std::endl;
-    Command* cmd = new DefineFunctionCommand(fun, lambda, sygusVars, apply);
-    preemptCommand(cmd);
-
-    ++d_nextSygusFun;
-  }
-}
-
 void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
                             std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs,
                             std::vector<std::string>& unresolved_gterm_sym,
                             std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin ) {
   Debug("parser-sygus") << "Making sygus datatype " << dt.getName() << std::endl;
   Debug("parser-sygus") << "  add constructors..." << std::endl;
-  for( int i=0; i<(int)cnames.size(); i++ ){
+  
+  Debug("parser-sygus") << "SMT2 sygus parser : Making constructors for sygus datatype " << dt.getName() << std::endl;
+  Debug("parser-sygus") << "  add constructors..." << std::endl;
+  // size of cnames changes, this loop must check size
+  for (unsigned i = 0; i < cnames.size(); i++)
+  {
     bool is_dup = false;
     bool is_dup_op = false;
-    Expr let_body;
-    std::vector< Expr > let_args;
-    unsigned let_num_input_args = 0;
-    for( int j=0; j<i; j++ ){
+    for (unsigned j = 0; j < i; j++)
+    {
       if( ops[i]==ops[j] ){
         is_dup_op = true;
         if( cargs[i].size()==cargs[j].size() ){
@@ -1249,56 +999,129 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
         }
       }
     }
+    Debug("parser-sygus") << "SYGUS CONS " << i << " : ";
     if( is_dup ){
-      Debug("parser-sygus") << "--> Duplicate gterm : " << ops[i] << " at " << i << std::endl;
+      Debug("parser-sygus") << "--> Duplicate gterm : " << ops[i] << std::endl;
       ops.erase( ops.begin() + i, ops.begin() + i + 1 );
       cnames.erase( cnames.begin() + i, cnames.begin() + i + 1 );
       cargs.erase( cargs.begin() + i, cargs.begin() + i + 1 );
       i--;
-    }else if( is_dup_op ){
-      Debug("parser-sygus") << "--> Duplicate gterm operator : " << ops[i] << " at " << i << std::endl;
-      //make into define-fun
-      std::vector<CVC4::Type> fsorts;
-      for( unsigned j=0; j<cargs[i].size(); j++ ){
-        Type bt = sygus_to_builtin[cargs[i][j]];
-        std::stringstream ss;
-        ss << dt.getName() << "_x_" << i << "_" << j;
-        Expr v = mkBoundVar(ss.str(), bt);
-        let_args.push_back( v );
-        fsorts.push_back( bt );
-        Debug("parser-sygus") << ": var " << i << " " << v << " with type " << bt << " from " << cargs[i][j] << std::endl;
-      }
-      //make the let_body
-      std::vector< Expr > children;
-      if( ops[i].getKind() != kind::BUILTIN ){
-        children.push_back( ops[i] );
-      }
-      children.insert( children.end(), let_args.begin(), let_args.end() );
-      Kind sk = ops[i].getKind() != kind::BUILTIN ? kind::APPLY : getExprManager()->operatorToKind(ops[i]);
-      Debug("parser-sygus") << ": replace " << ops[i] << " " << ops[i].getKind() << " " << sk << std::endl;
-      let_body = getExprManager()->mkExpr( sk, children );
-      Debug("parser-sygus") << ": new body of function is " << let_body << std::endl;
+    }
+    else
+    {
+      std::shared_ptr<SygusPrintCallback> spc;
+      if (is_dup_op)
+      {
+        Debug("parser-sygus") << "--> Duplicate gterm operator : " << ops[i]
+                              << std::endl;
+        // make into define-fun
+        std::vector<Type> ltypes;
+        for (unsigned j = 0, size = cargs[i].size(); j < size; j++)
+        {
+          ltypes.push_back(sygus_to_builtin[cargs[i][j]]);
+        }
+        std::vector<Expr> largs;
+        Expr lbvl = makeSygusBoundVarList(dt, i, ltypes, largs);
 
-      Type ft = getExprManager()->mkFunctionType(fsorts, let_body.getType());
-      Debug("parser-sygus") << ": function type is " << ft << std::endl;
-      std::stringstream ss;
-      ss << dt.getName() << "_df_" << i;
-      //replace operator and name
-      ops[i] = mkFunction(ss.str(), ft, ExprManager::VAR_FLAG_DEFINED);
-      cnames[i] = ss.str();
-      d_sygus_defined_funs.push_back( ops[i] );
-      preemptCommand( new DefineFunctionCommand(ss.str(), ops[i], let_args, let_body) );
-      addSygusDatatypeConstructor( dt, ops[i], cnames[i], cargs[i], let_body, let_args, 0 );
-    }else{
-      std::map< CVC4::Expr, CVC4::Expr >::iterator it = d_sygus_let_func_to_body.find( ops[i] );
-      if( it!=d_sygus_let_func_to_body.end() ){
-        let_body = it->second;
-        let_args.insert( let_args.end(), d_sygus_let_func_to_vars[ops[i]].begin(), d_sygus_let_func_to_vars[ops[i]].end() );
-        let_num_input_args = d_sygus_let_func_to_num_input_vars[ops[i]];
+        // make the let_body
+        std::vector<Expr> children;
+        if (ops[i].getKind() != kind::BUILTIN)
+        {
+          children.push_back(ops[i]);
+        }
+        children.insert(children.end(), largs.begin(), largs.end());
+        Kind sk = ops[i].getKind() != kind::BUILTIN
+                      ? kind::APPLY
+                      : getExprManager()->operatorToKind(ops[i]);
+        Expr body = getExprManager()->mkExpr(sk, children);
+        // replace by lambda
+        ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
+        Debug("parser-sygus") << "  ...replace op : " << ops[i] << std::endl;
+        // callback prints as the expression
+        spc = std::make_shared<printer::SygusExprPrintCallback>(body, largs);
       }
-      addSygusDatatypeConstructor( dt, ops[i], cnames[i], cargs[i], let_body, let_args, let_num_input_args );
+      else
+      {
+        std::map<Expr, Expr>::iterator it =
+            d_sygus_let_func_to_body.find(ops[i]);
+        if (it != d_sygus_let_func_to_body.end())
+        {
+          Debug("parser-sygus") << "--> Let expression " << ops[i] << std::endl;
+          Expr let_body = it->second;
+          std::vector<Expr> let_args = d_sygus_let_func_to_vars[ops[i]];
+          unsigned let_num_input_args =
+              d_sygus_let_func_to_num_input_vars[ops[i]];
+          // the operator is just the body for the arguments
+          std::vector<Type> ltypes;
+          for (unsigned j = 0, size = let_args.size(); j < size; j++)
+          {
+            ltypes.push_back(let_args[j].getType());
+          }
+          std::vector<Expr> largs;
+          Expr lbvl = makeSygusBoundVarList(dt, i, ltypes, largs);
+          Expr sbody = let_body.substitute(let_args, largs);
+          ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, sbody);
+          Debug("parser-sygus") << "  ...replace op : " << ops[i] << std::endl;
+          // callback prints as a let expression
+          spc = std::make_shared<printer::SygusLetExprPrintCallback>(
+              let_body, let_args, let_num_input_args);
+        }
+        else if (ops[i].getType().isBitVector() && ops[i].isConst())
+        {
+          Debug("parser-sygus") << "--> Bit-vector constant " << ops[i] << " ("
+                                << cnames[i] << ")" << std::endl;
+          // Since there are multiple output formats for bit-vectors and
+          // we are required by sygus standards to print in the exact input
+          // format given by the user, we use a print callback to custom print
+          // the given name.
+          spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
+        }
+        else if (isDefinedFunction(ops[i]))
+        {
+          Debug("parser-sygus") << "--> Defined function " << ops[i]
+                                << std::endl;
+          // turn f into (lammbda (x) (f x))
+          // in a degenerate case, ops[i] may be a defined constant,
+          // in which case we do not replace by a lambda.
+          if (ops[i].getType().isFunction())
+          {
+            std::vector<Type> ftypes =
+                static_cast<FunctionType>(ops[i].getType()).getArgTypes();
+            std::vector<Expr> largs;
+            Expr lbvl = makeSygusBoundVarList(dt, i, ftypes, largs);
+            largs.insert(largs.begin(), ops[i]);
+            Expr body = getExprManager()->mkExpr(kind::APPLY, largs);
+            ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
+            Debug("parser-sygus") << "  ...replace op : " << ops[i]
+                                  << std::endl;
+          }
+          else
+          {
+            ops[i] = getExprManager()->mkExpr(kind::APPLY, ops[i]);
+            Debug("parser-sygus") << "  ...replace op : " << ops[i]
+                                  << std::endl;
+          }
+          // keep a callback to say it should be printed with the defined name
+          spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
+        }
+        else
+        {
+          Debug("parser-sygus") << "--> Default case " << ops[i] << std::endl;
+        }
+      }
+      // must rename to avoid duplication
+      std::stringstream ss;
+      ss << dt.getName() << "_" << i << "_" << cnames[i];
+      cnames[i] = ss.str();
+      Debug("parser-sygus") << "  construct the datatype " << cnames[i] << "..."
+                            << std::endl;
+      // add the sygus constructor
+      dt.addSygusConstructor(ops[i], cnames[i], cargs[i], spc);
+      Debug("parser-sygus") << "  finished constructing the datatype"
+                            << std::endl;
     }
   }
+
   Debug("parser-sygus") << "  add constructors for unresolved symbols..." << std::endl;
   if( !unresolved_gterm_sym.empty() ){
     std::vector< Type > types;
@@ -1313,22 +1136,25 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           //identity element
           Type bt = dt.getSygusType();
           Debug("parser-sygus") << ":  make identity function for " << bt << ", argument type " << t << std::endl;
+
           std::stringstream ss;
-          ss << t << "_x_id";
-          Expr let_body = mkBoundVar(ss.str(), bt);
-          std::vector< Expr > let_args;
-          let_args.push_back( let_body );
-          //make the identity function
-          Type ft = getExprManager()->mkFunctionType(bt, bt);
-          std::stringstream ssid;
-          ssid << unresolved_gterm_sym[i] << "_id";
-          Expr id_op = mkFunction(ss.str(), ft, ExprManager::VAR_FLAG_DEFINED);
-          d_sygus_defined_funs.push_back( id_op );
-          preemptCommand( new DefineFunctionCommand(ssid.str(), id_op, let_args, let_body) );
+          ss << t << "_x";
+          Expr var = mkBoundVar(ss.str(), bt);
+          std::vector<Expr> lchildren;
+          lchildren.push_back(
+              getExprManager()->mkExpr(kind::BOUND_VAR_LIST, var));
+          lchildren.push_back(var);
+          Expr id_op = getExprManager()->mkExpr(kind::LAMBDA, lchildren);
+
+          // empty sygus callback (should not be printed)
+          std::shared_ptr<SygusPrintCallback> sepc =
+              std::make_shared<printer::SygusEmptyPrintCallback>();
+
           //make the sygus argument list
           std::vector< Type > id_carg;
           id_carg.push_back( t );
-          addSygusDatatypeConstructor( dt, id_op, unresolved_gterm_sym[i], id_carg, let_body, let_args, 0 );
+          dt.addSygusConstructor(id_op, unresolved_gterm_sym[i], id_carg, sepc);
+
           //add to operators
           ops.push_back( id_op );
         }
@@ -1337,187 +1163,21 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       }
     }
   }
-
 }
 
-void Smt2::addSygusDatatypeConstructor( CVC4::Datatype& dt, CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
-                                        CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args ) {
-  Debug("parser-sygus") << "--> Add constructor " << cname << " to " << dt.getName() << std::endl;
-  if( !let_body.isNull() ){
-    Debug("parser-sygus") << "    let body = " << let_body << ", args = " << let_args.size() << "," << let_num_input_args << std::endl;
-    //TODO : remove arguments not occurring in body
-    //if this is a self identity function, ignore
-    if( let_args.size()==0 && let_args[0]==let_body ){
-      Debug("parser-sygus") << "    identity function " << cargs[0] << " to " << dt.getName() << std::endl;
-      //TODO
-    }
+Expr Smt2::makeSygusBoundVarList(Datatype& dt,
+                                 unsigned i,
+                                 const std::vector<Type>& ltypes,
+                                 std::vector<Expr>& lvars)
+{
+  for (unsigned j = 0, size = ltypes.size(); j < size; j++)
+  {
+    std::stringstream ss;
+    ss << dt.getName() << "_x_" << i << "_" << j;
+    Expr v = mkBoundVar(ss.str(), ltypes[j]);
+    lvars.push_back(v);
   }
-  std::string name = dt.getName() + "_" + cname;
-  std::string testerId("is-");
-  testerId.append(name);
-  checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
-  checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
-  CVC4::DatatypeConstructor c(name, testerId );
-  c.setSygus( op, let_body, let_args, let_num_input_args );
-  for( unsigned j=0; j<cargs.size(); j++ ){
-    Debug("parser-sygus-debug") << "  arg " << j << " : " << cargs[j] << std::endl;
-    std::stringstream sname;
-    sname << name << "_" << j;
-    c.addArg(sname.str(), cargs[j]);
-  }
-  dt.addConstructor(c);
-}
-
-
-// i is index in datatypes/ops
-// j is index is datatype
-Expr Smt2::getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vector< std::vector<Expr> >& ops,
-                              std::map<DatatypeType, Expr>& evals, std::vector<Expr>& terms,
-                              Expr eval, const Datatype& dt, size_t i, size_t j ) {
-  const DatatypeConstructor& ctor = dt[j];
-  Debug("parser-sygus") << "Sygus : process constructor " << j << " : " << dt[j] << std::endl;
-  std::vector<Expr> bvs, extraArgs;
-  for(size_t k = 0; k < ctor.getNumArgs(); ++k) {
-    std::string vname = "v_" + ctor[k].getName();
-    Expr bv = getExprManager()->mkBoundVar(vname, SelectorType(ctor[k].getType()).getRangeType());
-    bvs.push_back(bv);
-    extraArgs.push_back(bv);
-  }
-  if( !terms[0].isNull() ){
-    bvs.insert(bvs.end(), terms[0].begin(), terms[0].end());
-  }
-  Expr bvl;
-  if( !bvs.empty() ){
-    bvl = getExprManager()->mkExpr(kind::BOUND_VAR_LIST, bvs);
-  }
-  Debug("parser-sygus") << "...made bv list " << bvl << std::endl;
-  std::vector<Expr> patv;
-  patv.push_back(eval);
-  std::vector<Expr> applyv;
-  applyv.push_back(ctor.getConstructor());
-  applyv.insert(applyv.end(), extraArgs.begin(), extraArgs.end());
-  for(size_t k = 0; k < applyv.size(); ++k) {
-  }
-  Expr cpatv = getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, applyv);
-  Debug("parser-sygus") << "...made eval ctor apply " << cpatv << std::endl;
-  patv.push_back(cpatv);
-  if( !terms[0].isNull() ){
-    patv.insert(patv.end(), terms[0].begin(), terms[0].end());
-  }
-  Expr evalApply = getExprManager()->mkExpr(kind::APPLY_UF, patv);
-  Debug("parser-sygus") << "...made eval apply " << evalApply << std::endl;
-  std::vector<Expr> builtApply;
-  for(size_t k = 0; k < extraArgs.size(); ++k) {
-    std::vector<Expr> patvb;
-    patvb.push_back(evals[DatatypeType(extraArgs[k].getType())]);
-    patvb.push_back(extraArgs[k]);
-    if( !terms[0].isNull() ){
-      patvb.insert(patvb.end(), terms[0].begin(), terms[0].end());
-    }
-    Debug("parser-sygus-debug") << "...add to built apply " << evals[DatatypeType(extraArgs[k].getType())] << " " << extraArgs[k] << " " << extraArgs[k].getType() << std::endl;
-    builtApply.push_back(getExprManager()->mkExpr(kind::APPLY_UF, patvb));
-    Debug("parser-sygus-debug") << "...added " << builtApply.back() << std::endl;
-  }
-  for(size_t k = 0; k < builtApply.size(); ++k) {
-  }
-  Expr builtTerm;
-  Debug("parser-sygus") << "...operator is : " << ops[i][j] << ", type = " << ops[i][j].getType() << ", kind = " << ops[i][j].getKind() << ", is defined = " << isDefinedFunction( ops[i][j] ) << std::endl;
-  if( ops[i][j].getKind() != kind::BUILTIN ){
-    Kind ok = kind::UNDEFINED_KIND;
-    if( isDefinedFunction( ops[i][j] ) || std::find( d_sygus_defined_funs.begin(), d_sygus_defined_funs.end(), ops[i][j] )!=d_sygus_defined_funs.end() ){
-      ok = kind::APPLY;
-    }else{
-      Type t = ops[i][j].getType();
-      if( t.isConstructor() ){
-        ok = kind::APPLY_CONSTRUCTOR;
-      }else if( t.isSelector() ){
-        ok = kind::APPLY_SELECTOR;
-      }else if( t.isTester() ){
-        ok = kind::APPLY_TESTER;
-      }else{
-        ok = getExprManager()->operatorToKind( ops[i][j] );
-      }
-    }
-    Debug("parser-sygus") << "...processed operator kind : " << ok << std::endl;
-    if( ok!=kind::UNDEFINED_KIND ){
-      builtTerm = getExprManager()->mkExpr(ok, ops[i][j], builtApply);
-    }else{
-      builtTerm = ops[i][j];
-    }
-  }else{
-    if( !builtApply.empty() ){
-      builtTerm = getExprManager()->mkExpr(ops[i][j], builtApply);
-    }else{
-      builtTerm = ops[i][j];
-    }
-  }
-  Debug("parser-sygus") << "...made built term " << builtTerm << std::endl;
-  Expr assertion = getExprManager()->mkExpr(kind::EQUAL, evalApply, builtTerm);
-  if( !bvl.isNull() ){
-    Expr pattern = getExprManager()->mkExpr(kind::INST_PATTERN, evalApply);
-    pattern = getExprManager()->mkExpr(kind::INST_PATTERN_LIST, pattern);
-    assertion = getExprManager()->mkExpr(kind::FORALL, bvl, assertion, pattern);
-  }
-  Debug("parser-sygus") << "...made assertion " << assertion << std::endl;
-
-  //linearize multiplication if possible
-  if( builtTerm.getKind()==kind::MULT ){
-    for(size_t k = 0; k < ctor.getNumArgs(); ++k) {
-      Type at = SelectorType(ctor[k].getType()).getRangeType();
-      if( at.isDatatype() ){
-        DatatypeType atd = (DatatypeType)SelectorType(ctor[k].getType()).getRangeType();
-        Debug("parser-sygus") << "Argument " << k << " " << atd << std::endl;
-        std::vector<DatatypeType>::iterator itd = std::find( datatypeTypes.begin(), datatypeTypes.end(), atd );
-        if( itd!=datatypeTypes.end() ){
-          Debug("parser-sygus2") << "Exists in datatypeTypes." << std::endl;
-          unsigned index = itd-datatypeTypes.begin();
-          Debug("parser-sygus2") << "index = " << index << std::endl;
-          bool isConst = true;
-          for( unsigned cc = 0; cc < ops[index].size(); cc++ ){
-            Debug("parser-sygus2") << "ops[" << cc << "]=" << ops[index][cc] << std::endl;
-            if( ops[index][cc].getKind() != kind::CONST_RATIONAL ){
-              isConst = false;
-              break;
-            }
-          }
-          if( isConst ){
-            Debug("parser-sygus") << "Linearize multiplication " << ctor << " based on argument " << k << std::endl;
-            const Datatype & atdd = atd.getDatatype();
-            std::vector<Expr> assertions;
-            std::vector<Expr> nbvs;
-            for( unsigned a=0; a<bvl.getNumChildren(); a++ ){
-              if( a!=k ){
-                nbvs.push_back( bvl[a] );
-              }
-            }
-            Expr nbvl = getExprManager()->mkExpr( kind::BOUND_VAR_LIST, nbvs );
-            for( unsigned cc = 0; cc < ops[index].size(); cc++ ){
-              //Make new assertion based on partially instantiating existing
-              applyv[k+1] = getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, atdd[cc].getConstructor());
-              Debug("parser-sygus") << "applyv " << applyv[k+1] << std::endl;
-              cpatv = getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, applyv);
-              Debug("parser-sygus") << "cpatv " << cpatv << std::endl;
-              patv[1] = cpatv;
-              evalApply = getExprManager()->mkExpr(kind::APPLY_UF, patv);
-              Debug("parser-sygus") << "evalApply " << evalApply << std::endl;
-              builtApply[k] = ops[index][cc];
-              Debug("parser-sygus") << "builtApply " << builtApply[k] << std::endl;
-              builtTerm = getExprManager()->mkExpr(ops[i][j], builtApply);
-              Debug("parser-sygus") << "builtTerm " << builtTerm << std::endl;
-              Expr eassertion = getExprManager()->mkExpr(kind::EQUAL, evalApply, builtTerm);
-              Expr epattern = getExprManager()->mkExpr(kind::INST_PATTERN, evalApply);
-              epattern = getExprManager()->mkExpr(kind::INST_PATTERN_LIST, epattern);
-              eassertion = getExprManager()->mkExpr(kind::FORALL, nbvl, eassertion, epattern);
-              assertions.push_back( eassertion );
-            }
-            assertion = assertions.size()==1 ? assertions[0] : getExprManager()->mkExpr( kind::AND, assertions );
-            Debug("parser-sygus") << "...(linearized) assertion is: " << assertion << std::endl;
-          }
-        }
-      }
-    }
-  }
-  return assertion;
+  return getExprManager()->mkExpr(kind::BOUND_VAR_LIST, lvars);
 }
 
 const void Smt2::getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed ) {
@@ -1532,6 +1192,22 @@ const void Smt2::getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed ) {
       //should never happen
     }
   }
+}
+
+const void Smt2::addSygusFunSymbol( Type t, Expr synth_fun ){
+  // When constructing the synthesis conjecture, we quantify on the
+  // (higher-order) bound variable synth_fun.
+  d_sygusFunSymbols.push_back(synth_fun);
+
+  // Variable "sfproxy" carries the type, which may be a SyGuS datatype
+  // that corresponds to syntactic restrictions.
+  Expr sym = mkBoundVar("sfproxy", t);
+  std::vector< Expr > attr_value;
+  attr_value.push_back(sym);
+  Command* cattr =
+      new SetUserAttributeCommand("sygus-synth-grammar", synth_fun, attr_value);
+  cattr->setMuted(true);
+  preemptCommand(cattr);
 }
 
 }/* CVC4::parser namespace */

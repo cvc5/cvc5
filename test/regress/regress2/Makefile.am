@@ -43,8 +43,9 @@ TESTS =	bug136.smt \
 	FIREFLY_3_e2_2236_e7_3681.ec.minimized.smt2 \
 	xs-09-16-3-4-1-5.smt \
 	xs-09-16-3-4-1-5.decn.smt \
-	uflia-error0.smt2
-
+	uflia-error0.smt2 \
+	bug812.smt2
+ 
 EXTRA_DIST = $(TESTS) \
 	FIREFLY_3_e2_2236_e7_3681.ec.minimized.smt2.expect \
 	uflia-error0.smt2.expect \

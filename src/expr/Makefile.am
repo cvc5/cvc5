@@ -1,6 +1,17 @@
+# if coverage is enabled:
+# COVERAGE_ON = yes from configure.ac
+# Using an inline conditional function to choose between absolute and
+# relative paths for options files
+# lcov does not support relative paths and src/options and src/expr
+# in particular were breaking it
+# Building with coverage will cause portability issues in some cases
+
+VPATH = $(if $(COVERAGE_ON), $(realpath @srcdir@), @srcdir@)
+
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
-	-I@builddir@/.. -I@srcdir@/../include -I@srcdir@/..
+	$(if $(COVERAGE_ON), -I@abs_builddir@/.. -I@abs_srcdir@/../include -I@abs_srcdir@/.., \
+	-I@builddir@/.. -I@srcdir@/../include -I@srcdir@/..)
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
 noinst_LTLIBRARIES = libexpr.la
@@ -15,7 +26,6 @@ libexpr_la_SOURCES = \
 	attribute.cpp \
 	attribute_internals.h \
 	attribute_unique_id.h \
-	convenience_node_builders.h \
 	chain.h \
 	emptyset.cpp \
 	emptyset.h \
@@ -50,8 +60,6 @@ libexpr_la_SOURCES = \
 	variable_type_map.h \
 	datatype.h \
 	datatype.cpp \
-	predicate.h \
-	predicate.cpp \
 	record.cpp \
 	record.h \
 	uninterpreted_constant.cpp \
@@ -59,7 +67,9 @@ libexpr_la_SOURCES = \
 
 nodist_libexpr_la_SOURCES = \
 	kind.h \
+	kind.cpp \
 	metakind.h \
+	metakind.cpp \
 	type_properties.h \
 	expr.h \
 	expr.cpp \
@@ -75,7 +85,9 @@ EXTRA_DIST = \
 	datatype.i \
 	emptyset.i \
 	kind_template.h \
+	kind_template.cpp \
 	metakind_template.h \
+	metakind_template.cpp \
 	type_properties_template.h \
 	expr_manager_template.h \
 	expr_manager_template.cpp \
@@ -92,13 +104,14 @@ EXTRA_DIST = \
 	kind.i \
 	expr.i \
 	record.i \
-	predicate.i \
 	variable_type_map.i \
 	uninterpreted_constant.i
 
 BUILT_SOURCES = \
 	kind.h \
+	kind.cpp \
 	metakind.h \
+	metakind.cpp \
 	type_properties.h \
 	expr.h \
 	expr.cpp \
@@ -109,7 +122,9 @@ BUILT_SOURCES = \
 
 CLEANFILES = \
 	kind.h \
+	kind.cpp \
 	metakind.h \
+	metakind.cpp \
 	expr.h \
 	expr.cpp \
 	expr_manager.h \
@@ -121,13 +136,13 @@ CLEANFILES = \
 $(top_builddir)/src/expr/.subdirs: $(top_srcdir)/src/Makefile.theories  @top_srcdir@/src/mksubdirs
 	$(AM_V_at)test -d $(top_builddir)/src/expr || mkdir $(top_builddir)/src/expr
 	$(AM_V_at)chmod +x @top_srcdir@/src/mksubdirs
-	$(AM_V_at)( @top_srcdir@/src/mksubdirs "$(top_srcdir)" ) > $(top_builddir)/src/expr/.subdirs.tmp
+	$(AM_V_at)( @top_srcdir@/src/mksubdirs $(if $(COVERAGE_ON), "$(abs_top_srcdir)", "$(top_srcdir)")) > $(top_builddir)/src/expr/.subdirs.tmp
 	@if ! diff -q $(top_builddir)/src/expr/.subdirs $(top_builddir)/src/expr/.subdirs.tmp &>/dev/null; then \
 		echo "  GEN   " $@; \
 		$(am__mv) $(top_builddir)/src/expr/.subdirs.tmp $(top_builddir)/src/expr/.subdirs; \
 	fi
 
-kind.h: kind_template.h mkkind @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
+kind.h: kind_template.h mkkind @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkkind
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkkind \
@@ -135,7 +150,15 @@ kind.h: kind_template.h mkkind @top_builddir@/src/expr/.subdirs @top_srcdir@/src
 		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-metakind.h: metakind_template.h mkmetakind @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
+kind.cpp: kind_template.cpp mkkind @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
+	$(AM_V_at)chmod +x @srcdir@/mkkind
+	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
+	$(AM_V_GEN)(@srcdir@/mkkind \
+		$< \
+		`cat @top_builddir@/src/expr/.subdirs` \
+	> $@) || (rm -f $@ && exit 1)
+
+metakind.h: metakind_template.h mkmetakind @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkmetakind
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkmetakind \
@@ -143,7 +166,15 @@ metakind.h: metakind_template.h mkmetakind @top_builddir@/src/expr/.subdirs @top
 		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-type_properties.h: type_properties_template.h mkkind @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
+metakind.cpp: metakind_template.cpp mkmetakind @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
+	$(AM_V_at)chmod +x @srcdir@/mkmetakind
+	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
+	$(AM_V_GEN)(@srcdir@/mkmetakind \
+		$< \
+		`cat @top_builddir@/src/expr/.subdirs` \
+	> $@) || (rm -f $@ && exit 1)
+
+type_properties.h: type_properties_template.h mkkind @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkkind
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkkind \
@@ -151,7 +182,7 @@ type_properties.h: type_properties_template.h mkkind @top_builddir@/src/expr/.su
 		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-expr.h: expr_template.h mkexpr @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
+expr.h: expr_template.h mkexpr @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
@@ -159,7 +190,7 @@ expr.h: expr_template.h mkexpr @top_builddir@/src/expr/.subdirs @top_srcdir@/src
 		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-expr.cpp: expr_template.cpp mkexpr @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
+expr.cpp: expr_template.cpp mkexpr @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
@@ -167,7 +198,7 @@ expr.cpp: expr_template.cpp mkexpr @top_builddir@/src/expr/.subdirs @top_srcdir@
 		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-expr_manager.h: expr_manager_template.h mkexpr @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
+expr_manager.h: expr_manager_template.h mkexpr @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
@@ -175,7 +206,7 @@ expr_manager.h: expr_manager_template.h mkexpr @top_builddir@/src/expr/.subdirs 
 		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-expr_manager.cpp: expr_manager_template.cpp mkexpr @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
+expr_manager.cpp: expr_manager_template.cpp mkexpr @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
@@ -183,7 +214,7 @@ expr_manager.cpp: expr_manager_template.cpp mkexpr @top_builddir@/src/expr/.subd
 		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-type_checker.cpp: type_checker_template.cpp mkexpr @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
+type_checker.cpp: type_checker_template.cpp mkexpr @top_builddir@/src/expr/.subdirs $(if $(COVERAGE_ON), @abs_top_srcdir@, @top_srcdir@)/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \

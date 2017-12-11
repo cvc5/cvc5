@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,6 +30,7 @@
 #include "context/cdo.h"
 #include "context/cdhashset.h"
 
+
 namespace CVC4 {
 namespace theory {
 
@@ -45,7 +46,8 @@ class StrongSolverTheoryUF;
 class TheoryUF : public Theory {
 
   friend class StrongSolverTheoryUF;
-
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 public:
 
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -125,6 +127,15 @@ private:
   /** The conflict node */
   Node d_conflictNode;
 
+  /** extensionality has been applied to these disequalities */
+  NodeSet d_extensionality_deq;
+
+  /** map from non-standard operators to their skolems */
+  NodeNodeMap d_uf_std_skolem;
+
+  /** node for true */
+  Node d_true;
+
   /**
    * Should be called to propagate the literal. We use a node here
    * since some of the propagated literals are not kept anywhere.
@@ -141,12 +152,6 @@ private:
    * Explain a literal, with proof (if "pf" is non-NULL).
    */
   Node explain(TNode literal, eq::EqProof* pf);
-
-  /** Literals to propagate */
-  context::CDList<Node> d_literalsToPropagate;
-
-  /** Index of the next literal to propagate */
-  context::CDO<unsigned> d_literalsToPropagateIndex;
 
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
@@ -169,6 +174,57 @@ private:
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
+private: // for higher-order
+  /** applyExtensionality 
+   * Given disequality deq 
+   * If not already cached, this sends a lemma of the form 
+   *   f = g V (f k) != (g k) for fresh constant k.
+   * on the output channel.
+   * Return value is the number of lemmas sent.
+   */
+  unsigned applyExtensionality(TNode deq);
+
+  /** check whether extensionality should be applied for any
+   * pair of terms in the equality engine.
+   */
+  unsigned checkExtensionality();
+  
+  /** applyAppCompletion
+   * This infers a correspondence between APPLY_UF and HO_APPLY 
+   * versions of terms for higher-order.
+   * Given APPLY_UF node e.g. (f a b c), this adds the equality to its 
+   * HO_APPLY equivalent:
+   *   (f a b c) == (@ (@ (@ f a) b) c)
+   * to equality engine, if not already equal.
+   * Return value is the number of equalities added.
+   */
+  unsigned applyAppCompletion( TNode n );
+
+  /** check whether app-completion should be applied for any
+   * pair of terms in the equality engine.
+   */
+  unsigned checkAppCompletion();
+
+  /** check higher order
+   * This is called at full effort and infers facts and sends lemmas
+   * based on higher-order reasoning (specifically, extentionality and
+   * app completion above). It returns the number of lemmas plus facts
+   * added to the equality engine.
+  */
+  unsigned checkHigherOrder();
+
+  /** get apply uf for ho apply 
+   * This returns the APPLY_UF equivalent for the HO_APPLY term node, where
+   * node has non-functional return type (that is, it corresponds to a fully
+   * applied function term).
+   * This call may introduce a skolem for the head operator and send out a lemma
+   * specifying the definition.
+  */
+  Node getApplyUfForHoApply( Node node );
+  /** get the operator for this node (node should be either APPLY_UF or HO_APPLY) */
+  Node getOperatorForApplyTerm( TNode node );
+  /** get the starting index of the arguments for node (node should be either APPLY_UF or HO_APPLY) */
+  unsigned getArgumentStartIndexForApplyTerm( TNode node );
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
@@ -181,11 +237,12 @@ public:
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
   void finishInit();
 
-  void check(Effort);
+  void check(Effort);  
+  Node expandDefinition(LogicRequest &logicRequest, Node node);
   void preRegisterTerm(TNode term);
   Node explain(TNode n);
 
-  void collectModelInfo( TheoryModel* m );
+  bool collectModelInfo(TheoryModel* m) override;
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
   void presolve();

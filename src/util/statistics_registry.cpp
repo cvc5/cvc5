@@ -2,9 +2,9 @@
 /*! \file statistics_registry.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King
+ **   Tim King, Paul Meng, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,7 +42,7 @@ inline timespec& operator+=(timespec& a, const timespec& b) {
   CheckArgument(b.tv_nsec >= 0 && b.tv_nsec < nsec_per_sec, b);
   a.tv_sec += b.tv_sec;
   long nsec = a.tv_nsec + b.tv_nsec;
-  assert(nsec >= 0);
+  Assert(nsec >= 0);
   if(nsec < 0) {
     nsec += nsec_per_sec;
     --a.tv_sec;
@@ -51,7 +51,7 @@ inline timespec& operator+=(timespec& a, const timespec& b) {
     nsec -= nsec_per_sec;
     ++a.tv_sec;
   }
-  assert(nsec >= 0 && nsec < nsec_per_sec);
+  Assert(nsec >= 0 && nsec < nsec_per_sec);
   a.tv_nsec = nsec;
   return a;
 }
@@ -73,7 +73,7 @@ inline timespec& operator-=(timespec& a, const timespec& b) {
     nsec -= nsec_per_sec;
     ++a.tv_sec;
   }
-  assert(nsec >= 0 && nsec < nsec_per_sec);
+  Assert(nsec >= 0 && nsec < nsec_per_sec);
   a.tv_nsec = nsec;
   return a;
 }
@@ -179,6 +179,12 @@ void StatisticsRegistry::flushStat(std::ostream &out) const {
 void StatisticsRegistry::flushInformation(std::ostream &out) const {
 #ifdef CVC4_STATISTICS_ON
   this->StatisticsBase::flushInformation(out);
+#endif /* CVC4_STATISTICS_ON */
+}
+
+void StatisticsRegistry::safeFlushInformation(int fd) const {
+#ifdef CVC4_STATISTICS_ON
+  this->StatisticsBase::safeFlushInformation(fd);
 #endif /* CVC4_STATISTICS_ON */
 }
 

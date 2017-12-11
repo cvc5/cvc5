@@ -2,9 +2,9 @@
 /*! \file static_fact_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Tim King, Morgan Deters
+ **   Clark Barrett, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 
 #include <utility>
 #include <vector>
-#include <ext/hash_map>
+#include <unordered_map>
 
 #include "expr/node.h"
 
@@ -33,7 +33,7 @@ namespace arrays {
 
   class StaticFactManager {
   /** Our underlying map type. */
-  typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> MapType;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> MapType;
 
   /**
    * Our map of Nodes to their canonical representatives.

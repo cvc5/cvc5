@@ -2,9 +2,9 @@
 /*! \file tptp_printer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,13 +28,30 @@ namespace printer {
 namespace tptp {
 
 class TptpPrinter : public CVC4::Printer {
-  void toStream(std::ostream& out, const Model& m, const Command* c) const throw();
-public:
+ public:
   using CVC4::Printer::toStream;
-  void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();
-  void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
-  void toStream(std::ostream& out, const CommandStatus* s) const throw();
-  void toStream(std::ostream& out, const Model& m) const throw();
+  void toStream(std::ostream& out,
+                TNode n,
+                int toDepth,
+                bool types,
+                size_t dag) const override;
+  void toStream(std::ostream& out,
+                const Command* c,
+                int toDepth,
+                bool types,
+                size_t dag) const override;
+  void toStream(std::ostream& out, const CommandStatus* s) const override;
+  void toStream(std::ostream& out, const Model& m) const override;
+  /** print unsat core to stream
+  * We use the expression names stored in the SMT engine associated with the unsat core
+  * with UnsatCore::getSmtEngine.
+  */
+  void toStream(std::ostream& out, const UnsatCore& core) const override;
+
+ private:
+  void toStream(std::ostream& out,
+                const Model& m,
+                const Command* c) const override;
 };/* class TptpPrinter */
 
 }/* CVC4::printer::tptp namespace */

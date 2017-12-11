@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,11 +19,11 @@
 #ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 #define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 
-#include <ext/hash_set>
 #include <iostream>
 #include <map>
 
-#include "context/cdchunk_list.h"
+#include "context/cdlist.h"
+#include "expr/attribute.h"
 #include "expr/datatype.h"
 #include "theory/datatypes/datatypes_sygus.h"
 #include "theory/theory.h"
@@ -40,23 +40,25 @@ namespace quantifiers{
 namespace datatypes {
 
 class TheoryDatatypes : public Theory {
-private:
-  typedef context::CDChunkList<Node> NodeList;
-  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
+ private:
+  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
   /** transitive closure to record equivalence/subterm relation.  */
-  //TransitiveClosureNode d_cycle_check;
+  // TransitiveClosureNode d_cycle_check;
   /** has seen cycle */
-  context::CDO< bool > d_hasSeenCycle;
+  context::CDO<bool> d_hasSeenCycle;
   /** inferences */
   NodeList d_infer;
   NodeList d_infer_exp;
   Node d_true;
+  Node d_zero;
   /** mkAnd */
-  Node mkAnd( std::vector< TNode >& assumptions );
-private:
+  Node mkAnd(std::vector<TNode>& assumptions);
+
+ private:
   //notification class for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
     TheoryDatatypes& d_dt;
@@ -136,7 +138,6 @@ private:
   bool hasTester( Node n );
   /** get the possible constructors for n */
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
-  void getSelectorsForCons( Node r, std::map< int, bool >& sels );
   /** mkExpDefSkolem */
   void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );
   /** skolems for terms */
@@ -189,10 +190,8 @@ private:
   unsigned d_dtfCounter;
   /** expand definition skolem functions */
   std::map< TypeNode, std::map< Node, Node > > d_exp_def_skolem;
-  /** sygus utilities */
-  SygusSplit * d_sygus_split;
-  SygusSymBreak * d_sygus_sym_break;
-
+  /** uninterpreted constant to variable map */
+  std::map< Node, Node > d_uc_to_fresh_var;
 private:
   /** singleton lemmas (for degenerate co-datatype case) */
   std::map< TypeNode, Node > d_singleton_lemma[2];
@@ -211,6 +210,7 @@ private:
   void doPendingMerges();
   /** do send lemma */
   bool doSendLemma( Node lem );
+  bool doSendLemmas( std::vector< Node >& lem );
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
 
@@ -256,6 +256,7 @@ public:
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
   void check(Effort e);
+  bool needsCheckLastEffort();
   void preRegisterTerm(TNode n);
   void finishInit();
   Node expandDefinition(LogicRequest &logicRequest, Node n);
@@ -263,7 +264,7 @@ public:
   void presolve();
   void addSharedTerm(TNode t);
   EqualityStatus getEqualityStatus(TNode a, TNode b);
-  void collectModelInfo( TheoryModel* m );
+  bool collectModelInfo(TheoryModel* m) override;
   void shutdown() { }
   std::string identify() const { return std::string("TheoryDatatypes"); }
   /** equality engine */
@@ -284,10 +285,12 @@ private:
   void merge( Node t1, Node t2 );
   /** collapse selector, s is of the form sel( n ) where n = c */
   void collapseSelector( Node s, Node c );
+  /** remove uninterpreted constants */
+  Node removeUninterpretedConstants( Node n, std::map< Node, Node >& visited );
   /** for checking if cycles exist */
   void checkCycles();
   Node searchForCycle( TNode n, TNode on,
-                       std::map< TNode, bool >& visited,
+                       std::map< TNode, bool >& visited, std::map< TNode, bool >& proc,
                        std::vector< TNode >& explanation, bool firstTime = true );
   /** for checking whether two codatatype terms must be equal */
   void separateBisimilar( std::vector< Node >& part, std::vector< std::vector< Node > >& part_out,
@@ -302,8 +305,6 @@ private:
   void collectTerms( Node n );
   /** get instantiate cons */
   Node getInstantiateCons( Node n, const Datatype& dt, int index );
-  /** process new term that was created internally */
-  void processNewTerm( Node n );
   /** check instantiate */
   void instantiate( EqcInfo* eqc, Node n );
   /** must communicate fact */
@@ -319,6 +320,12 @@ private:
   bool areDisequal( TNode a, TNode b );
   bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
+private:
+  /** sygus utilities */
+  SygusSplitNew * d_sygus_split;
+  SygusSymBreakNew * d_sygus_sym_break;
+public:
+  Node getNextDecisionRequest( unsigned& priority );
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */

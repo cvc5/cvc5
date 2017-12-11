@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #define __CVC4__THEORY__THEORY_TEST_UTILS_H
 
 #include <iostream>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -27,6 +28,7 @@
 #include "expr/node.h"
 #include "theory/interrupted.h"
 #include "theory/output_channel.h"
+#include "util/proof.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
@@ -63,85 +65,61 @@ namespace theory {
 
 class TestOutputChannel : public theory::OutputChannel {
 public:
-  std::vector< std::pair<enum OutputChannelCallType, Node> > d_callHistory;
-
   TestOutputChannel() {}
+  ~TestOutputChannel() override {}
 
-  ~TestOutputChannel() {}
-
-  void safePoint(uint64_t ammount)  throw(Interrupted, AssertionException) {}
-
-  void conflict(TNode n, Proof* pf = NULL)
-    throw(AssertionException, UnsafeInterruptException) {
+  void safePoint(uint64_t amount) override {}
+  void conflict(TNode n, std::unique_ptr<Proof> pf) override
+  {
     push(CONFLICT, n);
   }
 
-  bool propagate(TNode n)
-    throw(AssertionException, UnsafeInterruptException) {
+  bool propagate(TNode n) override {
     push(PROPAGATE, n);
     return true;
   }
 
-  void propagateAsDecision(TNode n)
-    throw(AssertionException, UnsafeInterruptException) {
-    push(PROPAGATE_AS_DECISION, n);
-  }
-
-  LemmaStatus lemma(TNode n, ProofRule rule,
-                    bool removable = false,
-                    bool preprocess = false,
-                    bool sendAtoms = false) throw(AssertionException, UnsafeInterruptException) {
+  LemmaStatus lemma(TNode n, ProofRule rule, bool removable = false,
+                    bool preprocess = false, bool sendAtoms = false) override {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
 
-  void requirePhase(TNode, bool) throw(Interrupted, AssertionException, UnsafeInterruptException) {
-  }
+  void requirePhase(TNode, bool) override {}
+  bool flipDecision() override { return true; }
+  void setIncomplete() override {}
+  void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 
-  bool flipDecision() throw(Interrupted, AssertionException, UnsafeInterruptException) {
-    return true;
-  }
-
-  void setIncomplete() throw(AssertionException, UnsafeInterruptException) {
-  }
-
-  void handleUserAttribute( const char* attr, theory::Theory* t ) {
-  }
-
-  void clear() {
-    d_callHistory.clear();
-  }
-
-  LemmaStatus splitLemma(TNode n, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
+  LemmaStatus splitLemma(TNode n, bool removable = false) override {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
 
-  Node getIthNode(int i) {
+  void clear() { d_callHistory.clear(); }
+
+  Node getIthNode(int i) const {
     Node tmp = (d_callHistory[i]).second;
     return tmp;
   }
 
-  OutputChannelCallType getIthCallType(int i) {
+  OutputChannelCallType getIthCallType(int i) const {
     return (d_callHistory[i]).first;
   }
 
-  unsigned getNumCalls() {
-    return d_callHistory.size();
-  }
+  unsigned getNumCalls() const { return d_callHistory.size(); }
 
-  void printIth(std::ostream& os, int i) {
+  void printIth(std::ostream& os, int i) const {
     os << "[TestOutputChannel " << i;
     os << " " << getIthCallType(i);
     os << " " << getIthNode(i) << "]";
   }
 
-private:
-
+ private:
   void push(OutputChannelCallType call, TNode n) {
     d_callHistory.push_back(std::make_pair(call, n));
   }
 
+  std::vector< std::pair<enum OutputChannelCallType, Node> > d_callHistory;
 };/* class TestOutputChannel */
 
 }/* CVC4::theory namespace */

@@ -2,9 +2,9 @@
 /*! \file simple_vc_compat_c.c
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* #include <cvc4/bindings/compat/c/c_interface.h> /* use this after CVC4 is properly installed */
+// Use this after CVC4 is properly installed.
+// #include <cvc4/bindings/compat/c/c_interface.h>
 #include "bindings/compat/c/c_interface.h"
 
 int main() {

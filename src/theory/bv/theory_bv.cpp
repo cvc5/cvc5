@@ -2,9 +2,9 @@
 /*! \file theory_bv.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Dejan Jovanovic
+ **   Liana Hadarean, Andrew Reynolds, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -217,8 +217,8 @@ void TheoryBV::storeFunction(TNode func, TNode term) {
   }
 }
 
-void TheoryBV::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
-  Debug("bv-ackermanize") << "TheoryBV::mkAckermanizationAsssertions\n";
+void TheoryBV::mkAckermanizationAssertions(std::vector<Node>& assertions) {
+  Debug("bv-ackermanize") << "TheoryBV::mkAckermanizationAssertions\n";
 
   Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
   AlwaysAssert(!options::incrementalSolving());
@@ -510,7 +510,8 @@ bool TheoryBV::doExtfInferences( std::vector< Node >& terms ) {
   std::map< Node, Node > op_map;
   for( unsigned j=0; j<terms.size(); j++ ){
     TNode n = terms[j];
-    Assert( n.getKind()==kind::BITVECTOR_TO_NAT || kind::INT_TO_BITVECTOR );
+    Assert (n.getKind() == kind::BITVECTOR_TO_NAT
+            || n.getKind() == kind::INT_TO_BITVECTOR );
     if( n.getKind()==kind::BITVECTOR_TO_NAT ){
       //range lemmas
       if( d_extf_range_infer.find( n )==d_extf_range_infer.end() ){
@@ -575,18 +576,21 @@ bool TheoryBV::doExtfReductions( std::vector< Node >& terms ) {
 bool TheoryBV::needsCheckLastEffort() {
   return d_needsLastCallCheck;
 }
-
-void TheoryBV::collectModelInfo( TheoryModel* m ){
+bool TheoryBV::collectModelInfo(TheoryModel* m)
+{
   Assert(!inConflict());
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    d_eagerSolver->collectModelInfo(m, true);
+    if (!d_eagerSolver->collectModelInfo(m, true))
+    {
+      return false;
+    }
   }
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     if (d_subtheories[i]->isComplete()) {
-      d_subtheories[i]->collectModelInfo(m, true);
-      return;
+      return d_subtheories[i]->collectModelInfo(m, true);
     }
   }
+  return true;
 }
 
 Node TheoryBV::getModelValue(TNode var) {
@@ -797,6 +801,10 @@ Node TheoryBV::ppRewrite(TNode t)
     } else {
       res = t;
     }
+  } else if (RewriteRule<SignExtendEqConst>::applies(t)) {
+    res = RewriteRule<SignExtendEqConst>::run<false>(t);
+  } else if (RewriteRule<ZeroExtendEqConst>::applies(t)) {
+    res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
   }
 
 

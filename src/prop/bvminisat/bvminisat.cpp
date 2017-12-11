@@ -1,15 +1,13 @@
 /*********************                                                        */
 /*! \file bvminisat.cpp
  ** \verbatim
- ** Original author: dejan
- ** Major contributors:
- ** Minor contributors (to current version):
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2014  The Analysis of Computer Systems Group (ACSys)
- ** Courant Institute of Mathematical Sciences
- ** New York University
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Top contributors (to current version):
+ **   Dejan Jovanovic, Liana Hadarean, Tim King
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief SAT Solver.
  **
@@ -42,6 +40,17 @@ BVMinisatSatSolver::BVMinisatSatSolver(StatisticsRegistry* registry, context::Co
 BVMinisatSatSolver::~BVMinisatSatSolver() {
   delete d_minisat;
   delete d_minisatNotify;
+}
+
+void BVMinisatSatSolver::MinisatNotify::notify(
+    BVMinisat::vec<BVMinisat::Lit>& clause)
+{
+  SatClause satClause;
+  for (unsigned i = 0, n = clause.size(); i < n; ++i)
+  {
+    satClause.push_back(toSatLiteral(clause[i]));
+  }
+  d_notify->notify(satClause);
 }
 
 void BVMinisatSatSolver::setNotify(Notify* notify) {
@@ -114,13 +123,16 @@ void BVMinisatSatSolver::interrupt(){
   d_minisat->interrupt();
 }
 
-SatValue BVMinisatSatSolver::solve(){
+SatValue BVMinisatSatSolver::solve()
+{
+  TimerStat::CodeTimer solveTimer(d_statistics.d_statSolveTime);
   ++d_statistics.d_statCallsToSolve;
   return toSatLiteralValue(d_minisat->solve());
 }
 
 SatValue BVMinisatSatSolver::solve(long unsigned int& resource){
   Trace("limit") << "MinisatSatSolver::solve(): have limit of " << resource << " conflicts" << std::endl;
+  TimerStat::CodeTimer solveTimer(d_statistics.d_statSolveTime);
   ++d_statistics.d_statCallsToSolve;
   if(resource == 0) {
     d_minisat->budgetOff();
@@ -224,23 +236,29 @@ void BVMinisatSatSolver::toSatClause(const BVMinisat::Clause& clause,
 
 // Satistics for BVMinisatSatSolver
 
-BVMinisatSatSolver::Statistics::Statistics(StatisticsRegistry* registry, const std::string& prefix)
+BVMinisatSatSolver::Statistics::Statistics(StatisticsRegistry* registry,
+                                           const std::string& prefix)
     : d_registry(registry),
-      d_statStarts("theory::bv::"+prefix+"bvminisat::starts"),
-      d_statDecisions("theory::bv::"+prefix+"bvminisat::decisions"),
-      d_statRndDecisions("theory::bv::"+prefix+"bvminisat::rnd_decisions"),
-      d_statPropagations("theory::bv::"+prefix+"bvminisat::propagations"),
-      d_statConflicts("theory::bv::"+prefix+"bvminisat::conflicts"),
-      d_statClausesLiterals("theory::bv::"+prefix+"bvminisat::clauses_literals"),
-      d_statLearntsLiterals("theory::bv::"+prefix+"bvminisat::learnts_literals"),
-      d_statMaxLiterals("theory::bv::"+prefix+"bvminisat::max_literals"),
-      d_statTotLiterals("theory::bv::"+prefix+"bvminisat::tot_literals"),
-      d_statEliminatedVars("theory::bv::"+prefix+"bvminisat::eliminated_vars"),
-      d_statCallsToSolve("theory::bv::"+prefix+"bvminisat::calls_to_solve", 0),
-      d_statSolveTime("theory::bv::"+prefix+"bvminisat::solve_time", 0),
+      d_statStarts("theory::bv::" + prefix + "bvminisat::starts"),
+      d_statDecisions("theory::bv::" + prefix + "bvminisat::decisions"),
+      d_statRndDecisions("theory::bv::" + prefix + "bvminisat::rnd_decisions"),
+      d_statPropagations("theory::bv::" + prefix + "bvminisat::propagations"),
+      d_statConflicts("theory::bv::" + prefix + "bvminisat::conflicts"),
+      d_statClausesLiterals("theory::bv::" + prefix
+                            + "bvminisat::clauses_literals"),
+      d_statLearntsLiterals("theory::bv::" + prefix
+                            + "bvminisat::learnts_literals"),
+      d_statMaxLiterals("theory::bv::" + prefix + "bvminisat::max_literals"),
+      d_statTotLiterals("theory::bv::" + prefix + "bvminisat::tot_literals"),
+      d_statEliminatedVars("theory::bv::" + prefix
+                           + "bvminisat::eliminated_vars"),
+      d_statCallsToSolve("theory::bv::" + prefix
+                         + "bvminisat::calls_to_solve", 0),
+      d_statSolveTime("theory::bv::" + prefix + "bvminisat::solve_time"),
       d_registerStats(!prefix.empty())
 {
-  if (!d_registerStats){
+  if (!d_registerStats)
+  {
     return;
   }
 

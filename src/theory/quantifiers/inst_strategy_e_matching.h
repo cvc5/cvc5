@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -110,23 +110,6 @@ public:
   /** add pattern */
   void addUserNoPattern( Node q, Node pat );
 };/* class InstStrategyAutoGenTriggers */
-
-class FullSaturation : public QuantifiersModule {
-private:
-  /** guessed instantiations */
-  std::map< Node, bool > d_guessed;
-  /** process functions */
-  bool process( Node q, bool fullEffort );
-public:
-  FullSaturation( QuantifiersEngine* qe );
-  ~FullSaturation(){}
-  bool needsCheck( Theory::Effort e );
-  void reset_round( Theory::Effort e );
-  void check( Theory::Effort e, unsigned quant_e );
-  void registerQuantifier( Node q );
-  /** identify */
-  std::string identify() const { return std::string("FullSaturation"); }
-};/* class FullSaturation */
 
 
 }

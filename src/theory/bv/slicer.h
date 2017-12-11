@@ -2,9 +2,9 @@
 /*! \file slicer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King
+ **   Liana Hadarean, Paul Meng, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,7 @@
 
 #include <vector>
 #include <list>
-#include <ext/hash_map>
+#include <unordered_map>
 
 #include "expr/node.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -79,7 +79,7 @@ public:
  * UnionFind
  * 
  */
-typedef __gnu_cxx::hash_set<TermId> TermSet;
+typedef std::unordered_set<TermId> TermSet;
 typedef std::vector<TermId> Decomposition; 
 
 struct ExtractTerm {
@@ -226,9 +226,9 @@ public:
 };
 
 class Slicer {
-  __gnu_cxx::hash_map<TermId, TNode> d_idToNode;
-  __gnu_cxx::hash_map<TNode, TermId, TNodeHashFunction> d_nodeToId;
-  __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> d_coreTermCache;
+  std::unordered_map<TermId, TNode> d_idToNode;
+  std::unordered_map<TNode, TermId, TNodeHashFunction> d_nodeToId;
+  std::unordered_map<TNode, bool, TNodeHashFunction> d_coreTermCache;
   UnionFind d_unionFind;
   ExtractTerm registerTerm(TNode node); 
 public:

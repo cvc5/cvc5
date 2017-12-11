@@ -2,9 +2,9 @@
 /*! \file input.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Tim King
+ **   Christopher L. Conway, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -139,9 +139,6 @@ public:
 
   /** Destructor. Frees the input stream and closes the input. */
   virtual ~Input();
-
-  /** Retrieve the remaining text in this input. */
-  virtual std::string getUnparsedText() = 0;
 
   /** Get the language that this Input is reading. */
   virtual InputLanguage getLanguage() const throw() = 0;

@@ -2,7 +2,7 @@
 (set-info :status sat)
 
 ; Tree type
-(declare-datatypes () ((Tree (node (data Int) (color Bool) (left Tree) (right Tree)) (nil))))
+(declare-datatypes ((Tree 0)) (((node (data Int) (color Bool) (left Tree) (right Tree)) (nil))))
 
 ; content function
 (declare-fun size (Tree) Int)

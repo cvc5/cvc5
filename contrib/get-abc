@@ -2,7 +2,7 @@
 #
 set -e
 
-commit=3c5d3319120b
+commit=53f39c11b58d
 
 cd "$(dirname "$0")/.."
 
@@ -39,9 +39,6 @@ gunzip -f abc-$commit.tar.gz
 tar xfv abc-$commit.tar
 cd alanmi-abc-$commit
 
-cp src/base/main/main.c src/base/main/main.c.orig
-sed 's,^// *#define ABC_LIB *$,#define ABC_LIB,' src/base/main/main.c.orig > src/base/main/main.c
-
 # Strip out libSupport.c, it is in charge of loading extensions and we
 # don't want different behavior based on ABC_LIB_PATH, or based on what
 # .so is in the current directory!
@@ -52,10 +49,10 @@ sed 's,\( *\)\(.*Libs_Init(\),\1//\2,;s,\( *\)\(.*Libs_End(\),\1//\2,' src/base/
 
 # Build optimized, without readline, without pthreads.
 # These aren't necessary for our usage and we don't want the dependencies.
-make libabc.a OPTFLAGS=-O READLINE=0 PTHREADS=0
+make libabc.a OPTFLAGS=-O ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1
 mv libabc.a libabc-static.a
 make clean
-make libabc.a OPTFLAGS='-O -fPIC' READLINE=0 PTHREADS=0
+make libabc.a OPTFLAGS='-O -fPIC' ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1
 
 echo
 echo ===================== Now configure CVC4 with =====================

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include "expr/type_node.h"
 #include "expr/expr.h"
 #include "theory/rewriter.h"
+#include "theory/builtin/theory_builtin_rewriter.h" // for array and lambda representation
 
 #include <sstream>
 
@@ -76,7 +77,7 @@ class EqualityTypeRule {
     if( check ) {
       TypeNode lhsType = n[0].getType(check);
       TypeNode rhsType = n[1].getType(check);
-
+      
       if ( TypeNode::leastCommonTypeNode(lhsType, rhsType).isNull() ) {
         std::stringstream ss;
         ss << "Subexpressions must have a common base type:" << std::endl;
@@ -86,6 +87,7 @@ class EqualityTypeRule {
 
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
+      // TODO : check isFirstClass for these types? (github issue #1202)
     }
     return booleanType;
   }
@@ -158,7 +160,72 @@ public:
     TypeNode rangeType = n[1].getType(check);
     return nodeManager->mkFunctionType(argTypes, rangeType);
   }
+  // computes whether a lambda is a constant value, via conversion to array representation
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+    throw (AssertionException) {
+    Assert(n.getKind() == kind::LAMBDA);
+    //get array representation of this function, if possible
+    Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda( n, true );
+    if( !na.isNull() ){
+      Assert( na.getType().isArray() );
+      Trace("lambda-const") << "Array representation for " << n << " is " << na << " " << na.getType() << std::endl;
+      // must have the standard bound variable list
+      Node bvl = NodeManager::currentNM()->getBoundVarListForFunctionType( n.getType() );
+      if( bvl==n[0] ){
+        //array must be constant
+        if( na.isConst() ){
+          Trace("lambda-const") << "*** Constant lambda : " << n;
+          Trace("lambda-const") << " since its array representation : " << na << " is constant." << std::endl;
+          return true;
+        }else{
+          Trace("lambda-const") << "Non-constant lambda : " << n << " since array is not constant." << std::endl;
+        } 
+      }else{
+        Trace("lambda-const") << "Non-constant lambda : " << n << " since its varlist is not standard." << std::endl;
+        Trace("lambda-const") << "  standard : " << bvl << std::endl;
+        Trace("lambda-const") << "   current : " << n[0] << std::endl;
+      } 
+    }else{
+      Trace("lambda-const") << "Non-constant lambda : " << n << " since it has no array representation." << std::endl;
+    } 
+    return false;
+  }
 };/* class LambdaTypeRule */
+
+class ChoiceTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    if (n[0].getType(check) != nodeManager->boundVarListType())
+    {
+      std::stringstream ss;
+      ss << "expected a bound var list for CHOICE expression, got `"
+         << n[0].getType().toString() << "'";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (n[0].getNumChildren() != 1)
+    {
+      std::stringstream ss;
+      ss << "expected a bound var list with one argument for CHOICE expression";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (check)
+    {
+      TypeNode rangeType = n[1].getType(check);
+      if (!rangeType.isBoolean())
+      {
+        std::stringstream ss;
+        ss << "expected a body of a CHOICE expression to have Boolean type";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+    // The type of a choice function is the type of its bound variable.
+    return n[0][0].getType();
+  }
+}; /* class ChoiceTypeRule */
 
 class ChainTypeRule {
 public:
@@ -298,26 +365,6 @@ public:
     return NodeManager::currentNM()->mkNode(kind::SEXPR, children);
   }
 };/* class SExprProperties */
-
-class SubtypeProperties {
-public:
-
-  inline static Cardinality computeCardinality(TypeNode type) {
-    Assert(type.getKind() == kind::SUBTYPE_TYPE);
-    Unimplemented("Computing the cardinality for predicate subtype not yet supported.");
-  }
-
-  inline static bool isWellFounded(TypeNode type) {
-    Assert(type.getKind() == kind::SUBTYPE_TYPE);
-    Unimplemented("Computing the well-foundedness for predicate subtype not yet supported.");
-  }
-
-  inline static Node mkGroundTerm(TypeNode type) {
-    Assert(type.getKind() == kind::SUBTYPE_TYPE);
-    Unimplemented("Constructing a ground term for predicate subtype not yet supported.");
-  }
-
-};/* class SubtypeProperties */
 
 }/* CVC4::theory::builtin namespace */
 }/* CVC4::theory namespace */

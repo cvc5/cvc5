@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -155,10 +155,11 @@
 #ifndef __CVC4__NODE_BUILDER_H
 #define __CVC4__NODE_BUILDER_H
 
-#include <iostream>
-#include <vector>
 #include <cstdlib>
+#include <iostream>
+#include <memory>
 #include <stdint.h>
+#include <vector>
 
 namespace CVC4 {
   static const unsigned default_nchild_thresh = 10;
@@ -171,19 +172,12 @@ namespace CVC4 {
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
-#include "base/ptr_closer.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
 
 
 namespace CVC4 {
-
-/* see expr/convenience_node_builders.h */
-class AndNodeBuilder;
-class OrNodeBuilder;
-class PlusNodeBuilder;
-class MultNodeBuilder;
 
 // Sometimes it's useful for debugging to output a NodeBuilder that
 // isn't yet a Node..
@@ -728,11 +722,6 @@ public:
   NodeBuilder<nchild_thresh>& operator-=(TNode);
   NodeBuilder<nchild_thresh>& operator*=(TNode);
 
-  friend class AndNodeBuilder;
-  friend class OrNodeBuilder;
-  friend class PlusNodeBuilder;
-  friend class MultNodeBuilder;
-
   // This is needed for copy constructors of different sizes to access
   // private fields
   template <unsigned N>
@@ -890,14 +879,14 @@ template <unsigned nchild_thresh>
 Node* NodeBuilder<nchild_thresh>::constructNodePtr() {
   // maybeCheckType() can throw an exception. Make sure to call the destructor
   // on the exception branch.
-  PtrCloser<Node> np(new Node(constructNV()));
+  std::unique_ptr<Node> np(new Node(constructNV()));
   maybeCheckType(*np.get());
   return np.release();
 }
 
 template <unsigned nchild_thresh>
 Node* NodeBuilder<nchild_thresh>::constructNodePtr() const {
-  PtrCloser<Node> np(new Node(constructNV()));
+  std::unique_ptr<Node> np(new Node(constructNV()));
   maybeCheckType(*np.get());
   return np.release();
 }
@@ -933,7 +922,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
   // file comments at the top of this file.
 
   // Case 0: If a VARIABLE
-  if(getMetaKind() == kind::metakind::VARIABLE) {
+  if(getMetaKind() == kind::metakind::VARIABLE || getMetaKind() == kind::metakind::NULLARY_OPERATOR) {
     /* 0. If a VARIABLE, treat similarly to 1(b), except that we know
      * there are no children (no reference counts to reason about),
      * and we don't keep VARIABLE-kinded Nodes in the NodeManager
@@ -1123,7 +1112,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
   // file comments at the top of this file.
 
   // Case 0: If a VARIABLE
-  if(getMetaKind() == kind::metakind::VARIABLE) {
+  if(getMetaKind() == kind::metakind::VARIABLE || getMetaKind() == kind::metakind::NULLARY_OPERATOR) {
     /* 0. If a VARIABLE, treat similarly to 1(b), except that we know
      * there are no children (no reference counts to reason about),
      * and we don't keep VARIABLE-kinded Nodes in the NodeManager
@@ -1313,7 +1302,8 @@ void NodeBuilder<nchild_thresh>::internalCopy(const NodeBuilder<N>& nb) {
   }
 
   Assert(nb.d_nvMaxChildren <= d_nvMaxChildren);
-  Assert(nb.d_nv->nv_end() - nb.d_nv->nv_begin() <= d_nvMaxChildren, "realloced:%s, d_nvMax:%u, size:%u, nc:%u", realloced ? "true" : "false", d_nvMaxChildren, nb.d_nv->nv_end() - nb.d_nv->nv_begin(), nb.d_nv->getNumChildren());
+  Assert(nb.d_nv->nv_end() >= nb.d_nv->nv_begin());
+  Assert((size_t)(nb.d_nv->nv_end() - nb.d_nv->nv_begin()) <= d_nvMaxChildren, "realloced:%s, d_nvMax:%u, size:%u, nc:%u", realloced ? "true" : "false", d_nvMaxChildren, nb.d_nv->nv_end() - nb.d_nv->nv_begin(), nb.d_nv->getNumChildren());
   std::copy(nb.d_nv->nv_begin(),
             nb.d_nv->nv_end(),
             d_nv->nv_begin());
@@ -1336,6 +1326,7 @@ inline void NodeBuilder<nchild_thresh>::maybeCheckType(const TNode n) const
   if( d_nm->getOptions()[options::earlyTypeChecking] ) {
     kind::MetaKind mk = n.getMetaKind();
     if( mk != kind::metakind::VARIABLE
+        && mk != kind::metakind::NULLARY_OPERATOR
         && mk != kind::metakind::CONSTANT ) {
       d_nm->getType(n, true);
     }

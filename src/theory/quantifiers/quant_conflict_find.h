@@ -2,9 +2,9 @@
 /*! \file quant_conflict_find.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Tim King, Andrew Reynolds
+ **   Clark Barrett, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,10 +17,13 @@
 #ifndef QUANT_CONFLICT_FIND
 #define QUANT_CONFLICT_FIND
 
+#include <ostream>
+#include <vector>
+
 #include "context/cdhashmap.h"
-#include "context/cdchunk_list.h"
-#include "theory/quantifiers_engine.h"
+#include "context/cdlist.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -188,7 +191,6 @@ class QuantConflictFind : public QuantifiersModule
 {
   friend class MatchGen;
   friend class QuantInfo;
-  typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
   context::CDO< bool > d_conflict;
@@ -202,7 +204,6 @@ private:
   void setIrrelevantFunction( TNode f );
 private:
   std::map< Node, Node > d_op_node;
-  int d_fid_count;
   std::map< Node, int > d_fid;
   Node mkEqNode( Node a, Node b );
 public:  //for ground terms
@@ -214,14 +215,23 @@ private:
 private:  //for equivalence classes
   // type -> list(eqc)
   std::map< TypeNode, std::vector< TNode > > d_eqcs;
-public:
-  enum {
-    effort_conflict,
-    effort_prop_eq,
+
+ public:
+  enum Effort : unsigned {
+    EFFORT_CONFLICT,
+    EFFORT_PROP_EQ,
+    EFFORT_INVALID,
   };
-  short d_effort;
-  void setEffort( int e ) { d_effort = e; }
-  static short getMaxQcfEffort();
+  void setEffort(Effort e) { d_effort = e; }
+
+  inline bool atConflictEffort() const {
+    return d_effort == QuantConflictFind::EFFORT_CONFLICT;
+  }
+
+ private:
+  Effort d_effort;
+
+ public:
   bool areMatchEqual( TNode n1, TNode n2 );
   bool areMatchDisequal( TNode n1, TNode n2 );
 public:
@@ -243,8 +253,9 @@ public:
   /** reset round */
   void reset_round( Theory::Effort level );
   /** check */
-  void check( Theory::Effort level, unsigned quant_e );
-private:
+  void check(Theory::Effort level, QEffort quant_e);
+
+ private:
   bool d_needs_computeRelEqr;
 public:
   void computeRelevantEqr();
@@ -268,6 +279,8 @@ public:
   /** Identify this module */
   std::string identify() const { return "QcfEngine"; }
 };
+
+std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);
 
 } /* namespace CVC4::theory::quantifiers */
 } /* namespace CVC4::theory */

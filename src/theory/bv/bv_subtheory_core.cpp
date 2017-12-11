@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -238,8 +238,7 @@ void CoreSolver::buildModel() {
     TNode repr = *eqcs_i;
     ++eqcs_i;
 
-    if (repr.getKind() != kind::VARIABLE &&
-        repr.getKind() != kind::SKOLEM &&
+    if (!repr.isVar() &&
         repr.getKind() != kind::CONST_BITVECTOR &&
         !d_bv->isSharedTerm(repr)) {
       continue;
@@ -397,7 +396,8 @@ bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
   return utils::isEqualityTerm(term, seen); 
 }
 
-void CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
+bool CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel)
+{
   if (d_useSlicer) {
     Unreachable(); 
   }
@@ -410,17 +410,24 @@ void CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
   }
   set<Node> termSet;
   d_bv->computeRelevantTerms(termSet);
-  m->assertEqualityEngine(&d_equalityEngine, &termSet);
+  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
+  {
+    return false;
+  }
   if (isComplete()) {
     Debug("bitvector-model") << "CoreSolver::collectModelInfo complete.";
     for (ModelValue::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
       Node a = it->first;
       Node b = it->second;
       Debug("bitvector-model") << "CoreSolver::collectModelInfo modelValues "
-                               << a << " => " << b <<")\n"; 
-      m->assertEquality(a, b, true);
+                               << a << " => " << b <<")\n";
+      if (!m->assertEquality(a, b, true))
+      {
+        return false;
+      }
     }
   }
+  return true;
 }
 
 Node CoreSolver::getModelValue(TNode var) {

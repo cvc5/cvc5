@@ -2,9 +2,9 @@
 /*! \file modal_exception.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Paul Meng, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -41,6 +41,20 @@ public:
     Exception(msg) {
   }
 };/* class ModalException */
+
+/**
+ * Special case of ModalException that allows the execution of the solver to
+ * continue.
+ *
+ * TODO(#1108): This exception should not be needed anymore in future versions
+ * of the public API.
+ */
+class CVC4_PUBLIC RecoverableModalException : public CVC4::ModalException {
+ public:
+  RecoverableModalException(const std::string& msg) : ModalException(msg) {}
+
+  RecoverableModalException(const char* msg) : ModalException(msg) {}
+}; /* class RecoverableModalException */
 
 }/* CVC4 namespace */
 

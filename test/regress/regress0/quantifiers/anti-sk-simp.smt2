@@ -1,4 +1,4 @@
-; COMMAND-LINE: --quant-anti-skolem
+; COMMAND-LINE: --cbqi --quant-anti-skolem
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)

@@ -34,6 +34,7 @@ libutil_la_SOURCES = \
 	floatingpoint.h \
 	gmp_util.h \
 	hash.h \
+	index.cpp \
 	index.h \
 	maybe.h \
 	ntuple.h \
@@ -43,7 +44,11 @@ libutil_la_SOURCES = \
 	resource_manager.cpp \
 	resource_manager.h \
 	result.cpp \
+	random.h \
+	random.cpp \
 	result.h \
+	safe_print.cpp \
+	safe_print.h \
 	sexpr.cpp \
 	sexpr.h \
 	smt2_quote_string.cpp \
@@ -52,8 +57,6 @@ libutil_la_SOURCES = \
 	statistics.h \
 	statistics_registry.cpp \
 	statistics_registry.h \
-	subrange_bound.cpp \
-	subrange_bound.h \
 	tuple.h \
 	unsafe_interrupt_exception.h \
 	utility.h
@@ -99,7 +102,6 @@ EXTRA_DIST = \
 	result.i \
 	sexpr.i \
 	statistics.i \
-	subrange_bound.i \
 	tuple.i \
 	unsafe_interrupt_exception.i
 

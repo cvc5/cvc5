@@ -2,9 +2,9 @@
 /*! \file theory_sets.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Morgan Deters
+ **   Kshitij Bansal, Andrew Reynolds, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -39,15 +39,20 @@ void TheorySets::addSharedTerm(TNode n) {
 }
 
 void TheorySets::check(Effort e) {
-  if (done() && !fullEffort(e)) {
+  if (done() && e < Theory::EFFORT_FULL) {
     return;
   }
   TimerStat::CodeTimer checkTimer(d_checkTime);
   d_internal->check(e);
 }
 
-void TheorySets::collectModelInfo(TheoryModel* m) {
-  d_internal->collectModelInfo(m);
+bool TheorySets::needsCheckLastEffort() {
+  return d_internal->needsCheckLastEffort();
+}
+
+bool TheorySets::collectModelInfo(TheoryModel* m)
+{
+  return d_internal->collectModelInfo(m);
 }
 
 void TheorySets::computeCareGraph() {
@@ -68,6 +73,14 @@ Node TheorySets::getModelValue(TNode node) {
 
 void TheorySets::preRegisterTerm(TNode node) {
   d_internal->preRegisterTerm(node);
+}
+
+Node TheorySets::expandDefinition(LogicRequest &logicRequest, Node n) {
+  return d_internal->expandDefinition(logicRequest, n);
+}
+
+Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
+  return d_internal->ppAssert( in, outSubstitutions );
 }
 
 void TheorySets::presolve() {

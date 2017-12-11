@@ -2,9 +2,9 @@
 /*! \file statistics.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 
 #include <typeinfo>
 
+#include "util/safe_print.h"
 #include "util/statistics_registry.h" // for details about class Stat
 
 
@@ -112,6 +113,20 @@ void StatisticsBase::flushInformation(std::ostream &out) const {
     }
     s->flushStat(out);
     out << std::endl;
+  }
+#endif /* CVC4_STATISTICS_ON */
+}
+
+void StatisticsBase::safeFlushInformation(int fd) const {
+#ifdef CVC4_STATISTICS_ON
+  for (StatSet::iterator i = d_stats.begin(); i != d_stats.end(); ++i) {
+    Stat* s = *i;
+    if (d_prefix.size() != 0) {
+      safe_print(fd, d_prefix);
+      safe_print(fd, s_regDelim);
+    }
+    s->safeFlushStat(fd);
+    safe_print(fd, "\n");
   }
 #endif /* CVC4_STATISTICS_ON */
 }

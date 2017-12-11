@@ -2,9 +2,9 @@
 /*! \file stats_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Kshitij Bansal
+ **   Morgan Deters, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,9 +15,10 @@
  **/
 
 #include <cxxtest/TestSuite.h>
+#include <fcntl.h>
+#include <ctime>
 #include <sstream>
 #include <string>
-#include <ctime>
 
 #include "lib/clock_gettime.h"
 #include "util/statistics_registry.h"
@@ -62,6 +63,22 @@ public:
     // getData
     // operator=
 
+    BackedStat<double> backedDouble("backedDouble", 16.5);
+    BackedStat<double> backedNegDouble("backedNegDouble", -16.5);
+    BackedStat<double> backedDoubleNoDec("backedDoubleNoDec", 2.0);
+    BackedStat<bool> backedBool("backedBool", true);
+    BackedStat<void*> backedAddr("backedDouble", (void*)0xDEADBEEF);
+    HistogramStat<int64_t> histStat("hist");
+    histStat << 5;
+    histStat << 6;
+    histStat << 5;
+    histStat << 10;
+    histStat << 10;
+    histStat << 0;
+
+    // A statistic with no safe_print support
+    BackedStat<string*> backedUnsupported("backedUnsupported", &bar);
+
     IntStat sInt("my int", 10);
     TimerStat sTimer("a timer ! for measuring time");
 
@@ -104,6 +121,62 @@ public:
     sstr.str("");
     sTimer.flushInformation(sstr);
     TS_ASSERT_EQUALS(sstr.str(), "0.000000000");
+
+    // Test safeFlushInformation (and safe_print functions)
+    char tmp_filename[] = "testXXXXXX";
+    int fd = mkstemp(tmp_filename);
+    TS_ASSERT_DIFFERS(fd, -1);
+    refStr.safeFlushInformation(fd);
+    safe_print(fd, "\n");
+    refStr2.safeFlushInformation(fd);
+    safe_print(fd, "\n");
+    backedStr.safeFlushInformation(fd);
+    safe_print(fd, "\n");
+    sInt.safeFlushInformation(fd);
+    safe_print(fd, "\n");
+    sTimer.safeFlushInformation(fd);
+    safe_print(fd, "\n");
+    backedDouble.safeFlushInformation(fd);
+    safe_print(fd, "\n");
+    backedNegDouble.safeFlushInformation(fd);
+    safe_print(fd, "\n");
+    backedDoubleNoDec.safeFlushInformation(fd);
+    safe_print(fd, "\n");
+    backedAddr.safeFlushInformation(fd);
+    safe_print(fd, "\n");
+    backedBool.safeFlushInformation(fd);
+    safe_print(fd, "\n");
+    histStat.safeFlushInformation(fd);
+    safe_print(fd, "\n");
+    backedUnsupported.safeFlushInformation(fd);
+    off_t file_size = lseek(fd, 0, SEEK_CUR);
+    close(fd);
+
+    char* buf = new char[file_size];
+    fd = open(tmp_filename, O_RDONLY);
+    TS_ASSERT_DIFFERS(fd, -1);
+    ssize_t n_read = pread(fd, buf, file_size, 0);
+    TS_ASSERT_EQUALS(n_read, file_size);
+    close(fd);
+
+    const char* expected =
+        "a different string\n"
+        "bar and with an addition\n"
+        "baz\n"
+        "100\n"
+        "0.000000000\n"
+        "16.5\n"
+        "-16.5\n"
+        "2.0\n"
+        "0xdeadbeef\n"
+        "true\n"
+        "[(0 : 1), (5 : 2), (6 : 1), (10 : 2)]\n"
+        "<unsupported>";
+    TS_ASSERT(strncmp(expected, buf, file_size) == 0);
+    delete[] buf;
+
+    int ret = remove(tmp_filename);
+    TS_ASSERT_EQUALS(ret, 0);
 #endif /* CVC4_STATISTICS_ON */
   }
 

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tianyi Liang, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,14 +19,13 @@
 #ifndef __CVC4__THEORY__STRINGS__THEORY_STRINGS_H
 #define __CVC4__THEORY__STRINGS__THEORY_STRINGS_H
 
+#include "context/cdhashset.h"
+#include "context/cdlist.h"
+#include "expr/attribute.h"
+#include "theory/strings/regexp_operation.h"
+#include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/strings/theory_strings_preprocess.h"
-#include "theory/strings/regexp_operation.h"
-
-#include "context/cdchunk_list.h"
-#include "context/cdhashset.h"
-#include "expr/attribute.h"
 
 #include <climits>
 #include <deque>
@@ -49,7 +48,7 @@ struct StringsProxyVarAttributeId {};
 typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
 
 class TheoryStrings : public Theory {
-  typedef context::CDChunkList<Node> NodeList;
+  typedef context::CDList<Node> NodeList;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
@@ -172,8 +171,6 @@ private:
   void addNormalFormPair( Node n1, Node n2 );
   bool isNormalFormPair( Node n1, Node n2 );
   bool isNormalFormPair2( Node n1, Node n2 );
-  // loop ant
-  NodeSet d_loop_antec;
   // preReg cache
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
@@ -217,11 +214,11 @@ private:
   // MODEL GENERATION
   /////////////////////////////////////////////////////////////////////////////
 public:
-  void collectModelInfo(TheoryModel* m);
+ bool collectModelInfo(TheoryModel* m) override;
 
-  /////////////////////////////////////////////////////////////////////////////
-  // NOTIFICATIONS
-  /////////////////////////////////////////////////////////////////////////////
+ /////////////////////////////////////////////////////////////////////////////
+ // NOTIFICATIONS
+ /////////////////////////////////////////////////////////////////////////////
 public:
   void presolve();
   void shutdown() { }
@@ -306,6 +303,7 @@ private:
       }
       return "";
     }
+    Node d_nf_pair[2];
     bool sendAsLemma();
   };
   //initial check

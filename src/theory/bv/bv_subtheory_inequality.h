@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,10 +19,12 @@
 #ifndef __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 #define __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 
-#include "theory/bv/bv_subtheory.h"
-#include "theory/bv/bv_inequality_graph.h"
+#include <unordered_set>
+
 #include "context/cdhashset.h"
 #include "expr/attribute.h"
+#include "theory/bv/bv_inequality_graph.h"
+#include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -47,7 +49,7 @@ class InequalitySolver: public SubtheorySolver {
   InequalityGraph d_inequalityGraph;
   context::CDHashMap<Node, TNode, NodeHashFunction> d_explanations;
   context::CDO<bool> d_isComplete;
-  typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
   NodeSet d_ineqTerms;
   bool isInequalityOnly(TNode node);
   bool addInequality(TNode a, TNode b, bool strict, TNode fact);
@@ -67,7 +69,7 @@ public:
   void propagate(Theory::Effort e);
   void explain(TNode literal, std::vector<TNode>& assumptions);
   bool isComplete() { return d_isComplete; }
-  void collectModelInfo(TheoryModel* m, bool fullModel);
+  bool collectModelInfo(TheoryModel* m, bool fullModel);
   Node getModelValue(TNode var);
   EqualityStatus getEqualityStatus(TNode a, TNode b);
   void assertFact(TNode fact);

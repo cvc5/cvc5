@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,6 +18,9 @@
 
 #ifndef __CVC4__THEORY__BV__THEORY_BV_H
 #define __CVC4__THEORY__BV__THEORY_BV_H
+
+#include <unordered_map>
+#include <unordered_set>
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
@@ -51,7 +54,7 @@ class TheoryBV : public Theory {
   context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
 
   std::vector<SubtheorySolver*> d_subtheories;
-  __gnu_cxx::hash_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap;
+  std::unordered_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap;
 
 public:
 
@@ -65,7 +68,7 @@ public:
 
   Node expandDefinition(LogicRequest &logicRequest, Node node);
 
-  void mkAckermanizationAsssertions(std::vector<Node>& assertions);
+  void mkAckermanizationAssertions(std::vector<Node>& assertions);
 
   void preRegisterTerm(TNode n);
 
@@ -77,7 +80,7 @@ public:
 
   Node explain(TNode n);
 
-  void collectModelInfo( TheoryModel* m );
+  bool collectModelInfo(TheoryModel* m) override;
 
   std::string identify() const { return std::string("TheoryBV"); }
 
@@ -129,22 +132,22 @@ private:
    */
   Node getBVDivByZero(Kind k, unsigned width);
 
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
   void collectFunctionSymbols(TNode term, TNodeSet& seen);
   void storeFunction(TNode func, TNode term);
-  typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
   NodeSet d_staticLearnCache;
 
   /**
    * Maps from bit-vector width to division-by-zero uninterpreted
    * function symbols.
    */
-  __gnu_cxx::hash_map<unsigned, Node> d_BVDivByZero;
-  __gnu_cxx::hash_map<unsigned, Node> d_BVRemByZero;
+  std::unordered_map<unsigned, Node> d_BVDivByZero;
+  std::unordered_map<unsigned, Node> d_BVRemByZero;
 
 
-  typedef __gnu_cxx::hash_map<Node, NodeSet, NodeHashFunction>  FunctionToArgs;
-  typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction>  NodeToNode;
+  typedef std::unordered_map<Node, NodeSet, NodeHashFunction>  FunctionToArgs;
+  typedef std::unordered_map<Node, Node, NodeHashFunction>  NodeToNode;
   // for ackermanization
   FunctionToArgs d_funcToArgs;
   CVC4::theory::SubstitutionMap d_funcToSkolem;

@@ -18,7 +18,7 @@ Secondly, C++ iterators are replaced by Java iterators.  Instead of begin() and 
 
 Third, I/O streams are wrapped so that some functions requiring C++ input and output streams will accept Java InputStreams and OutputStreams.
 
-Our intent is to make the C++ API as useful and functional for Java developers as possible, while still retaining the flexibility of our original C++ design.  If we can make your life as a Java user of our libraries easier, please let us know by requesting an enhancement or reporting a bug at our bug-tracking service, http://cvc4.cs.nyu.edu/bugs.
+Our intent is to make the C++ API as useful and functional for Java developers as possible, while still retaining the flexibility of our original C++ design.  If we can make your life as a Java user of our libraries easier, please let us know by requesting an enhancement or reporting a bug at our bug-tracking service, https://github.com/CVC4/CVC4/issues.
 
 For examples of Java programs using the CVC4 API, look in the directory examples/api/java in the CVC4 source distribution.
 

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -83,9 +83,11 @@ bool QuantDSplit::checkCompleteFor( Node q ) {
 }
 
 /* Call during quantifier engine's check */
-void QuantDSplit::check( Theory::Effort e, unsigned quant_e ) {
+void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
+{
   //add lemmas ASAP (they are a reduction)
-  if( quant_e==QuantifiersEngine::QEFFORT_CONFLICT ){
+  if (quant_e == QEFFORT_CONFLICT)
+  {
     std::vector< Node > lemmas;
     for(std::map< Node, int >::iterator it = d_quant_to_reduce.begin(); it != d_quant_to_reduce.end(); ++it) {
       Node q = it->first;

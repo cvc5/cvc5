@@ -2,9 +2,9 @@
 /*! \file bitblast_strategies_template.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Morgan Deters
+ **   Liana Hadarean, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,12 +17,15 @@
 #ifndef __CVC4__BITBLAST__STRATEGIES_TEMPLATE_H
 #define __CVC4__BITBLAST__STRATEGIES_TEMPLATE_H
 
+#include <cmath>
+#include <ostream>
+
 #include "cvc4_private.h"
 #include "expr/node.h"
 #include "theory/bv/bitblast_utils.h"
 #include "theory/bv/theory_bv_utils.h"
-#include <ostream>
-#include <cmath>
+#include "theory/rewriter.h"
+
 namespace CVC4 {
 
 namespace theory {
@@ -538,7 +541,8 @@ void DefaultUdivBB (TNode node, std::vector<T>& q, TBitblaster<T>* bb) {
   }
 
   // cache the remainder in case we need it later
-  Node remainder = utils::mkNode(kind::BITVECTOR_UREM_TOTAL, node[0], node[1]);
+  Node remainder = Rewriter::rewrite(
+      utils::mkNode(kind::BITVECTOR_UREM_TOTAL, node[0], node[1]));
   bb->storeBBTerm(remainder, r);
 }
 
@@ -566,7 +570,8 @@ void DefaultUremBB (TNode node, std::vector<T>& rem, TBitblaster<T>* bb) {
   }
 
   // cache the quotient in case we need it later
-  Node quotient = utils::mkNode(kind::BITVECTOR_UDIV_TOTAL, node[0], node[1]);
+  Node quotient = Rewriter::rewrite(
+      utils::mkNode(kind::BITVECTOR_UDIV_TOTAL, node[0], node[1]));
   bb->storeBBTerm(quotient, q);
 }
 
@@ -602,8 +607,9 @@ void DefaultShlBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   // check for b < log2(n)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
-  Node a_size = utils::mkConst(BitVector(size, size)); 
-  Node b_ult_a_size_node = utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size);
+  Node a_size = utils::mkConst(BitVector(size, size));
+  Node b_ult_a_size_node =
+      Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size));
   // ensure that the inequality is bit-blasted
   bb->bbAtom(b_ult_a_size_node); 
   T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);
@@ -650,8 +656,9 @@ void DefaultLshrBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   // check for b < log2(n)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
-  Node a_size = utils::mkConst(BitVector(size, size)); 
-  Node b_ult_a_size_node = utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size);
+  Node a_size = utils::mkConst(BitVector(size, size));
+  Node b_ult_a_size_node =
+      Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size));
   // ensure that the inequality is bit-blasted
   bb->bbAtom(b_ult_a_size_node); 
   T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node); 
@@ -700,8 +707,9 @@ void DefaultAshrBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   //   check for b < n
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
-  Node a_size = utils::mkConst(BitVector(size, size)); 
-  Node b_ult_a_size_node = utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size);
+  Node a_size = utils::mkConst(BitVector(size, size));
+  Node b_ult_a_size_node =
+      Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size));
   // ensure that the inequality is bit-blasted
   bb->bbAtom(b_ult_a_size_node); 
   T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);

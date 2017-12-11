@@ -2,9 +2,9 @@
 /*! \file nary_builder.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters
+ **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,9 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <vector>
+
 #include "expr/node.h"
 
 namespace CVC4{
@@ -47,7 +49,7 @@ private:
   Node case_assoccomm(TNode n);
   Node case_other(TNode n);
 
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_cache;
 };/* class RePairAssocCommutativeOperators */
 

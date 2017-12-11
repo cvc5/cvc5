@@ -2,9 +2,9 @@
 /*! \file arith_ite_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters
+ **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,11 +15,6 @@
  ** \todo document this file
  **/
 
-
-
-
-
-
 // Pass 1: label the ite as (constant) or (+ constant variable)
 
 #include "cvc4_private.h"
@@ -27,9 +22,9 @@
 #ifndef __CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H
 #define __CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H
 
+#include <unordered_map>
+
 #include "expr/node.h"
-#include <ext/hash_map>
-#include <ext/hash_set>
 #include "context/cdo.h"
 #include "context/cdtrail_hashmap.h"
 
@@ -46,7 +41,7 @@ class ArithIteUtils {
   SubstitutionMap* d_subs;
   TheoryModel* d_model;
 
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   // cache for reduce vars
   NodeMap d_reduceVar; // if reduceVars[n].isNull(), treat reduceVars[n] == n
 
@@ -56,7 +51,7 @@ class ArithIteUtils {
 
 
   NodeMap d_reduceGcd;
-  typedef std::hash_map<Node, Integer, NodeHashFunction> NodeIntegerMap;
+  typedef std::unordered_map<Node, Integer, NodeHashFunction> NodeIntegerMap;
   NodeIntegerMap d_gcds;
 
   Integer d_one;

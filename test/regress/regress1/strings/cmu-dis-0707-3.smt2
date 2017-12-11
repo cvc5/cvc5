@@ -1,3 +1,5 @@
+; COMMAND-LINE: --lang=smt2.0
+; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
 (set-option :strings-exp true)

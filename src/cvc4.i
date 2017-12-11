@@ -1,3 +1,10 @@
+// We safely ignore some C++11 keywords that older versions of SWIG cannot
+// handle.
+#if SWIG_VERSION < 0x030000
+%define final %enddef
+%define override %enddef
+#endif
+
 %import "bindings/swig.h"
 
 %include "stdint.i"
@@ -11,7 +18,7 @@ namespace std {
   class istream;
   class ostream;
   template <class T> class set {};
-  template <class K, class V, class H> class hash_map {};
+  template <class K, class V, class H> class unordered_map {};
 }
 
 %{
@@ -41,7 +48,7 @@ namespace CVC4 {}
 using namespace CVC4;
 
 #include <cassert>
-#include <ext/hash_map>
+#include <unordered_map>
 #include <iosfwd>
 #include <set>
 #include <string>
@@ -86,7 +93,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %template(vectorPairStringType) std::vector< std::pair< std::string, CVC4::Type > >;
 %template(pairStringType) std::pair< std::string, CVC4::Type >;
 %template(setOfType) std::set< CVC4::Type >;
-%template(hashmapExpr) std::hash_map< CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction >;
+%template(hashmapExpr) std::unordered_map< CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction >;
 
 // This is unfortunate, but seems to be necessary; if we leave NULL
 // defined, swig will expand it to "(void*) 0", and some of swig's
@@ -125,7 +132,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
   assert(clazz != NULL && jenv->ExceptionOccurred() == NULL);
   jmethodID method = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
   assert(method != NULL && jenv->ExceptionOccurred() == NULL);
-  jthrowable t = static_cast<jthrowable>(jenv->NewObject(clazz, method, reinterpret_cast<long>(new $1_type($1)), true));
+  jthrowable t = static_cast<jthrowable>(jenv->NewObject(clazz, method, reinterpret_cast<uintptr_t>(new $1_type($1)), true));
   assert(t != NULL && jenv->ExceptionOccurred() == NULL);
   int status = jenv->Throw(t);
   assert(status == 0);
@@ -142,7 +149,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
   assert(clazz != NULL && jenv->ExceptionOccurred() == NULL);
   jmethodID method = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
   assert(method != NULL && jenv->ExceptionOccurred() == NULL);
-  jthrowable t = static_cast<jthrowable>(jenv->NewObject(clazz, method, reinterpret_cast<long>(new $1_type($1)), true));
+  jthrowable t = static_cast<jthrowable>(jenv->NewObject(clazz, method, reinterpret_cast<uintptr_t>(new $1_type($1)), true));
   assert(t != NULL && jenv->ExceptionOccurred() == NULL);
   int status = jenv->Throw(t);
   assert(status == 0);
@@ -326,7 +333,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/result.i"
 %include "util/sexpr.i"
 %include "util/statistics.i"
-%include "util/subrange_bound.i"
 %include "util/tuple.i"
 %include "util/unsafe_interrupt_exception.i"
 
@@ -335,7 +341,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "expr/ascription_type.i"
 %include "expr/emptyset.i"
 %include "expr/datatype.i"
-%include "expr/predicate.i"
 %include "expr/record.i"
 %include "proof/unsat_core.i"
 

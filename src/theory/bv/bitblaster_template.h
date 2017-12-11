@@ -2,9 +2,9 @@
 /*! \file bitblaster_template.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Morgan Deters
+ **   Liana Hadarean, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,8 @@
 #ifndef __CVC4__BITBLASTER_TEMPLATE_H
 #define __CVC4__BITBLASTER_TEMPLATE_H
 
-#include <ext/hash_map>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "bitblast_strategies_template.h"
@@ -58,8 +59,8 @@ namespace bv {
 
 class BitblastingRegistrar;
 
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
 
 class AbstractionModule;
 
@@ -73,9 +74,9 @@ template <class T>
 class TBitblaster {
 protected:
   typedef std::vector<T> Bits;
-  typedef __gnu_cxx::hash_map <Node, Bits, NodeHashFunction>  TermDefMap;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>       TNodeSet;
-  typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction>   ModelCache;
+  typedef std::unordered_map <Node, Bits, NodeHashFunction>  TermDefMap;
+  typedef std::unordered_set<TNode, TNodeHashFunction>       TNodeSet;
+  typedef std::unordered_map<Node, Node, NodeHashFunction>   ModelCache;
 
   typedef void  (*TermBBStrategy) (TNode, Bits&, TBitblaster<T>*);
   typedef T     (*AtomBBStrategy) (TNode, TBitblaster<T>*);
@@ -206,7 +207,7 @@ public:
    * @param fullModel whether to create a "full model," i.e., add
    * constants to equivalence classes that don't already have them
    */
-  void collectModelInfo(TheoryModel* m, bool fullModel);
+  bool collectModelInfo(TheoryModel* m, bool fullModel);
   void setProofLog( BitVectorProof * bvp );
 
   typedef TNodeSet::const_iterator vars_iterator;
@@ -258,7 +259,7 @@ public:
 
 
 class EagerBitblaster : public TBitblaster<Node> {
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
   // sat solver used for bitblasting and associated CnfStream
   prop::SatSolver*                   d_satSolver;
   BitblastingRegistrar*              d_bitblastingRegistrar;
@@ -291,7 +292,7 @@ public:
 
   bool assertToSat(TNode node, bool propagate = true);
   bool solve();
-  void collectModelInfo(TheoryModel* m, bool fullModel);
+  bool collectModelInfo(TheoryModel* m, bool fullModel);
   void setProofLog( BitVectorProof * bvp );
 };
 
@@ -305,8 +306,8 @@ public:
 }; /* class Registrar */
 
 class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
-  typedef std::hash_map<TNode, Abc_Obj_t*, TNodeHashFunction > TNodeAigMap;
-  typedef std::hash_map<Node, Abc_Obj_t*, NodeHashFunction > NodeAigMap;
+  typedef std::unordered_map<TNode, Abc_Obj_t*, TNodeHashFunction > TNodeAigMap;
+  typedef std::unordered_map<Node, Abc_Obj_t*, NodeHashFunction > NodeAigMap;
   
   static Abc_Ntk_t* abcAigNetwork;
   context::Context* d_nullContext;

@@ -2,9 +2,9 @@
 /*! \file theory_sets_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Morgan Deters
+ **   Kshitij Bansal, Andrew Reynolds, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -59,7 +59,15 @@ struct SetsBinaryOperatorTypeRule {
       }
       TypeNode secondSetType = n[1].getType(check);
       if(secondSetType != setType) {
-        throw TypeCheckingExceptionPrivate(n, "operator expects two sets of the same type");
+        if( n.getKind() == kind::INTERSECTION ){
+          setType = TypeNode::mostCommonTypeNode( secondSetType, setType );
+        }else{
+          setType = TypeNode::leastCommonTypeNode( secondSetType, setType );
+        }
+        if( setType.isNull() ){
+          throw TypeCheckingExceptionPrivate(n, "operator expects two sets of comparable types");
+        }
+        
       }
     }
     return setType;
@@ -88,7 +96,9 @@ struct SubsetTypeRule {
       }
       TypeNode secondSetType = n[1].getType(check);
       if(secondSetType != setType) {
-        throw TypeCheckingExceptionPrivate(n, "set subset operating on sets of different types");
+        if( !setType.isComparableTo( secondSetType ) ){
+          throw TypeCheckingExceptionPrivate(n, "set subset operating on sets of different types");
+        }
       }
     }
     return nodeManager->booleanType();
@@ -105,8 +115,29 @@ struct MemberTypeRule {
         throw TypeCheckingExceptionPrivate(n, "checking for membership in a non-set");
       }
       TypeNode elementType = n[0].getType(check);
-      if(!setType.getSetElementType().isSubtypeOf(elementType)) {
-        throw TypeCheckingExceptionPrivate(n, "member operating on sets of different types");
+      // TODO : still need to be flexible here due to situations like:
+      //
+      // T : (Set Int)
+      // S : (Set Real)
+      // (= (as T (Set Real)) S)
+      // (member 0.5 S)
+      // ...where (member 0.5 T) is inferred
+      //
+      // or
+      //
+      // S : (Set Real)
+      // (not (member 0.5 s))
+      // (member 0.0 s)
+      // ...find model M where M( s ) = { 0 }, check model will generate (not (member 0.5 (singleton 0)))
+      //      
+      if(!elementType.isComparableTo(setType.getSetElementType())) {
+      //if(!elementType.isSubtypeOf(setType.getSetElementType())) {     //FIXME:typing
+        std::stringstream ss;
+        ss << "member operating on sets of different types:\n"
+           << "child type:  " << elementType << "\n"
+           << "not subtype: " << setType.getSetElementType() << "\n"
+           << "in term : " << n;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
     return nodeManager->booleanType();
@@ -174,7 +205,19 @@ struct ComplementTypeRule {
   }
 };/* struct ComplementTypeRule */
 
-
+struct UniverseSetTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::UNIVERSE_SET);
+    // for nullary operators, we only computeType for check=true, since they are given TypeAttr() on creation
+    Assert(check);
+    TypeNode setType = n.getType();
+    if(!setType.isSet()) {
+      throw TypeCheckingExceptionPrivate(n, "Non-set type found for universe set");
+    }
+    return setType;
+  }
+};/* struct ComplementTypeRule */
 
 struct InsertTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -215,10 +258,10 @@ struct RelBinaryOperatorTypeRule {
     TypeNode resultType = firstRelType;
 
     if(!firstRelType.isSet() || !secondRelType.isSet()) {
-      throw TypeCheckingExceptionPrivate(n, " set operator operates on non-sets");
+      throw TypeCheckingExceptionPrivate(n, " Relational operator operates on non-sets");
     }
     if(!firstRelType[0].isTuple() || !secondRelType[0].isTuple()) {
-      throw TypeCheckingExceptionPrivate(n, " set operator operates on non-relations (sets of tuples)");
+      throw TypeCheckingExceptionPrivate(n, " Relational operator operates on non-relations (sets of tuples)");
     }
 
     std::vector<TypeNode> newTupleTypes;
@@ -255,8 +298,8 @@ struct RelTransposeTypeRule {
     throw (TypeCheckingExceptionPrivate, AssertionException) {
     Assert(n.getKind() == kind::TRANSPOSE);
     TypeNode setType = n[0].getType(check);
-    if(check && !setType.isSet() && !setType.getSetElementType().isTuple()) {
-        throw TypeCheckingExceptionPrivate(n, "relation transpose operats on non-relation");
+    if(check && (!setType.isSet() || !setType.getSetElementType().isTuple())) {
+        throw TypeCheckingExceptionPrivate(n, "relation transpose operates on non-relation");
     }
     std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
     std::reverse(tupleTypes.begin(), tupleTypes.end());
@@ -274,7 +317,7 @@ struct RelTransClosureTypeRule {
     Assert(n.getKind() == kind::TCLOSURE);
     TypeNode setType = n[0].getType(check);
     if(check) {
-      if(!setType.isSet() && !setType.getSetElementType().isTuple()) {
+      if(!setType.isSet() || !setType.getSetElementType().isTuple()) {
         throw TypeCheckingExceptionPrivate(n, " transitive closure operates on non-relation");
       }
       std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
@@ -294,6 +337,75 @@ struct RelTransClosureTypeRule {
     }
 };/* struct RelTransClosureTypeRule */
 
+struct JoinImageTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::JOIN_IMAGE);
+
+    TypeNode firstRelType = n[0].getType(check);
+
+    if(!firstRelType.isSet()) {
+      throw TypeCheckingExceptionPrivate(n, " JoinImage operator operates on non-relations");
+    }
+    if(!firstRelType[0].isTuple()) {
+      throw TypeCheckingExceptionPrivate(n, " JoinImage operator operates on non-relations (sets of tuples)");
+    }
+
+    std::vector<TypeNode> tupleTypes = firstRelType[0].getTupleTypes();
+    if(tupleTypes.size() != 2) {
+      throw TypeCheckingExceptionPrivate(n, " JoinImage operates on a non-binary relation");
+    }
+    TypeNode valType = n[1].getType(check);
+    if (valType != nodeManager->integerType()) {
+      throw TypeCheckingExceptionPrivate(
+          n, " JoinImage cardinality constraint must be integer");
+    }
+    if (n[1].getKind() != kind::CONST_RATIONAL) {
+      throw TypeCheckingExceptionPrivate(
+          n, " JoinImage cardinality constraint must be a constant");
+    }
+    CVC4::Rational r(INT_MAX);
+    if (n[1].getConst<Rational>() > r) {
+      throw TypeCheckingExceptionPrivate(
+          n, " JoinImage Exceeded INT_MAX in cardinality constraint");
+    }
+    if (n[1].getConst<Rational>().getNumerator().getSignedInt() < 0) {
+      throw TypeCheckingExceptionPrivate(
+          n, " JoinImage cardinality constraint must be non-negative");
+    }
+    std::vector<TypeNode> newTupleTypes;
+    newTupleTypes.push_back(tupleTypes[0]);
+    return nodeManager->mkSetType(nodeManager->mkTupleType(newTupleTypes));
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+    Assert(n.getKind() == kind::JOIN_IMAGE);
+    return false;
+  }
+};/* struct JoinImageTypeRule */
+
+struct RelIdenTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::IDEN);
+    TypeNode setType = n[0].getType(check);
+    if(check) {
+      if(!setType.isSet() && !setType.getSetElementType().isTuple()) {
+        throw TypeCheckingExceptionPrivate(n, " Identity operates on non-relation");
+      }
+      if(setType[0].getTupleTypes().size() != 1) {
+        throw TypeCheckingExceptionPrivate(n, " Identity operates on non-unary relations");
+      }
+    }
+    std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
+    tupleTypes.push_back(tupleTypes[0]);
+    return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+      return false;
+    }
+};/* struct RelIdenTypeRule */
 
 struct SetsProperties {
   inline static Cardinality computeCardinality(TypeNode type) {

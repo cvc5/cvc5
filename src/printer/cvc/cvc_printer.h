@@ -2,9 +2,9 @@
 /*! \file cvc_printer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
+ **   Morgan Deters, Paul Meng, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,16 +28,29 @@ namespace printer {
 namespace cvc {
 
 class CvcPrinter : public CVC4::Printer {
-  bool d_cvc3Mode;
-
-  void toStream(std::ostream& out, TNode n, int toDepth, bool types, bool bracket) const throw();
-  void toStream(std::ostream& out, const Model& m, const Command* c) const throw();
-public:
+ public:
   using CVC4::Printer::toStream;
   CvcPrinter(bool cvc3Mode = false) : d_cvc3Mode(cvc3Mode) { }
-  void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();
-  void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
-  void toStream(std::ostream& out, const CommandStatus* s) const throw();
+  void toStream(std::ostream& out,
+                TNode n,
+                int toDepth,
+                bool types,
+                size_t dag) const override;
+  void toStream(std::ostream& out,
+                const Command* c,
+                int toDepth,
+                bool types,
+                size_t dag) const override;
+  void toStream(std::ostream& out, const CommandStatus* s) const override;
+
+ private:
+  void toStream(
+      std::ostream& out, TNode n, int toDepth, bool types, bool bracket) const;
+  void toStream(std::ostream& out,
+                const Model& m,
+                const Command* c) const override;
+
+  bool d_cvc3Mode;
 };/* class CvcPrinter */
 
 }/* CVC4::printer::cvc namespace */
@@ -45,4 +58,3 @@ public:
 }/* CVC4 namespace */
 
 #endif /* __CVC4__PRINTER__CVC_PRINTER_H */
-

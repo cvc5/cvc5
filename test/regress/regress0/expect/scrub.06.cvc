@@ -1,4 +1,5 @@
-% SCRUBBER: sed -e 's/The fact in question: .*$/The fact in question: TERM/' -e 's/in a linear logic: .*$/in a linear logic: TERM/' -e '/^$/d'
+% COMMAND-LINE: --force-logic=QF_LRA
+% SCRUBBER: sed -e 's/The fact in question: .*$/The fact in question: TERM/' -e 's/in a linear logic: .*$/in a linear logic: TERM/' -e '/^[[:space:]]*$/d'
 % EXPECT: A non-linear fact was asserted to arithmetic in a linear logic.
 % EXPECT: The fact in question: TERM
 % EXIT: 1

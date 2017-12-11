@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,9 +33,9 @@
 
 #include "cvc4_private.h"
 
-#include <boost/static_assert.hpp>
 #include <deque>
-#include <ext/hash_map>
+#include <functional>
+#include <unordered_map>
 #include <utility>
 
 #include "base/cvc4_assert.h"
@@ -51,14 +51,14 @@ namespace CVC4 {
 namespace context {
 
 
-template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> >
+template <class Key, class Data, class HashFcn = std::hash<Key> >
 class InsertHashMap {
 private:
   typedef std::deque<Key> KeyVec;
   /** A list of the keys in the map maintained as a stack. */
   KeyVec d_keys;
 
-  typedef __gnu_cxx::hash_map<Key, Data, HashFcn> HashMap;
+  typedef std::unordered_map<Key, Data, HashFcn> HashMap;
   /** The hash_map used for element lookup. */
   HashMap d_hashMap;
 
@@ -383,9 +383,8 @@ public:
   }
 };/* class CDInsertHashMap<> */
 
-
 template <class Data, class HashFcn>
-class CDInsertHashMap <TNode, Data, HashFcn > : public ContextObj {
+class CDInsertHashMap<TNode, Data, HashFcn> : public ContextObj {
   /* CDInsertHashMap is challenging to get working with TNode.
    * Consider using CDHashMap<TNode,...> instead.
    *
@@ -397,7 +396,8 @@ class CDInsertHashMap <TNode, Data, HashFcn > : public ContextObj {
    * hashed. Getting the order right with a guarantee is too hard.
    */
 
-  BOOST_STATIC_ASSERT(sizeof(Data) == 0);
+  static_assert(sizeof(Data) == 0,
+                "Cannot create a CDInsertHashMap with TNode keys");
 };
 
 }/* CVC4::context namespace */

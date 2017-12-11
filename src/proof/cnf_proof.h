@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Guy Katz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,9 +21,9 @@
 #ifndef __CVC4__CNF_PROOF_H
 #define __CVC4__CNF_PROOF_H
 
-#include <ext/hash_map>
-#include <ext/hash_set>
 #include <iosfwd>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "context/cdhashmap.h"
 #include "proof/clause_id.h"
@@ -38,9 +38,9 @@ namespace prop {
 
 class CnfProof;
 
-typedef __gnu_cxx::hash_map<prop::SatVariable, Expr> SatVarToExpr;
-typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeToNode;
-typedef __gnu_cxx::hash_set<ClauseId> ClauseIdSet;
+typedef std::unordered_map<prop::SatVariable, Expr> SatVarToExpr;
+typedef std::unordered_map<Node, Node, NodeHashFunction> NodeToNode;
+typedef std::unordered_set<ClauseId> ClauseIdSet;
 
 typedef context::CDHashMap<ClauseId, Node> ClauseIdToNode;
 typedef context::CDHashMap<Node, ProofRule, NodeHashFunction> NodeToProofRule;

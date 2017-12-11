@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Kshitij Bansal, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -67,6 +67,15 @@ public:
     d_exprMgr.getStatistics().flushInformation(out);
     d_smtEngine->getStatistics().flushInformation(out);
     d_stats.flushInformation(out);
+  }
+
+  /**
+   * Flushes statistics to a file descriptor. Safe to use in a signal handler.
+   */
+  void safeFlushStatistics(int fd) const {
+    d_exprMgr.safeFlushStatistics(fd);
+    d_smtEngine->safeFlushStatistics(fd);
+    d_stats.safeFlushInformation(fd);
   }
 
   static void printStatsFilterZeros(std::ostream& out,

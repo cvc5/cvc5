@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Clark Barrett, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -296,6 +296,10 @@ ContextObj::ContextObj(bool allocatedInCMM, Context* pContext) :
   d_pScope->addToChain(this);
 }
 
+void ContextObj::enqueueToGarbageCollect() {
+  Assert(d_pScope != NULL);
+  d_pScope->enqueueToGarbageCollect(this);
+}
 
 ContextNotifyObj::ContextNotifyObj(Context* pContext, bool preNotify) {
   if(preNotify) {
@@ -354,6 +358,29 @@ std::ostream& operator<<(std::ostream& out,
   return out << " --> NULL";
 }
 
+Scope::~Scope() {
+  // Call restore() method on each ContextObj object in the list.
+  // Note that it is the responsibility of restore() to return the
+  // next item in the list.
+  while (d_pContextObjList != NULL) {
+    d_pContextObjList = d_pContextObjList->restoreAndContinue();
+  }
+
+  if (d_garbage) {
+    while (!d_garbage->empty()) {
+      ContextObj* obj = d_garbage->back();
+      d_garbage->pop_back();
+      obj->deleteSelf();
+    }
+  }
+}
+
+void Scope::enqueueToGarbageCollect(ContextObj* obj) {
+  if (!d_garbage) {
+    d_garbage.reset(new std::vector<ContextObj*>);
+  }
+  d_garbage->push_back(obj);
+}
 
 } /* CVC4::context namespace */
 } /* CVC4 namespace */

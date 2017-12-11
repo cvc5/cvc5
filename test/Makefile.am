@@ -41,7 +41,9 @@ subdirs_to_check = \
 	regress/regress0/decision \
 	regress/regress0/expect \
 	regress/regress0/fmf \
+	regress/regress0/ho \
 	regress/regress0/lemmas \
+	regress/regress0/nl \
 	regress/regress0/parser \
 	regress/regress0/precedence \
 	regress/regress0/preprocess \
@@ -73,6 +75,7 @@ subdirs_to_check = \
 	regress/regress1/sets \
 	regress/regress1/strings \
 	regress/regress1/sygus \
+	regress/regress1/quantifiers \
 	regress/regress2 \
 	regress/regress2/arith \
 	regress/regress3 \

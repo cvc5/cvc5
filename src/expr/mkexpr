@@ -218,8 +218,12 @@ function constant {
   lineno=${BASH_LINENO[0]}
   check_theory_seen
 
-  includes="${includes}
+  # Only add include if it is not in the list of includes yet
+  if [[ "${includes}" != *"#include \"$4\""* ]]; then
+    includes="${includes}
 #include \"$4\""
+  fi
+
   mkConst_instantiations="${mkConst_instantiations}
 #line $lineno \"$kf\"
 template <> Expr ExprManager::mkConst($2 const& val);
@@ -246,6 +250,12 @@ template <> $2 const & Expr::getConst() const {
 "
   exportConstant_cases="${exportConstant_cases}
   case $1: return to->mkConst(n.getConst< $2 >());"
+}
+
+function nullaryoperator {
+  # nullaryoperator K ["comment"]
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function check_theory_seen {

@@ -2,9 +2,9 @@
 /*! \file proof_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Morgan Deters
+ **   Guy Katz, Liana Hadarean, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -56,18 +56,18 @@ std::string append(const std::string& str, uint64_t num) {
   return os.str();
 }
 
-ProofManager::ProofManager(context::Context* context, ProofFormat format):
-  d_context(context),
-  d_satProof(NULL),
-  d_cnfProof(NULL),
-  d_theoryProof(NULL),
-  d_inputFormulas(),
-  d_inputCoreFormulas(context),
-  d_outputCoreFormulas(context),
-  d_nextId(0),
-  d_fullProof(NULL),
-  d_format(format),
-  d_deps(context)
+ProofManager::ProofManager(context::Context* context, ProofFormat format)
+    : d_context(context),
+      d_satProof(NULL),
+      d_cnfProof(NULL),
+      d_theoryProof(NULL),
+      d_inputFormulas(),
+      d_inputCoreFormulas(context),
+      d_outputCoreFormulas(context),
+      d_nextId(0),
+      d_fullProof(),
+      d_format(format),
+      d_deps(context)
 {
 }
 
@@ -75,24 +75,23 @@ ProofManager::~ProofManager() {
   if (d_satProof) delete d_satProof;
   if (d_cnfProof) delete d_cnfProof;
   if (d_theoryProof) delete d_theoryProof;
-  if (d_fullProof) delete d_fullProof;
 }
 
 ProofManager* ProofManager::currentPM() {
   return smt::currentProofManager();
 }
-
-Proof* ProofManager::getProof(SmtEngine* smt) {
-  if (currentPM()->d_fullProof != NULL) {
-    return currentPM()->d_fullProof;
+const Proof& ProofManager::getProof(SmtEngine* smt)
+{
+  if (!currentPM()->d_fullProof)
+  {
+    Assert(currentPM()->d_format == LFSC);
+    currentPM()->d_fullProof.reset(new LFSCProof(
+        smt,
+        static_cast<LFSCCoreSatProof*>(getSatProof()),
+        static_cast<LFSCCnfProof*>(getCnfProof()),
+        static_cast<LFSCTheoryProofEngine*>(getTheoryProofEngine())));
   }
-  Assert (currentPM()->d_format == LFSC);
-
-  currentPM()->d_fullProof = new LFSCProof(smt,
-                                           (LFSCCoreSatProof*)getSatProof(),
-                                           (LFSCCnfProof*)getCnfProof(),
-                                           (LFSCTheoryProofEngine*)getTheoryProofEngine());
-  return currentPM()->d_fullProof;
+  return *(currentPM()->d_fullProof);
 }
 
 CoreSatProof* ProofManager::getSatProof() {
@@ -135,7 +134,7 @@ ArithProof* ProofManager::getArithProof() {
 }
 
 SkolemizationManager* ProofManager::getSkolemizationManager() {
-  Assert (options::proof());
+  Assert (options::proof() || options::unsatCores());
   return &(currentPM()->d_skolemizationManager);
 }
 
@@ -551,12 +550,13 @@ LFSCProof::LFSCProof(SmtEngine* smtEngine,
   , d_smtEngine(smtEngine)
 {}
 
-void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) {
+void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) const
+{
   Unreachable();
 }
 
-void LFSCProof::toStream(std::ostream& out) {
-
+void LFSCProof::toStream(std::ostream& out) const
+{
   Assert(options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER);
 
   Assert(!d_satProof->proofConstructed());
@@ -743,7 +743,8 @@ void LFSCProof::toStream(std::ostream& out) {
 void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
                                             std::ostream& os,
                                             std::ostream& paren,
-                                            ProofLetMap& globalLetMap) {
+                                            ProofLetMap& globalLetMap) const
+{
   os << "\n ;; In the preprocessor we trust \n";
   NodeSet::const_iterator it = assertions.begin();
   NodeSet::const_iterator end = assertions.end();
@@ -842,7 +843,8 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
   os << "\n";
 }
 
-void LFSCProof::checkUnrewrittenAssertion(const NodeSet& rewrites) {
+void LFSCProof::checkUnrewrittenAssertion(const NodeSet& rewrites) const
+{
   Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion starting" << std::endl;
 
   NodeSet::const_iterator rewrite;

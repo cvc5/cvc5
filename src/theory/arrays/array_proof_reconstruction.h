@@ -2,9 +2,9 @@
 /*! \file array_proof_reconstruction.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Guy Katz
+ **   Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,7 +34,8 @@ public:
   ArrayProofReconstruction(const eq::EqualityEngine* equalityEngine);
 
   void notify(unsigned reasonType, Node reason, Node a, Node b,
-              std::vector<TNode>& equalities, eq::EqProof* proof) const;
+              std::vector<TNode>& equalities,
+              eq::EqProof* proof) const override;
 
   void setRowMergeTag(unsigned tag);
   void setRow1MergeTag(unsigned tag);

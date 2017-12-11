@@ -5,6 +5,7 @@ AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN) $(WNO_PARENTH
 
 # Compile generated C files using C++ compiler
 AM_CFLAGS = $(AM_CXXFLAGS)
+CFLAGS=$(CXXFLAGS)
 CC=$(CXX)
 
 ANTLR_OPTS =

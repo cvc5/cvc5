@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file rels_utils.h
  ** \verbatim
- ** Original author: Paul Meng
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Sets theory implementation.
  **
@@ -66,8 +66,9 @@ public:
     if( tuple.getKind() == kind::APPLY_CONSTRUCTOR ) {
       return tuple[n_th];
     }
-    Datatype dt = tuple.getType().getDatatype();
-    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, dt[0][n_th].getSelector(), tuple);
+    TypeNode tn = tuple.getType();
+    Datatype dt = tn.getDatatype();
+    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal( tn.toType(), n_th ), tuple);
   } 
   
   static Node reverseTuple( Node tuple ) {

@@ -1,0 +1,22 @@
+% EXPECT: sat
+OPTION "sets-ext";
+OPTION "logic" "ALL_SUPPORTED";
+Atom:TYPE;
+AtomPair: TYPE = [Atom, Atom];
+x : SET OF AtomPair;
+t : SET OF [Atom];
+univ : SET OF [Atom];
+univ2 : SET OF [Atom,Atom];
+
+a : Atom;
+b : Atom;
+c : Atom;
+d : Atom;
+ASSERT univ = UNIVERSE::SET OF [Atom];
+ASSERT univ2 = UNIVERSE::SET OF [Atom, Atom];
+ASSERT univ2 = (univ PRODUCT univ);
+ASSERT (a, b) IS_IN x;
+ASSERT (c, d) IS_IN x;
+ASSERT NOT(a = b);
+ASSERT IDEN(univ) <= x;
+CHECKSAT;

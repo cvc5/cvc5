@@ -2,9 +2,9 @@
 /*! \file proof_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Morgan Deters, Guy Katz
+ **   Liana Hadarean, Guy Katz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,10 @@
 #define __CVC4__PROOF_MANAGER_H
 
 #include <iosfwd>
-#include <map>
+#include <memory>
+#include <unordered_map>
+#include <unordered_set>
+
 #include "expr/node.h"
 #include "context/cdhashset.h"
 #include "context/cdhashmap.h"
@@ -56,7 +59,6 @@ const ClauseId ClauseIdEmpty(-1);
 const ClauseId ClauseIdUndef(-2);
 const ClauseId ClauseIdError(-3);
 
-class Proof;
 template <class Solver> class TSatProof;
 typedef TSatProof< CVC4::Minisat::Solver> CoreSatProof;
 
@@ -96,13 +98,11 @@ enum ProofFormat {
 
 std::string append(const std::string& str, uint64_t num);
 
-typedef __gnu_cxx::hash_map < ClauseId, prop::SatClause* > IdToSatClause;
-typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
+typedef std::unordered_map<ClauseId, prop::SatClause*> IdToSatClause;
 typedef context::CDHashSet<Expr, ExprHashFunction> CDExprSet;
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction > NodeSet;
-typedef __gnu_cxx::hash_map<Node, std::vector<Node>, NodeHashFunction > NodeToNodes;
-typedef context::CDHashMap<Node, std::vector<Node>, NodeHashFunction > CDNodeToNodes;
-typedef std::hash_set<ClauseId> IdHashSet;
+typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction> NodeToNodes;
+typedef context::CDHashMap<Node, std::vector<Node>, NodeHashFunction> CDNodeToNodes;
+typedef std::unordered_set<ClauseId> IdHashSet;
 
 enum ProofRule {
   RULE_GIVEN,       /* input assertion */
@@ -159,7 +159,7 @@ class ProofManager {
 
   int d_nextId;
 
-  Proof* d_fullProof;
+  std::unique_ptr<Proof> d_fullProof;
   ProofFormat d_format; // used for now only in debug builds
 
   CDNodeToNodes d_deps;
@@ -187,7 +187,7 @@ public:
   static void         initTheoryProofEngine();
 
   // getting various proofs
-  static Proof*         getProof(SmtEngine* smt);
+  static const Proof& getProof(SmtEngine* smt);
   static CoreSatProof*  getSatProof();
   static CnfProof*      getCnfProof();
   static TheoryProofEngine* getTheoryProofEngine();
@@ -299,29 +299,31 @@ private:
   std::set<Node> satClauseToNodeSet(prop::SatClause* clause);
 };/* class ProofManager */
 
-class LFSCProof : public Proof {
-  LFSCCoreSatProof* d_satProof;
-  LFSCCnfProof* d_cnfProof;
-  LFSCTheoryProofEngine* d_theoryProof;
-  SmtEngine* d_smtEngine;
-
-  // FIXME: hack until we get preprocessing
-  void printPreprocessedAssertions(const NodeSet& assertions,
-                                   std::ostream& os,
-                                   std::ostream& paren,
-                                   ProofLetMap& globalLetMap);
-
-  void checkUnrewrittenAssertion(const NodeSet& assertions);
-
-public:
+class LFSCProof : public Proof
+{
+ public:
   LFSCProof(SmtEngine* smtEngine,
             LFSCCoreSatProof* sat,
             LFSCCnfProof* cnf,
             LFSCTheoryProofEngine* theory);
-  virtual void toStream(std::ostream& out);
-  virtual void toStream(std::ostream& out, const ProofLetMap& map);
-  virtual ~LFSCProof() {}
-};/* class LFSCProof */
+  ~LFSCProof() override {}
+  void toStream(std::ostream& out) const override;
+  void toStream(std::ostream& out, const ProofLetMap& map) const override;
+
+ private:
+  // FIXME: hack until we get preprocessing
+  void printPreprocessedAssertions(const NodeSet& assertions,
+                                   std::ostream& os,
+                                   std::ostream& paren,
+                                   ProofLetMap& globalLetMap) const;
+
+  void checkUnrewrittenAssertion(const NodeSet& assertions) const;
+
+  LFSCCoreSatProof* d_satProof;
+  LFSCCnfProof* d_cnfProof;
+  LFSCTheoryProofEngine* d_theoryProof;
+  SmtEngine* d_smtEngine;
+}; /* class LFSCProof */
 
 std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k);
 }/* CVC4 namespace */

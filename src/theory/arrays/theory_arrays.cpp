@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Morgan Deters, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 #include "theory/arrays/theory_arrays.h"
 
 #include <map>
+#include <memory>
 
 #include "expr/kind.h"
 #include "options/arrays_options.h"
@@ -395,7 +396,8 @@ bool TheoryArrays::propagate(TNode literal)
 }/* TheoryArrays::propagate(TNode) */
 
 
-void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof *proof) {
+void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions,
+                           eq::EqProof* proof) {
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
@@ -551,7 +553,7 @@ void TheoryArrays::weakEquivMakeRepIndex(TNode node) {
 }
 
 void TheoryArrays::weakEquivAddSecondary(TNode index, TNode arrayFrom, TNode arrayTo, TNode reason) {
-  std::hash_set<TNode, TNodeHashFunction> marked;
+  std::unordered_set<TNode, TNodeHashFunction> marked;
   vector<TNode> index_trail;
   vector<TNode>::iterator it, iend;
   Node equivalence_trail = reason;
@@ -684,12 +686,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     else {
       d_equalityEngine.addTerm(node);
     }
-    // Maybe it's a predicate
-    // TODO: remove this or keep it if we allow Boolean elements in arrays.
-    if (node.getType().isBoolean()) {
-      // Get triggered for both equal and dis-equal
-      d_equalityEngine.addTriggerPredicate(node);
-    }
 
     Assert(d_equalityEngine.getRepresentative(store) == store);
     d_infoMap.addIndex(store, node[1]);
@@ -817,6 +813,12 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
 void TheoryArrays::preRegisterTerm(TNode node)
 {
   preRegisterTermInternal(node);
+  // If we have a select from an array of Bools, mark it as a term that can be propagated.
+  // Note: do this here instead of in preRegisterTermInternal to prevent internal select
+  // terms from being propagated out (as this results in an assertion failure).
+  if (node.getKind() == kind::SELECT && node.getType().isBoolean()) {
+    d_equalityEngine.addTriggerPredicate(node);
+  }
 }
 
 
@@ -831,15 +833,14 @@ Node TheoryArrays::explain(TNode literal) {
   return explanation;
 }
 
-Node TheoryArrays::explain(TNode literal, eq::EqProof *proof)
-{
+Node TheoryArrays::explain(TNode literal, eq::EqProof* proof) {
   ++d_numExplain;
-  Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::explain(" << literal << ")" << std::endl;
+  Debug("arrays") << spaces(getSatContext()->getLevel())
+                  << "TheoryArrays::explain(" << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
   explain(literal, assumptions, proof);
   return mkAnd(assumptions);
 }
-
 
 /////////////////////////////////////////////////////////////////////////////
 // SHARING
@@ -1037,8 +1038,7 @@ void TheoryArrays::computeCareGraph()
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
 
-
-void TheoryArrays::collectModelInfo( TheoryModel* m )
+bool TheoryArrays::collectModelInfo(TheoryModel* m)
 {
   set<Node> termSet;
 
@@ -1139,7 +1139,10 @@ void TheoryArrays::collectModelInfo( TheoryModel* m )
   } while (changed);
 
   // Send the equality engine information to the model
-  m->assertEqualityEngine(&d_equalityEngine, &termSet);
+  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
+  {
+    return false;
+  }
 
   // Build a list of all the relevant reads, indexed by the store representative
   std::map<Node, std::vector<Node> > selects;
@@ -1198,7 +1201,7 @@ void TheoryArrays::collectModelInfo( TheoryModel* m )
       /*
     }
     else {
-      std::hash_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(n);
+      std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(n);
       if (it == d_skolemCache.end()) {
         rep = nm->mkSkolem("array_collect_model_var", n.getType(), "base model variable for array collectModelInfo");
         d_skolemCache[n] = rep;
@@ -1214,11 +1217,15 @@ void TheoryArrays::collectModelInfo( TheoryModel* m )
     for (unsigned j = 0; j < reads.size(); ++j) {
       rep = nm->mkNode(kind::STORE, rep, reads[j][1], reads[j]);
     }
-    m->assertEquality(n, rep, true);
+    if (!m->assertEquality(n, rep, true))
+    {
+      return false;
+    }
     if (!n.isConst()) {
-      m->assertRepresentative(rep);
+      m->assertSkeleton(rep);
     }
   }
+  return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1240,7 +1247,7 @@ void TheoryArrays::presolve()
 Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type, const string& comment, bool makeEqual)
 {
   Node skolem;
-  std::hash_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(ref);
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(ref);
   if (it == d_skolemCache.end()) {
     NodeManager* nm = NodeManager::currentNM();
     skolem = nm->mkSkolem(name, type, comment);
@@ -1699,7 +1706,12 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
 
   Node n;
   while (true) {
-    Trace("arrays-merge") << spaces(getSatContext()->getLevel()) << "Arrays::merge: " << a << "," << b << ")\n";
+    // Normally, a is its own representative, but it's possible for a to have
+    // been merged with another array after it got queued up by the equality engine,
+    // so we take its representative to be safe.
+    a = d_equalityEngine.getRepresentative(a);
+    Assert(d_equalityEngine.getRepresentative(b) == a);
+    Trace("arrays-merge") << spaces(getSatContext()->getLevel()) << "Arrays::merge: (" << a << ", " << b << ")\n";
 
     if (options::arraysLazyRIntro1() && !options::arraysWeakEquivalence()) {
       checkRIntro1(a, b);
@@ -1749,18 +1761,20 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
       }
     }
 
-    // If a and b have different default values associated with their mayequal equivalence classes,
-    // things get complicated - disallow this for now.  -Clark
     TNode mayRepA = d_mayEqualEqualityEngine.getRepresentative(a);
     TNode mayRepB = d_mayEqualEqualityEngine.getRepresentative(b);
 
+    // If a and b have different default values associated with their mayequal equivalence classes,
+    // things get complicated.  Similarly, if two mayequal equivalence classes have different
+    // constant representatives, it's not clear what to do. - disallow these cases for now.  -Clark
     DefValMap::iterator it = d_defValues.find(mayRepA);
     DefValMap::iterator it2 = d_defValues.find(mayRepB);
     TNode defValue;
 
     if (it != d_defValues.end()) {
       defValue = (*it).second;
-      if (it2 != d_defValues.end() && (defValue != (*it2).second)) {
+      if ((it2 != d_defValues.end() && (defValue != (*it2).second)) ||
+          (mayRepA.isConst() && mayRepB.isConst() && mayRepA != mayRepB)) {
         throw LogicException("Array theory solver does not yet support write-chains connecting two different constant arrays");
       }
     }
@@ -2231,22 +2245,23 @@ bool TheoryArrays::dischargeLemmas()
 
 void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
-  eq::EqProof* proof = d_proofsEnabled ? new eq::EqProof() : NULL;
+  std::shared_ptr<eq::EqProof> proof = d_proofsEnabled ?
+      std::make_shared<eq::EqProof>() : nullptr;
 
-  d_conflictNode = explain(a.eqNode(b), proof);
+  d_conflictNode = explain(a.eqNode(b), proof.get());
 
   if (!d_inCheckModel) {
-    ProofArray* proof_array = NULL;
+    std::unique_ptr<ProofArray> proof_array;
 
     if (d_proofsEnabled) {
       proof->debug_print("pf::array");
-      proof_array = new ProofArray( proof );
-      proof_array->setRowMergeTag(d_reasonRow);
-      proof_array->setRow1MergeTag(d_reasonRow1);
-      proof_array->setExtMergeTag(d_reasonExt);
+      proof_array.reset(new ProofArray(proof,
+                                       /*row=*/d_reasonRow,
+                                       /*row1=*/d_reasonRow1,
+                                       /*ext=*/d_reasonExt));
     }
 
-    d_out->conflict(d_conflictNode, proof_array);
+    d_out->conflict(d_conflictNode, std::move(proof_array));
   }
 
   d_conflict = true;

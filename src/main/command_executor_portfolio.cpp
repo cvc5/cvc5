@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Kshitij Bansal, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -197,9 +197,13 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   // mode = 2 : run _only_ the lastWinner thread, not saving the
   // command
 
+  if( dynamic_cast<CheckSynthCommand*>(cmd) != NULL ){
+    // sygus not supported in portfolio : FIXME: can support once datatypes exportTo is supported
+    return CommandExecutor::doCommandSingleton(cmd);
+  }
+
   if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
-     dynamic_cast<QueryCommand*>(cmd) != NULL ||
-     dynamic_cast<CheckSynthCommand*>(cmd) != NULL) {
+     dynamic_cast<QueryCommand*>(cmd) != NULL ) {
     mode = 1;
   } else if(dynamic_cast<GetValueCommand*>(cmd) != NULL ||
             dynamic_cast<GetAssignmentCommand*>(cmd) != NULL ||

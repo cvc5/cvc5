@@ -2,9 +2,9 @@
 /*! \file cache.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Paul Meng, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,8 +21,10 @@
 #ifndef __CVC4__CACHE_H
 #define __CVC4__CACHE_H
 
-#include <utility>
 #include <functional>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace CVC4 {
 
@@ -33,7 +35,7 @@ namespace CVC4 {
  */
 template <class T, class U, class Hasher = std::hash<T> >
 class Cache {
-  typedef std::hash_map<T, U, Hasher> Map;
+  typedef std::unordered_map<T, U, Hasher> Map;
   Map d_map;
   std::vector<T> d_current;
   typename Map::iterator d_result;

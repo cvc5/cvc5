@@ -1,18 +1,34 @@
-Thanks to Peter Collingbourne (formerly of the Multicore Programming Group
-at Imperial College London, headed by Alastair Donaldson) for developing and
-submitting a number of patches in September 2012 related to SMT-LIBv2
-compliance.
+Thanks to:
 
-Thanks to Thomas Hunger for some important patches to CVC4's SWIG interfaces
-in March 2014.
+- Chad Brewbaker for fixing a memory leak in 2017.
 
-Thanks to David Cok of GrammaTech, Inc., for suggesting numerous improvements
-in CVC4's SMT-LIBv2 compliance in 2013 and 2014.
+- Adam Buchbinder of Google for submitting patches in November 2013 to fix a
+  number of issues with CVC3 (which were also applicable to CVC4's compatibility
+  interface).
 
-Thanks to Adam Buchbinder at Google for submitting patches in November 2013 to
-fix a number of issues with CVC3 (which were also applicable to CVC4's
-compatibility interface).
+- David Cok of GrammaTech, Inc., for suggesting numerous improvements in CVC4's
+  SMT-LIBv2 compliance in 2013 and 2014.
 
-Thanks to Martin Brain of the Systems Verification Group at the University of
-Oxford for submitting patches to fix certain compilation problems in November
-2013.
+- Peter Collingbourne (formerly of the Multicore Programming Group at Imperial
+  College London, headed by Alastair Donaldson) for developing and submitting a
+  number of patches in September 2012 related to SMT-LIBv2 compliance.
+
+- Finn Haedicke of University of Bremen, Germany for fixing namespace specifiers
+  in CVC4's version of minisat in 2015.
+
+- Thomas Hunger for some important patches to CVC4's SWIG interfaces in March
+  2014.
+
+- Makai Mann of Stanford University for updating the build scripts to support
+  computing coverage in 2017.
+
+- Cristian Mattarei of Stanford University for fixing an issue with parsing
+  floating point numbers in 2017.
+
+- Jordy Ruiz of University of Toulouse for fixing throw specifiers on the theory
+  output channels in 2015.
+
+- Fabian Wolff in 2016 for fixing several spelling mistakes.
+
+- Clement Pit-Claudel of MIT for improving the signal handling support for
+  Windows builds in 2017.

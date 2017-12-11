@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,12 +13,12 @@
  **
  ** AttributeManager implementation.
  **/
+#include "expr/attribute.h"
+
 #include <utility>
 
 #include "base/output.h"
-#include "expr/attribute.h"
 #include "expr/node_value.h"
-#include "smt/smt_engine.h"
 
 using namespace std;
 
@@ -26,30 +26,12 @@ namespace CVC4 {
 namespace expr {
 namespace attr {
 
-SmtAttributes::SmtAttributes(context::Context* ctxt) :
-  d_cdbools(ctxt),
-  d_cdints(ctxt),
-  d_cdtnodes(ctxt),
-  d_cdnodes(ctxt),
-  d_cdstrings(ctxt),
-  d_cdptrs(ctxt) {
-}
-
 AttributeManager::AttributeManager() :
   d_inGarbageCollection(false)
 {}
 
 bool AttributeManager::inGarbageCollection() const {
   return d_inGarbageCollection;
-}
-
-SmtAttributes& AttributeManager::getSmtAttributes(SmtEngine* smt) {
-  Assert(smt != NULL);
-  return *smt->d_smtAttributes;
-}
-
-const SmtAttributes& AttributeManager::getSmtAttributes(SmtEngine* smt) const {
-  return *smt->d_smtAttributes;
 }
 
 void AttributeManager::debugHook(int debugFlag) {
@@ -69,17 +51,6 @@ void AttributeManager::deleteAllAttributes(NodeValue* nv) {
   deleteFromTable(d_types, nv);
   deleteFromTable(d_strings, nv);
   deleteFromTable(d_ptrs, nv);
-}
-
-void SmtAttributes::deleteAllAttributes(TNode n) {
-  NodeValue* nv = n.d_nv;
-
-  d_cdbools.erase(nv);
-  deleteFromTable(d_cdints, nv);
-  deleteFromTable(d_cdtnodes, nv);
-  deleteFromTable(d_cdnodes, nv);
-  deleteFromTable(d_cdstrings, nv);
-  deleteFromTable(d_cdptrs, nv);
 }
 
 void AttributeManager::deleteAllAttributes() {

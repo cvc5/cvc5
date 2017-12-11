@@ -2,9 +2,9 @@
 /*! \file congruence_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Morgan Deters, Andrew Reynolds
+ **   Tim King, Paul Meng, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -43,6 +43,8 @@ ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDa
     d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true)
 {
   d_ee.addFunctionKind(kind::NONLINEAR_MULT);
+  d_ee.addFunctionKind(kind::EXPONENTIAL);
+  d_ee.addFunctionKind(kind::SINE);
   //module to infer additional equalities based on normalization
   if( options::sNormInferEq() ){
     d_eq_infer = new quantifiers::EqualityInference(c, true);

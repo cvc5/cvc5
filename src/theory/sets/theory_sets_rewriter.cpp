@@ -2,9 +2,9 @@
 /*! \file theory_sets_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King
+ **   Andrew Reynolds, Paul Meng, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,17 +15,18 @@
  **/
 
 #include "theory/sets/theory_sets_rewriter.h"
-#include "theory/sets/normal_form.h"
-#include "theory/sets/rels_utils.h"
+
 #include "expr/attribute.h"
 #include "options/sets_options.h"
+#include "theory/sets/normal_form.h"
+#include "theory/sets/rels_utils.h"
 
 namespace CVC4 {
 namespace theory {
 namespace sets {
 
 typedef std::set<TNode> Elements;
-typedef std::hash_map<TNode, Elements, TNodeHashFunction> SettermElementsMap;
+typedef std::unordered_map<TNode, Elements, TNodeHashFunction> SettermElementsMap;
 
 struct FlattenedNodeTag {};
 typedef expr::Attribute<FlattenedNodeTag, bool> flattened;
@@ -50,7 +51,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
     return RewriteResponse(REWRITE_DONE, n);
   }
 
-  typedef std::hash_set<TNode, TNodeHashFunction> node_set;
+  typedef std::unordered_set<TNode, TNodeHashFunction> node_set;
 
   node_set visited;
   visited.insert(skipNode);
@@ -92,7 +93,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
   static const unsigned MAX_CHILDREN = (1u << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN ) - 1;
   AlwaysAssert(childList.size() < MAX_CHILDREN, "do not support formulas this big");
 
-  ChildList::iterator cur = childList.begin(), next, en = childList.end();
+  ChildList::iterator cur = childList.begin(), en = childList.end();
   Node ret = (*cur);
   ++cur;
   while( cur != en ) {
@@ -288,7 +289,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       std::set<Node> right = NormalForm::getElementsFromNormalConstant(node[1]);
       std::set<Node> newSet;
       std::set_union(left.begin(), left.end(), right.begin(), right.end(),
-			  std::inserter(newSet, newSet.begin()));
+                          std::inserter(newSet, newSet.begin()));
       Node newNode = NormalForm::elementsToSet(newSet, node.getType());
       Assert(newNode.isConst());
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
@@ -306,7 +307,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     break;
   }//kind::UNION
   case kind::COMPLEMENT: {
-    Node univ = NodeManager::currentNM()->mkUniqueVar( node[0].getType(), kind::UNIVERSE_SET );
+    Node univ = NodeManager::currentNM()->mkNullaryOperator( node[0].getType(), kind::UNIVERSE_SET );
     return RewriteResponse( REWRITE_AGAIN, NodeManager::currentNM()->mkNode( kind::SETMINUS, univ, node[0] ) );
   }
     break;
@@ -328,6 +329,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                    NodeManager::currentNM()->mkNode( kind::CARD, NodeManager::currentNM()->mkNode( kind::INTERSECTION, node[0][0], node[0][1] ) ) );                                      
       return RewriteResponse(REWRITE_DONE, ret );
     }
+    break;
   }
   case kind::TRANSPOSE: {
     if(node[0].getKind() == kind::TRANSPOSE) {
@@ -381,7 +383,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
         std::set<Node>::iterator right_it = right.begin();
         int right_len = (*right_it).getType().getTupleLength();
         while(right_it != right.end()) {
-          Trace("rels-debug") << "Sets::postRewrite processing left_it = " <<  *right_it << std::endl;
+          Trace("rels-debug") << "Sets::postRewrite processing right_it = " <<  *right_it << std::endl;
           std::vector<Node> right_tuple;
           for(int j = 0; j < right_len; j++) {
             right_tuple.push_back(RelsUtils::nthElementOfTuple(*right_it,j));
@@ -468,6 +470,77 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     break;
   }
   
+  case kind::IDEN: {
+    if(node[0].getKind() == kind::EMPTYSET) {
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
+    } else if (node[0].isConst()) {
+      std::set<Node> iden_rel_mems;
+      std::set<Node> rel_mems = NormalForm::getElementsFromNormalConstant(node[0]);
+      std::set<Node>::iterator rel_mems_it = rel_mems.begin();
+
+      while( rel_mems_it != rel_mems.end() ) {
+        Node fst_mem = RelsUtils::nthElementOfTuple( *rel_mems_it, 0);
+        iden_rel_mems.insert(RelsUtils::constructPair(node, fst_mem, fst_mem));
+        ++rel_mems_it;
+      }
+
+      Node new_node = NormalForm::elementsToSet(iden_rel_mems, node.getType());
+      Assert(new_node.isConst());
+      Trace("rels-postrewrite") << "Rels::postRewrite returning " << new_node << std::endl;
+      return RewriteResponse(REWRITE_DONE, new_node);
+
+    } else {
+      Trace("rels-postrewrite") << "Rels::postRewrite miss to handle term " << node << std::endl;
+    }
+    break;
+  }
+
+  case kind::JOIN_IMAGE: {
+    unsigned int min_card = node[1].getConst<Rational>().getNumerator().getUnsignedInt();
+    Trace("rels-postrewrite") << "Rels::postRewrite  " << node << " with min_card = " << min_card << std::endl;
+
+    if( min_card == 0) {
+      return RewriteResponse(REWRITE_DONE, nm->mkNullaryOperator( node.getType(), kind::UNIVERSE_SET ));
+    } else if(node[0].getKind() == kind::EMPTYSET) {
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
+    } else if (node[0].isConst()) {
+      std::set<Node> has_checked;
+      std::set<Node> join_img_mems;
+      std::set<Node> rel_mems = NormalForm::getElementsFromNormalConstant(node[0]);
+      std::set<Node>::iterator rel_mems_it = rel_mems.begin();
+
+      while( rel_mems_it != rel_mems.end() ) {
+        Node fst_mem = RelsUtils::nthElementOfTuple( *rel_mems_it, 0);
+        if( has_checked.find( fst_mem ) != has_checked.end() ) {
+          ++rel_mems_it;
+          continue;
+        }
+        has_checked.insert( fst_mem );
+        std::set<Node> existing_mems;
+        std::set<Node>::iterator rel_mems_it_snd = rel_mems.begin();
+        while( rel_mems_it_snd != rel_mems.end() ) {
+          Node fst_mem_snd = RelsUtils::nthElementOfTuple( *rel_mems_it_snd, 0);
+          if( fst_mem == fst_mem_snd ) {
+            existing_mems.insert( RelsUtils::nthElementOfTuple( *rel_mems_it_snd, 1) );
+          }
+          ++rel_mems_it_snd;
+        }
+        if( existing_mems.size() >= min_card ) {
+          Datatype dt = node.getType().getSetElementType().getDatatype();
+          join_img_mems.insert(NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, Node::fromExpr(dt[0].getConstructor()), fst_mem ));
+        }
+        ++rel_mems_it;
+      }
+      Node new_node = NormalForm::elementsToSet(join_img_mems, node.getType());
+      Assert(new_node.isConst());
+      Trace("rels-postrewrite") << "Rels::postRewrite returning " << new_node << std::endl;
+      return RewriteResponse(REWRITE_DONE, new_node);
+    } else {
+      Trace("rels-postrewrite") << "Rels::postRewrite miss to handle term " << node << std::endl;
+    }
+    break;
+  }
+
   default:
     break;
   }//switch(node.getKind())
@@ -494,13 +567,13 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
     size_t setNodeIndex =  node.getNumChildren()-1;
     for(size_t i = 1; i < setNodeIndex; ++i) {
       insertedElements = nm->mkNode(kind::UNION, 
-				    insertedElements,
-				    nm->mkNode(kind::SINGLETON, node[i]));
+                                    insertedElements,
+                                    nm->mkNode(kind::SINGLETON, node[i]));
     }
     return RewriteResponse(REWRITE_AGAIN, 
-			   nm->mkNode(kind::UNION,
-				      insertedElements, 
-				      node[setNodeIndex]));
+                           nm->mkNode(kind::UNION,
+                                      insertedElements,
+                                      node[setNodeIndex]));
 
   }//kind::INSERT
   else if(node.getKind() == kind::SUBSET) {

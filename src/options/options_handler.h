@@ -2,9 +2,9 @@
 /*! \file options_handler.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds
+ **   Tim King, Andrew Reynolds, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,6 +28,7 @@
 #include "options/arith_unate_lemma_mode.h"
 #include "options/base_handlers.h"
 #include "options/bv_bitblast_mode.h"
+#include "options/datatypes_modes.h"
 #include "options/decision_mode.h"
 #include "options/language.h"
 #include "options/option_exception.h"
@@ -35,6 +36,7 @@
 #include "options/printer_modes.h"
 #include "options/quantifiers_modes.h"
 #include "options/simplification_mode.h"
+#include "options/sygus_out_mode.h"
 #include "options/theoryof_mode.h"
 #include "options/ufss_mode.h"
 
@@ -95,15 +97,17 @@ public:
   theory::quantifiers::TriggerSelMode stringToTriggerSelMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::TriggerActiveSelMode stringToTriggerActiveSelMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::PrenexQuantMode stringToPrenexQuantMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::CegqiFairMode stringToCegqiFairMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::TermDbMode stringToTermDbMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::IteLiftQuantMode stringToIteLiftQuantMode(std::string option, std::string optarg) throw(OptionException);
+  theory::quantifiers::CbqiBvIneqMode stringToCbqiBvIneqMode(
+      std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::CegqiSingleInvMode stringToCegqiSingleInvMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::MacrosQuantMode stringToMacrosQuantMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::QuantDSplitMode stringToQuantDSplitMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::QuantRepMode stringToQuantRepMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::FmfBoundMinMode stringToFmfBoundMinMode(std::string option, std::string optarg) throw(OptionException);
+  theory::SygusFairMode stringToSygusFairMode(std::string option, std::string optarg) throw(OptionException);
 
   // theory/bv/options_handlers.h
   void abcEnabledBuild(std::string option, bool value) throw(OptionException);
@@ -140,8 +144,11 @@ public:
   void notifyBeforeSearch(const std::string& option) throw(ModalException);
   void notifyDumpMode(std::string option) throw(OptionException);
   SimplificationMode stringToSimplificationMode(std::string option, std::string optarg) throw(OptionException);
+  SygusSolutionOutMode stringToSygusSolutionOutMode(
+      std::string option, std::string optarg) throw(OptionException);
   void setProduceAssertions(std::string option, bool value) throw();
   void proofEnabledBuild(std::string option, bool value) throw(OptionException);
+  void LFSCEnabledBuild(std::string option, bool value);
   void notifyDumpToFile(std::string option);
   void notifySetRegularOutputChannel(std::string option);
   void notifySetDiagnosticOutputChannel(std::string option);
@@ -169,6 +176,7 @@ public:
   void notifySetPrintExprTypes(std::string option);
 
   /* main/options_handlers.h */
+  void copyright(std::string option);
   void showConfiguration(std::string option);
   void showDebugTags(std::string option);
   void showTraceTags(std::string option);
@@ -213,6 +221,8 @@ public:
   static const std::string s_qcfModeHelp;
   static const std::string s_qcfWhenModeHelp;
   static const std::string s_simplificationHelp;
+  static const std::string s_sygusSolutionOutModeHelp;
+  static const std::string s_cbqiBvIneqModeHelp;
   static const std::string s_cegqiSingleInvHelp;
   static const std::string s_sygusInvTemplHelp;
   static const std::string s_termDbModeHelp;

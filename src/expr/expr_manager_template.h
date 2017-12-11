@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,7 +25,6 @@
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "util/statistics.h"
-#include "util/subrange_bound.h"
 
 ${includes}
 
@@ -33,7 +32,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 37 "${template}"
+#line 36 "${template}"
 
 namespace CVC4 {
 
@@ -458,12 +457,6 @@ public:
   //Type mkPredicateSubtype(Expr lambda, Expr witness)
   //  throw(TypeCheckingException);
 
-  /**
-   * Make an integer subrange type as defined by the argument.
-   */
-  Type mkSubrangeType(const SubrangeBounds& bounds)
-    throw(TypeCheckingException);
-
   /** Get the type of an expression */
   Type getType(Expr e, bool check = false)
     throw(TypeCheckingException);
@@ -545,17 +538,23 @@ public:
    * @param type the type for the new bound variable
    */
   Expr mkBoundVar(Type type);
-  
+
   /**
    * Create unique variable of type 
    */
-  Expr mkUniqueVar( Type type, Kind k);
+  Expr mkNullaryOperator( Type type, Kind k);
 
   /** Get a reference to the statistics registry for this ExprManager */
   Statistics getStatistics() const throw();
 
   /** Get a reference to the statistics registry for this ExprManager */
   SExpr getStatistic(const std::string& name) const throw();
+
+  /**
+   * Flushes statistics for this ExprManager to a file descriptor. Safe to use
+   * in a signal handler.
+   */
+  void safeFlushStatistics(int fd) const;
 
   /** Export an expr to a different ExprManager */
   //static Expr exportExpr(const Expr& e, ExprManager* em);

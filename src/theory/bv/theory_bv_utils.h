@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,19 +17,22 @@
 
 #include "cvc4_private.h"
 
-#pragma once 
+#pragma once
 
 #include <set>
-#include <vector>
 #include <sstream>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
 #include "expr/node_manager.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
 
 namespace utils {
 
@@ -153,9 +156,9 @@ inline Node mkExtract(TNode node, unsigned high, unsigned low) {
 inline Node mkBitOf(TNode node, unsigned index) {
   Node bitOfOp = NodeManager::currentNM()->mkConst<BitVectorBitOf>(BitVectorBitOf(index));
   return NodeManager::currentNM()->mkNode(bitOfOp, node); 
-                                        
 }
 
+Node mkSum(std::vector<Node>& children, unsigned width);
 
 inline Node mkConcat(TNode node, unsigned repeat) {
   Assert (repeat); 
@@ -200,6 +203,22 @@ inline Node mkConst(unsigned size, unsigned int value) {
 inline Node mkConst(const BitVector& value) {
   return NodeManager::currentNM()->mkConst<BitVector>(value);
 }
+
+inline Node mkZero(unsigned size) { return mkConst(size, 0u); }
+
+inline Node mkOne(unsigned size) { return mkConst(size, 1u); }
+
+/* Increment */
+Node mkInc(TNode t);
+
+/* Decrement */
+Node mkDec(TNode t);
+
+/* Unsigned multiplication overflow detection.
+ * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+ * overflow detection circuits", 2001.
+ * http://ieeexplore.ieee.org/document/987767 */
+Node mkUmulo(TNode t1, TNode t2);
 
 inline void getConjuncts(TNode node, std::set<TNode>& conjuncts) {
   if (node.getKind() != kind::AND) {
@@ -505,11 +524,11 @@ inline T gcd(T a, T b) {
   return a;
 }
 
-typedef __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
+typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
 
 bool isCoreTerm(TNode term, TNodeBoolMap& cache);
 bool isEqualityTerm(TNode term, TNodeBoolMap& cache);
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
 uint64_t numNodes(TNode node, NodeSet& seen);
 

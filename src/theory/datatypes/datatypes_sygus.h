@@ -2,9 +2,9 @@
 /*! \file datatypes_sygus.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Paul Meng, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,126 +16,156 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__DATATYPES__DATATYPES_SYGUS_H
-#define __CVC4__THEORY__DATATYPES__DATATYPES_SYGUS_H
+#ifndef __CVC4__THEORY__DATATYPES__DATATYPES_SYGUS_NEW_H
+#define __CVC4__THEORY__DATATYPES__DATATYPES_SYGUS_NEW_H
 
 #include <iostream>
 #include <map>
 
-#include "expr/node.h"
-#include "expr/datatype.h"
-#include "context/context.h"
-#include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "context/cdo.h"
+#include "context/context.h"
+#include "expr/datatype.h"
+#include "expr/node.h"
+#include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
 namespace theory {
-namespace quantifiers {
-  class TermDbSygus;
-} /* namespace quantifiers */
-
 namespace datatypes {
 
-class SygusSplit
+class TheoryDatatypes;
+
+class SygusSplitNew
 {
 private:
   quantifiers::TermDbSygus * d_tds;
   std::map< Node, std::vector< Node > > d_splits;
-  std::map< TypeNode, std::vector< bool > > d_sygus_nred;
-  std::map< TypeNode, std::map< int, std::map< int, std::vector< bool > > > > d_sygus_pc_nred;
-  std::map< TypeNode, std::map< int, std::map< int, std::vector< int > > > > d_sygus_pc_arg_pos;
-  std::map< TypeNode, TypeNode > d_register;  //stores sygus type
-  // type to (rewritten) to original
-  std::map< TypeNode, std::map< Node, Node > > d_gen_terms;
-  std::map< TypeNode, std::map< Node, Node > > d_gen_terms_inactive;
-  std::map< TypeNode, std::map< Node, bool > > d_gen_redundant;
-private:
-  /** register sygus type */
-  void registerSygusType( TypeNode tn );
-  /** register sygus operator */
-  void registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& dt, TypeNode tnnp, const Datatype& pdt, int csIndex, int sIndex );
-  /** consider sygus split */
-  bool considerSygusSplitKind( const Datatype& dt, const Datatype& pdt, TypeNode tn, TypeNode tnp, Kind k, Kind parent, int arg );
-  bool considerSygusSplitConst( const Datatype& dt, const Datatype& pdt, TypeNode tn, TypeNode tnp, Node c, Kind parent, int arg );
-  /** get first occurrence */
-  int getFirstArgOccurrence( const DatatypeConstructor& c, const Datatype& dt );
-  /** is arg datatype */
-  bool isArgDatatype( const DatatypeConstructor& c, int i, const Datatype& dt );
-  /** is type match */
-  bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
-private:
-  // generic cache
-  bool isGenericRedundant( TypeNode tn, Node g, bool active = true );
 public:
-  SygusSplit( quantifiers::TermDbSygus * tds ) : d_tds( tds ){}
-  ~SygusSplit(){}
+  SygusSplitNew( quantifiers::TermDbSygus * tds ) : d_tds( tds ){}
+  virtual ~SygusSplitNew(){}
   /** get sygus splits */
   void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits, std::vector< Node >& lemmas );
+  static Node getSygusSplit( quantifiers::TermDbSygus * tds, Node n, const Datatype& dt );
 };
 
-
-
-
-class SygusSymBreak
+class SygusSymBreakNew
 {
 private:
+  TheoryDatatypes * d_td;
   quantifiers::TermDbSygus * d_tds;
-  context::Context* d_context;
-  class ProgSearch {
-    typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-    typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
-    typedef context::CDHashMap< int, int > IntIntMap;
-  private:
-    SygusSymBreak * d_parent;
-    Node getCandidateProgramAtDepth( int depth, Node prog, int curr_depth, Node parent, std::map< TypeNode, int >& var_count,
-                                     std::vector< Node >& testers, std::map< Node, std::vector< Node > >& testers_u );
-    bool processProgramDepth( int depth );
-    bool processSubprograms( Node n, int depth, int odepth );
-    bool assignTester( int tindex, Node n, int depth );
-  public:
-    ProgSearch( SygusSymBreak * p, Node a, context::Context* c ) :
-      d_parent( p ), d_anchor( a ), d_testers( c ), d_watched_terms( c ), d_watched_count( c ), d_prog_depth( c, 0 ) {
-      d_anchor_type = d_anchor.getType();
-    }
-    ~ProgSearch(){}
-    Node d_anchor;
-    NodeMap d_testers;
-    IntMap d_watched_terms;
-    IntIntMap d_watched_count;
-    TypeNode d_anchor_type;
-    context::CDO<int> d_prog_depth;
-    void addTester( int tindex, Node n, Node exp );
-  };
-  std::map< Node, ProgSearch * > d_prog_search;
-  std::map< TypeNode, std::map< Node, Node > > d_normalized_to_orig;
-  std::map< TypeNode, std::map< Node, bool > > d_redundant;
-  std::map< TypeNode, std::map< Node, int > > d_normalized_to_term_size;
-  std::map< TypeNode, std::map< Node, std::vector< Node > > > d_lemmas_reported;
-  //which testers to include in the lemma
-  std::map< TypeNode, std::map< Node, std::vector< bool > > > d_lemma_inc_tst;
-  //additional equalities to include in the lemma
-  std::map< TypeNode, std::map< Node, std::vector< std::pair< int, int > > > > d_lemma_inc_eq;
-  //other equalities
-  std::map< TypeNode, Node > d_anchor_var;
-  std::map< TypeNode, std::map< Node, std::vector< Node > > > d_lemma_inc_eq_gr[2];
+  typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
+  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
+  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  IntMap d_testers;
+  IntMap d_is_const;
+  NodeMap d_testers_exp;
+  NodeSet d_active_terms;
+  IntMap d_currTermSize;
+  Node d_zero;
 private:
-  Node getAnchor( Node n );
-  bool processCurrentProgram( Node a, TypeNode at, int depth, Node prog,
-                              std::vector< Node >& testers, std::map< Node, std::vector< Node > >& testers_u,
-                              std::map< TypeNode, int >& var_count );
-  bool processConstantArg( TypeNode tnp, const Datatype & pdt, int pc, Kind k, int i, Node arg, std::map< unsigned, bool >& rlv );
-  void collectTesters( Node tst, std::map< Node, std::vector< Node > >& testers_u, std::vector< Node >& testers, std::map< Node, bool >& irrlv_tst );
-  void collectSubterms( Node n, Node tst_curr, std::map< Node, std::vector< Node > >& testers_u, std::map< Node, std::vector< Node > >& nodes );
-  bool isSeparation( Node rep_prog, Node tst_curr, std::map< Node, std::vector< Node > >& testers_u, std::vector< Node >& rlv_testers );
-  Node getSeparationTemplate( TypeNode tn, Node rep_prog, Node anc_var, int& status );
+  std::map< Node, Node > d_term_to_anchor;
+  std::map<Node, quantifiers::CegConjecture*> d_term_to_anchor_conj;
+  std::map< Node, unsigned > d_term_to_depth;
+  std::map< Node, bool > d_is_top_level;
+  void registerTerm( Node n, std::vector< Node >& lemmas );
+  bool computeTopLevel( TypeNode tn, Node n );
+private:
+  //list of all terms encountered in search at depth
+  class SearchCache {
+  public:
+    SearchCache(){}
+    std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_search_terms;
+    std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_sb_lemmas;
+    // search values
+    std::map< TypeNode, std::map< Node, Node > > d_search_val;
+    std::map< TypeNode, std::map< Node, unsigned > > d_search_val_sz;
+    std::map< TypeNode, std::map< Node, Node > > d_search_val_b;
+    std::map< Node, bool > d_search_val_proc;
+  };
+  // anchor -> cache
+  std::map< Node, SearchCache > d_cache;
+  Node d_null;
+  void assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
+  // register search term
+  void registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel, std::vector< Node >& lemmas );
+  bool registerSearchValue( Node a, Node n, Node nv, unsigned d, std::vector< Node >& lemmas );
+  void registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, Node e, std::vector< Node >& lemmas );
+  void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node e, std::vector< Node >& lemmas );
+  void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, std::vector< Node >& lemmas );
+  void addSymBreakLemma( TypeNode tn, Node lem, TNode x, TNode n, unsigned lem_sz, unsigned n_depth, std::vector< Node >& lemmas );
+private:
+  std::map< Node, Node > d_rlv_cond;
+  Node getRelevancyCondition( Node n );
+private:
+  std::map< TypeNode, std::map< int, std::map< unsigned, Node > > > d_simple_sb_pred;
+  std::map< TypeNode, Node > d_free_var;
+  // user-context dependent if sygus-incremental
+  std::map< Node, unsigned > d_simple_proc;
+  //get simple symmetry breaking predicate
+  Node getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned depth );
+  TNode getFreeVar( TypeNode tn );
+  Node getTermOrderPredicate( Node n1, Node n2 );
+private:
+  //should be user-context dependent if sygus in incremental mode
+  std::map< Node, bool > d_register_st;
+  void registerSizeTerm( Node e, std::vector< Node >& lemmas );
+  class SearchSizeInfo {
+  public:
+    SearchSizeInfo( Node t, context::Context* c ) : d_this( t ), d_curr_search_size(0), d_curr_lit( c, 0 ) {}
+    Node d_this;
+    std::map< unsigned, Node > d_search_size_exp;
+    std::map< unsigned, bool > d_search_size;
+    unsigned d_curr_search_size;
+    Node d_sygus_measure_term;
+    Node d_sygus_measure_term_active;
+    std::vector< Node > d_anchors;
+    Node getOrMkSygusMeasureTerm( std::vector< Node >& lemmas );
+    Node getOrMkSygusActiveMeasureTerm( std::vector< Node >& lemmas );
+  public:
+    /** current cardinality */
+    context::CDO< unsigned > d_curr_lit;
+    std::map< unsigned, Node > d_lits;
+    Node getFairnessLiteral( unsigned s, TheoryDatatypes * d, std::vector< Node >& lemmas );
+    Node getCurrentFairnessLiteral( TheoryDatatypes * d, std::vector< Node >& lemmas ) { 
+      return getFairnessLiteral( d_curr_lit.get(), d, lemmas ); 
+    }
+    /** increment current term size */
+    void incrementCurrentLiteral() { d_curr_lit.set( d_curr_lit.get() + 1 ); }
+  };
+  std::map< Node, SearchSizeInfo * > d_szinfo;
+  std::map< Node, Node > d_anchor_to_measure_term;
+  std::map< Node, Node > d_anchor_to_active_guard;
+  Node d_generic_measure_term;
+  void incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas );
+  void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
+  void registerMeasureTerm( Node m );
+  unsigned getSearchSizeFor( Node n );
+  unsigned getSearchSizeForAnchor( Node n );
+  unsigned getSearchSizeForMeasureTerm(Node m);
+
+ private:
+  unsigned processSelectorChain( Node n, std::map< TypeNode, Node >& top_level, 
+                                 std::map< Node, unsigned >& tdepth, std::vector< Node >& lemmas );
+  bool debugTesters( Node n, Node vn, int ind, std::vector< Node >& lemmas );
+  Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
+  int getGuardStatus( Node g );
+private:
+  void assertIsConst( Node n, bool polarity, std::vector< Node >& lemmas );
 public:
-  SygusSymBreak( quantifiers::TermDbSygus * tds, context::Context* c );
-  ~SygusSymBreak();
+  SygusSymBreakNew( TheoryDatatypes * td, quantifiers::TermDbSygus * tds, context::Context* c );
+  ~SygusSymBreakNew();
   /** add tester */
-  void addTester( int tindex, Node n, Node exp );
-  /** lemmas we have generated */
-  std::vector< Node > d_lemmas;
+  void assertTester( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
+  void assertFact( Node n, bool polarity, std::vector< Node >& lemmas );
+  void preRegisterTerm( TNode n, std::vector< Node >& lemmas  );
+  void check( std::vector< Node >& lemmas );
+  void getPossibleCons( const Datatype& dt, TypeNode tn, std::vector< bool >& pcons );
+public:
+  Node getNextDecisionRequest( unsigned& priority, std::vector< Node >& lemmas );
 };
 
 }
@@ -143,3 +173,4 @@ public:
 }
 
 #endif
+

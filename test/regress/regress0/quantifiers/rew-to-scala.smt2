@@ -1,3 +1,5 @@
+; COMMAND-LINE: --lang=smt2.5
+; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
 (declare-datatypes () ((Formula!953 (And!954 (lhs!955 Formula!953) (rhs!956 Formula!953)) (Not!957 (f!958 Formula!953)) (Or!959 (lhs!960 Formula!953) (rhs!961 Formula!953)) (Variable!962 (id!963 (_ BitVec 32))))

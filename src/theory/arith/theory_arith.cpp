@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,9 +37,14 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
     , d_ppRewriteTimer("theory::arith::ppRewriteTimer")
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
-  if (options::nlAlg()) {
+  if (options::nlExt()) {
     setupExtTheory();
     getExtTheory()->addFunctionKind(kind::NONLINEAR_MULT);
+    getExtTheory()->addFunctionKind(kind::EXPONENTIAL);
+    getExtTheory()->addFunctionKind(kind::SINE);
+    getExtTheory()->addFunctionKind(kind::COSINE);
+    getExtTheory()->addFunctionKind(kind::TANGENT);
+    getExtTheory()->addFunctionKind(kind::PI);
   }
 }
 
@@ -101,9 +106,9 @@ bool TheoryArith::isExtfReduced( int effort, Node n, Node on, std::vector< Node 
 void TheoryArith::propagate(Effort e) {
   d_internal->propagate(e);
 }
-
-void TheoryArith::collectModelInfo( TheoryModel* m ){
-  d_internal->collectModelInfo(m);
+bool TheoryArith::collectModelInfo(TheoryModel* m)
+{
+  return d_internal->collectModelInfo(m);
 }
 
 void TheoryArith::notifyRestart(){

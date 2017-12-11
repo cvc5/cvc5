@@ -2,9 +2,9 @@
 /*! \file local_theory_ext.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 
@@ -127,9 +128,11 @@ bool LtePartialInst::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_FULL && d_needsCheck;
 }
 /* Call during quantifier engine's check */
-void LtePartialInst::check( Theory::Effort e, unsigned quant_e ) {
+void LtePartialInst::check(Theory::Effort e, QEffort quant_e)
+{
   //flush lemmas ASAP (they are a reduction)
-  if( quant_e==QuantifiersEngine::QEFFORT_CONFLICT && d_needsCheck ){
+  if (quant_e == QEFFORT_CONFLICT && d_needsCheck)
+  {
     std::vector< Node > lemmas;
     getInstantiations( lemmas );
     //add lemmas to quantifiers engine

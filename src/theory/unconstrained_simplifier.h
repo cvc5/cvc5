@@ -2,9 +2,9 @@
 /*! \file unconstrained_simplifier.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Tim King
+ **   Clark Barrett, Paul Meng, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,8 +20,10 @@
 #ifndef __CVC4__UNCONSTRAINED_SIMPLIFIER_H
 #define __CVC4__UNCONSTRAINED_SIMPLIFIER_H
 
-#include <vector>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include "expr/node.h"
 #include "theory/substitutions.h"
@@ -37,9 +39,9 @@ class UnconstrainedSimplifier {
   /** number of expressions eliminated due to unconstrained simplification */
   IntStat d_numUnconstrainedElim;
 
-  typedef std::hash_map<TNode, unsigned, TNodeHashFunction> TNodeCountMap;
-  typedef std::hash_map<TNode, TNode, TNodeHashFunction> TNodeMap;
-  typedef std::hash_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_map<TNode, unsigned, TNodeHashFunction> TNodeCountMap;
+  typedef std::unordered_map<TNode, TNode, TNodeHashFunction> TNodeMap;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
 
   TNodeCountMap d_visited;
   TNodeMap d_visitedOnce;

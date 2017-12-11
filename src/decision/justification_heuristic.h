@@ -2,9 +2,9 @@
 /*! \file justification_heuristic.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Morgan Deters
+ **   Kshitij Bansal, Paul Meng, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,6 +22,8 @@
 
 #ifndef __CVC4__DECISION__JUSTIFICATION_HEURISTIC
 #define __CVC4__DECISION__JUSTIFICATION_HEURISTIC
+
+#include <unordered_set>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -78,13 +80,13 @@ class JustificationHeuristic : public ITEDecisionStrategy {
    * splitter. Can happen when exploring assertion corresponding to a
    * term-ITE.
    */
-  hash_set<TNode,TNodeHashFunction> d_visited;
+  std::unordered_set<TNode,TNodeHashFunction> d_visited;
 
   /**
    * Set to track visited nodes in a dfs search done in computeITE
    * function
    */
-  hash_set<TNode,TNodeHashFunction> d_visitedComputeITE;
+  std::unordered_set<TNode,TNodeHashFunction> d_visitedComputeITE;
 
   /** current decision for the recursive call */
   SatLiteral d_curDecision;
@@ -177,7 +179,6 @@ private:
 };/* class JustificationHeuristic */
 
 }/* namespace decision */
-
 }/* namespace CVC4 */
 
 #endif /* __CVC4__DECISION__JUSTIFICATION_HEURISTIC */

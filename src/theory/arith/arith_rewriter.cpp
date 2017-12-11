@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "smt/logic_exception.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
@@ -101,7 +102,12 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       return preRewritePlus(t);
     case kind::MULT:
     case kind::NONLINEAR_MULT:
-      return preRewriteMult(t);
+      return preRewriteMult(t);  
+    case kind::EXPONENTIAL:
+    case kind::SINE:
+    case kind::COSINE:
+    case kind::TANGENT:
+      return preRewriteTranscendental(t);
     case kind::INTS_DIVISION:
     case kind::INTS_MODULUS:
       return RewriteResponse(REWRITE_DONE, t);
@@ -125,6 +131,8 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
     case kind::TO_REAL:
       return RewriteResponse(REWRITE_DONE, t[0]);
     case kind::POW:
+      return RewriteResponse(REWRITE_DONE, t);
+    case kind::PI:
       return RewriteResponse(REWRITE_DONE, t);
     default:
       Unhandled(k);
@@ -150,7 +158,12 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       return postRewritePlus(t);
     case kind::MULT:
     case kind::NONLINEAR_MULT:
-      return postRewriteMult(t);
+      return postRewriteMult(t);    
+    case kind::EXPONENTIAL:
+    case kind::SINE:
+    case kind::COSINE:
+    case kind::TANGENT:
+      return postRewriteTranscendental(t);
     case kind::INTS_DIVISION:
     case kind::INTS_MODULUS:
       return RewriteResponse(REWRITE_DONE, t);
@@ -197,25 +210,33 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           if(exp.sgn() == 0){
             return RewriteResponse(REWRITE_DONE, mkRationalNode(Rational(1)));
           }else if(exp.sgn() > 0 && exp.isIntegral()){
-            Integer num = exp.getNumerator();
-            NodeBuilder<> nb(kind::MULT);
-            Integer one(1);
-            for(Integer i(0); i < num; i = i + one){
-              nb << base;
+            CVC4::Rational r(INT_MAX);
+            if( exp<r ){
+              unsigned num = exp.getNumerator().toUnsignedInt();
+              if( num==1 ){
+                return RewriteResponse(REWRITE_AGAIN, base);
+              }else{
+                NodeBuilder<> nb(kind::MULT);
+                for(unsigned i=0; i < num; ++i){
+                  nb << base;
+                }
+                Assert(nb.getNumChildren() > 0);
+                Node mult = nb;
+                return RewriteResponse(REWRITE_AGAIN, mult);
+              }
             }
-            Assert(nb.getNumChildren() > 0);
-            Node mult = nb;
-            return RewriteResponse(REWRITE_AGAIN, mult);
           }
         }
 
         // Todo improve the exception thrown
         std::stringstream ss;
         ss << "The POW(^) operator can only be used with a natural number ";
-        ss << "in the exponent.  Exception occured in:" << std::endl;
+        ss << "in the exponent.  Exception occurred in:" << std::endl;
         ss << "  " << t;
         throw LogicException(ss.str());
       }
+    case kind::PI:
+      return RewriteResponse(REWRITE_DONE, t);
     default:
       Unreachable();
     }
@@ -332,6 +353,160 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   return RewriteResponse(REWRITE_DONE, res.getNode());
 }
 
+
+RewriteResponse ArithRewriter::preRewriteTranscendental(TNode t) {
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) { 
+  Trace("arith-tf-rewrite") << "Rewrite transcendental function : " << t << std::endl;
+  switch( t.getKind() ){
+  case kind::EXPONENTIAL: {
+    if(t[0].getKind() == kind::CONST_RATIONAL){
+      Node one = NodeManager::currentNM()->mkConst(Rational(1));
+      if(t[0].getConst<Rational>().sgn()>=0 && t[0].getType().isInteger() && t[0]!=one){
+        return RewriteResponse(REWRITE_AGAIN, NodeManager::currentNM()->mkNode(kind::POW, NodeManager::currentNM()->mkNode( kind::EXPONENTIAL, one ), t[0]));
+      }else{          
+        return RewriteResponse(REWRITE_DONE, t);
+      }
+    }else if(t[0].getKind() == kind::PLUS ){
+      std::vector<Node> product;
+      for( unsigned i=0; i<t[0].getNumChildren(); i++ ){
+        product.push_back( NodeManager::currentNM()->mkNode( kind::EXPONENTIAL, t[0][i] ) );
+      }
+      return RewriteResponse(REWRITE_AGAIN, NodeManager::currentNM()->mkNode(kind::MULT, product));
+    }
+  }
+    break;
+  case kind::SINE:
+    if(t[0].getKind() == kind::CONST_RATIONAL){
+      const Rational& rat = t[0].getConst<Rational>();
+      if(rat.sgn() == 0){
+        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(Rational(0)));
+      }
+    }else{
+      // get the factor of PI in the argument
+      Node pi_factor;
+      Node pi;
+      Node rem;
+      std::map<Node, Node> msum;
+      if (ArithMSum::getMonomialSum(t[0], msum))
+      {
+        pi = mkPi();
+        std::map<Node, Node>::iterator itm = msum.find(pi);
+        if (itm != msum.end())
+        {
+          if (itm->second.isNull())
+          {
+            pi_factor = mkRationalNode(Rational(1));
+          }
+          else
+          {
+            pi_factor = itm->second;
+          }
+          msum.erase(pi);
+          if (!msum.empty())
+          {
+            rem = ArithMSum::mkNode(msum);
+          }
+        }
+      }
+      else
+      {
+        Assert(false);
+      }
+
+      // if there is a factor of PI
+      if( !pi_factor.isNull() ){
+        Trace("arith-tf-rewrite-debug") << "Process pi factor = " << pi_factor << std::endl;
+        Rational r = pi_factor.getConst<Rational>();
+        Rational r_abs = r.abs();
+        Rational rone = Rational(1);
+        Node ntwo = mkRationalNode(Rational(2));
+        if (r_abs > rone)
+        {
+          //add/substract 2*pi beyond scope
+          Node ra_div_two = NodeManager::currentNM()->mkNode(
+              kind::INTS_DIVISION, mkRationalNode(r_abs + rone), ntwo);
+          Node new_pi_factor;
+          if( r.sgn()==1 ){
+            new_pi_factor = NodeManager::currentNM()->mkNode( kind::MINUS, pi_factor, NodeManager::currentNM()->mkNode( kind::MULT, ntwo, ra_div_two ) );
+          }else{
+            Assert( r.sgn()==-1 );
+            new_pi_factor = NodeManager::currentNM()->mkNode( kind::PLUS, pi_factor, NodeManager::currentNM()->mkNode( kind::MULT, ntwo, ra_div_two ) );
+          }
+          Node new_arg =
+              NodeManager::currentNM()->mkNode(kind::MULT, new_pi_factor, pi);
+          if (!rem.isNull())
+          {
+            new_arg =
+                NodeManager::currentNM()->mkNode(kind::PLUS, new_arg, rem);
+          }
+          // sin( 2*n*PI + x ) = sin( x )
+          return RewriteResponse(
+              REWRITE_AGAIN_FULL,
+              NodeManager::currentNM()->mkNode(kind::SINE, new_arg));
+        }
+        else if (r_abs == rone)
+        {
+          // sin( PI + x ) = -sin( x )
+          if (rem.isNull())
+          {
+            return RewriteResponse(REWRITE_DONE, mkRationalNode(Rational(0)));
+          }
+          else
+          {
+            return RewriteResponse(
+                REWRITE_AGAIN_FULL,
+                NodeManager::currentNM()->mkNode(
+                    kind::UMINUS,
+                    NodeManager::currentNM()->mkNode(kind::SINE, rem)));
+          }
+        }
+        else if (rem.isNull())
+        {
+          // other rational cases based on Niven's theorem
+          // (https://en.wikipedia.org/wiki/Niven%27s_theorem)
+          Integer one = Integer(1);
+          Integer two = Integer(2);
+          Integer six = Integer(6);
+          if (r_abs.getDenominator() == two)
+          {
+            Assert(r_abs.getNumerator() == one);
+            return RewriteResponse(REWRITE_DONE,
+                                   mkRationalNode(Rational(r.sgn())));
+          }
+          else if (r_abs.getDenominator() == six)
+          {
+            Integer five = Integer(5);
+            if (r_abs.getNumerator() == one || r_abs.getNumerator() == five)
+            {
+              return RewriteResponse(
+                  REWRITE_DONE,
+                  mkRationalNode(Rational(r.sgn()) / Rational(2)));
+            }
+          }
+        }
+      }
+    }
+    break;
+  case kind::COSINE: {
+    return RewriteResponse(REWRITE_AGAIN_FULL, NodeManager::currentNM()->mkNode( kind::SINE, 
+                                                 NodeManager::currentNM()->mkNode( kind::MINUS, 
+                                                   NodeManager::currentNM()->mkNode( kind::MULT, 
+                                                     NodeManager::currentNM()->mkConst( Rational(1)/Rational(2) ),
+                                                     NodeManager::currentNM()->mkNullaryOperator( NodeManager::currentNM()->realType(), kind::PI ) ),
+                                                     t[0] ) ) );
+  } break;
+  case kind::TANGENT:
+    return RewriteResponse(REWRITE_AGAIN_FULL, NodeManager::currentNM()->mkNode(kind::DIVISION, NodeManager::currentNM()->mkNode( kind::SINE, t[0] ), 
+                                                                                           NodeManager::currentNM()->mkNode( kind::COSINE, t[0] ) ));
+  default:
+    break;
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
 RewriteResponse ArithRewriter::postRewriteAtom(TNode atom){
   if(atom.getKind() == kind::IS_INTEGER) {
     if(atom[0].isConst()) {
@@ -439,7 +614,6 @@ Node ArithRewriter::makeSubtractionNode(TNode l, TNode r){
 
 RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
   Assert(t.getKind() == kind::DIVISION_TOTAL || t.getKind()== kind::DIVISION);
-
 
   Node left = t[0];
   Node right = t[1];

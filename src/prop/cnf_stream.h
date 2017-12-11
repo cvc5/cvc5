@@ -2,9 +2,9 @@
 /*! \file cnf_stream.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Tim King, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,8 +24,6 @@
 
 #ifndef __CVC4__PROP__CNF_STREAM_H
 #define __CVC4__PROP__CNF_STREAM_H
-
-#include <ext/hash_map>
 
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"

@@ -2,9 +2,9 @@
 /*! \file quant_equality_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Paul Meng, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -80,7 +80,7 @@ public:
   /* reset at a round */
   void reset_round( Theory::Effort e );
   /* Call during quantifier engine's check */
-  void check( Theory::Effort e, unsigned quant_e );
+  void check(Theory::Effort e, QEffort quant_e);
   /* Called for new quantifiers */
   void registerQuantifier( Node q );
   /** called for everything that gets asserted */

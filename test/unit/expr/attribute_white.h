@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -47,17 +47,11 @@ struct Test5;
 typedef Attribute<Test1, std::string> TestStringAttr1;
 typedef Attribute<Test2, std::string> TestStringAttr2;
 
-// it would be nice to have CDAttribute<> for context-dependence
-typedef CDAttribute<Test1, bool> TestCDFlag;
-
 typedef Attribute<Test1, bool> TestFlag1;
 typedef Attribute<Test2, bool> TestFlag2;
 typedef Attribute<Test3, bool> TestFlag3;
 typedef Attribute<Test4, bool> TestFlag4;
 typedef Attribute<Test5, bool> TestFlag5;
-
-typedef CDAttribute<Test1, bool> TestFlag1cd;
-typedef CDAttribute<Test2, bool> TestFlag2cd;
 
 class AttributeWhite : public CxxTest::TestSuite {
 
@@ -127,11 +121,6 @@ public:
     TS_ASSERT_DIFFERS(TestFlag4::s_id, TestFlag5::s_id);
 
     lastId = attr::LastAttributeId<bool, true>::getId();
-    TS_ASSERT_LESS_THAN(TestFlag1cd::s_id, lastId);
-    TS_ASSERT_LESS_THAN(TestFlag2cd::s_id, lastId);
-    TS_ASSERT_DIFFERS(TestFlag1cd::s_id, TestFlag2cd::s_id);
-    cout << "1: " << TestFlag1cd::s_id << endl;
-    cout << "2: " << TestFlag2cd::s_id << endl;
 
     lastId = attr::LastAttributeId<Node, false>::getId();
 //    TS_ASSERT_LESS_THAN(theory::PreRewriteCache::s_id, lastId);
@@ -147,132 +136,6 @@ public:
 
     lastId = attr::LastAttributeId<TypeNode, false>::getId();
     TS_ASSERT_LESS_THAN(TypeAttr::s_id, lastId);
-  }
-
-  void testCDAttributes() {
-    //Debug.on("cdboolattr");
-
-    Node a = d_nm->mkVar(*d_booleanType);
-    Node b = d_nm->mkVar(*d_booleanType);
-    Node c = d_nm->mkVar(*d_booleanType);
-
-    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
-    TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
-    TS_ASSERT(! b.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
-    TS_ASSERT(! c.getAttribute(TestFlag1cd()));
-
-    d_smtEngine->push(); // level 1
-
-    // test that all boolean flags are FALSE to start
-    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
-    TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
-    TS_ASSERT(! b.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
-    TS_ASSERT(! c.getAttribute(TestFlag1cd()));
-
-    // test that they all HAVE the boolean attributes
-    TS_ASSERT(a.hasAttribute(TestFlag1cd()));
-    TS_ASSERT(b.hasAttribute(TestFlag1cd()));
-    TS_ASSERT(c.hasAttribute(TestFlag1cd()));
-
-    // test two-arg version of hasAttribute()
-    bool bb = false;
-    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
-    TS_ASSERT(a.getAttribute(TestFlag1cd(), bb));
-    TS_ASSERT(! bb);
-    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
-    TS_ASSERT(b.getAttribute(TestFlag1cd(), bb));
-    TS_ASSERT(! bb);
-    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
-    TS_ASSERT(c.getAttribute(TestFlag1cd(), bb));
-    TS_ASSERT(! bb);
-
-    // setting boolean flags
-    Debug("cdboolattr") << "set flag 1 on a to T\n";
-    a.setAttribute(TestFlag1cd(), true);
-    Debug("cdboolattr") << "set flag 1 on b to F\n";
-    b.setAttribute(TestFlag1cd(), false);
-    Debug("cdboolattr") << "set flag 1 on c to F\n";
-    c.setAttribute(TestFlag1cd(), false);
-
-    Debug("cdboolattr") << "get flag 1 on a (should be T)\n";
-    TS_ASSERT(a.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
-    TS_ASSERT(! b.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
-    TS_ASSERT(! c.getAttribute(TestFlag1cd()));
-
-    d_smtEngine->push(); // level 2
-
-    Debug("cdboolattr") << "get flag 1 on a (should be T)\n";
-    TS_ASSERT(a.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
-    TS_ASSERT(! b.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
-    TS_ASSERT(! c.getAttribute(TestFlag1cd()));
-
-    Debug("cdboolattr") << "set flag 1 on a to F\n";
-    a.setAttribute(TestFlag1cd(), false);
-    Debug("cdboolattr") << "set flag 1 on b to T\n";
-    b.setAttribute(TestFlag1cd(), true);
-
-    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
-    TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on b (should be T)\n";
-    TS_ASSERT(b.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
-    TS_ASSERT(! c.getAttribute(TestFlag1cd()));
-
-    d_smtEngine->push(); // level 3
-
-    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
-    TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on b (should be T)\n";
-    TS_ASSERT(b.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
-    TS_ASSERT(! c.getAttribute(TestFlag1cd()));
-
-    Debug("cdboolattr") << "set flag 1 on c to T\n";
-    c.setAttribute(TestFlag1cd(), true);
-
-    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
-    TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on b (should be T)\n";
-    TS_ASSERT(b.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on c (should be T)\n";
-    TS_ASSERT(c.getAttribute(TestFlag1cd()));
-
-    d_smtEngine->pop(); // level 2
-
-    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
-    TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on b (should be T)\n";
-    TS_ASSERT(b.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
-    TS_ASSERT(! c.getAttribute(TestFlag1cd()));
-
-    d_smtEngine->pop(); // level 1
-
-    Debug("cdboolattr") << "get flag 1 on a (should be T)\n";
-    TS_ASSERT(a.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
-    TS_ASSERT(! b.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
-    TS_ASSERT(! c.getAttribute(TestFlag1cd()));
-
-    d_smtEngine->pop(); // level 0
-
-    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
-    TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
-    TS_ASSERT(! b.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
-    TS_ASSERT(! c.getAttribute(TestFlag1cd()));
-
-    TS_ASSERT_THROWS( d_smtEngine->pop(), ModalException );
   }
 
   void testAttributes() {

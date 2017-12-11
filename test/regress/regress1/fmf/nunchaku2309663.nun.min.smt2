@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --finite-model-find
+; COMMAND-LINE: --finite-model-find --lang=smt2.5
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
 (declare-datatypes () ((nat__ (Suc__ (_select_Suc___0 nat__)) (zero__ ))))

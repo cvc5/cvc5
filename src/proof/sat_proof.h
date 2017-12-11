@@ -2,9 +2,9 @@
 /*! \file sat_proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Morgan Deters, Tim King
+ **   Tim King, Liana Hadarean, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,14 +21,14 @@
 
 #include <stdint.h>
 
-#include <ext/hash_map>
-#include <ext/hash_set>
 #include <iosfwd>
 #include <set>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 
 #include "context/cdhashmap.h"
+#include "context/cdmaybe.h"
 #include "expr/expr.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
@@ -100,18 +100,18 @@ class TSatProof {
 
   typedef std::set<typename Solver::TLit> LitSet;
   typedef std::set<typename Solver::TVar> VarSet;
-  typedef std::hash_map<ClauseId, typename Solver::TCRef> IdCRefMap;
-  typedef std::hash_map<typename Solver::TCRef, ClauseId> ClauseIdMap;
+  typedef std::unordered_map<ClauseId, typename Solver::TCRef> IdCRefMap;
+  typedef std::unordered_map<typename Solver::TCRef, ClauseId> ClauseIdMap;
   typedef context::CDHashMap<ClauseId, typename Solver::TLit> IdUnitMap;
   typedef context::CDHashMap<int, ClauseId> UnitIdMap;
   typedef context::CDHashMap<ClauseId, ResolutionChain*> IdResMap;
-  typedef std::hash_map<ClauseId, uint64_t> IdProofRuleMap;
+  typedef std::unordered_map<ClauseId, uint64_t> IdProofRuleMap;
   typedef std::vector<ResolutionChain*> ResStack;
   typedef std::set<ClauseId> IdSet;
   typedef std::vector<typename Solver::TLit> LitVector;
-  typedef __gnu_cxx::hash_map<ClauseId, typename Solver::TClause&>
+  typedef std::unordered_map<ClauseId, typename Solver::TClause&>
       IdToMinisatClause;
-  typedef __gnu_cxx::hash_map<ClauseId, LitVector*> IdToConflicts;
+  typedef std::unordered_map<ClauseId, LitVector*> IdToConflicts;
 
  public:
   TSatProof(Solver* solver, context::Context* context,
@@ -349,8 +349,7 @@ class TSatProof {
   IdCRefMap d_temp_idClause;
 
   // unit conflict
-  ClauseId d_unitConflictId;
-  bool d_storedUnitConflict;
+  context::CDMaybe<ClauseId> d_unitConflictId;
 
   ClauseId d_trueLit;
   ClauseId d_falseLit;
@@ -362,7 +361,7 @@ class TSatProof {
   IdToSatClause d_seenLemmas;
 
    private:
-  __gnu_cxx::hash_map<ClauseId, int> d_glueMap;
+  std::unordered_map<ClauseId, int> d_glueMap;
   struct Statistics {
     IntStat d_numLearnedClauses;
     IntStat d_numLearnedInProof;

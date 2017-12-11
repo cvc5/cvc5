@@ -2,9 +2,9 @@
 /*! \file smt_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -70,16 +70,13 @@ namespace context {
   class UserContext;
 }/* CVC4::context namespace */
 
+namespace preprocessing {
+class PreprocessingPassContext;
+}
+
 namespace prop {
   class PropEngine;
 }/* CVC4::prop namespace */
-
-namespace expr {
-  namespace attr {
-    class AttributeManager;
-    struct SmtAttributes;
-  }/* CVC4::expr::attr namespace */
-}/* CVC4::expr namespace */
 
 namespace smt {
   /**
@@ -258,6 +255,7 @@ class CVC4_PUBLIC SmtEngine {
    * Verbosity of various commands.
    */
   std::map<std::string, Integer> d_commandVerbosity;
+  
 
   /** ReplayStream for the solver. */
   ExprStream* d_replayStream;
@@ -349,6 +347,8 @@ class CVC4_PUBLIC SmtEngine {
    */
   void setLogicInternal() throw();
 
+  // TODO (Issue #1096): Remove this friend relationship.
+  friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::BooleanTermConverter;
@@ -357,19 +357,8 @@ class CVC4_PUBLIC SmtEngine {
   // to access d_modelCommands
   friend class ::CVC4::Model;
   friend class ::CVC4::theory::TheoryModel;
-  // to access SmtAttributes
-  friend class expr::attr::AttributeManager;
   // to access getModel(), which is private (for now)
   friend class GetModelCommand;
-
-  /**
-   * There's something of a handshake between the expr package's
-   * AttributeManager and the SmtEngine because the expr package
-   * doesn't have a Context on its own (that's owned by the
-   * SmtEngine).  Thus all context-dependent attributes are stored
-   * here.
-   */
-  expr::attr::SmtAttributes* d_smtAttributes;
 
   StatisticsRegistry* d_statisticsRegistry;
 
@@ -397,7 +386,24 @@ class CVC4_PUBLIC SmtEngine {
 
   //check satisfiability (for query and check-sat)
   Result checkSatisfiability(const Expr& e, bool inUnsatCore, bool isQuery);
-public:
+
+  /**
+   * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
+   * the function that the formal argument list is for. This method is used
+   * as a helper function when defining (recursive) functions.
+   */
+  void debugCheckFormals(const std::vector<Expr>& formals, Expr func);
+
+  /**
+   * Checks whether formula is a valid function body for func whose formal
+   * argument list is stored in formals. This method is
+   * used as a helper function when defining (recursive) functions.
+   */
+  void debugCheckFunctionBody(Expr formula,
+                              const std::vector<Expr>& formals,
+                              Expr func);
+
+ public:
 
   /**
    * Construct an SmtEngine with the given expression manager.
@@ -453,10 +459,15 @@ public:
     throw(OptionException);
 
   /**
-   * Add a formula to the current context: preprocess, do per-theory
-   * setup, use processAssertionList(), asserting to T-solver for
-   * literals and conjunction of literals.  Returns false if
-   * immediately determined to be inconsistent.
+   * Define function func in the current context to be:
+   *   (lambda (formals) formula)
+   * This adds func to the list of defined functions, which indicates that
+   * all occurrences of func should be expanded during expandDefinitions.
+   * This method expects input such that:
+   * - func : a variable of function type that expects the arguments in
+   *          formals,
+   * - formals : a list of BOUND_VARIABLE expressions,
+   * - formula does not contain func.
    */
   void defineFunction(Expr func,
                       const std::vector<Expr>& formals,
@@ -464,6 +475,32 @@ public:
 
   /** is defined function */
   bool isDefinedFunction(Expr func);
+
+  /** Define functions recursive
+   *
+   * For each i, this constrains funcs[i] in the current context to be:
+   *   (lambda (formals[i]) formulas[i])
+   * where formulas[i] may contain variables from funcs. Unlike defineFunction
+   * above, we do not add funcs[i] to the set of defined functions. Instead,
+   * we consider funcs[i] to be a free uninterpreted function, and add:
+   *   forall formals[i]. f(formals[i]) = formulas[i]
+   * to the set of assertions in the current context.
+   * This method expects input such that for each i:
+   * - func[i] : a variable of function type that expects the arguments in
+   *             formals[i], and
+   * - formals[i] : a list of BOUND_VARIABLE expressions.
+   */
+  void defineFunctionsRec(const std::vector<Expr>& funcs,
+                          const std::vector<std::vector<Expr> >& formals,
+                          const std::vector<Expr>& formulas);
+
+  /** Define function recursive
+   *
+   * Same as above, but for a single function.
+   */
+  void defineFunctionRec(Expr func,
+                         const std::vector<Expr>& formals,
+                         Expr formula);
 
   /**
    * Add a formula to the current context: preprocess, do per-theory
@@ -480,19 +517,20 @@ public:
    * of assertions by asserting the query expression's negation and
    * calling check().  Returns valid, invalid, or unknown result.
    */
-  Result query(const Expr& e, bool inUnsatCore = true) throw(TypeCheckingException, ModalException, LogicException);
+  Result query(const Expr& e, bool inUnsatCore = true) throw(Exception);
 
   /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSat(const Expr& e = Expr(), bool inUnsatCore = true) throw(TypeCheckingException, ModalException, LogicException);
+  Result checkSat(const Expr& e = Expr(),
+                  bool inUnsatCore = true) throw(Exception);
 
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSynth(const Expr& e) throw(TypeCheckingException, ModalException, LogicException);
+  Result checkSynth(const Expr& e) throw(Exception);
 
   /**
    * Simplify a formula without doing "much" work.  Does not involve
@@ -540,8 +578,11 @@ public:
    * Get the last proof (only if immediately preceded by an UNSAT
    * or VALID query).  Only permitted if CVC4 was built with proof
    * support and produce-proofs is on.
+   *
+   * The Proof object is owned by this SmtEngine until the SmtEngine is
+   * destroyed.
    */
-  Proof* getProof();
+  const Proof& getProof();
 
   /**
    * Print all instantiations made by the quantifiers module.
@@ -554,9 +595,53 @@ public:
   void printSynthSolution( std::ostream& out );
 
   /**
-   * Do quantifier elimination, doFull false means just output one disjunct, strict is whether to output warnings.
+   * Do quantifier elimination.
+   *
+   * This function takes as input a quantified formula e
+   * of the form:
+   *   Q x1...xn. P( x1...xn, y1...yn )
+   * where P( x1...xn, y1...yn ) is a quantifier-free
+   * formula in a logic that supports quantifier elimination.
+   * Currently, the only logics supported by quantifier
+   * elimination is LRA and LIA.
+   *
+   * This function returns a formula ret such that, given
+   * the current set of formulas A asserted to this SmtEngine :
+   *
+   * If doFull = true, then
+   *   - ( A ^ e ) and ( A ^ ret ) are equivalent
+   *   - ret is quantifier-free formula containing
+   *     only free variables in y1...yn.
+   *
+   * If doFull = false, then
+   *   - (A ^ e) => (A ^ ret) if Q is forall or
+   *     (A ^ ret) => (A ^ e) if Q is exists,
+   *   - ret is quantifier-free formula containing
+   *     only free variables in y1...yn,
+   *   - If Q is exists, let A^Q_n be the formula
+   *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
+   *     where for each i=1,...n, formula ret^Q_i
+   *     is the result of calling doQuantifierElimination
+   *     for e with the set of assertions A^Q_{i-1}.
+   *     Similarly, if Q is forall, then let A^Q_n be
+   *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
+   *     where ret^Q_i is the same as above.
+   *     In either case, we have that ret^Q_j will
+   *     eventually be true or false, for some finite j.
+   *
+   * The former feature is quantifier elimination, and
+   * is run on invocations of the smt2 extended command get-qe.
+   * The latter feature is referred to as partial quantifier
+   * elimination, and is run on invocations of the smt2
+   * extended command get-qe-disjunct, which can be used
+   * for incrementally computing the result of a
+   * quantifier elimination.
+   * 
+   * The argument strict is whether to output
+   * warnings, such as when an unexpected logic is used.
    */
-  Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict=true) throw(TypeCheckingException, ModalException, LogicException);
+  Expr doQuantifierElimination(const Expr& e, bool doFull,
+                               bool strict = true) throw(Exception);
 
   /**
    * Get list of quantified formulas that were instantiated
@@ -722,6 +807,11 @@ public:
   SExpr getStatistic(std::string name) const throw();
 
   /**
+   * Flush statistic from this SmtEngine. Safe to use in a signal handler.
+   */
+  void safeFlushStatistics(int fd) const;
+
+  /**
    * Returns the most recent result of checkSat/query or (set-info :status).
    */
   Result getStatusOfLastCommand() const throw() {
@@ -733,7 +823,10 @@ public:
    * This function is called when an attribute is set by a user.
    * In SMT-LIBv2 this is done via the syntax (! expr :attr)
    */
-  void setUserAttribute(const std::string& attr, Expr expr, std::vector<Expr> expr_values, std::string str_value);
+  void setUserAttribute(const std::string& attr,
+                        Expr expr,
+                        const std::vector<Expr>& expr_values,
+                        const std::string& str_value);
 
   /**
    * Set print function in model
@@ -753,6 +846,19 @@ public:
    * translation.
    */
   void setReplayStream(ExprStream* exprStream);
+  
+  /** get expression name
+  * Returns true if e has an expression name in the current context.
+  * If it returns true, the name of e is stored in name.
+  */
+  bool getExpressionName(Expr e, std::string& name) const;
+  
+  /** set expression name 
+  * Sets the expression name of e to name.
+  * This information is user-context-dependent.
+  * If e already has a name, it is overwritten.
+  */
+  void setExpressionName(Expr e, const std::string& name);
 
 };/* class SmtEngine */
 

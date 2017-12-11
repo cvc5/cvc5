@@ -2,9 +2,9 @@
 /*! \file theory_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Dejan Jovanovic, Morgan Deters, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -193,19 +193,22 @@ theory::LemmaStatus TheoryEngine::EngineOutputChannel::splitLemma(
   return result;
 }
 
-bool TheoryEngine::EngineOutputChannel::propagate(TNode literal)
-  throw(AssertionException, UnsafeInterruptException) {
-  Debug("theory::propagate") << "EngineOutputChannel<" << d_theory << ">::propagate(" << literal << ")" << std::endl;
-  ++ d_statistics.propagations;
+bool TheoryEngine::EngineOutputChannel::propagate(TNode literal) {
+  Debug("theory::propagate") << "EngineOutputChannel<" << d_theory
+                             << ">::propagate(" << literal << ")" << std::endl;
+  ++d_statistics.propagations;
   d_engine->d_outputChannelUsed = true;
   return d_engine->propagate(literal, d_theory);
 }
 
-void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode, Proof* pf)
-  throw(AssertionException, UnsafeInterruptException) {
-  Trace("theory::conflict") << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode << ")" << std::endl;
-  Assert (pf == NULL); // Theory shouldn't be producing proofs yet
-  ++ d_statistics.conflicts;
+void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
+                                                 std::unique_ptr<Proof> proof)
+{
+  Trace("theory::conflict")
+      << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
+      << ")" << std::endl;
+  Assert(!proof);  // Theory shouldn't be producing proofs yet
+  ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
   d_engine->conflict(conflictNode, d_theory);
 }
@@ -594,7 +597,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         printAssertions("theory::assertions-model");
       }
       //checks for theories requiring the model go at last call
-      d_curr_model->setNeedsBuild();
+      d_curr_model->reset();
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
         if( theoryId!=THEORY_QUANTIFIERS ){
           Theory* theory = d_theoryTable[theoryId];
@@ -602,8 +605,6 @@ void TheoryEngine::check(Theory::Effort effort) {
             if( theory->needsCheckLastEffort() ){
               if( !d_curr_model->isBuilt() ){
                 if( !d_curr_model_builder->buildModel(d_curr_model) ){
-                  //model building should fail only if the model builder adds lemmas
-                  Assert( needCheck() );
                   break;
                 }
               }
@@ -614,10 +615,14 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       if( ! d_inConflict && ! needCheck() ){
         if(d_logicInfo.isQuantified()) {
-          // quantifiers engine must pass effort last call check
+          // quantifiers engine must check at last call effort
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
-          // if returning incomplete or SAT, we have ensured that d_curr_model has been built
-        } else if(options::produceModels() && !d_curr_model->isBuilt()) {
+        }
+      }
+      if (!d_inConflict && !needCheck())
+      {
+        if (options::produceModels() && !d_curr_model->isBuilt())
+        {
           // must build model at this point
           d_curr_model_builder->buildModel(d_curr_model);
         }
@@ -628,14 +633,21 @@ void TheoryEngine::check(Theory::Effort effort) {
     Debug("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
     if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
-      //we will answer SAT
+      // case where we are about to answer SAT
       if( d_masterEqualityEngine != NULL ){
         AlwaysAssert(d_masterEqualityEngine->consistent());
       }
-      if( options::produceModels() ){
-        d_curr_model_builder->debugCheckModel(d_curr_model);  
-        // Do post-processing of model from the theories (used for THEORY_SEP to construct heap model)
-        postProcessModel(d_curr_model);
+      if (d_curr_model->isBuilt())
+      {
+        // model construction should always succeed unless lemmas were added
+        AlwaysAssert(d_curr_model->isBuiltSuccess());
+        if (options::produceModels())
+        {
+          d_curr_model_builder->debugCheckModel(d_curr_model);
+          // Do post-processing of model from the theories (used for THEORY_SEP
+          // to construct heap model)
+          postProcessModel(d_curr_model);
+        }
       }
     }
   } catch(const theory::Interrupted&) {
@@ -843,7 +855,8 @@ bool TheoryEngine::properExplanation(TNode node, TNode expl) const {
   return true;
 }
 
-void TheoryEngine::collectModelInfo( theory::TheoryModel* m ){
+bool TheoryEngine::collectModelInfo(theory::TheoryModel* m)
+{
   //have shared term engine collectModelInfo
   //  d_sharedTerms.collectModelInfo( m );
   // Consult each active theory to get all relevant information
@@ -851,7 +864,10 @@ void TheoryEngine::collectModelInfo( theory::TheoryModel* m ){
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
     if(d_logicInfo.isTheoryEnabled(theoryId)) {
       Trace("model-builder") << "  CollectModelInfo on theory: " << theoryId << endl;
-      d_theoryTable[theoryId]->collectModelInfo( m );
+      if (!d_theoryTable[theoryId]->collectModelInfo(m))
+      {
+        return false;
+      }
     }
   }
   // Get the Boolean variables
@@ -867,8 +883,12 @@ void TheoryEngine::collectModelInfo( theory::TheoryModel* m ){
       value = false;
     }
     Trace("model-builder-assertions") << "(assert" << (value ? " " : " (not ") << var << (value ? ");" : "));") << endl;
-    m->assertPredicate(var, value);
+    if (!m->assertPredicate(var, value))
+    {
+      return false;
+    }
   }
+  return true;
 }
 
 void TheoryEngine::postProcessModel( theory::TheoryModel* m ){
@@ -1645,7 +1665,7 @@ Node TheoryEngine::getExplanation(TNode node) {
 struct AtomsCollect {
 
   std::vector<TNode> d_atoms;
-  std::hash_set<TNode, TNodeHashFunction> d_visited;
+  std::unordered_set<TNode, TNodeHashFunction> d_visited;
 
 public:
 
@@ -1703,10 +1723,13 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
         assertToTheory(eq.notNode(), eqNormalized.notNode(), /** to */ atomsTo, /** Sat solver */ theory::THEORY_SAT_SOLVER);
       }
       continue;
+    }else if( eqNormalized.getKind() != kind::EQUAL){
+      Assert( eqNormalized.getKind()==kind::BOOLEAN_TERM_VARIABLE || 
+              ( eqNormalized.getKind()==kind::NOT && eqNormalized[0].getKind()==kind::BOOLEAN_TERM_VARIABLE ) );
+      // this happens for Boolean term equalities V = true that are rewritten to V, we should skip
+      //  TODO : revisit this
+      continue;
     }
-
-    Assert(eqNormalized.getKind() == kind::EQUAL);
-
 
     // If the normalization did the just flips, keep the flip
     if (eqNormalized[0] == eq[1] && eqNormalized[1] == eq[0]) {
@@ -1942,9 +1965,9 @@ bool  TheoryEngine::ppBvAbstraction(const std::vector<Node>& assertions, std::ve
   return bv_theory->applyAbstraction(assertions, new_assertions);
 }
 
-void TheoryEngine::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
+void TheoryEngine::mkAckermanizationAssertions(std::vector<Node>& assertions) {
   bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
-  bv_theory->mkAckermanizationAsssertions(assertions);
+  bv_theory->mkAckermanizationAssertions(assertions);
 }
 
 Node TheoryEngine::ppSimpITE(TNode assertion)
@@ -2187,8 +2210,11 @@ void TheoryEngine::ppUnconstrainedSimp(vector<Node>& assertions)
   d_unconstrainedSimp->processAssertions(assertions);
 }
 
-
-void TheoryEngine::setUserAttribute(const std::string& attr, Node n, std::vector<Node>& node_values, std::string str_value) {
+void TheoryEngine::setUserAttribute(const std::string& attr,
+                                    Node n,
+                                    const std::vector<Node>& node_values,
+                                    const std::string& str_value)
+{
   Trace("te-attr") << "set user attribute " << attr << " " << n << endl;
   if( d_attr_handle.find( attr )!=d_attr_handle.end() ){
     for( size_t i=0; i<d_attr_handle[attr].size(); i++ ){
@@ -2205,7 +2231,7 @@ void TheoryEngine::handleUserAttribute(const char* attr, Theory* t) {
   d_attr_handle[ str ].push_back( t );
 }
 
-void TheoryEngine::checkTheoryAssertionsWithModel() {
+void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
@@ -2220,7 +2246,9 @@ void TheoryEngine::checkTheoryAssertionsWithModel() {
           ss << theoryId << " has an asserted fact that the model doesn't satisfy." << endl
              << "The fact: " << assertion << endl
              << "Model value: " << val << endl;
-          InternalError(ss.str());
+	  if(hardFailure) {
+	    InternalError(ss.str());
+	  }
         }
       }
     }

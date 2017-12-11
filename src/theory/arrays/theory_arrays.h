@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Clark Barrett, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,6 +18,8 @@
 
 #ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
+
+#include <unordered_map>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -193,7 +195,8 @@ class TheoryArrays : public Theory {
   bool propagate(TNode literal);
 
   /** Explain why this literal is true by adding assumptions */
-  void explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof *proof);
+  void explain(TNode literal, std::vector<TNode>& assumptions,
+               eq::EqProof* proof);
 
   /** For debugging only- checks invariants about when things are preregistered*/
   context::CDHashSet<Node, NodeHashFunction > d_isPreRegistered;
@@ -205,7 +208,7 @@ class TheoryArrays : public Theory {
 
   void preRegisterTerm(TNode n);
   void propagate(Effort e);
-  Node explain(TNode n, eq::EqProof *proof);
+  Node explain(TNode n, eq::EqProof* proof);
   Node explain(TNode n);
 
   /////////////////////////////////////////////////////////////////////////////
@@ -245,12 +248,11 @@ class TheoryArrays : public Theory {
   private:
 
   public:
+   bool collectModelInfo(TheoryModel* m) override;
 
-  void collectModelInfo(TheoryModel* m);
-
-  /////////////////////////////////////////////////////////////////////////////
-  // NOTIFICATIONS
-  /////////////////////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////////////////////
+   // NOTIFICATIONS
+   /////////////////////////////////////////////////////////////////////////////
 
   private:
   public:
@@ -309,7 +311,6 @@ class TheoryArrays : public Theory {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
         if (t1.getType().isArray()) {
-          d_arrays.mergeArrays(t1, t2);
           if (!d_arrays.isShared(t1) || !d_arrays.isShared(t2)) {
             return true;
           }
@@ -334,7 +335,11 @@ class TheoryArrays : public Theory {
 
     void eqNotifyNewClass(TNode t) { }
     void eqNotifyPreMerge(TNode t1, TNode t2) { }
-    void eqNotifyPostMerge(TNode t1, TNode t2) { }
+    void eqNotifyPostMerge(TNode t1, TNode t2) {
+      if (t1.getType().isArray()) {
+        d_arrays.mergeArrays(t1, t2);
+      }
+    }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
   };
 
@@ -381,7 +386,7 @@ class TheoryArrays : public Theory {
   // When a new read term is created, we check the index to see if we know the model value.  If so, we add it to d_constReads (and d_constReadsList)
   // If not, we push it onto d_reads and figure out where it goes at computeCareGraph time.
   // d_constReadsList is used as a backup in case we can't compute the model at computeCareGraph time.
-  typedef std::hash_map<Node, CTNodeList*, NodeHashFunction> CNodeNListMap;
+  typedef std::unordered_map<Node, CTNodeList*, NodeHashFunction> CNodeNListMap;
   CNodeNListMap d_constReads;
   context::CDList<TNode> d_reads;
   context::CDList<TNode> d_constReadsList;
@@ -405,7 +410,7 @@ class TheoryArrays : public Theory {
   };/* class ContextPopper */
   ContextPopper d_contextPopper;
 
-  std::hash_map<Node, Node, NodeHashFunction> d_skolemCache;
+  std::unordered_map<Node, Node, NodeHashFunction> d_skolemCache;
   context::CDO<unsigned> d_skolemIndex;
   std::vector<Node> d_skolemAssertions;
 
@@ -422,7 +427,7 @@ class TheoryArrays : public Theory {
   typedef context::CDHashMap<Node,Node,NodeHashFunction> DefValMap;
   DefValMap d_defValues;
 
-  typedef std::hash_map<std::pair<TNode, TNode>, CTNodeList*, TNodePairHashFunction> ReadBucketMap;
+  typedef std::unordered_map<std::pair<TNode, TNode>, CTNodeList*, TNodePairHashFunction> ReadBucketMap;
   ReadBucketMap d_readBucketTable;
   context::Context* d_readTableContext;
   context::CDList<Node> d_arrayMerges;

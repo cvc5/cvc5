@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,33 +16,48 @@
 
 #include <cxxtest/TestSuite.h>
 
-//Used in some of the tests
-#include <vector>
+// Used in some of the tests
+#include <algorithm>
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include "expr/expr_manager.h"
-#include "expr/node_value.h"
+#include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
-#include "expr/node.h"
+#include "expr/node_value.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
 using namespace std;
 
-class NodeBlack : public CxxTest::TestSuite {
-private:
+namespace {
 
+// Returns N skolem nodes from 'nodeManager' with the same `type`.
+std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager, int N,
+                                   TypeNode type) {
+  std::vector<Node> skolems;
+  for (int i = 0; i < N; i++) {
+    skolems.push_back(nodeManager->mkSkolem(/*prefix=*/"skolem_", type,
+                                            "Created by makeNSkolemNodes()"));
+  }
+  return skolems;
+}
+
+}  // namespace
+
+class NodeBlack : public CxxTest::TestSuite {
+ private:
   Options opts;
   NodeManager* d_nodeManager;
   NodeManagerScope* d_scope;
   TypeNode* d_booleanType;
   TypeNode* d_realType;
 
-public:
-
+ public:
   void setUp() {
-    char *argv[2];
+    char* argv[2];
     argv[0] = strdup("");
     argv[1] = strdup("--output-language=ast");
     Options::parseOptions(&opts, 2, argv);
@@ -62,16 +77,10 @@ public:
     delete d_nodeManager;
   }
 
-  bool imp(bool a, bool b) const {
-    return (!a) || (b);
-  }
-  bool iff(bool a, bool b) const {
-    return (a && b) || ((!a)&&(!b));
-  }
+  bool imp(bool a, bool b) const { return (!a) || (b); }
+  bool iff(bool a, bool b) const { return (a && b) || ((!a) && (!b)); }
 
-  void testNull() {
-    Node::null();
-  }
+  void testNull() { Node::null(); }
 
   void testIsNull() {
     /* bool isNull() const; */
@@ -87,18 +96,15 @@ public:
     TS_ASSERT(c.isNull());
   }
 
-  void testCopyCtor() {
-    Node e(Node::null());
-  }
+  void testCopyCtor() { Node e(Node::null()); }
 
   void testDestructor() {
     /* No access to internals ?
      * Makes sense to only test that this is crash free.
      */
 
-    Node *n = new Node();
+    Node* n = new Node();
     delete n;
-
   }
 
   /*tests:  bool operator==(const Node& e) const  */
@@ -112,37 +118,31 @@ public:
 
     Node d = d_nodeManager->mkSkolem("d", *d_booleanType);
 
-    TS_ASSERT(a==a);
-    TS_ASSERT(a==b);
-    TS_ASSERT(a==c);
+    TS_ASSERT(a == a);
+    TS_ASSERT(a == b);
+    TS_ASSERT(a == c);
 
-    TS_ASSERT(b==a);
-    TS_ASSERT(b==b);
-    TS_ASSERT(b==c);
+    TS_ASSERT(b == a);
+    TS_ASSERT(b == b);
+    TS_ASSERT(b == c);
 
+    TS_ASSERT(c == a);
+    TS_ASSERT(c == b);
+    TS_ASSERT(c == c);
 
+    TS_ASSERT(d == d);
 
-    TS_ASSERT(c==a);
-    TS_ASSERT(c==b);
-    TS_ASSERT(c==c);
+    TS_ASSERT(!(d == a));
+    TS_ASSERT(!(d == b));
+    TS_ASSERT(!(d == c));
 
-
-    TS_ASSERT(d==d);
-
-    TS_ASSERT(!(d==a));
-    TS_ASSERT(!(d==b));
-    TS_ASSERT(!(d==c));
-
-    TS_ASSERT(!(a==d));
-    TS_ASSERT(!(b==d));
-    TS_ASSERT(!(c==d));
-
+    TS_ASSERT(!(a == d));
+    TS_ASSERT(!(b == d));
+    TS_ASSERT(!(c == d));
   }
 
   /* operator!= */
   void testOperatorNotEquals() {
-
-
     Node a, b, c;
 
     b = d_nodeManager->mkSkolem("b", *d_booleanType);
@@ -153,38 +153,35 @@ public:
     Node d = d_nodeManager->mkSkolem("d", *d_booleanType);
 
     /*structed assuming operator == works */
-    TS_ASSERT(iff(a!=a, !(a==a)));
-    TS_ASSERT(iff(a!=b, !(a==b)));
-    TS_ASSERT(iff(a!=c, !(a==c)));
+    TS_ASSERT(iff(a != a, !(a == a)));
+    TS_ASSERT(iff(a != b, !(a == b)));
+    TS_ASSERT(iff(a != c, !(a == c)));
 
+    TS_ASSERT(iff(b != a, !(b == a)));
+    TS_ASSERT(iff(b != b, !(b == b)));
+    TS_ASSERT(iff(b != c, !(b == c)));
 
-    TS_ASSERT(iff(b!=a, !(b==a)));
-    TS_ASSERT(iff(b!=b, !(b==b)));
-    TS_ASSERT(iff(b!=c, !(b==c)));
+    TS_ASSERT(iff(c != a, !(c == a)));
+    TS_ASSERT(iff(c != b, !(c == b)));
+    TS_ASSERT(iff(c != c, !(c == c)));
 
+    TS_ASSERT(!(d != d));
 
-    TS_ASSERT(iff(c!=a, !(c==a)));
-    TS_ASSERT(iff(c!=b, !(c==b)));
-    TS_ASSERT(iff(c!=c, !(c==c)));
-
-    TS_ASSERT(!(d!=d));
-
-    TS_ASSERT(d!=a);
-    TS_ASSERT(d!=b);
-    TS_ASSERT(d!=c);
-
+    TS_ASSERT(d != a);
+    TS_ASSERT(d != b);
+    TS_ASSERT(d != c);
   }
 
   void testOperatorSquare() {
     /*Node operator[](int i) const */
 
 #ifdef CVC4_ASSERTIONS
-    //Basic bounds check on a node w/out children
+    // Basic bounds check on a node w/out children
     TS_ASSERT_THROWS(Node::null()[-1], AssertionException);
     TS_ASSERT_THROWS(Node::null()[0], AssertionException);
 #endif /* CVC4_ASSERTIONS */
 
-    //Basic access check
+    // Basic access check
     Node tb = d_nodeManager->mkConst(true);
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
@@ -198,7 +195,7 @@ public:
     TS_ASSERT(eb == ite[2]);
 
 #ifdef CVC4_ASSERTIONS
-    //Bounds check on a node with children
+    // Bounds check on a node with children
     TS_ASSERT_THROWS(ite == ite[-1], AssertionException);
     TS_ASSERT_THROWS(ite == ite[4], AssertionException);
 #endif /* CVC4_ASSERTIONS */
@@ -207,16 +204,16 @@ public:
   /*tests:   Node& operator=(const Node&); */
   void testOperatorAssign() {
     Node a, b;
-    Node c = d_nodeManager->mkNode(NOT, d_nodeManager->mkSkolem("c", *d_booleanType));
+    Node c = d_nodeManager->mkNode(
+        NOT, d_nodeManager->mkSkolem("c", *d_booleanType));
 
     b = c;
-    TS_ASSERT(b==c);
-
+    TS_ASSERT(b == c);
 
     a = b = c;
 
-    TS_ASSERT(a==b);
-    TS_ASSERT(a==c);
+    TS_ASSERT(a == b);
+    TS_ASSERT(a == c);
   }
 
   void testOperatorLessThan() {
@@ -226,14 +223,14 @@ public:
     Node a = d_nodeManager->mkSkolem("a", d_nodeManager->booleanType());
     Node b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
 
-    TS_ASSERT(a<b || b<a);
-    TS_ASSERT(!(a<b && b<a));
+    TS_ASSERT(a < b || b < a);
+    TS_ASSERT(!(a < b && b < a));
 
     Node c = d_nodeManager->mkNode(AND, a, b);
     Node d = d_nodeManager->mkNode(AND, a, b);
 
-    TS_ASSERT(!(c<d));
-    TS_ASSERT(!(d<c));
+    TS_ASSERT(!(c < d));
+    TS_ASSERT(!(d < c));
 
     /* TODO:
      * Less than has the rather difficult to test property that subexpressions
@@ -253,16 +250,16 @@ public:
     const int N = 500;
     Node curr = d_nodeManager->mkNode(OR, a, b);
     chain.push_back(curr);
-    for(int i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i) {
       curr = d_nodeManager->mkNode(AND, curr, curr);
       chain.push_back(curr);
     }
 
-    for(int i = 0; i < N; ++i) {
-      for(int j = i + 1; j < N; ++j) {
-	Node chain_i = chain[i];
-	Node chain_j = chain[j];
-	TS_ASSERT(chain_i < chain_j);
+    for (int i = 0; i < N; ++i) {
+      for (int j = i + 1; j < N; ++j) {
+        Node chain_i = chain[i];
+        Node chain_j = chain[j];
+        TS_ASSERT(chain_i < chain_j);
       }
     }
   }
@@ -289,10 +286,9 @@ public:
     Node parent = child.notNode();
 
     TS_ASSERT(NOT == parent.getKind());
-    TS_ASSERT(1   == parent.getNumChildren());
+    TS_ASSERT(1 == parent.getNumChildren());
 
     TS_ASSERT(parent[0] == child);
-
   }
   void testAndNode() {
     /*Node andNode(const Node& right) const;*/
@@ -301,13 +297,11 @@ public:
     Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkConst(false)));
     Node eq = left.andNode(right);
 
-
     TS_ASSERT(AND == eq.getKind());
-    TS_ASSERT(2   == eq.getNumChildren());
+    TS_ASSERT(2 == eq.getNumChildren());
 
     TS_ASSERT(*(eq.begin()) == left);
     TS_ASSERT(*(++eq.begin()) == right);
-
   }
 
   void testOrNode() {
@@ -317,13 +311,11 @@ public:
     Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkConst(false)));
     Node eq = left.orNode(right);
 
-
-    TS_ASSERT(OR  == eq.getKind());
-    TS_ASSERT(2   == eq.getNumChildren());
+    TS_ASSERT(OR == eq.getKind());
+    TS_ASSERT(2 == eq.getNumChildren());
 
     TS_ASSERT(*(eq.begin()) == left);
     TS_ASSERT(*(++eq.begin()) == right);
-
   }
 
   void testIteNode() {
@@ -352,21 +344,18 @@ public:
     Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkConst(false)));
     Node eq = left.eqNode(right);
 
-
     TS_ASSERT(EQUAL == eq.getKind());
-    TS_ASSERT(2   == eq.getNumChildren());
+    TS_ASSERT(2 == eq.getNumChildren());
 
     TS_ASSERT(*(eq.begin()) == left);
     TS_ASSERT(*(++eq.begin()) == right);
   }
-
 
   void testImpNode() {
     /* Node impNode(const Node& right) const; */
     Node left = d_nodeManager->mkConst(true);
     Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkConst(false)));
     Node eq = left.impNode(right);
-
 
     TS_ASSERT(IMPLIES == eq.getKind());
     TS_ASSERT(2 == eq.getNumChildren());
@@ -381,9 +370,8 @@ public:
     Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkConst(false)));
     Node eq = left.xorNode(right);
 
-
     TS_ASSERT(XOR == eq.getKind());
-    TS_ASSERT(2   == eq.getNumChildren());
+    TS_ASSERT(2 == eq.getNumChildren());
 
     TS_ASSERT(*(eq.begin()) == left);
     TS_ASSERT(*(++eq.begin()) == right);
@@ -420,29 +408,29 @@ public:
     Node a = d_nodeManager->mkSkolem("a", sort);
     Node fa = d_nodeManager->mkNode(kind::APPLY_UF, f, a);
 
-    TS_ASSERT( fa.hasOperator() );
-    TS_ASSERT( !f.hasOperator() );
-    TS_ASSERT( !a.hasOperator() );
+    TS_ASSERT(fa.hasOperator());
+    TS_ASSERT(!f.hasOperator());
+    TS_ASSERT(!a.hasOperator());
 
-    TS_ASSERT( fa.getNumChildren() == 1 );
-    TS_ASSERT( f.getNumChildren() == 0 );
-    TS_ASSERT( a.getNumChildren() == 0 );
+    TS_ASSERT(fa.getNumChildren() == 1);
+    TS_ASSERT(f.getNumChildren() == 0);
+    TS_ASSERT(a.getNumChildren() == 0);
 
-    TS_ASSERT( f == fa.getOperator() );
+    TS_ASSERT(f == fa.getOperator());
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS( f.getOperator(), IllegalArgumentException );
-    TS_ASSERT_THROWS( a.getOperator(), IllegalArgumentException );
+    TS_ASSERT_THROWS(f.getOperator(), IllegalArgumentException);
+    TS_ASSERT_THROWS(a.getOperator(), IllegalArgumentException);
 #endif /* CVC4_ASSERTIONS */
   }
 
   void testNaryExpForSize(Kind k, unsigned N) {
     NodeBuilder<> nbz(k);
     Node trueNode = d_nodeManager->mkConst(true);
-    for(unsigned i = 0; i < N; ++i) {
+    for (unsigned i = 0; i < N; ++i) {
       nbz << trueNode;
     }
     Node result = nbz;
-    TS_ASSERT( N == result.getNumChildren() );
+    TS_ASSERT(N == result.getNumChildren());
   }
 
   void testNumChildren() {
@@ -450,29 +438,29 @@ public:
 
     Node trueNode = d_nodeManager->mkConst(true);
 
-    //test 0
+    // test 0
     TS_ASSERT(0 == (Node::null()).getNumChildren());
 
-    //test 1
+    // test 1
     TS_ASSERT(1 == trueNode.notNode().getNumChildren());
 
-    //test 2
+    // test 2
     TS_ASSERT(2 == trueNode.andNode(trueNode).getNumChildren());
 
-    //Bigger tests
+    // Bigger tests
 
     srand(0);
     int trials = 500;
-    for(int i = 0; i < trials; ++i) {
+    for (int i = 0; i < trials; ++i) {
       unsigned N = rand() % 1000 + 2;
       testNaryExpForSize(AND, N);
     }
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS( testNaryExpForSize(AND, 0), AssertionException );
-    TS_ASSERT_THROWS( testNaryExpForSize(AND, 1), AssertionException );
-    TS_ASSERT_THROWS( testNaryExpForSize(NOT, 0), AssertionException );
-    TS_ASSERT_THROWS( testNaryExpForSize(NOT, 2), AssertionException );
+    TS_ASSERT_THROWS(testNaryExpForSize(AND, 0), AssertionException);
+    TS_ASSERT_THROWS(testNaryExpForSize(AND, 1), AssertionException);
+    TS_ASSERT_THROWS(testNaryExpForSize(NOT, 0), AssertionException);
+    TS_ASSERT_THROWS(testNaryExpForSize(NOT, 2), AssertionException);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -484,7 +472,7 @@ public:
     Node z = d_nodeManager->mkSkolem("z", *d_booleanType);
     Node n = b << x << y << z << kind::AND;
 
-    { // iterator
+    {  // iterator
       Node::iterator i = n.begin();
       TS_ASSERT(*i++ == x);
       TS_ASSERT(*i++ == y);
@@ -492,7 +480,7 @@ public:
       TS_ASSERT(i == n.end());
     }
 
-    { // same for const iterator
+    {  // same for const iterator
       const Node& c = n;
       Node::const_iterator i = c.begin();
       TS_ASSERT(*i++ == x);
@@ -512,7 +500,7 @@ public:
     Node plus_x_y_z = d_nodeManager->mkNode(kind::PLUS, x, y, z);
     Node x_minus_y = d_nodeManager->mkNode(kind::MINUS, x, y);
 
-    { // iterator
+    {  // iterator
       Node::kinded_iterator i = plus_x_y_z.begin(PLUS);
       TS_ASSERT(*i++ == x);
       TS_ASSERT(*i++ == y);
@@ -528,10 +516,14 @@ public:
   void testToString() {
     TypeNode booleanType = d_nodeManager->booleanType();
 
-    Node w = d_nodeManager->mkSkolem("w", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-    Node x = d_nodeManager->mkSkolem("x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-    Node y = d_nodeManager->mkSkolem("y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-    Node z = d_nodeManager->mkSkolem("z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+    Node w = d_nodeManager->mkSkolem("w", booleanType, "",
+                                     NodeManager::SKOLEM_EXACT_NAME);
+    Node x = d_nodeManager->mkSkolem("x", booleanType, "",
+                                     NodeManager::SKOLEM_EXACT_NAME);
+    Node y = d_nodeManager->mkSkolem("y", booleanType, "",
+                                     NodeManager::SKOLEM_EXACT_NAME);
+    Node z = d_nodeManager->mkSkolem("z", booleanType, "",
+                                     NodeManager::SKOLEM_EXACT_NAME);
     Node m = NodeBuilder<>() << w << x << kind::OR;
     Node n = NodeBuilder<>() << m << y << z << kind::AND;
 
@@ -541,10 +533,14 @@ public:
   void testToStream() {
     TypeNode booleanType = d_nodeManager->booleanType();
 
-    Node w = d_nodeManager->mkSkolem("w", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-    Node x = d_nodeManager->mkSkolem("x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-    Node y = d_nodeManager->mkSkolem("y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-    Node z = d_nodeManager->mkSkolem("z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+    Node w = d_nodeManager->mkSkolem("w", booleanType, "",
+                                     NodeManager::SKOLEM_EXACT_NAME);
+    Node x = d_nodeManager->mkSkolem("x", booleanType, "",
+                                     NodeManager::SKOLEM_EXACT_NAME);
+    Node y = d_nodeManager->mkSkolem("y", booleanType, "",
+                                     NodeManager::SKOLEM_EXACT_NAME);
+    Node z = d_nodeManager->mkSkolem("z", booleanType, "",
+                                     NodeManager::SKOLEM_EXACT_NAME);
     Node m = NodeBuilder<>() << x << y << kind::OR;
     Node n = NodeBuilder<>() << w << m << z << kind::AND;
     Node o = NodeBuilder<>() << n << n << kind::XOR;
@@ -580,7 +576,8 @@ public:
 
     sstr.str(string());
     sstr << Node::setdepth(1) << o;
-    TS_ASSERT(sstr.str() == "(XOR (AND (...) (...) (...)) (AND (...) (...) (...)))");
+    TS_ASSERT(sstr.str() ==
+              "(XOR (AND (...) (...) (...)) (AND (...) (...) (...)))");
 
     sstr.str(string());
     sstr << Node::setdepth(2) << n;
@@ -588,7 +585,8 @@ public:
 
     sstr.str(string());
     sstr << Node::setdepth(2) << o;
-    TS_ASSERT(sstr.str() == "(XOR (AND w (OR (...) (...)) z) (AND w (OR (...) (...)) z))");
+    TS_ASSERT(sstr.str() ==
+              "(XOR (AND w (OR (...) (...)) z) (AND w (OR (...) (...)) z))");
 
     sstr.str(string());
     sstr << Node::setdepth(3) << n;
@@ -603,10 +601,14 @@ public:
     TypeNode intType = d_nodeManager->integerType();
     TypeNode fnType = d_nodeManager->mkFunctionType(intType, intType);
 
-    Node x = d_nodeManager->mkSkolem("x", intType, "", NodeManager::SKOLEM_EXACT_NAME);
-    Node y = d_nodeManager->mkSkolem("y", intType, "", NodeManager::SKOLEM_EXACT_NAME);
-    Node f = d_nodeManager->mkSkolem("f", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
-    Node g = d_nodeManager->mkSkolem("g", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+    Node x = d_nodeManager->mkSkolem("x", intType, "",
+                                     NodeManager::SKOLEM_EXACT_NAME);
+    Node y = d_nodeManager->mkSkolem("y", intType, "",
+                                     NodeManager::SKOLEM_EXACT_NAME);
+    Node f = d_nodeManager->mkSkolem("f", fnType, "",
+                                     NodeManager::SKOLEM_EXACT_NAME);
+    Node g = d_nodeManager->mkSkolem("g", fnType, "",
+                                     NodeManager::SKOLEM_EXACT_NAME);
     Node fx = d_nodeManager->mkNode(APPLY_UF, f, x);
     Node fy = d_nodeManager->mkNode(APPLY_UF, f, y);
     Node gx = d_nodeManager->mkNode(APPLY_UF, g, x);
@@ -620,49 +622,114 @@ public:
     Node x_eq_y = d_nodeManager->mkNode(EQUAL, x, y);
     Node fgx_eq_gy = d_nodeManager->mkNode(EQUAL, fgx, gy);
 
-    Node n = d_nodeManager->mkNode(OR, fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy);
+    Node n = d_nodeManager->mkNode(OR, fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y,
+                                   fgx_eq_gy);
 
     stringstream sstr;
-    sstr << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC4);
-    sstr << Node::dag(false) << n; // never dagify
-    TS_ASSERT(sstr.str() == "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = y) OR (f(g(x)) = g(y))");
+    sstr << Node::setdepth(-1)
+         << Node::setlanguage(language::output::LANG_CVC4);
+    sstr << Node::dag(false) << n;  // never dagify
+    TS_ASSERT(sstr.str() ==
+              "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = "
+              "y) OR (f(g(x)) = g(y))");
 
     sstr.str(string());
-    sstr << Node::dag(true) << n; // always dagify
-    TS_ASSERT(sstr.str() == "LET _let_0 = f(x), _let_1 = g(x), _let_2 = f(f(_let_0)) IN (_let_2 = x) OR (_let_2 = y) OR (_let_0 = _let_1) OR (x = y) OR (f(_let_1) = g(y))");
+    sstr << Node::dag(true) << n;  // always dagify
+    TS_ASSERT(sstr.str() ==
+              "LET _let_0 = f(x), _let_1 = g(x), _let_2 = f(f(_let_0)) IN "
+              "(_let_2 = x) OR (_let_2 = y) OR (_let_0 = _let_1) OR (x = y) OR "
+              "(f(_let_1) = g(y))");
 
     sstr.str(string());
-    sstr << Node::dag(2) << n; // dagify subexprs occurring > 2 times
-    TS_ASSERT(sstr.str() == "LET _let_0 = f(x) IN (f(f(_let_0)) = x) OR (f(f(_let_0)) = y) OR (_let_0 = g(x)) OR (x = y) OR (f(g(x)) = g(y))");
+    sstr << Node::dag(2) << n;  // dagify subexprs occurring > 2 times
+    TS_ASSERT(sstr.str() ==
+              "LET _let_0 = f(x) IN (f(f(_let_0)) = x) OR (f(f(_let_0)) = y) "
+              "OR (_let_0 = g(x)) OR (x = y) OR (f(g(x)) = g(y))");
 
-    Warning() << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC4) << Node::dag(2) << n << std::endl;
+    Warning() << Node::setdepth(-1)
+              << Node::setlanguage(language::output::LANG_CVC4) << Node::dag(2)
+              << n << std::endl;
     sstr.str(string());
-    sstr << Node::dag(3) << n; // dagify subexprs occurring > 3 times
-    TS_ASSERT(sstr.str() == "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = y) OR (f(g(x)) = g(y))");
-    Warning() << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC4) << Node::dag(2) << n << std::endl;
+    sstr << Node::dag(3) << n;  // dagify subexprs occurring > 3 times
+    TS_ASSERT(sstr.str() ==
+              "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = "
+              "y) OR (f(g(x)) = g(y))");
+    Warning() << Node::setdepth(-1)
+              << Node::setlanguage(language::output::LANG_CVC4) << Node::dag(2)
+              << n << std::endl;
   }
 
-//  This Test is designed to fail in a way that will cause a segfault,
-//  so it is commented out.
-//  This is for demonstrating what a certain type of user error looks like.
-//   Node level0(){
-//     NodeBuilder<> nb(kind::AND);
-//     Node x = d_nodeManager->mkSkolem("x", *d_booleanType);
-//     nb << x;
-//     nb << x;
-//     return Node(nb.constructNode());
-//   }
+  void testForEachOverNodeAsNodes() {
+    const std::vector<Node> skolems =
+        makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
+    Node add = d_nodeManager->mkNode(kind::PLUS, skolems);
+    std::vector<Node> children;
+    for (Node child : add) {
+      children.push_back(child);
+    }
+    TS_ASSERT(children.size() == skolems.size() &&
+              std::equal(children.begin(), children.end(), skolems.begin()));
+  }
 
-//   TNode level1(){
-//     return level0();
-//   }
+  void testForEachOverNodeAsTNodes() {
+    const std::vector<Node> skolems =
+        makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
+    Node add = d_nodeManager->mkNode(kind::PLUS, skolems);
+    std::vector<TNode> children;
+    for (TNode child : add) {
+      children.push_back(child);
+    }
+    TS_ASSERT(children.size() == skolems.size() &&
+              std::equal(children.begin(), children.end(), skolems.begin()));
+  }
 
-//   void testChaining() {
-//     Node res = level1();
+  void testForEachOverTNodeAsNode() {
+    const std::vector<Node> skolems =
+        makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
+    Node add_node = d_nodeManager->mkNode(kind::PLUS, skolems);
+    TNode add_tnode = add_node;
+    std::vector<Node> children;
+    for (Node child : add_tnode) {
+      children.push_back(child);
+    }
+    TS_ASSERT(children.size() == skolems.size() &&
+              std::equal(children.begin(), children.end(), skolems.begin()));
+  }
 
-//     TS_ASSERT(res.getKind() == kind::NULL_EXPR);
-//     TS_ASSERT(res != Node::null());
+  void testForEachOverTNodeAsTNodes() {
+    const std::vector<Node> skolems =
+        makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
+    Node add_node = d_nodeManager->mkNode(kind::PLUS, skolems);
+    TNode add_tnode = add_node;
+    std::vector<TNode> children;
+    for (TNode child : add_tnode) {
+      children.push_back(child);
+    }
+    TS_ASSERT(children.size() == skolems.size() &&
+              std::equal(children.begin(), children.end(), skolems.begin()));
+  }
 
-//     cerr << "I finished both tests now watch as I crash" << endl;
-//   }
+  //  This Test is designed to fail in a way that will cause a segfault,
+  //  so it is commented out.
+  //  This is for demonstrating what a certain type of user error looks like.
+  //   Node level0(){
+  //     NodeBuilder<> nb(kind::AND);
+  //     Node x = d_nodeManager->mkSkolem("x", *d_booleanType);
+  //     nb << x;
+  //     nb << x;
+  //     return Node(nb.constructNode());
+  //   }
+
+  //   TNode level1(){
+  //     return level0();
+  //   }
+
+  //   void testChaining() {
+  //     Node res = level1();
+
+  //     TS_ASSERT(res.getKind() == kind::NULL_EXPR);
+  //     TS_ASSERT(res != Node::null());
+
+  //     cerr << "I finished both tests now watch as I crash" << endl;
+  //   }
 };

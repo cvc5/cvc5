@@ -69,7 +69,17 @@ TESTS =	\
 	bug651.smt2 \
 	bug652.smt2 \
 	bug782.smt2 \
-	quant_real_univ.cvc
+	quant_real_univ.cvc \
+	constr-ground-to.smt2 \
+	bug-041417-set-options.cvc \
+	alg202+1.smt2 \
+	fmf-fun-no-elim-ext-arith.smt2 \
+	fmf-fun-no-elim-ext-arith2.smt2 \
+	cruanes-no-minimal-unk.smt2 \
+	no-minimal-sat.smt2 \
+	issue916-fmf-or.smt2 \
+	pow2-bool.smt2 \
+	sat-logic.smt2 
 
 EXTRA_DIST = $(TESTS)
 

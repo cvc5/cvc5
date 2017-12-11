@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,8 @@
 #include "cvc4_private.h"
 
 #pragma once
+
+#include <unordered_map>
 
 #include "theory/bv/bitblaster_template.h"
 #include "theory/bv/bv_subtheory.h"
@@ -47,7 +49,7 @@ class BitblastSolver : public SubtheorySolver {
   context::CDQueue<TNode> d_bitblastQueue;
   Statistics d_statistics;
 
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_modelCache;
   context::CDO<bool> d_validModelCache;
 
@@ -67,7 +69,7 @@ public:
   bool  check(Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);
   EqualityStatus getEqualityStatus(TNode a, TNode b);
-  void collectModelInfo(TheoryModel* m, bool fullModel);
+  bool collectModelInfo(TheoryModel* m, bool fullModel);
   Node getModelValue(TNode node);
   bool isComplete() { return true; }
   void bitblastQueue();

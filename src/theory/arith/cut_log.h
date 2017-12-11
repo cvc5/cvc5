@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <ext/hash_map>
+#include <unordered_map>
 #include <map>
 #include <set>
 #include <vector>
@@ -179,7 +179,7 @@ private:
   int d_upId;
 
 public:
-  typedef __gnu_cxx::hash_map<int, ArithVar> RowIdMap;
+  typedef std::unordered_map<int, ArithVar> RowIdMap;
 private:
   RowIdMap d_rowId2ArithVar;
 

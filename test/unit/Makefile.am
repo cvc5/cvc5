@@ -12,6 +12,9 @@ UNIT_TESTS += \
 	theory/theory_white \
 	theory/theory_arith_white \
 	theory/theory_bv_white \
+	theory/theory_bv_bvgauss_white \
+	theory/theory_quantifiers_bv_instantiator_white \
+	theory/theory_quantifiers_bv_inverter_white \
 	theory/type_enumerator_white \
 	expr/node_white \
 	expr/node_black \
@@ -33,11 +36,9 @@ UNIT_TESTS += \
 	context/context_mm_black \
 	context/cdo_black \
 	context/cdlist_black \
-	context/cdlist_context_memory_black \
 	context/cdmap_black \
 	context/cdmap_white \
 	context/cdvector_black \
-	context/stacking_vector_black \
 	util/array_store_all_black \
 	util/assert_white \
 	util/binary_heap_black \
@@ -53,7 +54,6 @@ UNIT_TESTS += \
 	util/rational_white \
 	util/stats_black \
 	util/boolean_simplification_black \
-	util/subrange_bound_white \
 	main/interactive_shell_black
 endif
 
@@ -69,7 +69,6 @@ if HAVE_CXXTESTGEN
 
 AM_CPPFLAGS = \
 	-I. \
-	"-I@CXXTEST@" \
 	"-I@top_builddir@/src" \
 	"-I@top_srcdir@/src/include" \
 	"-I@top_srcdir@/lib" \

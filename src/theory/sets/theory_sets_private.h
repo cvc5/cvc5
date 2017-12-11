@@ -2,9 +2,9 @@
 /*! \file theory_sets_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Andrew Reynolds
+ **   Andrew Reynolds, Kshitij Bansal, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -70,13 +70,15 @@ private:
   // send lemma ( n OR (NOT n) ) immediately
   void split( Node n, int reqPol=0 );
   void fullEffortCheck();
+  void checkSubtypes( std::vector< Node >& lemmas );
   void checkDownwardsClosure( std::vector< Node >& lemmas );
   void checkUpwardsClosure( std::vector< Node >& lemmas );
   void checkDisequalities( std::vector< Node >& lemmas );
   bool isMember( Node x, Node s );
   bool isSetDisequalityEntailed( Node s, Node t );
   
-  void flushLemmas( std::vector< Node >& lemmas );
+  void flushLemmas( std::vector< Node >& lemmas, bool preprocess = false );
+  void flushLemma( Node lem, bool preprocess = false );
   Node getProxy( Node n );
   Node getCongruent( Node n );
   Node getEmptySet( TypeNode tn );
@@ -114,6 +116,7 @@ private:
   
   bool d_sentLemma;
   bool d_addedFact;
+  bool d_full_check_incomplete;
   NodeMap d_proxy;  
   NodeMap d_proxy_to_term;  
   NodeSet d_lemmas_produced;
@@ -127,6 +130,9 @@ private:
   std::map< TypeNode, Node > d_univset;
   std::map< Node, Node > d_congruent;
   std::map< Node, std::vector< Node > > d_nvar_sets;
+  std::map< Node, Node > d_var_set;
+  std::map< Node, TypeNode > d_most_common_type;
+  std::map< Node, Node > d_most_common_type_term;
   std::map< Node, std::map< Node, Node > > d_pol_mems[2];
   std::map< Node, std::map< Node, Node > > d_members_index;
   std::map< Node, Node > d_singleton_index;
@@ -149,6 +155,9 @@ private:
   void checkNormalForms( std::vector< Node >& lemmas, std::vector< Node >& intro_sets );
   void checkNormalForm( Node eqc, std::vector< Node >& intro_sets );
   void checkMinCard( std::vector< Node >& lemmas );
+private: //for universe set
+  NodeBoolMap d_var_elim;
+  void lastCallEffortCheck();
 public:
 
   /**
@@ -166,8 +175,10 @@ public:
   void addSharedTerm(TNode);
 
   void check(Theory::Effort);
+  
+  bool needsCheckLastEffort();
 
-  void collectModelInfo(TheoryModel* m);
+  bool collectModelInfo(TheoryModel* m);
 
   void computeCareGraph();
 
@@ -177,6 +188,40 @@ public:
 
   void preRegisterTerm(TNode node);
 
+  /** expandDefinition
+   * If the sets-ext option is not set and we have an extended operator, 
+   * we throw an exception. This function is a no-op otherwise.
+   *
+   * This is related to github issue #1076
+   * TheorySets uses expandDefinition as an entry point to see if the input
+   * contains extended operators.
+   *
+   * We need to be notified when a universe set occurs in our input,
+   * before preprocessing and simplification takes place. Otherwise the models
+   * may be inaccurate when setsExt is false, here is an example:
+   *
+   * x,y : (Set Int)
+   * x = (as univset (Set Int));
+   * 0 in y;
+   * check-sat;
+   *
+   * If setsExt is enabled, the model value of (as univset (Set Int)) is always accurate.
+   *
+   * If setsExt is not enabled, the following can happen for the above example:
+   * x = (as univset (Set Int)) is made into a model substitution during 
+   * simplification. This means (as univset (Set Int)) is not a term in any assertion, 
+   * and hence we do not throw an exception, nor do we infer that 0 is a member of 
+   * (as univset (Set Int)). We instead report a model where x = {}. The correct behavior 
+   * is to throw an exception that says universe set is not supported when setsExt disabled.
+   * Hence we check for the existence of universe set before simplification here.
+   *
+   * Another option to fix this is to make TheoryModel::getValue more general
+   * so that it makes theory-specific calls to evaluate interpreted symbols.
+   */
+  Node expandDefinition(LogicRequest &logicRequest, Node n);
+
+  Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+  
   void presolve();
 
   void propagate(Theory::Effort);

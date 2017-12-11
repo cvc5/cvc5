@@ -173,7 +173,7 @@
 		       	(! xb bblt
 		       	(! rb bblt
 		       	(! xbb (bblast_term m x xb)
-			(! c ( ^ (bblast_sextend xb k m) rb)
+			(! c ( ^ (bblast_sextend xb k) rb)
                            (bblast_term n (sign_extend n k m x) rb))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -425,7 +425,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; bit blast  x = y
-; for x,y of size n, it will return a conjuction (x.0 = y.0 ^ ( ... ^ (x.{n-1} = y.{n-1})))
+; for x,y of size n, it will return a conjunction (x.0 = y.0 ^ ( ... ^ (x.{n-1} = y.{n-1})))
 ; f is the accumulator formula that builds the equality in the right order
 (program bblast_eq_rec ((x bblt) (y bblt) (f formula)) formula
   (match x

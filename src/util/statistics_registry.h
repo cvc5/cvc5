@@ -2,9 +2,9 @@
 /*! \file statistics_registry.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Kshitij Bansal
+ **   Morgan Deters, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -38,7 +38,6 @@
 
 #include <stdint.h>
 
-#include <cassert>
 #include <ctime>
 #include <iomanip>
 #include <map>
@@ -47,6 +46,7 @@
 
 #include "base/exception.h"
 #include "lib/clock_gettime.h"
+#include "util/safe_print.h"
 #include "util/statistics.h"
 
 namespace CVC4 {
@@ -109,6 +109,13 @@ public:
   virtual void flushInformation(std::ostream& out) const = 0;
 
   /**
+   * Flush the value of this statistic to a file descriptor. Should finish the
+   * output with an end-of-line character. Should be safe to use in a signal
+   * handler.
+   */
+  virtual void safeFlushInformation(int fd) const = 0;
+
+  /**
    * Flush the name,value pair of this statistic to an output stream.
    * Uses the statistic delimiter string between name and value.
    *
@@ -118,6 +125,20 @@ public:
     if(__CVC4_USE_STATISTICS) {
       out << d_name << ", ";
       flushInformation(out);
+    }
+  }
+
+  /**
+   * Flush the name,value pair of this statistic to a file descriptor. Uses the
+   * statistic delimiter string between name and value.
+   *
+   * May be redefined by a child class
+   */
+  virtual void safeFlushStat(int fd) const {
+    if (__CVC4_USE_STATISTICS) {
+      safe_print(fd, d_name);
+      safe_print(fd, ", ");
+      safeFlushInformation(fd);
     }
   }
 
@@ -203,10 +224,19 @@ public:
   /** Get the value of the statistic. */
   virtual T getData() const = 0;
 
+  /** Get a reference to the data value of the statistic. */
+  virtual const T& getDataRef() const = 0;
+
   /** Flush the value of the statistic to the given output stream. */
   void flushInformation(std::ostream& out) const {
     if(__CVC4_USE_STATISTICS) {
       out << getData();
+    }
+  }
+
+  virtual void safeFlushInformation(int fd) const {
+    if (__CVC4_USE_STATISTICS) {
+      safe_print<T>(fd, getDataRef());
     }
   }
 
@@ -292,12 +322,12 @@ public:
   }
 
   /** Get the value of the referenced data cell. */
-  T getData() const {
-    return *d_data;
-  }
+  virtual T getData() const { return *d_data; }
+
+  /** Get a reference to the value of the referenced data cell. */
+  virtual const T& getDataRef() const { return *d_data; }
 
 };/* class ReferenceStat<T> */
-
 
 /**
  * A data statistic that keeps a T and sets it with setData().
@@ -334,12 +364,12 @@ public:
   }
 
   /** Get the underlying data value. */
-  T getData() const {
-    return d_data;
-  }
+  virtual T getData() const { return d_data; }
+
+  /** Get a reference to the underlying data value. */
+  virtual const T& getDataRef() const { return d_data; }
 
 };/* class BackedStat<T> */
-
 
 /**
  * A wrapper Stat for another Stat.
@@ -376,8 +406,16 @@ public:
   }
 
   /** Get the data of the underlying (wrapped) statistic. */
-  T getData() const {
-    return d_stat.getData();
+  virtual T getData() const { return d_stat.getData(); }
+
+  /** Get a reference to the data of the underlying (wrapped) statistic. */
+  virtual const T& getDataRef() const { return d_stat.getDataRef(); }
+
+  virtual void safeFlushInformation(int fd) const {
+    // ReadOnlyDataStat uses getDataRef() to get the information to print,
+    // which might not be appropriate for all wrapped statistics. Delegate the
+    // printing to the wrapped statistic instead.
+    d_stat.safeFlushInformation(fd);
   }
 
   SExpr getValue() const {
@@ -455,6 +493,10 @@ public:
     out << d_sized.size();
   }
 
+  void safeFlushInformation(int fd) const {
+    safe_print<uint64_t>(fd, d_sized.size());
+  }
+
   SExpr getValue() const {
     return SExpr(Integer(d_sized.size()));
   }
@@ -522,49 +564,17 @@ public:
     out << d_data << std::endl;
   }
 
+  virtual void safeFlushInformation(int fd) const {
+    // SExprStat is only used in statistics.cpp in copyFrom, which we cannot
+    // do in a signal handler anyway.
+    safe_print(fd, "<unsupported>");
+  }
+
   SExpr getValue() const {
     return d_data;
   }
 
 };/* class SExprStat */
-
-template <class T>
-class ListStat : public Stat {
-private:
-  typedef std::vector<T> List;
-  List d_list;
-public:
-
-  /**
-   * Construct an integer-valued statistic with the given name and
-   * initial value.
-   */
-  ListStat(const std::string& name) : Stat(name) {}
-  ~ListStat() {}
-
-  void flushInformation(std::ostream& out) const{
-    if(__CVC4_USE_STATISTICS) {
-      typename List::const_iterator i = d_list.begin(), end =  d_list.end();
-      out << "[";
-      if(i != end){
-        out << *i;
-        ++i;
-        for(; i != end; ++i){
-          out << ", " << *i;
-        }
-      }
-      out << "]";
-    }
-  }
-
-  ListStat& operator<<(const T& val){
-    if(__CVC4_USE_STATISTICS) {
-      d_list.push_back(val);
-    }
-    return (*this);
-  }
-
-};/* class ListStat */
 
 template <class T>
 class HistogramStat : public Stat {
@@ -592,6 +602,28 @@ public:
         }
       }
       out << "]";
+    }
+  }
+
+  virtual void safeFlushInformation(int fd) const {
+    if (__CVC4_USE_STATISTICS) {
+      typename Histogram::const_iterator i = d_hist.begin();
+      typename Histogram::const_iterator end = d_hist.end();
+      safe_print(fd, "[");
+      while (i != end) {
+        const T& key = (*i).first;
+        unsigned int count = (*i).second;
+        safe_print(fd, "(");
+        safe_print<T>(fd, key);
+        safe_print(fd, " : ");
+        safe_print<uint64_t>(fd, count);
+        safe_print(fd, ")");
+        ++i;
+        if (i != end) {
+          safe_print(fd, ", ");
+        }
+      }
+      safe_print(fd, "]");
     }
   }
 
@@ -643,6 +675,8 @@ public:
 
   virtual void flushInformation(std::ostream& out) const;
 
+  virtual void safeFlushInformation(int fd) const;
+
   SExpr getValue() const {
     std::vector<SExpr> v;
     for(StatSet::iterator i = d_stats.begin(); i != d_stats.end(); ++i) {
@@ -686,13 +720,8 @@ public:
    * Construct a timer statistic with the given name.  Newly-constructed
    * timers have a 0.0 value and are not running.
    */
-  TimerStat(const std::string& name) :
-    BackedStat< timespec >(name, timespec()),
-    d_running(false) {
-    /* timespec is POD and so may not be initialized to zero;
-     * here, ensure it is */
-    d_data.tv_sec = d_data.tv_nsec = 0;
-  }
+  TimerStat(const std::string& name)
+      : BackedStat<timespec>(name, {0, 0}), d_start{0, 0}, d_running(false) {}
 
   /** Start the timer. */
   void start();
@@ -706,7 +735,15 @@ public:
   /** If the timer is currently running */
   bool running() const;
 
-  timespec getData() const;
+  virtual timespec getData() const;
+
+  virtual void safeFlushInformation(int fd) const {
+    // Overwrite the implementation in the superclass because we cannot use
+    // getDataRef(): it might return stale data if the timer is currently
+    // running.
+    ::timespec data = getData();
+    safe_print<timespec>(fd, data);
+  }
 
   SExpr getValue() const;
 

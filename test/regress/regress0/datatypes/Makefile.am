@@ -27,11 +27,11 @@ TESTS =	\
 	rec1.cvc \
 	rec2.cvc \
 	rec4.cvc \
-	rec5.cvc \
 	datatype.cvc \
 	datatype0.cvc \
 	datatype1.cvc \
 	datatype2.cvc \
+	datatype3.cvc \
 	datatype4.cvc \
 	datatype13.cvc \
 	empty_tuprec.cvc \
@@ -79,12 +79,17 @@ TESTS =	\
 	dt-sel-2.6.smt2 \
 	dt-param-2.6.smt2 \
 	dt-color-2.6.smt2 \
-	dt-match-pat-param-2.6.smt2
+	dt-match-pat-param-2.6.smt2 \
+	tuple-no-clash.cvc \
+	jsat-2.6.smt2 \
+	acyclicity-sr-ground096.smt2 \
+	model-subterms-min.smt2 \
+	issue1433.smt2
 
+# rec5 -- no longer support subrange types
 FAILING_TESTS = \
-	datatype-dump.cvc
-
-# takes a long time to build model on debug : datatype3.cvc
+	datatype-dump.cvc \
+	rec5.cvc
 
 EXTRA_DIST = $(TESTS)
 

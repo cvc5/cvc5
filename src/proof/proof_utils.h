@@ -2,9 +2,9 @@
 /*! \file proof_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean
+ **   Liana Hadarean, Guy Katz, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,14 +20,16 @@
 #pragma once
 
 #include <set>
-#include <vector>
 #include <sstream>
+#include <unordered_set>
+#include <vector>
+
 #include "expr/node_manager.h"
 
 namespace CVC4 {
 
-typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<Expr, ExprHashFunction> ExprSet;
+typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
 typedef std::pair<Node, Node> NodePair;
 typedef std::set<NodePair> NodePairSet;

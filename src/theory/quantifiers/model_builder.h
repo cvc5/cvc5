@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,7 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
 
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_model.h"
+#include "theory/theory_model_builder.h"
 #include "theory/uf/theory_uf_model.h"
 
 namespace CVC4 {
@@ -60,13 +60,11 @@ public:
 
 
 class TermArgBasisTrie {
-private:
-  bool addTerm2( FirstOrderModel* fm, Node n, int argIndex );
 public:
   /** the data */
   std::map< Node, TermArgBasisTrie > d_data;
-public:
-  bool addTerm( FirstOrderModel* fm, Node n ) { return addTerm2( fm, n, 0 ); }
+  /** add term to the trie */
+  bool addTerm(FirstOrderModel* fm, Node n, unsigned argIndex = 0);
 };/* class TermArgBasisTrie */
 
 /** model builder class
@@ -93,7 +91,7 @@ protected:
   //reset
   virtual void reset( FirstOrderModel* fm ) = 0;
   //initialize quantifiers, return number of lemmas produced
-  virtual int initializeQuantifier( Node f, Node fp );
+  virtual int initializeQuantifier(Node f, Node fp, FirstOrderModel* fm);
   //analyze model
   virtual void analyzeModel( FirstOrderModel* fm );
   //analyze quantifiers
@@ -131,8 +129,6 @@ public:
     ~Statistics();
   };
   Statistics d_statistics;
-  // is term active
-  bool isTermActive( Node n );
   // is term selected
   virtual bool isTermSelected( Node n ) { return false; }
   /** quantifier has inst-gen definition */

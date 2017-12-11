@@ -2,9 +2,9 @@
 /*! \file options_public_functions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King
+ **   Tim King, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,7 +25,6 @@
 
 #include "base/listener.h"
 #include "base/modal_exception.h"
-#include "base/tls.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
@@ -242,13 +241,6 @@ std::ostream* Options::currentGetOut() {
 
 
 // TODO: Document these.
-void Options::setCeGuidedInst(bool value) {
-  set(options::ceGuidedInst, value);
-}
-
-void Options::setDumpSynth(bool value) {
-  set(options::dumpSynth, value);
-}
 
 void Options::setInputLanguage(InputLanguage value) {
   set(options::inputLanguage, value);

@@ -2,9 +2,9 @@
 /*! \file node_self_iterator_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,6 @@
 #include "expr/node.h"
 #include "expr/node_self_iterator.h"
 #include "expr/node_builder.h"
-#include "expr/convenience_node_builders.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -52,7 +51,7 @@ public:
   void testSelfIteration() {
     Node x = d_nodeManager->mkSkolem("x", *d_booleanType);
     Node y = d_nodeManager->mkSkolem("y", *d_booleanType);
-    Node x_and_y = x && y;
+    Node x_and_y = x.andNode(y);
     NodeSelfIterator i = x_and_y, j = NodeSelfIterator::self(x_and_y);
     TS_ASSERT(i != x_and_y.end());
     TS_ASSERT(j != x_and_y.end());

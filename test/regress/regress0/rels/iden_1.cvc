@@ -1,0 +1,19 @@
+% EXPECT: unsat
+OPTION "sets-ext";
+OPTION "logic" "ALL_SUPPORTED";
+Atom:TYPE;
+AtomPair: TYPE = [Atom, Atom];
+x : SET OF AtomPair;
+t : SET OF [Atom];
+univ : SET OF [Atom];
+
+a : Atom;
+b : Atom;
+c : Atom;
+d : Atom;
+ASSERT univ = UNIVERSE::SET OF [Atom];
+ASSERT (a, b) IS_IN x;
+ASSERT (c, d) IS_IN x;
+ASSERT NOT(a = b);
+ASSERT IDEN(x JOIN univ) = x;
+CHECKSAT;

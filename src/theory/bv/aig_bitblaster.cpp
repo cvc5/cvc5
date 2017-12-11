@@ -2,9 +2,9 @@
 /*! \file aig_bitblaster.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Morgan Deters
+ **   Liana Hadarean, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -232,12 +232,6 @@ Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
       result = node.getConst<bool>() ? mkTrue<Abc_Obj_t*>() : mkFalse<Abc_Obj_t*>(); 
       break;
     }
-  case kind::VARIABLE:
-  case kind::SKOLEM:
-    {
-      result = mkInput(node);
-      break;
-    }
   case kind::EQUAL:
     {
       if( node[0].getType().isBoolean() ){
@@ -251,8 +245,12 @@ Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
       //else, continue...
     }
   default:
-    bbAtom(node);
-    result = getBBAtom(node);
+    if( node.isVar() ){
+      result = mkInput(node);
+    }else{
+      bbAtom(node);
+      result = getBBAtom(node);
+    }
   }
 
   cacheAig(node, result);
@@ -315,9 +313,7 @@ void AigBitblaster::makeVariable(TNode node, Bits& bits) {
 Abc_Obj_t* AigBitblaster::mkInput(TNode input) {
   Assert (!hasInput(input));
   Assert(input.getKind() == kind::BITVECTOR_BITOF ||
-         (input.getType().isBoolean() &&
-          (input.getKind() == kind::VARIABLE ||
-           input.getKind() == kind::SKOLEM)));
+         (input.getType().isBoolean() && input.isVar()));
   Abc_Obj_t* aig_input = Abc_NtkCreatePi(currentAigNtk());
   // d_aigCache.insert(std::make_pair(input, aig_input));
   d_nodeToAigInput.insert(std::make_pair(input, aig_input));
@@ -374,7 +370,7 @@ void AigBitblaster::convertToCnfAndAssert() {
   
   Aig_Man_t * pMan = NULL;
   Cnf_Dat_t * pCnf = NULL;
-  assert( Abc_NtkIsStrash(currentAigNtk()) );
+  Assert( Abc_NtkIsStrash(currentAigNtk()) );
   
   // convert to the AIG manager
   pMan = Abc_NtkToDar(currentAigNtk(), 0, 0 );
@@ -486,186 +482,5 @@ AigBitblaster::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&d_simplificationTime); 
   smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
   smtStatisticsRegistry()->unregisterStat(&d_solveTime); 
-}
-
-#else // CVC4_USE_ABC
-
-namespace CVC4 {
-namespace theory {
-namespace bv {
-
-template <> inline
-std::string toString<Abc_Obj_t*> (const std::vector<Abc_Obj_t*>& bits) {
-  Unreachable("Don't know how to print AIG");
-} 
-
-
-template <> inline
-Abc_Obj_t* mkTrue<Abc_Obj_t*>() {
-  Unreachable();
-  return NULL;
-}
-
-template <> inline
-Abc_Obj_t* mkFalse<Abc_Obj_t*>() {
-  Unreachable();
-  return NULL;
-}
-
-template <> inline
-Abc_Obj_t* mkNot<Abc_Obj_t*>(Abc_Obj_t* a) {
-  Unreachable();
-  return NULL;
-}
-
-template <> inline
-Abc_Obj_t* mkOr<Abc_Obj_t*>(Abc_Obj_t* a, Abc_Obj_t* b) {
-  Unreachable();
-  return NULL;
-}
-
-template <> inline
-Abc_Obj_t* mkOr<Abc_Obj_t*>(const std::vector<Abc_Obj_t*>& children) {
-  Unreachable();
-  return NULL;
-}
-
-
-template <> inline
-Abc_Obj_t* mkAnd<Abc_Obj_t*>(Abc_Obj_t* a, Abc_Obj_t* b) {
-  Unreachable();
-  return NULL;
-}
-
-template <> inline
-Abc_Obj_t* mkAnd<Abc_Obj_t*>(const std::vector<Abc_Obj_t*>& children) {
-  Unreachable();
-  return NULL;
-}
-
-template <> inline
-Abc_Obj_t* mkXor<Abc_Obj_t*>(Abc_Obj_t* a, Abc_Obj_t* b) {
-  Unreachable();
-  return NULL;
-}
-
-template <> inline
-Abc_Obj_t* mkIff<Abc_Obj_t*>(Abc_Obj_t* a, Abc_Obj_t* b) {
-  Unreachable();
-  return NULL;
-}
-
-template <> inline
-Abc_Obj_t* mkIte<Abc_Obj_t*>(Abc_Obj_t* cond, Abc_Obj_t* a, Abc_Obj_t* b) {
-  Unreachable();
-  return NULL;
-}
-
-} /* CVC4::theory::bv */
-} /* CVC4::theory */
-} /* CVC4 */
-
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-
-Abc_Ntk_t* AigBitblaster::abcAigNetwork = NULL;
-
-Abc_Ntk_t* AigBitblaster::currentAigNtk() {
-  Unreachable();
-  return NULL;
-}
-
-
-Abc_Aig_t* AigBitblaster::currentAigM() {
-  Unreachable();
-  return NULL;
-}
-
-AigBitblaster::~AigBitblaster() {
-  Unreachable();
-}
-
-Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
-  Unreachable();
-  return NULL;
-}
-
-void AigBitblaster::bbAtom(TNode node) {
-  Unreachable();
-}
-
-void AigBitblaster::bbTerm(TNode node, Bits& bits) {
-  Unreachable();
-}
-
-
-void AigBitblaster::cacheAig(TNode node, Abc_Obj_t* aig) {
-  Unreachable();
-}
-bool AigBitblaster::hasAig(TNode node) {
-  Unreachable();
-  return false; 
-}
-Abc_Obj_t* AigBitblaster::getAig(TNode node) {
-  Unreachable();
-  return NULL;
-}
-
-void AigBitblaster::makeVariable(TNode node, Bits& bits) {
-  Unreachable();  
-}
-
-Abc_Obj_t* AigBitblaster::mkInput(TNode input) {
-  Unreachable();
-  return NULL;
-} 
-
-bool AigBitblaster::hasInput(TNode input) {
-  Unreachable();
-  return false; 
-}
-
-bool AigBitblaster::solve(TNode node) {
-  Unreachable();
-  return false; 
-}
-void AigBitblaster::simplifyAig() {
-  Unreachable();
-}
-
-void AigBitblaster::convertToCnfAndAssert() {
-  Unreachable();
-}
-
-void AigBitblaster::assertToSatSolver(Cnf_Dat_t* pCnf) {
-  Unreachable();
-}
-bool AigBitblaster::hasBBAtom(TNode atom) const {
-  Unreachable();
-  return false;
-}
-
-void AigBitblaster::storeBBAtom(TNode atom, Abc_Obj_t* atom_bb) {
-  Unreachable();
-}
-
-Abc_Obj_t* AigBitblaster::getBBAtom(TNode atom) const {
-  Unreachable();
-  return NULL;
-}
-
-AigBitblaster::Statistics::Statistics()
-  : d_numClauses("theory::bv::AigBitblaster::numClauses", 0)
-  , d_numVariables("theory::bv::AigBitblaster::numVariables", 0)
-  , d_simplificationTime("theory::bv::AigBitblaster::simplificationTime")
-  , d_cnfConversionTime("theory::bv::AigBitblaster::cnfConversionTime")
-  , d_solveTime("theory::bv::AigBitblaster::solveTime")
-{}
-
-AigBitblaster::Statistics::~Statistics() {}
-
-AigBitblaster::AigBitblaster() {
-  Unreachable();
 }
 #endif // CVC4_USE_ABC

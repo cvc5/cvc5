@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,13 +22,16 @@
 #ifndef __CVC4__NODE_H
 #define __CVC4__NODE_H
 
-#include <vector>
-#include <string>
-#include <iostream>
-#include <utility>
+#include <stdint.h>
+
 #include <algorithm>
 #include <functional>
-#include <stdint.h>
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "base/configuration.h"
 #include "base/cvc4_assert.h"
@@ -41,8 +44,8 @@
 #include "expr/expr_iomanip.h"
 #include "options/language.h"
 #include "options/set_language.h"
-#include "util/utility.h"
 #include "util/hash.h"
+#include "util/utility.h"
 
 namespace CVC4 {
 
@@ -243,7 +246,7 @@ public:
    * member function with a similar signature.
    */
   Node substitute(TNode node, TNode replacement,
-                  std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const;
+                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
 
   /**
    * Cache-aware, recursive version of substitute() used by the public
@@ -252,7 +255,7 @@ public:
   template <class Iterator1, class Iterator2>
   Node substitute(Iterator1 nodesBegin, Iterator1 nodesEnd,
                   Iterator2 replacementsBegin, Iterator2 replacementsEnd,
-                  std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const;
+                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
 
   /**
    * Cache-aware, recursive version of substitute() used by the public
@@ -260,7 +263,7 @@ public:
    */
   template <class Iterator>
   Node substitute(Iterator substitutionsBegin, Iterator substitutionsEnd,
-                  std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const;
+                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
 
   /** Default constructor, makes a null expression. */
   NodeTemplate() : d_nv(&expr::NodeValue::null()) { }
@@ -457,20 +460,22 @@ public:
   bool isConst() const;
 
   /**
-   * Returns true if this node represents a constant
-   * @return true if const
+   * Returns true if this node represents a variable
+   * @return true if variable
    */
   inline bool isVar() const {
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::VARIABLE;
   }
-  inline bool isUninterpretedVar() const {
+  
+  /**
+   * Returns true if this node represents a nullary operator
+   */
+  inline bool isNullaryOp() const {
     assertTNodeNotExpired();
-    return getMetaKind() == kind::metakind::VARIABLE &&
-           getKind() != kind::UNIVERSE_SET && 
-           getKind() != kind::SEP_NIL;
+    return getMetaKind() == kind::metakind::NULLARY_OPERATOR;
   }
-
+  
   inline bool isClosure() const {
     assertTNodeNotExpired();
     return getKind() == kind::LAMBDA ||
@@ -942,8 +947,6 @@ inline std::ostream& operator<<(std::ostream& out,
 
 }/* CVC4 namespace */
 
-#include <ext/hash_map>
-
 //#include "expr/attribute.h"
 #include "expr/node_manager.h"
 #include "expr/type_checker.h"
@@ -957,14 +960,8 @@ inline size_t TNodeHashFunction::operator()(TNode node) const {
   return node.getId();
 }
 
-struct TNodePairHashFunction {
-  size_t operator()(const std::pair<CVC4::TNode, CVC4::TNode>& pair ) const {
-    TNode n1 = pair.first;
-    TNode n2 = pair.second;
-
-    return (size_t) (n1.getId() * 0x9e3779b9 + n2.getId());
-  }
-};/* struct TNodePairHashFunction */
+using TNodePairHashFunction =
+    PairHashFunction<TNode, TNode, TNodeHashFunction, TNodeHashFunction>;
 
 template <bool ref_count>
 inline size_t NodeTemplate<ref_count>::getNumChildren() const {
@@ -1259,6 +1256,9 @@ NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const {
   case kind::metakind::CONSTANT:
     IllegalArgument(*this, "getOperator() called on Node with CONSTANT-kinded kind");
 
+  case kind::metakind::NULLARY_OPERATOR:
+    IllegalArgument(*this, "getOperator() called on Node with NULLARY_OPERATOR-kinded kind");
+
   default:
     Unhandled(mk);
   }
@@ -1292,14 +1292,14 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement) const {
   if (node == *this) {
     return replacement;
   }
-  std::hash_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
   return substitute(node, replacement, cache);
 }
 
 template <bool ref_count>
 Node
 NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
-                                    std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const {
+                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
   Assert(node != *this);
 
   if (getNumChildren() == 0) {
@@ -1307,7 +1307,7 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
   }
 
   // in cache?
-  typename std::hash_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
+  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -1347,7 +1347,7 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
                                     Iterator1 nodesEnd,
                                     Iterator2 replacementsBegin,
                                     Iterator2 replacementsEnd) const {
-  std::hash_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
   return substitute(nodesBegin, nodesEnd,
                     replacementsBegin, replacementsEnd, cache);
 }
@@ -1359,9 +1359,9 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
                                     Iterator1 nodesEnd,
                                     Iterator2 replacementsBegin,
                                     Iterator2 replacementsEnd,
-                                    std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const {
+                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
   // in cache?
-  typename std::hash_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
+  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -1406,7 +1406,7 @@ template <class Iterator>
 inline Node
 NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
                                     Iterator substitutionsEnd) const {
-  std::hash_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
   return substitute(substitutionsBegin, substitutionsEnd, cache);
 }
 
@@ -1415,9 +1415,9 @@ template <class Iterator>
 Node
 NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
                                     Iterator substitutionsEnd,
-                                    std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const {
+                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
   // in cache?
-  typename std::hash_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
+  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -1464,7 +1464,7 @@ inline Node NodeTemplate<true>::fromExpr(const Expr& e) {
 
 template<bool ref_count>
 bool NodeTemplate<ref_count>::hasSubterm(NodeTemplate<false> t, bool strict) const {
-  typedef std::hash_set<TNode, TNodeHashFunction> node_set;
+  typedef std::unordered_set<TNode, TNodeHashFunction> node_set;
 
   if (!strict && *this == t) {
     return true;

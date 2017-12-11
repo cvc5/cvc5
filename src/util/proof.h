@@ -2,9 +2,9 @@
 /*! \file proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Guy Katz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,7 @@
 #define __CVC4__PROOF_H
 
 #include <iosfwd>
-#include <ext/hash_map>
+#include <unordered_map>
 
 namespace CVC4 {
 
@@ -29,13 +29,14 @@ class Expr;
 class ProofLetCount;
 struct ExprHashFunction;
 
-typedef __gnu_cxx::hash_map<Expr, ProofLetCount, ExprHashFunction> ProofLetMap;
+typedef std::unordered_map<Expr, ProofLetCount, ExprHashFunction> ProofLetMap;
 
-class CVC4_PUBLIC Proof {
-public:
-  virtual ~Proof() { }
-  virtual void toStream(std::ostream& out) = 0;
-  virtual void toStream(std::ostream& out, const ProofLetMap& map) = 0;
+class CVC4_PUBLIC Proof
+{
+ public:
+  virtual ~Proof() {}
+  virtual void toStream(std::ostream& out) const = 0;
+  virtual void toStream(std::ostream& out, const ProofLetMap& map) const = 0;
 };/* class Proof */
 
 }/* CVC4 namespace */

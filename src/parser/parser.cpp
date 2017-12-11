@@ -2,9 +2,9 @@
 /*! \file parser.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Tim King
+ **   Morgan Deters, Tim King, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include <iostream>
 #include <iterator>
 #include <sstream>
+#include <unordered_set>
 
 #include "base/output.h"
 #include "expr/expr.h"
@@ -92,11 +93,61 @@ Expr Parser::getFunction(const std::string& name) {
   return getSymbol(name, SYM_VARIABLE);
 }
 
-Type Parser::getType(const std::string& var_name, SymbolType type) {
-  checkDeclaration(var_name, CHECK_DECLARED, type);
-  assert(isDeclared(var_name, type));
-  Type t = getSymbol(var_name, type).getType();
-  return t;
+Expr Parser::getExpressionForName(const std::string& name) {
+  Type t;
+  return getExpressionForNameAndType(name, t);
+}
+
+Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
+  assert( isDeclared(name) );
+  // first check if the variable is declared and not overloaded
+  Expr expr = getVariable(name);
+  if(expr.isNull()) {
+    // the variable is overloaded, try with type if the type exists
+    if(!t.isNull()) {
+      // if we decide later to support annotations for function types, this will update to 
+      // separate t into ( argument types, return type )
+      expr = getOverloadedConstantForType(name, t);
+      if(expr.isNull()) {
+        parseError("Cannot get overloaded constant for type ascription.");
+      }
+    }else{
+      parseError("Overloaded constants must be type cast.");
+    }
+  }
+  // now, post-process the expression
+  assert( !expr.isNull() );
+  if(isDefinedFunction(expr)) {
+    // defined functions/constants are wrapped in an APPLY so that they are
+    // expanded into their definition, e.g. during SmtEnginePrivate::expandDefinitions
+    expr = d_exprManager->mkExpr(CVC4::kind::APPLY, expr);
+  }else{
+    Type te = expr.getType();
+    if(te.isConstructor() && ConstructorType(te).getArity() == 0) {
+      // nullary constructors have APPLY_CONSTRUCTOR kind with no children
+      expr = d_exprManager->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr);
+    }
+  }
+  return expr;
+}
+
+Kind Parser::getKindForFunction(Expr fun) {
+  if(isDefinedFunction(fun)) {
+    return APPLY;
+  }
+  Type t = fun.getType();
+  if(t.isConstructor()) {
+    return APPLY_CONSTRUCTOR;
+  } else if(t.isSelector()) {
+    return APPLY_SELECTOR;
+  } else if(t.isTester()) {
+    return APPLY_TESTER;
+  } else if(t.isFunction()) {
+    return APPLY_UF;
+  }else{
+    parseError("internal error: unhandled function application kind");
+    return UNDEFINED_KIND;
+  }
 }
 
 Type Parser::getSort(const std::string& name) {
@@ -121,16 +172,15 @@ size_t Parser::getArity(const std::string& sort_name) {
 
 /* Returns true if name is bound to a boolean variable. */
 bool Parser::isBoolean(const std::string& name) {
-  return isDeclared(name, SYM_VARIABLE) && getType(name).isBoolean();
+  Expr expr = getVariable(name);
+  return !expr.isNull() && expr.getType().isBoolean();
 }
 
-/* Returns true if name is bound to a function-like thing (function,
- * constructor, tester, or selector). */
-bool Parser::isFunctionLike(const std::string& name) {
-  if (!isDeclared(name, SYM_VARIABLE)) {
+bool Parser::isFunctionLike(Expr fun) {
+  if(fun.isNull()) {
     return false;
   }
-  Type type = getType(name);
+  Type type = fun.getType();
   return type.isFunction() || type.isConstructor() || type.isTester() ||
          type.isSelector();
 }
@@ -151,16 +201,17 @@ bool Parser::isDefinedFunction(Expr func) {
 
 /* Returns true if name is bound to a function returning boolean. */
 bool Parser::isPredicate(const std::string& name) {
-  return isDeclared(name, SYM_VARIABLE) && getType(name).isPredicate();
+  Expr expr = getVariable(name);
+  return !expr.isNull() && expr.getType().isPredicate();
 }
 
-Expr Parser::mkVar(const std::string& name, const Type& type, uint32_t flags) {
+Expr Parser::mkVar(const std::string& name, const Type& type, uint32_t flags, bool doOverload) {
   if (d_globalDeclarations) {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
   Expr expr = d_exprManager->mkVar(name, type, flags);
-  defineVar(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL);
+  defineVar(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL, doOverload);
   return expr;
 }
 
@@ -172,13 +223,13 @@ Expr Parser::mkBoundVar(const std::string& name, const Type& type) {
 }
 
 Expr Parser::mkFunction(const std::string& name, const Type& type,
-                        uint32_t flags) {
+                        uint32_t flags, bool doOverload) {
   if (d_globalDeclarations) {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
   Expr expr = d_exprManager->mkVar(name, type, flags);
-  defineFunction(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL);
+  defineFunction(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL, doOverload);
   return expr;
 }
 
@@ -193,13 +244,13 @@ Expr Parser::mkAnonymousFunction(const std::string& prefix, const Type& type,
 }
 
 std::vector<Expr> Parser::mkVars(const std::vector<std::string> names,
-                                 const Type& type, uint32_t flags) {
+                                 const Type& type, uint32_t flags, bool doOverload) {
   if (d_globalDeclarations) {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   std::vector<Expr> vars;
   for (unsigned i = 0; i < names.size(); ++i) {
-    vars.push_back(mkVar(names[i], type, flags));
+    vars.push_back(mkVar(names[i], type, flags, doOverload));
   }
   return vars;
 }
@@ -214,15 +265,23 @@ std::vector<Expr> Parser::mkBoundVars(const std::vector<std::string> names,
 }
 
 void Parser::defineVar(const std::string& name, const Expr& val,
-                       bool levelZero) {
+                       bool levelZero, bool doOverload) {
   Debug("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;
-  d_symtab->bind(name, val, levelZero);
+  if (!d_symtab->bind(name, val, levelZero, doOverload)) {
+    std::stringstream ss;
+    ss << "Failed to bind " << name << " to symbol of type " << val.getType();
+    parseError(ss.str()); 
+  }
   assert(isDeclared(name));
 }
 
 void Parser::defineFunction(const std::string& name, const Expr& val,
-                            bool levelZero) {
-  d_symtab->bindDefinedFunction(name, val, levelZero);
+                            bool levelZero, bool doOverload) {
+  if (!d_symtab->bindDefinedFunction(name, val, levelZero, doOverload)) {
+    std::stringstream ss;
+    ss << "Failed to bind defined function " << name << " to symbol of type " << val.getType();
+    parseError(ss.str()); 
+  }
   assert(isDeclared(name));
 }
 
@@ -305,7 +364,7 @@ bool Parser::isUnresolvedType(const std::string& name) {
 }
 
 std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
-    std::vector<Datatype>& datatypes) {
+    std::vector<Datatype>& datatypes, bool doOverload) {
   try {
     std::vector<DatatypeType> types =
         d_exprManager->mkMutualDatatypeTypes(datatypes, d_unresolved);
@@ -326,6 +385,8 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
       } else {
         defineType(name, t);
       }
+      std::unordered_set< std::string > consNames;
+      std::unordered_set< std::string > selNames;
       for (Datatype::const_iterator j = dt.begin(), j_end = dt.end();
            j != j_end; ++j) {
         const DatatypeConstructor& ctor = *j;
@@ -333,27 +394,37 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         Expr constructor = ctor.getConstructor();
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
-        if (isDeclared(constructorName, SYM_VARIABLE)) {
-          throw ParserException(constructorName + " already declared");
+        if(consNames.find(constructorName)==consNames.end()) {
+          if(!doOverload) {
+            checkDeclaration(constructorName, CHECK_UNDECLARED);
+          }
+          defineVar(constructorName, constructor, false, doOverload);
+          consNames.insert(constructorName);
+        }else{
+          throw ParserException(constructorName + " already declared in this datatype");
         }
-        defineVar(constructorName, constructor);
         Expr tester = ctor.getTester();
         Debug("parser-idt") << "+ define " << tester << std::endl;
         string testerName = ctor.getTesterName();
-        if (isDeclared(testerName, SYM_VARIABLE)) {
-          throw ParserException(testerName + " already declared");
+        if(!doOverload) {
+          checkDeclaration(testerName, CHECK_UNDECLARED);
         }
-        defineVar(testerName, tester);
+        defineVar(testerName, tester, false, doOverload);
         for (DatatypeConstructor::const_iterator k = ctor.begin(),
                                                  k_end = ctor.end();
              k != k_end; ++k) {
           Expr selector = (*k).getSelector();
           Debug("parser-idt") << "+++ define " << selector << std::endl;
           string selectorName = (*k).getName();
-          if (isDeclared(selectorName, SYM_VARIABLE)) {
-            throw ParserException(selectorName + " already declared");
+          if(selNames.find(selectorName)==selNames.end()) {
+            if(!doOverload) {
+              checkDeclaration(selectorName, CHECK_UNDECLARED);
+            }
+            defineVar(selectorName, selector, false, doOverload);
+            selNames.insert(selectorName);
+          }else{
+            throw ParserException(selectorName + " already declared in this datatype");
           }
-          defineVar(selectorName, selector);
         }
       }
     }
@@ -375,6 +446,58 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
   } catch (IllegalArgumentException& ie) {
     throw ParserException(ie.getMessage());
   }
+}
+
+Type Parser::mkFlatFunctionType(std::vector<Type>& sorts,
+                                Type range,
+                                std::vector<Expr>& flattenVars)
+{
+  if (range.isFunction())
+  {
+    std::vector<Type> domainTypes =
+        (static_cast<FunctionType>(range)).getArgTypes();
+    for (unsigned i = 0, size = domainTypes.size(); i < size; i++)
+    {
+      sorts.push_back(domainTypes[i]);
+      // the introduced variable is internal (not parsable)
+      std::stringstream ss;
+      ss << "__flatten_var_" << i;
+      Expr v = d_exprManager->mkBoundVar(ss.str(), domainTypes[i]);
+      flattenVars.push_back(v);
+    }
+    range = static_cast<FunctionType>(range).getRangeType();
+  }
+  if (sorts.empty())
+  {
+    return range;
+  }
+  return d_exprManager->mkFunctionType(sorts, range);
+}
+
+Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
+{
+  if (sorts.empty())
+  {
+    // no difference
+    return range;
+  }
+  while (range.isFunction())
+  {
+    std::vector<Type> domainTypes =
+        static_cast<FunctionType>(range).getArgTypes();
+    sorts.insert(sorts.end(), domainTypes.begin(), domainTypes.end());
+    range = static_cast<FunctionType>(range).getRangeType();
+  }
+  return d_exprManager->mkFunctionType(sorts, range);
+}
+
+Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex)
+{
+  for (unsigned i = startIndex; i < args.size(); i++)
+  {
+    expr = d_exprManager->mkExpr(HO_APPLY, expr, args[i]);
+  }
+  return expr;
 }
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
@@ -426,9 +549,13 @@ void Parser::checkDeclaration(const std::string& varName,
   }
 }
 
-void Parser::checkFunctionLike(const std::string& name) throw(ParserException) {
-  if (d_checksEnabled && !isFunctionLike(name)) {
-    parseError("Expecting function-like symbol, found '" + name + "'");
+void Parser::checkFunctionLike(Expr fun) throw(ParserException) {
+  if (d_checksEnabled && !isFunctionLike(fun)) {
+    stringstream ss;
+    ss << "Expecting function-like symbol, found '";
+    ss << fun;
+    ss << "'";
+    parseError(ss.str());
   }
 }
 

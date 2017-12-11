@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --quant-ind --incremental --rewrite-divk
 (set-logic ALL_SUPPORTED)
-(declare-datatypes () ((Lst (cons (head Int) (tail Lst)) (nil))))
+(declare-datatypes ((Lst 0)) (((cons (head Int) (tail Lst)) (nil))))
 (define-fun-rec app ((l1 Lst) (l2 Lst)) Lst (ite (is-nil l1) l2 (cons (head l1) (app (tail l1) l2))))
 (define-fun-rec rev ((l Lst)) Lst (ite (is-nil l) nil (app (rev (tail l)) (cons (head l) nil))))
 ; EXPECT: unsat

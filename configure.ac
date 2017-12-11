@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 m4_define(_CVC4_MAJOR,          1)       dnl version (major)
-m4_define(_CVC4_MINOR,          5)       dnl version (minor)
+m4_define(_CVC4_MINOR,          6)       dnl version (minor)
 m4_define(_CVC4_RELEASE,        0)       dnl version (alpha)
 m4_define(_CVC4_EXTRAVERSION,   [-prerelease])      dnl version (extra)
 m4_define(_CVC4_RELEASE_STRING, _CVC4_MAJOR[.]_CVC4_MINOR[]m4_if(_CVC4_RELEASE,[0],,[.]_CVC4_RELEASE)_CVC4_EXTRAVERSION) dnl version string
@@ -16,7 +16,6 @@ AC_CONFIG_SRCDIR([src/include/cvc4_public.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_LIBOBJ_DIR([src/lib])
-AC_CONFIG_SUBDIRS([proofs/lfsc_checker])
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
@@ -64,11 +63,11 @@ CVC4_PARSER_LIBRARY_VERSION=_CVC4_PARSER_LIBRARY_VERSION
 CVC4_COMPAT_LIBRARY_VERSION=_CVC4_COMPAT_LIBRARY_VERSION
 CVC4_BINDINGS_LIBRARY_VERSION=_CVC4_BINDINGS_LIBRARY_VERSION
 
-# Using the AC_CANONICAL_* macros destroy the command line you get
-# from $@, which we want later for determining the build profile.  So
-# we save it.  (We can't do our build profile stuff here, or it's not
-# included in the output... autoconf overrides us on the orderings of
-# some things.)
+# Using AX_CXX_COMPILE_STDCXX_11 and the AC_CANONICAL_* macros destroy the
+# command line you get from $@, which we want later for determining the build
+# profile.  So we save it.
+# (We can't do our build profile stuff here, or it's not included in the
+# output... autoconf overrides us on the orderings of some things.)
 config_cmdline=("$@")
 cvc4_config_cmdline="${config_cmdline[[@]]}"
 
@@ -98,6 +97,10 @@ AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
+# C++11 support in the compiler is now mandatory. Check for support and add
+# switches if necessary.
+AX_CXX_COMPILE_STDCXX_11([ext], [mandatory])
+
 as_me=configure
 
 if test "$enable_shared" = no -a "$user_specified_enable_or_disable_shared" = yes; then
@@ -113,7 +116,22 @@ AC_ARG_WITH([build],
 if test -z "${with_build+set}"; then
   with_build=production
 fi
-if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_dumping+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}" -a -z "${enable_statistics+set}" -a -z "${enable_replay+set}" -a -z "${with_gmp+set}" -a -z "${with_cln+set}" -a -z "${with_glpk+set}" -a -z "${with_abc+set}" -a -z "${with_cryptominisat+set}"; then
+if test -z "${enable_optimized+set}" -a \
+        -z "${enable_debug_symbols+set}" -a \
+        -z "${enable_assertions+set}" -a \
+        -z "${enable_tracing+set}" -a \
+        -z "${enable_dumping+set}" -a \
+        -z "${enable_muzzle+set}" -a \
+        -z "${enable_coverage+set}" -a \
+        -z "${enable_profiling+set}" -a \
+        -z "${enable_statistics+set}" -a \
+        -z "${enable_replay+set}" -a \
+        -z "${with_gmp+set}" -a \
+        -z "${with_cln+set}" -a \
+        -z "${with_glpk+set}" -a \
+        -z "${with_abc+set}" -a \
+        -z "${with_cryptominisat+set}" -a \
+        -z "${with_lfsc+set}"; then
   custom_build_profile=no
 else
   custom_build_profile=yes
@@ -222,6 +240,12 @@ if test -n "${with_cryptominisat+set}"; then
     btargs="$btargs cryptominisat"
   fi
 fi
+if test -n "${with_lfsc+set}"; then
+  if test "$with_lfsc" = yes; then
+    enable_proof=yes
+    btargs="$btargs lfsc"
+  fi
+fi
 
 AC_MSG_RESULT([$with_build])
 
@@ -252,6 +276,27 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 
 CVC4_GCC_VERSION
+
+if test $cross_compiling = "no"; then
+  AC_MSG_CHECKING([whether C++ exceptions work])
+  AC_LANG_PUSH([C++])
+  AC_RUN_IFELSE(
+    AC_LANG_PROGRAM([#include <exception>], [[
+      int result = 1;
+      try {
+        throw std::exception();
+      } catch (...) {
+        result = 0;
+      }
+      return result;
+    ]]),
+    [AC_MSG_RESULT([yes])],
+    [AC_MSG_ERROR([C++ exceptions do not work.])]
+  )
+  AC_LANG_POP([C++])
+else
+  AC_MSG_WARN([Cross compiling, cannot check whether exceptions work])
+fi
 
 cvc4_use_gmp=2
 cvc4_use_cln=2
@@ -447,7 +492,7 @@ case "$with_build" in
     FLAG_VISIBILITY_HIDDEN='-fvisibility=hidden'
     if test -z "${OPTLEVEL+set}"            ; then OPTLEVEL=3                       ; fi
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
-    if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
+    if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=no          ; fi
     if test -z "${enable_statistics+set}"   ; then enable_statistics=yes            ; fi
     if test -z "${enable_replay+set}"       ; then enable_replay=no                 ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=no             ; fi
@@ -455,6 +500,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
+    if test -z "${enable_valgrind+set}"     ; then enable_valgrind=no               ; fi
     ;;
   debug) # unoptimized, debug symbols, assertions, tracing, dumping
     CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_DEBUG"
@@ -471,6 +517,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
+    if test -z "${enable_valgrind+set}"     ; then enable_valgrind=optional         ; fi
     ;;
   default) # moderately optimized, assertions, tracing, dumping
     CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }"
@@ -488,6 +535,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
+    if test -z "${enable_valgrind+set}"     ; then enable_valgrind=no               ; fi
     ;;
   competition) # maximally optimized, no assertions, no tracing, no dumping, muzzled
     CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_COMPETITION_MODE"
@@ -505,6 +553,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=no                ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=yes                ; fi
+    if test -z "${enable_valgrind+set}"     ; then enable_valgrind=no               ; fi
     if test -z "${user_specified_enable_or_disable_shared}"; then enable_shared=no; fi
     if test -z "${user_specified_enable_or_disable_static}"; then enable_static=yes; fi
     if test -z "${enable_static_binary+set}"; then enable_static_binary=yes         ; fi
@@ -532,7 +581,7 @@ AC_MSG_RESULT([$enable_static_binary])
 if test "$enable_static_binary" = yes; then
   if test "$target_vendor" = apple; then
     if test -z "$MAC_STATIC_BINARY_MANUAL_OVERRIDE"; then
-      AC_MSG_ERROR([[Statically-linked binaries are not supported on Mac OS.  See https://developer.apple.com/library/mac/#qa/qa2001/qa1118.html .  (If you ABSOLUTELY insist on this going forward and you know what you are doing, set MAC_STATIC_BINARY_MANUAL_OVERRIDE=1)]])
+      AC_MSG_ERROR([[Statically-linked binaries are not supported on macOS.  See  https://developer.apple.com/library/content/qa/qa1118/_index.html .  (If you ABSOLUTELY insist on this going forward and you know what you are doing, set MAC_STATIC_BINARY_MANUAL_OVERRIDE=1)]])
     else
       AC_MSG_WARN([MAC_STATIC_BINARY_MANUAL_OVERRIDE was set!])
       AC_MSG_WARN([Will make a static binary during this build.  Note that it may fail!])
@@ -575,8 +624,12 @@ if test "$enable_optimized" = yes; then
   CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }-O$OPTLEVEL"
   CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-O$OPTLEVEL"
 else
-  CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }-O0"
-  CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-O0"
+  # Use -Og if available (optimizations that do not interfere with debugging),
+  # -O0 otherwise
+  debug_optimization_level="-O0"
+  CVC4_CXX_OPTION([-Og], [debug_optimization_level])
+  CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }${debug_optimization_level}"
+  CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }${debug_optimization_level}"
 fi
 
 AC_MSG_CHECKING([whether to include debugging symbols in libcvc4])
@@ -594,6 +647,47 @@ AC_MSG_RESULT([$enable_debug_symbols])
 if test "$enable_debug_symbols" = yes; then
   CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }-ggdb3"
   CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-ggdb3"
+fi
+
+AC_MSG_CHECKING([whether to enable Valgrind instrumentation])
+
+AC_ARG_ENABLE([valgrind],
+  [AS_HELP_STRING([--enable-valgrind],
+     [enable Valgrind instrumentation])])
+
+if test -z "${enable_valgrind+set}"; then
+  enable_valgrind=no
+fi
+
+AC_MSG_RESULT([$enable_valgrind])
+
+if test "$enable_valgrind" != no; then
+  # Valgrind instrumentation is either explicitly enabled (enable_valgrind=yes)
+  # or enabled if available (enable_valgrind=optional)
+  AC_CHECK_HEADER([valgrind/memcheck.h],
+                  [CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_VALGRIND"],
+                  [if test "$enable_valgrind" = yes; then
+                    AC_MSG_ERROR([Need valgrind/memcheck.h to enable Valgrind instrumentation])
+                   else
+                    AC_MSG_NOTICE([valgrind/memcheck.h missing, Valgrind instrumentation disabled])
+                   fi
+                  ])
+fi
+
+AC_MSG_CHECKING([whether to use the context memory manager])
+
+AC_ARG_ENABLE([context-memory-manager],
+  [AS_HELP_STRING([--disable-context-memory-manager],
+     [do not use the context memory manager])])
+
+if test -z "${enable_context_memory_manager+set}"; then
+  enable_context_memory_manager=yes
+fi
+
+AC_MSG_RESULT([$enable_context_memory_manager])
+
+if test "$enable_context_memory_manager" = yes; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_CONTEXT_MEMORY_MANAGER"
 fi
 
 AC_MSG_CHECKING([whether to include statistics are turned on in libcvc4])
@@ -699,6 +793,9 @@ AC_ARG_ENABLE([coverage],
 
 if test -z "${enable_coverage+set}"; then
   enable_coverage=no
+  # make COVERAGE_ON the empty string for makefile conditional function
+  # $(if $(COVERAGE_ON), action1, action2)
+  COVERAGE_ON=
 fi
 
 AC_MSG_RESULT([$enable_coverage])
@@ -709,6 +806,7 @@ if test "$enable_coverage" = yes; then
   # If the user didn't specify these, we force them here.  If the
   # user specified them in opposite phase, give warnings that they
   # shouldn't do that, or bomb out.
+  COVERAGE_ON=yes
   if test "$user_specified_enable_or_disable_shared" != yes; then
     enable_shared=no
     AC_MSG_WARN([turning off shared library building due to --enable-coverage])
@@ -795,16 +893,28 @@ AM_CONDITIONAL([CVC4_USE_CRYPTOMINISAT], [test $have_libcryptominisat -eq 1])
 AC_SUBST([CRYPTOMINISAT_LDFLAGS])
 AC_SUBST([CRYPTOMINISAT_LIBS])
 
+# Build with LFSC
+AC_ARG_WITH([lfsc],
+  [AS_HELP_STRING([--with-lfsc],
+     [use the LFSC proof checker])], [], [with_lfsc=])
+CVC4_CHECK_FOR_LFSC
+if test $have_liblfsc -eq 1; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_USE_LFSC"
+fi
+AM_CONDITIONAL([CVC4_USE_LFSC], [test $have_liblfsc -eq 1])
+AC_SUBST([LFSC_LDFLAGS])
+AC_SUBST([LFSC_LIBS])
+
 
 # Check to see if this version/architecture of GNU C++ explicitly
-# instantiates __gnu_cxx::hash<uint64_t> or not.  Some do, some don't.
+# instantiates std::hash<uint64_t> or not.  Some do, some don't.
 # See src/util/hash.h.
-AC_MSG_CHECKING([whether __gnu_cxx::hash<uint64_t> is already specialized])
+AC_MSG_CHECKING([whether std::hash<uint64_t> is already specialized])
 AC_LANG_PUSH([C++])
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-#include <stdint.h>
-#include <ext/hash_map>
-namespace __gnu_cxx { template<> struct hash<uint64_t> {}; }])],
+#include <cstdint>
+#include <functional>
+namespace std { template<> struct hash<uint64_t> {}; }])],
                   [AC_MSG_RESULT([no]); CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_NEED_HASH_UINT64_T"],
                   [AC_MSG_RESULT([yes])])
 AC_LANG_POP([C++])
@@ -894,65 +1004,86 @@ DX_PS_FEATURE(OFF)
 DX_DOT_FEATURE(OFF)
 DX_INIT_DOXYGEN($PACKAGE_NAME, config/doxygen.cfg, $srcdir/doc/doxygen)
 
-AC_ARG_ENABLE([unit-testing], AS_HELP_STRING([--disable-unit-testing], [don't build support for unit testing, even if available]), , [enable_unit_testing=check])
+AC_ARG_ENABLE([unit-testing], AS_HELP_STRING([--disable-unit-testing], [do not build support for unit testing, even if available]), , [enable_unit_testing=check])
 AC_ARG_VAR(CXXTEST, [path to CxxTest installation])
-
-AC_SUBST([CXXTEST])
-
 AC_ARG_WITH([cxxtest-dir],
   [AS_HELP_STRING([--with-cxxtest-dir=DIR], [path to CxxTest installation])],
   [CXXTEST="$withval"])
 
-# In the case of "./configure --with-cxxtest-dir=../cxxtest" (or other
-# relative path) and having switched the configure directory (see above),
-# search with respect to the top source dir, not the build dir
-if test "$CVC4_CONFIGURE_IN_BUILDS" = yes -a -n "$CXXTEST"; then
-  case "$CXXTEST" in
-    /*) ;;
-    *)  CXXTEST="$srcdir/$CXXTEST" ;;
-  esac
-fi
-
 TESTS_ENVIRONMENT=
 RUN_REGRESSION_ARGS=
-if test "$enable_proof" = yes; then
+# FIXME currently, unsat core regressions are disabled without LFSC
+if test "$with_lfsc" = yes; then
   RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--proof"
 fi
 AC_SUBST([TESTS_ENVIRONMENT])
 AC_SUBST([RUN_REGRESSION_ARGS])
 
+AC_ARG_VAR(TEST_CPPFLAGS, [CPPFLAGS to use when testing (default=$CPPFLAGS)])
+AC_ARG_VAR(TEST_CXXFLAGS, [CXXFLAGS to use when testing (default=$CXXFLAGS)])
+AC_ARG_VAR(TEST_LDFLAGS,  [LDFLAGS to use when testing (default=$LDFLAGS)])
+
 CXXTESTGEN=
-AC_PATH_PROG(CXXTESTGEN, cxxtestgen.pl, [], [$CXXTEST:$PATH])
-if test -z "$CXXTESTGEN"; then
-  AC_PATH_PROG(CXXTESTGEN, cxxtestgen.py, [], [$CXXTEST:$PATH])
-fi
-if test -z "$CXXTESTGEN"; then
-  AC_PATH_PROG(CXXTESTGEN, cxxtestgen, [], [$CXXTEST:$PATH])
-fi
-# The latest version of cxxtest distributed from the git repository places
-# cxxtest under <cxxtest-root>/bin/cxxtest
-if test -z "$CXXTESTGEN"; then
-  AC_PATH_PROG(CXXTESTGEN, cxxtestgen, [], [$CXXTEST/bin:$PATH])
-fi
 if test "$enable_unit_testing" = "no"; then
   AC_MSG_NOTICE([unit tests disabled by user request.])
-  CXXTESTGEN=
   CXXTEST=
-elif test -z "$CXXTESTGEN"; then
-  AC_MSG_NOTICE([unit tests disabled, could not find cxxtestgen.pl or cxxtestgen.py or cxxtestgen])
-elif test -z "$CXXTEST"; then
-  CXXTEST=`dirname "$CXXTESTGEN"`
-  AC_MSG_CHECKING([for location of CxxTest headers])
-  if test -e "$CXXTEST/cxxtest/TestRunner.h"; then
-    AC_MSG_RESULT([$CXXTEST])
-  else
-    if test -e "/usr/include/cxxtest/TestRunner.h"; then
-      AC_MSG_RESULT([/usr/include])
+else
+  # The latest version of cxxtest distributed from the git repository places
+  # cxxtest under <cxxtest-root>/bin/cxxtest
+  AC_PATH_PROGS(CXXTESTGEN,
+                cxxtestgen.pl cxxtestgen.py cxxtestgen,
+                [
+                  AC_MSG_NOTICE([unit tests disabled, \
+                                 could not find cxxtestgen.pl or \
+                                 cxxtestgen.py or cxxtestgen])
+                  CXXTEST=
+                ],
+                [$CXXTEST:$CXXTEST/bin:$PATH])
+
+  if test -n "$CXXTESTGEN" -a "`basename $CXXTESTGEN`" = "cxxtestgen.pl"; then
+    if test -z "$PERL"; then
+      AC_CHECK_PROGS(PERL, perl, perl, [])
     else
-      AC_MSG_RESULT([not found])
-      AC_MSG_WARN([unit tests disabled, CxxTest headers not found.])
+      AC_CHECK_PROG(PERL, "$PERL", "$PERL", [])
+    fi
+
+    if test -z "$PERL"; then
+      AC_MSG_WARN([unit tests disabled, perl not found.])
       CXXTESTGEN=
       CXXTEST=
+    fi
+  fi
+
+  # check if CxxTest headers exist and set include paths accordingly
+  if test -n "$CXXTESTGEN"; then
+    AC_MSG_CHECKING([for location of CxxTest headers])
+    if test -n "$CXXTEST"; then
+      if test -e "$CXXTEST/cxxtest/TestRunner.h"; then
+        AC_MSG_RESULT([$CXXTEST])
+        TEST_CPPFLAGS="${TEST_CPPFLAGS} -I$CXXTEST"
+        TEST_CXXFLAGS="${TEST_CXXFLAGS} -I$CXXTEST"
+      else
+        AC_MSG_RESULT([not found])
+        AC_MSG_WARN([unit tests disabled, CxxTest headers not found at $CXXTEST.])
+        CXXTESTGEN=
+        CXXTEST=
+      fi
+    # TODO: use more generic way to find cxxtest/TestRunner.h in system headers
+    elif test -e "/usr/include/cxxtest/TestRunner.h"; then
+      CXXTEST=/usr/include
+      AC_MSG_RESULT([$CXXTEST])
+    else
+      CXXTEST=`dirname "$CXXTESTGEN"`
+      if test -e "$CXXTEST/cxxtest/TestRunner.h"; then
+        AC_MSG_RESULT([$CXXTEST])
+        TEST_CPPFLAGS="${TEST_CPPFLAGS} -I$CXXTEST"
+        TEST_CXXFLAGS="${TEST_CXXFLAGS} -I$CXXTEST"
+      else
+        AC_MSG_RESULT([not found])
+        AC_MSG_WARN([unit tests disabled, CxxTest headers not found.])
+        CXXTESTGEN=
+        CXXTEST=
+      fi
     fi
   fi
 fi
@@ -963,25 +1094,7 @@ fi
 
 AM_CONDITIONAL([HAVE_CXXTESTGEN], [test -n "$CXXTESTGEN"])
 
-AC_ARG_VAR(TEST_CPPFLAGS, [CPPFLAGS to use when testing (default=$CPPFLAGS)])
-AC_ARG_VAR(TEST_CXXFLAGS, [CXXFLAGS to use when testing (default=$CXXFLAGS)])
-AC_ARG_VAR(TEST_LDFLAGS,  [LDFLAGS to use when testing (default=$LDFLAGS)])
-
 AC_ARG_VAR(PERL, [PERL interpreter (used when testing)])
-
-if test -n "$CXXTEST"; then
-  if test -z "$PERL"; then
-    AC_CHECK_PROGS(PERL, perl, perl, [])
-  else
-    AC_CHECK_PROG(PERL, "$PERL", "$PERL", [])
-  fi
-
-  if test -z "$PERL"; then
-    AC_MSG_WARN([unit tests disabled, perl not found.])
-    CXXTESTGEN=
-    CXXTEST=
-  fi
-fi
 
 AC_ARG_VAR(PYTHON, [PYTHON interpreter (used for building legacy Java library interface)])
 
@@ -1009,6 +1122,10 @@ AC_CHECK_FUNC([ffs], [AC_DEFINE([HAVE_FFS], [1],
                                 [Defined to 1 if ffs() is supported by the platform.])])
 
 AC_LIBOBJ([strtok_r ffs])
+
+# Check for sigaltstack (missing in emscripten and mingw)
+AC_CHECK_FUNC([sigaltstack], [AC_DEFINE([HAVE_SIGALTSTACK], [1],
+                                        [Defined to 1 if sigaltstack() is supported by the platform.])])
 
 # Check for antlr C++ runtime (defined in config/antlr.m4)
 AC_LIB_ANTLR
@@ -1039,9 +1156,6 @@ AC_CHECK_DECLS([optreset], [], [], [#include <getopt.h>])
 
 # check with which standard strerror_r() complies
 AC_FUNC_STRERROR_R
-
-# is is_sorted() in std or __gnu_cxx?
-CHECK_FOR_IS_SORTED
 
 # require boost library
 BOOST_REQUIRE()
@@ -1144,35 +1258,6 @@ fi
 AC_SUBST(CVC4_BUILD_LIBCOMPAT)
 AM_CONDITIONAL([CVC4_BUILD_LIBCOMPAT], [test "$CVC4_BUILD_LIBCOMPAT" = yes])
 
-# Check for availability of TLS support (e.g. __thread storage class)
-AC_MSG_CHECKING([whether to use compiler-supported TLS if available])
-AC_ARG_ENABLE([tls], AS_HELP_STRING([--disable-tls], [don't use compiler-native TLS]))
-if test $cvc4_has_threads = no; then
-  # We disable TLS entirely by simply telling the build system that
-  # the empty string is the __thread keyword.
-  AC_MSG_RESULT([multithreading disabled])
-  CVC4_TLS_SUPPORTED=1
-  CVC4_TLS=
-  CVC4_TLS_explanation='disabled (no multithreading support)'
-else
-  if test -z "${enable_tls+set}" || test "$enable_tls" = "yes"; then
-    AC_MSG_RESULT([yes])
-    AX_TLS([CVC4_TLS=$ac_cv_tls], [CVC4_TLS=])
-  else
-    AC_MSG_RESULT([no])
-    CVC4_TLS=
-  fi
-  if test -n "$CVC4_TLS"; then
-    CVC4_TLS_SUPPORTED=1
-    CVC4_TLS_explanation="$CVC4_TLS"
-  else
-    CVC4_TLS_explanation='pthread_getspecific()'
-    CVC4_TLS_SUPPORTED=0
-  fi
-fi
-AC_SUBST([CVC4_TLS])
-AC_SUBST([CVC4_TLS_SUPPORTED])
-
 # Whether to compile with google profiling tools
 cvc4_use_google_perftools=0
 AC_ARG_WITH(
@@ -1242,6 +1327,7 @@ AC_SUBST(BUILDING_STATIC)
 AC_SUBST(STATIC_BINARY)
 AM_CONDITIONAL([STATIC_BINARY], [test "$enable_static_binary" = yes])
 AM_CONDITIONAL([COVERAGE_ENABLED], [test "$enable_coverage" = yes])
+AC_SUBST([COVERAGE_ON])
 
 AM_CONDITIONAL([CVC4_DEBUG], [test "$with_build" = debug])
 AM_CONDITIONAL([CVC4_TRACING], [test "$enable_tracing" = yes])
@@ -1264,11 +1350,15 @@ LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 
 # visibility flag not supported for Windows builds
 # also increase default stack size for Windows binaries
+windows_build=no
 case $host_os in
   (*mingw*) FLAG_VISIBILITY_HIDDEN=
             cvc4_LDFLAGS=-Wl,--stack,134217728
             pcvc4_LDFLAGS=-Wl,--stack,134217728
+            windows_build=yes
 esac
+
+AM_CONDITIONAL([CVC4_WINDOWS_BUILD], [test "$windows_build" = "yes"])
 
 AC_SUBST(FLAG_VISIBILITY_HIDDEN)
 AC_SUBST(cvc4_LDFLAGS)
@@ -1429,7 +1519,6 @@ if test -n "$CVC4_LANGUAGE_BINDINGS"; then
   fi
 fi
 
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/base/tls.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/integer.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
 
@@ -1470,12 +1559,13 @@ Compat lib   : $CVC4_BUILD_LIBCOMPAT
 Bindings     : $bindings_to_be_built
 
 Multithreaded: $support_multithreaded
-TLS support  : $CVC4_TLS_explanation
 Portfolio    : $with_portfolio
 
-MP library   : $mplibrary
-GLPK         : $with_glpk
 ABC          : $with_abc
+Cryptominisat: $with_cryptominisat
+GLPK         : $with_glpk
+LFSC         : $with_lfsc
+MP library   : $mplibrary
 Readline     : $with_readline
 
 CPPFLAGS     : $CPPFLAGS

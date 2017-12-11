@@ -2,9 +2,9 @@
 /*! \file unsat_core.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Liana Hadarean
+ **   Morgan Deters, Paul Meng, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -52,7 +52,7 @@ public:
   ~UnsatCore() {}
 
   /** get the smt engine that this unsat core is hooked up to */
-  SmtEngine* getSmtEngine() { return d_smt; }
+  SmtEngine* getSmtEngine() const { return d_smt; }
 
   size_t size() const { return d_core.size(); }
 
@@ -61,9 +61,11 @@ public:
 
   const_iterator begin() const;
   const_iterator end() const;
-
+  
+  /** prints this UnsatCore object to the stream out.
+  * We use the expression names stored in the SmtEngine d_smt
+  */
   void toStream(std::ostream& out) const;
-  void toStream(std::ostream& out, const std::map<Expr, std::string>& names) const;
 
 };/* class UnsatCore */
 

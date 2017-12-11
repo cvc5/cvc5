@@ -2,9 +2,9 @@
 /*! \file theory_datatypes_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -79,10 +79,12 @@ struct DatatypeConstructorTypeRule {
           Debug("typecheck-idt") << "typecheck cons arg: " << childType << " "
                                  << (*tchild_it) << std::endl;
           TypeNode argumentType = *tchild_it;
-          if (!childType.isComparableTo(argumentType)) {
+          if (!childType.isSubtypeOf(argumentType)) { 
             std::stringstream ss;
-            ss << "bad type for constructor argument:\nexpected: "
-               << argumentType << "\ngot     : " << childType;
+            ss << "bad type for constructor argument:\n"
+               << "child type:  " << childType << "\n"
+               << "not subtype: " << argumentType << "\n"
+               << "in term : " << n;
             throw TypeCheckingExceptionPrivate(n, ss.str());
           }
         }
@@ -99,6 +101,22 @@ struct DatatypeConstructorTypeRule {
         return false;
       }
     }
+    //if we support subtyping for tuples, enable this
+    /*
+    //check whether it is in normal form?
+    TypeNode tn = n.getType();
+    if( tn.isTuple() ){
+      const Datatype& dt = tn.getDatatype();
+      //may be the wrong constructor, if children types are subtypes
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if( n[i].getType()!=TypeNode::fromType( dt[0][i].getRangeType() ) ){
+          return false;
+        }
+      }
+    }else if( tn.isCodatatype() ){
+      //TODO?
+    }
+    */
     return true;
   }
 }; /* struct DatatypeConstructorTypeRule */
@@ -295,7 +313,7 @@ class DtSizeTypeRule {
   }
 }; /* class DtSizeTypeRule */
 
-class DtHeightBoundTypeRule {
+class DtBoundTypeRule {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
@@ -304,20 +322,64 @@ class DtHeightBoundTypeRule {
       if (!t.isDatatype()) {
         throw TypeCheckingExceptionPrivate(
             n,
-            "expecting datatype height bound term to have datatype argument.");
+            "expecting datatype bound term to have datatype argument.");
       }
       if (n[1].getKind() != kind::CONST_RATIONAL) {
         throw TypeCheckingExceptionPrivate(
-            n, "datatype height bound must be a constant");
+            n, "datatype bound must be a constant");
       }
       if (n[1].getConst<Rational>().getNumerator().sgn() == -1) {
         throw TypeCheckingExceptionPrivate(
-            n, "datatype height bound must be non-negative");
+            n, "datatype bound must be non-negative");
       }
     }
     return nodeManager->booleanType();
   }
-}; /* class DtHeightBoundTypeRule */
+}; /* class DtBoundTypeRule */
+
+class DtSygusBoundTypeRule {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
+    if (check) {
+      if (!n[0].getType().isDatatype()) {
+        throw TypeCheckingExceptionPrivate(
+            n, "datatype sygus bound takes a datatype");
+      }
+      if (n[1].getKind() != kind::CONST_RATIONAL) {
+        throw TypeCheckingExceptionPrivate(
+            n, "datatype sygus bound must be a constant");
+      }
+      if (n[1].getConst<Rational>().getNumerator().sgn() == -1) {
+        throw TypeCheckingExceptionPrivate(
+            n, "datatype sygus bound must be non-negative");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+}; /* class DtSygusBoundTypeRule */
+
+
+class DtSygusPredTypeRule {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
+    if (check) {
+      TypeNode tn = n[0].getType();
+      if (!tn.isDatatype() || !((DatatypeType)tn.toType()).getDatatype().isSygus()) {
+        throw TypeCheckingExceptionPrivate(
+            n, "datatype sygus predicate expecting terms of sygus type");
+      }
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if (tn!=n[i].getType()) {
+          throw TypeCheckingExceptionPrivate(
+              n, "datatype sygus predicate expecting two terms of the same type");
+        }
+      }
+    }
+    return nodeManager->booleanType();
+  }
+}; /* class DtSygusPredTypeRule */
 
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */

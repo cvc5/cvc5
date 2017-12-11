@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,24 +21,18 @@
 #include <iosfwd>
 #include <iterator>
 #include <sstream>
-#include <string>
 
 #include "base/exception.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
-#include "expr/predicate.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
 #include "util/bitvector.h"
-#include "util/hash.h"
-#include "util/integer.h"
-#include "util/rational.h"
 #include "util/sexpr.h"
-#include "util/subrange_bound.h"
 
 using namespace std;
 
@@ -61,22 +55,22 @@ namespace CVC3 {
 // ExprManager-to-ExprManager import).
 static std::map<CVC4::ExprManager*, ValidityChecker*> s_validityCheckers;
 
-static std::hash_map<Type, Expr, CVC4::TypeHashFunction> s_typeToExpr;
-static std::hash_map<Expr, Type, CVC4::ExprHashFunction> s_exprToType;
+static std::unordered_map<Type, Expr, CVC4::TypeHashFunction> s_typeToExpr;
+static std::unordered_map<Expr, Type, CVC4::ExprHashFunction> s_exprToType;
 
 static bool typeHasExpr(const Type& t) {
-  std::hash_map<Type, Expr, CVC4::TypeHashFunction>::const_iterator i = s_typeToExpr.find(t);
+  std::unordered_map<Type, Expr, CVC4::TypeHashFunction>::const_iterator i = s_typeToExpr.find(t);
   return i != s_typeToExpr.end();
 }
 
 static Expr typeToExpr(const Type& t) {
-  std::hash_map<Type, Expr, CVC4::TypeHashFunction>::const_iterator i = s_typeToExpr.find(t);
+  std::unordered_map<Type, Expr, CVC4::TypeHashFunction>::const_iterator i = s_typeToExpr.find(t);
   assert(i != s_typeToExpr.end());
   return (*i).second;
 }
 
 static Type exprToType(const Expr& e) {
-  std::hash_map<Expr, Type, CVC4::ExprHashFunction>::const_iterator i = s_exprToType.find(e);
+  std::unordered_map<Expr, Type, CVC4::ExprHashFunction>::const_iterator i = s_exprToType.find(e);
   assert(i != s_exprToType.end());
   return (*i).second;
 }
@@ -258,8 +252,8 @@ Expr::Expr(const Expr& e) : CVC4::Expr(e) {
 Expr::Expr(const CVC4::Expr& e) : CVC4::Expr(e) {
 }
 
-Expr::Expr(const CVC4::Kind k) : CVC4::Expr() {
-  *this = getEM()->operatorOf(k);
+Expr::Expr(ExprManager* em, const CVC4::Kind k) : CVC4::Expr() {
+  *this = em->operatorOf(k);
 }
 
 Expr Expr::eqExpr(const Expr& right) const {
@@ -312,8 +306,8 @@ Expr Expr::substExpr(const std::vector<Expr>& oldTerms,
 }
 
 Expr Expr::substExpr(const ExprHashMap<Expr>& oldToNew) const {
-  const hash_map<CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction>& o2n =
-    *reinterpret_cast<const hash_map<CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction>*>(&oldToNew);
+  const unordered_map<CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction>& o2n =
+    *reinterpret_cast<const unordered_map<CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction>*>(&oldToNew);
 
   return Expr(substitute(o2n));
 }
@@ -925,13 +919,16 @@ void CLFlags::setFlag(const std::string& name,
 }
 
 void ValidityChecker::setUpOptions(CVC4::Options& options, const CLFlags& clflags) {
+  // Note: SIMPLIFICATION_MODE_INCREMENTAL, which was used
+  // for CVC3 compatibility, is not supported by CVC4
+  // anymore.
+
   // always incremental and model-producing in CVC3 compatibility mode
   // also incrementally-simplifying and interactive
   d_smt->setOption("incremental", string("true"));
   // disable this option by default for now, because datatype models
   // are broken [MGD 10/4/2012]
   //d_smt->setOption("produce-models", string("true"));
-  d_smt->setOption("simplification-mode", string("incremental"));
   d_smt->setOption("interactive-mode", string("true"));// support SmtEngine::getAssertions()
 
   d_smt->setOption("statistics", string(clflags["stats"].getBool() ? "true" : "false"));
@@ -1257,17 +1254,11 @@ Type ValidityChecker::intType() {
 }
 
 Type ValidityChecker::subrangeType(const Expr& l, const Expr& r) {
-  bool noLowerBound = l.getType().isString() && l.getConst<CVC4::String>() == "_NEGINF";
-  bool noUpperBound = r.getType().isString() && r.getConst<CVC4::String>() == "_POSINF";
-  CompatCheckArgument(noLowerBound || (l.getKind() == CVC4::kind::CONST_RATIONAL && l.getConst<Rational>().isIntegral()), l);
-  CompatCheckArgument(noUpperBound || (r.getKind() == CVC4::kind::CONST_RATIONAL && r.getConst<Rational>().isIntegral()), r);
-  CVC4::SubrangeBound bl = noLowerBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(l.getConst<Rational>().getNumerator());
-  CVC4::SubrangeBound br = noUpperBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(r.getConst<Rational>().getNumerator());
-  return d_em->mkSubrangeType(CVC4::SubrangeBounds(bl, br));
+  Unimplemented("Subrange types not supported by CVC4 (sorry!)");
 }
 
 Type ValidityChecker::subtypeType(const Expr& pred, const Expr& witness) {
-  Unimplemented("Predicate subtyping not supported by CVC4 yet (sorry!)");
+  Unimplemented("Predicate subtyping not supported by CVC4 (sorry!)");
   /*
   if(witness.isNull()) {
     return d_em->mkPredicateSubtype(pred);
@@ -1833,7 +1824,7 @@ Expr ValidityChecker::recSelectExpr(const Expr& record, const std::string& field
   Type t = record.getType();
   const CVC4::Datatype& dt = ((CVC4::DatatypeType)t).getDatatype();
   unsigned index = CVC4::Datatype::indexOf( dt[0].getSelector(field) );
-  return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR_TOTAL, dt[0][index].getSelector(), record);
+  return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal( t, index ), record);
 }
 
 Expr ValidityChecker::recUpdateExpr(const Expr& record, const std::string& field,
@@ -2236,8 +2227,9 @@ Expr ValidityChecker::tupleExpr(const std::vector<Expr>& exprs) {
 Expr ValidityChecker::tupleSelectExpr(const Expr& tuple, int index) {
   CompatCheckArgument(index >= 0 && index < ((CVC4::DatatypeType)tuple.getType()).getTupleLength(),
                       "invalid index in tuple select");
-  const CVC4::Datatype& dt = ((CVC4::DatatypeType)tuple.getType()).getDatatype();
-  return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR_TOTAL, dt[0][index].getSelector(), tuple);
+  Type t = tuple.getType();
+  const CVC4::Datatype& dt = ((CVC4::DatatypeType)t).getDatatype();
+  return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal( t, index ), tuple);
 }
 
 Expr ValidityChecker::tupleUpdateExpr(const Expr& tuple, int index,
@@ -2262,7 +2254,8 @@ Expr ValidityChecker::datatypeSelExpr(const std::string& selector, const Expr& a
   const CVC4::Datatype& dt = *(*i).second.first;
   string constructor = (*i).second.second;
   const CVC4::DatatypeConstructor& ctor = dt[constructor];
-  return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR, ctor.getSelector(selector), arg);
+  unsigned sindex = CVC4::Datatype::indexOf( ctor.getSelector(selector) );
+  return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR, ctor.getSelectorInternal( arg.getType(), sindex ), arg);
 }
 
 Expr ValidityChecker::datatypeTestExpr(const std::string& constructor, const Expr& arg) {

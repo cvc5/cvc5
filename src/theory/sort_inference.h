@@ -2,9 +2,9 @@
 /*! \file sort_inference.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Morgan Deters, Andrew Reynolds, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -90,8 +90,9 @@ private:
   Node mkInjection( TypeNode tn1, TypeNode tn2 );
   //reset
   void reset();
-public:
-  SortInference() : sortCount( 1 ){}
+
+ public:
+  SortInference() : sortCount(1), initialSortCount() {}
   ~SortInference(){}
 
   void simplify( std::vector< Node >& assertions, bool doSortInference, bool doMonotonicyInference );

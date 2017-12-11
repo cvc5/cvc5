@@ -2,9 +2,9 @@
 /*! \file statistics.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Paul Meng, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -83,6 +83,12 @@ public:
 
   /** Flush all statistics to the given output stream. */
   void flushInformation(std::ostream& out) const;
+
+  /**
+   * Flush all statistics to the given file descriptor. Safe to use in a signal
+   * handler.
+   */
+  void safeFlushInformation(int fd) const;
 
   /** Get the value of a named statistic. */
   SExpr getStatistic(std::string name) const;

@@ -2,9 +2,9 @@
 /*! \file dagification_visitor.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,11 +19,12 @@
 #ifndef __CVC4__PRINTER__DAGIFICATION_VISITOR_H
 #define __CVC4__PRINTER__DAGIFICATION_VISITOR_H
 
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include "expr/node.h"
 #include "util/hash.h"
-
-#include <vector>
-#include <string>
 
 namespace CVC4 {
 
@@ -65,7 +66,7 @@ class DagificationVisitor {
   /**
    * A map of subexprs to their occurrence count.
    */
-  std::hash_map<TNode, unsigned, TNodeHashFunction> d_nodeCount;
+  std::unordered_map<TNode, unsigned, TNodeHashFunction> d_nodeCount;
 
   /**
    * The top-most node we are visiting.
@@ -109,7 +110,7 @@ class DagificationVisitor {
    * in independently dagifying the child.  (If it is beyond the threshold
    * and occurs in more than one parent, we'll independently dagify.)
    */
-  std::hash_map<TNode, TNode, TNodeHashFunction> d_uniqueParent;
+  std::unordered_map<TNode, TNode, TNodeHashFunction> d_uniqueParent;
 
   /**
    * A list of all nodes that meet the occurrence threshold and therefore

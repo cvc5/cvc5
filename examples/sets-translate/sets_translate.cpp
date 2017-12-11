@@ -2,9 +2,9 @@
 /*! \file sets_translate.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King
+ **   Kshitij Bansal, Tim King, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include <iostream>
 #include <string>
 #include <typeinfo>
+#include <unordered_map>
 #include <vector>
 
 #include "expr/expr.h"
@@ -83,7 +84,7 @@ class Mapper {
   set< Type > setTypes;
   map< Type, Type > mapTypes;
   map< pair<Type, Kind>, Expr > setoperators;
-  hash_map< Expr, Expr, ExprHashFunction > substitutions;
+  unordered_map< Expr, Expr, ExprHashFunction > substitutions;
   ostringstream sout;
   ExprManager* em;
   int depth;

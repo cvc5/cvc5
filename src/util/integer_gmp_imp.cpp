@@ -2,9 +2,9 @@
 /*! \file integer_gmp_imp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King
+ **   Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -100,4 +100,31 @@ Integer Integer::exactQuotient(const Integer& y) const {
   return Integer( q );
 }
 
+Integer Integer::modAdd(const Integer& y, const Integer& m) const
+{
+  mpz_class res;
+  mpz_add(res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+  mpz_mod(res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
+  return Integer(res);
+}
+
+Integer Integer::modMultiply(const Integer& y, const Integer& m) const
+{
+  mpz_class res;
+  mpz_mul(res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+  mpz_mod(res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
+  return Integer(res);
+}
+
+Integer Integer::modInverse(const Integer& m) const
+{
+  PrettyCheckArgument(m > 0, m, "m must be greater than zero");
+  mpz_class res;
+  if (mpz_invert(res.get_mpz_t(), d_value.get_mpz_t(), m.d_value.get_mpz_t())
+      == 0)
+  {
+    return Integer(-1);
+  }
+  return Integer(res);
+}
 } /* namespace CVC4 */

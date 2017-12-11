@@ -2,9 +2,9 @@
 /*! \file rational_cln_imp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
+ **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -176,6 +176,13 @@ public:
 
   ~Rational() {}
 
+  /**
+   * Returns a copy of d_value to enable public access of CLN data.
+   */
+  cln::cl_RA getValue() const
+  {
+    return d_value;
+  }
 
   /**
    * Returns the value of numerator of the Rational.

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find
+; COMMAND-LINE: --finite-model-find --lang=smt2.5
 ; EXPECT: sat
 ; Preamble  --------------
 (set-logic ALL_SUPPORTED)

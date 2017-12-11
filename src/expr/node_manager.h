@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,13 +30,12 @@
 
 #include <vector>
 #include <string>
-#include <ext/hash_set>
+#include <unordered_set>
 
 #include "base/tls.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
-#include "util/subrange_bound.h"
 #include "options/options.h"
 
 namespace CVC4 {
@@ -95,14 +94,14 @@ class NodeManager {
     bool operator()(expr::NodeValue* nv) { return nv->d_rc > 0; }
   };
 
-  typedef __gnu_cxx::hash_set<expr::NodeValue*,
-                              expr::NodeValuePoolHashFunction,
-                              expr::NodeValuePoolEq> NodeValuePool;
-  typedef __gnu_cxx::hash_set<expr::NodeValue*,
-                              expr::NodeValueIDHashFunction,
-                              expr::NodeValueIDEquality> NodeValueIDSet;
+  typedef std::unordered_set<expr::NodeValue*,
+                             expr::NodeValuePoolHashFunction,
+                             expr::NodeValuePoolEq> NodeValuePool;
+  typedef std::unordered_set<expr::NodeValue*,
+                             expr::NodeValueIDHashFunction,
+                             expr::NodeValueIDEquality> NodeValueIDSet;
 
-  static CVC4_THREADLOCAL(NodeManager*) s_current;
+  static CVC4_THREAD_LOCAL NodeManager* s_current;
 
   Options* d_options;
   StatisticsRegistry* d_statisticsRegistry;
@@ -492,6 +491,9 @@ public:
   Node mkBoundVar(const TypeNode& type);
   Node* mkBoundVarPtr(const TypeNode& type);
 
+  /** get the canonical bound variable list for function type tn */
+  static Node getBoundVarListForFunctionType( TypeNode tn );
+
   /**
    * Optional flags used to control behavior of NodeManager::mkSkolem().
    * They should be composed with a bitwise OR (e.g.,
@@ -536,7 +538,7 @@ public:
   Node mkAbstractValue(const TypeNode& type);
   
   /** make unique (per Type,Kind) variable. */
-  Node mkUniqueVar(const TypeNode& type, Kind k);
+  Node mkNullaryOperator(const TypeNode& type, Kind k);
 
   /**
    * Create a constant of type T.  It will have the appropriate
@@ -875,31 +877,6 @@ public:
   TypeNode mkSortConstructor(const std::string& name, size_t arity);
 
   /**
-   * Make a predicate subtype type defined by the given LAMBDA
-   * expression.  A TypeCheckingExceptionPrivate can be thrown if
-   * lambda is not a LAMBDA, or is ill-typed, or if CVC4 fails at
-   * proving that the resulting predicate subtype is inhabited.
-   */
-  TypeNode mkPredicateSubtype(Expr lambda)
-    throw(TypeCheckingExceptionPrivate);
-
-  /**
-   * Make a predicate subtype type defined by the given LAMBDA
-   * expression and whose non-emptiness is witnessed by the given
-   * witness.  A TypeCheckingExceptionPrivate can be thrown if lambda
-   * is not a LAMBDA, or is ill-typed, or if the witness is not a
-   * witness or ill-typed.
-   */
-  TypeNode mkPredicateSubtype(Expr lambda, Expr witness)
-    throw(TypeCheckingExceptionPrivate);
-
-  /**
-   * Make an integer subrange type as defined by the argument.
-   */
-  TypeNode mkSubrangeType(const SubrangeBounds& bounds)
-    throw(TypeCheckingExceptionPrivate);
-
-  /**
    * Get the type for the given node and optionally do type checking.
    *
    * Initial type computation will be near-constant time if
@@ -1098,10 +1075,12 @@ NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts) {
   Assert(sorts.size() >= 2);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0; i < sorts.size(); ++ i) {
-    CheckArgument(!sorts[i].isFunctionLike(), sorts,
-                  "cannot create higher-order function types");
+    CheckArgument(sorts[i].isFirstClass(), sorts,
+                  "cannot create function types for argument types that are not first-class");
     sortNodes.push_back(sorts[i]);
   }
+  CheckArgument(!sorts[sorts.size()-1].isFunction(), sorts[sorts.size()-1],
+                "must flatten function types");
   return mkTypeNode(kind::FUNCTION_TYPE, sortNodes);
 }
 
@@ -1110,8 +1089,8 @@ NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
   Assert(sorts.size() >= 1);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0; i < sorts.size(); ++ i) {
-    CheckArgument(!sorts[i].isFunctionLike(), sorts,
-                  "cannot create higher-order function types");
+    CheckArgument(sorts[i].isFirstClass(), sorts,
+                  "cannot create predicate types for argument types that are not first-class");
     sortNodes.push_back(sorts[i]);
   }
   sortNodes.push_back(booleanType());
@@ -1144,10 +1123,10 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                 "unexpected NULL index type");
   CheckArgument(!constituentType.isNull(), constituentType,
                 "unexpected NULL constituent type");
-  CheckArgument(!indexType.isFunctionLike(), indexType,
-                "cannot index arrays by a function-like type");
-  CheckArgument(!constituentType.isFunctionLike(), constituentType,
-                "cannot store function-like types in arrays");
+  CheckArgument(indexType.isFirstClass(), indexType,
+                "cannot index arrays by types that are not first-class");
+  CheckArgument(constituentType.isFirstClass(), constituentType,
+                "cannot store types that are not first-class in arrays");
   Debug("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
@@ -1156,24 +1135,23 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
 inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
   CheckArgument(!elementType.isNull(), elementType,
                 "unexpected NULL element type");
-  // TODO: Confirm meaning of isFunctionLike(). --K
-  CheckArgument(!elementType.isFunctionLike(), elementType,
-                "cannot store function-like types in sets");
+  CheckArgument(elementType.isFirstClass(), elementType,
+                "cannot store types that are not first-class in sets");
   Debug("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
 }
 
 inline TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range) {
-  CheckArgument(!domain.isFunctionLike(), domain,
-                "cannot create higher-order function types");
-  CheckArgument(!range.isFunctionLike(), range,
-                "cannot create higher-order function types");
+  CheckArgument(domain.isDatatype(), domain,
+                "cannot create non-datatype selector type");
+  CheckArgument(range.isFirstClass(), range,
+                "cannot have selector fields that are not first-class types");
   return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
 }
 
 inline TypeNode NodeManager::mkTesterType(TypeNode domain) {
-  CheckArgument(!domain.isFunctionLike(), domain,
-                "cannot create higher-order function types");
+  CheckArgument(domain.isDatatype(), domain,
+                "cannot create non-datatype tester");
   return mkTypeNode(kind::TESTER_TYPE, domain );
 }
 
@@ -1240,6 +1218,7 @@ inline bool NodeManager::hasOperator(Kind k) {
 
   case kind::metakind::INVALID:
   case kind::metakind::VARIABLE:
+  case kind::metakind::NULLARY_OPERATOR:
     return false;
 
   case kind::metakind::OPERATOR:

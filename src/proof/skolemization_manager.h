@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,8 @@
 #define __CVC4__SKOLEMIZATION_MANAGER_H
 
 #include <iostream>
-#include <map>
+#include <unordered_map>
+
 #include "proof/proof.h"
 #include "util/proof.h"
 #include "expr/node.h"
@@ -39,12 +40,12 @@ public:
   bool isSkolem(Node skolem);
   void clear();
 
-  std::hash_map<Node, Node, NodeHashFunction>::const_iterator begin();
-  std::hash_map<Node, Node, NodeHashFunction>::const_iterator end();
+  std::unordered_map<Node, Node, NodeHashFunction>::const_iterator begin();
+  std::unordered_map<Node, Node, NodeHashFunction>::const_iterator end();
 
 private:
-  std::hash_map<Node, Node, NodeHashFunction> d_disequalityToSkolem;
-  std::hash_map<Node, Node, NodeHashFunction> d_skolemToDisequality;
+  std::unordered_map<Node, Node, NodeHashFunction> d_disequalityToSkolem;
+  std::unordered_map<Node, Node, NodeHashFunction> d_skolemToDisequality;
 };
 
 }/* CVC4 namespace */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,12 +14,16 @@
  ** Algebraic solver.
  **/
 
+#include "cvc4_private.h"
+
 #pragma once
 
-#include "cvc4_private.h"
-#include "theory/bv/bv_subtheory.h"
+#include <unordered_map>
+#include <unordered_set>
+
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -31,9 +35,9 @@ class Base;
  * Bitvector equality solver
  */
 class CoreSolver : public SubtheorySolver {
-  typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> ModelValue;
-  typedef __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_map<TNode, Node, TNodeHashFunction> ModelValue;
+  typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
 
 
   struct Statistics {
@@ -101,7 +105,7 @@ public:
   void  preRegister(TNode node);
   bool  check(Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);
-  void  collectModelInfo(TheoryModel* m, bool fullModel);
+  bool collectModelInfo(TheoryModel* m, bool fullModel);
   Node  getModelValue(TNode var);
   void  addSharedTerm(TNode t) {
     d_equalityEngine.addTriggerTerm(t, THEORY_BV);

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -81,6 +81,8 @@ public:
 
   static std::string getVersionExtra();
 
+  static std::string copyright();
+
   static std::string about();
 
   static bool licenseIsGpl();
@@ -97,9 +99,9 @@ public:
 
   static bool isBuiltWithReadline();
 
-  static bool isBuiltWithCudd();
-
   static bool isBuiltWithTlsSupport();
+
+  static bool isBuiltWithLfsc();
 
   /* Return the number of debug tags */
   static unsigned getNumDebugTags();

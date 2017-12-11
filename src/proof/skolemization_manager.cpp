@@ -2,9 +2,9 @@
 /*! \file skolemization_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Guy Katz
+ **   Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -57,11 +57,11 @@ void SkolemizationManager::clear() {
   d_skolemToDisequality.clear();
 }
 
-std::hash_map<Node, Node, NodeHashFunction>::const_iterator SkolemizationManager::begin() {
+std::unordered_map<Node, Node, NodeHashFunction>::const_iterator SkolemizationManager::begin() {
   return d_disequalityToSkolem.begin();
 }
 
-std::hash_map<Node, Node, NodeHashFunction>::const_iterator SkolemizationManager::end() {
+std::unordered_map<Node, Node, NodeHashFunction>::const_iterator SkolemizationManager::end() {
   return d_disequalityToSkolem.end();
 }
 

@@ -2,9 +2,9 @@
 /*! \file theory.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,11 +19,11 @@
 #ifndef __CVC4__THEORY__THEORY_H
 #define __CVC4__THEORY__THEORY_H
 
-#include <ext/hash_set>
 #include <iosfwd>
 #include <map>
 #include <set>
 #include <string>
+#include <unordered_set>
 
 #include "context/cdlist.h"
 #include "context/cdhashset.h"
@@ -229,12 +229,6 @@ private:
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
-  /**
-   * Whether proofs are enabled
-   *
-   */
-  bool d_proofEnabled;
-
 public:
 
   /**
@@ -243,9 +237,6 @@ public:
   static inline TheoryId theoryOf(TypeNode typeNode) {
     Trace("theory::internal") << "theoryOf(" << typeNode << ")" << std::endl;
     TheoryId id;
-    while (typeNode.isPredicateSubtype()) {
-      typeNode = typeNode.getSubtypeParentType();
-    }
     if (typeNode.getKind() == kind::TYPE_CONSTANT) {
       id = typeConstantToTheoryId(typeNode.getConst<TypeConstant>());
     } else {
@@ -427,6 +418,12 @@ public:
    * used, definitions should only be used when rewrites are not
    * possible, for example in handling under-specified operations
    * using partially defined functions.
+   *
+   * TODO (github issue #1076): 
+   * some theories like sets use expandDefinition as a "context
+   * independent preRegisterTerm".  This is required for cases where
+   * a theory wants to be notified about a term before preprocessing
+   * and simplification but doesn't necessarily want to rewrite it.
    */
   virtual Node expandDefinition(LogicRequest &logicRequest, Node node) {
     // by default, do nothing
@@ -515,16 +512,17 @@ public:
    * Get all relevant information in this theory regarding the current
    * model.  This should be called after a call to check( FULL_EFFORT )
    * for all theories with no conflicts and no lemmas added.
+   *
+   * This method returns true if and only if the equality engine of m is
+   * consistent as a result of this call.
    */
-  virtual void collectModelInfo( TheoryModel* m ){ }
-
+  virtual bool collectModelInfo(TheoryModel* m) { return true; }
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
-
   /**
    * Return a decision request, if the theory has one, or the NULL node
    * otherwise.
-   * If returning non-null node, hould set priority to
+   * If returning non-null node, should set priority to
    *                        0 if decision is necessary for model-soundness,
    *                        1 if decision is necessary for completeness,
    *                        >1 otherwise.
@@ -763,7 +761,7 @@ public:
    * This is a utility function for constructing a copy of the currently shared terms
    * in a queriable form.  As this is
    */
-  std::hash_set<TNode, TNodeHashFunction> currentlySharedTerms() const;
+  std::unordered_set<TNode, TNodeHashFunction> currentlySharedTerms() const;
 
   /**
    * This allows the theory to be queried for whether a literal, lit, is

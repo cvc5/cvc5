@@ -5,7 +5,7 @@ AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
 noinst_LTLIBRARIES = libbase.la
 
-# Do not list built sources (like tls.h) here!
+# Do not list built sources here!
 # Rather, list them under BUILT_SOURCES, and their .in versions under
 # EXTRA_DIST.  Otherwise, they're packaged up in the tarball, which is
 # no good---they belong in the configured builds/ directory.  If they
@@ -27,18 +27,13 @@ libbase_la_SOURCES = \
 	modal_exception.h \
 	output.cpp \
 	output.h \
-	ptr_closer.h
-
-
-
-BUILT_SOURCES = \
 	tls.h
 
 # listing {Debug,Trace}_tags too ensures that make doesn't auto-remove it
 # after building (if it does, we don't get the "cached" effect with
 # the .tmp files below, and we have to re-compile and re-link each
 # time, even when there are no changes).
-BUILT_SOURCES += \
+BUILT_SOURCES = \
 	Debug_tags.h \
 	Debug_tags \
 	Trace_tags.h \
@@ -57,12 +52,7 @@ EXTRA_DIST = \
 	exception.i \
 	mktagheaders \
 	mktags \
-	modal_exception.i \
-	tls.h.in
-
-DISTCLEANFILES = \
-	tls.h.tmp \
-	tls.h
+	modal_exception.i
 
 %_tags.h: %_tags mktagheaders
 	$(AM_V_at)chmod +x @srcdir@/mktagheaders

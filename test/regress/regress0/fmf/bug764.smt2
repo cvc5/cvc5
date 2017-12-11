@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun --no-check-models
+; COMMAND-LINE: --fmf-fun --no-check-models --lang=smt2.5
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

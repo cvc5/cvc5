@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,8 +18,6 @@
 
 #ifndef __CVC4__THEORY__ARITH__THEORY_ARITH_TYPE_RULES_H
 #define __CVC4__THEORY__ARITH__THEORY_ARITH_TYPE_RULES_H
-
-#include "util/subrange_bound.h"
 
 namespace CVC4 {
 namespace theory {
@@ -93,6 +91,24 @@ public:
   }
 };/* class IntOperatorTypeRule */
 
+class RealOperatorTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    TNode::iterator child_it = n.begin();
+    TNode::iterator child_it_end = n.end();
+    if(check) {
+      for(; child_it != child_it_end; ++child_it) {
+        TypeNode childType = (*child_it).getType(check);
+        if (!childType.isReal()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a real subterm");
+        }
+      }
+    }
+    return nodeManager->realType();
+  }
+};/* class RealOperatorTypeRule */
+
 class ArithPredicateTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -139,31 +155,19 @@ public:
   }
 };/* class IntUnaryPredicateTypeRule */
 
-class SubrangeProperties {
+class RealNullaryOperatorTypeRule {
 public:
-  inline static Cardinality computeCardinality(TypeNode type) {
-    Assert(type.getKind() == kind::SUBRANGE_TYPE);
-
-    const SubrangeBounds& bounds = type.getConst<SubrangeBounds>();
-    if(!bounds.lower.hasBound() || !bounds.upper.hasBound()) {
-      return Cardinality::INTEGERS;
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    // for nullary operators, we only computeType for check=true, since they are given TypeAttr() on creation
+    Assert(check);
+    TypeNode realType = n.getType();
+    if(realType!=NodeManager::currentNM()->realType()) {
+      throw TypeCheckingExceptionPrivate(n, "expecting real type");
     }
-    return Cardinality(bounds.upper.getBound() - bounds.lower.getBound());
+    return realType;
   }
-
-  inline static Node mkGroundTerm(TypeNode type) {
-    Assert(type.getKind() == kind::SUBRANGE_TYPE);
-
-    const SubrangeBounds& bounds = type.getConst<SubrangeBounds>();
-    if(bounds.lower.hasBound()) {
-      return NodeManager::currentNM()->mkConst(Rational(bounds.lower.getBound()));
-    }
-    if(bounds.upper.hasBound()) {
-      return NodeManager::currentNM()->mkConst(Rational(bounds.upper.getBound()));
-    }
-    return NodeManager::currentNM()->mkConst(Rational(0));
-  }
-};/* class SubrangeProperties */
+};/* class RealNullaryOperatorTypeRule */
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

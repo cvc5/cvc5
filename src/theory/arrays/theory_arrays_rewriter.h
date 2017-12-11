@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,9 @@
 
 #ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
+
+#include <unordered_map>
+#include <unordered_set>
 
 #include "theory/rewriter.h"
 #include "theory/type_enumerator.h"
@@ -150,9 +153,9 @@ public:
     // Bad case: have to recompute value counts and/or possibly switch out
     // default value
     store = n;
-    std::hash_set<TNode, TNodeHashFunction> indexSet;
-    std::hash_map<TNode, unsigned, TNodeHashFunction> elementsMap;
-    std::hash_map<TNode, unsigned, TNodeHashFunction>::iterator it;
+    std::unordered_set<TNode, TNodeHashFunction> indexSet;
+    std::unordered_map<TNode, unsigned, TNodeHashFunction> elementsMap;
+    std::unordered_map<TNode, unsigned, TNodeHashFunction>::iterator it;
     unsigned count;
     unsigned max = 0;
     TNode maxValue;

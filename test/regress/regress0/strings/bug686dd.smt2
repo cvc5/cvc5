@@ -1,7 +1,7 @@
 (set-logic UFDTSLIA)
 (set-info :status sat)
 
-(declare-datatypes () ( (T (TC (TCb String))) ) )
+(declare-datatypes ((T 0)) ( ((TC (TCb String))) ) )
 
 (declare-fun root5 () String)
 (declare-fun root6 () T)

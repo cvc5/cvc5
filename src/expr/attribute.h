@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,6 @@
  * attributes and nodes due to template use */
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "context/context.h"
 
 #ifndef __CVC4__EXPR__ATTRIBUTE_H
 #define __CVC4__EXPR__ATTRIBUTE_H
@@ -35,44 +34,10 @@
 #undef CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 
 namespace CVC4 {
-
-class SmtEngine;
-
-namespace smt {
-  extern CVC4_THREADLOCAL(SmtEngine*) s_smtEngine_current;
-}/* CVC4::smt namespace */
-
 namespace expr {
 namespace attr {
 
 // ATTRIBUTE MANAGER ===========================================================
-
-struct SmtAttributes {
-  SmtAttributes(context::Context*);
-
-  // IF YOU ADD ANY TABLES, don't forget to add them also to the
-  // implementation of deleteAllAttributes().
-
-  /** Underlying hash table for context-dependent boolean-valued attributes */
-  CDAttrHash<bool> d_cdbools;
-  /** Underlying hash table for context-dependent integral-valued attributes */
-  CDAttrHash<uint64_t> d_cdints;
-  /** Underlying hash table for context-dependent node-valued attributes */
-  CDAttrHash<TNode> d_cdtnodes;
-  /** Underlying hash table for context-dependent node-valued attributes */
-  CDAttrHash<Node> d_cdnodes;
-  /** Underlying hash table for context-dependent string-valued attributes */
-  CDAttrHash<std::string> d_cdstrings;
-  /** Underlying hash table for context-dependent pointer-valued attributes */
-  CDAttrHash<void*> d_cdptrs;
-
-  /** Delete all attributes of given node */
-  void deleteAllAttributes(TNode n);
-
-  template <class T>
-  void deleteFromTable(CDAttrHash<T>& table, NodeValue* nv);
-
-};/* struct SmtAttributes */
 
 /**
  * A container for the main attribute tables of the system.  There's a
@@ -102,9 +67,6 @@ class AttributeManager {
   bool d_inGarbageCollection;
 
   void clearDeleteAllAttributesBuffer();
-
-  SmtAttributes& getSmtAttributes(SmtEngine*);
-  const SmtAttributes& getSmtAttributes(SmtEngine*) const;
 
 public:
 
@@ -239,10 +201,10 @@ template <>
 struct getTable<bool, false> {
   static const AttrTableId id = AttrTableBool;
   typedef AttrHash<bool> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
+  static inline table_type& get(AttributeManager& am) {
     return am.d_bools;
   }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
+  static inline const table_type& get(const AttributeManager& am) {
     return am.d_bools;
   }
 };
@@ -252,10 +214,10 @@ template <>
 struct getTable<uint64_t, false> {
   static const AttrTableId id = AttrTableUInt64;
   typedef AttrHash<uint64_t> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
+  static inline table_type& get(AttributeManager& am) {
     return am.d_ints;
   }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
+  static inline const table_type& get(const AttributeManager& am) {
     return am.d_ints;
   }
 };
@@ -265,10 +227,10 @@ template <>
 struct getTable<TNode, false> {
   static const AttrTableId id = AttrTableTNode;
   typedef AttrHash<TNode> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
+  static inline table_type& get(AttributeManager& am) {
     return am.d_tnodes;
   }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
+  static inline const table_type& get(const AttributeManager& am) {
     return am.d_tnodes;
   }
 };
@@ -278,10 +240,10 @@ template <>
 struct getTable<Node, false> {
   static const AttrTableId id = AttrTableNode;
   typedef AttrHash<Node> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
+  static inline table_type& get(AttributeManager& am) {
     return am.d_nodes;
   }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
+  static inline const table_type& get(const AttributeManager& am) {
     return am.d_nodes;
   }
 };
@@ -291,10 +253,10 @@ template <>
 struct getTable<TypeNode, false> {
   static const AttrTableId id = AttrTableTypeNode;
   typedef AttrHash<TypeNode> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
+  static inline table_type& get(AttributeManager& am) {
     return am.d_types;
   }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
+  static inline const table_type& get(const AttributeManager& am) {
     return am.d_types;
   }
 };
@@ -304,10 +266,10 @@ template <>
 struct getTable<std::string, false> {
   static const AttrTableId id = AttrTableString;
   typedef AttrHash<std::string> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
+  static inline table_type& get(AttributeManager& am) {
     return am.d_strings;
   }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
+  static inline const table_type& get(const AttributeManager& am) {
     return am.d_strings;
   }
 };
@@ -317,10 +279,10 @@ template <class T>
 struct getTable<T*, false> {
   static const AttrTableId id = AttrTablePointer;
   typedef AttrHash<void*> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
+  static inline table_type& get(AttributeManager& am) {
     return am.d_ptrs;
   }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
+  static inline const table_type& get(const AttributeManager& am) {
     return am.d_ptrs;
   }
 };
@@ -330,102 +292,11 @@ template <class T>
 struct getTable<const T*, false> {
   static const AttrTableId id = AttrTablePointer;
   typedef AttrHash<void*> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
+  static inline table_type& get(AttributeManager& am) {
     return am.d_ptrs;
   }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
+  static inline const table_type& get(const AttributeManager& am) {
     return am.d_ptrs;
-  }
-};
-
-/** Access the "d_cdbools" member of AttributeManager. */
-template <>
-struct getTable<bool, true> {
-  static const AttrTableId id = AttrTableCDBool;
-  typedef CDAttrHash<bool> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdbools;
-  }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdbools;
-  }
-};
-
-/** Access the "d_cdints" member of AttributeManager. */
-template <>
-struct getTable<uint64_t, true> {
-  static const AttrTableId id = AttrTableCDUInt64;
-  typedef CDAttrHash<uint64_t> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdints;
-  }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdints;
-  }
-};
-
-/** Access the "d_tnodes" member of AttributeManager. */
-template <>
-struct getTable<TNode, true> {
-  static const AttrTableId id = AttrTableCDTNode;
-  typedef CDAttrHash<TNode> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdtnodes;
-  }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdtnodes;
-  }
-};
-
-/** Access the "d_cdnodes" member of AttributeManager. */
-template <>
-struct getTable<Node, true> {
-  static const AttrTableId id = AttrTableCDNode;
-  typedef CDAttrHash<Node> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdnodes;
-  }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdnodes;
-  }
-};
-
-/** Access the "d_cdstrings" member of AttributeManager. */
-template <>
-struct getTable<std::string, true> {
-  static const AttrTableId id = AttrTableCDString;
-  typedef CDAttrHash<std::string> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdstrings;
-  }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdstrings;
-  }
-};
-
-/** Access the "d_cdptrs" member of AttributeManager. */
-template <class T>
-struct getTable<T*, true> {
-  static const AttrTableId id = AttrTableCDPointer;
-  typedef CDAttrHash<void*> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdptrs;
-  }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdptrs;
-  }
-};
-
-/** Access the "d_cdptrs" member of AttributeManager. */
-template <class T>
-struct getTable<const T*, true> {
-  static const AttrTableId id = AttrTableCDPointer;
-  typedef CDAttrHash<void*> table_type;
-  static inline table_type& get(AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdptrs;
-  }
-  static inline const table_type& get(const AttributeManager& am, SmtEngine* smt) {
-    return am.getSmtAttributes(smt).d_cdptrs;
   }
 };
 
@@ -445,7 +316,7 @@ AttributeManager::getAttribute(NodeValue* nv, const AttrKind&) const {
             table_type table_type;
 
   const table_type& ah =
-    getTable<value_type, AttrKind::context_dependent>::get(*this, smt::s_smtEngine_current);
+    getTable<value_type, AttrKind::context_dependent>::get(*this);
   typename table_type::const_iterator i =
     ah.find(std::make_pair(AttrKind::getId(), nv));
 
@@ -488,7 +359,7 @@ struct HasAttribute<true, AttrKind> {
       table_type;
 
     const table_type& ah =
-      getTable<value_type, AttrKind::context_dependent>::get(*am, smt::s_smtEngine_current);
+      getTable<value_type, AttrKind::context_dependent>::get(*am);
     typename table_type::const_iterator i =
       ah.find(std::make_pair(AttrKind::getId(), nv));
 
@@ -516,7 +387,7 @@ struct HasAttribute<false, AttrKind> {
               table_type table_type;
 
     const table_type& ah =
-      getTable<value_type, AttrKind::context_dependent>::get(*am, smt::s_smtEngine_current);
+      getTable<value_type, AttrKind::context_dependent>::get(*am);
     typename table_type::const_iterator i =
       ah.find(std::make_pair(AttrKind::getId(), nv));
 
@@ -536,7 +407,7 @@ struct HasAttribute<false, AttrKind> {
               table_type table_type;
 
     const table_type& ah =
-      getTable<value_type, AttrKind::context_dependent>::get(*am, smt::s_smtEngine_current);
+      getTable<value_type, AttrKind::context_dependent>::get(*am);
     typename table_type::const_iterator i =
       ah.find(std::make_pair(AttrKind::getId(), nv));
 
@@ -576,7 +447,7 @@ AttributeManager::setAttribute(NodeValue* nv,
             table_type table_type;
 
   table_type& ah =
-    getTable<value_type, AttrKind::context_dependent>::get(*this, smt::s_smtEngine_current);
+      getTable<value_type, AttrKind::context_dependent>::get(*this);
   ah[std::make_pair(AttrKind::getId(), nv)] = mapping::convert(value);
 }
 
@@ -602,17 +473,6 @@ inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
     } else {
       table.erase(pr);
     }
-  }
-}
-
-/**
- * Obliterate a NodeValue from a (context-dependent) attribute table.
- */
-template <class T>
-inline void SmtAttributes::deleteFromTable(CDAttrHash<T>& table,
-                                           NodeValue* nv) {
-  for(unsigned id = 0; id < attr::LastAttributeId<T, true>::getId(); ++id) {
-    table.obliterate(std::make_pair(id, nv));
   }
 }
 

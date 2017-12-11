@@ -2,9 +2,9 @@
 /*! \file normal_form.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
+ **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,11 +14,11 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+#include "theory/arith/normal_form.h"
 
 #include <list>
 
 #include "base/output.h"
-#include "theory/arith/normal_form.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/theory.h"
 
@@ -89,14 +89,23 @@ bool Variable::isDivMember(Node n){
   }
 }
 
+bool Variable::isTranscendentalMember(Node n) {
+  switch(n.getKind()){
+  case kind::EXPONENTIAL:
+  case kind::SINE:
+  case kind::COSINE:
+  case kind::TANGENT:
+    return Polynomial::isMember(n[0]);
+  case kind::PI:
+    return true;
+  default:
+    return false;
+  }
+}
 
 
 bool VarList::isSorted(iterator start, iterator end) {
-#if IS_SORTED_IN_GNUCXX_NAMESPACE
-  return __gnu_cxx::is_sorted(start, end);
-#else /* IS_SORTED_IN_GNUCXX_NAMESPACE */
   return std::is_sorted(start, end);
-#endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
 }
 
 bool VarList::isMember(Node n) {
@@ -185,8 +194,7 @@ VarList VarList::operator*(const VarList& other) const {
       otherEnd = other.internalEnd();
 
     Variable::VariableNodeCmp cmp;
-
-    merge_ranges(thisBegin, thisEnd, otherBegin, otherEnd, result, cmp);
+    std::merge(thisBegin, thisEnd, otherBegin, otherEnd, std::back_inserter(result), cmp);
 
     Assert(result.size() >= 2);
     Node mult = NodeManager::currentNM()->mkNode(kind::NONLINEAR_MULT, result);
@@ -343,7 +351,7 @@ void Monomial::printList(const std::vector<Monomial>& list) {
 Polynomial Polynomial::operator+(const Polynomial& vl) const {
 
   std::vector<Monomial> sortedMonos;
-  merge_ranges(begin(), end(), vl.begin(), vl.end(), sortedMonos);
+  std::merge(begin(), end(), vl.begin(), vl.end(), std::back_inserter(sortedMonos));
 
   Monomial::combineAdjacentMonomials(sortedMonos);
   //std::vector<Monomial> combined = Monomial::sumLikeTerms(sortedMonos);
@@ -805,6 +813,7 @@ DeltaRational Comparison::normalizedDeltaRational() const {
 }
 
 Comparison Comparison::parseNormalForm(TNode n) {
+  Debug("polynomial") << "Comparison::parseNormalForm(" << n << ")";
   Comparison result(n);
   Assert(result.isNormalForm());
   return result;
@@ -1080,8 +1089,8 @@ bool Comparison::isNormalEqualityOrDisequality() const {
 /** This must be (= qvarlist qpolynomial) or (= zmonomial zpolynomial)*/
 bool Comparison::isNormalEquality() const {
   Assert(getNode().getKind() == kind::EQUAL);
-
-  return isNormalEqualityOrDisequality();
+  return Theory::theoryOf(getNode()[0].getType()) == THEORY_ARITH &&
+         isNormalEqualityOrDisequality();
 }
 
 /**
@@ -1092,7 +1101,8 @@ bool Comparison::isNormalDistinct() const {
   Assert(getNode().getKind() == kind::NOT);
   Assert(getNode()[0].getKind() == kind::EQUAL);
 
-  return isNormalEqualityOrDisequality();
+  return Theory::theoryOf(getNode()[0][0].getType()) == THEORY_ARITH &&
+         isNormalEqualityOrDisequality();
 }
 
 Node Comparison::mkRatEquality(const Polynomial& p){

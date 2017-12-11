@@ -16,7 +16,7 @@ AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
 	-D __STDC_LIMIT_MACROS \
 	-D __STDC_FORMAT_MACROS \
-	-I@builddir@ -I@srcdir@/include -I@srcdir@ -I@top_srcdir@/proofs/lfsc_checker
+	-I@builddir@ -I@srcdir@/include -I@srcdir@
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
 SUBDIRS = lib base options util expr smt_util prop/minisat prop/bvminisat . parser compat bindings main
@@ -25,7 +25,9 @@ include @top_srcdir@/src/Makefile.theories
 
 lib_LTLIBRARIES = libcvc4.la
 
-libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION)
+libcvc4_la_LDFLAGS = \
+	-no-undefined \
+	-version-info $(LIBCVC4_VERSION)
 
 # This "tricks" automake into linking us as a C++ library (rather than
 # as a C library, which messes up exception handling support)
@@ -34,7 +36,6 @@ libcvc4_la_SOURCES = \
 	git_versioninfo.cpp \
 	svn_versioninfo.cpp \
 	context/backtrackable.h \
-	context/cdchunk_list.h \
 	context/cddense_set.h \
 	context/cdhashmap.h \
 	context/cdhashmap_forward.h \
@@ -55,17 +56,24 @@ libcvc4_la_SOURCES = \
 	context/context.h \
 	context/context_mm.cpp \
 	context/context_mm.h \
-	context/stacking_vector.h \
 	decision/decision_attributes.h \
 	decision/decision_engine.cpp \
 	decision/decision_engine.h \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
+	preprocessing/preprocessing_pass.cpp \
+	preprocessing/preprocessing_pass.h \
+	preprocessing/preprocessing_pass_context.cpp \
+	preprocessing/preprocessing_pass_context.h \
+	preprocessing/preprocessing_pass_registry.cpp \
+	preprocessing/preprocessing_pass_registry.h \
 	printer/dagification_visitor.cpp \
 	printer/dagification_visitor.h \
 	printer/printer.cpp \
 	printer/printer.h \
+	printer/sygus_print_callback.cpp \
+	printer/sygus_print_callback.h \
 	printer/ast/ast_printer.cpp \
 	printer/ast/ast_printer.h \
 	printer/cvc/cvc_printer.cpp \
@@ -174,9 +182,13 @@ libcvc4_la_SOURCES = \
 	theory/theory_engine.h \
 	theory/theory_model.cpp \
 	theory/theory_model.h \
+	theory/theory_model_builder.cpp \
+	theory/theory_model_builder.h \
 	theory/theory_registrar.h \
 	theory/theory_test_utils.h \
 	theory/type_enumerator.h \
+	theory/type_set.cpp \
+	theory/type_set.h \
 	theory/unconstrained_simplifier.cpp \
 	theory/unconstrained_simplifier.h \
 	theory/valuation.cpp \
@@ -185,6 +197,8 @@ libcvc4_la_SOURCES = \
 	theory/arith/approx_simplex.h \
 	theory/arith/arith_ite_utils.cpp \
 	theory/arith/arith_ite_utils.h \
+	theory/arith/arith_msum.cpp \
+	theory/arith/arith_msum.h \
 	theory/arith/arith_rewriter.cpp \
 	theory/arith/arith_rewriter.h \
 	theory/arith/arith_static_learner.cpp \
@@ -272,6 +286,7 @@ libcvc4_la_SOURCES = \
 	theory/builtin/theory_builtin_rewriter.cpp \
 	theory/builtin/theory_builtin_rewriter.h \
 	theory/builtin/theory_builtin_type_rules.h \
+	theory/builtin/type_enumerator.cpp \
 	theory/builtin/type_enumerator.h \
 	theory/bv/abstraction.cpp \
 	theory/bv/abstraction.h \
@@ -296,6 +311,8 @@ libcvc4_la_SOURCES = \
 	theory/bv/bv_subtheory_inequality.h \
 	theory/bv/bv_to_bool.cpp \
 	theory/bv/bv_to_bool.h \
+	theory/bv/bvgauss.cpp \
+	theory/bv/bvgauss.h \
 	theory/bv/bvintropow2.cpp \
 	theory/bv/bvintropow2.h \
 	theory/bv/cd_set_collection.h \
@@ -317,6 +334,7 @@ libcvc4_la_SOURCES = \
 	theory/bv/theory_bv_utils.cpp \
 	theory/bv/theory_bv_utils.h \
 	theory/bv/type_enumerator.h \
+	theory/datatypes/datatypes_rewriter.cpp \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/datatypes_sygus.cpp \
 	theory/datatypes/datatypes_sygus.h \
@@ -330,6 +348,9 @@ libcvc4_la_SOURCES = \
 	theory/fp/theory_fp_rewriter.cpp \
 	theory/fp/theory_fp_rewriter.h \
 	theory/fp/theory_fp_type_rules.h \
+	theory/fp/type_enumerator.h \
+	theory/fp/fp_converter.h \
+	theory/fp/fp_converter.cpp \
 	theory/idl/idl_assertion.cpp \
 	theory/idl/idl_assertion.h \
 	theory/idl/idl_assertion_db.cpp \
@@ -346,14 +367,18 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/anti_skolem.h \
 	theory/quantifiers/bounded_integers.cpp \
 	theory/quantifiers/bounded_integers.h \
+	theory/quantifiers/bv_inverter.cpp \
+	theory/quantifiers/bv_inverter.h \
 	theory/quantifiers/candidate_generator.cpp \
 	theory/quantifiers/candidate_generator.h \
+	theory/quantifiers/ce_guided_conjecture.cpp \
+	theory/quantifiers/ce_guided_conjecture.h \
 	theory/quantifiers/ce_guided_instantiation.cpp \
 	theory/quantifiers/ce_guided_instantiation.h \
 	theory/quantifiers/ce_guided_single_inv.cpp \
 	theory/quantifiers/ce_guided_single_inv.h \
-	theory/quantifiers/ce_guided_single_inv_ei.cpp \
-	theory/quantifiers/ce_guided_single_inv_ei.h \
+	theory/quantifiers/ce_guided_pbe.cpp \
+	theory/quantifiers/ce_guided_pbe.h \
 	theory/quantifiers/ce_guided_single_inv_sol.cpp \
 	theory/quantifiers/ce_guided_single_inv_sol.h \
 	theory/quantifiers/ceg_instantiator.cpp \
@@ -362,8 +387,12 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/ceg_t_instantiator.h \
 	theory/quantifiers/conjecture_generator.cpp \
 	theory/quantifiers/conjecture_generator.h \
+	theory/quantifiers/equality_query.cpp \
+	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
 	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/extended_rewrite.cpp \
+	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/first_order_model.cpp \
 	theory/quantifiers/first_order_model.h \
 	theory/quantifiers/full_model_check.cpp \
@@ -372,8 +401,14 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/fun_def_engine.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_process.h \
+	theory/quantifiers/ho_trigger.cpp \
+	theory/quantifiers/ho_trigger.h \
+	theory/quantifiers/instantiate.cpp \
+	theory/quantifiers/instantiate.h \
 	theory/quantifiers/inst_match.cpp \
 	theory/quantifiers/inst_match.h \
+	theory/quantifiers/inst_match_trie.cpp \
+	theory/quantifiers/inst_match_trie.h \
 	theory/quantifiers/inst_match_generator.cpp \
 	theory/quantifiers/inst_match_generator.h \
 	theory/quantifiers/inst_propagator.cpp \
@@ -382,6 +417,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/inst_strategy_cbqi.h \
 	theory/quantifiers/inst_strategy_e_matching.cpp \
 	theory/quantifiers/inst_strategy_e_matching.h \
+	theory/quantifiers/inst_strategy_enumerative.cpp \
+	theory/quantifiers/inst_strategy_enumerative.h \
 	theory/quantifiers/instantiation_engine.cpp \
 	theory/quantifiers/instantiation_engine.h \
 	theory/quantifiers/local_theory_ext.cpp \
@@ -394,8 +431,12 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/model_engine.h \
 	theory/quantifiers/quant_conflict_find.cpp \
 	theory/quantifiers/quant_conflict_find.h \
+	theory/quantifiers/quant_epr.cpp \
+	theory/quantifiers/quant_epr.h \
 	theory/quantifiers/quant_equality_engine.cpp \
 	theory/quantifiers/quant_equality_engine.h \
+	theory/quantifiers/quant_relevance.cpp \
+	theory/quantifiers/quant_relevance.h \
 	theory/quantifiers/quant_split.cpp \
 	theory/quantifiers/quant_split.h \
 	theory/quantifiers/quant_util.cpp \
@@ -408,10 +449,30 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/rewrite_engine.cpp \
 	theory/quantifiers/rewrite_engine.h \
+	theory/quantifiers/single_inv_partition.cpp \
+	theory/quantifiers/single_inv_partition.h \
+	theory/quantifiers/skolemize.cpp \
+	theory/quantifiers/skolemize.h \
+	theory/quantifiers/sygus_explain.cpp \
+	theory/quantifiers/sygus_explain.h \
+	theory/quantifiers/sygus_invariance.cpp \
+	theory/quantifiers/sygus_invariance.h \
+	theory/quantifiers/sygus_grammar_cons.cpp \
+	theory/quantifiers/sygus_grammar_cons.h \
+	theory/quantifiers/sygus_grammar_norm.cpp \
+	theory/quantifiers/sygus_grammar_norm.h \
+	theory/quantifiers/sygus_process_conj.cpp \
+	theory/quantifiers/sygus_process_conj.h \
 	theory/quantifiers/symmetry_breaking.cpp \
 	theory/quantifiers/symmetry_breaking.h \
 	theory/quantifiers/term_database.cpp \
 	theory/quantifiers/term_database.h \
+	theory/quantifiers/term_database_sygus.cpp \
+	theory/quantifiers/term_database_sygus.h \
+	theory/quantifiers/term_enumeration.cpp \
+	theory/quantifiers/term_enumeration.h \
+	theory/quantifiers/term_util.cpp \
+	theory/quantifiers/term_util.h \
 	theory/quantifiers/theory_quantifiers.cpp \
 	theory/quantifiers/theory_quantifiers.h \
 	theory/quantifiers/theory_quantifiers_type_rules.h \
@@ -473,7 +534,6 @@ libcvc4_la_LIBADD = \
 	@builddir@/prop/bvminisat/libbvminisat.la
 if CVC4_PROOF
 libcvc4_la_LIBADD += \
-	@top_builddir@/proofs/lfsc_checker/liblfsc_checker.la \
 	@top_builddir@/proofs/signatures/libsignatures.la
 endif
 
@@ -494,6 +554,12 @@ if CVC4_USE_CRYPTOMINISAT
 libcvc4_la_LIBADD += $(CRYPTOMINISAT_LIBS)
 libcvc4_la_LDFLAGS += $(CRYPTOMINISAT_LDFLAGS)
 endif
+
+if CVC4_USE_LFSC
+libcvc4_la_LIBADD += $(LFSC_LIBS)
+libcvc4_la_LDFLAGS += $(LFSC_LDFLAGS)
+endif
+
 
 
 BUILT_SOURCES = \
@@ -612,7 +678,6 @@ install-data-local:
 	(echo include/cvc4.h; \
 	 echo include/cvc4_public.h; \
 	 echo include/cvc4parser_public.h; \
-	 echo base/tls.h; \
 	 echo util/integer.h; \
 	 echo util/rational.h; \
 	 find * -name '*.h' | \
@@ -645,7 +710,6 @@ uninstall-local:
 	-(echo include/cvc4.h; \
 	  echo include/cvc4_public.h; \
 	  echo include/cvc4parser_public.h; \
-	  echo base/tls.h; \
 	  echo util/integer.h; \
 	  echo util/rational.h; \
 	  find * -name '*.h' | \

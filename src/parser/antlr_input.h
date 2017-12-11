@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,11 +35,11 @@
 #include "base/output.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/input.h"
+#include "parser/line_buffer.h"
 #include "parser/parser_exception.h"
 #include "util/bitvector.h"
 #include "util/integer.h"
 #include "util/rational.h"
-
 
 namespace CVC4 {
 
@@ -62,10 +62,11 @@ private:
    */
   pANTLR3_UINT8 d_inputString;
 
-  AntlrInputStream(std::string name,
-                   pANTLR3_INPUT_STREAM input,
-                   bool fileIsTemporary,
-                   pANTLR3_UINT8 inputString);
+  LineBuffer* d_line_buffer;
+
+  AntlrInputStream(std::string name, pANTLR3_INPUT_STREAM input,
+                   bool fileIsTemporary, pANTLR3_UINT8 inputString,
+                   LineBuffer* line_buffer);
 
   /* This is private and unimplemented, because you should never use it. */
   AntlrInputStream(const AntlrInputStream& inputStream) CVC4_UNDEFINED;
@@ -201,9 +202,6 @@ public:
   /** Get a bitvector constant from the text of the number and the size token */
   static BitVector tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTLR3_COMMON_TOKEN size);
 
-  /** Retrieve the remaining text in this input. */
-  std::string getUnparsedText();
-
   /** Get the ANTLR3 lexer for this input. */
   pANTLR3_LEXER getAntlr3Lexer() { return d_lexer; }
 
@@ -242,14 +240,6 @@ protected:
   /** Set the Parser object for this input. */
   virtual void setParser(Parser& parser);
 };/* class AntlrInput */
-
-inline std::string AntlrInput::getUnparsedText() {
-  const char *base = (const char *)d_antlr3InputStream->data;
-  const char *cur = (const char *)d_antlr3InputStream->nextChar;
-
-  return std::string(cur, d_antlr3InputStream->sizeBuf - (cur - base));
-}
-
 
 inline std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
   if( token->type == ANTLR3_TOKEN_EOF ) {

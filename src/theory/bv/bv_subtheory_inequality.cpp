@@ -2,9 +2,9 @@
 /*! \file bv_subtheory_inequality.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Tim King
+ **   Liana Hadarean, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -182,15 +182,19 @@ void InequalitySolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 void InequalitySolver::propagate(Theory::Effort e) {
   Assert (false);
 }
-
-void InequalitySolver::collectModelInfo(TheoryModel* m, bool fullModel) {
+bool InequalitySolver::collectModelInfo(TheoryModel* m, bool fullModel)
+{
   Debug("bitvector-model") << "InequalitySolver::collectModelInfo \n";
   std::vector<Node> model;
   d_inequalityGraph.getAllValuesInModel(model);
   for (unsigned i = 0; i < model.size(); ++i) {
     Assert (model[i].getKind() == kind::EQUAL);
-    m->assertEquality(model[i][0], model[i][1], true);
+    if (!m->assertEquality(model[i][0], model[i][1], true))
+    {
+      return false;
+    }
   }
+  return true;
 }
 
 Node InequalitySolver::getModelValue(TNode var) {

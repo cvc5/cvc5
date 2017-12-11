@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -133,18 +133,21 @@ enum RewriteRuleId {
   ExtractMultLeadingBit,
   NegIdemp,
   UdivPow2,
+  UdivZero,
   UdivOne,
-  UdivSelf,
   UdivConst,
   UremPow2,
   UremOne,
   UremSelf,
   ShiftZero,
-
   UltOne,
   SltZero,
   ZeroUlt,
   MergeSignExtend,
+  SignExtendEqConst,
+  ZeroExtendEqConst,
+  SignExtendUltConst,
+  ZeroExtendUltConst,
 
   /// normalization rules
   ExtractBitwise,
@@ -272,8 +275,10 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ExtractMultLeadingBit :            out << "ExtractMultLeadingBit";             return out;
   case NegIdemp :            out << "NegIdemp";             return out;
   case UdivPow2 :            out << "UdivPow2";             return out;
+  case UdivZero:
+    out << "UdivZero";
+    return out;
   case UdivOne :            out << "UdivOne";             return out;
-  case UdivSelf :            out << "UdivSelf";             return out;
   case UdivConst:
     out << "UdivConst";
     return out;
@@ -305,6 +310,10 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case SltZero : out << "SltZero"; return out;
   case ZeroUlt : out << "ZeroUlt"; return out;
   case MergeSignExtend : out << "MergeSignExtend"; return out;
+  case SignExtendEqConst: out << "SignExtendEqConst"; return out;
+  case ZeroExtendEqConst: out << "ZeroExtendEqConst"; return out;
+  case SignExtendUltConst: out << "SignExtendUltConst"; return out;
+  case ZeroExtendUltConst: out << "ZeroExtendUltConst"; return out;
     
   case UleEliminate : out << "UleEliminate"; return out;
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
@@ -504,9 +513,9 @@ struct AllRewriteRules {
   RewriteRule<ExtractMultLeadingBit> rule88;
   RewriteRule<NegIdemp> rule91;
   RewriteRule<UdivPow2> rule92;
-  RewriteRule<UdivOne> rule93;
-  RewriteRule<UdivSelf> rule94;
-  RewriteRule<UdivConst> rule124;
+  RewriteRule<UdivZero> rule93;
+  RewriteRule<UdivOne> rule94;
+  RewriteRule<UdivConst> rule128;
   RewriteRule<UremPow2> rule95;
   RewriteRule<UremOne> rule96;
   RewriteRule<UremSelf> rule97;
@@ -536,6 +545,10 @@ struct AllRewriteRules {
   RewriteRule<IsPowerOfTwo> rule121;
   RewriteRule<RedorEliminate> rule122;
   RewriteRule<RedandEliminate> rule123;
+  RewriteRule<SignExtendEqConst> rule124;
+  RewriteRule<ZeroExtendEqConst> rule125;
+  RewriteRule<SignExtendUltConst> rule126;
+  RewriteRule<ZeroExtendUltConst> rule127;
 };
 
 template<> inline

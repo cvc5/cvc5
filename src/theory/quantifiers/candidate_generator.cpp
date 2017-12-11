@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -12,10 +12,12 @@
  ** \brief Implementation of theory uf candidate generator class
  **/
 
-#include "options/quantifiers_options.h"
 #include "theory/quantifiers/candidate_generator.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/inst_match.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
@@ -28,7 +30,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 
 bool CandidateGenerator::isLegalCandidate( Node n ){
-  return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cbqi() || !quantifiers::TermDb::hasInstConstAttr(n) );
+  return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cbqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
 }
 
 void CandidateGeneratorQueue::addCandidate( Node n ) {
@@ -189,7 +191,7 @@ CandidateGeneratorQELitEq::CandidateGeneratorQELitEq( QuantifiersEngine* qe, Nod
   CandidateGenerator( qe ), d_match_pattern( mpat ){
   Assert( mpat.getKind()==EQUAL );
   for( unsigned i=0; i<2; i++ ){
-    if( !quantifiers::TermDb::hasInstConstAttr(mpat[i]) ){
+    if( !quantifiers::TermUtil::hasInstConstAttr(mpat[i]) ){
       d_match_gterm = mpat[i];
     }
   }
@@ -262,7 +264,7 @@ CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mp
   CandidateGenerator( qe ), d_match_pattern( mpat ){
   d_match_pattern_type = mpat.getType();
   Assert( mpat.getKind()==INST_CONSTANT );
-  d_f = quantifiers::TermDb::getInstConstAttr( mpat );
+  d_f = quantifiers::TermUtil::getInstConstAttr( mpat );
   d_index = mpat.getAttribute(InstVarNumAttribute());
   d_firstTime = false;
 }
@@ -301,7 +303,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
   if( d_firstTime ){
     //must return something
     d_firstTime = false;
-    return d_qe->getTermDatabase()->getModelBasisTerm( d_match_pattern_type );
+    return d_qe->getInstantiate()->getTermForType(d_match_pattern_type);
   }
   return Node::null();
 }

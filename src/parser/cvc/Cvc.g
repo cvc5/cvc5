@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -209,6 +209,8 @@ tokens {
   TRANSPOSE_TOK = 'TRANSPOSE';
   PRODUCT_TOK = 'PRODUCT';
   TRANSCLOSURE_TOK = 'TCLOSURE';
+  IDEN_TOK = 'IDEN';
+  JOIN_IMAGE_TOK = 'JOIN_IMAGE';  
 
   // Strings
 
@@ -224,10 +226,6 @@ tokens {
   STRING_SUFFIXOF_TOK = 'SUFFIXOF';
   STRING_STOI_TOK = 'STRING_TO_INTEGER';
   STRING_ITOS_TOK = 'INTEGER_TO_STRING';
-  STRING_U16TOS_TOK = 'UINT16_TO_STRING';
-  STRING_STOU16_TOK = 'STRING_TO_UINT16';
-  STRING_U32TOS_TOK = 'UINT32_TO_STRING';
-  STRING_STOU32_TOK = 'STRING_TO_UINT32';
   //Regular expressions (TODO)
   //STRING_IN_REGEXP_TOK
   //STRING_TO_REGEXP_TOK
@@ -324,6 +322,8 @@ int getOperatorPrecedence(int type) {
   case JOIN_TOK:
   case TRANSPOSE_TOK:
   case PRODUCT_TOK:
+  case IDEN_TOK:
+  case JOIN_IMAGE_TOK:  
   case TRANSCLOSURE_TOK: return 24;
   case LEQ_TOK:
   case LT_TOK:
@@ -365,6 +365,7 @@ Kind getOperatorKind(int type, bool& negate) {
   
   case PRODUCT_TOK: return kind::PRODUCT;
   case JOIN_TOK: return kind::JOIN;
+  case JOIN_IMAGE_TOK: return kind::JOIN_IMAGE;  
 
     // comparisonBinop
   case EQUAL_TOK: return kind::EQUAL;
@@ -484,10 +485,11 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 @header {
 /**
- ** This file is part of CVC4.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.
  **/
 }/* @header */
 
@@ -525,15 +527,14 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 // files. See the documentation in "parser/antlr_undefines.h" for more details.
 #include "parser/antlr_undefines.h"
 
-#include <stdint.h>
 #include <cassert>
+#include <memory>
+#include <stdint.h>
 
-#include "base/ptr_closer.h"
 #include "options/set_language.h"
 #include "parser/antlr_tracing.h"
 #include "parser/parser.h"
 #include "smt/command.h"
-#include "util/subrange_bound.h"
 
 namespace CVC4 {
   class Expr;
@@ -552,18 +553,6 @@ namespace CVC4 {
         myString(void*) : std::string() {}
         myString() : std::string() {}
       };/* class myString */
-
-      /**
-       * Just exists to give us the void* construction that
-       * ANTLR requires.
-       */
-      class mySubrangeBound : public CVC4::SubrangeBound {
-      public:
-        mySubrangeBound() : CVC4::SubrangeBound() {}
-        mySubrangeBound(void*) : CVC4::SubrangeBound() {}
-        mySubrangeBound(const Integer& i) : CVC4::SubrangeBound(i) {}
-        mySubrangeBound(const SubrangeBound& b) : CVC4::SubrangeBound(b) {}
-      };/* class mySubrangeBound */
 
       /**
        * Just exists to give us the void* construction that
@@ -589,7 +578,6 @@ namespace CVC4 {
 #include <vector>
 
 #include "base/output.h"
-#include "base/ptr_closer.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
@@ -653,7 +641,7 @@ parseExpr returns [CVC4::Expr expr = CVC4::Expr()]
  */
 parseCommand returns [CVC4::Command* cmd_return = NULL]
 @declarations {
-    CVC4::PtrCloser<CVC4::Command> cmd;
+    std::unique_ptr<CVC4::Command> cmd;
 }
 @after {
     cmd_return = cmd.release();
@@ -683,7 +671,7 @@ parseCommand returns [CVC4::Command* cmd_return = NULL]
  * Matches a command of the input. If a declaration, it will return an empty
  * command.
  */
-command [CVC4::PtrCloser<CVC4::Command>* cmd]
+command [std::unique_ptr<CVC4::Command>* cmd]
   : ( mainCommand[cmd] SEMICOLON
     | SEMICOLON
     | LET_TOK { PARSER_STATE->pushScope(); }
@@ -710,7 +698,7 @@ options { backtrack = true; }
   : letDecl | typeLetDecl[check]
   ;
 
-mainCommand[CVC4::PtrCloser<CVC4::Command>* cmd]
+mainCommand[std::unique_ptr<CVC4::Command>* cmd]
 @init {
   Expr f;
   SExpr sexpr;
@@ -928,7 +916,7 @@ symbolicExpr[CVC4::SExpr& sexpr]
 /**
  * Match a top-level declaration.
  */
-toplevelDeclaration[CVC4::PtrCloser<CVC4::Command>* cmd]
+toplevelDeclaration[std::unique_ptr<CVC4::Command>* cmd]
 @init {
   std::vector<std::string> ids;
   Type t;
@@ -945,7 +933,7 @@ toplevelDeclaration[CVC4::PtrCloser<CVC4::Command>* cmd]
  */
 boundVarDecl[std::vector<std::string>& ids, CVC4::Type& t]
 @init {
-  CVC4::PtrCloser<Command> local_cmd;
+  std::unique_ptr<Command> local_cmd;
 }
   : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON
     declareVariables[&local_cmd,t,ids,false]
@@ -996,14 +984,14 @@ boundVarDeclReturn[std::vector<CVC4::Expr>& terms,
  * because type declarations are always top-level, except for
  * type-lets, which don't use this rule.
  */
-declareTypes[CVC4::PtrCloser<CVC4::Command>* cmd,
+declareTypes[std::unique_ptr<CVC4::Command>* cmd,
              const std::vector<std::string>& idList]
 @init {
   Type t;
 }
     /* A sort declaration (e.g., "T : TYPE") */
   : TYPE_TOK
-    { CVC4::PtrCloser<DeclarationSequence> seq(new DeclarationSequence());
+    { std::unique_ptr<DeclarationSequence> seq(new DeclarationSequence());
       for(std::vector<std::string>::const_iterator i = idList.begin();
           i != idList.end(); ++i) {
         // Don't allow a type variable to clash with a previously
@@ -1038,7 +1026,7 @@ declareTypes[CVC4::PtrCloser<CVC4::Command>* cmd,
  * permitted and "cmd" is output.  If topLevel is false, bound vars
  * are created
  */
-declareVariables[CVC4::PtrCloser<CVC4::Command>* cmd, CVC4::Type& t,
+declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
                  const std::vector<std::string>& idList, bool topLevel]
 @init {
   Expr f;
@@ -1046,7 +1034,7 @@ declareVariables[CVC4::PtrCloser<CVC4::Command>* cmd, CVC4::Type& t,
 }
     /* A variable declaration (or definition) */
   : type[t,CHECK_DECLARED] ( EQUAL_TOK formula[f] )?
-    { CVC4::PtrCloser<DeclarationSequence> seq;
+    { std::unique_ptr<DeclarationSequence> seq;
       if(topLevel) {
         seq.reset(new DeclarationSequence());
       }
@@ -1059,7 +1047,7 @@ declareVariables[CVC4::PtrCloser<CVC4::Command>* cmd, CVC4::Type& t,
             i != i_end;
             ++i) {
           if(PARSER_STATE->isDeclared(*i, SYM_VARIABLE)) {
-            Type oldType = PARSER_STATE->getType(*i);
+            Type oldType = PARSER_STATE->getVariable(*i).getType();
             Debug("parser") << "  " << *i << " was declared previously "
                             << "with type " << oldType << std::endl;
             if(oldType != t) {
@@ -1279,15 +1267,9 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     }
 
     /* subrange types */
-  | LBRACKET k1=bound DOTDOT k2=bound RBRACKET
-    { if(k1.hasBound() && k2.hasBound() &&
-         k1.getBound() > k2.getBound()) {
-        std::stringstream ss;
-        ss << "Subrange [" << k1.getBound() << ".." << k2.getBound()
-           << "] inappropriate: range must be nonempty!";
-        PARSER_STATE->parseError(ss.str());
-      }
-      t = EXPR_MANAGER->mkSubrangeType(SubrangeBounds(k1, k2));
+  | LBRACKET bound DOTDOT bound RBRACKET
+    {
+      PARSER_STATE->unimplementedFeature("subrange typing not supported in this release");
     }
 
     /* tuple types / old-style function types */
@@ -1342,9 +1324,9 @@ parameterization[CVC4::parser::DeclarationCheck check,
     ( COMMA restrictedType[t,check] { Debug("parser-param") << "t = " << t << std::endl; params.push_back( t ); } )* RBRACKET
   ;
 
-bound returns [CVC4::parser::cvc::mySubrangeBound bound]
-  : UNDERSCORE { $bound = SubrangeBound(); }
-  | k=integer { $bound = SubrangeBound(k.getNumerator()); }
+bound
+  : UNDERSCORE
+  | integer
 ;
 
 typeLetDecl[CVC4::parser::DeclarationCheck check]
@@ -1509,6 +1491,7 @@ booleanBinop[unsigned& op]
   | AND_TOK
   | JOIN_TOK
   | PRODUCT_TOK
+  | JOIN_IMAGE_TOK  
   ;
 
 comparison[CVC4::Expr& f]
@@ -1609,7 +1592,7 @@ tupleStore[CVC4::Expr& f]
       const Datatype & dt = ((DatatypeType)t).getDatatype();
       args.push_back( dt[0][k].getSelector() );
       args.push_back( f );
-      f2 = MK_EXPR(CVC4::kind::APPLY_SELECTOR_TOTAL,args);
+      f2 = MK_EXPR(CVC4::kind::APPLY_SELECTOR,args);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1644,7 +1627,7 @@ recordStore[CVC4::Expr& f]
       const Datatype & dt = ((DatatypeType)t).getDatatype();
       args.push_back( dt[0][id].getSelector() );
       args.push_back( f );
-      f2 = MK_EXPR(CVC4::kind::APPLY_SELECTOR_TOTAL,args);
+      f2 = MK_EXPR(CVC4::kind::APPLY_SELECTOR,args);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1706,7 +1689,9 @@ relationTerm[CVC4::Expr& f]
       const Datatype& dt = t.getDatatype();
       args.insert( args.begin(), dt[0].getConstructor() );
       f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
-    }             
+    }
+  | IDEN_TOK relationTerm[f]
+    { f = MK_EXPR(CVC4::kind::IDEN, f); }                 
   | postfixTerm[f]
   ;
 
@@ -1760,22 +1745,10 @@ postfixTerm[CVC4::Expr& f]
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
       // TODO: check arity
-      { Type t = args.front().getType();
-        Debug("parser") << "type is " << t << std::endl;
+      { Kind k = PARSER_STATE->getKindForFunction(args.front());
         Debug("parser") << "expr is " << args.front() << std::endl;
-        if(PARSER_STATE->isDefinedFunction(args.front())) {
-          f = MK_EXPR(CVC4::kind::APPLY, args);
-        } else if(t.isFunction()) {
-          f = MK_EXPR(CVC4::kind::APPLY_UF, args);
-        } else if(t.isConstructor()) {
-          f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, args);
-        } else if(t.isSelector()) {
-          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR, args);
-        } else if(t.isTester()) {
-          f = MK_EXPR(CVC4::kind::APPLY_TESTER, args);
-        } else {
-          PARSER_STATE->parseError("internal error: unhandled function application kind");
-        }
+        Debug("parser") << "kind is " << k << std::endl;
+        f = MK_EXPR(k, args);
       }
 
       /* record / tuple select */
@@ -1793,7 +1766,7 @@ postfixTerm[CVC4::Expr& f]
           std::vector<Expr> sargs;
           sargs.push_back( dt[0][id].getSelector() );
           sargs.push_back( f );
-          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR_TOTAL,sargs);
+          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR,sargs);
         }
       | k=numeral
         { Type t = f.getType();
@@ -1810,7 +1783,7 @@ postfixTerm[CVC4::Expr& f]
           std::vector<Expr> sargs;
           sargs.push_back( dt[0][k].getSelector() );
           sargs.push_back( f );
-          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR_TOTAL,sargs);
+          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR,sargs);
         }
       )
     )*
@@ -1839,7 +1812,7 @@ postfixTerm[CVC4::Expr& f]
         } else if(f.getKind() == CVC4::kind::EMPTYSET && t.isSet()) {
           f = MK_CONST(CVC4::EmptySet(t));
         } else if(f.getKind() == CVC4::kind::UNIVERSE_SET && t.isSet()) {
-          f = EXPR_MANAGER->mkUniqueVar(t, kind::UNIVERSE_SET);
+          f = EXPR_MANAGER->mkNullaryOperator(t, kind::UNIVERSE_SET);
         } else {
           if(f.getType() != t) {
             PARSER_STATE->parseError("Type ascription not satisfied.");
@@ -1988,6 +1961,8 @@ stringTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::STRING_STRCTN, f, f2); }
   | STRING_SUBSTR_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_SUBSTR, f, f2, f3); }
+  | STRING_CHARAT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_CHARAT, f, f2); }
   | STRING_INDEXOF_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_STRIDOF, f, f2, f3); }
   | STRING_REPLACE_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
@@ -1999,19 +1974,11 @@ stringTerm[CVC4::Expr& f]
   | STRING_STOI_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_STOI, f); }
   | STRING_ITOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_ITOS, f); }
-  | STRING_U16TOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_U16TOS, f); }
-  | STRING_STOU16_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_STOU16, f); }
-  | STRING_U32TOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_U32TOS, f); }
-  | STRING_STOU32_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_STOU32, f); }    
+    { f = MK_EXPR(CVC4::kind::STRING_ITOS, f); }   
 
     /* string literal */
   | str[s]
-    { f = MK_CONST(CVC4::String(s)); }
+    { f = MK_CONST(CVC4::String(s, true)); }
 
   | setsTerm[f]
   ;
@@ -2075,7 +2042,7 @@ simpleTerm[CVC4::Expr& f]
     { f = MK_CONST(EmptySet(Type())); }
   | UNIVSET_TOK
     { //booleanType is placeholder
-      f = EXPR_MANAGER->mkUniqueVar(EXPR_MANAGER->booleanType(), kind::UNIVERSE_SET);
+      f = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->booleanType(), kind::UNIVERSE_SET);
     }
 
     /* finite set literal */
@@ -2125,7 +2092,12 @@ simpleTerm[CVC4::Expr& f]
     /* syntactic predicate: never match INTEGER.DIGIT as an integer and a dot!
      * This is a rational constant!  Otherwise the parser interprets it as a tuple
      * selector! */
-  | DECIMAL_LITERAL { f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
+  | DECIMAL_LITERAL { 
+      f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL));
+      if(f.getType().isInteger()) {
+        f = MK_EXPR(kind::TO_REAL, f);
+      } 
+    }
   | INTEGER_LITERAL { f = MK_CONST(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
     /* bitvector literals */
   | HEX_LITERAL
@@ -2153,9 +2125,9 @@ simpleTerm[CVC4::Expr& f]
     /* variable / zero-ary constructor application */
   | identifier[name,CHECK_DECLARED,SYM_VARIABLE]
     /* ascriptions will be required for parameterized zero-ary constructors */
-    { f = PARSER_STATE->getVariable(name); }
-    { // datatypes: zero-ary constructors
-      Type t2 = PARSER_STATE->getType(name);
+    { f = PARSER_STATE->getVariable(name);
+      // datatypes: zero-ary constructors
+      Type t2 = f.getType();
       if(t2.isConstructor() && ConstructorType(t2).getArity() == 0) {
         // don't require parentheses, immediately turn it into an apply
         f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, f);
@@ -2250,7 +2222,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
 constructorDef[CVC4::Datatype& type]
 @init {
   std::string id;
-  CVC4::PtrCloser<CVC4::DatatypeConstructor> ctor;
+  std::unique_ptr<CVC4::DatatypeConstructor> ctor;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
     { // make the tester
@@ -2270,7 +2242,7 @@ constructorDef[CVC4::Datatype& type]
     }
   ;
 
-selector[CVC4::PtrCloser<CVC4::DatatypeConstructor>* ctor]
+selector[std::unique_ptr<CVC4::DatatypeConstructor>* ctor]
 @init {
   std::string id;
   Type t, t2;

@@ -2,9 +2,9 @@
 /*! \file theory_arith_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Martin Brain, Morgan Deters
+ **   Tim King, Martin Brain, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -401,20 +401,21 @@ private:
     virtual ~ModelException() throw ();
   };
 
-  /** Internal model value for the node */
-  DeltaRational getDeltaValue(TNode n) const throw (DeltaRationalException, ModelException);
-
-  /** Uninterpretted function symbol for use when interpreting
-   * division by zero.
+  /**
+   * Computes the delta rational value of a term from the current partial
+   * model. This returns the delta value assignment to the term if it is in the
+   * partial model. Otherwise, this is computed recursively for arithmetic terms
+   * from each subterm.
+   *
+   * This throws a DeltaRationalException if the value cannot be represented as
+   * a DeltaRational. This throws a ModelException if there is a term is not in
+   * the partial model and is not a theory of arithmetic term.
+   *
+   * precondition: The linear abstraction of the nodes must be satisfiable.
    */
-  Node d_realDivideBy0Func;
-  Node d_intDivideBy0Func;
-  Node d_intModulusBy0Func;
-  Node getRealDivideBy0Func();
-  Node getIntDivideBy0Func();
-  Node getIntModulusBy0Func();
+  DeltaRational getDeltaValue(TNode term) const
+      throw(DeltaRationalException, ModelException);
 
-  Node definingIteForDivLike(Node divLike);
   Node axiomIteForTotalDivision(Node div_tot);
   Node axiomIteForTotalIntDivision(Node int_div_like);
 
@@ -443,7 +444,7 @@ public:
 
   Rational deltaValueForTotalOrder() const;
 
-  void collectModelInfo( TheoryModel* m );
+  bool collectModelInfo(TheoryModel* m);
 
   void shutdown(){ }
 
@@ -847,8 +848,16 @@ private:
    * semantics.  Needed to deal with partial function "mod".
    */
   Node d_modZero;
-
-
+  
+  /** 
+   *  Maps for Skolems for to-integer, real/integer div-by-k.
+   *  Introduced during ppRewriteTerms.
+   */
+  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
+  NodeMap d_to_int_skolem;
+  NodeMap d_div_skolem;
+  NodeMap d_int_div_skolem;
+  
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */

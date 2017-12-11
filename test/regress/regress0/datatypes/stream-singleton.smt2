@@ -1,7 +1,7 @@
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status unsat)
 
-(declare-codatatypes () ((Stream (S (s Stream)))))
+(declare-codatatypes ((Stream 0)) (((S (s Stream)))))
 
 (declare-fun x () Stream)
 (declare-fun y () Stream)

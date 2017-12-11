@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,6 +22,7 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <unordered_map>
 #include <utility>
 
 #include "parser/parser.h"
@@ -58,14 +59,11 @@ public:
 private:
   bool d_logicSet;
   LogicInfo d_logic;
-  std::hash_map<std::string, Kind, StringHashFunction> operatorKindMap;
+  std::unordered_map<std::string, Kind> operatorKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
-  // this is a user-context stack
-  std::stack< std::map<Expr, std::string> > d_unsatCoreNames;
+  // for sygus
   std::vector<Expr> d_sygusVars, d_sygusConstraints, d_sygusFunSymbols;
-  std::vector< std::pair<std::string, Expr> > d_sygusFuns;
   std::map< Expr, bool > d_sygusVarPrimed;
-  size_t d_nextSygusFun;
 
 protected:
   Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
@@ -87,6 +85,55 @@ public:
   bool isTheoryEnabled(Theory theory) const;
 
   bool logicIsSet();
+  
+  /**
+   * Returns the expression that name should be interpreted as. 
+   */
+  virtual Expr getExpressionForNameAndType(const std::string& name, Type t);
+
+  /** Make function defined by a define-fun(s)-rec command.
+  *
+  * fname : the name of the function.
+  * sortedVarNames : the list of variable arguments for the function.
+  * t : the range type of the function we are defining.
+  *
+  * This function will create a bind a new function term to name fname.
+  * The type of this function is
+  * Parser::mkFlatFunctionType(sorts,t,flattenVars),
+  * where sorts are the types in the second components of sortedVarNames.
+  * As descibed in Parser::mkFlatFunctionType, new bound variables may be
+  * added to flattenVars in this function if the function is given a function
+  * range type.
+  */
+  Expr mkDefineFunRec(
+      const std::string& fname,
+      const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+      Type t,
+      std::vector<Expr>& flattenVars);
+
+  /** Push scope for define-fun-rec
+   *
+  * This calls Parser::pushScope(bindingLevel) and sets up
+  * initial information for reading a body of a function definition
+  * in the define-fun-rec and define-funs-rec command.
+  * The input parameters func/flattenVars are the result
+  * of a call to mkDefineRec above.
+  *
+  * func : the function whose body we are defining.
+  * sortedVarNames : the list of variable arguments for the function.
+  * flattenVars : the implicit variables introduced when defining func.
+  *
+  * This function:
+  * (1) Calls Parser::pushScope(bindingLevel).
+  * (2) Computes the bound variable list for the quantified formula
+  *     that defined this definition and stores it in bvs.
+  */
+  void pushDefineFunRecScope(
+      const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+      Expr func,
+      const std::vector<Expr>& flattenVars,
+      std::vector<Expr>& bvs,
+      bool bindingLevel = false);
 
   void reset();
 
@@ -151,22 +198,6 @@ public:
     return d_lastNamedTerm;
   }
 
-  void pushUnsatCoreNameScope() {
-    d_unsatCoreNames.push(d_unsatCoreNames.top());
-  }
-
-  void popUnsatCoreNameScope() {
-    d_unsatCoreNames.pop();
-  }
-
-  void registerUnsatCoreName(std::pair<Expr, std::string> name) {
-    d_unsatCoreNames.top().insert(name);
-  }
-
-  std::map<Expr, std::string> getUnsatCoreNames() {
-    return d_unsatCoreNames.top();
-  }
-
   bool isAbstractValue(const std::string& name) {
     return name.length() >= 2 && name[0] == '@' && name[1] != '0' &&
       name.find_first_not_of("0123456789", 1) == std::string::npos;
@@ -178,9 +209,6 @@ public:
   }
 
   Expr mkSygusVar(const std::string& name, const Type& type, bool isPrimed = false);
-
-  void mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::string& fun, std::vector<CVC4::Datatype>& datatypes,
-                              std::vector<Type>& sorts, std::vector< std::vector<Expr> >& ops, std::vector<Expr> sygus_vars, int& startIndex );
 
   void mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops );
 
@@ -218,23 +246,10 @@ public:
                            std::vector< CVC4::Type>& sorts,
                            std::vector< std::vector<CVC4::Expr> >& ops );
 
-  void addSygusFun(const std::string& fun, Expr eval) {
-    d_sygusFuns.push_back(std::make_pair(fun, eval));
-  }
-
-  void defineSygusFuns();
-
   void mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
                         std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs,
                         std::vector<std::string>& unresolved_gterm_sym,
                         std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
-
-  // i is index in datatypes/ops
-  // j is index is datatype
-  Expr getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vector< std::vector<Expr> >& ops,
-                          std::map<DatatypeType, Expr>& evals, std::vector<Expr>& terms,
-                          Expr eval, const Datatype& dt, size_t i, size_t j );
-
 
 
   void addSygusConstraint(Expr constraint) {
@@ -254,6 +269,7 @@ public:
   }
   const void getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed );
 
+  const void addSygusFunSymbol( Type t, Expr synth_fun );
   const std::vector<Expr>& getSygusFunSymbols() {
     return d_sygusFunSymbols;
   }
@@ -327,9 +343,6 @@ private:
 
   void collectSygusLetArgs( CVC4::Expr e, std::vector< CVC4::Type >& sygusArgs, std::vector< CVC4::Expr >& builtinArgs );
 
-  void addSygusDatatypeConstructor( CVC4::Datatype& dt, CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
-                                    CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args );
-
   Type processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, std::vector< CVC4::Datatype >& datatypes,
                                 std::vector< CVC4::Type>& sorts,
                                 std::vector< std::vector<CVC4::Expr> >& ops,
@@ -349,6 +362,19 @@ private:
                                    std::vector<CVC4::Expr>& sygus_vars,
                                    std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin,
                                    std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr );
+
+  /** make sygus bound var list
+   *
+   * This is used for converting non-builtin sygus operators to lambda
+   * expressions. It takes as input a datatype and constructor index (for
+   * naming) and a vector of type ltypes.
+   * It appends a bound variable to lvars for each type in ltypes, and returns
+   * a bound variable list whose children are lvars.
+   */
+  Expr makeSygusBoundVarList(Datatype& dt,
+                             unsigned i,
+                             const std::vector<Type>& ltypes,
+                             std::vector<Expr>& lvars);
 
   void addArithmeticOperators();
 

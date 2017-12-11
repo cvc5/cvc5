@@ -2,9 +2,9 @@
 /*! \file integer_cln_imp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters
+ **   Tim King, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -155,4 +155,36 @@ Integer Integer::pow(unsigned long int exp) const {
   }
 }
 
+Integer Integer::modAdd(const Integer& y, const Integer& m) const
+{
+  cln::cl_modint_ring ry = cln::find_modint_ring(m.d_value);
+  cln::cl_MI xm = ry->canonhom(d_value);
+  cln::cl_MI ym = ry->canonhom(y.d_value);
+  cln::cl_MI res = xm + ym;
+  return Integer(ry->retract(res));
+}
+
+Integer Integer::modMultiply(const Integer& y, const Integer& m) const
+{
+  cln::cl_modint_ring ry = cln::find_modint_ring(m.d_value);
+  cln::cl_MI xm = ry->canonhom(d_value);
+  cln::cl_MI ym = ry->canonhom(y.d_value);
+  cln::cl_MI res = xm * ym;
+  return Integer(ry->retract(res));
+}
+
+Integer Integer::modInverse(const Integer& m) const
+{
+  PrettyCheckArgument(m > 0, m, "m must be greater than zero");
+  cln::cl_modint_ring ry = cln::find_modint_ring(m.d_value);
+  cln::cl_MI xm = ry->canonhom(d_value);
+  /* normalize to modulo m for coprime check */
+  cln::cl_I x = ry->retract(xm);
+  if (x == 0 || cln::gcd(x, m.d_value) != 1)
+  {
+    return Integer(-1);
+  }
+  cln::cl_MI res = cln::recip(xm);
+  return Integer(ry->retract(res));
+}
 } /* namespace CVC4 */

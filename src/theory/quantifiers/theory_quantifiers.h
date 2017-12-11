@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,24 +19,18 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 #define __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
-#include <ext/hash_set>
-#include <iostream>
-#include <map>
-
 #include "context/cdhashmap.h"
+#include "context/context.h"
+#include "expr/node.h"
+#include "theory/output_channel.h"
 #include "theory/theory.h"
-#include "util/hash.h"
+#include "theory/theory_engine.h"
+#include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-class TheoryEngine;
-
 namespace theory {
-
 namespace quantifiers {
-
-class ModelEngine;
-class InstantiationEngine;
 
 class TheoryQuantifiers : public Theory {
 private:
@@ -62,7 +56,7 @@ public:
   void check(Effort e);
   Node getNextDecisionRequest( unsigned& priority );
   Node getValue(TNode n);
-  void collectModelInfo( TheoryModel* m );
+  bool collectModelInfo(TheoryModel* m) override;
   void shutdown() { }
   std::string identify() const { return std::string("TheoryQuantifiers"); }
   void setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value);

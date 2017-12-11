@@ -2,9 +2,9 @@
 /*! \file constraint.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
+ **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,9 @@
  **/
 #include "theory/arith/constraint.h"
 
-#include <ostream>
 #include <algorithm>
+#include <ostream>
+#include <unordered_set>
 
 #include "base/output.h"
 #include "proof/proof.h"
@@ -437,18 +438,14 @@ ConstraintP Constraint::getCeiling() {
   Debug("getCeiling") << "Constraint_::getCeiling on " << *this << endl;
   Assert(getValue().getInfinitesimalPart().sgn() > 0);
 
-  DeltaRational ceiling(getValue().ceiling());
-
-  // TODO: "Optimize via the iterator"
+  const DeltaRational ceiling(getValue().ceiling());
   return d_database->getConstraint(getVariable(), getType(), ceiling);
 }
 
 ConstraintP Constraint::getFloor() {
   Assert(getValue().getInfinitesimalPart().sgn() < 0);
 
-  DeltaRational floor(Rational(getValue().floor()));
-
-  // TODO: "Optimize via the iterator"
+  const DeltaRational floor(Rational(getValue().floor()));
   return d_database->getConstraint(getVariable(), getType(), floor);
 }
 
@@ -1333,7 +1330,7 @@ struct ConstraintCPHash {
 };
 
 void Constraint::assertionFringe(ConstraintCPVec& v){
-  hash_set<ConstraintCP, ConstraintCPHash> visited;
+  unordered_set<ConstraintCP, ConstraintCPHash> visited;
   size_t writePos = 0;
 
   if(!v.empty()){

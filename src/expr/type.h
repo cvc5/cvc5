@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Martin Brain
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,7 +25,6 @@
 #include <stdint.h>
 
 #include "util/cardinality.h"
-#include "util/subrange_bound.h"
 
 namespace CVC4 {
 
@@ -60,9 +59,6 @@ class FunctionType;
 class SExprType;
 class SortType;
 class SortConstructorType;
-// not in release 1.0
-//class PredicateSubtype;
-class SubrangeType;
 class Type;
 
 /** Hash function for Types */
@@ -372,7 +368,7 @@ public:
    * Is this an integer subrange type?
    * @return true if this is an integer subrange type
    */
-  bool isSubrange() const;
+  //bool isSubrange() const;
 
   /**
    * Outputs a string representation of this type to the stream.
@@ -585,21 +581,6 @@ public:
 
 };/* class PredicateSubtype */
 #endif /* 0 */
-
-/**
- * Class encapsulating an integer subrange type.
- */
-class CVC4_PUBLIC SubrangeType : public Type {
-
-public:
-
-  /** Construct from the base type */
-  SubrangeType(const Type& type = Type()) throw(IllegalArgumentException);
-
-  /** Get the bounds defining this integer subrange */
-  SubrangeBounds getSubrangeBounds() const;
-
-};/* class SubrangeType */
 
 /**
  * Class encapsulating the bit-vector type.

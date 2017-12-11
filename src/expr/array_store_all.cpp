@@ -2,9 +2,9 @@
 /*! \file array_store_all.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters
+ **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,9 +28,8 @@ using namespace std;
 
 namespace CVC4 {
 
-ArrayStoreAll::ArrayStoreAll(const ArrayType& type,
-                             const Expr& expr) throw(IllegalArgumentException)
-    : d_type(NULL), d_expr(NULL) {
+ArrayStoreAll::ArrayStoreAll(const ArrayType& type, const Expr& expr)
+    : d_type(), d_expr() {
   // this check is stronger than the assertion check in the expr manager that
   // ArrayTypes are actually array types
   // because this check is done in production builds too
@@ -50,18 +49,15 @@ ArrayStoreAll::ArrayStoreAll(const ArrayType& type,
   // Delay allocation until the checks above have been performed. If these fail,
   // the memory for d_type and d_expr should not leak. The alternative is catch,
   // delete and re-throw.
-  d_type = new ArrayType(type);
-  d_expr = new Expr(expr);
+  d_type.reset(new ArrayType(type));
+  d_expr.reset(new Expr(expr));
 }
 
 ArrayStoreAll::ArrayStoreAll(const ArrayStoreAll& other)
     : d_type(new ArrayType(other.getType())),
       d_expr(new Expr(other.getExpr())) {}
 
-ArrayStoreAll::~ArrayStoreAll() throw() {
-  delete d_expr;
-  delete d_type;
-}
+ArrayStoreAll::~ArrayStoreAll() throw() {}
 
 ArrayStoreAll& ArrayStoreAll::operator=(const ArrayStoreAll& other) {
   (*d_type) = other.getType();
@@ -77,6 +73,10 @@ bool ArrayStoreAll::operator==(const ArrayStoreAll& asa) const throw() {
   return getType() == asa.getType() && getExpr() == asa.getExpr();
 }
 
+bool ArrayStoreAll::operator!=(const ArrayStoreAll& asa) const throw() {
+  return !(*this == asa);
+}
+
 bool ArrayStoreAll::operator<(const ArrayStoreAll& asa) const throw() {
   return (getType() < asa.getType()) ||
          (getType() == asa.getType() && getExpr() < asa.getExpr());
@@ -85,6 +85,14 @@ bool ArrayStoreAll::operator<(const ArrayStoreAll& asa) const throw() {
 bool ArrayStoreAll::operator<=(const ArrayStoreAll& asa) const throw() {
   return (getType() < asa.getType()) ||
          (getType() == asa.getType() && getExpr() <= asa.getExpr());
+}
+
+bool ArrayStoreAll::operator>(const ArrayStoreAll& asa) const throw() {
+  return !(*this <= asa);
+}
+
+bool ArrayStoreAll::operator>=(const ArrayStoreAll& asa) const throw() {
+  return !(*this < asa);
 }
 
 std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa) {
@@ -96,4 +104,4 @@ size_t ArrayStoreAllHashFunction::operator()(const ArrayStoreAll& asa) const {
   return TypeHashFunction()(asa.getType()) * ExprHashFunction()(asa.getExpr());
 }
 
-} /* CVC4 namespace */
+}  // namespace CVC4

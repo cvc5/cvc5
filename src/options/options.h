@@ -2,9 +2,9 @@
 /*! \file options.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Kshitij Bansal
+ **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,8 +29,8 @@
 #include "base/tls.h"
 #include "options/argument_extender.h"
 #include "options/language.h"
-#include "options/printer_modes.h"
 #include "options/option_exception.h"
+#include "options/printer_modes.h"
 
 namespace CVC4 {
 
@@ -47,7 +47,7 @@ class CVC4_PUBLIC Options {
   options::OptionsHandler* d_handler;
 
   /** The current Options in effect */
-  static CVC4_THREADLOCAL(Options*) s_current;
+  static CVC4_THREAD_LOCAL Options* s_current;
 
   /** Listeners for options::forceLogicString being set. */
   ListenerCollection d_forceLogicListeners;
@@ -242,8 +242,6 @@ public:
 
 
   // TODO: Document these.
-  void setCeGuidedInst(bool);
-  void setDumpSynth(bool);
   void setInputLanguage(InputLanguage);
   void setInteractive(bool);
   void setOut(std::ostream*);

@@ -2,9 +2,9 @@
 /*! \file language.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Morgan Deters, Andrew Reynolds, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -114,16 +114,16 @@ InputLanguage toInputLanguage(std::string language) {
   } else if(language == "smtlib1" || language == "smt1" ||
             language == "LANG_SMTLIB_V1") {
     return input::LANG_SMTLIB_V1;
-  } else if(language == "smtlib" || language == "smt" ||
-            language == "smtlib2" || language == "smt2" ||
-            language == "smtlib2.0" || language == "smt2.0" ||
-            language == "LANG_SMTLIB_V2_0" || language == "LANG_SMTLIB_V2") {
+  } else if(language == "smtlib2.0" || language == "smt2.0" ||
+            language == "LANG_SMTLIB_V2_0") {
     return input::LANG_SMTLIB_V2_0;
   } else if(language == "smtlib2.5" || language == "smt2.5" ||
             language == "LANG_SMTLIB_V2_5") {
     return input::LANG_SMTLIB_V2_5;
-  } else if(language == "smtlib2.6" || language == "smt2.6" ||
-            language == "LANG_SMTLIB_V2_6") {
+  } else if(language == "smtlib" || language == "smt" ||
+            language == "smtlib2" || language == "smt2" ||
+            language == "smtlib2.6" || language == "smt2.6" ||
+            language == "LANG_SMTLIB_V2_6" || language == "LANG_SMTLIB_V2") {
     return input::LANG_SMTLIB_V2_6;
   } else if(language == "tptp" || language == "LANG_TPTP") {
     return input::LANG_TPTP;

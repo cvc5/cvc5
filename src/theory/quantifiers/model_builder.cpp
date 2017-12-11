@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,9 +16,11 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
@@ -33,11 +35,11 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-
-QModelBuilder::QModelBuilder( context::Context* c, QuantifiersEngine* qe ) :
-TheoryEngineModelBuilder( qe->getTheoryEngine() ), d_qe( qe ){
-
-}
+QModelBuilder::QModelBuilder(context::Context* c, QuantifiersEngine* qe)
+    : TheoryEngineModelBuilder(qe->getTheoryEngine()),
+      d_qe(qe),
+      d_addedLemmas(0),
+      d_triedLemmas(0) {}
 
 bool QModelBuilder::optUseModel() {
   return options::mbqiMode()!=MBQI_NONE || options::fmfBound();
@@ -54,7 +56,8 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
     FirstOrderModel * fm = (FirstOrderModel*)m;
     //traverse equality engine
     std::map< TypeNode, bool > eqc_usort;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( fm->d_equalityEngine );
+    eq::EqClassesIterator eqcs_i =
+        eq::EqClassesIterator(fm->getEqualityEngine());
     while( !eqcs_i.isFinished() ){
       TypeNode tr = (*eqcs_i).getType();
       eqc_usort[tr] = true;
@@ -106,17 +109,20 @@ void QModelBuilder::debugModel( TheoryModel* m ){
       for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
         vars.push_back( f[0][j] );
       }
-      RepSetIterator riter( d_qe, &(fm->d_rep_set) );
+      QRepBoundExt qrbe(d_qe);
+      RepSetIterator riter(d_qe->getModel()->getRepSet(), &qrbe);
       if( riter.setQuantifier( f ) ){
         while( !riter.isFinished() ){
           tests++;
           std::vector< Node > terms;
-          for( int k=0; k<riter.getNumTerms(); k++ ){
+          for (unsigned k = 0; k < riter.getNumTerms(); k++)
+          {
             terms.push_back( riter.getCurrentTerm( k ) );
           }
-          Node n = d_qe->getInstantiation( f, vars, terms );
+          Node n = d_qe->getInstantiate()->getInstantiation(f, vars, terms);
           Node val = fm->getValue( n );
-          if( val!=fm->d_true ){
+          if (val != d_qe->getTermUtil()->d_true)
+          {
             Trace("quant-check-model") << "*******  Instantiation " << n << " for " << std::endl;
             Trace("quant-check-model") << "         " << f << std::endl;
             Trace("quant-check-model") << "         Evaluates to " << val << std::endl;
@@ -138,10 +144,10 @@ void QModelBuilder::debugModel( TheoryModel* m ){
   }
 }
 
-
-
-bool TermArgBasisTrie::addTerm2( FirstOrderModel* fm, Node n, int argIndex ){
-  if( argIndex<(int)n.getNumChildren() ){
+bool TermArgBasisTrie::addTerm(FirstOrderModel* fm, Node n, unsigned argIndex)
+{
+  if (argIndex < n.getNumChildren())
+  {
     Node r;
     if( n[ argIndex ].getAttribute(ModelBasisAttribute()) ){
       r = n[ argIndex ];
@@ -150,21 +156,25 @@ bool TermArgBasisTrie::addTerm2( FirstOrderModel* fm, Node n, int argIndex ){
     }
     std::map< Node, TermArgBasisTrie >::iterator it = d_data.find( r );
     if( it==d_data.end() ){
-      d_data[r].addTerm2( fm, n, argIndex+1 );
+      d_data[r].addTerm(fm, n, argIndex + 1);
       return true;
     }else{
-      return it->second.addTerm2( fm, n, argIndex+1 );
+      return it->second.addTerm(fm, n, argIndex + 1);
     }
   }else{
     return false;
   }
 }
 
-
-QModelBuilderIG::QModelBuilderIG( context::Context* c, QuantifiersEngine* qe ) :
-QModelBuilder( c, qe ), d_basisNoMatch( c ) {
-
-}
+QModelBuilderIG::QModelBuilderIG(context::Context* c, QuantifiersEngine* qe)
+    : QModelBuilder(c, qe),
+      d_basisNoMatch(c),
+      d_didInstGen(false),
+      d_numQuantSat(0),
+      d_numQuantInstGen(0),
+      d_numQuantNoInstGen(0),
+      d_numQuantNoSelForm(0),
+      d_instGenMatches(0) {}
 
 /*
 Node QModelBuilderIG::getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::vector< Node > & args, bool partial ) {
@@ -186,7 +196,7 @@ bool QModelBuilderIG::processBuildModel( TheoryModel* m ) {
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node q = fm->getAssertedQuantifier( i );
       if( d_qe->getModel()->isQuantifierActive( q ) ){
-        int lems = initializeQuantifier( q, q );
+        int lems = initializeQuantifier(q, q, f);
         d_statistics.d_init_inst_gen_lemmas += lems;
         d_addedLemmas += lems;
         if( d_qe->inConflict() ){
@@ -275,13 +285,15 @@ bool QModelBuilderIG::processBuildModel( TheoryModel* m ) {
     it->second.update( fm );
     Trace("model-func") << "QModelBuilder: Make function value from tree " << it->first << std::endl;
     //construct function values
-    fm->d_uf_models[ it->first ] = it->second.getFunctionValue( "$x" );
+    Node f_def = it->second.getFunctionValue( "$x" );
+    fm->assignFunctionDefinition( it->first, f_def );
   }
   Assert( d_addedLemmas==0 );
   return TheoryEngineModelBuilder::processBuildModel( m );
 }
 
-int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
+int QModelBuilderIG::initializeQuantifier(Node f, Node fp, FirstOrderModel* fm)
+{
   if( d_quant_basis_match_added.find( f )==d_quant_basis_match_added.end() ){
     //create the basis match if necessary
     if( d_quant_basis_match.find( f )==d_quant_basis_match.end() ){
@@ -300,8 +312,9 @@ int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
       //  }
       //}
       d_quant_basis_match[f] = InstMatch( f );
-      for( int j=0; j<(int)f[0].getNumChildren(); j++ ){
-        Node t = d_qe->getTermDatabase()->getModelBasisTerm( f[0][j].getType() );
+      for (unsigned j = 0; j < f[0].getNumChildren(); j++)
+      {
+        Node t = fm->getModelBasisTerm(f[0][j].getType());
         //calculate the basis match for f
         d_quant_basis_match[f].setValue( j, t );
       }
@@ -310,7 +323,8 @@ int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
     //try to add it
     Trace("inst-fmf-init") << "Init: try to add match " << d_quant_basis_match[f] << std::endl;
     //add model basis instantiation
-    if( d_qe->addInstantiation( fp, d_quant_basis_match[f] ) ){
+    if (d_qe->getInstantiate()->addInstantiation(fp, d_quant_basis_match[f]))
+    {
       d_quant_basis_match_added[f] = true;
       return 1;
     }else{
@@ -334,22 +348,19 @@ void QModelBuilderIG::analyzeModel( FirstOrderModel* fm ){
       for( size_t i=0; i<itut->second.size(); i++ ){
         Node n = fmig->d_uf_terms[op][i];
         //for calculating if op is constant
-        if( d_qe->getTermDatabase()->isTermActive( n ) ){
-          Node v = fmig->getRepresentative( n );
-          if( i==0 ){
-            d_uf_prefs[op].d_const_val = v;
-          }else if( v!=d_uf_prefs[op].d_const_val ){
-            d_uf_prefs[op].d_const_val = Node::null();
-            break;
-          }
+        Node v = fmig->getRepresentative( n );
+        if( i==0 ){
+          d_uf_prefs[op].d_const_val = v;
+        }else if( v!=d_uf_prefs[op].d_const_val ){
+          d_uf_prefs[op].d_const_val = Node::null();
+          break;
         }
         //for calculating terms that we don't need to consider
-        if( d_qe->getTermDatabase()->isTermActive( n ) || n.getAttribute(ModelBasisArgAttribute())!=0 ){
-          if( d_basisNoMatch.find( n )==d_basisNoMatch.end() ){
-            //need to consider if it is not congruent modulo model basis
-            if( !tabt.addTerm( fmig, n ) ){
-              d_basisNoMatch[n] = true;
-            }
+        //if( d_qe->getTermDatabase()->isTermActive( n ) || n.getAttribute(ModelBasisArgAttribute())!=0 ){
+        if( d_basisNoMatch.find( n )==d_basisNoMatch.end() ){
+          //need to consider if it is not congruent modulo model basis
+          if( !tabt.addTerm( fmig, n ) ){
+            d_basisNoMatch[n] = true;
           }
         }
       }
@@ -409,22 +420,19 @@ QModelBuilderIG::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_eval_lits_unknown);
 }
 
-bool QModelBuilderIG::isTermActive( Node n ){
-  return d_qe->getTermDatabase()->isTermActive( n ) || //it is not congruent to another active term
-         ( n.getAttribute(ModelBasisArgAttribute())!=0 && d_basisNoMatch.find( n )==d_basisNoMatch.end() ); //or it has model basis arguments
-                                                                                                      //and is not congruent modulo model basis
-                                                                                                      //to another active term
-}
-
 //do exhaustive instantiation
 int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   if( optUseModel() ){
-    RepSetIterator riter( d_qe, &(d_qe->getModel()->d_rep_set) );
+    QRepBoundExt qrbe(d_qe);
+    RepSetIterator riter(d_qe->getModel()->getRepSet(), &qrbe);
     if( riter.setQuantifier( f ) ){
       FirstOrderModelIG * fmig = (FirstOrderModelIG*)d_qe->getModel();
       Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;
       fmig->resetEvaluate();
       Debug("inst-fmf-ei") << "Begin instantiation..." << std::endl;
+      EqualityQuery* qy = d_qe->getEqualityQuery();
+      Instantiate* inst = d_qe->getInstantiate();
+      TermUtil* util = d_qe->getTermUtil();
       while( !riter.isFinished() && ( d_addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
         d_triedLemmas++;
         if( Debug.isOn("inst-fmf-ei-debug") ){
@@ -443,8 +451,9 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
         //if evaluate(...)==1, then the instantiation is already true in the model
         //  depIndex is the index of the least significant variable that this evaluation relies upon
         depIndex = riter.getNumTerms()-1;
-        Debug("fmf-model-eval") << "We will evaluate " << d_qe->getTermDatabase()->getInstConstantBody( f ) << std::endl;
-        eval = fmig->evaluate( d_qe->getTermDatabase()->getInstConstantBody( f ), depIndex, &riter );
+        Debug("fmf-model-eval") << "We will evaluate "
+                                << util->getInstConstantBody(f) << std::endl;
+        eval = fmig->evaluate(util->getInstConstantBody(f), depIndex, &riter);
         if( eval==1 ){
           Debug("fmf-model-eval") << "  Returned success with depIndex = " << depIndex << std::endl;
         }else{
@@ -452,23 +461,25 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
         }
         if( eval==1 ){
           //instantiation is already true -> skip
-          riter.increment2( depIndex );
+          riter.incrementAtIndex(depIndex);
         }else{
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
-          for( int i=0; i<riter.getNumTerms(); i++ ){
-            m.set( d_qe, i, riter.getCurrentTerm( i ) );
+          for (unsigned i = 0; i < riter.getNumTerms(); i++)
+          {
+            m.set(qy, i, riter.getCurrentTerm(i));
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           //add as instantiation
-          if( d_qe->addInstantiation( f, m, true ) ){
+          if (inst->addInstantiation(f, m, true))
+          {
             d_addedLemmas++;
             if( d_qe->inConflict() ){
               break;
             }
             //if the instantiation is show to be false, and we wish to skip multiple instantiations at once
             if( eval==-1 ){
-              riter.increment2( depIndex );
+              riter.incrementAtIndex(depIndex);
             }else{
               riter.increment();
             }
@@ -540,13 +551,13 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
     // - determine selection literals
     // - check which function/predicates have good and bad definitions for satisfying f
     if( d_phase_reqs.find( f )==d_phase_reqs.end() ){
-      d_phase_reqs[f].initialize( d_qe->getTermDatabase()->getInstConstantBody( f ), true );
+      d_phase_reqs[f].initialize( d_qe->getTermUtil()->getInstConstantBody( f ), true );
     }
     int selectLitScore = -1;
     for( std::map< Node, bool >::iterator it = d_phase_reqs[f].d_phase_reqs.begin(); it != d_phase_reqs[f].d_phase_reqs.end(); ++it ){
       //the literal n is phase-required for quantifier f
       Node n = it->first;
-      Node gn = d_qe->getTermDatabase()->getModelBasis( f, n );
+      Node gn = fm->getModelBasis(f, n);
       Debug("fmf-model-req") << "   Req: " << n << " -> " << it->second << std::endl;
       bool value;
       //if the corresponding ground abstraction literal has a SAT value
@@ -556,7 +567,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
         //  constant definitions.
         bool isConst = true;
         std::vector< Node > uf_terms;
-        if( TermDb::hasInstConstAttr(n) ){
+        if( TermUtil::hasInstConstAttr(n) ){
           isConst = false;
           if( gn.getKind()==APPLY_UF ){
             uf_terms.push_back( gn );
@@ -564,7 +575,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
           }else if( gn.getKind()==EQUAL ){
             isConst = true;
             for( int j=0; j<2; j++ ){
-              if( TermDb::hasInstConstAttr(n[j]) ){
+              if( TermUtil::hasInstConstAttr(n[j]) ){
                 if( n[j].getKind()==APPLY_UF &&
                     fmig->d_uf_model_tree.find( gn[j].getOperator() )!=fmig->d_uf_model_tree.end() ){
                   uf_terms.push_back( gn[j] );
@@ -672,16 +683,17 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
     for( size_t i=0; i<d_quant_selection_lit_candidates[f].size(); i++ ){
       bool phase = d_quant_selection_lit_candidates[f][i].getKind()!=NOT;
       Node lit = d_quant_selection_lit_candidates[f][i].getKind()==NOT ? d_quant_selection_lit_candidates[f][i][0] : d_quant_selection_lit_candidates[f][i];
-      Assert( TermDb::hasInstConstAttr(lit) );
+      Assert( TermUtil::hasInstConstAttr(lit) );
       std::vector< Node > tr_terms;
       if( lit.getKind()==APPLY_UF ){
         //only match predicates that are contrary to this one, use literal matching
-        Node eq = NodeManager::currentNM()->mkNode( EQUAL, lit, !phase ? fm->d_true : fm->d_false );
+        Node eq = NodeManager::currentNM()->mkNode(
+            EQUAL, lit, NodeManager::currentNM()->mkConst(!phase));
         tr_terms.push_back( eq );
       }else if( lit.getKind()==EQUAL ){
         //collect trigger terms
         for( int j=0; j<2; j++ ){
-          if( TermDb::hasInstConstAttr(lit[j]) ){
+          if( TermUtil::hasInstConstAttr(lit[j]) ){
             if( lit[j].getKind()==APPLY_UF ){
               tr_terms.push_back( lit[j] );
             }else{
@@ -705,7 +717,7 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
         tr->reset( Node::null() );
         //d_qe->d_optInstMakeRepresentative = false;
         //d_qe->d_optMatchIgnoreModelBasis = true;
-        addedLemmas += tr->addInstantiations( d_quant_basis_match[f] );
+        addedLemmas += tr->addInstantiations();
       }
     }
   }
@@ -732,36 +744,37 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
   if( !d_uf_model_constructed[op] ){
     //construct the model for the uninterpretted function/predicate
     bool setDefaultVal = true;
-    Node defaultTerm = d_qe->getTermDatabase()->getModelBasisOpTerm( op );
+    Node defaultTerm = fmig->getModelBasisOpTerm(op);
     Trace("fmf-model-cons") << "Construct model for " << op << "..." << std::endl;
     //set the values in the model
     std::map< Node, std::vector< Node > >::iterator itut = fmig->d_uf_terms.find( op );
     if( itut!=fmig->d_uf_terms.end() ){
       for( size_t i=0; i<itut->second.size(); i++ ){
         Node n = itut->second[i];
-        if( isTermActive( n ) ){
-          Node v = fmig->getRepresentative( n );
-          Trace("fmf-model-cons") << "Set term " << n << " : " << fmig->d_rep_set.getIndexFor( v ) << " " << v << std::endl;
-          //if this assertion did not help the model, just consider it ground
-          //set n = v in the model tree
-          //set it as ground value
-          fmig->d_uf_model_gen[op].setValue( fm, n, v );
-          if( fmig->d_uf_model_gen[op].optUsePartialDefaults() ){
-            //also set as default value if necessary
-            if( n.hasAttribute(ModelBasisArgAttribute()) && n.getAttribute(ModelBasisArgAttribute())!=0 ){
-              Trace("fmf-model-cons") << "  Set as default." << std::endl;
-              fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
-              if( n==defaultTerm ){
-                //incidentally already set, we will not need to find a default value
-                setDefaultVal = false;
-              }
-            }
-          }else{
+        // only consider unique up to congruence (in model equality engine)?
+        Node v = fmig->getRepresentative( n );
+        Trace("fmf-model-cons") << "Set term " << n << " : "
+                                << fmig->getRepSet()->getIndexFor(v) << " " << v
+                                << std::endl;
+        //if this assertion did not help the model, just consider it ground
+        //set n = v in the model tree
+        //set it as ground value
+        fmig->d_uf_model_gen[op].setValue( fm, n, v );
+        if( fmig->d_uf_model_gen[op].optUsePartialDefaults() ){
+          //also set as default value if necessary
+          if( n.hasAttribute(ModelBasisArgAttribute()) && n.getAttribute(ModelBasisArgAttribute())!=0 ){
+            Trace("fmf-model-cons") << "  Set as default." << std::endl;
+            fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
             if( n==defaultTerm ){
-              fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
               //incidentally already set, we will not need to find a default value
               setDefaultVal = false;
             }
+          }
+        }else{
+          if( n==defaultTerm ){
+            fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
+            //incidentally already set, we will not need to find a default value
+            setDefaultVal = false;
           }
         }
       }
@@ -772,14 +785,19 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
       //chose defaultVal based on heuristic, currently the best ratio of "pro" responses
       Node defaultVal = d_uf_prefs[op].getBestDefaultValue( defaultTerm, fm );
       if( defaultVal.isNull() ){
-        if (!fmig->d_rep_set.hasType(defaultTerm.getType())) {
-          Node mbt = d_qe->getTermDatabase()->getModelBasisTerm(defaultTerm.getType());
-          fmig->d_rep_set.d_type_reps[defaultTerm.getType()].push_back(mbt);
+        if (!fmig->getRepSet()->hasType(defaultTerm.getType()))
+        {
+          Node mbt = fmig->getModelBasisTerm(defaultTerm.getType());
+          fmig->getRepSetPtr()->d_type_reps[defaultTerm.getType()].push_back(
+              mbt);
         }
-        defaultVal = fmig->d_rep_set.d_type_reps[defaultTerm.getType()][0];
+        defaultVal =
+            fmig->getRepSet()->getRepresentative(defaultTerm.getType(), 0);
       }
       Assert( !defaultVal.isNull() );
-      Trace("fmf-model-cons") << "Set default term : " << fmig->d_rep_set.getIndexFor( defaultVal ) << std::endl;
+      Trace("fmf-model-cons")
+          << "Set default term : " << fmig->getRepSet()->getIndexFor(defaultVal)
+          << std::endl;
       fmig->d_uf_model_gen[op].setValue( fm, defaultTerm, defaultVal, false );
     }
     Debug("fmf-model-cons") << "  Making model...";

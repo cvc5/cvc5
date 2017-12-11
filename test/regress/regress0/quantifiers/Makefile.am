@@ -70,10 +70,7 @@ TESTS =	\
 	agg-rew-test-cf.smt2 \
 	rew-to-0211-dd.smt2 \
 	rew-to-scala.smt2 \
-	macro-subtype-param.smt2 \
 	macros-real-arg.smt2 \
-	subtype-param-unk.smt2 \
-	subtype-param.smt2 \
 	anti-sk-simp.smt2 \
 	pure_dt_cbqi.smt2 \
 	florian-case-ax.smt2 \
@@ -88,22 +85,56 @@ TESTS =	\
 	quaternion_ds1_symm_0428.fof.smt2 \
 	bug749-rounding.smt2 \
 	RNDPRE_4_1-dd-nqe.smt2 \
-	mix-complete-strat.smt2
-
+	mix-complete-strat.smt2 \
+	cbqi-sdlx-fixpoint-3-dd.smt2 \
+	qbv-simp.smt2 \
+	psyco-001-bv.smt2 \
+	bug822.smt2 \
+	qbv-test-invert-mul.smt2 \
+	qbv-test-invert-bvand.smt2 \
+	qbv-test-invert-bvcomp.smt2 \
+	qbv-test-invert-bvor.smt2 \
+	qbv-test-invert-bvlshr-0.smt2 \
+	qbv-test-invert-bvashr-0.smt2 \
+ 	qbv-test-invert-bvurem-1.smt2 \
+	qbv-test-invert-concat-0.smt2 \
+	qbv-test-invert-concat-1.smt2 \
+	qbv-test-invert-disequality.smt2 \
+	qbv-test-invert-shl.smt2 \
+	qbv-test-invert-udiv-0.smt2 \
+	qbv-test-invert-udiv-1.smt2 \
+	qbv-test-invert-sign-extend.smt2 \
+	qbv-test-invert-bvxor.smt2 \
+	qbv-simple-2vars-vo.smt2 \
+	qbv-test-urem-rewrite.smt2 \
+	qbv-inequality2.smt2 \
+	qbv-test-invert-bvult-1.smt2 \
+	intersection-example-onelane.proof-node22337.smt2 \
+ 	nested9_true-unreach-call.i_575.smt2 \
+ 	small-pipeline-fixpoint-3.smt2 \
+	NUM878.smt2 \
+	psyco-107-bv.smt2 \
+	ari118-bv-2occ-x.smt2 \
+	extract-nproc.smt2 \
+	javafe.ast.StandardPrettyPrint.319.smt2 \
+	javafe.ast.StmtVec.009.smt2 \
+	javafe.ast.WhileStmt.447.smt2 \
+	clock-10.smt2 \
+	javafe.tc.FlowInsensitiveChecks.682.smt2 \
+	javafe.tc.CheckCompilationUnit.001.smt2
+ 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
 # set3.smt2
 
 
 # removed because they take more than 20s
-#		javafe.ast.ArrayInit.35.smt2 \
-#		javafe.ast.StandardPrettyPrint.319.smt2 \
-#		javafe.ast.StmtVec.009.smt2 \
-#		javafe.ast.WhileStmt.447.smt2 \
-#		javafe.tc.CheckCompilationUnit.001.smt2 \
-#		javafe.tc.FlowInsensitiveChecks.682.smt2 \
-#		clock-10.smt2
-#
+#		javafe.ast.ArrayInit.35.smt2
+
+# FIXME: I've disabled these since they give different error messages on production and debug
+#	macro-subtype-param.smt2 
+#	subtype-param-unk.smt2 
+#	subtype-param.smt2 
 
 EXTRA_DIST = $(TESTS) \
 	bug291.smt2.expect

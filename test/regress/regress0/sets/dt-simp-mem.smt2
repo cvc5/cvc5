@@ -1,6 +1,6 @@
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
-(declare-datatypes () ((D (A (a Int)))))
+(declare-datatypes ((D 0)) (((A (a Int)))))
 (declare-fun x1 () D)
 (declare-fun S () (Set D))
 (declare-fun P (D) Bool)

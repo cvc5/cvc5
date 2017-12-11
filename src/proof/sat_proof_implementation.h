@@ -2,9 +2,9 @@
 /*! \file sat_proof_implementation.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Tim King
+ **   Liana Hadarean, Tim King, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -218,8 +218,7 @@ TSatProof<Solver>::TSatProof(Solver* solver, context::Context* context,
       d_nullId(-2),
       d_temp_clauseId(),
       d_temp_idClause(),
-      d_unitConflictId(),
-      d_storedUnitConflict(false),
+      d_unitConflictId(context),
       d_trueLit(ClauseIdUndef),
       d_falseLit(ClauseIdUndef),
       d_name(name),
@@ -728,8 +727,8 @@ void TSatProof<Solver>::registerResolution(ClauseId id, ResChain<Solver>* res) {
     ResChain<Solver>* current = (*d_resolutionChains.find(id)).second;
     delete current;
   }
-  if (d_resolutionChains.find(id) == d_resolutionChains.end())
-    d_resolutionChains.insert(id, res);
+
+  d_resolutionChains.insert(id, res);
 
   if (Debug.isOn("proof:sat")) {
     printRes(id);
@@ -867,12 +866,11 @@ template <class Solver>
 ClauseId TSatProof<Solver>::storeUnitConflict(
     typename Solver::TLit conflict_lit, ClauseKind kind) {
   Debug("cores") << "STORE UNIT CONFLICT" << std::endl;
-  Assert(!d_storedUnitConflict);
-  d_unitConflictId = registerUnitClause(conflict_lit, kind);
-  d_storedUnitConflict = true;
-  Debug("proof:sat:detailed") << "storeUnitConflict " << d_unitConflictId
+  Assert(!d_unitConflictId.isSet());
+  d_unitConflictId.set(registerUnitClause(conflict_lit, kind));
+  Debug("proof:sat:detailed") << "storeUnitConflict " << d_unitConflictId.get()
                               << "\n";
-  return d_unitConflictId;
+  return d_unitConflictId.get();
 }
 
 template <class Solver>
@@ -881,8 +879,8 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
   Assert(conflict_ref != Solver::TCRef_Undef);
   ClauseId conflict_id;
   if (conflict_ref == Solver::TCRef_Lazy) {
-    Assert(d_storedUnitConflict);
-    conflict_id = d_unitConflictId;
+    Assert(d_unitConflictId.isSet());
+    conflict_id = d_unitConflictId.get();
 
     ResChain<Solver>* res = new ResChain<Solver>(conflict_id);
     typename Solver::TLit lit = d_idUnit[conflict_id];
@@ -892,7 +890,7 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
     return;
 
   } else {
-    Assert(!d_storedUnitConflict);
+    Assert(!d_unitConflictId.isSet());
     conflict_id = registerClause(conflict_ref, LEARNT);  // FIXME
   }
 
@@ -905,13 +903,11 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
   ResChain<Solver>* res = new ResChain<Solver>(conflict_id);
   // Here, the call to resolveUnit() can reallocate memory in the
   // clause allocator.  So reload conflict ptr each time.
-  size_t conflict_size = getClause(conflict_ref).size();
-  for (size_t i = 0; i < conflict_size; ++i) {
+  for (int i = 0; i < getClause(conflict_ref).size(); ++i) {
     const typename Solver::TClause& conflict = getClause(conflict_ref);
     typename Solver::TLit lit = conflict[i];
     ClauseId res_id = resolveUnit(~lit);
     res->addStep(lit, res_id, !sign(lit));
-    conflict_size = conflict.size();
   }
 
   registerResolution(d_emptyClauseId, res);

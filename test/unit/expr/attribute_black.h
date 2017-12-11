@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -88,10 +88,7 @@ public:
   }
 
   struct PrimitiveIntAttributeId {};
-  struct CDPrimitiveIntAttributeId {};
-
   typedef expr::Attribute<PrimitiveIntAttributeId,uint64_t> PrimitiveIntAttribute;
-  typedef expr::CDAttribute<CDPrimitiveIntAttributeId,uint64_t> CDPrimitiveIntAttribute;
   void testInts(){
     TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
@@ -105,21 +102,12 @@ public:
     TS_ASSERT(node->getAttribute(attr, data1));
     TS_ASSERT_EQUALS(data1, val);
 
-    uint64_t data2 = 0;
-    uint64_t data3 = 0;
-    CDPrimitiveIntAttribute cdattr;
-    TS_ASSERT(!node->getAttribute(cdattr, data2));
-    node->setAttribute(cdattr, val);
-    TS_ASSERT(node->getAttribute(cdattr, data3));
-    TS_ASSERT_EQUALS(data3, val);
     delete node;
   }
 
   struct TNodeAttributeId {};
-  struct CDTNodeAttributeId {};
 
   typedef expr::Attribute<TNodeAttributeId, TNode> TNodeAttribute;
-  typedef expr::CDAttribute<CDTNodeAttributeId, TNode> CDTNodeAttribute;
   void testTNodes(){
     TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
@@ -134,13 +122,6 @@ public:
     TS_ASSERT(node->getAttribute(attr, data1));
     TS_ASSERT_EQUALS(data1, val);
 
-    TNode data2;
-    TNode data3;
-    CDTNodeAttribute cdattr;
-    TS_ASSERT(!node->getAttribute(cdattr, data2));
-    node->setAttribute(cdattr, val);
-    TS_ASSERT(node->getAttribute(cdattr, data3));
-    TS_ASSERT_EQUALS(data3, val);
     delete node;
   }
 
@@ -152,10 +133,8 @@ public:
   };
 
   struct PtrAttributeId {};
-  struct CDPtrAttributeId {};
 
   typedef expr::Attribute<PtrAttributeId, Foo*> PtrAttribute;
-  typedef expr::CDAttribute<CDPtrAttributeId, Foo*> CDPtrAttribute;
   void testPtrs(){
     TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
@@ -170,25 +149,14 @@ public:
     TS_ASSERT(node->getAttribute(attr, data1));
     TS_ASSERT_EQUALS(data1, val);
 
-    Foo* data2 = NULL;
-    Foo* data3 = NULL;
-    CDPtrAttribute cdattr;
-    TS_ASSERT(!node->getAttribute(cdattr, data2));
-    node->setAttribute(cdattr, val);
-    TS_ASSERT(node->getAttribute(cdattr, data3));
-    TS_ASSERT(data3 != NULL);
-    TS_ASSERT_EQUALS(63489, data3->getBar());
-    TS_ASSERT_EQUALS(data3, val);
     delete node;
     delete val;
   }
 
 
   struct ConstPtrAttributeId {};
-  struct CDConstPtrAttributeId {};
 
   typedef expr::Attribute<ConstPtrAttributeId, const Foo*> ConstPtrAttribute;
-  typedef expr::CDAttribute<CDConstPtrAttributeId, const Foo*> CDConstPtrAttribute;
   void testConstPtrs(){
     TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
@@ -203,22 +171,12 @@ public:
     TS_ASSERT(node->getAttribute(attr, data1));
     TS_ASSERT_EQUALS(data1, val);
 
-    const Foo* data2 = NULL;
-    const Foo* data3 = NULL;
-    CDConstPtrAttribute cdattr;
-    TS_ASSERT(!node->getAttribute(cdattr, data2));
-    node->setAttribute(cdattr, val);
-    TS_ASSERT(node->getAttribute(cdattr, data3));
-    TS_ASSERT_EQUALS(data3, val);
     delete node;
     delete val;
   }
 
   struct StringAttributeId {};
-  struct CDStringAttributeId {};
-
   typedef expr::Attribute<StringAttributeId, std::string> StringAttribute;
-  typedef expr::CDAttribute<CDStringAttributeId, std::string> CDStringAttribute;
   void testStrings(){
     TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
@@ -233,21 +191,11 @@ public:
     TS_ASSERT(node->getAttribute(attr, data1));
     TS_ASSERT_EQUALS(data1, val);
 
-    std::string data2;
-    std::string data3;
-    CDStringAttribute cdattr;
-    TS_ASSERT(!node->getAttribute(cdattr, data2));
-    node->setAttribute(cdattr, val);
-    TS_ASSERT(node->getAttribute(cdattr, data3));
-    TS_ASSERT_EQUALS(data3, val);
     delete node;
   }
 
   struct BoolAttributeId {};
-  struct CDBoolAttributeId {};
-
   typedef expr::Attribute<BoolAttributeId, bool> BoolAttribute;
-  typedef expr::CDAttribute<CDBoolAttributeId, bool> CDBoolAttribute;
   void testBools(){
     TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
@@ -263,14 +211,6 @@ public:
     TS_ASSERT(node->getAttribute(attr, data1));
     TS_ASSERT_EQUALS(data1, val);
 
-    bool data2 = false;
-    bool data3 = false;
-    CDBoolAttribute cdattr;
-    TS_ASSERT(node->getAttribute(cdattr, data2));
-    TS_ASSERT_EQUALS(false, data2);
-    node->setAttribute(cdattr, val);
-    TS_ASSERT(node->getAttribute(cdattr, data3));
-    TS_ASSERT_EQUALS(data3, val);
     delete node;
   }
 

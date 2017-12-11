@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -676,7 +676,8 @@ void AlgebraicSolver::assertFact(TNode fact) {
 EqualityStatus AlgebraicSolver::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_UNKNOWN;
 }
-void AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
+bool AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel)
+{
   Debug("bitvector-model") << "AlgebraicSolver::collectModelInfo\n";
   AlwaysAssert (!d_quickSolver->inConflict());
   set<Node> termSet;
@@ -729,9 +730,12 @@ void AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
     Debug("bitvector-model") << "AlgebraicSolver:   " << variables[i] << " => " << subst << "\n";
     // Doesn't have to be constant as it may be irrelevant
     Assert (subst.getKind() == kind::CONST_BITVECTOR);
-    model->assertEquality(variables[i], subst, true);
+    if (!model->assertEquality(variables[i], subst, true))
+    {
+      return false;
+    }
   }
-
+  return true;
  }
 
 Node AlgebraicSolver::getModelValue(TNode node) {

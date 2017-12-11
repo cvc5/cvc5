@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Tim King, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -219,7 +219,8 @@ Node EagerBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
   return utils::mkConst(BitVector(bits.size(), value));
 }
 
-void EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
+bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
+{
   TNodeSet::iterator it = d_variables.begin();
   for (; it != d_variables.end(); ++it) {
     TNode var = *it;
@@ -234,10 +235,14 @@ void EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
         Debug("bitvector-model")
             << "EagerBitblaster::collectModelInfo (assert (= " << var << " "
             << const_value << "))\n";
-        m->assertEquality(var, const_value, true);
+        if (!m->assertEquality(var, const_value, true))
+        {
+          return false;
+        }
       }
     }
   }
+  return true;
 }
 
 void EagerBitblaster::setProofLog(BitVectorProof* bvp) {

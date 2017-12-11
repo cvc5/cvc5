@@ -72,7 +72,6 @@ TESTS = \
   bug686dd.smt2 \
   idof-handg.smt2 \
   fmf001.smt2 \
-  type002.smt2 \
   crash-1019.smt2 \
   norn-31.smt2 \
   strings-native-simple.cvc \
@@ -86,7 +85,17 @@ TESTS = \
   cmu-inc-nlpp-071516.smt2 \
   strings-index-empty.smt2 \
   bug768.smt2 \
-  username_checker_min.smt2
+  username_checker_min.smt2 \
+  repl-empty-sem.smt2 \
+  bug799-min.smt2 \
+  strings-charat.cvc \
+  issue1105.smt2 \
+  issue1189.smt2 \
+  rewrites-v2.smt2 \
+  substr-rewrites.smt2 \
+  norn-ab.smt2 \
+  type002.smt2 \
+  strip-endpt-sound.smt2
 
 FAILING_TESTS =
 
@@ -96,7 +105,7 @@ EXTRA_DIST = $(TESTS)
 EXTRA_DIST +=
 
 #norn-dis-0707-3.smt2
-#norn-ab.smt2
+
 
 # synonyms for "check"
 .PHONY: regress regress0 test

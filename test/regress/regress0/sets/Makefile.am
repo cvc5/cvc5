@@ -78,7 +78,17 @@ TESTS =	\
 	univset-simp.smt2 \
 	complement.cvc \
 	complement2.cvc \
-    complement3.cvc
+	complement3.cvc \
+	sharing-simp.smt2 \
+	pre-proc-univ.smt2 \
+	nonvar-univ.smt2 \
+	sets-poly-int-real.smt2 \
+	sets-poly-nonint.smt2 \
+	int-real-univ.smt2 \
+	int-real-univ-unsat.smt2 \
+	sets-tuple-poly.cvc \
+	arjun-set-univ.cvc \
+	univ-set-uf-elim.smt2
 
 EXTRA_DIST = $(TESTS)
 

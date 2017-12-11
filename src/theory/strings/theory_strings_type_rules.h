@@ -2,9 +2,9 @@
 /*! \file theory_strings_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Tim King, Morgan Deters
+ **   Tianyi Liang, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -98,7 +98,7 @@ public:
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting an orginal string term in string contain");
+        throw TypeCheckingExceptionPrivate(n, "expecting an original string term in string contain");
       }
       t = n[1].getType(check);
       if (!t.isString()) {

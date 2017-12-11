@@ -2,9 +2,9 @@
 /*! \file type_enumerator_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Paul Meng, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,6 +16,8 @@
  **/
 
 #include <cxxtest/TestSuite.h>
+
+#include <unordered_set>
 
 #include "expr/array_store_all.h"
 #include "expr/expr_manager.h"
@@ -140,39 +142,6 @@ public:
     TS_ASSERT_EQUALS(*++te, d_nm->mkConst(Rational(1, 7)));
     TS_ASSERT_EQUALS(*++te, d_nm->mkConst(Rational(-1, 7)));
     TS_ASSERT( ! te.isFinished() );
-
-    // subrange bounded only below
-    te = TypeEnumerator(d_nm->mkSubrangeType(SubrangeBounds(SubrangeBound(Integer(0)), SubrangeBound())));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*te, d_nm->mkConst(Rational(0)));
-    for(int i = 1; i <= 100; ++i) {
-      TS_ASSERT( ! (++te).isFinished() );
-      TS_ASSERT_EQUALS(*te, d_nm->mkConst(Rational(i)));
-    }
-    TS_ASSERT( ! te.isFinished() );
-
-    // subrange bounded only above
-    te = TypeEnumerator(d_nm->mkSubrangeType(SubrangeBounds(SubrangeBound(), SubrangeBound(Integer(-5)))));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*te, d_nm->mkConst(Rational(-5)));
-    for(int i = 1; i <= 100; ++i) {
-      TS_ASSERT( ! (++te).isFinished() );
-      TS_ASSERT_EQUALS(*te, d_nm->mkConst(Rational(-5 - i)));
-    }
-    TS_ASSERT( ! te.isFinished() );
-
-    // finite subrange
-    te = TypeEnumerator(d_nm->mkSubrangeType(SubrangeBounds(SubrangeBound(Integer(-10)), SubrangeBound(Integer(15)))));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*te, d_nm->mkConst(Rational(-10)));
-    for(int i = -9; i <= 15; ++i) {
-      TS_ASSERT( ! (++te).isFinished() );
-      TS_ASSERT_EQUALS(*te, d_nm->mkConst(Rational(i)));
-    }
-    TS_ASSERT( (++te).isFinished() );
-    TS_ASSERT_THROWS(*te, NoMoreValuesException);
-std::cout<<"here\n";
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
   }
 
   void testDatatypesFinite() {
@@ -251,7 +220,7 @@ std::cout<<"here\n";
 
   void testArraysInfinite() {
     TypeEnumerator te(d_nm->mkArrayType(d_nm->integerType(), d_nm->integerType()));
-    hash_set<Node, NodeHashFunction> elts;
+    unordered_set<Node, NodeHashFunction> elts;
     for(size_t i = 0; i < 1000; ++i) {
       TS_ASSERT( ! te.isFinished() );
       Node elt = *te++;

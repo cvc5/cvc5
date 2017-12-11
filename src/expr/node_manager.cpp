@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,13 +18,11 @@
 #include "expr/node_manager.h"
 
 #include <algorithm>
-#include <ext/hash_set>
 #include <stack>
 #include <utility>
 
 #include "base/cvc4_assert.h"
 #include "base/listener.h"
-#include "base/tls.h"
 #include "expr/attribute.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_manager_listeners.h"
@@ -36,11 +34,10 @@
 
 using namespace std;
 using namespace CVC4::expr;
-using __gnu_cxx::hash_set;
 
 namespace CVC4 {
 
-CVC4_THREADLOCAL(NodeManager*) NodeManager::s_current = NULL;
+CVC4_THREAD_LOCAL NodeManager* NodeManager::s_current = NULL;
 
 namespace {
 
@@ -86,6 +83,12 @@ struct NVReclaim {
 
 } // namespace
 
+namespace attr {
+  struct LambdaBoundVarListTag { };
+}/* CVC4::attr namespace */
+
+// attribute that stores the canonical bound variable list for function types
+typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAttr;
 
 NodeManager::NodeManager(ExprManager* exprManager) :
   d_options(new Options()),
@@ -315,7 +318,7 @@ void NodeManager::reclaimZombies() {
 
       // remove from the pool
       kind::MetaKind mk = nv->getMetaKind();
-      if(mk != kind::metakind::VARIABLE) {
+      if(mk != kind::metakind::VARIABLE && mk != kind::metakind::NULLARY_OPERATOR) {
         poolRemove(nv);
       }
 
@@ -412,8 +415,9 @@ TypeNode NodeManager::getType(TNode n, bool check)
   bool hasType = getAttribute(n, TypeAttr(), typeNode);
   bool needsCheck = check && !getAttribute(n, TypeCheckedAttr());
 
-  Debug("getType") << "getting type for " << n << endl;
 
+  Debug("getType") << this << " getting type for " << &n << " " << n << ", check=" << check << ", needsCheck = " << needsCheck << ", hasType = " << hasType << endl;
+  
   if(needsCheck && !(*d_options)[options::earlyTypeChecking]) {
     /* Iterate and compute the children bottom up. This avoids stack
        overflows in computeType() when the Node graph is really deep,
@@ -437,6 +441,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
       }
 
       if( readyToCompute ) {
+        Assert( check || m.getMetaKind()!=kind::metakind::NULLARY_OPERATOR );
         /* All the children have types, time to compute */
         typeNode = TypeChecker::computeType(this, m, check);
         worklist.pop();
@@ -448,6 +453,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
   } else if( !hasType || needsCheck ) {
     /* We can compute the type top-down, without worrying about
        deep recursion. */
+    Assert( check || n.getMetaKind()!=kind::metakind::NULLARY_OPERATOR );
     typeNode = TypeChecker::computeType(this, n, check);
   }
 
@@ -456,7 +462,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
   /* The check should have happened, if we asked for it. */
   Assert( !check || getAttribute(n, TypeCheckedAttr()) );
 
-  Debug("getType") << "type of " << n << " is " << typeNode << endl;
+  Debug("getType") << "type of " << &n << " " <<  n << " is " << typeNode << endl;
   return typeNode;
 }
 
@@ -501,51 +507,6 @@ TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
                       "cannot create higher-order function types");
   sorts.push_back(range);
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
-}
-
-TypeNode NodeManager::mkPredicateSubtype(Expr lambda)
-  throw(TypeCheckingExceptionPrivate) {
-
-  Node lambdan = Node::fromExpr(lambda);
-
-  if(lambda.isNull()) {
-    throw TypeCheckingExceptionPrivate(lambdan, "cannot make a predicate subtype based on null expression");
-  }
-
-  TypeNode tn = lambdan.getType();
-  if(! tn.isPredicateLike() ||
-     tn.getArgTypes().size() != 1) {
-    stringstream ss;
-    ss << "expected a predicate of one argument to define predicate subtype, but got type `" << tn << "'";
-    throw TypeCheckingExceptionPrivate(lambdan, ss.str());
-  }
-
-  return TypeNode(mkTypeConst(Predicate(lambda)));
-}
-
-TypeNode NodeManager::mkPredicateSubtype(Expr lambda, Expr witness)
-  throw(TypeCheckingExceptionPrivate) {
-
-  Node lambdan = Node::fromExpr(lambda);
-
-  if(lambda.isNull()) {
-    throw TypeCheckingExceptionPrivate(lambdan, "cannot make a predicate subtype based on null expression");
-  }
-
-  TypeNode tn = lambdan.getType();
-  if(! tn.isPredicateLike() ||
-     tn.getArgTypes().size() != 1) {
-    stringstream ss;
-    ss << "expected a predicate of one argument to define predicate subtype, but got type `" << tn << "'";
-    throw TypeCheckingExceptionPrivate(lambdan, ss.str());
-  }
-
-  return TypeNode(mkTypeConst(Predicate(lambda, witness)));
-}
-
-TypeNode NodeManager::mkSubrangeType(const SubrangeBounds& bounds)
-  throw(TypeCheckingExceptionPrivate) {
-  return TypeNode(mkTypeConst(bounds));
 }
 
 TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index ) {
@@ -737,6 +698,21 @@ Node* NodeManager::mkBoundVarPtr(const std::string& name,
   return n;
 }
 
+Node NodeManager::getBoundVarListForFunctionType( TypeNode tn ) {
+  Assert( tn.isFunction() );
+  Node bvl = tn.getAttribute(LambdaBoundVarListAttr());
+  if( bvl.isNull() ){
+    std::vector< Node > vars;
+    for( unsigned i=0; i<tn.getNumChildren()-1; i++ ){
+      vars.push_back( NodeManager::currentNM()->mkBoundVar( tn[i] ) );
+    }
+    bvl = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, vars );
+    Trace("functions") << "Make standard bound var list " << bvl << " for " << tn << std::endl;
+    tn.setAttribute(LambdaBoundVarListAttr(),bvl);
+  }
+  return bvl;
+}
+
 Node NodeManager::mkVar(const TypeNode& type, uint32_t flags) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
@@ -787,14 +763,14 @@ Node NodeManager::mkBooleanTermVariable() {
   return n;
 }
 
-Node NodeManager::mkUniqueVar(const TypeNode& type, Kind k) {
+Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
   std::map< TypeNode, Node >::iterator it = d_unique_vars[k].find( type );
   if( it==d_unique_vars[k].end() ){
-    Node n = NodeBuilder<0>(this, k);
-    n.setAttribute(TypeAttr(), type);
-    n.setAttribute(TypeCheckedAttr(), true);
+    Node n = NodeBuilder<0>(this, k).constructNode();
+    setAttribute(n, TypeAttr(), type);
+    //setAttribute(n, TypeCheckedAttr(), true);
     d_unique_vars[k][type] = n;
-    Assert( n.getMetaKind() == kind::metakind::VARIABLE );
+    Assert( n.getMetaKind() == kind::metakind::NULLARY_OPERATOR );
     return n;
   }else{
     return it->second;

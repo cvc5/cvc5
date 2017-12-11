@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Francois Bobot, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,10 +32,11 @@ options {
 
 @header {
 /**
- ** This file is part of CVC4.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.
  **/
 }/* @header */
 
@@ -91,6 +92,8 @@ using namespace CVC4::parser;
 // This should come immediately after #include <antlr3.h> in the generated
 // files. See the documentation in "parser/antlr_undefines.h" for more details.
 #include "parser/antlr_undefines.h"
+
+#include <memory>
 
 #include "smt/command.h"
 #include "parser/parser.h"
@@ -155,7 +158,9 @@ parseCommand returns [CVC4::Command* cmd = NULL]
 }
 //  : LPAREN_TOK c = command RPAREN_TOK { $cmd = c; }
   : CNF_TOK LPAREN_TOK nameN[name] COMMA_TOK formulaRole[fr] COMMA_TOK
-  { PARSER_STATE->cnf = true; PARSER_STATE->fof = false; PARSER_STATE->pushScope(); }
+  { PARSER_STATE->setCnf(true);
+    PARSER_STATE->setFof(false);
+    PARSER_STATE->pushScope(); }
     cnfFormula[expr]
   { PARSER_STATE->popScope();
     std::vector<Expr> bvl = PARSER_STATE->getFreeVar();
@@ -165,21 +170,45 @@ parseCommand returns [CVC4::Command* cmd = NULL]
   }
     (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ true);
+      Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+      if( !aexpr.isNull() ){
+        // set the expression name (e.g. used with unsat core printing)
+        Command* csen = new SetExpressionNameCommand(aexpr, name);
+        csen->setMuted(true);
+        PARSER_STATE->preemptCommand(csen);
+      }
+      // make the command to assert the formula
+      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ true, true);
     }
   | FOF_TOK LPAREN_TOK nameN[name] COMMA_TOK formulaRole[fr] COMMA_TOK
-    { PARSER_STATE->cnf = false; PARSER_STATE->fof = true; }
+    { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(true); }
     fofFormula[expr] (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ false);
+      Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+      if( !aexpr.isNull() ){
+        // set the expression name (e.g. used with unsat core printing)
+        Command* csen = new SetExpressionNameCommand(aexpr, name);
+        csen->setMuted(true);
+        PARSER_STATE->preemptCommand(csen);
+      }
+      // make the command to assert the formula
+      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
     }
   | TFF_TOK LPAREN_TOK nameN[name] COMMA_TOK
     ( TYPE_TOK COMMA_TOK tffTypedAtom[cmd]
     | formulaRole[fr] COMMA_TOK
-      { PARSER_STATE->cnf = false; PARSER_STATE->fof = false; }
+      { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(false); }
       tffFormula[expr] (COMMA_TOK anything*)?
       {
-        cmd = PARSER_STATE->makeCommand(fr, expr, /* cnf == */ false);
+        Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+        if( !aexpr.isNull() ){
+          // set the expression name (e.g. used with unsat core printing)
+          Command* csen = new SetExpressionNameCommand(aexpr, name);
+          csen->setMuted(true);
+          PARSER_STATE->preemptCommand(csen);
+        }
+        // make the command to assert the formula
+        cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
       }
     ) RPAREN_TOK DOT_TOK
   | INCLUDE_TOK LPAREN_TOK unquotedFileName[name]
@@ -353,7 +382,7 @@ definedFun[CVC4::Expr& expr]
                                       MK_EXPR(CVC4::kind::TO_INTEGER, expr),
                                       MK_EXPR(CVC4::kind::UMINUS, MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::UMINUS, expr))));
       if(remainder) {
-        expr = MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d));
+        expr = MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d)));
       }
       expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
     }
@@ -368,7 +397,7 @@ definedFun[CVC4::Expr& expr]
                                       MK_EXPR(CVC4::kind::TO_INTEGER, expr),
                                       MK_EXPR(CVC4::kind::UMINUS, MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::UMINUS, expr))));
       if(remainder) {
-        expr = MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d));
+        expr = MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d)));
       }
       expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
     }
@@ -381,7 +410,7 @@ definedFun[CVC4::Expr& expr]
       expr = MK_EXPR(CVC4::kind::DIVISION_TOTAL, n, d);
       expr = MK_EXPR(CVC4::kind::TO_INTEGER, expr);
       if(remainder) {
-        expr = MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d));
+        expr = MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d)));
       }
       expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
     }
@@ -503,11 +532,11 @@ variable[CVC4::Expr& expr]
   : UPPER_WORD
     {
       std::string name = AntlrInput::tokenText($UPPER_WORD);
-      if(!PARSER_STATE->cnf || PARSER_STATE->isDeclared(name)) {
+      if(!PARSER_STATE->cnf() || PARSER_STATE->isDeclared(name)) {
         expr = PARSER_STATE->getVariable(name);
       } else {
         expr = PARSER_STATE->mkBoundVar(name, PARSER_STATE->d_unsorted);
-        if(PARSER_STATE->cnf) PARSER_STATE->addFreeVar(expr);
+        if(PARSER_STATE->cnf()) PARSER_STATE->addFreeVar(expr);
       }
     }
     ;
@@ -1020,7 +1049,7 @@ NUMBER
         PARSER_STATE->d_tmp_expr = MK_CONST(Rational(pos ? inum : -inum, iden));
       }
     )
-    { if(PARSER_STATE->cnf || PARSER_STATE->fof) {
+    { if(PARSER_STATE->cnf() || PARSER_STATE->fof()) {
         // We're in an unsorted context, so put a conversion around it
         PARSER_STATE->d_tmp_expr = PARSER_STATE->convertRatToUnsorted( PARSER_STATE->d_tmp_expr );
       }

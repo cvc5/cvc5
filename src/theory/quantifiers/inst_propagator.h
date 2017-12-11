@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,13 +18,14 @@
 #define __CVC4__QUANTIFIERS_INST_PROPAGATOR_H
 
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -38,9 +39,11 @@ public:
   EqualityQueryInstProp( QuantifiersEngine* qe );
   ~EqualityQueryInstProp(){};
   /** reset */
-  bool reset( Theory::Effort e );
+  virtual bool reset(Theory::Effort e);
+  /* Called for new quantifiers */
+  virtual void registerQuantifier(Node q) {}
   /** identify */
-  std::string identify() const { return "EqualityQueryInstProp"; }
+  virtual std::string identify() const { return "EqualityQueryInstProp"; }
   /** extends engine */
   bool extendsEngine() { return true; }
   /** contains term */
@@ -111,14 +114,23 @@ private:
     InstPropagator& d_ip;
   public:
     InstantiationNotifyInstPropagator(InstPropagator& ip): d_ip(ip) {}
-    virtual bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) {
+    virtual bool notifyInstantiation(QuantifiersModule::QEffort quant_e,
+                                     Node q,
+                                     Node lem,
+                                     std::vector<Node>& terms,
+                                     Node body)
+    {
       return d_ip.notifyInstantiation( quant_e, q, lem, terms, body );
     }
     virtual void filterInstantiations() { d_ip.filterInstantiations(); }
   };
   InstantiationNotifyInstPropagator d_notify;
   /** notify instantiation method */
-  bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body );
+  bool notifyInstantiation(QuantifiersModule::QEffort quant_e,
+                           Node q,
+                           Node lem,
+                           std::vector<Node>& terms,
+                           Node body);
   /** remove instance ids */
   void filterInstantiations();  
   /** allocate instantiation */
@@ -161,9 +173,11 @@ public:
   InstPropagator( QuantifiersEngine* qe );
   ~InstPropagator(){}
   /** reset */
-  bool reset( Theory::Effort e );
+  virtual bool reset(Theory::Effort e) override;
+  /* Called for new quantifiers */
+  virtual void registerQuantifier(Node q) override {}
   /** identify */
-  std::string identify() const { return "InstPropagator"; }
+  virtual std::string identify() const override { return "InstPropagator"; }
   /** get the notify mechanism */
   InstantiationNotify* getInstantiationNotify() { return &d_notify; }
 };

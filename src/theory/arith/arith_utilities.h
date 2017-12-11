@@ -2,9 +2,9 @@
 /*! \file arith_utilities.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
+ **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,8 @@
 #ifndef __CVC4__THEORY__ARITH__ARITH_UTILITIES_H
 #define __CVC4__THEORY__ARITH__ARITH_UTILITIES_H
 
-#include <ext/hash_map>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "context/cdhashset.h"
@@ -35,12 +36,12 @@ namespace theory {
 namespace arith {
 
 //Sets of Nodes
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
 typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
 
 //Maps from Nodes -> ArithVars, and vice versa
-typedef __gnu_cxx::hash_map<Node, ArithVar, NodeHashFunction> NodeToArithVarMap;
+typedef std::unordered_map<Node, ArithVar, NodeHashFunction> NodeToArithVarMap;
 typedef DenseMap<Node> ArithVarToNodeMap;
 
 inline Node mkRationalNode(const Rational& q){
@@ -63,21 +64,6 @@ inline Node skolemFunction(const std::string& name, TypeNode dom, TypeNode range
   NodeManager* currNM = NodeManager::currentNM();
   TypeNode functionType = currNM->mkFunctionType(dom, range);
   return currNM->mkSkolem(name, functionType);
-}
-
-/**
- * (For the moment) the type hierarchy goes as:
- * Integer <: Real
- * The type number of a variable is an integer representing the most specific
- * type of the variable. The possible values of type number are:
- */
-enum ArithType {
-  ATReal = 0,
-  ATInteger = 1
-};
-
-inline ArithType nodeToArithType(TNode x) {
-  return (x.getType().isInteger() ? ATInteger : ATReal);
 }
 
 /** \f$ k \in {LT, LEQ, EQ, GEQ, GT} \f$ */
@@ -309,6 +295,12 @@ inline Node mkInRange(Node term, Node start, Node end) {
 inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero) {
   Node zero = mkRationalNode(0);
   return n.eqNode(zero).iteNode(q.eqNode(if_zero), q.eqNode(not_zero));
+}
+
+inline Node mkPi()
+{
+  return NodeManager::currentNM()->mkNullaryOperator(
+      NodeManager::currentNM()->realType(), kind::PI);
 }
 
 }/* CVC4::theory::arith namespace */

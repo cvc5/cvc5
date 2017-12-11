@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -12,21 +12,17 @@
  ** Definitions of SMT-LIB (v1) constants.
  **/
 
-#include <ext/hash_map>
-namespace std {
-  using namespace __gnu_cxx;
-}
+#include "parser/smt1/smt1.h"
 
 #include "expr/type.h"
 #include "smt/command.h"
 #include "parser/parser.h"
-#include "parser/smt1/smt1.h"
 
 namespace CVC4 {
 namespace parser {
 
-std::hash_map<const std::string, Smt1::Logic, CVC4::StringHashFunction> Smt1::newLogicMap() {
-  std::hash_map<const std::string, Smt1::Logic, CVC4::StringHashFunction> logicMap;
+std::unordered_map<std::string, Smt1::Logic> Smt1::newLogicMap() {
+  std::unordered_map<std::string, Smt1::Logic> logicMap;
   logicMap["AUFLIA"] = AUFLIA;
   logicMap["AUFLIRA"] = AUFLIRA;
   logicMap["AUFNIRA"] = AUFNIRA;
@@ -57,6 +53,7 @@ std::hash_map<const std::string, Smt1::Logic, CVC4::StringHashFunction> Smt1::ne
   logicMap["QF_UFNIRA"] = QF_UFNIRA;
   logicMap["QF_AUFLIA"] = QF_AUFLIA;
   logicMap["QF_AUFLIRA"] = QF_AUFLIRA;
+  logicMap["SAT"] = SAT;
   logicMap["UFNIA"] = UFNIA;
   logicMap["UFNIRA"] = UFNIRA;
   logicMap["UFLRA"] = UFLRA;
@@ -68,14 +65,13 @@ std::hash_map<const std::string, Smt1::Logic, CVC4::StringHashFunction> Smt1::ne
 }
 
 Smt1::Logic Smt1::toLogic(const std::string& name) {
-  static std::hash_map<const std::string, Smt1::Logic, CVC4::StringHashFunction> logicMap = newLogicMap();
+  static std::unordered_map<std::string, Smt1::Logic> logicMap = newLogicMap();
   return logicMap[name];
 }
 
-Smt1::Smt1(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
-  Parser(exprManager,input,strictMode,parseOnly),
-  d_logicSet(false) {
-
+Smt1::Smt1(ExprManager* exprManager, Input* input, bool strictMode,
+           bool parseOnly)
+    : Parser(exprManager, input, strictMode, parseOnly), d_logic(UNSET) {
   // Boolean symbols are always defined
   addOperator(kind::AND);
   addOperator(kind::EQUAL);
@@ -173,164 +169,165 @@ void Smt1::addTheory(Theory theory) {
   }
 }
 
-bool Smt1::logicIsSet() {
-  return d_logicSet;
-}
+bool Smt1::logicIsSet() { return d_logic != UNSET; }
 
 void Smt1::setLogic(const std::string& name) {
-  d_logicSet = true;
-  if(logicIsForced()) {
-    d_logic = toLogic(getForcedLogic());
-  } else {
-    d_logic = toLogic(name);
-  }
+  d_logic = toLogic(logicIsForced() ? getForcedLogic() : name);
 
   switch(d_logic) {
-  case QF_S:
-    throw ParserException("Strings theory unsupported in SMT-LIBv1 front-end; try SMT-LIBv2.");
-    break;
+  case UNSET:
+      throw ParserException("Logic cannot remain UNSET after being set.");
+      break;
 
-  case QF_AX:
-    addTheory(THEORY_ARRAYS_EX);
-    break;
+    case QF_S:
+      throw ParserException(
+          "Strings theory unsupported in SMT-LIBv1 front-end; try SMT-LIBv2.");
+      break;
 
-  case QF_IDL:
-  case QF_LIA:
-  case QF_NIA:
-    addTheory(THEORY_INTS);
-    break;
+    case QF_AX:
+      addTheory(THEORY_ARRAYS_EX);
+      break;
 
-  case QF_RDL:
-  case QF_LRA:
-  case QF_NRA:
-    addTheory(THEORY_REALS);
-    break;
+    case QF_IDL:
+    case QF_LIA:
+    case QF_NIA:
+      addTheory(THEORY_INTS);
+      break;
 
-  case QF_SAT:
-    /* no extra symbols needed */
-    break;
+    case QF_RDL:
+    case QF_LRA:
+    case QF_NRA:
+      addTheory(THEORY_REALS);
+      break;
 
-  case QF_UFIDL:
-  case QF_UFLIA:
-  case QF_UFNIA:// nonstandard logic
-    addTheory(THEORY_INTS);
-    addOperator(kind::APPLY_UF);
-    break;
+    case QF_SAT:
+      /* no extra symbols needed */
+      break;
+    case SAT:
+      addTheory(THEORY_QUANTIFIERS);
+      break;
 
-  case QF_UFLRA:
-  case QF_UFNRA:
-    addTheory(THEORY_REALS);
-    addOperator(kind::APPLY_UF);
-    break;
+    case QF_UFIDL:
+    case QF_UFLIA:
+    case QF_UFNIA:  // nonstandard logic
+      addTheory(THEORY_INTS);
+      addOperator(kind::APPLY_UF);
+      break;
 
-  case QF_UFLIRA:// nonstandard logic
-  case QF_UFNIRA:// nonstandard logic
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_REALS);
-    addOperator(kind::APPLY_UF);
-    break;
+    case QF_UFLRA:
+    case QF_UFNRA:
+      addTheory(THEORY_REALS);
+      addOperator(kind::APPLY_UF);
+      break;
 
-  case QF_UF:
-    addTheory(THEORY_EMPTY);
-    addOperator(kind::APPLY_UF);
-    break;
+    case QF_UFLIRA:  // nonstandard logic
+    case QF_UFNIRA:  // nonstandard logic
+      addTheory(THEORY_INTS);
+      addTheory(THEORY_REALS);
+      addOperator(kind::APPLY_UF);
+      break;
 
-  case QF_BV:
-    addTheory(THEORY_BITVECTORS);
-    break;
+    case QF_UF:
+      addTheory(THEORY_EMPTY);
+      addOperator(kind::APPLY_UF);
+      break;
 
-  case QF_ABV:// nonstandard logic
-    addTheory(THEORY_BITVECTOR_ARRAYS_EX);
-    addTheory(THEORY_BITVECTORS);
-    break;
+    case QF_BV:
+      addTheory(THEORY_BITVECTORS);
+      break;
 
-  case QF_UFBV:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_BITVECTORS);
-    break;
+    case QF_ABV:  // nonstandard logic
+      addTheory(THEORY_BITVECTOR_ARRAYS_EX);
+      addTheory(THEORY_BITVECTORS);
+      break;
 
-  case QF_AUFBV:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_BITVECTOR_ARRAYS_EX);
-    addTheory(THEORY_BITVECTORS);
-    break;
+    case QF_UFBV:
+      addOperator(kind::APPLY_UF);
+      addTheory(THEORY_BITVECTORS);
+      break;
 
-  case QF_AUFBVLIA:// nonstandard logic
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_ARRAYS_EX);
-    addTheory(THEORY_BITVECTORS);
-    addTheory(THEORY_INTS);
-    break;
+    case QF_AUFBV:
+      addOperator(kind::APPLY_UF);
+      addTheory(THEORY_BITVECTOR_ARRAYS_EX);
+      addTheory(THEORY_BITVECTORS);
+      break;
 
-  case QF_AUFBVLRA:// nonstandard logic
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_ARRAYS_EX);
-    addTheory(THEORY_BITVECTORS);
-    addTheory(THEORY_REALS);
-    break;
+    case QF_AUFBVLIA:  // nonstandard logic
+      addOperator(kind::APPLY_UF);
+      addTheory(THEORY_ARRAYS_EX);
+      addTheory(THEORY_BITVECTORS);
+      addTheory(THEORY_INTS);
+      break;
 
-  case QF_AUFLIA:
-    addTheory(THEORY_INT_ARRAYS_EX);// nonstandard logic
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    break;
+    case QF_AUFBVLRA:  // nonstandard logic
+      addOperator(kind::APPLY_UF);
+      addTheory(THEORY_ARRAYS_EX);
+      addTheory(THEORY_BITVECTORS);
+      addTheory(THEORY_REALS);
+      break;
 
-  case QF_AUFLIRA:// nonstandard logic
-    addTheory(THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX);
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_REALS);
-    break;
+    case QF_AUFLIA:
+      addTheory(THEORY_INT_ARRAYS_EX);  // nonstandard logic
+      addOperator(kind::APPLY_UF);
+      addTheory(THEORY_INTS);
+      break;
 
-  case ALL_SUPPORTED:// nonstandard logic
-    addTheory(THEORY_QUANTIFIERS);
-    /* fall through */
-  case QF_ALL_SUPPORTED:// nonstandard logic
-    addTheory(THEORY_ARRAYS_EX);
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_REALS);
-    addTheory(THEORY_BITVECTORS);
-    break;
+    case QF_AUFLIRA:  // nonstandard logic
+      addTheory(THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX);
+      addOperator(kind::APPLY_UF);
+      addTheory(THEORY_INTS);
+      addTheory(THEORY_REALS);
+      break;
 
-  case AUFLIA:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_INT_ARRAYS_EX);
-    addTheory(THEORY_QUANTIFIERS);
-    break;
+    case ALL_SUPPORTED:  // nonstandard logic
+      addTheory(THEORY_QUANTIFIERS);
+      /* fall through */
+    case QF_ALL_SUPPORTED:  // nonstandard logic
+      addTheory(THEORY_ARRAYS_EX);
+      addOperator(kind::APPLY_UF);
+      addTheory(THEORY_INTS);
+      addTheory(THEORY_REALS);
+      addTheory(THEORY_BITVECTORS);
+      break;
 
-  case AUFLIRA:
-  case AUFNIRA:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_REALS);
-    addTheory(THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX);
-    addTheory(THEORY_QUANTIFIERS);
-    break;
+    case AUFLIA:
+      addOperator(kind::APPLY_UF);
+      addTheory(THEORY_INTS);
+      addTheory(THEORY_INT_ARRAYS_EX);
+      addTheory(THEORY_QUANTIFIERS);
+      break;
 
-  case LRA:
-    addTheory(THEORY_REALS);
-    addTheory(THEORY_QUANTIFIERS);
-    break;
+    case AUFLIRA:
+    case AUFNIRA:
+      addOperator(kind::APPLY_UF);
+      addTheory(THEORY_INTS);
+      addTheory(THEORY_REALS);
+      addTheory(THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX);
+      addTheory(THEORY_QUANTIFIERS);
+      break;
 
-  case UFNIA:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_QUANTIFIERS);
-    break;
-  case UFNIRA:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_REALS);
-    addTheory(THEORY_QUANTIFIERS);
-    break;
+    case LRA:
+      addTheory(THEORY_REALS);
+      addTheory(THEORY_QUANTIFIERS);
+      break;
 
-  case UFLRA:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_REALS);
-    addTheory(THEORY_QUANTIFIERS);
-    break;
+    case UFNIA:
+      addOperator(kind::APPLY_UF);
+      addTheory(THEORY_INTS);
+      addTheory(THEORY_QUANTIFIERS);
+      break;
+    case UFNIRA:
+      addOperator(kind::APPLY_UF);
+      addTheory(THEORY_INTS);
+      addTheory(THEORY_REALS);
+      addTheory(THEORY_QUANTIFIERS);
+      break;
+
+    case UFLRA:
+      addOperator(kind::APPLY_UF);
+      addTheory(THEORY_REALS);
+      addTheory(THEORY_QUANTIFIERS);
+      break;
   }
 }/* Smt1::setLogic() */
 

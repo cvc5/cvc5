@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -136,8 +136,9 @@ void BVQuickCheck::popToZero() {
   }
 }
 
-void BVQuickCheck::collectModelInfo(theory::TheoryModel* model, bool fullModel) {
-  d_bitblaster->collectModelInfo(model, fullModel);
+bool BVQuickCheck::collectModelInfo(theory::TheoryModel* model, bool fullModel)
+{
+  return d_bitblaster->collectModelInfo(model, fullModel);
 }
 
 BVQuickCheck::~BVQuickCheck() {

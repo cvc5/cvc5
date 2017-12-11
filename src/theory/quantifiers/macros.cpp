@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,8 +21,10 @@
 #include "options/quantifiers_modes.h"
 #include "options/quantifiers_options.h"
 #include "proof/proof_manager.h"
+#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/rewriter.h"
 
@@ -44,7 +46,7 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
     Trace("macros") << "Find macros, ground=" << d_ground_macros << "..." << std::endl;
     //first, collect macro definitions
     std::vector< Node > macro_assertions;
-    for( unsigned i=0; i<assertions.size(); i++ ){
+    for( int i=0; i<(int)assertions.size(); i++ ){
       Trace("macros-debug") << "  process assertion " << assertions[i] << std::endl;
       if( processAssertion( assertions[i] ) ){
         PROOF( 
@@ -151,10 +153,10 @@ bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
 }
 
 bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
-  Node icn = d_qe->getTermDatabase()->getInstConstantNode( n, f );
+  Node icn = d_qe->getTermUtil()->substituteBoundVariablesToInstConstants(n, f);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector< Node > var;
-  d_qe->getTermDatabase()->getVarContainsNode( f, icn, var );
+  d_qe->getTermUtil()->getVarContainsNode( f, icn, var );
   Trace("macros-debug2") << "Get trigger variables for " << icn << std::endl;
   std::vector< Node > trigger_var;
   inst::Trigger::getTriggerVariables( icn, f, trigger_var );
@@ -167,16 +169,12 @@ bool QuantifierMacros::isBoundVarApplyUf( Node n ) {
   Assert( n.getKind()==APPLY_UF );
   TypeNode tno = n.getOperator().getType();
   std::map< Node, bool > vars;
+  // allow if a vector of unique variables of the same type as UF arguments
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( n[i].getKind()!=BOUND_VARIABLE ){
       return false;
     }
     if( n[i].getType()!=tno[i] ){
-      return false;
-    }
-    if( !tno[i].isSort() && !tno[i].isReal() && ( !tno[i].isDatatype() || tno[i].isParametricDatatype() ) && 
-        !tno[i].isBitVector() && !tno[i].isString() && !tno[i].isFloatingPoint() ){
-      //only non-parametric types are supported
       return false;
     }
     if( vars.find( n[i] )==vars.end() ){
@@ -331,6 +329,7 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
   }else{
     //literal case
     if( isMacroLiteral( n, pol ) ){
+      Trace("macros-debug") << "Check macro literal : " << n << std::endl;
       std::map< Node, bool > visited;
       std::vector< Node > candidates;
       for( size_t i=0; i<n.getNumChildren(); i++ ){
@@ -339,6 +338,7 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
       for( size_t i=0; i<candidates.size(); i++ ){
         Node m = candidates[i];
         Node op = m.getOperator();
+        Trace("macros-debug") << "Check macro candidate : " << m << std::endl;
         if( d_macro_defs.find( op )==d_macro_defs.end() ){
           std::vector< Node > fvs;
           visited.clear();
@@ -416,17 +416,21 @@ Node QuantifierMacros::simplify( Node n ){
         if( it!=d_macro_defs.end() && !it->second.isNull() ){
           //only apply if children are subtypes of arguments
           bool success = true;
+          // FIXME : this can be eliminated when we have proper typing rules
           std::vector< Node > cond;
           TypeNode tno = op.getType();
           for( unsigned i=0; i<children.size(); i++ ){
-            if( !TermDb::getEnsureTypeCondition( children[i], tno[i], cond ) ){
+            Node etc = TypeNode::getEnsureTypeCondition( children[i], tno[i] );
+            if( etc.isNull() ){
               //if this does fail, we are incomplete, since we are eliminating quantified formula corresponding to op, 
               //  and not ensuring it applies to n when its types are correct.
-              //however, this should never fail: we never process types for which we cannot constuct conditions that ensure correct types, e.g. (is-int t).
-              Assert( false );
+              //Assert( false );
               success = false;
               break;
+            }else if( !etc.isConst() ){
+              cond.push_back( etc );
             }
+            Assert( children[i].getType().isSubtypeOf( tno[i] ) );
           }
           if( success ){
             //do substitution if necessary

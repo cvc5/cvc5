@@ -2,9 +2,9 @@
 /*! \file cvc3_compat.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Francois Bobot
+ **   Morgan Deters, Tim King, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -49,7 +49,10 @@
 #define _cvc3__include__formula_value_h_
 
 #include <stdlib.h>
+
 #include <map>
+#include <string>
+#include <unordered_map>
 #include <utility>
 
 #include "base/exception.h"
@@ -58,7 +61,6 @@
 #include "expr/type.h"
 #include "parser/parser.h"
 #include "smt/smt_engine.h"
-#include "util/hash.h"
 #include "util/integer.h"
 #include "util/rational.h"
 
@@ -267,7 +269,7 @@ class CVC4_PUBLIC ExprMap : public std::map<Expr, T> {
 };/* class ExprMap<T> */
 
 template <class T>
-class CVC4_PUBLIC ExprHashMap : public std::hash_map<Expr, T, CVC4::ExprHashFunction> {
+class CVC4_PUBLIC ExprHashMap : public std::unordered_map<Expr, T, CVC4::ExprHashFunction> {
 public:
   void insert(Expr a, Expr b);
 };/* class ExprHashMap<T> */
@@ -319,7 +321,7 @@ public:
   Expr();
   Expr(const Expr& e);
   Expr(const CVC4::Expr& e);
-  Expr(CVC4::Kind k);
+  Expr(ExprManager* em, CVC4::Kind k);
 
   // Compound expression constructors
   Expr eqExpr(const Expr& right) const;
@@ -521,8 +523,8 @@ class CVC4_PUBLIC ValidityChecker {
 
   friend class Type; // to reach in to d_exprTypeMapRemove
 
-  typedef std::hash_map<std::string, const CVC4::Datatype*, CVC4::StringHashFunction> ConstructorMap;
-  typedef std::hash_map<std::string, std::pair<const CVC4::Datatype*, std::string>, CVC4::StringHashFunction> SelectorMap;
+  typedef std::unordered_map<std::string, const CVC4::Datatype*> ConstructorMap;
+  typedef std::unordered_map<std::string, std::pair<const CVC4::Datatype*, std::string>> SelectorMap;
 
   ConstructorMap d_constructors;
   SelectorMap d_selectors;

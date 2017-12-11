@@ -2,9 +2,9 @@
 /*! \file fc_simplex.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters
+ **   Tim King, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 #include "theory/arith/fc_simplex.h"
 
 #include "base/output.h"
+#include "base/tls.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
@@ -91,7 +92,7 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
   Assert(d_sgnDisagreements.empty());
 
   d_pivots = 0;
-  static CVC4_THREADLOCAL(unsigned int) instance = 0;
+  static CVC4_THREAD_LOCAL unsigned int instance = 0;
   instance = instance + 1;
   static const bool verbose = false;
 

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,9 @@
 #define __CVC4__THEORY_ENGINE_H
 
 #include <deque>
+#include <memory>
 #include <set>
+#include <unordered_map>
 #include <vector>
 #include <utility>
 
@@ -43,6 +45,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
+#include "util/hash.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
@@ -61,8 +64,7 @@ struct NodeTheoryPair {
   size_t timestamp;
   NodeTheoryPair(TNode node, theory::TheoryId theory, size_t timestamp = 0)
   : node(node), theory(theory), timestamp(timestamp) {}
-  NodeTheoryPair()
-  : theory(theory::THEORY_LAST) {}
+  NodeTheoryPair() : theory(theory::THEORY_LAST), timestamp() {}
   // Comparison doesn't take into account the timestamp
   bool operator == (const NodeTheoryPair& pair) const {
     return node == pair.node && theory == pair.theory;
@@ -73,7 +75,8 @@ struct NodeTheoryPairHashFunction {
   NodeHashFunction hashFunction;
   // Hash doesn't take into account the timestamp
   size_t operator()(const NodeTheoryPair& pair) const {
-    return hashFunction(pair.node)*0x9e3779b9 + pair.theory;
+    uint64_t hash = fnv1a::fnv1a_64(NodeHashFunction()(pair.node));
+    return static_cast<size_t>(fnv1a::fnv1a_64(pair.theory, hash));
   }
 };/* struct NodeTheoryPairHashFunction */
 
@@ -189,8 +192,8 @@ class TheoryEngine {
   theory::TheoryEngineModelBuilder* d_curr_model_builder;
   bool d_aloc_curr_model_builder;
 
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
-  typedef std::hash_map<TNode, Node, TNodeHashFunction> TNodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
 
   /**
   * Cache for theory-preprocessing of assertions
@@ -232,13 +235,11 @@ class TheoryEngine {
     ~Statistics();
   };/* class TheoryEngine::Statistics */
 
-
   /**
    * An output channel for Theory that passes messages
    * back to a TheoryEngine.
    */
   class EngineOutputChannel : public theory::OutputChannel {
-
     friend class TheoryEngine;
 
     /**
@@ -251,84 +252,76 @@ class TheoryEngine {
      */
     Statistics d_statistics;
 
-    /**
-     * The theory owning this chanell.
-     */
+    /** The theory owning this channel. */
     theory::TheoryId d_theory;
 
-  public:
+   public:
+    EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory)
+        : d_engine(engine), d_statistics(theory), d_theory(theory) {}
 
-    EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory) :
-      d_engine(engine),
-      d_statistics(theory),
-      d_theory(theory)
-    {
-    }
-
-    void safePoint(uint64_t ammount) throw(theory::Interrupted, UnsafeInterruptException, AssertionException) {
-      spendResource(ammount);
+    void safePoint(uint64_t amount) override {
+      spendResource(amount);
       if (d_engine->d_interrupted) {
         throw theory::Interrupted();
       }
     }
 
-    void conflict(TNode conflictNode, Proof* pf = NULL) throw(AssertionException, UnsafeInterruptException);
+    void conflict(TNode conflictNode,
+                  std::unique_ptr<Proof> pf = nullptr) override;
+    bool propagate(TNode literal) override;
 
-    bool propagate(TNode literal) throw(AssertionException, UnsafeInterruptException);
+    theory::LemmaStatus lemma(TNode lemma, ProofRule rule,
+                              bool removable = false, bool preprocess = false,
+                              bool sendAtoms = false) override;
 
-    theory::LemmaStatus lemma(TNode lemma,
-                              ProofRule rule,
-                              bool removable = false,
-                              bool preprocess = false,
-                              bool sendAtoms = false);
+    theory::LemmaStatus splitLemma(TNode lemma,
+                                   bool removable = false) override;
 
-    theory::LemmaStatus splitLemma(TNode lemma, bool removable = false);
-
-    void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
+    void demandRestart() override {
       NodeManager* curr = NodeManager::currentNM();
-      Node restartVar =  curr->mkSkolem("restartVar",
-                                        curr->booleanType(),
-                                        "A boolean variable asserted to be true to force a restart");
-      Trace("theory::restart") << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar << ")" << std::endl;
-      ++ d_statistics.restartDemands;
+      Node restartVar = curr->mkSkolem(
+          "restartVar", curr->booleanType(),
+          "A boolean variable asserted to be true to force a restart");
+      Trace("theory::restart")
+          << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar
+          << ")" << std::endl;
+      ++d_statistics.restartDemands;
       lemma(restartVar, RULE_INVALID, true);
     }
 
-    void requirePhase(TNode n, bool phase)
-      throw(theory::Interrupted, AssertionException, UnsafeInterruptException) {
-      Debug("theory") << "EngineOutputChannel::requirePhase("
-                      << n << ", " << phase << ")" << std::endl;
-      ++ d_statistics.requirePhase;
+    void requirePhase(TNode n, bool phase) override {
+      Debug("theory") << "EngineOutputChannel::requirePhase(" << n << ", "
+                      << phase << ")" << std::endl;
+      ++d_statistics.requirePhase;
       d_engine->d_propEngine->requirePhase(n, phase);
     }
 
-    bool flipDecision()
-      throw(theory::Interrupted, AssertionException, UnsafeInterruptException) {
+    bool flipDecision() override {
       Debug("theory") << "EngineOutputChannel::flipDecision()" << std::endl;
-      ++ d_statistics.flipDecision;
+      ++d_statistics.flipDecision;
       return d_engine->d_propEngine->flipDecision();
     }
 
-    void setIncomplete() throw(AssertionException, UnsafeInterruptException) {
+    void setIncomplete() override {
       Trace("theory") << "TheoryEngine::setIncomplete()" << std::endl;
       d_engine->setIncomplete(d_theory);
     }
 
-    void spendResource(unsigned ammount) throw(UnsafeInterruptException) {
-      d_engine->spendResource(ammount);
+    void spendResource(unsigned amount) override {
+      d_engine->spendResource(amount);
     }
 
-    void handleUserAttribute( const char* attr, theory::Theory* t ){
-      d_engine->handleUserAttribute( attr, t );
+    void handleUserAttribute(const char* attr, theory::Theory* t) override {
+      d_engine->handleUserAttribute(attr, t);
     }
 
-  private:
-
+   private:
     /**
      * A helper function for registering lemma recipes with the proof engine
      */
-    void registerLemmaRecipe(Node lemma, Node originalLemma, bool preprocess, theory::TheoryId theoryId);
-  };/* class TheoryEngine::EngineOutputChannel */
+    void registerLemmaRecipe(Node lemma, Node originalLemma, bool preprocess,
+                             theory::TheoryId theoryId);
+  }; /* class TheoryEngine::EngineOutputChannel */
 
   /**
    * Output channels for individual theories.
@@ -472,7 +465,7 @@ public:
   /**
    * "Spend" a resource during a search or preprocessing.
    */
-  void spendResource(unsigned ammount);
+  void spendResource(unsigned amount);
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if
@@ -714,7 +707,7 @@ public:
   /**
    * collect model info
    */
-  void collectModelInfo( theory::TheoryModel* m );
+  bool collectModelInfo(theory::TheoryModel* m);
   /** post process model */
   void postProcessModel( theory::TheoryModel* m );
 
@@ -833,7 +826,7 @@ public:
   void ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
   void ppBoolToBv(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
   bool ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
-  void mkAckermanizationAsssertions(std::vector<Node>& assertions);
+  void mkAckermanizationAssertions(std::vector<Node>& assertions);
 
   Node ppSimpITE(TNode assertion);
   /** Returns false if an assertion simplified to false. */
@@ -862,17 +855,20 @@ private:
   std::set< std::string > d_theoryAlternatives;
 
   std::map< std::string, std::vector< theory::Theory* > > d_attr_handle;
-public:
 
-  /**
-   * Set user attribute.
-   * This function is called when an attribute is set by a user.  In SMT-LIBv2 this is done
-   * via the syntax (! n :attr)
+ public:
+  /** Set user attribute.
+   * 
+   * This function is called when an attribute is set by a user.  In SMT-LIBv2
+   * this is done via the syntax (! n :attr)
    */
-  void setUserAttribute(const std::string& attr, Node n, std::vector<Node>& node_values, std::string str_value);
+  void setUserAttribute(const std::string& attr,
+                        Node n,
+                        const std::vector<Node>& node_values,
+                        const std::string& str_value);
 
-  /**
-   * Handle user attribute.
+  /** Handle user attribute.
+   * 
    * Associates theory t with the attribute attr.  Theory t will be
    * notified whenever an attribute of name attr is set.
    */
@@ -882,9 +878,9 @@ public:
    * Check that the theory assertions are satisfied in the model.
    * This function is called from the smt engine's checkModel routine.
    */
-  void checkTheoryAssertionsWithModel();
+  void checkTheoryAssertionsWithModel(bool hardFailure);
 
-private:
+ private:
   IntStat d_arithSubstitutionsAdded;
 
 };/* class TheoryEngine */

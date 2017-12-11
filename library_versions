@@ -59,3 +59,5 @@
 1\.4 libcvc4:3:0:0 libcvc4parser:3:0:0 libcvc4compat:3:0:0 libcvc4bindings:3:0:0
 1\.4\.1-prerelease libcvc4:3:0:0 libcvc4parser:3:0:0 libcvc4compat:3:0:0 libcvc4bindings:3:0:0
 1\.5-prerelease libcvc4:3:0:0 libcvc4parser:3:0:0 libcvc4compat:3:0:0 libcvc4bindings:3:0:0
+1\.5 libcvc4:4:0:0 libcvc4parser:4:0:0 libcvc4compat:4:0:0 libcvc4bindings:4:0:0
+1\.6-prerelease libcvc4:4:0:0 libcvc4parser:4:0:0 libcvc4compat:4:0:0 libcvc4bindings:4:0:0

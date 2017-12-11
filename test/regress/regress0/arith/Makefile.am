@@ -51,7 +51,8 @@ TESTS =	\
 	bug569.smt2 \
 	div.09.smt2 \
 	bug716.0.smt2 \
-	bug716.1.cvc
+	bug716.1.cvc \
+	mod-simp.smt2
 #	problem__003.smt2
 
 EXTRA_DIST = $(TESTS) \

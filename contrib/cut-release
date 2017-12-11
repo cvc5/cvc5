@@ -3,6 +3,14 @@
 # usage: cut-release [-n] version-designation [make-args...]
 #
 
+
+dryrun=false
+getantlr="./contrib/get-antlr-3.4"
+dogetantlr=false
+configantlr=""
+version=""
+cutrelease=`basename "$0"`
+
 function isthatright {
   if $dryrun; then
     echo -n "[DRY RUN] "
@@ -24,32 +32,86 @@ function isthatright {
   done
 }
 
-if [ "$1" = -n ]; then
-  dryrun=true
-  shift
+function printusage {
+  echo "Usage: $cutrelease <options> version-designation [make-args...]" >&2
+  echo 
+  echo "Options:"
   echo
-  echo '************************* DRY RUN *************************'
-else
-  dryrun=false
-fi
+  echo "  -h, --help    print this message and exit"
+  echo
+  echo "  -n            do a dry run (do sanity checks and build "
+  echo "                but don not touch the repository)"
+  echo
+  echo "  -a            get local antlr to use for compilation"
+}
 
-if [ $# -lt 1 ]; then
-  echo "Usage: $(basename "$0") [-n] version-designation [make-args...]" >&2
-  echo "-n does a dry run (i.e., do sanity checks and build but don't touch the repository)"
+function error {
+  echo "$cutrelease: ERROR: $1" >&2
+}
+
+function die {
+  error "$1"
   exit 1
-fi
+}
+
+function internalerror {
+  echo "$cutrelease: INTERNAL ERROR: $1" >&2
+  exit 1
+}
 
 if ! [ -e src/expr/node.h -a -e .git ]; then
-  echo "$(basename "$0"): ERROR: You should run this from the top-level of a CVC4 git working directory" >&2
+  die "You should run this from the top-level of a CVC4 git working directory" 
+fi
+
+while [[ $# -gt 0 ]]
+do
+  arg="$1"
+  case $arg in
+    -h | --help) 
+      printusage
+      exit 0
+      ;;
+    -n) 
+      dryrun=true
+      shift
+      ;;
+    -a)
+      dogetantlr=true
+      shift
+      ;;
+    -*)
+      error "invalid option $arg"
+      echo
+      printusage
+      exit 1
+      ;;
+    *)
+      if [ "x$version" = "x" ]
+      then
+        version="$arg"
+        shift
+        if echo "$version" | grep '[^a-zA-Z0-9_.+(){}^%#-]' &>/dev/null
+        then
+          die "Version designation \`$version' contains illegal characters"
+        fi
+        break
+      fi
+  esac
+done
+makeargs="$@"
+
+if [ "x$version" = "x" ] 
+then
+  error "missing version-designation"
+  echo
+  printusage
   exit 1
 fi
 
-version="$1"
-shift
-
-if echo "$version" | grep '[^a-zA-Z0-9_.+(){}^%#-]' &>/dev/null; then
-  echo "$(basename "$0"): ERROR: Version designation \`$version' contains illegal characters" >&2
-  exit 1
+if $dryrun
+then
+  echo
+  echo '************************* DRY RUN *************************'
 fi
 
 eval "declare -a vs=($(echo "$version" | sed 's,^\([0-9]*\)\.\([0-9]*\)\(\.\([0-9]*\)\)\?\(.*\),[0]=\1 [1]=\2 [2]=\4 [3]=\5,'))"
@@ -74,25 +136,23 @@ isthatright
 
 echo "Checking whether release \`$version' already exists..."
 if [ -n "`git tag -l "$version"`" ]; then
-  echo "$(basename "$0"): ERROR: Git repo already contains a release \`$version'" >&2
+  error "Git repo already contains a release \`$version'"
   $dryrun || exit 1
 fi
 
 echo "Checking working directory for local modifications..."
 if $dryrun; then
   if [ -n "$(git status -s configure.ac)" ]; then
-    echo "$(basename "$0"): ERROR: In dry-run mode, cannot operate properly with local modifications to \"configure.ac\", sorry" >&2
-    exit 1
+    die "In dry-run mode, cannot operate properly with local modifications to \"configure.ac\", sorry"
   fi
 elif [ -n "$(git status -s | grep -v '^ *M *\(NEWS\|README\|AUTHORS\|RELEASE-NOTES\|INSTALL\|THANKS\|library_versions\|contrib/cut-release\)$')" ]; then
-  echo "$(basename "$0"): ERROR: \"git status\" indicates there are local modifications; please commit first" >&2
-  exit 1
+  die "\"git status\" indicates there are local modifications; please commit first"
 fi
 
 echo "Checking repo for unmerged updates..."
 git fetch &>/dev/null
 if git status -sb | grep -q '^## .* \[.*behind '; then
-  echo "$(basename "$0"): ERROR: This working directory isn't up to date" 2>&1
+  error "This working directory isn't up to date"
   $dryrun || exit 1
 fi
 
@@ -109,9 +169,9 @@ $(grep -r --exclude-dir=.git '^[ \t]*#[ \t]*include[ \t]*"[^/]*"' src |
   xargs grep -l '^[ \t]*#[ \t]*include[ \t]*"cvc4.*public\.h"' |
   xargs echo)"
 if [ -n "$suspect_files" ]; then
-  echo "$(basename "$0"): ERROR: The following publicly-installed headers appear" 2>&1
-  echo "$(basename "$0"): ERROR:   to have relative #includes and may be broken" 2>&1
-  echo "$(basename "$0"): ERROR:   after install: $suspect_files" 2>&1
+  error "The following publicly-installed headers appear"
+  error "  to have relative #includes and may be broken"
+  error "  after install: $suspect_files"
   $dryrun || exit 1
 fi
 
@@ -147,7 +207,7 @@ if ! grep '^m4_define(_CVC4_MAJOR,  *[0-9][0-9]* *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_MINOR,  *[0-9][0-9]* *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_RELEASE,  *[0-9][0-9]* *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_EXTRAVERSION,  *\[.*\] *)' configure.ac &>/dev/null; then
-  echo "$(basename "$0"): ERROR: Cannot locate the version info lines of configure.ac" >&2
+  error "Cannot locate the version info lines of configure.ac"
   $dryrun || exit 1
 fi
 perl -pi -e 's/^m4_define\(_CVC4_MAJOR, ( *)[0-9]+( *)\)/m4_define(_CVC4_MAJOR, ${1}'"$major"'$2)/;
@@ -155,7 +215,7 @@ perl -pi -e 's/^m4_define\(_CVC4_MAJOR, ( *)[0-9]+( *)\)/m4_define(_CVC4_MAJOR, 
              s/^m4_define\(_CVC4_RELEASE, ( *)[0-9]+( *)\)/m4_define(_CVC4_RELEASE, ${1}'"$release"'$2)/;
              s/^m4_define\(_CVC4_EXTRAVERSION, ( *)\[.*\]( *)\)/m4_define(_CVC4_EXTRAVERSION, $1\['"$extra"'\]$2)/' configure.ac
 
-trap 'echo; echo; echo "Aborting in error."; git co -- configure.ac; echo' EXIT
+trap 'echo; echo; echo "Aborting in error."; git checkout -- configure.ac; echo' EXIT
 
 echo
 echo 'Made the following change to configure.ac:'
@@ -168,39 +228,43 @@ if ! grep '^m4_define(_CVC4_MAJOR,  *'"$major"' *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_MINOR,  *'"$minor"' *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_RELEASE,  *'"$release"' *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_EXTRAVERSION,  *\['"$extra"'\] *)' configure.ac &>/dev/null; then
-  echo "$(basename "$0"): INTERNAL ERROR: Cannot find the modified version info lines in configure.ac, bailing..." >&2
-  exit 1
+  internalerror "Cannot find the modified version info lines in configure.ac, bailing..."
 fi
 if [ -z "$(git status -s configure.ac)" ]; then
-  echo "$(basename "$0"): INTERNAL ERROR: \"git status\" indicates there are no local modifications to configure.ac; I expected the ones I just made!" >&2
-  exit 1
+  internalerror "\"git status\" indicates there are no local modifications to configure.ac; I expected the ones I just made!"
 fi
 
 echo "Building and checking distribution \`cvc4-$version'..."
+
+if $dogetantlr 
+then
+  echo "Fetching and compiling antlr..."
+  $getantlr > /dev/null 2>&1
+  configantlr="--with-antlr-dir=$(pwd)/antlr-3.4 ANTLR=$(pwd)/antlr-3.4/bin/antlr3"
+fi
+
 if ! $SHELL -c '\
 	version="'$version'"; \
 	set -ex; \
 	./autogen.sh || echo "autoconf failed; does library_versions have something to match $version?"; \
 	mkdir "release-$version"; \
 	cd "release-$version"; \
-	../configure production-staticbinary --disable-shared --enable-unit-testing --with-portfolio --bsd; \
-	make dist "$@"; \
+	../configure production-staticbinary --disable-shared --enable-unit-testing --with-portfolio --bsd '"$configantlr"'; \
+	make dist '"$makeargs"'; \
 	tar xf "cvc4-$version.tar.gz"; \
 	cd "cvc4-$version"; \
-	./configure production-staticbinary --disable-shared --enable-unit-testing --with-portfolio --bsd; \
-	make check "$@"; \
-	make distcheck "$@"; \
+	./configure production-staticbinary --disable-shared --enable-unit-testing --with-portfolio --bsd '"$configantlr"'; \
+	make check '"$makeargs"'; \
+	make distcheck '"$makeargs"'; \
 '; then
   exit 1
 fi
 
 if ! [ -e release-$version/cvc4-$version.tar.gz ]; then
-  echo "$(basename "$0"): INTERNAL ERROR: Cannot find the distribution tarball I just built" >&2
-  exit 1
+  internalerror "Cannot find the distribution tarball I just built"
 fi
 if ! [ -e release-$version/cvc4-$version/builds/src/main/cvc4 ]; then
-  echo "$(basename "$0"): INTERNAL ERROR: Cannot find the binary I just built" >&2
-  exit 1
+  internalerror "Cannot find the binary I just built"
 fi
 
 echo
@@ -217,10 +281,10 @@ release-$version/cvc4-$version/builds/src/main/cvc4 --show-config
 echo
 isthatright
 
-echo
-echo "Signing tarball..."
-cp -p "release-$version/cvc4-$version.tar.gz" .
-gpg -b --armor "cvc4-$version.tar.gz"
+#echo
+#echo "Signing tarball..."
+#cp -p "release-$version/cvc4-$version.tar.gz" .
+#gpg -b --armor "cvc4-$version.tar.gz"
 
 #echo
 #echo "Signing cvc4 binary..."

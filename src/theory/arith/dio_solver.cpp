@@ -2,9 +2,9 @@
 /*! \file dio_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
+ **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,22 +32,21 @@ inline Node makeIntegerVariable(){
   return curr->mkSkolem("intvar", curr->integerType(), "is an integer variable created by the dio solver");
 }
 
-DioSolver::DioSolver(context::Context* ctxt) :
-  d_lastUsedProofVariable(ctxt,0),
-  d_inputConstraints(ctxt),
-  d_nextInputConstraintToEnqueue(ctxt, 0),
-  d_trail(ctxt),
-  d_subs(ctxt),
-  d_currentF(),
-  d_savedQueue(ctxt),
-  d_savedQueueIndex(ctxt, 0),
-  d_conflictHasBeenRaised(ctxt, false),
-  d_maxInputCoefficientLength(ctxt, 0),
-  d_usedDecomposeIndex(ctxt, false),
-  d_lastPureSubstitution(ctxt, 0),
-  d_pureSubstitionIter(ctxt, 0),
-  d_decompositionLemmaQueue(ctxt)
-{}
+DioSolver::DioSolver(context::Context* ctxt)
+    : d_lastUsedProofVariable(ctxt, 0),
+      d_inputConstraints(ctxt),
+      d_nextInputConstraintToEnqueue(ctxt, 0),
+      d_trail(ctxt),
+      d_subs(ctxt),
+      d_currentF(),
+      d_savedQueue(ctxt),
+      d_savedQueueIndex(ctxt, 0),
+      d_conflictIndex(ctxt),
+      d_maxInputCoefficientLength(ctxt, 0),
+      d_usedDecomposeIndex(ctxt, false),
+      d_lastPureSubstitution(ctxt, 0),
+      d_pureSubstitionIter(ctxt, 0),
+      d_decompositionLemmaQueue(ctxt) {}
 
 DioSolver::Statistics::Statistics() :
   d_conflictCalls("theory::arith::dio::conflictCalls",0),
@@ -304,7 +303,7 @@ bool DioSolver::queueEmpty() const{
 }
 
 Node DioSolver::columnGcdIsOne() const{
-  std::hash_map<Node, Integer, NodeHashFunction> gcdMap;
+  std::unordered_map<Node, Integer, NodeHashFunction> gcdMap;
 
   std::deque<TrailIndex>::const_iterator iter, end;
   for(iter = d_currentF.begin(), end = d_currentF.end(); iter != end; ++iter){
