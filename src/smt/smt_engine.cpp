@@ -67,6 +67,9 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "preprocessing/preprocessing_pass.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
@@ -110,6 +113,7 @@
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::smt;
+using namespace CVC4::preprocessing;
 using namespace CVC4::prop;
 using namespace CVC4::context;
 using namespace CVC4::theory;
@@ -161,29 +165,6 @@ public:
   vector<Node> getFormals() const { return d_formals; }
   Node getFormula() const { return d_formula; }
 };/* class DefinedFunction */
-
-class AssertionPipeline {
-  vector<Node> d_nodes;
-
-public:
-
-  size_t size() const { return d_nodes.size(); }
-
-  void resize(size_t n) { d_nodes.resize(n); }
-  void clear() { d_nodes.clear(); }
-
-  Node& operator[](size_t i) { return d_nodes[i]; }
-  const Node& operator[](size_t i) const { return d_nodes[i]; }
-  void push_back(Node n) { d_nodes.push_back(n); }
-
-  vector<Node>& ref() { return d_nodes; }
-  const vector<Node>& ref() const { return d_nodes; }
-
-  void replace(size_t i, Node n) {
-    PROOF( ProofManager::currentPM()->addDependence(n, d_nodes[i]); );
-    d_nodes[i] = n;
-  }
-};/* class AssertionPipeline */
 
 struct SmtEngineStatistics {
   /** time spent in gaussian elimination */
@@ -571,8 +552,12 @@ public:
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
 
-private:
+  /* Finishes the initialization of the private portion of SMTEngine. */
+  void finishInit();
 
+ private:
+  std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
+  PreprocessingPassRegistry d_preprocessingPassRegistry;
   theory::arith::PseudoBooleanProcessor d_pbsProcessor;
 
   /** The top level substitutions */
@@ -1138,7 +1123,7 @@ void SmtEngine::finishInit() {
           finishRegisterTheory(d_theoryEngine->theoryOf(id));
       }
     });
-
+  d_private->finishInit();
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
@@ -2459,6 +2444,11 @@ bool SmtEngine::isDefinedFunction( Expr func ){
   return d_definedFunctions->find(nf) != d_definedFunctions->end();
 }
 
+void SmtEnginePrivate::finishInit() {
+  d_preprocessingPassContext.reset(new PreprocessingPassContext(&d_smt));
+  //TODO: register passes here
+}
+
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
   throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
 
@@ -3018,7 +3008,8 @@ void SmtEnginePrivate::staticLearning() {
 }
 
 // do dumping (before/after any preprocessing pass)
-static void dumpAssertions(const char* key, const AssertionPipeline& assertionList) {
+static void dumpAssertions(const char* key,
+                           const AssertionPipeline& assertionList) {
   if( Dump.isOn("assertions") &&
       Dump.isOn(string("assertions:") + key) ) {
     // Push the simplified assertions to the dump output stream

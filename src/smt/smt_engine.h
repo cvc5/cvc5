@@ -70,6 +70,10 @@ namespace context {
   class UserContext;
 }/* CVC4::context namespace */
 
+namespace preprocessing {
+class PreprocessingPassContext;
+}
+
 namespace prop {
   class PropEngine;
 }/* CVC4::prop namespace */
@@ -343,6 +347,8 @@ class CVC4_PUBLIC SmtEngine {
    */
   void setLogicInternal() throw();
 
+  // TODO (Issue #1096): Remove this friend relationship.
+  friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::BooleanTermConverter;
