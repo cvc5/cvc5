@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
@@ -953,8 +952,7 @@ inline Node RewriteRule<UdivOne>::apply(TNode node) {
 
 template <>
 inline bool RewriteRule<UdivConst>::applies(TNode node) {
-  return (!options::bitvectorDivByZeroConst() &&
-          node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&
+  return (node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&
           node[1].getKind() == kind::CONST_BITVECTOR &&
           node[1] != utils::mkConst(utils::getSize(node[1]), 0));
 }
