@@ -115,9 +115,9 @@ static bool isInvertible(Kind k, unsigned index)
       ||  k == BITVECTOR_AND
       ||  k == BITVECTOR_OR
       ||  k == BITVECTOR_XOR
-      || (k == BITVECTOR_LSHR && index == 0)
-      || (k == BITVECTOR_ASHR && index == 0)
-      || (k == BITVECTOR_SHL && index == 0);
+      || k == BITVECTOR_LSHR
+      || k == BITVECTOR_ASHR
+      || k == BITVECTOR_SHL;
 }
 
 Node BvInverter::getPathToPv(
