@@ -550,36 +550,64 @@ static Node getScBvAshr(Kind k, unsigned idx, Node x, Node s, Node t)
 static Node getScBvShl(Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_SHL);
-  Assert(idx == 0);
 
   NodeManager* nm = NodeManager::currentNM();
+  Node scl, scr;
   unsigned w = bv::utils::getSize(s);
   Assert(w == bv::utils::getSize(t));
-
-  /* x << s = t
-   * with side condition:
-   * (s = 0 || ctz(t) >= s)
-   * <->
-   * (s = 0 || (s < w && ((t o z) >> (z o s))[w-1:0] = z) || (s >= w && t = 0)
-   *
-   * where
-   * w = getSize(s) = getSize(t) = getSize (z) && z = 0
-   */
-
   Node z = bv::utils::mkConst(w, 0u);
-  Node ww = bv::utils::mkConst(w, w);
 
-  Node shr = nm->mkNode(BITVECTOR_LSHR,
-      bv::utils::mkConcat(t, z),
-      bv::utils::mkConcat(z, s));
-  Node ext = bv::utils::mkExtract(shr, w - 1, 0);
+  if (idx == 0)
+  {
+    /* x << s = t
+     * with side condition:
+     * (s = 0 || ctz(t) >= s)
+     * <->
+     * (s = 0 || (s < w && ((t o z) >> (z o s))[w-1:0] = z) || (s >= w && t = 0)
+     *
+     * where
+     * w = getSize(s) = getSize(t) = getSize (z) && z = 0
+     */
 
-  Node o1 = nm->mkNode(EQUAL, s, z);
-  Node o2 = nm->mkNode(AND, nm->mkNode(BITVECTOR_ULT, s, ww), ext.eqNode(z));
-  Node o3 = nm->mkNode(AND, nm->mkNode(BITVECTOR_UGE, s, ww), t.eqNode(z));
+    Node ww = bv::utils::mkConst(w, w);
 
-  Node scl = nm->mkNode(OR, o1, o2, o3);
-  Node scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
+    Node shr = nm->mkNode(BITVECTOR_LSHR,
+        bv::utils::mkConcat(t, z),
+        bv::utils::mkConcat(z, s));
+    Node ext = bv::utils::mkExtract(shr, w - 1, 0);
+
+    Node o1 = nm->mkNode(EQUAL, s, z);
+    Node o2 = nm->mkNode(AND, nm->mkNode(BITVECTOR_ULT, s, ww), ext.eqNode(z));
+    Node o3 = nm->mkNode(AND, nm->mkNode(BITVECTOR_UGE, s, ww), t.eqNode(z));
+
+    scl = nm->mkNode(OR, o1, o2, o3);
+    scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
+  }
+  else
+  {
+    /* s << x = t
+     * with side condition:
+     * t = 0
+     * ||
+     * \/ (t[w-1:i] = s[w-1-i:0] && t[i-1:0] = 0) for 0 <= i < w
+     * where
+     * w = getSize(s) = getSize(t)
+     */
+    unsigned ww = w-1;
+    NodeBuilder<> nb(nm, OR);
+    nb << nm->mkNode(EQUAL, t, s);
+    for (unsigned i = 1; i < w; ++i)
+    {
+      nb << nm->mkNode(AND,
+          nm->mkNode(EQUAL,
+            bv::utils::mkExtract(t, ww, i), bv::utils::mkExtract(s, ww-i, 0)),
+          nm->mkNode(EQUAL,
+            bv::utils::mkExtract(t, i-1, 0), bv::utils::mkZero(i)));
+    }
+    nb << t.eqNode(z);
+    scl = nb.constructNode();
+    scr = nm->mkNode(EQUAL, nm->mkNode(k, s, x), t);
+  }
   Node sc = nm->mkNode(IMPLIES, scl, scr);
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc << std::endl;
   return sc;
