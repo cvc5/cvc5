@@ -84,8 +84,6 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
            || k == kind::BITVECTOR_ASHR
            || k == kind::BITVECTOR_SHL);
     Assert(k != kind::BITVECTOR_UREM_TOTAL || idx == 1);
-    Assert(k != kind::BITVECTOR_ASHR
-           || idx == 0);
 
     Node sc = getsc(k, idx, d_sk, d_s, d_t);
     Kind ksc = sc.getKind();
@@ -96,6 +94,12 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     Node scr = d_nm->mkNode(kind::EXISTS, d_bvarlist, body);
     Expr a = d_nm->mkNode(kind::DISTINCT, sc[0], scr).toExpr();
     Result res = d_smt->checkSat(a);
+    if (res.d_sat == Result::SAT)
+    {
+      std::cout << std::endl << "s " << d_smt->getValue(d_s.toExpr()) << std::endl;
+      std::cout << "t " << d_smt->getValue(d_t.toExpr()) << std::endl;
+      std::cout << "x " << d_smt->getValue(d_x.toExpr()) << std::endl;
+    }
     TS_ASSERT(res.d_sat == Result::UNSAT);
   }
 
@@ -108,6 +112,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_smt->setOption("cbqi-bv", CVC4::SExpr(false));
+    d_smt->setOption("produce-models", CVC4::SExpr(true));
     d_scope = new SmtScope(d_smt);
 
     d_s = d_nm->mkVar("s", d_nm->mkBitVectorType(4));
@@ -251,8 +256,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
 
   void testGetScBvAshr1()
   {
-    TS_ASSERT_THROWS(runTest(BITVECTOR_ASHR, 1, getScBvAshr),
-                     AssertionException);
+    runTest(BITVECTOR_ASHR, 1, getScBvAshr);
   }
 
   void testGetScBvShl0()
