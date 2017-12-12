@@ -84,8 +84,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
            || k == kind::BITVECTOR_ASHR
            || k == kind::BITVECTOR_SHL);
     Assert(k != kind::BITVECTOR_UREM_TOTAL || idx == 1);
-    Assert((k != kind::BITVECTOR_LSHR
-            && k != kind::BITVECTOR_ASHR)
+    Assert(k != kind::BITVECTOR_ASHR
            || idx == 0);
 
     Node sc = getsc(k, idx, d_sk, d_s, d_t);
@@ -242,8 +241,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
 
   void testGetScBvLshr1()
   {
-    TS_ASSERT_THROWS(runTest(BITVECTOR_LSHR, 1, getScBvLshr),
-                     AssertionException);
+    runTest(BITVECTOR_LSHR, 1, getScBvLshr);
   }
 
   void testGetScBvAshr0()
