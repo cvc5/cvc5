@@ -589,7 +589,9 @@ static Node getScBvShl(Kind k, unsigned idx, Node x, Node s, Node t)
      * with side condition:
      * t = 0
      * ||
-     * \/ (t[w-1:i] = s[w-1-i:0] && t[i-1:0] = 0) for 0 <= i < w
+     * s = t
+     * || 
+     * \/ (t[w-1:i] = s[w-1-i:0] && t[i-1:0] = 0) for 0 < i < w
      * where
      * w = getSize(s) = getSize(t)
      */
