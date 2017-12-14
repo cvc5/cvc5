@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext
+; COMMAND-LINE: --nl-ext --no-nl-ext-tf-inc-taylor-deg
 ; EXPECT: unknown
 (set-logic UFNRA)
 (declare-fun f (Real) Real)

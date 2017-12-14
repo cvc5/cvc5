@@ -196,7 +196,9 @@ option nlExtSplitZero --nl-ext-split-zero bool :default false
  intial splits on zero for all variables
 
 option nlExtTfTaylorDegree --nl-ext-tf-taylor-deg=N int16_t :default 4 :read-write
- default degree of taylor polynomials
+ initial degree of polynomials for Taylor approximation
  
+option nlExtTfIncTaylorDegree --nl-ext-tf-inc-taylor-deg bool :default true
+ whether to increment degree of polynomials for Taylor approximation
  
 endmodule

@@ -497,6 +497,9 @@ private:
       d_taylor_sum;
   std::unordered_map<Node, std::unordered_map<unsigned, Node>, NodeHashFunction>
       d_taylor_rem;
+      
+  /** taylor degree */
+  unsigned d_taylor_degree;
 
   /** concavity region for transcendental functions
   *

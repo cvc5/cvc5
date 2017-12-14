@@ -236,6 +236,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       "a", NodeManager::currentNM()->realType());
   d_taylor_real_fv_base_rem = NodeManager::currentNM()->mkBoundVar(
       "b", NodeManager::currentNM()->realType());
+  d_taylor_degree = options::nlExtTfTaylorDegree();
 }
 
 NonlinearExtension::~NonlinearExtension() {}
@@ -1439,7 +1440,6 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   
   
   
-
   return 0;
 }
 
@@ -1462,101 +1462,124 @@ void NonlinearExtension::check(Theory::Effort e) {
       }
     }
   } else {
-    Assert(e == Theory::EFFORT_LAST_CALL);
-    Trace("nl-ext-mv") << "Getting model values... check for [model-false]"
-                       << std::endl;
-    // reset cached information
-    d_mv[0].clear();
-    d_mv[1].clear();
-    
-    // get the assertions
-    std::vector<Node> assertions;
-    for (Theory::assertions_iterator it = d_containing.facts_begin();
-         it != d_containing.facts_end(); ++it) {
-      const Assertion& assertion = *it;
-      assertions.push_back(assertion.assertion);
-    }
-    // get the assertions that are false in the model
-    const std::set<Node> false_asserts = getFalseInModel(assertions);
-    
-    // get the extended terms belonging to this theory
-    std::vector<Node> xts;
-    d_containing.getExtTheory()->getTerms(xts);
-    
-    if( Trace.isOn("nl-ext-debug") ){
-      Trace("nl-ext-debug") << "  processing NonlinearExtension::check : " << std::endl;
-      Trace("nl-ext-debug") << "     " << false_asserts.size() << " false assertions" << std::endl;
-      Trace("nl-ext-debug") << "     " << xts.size() << " extended terms: " << std::endl;
-      Trace("nl-ext-debug") << "       ";
-      for( unsigned j=0; j<xts.size(); j++ ){
-        Trace("nl-ext-debug") << xts[j] << " ";
+    bool needsRecheck;
+    do
+    {
+      needsRecheck = false;
+      Assert(e == Theory::EFFORT_LAST_CALL);
+      Trace("nl-ext-mv") << "Getting model values... check for [model-false]"
+                        << std::endl;
+      // reset cached information
+      d_mv[0].clear();
+      d_mv[1].clear();
+      
+      // get the assertions
+      std::vector<Node> assertions;
+      for (Theory::assertions_iterator it = d_containing.facts_begin();
+          it != d_containing.facts_end(); ++it) {
+        const Assertion& assertion = *it;
+        assertions.push_back(assertion.assertion);
       }
-      Trace("nl-ext-debug") << std::endl;
-    }  
-   
-    // compute whether shared terms have correct values
-    unsigned num_shared_wrong_value = 0;
-    std::vector< Node > shared_term_value_splits;
-    //must ensure that shared terms are equal to their concrete value
-    for (context::CDList<TNode>::const_iterator its = d_containing.shared_terms_begin();
-         its != d_containing.shared_terms_end(); ++its) {
-      TNode shared_term = *its;
-      // compute its value in the model, and its evaluation in the model
-      Node stv0 = computeModelValue( shared_term, 0 );
-      Node stv1 = computeModelValue( shared_term, 1 );
-      if( stv0!=stv1 ){
-        num_shared_wrong_value++;
-        Trace("nl-ext-mv") << "Bad shared term value : " << shared_term << " : " << stv1 << ", actual is " << stv0 << std::endl;
-        if( shared_term!=stv0 ){
-          //split on the value, this is non-terminating in general, TODO : improve this
-          Node eq = shared_term.eqNode(stv0);
-          shared_term_value_splits.push_back( eq );
-        }else{
-          // this can happen for transcendental functions
-          // the problem is that we cannot evaluate transcendental functions (they don't have a rewriter that returns constants)
-          // thus, the actual value in their model can be themselves, hence we have no reference
-          //   point to rule out the current model.  In this case, we may set incomplete below.
+      // get the assertions that are false in the model
+      const std::set<Node> false_asserts = getFalseInModel(assertions);
+      
+      // get the extended terms belonging to this theory
+      std::vector<Node> xts;
+      d_containing.getExtTheory()->getTerms(xts);
+      
+      if( Trace.isOn("nl-ext-debug") ){
+        Trace("nl-ext-debug") << "  processing NonlinearExtension::check : " << std::endl;
+        Trace("nl-ext-debug") << "     " << false_asserts.size() << " false assertions" << std::endl;
+        Trace("nl-ext-debug") << "     " << xts.size() << " extended terms: " << std::endl;
+        Trace("nl-ext-debug") << "       ";
+        for( unsigned j=0; j<xts.size(); j++ ){
+          Trace("nl-ext-debug") << xts[j] << " ";
         }
-      }
-    }
-    Trace("nl-ext-debug") << "     " << num_shared_wrong_value << " shared terms with wrong model value." << std::endl;
+        Trace("nl-ext-debug") << std::endl;
+      }  
     
-    // we require a check either if an assertion is false or a shared term has a wrong value
-    bool isIncomplete = false;
-    int num_added_lemmas = 0;
-    if(!false_asserts.empty() || num_shared_wrong_value>0 ){
-      isIncomplete = true;
-      num_added_lemmas = checkLastCall(assertions, false_asserts, xts);
-    }
-    
-    //if we did not add a lemma during check
-    if(num_added_lemmas==0) {
-      if(num_shared_wrong_value>0) {
-        // resort to splitting on shared terms with their model value
-        isIncomplete = true;
-        if( !shared_term_value_splits.empty() ){
-          std::vector< Node > shared_term_value_lemmas;
-          for( unsigned i=0; i<shared_term_value_splits.size(); i++ ){
-            Node eq = shared_term_value_splits[i];
-            Node literal = d_containing.getValuation().ensureLiteral(eq);
-            d_containing.getOutputChannel().requirePhase(literal, true);
-            shared_term_value_lemmas.push_back(literal.orNode(literal.negate()));
+      // compute whether shared terms have correct values
+      unsigned num_shared_wrong_value = 0;
+      std::vector< Node > shared_term_value_splits;
+      //must ensure that shared terms are equal to their concrete value
+      for (context::CDList<TNode>::const_iterator its = d_containing.shared_terms_begin();
+          its != d_containing.shared_terms_end(); ++its) {
+        TNode shared_term = *its;
+        // compute its value in the model, and its evaluation in the model
+        Node stv0 = computeModelValue( shared_term, 0 );
+        Node stv1 = computeModelValue( shared_term, 1 );
+        if( stv0!=stv1 ){
+          num_shared_wrong_value++;
+          Trace("nl-ext-mv") << "Bad shared term value : " << shared_term << " : " << stv1 << ", actual is " << stv0 << std::endl;
+          if( shared_term!=stv0 ){
+            //split on the value, this is non-terminating in general, TODO : improve this
+            Node eq = shared_term.eqNode(stv0);
+            shared_term_value_splits.push_back( eq );
+          }else{
+            // this can happen for transcendental functions
+            // the problem is that we cannot evaluate transcendental functions (they don't have a rewriter that returns constants)
+            // thus, the actual value in their model can be themselves, hence we have no reference
+            //   point to rule out the current model.  In this case, we may set incomplete below.
           }
-          num_added_lemmas = flushLemmas(shared_term_value_lemmas);
-          Trace("nl-ext") << "...added " << num_added_lemmas << " shared term value split lemmas." << std::endl;
-        }else{
-          // this can happen if we are trying to do theory combination with trancendental functions
-          // since their model value cannot even be computed exactly
         }
+      }
+      Trace("nl-ext-debug") << "     " << num_shared_wrong_value << " shared terms with wrong model value." << std::endl;
+      
+      // we require a check either if an assertion is false or a shared term has a wrong value
+      bool isIncomplete = false;
+      int num_added_lemmas = 0;
+      if(!false_asserts.empty() || num_shared_wrong_value>0 ){
+        isIncomplete = true;
+        num_added_lemmas = checkLastCall(assertions, false_asserts, xts);
       }
       
+      //if we did not add a lemma during check
       if(num_added_lemmas==0) {
-        if(isIncomplete) {
-          Trace("nl-ext") << "...failed to send lemma in NonLinearExtension, set incomplete" << std::endl;
-          d_containing.getOutputChannel().setIncomplete();
+        if(num_shared_wrong_value>0) {
+          // resort to splitting on shared terms with their model value
+          isIncomplete = true;
+          if( !shared_term_value_splits.empty() ){
+            std::vector< Node > shared_term_value_lemmas;
+            for( unsigned i=0; i<shared_term_value_splits.size(); i++ ){
+              Node eq = shared_term_value_splits[i];
+              Node literal = d_containing.getValuation().ensureLiteral(eq);
+              d_containing.getOutputChannel().requirePhase(literal, true);
+              shared_term_value_lemmas.push_back(literal.orNode(literal.negate()));
+            }
+            num_added_lemmas = flushLemmas(shared_term_value_lemmas);
+            Trace("nl-ext") << "...added " << num_added_lemmas << " shared term value split lemmas." << std::endl;
+          }else{
+            // this can happen if we are trying to do theory combination with trancendental functions
+            // since their model value cannot even be computed exactly
+          }
+        }
+        if( num_added_lemmas==0 )
+        {
+          if(isIncomplete) {
+            // Check the model with using error bounds on the Taylor 
+            // approximation. See Section 3 of Cimatti et al CADE 2017 under the 
+            // heading "Detecting Satisfiable Formulas".
+            //if( !d_tf_rep_map.empty() || !checkTfModel(false_asserts) )
+            //{
+            //  isIncomplete = false;
+            //}
+          }
+          if(isIncomplete) {
+            if( options::nlExtTfIncTaylorDegree() && !d_tf_rep_map.empty() )
+            {
+              d_taylor_degree++;
+              needsRecheck = true;
+              Trace("nl-ext") << "...increment Taylor degree to " << d_taylor_degree << std::endl;
+            }
+            else
+            {
+              Trace("nl-ext") << "...failed to send lemma in NonLinearExtension, set incomplete" << std::endl;
+              d_containing.getOutputChannel().setIncomplete();
+            }
+          }
         }
       }
-    }
+    }while( needsRecheck );
   }
 }
 
@@ -3071,7 +3094,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
     std::map<int, Node>
         poly_approx_bounds_neg[2];  // the negative case is different for exp
     // n is the Taylor degree we are currently considering
-    unsigned n = 2*options::nlExtTfTaylorDegree();
+    unsigned n = 2*d_taylor_degree;
     // n must be even
     std::pair<Node, Node> taylor = getTaylor(tft, n);
     Trace("nl-ext-tf-tplanes-debug") << "Taylor for " << k
