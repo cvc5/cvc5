@@ -1108,7 +1108,7 @@ int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
   return sum;
 }
 
-std::vector<Node> NonlinearExtension::getFalseInModel(
+std::vector<Node> NonlinearExtension::checkModel(
     const std::vector<Node>& assertions) {
   std::vector<Node> false_asserts;
   for (size_t i = 0; i < assertions.size(); ++i) {
@@ -1131,9 +1131,20 @@ std::vector<Node> NonlinearExtension::getFalseInModel(
 
 bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
 {
-  
-  
-  
+  Trace("nl-ext-tf-check-model") << "check-model : Run" << std::endl;
+  for( const Node& a : assertions )
+  {
+    Node av = computeModelValue(a);
+    Trace("nl-ext-tf-check-model") << "check-model : assertion : " << av << std::endl;
+  }
+  // add bounds for PI
+  d_tf_check_model_bounds[d_pi] = std::pair< Node, Node >( d_pi_bound[0], d_pi_bound[1] );
+  for( const std::pair< const Node, std::pair< Node, Node > >& tfb : d_tf_check_model_bounds )
+  {
+    Node tf = tfb.first;
+    Trace("nl-ext-tf-check-model") << "check-model : satisfied approximate bound : ";
+    Trace("nl-ext-tf-check-model") << tfb.second.first << " <= " << tf << " <= " << tfb.second.second << std::endl;
+  }
   return false;
 }
 
@@ -1489,7 +1500,7 @@ void NonlinearExtension::check(Theory::Effort e) {
         assertions.push_back(assertion.assertion);
       }
       // get the assertions that are false in the model
-      const std::vector<Node> false_asserts = getFalseInModel(assertions);
+      const std::vector<Node> false_asserts = checkModel(assertions);
       
       // get the extended terms belonging to this theory
       std::vector<Node> xts;
@@ -1703,8 +1714,8 @@ void NonlinearExtension::mkPi(){
 void NonlinearExtension::getCurrentPiBounds( std::vector< Node >& lemmas ) {
   Node pi_lem = NodeManager::currentNM()->mkNode(
       AND,
-      NodeManager::currentNM()->mkNode(GT, d_pi, d_pi_bound[0]),
-      NodeManager::currentNM()->mkNode(LT, d_pi, d_pi_bound[1]));
+      NodeManager::currentNM()->mkNode(GEQ, d_pi, d_pi_bound[0]),
+      NodeManager::currentNM()->mkNode(LEQ, d_pi, d_pi_bound[1]));
   lemmas.push_back( pi_lem );
 }
 
@@ -3300,13 +3311,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
           else 
           {
             // store for check model bounds 
-            for( unsigned d=0; d<2; d++ )
-            {
-              Node v_pab = model_values[d];
-              Node sym_comp = nm->mkNode(d == 0 ? GEQ : LEQ, tf, v_pab);
-              Trace("nl-ext-tf-check-model") << "Satisfied approximate bound : " << sym_comp << std::endl;
-              d_tf_check_model_bounds.push_back( sym_comp );
-            }
+            d_tf_check_model_bounds[tf] = std::pair< Node, Node >( model_values[0], model_values[1] );
           }
 
           if (is_tangent)

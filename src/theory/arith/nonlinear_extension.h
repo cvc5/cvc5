@@ -228,10 +228,12 @@ class NonlinearExtension {
   void assignOrderIds(std::vector<Node>& vars, NodeMultiset& d_order,
                       unsigned orderType);
 
-  /** Returns the subset of assertions whose concrete values are
-   * false in the model.
+  /** check model 
+   * 
+   * Returns the subset of assertions whose concrete values are not true in the
+   * current model.
    */
-  std::vector<Node> getFalseInModel(const std::vector<Node>& assertions);
+  std::vector<Node> checkModel(const std::vector<Node>& assertions);
   
   /** check model for transcendental functions 
    * 
@@ -455,7 +457,7 @@ private:
   Node getUninterpretedFunctionForTf( Kind k );
   
   /** check model bounds */
-  std::vector< Node > d_tf_check_model_bounds;
+  std::map< Node, std::pair< Node, Node > > d_tf_check_model_bounds;
   
   // factor skolems
   std::map< Node, Node > d_factor_skolem;
