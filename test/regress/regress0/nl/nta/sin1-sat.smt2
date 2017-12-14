@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext-tf-tplanes
+; COMMAND-LINE: --nl-ext-tf-tplanes --no-check-models
 ; EXPECT: sat
 (set-logic QF_NRA)
 (set-info :status unsat)
