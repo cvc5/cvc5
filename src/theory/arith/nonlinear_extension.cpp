@@ -1132,9 +1132,11 @@ std::vector<Node> NonlinearExtension::checkModel(
 bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
 {
   Trace("nl-ext-tf-check-model") << "check-model : Run" << std::endl;
+  std::vector< Node > check_assertions;
   for( const Node& a : assertions )
   {
     Node av = computeModelValue(a);
+    check_assertions.push_back( av );
     Trace("nl-ext-tf-check-model") << "check-model : assertion : " << av << std::endl;
   }
   // add bounds for PI
@@ -1145,6 +1147,8 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
     Trace("nl-ext-tf-check-model") << "check-model : satisfied approximate bound : ";
     Trace("nl-ext-tf-check-model") << tfb.second.first << " <= " << tf << " <= " << tfb.second.second << std::endl;
   }
+  // TODO
+  
   return false;
 }
 
@@ -1582,10 +1586,11 @@ void NonlinearExtension::check(Theory::Effort e) {
             }
           }
           if(isIncomplete) {
-            if( options::nlExtTfIncTaylorDegree() && !d_tf_rep_map.empty() )
+            if( options::nlExtTfIncPrecision() && !d_tf_rep_map.empty() )
             {
               d_taylor_degree++;
               needsRecheck = true;
+              // TODO : increase precision for PI
               Trace("nl-ext") << "...increment Taylor degree to " << d_taylor_degree << std::endl;
             }
             else
@@ -3311,7 +3316,12 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
           else 
           {
             // store for check model bounds 
-            d_tf_check_model_bounds[tf] = std::pair< Node, Node >( model_values[0], model_values[1] );
+            Node atf = computeModelValue( tf );
+            d_tf_check_model_bounds[atf] = std::pair< Node, Node >( model_values[0], model_values[1] );
+            if( tf.getKind()==kind::SINE )
+            {
+              // add for negative ?
+            }
           }
 
           if (is_tangent)
