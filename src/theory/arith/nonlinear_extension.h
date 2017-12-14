@@ -251,7 +251,24 @@ class NonlinearExtension {
    */
   bool checkModelTf(const std::vector<Node>& assertions);
 
-  /** simple check */
+  /** simple check model for transcendental functions for literal
+   *
+   * This method returns true if literal is true for all interpretations of
+   * that are within the error bounds of transcendental functions (as stored
+   * in d_tf_check_model_bounds). This is determined by a simple under/over
+   * approximation of the value of sum of (linear) monomials. For example,
+   * if we determine that .8 < sin( 1 ) < .9, this function will return
+   * true for literals like:
+   *   2.0*sin( 1 ) > 1.5
+   *   -1.0*sin( 1 ) < -0.79
+   *   -1.0*sin( 1 ) > -0.91
+   * It will return false for literals like:
+   *   sin( 1 ) > 0.85
+   * It will also return false for literals that are non-linear:
+   *   -0.3*sin( 1 )*sin( 2 ) + sin( 2 ) > .7
+   * where sin( 2 ) is bounded by some interval, since the bounds on these
+   * terms cannot quickly be determined.
+   */
   bool simpleCheckModelTfLit(Node lit);
 
   /** In the following functions, status states a relationship

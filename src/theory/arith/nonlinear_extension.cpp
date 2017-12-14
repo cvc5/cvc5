@@ -1721,8 +1721,8 @@ void NonlinearExtension::check(Theory::Effort e) {
             if (options::nlExtTfIncPrecision() && !d_tf_rep_map.empty())
             {
               d_taylor_degree++;
-              needsRecheck = true;
               d_secant_points.clear();
+              needsRecheck = true;
               // increase precision for PI?
               // Difficult since Taylor series is very slow to converge
               Trace("nl-ext") << "...increment Taylor degree to "
