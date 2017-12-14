@@ -242,6 +242,9 @@ class NonlinearExtension {
    * Cimatti et al CADE 2017 under the heading "Detecting Satisfiable Formulas".
    */
   bool checkModelTf(const std::vector<Node>& assertions);
+  
+  /** simple check */
+  bool simpleCheckModelTfLit(Node lit);
 
   /** In the following functions, status states a relationship
   * between two arithmetic terms, where:

@@ -1132,13 +1132,6 @@ std::vector<Node> NonlinearExtension::checkModel(
 bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
 {
   Trace("nl-ext-tf-check-model") << "check-model : Run" << std::endl;
-  std::vector< Node > check_assertions;
-  for( const Node& a : assertions )
-  {
-    Node av = computeModelValue(a);
-    check_assertions.push_back( av );
-    Trace("nl-ext-tf-check-model") << "check-model : assertion : " << av << std::endl;
-  }
   // add bounds for PI
   d_tf_check_model_bounds[d_pi] = std::pair< Node, Node >( d_pi_bound[0], d_pi_bound[1] );
   for( const std::pair< const Node, std::pair< Node, Node > >& tfb : d_tf_check_model_bounds )
@@ -1147,8 +1140,95 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
     Trace("nl-ext-tf-check-model") << "check-model : satisfied approximate bound : ";
     Trace("nl-ext-tf-check-model") << tfb.second.first << " <= " << tf << " <= " << tfb.second.second << std::endl;
   }
-  // TODO
   
+  std::vector< Node > check_assertions;
+  for( const Node& a : assertions )
+  {
+    Node av = computeModelValue(a);
+    // simple check 
+    if( !simpleCheckModelTfLit( av ) )
+    {
+      check_assertions.push_back( av );
+      Trace("nl-ext-tf-check-model") << "check-model : assertion : " << av << " (from " << a << ")" << std::endl;
+    }
+  }
+  
+  if( check_assertions.empty() )
+  {
+    return true;
+  }
+  else
+  {
+    // TODO
+    return false;
+  }
+}
+
+bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
+{
+  Trace("nl-ext-tf-check-model-simple") << "simple check-model for " << lit << "..." << std::endl;
+  NodeManager * nm = NodeManager::currentNM();
+  bool pol = lit.getKind()!=kind::NOT;
+  Node atom = lit.getKind()==kind::NOT ? lit[0] : lit;
+  
+  if( atom.getKind()==kind::GEQ )
+  {
+    std::map<Node, Node> msum;
+    if (ArithMSum::getMonomialSumLit(atom, msum))
+    {
+      // map from transcendental functions to whether they were set to lower bound
+      std::map< Node, bool > set_bound;
+      std::vector< Node > sum_bound;
+      for( std::pair< const Node, Node >& m : msum )
+      {
+        Node v = m.first;
+        if( v.isNull() )
+        {
+          sum_bound.push_back( m.second.isNull() ? d_one : m.second );
+        }
+        else 
+        {
+          std::map< Node, std::pair< Node, Node > >::iterator bit = d_tf_check_model_bounds.find( v );
+          if( bit!=d_tf_check_model_bounds.end() ){
+            bool set_lower = ( m.second.isNull() || m.second.getConst<Rational>().sgn()==1 )==pol;
+            std::map< Node, bool >::iterator itsb = set_bound.find( v );
+            if( itsb!=set_bound.end() && itsb->second!=set_lower )
+            {
+              Trace("nl-ext-tf-check-model-simple") << "  failed due to conflicting bound for " << v << std::endl;
+              return false;
+            }
+            set_bound[v] = set_lower;
+            // must over/under approximate
+            Node vbound = set_lower ? bit->second.first : bit->second.second;
+            sum_bound.push_back( ArithMSum::mkCoeffTerm( m.second, vbound ) );
+          }else{
+            Trace("nl-ext-tf-check-model-simple") << "  failed due to unknown bound for " << v << std::endl;
+            return false;
+          }
+        }
+      }
+      Node bound;
+      if( sum_bound.size()>1 ){
+        bound = nm->mkNode( kind::PLUS, sum_bound );
+      }else if( sum_bound.size()==1 ){
+        bound = sum_bound[0];
+      }else{
+        bound = d_zero;
+      }
+      Node comp = nm->mkNode( kind::GEQ, bound, d_zero );
+      if( !pol )
+      {
+        comp = comp.negate();
+      }
+      Trace("nl-ext-tf-check-model-simple") << "  comparison is : " << comp << std::endl;
+      comp = Rewriter::rewrite( comp );
+      Assert( comp.isConst() );
+      Trace("nl-ext-tf-check-model-simple") << "  returned : " << comp << std::endl;
+      return comp==d_true;
+    }
+  }
+  
+  Trace("nl-ext-tf-check-model-simple") << "  failed due to unknown literal." << std::endl;
   return false;
 }
 
@@ -3318,10 +3398,6 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
             // store for check model bounds 
             Node atf = computeModelValue( tf );
             d_tf_check_model_bounds[atf] = std::pair< Node, Node >( model_values[0], model_values[1] );
-            if( tf.getKind()==kind::SINE )
-            {
-              // add for negative ?
-            }
           }
 
           if (is_tangent)
