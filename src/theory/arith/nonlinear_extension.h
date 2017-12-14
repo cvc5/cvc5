@@ -459,7 +459,7 @@ private:
    * where r is the current representative of x
    * in the equality engine assoiated with this class.
    */
-  std::map< Kind, std::map< Node, Node > > d_tf_rep_map;
+  std::map<Kind, std::map<Node, Node> > d_tf_rep_map;
 
   /** bounds for transcendental functions
    *
