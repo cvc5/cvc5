@@ -195,4 +195,8 @@ option nlExtPurify --nl-ext-purify bool :default false
 option nlExtSplitZero --nl-ext-split-zero bool :default false
  intial splits on zero for all variables
 
+option nlExtTfTaylorDegree --nl-ext-tf-taylor-deg=N int16_t :default 4 :read-write
+ default degree of taylor polynomials
+ 
+ 
 endmodule

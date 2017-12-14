@@ -440,6 +440,15 @@ private:
    */
   std::map< Kind, std::map< Node, Node > > d_tf_rep_map;  
   
+  /** map from transcendental functions to UF, for check model */
+  std::map< Kind, Node > d_tf_to_uf;
+  
+  /** get getUninterpreted function for transcendental function kind k */
+  Node getUninterpretedFunctionForTf( Kind k );
+  
+  /** check model bounds */
+  std::vector< Node > d_tf_check_model_bounds;
+  
   // factor skolems
   std::map< Node, Node > d_factor_skolem;
   Node getFactorSkolem( Node n, std::vector< Node >& lemmas );

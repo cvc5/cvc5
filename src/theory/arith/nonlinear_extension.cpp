@@ -1156,6 +1156,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_ci_max.clear();
   d_tf_rep_map.clear();
   d_tf_region.clear();
+  d_tf_check_model_bounds.clear();
 
   int lemmas_proc = 0;
   std::vector<Node> lemmas;  
@@ -1431,6 +1432,13 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       return lemmas_proc;
     }
   }
+  
+  //------------------------------------check model
+  
+  
+  
+  
+  
 
   return 0;
 }
@@ -2597,6 +2605,25 @@ std::vector<Node> NonlinearExtension::checkFactoring( const std::set<Node>& fals
   return lemmas;
 }
 
+/** get getUninterpreted function for transcendental function kind k */
+Node NonlinearExtension::getUninterpretedFunctionForTf( Kind k )
+{
+  std::map< Kind, Node >::iterator itt = d_tf_to_uf.find( k );
+  if( itt!=d_tf_to_uf.end() )
+  {
+    return itt->second;
+  }
+  Node utf;
+  if( k==kind::SINE || k==kind::EXPONENTIAL )
+  {
+    TypeNode rt = NodeManager::currentNM()->realType();
+    TypeNode ft = NodeManager::currentNM()->mkFunctionType( rt, rt );
+    utf = NodeManager::currentNM()->mkSkolem( "utf", ft );
+    d_tf_to_uf[k] = utf;
+  }
+  return utf;
+}
+  
 Node NonlinearExtension::getFactorSkolem( Node n, std::vector< Node >& lemmas ) {
   std::map< Node, Node >::iterator itf = d_factor_skolem.find( n );
   if( itf==d_factor_skolem.end() ){
@@ -3044,7 +3071,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
     std::map<int, Node>
         poly_approx_bounds_neg[2];  // the negative case is different for exp
     // n is the Taylor degree we are currently considering
-    unsigned n = 8;
+    unsigned n = 2*options::nlExtTfTaylorDegree();
     // n must be even
     std::pair<Node, Node> taylor = getTaylor(tft, n);
     Trace("nl-ext-tf-tplanes-debug") << "Taylor for " << k
@@ -3240,6 +3267,17 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
                                                    taylor_subs.end());
             Trace("nl-ext-tf-tplanes-debug") << "...poly appoximation at c is "
                                              << poly_approx_c << std::endl;
+          }
+          else 
+          {
+            // store for check model bounds 
+            for( unsigned d=0; d<2; d++ )
+            {
+              Node v_pab = model_values[d];
+              Node sym_comp = nm->mkNode(d == 0 ? GEQ : LEQ, tf, v_pab);
+              Trace("nl-ext-tf-check-model") << "Satisfied approximate bound : " << sym_comp << std::endl;
+              d_tf_check_model_bounds.push_back( sym_comp );
+            }
           }
 
           if (is_tangent)
