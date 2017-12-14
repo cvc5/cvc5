@@ -1722,6 +1722,7 @@ void NonlinearExtension::check(Theory::Effort e) {
             {
               d_taylor_degree++;
               needsRecheck = true;
+              d_secant_points.clear();
               // increase precision for PI?
               // Difficult since Taylor series is very slow to converge
               Trace("nl-ext") << "...increment Taylor degree to "
