@@ -230,16 +230,24 @@ class NonlinearExtension {
 
   /** check model 
    * 
-   * Returns the subset of assertions whose concrete values are not true in the
-   * current model.
+   * Returns the subset of assertions whose concrete values we cannot show are
+   * true in the current model. Notice that we typically cannot compute concrete 
+   * values for assertions involving transcendental functions. Any assertion
+   * whose model value cannot be computed is included in the return value of
+   * this function.
    */
   std::vector<Node> checkModel(const std::vector<Node>& assertions);
   
   /** check model for transcendental functions 
    * 
-   * Check the model using error bounds on the Taylor approximation, as
-   * stored in d_tf_check_model_bounds. For details, see Section 3 of 
-   * Cimatti et al CADE 2017 under the heading "Detecting Satisfiable Formulas".
+   * Check the model using error bounds on the Taylor approximation. 
+   * 
+   * If this function returns true, then all assertions in the input argument 
+   * are satisfied for all interpretations of transcendental functions within
+   * their error bounds (as stored in d_tf_check_model_bounds).
+   * 
+   * For details, see Section 3 of Cimatti et al CADE 2017 under the heading 
+   * "Detecting Satisfiable Formulas".
    */
   bool checkModelTf(const std::vector<Node>& assertions);
   
@@ -453,13 +461,11 @@ private:
    */
   std::map< Kind, std::map< Node, Node > > d_tf_rep_map;  
   
-  /** map from transcendental functions to UF, for check model */
-  std::map< Kind, Node > d_tf_to_uf;
-  
-  /** get getUninterpreted function for transcendental function kind k */
-  Node getUninterpretedFunctionForTf( Kind k );
-  
-  /** check model bounds */
+  /** bounds for transcendental functions 
+   * 
+   * For each transcendental function application t, if this stores the pair
+   * (c_l, c_u) then the model M is such that c_l <= M( t ) <= c_u.
+   */
   std::map< Node, std::pair< Node, Node > > d_tf_check_model_bounds;
   
   // factor skolems
@@ -511,7 +517,13 @@ private:
   std::unordered_map<Node, std::unordered_map<unsigned, Node>, NodeHashFunction>
       d_taylor_rem;
       
-  /** taylor degree */
+  /** taylor degree
+   * 
+   * Indicates that the degree of the polynomials in the Taylor approximation of
+   * all transcendental functions is 2*d_taylor_degree. This value is set 
+   * initially to options::nlExtTfTaylorDegree() and may be incremented
+   * if the option options::nlExtTfIncPrecision() is enabled.
+   */
   unsigned d_taylor_degree;
 
   /** concavity region for transcendental functions

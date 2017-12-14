@@ -1537,12 +1537,6 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
   }
   
-  //------------------------------------check model
-  
-  
-  
-  
-  
   return 0;
 }
 
@@ -1643,8 +1637,7 @@ void NonlinearExtension::check(Theory::Effort e) {
           isIncomplete = true;
           if( !shared_term_value_splits.empty() ){
             std::vector< Node > shared_term_value_lemmas;
-            for( unsigned i=0; i<shared_term_value_splits.size(); i++ ){
-              Node eq = shared_term_value_splits[i];
+            for( const Node& eq : shared_term_value_splits ){
               Node literal = d_containing.getValuation().ensureLiteral(eq);
               d_containing.getOutputChannel().requirePhase(literal, true);
               shared_term_value_lemmas.push_back(literal.orNode(literal.negate()));
@@ -2728,25 +2721,6 @@ std::vector<Node> NonlinearExtension::checkFactoring( const std::vector<Node>& f
     }
   }
   return lemmas;
-}
-
-/** get getUninterpreted function for transcendental function kind k */
-Node NonlinearExtension::getUninterpretedFunctionForTf( Kind k )
-{
-  std::map< Kind, Node >::iterator itt = d_tf_to_uf.find( k );
-  if( itt!=d_tf_to_uf.end() )
-  {
-    return itt->second;
-  }
-  Node utf;
-  if( k==kind::SINE || k==kind::EXPONENTIAL )
-  {
-    TypeNode rt = NodeManager::currentNM()->realType();
-    TypeNode ft = NodeManager::currentNM()->mkFunctionType( rt, rt );
-    utf = NodeManager::currentNM()->mkSkolem( "utf", ft );
-    d_tf_to_uf[k] = utf;
-  }
-  return utf;
 }
   
 Node NonlinearExtension::getFactorSkolem( Node n, std::vector< Node >& lemmas ) {
