@@ -1108,9 +1108,9 @@ int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
   return sum;
 }
 
-std::set<Node> NonlinearExtension::getFalseInModel(
+std::vector<Node> NonlinearExtension::getFalseInModel(
     const std::vector<Node>& assertions) {
-  std::set<Node> false_asserts;
+  std::vector<Node> false_asserts;
   for (size_t i = 0; i < assertions.size(); ++i) {
     Node lit = assertions[i];
     Node atom = lit.getKind()==NOT ? lit[0] : lit;
@@ -1120,13 +1120,21 @@ std::set<Node> NonlinearExtension::getFalseInModel(
       if (litv != d_true) {
         Trace("nl-ext-mv") << " [model-false]" << std::endl;
         //Assert(litv == d_false);
-        false_asserts.insert(lit);
+        false_asserts.push_back(lit);
       } else {
         Trace("nl-ext-mv") << std::endl;
       }
     }
   }
   return false_asserts;
+}
+
+bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
+{
+  
+  
+  
+  return false;
 }
 
 std::vector<Node> NonlinearExtension::checkSplitZero() {
@@ -1144,7 +1152,7 @@ std::vector<Node> NonlinearExtension::checkSplitZero() {
 }
 
 int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
-                                       const std::set<Node>& false_asserts,
+                                       const std::vector<Node>& false_asserts,
                                        const std::vector<Node>& xts) {
   d_ms_vars.clear();
   d_ms_proc.clear();
@@ -1481,7 +1489,7 @@ void NonlinearExtension::check(Theory::Effort e) {
         assertions.push_back(assertion.assertion);
       }
       // get the assertions that are false in the model
-      const std::set<Node> false_asserts = getFalseInModel(assertions);
+      const std::vector<Node> false_asserts = getFalseInModel(assertions);
       
       // get the extended terms belonging to this theory
       std::vector<Node> xts;
@@ -1556,13 +1564,11 @@ void NonlinearExtension::check(Theory::Effort e) {
         if( num_added_lemmas==0 )
         {
           if(isIncomplete) {
-            // Check the model with using error bounds on the Taylor 
-            // approximation. See Section 3 of Cimatti et al CADE 2017 under the 
-            // heading "Detecting Satisfiable Formulas".
-            //if( !d_tf_rep_map.empty() || !checkTfModel(false_asserts) )
-            //{
-            //  isIncomplete = false;
-            //}
+            // check the model using error bounds on the Taylor approximation
+            if( !d_tf_rep_map.empty() && checkModelTf(false_asserts) )
+            {
+              isIncomplete = false;
+            }
           }
           if(isIncomplete) {
             if( options::nlExtTfIncTaylorDegree() && !d_tf_rep_map.empty() )
@@ -2275,7 +2281,7 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
 
                     
 std::vector<Node> NonlinearExtension::checkMonomialInferBounds( std::vector<Node>& nt_lemmas,
-                                                                const std::set<Node>& false_asserts ) {            
+                                                                const std::vector<Node>& false_asserts ) {            
   std::vector< Node > lemmas; 
   // register constraints
   Trace("nl-ext-debug") << "Register bound constraints..." << std::endl;
@@ -2286,7 +2292,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds( std::vector<Node
     bool polarity = lit.getKind() != NOT;
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
     registerConstraint(atom);
-    bool is_false_lit = false_asserts.find(lit) != false_asserts.end();
+    bool is_false_lit = std::find( false_asserts.begin(), false_asserts.end(), lit ) != false_asserts.end();
     // add information about bounds to variables
     std::map<Node, std::map<Node, ConstraintInfo> >::iterator itc =
         d_c_info.find(atom);
@@ -2536,7 +2542,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds( std::vector<Node
   return lemmas;
 }
 
-std::vector<Node> NonlinearExtension::checkFactoring( const std::set<Node>& false_asserts ) {
+std::vector<Node> NonlinearExtension::checkFactoring( const std::vector<Node>& false_asserts ) {
   std::vector< Node > lemmas; 
   Trace("nl-ext") << "Get factoring lemmas..." << std::endl;
   for (context::CDList<Assertion>::const_iterator it =
@@ -2545,7 +2551,7 @@ std::vector<Node> NonlinearExtension::checkFactoring( const std::set<Node>& fals
     Node lit = (*it).assertion;
     bool polarity = lit.getKind() != NOT;
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
-    if( false_asserts.find(lit) != false_asserts.end() || d_skolem_atoms.find(atom)!=d_skolem_atoms.end() ){
+    if( std::find( false_asserts.begin(), false_asserts.end(), lit )!=false_asserts.end() || d_skolem_atoms.find(atom)!=d_skolem_atoms.end() ){
       std::map<Node, Node> msum;
       if (ArithMSum::getMonomialSumLit(atom, msum))
       {

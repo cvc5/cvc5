@@ -179,7 +179,7 @@ class NonlinearExtension {
    * TheoryArith.
    */
   int checkLastCall(const std::vector<Node>& assertions,
-                    const std::set<Node>& false_asserts,
+                    const std::vector<Node>& false_asserts,
                     const std::vector<Node>& xts);
   //---------------------------------------term utilities
   static bool isArithKind(Kind k);
@@ -231,7 +231,15 @@ class NonlinearExtension {
   /** Returns the subset of assertions whose concrete values are
    * false in the model.
    */
-  std::set<Node> getFalseInModel(const std::vector<Node>& assertions);
+  std::vector<Node> getFalseInModel(const std::vector<Node>& assertions);
+  
+  /** check model for transcendental functions 
+   * 
+   * Check the model using error bounds on the Taylor approximation, as
+   * stored in d_tf_check_model_bounds. For details, see Section 3 of 
+   * Cimatti et al CADE 2017 under the heading "Detecting Satisfiable Formulas".
+   */
+  bool checkModelTf(const std::vector<Node>& assertions);
 
   /** In the following functions, status states a relationship
   * between two arithmetic terms, where:
@@ -627,7 +635,7 @@ private:
   *      that occur in the current context.
   */
   std::vector<Node> checkMonomialInferBounds( std::vector<Node>& nt_lemmas,
-                                              const std::set<Node>& false_asserts );
+                                              const std::vector<Node>& false_asserts );
 
   /** check factoring
   *
@@ -641,7 +649,7 @@ private:
   *   ...where k is fresh and x*z + y*z > t is a
   *      constraint that occurs in the current context.
   */
-  std::vector<Node> checkFactoring( const std::set<Node>& false_asserts );
+  std::vector<Node> checkFactoring( const std::vector<Node>& false_asserts );
 
   /** check monomial infer resolution bounds
   *
