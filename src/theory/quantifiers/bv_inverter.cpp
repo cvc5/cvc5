@@ -759,65 +759,40 @@ Node BvInverter::solveBvLit(Node sv,
 
   Assert(k == EQUAL
       || k == BITVECTOR_ULT
-      || k == BITVECTOR_SLT
-      || k == BITVECTOR_COMP);
+      || k == BITVECTOR_SLT);
 
   Node sv_t = lit[index];
   Node t = lit[1-index];
 
-  switch (k)
+  if (k == BITVECTOR_ULT)
   {
-    case BITVECTOR_ULT:
+    TypeNode solve_tn = sv_t.getType();
+    Node sc = getScBvUlt(pol, k, index, getSolveVariable(solve_tn), t);
+    /* t = fresh skolem constant  */
+    t = getInversionNode(sc, solve_tn, m);
+    if (!path.empty())
     {
-      TypeNode solve_tn = sv_t.getType();
-      Node sc = getScBvUlt(pol, k, index, getSolveVariable(solve_tn), t);
-      /* t = fresh skolem constant  */
-      t = getInversionNode(sc, solve_tn, m);
-      if (!path.empty())
-      {
-        index = path.back();
-        Assert(index < sv_t.getNumChildren());
-        path.pop_back();
-        sv_t = sv_t[index];
-        k = sv_t.getKind();
-      }
-      break;
+      index = path.back();
+      Assert(index < sv_t.getNumChildren());
+      path.pop_back();
+      sv_t = sv_t[index];
+      k = sv_t.getKind();
     }
-
-    case BITVECTOR_SLT:
+  }
+  else if (k == BITVECTOR_SLT)
+  {
+    TypeNode solve_tn = sv_t.getType();
+    Node sc = getScBvSlt(pol, k, index, getSolveVariable(solve_tn), t);
+    /* t = fresh skolem constant  */
+    t = getInversionNode(sc, solve_tn, m);
+    if (!path.empty())
     {
-      TypeNode solve_tn = sv_t.getType();
-      Node sc = getScBvSlt(pol, k, index, getSolveVariable(solve_tn), t);
-      /* t = fresh skolem constant  */
-      t = getInversionNode(sc, solve_tn, m);
-      if (!path.empty())
-      {
-        index = path.back();
-        Assert(index < sv_t.getNumChildren());
-        path.pop_back();
-        sv_t = sv_t[index];
-        k = sv_t.getKind();
-      }
-      break;
+      index = path.back();
+      Assert(index < sv_t.getNumChildren());
+      path.pop_back();
+      sv_t = sv_t[index];
+      k = sv_t.getKind();
     }
-
-    default:
-      Assert(k == EQUAL);
-      if (pol == false)
-      {
-        TypeNode solve_tn = sv_t.getType();
-        Node sc = getScBvEq(pol, k, index, getSolveVariable(solve_tn), t);
-        /* t = fresh skolem constant  */
-        t = getInversionNode(sc, solve_tn, m);
-        if (!path.empty())
-        {
-          index = path.back();
-          Assert(index < sv_t.getNumChildren());
-          path.pop_back();
-          sv_t = sv_t[index];
-          k = sv_t.getKind();
-        }
-      }
   }
 
   /* Bit-vector layer -------------------------------------------- */
@@ -870,10 +845,6 @@ Node BvInverter::solveBvLit(Node sv,
        *       are commutative (no case split based on index). */
       switch (k)
       {
-        case BITVECTOR_COMP:
-          t = s;
-          break;
-
         case BITVECTOR_PLUS:
           t = nm->mkNode(BITVECTOR_SUB, t, s);
           break;
