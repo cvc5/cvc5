@@ -71,9 +71,10 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     TS_ASSERT(res.d_sat == Result::UNSAT);
   }
 
-  void runTest(Kind k,
+  void runTest(bool pol,
+               Kind k,
                unsigned idx,
-               Node (*getsc)(Kind, unsigned, Node, Node, Node))
+               Node (*getsc)(bool, Kind, unsigned, Node, Node, Node))
   {
     Assert(k == kind::BITVECTOR_MULT
            || k == kind::BITVECTOR_UREM_TOTAL
@@ -85,7 +86,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
            || k == kind::BITVECTOR_SHL);
     Assert(k != kind::BITVECTOR_UREM_TOTAL || idx == 1);
 
-    Node sc = getsc(k, idx, d_sk, d_s, d_t);
+    Node sc = getsc(pol, k, idx, d_sk, d_s, d_t);
     Kind ksc = sc.getKind();
     TS_ASSERT(ksc == kind::IMPLIES);
     Node body = idx == 0
@@ -188,85 +189,95 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
                      AssertionException);
   }
 
-  void testGetScBvMult0()
+  void testGetScBvMultTrue0()
   {
-    runTest(BITVECTOR_MULT, 0, getScBvMult);
+    runTest(true, BITVECTOR_MULT, 0, getScBvMult);
   }
 
-  void testGetScBvMult1()
+  void testGetScBvMultTrue1()
   {
-    runTest(BITVECTOR_MULT, 1, getScBvMult);
+    runTest(true, BITVECTOR_MULT, 1, getScBvMult);
   }
 
-  void testGetScBvUrem0()
+  void testGetScBvMultFalse0()
   {
-    TS_ASSERT_THROWS(runTest(BITVECTOR_UREM_TOTAL, 0, getScBvUrem),
+    runTest(false, BITVECTOR_MULT, 0, getScBvMult);
+  }
+
+  void testGetScBvMultFalse1()
+  {
+    runTest(false, BITVECTOR_MULT, 1, getScBvMult);
+  }
+
+  void testGetScBvUremTrue0()
+  {
+    TS_ASSERT_THROWS(runTest(true, BITVECTOR_UREM_TOTAL, 0, getScBvUrem),
                      AssertionException);
   }
 
-  void testGetScBvUrem1()
+  void testGetScBvUremTrue1()
   {
-    runTest(BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+    runTest(true, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
   }
 
-  void testGetScBvUdiv0()
+  void testGetScBvUdivTrue0()
   {
-    runTest(BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+    runTest(true, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
   }
 
-  void testGetScBvUdiv1()
+  void testGetScBvUdivTrue1()
   {
-    runTest(BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+    runTest(true, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
   }
 
-  void testGetScBvAnd0()
+  void testGetScBvAndTrue0()
   {
-    runTest(BITVECTOR_AND, 0, getScBvAndOr);
+    runTest(true, BITVECTOR_AND, 0, getScBvAndOr);
   }
 
-  void testGetScBvAnd1()
+  void testGetScBvAndTrue1()
   {
-    runTest(BITVECTOR_AND, 1, getScBvAndOr);
+    runTest(true, BITVECTOR_AND, 1, getScBvAndOr);
   }
 
-  void testGetScBvOr0()
+  void testGetScBvOrTrue0()
   {
-    runTest(BITVECTOR_OR, 0, getScBvAndOr);
+    runTest(true, BITVECTOR_OR, 0, getScBvAndOr);
   }
 
-  void testGetScBvOr1()
+  void testGetScBvOrTrue1()
   {
-    runTest(BITVECTOR_OR, 1, getScBvAndOr);
+    runTest(true, BITVECTOR_OR, 1, getScBvAndOr);
   }
 
-  void testGetScBvLshr0()
+  void testGetScBvLshrTrue0()
   {
-    runTest(BITVECTOR_LSHR, 0, getScBvLshr);
+    runTest(true, BITVECTOR_LSHR, 0, getScBvLshr);
   }
 
-  void testGetScBvLshr1()
+  void testGetScBvLshrTrue1()
   {
-    runTest(BITVECTOR_LSHR, 1, getScBvLshr);
+    runTest(true, BITVECTOR_LSHR, 1, getScBvLshr);
   }
 
-  void testGetScBvAshr0()
+  void testGetScBvAshrTrue0()
   {
-    runTest(BITVECTOR_ASHR, 0, getScBvAshr);
+    runTest(true, BITVECTOR_ASHR, 0, getScBvAshr);
   }
 
-  void testGetScBvAshr1()
+  void testGetScBvAshrTrue1()
   {
-    runTest(BITVECTOR_ASHR, 1, getScBvAshr);
+    runTest(true, BITVECTOR_ASHR, 1, getScBvAshr);
   }
 
-  void testGetScBvShl0()
+  void testGetScBvShlTrue0()
   {
-    runTest(BITVECTOR_SHL, 0, getScBvShl);
+    runTest(true, BITVECTOR_SHL, 0, getScBvShl);
   }
 
-  void testGetScBvShl1()
+  void testGetScBvShlTrue1()
   {
-    runTest(BITVECTOR_SHL, 1, getScBvShl);
+    runTest(true, BITVECTOR_SHL, 1, getScBvShl);
   }
 
 };

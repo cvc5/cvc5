@@ -50,6 +50,8 @@ Node BvInverter::getSolveVariable(TypeNode tn)
 
 Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
 {
+  TNode solve_var = getSolveVariable(tn);
+
   // condition should be rewritten
   Node new_cond = Rewriter::rewrite(cond);
   if (new_cond != cond)
@@ -58,11 +60,10 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
                                    << " was rewritten to " << new_cond
                                    << std::endl;
   }
+  // optimization : if condition is ( x = solve_var ) should just return
+  // solve_var and not introduce a Skolem this can happen when we ask for
+  // the multiplicative inversion with bv1
   Node c;
-  // optimization : if condition is ( x = v ) should just return v and not
-  // introduce a Skolem this can happen when we ask for the multiplicative
-  // inversion with bv1
-  TNode solve_var = getSolveVariable(tn);
   if (new_cond.getKind() == EQUAL)
   {
     for (unsigned i = 0; i < 2; i++)
@@ -317,31 +318,44 @@ static Node getScBvEq(bool pol, Kind k, unsigned idx, Node x, Node t)
   return sc;
 }
 
-static Node getScBvMult(Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvMult(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_MULT);
 
   NodeManager* nm = NodeManager::currentNM();
+  Node scl, scr;
+  Node z = bv::utils::mkZero(bv::utils::getSize(s));
 
-  /* x * s = t
-   * with side condition:
-   * ctz(t) >= ctz(s) <-> x * s = t
-   * where
-   * ctz(t) >= ctz(s) -> t = 0 \/ ((t & -t) >= (s & -s) /\ s != 0) */
-  Node zero = bv::utils::mkZero(bv::utils::getSize(s));
-  Node t_uge_s = nm->mkNode(BITVECTOR_UGE,
-      nm->mkNode(BITVECTOR_AND, t, nm->mkNode(BITVECTOR_NEG, t)),
-      nm->mkNode(BITVECTOR_AND, s, nm->mkNode(BITVECTOR_NEG, s)));
-  Node scl = nm->mkNode(OR,
-      t.eqNode(zero),
-      nm->mkNode(AND, t_uge_s, s.eqNode(zero).notNode()));
-  Node scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
+  if (pol)
+  {
+    /* x * s = t
+     * with side condition:
+     * ctz(t) >= ctz(s) <-> x * s = t
+     * where
+     * ctz(t) >= ctz(s) -> t = 0 \/ ((t & -t) >= (s & -s) /\ s != 0) */
+    Node t_uge_s = nm->mkNode(BITVECTOR_UGE,
+        nm->mkNode(BITVECTOR_AND, t, nm->mkNode(BITVECTOR_NEG, t)),
+        nm->mkNode(BITVECTOR_AND, s, nm->mkNode(BITVECTOR_NEG, s)));
+    scl = nm->mkNode(OR,
+        t.eqNode(z),
+        nm->mkNode(AND, t_uge_s, s.eqNode(z).notNode()));
+    scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
+  }
+  else
+  {
+    /* x * s != t
+     * with side condition:
+     * t != 0 || s != 0 */
+    scl = nm->mkNode(OR, t.eqNode(z).notNode(), s.eqNode(z).notNode());
+    scr = nm->mkNode(DISTINCT, nm->mkNode(k, x, s), t);
+  }
+
   Node sc = nm->mkNode(IMPLIES, scl, scr);
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc << std::endl;
   return sc;
 }
 
-static Node getScBvUrem(Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvUrem(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_UREM_TOTAL);
   Assert(idx == 1);
@@ -375,7 +389,7 @@ static Node getScBvUrem(Kind k, unsigned idx, Node x, Node s, Node t)
   return sc;
 }
 
-static Node getScBvUdiv(Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvUdiv(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_UDIV_TOTAL);
 
@@ -447,7 +461,7 @@ static Node getScBvUdiv(Kind k, unsigned idx, Node x, Node s, Node t)
   return sc;
 }
 
-static Node getScBvAndOr(Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvAndOr(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   NodeManager* nm = NodeManager::currentNM();
   /* with side condition:
@@ -460,7 +474,7 @@ static Node getScBvAndOr(Kind k, unsigned idx, Node x, Node s, Node t)
   return sc;
 }
 
-static Node getScBvLshr(Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvLshr(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_LSHR);
 
@@ -525,7 +539,7 @@ static Node getScBvLshr(Kind k, unsigned idx, Node x, Node s, Node t)
   return sc;
 }
 
-static Node getScBvAshr(Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvAshr(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_ASHR);
 
@@ -620,7 +634,7 @@ static Node getScBvAshr(Kind k, unsigned idx, Node x, Node s, Node t)
   return sc;
 }
 
-static Node getScBvShl(Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvShl(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_SHL);
 
@@ -705,13 +719,13 @@ Node BvInverter::solveBvLit(Node sv,
   Assert(index < lit.getNumChildren());
   path.pop_back();
   k = lit.getKind();
-  
+
   /* Note: option --bool-to-bv is currently disabled when CBQI BV
    *       is enabled. We currently do not support Boolean operators
    *       that are interpreted as bit-vector operators of width 1.  */
 
   /* Boolean layer ----------------------------------------------- */
-  
+
   if (k == NOT)
   {
     pol = !pol;
@@ -851,7 +865,7 @@ Node BvInverter::solveBvLit(Node sv,
         case BITVECTOR_MULT:
         {
           TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvMult(k, index, getSolveVariable(solve_tn), s, t);
+          Node sc = getScBvMult(pol, k, index, getSolveVariable(solve_tn), s, t);
           /* t = fresh skolem constant */
           t = getInversionNode(sc, solve_tn, m);
           break;
@@ -867,7 +881,8 @@ Node BvInverter::solveBvLit(Node sv,
             return Node::null();
           }
           TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvUrem(k, index, getSolveVariable(solve_tn), s, t);
+          Node sc = getScBvUrem(
+              pol, k, index, getSolveVariable(solve_tn), s, t);
           /* t = skv (fresh skolem constant)  */
           t = getInversionNode(sc, solve_tn, m);
           break;
@@ -876,7 +891,8 @@ Node BvInverter::solveBvLit(Node sv,
         case BITVECTOR_UDIV_TOTAL:
         {
           TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvUdiv(k, index, getSolveVariable(solve_tn), s, t);
+          Node sc = getScBvUdiv(
+              pol, k, index, getSolveVariable(solve_tn), s, t);
           /* t = fresh skolem constant */
           t = getInversionNode(sc, solve_tn, m);
           break;
@@ -889,7 +905,8 @@ Node BvInverter::solveBvLit(Node sv,
            * t & s = t
            * t | s = t */
           TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvAndOr(k, index, getSolveVariable(solve_tn), s, t);
+          Node sc = getScBvAndOr(
+              pol, k, index, getSolveVariable(solve_tn), s, t);
           /* t = fresh skolem constant  */
           t = getInversionNode(sc, solve_tn, m);
           break;
@@ -915,7 +932,8 @@ Node BvInverter::solveBvLit(Node sv,
           }
 
           TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvLshr(k, index, getSolveVariable(solve_tn), s, t);
+          Node sc = getScBvLshr(
+              pol, k, index, getSolveVariable(solve_tn), s, t);
           /* t = fresh skolem constant  */
           t = getInversionNode(sc, solve_tn, m);
           break;
@@ -938,7 +956,8 @@ Node BvInverter::solveBvLit(Node sv,
             return Node::null();
           }
           TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvAshr(k, index, getSolveVariable(solve_tn), s, t);
+          Node sc = getScBvAshr(
+              pol, k, index, getSolveVariable(solve_tn), s, t);
           /* t = fresh skolem constant  */
           t = getInversionNode(sc, solve_tn, m);
           break;
@@ -960,7 +979,8 @@ Node BvInverter::solveBvLit(Node sv,
             return Node::null();
           }
           TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvShl(k, index, getSolveVariable(solve_tn), s, t);
+          Node sc = getScBvShl(
+              pol, k, index, getSolveVariable(solve_tn), s, t);
           /* t = fresh skolem constant */
           t = getInversionNode(sc, solve_tn, m);
           break;
