@@ -90,8 +90,8 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     Kind ksc = sc.getKind();
     TS_ASSERT(ksc == kind::IMPLIES);
     Node body = idx == 0
-      ? d_nm->mkNode(k, d_x, d_s).eqNode(d_t)
-      : d_nm->mkNode(k, d_s, d_x).eqNode(d_t);
+      ? d_nm->mkNode(pol ? EQUAL : DISTINCT, d_nm->mkNode(k, d_x, d_s), d_t)
+      : d_nm->mkNode(pol ? EQUAL : DISTINCT, d_nm->mkNode(k, d_s, d_x), d_t);
     Node scr = d_nm->mkNode(kind::EXISTS, d_bvarlist, body);
     Expr a = d_nm->mkNode(kind::DISTINCT, sc[0], scr).toExpr();
     Result res = d_smt->checkSat(a);
