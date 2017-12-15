@@ -88,12 +88,14 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
 
     Node sc = getsc(pol, k, idx, d_sk, d_s, d_t);
     Kind ksc = sc.getKind();
-    TS_ASSERT(ksc == kind::IMPLIES);
+    TS_ASSERT((k == kind::BITVECTOR_UDIV_TOTAL && idx == 1 && pol == false)
+              || ksc == kind::IMPLIES);
+    Node scl = ksc == kind::IMPLIES ? sc[0] : bv::utils::mkTrue();
     Node body = idx == 0
       ? d_nm->mkNode(pol ? EQUAL : DISTINCT, d_nm->mkNode(k, d_x, d_s), d_t)
       : d_nm->mkNode(pol ? EQUAL : DISTINCT, d_nm->mkNode(k, d_s, d_x), d_t);
     Node scr = d_nm->mkNode(kind::EXISTS, d_bvarlist, body);
-    Expr a = d_nm->mkNode(kind::DISTINCT, sc[0], scr).toExpr();
+    Expr a = d_nm->mkNode(kind::DISTINCT, scl, scr).toExpr();
     Result res = d_smt->checkSat(a);
     if (res.d_sat == Result::SAT)
     {
@@ -228,6 +230,16 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvUdivTrue1()
   {
     runTest(true, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+  }
+
+  void testGetScBvUdivFalse0()
+  {
+    runTest(false, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+  }
+
+  void testGetScBvUdivFalse1()
+  {
+    runTest(false, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
   }
 
   void testGetScBvAndTrue0()

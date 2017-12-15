@@ -396,67 +396,87 @@ static Node getScBvUdiv(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
   NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(s);
   Assert (w == bv::utils::getSize(t));
-  Node scl, scr;
-  Node zero = bv::utils::mkZero(w);
+  Node sc, scl, scr;
+  Node z = bv::utils::mkZero(w);
+  Node n = bv::utils::mkOnes(w);
 
   if (idx == 0)
   {
-    /* x udiv s = t
-     * with side condition:
-     * t = ~0 && (s = 0 || s = 1)
-     * ||
-     * (t != ~0 && s != 0 && !umulo(s * t)) */
-    Node o1 = nm->mkNode(AND,
-        t.eqNode(bv::utils::mkOnes(w)),
-        nm->mkNode(OR,
-          s.eqNode(bv::utils::mkZero(w)),
-          s.eqNode(bv::utils::mkOne(w))));
-    Node o2 = nm->mkNode(AND,
-        t.eqNode(bv::utils::mkOnes(w)).notNode(),
-        s.eqNode(bv::utils::mkZero(w)).notNode(),
-        nm->mkNode(NOT, bv::utils::mkUmulo(s, t)));
+    if (pol)
+    {
+      /* x udiv s = t
+       * with side condition:
+       * t = ~0 && (s = 0 || s = 1)
+       * ||
+       * (t != ~0 && s != 0 && !umulo(s * t)) */
+      Node o1 = nm->mkNode(AND,
+          t.eqNode(bv::utils::mkOnes(w)),
+          nm->mkNode(OR,
+            s.eqNode(z),
+            s.eqNode(bv::utils::mkOne(w))));
+      Node o2 = nm->mkNode(AND,
+          t.eqNode(n).notNode(),
+          s.eqNode(z).notNode(),
+          nm->mkNode(NOT, bv::utils::mkUmulo(s, t)));
 
-    scl = nm->mkNode(OR, o1, o2);
-    scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
+      scl = nm->mkNode(OR, o1, o2);
+      scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
+    }
+    else
+    {
+      /* x udiv s != t
+       * with side condition:
+       * s != 0 || t != ~0  */
+      scl = nm->mkNode(OR, s.eqNode(z).notNode(), t.eqNode(n).notNode());
+      scr = nm->mkNode(DISTINCT, nm->mkNode(k, x, s), t);
+    }
+    sc = nm->mkNode(IMPLIES, scl, scr);
   }
   else
   {
-    /* s udiv x = t
-     * with side condition:
-     * s = t
-     * ||
-     * t = ~0
-     * ||
-     * (s >= t
-     *  && (s % t = 0 || (s / (t+1) +1) <= s / t)
-     *  && (s = ~0 => t != 0))  */
+    if (pol)
+    {
+      /* s udiv x = t
+       * with side condition:
+       * s = t
+       * ||
+       * t = ~0
+       * ||
+       * (s >= t
+       *  && (s % t = 0 || (s / (t+1) +1) <= s / t)
+       *  && (s = ~0 => t != 0))  */
 
-    Node oo1 = nm->mkNode(EQUAL,
-        nm->mkNode(BITVECTOR_UREM_TOTAL, s, t),
-        bv::utils::mkZero(w));
+      Node oo1 = nm->mkNode(EQUAL,
+          nm->mkNode(BITVECTOR_UREM_TOTAL, s, t),
+          bv::utils::mkZero(w));
 
-    Node ule1 = nm->mkNode(BITVECTOR_PLUS,
-        bv::utils::mkOne(w),
-        nm->mkNode(BITVECTOR_UDIV_TOTAL,
-          s, nm->mkNode(BITVECTOR_PLUS, t, bv::utils::mkOne(w))));
-    Node ule2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, s, t);
-    Node oo2 = nm->mkNode(BITVECTOR_ULE, ule1, ule2);
+      Node ule1 = nm->mkNode(BITVECTOR_PLUS,
+          bv::utils::mkOne(w),
+          nm->mkNode(BITVECTOR_UDIV_TOTAL,
+            s, nm->mkNode(BITVECTOR_PLUS, t, bv::utils::mkOne(w))));
+      Node ule2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, s, t);
+      Node oo2 = nm->mkNode(BITVECTOR_ULE, ule1, ule2);
 
-    Node a1 = nm->mkNode(BITVECTOR_UGE, s, t);
-    Node a2 = nm->mkNode(OR, oo1, oo2);
-    Node a3 = nm->mkNode(IMPLIES,
-        s.eqNode(bv::utils::mkOnes(w)),
-        t.eqNode(bv::utils::mkZero(w)).notNode());
+      Node a1 = nm->mkNode(BITVECTOR_UGE, s, t);
+      Node a2 = nm->mkNode(OR, oo1, oo2);
+      Node a3 = nm->mkNode(IMPLIES,
+          s.eqNode(bv::utils::mkOnes(w)),
+          t.eqNode(bv::utils::mkZero(w)).notNode());
 
-    Node o1 = s.eqNode(t);
-    Node o2 = t.eqNode(bv::utils::mkOnes(w));
-    Node o3 = nm->mkNode(AND, a1, a2, a3);
+      Node o1 = s.eqNode(t);
+      Node o2 = t.eqNode(bv::utils::mkOnes(w));
+      Node o3 = nm->mkNode(AND, a1, a2, a3);
 
-    scl = nm->mkNode(OR, o1, o2, o3);
-    scr = nm->mkNode(EQUAL, nm->mkNode(k, s, x), t);
+      scl = nm->mkNode(OR, o1, o2, o3);
+      scr = nm->mkNode(EQUAL, nm->mkNode(k, s, x), t);
+      sc = nm->mkNode(IMPLIES, scl, scr);
+    }
+    else
+    {
+      sc = nm->mkNode(DISTINCT, nm->mkNode(k, s, x), t);
+    }
   }
 
-  Node sc = nm->mkNode(IMPLIES, scl, scr);
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc << std::endl;
   return sc;
 }
