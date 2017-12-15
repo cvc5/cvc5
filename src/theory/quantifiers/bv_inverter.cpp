@@ -901,19 +901,6 @@ Node BvInverter::solveBvLit(Node sv,
 
         case BITVECTOR_LSHR:
         {
-          if (index == 1)
-          {
-            /* s >> x = t
-             * with side condition:
-             * clz(t) >= clz(s)
-             *   && (t = 0
-             *    || "remaining shifted bits in t "
-             *       "match corresponding bits in s")  */
-            Trace("bv-invert") << "bv-invert : Unsupported for index " << index
-                               << ", from " << sv_t << std::endl;
-            return Node::null();
-          }
-
           TypeNode solve_tn = sv_t[index].getType();
           Node sc = getScBvLshr(k, index, getSolveVariable(solve_tn), s, t);
           /* t = fresh skolem constant  */
@@ -923,20 +910,6 @@ Node BvInverter::solveBvLit(Node sv,
 
         case BITVECTOR_ASHR:
         {
-          if (index == 1)
-          {
-            /* s >> x = t
-             * with side condition:
-             * clx(msb(s),t) >= clx(msb(s),s)
-             *   && (t = 0
-             *    || t = ~0
-             *    || "remaining shifted bits in t "
-             *          "match corresponding bits in s")  */
-
-            Trace("bv-invert") << "bv-invert : Unsupported for index " << index
-                               << ", from " << sv_t << std::endl;
-            return Node::null();
-          }
           TypeNode solve_tn = sv_t[index].getType();
           Node sc = getScBvAshr(k, index, getSolveVariable(solve_tn), s, t);
           /* t = fresh skolem constant  */
@@ -946,19 +919,6 @@ Node BvInverter::solveBvLit(Node sv,
 
         case BITVECTOR_SHL:
         {
-          if (index == 1)
-          {
-            /* s << x = t
-             * with side condition:
-             * ctz(t) >= ctz(s)
-             * && (t = 0 ||
-             *     "remaining shifted bits in t"
-             *     "match corresponding bits in s")
-             */
-            Trace("bv-invert") << "bv-invert : Unsupported for index " << index
-                               << "for bit-vector term " << sv_t << std::endl;
-            return Node::null();
-          }
           TypeNode solve_tn = sv_t[index].getType();
           Node sc = getScBvShl(k, index, getSolveVariable(solve_tn), s, t);
           /* t = fresh skolem constant */
