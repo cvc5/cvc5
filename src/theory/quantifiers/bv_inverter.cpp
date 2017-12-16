@@ -510,7 +510,9 @@ static Node getScBvLshr(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
      * with side condition:
      * s = 0 || (s < w && clz(t) >=s) || (s >= w && t = 0)
      * ->
-     * s = 0 || (s < w && ((z o t) << (z o s))[2w-1 : w] = z) || (s >= w && t = 0)
+     * s = 0
+     * || (s < w && ((z o t) << (z o s))[2w-1 : w] = z)
+     * || (s >= w && t = 0)
      * with w = getSize(t) = getSize(s)
      * and z = 0 with getSize(z) = w  */
 
@@ -724,8 +726,7 @@ static Node getScBvShl(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
 Node BvInverter::solveBvLit(Node sv,
                             Node lit,
                             std::vector<unsigned>& path,
-                            BvInverterQuery* m,
-                            BvInverterStatus& status)
+                            BvInverterQuery* m)
 {
   Assert(!path.empty());
 
@@ -843,104 +844,68 @@ Node BvInverter::solveBvLit(Node sv,
       Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
       /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
        *       are commutative (no case split based on index). */
-      switch (k)
+      if (k == BITVECTOR_PLUS)
       {
-        case BITVECTOR_PLUS:
-          t = nm->mkNode(BITVECTOR_SUB, t, s);
-          break;
+        t = nm->mkNode(BITVECTOR_SUB, t, s);
+      }
+      else if (k == BITVECTOR_SUB)
+      {
+        t = nm->mkNode(BITVECTOR_PLUS, t, s);
+      }
+      else if (k == BITVECTOR_XOR)
+      {
+        t = nm->mkNode(BITVECTOR_XOR, t, s);
+      }
+      else
+      {
+        TypeNode solve_tn = sv_t[index].getType();
+        Node sc;
 
-        case BITVECTOR_SUB:
-          t = nm->mkNode(BITVECTOR_PLUS, t, s);
-          break;
-
-        case BITVECTOR_MULT:
+        switch (k)
         {
-          TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvMult(pol, k, index, getSolveVariable(solve_tn), s, t);
-          /* t = fresh skolem constant */
-          t = getInversionNode(sc, solve_tn, m);
-          break;
-        }
+          case BITVECTOR_MULT:
+            sc = getScBvMult(pol, k, index, getSolveVariable(solve_tn), s, t);
+            break;
 
-        case BITVECTOR_UREM_TOTAL:
-        {
-          if (index == 0)
-          {
-            /* x % s = t is rewritten to x - x / y * y */
-            Trace("bv-invert") << "bv-invert : Unsupported for index " << index
-                               << ", from " << sv_t << std::endl;
+          case BITVECTOR_SHL:
+            sc = getScBvShl(pol, k, index, getSolveVariable(solve_tn), s, t);
+            break;
+            
+          case BITVECTOR_UREM_TOTAL:
+            if (index == 0)
+            {
+              /* x % s = t is rewritten to x - x / y * y */
+              Trace("bv-invert") << "bv-invert : Unsupported for index "
+                                 << index << ", from " << sv_t << std::endl;
+              return Node::null();
+            }
+            sc = getScBvUrem(pol, k, index, getSolveVariable(solve_tn), s, t);
+            break;
+
+          case BITVECTOR_UDIV_TOTAL:
+            sc = getScBvUdiv(pol, k, index, getSolveVariable(solve_tn), s, t);
+            break;
+
+          case BITVECTOR_AND:
+          case BITVECTOR_OR:
+            sc = getScBvAndOr(pol, k, index, getSolveVariable(solve_tn), s, t);
+            break;
+
+          case BITVECTOR_LSHR:
+            sc = getScBvLshr(pol, k, index, getSolveVariable(solve_tn), s, t);
+            break;
+
+          case BITVECTOR_ASHR:
+            sc = getScBvAshr(pol, k, index, getSolveVariable(solve_tn), s, t);
+            break;
+
+          default:
+            Trace("bv-invert") << "bv-invert : Unknown kind " << k
+                               << " for bit-vector term " << sv_t << std::endl;
             return Node::null();
-          }
-          TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvUrem(
-              pol, k, index, getSolveVariable(solve_tn), s, t);
-          /* t = skv (fresh skolem constant)  */
-          t = getInversionNode(sc, solve_tn, m);
-          break;
         }
-
-        case BITVECTOR_UDIV_TOTAL:
-        {
-          TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvUdiv(
-              pol, k, index, getSolveVariable(solve_tn), s, t);
-          /* t = fresh skolem constant */
-          t = getInversionNode(sc, solve_tn, m);
-          break;
-        }
-
-        case BITVECTOR_AND:
-        case BITVECTOR_OR:
-        {
-          /* with side condition:
-           * t & s = t
-           * t | s = t */
-          TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvAndOr(
-              pol, k, index, getSolveVariable(solve_tn), s, t);
-          /* t = fresh skolem constant  */
-          t = getInversionNode(sc, solve_tn, m);
-          break;
-        }
-
-        case BITVECTOR_XOR:
-          t = nm->mkNode(BITVECTOR_XOR, t, s);
-          break;
-
-        case BITVECTOR_LSHR:
-        {
-          TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvLshr(
-              pol, k, index, getSolveVariable(solve_tn), s, t);
-          /* t = fresh skolem constant  */
-          t = getInversionNode(sc, solve_tn, m);
-          break;
-        }
-
-        case BITVECTOR_ASHR:
-        {
-          TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvAshr(
-              pol, k, index, getSolveVariable(solve_tn), s, t);
-          /* t = fresh skolem constant  */
-          t = getInversionNode(sc, solve_tn, m);
-          break;
-        }
-
-        case BITVECTOR_SHL:
-        {
-          TypeNode solve_tn = sv_t[index].getType();
-          Node sc = getScBvShl(
-              pol, k, index, getSolveVariable(solve_tn), s, t);
-          /* t = fresh skolem constant */
-          t = getInversionNode(sc, solve_tn, m);
-          break;
-        }
-
-        default:
-          Trace("bv-invert") << "bv-invert : Unknown kind " << k
-                             << " for bit-vector term " << sv_t << std::endl;
-          return Node::null();
+        /* t = fresh skolem constant */
+        t = getInversionNode(sc, solve_tn, m);
       }
     }
     sv_t = sv_t[index];

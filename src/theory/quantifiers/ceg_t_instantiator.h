@@ -231,7 +231,6 @@ class BvInstantiator : public Instantiator {
   /** information about solved forms */
   std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction > d_var_to_inst_id;
   std::unordered_map< unsigned, Node > d_inst_id_to_term;
-  std::unordered_map< unsigned, BvInverterStatus > d_inst_id_to_status;
   std::unordered_map<unsigned, Node> d_inst_id_to_alit;
   // variable to current id we are processing
   std::unordered_map< Node, unsigned, NodeHashFunction > d_var_to_curr_inst_id;

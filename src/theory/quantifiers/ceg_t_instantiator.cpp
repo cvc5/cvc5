@@ -965,7 +965,6 @@ void BvInstantiator::reset(CegInstantiator* ci,
   d_inst_id_counter = 0;
   d_var_to_inst_id.clear();
   d_inst_id_to_term.clear();
-  d_inst_id_to_status.clear();
   d_inst_id_to_alit.clear();
   d_var_to_curr_inst_id.clear();
   d_alit_to_model_slack.clear();
@@ -979,31 +978,32 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
                                     Node alit,
                                     CegInstEffort effort)
 {
-  Assert( d_inverter!=NULL );
+  Assert(d_inverter != NULL);
   // find path to pv
-  std::vector< unsigned > path;
-  Node sv = d_inverter->getSolveVariable( pv.getType() );
-  Node pvs = ci->getModelValue( pv );
+  std::vector<unsigned> path;
+  Node sv = d_inverter->getSolveVariable(pv.getType());
+  Node pvs = ci->getModelValue(pv);
   Trace("cegqi-bv") << "Get path to pv : " << lit << std::endl;
-  Node slit = d_inverter->getPathToPv( lit, pv, sv, pvs, path );
-  if( !slit.isNull() ){
+  Node slit = d_inverter->getPathToPv(lit, pv, sv, pvs, path);
+  if (!slit.isNull())
+  {
     CegInstantiatorBvInverterQuery m(ci);
     unsigned iid = d_inst_id_counter;
     Trace("cegqi-bv") << "Solve lit to bv inverter : " << slit << std::endl;
-    Node inst =
-        d_inverter->solveBvLit(sv, slit, path, &m, d_inst_id_to_status[iid]);
-    if( !inst.isNull() ){
+    Node inst = d_inverter->solveBvLit(sv, slit, path, &m);
+    if (!inst.isNull())
+    {
       inst = Rewriter::rewrite(inst);
       Trace("cegqi-bv") << "...solved form is " << inst << std::endl;
       // store information for id and increment
-      d_var_to_inst_id[pv].push_back( iid );
+      d_var_to_inst_id[pv].push_back(iid);
       d_inst_id_to_term[iid] = inst;
       d_inst_id_to_alit[iid] = alit;
       d_inst_id_counter++;
-    }else{
+    }
+    else
+    {
       Trace("cegqi-bv") << "...failed to solve." << std::endl;
-      // cleanup information if we failed to solve
-      d_inst_id_to_status.erase( iid );
     }
   }
 }
