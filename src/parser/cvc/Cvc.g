@@ -81,7 +81,7 @@ tokens {
   ARITH_VAR_ORDER_TOK = 'ARITH_VAR_ORDER';
   CONTINUE_TOK = 'CONTINUE';
   RESTART_TOK = 'RESTART';
-
+  RECURSIVE_TOK = 'REC';
   /* operators */
 
   AND_TOK = 'AND';
@@ -700,6 +700,7 @@ options { backtrack = true; }
 
 mainCommand[std::unique_ptr<CVC4::Command>* cmd]
 @init {
+  DeclarationCheck check;
   Expr f;
   SExpr sexpr;
   std::string id;
@@ -707,6 +708,11 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   std::vector<CVC4::Datatype> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string s;
+  SymbolType st;
+  SymbolType& s1 = st;
+  Type& t1 = t;
+  Expr& f1 = f;
+  std::string& id1 = id;
 }
     /* our bread & butter */
   : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f)); }
@@ -881,6 +887,14 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     { UNSUPPORTED("CONTINUE command"); }
   | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
   | toplevelDeclaration[cmd]
+  | RECURSIVE_TOK 
+  { /*PARSER_STATE->checkThatLogicIsSet();*/ }
+  identifier[id1, check, s1] 
+  { /*PARSER_STATE->checkUserSymbol(id1);*/ }
+  COLON type[t1, check] ARROW_TOK type[t1, check] EQUAL_TOK formula[f1]
+  {
+    std::cout<<"Let's see if this works.";
+  }
   ;
 
 simpleSymbolicExpr[CVC4::SExpr& sexpr]
