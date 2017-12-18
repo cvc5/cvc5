@@ -296,6 +296,7 @@ static Node getScBvSlt(bool pol, Kind k, unsigned idx, Node x, Node t)
   return sc;
 }
 
+#if 0
 static Node getScBvEq(bool pol, Kind k, unsigned idx, Node x, Node t)
 {
   Assert(k == EQUAL);
@@ -317,10 +318,22 @@ static Node getScBvEq(bool pol, Kind k, unsigned idx, Node x, Node t)
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc << std::endl;
   return sc;
 }
+#endif
 
-static Node getScBvMult(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvMult(bool pol,
+                        Kind litk,
+                        Kind k,
+                        unsigned idx,
+                        Node x,
+                        Node s,
+                        Node t)
 {
   Assert(k == BITVECTOR_MULT);
+
+  if (litk != EQUAL)
+  {
+    return Node::null();
+  }
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl, scr;
@@ -355,10 +368,21 @@ static Node getScBvMult(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
   return sc;
 }
 
-static Node getScBvUrem(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvUrem(bool pol,
+                        Kind litk,
+                        Kind k,
+                        unsigned idx,
+                        Node x,
+                        Node s,
+                        Node t)
 {
   Assert(k == BITVECTOR_UREM_TOTAL);
   Assert(idx == 1);
+
+  if (litk != EQUAL)
+  {
+    return Node::null();
+  }
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -389,9 +413,20 @@ static Node getScBvUrem(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
   return sc;
 }
 
-static Node getScBvUdiv(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvUdiv(bool pol,
+                        Kind litk,
+                        Kind k,
+                        unsigned idx,
+                        Node x,
+                        Node s,
+                        Node t)
 {
   Assert(k == BITVECTOR_UDIV_TOTAL);
+
+  if (litk != EQUAL)
+  {
+    return Node::null();
+  }
 
   NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(s);
@@ -481,10 +516,24 @@ static Node getScBvUdiv(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
   return sc;
 }
 
-static Node getScBvAndOr(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvAndOr(bool pol,
+                         Kind litk,
+                         Kind k,
+                         unsigned idx,
+                         Node x,
+                         Node s,
+                         Node t)
 {
   NodeManager* nm = NodeManager::currentNM();
-  /* with side condition:
+
+  if (litk != EQUAL)
+  {
+    return Node::null();
+  }
+
+  /* x & s = t
+   * x | s = t
+   * with side condition:
    * t & s = t
    * t | s = t */
   Node scl = nm->mkNode(EQUAL, t, nm->mkNode(k, t, s));
@@ -494,16 +543,27 @@ static Node getScBvAndOr(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
   return sc;
 }
 
-static Node getScBvLshr(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvLshr(bool pol,
+                        Kind litk,
+                        Kind k,
+                        unsigned idx,
+                        Node x,
+                        Node s,
+                        Node t)
 {
   Assert(k == BITVECTOR_LSHR);
+
+  if (litk != EQUAL)
+  {
+    return Node::null();
+  }
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl, scr;
   unsigned w = bv::utils::getSize(s);
   Assert(w == bv::utils::getSize(t));
   Node z = bv::utils::mkZero(w);
-  
+
   if (idx == 0)
   {
     /* x >> s = t
@@ -561,9 +621,20 @@ static Node getScBvLshr(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
   return sc;
 }
 
-static Node getScBvAshr(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvAshr(bool pol,
+                        Kind litk,
+                        Kind k,
+                        unsigned idx,
+                        Node x,
+                        Node s,
+                        Node t)
 {
   Assert(k == BITVECTOR_ASHR);
+
+  if (litk != EQUAL)
+  {
+    return Node::null();
+  }
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl, scr;
@@ -571,7 +642,7 @@ static Node getScBvAshr(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
   Assert(w == bv::utils::getSize(t));
   Node z = bv::utils::mkZero(w);
   Node n = bv::utils::mkOnes(w);
-  
+
   if (idx == 0)
   {
     /* x >> s = t
@@ -585,7 +656,7 @@ static Node getScBvAshr(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
      * (s >= w && (t = 0 || t = ~0))
      * with w = getSize(t) = getSize(s)
      * and z = 0 with getSize(z) = w  */
-    
+
     Node zz = bv::utils::mkZero(w+1);
     Node nn = bv::utils::mkOnes(w+1);
     Node ww = bv::utils::mkConst(w, w);
@@ -656,9 +727,20 @@ static Node getScBvAshr(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
   return sc;
 }
 
-static Node getScBvShl(bool pol, Kind k, unsigned idx, Node x, Node s, Node t)
+static Node getScBvShl(bool pol,
+                       Kind litk,
+                       Kind k,
+                       unsigned idx,
+                       Node x,
+                       Node s,
+                       Node t)
 {
   Assert(k == BITVECTOR_SHL);
+
+  if (litk != EQUAL)
+  {
+    return Node::null();
+  }
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl, scr;
@@ -733,13 +815,13 @@ Node BvInverter::solveBvLit(Node sv,
   bool pol = true;
   unsigned index, nchildren;
   NodeManager* nm = NodeManager::currentNM();
-  Kind k;
+  Kind k, litk;
 
   Assert(!path.empty());
   index = path.back();
   Assert(index < lit.getNumChildren());
   path.pop_back();
-  k = lit.getKind();
+  litk = k = lit.getKind();
 
   /* Note: option --bool-to-bv is currently disabled when CBQI BV
    *       is enabled. We currently do not support Boolean operators
@@ -755,7 +837,7 @@ Node BvInverter::solveBvLit(Node sv,
     index = path.back();
     Assert(index < lit.getNumChildren());
     path.pop_back();
-    k = lit.getKind();
+    litk = k = lit.getKind();
   }
 
   Assert(k == EQUAL
@@ -764,37 +846,6 @@ Node BvInverter::solveBvLit(Node sv,
 
   Node sv_t = lit[index];
   Node t = lit[1-index];
-
-  if (k == BITVECTOR_ULT)
-  {
-    TypeNode solve_tn = sv_t.getType();
-    Node sc = getScBvUlt(pol, k, index, getSolveVariable(solve_tn), t);
-    /* t = fresh skolem constant  */
-    t = getInversionNode(sc, solve_tn, m);
-    if (!path.empty())
-    {
-      index = path.back();
-      Assert(index < sv_t.getNumChildren());
-      path.pop_back();
-      sv_t = sv_t[index];
-      k = sv_t.getKind();
-    }
-  }
-  else if (k == BITVECTOR_SLT)
-  {
-    TypeNode solve_tn = sv_t.getType();
-    Node sc = getScBvSlt(pol, k, index, getSolveVariable(solve_tn), t);
-    /* t = fresh skolem constant  */
-    t = getInversionNode(sc, solve_tn, m);
-    if (!path.empty())
-    {
-      index = path.back();
-      Assert(index < sv_t.getNumChildren());
-      path.pop_back();
-      sv_t = sv_t[index];
-      k = sv_t.getKind();
-    }
-  }
 
   /* Bit-vector layer -------------------------------------------- */
 
@@ -864,13 +915,15 @@ Node BvInverter::solveBvLit(Node sv,
         switch (k)
         {
           case BITVECTOR_MULT:
-            sc = getScBvMult(pol, k, index, getSolveVariable(solve_tn), s, t);
+            sc = getScBvMult(
+                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
             break;
 
           case BITVECTOR_SHL:
-            sc = getScBvShl(pol, k, index, getSolveVariable(solve_tn), s, t);
+            sc = getScBvShl(
+                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
             break;
-            
+
           case BITVECTOR_UREM_TOTAL:
             if (index == 0)
             {
@@ -879,24 +932,29 @@ Node BvInverter::solveBvLit(Node sv,
                                  << index << ", from " << sv_t << std::endl;
               return Node::null();
             }
-            sc = getScBvUrem(pol, k, index, getSolveVariable(solve_tn), s, t);
+            sc = getScBvUrem(
+                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
             break;
 
           case BITVECTOR_UDIV_TOTAL:
-            sc = getScBvUdiv(pol, k, index, getSolveVariable(solve_tn), s, t);
+            sc = getScBvUdiv(
+                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
             break;
 
           case BITVECTOR_AND:
           case BITVECTOR_OR:
-            sc = getScBvAndOr(pol, k, index, getSolveVariable(solve_tn), s, t);
+            sc = getScBvAndOr(
+                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
             break;
 
           case BITVECTOR_LSHR:
-            sc = getScBvLshr(pol, k, index, getSolveVariable(solve_tn), s, t);
+            sc = getScBvLshr(
+                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
             break;
 
           case BITVECTOR_ASHR:
-            sc = getScBvAshr(pol, k, index, getSolveVariable(solve_tn), s, t);
+            sc = getScBvAshr(
+                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
             break;
 
           default:
@@ -904,6 +962,30 @@ Node BvInverter::solveBvLit(Node sv,
                                << " for bit-vector term " << sv_t << std::endl;
             return Node::null();
         }
+        Assert (litk != EQUAL || !sc.isNull());
+        /* No specific handling for litk and operator k, generate generic
+         * side condition. */
+        if (sc.isNull())
+        {
+          solve_tn = sv_t.getType();
+          if (litk == BITVECTOR_ULT)
+          {
+            sc = getScBvUlt(
+                pol, litk, index, getSolveVariable(solve_tn), t);
+          }
+          else
+          {
+            Assert (litk == BITVECTOR_SLT);
+            sc = getScBvSlt(
+                pol, litk, index, getSolveVariable(solve_tn), t);
+          }
+        }
+        /* We generate a choice term (choice x0. SC => x0 <k> s <litk> t) for
+         * x <k> s <litk> t. When traversing down, this choice term determines
+         * the value for x <k> s = (choice x0. SC => x0 <k> s <litk> t), i.e.,
+         * from here on, the propagated literal is a positive equality. */
+        litk = EQUAL;
+        pol = true;
         /* t = fresh skolem constant */
         t = getInversionNode(sc, solve_tn, m);
       }
@@ -911,6 +993,25 @@ Node BvInverter::solveBvLit(Node sv,
     sv_t = sv_t[index];
   }
   Assert(sv_t == sv);
+  if (litk == BITVECTOR_ULT)
+  {
+    TypeNode solve_tn = sv_t.getType();
+    Node sc = getScBvUlt(pol, litk, index, getSolveVariable(solve_tn), t);
+    t = getInversionNode(sc, solve_tn, m);
+  }
+  else if (litk == BITVECTOR_SLT)
+  {
+    TypeNode solve_tn = sv_t.getType();
+    Node sc = getScBvSlt(pol, litk, index, getSolveVariable(solve_tn), t);
+    t = getInversionNode(sc, solve_tn, m);
+  }
+  else if (pol == false)
+  {
+    Assert (litk == EQUAL);
+    TypeNode solve_tn = sv_t.getType();
+    Node sc = nm->mkNode(DISTINCT, getSolveVariable(solve_tn), t);
+    t = getInversionNode(sc, solve_tn, m);
+  }
   return t;
 }
 
