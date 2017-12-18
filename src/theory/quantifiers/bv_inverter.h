@@ -50,9 +50,6 @@ class BvInverterStatus {
   BvInverterStatus() : d_status(0) {}
   ~BvInverterStatus() {}
   int d_status;
-  // TODO : may not need this (conditions now appear explicitly in solved
-  // forms) side conditions
-  std::vector<Node> d_conds;
 };
 
 // inverter class
@@ -89,15 +86,15 @@ class BvInverter {
   Node getPathToPv(Node lit, Node pv, Node sv, Node pvs,
                    std::vector<unsigned>& path);
 
-  /** solve_bv_lit
+  /** solveBvLit
    * solve for sv in lit, where lit.path = sv
    * status accumulates side conditions
    */
-  Node solve_bv_lit(Node sv,
-                    Node lit,
-                    std::vector<unsigned>& path,
-                    BvInverterQuery* m,
-                    BvInverterStatus& status);
+  Node solveBvLit(Node sv,
+                  Node lit,
+                  std::vector<unsigned>& path,
+                  BvInverterQuery* m,
+                  BvInverterStatus& status);
 
  private:
   /** dummy variables for each type */
@@ -106,9 +103,6 @@ class BvInverter {
   /** helper function for getPathToPv */
   Node getPathToPv(Node lit, Node pv, Node sv, std::vector<unsigned>& path,
                    std::unordered_set<TNode, TNodeHashFunction>& visited);
-
-  // is operator k invertible?
-  bool isInvertible(Kind k, unsigned index);
 };
 
 }  // namespace quantifiers

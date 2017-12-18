@@ -178,7 +178,7 @@ public:
   
   bool needsCheckLastEffort();
 
-  void collectModelInfo(TheoryModel* m);
+  bool collectModelInfo(TheoryModel* m);
 
   void computeCareGraph();
 

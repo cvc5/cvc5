@@ -44,9 +44,6 @@ class SygusInput : public AntlrInput {
   /** The ANTLR3 SMT2 parser for the input. */
   pSmt2Parser d_pSmt2Parser;
 
-  /** Which (variant of the) input language we're using */
-  InputLanguage d_lang;
-
   /**
    * Initialize the class. Called from the constructors once the input
    * stream is initialized.

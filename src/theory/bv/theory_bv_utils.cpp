@@ -26,7 +26,35 @@ namespace theory {
 namespace bv {
 namespace utils {
 
-Node mkUmulo(TNode t1, TNode t2) {
+Node mkSum(std::vector<Node>& children, unsigned width)
+{
+  std::size_t nchildren = children.size();
+
+  if (nchildren == 0)
+  {
+    return mkZero(width);
+  }
+  else if (nchildren == 1)
+  {
+    return children[0];
+  }
+  return NodeManager::currentNM()->mkNode(kind::BITVECTOR_PLUS, children);
+}
+
+Node mkInc(TNode t)
+{
+  return NodeManager::currentNM()->mkNode(
+      kind::BITVECTOR_PLUS, t, bv::utils::mkOne(bv::utils::getSize(t)));
+}
+
+Node mkDec(TNode t)
+{
+  return NodeManager::currentNM()->mkNode(
+      kind::BITVECTOR_SUB, t, bv::utils::mkOne(bv::utils::getSize(t)));
+}
+
+Node mkUmulo(TNode t1, TNode t2)
+{
   unsigned w = getSize(t1);
   if (w == 1) return mkFalse();
 
@@ -35,9 +63,11 @@ Node mkUmulo(TNode t1, TNode t2) {
   std::vector<Node> tmp;
 
   uppc = mkExtract(t1, w - 1, w - 1);
-  for (size_t i = 1; i < w; ++i) {
+  for (size_t i = 1; i < w; ++i)
+  {
     tmp.push_back(nm->mkNode(kind::BITVECTOR_AND, mkExtract(t2, i, i), uppc));
-    uppc = nm->mkNode(kind::BITVECTOR_OR, mkExtract(t1, w-1-i, w-1-i), uppc);
+    uppc = nm->mkNode(
+        kind::BITVECTOR_OR, mkExtract(t1, w - 1 - i, w - 1 - i), uppc);
   }
   Node zext_t1 = mkConcat(mkZero(1), t1);
   Node zext_t2 = mkConcat(mkZero(1), t2);

@@ -407,6 +407,7 @@ function handle_option {
 
   # parse attributes
   i=$(($type_pos+1))
+  colon_pattern='^\:'
   while [ $i -lt ${#args[@]} ]; do
     attribute="${args[$i]}"
     case "$attribute" in
@@ -422,19 +423,19 @@ function handle_option {
        handlers="${args[$i]}"
        ;;
     :predicate)
-       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : '\:' &>/dev/null; do
+       while [ $(($i+1)) -lt ${#args[@]} ] && ! [[ ${args[$(($i+1))]} =~ $colon_pattern ]]; do
          let ++i
          predicates="${predicates} ${args[$i]}"
        done
        ;;
     :notify)
-       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : '\:' &>/dev/null; do
+       while [ $(($i+1)) -lt ${#args[@]} ] && ! [[ ${args[$(($i+1))]} =~ $colon_pattern ]]; do
          let ++i
          notifications="${notifications} ${args[$i]}"
        done
        ;;
     :link)
-       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : '\:' &>/dev/null; do
+       while [ $(($i+1)) -lt ${#args[@]} ] && ! [[ ${args[$(($i+1))]} =~ $colon_pattern ]]; do
          let ++i
          link="${args[$i]}"
          if expr "${args[$i]}" : '.*/' &>/dev/null; then
@@ -447,7 +448,7 @@ function handle_option {
        ;;
     :link-smt)
        j=0
-       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : '\:' &>/dev/null; do
+       while [ $(($i+1)) -lt ${#args[@]} ] && ! [[ ${args[$(($i+1))]} =~ $colon_pattern ]]; do
          let ++i
          let ++j
          if [ $j -eq 3 ]; then
@@ -465,7 +466,7 @@ function handle_option {
        fi
        ;;
     :include)
-       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : '\:' &>/dev/null; do
+       while [ $(($i+1)) -lt ${#args[@]} ] && ! [[ ${args[$(($i+1))]} =~ $colon_pattern ]]; do
          let ++i
          module_includes="${module_includes}
 #line $lineno \"$kf\"
@@ -473,7 +474,7 @@ function handle_option {
        done
        ;;
     :handler-include|:predicate-include)
-       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : '\:' &>/dev/null; do
+       while [ $(($i+1)) -lt ${#args[@]} ] && ! [[ ${args[$(($i+1))]} =~ $colon_pattern ]]; do
          let ++i
          option_handler_includes="${option_handler_includes}
 #line $lineno \"$kf\"
@@ -1582,18 +1583,23 @@ function scan_module {
   while IFS= read -r line; do
     let ++lineno
     # read any continuations of the line
-    while expr "$line" : '.*\\$' &>/dev/null; do
+    continuation_pattern='^.*\\$'
+    while [[ $line =~ $continuation_pattern ]]; do
       IFS= read -r line2
       line="$(echo "$line" | sed 's,\\$,,')$line2"
       let ++lineno
     done
-    if expr "$line" : '[ 	].*' &>/dev/null; then
+    doc_pattern='^[ 	].*'
+    empty_doc_pattern='^\.[ 	]*$'
+    malformed_pattern='^\.'
+    doc_alternate_pattern='^/.*'
+    if [[ $line =~ $doc_pattern ]]; then
       doc "$(echo "$line" | sed 's,^[ 	],,')"
-    elif expr "$line" : '\.[ 	]*$' &>/dev/null; then
+    elif [[ $line =~ $empty_doc_pattern ]]; then
       doc ""
-    elif expr "$line" : '\.' &>/dev/null; then
+    elif [[ $line =~ $malformed_pattern ]]; then
       ERR "malformed line during processing of option \`$internal': continuation lines should not have content"
-    elif expr "$line" : '/.*' &>/dev/null; then
+    elif [[ $line =~ $doc_alternate_pattern ]]; then
       doc-alternate "$(echo "$line" | sed 's,^/,,')"
     else
       line="$(echo "$line" | sed 's,\([<>&()!?*]\),\\\1,g')"
