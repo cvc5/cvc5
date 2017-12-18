@@ -248,11 +248,18 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       const Datatype & dt = (NodeManager::currentNM()->getDatatypeForIndex( n.getConst< DatatypeIndexConstant >().getIndex() ));
       if(dt.isTuple()) {
         unsigned int n = dt[0].getNumArgs();
-        out << "(Tuple";
-        for(unsigned int i = 0; i < n; i++) {
-          out <<" "<<dt[0][i].getRangeType();
+        if(n==0) {
+          out << "Tuple";
+          for(unsigned int i = 0; i < n; i++) {
+            out <<" "<<dt[0][i].getRangeType();
+          }  
+        } else {
+          out << "(Tuple";
+          for(unsigned int i = 0; i < n; i++) {
+            out <<" "<<dt[0][i].getRangeType();
+          }
+          out<<")";
         }
-        out<<")";
       } else {
         out << maybeQuoteSymbol(dt.getName());
       }
