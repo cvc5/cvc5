@@ -557,6 +557,10 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::INTERSECTION:
   case kind::SETMINUS:
   case kind::SUBSET:
+  case kind::JOIN:
+  case kind::PRODUCT:
+  case kind::TRANSPOSE:
+  case kind::TCLOSURE:
     parametricTypeChildren = true;
     out << smtKindString(k) << " "; 
     break;
@@ -937,7 +941,11 @@ static string smtKindString(Kind k) throw() {
   case kind::SINGLETON: return "singleton";
   case kind::INSERT: return "insert";
   case kind::COMPLEMENT: return "complement";
-
+  case kind::JOIN: return "join";
+  case kind::PRODUCT: return "product";
+  case kind::TRANSPOSE: return "transpose";
+  case kind::TCLOSURE: return "tclosure";
+  
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
   case kind::FLOATINGPOINT_EQ: return "fp.eq";
@@ -1663,44 +1671,46 @@ static void toStream(std::ostream& out, const Datatype & d) {
 
 static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c, Variant v) throw() {
   const vector<DatatypeType>& datatypes = c->getDatatypes();
-  out << "(declare-";
-  Assert( !datatypes.empty() );
-  if( datatypes[0].getDatatype().isCodatatype() ){
-    out << "co";
-  }
-  out << "datatypes";
-  if(v == smt2_6_variant) {
-    out << " (";
-    for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
-          i_end = datatypes.end();
-        i != i_end; ++i) {
-      const Datatype & d = i->getDatatype();
-      out << "(" << maybeQuoteSymbol(d.getName());
-      out << " " << d.getNumParameters() << ")";
+  if(!datatypes[0].isTuple()){//Don't print corresponding datatype details if its a Tuple type 
+    out << "(declare-";
+    Assert( !datatypes.empty() );
+    if( datatypes[0].getDatatype().isCodatatype() ){
+      out << "co";
     }
-    out << ") (";
-    for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
-          i_end = datatypes.end();
-        i != i_end; ++i) {
-      const Datatype & d = i->getDatatype();
-      out << "(";
-      toStream( out, d );
-      out << ")" << endl;
+    out << "datatypes";
+    if(v == smt2_6_variant) {
+      out << " (";
+      for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
+            i_end = datatypes.end();
+          i != i_end; ++i) {
+        const Datatype & d = i->getDatatype();
+        out << "(" << maybeQuoteSymbol(d.getName());
+        out << " " << d.getNumParameters() << ")";
+      }
+      out << ") (";
+      for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
+            i_end = datatypes.end();
+          i != i_end; ++i) {
+        const Datatype & d = i->getDatatype();
+        out << "(";
+        toStream( out, d );
+        out << ")" << endl;
+      }
+      out << ")";
+    } else {
+      out << " () (";
+      for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
+            i_end = datatypes.end();
+          i != i_end; ++i) {
+        const Datatype & d = i->getDatatype();
+        out << "(" << maybeQuoteSymbol(d.getName()) << " ";
+        toStream( out, d );
+        out << ")" << endl;
+      }
+      out << ")";
     }
     out << ")";
-  }else{
-    out << " () (";
-    for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
-          i_end = datatypes.end();
-        i != i_end; ++i) {
-      const Datatype & d = i->getDatatype();
-      out << "(" << maybeQuoteSymbol(d.getName()) << " ";
-      toStream( out, d );
-      out << ")" << endl;
-    }
-    out << ")";
   }
-  out << ")";
 }
 
 static void toStream(std::ostream& out, const CommentCommand* c, Variant v) throw() {
