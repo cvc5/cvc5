@@ -54,6 +54,11 @@ inline unsigned getSize(TNode node) {
   return node.getType().getBitVectorSize();
 }
 
+inline unsigned getSignExtendAmount(TNode node)
+{
+  return node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+}
+
 inline const bool getBit(TNode node, unsigned i) {
   Assert (i < utils::getSize(node) && 
           node.getKind() == kind::CONST_BITVECTOR);

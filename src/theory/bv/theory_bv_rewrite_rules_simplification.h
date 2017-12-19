@@ -1431,9 +1431,153 @@ Node RewriteRule<IsPowerOfTwo>::apply(TNode node) {
   return x_eq_sh;
 }
 
-
-
-
+/**
+ * Rewrite
+ *   sign_extend(x+t,n) * sign_extend(a,m) < sign_extend(x,n) * sign_extend(a,m)
+ * to
+ *   (and
+ *    (not (= t zero))
+ *    (not (= a zero))
+ *    (= (bvslt (bvadd x t) x) (bvsge a zero))
+ *   )
+ *
+ * Rewrite
+ *   zero_extend(x+t,n) * sign_extend(a,m) < zero_extend(x,n) * sign_extend(a,m)
+ * to
+ *   (and
+ *    (not (= t zero))
+ *    (not (= a zero))
+ *    (= (bvult (bvadd x t) x) (bvsge a zero))
+ *   )
+ * where n and m are sufficiently big to not produce an overflow for
+ * the multipliations.
+ *
+ * These patterns occur in the quantified BV benchmark family 'ranking',
+ * where the BV engine struggles due to the high bit widths of the
+ * multiplication's operands.
+ */
+static std::tuple<Node, Node, bool>
+extract_ext_tuple(TNode node)
+{
+  TNode a = node[0];
+  TNode b = node[1];
+  for (unsigned i = 0; i < 2; ++i)
+  {
+    if (a.getKind() == kind::BITVECTOR_CONCAT
+        && b.getKind() == kind::BITVECTOR_SIGN_EXTEND
+        && a[0] == utils::mkZero(utils::getSize(a[0]))
+        && utils::getSize(a[1]) <= utils::getSize(a[0])
+        && utils::getSize(b[0]) <= utils::getSignExtendAmount(b))
+    {
+      return std::make_tuple(a[1], b[0], false);
+    }
+    else if (i == 0
+             && a.getKind() == kind::BITVECTOR_SIGN_EXTEND
+             && b.getKind() == kind::BITVECTOR_SIGN_EXTEND
+             && utils::getSize(a[0]) <= utils::getSignExtendAmount(a)
+             && utils::getSize(b[0]) <= utils::getSignExtendAmount(b))
+    {
+      return std::make_tuple(a[0], b[0], true);
+    }
+    std::swap(a, b);
+  }
+  return std::make_tuple(Node::null(), Node::null(), false);
 }
+
+template<> inline
+bool RewriteRule<MultSltMult>::applies(TNode node)
+{
+  if (node.getKind() != kind::BITVECTOR_SLT
+      || node[0].getKind() != kind::BITVECTOR_MULT
+      || node[1].getKind() != kind::BITVECTOR_MULT)
+    return false;
+
+  if (node[0].getNumChildren() > 2 || node[1].getNumChildren() > 2)
+    return false;
+
+  bool is_sext_l, is_sext_r;
+  TNode ml[2], mr[2];
+
+  std::tie(ml[0], ml[1], is_sext_l) = extract_ext_tuple(node[0]);
+  if (ml[0].isNull())
+    return false;
+
+  std::tie(mr[0], mr[1], is_sext_r) = extract_ext_tuple(node[1]);
+  if (mr[0].isNull())
+    return false;
+
+  if (is_sext_l != is_sext_r)
+    return false;
+
+  TNode addxt, x, a;
+  if (ml[0].getKind() == kind::BITVECTOR_PLUS)
+  {
+    addxt = ml[0];
+    a = ml[1];
+  }
+  else if (ml[1].getKind() == kind::BITVECTOR_PLUS)
+  {
+    addxt = ml[1];
+    a = ml[0];
+  }
+  else
+    return false;
+
+  if (addxt.getNumChildren() > 2)
+    return false;
+
+  if (mr[0] == a)
+  {
+    x = mr[1];
+  }
+  else if (mr[1] == a)
+  {
+    x = mr[0];
+  }
+  else
+    return false;
+
+  return (addxt[0] == x || addxt[1] == x);
 }
+
+template<> inline
+Node RewriteRule<MultSltMult>::apply(TNode node)
+{
+  bool is_sext;
+  TNode ml[2], mr[2];
+
+  std::tie(ml[0], ml[1], is_sext) = extract_ext_tuple(node[0]);
+  std::tie(mr[0], mr[1], std::ignore) = extract_ext_tuple(node[1]);
+
+  TNode addxt, x, t, a;
+  if (ml[0].getKind() == kind::BITVECTOR_PLUS)
+  {
+    addxt = ml[0];
+    a = ml[1];
+  }
+  else
+  {
+    Assert(ml[1].getKind() == kind::BITVECTOR_PLUS);
+    addxt = ml[1];
+    a = ml[0];
+  }
+
+  x = (mr[0] == a) ? mr[1] : mr[0];
+  t = (addxt[0] == x) ? addxt[1] : addxt[0];
+
+  NodeManager *nm = NodeManager::currentNM();
+  Node zero_t = utils::mkZero(utils::getSize(t));
+  Node zero_a = utils::mkZero(utils::getSize(a));
+
+  NodeBuilder<> nb(kind::AND);
+  Kind k = is_sext ? kind::BITVECTOR_SLT : kind::BITVECTOR_ULT;
+  nb << t.eqNode(zero_t).notNode();
+  nb << a.eqNode(zero_a).notNode();
+  nb << nm->mkNode(k, addxt, x)
+            .eqNode(nm->mkNode(kind::BITVECTOR_SGE, a, zero_a));
+  return nb.constructNode();
 }
+
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
