@@ -1904,8 +1904,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
       Trace("cegqi-bv-pp") << "For term " << es.first << " : " << std::endl;
       for (unsigned i = 0, size = curr_vec.size(); i < size; i++)
       {
-        Trace("cegqi-bv-pp") << "  " << i << " : " << curr_vec[i]
-                              << std::endl;
+        Trace("cegqi-bv-pp") << "  " << i << " : " << curr_vec[i] << std::endl;
         BitVectorExtract e =
             curr_vec[i].getOperator().getConst<BitVectorExtract>();
         if (std::find(boundaries.begin(), boundaries.end(), e.high + 1)
@@ -1930,8 +1929,8 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
             es.first, boundaries[i - 1] - 1, boundaries[i]);
         Node var =
             nm->mkSkolem("ek",
-                          ex.getType(),
-                          "variable to represent disjoint extract region");
+                         ex.getType(),
+                         "variable to represent disjoint extract region");
         Node ceq_lem = var.eqNode(ex);
         Trace("cegqi-bv-pp") << "Introduced : " << ceq_lem << std::endl;
         new_lems.push_back(ceq_lem);
