@@ -6,6 +6,6 @@
 (declare-fun b () (_ BitVec 32))
 (declare-fun c () (_ BitVec 1))
 
-(assert (forall ((x (_ BitVec 32))) (not (= (bvcomp x a) (bvcomp x b)))))
+(assert (forall ((x (_ BitVec 32))) (not (= (bvcomp x a) ((_ extract 31 31) (bvmul a b))))))
 
 (check-sat)

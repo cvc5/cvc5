@@ -1015,7 +1015,11 @@ Node BvInverter::solveBvLit(Node sv,
       Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
       /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
        *       are commutative (no case split based on index). */
-      if (k == BITVECTOR_PLUS)
+      if (k == BITVECTOR_COMP)
+      {
+        t = s;
+      }
+      else if (k == BITVECTOR_PLUS)
       {
         t = nm->mkNode(BITVECTOR_SUB, t, s);
       }
