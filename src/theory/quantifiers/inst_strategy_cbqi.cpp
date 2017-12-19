@@ -744,7 +744,7 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
     }else{
       //this should never happen for monotonic selection strategies
       Trace("cbqi-warn") << "WARNING: Existing instantiation" << std::endl;
-      Assert( !options::cbqiNestedQE() || options::cbqiAll() );
+      //Assert( !options::cbqiNestedQE() || options::cbqiAll() );
       return false;
     }
   }
