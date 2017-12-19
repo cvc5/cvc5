@@ -528,20 +528,50 @@ static Node getScBvAndOr(bool pol,
                          Node s,
                          Node t)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  Assert (k == BITVECTOR_AND || k == BITVECTOR_OR);
 
   if (litk != EQUAL)
   {
     return Node::null();
   }
 
-  /* x & s = t
-   * x | s = t
-   * with side condition:
-   * t & s = t
-   * t | s = t */
-  Node scl = nm->mkNode(EQUAL, t, nm->mkNode(k, t, s));
-  Node scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
+  NodeManager* nm = NodeManager::currentNM();
+  Node scl, scr;
+
+  if (pol)
+  {
+    /* x & s = t
+     * x | s = t
+     * with side condition:
+     * t & s = t
+     * t | s = t */
+    scl = nm->mkNode(EQUAL, t, nm->mkNode(k, t, s));
+    scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
+  }
+  else
+  {
+    unsigned w = bv::utils::getSize(s);
+    Assert (w == bv::utils::getSize(t));
+
+    if (k == BITVECTOR_AND)
+    {
+      /* x & s = t
+       * with side condition:
+       * s != 0 || t != 0  */
+      Node z = bv::utils::mkZero(w);
+      scl = nm->mkNode(OR, s.eqNode(z).notNode(), t.eqNode(z).notNode());
+    }
+    else
+    {
+      /* x | s = t
+       * with side condition:
+       * s != ~0 || t != ~0  */
+      Node n = bv::utils::mkOnes(w);
+      scl = nm->mkNode(OR, s.eqNode(n).notNode(), t.eqNode(n).notNode());
+    }
+    scr = nm->mkNode(DISTINCT, nm->mkNode(k, x, s), t);
+  }
+
   Node sc = nm->mkNode(IMPLIES, scl, scr);
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc << std::endl;
   return sc;

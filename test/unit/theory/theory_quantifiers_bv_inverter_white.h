@@ -249,6 +249,16 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     runTest(true, EQUAL, BITVECTOR_AND, 1, getScBvAndOr);
   }
 
+  void testGetScBvAndEqFalse0()
+  {
+    runTest(false, EQUAL, BITVECTOR_AND, 0, getScBvAndOr);
+  }
+
+  void testGetScBvAndEqFalse1()
+  {
+    runTest(false, EQUAL, BITVECTOR_AND, 1, getScBvAndOr);
+  }
+
   void testGetScBvOrEqTrue0()
   {
     runTest(true, EQUAL, BITVECTOR_OR, 0, getScBvAndOr);
@@ -257,6 +267,16 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvOrEqTrue1()
   {
     runTest(true, EQUAL, BITVECTOR_OR, 1, getScBvAndOr);
+  }
+
+  void testGetScBvOrEqFalse0()
+  {
+    runTest(false, EQUAL, BITVECTOR_OR, 0, getScBvAndOr);
+  }
+
+  void testGetScBvOrEqFalse1()
+  {
+    runTest(false, EQUAL, BITVECTOR_OR, 1, getScBvAndOr);
   }
 
   void testGetScBvLshrEqTrue0()
