@@ -246,7 +246,8 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::TCLOSURE, "tclosure");
     break;
 
-  case THEORY_DATATYPES: {
+  case THEORY_DATATYPES:
+  {
     const std::vector<Type> types;
     const std::vector<Type>& types2 = types;
     defineType("Tuple", getExprManager()->mkTupleType(types2));
