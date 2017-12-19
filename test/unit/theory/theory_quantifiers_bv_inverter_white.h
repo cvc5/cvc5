@@ -289,6 +289,16 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     runTest(true, EQUAL, BITVECTOR_LSHR, 1, getScBvLshr);
   }
 
+  void testGetScBvLshrEqFalse0()
+  {
+    runTest(false, EQUAL, BITVECTOR_LSHR, 0, getScBvLshr);
+  }
+
+  void testGetScBvLshrEqFalse1()
+  {
+    runTest(false, EQUAL, BITVECTOR_LSHR, 1, getScBvLshr);
+  }
+
   void testGetScBvAshrEqTrue0()
   {
     runTest(true, EQUAL, BITVECTOR_ASHR, 0, getScBvAshr);
