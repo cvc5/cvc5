@@ -296,30 +296,6 @@ static Node getScBvSlt(bool pol, Kind k, unsigned idx, Node x, Node t)
   return sc;
 }
 
-#if 0
-static Node getScBvEq(bool pol, Kind k, unsigned idx, Node x, Node t)
-{
-  Assert(k == EQUAL);
-  Assert(pol == false);
-
-  NodeManager* nm = NodeManager::currentNM();
-  unsigned w = bv::utils::getSize(t);
-
-  /* x != t
-   * <->
-   * x < t || x > t  (ULT)
-   * with side condition:
-   * t != 0 || t != ~0  */
-  Node scl = nm->mkNode(OR,
-      nm->mkNode(DISTINCT, t, bv::utils::mkZero(w)),
-      nm->mkNode(DISTINCT, t, bv::utils::mkOnes(w)));
-  Node scr = nm->mkNode(DISTINCT, x, t);
-  Node sc = nm->mkNode(IMPLIES, scl, scr);
-  Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc << std::endl;
-  return sc;
-}
-#endif
-
 static Node getScBvMult(bool pol,
                         Kind litk,
                         Kind k,
