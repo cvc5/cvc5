@@ -1,4 +1,6 @@
+; EXPECT: sat
 (set-logic ALL)
+(set-info :status sat)
 
 (declare-fun r1 () (Set (Tuple String Int)))
 (declare-fun r2 () (Set (Tuple Int String)))
