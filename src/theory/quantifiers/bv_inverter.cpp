@@ -784,55 +784,81 @@ static Node getScBvShl(bool pol,
 
   if (idx == 0)
   {
-    /* x << s = t
-     * with side condition:
-     * (s = 0 || ctz(t) >= s)
-     * <->
-     * (s = 0 || (s < w && ((t o z) >> (z o s))[w-1:0] = z) || (s >= w && t = 0)
-     *
-     * where
-     * w = getSize(s) = getSize(t) = getSize (z) && z = 0
-     */
-
     Node ww = bv::utils::mkConst(w, w);
 
-    Node shr = nm->mkNode(BITVECTOR_LSHR,
-        bv::utils::mkConcat(t, z),
-        bv::utils::mkConcat(z, s));
-    Node ext = bv::utils::mkExtract(shr, w - 1, 0);
+    if (pol)
+    {
+      /* x << s = t
+       * with side condition:
+       * (s = 0 || ctz(t) >= s)
+       * <->
+       * (s = 0 || (s < w && ((t o z) >> (z o s))[w-1:0] = z) || (s >= w && t = 0)
+       *
+       * where
+       * w = getSize(s) = getSize(t) = getSize (z) && z = 0
+       */
+      Node shr = nm->mkNode(BITVECTOR_LSHR,
+          bv::utils::mkConcat(t, z),
+          bv::utils::mkConcat(z, s));
+      Node ext = bv::utils::mkExtract(shr, w - 1, 0);
 
-    Node o1 = nm->mkNode(EQUAL, s, z);
-    Node o2 = nm->mkNode(AND, nm->mkNode(BITVECTOR_ULT, s, ww), ext.eqNode(z));
-    Node o3 = nm->mkNode(AND, nm->mkNode(BITVECTOR_UGE, s, ww), t.eqNode(z));
+      Node o1 = nm->mkNode(EQUAL, s, z);
+      Node o2 = nm->mkNode(AND, nm->mkNode(BITVECTOR_ULT, s, ww), ext.eqNode(z));
+      Node o3 = nm->mkNode(AND, nm->mkNode(BITVECTOR_UGE, s, ww), t.eqNode(z));
 
-    scl = nm->mkNode(OR, o1, o2, o3);
-    scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
+      scl = nm->mkNode(OR, o1, o2, o3);
+      scr = nm->mkNode(EQUAL, nm->mkNode(k, x, s), t);
+    }
+    else
+    {
+      /* x << s != t
+       * with side condition:
+       * t != 0 || s < w
+       * with
+       * w = getSize(s) = getSize(t)
+       */
+      scl = nm->mkNode(OR,
+          t.eqNode(z).notNode(),
+          nm->mkNode(BITVECTOR_ULT, s, ww));
+      scr = nm->mkNode(DISTINCT, nm->mkNode(k, x, s), t);
+    }
   }
   else
   {
-    /* s << x = t
-     * with side condition:
-     * t = 0
-     * ||
-     * s = t
-     * || 
-     * \/ (t[w-1:i] = s[w-1-i:0] && t[i-1:0] = 0) for 0 < i < w
-     * where
-     * w = getSize(s) = getSize(t)
-     */
-    NodeBuilder<> nb(nm, OR);
-    nb << nm->mkNode(EQUAL, t, s);
-    for (unsigned i = 1; i < w; ++i)
+    if (pol)
     {
-      nb << nm->mkNode(AND,
-          nm->mkNode(EQUAL,
-            bv::utils::mkExtract(t, w-1, i), bv::utils::mkExtract(s, w-1-i, 0)),
-          nm->mkNode(EQUAL,
-            bv::utils::mkExtract(t, i-1, 0), bv::utils::mkZero(i)));
+      /* s << x = t
+       * with side condition:
+       * t = 0
+       * ||
+       * s = t
+       * || 
+       * \/ (t[w-1:i] = s[w-1-i:0] && t[i-1:0] = 0) for 0 < i < w
+       * where
+       * w = getSize(s) = getSize(t)
+       */
+      NodeBuilder<> nb(nm, OR);
+      nb << nm->mkNode(EQUAL, t, s);
+      for (unsigned i = 1; i < w; ++i)
+      {
+        nb << nm->mkNode(AND,
+            nm->mkNode(EQUAL,
+              bv::utils::mkExtract(t, w-1, i), bv::utils::mkExtract(s, w-1-i, 0)),
+            nm->mkNode(EQUAL,
+              bv::utils::mkExtract(t, i-1, 0), bv::utils::mkZero(i)));
+      }
+      nb << t.eqNode(z);
+      scl = nb.constructNode();
+      scr = nm->mkNode(EQUAL, nm->mkNode(k, s, x), t);
     }
-    nb << t.eqNode(z);
-    scl = nb.constructNode();
-    scr = nm->mkNode(EQUAL, nm->mkNode(k, s, x), t);
+    else
+    {
+      /* s << x != t
+       * with side condition:
+       * s != 0 || t != 0  */
+      scl = nm->mkNode(OR, s.eqNode(z).notNode(), t.eqNode(z).notNode());
+      scr = nm->mkNode(DISTINCT, nm->mkNode(k, s, x), t);
+    }
   }
   Node sc = nm->mkNode(IMPLIES, scl, scr);
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc << std::endl;
