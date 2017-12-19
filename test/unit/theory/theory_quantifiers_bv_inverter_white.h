@@ -90,6 +90,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     TS_ASSERT (litk != EQUAL || sc != Node::null());
     Kind ksc = sc.getKind();
     TS_ASSERT((k == BITVECTOR_UDIV_TOTAL && idx == 1 && pol == false)
+              || (k == BITVECTOR_ASHR && idx == 0 && pol == false)
               || ksc == IMPLIES);
     Node scl = ksc == IMPLIES ? sc[0] : bv::utils::mkTrue();
     Node body = idx == 0
@@ -307,6 +308,16 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvAshrEqTrue1()
   {
     runTest(true, EQUAL, BITVECTOR_ASHR, 1, getScBvAshr);
+  }
+
+  void testGetScBvAshrEqFalse0()
+  {
+    runTest(false, EQUAL, BITVECTOR_ASHR, 0, getScBvAshr);
+  }
+
+  void testGetScBvAshrEqFalse1()
+  {
+    runTest(false, EQUAL, BITVECTOR_ASHR, 1, getScBvAshr);
   }
 
   void testGetScBvShlEqTrue0()
