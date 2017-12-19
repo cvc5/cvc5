@@ -1944,9 +1944,9 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
       Node eq_lem = conc.eqNode(es.first);
       Trace("cegqi-bv-pp") << "Introduced : " << eq_lem << std::endl;
       new_lems.push_back(eq_lem);
+      Trace("cegqi-bv-pp") << "...finished processing extracts for term "
+                            << es.first << std::endl;
     }
-    Trace("cegqi-bv-pp") << "...finished processing extracts for term "
-                          << es.first << std::endl;
     Trace("cegqi-bv-pp") << "-----done remove extracts" << std::endl;
   }
 
