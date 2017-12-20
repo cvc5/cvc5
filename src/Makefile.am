@@ -36,7 +36,6 @@ libcvc4_la_SOURCES = \
 	git_versioninfo.cpp \
 	svn_versioninfo.cpp \
 	context/backtrackable.h \
-	context/cdchunk_list.h \
 	context/cddense_set.h \
 	context/cdhashmap.h \
 	context/cdhashmap_forward.h \
@@ -63,6 +62,12 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
+	preprocessing/preprocessing_pass.cpp \
+	preprocessing/preprocessing_pass.h \
+	preprocessing/preprocessing_pass_context.cpp \
+	preprocessing/preprocessing_pass_context.h \
+	preprocessing/preprocessing_pass_registry.cpp \
+	preprocessing/preprocessing_pass_registry.h \
 	printer/dagification_visitor.cpp \
 	printer/dagification_visitor.h \
 	printer/printer.cpp \
@@ -329,6 +334,7 @@ libcvc4_la_SOURCES = \
 	theory/bv/theory_bv_utils.cpp \
 	theory/bv/theory_bv_utils.h \
 	theory/bv/type_enumerator.h \
+	theory/datatypes/datatypes_rewriter.cpp \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/datatypes_sygus.cpp \
 	theory/datatypes/datatypes_sygus.h \

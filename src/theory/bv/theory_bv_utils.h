@@ -156,9 +156,9 @@ inline Node mkExtract(TNode node, unsigned high, unsigned low) {
 inline Node mkBitOf(TNode node, unsigned index) {
   Node bitOfOp = NodeManager::currentNM()->mkConst<BitVectorBitOf>(BitVectorBitOf(index));
   return NodeManager::currentNM()->mkNode(bitOfOp, node); 
-                                        
 }
 
+Node mkSum(std::vector<Node>& children, unsigned width);
 
 inline Node mkConcat(TNode node, unsigned repeat) {
   Assert (repeat); 
@@ -207,6 +207,12 @@ inline Node mkConst(const BitVector& value) {
 inline Node mkZero(unsigned size) { return mkConst(size, 0u); }
 
 inline Node mkOne(unsigned size) { return mkConst(size, 1u); }
+
+/* Increment */
+Node mkInc(TNode t);
+
+/* Decrement */
+Node mkDec(TNode t);
 
 /* Unsigned multiplication overflow detection.
  * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication

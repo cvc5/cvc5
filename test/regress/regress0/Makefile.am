@@ -78,7 +78,6 @@ SMT2_TESTS = \
 	sqrt2-sort-inf-unk.smt2 \
 	rec-fun-const-parse-bug.smt2
 
-
 # Regression tests for PL inputs
 CVC_TESTS = \
 	boolean.cvc \

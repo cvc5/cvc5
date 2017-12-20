@@ -70,6 +70,10 @@ namespace context {
   class UserContext;
 }/* CVC4::context namespace */
 
+namespace preprocessing {
+class PreprocessingPassContext;
+}
+
 namespace prop {
   class PropEngine;
 }/* CVC4::prop namespace */
@@ -343,6 +347,8 @@ class CVC4_PUBLIC SmtEngine {
    */
   void setLogicInternal() throw();
 
+  // TODO (Issue #1096): Remove this friend relationship.
+  friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::BooleanTermConverter;
@@ -380,7 +386,24 @@ class CVC4_PUBLIC SmtEngine {
 
   //check satisfiability (for query and check-sat)
   Result checkSatisfiability(const Expr& e, bool inUnsatCore, bool isQuery);
-public:
+
+  /**
+   * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
+   * the function that the formal argument list is for. This method is used
+   * as a helper function when defining (recursive) functions.
+   */
+  void debugCheckFormals(const std::vector<Expr>& formals, Expr func);
+
+  /**
+   * Checks whether formula is a valid function body for func whose formal
+   * argument list is stored in formals. This method is
+   * used as a helper function when defining (recursive) functions.
+   */
+  void debugCheckFunctionBody(Expr formula,
+                              const std::vector<Expr>& formals,
+                              Expr func);
+
+ public:
 
   /**
    * Construct an SmtEngine with the given expression manager.
@@ -436,10 +459,15 @@ public:
     throw(OptionException);
 
   /**
-   * Add a formula to the current context: preprocess, do per-theory
-   * setup, use processAssertionList(), asserting to T-solver for
-   * literals and conjunction of literals.  Returns false if
-   * immediately determined to be inconsistent.
+   * Define function func in the current context to be:
+   *   (lambda (formals) formula)
+   * This adds func to the list of defined functions, which indicates that
+   * all occurrences of func should be expanded during expandDefinitions.
+   * This method expects input such that:
+   * - func : a variable of function type that expects the arguments in
+   *          formals,
+   * - formals : a list of BOUND_VARIABLE expressions,
+   * - formula does not contain func.
    */
   void defineFunction(Expr func,
                       const std::vector<Expr>& formals,
@@ -447,6 +475,32 @@ public:
 
   /** is defined function */
   bool isDefinedFunction(Expr func);
+
+  /** Define functions recursive
+   *
+   * For each i, this constrains funcs[i] in the current context to be:
+   *   (lambda (formals[i]) formulas[i])
+   * where formulas[i] may contain variables from funcs. Unlike defineFunction
+   * above, we do not add funcs[i] to the set of defined functions. Instead,
+   * we consider funcs[i] to be a free uninterpreted function, and add:
+   *   forall formals[i]. f(formals[i]) = formulas[i]
+   * to the set of assertions in the current context.
+   * This method expects input such that for each i:
+   * - func[i] : a variable of function type that expects the arguments in
+   *             formals[i], and
+   * - formals[i] : a list of BOUND_VARIABLE expressions.
+   */
+  void defineFunctionsRec(const std::vector<Expr>& funcs,
+                          const std::vector<std::vector<Expr> >& formals,
+                          const std::vector<Expr>& formulas);
+
+  /** Define function recursive
+   *
+   * Same as above, but for a single function.
+   */
+  void defineFunctionRec(Expr func,
+                         const std::vector<Expr>& formals,
+                         Expr formula);
 
   /**
    * Add a formula to the current context: preprocess, do per-theory
@@ -769,7 +823,10 @@ public:
    * This function is called when an attribute is set by a user.
    * In SMT-LIBv2 this is done via the syntax (! expr :attr)
    */
-  void setUserAttribute(const std::string& attr, Expr expr, std::vector<Expr> expr_values, std::string str_value);
+  void setUserAttribute(const std::string& attr,
+                        Expr expr,
+                        const std::vector<Expr>& expr_values,
+                        const std::string& str_value);
 
   /**
    * Set print function in model

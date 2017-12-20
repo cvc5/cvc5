@@ -373,7 +373,6 @@ void Smt2::pushDefineFunRecScope(
     const std::vector<std::pair<std::string, Type> >& sortedVarNames,
     Expr func,
     const std::vector<Expr>& flattenVars,
-    Expr& func_app,
     std::vector<Expr>& bvs,
     bool bindingLevel)
 {
@@ -391,17 +390,6 @@ void Smt2::pushDefineFunRecScope(
   }
 
   bvs.insert(bvs.end(), flattenVars.begin(), flattenVars.end());
-
-  // make the function application
-  if (bvs.empty())
-  {
-    // it has no arguments
-    func_app = func;
-  }
-  else
-  {
-    func_app = getExprManager()->mkExpr(kind::APPLY_UF, f_app);
-  }
 }
 
 void Smt2::reset() {

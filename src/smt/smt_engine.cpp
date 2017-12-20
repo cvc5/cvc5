@@ -67,6 +67,9 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "preprocessing/preprocessing_pass.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
@@ -110,6 +113,7 @@
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::smt;
+using namespace CVC4::preprocessing;
 using namespace CVC4::prop;
 using namespace CVC4::context;
 using namespace CVC4::theory;
@@ -161,29 +165,6 @@ public:
   vector<Node> getFormals() const { return d_formals; }
   Node getFormula() const { return d_formula; }
 };/* class DefinedFunction */
-
-class AssertionPipeline {
-  vector<Node> d_nodes;
-
-public:
-
-  size_t size() const { return d_nodes.size(); }
-
-  void resize(size_t n) { d_nodes.resize(n); }
-  void clear() { d_nodes.clear(); }
-
-  Node& operator[](size_t i) { return d_nodes[i]; }
-  const Node& operator[](size_t i) const { return d_nodes[i]; }
-  void push_back(Node n) { d_nodes.push_back(n); }
-
-  vector<Node>& ref() { return d_nodes; }
-  const vector<Node>& ref() const { return d_nodes; }
-
-  void replace(size_t i, Node n) {
-    PROOF( ProofManager::currentPM()->addDependence(n, d_nodes[i]); );
-    d_nodes[i] = n;
-  }
-};/* class AssertionPipeline */
 
 struct SmtEngineStatistics {
   /** time spent in gaussian elimination */
@@ -571,8 +552,12 @@ public:
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
 
-private:
+  /* Finishes the initialization of the private portion of SMTEngine. */
+  void finishInit();
 
+ private:
+  std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
+  PreprocessingPassRegistry d_preprocessingPassRegistry;
   theory::arith::PseudoBooleanProcessor d_pbsProcessor;
 
   /** The top level substitutions */
@@ -1138,7 +1123,7 @@ void SmtEngine::finishInit() {
           finishRegisterTheory(d_theoryEngine->theoryOf(id));
       }
     });
-
+  d_private->finishInit();
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
@@ -1309,6 +1294,11 @@ void SmtEngine::setDefaults() {
     if (!options::ceGuidedInst.wasSetByUser())
     {
       options::ceGuidedInst.set(true);
+    }
+    // must use Ferrante/Rackoff for real arithmetic
+    if (!options::cbqiMidpoint.wasSetByUser())
+    {
+      options::cbqiMidpoint.set(true);
     }
   }
 
@@ -2263,12 +2253,8 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
   }
 }
 
-void SmtEngine::defineFunction(Expr func,
-                               const std::vector<Expr>& formals,
-                               Expr formula) {
-  SmtScope smts(this);
-  doPendingPops();
-  Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
+void SmtEngine::debugCheckFormals(const std::vector<Expr>& formals, Expr func)
+{
   for(std::vector<Expr>::const_iterator i = formals.begin(); i != formals.end(); ++i) {
     if((*i).getKind() != kind::BOUND_VARIABLE) {
       stringstream ss;
@@ -2279,25 +2265,13 @@ void SmtEngine::defineFunction(Expr func,
       throw TypeCheckingException(func, ss.str());
     }
   }
+}
 
-  stringstream ss;
-  ss << language::SetLanguage(language::SetLanguage::getLanguage(Dump.getStream()))
-     << func;
-  DefineFunctionCommand c(ss.str(), func, formals, formula);
-  addToModelCommandAndDump(c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
-
-
-  PROOF( if (options::checkUnsatCores()) {
-      d_defineCommands.push_back(c.clone());
-    });
-
-
-  // Substitute out any abstract values in formula
-  Expr form = d_private->substituteAbstractValues(Node::fromExpr(formula)).toExpr();
-
-  // type check body
-  Type formulaType = form.getType(options::typeChecking());
-
+void SmtEngine::debugCheckFunctionBody(Expr formula,
+                                       const std::vector<Expr>& formals,
+                                       Expr func)
+{
+  Type formulaType = formula.getType(options::typeChecking());
   Type funcType = func.getType();
   // We distinguish here between definitions of constants and functions,
   // because the type checking for them is subtly different.  Perhaps we
@@ -2326,6 +2300,36 @@ void SmtEngine::defineFunction(Expr func,
       throw TypeCheckingException(func, ss.str());
     }
   }
+}
+
+void SmtEngine::defineFunction(Expr func,
+                               const std::vector<Expr>& formals,
+                               Expr formula)
+{
+  SmtScope smts(this);
+  doPendingPops();
+  Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
+  debugCheckFormals(formals, func);
+
+  stringstream ss;
+  ss << language::SetLanguage(
+            language::SetLanguage::getLanguage(Dump.getStream()))
+     << func;
+  DefineFunctionCommand c(ss.str(), func, formals, formula);
+  addToModelCommandAndDump(
+      c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
+
+  PROOF(if (options::checkUnsatCores()) {
+    d_defineCommands.push_back(c.clone());
+  });
+
+  // type check body
+  debugCheckFunctionBody(formula, formals, func);
+
+  // Substitute out any abstract values in formula
+  Expr form =
+      d_private->substituteAbstractValues(Node::fromExpr(formula)).toExpr();
+
   TNode funcNode = func.getTNode();
   vector<Node> formalsNodes;
   for(vector<Expr>::const_iterator i = formals.begin(),
@@ -2343,10 +2347,106 @@ void SmtEngine::defineFunction(Expr func,
   d_definedFunctions->insert(funcNode, def);
 }
 
+void SmtEngine::defineFunctionsRec(
+    const std::vector<Expr>& funcs,
+    const std::vector<std::vector<Expr> >& formals,
+    const std::vector<Expr>& formulas)
+{
+  SmtScope smts(this);
+  finalOptionsAreSet();
+  doPendingPops();
+  Trace("smt") << "SMT defineFunctionsRec(...)" << endl;
+
+  if (funcs.size() != formals.size() && funcs.size() != formulas.size())
+  {
+    stringstream ss;
+    ss << "Number of functions, formals, and function bodies passed to "
+          "defineFunctionsRec do not match:"
+       << "\n"
+       << "        #functions : " << funcs.size() << "\n"
+       << "        #arg lists : " << formals.size() << "\n"
+       << "  #function bodies : " << formulas.size() << "\n";
+    throw ModalException(ss.str());
+  }
+  for (unsigned i = 0, size = funcs.size(); i < size; i++)
+  {
+    // check formal argument list
+    debugCheckFormals(formals[i], funcs[i]);
+    // type check body
+    debugCheckFunctionBody(formulas[i], formals[i], funcs[i]);
+  }
+
+  if (Dump.isOn("raw-benchmark"))
+  {
+    Dump("raw-benchmark") << DefineFunctionRecCommand(funcs, formals, formulas);
+  }
+
+  ExprManager* em = getExprManager();
+  for (unsigned i = 0, size = funcs.size(); i < size; i++)
+  {
+    // we assert a quantified formula
+    Expr func_app;
+    // make the function application
+    if (formals[i].empty())
+    {
+      // it has no arguments
+      func_app = funcs[i];
+    }
+    else
+    {
+      std::vector<Expr> children;
+      children.push_back(funcs[i]);
+      children.insert(children.end(), formals[i].begin(), formals[i].end());
+      func_app = em->mkExpr(kind::APPLY_UF, children);
+    }
+    Expr lem = em->mkExpr(kind::EQUAL, func_app, formulas[i]);
+    if (!formals[i].empty())
+    {
+      // set the attribute to denote this is a function definition
+      std::string attr_name("fun-def");
+      Expr aexpr = em->mkExpr(kind::INST_ATTRIBUTE, func_app);
+      aexpr = em->mkExpr(kind::INST_PATTERN_LIST, aexpr);
+      std::vector<Expr> expr_values;
+      std::string str_value;
+      setUserAttribute(attr_name, func_app, expr_values, str_value);
+      // make the quantified formula
+      Expr boundVars = em->mkExpr(kind::BOUND_VAR_LIST, formals[i]);
+      lem = em->mkExpr(kind::FORALL, boundVars, lem, aexpr);
+    }
+    // assert the quantified formula
+    //   notice we don't call assertFormula directly, since this would
+    //   duplicate the output on raw-benchmark.
+    Expr e = d_private->substituteAbstractValues(Node::fromExpr(lem)).toExpr();
+    if (d_assertionList != NULL)
+    {
+      d_assertionList->push_back(e);
+    }
+    d_private->addFormula(e.getNode(), false);
+  }
+}
+
+void SmtEngine::defineFunctionRec(Expr func,
+                                  const std::vector<Expr>& formals,
+                                  Expr formula)
+{
+  std::vector<Expr> funcs;
+  funcs.push_back(func);
+  std::vector<std::vector<Expr> > formals_multi;
+  formals_multi.push_back(formals);
+  std::vector<Expr> formulas;
+  formulas.push_back(formula);
+  defineFunctionsRec(funcs, formals_multi, formulas);
+}
+
 bool SmtEngine::isDefinedFunction( Expr func ){
   Node nf = Node::fromExpr( func );
   Debug("smt") << "isDefined function " << nf << "?" << std::endl;
   return d_definedFunctions->find(nf) != d_definedFunctions->end();
+}
+
+void SmtEnginePrivate::finishInit() {
+  d_preprocessingPassContext.reset(new PreprocessingPassContext(&d_smt));
+  //TODO: register passes here
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -2908,7 +3008,8 @@ void SmtEnginePrivate::staticLearning() {
 }
 
 // do dumping (before/after any preprocessing pass)
-static void dumpAssertions(const char* key, const AssertionPipeline& assertionList) {
+static void dumpAssertions(const char* key,
+                           const AssertionPipeline& assertionList) {
   if( Dump.isOn("assertions") &&
       Dump.isOn(string("assertions:") + key) ) {
     // Push the simplified assertions to the dump output stream
@@ -5684,7 +5785,11 @@ void SmtEngine::safeFlushStatistics(int fd) const {
   d_statisticsRegistry->safeFlushInformation(fd);
 }
 
-void SmtEngine::setUserAttribute(const std::string& attr, Expr expr, std::vector<Expr> expr_values, std::string str_value) {
+void SmtEngine::setUserAttribute(const std::string& attr,
+                                 Expr expr,
+                                 const std::vector<Expr>& expr_values,
+                                 const std::string& str_value)
+{
   SmtScope smts(this);
   std::vector<Node> node_values;
   for( unsigned i=0; i<expr_values.size(); i++ ){

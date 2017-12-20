@@ -64,7 +64,7 @@ struct KindHashFunction {
 /**
  * The enumeration for the built-in atomic types.
  */
-enum TypeConstant {
+enum CVC4_PUBLIC TypeConstant {
 ${type_constant_list}
 #line 70 "${template}"
   LAST_TYPE
