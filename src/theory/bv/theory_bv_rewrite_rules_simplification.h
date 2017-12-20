@@ -1438,7 +1438,7 @@ Node RewriteRule<IsPowerOfTwo>::apply(TNode node) {
  *   (and
  *    (not (= t zero))
  *    (not (= a zero))
- *    (= (bvslt (bvadd x t) x) (bvsge a zero))
+ *    (= (bvslt (bvadd x t) x) (bvsgt a zero))
  *   )
  *
  * Rewrite
@@ -1447,7 +1447,7 @@ Node RewriteRule<IsPowerOfTwo>::apply(TNode node) {
  *   (and
  *    (not (= t zero))
  *    (not (= a zero))
- *    (= (bvult (bvadd x t) x) (bvsge a zero))
+ *    (= (bvult (bvadd x t) x) (bvsgt a zero))
  *   )
  * where n and m are sufficiently big to not produce an overflow for
  * the multipliations.
@@ -1574,7 +1574,7 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   nb << t.eqNode(zero_t).notNode();
   nb << a.eqNode(zero_a).notNode();
   nb << nm->mkNode(k, addxt, x)
-            .eqNode(nm->mkNode(kind::BITVECTOR_SGE, a, zero_a));
+            .eqNode(nm->mkNode(kind::BITVECTOR_SGT, a, zero_a));
   return nb.constructNode();
 }
 
