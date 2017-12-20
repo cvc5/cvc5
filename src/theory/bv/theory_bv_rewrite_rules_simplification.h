@@ -1450,7 +1450,7 @@ Node RewriteRule<IsPowerOfTwo>::apply(TNode node) {
  *    (= (bvult (bvadd x t) x) (bvsgt a zero))
  *   )
  * where n and m are sufficiently big to not produce an overflow for
- * the multipliations.
+ * the multiplications.
  *
  * These patterns occur in the quantified BV benchmark family 'ranking',
  * where the BV engine struggles due to the high bit widths of the
