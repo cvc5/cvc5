@@ -1165,7 +1165,7 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
   }
   else
   {
-    // TODO
+    // TODO (#1450) check model for general case
     return false;
   }
 }

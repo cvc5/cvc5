@@ -240,11 +240,11 @@ class NonlinearExtension {
 
   /** check model for transcendental functions
    *
-   * Check the model using error bounds on the Taylor approximation.
+   * Checks the current model using error bounds on the Taylor approximation.
    *
    * If this function returns true, then all assertions in the input argument
-   * are satisfied for all interpretations of transcendental functions within
-   * their error bounds (as stored in d_tf_check_model_bounds).
+   * "assertions" are satisfied for all interpretations of transcendental 
+   * functions within their error bounds (as stored in d_tf_check_model_bounds).
    *
    * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
    * "Detecting Satisfiable Formulas".
@@ -254,7 +254,7 @@ class NonlinearExtension {
   /** simple check model for transcendental functions for literal
    *
    * This method returns true if literal is true for all interpretations of
-   * that are within the error bounds of transcendental functions (as stored
+   * transcendental functions within their error bounds (as stored
    * in d_tf_check_model_bounds). This is determined by a simple under/over
    * approximation of the value of sum of (linear) monomials. For example,
    * if we determine that .8 < sin( 1 ) < .9, this function will return
@@ -264,10 +264,10 @@ class NonlinearExtension {
    *   -1.0*sin( 1 ) > -0.91
    * It will return false for literals like:
    *   sin( 1 ) > 0.85
-   * It will also return false for literals that are non-linear:
+   * It will also return false for literals like:
    *   -0.3*sin( 1 )*sin( 2 ) + sin( 2 ) > .7
-   * where sin( 2 ) is bounded by some interval, since the bounds on these
-   * terms cannot quickly be determined.
+   *   sin( sin( 1 ) ) > .5
+   * since the bounds on these terms cannot quickly be determined.
    */
   bool simpleCheckModelTfLit(Node lit);
 
