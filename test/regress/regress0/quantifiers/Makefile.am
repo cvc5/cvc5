@@ -90,22 +90,36 @@ TESTS =	\
 	qbv-simp.smt2 \
 	psyco-001-bv.smt2 \
 	bug822.smt2 \
+	qbv-disequality3.smt2 \
 	qbv-inequality2.smt2 \
 	qbv-simple-2vars-vo.smt2 \
+	qbv-test-invert-bvadd-neq.smt2 \
 	qbv-test-invert-bvand.smt2 \
+	qbv-test-invert-bvand-neq.smt2 \
 	qbv-test-invert-bvashr-0.smt2 \
+	qbv-test-invert-bvashr-0-neq.smt2 \
+	qbv-test-invert-bvashr-1.smt2 \
+	qbv-test-invert-bvashr-1-neq.smt2 \
 	qbv-test-invert-bvlshr-0.smt2 \
+	qbv-test-invert-bvlshr-0-neq.smt2 \
+	qbv-test-invert-bvlshr-1.smt2 \
+	qbv-test-invert-bvlshr-1-neq.smt2 \
 	qbv-test-invert-bvmul.smt2 \
+	qbv-test-invert-bvmul-neq.smt2 \
 	qbv-test-invert-bvor.smt2 \
-	qbv-test-invert-bvshl.smt2 \
+	qbv-test-invert-bvor-neq.smt2 \
+	qbv-test-invert-bvshl-0.smt2 \
 	qbv-test-invert-bvudiv-0.smt2 \
+	qbv-test-invert-bvudiv-0-neq.smt2 \
 	qbv-test-invert-bvudiv-1.smt2 \
+	qbv-test-invert-bvudiv-1-neq.smt2 \
 	qbv-test-invert-bvult-1.smt2 \
  	qbv-test-invert-bvurem-1.smt2 \
+ 	qbv-test-invert-bvurem-1-neq.smt2 \
 	qbv-test-invert-bvxor.smt2 \
+	qbv-test-invert-bvxor-neq.smt2 \
 	qbv-test-invert-concat-0.smt2 \
 	qbv-test-invert-concat-1.smt2 \
-	qbv-test-invert-disequality.smt2 \
 	qbv-test-invert-sign-extend.smt2 \
 	qbv-test-urem-rewrite.smt2 \
 	intersection-example-onelane.proof-node22337.smt2 \

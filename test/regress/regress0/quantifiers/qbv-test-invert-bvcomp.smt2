@@ -1,11 +1,11 @@
-; COMMAND-LINE: --cbqi-bv
+; COMMAND-LINE: --cbqi-bv --cbqi-bv-ineq=keep --no-cbqi-ful
 ; EXPECT: unsat
 (set-logic BV)
 (set-info :status sat)
-(declare-fun a () (_ BitVec 32))
-(declare-fun b () (_ BitVec 32))
+(declare-fun a () (_ BitVec 8))
+(declare-fun b () (_ BitVec 8))
 (declare-fun c () (_ BitVec 1))
 
-(assert (forall ((x (_ BitVec 32))) (not (= (bvcomp x a) ((_ extract 31 31) (bvmul a b))))))
+(assert (forall ((x (_ BitVec 8))) (not (= (bvcomp x a) ((_ extract 7 7) (bvmul a b))))))
 
 (check-sat)
