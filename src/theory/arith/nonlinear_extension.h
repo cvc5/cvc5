@@ -243,7 +243,7 @@ class NonlinearExtension {
    * Checks the current model using error bounds on the Taylor approximation.
    *
    * If this function returns true, then all assertions in the input argument
-   * "assertions" are satisfied for all interpretations of transcendental 
+   * "assertions" are satisfied for all interpretations of transcendental
    * functions within their error bounds (as stored in d_tf_check_model_bounds).
    *
    * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
