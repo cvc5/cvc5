@@ -1129,7 +1129,10 @@ Node BvInverter::solveBvLit(Node sv,
   {
     Assert (litk == EQUAL);
     TypeNode solve_tn = sv_t.getType();
-    Node sc = nm->mkNode(DISTINCT, getSolveVariable(solve_tn), t);
+    Node x = getSolveVariable(solve_tn);
+    Node sc = nm->mkNode(DISTINCT, x, t);
+    Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << sc
+                       << std::endl;
     t = getInversionNode(sc, solve_tn, m);
   }
   return t;
