@@ -1,3 +1,11 @@
+# Fix Travis write errors on Clang builds. These write errors occurred after
+# a Travis update to new Trusty images on Dec. 12th 2017. The reason for these
+# write errors is unknown. Using the deprecated builds did not fix the problem.
+# Setting 'filter_secrets: false' as suggested here
+# https://github.com/travis-ci/travis-ci/issues/4704#issuecomment-321777557
+# fixes the problem.
+filter_secrets: false
+
 language: cpp
 cache:
  - apt
