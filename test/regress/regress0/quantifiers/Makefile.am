@@ -115,7 +115,7 @@ TESTS =	\
 	qbv-test-invert-bvudiv-1-neq.smt2 \
 	qbv-test-invert-bvult-1.smt2 \
  	qbv-test-invert-bvurem-1.smt2 \
- 	qbv-test-invert-bvurem-1-neq.smt2 \
+	qbv-test-invert-bvurem-1-neq.smt2 \
 	qbv-test-invert-bvxor.smt2 \
 	qbv-test-invert-bvxor-neq.smt2 \
 	qbv-test-invert-concat-0.smt2 \
@@ -141,7 +141,7 @@ TESTS =	\
 # set3.smt2
 
 # disabled since bvcomp handling is currently disabled
-# qbv-test-invert-bvcomp.smt2 \
+# qbv-test-invert-bvcomp.smt2
 
 # removed because they take more than 20s
 #		javafe.ast.ArrayInit.35.smt2
