@@ -381,8 +381,15 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
   case kind::SINE:
     if(t[0].getKind() == kind::CONST_RATIONAL){
       const Rational& rat = t[0].getConst<Rational>();
+      NodeManager* nm = NodeManager::currentNM();
       if(rat.sgn() == 0){
-        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(Rational(0)));
+        return RewriteResponse(REWRITE_DONE, nm->mkConst(Rational(0)));
+      }
+      else if (rat.sgn() == -1)
+      {
+        Node ret =
+            nm->mkNode(kind::UMINUS, nm->mkNode(kind::SINE, nm->mkConst(-rat)));
+        return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
     }else{
       // get the factor of PI in the argument
