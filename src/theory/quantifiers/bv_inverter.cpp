@@ -1003,7 +1003,7 @@ Node BvInverter::solveBvLit(Node sv,
     {
       t = bv::utils::mkExtract(t, bv::utils::getSize(sv_t[index]) - 1, 0);
     }
-    else if (k == BITVECTOR_EXTRACT)
+    else if (k == BITVECTOR_EXTRACT || k == BITVECTOR_COMP)
     {
       Trace("bv-invert") << "bv-invert : Unsupported for index " << index
                          << ", from " << sv_t << std::endl;
@@ -1015,11 +1015,7 @@ Node BvInverter::solveBvLit(Node sv,
       Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
       /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
        *       are commutative (no case split based on index). */
-      if (k == BITVECTOR_COMP)
-      {
-        t = s;
-      }
-      else if (k == BITVECTOR_PLUS)
+      if (k == BITVECTOR_PLUS)
       {
         t = nm->mkNode(BITVECTOR_SUB, t, s);
       }

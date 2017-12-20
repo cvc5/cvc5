@@ -92,7 +92,6 @@ TESTS =	\
 	bug822.smt2 \
 	qbv-test-invert-mul.smt2 \
 	qbv-test-invert-bvand.smt2 \
-	qbv-test-invert-bvcomp.smt2 \
 	qbv-test-invert-bvor.smt2 \
 	qbv-test-invert-bvlshr-0.smt2 \
 	qbv-test-invert-bvashr-0.smt2 \
@@ -127,6 +126,8 @@ TESTS =	\
 # regression can be solved with --finite-model-find --fmf-inst-engine
 # set3.smt2
 
+# disabled since bvcomp handling is currently disabled
+# qbv-test-invert-bvcomp.smt2 \
 
 # removed because they take more than 20s
 #		javafe.ast.ArrayInit.35.smt2
