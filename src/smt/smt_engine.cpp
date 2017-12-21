@@ -1937,7 +1937,7 @@ void SmtEngine::setDefaults() {
       }
     }else{
       // only supported in pure arithmetic or pure BV
-      if (d_logic.isPure(THEORY_BV))
+      if (!d_logic.isPure(THEORY_BV))
       {
         options::cbqiNestedQE.set(false);
       }

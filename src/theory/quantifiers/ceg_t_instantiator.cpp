@@ -1887,66 +1887,62 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
     }
     for (std::pair<const Node, std::vector<Node> >& es : extract_map)
     {
-      if (es.second.size() > 1)
+      // sort based on the extract start position
+      std::vector<Node>& curr_vec = es.second;
+
+      SortBvExtractInterval sbei;
+      std::sort(curr_vec.begin(), curr_vec.end(), sbei);
+
+      unsigned width = es.first.getType().getBitVectorSize();
+
+      // list of points b such that:
+      //   b>0 and we must start a segment at (b-1)  or  b==0
+      std::vector<unsigned> boundaries;
+      boundaries.push_back(width);
+      boundaries.push_back(0);
+
+      Trace("cegqi-bv-pp") << "For term " << es.first << " : " << std::endl;
+      for (unsigned i = 0, size = curr_vec.size(); i < size; i++)
       {
-        // sort based on the extract start position
-        std::vector<Node>& curr_vec = es.second;
-
-        SortBvExtractInterval sbei;
-        std::sort(curr_vec.begin(), curr_vec.end(), sbei);
-
-        unsigned width = es.first.getType().getBitVectorSize();
-
-        // list of points b such that:
-        //   b>0 and we must start a segment at (b-1)  or  b==0
-        std::vector<unsigned> boundaries;
-        boundaries.push_back(width);
-        boundaries.push_back(0);
-
-        Trace("cegqi-bv-pp") << "For term " << es.first << " : " << std::endl;
-        for (unsigned i = 0, size = curr_vec.size(); i < size; i++)
+        Trace("cegqi-bv-pp") << "  " << i << " : " << curr_vec[i] << std::endl;
+        BitVectorExtract e =
+            curr_vec[i].getOperator().getConst<BitVectorExtract>();
+        if (std::find(boundaries.begin(), boundaries.end(), e.high + 1)
+            == boundaries.end())
         {
-          Trace("cegqi-bv-pp") << "  " << i << " : " << curr_vec[i]
-                               << std::endl;
-          BitVectorExtract e =
-              curr_vec[i].getOperator().getConst<BitVectorExtract>();
-          if (std::find(boundaries.begin(), boundaries.end(), e.high + 1)
-              == boundaries.end())
-          {
-            boundaries.push_back(e.high + 1);
-          }
-          if (std::find(boundaries.begin(), boundaries.end(), e.low)
-              == boundaries.end())
-          {
-            boundaries.push_back(e.low);
-          }
+          boundaries.push_back(e.high + 1);
         }
-        std::sort(boundaries.rbegin(), boundaries.rend());
-
-        // make the extract variables
-        std::vector<Node> children;
-        for (unsigned i = 1; i < boundaries.size(); i++)
+        if (std::find(boundaries.begin(), boundaries.end(), e.low)
+            == boundaries.end())
         {
-          Assert(boundaries[i - 1] > 0);
-          Node ex = bv::utils::mkExtract(
-              es.first, boundaries[i - 1] - 1, boundaries[i]);
-          Node var =
-              nm->mkSkolem("ek",
-                           ex.getType(),
-                           "variable to represent disjoint extract region");
-          Node ceq_lem = var.eqNode(ex);
-          Trace("cegqi-bv-pp") << "Introduced : " << ceq_lem << std::endl;
-          new_lems.push_back(ceq_lem);
-          children.push_back(var);
-          vars.push_back(var);
+          boundaries.push_back(e.low);
         }
-
-        Node conc = nm->mkNode(kind::BITVECTOR_CONCAT, children);
-        Assert(conc.getType() == es.first.getType());
-        Node eq_lem = conc.eqNode(es.first);
-        Trace("cegqi-bv-pp") << "Introduced : " << eq_lem << std::endl;
-        new_lems.push_back(eq_lem);
       }
+      std::sort(boundaries.rbegin(), boundaries.rend());
+
+      // make the extract variables
+      std::vector<Node> children;
+      for (unsigned i = 1; i < boundaries.size(); i++)
+      {
+        Assert(boundaries[i - 1] > 0);
+        Node ex = bv::utils::mkExtract(
+            es.first, boundaries[i - 1] - 1, boundaries[i]);
+        Node var =
+            nm->mkSkolem("ek",
+                         ex.getType(),
+                         "variable to represent disjoint extract region");
+        Node ceq_lem = var.eqNode(ex);
+        Trace("cegqi-bv-pp") << "Introduced : " << ceq_lem << std::endl;
+        new_lems.push_back(ceq_lem);
+        children.push_back(var);
+        vars.push_back(var);
+      }
+
+      Node conc = nm->mkNode(kind::BITVECTOR_CONCAT, children);
+      Assert(conc.getType() == es.first.getType());
+      Node eq_lem = conc.eqNode(es.first);
+      Trace("cegqi-bv-pp") << "Introduced : " << eq_lem << std::endl;
+      new_lems.push_back(eq_lem);
       Trace("cegqi-bv-pp") << "...finished processing extracts for term "
                             << es.first << std::endl;
     }
