@@ -261,10 +261,6 @@ void Smt2Printer::toStream(std::ostream& out,
         if (n == 0)
         {
           out << "Tuple";
-          for (unsigned int i = 0; i < n; i++)
-          {
-            out << " " << dt[0][i].getRangeType();
-          }
         }
         else
         {
