@@ -658,14 +658,7 @@ void Smt2Printer::toStream(std::ostream& out,
       if (dt.isTuple())
       {
         stillNeedToPrintParams = false;
-        if (dt[0].getNumArgs() == 0)
-        {
-          out << "mkTuple";
-        }
-        else
-        {
-          out << "mkTuple ";
-        }
+        out << "mkTuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
       }
     }
 
