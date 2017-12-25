@@ -250,7 +250,7 @@ void Smt2::addTheory(Theory theory) {
   {
     const std::vector<Type> types;
     const std::vector<Type>& types2 = types;
-    defineType("Tuple", getExprManager()->mkTupleType(types2));
+    defineType("Tuple", getExprManager()->mkTupleType(types));
     Parser::addOperator(kind::APPLY_CONSTRUCTOR);
     Parser::addOperator(kind::APPLY_TESTER);
     Parser::addOperator(kind::APPLY_SELECTOR);
