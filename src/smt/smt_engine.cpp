@@ -4685,11 +4685,13 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
     }
     // flipped if we did a global negation
     if( options::cbqiGlobalNeg() ){
+      Trace("cbqi-gn") << "Global negate is " << r << std::endl;
       if( r.asSatisfiabilityResult().isSat() == Result::UNSAT ){
         r = Result(Result::SAT);
       }else if( r.asSatisfiabilityResult().isSat() == Result::SAT ){
         r = Result(Result::UNSAT);
       }
+      Trace("cbqi-gn") << "Global negate (post) is " << r << std::endl;
     }
 
     d_needPostsolve = true;

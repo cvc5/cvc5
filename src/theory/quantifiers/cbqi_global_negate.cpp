@@ -13,6 +13,7 @@
  **/
 
 #include "theory/quantifiers/cbqi_global_negate.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -90,12 +91,19 @@ bool CbqiGlobalNegate::simplify( std::vector< Node >& assertions,
     //bvs.push_back( dummy );
   }
   
-  new_assertions.push_back( body );
-  Trace("cbqi-gn") << "...got : " << body << std::endl;
+  Trace("cbqi-gn-debug") << "...got (pre-rewrite) : " << body << std::endl;
+  body = Rewriter::rewrite( body );
+  Trace("cbqi-gn") << "...got (post-rewrite) : " << body << std::endl;
+  
+  //new_assertions.push_back( body );
   
   Node truen = nm->mkConst(true);
   for( unsigned i=0, size=assertions.size(); i<size; i++ ){
-    assertions[i] = truen;
+    if( i==0 ){
+      assertions[i] = body;
+    }else{
+      assertions[i] = truen;
+    }
   }
   
   return true;
