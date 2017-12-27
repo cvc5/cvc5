@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-bv
+; COMMAND-LINE: --cbqi-bv --no-cbqi-full
 ; EXPECT: sat
 (set-logic BV)
 (set-info :status sat)
