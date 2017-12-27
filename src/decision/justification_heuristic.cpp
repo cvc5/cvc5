@@ -24,6 +24,7 @@
 #include "theory/rewriter.h"
 #include "smt/term_formula_removal.h"
 #include "smt/smt_statistics_registry.h"
+#include "util/random.h"
 
 namespace CVC4 {
 
@@ -298,33 +299,35 @@ DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, bool polarity
 DecisionWeight JustificationHeuristic::getWeight(TNode n) {
   if(!n.hasAttribute(DecisionWeightAttr()) ) {
 
-    DecisionWeightInternal combiningFn =
-      options::decisionWeightInternal();
+    DecisionWeightInternal combiningFn = options::decisionWeightInternal();
 
-    if(combiningFn == DECISION_WEIGHT_INTERNAL_OFF || n.getNumChildren() == 0) {
-
-      if(options::decisionRandomWeight() != 0) {
-        n.setAttribute(DecisionWeightAttr(), rand() % options::decisionRandomWeight());
+    if (combiningFn == DECISION_WEIGHT_INTERNAL_OFF || n.getNumChildren() == 0)
+    {
+      if (options::decisionRandomWeight() != 0)
+      {
+        n.setAttribute(DecisionWeightAttr(),
+            Random::getRandom().pick(0, options::decisionRandomWeight()-1));
       }
-
-    } else if(combiningFn == DECISION_WEIGHT_INTERNAL_MAX) {
-
+    }
+    else if (combiningFn == DECISION_WEIGHT_INTERNAL_MAX)
+    {
       DecisionWeight dW = 0;
-      for(TNode::iterator i=n.begin(); i != n.end(); ++i)
+      for (TNode::iterator i = n.begin(); i != n.end(); ++i)
         dW = max(dW, getWeight(*i));
       n.setAttribute(DecisionWeightAttr(), dW);
-
-    } else if(combiningFn == DECISION_WEIGHT_INTERNAL_SUM ||
-              combiningFn == DECISION_WEIGHT_INTERNAL_USR1) {
+    }
+    else if (combiningFn == DECISION_WEIGHT_INTERNAL_SUM
+             || combiningFn == DECISION_WEIGHT_INTERNAL_USR1)
+    {
       DecisionWeight dW = 0;
-      for(TNode::iterator i=n.begin(); i != n.end(); ++i)
+      for (TNode::iterator i = n.begin(); i != n.end(); ++i)
         dW = max(dW, getWeight(*i));
       n.setAttribute(DecisionWeightAttr(), dW);
-
-    } else {
+    }
+    else
+    {
       Unreachable();
     }
-
   }
   return n.getAttribute(DecisionWeightAttr());
 }

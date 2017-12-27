@@ -2,36 +2,24 @@
 /*! \file term_database_sygus.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynoldsg
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of term databse class
+ ** \brief Implementation of term database sygus class
  **/
 
 #include "theory/quantifiers/term_database_sygus.h"
 
-#include "expr/datatype.h"
-#include "options/base_options.h"
-#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/arith/arith_msum.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
-
-//for sygus
-#include "smt/smt_engine_scope.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "util/bitvector.h"
-#include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/strings/theory_strings_rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -235,8 +223,6 @@ Node TermDbSygus::getGenericBase( TypeNode tn, const Datatype& dt, int c ) {
     Trace("sygus-db-debug") << "Sygus DB : Generic is " << g << std::endl;
     Node gr = Rewriter::rewrite( g );
     Trace("sygus-db-debug") << "Sygus DB : Generic rewritten is " << gr << std::endl;
-    gr = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( gr.toExpr() ) );
-    Trace("sygus-db-debug") << "Sygus DB : Generic base " << dt[c].getName() << " : " << gr << std::endl;
     d_generic_base[tn][c] = gr;
     return gr;
   }else{
@@ -276,13 +262,6 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int 
       ret = children[0];
     }else{
       ret = NodeManager::currentNM()->mkNode( ok, children );
-      /*
-      Node n = NodeManager::currentNM()->mkNode( APPLY, children );
-      //must expand definitions
-      Node ne = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( n.toExpr() ) );
-      Trace("sygus-db-debug") << "Expanded definitions in " << n << " to " << ne << std::endl;
-      return ne;
-      */
     }
   }
   Trace("sygus-db-debug") << "...returning " << ret << std::endl;
@@ -307,8 +286,6 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
       }
       ret = mkGeneric( dt, i, var_count, pre );
       Trace("sygus-db-debug") << "SygusToBuiltin : Generic is " << ret << std::endl;
-      ret = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( ret.toExpr() ) );
-      Trace("sygus-db-debug") << "SygusToBuiltin : After expand definitions " << ret << std::endl;
       d_sygus_to_builtin[tn][n] = ret;
     }else{
       Assert( isFreeVar( n ) );
@@ -344,13 +321,12 @@ Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn, int rcons_depth ) {
     // if we are not interested in reconstructing constants, or the grammar allows them, return a proxy
     if( !options::cegqiSingleInvReconstructConst() || dt.getSygusAllowConst() ){
       Node k = NodeManager::currentNM()->mkSkolem( "sy", tn, "sygus proxy" );
-      SygusProxyAttribute spa;
+      SygusPrintProxyAttribute spa;
       k.setAttribute(spa,c);
       sc = k;
     }else{
       int carg = getOpConsNum( tn, c );
       if( carg!=-1 ){
-        //sc = Node::fromExpr( dt[carg].getSygusOp() );
         sc = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[carg].getConstructor() ) );
       }else{
         //identity functions
@@ -417,8 +393,7 @@ Node TermDbSygus::getNormalized(TypeNode t, Node prog)
 {
   std::map< Node, Node >::iterator itn = d_normalized[t].find( prog );
   if( itn==d_normalized[t].end() ){
-    Node progr = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( prog.toExpr() ) );
-    progr = Rewriter::rewrite( progr );
+    Node progr = Rewriter::rewrite( prog );
     Trace("sygus-sym-break2") << "...rewrites to " << progr << std::endl;
     d_normalized[t][prog] = progr;
     return progr;
@@ -431,11 +406,16 @@ unsigned TermDbSygus::getSygusTermSize( Node n ){
   if( n.getNumChildren()==0 ){
     return 0;
   }else{
+    Assert(n.getKind() == APPLY_CONSTRUCTOR);
     unsigned sum = 0;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       sum += getSygusTermSize( n[i] );
     }
-    return 1+sum;
+    const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
+    int cindex = Datatype::indexOf(n.getOperator().toExpr());
+    Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
+    unsigned weight = dt[cindex].getWeight();
+    return weight + sum;
   }
 }
 
@@ -1268,6 +1248,36 @@ unsigned TermDbSygus::getMinConsTermSize( TypeNode tn, unsigned cindex ) {
   }
 }
 
+unsigned TermDbSygus::getSelectorWeight(TypeNode tn, Node sel)
+{
+  std::map<TypeNode, std::map<Node, unsigned> >::iterator itsw =
+      d_sel_weight.find(tn);
+  if (itsw == d_sel_weight.end())
+  {
+    d_sel_weight[tn].clear();
+    itsw = d_sel_weight.find(tn);
+    Type t = tn.toType();
+    const Datatype& dt = static_cast<DatatypeType>(t).getDatatype();
+    Trace("sygus-db") << "Compute selector weights for " << dt.getName()
+                      << std::endl;
+    for (unsigned i = 0, size = dt.getNumConstructors(); i < size; i++)
+    {
+      unsigned cw = dt[i].getWeight();
+      for (unsigned j = 0, size2 = dt[i].getNumArgs(); j < size2; j++)
+      {
+        Node csel = Node::fromExpr(dt[i].getSelectorInternal(t, j));
+        std::map<Node, unsigned>::iterator its = itsw->second.find(csel);
+        if (its == itsw->second.end() || cw < its->second)
+        {
+          d_sel_weight[tn][csel] = cw;
+          Trace("sygus-db") << "  w(" << csel << ") <= " << cw << std::endl;
+        }
+      }
+    }
+  }
+  Assert(itsw->second.find(sel) != itsw->second.end());
+  return itsw->second[sel];
+}
 
 int TermDbSygus::getKindConsNum( TypeNode tn, Kind k ) {
   Assert( isRegistered( tn ) );
@@ -1410,7 +1420,9 @@ Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
       Node nc;
       if( n[r].getKind()==PLUS ){
         for( unsigned i=0; i<n[r].getNumChildren(); i++ ){
-          if( QuantArith::getMonomial( n[r][i], c, nc ) && c.getConst<Rational>().isNegativeOne() ){
+          if (ArithMSum::getMonomial(n[r][i], c, nc)
+              && c.getConst<Rational>().isNegativeOne())
+          {
             mon[ro].push_back( nc );
             changed = true;
           }else{
@@ -1420,7 +1432,9 @@ Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
           }
         }
       }else{
-        if( QuantArith::getMonomial( n[r], c, nc ) && c.getConst<Rational>().isNegativeOne() ){
+        if (ArithMSum::getMonomial(n[r], c, nc)
+            && c.getConst<Rational>().isNegativeOne())
+        {
           mon[ro].push_back( nc );
           changed = true;
         }else{
@@ -1540,110 +1554,29 @@ void doStrReplace(std::string& str, const std::string& oldStr, const std::string
 
 Kind TermDbSygus::getOperatorKind( Node op ) {
   Assert( op.getKind()!=BUILTIN );
-  if( smt::currentSmtEngine()->isDefinedFunction( op.toExpr() ) ){
-    return APPLY;
+  if (op.getKind() == LAMBDA)
+  {
+    // we use APPLY_UF instead of APPLY, since the rewriter for APPLY_UF
+    // does beta-reduction but does not for APPLY
+    return APPLY_UF;
   }else{
     TypeNode tn = op.getType();
     if( tn.isConstructor() ){
       return APPLY_CONSTRUCTOR;
-    }else if( tn.isSelector() ){
+    }
+    else if (tn.isSelector())
+    {
       return APPLY_SELECTOR;
-    }else if( tn.isTester() ){
+    }
+    else if (tn.isTester())
+    {
       return APPLY_TESTER;
-    }else{
-      return NodeManager::operatorToKind( op );
     }
-  }
-}
-
-void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >& lvs ) {
-  if( n.getKind()==APPLY_CONSTRUCTOR ){
-    TypeNode tn = n.getType();
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    if( dt.isSygus() ){
-      int cIndex = Datatype::indexOf( n.getOperator().toExpr() );
-      Assert( !dt[cIndex].getSygusOp().isNull() );
-      if( dt[cIndex].getSygusLetBody().isNull() ){
-        if( n.getNumChildren()>0 ){
-          out << "(";
-        }
-        Node op = dt[cIndex].getSygusOp();
-        if( op.getType().isBitVector() && op.isConst() ){
-          //print in the style it was given
-          Trace("sygus-print-bvc") << "[Print " << op << " " << dt[cIndex].getName() << "]" << std::endl;
-          std::stringstream ss;
-          ss << dt[cIndex].getName();
-          std::string str = ss.str();
-          std::size_t found = str.find_last_of("_");
-          Assert( found!=std::string::npos );
-          std::string name = std::string( str.begin() + found +1, str.end() );
-          out << name;
-        }else{
-          out << op;
-        }
-        if( n.getNumChildren()>0 ){
-          for( unsigned i=0; i<n.getNumChildren(); i++ ){
-            out << " ";
-            printSygusTerm( out, n[i], lvs );
-          }
-          out << ")";
-        }
-      }else{
-        std::stringstream let_out;
-        //print as let term
-        if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
-          let_out << "(let (";
-        }
-        std::vector< Node > subs_lvs;
-        std::vector< Node > new_lvs;
-        for( unsigned i=0; i<dt[cIndex].getNumSygusLetArgs(); i++ ){
-          Node v = Node::fromExpr( dt[cIndex].getSygusLetArg( i ) );
-          subs_lvs.push_back( v );
-          std::stringstream ss;
-          ss << "_l_" << new_lvs.size();
-          Node lv = NodeManager::currentNM()->mkBoundVar( ss.str(), v.getType() );
-          new_lvs.push_back( lv );
-          //map free variables to proper terms
-          if( i<dt[cIndex].getNumSygusLetInputArgs() ){
-            //it should be printed as a let argument
-            let_out << "(";
-            let_out << lv << " " << lv.getType() << " ";
-            printSygusTerm( let_out, n[i], lvs );
-            let_out << ")";
-          }
-        }
-        if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
-          let_out << ") ";
-        }
-        //print the body
-        Node let_body = Node::fromExpr( dt[cIndex].getSygusLetBody() );
-        let_body = let_body.substitute( subs_lvs.begin(), subs_lvs.end(), new_lvs.begin(), new_lvs.end() );
-        new_lvs.insert( new_lvs.end(), lvs.begin(), lvs.end() );
-        printSygusTerm( let_out, let_body, new_lvs );
-        if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
-          let_out << ")";
-        }
-        //do variable substitutions since ASSUMING : let_vars are interpreted literally and do not represent a class of variables
-        std::string lbody = let_out.str();
-        for( unsigned i=0; i<dt[cIndex].getNumSygusLetArgs(); i++ ){
-          std::stringstream old_str;
-          old_str << new_lvs[i];
-          std::stringstream new_str;
-          if( i>=dt[cIndex].getNumSygusLetInputArgs() ){
-            printSygusTerm( new_str, n[i], lvs );
-          }else{
-            new_str << Node::fromExpr( dt[cIndex].getSygusLetArg( i ) );
-          }
-          doStrReplace( lbody, old_str.str().c_str(), new_str.str().c_str() );
-        }
-        out << lbody;
-      }
-      return;
+    else if (tn.isFunction())
+    {
+      return APPLY_UF;
     }
-  }else if( !n.getAttribute(SygusProxyAttribute()).isNull() ){
-    out << n.getAttribute(SygusProxyAttribute());
-  }else{
-    out << n;
+    return NodeManager::operatorToKind(op);
   }
 }
 
@@ -1875,9 +1808,10 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
       int i = ret.getAttribute(SygusVarNumAttribute());
       Assert( Node::fromExpr( dt.getSygusVarList() )[i]==ret );
       ret = args[i];
-    }else if( ret.getKind()==APPLY ){
-      //must expand definitions to account for defined functions in sygus grammars
-      ret = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( ret.toExpr() ) );
+    }
+    else
+    {
+      ret = Rewriter::rewrite(ret);
     }
     return ret;
   }else{
@@ -1911,13 +1845,14 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
           for( unsigned j=1; j<n.getNumChildren(); j++ ){
             Node nc = getEagerUnfold( n[j], visited );
             subs.push_back( nc );
-            Assert( subs[j-1].getType()==var_list[j-1].getType() );
+            Assert(subs[j - 1].getType().isComparableTo(
+                var_list[j - 1].getType()));
           }
           Assert( vars.size()==subs.size() );
           bTerm = bTerm.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
           Trace("cegqi-eager") << "Built-in term after subs : " << bTerm << std::endl;
           Trace("cegqi-eager-debug") << "Types : " << bTerm.getType() << " " << n.getType() << std::endl;
-          Assert( n.getType()==bTerm.getType() );
+          Assert(n.getType().isComparableTo(bTerm.getType()));
           ret = bTerm; 
         }
       }

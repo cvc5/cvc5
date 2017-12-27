@@ -47,7 +47,7 @@ class EagerBitblastSolver {
   void turnOffAig();
   bool isInitialized();
   void initialize();
-  void collectModelInfo(theory::TheoryModel* m, bool fullModel);
+  bool collectModelInfo(theory::TheoryModel* m, bool fullModel);
   void setProofLog(BitVectorProof* bvp);
 
  private:

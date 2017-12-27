@@ -179,7 +179,8 @@ enum RewriteRuleId {
   BBPlusNeg,
   UltPlusOne,
   ConcatToMult,
-  IsPowerOfTwo
+  IsPowerOfTwo,
+  MultSltMult,
 };
 
 inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
@@ -319,6 +320,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case UltPlusOne: out << "UltPlusOne"; return out;
   case ConcatToMult: out << "ConcatToMult"; return out;
   case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
+  case MultSltMult: out << "MultSltMult"; return out;
   default:
     Unreachable();
   }
@@ -545,6 +547,7 @@ struct AllRewriteRules {
   RewriteRule<ZeroExtendEqConst> rule125;
   RewriteRule<SignExtendUltConst> rule126;
   RewriteRule<ZeroExtendUltConst> rule127;
+  RewriteRule<MultSltMult> rule128;
 };
 
 template<> inline

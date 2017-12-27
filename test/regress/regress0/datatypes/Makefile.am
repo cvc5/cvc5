@@ -83,7 +83,8 @@ TESTS =	\
 	tuple-no-clash.cvc \
 	jsat-2.6.smt2 \
 	acyclicity-sr-ground096.smt2 \
-	model-subterms-min.smt2
+	model-subterms-min.smt2 \
+	issue1433.smt2
 
 # rec5 -- no longer support subrange types
 FAILING_TESTS = \

@@ -67,6 +67,9 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "preprocessing/preprocessing_pass.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
@@ -83,8 +86,10 @@
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
 #include "smt_util/node_visitor.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/arith/pseudoboolean_proc.h"
 #include "theory/booleans/circuit_propagator.h"
+#include "theory/bv/bvgauss.h"
 #include "theory/bv/bvintropow2.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
@@ -93,6 +98,7 @@
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
@@ -102,11 +108,13 @@
 #include "theory/theory_traits.h"
 #include "util/hash.h"
 #include "util/proof.h"
+#include "util/random.h"
 #include "util/resource_manager.h"
 
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::smt;
+using namespace CVC4::preprocessing;
 using namespace CVC4::prop;
 using namespace CVC4::context;
 using namespace CVC4::theory;
@@ -159,30 +167,9 @@ public:
   Node getFormula() const { return d_formula; }
 };/* class DefinedFunction */
 
-class AssertionPipeline {
-  vector<Node> d_nodes;
-
-public:
-
-  size_t size() const { return d_nodes.size(); }
-
-  void resize(size_t n) { d_nodes.resize(n); }
-  void clear() { d_nodes.clear(); }
-
-  Node& operator[](size_t i) { return d_nodes[i]; }
-  const Node& operator[](size_t i) const { return d_nodes[i]; }
-  void push_back(Node n) { d_nodes.push_back(n); }
-
-  vector<Node>& ref() { return d_nodes; }
-  const vector<Node>& ref() const { return d_nodes; }
-
-  void replace(size_t i, Node n) {
-    PROOF( ProofManager::currentPM()->addDependence(n, d_nodes[i]); );
-    d_nodes[i] = n;
-  }
-};/* class AssertionPipeline */
-
 struct SmtEngineStatistics {
+  /** time spent in gaussian elimination */
+  TimerStat d_gaussElimTime;
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
   /** time spent in non-clausal simplification */
@@ -230,6 +217,7 @@ struct SmtEngineStatistics {
   ReferenceStat<uint64_t> d_resourceUnitsUsed;
 
   SmtEngineStatistics() :
+    d_gaussElimTime("smt::SmtEngine::gaussElimTime"),
     d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
     d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
     d_miplibPassTime("smt::SmtEngine::miplibPassTime"),
@@ -254,6 +242,7 @@ struct SmtEngineStatistics {
     d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
  {
 
+    smtStatisticsRegistry()->registerStat(&d_gaussElimTime);
     smtStatisticsRegistry()->registerStat(&d_definitionExpansionTime);
     smtStatisticsRegistry()->registerStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->registerStat(&d_miplibPassTime);
@@ -279,6 +268,7 @@ struct SmtEngineStatistics {
   }
 
   ~SmtEngineStatistics() {
+    smtStatisticsRegistry()->unregisterStat(&d_gaussElimTime);
     smtStatisticsRegistry()->unregisterStat(&d_definitionExpansionTime);
     smtStatisticsRegistry()->unregisterStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->unregisterStat(&d_miplibPassTime);
@@ -563,8 +553,12 @@ public:
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
 
-private:
+  /* Finishes the initialization of the private portion of SMTEngine. */
+  void finishInit();
 
+ private:
+  std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
+  PreprocessingPassRegistry d_preprocessingPassRegistry;
   theory::arith::PseudoBooleanProcessor d_pbsProcessor;
 
   /** The top level substitutions */
@@ -1130,7 +1124,7 @@ void SmtEngine::finishInit() {
           finishRegisterTheory(d_theoryEngine->theoryOf(id));
       }
     });
-
+  d_private->finishInit();
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
@@ -1289,6 +1283,7 @@ void SmtEngine::setLogicInternal() throw() {
 }
 
 void SmtEngine::setDefaults() {
+  Random::getRandom().setSeed(options::seed());
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
@@ -1300,6 +1295,11 @@ void SmtEngine::setDefaults() {
     if (!options::ceGuidedInst.wasSetByUser())
     {
       options::ceGuidedInst.set(true);
+    }
+    // must use Ferrante/Rackoff for real arithmetic
+    if (!options::cbqiMidpoint.wasSetByUser())
+    {
+      options::cbqiMidpoint.set(true);
     }
   }
 
@@ -1424,9 +1424,10 @@ void SmtEngine::setDefaults() {
       if(options::bvIntroducePow2.wasSetByUser()) {
         throw OptionException("bv-intro-pow2 not supported with unsat cores");
       }
-      Notice() << "SmtEngine: turning off bv-introduce-pow2 to support unsat-cores" << endl;
+      Notice() << "SmtEngine: turning off bv-intro-pow2 to support unsat-cores" << endl;
       setOption("bv-intro-pow2", false);
     }
+
     if(options::repeatSimp()) {
       if(options::repeatSimp.wasSetByUser()) {
         throw OptionException("repeat-simp not supported with unsat cores");
@@ -1909,6 +1910,14 @@ void SmtEngine::setDefaults() {
     if( !options::cbqi.wasSetByUser() ){
       options::cbqi.set( true );
     }
+    // check whether we should apply full cbqi
+    if (d_logic.isPure(THEORY_BV))
+    {
+      if (!options::cbqiFullEffort.wasSetByUser())
+      {
+        options::cbqiFullEffort.set(true);
+      }
+    }
   }
   if( options::cbqi() ){
     //must rewrite divk
@@ -1928,8 +1937,11 @@ void SmtEngine::setDefaults() {
         options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
       }
     }else{
-      //only supported in pure arithmetic
-      options::cbqiNestedQE.set(false);
+      // only supported in pure arithmetic or pure BV
+      if (!d_logic.isPure(THEORY_BV))
+      {
+        options::cbqiNestedQE.set(false);
+      }
     }
   }
   //implied options...
@@ -2242,12 +2254,8 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
   }
 }
 
-void SmtEngine::defineFunction(Expr func,
-                               const std::vector<Expr>& formals,
-                               Expr formula) {
-  SmtScope smts(this);
-  doPendingPops();
-  Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
+void SmtEngine::debugCheckFormals(const std::vector<Expr>& formals, Expr func)
+{
   for(std::vector<Expr>::const_iterator i = formals.begin(); i != formals.end(); ++i) {
     if((*i).getKind() != kind::BOUND_VARIABLE) {
       stringstream ss;
@@ -2258,25 +2266,13 @@ void SmtEngine::defineFunction(Expr func,
       throw TypeCheckingException(func, ss.str());
     }
   }
+}
 
-  stringstream ss;
-  ss << language::SetLanguage(language::SetLanguage::getLanguage(Dump.getStream()))
-     << func;
-  DefineFunctionCommand c(ss.str(), func, formals, formula);
-  addToModelCommandAndDump(c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
-
-
-  PROOF( if (options::checkUnsatCores()) {
-      d_defineCommands.push_back(c.clone());
-    });
-
-
-  // Substitute out any abstract values in formula
-  Expr form = d_private->substituteAbstractValues(Node::fromExpr(formula)).toExpr();
-
-  // type check body
-  Type formulaType = form.getType(options::typeChecking());
-
+void SmtEngine::debugCheckFunctionBody(Expr formula,
+                                       const std::vector<Expr>& formals,
+                                       Expr func)
+{
+  Type formulaType = formula.getType(options::typeChecking());
   Type funcType = func.getType();
   // We distinguish here between definitions of constants and functions,
   // because the type checking for them is subtly different.  Perhaps we
@@ -2305,6 +2301,36 @@ void SmtEngine::defineFunction(Expr func,
       throw TypeCheckingException(func, ss.str());
     }
   }
+}
+
+void SmtEngine::defineFunction(Expr func,
+                               const std::vector<Expr>& formals,
+                               Expr formula)
+{
+  SmtScope smts(this);
+  doPendingPops();
+  Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
+  debugCheckFormals(formals, func);
+
+  stringstream ss;
+  ss << language::SetLanguage(
+            language::SetLanguage::getLanguage(Dump.getStream()))
+     << func;
+  DefineFunctionCommand c(ss.str(), func, formals, formula);
+  addToModelCommandAndDump(
+      c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
+
+  PROOF(if (options::checkUnsatCores()) {
+    d_defineCommands.push_back(c.clone());
+  });
+
+  // type check body
+  debugCheckFunctionBody(formula, formals, func);
+
+  // Substitute out any abstract values in formula
+  Expr form =
+      d_private->substituteAbstractValues(Node::fromExpr(formula)).toExpr();
+
   TNode funcNode = func.getTNode();
   vector<Node> formalsNodes;
   for(vector<Expr>::const_iterator i = formals.begin(),
@@ -2322,10 +2348,106 @@ void SmtEngine::defineFunction(Expr func,
   d_definedFunctions->insert(funcNode, def);
 }
 
+void SmtEngine::defineFunctionsRec(
+    const std::vector<Expr>& funcs,
+    const std::vector<std::vector<Expr> >& formals,
+    const std::vector<Expr>& formulas)
+{
+  SmtScope smts(this);
+  finalOptionsAreSet();
+  doPendingPops();
+  Trace("smt") << "SMT defineFunctionsRec(...)" << endl;
+
+  if (funcs.size() != formals.size() && funcs.size() != formulas.size())
+  {
+    stringstream ss;
+    ss << "Number of functions, formals, and function bodies passed to "
+          "defineFunctionsRec do not match:"
+       << "\n"
+       << "        #functions : " << funcs.size() << "\n"
+       << "        #arg lists : " << formals.size() << "\n"
+       << "  #function bodies : " << formulas.size() << "\n";
+    throw ModalException(ss.str());
+  }
+  for (unsigned i = 0, size = funcs.size(); i < size; i++)
+  {
+    // check formal argument list
+    debugCheckFormals(formals[i], funcs[i]);
+    // type check body
+    debugCheckFunctionBody(formulas[i], formals[i], funcs[i]);
+  }
+
+  if (Dump.isOn("raw-benchmark"))
+  {
+    Dump("raw-benchmark") << DefineFunctionRecCommand(funcs, formals, formulas);
+  }
+
+  ExprManager* em = getExprManager();
+  for (unsigned i = 0, size = funcs.size(); i < size; i++)
+  {
+    // we assert a quantified formula
+    Expr func_app;
+    // make the function application
+    if (formals[i].empty())
+    {
+      // it has no arguments
+      func_app = funcs[i];
+    }
+    else
+    {
+      std::vector<Expr> children;
+      children.push_back(funcs[i]);
+      children.insert(children.end(), formals[i].begin(), formals[i].end());
+      func_app = em->mkExpr(kind::APPLY_UF, children);
+    }
+    Expr lem = em->mkExpr(kind::EQUAL, func_app, formulas[i]);
+    if (!formals[i].empty())
+    {
+      // set the attribute to denote this is a function definition
+      std::string attr_name("fun-def");
+      Expr aexpr = em->mkExpr(kind::INST_ATTRIBUTE, func_app);
+      aexpr = em->mkExpr(kind::INST_PATTERN_LIST, aexpr);
+      std::vector<Expr> expr_values;
+      std::string str_value;
+      setUserAttribute(attr_name, func_app, expr_values, str_value);
+      // make the quantified formula
+      Expr boundVars = em->mkExpr(kind::BOUND_VAR_LIST, formals[i]);
+      lem = em->mkExpr(kind::FORALL, boundVars, lem, aexpr);
+    }
+    // assert the quantified formula
+    //   notice we don't call assertFormula directly, since this would
+    //   duplicate the output on raw-benchmark.
+    Expr e = d_private->substituteAbstractValues(Node::fromExpr(lem)).toExpr();
+    if (d_assertionList != NULL)
+    {
+      d_assertionList->push_back(e);
+    }
+    d_private->addFormula(e.getNode(), false);
+  }
+}
+
+void SmtEngine::defineFunctionRec(Expr func,
+                                  const std::vector<Expr>& formals,
+                                  Expr formula)
+{
+  std::vector<Expr> funcs;
+  funcs.push_back(func);
+  std::vector<std::vector<Expr> > formals_multi;
+  formals_multi.push_back(formals);
+  std::vector<Expr> formulas;
+  formulas.push_back(formula);
+  defineFunctionsRec(funcs, formals_multi, formulas);
+}
+
 bool SmtEngine::isDefinedFunction( Expr func ){
   Node nf = Node::fromExpr( func );
   Debug("smt") << "isDefined function " << nf << "?" << std::endl;
   return d_definedFunctions->find(nf) != d_definedFunctions->end();
+}
+
+void SmtEnginePrivate::finishInit() {
+  d_preprocessingPassContext.reset(new PreprocessingPassContext(&d_smt));
+  //TODO: register passes here
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -2736,7 +2858,8 @@ Node SmtEnginePrivate::realToInt(TNode n, NodeMap& cache, std::vector< Node >& v
           Node ret_lit = ret.getKind()==kind::NOT ? ret[0] : ret;
           bool ret_pol = ret.getKind()!=kind::NOT;
           std::map< Node, Node > msum;
-          if( QuantArith::getMonomialSumLit( ret_lit, msum ) ){
+          if (ArithMSum::getMonomialSumLit(ret_lit, msum))
+          {
             //get common coefficient
             std::vector< Node > coeffs;
             for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
@@ -2801,6 +2924,8 @@ Node SmtEnginePrivate::realToInt(TNode n, NodeMap& cache, std::vector< Node >& v
         if( !n.getType().isInteger() ){
           ret = NodeManager::currentNM()->mkSkolem("__realToInt_var", NodeManager::currentNM()->integerType(), "Variable introduced in realToInt pass");
           var_eq.push_back( n.eqNode( ret ) );
+          TheoryModel* m = d_smt.d_theoryEngine->getModel();
+          m->addSubstitution(n,ret);
         }
       }
     }
@@ -2884,7 +3009,8 @@ void SmtEnginePrivate::staticLearning() {
 }
 
 // do dumping (before/after any preprocessing pass)
-static void dumpAssertions(const char* key, const AssertionPipeline& assertionList) {
+static void dumpAssertions(const char* key,
+                           const AssertionPipeline& assertionList) {
   if( Dump.isOn("assertions") &&
       Dump.isOn(string("assertions:") + key) ) {
     // Push the simplified assertions to the dump output stream
@@ -3989,6 +4115,12 @@ void SmtEnginePrivate::processAssertions() {
     return;
   }
 
+  if(options::bvGaussElim())
+  {
+    TimerStat::CodeTimer gaussElimTimer(d_smt.d_stats->d_gaussElimTime);
+    theory::bv::BVGaussElim::gaussElimRewrite(d_assertions.ref());
+  }
+
   if (d_assertionsProcessed && options::incrementalSolving()) {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
@@ -4645,14 +4777,18 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
         Trace("smt-synth") << "Property is non-ground single invocation, run "
                               "QE to obtain single invocation."
                            << std::endl;
+        NodeManager* nm = NodeManager::currentNM();
         // partition variables
+        std::vector<Node> all_vars;
+        sip.getAllVariables(all_vars);
+        std::vector<Node> si_vars;
+        sip.getSingleInvocationVariables(si_vars);
         std::vector<Node> qe_vars;
         std::vector<Node> nqe_vars;
-        for (unsigned i = 0; i < sip.d_all_vars.size(); i++)
+        for (unsigned i = 0, size = all_vars.size(); i < size; i++)
         {
-          Node v = sip.d_all_vars[i];
-          if (std::find(sip.d_si_vars.begin(), sip.d_si_vars.end(), v)
-              == sip.d_si_vars.end())
+          Node v = all_vars[i];
+          if (std::find(si_vars.begin(), si_vars.end(), v) == si_vars.end())
           {
             qe_vars.push_back(v);
           }
@@ -4666,27 +4802,29 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
         // skolemize non-qe variables
         for (unsigned i = 0; i < nqe_vars.size(); i++)
         {
-          Node k = NodeManager::currentNM()->mkSkolem(
-              "k",
-              nqe_vars[i].getType(),
-              "qe for non-ground single invocation");
+          Node k = nm->mkSkolem("k",
+                                nqe_vars[i].getType(),
+                                "qe for non-ground single invocation");
           orig.push_back(nqe_vars[i]);
           subs.push_back(k);
           Trace("smt-synth") << "  subs : " << nqe_vars[i] << " -> " << k
                              << std::endl;
         }
-        for (std::map<Node, bool>::iterator it = sip.d_funcs.begin();
-             it != sip.d_funcs.end();
-             ++it)
+        std::vector<Node> funcs;
+        sip.getFunctions(funcs);
+        for (unsigned i = 0, size = funcs.size(); i < size; i++)
         {
-          orig.push_back(sip.d_func_inv[it->first]);
-          Node k = NodeManager::currentNM()->mkSkolem(
-              "k",
-              sip.d_func_fo_var[it->first].getType(),
-              "qe for function in non-ground single invocation");
+          Node f = funcs[i];
+          Node fi = sip.getFunctionInvocationFor(f);
+          Node fv = sip.getFirstOrderVariableForFunction(f);
+          Assert(!fi.isNull());
+          orig.push_back(fi);
+          Node k =
+              nm->mkSkolem("k",
+                           fv.getType(),
+                           "qe for function in non-ground single invocation");
           subs.push_back(k);
-          Trace("smt-synth") << "  subs : " << sip.d_func_inv[it->first]
-                             << " -> " << k << std::endl;
+          Trace("smt-synth") << "  subs : " << fi << " -> " << k << std::endl;
         }
         Node conj_se_ngsi = sip.getFullSpecification();
         Trace("smt-synth") << "Full specification is " << conj_se_ngsi
@@ -4694,10 +4832,10 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
         Node conj_se_ngsi_subs = conj_se_ngsi.substitute(
             orig.begin(), orig.end(), subs.begin(), subs.end());
         Assert(!qe_vars.empty());
-        conj_se_ngsi_subs = NodeManager::currentNM()->mkNode(
-            kind::EXISTS,
-            NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, qe_vars),
-            conj_se_ngsi_subs.negate());
+        conj_se_ngsi_subs =
+            nm->mkNode(kind::EXISTS,
+                       nm->mkNode(kind::BOUND_VAR_LIST, qe_vars),
+                       conj_se_ngsi_subs.negate());
 
         Trace("smt-synth") << "Run quantifier elimination on "
                            << conj_se_ngsi_subs << std::endl;
@@ -4711,14 +4849,12 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
             subs.begin(), subs.end(), orig.begin(), orig.end());
         if (!nqe_vars.empty())
         {
-          qe_res_n = NodeManager::currentNM()->mkNode(
-              kind::EXISTS,
-              NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, nqe_vars),
-              qe_res_n);
+          qe_res_n = nm->mkNode(kind::EXISTS,
+                                nm->mkNode(kind::BOUND_VAR_LIST, nqe_vars),
+                                qe_res_n);
         }
         Assert(conj.getNumChildren() == 3);
-        qe_res_n = NodeManager::currentNM()->mkNode(
-            kind::FORALL, conj[0], qe_res_n, conj[2]);
+        qe_res_n = nm->mkNode(kind::FORALL, conj[0], qe_res_n, conj[2]);
         Trace("smt-synth") << "Converted conjecture after QE : " << qe_res_n
                            << std::endl;
         e_check = qe_res_n.toExpr();
@@ -5604,6 +5740,7 @@ void SmtEngine::reset() throw() {
 
 void SmtEngine::resetAssertions() throw() {
   SmtScope smts(this);
+  doPendingPops();
 
   Trace("smt") << "SMT resetAssertions()" << endl;
   if(Dump.isOn("benchmark")) {
@@ -5666,7 +5803,11 @@ void SmtEngine::safeFlushStatistics(int fd) const {
   d_statisticsRegistry->safeFlushInformation(fd);
 }
 
-void SmtEngine::setUserAttribute(const std::string& attr, Expr expr, std::vector<Expr> expr_values, std::string str_value) {
+void SmtEngine::setUserAttribute(const std::string& attr,
+                                 Expr expr,
+                                 const std::vector<Expr>& expr_values,
+                                 const std::string& str_value)
+{
   SmtScope smts(this);
   std::vector<Node> node_values;
   for( unsigned i=0; i<expr_values.size(); i++ ){

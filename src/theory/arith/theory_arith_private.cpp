@@ -70,6 +70,7 @@
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
+#include "util/random.h"
 #include "util/rational.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
@@ -82,7 +83,6 @@ namespace theory {
 namespace arith {
 
 static Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum);
-static double fRand(double fMin, double fMax);
 static bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap);
 
 
@@ -147,8 +147,6 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_div_skolem(u),
   d_int_div_skolem(u)
 {
-  srand(79);
-  
   if( options::nlExt() ){
     d_nonlinearExtension = new NonlinearExtension(
         containing, d_congruenceManager.getEqualityEngine());
@@ -2203,11 +2201,12 @@ bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool em
 
   if(!options::trySolveIntStandardEffort()){ return false; }
 
-  if (d_lastContextIntegerAttempted <= (level >> 2)){
-
-    double d = (double)(d_solveIntMaybeHelp + 1) / (d_solveIntAttempts + 1 + level*level);
-    double t = fRand(0.0, 1.0);
-    if(t < d){
+  if (d_lastContextIntegerAttempted <= (level >> 2))
+  {
+    double d = (double)(d_solveIntMaybeHelp + 1)
+               / (d_solveIntAttempts + 1 + level * level);
+    if (Random::getRandom().pickWithProb(d))
+    {
       return getSolveIntegerResource();
     }
   }
@@ -4253,7 +4252,8 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   return belowMin;
 }
 
-void TheoryArithPrivate::collectModelInfo( TheoryModel* m ){
+bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
+{
   AlwaysAssert(d_qflraStatus ==  Result::SAT);
   //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
 
@@ -4289,7 +4289,10 @@ void TheoryArithPrivate::collectModelInfo( TheoryModel* m ){
         Node qNode = mkRationalNode(qmodel);
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
 
-        m->assertEquality(term, qNode, true);
+        if (!m->assertEquality(term, qNode, true))
+        {
+          return false;
+        }
       }else{
         Debug("arith::collectModelInfo") << "Skipping m->assertEquality(" << term << ", true)" << endl;
 
@@ -4302,6 +4305,7 @@ void TheoryArithPrivate::collectModelInfo( TheoryModel* m ){
   // m->assertEqualityEngine(&ee);
 
   Debug("arith::collectModelInfo") << "collectModelInfo() end " << endl;
+  return true;
 }
 
 bool TheoryArithPrivate::safeToReset() const {
@@ -4804,12 +4808,6 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
   return false;
 }
 
-double fRand(double fMin, double fMax)
-{
-  double f = (double)rand() / RAND_MAX;
-  return fMin + f * (fMax - fMin);
-}
-
 bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
   BoundCounts hasCount = d_linEq.hasBoundCount(ridx);
   uint32_t rowLength = d_tableau.getRowLength(ridx);
@@ -4821,10 +4819,11 @@ bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
   Debug("arith::prop")
     << "propagateCandidateRow " << instance << " attempt " << rowLength << " " <<  hasCount << endl;
 
-  if(rowLength >= options::arithPropagateMaxLength()){
-    if(fRand(0.0,1.0) >= double(options::arithPropagateMaxLength())/rowLength){
-      return false;
-    }
+  if (rowLength >= options::arithPropagateMaxLength()
+      && Random::getRandom().pickWithProb(
+             1.0 - double(options::arithPropagateMaxLength()) / rowLength))
+  {
+    return false;
   }
 
   if(hasCount.lowerBoundCount() == rowLength){

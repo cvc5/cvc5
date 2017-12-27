@@ -464,6 +464,39 @@ public:
 };/* class DefineNamedFunctionCommand */
 
 /**
+ * The command when parsing define-fun-rec or define-funs-rec.
+ * This command will assert a set of quantified formulas that specify
+ * the (mutually recursive) function definitions provided to it.
+ */
+class CVC4_PUBLIC DefineFunctionRecCommand : public Command
+{
+ public:
+  DefineFunctionRecCommand(Expr func,
+                           const std::vector<Expr>& formals,
+                           Expr formula) throw();
+  DefineFunctionRecCommand(const std::vector<Expr>& funcs,
+                           const std::vector<std::vector<Expr> >& formals,
+                           const std::vector<Expr>& formula) throw();
+  ~DefineFunctionRecCommand() throw() {}
+  const std::vector<Expr>& getFunctions() const throw();
+  const std::vector<std::vector<Expr> >& getFormals() const throw();
+  const std::vector<Expr>& getFormulas() const throw();
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const throw() override;
+
+ protected:
+  /** functions we are defining */
+  std::vector<Expr> d_funcs;
+  /** formal arguments for each of the functions we are defining */
+  std::vector<std::vector<Expr> > d_formals;
+  /** formulas corresponding to the bodies of the functions we are defining */
+  std::vector<Expr> d_formulas;
+}; /* class DefineFunctionRecCommand */
+
+/**
  * The command when an attribute is set by a user.  In SMT-LIBv2 this is done
  *  via the syntax (! expr :attr)
  */

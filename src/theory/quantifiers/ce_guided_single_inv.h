@@ -17,11 +17,12 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
 #define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
 
-#include "context/cdhashmap.h"
-#include "context/cdchunk_list.h"
-#include "theory/quantifiers_engine.h"
+#include "context/cdlist.h"
 #include "theory/quantifiers/ce_guided_single_inv_sol.h"
+#include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/inst_strategy_cbqi.h"
+#include "theory/quantifiers/single_inv_partition.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -40,9 +41,6 @@ public:
   bool isEligibleForInstantiation( Node n );
   bool addLemma( Node lem );
 };
-
-
-class SingleInvocationPartition;
 
 class DetTrace {
 private:
@@ -242,57 +240,6 @@ class CegConjectureSingleInv {
     }
   }
 };
-
-// A utility to group formulas into single invocation/non-single
-// invocation parts. Only processes functions having argument types exactly matching
-// "d_arg_types", and all invocations are in the same order across all
-// functions
-class SingleInvocationPartition {
-private:
-  bool d_has_input_funcs;
-  std::vector< Node > d_input_funcs;
-  //options
-  bool inferArgTypes( Node n, std::vector< TypeNode >& typs, std::map< Node, bool >& visited );
-  void process( Node n );
-  bool collectConjuncts( Node n, bool pol, std::vector< Node >& conj );
-  bool processConjunct( Node n, std::map< Node, bool >& visited, std::vector< Node >& args,
-                        std::vector< Node >& terms, std::vector< Node >& subs );
-  Node getSpecificationInst( Node n, std::map< Node, Node >& lam, std::map< Node, Node >& visited );
-  bool init( std::vector< Node >& funcs, std::vector< TypeNode >& typs, Node n, bool has_funcs );
-public:
-  SingleInvocationPartition() : d_has_input_funcs( false ){}
-  ~SingleInvocationPartition(){}
-  bool init( Node n );
-  bool init( std::vector< Node >& funcs, Node n );
-
-  //outputs (everything is with bound var)
-  std::vector< TypeNode > d_arg_types;
-  std::map< Node, bool > d_funcs;
-  std::map< Node, Node > d_func_inv;
-  std::map< Node, Node > d_inv_to_func;
-  std::map< Node, Node > d_func_fo_var;
-  std::map< Node, Node > d_fo_var_to_func;
-  std::vector< Node > d_func_vars; //the first-order variables corresponding to all functions
-  std::vector< Node > d_si_vars;   //the arguments that we based the anti-skolemization on
-  std::vector< Node > d_all_vars;  //every free variable of conjuncts[2]
-  // si, nsi, all, non-ground si
-  std::vector< Node > d_conjuncts[4];
-
-  bool isAntiSkolemizableType( Node f );
-
-  Node getConjunct( int index );
-  Node getSingleInvocation() { return getConjunct( 0 ); }
-  Node getNonSingleInvocation() { return getConjunct( 1 ); }
-  Node getFullSpecification() { return getConjunct( 2 ); }
-
-  Node getSpecificationInst( int index, std::map< Node, Node >& lam );
-
-  bool isPurelySingleInvocation() { return d_conjuncts[1].empty(); }
-  bool isNonGroundSingleInvocation() { return d_conjuncts[3].size()==d_conjuncts[1].size(); }
-
-  void debugPrint( const char * c );
-};
-
 
 }/* namespace CVC4::theory::quantifiers */
 }/* namespace CVC4::theory */

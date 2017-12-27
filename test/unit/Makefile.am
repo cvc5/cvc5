@@ -12,6 +12,9 @@ UNIT_TESTS += \
 	theory/theory_white \
 	theory/theory_arith_white \
 	theory/theory_bv_white \
+	theory/theory_bv_bvgauss_white \
+	theory/theory_quantifiers_bv_instantiator_white \
+	theory/theory_quantifiers_bv_inverter_white \
 	theory/type_enumerator_white \
 	expr/node_white \
 	expr/node_black \
@@ -33,7 +36,6 @@ UNIT_TESTS += \
 	context/context_mm_black \
 	context/cdo_black \
 	context/cdlist_black \
-	context/cdlist_context_memory_black \
 	context/cdmap_black \
 	context/cdmap_white \
 	context/cdvector_black \
