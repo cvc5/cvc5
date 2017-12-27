@@ -30,9 +30,11 @@ bool CbqiGlobalNegate::simplify( std::vector< Node >& assertions,
 {
   NodeManager * nm = NodeManager::currentNM();
   
+  Trace("cbqi-gn") << "Global negate : " << std::endl;
   // collect free variables in all assertions 
   std::unordered_set< Node, NodeHashFunction > free_vars;
   for( const Node& as : assertions ){
+    Trace("cbqi-gn") << "  " << as << std::endl;
     TNode cur = as;
     // compute free variables
     std::unordered_set<TNode, TNodeHashFunction> visited;
@@ -89,6 +91,7 @@ bool CbqiGlobalNegate::simplify( std::vector< Node >& assertions,
   }
   
   new_assertions.push_back( body );
+  Trace("cbqi-gn") << "...got : " << body << std::endl;
   
   Node truen = nm->mkConst(true);
   for( unsigned i=0, size=assertions.size(); i<size; i++ ){

@@ -4683,6 +4683,14 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
     if ( ( options::solveRealAsInt() || options::solveIntAsBV() > 0 ) && r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
       r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
     }
+    // flipped if we did a global negation
+    if( options::cbqiGlobalNeg() ){
+      if( r.asSatisfiabilityResult().isSat() == Result::UNSAT ){
+        r = Result(Result::SAT);
+      }else if( r.asSatisfiabilityResult().isSat() == Result::SAT ){
+        r = Result(Result::UNSAT);
+      }
+    }
 
     d_needPostsolve = true;
 
