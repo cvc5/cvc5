@@ -4689,7 +4689,15 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
       if( r.asSatisfiabilityResult().isSat() == Result::UNSAT ){
         r = Result(Result::SAT);
       }else if( r.asSatisfiabilityResult().isSat() == Result::SAT ){
-        r = Result(Result::UNSAT);
+        // only if satisfaction complete
+        if(d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV))
+        {
+          r = Result(Result::UNSAT);
+        }
+        else
+        {
+          r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+        }
       }
       Trace("cbqi-gn") << "Global negate (post) is " << r << std::endl;
     }
