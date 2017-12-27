@@ -4298,17 +4298,14 @@ void SmtEnginePrivate::processAssertions() {
 
     // if cbqi is enabled, and the logic is satisfaction complete, 
     // try a global negation of the formula
-    if( options::cbqi() )
+    if( options::cbqiGlobalNeg() )
     {
-      if(d_smt.d_logic.isPure(THEORY_ARITH) || d_smt.d_logic.isPure(THEORY_BV))
+      quantifiers::CbqiGlobalNegate cgn;
+      std::vector< Node > new_assertions;
+      if( cgn.simplify( d_assertions.ref(), new_assertions ) )
       {
-        quantifiers::CbqiGlobalNegate cgn;
-        std::vector< Node > new_assertions;
-        if( cgn.simplify( d_assertions.ref(), new_assertions ) )
-        {
-          for( unsigned i=0; i<new_assertions.size(); i++ ){
-            addFormula(new_assertions[i], false);
-          }
+        for( unsigned i=0; i<new_assertions.size(); i++ ){
+          addFormula(new_assertions[i], false);
         }
       }
     }

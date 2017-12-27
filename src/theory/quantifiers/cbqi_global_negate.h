@@ -36,9 +36,6 @@ public:
   
   bool simplify( std::vector< Node >& assertions, 
                  std::vector< Node >& new_assertions );
-private:
-  /** should negate */
-  int shouldNegate( Node n );
 };
 
 

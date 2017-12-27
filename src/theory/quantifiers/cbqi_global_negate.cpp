@@ -25,44 +25,79 @@ CbqiGlobalNegate::CbqiGlobalNegate() {
 
 }
 
-bool CbqiGlobalNegate::simplify( std::vector< Node >& assertions, std::vector< Node >& new_assertions )
+bool CbqiGlobalNegate::simplify( std::vector< Node >& assertions, 
+                 std::vector< Node >& new_assertions )
 {
   NodeManager * nm = NodeManager::currentNM();
   
-  bool do_negate = false;
-  for( unsigned i=0; i<assertions.size(); i++ )
-  {
-    int do_negate_curr = shouldNegate( assertions[i] );
-    if( do_negate_curr==-1 ){
-      return false;
-    }else if( do_negate_curr==1 ){
-      do_negate = true;
-    }
-  }  
-  
-  if( do_negate ){
-    if( assertions.size()>1 ){
-      std::vector< Node > guards;
-      TypeNode bt = nm->booleanType();
-      for( unsigned i=0; i<assertions.size(); i++ ){
-        Node g = nm->mkSkolem( "NG", bt, "for global negation");
-        guards.push_back( g );
-        assertions[i] = nm->mkNode( OR, assertions[i], g.negate() );
-      }    
-      new_assertions.push_back( nm->mkNode( OR, guards ) );
-    }else{
-      assertions[0] = assertions[0].negate();
-    }
+  // collect free variables in all assertions 
+  std::unordered_set< Node, NodeHashFunction > free_vars;
+  for( const Node& as : assertions ){
+    TNode cur = as;
+    // compute free variables
+    std::unordered_set<TNode, TNodeHashFunction> visited;
+    std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+    std::vector<TNode> visit;
+    visit.push_back(cur);
+    do {
+      cur = visit.back();
+      visit.pop_back();
+      if (visited.find(cur) == visited.end()) {
+        visited.insert(cur);
+        if( cur.isVar() && cur.getKind()!=BOUND_VARIABLE )
+        {
+          free_vars.insert( cur );
+        }
+        for (const TNode& cn : cur) {
+          visit.push_back(cn);
+        }
+      }
+    } while (!visit.empty());
   }
   
-  return do_negate;
+  Node body;
+  if( assertions.size()==0 ){
+    body = nm->mkConst( true );
+  }else if( assertions.size()==1 ){
+    body = assertions[0];
+  }else{
+    body = nm->mkNode( kind::AND, assertions );
+  }
+  
+  // do the negation
+  body = body.negate();
+  
+  if( !free_vars.empty() ){
+    std::vector< Node > vars;
+    std::vector< Node > bvs;
+    for( const Node& v : free_vars )
+    {
+      vars.push_back( v );
+      Node bv = nm->mkBoundVar( v.getType() );
+      bvs.push_back( bv );
+    }
+      
+    body = body.substitute( vars.begin(), vars.end(), bvs.begin(), bvs.end() );
+    
+    Node bvl = nm->mkNode( kind::BOUND_VAR_LIST, bvs );
+  
+    body = nm->mkNode( kind::FORALL, bvl, body );
+  }else{
+    // add dummy variable?
+    //Node dummy = nm->mkBoundVar( nm->booleanType() );
+    //bvs.push_back( dummy );
+  }
+  
+  new_assertions.push_back( body );
+  
+  Node truen = nm->mkConst(true);
+  for( unsigned i=0, size=assertions.size(); i<size; i++ ){
+    assertions[i] = truen;
+  }
+  
+  return true;
 }
 
-int CbqiGlobalNegate::shouldNegate( Node n ) 
-{
-  
-  return 0;
-}
   
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */

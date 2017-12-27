@@ -274,6 +274,10 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           qa.d_quant_elim_partial = true;
           //don't set owner, should happen naturally
         }
+        if( avar.getAttribute(CbqiGlobalNegateAttribute()) ){
+          Trace("quant-attr") << "Attribute : global negation : " << q << std::endl;
+          qa.d_global_negate = true;
+        }
         if( avar.hasAttribute(QuantIdNumAttribute()) ){
           qa.d_qid_num = avar;
           Trace("quant-attr") << "Attribute : id number " << qa.d_qid_num.getAttribute(QuantIdNumAttribute()) << " : " << q << std::endl;
