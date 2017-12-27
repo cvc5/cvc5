@@ -249,7 +249,6 @@ void Smt2::addTheory(Theory theory) {
   case THEORY_DATATYPES:
   {
     const std::vector<Type> types;
-    const std::vector<Type>& types2 = types;
     defineType("Tuple", getExprManager()->mkTupleType(types));
     Parser::addOperator(kind::APPLY_CONSTRUCTOR);
     Parser::addOperator(kind::APPLY_TESTER);
