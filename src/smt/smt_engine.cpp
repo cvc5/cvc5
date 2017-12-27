@@ -1873,10 +1873,12 @@ void SmtEngine::setDefaults() {
     if( !options::instNoEntail.wasSetByUser() ){
       options::instNoEntail.set( false );
     }
-    if( options::sygusStream() ){
+    if (options::sygusStream())
+    {
       // PBE and streaming modes are incompatible
-      if( !options::sygusPbe.wasSetByUser() ){
-        options::sygusPbe.set( false );
+      if (!options::sygusPbe.wasSetByUser())
+      {
+        options::sygusPbe.set(false);
       }
     }
     //do not allow partial functions
