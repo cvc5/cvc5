@@ -438,9 +438,10 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
                   // apply substitutions
                   Node slit = applySubstitutionToLiteral(plit, sf);
                   if( !slit.isNull() ){
-                    Trace("cbqi-inst-debug") << "...try based on literal " << slit << std::endl;
                     // check if contains pv
                     if( hasVariable( slit, pv ) ){
+                      Trace("cbqi-inst-debug") << "...try based on literal " << slit << "," << std::endl;
+                      Trace("cbqi-inst-debug") << "   from " << lit << std::endl;
                       if (vinst->processAssertion(
                               this, sf, pv, slit, lit, d_effort))
                       {

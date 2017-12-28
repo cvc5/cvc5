@@ -1027,6 +1027,9 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     // positively asserted equalities between bitvector terms we always leave
     // unmodified
     if (atom[0].getType().isBitVector()) {
+      //NodeManager * nm = NodeManager::currentNM();
+      //Node t = nm->mkNode( BITVECTOR_SUB, atom[0], atom[1] );
+      //Node zero = bv::utils::mkZero(bv::utils::getSize(atom[0]));
       return lit;
     }
   }
@@ -1775,7 +1778,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
   else if( n.getKind() == BITVECTOR_CONCAT )
   {
     // undo the mult-by-power of 2 rewrite?
-    if (contains_pv[n[0]] && n[0].getKind()==BITVECTOR_EXTRACT && n[1].isConst())
+    if (n[0].getKind()==BITVECTOR_EXTRACT && n[1].isConst())
     {
       unsigned sz = bv::utils::getSize(n[1]);
       Node zero = bv::utils::mkConst(BitVector(sz, Integer(0)));
@@ -1885,6 +1888,9 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
 {
   // new variables
   std::vector<Node> vars;
+  // term substitution
+  std::vector<Node> tvars;
+  std::vector<Node> tsubs;
   // new lemmas
   std::vector<Node> new_lems;
 
@@ -1957,6 +1963,8 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
       Node conc = nm->mkNode(kind::BITVECTOR_CONCAT, children);
       Assert(conc.getType() == es.first.getType());
       Node eq_lem = conc.eqNode(es.first);
+      tvars.push_back( es.first );
+      tsubs.push_back( conc );
       Trace("cegqi-bv-pp") << "Introduced : " << eq_lem << std::endl;
       new_lems.push_back(eq_lem);
       Trace("cegqi-bv-pp") << "...finished processing extracts for term "
@@ -1969,6 +1977,10 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   {
     // could try applying subs -> vars here
     // in practice, this led to worse performance
+    for( unsigned i=0, size=lems.size(); i<size; i++ ){
+      Node slem = lems[i].substitute( tvars.begin(), tvars.end(), tsubs.begin(), tsubs.end() );
+      lems[i] = Rewriter::rewrite( slem );
+    }
 
     Trace("cegqi-bv-pp") << "Adding " << new_lems.size() << " lemmas..."
                          << std::endl;
