@@ -113,7 +113,8 @@ TESTS =	\
   joinImg_1.cvc \
   joinImg_2_1.cvc \
   joinImg_2.cvc \
-  card_transpose.cvc
+  card_transpose.cvc \
+  relations-ops.smt2
 
 # unsolved : garbage_collect.cvc
 
