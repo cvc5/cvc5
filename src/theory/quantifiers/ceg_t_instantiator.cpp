@@ -1772,6 +1772,22 @@ Node BvInstantiator::rewriteTermForSolvePv(
                      children[1]));
     }
   }
+  else if( n.getKind() == BITVECTOR_CONCAT )
+  {
+    // undo the mult-by-power of 2 rewrite?
+    if (contains_pv[n[0]] && n[0].getKind()==BITVECTOR_EXTRACT && n[1].isConst())
+    {
+      unsigned sz = bv::utils::getSize(n[1]);
+      Node zero = bv::utils::mkConst(BitVector(sz, Integer(0)));
+      BitVectorExtract e = n[0].getOperator().getConst<BitVectorExtract>();
+      unsigned szf = bv::utils::getSize(n[0][0]);
+      if( n[1]==zero && e.low==0 && e.high+1+sz==szf ){
+        Node vpow2 = bv::utils::mkConst(BitVector(szf, Integer(1).multiplyByPow2(sz)));
+        Node ret = nm->mkNode( BITVECTOR_MULT, n[0][0], vpow2 );
+        return ret;
+      }
+    } 
+  }
   else if (n.getKind() == EQUAL)
   {
     TNode lhs = children[0];
