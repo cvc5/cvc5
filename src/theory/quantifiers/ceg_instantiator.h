@@ -272,7 +272,7 @@ class CegInstantiator {
   /** has this assertion been marked as solved? */
   bool isSolvedAssertion(Node n) const;
   /** marked solved */
-  void markSolved(Node n);
+  void markSolved(Node n, bool solved=true);
   //------------------------------end interface for instantiators
 
   /**

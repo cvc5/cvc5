@@ -1176,8 +1176,6 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
       // we may find an invertible literal that leads to a useful instantiation.
       std::random_shuffle(iti->second.begin(), iti->second.end());
 
-      unsigned best_score = 0;
-      
       for (unsigned j = 0; j < iti->second.size(); j++) {
         unsigned inst_id = iti->second[j];
         Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
@@ -1192,12 +1190,6 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
         if (itms != d_alit_to_model_slack.end()) {
           curr_slack_val = itms->second;
         }
-        bool solvedLit = ci->isSolvedAssertion(alit);
-        
-          
-        //unsigned score = (linear ? 0 : 2) + (curr_slack_val.isNull() ? 0 : 1);
-        
-        unsigned score = ( solvedLit ? 1 : 0 );
 
         // debug printing
         if (Trace.isOn("cegqi-bv")) {
@@ -1207,9 +1199,6 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
             Trace("cegqi-bv") << "   ...with slack value : " << curr_slack_val
                               << std::endl;
           }
-          if (solvedLit) {
-            Trace("cegqi-bv") << "   ...solved lit" << std::endl;
-          }
           Trace("cegqi-bv") << std::endl;
         }
 
@@ -1217,23 +1206,12 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
         //   We select the first literal, and
         //   for the first variable, we select all 
         //   if cbqiMultiInst is enabled.
-        bool do_add = false;
         if (inst_ids_try.empty() || (firstVar && options::cbqiMultiInst()))
         {
           // try the first one
-          do_add = true;
-        } else if( !inst_ids_try.empty() && score<best_score ){
-          // selection criteria across multiple literals goes here
-          inst_ids_try.clear();
-          do_add = true;
-        }
-        if( do_add ){
-          if( inst_ids_try.empty() ){
-            best_score = score;
-          }else{
-            best_score = score<best_score ? score : best_score;
-          }
           inst_ids_try.push_back(inst_id);
+        } else {
+          // selection criteria across multiple literals goes here
         }
       }
 
@@ -1244,11 +1222,10 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
       bool ret = false;
       bool revertOnSuccess = inst_ids_try.size() > 1;
       for (unsigned j = 0; j < inst_ids_try.size(); j++) {
-        unsigned inst_id = inst_ids_try[j];
+        unsigned inst_id = iti->second[j];
         Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
         Node inst_term = d_inst_id_to_term[inst_id];
         Node alit = d_inst_id_to_alit[inst_id];
-        
         // try instantiation pv -> inst_term
         TermProperties pv_prop_bv;
         Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term
@@ -1261,6 +1238,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
         {
           ret = true;
         }
+        ci->markSolved(alit, false);
       }
       if (ret)
       {
@@ -1803,7 +1781,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
   else if( n.getKind() == BITVECTOR_CONCAT )
   {
     // undo the mult-by-power of 2 rewrite?
-    if (n[0].getKind()==BITVECTOR_EXTRACT && n[1].isConst())
+    if (contains_pv[n[0]] && n[0].getKind()==BITVECTOR_EXTRACT && n[1].isConst())
     {
       unsigned sz = bv::utils::getSize(n[1]);
       Node zero = bv::utils::mkConst(BitVector(sz, Integer(0)));

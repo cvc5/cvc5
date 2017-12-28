@@ -1149,9 +1149,13 @@ bool CegInstantiator::isSolvedAssertion(Node n) const
   return d_solved_asserts.find(n)!=d_solved_asserts.end();
 }
 
-void CegInstantiator::markSolved(Node n)
+void CegInstantiator::markSolved(Node n, bool solved)
 {
-  d_solved_asserts.insert(n);
+  if( solved ){
+    d_solved_asserts.insert(n);
+  }else if( isSolvedAssertion(n) ){
+    d_solved_asserts.erase(n);
+  }
 }
   
 void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) {
