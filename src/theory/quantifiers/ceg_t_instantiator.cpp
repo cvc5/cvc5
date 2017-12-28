@@ -1014,7 +1014,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                          Node lit,
                                          CegInstEffort effort)
 {
-  if (effort == CEG_INST_EFFORT_FULL)
+  if (effort == CEG_INST_EFFORT_FULL || ci->isSolvedAssertion(lit))
   {
     // always use model values at full effort
     return Node::null();
@@ -1176,6 +1176,8 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
       // we may find an invertible literal that leads to a useful instantiation.
       std::random_shuffle(iti->second.begin(), iti->second.end());
 
+      unsigned best_score = 0;
+      
       for (unsigned j = 0; j < iti->second.size(); j++) {
         unsigned inst_id = iti->second[j];
         Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
@@ -1190,6 +1192,12 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
         if (itms != d_alit_to_model_slack.end()) {
           curr_slack_val = itms->second;
         }
+        bool solvedLit = ci->isSolvedAssertion(alit);
+        
+          
+        //unsigned score = (linear ? 0 : 2) + (curr_slack_val.isNull() ? 0 : 1);
+        
+        unsigned score = ( solvedLit ? 1 : 0 );
 
         // debug printing
         if (Trace.isOn("cegqi-bv")) {
@@ -1199,6 +1207,9 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
             Trace("cegqi-bv") << "   ...with slack value : " << curr_slack_val
                               << std::endl;
           }
+          if (solvedLit) {
+            Trace("cegqi-bv") << "   ...solved lit" << std::endl;
+          }
           Trace("cegqi-bv") << std::endl;
         }
 
@@ -1206,12 +1217,23 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
         //   We select the first literal, and
         //   for the first variable, we select all 
         //   if cbqiMultiInst is enabled.
+        bool do_add = false;
         if (inst_ids_try.empty() || (firstVar && options::cbqiMultiInst()))
         {
           // try the first one
-          inst_ids_try.push_back(inst_id);
-        } else {
+          do_add = true;
+        } else if( !inst_ids_try.empty() && score<best_score ){
           // selection criteria across multiple literals goes here
+          inst_ids_try.clear();
+          do_add = true;
+        }
+        if( do_add ){
+          if( inst_ids_try.empty() ){
+            best_score = score;
+          }else{
+            best_score = score<best_score ? score : best_score;
+          }
+          inst_ids_try.push_back(inst_id);
         }
       }
 
@@ -1222,15 +1244,18 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
       bool ret = false;
       bool revertOnSuccess = inst_ids_try.size() > 1;
       for (unsigned j = 0; j < inst_ids_try.size(); j++) {
-        unsigned inst_id = iti->second[j];
+        unsigned inst_id = inst_ids_try[j];
         Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
         Node inst_term = d_inst_id_to_term[inst_id];
+        Node alit = d_inst_id_to_alit[inst_id];
+        
         // try instantiation pv -> inst_term
         TermProperties pv_prop_bv;
         Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term
                           << std::endl;
         d_var_to_curr_inst_id[pv] = inst_id;
         d_tried_assertion_inst = true;
+        ci->markSolved(alit);
         if (ci->constructInstantiationInc(
                 pv, inst_term, pv_prop_bv, sf, revertOnSuccess))
         {
