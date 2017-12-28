@@ -1261,7 +1261,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
       }
 
       Trace("cbqi-debug") << "Consider variables in this order : " << std::endl;
-      for (unsigned i = 0; i < vars.size(); i++)
+      for (unsigned i = 0, size = vars.size(); i < size; i++)
       {
         d_var_order_index[voo[vars[i]]] = i;
         Trace("cbqi-debug") << "  " << vars[i] << " : " << vars[i].getType()

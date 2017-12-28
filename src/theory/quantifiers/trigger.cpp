@@ -383,7 +383,7 @@ bool Trigger::isAtomicTriggerKind( Kind k ) {
          || k == APPLY_SELECTOR_TOTAL || k == APPLY_TESTER || k == UNION
          || k == INTERSECTION || k == SUBSET || k == SETMINUS || k == MEMBER
          || k == SINGLETON || k == SEP_PTO || k == BITVECTOR_TO_NAT
-         || k == INT_TO_BITVECTOR || k == HO_APPLY || k == BITVECTOR_SLT || k == BITVECTOR_ULT;
+         || k == INT_TO_BITVECTOR || k == HO_APPLY;
 }
 
 bool Trigger::isRelationalTrigger( Node n ) {
@@ -400,7 +400,6 @@ bool Trigger::isCbqiKind( Kind k ) {
   }else{
     //CBQI typically works for satisfaction-complete theories
     TheoryId t = kindToTheoryId( k );
-    Trace("ajr-temp") << "Theory for " << k << " is " << t << std::endl;
     return t==THEORY_BV || t==THEORY_DATATYPES || t==THEORY_BOOL;
   }
 }
