@@ -400,7 +400,7 @@ bool Trigger::isCbqiKind( Kind k ) {
   }else{
     //CBQI typically works for satisfaction-complete theories
     TheoryId t = kindToTheoryId( k );
-    return t==THEORY_BV || t==THEORY_DATATYPES;
+    return t == THEORY_BV || t == THEORY_DATATYPES || t == THEORY_BOOL;
   }
 }
 
