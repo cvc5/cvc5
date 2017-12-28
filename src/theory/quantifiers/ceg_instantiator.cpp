@@ -427,8 +427,10 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
               Node lit = ita->second[j];
               if( lits.find(lit)==lits.end() ){
                 lits.insert(lit);
-                Node plit =
-                    vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
+                Node plit;
+                if( options::cbqiRepeatLit() || !isSolvedAssertion(plit) ){
+                  plit = vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
+                }
                 if (!plit.isNull()) {
                   Trace("cbqi-inst-debug2") << "  look at " << lit;
                   if (plit != lit) {

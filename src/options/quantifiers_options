@@ -312,7 +312,9 @@ option cbqiAll --cbqi-all bool :read-write :default false
 option cbqiMultiInst --cbqi-multi-inst bool :read-write :default false
  when applicable, do multi instantiations per quantifier per round in counterexample-based quantifier instantiation
 option cbqiGlobalNeg --cbqi-global-negate bool :default false
- do global negation to reduce number of quantifier alternations for counterexample-based quantifier instantiation 
+ do global negation for counterexample-based quantifier instantiation 
+option cbqiRepeatLit --cbqi-repeat-lit bool :read-write :default false
+ solve literals more than once in counterexample-based quantifier instantiation
  
 # CEGQI for arithmetic
 option cbqiUseInfInt --cbqi-use-inf-int bool :read-write :default false
