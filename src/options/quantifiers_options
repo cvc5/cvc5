@@ -261,7 +261,7 @@ option cegqiSingleInvReconstructConst --cegqi-si-reconstruct-const bool :default
   include constants when reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSingleInvAbort --cegqi-si-abort bool :default false
   abort if synthesis conjecture is not single invocation
-option sygusPbe --sygus-pbe bool :default true
+option sygusPbe --sygus-pbe bool :default true :read-write
   sygus advanced pruning based on examples
 option sygusQePreproc --sygus-qe-preproc bool :default false
   use quantifier elimination as a preprocessing step for sygus

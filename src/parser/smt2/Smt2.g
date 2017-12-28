@@ -1980,11 +1980,33 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
 
   | LPAREN_TOK
     ( /* An indexed function application */
-      indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK
-      { 
-        if( kind!=kind::NULL_EXPR ){
+      indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK { 
+        if(kind==CVC4::kind::APPLY_SELECTOR) {
+          //tuple selector case
+          Integer x = op.getConst<CVC4::Rational>().getNumerator();
+          if (!x.fitsUnsignedInt()) {
+            PARSER_STATE->parseError("index of tupSel is larger than size of unsigned int");
+          }
+          unsigned int n = x.toUnsignedInt();
+          if (args.size()>1) {
+            PARSER_STATE->parseError("tupSel applied to more than one tuple argument");
+          }
+          Type t = args[0].getType();
+          if (!t.isTuple()) {
+            PARSER_STATE->parseError("tupSel applied to non-tuple");
+          }
+          size_t length = ((DatatypeType)t).getTupleLength();
+          if (n >= length) {
+            std::stringstream ss;
+            ss << "tuple is of length " << length << "; cannot access index " << n;
+            PARSER_STATE->parseError(ss.str());
+          }
+          const Datatype & dt = ((DatatypeType)t).getDatatype();
+          op = dt[0][n].getSelector();
+        }
+        if (kind!=kind::NULL_EXPR) {
           expr = MK_EXPR( kind, op, args );
-        }else{
+        } else {
           expr = MK_EXPR(op, args);
         }
         PARSER_STATE->checkOperator(expr.getKind(), args.size());
@@ -2347,6 +2369,25 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     { //booleanType is placeholder here since we don't have type info without type annotation
       expr = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->booleanType(), kind::SEP_NIL); }
     // NOTE: Theory constants go here
+
+  | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
+    { std::vector<Type> types;
+      for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
+        types.push_back((*i).getType());
+      }
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      args.insert(args.begin(), dt[0].getConstructor());
+      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    }
+  
+  | TUPLE_CONST_TOK
+    { std::vector<Type> types;
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      args.insert(args.begin(), dt[0].getConstructor());
+      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    }
   ;
 
 /**
@@ -2565,6 +2606,11 @@ indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
         op = Datatype::datatypeOf(expr)[Datatype::indexOf(expr)].getTester();
         kind = CVC4::kind::APPLY_TESTER;
       }
+    | TUPLE_SEL_TOK m=INTEGER_LITERAL {
+        kind = CVC4::kind::APPLY_SELECTOR;
+        //put m in op so that the caller (termNonVariable) can deal with this case
+        op = MK_CONST(Rational(AntlrInput::tokenToUnsigned($m)));
+      } 
     | badIndexedFunctionName
     )
     RPAREN_TOK
@@ -2843,6 +2889,8 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
             PARSER_STATE->parseError("Illegal set type.");
           }
           t = EXPR_MANAGER->mkSetType( args[0] );
+        } else if(name == "Tuple") {
+          t = EXPR_MANAGER->mkTupleType(args); 
         } else if(check == CHECK_DECLARED ||
                   PARSER_STATE->isDeclared(name, SYM_SORT)) {
           t = PARSER_STATE->getSort(name, args);
@@ -3137,6 +3185,8 @@ INST_CLOSURE_TOK : 'inst-closure';
 EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
 UNIVSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'univset';
 NILREF_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SEP) }? 'sep.nil';
+TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }? 'mkTuple';
+TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }? 'tupSel';
 // Other set theory operators are not
 // tokenized and handled directly when
 // processing a term
