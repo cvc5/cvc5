@@ -1238,26 +1238,29 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   {
     std::map<Node, unsigned> voo;
     bool doSort = false;
-    std::vector< Node > vars;
-    std::map< TypeNode, std::vector< Node > > tvars;
+    std::vector<Node> vars;
+    std::map<TypeNode, std::vector<Node> > tvars;
     for (unsigned i = 0, size = d_vars.size(); i < size; i++)
     {
       voo[d_vars[i]] = i;
       d_var_order_index.push_back(0);
       TypeNode tn = d_vars[i].getType();
-      if( tn.isInteger() ){
+      if (tn.isInteger())
+      {
         doSort = true;
         tvars[tn].push_back(d_vars[i]);
-      }else{
+      }
+      else
+      {
         vars.push_back(d_vars[i]);
       }
     }
     if (doSort)
     {
       Trace("cbqi-debug") << "Sort variables based on ordering." << std::endl;
-      for( std::pair< const TypeNode, std::vector< Node > >& vs : tvars )
+      for (std::pair<const TypeNode, std::vector<Node> >& vs : tvars)
       {
-        vars.insert( vars.end(), vs.second.begin(), vs.second.end() );
+        vars.insert(vars.end(), vs.second.begin(), vs.second.end());
       }
 
       Trace("cbqi-debug") << "Consider variables in this order : " << std::endl;
