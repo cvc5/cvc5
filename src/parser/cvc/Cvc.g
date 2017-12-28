@@ -887,9 +887,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     { UNSUPPORTED("CONTINUE command"); }
   | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
   | toplevelDeclaration[cmd]
-  | RECURSIVE_TOK 
-  { /*PARSER_STATE->checkThatLogicIsSet();*/ }
-  identifier[id1, check, s1] 
+  | RECURSIVE_TOK identifier[id1, check, s1] 
   { /*PARSER_STATE->checkUserSymbol(id1);*/ }
   COLON type[t1, check] ARROW_TOK type[t1, check] EQUAL_TOK formula[f1]
   {
