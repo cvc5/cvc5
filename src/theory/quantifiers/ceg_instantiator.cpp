@@ -428,7 +428,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
               if( lits.find(lit)==lits.end() ){
                 lits.insert(lit);
                 Node plit;
-                if( options::cbqiRepeatLit() || !isSolvedAssertion(plit) ){
+                if( options::cbqiRepeatLit() || !isSolvedAssertion(lit) ){
                   plit = vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
                 }
                 if (!plit.isNull()) {
