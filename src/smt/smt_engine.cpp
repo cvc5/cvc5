@@ -1932,7 +1932,7 @@ void SmtEngine::setDefaults() {
     if( !options::rewriteDivk.wasSetByUser()) {
       options::rewriteDivk.set( true );
     }
-    if( d_logic.isPure(THEORY_ARITH) ){
+    if( d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV) ){
       options::cbqiAll.set( false );
       if( !options::quantConflictFind.wasSetByUser() ){
         options::quantConflictFind.set( false );
@@ -1946,9 +1946,17 @@ void SmtEngine::setDefaults() {
       }
     }else{
       // only supported in pure arithmetic or pure BV
-      if (!d_logic.isPure(THEORY_BV))
-      {
-        options::cbqiNestedQE.set(false);
+      options::cbqiNestedQE.set(false);
+    }
+    // prenexing
+    if( options::cbqiNestedQE() || options::decisionMode()==decision::DECISION_STRATEGY_INTERNAL ){
+      //only complete with prenex = disj_normal or normal
+      if( options::prenexQuant()<=quantifiers::PRENEX_QUANT_DISJ_NORMAL ){
+        options::prenexQuant.set( quantifiers::PRENEX_QUANT_DISJ_NORMAL );
+      }
+    }else if( options::cbqiGlobalNeg() ){
+      if( ! options::prenexQuant.wasSetByUser() ){
+        options::prenexQuant.set( quantifiers::PRENEX_QUANT_NONE );
       }
     }
   }
@@ -1960,13 +1968,6 @@ void SmtEngine::setDefaults() {
   }
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
     options::quantConflictFind.set( true );
-  }
-  if( options::cbqi() && 
-      ( options::cbqiNestedQE() || options::decisionMode()==decision::DECISION_STRATEGY_INTERNAL ) ){
-    //only complete with prenex = disj_normal or normal
-    if( options::prenexQuant()<=quantifiers::PRENEX_QUANT_DISJ_NORMAL ){
-      options::prenexQuant.set( quantifiers::PRENEX_QUANT_DISJ_NORMAL );
-    }
   }
   if( options::cbqiNestedQE() ){
     options::prenexQuantUser.set( true );
