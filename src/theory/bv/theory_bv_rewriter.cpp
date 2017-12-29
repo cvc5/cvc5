@@ -340,7 +340,8 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
   Node resultNode = node; 
   resultNode = LinearRewriteStrategy
     < RewriteRule<FlattenAssocCommut>, // flattens and sorts
-      RewriteRule<MultSimplify>       // multiplies constant part and checks for 0
+      RewriteRule<MultSimplify>,       // multiplies constant part and checks for 0
+      RewriteRule<MultPow2>            // replaces multiplication by a power of 2 by a shift
     >::apply(resultNode);
 
   // only apply if every subterm was already rewritten 
@@ -349,12 +350,6 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
       <   RewriteRule<MultDistribConst>
         , RewriteRule<MultDistrib>
         >::apply(resultNode);
-    if(resultNode == node) {
-      resultNode = LinearRewriteStrategy
-        < 
-          RewriteRule<MultPow2>       // replaces multiplication by a power of 2 by a shift
-        >::apply(resultNode);
-    }
   }
 
   if(resultNode == node) {
