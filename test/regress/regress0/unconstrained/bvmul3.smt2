@@ -1,4 +1,3 @@
-broken
 (set-logic QF_AUFBVLIA)
 (set-info :smt-lib-version 2.0)
 (set-info :category "crafted")
