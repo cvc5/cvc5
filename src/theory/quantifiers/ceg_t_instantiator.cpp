@@ -1093,18 +1093,26 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
       if (!pol) {
         ret = atom[0].eqNode(atom[1]);
       } else {
+        NodeManager* nm = NodeManager::currentNM();
         unsigned one = 1;
-        BitVector bval(atom[0].getType().getConst<BitVectorSize>(), one);
-        Node bv_one;
-        //if( k==BITVECTOR_SLT ){
+        unsigned size = atom[0].getType().getConst<BitVectorSize>();
+        BitVector bval(size, one);
+        Node bv_one = NodeManager::currentNM()->mkConst<BitVector>(bval);
+        if( k==BITVECTOR_SLT ){
           // may be minus one?
-          
-        //}else{
-          bv_one = NodeManager::currentNM()->mkConst<BitVector>(bval);
-        //}
-        ret = NodeManager::currentNM()
-                  ->mkNode(kind::BITVECTOR_PLUS, atom[0], bv_one)
-                  .eqNode(atom[1]);
+          Node tm0 = ci->getModelValue(atom[0]);
+          Node tm1 = ci->getModelValue(atom[1]);
+          Node maxValue = bv::utils::mkConst(BitVector(size,Integer(1).multiplyByPow2(size-1)-Integer(1)));
+          Trace("cegqi-bv") << "Model value for " << atom << " is " << tm0 << " == " << tm1 << std::endl;
+          Trace("cegqi-bv") << "Max value is " << maxValue << std::endl;
+          if(tm0==maxValue){
+            // FIXME
+            //ret = atom[0].eqNode(maxValue);
+          }
+        }
+        if( ret.isNull() ){
+          ret = nm->mkNode(kind::BITVECTOR_PLUS, atom[0], bv_one).eqNode(atom[1]);
+        }
       }
     }
     
