@@ -428,8 +428,10 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
               if( lits.find(lit)==lits.end() ){
                 lits.insert(lit);
                 Node plit;
-                if( options::cbqiRepeatLit() || !isSolvedAssertion(plit) ){
-                  plit = vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
+                if (options::cbqiRepeatLit() || !isSolvedAssertion(plit))
+                {
+                  plit =
+                      vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
                 }
                 if (!plit.isNull()) {
                   Trace("cbqi-inst-debug2") << "  look at " << lit;
@@ -442,8 +444,10 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
                   if( !slit.isNull() ){
                     // check if contains pv
                     if( hasVariable( slit, pv ) ){
-                      Trace("cbqi-inst-debug") << "...try based on literal " << slit << "," << std::endl;
-                      Trace("cbqi-inst-debug") << "...from " << lit << std::endl;
+                      Trace("cbqi-inst-debug") << "...try based on literal "
+                                               << slit << "," << std::endl;
+                      Trace("cbqi-inst-debug") << "...from " << lit
+                                               << std::endl;
                       if (vinst->processAssertion(
                               this, sf, pv, slit, lit, d_effort))
                       {
@@ -1148,18 +1152,21 @@ Node CegInstantiator::getBoundVariable(TypeNode tn)
 
 bool CegInstantiator::isSolvedAssertion(Node n) const
 {
-  return d_solved_asserts.find(n)!=d_solved_asserts.end();
+  return d_solved_asserts.find(n) != d_solved_asserts.end();
 }
 
 void CegInstantiator::markSolved(Node n, bool solved)
 {
-  if( solved ){
+  if (solved)
+  {
     d_solved_asserts.insert(n);
-  }else if( isSolvedAssertion(n) ){
+  }
+  else if (isSolvedAssertion(n))
+  {
     d_solved_asserts.erase(n);
   }
 }
-  
+
 void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) {
   if( n.getKind()==FORALL ){
     d_is_nested_quant = true;
