@@ -1222,17 +1222,20 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
         unsigned inst_id = iti->second[j];
         Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
         Node inst_term = d_inst_id_to_term[inst_id];
+        Node alit = d_inst_id_to_alit[inst_id];
         // try instantiation pv -> inst_term
         TermProperties pv_prop_bv;
         Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term
                           << std::endl;
         d_var_to_curr_inst_id[pv] = inst_id;
         d_tried_assertion_inst = true;
+        ci->markSolved(alit);
         if (ci->constructInstantiationInc(
                 pv, inst_term, pv_prop_bv, sf, revertOnSuccess))
         {
           ret = true;
         }
+        ci->markSolved(alit, false);
       }
       if (ret)
       {

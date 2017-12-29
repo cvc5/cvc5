@@ -269,6 +269,10 @@ class CegInstantiator {
    * constructing instantiations that involve choice expressions.
    */
   Node getBoundVariable(TypeNode tn);
+  /** has this assertion been marked as solved? */
+  bool isSolvedAssertion(Node n) const;
+  /** marked solved */
+  void markSolved(Node n, bool solved=true);
   //------------------------------end interface for instantiators
 
   /**
@@ -328,6 +332,8 @@ class CegInstantiator {
   std::map<Node, std::vector<Node> > d_curr_eqc;
   /** map from types to representatives of that type */
   std::map<TypeNode, std::vector<Node> > d_curr_type_eqc;
+  /** solved asserts */
+  std::unordered_set<Node, NodeHashFunction > d_solved_asserts;
   /** process assertions
    * This is called once at the beginning of check to
    * set up all necessary information for constructing instantiations,
