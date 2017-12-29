@@ -755,22 +755,89 @@ template<> inline
 bool RewriteRule<MultPow2>::applies(TNode node) {
   if (node.getKind() != kind::BITVECTOR_MULT)
     return false;
-
+#if 1
+  for(unsigned i = 0; i < node.getNumChildren(); ++i) {
+    if( node[i].isConst() ){
+      return true;
+    }
+  }
+#else
   for(unsigned i = 0; i < node.getNumChildren(); ++i) {
     bool cIsNeg = false;
     if (utils::isPow2Const(node[i],cIsNeg)) {
       return true; 
     }
   }
+#endif
   return false; 
 }
 
 template<> inline
 Node RewriteRule<MultPow2>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<MultPow2>(" << node << ")" << std::endl;
+#if 1
+  unsigned size = utils::getSize(node);
+  BitVector constant(size, Integer(1));
+  std::vector<Node> children; 
+  for(const TNode& current : node) {
+    if (current.isConst()) {
+      BitVector value = current.getConst<BitVector>();
+      constant = constant * value;
+    } else {
+      children.push_back(current); 
+    }
+  }
+  
+  Node a = utils::mkNode(kind::BITVECTOR_MULT, children); 
+  Node neg_a = utils::mkNode(kind::BITVECTOR_NEG,a);
+  
+  std::vector< unsigned > boundaries;
+  std::vector< Node > sum;
+  bool bitSign = false;
+  for( unsigned i=0; i<size; i++ ){
+    unsigned bindex = (size-i)-1;
+    Integer bit = constant.extract(bindex, bindex).getValue();
+    if( (bit == 1u)!=bitSign ){      
+      boundaries.push_back(bindex+1);
+      bitSign = !bitSign;
+      // optimization : singleton
+      if( bitSign && bindex>0 ){
+        Integer bitnext = constant.extract(bindex-1, bindex-1).getValue();
+        if( bitnext != 1u ){
+          boundaries.pop_back();
+          bitSign = !bitSign;
+          Node extract = utils::mkExtract(a, (size - bindex) - 1, 0);
+          Node zeros = utils::mkConst(bindex, 0);
+          sum.push_back( utils::mkConcat(extract, zeros) );
+        }
+      }
+    }
+  }
+  if( bitSign ){
+    boundaries.push_back(0);
+  }
+  Assert( boundaries.size()%2==0 );
+  for( unsigned i=0, bsize = boundaries.size(); i<bsize; i++ ){
+    unsigned exp = boundaries[i];
+    if( exp<size ){
+      Node retf = i%2==0 ? a : neg_a;
+      if( exp>0 ){
+        Node extract = utils::mkExtract(retf, (size - exp) - 1, 0);
+        Node zeros = utils::mkConst(exp, 0);
+        retf = utils::mkConcat(extract, zeros);
+      }
+      sum.push_back( retf );
+    }
+  }
+  Assert( !sum.empty() );
+  
+  Node ret = utils::mkNode(kind::BITVECTOR_PLUS, sum); 
+  
+  Trace("ajr-temp") << "Rewrite " << node << " to " << ret << std::endl;
+  return ret;
+#else
 
   unsigned size = utils::getSize(node);
-  // TODO : generalize
   std::vector<Node>  children;
   unsigned exponent = 0; 
   bool isNeg = false;
@@ -797,6 +864,7 @@ Node RewriteRule<MultPow2>::apply(TNode node) {
   Node extract = utils::mkExtract(a, size - exponent - 1, 0);
   Node zeros = utils::mkConst(exponent, 0);
   return utils::mkConcat(extract, zeros); 
+#endif
 }
 
 /**
