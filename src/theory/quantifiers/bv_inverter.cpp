@@ -363,7 +363,7 @@ static Node getScBvUrem(bool pol,
                         Node t)
 {
   Assert(k == BITVECTOR_UREM_TOTAL);
-  Assert(pol == false || idx == 1);
+  Assert(litk != EQUAL || pol == false || idx == 1);
 
 
   NodeManager* nm = NodeManager::currentNM();
