@@ -103,9 +103,9 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
               || ksc == IMPLIES);
     Node scl = ksc == IMPLIES ? sc[0] : bv::utils::mkTrue();
     Node body = idx == 0
-      ? d_nm->mkNode(pol ? EQUAL : DISTINCT, d_nm->mkNode(k, d_x, d_s), d_t)
-      : d_nm->mkNode(pol ? EQUAL : DISTINCT, d_nm->mkNode(k, d_s, d_x), d_t);
-    Node scr = d_nm->mkNode(EXISTS, d_bvarlist, body);
+      ? d_nm->mkNode(litk, d_nm->mkNode(k, d_x, d_s), d_t)
+      : d_nm->mkNode(litk, d_nm->mkNode(k, d_s, d_x), d_t);
+    Node scr = d_nm->mkNode(EXISTS, d_bvarlist, pol ? body : body.notNode());
     Expr a = d_nm->mkNode(DISTINCT, scl, scr).toExpr();
     Result res = d_smt->checkSat(a);
     if (res.d_sat == Result::SAT)
