@@ -619,20 +619,16 @@ static Node getScBvAndOr(bool pol,
         /* x & s < t
          * with side condition (synthesized):
          * (bvslt (bvand (bvnot (bvneg t)) s) t) */
-        Node not_neg_t =
-            nm->mkNode(BITVECTOR_NOT, nm->mkNode(BITVECTOR_NEG, t));
-        scl = nm->mkNode(
-            BITVECTOR_SLT, nm->mkNode(BITVECTOR_AND, not_neg_t, s), t);
+        Node nnt = nm->mkNode(BITVECTOR_NOT, nm->mkNode(BITVECTOR_NEG, t));
+        scl = nm->mkNode(BITVECTOR_SLT, nm->mkNode(BITVECTOR_AND, nnt, s), t);
       }
       else
       {
         /* x | s < t
          * with side condition (synthesized):
          * (bvslt (bvor (bvnot (bvsub s t)) s) t) */
-        Node not_s_sub_t =
-            nm->mkNode(BITVECTOR_NOT, nm->mkNode(BITVECTOR_SUB, s, t));
-        scl = nm->mkNode(
-            BITVECTOR_SLT, nm->mkNode(BITVECTOR_OR, not_s_sub_t, s), t);
+        Node st = nm->mkNode(BITVECTOR_NOT, nm->mkNode(BITVECTOR_SUB, s, t));
+        scl = nm->mkNode(BITVECTOR_SLT, nm->mkNode(BITVECTOR_OR, st, s), t);
       }
     }
     else
