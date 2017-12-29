@@ -363,11 +363,10 @@ static Node getScBvUrem(bool pol,
                         Node t)
 {
   Assert(k == BITVECTOR_UREM_TOTAL);
-  Assert(litk != EQUAL || pol == false || idx == 1);
-
+  Assert (litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT);
 
   NodeManager* nm = NodeManager::currentNM();
-  Node scl, scr;
+  Node scl;
   unsigned w = bv::utils::getSize(s);
   Assert (w == bv::utils::getSize(t));
   Node z = bv::utils::mkZero(w);
@@ -376,37 +375,46 @@ static Node getScBvUrem(bool pol,
   {
     if (idx == 0)
     {
-      Assert (pol == false);
-      /* x % s != t
-       * with side condition:
-       * s != 1 || t != 0  */
-      scl = nm->mkNode(OR,
-          s.eqNode(bv::utils::mkOne(w)).notNode(),
-          t.eqNode(z).notNode());
-      scr = nm->mkNode(DISTINCT, nm->mkNode(k, x, s), t);
+      if (pol)
+      {
+        /* x % s = t
+         * with side condition (synthesized):
+         * (not (bvult (bvnot (bvneg s)) t)) 
+         * <->
+         * ~(-s) >= t*/
+        Node neg = nm->mkNode(BITVECTOR_NEG, s);
+        scl = nm->mkNode(BITVECTOR_UGE, nm->mkNode(BITVECTOR_NOT, neg), t);
+      }
+      else
+      {
+        /* x % s != t
+         * with side condition:
+         * s != 1 || t != 0  */
+        scl = nm->mkNode(OR,
+            s.eqNode(bv::utils::mkOne(w)).notNode(),
+            t.eqNode(z).notNode());
+      }
     }
     else
     {
       if (pol)
       {
         /* s % x = t
-         * with side condition:
+         * with side condition (synthesized):
+         * (bvuge (bvand (bvsub (bvadd t t) s) s) t)
+         * <->
+         * (t + t - s) & s >= t
+         *
+         * is equivalent to:
          * s = t
          * ||
          * ( s > t
          *   && s-t > t
          *   && (t = 0 || t != s-1) )  */
-
-        Node a1 = nm->mkNode(BITVECTOR_UGT, s, t);
-        Node a2 = nm->mkNode(BITVECTOR_UGT, nm->mkNode(BITVECTOR_SUB, s, t), t);
-        Node a3 = nm->mkNode(OR,
-            t.eqNode(z),
-            t.eqNode(bv::utils::mkDec(s)).notNode());
-
-        scl = nm->mkNode(OR,
-              t.eqNode(s),
-              nm->mkNode(AND, a1, nm->mkNode(AND, a2, a3)));
-        scr = nm->mkNode(EQUAL, nm->mkNode(k, s, x), t);
+        Node add = nm->mkNode(BITVECTOR_PLUS, t, t);
+        Node sub = nm->mkNode(BITVECTOR_SUB, add, s);
+        Node a = nm->mkNode(BITVECTOR_AND, sub, s);
+        scl = nm->mkNode(BITVECTOR_UGE, a, t);
       }
       else
       {
@@ -414,16 +422,121 @@ static Node getScBvUrem(bool pol,
          * with side condition:
          * s != 0 || t != 0  */
         scl = nm->mkNode(OR, s.eqNode(z).notNode(), t.eqNode(z).notNode());
-        scr = nm->mkNode(DISTINCT, nm->mkNode(k, s, x), t);
       }
     }
   }
-  else
+  else if (litk == BITVECTOR_ULT)
   {
-    return Node::null();
+    if (idx == 0)
+    {
+      if (pol)
+      {
+        /* x % s < t
+         * with side condition:
+         * t != 0 */
+        scl = t.eqNode(z).notNode();
+      }
+      else
+      {
+        /* x % s >= t
+         * with side condition (synthesized):
+         * (not (bvult (bvnot (bvneg s)) t))
+         * <->
+         * ~(-s) >= t */
+        Node neg = nm->mkNode(BITVECTOR_NEG, s);
+        scl = nm->mkNode(BITVECTOR_UGE, nm->mkNode(BITVECTOR_NOT, neg), t);
+      }
+    }
+    else
+    {
+      if (pol)
+      {
+        /* s % x < t
+         * with side condition:
+         * t != 0 */
+        scl = t.eqNode(z).notNode();
+      }
+      else
+      {
+        /* s % x < t
+         * with side condition (combination of = and >):
+         *
+         * (t + t - s) & s >= t  (eq, synthesized)
+         * ||
+         * (bvult t s)           (ugt, synthesized)
+         */
+        Node add = nm->mkNode(BITVECTOR_PLUS, t, t);
+        Node sub = nm->mkNode(BITVECTOR_SUB, add, s);
+        Node a = nm->mkNode(BITVECTOR_AND, sub, s);
+        Node sceq = nm->mkNode(BITVECTOR_UGE, a, t);
+        Node scugt = nm->mkNode(BITVECTOR_ULT, t, s);
+        scl = nm->mkNode(OR, sceq, scugt);
+      }
+    }
+  }
+  else  /* litk == BITVECTOR_SLT  */
+  {
+    if (idx == 0)
+    {
+      if (pol)
+      {
+        /* x % s < t
+         * with side condition (synthesized):
+         * (bvslt (bvnot t) (bvor (bvneg s) (bvneg t)))  */
+        Node o1 = nm->mkNode(BITVECTOR_NEG, s);
+        Node o2 = nm->mkNode(BITVECTOR_NEG, t);
+        Node o = nm->mkNode(BITVECTOR_OR, o1, o2);
+        scl = nm->mkNode(BITVECTOR_SLT, nm->mkNode(BITVECTOR_NOT, t), o);
+      }
+      else
+      {
+        /* x % s >= t
+         * with side condition (synthesized):
+         * (not (and (not (bvslt t s)) (bvslt #x0 s)))  */
+        Node slt1 = nm->mkNode(BITVECTOR_SLT, t, s).notNode();
+        Node slt2 = nm->mkNode(BITVECTOR_SLT, z, s);
+        scl = nm->mkNode(AND, slt1, slt2).notNode();
+      }
+    }
+    else
+    {
+      if (pol)
+      {
+        /* s % x < t
+         * with side condition (synthesized):
+         * (or (bvslt s t) (bvslt #x0 t))  */
+        Node slt1 = nm->mkNode(BITVECTOR_SLT, s, t);
+        Node slt2 = nm->mkNode(BITVECTOR_SLT, z, t);
+        scl = nm->mkNode(OR, slt1, slt2);
+      }
+      else
+      {
+        /* s % x < t
+         * with side condition:
+         *
+         * s = 0  => t <=s 0
+         * &&
+         * s <s 0 => s >=s t
+         * &&
+         * (s <s 0 && t >=s 0) => (s-t) > t  */
+        Node i1 = nm->mkNode(IMPLIES,
+            s.eqNode(z), nm->mkNode(BITVECTOR_SLE, t, z));
+        Node i2 = nm->mkNode(IMPLIES,
+            nm->mkNode(BITVECTOR_SLT, s, z), nm->mkNode(BITVECTOR_SGE, s, t));
+        Node i3 = nm->mkNode(IMPLIES,
+            nm->mkNode(AND,
+              nm->mkNode(BITVECTOR_SLT, s, z), nm->mkNode(BITVECTOR_SGE, t, z)),
+            nm->mkNode(BITVECTOR_UGT, nm->mkNode(BITVECTOR_SUB, s, t), t));
+        scl = nm->mkNode(AND, i1, i2, i3);
+        return Node::null();
+      }
+    }
   }
 
-  Node sc = nm->mkNode(IMPLIES, scl, scr);
+  Node scr = idx == 0
+    ? nm->mkNode(litk, nm->mkNode(k, x, s), t)
+    : nm->mkNode(litk, nm->mkNode(k, s, x), t);
+  Node sc = nm->mkNode(IMPLIES, scl, pol ? scr : scr.notNode());
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc << std::endl;
   return sc;
 }
@@ -1056,13 +1169,6 @@ Node BvInverter::solveBvLit(Node sv,
             break;
 
           case BITVECTOR_UREM_TOTAL:
-            if (index == 0)
-            {
-              /* x % s = t is rewritten to x - x / y * y */
-              Trace("bv-invert") << "bv-invert : Unsupported for index "
-                                 << index << ", from " << sv_t << std::endl;
-              return Node::null();
-            }
             sc = getScBvUrem(
                 pol, litk, k, index, getSolveVariable(solve_tn), s, t);
             break;
