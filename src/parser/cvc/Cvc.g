@@ -81,7 +81,8 @@ tokens {
   ARITH_VAR_ORDER_TOK = 'ARITH_VAR_ORDER';
   CONTINUE_TOK = 'CONTINUE';
   RESTART_TOK = 'RESTART';
-  RECURSIVE_TOK = 'REC';
+  RECURSIVE_FUNCTION_TOK = 'FUN';
+  RECURSIVE_FUNCTIONS_TOK = 'FUNS';
   /* operators */
 
   AND_TOK = 'AND';
@@ -887,12 +888,6 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     { UNSUPPORTED("CONTINUE command"); }
   | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
   | toplevelDeclaration[cmd]
-  | RECURSIVE_TOK identifier[id1, check, s1] 
-  { /*PARSER_STATE->checkUserSymbol(id1);*/ }
-  COLON type[t1, check] ARROW_TOK type[t1, check] EQUAL_TOK formula[f1]
-  {
-    std::cout<<"Let's see if this works.";
-  }
   ;
 
 simpleSymbolicExpr[CVC4::SExpr& sexpr]
