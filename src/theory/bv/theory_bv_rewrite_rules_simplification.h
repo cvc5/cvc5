@@ -768,8 +768,10 @@ template<> inline
 Node RewriteRule<MultPow2>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<MultPow2>(" << node << ")" << std::endl;
 
+  // TODO : generalize
   std::vector<Node>  children;
   unsigned exponent = 0; 
+  bool isNeg = false;
   for(unsigned i = 0; i < node.getNumChildren(); ++i) {
     unsigned exp = utils::isPow2Const(node[i]);
     if (exp) {
