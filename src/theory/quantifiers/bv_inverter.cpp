@@ -536,7 +536,7 @@ static Node getScBvAndOr(bool pol,
   Assert (litk == EQUAL || litk == BITVECTOR_SLT || litk == BITVECTOR_ULT);
 
   NodeManager* nm = NodeManager::currentNM();
-  Node scl, scr;
+  Node scl;
 
   if (litk == EQUAL)
   {
@@ -610,7 +610,7 @@ static Node getScBvAndOr(bool pol,
       }
     }
   }
-  else if (litk == BITVECTOR_SLT)
+  else /* litk == BITVECTOR_SLT */
   {
     if (pol)
     {
@@ -657,12 +657,7 @@ static Node getScBvAndOr(bool pol,
       }
     }
   }
-  else
-  {
-    return Node::null();
-  }
-
-  scr = nm->mkNode(litk, nm->mkNode(k, x, s), t);
+  Node scr = nm->mkNode(litk, nm->mkNode(k, x, s), t);
   Node sc = nm->mkNode(IMPLIES, scl, pol ? scr : scr.notNode());
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc << std::endl;
   return sc;
@@ -944,7 +939,7 @@ static Node getScBvAshr(bool pol,
       }
     }
   }
-  else if (litk == BITVECTOR_SLT)
+  else /* litk == BITVECTOR_SLT */
   {
     if (idx == 0)
     {
@@ -993,10 +988,6 @@ static Node getScBvAshr(bool pol,
         scl = tt.andNode(st).notNode();
       }
     }
-  }
-  else
-  {
-    return Node::null();
   }
   Node scr =
       nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
