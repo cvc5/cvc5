@@ -834,7 +834,7 @@ static Node getScBvLshr(bool pol,
       {
         /* s >> x < t
          * with side condition (synthesized):
-         * (or (bvslt s t) (bvslt #x0 t)) */
+         * (or (bvslt s t) (bvslt z t)) */
         Node st = nm->mkNode(BITVECTOR_SLT, s, t);
         Node zt = nm->mkNode(BITVECTOR_SLT, z, t);
         scl = st.orNode(zt);
