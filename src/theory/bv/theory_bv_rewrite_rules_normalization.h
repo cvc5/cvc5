@@ -391,15 +391,18 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
   BitVector constant(size, Integer(1));
 
   bool isNeg = false;
-  std::vector<Node> children; 
-  for(const TNode& current : node) {
+  std::vector<Node> children;
+  for (const TNode& current : node)
+  {
     if (current.getKind() == kind::CONST_BITVECTOR) {
       BitVector value = current.getConst<BitVector>();
       constant = constant * value;
       if(constant == BitVector(size, (unsigned) 0)) {
         return utils::mkConst(size, 0); 
       }
-    } else if( current.getKind() == kind::BITVECTOR_NEG ){
+    }
+    else if (current.getKind() == kind::BITVECTOR_NEG)
+    {
       isNeg = !isNeg;
       children.push_back(current[0]);
     } else {
@@ -409,34 +412,41 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
   BitVector oValue = BitVector(size, static_cast<unsigned>(1));
   Node negOne = utils::mkConst(-oValue);
   BitVector noValue = negOne.getConst<BitVector>();
-  
-  if( children.empty() ){
-    if( isNeg ){
+
+  if (children.empty())
+  {
+    if (isNeg)
+    {
       constant = constant * noValue;
     }
-    return utils::mkConst(constant); 
+    return utils::mkConst(constant);
   }
-  
+
   std::sort(children.begin(), children.end());
-  
-  if(constant==noValue){
+
+  if (constant == noValue)
+  {
     isNeg = !isNeg;
-  }else if(constant != oValue) {
-    if( isNeg )
+  }
+  else if (constant != oValue)
+  {
+    if (isNeg)
     {
       isNeg = !isNeg;
       constant = constant * noValue;
     }
     children.push_back(utils::mkConst(constant)); 
   }
-  
-  Node ret = utils::mkNode(kind::BITVECTOR_MULT, children); 
-  
+
+  Node ret = utils::mkNode(kind::BITVECTOR_MULT, children);
+
   // if negative, negate entire node
-  if( isNeg && size>1 ){
-    ret = utils::mkNode( kind::BITVECTOR_NEG, ret );
+  if (isNeg && size > 1)
+  {
+    ret = utils::mkNode(kind::BITVECTOR_NEG, ret);
   }
-  if( node!=ret ){
+  if (node != ret)
+  {
     Trace("ajr-temp") << "Rewrite " << node << " to " << ret << std::endl;
   }
   return ret;
