@@ -23,10 +23,10 @@ namespace theory {
 namespace quantifiers {
 
 CbqiGlobalNegate::CbqiGlobalNegate() {}
-bool CbqiGlobalNegate::simplify(std::vector<Node>& assertions,
-                                std::vector<Node>& new_assertions)
+void CbqiGlobalNegate::simplify(std::vector<Node>& assertions)
 {
   NodeManager* nm = NodeManager::currentNM();
+  Assert( !assertions.empty() );
 
   Trace("cbqi-gn") << "Global negate : " << std::endl;
   // collect free variables in all assertions
@@ -98,8 +98,6 @@ bool CbqiGlobalNegate::simplify(std::vector<Node>& assertions,
   body = Rewriter::rewrite(body);
   Trace("cbqi-gn") << "...got (post-rewrite) : " << body << std::endl;
 
-  // new_assertions.push_back( body );
-
   Node truen = nm->mkConst(true);
   for (unsigned i = 0, size = assertions.size(); i < size; i++)
   {
@@ -112,8 +110,6 @@ bool CbqiGlobalNegate::simplify(std::vector<Node>& assertions,
       assertions[i] = truen;
     }
   }
-
-  return true;
 }
 
 } /* CVC4::theory::quantifiers namespace */

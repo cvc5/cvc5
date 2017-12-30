@@ -1009,6 +1009,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_queryMade(false),
   d_needPostsolve(false),
   d_earlyTheoryPP(true),
+  d_globalNegation(false),
   d_status(),
   d_replayStream(NULL),
   d_private(NULL),
@@ -2093,6 +2094,11 @@ void SmtEngine::setDefaults() {
   if(options::incrementalSolving() && options::proof()) {
     Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof, try --tear-down-incremental instead)" << endl;
     setOption("incremental", SExpr("false"));
+  }
+  
+  // can't global negate if incremental
+  if(options::incrementalSolving()){
+    options::cbqiGlobalNeg.set(false);
   }
 }
 
@@ -4125,7 +4131,7 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt") << "SmtEnginePrivate::processAssertions()" << endl;
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-
+  
   if (d_assertions.size() == 0) {
     // nothing to do
     return;
@@ -4178,7 +4184,16 @@ void SmtEnginePrivate::processAssertions() {
      );
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-
+  
+  // global negation of the formula
+  if (options::cbqiGlobalNeg())
+  {
+    quantifiers::CbqiGlobalNegate cgn;
+    std::vector<Node> new_assertions;
+    cgn.simplify(d_assertions.ref());
+    d_smt.d_globalNegation = !d_smt.d_globalNegation;
+  }
+  
   if( options::nlExtPurify() ){
     unordered_map<Node, Node, NodeHashFunction> cache;
     unordered_map<Node, Node, NodeHashFunction> bcache;
@@ -4308,24 +4323,9 @@ void SmtEnginePrivate::processAssertions() {
       }
     }
   }
-
+    
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
-
-    // if cbqi is enabled, and the logic is satisfaction complete,
-    // try a global negation of the formula
-    if (options::cbqiGlobalNeg())
-    {
-      quantifiers::CbqiGlobalNegate cgn;
-      std::vector<Node> new_assertions;
-      if (cgn.simplify(d_assertions.ref(), new_assertions))
-      {
-        for (unsigned i = 0; i < new_assertions.size(); i++)
-        {
-          addFormula(new_assertions[i], false);
-        }
-      }
-    }
 
     dumpAssertions("pre-skolem-quant", d_assertions);
     //remove rewrite rules, apply pre-skolemization to existential quantifiers
@@ -4683,6 +4683,9 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
 
     // Note that a query has been made
     d_queryMade = true;
+    
+    // reset global negation
+    d_globalNegation = false;
 
     // Add the formula
     if(!e.isNull()) {
@@ -4701,7 +4704,7 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
       r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
     }
     // flipped if we did a global negation
-    if (options::cbqiGlobalNeg())
+    if (d_globalNegation)
     {
       Trace("smt") << "SmtEngine::process global negate " << r << std::endl;
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)

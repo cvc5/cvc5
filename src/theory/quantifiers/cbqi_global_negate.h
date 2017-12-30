@@ -33,8 +33,7 @@ class CbqiGlobalNegate
  public:
   CbqiGlobalNegate();
   ~CbqiGlobalNegate() {}
-  bool simplify(std::vector<Node>& assertions,
-                std::vector<Node>& new_assertions);
+  void simplify(std::vector<Node>& assertions);
 };
 
 } /* CVC4::theory::quantifiers namespace */

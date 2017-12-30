@@ -311,7 +311,7 @@ option cbqiAll --cbqi-all bool :read-write :default false
  apply counterexample-based instantiation to all quantified formulas
 option cbqiMultiInst --cbqi-multi-inst bool :read-write :default false
  when applicable, do multi instantiations per quantifier per round in counterexample-based quantifier instantiation
-option cbqiGlobalNeg --cbqi-global-negate bool :default false
+option cbqiGlobalNeg --cbqi-global-negate bool :read-write :default false
  do global negation for counterexample-based quantifier instantiation 
 option cbqiRepeatLit --cbqi-repeat-lit bool :read-write :default false
  solve literals more than once in counterexample-based quantifier instantiation
