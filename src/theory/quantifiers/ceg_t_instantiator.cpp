@@ -1219,20 +1219,23 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
       bool ret = false;
       bool revertOnSuccess = inst_ids_try.size() > 1;
       for (unsigned j = 0; j < inst_ids_try.size(); j++) {
-        unsigned inst_id = iti->second[j];
+        unsigned inst_id = inst_ids_try[j];
         Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
         Node inst_term = d_inst_id_to_term[inst_id];
+        Node alit = d_inst_id_to_alit[inst_id];
         // try instantiation pv -> inst_term
         TermProperties pv_prop_bv;
         Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term
                           << std::endl;
         d_var_to_curr_inst_id[pv] = inst_id;
         d_tried_assertion_inst = true;
+        ci->markSolved(alit);
         if (ci->constructInstantiationInc(
                 pv, inst_term, pv_prop_bv, sf, revertOnSuccess))
         {
           ret = true;
         }
+        ci->markSolved(alit, false);
       }
       if (ret)
       {
@@ -1758,21 +1761,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
 
   // [1] rewrite cases of non-invertible operators
 
-  // if n is urem( x, y ) where x contains pv but y does not, then
-  // rewrite urem( x, y ) ---> x - udiv( x, y )*y
-  if (n.getKind() == BITVECTOR_UREM_TOTAL)
-  {
-    if (contains_pv[n[0]] && !contains_pv[n[1]])
-    {
-      return nm->mkNode(
-          BITVECTOR_SUB,
-          children[0],
-          nm->mkNode(BITVECTOR_MULT,
-                     nm->mkNode(BITVECTOR_UDIV_TOTAL, children[0], children[1]),
-                     children[1]));
-    }
-  }
-  else if (n.getKind() == EQUAL)
+  if (n.getKind() == EQUAL)
   {
     TNode lhs = children[0];
     TNode rhs = children[1];

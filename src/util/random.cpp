@@ -31,8 +31,7 @@ uint64_t Random::rand()
   d_state ^= d_state >> 12;
   d_state ^= d_state << 25;
   d_state ^= d_state >> 27;
-  d_state *= uint64_t{2685821657736338717};
-  return d_state;
+  return d_state * uint64_t{2685821657736338717};
 }
 
 uint64_t Random::pick(uint64_t from, uint64_t to)
