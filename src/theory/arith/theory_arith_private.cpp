@@ -4880,11 +4880,16 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
   case kind::DIVISION: {
     TNode num = node[0], den = node[1];
     Node ret = nm->mkNode(kind::DIVISION_TOTAL, num, den);
-    if( !den.isConst() || den.getConst<Rational>().sgn()==0 ){
+    if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
+    {
       // partial function: division
-      if(d_divByZero.isNull()) {
-        d_divByZero = nm->mkSkolem("divByZero", nm->mkFunctionType(nm->realType(), nm->realType()),
-                                  "partial real division", NodeManager::SKOLEM_EXACT_NAME);
+      if (d_divByZero.isNull())
+      {
+        d_divByZero =
+            nm->mkSkolem("divByZero",
+                         nm->mkFunctionType(nm->realType(), nm->realType()),
+                         "partial real division",
+                         NodeManager::SKOLEM_EXACT_NAME);
         logicRequest.widenLogic(THEORY_UF);
       }
       Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
@@ -4899,10 +4904,15 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
     // partial function: integer div
     TNode num = node[0], den = node[1];
     Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
-    if( !den.isConst() || den.getConst<Rational>().sgn()==0 ){
-      if(d_intDivByZero.isNull()) {
-        d_intDivByZero = nm->mkSkolem("intDivByZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
-                                      "partial integer division", NodeManager::SKOLEM_EXACT_NAME);
+    if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
+    {
+      if (d_intDivByZero.isNull())
+      {
+        d_intDivByZero = nm->mkSkolem(
+            "intDivByZero",
+            nm->mkFunctionType(nm->integerType(), nm->integerType()),
+            "partial integer division",
+            NodeManager::SKOLEM_EXACT_NAME);
         logicRequest.widenLogic(THEORY_UF);
       }
       Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
@@ -4917,10 +4927,15 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
     // partial function: mod
     TNode num = node[0], den = node[1];
     Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
-    if( !den.isConst() || den.getConst<Rational>().sgn()==0 ){
-      if(d_modZero.isNull()) {
-        d_modZero = nm->mkSkolem("modZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
-                                "partial modulus", NodeManager::SKOLEM_EXACT_NAME);
+    if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
+    {
+      if (d_modZero.isNull())
+      {
+        d_modZero = nm->mkSkolem(
+            "modZero",
+            nm->mkFunctionType(nm->integerType(), nm->integerType()),
+            "partial modulus",
+            NodeManager::SKOLEM_EXACT_NAME);
         logicRequest.widenLogic(THEORY_UF);
       }
       Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));

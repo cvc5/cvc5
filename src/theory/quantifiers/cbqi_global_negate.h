@@ -26,18 +26,16 @@ namespace theory {
 namespace quantifiers {
 
 /** CbqiGlobalNegate
- * 
+ *
  */
-class CbqiGlobalNegate 
+class CbqiGlobalNegate
 {
-public:
+ public:
   CbqiGlobalNegate();
-  ~CbqiGlobalNegate(){}
-  
-  bool simplify( std::vector< Node >& assertions, 
-                 std::vector< Node >& new_assertions );
+  ~CbqiGlobalNegate() {}
+  bool simplify(std::vector<Node>& assertions,
+                std::vector<Node>& new_assertions);
 };
-
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */

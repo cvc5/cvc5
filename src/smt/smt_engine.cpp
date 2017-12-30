@@ -1932,7 +1932,8 @@ void SmtEngine::setDefaults() {
     if( !options::rewriteDivk.wasSetByUser()) {
       options::rewriteDivk.set( true );
     }
-    if( d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV) ){
+    if (d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV))
+    {
       options::cbqiAll.set( false );
       if( !options::quantConflictFind.wasSetByUser() ){
         options::quantConflictFind.set( false );
@@ -1949,14 +1950,20 @@ void SmtEngine::setDefaults() {
       options::cbqiNestedQE.set(false);
     }
     // prenexing
-    if( options::cbqiNestedQE() || options::decisionMode()==decision::DECISION_STRATEGY_INTERNAL ){
-      //only complete with prenex = disj_normal or normal
-      if( options::prenexQuant()<=quantifiers::PRENEX_QUANT_DISJ_NORMAL ){
-        options::prenexQuant.set( quantifiers::PRENEX_QUANT_DISJ_NORMAL );
+    if (options::cbqiNestedQE()
+        || options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL)
+    {
+      // only complete with prenex = disj_normal or normal
+      if (options::prenexQuant() <= quantifiers::PRENEX_QUANT_DISJ_NORMAL)
+      {
+        options::prenexQuant.set(quantifiers::PRENEX_QUANT_DISJ_NORMAL);
       }
-    }else if( options::cbqiGlobalNeg() ){
-      if( ! options::prenexQuant.wasSetByUser() ){
-        options::prenexQuant.set( quantifiers::PRENEX_QUANT_NONE );
+    }
+    else if (options::cbqiGlobalNeg())
+    {
+      if (!options::prenexQuant.wasSetByUser())
+      {
+        options::prenexQuant.set(quantifiers::PRENEX_QUANT_NONE);
       }
     }
   }
@@ -4305,20 +4312,21 @@ void SmtEnginePrivate::processAssertions() {
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
 
-    // if cbqi is enabled, and the logic is satisfaction complete, 
+    // if cbqi is enabled, and the logic is satisfaction complete,
     // try a global negation of the formula
-    if( options::cbqiGlobalNeg() )
+    if (options::cbqiGlobalNeg())
     {
       quantifiers::CbqiGlobalNegate cgn;
-      std::vector< Node > new_assertions;
-      if( cgn.simplify( d_assertions.ref(), new_assertions ) )
+      std::vector<Node> new_assertions;
+      if (cgn.simplify(d_assertions.ref(), new_assertions))
       {
-        for( unsigned i=0; i<new_assertions.size(); i++ ){
+        for (unsigned i = 0; i < new_assertions.size(); i++)
+        {
           addFormula(new_assertions[i], false);
         }
       }
     }
-    
+
     dumpAssertions("pre-skolem-quant", d_assertions);
     //remove rewrite rules, apply pre-skolemization to existential quantifiers
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {
@@ -4693,13 +4701,17 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
       r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
     }
     // flipped if we did a global negation
-    if( options::cbqiGlobalNeg() ){
+    if (options::cbqiGlobalNeg())
+    {
       Trace("smt") << "SmtEngine::process global negate " << r << std::endl;
-      if( r.asSatisfiabilityResult().isSat() == Result::UNSAT ){
+      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+      {
         r = Result(Result::SAT);
-      }else if( r.asSatisfiabilityResult().isSat() == Result::SAT ){
+      }
+      else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+      {
         // only if satisfaction complete
-        if(d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV))
+        if (d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV))
         {
           r = Result(Result::UNSAT);
         }
