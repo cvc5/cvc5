@@ -654,7 +654,7 @@ static Node getScBvUdiv(bool pol,
          * (and (bvult z (bvnot (bvand (bvneg t) s))) (bvult z t))
          * where z = 0 with getSize(z) = w  */
         Node a = nm->mkNode(BITVECTOR_AND, nm->mkNode(BITVECTOR_NEG, t), s);
-        Node u1 = nm->mkNode(BITVECTOR_ULT, z, a.notNode());
+        Node u1 = nm->mkNode(BITVECTOR_ULT, z, nm->mkNode(BITVECTOR_NOT, a));
         Node u2 = nm->mkNode(BITVECTOR_ULT, z, t);
         scl = nm->mkNode(AND, u1, u2);
       }
@@ -680,13 +680,27 @@ static Node getScBvUdiv(bool pol,
         BitVector bv_min = BitVector(w).setBit(w - 1);
         Node min = bv::utils::mkConst(bv_min);
         Node sle = nm->mkNode(BITVECTOR_SLE, t, z);
-        Node div = nm->mkNode(BITVECTOR_UDIV, min, s);
+        Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL, min, s);
         Node slt = nm->mkNode(BITVECTOR_SLT, div, t);
         scl = nm->mkNode(IMPLIES, sle, slt);
       }
       else
       {
-        // TODO
+        /* s udiv x >= t
+         * with side condition:
+         * (or
+         *   (bvsge (bvudiv ones s) t)
+         *   (bvsge (bvudiv max s) t))
+         * with ones = ~0 and max the maximum signed value */
+        BitVector bv_ones = utils::mkBitVectorOnes(w - 1);
+        BitVector bv_max = BitVector(1).concat(bv_ones);
+        Node max = bv::utils::mkConst(bv_max);
+        Node ones = bv::utils::mkOnes(w);
+        Node udiv1 = nm->mkNode(BITVECTOR_UDIV_TOTAL, ones, s);
+        Node udiv2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, max, s);
+        Node sge1 = nm->mkNode(BITVECTOR_SGE, udiv1, t);
+        Node sge2 = nm->mkNode(BITVECTOR_SGE, udiv2, t);
+        scl = nm->mkNode(OR, sge1, sge2);
       }
     }
     else
@@ -703,7 +717,19 @@ static Node getScBvUdiv(bool pol,
       }
       else
       {
-        // TODO
+        /* s udiv x >= t
+         * with side condition:
+         * (and
+         *   (=> (bvsge s z) (bvsge s t))
+         *   (=> (bvslt s z) (bvsge (bvudiv s (_ bv2 w)) t)))
+         * where z = 0 with getSize(z) = w  */
+        Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL,
+            s, bv::utils::mkConst(w, 2));
+        Node i1 = nm->mkNode(IMPLIES,
+            nm->mkNode(BITVECTOR_SGE, s, z), nm->mkNode(BITVECTOR_SGE, s, t));
+        Node i2 = nm->mkNode(IMPLIES,
+            nm->mkNode(BITVECTOR_SLT, s, z), nm->mkNode(BITVECTOR_SGE, div, t));
+        scl = nm->mkNode(AND, i1, i2);
       }
     }
   }
