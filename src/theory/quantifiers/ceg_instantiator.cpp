@@ -427,8 +427,12 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
               Node lit = ita->second[j];
               if( lits.find(lit)==lits.end() ){
                 lits.insert(lit);
-                Node plit =
-                    vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
+                Node plit;
+                if (options::cbqiRepeatLit() || !isSolvedAssertion(lit))
+                {
+                  plit =
+                      vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
+                }
                 if (!plit.isNull()) {
                   Trace("cbqi-inst-debug2") << "  look at " << lit;
                   if (plit != lit) {
@@ -438,9 +442,12 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
                   // apply substitutions
                   Node slit = applySubstitutionToLiteral(plit, sf);
                   if( !slit.isNull() ){
-                    Trace("cbqi-inst-debug") << "...try based on literal " << slit << std::endl;
                     // check if contains pv
                     if( hasVariable( slit, pv ) ){
+                      Trace("cbqi-inst-debug") << "...try based on literal "
+                                               << slit << "," << std::endl;
+                      Trace("cbqi-inst-debug") << "...from " << lit
+                                               << std::endl;
                       if (vinst->processAssertion(
                               this, sf, pv, slit, lit, d_effort))
                       {
@@ -860,6 +867,7 @@ bool CegInstantiator::check() {
     SolvedForm sf;
     d_stack_vars.clear();
     d_bound_var_index.clear();
+    d_solved_asserts.clear();
     //try to add an instantiation
     if (constructInstantiation(sf, 0))
     {
@@ -1140,6 +1148,23 @@ Node CegInstantiator::getBoundVariable(TypeNode tn)
     d_bound_var[tn].push_back(x);
   }
   return d_bound_var[tn][index];
+}
+
+bool CegInstantiator::isSolvedAssertion(Node n) const
+{
+  return d_solved_asserts.find(n) != d_solved_asserts.end();
+}
+
+void CegInstantiator::markSolved(Node n, bool solved)
+{
+  if (solved)
+  {
+    d_solved_asserts.insert(n);
+  }
+  else if (isSolvedAssertion(n))
+  {
+    d_solved_asserts.erase(n);
+  }
 }
 
 void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) {
