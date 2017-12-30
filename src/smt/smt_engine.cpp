@@ -1436,6 +1436,14 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off repeat-simp to support unsat-cores" << endl;
       setOption("repeat-simp", false);
     }
+    
+    if(options::globalNegate()) {
+      if(options::globalNegate.wasSetByUser()) {
+        throw OptionException("global-negate not supported with unsat cores");
+      }
+      Notice() << "SmtEngine: turning off global-negate to support unsat-cores" << endl;
+      setOption("global-negate", false);
+    }
   }
 
   if (options::cbqiBv()) {
@@ -1745,6 +1753,7 @@ void SmtEngine::setDefaults() {
     options::sortInference.set( false );
     options::ufssFairnessMonotone.set( false );
     options::quantEpr.set( false );
+    options::globalNegate.set(false);
   }
   if( d_logic.hasCardinalityConstraints() ){
     //must have finite model finding on
@@ -2094,12 +2103,6 @@ void SmtEngine::setDefaults() {
   if(options::incrementalSolving() && options::proof()) {
     Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof, try --tear-down-incremental instead)" << endl;
     setOption("incremental", SExpr("false"));
-  }
-
-  // can't global negate if incremental
-  if (options::incrementalSolving())
-  {
-    options::globalNegate.set(false);
   }
 }
 
