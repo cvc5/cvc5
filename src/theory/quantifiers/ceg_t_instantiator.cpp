@@ -1027,9 +1027,6 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     // positively asserted equalities between bitvector terms we always leave
     // unmodified
     if (atom[0].getType().isBitVector()) {
-      //NodeManager * nm = NodeManager::currentNM();
-      //Node t = nm->mkNode( BITVECTOR_SUB, atom[0], atom[1] );
-      //Node zero = bv::utils::mkZero(bv::utils::getSize(atom[0]));
       return lit;
     }
   }
@@ -1059,7 +1056,6 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     // for all other predicates, we convert them to a positive equality based on
     // the current model M, e.g.:
     //   (not) s ~ t  --->  s = t + ( s^M - t^M )
-    Node ret;
     if (useSlack) {
       Node s = atom[0];
       Node t = atom[1];
@@ -1070,6 +1066,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
         Assert(!sm.isNull() && sm.isConst());
         Node tm = ci->getModelValue(t);
         Assert(!tm.isNull() && tm.isConst());
+        Node ret;
         if (sm != tm) {
           Node slack =
               Rewriter::rewrite(nm->mkNode(kind::BITVECTOR_SUB, sm, tm));
@@ -1078,9 +1075,13 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
           d_alit_to_model_slack[lit] = slack;
           ret = nm->mkNode(kind::EQUAL, s,
                            nm->mkNode(kind::BITVECTOR_PLUS, t, slack));
+          Trace("cegqi-bv") << "Process " << lit << " as " << ret
+                            << ", slack is " << slack << std::endl;
         } else {
           ret = s.eqNode(t);          
+          Trace("cegqi-bv") << "Process " << lit << " as " << ret << std::endl;
         }
+        return ret;
       }
     } else {
       // otherwise, we optimistically solve for the boundary point of an inequality
@@ -1090,34 +1091,19 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
       // notice that this equality does not necessarily hold in the model, and
       // hence the corresponding instantiation strategy is not guaranteed to be
       // monotonic.
+      Node ret;
       if (!pol) {
         ret = atom[0].eqNode(atom[1]);
       } else {
-        NodeManager* nm = NodeManager::currentNM();
         unsigned one = 1;
-        unsigned size = atom[0].getType().getConst<BitVectorSize>();
-        BitVector bval(size, one);
+        BitVector bval(atom[0].getType().getConst<BitVectorSize>(), one);
         Node bv_one = NodeManager::currentNM()->mkConst<BitVector>(bval);
-        if( k==BITVECTOR_SLT ){
-          // may be minus one?
-          Node tm0 = ci->getModelValue(atom[0]);
-          Node tm1 = ci->getModelValue(atom[1]);
-          Node maxValue = bv::utils::mkConst(BitVector(size,Integer(1).multiplyByPow2(size-1)-Integer(1)));
-          Trace("cegqi-bv") << "Model value for " << atom << " is " << tm0 << " == " << tm1 << std::endl;
-          Trace("cegqi-bv") << "Max value is " << maxValue << std::endl;
-          if(tm0==maxValue){
-            // FIXME
-            //ret = atom[0].eqNode(maxValue);
-          }
-        }
-        if( ret.isNull() ){
-          ret = nm->mkNode(kind::BITVECTOR_PLUS, atom[0], bv_one).eqNode(atom[1]);
-        }
+        ret = NodeManager::currentNM()
+                  ->mkNode(kind::BITVECTOR_PLUS, atom[0], bv_one)
+                  .eqNode(atom[1]);
       }
+      return ret;
     }
-    
-    Trace("cegqi-bv") << "Process " << lit << " as " << ret << std::endl;
-    return ret;
   }
   return Node::null();
 }
@@ -1788,22 +1774,6 @@ Node BvInstantiator::rewriteTermForSolvePv(
                      nm->mkNode(BITVECTOR_UDIV_TOTAL, children[0], children[1]),
                      children[1]));
     }
-  }
-  else if( n.getKind() == BITVECTOR_CONCAT )
-  {
-    // undo the mult-by-power of 2 rewrite?
-    if (contains_pv[n[0]] && n[0].getKind()==BITVECTOR_EXTRACT && n[1].isConst())
-    {
-      unsigned sz = bv::utils::getSize(n[1]);
-      Node zero = bv::utils::mkConst(BitVector(sz, Integer(0)));
-      BitVectorExtract e = n[0].getOperator().getConst<BitVectorExtract>();
-      unsigned szf = bv::utils::getSize(n[0][0]);
-      if( n[1]==zero && e.low==0 && e.high+1+sz==szf ){
-        Node vpow2 = bv::utils::mkConst(BitVector(szf, Integer(1).multiplyByPow2(sz)));
-        Node ret = nm->mkNode( BITVECTOR_MULT, n[0][0], vpow2 );
-        return ret;
-      }
-    } 
   }
   else if (n.getKind() == EQUAL)
   {

@@ -272,24 +272,13 @@ inline Node mkConjunction(const std::set<TNode> nodes) {
   return conjunction;
 }
 
-inline unsigned isPow2Const(TNode node, bool& isNeg) {
+inline unsigned isPow2Const(TNode node) {
   if (node.getKind() != kind::CONST_BITVECTOR) {
     return false; 
   }
 
   BitVector bv = node.getConst<BitVector>();
-  unsigned p = bv.isPow2(); 
-  if( p!=0 ){
-    isNeg = false;
-    return p;
-  }
-  BitVector nbv = -bv;
-  p = nbv.isPow2(); 
-  if( p!=0 ){
-    isNeg = true;
-    return p;
-  }
-  return false;
+  return bv.isPow2(); 
 }
 
 inline Node mkOr(const std::vector<Node>& nodes) {
