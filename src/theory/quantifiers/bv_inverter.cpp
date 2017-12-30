@@ -533,9 +533,8 @@ static Node getScBvUrem(bool pol,
     }
   }
 
-  Node scr = idx == 0
-    ? nm->mkNode(litk, nm->mkNode(k, x, s), t)
-    : nm->mkNode(litk, nm->mkNode(k, s, x), t);
+  Node scr =
+    nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
   Node sc = nm->mkNode(IMPLIES, scl, pol ? scr : scr.notNode());
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc << std::endl;
   return sc;
