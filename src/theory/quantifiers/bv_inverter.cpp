@@ -111,7 +111,7 @@ static bool isInvertible(Kind k, unsigned index)
       ||  k == BITVECTOR_PLUS
       ||  k == BITVECTOR_SUB
       ||  k == BITVECTOR_MULT
-      || (k == BITVECTOR_UREM_TOTAL && index == 1)
+      ||  k == BITVECTOR_UREM_TOTAL
       ||  k == BITVECTOR_UDIV_TOTAL
       ||  k == BITVECTOR_AND
       ||  k == BITVECTOR_OR
