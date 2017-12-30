@@ -59,11 +59,7 @@ void GlobalNegate::simplify(std::vector<Node>& assertions)
   }
 
   Node body;
-  if (assertions.size() == 0)
-  {
-    body = nm->mkConst(true);
-  }
-  else if (assertions.size() == 1)
+  if (assertions.size() == 1)
   {
     body = assertions[0];
   }
