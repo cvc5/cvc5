@@ -1436,12 +1436,15 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off repeat-simp to support unsat-cores" << endl;
       setOption("repeat-simp", false);
     }
-    
-    if(options::globalNegate()) {
-      if(options::globalNegate.wasSetByUser()) {
+
+    if (options::globalNegate())
+    {
+      if (options::globalNegate.wasSetByUser())
+      {
         throw OptionException("global-negate not supported with unsat cores");
       }
-      Notice() << "SmtEngine: turning off global-negate to support unsat-cores" << endl;
+      Notice() << "SmtEngine: turning off global-negate to support unsat-cores"
+               << endl;
       setOption("global-negate", false);
     }
   }
