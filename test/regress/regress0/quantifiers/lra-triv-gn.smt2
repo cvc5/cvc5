@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-global-negate
+; COMMAND-LINE: --global-negate
 ; EXPECT: unsat
 (set-logic LRA)
 (set-info :status unsat)

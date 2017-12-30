@@ -93,9 +93,9 @@
 #include "theory/bv/bvintropow2.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
-#include "theory/quantifiers/cbqi_global_negate.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/fun_def_process.h"
+#include "theory/quantifiers/global_negate.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
@@ -1960,7 +1960,7 @@ void SmtEngine::setDefaults() {
         options::prenexQuant.set(quantifiers::PRENEX_QUANT_DISJ_NORMAL);
       }
     }
-    else if (options::cbqiGlobalNeg())
+    else if (options::globalNegate())
     {
       if (!options::prenexQuant.wasSetByUser())
       {
@@ -2098,7 +2098,7 @@ void SmtEngine::setDefaults() {
   
   // can't global negate if incremental
   if(options::incrementalSolving()){
-    options::cbqiGlobalNeg.set(false);
+    options::globalNegate.set(false);
   }
 }
 
@@ -4186,11 +4186,10 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
   
   // global negation of the formula
-  if (options::cbqiGlobalNeg())
+  if (options::globalNegate())
   {
-    quantifiers::CbqiGlobalNegate cgn;
-    std::vector<Node> new_assertions;
-    cgn.simplify(d_assertions.ref());
+    quantifiers::GlobalNegate gn;
+    gn.simplify(d_assertions.ref());
     d_smt.d_globalNegation = !d_smt.d_globalNegation;
   }
   

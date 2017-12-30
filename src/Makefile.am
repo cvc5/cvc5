@@ -371,8 +371,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/bv_inverter.h \
 	theory/quantifiers/candidate_generator.cpp \
 	theory/quantifiers/candidate_generator.h \
-	theory/quantifiers/cbqi_global_negate.cpp \
-	theory/quantifiers/cbqi_global_negate.h \
 	theory/quantifiers/ce_guided_conjecture.cpp \
 	theory/quantifiers/ce_guided_conjecture.h \
 	theory/quantifiers/ce_guided_instantiation.cpp \
@@ -403,6 +401,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/fun_def_engine.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_process.h \
+	theory/quantifiers/global_negate.cpp \
+	theory/quantifiers/global_negate.h \
 	theory/quantifiers/ho_trigger.cpp \
 	theory/quantifiers/ho_trigger.h \
 	theory/quantifiers/instantiate.cpp \

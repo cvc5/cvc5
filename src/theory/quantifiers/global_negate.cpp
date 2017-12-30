@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cbqi_global_negate.cpp
+/*! \file global_negate.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,10 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of cbqi_global_negate
+ ** \brief Implementation of global_negate
  **/
 
-#include "theory/quantifiers/cbqi_global_negate.h"
+#include "theory/quantifiers/global_negate.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -22,8 +22,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CbqiGlobalNegate::CbqiGlobalNegate() {}
-void CbqiGlobalNegate::simplify(std::vector<Node>& assertions)
+void GlobalNegate::simplify(std::vector<Node>& assertions)
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert( !assertions.empty() );
