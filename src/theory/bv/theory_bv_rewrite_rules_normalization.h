@@ -435,7 +435,7 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
       isNeg = !isNeg;
       constant = constant * noValue;
     }
-    children.push_back(utils::mkConst(constant)); 
+    children.push_back(utils::mkConst(constant));
   }
 
   Node ret = utils::mkNode(kind::BITVECTOR_MULT, children);
