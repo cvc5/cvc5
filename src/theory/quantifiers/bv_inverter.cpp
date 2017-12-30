@@ -915,7 +915,7 @@ static Node getScBvLshr(bool pol,
       }
     }
   }
-  else if (litk == BITVECTOR_SLT)
+  else /* litk == BITVECTOR_SLT */
   {
     if (idx == 0)
     {
@@ -966,10 +966,6 @@ static Node getScBvLshr(bool pol,
         scl = sz.impNode(sge1).andNode(sz.notNode().impNode(sge2));
       }
     }
-  }
-  else
-  {
-    return Node::null();
   }
   Node scr =
     nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
