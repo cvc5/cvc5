@@ -445,10 +445,6 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
   {
     ret = utils::mkNode(kind::BITVECTOR_NEG, ret);
   }
-  if (node != ret)
-  {
-    Trace("ajr-temp") << "Rewrite " << node << " to " << ret << std::endl;
-  }
   return ret;
 }
 

@@ -272,6 +272,11 @@ inline Node mkConjunction(const std::set<TNode> nodes) {
   return conjunction;
 }
 
+/**
+ * If node is a constant of the form 2^c or -2^c, then this function returns
+ * c+1. Otherwise, this function returns 0. The flag isNeg is updated to
+ * indicate whether node is negative.
+ */
 inline unsigned isPow2Const(TNode node, bool& isNeg)
 {
   if (node.getKind() != kind::CONST_BITVECTOR) {
