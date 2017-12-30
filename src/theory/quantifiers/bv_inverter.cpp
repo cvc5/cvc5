@@ -933,7 +933,7 @@ static Node getScBvLshr(bool pol,
         /* x >> s >= t
          * with side condition:
          * (=> (not (= s z)) (bvsge (bvlshr ones s) t)) */
-        Node ones = utils::mkOnes(w);
+        Node ones = bv::utils::mkOnes(w);
         Node lshr = nm->mkNode(BITVECTOR_LSHR, ones, s);
         Node nz = s.eqNode(z).notNode();
         scl = nz.impNode(nm->mkNode(BITVECTOR_SGE, lshr, t));
@@ -958,7 +958,7 @@ static Node getScBvLshr(bool pol,
          *  (=> (bvslt s z) (bvsge (bvlshr s one) t))
          *  (=> (bvsge s z) (bvsge s t))
          * ) */
-        Node one = utils::mkConst(w, 1);
+        Node one = bv::utils::mkConst(w, 1);
         Node sz = nm->mkNode(BITVECTOR_SLT, s, z);
         Node lshr = nm->mkNode(BITVECTOR_LSHR, s, one);
         Node sge1 = nm->mkNode(BITVECTOR_SGE, lshr, t);
