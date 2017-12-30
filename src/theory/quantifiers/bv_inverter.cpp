@@ -513,12 +513,12 @@ static Node getScBvUrem(bool pol,
       {
         /* s % x < t
          * with side condition:
-         *
-         * s = 0  => t <=s 0
-         * &&
-         * s <s 0 => s >=s t
-         * &&
-         * (s <s 0 && t >=s 0) => (s-t) > t  */
+         * (and
+         *   (=> (= s z) (bvsle t z))
+         *   (=> (bvsgt s z) (bvsge s t))
+         *   (=> (and (bvslt s z) (bvsge t z)) (bvugt (bvsub s t) t))
+         * )
+         * where z = 0 with getSize(z) = w  */
         Node i1 = nm->mkNode(IMPLIES,
             s.eqNode(z), nm->mkNode(BITVECTOR_SLE, t, z));
         Node i2 = nm->mkNode(IMPLIES,
