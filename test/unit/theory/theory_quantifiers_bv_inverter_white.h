@@ -85,8 +85,6 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
            || k == BITVECTOR_ASHR
 
            || k == BITVECTOR_SHL);
-    Assert(litk != EQUAL 
-           || k != BITVECTOR_UREM_TOTAL || pol == false || idx == 1);
 
     Node sc = getsc(pol, litk, k, idx, d_sk, d_s, d_t);
     // TODO amend / remove the following six lines as soon as inequality
@@ -219,8 +217,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
 
   void testGetScBvUremEqTrue0()
   {
-    TS_ASSERT_THROWS(runTest(true, EQUAL, BITVECTOR_UREM_TOTAL, 0, getScBvUrem),
-                     AssertionException);
+    runTest(true, EQUAL, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
   }
 
   void testGetScBvUremEqTrue1()
