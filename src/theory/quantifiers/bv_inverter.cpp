@@ -433,16 +433,15 @@ static Node getScBvUrem(bool pol,
       {
         /* x % s < t
          * with side condition:
-         * t != 0 */
+         * (distinct t z)
+         * where z = 0 with getSize(z) = w  */
         scl = t.eqNode(z).notNode();
       }
       else
       {
         /* x % s >= t
          * with side condition (synthesized):
-         * (not (bvult (bvnot (bvneg s)) t))
-         * <->
-         * ~(-s) >= t */
+         * (bvuge (bvnot (bvneg s)) t)  */
         Node neg = nm->mkNode(BITVECTOR_NEG, s);
         scl = nm->mkNode(BITVECTOR_UGE, nm->mkNode(BITVECTOR_NOT, neg), t);
       }
@@ -453,18 +452,17 @@ static Node getScBvUrem(bool pol,
       {
         /* s % x < t
          * with side condition:
-         * t != 0 */
+         * (distinct t z)
+         * where z = 0 with getSize(z) = w  */
         scl = t.eqNode(z).notNode();
       }
       else
       {
         /* s % x < t
          * with side condition (combination of = and >):
-         *
-         * (t + t - s) & s >= t  (eq, synthesized)
-         * ||
-         * (bvult t s)           (ugt, synthesized)
-         */
+         * (or
+         *   (bvuge (bvand (bvsub (bvadd t t) s) s) t)  ; eq, synthesized
+         *   (bvult t s))                               ; ugt, synthesized  */
         Node add = nm->mkNode(BITVECTOR_PLUS, t, t);
         Node sub = nm->mkNode(BITVECTOR_SUB, add, s);
         Node a = nm->mkNode(BITVECTOR_AND, sub, s);
@@ -492,7 +490,8 @@ static Node getScBvUrem(bool pol,
       {
         /* x % s >= t
          * with side condition (synthesized):
-         * (or (bvslt t s) (bvsge #x0 s))  */
+         * (or (bvslt t s) (bvsge z s))
+         * where z = 0 with getSize(z) = w  */
         Node s1 = nm->mkNode(BITVECTOR_SLT, t, s);
         Node s2 = nm->mkNode(BITVECTOR_SGE, z, s);
         scl = nm->mkNode(OR, s1, s2);
@@ -504,7 +503,8 @@ static Node getScBvUrem(bool pol,
       {
         /* s % x < t
          * with side condition (synthesized):
-         * (or (bvslt s t) (bvslt #x0 t))  */
+         * (or (bvslt s t) (bvslt z t))
+         * where z = 0 with getSize(z) = w  */
         Node slt1 = nm->mkNode(BITVECTOR_SLT, s, t);
         Node slt2 = nm->mkNode(BITVECTOR_SLT, z, t);
         scl = nm->mkNode(OR, slt1, slt2);
@@ -516,8 +516,7 @@ static Node getScBvUrem(bool pol,
          * (and
          *   (=> (= s z) (bvsle t z))
          *   (=> (bvsgt s z) (bvsge s t))
-         *   (=> (and (bvslt s z) (bvsge t z)) (bvugt (bvsub s t) t))
-         * )
+         *   (=> (and (bvslt s z) (bvsge t z)) (bvugt (bvsub s t) t)))
          * where z = 0 with getSize(z) = w  */
         Node i1 = nm->mkNode(IMPLIES,
             s.eqNode(z), nm->mkNode(BITVECTOR_SLE, t, z));
