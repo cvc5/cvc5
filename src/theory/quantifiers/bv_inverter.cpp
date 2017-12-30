@@ -871,9 +871,8 @@ static Node getScBvAshr(bool pol,
          * where
          * min_val is the signed minimum value */
         BitVector bv_min_val = BitVector(w).setBit(w - 1);
-        Node min_val = utils::mkConst(bv_min_val);
-        scl = nm->mkNode(
-            BITVECTOR_SLT, nm->mkNode(BITVECTOR_ASHR, min_val, s), t);
+        Node min = utils::mkConst(bv_min_val);
+        scl = nm->mkNode(BITVECTOR_SLT, nm->mkNode(BITVECTOR_ASHR, min, s), t);
       }
       else
       {
@@ -884,9 +883,8 @@ static Node getScBvAshr(bool pol,
          * max_val is the signed maximum value */
         BitVector bv_ones = utils::mkBitVectorOnes(w - 1);
         BitVector bv_max_val = BitVector(1).concat(bv_ones);
-        Node max_val = utils::mkConst(bv_max_val);
-        scl = nm->mkNode(
-            BITVECTOR_SGE, nm->mkNode(BITVECTOR_LSHR, max_val, s), t);
+        Node max = utils::mkConst(bv_max_val);
+        scl = nm->mkNode(BITVECTOR_SGE, nm->mkNode(BITVECTOR_LSHR, max, s), t);
       }
     }
     else
