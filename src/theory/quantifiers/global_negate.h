@@ -38,9 +38,9 @@ class GlobalNegate
  public:
   GlobalNegate() {}
   ~GlobalNegate() {}
-  /** simplify assertions 
+  /** simplify assertions
    *
-   * Replaces assertions with a set of assertions that is equivalent to its 
+   * Replaces assertions with a set of assertions that is equivalent to its
    * negation.
    */
   void simplify(std::vector<Node>& assertions);

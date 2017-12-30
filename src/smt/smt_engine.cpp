@@ -983,39 +983,39 @@ public:
 
 }/* namespace CVC4::smt */
 
-SmtEngine::SmtEngine(ExprManager* em) throw() :
-  d_context(new Context()),
-  d_userLevels(),
-  d_userContext(new UserContext()),
-  d_exprManager(em),
-  d_nodeManager(d_exprManager->getNodeManager()),
-  d_decisionEngine(NULL),
-  d_theoryEngine(NULL),
-  d_propEngine(NULL),
-  d_proofManager(NULL),
-  d_definedFunctions(NULL),
-  d_fmfRecFunctionsDefined(NULL),
-  d_assertionList(NULL),
-  d_assignments(NULL),
-  d_modelGlobalCommands(),
-  d_modelCommands(NULL),
-  d_dumpCommands(),
-  d_defineCommands(),
-  d_logic(),
-  d_originalOptions(),
-  d_pendingPops(0),
-  d_fullyInited(false),
-  d_problemExtended(false),
-  d_queryMade(false),
-  d_needPostsolve(false),
-  d_earlyTheoryPP(true),
-  d_globalNegation(false),
-  d_status(),
-  d_replayStream(NULL),
-  d_private(NULL),
-  d_statisticsRegistry(NULL),
-  d_stats(NULL),
-  d_channels(new LemmaChannels())
+SmtEngine::SmtEngine(ExprManager* em) throw()
+    : d_context(new Context()),
+      d_userLevels(),
+      d_userContext(new UserContext()),
+      d_exprManager(em),
+      d_nodeManager(d_exprManager->getNodeManager()),
+      d_decisionEngine(NULL),
+      d_theoryEngine(NULL),
+      d_propEngine(NULL),
+      d_proofManager(NULL),
+      d_definedFunctions(NULL),
+      d_fmfRecFunctionsDefined(NULL),
+      d_assertionList(NULL),
+      d_assignments(NULL),
+      d_modelGlobalCommands(),
+      d_modelCommands(NULL),
+      d_dumpCommands(),
+      d_defineCommands(),
+      d_logic(),
+      d_originalOptions(),
+      d_pendingPops(0),
+      d_fullyInited(false),
+      d_problemExtended(false),
+      d_queryMade(false),
+      d_needPostsolve(false),
+      d_earlyTheoryPP(true),
+      d_globalNegation(false),
+      d_status(),
+      d_replayStream(NULL),
+      d_private(NULL),
+      d_statisticsRegistry(NULL),
+      d_stats(NULL),
+      d_channels(new LemmaChannels())
 {
   SmtScope smts(this);
   d_originalOptions.copyValues(em->getOptions());
@@ -2095,9 +2095,10 @@ void SmtEngine::setDefaults() {
     Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof, try --tear-down-incremental instead)" << endl;
     setOption("incremental", SExpr("false"));
   }
-  
+
   // can't global negate if incremental
-  if(options::incrementalSolving()){
+  if (options::incrementalSolving())
+  {
     options::globalNegate.set(false);
   }
 }
@@ -4131,7 +4132,7 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt") << "SmtEnginePrivate::processAssertions()" << endl;
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-  
+
   if (d_assertions.size() == 0) {
     // nothing to do
     return;
@@ -4184,7 +4185,7 @@ void SmtEnginePrivate::processAssertions() {
      );
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-  
+
   // global negation of the formula
   if (options::globalNegate())
   {
@@ -4192,7 +4193,7 @@ void SmtEnginePrivate::processAssertions() {
     gn.simplify(d_assertions.ref());
     d_smt.d_globalNegation = !d_smt.d_globalNegation;
   }
-  
+
   if( options::nlExtPurify() ){
     unordered_map<Node, Node, NodeHashFunction> cache;
     unordered_map<Node, Node, NodeHashFunction> bcache;
@@ -4322,7 +4323,7 @@ void SmtEnginePrivate::processAssertions() {
       }
     }
   }
-    
+
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
 
@@ -4682,7 +4683,7 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
 
     // Note that a query has been made
     d_queryMade = true;
-    
+
     // reset global negation
     d_globalNegation = false;
 

@@ -240,7 +240,7 @@ class CVC4_PUBLIC SmtEngine {
    * by default* but gets turned off if arithRewriteEq is on
    */
   bool d_earlyTheoryPP;
-  
+
   /*
    * Whether we did a global negation of the formula.
    */

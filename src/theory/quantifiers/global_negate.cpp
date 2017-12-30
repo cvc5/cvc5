@@ -25,7 +25,7 @@ namespace quantifiers {
 void GlobalNegate::simplify(std::vector<Node>& assertions)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert( !assertions.empty() );
+  Assert(!assertions.empty());
 
   Trace("cbqi-gn") << "Global negate : " << std::endl;
   // collect free variables in all assertions
