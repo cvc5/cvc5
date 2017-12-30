@@ -524,7 +524,6 @@ static Node getScBvUrem(bool pol,
               nm->mkNode(BITVECTOR_SLT, s, z), nm->mkNode(BITVECTOR_SGE, t, z)),
             nm->mkNode(BITVECTOR_UGT, nm->mkNode(BITVECTOR_SUB, s, t), t));
         scl = nm->mkNode(AND, i1, i2);
-        return Node::null();
       }
     }
   }
