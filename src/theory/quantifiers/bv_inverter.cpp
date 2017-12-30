@@ -492,10 +492,10 @@ static Node getScBvUrem(bool pol,
       {
         /* x % s >= t
          * with side condition (synthesized):
-         * (not (and (not (bvslt t s)) (bvslt #x0 s)))  */
-        Node slt1 = nm->mkNode(BITVECTOR_SLT, t, s).notNode();
-        Node slt2 = nm->mkNode(BITVECTOR_SLT, z, s);
-        scl = nm->mkNode(AND, slt1, slt2).notNode();
+         * (or (bvslt t s) (bvsge #x0 s))  */
+        Node s1 = nm->mkNode(BITVECTOR_SLT, t, s);
+        Node s2 = nm->mkNode(BITVECTOR_SGE, z, s);
+        scl = nm->mkNode(OR, s1, s2);
       }
     }
     else
