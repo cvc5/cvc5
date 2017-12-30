@@ -85,10 +85,6 @@ bool CbqiGlobalNegate::simplify( std::vector< Node >& assertions,
     Node bvl = nm->mkNode( kind::BOUND_VAR_LIST, bvs );
   
     body = nm->mkNode( kind::FORALL, bvl, body );
-  }else{
-    // add dummy variable?
-    //Node dummy = nm->mkBoundVar( nm->booleanType() );
-    //bvs.push_back( dummy );
   }
   
   Trace("cbqi-gn-debug") << "...got (pre-rewrite) : " << body << std::endl;
