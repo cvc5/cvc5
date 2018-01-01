@@ -427,8 +427,12 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
               Node lit = ita->second[j];
               if( lits.find(lit)==lits.end() ){
                 lits.insert(lit);
-                Node plit =
-                    vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
+                Node plit;
+                if (options::cbqiRepeatLit() || !isSolvedAssertion(lit))
+                {
+                  plit =
+                      vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
+                }
                 if (!plit.isNull()) {
                   Trace("cbqi-inst-debug2") << "  look at " << lit;
                   if (plit != lit) {
@@ -438,9 +442,12 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
                   // apply substitutions
                   Node slit = applySubstitutionToLiteral(plit, sf);
                   if( !slit.isNull() ){
-                    Trace("cbqi-inst-debug") << "...try based on literal " << slit << std::endl;
                     // check if contains pv
                     if( hasVariable( slit, pv ) ){
+                      Trace("cbqi-inst-debug") << "...try based on literal "
+                                               << slit << "," << std::endl;
+                      Trace("cbqi-inst-debug") << "...from " << lit
+                                               << std::endl;
                       if (vinst->processAssertion(
                               this, sf, pv, slit, lit, d_effort))
                       {
@@ -860,6 +867,7 @@ bool CegInstantiator::check() {
     SolvedForm sf;
     d_stack_vars.clear();
     d_bound_var_index.clear();
+    d_solved_asserts.clear();
     //try to add an instantiation
     if (constructInstantiation(sf, 0))
     {
@@ -1142,6 +1150,23 @@ Node CegInstantiator::getBoundVariable(TypeNode tn)
   return d_bound_var[tn][index];
 }
 
+bool CegInstantiator::isSolvedAssertion(Node n) const
+{
+  return d_solved_asserts.find(n) != d_solved_asserts.end();
+}
+
+void CegInstantiator::markSolved(Node n, bool solved)
+{
+  if (solved)
+  {
+    d_solved_asserts.insert(n);
+  }
+  else if (isSolvedAssertion(n))
+  {
+    d_solved_asserts.erase(n);
+  }
+}
+
 void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) {
   if( n.getKind()==FORALL ){
     d_is_nested_quant = true;
@@ -1159,15 +1184,6 @@ void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) 
     }
   }
 }
-
-struct sortCegVarOrder {
-  bool operator() (Node i, Node j) {
-    TypeNode it = i.getType();
-    TypeNode jt = j.getType();
-    return ( it!=jt && jt.isSubtypeOf( it ) ) || ( it==jt && i<j );
-  }
-};
-
 
 void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars ) {
   Trace("cbqi-reg") << "Register counterexample lemma..." << std::endl;
@@ -1245,29 +1261,40 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   Trace("cbqi-debug") << "Determine variable order..." << std::endl;
   if (!d_vars.empty())
   {
-    TypeNode tn0 = d_vars[0].getType();
-    bool doSort = false;
     std::map<Node, unsigned> voo;
-    for (unsigned i = 0; i < d_vars.size(); i++)
+    bool doSort = false;
+    std::vector<Node> vars;
+    std::map<TypeNode, std::vector<Node> > tvars;
+    for (unsigned i = 0, size = d_vars.size(); i < size; i++)
     {
       voo[d_vars[i]] = i;
       d_var_order_index.push_back(0);
-      if (d_vars[i].getType() != tn0)
+      TypeNode tn = d_vars[i].getType();
+      if (tn.isInteger())
       {
         doSort = true;
+        tvars[tn].push_back(d_vars[i]);
+      }
+      else
+      {
+        vars.push_back(d_vars[i]);
       }
     }
     if (doSort)
     {
       Trace("cbqi-debug") << "Sort variables based on ordering." << std::endl;
-      sortCegVarOrder scvo;
-      std::sort(d_vars.begin(), d_vars.end(), scvo);
-      Trace("cbqi-debug") << "Consider variables in this order : " << std::endl;
-      for (unsigned i = 0; i < d_vars.size(); i++)
+      for (std::pair<const TypeNode, std::vector<Node> >& vs : tvars)
       {
-        d_var_order_index[voo[d_vars[i]]] = i;
-        Trace("cbqi-debug") << "  " << d_vars[i] << " : " << d_vars[i].getType()
-                            << ", index was : " << voo[d_vars[i]] << std::endl;
+        vars.insert(vars.end(), vs.second.begin(), vs.second.end());
+      }
+
+      Trace("cbqi-debug") << "Consider variables in this order : " << std::endl;
+      for (unsigned i = 0; i < vars.size(); i++)
+      {
+        d_var_order_index[voo[vars[i]]] = i;
+        Trace("cbqi-debug") << "  " << vars[i] << " : " << vars[i].getType()
+                            << ", index was : " << voo[vars[i]] << std::endl;
+        d_vars[i] = vars[i];
       }
       Trace("cbqi-debug") << std::endl;
     }
