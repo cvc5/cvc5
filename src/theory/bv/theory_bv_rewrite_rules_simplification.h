@@ -1009,7 +1009,7 @@ inline Node RewriteRule<UremPow2>::apply(TNode node)
   Node ret;
   if (power == 0)
   {
-    ret = utils::mkConst(utils::getSize(node), 0);
+    ret = utils::mkZero(utils::getSize(node));
   }
   else
   {
