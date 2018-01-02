@@ -205,15 +205,15 @@ static Node dropChild(Node n, unsigned index)
   return nb.constructNode();
 }
 
-static Node getScBvUlt(bool pol, Kind k, unsigned idx, Node x, Node t)
+static Node getScBvUltUgt(bool pol, Kind k, Node x, Node t)
 {
-  Assert(k == BITVECTOR_ULT);
+  Assert(k == BITVECTOR_ULT || k == BITVECTOR_UGT);
 
   NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(t);
   Node sc;
 
-  if (idx == 0)
+  if (k == BITVECTOR_ULT)
   {
     if (pol == true)
     {
@@ -227,41 +227,42 @@ static Node getScBvUlt(bool pol, Kind k, unsigned idx, Node x, Node t)
     else
     {
       /* x >= t
-       * no side condition  */
+       * true (no side condition)  */
       sc = nm->mkNode(NOT, nm->mkNode(k, x, t));
     }
   }
-  else if (idx == 1)
+  else
   {
+    Assert(k == BITVECTOR_UGT);
     if (pol == true)
     {
-      /* t < x
+      /* x > t
        * with side condition:
        * t != ~0  */
       Node scl = nm->mkNode(DISTINCT, t, bv::utils::mkOnes(w));
-      Node scr = nm->mkNode(k, t, x);
+      Node scr = nm->mkNode(k, x, t);
       sc = nm->mkNode(IMPLIES, scl, scr);
     }
     else
     {
-      /* t >= x
-       * no side condition */
-      sc = nm->mkNode(NOT, nm->mkNode(k, t, x));
+      /* x <= t
+       * true (no side condition) */
+      sc = nm->mkNode(NOT, nm->mkNode(k, x, t));
     }
   }
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc << std::endl;
   return sc;
 }
 
-static Node getScBvSlt(bool pol, Kind k, unsigned idx, Node x, Node t)
+static Node getScBvSltSgt(bool pol, Kind k, Node x, Node t)
 {
-  Assert(k == BITVECTOR_SLT);
+  Assert(k == BITVECTOR_SLT || k == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(t);
   Node sc;
 
-  if (idx == 0)
+  if (k == BITVECTOR_SLT)
   {
     if (pol == true)
     {
@@ -276,28 +277,29 @@ static Node getScBvSlt(bool pol, Kind k, unsigned idx, Node x, Node t)
     else
     {
       /* x >= t
-       * no side condition */
+       * true (no side condition) */
       sc = nm->mkNode(NOT, nm->mkNode(k, x, t));
     }
   }
-  else if (idx == 1)
+  else
   {
+    Assert(k == BITVECTOR_SGT);
     if (pol == true)
     {
-      /* t < x
+      /* x > t
        * with side condition:
        * t != 01...1  */
       BitVector bv = BitVector(w).setBit(w - 1);
       Node max = bv::utils::mkConst(~bv);
       Node scl = nm->mkNode(DISTINCT, t, max);
-      Node scr = nm->mkNode(k, t, x);
+      Node scr = nm->mkNode(k, x, t);
       sc = nm->mkNode(IMPLIES, scl, scr);
     }
     else
     {
-      /* t >= x
-       * no side condition */
-      sc = nm->mkNode(NOT, nm->mkNode(k, t, x));
+      /* x <= t
+       * true (no side condition) */
+      sc = nm->mkNode(NOT, nm->mkNode(k, x, t));
     }
   }
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << sc << std::endl;
@@ -1388,16 +1390,14 @@ Node BvInverter::solveBvLit(Node sv,
         if (sc.isNull())
         {
           solve_tn = sv_t.getType();
-          if (litk == BITVECTOR_ULT)
+          if (litk == BITVECTOR_ULT || litk == BITVECTOR_UGT)
           {
-            sc = getScBvUlt(
-                pol, litk, index, getSolveVariable(solve_tn), t);
+            sc = getScBvUltUgt(pol, litk, getSolveVariable(solve_tn), t);
           }
           else
           {
-            Assert (litk == BITVECTOR_SLT);
-            sc = getScBvSlt(
-                pol, litk, index, getSolveVariable(solve_tn), t);
+            Assert (litk == BITVECTOR_SLT || litk == BITVECTOR_SGT);
+            sc = getScBvSltSgt(pol, litk, getSolveVariable(solve_tn), t);
           }
         }
         /* We generate a choice term (choice x0. SC => x0 <k> s <litk> t) for
@@ -1413,16 +1413,16 @@ Node BvInverter::solveBvLit(Node sv,
     sv_t = sv_t[index];
   }
   Assert(sv_t == sv);
-  if (litk == BITVECTOR_ULT)
+  if (litk == BITVECTOR_ULT || litk == BITVECTOR_UGT)
   {
     TypeNode solve_tn = sv_t.getType();
-    Node sc = getScBvUlt(pol, litk, index, getSolveVariable(solve_tn), t);
+    Node sc = getScBvUltUgt(pol, litk, getSolveVariable(solve_tn), t);
     t = getInversionNode(sc, solve_tn, m);
   }
-  else if (litk == BITVECTOR_SLT)
+  else if (litk == BITVECTOR_SLT || litk == BITVECTOR_SGT)
   {
     TypeNode solve_tn = sv_t.getType();
-    Node sc = getScBvSlt(pol, litk, index, getSolveVariable(solve_tn), t);
+    Node sc = getScBvSltSgt(pol, litk, getSolveVariable(solve_tn), t);
     t = getInversionNode(sc, solve_tn, m);
   }
   else if (pol == false)
