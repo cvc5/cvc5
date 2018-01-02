@@ -616,7 +616,7 @@ static Node getScBvUdiv(bool pol,
       else
       {
         /* s udiv x != t
-         * no side condition */
+         * true (no side condition) */
         scl = nm->mkConst<bool>(true);
       }
     }
@@ -661,7 +661,7 @@ static Node getScBvUdiv(bool pol,
       else
       {
         /* s udiv x >= t
-         * no side condition */
+         * true (no side condition) */
         scl = nm->mkConst<bool>(true);
       }
     }
