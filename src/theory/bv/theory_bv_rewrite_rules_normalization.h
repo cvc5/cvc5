@@ -381,25 +381,7 @@ Node RewriteRule<PlusCombineLikeTerms>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<MultSimplify>::applies(TNode node) {
-  if (node.getKind() != kind::BITVECTOR_MULT) {
-    return false;
-  }
-  TNode::iterator child_it = node.begin();
-  TNode::iterator child_next = child_it + 1;
-  for(; child_next != node.end(); ++child_it, ++child_next) {
-    if ((*child_it).isConst() ||
-        !((*child_it) < (*child_next))) {
-      return true;
-    }
-  }
-  if ((*child_it).isConst()) {
-    BitVector bv = (*child_it).getConst<BitVector>();
-    if (bv == BitVector(utils::getSize(node), (unsigned) 0) ||
-        bv == BitVector(utils::getSize(node), (unsigned) 1)) {
-      return true;
-    }
-  }
-  return false;
+  return node.getKind() == kind::BITVECTOR_MULT;
 }
 
 template<> inline
@@ -408,31 +390,58 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
   unsigned size = utils::getSize(node); 
   BitVector constant(size, Integer(1));
 
-  std::vector<Node> children; 
-  for(unsigned i = 0; i < node.getNumChildren(); ++i) {
-    TNode current = node[i];
+  bool isNeg = false;
+  std::vector<Node> children;
+  for (const TNode& current : node)
+  {
     if (current.getKind() == kind::CONST_BITVECTOR) {
       BitVector value = current.getConst<BitVector>();
       constant = constant * value;
       if(constant == BitVector(size, (unsigned) 0)) {
         return utils::mkConst(size, 0); 
       }
+    }
+    else if (current.getKind() == kind::BITVECTOR_NEG)
+    {
+      isNeg = !isNeg;
+      children.push_back(current[0]);
     } else {
       children.push_back(current); 
     }
   }
+  BitVector oValue = BitVector(size, static_cast<unsigned>(1));
+  BitVector noValue = utils::mkBitVectorOnes(size);
+
+  if (children.empty())
+  {
+    Assert(!isNeg);
+    return utils::mkConst(constant);
+  }
 
   std::sort(children.begin(), children.end());
 
-  if(constant != BitVector(size, (unsigned)1)) {
-    children.push_back(utils::mkConst(constant)); 
+  if (constant == noValue)
+  {
+    isNeg = !isNeg;
   }
-  
-  if(children.size() == 0) {
-    return utils::mkConst(size, (unsigned)1); 
+  else if (constant != oValue)
+  {
+    if (isNeg)
+    {
+      isNeg = !isNeg;
+      constant = -constant;
+    }
+    children.push_back(utils::mkConst(constant));
   }
 
-  return utils::mkNode(kind::BITVECTOR_MULT, children); 
+  Node ret = utils::mkNode(kind::BITVECTOR_MULT, children);
+
+  // if negative, negate entire node
+  if (isNeg && size > 1)
+  {
+    ret = utils::mkNode(kind::BITVECTOR_NEG, ret);
+  }
+  return ret;
 }
 
 
