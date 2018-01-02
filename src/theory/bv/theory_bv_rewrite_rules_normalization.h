@@ -414,7 +414,7 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
 
   if (children.empty())
   {
-    Assert( !isNeg );
+    Assert(!isNeg);
     return utils::mkConst(constant);
   }
 

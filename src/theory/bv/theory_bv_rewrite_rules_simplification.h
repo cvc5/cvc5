@@ -751,13 +751,14 @@ Node RewriteRule<NotUle>::apply(TNode node) {
  * (a * 2^k) ==> a[n-k-1:0] 0_k
  */
 
-template<> inline
-bool RewriteRule<MultPow2>::applies(TNode node)
+template <>
+inline bool RewriteRule<MultPow2>::applies(TNode node)
 {
   if (node.getKind() != kind::BITVECTOR_MULT)
     return false;
 
-  for(const Node& cn : node ){
+  for (const Node& cn : node)
+  {
     bool cIsNeg = false;
     if (utils::isPow2Const(cn, cIsNeg))
     {
@@ -767,8 +768,8 @@ bool RewriteRule<MultPow2>::applies(TNode node)
   return false; 
 }
 
-template<> inline
-Node RewriteRule<MultPow2>::apply(TNode node)
+template <>
+inline Node RewriteRule<MultPow2>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<MultPow2>(" << node << ")" << std::endl;
 
@@ -776,7 +777,8 @@ Node RewriteRule<MultPow2>::apply(TNode node)
   std::vector<Node>  children;
   unsigned exponent = 0;
   bool isNeg = false;
-  for(const Node& cn : node ){
+  for (const Node& cn : node)
+  {
     bool cIsNeg = false;
     unsigned exp = utils::isPow2Const(cn, cIsNeg);
     if (exp) {
@@ -787,7 +789,7 @@ Node RewriteRule<MultPow2>::apply(TNode node)
       }
     }
     else {
-      children.push_back(cn); 
+      children.push_back(cn);
     }
   }
 
@@ -904,8 +906,8 @@ Node RewriteRule<NegIdemp>::apply(TNode node) {
  * (a udiv 2^k) ==> 0_k a[n-1: k]
  */
 
-template<> inline
-bool RewriteRule<UdivPow2>::applies(TNode node)
+template <>
+inline bool RewriteRule<UdivPow2>::applies(TNode node)
 {
   bool isNeg = false;
   if (node.getKind() == kind::BITVECTOR_UDIV_TOTAL
@@ -916,8 +918,8 @@ bool RewriteRule<UdivPow2>::applies(TNode node)
   return false;
 }
 
-template<> inline
-Node RewriteRule<UdivPow2>::apply(TNode node)
+template <>
+inline Node RewriteRule<UdivPow2>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<UdivPow2>(" << node << ")" << std::endl;
   unsigned size = utils::getSize(node);
@@ -925,7 +927,7 @@ Node RewriteRule<UdivPow2>::apply(TNode node)
   bool isNeg = false;
   unsigned power = utils::isPow2Const(node[1], isNeg) - 1;
   Node ret;
-  if (power == 0) 
+  if (power == 0)
   {
     ret = a;
   }
@@ -985,8 +987,8 @@ inline Node RewriteRule<UdivOne>::apply(TNode node) {
  * (a urem 2^k) ==> 0_(n-k) a[k-1:0]
  */
 
-template<> inline
-bool RewriteRule<UremPow2>::applies(TNode node)
+template <>
+inline bool RewriteRule<UremPow2>::applies(TNode node)
 {
   bool isNeg;
   if (node.getKind() == kind::BITVECTOR_UREM_TOTAL
@@ -997,8 +999,8 @@ bool RewriteRule<UremPow2>::applies(TNode node)
   return false;
 }
 
-template<> inline
-Node RewriteRule<UremPow2>::apply(TNode node)
+template <>
+inline Node RewriteRule<UremPow2>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<UremPow2>(" << node << ")" << std::endl;
   TNode a = node[0];
