@@ -118,47 +118,6 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     Node new_ret;
     if (ret.getKind() == kind::EQUAL)
     {
-      // string equalities with disequal prefix or suffix
-      if (ret[0].getType().isString())
-      {
-        std::vector<Node> c[2];
-        for (unsigned i = 0; i < 2; i++)
-        {
-          strings::TheoryStringsRewriter::getConcat(ret[i], c[i]);
-        }
-        if (c[0].empty() == c[1].empty())
-        {
-          if (!c[0].empty())
-          {
-            for (unsigned i = 0; i < 2; i++)
-            {
-              unsigned index1 = i == 0 ? 0 : c[0].size() - 1;
-              unsigned index2 = i == 0 ? 0 : c[1].size() - 1;
-              if (c[0][index1].isConst() && c[1][index2].isConst())
-              {
-                CVC4::String s = c[0][index1].getConst<String>();
-                CVC4::String t = c[1][index2].getConst<String>();
-                unsigned len_short = s.size() <= t.size() ? s.size() : t.size();
-                bool isSameFix =
-                    i == 1 ? s.rstrncmp(t, len_short) : s.strncmp(t, len_short);
-                if (!isSameFix)
-                {
-                  Trace("q-ext-rewrite") << "sygus-extr : " << ret
-                                         << " rewrites to false due to "
-                                            "disequal string prefix/suffix."
-                                         << std::endl;
-                  new_ret = d_false;
-                  break;
-                }
-              }
-            }
-          }
-        }
-        else
-        {
-          new_ret = d_false;
-        }
-      }
       if (new_ret.isNull())
       {
         // simple ITE pulling

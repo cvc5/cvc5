@@ -1761,21 +1761,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
 
   // [1] rewrite cases of non-invertible operators
 
-  // if n is urem( x, y ) where x contains pv but y does not, then
-  // rewrite urem( x, y ) ---> x - udiv( x, y )*y
-  if (n.getKind() == BITVECTOR_UREM_TOTAL)
-  {
-    if (contains_pv[n[0]] && !contains_pv[n[1]])
-    {
-      return nm->mkNode(
-          BITVECTOR_SUB,
-          children[0],
-          nm->mkNode(BITVECTOR_MULT,
-                     nm->mkNode(BITVECTOR_UDIV_TOTAL, children[0], children[1]),
-                     children[1]));
-    }
-  }
-  else if (n.getKind() == EQUAL)
+  if (n.getKind() == EQUAL)
   {
     TNode lhs = children[0];
     TNode rhs = children[1];
