@@ -32,7 +32,6 @@ void GlobalNegate::simplify(std::vector<Node>& assertions)
   std::vector<Node> free_vars;
   std::vector<TNode> visit;
   std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
   for (const Node& as : assertions)
   {
     Trace("cbqi-gn") << "  " << as << std::endl;
