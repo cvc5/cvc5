@@ -77,6 +77,14 @@ void timeout_handler(int sig, siginfo_t* info, void*) {
   abort();
 }
 
+/** Handler for SIGTERM. */
+void sigterm_handler(int sig, siginfo_t* info, void*)
+{
+  safe_print(STDERR_FILENO, "CVC4 interrupted by SIGTERM.\n");
+  print_statistics();
+  abort();
+}
+
 /** Handler for SIGINT, i.e., when the user hits control C. */
 void sigint_handler(int sig, siginfo_t* info, void*) {
   safe_print(STDERR_FILENO, "CVC4 interrupted by user.\n");
@@ -320,6 +328,15 @@ void cvc4_init() throw(Exception) {
     throw Exception(string("sigaction(SIGSEGV) failure: ") + strerror(errno));
   }
 #endif /* HAVE_SIGALTSTACK */
+
+  struct sigaction act5;
+  act5.sa_sigaction = sigterm_handler;
+  act5.sa_flags = SA_SIGINFO;
+  sigemptyset(&act5.sa_mask);
+  if (sigaction(SIGTERM, &act5, NULL))
+  {
+    throw Exception(string("sigaction(SIGTERM) failure: ") + strerror(errno));
+  }
 
 #endif /* __WIN32__ */
 

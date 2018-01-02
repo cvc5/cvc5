@@ -890,6 +890,94 @@ Command* DefineNamedFunctionCommand::clone() const {
   return new DefineNamedFunctionCommand(d_symbol, d_func, d_formals, d_formula);
 }
 
+/* class DefineFunctionRecCommand */
+
+DefineFunctionRecCommand::DefineFunctionRecCommand(
+    Expr func, const std::vector<Expr>& formals, Expr formula) throw()
+{
+  d_funcs.push_back(func);
+  d_formals.push_back(formals);
+  d_formulas.push_back(formula);
+}
+
+DefineFunctionRecCommand::DefineFunctionRecCommand(
+    const std::vector<Expr>& funcs,
+    const std::vector<std::vector<Expr> >& formals,
+    const std::vector<Expr>& formulas) throw()
+{
+  d_funcs.insert(d_funcs.end(), funcs.begin(), funcs.end());
+  d_formals.insert(d_formals.end(), formals.begin(), formals.end());
+  d_formulas.insert(d_formulas.end(), formulas.begin(), formulas.end());
+}
+
+const std::vector<Expr>& DefineFunctionRecCommand::getFunctions() const throw()
+{
+  return d_funcs;
+}
+
+const std::vector<std::vector<Expr> >& DefineFunctionRecCommand::getFormals()
+    const throw()
+{
+  return d_formals;
+}
+
+const std::vector<Expr>& DefineFunctionRecCommand::getFormulas() const throw()
+{
+  return d_formulas;
+}
+
+void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->defineFunctionsRec(d_funcs, d_formals, d_formulas);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* DefineFunctionRecCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
+{
+  std::vector<Expr> funcs;
+  for (unsigned i = 0, size = d_funcs.size(); i < size; i++)
+  {
+    Expr func = d_funcs[i].exportTo(
+        exprManager, variableMap, /* flags = */ ExprManager::VAR_FLAG_DEFINED);
+    funcs.push_back(func);
+  }
+  std::vector<std::vector<Expr> > formals;
+  for (unsigned i = 0, size = d_formals.size(); i < size; i++)
+  {
+    std::vector<Expr> formals_c;
+    transform(d_formals[i].begin(),
+              d_formals[i].end(),
+              back_inserter(formals_c),
+              ExportTransformer(exprManager, variableMap));
+    formals.push_back(formals_c);
+  }
+  std::vector<Expr> formulas;
+  for (unsigned i = 0, size = d_formulas.size(); i < size; i++)
+  {
+    Expr formula = d_formulas[i].exportTo(exprManager, variableMap);
+    formulas.push_back(formula);
+  }
+  return new DefineFunctionRecCommand(funcs, formals, formulas);
+}
+
+Command* DefineFunctionRecCommand::clone() const
+{
+  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas);
+}
+
+std::string DefineFunctionRecCommand::getCommandName() const throw()
+{
+  return "define-fun-rec";
+}
+
 /* class SetUserAttribute */
 
 SetUserAttributeCommand::SetUserAttributeCommand(

@@ -261,7 +261,7 @@ option cegqiSingleInvReconstructConst --cegqi-si-reconstruct-const bool :default
   include constants when reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSingleInvAbort --cegqi-si-abort bool :default false
   abort if synthesis conjecture is not single invocation
-option sygusPbe --sygus-pbe bool :default true
+option sygusPbe --sygus-pbe bool :default true :read-write
   sygus advanced pruning based on examples
 option sygusQePreproc --sygus-qe-preproc bool :default false
   use quantifier elimination as a preprocessing step for sygus
@@ -311,6 +311,8 @@ option cbqiAll --cbqi-all bool :read-write :default false
  apply counterexample-based instantiation to all quantified formulas
 option cbqiMultiInst --cbqi-multi-inst bool :read-write :default false
  when applicable, do multi instantiations per quantifier per round in counterexample-based quantifier instantiation
+option cbqiRepeatLit --cbqi-repeat-lit bool :read-write :default false
+ solve literals more than once in counterexample-based quantifier instantiation
  
 # CEGQI for arithmetic
 option cbqiUseInfInt --cbqi-use-inf-int bool :read-write :default false
@@ -323,7 +325,7 @@ option cbqiMinBounds --cbqi-min-bounds bool :default false
   use minimally constrained lower/upper bound for counterexample-based quantifier instantiation
 option cbqiRoundUpLowerLia --cbqi-round-up-lia bool :default false
   round up integer lower bounds in substitutions for counterexample-based quantifier instantiation
-option cbqiMidpoint --cbqi-midpoint bool :default false
+option cbqiMidpoint --cbqi-midpoint bool :read-write :default false
   choose substitutions based on midpoints of lower and upper bounds for counterexample-based quantifier instantiation
 option cbqiNopt --cbqi-nopt bool :default true
   non-optimal bounds for counterexample-based quantifier instantiation
@@ -349,6 +351,8 @@ option cbqiBvIneqMode --cbqi-bv-ineq=MODE CVC4::theory::quantifiers::CbqiBvIneqM
  choose mode for handling bit-vector inequalities with counterexample-guided instantiation
 option cbqiBvRmExtract --cbqi-bv-rm-extract bool :read-write :default true 
   replaces extract terms with variables for counterexample-guided instantiation for bit-vectors
+option cbqiBvLinearize --cbqi-bv-linear bool :read-write :default true
+  linearize adder chains for variables
  
 ### local theory extensions options 
 

@@ -27,33 +27,23 @@
 namespace CVC4 {
 namespace prop {
 
-class BVMinisatSatSolver : public BVSatSolverInterface, public context::ContextNotifyObj {
-
-private:
-
-  class MinisatNotify : public BVMinisat::Notify {
+class BVMinisatSatSolver : public BVSatSolverInterface,
+                           public context::ContextNotifyObj
+{
+ private:
+  class MinisatNotify : public BVMinisat::Notify
+  {
     BVSatSolverInterface::Notify* d_notify;
-  public:
-    MinisatNotify(BVSatSolverInterface::Notify* notify)
-    : d_notify(notify)
-    {}
-    bool notify(BVMinisat::Lit lit) {
+
+   public:
+    MinisatNotify(BVSatSolverInterface::Notify* notify) : d_notify(notify) {}
+    bool notify(BVMinisat::Lit lit)
+    {
       return d_notify->notify(toSatLiteral(lit));
     }
-    void notify(BVMinisat::vec<BVMinisat::Lit>& clause) {
-      SatClause satClause;
-      for (int i = 0; i < clause.size(); ++i) {
-        satClause.push_back(toSatLiteral(clause[i])); 
-      }
-      d_notify->notify(satClause);
-    }
-
-    void spendResource(unsigned ammount) {
-      d_notify->spendResource(ammount);
-    }
-    void safePoint(unsigned ammount) {
-      d_notify->safePoint(ammount);
-    }
+    void notify(BVMinisat::vec<BVMinisat::Lit>& clause);
+    void spendResource(unsigned amount) { d_notify->spendResource(amount); }
+    void safePoint(unsigned amount) { d_notify->safePoint(amount); }
   };
 
   BVMinisat::SimpSolver* d_minisat;
@@ -137,7 +127,7 @@ private:
     ReferenceStat<uint64_t> d_statTotLiterals;
     ReferenceStat<int> d_statEliminatedVars;
     IntStat d_statCallsToSolve;
-    BackedStat<double> d_statSolveTime;
+    TimerStat d_statSolveTime;
     bool d_registerStats;
     Statistics(StatisticsRegistry* registry, const std::string& prefix);
     ~Statistics();

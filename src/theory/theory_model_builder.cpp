@@ -286,11 +286,15 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
 
   // mark as built
   tm->d_modelBuilt = true;
+  tm->d_modelBuiltSuccess = false;
 
   // Collect model info from the theories
   Trace("model-builder") << "TheoryEngineModelBuilder: Collect model info..."
                          << std::endl;
-  d_te->collectModelInfo(tm);
+  if (!d_te->collectModelInfo(tm))
+  {
+    return false;
+  }
 
   // model-builder specific initialization
   if (!preProcessBuildModel(tm))
@@ -799,6 +803,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   }
   else
   {
+    tm->d_modelBuiltSuccess = true;
     return true;
   }
 }

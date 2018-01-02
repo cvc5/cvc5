@@ -179,7 +179,7 @@ class NonlinearExtension {
    * TheoryArith.
    */
   int checkLastCall(const std::vector<Node>& assertions,
-                    const std::set<Node>& false_asserts,
+                    const std::vector<Node>& false_asserts,
                     const std::vector<Node>& xts);
   //---------------------------------------term utilities
   static bool isArithKind(Kind k);
@@ -228,10 +228,48 @@ class NonlinearExtension {
   void assignOrderIds(std::vector<Node>& vars, NodeMultiset& d_order,
                       unsigned orderType);
 
-  /** Returns the subset of assertions whose concrete values are
-   * false in the model.
+  /** check model
+   *
+   * Returns the subset of assertions whose concrete values we cannot show are
+   * true in the current model. Notice that we typically cannot compute concrete
+   * values for assertions involving transcendental functions. Any assertion
+   * whose model value cannot be computed is included in the return value of
+   * this function.
    */
-  std::set<Node> getFalseInModel(const std::vector<Node>& assertions);
+  std::vector<Node> checkModel(const std::vector<Node>& assertions);
+
+  /** check model for transcendental functions
+   *
+   * Checks the current model using error bounds on the Taylor approximation.
+   *
+   * If this function returns true, then all assertions in the input argument
+   * "assertions" are satisfied for all interpretations of transcendental
+   * functions within their error bounds (as stored in d_tf_check_model_bounds).
+   *
+   * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
+   * "Detecting Satisfiable Formulas".
+   */
+  bool checkModelTf(const std::vector<Node>& assertions);
+
+  /** simple check model for transcendental functions for literal
+   *
+   * This method returns true if literal is true for all interpretations of
+   * transcendental functions within their error bounds (as stored
+   * in d_tf_check_model_bounds). This is determined by a simple under/over
+   * approximation of the value of sum of (linear) monomials. For example,
+   * if we determine that .8 < sin( 1 ) < .9, this function will return
+   * true for literals like:
+   *   2.0*sin( 1 ) > 1.5
+   *   -1.0*sin( 1 ) < -0.79
+   *   -1.0*sin( 1 ) > -0.91
+   * It will return false for literals like:
+   *   sin( 1 ) > 0.85
+   * It will also return false for literals like:
+   *   -0.3*sin( 1 )*sin( 2 ) + sin( 2 ) > .7
+   *   sin( sin( 1 ) ) > .5
+   * since the bounds on these terms cannot quickly be determined.
+   */
+  bool simpleCheckModelTfLit(Node lit);
 
   /** In the following functions, status states a relationship
   * between two arithmetic terms, where:
@@ -438,8 +476,15 @@ private:
    * where r is the current representative of x
    * in the equality engine assoiated with this class.
    */
-  std::map< Kind, std::map< Node, Node > > d_tf_rep_map;  
-  
+  std::map<Kind, std::map<Node, Node> > d_tf_rep_map;
+
+  /** bounds for transcendental functions
+   *
+   * For each transcendental function application t, if this stores the pair
+   * (c_l, c_u) then the model M is such that c_l <= M( t ) <= c_u.
+   */
+  std::map<Node, std::pair<Node, Node> > d_tf_check_model_bounds;
+
   // factor skolems
   std::map< Node, Node > d_factor_skolem;
   Node getFactorSkolem( Node n, std::vector< Node >& lemmas );
@@ -488,6 +533,15 @@ private:
       d_taylor_sum;
   std::unordered_map<Node, std::unordered_map<unsigned, Node>, NodeHashFunction>
       d_taylor_rem;
+
+  /** taylor degree
+   *
+   * Indicates that the degree of the polynomials in the Taylor approximation of
+   * all transcendental functions is 2*d_taylor_degree. This value is set
+   * initially to options::nlExtTfTaylorDegree() and may be incremented
+   * if the option options::nlExtTfIncPrecision() is enabled.
+   */
+  unsigned d_taylor_degree;
 
   /** concavity region for transcendental functions
   *
@@ -614,8 +668,8 @@ private:
   *   ...where (y > z + w) and x*y are a constraint and term
   *      that occur in the current context.
   */
-  std::vector<Node> checkMonomialInferBounds( std::vector<Node>& nt_lemmas,
-                                              const std::set<Node>& false_asserts );
+  std::vector<Node> checkMonomialInferBounds(
+      std::vector<Node>& nt_lemmas, const std::vector<Node>& false_asserts);
 
   /** check factoring
   *
@@ -629,7 +683,7 @@ private:
   *   ...where k is fresh and x*z + y*z > t is a
   *      constraint that occurs in the current context.
   */
-  std::vector<Node> checkFactoring( const std::set<Node>& false_asserts );
+  std::vector<Node> checkFactoring(const std::vector<Node>& false_asserts);
 
   /** check monomial infer resolution bounds
   *

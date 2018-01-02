@@ -447,8 +447,8 @@ void TheoryStrings::presolve() {
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
 
-
-void TheoryStrings::collectModelInfo( TheoryModel* m ) {
+bool TheoryStrings::collectModelInfo(TheoryModel* m)
+{
   Trace("strings-model") << "TheoryStrings : Collect model info" << std::endl;
   Trace("strings-model") << "TheoryStrings : assertEqualityEngine." << std::endl;
   
@@ -458,9 +458,12 @@ void TheoryStrings::collectModelInfo( TheoryModel* m ) {
   // Compute terms appearing in assertions and shared terms
   //computeRelevantTerms(termSet);
   //m->assertEqualityEngine( &d_equalityEngine, &termSet );
-  
-  m->assertEqualityEngine( &d_equalityEngine );
-  
+
+  if (!m->assertEqualityEngine(&d_equalityEngine))
+  {
+    return false;
+  }
+
   // Generate model
   std::vector< Node > nodes;
   getEquivalenceClasses( nodes );
@@ -554,7 +557,10 @@ void TheoryStrings::collectModelInfo( TheoryModel* m ) {
         ++sel;
         Trace("strings-model") << "*** Assigned constant " << c << " for " << pure_eq[j] << std::endl;
         processed[pure_eq[j]] = c;
-        m->assertEquality( pure_eq[j], c, true );
+        if (!m->assertEquality(pure_eq[j], c, true))
+        {
+          return false;
+        }
       }
     }
   }
@@ -583,11 +589,15 @@ void TheoryStrings::collectModelInfo( TheoryModel* m ) {
       Assert( cc.getKind()==kind::CONST_STRING );
       Trace("strings-model") << "*** Determined constant " << cc << " for " << nodes[i] << std::endl;
       processed[nodes[i]] = cc;
-      m->assertEquality( nodes[i], cc, true );
+      if (!m->assertEquality(nodes[i], cc, true))
+      {
+        return false;
+      }
     }
   }
   //Trace("strings-model") << "String Model : Assigned." << std::endl;
   Trace("strings-model") << "String Model : Finished." << std::endl;
+  return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////
