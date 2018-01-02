@@ -752,13 +752,14 @@ Node RewriteRule<NotUle>::apply(TNode node) {
  */
 
 template<> inline
-bool RewriteRule<MultPow2>::applies(TNode node) {
+bool RewriteRule<MultPow2>::applies(TNode node)
+{
   if (node.getKind() != kind::BITVECTOR_MULT)
     return false;
 
-  for(unsigned i = 0; i < node.getNumChildren(); ++i) {
+  for(const Node& cn : node ){
     bool cIsNeg = false;
-    if (utils::isPow2Const(node[i], cIsNeg))
+    if (utils::isPow2Const(cn, cIsNeg))
     {
       return true; 
     }
@@ -767,16 +768,17 @@ bool RewriteRule<MultPow2>::applies(TNode node) {
 }
 
 template<> inline
-Node RewriteRule<MultPow2>::apply(TNode node) {
+Node RewriteRule<MultPow2>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<MultPow2>(" << node << ")" << std::endl;
 
   unsigned size = utils::getSize(node);
   std::vector<Node>  children;
   unsigned exponent = 0;
   bool isNeg = false;
-  for(unsigned i = 0; i < node.getNumChildren(); ++i) {
+  for(const Node& cn : node ){
     bool cIsNeg = false;
-    unsigned exp = utils::isPow2Const(node[i], cIsNeg);
+    unsigned exp = utils::isPow2Const(cn, cIsNeg);
     if (exp) {
       exponent += exp - 1;
       if (cIsNeg)
@@ -785,7 +787,7 @@ Node RewriteRule<MultPow2>::apply(TNode node) {
       }
     }
     else {
-      children.push_back(node[i]); 
+      children.push_back(cn); 
     }
   }
 
@@ -903,7 +905,8 @@ Node RewriteRule<NegIdemp>::apply(TNode node) {
  */
 
 template<> inline
-bool RewriteRule<UdivPow2>::applies(TNode node) {
+bool RewriteRule<UdivPow2>::applies(TNode node)
+{
   bool isNeg = false;
   if (node.getKind() == kind::BITVECTOR_UDIV_TOTAL
       && utils::isPow2Const(node[1], isNeg))
@@ -914,14 +917,16 @@ bool RewriteRule<UdivPow2>::applies(TNode node) {
 }
 
 template<> inline
-Node RewriteRule<UdivPow2>::apply(TNode node) {
+Node RewriteRule<UdivPow2>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<UdivPow2>(" << node << ")" << std::endl;
   unsigned size = utils::getSize(node);
   Node a = node[0];
   bool isNeg = false;
   unsigned power = utils::isPow2Const(node[1], isNeg) - 1;
   Node ret;
-  if (power == 0) {
+  if (power == 0) 
+  {
     ret = a;
   }
   else
@@ -981,7 +986,8 @@ inline Node RewriteRule<UdivOne>::apply(TNode node) {
  */
 
 template<> inline
-bool RewriteRule<UremPow2>::applies(TNode node) {
+bool RewriteRule<UremPow2>::applies(TNode node)
+{
   bool isNeg;
   if (node.getKind() == kind::BITVECTOR_UREM_TOTAL
       && utils::isPow2Const(node[1], isNeg))
@@ -992,19 +998,21 @@ bool RewriteRule<UremPow2>::applies(TNode node) {
 }
 
 template<> inline
-Node RewriteRule<UremPow2>::apply(TNode node) {
+Node RewriteRule<UremPow2>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<UremPow2>(" << node << ")" << std::endl;
   TNode a = node[0];
   bool isNeg = false;
   unsigned power = utils::isPow2Const(node[1], isNeg) - 1;
   Node ret;
-  if (power == 0) {
+  if (power == 0)
+  {
     ret = utils::mkConst(utils::getSize(node), 0);
   }
   else
   {
     Node extract = utils::mkExtract(a, power - 1, 0);
-    Node zeros = utils::mkConst(utils::getSize(node) - power, 0);
+    Node zeros = utils::mkZero(utils::getSize(node) - power);
     ret = utils::mkNode(kind::BITVECTOR_CONCAT, zeros, extract);
   }
   return ret;
