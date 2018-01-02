@@ -198,6 +198,7 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
 
 Node TheoryStringsRewriter::rewriteEquality(Node node)
 {
+  Assert(node.getKind() == kind::EQUAL);
   if (node[0] == node[1])
   {
     return NodeManager::currentNM()->mkConst(true);
@@ -212,20 +213,23 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
     Node ctn = NodeManager::currentNM()->mkNode(
         kind::STRING_STRCTN, node[r], node[1 - r]);
     // must call rewrite contains directly to avoid infinite loop
-    // we do a fix point since we may rewrite contains terms to simpler 
+    // we do a fix point since we may rewrite contains terms to simpler
     // contains terms.
     Node prev;
     do
     {
       prev = ctn;
       ctn = rewriteContains(ctn);
-    }while( prev!=ctn && ctn.getKind()==kind::STRING_STRCTN );
+    } while (prev != ctn && ctn.getKind() == kind::STRING_STRCTN);
     if (ctn.isConst())
     {
-      if(!ctn.getConst<bool>()){
-        return returnRewrite(node,ctn,"eq-nctn");
-      }else{
-        //definite contains but not syntactically equal
+      if (!ctn.getConst<bool>())
+      {
+        return returnRewrite(node, ctn, "eq-nctn");
+      }
+      else
+      {
+        // definitely contains but not syntactically equal
         // We may be able to simplify, e.g.
         //  str.++( x, "a" ) == "a"  ----> x = ""
       }
@@ -240,14 +244,11 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
 
   // check if the prefix, suffix mismatches
   //   For example, str.++( x, "a", y ) == str.++( x, "bc", z ) ---> false
+  unsigned minsize = std::min(c[0].size(), c[1].size());
   for (unsigned r = 0; r < 2; r++)
   {
-    for (unsigned i = 0, size = c[0].size(); i < size; i++)
+    for (unsigned i = 0; i < minsize; i++)
     {
-      if (i == c[1].size())
-      {
-        break;
-      }
       unsigned index1 = r == 0 ? i : (c[0].size() - 1) - i;
       unsigned index2 = r == 0 ? i : (c[1].size() - 1) - i;
       if (c[0][index1].isConst() && c[1][index2].isConst())
@@ -260,7 +261,7 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
         if (!isSameFix)
         {
           Node ret = NodeManager::currentNM()->mkConst(false);
-          return returnRewrite(node,ret,"eq-nfix");
+          return returnRewrite(node, ret, "eq-nfix");
         }
       }
       if (c[0][index1] != c[1][index2])
@@ -286,6 +287,7 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
 //  str.substr( x, n1, n2+n3 )
 Node TheoryStringsRewriter::rewriteConcat(Node node)
 {
+  Assert(node.getKind() == kind::STRING_CONCAT);
   Trace("strings-prerewrite") << "Strings::rewriteConcat start " << node
                               << std::endl;
   Node retNode = node;
@@ -1397,6 +1399,7 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
 
 Node TheoryStringsRewriter::rewriteSubstr(Node node)
 {
+  Assert(node.getKind() == kind::STRING_SUBSTR);
   if (node[0].isConst())
   {
     if (node[0].getConst<String>().size() == 0)
@@ -1612,6 +1615,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
 }
 
 Node TheoryStringsRewriter::rewriteContains( Node node ) {
+  Assert(node.getKind() == kind::STRING_STRCTN);
   if( node[0] == node[1] ){
     Node ret = NodeManager::currentNM()->mkConst(true);
     return returnRewrite(node, ret, "ctn-eq");
@@ -1676,61 +1680,72 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     Node ret = NodeManager::currentNM()->mkConst(false);
     return returnRewrite(node, ret, "ctn-len-ineq");
   }
-  
+
   // multi-set reasoning
   //   For example, contains( str.++( x, "b" ), str.++( "a", x ) ) ---> false
   //   since the number of a's in the second argument is greater than the number
   //   of a's in the first argument
-  std::map< Node, unsigned > num_nconst[2];
-  std::map< Node, unsigned > num_const[2];
-  for( unsigned j=0; j<2; j++ ){
-    std::vector< Node >& ncj = j==0 ? nc1 : nc2;
-    for( const Node& cc : ncj ){
-      if( cc.isConst() ){
+  std::map<Node, unsigned> num_nconst[2];
+  std::map<Node, unsigned> num_const[2];
+  for (unsigned j = 0; j < 2; j++)
+  {
+    std::vector<Node>& ncj = j == 0 ? nc1 : nc2;
+    for (const Node& cc : ncj)
+    {
+      if (cc.isConst())
+      {
         num_const[j][cc]++;
-      }else{
+      }
+      else
+      {
         num_nconst[j][cc]++;
       }
     }
   }
   bool ms_success = true;
-  for( std::pair< const Node, unsigned >& nncp : num_nconst[0] )
+  for (std::pair<const Node, unsigned>& nncp : num_nconst[0])
   {
-    if( nncp.second>num_nconst[1][nncp.first] ){
+    if (nncp.second > num_nconst[1][nncp.first])
+    {
       ms_success = false;
       break;
     }
   }
-  if( ms_success ){
+  if (ms_success)
+  {
     // count the number of constant characters in the first argument
-    std::map< Node, unsigned > count_const[2];
-    std::vector< Node > chars;
-    for( unsigned j=0; j<2; j++ ){
-      for( std::pair< const Node, unsigned >& ncp : num_const[j] )
+    std::map<Node, unsigned> count_const[2];
+    std::vector<Node> chars;
+    for (unsigned j = 0; j < 2; j++)
+    {
+      for (std::pair<const Node, unsigned>& ncp : num_const[j])
       {
         Node cn = ncp.first;
         Assert(cn.isConst());
+        std::vector<unsigned> cc_vec;
         const std::vector<unsigned>& cvec = cn.getConst<String>().getVec();
-        for( unsigned i=0, size = cvec.size(); i<size; i++ )
+        for (unsigned i = 0, size = cvec.size(); i < size; i++)
         {
           // make the character
-          std::vector< unsigned > cc_vec;
-          cc_vec.insert( cc_vec.end(), cvec.begin()+i, cvec.begin()+i+1 );
-          Node ch = NodeManager::currentNM()->mkConst( String( cc_vec ) );
+          cc_vec.clear();
+          cc_vec.insert(cc_vec.end(), cvec.begin() + i, cvec.begin() + i + 1);
+          Node ch = NodeManager::currentNM()->mkConst(String(cc_vec));
           count_const[j][ch] += ncp.second;
-          if( std::find( chars.begin(), chars.end(), ch )==chars.end() ){
-            chars.push_back( ch );
+          if (std::find(chars.begin(), chars.end(), ch) == chars.end())
+          {
+            chars.push_back(ch);
           }
         }
       }
     }
     Trace("strings-rewrite-multiset") << "For " << node << " : " << std::endl;
-    for( Node& ch : chars )
+    for (const Node& ch : chars)
     {
       Trace("strings-rewrite-multiset") << "  # occurrences of substring ";
       Trace("strings-rewrite-multiset") << ch << " in arguments is ";
-      Trace("strings-rewrite-multiset") << count_const[0][ch] << " / " << count_const[1][ch] << std::endl;
-      if( count_const[0][ch]<count_const[1][ch] )
+      Trace("strings-rewrite-multiset") << count_const[0][ch] << " / "
+                                        << count_const[1][ch] << std::endl;
+      if (count_const[0][ch] < count_const[1][ch])
       {
         Node ret = NodeManager::currentNM()->mkConst(false);
         return returnRewrite(node, ret, "ctn-mset-nss");
@@ -1745,7 +1760,6 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   }
   // TODO (#1180): abstract interpretation with multi-set domain
   // to show first argument is a strict subset of second argument
-
 
   if (checkEntailArithEq(len_n1, len_n2))
   {
@@ -1802,6 +1816,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
 }
 
 Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
+  Assert(node.getKind() == kind::STRING_STRIDOF);
   std::vector< Node > children;
   getConcat( node[0], children );
   //std::vector< Node > children1;
@@ -1907,6 +1922,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
 }
 
 Node TheoryStringsRewriter::rewriteReplace( Node node ) {
+  Assert(node.getKind() == kind::STRING_STRREPL);
   if( node[1]==node[2] ){
     return returnRewrite(node, node[0], "rpl-id");
   }
