@@ -29,7 +29,7 @@ namespace quantifiers {
  * This class updates a set of assertions to be equivalent to the negation of
  * these assertions. In detail, if assertions is:
  *    F1, ..., Fn
- * then we update this to vector to:
+ * then we update this vector to:
  *    forall x1...xm. ~( F1 ^ ... ^ Fn ), true, ..., true
  * where x1...xm are the free variables of F1...Fn.
  */

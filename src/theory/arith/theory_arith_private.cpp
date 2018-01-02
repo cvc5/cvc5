@@ -4892,9 +4892,9 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
                          NodeManager::SKOLEM_EXACT_NAME);
         logicRequest.widenLogic(THEORY_UF);
       }
-      Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+      Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
       Node divByZeroNum = nm->mkNode(kind::APPLY_UF, d_divByZero, num);
-      ret = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, ret);
+      ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
     }
     return ret;
     break;
@@ -4915,9 +4915,9 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
             NodeManager::SKOLEM_EXACT_NAME);
         logicRequest.widenLogic(THEORY_UF);
       }
-      Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+      Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
       Node intDivByZeroNum = nm->mkNode(kind::APPLY_UF, d_intDivByZero, num);
-      ret = nm->mkNode(kind::ITE, den_eq_0, intDivByZeroNum, ret);
+      ret = nm->mkNode(kind::ITE, denEq0, intDivByZeroNum, ret);
     }
     return ret;
     break;
@@ -4938,9 +4938,9 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
             NodeManager::SKOLEM_EXACT_NAME);
         logicRequest.widenLogic(THEORY_UF);
       }
-      Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+      Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
       Node modZeroNum = nm->mkNode(kind::APPLY_UF, d_modZero, num);
-      ret = nm->mkNode(kind::ITE, den_eq_0, modZeroNum, ret);
+      ret = nm->mkNode(kind::ITE, denEq0, modZeroNum, ret);
     }
     return ret;
     break;

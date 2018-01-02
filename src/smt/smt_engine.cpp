@@ -2079,26 +2079,28 @@ void SmtEngine::setDefaults() {
   }
 
   // Non-linear arithmetic does not support models unless nlExt is enabled
-  if (d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear() && !options::nlExt() ) {
+  if ( (d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear() && !options::nlExt() ) ||
+       options::globalNegate() ) {
+    std::string reason = options::globalNegate() ? "--global-negate" : "nonlinear arithmetic";
     if (options::produceModels()) {
       if(options::produceModels.wasSetByUser()) {
-        throw OptionException("produce-model not supported with nonlinear arith");
+        throw OptionException(std::string("produce-model not supported with " + reason));
       }
-      Warning() << "SmtEngine: turning off produce-models because unsupported for nonlinear arith" << endl;
+      Warning() << "SmtEngine: turning off produce-models because unsupported for " << reason << endl;
       setOption("produce-models", SExpr("false"));
     }
     if (options::produceAssignments()) {
       if(options::produceAssignments.wasSetByUser()) {
-        throw OptionException("produce-assignments not supported with nonlinear arith");
+        throw OptionException(std::string("produce-assignments not supported with " + reason));
       }
-      Warning() << "SmtEngine: turning off produce-assignments because unsupported for nonlinear arith" << endl;
+      Warning() << "SmtEngine: turning off produce-assignments because unsupported for " << reason << endl;
       setOption("produce-assignments", SExpr("false"));
     }
     if (options::checkModels()) {
       if(options::checkModels.wasSetByUser()) {
-        throw OptionException("check-models not supported with nonlinear arith");
+        throw OptionException(std::string("check-models not supported with " + reason));
       }
-      Warning() << "SmtEngine: turning off check-models because unsupported for nonlinear arith" << endl;
+      Warning() << "SmtEngine: turning off check-models because unsupported for " << reason << endl;
       setOption("check-models", SExpr("false"));
     }
   }
