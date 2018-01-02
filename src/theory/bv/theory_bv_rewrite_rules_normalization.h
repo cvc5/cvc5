@@ -410,15 +410,11 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
     }
   }
   BitVector oValue = BitVector(size, static_cast<unsigned>(1));
-  Node negOne = utils::mkConst(-oValue);
-  BitVector noValue = negOne.getConst<BitVector>();
+  BitVector noValue = utils::mkBitVectorOnes(size);
 
   if (children.empty())
   {
-    if (isNeg)
-    {
-      constant = constant * noValue;
-    }
+    Assert( !isNeg );
     return utils::mkConst(constant);
   }
 
@@ -433,7 +429,7 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
     if (isNeg)
     {
       isNeg = !isNeg;
-      constant = constant * noValue;
+      constant = -constant;
     }
     children.push_back(utils::mkConst(constant));
   }
