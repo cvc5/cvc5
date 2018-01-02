@@ -1722,11 +1722,12 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       {
         Node cn = ncp.first;
         Assert(cn.isConst());
+        std::vector<unsigned> cc_vec;
         const std::vector<unsigned>& cvec = cn.getConst<String>().getVec();
         for (unsigned i = 0, size = cvec.size(); i < size; i++)
         {
           // make the character
-          std::vector<unsigned> cc_vec;
+          cc_vec.clear();
           cc_vec.insert(cc_vec.end(), cvec.begin() + i, cvec.begin() + i + 1);
           Node ch = NodeManager::currentNM()->mkConst(String(cc_vec));
           count_const[j][ch] += ncp.second;
