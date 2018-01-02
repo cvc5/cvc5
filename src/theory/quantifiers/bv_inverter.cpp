@@ -363,7 +363,8 @@ static Node getScBvUrem(bool pol,
                         Node t)
 {
   Assert(k == BITVECTOR_UREM_TOTAL);
-  Assert (litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT);
+  Assert (litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+          || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl;
@@ -472,7 +473,7 @@ static Node getScBvUrem(bool pol,
       }
     }
   }
-  else  /* litk == BITVECTOR_SLT  */
+  else if (litk == BITVECTOR_SLT)
   {
     if (idx == 0)
     {
@@ -530,6 +531,10 @@ static Node getScBvUrem(bool pol,
         return Node::null();
       }
     }
+  }
+  else
+  {
+    return Node::null();
   }
 
   Node scr =
@@ -644,7 +649,8 @@ static Node getScBvAndOr(bool pol,
                          Node t)
 {
   Assert (k == BITVECTOR_AND || k == BITVECTOR_OR);
-  Assert (litk == EQUAL || litk == BITVECTOR_SLT || litk == BITVECTOR_ULT);
+  Assert (litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+          || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl, scr;
@@ -788,7 +794,8 @@ static Node getScBvLshr(bool pol,
                         Node t)
 {
   Assert(k == BITVECTOR_LSHR);
-  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl;
@@ -915,7 +922,7 @@ static Node getScBvLshr(bool pol,
       }
     }
   }
-  else /* litk == BITVECTOR_SLT */
+  else if (litk == BITVECTOR_SLT)
   {
     if (idx == 0)
     {
@@ -966,6 +973,10 @@ static Node getScBvLshr(bool pol,
         scl = sz.impNode(sge1).andNode(sz.notNode().impNode(sge2));
       }
     }
+  }
+  else
+  {
+    return Node::null();
   }
   Node scr =
     nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
@@ -1258,6 +1269,14 @@ Node BvInverter::solveBvLit(Node sv,
 
   Node sv_t = lit[index];
   Node t = lit[1-index];
+  if (litk == BITVECTOR_ULT && index == 1)
+  {
+    litk = BITVECTOR_UGT;
+  }
+  else if (litk == BITVECTOR_SLT && index == 1)
+  {
+    litk = BITVECTOR_SGT;
+  }
 
   /* Bit-vector layer -------------------------------------------- */
 
@@ -1273,7 +1292,7 @@ Node BvInverter::solveBvLit(Node sv,
     {
       t = nm->mkNode(k, t);
     }
-    else if (k == BITVECTOR_CONCAT)
+    else if (k == BITVECTOR_CONCAT && litk == EQUAL)
     {
       /* x = t[upper:lower]
        * where
@@ -1291,7 +1310,7 @@ Node BvInverter::solveBvLit(Node sv,
       }
       t = bv::utils::mkExtract(t, upper, lower);
     }
-    else if (k == BITVECTOR_SIGN_EXTEND)
+    else if (k == BITVECTOR_SIGN_EXTEND && litk == EQUAL)
     {
       t = bv::utils::mkExtract(t, bv::utils::getSize(sv_t[index]) - 1, 0);
     }
@@ -1307,15 +1326,11 @@ Node BvInverter::solveBvLit(Node sv,
       Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
       /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
        *       are commutative (no case split based on index). */
-      if (k == BITVECTOR_PLUS)
+      if (k == BITVECTOR_PLUS && litk == EQUAL)
       {
         t = nm->mkNode(BITVECTOR_SUB, t, s);
       }
-      else if (k == BITVECTOR_SUB)
-      {
-        t = nm->mkNode(BITVECTOR_PLUS, t, s);
-      }
-      else if (k == BITVECTOR_XOR)
+      else if (k == BITVECTOR_XOR && litk == EQUAL)
       {
         t = nm->mkNode(BITVECTOR_XOR, t, s);
       }
