@@ -80,7 +80,8 @@ void GlobalNegate::simplify(std::vector<Node>& assertions)
       bvs.push_back(bv);
     }
 
-    body = body.substitute(free_vars.begin(), free_vars.end(), bvs.begin(), bvs.end());
+    body = body.substitute(
+        free_vars.begin(), free_vars.end(), bvs.begin(), bvs.end());
 
     Node bvl = nm->mkNode(BOUND_VAR_LIST, bvs);
 
