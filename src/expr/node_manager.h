@@ -391,10 +391,11 @@ public:
   }
 
   /** Get this node manager's resource manager */
-  ResourceManager* getResourceManager() throw() { return d_resourceManager; }
+  ResourceManager* getResourceManager() { return d_resourceManager; }
 
   /** Get this node manager's statistics registry */
-  StatisticsRegistry* getStatisticsRegistry() const throw() {
+  StatisticsRegistry* getStatisticsRegistry() const
+  {
     return d_statisticsRegistry;
   }
 
