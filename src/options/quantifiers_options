@@ -58,6 +58,8 @@ option elimExtArithQuant --elim-ext-arith-quant bool :read-write :default true
  eliminate extended arithmetic symbols in quantified formulas
 option condRewriteQuant --cond-rewrite-quant bool :default true
  conditional rewriting of quantified formulas
+option globalNegate --global-negate bool :read-write :default false
+ do global negation of input formula
  
 #### E-matching options
  

@@ -101,7 +101,6 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
            || k == BITVECTOR_OR
            || k == BITVECTOR_LSHR
            || k == BITVECTOR_ASHR
-
            || k == BITVECTOR_SHL);
 
     Node sc = getsc(pol, litk, k, idx, d_sk, d_s, d_t);
