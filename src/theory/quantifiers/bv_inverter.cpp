@@ -336,7 +336,7 @@ static Node getScBvMult(bool pol,
        *
        * is equivalent to:
        * ctz(t) >= ctz(s)
-       * <->
+       * ->
        * (or
        *   (= t (_ bv0 8))
        *   (and
