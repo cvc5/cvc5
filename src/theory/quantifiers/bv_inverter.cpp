@@ -1940,7 +1940,7 @@ Node BvInverter::solveBvLit(Node sv,
       {
         t = nm->mkNode(BITVECTOR_SUB, t, s);
       }
-      if (k == BITVECTOR_XOR && litk == EQUAL)
+      else if (k == BITVECTOR_XOR && litk == EQUAL)
       {
         t = nm->mkNode(BITVECTOR_XOR, t, s);
       }
