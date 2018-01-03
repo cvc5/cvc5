@@ -390,6 +390,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     runTest(false, BITVECTOR_ULT, BITVECTOR_MULT, 1, getScBvMult);
   }
 
+  void testGetScBvMultUgtTrue0()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_MULT, 0, getScBvMult);
+  }
+
+  void testGetScBvMultUgtTrue1()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_MULT, 1, getScBvMult);
+  }
+
+  void testGetScBvMultUgtFalse0()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_MULT, 0, getScBvMult);
+  }
+
+  void testGetScBvMultUgtFalse1()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_MULT, 1, getScBvMult);
+  }
+
   void testGetScBvMultSltTrue0()
   {
     runTest(true, BITVECTOR_SLT, BITVECTOR_MULT, 0, getScBvMult);
@@ -408,6 +428,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvMultSltFalse1()
   {
     runTest(false, BITVECTOR_SLT, BITVECTOR_MULT, 1, getScBvMult);
+  }
+
+  void testGetScBvMultSgtTrue0()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_MULT, 0, getScBvMult);
+  }
+
+  void testGetScBvMultSgtTrue1()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_MULT, 1, getScBvMult);
+  }
+
+  void testGetScBvMultSgtFalse0()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_MULT, 0, getScBvMult);
+  }
+
+  void testGetScBvMultSgtFalse1()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_MULT, 1, getScBvMult);
   }
 
   /* Urem */
