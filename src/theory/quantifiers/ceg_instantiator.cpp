@@ -335,6 +335,10 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
                 {
                   return true;
                 }
+                // Do not consider more than one equal term,
+                // this helps non-monotonic strategies that may encounter
+                // duplicate instantiations.
+                break;
               }
             }
           }
