@@ -819,7 +819,7 @@ static Node getScBvUdiv(bool pol,
         Node min = bv::utils::mkConst(bv_min);
         Node sle = nm->mkNode(BITVECTOR_SLE, t, z);
         Node div2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, min, s);
-      Node slt = nm->mkNode(BITVECTOR_SLT, div2, t);
+        Node slt = nm->mkNode(BITVECTOR_SLT, div2, t);
         Node o2 = nm->mkNode(IMPLIES, sle, slt);
         scl = nm->mkNode(OR, o1, o2);
       }
