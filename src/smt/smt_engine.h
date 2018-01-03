@@ -241,6 +241,11 @@ class CVC4_PUBLIC SmtEngine {
    */
   bool d_earlyTheoryPP;
 
+  /*
+   * Whether we did a global negation of the formula.
+   */
+  bool d_globalNegation;
+
   /**
    * Most recent result of last checkSat/query or (set-info :status).
    */

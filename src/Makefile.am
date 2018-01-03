@@ -401,6 +401,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/fun_def_engine.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_process.h \
+	theory/quantifiers/global_negate.cpp \
+	theory/quantifiers/global_negate.h \
 	theory/quantifiers/ho_trigger.cpp \
 	theory/quantifiers/ho_trigger.h \
 	theory/quantifiers/instantiate.cpp \

@@ -4878,47 +4878,71 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
 
   switch(node.getKind()) {
   case kind::DIVISION: {
-    // partial function: division
-    if(d_divByZero.isNull()) {
-      d_divByZero = nm->mkSkolem("divByZero", nm->mkFunctionType(nm->realType(), nm->realType()),
-                                 "partial real division", NodeManager::SKOLEM_EXACT_NAME);
-      logicRequest.widenLogic(THEORY_UF);
-    }
     TNode num = node[0], den = node[1];
-    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-    Node divByZeroNum = nm->mkNode(kind::APPLY_UF, d_divByZero, num);
-    Node divTotalNumDen = nm->mkNode(kind::DIVISION_TOTAL, num, den);
-    return nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
+    Node ret = nm->mkNode(kind::DIVISION_TOTAL, num, den);
+    if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
+    {
+      // partial function: division
+      if (d_divByZero.isNull())
+      {
+        d_divByZero =
+            nm->mkSkolem("divByZero",
+                         nm->mkFunctionType(nm->realType(), nm->realType()),
+                         "partial real division",
+                         NodeManager::SKOLEM_EXACT_NAME);
+        logicRequest.widenLogic(THEORY_UF);
+      }
+      Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+      Node divByZeroNum = nm->mkNode(kind::APPLY_UF, d_divByZero, num);
+      ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
+    }
+    return ret;
     break;
   }
 
   case kind::INTS_DIVISION: {
     // partial function: integer div
-    if(d_intDivByZero.isNull()) {
-      d_intDivByZero = nm->mkSkolem("intDivByZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
-                                    "partial integer division", NodeManager::SKOLEM_EXACT_NAME);
-      logicRequest.widenLogic(THEORY_UF);
-    }
     TNode num = node[0], den = node[1];
-    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-    Node intDivByZeroNum = nm->mkNode(kind::APPLY_UF, d_intDivByZero, num);
-    Node intDivTotalNumDen = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
-    return nm->mkNode(kind::ITE, den_eq_0, intDivByZeroNum, intDivTotalNumDen);
+    Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
+    if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
+    {
+      if (d_intDivByZero.isNull())
+      {
+        d_intDivByZero = nm->mkSkolem(
+            "intDivByZero",
+            nm->mkFunctionType(nm->integerType(), nm->integerType()),
+            "partial integer division",
+            NodeManager::SKOLEM_EXACT_NAME);
+        logicRequest.widenLogic(THEORY_UF);
+      }
+      Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+      Node intDivByZeroNum = nm->mkNode(kind::APPLY_UF, d_intDivByZero, num);
+      ret = nm->mkNode(kind::ITE, denEq0, intDivByZeroNum, ret);
+    }
+    return ret;
     break;
   }
 
   case kind::INTS_MODULUS: {
     // partial function: mod
-    if(d_modZero.isNull()) {
-      d_modZero = nm->mkSkolem("modZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
-                               "partial modulus", NodeManager::SKOLEM_EXACT_NAME);
-      logicRequest.widenLogic(THEORY_UF);
-    }
     TNode num = node[0], den = node[1];
-    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-    Node modZeroNum = nm->mkNode(kind::APPLY_UF, d_modZero, num);
-    Node modTotalNumDen = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
-    return nm->mkNode(kind::ITE, den_eq_0, modZeroNum, modTotalNumDen);
+    Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
+    if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
+    {
+      if (d_modZero.isNull())
+      {
+        d_modZero = nm->mkSkolem(
+            "modZero",
+            nm->mkFunctionType(nm->integerType(), nm->integerType()),
+            "partial modulus",
+            NodeManager::SKOLEM_EXACT_NAME);
+        logicRequest.widenLogic(THEORY_UF);
+      }
+      Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+      Node modZeroNum = nm->mkNode(kind::APPLY_UF, d_modZero, num);
+      ret = nm->mkNode(kind::ITE, denEq0, modZeroNum, ret);
+    }
+    return ret;
     break;
   }
 
