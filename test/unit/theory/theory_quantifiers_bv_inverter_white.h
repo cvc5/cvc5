@@ -43,27 +43,45 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
 
   void runTestPred(bool pol,
                    Kind k,
-                   unsigned idx,
-                   Node (*getsc)(bool, Kind, unsigned, Node, Node))
+                   Node (*getsc)(bool, Kind, Node, Node))
   {
-    Assert(k == BITVECTOR_ULT || k == BITVECTOR_SLT || k == EQUAL);
+    Assert(k == BITVECTOR_ULT || k == BITVECTOR_SLT || k == EQUAL
+           || k == BITVECTOR_UGT || k == BITVECTOR_SGT);
     Assert(k != EQUAL || pol == false);
 
-    Node sc = getsc(pol, k, idx, d_sk, d_t);
+    Node sc = getsc(pol, k, d_sk, d_t);
     Kind ksc = sc.getKind();
     TS_ASSERT((k == BITVECTOR_ULT && pol == false)
            || (k == BITVECTOR_SLT && pol == false)
+           || (k == BITVECTOR_UGT && pol == false)
+           || (k == BITVECTOR_SGT && pol == false)
            || ksc == IMPLIES);
     Node scl = ksc == IMPLIES ? sc[0] : bv::utils::mkTrue();
     if (!pol)
     {
-      k = k == BITVECTOR_ULT
-        ? BITVECTOR_UGE
-        : (k == BITVECTOR_SLT ? BITVECTOR_SGE : DISTINCT);
+      if (k == BITVECTOR_ULT)
+      {
+        k = BITVECTOR_UGE;
+      }
+      else if (k == BITVECTOR_UGT)
+      {
+        k = BITVECTOR_ULE;
+      }
+      else if (k == BITVECTOR_SLT)
+      {
+        k = BITVECTOR_SGE;
+      }
+      else if (k == BITVECTOR_SGT)
+      {
+        k = BITVECTOR_ULE;
+      }
+      else
+      {
+        Assert(k == EQUAL);
+        k = DISTINCT;
+      }
     }
-    Node body = idx == 0
-      ? d_nm->mkNode(k, d_x, d_t)
-      : d_nm->mkNode(k, d_t, d_x);
+    Node body = d_nm->mkNode(k, d_x, d_t);
     Node scr = d_nm->mkNode(EXISTS, d_bvarlist, body);
     Expr a = d_nm->mkNode(DISTINCT, scl, scr).toExpr();
     Result res = d_smt->checkSat(a);
@@ -83,7 +101,6 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
            || k == BITVECTOR_OR
            || k == BITVECTOR_LSHR
            || k == BITVECTOR_ASHR
-
            || k == BITVECTOR_SHL);
 
     Node sc = getsc(pol, litk, k, idx, d_sk, d_s, d_t);
@@ -92,7 +109,8 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     TS_ASSERT (litk != EQUAL || sc != Node::null());
     if (sc.isNull())
     {
-      TS_ASSERT (litk == BITVECTOR_ULT || litk  == BITVECTOR_SLT);
+      TS_ASSERT (litk == BITVECTOR_ULT || litk  == BITVECTOR_SLT
+                 || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
       return;
     }
     Kind ksc = sc.getKind();
@@ -147,46 +165,46 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     delete d_em;
   }
 
-  /* Generic sidec conditions for LT ---------------------------------------  */
+  /* Generic side conditions for LT ---------------------------------------  */
 
-  void testGetScBvUltTrue0()
+  void testGetScBvUltTrue()
   {
-    runTestPred(true, BITVECTOR_ULT, 0, getScBvUlt);
+    runTestPred(true, BITVECTOR_ULT, getScBvUltUgt);
   }
 
-  void testGetScBvUltTrue1()
+  void testGetScBvUltFalse()
   {
-    runTestPred(true, BITVECTOR_ULT, 1, getScBvUlt);
+    runTestPred(false, BITVECTOR_ULT, getScBvUltUgt);
   }
 
-  void testGetScBvUltFalse0()
+  void testGetScBvUgtTrue()
   {
-    runTestPred(false, BITVECTOR_ULT, 0, getScBvUlt);
+    runTestPred(true, BITVECTOR_UGT, getScBvUltUgt);
   }
 
-  void testGetScBvUltFalse1()
+  void testGetScBvUgtFalse()
   {
-    runTestPred(false, BITVECTOR_ULT, 1, getScBvUlt);
+    runTestPred(false, BITVECTOR_UGT, getScBvUltUgt);
   }
 
-  void testGetScBvSltTrue0()
+  void testGetScBvSltTrue()
   {
-    runTestPred(true, BITVECTOR_SLT, 0, getScBvSlt);
+    runTestPred(true, BITVECTOR_SLT, getScBvSltSgt);
   }
 
-  void testGetScBvSltTrue1()
+  void testGetScBvSltFalse()
   {
-    runTestPred(true, BITVECTOR_SLT, 1, getScBvSlt);
+    runTestPred(false, BITVECTOR_SLT, getScBvSltSgt);
   }
 
-  void testGetScBvSltFalse0()
+  void testGetScBvSgtTrue()
   {
-    runTestPred(false, BITVECTOR_SLT, 0, getScBvSlt);
+    runTestPred(true, BITVECTOR_SGT, getScBvSltSgt);
   }
 
-  void testGetScBvSltFalse1()
+  void testGetScBvSgtFalse()
   {
-    runTestPred(false, BITVECTOR_SLT, 1, getScBvSlt);
+    runTestPred(false, BITVECTOR_SGT, getScBvSltSgt);
   }
 
   /* Equality and Disequality ----------------------------------------------  */
@@ -390,6 +408,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     runTest(false, BITVECTOR_ULT, BITVECTOR_MULT, 1, getScBvMult);
   }
 
+  void testGetScBvMultUgtTrue0()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_MULT, 0, getScBvMult);
+  }
+
+  void testGetScBvMultUgtTrue1()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_MULT, 1, getScBvMult);
+  }
+
+  void testGetScBvMultUgtFalse0()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_MULT, 0, getScBvMult);
+  }
+
+  void testGetScBvMultUgtFalse1()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_MULT, 1, getScBvMult);
+  }
+
   void testGetScBvMultSltTrue0()
   {
     runTest(true, BITVECTOR_SLT, BITVECTOR_MULT, 0, getScBvMult);
@@ -408,6 +446,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvMultSltFalse1()
   {
     runTest(false, BITVECTOR_SLT, BITVECTOR_MULT, 1, getScBvMult);
+  }
+
+  void testGetScBvMultSgtTrue0()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_MULT, 0, getScBvMult);
+  }
+
+  void testGetScBvMultSgtTrue1()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_MULT, 1, getScBvMult);
+  }
+
+  void testGetScBvMultSgtFalse0()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_MULT, 0, getScBvMult);
+  }
+
+  void testGetScBvMultSgtFalse1()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_MULT, 1, getScBvMult);
   }
 
   /* Urem */
@@ -432,6 +490,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     runTest(false, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
   }
 
+  void testGetScBvUremUgtTrue0()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+  }
+
+  void testGetScBvUremUgtTrue1()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+  }
+
+  void testGetScBvUremUgtFalse0()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+  }
+
+  void testGetScBvUremUgtFalse1()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+  }
+
   void testGetScBvUremSltTrue0()
   {
     runTest(true, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
@@ -450,6 +528,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvUremSltFalse1()
   {
     runTest(false, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+  }
+
+  void testGetScBvUremSgtTrue0()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+  }
+
+  void testGetScBvUremSgtTrue1()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+  }
+
+  void testGetScBvUremSgtFalse0()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+  }
+
+  void testGetScBvUremSgtFalse1()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
   }
 
   /* Udiv */
@@ -474,6 +572,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     runTest(false, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
   }
 
+  void testGetScBvUdivUgtTrue0()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+  }
+
+  void testGetScBvUdivUgtTrue1()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+  }
+
+  void testGetScBvUdivUgtFalse0()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+  }
+
+  void testGetScBvUdivUgtFalse1()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+  }
+
   void testGetScBvUdivSltTrue0()
   {
     runTest(true, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
@@ -492,6 +610,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvUdivSltFalse1()
   {
     runTest(false, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+  }
+
+  void testGetScBvUdivSgtTrue0()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+  }
+
+  void testGetScBvUdivSgtTrue1()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+  }
+
+  void testGetScBvUdivSgtFalse0()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+  }
+
+  void testGetScBvUdivSgtFalse1()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
   }
 
   /* And */
@@ -516,6 +654,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     runTest(false, BITVECTOR_ULT, BITVECTOR_AND, 1, getScBvAndOr);
   }
 
+  void testGetScBvAndUgtTrue0()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_AND, 0, getScBvAndOr);
+  }
+
+  void testGetScBvAndUgtTrue1()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_AND, 1, getScBvAndOr);
+  }
+
+  void testGetScBvAndUgtFalse0()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_AND, 0, getScBvAndOr);
+  }
+
+  void testGetScBvAndUgtFalse1()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_AND, 1, getScBvAndOr);
+  }
+
   void testGetScBvAndSltTrue0()
   {
     runTest(true, BITVECTOR_SLT, BITVECTOR_AND, 0, getScBvAndOr);
@@ -534,6 +692,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvAndSltFalse1()
   {
     runTest(false, BITVECTOR_SLT, BITVECTOR_AND, 1, getScBvAndOr);
+  }
+
+  void testGetScBvAndSgtTrue0()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_AND, 0, getScBvAndOr);
+  }
+
+  void testGetScBvAndSgtTrue1()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_AND, 1, getScBvAndOr);
+  }
+
+  void testGetScBvAndSgtFalse0()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_AND, 0, getScBvAndOr);
+  }
+
+  void testGetScBvAndSgtFalse1()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_AND, 1, getScBvAndOr);
   }
 
   /* Or */
@@ -558,6 +736,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     runTest(false, BITVECTOR_ULT, BITVECTOR_OR, 1, getScBvAndOr);
   }
 
+  void testGetScBvOrUgtTrue0()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_OR, 0, getScBvAndOr);
+  }
+
+  void testGetScBvOrUgtTrue1()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_OR, 1, getScBvAndOr);
+  }
+
+  void testGetScBvOrUgtFalse0()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_OR, 0, getScBvAndOr);
+  }
+
+  void testGetScBvOrUgtFalse1()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_OR, 1, getScBvAndOr);
+  }
+
   void testGetScBvOrSltTrue0()
   {
     runTest(true, BITVECTOR_SLT, BITVECTOR_OR, 0, getScBvAndOr);
@@ -576,6 +774,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvOrSltFalse1()
   {
     runTest(false, BITVECTOR_SLT, BITVECTOR_OR, 1, getScBvAndOr);
+  }
+
+  void testGetScBvOrSgtTrue0()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_OR, 0, getScBvAndOr);
+  }
+
+  void testGetScBvOrSgtTrue1()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_OR, 1, getScBvAndOr);
+  }
+
+  void testGetScBvOrSgtFalse0()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_OR, 0, getScBvAndOr);
+  }
+
+  void testGetScBvOrSgtFalse1()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_OR, 1, getScBvAndOr);
   }
 
   /* Lshr */
@@ -600,6 +818,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     runTest(false, BITVECTOR_ULT, BITVECTOR_LSHR, 1, getScBvLshr);
   }
 
+  void testGetScBvLshrUgtTrue0()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_LSHR, 0, getScBvLshr);
+  }
+
+  void testGetScBvLshrUgtTrue1()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_LSHR, 1, getScBvLshr);
+  }
+
+  void testGetScBvLshrUgtFalse0()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_LSHR, 0, getScBvLshr);
+  }
+
+  void testGetScBvLshrUgtFalse1()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_LSHR, 1, getScBvLshr);
+  }
+
   void testGetScBvLshrSltTrue0()
   {
     runTest(true, BITVECTOR_SLT, BITVECTOR_LSHR, 0, getScBvLshr);
@@ -618,6 +856,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvLshrSltFalse1()
   {
     runTest(false, BITVECTOR_SLT, BITVECTOR_LSHR, 1, getScBvLshr);
+  }
+
+  void testGetScBvLshrSgtTrue0()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_LSHR, 0, getScBvLshr);
+  }
+
+  void testGetScBvLshrSgtTrue1()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_LSHR, 1, getScBvLshr);
+  }
+
+  void testGetScBvLshrSgtFalse0()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_LSHR, 0, getScBvLshr);
+  }
+
+  void testGetScBvLshrSgtFalse1()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_LSHR, 1, getScBvLshr);
   }
 
   /* Ashr */
@@ -642,6 +900,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     runTest(false, BITVECTOR_ULT, BITVECTOR_ASHR, 1, getScBvAshr);
   }
 
+  void testGetScBvAshrUgtTrue0()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_ASHR, 0, getScBvAshr);
+  }
+
+  void testGetScBvAshrUgtTrue1()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_ASHR, 1, getScBvAshr);
+  }
+
+  void testGetScBvAshrUgtFalse0()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_ASHR, 0, getScBvAshr);
+  }
+
+  void testGetScBvAshrUgtFalse1()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_ASHR, 1, getScBvAshr);
+  }
+
   void testGetScBvAshrSltTrue0()
   {
     runTest(true, BITVECTOR_SLT, BITVECTOR_ASHR, 0, getScBvAshr);
@@ -660,6 +938,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvAshrSltFalse1()
   {
     runTest(false, BITVECTOR_SLT, BITVECTOR_ASHR, 1, getScBvAshr);
+  }
+
+  void testGetScBvAshrSgtTrue0()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_ASHR, 0, getScBvAshr);
+  }
+
+  void testGetScBvAshrSgtTrue1()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_ASHR, 1, getScBvAshr);
+  }
+
+  void testGetScBvAshrSgtFalse0()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_ASHR, 0, getScBvAshr);
+  }
+
+  void testGetScBvAshrSgtFalse1()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_ASHR, 1, getScBvAshr);
   }
 
   /* Shl */
@@ -684,6 +982,26 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     runTest(false, BITVECTOR_ULT, BITVECTOR_SHL, 1, getScBvShl);
   }
 
+  void testGetScBvShlUgtTrue0()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_SHL, 0, getScBvShl);
+  }
+
+  void testGetScBvShlUgtTrue1()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_SHL, 1, getScBvShl);
+  }
+
+  void testGetScBvShlUgtFalse0()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_SHL, 0, getScBvShl);
+  }
+
+  void testGetScBvShlUgtFalse1()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_SHL, 1, getScBvShl);
+  }
+
   void testGetScBvShlSltTrue0()
   {
     runTest(true, BITVECTOR_SLT, BITVECTOR_SHL, 0, getScBvShl);
@@ -702,5 +1020,25 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvShlSltFalse1()
   {
     runTest(false, BITVECTOR_SLT, BITVECTOR_SHL, 1, getScBvShl);
+  }
+
+  void testGetScBvShlSgtTrue0()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_SHL, 0, getScBvShl);
+  }
+
+  void testGetScBvShlSgtTrue1()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_SHL, 1, getScBvShl);
+  }
+
+  void testGetScBvShlSgtFalse0()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_SHL, 0, getScBvShl);
+  }
+
+  void testGetScBvShlSgtFalse1()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_SHL, 1, getScBvShl);
   }
 };
