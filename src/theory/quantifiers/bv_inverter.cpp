@@ -421,7 +421,8 @@ static Node getScBvUrem(bool pol,
       {
         /* s % x != t
          * with side condition:
-         * s != 0 || t != 0  */
+         * (or (distinct s z) (distinct t z))
+         * where z = 0 with getSize(z) = w  */
         Node z = bv::utils::mkZero(w);
         scl = nm->mkNode(OR, s.eqNode(z).notNode(), t.eqNode(z).notNode());
       }
