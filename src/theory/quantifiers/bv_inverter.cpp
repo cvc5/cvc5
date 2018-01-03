@@ -724,7 +724,7 @@ static Node getScBvUdiv(bool pol,
     {
       if (pol)
       {
-        /* s udiv x < t
+        /* x udiv s < t
          * with side condition:
          * (=> (bvsle t z) (bvslt (bvudiv min s) t))
          * where z = 0 with getSize(z) = w
@@ -738,7 +738,7 @@ static Node getScBvUdiv(bool pol,
       }
       else
       {
-        /* s udiv x >= t
+        /* x udiv s >= t
          * with side condition:
          * (or
          *   (bvsge (bvudiv ones s) t)
