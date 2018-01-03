@@ -638,6 +638,50 @@ public:
    */
   Expr mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex = 0);
 
+  /** Make function defined by a define-fun(s)-rec command.
+   *
+   * fname : the name of the function.
+   * sortedVarNames : the list of variable arguments for the function.
+   * t : the range type of the function we are defining.
+   *
+   * This function will create a bind a new function term to name fname.
+   * The type of this function is
+   * Parser::mkFlatFunctionType(sorts,t,flattenVars),
+   * where sorts are the types in the second components of sortedVarNames.
+   * As descibed in Parser::mkFlatFunctionType, new bound variables may be
+   * added to flattenVars in this function if the function is given a function
+   * range type.
+   */
+  Expr mkDefineFunRec(
+    const std::string& fname,
+    const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+    Type t,
+    std::vector<Expr>& flattenVars);
+
+  /** Push scope for define-fun-rec
+   *
+   * This calls Parser::pushScope(bindingLevel) and sets up
+   * initial information for reading a body of a function definition
+   * in the define-fun-rec and define-funs-rec command.
+   * The input parameters func/flattenVars are the result
+   * of a call to mkDefineRec above.
+   *
+   * func : the function whose body we are defining.
+   * sortedVarNames : the list of variable arguments for the function.
+   * flattenVars : the implicit variables introduced when defining func.
+   *
+   * This function:
+   * (1) Calls Parser::pushScope(bindingLevel).
+   * (2) Computes the bound variable list for the quantified formula
+   *     that defined this definition and stores it in bvs.
+   */
+  void pushDefineFunRecScope(
+    const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+    Expr func,
+    const std::vector<Expr>& flattenVars,
+    std::vector<Expr>& bvs,
+    bool bindingLevel = false);
+  
   /**
    * Add an operator to the current legal set.
    *
