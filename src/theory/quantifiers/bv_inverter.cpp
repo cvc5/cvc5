@@ -782,7 +782,8 @@ static Node getScBvAshr(bool pol,
                         Node t)
 {
   Assert(k == BITVECTOR_ASHR);
-  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl;
@@ -939,7 +940,7 @@ static Node getScBvAshr(bool pol,
       }
     }
   }
-  else /* litk == BITVECTOR_SLT */
+  else if (litk == BITVECTOR_SLT)
   {
     if (idx == 0)
     {
@@ -988,6 +989,10 @@ static Node getScBvAshr(bool pol,
         scl = tt.andNode(st).notNode();
       }
     }
+  }
+  else
+  {
+    return Node::null();
   }
   Node scr =
       nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
