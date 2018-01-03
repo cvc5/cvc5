@@ -209,15 +209,19 @@ public:
     typedef ContextMemoryAllocator<U> other;
   };
 
-  ContextMemoryAllocator(ContextMemoryManager* mm) throw() : d_mm(mm) {}
+  ContextMemoryAllocator(ContextMemoryManager* mm) : d_mm(mm) {}
   template <class U>
-  ContextMemoryAllocator(const ContextMemoryAllocator<U>& alloc) throw() : d_mm(alloc.getCMM()) {}
+  ContextMemoryAllocator(const ContextMemoryAllocator<U>& alloc)
+      : d_mm(alloc.getCMM())
+  {
+  }
   ~ContextMemoryAllocator() {}
 
   ContextMemoryManager* getCMM() const { return d_mm; }
   T* address(T& v) const { return &v; }
   T const* address(T const& v) const { return &v; }
-  size_t max_size() const throw() {
+  size_t max_size() const
+  {
     return ContextMemoryManager::getMaxAllocationSize() / sizeof(T);
   }
   T* allocate(size_t n, const void* = 0) const {
