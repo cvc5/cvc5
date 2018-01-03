@@ -326,7 +326,7 @@ static Node getScBvMult(bool pol,
 
   if (litk == EQUAL)
   {
-    Node z = bv::utils::mkZero(bv::utils::getSize(s));
+    Node z = bv::utils::mkZero(w);
 
     if (pol)
     {
@@ -338,10 +338,10 @@ static Node getScBvMult(bool pol,
        * ctz(t) >= ctz(s)
        * ->
        * (or
-       *   (= t (_ bv0 8))
+       *   (= t z)
        *   (and
        *     (bvuge (bvand t (bvneg t)) (bvand s (bvneg s)))
-       *     (distinct s (_ bv0 8))))  */
+       *     (distinct s z)))  */
       Node o = nm->mkNode(BITVECTOR_OR, nm->mkNode(BITVECTOR_NEG, s), s);
       scl = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_AND, o, t), t);
     }
