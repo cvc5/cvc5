@@ -99,8 +99,7 @@ Rational Rational::fromDouble(double d) throw(RationalFromDoubleException){
   }
 }
 
-RationalFromDoubleException::RationalFromDoubleException(double d) throw()
-  : Exception()
+RationalFromDoubleException::RationalFromDoubleException(double d) : Exception()
 {
   std::stringstream ss;
   ss << "RationalFromDoubleException(";

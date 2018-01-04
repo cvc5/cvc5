@@ -39,8 +39,8 @@
 namespace CVC4 {
 
 class CVC4_PUBLIC RationalFromDoubleException : public Exception {
-public:
-  RationalFromDoubleException(double d) throw();
+ public:
+  RationalFromDoubleException(double d);
 };
 
 /**
@@ -91,11 +91,13 @@ public:
 
   /**
    * Constructs a Rational from a C string in a given base (defaults to 10).
+   *
    * Throws std::invalid_argument if the string is not a valid rational.
    * For more information about what is a valid rational string,
    * see GMP's documentation for mpq_set_str().
    */
-  explicit Rational(const char* s, unsigned base = 10) throw (std::invalid_argument){
+  explicit Rational(const char* s, unsigned base = 10)
+  {
     cln::cl_read_flags flags;
 
     flags.syntax = cln::syntax_rational;

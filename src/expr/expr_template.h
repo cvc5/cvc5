@@ -83,44 +83,40 @@ namespace expr {
  * Exception thrown in the case of type-checking errors.
  */
 class CVC4_PUBLIC TypeCheckingException : public Exception {
-
+ private:
   friend class SmtEngine;
   friend class smt::SmtEnginePrivate;
-
-private:
 
   /** The expression responsible for the error */
   Expr* d_expr;
 
-protected:
-
-  TypeCheckingException() throw() : Exception() {}
+ protected:
+  TypeCheckingException() : Exception() {}
   TypeCheckingException(ExprManager* em,
-                        const TypeCheckingExceptionPrivate* exc) throw();
+                        const TypeCheckingExceptionPrivate* exc);
 
-public:
-
-  TypeCheckingException(const Expr& expr, std::string message) throw();
+ public:
+  TypeCheckingException(const Expr& expr, std::string message);
 
   /** Copy constructor */
-  TypeCheckingException(const TypeCheckingException& t) throw();
+  TypeCheckingException(const TypeCheckingException& t);
 
   /** Destructor */
-  ~TypeCheckingException() throw();
+  ~TypeCheckingException() override;
 
   /**
    * Get the Expr that caused the type-checking to fail.
    *
    * @return the expr
    */
-  Expr getExpression() const throw();
+  Expr getExpression() const;
 
   /**
    * Returns the message corresponding to the type-checking failure.
    * We prefer toStream() to toString() because that keeps the expr-depth
    * and expr-language settings present in the stream.
    */
-  void toStream(std::ostream& out) const throw();
+  void toStream(std::ostream& out) const override;
 
   friend class ExprManager;
 };/* class TypeCheckingException */
@@ -129,13 +125,9 @@ public:
  * Exception thrown in case of failure to export
  */
 class CVC4_PUBLIC ExportUnsupportedException : public Exception {
-public:
-  ExportUnsupportedException() throw():
-    Exception("export unsupported") {
-  }
-  ExportUnsupportedException(const char* msg) throw():
-    Exception(msg) {
-  }
+ public:
+  ExportUnsupportedException() : Exception("export unsupported") {}
+  ExportUnsupportedException(const char* msg) : Exception(msg) {}
 };/* class DatatypeExportUnsupportedException */
 
 std::ostream& operator<<(std::ostream& out,

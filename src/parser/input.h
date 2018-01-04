@@ -38,10 +38,9 @@ class FunctionType;
 namespace parser {
 
 class CVC4_PUBLIC InputStreamException : public Exception {
-
-public:
+ public:
   InputStreamException(const std::string& msg);
-  virtual ~InputStreamException() throw() { }
+  ~InputStreamException() override {}
 };
 
 /** Wrapper around an input stream. */

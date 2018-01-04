@@ -311,13 +311,13 @@ void TheoryArithPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_congruenceManager.setMasterEqualityEngine(eq);
 }
 
-TheoryArithPrivate::ModelException::ModelException(TNode n, const char* msg) throw (){
+TheoryArithPrivate::ModelException::ModelException(TNode n, const char* msg)
+{
   stringstream ss;
   ss << "Cannot construct a model for " << n << " as " << endl << msg;
   setMessage(ss.str());
 }
-TheoryArithPrivate::ModelException::~ModelException() throw (){ }
-
+TheoryArithPrivate::ModelException::~ModelException() {}
 
 TheoryArithPrivate::Statistics::Statistics()
   : d_statAssertUpperConflicts("theory::arith::AssertUpperConflicts", 0)
