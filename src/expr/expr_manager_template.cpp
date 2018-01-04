@@ -93,7 +93,8 @@ ExprManager::ExprManager(const Options& options) :
 #endif
 }
 
-ExprManager::~ExprManager() throw() {
+ExprManager::~ExprManager()
+{
   NodeManagerScope nms(d_nodeManager);
 
   try {
@@ -128,7 +129,8 @@ const Options& ExprManager::getOptions() const {
   return d_nodeManager->getOptions();
 }
 
-ResourceManager* ExprManager::getResourceManager() throw() {
+ResourceManager* ExprManager::getResourceManager()
+{
   return d_nodeManager->getResourceManager();
 }
 

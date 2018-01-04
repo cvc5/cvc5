@@ -40,20 +40,20 @@ class CVC4_PUBLIC ArrayStoreAll {
    * not a constant of type `type`.
    */
   ArrayStoreAll(const ArrayType& type, const Expr& expr);
-  ~ArrayStoreAll() throw();
+  ~ArrayStoreAll();
 
   ArrayStoreAll(const ArrayStoreAll& other);
   ArrayStoreAll& operator=(const ArrayStoreAll& other);
 
-  const ArrayType& getType() const throw();
-  const Expr& getExpr() const throw();
+  const ArrayType& getType() const;
+  const Expr& getExpr() const;
 
-  bool operator==(const ArrayStoreAll& asa) const throw();
-  bool operator!=(const ArrayStoreAll& asa) const throw();
-  bool operator<(const ArrayStoreAll& asa) const throw();
-  bool operator<=(const ArrayStoreAll& asa) const throw();
-  bool operator>(const ArrayStoreAll& asa) const throw();
-  bool operator>=(const ArrayStoreAll& asa) const throw();
+  bool operator==(const ArrayStoreAll& asa) const;
+  bool operator!=(const ArrayStoreAll& asa) const;
+  bool operator<(const ArrayStoreAll& asa) const;
+  bool operator<=(const ArrayStoreAll& asa) const;
+  bool operator>(const ArrayStoreAll& asa) const;
+  bool operator>=(const ArrayStoreAll& asa) const;
 
  private:
   std::unique_ptr<ArrayType> d_type;

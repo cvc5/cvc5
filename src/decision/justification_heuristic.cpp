@@ -55,7 +55,8 @@ JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
   Trace("decision") << "Justification heuristic enabled" << std::endl;
 }
 
-JustificationHeuristic::~JustificationHeuristic() throw() {
+JustificationHeuristic::~JustificationHeuristic()
+{
   smtStatisticsRegistry()->unregisterStat(&d_helfulness);
   smtStatisticsRegistry()->unregisterStat(&d_giveup);
   smtStatisticsRegistry()->unregisterStat(&d_timestat);

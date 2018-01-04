@@ -56,12 +56,13 @@ extern bool segvSpin;
 /** A pointer to the options in play */
 extern CVC4_THREAD_LOCAL Options* pOptions;
 
-/** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
-void cvc4_init() throw(Exception);
+/** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV.
+ * This can throw a CVC4::Exception.
+ */
+void cvc4_init();
 
 /** Shutdown the driver. Frees memory for the signal handlers. */
-void cvc4_shutdown() throw();
-
+void cvc4_shutdown() noexcept;
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */
