@@ -2021,7 +2021,7 @@ bool ApproxGLPK::attemptBranchCut(int nid, const BranchCutInfo& br_cut){
   d_pad.d_cut.lhs.set(x, Rational(1));
 
   Rational& rhs = d_pad.d_cut.rhs;
-  Maybe<rational> br_cut_rhs = Rational::fromDouble(br_cut.getRhs());
+  Maybe<Rational> br_cut_rhs = Rational::fromDouble(br_cut.getRhs());
   if (!br_cut_rhs)
   {
     return true;
@@ -2094,7 +2094,7 @@ bool ApproxGLPK::applyCMIRRule(int nid, const MirInfo& mir){
   for(; iter != iend; ++iter){
     ArithVar v = *iter;
     const Rational& curr = alpha[v];
-    Rational next = curr / delta;
+    Rational next = curr / delta.value();
     if(compRanges.isKey(v)){
       b -= curr * compRanges[v];
       alpha.set(v, - next);
@@ -2102,7 +2102,7 @@ bool ApproxGLPK::applyCMIRRule(int nid, const MirInfo& mir){
       alpha.set(v, next);
     }
   }
-  b = b / delta;
+  b = b / delta.value();
 
   Rational roundB = (b + Rational(1,2)).floor();
   d_pad.d_failure = (b - roundB).abs() < Rational(1,90);
@@ -2555,7 +2555,7 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
       return true;
     }
     Assert(!lhs.isKey(x));
-    lhs.set(x, c);
+    lhs.set(x, c.value());
   }
 
   if(Debug.isOn("approx::mir")){
@@ -2992,7 +2992,7 @@ bool ApproxGLPK::guessCoefficientsConstructTableRow(int nid, int M, const Primit
     {
       return true;
     }
-    tab.set(var, cfe);
+    tab.set(var, cfe.value());
     Debug("guessCoefficientsConstructTableRow") << var << " cfe " << cfe << endl;
   }
   if(!guessIsConstructable(tab)){

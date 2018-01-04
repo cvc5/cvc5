@@ -15,10 +15,11 @@
  ** \todo document this file
  **/
 
+#include "theory/arith/pseudoboolean_proc.h"
+
 #include "base/output.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
-#include "theory/arith/pseudoboolean_proc.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {
@@ -248,7 +249,7 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq){
     Debug("pbs::rewrites") << "failed " << std::endl;
     return;
   }
-  Assert(d_off.constValue().isIntegral());
+  Assert(d_off.value().isIntegral());
   Integer off = d_off.value().ceiling();
 
   // \sum pos >= \sum neg + off
