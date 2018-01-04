@@ -261,7 +261,8 @@ void cvc4terminate() {
 }
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
-void cvc4_init() throw(Exception) {
+void cvc4_init()
+{
 #ifdef CVC4_DEBUG
   LastExceptionBuffer::setCurrent(new LastExceptionBuffer());
 #endif
