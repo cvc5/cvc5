@@ -1920,9 +1920,6 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
             nm->mkSkolem("ek",
                          ex.getType(),
                          "variable to represent disjoint extract region");
-        Node ceq_lem = var.eqNode(ex);
-        Trace("cegqi-bv-pp") << "Introduced : " << ceq_lem << std::endl;
-        new_lems.push_back(ceq_lem);
         children.push_back(var);
         vars.push_back(var);
       }
@@ -1967,15 +1964,17 @@ void BvInstantiatorPreprocess::collectExtracts(
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-
-      if (cur.getKind() == BITVECTOR_EXTRACT)
+      if (cur.getKind() != FORALL)
       {
-        extract_map[cur[0]].push_back(cur);
-      }
+        if (cur.getKind() == BITVECTOR_EXTRACT)
+        {
+          extract_map[cur[0]].push_back(cur);
+        }
 
-      for (const Node& nc : cur)
-      {
-        visit.push_back(nc);
+        for (const Node& nc : cur)
+        {
+          visit.push_back(nc);
+        }
       }
     }
   } while (!visit.empty());

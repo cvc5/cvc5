@@ -135,7 +135,8 @@ TESTS =	\
 	clock-10.smt2 \
 	javafe.tc.FlowInsensitiveChecks.682.smt2 \
 	javafe.tc.CheckCompilationUnit.001.smt2 \
-	model_6_1_bv.smt2
+	model_6_1_bv.smt2 \
+	lra-triv-gn.smt2
  
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
