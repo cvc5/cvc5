@@ -65,17 +65,18 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated){
     // (>= (-p) (-r +1))
     d_off = (-r.getConst<Rational>());
 
-    if(d_off.constValue().isIntegral()){
-      d_off = d_off.constValue() + Rational(1) ;
+    if (d_off.value().isIntegral())
+    {
+      d_off = d_off.value() + Rational(1);
     }else{
-      d_off = Rational(d_off.constValue().ceiling());
+      d_off = Rational(d_off.value().ceiling());
     }
   }else{
     // (>= p r)
     d_off = r.getConst<Rational>();
-    d_off = Rational(d_off.constValue().ceiling());
+    d_off = Rational(d_off.value().ceiling());
   }
-  Assert(d_off.constValue().isIntegral());
+  Assert(d_off.value().isIntegral());
 
   int adj = negated ? -1 : 1;
   for(Polynomial::iterator i=p.begin(), end=p.end(); i != end; ++i){
@@ -248,7 +249,7 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq){
     return;
   }
   Assert(d_off.constValue().isIntegral());
-  Integer off = d_off.constValue().ceiling();
+  Integer off = d_off.value().ceiling();
 
   // \sum pos >= \sum neg + off
 
@@ -323,4 +324,3 @@ void PseudoBooleanProcessor::clear() {
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
-
