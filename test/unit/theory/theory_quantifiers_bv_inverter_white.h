@@ -94,7 +94,8 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
                unsigned idx,
                Node (*getsc)(bool, Kind, Kind, unsigned, Node, Node, Node))
   {
-    Assert(k == BITVECTOR_MULT
+    Assert(k == BITVECTOR_PLUS
+           || k == BITVECTOR_MULT
            || k == BITVECTOR_UREM_TOTAL
            || k == BITVECTOR_UDIV_TOTAL
            || k == BITVECTOR_AND
@@ -385,6 +386,88 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   }
 
   /* Inequality ------------------------------------------------------------  */
+
+  /* Plus */
+
+  void testGetScBvPlusUltTrue0()
+  {
+    runTest(true, BITVECTOR_ULT, BITVECTOR_PLUS, 0, getScBvPlus);
+  }
+
+  void testGetScBvPlusUltTrue1()
+  {
+    runTest(true, BITVECTOR_ULT, BITVECTOR_PLUS, 1, getScBvPlus);
+  }
+
+  void testGetScBvPlusUltFalse0()
+  {
+    runTest(false, BITVECTOR_ULT, BITVECTOR_PLUS, 0, getScBvPlus);
+  }
+
+  void testGetScBvPlusUltFalse1()
+  {
+    runTest(false, BITVECTOR_ULT, BITVECTOR_PLUS, 1, getScBvPlus);
+  }
+
+  void testGetScBvPlusUgtTrue0()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_PLUS, 0, getScBvPlus);
+  }
+
+  void testGetScBvPlusUgtTrue1()
+  {
+    runTest(true, BITVECTOR_UGT, BITVECTOR_PLUS, 1, getScBvPlus);
+  }
+
+  void testGetScBvPlusUgtFalse0()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_PLUS, 0, getScBvPlus);
+  }
+
+  void testGetScBvPlusUgtFalse1()
+  {
+    runTest(false, BITVECTOR_UGT, BITVECTOR_PLUS, 1, getScBvPlus);
+  }
+
+  void testGetScBvPlusSltTrue0()
+  {
+    runTest(true, BITVECTOR_SLT, BITVECTOR_PLUS, 0, getScBvPlus);
+  }
+
+  void testGetScBvPlusSltTrue1()
+  {
+    runTest(true, BITVECTOR_SLT, BITVECTOR_PLUS, 1, getScBvPlus);
+  }
+
+  void testGetScBvPlusSltFalse0()
+  {
+    runTest(false, BITVECTOR_SLT, BITVECTOR_PLUS, 0, getScBvPlus);
+  }
+
+  void testGetScBvPlusSltFalse1()
+  {
+    runTest(false, BITVECTOR_SLT, BITVECTOR_PLUS, 1, getScBvPlus);
+  }
+
+  void testGetScBvPlusSgtTrue0()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_PLUS, 0, getScBvPlus);
+  }
+
+  void testGetScBvPlusSgtTrue1()
+  {
+    runTest(true, BITVECTOR_SGT, BITVECTOR_PLUS, 1, getScBvPlus);
+  }
+
+  void testGetScBvPlusSgtFalse0()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_PLUS, 0, getScBvPlus);
+  }
+
+  void testGetScBvPlusSgtFalse1()
+  {
+    runTest(false, BITVECTOR_SGT, BITVECTOR_PLUS, 1, getScBvPlus);
+  }
 
   /* Mult */
 
