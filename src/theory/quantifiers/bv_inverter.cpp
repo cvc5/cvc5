@@ -1147,9 +1147,6 @@ static Node getScBvAndOr(bool pol,
     }
     else
     {
-      unsigned w = bv::utils::getSize(s);
-      Assert (w == bv::utils::getSize(t));
-
       if (k == BITVECTOR_AND)
       {
         /* x & s = t
@@ -1183,7 +1180,7 @@ static Node getScBvAndOr(bool pol,
          * (distinct t z)
          * where
          * z = 0 with getSize(z) = 0  */
-        Node z = bv::utils::mkZero(bv::utils::getSize(t));
+        Node z = bv::utils::mkZero(w);
         scl = t.eqNode(z).notNode();
       }
       else
@@ -2479,22 +2476,7 @@ Node BvInverter::solveBvLit(Node sv,
                                << " for bit-vector term " << sv_t << std::endl;
             return Node::null();
         }
-        Assert (litk != EQUAL || !sc.isNull());
-        /* No specific handling for litk and operator k, generate generic
-         * side condition. */
-        if (sc.isNull())
-        {
-          solve_tn = sv_t.getType();
-          if (litk == BITVECTOR_ULT || litk == BITVECTOR_UGT)
-          {
-            sc = getScBvUltUgt(pol, litk, getSolveVariable(solve_tn), t);
-          }
-          else
-          {
-            Assert (litk == BITVECTOR_SLT || litk == BITVECTOR_SGT);
-            sc = getScBvSltSgt(pol, litk, getSolveVariable(solve_tn), t);
-          }
-        }
+        Assert(!sc.isNull());
         /* We generate a choice term (choice x0. SC => x0 <k> s <litk> t) for
          * x <k> s <litk> t. When traversing down, this choice term determines
          * the value for x <k> s = (choice x0. SC => x0 <k> s <litk> t), i.e.,
