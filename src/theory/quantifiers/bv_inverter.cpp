@@ -1303,7 +1303,7 @@ static Node getScBvAndOr(bool pol,
        * (bvslt t (bvand s max))
        * (bvslt t (bvor s max))
        * where
-       * max is the signed maximum value */
+       * max is the signed maximum value with getSize(max) = w */
       BitVector bv_ones = bv::utils::mkBitVectorOnes(w - 1);
       BitVector bv_max_val = BitVector(1).concat(bv_ones);
       Node max = bv::utils::mkConst(bv_max_val);
@@ -1317,7 +1317,7 @@ static Node getScBvAndOr(bool pol,
          * with side condition (synthesized):
          * (bvuge s (bvand t min))
          * where
-         * min is the signed minimum value */
+         * min is the signed minimum value with getSize(min) = w */
         BitVector bv_min_val = BitVector(w).setBit(w - 1);
         Node min = bv::utils::mkConst(bv_min_val);
         scl = nm->mkNode(BITVECTOR_UGE, s, nm->mkNode(BITVECTOR_AND, t, min));
@@ -1328,7 +1328,7 @@ static Node getScBvAndOr(bool pol,
          * with side condition (synthesized):
          * (bvsge t (bvor s min))
          * where
-         * min is the signed minimum value */
+         * min is the signed minimum value with getSize(min) = w */
         BitVector bv_min_val = BitVector(w).setBit(w - 1);
         Node min = bv::utils::mkConst(bv_min_val);
         scl = nm->mkNode(BITVECTOR_SGE, t, nm->mkNode(BITVECTOR_OR, s, min));
@@ -2214,7 +2214,7 @@ static Node getScBvShl(bool pol,
          * with side condition (synthesized):
          * (bvslt (bvshl (bvlshr min s) s) t)
          * where
-         * min is the signed minimum value */
+         * min is the signed minimum value with getSize(min) = w */
         BitVector bv_min_val = BitVector(w).setBit(w - 1);
         Node min = bv::utils::mkConst(bv_min_val);
         Node lshr = nm->mkNode(BITVECTOR_LSHR, min, s);
@@ -2227,7 +2227,7 @@ static Node getScBvShl(bool pol,
          * with side condition (synthesized):
          * (bvsge (bvand (bvshl max s) max) t)
          * where
-         * max is the signed maximum value */
+         * max is the signed maximum value with getSize(max) = w */
         BitVector bv_ones = bv::utils::mkBitVectorOnes(w - 1);
         BitVector bv_max_val = BitVector(1).concat(bv_ones);
         Node max = bv::utils::mkConst(bv_max_val);
@@ -2243,7 +2243,7 @@ static Node getScBvShl(bool pol,
          * with side condition (synthesized):
          * (bvult (bvshl min s) (bvadd t min))
          * where
-         * min is the signed minimum value */
+         * min is the signed minimum value with getSize(min) = w */
         BitVector bv_min_val = BitVector(w).setBit(w - 1);
         Node min = bv::utils::mkConst(bv_min_val);
         Node shl = nm->mkNode(BITVECTOR_SHL, min, s);
@@ -2271,7 +2271,7 @@ static Node getScBvShl(bool pol,
          * with side condition (synthesized):
          * (bvslt t (bvand (bvshl max s) max))
          * where
-         * max is the signed maximum value */
+         * max is the signed maximum value with getSize(max) = w */
         BitVector bv_ones = bv::utils::mkBitVectorOnes(w - 1);
         BitVector bv_max_val = BitVector(1).concat(bv_ones);
         Node max = bv::utils::mkConst(bv_max_val);
@@ -2284,7 +2284,7 @@ static Node getScBvShl(bool pol,
          * with side condition (synthesized):
          * (bvult (bvlshr t (bvlshr t s)) min)
          * where
-         * min is the signed minimum value */
+         * min is the signed minimum value with getSize(min) = w */
         BitVector bv_min_val = BitVector(w).setBit(w - 1);
         Node min = bv::utils::mkConst(bv_min_val);
         Node ts = nm->mkNode(BITVECTOR_LSHR, t, s);
@@ -2307,7 +2307,7 @@ static Node getScBvShl(bool pol,
          * with side condition (synthesized):
          * (bvult (bvlshr t s) min)
          * where
-         * min is the signed minimum value */
+         * min is the signed minimum value with getSize(min) = w */
         BitVector bv_min_val = BitVector(w).setBit(w - 1);
         Node min = bv::utils::mkConst(bv_min_val);
         scl = nm->mkNode(BITVECTOR_ULT, nm->mkNode(BITVECTOR_LSHR, t, s), min);
