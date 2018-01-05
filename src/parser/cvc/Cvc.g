@@ -1452,6 +1452,11 @@ prefixFormula[CVC4::Expr& f]
       PARSER_STATE->preemptCommand(cmd);
       f = func;
     }
+   /* recursive function */
+  | RECURSIVE_FUNCTION_TOK LPAREN boundVarDeclsReturn[terms,types] COLON formula[f]
+  {
+    std::cout<<"Let's see if this works.";
+  }
   ;
 
 instantiationPatterns[ CVC4::Expr& expr ]
