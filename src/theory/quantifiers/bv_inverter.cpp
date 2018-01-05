@@ -378,7 +378,7 @@ static Node getScBvMult(bool pol,
     {
       /* x * s >= t
        * with side condition (synthesized):
-       * (not (bvult (bvor (bvneg s) s) t)) */
+       * (bvuge (bvor (bvneg s) s) t) */
       Node o = nm->mkNode(BITVECTOR_OR, nm->mkNode(BITVECTOR_NEG, s), s);
       scl = nm->mkNode(BITVECTOR_UGE, o, t);
     }
@@ -921,7 +921,7 @@ static Node getScBvUdiv(bool pol,
       {
         /* x udiv s <= t
          * with side condition (synthesized):
-         * (not (bvult (bvor s t) (bvnot (bvneg s)))) */
+         * (bvuge (bvor s t) (bvnot (bvneg s))) */
         Node u1 = nm->mkNode(BITVECTOR_OR, s, t);
         Node u2 = nm->mkNode(BITVECTOR_NOT, nm->mkNode(BITVECTOR_NEG, s));
         scl = nm->mkNode(BITVECTOR_UGE, u1, u2);
@@ -1287,7 +1287,7 @@ static Node getScBvAndOr(bool pol,
       {
         /* x | s >= t
          * with side condition (synthesized):
-         * (not (bvslt s (bvand s t))) */
+         * (bvsge s (bvand s t)) */
         scl = nm->mkNode(BITVECTOR_SGE, s, nm->mkNode(BITVECTOR_AND, s, t));
       }
     }
@@ -1814,7 +1814,7 @@ static Node getScBvAshr(bool pol,
       {
         /* s >> x < t
          * with side condition (synthesized):
-         * (and (not (and (not (bvult s t)) (bvslt s z))) (not (= t z)))
+         * (and (not (and (bvuge s t) (bvslt s z))) (not (= t z)))
          * where
          * z = 0 with getSize(z) = w */
         Node st = nm->mkNode(BITVECTOR_UGE, s, t);
