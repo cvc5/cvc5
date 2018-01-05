@@ -104,7 +104,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
            || k == BITVECTOR_SHL);
 
     Node sc = getsc(pol, litk, k, idx, d_sk, d_s, d_t);
-    TS_ASSERT (!sc.isNull());
+    TS_ASSERT(!sc.isNull());
     Kind ksc = sc.getKind();
     TS_ASSERT((k == BITVECTOR_UDIV_TOTAL && idx == 1 && pol == false)
               || (k == BITVECTOR_ASHR && idx == 0 && pol == false)
