@@ -1677,10 +1677,10 @@ static Node getScBvAshr(bool pol,
          * z = 0 with getSize(z) = w
          * and ones = ~0 with getSize(ones) = w
          * and w = getSize(t) = getSize(s)  */
-				Node ww = bv::utils::mkConst(w, w);
-				Node shl = nm->mkNode(BITVECTOR_SHL, t, s);
-				Node ashr = nm->mkNode(BITVECTOR_ASHR, shl, s);
-				Node ult = nm->mkNode(BITVECTOR_ULT, s, ww);
+        Node ww = bv::utils::mkConst(w, w);
+        Node shl = nm->mkNode(BITVECTOR_SHL, t, s);
+        Node ashr = nm->mkNode(BITVECTOR_ASHR, shl, s);
+        Node ult = nm->mkNode(BITVECTOR_ULT, s, ww);
         Node imp1 = ult.impNode(ashr.eqNode(t));
         Node to = t.eqNode(n);
         Node tz = t.eqNode(z);
