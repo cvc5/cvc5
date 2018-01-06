@@ -195,6 +195,18 @@ inline BitVector mkBitVectorOnes(unsigned size) {
   return BitVector(1, Integer(1)).signExtend(size - 1); 
 }
 
+inline BitVector mkBitVectorMinSigned(unsigned size)
+{
+  Assert(size > 0);
+  return BitVector(size).setBit(size - 1);
+}
+
+inline BitVector mkBitVectorMaxSigned(unsigned size)
+{
+  Assert(size > 0);
+  return ~mkBitVectorMinSigned(size);
+}
+
 inline Node mkOnes(unsigned size) {
   BitVector val = mkBitVectorOnes(size); 
   return NodeManager::currentNM()->mkConst<BitVector>(val); 

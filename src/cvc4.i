@@ -3,6 +3,7 @@
 #if SWIG_VERSION < 0x030000
 %define final %enddef
 %define override %enddef
+%define noexcept %enddef
 #endif
 
 %import "bindings/swig.h"
