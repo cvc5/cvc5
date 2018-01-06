@@ -557,9 +557,8 @@ class CVC4_PUBLIC CheckSatCommand : public Command
 
   Expr getExpr() const;
   Result getResult() const;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-
   void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
@@ -578,9 +577,8 @@ class CVC4_PUBLIC QueryCommand : public Command
 
   Expr getExpr() const;
   Result getResult() const;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-
   void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
@@ -595,9 +593,8 @@ class CVC4_PUBLIC CheckSynthCommand : public Command
 
   Expr getExpr() const;
   Result getResult() const;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-
   void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
@@ -624,9 +621,8 @@ class CVC4_PUBLIC SimplifyCommand : public Command
 
   Expr getTerm() const;
   Expr getResult() const;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-
   void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
@@ -644,9 +640,8 @@ class CVC4_PUBLIC ExpandDefinitionsCommand : public Command
 
   Expr getTerm() const;
   Expr getResult() const;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-
   void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
@@ -665,9 +660,8 @@ class CVC4_PUBLIC GetValueCommand : public Command
 
   const std::vector<Expr>& getTerms() const;
   Expr getResult() const;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-
   void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
@@ -683,9 +677,8 @@ class CVC4_PUBLIC GetAssignmentCommand : public Command
   GetAssignmentCommand();
 
   SExpr getResult() const;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-
   void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
@@ -699,9 +692,8 @@ class CVC4_PUBLIC GetModelCommand : public Command
 
   // Model is private to the library -- for now
   // Model* getResult() const ;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-
   void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
@@ -718,9 +710,8 @@ class CVC4_PUBLIC GetProofCommand : public Command
   GetProofCommand();
 
   const Proof& getResult() const;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-
   void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
@@ -737,9 +728,8 @@ class CVC4_PUBLIC GetInstantiationsCommand : public Command
  public:
   GetInstantiationsCommand();
 
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-
   void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
@@ -754,9 +744,8 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
  public:
   GetSynthSolutionCommand();
 
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-
   void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
