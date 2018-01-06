@@ -50,14 +50,15 @@ std::ostream& operator<<(std::ostream&, const CommandStatus&) CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream&, const CommandStatus*) CVC4_PUBLIC;
 
 /** The status an SMT benchmark can have */
-enum BenchmarkStatus {
+enum BenchmarkStatus
+{
   /** Benchmark is satisfiable */
   SMT_SATISFIABLE,
   /** Benchmark is unsatisfiable */
   SMT_UNSATISFIABLE,
   /** The status of the benchmark is unknown */
   SMT_UNKNOWN
-};/* enum BenchmarkStatus */
+}; /* enum BenchmarkStatus */
 
 std::ostream& operator<<(std::ostream& out, BenchmarkStatus status) CVC4_PUBLIC;
 
@@ -73,28 +74,29 @@ std::ostream& operator<<(std::ostream& out, BenchmarkStatus status) CVC4_PUBLIC;
  * prints a success message (in a manner appropriate for the current
  * output language).
  */
-class CVC4_PUBLIC CommandPrintSuccess {
-public:
- /** Construct a CommandPrintSuccess with the given setting. */
- CommandPrintSuccess(bool printSuccess) : d_printSuccess(printSuccess) {}
- void applyPrintSuccess(std::ostream& out);
- static bool getPrintSuccess(std::ostream& out);
- static void setPrintSuccess(std::ostream& out, bool printSuccess);
+class CVC4_PUBLIC CommandPrintSuccess
+{
+ public:
+  /** Construct a CommandPrintSuccess with the given setting. */
+  CommandPrintSuccess(bool printSuccess) : d_printSuccess(printSuccess) {}
+  void applyPrintSuccess(std::ostream& out);
+  static bool getPrintSuccess(std::ostream& out);
+  static void setPrintSuccess(std::ostream& out, bool printSuccess);
 
-private:
- /** The allocated index in ios_base for our depth setting. */
- static const int s_iosIndex;
+ private:
+  /** The allocated index in ios_base for our depth setting. */
+  static const int s_iosIndex;
 
- /**
-  * The default setting, for ostreams that haven't yet had a setdepth()
-  * applied to them.
-  */
- static const int s_defaultPrintSuccess = false;
+  /**
+   * The default setting, for ostreams that haven't yet had a setdepth()
+   * applied to them.
+   */
+  static const int s_defaultPrintSuccess = false;
 
- /** When this manipulator is used, the setting is stored here. */
- bool d_printSuccess;
+  /** When this manipulator is used, the setting is stored here. */
+  bool d_printSuccess;
 
-};/* class CommandPrintSuccess */
+}; /* class CommandPrintSuccess */
 
 /**
  * Sets the default print-success setting when pretty-printing an Expr
@@ -108,52 +110,60 @@ private:
 std::ostream& operator<<(std::ostream& out,
                          CommandPrintSuccess cps) CVC4_PUBLIC;
 
-class CVC4_PUBLIC CommandStatus {
-protected:
+class CVC4_PUBLIC CommandStatus
+{
+ protected:
   // shouldn't construct a CommandStatus (use a derived class)
- CommandStatus() {}
-public:
- virtual ~CommandStatus() {}
- void toStream(std::ostream& out,
-               OutputLanguage language = language::output::LANG_AUTO) const;
- virtual CommandStatus& clone() const = 0;
-};/* class CommandStatus */
+  CommandStatus() {}
+ public:
+  virtual ~CommandStatus() {}
+  void toStream(std::ostream& out,
+                OutputLanguage language = language::output::LANG_AUTO) const;
+  virtual CommandStatus& clone() const = 0;
+}; /* class CommandStatus */
 
-class CVC4_PUBLIC CommandSuccess : public CommandStatus {
+class CVC4_PUBLIC CommandSuccess : public CommandStatus
+{
   static const CommandSuccess* s_instance;
-public:
- static const CommandSuccess* instance() { return s_instance; }
- CommandStatus& clone() const override
- {
-   return const_cast<CommandSuccess&>(*this);
- }
-};/* class CommandSuccess */
 
-class CVC4_PUBLIC CommandInterrupted : public CommandStatus {
+ public:
+  static const CommandSuccess* instance() { return s_instance; }
+  CommandStatus& clone() const override
+  {
+    return const_cast<CommandSuccess&>(*this);
+  }
+}; /* class CommandSuccess */
+
+class CVC4_PUBLIC CommandInterrupted : public CommandStatus
+{
   static const CommandInterrupted* s_instance;
-public:
- static const CommandInterrupted* instance() { return s_instance; }
- CommandStatus& clone() const override
- {
-   return const_cast<CommandInterrupted&>(*this);
- }
-};/* class CommandInterrupted */
 
-class CVC4_PUBLIC CommandUnsupported : public CommandStatus {
-public:
- CommandStatus& clone() const override
- {
-   return *new CommandUnsupported(*this);
- }
-};/* class CommandSuccess */
+ public:
+  static const CommandInterrupted* instance() { return s_instance; }
+  CommandStatus& clone() const override
+  {
+    return const_cast<CommandInterrupted&>(*this);
+  }
+}; /* class CommandInterrupted */
 
-class CVC4_PUBLIC CommandFailure : public CommandStatus {
+class CVC4_PUBLIC CommandUnsupported : public CommandStatus
+{
+ public:
+  CommandStatus& clone() const override
+  {
+    return *new CommandUnsupported(*this);
+  }
+}; /* class CommandSuccess */
+
+class CVC4_PUBLIC CommandFailure : public CommandStatus
+{
   std::string d_message;
-public:
- CommandFailure(std::string message) : d_message(message) {}
- CommandFailure& clone() const override { return *new CommandFailure(*this); }
- std::string getMessage() const { return d_message; }
-};/* class CommandFailure */
+
+ public:
+  CommandFailure(std::string message) : d_message(message) {}
+  CommandFailure& clone() const override { return *new CommandFailure(*this); }
+  std::string getMessage() const { return d_message; }
+}; /* class CommandFailure */
 
 /**
  * The execution of the command resulted in a non-fatal error and further
@@ -161,7 +171,8 @@ public:
  * for an unsat core in a place that is not immediately preceded by an
  * unsat/valid response.
  */
-class CVC4_PUBLIC CommandRecoverableFailure : public CommandStatus {
+class CVC4_PUBLIC CommandRecoverableFailure : public CommandStatus
+{
   std::string d_message;
 
  public:
@@ -173,8 +184,9 @@ class CVC4_PUBLIC CommandRecoverableFailure : public CommandStatus {
   std::string getMessage() const { return d_message; }
 }; /* class CommandRecoverableFailure */
 
-class CVC4_PUBLIC Command {
-protected:
+class CVC4_PUBLIC Command
+{
+ protected:
   /**
    * This field contains a command status if the command has been
    * invoked, or NULL if it has not.  This field is either a
@@ -191,7 +203,7 @@ protected:
    */
   bool d_muted;
 
-public:
+ public:
   typedef CommandPrintSuccess printsuccess;
 
   Command();
@@ -254,29 +266,29 @@ public:
    */
   virtual Command* clone() const = 0;
 
-protected:
-  class ExportTransformer {
+ protected:
+  class ExportTransformer
+  {
     ExprManager* d_exprManager;
     ExprManagerMapCollection& d_variableMap;
-  public:
-    ExportTransformer(ExprManager* exprManager, ExprManagerMapCollection& variableMap) :
-      d_exprManager(exprManager),
-      d_variableMap(variableMap) {
+
+   public:
+    ExportTransformer(ExprManager* exprManager,
+                      ExprManagerMapCollection& variableMap)
+        : d_exprManager(exprManager), d_variableMap(variableMap)
+    {
     }
-    Expr operator()(Expr e) {
-      return e.exportTo(d_exprManager, d_variableMap);
-    }
-    Type operator()(Type t) {
-      return t.exportTo(d_exprManager, d_variableMap);
-    }
-  };/* class Command::ExportTransformer */
-};/* class Command */
+    Expr operator()(Expr e) { return e.exportTo(d_exprManager, d_variableMap); }
+    Type operator()(Type t) { return t.exportTo(d_exprManager, d_variableMap); }
+  }; /* class Command::ExportTransformer */
+};   /* class Command */
 
 /**
  * EmptyCommands are the residue of a command after the parser handles
  * them (and there's nothing left to do).
  */
-class CVC4_PUBLIC EmptyCommand : public Command {
+class CVC4_PUBLIC EmptyCommand : public Command
+{
  public:
   EmptyCommand(std::string name = "");
   std::string getName() const;
@@ -288,9 +300,10 @@ class CVC4_PUBLIC EmptyCommand : public Command {
 
  protected:
   std::string d_name;
-};/* class EmptyCommand */
+}; /* class EmptyCommand */
 
-class CVC4_PUBLIC EchoCommand : public Command {
+class CVC4_PUBLIC EchoCommand : public Command
+{
  public:
   EchoCommand(std::string output = "");
 
@@ -305,9 +318,10 @@ class CVC4_PUBLIC EchoCommand : public Command {
 
  protected:
   std::string d_output;
-};/* class EchoCommand */
+}; /* class EchoCommand */
 
-class CVC4_PUBLIC AssertCommand : public Command {
+class CVC4_PUBLIC AssertCommand : public Command
+{
  protected:
   Expr d_expr;
   bool d_inUnsatCore;
@@ -322,27 +336,30 @@ class CVC4_PUBLIC AssertCommand : public Command {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class AssertCommand */
+}; /* class AssertCommand */
 
-class CVC4_PUBLIC PushCommand : public Command {
+class CVC4_PUBLIC PushCommand : public Command
+{
  public:
   void invoke(SmtEngine* smtEngine) override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class PushCommand */
+}; /* class PushCommand */
 
-class CVC4_PUBLIC PopCommand : public Command {
-public:
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class PopCommand */
+class CVC4_PUBLIC PopCommand : public Command
+{
+ public:
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class PopCommand */
 
-class CVC4_PUBLIC DeclarationDefinitionCommand : public Command {
+class CVC4_PUBLIC DeclarationDefinitionCommand : public Command
+{
  protected:
   std::string d_symbol;
 
@@ -351,9 +368,10 @@ class CVC4_PUBLIC DeclarationDefinitionCommand : public Command {
 
   void invoke(SmtEngine* smtEngine) override = 0;
   std::string getSymbol() const;
-};/* class DeclarationDefinitionCommand */
+}; /* class DeclarationDefinitionCommand */
 
-class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand {
+class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand
+{
  protected:
   Expr d_func;
   Type d_type;
@@ -366,16 +384,17 @@ class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand {
   Type getType() const;
   bool getPrintInModel() const;
   bool getPrintInModelSetByUser() const;
-  void setPrintInModel( bool p );
+  void setPrintInModel(bool p);
 
   void invoke(SmtEngine* smtEngine) override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class DeclareFunctionCommand */
+}; /* class DeclareFunctionCommand */
 
-class CVC4_PUBLIC DeclareTypeCommand : public DeclarationDefinitionCommand {
+class CVC4_PUBLIC DeclareTypeCommand : public DeclarationDefinitionCommand
+{
  protected:
   size_t d_arity;
   Type d_type;
@@ -391,9 +410,10 @@ class CVC4_PUBLIC DeclareTypeCommand : public DeclarationDefinitionCommand {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class DeclareTypeCommand */
+}; /* class DeclareTypeCommand */
 
-class CVC4_PUBLIC DefineTypeCommand : public DeclarationDefinitionCommand {
+class CVC4_PUBLIC DefineTypeCommand : public DeclarationDefinitionCommand
+{
  protected:
   std::vector<Type> d_params;
   Type d_type;
@@ -412,9 +432,10 @@ class CVC4_PUBLIC DefineTypeCommand : public DeclarationDefinitionCommand {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class DefineTypeCommand */
+}; /* class DefineTypeCommand */
 
-class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand {
+class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand
+{
  protected:
   Expr d_func;
   std::vector<Expr> d_formals;
@@ -436,24 +457,25 @@ class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class DefineFunctionCommand */
+}; /* class DefineFunctionCommand */
 
 /**
  * This differs from DefineFunctionCommand only in that it instructs
  * the SmtEngine to "remember" this function for later retrieval with
  * getAssignment().  Used for :named attributes in SMT-LIBv2.
  */
-class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand {
-public:
- DefineNamedFunctionCommand(const std::string& id,
-                            Expr func,
-                            const std::vector<Expr>& formals,
-                            Expr formula);
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
-};/* class DefineNamedFunctionCommand */
+class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
+{
+ public:
+  DefineNamedFunctionCommand(const std::string& id,
+                             Expr func,
+                             const std::vector<Expr>& formals,
+                             Expr formula);
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+}; /* class DefineNamedFunctionCommand */
 
 /**
  * The command when parsing define-fun-rec or define-funs-rec.
@@ -493,7 +515,8 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
  * The command when an attribute is set by a user.  In SMT-LIBv2 this is done
  *  via the syntax (! expr :attr)
  */
-class CVC4_PUBLIC SetUserAttributeCommand : public Command {
+class CVC4_PUBLIC SetUserAttributeCommand : public Command
+{
  public:
   SetUserAttributeCommand(const std::string& attr, Expr expr);
   SetUserAttributeCommand(const std::string& attr,
@@ -521,7 +544,8 @@ class CVC4_PUBLIC SetUserAttributeCommand : public Command {
   const std::string d_str_value;
 }; /* class SetUserAttributeCommand */
 
-class CVC4_PUBLIC CheckSatCommand : public Command {
+class CVC4_PUBLIC CheckSatCommand : public Command
+{
  protected:
   Expr d_expr;
   Result d_result;
@@ -540,9 +564,10 @@ class CVC4_PUBLIC CheckSatCommand : public Command {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class CheckSatCommand */
+}; /* class CheckSatCommand */
 
-class CVC4_PUBLIC QueryCommand : public Command {
+class CVC4_PUBLIC QueryCommand : public Command
+{
  protected:
   Expr d_expr;
   Result d_result;
@@ -560,34 +585,36 @@ class CVC4_PUBLIC QueryCommand : public Command {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class QueryCommand */
+}; /* class QueryCommand */
 
-class CVC4_PUBLIC CheckSynthCommand : public Command {
-public:
- CheckSynthCommand();
- CheckSynthCommand(const Expr& expr);
+class CVC4_PUBLIC CheckSynthCommand : public Command
+{
+ public:
+  CheckSynthCommand();
+  CheckSynthCommand(const Expr& expr);
 
- Expr getExpr() const;
- Result getResult() const;
- void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+  Expr getExpr() const;
+  Result getResult() const;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
 
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
 
-protected:
- /** the assertion of check-synth */
- Expr d_expr;
- /** result of the check-synth call */
- Result d_result;
- /** string stream that stores the output of the solution */
- std::stringstream d_solution;
-};/* class CheckSynthCommand */
+ protected:
+  /** the assertion of check-synth */
+  Expr d_expr;
+  /** result of the check-synth call */
+  Result d_result;
+  /** string stream that stores the output of the solution */
+  std::stringstream d_solution;
+}; /* class CheckSynthCommand */
 
 // this is TRANSFORM in the CVC presentation language
-class CVC4_PUBLIC SimplifyCommand : public Command {
+class CVC4_PUBLIC SimplifyCommand : public Command
+{
  protected:
   Expr d_term;
   Expr d_result;
@@ -604,9 +631,10 @@ class CVC4_PUBLIC SimplifyCommand : public Command {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class SimplifyCommand */
+}; /* class SimplifyCommand */
 
-class CVC4_PUBLIC ExpandDefinitionsCommand : public Command {
+class CVC4_PUBLIC ExpandDefinitionsCommand : public Command
+{
  protected:
   Expr d_term;
   Expr d_result;
@@ -623,9 +651,10 @@ class CVC4_PUBLIC ExpandDefinitionsCommand : public Command {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class ExpandDefinitionsCommand */
+}; /* class ExpandDefinitionsCommand */
 
-class CVC4_PUBLIC GetValueCommand : public Command {
+class CVC4_PUBLIC GetValueCommand : public Command
+{
  protected:
   std::vector<Expr> d_terms;
   Expr d_result;
@@ -643,9 +672,10 @@ class CVC4_PUBLIC GetValueCommand : public Command {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class GetValueCommand */
+}; /* class GetValueCommand */
 
-class CVC4_PUBLIC GetAssignmentCommand : public Command {
+class CVC4_PUBLIC GetAssignmentCommand : public Command
+{
  protected:
   SExpr d_result;
 
@@ -660,9 +690,10 @@ class CVC4_PUBLIC GetAssignmentCommand : public Command {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class GetAssignmentCommand */
+}; /* class GetAssignmentCommand */
 
-class CVC4_PUBLIC GetModelCommand : public Command {
+class CVC4_PUBLIC GetModelCommand : public Command
+{
  public:
   GetModelCommand();
 
@@ -681,7 +712,8 @@ class CVC4_PUBLIC GetModelCommand : public Command {
   SmtEngine* d_smtEngine;
 }; /* class GetModelCommand */
 
-class CVC4_PUBLIC GetProofCommand : public Command {
+class CVC4_PUBLIC GetProofCommand : public Command
+{
  public:
   GetProofCommand();
 
@@ -700,7 +732,8 @@ class CVC4_PUBLIC GetProofCommand : public Command {
   const Proof* d_result;
 }; /* class GetProofCommand */
 
-class CVC4_PUBLIC GetInstantiationsCommand : public Command {
+class CVC4_PUBLIC GetInstantiationsCommand : public Command
+{
  public:
   GetInstantiationsCommand();
 
@@ -716,7 +749,8 @@ class CVC4_PUBLIC GetInstantiationsCommand : public Command {
   SmtEngine* d_smtEngine;
 }; /* class GetInstantiationsCommand */
 
-class CVC4_PUBLIC GetSynthSolutionCommand : public Command {
+class CVC4_PUBLIC GetSynthSolutionCommand : public Command
+{
  public:
   GetSynthSolutionCommand();
 
@@ -732,7 +766,8 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command {
   SmtEngine* d_smtEngine;
 }; /* class GetSynthSolutionCommand */
 
-class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command {
+class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
+{
  protected:
   Expr d_expr;
   bool d_doFull;
@@ -752,123 +787,137 @@ class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class GetQuantifierEliminationCommand */
+}; /* class GetQuantifierEliminationCommand */
 
-class CVC4_PUBLIC GetUnsatCoreCommand : public Command {
-public:
- GetUnsatCoreCommand();
- const UnsatCore& getUnsatCore() const;
+class CVC4_PUBLIC GetUnsatCoreCommand : public Command
+{
+ public:
+  GetUnsatCoreCommand();
+  const UnsatCore& getUnsatCore() const;
 
- void invoke(SmtEngine* smtEngine) override;
- void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+  void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
 
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
 
-protected:
+ protected:
   // the result of the unsat core call
   UnsatCore d_result;
-};/* class GetUnsatCoreCommand */
+}; /* class GetUnsatCoreCommand */
 
-class CVC4_PUBLIC GetAssertionsCommand : public Command {
-protected:
+class CVC4_PUBLIC GetAssertionsCommand : public Command
+{
+ protected:
   std::string d_result;
-public:
- GetAssertionsCommand();
 
- void invoke(SmtEngine* smtEngine) override;
- std::string getResult() const;
- void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class GetAssertionsCommand */
+ public:
+  GetAssertionsCommand();
 
-class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command {
-protected:
+  void invoke(SmtEngine* smtEngine) override;
+  std::string getResult() const;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class GetAssertionsCommand */
+
+class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command
+{
+ protected:
   BenchmarkStatus d_status;
-public:
- SetBenchmarkStatusCommand(BenchmarkStatus status);
 
- BenchmarkStatus getStatus() const;
+ public:
+  SetBenchmarkStatusCommand(BenchmarkStatus status);
 
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class SetBenchmarkStatusCommand */
+  BenchmarkStatus getStatus() const;
 
-class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command {
-protected:
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class SetBenchmarkStatusCommand */
+
+class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command
+{
+ protected:
   std::string d_logic;
-public:
- SetBenchmarkLogicCommand(std::string logic);
 
- std::string getLogic() const;
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class SetBenchmarkLogicCommand */
+ public:
+  SetBenchmarkLogicCommand(std::string logic);
 
-class CVC4_PUBLIC SetInfoCommand : public Command {
-protected:
+  std::string getLogic() const;
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class SetBenchmarkLogicCommand */
+
+class CVC4_PUBLIC SetInfoCommand : public Command
+{
+ protected:
   std::string d_flag;
   SExpr d_sexpr;
-public:
- SetInfoCommand(std::string flag, const SExpr& sexpr);
 
- std::string getFlag() const;
- SExpr getSExpr() const;
+ public:
+  SetInfoCommand(std::string flag, const SExpr& sexpr);
 
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class SetInfoCommand */
+  std::string getFlag() const;
+  SExpr getSExpr() const;
 
-class CVC4_PUBLIC GetInfoCommand : public Command {
-protected:
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class SetInfoCommand */
+
+class CVC4_PUBLIC GetInfoCommand : public Command
+{
+ protected:
   std::string d_flag;
   std::string d_result;
-public:
- GetInfoCommand(std::string flag);
 
- std::string getFlag() const;
- std::string getResult() const;
+ public:
+  GetInfoCommand(std::string flag);
 
- void invoke(SmtEngine* smtEngine) override;
- void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class GetInfoCommand */
+  std::string getFlag() const;
+  std::string getResult() const;
 
-class CVC4_PUBLIC SetOptionCommand : public Command {
-protected:
+  void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class GetInfoCommand */
+
+class CVC4_PUBLIC SetOptionCommand : public Command
+{
+ protected:
   std::string d_flag;
   SExpr d_sexpr;
-public:
- SetOptionCommand(std::string flag, const SExpr& sexpr);
 
- std::string getFlag() const;
- SExpr getSExpr() const;
+ public:
+  SetOptionCommand(std::string flag, const SExpr& sexpr);
 
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class SetOptionCommand */
+  std::string getFlag() const;
+  SExpr getSExpr() const;
 
-class CVC4_PUBLIC GetOptionCommand : public Command {
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class SetOptionCommand */
+
+class CVC4_PUBLIC GetOptionCommand : public Command
+{
  protected:
   std::string d_flag;
   std::string d_result;
@@ -885,7 +934,7 @@ class CVC4_PUBLIC GetOptionCommand : public Command {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class GetOptionCommand */
+}; /* class GetOptionCommand */
 
 // Set expression name command
 // Note this is not an official smt2 command
@@ -894,105 +943,115 @@ class CVC4_PUBLIC GetOptionCommand : public Command {
 // is converted to
 //   (assert expr)
 //   (set-expr-name expr name)
-class CVC4_PUBLIC SetExpressionNameCommand : public Command {
-protected:
+class CVC4_PUBLIC SetExpressionNameCommand : public Command
+{
+ protected:
   Expr d_expr;
   std::string d_name;
-public:
- SetExpressionNameCommand(Expr expr, std::string name);
 
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class SetExpressionNameCommand */
+ public:
+  SetExpressionNameCommand(Expr expr, std::string name);
 
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class SetExpressionNameCommand */
 
-class CVC4_PUBLIC DatatypeDeclarationCommand : public Command {
-private:
+class CVC4_PUBLIC DatatypeDeclarationCommand : public Command
+{
+ private:
   std::vector<DatatypeType> d_datatypes;
-public:
- DatatypeDeclarationCommand(const DatatypeType& datatype);
 
- DatatypeDeclarationCommand(const std::vector<DatatypeType>& datatypes);
- const std::vector<DatatypeType>& getDatatypes() const;
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class DatatypeDeclarationCommand */
+ public:
+  DatatypeDeclarationCommand(const DatatypeType& datatype);
 
-class CVC4_PUBLIC RewriteRuleCommand : public Command {
-public:
-  typedef std::vector< std::vector< Expr > > Triggers;
-protected:
-  typedef std::vector< Expr > VExpr;
+  DatatypeDeclarationCommand(const std::vector<DatatypeType>& datatypes);
+  const std::vector<DatatypeType>& getDatatypes() const;
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class DatatypeDeclarationCommand */
+
+class CVC4_PUBLIC RewriteRuleCommand : public Command
+{
+ public:
+  typedef std::vector<std::vector<Expr> > Triggers;
+
+ protected:
+  typedef std::vector<Expr> VExpr;
   VExpr d_vars;
   VExpr d_guards;
   Expr d_head;
   Expr d_body;
   Triggers d_triggers;
-public:
- RewriteRuleCommand(const std::vector<Expr>& vars,
-                    const std::vector<Expr>& guards,
-                    Expr head,
-                    Expr body,
-                    const Triggers& d_triggers);
- RewriteRuleCommand(const std::vector<Expr>& vars, Expr head, Expr body);
 
- const std::vector<Expr>& getVars() const;
- const std::vector<Expr>& getGuards() const;
- Expr getHead() const;
- Expr getBody() const;
- const Triggers& getTriggers() const;
+ public:
+  RewriteRuleCommand(const std::vector<Expr>& vars,
+                     const std::vector<Expr>& guards,
+                     Expr head,
+                     Expr body,
+                     const Triggers& d_triggers);
+  RewriteRuleCommand(const std::vector<Expr>& vars, Expr head, Expr body);
 
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class RewriteRuleCommand */
+  const std::vector<Expr>& getVars() const;
+  const std::vector<Expr>& getGuards() const;
+  Expr getHead() const;
+  Expr getBody() const;
+  const Triggers& getTriggers() const;
 
-class CVC4_PUBLIC PropagateRuleCommand : public Command {
-public:
-  typedef std::vector< std::vector< Expr > > Triggers;
-protected:
-  typedef std::vector< Expr > VExpr;
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class RewriteRuleCommand */
+
+class CVC4_PUBLIC PropagateRuleCommand : public Command
+{
+ public:
+  typedef std::vector<std::vector<Expr> > Triggers;
+
+ protected:
+  typedef std::vector<Expr> VExpr;
   VExpr d_vars;
   VExpr d_guards;
   VExpr d_heads;
   Expr d_body;
   Triggers d_triggers;
   bool d_deduction;
-public:
- PropagateRuleCommand(const std::vector<Expr>& vars,
-                      const std::vector<Expr>& guards,
-                      const std::vector<Expr>& heads,
-                      Expr body,
-                      const Triggers& d_triggers,
-                      /* true if we want a deduction rule */
-                      bool d_deduction = false);
- PropagateRuleCommand(const std::vector<Expr>& vars,
-                      const std::vector<Expr>& heads,
-                      Expr body,
-                      bool d_deduction = false);
 
- const std::vector<Expr>& getVars() const;
- const std::vector<Expr>& getGuards() const;
- const std::vector<Expr>& getHeads() const;
- Expr getBody() const;
- const Triggers& getTriggers() const;
- bool isDeduction() const;
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class PropagateRuleCommand */
+ public:
+  PropagateRuleCommand(const std::vector<Expr>& vars,
+                       const std::vector<Expr>& guards,
+                       const std::vector<Expr>& heads,
+                       Expr body,
+                       const Triggers& d_triggers,
+                       /* true if we want a deduction rule */
+                       bool d_deduction = false);
+  PropagateRuleCommand(const std::vector<Expr>& vars,
+                       const std::vector<Expr>& heads,
+                       Expr body,
+                       bool d_deduction = false);
 
-class CVC4_PUBLIC ResetCommand : public Command {
+  const std::vector<Expr>& getVars() const;
+  const std::vector<Expr>& getGuards() const;
+  const std::vector<Expr>& getHeads() const;
+  Expr getBody() const;
+  const Triggers& getTriggers() const;
+  bool isDeduction() const;
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class PropagateRuleCommand */
+
+class CVC4_PUBLIC ResetCommand : public Command
+{
  public:
   ResetCommand() {}
   void invoke(SmtEngine* smtEngine) override;
@@ -1000,19 +1059,21 @@ class CVC4_PUBLIC ResetCommand : public Command {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class ResetCommand */
+}; /* class ResetCommand */
 
-class CVC4_PUBLIC ResetAssertionsCommand : public Command {
-public:
- ResetAssertionsCommand() {}
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class ResetAssertionsCommand */
+class CVC4_PUBLIC ResetAssertionsCommand : public Command
+{
+ public:
+  ResetAssertionsCommand() {}
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class ResetAssertionsCommand */
 
-class CVC4_PUBLIC QuitCommand : public Command {
+class CVC4_PUBLIC QuitCommand : public Command
+{
  public:
   QuitCommand() {}
   void invoke(SmtEngine* smtEngine) override;
@@ -1020,23 +1081,26 @@ class CVC4_PUBLIC QuitCommand : public Command {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class QuitCommand */
+}; /* class QuitCommand */
 
-class CVC4_PUBLIC CommentCommand : public Command {
+class CVC4_PUBLIC CommentCommand : public Command
+{
   std::string d_comment;
-public:
- CommentCommand(std::string comment);
 
- std::string getComment() const;
+ public:
+  CommentCommand(std::string comment);
 
- void invoke(SmtEngine* smtEngine) override;
- Command* exportTo(ExprManager* exprManager,
-                   ExprManagerMapCollection& variableMap) override;
- Command* clone() const override;
- std::string getCommandName() const override;
-};/* class CommentCommand */
+  std::string getComment() const;
 
-class CVC4_PUBLIC CommandSequence : public Command {
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class CommentCommand */
+
+class CVC4_PUBLIC CommandSequence : public Command
+{
  private:
   /** All the commands to be executed (in sequence) */
   std::vector<Command*> d_commandSequence;
@@ -1066,12 +1130,12 @@ class CVC4_PUBLIC CommandSequence : public Command {
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-};/* class CommandSequence */
+}; /* class CommandSequence */
 
 class CVC4_PUBLIC DeclarationSequence : public CommandSequence
 {
 };
 
-}/* CVC4 namespace */
+} /* CVC4 namespace */
 
 #endif /* __CVC4__COMMAND_H */
