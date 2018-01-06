@@ -2526,9 +2526,12 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
       return true;
     }
 
-    if(lhs.isKey(x)){
+    if (lhs.isKey(x))
+    {
       lhs.get(x) -= c.value();
-    }else{
+    }
+    else
+    {
       lhs.set(x, -c.value());
     }
   }

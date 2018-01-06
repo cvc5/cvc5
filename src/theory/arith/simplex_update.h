@@ -238,7 +238,9 @@ public:
     if (d_errorsChange)
     {
       return d_errorsChange.value();
-    }else{
+    }
+    else
+    {
       return def;
     }
   }

@@ -59,7 +59,8 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated){
 
   Polynomial p = Polynomial::parsePolynomial(l);
   clear();
-  if(negated){
+  if (negated)
+  {
     // (not (>= p r))
     // (< p r)
     // (> (-p) (-r))
@@ -69,10 +70,14 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated){
     if (d_off.value().isIntegral())
     {
       d_off = d_off.value() + Rational(1);
-    }else{
+    }
+    else
+    {
       d_off = Rational(d_off.value().ceiling());
     }
-  }else{
+  }
+  else
+  {
     // (>= p r)
     d_off = r.getConst<Rational>();
     d_off = Rational(d_off.value().ceiling());
