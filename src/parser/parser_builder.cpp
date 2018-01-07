@@ -65,7 +65,7 @@ void ParserBuilder::init(ExprManager* exprManager,
 }
 
 Parser* ParserBuilder::build()
-  throw (InputStreamException) {
+{
   Input* input = NULL;
   switch( d_inputType ) {
   case FILE_INPUT:
