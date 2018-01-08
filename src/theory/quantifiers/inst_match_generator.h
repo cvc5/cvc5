@@ -638,7 +638,6 @@ class InstMatchGeneratorSimple : public IMGenerator {
  public:
   /** constructors */
   InstMatchGeneratorSimple(Node q, Node pat, QuantifiersEngine* qe);
-  /** destructor */
 
   /** Reset instantiation round. */
   void resetInstantiationRound(QuantifiersEngine* qe) override;
