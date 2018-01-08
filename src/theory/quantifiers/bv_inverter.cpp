@@ -83,11 +83,19 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
   if (c.isNull())
   {
     NodeManager* nm = NodeManager::currentNM();
-    Node x = m->getBoundVariable(tn);
-    Node ccond = new_cond.substitute(solve_var, x);
-    c = nm->mkNode(kind::CHOICE, nm->mkNode(BOUND_VAR_LIST, x), ccond);
-    Trace("cegqi-bv-skvinv") << "SKVINV : Make " << c << " for " << new_cond
-                             << std::endl;
+    if (m)
+    {
+      Node x = m->getBoundVariable(tn);
+      Node ccond = new_cond.substitute(solve_var, x);
+      c = nm->mkNode(kind::CHOICE, nm->mkNode(BOUND_VAR_LIST, x), ccond);
+      Trace("cegqi-bv-skvinv")
+          << "SKVINV : Make " << c << " for " << new_cond << std::endl;
+    }
+    else
+    {
+      Trace("bv-invert") << "...fail for " << cond << " : no inverter query!"
+                         << std::endl;
+    }
   }
   // currently shouldn't cache since
   // the return value depends on the
@@ -175,7 +183,7 @@ Node BvInverter::getPathToPv(
   std::unordered_set<TNode, TNodeHashFunction> visited;
   Node slit = getPathToPv(lit, pv, sv, path, visited);
   // if we are able to find a (invertible) path to pv
-  if (!slit.isNull())
+  if (!slit.isNull() && !pvs.isNull())
   {
     // substitute pvs for the other occurrences of pv
     TNode tpv = pv;
@@ -2295,15 +2303,39 @@ Node BvInverter::solveBvLit(Node sv,
     {
       Assert(nchildren >= 2);
       Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
+      Node t_new;
       /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
        *       are commutative (no case split based on index). */
+
+      // handle cases where the inversion has a unique solution
       if (k == BITVECTOR_PLUS)
       {
-        t = nm->mkNode(BITVECTOR_SUB, t, s);
+        t_new = nm->mkNode(BITVECTOR_SUB, t, s);
       }
       else if (k == BITVECTOR_XOR)
       {
-        t = nm->mkNode(BITVECTOR_XOR, t, s);
+        t_new = nm->mkNode(BITVECTOR_XOR, t, s);
+      }
+      else if (k == BITVECTOR_MULT)
+      {
+        if (s.isConst() && bv::utils::getBit(s, 0))
+        {
+          unsigned ssize = bv::utils::getSize(s);
+          Integer a = s.getConst<BitVector>().toInteger();
+          Integer w = Integer(1).multiplyByPow2(ssize);
+          Trace("bv-invert-debug")
+              << "Compute inverse : " << a << " " << w << std::endl;
+          Integer inv = a.modInverse(w);
+          Trace("bv-invert-debug") << "Inverse : " << inv << std::endl;
+          Node inv_val = nm->mkConst(BitVector(ssize, inv));
+          t_new = nm->mkNode(BITVECTOR_MULT, inv_val, t);
+        }
+      }
+
+      if (!t_new.isNull())
+      {
+        // In this case, s op x = t is equivalent to x = t_new
+        t = t_new;
       }
       else
       {
@@ -2362,6 +2394,10 @@ Node BvInverter::solveBvLit(Node sv,
         pol = true;
         /* t = fresh skolem constant */
         t = getInversionNode(sc, solve_tn, m);
+        if (t.isNull())
+        {
+          return t;
+        }
       }
     }
     sv_t = sv_t[index];
