@@ -54,12 +54,22 @@ class BvInverter
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
 
-  /** Get path to pv in lit, replace that occurrence by sv and all others by
-   * pvs. If return value R is non-null, then : lit.path = pv R.path = sv
+  /** 
+   * Get path to pv in lit, replace that occurrence by sv and all others by
+   * pvs (if pvs is non-null). If return value R is non-null, then : 
+   *   lit.path = pv R.path = sv
    *   R.path' = pvs for all lit.path' = pv, where path' != path
    */
   Node getPathToPv(
       Node lit, Node pv, Node sv, Node pvs, std::vector<unsigned>& path);
+  
+  /** 
+   * Same as above, but does not linearize lit for pv.
+   * Use this version if we know lit is linear wrt pv. 
+   */
+  Node getPathToPv(Node lit, Node pv, std::vector<unsigned>& path){
+    return getPathToPv( lit, pv, pv, Node::null(), path );
+  }
 
   /** solveBvLit
    * solve for sv in lit, where lit.path = sv
