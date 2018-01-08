@@ -518,8 +518,10 @@ void Parser::reserveSymbolAtAssertionLevel(const std::string& varName) {
 }
 
 void Parser::checkDeclaration(const std::string& varName,
-                              DeclarationCheck check, SymbolType type,
-                              std::string notes) throw(ParserException) {
+                              DeclarationCheck check,
+                              SymbolType type,
+                              std::string notes)
+{
   if (!d_checksEnabled) {
     return;
   }
@@ -549,7 +551,8 @@ void Parser::checkDeclaration(const std::string& varName,
   }
 }
 
-void Parser::checkFunctionLike(Expr fun) throw(ParserException) {
+void Parser::checkFunctionLike(Expr fun)
+{
   if (d_checksEnabled && !isFunctionLike(fun)) {
     stringstream ss;
     ss << "Expecting function-like symbol, found '";
@@ -559,7 +562,8 @@ void Parser::checkFunctionLike(Expr fun) throw(ParserException) {
   }
 }
 
-void Parser::checkArity(Kind kind, unsigned numArgs) throw(ParserException) {
+void Parser::checkArity(Kind kind, unsigned numArgs)
+{
   if (!d_checksEnabled) {
     return;
   }
@@ -581,7 +585,8 @@ void Parser::checkArity(Kind kind, unsigned numArgs) throw(ParserException) {
   }
 }
 
-void Parser::checkOperator(Kind kind, unsigned numArgs) throw(ParserException) {
+void Parser::checkOperator(Kind kind, unsigned numArgs)
+{
   if (d_strictMode && d_logicOperators.find(kind) == d_logicOperators.end()) {
     parseError("Operator is not defined in the current logic: " +
                kindToString(kind));
@@ -592,9 +597,8 @@ void Parser::checkOperator(Kind kind, unsigned numArgs) throw(ParserException) {
 void Parser::addOperator(Kind kind) { d_logicOperators.insert(kind); }
 
 void Parser::preemptCommand(Command* cmd) { d_commandQueue.push_back(cmd); }
-
-Command* Parser::nextCommand() throw(ParserException,
-                                     UnsafeInterruptException) {
+Command* Parser::nextCommand()
+{
   Debug("parser") << "nextCommand()" << std::endl;
   Command* cmd = NULL;
   if (!d_commandQueue.empty()) {
@@ -627,7 +631,8 @@ Command* Parser::nextCommand() throw(ParserException,
   return cmd;
 }
 
-Expr Parser::nextExpression() throw(ParserException, UnsafeInterruptException) {
+Expr Parser::nextExpression()
+{
   Debug("parser") << "nextExpression()" << std::endl;
   const Options& options = d_exprManager->getOptions();
   d_resourceManager->spendResource(options.getParseStep());

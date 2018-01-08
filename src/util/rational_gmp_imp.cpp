@@ -87,25 +87,15 @@ int Rational::absCmp(const Rational& q) const{
 
 
 /** Return an exact rational for a double d. */
-Rational Rational::fromDouble(double d) throw(RationalFromDoubleException){
+Maybe<Rational> Rational::fromDouble(double d)
+{
   using namespace std;
   if(isfinite(d)){
     Rational q;
     mpq_set_d(q.d_value.get_mpq_t(), d);
     return q;
   }
-
-  throw RationalFromDoubleException(d);
-}
-
-RationalFromDoubleException::RationalFromDoubleException(double d) throw()
-  : Exception()
-{
-  std::stringstream ss;
-  ss << "RationalFromDoubleException(";
-  ss << d;
-  ss << ")";
-  setMessage(ss.str());
+  return Maybe<Rational>();
 }
 
 } /* namespace CVC4 */
