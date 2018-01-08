@@ -2330,9 +2330,13 @@ Node BvInverter::solveBvLit(Node sv,
           Trace("bv-invert-debug") << "Inverse : " << inv_val << std::endl;
           Node inv = nm->mkConst(BitVector(ssize, inv_val));
           if (k == BITVECTOR_MULT)
+          {
             t_new = nm->mkNode(BITVECTOR_MULT, inv, t);
+          }
           else
+          {
             t_new = nm->mkNode(BITVECTOR_UDIV_TOTAL, t, inv);
+          }
         }
       }
 
