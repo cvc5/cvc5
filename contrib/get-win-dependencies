@@ -36,7 +36,7 @@ if [ -z "$HOST" ]; then
   echo "WARNING:"
 fi
 
-GMPVERSION=5.1.0
+GMPVERSION=6.1.2
 BOOSTVERSION=1.55.0
 BOOSTBASE=boost_1_55_0
 
@@ -84,7 +84,7 @@ echo
   gmpprefix=`pwd` &&
   mkdir src &&
   cd src &&
-  webget ftp://ftp.gmplib.org/pub/gmp-$GMPVERSION/gmp-$GMPVERSION.tar.bz2 gmp-$GMPVERSION.tar.bz2 &&
+  webget https://gmplib.org/download/gmp/gmp-$GMPVERSION.tar.bz2 gmp-$GMPVERSION.tar.bz2 &&
   tar xfj gmp-$GMPVERSION.tar.bz2 &&
   cd gmp-$GMPVERSION &&
   ./configure --host=$HOST --prefix="$gmpprefix" --enable-cxx ${BUILD_TYPE} &&

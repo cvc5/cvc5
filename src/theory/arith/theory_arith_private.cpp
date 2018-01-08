@@ -2228,18 +2228,12 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
 
   d_replayedLemmas = false;
 
-  std::vector<ConstraintCPVec> res;
-  try{
-    /* use the try block for the purpose of pushing the sat context */
-    context::Context::ScopedPush speculativePush(getSatContext());
-    d_cmEnabled = false;
-    res = replayLogRec(approx, tl.getRootId(), NullConstraint, 1);
-  }catch(RationalFromDoubleException& rfde){
-    turnOffApproxFor(options::replayNumericFailurePenalty());
-  }
+  /* use the try block for the purpose of pushing the sat context */
+  context::Context::ScopedPush speculativePush(getSatContext());
+  d_cmEnabled = false;
+  std::vector<ConstraintCPVec> res =
+      replayLogRec(approx, tl.getRootId(), NullConstraint, 1);
 
-
-  
   if(res.empty()){
     ++d_statistics.d_replayAttemptFailed;
   }else{
@@ -2359,7 +2353,9 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
   return make_pair(newc, added);
 }
 
-std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(ApproximateSimplex* approx, const NodeLog& nl) throw(RationalFromDoubleException){
+std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(
+    ApproximateSimplex* approx, const NodeLog& nl)
+{
   Assert(nl.isBranch());
   Assert(d_lhsTmp.empty());
 
@@ -2368,8 +2364,12 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(Approxi
     if(d_partialModel.hasNode(v)){
       d_lhsTmp.set(v, Rational(1));
       double dval = nl.branchValue();
-      Rational val = ApproximateSimplex::estimateWithCFE(dval);
-      Rational fl(val.floor());
+      Maybe<Rational> maybe_value = ApproximateSimplex::estimateWithCFE(dval);
+      if (!maybe_value)
+      {
+        return make_pair(NullConstraint, ARITHVAR_SENTINEL);
+      }
+      Rational fl(maybe_value.value().floor());
       pair<ConstraintP, ArithVar> p;
       p = replayGetConstraint(d_lhsTmp, kind::LEQ, fl, true);
       d_lhsTmp.purge();
@@ -2899,15 +2899,21 @@ ApproximateStatistics& TheoryArithPrivate::getApproxStats(){
   return *d_approxStats;
 }
 
-Node TheoryArithPrivate::branchToNode(ApproximateSimplex*  approx, const NodeLog& bn) const throw(RationalFromDoubleException) {
+Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
+                                      const NodeLog& bn) const
+{
   Assert(bn.isBranch());
   ArithVar v = approx->getBranchVar(bn);
   if(v != ARITHVAR_SENTINEL && d_partialModel.isIntegerInput(v)){
     if(d_partialModel.hasNode(v)){
       Node n = d_partialModel.asNode(v);
       double dval = bn.branchValue();
-      Rational val = ApproximateSimplex::estimateWithCFE(dval);
-      Rational fl(val.floor());
+      Maybe<Rational> maybe_value = ApproximateSimplex::estimateWithCFE(dval);
+      if (!maybe_value)
+      {
+        return Node::null();
+      }
+      Rational fl(maybe_value.value().floor());
       NodeManager* nm = NodeManager::currentNM();
       Node leq = nm->mkNode(kind::LEQ, n, mkRationalNode(fl));
       Node norm = Rewriter::rewrite(leq);
@@ -2935,7 +2941,6 @@ Node TheoryArithPrivate::cutToLiteral(ApproximateSimplex* approx, const CutInfo&
 }
 
 bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
-  try{
     ++(d_statistics.d_mipReplayLemmaCalls);
     bool anythingnew = false;
 
@@ -2981,10 +2986,6 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
       }
     }
     return anythingnew;
-  }catch(RationalFromDoubleException& rfde){
-    turnOffApproxFor(options::replayNumericFailurePenalty());
-    return false;
-  }
 }
 
 void TheoryArithPrivate::turnOffApproxFor(int32_t rounds){
@@ -3047,7 +3048,6 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   ApproximateSimplex* approx =
     ApproximateSimplex::mkApproximateSimplexSolver(d_partialModel, tl, stats);
 
-  try{
     approx->setPivotLimit(mipLimit);
     if(!d_guessedCoeffSet){
       d_guessedCoeffs = approx->heuristicOptCoeffs();
@@ -3143,9 +3143,6 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         break;
       }
     }
-  }catch(RationalFromDoubleException& rfde){
-    turnOffApproxFor(options::replayNumericFailurePenalty());
-  }
   delete approx;
 
   if(!Theory::fullEffort(effortLevel)){
@@ -3295,7 +3292,6 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
       TimerStat::CodeTimer codeTimer(d_statistics.d_lpTimer);
       relaxRes = approxSolver->solveRelaxation();
     }
-    try{
       Debug("solveRealRelaxation") << "solve relaxation? " << endl;
       switch(relaxRes){
       case LinFeasible:
@@ -3326,9 +3322,6 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
         ++d_statistics.d_relaxOthers;
         break;
       }
-    }catch(RationalFromDoubleException& rfde){
-      turnOffApproxFor(options::replayNumericFailurePenalty());
-    }
     delete approxSolver;
 
   }
@@ -5464,9 +5457,8 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
   enum ResultState {Unset, Inferred, NoBound, ReachedThreshold, ExhaustedRounds};
   ResultState finalState = Unset;
 
-  int maxRounds = param.getSimplexRounds().just()
-    ? param.getSimplexRounds().constValue()
-    : -1;
+  const int maxRounds =
+      param.getSimplexRounds().just() ? param.getSimplexRounds().value() : -1;
 
   Maybe<DeltaRational> threshold;
   // TODO: get this from the parameters
@@ -5592,7 +5584,8 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
     }
 
     if(threshold.just()){
-      if(d_partialModel.getAssignment(optVar) >= threshold.constValue()){
+      if (d_partialModel.getAssignment(optVar) >= threshold.value())
+      {
         finalState = ReachedThreshold;
         break;
       }
