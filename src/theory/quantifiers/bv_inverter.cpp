@@ -2321,14 +2321,14 @@ Node BvInverter::solveBvLit(Node sv,
       {
         if (s.isConst() && bv::utils::getBit(s, 0))
         {
-          unsigned ssize = bv::utils::getSize(s);
+          unsigned w = bv::utils::getSize(s);
           Integer s_val = s.getConst<BitVector>().toInteger();
-          Integer w = Integer(1).multiplyByPow2(ssize);
+          Integer mod_val = Integer(1).multiplyByPow2(w);
           Trace("bv-invert-debug")
-              << "Compute inverse : " << s_val << " " << w << std::endl;
-          Integer inv_val = s_val.modInverse(w);
+              << "Compute inverse : " << s_val << " " << mod_val << std::endl;
+          Integer inv_val = s_val.modInverse(mod_val);
           Trace("bv-invert-debug") << "Inverse : " << inv_val << std::endl;
-          Node inv = nm->mkConst(BitVector(ssize, inv_val));
+          Node inv = nm->mkConst(BitVector(w, inv_val));
           if (k == BITVECTOR_MULT)
           {
             t_new = nm->mkNode(BITVECTOR_MULT, inv, t);
