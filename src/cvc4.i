@@ -174,8 +174,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %typemap(throws) CVC4::parser::InputStreamException = CVC4::Exception;
 %typemap(throws) CVC4::parser::ParserException = CVC4::Exception;
 
-%typemap(throws) CVC4::RationalFromDoubleException = Exception;
-
 // Generate an error if the mapping from C++ CVC4 Exception to Java CVC4 Exception doesn't exist above
 %typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY] %{
 #error "exception $1_type doesn't map to Java correctly---please edit src/cvc4.i and add it"

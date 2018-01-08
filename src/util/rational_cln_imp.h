@@ -35,13 +35,9 @@
 
 #include "base/exception.h"
 #include "util/integer.h"
+#include "util/maybe.h"
 
 namespace CVC4 {
-
-class CVC4_PUBLIC RationalFromDoubleException : public Exception {
-public:
-  RationalFromDoubleException(double d) throw();
-};
 
 /**
  ** A multi-precision rational constant.
@@ -201,7 +197,7 @@ public:
   }
 
   /** Return an exact rational for a double d. */
-  static Rational fromDouble(double d) throw(RationalFromDoubleException);
+  static Maybe<Rational> fromDouble(double d);
 
   /**
    * Get a double representation of this Rational, which is
