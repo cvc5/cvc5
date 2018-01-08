@@ -590,8 +590,7 @@ private:
   void subsumption(std::vector<ConstraintCPVec>& confs) const;
 
   Node cutToLiteral(ApproximateSimplex*  approx, const CutInfo& cut) const;
-  Node branchToNode(ApproximateSimplex*  approx, const NodeLog& cut) const throw(RationalFromDoubleException);
-
+  Node branchToNode(ApproximateSimplex* approx, const NodeLog& cut) const;
 
   void propagateCandidates();
   void propagateCandidate(ArithVar basic);
@@ -705,7 +704,8 @@ private:
   std::vector<ConstraintCPVec> replayLogRec(ApproximateSimplex* approx, int nid, ConstraintP bc, int depth);
 
   std::pair<ConstraintP, ArithVar> replayGetConstraint(const CutInfo& info);
-  std::pair<ConstraintP, ArithVar> replayGetConstraint(ApproximateSimplex* approx, const NodeLog& nl) throw(RationalFromDoubleException);
+  std::pair<ConstraintP, ArithVar> replayGetConstraint(
+      ApproximateSimplex* approx, const NodeLog& nl);
   std::pair<ConstraintP, ArithVar> replayGetConstraint(const DenseMap<Rational>& lhs, Kind k, const Rational& rhs, bool branch);
 
   void replayAssert(ConstraintP c);

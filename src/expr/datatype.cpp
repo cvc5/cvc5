@@ -520,7 +520,8 @@ DatatypeType Datatype::getDatatypeType(const std::vector<Type>& params)
   return DatatypeType(d_self).instantiate(params);
 }
 
-bool Datatype::operator==(const Datatype& other) const throw() {
+bool Datatype::operator==(const Datatype& other) const
+{
   // two datatypes are == iff the name is the same and they have
   // exactly matching constructors (in the same order)
 
@@ -840,11 +841,13 @@ void DatatypeConstructor::addArg(std::string selectorName, DatatypeSelfType) {
   d_args.push_back(DatatypeConstructorArg(selectorName + '\0', Expr()));
 }
 
-std::string DatatypeConstructor::getName() const throw() {
+std::string DatatypeConstructor::getName() const
+{
   return d_name.substr(0, d_name.find('\0'));
 }
 
-std::string DatatypeConstructor::getTesterName() const throw() {
+std::string DatatypeConstructor::getTesterName() const
+{
   return d_name.substr(d_name.find('\0') + 1);
 }
 
@@ -1134,7 +1137,8 @@ DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector) 
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor arg without a name");
 }
 
-std::string DatatypeConstructorArg::getName() const throw() {
+std::string DatatypeConstructorArg::getName() const
+{
   string name = d_name;
   const size_t nul = name.find('\0');
   if(nul != string::npos) {
@@ -1193,7 +1197,8 @@ Type DatatypeConstructorArg::getRangeType() const {
   return getType().getRangeType();
 }
 
-bool DatatypeConstructorArg::isUnresolvedSelf() const throw() {
+bool DatatypeConstructorArg::isUnresolvedSelf() const
+{
   return d_selector.isNull() && d_name.size() == d_name.find('\0') + 1;
 }
 
