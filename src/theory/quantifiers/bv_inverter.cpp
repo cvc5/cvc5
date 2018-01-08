@@ -83,14 +83,18 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
   if (c.isNull())
   {
     NodeManager* nm = NodeManager::currentNM();
-    if( m ){
+    if (m)
+    {
       Node x = m->getBoundVariable(tn);
       Node ccond = new_cond.substitute(solve_var, x);
       c = nm->mkNode(kind::CHOICE, nm->mkNode(BOUND_VAR_LIST, x), ccond);
-      Trace("cegqi-bv-skvinv") << "SKVINV : Make " << c << " for " << new_cond
-                              << std::endl;
-    }else{
-      Trace("bv-invert") << "...fail for " << cond << " : no inverter query!" << std::endl;
+      Trace("cegqi-bv-skvinv")
+          << "SKVINV : Make " << c << " for " << new_cond << std::endl;
+    }
+    else
+    {
+      Trace("bv-invert") << "...fail for " << cond << " : no inverter query!"
+                         << std::endl;
     }
   }
   // currently shouldn't cache since
@@ -2204,7 +2208,6 @@ static Node getScBvShl(bool pol,
   return sc;
 }
 
-
 Node BvInverter::solveBvLit(Node sv,
                             Node lit,
                             std::vector<unsigned>& path,
@@ -2303,7 +2306,7 @@ Node BvInverter::solveBvLit(Node sv,
       Node t_new;
       /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
        *       are commutative (no case split based on index). */
-      
+
       // handle cases where the inversion does not need a choice function
       if (k == BITVECTOR_PLUS)
       {
@@ -2313,24 +2316,25 @@ Node BvInverter::solveBvLit(Node sv,
       {
         t_new = nm->mkNode(BITVECTOR_XOR, t, s);
       }
-      else if( k==BITVECTOR_MULT )
+      else if (k == BITVECTOR_MULT)
       {
-        if( s.isConst() && bv::utils::getBit(s,0) )
+        if (s.isConst() && bv::utils::getBit(s, 0))
         {
           unsigned ssize = bv::utils::getSize(s);
           Integer a = s.getConst<BitVector>().toInteger();
           Integer w = Integer(1).multiplyByPow2(ssize);
-          Trace("bv-invert-debug") << "Compute inverse : " << a << " " << w << std::endl;
-          Integer inv = a.modInverse( w );
+          Trace("bv-invert-debug")
+              << "Compute inverse : " << a << " " << w << std::endl;
+          Integer inv = a.modInverse(w);
           Trace("bv-invert-debug") << "Inverse : " << inv << std::endl;
-          Node inv_val = nm->mkConst(BitVector(ssize,inv));
-          t_new = nm->mkNode(BITVECTOR_MULT,inv_val,t);
+          Node inv_val = nm->mkConst(BitVector(ssize, inv));
+          t_new = nm->mkNode(BITVECTOR_MULT, inv_val, t);
         }
       }
-      
-      if( !t_new.isNull() )
+
+      if (!t_new.isNull())
       {
-        // In this case, s op x = t is equivalent to x = t_new, and 
+        // In this case, s op x = t is equivalent to x = t_new, and
         // t_new does not contain CHOICE.
         t = t_new;
       }
@@ -2391,7 +2395,8 @@ Node BvInverter::solveBvLit(Node sv,
         pol = true;
         /* t = fresh skolem constant */
         t = getInversionNode(sc, solve_tn, m);
-        if( t.isNull() ){
+        if (t.isNull())
+        {
           return t;
         }
       }
