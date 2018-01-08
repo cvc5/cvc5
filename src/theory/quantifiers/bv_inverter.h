@@ -77,7 +77,7 @@ class BvInverter
    * Solve for sv in lit, where lit.path = sv. If this function returns a
    * non-null node t, then sv = t is the solved form of lit.
    *
-   * If the BvInverterQuery provided to this function call is null, then 
+   * If the BvInverterQuery provided to this function call is null, then
    * the solution returned by this call will not contain CHOICE expressions.
    * If the solved form for lit requires introducing a CHOICE expression,
    * then this call will return null.

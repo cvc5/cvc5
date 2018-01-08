@@ -1114,7 +1114,7 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
       return true;
     }
   }
-  
+
   return false;
 }
 
