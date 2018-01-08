@@ -2316,19 +2316,23 @@ Node BvInverter::solveBvLit(Node sv,
       {
         t_new = nm->mkNode(BITVECTOR_XOR, t, s);
       }
-      else if (k == BITVECTOR_MULT)
+      else if (k == BITVECTOR_MULT
+           || (k == BITVECTOR_UDIV_TOTAL && index == 0))
       {
         if (s.isConst() && bv::utils::getBit(s, 0))
         {
           unsigned ssize = bv::utils::getSize(s);
-          Integer a = s.getConst<BitVector>().toInteger();
+          Integer s_val = s.getConst<BitVector>().toInteger();
           Integer w = Integer(1).multiplyByPow2(ssize);
           Trace("bv-invert-debug")
-              << "Compute inverse : " << a << " " << w << std::endl;
-          Integer inv = a.modInverse(w);
-          Trace("bv-invert-debug") << "Inverse : " << inv << std::endl;
-          Node inv_val = nm->mkConst(BitVector(ssize, inv));
-          t_new = nm->mkNode(BITVECTOR_MULT, inv_val, t);
+              << "Compute inverse : " << s_val << " " << w << std::endl;
+          Integer inv_val = s_val.modInverse(w);
+          Trace("bv-invert-debug") << "Inverse : " << inv_val << std::endl;
+          Node inv = nm->mkConst(BitVector(ssize, inv_val));
+          if (k == BITVECTOR_MULT)
+            t_new = nm->mkNode(BITVECTOR_MULT, inv, t);
+          else
+            t_new = nm->mkNode(BITVECTOR_UDIV_TOTAL, t, inv);
         }
       }
 
