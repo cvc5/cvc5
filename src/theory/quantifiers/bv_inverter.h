@@ -54,16 +54,33 @@ class BvInverter
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
 
-  /** Get path to pv in lit, replace that occurrence by sv and all others by
-   * pvs. If return value R is non-null, then : lit.path = pv R.path = sv
+  /**
+   * Get path to pv in lit, replace that occurrence by sv and all others by
+   * pvs (if pvs is non-null). If return value R is non-null, then :
+   *   lit.path = pv R.path = sv
    *   R.path' = pvs for all lit.path' = pv, where path' != path
    */
   Node getPathToPv(
       Node lit, Node pv, Node sv, Node pvs, std::vector<unsigned>& path);
 
+  /**
+   * Same as above, but does not linearize lit for pv.
+   * Use this version if we know lit is linear wrt pv.
+   */
+  Node getPathToPv(Node lit, Node pv, std::vector<unsigned>& path)
+  {
+    return getPathToPv(lit, pv, pv, Node::null(), path);
+  }
+
   /** solveBvLit
-   * solve for sv in lit, where lit.path = sv
-   * status accumulates side conditions
+   *
+   * Solve for sv in lit, where lit.path = sv. If this function returns a
+   * non-null node t, then sv = t is the solved form of lit.
+   *
+   * If the BvInverterQuery provided to this function call is null, then
+   * the solution returned by this call will not contain CHOICE expressions.
+   * If the solved form for lit requires introducing a CHOICE expression,
+   * then this call will return null.
    */
   Node solveBvLit(Node sv,
                   Node lit,
@@ -95,6 +112,9 @@ class BvInverter
    * the solve variable. For example, if cond is x = t where x is
    * getSolveVariable(tn), then we return t instead of introducing the choice
    * function.
+   *
+   * This function will return the null node if the BvInverterQuery m provided
+   * to this call is null.
    */
   Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
 };
