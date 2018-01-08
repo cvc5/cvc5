@@ -962,8 +962,10 @@ Node QuantifiersRewriter::computeVariableElimLitBv(Node lit,
   return Node::null();
 }
 
-bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vector< Node >& args, std::vector< Node >& vars, std::vector< Node >& subs,
-                                                  std::map< Node, std::map< bool, std::map< Node, bool > > >& num_bounds ) {
+bool QuantifiersRewriter::computeVariableElimLit(
+  Node lit, bool pol, std::vector< Node >& args, std::vector< Node >& vars, std::vector< Node >& subs,
+  std::map< Node, std::map< bool, std::map< Node, bool > > >& num_bounds ) 
+{
   Trace("var-elim-quant-debug")
       << "Eliminate : " << lit << ", pol = " << pol << "?" << std::endl;
   if (lit.getKind() == EQUAL && options::varElimQuant())
@@ -1677,24 +1679,24 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
 bool QuantifiersRewriter::doOperation( Node q, int computeOption, QAttributes& qa ){
   bool is_strict_trigger = qa.d_hasPattern && options::userPatternsQuant()==USER_PAT_MODE_TRUST;
   bool is_std = !qa.d_sygus && !qa.d_quant_elim && !qa.isFunDef() && !is_strict_trigger;
-  if( computeOption==COMPUTE_ELIM_SYMBOLS ){
-    return true;
-  }else if( computeOption==COMPUTE_MINISCOPING ){
-    return is_std;
-  }else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
-    return options::aggressiveMiniscopeQuant() && is_std;
-  }else if( computeOption==COMPUTE_PROCESS_TERMS ){
-    return options::condRewriteQuant() || options::elimExtArithQuant()
-           || options::iteLiftQuant() != ITE_LIFT_QUANT_MODE_NONE;
-  }else if( computeOption==COMPUTE_COND_SPLIT ){
-    return ( options::iteDtTesterSplitQuant() || options::condVarSplitQuant() ) && !is_strict_trigger;
-  }else if( computeOption==COMPUTE_PRENEX ){
-    return options::prenexQuant()!=PRENEX_QUANT_NONE && !options::aggressiveMiniscopeQuant() && is_std;
-  }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
-    return ( options::varElimQuant() || options::dtVarExpandQuant() ) && is_std;
-  }else{
-    return false;
-  }
+if( computeOption==COMPUTE_ELIM_SYMBOLS ){
+  return true;
+}else if( computeOption==COMPUTE_MINISCOPING ){
+  return is_std;
+}else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
+  return options::aggressiveMiniscopeQuant() && is_std;
+}else if( computeOption==COMPUTE_PROCESS_TERMS ){
+  return options::condRewriteQuant() || options::elimExtArithQuant()
+          || options::iteLiftQuant() != ITE_LIFT_QUANT_MODE_NONE;
+}else if( computeOption==COMPUTE_COND_SPLIT ){
+  return ( options::iteDtTesterSplitQuant() || options::condVarSplitQuant() ) && !is_strict_trigger;
+}else if( computeOption==COMPUTE_PRENEX ){
+  return options::prenexQuant()!=PRENEX_QUANT_NONE && !options::aggressiveMiniscopeQuant() && is_std;
+}else if( computeOption==COMPUTE_VAR_ELIMINATION ){
+  return ( options::varElimQuant() || options::dtVarExpandQuant() ) && is_std;
+}else{
+  return false;
+}
 }
 
 //general method for computing various rewrites
