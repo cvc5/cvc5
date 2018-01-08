@@ -787,7 +787,8 @@ ${all_modules_option_handlers}
   free(argv);
 }
 
-std::string Options::suggestCommandLineOptions(const std::string& optionName) throw() {
+std::string Options::suggestCommandLineOptions(const std::string& optionName)
+{
   DidYouMean didYouMean;
 
   const char* opt;
@@ -804,7 +805,9 @@ static const char* smtOptions[] = {
   NULL
 };/* smtOptions[] */
 
-std::vector<std::string> Options::suggestSmtOptions(const std::string& optionName) throw() {
+std::vector<std::string> Options::suggestSmtOptions(
+    const std::string& optionName)
+{
   std::vector<std::string> suggestions;
 
   const char* opt;
@@ -817,7 +820,8 @@ std::vector<std::string> Options::suggestSmtOptions(const std::string& optionNam
   return suggestions;
 }
 
-std::vector< std::vector<std::string> > Options::getOptions() const throw() {
+std::vector<std::vector<std::string> > Options::getOptions() const
+{
   std::vector< std::vector<std::string> > opts;
 
   ${all_modules_get_options}

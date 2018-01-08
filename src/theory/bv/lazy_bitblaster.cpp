@@ -71,7 +71,8 @@ void TLazyBitblaster::setAbstraction(AbstractionModule* abs) {
   d_abstraction = abs;
 }
 
-TLazyBitblaster::~TLazyBitblaster() throw() {
+TLazyBitblaster::~TLazyBitblaster()
+{
   delete d_cnfStream;
   delete d_nullRegistrar;
   delete d_nullContext;

@@ -27,36 +27,25 @@ namespace CVC4 {
 class CVC4_PUBLIC AbstractValue {
   const Integer d_index;
 
-public:
+ public:
+  AbstractValue(Integer index);
 
-  AbstractValue(Integer index) throw(IllegalArgumentException);
-
-  ~AbstractValue() throw() {}
-
-  const Integer& getIndex() const throw() {
-    return d_index;
-  }
-
-  bool operator==(const AbstractValue& val) const throw() {
+  const Integer& getIndex() const { return d_index; }
+  bool operator==(const AbstractValue& val) const
+  {
     return d_index == val.d_index;
   }
-  bool operator!=(const AbstractValue& val) const throw() {
-    return !(*this == val);
-  }
-
-  bool operator<(const AbstractValue& val) const throw() {
+  bool operator!=(const AbstractValue& val) const { return !(*this == val); }
+  bool operator<(const AbstractValue& val) const
+  {
     return d_index < val.d_index;
   }
-  bool operator<=(const AbstractValue& val) const throw() {
+  bool operator<=(const AbstractValue& val) const
+  {
     return d_index <= val.d_index;
   }
-  bool operator>(const AbstractValue& val) const throw() {
-    return !(*this <= val);
-  }
-  bool operator>=(const AbstractValue& val) const throw() {
-    return !(*this < val);
-  }
-
+  bool operator>(const AbstractValue& val) const { return !(*this <= val); }
+  bool operator>=(const AbstractValue& val) const { return !(*this < val); }
 };/* class AbstractValue */
 
 std::ostream& operator<<(std::ostream& out, const AbstractValue& val) CVC4_PUBLIC;

@@ -836,7 +836,8 @@ FirstOrderModel(qe, c, name){
 
 }
 
-FirstOrderModelFmc::~FirstOrderModelFmc() throw() {
+FirstOrderModelFmc::~FirstOrderModelFmc()
+{
   for(std::map<Node, Def*>::iterator i = d_models.begin(); i != d_models.end(); ++i) {
     delete (*i).second;
   }
@@ -1004,7 +1005,8 @@ FirstOrderModel(qe, c, name) {
 
 }
 
-FirstOrderModelAbs::~FirstOrderModelAbs() throw() {
+FirstOrderModelAbs::~FirstOrderModelAbs()
+{
   for(std::map<Node, AbsDef*>::iterator i = d_models.begin(); i != d_models.end(); ++i) {
     delete (*i).second;
   }

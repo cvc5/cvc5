@@ -58,9 +58,9 @@ public:
     bool d_fired;
 
   public:
-    Scope(Cache<T, U, Hasher>& cache, const T& elt) throw(AssertionException) :
-      d_cache(cache),
-      d_fired(d_cache.computing(elt)) {
+   Scope(Cache<T, U, Hasher>& cache, const T& elt)
+       : d_cache(cache), d_fired(d_cache.computing(elt))
+   {
     }
 
     ~Scope() {
@@ -69,21 +69,21 @@ public:
       }
     }
 
-    operator bool() throw() {
-      return d_fired;
-    }
-
-    const U& get() throw(AssertionException) {
+    operator bool() const { return d_fired; }
+    const U& get() const
+    {
       Assert(d_fired, "nothing in cache");
       return d_cache.get();
     }
 
-    U& operator()(U& computed) throw(AssertionException) {
+    U& operator()(U& computed)
+    {
       Assert(!d_fired, "can only cache a computation once");
       d_fired = true;
       return d_cache(computed);
     }
-    const U& operator()(const U& computed) throw(AssertionException) {
+    const U& operator()(const U& computed)
+    {
       Assert(!d_fired, "can only cache a computation once");
       d_fired = true;
       return d_cache(computed);
