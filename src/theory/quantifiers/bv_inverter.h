@@ -73,8 +73,14 @@ class BvInverter
   }
 
   /** solveBvLit
-   * solve for sv in lit, where lit.path = sv
-   * status accumulates side conditions
+   *
+   * Solve for sv in lit, where lit.path = sv. If this function returns a
+   * non-null node t, then sv = t is the solved form of lit.
+   *
+   * If the BvInverterQuery provided to this function call is null, then 
+   * the solution returned by this call will not contain CHOICE expressions.
+   * If the solved form for lit requires introducing a CHOICE expression,
+   * then this call will return null.
    */
   Node solveBvLit(Node sv,
                   Node lit,
@@ -106,6 +112,9 @@ class BvInverter
    * the solve variable. For example, if cond is x = t where x is
    * getSolveVariable(tn), then we return t instead of introducing the choice
    * function.
+   *
+   * This function will return the null node if the BvInverterQuery m provided
+   * to this call is null.
    */
   Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
 };

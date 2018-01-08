@@ -2307,7 +2307,7 @@ Node BvInverter::solveBvLit(Node sv,
       /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
        *       are commutative (no case split based on index). */
 
-      // handle cases where the inversion does not need a choice function
+      // handle cases where the inversion has a unique solution
       if (k == BITVECTOR_PLUS)
       {
         t_new = nm->mkNode(BITVECTOR_SUB, t, s);
@@ -2334,8 +2334,7 @@ Node BvInverter::solveBvLit(Node sv,
 
       if (!t_new.isNull())
       {
-        // In this case, s op x = t is equivalent to x = t_new, and
-        // t_new does not contain CHOICE.
+        // In this case, s op x = t is equivalent to x = t_new
         t = t_new;
       }
       else
