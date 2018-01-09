@@ -582,8 +582,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
           /* Normalize (no negative numbers, hence no subtraction)
            * e.g., x = 4 - 2y  --> x = 4 + 9y (modulo 11) */
           Integer m = iprime - lhs[prow][i];
-          Node bv =
-              nm->mkConst<BitVector>(BitVector(utils::getSize(vvars[i]), m));
+          Node bv = utils::mkConst(utils::getSize(vvars[i]), m);
           Node mult = nm->mkNode(kind::BITVECTOR_MULT, vvars[i], bv);
           stack.push_back(mult);
         }
@@ -602,8 +601,8 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
           if (rhs[prow] != 0)
           {
             tmp = nm->mkNode(kind::BITVECTOR_PLUS,
-                             nm->mkConst<BitVector>(BitVector(
-                                 utils::getSize(vvars[pcol]), rhs[prow])),
+                             utils::mkConst(
+                                 utils::getSize(vvars[pcol]), rhs[prow]),
                              tmp);
           }
           Assert(!is_bv_const(tmp));
