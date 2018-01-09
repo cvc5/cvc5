@@ -994,7 +994,7 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
     if (!inst.isNull())
     {
       inst = Rewriter::rewrite(inst);
-      if ( inst.isConst() || !ci->hasNestedQuantification())
+      if (inst.isConst() || !ci->hasNestedQuantification())
       {
         Trace("cegqi-bv") << "...solved form is " << inst << std::endl;
         // store information for id and increment
@@ -1017,7 +1017,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                          Node lit,
                                          CegInstEffort effort)
 {
-  if (effort == CEG_INST_EFFORT_FULL )
+  if (effort == CEG_INST_EFFORT_FULL)
   {
     // always use model values at full effort
     return Node::null();
@@ -1041,13 +1041,16 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     {
       return lit;
     }
-  } else {    
-    
+  }
+  else
+  {
     bool useSlack = false;
-    if (k != EQUAL && k !=BITVECTOR_ULT && k !=BITVECTOR_SLT ){
+    if (k != EQUAL && k != BITVECTOR_ULT && k != BITVECTOR_SLT)
+    {
       // others are unhandled
       return Node::null();
-    }else if (!atom[0].getType().isBitVector())
+    }
+    else if (!atom[0].getType().isBitVector())
     {
       return Node::null();
     }
@@ -1055,26 +1058,28 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     NodeManager* nm = NodeManager::currentNM();
     Node s = atom[0];
     Node t = atom[1];
-    
+
     Node sm = ci->getModelValue(atom[0]);
     Node tm = ci->getModelValue(atom[1]);
     Assert(!sm.isNull() && sm.isConst());
     Assert(!tm.isNull() && tm.isConst());
     Trace("cegqi-bv") << "Model value: " << std::endl;
-    Trace("cegqi-bv") << "   " << s << " " << k << " " << t << " is " << std::endl;
+    Trace("cegqi-bv") << "   " << s << " " << k << " " << t << " is "
+                      << std::endl;
     Trace("cegqi-bv") << "   " << sm << " <> " << tm << std::endl;
-    
+
     if (options::cbqiBvIneqMode() == CBQI_BV_INEQ_EQ_SLACK)
     {
       useSlack = true;
     }
-    else if( k==EQUAL )
+    else if (k == EQUAL)
     {
-      Node comp = nm->mkNode( BITVECTOR_ULT, sm, tm );
-      comp = Rewriter::rewrite( comp );
+      Node comp = nm->mkNode(BITVECTOR_ULT, sm, tm);
+      comp = Rewriter::rewrite(comp);
       k = BITVECTOR_ULT;
       // go in the direction of the model
-      if( !comp.getConst<bool>() ){
+      if (!comp.getConst<bool>())
+      {
         Node u = s;
         s = t;
         t = u;
@@ -1087,20 +1092,22 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     //   (not) s ~ t  --->  s = t + ( s^M - t^M )
     Node ret;
     if (useSlack) {
-      if (sm != tm) {
-        Node slack =
-            Rewriter::rewrite(nm->mkNode(kind::BITVECTOR_SUB, sm, tm));
+      if (sm != tm)
+      {
+        Node slack = Rewriter::rewrite(nm->mkNode(kind::BITVECTOR_SUB, sm, tm));
         Assert(slack.isConst());
         // remember the slack value for the asserted literal
         d_alit_to_model_slack[lit] = slack;
-        ret = nm->mkNode(kind::EQUAL, s,
-                          nm->mkNode(kind::BITVECTOR_PLUS, t, slack));
+        ret = nm->mkNode(
+            kind::EQUAL, s, nm->mkNode(kind::BITVECTOR_PLUS, t, slack));
         Trace("cegqi-bv") << "Slack is " << slack << std::endl;
-      } else {
+      }
+      else
+      {
         ret = s.eqNode(t);
       }
     } else {
-      // otherwise, we optimistically solve for the boundary point of an 
+      // otherwise, we optimistically solve for the boundary point of an
       // inequality, for example:
       //   for s < t, we solve s+1 = t
       //   for ~( s < t ), we solve s = t
@@ -1142,7 +1149,8 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci,
         Trace("cegqi-bv") << "...rewritten to " << rlit << std::endl;
       }
     }
-    if( !rlit.isNull() ){
+    if (!rlit.isNull())
+    {
       processLiteral(ci, sf, pv, rlit, alit, effort);
     }
   }
@@ -1189,9 +1197,10 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
       // we may find an invertible literal that leads to a useful instantiation.
       std::random_shuffle(iti->second.begin(), iti->second.end());
 
-      if (Trace.isOn("cegqi-bv")) 
+      if (Trace.isOn("cegqi-bv"))
       {
-        for (unsigned j = 0, size = iti->second.size(); j<size; j++) {
+        for (unsigned j = 0, size = iti->second.size(); j < size; j++)
+        {
           unsigned inst_id = iti->second[j];
           Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
           Node inst_term = d_inst_id_to_term[inst_id];
@@ -1202,7 +1211,8 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
           Node curr_slack_val;
           std::unordered_map<Node, Node, NodeHashFunction>::iterator itms =
               d_alit_to_model_slack.find(alit);
-          if (itms != d_alit_to_model_slack.end()) {
+          if (itms != d_alit_to_model_slack.end())
+          {
             curr_slack_val = itms->second;
           }
 
@@ -1225,7 +1235,8 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
       bool ret = false;
       bool tryMultipleInst = firstVar && options::cbqiMultiInst();
       bool revertOnSuccess = tryMultipleInst;
-      for (unsigned j = 0, size = iti->second.size(); j<size; j++) {
+      for (unsigned j = 0, size = iti->second.size(); j < size; j++)
+      {
         unsigned inst_id = iti->second[j];
         Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
         Node inst_term = d_inst_id_to_term[inst_id];
@@ -1244,7 +1255,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
         }
         ci->markSolved(alit, false);
         // we are done unless we try multiple instances
-        if( !tryMultipleInst )
+        if (!tryMultipleInst)
         {
           break;
         }
