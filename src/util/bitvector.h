@@ -9,9 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief A fixed-size bit-vector.
  **
- ** [[ Add lengthier description here ]]
+ ** A fixed-size bit-vector, implemented as a wrapper around Integer.
+ **
  ** \todo document this file
  **/
 
@@ -51,21 +52,99 @@ public:
   BitVector(unsigned size, const BitVector& q)
     : d_size(size), d_value(q.d_value) {}
 
-  BitVector(const std::string& num, unsigned base = 2);
+  BitVector(const std::string& num, unsigned base = 2)
+  {
+    CheckArgument(base == 2 || base == 16, base);
+    d_size = base == 2 ?  num.size() : num.size() * 4;
+    d_value = Integer(num, base);
+  }
 
   ~BitVector() {}
 
-  Integer toInteger() const {
-    return d_value;
-  }
-
-  BitVector& operator =(const BitVector& x) {
-    if(this == &x)
-      return *this;
+  BitVector& operator=(const BitVector& x)
+  {
+    if (this == &x) return *this;
     d_size = x.d_size;
     d_value = x.d_value;
     return *this;
   }
+
+  unsigned getSize() const
+  {
+    return d_size;
+  }
+
+  const Integer& getValue() const
+  {
+    return d_value;
+  }
+
+  Integer toInteger() const
+  {
+    return d_value;
+  }
+
+  /**
+   * Return Integer corresponding to two's complement interpretation of bv.
+   */
+  Integer toSignedInteger() const
+  {
+    unsigned size = d_size;
+    Integer sign_bit = d_value.extractBitRange(1, size - 1);
+    Integer val = d_value.extractBitRange(size - 1, 0);
+    Integer res = Integer(-1) * sign_bit.multiplyByPow2(size - 1) + val;
+    return res;
+  }
+
+  size_t hash() const
+  {
+    return d_value.hash() + d_size;
+  }
+
+  std::string toString(unsigned int base = 2) const
+  {
+    std::string str = d_value.toString(base);
+    if (base == 2 && d_size > str.size())
+    {
+      std::string zeroes;
+      for (unsigned int i = 0; i < d_size - str.size(); ++i)
+      {
+        zeroes.append("0");
+      }
+      return zeroes + str;
+    }
+    else
+    {
+      return str;
+    }
+  }
+
+  BitVector setBit(uint32_t i) const
+  {
+    CheckArgument(i < d_size, i);
+    Integer res = d_value.setBit(i);
+    return BitVector(d_size, res);
+  }
+
+  bool isBitSet(uint32_t i) const
+  {
+    CheckArgument(i < d_size, i);
+    return d_value.isBitSet(i);
+  }
+
+
+  /**
+   * Return k if the integer is equal to 2^{k-1} and zero otherwise.
+   */
+  unsigned isPow2() {
+    return d_value.isPow2();
+  }
+
+  /* -----------------------------------------------------------------------
+   ** Operators
+   * ----------------------------------------------------------------------- */
+
+  /* String Operations ----------------------------------------------------- */
 
   BitVector concat (const BitVector& other) const {
     return BitVector(d_size + other.d_size, (d_value.multiplyByPow2(other.d_size)) + other.d_value);
@@ -75,9 +154,7 @@ public:
     return BitVector(high - low + 1, d_value.extractBitRange(high - low + 1, low));
   }
 
-  /**
-   * Predicates
-   */
+  /* (Dis)Equality --------------------------------------------------------- */
 
   bool operator ==(const BitVector& y) const {
     if (d_size != y.d_size) return false;
@@ -89,9 +166,7 @@ public:
     return d_value != y.d_value;
   }
 
-  /**
-   * Unsigned predicates
-   */
+  /* Unsigned Inequality --------------------------------------------------- */
 
   bool operator <(const BitVector& y) const {
     return d_value < y.d_value;
@@ -123,16 +198,14 @@ public:
     return d_value >= y.d_value ;
   }
 
-  /**
-   * Signed predicates
-   */
+  /* Signed Inequality ----------------------------------------------------- */
 
   bool signedLessThan(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
     CheckArgument(d_value >= 0, this);
     CheckArgument(y.d_value >= 0, y);
-    Integer a = (*this).toSignedInt();
-    Integer b = y.toSignedInt();
+    Integer a = (*this).toSignedInteger();
+    Integer b = y.toSignedInteger();
 
     return a < b;
   }
@@ -141,15 +214,13 @@ public:
     CheckArgument(d_size == y.d_size, y);
     CheckArgument(d_value >= 0, this);
     CheckArgument(y.d_value >= 0, y);
-    Integer a = (*this).toSignedInt();
-    Integer b = y.toSignedInt();
+    Integer a = (*this).toSignedInteger();
+    Integer b = y.toSignedInteger();
 
     return a <= b;
   }
 
-  /**
-   * Bitwise operations
-   */
+  /* Bit-wise operations --------------------------------------------------- */
 
   /** xor */
   BitVector operator ^(const BitVector& y) const {
@@ -175,9 +246,7 @@ public:
   }
 
 
-  /**
-   * Arithmetic operations
-   */
+  /* Arithmetic operations ------------------------------------------------- */
 
   BitVector operator +(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
@@ -236,9 +305,7 @@ public:
   }
 
 
-  /**
-   * Extend operations
-   */
+  /* Extend operations ----------------------------------------------------- */
 
   BitVector zeroExtend(unsigned amount) const {
     return BitVector(d_size + amount, d_value);
@@ -254,9 +321,8 @@ public:
     }
   }
 
-  /**
-   * Shifts
-   */
+  /* Shift operations ------------------------------------------------------ */
+
   BitVector leftShift(const BitVector& y) const {
     if (y.d_value > Integer(d_size)) {
       return BitVector(d_size, Integer(0));
@@ -310,70 +376,14 @@ public:
   }
 
 
-  /**
-   * Convenience functions
-   */
-
-  size_t hash() const {
-    return d_value.hash() + d_size;
-  }
-
-  std::string toString(unsigned int base = 2) const {
-    std::string str = d_value.toString(base);
-    if( base == 2 && d_size > str.size() ) {
-      std::string zeroes;
-      for( unsigned int i=0; i < d_size - str.size(); ++i ) {
-        zeroes.append("0");
-      }
-      return zeroes + str;
-    } else {
-      return str;
-    }
-  }
-
-  unsigned getSize() const {
-    return d_size;
-  }
-
-  const Integer& getValue() const {
-    return d_value;
-  }
-
-  BitVector setBit(uint32_t i) const {
-    CheckArgument(i < d_size, i);
-    Integer res = d_value.setBit(i);
-    return BitVector(d_size, res);
-  }
-
-  bool isBitSet(uint32_t i) const {
-    CheckArgument(i < d_size, i);
-    return d_value.isBitSet(i);
-  }
-
-  /**
-   * Return Integer corresponding to two's complement interpretation of bv.
-   */
-  Integer toSignedInt() const {
-    unsigned size = d_size;
-    Integer sign_bit = d_value.extractBitRange(1,size-1);
-    Integer val = d_value.extractBitRange(size-1, 0);
-    Integer res = Integer(-1) * sign_bit.multiplyByPow2(size - 1) + val;
-    return res;
-  }
-
-  /**
-   * Return k if the integer is equal to 2^{k-1} and zero otherwise.
-   */
-  unsigned isPow2() {
-    return d_value.isPow2();
-  }
-
 private:
+
   /**
    * Class invariants:
    *  - no overflows: 2^d_size < d_value
    *  - no negative numbers: d_value >= 0
    */
+
   unsigned d_size;
   Integer d_value;
 
@@ -381,58 +391,29 @@ private:
 
 
 
-inline BitVector::BitVector(const std::string& num, unsigned base) {
-  CheckArgument(base == 2 || base == 16, base);
-
-  if( base == 2 ) {
-    d_size = num.size();
-  } else {
-    d_size = num.size() * 4;
-  }
-
-  d_value = Integer(num, base);
-}/* BitVector::BitVector() */
-
-
-/**
- * Hash function for the BitVector constants.
- */
-struct CVC4_PUBLIC BitVectorHashFunction {
-  inline size_t operator()(const BitVector& bv) const {
-    return bv.hash();
-  }
-};/* struct BitVectorHashFunction */
+/* -----------------------------------------------------------------------
+ ** BitVector structs
+ * ----------------------------------------------------------------------- */
 
 /**
  * The structure representing the extraction operation for bit-vectors. The
  * operation maps bit-vectors to bit-vector of size <code>high - low + 1</code>
  * by taking the bits at indices <code>high ... low</code>
  */
-struct CVC4_PUBLIC BitVectorExtract {
+struct CVC4_PUBLIC BitVectorExtract
+{
   /** The high bit of the range for this extract */
   unsigned high;
   /** The low bit of the range for this extract */
   unsigned low;
 
-  BitVectorExtract(unsigned high, unsigned low)
-  : high(high), low(low) {}
+  BitVectorExtract(unsigned high, unsigned low) : high(high), low(low) {}
 
-  bool operator == (const BitVectorExtract& extract) const {
+  bool operator==(const BitVectorExtract& extract) const
+  {
     return high == extract.high && low == extract.low;
   }
-};/* struct BitVectorExtract */
-
-/**
- * Hash function for the BitVectorExtract objects.
- */
-struct CVC4_PUBLIC BitVectorExtractHashFunction {
-  size_t operator()(const BitVectorExtract& extract) const {
-    size_t hash = extract.low;
-    hash ^= extract.high + 0x9e3779b9 + (hash << 6) + (hash >> 2);
-    return hash;
-  }
-};/* struct BitVectorExtractHashFunction */
-
+}; /* struct BitVectorExtract */
 
 /**
  * The structure representing the extraction of one Boolean bit.
@@ -447,17 +428,6 @@ struct CVC4_PUBLIC BitVectorBitOf {
     return bitIndex == other.bitIndex;
   }
 };/* struct BitVectorBitOf */
-
-/**
- * Hash function for the BitVectorBitOf objects.
- */
-struct CVC4_PUBLIC BitVectorBitOfHashFunction {
-  size_t operator()(const BitVectorBitOf& b) const {
-    return b.bitIndex;
-  }
-};/* struct BitVectorBitOfHashFunction */
-
-
 
 struct CVC4_PUBLIC BitVectorSize {
   unsigned size;
@@ -508,12 +478,51 @@ struct CVC4_PUBLIC IntToBitVector {
   operator unsigned () const { return size; }
 };/* struct IntToBitVector */
 
+
+/* -----------------------------------------------------------------------
+ ** Hash Function structs
+ * ----------------------------------------------------------------------- */
+
+/*
+ * Hash function for the BitVector constants.
+ */
+struct CVC4_PUBLIC BitVectorHashFunction {
+  inline size_t operator()(const BitVector& bv) const {
+    return bv.hash();
+  }
+};/* struct BitVectorHashFunction */
+
+/**
+ * Hash function for the BitVectorExtract objects.
+ */
+struct CVC4_PUBLIC BitVectorExtractHashFunction {
+  size_t operator()(const BitVectorExtract& extract) const {
+    size_t hash = extract.low;
+    hash ^= extract.high + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+    return hash;
+  }
+};/* struct BitVectorExtractHashFunction */
+
+/**
+ * Hash function for the BitVectorBitOf objects.
+ */
+struct CVC4_PUBLIC BitVectorBitOfHashFunction {
+  size_t operator()(const BitVectorBitOf& b) const {
+    return b.bitIndex;
+  }
+};/* struct BitVectorBitOfHashFunction */
+
 template <typename T>
 struct CVC4_PUBLIC UnsignedHashFunction {
   inline size_t operator()(const T& x) const {
     return (size_t)x;
   }
 };/* struct UnsignedHashFunction */
+
+
+/* -----------------------------------------------------------------------
+ ** Output stream
+ * ----------------------------------------------------------------------- */
 
 inline std::ostream& operator <<(std::ostream& os, const BitVector& bv) CVC4_PUBLIC;
 inline std::ostream& operator <<(std::ostream& os, const BitVector& bv) {
