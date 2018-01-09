@@ -1518,13 +1518,21 @@ static Node normalizePvMult(
   {
     return zero;
   }
-  else if (coeff == bv::utils::mkOne(size_coeff))
+  Node result;
+  if (found_pv)
   {
-    return pv;
+    if (coeff == bv::utils::mkOne(size_coeff))
+    {
+      return pv;
+    }
+    result = nm->mkNode(BITVECTOR_MULT, pv, coeff);
+    contains_pv[result] = true;
+    result.setAttribute(is_linear, true);
   }
-  Node result = nm->mkNode(BITVECTOR_MULT, pv, coeff);
-  contains_pv[result] = true;
-  result.setAttribute(is_linear, true);
+  else
+  {
+    result = coeff;
+  }
   return result;
 }
 
@@ -1609,6 +1617,7 @@ static Node normalizePvPlus(
     {
       Assert(isLinearPlus(nc, pv, contains_pv));
       Node coeff = getPvCoeff(pv, nc[0]);
+      Assert(!coeff.isNull());
       Node leaf = nc[1];
       if (neg)
       {
@@ -1622,22 +1631,23 @@ static Node normalizePvPlus(
     /* can't collect coefficients of 'pv' in 'cur' -> non-linear */
     return Node::null();
   }
-  Assert(nb_c.getNumChildren() > 0);
+  Assert(nb_c.getNumChildren() > 0 || nb_l.getNumChildren() > 0);
 
-  Node coeffs = (nb_c.getNumChildren() == 1) ? nb_c[0] : nb_c.constructNode();
-  coeffs = Rewriter::rewrite(coeffs);
-
-  std::vector<Node> mult_children = {pv, coeffs};
-  Node pv_mult_coeffs = normalizePvMult(pv, mult_children, contains_pv);
+  Node pv_mult_coeffs, result;
+  if (nb_c.getNumChildren() > 0)
+  {
+    Node coeffs = (nb_c.getNumChildren() == 1) ? nb_c[0] : nb_c.constructNode();
+    coeffs = Rewriter::rewrite(coeffs);
+    result = pv_mult_coeffs = normalizePvMult(pv, {pv, coeffs}, contains_pv);
+  }
 
   if (nb_l.getNumChildren() > 0)
   {
     Node leafs = (nb_l.getNumChildren() == 1) ? nb_l[0] : nb_l.constructNode();
     leafs = Rewriter::rewrite(leafs);
     Node zero = bv::utils::mkZero(bv::utils::getSize(pv));
-    Node result;
     /* pv * 0 + t --> t */
-    if (pv_mult_coeffs == zero)
+    if (pv_mult_coeffs.isNull() || pv_mult_coeffs == zero)
     {
       result = leafs;
     }
@@ -1647,9 +1657,9 @@ static Node normalizePvPlus(
       contains_pv[result] = true;
       result.setAttribute(is_linear, true);
     }
-    return result;
   }
-  return pv_mult_coeffs;
+  Assert(!result.isNull());
+  return result;
 }
 
 /**

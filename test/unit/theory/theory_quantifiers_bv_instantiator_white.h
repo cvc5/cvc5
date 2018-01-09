@@ -162,6 +162,10 @@ void BvInstantiatorWhite::testNormalizePvMult()
   Node norm_xx = normalizePvMult(x, {x, neg_x}, contains_x);
   TS_ASSERT(norm_xx.isNull());
 
+  /* nothing to normalize -> create a * a */
+  Node norm_aa = normalizePvMult(x, {a, a}, contains_x);
+  TS_ASSERT(norm_aa == Rewriter::rewrite(mkMult(a, a)));
+
   /* normalize x * a -> x * a */
   Node norm_xa = normalizePvMult(x, {x, a}, contains_x);
   TS_ASSERT(contains_x[norm_xa]);
@@ -257,6 +261,10 @@ void BvInstantiatorWhite::testNormalizePvPlus()
   contains_x[mult_bx] = true;
   Node norm_abx = normalizePvPlus(x, {a, mult_bx}, contains_x);
   TS_ASSERT(norm_abx.isNull());
+
+  /* nothing to normalize -> create a + a */
+  Node norm_aa = normalizePvPlus(x, {a, a}, contains_x);
+  TS_ASSERT(norm_aa == Rewriter::rewrite(mkPlus(a, a)));
 
   /* x + a -> x + a */
   Node norm_xa = normalizePvPlus(x, {x, a}, contains_x);
