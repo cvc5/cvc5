@@ -1456,7 +1456,8 @@ static Node getPvCoeff(TNode pv, TNode n)
  *  pv * -(a * b * c)
  *
  * Returns the normalized node if the resulting term is linear w.r.t. pv and
- * a null node otherwise.
+ * a null node otherwise. If pv does not occur in children it returns a
+ * multiplication over children.
  */
 static Node normalizePvMult(
     TNode pv,
@@ -1572,7 +1573,8 @@ static bool isLinearPlus(
  *  pv * (a - c) + b
  *
  * Returns the normalized node if the resulting term is linear w.r.t. pv and
- * a null node otherwise.
+ * a null node otherwise. If pv does not occur in children it returns an
+ * addition over children.
  */
 static Node normalizePvPlus(
     Node pv,
