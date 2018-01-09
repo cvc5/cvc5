@@ -1652,7 +1652,7 @@ void OptionsHandler::decreaseVerbosity(std::string option) {
 }
 
 
-void OptionsHandler::addTraceTag(std::string option, std::string optarg)
+void OptionsHandler::enableTraceTags(std::string option, std::string optarg)
 {
   if(!Configuration::isTracingBuild())
   {
@@ -1674,7 +1674,7 @@ void OptionsHandler::addTraceTag(std::string option, std::string optarg)
   Trace.on(optarg);
 }
 
-void OptionsHandler::addDebugTag(std::string option, std::string optarg)
+void OptionsHandler::enableDebugTags(std::string option, std::string optarg)
 {
   if (!Configuration::isDebugBuild())
   {
@@ -1714,11 +1714,11 @@ std::string OptionsHandler::suggestTags(char const* const* validTags, std::strin
   DidYouMean didYouMean;
 
   const char* opt;
-  for(size_t i = 0; (opt = validTags[i]) != NULL; ++i) {
+  for(size_t i = 0; (opt = validTags[i]) != nullptr; ++i) {
     didYouMean.addWord(validTags[i]);
   }
-  if(additionalTags != NULL) {
-    for(size_t i = 0; (opt = additionalTags[i]) != NULL; ++i) {
+  if(additionalTags != nullptr) {
+    for(size_t i = 0; (opt = additionalTags[i]) != nullptr; ++i) {
       didYouMean.addWord(additionalTags[i]);
     }
   }

@@ -199,9 +199,9 @@ option parseOnly parse-only --parse-only bool :read-write
 option preprocessOnly preprocess-only --preprocess-only bool
  exit after preprocessing input
 
-option - trace -t --trace=TAG argument :handler addTraceTag
+option - trace -t --trace=TAG argument :handler enableTraceTags
  trace something (e.g. -t pushpop), can repeat
-option - debug -d --debug=TAG argument :handler addDebugTag
+option - debug -d --debug=TAG argument :handler enableDebugTags
  debug something (e.g. -d arith), can repeat
 
 option printSuccess print-success --print-success bool :notify notifyPrintSuccess

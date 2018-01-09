@@ -188,8 +188,8 @@ public:
   void decreaseVerbosity(std::string option);
   OutputLanguage stringToOutputLanguage(std::string option, std::string optarg) throw(OptionException);
   InputLanguage stringToInputLanguage(std::string option, std::string optarg) throw(OptionException);
-  void addTraceTag(std::string option, std::string optarg);
-  void addDebugTag(std::string option, std::string optarg);
+  void enableTraceTags(std::string option, std::string optarg);
+  void enableDebugTags(std::string option, std::string optarg);
   void notifyPrintSuccess(std::string option);
 
  private:
