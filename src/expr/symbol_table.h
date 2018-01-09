@@ -64,8 +64,10 @@ class CVC4_PUBLIC SymbolTable {
    *
    * Returns false if the binding was invalid.
    */
-  bool bind(const std::string& name, Expr obj, bool levelZero = false,
-            bool doOverload = false) throw();
+  bool bind(const std::string& name,
+            Expr obj,
+            bool levelZero = false,
+            bool doOverload = false);
 
   /**
    * Bind a function body to a name in the current scope.
@@ -92,9 +94,10 @@ class CVC4_PUBLIC SymbolTable {
    *
    * Returns false if the binding was invalid.
    */
-  bool bindDefinedFunction(const std::string& name, Expr obj,
+  bool bindDefinedFunction(const std::string& name,
+                           Expr obj,
                            bool levelZero = false,
-                           bool doOverload = false) throw();
+                           bool doOverload = false);
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -107,8 +110,7 @@ class CVC4_PUBLIC SymbolTable {
    * @param t the type to bind to <code>name</code>
    * @param levelZero set if the binding must be done at level 0
    */
-  void bindType(const std::string& name, Type t,
-                bool levelZero = false) throw();
+  void bindType(const std::string& name, Type t, bool levelZero = false);
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -123,8 +125,10 @@ class CVC4_PUBLIC SymbolTable {
    * @param levelZero true to bind it globally (default is to bind it
    * locally within the current scope)
    */
-  void bindType(const std::string& name, const std::vector<Type>& params,
-                Type t, bool levelZero = false) throw();
+  void bindType(const std::string& name,
+                const std::vector<Type>& params,
+                Type t,
+                bool levelZero = false);
 
   /**
    * Check whether a name is bound to an expression with either bind()
@@ -133,18 +137,18 @@ class CVC4_PUBLIC SymbolTable {
    * @param name the identifier to check.
    * @returns true iff name is bound in the current scope.
    */
-  bool isBound(const std::string& name) const throw();
+  bool isBound(const std::string& name) const;
 
   /**
    * Check whether a name was bound to a function with bindDefinedFunction().
    */
-  bool isBoundDefinedFunction(const std::string& name) const throw();
+  bool isBoundDefinedFunction(const std::string& name) const;
 
   /**
    * Check whether an Expr was bound to a function (i.e., was the
    * second arg to bindDefinedFunction()).
    */
-  bool isBoundDefinedFunction(Expr func) const throw();
+  bool isBoundDefinedFunction(Expr func) const;
 
   /**
    * Check whether a name is bound to a type (or type constructor).
@@ -152,7 +156,7 @@ class CVC4_PUBLIC SymbolTable {
    * @param name the identifier to check.
    * @returns true iff name is bound to a type in the current scope.
    */
-  bool isBoundType(const std::string& name) const throw();
+  bool isBoundType(const std::string& name) const;
 
   /**
    * Lookup a bound expression.
@@ -163,7 +167,7 @@ class CVC4_PUBLIC SymbolTable {
    * It returns the null expression if there is not a unique expression bound to
    * <code>name</code> in the current scope (i.e. if there is not exactly one).
    */
-  Expr lookup(const std::string& name) const throw();
+  Expr lookup(const std::string& name) const;
 
   /**
    * Lookup a bound type.
@@ -171,7 +175,7 @@ class CVC4_PUBLIC SymbolTable {
    * @param name the type identifier to lookup
    * @returns the type bound to <code>name</code> in the current scope.
    */
-  Type lookupType(const std::string& name) const throw();
+  Type lookupType(const std::string& name) const;
 
   /**
    * Lookup a bound parameterized type.
@@ -182,7 +186,7 @@ class CVC4_PUBLIC SymbolTable {
    * the current scope.
    */
   Type lookupType(const std::string& name,
-                  const std::vector<Type>& params) const throw();
+                  const std::vector<Type>& params) const;
 
   /**
    * Lookup the arity of a bound parameterized type.
@@ -195,13 +199,13 @@ class CVC4_PUBLIC SymbolTable {
    *
    * @throws ScopeException if the scope level is 0.
    */
-  void popScope() throw(ScopeException);
+  void popScope();
 
   /** Push a scope level and increase the scope level by 1. */
-  void pushScope() throw();
+  void pushScope();
 
   /** Get the current level of this symbol table. */
-  size_t getLevel() const throw();
+  size_t getLevel() const;
 
   /** Reset everything. */
   void reset();
