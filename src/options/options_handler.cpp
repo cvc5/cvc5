@@ -1580,6 +1580,82 @@ void OptionsHandler::showTraceTags(std::string option)
   exit(0);
 }
 
+static std::string suggestTags(char const* const* validTags,
+                               std::string inputTag,
+                               char const* const* additionalTags)
+{
+  DidYouMean didYouMean;
+
+  const char* opt;
+  for (size_t i = 0; (opt = validTags[i]) != nullptr; ++i)
+  {
+    didYouMean.addWord(validTags[i]);
+  }
+  if (additionalTags != nullptr)
+  {
+    for (size_t i = 0; (opt = additionalTags[i]) != nullptr; ++i)
+    {
+      didYouMean.addWord(additionalTags[i]);
+    }
+  }
+
+  return didYouMean.getMatchAsString(inputTag);
+}
+
+void OptionsHandler::enableTraceTags(std::string option, std::string optarg)
+{
+  if(!Configuration::isTracingBuild())
+  {
+    throw OptionException("trace tags not available in non-tracing builds");
+  }
+  else if(!Configuration::isTraceTag(optarg.c_str()))
+  {
+    if (optarg == "help")
+    {
+      printTags(
+          Configuration::getNumTraceTags(), Configuration::getTraceTags());
+      exit(0);
+    }
+
+    throw OptionException(
+        std::string("trace tag ") + optarg + std::string(" not available.")
+        + suggestTags(Configuration::getTraceTags(), optarg, nullptr));
+  }
+  Trace.on(optarg);
+}
+
+void OptionsHandler::enableDebugTags(std::string option, std::string optarg)
+{
+  if (!Configuration::isDebugBuild())
+  {
+    throw OptionException("debug tags not available in non-debug builds");
+  }
+  else if (!Configuration::isTracingBuild())
+  {
+    throw OptionException("debug tags not available in non-tracing builds");
+  }
+
+  if (!Configuration::isDebugTag(optarg.c_str())
+      && !Configuration::isTraceTag(optarg.c_str()))
+  {
+    if (optarg == "help")
+    {
+      printTags(
+          Configuration::getNumDebugTags(), Configuration::getDebugTags());
+      exit(0);
+    }
+
+    throw OptionException(std::string("debug tag ") + optarg
+                          + std::string(" not available.")
+                          + suggestTags(Configuration::getDebugTags(),
+                                        optarg,
+                                        Configuration::getTraceTags()));
+  }
+  Debug.on(optarg);
+  Trace.on(optarg);
+}
+
+
 OutputLanguage OptionsHandler::stringToOutputLanguage(std::string option, std::string optarg) throw(OptionException) {
   if(optarg == "help") {
     options::languageHelp.set(true);
@@ -1650,83 +1726,6 @@ void OptionsHandler::decreaseVerbosity(std::string option) {
   options::verbosity.set(options::verbosity() - 1);
   setVerbosity(option, options::verbosity());
 }
-
-
-void OptionsHandler::enableTraceTags(std::string option, std::string optarg)
-{
-  if(!Configuration::isTracingBuild())
-  {
-    throw OptionException("trace tags not available in non-tracing builds");
-  }
-  else if(!Configuration::isTraceTag(optarg.c_str()))
-  {
-    if (optarg == "help")
-    {
-      printTags(
-          Configuration::getNumTraceTags(), Configuration::getTraceTags());
-      exit(0);
-    }
-
-    throw OptionException(
-        std::string("trace tag ") + optarg + std::string(" not available.")
-        + suggestTags(Configuration::getTraceTags(), optarg));
-  }
-  Trace.on(optarg);
-}
-
-void OptionsHandler::enableDebugTags(std::string option, std::string optarg)
-{
-  if (!Configuration::isDebugBuild())
-  {
-    throw OptionException("debug tags not available in non-debug builds");
-  }
-  else if (!Configuration::isTracingBuild())
-  {
-    throw OptionException("debug tags not available in non-tracing builds");
-  }
-
-  if (!Configuration::isDebugTag(optarg.c_str())
-      && !Configuration::isTraceTag(optarg.c_str()))
-  {
-    if (optarg == "help")
-    {
-      printTags(
-          Configuration::getNumDebugTags(), Configuration::getDebugTags());
-      exit(0);
-    }
-
-    throw OptionException(std::string("debug tag ") + optarg
-                          + std::string(" not available.")
-                          + suggestTags(Configuration::getDebugTags(),
-                                        optarg,
-                                        Configuration::getTraceTags()));
-  }
-  Debug.on(optarg);
-  Trace.on(optarg);
-}
-
-
-
-
-std::string OptionsHandler::suggestTags(char const* const* validTags, std::string inputTag,
-                                           char const* const* additionalTags)
-{
-  DidYouMean didYouMean;
-
-  const char* opt;
-  for(size_t i = 0; (opt = validTags[i]) != nullptr; ++i) {
-    didYouMean.addWord(validTags[i]);
-  }
-  if(additionalTags != nullptr) {
-    for(size_t i = 0; (opt = additionalTags[i]) != nullptr; ++i) {
-      didYouMean.addWord(additionalTags[i]);
-    }
-  }
-
-  return  didYouMean.getMatchAsString(inputTag);
-}
-
-
 
 
 }/* CVC4::options namespace */

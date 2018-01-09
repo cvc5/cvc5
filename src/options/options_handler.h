@@ -194,10 +194,6 @@ public:
 
  private:
 
-  /* Helper utilities */
-  static std::string suggestTags(char const* const* validTags, std::string inputTag,
-                                 char const* const* additionalTags = NULL);
-
   /** Pointer to the containing Options object.*/
   Options* d_options;
 
