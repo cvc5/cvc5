@@ -151,8 +151,8 @@ public:
   uint64_t getResourceBudgetForThisCall() {
     return d_thisCallResourceBudget;
   }
-
-  void spendResource(unsigned ammount) throw(UnsafeInterruptException);
+  // Throws an UnsafeInterruptException if there are no remaining resources.
+  void spendResource(unsigned amount);
 
   void setHardLimit(bool value);
   void setResourceLimit(uint64_t units, bool cumulative = false);

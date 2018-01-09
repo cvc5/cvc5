@@ -59,8 +59,8 @@ Integer Integer::exactQuotient(const Integer& y) const {
   return Integer( cln::exquo(d_value, y.d_value) );
 }
 
-
-void Integer::parseInt(const std::string& s, unsigned base) throw(std::invalid_argument) {
+void Integer::parseInt(const std::string& s, unsigned base)
+{
   cln::cl_read_flags flags;
   flags.syntax = cln::syntax_integer;
   flags.lsyntax = cln::lsyntax_standard;
@@ -86,7 +86,10 @@ void Integer::parseInt(const std::string& s, unsigned base) throw(std::invalid_a
   readInt(flags, s, base);
 }
 
-void Integer::readInt(const cln::cl_read_flags& flags, const std::string& s, unsigned base) throw(std::invalid_argument) {
+void Integer::readInt(const cln::cl_read_flags& flags,
+                      const std::string& s,
+                      unsigned base)
+{
   try {
     // Removing leading zeroes, CLN has a bug for these inputs up to and
     // including CLN v1.3.2.

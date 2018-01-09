@@ -48,8 +48,6 @@ d_nested_qe_waitlist_proc( qe->getUserContext() )
   d_qid_count = 0;
 }
 
-InstStrategyCbqi::~InstStrategyCbqi() throw(){}
-
 bool InstStrategyCbqi::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_LAST_CALL;
 }
@@ -673,7 +671,8 @@ InstStrategyCegqi::InstStrategyCegqi( QuantifiersEngine * qe )
   d_check_vts_lemma_lc = false;
 }
 
-InstStrategyCegqi::~InstStrategyCegqi() throw () {
+InstStrategyCegqi::~InstStrategyCegqi()
+{
   delete d_out;
 
   for(std::map< Node, CegInstantiator * >::iterator i = d_cinst.begin(),

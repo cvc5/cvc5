@@ -31,7 +31,7 @@ enum TheoryOfMode {
   THEORY_OF_TERM_BASED
 };/* enum TheoryOfMode */
 
-std::ostream& operator<<(std::ostream& out, TheoryOfMode m) throw() CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, TheoryOfMode m) CVC4_PUBLIC;
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

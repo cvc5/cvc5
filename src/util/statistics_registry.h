@@ -91,8 +91,8 @@ public:
    * will throw an assertion exception if the given name contains the
    * statistic delimiter string.
    */
-  Stat(const std::string& name) throw(CVC4::IllegalArgumentException) :
-    d_name(name) {
+  Stat(const std::string& name) : d_name(name)
+  {
     if(__CVC4_USE_STATISTICS) {
       CheckArgument(d_name.find(", ") == std::string::npos, name,
                     "Statistics names cannot include a comma (',')");
@@ -659,8 +659,7 @@ public:
   StatisticsRegistry() {}
 
   /** Construct a statistics registry */
-  StatisticsRegistry(const std::string& name)
-    throw(CVC4::IllegalArgumentException);
+  StatisticsRegistry(const std::string& name);
 
   /**
    * Set the name of this statistic registry, used as prefix during
@@ -689,10 +688,10 @@ public:
   }
 
   /** Register a new statistic */
-  void registerStat(Stat* s) throw(CVC4::IllegalArgumentException);
+  void registerStat(Stat* s);
 
   /** Unregister a new statistic */
-  void unregisterStat(Stat* s) throw(CVC4::IllegalArgumentException);
+  void unregisterStat(Stat* s);
 
 };/* class StatisticsRegistry */
 
