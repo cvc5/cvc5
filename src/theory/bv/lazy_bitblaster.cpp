@@ -71,7 +71,8 @@ void TLazyBitblaster::setAbstraction(AbstractionModule* abs) {
   d_abstraction = abs;
 }
 
-TLazyBitblaster::~TLazyBitblaster() throw() {
+TLazyBitblaster::~TLazyBitblaster()
+{
   delete d_cnfStream;
   delete d_nullRegistrar;
   delete d_nullContext;
@@ -481,7 +482,7 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
     Integer bit_int = bit_value == prop::SAT_VALUE_TRUE ? Integer(1) : Integer(0);
     value = value * 2 + bit_int;
   }
-  return utils::mkConst(BitVector(bits.size(), value));
+  return utils::mkConst(bits.size(), value);
 }
 
 bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)

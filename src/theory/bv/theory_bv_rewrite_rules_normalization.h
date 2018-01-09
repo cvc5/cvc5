@@ -979,7 +979,7 @@ Node RewriteRule<AndSimplify>::apply(TNode node) {
   std::vector<Node> children;
   
   if (constant == BitVector(size, (unsigned)0)) {
-    return utils::mkConst(BitVector(size, (unsigned)0)); 
+    return utils::mkZero(size); 
   }
 
   if (constant != utils::mkBitVectorOnes(size)) {
@@ -991,7 +991,7 @@ Node RewriteRule<AndSimplify>::apply(TNode node) {
   for (; it != subterms.end(); ++it) {
     if (it->second.pos > 0 && it->second.neg > 0) {
       // if we have a and ~a 
-      return utils::mkConst(BitVector(size, (unsigned)0)); 
+      return utils::mkZero(size); 
     } else {
       // idempotence 
       if (it->second.neg > 0) {
@@ -1113,7 +1113,7 @@ Node RewriteRule<OrSimplify>::apply(TNode node) {
   }
 
   if (children.size() == 0) {
-    return utils::mkConst(BitVector(size, (unsigned)0)); 
+    return utils::mkZero(size); 
   }
   return utils::mkSortedNode(kind::BITVECTOR_OR, children); 
 }

@@ -216,7 +216,7 @@ Node EagerBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
         bit_value == prop::SAT_VALUE_TRUE ? Integer(1) : Integer(0);
     value = value * 2 + bit_int;
   }
-  return utils::mkConst(BitVector(bits.size(), value));
+  return utils::mkConst(bits.size(), value);
 }
 
 bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)

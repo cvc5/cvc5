@@ -140,10 +140,8 @@ std::ostream& operator<<(std::ostream& os, const timespec& t) {
 
 
 /** Construct a statistics registry */
-StatisticsRegistry::StatisticsRegistry(const std::string& name)
-  throw(CVC4::IllegalArgumentException) :
-  Stat(name) {
-
+StatisticsRegistry::StatisticsRegistry(const std::string& name) : Stat(name)
+{
   d_prefix = name;
   if(__CVC4_USE_STATISTICS) {
     PrettyCheckArgument(d_name.find(s_regDelim) == std::string::npos, name,
@@ -152,7 +150,8 @@ StatisticsRegistry::StatisticsRegistry(const std::string& name)
   }
 }
 
-void StatisticsRegistry::registerStat(Stat* s) throw(CVC4::IllegalArgumentException) {
+void StatisticsRegistry::registerStat(Stat* s)
+{
 #ifdef CVC4_STATISTICS_ON
   PrettyCheckArgument(d_stats.find(s) == d_stats.end(), s,
                 "Statistic `%s' was not registered with this registry.",
@@ -161,7 +160,8 @@ void StatisticsRegistry::registerStat(Stat* s) throw(CVC4::IllegalArgumentExcept
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat_() */
 
-void StatisticsRegistry::unregisterStat(Stat* s) throw(CVC4::IllegalArgumentException) {
+void StatisticsRegistry::unregisterStat(Stat* s)
+{
 #ifdef CVC4_STATISTICS_ON
   PrettyCheckArgument(d_stats.find(s) != d_stats.end(), s,
                 "Statistic `%s' was not registered with this registry.",

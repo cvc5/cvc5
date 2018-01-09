@@ -59,7 +59,8 @@ InstMatchGenerator::InstMatchGenerator() {
   d_independent_gen = false;
 }
 
-InstMatchGenerator::~InstMatchGenerator() throw() {
+InstMatchGenerator::~InstMatchGenerator()
+{
   for( unsigned i=0; i<d_children.size(); i++ ){
     delete d_children[i];
   }
@@ -692,10 +693,6 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vecto
   }
 }
 
-InstMatchGeneratorMultiLinear::~InstMatchGeneratorMultiLinear() throw() {
-
-}
-
 int InstMatchGeneratorMultiLinear::resetChildren( QuantifiersEngine* qe ){
   for( unsigned i=0; i<d_children.size(); i++ ){
     if( !d_children[i]->reset( Node::null(), qe ) ){
@@ -814,7 +811,8 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
   }
 }
 
-InstMatchGeneratorMulti::~InstMatchGeneratorMulti() throw() {
+InstMatchGeneratorMulti::~InstMatchGeneratorMulti()
+{
   for( unsigned i=0; i<d_children.size(); i++ ){
     delete d_children[i];
   }

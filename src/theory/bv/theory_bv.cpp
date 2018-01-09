@@ -295,7 +295,7 @@ Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
     }
 
     TNode num = node[0], den = node[1];
-    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(BitVector(width, Integer(0))));
+    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, utils::mkZero(width));
     Node divTotalNumDen = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
 				     kind::BITVECTOR_UREM_TOTAL, num, den);
 
@@ -369,10 +369,10 @@ void TheoryBV::checkForLemma(TNode fact) {
       TNode result = fact[1];
       TNode divisor = urem[1];
       Node result_ult_div = mkNode(kind::BITVECTOR_ULT, result, divisor);
-      Node divisor_eq_0 = mkNode(kind::EQUAL,
-                                 divisor,
-                                 mkConst(BitVector(getSize(divisor), 0u)));
-      Node split = utils::mkNode(kind::OR, divisor_eq_0, mkNode(kind::NOT, fact), result_ult_div);
+      Node divisor_eq_0 = mkNode(
+          kind::EQUAL, divisor, mkZero(getSize(divisor)));
+      Node split = utils::mkNode(
+          kind::OR, divisor_eq_0, mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
     if (fact[1].getKind() == kind::BITVECTOR_UREM_TOTAL) {
@@ -380,10 +380,10 @@ void TheoryBV::checkForLemma(TNode fact) {
       TNode result = fact[0];
       TNode divisor = urem[1];
       Node result_ult_div = mkNode(kind::BITVECTOR_ULT, result, divisor);
-      Node divisor_eq_0 = mkNode(kind::EQUAL,
-                                 divisor,
-                                 mkConst(BitVector(getSize(divisor), 0u)));
-      Node split = utils::mkNode(kind::OR, divisor_eq_0, mkNode(kind::NOT, fact), result_ult_div);
+      Node divisor_eq_0 = mkNode(
+          kind::EQUAL, divisor, mkZero(getSize(divisor)));
+      Node split = utils::mkNode(
+          kind::OR, divisor_eq_0, mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
   }
@@ -673,7 +673,7 @@ int TheoryBV::getReduction( int effort, Node n, Node& nr ) {
     const unsigned size = utils::getSize(n[0]);
     NodeManager* const nm = NodeManager::currentNM();
     const Node z = nm->mkConst(Rational(0));
-    const Node bvone = nm->mkConst(BitVector(1u, 1u));
+    const Node bvone = utils::mkOne(1);
     NodeBuilder<> result(kind::PLUS);
     Integer i = 1;
     for(unsigned bit = 0; bit < size; ++bit, i *= 2) {
@@ -686,8 +686,8 @@ int TheoryBV::getReduction( int effort, Node n, Node& nr ) {
     //taken from rewrite code
     const unsigned size = n.getOperator().getConst<IntToBitVector>().size;
     NodeManager* const nm = NodeManager::currentNM();
-    const Node bvzero = nm->mkConst(BitVector(1u, 0u));
-    const Node bvone = nm->mkConst(BitVector(1u, 1u));
+    const Node bvzero = utils::mkZero(1);
+    const Node bvone = utils::mkOne(1);
     std::vector<Node> v;
     Integer i = 2;
     while(v.size() < size) {

@@ -38,7 +38,7 @@ protected:
   unsigned d_triedLemmas;
 public:
   QModelBuilder( context::Context* c, QuantifiersEngine* qe );
-  virtual ~QModelBuilder() throw() {}
+
   //do exhaustive instantiation  
   // 0 :  failed, but resorting to true exhaustive instantiation may work
   // >0 : success
@@ -77,7 +77,8 @@ public:
 class QModelBuilderIG : public QModelBuilder
 {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
-protected:
+
+ protected:
   BoolMap d_basisNoMatch;
   //map from operators to model preference data
   std::map< Node, uf::UfModelPreferenceData > d_uf_prefs;
@@ -87,7 +88,8 @@ protected:
   bool d_didInstGen;
   /** process build model */
   virtual bool processBuildModel( TheoryModel* m );
-protected:
+
+ protected:
   //reset
   virtual void reset( FirstOrderModel* fm ) = 0;
   //initialize quantifiers, return number of lemmas produced
@@ -100,20 +102,23 @@ protected:
   virtual int doInstGen( FirstOrderModel* fm, Node f ) = 0;
   //theory-specific build models
   virtual void constructModelUf( FirstOrderModel* fm, Node op ) = 0;
-protected:
+
+ protected:
   //map from quantifiers to if are SAT
   //std::map< Node, bool > d_quant_sat;
   //which quantifiers have been initialized
   std::map< Node, bool > d_quant_basis_match_added;
   //map from quantifiers to model basis match
   std::map< Node, InstMatch > d_quant_basis_match;
-protected:  //helper functions
+
+ protected:  // helper functions
   /** term has constant definition */
   bool hasConstantDefinition( Node n );
-public:
+
+ public:
   QModelBuilderIG( context::Context* c, QuantifiersEngine* qe );
-  virtual ~QModelBuilderIG() throw() {}
-public:
+
+ public:
   /** statistics class */
   class Statistics {
   public:
@@ -152,8 +157,8 @@ public:
 
 class QModelBuilderDefault : public QModelBuilderIG
 {
-private:    ///information for (old) InstGen
-  //map from quantifiers to their selection literals
+ private:  /// information for (old) InstGen
+  // map from quantifiers to their selection literals
   std::map< Node, Node > d_quant_selection_lit;
   std::map< Node, std::vector< Node > > d_quant_selection_lit_candidates;
   //map from quantifiers to their selection literal terms
@@ -164,20 +169,23 @@ private:    ///information for (old) InstGen
   std::map< Node, std::vector< Node > > d_op_selection_terms;
   //get selection score
   int getSelectionScore( std::vector< Node >& uf_terms );
-protected:
+
+ protected:
   //reset
-  void reset( FirstOrderModel* fm );
+  void reset(FirstOrderModel* fm) override;
   //analyze quantifier
-  void analyzeQuantifier( FirstOrderModel* fm, Node f );
+  void analyzeQuantifier(FirstOrderModel* fm, Node f) override;
   //do InstGen techniques for quantifier, return number of lemmas produced
-  int doInstGen( FirstOrderModel* fm, Node f );
+  int doInstGen(FirstOrderModel* fm, Node f) override;
   //theory-specific build models
   void constructModelUf( FirstOrderModel* fm, Node op );
-protected:
+
+ protected:
   std::map< Node, QuantPhaseReq > d_phase_reqs;
-public:
+
+ public:
   QModelBuilderDefault( context::Context* c, QuantifiersEngine* qe ) : QModelBuilderIG( c, qe ){}
-  ~QModelBuilderDefault() throw() {}
+
   //options
   bool optReconsiderFuncConstants() { return true; }
   //has inst gen
