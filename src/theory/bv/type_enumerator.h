@@ -49,15 +49,13 @@ public:
     return utils::mkConst(d_size, d_bits);
   }
 
-  BitVectorEnumerator& operator++() throw() {
+  BitVectorEnumerator& operator++()
+  {
     d_bits += 1;
     return *this;
   }
 
-  bool isFinished() throw() {
-    return d_bits != d_bits.modByPow2(d_size);
-  }
-
+  bool isFinished() { return d_bits != d_bits.modByPow2(d_size); }
 };/* BitVectorEnumerator */
 
 }/* CVC4::theory::bv namespace */

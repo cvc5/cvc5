@@ -180,7 +180,7 @@ public:
   bool hasBBAtom(TNode atom) const; 
 
   TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name="", bool emptyNotify = false);
-  ~TLazyBitblaster() throw();
+  ~TLazyBitblaster();
   /**
    * Pushes the assumption literal associated with node to the SAT
    * solver assumption queue. 

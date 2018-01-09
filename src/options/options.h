@@ -302,7 +302,7 @@ public:
    * to the given name.  Returns an empty string if there are no
    * suggestions.
    */
-  static std::string suggestCommandLineOptions(const std::string& optionName) throw();
+  static std::string suggestCommandLineOptions(const std::string& optionName);
 
   /**
    * Look up SMT option names that bear some similarity to
@@ -310,7 +310,8 @@ public:
    * useful in case of typos.  Can return an empty vector if there are
    * no suggestions.
    */
-  static std::vector<std::string> suggestSmtOptions(const std::string& optionName) throw();
+  static std::vector<std::string> suggestSmtOptions(
+      const std::string& optionName);
 
   /**
    * Initialize the Options object options based on the given
@@ -329,8 +330,7 @@ public:
   /**
    * Get the setting for all options.
    */
-  std::vector< std::vector<std::string> > getOptions() const throw();
-
+  std::vector<std::vector<std::string> > getOptions() const;
 
   /**
    * Registers a listener for the notification, notifyBeforeSearch.

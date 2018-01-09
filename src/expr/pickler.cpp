@@ -58,10 +58,10 @@ public:
   }
 
   /* Helper functions for toPickle */
-  void toCaseNode(TNode n) throw(AssertionException, PicklingException);
-  void toCaseVariable(TNode n) throw(AssertionException, PicklingException);
+  void toCaseNode(TNode n);
+  void toCaseVariable(TNode n);
   void toCaseConstant(TNode n);
-  void toCaseOperator(TNode n) throw(AssertionException, PicklingException);
+  void toCaseOperator(TNode n);
   void toCaseString(Kind k, const std::string& s);
 
   /* Helper functions for toPickle */
@@ -127,7 +127,7 @@ Pickler::~Pickler() {
 }
 
 void Pickler::toPickle(Expr e, Pickle& p)
-  throw(PicklingException) {
+{
   Assert(NodeManager::fromExprManager(e.getExprManager()) == d_private->d_nm);
   Assert(d_private->atDefaultState());
 
@@ -145,7 +145,7 @@ void Pickler::toPickle(Expr e, Pickle& p)
 }
 
 void PicklerPrivate::toCaseNode(TNode n)
-  throw(AssertionException, PicklingException) {
+{
   Debug("pickler") << "toCaseNode: " << n << std::endl;
   Kind k = n.getKind();
   kind::MetaKind m = metaKindOf(k);
@@ -166,7 +166,7 @@ void PicklerPrivate::toCaseNode(TNode n)
 }
 
 void PicklerPrivate::toCaseOperator(TNode n)
-  throw(AssertionException, PicklingException) {
+{
   Kind k = n.getKind();
   kind::MetaKind m = metaKindOf(k);
   Assert(m == kind::metakind::PARAMETERIZED || m == kind::metakind::OPERATOR);
@@ -180,7 +180,7 @@ void PicklerPrivate::toCaseOperator(TNode n)
 }
 
 void PicklerPrivate::toCaseVariable(TNode n)
-  throw(AssertionException, PicklingException) {
+{
   Kind k = n.getKind();
   Assert(metaKindOf(k) == kind::metakind::VARIABLE);
 

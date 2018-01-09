@@ -44,15 +44,13 @@ class LemmaStatus {
       : d_rewrittenLemma(rewrittenLemma), d_level(level) {}
 
   /** Get the T-rewritten form of the lemma. */
-  TNode getRewrittenLemma() const throw() { return d_rewrittenLemma; }
-
+  TNode getRewrittenLemma() const { return d_rewrittenLemma; }
   /**
    * Get the user-level at which the lemma resides.  After this user level
    * is popped, the lemma is un-asserted from the SAT layer.  This level
    * will be 0 if the lemma didn't reach the SAT layer at all.
    */
-  unsigned getLevel() const throw() { return d_level; }
-
+  unsigned getLevel() const { return d_level; }
  private:
   Node d_rewrittenLemma;
   unsigned d_level;
