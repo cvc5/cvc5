@@ -61,25 +61,26 @@ public:
 
 /** candidate generator queue (for manual candidate generation) */
 class CandidateGeneratorQueue : public CandidateGenerator {
-private:
+ private:
   std::vector< Node > d_candidates;
   int d_candidate_index;
-public:
+
+ public:
   CandidateGeneratorQueue( QuantifiersEngine* qe ) : CandidateGenerator( qe ), d_candidate_index( 0 ){}
-  ~CandidateGeneratorQueue() throw() {}
 
-  void addCandidate( Node n );
+  void addCandidate(Node n) override;
 
-  void resetInstantiationRound(){}
-  void reset( Node eqc );
-  Node getNextCandidate();
+  void resetInstantiationRound() override {}
+  void reset(Node eqc) override;
+  Node getNextCandidate() override;
 };/* class CandidateGeneratorQueue */
 
 //the default generator
 class CandidateGeneratorQE : public CandidateGenerator
 {
   friend class CandidateGeneratorQEDisequal;
-private:
+
+ private:
   //operator you are looking for
   Node d_op;
   //the equality class iterator
@@ -102,56 +103,56 @@ private:
   bool isLegalOpCandidate( Node n );
   Node d_n;
   std::map< Node, bool > d_exclude_eqc;
-public:
-  CandidateGeneratorQE( QuantifiersEngine* qe, Node pat );
-  ~CandidateGeneratorQE() throw() {}
 
-  void resetInstantiationRound();
-  void reset( Node eqc );
-  Node getNextCandidate();
+ public:
+  CandidateGeneratorQE( QuantifiersEngine* qe, Node pat );
+
+  void resetInstantiationRound() override;
+  void reset(Node eqc) override;
+  Node getNextCandidate() override;
   void excludeEqc( Node r ) { d_exclude_eqc[r] = true; }
   bool isExcludedEqc( Node r ) { return d_exclude_eqc.find( r )!=d_exclude_eqc.end(); }
 };
 
 class CandidateGeneratorQELitEq : public CandidateGenerator
 {
-private:
+ private:
   //the equality classes iterator
   eq::EqClassesIterator d_eq;
   //equality you are trying to match equalities for
   Node d_match_pattern;
   Node d_match_gterm;
   bool d_do_mgt;
-public:
-  CandidateGeneratorQELitEq( QuantifiersEngine* qe, Node mpat );
-  ~CandidateGeneratorQELitEq() throw() {}
 
-  void resetInstantiationRound();
-  void reset( Node eqc );
-  Node getNextCandidate();
+ public:
+  CandidateGeneratorQELitEq( QuantifiersEngine* qe, Node mpat );
+
+  void resetInstantiationRound() override;
+  void reset(Node eqc) override;
+  Node getNextCandidate() override;
 };
 
 class CandidateGeneratorQELitDeq : public CandidateGenerator
 {
-private:
+ private:
   //the equality class iterator for false
   eq::EqClassIterator d_eqc_false;
   //equality you are trying to match disequalities for
   Node d_match_pattern;
   //type of disequality
   TypeNode d_match_pattern_type;
-public:
-  CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat );
-  ~CandidateGeneratorQELitDeq() throw() {}
 
-  void resetInstantiationRound();
-  void reset( Node eqc );
-  Node getNextCandidate();
+ public:
+  CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat );
+
+  void resetInstantiationRound() override;
+  void reset(Node eqc) override;
+  Node getNextCandidate() override;
 };
 
 class CandidateGeneratorQEAll : public CandidateGenerator
 {
-private:
+ private:
   //the equality classes iterator
   eq::EqClassesIterator d_eq;
   //equality you are trying to match equalities for
@@ -162,13 +163,13 @@ private:
   unsigned d_index;
   //first time
   bool d_firstTime;
-public:
-  CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat );
-  ~CandidateGeneratorQEAll() throw() {}
 
-  void resetInstantiationRound();
-  void reset( Node eqc );
-  Node getNextCandidate();
+ public:
+  CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat );
+
+  void resetInstantiationRound() override;
+  void reset(Node eqc) override;
+  Node getNextCandidate() override;
 };
 
 }/* CVC4::theory::inst namespace */

@@ -89,11 +89,13 @@ private:
   bool doCheck( FirstOrderModelAbs * m, TNode q, AbsDef & ad, TNode n );
 public:
   AbsMbqiBuilder( context::Context* c, QuantifiersEngine* qe );
-  ~AbsMbqiBuilder() throw() {}
+
   //process build model
-  bool processBuildModel(TheoryModel* m);
+  bool processBuildModel(TheoryModel* m) override;
   //do exhaustive instantiation
-  int doExhaustiveInstantiation( FirstOrderModel * fm, Node q, int effort );
+  int doExhaustiveInstantiation(FirstOrderModel* fm,
+                                Node q,
+                                int effort) override;
 };
 
 }

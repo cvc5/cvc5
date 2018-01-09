@@ -1361,7 +1361,8 @@ SygusSolutionOutMode OptionsHandler::stringToSygusSolutionOutMode(
   }
 }
 
-void OptionsHandler::setProduceAssertions(std::string option, bool value) throw() {
+void OptionsHandler::setProduceAssertions(std::string option, bool value)
+{
   options::produceAssertions.set(value);
   options::interactiveMode.set(value);
 }

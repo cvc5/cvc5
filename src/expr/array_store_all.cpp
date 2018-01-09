@@ -57,8 +57,7 @@ ArrayStoreAll::ArrayStoreAll(const ArrayStoreAll& other)
     : d_type(new ArrayType(other.getType())),
       d_expr(new Expr(other.getExpr())) {}
 
-ArrayStoreAll::~ArrayStoreAll() throw() {}
-
+ArrayStoreAll::~ArrayStoreAll() {}
 ArrayStoreAll& ArrayStoreAll::operator=(const ArrayStoreAll& other) {
   (*d_type) = other.getType();
   (*d_expr) = other.getExpr();

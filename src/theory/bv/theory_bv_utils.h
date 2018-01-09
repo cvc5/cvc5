@@ -217,6 +217,11 @@ inline Node mkConst(unsigned size, unsigned int value) {
   return NodeManager::currentNM()->mkConst<BitVector>(val); 
 }
 
+inline Node mkConst(unsigned size, Integer& value)
+{
+  return NodeManager::currentNM()->mkConst<BitVector>(BitVector(size, value));
+}
+
 inline Node mkConst(const BitVector& value) {
   return NodeManager::currentNM()->mkConst<BitVector>(value);
 }

@@ -95,7 +95,8 @@ Node RewriteRule<SltEliminate>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<SltEliminate>(" << node << ")" << std::endl;
   
   unsigned size = utils::getSize(node[0]);
-  Node pow_two = utils::mkConst(BitVector(size, Integer(1).multiplyByPow2(size - 1)));
+  Integer val = Integer(1).multiplyByPow2(size - 1);
+  Node pow_two = utils::mkConst(size, val);
   Node a = utils::mkNode(kind::BITVECTOR_PLUS, node[0], pow_two);
   Node b = utils::mkNode(kind::BITVECTOR_PLUS, node[1], pow_two);
   
@@ -246,7 +247,7 @@ Node RewriteRule<BVToNatEliminate>::apply(TNode node) {
   const unsigned size = utils::getSize(node[0]);
   NodeManager* const nm = NodeManager::currentNM();
   const Node z = nm->mkConst(Rational(0));
-  const Node bvone = nm->mkConst(BitVector(1u, 1u));
+  const Node bvone = utils::mkOne(1);
 
   NodeBuilder<> result(kind::PLUS);
   Integer i = 1;
@@ -273,8 +274,8 @@ Node RewriteRule<IntToBVEliminate>::apply(TNode node) {
 
   const unsigned size = node.getOperator().getConst<IntToBitVector>().size;
   NodeManager* const nm = NodeManager::currentNM();
-  const Node bvzero = nm->mkConst(BitVector(1u, 0u));
-  const Node bvone = nm->mkConst(BitVector(1u, 1u));
+  const Node bvzero = utils::mkZero(1);
+  const Node bvone = utils::mkOne(1);
 
   std::vector<Node> v;
   Integer i = 2;

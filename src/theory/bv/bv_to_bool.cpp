@@ -26,8 +26,8 @@ using namespace CVC4::theory::bv;
 BvToBoolPreprocessor::BvToBoolPreprocessor()
   : d_liftCache()
   , d_boolCache()
-  , d_one(utils::mkConst(BitVector(1, 1u)))
-  , d_zero(utils::mkConst(BitVector(1, 0u)))
+  , d_one(utils::mkOne(1))
+  , d_zero(utils::mkZero(1))
   , d_statistics()
 {}
 
