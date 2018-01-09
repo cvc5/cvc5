@@ -607,7 +607,7 @@ void DefaultShlBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   // check for b < log2(n)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
-  Node a_size = utils::mkConst(BitVector(size, size));
+  Node a_size = utils::mkConst(size, size);
   Node b_ult_a_size_node =
       Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size));
   // ensure that the inequality is bit-blasted
@@ -656,7 +656,7 @@ void DefaultLshrBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   // check for b < log2(n)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
-  Node a_size = utils::mkConst(BitVector(size, size));
+  Node a_size = utils::mkConst(size, size);
   Node b_ult_a_size_node =
       Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size));
   // ensure that the inequality is bit-blasted
@@ -707,7 +707,7 @@ void DefaultAshrBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   //   check for b < n
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
-  Node a_size = utils::mkConst(BitVector(size, size));
+  Node a_size = utils::mkConst(size, size);
   Node b_ult_a_size_node =
       Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size));
   // ensure that the inequality is bit-blasted
