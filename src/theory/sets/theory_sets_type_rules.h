@@ -37,8 +37,7 @@ public:
    */
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check)
-    throw (TypeCheckingExceptionPrivate) {
-
+  {
     // TODO: implement me!
     Unimplemented();
 
@@ -48,7 +47,7 @@ public:
 
 struct SetsBinaryOperatorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::UNION ||
            n.getKind() == kind::INTERSECTION ||
            n.getKind() == kind::SETMINUS);
@@ -87,7 +86,7 @@ struct SetsBinaryOperatorTypeRule {
 
 struct SubsetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::SUBSET);
     TypeNode setType = n[0].getType(check);
     if( check ) {
@@ -107,7 +106,7 @@ struct SubsetTypeRule {
 
 struct MemberTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::MEMBER);
     TypeNode setType = n[1].getType(check);
     if( check ) {
@@ -146,7 +145,7 @@ struct MemberTypeRule {
 
 struct SingletonTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::SINGLETON);
     return nodeManager->mkSetType(n[0].getType(check));
   }
@@ -159,7 +158,7 @@ struct SingletonTypeRule {
 
 struct EmptySetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::EMPTYSET);
     EmptySet emptySet = n.getConst<EmptySet>();
     Type setType = emptySet.getType();
@@ -169,7 +168,7 @@ struct EmptySetTypeRule {
 
 struct CardTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::CARD);
     TypeNode setType = n[0].getType(check);
     if( check ) {
@@ -188,7 +187,7 @@ struct CardTypeRule {
 
 struct ComplementTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::COMPLEMENT);
     TypeNode setType = n[0].getType(check);
     if( check ) {
@@ -207,7 +206,7 @@ struct ComplementTypeRule {
 
 struct UniverseSetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::UNIVERSE_SET);
     // for nullary operators, we only computeType for check=true, since they are given TypeAttr() on creation
     Assert(check);
@@ -221,7 +220,7 @@ struct UniverseSetTypeRule {
 
 struct InsertTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::INSERT);
     size_t numChildren = n.getNumChildren();
     Assert( numChildren >= 2 );
@@ -249,7 +248,7 @@ struct InsertTypeRule {
 
 struct RelBinaryOperatorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::PRODUCT ||
            n.getKind() == kind::JOIN);
 
@@ -295,7 +294,7 @@ struct RelBinaryOperatorTypeRule {
 
 struct RelTransposeTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::TRANSPOSE);
     TypeNode setType = n[0].getType(check);
     if(check && (!setType.isSet() || !setType.getSetElementType().isTuple())) {
@@ -313,7 +312,7 @@ struct RelTransposeTypeRule {
 
 struct RelTransClosureTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::TCLOSURE);
     TypeNode setType = n[0].getType(check);
     if(check) {
@@ -339,7 +338,7 @@ struct RelTransClosureTypeRule {
 
 struct JoinImageTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::JOIN_IMAGE);
 
     TypeNode firstRelType = n[0].getType(check);
@@ -386,7 +385,7 @@ struct JoinImageTypeRule {
 
 struct RelIdenTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     Assert(n.getKind() == kind::IDEN);
     TypeNode setType = n[0].getType(check);
     if(check) {

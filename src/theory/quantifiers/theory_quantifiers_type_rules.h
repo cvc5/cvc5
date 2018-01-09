@@ -27,7 +27,7 @@ namespace quantifiers {
 
 struct QuantifierForallTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw(TypeCheckingExceptionPrivate) {
+  {
     Debug("typecheck-q") << "type check for fa " << n << std::endl;
     Assert(n.getKind() == kind::FORALL && n.getNumChildren()>0 );
     if( check ){
@@ -47,7 +47,7 @@ struct QuantifierForallTypeRule {
 
 struct QuantifierExistsTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw(TypeCheckingExceptionPrivate) {
+  {
     Debug("typecheck-q") << "type check for ex " << n << std::endl;
     Assert(n.getKind() == kind::EXISTS && n.getNumChildren()>0 );
     if( check ){
@@ -67,7 +67,7 @@ struct QuantifierExistsTypeRule {
 
 struct QuantifierBoundVarListTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw(TypeCheckingExceptionPrivate) {
+  {
     Assert(n.getKind() == kind::BOUND_VAR_LIST );
     if( check ){
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
@@ -82,7 +82,7 @@ struct QuantifierBoundVarListTypeRule {
 
 struct QuantifierInstPatternTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw(TypeCheckingExceptionPrivate) {
+  {
     Assert(n.getKind() == kind::INST_PATTERN );
     if( check ){
       TypeNode tn = n[0].getType(check);
@@ -97,7 +97,7 @@ struct QuantifierInstPatternTypeRule {
 
 struct QuantifierInstNoPatternTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw(TypeCheckingExceptionPrivate) {
+  {
     Assert(n.getKind() == kind::INST_NO_PATTERN );
     return nodeManager->instPatternType();
   }
@@ -105,7 +105,7 @@ struct QuantifierInstNoPatternTypeRule {
 
 struct QuantifierInstAttributeTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw(TypeCheckingExceptionPrivate) {
+  {
     Assert(n.getKind() == kind::INST_ATTRIBUTE );
     return nodeManager->instPatternType();
   }
@@ -113,7 +113,7 @@ struct QuantifierInstAttributeTypeRule {
 
 struct QuantifierInstPatternListTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw(TypeCheckingExceptionPrivate) {
+  {
     Assert(n.getKind() == kind::INST_PATTERN_LIST );
     if( check ){
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
@@ -128,7 +128,7 @@ struct QuantifierInstPatternListTypeRule {
 
 struct QuantifierInstClosureTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw(TypeCheckingExceptionPrivate) {
+  {
     Assert(n.getKind() == kind::INST_CLOSURE );
     if( check ){
       TypeNode tn = n[0].getType(check);
@@ -155,7 +155,7 @@ public:
    */
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check)
-    throw(TypeCheckingExceptionPrivate) {
+  {
     Debug("typecheck-r") << "type check for rr " << n << std::endl;
     Assert(n.getKind() == kind::REWRITE_RULE && n.getNumChildren()==3 );
     if( check ){
@@ -181,7 +181,7 @@ class RRRewriteTypeRule {
 public:
 
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw(TypeCheckingExceptionPrivate) {
+  {
     Assert(n.getKind() == kind::RR_REWRITE );
     if( check ){
       if( n[0].getType(check)!=n[1].getType(check) ){
@@ -203,7 +203,7 @@ class RRRedDedTypeRule {
 public:
 
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw(TypeCheckingExceptionPrivate) {
+  {
     Assert(n.getKind() == kind::RR_REDUCTION ||
            n.getKind() == kind::RR_DEDUCTION );
     if( check ){

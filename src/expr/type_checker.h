@@ -27,15 +27,13 @@ namespace expr {
 
 class TypeChecker {
 public:
+ static TypeNode computeType(NodeManager* nodeManager,
+                             TNode n,
+                             bool check = false);
 
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check = false)
-    throw (TypeCheckingExceptionPrivate, AssertionException);
+ static bool computeIsConst(NodeManager* nodeManager, TNode n);
 
-  static bool computeIsConst(NodeManager* nodeManager, TNode n)
-    throw (AssertionException);
-
-  static bool neverIsConst(NodeManager* nodeManager, TNode n)
-    throw (AssertionException);
+ static bool neverIsConst(NodeManager* nodeManager, TNode n);
 
 };/* class TypeChecker */
 
