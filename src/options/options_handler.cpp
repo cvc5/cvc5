@@ -1650,26 +1650,24 @@ void OptionsHandler::decreaseVerbosity(std::string option) {
 }
 
 
-void OptionsHandler::addTraceTag(std::string option, std::string optarg) {
-  if(Configuration::isTracingBuild()) {
-    if(!Configuration::isTraceTag(optarg.c_str())) {
-
-      if(optarg == "help") {
-        std::cout << "available tags:";
-        unsigned ntags = Configuration::getNumTraceTags();
-        char const* const* tags = Configuration::getTraceTags();
-        for(unsigned i = 0; i < ntags; ++ i) {
-          std::cout << tags[i];
-        }
-        std::cout << std::endl;
-        exit(0);
+void OptionsHandler::addTraceTag(std::string option, std::string optarg)
+{
+  if(Configuration::isTracingBuild())
+  {
+    if(!Configuration::isTraceTag(optarg.c_str()))
+    {
+      if (optarg == "help")
+      {
+        showTraceTags(option);
       }
 
-      throw OptionException(std::string("trace tag ") + optarg +
-                            std::string(" not available.") +
-                            suggestTags(Configuration::getTraceTags(), optarg) );
+      throw OptionException(
+          std::string("trace tag ") + optarg + std::string(" not available.")
+          + suggestTags(Configuration::getTraceTags(), optarg));
     }
-  } else {
+  }
+  else
+  {
     throw OptionException("trace tags not available in non-tracing builds");
   }
   Trace.on(optarg);
