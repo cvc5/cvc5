@@ -52,7 +52,16 @@ private:
   static bool computeVariableElimLit( Node n, bool pol, std::vector< Node >& args, std::vector< Node >& var, std::vector< Node >& subs,
                                       std::map< Node, std::map< bool, std::map< Node, bool > > >& num_bounds );
   static Node computeVarElimination2( Node body, std::vector< Node >& args, QAttributes& qa );
-public:
+  /** variable eliminate for bit-vector literals
+   *
+   * If this returns a non-null value ret, then var is updated to a member of
+   * args, and lit is equivalent to ( var = ret ).
+   */
+  static Node computeVariableElimLitBv(Node lit,
+                                       std::vector<Node>& args,
+                                       Node& var);
+
+ public:
   static Node computeElimSymbols( Node body );
   static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
