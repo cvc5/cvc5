@@ -345,7 +345,8 @@ void cvc4_init()
   default_terminator = set_terminate(cvc4terminate);
 }
 
-void cvc4_shutdown() throw () {
+void cvc4_shutdown() noexcept
+{
 #ifndef __WIN32__
 #ifdef HAVE_SIGALTSTACK
   free(cvc4StackBase);

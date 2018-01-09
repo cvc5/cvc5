@@ -342,21 +342,21 @@ class CVC4_PUBLIC DatatypeConstructor {
    * Return the cardinality of this constructor (the product of the
    * cardinalities of its arguments).
    */
-  Cardinality getCardinality( Type t ) const throw(IllegalArgumentException);
+  Cardinality getCardinality(Type t) const;
 
   /**
    * Return true iff this constructor is finite (it is nullary or
    * each of its argument types are finite).  This function can
    * only be called for resolved constructors.
    */
-  bool isFinite( Type t ) const throw(IllegalArgumentException);
+  bool isFinite(Type t) const;
   /**
    * Return true iff this constructor is finite (it is nullary or
    * each of its argument types are finite) under assumption
    * uninterpreted sorts are finite.  This function can
    * only be called for resolved constructors.
    */
-  bool isInterpretedFinite( Type t ) const throw(IllegalArgumentException);
+  bool isInterpretedFinite(Type t) const;
 
   /**
    * Returns true iff this Datatype constructor has already been
@@ -494,8 +494,7 @@ class CVC4_PUBLIC DatatypeConstructor {
                const std::vector<Type>& replacements,
                const std::vector<SortConstructorType>& paramTypes,
                const std::vector<DatatypeType>& paramReplacements,
-               size_t cindex) throw(IllegalArgumentException,
-                                    DatatypeResolutionException);
+               size_t cindex);
 
   /** Helper function for resolving parametric datatypes.
    *
@@ -518,16 +517,13 @@ class CVC4_PUBLIC DatatypeConstructor {
       const std::vector<DatatypeType>& paramReplacements);
 
   /** compute the cardinality of this datatype */
-  Cardinality computeCardinality(Type t, std::vector<Type>& processing) const
-      throw(IllegalArgumentException);
+  Cardinality computeCardinality(Type t, std::vector<Type>& processing) const;
   /** compute whether this datatype is well-founded */
-  bool computeWellFounded(std::vector<Type>& processing) const
-      throw(IllegalArgumentException);
+  bool computeWellFounded(std::vector<Type>& processing) const;
   /** compute ground term */
   Expr computeGroundTerm(Type t,
                          std::vector<Type>& processing,
-                         std::map<Type, Expr>& gt) const
-      throw(IllegalArgumentException);
+                         std::map<Type, Expr>& gt) const;
   /** compute shared selectors
    * This computes the maps d_shared_selectors and d_shared_selector_index.
    */
@@ -732,8 +728,8 @@ public:
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
    */
-  Cardinality getCardinality( Type t ) const throw(IllegalArgumentException);
-  Cardinality getCardinality() const throw(IllegalArgumentException);
+  Cardinality getCardinality(Type t) const;
+  Cardinality getCardinality() const;
 
   /**
    * Return true iff this Datatype has finite cardinality. If the
@@ -744,8 +740,8 @@ public:
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
    */
-  bool isFinite( Type t ) const throw(IllegalArgumentException);
-  bool isFinite() const throw(IllegalArgumentException);
+  bool isFinite(Type t) const;
+  bool isFinite() const;
 
   /**
    * Return true iff this  Datatype is finite (all constructors are
@@ -758,8 +754,8 @@ public:
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
    */
-  bool isInterpretedFinite( Type t ) const throw(IllegalArgumentException);
-  bool isInterpretedFinite() const throw(IllegalArgumentException);
+  bool isInterpretedFinite(Type t) const;
+  bool isInterpretedFinite() const;
 
   /** is well-founded
    *
@@ -767,7 +763,7 @@ public:
    * values of this type).
    * This datatype must be resolved or an exception is thrown.
    */
-  bool isWellFounded() const throw(IllegalArgumentException);
+  bool isWellFounded() const;
 
   /** is recursive singleton
    *
@@ -779,8 +775,8 @@ public:
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
    */
-  bool isRecursiveSingleton( Type t ) const throw(IllegalArgumentException);
-  bool isRecursiveSingleton() const throw(IllegalArgumentException);
+  bool isRecursiveSingleton(Type t) const;
+  bool isRecursiveSingleton() const;
 
   /** recursive single arguments
    *
@@ -795,10 +791,10 @@ public:
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
   */
-  unsigned getNumRecursiveSingletonArgTypes( Type t ) const throw(IllegalArgumentException);
-  Type getRecursiveSingletonArgType( Type t, unsigned i ) const throw(IllegalArgumentException);
-  unsigned getNumRecursiveSingletonArgTypes() const throw(IllegalArgumentException);
-  Type getRecursiveSingletonArgType( unsigned i ) const throw(IllegalArgumentException);
+  unsigned getNumRecursiveSingletonArgTypes(Type t) const;
+  Type getRecursiveSingletonArgType(Type t, unsigned i) const;
+  unsigned getNumRecursiveSingletonArgTypes() const;
+  Type getRecursiveSingletonArgType(unsigned i) const;
 
   /**
    * Construct and return a ground term of this Datatype.  The
@@ -809,19 +805,19 @@ public:
    * datatype is this class, which may be an instantiated datatype
    * type if this datatype is parametric.
    */
-  Expr mkGroundTerm( Type t ) const throw(IllegalArgumentException);
+  Expr mkGroundTerm(Type t) const;
 
   /**
    * Get the DatatypeType associated to this Datatype.  Can only be
    * called post-resolution.
    */
-  DatatypeType getDatatypeType() const throw(IllegalArgumentException);
+  DatatypeType getDatatypeType() const;
 
   /**
    * Get the DatatypeType associated to this (parameterized) Datatype.  Can only be
    * called post-resolution.
    */
-  DatatypeType getDatatypeType(const std::vector<Type>& params) const throw(IllegalArgumentException);
+  DatatypeType getDatatypeType(const std::vector<Type>& params) const;
 
   /**
    * Return true iff the two Datatypes are the same.
@@ -1026,25 +1022,19 @@ public:
                const std::vector<Type>& placeholders,
                const std::vector<Type>& replacements,
                const std::vector<SortConstructorType>& paramTypes,
-               const std::vector<DatatypeType>&
-                   paramReplacements) throw(IllegalArgumentException,
-                                            DatatypeResolutionException);
+               const std::vector<DatatypeType>& paramReplacements);
   friend class ExprManager;  // for access to resolve()
 
   /** compute the cardinality of this datatype */
-  Cardinality computeCardinality(Type t, std::vector<Type>& processing) const
-      throw(IllegalArgumentException);
+  Cardinality computeCardinality(Type t, std::vector<Type>& processing) const;
   /** compute whether this datatype is a recursive singleton */
   bool computeCardinalityRecSingleton(Type t,
                                       std::vector<Type>& processing,
-                                      std::vector<Type>& u_assume) const
-      throw(IllegalArgumentException);
+                                      std::vector<Type>& u_assume) const;
   /** compute whether this datatype is well-founded */
-  bool computeWellFounded(std::vector<Type>& processing) const
-      throw(IllegalArgumentException);
+  bool computeWellFounded(std::vector<Type>& processing) const;
   /** compute ground term */
-  Expr computeGroundTerm(Type t, std::vector<Type>& processing) const
-      throw(IllegalArgumentException);
+  Expr computeGroundTerm(Type t, std::vector<Type>& processing) const;
   /** Get the shared selector
    *
    * This returns the index^th (constructor-agnostic)
@@ -1081,11 +1071,9 @@ struct CVC4_PUBLIC DatatypeHashFunction {
 
 /* stores an index to Datatype residing in NodeManager */
 class CVC4_PUBLIC DatatypeIndexConstant {
-public:
+ public:
+  DatatypeIndexConstant(unsigned index);
 
-  DatatypeIndexConstant(unsigned index) throw(IllegalArgumentException);
-
-  ~DatatypeIndexConstant() {}
   const unsigned getIndex() const { return d_index; }
   bool operator==(const DatatypeIndexConstant& uc) const
   {

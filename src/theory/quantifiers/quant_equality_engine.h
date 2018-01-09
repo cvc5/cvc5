@@ -73,7 +73,6 @@ private:
   TNode getUnivRepresentativeInternal( TNode n );
 public:
   QuantEqualityEngine( QuantifiersEngine * qe, context::Context* c );
-  virtual ~QuantEqualityEngine() throw (){}
 
   /* whether this module needs to check this round */
   bool needsCheck( Theory::Effort e );

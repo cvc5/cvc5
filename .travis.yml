@@ -28,7 +28,7 @@ env:
   - TEST_GROUPS=2
   - CCACHE_COMPRESS=1
  matrix:
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_CHECK_PORTFOLIO=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --with-lfsc --with-portfolio'
+  - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --with-lfsc'
   - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-lfsc --disable-debug-symbols'
   - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-cln --enable-gpl --disable-debug-symbols --disable-proof'
   - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_CVC4_CONFIG='--enable-proof'
@@ -91,10 +91,6 @@ script:
    makeCheck() {
      make V=1 -j2 check CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/TEST FAILED";
    }
-   makeCheckPortfolio() {
-     make V=1 -j2 check BINARY=pcvc4 CVC4_REGRESSION_ARGS='--fallback-sequential --no-early-exit' RUN_REGRESSION_ARGS= ||
-       error "PORTFOLIO TEST FAILED";
-   }
    makeExamples() {
      make V=1 -j2 examples || error "COULD NOT BUILD EXAMPLES${normal}";
    }
@@ -115,7 +111,6 @@ script:
    [ -n "$TRAVIS_CVC4" ] && run configureCVC4
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
    [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && run makeCheck && run makeExamples
-   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_CHECK_PORTFOLIO" ] && run makeCheckPortfolio
    [ -n "$TRAVIS_COVERITY" ] && echo "Running coverity. Skipping the normal build."
    [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_COVERITY" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"

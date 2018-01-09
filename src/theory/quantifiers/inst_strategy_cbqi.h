@@ -35,7 +35,8 @@ namespace quantifiers {
 class InstStrategyCbqi : public QuantifiersModule {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
-protected:
+
+ protected:
   bool d_cbqi_set_quant_inactive;
   bool d_incomplete_check;
   /** whether we have added cbqi lemma */
@@ -64,7 +65,8 @@ protected:
   /** process functions */
   virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
   virtual void process( Node q, Theory::Effort effort, int e ) = 0;
-protected:
+
+ protected:
   //for identification
   uint64_t d_qid_count;
   //nested qe map
@@ -90,12 +92,14 @@ protected:
   NodeIntMap d_nested_qe_waitlist_size;
   NodeIntMap d_nested_qe_waitlist_proc;
   std::map< Node, std::vector< Node > > d_nested_qe_waitlist;
-public:
+
+ public:
   //do nested quantifier elimination
   Node doNestedQE( Node q, std::vector< Node >& inst_terms, Node lem, bool doVts );
-public:
+
+ public:
   InstStrategyCbqi( QuantifiersEngine * qe );
-  ~InstStrategyCbqi() throw();
+
   /** whether to do CBQI for quantifier q */
   bool doCbqi( Node q );
   /** process functions */
@@ -138,7 +142,7 @@ protected:
   void registerCounterexampleLemma( Node q, Node lem );
 public:
   InstStrategyCegqi( QuantifiersEngine * qe );
-  ~InstStrategyCegqi() throw();
+  ~InstStrategyCegqi() override;
 
   bool doAddInstantiation( std::vector< Node >& subs );
   bool isEligibleForInstantiation( Node n );

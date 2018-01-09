@@ -56,13 +56,11 @@ class UnionFind : context::ContextNotifyObj {
   /** Our current offset in the d_trace stack (context-dependent). */
   context::CDO<size_t> d_offset;
 
-public:
+ public:
   UnionFind(context::Context* ctxt) :
     context::ContextNotifyObj(ctxt),
     d_offset(ctxt, 0) {
   }
-
-  ~UnionFind() throw() { }
 
   /**
    * Return a Node's union-find representative, doing path compression.

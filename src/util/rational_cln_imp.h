@@ -84,7 +84,6 @@ public:
   /** Constructs a rational with the value 0/1. */
   Rational() : d_value(0){
   }
-
   /**
    * Constructs a Rational from a C string in a given base (defaults to 10).
    *
@@ -107,7 +106,8 @@ public:
       throw std::invalid_argument(ss.str());
     }
   }
-  Rational(const std::string& s, unsigned base = 10) throw (std::invalid_argument){
+  Rational(const std::string& s, unsigned base = 10)
+  {
     cln::cl_read_flags flags;
 
     flags.syntax = cln::syntax_rational;

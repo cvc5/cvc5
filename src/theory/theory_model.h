@@ -80,7 +80,7 @@ class TheoryModel : public Model
   friend class TheoryEngineModelBuilder;
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
-  virtual ~TheoryModel() throw();
+  ~TheoryModel() override;
 
   /** reset the model */
   virtual void reset();
