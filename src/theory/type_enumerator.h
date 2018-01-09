@@ -95,13 +95,13 @@ public:
 class TypeEnumerator {
   TypeEnumeratorInterface* d_te;
 
-  static TypeEnumeratorInterface* mkTypeEnumerator(TypeNode type, TypeEnumeratorProperties * tep)
-    throw(AssertionException);
+  static TypeEnumeratorInterface* mkTypeEnumerator(
+      TypeNode type, TypeEnumeratorProperties* tep);
 
-public:
-
-  TypeEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw() :
-    d_te(mkTypeEnumerator(type, tep)) {
+ public:
+  TypeEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+      : d_te(mkTypeEnumerator(type, tep))
+  {
   }
 
   TypeEnumerator(const TypeEnumerator& te) :
@@ -116,8 +116,8 @@ public:
   }
 
   ~TypeEnumerator() { delete d_te; }
-
-  bool isFinished() throw() {
+  bool isFinished()
+  {
 // On Mac clang, there appears to be a code generation bug in an exception
 // block here.  For now, there doesn't appear a good workaround; just disable
 // assertions on that setup.
@@ -144,7 +144,8 @@ public:
 #endif /* CVC4_ASSERTIONS && !(APPLE || clang) */
     return d_te->isFinished();
   }
-  Node operator*() throw(NoMoreValuesException) {
+  Node operator*()
+  {
 // On Mac clang, there appears to be a code generation bug in an exception
 // block above (and perhaps here, too).  For now, there doesn't appear a
 // good workaround; just disable assertions on that setup.
@@ -162,11 +163,19 @@ public:
     return **d_te;
 #endif /* CVC4_ASSERTIONS && !(APPLE || clang) */
   }
-  TypeEnumerator& operator++() throw() { ++*d_te; return *this; }
-  TypeEnumerator operator++(int) throw() { TypeEnumerator te = *this; ++*d_te; return te; }
+  TypeEnumerator& operator++()
+  {
+    ++*d_te;
+    return *this;
+  }
+  TypeEnumerator operator++(int)
+  {
+    TypeEnumerator te = *this;
+    ++*d_te;
+    return te;
+  }
 
-  TypeNode getType() const throw() { return d_te->getType(); }
-
+  TypeNode getType() const { return d_te->getType(); }
 };/* class TypeEnumerator */
 
 }/* CVC4::theory namespace */
