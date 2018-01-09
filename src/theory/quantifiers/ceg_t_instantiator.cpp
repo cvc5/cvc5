@@ -994,12 +994,15 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
     if (!inst.isNull())
     {
       inst = Rewriter::rewrite(inst);
-      Trace("cegqi-bv") << "...solved form is " << inst << std::endl;
-      // store information for id and increment
-      d_var_to_inst_id[pv].push_back(iid);
-      d_inst_id_to_term[iid] = inst;
-      d_inst_id_to_alit[iid] = alit;
-      d_inst_id_counter++;
+      if ( inst.isConst() || !ci->hasNestedQuantification())
+      {
+        Trace("cegqi-bv") << "...solved form is " << inst << std::endl;
+        // store information for id and increment
+        d_var_to_inst_id[pv].push_back(iid);
+        d_inst_id_to_term[iid] = inst;
+        d_inst_id_to_alit[iid] = alit;
+        d_inst_id_counter++;
+      }
     }
     else
     {
@@ -1014,7 +1017,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                          Node lit,
                                          CegInstEffort effort)
 {
-  if (effort == CEG_INST_EFFORT_FULL)
+  if (effort == CEG_INST_EFFORT_FULL )
   {
     // always use model values at full effort
     return Node::null();
@@ -1038,60 +1041,72 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     {
       return lit;
     }
-  } else {
+  } else {    
+    
     bool useSlack = false;
-    if (k == EQUAL && atom[0].getType().isBitVector())
+    if (k != EQUAL && k !=BITVECTOR_ULT && k !=BITVECTOR_SLT ){
+      // others are unhandled
+      return Node::null();
+    }else if (!atom[0].getType().isBitVector())
     {
-      // always use slack for disequalities
-      useSlack = true;
-    } else if (k == BITVECTOR_ULT || k == BITVECTOR_SLT) {
-      if (options::cbqiBvIneqMode() == CBQI_BV_INEQ_EQ_SLACK)
-      {
-        useSlack = true;
-      }
-    } else {
-      // others are not unhandled
       return Node::null();
     }
-    // for all other predicates, we convert them to a positive equality based on
+
+    NodeManager* nm = NodeManager::currentNM();
+    Node s = atom[0];
+    Node t = atom[1];
+    
+    Node sm = ci->getModelValue(atom[0]);
+    Node tm = ci->getModelValue(atom[1]);
+    Assert(!sm.isNull() && sm.isConst());
+    Assert(!tm.isNull() && tm.isConst());
+    Trace("cegqi-bv") << "Model value: " << std::endl;
+    Trace("cegqi-bv") << "   " << s << " " << k << " " << t << " is " << std::endl;
+    Trace("cegqi-bv") << "   " << sm << " <> " << tm << std::endl;
+    
+    if (options::cbqiBvIneqMode() == CBQI_BV_INEQ_EQ_SLACK)
+    {
+      useSlack = true;
+    }
+    else if( k==EQUAL )
+    {
+      Node comp = nm->mkNode( BITVECTOR_ULT, sm, tm );
+      comp = Rewriter::rewrite( comp );
+      k = BITVECTOR_ULT;
+      // go in the direction of the model
+      if( !comp.getConst<bool>() ){
+        Node u = s;
+        s = t;
+        t = u;
+      }
+      pol = true;
+    }
+
+    // if using slack, we convert constraints to a positive equality based on
     // the current model M, e.g.:
     //   (not) s ~ t  --->  s = t + ( s^M - t^M )
+    Node ret;
     if (useSlack) {
-      Node s = atom[0];
-      Node t = atom[1];
-      // only handle equalities between bitvectors
-      if (s.getType().isBitVector()) {
-        NodeManager* nm = NodeManager::currentNM();
-        Node sm = ci->getModelValue(s);
-        Assert(!sm.isNull() && sm.isConst());
-        Node tm = ci->getModelValue(t);
-        Assert(!tm.isNull() && tm.isConst());
-        Node ret;
-        if (sm != tm) {
-          Node slack =
-              Rewriter::rewrite(nm->mkNode(kind::BITVECTOR_SUB, sm, tm));
-          Assert(slack.isConst());
-          // remember the slack value for the asserted literal
-          d_alit_to_model_slack[lit] = slack;
-          ret = nm->mkNode(kind::EQUAL, s,
-                           nm->mkNode(kind::BITVECTOR_PLUS, t, slack));
-          Trace("cegqi-bv") << "Process " << lit << " as " << ret
-                            << ", slack is " << slack << std::endl;
-        } else {
-          ret = s.eqNode(t);          
-          Trace("cegqi-bv") << "Process " << lit << " as " << ret << std::endl;
-        }
-        return ret;
+      if (sm != tm) {
+        Node slack =
+            Rewriter::rewrite(nm->mkNode(kind::BITVECTOR_SUB, sm, tm));
+        Assert(slack.isConst());
+        // remember the slack value for the asserted literal
+        d_alit_to_model_slack[lit] = slack;
+        ret = nm->mkNode(kind::EQUAL, s,
+                          nm->mkNode(kind::BITVECTOR_PLUS, t, slack));
+        Trace("cegqi-bv") << "Slack is " << slack << std::endl;
+      } else {
+        ret = s.eqNode(t);
       }
     } else {
-      // otherwise, we optimistically solve for the boundary point of an inequality
-      // for example
+      // otherwise, we optimistically solve for the boundary point of an 
+      // inequality, for example:
       //   for s < t, we solve s+1 = t
       //   for ~( s < t ), we solve s = t
       // notice that this equality does not necessarily hold in the model, and
       // hence the corresponding instantiation strategy is not guaranteed to be
       // monotonic.
-      Node ret;
       if (!pol) {
         ret = atom[0].eqNode(atom[1]);
       } else {
@@ -1102,8 +1117,9 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
                   ->mkNode(kind::BITVECTOR_PLUS, atom[0], bv_one)
                   .eqNode(atom[1]);
       }
-      return ret;
     }
+    Trace("cegqi-bv") << "Process " << lit << " as " << ret << std::endl;
+    return ret;
   }
   return Node::null();
 }
@@ -1126,7 +1142,9 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci,
         Trace("cegqi-bv") << "...rewritten to " << rlit << std::endl;
       }
     }
-    processLiteral(ci, sf, pv, rlit, alit, effort);
+    if( !rlit.isNull() ){
+      processLiteral(ci, sf, pv, rlit, alit, effort);
+    }
   }
   return false;
 }
@@ -1163,8 +1181,6 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
           Trace("cegqi-bv") << "  ...this is the first variable" << std::endl;
         }
       }
-      // the order of instantiation ids we will try
-      std::vector<unsigned> inst_ids_try;
       // until we have a model-preserving selection function for BV, this must
       // be heuristic (we only pick one literal)
       // hence we randomize the list
@@ -1173,53 +1189,44 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
       // we may find an invertible literal that leads to a useful instantiation.
       std::random_shuffle(iti->second.begin(), iti->second.end());
 
-      for (unsigned j = 0; j < iti->second.size(); j++) {
-        unsigned inst_id = iti->second[j];
-        Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
-        Node inst_term = d_inst_id_to_term[inst_id];
-        Assert(d_inst_id_to_alit.find(inst_id) != d_inst_id_to_alit.end());
-        Node alit = d_inst_id_to_alit[inst_id];
+      if (Trace.isOn("cegqi-bv")) 
+      {
+        for (unsigned j = 0, size = iti->second.size(); j<size; j++) {
+          unsigned inst_id = iti->second[j];
+          Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
+          Node inst_term = d_inst_id_to_term[inst_id];
+          Assert(d_inst_id_to_alit.find(inst_id) != d_inst_id_to_alit.end());
+          Node alit = d_inst_id_to_alit[inst_id];
 
-        // get the slack value introduced for the asserted literal
-        Node curr_slack_val;
-        std::unordered_map<Node, Node, NodeHashFunction>::iterator itms =
-            d_alit_to_model_slack.find(alit);
-        if (itms != d_alit_to_model_slack.end()) {
-          curr_slack_val = itms->second;
-        }
+          // get the slack value introduced for the asserted literal
+          Node curr_slack_val;
+          std::unordered_map<Node, Node, NodeHashFunction>::iterator itms =
+              d_alit_to_model_slack.find(alit);
+          if (itms != d_alit_to_model_slack.end()) {
+            curr_slack_val = itms->second;
+          }
 
-        // debug printing
-        if (Trace.isOn("cegqi-bv")) {
+          // debug printing
           Trace("cegqi-bv") << "   [" << j << "] : ";
           Trace("cegqi-bv") << inst_term << std::endl;
           if (!curr_slack_val.isNull()) {
             Trace("cegqi-bv") << "   ...with slack value : " << curr_slack_val
                               << std::endl;
           }
+          Trace("cegqi-bv-debug") << "   ...from : " << alit << std::endl;
           Trace("cegqi-bv") << std::endl;
-        }
-
-        // currently:
-        //   We select the first literal, and
-        //   for the first variable, we select all 
-        //   if cbqiMultiInst is enabled.
-        if (inst_ids_try.empty() || (firstVar && options::cbqiMultiInst()))
-        {
-          // try the first one
-          inst_ids_try.push_back(inst_id);
-        } else {
-          // selection criteria across multiple literals goes here
         }
       }
 
       // Now, try all instantiation ids we want to try
-      // Typically size( inst_ids_try )<=1, otherwise worst-case performance
+      // Typically we try only one, otherwise worst-case performance
       // for constructing instantiations is exponential on the number of
       // variables in this quantifier prefix.
       bool ret = false;
-      bool revertOnSuccess = inst_ids_try.size() > 1;
-      for (unsigned j = 0; j < inst_ids_try.size(); j++) {
-        unsigned inst_id = inst_ids_try[j];
+      bool tryMultipleInst = firstVar && options::cbqiMultiInst();
+      bool revertOnSuccess = tryMultipleInst;
+      for (unsigned j = 0, size = iti->second.size(); j<size; j++) {
+        unsigned inst_id = iti->second[j];
         Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
         Node inst_term = d_inst_id_to_term[inst_id];
         Node alit = d_inst_id_to_alit[inst_id];
@@ -1236,6 +1243,11 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
           ret = true;
         }
         ci->markSolved(alit, false);
+        // we are done unless we try multiple instances
+        if( !tryMultipleInst )
+        {
+          break;
+        }
       }
       if (ret)
       {
