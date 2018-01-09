@@ -1602,7 +1602,7 @@ static std::string suggestTags(char const* const* validTags,
   return didYouMean.getMatchAsString(inputTag);
 }
 
-void OptionsHandler::enableTraceTags(std::string option, std::string optarg)
+void OptionsHandler::enableTraceTag(std::string option, std::string optarg)
 {
   if(!Configuration::isTracingBuild())
   {
@@ -1624,7 +1624,7 @@ void OptionsHandler::enableTraceTags(std::string option, std::string optarg)
   Trace.on(optarg);
 }
 
-void OptionsHandler::enableDebugTags(std::string option, std::string optarg)
+void OptionsHandler::enableDebugTag(std::string option, std::string optarg)
 {
   if (!Configuration::isDebugBuild())
   {
