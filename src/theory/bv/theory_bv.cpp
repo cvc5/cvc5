@@ -806,6 +806,10 @@ Node TheoryBV::ppRewrite(TNode t)
   } else if (RewriteRule<ZeroExtendEqConst>::applies(t)) {
     res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
   }
+  else if (RewriteRule<UdivEqConst>::applies(t))
+  {
+    res = RewriteRule<UdivEqConst>::run<false>(t);
+  }
 
 
   // if(t.getKind() == kind::EQUAL &&

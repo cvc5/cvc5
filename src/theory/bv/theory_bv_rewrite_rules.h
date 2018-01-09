@@ -140,6 +140,7 @@ enum RewriteRuleId {
   UremSelf,
   ShiftZero,
 
+  UdivEqConst,
   UltOne,
   SltZero,
   ZeroUlt,
@@ -280,6 +281,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
     out << "UdivZero";
     return out;
   case UdivOne :            out << "UdivOne";             return out;
+  case UdivEqConst :        out << "UdivEqConst";         return out;
   case UremPow2 :            out << "UremPow2";             return out;
   case UremOne :            out << "UremOne";             return out;
   case UremSelf :            out << "UremSelf";             return out;
@@ -514,40 +516,41 @@ struct AllRewriteRules {
   RewriteRule<UdivPow2> rule92;
   RewriteRule<UdivZero> rule93;
   RewriteRule<UdivOne> rule94;
-  RewriteRule<UremPow2> rule95;
-  RewriteRule<UremOne> rule96;
-  RewriteRule<UremSelf> rule97;
-  RewriteRule<ShiftZero> rule98;
-  RewriteRule<CompEliminate> rule99;
-  RewriteRule<XnorEliminate> rule100;
-  RewriteRule<SignExtendEliminate> rule101;
-  RewriteRule<NotIdemp> rule102;
-  RewriteRule<UleSelf> rule103;
-  RewriteRule<FlattenAssocCommut> rule104;
-  RewriteRule<PlusCombineLikeTerms> rule105;
-  RewriteRule<MultSimplify> rule106;
-  RewriteRule<MultDistribConst> rule107;
-  RewriteRule<AndSimplify> rule108;
-  RewriteRule<OrSimplify> rule109;
-  RewriteRule<NegPlus> rule110;
-  RewriteRule<BBPlusNeg> rule111;
-  RewriteRule<SolveEq> rule112;
-  RewriteRule<BitwiseEq> rule113;
-  RewriteRule<UltOne> rule114;
-  RewriteRule<SltZero> rule115;
-  RewriteRule<BVToNatEliminate>  rule116;
-  RewriteRule<IntToBVEliminate>  rule117;
-  RewriteRule<MultDistrib> rule118;
-  RewriteRule<UltPlusOne> rule119;
-  RewriteRule<ConcatToMult> rule120;
-  RewriteRule<IsPowerOfTwo> rule121;
-  RewriteRule<RedorEliminate> rule122;
-  RewriteRule<RedandEliminate> rule123;
-  RewriteRule<SignExtendEqConst> rule124;
-  RewriteRule<ZeroExtendEqConst> rule125;
-  RewriteRule<SignExtendUltConst> rule126;
-  RewriteRule<ZeroExtendUltConst> rule127;
-  RewriteRule<MultSltMult> rule128;
+  RewriteRule<UdivEqConst> rule95;
+  RewriteRule<UremPow2> rule96;
+  RewriteRule<UremOne> rule97;
+  RewriteRule<UremSelf> rule98;
+  RewriteRule<ShiftZero> rule99;
+  RewriteRule<CompEliminate> rule100;
+  RewriteRule<XnorEliminate> rule101;
+  RewriteRule<SignExtendEliminate> rule102;
+  RewriteRule<NotIdemp> rule103;
+  RewriteRule<UleSelf> rule104;
+  RewriteRule<FlattenAssocCommut> rule105;
+  RewriteRule<PlusCombineLikeTerms> rule106;
+  RewriteRule<MultSimplify> rule107;
+  RewriteRule<MultDistribConst> rule108;
+  RewriteRule<AndSimplify> rule109;
+  RewriteRule<OrSimplify> rule110;
+  RewriteRule<NegPlus> rule111;
+  RewriteRule<BBPlusNeg> rule112;
+  RewriteRule<SolveEq> rule113;
+  RewriteRule<BitwiseEq> rule114;
+  RewriteRule<UltOne> rule115;
+  RewriteRule<SltZero> rule116;
+  RewriteRule<BVToNatEliminate>  rule117;
+  RewriteRule<IntToBVEliminate>  rule118;
+  RewriteRule<MultDistrib> rule119;
+  RewriteRule<UltPlusOne> rule120;
+  RewriteRule<ConcatToMult> rule121;
+  RewriteRule<IsPowerOfTwo> rule122;
+  RewriteRule<RedorEliminate> rule123;
+  RewriteRule<RedandEliminate> rule124;
+  RewriteRule<SignExtendEqConst> rule125;
+  RewriteRule<ZeroExtendEqConst> rule126;
+  RewriteRule<SignExtendUltConst> rule127;
+  RewriteRule<ZeroExtendUltConst> rule128;
+  RewriteRule<MultSltMult> rule129;
 };
 
 template<> inline

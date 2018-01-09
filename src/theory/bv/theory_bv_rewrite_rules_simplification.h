@@ -979,6 +979,69 @@ inline Node RewriteRule<UdivOne>::apply(TNode node) {
 }
 
 /**
+ * UdivEqConst
+ *
+ * Rewrite
+ *   s / x = t
+ * with s const to
+ *   x = 0 ? x * s^-1 = ones
+ *         : (x = 1 ? t * s^-1 = 1
+ *                  : t * s^-1 = 0)
+ * where s^-1 is the multiplicative modular inverse of s.
+ */
+template <>
+inline bool RewriteRule<UdivEqConst>::applies(TNode node)
+{
+  return node.getKind() == kind::EQUAL &&
+         ((node[0].getKind() == kind::BITVECTOR_UDIV_TOTAL
+           && node[0][0].isConst()
+           && node[0][0].getConst<BitVector>().isBitSet(0))
+          ||
+          (node[1].getKind() == kind::BITVECTOR_UDIV_TOTAL
+           && node[1][0].isConst()
+           && node[1][0].getConst<BitVector>().isBitSet(0)));
+}
+
+template <>
+inline Node RewriteRule<UdivEqConst>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<UdivEqConst>(" << node << ")"
+                      << std::endl;
+  TNode t, s, x;
+
+  if (node[0].getKind() == kind::BITVECTOR_UDIV_TOTAL)
+  {
+    t = node[1];
+    s = node[0][0];
+    x = node[0][1];
+  }
+  else
+  {
+    t = node[0];
+    s = node[1][0];
+    x = node[1][1];
+  }
+
+  NodeManager *nm = NodeManager::currentNM();
+
+  unsigned w = utils::getSize(s);
+  Assert(w == utils::getSize(t));
+  Node zero = utils::mkZero(w);
+  Node ones = utils::mkOnes(w);
+  Node one = utils::mkOne(w);
+
+  Integer s_val = s.getConst<BitVector>().toInteger();
+  Integer inv_val = s_val.modInverse(Integer(1).multiplyByPow2(w));
+  Node inv = utils::mkConst(w, inv_val);
+
+  Node mul = nm->mkNode(kind::BITVECTOR_MULT, t, inv);
+  Node ite = nm->mkNode(
+      kind::ITE, x.eqNode(one), mul.eqNode(one), mul.eqNode(zero));
+  return nm->mkNode(
+      kind::ITE, x.eqNode(zero), mul.eqNode(ones), ite);
+}
+
+/**
  * UremPow2
  *
  * (a urem 2^k) ==> 0_(n-k) a[k-1:0]
