@@ -29,8 +29,9 @@ namespace theory {
 
 class NoMoreValuesException : public Exception {
  public:
-  NoMoreValuesException(TypeNode n) throw() :
-    Exception("No more values for type `" + n.toString() + "'") {
+  NoMoreValuesException(TypeNode n)
+      : Exception("No more values for type `" + n.toString() + "'")
+  {
   }
 };/* class NoMoreValuesException */
 

@@ -31,9 +31,11 @@ namespace CVC4 {
 class DeltaRational;
 
 class DeltaRationalException : public Exception {
-public:
-  DeltaRationalException(const char* op, const DeltaRational& a, const DeltaRational& b) throw ();
-  virtual ~DeltaRationalException() throw ();
+ public:
+  DeltaRationalException(const char* op,
+                         const DeltaRational& a,
+                         const DeltaRational& b);
+  ~DeltaRationalException() override;
 };
 
 
