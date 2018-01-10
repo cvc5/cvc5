@@ -88,7 +88,7 @@ public:
  * An exception that is thrown when a datatype resolution fails.
  */
 class CVC4_PUBLIC DatatypeResolutionException : public Exception {
-public:
+ public:
   inline DatatypeResolutionException(std::string msg);
 };/* class DatatypeResolutionException */
 

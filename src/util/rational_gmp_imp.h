@@ -84,6 +84,7 @@ public:
 
   /**
    * Constructs a Rational from a C string in a given base (defaults to 10).
+   *
    * Throws std::invalid_argument if the string is not a valid rational.
    * For more information about what is a valid rational string,
    * see GMP's documentation for mpq_set_str().

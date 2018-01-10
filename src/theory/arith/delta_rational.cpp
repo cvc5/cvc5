@@ -72,16 +72,17 @@ void DeltaRational::seperatingDelta(Rational& res, const DeltaRational& a, const
   }
 }
 
-
-DeltaRationalException::DeltaRationalException(const char* op, const DeltaRational& a, const DeltaRational& b) throw (){
-    std::stringstream ss;
-    ss << "Operation [" << op << "] between DeltaRational values ";
-    ss << a << " and " << b << " is not a DeltaRational.";
-    setMessage(ss.str());
+DeltaRationalException::DeltaRationalException(const char* op,
+                                               const DeltaRational& a,
+                                               const DeltaRational& b)
+{
+  std::stringstream ss;
+  ss << "Operation [" << op << "] between DeltaRational values ";
+  ss << a << " and " << b << " is not a DeltaRational.";
+  setMessage(ss.str());
 }
 
-DeltaRationalException::~DeltaRationalException() throw () { }
-
+DeltaRationalException::~DeltaRationalException() {}
 
 Integer DeltaRational::euclidianDivideQuotient(const DeltaRational& y) const throw(DeltaRationalException){
   if(isIntegral() && y.isIntegral()){

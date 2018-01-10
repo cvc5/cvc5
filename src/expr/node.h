@@ -66,44 +66,39 @@ class NodeTemplate;
  * thrown by node.getType().
  */
 class TypeCheckingExceptionPrivate : public Exception {
-
-private:
-
+ private:
   /** The node responsible for the failure */
   NodeTemplate<true>* d_node;
 
-public:
-
+ public:
   /**
    * Construct the exception with the problematic node and the message
    * @param node the problematic node
    * @param message the message explaining the failure
    */
-  TypeCheckingExceptionPrivate(NodeTemplate<false> node, std::string message) throw();
+  TypeCheckingExceptionPrivate(NodeTemplate<false> node, std::string message);
 
   /** Destructor */
-  ~TypeCheckingExceptionPrivate() throw ();
+  ~TypeCheckingExceptionPrivate() override;
 
   /**
    * Get the Node that caused the type-checking to fail.
    * @return the node
    */
-  NodeTemplate<true> getNode() const throw();
+  NodeTemplate<true> getNode() const;
 
   /**
    * Returns the message corresponding to the type-checking failure.
    * We prefer toStream() to toString() because that keeps the expr-depth
    * and expr-language settings present in the stream.
    */
-  void toStream(std::ostream& out) const throw();
+  void toStream(std::ostream& out) const override;
 
 };/* class TypeCheckingExceptionPrivate */
 
 class UnknownTypeException : public TypeCheckingExceptionPrivate {
-public:
-
-  UnknownTypeException(NodeTemplate<false> node) throw();
-
+ public:
+  UnknownTypeException(NodeTemplate<false> node);
 };/* class UnknownTypeException */
 
 /**
