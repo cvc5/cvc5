@@ -979,6 +979,109 @@ inline Node RewriteRule<UdivOne>::apply(TNode node) {
 }
 
 /**
+ * UdivInEqConst
+ *
+ * Rewrite
+ *   s / x OP t   with OP in { EQUAL, BITVECTOR_ULT, BITVECTOR_SLT }
+ * to
+ *   x = 0 ? ones OP x * s^-1
+ *         : (x = 1 ? 1 OP t * s^-1
+ *                  : 0 OP t * s^-1)
+ * if s const and there exists a multiplicative modular inverse s^-1 of s.
+ */
+template <>
+inline bool RewriteRule<UdivInEqConst>::applies(TNode node)
+{
+  Kind k = node.getKind();
+
+  if (k != kind::EQUAL
+      && k != kind::BITVECTOR_ULT
+      && k != kind::BITVECTOR_SLT)
+  {
+    return false;
+  }
+
+  TNode s, t;
+
+  if (node[0].getKind() == kind::BITVECTOR_UDIV_TOTAL
+      && node[0][0].isConst())
+  {
+    s = node[0][0];
+    t = node[1];
+  }
+  else if (node[1].getKind() == kind::BITVECTOR_UDIV_TOTAL
+           && node[1][0].isConst())
+  {
+    s = node[1][0];
+    t = node[0];
+  }
+  else
+  {
+    return false;
+  }
+
+  return s.getConst<BitVector>().isBitSet(0)
+         || (t.isConst()
+             && t.getConst<BitVector>().countTrailingZeroes()
+                >=  s.getConst<BitVector>().countTrailingZeroes());
+}
+
+template <>
+inline Node RewriteRule<UdivInEqConst>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<UdivInEqConst>(" << node << ")"
+                      << std::endl;
+  TNode t, s, x;
+  Node ss, tt;
+  Kind k = node.getKind();
+
+  if (node[0].getKind() == kind::BITVECTOR_UDIV_TOTAL)
+  {
+    t = node[1];
+    s = node[0][0];
+    x = node[0][1];
+  }
+  else
+  {
+    t = node[0];
+    s = node[1][0];
+    x = node[1][1];
+  }
+
+  NodeManager *nm = NodeManager::currentNM();
+  BitVector s_bv = s.getConst<BitVector>();
+  unsigned w = utils::getSize(s);
+  Assert(w == utils::getSize(t));
+  Node zero = utils::mkZero(w);
+  Node ones = utils::mkOnes(w);
+  Node one = utils::mkOne(w);
+
+  if (!s_bv.isBitSet(0))  /* even -> s and t constant */
+  {
+    unsigned ctz_s_val = s_bv.countTrailingZeroes();
+    Node ctz_s = utils::mkConst(w, ctz_s_val);
+    ss = nm->mkNode(kind::BITVECTOR_LSHR, s, ctz_s);
+    tt = nm->mkNode(kind::BITVECTOR_LSHR, t, ctz_s);
+  }
+  else
+  {
+    ss = s;
+    tt = t;
+  }
+
+  Integer s_val = ss.getConst<BitVector>().toInteger();
+  Integer inv_val = s_val.modInverse(Integer(1).multiplyByPow2(w));
+  Node inv = utils::mkConst(w, inv_val);
+  Node mul = nm->mkNode(kind::BITVECTOR_MULT, tt, inv);
+
+  return nm->mkNode(kind::ITE,
+      x.eqNode(zero),
+      nm->mkNode(k, ones, mul),
+      nm->mkNode(kind::ITE,
+        x.eqNode(one), nm->mkNode(k, one, mul), nm->mkNode(k, zero, mul)));
+}
+
+/**
  * UremPow2
  *
  * (a urem 2^k) ==> 0_(n-k) a[k-1:0]

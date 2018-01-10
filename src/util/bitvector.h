@@ -132,6 +132,15 @@ public:
     return d_value.isBitSet(i);
   }
 
+  /**
+   * Return the number of trailing zeroes.
+   */
+  unsigned countTrailingZeroes() const
+  {
+    unsigned res = 0;
+    for (unsigned i = 0; i < d_size; ++i, ++res) { if (isBitSet(i)) break; }
+    return res;
+  }
 
   /**
    * Return k if the integer is equal to 2^{k-1} and zero otherwise.
