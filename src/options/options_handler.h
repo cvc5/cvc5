@@ -188,15 +188,11 @@ public:
   void decreaseVerbosity(std::string option);
   OutputLanguage stringToOutputLanguage(std::string option, std::string optarg) throw(OptionException);
   InputLanguage stringToInputLanguage(std::string option, std::string optarg) throw(OptionException);
-  void addTraceTag(std::string option, std::string optarg);
-  void addDebugTag(std::string option, std::string optarg);
+  void enableTraceTag(std::string option, std::string optarg);
+  void enableDebugTag(std::string option, std::string optarg);
   void notifyPrintSuccess(std::string option);
 
  private:
-
-  /* Helper utilities */
-  static std::string suggestTags(char const* const* validTags, std::string inputTag,
-                                 char const* const* additionalTags = NULL);
 
   /** Pointer to the containing Options object.*/
   Options* d_options;
