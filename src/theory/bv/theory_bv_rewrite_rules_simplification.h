@@ -987,7 +987,7 @@ inline Node RewriteRule<UdivOne>::apply(TNode node) {
  *   x = 0 ? ones OP x * s^-1
  *         : (x = 1 ? 1 OP t * s^-1
  *                  : 0 OP t * s^-1)
- * when s const and there exists a multiplicative modular inverse s^-1 of s.
+ * if s const and there exists a multiplicative modular inverse s^-1 of s.
  */
 template <>
 inline bool RewriteRule<UdivInEqConst>::applies(TNode node)
