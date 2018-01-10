@@ -806,9 +806,9 @@ Node TheoryBV::ppRewrite(TNode t)
   } else if (RewriteRule<ZeroExtendEqConst>::applies(t)) {
     res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
   }
-  else if (RewriteRule<UdivEqConst>::applies(t))
+  else if (RewriteRule<UdivInEqConst>::applies(t))
   {
-    res = RewriteRule<UdivEqConst>::run<false>(t);
+    res = RewriteRule<UdivInEqConst>::run<false>(t);
   }
 
 

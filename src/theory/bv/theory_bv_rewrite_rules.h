@@ -140,7 +140,7 @@ enum RewriteRuleId {
   UremSelf,
   ShiftZero,
 
-  UdivEqConst,
+  UdivInEqConst,
   UltOne,
   SltZero,
   ZeroUlt,
@@ -281,7 +281,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
     out << "UdivZero";
     return out;
   case UdivOne :            out << "UdivOne";             return out;
-  case UdivEqConst :        out << "UdivEqConst";         return out;
+  case UdivInEqConst :        out << "UdivInEqConst";         return out;
   case UremPow2 :            out << "UremPow2";             return out;
   case UremOne :            out << "UremOne";             return out;
   case UremSelf :            out << "UremSelf";             return out;
@@ -516,7 +516,7 @@ struct AllRewriteRules {
   RewriteRule<UdivPow2> rule92;
   RewriteRule<UdivZero> rule93;
   RewriteRule<UdivOne> rule94;
-  RewriteRule<UdivEqConst> rule95;
+  RewriteRule<UdivInEqConst> rule95;
   RewriteRule<UremPow2> rule96;
   RewriteRule<UremOne> rule97;
   RewriteRule<UremSelf> rule98;

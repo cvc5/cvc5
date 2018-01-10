@@ -979,20 +979,27 @@ inline Node RewriteRule<UdivOne>::apply(TNode node) {
 }
 
 /**
- * UdivEqConst
+ * UdivInEqConst
  *
  * Rewrite
- *   s / x = t
- * with s const to
- *   x = 0 ? x * s^-1 = ones
- *         : (x = 1 ? t * s^-1 = 1
- *                  : t * s^-1 = 0)
- * where s^-1 is the multiplicative modular inverse of s.
+ *   s / x OP t   with OP in { EQUAL, BITVECTOR_ULT, BITVECTOR_SLT }
+ * to
+ *   x = 0 ? ones OP x * s^-1
+ *         : (x = 1 ? 1 OP t * s^-1
+ *                  : 0 OP t * s^-1)
+ * when s const and there exists a multiplicative modular inverse s^-1 of s.
  */
 template <>
-inline bool RewriteRule<UdivEqConst>::applies(TNode node)
+inline bool RewriteRule<UdivInEqConst>::applies(TNode node)
 {
-  if (node.getKind() != kind::EQUAL) return false;
+  Kind k = node.getKind();
+
+  if (k != kind::EQUAL
+      && k != kind::BITVECTOR_ULT
+      && k != kind::BITVECTOR_SLT)
+  {
+    return false;
+  }
 
   TNode s, t;
 
@@ -1020,12 +1027,13 @@ inline bool RewriteRule<UdivEqConst>::applies(TNode node)
 }
 
 template <>
-inline Node RewriteRule<UdivEqConst>::apply(TNode node)
+inline Node RewriteRule<UdivInEqConst>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<UdivEqConst>(" << node << ")"
+  Debug("bv-rewrite") << "RewriteRule<UdivInEqConst>(" << node << ")"
                       << std::endl;
   TNode t, s, x;
   Node ss, tt;
+  Kind k = node.getKind();
 
   if (node[0].getKind() == kind::BITVECTOR_UDIV_TOTAL)
   {
@@ -1066,12 +1074,11 @@ inline Node RewriteRule<UdivEqConst>::apply(TNode node)
   Node inv = utils::mkConst(w, inv_val);
   Node mul = nm->mkNode(kind::BITVECTOR_MULT, tt, inv);
 
-  return nm->mkNode(
-      kind::ITE,
+  return nm->mkNode(kind::ITE,
       x.eqNode(zero),
-      mul.eqNode(ones),
-      nm->mkNode(
-        kind::ITE, x.eqNode(one), mul.eqNode(one), mul.eqNode(zero)));
+      nm->mkNode(k, ones, mul),
+      nm->mkNode(kind::ITE,
+        x.eqNode(one), nm->mkNode(k, one, mul), nm->mkNode(k, zero, mul)));
 }
 
 /**
