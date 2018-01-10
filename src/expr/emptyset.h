@@ -33,25 +33,25 @@ namespace CVC4 {
 
 namespace CVC4 {
 class CVC4_PUBLIC EmptySet {
-public:
+ public:
   /**
    * Constructs an emptyset of the specified type. Note that the argument
    * is the type of the set itself, NOT the type of the elements.
    */
   EmptySet(const SetType& setType);
-  ~EmptySet() throw();
+  ~EmptySet();
   EmptySet(const EmptySet& other);
   EmptySet& operator=(const EmptySet& other);
 
   const SetType& getType() const;
-  bool operator==(const EmptySet& es) const throw();
-  bool operator!=(const EmptySet& es) const throw();
-  bool operator<(const EmptySet& es) const throw();
-  bool operator<=(const EmptySet& es) const throw();
-  bool operator>(const EmptySet& es) const throw() ;
-  bool operator>=(const EmptySet& es) const throw();
+  bool operator==(const EmptySet& es) const;
+  bool operator!=(const EmptySet& es) const;
+  bool operator<(const EmptySet& es) const;
+  bool operator<=(const EmptySet& es) const;
+  bool operator>(const EmptySet& es) const;
+  bool operator>=(const EmptySet& es) const;
 
-private:
+ private:
   /** Pointer to the SetType node. This is never NULL. */
   SetType* d_type;
 
