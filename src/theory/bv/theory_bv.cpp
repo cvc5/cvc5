@@ -774,43 +774,56 @@ Node TheoryBV::ppRewrite(TNode t)
 {
   Debug("bv-pp-rewrite") << "TheoryBV::ppRewrite " << t << "\n";
   Node res = t;
-  if (RewriteRule<BitwiseEq>::applies(t)) {
+  if (RewriteRule<BitwiseEq>::applies(t))
+  {
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
     res = Rewriter::rewrite(result);
-  } else if (d_isCoreTheory && t.getKind() == kind::EQUAL) {
+  }
+  else if (d_isCoreTheory && t.getKind() == kind::EQUAL)
+  {
     std::vector<Node> equalities;
     Slicer::splitEqualities(t, equalities);
     res = utils::mkAnd(equalities);
-  } else if (RewriteRule<UltPlusOne>::applies(t)) {
+  }
+  else if (RewriteRule<UltPlusOne>::applies(t))
+  {
     Node result = RewriteRule<UltPlusOne>::run<false>(t);
     res = Rewriter::rewrite(result);
-  } else if( res.getKind() == kind::EQUAL &&
-      ((res[0].getKind() == kind::BITVECTOR_PLUS &&
-        RewriteRule<ConcatToMult>::applies(res[1])) ||
-       (res[1].getKind() == kind::BITVECTOR_PLUS &&
-	RewriteRule<ConcatToMult>::applies(res[0])))) {
-    Node mult = RewriteRule<ConcatToMult>::applies(res[0])?
-      RewriteRule<ConcatToMult>::run<false>(res[0]) :
-      RewriteRule<ConcatToMult>::run<true>(res[1]);
+  }
+  else if (res.getKind() == kind::EQUAL
+           && ((res[0].getKind() == kind::BITVECTOR_PLUS
+                && RewriteRule<ConcatToMult>::applies(res[1]))
+               || (res[1].getKind() == kind::BITVECTOR_PLUS
+                   && RewriteRule<ConcatToMult>::applies(res[0]))))
+  {
+    Node mult = RewriteRule<ConcatToMult>::applies(res[0])
+                    ? RewriteRule<ConcatToMult>::run<false>(res[0])
+                    : RewriteRule<ConcatToMult>::run<true>(res[1]);
     Node factor = mult[0];
-    Node sum =  RewriteRule<ConcatToMult>::applies(res[0])? res[1] : res[0];
-    Node new_eq =utils::mkNode(kind::EQUAL, sum, mult);
+    Node sum = RewriteRule<ConcatToMult>::applies(res[0]) ? res[1] : res[0];
+    Node new_eq = utils::mkNode(kind::EQUAL, sum, mult);
     Node rewr_eq = RewriteRule<SolveEq>::run<true>(new_eq);
-    if (rewr_eq[0].isVar() || rewr_eq[1].isVar()){
+    if (rewr_eq[0].isVar() || rewr_eq[1].isVar())
+    {
       res = Rewriter::rewrite(rewr_eq);
-    } else {
+    }
+    else
+    {
       res = t;
     }
-  } else if (RewriteRule<SignExtendEqConst>::applies(t)) {
+  }
+  else if (RewriteRule<SignExtendEqConst>::applies(t))
+  {
     res = RewriteRule<SignExtendEqConst>::run<false>(t);
-  } else if (RewriteRule<ZeroExtendEqConst>::applies(t)) {
+  }
+  else if (RewriteRule<ZeroExtendEqConst>::applies(t))
+  {
     res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
   }
   else if (RewriteRule<UdivInEqConst>::applies(t))
   {
     res = RewriteRule<UdivInEqConst>::run<false>(t);
   }
-
 
   // if(t.getKind() == kind::EQUAL &&
   //    ((t[0].getKind() == kind::BITVECTOR_MULT && t[1].getKind() == kind::BITVECTOR_PLUS) ||
