@@ -396,9 +396,9 @@ private:
   bool replayLog(ApproximateSimplex* approx);
 
   class ModelException : public Exception {
-  public:
-    ModelException(TNode n, const char* msg) throw ();
-    virtual ~ModelException() throw ();
+   public:
+    ModelException(TNode n, const char* msg);
+    ~ModelException() override;
   };
 
   /**
