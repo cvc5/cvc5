@@ -32,20 +32,17 @@ namespace arith {
 class RationalEnumerator : public TypeEnumeratorBase<RationalEnumerator> {
   Rational d_rat;
 
-public:
-
-  RationalEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw(AssertionException) :
-    TypeEnumeratorBase<RationalEnumerator>(type),
-    d_rat(0) {
+ public:
+  RationalEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+      : TypeEnumeratorBase<RationalEnumerator>(type), d_rat(0)
+  {
     Assert(type.getKind() == kind::TYPE_CONSTANT &&
            type.getConst<TypeConstant>() == REAL_TYPE);
   }
 
-  Node operator*() throw() {
-    return NodeManager::currentNM()->mkConst(d_rat);
-  }
-
-  RationalEnumerator& operator++() throw() {
+  Node operator*() override { return NodeManager::currentNM()->mkConst(d_rat); }
+  RationalEnumerator& operator++() override
+  {
     // sequence is 0, then diagonal with negatives interleaved
     // ( 0, 1/1, -1/1, 2/1, -2/1, 1/2, -1/2, 3/1, -3/1, 1/3, -1/3,
     // 4/1, -4/1, 3/2, -3/2, 2/3, -2/3, 1/4, -1/4, ...)
@@ -70,29 +67,27 @@ public:
     return *this;
   }
 
-  bool isFinished() throw() {
-    return false;
-  }
-
+  bool isFinished() override { return false; }
 };/* class RationalEnumerator */
 
 class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
   Integer d_int;
 
-public:
-
-  IntegerEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw(AssertionException) :
-    TypeEnumeratorBase<IntegerEnumerator>(type),
-    d_int(0) {
+ public:
+  IntegerEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+      : TypeEnumeratorBase<IntegerEnumerator>(type), d_int(0)
+  {
     Assert(type.getKind() == kind::TYPE_CONSTANT &&
            type.getConst<TypeConstant>() == INTEGER_TYPE);
   }
 
-  Node operator*() throw() {
+  Node operator*() override
+  {
     return NodeManager::currentNM()->mkConst(Rational(d_int));
   }
 
-  IntegerEnumerator& operator++() throw() {
+  IntegerEnumerator& operator++() override
+  {
     // sequence is 0, 1, -1, 2, -2, 3, -3, ...
     if(d_int <= 0) {
       d_int = -d_int + 1;
@@ -102,10 +97,7 @@ public:
     return *this;
   }
 
-  bool isFinished() throw() {
-    return false;
-  }
-
+  bool isFinished() override { return false; }
 };/* class IntegerEnumerator */
 
 }/* CVC4::theory::arith namespace */
