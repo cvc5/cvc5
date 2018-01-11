@@ -27,7 +27,7 @@ namespace strings {
 class StringConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     return nodeManager->stringType();
   }
 };
@@ -35,7 +35,7 @@ public:
 class StringConcatTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ){
       TNode::iterator it = n.begin();
       TNode::iterator it_end = n.end();
@@ -58,7 +58,7 @@ public:
 class StringLengthTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
@@ -72,7 +72,7 @@ public:
 class StringSubstrTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
@@ -94,7 +94,7 @@ public:
 class StringContainTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
@@ -112,7 +112,7 @@ public:
 class StringCharAtTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
@@ -130,7 +130,7 @@ public:
 class StringIndexOfTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
@@ -152,7 +152,7 @@ public:
 class StringReplaceTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
@@ -174,7 +174,7 @@ public:
 class StringPrefixOfTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
@@ -192,7 +192,7 @@ public:
 class StringSuffixOfTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
@@ -210,7 +210,7 @@ public:
 class StringIntToStrTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isInteger()) {
@@ -224,7 +224,7 @@ public:
 class StringStrToIntTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
@@ -238,7 +238,7 @@ public:
 class RegExpConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     return nodeManager->regExpType();
   }
 };
@@ -246,7 +246,7 @@ public:
 class RegExpConcatTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TNode::iterator it = n.begin();
       TNode::iterator it_end = n.end();
@@ -269,7 +269,7 @@ public:
 class RegExpUnionTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TNode::iterator it = n.begin();
       TNode::iterator it_end = n.end();
@@ -287,7 +287,7 @@ public:
 class RegExpInterTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TNode::iterator it = n.begin();
       TNode::iterator it_end = n.end();
@@ -305,7 +305,7 @@ public:
 class RegExpStarTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isRegExp()) {
@@ -319,7 +319,7 @@ public:
 class RegExpPlusTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isRegExp()) {
@@ -333,7 +333,7 @@ public:
 class RegExpOptTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isRegExp()) {
@@ -347,7 +347,7 @@ public:
 class RegExpRangeTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TNode::iterator it = n.begin();
       unsigned char ch[2];
@@ -380,7 +380,7 @@ public:
 class RegExpLoopTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TNode::iterator it = n.begin();
       TNode::iterator it_end = n.end();
@@ -416,7 +416,7 @@ public:
 class StringToRegExpTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
@@ -433,7 +433,7 @@ public:
 class StringInRegExpTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TNode::iterator it = n.begin();
       TypeNode t = (*it).getType(check);
@@ -453,8 +453,7 @@ public:
 class EmptyRegExpTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
-
+  {
     Assert(n.getKind() == kind::REGEXP_EMPTY);
     return nodeManager->regExpType();
   }
@@ -463,8 +462,7 @@ public:
 class SigmaRegExpTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
-
+  {
     Assert(n.getKind() == kind::REGEXP_SIGMA);
     return nodeManager->regExpType();
   }
@@ -473,7 +471,7 @@ public:
 class RegExpRVTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isInteger()) {

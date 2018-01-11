@@ -28,7 +28,7 @@ namespace CVC4 {
 namespace expr {
 
 TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
-  throw (TypeCheckingExceptionPrivate, AssertionException) {
+{
   TypeNode typeNode;
 
   // Infer the type
@@ -59,8 +59,7 @@ ${typerules}
 }/* TypeChecker::computeType */
 
 bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
-  throw (AssertionException) {
-
+{
   Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
 
   switch(n.getKind()) {
@@ -76,8 +75,7 @@ ${construles}
 }/* TypeChecker::computeIsConst */
 
 bool TypeChecker::neverIsConst(NodeManager* nodeManager, TNode n)
-  throw (AssertionException) {
-
+{
   Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
 
   switch(n.getKind()) {

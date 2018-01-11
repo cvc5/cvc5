@@ -98,7 +98,6 @@ Maybe<Rational> Rational::fromDouble(double d)
   }catch(cln::floating_point_overflow_exception& fpoe){
     return Maybe<Rational>();
   }
-  Unreachable();
 }
 
 } /* namespace CVC4 */
