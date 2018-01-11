@@ -1080,7 +1080,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
       comp = Rewriter::rewrite(comp);
       k = BITVECTOR_ULT;
       // go in the direction of the model
-      if (!comp.getConst<bool>())
+      if( comp.isConst() && !comp.getConst<bool>() )
       {
         std::swap(s, t);
       }
