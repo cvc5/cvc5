@@ -1073,14 +1073,10 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     }
   } else {
     // turn disequality into an inequality
-    // e.g. s != t becomes s < t
+    // e.g. s != t becomes s < t or t < s
     if (k == EQUAL)
     {
-      Node comp = nm->mkNode(BITVECTOR_ULT, sm, tm);
-      comp = Rewriter::rewrite(comp);
-      k = BITVECTOR_ULT;
-      // go in the direction of the model
-      if( comp.isConst() && !comp.getConst<bool>() )
+      if (Random::getRandom().pickWithProb(0.5))
       {
         std::swap(s, t);
       }
