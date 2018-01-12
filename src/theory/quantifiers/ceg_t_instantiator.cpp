@@ -1093,9 +1093,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     {
       ret = s.eqNode(t);
     } else {
-      unsigned one = 1;
-      BitVector bval(s.getType().getConst<BitVectorSize>(), one);
-      Node bv_one = nm->mkConst<BitVector>(bval);
+      Node bv_one = bv::utils::mkOne(bv::utils::getSize(s));
       ret = nm->mkNode(BITVECTOR_PLUS, s, bv_one).eqNode(t);
     }
   }
