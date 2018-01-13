@@ -60,7 +60,6 @@ void OptionsHandler::notifyForceLogic(const std::string& option){
 }
 
 void OptionsHandler::notifyBeforeSearch(const std::string& option)
-    throw(ModalException)
 {
   try{
     d_options->d_beforeSearchListeners.notify();
@@ -89,8 +88,9 @@ void OptionsHandler::notifyRlimitPer(const std::string& option) {
   d_options->d_rlimitPerListeners.notify();
 }
 
-
-unsigned long OptionsHandler::tlimitHandler(std::string option, std::string optarg) throw(OptionException)  {
+unsigned long OptionsHandler::tlimitHandler(std::string option,
+                                            std::string optarg)
+{
   unsigned long ms;
   std::istringstream convert(optarg);
   if (!(convert >> ms)) {
@@ -99,17 +99,9 @@ unsigned long OptionsHandler::tlimitHandler(std::string option, std::string opta
   return ms;
 }
 
-unsigned long OptionsHandler::tlimitPerHandler(std::string option, std::string optarg) throw(OptionException) {
-  unsigned long ms;
-
-  std::istringstream convert(optarg);
-  if (!(convert >> ms)) {
-    throw OptionException("option `"+option+"` requires a number as an argument");
-  }
-  return ms;
-}
-
-unsigned long OptionsHandler::rlimitHandler(std::string option, std::string optarg) throw(OptionException) {
+unsigned long OptionsHandler::tlimitPerHandler(std::string option,
+                                               std::string optarg)
+{
   unsigned long ms;
 
   std::istringstream convert(optarg);
@@ -119,8 +111,21 @@ unsigned long OptionsHandler::rlimitHandler(std::string option, std::string opta
   return ms;
 }
 
+unsigned long OptionsHandler::rlimitHandler(std::string option,
+                                            std::string optarg)
+{
+  unsigned long ms;
 
-unsigned long OptionsHandler::rlimitPerHandler(std::string option, std::string optarg) throw(OptionException) {
+  std::istringstream convert(optarg);
+  if (!(convert >> ms)) {
+    throw OptionException("option `"+option+"` requires a number as an argument");
+  }
+  return ms;
+}
+
+unsigned long OptionsHandler::rlimitPerHandler(std::string option,
+                                               std::string optarg)
+{
   unsigned long ms;
 
   std::istringstream convert(optarg);
@@ -176,7 +181,9 @@ Heuristic pivot rules available:\n\
   The variable order\n\
 ";
 
-ArithUnateLemmaMode OptionsHandler::stringToArithUnateLemmaMode(std::string option, std::string optarg) throw(OptionException) {
+ArithUnateLemmaMode OptionsHandler::stringToArithUnateLemmaMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "all") {
     return ALL_PRESOLVE_LEMMAS;
   } else if(optarg == "none") {
@@ -194,7 +201,9 @@ ArithUnateLemmaMode OptionsHandler::stringToArithUnateLemmaMode(std::string opti
   }
 }
 
-ArithPropagationMode OptionsHandler::stringToArithPropagationMode(std::string option, std::string optarg) throw(OptionException) {
+ArithPropagationMode OptionsHandler::stringToArithPropagationMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "none") {
     return NO_PROP;
   } else if(optarg == "unate") {
@@ -212,7 +221,9 @@ ArithPropagationMode OptionsHandler::stringToArithPropagationMode(std::string op
   }
 }
 
-ErrorSelectionRule OptionsHandler::stringToErrorSelectionRule(std::string option, std::string optarg) throw(OptionException) {
+ErrorSelectionRule OptionsHandler::stringToErrorSelectionRule(
+    std::string option, std::string optarg)
+{
   if(optarg == "min") {
     return MINIMUM_AMOUNT;
   } else if(optarg == "varord") {
@@ -554,7 +565,9 @@ all \n\
 \n\
 ";
 
-theory::quantifiers::InstWhenMode OptionsHandler::stringToInstWhenMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::InstWhenMode OptionsHandler::stringToInstWhenMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "pre-full") {
     return theory::quantifiers::INST_WHEN_PRE_FULL;
   } else if(optarg == "full") {
@@ -576,13 +589,17 @@ theory::quantifiers::InstWhenMode OptionsHandler::stringToInstWhenMode(std::stri
   }
 }
 
-void OptionsHandler::checkInstWhenMode(std::string option, theory::quantifiers::InstWhenMode mode) throw(OptionException)  {
+void OptionsHandler::checkInstWhenMode(std::string option,
+                                       theory::quantifiers::InstWhenMode mode)
+{
   if(mode == theory::quantifiers::INST_WHEN_PRE_FULL) {
     throw OptionException(std::string("Mode pre-full for ") + option + " is not supported in this release.");
   }
 }
 
-theory::quantifiers::LiteralMatchMode OptionsHandler::stringToLiteralMatchMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::LiteralMatchMode OptionsHandler::stringToLiteralMatchMode(
+    std::string option, std::string optarg)
+{
   if(optarg ==  "none") {
     return theory::quantifiers::LITERAL_MATCH_NONE;
   } else if(optarg ==  "use") {
@@ -600,11 +617,14 @@ theory::quantifiers::LiteralMatchMode OptionsHandler::stringToLiteralMatchMode(s
   }
 }
 
-void OptionsHandler::checkLiteralMatchMode(std::string option, theory::quantifiers::LiteralMatchMode mode) throw(OptionException) {
-
+void OptionsHandler::checkLiteralMatchMode(
+    std::string option, theory::quantifiers::LiteralMatchMode mode)
+{
 }
 
-theory::quantifiers::MbqiMode OptionsHandler::stringToMbqiMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::MbqiMode OptionsHandler::stringToMbqiMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "gen-ev") {
     return theory::quantifiers::MBQI_GEN_EVAL;
   } else if(optarg == "none") {
@@ -626,11 +646,14 @@ theory::quantifiers::MbqiMode OptionsHandler::stringToMbqiMode(std::string optio
   }
 }
 
+void OptionsHandler::checkMbqiMode(std::string option,
+                                   theory::quantifiers::MbqiMode mode)
+{
+}
 
-void OptionsHandler::checkMbqiMode(std::string option, theory::quantifiers::MbqiMode mode) throw(OptionException) {}
-
-
-theory::quantifiers::QcfWhenMode OptionsHandler::stringToQcfWhenMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::QcfWhenMode OptionsHandler::stringToQcfWhenMode(
+    std::string option, std::string optarg)
+{
   if(optarg ==  "default") {
     return theory::quantifiers::QCF_WHEN_MODE_DEFAULT;
   } else if(optarg ==  "last-call") {
@@ -648,7 +671,9 @@ theory::quantifiers::QcfWhenMode OptionsHandler::stringToQcfWhenMode(std::string
   }
 }
 
-theory::quantifiers::QcfMode OptionsHandler::stringToQcfMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::QcfMode OptionsHandler::stringToQcfMode(std::string option,
+                                                             std::string optarg)
+{
   if(optarg ==  "conflict") {
     return theory::quantifiers::QCF_CONFLICT_ONLY;
   } else if(optarg ==  "default" || optarg == "prop-eq") {
@@ -664,7 +689,9 @@ theory::quantifiers::QcfMode OptionsHandler::stringToQcfMode(std::string option,
   }
 }
 
-theory::quantifiers::UserPatMode OptionsHandler::stringToUserPatMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::UserPatMode OptionsHandler::stringToUserPatMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "use") {
     return theory::quantifiers::USER_PAT_MODE_USE;
   } else if(optarg ==  "default" || optarg == "trust") {
@@ -684,7 +711,9 @@ theory::quantifiers::UserPatMode OptionsHandler::stringToUserPatMode(std::string
   }
 }
 
-theory::quantifiers::TriggerSelMode OptionsHandler::stringToTriggerSelMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::TriggerSelMode OptionsHandler::stringToTriggerSelMode(
+    std::string option, std::string optarg)
+{
   if(optarg ==  "default" || optarg == "min") {
     return theory::quantifiers::TRIGGER_SEL_MIN;
   } else if(optarg == "max") {
@@ -704,7 +733,10 @@ theory::quantifiers::TriggerSelMode OptionsHandler::stringToTriggerSelMode(std::
   }
 }
 
-theory::quantifiers::TriggerActiveSelMode OptionsHandler::stringToTriggerActiveSelMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::TriggerActiveSelMode
+OptionsHandler::stringToTriggerActiveSelMode(std::string option,
+                                             std::string optarg)
+{
   if(optarg ==  "default" || optarg == "all") {
     return theory::quantifiers::TRIGGER_ACTIVE_SEL_ALL;
   } else if(optarg == "min") {
@@ -720,7 +752,9 @@ theory::quantifiers::TriggerActiveSelMode OptionsHandler::stringToTriggerActiveS
   }
 }
 
-theory::quantifiers::PrenexQuantMode OptionsHandler::stringToPrenexQuantMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::PrenexQuantMode OptionsHandler::stringToPrenexQuantMode(
+    std::string option, std::string optarg)
+{
   if(optarg== "default" || optarg== "simple" ) {
     return theory::quantifiers::PRENEX_QUANT_SIMPLE;
   } else if(optarg == "none") {
@@ -738,7 +772,9 @@ theory::quantifiers::PrenexQuantMode OptionsHandler::stringToPrenexQuantMode(std
   }
 }
 
-theory::SygusFairMode OptionsHandler::stringToSygusFairMode(std::string option, std::string optarg) throw(OptionException) {
+theory::SygusFairMode OptionsHandler::stringToSygusFairMode(std::string option,
+                                                            std::string optarg)
+{
   if(optarg == "direct") {
     return theory::SYGUS_FAIR_DIRECT;
   } else if(optarg == "default" || optarg == "dt-size") {
@@ -758,7 +794,9 @@ theory::SygusFairMode OptionsHandler::stringToSygusFairMode(std::string option, 
   }
 }
 
-theory::quantifiers::TermDbMode OptionsHandler::stringToTermDbMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::TermDbMode OptionsHandler::stringToTermDbMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "all" ) {
     return theory::quantifiers::TERM_DB_ALL;
   } else if(optarg == "relevant") {
@@ -772,7 +810,9 @@ theory::quantifiers::TermDbMode OptionsHandler::stringToTermDbMode(std::string o
   }
 }
 
-theory::quantifiers::IteLiftQuantMode OptionsHandler::stringToIteLiftQuantMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::IteLiftQuantMode OptionsHandler::stringToIteLiftQuantMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "all" ) {
     return theory::quantifiers::ITE_LIFT_QUANT_MODE_ALL;
   } else if(optarg == "simple") {
@@ -789,7 +829,7 @@ theory::quantifiers::IteLiftQuantMode OptionsHandler::stringToIteLiftQuantMode(s
 }
 
 theory::quantifiers::CbqiBvIneqMode OptionsHandler::stringToCbqiBvIneqMode(
-    std::string option, std::string optarg) throw(OptionException)
+    std::string option, std::string optarg)
 {
   if (optarg == "eq-slack")
   {
@@ -816,7 +856,10 @@ theory::quantifiers::CbqiBvIneqMode OptionsHandler::stringToCbqiBvIneqMode(
   }
 }
 
-theory::quantifiers::CegqiSingleInvMode OptionsHandler::stringToCegqiSingleInvMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::CegqiSingleInvMode
+OptionsHandler::stringToCegqiSingleInvMode(std::string option,
+                                           std::string optarg)
+{
   if(optarg == "none" ) {
     return theory::quantifiers::CEGQI_SI_MODE_NONE;
   } else if(optarg == "use" || optarg == "default") {
@@ -834,7 +877,10 @@ theory::quantifiers::CegqiSingleInvMode OptionsHandler::stringToCegqiSingleInvMo
   }
 }
 
-theory::quantifiers::SygusInvTemplMode OptionsHandler::stringToSygusInvTemplMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::SygusInvTemplMode
+OptionsHandler::stringToSygusInvTemplMode(std::string option,
+                                          std::string optarg)
+{
   if(optarg == "none" ) {
     return theory::quantifiers::SYGUS_INV_TEMPL_MODE_NONE;
   } else if(optarg == "pre") {
@@ -850,7 +896,9 @@ theory::quantifiers::SygusInvTemplMode OptionsHandler::stringToSygusInvTemplMode
   }
 }
 
-theory::quantifiers::MacrosQuantMode OptionsHandler::stringToMacrosQuantMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::MacrosQuantMode OptionsHandler::stringToMacrosQuantMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "all" ) {
     return theory::quantifiers::MACROS_QUANT_MODE_ALL;
   } else if(optarg == "ground") {
@@ -866,7 +914,9 @@ theory::quantifiers::MacrosQuantMode OptionsHandler::stringToMacrosQuantMode(std
   }
 }
 
-theory::quantifiers::QuantDSplitMode OptionsHandler::stringToQuantDSplitMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::QuantDSplitMode OptionsHandler::stringToQuantDSplitMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "none" ) {
     return theory::quantifiers::QUANT_DSPLIT_MODE_NONE;
   } else if(optarg == "default") {
@@ -882,7 +932,9 @@ theory::quantifiers::QuantDSplitMode OptionsHandler::stringToQuantDSplitMode(std
   }
 }
 
-theory::quantifiers::QuantRepMode OptionsHandler::stringToQuantRepMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::QuantRepMode OptionsHandler::stringToQuantRepMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "none" ) {
     return theory::quantifiers::QUANT_REP_MODE_EE;
   } else if(optarg == "first" || optarg == "default") {
@@ -898,8 +950,9 @@ theory::quantifiers::QuantRepMode OptionsHandler::stringToQuantRepMode(std::stri
   }
 }
 
-
-theory::quantifiers::FmfBoundMinMode OptionsHandler::stringToFmfBoundMinMode(std::string option, std::string optarg) throw(OptionException) {
+theory::quantifiers::FmfBoundMinMode OptionsHandler::stringToFmfBoundMinMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "none" ) {
     return theory::quantifiers::FMF_BOUND_MIN_NONE;
   } else if(optarg == "int" || optarg == "default") {
@@ -918,7 +971,8 @@ theory::quantifiers::FmfBoundMinMode OptionsHandler::stringToFmfBoundMinMode(std
 }
 
 // theory/bv/options_handlers.h
-void OptionsHandler::abcEnabledBuild(std::string option, bool value) throw(OptionException) {
+void OptionsHandler::abcEnabledBuild(std::string option, bool value)
+{
 #ifndef CVC4_USE_ABC
   if(value) {
     std::stringstream ss;
@@ -928,7 +982,8 @@ void OptionsHandler::abcEnabledBuild(std::string option, bool value) throw(Optio
 #endif /* CVC4_USE_ABC */
 }
 
-void OptionsHandler::abcEnabledBuild(std::string option, std::string value) throw(OptionException) {
+void OptionsHandler::abcEnabledBuild(std::string option, std::string value)
+{
 #ifndef CVC4_USE_ABC
   if(!value.empty()) {
     std::stringstream ss;
@@ -938,8 +993,8 @@ void OptionsHandler::abcEnabledBuild(std::string option, std::string value) thro
 #endif /* CVC4_USE_ABC */
 }
 
-void OptionsHandler::satSolverEnabledBuild(std::string option,
-                                           bool value) throw(OptionException) {
+void OptionsHandler::satSolverEnabledBuild(std::string option, bool value)
+{
 #ifndef CVC4_USE_CRYPTOMINISAT
   if(value) {
     std::stringstream ss;
@@ -950,7 +1005,8 @@ void OptionsHandler::satSolverEnabledBuild(std::string option,
 }
 
 void OptionsHandler::satSolverEnabledBuild(std::string option,
-                                           std::string value) throw(OptionException) {
+                                           std::string value)
+{
 #ifndef CVC4_USE_CRYPTOMINISAT
   if(!value.empty()) {
     std::stringstream ss;
@@ -969,7 +1025,8 @@ cryptominisat\n\
 ";
 
 theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
-                                                            std::string optarg) throw(OptionException) {
+                                                            std::string optarg)
+{
   if(optarg == "minisat") {
     return theory::bv::SAT_SOLVER_MINISAT;
   } else if(optarg == "cryptominisat") {
@@ -1015,7 +1072,9 @@ eager\n\
 + Bitblast eagerly to bv SAT solver\n\
 ";
 
-theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(std::string option, std::string optarg) throw(OptionException) {
+theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "lazy") {
     if (!options::bitvectorPropagate.wasSetByUser()) {
       options::bitvectorPropagate.set(true);
@@ -1078,7 +1137,9 @@ off\n\
 + Turn slicer off\n\
 ";
 
-theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(std::string option, std::string optarg) throw(OptionException) {
+theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "auto") {
     return theory::bv::BITVECTOR_SLICER_AUTO;
   } else if(optarg == "on") {
@@ -1094,7 +1155,8 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(std::string option
   }
 }
 
-void OptionsHandler::setBitblastAig(std::string option, bool arg) throw(OptionException) {
+void OptionsHandler::setBitblastAig(std::string option, bool arg)
+{
   if(arg) {
     if(options::bitblastMode.wasSetByUser()) {
       if(options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER) {
@@ -1125,7 +1187,9 @@ none \n\
 \n\
 ";
 
-theory::uf::UfssMode OptionsHandler::stringToUfssMode(std::string option, std::string optarg) throw(OptionException) {
+theory::uf::UfssMode OptionsHandler::stringToUfssMode(std::string option,
+                                                      std::string optarg)
+{
   if(optarg ==  "default" || optarg == "full" ) {
     return theory::uf::UF_SS_FULL;
   } else if(optarg == "no-minimal") {
@@ -1205,7 +1269,9 @@ szs\n\
 + Print instantiations as SZS compliant proof.\n\
 ";
 
-ModelFormatMode OptionsHandler::stringToModelFormatMode(std::string option, std::string optarg) throw(OptionException) {
+ModelFormatMode OptionsHandler::stringToModelFormatMode(std::string option,
+                                                        std::string optarg)
+{
   if(optarg == "default") {
     return MODEL_FORMAT_MODE_DEFAULT;
   } else if(optarg == "table") {
@@ -1219,7 +1285,9 @@ ModelFormatMode OptionsHandler::stringToModelFormatMode(std::string option, std:
   }
 }
 
-InstFormatMode OptionsHandler::stringToInstFormatMode(std::string option, std::string optarg) throw(OptionException) {
+InstFormatMode OptionsHandler::stringToInstFormatMode(std::string option,
+                                                      std::string optarg)
+{
   if(optarg == "default") {
     return INST_FORMAT_MODE_DEFAULT;
   } else if(optarg == "szs") {
@@ -1248,7 +1316,9 @@ justification-stoponly\n\
 + Use the justification heuristic only to stop early, not for decisions\n\
 ";
 
-decision::DecisionMode OptionsHandler::stringToDecisionMode(std::string option, std::string optarg) throw(OptionException) {
+decision::DecisionMode OptionsHandler::stringToDecisionMode(std::string option,
+                                                            std::string optarg)
+{
   options::decisionStopOnly.set(false);
 
   if(optarg == "internal") {
@@ -1267,7 +1337,9 @@ decision::DecisionMode OptionsHandler::stringToDecisionMode(std::string option, 
   }
 }
 
-decision::DecisionWeightInternal OptionsHandler::stringToDecisionWeightInternal(std::string option, std::string optarg) throw(OptionException) {
+decision::DecisionWeightInternal OptionsHandler::stringToDecisionWeightInternal(
+    std::string option, std::string optarg)
+{
   if(optarg == "off")
     return decision::DECISION_WEIGHT_INTERNAL_OFF;
   else if(optarg == "max")
@@ -1294,9 +1366,9 @@ none\n\
 + do not perform nonclausal simplification\n\
 ";
 
-
-
-SimplificationMode OptionsHandler::stringToSimplificationMode(std::string option, std::string optarg) throw(OptionException) {
+SimplificationMode OptionsHandler::stringToSimplificationMode(
+    std::string option, std::string optarg)
+{
   if(optarg == "batch") {
     return SIMPLIFICATION_MODE_BATCH;
   } else if(optarg == "none") {
@@ -1330,7 +1402,7 @@ sygus-standard \n\
 ";
 
 SygusSolutionOutMode OptionsHandler::stringToSygusSolutionOutMode(
-    std::string option, std::string optarg) throw(OptionException)
+    std::string option, std::string optarg)
 {
   if (optarg == "status")
   {
@@ -1367,8 +1439,8 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
   options::interactiveMode.set(value);
 }
 
-
-void OptionsHandler::proofEnabledBuild(std::string option, bool value) throw(OptionException) {
+void OptionsHandler::proofEnabledBuild(std::string option, bool value)
+{
 #ifndef CVC4_PROOF
   if(value) {
     std::stringstream ss;
@@ -1419,7 +1491,8 @@ void OptionsHandler::notifySetReplayLogFilename(std::string option) {
   d_options->d_setReplayFilenameListeners.notify();
 }
 
-void OptionsHandler::statsEnabledBuild(std::string option, bool value) throw(OptionException) {
+void OptionsHandler::statsEnabledBuild(std::string option, bool value)
+{
 #ifndef CVC4_STATISTICS_ON
   if(value) {
     std::stringstream ss;
@@ -1433,7 +1506,8 @@ void OptionsHandler::threadN(std::string option) {
   throw OptionException(option + " is not a real option by itself.  Use e.g. --thread0=\"--random-seed=10 --random-freq=0.02\" --thread1=\"--random-seed=20 --random-freq=0.05\"");
 }
 
-void OptionsHandler::notifyDumpMode(std::string option) throw(OptionException) {
+void OptionsHandler::notifyDumpMode(std::string option)
+{
   d_options->d_setDumpModeListeners.notify();
 }
 
@@ -1655,8 +1729,9 @@ void OptionsHandler::enableDebugTag(std::string option, std::string optarg)
   Trace.on(optarg);
 }
 
-
-OutputLanguage OptionsHandler::stringToOutputLanguage(std::string option, std::string optarg) throw(OptionException) {
+OutputLanguage OptionsHandler::stringToOutputLanguage(std::string option,
+                                                      std::string optarg)
+{
   if(optarg == "help") {
     options::languageHelp.set(true);
     return language::output::LANG_AUTO;
@@ -1672,7 +1747,9 @@ OutputLanguage OptionsHandler::stringToOutputLanguage(std::string option, std::s
   Unreachable();
 }
 
-InputLanguage OptionsHandler::stringToInputLanguage(std::string option, std::string optarg) throw(OptionException) {
+InputLanguage OptionsHandler::stringToInputLanguage(std::string option,
+                                                    std::string optarg)
+{
   if(optarg == "help") {
     options::languageHelp.set(true);
     return language::input::LANG_AUTO;
@@ -1688,7 +1765,8 @@ InputLanguage OptionsHandler::stringToInputLanguage(std::string option, std::str
 }
 
 /* options/base_options_handlers.h */
-void OptionsHandler::setVerbosity(std::string option, int value) throw(OptionException) {
+void OptionsHandler::setVerbosity(std::string option, int value)
+{
   if(Configuration::isMuzzledBuild()) {
     DebugChannel.setStream(&CVC4::null_os);
     TraceChannel.setStream(&CVC4::null_os);
