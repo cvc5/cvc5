@@ -91,11 +91,11 @@ class CVC4_PUBLIC ResourceManager {
   /** The amount of resource used. */
   uint64_t d_cumulativeResourceUsed;
 
-  /** The ammount of resource used during this call. */
+  /** The amount of resource used during this call. */
   uint64_t d_thisCallResourceUsed;
 
   /**
-   * The ammount of resource budget for this call (min between per call
+   * The amount of resource budget for this call (min between per call
    * budget and left-over cumulative budget.
    */
   uint64_t d_thisCallTimeBudget;

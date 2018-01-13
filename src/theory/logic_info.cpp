@@ -47,7 +47,7 @@ LogicInfo::LogicInfo()
   }
 }
 
-LogicInfo::LogicInfo(std::string logicString) throw(IllegalArgumentException)
+LogicInfo::LogicInfo(std::string logicString)
     : d_logicString(""),
       d_theories(THEORY_LAST, false),
       d_sharingTheories(0),
@@ -63,7 +63,7 @@ LogicInfo::LogicInfo(std::string logicString) throw(IllegalArgumentException)
   lock();
 }
 
-LogicInfo::LogicInfo(const char* logicString) throw(IllegalArgumentException)
+LogicInfo::LogicInfo(const char* logicString)
     : d_logicString(""),
       d_theories(THEORY_LAST, false),
       d_sharingTheories(0),
@@ -327,7 +327,8 @@ std::string LogicInfo::getLogicString() const {
   return d_logicString;
 }
 
-void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentException) {
+void LogicInfo::setLogicString(std::string logicString)
+{
   PrettyCheckArgument(!d_locked, *this,
                       "This LogicInfo is locked, and cannot be modified");
   for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {

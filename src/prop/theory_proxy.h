@@ -92,7 +92,7 @@ public:
 
   void logDecision(SatLiteral lit);
 
-  void spendResource(unsigned ammount);
+  void spendResource(unsigned amount);
 
   bool isDecisionEngineDone();
 
