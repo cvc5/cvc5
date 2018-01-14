@@ -78,8 +78,7 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
       }
     }
   }
-  // TODO : compute the value if the condition is deterministic, e.g. calc
-  // multiplicative inverse of 2 constants
+  
   if (c.isNull())
   {
     NodeManager* nm = NodeManager::currentNM();
