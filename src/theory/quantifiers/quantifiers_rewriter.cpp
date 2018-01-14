@@ -920,7 +920,8 @@ Node QuantifiersRewriter::computeVariableElimLitBv(Node lit,
     visit.pop_back();
     if (std::find(args.begin(), args.end(), cur) != args.end())
     {
-      linear[cur] = linear.find(cur) == linear.end();
+      bool lval = linear.find(cur) == linear.end();
+      linear[cur] = lval;
     }
     if (visited.find(cur) == visited.end())
     {
