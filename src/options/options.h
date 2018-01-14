@@ -321,11 +321,13 @@ public:
    *
    * This function uses getopt_long() and is not thread safe.
    *
+   * Throws OptionException on failures.
+   *
    * Preconditions: options and argv must be non-null.
    */
   static std::vector<std::string> parseOptions(Options* options,
-                                               int argc, char* argv[])
-    throw(OptionException);
+                                               int argc,
+                                               char* argv[]);
 
   /**
    * Get the setting for all options.
@@ -534,7 +536,6 @@ public:
   void flushOut();
 
  private:
-
   /**
    * Internal procedure for implementing the parseOptions function.
    * Initializes the options object based on the given command-line
@@ -543,12 +544,13 @@ public:
    *
    * This is not thread safe.
    *
+   * Throws OptionException on failures.
+   *
    * Preconditions: options, extender and nonoptions are non-null.
    */
   static void parseOptionsRecursive(Options* options,
                                     options::ArgumentExtender* extender,
-                                    std::vector<std::string>* nonoptions)
-    throw(OptionException);
+                                    std::vector<std::string>* nonoptions);
 };/* class Options */
 
 }/* CVC4 namespace */
