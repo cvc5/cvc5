@@ -551,11 +551,13 @@ public:
  * Parse argc/argv and put the result into a CVC4::Options.
  * The return value is what's left of the command line (that is, the
  * non-option arguments).
+ *
+ * Throws OptionException on failures.
  */
 std::vector<std::string> Options::parseOptions(Options* options,
-                                               int argc, char* argv[])
-  throw(OptionException) {
-
+                                               int argc,
+                                               char* argv[])
+{
   Assert(options != NULL);
   Assert(argv != NULL);
 
@@ -599,8 +601,7 @@ std::vector<std::string> Options::parseOptions(Options* options,
 void Options::parseOptionsRecursive(Options* options,
                                     ArgumentExtender* extender,
                                     std::vector<std::string>* nonoptions)
-  throw(OptionException) {
-
+{
   int argc;
   char** argv;
 
