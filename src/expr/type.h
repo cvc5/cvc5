@@ -19,10 +19,10 @@
 #ifndef __CVC4__TYPE_H
 #define __CVC4__TYPE_H
 
+#include <climits>
+#include <cstdint>
 #include <string>
 #include <vector>
-#include <limits.h>
-#include <stdint.h>
 
 #include "util/cardinality.h"
 
@@ -114,10 +114,8 @@ protected:
   Type(NodeManager* em, TypeNode* typeNode);
 
   /** Accessor for derived classes */
-  static TypeNode* getTypeNode(const Type& t) throw() { return t.d_typeNode; }
-
-public:
-
+  static TypeNode* getTypeNode(const Type& t) { return t.d_typeNode; }
+ public:
   /** Force a virtual destructor for safety. */
   virtual ~Type();
 
@@ -382,84 +380,53 @@ public:
   std::string toString() const;
 };/* class Type */
 
-/**
- * Singleton class encapsulating the Boolean type.
- */
+/** Singleton class encapsulating the Boolean type. */
 class CVC4_PUBLIC BooleanType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  BooleanType(const Type& type = Type()) throw(IllegalArgumentException);
+  BooleanType(const Type& type = Type());
 };/* class BooleanType */
 
-/**
- * Singleton class encapsulating the integer type.
- */
+/** Singleton class encapsulating the integer type. */
 class CVC4_PUBLIC IntegerType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  IntegerType(const Type& type = Type()) throw(IllegalArgumentException);
+  IntegerType(const Type& type = Type());
 };/* class IntegerType */
 
-/**
- * Singleton class encapsulating the real type.
- */
+/** Singleton class encapsulating the real type. */
 class CVC4_PUBLIC RealType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  RealType(const Type& type = Type()) throw(IllegalArgumentException);
+  RealType(const Type& type = Type());
 };/* class RealType */
 
-/**
- * Singleton class encapsulating the string type.
- */
+/** Singleton class encapsulating the string type. */
 class CVC4_PUBLIC StringType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  StringType(const Type& type) throw(IllegalArgumentException);
+  StringType(const Type& type);
 };/* class StringType */
 
-/**
- * Singleton class encapsulating the string type.
- */
+/** Singleton class encapsulating the string type. */
 class CVC4_PUBLIC RegExpType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  RegExpType(const Type& type) throw(IllegalArgumentException);
+  RegExpType(const Type& type);
 };/* class RegExpType */
 
-
-/**
- * Singleton class encapsulating the rounding mode type.
- */
+/** Singleton class encapsulating the rounding mode type. */
 class CVC4_PUBLIC RoundingModeType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  RoundingModeType(const Type& type = Type()) throw(IllegalArgumentException);
+  RoundingModeType(const Type& type = Type());
 };/* class RoundingModeType */
 
-
-
-/**
- * Class encapsulating a function type.
- */
+/** Class encapsulating a function type. */
 class CVC4_PUBLIC FunctionType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  FunctionType(const Type& type = Type()) throw(IllegalArgumentException);
+  FunctionType(const Type& type = Type());
 
   /** Get the arity of the function type */
   size_t getArity() const;
@@ -471,29 +438,21 @@ public:
   Type getRangeType() const;
 };/* class FunctionType */
 
-/**
- * Class encapsulating a sexpr type.
- */
+/** Class encapsulating a sexpr type. */
 class CVC4_PUBLIC SExprType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  SExprType(const Type& type = Type()) throw(IllegalArgumentException);
+  SExprType(const Type& type = Type());
 
   /** Get the constituent types */
   std::vector<Type> getTypes() const;
 };/* class SExprType */
 
-/**
- * Class encapsulating an array type.
- */
+/** Class encapsulating an array type. */
 class CVC4_PUBLIC ArrayType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  ArrayType(const Type& type = Type()) throw(IllegalArgumentException);
+  ArrayType(const Type& type = Type());
 
   /** Get the index type */
   Type getIndexType() const;
@@ -502,29 +461,21 @@ public:
   Type getConstituentType() const;
 };/* class ArrayType */
 
-/**
- * Class encapsulating an set type.
- */
+/** Class encapsulating an set type. */
 class CVC4_PUBLIC SetType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  SetType(const Type& type = Type()) throw(IllegalArgumentException);
+  SetType(const Type& type = Type());
 
   /** Get the index type */
   Type getElementType() const;
 };/* class SetType */
 
-/**
- * Class encapsulating a user-defined sort.
- */
+/** Class encapsulating a user-defined sort. */
 class CVC4_PUBLIC SortType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  SortType(const Type& type = Type()) throw(IllegalArgumentException);
+  SortType(const Type& type = Type());
 
   /** Get the name of the sort */
   std::string getName() const;
@@ -537,15 +488,11 @@ public:
 
 };/* class SortType */
 
-/**
- * Class encapsulating a user-defined sort constructor.
- */
+/** Class encapsulating a user-defined sort constructor. */
 class CVC4_PUBLIC SortConstructorType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  SortConstructorType(const Type& type = Type()) throw(IllegalArgumentException);
+  SortConstructorType(const Type& type = Type());
 
   /** Get the name of the sort constructor */
   std::string getName() const;
@@ -558,39 +505,11 @@ public:
 
 };/* class SortConstructorType */
 
-// not in release 1.0
-#if 0
-/**
- * Class encapsulating a predicate subtype.
- */
-class CVC4_PUBLIC PredicateSubtype : public Type {
-
-public:
-
-  /** Construct from the base type */
-  PredicateSubtype(const Type& type = Type()) throw(IllegalArgumentException);
-
-  /** Get the LAMBDA defining this predicate subtype */
-  Expr getPredicate() const;
-
-  /**
-   * Get the parent type of this predicate subtype; note that this
-   * could be another predicate subtype.
-   */
-  Type getParentType() const;
-
-};/* class PredicateSubtype */
-#endif /* 0 */
-
-/**
- * Class encapsulating the bit-vector type.
- */
+/** Class encapsulating the bit-vector type. */
 class CVC4_PUBLIC BitVectorType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  BitVectorType(const Type& type = Type()) throw(IllegalArgumentException);
+  BitVectorType(const Type& type = Type());
 
   /**
    * Returns the size of the bit-vector type.
@@ -600,16 +519,11 @@ public:
 
 };/* class BitVectorType */
 
-
-/**
- * Class encapsulating the floating point type.
- */
+/** Class encapsulating the floating point type. */
 class CVC4_PUBLIC FloatingPointType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  FloatingPointType(const Type& type = Type()) throw(IllegalArgumentException);
+  FloatingPointType(const Type& type = Type());
 
   /**
    * Returns the size of the floating-point exponent type.
@@ -625,16 +539,11 @@ public:
 
 };/* class FloatingPointType */
 
-
-/**
- * Class encapsulating the datatype type
- */
+/** Class encapsulating the datatype type */
 class CVC4_PUBLIC DatatypeType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  DatatypeType(const Type& type = Type()) throw(IllegalArgumentException);
+  DatatypeType(const Type& type = Type());
 
   /** Get the underlying datatype */
   const Datatype& getDatatype() const;
@@ -656,9 +565,7 @@ public:
    */
   bool isInstantiated() const;
 
-  /**
-   * Has this datatype been instantiated for parameter N ?
-   */
+  /** Has this datatype been instantiated for parameter `n` ? */
   bool isParameterInstantiated(unsigned n) const;
 
   /** Get the parameter types */
@@ -681,15 +588,11 @@ public:
 
 };/* class DatatypeType */
 
-/**
- * Class encapsulating the constructor type
- */
+/** Class encapsulating the constructor type. */
 class CVC4_PUBLIC ConstructorType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  ConstructorType(const Type& type = Type()) throw(IllegalArgumentException);
+  ConstructorType(const Type& type = Type());
 
   /** Get the range type */
   DatatypeType getRangeType() const;
@@ -702,16 +605,11 @@ public:
 
 };/* class ConstructorType */
 
-
-/**
- * Class encapsulating the Selector type
- */
+/** Class encapsulating the Selector type. */
 class CVC4_PUBLIC SelectorType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  SelectorType(const Type& type = Type()) throw(IllegalArgumentException);
+  SelectorType(const Type& type = Type());
 
   /** Get the domain type for this selector (the datatype type) */
   DatatypeType getDomain() const;
@@ -721,15 +619,11 @@ public:
 
 };/* class SelectorType */
 
-/**
- * Class encapsulating the Tester type
- */
+/** Class encapsulating the Tester type. */
 class CVC4_PUBLIC TesterType : public Type {
-
-public:
-
+ public:
   /** Construct from the base type */
-  TesterType(const Type& type = Type()) throw(IllegalArgumentException);
+  TesterType(const Type& type = Type());
 
   /** Get the type that this tester tests (the datatype type) */
   DatatypeType getDomain() const;
