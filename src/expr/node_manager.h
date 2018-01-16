@@ -902,8 +902,7 @@ public:
    * @param check whether we should check the type as we compute it
    * (default: false)
    */
-  TypeNode getType(TNode n, bool check = false)
-    throw(TypeCheckingExceptionPrivate, AssertionException);
+  TypeNode getType(TNode n, bool check = false);
 
   /**
    * Convert a node to an expression.  Uses the ExprManager

@@ -409,7 +409,7 @@ public:
    * @param check whether we should check the type as we compute it
    * (default: false)
    */
-  Type getType(bool check = false) const throw (TypeCheckingException);
+  Type getType(bool check = false) const;
 
   /**
    * Substitute "replacement" in for "e".
@@ -521,13 +521,13 @@ private:
    * Returns the actual internal node.
    * @return the internal node
    */
-  NodeTemplate<true> getNode() const throw();
+  NodeTemplate<true> getNode() const;
 
   /**
    * Returns the actual internal node as a TNode.
    * @return the internal node
    */
-  NodeTemplate<false> getTNode() const throw();
+  NodeTemplate<false> getTNode() const;
 
   // Friend to access the actual internal expr information and private methods
   friend class SmtEngine;
@@ -545,7 +545,7 @@ private:
 
 ${getConst_instantiations}
 
-#line 557 "${template}"
+#line 549 "${template}"
 
 inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
   return (size_t) e.getId();

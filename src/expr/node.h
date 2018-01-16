@@ -228,7 +228,10 @@ class NodeTemplate {
    */
   void assignNodeValue(expr::NodeValue* ev);
 
-  inline void assertTNodeNotExpired() const throw(AssertionException) {
+  // May throw an AssertionException if the Node is not live, i.e. the ref count
+  // is not positive.
+  inline void assertTNodeNotExpired() const
+  {
     if(!ref_count) {
       Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
     }
@@ -525,8 +528,7 @@ public:
    * @param check whether we should check the type as we compute it
    * (default: false)
    */
-  TypeNode getType(bool check = false) const
-    throw (CVC4::TypeCheckingExceptionPrivate, CVC4::AssertionException);
+  TypeNode getType(bool check = false) const;
 
   /**
    * Substitution of Nodes.
@@ -1271,7 +1273,7 @@ inline bool NodeTemplate<ref_count>::hasOperator() const {
 
 template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
-  throw (CVC4::TypeCheckingExceptionPrivate, CVC4::AssertionException) {
+{
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );

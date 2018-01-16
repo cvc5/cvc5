@@ -40,7 +40,7 @@ using namespace std;
 namespace CVC4 {
 
 std::string Options::getOption(const std::string& key) const
-  throw(OptionException) {
+{
   Trace("options") << "SMT getOption(" << key << ")" << endl;
 
   ${smt_getoption_handlers}
