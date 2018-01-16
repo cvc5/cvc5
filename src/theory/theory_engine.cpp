@@ -370,10 +370,7 @@ TheoryEngine::~TheoryEngine() {
   smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
 }
 
-void TheoryEngine::interrupt() throw(ModalException) {
-  d_interrupted = true;
-}
-
+void TheoryEngine::interrupt() { d_interrupted = true; }
 void TheoryEngine::preRegister(TNode preprocessed) {
 
   Debug("theory") << "TheoryEngine::preRegister( " << preprocessed << ")" << std::endl;
@@ -2320,8 +2317,9 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, T
   }
 }
 
-void TheoryEngine::spendResource(unsigned ammount) {
-  d_resourceManager->spendResource(ammount);
+void TheoryEngine::spendResource(unsigned amount)
+{
+  d_resourceManager->spendResource(amount);
 }
 
 void TheoryEngine::enableTheoryAlternative(const std::string& name){

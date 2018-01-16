@@ -137,10 +137,10 @@ class TLazyBitblaster :  public TBitblaster<Node> {
     , d_lazyBB(lbv)
     {}
 
-    bool notify(prop::SatLiteral lit);
-    void notify(prop::SatClause& clause);
-    void spendResource(unsigned ammount);
-    void safePoint(unsigned ammount);
+    bool notify(prop::SatLiteral lit) override;
+    void notify(prop::SatClause& clause) override;
+    void spendResource(unsigned amount) override;
+    void safePoint(unsigned amount) override;
   };
 
   TheoryBV *d_bv;
@@ -249,12 +249,13 @@ public:
 class MinisatEmptyNotify : public prop::BVSatSolverInterface::Notify {
 public:
   MinisatEmptyNotify() {}
-  bool notify(prop::SatLiteral lit) { return true; }
-  void notify(prop::SatClause& clause) { }
-  void spendResource(unsigned ammount) {
-    NodeManager::currentResourceManager()->spendResource(ammount);
+  bool notify(prop::SatLiteral lit) override { return true; }
+  void notify(prop::SatClause& clause) override {}
+  void spendResource(unsigned amount) override
+  {
+    NodeManager::currentResourceManager()->spendResource(amount);
   }
-  void safePoint(unsigned ammount) {}
+  void safePoint(unsigned amount) override {}
 };
 
 

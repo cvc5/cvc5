@@ -125,8 +125,9 @@ void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   }
 }
 
-void TheoryBV::spendResource(unsigned ammount) throw(UnsafeInterruptException) {
-  getOutputChannel().spendResource(ammount);
+void TheoryBV::spendResource(unsigned amount)
+{
+  getOutputChannel().spendResource(amount);
 }
 
 TheoryBV::Statistics::Statistics(const std::string &name):

@@ -144,10 +144,11 @@ inline Node mkXor(TNode node1, TNode node2) {
   return NodeManager::currentNM()->mkNode(kind::XOR, node1, node2);
 }
 
-
-inline Node mkSignExtend(TNode node, unsigned ammount) {
-  NodeManager* nm = NodeManager::currentNM(); 
-  Node signExtendOp = nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(ammount));
+inline Node mkSignExtend(TNode node, unsigned amount)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node signExtendOp =
+      nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(amount));
   return nm->mkNode(signExtendOp, node); 
 }
 
