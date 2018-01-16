@@ -532,7 +532,7 @@ bool RewriteRule<ConcatToMult>::applies(TNode node) {
   unsigned amount = utils::getSize(c);
 
   if (utils::getSize(node) != utils::getSize(extract[0])) return false;
-  if (c != utils::mkConst(amount, 0)) return false;
+  if (c != utils::mkZero(amount)) return false;
 
   unsigned low = utils::getExtractLow(extract);
   if (low != 0) return false; 

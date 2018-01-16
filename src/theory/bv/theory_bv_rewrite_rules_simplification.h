@@ -1152,12 +1152,7 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
   Assert (node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND);
   unsigned amount2 =
       node[0].getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
-  NodeBuilder<> nb(kind::BITVECTOR_SIGN_EXTEND);
-  Node op =
-      nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(amount1 + amount2));
-  nb << op << node[0][0];
-  Node res = nb;
-  return res;
+  return utils::mkSignExtend(node[0][0], amount1 + amount2);
 }
 
 /**
