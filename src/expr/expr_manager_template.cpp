@@ -869,7 +869,8 @@ SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
  * @param check whether we should check the type as we compute it
  * (default: false)
  */
-Type ExprManager::getType(Expr e, bool check) throw (TypeCheckingException) {
+Type ExprManager::getType(Expr e, bool check)
+{
   NodeManagerScope nms(d_nodeManager);
   Type t;
   try {
@@ -995,12 +996,13 @@ unsigned ExprManager::maxArity(Kind kind) {
 NodeManager* ExprManager::getNodeManager() const {
   return d_nodeManager;
 }
-
-Statistics ExprManager::getStatistics() const throw() {
+Statistics ExprManager::getStatistics() const
+{
   return Statistics(*d_nodeManager->getStatisticsRegistry());
 }
 
-SExpr ExprManager::getStatistic(const std::string& name) const throw() {
+SExpr ExprManager::getStatistic(const std::string& name) const
+{
   return d_nodeManager->getStatisticsRegistry()->getStatistic(name);
 }
 

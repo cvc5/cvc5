@@ -176,10 +176,10 @@ public:
 
   /**
    * Set the value of the given option by key.
+   *
+   * Throws OptionException or ModalException on failures.
    */
-  void setOption(const std::string& key, const std::string& optionarg)
-      throw(OptionException, ModalException);
-
+  void setOption(const std::string& key, const std::string& optionarg);
 
   /** Get the value of the given option.  Const access only. */
   template <class T>
@@ -187,9 +187,11 @@ public:
 
   /**
    * Gets the value of the given option by key and returns value as a string.
+   *
+   * Throws OptionException on failures, such as key not being the name of an
+   * option.
    */
-  std::string getOption(const std::string& key) const
-    throw(OptionException);
+  std::string getOption(const std::string& key) const;
 
   // Get accessor functions.
   InputLanguage getInputLanguage() const;

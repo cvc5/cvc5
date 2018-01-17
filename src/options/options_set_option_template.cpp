@@ -38,7 +38,7 @@ using namespace std;
 namespace CVC4 {
 
 void Options::setOption(const std::string& key, const std::string& optionarg)
-  throw(OptionException, ModalException) {
+{
   options::OptionsHandler* handler = d_handler;
   Trace("options") << "SMT setOption(" << key << ", " << optionarg << ")" << endl;
 
