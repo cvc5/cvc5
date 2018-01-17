@@ -120,7 +120,7 @@ private:
 
   Statistics d_statistics;
 
-  void spendResource(unsigned ammount) throw(UnsafeInterruptException);
+  void spendResource(unsigned amount);
 
   /**
    * Return the uninterpreted function symbol corresponding to division-by-zero

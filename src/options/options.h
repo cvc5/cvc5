@@ -176,10 +176,10 @@ public:
 
   /**
    * Set the value of the given option by key.
+   *
+   * Throws OptionException or ModalException on failures.
    */
-  void setOption(const std::string& key, const std::string& optionarg)
-      throw(OptionException, ModalException);
-
+  void setOption(const std::string& key, const std::string& optionarg);
 
   /** Get the value of the given option.  Const access only. */
   template <class T>
@@ -187,9 +187,11 @@ public:
 
   /**
    * Gets the value of the given option by key and returns value as a string.
+   *
+   * Throws OptionException on failures, such as key not being the name of an
+   * option.
    */
-  std::string getOption(const std::string& key) const
-    throw(OptionException);
+  std::string getOption(const std::string& key) const;
 
   // Get accessor functions.
   InputLanguage getInputLanguage() const;
@@ -321,11 +323,13 @@ public:
    *
    * This function uses getopt_long() and is not thread safe.
    *
+   * Throws OptionException on failures.
+   *
    * Preconditions: options and argv must be non-null.
    */
   static std::vector<std::string> parseOptions(Options* options,
-                                               int argc, char* argv[])
-    throw(OptionException);
+                                               int argc,
+                                               char* argv[]);
 
   /**
    * Get the setting for all options.
@@ -534,7 +538,6 @@ public:
   void flushOut();
 
  private:
-
   /**
    * Internal procedure for implementing the parseOptions function.
    * Initializes the options object based on the given command-line
@@ -543,12 +546,13 @@ public:
    *
    * This is not thread safe.
    *
+   * Throws OptionException on failures.
+   *
    * Preconditions: options, extender and nonoptions are non-null.
    */
   static void parseOptionsRecursive(Options* options,
                                     options::ArgumentExtender* extender,
-                                    std::vector<std::string>* nonoptions)
-    throw(OptionException);
+                                    std::vector<std::string>* nonoptions);
 };/* class Options */
 
 }/* CVC4 namespace */

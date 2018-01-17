@@ -461,10 +461,9 @@ public:
   /** Destroys a theory engine */
   ~TheoryEngine();
 
-  void interrupt() throw(ModalException);
-  /**
-   * "Spend" a resource during a search or preprocessing.
-   */
+  void interrupt();
+
+  /** "Spend" a resource during a search or preprocessing.*/
   void spendResource(unsigned amount);
 
   /**

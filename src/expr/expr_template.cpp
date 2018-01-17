@@ -337,7 +337,8 @@ Expr Expr::getOperator() const {
   return Expr(d_exprManager, new Node(d_node->getOperator()));
 }
 
-Type Expr::getType(bool check) const throw (TypeCheckingException) {
+Type Expr::getType(bool check) const
+{
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   PrettyCheckArgument(!d_node->isNull(), this,
@@ -499,14 +500,8 @@ void Expr::toStream(std::ostream& out, int depth, bool types, size_t dag,
   d_node->toStream(out, depth, types, dag, language);
 }
 
-Node Expr::getNode() const throw() {
-  return *d_node;
-}
-
-TNode Expr::getTNode() const throw() {
-  return *d_node;
-}
-
+Node Expr::getNode() const { return *d_node; }
+TNode Expr::getTNode() const { return *d_node; }
 Expr Expr::notExpr() const {
   Assert(d_exprManager != NULL,
          "Don't have an expression manager for this expression!");

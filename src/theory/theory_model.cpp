@@ -50,7 +50,8 @@ TheoryModel::TheoryModel(context::Context* c,
   d_eeContext->push();
 }
 
-TheoryModel::~TheoryModel() throw() {
+TheoryModel::~TheoryModel()
+{
   d_eeContext->pop();
   delete d_equalityEngine;
   delete d_eeContext;

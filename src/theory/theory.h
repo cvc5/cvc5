@@ -177,10 +177,13 @@ private:
    * The pair <id, instance> is assumed to uniquely identify this Theory
    * w.r.t. the SmtEngine.
    */
-  Theory(TheoryId id, context::Context* satContext,
-         context::UserContext* userContext, OutputChannel& out,
-         Valuation valuation, const LogicInfo& logicInfo,
-         std::string instance = "") throw();  // taking : No default.
+  Theory(TheoryId id,
+         context::Context* satContext,
+         context::UserContext* userContext,
+         OutputChannel& out,
+         Valuation valuation,
+         const LogicInfo& logicInfo,
+         std::string instance = "");  // taking : No default.
 
   /**
    * This is called at shutdown time by the TheoryEngine, just before
@@ -289,13 +292,8 @@ public:
     return node.getNumChildren() == 0 || theoryOf(node) != theoryId;
   }
 
-  /**
-   * Returns true if the assertFact queue is empty
-   */
-  bool done() const throw() {
-    return d_factsHead == d_facts.size();
-  }
-
+  /** Returns true if the assertFact queue is empty*/
+  bool done() const { return d_factsHead == d_facts.size(); }
   /**
    * Destructs a Theory.
    */

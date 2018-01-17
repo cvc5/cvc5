@@ -109,8 +109,8 @@ Node RewriteRule<ExtractSignExtend>::apply(TNode node) {
   } else if (low < extendee_size && high >= extendee_size) {
     // if extract overlaps sign extend and extendee
     Node low_extract = utils::mkExtract(extendee, extendee_size - 1, low);
-    unsigned new_ammount = high - extendee_size + 1;
-    resultNode = utils::mkSignExtend(low_extract, new_ammount); 
+    unsigned new_amount = high - extendee_size + 1;
+    resultNode = utils::mkSignExtend(low_extract, new_amount);
   } else {
     // extract only over sign extend
     Assert (low >= extendee_size);
@@ -529,15 +529,15 @@ bool RewriteRule<ConcatToMult>::applies(TNode node) {
   if (!node[1].isConst()) return false;
   TNode extract = node[0];
   TNode c = node[1];
-  unsigned ammount = utils::getSize(c);
-  
-  if (utils::getSize(node) != utils::getSize(extract[0])) return false; 
-  if (c != utils::mkConst(ammount, 0)) return false;
+  unsigned amount = utils::getSize(c);
+
+  if (utils::getSize(node) != utils::getSize(extract[0])) return false;
+  if (c != utils::mkZero(amount)) return false;
 
   unsigned low = utils::getExtractLow(extract);
   if (low != 0) return false; 
   unsigned high = utils::getExtractHigh(extract);
-  if (high + ammount + 1 != utils::getSize(node)) return false;
+  if (high + amount + 1 != utils::getSize(node)) return false;
   return true;
 }
 
@@ -546,9 +546,9 @@ Node RewriteRule<ConcatToMult>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<ConcatToMult>(" << node << ")" << std::endl;
   unsigned size = utils::getSize(node); 
   Node factor = node[0][0];
-  Assert(utils::getSize(factor) == utils::getSize(node)); 
-  BitVector ammount = BitVector(size, utils::getSize(node[1]));
-  Node coef = utils::mkConst(BitVector(size, 1u).leftShift(ammount));
+  Assert(utils::getSize(factor) == utils::getSize(node));
+  BitVector amount = BitVector(size, utils::getSize(node[1]));
+  Node coef = utils::mkConst(BitVector(size, 1u).leftShift(amount));
   return utils::mkNode(kind::BITVECTOR_MULT, factor, coef); 
 }
 

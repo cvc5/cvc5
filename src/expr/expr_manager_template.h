@@ -436,9 +436,13 @@ public:
   SortConstructorType mkSortConstructor(const std::string& name,
                                         size_t arity) const;
 
-  /** Get the type of an expression */
-  Type getType(Expr e, bool check = false)
-    throw(TypeCheckingException);
+  /**
+   * Get the type of an expression.
+   *
+   * Throws a TypeCheckingException on failures or if a Type cannot be
+   * computed.
+   */
+  Type getType(Expr e, bool check = false);
 
   /** Bits for use in mkVar() flags. */
   enum {
@@ -524,10 +528,10 @@ public:
   Expr mkNullaryOperator( Type type, Kind k);
 
   /** Get a reference to the statistics registry for this ExprManager */
-  Statistics getStatistics() const throw();
+  Statistics getStatistics() const;
 
   /** Get a reference to the statistics registry for this ExprManager */
-  SExpr getStatistic(const std::string& name) const throw();
+  SExpr getStatistic(const std::string& name) const;
 
   /**
    * Flushes statistics for this ExprManager to a file descriptor. Safe to use

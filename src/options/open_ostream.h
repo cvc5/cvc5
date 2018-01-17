@@ -47,8 +47,7 @@ class OstreamOpener {
    *   returns <true, stream> where stream is a ostream allocated by new.
    *   The caller is in this case the owner of the allocated memory.
    */
-  std::pair<bool, std::ostream*> open(const std::string& name) const
-    throw(OptionException);
+  std::pair<bool, std::ostream*> open(const std::string& name) const;
 
  private:
   const char* d_channelName;
