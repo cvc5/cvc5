@@ -1324,6 +1324,8 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude( Node c, Node x, Node 
         return true;
       }
     }
+  }else{
+    Trace("sygus-pbe-cterm-debug") << "More than one slave for " << x << std::endl;
   }
   return false;
 }
