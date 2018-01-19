@@ -2752,8 +2752,9 @@ Node BvInverter::solveBvLit(Node sv,
       Assert(nchildren >= 2);
       Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
       Node t_new;
-      /* Note: All n-ary kinds except for CONCAT (i.e., AND, OR, MULT, PLUS)
-       *       are commutative (no case split based on index). */
+      /* Note: All n-ary kinds except for CONCAT (i.e., BITVECTOR_AND,
+       *       BITVECTOR_OR, MULT, PLUS) are commutative (no case split
+       *       based on index). */
 
       // handle cases where the inversion has a unique solution
       if (k == BITVECTOR_PLUS)
