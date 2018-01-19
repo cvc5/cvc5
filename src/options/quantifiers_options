@@ -347,6 +347,8 @@ option quantEprMatching --quant-epr-match bool :default true
 # CEGQI for BV
 option cbqiBv --cbqi-bv bool :read-write :default true
   use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors
+option cbqiBv2 --cbqi-bv2 bool :read-write :default true :link --cbqi-bv :link-smt cbqi-bv
+  use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors
 option cbqiBvInterleaveValue --cbqi-bv-interleave-value bool :read-write :default false
   interleave model value instantiation with word-level inversion approach
 option cbqiBvIneqMode --cbqi-bv-ineq=MODE CVC4::theory::quantifiers::CbqiBvIneqMode :read-write :default CVC4::theory::quantifiers::CBQI_BV_INEQ_EQ_BOUNDARY :include "options/quantifiers_modes.h" :handler stringToCbqiBvIneqMode
