@@ -4714,7 +4714,7 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
       // Push the context
       internalPush();
       didInternalPush = true;
-      
+
       d_problemExtended = true;
       Expr ea = isQuery ? e.notExpr() : e;
       if(d_assertionList != NULL) {
@@ -4765,7 +4765,8 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
     }
 
     // Pop the context
-    if( didInternalPush ){
+    if (didInternalPush)
+    {
       internalPop();
     }
 
