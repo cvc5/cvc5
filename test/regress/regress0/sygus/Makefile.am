@@ -79,8 +79,8 @@ TESTS = commutative.sy \
         real-grammar-neg.sy \
         real-si-all.sy
 
-				# disabled, takes too long with and without CBQI BV
-        Base16_1.sy
+# disabled, takes too long with and without CBQI BV
+# Base16_1.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \
