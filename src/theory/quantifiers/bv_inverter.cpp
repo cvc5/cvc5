@@ -78,7 +78,7 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
       }
     }
   }
-  
+
   if (c.isNull())
   {
     NodeManager* nm = NodeManager::currentNM();
@@ -198,6 +198,7 @@ Node BvInverter::getPathToPv(
 static Node dropChild(Node n, unsigned index)
 {
   unsigned nchildren = n.getNumChildren();
+  Assert(nchildren > 0);
   Assert(index < nchildren);
   Kind k = n.getKind();
   NodeBuilder<> nb(k);
@@ -2714,6 +2715,7 @@ Node BvInverter::solveBvLit(Node sv,
   while (!path.empty())
   {
     unsigned nchildren = sv_t.getNumChildren();
+    Assert(nchildren > 0);
     index = path.back();
     Assert(index < nchildren);
     path.pop_back();
@@ -2801,10 +2803,9 @@ Node BvInverter::solveBvLit(Node sv,
     else if (pol == false)
     {
       Assert (litk == EQUAL);
-      Node sc = nm->mkNode(DISTINCT, x, t);
+      sc = nm->mkNode(DISTINCT, x, t);
       Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << sc
                          << std::endl;
-      t = getInversionNode(sc, solve_tn, m);
     }
     else
     {
@@ -2829,8 +2830,28 @@ Node BvInverter::solveBvLit(Node sv,
     sv_t = sv_t[index];
   }
 
+  /* Base case  */
   Assert(sv_t == sv);
-  return t;
+  TypeNode solve_tn = sv.getType();
+  Node x = getSolveVariable(solve_tn);
+  Node sc;
+  if (litk == BITVECTOR_ULT || litk == BITVECTOR_UGT)
+  {
+    sc = getScBvUltUgt(pol, litk, x, t);
+  }
+  else if (litk == BITVECTOR_SLT || litk == BITVECTOR_SGT)
+  {
+    sc = getScBvSltSgt(pol, litk, x, t);
+  }
+  else if (pol == false)
+  {
+    Assert (litk == EQUAL);
+    sc = nm->mkNode(DISTINCT, x, t);
+    Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << sc
+                       << std::endl;
+  }
+
+  return sc.isNull() ? t : getInversionNode(sc, solve_tn, m);
 }
 
 /*---------------------------------------------------------------------------*/
