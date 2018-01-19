@@ -200,6 +200,9 @@ static Node dropChild(Node n, unsigned index)
   unsigned nchildren = n.getNumChildren();
   Assert(nchildren > 0);
   Assert(index < nchildren);
+
+  if (nchildren < 2) return Node::null();
+
   Kind k = n.getKind();
   NodeBuilder<> nb(k);
   for (unsigned i = 0; i < nchildren; ++i)
@@ -207,9 +210,8 @@ static Node dropChild(Node n, unsigned index)
     if (i == index) continue;
     nb << n[i];
   }
-  return nb.getNumChildren() == 0
-             ? Node::null()
-             : (nb.getNumChildren() == 1 ? nb[0] : nb.constructNode());
+  Assert(nb.getNumChildren() > 0);
+  return nb.getNumChildren() == 1 ? nb[0] : nb.constructNode();
 }
 
 static Node getScBvUltUgt(bool pol, Kind k, Node x, Node t)
@@ -2729,19 +2731,18 @@ Node BvInverter::solveBvLit(Node sv,
     TypeNode solve_tn = sv_t[index].getType();
     Node x = getSolveVariable(solve_tn);
     Node sc;
-    Node inv;
 
     if (litk == EQUAL && (k == BITVECTOR_NOT || k == BITVECTOR_NEG))
     {
-      inv = nm->mkNode(k, t);
+      t = nm->mkNode(k, t);
     }
     else if (litk == EQUAL && k == BITVECTOR_PLUS)
     {
-      inv = nm->mkNode(BITVECTOR_SUB, t, s);
+      t = nm->mkNode(BITVECTOR_SUB, t, s);
     }
     else if (litk == EQUAL && k == BITVECTOR_XOR)
     {
-      inv = nm->mkNode(BITVECTOR_XOR, t, s);
+      t = nm->mkNode(BITVECTOR_XOR, t, s);
     }
     else if (k == BITVECTOR_MULT && s.isConst() && bv::utils::getBit(s, 0))
     {
@@ -2750,10 +2751,10 @@ Node BvInverter::solveBvLit(Node sv,
       Integer mod_val = Integer(1).multiplyByPow2(w);
       Trace("bv-invert-debug")
           << "Compute inverse : " << s_val << " " << mod_val << std::endl;
-      Integer multinv_val = s_val.modInverse(mod_val);
-      Trace("bv-invert-debug") << "Inverse : " << multinv_val << std::endl;
-      Node multinv = bv::utils::mkConst(w, multinv_val);
-      inv = nm->mkNode(BITVECTOR_MULT, multinv, t);
+      Integer inv_val = s_val.modInverse(mod_val);
+      Trace("bv-invert-debug") << "Inverse : " << inv_val << std::endl;
+      Node inv = bv::utils::mkConst(w, inv_val);
+      t = nm->mkNode(BITVECTOR_MULT, inv, t);
     }
     else if (k == BITVECTOR_MULT)
     {
