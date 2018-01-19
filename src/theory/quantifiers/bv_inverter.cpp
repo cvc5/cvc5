@@ -200,15 +200,15 @@ static Node dropChild(Node n, unsigned index)
   unsigned nchildren = n.getNumChildren();
   Assert(index < nchildren);
   Kind k = n.getKind();
-  Assert(k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_MULT
-         || k == BITVECTOR_PLUS);
   NodeBuilder<> nb(k);
   for (unsigned i = 0; i < nchildren; ++i)
   {
     if (i == index) continue;
     nb << n[i];
   }
-  return nb.constructNode();
+  return nb.getNumChildren() == 0
+             ? Node::null()
+             : (nb.getNumChildren() == 1 ? nb[0] : nb.constructNode());
 }
 
 static Node getScBvUltUgt(bool pol, Kind k, Node x, Node t)
@@ -2713,164 +2713,123 @@ Node BvInverter::solveBvLit(Node sv,
 
   while (!path.empty())
   {
+    unsigned nchildren = sv_t.getNumChildren();
     index = path.back();
-    Assert(index < sv_t.getNumChildren());
+    Assert(index < nchildren);
     path.pop_back();
     k = sv_t.getKind();
 
-    if (k == BITVECTOR_NOT || k == BITVECTOR_NEG)
+    /* Note: All n-ary kinds except for CONCAT (i.e., BITVECTOR_AND,
+     *       BITVECTOR_OR, MULT, PLUS) are commutative (no case split
+     *       based on index). */
+    Node s = dropChild(sv_t, index);
+    Assert((nchildren == 1 && s.isNull()) || (nchildren > 1 && !s.isNull()));
+    TypeNode solve_tn = sv_t[index].getType();
+    Node x = getSolveVariable(solve_tn);
+    Node sc;
+    Node inv;
+
+    if (litk == EQUAL && (k == BITVECTOR_NOT || k == BITVECTOR_NEG))
     {
-      t = nm->mkNode(k, t);
+      inv = nm->mkNode(k, t);
+    }
+    else if (litk == EQUAL && k == BITVECTOR_PLUS)
+    {
+      inv = nm->mkNode(BITVECTOR_SUB, t, s);
+    }
+    else if (litk == EQUAL && k == BITVECTOR_XOR)
+    {
+      inv = nm->mkNode(BITVECTOR_XOR, t, s);
+    }
+    else if (k == BITVECTOR_MULT && s.isConst() && bv::utils::getBit(s, 0))
+    {
+      unsigned w = bv::utils::getSize(s);
+      Integer s_val = s.getConst<BitVector>().toInteger();
+      Integer mod_val = Integer(1).multiplyByPow2(w);
+      Trace("bv-invert-debug")
+          << "Compute inverse : " << s_val << " " << mod_val << std::endl;
+      Integer multinv_val = s_val.modInverse(mod_val);
+      Trace("bv-invert-debug") << "Inverse : " << multinv_val << std::endl;
+      Node multinv = bv::utils::mkConst(w, multinv_val);
+      inv = nm->mkNode(BITVECTOR_MULT, multinv, t);
+    }
+    else if (k == BITVECTOR_MULT)
+    {
+      sc = getScBvMult(pol, litk, k, index, x, s, t);
+    }
+    else if (k == BITVECTOR_SHL)
+    {
+      sc = getScBvShl(pol, litk, k, index, x, s, t);
+    }
+    else if (k == BITVECTOR_UREM_TOTAL)
+    {
+      sc = getScBvUrem(pol, litk, k, index, x, s, t);
+    }
+    else if (k == BITVECTOR_UDIV_TOTAL)
+    {
+      sc = getScBvUdiv(pol, litk, k, index, x, s, t);
+    }
+    else if (k == BITVECTOR_AND || k == BITVECTOR_OR)
+    {
+      sc = getScBvAndOr(pol, litk, k, index, x, s, t);
+    }
+    else if (k == BITVECTOR_LSHR)
+    {
+      sc = getScBvLshr(pol, litk, k, index, x, s, t);
+    }
+    else if (k == BITVECTOR_ASHR)
+    {
+      sc = getScBvAshr(pol, litk, k, index, x, s, t);
     }
     else if (k == BITVECTOR_CONCAT)
     {
-      TypeNode solve_tn = sv_t[index].getType();
-      Node sc = getScBvConcat(
-          pol, litk, index, getSolveVariable(solve_tn), sv_t, t);
+      sc = getScBvConcat(pol, litk, index, x, sv_t, t);
+    }
+    else if (k == BITVECTOR_SIGN_EXTEND)
+    {
+      // TODO
+      return Node::null();
+    }
+    else if (litk == BITVECTOR_ULT || litk == BITVECTOR_UGT)
+    {
+      sc = getScBvUltUgt(pol, litk, x, t);
+    }
+    else if (litk == BITVECTOR_SLT || litk == BITVECTOR_SGT)
+    {
+      sc = getScBvSltSgt(pol, litk, x, t);
+    }
+    else if (pol == false)
+    {
+      Assert (litk == EQUAL);
+      Node sc = nm->mkNode(DISTINCT, x, t);
+      Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << sc
+                         << std::endl;
+      t = getInversionNode(sc, solve_tn, m);
+    }
+    else
+    {
+      Trace("bv-invert") << "bv-invert : Unknown kind " << k
+                         << " for bit-vector term " << sv_t << std::endl;
+      return Node::null();
+    }
+
+    if (!sc.isNull())
+    {
+      /* We generate a choice term (choice x0. SC => x0 <k> s <litk> t) for
+       * x <k> s <litk> t. When traversing down, this choice term determines
+       * the value for x <k> s = (choice x0. SC => x0 <k> s <litk> t), i.e.,
+       * from here on, the propagated literal is a positive equality. */
       litk = EQUAL;
       pol = true;
       /* t = fresh skolem constant */
       t = getInversionNode(sc, solve_tn, m);
-      if (t.isNull())
-      {
-        return t;
-      }
+      if (t.isNull()) { return t; }
     }
-    else if (k == BITVECTOR_SIGN_EXTEND)
-    {
-      t = bv::utils::mkExtract(t, bv::utils::getSize(sv_t[index]) - 1, 0);
-    }
-    else if (k == BITVECTOR_EXTRACT || k == BITVECTOR_COMP)
-    {
-      Trace("bv-invert") << "bv-invert : Unsupported for index " << index
-                         << ", from " << sv_t << std::endl;
-      return Node::null();
-    }
-    else
-    {
-      unsigned nchildren = sv_t.getNumChildren();
-      Assert(nchildren >= 2);
-      Node s = nchildren == 2 ? sv_t[1 - index] : dropChild(sv_t, index);
-      Node t_new;
-      /* Note: All n-ary kinds except for CONCAT (i.e., BITVECTOR_AND,
-       *       BITVECTOR_OR, MULT, PLUS) are commutative (no case split
-       *       based on index). */
 
-      // handle cases where the inversion has a unique solution
-      if (k == BITVECTOR_PLUS)
-      {
-        t_new = nm->mkNode(BITVECTOR_SUB, t, s);
-      }
-      else if (k == BITVECTOR_XOR)
-      {
-        t_new = nm->mkNode(BITVECTOR_XOR, t, s);
-      }
-      else if (k == BITVECTOR_MULT && s.isConst() && bv::utils::getBit(s, 0))
-      {
-          unsigned w = bv::utils::getSize(s);
-          Integer s_val = s.getConst<BitVector>().toInteger();
-          Integer mod_val = Integer(1).multiplyByPow2(w);
-          Trace("bv-invert-debug")
-              << "Compute inverse : " << s_val << " " << mod_val << std::endl;
-          Integer inv_val = s_val.modInverse(mod_val);
-          Trace("bv-invert-debug") << "Inverse : " << inv_val << std::endl;
-          Node inv = bv::utils::mkConst(w, inv_val);
-          t_new = nm->mkNode(BITVECTOR_MULT, inv, t);
-      }
-
-      if (!t_new.isNull())
-      {
-        // In this case, s op x = t is equivalent to x = t_new
-        t = t_new;
-      }
-      else
-      {
-        TypeNode solve_tn = sv_t[index].getType();
-        Node sc;
-
-        switch (k)
-        {
-          case BITVECTOR_MULT:
-            sc = getScBvMult(
-                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
-            break;
-
-          case BITVECTOR_SHL:
-            sc = getScBvShl(
-                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
-            break;
-
-          case BITVECTOR_UREM_TOTAL:
-            sc = getScBvUrem(
-                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
-            break;
-
-          case BITVECTOR_UDIV_TOTAL:
-            sc = getScBvUdiv(
-                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
-            break;
-
-          case BITVECTOR_AND:
-          case BITVECTOR_OR:
-            sc = getScBvAndOr(
-                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
-            break;
-
-          case BITVECTOR_LSHR:
-            sc = getScBvLshr(
-                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
-            break;
-
-          case BITVECTOR_ASHR:
-            sc = getScBvAshr(
-                pol, litk, k, index, getSolveVariable(solve_tn), s, t);
-            break;
-
-          default:
-            Trace("bv-invert") << "bv-invert : Unknown kind " << k
-                               << " for bit-vector term " << sv_t << std::endl;
-            return Node::null();
-        }
-        Assert(!sc.isNull());
-        /* We generate a choice term (choice x0. SC => x0 <k> s <litk> t) for
-         * x <k> s <litk> t. When traversing down, this choice term determines
-         * the value for x <k> s = (choice x0. SC => x0 <k> s <litk> t), i.e.,
-         * from here on, the propagated literal is a positive equality. */
-        litk = EQUAL;
-        pol = true;
-        /* t = fresh skolem constant */
-        t = getInversionNode(sc, solve_tn, m);
-        if (t.isNull())
-        {
-          return t;
-        }
-      }
-    }
     sv_t = sv_t[index];
   }
+
   Assert(sv_t == sv);
-  if (litk == BITVECTOR_ULT || litk == BITVECTOR_UGT)
-  {
-    TypeNode solve_tn = sv_t.getType();
-    Node sc = getScBvUltUgt(pol, litk, getSolveVariable(solve_tn), t);
-    t = getInversionNode(sc, solve_tn, m);
-  }
-  else if (litk == BITVECTOR_SLT || litk == BITVECTOR_SGT)
-  {
-    TypeNode solve_tn = sv_t.getType();
-    Node sc = getScBvSltSgt(pol, litk, getSolveVariable(solve_tn), t);
-    t = getInversionNode(sc, solve_tn, m);
-  }
-  else if (pol == false)
-  {
-    Assert (litk == EQUAL);
-    TypeNode solve_tn = sv_t.getType();
-    Node x = getSolveVariable(solve_tn);
-    Node sc = nm->mkNode(DISTINCT, x, t);
-    Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << sc
-                       << std::endl;
-    t = getInversionNode(sc, solve_tn, m);
-  }
   return t;
 }
 
