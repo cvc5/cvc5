@@ -2662,6 +2662,158 @@ static Node getScBvConcat(bool pol,
   return sc;
 }
 
+static Node getScBvSext(bool pol,
+                        Kind litk,
+                        unsigned idx,
+                        Node x,
+                        Node sv_t,
+                        Node t)
+{
+  Assert(litk == EQUAL
+      || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+      || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node scl;
+  Assert(idx == 0);
+  (void) idx;
+  unsigned ws = bv::utils::getSignExtendAmount(sv_t);
+  unsigned w = bv::utils::getSize(t);
+
+  if (litk == EQUAL)
+  {
+    if (pol)
+    {
+      /* x sext ws = t
+       * with side condition:
+       * (or (= ((_ extract u l) t) z)
+       *     (= ((_ extract u l) t) ones))
+       * where
+       * u = w - 1
+       * l = w - 1 - ws
+       * z = 0 with getSize(z) = ws + 1
+       * ones = ~0 with getSize(ones) = ws + 1  */
+      Node ext = bv::utils::mkExtract(t, w - 1, w - 1 - ws);
+      Node z = bv::utils::mkZero(ws + 1);
+      Node n = bv::utils::mkOnes(ws + 1);
+      scl = nm->mkNode(OR, ext.eqNode(z), ext.eqNode(n));
+    }
+    else
+    {
+      /* x sext ws != t
+       * true (no side condition)  */
+      scl = nm->mkConst<bool>(true);
+    }
+  }
+  else if (litk == BITVECTOR_ULT)
+  {
+    if (pol)
+    {
+      /* x sext ws < t
+       * with side condition:
+       * (distinct t z)
+       * where
+       * z = 0 with getSize(z) = w  */
+      Node z = bv::utils::mkZero(w);
+      scl = t.eqNode(z).notNode();
+    }
+    else
+    {
+      /* x sext ws >= t
+       * true (no side condition)  */
+      scl = nm->mkConst<bool>(true);
+    }
+  }
+  else if (litk == BITVECTOR_UGT)
+  {
+    if (pol)
+    {
+      /* x sext ws > t
+       * with side condition:
+       * (distinct t ones)
+       * where
+       * ones = ~0 with getSize(ones) = w  */
+      Node n = bv::utils::mkOnes(w);
+      scl = t.eqNode(n).notNode();
+    }
+    else
+    {
+      /* x sext ws <= t
+       * true (no side condition)  */
+      scl = nm->mkConst<bool>(true);
+    }
+  }
+  else if (litk == BITVECTOR_SLT)
+  {
+    if (pol)
+    {
+      /* x sext ws < t
+       * with side condition:
+       * (bvslt ((_ sign_extend ws) min) t)
+       * where
+       * min is the signed minimum value with getSize(min) = w - ws  */
+      Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w - ws));
+      Node ext = bv::utils::mkSignExtend(min, ws);
+      scl = nm->mkNode(BITVECTOR_SLT, ext, t);
+    }
+    else
+    {
+      /* x sext ws >= t
+       * with side condition (combination of sgt and eq):
+       *
+       * (or
+       *   (or (= ((_ extract u l) t) z)         ; eq
+       *       (= ((_ extract u l) t) ones))
+       *   (bvslt t ((_ zero_extend ws) max)))   ; sgt
+       * where
+       * u = w - 1
+       * l = w - 1 - ws
+       * z = 0 with getSize(z) = ws + 1
+       * ones = ~0 with getSize(ones) = ws + 1
+       * max is the signed maximum value with getSize(max) = w - ws  */
+      Node ext1 = bv::utils::mkExtract(t, w - 1, w - 1 - ws);
+      Node z = bv::utils::mkZero(ws + 1);
+      Node n = bv::utils::mkOnes(ws + 1);
+      Node o1 = nm->mkNode(OR, ext1.eqNode(z), ext1.eqNode(n));
+      Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w - ws));
+      Node ext2 = bv::utils::mkConcat(bv::utils::mkZero(ws), max);
+      Node o2 = nm->mkNode(BITVECTOR_SLT, t, ext2);
+      scl = nm->mkNode(OR, o1, o2);
+    }
+  }
+  else
+  {
+    Assert(litk == BITVECTOR_SGT);
+    if (pol)
+    {
+      /* x sext ws > t
+       * with side condition:
+       * (bvslt t ((_ zero_extend ws) max))
+       * where
+       * max is the signed maximum value with getSize(max) = w - ws  */
+      Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w - ws));
+      Node ext = bv::utils::mkConcat(bv::utils::mkZero(ws), max);
+      scl = nm->mkNode(BITVECTOR_SLT, t, ext);
+    }
+    else
+    {
+      /* x sext ws <= t
+       * with side condition:
+       * (bvsge t (bvnot ((_ zero_extend ws) max)))
+       * where
+       * max is the signed maximum value with getSize(max) = w - ws  */
+      Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w - ws));
+      Node ext = bv::utils::mkConcat(bv::utils::mkZero(ws), max);
+      scl = nm->mkNode(BITVECTOR_SGE, t, nm->mkNode(BITVECTOR_NOT, ext));
+    }
+  }
+  Node scr = nm->mkNode(litk, bv::utils::mkSignExtend(x, ws), t);
+  Node sc = nm->mkNode(IMPLIES, scl, pol ? scr : scr.notNode());
+  Trace("bv-invert") << "Add SC_" << BITVECTOR_SIGN_EXTEND << "(" << x
+                     << "): " << sc << std::endl;
+  return sc;
+}
+
 Node BvInverter::solveBvLit(Node sv,
                             Node lit,
                             std::vector<unsigned>& path,
@@ -2790,8 +2942,7 @@ Node BvInverter::solveBvLit(Node sv,
     }
     else if (k == BITVECTOR_SIGN_EXTEND)
     {
-      // TODO
-      return Node::null();
+      sc = getScBvSext(pol, litk, index, x, sv_t, t);
     }
     else if (litk == BITVECTOR_ULT || litk == BITVECTOR_UGT)
     {

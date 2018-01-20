@@ -162,7 +162,6 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
       sc = getScBvConcat(pol, litk, 1, sk, sv_t, t);
     }
 
-    std::cout << "sc " << sc << std::endl;
     TS_ASSERT(!sc.isNull());
     Kind ksc = sc.getKind();
     TS_ASSERT((litk == kind::EQUAL && pol == false)
@@ -171,9 +170,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     Node body = d_nm->mkNode(litk, sv_t, t);
     Node bvarlist = d_nm->mkNode(BOUND_VAR_LIST, { x });
     Node scr = d_nm->mkNode(EXISTS, bvarlist, pol ? body : body.notNode());
-    std::cout << "scr " << scr << std::endl;
     Expr a = d_nm->mkNode(DISTINCT, scl, scr).toExpr();
-    std::cout << "a " << a << std::endl;
     Result res = d_smt->checkSat(a);
     if (res.d_sat == Result::SAT)
     {
@@ -182,6 +179,41 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
         std::cout << "s1 " << d_smt->getValue(s1.toExpr()) << std::endl;
       if (!s2.isNull())
         std::cout << "s2 " << d_smt->getValue(s2.toExpr()) << std::endl;
+      std::cout << "t " << d_smt->getValue(t.toExpr()) << std::endl;
+      std::cout << "x " << d_smt->getValue(x.toExpr()) << std::endl;
+    }
+    TS_ASSERT(res.d_sat == Result::UNSAT);
+  }
+
+  void runTestSext(bool pol, Kind litk)
+  {
+    unsigned ws = 3;
+    unsigned wx = 5;
+    unsigned w = 8;
+
+    Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(wx));
+    Node sk = d_nm->mkSkolem("sk", x.getType());
+    x = d_nm->mkBoundVar(x.getType());
+
+    Node t = d_nm->mkVar("t", d_nm->mkBitVectorType(w));
+    Node sv_t = bv::utils::mkSignExtend(x, ws);
+    Node sc = getScBvSext(pol, litk, 0, sk, sv_t, t);
+
+    TS_ASSERT(!sc.isNull());
+    Kind ksc = sc.getKind();
+    TS_ASSERT((litk == kind::EQUAL && pol == false)
+              || (litk == kind::BITVECTOR_ULT && pol == false)
+              || (litk == kind::BITVECTOR_UGT && pol == false)
+              || ksc == IMPLIES);
+    Node scl = ksc == IMPLIES ? sc[0] : bv::utils::mkTrue();
+    Node body = d_nm->mkNode(litk, sv_t, t);
+    Node bvarlist = d_nm->mkNode(BOUND_VAR_LIST, { x });
+    Node scr = d_nm->mkNode(EXISTS, bvarlist, pol ? body : body.notNode());
+    Expr a = d_nm->mkNode(DISTINCT, scl, scr).toExpr();
+    Result res = d_smt->checkSat(a);
+    if (res.d_sat == Result::SAT)
+    {
+      std::cout << std::endl;
       std::cout << "t " << d_smt->getValue(t.toExpr()) << std::endl;
       std::cout << "x " << d_smt->getValue(x.toExpr()) << std::endl;
     }
@@ -468,6 +500,18 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvConcatEqFalse2()
   {
     runTestConcat(false, EQUAL, 2);
+  }
+
+  /* Sext */
+
+  void testGetScBvSextEqTrue()
+  {
+    runTestSext(true, EQUAL);
+  }
+
+  void testGetScBvSextEqFalse()
+  {
+    runTestSext(false, EQUAL);
   }
 
   /* Inequality ------------------------------------------------------------  */
@@ -1249,4 +1293,47 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   {
     runTestConcat(false, BITVECTOR_SGT, 2);
   }
+
+  /* Sext */
+
+  void testGetScBvSextUltTrue()
+  {
+    runTestSext(true, BITVECTOR_ULT);
+  }
+
+  void testGetScBvSextUltFalse()
+  {
+    runTestSext(false, BITVECTOR_ULT);
+  }
+
+  void testGetScBvSextUgtTrue()
+  {
+    runTestSext(true, BITVECTOR_UGT);
+  }
+
+  void testGetScBvSextUgtFalse()
+  {
+    runTestSext(false, BITVECTOR_UGT);
+  }
+
+  void testGetScBvSextSltTrue()
+  {
+    runTestSext(true, BITVECTOR_SLT);
+  }
+
+  void testGetScBvSextSltFalse()
+  {
+    runTestSext(false, BITVECTOR_SLT);
+  }
+
+  void testGetScBvSextSgtTrue()
+  {
+    runTestSext(true, BITVECTOR_SGT);
+  }
+
+  void testGetScBvSextSgtFalse()
+  {
+    runTestSext(false, BITVECTOR_SGT);
+  }
+
 };
