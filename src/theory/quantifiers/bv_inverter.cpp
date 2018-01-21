@@ -2242,7 +2242,7 @@ static Node getScBvConcat(bool pol,
     }
     else
     {
-      for (unsigned i = 0; i < idx; ++i) nbs1 << sv_t[i];
+      for (unsigned i = 0; i < idx; ++i) { nbs1 << sv_t[i]; }
       s1 = nbs1.constructNode();
     }
     w1 = bv::utils::getSize(s1);
@@ -2259,11 +2259,12 @@ static Node getScBvConcat(bool pol,
     }
     else
     {
-      for (unsigned i = idx+1; i < nchildren; ++i) nbs2 << sv_t[i];
+      for (unsigned i = idx+1; i < nchildren; ++i) { nbs2 << sv_t[i]; }
       s2 = nbs2.constructNode();
     }
     w2 = bv::utils::getSize(s2);
-    t2 = bv::utils::mkExtract(t, w - w1 - wx - 1, 0);
+    Assert(w2 == w - w1 - wx);
+    t2 = bv::utils::mkExtract(t, w2 - 1, 0);
   }
 
   Assert(!s1.isNull() || t1.isNull());
@@ -2331,7 +2332,7 @@ static Node getScBvConcat(bool pol,
       {
         /* x o s2 < t  (interpret t as tx o t2)
          * with invertibility condition:
-         * (implies (= tx z) (bvult s2 t2))
+         * (=> (= tx z) (bvult s2 t2))
          * where
          * z = 0 with getSize(z) = wx  */
         Node z = bv::utils::mkZero(wx);
@@ -2341,7 +2342,7 @@ static Node getScBvConcat(bool pol,
       else
       {
         /* x o s2 >= t  (interpret t as tx o t2)
-         * (implies (= tx ones) (bvuge s2 t2))
+         * (=> (= tx ones) (bvuge s2 t2))
          * where
          * ones = ~0 with getSize(ones) = wx  */
         Node n = bv::utils::mkOnes(wx);
@@ -2355,7 +2356,7 @@ static Node getScBvConcat(bool pol,
       {
         /* s1 o x < t  (interpret t as t1 o tx)
          * with invertibility condition:
-         * (and (bvule s1 t1) (implies (= s1 t1) (distinct tx z)))
+         * (and (bvule s1 t1) (=> (= s1 t1) (distinct tx z)))
          * where
          * z = 0 with getSize(z) = wx  */
         Node z = bv::utils::mkZero(wx);
@@ -2379,7 +2380,7 @@ static Node getScBvConcat(bool pol,
          * with invertibility condition:
          * (and
          *   (bvule s1 t1)
-         *   (implies (and (= s1 t1) (= tx z)) (bvult s2 t2)))
+         *   (=> (and (= s1 t1) (= tx z)) (bvult s2 t2)))
          * where
          * z = 0 with getSize(z) = wx  */
         Node z = bv::utils::mkZero(wx);
@@ -2394,7 +2395,7 @@ static Node getScBvConcat(bool pol,
          * with invertibility condition:
          * (and
          *   (bvuge s1 t1)
-         *   (implies (and (= s1 t1) (= tx ones)) (bvuge s2 t2)))
+         *   (=> (and (= s1 t1) (= tx ones)) (bvuge s2 t2)))
          * where
          * ones = ~0 with getSize(ones) = wx  */
         Node n = bv::utils::mkOnes(wx);
@@ -2413,7 +2414,7 @@ static Node getScBvConcat(bool pol,
       {
         /* x o s2 > t  (interpret t as tx o t2)
          * with invertibility condition:
-         * (implies (= tx ones) (bvugt s2 t2))
+         * (=> (= tx ones) (bvugt s2 t2))
          * where
          * ones = ~0 with getSize(ones) = wx  */
         Node n = bv::utils::mkOnes(wx);
@@ -2424,7 +2425,7 @@ static Node getScBvConcat(bool pol,
       {
         /* x o s2 <= t  (interpret t as tx o t2)
          * with invertibility condition:
-         * (implies (= tx z) (bvule s2 t2))
+         * (=> (= tx z) (bvule s2 t2))
          * where
          * z = 0 with getSize(z) = wx  */
         Node z = bv::utils::mkZero(wx);
@@ -2438,7 +2439,7 @@ static Node getScBvConcat(bool pol,
       {
         /* s1 o x > t  (interpret t as t1 o tx)
          * with invertibility condition:
-         * (and (bvuge s1 t1) (implies (= s1 t1) (distinct tx ones)))
+         * (and (bvuge s1 t1) (=> (= s1 t1) (distinct tx ones)))
          * where
          * ones = ~0 with getSize(ones) = wx  */
         Node n = bv::utils::mkOnes(wx);
@@ -2462,7 +2463,7 @@ static Node getScBvConcat(bool pol,
          * with invertibility condition:
          * (and
          *   (bvuge s1 t1)
-         *   (implies (and (= s1 t1) (= tx ones)) (bvugt s2 t2)))
+         *   (=> (and (= s1 t1) (= tx ones)) (bvugt s2 t2)))
          * where
          * ones = ~0 with getSize(ones) = wx  */
         Node n = bv::utils::mkOnes(wx);
@@ -2477,7 +2478,7 @@ static Node getScBvConcat(bool pol,
          * with invertibility condition:
          * (and
          *   (bvule s1 t1)
-         *   (implies (and (= s1 t1) (= tx z)) (bvule s2 t2)))
+         *   (=> (and (= s1 t1) (= tx z)) (bvule s2 t2)))
          * where
          * z = 0 with getSize(z) = wx  */
         Node z = bv::utils::mkZero(wx);
@@ -2496,7 +2497,7 @@ static Node getScBvConcat(bool pol,
       {
         /* x o s2 < t  (interpret t as tx o t2)
          * with invertibility condition:
-         * (implies (= tx min) (bvult s2 t2))
+         * (=> (= tx min) (bvult s2 t2))
          * where
          * min is the signed minimum value with getSize(min) = wx  */
         Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(wx));
@@ -2506,7 +2507,7 @@ static Node getScBvConcat(bool pol,
       else
       {
         /* x o s2 >= t  (interpret t as tx o t2)
-         * (implies (= tx max) (bvuge s2 t2))
+         * (=> (= tx max) (bvuge s2 t2))
          * where
          * max is the signed maximum value with getSize(max) = wx  */
         Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(wx));
@@ -2520,7 +2521,7 @@ static Node getScBvConcat(bool pol,
       {
         /* s1 o x < t  (interpret t as t1 o tx)
          * with invertibility condition:
-         * (and (bvsle s1 t1) (implies (= s1 t1) (distinct tx z)))
+         * (and (bvsle s1 t1) (=> (= s1 t1) (distinct tx z)))
          * where
          * z = 0 with getSize(z) = wx  */
         Node z = bv::utils::mkZero(wx);
@@ -2544,7 +2545,7 @@ static Node getScBvConcat(bool pol,
          * with invertibility condition:
          * (and
          *   (bvsle s1 t1)
-         *   (implies (and (= s1 t1) (= tx z)) (bvult s2 t2)))
+         *   (=> (and (= s1 t1) (= tx z)) (bvult s2 t2)))
          * where
          * z = 0 with getSize(z) = wx  */
         Node z = bv::utils::mkZero(wx);
@@ -2559,7 +2560,7 @@ static Node getScBvConcat(bool pol,
          * with invertibility condition:
          * (and
          *   (bvsge s1 t1)
-         *   (implies (and (= s1 t1) (= tx ones)) (bvuge s2 t2)))
+         *   (=> (and (= s1 t1) (= tx ones)) (bvuge s2 t2)))
          * where
          * ones = ~0 with getSize(ones) = wx  */
         Node n = bv::utils::mkOnes(wx);
@@ -2579,7 +2580,7 @@ static Node getScBvConcat(bool pol,
       {
         /* x o s2 > t  (interpret t as tx o t2)
          * with invertibility condition:
-         * (implies (= tx max) (bvugt s2 t2))
+         * (=> (= tx max) (bvugt s2 t2))
          * where
          * max is the signed maximum value with getSize(max) = wx  */
         Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(wx));
@@ -2590,7 +2591,7 @@ static Node getScBvConcat(bool pol,
       {
         /* x o s2 <= t  (interpret t as tx o t2)
          * with invertibility condition:
-         * (implies (= tx min) (bvule s2 t2))
+         * (=> (= tx min) (bvule s2 t2))
          * where
          * min is the signed minimum value with getSize(min) = wx  */
         Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(wx));
@@ -2604,7 +2605,7 @@ static Node getScBvConcat(bool pol,
       {
         /* s1 o x > t  (interpret t as t1 o tx)
          * with invertibility condition:
-         * (and (bvsge s1 t1) (implies (= s1 t1) (distinct tx ones)))
+         * (and (bvsge s1 t1) (=> (= s1 t1) (distinct tx ones)))
          * where
          * ones = ~0 with getSize(ones) = wx  */
         Node n = bv::utils::mkOnes(wx);
@@ -2628,7 +2629,7 @@ static Node getScBvConcat(bool pol,
          * with invertibility condition:
          * (and
          *   (bvsge s1 t1)
-         *   (implies (and (= s1 t1) (= tx ones)) (bvugt s2 t2)))
+         *   (=> (and (= s1 t1) (= tx ones)) (bvugt s2 t2)))
          * where
          * ones = ~0 with getSize(ones) = wx  */
         Node n = bv::utils::mkOnes(wx);
@@ -2643,7 +2644,7 @@ static Node getScBvConcat(bool pol,
          * with invertibility condition:
          * (and
          *   (bvsle s1 t1)
-         *   (implies (and (= s1 t1) (= tx z)) (bvule s2 t2)))
+         *   (=> (and (= s1 t1) (= tx z)) (bvule s2 t2)))
          * where
          * z = 0 with getSize(z) = wx  */
         Node z = bv::utils::mkZero(wx);

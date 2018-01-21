@@ -345,9 +345,7 @@ option quantEprMatching --quant-epr-match bool :default true
  use matching heuristics for EPR instantiation
  
 # CEGQI for BV
-option cbqiBv --cbqi-bv bool :read-write :default true
-  use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors
-option cbqiBv2 --cbqi-bv2 bool :read-write :default true :link --cbqi-bv :link-smt cbqi-bv
+option cbqiBv cbqi-bv --cbqi-bv bool :read-write :default true
   use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors
 option cbqiBvInterleaveValue --cbqi-bv-interleave-value bool :read-write :default false
   interleave model value instantiation with word-level inversion approach
