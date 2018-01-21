@@ -2822,6 +2822,7 @@ Node BvInverter::solveBvLit(Node sv,
 {
   Assert(!path.empty());
 
+  std::cout << "cbqi-bv: " << options::cbqiBv() << std::endl;
   bool pol = true;
   unsigned index;
   NodeManager* nm = NodeManager::currentNM();
