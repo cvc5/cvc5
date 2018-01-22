@@ -1937,25 +1937,32 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
 
   std::vector<Node> children0;
   getConcat(node[0], children0);
-  
-  if( node[1].isConst() && children0[0].isConst() ){
+
+  if (node[1].isConst() && children0[0].isConst())
+  {
     CVC4::String s = children0[0].getConst<String>();
     CVC4::String t = node[1].getConst<String>();
     std::size_t p = s.find(t);
     if (p == std::string::npos)
     {
-      if( node[0].isConst() )
+      if (node[0].isConst())
       {
         return returnRewrite(node, node[0], "rpl-const-nfind");
       }
-      else 
+      else
       {
-        if( s.overlap(t)==0 ){
-          std::vector< Node > spl;
-          spl.insert( spl.end(), children0.begin()+1, children0.end() );
-          Node ret = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, children0[0],
-                      NodeManager::currentNM()->mkNode( kind::STRING_STRREPL, 
-                      mkConcat( kind::STRING_CONCAT, spl ), node[1], node[2] ) );	
+        if (s.overlap(t) == 0)
+        {
+          std::vector<Node> spl;
+          spl.insert(spl.end(), children0.begin() + 1, children0.end());
+          Node ret = NodeManager::currentNM()->mkNode(
+              kind::STRING_CONCAT,
+              children0[0],
+              NodeManager::currentNM()->mkNode(
+                  kind::STRING_STRREPL,
+                  mkConcat(kind::STRING_CONCAT, spl),
+                  node[1],
+                  node[2]));
           return returnRewrite(node, ret, "rpl-prefix-nfind");
         }
       }
@@ -1971,7 +1978,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       return returnRewrite(node, ret, "rpl-const-find");
     }
   }
-  
+
   std::vector<Node> children1;
   getConcat(node[1], children1);
 

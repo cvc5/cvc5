@@ -387,58 +387,56 @@ class CegConjecturePbe {
    */
   class EnumInfo {
   public:
-    EnumInfo() : d_role( enum_io ), d_is_conditional(false){}
-    /** initialize this class
-    * c is the parent function-to-synthesize
-    * role is the "role" the enumerator plays in the high-level strategy,
-    *   which is one of enum_* above.
+   EnumInfo() : d_role(enum_io), d_is_conditional(false) {}
+   /** initialize this class
+   * c is the parent function-to-synthesize
+   * role is the "role" the enumerator plays in the high-level strategy,
+   *   which is one of enum_* above.
+   */
+   void initialize(Node c, EnumRole role);
+   /** is this enumerator associated with a template? */
+   bool isTemplated() { return !d_template.isNull(); }
+   /** set conditional
+    *
+    * This flag is set to true if this enumerator may not apply to all
+    * input/output examples. For example, if this enumerator is used
+    * as an output value beneath a conditional in an instance of strat_ITE,
+    * then thie enumerator is conditional.
     */
-    void initialize(Node c, EnumRole role);
-    /** is this enumerator associated with a template? */
-    bool isTemplated() { return !d_template.isNull(); }
-    /** set conditional 
-     * 
-     * This flag is set to true if this enumerator may not apply to all 
-     * input/output examples. For example, if this enumerator is used
-     * as an output value beneath a conditional in an instance of strat_ITE, 
-     * then thie enumerator is conditional.
-     */
-    void setConditional() { d_is_conditional = true; }
-    /** is conditional */
-    bool isConditional() { return d_is_conditional; }
-    void addEnumValue(CegConjecturePbe* pbe,
-                      Node v,
-                      std::vector<Node>& results);
-    void setSolved(Node slv);
-    bool isSolved() { return !d_enum_solved.isNull(); }
-    Node getSolved() { return d_enum_solved; }
-    EnumRole getRole() { return d_role; }
-    Node d_parent_candidate;
-    // for template
-    Node d_template;
-    Node d_template_arg;
-    
-    Node d_active_guard;
-    std::vector< Node > d_enum_slave;
-    /** values we have enumerated */
-    std::vector< Node > d_enum_vals;
-    /**
-     * This either stores the values of f( I ) for inputs
-     * or the value of f( I ) = O if d_role==enum_io
-     */
-    std::vector< std::vector< Node > > d_enum_vals_res;
-    std::vector< Node > d_enum_subsume;
-    std::map< Node, unsigned > d_enum_val_to_index;
-    SubsumeTrie d_term_trie;
+   void setConditional() { d_is_conditional = true; }
+   /** is conditional */
+   bool isConditional() { return d_is_conditional; }
+   void addEnumValue(CegConjecturePbe* pbe, Node v, std::vector<Node>& results);
+   void setSolved(Node slv);
+   bool isSolved() { return !d_enum_solved.isNull(); }
+   Node getSolved() { return d_enum_solved; }
+   EnumRole getRole() { return d_role; }
+   Node d_parent_candidate;
+   // for template
+   Node d_template;
+   Node d_template_arg;
 
-   private:
-    /** whether an enumerated value for this conjecture has solved the entire
-     * conjecture */
-    Node d_enum_solved;
-    /** the role of this enumerator (one of enum_* above). */
-    EnumRole d_role;
-    /** is this enumerator conditional */
-    bool d_is_conditional;
+   Node d_active_guard;
+   std::vector<Node> d_enum_slave;
+   /** values we have enumerated */
+   std::vector<Node> d_enum_vals;
+   /**
+    * This either stores the values of f( I ) for inputs
+    * or the value of f( I ) = O if d_role==enum_io
+    */
+   std::vector<std::vector<Node> > d_enum_vals_res;
+   std::vector<Node> d_enum_subsume;
+   std::map<Node, unsigned> d_enum_val_to_index;
+   SubsumeTrie d_term_trie;
+
+  private:
+   /** whether an enumerated value for this conjecture has solved the entire
+    * conjecture */
+   Node d_enum_solved;
+   /** the role of this enumerator (one of enum_* above). */
+   EnumRole d_role;
+   /** is this enumerator conditional */
+   bool d_is_conditional;
   };
   /** maps enumerators to the information above */
   std::map< Node, EnumInfo > d_einfo;
@@ -542,10 +540,10 @@ class CegConjecturePbe {
   /** domain-specific enumerator exclusion techniques */
   bool getExplanationForEnumeratorExclude( Node c, Node x, Node v, std::vector< Node >& results, EnumInfo& ei, std::vector< Node >& exp );
   /** returns true if we can exlude values of x based on str.contains */
-  bool useStrContainsEnumeratorExclude( Node x, EnumInfo& ei );
+  bool useStrContainsEnumeratorExclude(Node x, EnumInfo& ei);
   /** cache for the above function */
-  std::map< Node, bool > d_use_str_contains_eexc;
-  
+  std::map<Node, bool> d_use_str_contains_eexc;
+
   //------------------------------ strategy registration
   /** collect enumerator types
    *
@@ -585,8 +583,8 @@ class CegConjecturePbe {
    * to a map from the constructors that it needs.
    *
    * ind is the depth in the strategy graph we are at (for debugging).
-   * 
-   * isCond is whether the current enumerator is conditional (beneath a 
+   *
+   * isCond is whether the current enumerator is conditional (beneath a
    * conditional of an strat_ITE strategy).
    */
   void staticLearnRedundantOps(
