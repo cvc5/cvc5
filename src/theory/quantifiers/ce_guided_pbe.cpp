@@ -926,7 +926,7 @@ void CegConjecturePbe::staticLearnRedundantOps( Node c, std::vector< Node >& lem
   std::map<Node, std::map<NodeRole, bool> > visited;
   std::map<Node, std::map<unsigned, bool> > needs_cons;
   staticLearnRedundantOps(
-      c, d_cinfo[c].getRootEnumerator(), role_equal, visited, needs_cons, 0);
+      c, d_cinfo[c].getRootEnumerator(), role_equal, visited, needs_cons, 0, false);
   // now, check the needs_cons map
   for (std::pair<const Node, std::map<unsigned, bool> >& nce : needs_cons)
   {
@@ -957,19 +957,29 @@ void CegConjecturePbe::staticLearnRedundantOps(
     NodeRole nrole,
     std::map<Node, std::map<NodeRole, bool> >& visited,
     std::map<Node, std::map<unsigned, bool> >& needs_cons,
-    int ind)
+    int ind, 
+    bool isCond)
 {
   std::map< Node, EnumInfo >::iterator itn = d_einfo.find( e );
   Assert( itn!=d_einfo.end() );
-  if (visited[e].find(nrole) == visited[e].end())
+  
+  if (visited[e].find(nrole) == visited[e].end() ||
+      (isCond && !itn->second.isConditional()))
   {
     visited[e][nrole] = true;
-
+    // if conditional
+    if( isCond )
+    {
+      itn->second.setConditional();
+    }
     indent("sygus-unif", ind);
     Trace("sygus-unif") << e << " :: node role : " << nrole;
     Trace("sygus-unif")
         << ", type : "
         << ((DatatypeType)e.getType().toType()).getDatatype().getName();
+    if( isCond ){
+      Trace("sygus-unif") << ", conditional";
+    }
     Trace("sygus-unif") << ", enum role : " << itn->second.getRole();
 
     if( itn->second.isTemplated() ){
@@ -991,57 +1001,60 @@ void CegConjecturePbe::staticLearnRedundantOps(
       Assert(itsn != tinfo.d_snodes.end());
       StrategyNode& snode = itsn->second;
 
-      if (!snode.d_strats.empty())
+      if (snode.d_strats.empty())
       {
-        std::map<unsigned, bool> needs_cons_curr;
-        // various strategies
-        for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
+        return;
+      }
+      std::map<unsigned, bool> needs_cons_curr;
+      // various strategies
+      for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
+      {
+        EnumTypeInfoStrat* etis = snode.d_strats[j];
+        StrategyType strat = etis->d_this;
+        bool newIsCond = isCond || strat==strat_ITE;
+        indent("sygus-unif", ind+1);
+        Trace("sygus-unif") << "Strategy : " << strat
+                            << ", from cons : " << etis->d_cons << std::endl;
+        int cindex = Datatype::indexOf(etis->d_cons.toExpr());
+        Assert(cindex != -1);
+        needs_cons_curr[static_cast<unsigned>(cindex)] = false;
+        for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
         {
-          EnumTypeInfoStrat* etis = snode.d_strats[j];
-          StrategyType strat = etis->d_this;
-          indent("sygus-unif", ind+1);
-          Trace("sygus-unif") << "Strategy : " << strat
-                              << ", from cons : " << etis->d_cons << std::endl;
-          int cindex = Datatype::indexOf(etis->d_cons.toExpr());
-          Assert(cindex != -1);
-          needs_cons_curr[static_cast<unsigned>(cindex)] = false;
-          for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
-          {
-            // recurse
-            staticLearnRedundantOps(
-                c, cec.first, cec.second, visited, needs_cons, ind + 2);
-          }
+          // recurse
+          staticLearnRedundantOps(
+              c, cec.first, cec.second, visited, needs_cons, ind + 2, newIsCond);
         }
-        // get the master enumerator for the type of this enumerator
-        std::map<TypeNode, Node>::iterator itse =
-            d_cinfo[c].d_search_enum.find(etn);
-        if (itse != d_cinfo[c].d_search_enum.end())
+      }
+      // get the master enumerator for the type of this enumerator
+      std::map<TypeNode, Node>::iterator itse =
+          d_cinfo[c].d_search_enum.find(etn);
+      if (itse == d_cinfo[c].d_search_enum.end())
+      {
+        return;
+      }
+      Node em = itse->second;
+      Assert(!em.isNull());
+      // get the current datatype
+      const Datatype& dt =
+          static_cast<DatatypeType>(etn.toType()).getDatatype();
+      // all constructors that are not a part of a strategy are needed
+      for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
+      {
+        if (needs_cons_curr.find(j) == needs_cons_curr.end())
         {
-          Node em = itse->second;
-          Assert(!em.isNull());
-          // get the current datatype
-          const Datatype& dt =
-              static_cast<DatatypeType>(etn.toType()).getDatatype();
-          // all constructors that are not a part of a strategy are needed
-          for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
-          {
-            if (needs_cons_curr.find(j) == needs_cons_curr.end())
-            {
-              needs_cons_curr[j] = true;
-            }
-          }
-          // update the constructors that the master enumerator needs
-          if (needs_cons.find(em) == needs_cons.end())
-          {
-            needs_cons[em] = needs_cons_curr;
-          }
-          else
-          {
-            for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
-            {
-              needs_cons[em][j] = needs_cons[em][j] || needs_cons_curr[j];
-            }
-          }
+          needs_cons_curr[j] = true;
+        }
+      }
+      // update the constructors that the master enumerator needs
+      if (needs_cons.find(em) == needs_cons.end())
+      {
+        needs_cons[em] = needs_cons_curr;
+      }
+      else
+      {
+        for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
+        {
+          needs_cons[em][j] = needs_cons[em][j] || needs_cons_curr[j];
         }
       }
     }
@@ -1124,7 +1137,7 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
     Assert( std::find( it->second.d_enum_vals.begin(), it->second.d_enum_vals.end(), v )==it->second.d_enum_vals.end() );
   Node c = it->second.d_parent_candidate;
   // The explanation for why the current value should be excluded in future
-  // iterations. This explanation can be generalized below.
+  // iterations.
   Node exp_exc;
   if( d_examples_out_invalid.find( c )==d_examples_out_invalid.end() ){
     std::map< Node, CandidateInfo >::iterator itc = d_cinfo.find( c );
@@ -1270,21 +1283,45 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
       NodeManager::currentNM()->mkNode(OR, g.negate(), exp_exc.negate());
   Trace("sygus-pbe-enum-lemma") << "CegConjecturePbe : enumeration exclude lemma : " << exlem << std::endl;
   lems.push_back( exlem );
-  
 }
 
 
-bool CegConjecturePbe::useStrContainsEnumeratorExclude( Node c, Node x, EnumInfo& ei )
+bool CegConjecturePbe::useStrContainsEnumeratorExclude( Node x, EnumInfo& ei )
 {
-  if( x.getType().isString() )
+  TypeNode xbt = d_tds->sygusToBuiltinType( x.getType() );
+  if( xbt.isString() )
   {
-    
+    std::map< Node, bool >::iterator itx = d_use_str_contains_eexc.find( x );
+    if( itx!=d_use_str_contains_eexc.end() ){
+      return itx->second;
+    }
+    Trace("sygus-pbe-enum-debug") << "Is " << x << " is str.contains exclusion?" << std::endl;
+    d_use_str_contains_eexc[x] = true;
+    for( const Node& sn : ei.d_enum_slave )
+    {
+      std::map< Node, EnumInfo >::iterator itv = d_einfo.find( sn );
+      EnumRole er = itv->second.getRole();
+      if( er != enum_io && er != enum_concat_term )
+      {
+        Trace("sygus-pbe-enum-debug") << "  incompatible slave : " << sn << ", role = " << er << std::endl;
+        d_use_str_contains_eexc[x] = false;
+        return false;
+      }
+      if( itv->second.isConditional() )
+      {
+        Trace("sygus-pbe-enum-debug") << "  conditional slave : " << sn << std::endl;
+        d_use_str_contains_eexc[x] = false;
+        return false;
+      }
+    }
+    Trace("sygus-pbe-enum-debug") << "...can use str.contains exclusion." << std::endl;
+    return d_use_str_contains_eexc[x];
   }
   return false;
 }
 
 bool CegConjecturePbe::getExplanationForEnumeratorExclude( Node c, Node x, Node v, std::vector< Node >& results, EnumInfo& ei, std::vector< Node >& exp ) {
-  if( useStrContainsEnumeratorExclude( c, x, ei ) )
+  if( useStrContainsEnumeratorExclude( x, ei ) )
   {
     // This check whether the example evaluates to something that is larger than
     // the output for some input/output pair. If so, then this term is never 
