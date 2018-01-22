@@ -1116,21 +1116,44 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
   std::map< Node, EnumInfo >::iterator it = d_einfo.find( x );
   Assert( it != d_einfo.end() );
   Node gstatus = d_qe->getValuation().getSatValue(it->second.d_active_guard);
-  if (!gstatus.isNull() && gstatus.getConst<bool>())
+  if (gstatus.isNull() || !gstatus.getConst<bool>())
   {
+    Trace("sygus-pbe-enum-debug") << "  ...guard is inactive." << std::endl;
+    return;
+  }
     Assert( std::find( it->second.d_enum_vals.begin(), it->second.d_enum_vals.end(), v )==it->second.d_enum_vals.end() );
-    Node c = it->second.d_parent_candidate;
-    Node exp_exc;
-    if( d_examples_out_invalid.find( c )==d_examples_out_invalid.end() ){
-      std::map< Node, CandidateInfo >::iterator itc = d_cinfo.find( c );
-      Assert( itc != d_cinfo.end() );      
-      TypeNode xtn = x.getType();
-      Node bv = d_tds->sygusToBuiltin( v, xtn );
-      std::map< Node, std::vector< std::vector< Node > > >::iterator itx = d_examples.find( c );
-      std::map< Node, std::vector< Node > >::iterator itxo = d_examples_out.find( c );
-      Assert( itx!=d_examples.end() );
-      Assert( itxo!=d_examples_out.end() );
-      Assert( itx->second.size()==itxo->second.size() );
+  Node c = it->second.d_parent_candidate;
+  // The explanation for why the current value should be excluded in future
+  // iterations. This explanation can be generalized below.
+  Node exp_exc;
+  if( d_examples_out_invalid.find( c )==d_examples_out_invalid.end() ){
+    std::map< Node, CandidateInfo >::iterator itc = d_cinfo.find( c );
+    Assert( itc != d_cinfo.end() );      
+    TypeNode xtn = x.getType();
+    Node bv = d_tds->sygusToBuiltin( v, xtn );
+    std::map< Node, std::vector< std::vector< Node > > >::iterator itx = d_examples.find( c );
+    std::map< Node, std::vector< Node > >::iterator itxo = d_examples_out.find( c );
+    Assert( itx!=d_examples.end() );
+    Assert( itxo!=d_examples_out.end() );
+    Assert( itx->second.size()==itxo->second.size() );
+    std::vector< Node > base_results;
+    // compte the results
+    for( unsigned j=0; j<itx->second.size(); j++ ){
+      Node res = d_tds->evaluateBuiltin( xtn, bv, itx->second[j] );
+      Trace("sygus-pbe-enum-debug") << "...got res = " << res << " from " << bv << std::endl;
+      base_results.push_back( res );
+    }
+    // is it excluded for domain-specific reason?
+    std::vector< Node > exp_exc_vec;
+    if( getExplanationForEnumeratorExclude( c, x, v, base_results, it->second, exp_exc_vec ) ){
+      Assert( !exp_exc_vec.empty() );
+      exp_exc = exp_exc_vec.size() == 1
+                    ? exp_exc_vec[0]
+                    : NodeManager::currentNM()->mkNode(AND, exp_exc_vec);
+      Trace("sygus-pbe-enum") << "  ...fail : term is excluded (domain-specific)" << std::endl;
+    }
+    else
+    {
       // notify all slaves
       Assert( !it->second.d_enum_slave.empty() );
       //explanation for why this value should be excluded
@@ -1153,9 +1176,8 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
         Node templ = itv->second.d_template;
         TNode templ_var = itv->second.d_template_arg;
         std::map< Node, bool > cond_vals;
-        for( unsigned j=0; j<itx->second.size(); j++ ){
-          Node res = d_tds->evaluateBuiltin( xtn, bv, itx->second[j] );
-          Trace("sygus-pbe-enum-debug") << "...got res = " << res << " from " << bv << std::endl;
+        for( unsigned j=0, size = base_results.size(); j<size; j++ ){
+          Node res = base_results[j];
           Assert( res.isConst() );
           if( !templ.isNull() ){
             TNode tres = res;
@@ -1185,7 +1207,8 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
         bool keep = false;
         if (itv->second.getRole() == enum_io)
         {
-          if( cond_vals.find( d_true )!=cond_vals.end() || cond_vals.empty() ){  // latter is the degenerate case of no examples
+          // latter is the degenerate case of no examples
+          if( cond_vals.find( d_true )!=cond_vals.end() || cond_vals.empty() ){  
             //check subsumbed/subsuming
             std::vector< Node > subsume;
             if( cond_vals.find( d_false )==cond_vals.end() ){
@@ -1217,115 +1240,95 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
             Trace("sygus-pbe-enum") << "  ...fail : it does not satisfy examples." << std::endl;
           }
         }else{
-          // is it excluded for domain-specific reason?
-          std::vector< Node > exp_exc_vec;
-          if( getExplanationForEnumeratorExclude( c, x, v, results, it->second, exp_exc_vec ) ){
-            Assert( !exp_exc_vec.empty() );
-            exp_exc = exp_exc_vec.size() == 1
-                          ? exp_exc_vec[0]
-                          : NodeManager::currentNM()->mkNode(AND, exp_exc_vec);
-            Trace("sygus-pbe-enum") << "  ...fail : term is excluded (domain-specific)" << std::endl;
+          // must be unique up to examples
+          Node val = itv->second.d_term_trie.addCond( this, v, results, true );
+          if( val==v ){
+            Trace("sygus-pbe-enum") << "  ...success!   add to PBE pool : " << d_tds->sygusToBuiltin( v ) << std::endl;
+            keep = true;
           }else{
-            //if( cond_vals.size()!=2 ){
-            //  // must discriminate
-            //  Trace("sygus-pbe-enum") << "  ...fail : conditional is constant." << std::endl;
-            //  keep = false;
-            //}
-            // must be unique up to examples
-            Node val = itv->second.d_term_trie.addCond( this, v, results, true );
-            if( val==v ){
-              Trace("sygus-pbe-enum") << "  ...success!   add to PBE pool : " << d_tds->sygusToBuiltin( v ) << std::endl;
-              keep = true;
-            }else{
-              Trace("sygus-pbe-enum") << "  ...fail : term is not unique" << std::endl;
-            }
-            itc->second.d_cond_count++;
+            Trace("sygus-pbe-enum") << "  ...fail : term is not unique" << std::endl;
           }
+          itc->second.d_cond_count++;
         }
         if( keep ){
           // notify the parent to retry the build of PBE
           itc->second.d_check_sol = true;
           itv->second.addEnumValue( this, v, results );
-          /*
-          if( Trace.isOn("sygus-pbe-enum") ){
-            if( itv->second.getRole()==enum_io ){
-              if( !prevIsCover && itv->second.isFeasible() ){
-                Trace("sygus-pbe-enum") << "...PBE : success : Evaluation of "
-          << xs << " now covers all examples." << std::endl;
-              }
-            }
-          }
-          */
         }
       }
-    }else{
-      Trace("sygus-pbe-enum-debug") << "  ...examples do not have output." << std::endl;
     }
-    //exclude this value on subsequent iterations
-    Node g = it->second.d_active_guard;
-    if( exp_exc.isNull() ){
-      // if we did not already explain why this should be excluded, use default
-      exp_exc = d_tds->getExplain()->getExplanationForConstantEquality(x, v);
-    }
-    Node exlem =
-        NodeManager::currentNM()->mkNode(OR, g.negate(), exp_exc.negate());
-    Trace("sygus-pbe-enum-lemma") << "CegConjecturePbe : enumeration exclude lemma : " << exlem << std::endl;
-    lems.push_back( exlem );
   }else{
-    Trace("sygus-pbe-enum-debug") << "  ...guard is inactive." << std::endl;
+    Trace("sygus-pbe-enum-debug") << "  ...examples do not have output." << std::endl;
   }
+  //exclude this value on subsequent iterations
+  Node g = it->second.d_active_guard;
+  if( exp_exc.isNull() ){
+    // if we did not already explain why this should be excluded, use default
+    exp_exc = d_tds->getExplain()->getExplanationForConstantEquality(x, v);
+  }
+  Node exlem =
+      NodeManager::currentNM()->mkNode(OR, g.negate(), exp_exc.negate());
+  Trace("sygus-pbe-enum-lemma") << "CegConjecturePbe : enumeration exclude lemma : " << exlem << std::endl;
+  lems.push_back( exlem );
+  
+}
+
+
+bool CegConjecturePbe::useStrContainsEnumeratorExclude( Node c, Node x, EnumInfo& ei )
+{
+  if( x.getType().isString() )
+  {
+    
+  }
+  return false;
 }
 
 bool CegConjecturePbe::getExplanationForEnumeratorExclude( Node c, Node x, Node v, std::vector< Node >& results, EnumInfo& ei, std::vector< Node >& exp ) {
-  if( ei.d_enum_slave.size()==1 ){
-    // this check whether the example evaluates to something that is larger than the output
-    //  if so, then this term is never useful when using a concatenation strategy
-    if (ei.getRole() == enum_concat_term)
-    {
-      if( Trace.isOn("sygus-pbe-cterm-debug") ){
-        Trace("sygus-pbe-enum") << std::endl;
-      }
+  if( useStrContainsEnumeratorExclude( c, x, ei ) )
+  {
+    // This check whether the example evaluates to something that is larger than
+    // the output for some input/output pair. If so, then this term is never 
+    // useful. We generalize its explanation below.
 
-      // check if all examples had longer length that the output
-      std::map< Node, std::vector< Node > >::iterator itxo = d_examples_out.find( c );
-      Assert( itxo!=d_examples_out.end() );
-      Assert( itxo->second.size()==results.size() );
-      Trace("sygus-pbe-cterm-debug") << "Check enumerator exclusion for " << x << " -> " << d_tds->sygusToBuiltin( v ) << " based on containment." << std::endl;
-      std::vector< unsigned > cmp_indices;
-      for( unsigned i=0; i<results.size(); i++ ){
-        Assert( results[i].isConst() );
-        Assert( itxo->second[i].isConst() );
-        /*
-        unsigned vlen = results[i].getConst<String>().size();
-        unsigned xlen = itxo->second[i].getConst<String>().size();
-        Trace("sygus-pbe-cterm-debug") << "  " << results[i] << " <> " << itxo->second[i];
-        int index = vlen>xlen ? 1 : ( vlen<xlen ? -1 : 0 );
-        Trace("sygus-pbe-cterm-debug") << "..." << index << std::endl;
-        cmp_indices[index].push_back( i );
-        */
-        Trace("sygus-pbe-cterm-debug") << "  " << results[i] << " <> " << itxo->second[i];
-        Node cont = NodeManager::currentNM()->mkNode(
-            STRING_STRCTN, itxo->second[i], results[i]);
-        Node contr = Rewriter::rewrite( cont );
-        if( contr==d_false ){
-          cmp_indices.push_back( i );
-          Trace("sygus-pbe-cterm-debug") << "...not contained." << std::endl;
-        }else{
-          Trace("sygus-pbe-cterm-debug") << "...contained." << std::endl;
-        }
-      }
-      // TODO : stronger requirement if we incorporate ITE + CONCAT mixed strategy : must be longer than *all* examples
-      if( !cmp_indices.empty() ){
-        //set up the inclusion set
-        NegContainsSygusInvarianceTest ncset;
-        ncset.init(d_parent, x, itxo->second, cmp_indices);
-        d_tds->getExplain()->getExplanationFor(x, v, exp, ncset);
-        Trace("sygus-pbe-cterm") << "PBE-cterm : enumerator exclude " << d_tds->sygusToBuiltin( v ) << " due to negative containment." << std::endl;
-        return true;
+    if( Trace.isOn("sygus-pbe-cterm-debug") ){
+      Trace("sygus-pbe-enum") << std::endl;
+    }
+    // check if all examples had longer length that the output
+    std::map< Node, std::vector< Node > >::iterator itxo = d_examples_out.find( c );
+    Assert( itxo!=d_examples_out.end() );
+    Assert( itxo->second.size()==results.size() );
+    Trace("sygus-pbe-cterm-debug") << "Check enumerator exclusion for " << x << " -> " << d_tds->sygusToBuiltin( v ) << " based on str.contains." << std::endl;
+    std::vector< unsigned > cmp_indices;
+    for( unsigned i=0, size = results.size(); i<size; i++ ){
+      Assert( results[i].isConst() );
+      Assert( itxo->second[i].isConst() );
+      /*
+      unsigned vlen = results[i].getConst<String>().size();
+      unsigned xlen = itxo->second[i].getConst<String>().size();
+      Trace("sygus-pbe-cterm-debug") << "  " << results[i] << " <> " << itxo->second[i];
+      int index = vlen>xlen ? 1 : ( vlen<xlen ? -1 : 0 );
+      Trace("sygus-pbe-cterm-debug") << "..." << index << std::endl;
+      cmp_indices[index].push_back( i );
+      */
+      Trace("sygus-pbe-cterm-debug") << "  " << results[i] << " <> " << itxo->second[i];
+      Node cont = NodeManager::currentNM()->mkNode(
+          STRING_STRCTN, itxo->second[i], results[i]);
+      Node contr = Rewriter::rewrite( cont );
+      if( contr==d_false ){
+        cmp_indices.push_back( i );
+        Trace("sygus-pbe-cterm-debug") << "...not contained." << std::endl;
+      }else{
+        Trace("sygus-pbe-cterm-debug") << "...contained." << std::endl;
       }
     }
-  }else{
-    Trace("sygus-pbe-cterm-debug") << "More than one slave for " << x << std::endl;
+    if( !cmp_indices.empty() ){
+      //set up the inclusion set
+      NegContainsSygusInvarianceTest ncset;
+      ncset.init(d_parent, x, itxo->second, cmp_indices);
+      d_tds->getExplain()->getExplanationFor(x, v, exp, ncset);
+      Trace("sygus-pbe-cterm") << "PBE-cterm : enumerator exclude " << d_tds->sygusToBuiltin( v ) << " due to negative containment." << std::endl;
+      return true;
+    }
   }
   return false;
 }

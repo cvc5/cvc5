@@ -526,8 +526,11 @@ class CegConjecturePbe {
   //------------------------------ representation of an enumeration strategy
   /** add enumerated value */
   void addEnumeratedValue( Node x, Node v, std::vector< Node >& lems );
+  /** domain-specific enumerator exclusion techniques */
   bool getExplanationForEnumeratorExclude( Node c, Node x, Node v, std::vector< Node >& results, EnumInfo& ei, std::vector< Node >& exp );
-
+  /** returns true if we can exlude values of x based on str.contains */
+  bool useStrContainsEnumeratorExclude( Node c, Node x, EnumInfo& ei );
+  
   //------------------------------ strategy registration
   /** collect enumerator types
    *
