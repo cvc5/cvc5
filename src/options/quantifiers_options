@@ -355,6 +355,8 @@ option cbqiBvRmExtract --cbqi-bv-rm-extract bool :read-write :default true
   replaces extract terms with variables for counterexample-guided instantiation for bit-vectors
 option cbqiBvLinearize --cbqi-bv-linear bool :read-write :default true
   linearize adder chains for variables
+option cbqiBvConcInv cbqi-bv-concat-inv --cbqi-bv-concat-inv bool :read-write :default true
+  compute inverse for concat over equalities rather than producing an invertibility condition
  
 ### local theory extensions options 
 
