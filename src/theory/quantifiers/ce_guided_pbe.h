@@ -386,57 +386,57 @@ class CegConjecturePbe {
    * (possibly multiple) slave enumerators, stored in d_enum_slave,
    */
   class EnumInfo {
-  public:
-   EnumInfo() : d_role(enum_io), d_is_conditional(false) {}
-   /** initialize this class
-   * c is the parent function-to-synthesize
-   * role is the "role" the enumerator plays in the high-level strategy,
-   *   which is one of enum_* above.
-   */
-   void initialize(Node c, EnumRole role);
-   /** is this enumerator associated with a template? */
-   bool isTemplated() { return !d_template.isNull(); }
-   /** set conditional
-    *
-    * This flag is set to true if this enumerator may not apply to all
-    * input/output examples. For example, if this enumerator is used
-    * as an output value beneath a conditional in an instance of strat_ITE,
-    * then thie enumerator is conditional.
+   public:
+    EnumInfo() : d_role(enum_io), d_is_conditional(false) {}
+    /** initialize this class
+    * c is the parent function-to-synthesize
+    * role is the "role" the enumerator plays in the high-level strategy,
+    *   which is one of enum_* above.
     */
-   void setConditional() { d_is_conditional = true; }
-   /** is conditional */
-   bool isConditional() { return d_is_conditional; }
-   void addEnumValue(CegConjecturePbe* pbe, Node v, std::vector<Node>& results);
-   void setSolved(Node slv);
-   bool isSolved() { return !d_enum_solved.isNull(); }
-   Node getSolved() { return d_enum_solved; }
-   EnumRole getRole() { return d_role; }
-   Node d_parent_candidate;
-   // for template
-   Node d_template;
-   Node d_template_arg;
+    void initialize(Node c, EnumRole role);
+    /** is this enumerator associated with a template? */
+    bool isTemplated() { return !d_template.isNull(); }
+    /** set conditional
+      *
+      * This flag is set to true if this enumerator may not apply to all
+      * input/output examples. For example, if this enumerator is used
+      * as an output value beneath a conditional in an instance of strat_ITE,
+      * then thie enumerator is conditional.
+      */
+    void setConditional() { d_is_conditional = true; }
+    /** is conditional */
+    bool isConditional() { return d_is_conditional; }
+    void addEnumValue(CegConjecturePbe* pbe, Node v, std::vector<Node>& results);
+    void setSolved(Node slv);
+    bool isSolved() { return !d_enum_solved.isNull(); }
+    Node getSolved() { return d_enum_solved; }
+    EnumRole getRole() { return d_role; }
+    Node d_parent_candidate;
+    // for template
+    Node d_template;
+    Node d_template_arg;
 
-   Node d_active_guard;
-   std::vector<Node> d_enum_slave;
-   /** values we have enumerated */
-   std::vector<Node> d_enum_vals;
-   /**
-    * This either stores the values of f( I ) for inputs
-    * or the value of f( I ) = O if d_role==enum_io
-    */
-   std::vector<std::vector<Node> > d_enum_vals_res;
-   std::vector<Node> d_enum_subsume;
-   std::map<Node, unsigned> d_enum_val_to_index;
-   SubsumeTrie d_term_trie;
+    Node d_active_guard;
+    std::vector<Node> d_enum_slave;
+    /** values we have enumerated */
+    std::vector<Node> d_enum_vals;
+    /**
+      * This either stores the values of f( I ) for inputs
+      * or the value of f( I ) = O if d_role==enum_io
+      */
+    std::vector<std::vector<Node> > d_enum_vals_res;
+    std::vector<Node> d_enum_subsume;
+    std::map<Node, unsigned> d_enum_val_to_index;
+    SubsumeTrie d_term_trie;
 
-  private:
-   /** whether an enumerated value for this conjecture has solved the entire
-    * conjecture */
-   Node d_enum_solved;
-   /** the role of this enumerator (one of enum_* above). */
-   EnumRole d_role;
-   /** is this enumerator conditional */
-   bool d_is_conditional;
+   private:
+    /** whether an enumerated value for this conjecture has solved the entire
+      * conjecture */
+    Node d_enum_solved;
+    /** the role of this enumerator (one of enum_* above). */
+    EnumRole d_role;
+    /** is this enumerator conditional */
+    bool d_is_conditional;
   };
   /** maps enumerators to the information above */
   std::map< Node, EnumInfo > d_einfo;
