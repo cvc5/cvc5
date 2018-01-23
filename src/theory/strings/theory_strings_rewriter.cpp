@@ -2622,7 +2622,7 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
         else if (n2[index1].getKind() == kind::STRING_ITOS)
         {
           const std::vector<unsigned>& svec = s.getVec();
-          // can remove up to the first occurrence of a non-digit
+          // can remove up to the first occurrence of a digit
           for (unsigned i = 0; i < svec.size(); i++)
           {
             unsigned sindex = r == 0 ? i : svec.size() - i;
@@ -2632,8 +2632,8 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
             }
             else
             {
-              // e.g. str.contains( str.++( "a", x ), str.to.int(y) ) -->
-              // str.contains( x, str.to.int(y) )
+              // e.g. str.contains( str.++( "a", x ), int.to.str(y) ) -->
+              // str.contains( x, int.to.str(y) )
               overlap--;
             }
           }
@@ -2679,7 +2679,7 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
           {
             // if n1.size()==1, then if n2[index1] is not a number, we can drop
             // the entire component
-            //    e.g. str.contains( str.to.int(x), "123a45") --> false
+            //    e.g. str.contains( int.to.str(x), "123a45") --> false
             if (!t.isNumber())
             {
               removeComponent = true;
@@ -2693,9 +2693,9 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
             // if n1.size()>1, then if the first (resp. last) character of
             // n2[index1]
             //  is not a digit, we can drop the entire component, e.g.:
-            //    str.contains( str.++( str.to.int(x), y ), "a12") -->
+            //    str.contains( str.++( int.to.str(x), y ), "a12") -->
             //    str.contains( y, "a12" )
-            //    str.contains( str.++( y, str.to.int(x) ), "a0b") -->
+            //    str.contains( str.++( y, int.to.str(x) ), "a0b") -->
             //    str.contains( y, "a0b" )
             unsigned i = r == 0 ? 0 : (tvec.size() - 1);
             if (!String::isDigit(tvec[i]))

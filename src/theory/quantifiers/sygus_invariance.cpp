@@ -217,7 +217,8 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
         }
         return true;
       }
-      Trace("sygus-pbe-cterm-debug2") << "...check failed, rewrites to : " << contr << std::endl;
+      Trace("sygus-pbe-cterm-debug2")
+          << "...check failed, rewrites to : " << contr << std::endl;
     }
   }
   return false;

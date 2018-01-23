@@ -406,7 +406,9 @@ class CegConjecturePbe {
     void setConditional() { d_is_conditional = true; }
     /** is conditional */
     bool isConditional() { return d_is_conditional; }
-    void addEnumValue(CegConjecturePbe* pbe, Node v, std::vector<Node>& results);
+    void addEnumValue(CegConjecturePbe* pbe,
+                      Node v,
+                      std::vector<Node>& results);
     void setSolved(Node slv);
     bool isSolved() { return !d_enum_solved.isNull(); }
     Node getSolved() { return d_enum_solved; }
