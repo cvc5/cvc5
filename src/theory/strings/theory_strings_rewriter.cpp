@@ -1926,10 +1926,6 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   if( node[1]==node[2] ){
     return returnRewrite(node, node[0], "rpl-id");
   }
-  else if (node[0] == node[1])
-  {
-    return returnRewrite(node, node[2], "rpl-replace");
-  }
   else if (node[0].isConst() && node[0].getConst<String>().isEmptyString())
   {
     return returnRewrite(node, node[0], "rpl-empty");
@@ -1937,6 +1933,10 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   else if (node[1].isConst() && node[1].getConst<String>().isEmptyString())
   {
     return returnRewrite(node, node[0], "rpl-rpl-empty");
+  }
+  else if (node[0] == node[1])
+  {
+    return returnRewrite(node, node[2], "rpl-replace");
   }
 
   std::vector<Node> children0;
@@ -1977,8 +1977,12 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       CVC4::String s3 = s.substr((int)p + (int)t.size());
       Node ns1 = NodeManager::currentNM()->mkConst(::CVC4::String(s1));
       Node ns3 = NodeManager::currentNM()->mkConst(::CVC4::String(s3));
-      Node ret = NodeManager::currentNM()->mkNode(
-          kind::STRING_CONCAT, ns1, node[2], ns3);
+      std::vector< Node > children;
+      children.push_back( ns1 );
+      children.push_back( node[2] );
+      children.push_back( ns3 );
+      children.insert( children.end(), children0.begin()+1, children0.end() );
+      Node ret = mkConcat( kind::STRING_CONCAT, children );
       return returnRewrite(node, ret, "rpl-const-find");
     }
   }
