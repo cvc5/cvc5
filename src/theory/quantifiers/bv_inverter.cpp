@@ -2897,7 +2897,8 @@ Node BvInverter::solveBvLit(Node sv,
     {
       t = nm->mkNode(BITVECTOR_XOR, t, s);
     }
-    else if (k == BITVECTOR_MULT && s.isConst() && bv::utils::getBit(s, 0))
+    else if (litk == EQUAL && k == BITVECTOR_MULT
+             && s.isConst() && bv::utils::getBit(s, 0))
     {
       unsigned w = bv::utils::getSize(s);
       Integer s_val = s.getConst<BitVector>().toInteger();
