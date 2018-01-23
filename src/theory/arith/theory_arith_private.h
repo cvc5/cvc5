@@ -414,7 +414,7 @@ private:
    * precondition: The linear abstraction of the nodes must be satisfiable.
    */
   DeltaRational getDeltaValue(TNode term) const
-      throw(DeltaRationalException, ModelException);
+      /* throw(DeltaRationalException, ModelException) */;
 
   Node axiomIteForTotalDivision(Node div_tot);
   Node axiomIteForTotalIntDivision(Node int_div_like);

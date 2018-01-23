@@ -116,7 +116,8 @@ public:
    * This can be done whenever this->k or a.k is 0.
    * Otherwise, the result is not a DeltaRational and a DeltaRationalException is thrown.
    */
-  DeltaRational operator*(const DeltaRational& a) const throw(DeltaRationalException){
+  DeltaRational operator*(const DeltaRational& a) const
+  /* throw(DeltaRationalException) */ {
     if(infinitesimalIsZero()){
       return a * (this->getNoninfinitesimalPart());
     }else if(a.infinitesimalIsZero()){
@@ -153,7 +154,8 @@ public:
    * This can be done when a.k is 0 and a.c is non-zero.
    * Otherwise, the result is not a DeltaRational and a DeltaRationalException is thrown.
    */
-  DeltaRational operator/(const DeltaRational& a) const throw(DeltaRationalException){
+  DeltaRational operator/(const DeltaRational& a) const
+  /* throw(DeltaRationalException) */ {
     if(a.infinitesimalIsZero()){
       return (*this) / a.getNoninfinitesimalPart();
     }else{
@@ -258,11 +260,12 @@ public:
   }
 
   /** Only well defined if both this and y are integral. */
-  Integer euclidianDivideQuotient(const DeltaRational& y) const throw(DeltaRationalException);
+  Integer euclidianDivideQuotient(const DeltaRational& y) const
+      /* throw(DeltaRationalException) */;
 
   /** Only well defined if both this and y are integral. */
-  Integer euclidianDivideRemainder(const DeltaRational& y) const throw(DeltaRationalException);
-
+  Integer euclidianDivideRemainder(const DeltaRational& y) const
+      /* throw(DeltaRationalException) */;
 
   std::string toString() const;
 
