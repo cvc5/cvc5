@@ -435,6 +435,12 @@ void CegConjecture::getModelValues( std::vector< Node >& n, std::vector< Node >&
       std::stringstream ss;
       Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, nv);
       Trace("cegqi-engine") << ss.str() << " ";
+      if( Trace.isOn("cegqi-engine-rr") )
+      {
+        Node bv = d_qe->getTermDatabaseSygus()->sygusToBuiltin( nv, tn );
+        bv = Rewriter::rewrite( bv );
+        Trace("cegqi-engine-rr") << " -> " << bv << std::endl;
+      }
     }
     Assert( !nv.isNull() );
   }

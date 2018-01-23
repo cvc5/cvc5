@@ -1930,9 +1930,13 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   {
     return returnRewrite(node, node[2], "rpl-replace");
   }
-  else if (node[1].isConst() && node[1].getConst<String>().isEmptyString())
+  else if (node[0].isConst() && node[0].getConst<String>().isEmptyString())
   {
     return returnRewrite(node, node[0], "rpl-empty");
+  }
+  else if (node[1].isConst() && node[1].getConst<String>().isEmptyString())
+  {
+    return returnRewrite(node, node[0], "rpl-rpl-empty");
   }
 
   std::vector<Node> children0;
