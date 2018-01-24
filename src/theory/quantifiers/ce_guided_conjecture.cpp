@@ -626,6 +626,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       }
     }
     if( !(Trace.isOn("cegqi-stats")) && !sol.isNull() ){
+      
       out << "(define-fun " << f << " ";
       if( dt.getSygusVarList().isNull() ){
         out << "() ";
@@ -637,19 +638,28 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         out << sol;
       }else{
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
-        if( options::sygusStreamSample()>=0 )
+      }
+      out << ")" << std::endl;  
+      
+      if( status!=0 && options::sygusStreamSample()>=0 )
+      {
+        SygusSampler* ss = NULL;
+        std::map< Node, SygusSampler* >::iterator its = d_sampler.find(prog);
+        if( its==d_sampler.end() ){
+          ss = new SygusSampler( d_qe, prog, options::sygusStreamSample() );
+          d_sampler[prog] = ss;
+        }else{
+          ss = its->second;
+        }
+        TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
+        Node solb = sygusDb->sygusToBuiltin( sol, prog.getType() );
+        Node eq_sol = ss->registerTerm( solb );
+        // eq_sol is a candidate solution that is equivalent to sol
+        if( eq_sol!=solb )
         {
-          SygusSampler* ss = NULL;
-          std::map< Node, SygusSampler* >::iterator its = d_sampler.find(prog);
-          if( its==d_sampler.end() ){
-            ss = new SygusSampler( d_qe, prog, options::sygusStreamSample() );
-          }else{
-            ss = its->second;
-          }
-          ss->registerTerm( sol );
+          out << "(candidate-rewrite " << eq_sol << " " << solb << ")" << std::endl;
         }
       }
-      out << ")" << std::endl;
     }
   }
 }
