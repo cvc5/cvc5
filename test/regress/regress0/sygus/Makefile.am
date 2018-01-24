@@ -71,7 +71,6 @@ TESTS = commutative.sy \
         process-10-vars-2fun.sy \
         inv-unused.sy \
         ccp16.lus.sy \
-        Base16_1.sy \
         icfp_14.12-flip-args.sy \
         strings-template-infer-unused.sy \
         strings-trivial-two-type.sy \
@@ -80,6 +79,8 @@ TESTS = commutative.sy \
         real-grammar-neg.sy \
         real-si-all.sy
 
+# disabled, takes too long with and without CBQI BV
+# Base16_1.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \

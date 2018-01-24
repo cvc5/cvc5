@@ -4120,7 +4120,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 }
 
 DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
-    throw(DeltaRationalException, ModelException) {
+{
   AlwaysAssert(d_qflraStatus != Result::SAT_UNKNOWN);
   Debug("arith::value") << term << std::endl;
 

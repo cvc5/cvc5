@@ -4700,17 +4700,19 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
       d_needPostsolve = false;
     }
 
-    // Push the context
-    internalPush();
-
     // Note that a query has been made
     d_queryMade = true;
 
     // reset global negation
     d_globalNegation = false;
 
+    bool didInternalPush = false;
     // Add the formula
     if(!e.isNull()) {
+      // Push the context
+      internalPush();
+      didInternalPush = true;
+
       d_problemExtended = true;
       Expr ea = isQuery ? e.notExpr() : e;
       if(d_assertionList != NULL) {
@@ -4761,7 +4763,10 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
     }
 
     // Pop the context
-    internalPop();
+    if (didInternalPush)
+    {
+      internalPop();
+    }
 
     // Remember the status
     d_status = r;
