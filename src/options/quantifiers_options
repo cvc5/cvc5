@@ -297,7 +297,9 @@ option sygusCRefEvalMinExp --sygus-cref-eval-min-exp bool :default true
   
 option sygusStream --sygus-stream bool :default false
   enumerate a stream of solutions instead of terminating after the first one
-  
+option sygusStreamSample --sygus-stream-sample=N int :read-write :default -1 :read-write
+  number of sample points to consider when doing doing equivalence checking of sygus solutions
+
 # CEGQI applied to general quantified formulas
 option cbqi --cbqi bool :read-write :default false
  turns on counterexample-based quantifier instantiation

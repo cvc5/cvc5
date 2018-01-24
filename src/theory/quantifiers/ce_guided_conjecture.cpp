@@ -56,7 +56,12 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_refine_count(0),
       d_syntax_guided(false) {}
 
-CegConjecture::~CegConjecture() {}
+CegConjecture::~CegConjecture() {
+  for( std::pair< const Node, SygusSampler* >& ps : d_sampler )
+  {
+    delete ps.second;
+  }
+}
 
 void CegConjecture::assign( Node q ) {
   Assert( d_embed_quant.isNull() );
@@ -632,6 +637,17 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         out << sol;
       }else{
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
+        if( options::sygusStreamSample()>=0 )
+        {
+          SygusSampler* ss = NULL;
+          std::map< Node, SygusSampler* >::iterator its = d_sampler.find(prog);
+          if( its==d_sampler.end() ){
+            ss = new SygusSampler( d_qe, prog, options::sygusStreamSample() );
+          }else{
+            ss = its->second;
+          }
+          ss->registerTerm( sol );
+        }
       }
       out << ")" << std::endl;
     }
