@@ -338,7 +338,7 @@ class CVC4_PUBLIC SmtEngine {
    * Fully type-check the argument, and also type-check that it's
    * actually Boolean.
    */
-  void ensureBoolean(const Expr& e) throw(TypeCheckingException);
+  void ensureBoolean(const Expr& e) /* throw(TypeCheckingException) */;
 
   void internalPush();
 
@@ -350,7 +350,7 @@ class CVC4_PUBLIC SmtEngine {
    * Internally handle the setting of a logic.  This function should always
    * be called when d_logic is updated.
    */
-  void setLogicInternal() throw();
+  void setLogicInternal() /* throw() */;
 
   // TODO (Issue #1096): Remove this friend relationship.
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
@@ -413,27 +413,28 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * Construct an SmtEngine with the given expression manager.
    */
-  SmtEngine(ExprManager* em) throw();
+  SmtEngine(ExprManager* em) /* throw() */;
 
   /**
    * Destruct the SMT engine.
    */
-  ~SmtEngine() throw();
+  ~SmtEngine();
 
   /**
    * Set the logic of the script.
    */
-  void setLogic(const std::string& logic) throw(ModalException, LogicException);
+  void setLogic(
+      const std::string& logic) /* throw(ModalException, LogicException) */;
 
   /**
    * Set the logic of the script.
    */
-  void setLogic(const char* logic) throw(ModalException, LogicException);
+  void setLogic(const char* logic) /* throw(ModalException, LogicException) */;
 
   /**
    * Set the logic of the script.
    */
-  void setLogic(const LogicInfo& logic) throw(ModalException);
+  void setLogic(const LogicInfo& logic) /* throw(ModalException) */;
 
   /**
    * Get the logic information currently set
@@ -444,7 +445,7 @@ class CVC4_PUBLIC SmtEngine {
    * Set information about the script executing.
    */
   void setInfo(const std::string& key, const CVC4::SExpr& value)
-    throw(OptionException, ModalException);
+      /* throw(OptionException, ModalException) */;
 
   /**
    * Query information about the SMT environment.
@@ -455,13 +456,13 @@ class CVC4_PUBLIC SmtEngine {
    * Set an aspect of the current SMT execution environment.
    */
   void setOption(const std::string& key, const CVC4::SExpr& value)
-    throw(OptionException, ModalException);
+      /* throw(OptionException, ModalException) */;
 
   /**
    * Get an aspect of the current SMT execution environment.
    */
   CVC4::SExpr getOption(const std::string& key) const
-    throw(OptionException);
+      /* throw(OptionException) */;
 
   /**
    * Define function func in the current context to be:
@@ -515,27 +516,29 @@ class CVC4_PUBLIC SmtEngine {
    * takes a Boolean flag to determine whether to include this asserted
    * formula in an unsat core (if one is later requested).
    */
-  Result assertFormula(const Expr& e, bool inUnsatCore = true) throw(TypeCheckingException, LogicException, UnsafeInterruptException);
+  Result assertFormula(const Expr& e, bool inUnsatCore = true)
+      /* throw(TypeCheckingException, LogicException, UnsafeInterruptException) */
+      ;
 
   /**
    * Check validity of an expression with respect to the current set
    * of assertions by asserting the query expression's negation and
    * calling check().  Returns valid, invalid, or unknown result.
    */
-  Result query(const Expr& e, bool inUnsatCore = true) throw(Exception);
+  Result query(const Expr& e, bool inUnsatCore = true) /* throw(Exception) */;
 
   /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
   Result checkSat(const Expr& e = Expr(),
-                  bool inUnsatCore = true) throw(Exception);
+                  bool inUnsatCore = true) /* throw(Exception) */;
 
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSynth(const Expr& e) throw(Exception);
+  Result checkSynth(const Expr& e) /* throw(Exception) */;
 
   /**
    * Simplify a formula without doing "much" work.  Does not involve
@@ -546,20 +549,28 @@ class CVC4_PUBLIC SmtEngine {
    * @todo (design) is this meant to give an equivalent or an
    * equisatisfiable formula?
    */
-  Expr simplify(const Expr& e) throw(TypeCheckingException, LogicException, UnsafeInterruptException);
+  Expr simplify(
+      const Expr&
+          e) /* throw(TypeCheckingException, LogicException, UnsafeInterruptException) */
+      ;
 
   /**
    * Expand the definitions in a term or formula.  No other
    * simplification or normalization is done.
    */
-  Expr expandDefinitions(const Expr& e) throw(TypeCheckingException, LogicException, UnsafeInterruptException);
+  Expr expandDefinitions(
+      const Expr&
+          e) /* throw(TypeCheckingException, LogicException, UnsafeInterruptException) */
+      ;
 
   /**
    * Get the assigned value of an expr (only if immediately preceded
    * by a SAT or INVALID query).  Only permitted if the SmtEngine is
    * set to operate interactively and produce-models is on.
    */
-  Expr getValue(const Expr& e) const throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException);
+  Expr getValue(const Expr& e) const
+      /* throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException) */
+      ;
 
   /**
    * Add a function to the set of expressions whose value is to be
@@ -645,8 +656,9 @@ class CVC4_PUBLIC SmtEngine {
    * The argument strict is whether to output
    * warnings, such as when an unexpected logic is used.
    */
-  Expr doQuantifierElimination(const Expr& e, bool doFull,
-                               bool strict = true) throw(Exception);
+  Expr doQuantifierElimination(const Expr& e,
+                               bool doFull,
+                               bool strict = true) /* throw(Exception) */;
 
   /**
    * Get list of quantified formulas that were instantiated
@@ -675,7 +687,8 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * Push a user-level context.
    */
-  void push() throw(ModalException, LogicException, UnsafeInterruptException);
+  void
+  push() /* throw(ModalException, LogicException, UnsafeInterruptException) */;
 
   /**
    * Pop a user-level context.  Throws an exception if nothing to pop.
@@ -687,19 +700,19 @@ class CVC4_PUBLIC SmtEngine {
    * recreated.  The result is as if newly constructed (so it still
    * retains the same options structure and ExprManager).
    */
-  void reset() throw();
+  void reset() /* throw() */;
 
   /**
    * Reset all assertions, global declarations, etc.
    */
-  void resetAssertions() throw();
+  void resetAssertions() /* throw() */;
 
   /**
    * Interrupt a running query.  This can be called from another thread
    * or from a signal handler.  Throws a ModalException if the SmtEngine
    * isn't currently in a query.
    */
-  void interrupt() throw(ModalException);
+  void interrupt() /* throw(ModalException) */;
 
   /**
    * Set a resource limit for SmtEngine operations.  This is like a time
@@ -784,7 +797,7 @@ class CVC4_PUBLIC SmtEngine {
    * is not a cumulative resource limit set, this function throws a
    * ModalException.
    */
-  unsigned long getResourceRemaining() const throw(ModalException);
+  unsigned long getResourceRemaining() const /* throw(ModalException) */;
 
   /**
    * Get the remaining number of milliseconds that can be consumed by
@@ -792,7 +805,7 @@ class CVC4_PUBLIC SmtEngine {
    * If there is not a cumulative resource limit set, this function
    * throws a ModalException.
    */
-  unsigned long getTimeRemaining() const throw(ModalException);
+  unsigned long getTimeRemaining() const /* throw(ModalException) */;
 
   /**
    * Permit access to the underlying ExprManager.
@@ -804,12 +817,12 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * Export statistics from this SmtEngine.
    */
-  Statistics getStatistics() const throw();
+  Statistics getStatistics() const /* throw() */;
 
   /**
    * Get the value of one named statistic from this SmtEngine.
    */
-  SExpr getStatistic(std::string name) const throw();
+  SExpr getStatistic(std::string name) const /* throw() */;
 
   /**
    * Flush statistic from this SmtEngine. Safe to use in a signal handler.
@@ -819,10 +832,7 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * Returns the most recent result of checkSat/query or (set-info :status).
    */
-  Result getStatusOfLastCommand() const throw() {
-    return d_status;
-  }
-
+  Result getStatusOfLastCommand() const /* throw() */ { return d_status; }
   /**
    * Set user attribute.
    * This function is called when an attribute is set by a user.
@@ -840,7 +850,7 @@ class CVC4_PUBLIC SmtEngine {
 
 
   /** Throws a ModalException if the SmtEngine has been fully initialized. */
-  void beforeSearch() throw(ModalException);
+  void beforeSearch() /* throw(ModalException) */;
 
   LemmaChannels* channels() { return d_channels; }
 
