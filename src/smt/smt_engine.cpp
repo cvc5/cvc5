@@ -1889,7 +1889,7 @@ void SmtEngine::setDefaults() {
     }
     if (options::sygusRewSynth())
     {
-      // rewrite rule synthesis implies that stream must be true
+      // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
     }
     if (options::sygusStream())

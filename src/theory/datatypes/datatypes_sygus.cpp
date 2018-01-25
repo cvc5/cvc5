@@ -777,10 +777,6 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       Node bad_val_bvr;
       bool by_examples = false;
       if( itsv==d_cache[a].d_search_val[tn].end() ){
-        if( options::sygusRewVerify() )
-        {
-          d_cache[a].d_first_search_val_verify[tn][bvr] = nv;
-        }
         // TODO (github #1210) conjecture-specific symmetry breaking
         // this should be generalized and encapsulated within the CegConjecture
         // class
@@ -821,15 +817,22 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
           d_sampler[a].initialize( d_tds, a, options::sygusSamples() );
           its = d_sampler.find(a);
         }
-        Node ret = its->second.registerTerm( bv );
-        Node firstv = d_cache[a].d_first_search_val_verify[tn][bvr];
-        Node firstvb = d_tds->sygusToBuiltin( firstv, tn );
-        if( firstvb!=ret )
+        Node sample_ret = its->second.registerTerm( bv );
+        d_cache[a].d_search_val_sample[nv] = sample_ret;
+        if( itsv!=d_cache[a].d_search_val[tn].end() )
         {
-          // we have detected an unsound rewrite
-          Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-          std::ostream* out = nodeManagerOptions.getOut();
-          (*out) << "(unsound-rewrite " << firstvb << " " << ret << ")" << std::endl;
+          // if the analog of this term and another term were rewritten to the 
+          // same term, then they should be equivalent under examples.
+          Node prev = itsv->second;
+          Node prev_sample_ret = d_cache[a].d_search_val_sample[prev];
+          if( sample_ret!=prev_sample_ret )
+          {
+            Node prev_bv = d_tds->sygusToBuiltin( prev, tn );
+            // we have detected unsoundness in the rewriter
+            Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+            std::ostream* out = nodeManagerOptions.getOut();
+            (*out) << "(unsound-rewrite " << prev_bv << " " << bv << ")" << std::endl;
+          }
         }
       }
       

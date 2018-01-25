@@ -89,14 +89,15 @@ private:
      * term that also rewrites to the builtin value but has a smaller term size.
      */
     std::map< TypeNode, std::map< Node, Node > > d_search_val;
-    /** first search value 
-     * 
-     * Same as above, but stores the first search term we encountered. This is 
-     * required for sygusRewVerify().
-     */
-    std::map< TypeNode, std::map< Node, Node > > d_first_search_val_verify;
     /** the size of terms in the range of d_search val. */
     std::map< TypeNode, std::map< Node, unsigned > > d_search_val_sz;
+    /** search value sample
+     * 
+     * This is used for the sygusRewVerify() option. For each sygus term we
+     * register in this cache, this stores the value returned by calling
+     * SygusSample::registerTerm(...) on its analog.
+     */
+    std::map< Node, Node > d_search_val_sample;
     /** For each term, whether this cache has processed that term */
     std::map< Node, bool > d_search_val_proc;
   };

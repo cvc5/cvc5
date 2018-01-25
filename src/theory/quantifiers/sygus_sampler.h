@@ -140,6 +140,12 @@ private:
    * d_type_vars. 
    */
   std::map< Node, unsigned > d_var_index;
+  /** constants 
+   * 
+   * For each type, a list of constants in the grammar we are considering, for
+   * that type.
+   */
+  std::map< TypeNode, std::vector< Node > > d_type_consts;
   /** the lazy trie */
   LazyTrie d_trie;
   /** is this sampler valid?
