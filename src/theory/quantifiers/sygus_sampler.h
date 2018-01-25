@@ -86,8 +86,9 @@ class LazyTrie {
    * ev is an evaluator which determines where n is placed in the trie
    * index is the depth of this node
    * ntotal is the maximal depth of the trie
+   * forceKeep is whether we wish to force that n is chosen as a representative
    */
-  Node add(Node n, LazyTrieEvaluator* ev,unsigned index, unsigned ntotal);
+  Node add(Node n, LazyTrieEvaluator* ev,unsigned index, unsigned ntotal, bool forceKeep);
 };  
 
   
@@ -101,8 +102,12 @@ public:
   virtual ~SygusSampler(){}
   /** initialize */
   void initialize( TermDbSygus * tds, Node f, unsigned nsamples );
-  /** register */
-  Node registerTerm( Node n );
+  /** register term n with this sampler database
+   * 
+   * forceKeep is whether we wish to force that n is chosen as a representative
+   * value in the trie.
+   */
+  Node registerTerm( Node n, bool forceKeep = false );
   /** is contiguous 
    * 
    * This returns whether n's free variables are a prefix of the list of 
@@ -120,6 +125,11 @@ public:
    * are not.
    */
   bool isOrdered( Node n );
+  /** contains free variables 
+   * 
+   * Returns true if all free variables of a are contained in b.
+   */
+  bool containsFreeVariables( Node a, Node b );
   /** evaluate n on sample point index */
   Node evaluate(Node n, unsigned index);
 private:
@@ -154,6 +164,11 @@ private:
    * of an argument to function f.
    */
   bool d_is_valid;
+  /** 
+   * Compute the variables from the domain of d_var_index that occur in n,
+   * store these in the vector fvs.
+   */
+  void computeFreeVariables( Node n, std::vector< Node >& fvs );
   /** get random value for a type */
   Node getRandomValue( TypeNode tn );
 };

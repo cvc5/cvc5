@@ -1934,10 +1934,6 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   {
     return returnRewrite(node, node[0], "rpl-rpl-empty");
   }
-  else if (node[0] == node[1])
-  {
-    return returnRewrite(node, node[2], "rpl-replace");
-  }
 
   std::vector<Node> children0;
   getConcat(node[0], children0);
@@ -1998,13 +1994,26 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   {
     if (cmp_conr.getConst<bool>())
     {
+      // currently by the semantics of replace, if the second argument is
+      // empty, then we return the first argument.
+      // hence, we test whether the second argument must be non-empty here.
+      // if it definitely non-empty, we can use rules that successfully replace 
+      // node[1]->node[2] among those below.
+      Node l1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
+      Node zero = NodeManager::currentNM()->mkConst(CVC4::Rational(0));
+      bool is_non_empty = checkEntailArith(l1, zero, true);
+      
+      if (node[0] == node[1] && is_non_empty)
+      {
+        return returnRewrite(node, node[2], "rpl-replace");
+      }
       // component-wise containment
       std::vector<Node> cb;
       std::vector<Node> ce;
       int cc = componentContains(children0, children1, cb, ce, true, 1);
       if (cc != -1)
       {
-        if (cc == 0 && children0[0] == children1[0])
+        if (cc == 0 && children0[0] == children1[0] && is_non_empty)
         {
           // definitely a prefix, can do the replace
           // for example,
@@ -2022,6 +2031,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
           // for example,
           //   str.replace( str.++( x, "ab" ), "a", y ) --->
           //   str.++( str.replace( str.++( x, "a" ), "a", y ), "b" )
+          // this is independent of whether the second argument may be empty
           std::vector<Node> cc;
           cc.push_back(NodeManager::currentNM()->mkNode(
               kind::STRING_STRREPL,

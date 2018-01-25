@@ -25,14 +25,14 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
   
-Node LazyTrie::add(Node n, LazyTrieEvaluator* ev, unsigned index, unsigned ntotal)
+Node LazyTrie::add(Node n, LazyTrieEvaluator* ev, unsigned index, unsigned ntotal, bool forceKeep)
 {
   LazyTrie * lt = this;
   while( lt!=NULL )
   {
     if (index == ntotal) {
       // lazy child holds the leaf data
-      if (lt->d_lazy_child.isNull()) {
+      if (lt->d_lazy_child.isNull() || forceKeep) {
         lt->d_lazy_child = n;
       }
       return lt->d_lazy_child;
@@ -46,7 +46,7 @@ Node LazyTrie::add(Node n, LazyTrieEvaluator* ev, unsigned index, unsigned ntota
         } else {
           // evaluate the lazy child
           Node e_lc = ev->evaluate(lt->d_lazy_child, index);
-          lt->d_children[e_lc].add(lt->d_lazy_child, ev, index+1, ntotal);
+          lt->d_children[e_lc].add(lt->d_lazy_child, ev, index+1, ntotal, forceKeep);
           lt->d_lazy_child = Node::null();
         }
       }
@@ -110,11 +110,11 @@ void SygusSampler::initialize( TermDbSygus * tds, Node f, unsigned nsamples )
   d_trie.clear();
 }
 
-Node SygusSampler::registerTerm( Node n )
+Node SygusSampler::registerTerm( Node n, bool forceKeep )
 {
   if( d_is_valid )
   {
-    return d_trie.add(n,this,0,d_samples.size());
+    return d_trie.add(n,this,0,d_samples.size(), forceKeep);
   }
   return n;
 }
@@ -123,27 +123,8 @@ bool SygusSampler::isContiguous( Node n )
 {
   // compute free variables in n
   std::vector< Node > fvs;
-  
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do {
-    cur = visit.back();
-    visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
-      visited.insert(cur);
-      if( d_var_index.find( cur )!=d_var_index.end() )
-      {
-        fvs.push_back( cur );
-      }
-      for (const Node& cn : cur ){
-        visit.push_back(cn);
-      }
-    }
-  } while (!visit.empty());
-  
+  computeFreeVariables( n, fvs );
+  // compute contiguous condition
   for( const std::pair< const TypeNode, std::vector< Node > >& p : d_type_vars )
   {
     bool foundNotFv = false;
@@ -161,6 +142,32 @@ bool SygusSampler::isContiguous( Node n )
     }
   }
   return true;
+}
+
+void SygusSampler::computeFreeVariables( Node n, std::vector< Node >& fvs )
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end()) {
+      visited.insert(cur);
+      if( cur.isVar() )
+      {
+        if( d_var_index.find( cur )!=d_var_index.end() )
+        {
+          fvs.push_back( cur );
+        }
+      }
+      for (const Node& cn : cur ){
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
 }
 
 bool SygusSampler::isOrdered( Node n )
@@ -190,6 +197,39 @@ bool SygusSampler::isOrdered( Node n )
             return false;
           }
           fvs[tn].push_back( cur );
+        }
+      }
+      unsigned nchildren = cur.getNumChildren();
+      for( unsigned j=0; j<nchildren; j++ )
+      {
+        visit.push_back(cur[(nchildren-j)-1]);
+      }
+    }
+  } while (!visit.empty());
+  return true;
+}
+
+bool SygusSampler::containsFreeVariables( Node a, Node b )
+{
+  // compute free variables in a
+  std::vector< Node > fvs;
+  computeFreeVariables( a, fvs );
+  
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(b);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end()) {
+      visited.insert(cur);
+      if( cur.isVar() )
+      {
+        if( std::find( fvs.begin(), fvs.end(), cur )==fvs.end() )
+        {
+          return false;
         }
       }
       for (const Node& cn : cur ){

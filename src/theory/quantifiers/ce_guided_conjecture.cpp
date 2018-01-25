@@ -644,14 +644,43 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
           its = d_sampler.find(prog);
         }
         Node solb = sygusDb->sygusToBuiltin( sol, prog.getType() );
-        // check whether the solution is contiguous
-        if( its->second.isContiguous( solb ) )
+        Node eq_sol = its->second.registerTerm( solb );
+        // eq_sol is a candidate solution that is equivalent to sol
+        if( eq_sol!=solb )
         {
-          Node eq_sol = its->second.registerTerm( solb );
-          // eq_sol is a candidate solution that is equivalent to sol
-          if( eq_sol!=solb )
+          // one of eq_sol or solb must be ordered
+          bool eqor = its->second.isOrdered(eq_sol);
+          bool sor = its->second.isOrdered(solb);
+          bool outputRewrite = false;
+          if( eqor || sor )
           {
-            out << "(candidate-rewrite " << eq_sol << " " << solb << ")" << std::endl;
+            outputRewrite = true;
+            // if only one is ordered, then the ordered one must contain the 
+            // free variables of the other
+            if( !eqor )
+            {
+              outputRewrite = its->second.containsFreeVariables( solb, eq_sol );
+            }
+            else if( !sor )
+            {
+              outputRewrite = its->second.containsFreeVariables( eq_sol, solb );
+            }
+          }
+            
+          if( outputRewrite )
+          {
+            out << "(candidate-rewrite " << solb << " " << eq_sol << ")" << std::endl;
+            // if the previous value stored was unordered, but this is
+            // ordered, we prefer this one. Thus, we force its addition to the
+            // sampler database.
+            if( !eqor )
+            {
+              its->second.registerTerm( solb, true );
+            }
+          }
+          else
+          {
+            Trace("sygus-synth-rr") << "Alpha equivalent candidate rewrite : " << eq_sol << " " << solb << std::endl;
           }
         }
       }
