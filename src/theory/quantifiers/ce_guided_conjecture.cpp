@@ -56,12 +56,7 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_refine_count(0),
       d_syntax_guided(false) {}
 
-CegConjecture::~CegConjecture() {
-  for( std::pair< const Node, SygusSampler* >& ps : d_sampler )
-  {
-    delete ps.second;
-  }
-}
+CegConjecture::~CegConjecture() {}
 
 void CegConjecture::assign( Node q ) {
   Assert( d_embed_quant.isNull() );
@@ -641,23 +636,24 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       }
       out << ")" << std::endl;  
       
-      if( status!=0 && options::sygusStreamSample()>=0 )
+      if( status!=0 && options::sygusRewSynth() )
       {
-        SygusSampler* ss = NULL;
-        std::map< Node, SygusSampler* >::iterator its = d_sampler.find(prog);
+        std::map< Node, SygusSampler >::iterator its = d_sampler.find(prog);
         if( its==d_sampler.end() ){
-          ss = new SygusSampler( d_qe, prog, options::sygusStreamSample() );
-          d_sampler[prog] = ss;
-        }else{
-          ss = its->second;
+          d_sampler[prog].initialize( d_qe, prog, options::sygusSamples() );
+          its = d_sampler.find(prog);
         }
         TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
         Node solb = sygusDb->sygusToBuiltin( sol, prog.getType() );
-        Node eq_sol = ss->registerTerm( solb );
-        // eq_sol is a candidate solution that is equivalent to sol
-        if( eq_sol!=solb )
+        // check whether the solution is contiguous
+        if( its->second.isContiguous( solb ) )
         {
-          out << "(candidate-rewrite " << eq_sol << " " << solb << ")" << std::endl;
+          Node eq_sol = its->second.registerTerm( solb );
+          // eq_sol is a candidate solution that is equivalent to sol
+          if( eq_sol!=solb )
+          {
+            out << "(candidate-rewrite " << eq_sol << " " << solb << ")" << std::endl;
+          }
         }
       }
     }

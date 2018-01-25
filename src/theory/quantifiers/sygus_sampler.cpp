@@ -59,8 +59,14 @@ Node LazyTrie::add(Node n, LazyTrieEvaluator* ev, unsigned index, unsigned ntota
   return Node::null();
 }
   
-SygusSampler::SygusSampler( QuantifiersEngine * qe, Node f, unsigned nsamples ) : 
-d_qe( qe ), d_tds( qe->getTermDatabaseSygus() ), d_is_valid( true ) {
+SygusSampler::SygusSampler() : d_qe( nullptr ), d_tds( nullptr ), d_is_valid( false ) {
+}
+  
+void SygusSampler::initialize( QuantifiersEngine * qe, Node f, unsigned nsamples )
+{
+  d_qe = qe;
+  d_tds = qe->getTermDatabaseSygus();
+  d_is_valid = true; 
   d_ftn = f.getType();
   Assert( d_ftn.isDatatype() );
   const Datatype& dt = static_cast<DatatypeType>(d_ftn.toType()).getDatatype();
@@ -68,6 +74,8 @@ d_qe( qe ), d_tds( qe->getTermDatabaseSygus() ), d_is_valid( true ) {
   
   Trace("sygus-sample") << "Register sampler for " << f << std::endl;
 
+  d_vars.clear();
+  d_type_vars.clear();
   std::vector< TypeNode > types;
   // get the sygus variable list
   Node var_list = Node::fromExpr( dt.getSygusVarList() );
@@ -75,11 +83,13 @@ d_qe( qe ), d_tds( qe->getTermDatabaseSygus() ), d_is_valid( true ) {
     for( const Node& sv : var_list ){
       TypeNode svt = sv.getType();
       d_type_vars[svt].push_back( sv );
+      d_vars.push_back( sv );
       types.push_back( svt );
       Trace("sygus-sample") << "  var #" << types.size() << " : " << sv << " : " << svt << std::endl;
     }
   }
   
+  d_samples.clear();
   for( unsigned i=0; i<nsamples; i++ )
   {
     std::vector< Node > sample_pt;
@@ -97,23 +107,27 @@ d_qe( qe ), d_tds( qe->getTermDatabaseSygus() ), d_is_valid( true ) {
     Trace("sygus-sample") << std::endl;
     d_samples.push_back( sample_pt );
   }
+  
+  d_trie.clear();
 }
 
 Node SygusSampler::registerTerm( Node n )
 {
   if( d_is_valid )
   {
-    // check whether the free variables in n are contiguous
-    bool is_contiguous = true;
-    
-    
-    
-    if( is_contiguous )
-    {
-      return d_trie.add(n,this,0,d_samples.size());
-    }
+    return d_trie.add(n,this,0,d_samples.size());
   }
   return n;
+}
+
+bool SygusSampler::isContiguous( Node n )
+{
+  // compute free variables in n
+  std::vector< Node > free_vars;
+  
+  
+  
+  return true;
 }
 
 Node SygusSampler::evaluate(Node n, unsigned index)
@@ -141,19 +155,46 @@ Node SygusSampler::getRandomValue( TypeNode tn )
     }
     return nm->mkConst(BitVector(ss.str(), 2));
   }
-  else if( tn.isString() )
+  else if( tn.isString() || tn.isInteger() )
   {
-    
-  }
-  else if( tn.isInteger() )
-  {
-    
+    std::vector< unsigned > vec;
+    double ext_freq = .5;
+    unsigned base = 10;
+    while( Random::getRandom().pickWithProb(ext_freq) )
+    {
+      // add a digit 
+      vec.push_back( Random::getRandom().pick(0,base) );
+    }
+    if( tn.isString() )
+    {
+      
+    }
+    else if( tn.isInteger() )
+    {
+      if( Random::getRandom().pickWithProb(0.5) )
+      {
+        //negative
+      }
+    }
   }
   else if( tn.isReal() )
   {
-    
+    Node s = getRandomValue( nm->integerType() );
+    Node r = getRandomValue( nm->integerType() );
+    if( !s.isNull() && !r.isNull() )
+    {
+      Rational sr = s.getConst<Rational>();
+      Rational rr = s.getConst<Rational>();
+      if( rr.sgn()==0 )
+      {
+        return s;
+      }
+      else
+      {
+        return nm->mkConst( sr/rr );
+      }
+    }
   }
-  
   return Node::null();
 }
 

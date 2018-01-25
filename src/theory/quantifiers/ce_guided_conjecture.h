@@ -198,8 +198,8 @@ private:
   /** the guard for non-syntax-guided synthesis */
   Node d_nsg_guard;
   //-------------------------------- end non-syntax guided (deprecated)
-  /** sygus sampler objects */
-  std::map< Node, SygusSampler* > d_sampler;
+  /** sygus sampler objects for each program variable */
+  std::map< Node, SygusSampler > d_sampler;
 };
 
 } /* namespace CVC4::theory::quantifiers */

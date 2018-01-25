@@ -1887,6 +1887,11 @@ void SmtEngine::setDefaults() {
     if( !options::instNoEntail.wasSetByUser() ){
       options::instNoEntail.set( false );
     }
+    if (options::sygusRewSynth())
+    {
+      // rewrite rule synthesis implies that stream must be true
+      options::sygusStream.set(true);
+    }
     if (options::sygusStream())
     {
       // PBE and streaming modes are incompatible
