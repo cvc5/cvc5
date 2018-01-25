@@ -43,6 +43,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
 
   void runTestPred(bool pol,
                    Kind k,
+                   Node x,
                    Node (*getsc)(bool, Kind, Node, Node))
   {
     Assert(k == BITVECTOR_ULT || k == BITVECTOR_SLT || k == EQUAL
@@ -81,7 +82,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
         k = DISTINCT;
       }
     }
-    Node body = d_nm->mkNode(k, d_x, d_t);
+    Node body = d_nm->mkNode(k, x, d_t);
     Node scr = d_nm->mkNode(EXISTS, d_bvarlist, body);
     Expr a = d_nm->mkNode(DISTINCT, scl, scr).toExpr();
     Result res = d_smt->checkSat(a);
@@ -255,42 +256,42 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
 
   void testGetScBvUltTrue()
   {
-    runTestPred(true, BITVECTOR_ULT, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_ULT, d_x, getScBvUltUgt);
   }
 
   void testGetScBvUltFalse()
   {
-    runTestPred(false, BITVECTOR_ULT, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_ULT, d_x, getScBvUltUgt);
   }
 
   void testGetScBvUgtTrue()
   {
-    runTestPred(true, BITVECTOR_UGT, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_UGT, d_x, getScBvUltUgt);
   }
 
   void testGetScBvUgtFalse()
   {
-    runTestPred(false, BITVECTOR_UGT, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_UGT, d_x, getScBvUltUgt);
   }
 
   void testGetScBvSltTrue()
   {
-    runTestPred(true, BITVECTOR_SLT, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SLT, d_x, getScBvSltSgt);
   }
 
   void testGetScBvSltFalse()
   {
-    runTestPred(false, BITVECTOR_SLT, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SLT, d_x, getScBvSltSgt);
   }
 
   void testGetScBvSgtTrue()
   {
-    runTestPred(true, BITVECTOR_SGT, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SGT, d_x, getScBvSltSgt);
   }
 
   void testGetScBvSgtFalse()
   {
-    runTestPred(false, BITVECTOR_SGT, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SGT, d_x, getScBvSltSgt);
   }
 
   /* Equality and Disequality ----------------------------------------------  */
@@ -515,6 +516,300 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   }
 
   /* Inequality ------------------------------------------------------------  */
+
+  /* Not */
+
+  void testGetScBvNotUltTrue0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(true, BITVECTOR_ULT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNotUltTrue1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(true, BITVECTOR_ULT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNotUltFalse0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(false, BITVECTOR_ULT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNotUltFalse1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(false, BITVECTOR_ULT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNotUgtTrue0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(true, BITVECTOR_UGT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNotUgtTrue1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(true, BITVECTOR_UGT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNotUgtFalse0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(false, BITVECTOR_UGT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNotUgtFalse1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(false, BITVECTOR_UGT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNotSltTrue0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(true, BITVECTOR_SLT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNotSltTrue1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(true, BITVECTOR_SLT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNotSltFalse0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(false, BITVECTOR_SLT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNotSltFalse1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(false, BITVECTOR_SLT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNotSgtTrue0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(true, BITVECTOR_SGT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNotSgtTrue1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(true, BITVECTOR_SGT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNotSgtFalse0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(false, BITVECTOR_SGT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNotSgtFalse1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
+    runTestPred(false, BITVECTOR_SGT, x, getScBvSltSgt);
+  }
+
+  /* Neg */
+
+  void testGetScBvNegUltTrue0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(true, BITVECTOR_ULT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNegUltTrue1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(true, BITVECTOR_ULT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNegUltFalse0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(false, BITVECTOR_ULT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNegUltFalse1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(false, BITVECTOR_ULT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNegUgtTrue0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(true, BITVECTOR_UGT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNegUgtTrue1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(true, BITVECTOR_UGT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNegUgtFalse0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(false, BITVECTOR_UGT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNegUgtFalse1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(false, BITVECTOR_UGT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvNegSltTrue0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(true, BITVECTOR_SLT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNegSltTrue1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(true, BITVECTOR_SLT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNegSltFalse0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(false, BITVECTOR_SLT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNegSltFalse1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(false, BITVECTOR_SLT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNegSgtTrue0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(true, BITVECTOR_SGT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNegSgtTrue1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(true, BITVECTOR_SGT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNegSgtFalse0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(false, BITVECTOR_SGT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvNegSgtFalse1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
+    runTestPred(false, BITVECTOR_SGT, x, getScBvSltSgt);
+  }
+
+  /* Add */
+
+  void testGetScBvPlusUltTrue0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
+    runTestPred(true, BITVECTOR_ULT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvPlusUltTrue1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
+    runTestPred(true, BITVECTOR_ULT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvPlusUltFalse0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
+    runTestPred(false, BITVECTOR_ULT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvPlusUltFalse1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
+    runTestPred(false, BITVECTOR_ULT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvPlusUgtTrue0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
+    runTestPred(true, BITVECTOR_UGT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvPlusUgtTrue1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
+    runTestPred(true, BITVECTOR_UGT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvPlusUgtFalse0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
+    runTestPred(false, BITVECTOR_UGT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvPlusUgtFalse1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
+    runTestPred(false, BITVECTOR_UGT, x, getScBvUltUgt);
+  }
+
+  void testGetScBvPlusSltTrue0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
+    runTestPred(true, BITVECTOR_SLT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvPlusSltTrue1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
+    runTestPred(true, BITVECTOR_SLT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvPlusSltFalse0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
+    runTestPred(false, BITVECTOR_SLT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvPlusSltFalse1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
+    runTestPred(false, BITVECTOR_SLT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvPlusSgtTrue0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
+    runTestPred(true, BITVECTOR_SGT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvPlusSgtTrue1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
+    runTestPred(true, BITVECTOR_SGT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvPlusSgtFalse0()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
+    runTestPred(false, BITVECTOR_SGT, x, getScBvSltSgt);
+  }
+
+  void testGetScBvPlusSgtFalse1()
+  {
+    Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
+    runTestPred(false, BITVECTOR_SGT, x, getScBvSltSgt);
+  }
 
   /* Mult */
 
