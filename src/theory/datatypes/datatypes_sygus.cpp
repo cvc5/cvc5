@@ -828,7 +828,8 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
         {
           // we have detected an unsound rewrite
           Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-          
+          std::ostream* out = nodeManagerOptions.getOut();
+          (*out) << "(unsound-rewrite " << firstvb << " " << ret << ")" << std::endl;
         }
       }
       
