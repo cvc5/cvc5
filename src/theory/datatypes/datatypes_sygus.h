@@ -31,6 +31,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/sygus_sampler.h"
 
 namespace CVC4 {
 namespace theory {
@@ -80,14 +81,33 @@ private:
     SearchCache(){}
     std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_search_terms;
     std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_sb_lemmas;
-    // search values
+    /** search value
+     * 
+     * For each sygus type, a map from a builtin term to a sygus term for that
+     * type that we encountered during the search whose analog rewrites to that 
+     * term. The range of this map can be updated if we later encounter a sygus
+     * term that also rewrites to the builtin value but has a smaller term size.
+     */
     std::map< TypeNode, std::map< Node, Node > > d_search_val;
+    /** first search value 
+     * 
+     * Same as above, but stores the non-rewritten analog of the first search
+     * term we encountered. This is useful for sygusRewVerify().
+     */
+    std::map< TypeNode, std::map< Node, Node > > d_first_search_val_verify;
+    /** the size of terms in the range of d_search val. */
     std::map< TypeNode, std::map< Node, unsigned > > d_search_val_sz;
-    std::map< TypeNode, std::map< Node, Node > > d_search_val_b;
+    /** For each term, whether this cache has processed that term */
     std::map< Node, bool > d_search_val_proc;
   };
   // anchor -> cache
   std::map< Node, SearchCache > d_cache;
+  /** a sygus sampler object for each anchor
+   * 
+   * This is used for the sygusRewVerify() option to verify the correctness of
+   * the rewriter.
+   */
+  std::map< Node, quantifiers::SygusSampler > d_sampler;
   Node d_null;
   void assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
   // register search term

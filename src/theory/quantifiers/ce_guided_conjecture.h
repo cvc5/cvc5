@@ -198,7 +198,11 @@ private:
   /** the guard for non-syntax-guided synthesis */
   Node d_nsg_guard;
   //-------------------------------- end non-syntax guided (deprecated)
-  /** sygus sampler objects for each program variable */
+  /** sygus sampler objects for each program variable 
+   * 
+   * This is used for the sygusRewSynth() option to synthesize new candidate
+   * rewrite rules.
+   */
   std::map< Node, SygusSampler > d_sampler;
 };
 

@@ -777,6 +777,10 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       Node bad_val_bvr;
       bool by_examples = false;
       if( itsv==d_cache[a].d_search_val[tn].end() ){
+        if( options::sygusRewVerify() )
+        {
+          d_cache[a].d_first_search_val_verify[tn][bvr] = bv;
+        }
         // TODO (github #1210) conjecture-specific symmetry breaking
         // this should be generalized and encapsulated within the CegConjecture
         // class
@@ -807,6 +811,23 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
           Node prev_bv = d_tds->sygusToBuiltin( itsv->second, tn );
           Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv << " rewrite to " << bvr << "." << std::endl;
         } 
+      }
+      
+      if( options::sygusRewVerify() )
+      {
+        // add to the sampler database object
+        std::map< Node, quantifiers::SygusSampler >::iterator its = d_sampler.find(a);
+        if( its==d_sampler.end() ){
+          d_sampler[a].initialize( d_tds, a, options::sygusSamples() );
+          its = d_sampler.find(a);
+        }
+        Node ret = its->second.registerTerm( bv );
+        Node equiv = d_cache[a].d_first_search_val_verify[tn][bvr];
+        if( equiv!=ret )
+        {
+          // we have detected an unsound rewrite
+          Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+        }
       }
       
       if( !bad_val_bvr.isNull() ){

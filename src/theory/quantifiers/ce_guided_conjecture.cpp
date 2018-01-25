@@ -637,12 +637,12 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       
       if( status!=0 && options::sygusRewSynth() )
       {
+        TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
         std::map< Node, SygusSampler >::iterator its = d_sampler.find(prog);
         if( its==d_sampler.end() ){
-          d_sampler[prog].initialize( d_qe, prog, options::sygusSamples() );
+          d_sampler[prog].initialize( sygusDb, prog, options::sygusSamples() );
           its = d_sampler.find(prog);
         }
-        TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
         Node solb = sygusDb->sygusToBuiltin( sol, prog.getType() );
         // check whether the solution is contiguous
         if( its->second.isContiguous( solb ) )

@@ -18,7 +18,6 @@
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
 
 #include <map>
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/term_database_sygus.h"
 
 namespace CVC4 {
@@ -101,7 +100,7 @@ public:
   SygusSampler();
   virtual ~SygusSampler(){}
   /** initialize */
-  void initialize( QuantifiersEngine * qe, Node f, unsigned nsamples );
+  void initialize( TermDbSygus * tds, Node f, unsigned nsamples );
   /** register */
   Node registerTerm( Node n );
   /** is contiguous 
@@ -124,8 +123,6 @@ public:
   /** evaluate n on sample point index */
   Node evaluate(Node n, unsigned index);
 private:
-  /** reference to quantifier engine */
-  QuantifiersEngine * d_qe;
   /** sygus term database of d_qe */
   TermDbSygus * d_tds;
   /** samples */

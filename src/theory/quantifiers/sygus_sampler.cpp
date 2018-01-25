@@ -59,13 +59,12 @@ Node LazyTrie::add(Node n, LazyTrieEvaluator* ev, unsigned index, unsigned ntota
   return Node::null();
 }
   
-SygusSampler::SygusSampler() : d_qe( nullptr ), d_tds( nullptr ), d_is_valid( false ) {
+SygusSampler::SygusSampler() : d_tds( nullptr ), d_is_valid( false ) {
 }
   
-void SygusSampler::initialize( QuantifiersEngine * qe, Node f, unsigned nsamples )
+void SygusSampler::initialize( TermDbSygus * tds, Node f, unsigned nsamples )
 {
-  d_qe = qe;
-  d_tds = qe->getTermDatabaseSygus();
+  d_tds = tds;
   d_is_valid = true; 
   d_ftn = f.getType();
   Assert( d_ftn.isDatatype() );
