@@ -74,7 +74,7 @@ void SygusSampler::initialize( QuantifiersEngine * qe, Node f, unsigned nsamples
   
   Trace("sygus-sample") << "Register sampler for " << f << std::endl;
 
-  d_vars.clear();
+  d_var_index.clear();
   d_type_vars.clear();
   std::vector< TypeNode > types;
   // get the sygus variable list
@@ -82,8 +82,8 @@ void SygusSampler::initialize( QuantifiersEngine * qe, Node f, unsigned nsamples
   if( !var_list.isNull() ){
     for( const Node& sv : var_list ){
       TypeNode svt = sv.getType();
+      d_var_index[sv] = d_type_vars[svt].size();
       d_type_vars[svt].push_back( sv );
-      d_vars.push_back( sv );
       types.push_back( svt );
       Trace("sygus-sample") << "  var #" << types.size() << " : " << sv << " : " << svt << std::endl;
     }
@@ -123,10 +123,81 @@ Node SygusSampler::registerTerm( Node n )
 bool SygusSampler::isContiguous( Node n )
 {
   // compute free variables in n
-  std::vector< Node > free_vars;
+  std::vector< Node > fvs;
   
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end()) {
+      visited.insert(cur);
+      if( d_var_index.find( cur )!=d_var_index.end() )
+      {
+        fvs.push_back( cur );
+      }
+      for (const Node& cn : cur ){
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
   
+  for( const std::pair< const TypeNode, std::vector< Node > >& p : d_type_vars )
+  {
+    bool foundNotFv = false;
+    for( const Node& v : p.second )
+    {
+      bool hasFv = std::find( fvs.begin(), fvs.end(), v )!=fvs.end();
+      if( !hasFv )
+      {
+        foundNotFv = true;
+      }
+      else if( foundNotFv )
+      {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool SygusSampler::isOrdered( Node n )
+{
+  // compute free variables in n for each type
+  std::map< TypeNode, std::vector< Node > > fvs;
   
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end()) {
+      visited.insert(cur);
+      if( cur.isVar() )
+      {
+        std::map< Node, unsigned >::iterator itv = d_var_index.find( cur );
+        if( itv!=d_var_index.end() )
+        {
+          TypeNode tn = cur.getType();
+          // if this variable is out of order
+          if( itv->second!=fvs[tn].size() )
+          {
+            return false;
+          }
+          fvs[tn].push_back( cur );
+        }
+      }
+      for (const Node& cn : cur ){
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
   return true;
 }
 

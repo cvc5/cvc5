@@ -108,11 +108,19 @@ public:
    * 
    * This returns whether n's free variables are a prefix of the list of 
    * variables in d_type_vars for each type. For instance, if
-   * d_type_vars[Int] = { x, y }, then 0, x, x+y are contiguous but y is not.
-   * This is useful for excluding terms from consideration that are
+   * d_type_vars[Int] = { x, y }, then 0, x, x+y, y+x are contiguous but y is 
+   * not. This is useful for excluding terms from consideration that are
    * alpha-equivalent to others.
    */
   bool isContiguous( Node n );
+  /** is ordered 
+   * 
+   * This returns whether n's free variables are in order with respect to
+   * variables in d_type_vars for each type. For instance, if
+   * d_type_vars[Int] = { x, y }, then 0, x, x+y are contiguous but y and y+x 
+   * are not.
+   */
+  bool isOrdered( Node n );
   /** evaluate n on sample point index */
   Node evaluate(Node n, unsigned index);
 private:
@@ -130,8 +138,11 @@ private:
    * that type. 
    */
   std::map< TypeNode, std::vector< Node > > d_type_vars;
-  /** list of all variables in the grammar we are considering */
-  std::vector< Node > d_vars;
+  /**
+   * A map all variables in the grammar we are considering to their index in 
+   * d_type_vars. 
+   */
+  std::map< Node, unsigned > d_var_index;
   /** the lazy trie */
   LazyTrie d_trie;
   /** is this sampler valid?

@@ -621,7 +621,6 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       }
     }
     if( !(Trace.isOn("cegqi-stats")) && !sol.isNull() ){
-      
       out << "(define-fun " << f << " ";
       if( dt.getSygusVarList().isNull() ){
         out << "() ";
