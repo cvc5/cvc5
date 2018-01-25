@@ -91,8 +91,8 @@ private:
     std::map< TypeNode, std::map< Node, Node > > d_search_val;
     /** first search value 
      * 
-     * Same as above, but stores the non-rewritten analog of the first search
-     * term we encountered. This is useful for sygusRewVerify().
+     * Same as above, but stores the first search term we encountered. This is 
+     * required for sygusRewVerify().
      */
     std::map< TypeNode, std::map< Node, Node > > d_first_search_val_verify;
     /** the size of terms in the range of d_search val. */

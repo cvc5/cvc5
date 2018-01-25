@@ -779,7 +779,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       if( itsv==d_cache[a].d_search_val[tn].end() ){
         if( options::sygusRewVerify() )
         {
-          d_cache[a].d_first_search_val_verify[tn][bvr] = bv;
+          d_cache[a].d_first_search_val_verify[tn][bvr] = nv;
         }
         // TODO (github #1210) conjecture-specific symmetry breaking
         // this should be generalized and encapsulated within the CegConjecture
@@ -822,11 +822,13 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
           its = d_sampler.find(a);
         }
         Node ret = its->second.registerTerm( bv );
-        Node equiv = d_cache[a].d_first_search_val_verify[tn][bvr];
-        if( equiv!=ret )
+        Node firstv = d_cache[a].d_first_search_val_verify[tn][bvr];
+        Node firstvb = d_tds->sygusToBuiltin( firstv, tn );
+        if( firstvb!=ret )
         {
           // we have detected an unsound rewrite
           Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+          
         }
       }
       

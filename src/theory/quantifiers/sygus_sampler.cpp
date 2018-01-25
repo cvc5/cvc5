@@ -237,14 +237,48 @@ Node SygusSampler::getRandomValue( TypeNode tn )
     }
     if( tn.isString() )
     {
-      
+      //make printable?
+      /*
+      for( unsigned j=0, size = vec.size(); j<size; j++ )
+      {
+        vec[j] = static_cast<unsigned>(String::convertUnsignedIntToChar( vec[j] ));
+      }
+      */
+      return nm->mkConst( String(vec) );
     }
     else if( tn.isInteger() )
     {
+      Rational baser(base);
+      Rational curr(1);
+      std::vector< Node > sum;
+      for( unsigned j=0, size = vec.size(); j<size; j++ )
+      {
+        Node digit = nm->mkConst( Rational(vec[j]) * curr );
+        sum.push_back( digit );
+        curr = curr * baser;
+      }
+      Node ret;
+      if( sum.empty() )
+      {
+        ret = nm->mkConst( Rational(0) );
+      }
+      else if( sum.size()==1 )
+      {
+        ret = sum[0];
+      }
+      else 
+      {
+        ret = nm->mkNode( PLUS, sum );
+      }
+      
       if( Random::getRandom().pickWithProb(0.5) )
       {
         //negative
+        ret = nm->mkNode( UMINUS, ret );
       }
+      ret = Rewriter::rewrite( ret );
+      Assert( ret.isConst() );
+      return ret;
     }
   }
   else if( tn.isReal() )
