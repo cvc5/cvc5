@@ -23,6 +23,16 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
+namespace {
+
+void AppendNodesTo(const std::vector<Node>& source, std::vector<Node>* dest)
+{
+  AlwaysAssert(dest != nullptr);
+  dest->insert(dest->end(), source.begin(), source.end());
+}
+
+}  // namespace
+
 void RepSet::clear(){
   d_type_reps.clear();
   d_type_complete.clear();
@@ -43,12 +53,8 @@ bool RepSet::hasRep(TypeNode tn, Node n) const
 
 unsigned RepSet::getNumRepresentatives(TypeNode tn) const
 {
-  std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
-  if( it!=d_type_reps.end() ){
-    return it->second.size();
-  }else{
-    return 0;
-  }
+  const std::vector<Node>* reps = getTypeRepsOrNull(tn);
+  return (reps != nullptr) ? reps->size() : 0;
 }
 
 Node RepSet::getRepresentative(TypeNode tn, unsigned i) const
@@ -60,13 +66,17 @@ Node RepSet::getRepresentative(TypeNode tn, unsigned i) const
   return it->second[i];
 }
 
-void RepSet::getRepresentatives(TypeNode tn, std::vector<Node>& reps) const
+const std::vector<Node>* RepSet::getTypeRepsOrNull(TypeNode tn) const
 {
-  std::map<TypeNode, std::vector<Node> >::const_iterator it =
-      d_type_reps.find(tn);
-  Assert(it != d_type_reps.end());
-  reps.insert(reps.end(), it->second.begin(), it->second.end());
+  auto it = d_type_reps.find(tn);
+  if (it == d_type_reps.end())
+  {
+    return nullptr;
+  }
+  return &(it->second);
 }
+
+namespace {
 
 bool containsStoreAll(Node n, std::unordered_set<Node, NodeHashFunction>& cache)
 {
@@ -84,6 +94,8 @@ bool containsStoreAll(Node n, std::unordered_set<Node, NodeHashFunction>& cache)
   }
   return false;
 }
+
+}  // namespace
 
 void RepSet::add( TypeNode tn, Node n ){
   //for now, do not add array constants FIXME
@@ -264,7 +276,10 @@ bool RepSetIterator::initialize()
       if (d_rs->hasType(tn))
       {
         d_enum_type.push_back( ENUM_DEFAULT );
-        d_rs->getRepresentatives(tn, d_domain_elements[v]);
+        if (const auto* type_reps = d_rs->getTypeRepsOrNull(tn))
+        {
+          AppendNodesTo(*type_reps, &d_domain_elements[v]);
+        }
       }else{
         Assert( d_incomplete );
         return false;
