@@ -2897,7 +2897,8 @@ Node BvInverter::solveBvLit(Node sv,
     {
       t = nm->mkNode(BITVECTOR_XOR, t, s);
     }
-    else if (k == BITVECTOR_MULT && s.isConst() && bv::utils::getBit(s, 0))
+    else if (litk == EQUAL && k == BITVECTOR_MULT
+             && s.isConst() && bv::utils::getBit(s, 0))
     {
       unsigned w = bv::utils::getSize(s);
       Integer s_val = s.getConst<BitVector>().toInteger();
@@ -2939,7 +2940,32 @@ Node BvInverter::solveBvLit(Node sv,
     }
     else if (k == BITVECTOR_CONCAT)
     {
-      sc = getScBvConcat(pol, litk, index, x, sv_t, t);
+      if (litk == EQUAL && options::cbqiBvConcInv())
+      {
+        /* Compute inverse for s1 o x, x o s2, s1 o x o s2
+         * (while disregarding that invertibility depends on si)
+         * rather than an invertibility condition (the proper handling).
+         * This improves performance on a considerable number of benchmarks.
+         *
+         * x = t[upper:lower]
+         * where
+         * upper = getSize(t) - 1 - sum(getSize(sv_t[i])) for i < index
+         * lower = getSize(sv_t[i]) for i > index  */
+        unsigned upper, lower;
+        upper = bv::utils::getSize(t) - 1;
+        lower = 0;
+        NodeBuilder<> nb(BITVECTOR_CONCAT);
+        for (unsigned i = 0; i < nchildren; i++)
+        {
+          if (i < index) { upper -= bv::utils::getSize(sv_t[i]); }
+          else if (i > index) { lower += bv::utils::getSize(sv_t[i]); }
+        }
+        t = bv::utils::mkExtract(t, upper, lower);
+      }
+      else
+      {
+        sc = getScBvConcat(pol, litk, index, x, sv_t, t);
+      }
     }
     else if (k == BITVECTOR_SIGN_EXTEND)
     {

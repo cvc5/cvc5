@@ -647,10 +647,9 @@ public:
    *
    * Returns false if the formula simplifies to "false"
    */
-  bool simplifyAssertions() throw(TypeCheckingException, LogicException,
-                                  UnsafeInterruptException);
+  bool simplifyAssertions();
 
-public:
+ public:
 
   SmtEnginePrivate(SmtEngine& smt) :
     d_smt(smt),
@@ -732,7 +731,8 @@ public:
             new SetToDefaultSourceListener(&d_managedReplayLog), true));
   }
 
-  ~SmtEnginePrivate() throw() {
+  ~SmtEnginePrivate()
+  {
     delete d_listenerRegistrations;
 
     if(d_propagatorNeedsFinish) {
@@ -743,7 +743,8 @@ public:
   }
 
   ResourceManager* getResourceManager() { return d_resourceManager; }
-  void spendResource(unsigned amount) throw(UnsafeInterruptException) {
+  void spendResource(unsigned amount)
+  {
     d_resourceManager->spendResource(amount);
   }
 
@@ -840,13 +841,12 @@ public:
    * even be simplified.
    * the 2nd and 3rd arguments added for bookkeeping for proofs
    */
-  void addFormula(TNode n, bool inUnsatCore, bool inInput = true)
-    throw(TypeCheckingException, LogicException);
+  void addFormula(TNode n, bool inUnsatCore, bool inInput = true);
 
   /** Expand definitions in n. */
-  Node expandDefinitions(TNode n, NodeToNodeHashMap& cache,
-                         bool expandOnly = false)
-      throw(TypeCheckingException, LogicException, UnsafeInterruptException);
+  Node expandDefinitions(TNode n,
+                         NodeToNodeHashMap& cache,
+                         bool expandOnly = false);
 
   /**
    * Simplify node "in" by expanding definitions and applying any
@@ -983,7 +983,7 @@ public:
 
 }/* namespace CVC4::smt */
 
-SmtEngine::SmtEngine(ExprManager* em) throw()
+SmtEngine::SmtEngine(ExprManager* em)
     : d_context(new Context()),
       d_userLevels(),
       d_userContext(new UserContext()),
@@ -1176,7 +1176,8 @@ void SmtEngine::shutdown() {
   }
 }
 
-SmtEngine::~SmtEngine() throw() {
+SmtEngine::~SmtEngine()
+{
   SmtScope smts(this);
 
   try {
@@ -1248,7 +1249,8 @@ SmtEngine::~SmtEngine() throw() {
   }
 }
 
-void SmtEngine::setLogic(const LogicInfo& logic) throw(ModalException) {
+void SmtEngine::setLogic(const LogicInfo& logic)
+{
   SmtScope smts(this);
   if(d_fullyInited) {
     throw ModalException("Cannot set logic in SmtEngine after the engine has "
@@ -1259,7 +1261,7 @@ void SmtEngine::setLogic(const LogicInfo& logic) throw(ModalException) {
 }
 
 void SmtEngine::setLogic(const std::string& s)
-    throw(ModalException, LogicException) {
+{
   SmtScope smts(this);
   try {
     setLogic(LogicInfo(s));
@@ -1268,16 +1270,12 @@ void SmtEngine::setLogic(const std::string& s)
   }
 }
 
-void SmtEngine::setLogic(const char* logic)
-    throw(ModalException, LogicException) {
-  setLogic(string(logic));
-}
-
+void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
 LogicInfo SmtEngine::getLogicInfo() const {
   return d_logic;
 }
-
-void SmtEngine::setLogicInternal() throw() {
+void SmtEngine::setLogicInternal()
+{
   Assert(!d_fullyInited, "setting logic in SmtEngine but the engine has already"
          " finished initializing for this run");
   d_logic.lock();
@@ -2129,8 +2127,7 @@ void SmtEngine::setDefaults() {
 }
 
 void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
-  throw(OptionException, ModalException) {
-
+{
   SmtScope smts(this);
 
   Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
@@ -2499,8 +2496,7 @@ void SmtEnginePrivate::finishInit() {
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
-  throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
-
+{
   stack< triple<Node, Node, bool> > worklist;
   stack<Node> result;
   worklist.push(make_triple(Node(n), Node(n), false));
@@ -3882,7 +3878,7 @@ void SmtEnginePrivate::doMiplibTrick() {
 
 // returns false if simplification led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
-  throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
+{
   spendResource(options::preprocessStep());
   Assert(d_smt.d_pendingPops == 0);
   try {
@@ -4623,8 +4619,7 @@ void SmtEnginePrivate::processAssertions() {
 }
 
 void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
-  throw(TypeCheckingException, LogicException) {
-
+{
   if (n == d_true) {
     // nothing to do
     return;
@@ -4657,7 +4652,8 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   //d_assertions.push_back(Rewriter::rewrite(n));
 }
 
-void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
+void SmtEngine::ensureBoolean(const Expr& e)
+{
   Type type = e.getType(options::typeChecking());
   Type boolType = d_exprManager->booleanType();
   if(type != boolType) {
@@ -4669,11 +4665,13 @@ void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
   }
 }
 
-Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore) throw(Exception) {
+Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore)
+{
   return checkSatisfiability(ex, inUnsatCore, false);
 } /* SmtEngine::checkSat() */
 
-Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(Exception) {
+Result SmtEngine::query(const Expr& ex, bool inUnsatCore)
+{
   Assert(!ex.isNull());
   return checkSatisfiability(ex, inUnsatCore, true);
 } /* SmtEngine::query() */
@@ -4813,7 +4811,8 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
   }
 }
 
-Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
+Result SmtEngine::checkSynth(const Expr& e)
+{
   SmtScope smts(this);
   Trace("smt") << "Check synth: " << e << std::endl;
   Trace("smt-synth") << "Check synthesis conjecture: " << e << std::endl;
@@ -4938,7 +4937,8 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
   return checkSatisfiability( e_check, true, false );
 }
 
-Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore) throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
+Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
+{
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -4965,7 +4965,8 @@ Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
   return node;
 }
 
-Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
+Expr SmtEngine::simplify(const Expr& ex)
+{
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -4988,7 +4989,8 @@ Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicExcep
   return n.toExpr();
 }
 
-Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
+Expr SmtEngine::expandDefinitions(const Expr& ex)
+{
   d_private->spendResource(options::preprocessStep());
 
   Assert(ex.getExprManager() == d_exprManager);
@@ -5014,7 +5016,8 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException) {
+Expr SmtEngine::getValue(const Expr& ex) const
+{
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
 
@@ -5563,8 +5566,8 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
   }
 }
 
-Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull,
-                                        bool strict) throw(Exception) {
+Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
+{
   SmtScope smts(this);
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
@@ -5687,7 +5690,8 @@ vector<Expr> SmtEngine::getAssertions() {
   return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
 }
 
-void SmtEngine::push() throw(ModalException, LogicException, UnsafeInterruptException) {
+void SmtEngine::push()
+{
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
@@ -5797,7 +5801,8 @@ void SmtEngine::doPendingPops() {
   }
 }
 
-void SmtEngine::reset() throw() {
+void SmtEngine::reset()
+{
   SmtScope smts(this);
   ExprManager *em = d_exprManager;
   Trace("smt") << "SMT reset()" << endl;
@@ -5811,7 +5816,8 @@ void SmtEngine::reset() throw() {
   new(this) SmtEngine(em);
 }
 
-void SmtEngine::resetAssertions() throw() {
+void SmtEngine::resetAssertions()
+{
   SmtScope smts(this);
   doPendingPops();
 
@@ -5833,7 +5839,8 @@ void SmtEngine::resetAssertions() throw() {
   d_context->push();
 }
 
-void SmtEngine::interrupt() throw(ModalException) {
+void SmtEngine::interrupt()
+{
   if(!d_fullyInited) {
     return;
   }
@@ -5856,19 +5863,23 @@ unsigned long SmtEngine::getTimeUsage() const {
   return d_private->getResourceManager()->getTimeUsage();
 }
 
-unsigned long SmtEngine::getResourceRemaining() const throw(ModalException) {
+unsigned long SmtEngine::getResourceRemaining() const
+{
   return d_private->getResourceManager()->getResourceRemaining();
 }
 
-unsigned long SmtEngine::getTimeRemaining() const throw(ModalException) {
+unsigned long SmtEngine::getTimeRemaining() const
+{
   return d_private->getResourceManager()->getTimeRemaining();
 }
 
-Statistics SmtEngine::getStatistics() const throw() {
+Statistics SmtEngine::getStatistics() const
+{
   return Statistics(*d_statisticsRegistry);
 }
 
-SExpr SmtEngine::getStatistic(std::string name) const throw() {
+SExpr SmtEngine::getStatistic(std::string name) const
+{
   return d_statisticsRegistry->getStatistic(name);
 }
 
@@ -5911,9 +5922,8 @@ void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
   }
 }
 
-
-
-void SmtEngine::beforeSearch() throw(ModalException) {
+void SmtEngine::beforeSearch()
+{
   if(d_fullyInited) {
     throw ModalException(
         "SmtEngine::beforeSearch called after initialization.");
@@ -5922,8 +5932,7 @@ void SmtEngine::beforeSearch() throw(ModalException) {
 
 
 void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
-  throw(OptionException, ModalException) {
-
+{
   NodeManagerScope nms(d_nodeManager);
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
@@ -5959,8 +5968,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
 }
 
 CVC4::SExpr SmtEngine::getOption(const std::string& key) const
-  throw(OptionException) {
-
+{
   NodeManagerScope nms(d_nodeManager);
 
   Trace("smt") << "SMT getOption(" << key << ")" << endl;
