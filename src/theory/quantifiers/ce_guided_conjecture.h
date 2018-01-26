@@ -24,6 +24,7 @@
 #include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus_process_conj.h"
+#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -197,6 +198,12 @@ private:
   /** the guard for non-syntax-guided synthesis */
   Node d_nsg_guard;
   //-------------------------------- end non-syntax guided (deprecated)
+  /** sygus sampler objects for each program variable 
+   * 
+   * This is used for the sygusRewSynth() option to synthesize new candidate
+   * rewrite rules.
+   */
+  std::map< Node, SygusSampler > d_sampler;
 };
 
 } /* namespace CVC4::theory::quantifiers */
