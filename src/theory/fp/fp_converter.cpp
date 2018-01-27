@@ -25,12 +25,10 @@ FpConverter::FpConverter(context::UserContext *user)
 
 Node FpConverter::convert(TNode node) {
   Unimplemented("Conversion not implemented.");
-  return node;
 }
 
 Node FpConverter::getValue(Valuation &val, TNode var) {
   Unimplemented("Conversion not implemented.");
-  return Node::null();
 }
 
 }  // namespace fp
