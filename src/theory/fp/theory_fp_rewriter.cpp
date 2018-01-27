@@ -63,7 +63,6 @@ namespace rewrite {
 
   RewriteResponse type (TNode node, bool) {
     Unreachable("sort kind (%d) found in expression?",node.getKind());
-    return RewriteResponse(REWRITE_DONE, node);
   }
 
   RewriteResponse removeDoubleNegation (TNode node, bool) {
@@ -143,7 +142,6 @@ namespace rewrite {
 
   RewriteResponse removed (TNode node, bool) {  
     Unreachable("kind (%s) should have been removed?",kindToString(node.getKind()).c_str());
-    return RewriteResponse(REWRITE_DONE, node);
   }
 
   RewriteResponse variable (TNode node, bool) {  
@@ -492,11 +490,8 @@ namespace constantFold {
     
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 == arg2));
 
-    } else {
-      Unreachable("Equality of unknown type");
     }
-
-    return RewriteResponse(REWRITE_DONE, node);
+    Unreachable("Equality of unknown type");
   }
 
 
