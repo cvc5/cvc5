@@ -16,8 +16,8 @@
 
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/rewriter.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -108,10 +108,10 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
       // Some commutative operators have rewriters that are agnostic to order,
       // thus, we sort here.
-      if( TermUtil::isComm( n.getKind() ) )
+      if (TermUtil::isComm(n.getKind()))
       {
         childChanged = true;
-        std::sort( children.begin(), children.end() );
+        std::sort(children.begin(), children.end());
       }
       if (childChanged)
       {
