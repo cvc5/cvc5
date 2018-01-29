@@ -24,118 +24,134 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
-Node LazyTrie::add(Node n, LazyTrieEvaluator* ev, unsigned index, unsigned ntotal, bool forceKeep)
+
+Node LazyTrie::add(Node n,
+                   LazyTrieEvaluator* ev,
+                   unsigned index,
+                   unsigned ntotal,
+                   bool forceKeep)
 {
-  LazyTrie * lt = this;
-  while( lt!=NULL )
+  LazyTrie* lt = this;
+  while (lt != NULL)
   {
-    if (index == ntotal) {
+    if (index == ntotal)
+    {
       // lazy child holds the leaf data
-      if (lt->d_lazy_child.isNull() || forceKeep) {
+      if (lt->d_lazy_child.isNull() || forceKeep)
+      {
         lt->d_lazy_child = n;
       }
       return lt->d_lazy_child;
-    } else {
+    }
+    else
+    {
       std::vector<Node> ex;
-      if (lt->d_children.empty()) {
-        if (lt->d_lazy_child.isNull()) {
+      if (lt->d_children.empty())
+      {
+        if (lt->d_lazy_child.isNull())
+        {
           // no one has been here, we are done
           lt->d_lazy_child = n;
           return lt->d_lazy_child;
-        } else {
+        }
+        else
+        {
           // evaluate the lazy child
           Node e_lc = ev->evaluate(lt->d_lazy_child, index);
-          lt->d_children[e_lc].add(lt->d_lazy_child, ev, index+1, ntotal, forceKeep);
+          lt->d_children[e_lc].add(
+              lt->d_lazy_child, ev, index + 1, ntotal, forceKeep);
           lt->d_lazy_child = Node::null();
         }
       }
       // recurse
       Node e = ev->evaluate(n, index);
       lt = &lt->d_children[e];
-      index = index+1;
+      index = index + 1;
     }
   }
   return Node::null();
 }
-  
-SygusSampler::SygusSampler() : d_tds( nullptr ), d_is_valid( false ) {
-}
-  
-void SygusSampler::initialize( TermDbSygus * tds, Node f, unsigned nsamples )
+
+SygusSampler::SygusSampler() : d_tds(nullptr), d_is_valid(false) {}
+
+void SygusSampler::initialize(TermDbSygus* tds, Node f, unsigned nsamples)
 {
   d_tds = tds;
-  d_is_valid = true; 
+  d_is_valid = true;
   d_ftn = f.getType();
-  Assert( d_ftn.isDatatype() );
+  Assert(d_ftn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(d_ftn.toType()).getDatatype();
-  Assert( dt.isSygus() );
-  
+  Assert(dt.isSygus());
+
   Trace("sygus-sample") << "Register sampler for " << f << std::endl;
 
   d_var_index.clear();
   d_type_vars.clear();
-  std::vector< TypeNode > types;
+  std::vector<TypeNode> types;
   // get the sygus variable list
-  Node var_list = Node::fromExpr( dt.getSygusVarList() );
-  if( !var_list.isNull() ){
-    for( const Node& sv : var_list ){
+  Node var_list = Node::fromExpr(dt.getSygusVarList());
+  if (!var_list.isNull())
+  {
+    for (const Node& sv : var_list)
+    {
       TypeNode svt = sv.getType();
       d_var_index[sv] = d_type_vars[svt].size();
-      d_type_vars[svt].push_back( sv );
-      types.push_back( svt );
-      Trace("sygus-sample") << "  var #" << types.size() << " : " << sv << " : " << svt << std::endl;
+      d_type_vars[svt].push_back(sv);
+      types.push_back(svt);
+      Trace("sygus-sample") << "  var #" << types.size() << " : " << sv << " : "
+                            << svt << std::endl;
     }
   }
-  
+
   d_samples.clear();
-  for( unsigned i=0; i<nsamples; i++ )
+  for (unsigned i = 0; i < nsamples; i++)
   {
-    std::vector< Node > sample_pt;
+    std::vector<Node> sample_pt;
     Trace("sygus-sample") << "Sample point #" << i << " : ";
-    for( unsigned j=0, size = types.size(); j<size; j++ )
+    for (unsigned j = 0, size = types.size(); j < size; j++)
     {
-      Node r = getRandomValue( types[j] );
-      if( r.isNull() ){
+      Node r = getRandomValue(types[j]);
+      if (r.isNull())
+      {
         Trace("sygus-sample") << "INVALID";
         d_is_valid = false;
       }
       Trace("sygus-sample") << r << " ";
-      sample_pt.push_back( r );
+      sample_pt.push_back(r);
     }
     Trace("sygus-sample") << std::endl;
-    d_samples.push_back( sample_pt );
+    d_samples.push_back(sample_pt);
   }
-  
+
   d_trie.clear();
 }
 
-Node SygusSampler::registerTerm( Node n, bool forceKeep )
+Node SygusSampler::registerTerm(Node n, bool forceKeep)
 {
-  if( d_is_valid )
+  if (d_is_valid)
   {
-    return d_trie.add(n,this,0,d_samples.size(), forceKeep);
+    return d_trie.add(n, this, 0, d_samples.size(), forceKeep);
   }
   return n;
 }
 
-bool SygusSampler::isContiguous( Node n )
+bool SygusSampler::isContiguous(Node n)
 {
   // compute free variables in n
-  std::vector< Node > fvs;
-  computeFreeVariables( n, fvs );
+  std::vector<Node> fvs;
+  computeFreeVariables(n, fvs);
   // compute contiguous condition
-  for( const std::pair< const TypeNode, std::vector< Node > >& p : d_type_vars )
+  for (const std::pair<const TypeNode, std::vector<Node> >& p : d_type_vars)
   {
     bool foundNotFv = false;
-    for( const Node& v : p.second )
+    for (const Node& v : p.second)
     {
-      bool hasFv = std::find( fvs.begin(), fvs.end(), v )!=fvs.end();
-      if( !hasFv )
+      bool hasFv = std::find(fvs.begin(), fvs.end(), v) != fvs.end();
+      if (!hasFv)
       {
         foundNotFv = true;
       }
-      else if( foundNotFv )
+      else if (foundNotFv)
       {
         return false;
       }
@@ -144,95 +160,103 @@ bool SygusSampler::isContiguous( Node n )
   return true;
 }
 
-void SygusSampler::computeFreeVariables( Node n, std::vector< Node >& fvs )
+void SygusSampler::computeFreeVariables(Node n, std::vector<Node>& fvs)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
-      if( cur.isVar() )
+      if (cur.isVar())
       {
-        if( d_var_index.find( cur )!=d_var_index.end() )
+        if (d_var_index.find(cur) != d_var_index.end())
         {
-          fvs.push_back( cur );
+          fvs.push_back(cur);
         }
       }
-      for (const Node& cn : cur ){
+      for (const Node& cn : cur)
+      {
         visit.push_back(cn);
       }
     }
   } while (!visit.empty());
 }
 
-bool SygusSampler::isOrdered( Node n )
+bool SygusSampler::isOrdered(Node n)
 {
   // compute free variables in n for each type
-  std::map< TypeNode, std::vector< Node > > fvs;
-  
+  std::map<TypeNode, std::vector<Node> > fvs;
+
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
-      if( cur.isVar() )
+      if (cur.isVar())
       {
-        std::map< Node, unsigned >::iterator itv = d_var_index.find( cur );
-        if( itv!=d_var_index.end() )
+        std::map<Node, unsigned>::iterator itv = d_var_index.find(cur);
+        if (itv != d_var_index.end())
         {
           TypeNode tn = cur.getType();
           // if this variable is out of order
-          if( itv->second!=fvs[tn].size() )
+          if (itv->second != fvs[tn].size())
           {
             return false;
           }
-          fvs[tn].push_back( cur );
+          fvs[tn].push_back(cur);
         }
       }
       unsigned nchildren = cur.getNumChildren();
-      for( unsigned j=0; j<nchildren; j++ )
+      for (unsigned j = 0; j < nchildren; j++)
       {
-        visit.push_back(cur[(nchildren-j)-1]);
+        visit.push_back(cur[(nchildren - j) - 1]);
       }
     }
   } while (!visit.empty());
   return true;
 }
 
-bool SygusSampler::containsFreeVariables( Node a, Node b )
+bool SygusSampler::containsFreeVariables(Node a, Node b)
 {
   // compute free variables in a
-  std::vector< Node > fvs;
-  computeFreeVariables( a, fvs );
-  
+  std::vector<Node> fvs;
+  computeFreeVariables(a, fvs);
+
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(b);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
-      if( cur.isVar() )
+      if (cur.isVar())
       {
-        if( std::find( fvs.begin(), fvs.end(), cur )==fvs.end() )
+        if (std::find(fvs.begin(), fvs.end(), cur) == fvs.end())
         {
           return false;
         }
       }
-      for (const Node& cn : cur ){
+      for (const Node& cn : cur)
+      {
         visit.push_back(cn);
       }
     }
@@ -242,100 +266,102 @@ bool SygusSampler::containsFreeVariables( Node a, Node b )
 
 Node SygusSampler::evaluate(Node n, unsigned index)
 {
-  Assert( index<d_samples.size() );
+  Assert(index < d_samples.size());
   Node ev = d_tds->evaluateBuiltin(d_ftn, n, d_samples[index]);
-  Trace("sygus-sample-ev") << "( " << n << ", " << index << " ) -> " << ev << std::endl;
+  Trace("sygus-sample-ev") << "( " << n << ", " << index << " ) -> " << ev
+                           << std::endl;
   return ev;
 }
 
-Node SygusSampler::getRandomValue( TypeNode tn )
+Node SygusSampler::getRandomValue(TypeNode tn)
 {
-  NodeManager * nm = NodeManager::currentNM();
-  if( tn.isBoolean() )
+  NodeManager* nm = NodeManager::currentNM();
+  if (tn.isBoolean())
   {
     return nm->mkConst(Random::getRandom().pickWithProb(0.5));
   }
-  else if( tn.isBitVector() )
+  else if (tn.isBitVector())
   {
     unsigned sz = tn.getBitVectorSize();
     std::stringstream ss;
-    for( unsigned i=0; i<sz; i++ )
+    for (unsigned i = 0; i < sz; i++)
     {
-      ss << ( Random::getRandom().pickWithProb(0.5) ? "1" : "0" );
+      ss << (Random::getRandom().pickWithProb(0.5) ? "1" : "0");
     }
     return nm->mkConst(BitVector(ss.str(), 2));
   }
-  else if( tn.isString() || tn.isInteger() )
+  else if (tn.isString() || tn.isInteger())
   {
-    std::vector< unsigned > vec;
+    std::vector<unsigned> vec;
     double ext_freq = .5;
     unsigned base = 10;
-    while( Random::getRandom().pickWithProb(ext_freq) )
+    while (Random::getRandom().pickWithProb(ext_freq))
     {
-      // add a digit 
-      vec.push_back( Random::getRandom().pick(0,base) );
+      // add a digit
+      vec.push_back(Random::getRandom().pick(0, base));
     }
-    if( tn.isString() )
+    if (tn.isString())
     {
-      //make printable?
+      // make printable?
       /*
       for( unsigned j=0, size = vec.size(); j<size; j++ )
       {
-        vec[j] = static_cast<unsigned>(String::convertUnsignedIntToChar( vec[j] ));
+        vec[j] = static_cast<unsigned>(String::convertUnsignedIntToChar( vec[j]
+      ));
       }
       */
-      return nm->mkConst( String(vec) );
+      return nm->mkConst(String(vec));
     }
-    else if( tn.isInteger() )
+    else if (tn.isInteger())
     {
       Rational baser(base);
       Rational curr(1);
-      std::vector< Node > sum;
-      for( unsigned j=0, size = vec.size(); j<size; j++ )
+      std::vector<Node> sum;
+      for (unsigned j = 0, size = vec.size(); j < size; j++)
       {
-        Node digit = nm->mkConst( Rational(vec[j]) * curr );
-        sum.push_back( digit );
+        Node digit = nm->mkConst(Rational(vec[j]) * curr);
+        sum.push_back(digit);
         curr = curr * baser;
       }
       Node ret;
-      if( sum.empty() )
+      if (sum.empty())
       {
-        ret = nm->mkConst( Rational(0) );
+        ret = nm->mkConst(Rational(0));
       }
-      else if( sum.size()==1 )
+      else if (sum.size() == 1)
       {
         ret = sum[0];
       }
-      else 
+      else
       {
-        ret = nm->mkNode( PLUS, sum );
+        ret = nm->mkNode(PLUS, sum);
       }
-      
-      if( Random::getRandom().pickWithProb(0.5) )
+
+      if (Random::getRandom().pickWithProb(0.5))
       {
-        //negative
-        ret = nm->mkNode( UMINUS, ret );
+        // negative
+        ret = nm->mkNode(UMINUS, ret);
       }
-      ret = Rewriter::rewrite( ret );
-      Assert( ret.isConst() );
+      ret = Rewriter::rewrite(ret);
+      Assert(ret.isConst());
       return ret;
     }
   }
-  else if( tn.isReal() )
+  else if (tn.isReal())
   {
-    Node s = getRandomValue( nm->integerType() );
-    Node r = getRandomValue( nm->integerType() );
-    if( !s.isNull() && !r.isNull() )
+    Node s = getRandomValue(nm->integerType());
+    Node r = getRandomValue(nm->integerType());
+    if (!s.isNull() && !r.isNull())
     {
       Rational sr = s.getConst<Rational>();
       Rational rr = s.getConst<Rational>();
-      if( rr.sgn()==0 )
+      if (rr.sgn() == 0)
       {
         return s;
       }
       else
       {
-        return nm->mkConst( sr/rr );
+        return nm->mkConst(sr / rr);
       }
     }
   }

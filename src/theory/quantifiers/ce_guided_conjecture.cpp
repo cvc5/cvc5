@@ -633,54 +633,58 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       }else{
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
       }
-      out << ")" << std::endl;  
-      
-      if( status!=0 && options::sygusRewSynth() )
+      out << ")" << std::endl;
+
+      if (status != 0 && options::sygusRewSynth())
       {
         TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
-        std::map< Node, SygusSampler >::iterator its = d_sampler.find(prog);
-        if( its==d_sampler.end() ){
-          d_sampler[prog].initialize( sygusDb, prog, options::sygusSamples() );
+        std::map<Node, SygusSampler>::iterator its = d_sampler.find(prog);
+        if (its == d_sampler.end())
+        {
+          d_sampler[prog].initialize(sygusDb, prog, options::sygusSamples());
           its = d_sampler.find(prog);
         }
-        Node solb = sygusDb->sygusToBuiltin( sol, prog.getType() );
-        Node eq_sol = its->second.registerTerm( solb );
+        Node solb = sygusDb->sygusToBuiltin(sol, prog.getType());
+        Node eq_sol = its->second.registerTerm(solb);
         // eq_sol is a candidate solution that is equivalent to sol
-        if( eq_sol!=solb )
+        if (eq_sol != solb)
         {
           // one of eq_sol or solb must be ordered
           bool eqor = its->second.isOrdered(eq_sol);
           bool sor = its->second.isOrdered(solb);
           bool outputRewrite = false;
-          if( eqor || sor )
+          if (eqor || sor)
           {
             outputRewrite = true;
-            // if only one is ordered, then the ordered one must contain the 
+            // if only one is ordered, then the ordered one must contain the
             // free variables of the other
-            if( !eqor )
+            if (!eqor)
             {
-              outputRewrite = its->second.containsFreeVariables( solb, eq_sol );
+              outputRewrite = its->second.containsFreeVariables(solb, eq_sol);
             }
-            else if( !sor )
+            else if (!sor)
             {
-              outputRewrite = its->second.containsFreeVariables( eq_sol, solb );
+              outputRewrite = its->second.containsFreeVariables(eq_sol, solb);
             }
           }
-            
-          if( outputRewrite )
+
+          if (outputRewrite)
           {
-            out << "(candidate-rewrite " << solb << " " << eq_sol << ")" << std::endl;
+            out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
+                << std::endl;
             // if the previous value stored was unordered, but this is
             // ordered, we prefer this one. Thus, we force its addition to the
             // sampler database.
-            if( !eqor )
+            if (!eqor)
             {
-              its->second.registerTerm( solb, true );
+              its->second.registerTerm(solb, true);
             }
           }
           else
           {
-            Trace("sygus-synth-rr") << "Alpha equivalent candidate rewrite : " << eq_sol << " " << solb << std::endl;
+            Trace("sygus-synth-rr")
+                << "Alpha equivalent candidate rewrite : " << eq_sol << " "
+                << solb << std::endl;
           }
         }
       }
