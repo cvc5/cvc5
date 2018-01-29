@@ -124,7 +124,7 @@ private:
   *   mu x. cons( 1, mu y. cons( 0, x ) )
   * This is represented in CVC4 by the Node:
   *   cons( 1, cons( 0, c[1] ) )
-  * where c[0] is a uninterpreted constant datatype with Debruijn index 1,
+  * where c[1] is a uninterpreted constant datatype with Debruijn index 1,
   * indicating that c[1] is nested underneath 1 level on the path to the
   * term which it binds. On the other hand, the stream 1,0,0,0,0,... is
   * represented by the codatatype term:
