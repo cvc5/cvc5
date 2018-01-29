@@ -94,13 +94,49 @@ class LazyTrie {
   
 /** SygusSampler
  * 
+ * This class can be used to test whether two expressions are equivalent
+ * by random sampling. We use this class for the following options:
+ * 
+ * sygus-rr-synth: synthesize candidate rewrite rules by finding two terms
+ * t1 and t2 do not rewrite to the same term, but are identical when considering
+ * a set of sample points, and
+ * 
+ * sygus-rr-verify: detect unsound rewrite rules by finding two terms t1 and
+ * t2 that rewrite to the same term, but not identical when considering a set
+ * of sample points.
+ * 
+ * To use this class:
+ * (1) Call initialize( tds, f, nsamples) where f is sygus datatype term.
+ * (2) For terms n1....nm enumerated that correspond to builtin analog of sygus
+ * term f, we call registerTerm( n1 )....registerTerm( nm ). It may be the case
+ * that registerTerm( ni ) returns nj for some j < i. In this case, we have that
+ * ni and nj are equivalent under the sample points in this class.
+ * 
+ * For example, say the grammar for f is:
+ *   A = 0 | x | y | A+A
+ * If we call intialize( tds, f, 5 ), this class will generate 5 random sample
+ * points for (x,y), say (0,0), (1,1), (0,1), (1,0), (2,2). The return values 
+ * are listed below.
+ *   registerTerm( 0 ) -> 0
+ *   registerTerm( x ) -> x
+ *   registerTerm( x+y ) -> x+y
+ *   registerTerm( y+x ) -> x+y
+ *   registerTerm( x+ite(x <= 2, 0, y ) ) -> x
+ * Notice that the number of sample points can be configured for the above 
+ * options using sygus-samples=N.
  */
 class SygusSampler : public LazyTrieEvaluator
 {
 public:
   SygusSampler();
   virtual ~SygusSampler(){}
-  /** initialize */
+  /** initialize 
+   * 
+   * tds : reference to a sygus database,
+   * f : a term of some SyGuS datatype type whose (builtin) values we will be
+   * testing,
+   * nsamples : number of sample points this class will test.
+   */
   void initialize( TermDbSygus * tds, Node f, unsigned nsamples );
   /** register term n with this sampler database
    * 
