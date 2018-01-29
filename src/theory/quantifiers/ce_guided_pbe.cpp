@@ -1166,7 +1166,7 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
     Assert(itx->second.size() == itxo->second.size());
     std::vector<Node> base_results;
     // compte the results
-    for (unsigned j = 0; j < itx->second.size(); j++)
+    for (unsigned j = 0, size = itx->second.size(); j < size; j++)
     {
       Node res = d_tds->evaluateBuiltin(xtn, bv, itx->second[j]);
       Trace("sygus-pbe-enum-debug")
