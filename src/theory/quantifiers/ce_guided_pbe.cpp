@@ -1363,6 +1363,7 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude(
 {
   if (useStrContainsEnumeratorExclude(x, ei))
   {
+    NodeManager * nm = NodeManager::currentNM();
     // This check whether the example evaluates to something that is larger than
     // the output for some input/output pair. If so, then this term is never
     // useful. We generalize its explanation below.
@@ -1385,8 +1386,7 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude(
       Assert(itxo->second[i].isConst());
       Trace("sygus-pbe-cterm-debug")
           << "  " << results[i] << " <> " << itxo->second[i];
-      Node cont = NodeManager::currentNM()->mkNode(
-          STRING_STRCTN, itxo->second[i], results[i]);
+      Node cont = nm->mkNode(STRING_STRCTN, itxo->second[i], results[i]);
       Node contr = Rewriter::rewrite(cont);
       if (contr == d_false)
       {

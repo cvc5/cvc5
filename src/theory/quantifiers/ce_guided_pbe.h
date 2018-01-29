@@ -543,8 +543,9 @@ class CegConjecturePbe {
    *
    * We have enumerated the value v for x. This function adds x->v to the
    * relevant data structures that are used for strategy-specific construction
-   * of solutions when necessary, and returns a set of lemmas that exclude
-   * models where x = v on future iterations stored in lems.
+   * of solutions when necessary, and returns a set of lemmas, which are added
+   * to the input argument lems. These lemmas are used to rule out models where
+   * x = v, to force that a new value is enumerated for x.
    */
   void addEnumeratedValue( Node x, Node v, std::vector< Node >& lems );
   /** domain-specific enumerator exclusion techniques
