@@ -99,7 +99,58 @@ private:
  /** rewrite tester term in */
  static RewriteResponse rewriteTester(TNode in);
 
- /** TODO (#1436) document these */
+ /** collect references 
+  * 
+  * This function, given as input a codatatype term n, collects the necessary
+  * information for constructing a (canonical) codatatype constant that is
+  * equivalent to n if one exists, or null otherwise. 
+  * 
+  * In particular it returns a term ret such that all non-codatatype datatype 
+  * subterms of n are replaced by a constant that is equal to them via a 
+  * (mutually) recursive call to normalizeConstant above. Additionally, this 
+  * function replaces references to mu-binders with fresh variables. 
+  * In detail, mu-terms are represented by uninterpreted constants of datatype 
+  * type that carry their Debruijn index. 
+  * 
+  * Consider the example of a codatatype representing a stream of integers:
+  *   Stream := cons( head : Int, tail : Stream )
+  * The stream 1,0,1,0,1,0... when written in mu-notation is the term:
+  *   mu x. cons( 1, mu y. cons( 0, x ) )
+  * This is represented in CVC4 by the Node:
+  *   cons( 1, cons( 0, c[1] ) )
+  * where c[0] is a uninterpreted constant datatype with Debruijn index 1,
+  * indicating that c[1] is nested underneath 1 level on the path to the 
+  * term which it binds. On the other hand, the stream 1,0,0,0,0,... is 
+  * represented by the codatatype term:
+  *   cons( 1, cons( 0, c[0] ) )
+  * 
+  * Subterms that are references to mu-binders in n are replaced by a new 
+  * variable. If n contains any subterm that is a reference to a mu-binder not
+  * bound in n, then we return null. For example we return null when n is:
+  *   cons( 1, cons( 0, c[2] ) )
+  * since c[2] is not bound by this codatatype term.
+  *
+  * All valid references to mu-binders replaced by a variable that is unique 
+  * for the term it references. For example, for the infinite tree codatatype:
+  *   Tree : node( data : Int, left : Tree, right : Tree )
+  * If n is the term:
+  *   node( 0, c[0], node( 1, c[0], c[1] ) ) 
+  * then the return value ret of this function is:
+  *   node( 0, x, node( 1, y, x ) )
+  * where x refers to the root of the term and y refers to the right tree of the 
+  * root.
+  * 
+  * The argument sk stores the current set of node that we are traversing 
+  * beneath. The argument rf_pending stores, for each node that we are 
+  * traversing beneath either null or the free variable that we are using to
+  * refer to its mu-binder. The remaining arguments store information that is 
+  * relevant when performing normalization of n using the value of ret:
+  * 
+  * rf : maps subterms of n to the corresponding term in ret for all subterms
+  * where the corresponding term in ret is different.
+  * terms : stores all subterms of ret.
+  * cdts : for each term t in terms, stores whether t is a codatatype.
+  */
  static Node collectRef(Node n,
                         std::vector<Node>& sk,
                         std::map<Node, Node>& rf,
