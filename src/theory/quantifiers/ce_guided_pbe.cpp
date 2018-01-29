@@ -1363,7 +1363,7 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude(
 {
   if (useStrContainsEnumeratorExclude(x, ei))
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     // This check whether the example evaluates to something that is larger than
     // the output for some input/output pair. If so, then this term is never
     // useful. We generalize its explanation below.
