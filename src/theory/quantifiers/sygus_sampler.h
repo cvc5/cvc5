@@ -117,15 +117,16 @@ class LazyTrie
  * ni and nj are equivalent under the sample points in this class.
  *
  * For example, say the grammar for f is:
- *   A = 0 | x | y | A+A
+ *   A = 0 | 1 | x | y | A+A | ite( B, A, A )
+ *   B = A <= A
  * If we call intialize( tds, f, 5 ), this class will generate 5 random sample
  * points for (x,y), say (0,0), (1,1), (0,1), (1,0), (2,2). The return values
- * are listed below.
+ * of successive calls to registerTerm are listed below.
  *   registerTerm( 0 ) -> 0
  *   registerTerm( x ) -> x
  *   registerTerm( x+y ) -> x+y
  *   registerTerm( y+x ) -> x+y
- *   registerTerm( x+ite(x <= 2, 0, y ) ) -> x
+ *   registerTerm( x+ite(x <= 1+1, 0, y ) ) -> x
  * Notice that the number of sample points can be configured for the above
  * options using sygus-samples=N.
  */
