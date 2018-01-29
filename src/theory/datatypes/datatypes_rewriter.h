@@ -69,6 +69,12 @@ public:
   *
   * This returns the normal form of the codatatype constant n. This runs a
   * DFA minimization algorithm based on the private functions below.
+  * 
+  * In particular, we first call collectRefs to setup initial information
+  * about what terms occur in n. Then, we run a DFA minimization algorithm to
+  * partition these subterms in equivalence classes. Finally, we call
+  * normalizeCodatatypeConstantEqc to construct the normalized codatatype
+  * constant that is equivalent to n.
   */
  static Node normalizeCodatatypeConstant(Node n);
  /** normalize constant
@@ -157,7 +163,18 @@ private:
                         std::vector<Node>& rf_pending,
                         std::vector<Node>& terms,
                         std::map<Node, bool>& cdts);
- // eqc_stack stores depth
+ /** normalize codatatype constant eqc 
+  * 
+  * This recursive function returns a codatatype constant that is equivalent to 
+  * n based a pre-computed partition of the subterms of n into equivalence 
+  * classes, as stored in the mapping eqc, which maps the subterms of n to 
+  * equivalence class ids. The arguments eqc_stack and depth store information
+  * about the traversal in a term we have recursed, where
+  * 
+  * eqc_stack : maps the depth of each term we have traversed to its equivalence
+  * class id.
+  * depth : the number of levels which we have traversed.
+  */
  static Node normalizeCodatatypeConstantEqc(Node n,
                                             std::map<int, int>& eqc_stack,
                                             std::map<Node, int>& eqc,
