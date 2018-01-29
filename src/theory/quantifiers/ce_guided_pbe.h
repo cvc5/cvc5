@@ -537,19 +537,19 @@ class CegConjecturePbe {
   std::map< Node, CandidateInfo > d_cinfo;
 
   //------------------------------ representation of an enumeration strategy
-  /** add enumerated value 
-   * 
-   * We have enumerated the value v for x. This function adds x->v to the 
+  /** add enumerated value
+   *
+   * We have enumerated the value v for x. This function adds x->v to the
    * relevant data structures that are used for strategy-specific construction
    * of solutions when necessary, and returns a set of lemmas that exclude
    * models where x = v on future iterations stored in lems.
    */
   void addEnumeratedValue( Node x, Node v, std::vector< Node >& lems );
-  /** domain-specific enumerator exclusion techniques 
-   * 
-   * Returns true if the value v for x can be excluded based on a 
+  /** domain-specific enumerator exclusion techniques
+   *
+   * Returns true if the value v for x can be excluded based on a
    * domain-specific exclusion technique like the ones below.
-   * 
+   *
    * c : the candidate variable that x is enumerating for,
    * results : the values of v under the input examples of c,
    * ei : the enumerator information for x,
@@ -557,13 +557,13 @@ class CegConjecturePbe {
    * generalize) explanation for why v can be excluded.
    */
   bool getExplanationForEnumeratorExclude( Node c, Node x, Node v, std::vector< Node >& results, EnumInfo& ei, std::vector< Node >& exp );
-  /** returns true if we can exlude values of x based on negative str.contains 
-   * 
+  /** returns true if we can exlude values of x based on negative str.contains
+   *
    * Values v for x may be excluded if we realize that the value of v under the
-   * substitution for some input example will never be contained in some output 
-   * example. For details on this technique, see NegContainsSygusInvarianceTest 
+   * substitution for some input example will never be contained in some output
+   * example. For details on this technique, see NegContainsSygusInvarianceTest
    * in sygus_invariance.h.
-   * 
+   *
    * This function depends on whether x is being used to enumerate values
    * for any node that is conditional in the strategy graph. For example,
    * nodes that are children of ITE strategy nodes are conditional. If any node
