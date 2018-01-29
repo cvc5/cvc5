@@ -162,6 +162,16 @@ private:
                                             std::map<int, int>& eqc_stack,
                                             std::map<Node, int>& eqc,
                                             int depth);
+ /** replace debruijn
+  * 
+  * This function, given codatatype term n, returns a node
+  * where all subterms of n that have Debruijn indices that refer to a
+  * term of input depth are replaced by orig. For example, for the infinite Tree
+  * datatype, 
+  *   replaceDebruijn( node( 0, c[0], node( 1, c[0], c[1] ) ), t, Tree, 0 )
+  * returns 
+  *   node( 0, t, node( 1, c[0], t ) ).
+  */
  static Node replaceDebruijn(Node n,
                              Node orig,
                              TypeNode orig_tn,
