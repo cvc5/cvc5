@@ -401,7 +401,7 @@ class CegConjecturePbe {
       * This flag is set to true if this enumerator may not apply to all
       * input/output examples. For example, if this enumerator is used
       * as an output value beneath a conditional in an instance of strat_ITE,
-      * then thie enumerator is conditional.
+      * then this enumerator is conditional.
       */
     void setConditional() { d_is_conditional = true; }
     /** is conditional */
@@ -432,8 +432,10 @@ class CegConjecturePbe {
     SubsumeTrie d_term_trie;
 
    private:
-    /** whether an enumerated value for this conjecture has solved the entire
-      * conjecture */
+    /** 
+     * Whether an enumerated value for this conjecture has solved the entire
+     * conjecture.
+     */
     Node d_enum_solved;
     /** the role of this enumerator (one of enum_* above). */
     EnumRole d_role;

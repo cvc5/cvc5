@@ -1383,15 +1383,6 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude(
     {
       Assert(results[i].isConst());
       Assert(itxo->second[i].isConst());
-      /*
-      unsigned vlen = results[i].getConst<String>().size();
-      unsigned xlen = itxo->second[i].getConst<String>().size();
-      Trace("sygus-pbe-cterm-debug") << "  " << results[i] << " <> " <<
-      itxo->second[i];
-      int index = vlen>xlen ? 1 : ( vlen<xlen ? -1 : 0 );
-      Trace("sygus-pbe-cterm-debug") << "..." << index << std::endl;
-      cmp_indices[index].push_back( i );
-      */
       Trace("sygus-pbe-cterm-debug")
           << "  " << results[i] << " <> " << itxo->second[i];
       Node cont = NodeManager::currentNM()->mkNode(
@@ -1409,9 +1400,10 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude(
     }
     if (!cmp_indices.empty())
     {
-      // set up the inclusion set
+      // we check invariance with respect to a negative contains test
       NegContainsSygusInvarianceTest ncset;
       ncset.init(d_parent, x, itxo->second, cmp_indices);
+      // construct the generalized explanation
       d_tds->getExplain()->getExplanationFor(x, v, exp, ncset);
       Trace("sygus-pbe-cterm")
           << "PBE-cterm : enumerator exclude " << d_tds->sygusToBuiltin(v)
