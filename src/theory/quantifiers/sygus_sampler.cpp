@@ -58,8 +58,9 @@ Node LazyTrie::add(Node n,
         {
           // evaluate the lazy child
           Node e_lc = ev->evaluate(lt->d_lazy_child, index);
-          lt->d_children[e_lc].add(
-              lt->d_lazy_child, ev, index + 1, ntotal, forceKeep);
+          // store at next level
+          lt->d_children[e_lc].d_lazy_child = lt->d_lazy_child;
+          // replace
           lt->d_lazy_child = Node::null();
         }
       }

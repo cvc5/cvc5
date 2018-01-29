@@ -670,6 +670,9 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
 
           if (outputRewrite)
           {
+            // Terms solb and eq_sol are equivalent under sample points but do
+            // not rewrite to the same term. Hence, this indicates a candidate
+            // rewrite.
             out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
                 << std::endl;
             // if the previous value stored was unordered, but this is
