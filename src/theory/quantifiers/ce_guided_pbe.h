@@ -432,7 +432,7 @@ class CegConjecturePbe {
     SubsumeTrie d_term_trie;
 
    private:
-    /** 
+    /**
      * Whether an enumerated value for this conjecture has solved the entire
      * conjecture.
      */
