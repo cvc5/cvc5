@@ -303,14 +303,6 @@ Node SygusSampler::getRandomValue(TypeNode tn)
     }
     if (tn.isString())
     {
-      // make printable?
-      /*
-      for( unsigned j=0, size = vec.size(); j<size; j++ )
-      {
-        vec[j] = static_cast<unsigned>(String::convertUnsignedIntToChar( vec[j]
-      ));
-      }
-      */
       return nm->mkConst(String(vec));
     }
     else if (tn.isInteger())
