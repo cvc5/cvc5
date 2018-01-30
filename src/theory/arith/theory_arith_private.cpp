@@ -145,7 +145,8 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_statistics(),
   d_to_int_skolem(u),
   d_div_skolem(u),
-  d_int_div_skolem(u)
+  d_int_div_skolem(u),
+  d_nlin_inverse_skolem(u)
 {
   if( options::nlExt() ){
     d_nonlinearExtension = new NonlinearExtension(
@@ -1274,9 +1275,30 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
   case kind::ARCCOSECANT:
   case kind::ARCSECANT:
   case kind::ARCCOTANGENT: {
-    // TODO: eliminate here
-    
-    
+    // eliminate inverse functions here
+    NodeMap::const_iterator it = d_div_skolem.find( n );
+    if( it==d_nlin_inverse_skolem.end() ){
+      Node var = nm->mkSkolem("nonlinearInv", nm->realType(), "the result of a non-linear inverse function");
+      d_nlin_inverse_skolem[n] = var;
+      Node lem;
+      if( k==kind::SQRT )
+      {
+        lem = nm->mkNode(kind::MULT, n[0], n[0] ).eqNode(var);
+      }
+      else
+      {
+        Kind rk = k==kind::ARCSINE ? kind::SINE : (
+                  k==kind::ARCCOSINE ? kind::COSINE : (
+                  k==kind::ARCTANGENT ? kind::TANGENT : (
+                  k==kind::ARCCOSECANT ? kind::COSECANT : (
+                  k==kind::ARCSECANT ? kind::SECANT : kind::COTANGENT ))));
+        lem = nm->mkNode( rk, var ).eqNode(n[0]);
+      }
+      Assert( !lem.isNull() );
+      d_containing.d_out->lemma(lem);
+      return var;
+    }
+    return (*it).second;
     break;
   }
   default:
