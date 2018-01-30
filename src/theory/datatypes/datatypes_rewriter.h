@@ -136,7 +136,7 @@ private:
   *   cons( 1, cons( 0, c[2] ) )
   * since c[2] is not bound by this codatatype term.
   *
-  * All valid references to mu-binders replaced by a variable that is unique
+  * All valid references to mu-binders are replaced by a variable that is unique
   * for the term it references. For example, for the infinite tree codatatype:
   *   Tree : node( data : Int, left : Tree, right : Tree )
   * If n is the term:
@@ -166,7 +166,7 @@ private:
  /** normalize codatatype constant eqc
   *
   * This recursive function returns a codatatype constant that is equivalent to
-  * n based a pre-computed partition of the subterms of n into equivalence
+  * n based on a pre-computed partition of the subterms of n into equivalence
   * classes, as stored in the mapping eqc, which maps the subterms of n to
   * equivalence class ids. The arguments eqc_stack and depth store information
   * about the traversal in a term we have recursed, where

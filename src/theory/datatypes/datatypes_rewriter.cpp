@@ -302,7 +302,7 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
     return RewriteResponse(REWRITE_DONE,
                            NodeManager::currentNM()->mkConst(result));
   }
-  const Datatype& dt = DatatypeType(in[0].getType().toType()).getDatatype();
+  const Datatype& dt = static_cast<DatatypeType>(in[0].getType().toType()).getDatatype();
   if (dt.getNumConstructors() == 1)
   {
     // only one constructor, so it must be
