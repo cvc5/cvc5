@@ -17,10 +17,6 @@
 #include "util/bitvector.h"
 #include "util/random.h"
 
-using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
@@ -43,32 +39,26 @@ Node LazyTrie::add(Node n,
       }
       return lt->d_lazy_child;
     }
-    else
+    std::vector<Node> ex;
+    if (lt->d_children.empty())
     {
-      std::vector<Node> ex;
-      if (lt->d_children.empty())
+      if (lt->d_lazy_child.isNull())
       {
-        if (lt->d_lazy_child.isNull())
-        {
-          // no one has been here, we are done
-          lt->d_lazy_child = n;
-          return lt->d_lazy_child;
-        }
-        else
-        {
-          // evaluate the lazy child
-          Node e_lc = ev->evaluate(lt->d_lazy_child, index);
-          // store at next level
-          lt->d_children[e_lc].d_lazy_child = lt->d_lazy_child;
-          // replace
-          lt->d_lazy_child = Node::null();
-        }
+        // no one has been here, we are done
+        lt->d_lazy_child = n;
+        return lt->d_lazy_child;
       }
-      // recurse
-      Node e = ev->evaluate(n, index);
-      lt = &lt->d_children[e];
-      index = index + 1;
+      // evaluate the lazy child
+      Node e_lc = ev->evaluate(lt->d_lazy_child, index);
+      // store at next level
+      lt->d_children[e_lc].d_lazy_child = lt->d_lazy_child;
+      // replace
+      lt->d_lazy_child = Node::null();
     }
+    // recurse
+    Node e = ev->evaluate(n, index);
+    lt = &lt->d_children[e];
+    index = index + 1;
   }
   return Node::null();
 }
