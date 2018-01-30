@@ -70,7 +70,7 @@ void Smt2::addArithmeticOperators() {
   addOperator(kind::ARCCOSECANT, "arccsc");
   addOperator(kind::ARCSECANT, "arcsec");
   addOperator(kind::ARCCOTANGENT, "arccot");
-  
+
   addOperator(kind::SQRT, "sqrt");
 }
 

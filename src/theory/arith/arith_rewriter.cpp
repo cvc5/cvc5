@@ -360,20 +360,22 @@ RewriteResponse ArithRewriter::preRewriteTranscendental(TNode t) {
 
 RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) { 
   Trace("arith-tf-rewrite") << "Rewrite transcendental function : " << t << std::endl;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   switch( t.getKind() ){
   case kind::EXPONENTIAL: {
     if(t[0].getKind() == kind::CONST_RATIONAL){
       Node one = nm->mkConst(Rational(1));
       if(t[0].getConst<Rational>().sgn()>=0 && t[0].getType().isInteger() && t[0]!=one){
-        return RewriteResponse(REWRITE_AGAIN, nm->mkNode(kind::POW, nm->mkNode( kind::EXPONENTIAL, one ), t[0]));
+        return RewriteResponse(
+            REWRITE_AGAIN,
+            nm->mkNode(kind::POW, nm->mkNode(kind::EXPONENTIAL, one), t[0]));
       }else{          
         return RewriteResponse(REWRITE_DONE, t);
       }
     }else if(t[0].getKind() == kind::PLUS ){
       std::vector<Node> product;
       for( unsigned i=0; i<t[0].getNumChildren(); i++ ){
-        product.push_back( nm->mkNode( kind::EXPONENTIAL, t[0][i] ) );
+        product.push_back(nm->mkNode(kind::EXPONENTIAL, t[0][i]));
       }
       return RewriteResponse(REWRITE_AGAIN, nm->mkNode(kind::MULT, product));
     }
@@ -437,22 +439,25 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
               kind::INTS_DIVISION, mkRationalNode(r_abs + rone), ntwo);
           Node new_pi_factor;
           if( r.sgn()==1 ){
-            new_pi_factor = nm->mkNode( kind::MINUS, pi_factor, nm->mkNode( kind::MULT, ntwo, ra_div_two ) );
+            new_pi_factor =
+                nm->mkNode(kind::MINUS,
+                           pi_factor,
+                           nm->mkNode(kind::MULT, ntwo, ra_div_two));
           }else{
             Assert( r.sgn()==-1 );
-            new_pi_factor = nm->mkNode( kind::PLUS, pi_factor, nm->mkNode( kind::MULT, ntwo, ra_div_two ) );
+            new_pi_factor =
+                nm->mkNode(kind::PLUS,
+                           pi_factor,
+                           nm->mkNode(kind::MULT, ntwo, ra_div_two));
           }
-          Node new_arg =
-              nm->mkNode(kind::MULT, new_pi_factor, pi);
+          Node new_arg = nm->mkNode(kind::MULT, new_pi_factor, pi);
           if (!rem.isNull())
           {
-            new_arg =
-                nm->mkNode(kind::PLUS, new_arg, rem);
+            new_arg = nm->mkNode(kind::PLUS, new_arg, rem);
           }
           // sin( 2*n*PI + x ) = sin( x )
-          return RewriteResponse(
-              REWRITE_AGAIN_FULL,
-              nm->mkNode(kind::SINE, new_arg));
+          return RewriteResponse(REWRITE_AGAIN_FULL,
+                                 nm->mkNode(kind::SINE, new_arg));
         }
         else if (r_abs == rone)
         {
@@ -465,9 +470,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
           {
             return RewriteResponse(
                 REWRITE_AGAIN_FULL,
-                nm->mkNode(
-                    kind::UMINUS,
-                    nm->mkNode(kind::SINE, rem)));
+                nm->mkNode(kind::UMINUS, nm->mkNode(kind::SINE, rem)));
           }
         }
         else if (rem.isNull())
@@ -498,25 +501,36 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
     }
     break;
   case kind::COSINE: {
-    return RewriteResponse(REWRITE_AGAIN_FULL, nm->mkNode( kind::SINE, 
-                                                 nm->mkNode( kind::MINUS, 
-                                                   nm->mkNode( kind::MULT, 
-                                                     nm->mkConst( Rational(1)/Rational(2) ),
-                                                     nm->mkNullaryOperator( nm->realType(), kind::PI ) ),
-                                                     t[0] ) ) );
+    return RewriteResponse(
+        REWRITE_AGAIN_FULL,
+        nm->mkNode(kind::SINE,
+                   nm->mkNode(kind::MINUS,
+                              nm->mkNode(kind::MULT,
+                                         nm->mkConst(Rational(1) / Rational(2)),
+                                         nm->mkNullaryOperator(nm->realType(),
+                                                               kind::PI)),
+                              t[0])));
   } break;
   case kind::TANGENT:
-    return RewriteResponse(REWRITE_AGAIN_FULL, nm->mkNode(kind::DIVISION, nm->mkNode( kind::SINE, t[0] ), 
-                                                                                           nm->mkNode( kind::COSINE, t[0] ) ));
+    return RewriteResponse(REWRITE_AGAIN_FULL,
+                           nm->mkNode(kind::DIVISION,
+                                      nm->mkNode(kind::SINE, t[0]),
+                                      nm->mkNode(kind::COSINE, t[0])));
   case kind::COSECANT:
-    return RewriteResponse(REWRITE_AGAIN_FULL, nm->mkNode(kind::DIVISION, mkRationalNode(Rational(1)), 
-                                                                          nm->mkNode( kind::SINE, t[0] ) ));
+    return RewriteResponse(REWRITE_AGAIN_FULL,
+                           nm->mkNode(kind::DIVISION,
+                                      mkRationalNode(Rational(1)),
+                                      nm->mkNode(kind::SINE, t[0])));
   case kind::SECANT:
-    return RewriteResponse(REWRITE_AGAIN_FULL, nm->mkNode(kind::DIVISION, mkRationalNode(Rational(1)), 
-                                                                          nm->mkNode( kind::COSINE, t[0] ) ));
+    return RewriteResponse(REWRITE_AGAIN_FULL,
+                           nm->mkNode(kind::DIVISION,
+                                      mkRationalNode(Rational(1)),
+                                      nm->mkNode(kind::COSINE, t[0])));
   case kind::COTANGENT:
-    return RewriteResponse(REWRITE_AGAIN_FULL, nm->mkNode(kind::DIVISION, nm->mkNode( kind::COSINE, t[0] ), 
-                                                                                           nm->mkNode( kind::SINE, t[0] ) ));
+    return RewriteResponse(REWRITE_AGAIN_FULL,
+                           nm->mkNode(kind::DIVISION,
+                                      nm->mkNode(kind::COSINE, t[0]),
+                                      nm->mkNode(kind::SINE, t[0])));
   default:
     break;
   }
