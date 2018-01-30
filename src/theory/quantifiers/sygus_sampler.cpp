@@ -211,8 +211,7 @@ bool SygusSampler::isOrdered(Node n)
           fvs[tn].push_back(cur);
         }
       }
-      unsigned nchildren = cur.getNumChildren();
-      for (unsigned j = 0; j < nchildren; j++)
+      for (unsigned j = 0, nchildren = cur.getNumChildren(); j < nchildren; j++)
       {
         visit.push_back(cur[(nchildren - j) - 1]);
       }
