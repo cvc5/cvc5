@@ -154,7 +154,7 @@ class SygusSampler : public LazyTrieEvaluator
    * This returns whether n's free variables (terms occurring in the range of
    * d_type_vars) are a prefix of the list of variables in d_type_vars for each
    * type. For instance, if d_type_vars[Int] = { x, y }, then 0, x, x+y, y+x are
-   * contiguous but y is not. This is useful for excluding terms from 
+   * contiguous but y is not. This is useful for excluding terms from
    * consideration that are alpha-equivalent to others.
    */
   bool isContiguous(Node n);
