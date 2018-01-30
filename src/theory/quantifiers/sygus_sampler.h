@@ -185,7 +185,7 @@ class SygusSampler : public LazyTrieEvaluator
   /** type variables
    *
    * For each type, a list of variables in the grammar we are considering, for
-   * that type. These typically correspond to the arguments of the 
+   * that type. These typically correspond to the arguments of the
    * function-to-synthesize whose grammar we are considering.
    */
   std::map<TypeNode, std::vector<Node> > d_type_vars;
@@ -213,18 +213,18 @@ class SygusSampler : public LazyTrieEvaluator
    * store these in the vector fvs.
    */
   void computeFreeVariables(Node n, std::vector<Node>& fvs);
-  /** get random value for a type 
-   * 
-   * Returns a random value for the given type based on the random number 
+  /** get random value for a type
+   *
+   * Returns a random value for the given type based on the random number
    * generator. Currently, supported types:
-   * 
+   *
    * Bool, Bitvector : returns a random value in the range of that type.
-   * Int, String : returns a random string of values in (base 10) of random 
+   * Int, String : returns a random string of values in (base 10) of random
    * length, currently by a repeated coin flip.
-   * Real : returns the division of two random integers, where the denominator 
+   * Real : returns the division of two random integers, where the denominator
    * is omitted if it is zero.
-   * 
-   * TODO (#1549): improve this function. Can use the grammar to generate 
+   *
+   * TODO (#1549): improve this function. Can use the grammar to generate
    * interesting sample points.
    */
   Node getRandomValue(TypeNode tn);
