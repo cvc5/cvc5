@@ -425,6 +425,15 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SINE:
   case kind::COSINE:
   case kind::TANGENT:
+  case kind::COSECANT:
+  case kind::SECANT:
+  case kind::COTANGENT:
+  case kind::ARCSINE:
+  case kind::ARCCOSINE:
+  case kind::ARCTANGENT:
+  case kind::ARCCOSECANT:
+  case kind::ARCSECANT:
+  case kind::ARCCOTANGENT:
   case kind::MINUS:
   case kind::UMINUS:
   case kind::LT:
@@ -891,6 +900,15 @@ static string smtKindString(Kind k)
   case kind::SINE: return "sin";
   case kind::COSINE: return "cos";
   case kind::TANGENT: return "tan";
+  case kind::COSECANT: return "csc";
+  case kind::SECANT: return "sec";
+  case kind::COTANGENT: return "cot";
+  case kind::ARCSINE: return "arcsin";
+  case kind::ARCCOSINE: return "arccos";
+  case kind::ARCTANGENT: return "arctan";
+  case kind::ARCCOSECANT: return "arccsc";
+  case kind::ARCSECANT: return "arcsec";
+  case kind::ARCCOTANGENT: return "arccot";
   case kind::MINUS: return "-";
   case kind::UMINUS: return "-";
   case kind::LT: return "<";

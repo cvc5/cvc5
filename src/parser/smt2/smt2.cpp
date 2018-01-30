@@ -61,6 +61,15 @@ void Smt2::addArithmeticOperators() {
   addOperator(kind::SINE, "sin");
   addOperator(kind::COSINE, "cos");
   addOperator(kind::TANGENT, "tan");
+  addOperator(kind::COSECANT, "csc");
+  addOperator(kind::SECANT, "sec");
+  addOperator(kind::COTANGENT, "cot");
+  addOperator(kind::ARCSINE, "arcsin");
+  addOperator(kind::ARCCOSINE, "arccos");
+  addOperator(kind::ARCTANGENT, "arctan");
+  addOperator(kind::ARCCOSECANT, "arccsc");
+  addOperator(kind::ARCSECANT, "arcsec");
+  addOperator(kind::ARCCOTANGENT, "arccot");
 }
 
 void Smt2::addBitvectorOperators() {

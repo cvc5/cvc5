@@ -4864,12 +4864,12 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
   NodeManager* nm = NodeManager::currentNM();
 
   // eliminate here since involves division
-  if( node.getKind()==kind::TANGENT ){
-    node = nm->mkNode(kind::DIVISION, nm->mkNode( kind::SINE, node[0] ), 
-                                      nm->mkNode( kind::COSINE, node[0] ) );
+  Kind k = node.getKind();
+  if( k==kind::TANGENT || k==kind::COSECANT || k==kind::SECANT || k==kind::COTANGENT ){
+    node = Rewriter::rewrite( node );
   }
 
-  switch(node.getKind()) {
+  switch(k) {
   case kind::DIVISION: {
     TNode num = node[0], den = node[1];
     Node ret = nm->mkNode(kind::DIVISION_TOTAL, num, den);

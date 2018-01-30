@@ -1032,7 +1032,8 @@ Kind NonlinearExtension::transKinds(Kind k1, Kind k2) {
 }
 
 bool NonlinearExtension::isTranscendentalKind(Kind k) {
-  Assert(k != TANGENT && k != COSINE);  // eliminated
+  // many operators are eliminated during rewriting
+  Assert(k != TANGENT && k != COSINE && k != COSECANT && k != SECANT && k != COTANGENT);
   return k == EXPONENTIAL || k == SINE || k == PI;
 }
  
