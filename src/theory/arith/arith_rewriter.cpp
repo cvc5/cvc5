@@ -364,18 +364,18 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
   switch( t.getKind() ){
   case kind::EXPONENTIAL: {
     if(t[0].getKind() == kind::CONST_RATIONAL){
-      Node one = NodeManager::currentNM()->mkConst(Rational(1));
+      Node one = nm->mkConst(Rational(1));
       if(t[0].getConst<Rational>().sgn()>=0 && t[0].getType().isInteger() && t[0]!=one){
-        return RewriteResponse(REWRITE_AGAIN, NodeManager::currentNM()->mkNode(kind::POW, NodeManager::currentNM()->mkNode( kind::EXPONENTIAL, one ), t[0]));
+        return RewriteResponse(REWRITE_AGAIN, nm->mkNode(kind::POW, nm->mkNode( kind::EXPONENTIAL, one ), t[0]));
       }else{          
         return RewriteResponse(REWRITE_DONE, t);
       }
     }else if(t[0].getKind() == kind::PLUS ){
       std::vector<Node> product;
       for( unsigned i=0; i<t[0].getNumChildren(); i++ ){
-        product.push_back( NodeManager::currentNM()->mkNode( kind::EXPONENTIAL, t[0][i] ) );
+        product.push_back( nm->mkNode( kind::EXPONENTIAL, t[0][i] ) );
       }
-      return RewriteResponse(REWRITE_AGAIN, NodeManager::currentNM()->mkNode(kind::MULT, product));
+      return RewriteResponse(REWRITE_AGAIN, nm->mkNode(kind::MULT, product));
     }
   }
     break;

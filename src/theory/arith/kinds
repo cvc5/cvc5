@@ -41,6 +41,8 @@ operator ARCCOSECANT 1 "arc cosecant"
 operator ARCSECANT 1 "arc secant"
 operator ARCCOTANGENT 1 "arc cotangent"
 
+operator SQRT 1 "square root"
+
 constant DIVISIBLE_OP \
         ::CVC4::Divisible \
         ::CVC4::DivisibleHashFunction \
@@ -123,6 +125,8 @@ typerule ARCTANGENT ::CVC4::theory::arith::RealOperatorTypeRule
 typerule ARCCOSECANT ::CVC4::theory::arith::RealOperatorTypeRule
 typerule ARCSECANT ::CVC4::theory::arith::RealOperatorTypeRule
 typerule ARCCOTANGENT ::CVC4::theory::arith::RealOperatorTypeRule
+
+typerule SQRT ::CVC4::theory::arith::RealOperatorTypeRule
 
 nullaryoperator PI "pi"
 

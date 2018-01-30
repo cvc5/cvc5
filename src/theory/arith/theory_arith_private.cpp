@@ -1267,6 +1267,18 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
     return var;
     break;
   }
+  case kind::SQRT:
+  case kind::ARCSINE:
+  case kind::ARCCOSINE:
+  case kind::ARCTANGENT:
+  case kind::ARCCOSECANT:
+  case kind::ARCSECANT:
+  case kind::ARCCOTANGENT: {
+    // TODO: eliminate here
+    
+    
+    break;
+  }
   default:
     break;
   }
@@ -4863,10 +4875,11 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
 Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node) {
   NodeManager* nm = NodeManager::currentNM();
 
-  // eliminate here since involves division
+  // eliminate here since the rewritten form of these may introduce division
   Kind k = node.getKind();
   if( k==kind::TANGENT || k==kind::COSECANT || k==kind::SECANT || k==kind::COTANGENT ){
     node = Rewriter::rewrite( node );
+    k = node.getKind();
   }
 
   switch(k) {
@@ -4943,7 +4956,6 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
     return nm->mkNode(kind::ITE, nm->mkNode(kind::LT, node[0], nm->mkConst(Rational(0))), nm->mkNode(kind::UMINUS, node[0]), node[0]);
     break;
   }
-
   default:
     return node;
     break;

@@ -254,6 +254,7 @@ public:
     case kind::ARCCOSECANT:
     case kind::ARCSECANT:
     case kind::ARCCOTANGENT:
+    case kind::SQRT:
     case kind::PI:
       return isTranscendentalMember(n);      
     case kind::ABS:
