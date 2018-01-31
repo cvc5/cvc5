@@ -1307,6 +1307,25 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
       }
       else
       {
+        Node pi = mkPi();
+
+        // range of the skolem
+        Node rlem;
+        if( k==kind::ARCSINE || k==ARCTANGENT || k==ARCCOSECANT )
+        {
+          Node half = nm->mkConst(Rational(1) / Rational(2));
+          Node pi2 = nm->mkNode(kind::MULT, half, pi);
+          Node npi2 = nm->mkNode(kind::MULT, nm->mkConst(Rational(-1)), pi2);
+          // -pi/2 < var <= pi/2
+          rlem = nm->mkNode( AND, nm->mkNode(GT,npi2,var), nm->mkNode(LEQ,var,pi2) );
+        }
+        else
+        {
+          // 0 <= var < pi
+          rlem = nm->mkNode( AND, nm->mkNode(GEQ,nm->mkConst(Rational(0)),var), nm->mkNode(LT,var,pi) );
+        }
+        d_containing.d_out->lemma(rlem);
+
         Kind rk = k == kind::ARCSINE
                       ? kind::SINE
                       : (k == kind::ARCCOSINE

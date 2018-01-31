@@ -107,6 +107,15 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
     case kind::SINE:
     case kind::COSINE:
     case kind::TANGENT:
+    case kind::COSECANT:
+    case kind::SECANT:
+    case kind::COTANGENT:
+    case kind::ARCSINE:
+    case kind::ARCCOSINE:
+    case kind::ARCTANGENT:
+    case kind::ARCCOSECANT:
+    case kind::ARCSECANT:
+    case kind::ARCCOTANGENT:
       return preRewriteTranscendental(t);
     case kind::INTS_DIVISION:
     case kind::INTS_MODULUS:
@@ -163,6 +172,15 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
     case kind::SINE:
     case kind::COSINE:
     case kind::TANGENT:
+    case kind::COSECANT:
+    case kind::SECANT:
+    case kind::COTANGENT:
+    case kind::ARCSINE:
+    case kind::ARCCOSINE:
+    case kind::ARCTANGENT:
+    case kind::ARCCOSECANT:
+    case kind::ARCSECANT:
+    case kind::ARCCOTANGENT:
       return postRewriteTranscendental(t);
     case kind::INTS_DIVISION:
     case kind::INTS_MODULUS:
@@ -507,8 +525,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
                    nm->mkNode(kind::MINUS,
                               nm->mkNode(kind::MULT,
                                          nm->mkConst(Rational(1) / Rational(2)),
-                                         nm->mkNullaryOperator(nm->realType(),
-                                                               kind::PI)),
+                                         mkPi()),
                               t[0])));
   } break;
   case kind::TANGENT:
