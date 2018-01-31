@@ -902,6 +902,11 @@ TheoryModel* TheoryEngine::getModel() {
   return d_curr_model;
 }
 
+Node TheoryEngine::getNegSolvedSynthConj()
+{
+  return d_quantEngine->getNegSolvedSynthConj();
+}
+
 bool TheoryEngine::presolve() {
   // Reset the interrupt flag
   d_interrupted = false;

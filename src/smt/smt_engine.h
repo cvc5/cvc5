@@ -690,9 +690,9 @@ class CVC4_PUBLIC SmtEngine {
 
   /**
    * Get the negation of a synthesis conjecture in which the functional
-   * variables have been substituted by the synthesized solutions.
+   * variables have been substituted by their respective synthesized solutions.
    */
-  Node getNegSolvedConj();
+  Node getNegSolvedSynthConj();
 
   /**
    * Get the current set of assertions.  Only permitted if the

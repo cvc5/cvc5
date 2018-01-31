@@ -5255,9 +5255,9 @@ Model* SmtEngine::getModel() {
   return m;
 }
 
-Node SmtEngine::getNegSolvedConj()
+Node SmtEngine::getNegSolvedSynthConj()
 {
-  return d_theoryEngine->getNegSolvedConj();
+  return d_theoryEngine->getNegSolvedSynthConj();
 }
 
 void SmtEngine::checkUnsatCore() {
@@ -5497,7 +5497,7 @@ void SmtEngine::checkModel(bool hardFailure) {
 void SmtEngine::checkSynthSol()
 {
   Notice() << "SmtEngine::checkSynthSol(): checking synthesis solution" << endl;
-  Node negSolvedConj = getNegSolvedConj();
+  Node negSolvedConj = getNegSolvedSynthConj();
   SmtEngine solChecker(d_exprManager);
   solChecker.setLogic(getLogicInfo());
   Notice() << "SmtEngine::checkSynthSol(): asserting negated solved conjecture"
