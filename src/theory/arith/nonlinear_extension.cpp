@@ -1164,10 +1164,12 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
 
   if (check_assertions.empty())
   {
+    Trace("nl-ext-tf-check-model") << "...simple check succeeded." << std::endl;
     return true;
   }
   else
   {
+    Trace("nl-ext-tf-check-model") << "...simple check failed." << std::endl;
     // TODO (#1450) check model for general case
     return false;
   }
@@ -1295,6 +1297,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   Trace("nl-ext-mv") << "Extended terms : " << std::endl;
   // register the extended function terms
   std::map< Node, Node > mvarg_to_term;
+  std::vector< Node > trig_no_base;
   for( unsigned i=0; i<xts.size(); i++ ){
     Node a = xts[i];
     computeModelValue(a, 0);
@@ -1343,38 +1346,10 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       {
         if( d_trig_is_base.find( a )==d_trig_is_base.end() ){
           consider = false;
-          if( d_trig_base.find( a )==d_trig_base.end() ){
-            Node y = NodeManager::currentNM()->mkSkolem("y",NodeManager::currentNM()->realType(),"phase shifted trigonometric arg");
-            Node new_a = NodeManager::currentNM()->mkNode( a.getKind(), y );
-            d_trig_is_base[new_a] = true;
-            d_trig_base[a] = new_a;
-            Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
-            if( d_pi.isNull() ){
-              mkPi();
-              getCurrentPiBounds( lemmas );
-            }
-            Node shift = NodeManager::currentNM()->mkSkolem( "s", NodeManager::currentNM()->integerType(), "number of shifts" );
-            // FIXME : do not introduce shift here, instead needs model-based
-            // refinement for constant shifts (#1284)
-            Node shift_lem = NodeManager::currentNM()->mkNode(
-                AND,
-                mkValidPhase(y, d_pi),
-                a[0].eqNode(NodeManager::currentNM()->mkNode(
-                    PLUS,
-                    y,
-                    NodeManager::currentNM()->mkNode(
-                        MULT,
-                        NodeManager::currentNM()->mkConst(Rational(2)),
-                        shift,
-                        d_pi))),
-                // particular case of above for shift=0
-                NodeManager::currentNM()->mkNode(
-                    IMPLIES, mkValidPhase(a[0], d_pi), a[0].eqNode(y)),
-                new_a.eqNode(a));
-            //must do preprocess on this one
-            Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : shift : " << shift_lem << std::endl;
-            d_containing.getOutputChannel().lemma(shift_lem, false, true);
-            lemmas_proc++;
+          trig_no_base.push_back( a );
+          if( d_pi.isNull() ){
+            mkPi();
+            getCurrentPiBounds( lemmas );
           }
         }
       }
@@ -1408,7 +1383,45 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas during registration." << std::endl;
     return lemmas_proc;
   }
-
+  
+  // process SINE phase shifting
+  for( const Node& a : trig_no_base )
+  {
+    if( d_trig_base.find( a )==d_trig_base.end() ){
+      Node y = NodeManager::currentNM()->mkSkolem("y",NodeManager::currentNM()->realType(),"phase shifted trigonometric arg");
+      Node new_a = NodeManager::currentNM()->mkNode( a.getKind(), y );
+      d_trig_is_base[new_a] = true;
+      d_trig_base[a] = new_a;
+      Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
+      Assert( !d_pi.isNull() );
+      Node shift = NodeManager::currentNM()->mkSkolem( "s", NodeManager::currentNM()->integerType(), "number of shifts" );
+      // FIXME : do not introduce shift here, instead needs model-based
+      // refinement for constant shifts (#1284)
+      Node shift_lem = NodeManager::currentNM()->mkNode(
+          AND,
+          mkValidPhase(y, d_pi),
+          a[0].eqNode(NodeManager::currentNM()->mkNode(
+              PLUS,
+              y,
+              NodeManager::currentNM()->mkNode(
+                  MULT,
+                  NodeManager::currentNM()->mkConst(Rational(2)),
+                  shift,
+                  d_pi))),
+          // particular case of above for shift=0
+          NodeManager::currentNM()->mkNode(
+              IMPLIES, mkValidPhase(a[0], d_pi), a[0].eqNode(y)),
+          new_a.eqNode(a));
+      //must do preprocess on this one
+      Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : shift : " << shift_lem << std::endl;
+      d_containing.getOutputChannel().lemma(shift_lem, false, true);
+      lemmas_proc++;
+    }
+  }
+  if (lemmas_proc > 0) {
+    Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas SINE phase shifting." << std::endl;
+    return lemmas_proc;
+  }
 
   // register constants
   registerMonomial(d_one);
