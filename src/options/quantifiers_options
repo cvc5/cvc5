@@ -295,6 +295,10 @@ option sygusCRefEval --sygus-cref-eval bool :default true
 option sygusCRefEvalMinExp --sygus-cref-eval-min-exp bool :default true
   use min explain for direct evaluation of refinement lemmas for conflict analysis
   
+
+option checkSynthSol --check-synth-sol bool :default false
+  checks whether produced solutions to functions-to-synthesize satisfy the conjecture
+
 option sygusStream --sygus-stream bool :default false
   enumerate a stream of solutions instead of terminating after the first one
   
