@@ -123,13 +123,19 @@ class NonlinearExtension {
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** add definition
    *
-   * This function notifies this class that lem is a formula that defines
-   * an auxiliary variable. TODO
+   * This function notifies this class that lem is a formula that defines or
+   * constrains an auxiliary variable. For example, during
+   * TheoryArith::expandDefinitions, we replace a term like arcsin( x ) with an
+   * auxiliary variable k. The lemmas 0 <= k < pi and sin( x ) = k are added as 
+   * definitions to this class.
    */
   void addDefinition( Node lem );
   /** presolve 
    * 
-   * TODO
+   * This function is called during TheoryArith's presolve command.
+   * In this function, we send lemmas we accumulated during preprocessing,
+   * for instance, definitional lemmas from expandDefinitions are sent out
+   * on the output channel of TheoryArith in this function.
    */
   void presolve();
   /** Compare arithmetic terms i and j based an ordering.
