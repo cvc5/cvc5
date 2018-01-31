@@ -1284,68 +1284,6 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
     return var;
     break;
   }
-  case kind::SQRT:
-  case kind::ARCSINE:
-  case kind::ARCCOSINE:
-  case kind::ARCTANGENT:
-  case kind::ARCCOSECANT:
-  case kind::ARCSECANT:
-  case kind::ARCCOTANGENT:
-  {
-    // eliminate inverse functions here
-    NodeMap::const_iterator it = d_div_skolem.find(n);
-    if (it == d_nlin_inverse_skolem.end())
-    {
-      Node var = nm->mkSkolem("nonlinearInv",
-                              nm->realType(),
-                              "the result of a non-linear inverse function");
-      d_nlin_inverse_skolem[n] = var;
-      Node lem;
-      if (k == kind::SQRT)
-      {
-        lem = nm->mkNode(kind::MULT, n[0], n[0]).eqNode(var);
-      }
-      else
-      {
-        Node pi = mkPi();
-
-        // range of the skolem
-        Node rlem;
-        if( k==kind::ARCSINE || k==ARCTANGENT || k==ARCCOSECANT )
-        {
-          Node half = nm->mkConst(Rational(1) / Rational(2));
-          Node pi2 = nm->mkNode(kind::MULT, half, pi);
-          Node npi2 = nm->mkNode(kind::MULT, nm->mkConst(Rational(-1)), pi2);
-          // -pi/2 < var <= pi/2
-          rlem = nm->mkNode( AND, nm->mkNode(GT,npi2,var), nm->mkNode(LEQ,var,pi2) );
-        }
-        else
-        {
-          // 0 <= var < pi
-          rlem = nm->mkNode( AND, nm->mkNode(GEQ,nm->mkConst(Rational(0)),var), nm->mkNode(LT,var,pi) );
-        }
-        d_containing.d_out->lemma(rlem);
-
-        Kind rk = k == kind::ARCSINE
-                      ? kind::SINE
-                      : (k == kind::ARCCOSINE
-                             ? kind::COSINE
-                             : (k == kind::ARCTANGENT
-                                    ? kind::TANGENT
-                                    : (k == kind::ARCCOSECANT
-                                           ? kind::COSECANT
-                                           : (k == kind::ARCSECANT
-                                                  ? kind::SECANT
-                                                  : kind::COTANGENT))));
-        lem = nm->mkNode(rk, var).eqNode(n[0]);
-      }
-      Assert(!lem.isNull());
-      d_containing.d_out->lemma(lem);
-      return var;
-    }
-    return (*it).second;
-    break;
-  }
   default:
     break;
   }
@@ -4498,6 +4436,11 @@ void TheoryArithPrivate::presolve(){
     Debug("arith::oldprop") << " lemma lemma duck " <<lem << endl;
     outputLemma(lem);
   }
+  
+  if( options::nlExt() )
+  {
+    d_nonlinearExtension->presolve();
+  }
 }
 
 EqualityStatus TheoryArithPrivate::getEqualityStatus(TNode a, TNode b) {
@@ -4941,7 +4884,7 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
 
 Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node) {
   NodeManager* nm = NodeManager::currentNM();
-
+  
   // eliminate here since the rewritten form of these may introduce division
   Kind k = node.getKind();
   if (k == kind::TANGENT || k == kind::COSECANT || k == kind::SECANT
@@ -5033,6 +4976,79 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
                         node[0]);
       break;
     }
+    case kind::SQRT:
+    case kind::ARCSINE:
+    case kind::ARCCOSINE:
+    case kind::ARCTANGENT:
+    case kind::ARCCOSECANT:
+    case kind::ARCSECANT:
+    case kind::ARCCOTANGENT:
+    {
+      // eliminate inverse functions here
+      NodeMap::const_iterator it = d_nlin_inverse_skolem.find(node);
+      if (it == d_nlin_inverse_skolem.end())
+      {
+        Node var = nm->mkSkolem("nonlinearInv",
+                                nm->realType(),
+                                "the result of a non-linear inverse function");
+        d_nlin_inverse_skolem[node] = var;
+        Node lem;
+        if (k == kind::SQRT)
+        {
+          lem = nm->mkNode(kind::MULT, node[0], node[0]).eqNode(var);
+        }
+        else
+        {
+          Node pi = mkPi();
+
+          // range of the skolem
+          Node rlem;
+          if( k==kind::ARCSINE || k==ARCTANGENT || k==ARCCOSECANT )
+          {
+            Node half = nm->mkConst(Rational(1) / Rational(2));
+            Node pi2 = nm->mkNode(kind::MULT, half, pi);
+            Node npi2 = nm->mkNode(kind::MULT, nm->mkConst(Rational(-1)), pi2);
+            // -pi/2 < var <= pi/2
+            rlem = nm->mkNode( AND, nm->mkNode(LT,npi2,var), nm->mkNode(LEQ,var,pi2) );
+          }
+          else
+          {
+            // 0 <= var < pi
+            rlem = nm->mkNode( AND, nm->mkNode(LEQ,nm->mkConst(Rational(0)),var), nm->mkNode(LT,var,pi) );
+          }
+          if( options::nlExt() ){
+            d_nonlinearExtension->addDefinition(rlem);
+          }
+
+          Kind rk = k == kind::ARCSINE
+                        ? kind::SINE
+                        : (k == kind::ARCCOSINE
+                                ? kind::COSINE
+                                : (k == kind::ARCTANGENT
+                                      ? kind::TANGENT
+                                      : (k == kind::ARCCOSECANT
+                                              ? kind::COSECANT
+                                              : (k == kind::ARCSECANT
+                                                    ? kind::SECANT
+                                                    : kind::COTANGENT))));
+          Node invTerm = nm->mkNode(rk, var);
+          // since invTerm may introduce division,
+          // we must also call expandDefinition on the result
+          invTerm = expandDefinition( logicRequest, invTerm );
+          lem = invTerm.eqNode(node[0]);
+        }
+        Assert(!lem.isNull());
+        if( options::nlExt() ){
+          d_nonlinearExtension->addDefinition(lem);
+        }else{
+          d_nlIncomplete = true;
+        }
+        return var;
+      }
+      return (*it).second;
+      break;
+    }
+    
     default: return node; break;
   }
 

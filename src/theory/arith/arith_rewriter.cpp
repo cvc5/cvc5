@@ -528,26 +528,30 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
                                          mkPi()),
                               t[0])));
   } break;
-  case kind::TANGENT:
+  case kind::TANGENT: {
     return RewriteResponse(REWRITE_AGAIN_FULL,
                            nm->mkNode(kind::DIVISION,
                                       nm->mkNode(kind::SINE, t[0]),
                                       nm->mkNode(kind::COSINE, t[0])));
-  case kind::COSECANT:
+  } break;
+  case kind::COSECANT: {
     return RewriteResponse(REWRITE_AGAIN_FULL,
                            nm->mkNode(kind::DIVISION,
                                       mkRationalNode(Rational(1)),
                                       nm->mkNode(kind::SINE, t[0])));
-  case kind::SECANT:
+  } break;
+  case kind::SECANT: {
     return RewriteResponse(REWRITE_AGAIN_FULL,
                            nm->mkNode(kind::DIVISION,
                                       mkRationalNode(Rational(1)),
                                       nm->mkNode(kind::COSINE, t[0])));
-  case kind::COTANGENT:
+  } break;
+  case kind::COTANGENT: {
     return RewriteResponse(REWRITE_AGAIN_FULL,
                            nm->mkNode(kind::DIVISION,
                                       nm->mkNode(kind::COSINE, t[0]),
                                       nm->mkNode(kind::SINE, t[0])));
+  } break;
   default:
     break;
   }

@@ -216,7 +216,8 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing) {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
-    : d_lemmas(containing.getUserContext()),
+    : d_def_lemmas(containing.getUserContext()),
+      d_lemmas(containing.getUserContext()),
       d_zero_split(containing.getUserContext()),
       d_skolem_atoms(containing.getUserContext()),
       d_containing(containing),
@@ -1252,7 +1253,6 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
       return comp == d_true;
     }
   }
-
   Trace("nl-ext-tf-check-model-simple") << "  failed due to unknown literal."
                                         << std::endl;
   return false;
@@ -1741,6 +1741,21 @@ void NonlinearExtension::check(Theory::Effort e) {
         }
       }
     } while (needsRecheck);
+  }
+}
+
+void NonlinearExtension::addDefinition( Node lem )
+{
+  Trace("nl-ext") << "NonlinearExtension::addDefinition : " << lem << std::endl;
+  d_def_lemmas.insert(lem);
+}
+
+void NonlinearExtension::presolve()
+{
+  Trace("nl-ext") << "NonlinearExtension::presolve, #defs = " << d_def_lemmas.size() << std::endl;
+  for( NodeSet::const_iterator it = d_def_lemmas.begin(); it != d_def_lemmas.end(); ++it )
+  {
+    flushLemma( *it );
   }
 }
 
@@ -3489,6 +3504,9 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
                   antec.size() == 1 ? antec[0] : nm->mkNode(AND, antec);
               lem = nm->mkNode(IMPLIES, antec_n, lem);
             }
+            Trace("nl-ext-tf-tplanes-debug") << "*** Tangent plane lemma (pre-rewrite): " << lem
+                                       << std::endl;
+            lem = Rewriter::rewrite( lem );
             Trace("nl-ext-tf-tplanes") << "*** Tangent plane lemma : " << lem
                                        << std::endl;
             // Figure 3 : line 9
@@ -3609,6 +3627,9 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
                                nm->mkNode(GEQ, tf[0], s == 0 ? bounds[s] : c),
                                nm->mkNode(LEQ, tf[0], s == 0 ? c : bounds[s]));
                 lem = nm->mkNode(IMPLIES, antec_n, lem);
+                Trace("nl-ext-tf-tplanes-debug") << "*** Secant plane lemma (pre-rewrite) : " << lem
+                                           << std::endl;
+                lem = Rewriter::rewrite( lem );
                 Trace("nl-ext-tf-tplanes") << "*** Secant plane lemma : " << lem
                                            << std::endl;
                 // Figure 3 : line 22
