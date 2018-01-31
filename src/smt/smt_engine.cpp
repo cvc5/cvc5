@@ -4796,6 +4796,12 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
         checkUnsatCore();
       }
     }
+    // Check that synthesis solutions satisfy the conjecture
+    if (options::checkSynthSol()
+        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      checkSynthSol();
+    }
 
     return r;
   } catch (UnsafeInterruptException& e) {
@@ -5249,6 +5255,11 @@ Model* SmtEngine::getModel() {
   return m;
 }
 
+Node SmtEngine::getNegSolvedConj()
+{
+  return d_theoryEngine->getNegSolvedConj();
+}
+
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
 
@@ -5481,6 +5492,32 @@ void SmtEngine::checkModel(bool hardFailure) {
     }
   }
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
+}
+
+void SmtEngine::checkSynthSol()
+{
+  Notice() << "SmtEngine::checkSynthSol(): checking synthesis solution" << endl;
+  Node negSolvedConj = getNegSolvedConj();
+  SmtEngine solChecker(d_exprManager);
+  solChecker.setLogic(getLogicInfo());
+  Notice() << "SmtEngine::checkSynthSol(): asserting negated solved conjecture"
+           << negSolvedConj << endl;
+  solChecker.assertFormula(negSolvedConj.toExpr());
+  Result r = solChecker.checkSat();
+  Notice() << "SmtEngine::checkSynthSol(): result is " << r << endl;
+  if (r.asSatisfiabilityResult().isUnknown())
+  {
+    InternalError(
+        "SmtEngine::checkSynthSol(): could not check solution, result "
+        "unknown.");
+  }
+
+  if (r.asSatisfiabilityResult().isSat())
+  {
+    InternalError(
+        "SmtEngine::checkSynhtSol(): produced solution allows satisfiable "
+        "negated conjecture.");
+  }
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
