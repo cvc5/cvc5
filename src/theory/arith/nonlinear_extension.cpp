@@ -222,7 +222,8 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_skolem_atoms(containing.getUserContext()),
       d_containing(containing),
       d_ee(ee),
-      d_needsLastCall(false) {
+      d_needsLastCall(false)
+{
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
@@ -1297,7 +1298,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   Trace("nl-ext-mv") << "Extended terms : " << std::endl;
   // register the extended function terms
   std::map< Node, Node > mvarg_to_term;
-  std::vector< Node > trig_no_base;
+  std::vector<Node> trig_no_base;
   for( unsigned i=0; i<xts.size(); i++ ){
     Node a = xts[i];
     computeModelValue(a, 0);
@@ -1346,10 +1347,11 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       {
         if( d_trig_is_base.find( a )==d_trig_is_base.end() ){
           consider = false;
-          trig_no_base.push_back( a );
-          if( d_pi.isNull() ){
+          trig_no_base.push_back(a);
+          if (d_pi.isNull())
+          {
             mkPi();
-            getCurrentPiBounds( lemmas );
+            getCurrentPiBounds(lemmas);
           }
         }
       }
@@ -1383,18 +1385,24 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas during registration." << std::endl;
     return lemmas_proc;
   }
-  
+
   // process SINE phase shifting
-  for( const Node& a : trig_no_base )
+  for (const Node& a : trig_no_base)
   {
-    if( d_trig_base.find( a )==d_trig_base.end() ){
-      Node y = NodeManager::currentNM()->mkSkolem("y",NodeManager::currentNM()->realType(),"phase shifted trigonometric arg");
-      Node new_a = NodeManager::currentNM()->mkNode( a.getKind(), y );
+    if (d_trig_base.find(a) == d_trig_base.end())
+    {
+      Node y = NodeManager::currentNM()->mkSkolem(
+          "y",
+          NodeManager::currentNM()->realType(),
+          "phase shifted trigonometric arg");
+      Node new_a = NodeManager::currentNM()->mkNode(a.getKind(), y);
       d_trig_is_base[new_a] = true;
       d_trig_base[a] = new_a;
-      Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
-      Assert( !d_pi.isNull() );
-      Node shift = NodeManager::currentNM()->mkSkolem( "s", NodeManager::currentNM()->integerType(), "number of shifts" );
+      Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a
+                         << std::endl;
+      Assert(!d_pi.isNull());
+      Node shift = NodeManager::currentNM()->mkSkolem(
+          "s", NodeManager::currentNM()->integerType(), "number of shifts");
       // FIXME : do not introduce shift here, instead needs model-based
       // refinement for constant shifts (#1284)
       Node shift_lem = NodeManager::currentNM()->mkNode(
@@ -1412,14 +1420,17 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
           NodeManager::currentNM()->mkNode(
               IMPLIES, mkValidPhase(a[0], d_pi), a[0].eqNode(y)),
           new_a.eqNode(a));
-      //must do preprocess on this one
-      Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : shift : " << shift_lem << std::endl;
+      // must do preprocess on this one
+      Trace("nl-ext-lemma")
+          << "NonlinearExtension::Lemma : shift : " << shift_lem << std::endl;
       d_containing.getOutputChannel().lemma(shift_lem, false, true);
       lemmas_proc++;
     }
   }
-  if (lemmas_proc > 0) {
-    Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas SINE phase shifting." << std::endl;
+  if (lemmas_proc > 0)
+  {
+    Trace("nl-ext") << "  ...finished with " << lemmas_proc
+                    << " new lemmas SINE phase shifting." << std::endl;
     return lemmas_proc;
   }
 
@@ -1757,7 +1768,7 @@ void NonlinearExtension::check(Theory::Effort e) {
   }
 }
 
-void NonlinearExtension::addDefinition( Node lem )
+void NonlinearExtension::addDefinition(Node lem)
 {
   Trace("nl-ext") << "NonlinearExtension::addDefinition : " << lem << std::endl;
   d_def_lemmas.insert(lem);
@@ -1765,10 +1776,13 @@ void NonlinearExtension::addDefinition( Node lem )
 
 void NonlinearExtension::presolve()
 {
-  Trace("nl-ext") << "NonlinearExtension::presolve, #defs = " << d_def_lemmas.size() << std::endl;
-  for( NodeSet::const_iterator it = d_def_lemmas.begin(); it != d_def_lemmas.end(); ++it )
+  Trace("nl-ext") << "NonlinearExtension::presolve, #defs = "
+                  << d_def_lemmas.size() << std::endl;
+  for (NodeSet::const_iterator it = d_def_lemmas.begin();
+       it != d_def_lemmas.end();
+       ++it)
   {
-    flushLemma( *it );
+    flushLemma(*it);
   }
 }
 
@@ -3517,9 +3531,10 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
                   antec.size() == 1 ? antec[0] : nm->mkNode(AND, antec);
               lem = nm->mkNode(IMPLIES, antec_n, lem);
             }
-            Trace("nl-ext-tf-tplanes-debug") << "*** Tangent plane lemma (pre-rewrite): " << lem
-                                       << std::endl;
-            lem = Rewriter::rewrite( lem );
+            Trace("nl-ext-tf-tplanes-debug")
+                << "*** Tangent plane lemma (pre-rewrite): " << lem
+                << std::endl;
+            lem = Rewriter::rewrite(lem);
             Trace("nl-ext-tf-tplanes") << "*** Tangent plane lemma : " << lem
                                        << std::endl;
             // Figure 3 : line 9
@@ -3640,9 +3655,10 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
                                nm->mkNode(GEQ, tf[0], s == 0 ? bounds[s] : c),
                                nm->mkNode(LEQ, tf[0], s == 0 ? c : bounds[s]));
                 lem = nm->mkNode(IMPLIES, antec_n, lem);
-                Trace("nl-ext-tf-tplanes-debug") << "*** Secant plane lemma (pre-rewrite) : " << lem
-                                           << std::endl;
-                lem = Rewriter::rewrite( lem );
+                Trace("nl-ext-tf-tplanes-debug")
+                    << "*** Secant plane lemma (pre-rewrite) : " << lem
+                    << std::endl;
+                lem = Rewriter::rewrite(lem);
                 Trace("nl-ext-tf-tplanes") << "*** Secant plane lemma : " << lem
                                            << std::endl;
                 // Figure 3 : line 22

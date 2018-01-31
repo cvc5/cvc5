@@ -115,8 +115,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
     case kind::ARCTANGENT:
     case kind::ARCCOSECANT:
     case kind::ARCSECANT:
-    case kind::ARCCOTANGENT:
-      return preRewriteTranscendental(t);
+    case kind::ARCCOTANGENT: return preRewriteTranscendental(t);
     case kind::INTS_DIVISION:
     case kind::INTS_MODULUS:
       return RewriteResponse(REWRITE_DONE, t);
@@ -180,8 +179,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
     case kind::ARCTANGENT:
     case kind::ARCCOSECANT:
     case kind::ARCSECANT:
-    case kind::ARCCOTANGENT:
-      return postRewriteTranscendental(t);
+    case kind::ARCCOTANGENT: return postRewriteTranscendental(t);
     case kind::INTS_DIVISION:
     case kind::INTS_MODULUS:
       return RewriteResponse(REWRITE_DONE, t);
@@ -527,26 +525,34 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
                                          nm->mkConst(Rational(1) / Rational(2)),
                                          mkPi()),
                               t[0])));
-  } break;
-  case kind::TANGENT: {
+  }
+  break;
+  case kind::TANGENT:
+  {
     return RewriteResponse(REWRITE_AGAIN_FULL,
                            nm->mkNode(kind::DIVISION,
                                       nm->mkNode(kind::SINE, t[0]),
                                       nm->mkNode(kind::COSINE, t[0])));
-  } break;
-  case kind::COSECANT: {
+  }
+  break;
+  case kind::COSECANT:
+  {
     return RewriteResponse(REWRITE_AGAIN_FULL,
                            nm->mkNode(kind::DIVISION,
                                       mkRationalNode(Rational(1)),
                                       nm->mkNode(kind::SINE, t[0])));
-  } break;
-  case kind::SECANT: {
+  }
+  break;
+  case kind::SECANT:
+  {
     return RewriteResponse(REWRITE_AGAIN_FULL,
                            nm->mkNode(kind::DIVISION,
                                       mkRationalNode(Rational(1)),
                                       nm->mkNode(kind::COSINE, t[0])));
-  } break;
-  case kind::COTANGENT: {
+  }
+  break;
+  case kind::COTANGENT:
+  {
     return RewriteResponse(REWRITE_AGAIN_FULL,
                            nm->mkNode(kind::DIVISION,
                                       nm->mkNode(kind::COSINE, t[0]),

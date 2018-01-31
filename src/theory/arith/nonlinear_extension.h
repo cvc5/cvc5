@@ -126,12 +126,12 @@ class NonlinearExtension {
    * This function notifies this class that lem is a formula that defines or
    * constrains an auxiliary variable. For example, during
    * TheoryArith::expandDefinitions, we replace a term like arcsin( x ) with an
-   * auxiliary variable k. The lemmas 0 <= k < pi and sin( x ) = k are added as 
+   * auxiliary variable k. The lemmas 0 <= k < pi and sin( x ) = k are added as
    * definitions to this class.
    */
-  void addDefinition( Node lem );
-  /** presolve 
-   * 
+  void addDefinition(Node lem);
+  /** presolve
+   *
    * This function is called during TheoryArith's presolve command.
    * In this function, we send lemmas we accumulated during preprocessing,
    * for instance, definitional lemmas from expandDefinitions are sent out

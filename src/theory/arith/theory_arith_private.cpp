@@ -4436,8 +4436,8 @@ void TheoryArithPrivate::presolve(){
     Debug("arith::oldprop") << " lemma lemma duck " <<lem << endl;
     outputLemma(lem);
   }
-  
-  if( options::nlExt() )
+
+  if (options::nlExt())
   {
     d_nonlinearExtension->presolve();
   }
@@ -4884,7 +4884,7 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
 
 Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node) {
   NodeManager* nm = NodeManager::currentNM();
-  
+
   // eliminate here since the rewritten form of these may introduce division
   Kind k = node.getKind();
   if (k == kind::TANGENT || k == kind::COSECANT || k == kind::SECANT
@@ -5003,44 +5003,51 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
 
           // range of the skolem
           Node rlem;
-          if( k==kind::ARCSINE || k==ARCTANGENT || k==ARCCOSECANT )
+          if (k == kind::ARCSINE || k == ARCTANGENT || k == ARCCOSECANT)
           {
             Node half = nm->mkConst(Rational(1) / Rational(2));
             Node pi2 = nm->mkNode(kind::MULT, half, pi);
             Node npi2 = nm->mkNode(kind::MULT, nm->mkConst(Rational(-1)), pi2);
             // -pi/2 < var <= pi/2
-            rlem = nm->mkNode( AND, nm->mkNode(LT,npi2,var), nm->mkNode(LEQ,var,pi2) );
+            rlem = nm->mkNode(
+                AND, nm->mkNode(LT, npi2, var), nm->mkNode(LEQ, var, pi2));
           }
           else
           {
             // 0 <= var < pi
-            rlem = nm->mkNode( AND, nm->mkNode(LEQ,nm->mkConst(Rational(0)),var), nm->mkNode(LT,var,pi) );
+            rlem = nm->mkNode(AND,
+                              nm->mkNode(LEQ, nm->mkConst(Rational(0)), var),
+                              nm->mkNode(LT, var, pi));
           }
-          if( options::nlExt() ){
+          if (options::nlExt())
+          {
             d_nonlinearExtension->addDefinition(rlem);
           }
 
           Kind rk = k == kind::ARCSINE
                         ? kind::SINE
                         : (k == kind::ARCCOSINE
-                                ? kind::COSINE
-                                : (k == kind::ARCTANGENT
+                               ? kind::COSINE
+                               : (k == kind::ARCTANGENT
                                       ? kind::TANGENT
                                       : (k == kind::ARCCOSECANT
-                                              ? kind::COSECANT
-                                              : (k == kind::ARCSECANT
+                                             ? kind::COSECANT
+                                             : (k == kind::ARCSECANT
                                                     ? kind::SECANT
                                                     : kind::COTANGENT))));
           Node invTerm = nm->mkNode(rk, var);
           // since invTerm may introduce division,
           // we must also call expandDefinition on the result
-          invTerm = expandDefinition( logicRequest, invTerm );
+          invTerm = expandDefinition(logicRequest, invTerm);
           lem = invTerm.eqNode(node[0]);
         }
         Assert(!lem.isNull());
-        if( options::nlExt() ){
+        if (options::nlExt())
+        {
           d_nonlinearExtension->addDefinition(lem);
-        }else{
+        }
+        else
+        {
           d_nlIncomplete = true;
         }
         return var;
@@ -5048,7 +5055,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       return (*it).second;
       break;
     }
-    
+
     default: return node; break;
   }
 
