@@ -1195,9 +1195,9 @@ Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
   return ret;
 }
 
-Node QuantifiersEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
+void QuantifiersEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
-  return d_ceg_inst->getSynthSolutions(sol_map);
+  d_ceg_inst->getSynthSolutions(sol_map);
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {

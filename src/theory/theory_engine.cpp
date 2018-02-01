@@ -902,9 +902,9 @@ TheoryModel* TheoryEngine::getModel() {
   return d_curr_model;
 }
 
-Node TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
+void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
-  return d_quantEngine->getSynthSolutions(sol_map);
+  d_quantEngine->getSynthSolutions(sol_map);
 }
 
 bool TheoryEngine::presolve() {
