@@ -5513,7 +5513,7 @@ void SmtEngine::checkSynthSol()
   /* Start new SMT engine to check solutions */
   SmtEngine solChecker(d_exprManager);
   solChecker.setLogic(getLogicInfo());
-  options::checkSynthSol().set(false);
+  setOption("check-synth-sol", SExpr("false"));
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
