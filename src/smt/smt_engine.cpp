@@ -5515,6 +5515,11 @@ void SmtEngine::checkSynthSol()
   solChecker.setLogic(getLogicInfo());
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
+  if (d_assertionList == NULL)
+  {
+    Trace("check-synth-sol") << "No assertions to check\n";
+    return;
+  }
   for (AssertionList::const_iterator i = d_assertionList->begin();
        i != d_assertionList->end();
        ++i)
