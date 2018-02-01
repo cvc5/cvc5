@@ -5520,8 +5520,8 @@ void SmtEngine::checkSynthSol()
        ++i)
   {
     Notice() << "SmtEngine::checkSynthSol(): checking assertion " << *i << endl;
+    Trace("check-synth-sol") << "Retrieving assertion " << *i << "\n";
       Node conj = Node::fromExpr(*i);
-    Trace("check-synth-sol") << "Retrieving assertion " << conj << "\n";
     // Apply any define-funs from the problem.
     {
       unordered_map<Node, Node, NodeHashFunction> cache;
