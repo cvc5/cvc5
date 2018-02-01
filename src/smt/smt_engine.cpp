@@ -5501,6 +5501,7 @@ void SmtEngine::checkSynthSol()
   map<Node, Node> sol_map;
   /* Get solutions and build auxiliary vectors for substituting */
   d_theoryEngine->getSynthSolutions(sol_map);
+  Trace("check-synth-sol") << " got map\n";
   std::vector<Node> function_vars, function_sols;
   for (const auto& pair : sol_map)
   {
