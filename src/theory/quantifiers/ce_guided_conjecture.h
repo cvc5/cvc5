@@ -217,7 +217,7 @@ private:
    * 
    * For example, for conjecture exists fg. forall x. f(x)>g(x), this function
    * may set ( sols, status ) to ( { x+1, d_x() }, { 1, 0 } ), where d_x() is 
-   * the datatype constructor for variable x.
+   * the sygus datatype constructor corresponding to variable x.
    */
   void getSynthSolutionsInternal( std::vector< Node >& sols, std::vector< int >& status, bool singleInvocation );
   //-------------------------------- sygus stream
