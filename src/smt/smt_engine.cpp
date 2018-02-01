@@ -5501,10 +5501,11 @@ void SmtEngine::checkSynthSol()
   map<Node, Node> sol_map;
   /* Get solutions and build auxiliary vectors for substituting */
   d_theoryEngine->getSynthSolutions(sol_map);
-  Trace("check-synth-sol") << " got map\n";
+  Trace("check-synth-sol") << "Got solution map:\n";
   std::vector<Node> function_vars, function_sols;
   for (const auto& pair : sol_map)
   {
+    Trace("check-synth-sol") << pair.first << " --> " << pair.second << "\n";
     function_vars.push_back(pair.first);
     function_sols.push_back(pair.second);
   }
@@ -5517,30 +5518,34 @@ void SmtEngine::checkSynthSol()
        i != d_assertionList->end();
        ++i)
   {
-      Notice() << "SmtEngine::checkSynthSol(): checking assertion " << *i
-             << endl;
+    Notice() << "SmtEngine::checkSynthSol(): checking assertion " << *i << endl;
       Node conj = Node::fromExpr(*i);
-
+    Trace("check-synth-sol") << "Retrieving assertion " << conj << "\n";
     // Apply any define-funs from the problem.
     {
       unordered_map<Node, Node, NodeHashFunction> cache;
       conj = d_private->expandDefinitions(conj, cache);
     }
     Notice() << "SmtEngine::checkSynthSol(): -- expands to " << conj << endl;
+    Trace("check-synth-sol") << "Expanded assertion " << conj << "\n";
 
-    // Apply our model value substitutions.
+    // Apply solution map
     conj = conj.substitute(function_vars.begin(),
                            function_vars.end(),
                            function_sols.begin(),
                            function_sols.end());
-      Notice() << "SmtEngine::checkSynthSol(): -- substitutes to " << conj<< endl;
+    Notice() << "SmtEngine::checkSynthSol(): -- substitutes to " << conj
+             << endl;
+    Trace("check-synth-sol") << "Substituted assertion " << conj << "\n";
     Node negSolvedConj = nm->mkNode(kind::NOT, conj);
     Notice()
         << "SmtEngine::checkSynthSol(): asserting negated solved conjecture"
         << negSolvedConj << endl;
+    Trace("check-synth-sol") << "Negated assertion " << negSolvedConj << "\n";
     solChecker.assertFormula(negSolvedConj.toExpr());
     Result r = solChecker.checkSat();
     Notice() << "SmtEngine::checkSynthSol(): result is " << r << endl;
+    Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
     if (r.asSatisfiabilityResult().isUnknown())
     {
       InternalError(
