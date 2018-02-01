@@ -492,6 +492,24 @@ all \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_cegisSampleHelp = "\
+Modes for sampling with counterexample-guided inductive synthesis (CEGIS),\
+supported by --cegis-sample:\n\
+\n\
+none (default) \n\
++ Do not use sampling with CEGIS.\n\
+\n\
+use \n\
++ Use sampling to accelerate CEGIS. This will rule out solutions for a\
+  conjecture when they are not satisfied by a sample point.\n\
+\n\
+trust  \n\
++ Trust that when a solution for a conjecture is always true under sampling,\
+  then it is indeed a solution. Note this option may print out spurious\
+  solutions for synthesis conjectures.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_sygusInvTemplHelp = "\
 Template modes for sygus invariant synthesis, supported by --sygus-inv-templ:\n\
 \n\
@@ -877,6 +895,24 @@ OptionsHandler::stringToCegqiSingleInvMode(std::string option,
   }
 }
 
+theory::quantifiers::CegisSampleMode OptionsHandler::stringToCegisSampleMode(
+    std::string option, std::string optarg)
+{
+  if(optarg == "none" ) {
+    return theory::quantifiers::CEGIS_SAMPLE_NONE;
+  } else if(optarg == "use") {
+    return theory::quantifiers::CEGIS_SAMPLE_USE;
+  } else if(optarg == "trust") {
+    return theory::quantifiers::CEGIS_SAMPLE_TRUST;
+  } else if(optarg == "help") {
+    puts(s_cegisSampleHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --cegis-sample: `") +
+                          optarg + "'.  Try --cegis-sample help.");
+  }
+}
+  
 theory::quantifiers::SygusInvTemplMode
 OptionsHandler::stringToSygusInvTemplMode(std::string option,
                                           std::string optarg)

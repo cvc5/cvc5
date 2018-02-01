@@ -284,6 +284,15 @@ void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& mode
   //check whether we will run CEGIS on inner skolem variables
   bool sk_refine = ( !isGround() || d_refine_count==0 ) && ( !d_ceg_pbe->isPbe() || constructed_cand );
   if( sk_refine ){
+    if( options::cegisSample()==CEGIS_SAMPLE_TRUST )
+    {
+      // we have that the current candidate passed a sample test
+      // since we trust sampling in this mode, we assert there is no
+      // counterexample to the conjecture here.
+      lems.push_back( NodeManager::currentNM()->mkConst(false) );
+      recordInstantiation( c_model_values );
+      return;
+    }
     Assert( d_ce_sk.empty() );
     d_ce_sk.push_back( std::vector< Node >() );
   }else{
