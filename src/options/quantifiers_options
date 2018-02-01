@@ -295,9 +295,17 @@ option sygusCRefEval --sygus-cref-eval bool :default true
 option sygusCRefEvalMinExp --sygus-cref-eval-min-exp bool :default true
   use min explain for direct evaluation of refinement lemmas for conflict analysis
   
-option sygusStream --sygus-stream bool :default false
+option sygusStream --sygus-stream bool :read-write :default false
   enumerate a stream of solutions instead of terminating after the first one
   
+# internal uses of sygus
+option sygusRewSynth --sygus-rr-synth bool :default false
+  use sygus to enumerate candidate rewrite rules via sampling
+option sygusRewVerify --sygus-rr-verify bool :default false
+  use sygus to verify the correctness of rewrite rules via sampling
+option sygusSamples --sygus-samples=N int :read-write :default 100 :read-write
+  number of points to consider when doing sygus rewriter sample testing
+
 # CEGQI applied to general quantified formulas
 option cbqi --cbqi bool :read-write :default false
  turns on counterexample-based quantifier instantiation

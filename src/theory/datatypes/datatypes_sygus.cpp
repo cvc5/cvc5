@@ -808,7 +808,38 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
           Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv << " rewrite to " << bvr << "." << std::endl;
         } 
       }
-      
+
+      if (options::sygusRewVerify())
+      {
+        // add to the sampler database object
+        std::map<Node, quantifiers::SygusSampler>::iterator its =
+            d_sampler.find(a);
+        if (its == d_sampler.end())
+        {
+          d_sampler[a].initialize(d_tds, a, options::sygusSamples());
+          its = d_sampler.find(a);
+        }
+        Node sample_ret = its->second.registerTerm(bv);
+        d_cache[a].d_search_val_sample[nv] = sample_ret;
+        if (itsv != d_cache[a].d_search_val[tn].end())
+        {
+          // if the analog of this term and another term were rewritten to the
+          // same term, then they should be equivalent under examples.
+          Node prev = itsv->second;
+          Node prev_sample_ret = d_cache[a].d_search_val_sample[prev];
+          if (sample_ret != prev_sample_ret)
+          {
+            Node prev_bv = d_tds->sygusToBuiltin(prev, tn);
+            // we have detected unsoundness in the rewriter
+            Options& nodeManagerOptions =
+                NodeManager::currentNM()->getOptions();
+            std::ostream* out = nodeManagerOptions.getOut();
+            (*out) << "(unsound-rewrite " << prev_bv << " " << bv << ")"
+                   << std::endl;
+          }
+        }
+      }
+
       if( !bad_val_bvr.isNull() ){
         Node bad_val = nv;
         Node bad_val_o = d_cache[a].d_search_val[tn][bad_val_bvr];
