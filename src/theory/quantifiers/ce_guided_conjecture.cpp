@@ -632,6 +632,91 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
   }
 }
 
+Node CegConjecture::builtinFromEmbedding(Node n)
+{
+  return n;
+}
+
+Node CegConjecture::getNegSolvedSynthConj()
+{
+  std::map<Node, Node> func_to_sol;
+  Assert(d_quant[0].getNumChildren() == d_embed_quant[0].getNumChildren());
+  /* Collect solutions for each functional variable */
+  for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; ++i)
+  {
+    Node synth_f = d_embed_quant[0][i];
+    Trace("check-synth-sol")
+        << "  collecting solution for function var " << synth_f
+        << " deeply embedded " << d_embed_quant[0][i] << std::endl;
+    TypeNode tn = d_embed_quant[0][i].getType();
+    Assert(tn.isDatatype());
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    Assert(dt.isSygus());
+    /* If single invocation, solution is already built as a node */
+    if (singleInvocation)
+    {
+      Assert(d_ceg_si != NULL);
+      Node sol = d_ceg_si->getSolution(i, tn, status, true);
+      Assert(!sol.isNull() && (status == 0 || status == 1));
+      func_to_sol[synth_f] = status == 0? sol : builtinFromEmbedding(sol);
+      continue;
+    }
+    /* If enumerating, solutions need to be retrieved from the deep embedding */
+    Node candidate_sol = getCandidate(i);
+    if (d_cinfo[candidate_sol].d_inst.empty())
+    {
+      Trace("check-synth-sol")
+          << "WARNING : No recorded instantiations for syntax-guided solution!"
+          << std::endl;
+      func_to_sol[synth_f] = Node::null();
+      continue;
+    }
+    // the solution is just the last instantiated term
+    sol = d_cinfo[candidate_sol].d_inst.back();
+    status = 1;
+    // check if there was a template
+    Node templ = d_ceg_si->getTemplate(synth_f);
+    if (templ.isNull())
+    {
+      Trace("check-synth-sol")
+          << synth_f << " did not use template" << std::endl;
+      func_to_sol[synth_f] = builtinFromEmbedding(sol);
+      continue;
+    }
+    Trace("check-synth-sol") << synth_f << " used template : " << templ << std::endl;
+    // if template was embedded into the grammar
+    if (options::sygusTemplEmbedGrammar())
+    {
+      Trace("check-synth-sol") << "...was embedding into grammar." << std::endl;
+      func_to_sol[synth_f] = builtinFromEmbedding(sol);
+      continue;
+    }
+
+    TNode templa = d_ceg_si->getTemplateArg(synth_f);
+    // make the builtin version of the full solution
+    TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
+    sol = sygusDb->sygusToBuiltin(sol, sol.getType());
+    Trace("check-synth-sol") << "Builtin version of solution is : " << sol
+                       << ", type : " << sol.getType() << std::endl;
+    TNode tsol = sol;
+    sol = templ.substitute(templa, tsol);
+    Trace("check-synth-sol") << "With template : " << sol << std::endl;
+    sol = Rewriter::rewrite(sol);
+    Trace("check-synth-sol") << "Simplified : " << sol << std::endl;
+    // now, reconstruct to the syntax
+    sol = d_ceg_si->reconstructToSyntax(sol, tn, status, true);
+    sol = sol.getKind() == LAMBDA ? sol[1] : sol;
+    Trace("check-synth-sol")
+        << "Reconstructed to syntax : " << sol << std::endl;
+    Assert(status == 0 || status == 1);
+    func_to_sol[synth_f] = status == 0? sol : builtinFromEmbedding(sol);
+  }
+  /* Substitute function vars by solutions */
+  Node constraint = d_quant[1].substitute(funt_to_sol);
+  /* Negate and return */
+  return NodeManager::currentNM()->mkNode(NOT, constraint);
+}
+
 Node CegConjecture::getSymmetryBreakingPredicate(
     Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth)
 {
