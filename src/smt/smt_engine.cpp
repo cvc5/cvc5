@@ -5260,11 +5260,6 @@ Model* SmtEngine::getModel() {
   return m;
 }
 
-Node SmtEngine::getNegSolvedSynthConj()
-{
-  return d_theoryEngine->getNegSolvedSynthConj();
-}
-
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
 
@@ -5506,7 +5501,7 @@ void SmtEngine::checkSynthSol()
   map<Node, Node> sol_map;
   /* Get solutions and build auxiliary vectors for substituting */
   d_theoryEngine->getSynthSolutions(sol_map);
-  std::vector<Node> funtion_vars, function_sols;
+  std::vector<Node> function_vars, function_sols;
   for (const auto& pair : sol_map)
   {
     function_vars.push_back(pair.first);
@@ -5517,11 +5512,13 @@ void SmtEngine::checkSynthSol()
   solChecker.setLogic(getLogicInfo());
 
   // Build conjecture from original assertions
-  for (const Expr& assertion : d_assertionList)
+  for (AssertionList::const_iterator i = d_assertionList->begin();
+       i != d_assertionList->end();
+       ++i)
   {
-    Notice() << "SmtEngine::checkSynthSol(): checking assertion " << assertion
+      Notice() << "SmtEngine::checkSynthSol(): checking assertion " << *i
              << endl;
-    Node conj = Node::fromExpr(assertion);
+      Node conj = Node::fromExpr(*i);
 
     // Apply any define-funs from the problem.
     {
@@ -5535,9 +5532,8 @@ void SmtEngine::checkSynthSol()
                            function_vars.end(),
                            function_sols.begin(),
                            function_sols.end());
-    Notice() << "SmtEngine::checkSynthSol(): -- substitutes to " << conj
-             << endl;
-    Node negSolvedConj = nm->mkNode(NOT, conj);
+      Notice() << "SmtEngine::checkSynthSol(): -- substitutes to " << conj<< endl;
+    Node negSolvedConj = nm->mkNode(kind::NOT, conj);
     Notice()
         << "SmtEngine::checkSynthSol(): asserting negated solved conjecture"
         << negSolvedConj << endl;

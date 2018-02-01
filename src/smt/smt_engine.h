@@ -689,12 +689,6 @@ class CVC4_PUBLIC SmtEngine {
   UnsatCore getUnsatCore();
 
   /**
-  * Get the negation of the synthesis conjecture in which its functional
-  * variables have been substituted by their respective synthesized solutions.
-  */
-  Node getNegSolvedSynthConj();
-
-  /**
    * Get the current set of assertions.  Only permitted if the
    * SmtEngine is set to operate interactively.
    */
