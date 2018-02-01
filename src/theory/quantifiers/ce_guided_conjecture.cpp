@@ -435,6 +435,12 @@ void CegConjecture::getModelValues( std::vector< Node >& n, std::vector< Node >&
       std::stringstream ss;
       Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, nv);
       Trace("cegqi-engine") << ss.str() << " ";
+      if (Trace.isOn("cegqi-engine-rr"))
+      {
+        Node bv = d_qe->getTermDatabaseSygus()->sygusToBuiltin(nv, tn);
+        bv = Rewriter::rewrite(bv);
+        Trace("cegqi-engine-rr") << " -> " << bv << std::endl;
+      }
     }
     Assert( !nv.isNull() );
   }
@@ -554,67 +560,22 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
 void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation ) {
   Trace("cegqi-debug") << "Printing synth solution..." << std::endl;
   Assert( d_quant[0].getNumChildren()==d_embed_quant[0].getNumChildren() );
-  for( unsigned i=0; i<d_embed_quant[0].getNumChildren(); i++ ){
-    Node prog = d_embed_quant[0][i];
-    Trace("cegqi-debug") << "  print solution for " << prog << std::endl;
-    std::stringstream ss;
-    ss << prog;
-    std::string f(ss.str());
-    f.erase(f.begin());
-    TypeNode tn = prog.getType();
-    Assert( tn.isDatatype() );
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    Assert( dt.isSygus() );
-    //get the solution
-    Node sol;
-    int status = -1;
-    if( singleInvocation ){
-      Assert( d_ceg_si != NULL );
-      sol = d_ceg_si->getSolution( i, tn, status, true );
-      if( !sol.isNull() ){
-        sol = sol.getKind()==LAMBDA ? sol[1] : sol;
-      }
-    }else{
-      Node cprog = getCandidate( i );
-      if( !d_cinfo[cprog].d_inst.empty() ){
-        // the solution is just the last instantiated term
-        sol = d_cinfo[cprog].d_inst.back();
-        status = 1;
-        
-        //check if there was a template
-        Node sf = d_quant[0][i];
-        Node templ = d_ceg_si->getTemplate( sf );
-        if( !templ.isNull() ){
-          Trace("cegqi-inv-debug") << sf << " used template : " << templ << std::endl;
-          // if it was not embedded into the grammar
-          if( !options::sygusTemplEmbedGrammar() ){
-            TNode templa = d_ceg_si->getTemplateArg( sf );
-            // make the builtin version of the full solution
-            TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
-            sol = sygusDb->sygusToBuiltin( sol, sol.getType() );		
-            Trace("cegqi-inv") << "Builtin version of solution is : "
-                               << sol << ", type : " << sol.getType()
-                               << std::endl;
-            TNode tsol = sol;
-            sol = templ.substitute( templa, tsol );
-            Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
-            sol = Rewriter::rewrite( sol );
-            Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
-            // now, reconstruct to the syntax
-            sol = d_ceg_si->reconstructToSyntax(sol, tn, status, true);
-            sol = sol.getKind()==LAMBDA ? sol[1] : sol;
-            Trace("cegqi-inv-debug") << "Reconstructed to syntax : " << sol << std::endl;
-          }else{
-            Trace("cegqi-inv-debug") << "...was embedding into grammar." << std::endl;
-          }
-        }else{
-          Trace("cegqi-inv-debug") << sf << " did not use template" << std::endl;
-        }
-      }else{
-        Trace("cegqi-warn") << "WARNING : No recorded instantiations for syntax-guided solution!" << std::endl;
-      }
-    }
-    if( !(Trace.isOn("cegqi-stats")) && !sol.isNull() ){
+  std::vector<Node> sols;
+  std::vector<int> statuses;
+  getSynthSolutionsInternal(sols, statuses, singleInvocation);
+  for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
+  {
+    Node sol = sols[i];
+    if (!sol.isNull())
+    {
+      Node prog = d_embed_quant[0][i];
+      int status = statuses[i];
+      TypeNode tn = prog.getType();
+      const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+      std::stringstream ss;
+      ss << prog;
+      std::string f(ss.str());
+      f.erase(f.begin());
       out << "(define-fun " << f << " ";
       if( dt.getSygusVarList().isNull() ){
         out << "() ";
@@ -628,7 +589,180 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
       }
       out << ")" << std::endl;
+
+      if (status != 0 && options::sygusRewSynth())
+      {
+        TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
+        std::map<Node, SygusSampler>::iterator its = d_sampler.find(prog);
+        if (its == d_sampler.end())
+        {
+          d_sampler[prog].initialize(sygusDb, prog, options::sygusSamples());
+          its = d_sampler.find(prog);
+        }
+        Node solb = sygusDb->sygusToBuiltin(sol, prog.getType());
+        Node eq_sol = its->second.registerTerm(solb);
+        // eq_sol is a candidate solution that is equivalent to sol
+        if (eq_sol != solb)
+        {
+          // one of eq_sol or solb must be ordered
+          bool eqor = its->second.isOrdered(eq_sol);
+          bool sor = its->second.isOrdered(solb);
+          bool outputRewrite = false;
+          if (eqor || sor)
+          {
+            outputRewrite = true;
+            // if only one is ordered, then the ordered one must contain the
+            // free variables of the other
+            if (!eqor)
+            {
+              outputRewrite = its->second.containsFreeVariables(solb, eq_sol);
+            }
+            else if (!sor)
+            {
+              outputRewrite = its->second.containsFreeVariables(eq_sol, solb);
+            }
+          }
+
+          if (outputRewrite)
+          {
+            // Terms solb and eq_sol are equivalent under sample points but do
+            // not rewrite to the same term. Hence, this indicates a candidate
+            // rewrite.
+            out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
+                << std::endl;
+            // if the previous value stored was unordered, but this is
+            // ordered, we prefer this one. Thus, we force its addition to the
+            // sampler database.
+            if (!eqor)
+            {
+              its->second.registerTerm(solb, true);
+            }
+          }
+          else
+          {
+            Trace("sygus-synth-rr")
+                << "Alpha equivalent candidate rewrite : " << eq_sol << " "
+                << solb << std::endl;
+          }
+        }
+      }
     }
+  }
+}
+
+void CegConjecture::getSynthSolutions(std::map<Node, Node>& sol_map,
+                                      bool singleInvocation)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
+  std::vector<Node> sols;
+  std::vector<int> statuses;
+  getSynthSolutionsInternal(sols, statuses, singleInvocation);
+  for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
+  {
+    Node sol = sols[i];
+    int status = statuses[i];
+    // get the builtin solution
+    Node bsol = sol;
+    if (status != 0)
+    {
+      // convert sygus to builtin here
+      bsol = sygusDb->sygusToBuiltin(sol, sol.getType());
+    }
+    // convert to lambda
+    TypeNode tn = d_embed_quant[0][i].getType();
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    Node bvl = Node::fromExpr(dt.getSygusVarList());
+    if (!bvl.isNull())
+    {
+      bsol = nm->mkNode(LAMBDA, bvl, bsol);
+    }
+    // store in map
+    Node fvar = d_quant[0][i];
+    Assert(fvar.getType() == bsol.getType());
+    sol_map[fvar] = bsol;
+  }
+}
+
+void CegConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
+                                              std::vector<int>& statuses,
+                                              bool singleInvocation)
+{
+  for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
+  {
+    Node prog = d_embed_quant[0][i];
+    Trace("cegqi-debug") << "  get solution for " << prog << std::endl;
+    TypeNode tn = prog.getType();
+    Assert(tn.isDatatype());
+    // get the solution
+    Node sol;
+    int status = -1;
+    if (singleInvocation)
+    {
+      Assert(d_ceg_si != NULL);
+      sol = d_ceg_si->getSolution(i, tn, status, true);
+      if (!sol.isNull())
+      {
+        sol = sol.getKind() == LAMBDA ? sol[1] : sol;
+      }
+    }
+    else
+    {
+      Node cprog = getCandidate(i);
+      if (!d_cinfo[cprog].d_inst.empty())
+      {
+        // the solution is just the last instantiated term
+        sol = d_cinfo[cprog].d_inst.back();
+        status = 1;
+
+        // check if there was a template
+        Node sf = d_quant[0][i];
+        Node templ = d_ceg_si->getTemplate(sf);
+        if (!templ.isNull())
+        {
+          Trace("cegqi-inv-debug")
+              << sf << " used template : " << templ << std::endl;
+          // if it was not embedded into the grammar
+          if (!options::sygusTemplEmbedGrammar())
+          {
+            TNode templa = d_ceg_si->getTemplateArg(sf);
+            // make the builtin version of the full solution
+            TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
+            sol = sygusDb->sygusToBuiltin(sol, sol.getType());
+            Trace("cegqi-inv") << "Builtin version of solution is : " << sol
+                               << ", type : " << sol.getType() << std::endl;
+            TNode tsol = sol;
+            sol = templ.substitute(templa, tsol);
+            Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
+            sol = Rewriter::rewrite(sol);
+            Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
+            // now, reconstruct to the syntax
+            sol = d_ceg_si->reconstructToSyntax(sol, tn, status, true);
+            sol = sol.getKind() == LAMBDA ? sol[1] : sol;
+            Trace("cegqi-inv-debug")
+                << "Reconstructed to syntax : " << sol << std::endl;
+          }
+          else
+          {
+            Trace("cegqi-inv-debug")
+                << "...was embedding into grammar." << std::endl;
+          }
+        }
+        else
+        {
+          Trace("cegqi-inv-debug")
+              << sf << " did not use template" << std::endl;
+        }
+      }
+      else
+      {
+        Trace("cegqi-warn") << "WARNING : No recorded instantiations for "
+                               "syntax-guided solution!"
+                            << std::endl;
+      }
+    }
+    sols.push_back(sol);
+    statuses.push_back(status);
   }
 }
 
