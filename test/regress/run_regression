@@ -262,9 +262,8 @@ else
   echo "$expected_output" >"$expoutfile"
 fi
 
-check_synth_sols=false
 if [ "$lang" = sygus ]; then
-  check_synth_sols=true
+  command_line="$command_line --check-synth-sol"
 fi
 check_models=false
 if grep '^sat$' "$expoutfile" &>/dev/null || grep '^invalid$' "$expoutfile" &>/dev/null || grep '^unknown$' "$expoptfile" &>/dev/null; then
@@ -411,8 +410,5 @@ if $check_models || $check_proofs || $check_unsat_cores; then
   fi
 fi
 
-if $check_synth_sols; then
-  check_cmdline="$check_cmdline --check-synth-sol"
-fi
 
 exit $exitcode
