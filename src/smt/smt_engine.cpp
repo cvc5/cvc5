@@ -5501,17 +5501,26 @@ void SmtEngine::checkModel(bool hardFailure) {
 
 void SmtEngine::checkSynthSol()
 {
+  NodeManager* nm = NodeManager::currentNM();
   Notice() << "SmtEngine::checkSynthSol(): checking synthesis solution" << endl;
-  Node negSolvedConj = getNegSolvedSynthConj();
-
-
+  map<Node, Node> sol_map;
+  /* Get solutions and build auxiliary vectors for substituting */
+  d_theoryEngine->getSynthSolutions(sol_map);
+  std::vector<Node> funtion_vars, function_sols;
+  for (const auto& pair : sol_map)
+  {
+    function_vars.push_back(pair.first);
+    function_sols.push_back(pair.second);
+  }
+  /* Start new SMT engine to check solutions */
   SmtEngine solChecker(d_exprManager);
   solChecker.setLogic(getLogicInfo());
 
   // Build conjecture from original assertions
-  for(const Expr& assertion : d_assertionList)
-    {
-    Notice() << "SmtEngine::checkSynthSol(): checking assertion " << assertion << endl;
+  for (const Expr& assertion : d_assertionList)
+  {
+    Notice() << "SmtEngine::checkSynthSol(): checking assertion " << assertion
+             << endl;
     Node conj = Node::fromExpr(assertion);
 
     // Apply any define-funs from the problem.
@@ -5522,27 +5531,32 @@ void SmtEngine::checkSynthSol()
     Notice() << "SmtEngine::checkSynthSol(): -- expands to " << conj << endl;
 
     // Apply our model value substitutions.
-    conj = substitutions.apply(conj);
-    Notice() << "SmtEngine::checkSynthSol(): -- substitutes to " << conj << endl;
-
-
-  Notice() << "SmtEngine::checkSynthSol(): asserting negated solved conjecture"
-           << negSolvedConj << endl;
-  solChecker.assertFormula(conj.toExpr());
-  Result r = solChecker.checkSat();
-  Notice() << "SmtEngine::checkSynthSol(): result is " << r << endl;
-  if (r.asSatisfiabilityResult().isUnknown())
-  {
-    InternalError(
-        "SmtEngine::checkSynthSol(): could not check solution, result "
-        "unknown.");
-  }
-
-  if (r.asSatisfiabilityResult().isSat())
-  {
-    InternalError(
-        "SmtEngine::checkSynhtSol(): produced solution allows satisfiable "
-        "negated conjecture.");
+    conj = conj.substitute(function_vars.begin(),
+                           function_vars.end(),
+                           function_sols.begin(),
+                           function_sols.end());
+    Notice() << "SmtEngine::checkSynthSol(): -- substitutes to " << conj
+             << endl;
+    Node negSolvedConj = nm->mkNode(NOT, conj);
+    Notice()
+        << "SmtEngine::checkSynthSol(): asserting negated solved conjecture"
+        << negSolvedConj << endl;
+    solChecker.assertFormula(negSolvedConj.toExpr());
+    Result r = solChecker.checkSat();
+    Notice() << "SmtEngine::checkSynthSol(): result is " << r << endl;
+    if (r.asSatisfiabilityResult().isUnknown())
+    {
+      InternalError(
+          "SmtEngine::checkSynthSol(): could not check solution, result "
+          "unknown.");
+    }
+    else if (r.asSatisfiabilityResult().isSat())
+    {
+      InternalError(
+          "SmtEngine::checkSynhtSol(): produced solution allows satisfiable "
+          "negated conjecture.");
+    }
+    solChecker.resetAssertions();
   }
 }
 

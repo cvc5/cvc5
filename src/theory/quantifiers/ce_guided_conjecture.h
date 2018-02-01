@@ -120,11 +120,6 @@ public:
   void getModelValues( std::vector< Node >& n, std::vector< Node >& v );
   /** get model value for term n */
   Node getModelValue( Node n );
-  /**
-   * Build the negation of the synthesis conjecture in which its functional
-   * variables have been substituted by their respective synthesized solutions.
-   */
-  Node getNegSolvedSynthConj();
 
   //-----------------------------------refinement lemmas
   /** get number of refinement lemmas we have added so far */
