@@ -56,16 +56,16 @@ public:
   /** print solution for synthesis conjectures */
   void printSynthSolution( std::ostream& out );
   /** get synth solutions
-   * 
+   *
    * This function adds entries to sol_map that map functions-to-synthesize
-   * with their solutions, for all active conjectures (currently just the one 
-   * assigned to d_conj). This should be called immediately after the solver 
+   * with their solutions, for all active conjectures (currently just the one
+   * assigned to d_conj). This should be called immediately after the solver
    * answers unsat for sygus input.
-   * 
-   * For details on what is added to sol_map, see 
+   *
+   * For details on what is added to sol_map, see
    * CegConjecture::getSynthSolutions.
    */
-  void getSynthSolutions( std::map< Node, Node >& sol_map );
+  void getSynthSolutions(std::map<Node, Node>& sol_map);
   /** preregister assertion (before rewrite) */
   void preregisterAssertion( Node n );
 public:
