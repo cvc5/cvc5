@@ -399,6 +399,13 @@ public:
   void getExplanationForInstLemmas(const std::vector<Node>& lems,
                                    std::map<Node, Node>& quant,
                                    std::map<Node, std::vector<Node> >& tvec);
+
+  /**
+   * Get the negation of the synthesis conjecture in which its functional
+   * variables have been substituted by their respective synthesized solutions.
+   */
+  Node getNegSolvedSynthConj();
+
   //----------end user interface for instantiations
 
   /** statistics class */

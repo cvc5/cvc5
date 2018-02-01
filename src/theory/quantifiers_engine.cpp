@@ -1195,6 +1195,11 @@ Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
   return ret;
 }
 
+Node QuantifiersEngine::getNegSolvedSynthConj()
+{
+  return d_ceg_inst->getNegSolvedSynthConj();
+}
+
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
   eq::EqualityEngine* ee = getActiveEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );

@@ -716,10 +716,10 @@ public:
   theory::TheoryModel* getModel();
 
   /**
-   * Get the negation of a synthesis conjecture in which the functional
+   * Get the negation of the synthesis conjecture in which its functional
    * variables have been substituted by their respective synthesized solutions.
    */
-  Node TheoryEngine::getNegSolvedSynthConj();
+  Node getNegSolvedSynthConj();
 
   /**
    * Get the model builder

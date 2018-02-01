@@ -53,6 +53,11 @@ public:
   Node getNextDecisionRequest( unsigned& priority );
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const { return "CegInstantiation"; }
+  /**
+   * Get the negation of the synthesis conjecture in which its functional
+   * variables have been substituted by their respective synthesized solutions.
+   */
+  Node getNegSolvedSynthConj();
   /** print solution for synthesis conjectures */
   void printSynthSolution( std::ostream& out );
   /** preregister assertion (before rewrite) */
