@@ -554,17 +554,74 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
 void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation ) {
   Trace("cegqi-debug") << "Printing synth solution..." << std::endl;
   Assert( d_quant[0].getNumChildren()==d_embed_quant[0].getNumChildren() );
-  for( unsigned i=0; i<d_embed_quant[0].getNumChildren(); i++ ){
+  std::vector< Node > sols;
+  std::vector< int > statuses;
+  getSynthSolutionsInternal( sols, statuses, singleInvocation );
+  for( unsigned i=0, size = d_embed_quant[0].getNumChildren(); i<size; i++ ){
+    Node sol = sols[i];
+    if( !sol.isNull() ){
+      Node prog = d_embed_quant[0][i]; 
+      int status = statuses[i];
+      TypeNode tn = prog.getType();
+      const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+      std::stringstream ss;
+      ss << prog;
+      std::string f(ss.str());
+      f.erase(f.begin());
+      out << "(define-fun " << f << " ";
+      if( dt.getSygusVarList().isNull() ){
+        out << "() ";
+      }else{
+        out << dt.getSygusVarList() << " ";
+      }
+      out << dt.getSygusType() << " ";
+      if( status==0 ){
+        out << sol;
+      }else{
+        Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
+      }
+      out << ")" << std::endl;
+    }
+  }
+}
+
+void CegConjecture::getSynthSolutions( std::map< Node, Node >& sol_map, bool singleInvocation )
+{
+  NodeManager * nm = NodeManager::currentNM();
+  TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
+  std::vector< Node > sols;
+  std::vector< int > statuses;
+  getSynthSolutionsInternal( sols, statuses, singleInvocation );
+  for( unsigned i=0, size = d_embed_quant[0].getNumChildren(); i<size; i++ ){
+    Node sol = sols[i];
+    int status = statuses[i];
+    // get the builtin solution
+    Node bsol = sol;
+    if( status!=0 )
+    {
+      // convert sygus to builtin here
+      bsol = sygusDb->sygusToBuiltin( sol, sol.getType() );	
+    }
+    // convert to lambda
+    TypeNode tn = d_embed_quant[0][i].getType();
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    Node bvl = Node::fromExpr( dt.getSygusVarList() );
+    
+    bsol = nm->mkNode( LAMBDA, bvl, bsol );
+    
+    Node fvar = d_quant[0][i];
+    Assert( fvar.getType()==bsol.getType() );
+    sol_map[fvar] = bsol;
+  }
+}
+
+void CegConjecture::getSynthSolutionsInternal( std::vector< Node >& sols, std::vector< int >& statuses, bool singleInvocation )
+{
+  for( unsigned i=0, size = d_embed_quant[0].getNumChildren(); i<size; i++ ){
     Node prog = d_embed_quant[0][i];
-    Trace("cegqi-debug") << "  print solution for " << prog << std::endl;
-    std::stringstream ss;
-    ss << prog;
-    std::string f(ss.str());
-    f.erase(f.begin());
+    Trace("cegqi-debug") << "  get solution for " << prog << std::endl;
     TypeNode tn = prog.getType();
     Assert( tn.isDatatype() );
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    Assert( dt.isSygus() );
     //get the solution
     Node sol;
     int status = -1;
@@ -614,21 +671,8 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         Trace("cegqi-warn") << "WARNING : No recorded instantiations for syntax-guided solution!" << std::endl;
       }
     }
-    if( !(Trace.isOn("cegqi-stats")) && !sol.isNull() ){
-      out << "(define-fun " << f << " ";
-      if( dt.getSygusVarList().isNull() ){
-        out << "() ";
-      }else{
-        out << dt.getSygusVarList() << " ";
-      }
-      out << dt.getSygusType() << " ";
-      if( status==0 ){
-        out << sol;
-      }else{
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
-      }
-      out << ")" << std::endl;
-    }
+    sols.push_back( sol );
+    statuses.push_back( status );
   }
 }
 
