@@ -128,11 +128,11 @@ public:
   /** sample add refinement lemma 
    * 
    * This function will check if there is a sample point in d_sampler that
-   * refutes the candidate solution (clist -> mvs). If so, it adds a refinement
-   * lemma to the lists d_refinement_lemmas/d_refinement_lemmas_base that 
-   * corresponds to that sample point.
+   * refutes the candidate solution (d_quant_vars->vals). If so, it adds a 
+   * refinement lemma to the lists d_refinement_lemmas/d_refinement_lemmas_base
+   * that corresponds to that sample point.
    */
-  bool sampleAddRefinementLemma( std::vector< Node >& clist, std::vector< Node >& mvs );
+  bool sampleAddRefinementLemma( std::vector< Node >& vals );
   //-----------------------------------end refinement lemmas
 
   /** get program by examples utility */
@@ -155,6 +155,15 @@ private:
   std::unique_ptr<CegConjectureProcess> d_ceg_proc;
   /** grammar utility */
   std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
+  /** 
+   * If d_simp_quant is forall f. exists y. P( f, y ), then this is the list f.
+   */
+  std::vector< Node > d_quant_vars;
+  /** 
+   * If d_simp_quant is forall f. exists y. P( f, y ), then this is the formula
+   * P( f, y ).
+   */
+  Node d_quant_body;
   /** list of constants for quantified formula
   * The Skolems for the negation of d_embed_quant.
   */

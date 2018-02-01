@@ -252,7 +252,7 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
         // find a new one by sampling, if applicable
         if( options::cegisSample()!=CEGIS_SAMPLE_NONE )
         {
-          addedSample = conj->sampleAddRefinementLemma(vs,ms);
+          addedSample = conj->sampleAddRefinementLemma(ms);
         }
         if( !addedSample )
         {

@@ -90,6 +90,17 @@ void CegConjecture::assign( Node q ) {
 
   // finished simplifying the quantified formula at this point
 
+  Assert( d_simp_quant.getKind()==FORALL );
+  d_quant_body = d_simp_quant[1];
+  if (d_quant_body.getKind() == NOT && d_quant_body[0].getKind() == FORALL)
+  {      
+    for( const Node& v : d_quant_body[0][0] )
+    {
+      d_quant_vars.push_back( v );
+    }
+    d_quant_body = d_quant_body[0][1];
+  }
+  
   // convert to deep embedding and finalize single invocation here
   d_embed_quant = d_ceg_gc->process(d_simp_quant, templates, templates_arg);
   Trace("cegqi") << "CegConjecture : converted to embedding : " << d_embed_quant << std::endl;
@@ -186,8 +197,20 @@ void CegConjecture::assign( Node q ) {
   // assign the cegis sampler if applicable
   if( options::cegisSample()!=CEGIS_SAMPLE_NONE )
   {
-    
     Trace("cegis-sample") << "Initialize sampler for " << d_simp_quant << "..." << std::endl;
+    Node base = d_simp_quant[1];
+    d_quant_body = base;
+    std::vector< Node > vars;
+    if (base.getKind() == NOT && base[0].getKind() == FORALL)
+    {
+      for( const Node& v : base[0][0] )
+      {
+        vars.push_back( v );
+      }
+      d_quant_body = base[0][1];
+    }
+    TypeNode bt = d_quant_body.getType();
+    d_cegis_sampler.initialize(bt,vars,options::sygusSamples());
   }
   
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
@@ -819,12 +842,14 @@ Node CegConjecture::getSymmetryBreakingPredicate(
 }
 
 
-bool CegConjecture::sampleAddRefinementLemma( std::vector< Node >& clist, std::vector< Node >& mvs )
+bool CegConjecture::sampleAddRefinementLemma( std::vector< Node >& vals )
 {
   Trace("cegis-sample") << "Check sampling for candidate solution" << std::endl;
-  for( unsigned i=0,size=clist.size(); i<size; i++ )
+  std::vector< Node > subs;
+  Assert( vals.size() == d_quant_vars.size() );
+  for( unsigned i=0,size=vals.size(); i<size; i++ )
   {
-    Trace("cegis-sample") << "  " << clist[i] << " -> " << mvs[i] << std::endl;
+    Trace("cegis-sample") << "  " << d_quant_vars[i] << " -> " << vals[i] << std::endl;
   }
   
   
