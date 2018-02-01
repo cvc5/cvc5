@@ -1353,10 +1353,10 @@ void SmtEngine::setDefaults() {
     */
   }
 
-  if(options::checkModels()) {
+  if(options::checkModels() || options::checkSynthSol()) {
     if(! options::produceAssertions()) {
       Notice() << "SmtEngine: turning on produce-assertions to support "
-               << "check-models." << endl;
+               << "check-models or check-synth-sol." << endl;
       setOption("produce-assertions", SExpr("true"));
     }
   }
