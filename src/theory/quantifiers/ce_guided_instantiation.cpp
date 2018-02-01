@@ -318,6 +318,16 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
   }
 }
 
+void CegInstantiation::getSynthSolutions( std::map< Node, Node >& sol_map )
+{
+  if( d_conj->isAssigned() ){
+    // print the conjecture
+    d_conj->getSynthSolutions( sol_map, d_last_inst_si );
+  }else{
+    Assert( false );
+  }
+}
+
 void CegInstantiation::preregisterAssertion( Node n ) {
   //check if it sygus conjecture
   if( QuantAttributes::checkSygusConjecture( n ) ){
