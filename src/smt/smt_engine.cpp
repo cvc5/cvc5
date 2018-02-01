@@ -5498,11 +5498,32 @@ void SmtEngine::checkSynthSol()
 {
   Notice() << "SmtEngine::checkSynthSol(): checking synthesis solution" << endl;
   Node negSolvedConj = getNegSolvedSynthConj();
+
+
   SmtEngine solChecker(d_exprManager);
   solChecker.setLogic(getLogicInfo());
+
+  // Build conjecture from original assertions
+  for(const Expr& assertion : d_assertionList)
+    {
+    Notice() << "SmtEngine::checkSynthSol(): checking assertion " << assertion << endl;
+    Node conj = Node::fromExpr(assertion);
+
+    // Apply any define-funs from the problem.
+    {
+      unordered_map<Node, Node, NodeHashFunction> cache;
+      conj = d_private->expandDefinitions(conj, cache);
+    }
+    Notice() << "SmtEngine::checkSynthSol(): -- expands to " << conj << endl;
+
+    // Apply our model value substitutions.
+    conj = substitutions.apply(conj);
+    Notice() << "SmtEngine::checkSynthSol(): -- substitutes to " << conj << endl;
+
+
   Notice() << "SmtEngine::checkSynthSol(): asserting negated solved conjecture"
            << negSolvedConj << endl;
-  solChecker.assertFormula(negSolvedConj.toExpr());
+  solChecker.assertFormula(conj.toExpr());
   Result r = solChecker.checkSat();
   Notice() << "SmtEngine::checkSynthSol(): result is " << r << endl;
   if (r.asSatisfiabilityResult().isUnknown())
