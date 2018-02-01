@@ -263,9 +263,8 @@ else
 fi
 
 check_synth_sols=false
-if [ "$lang" == "sygus" ] ; then
-    check_synth_sols=true
-  fi
+if [ "$lang" = sygus ]; then
+  check_synth_sols=true
 fi
 check_models=false
 if grep '^sat$' "$expoutfile" &>/dev/null || grep '^invalid$' "$expoutfile" &>/dev/null || grep '^unknown$' "$expoptfile" &>/dev/null; then
@@ -394,11 +393,8 @@ if [ "$exit_status" != "$expected_exit_status" ]; then
   exitcode=1
 fi
 
-if $check_models || $check_proofs || $check_unsat_cores || $check_synth_sols; then
+if $check_models || $check_proofs || $check_unsat_cores; then
   check_cmdline=
-  if $check_synth_sols; then
-    check_cmdline="$check_cmdline --check-synth-sol"
-  fi
   if $check_models; then
     check_cmdline="$check_cmdline --check-models"
   fi
@@ -413,6 +409,10 @@ if $check_models || $check_proofs || $check_unsat_cores || $check_synth_sols; th
   if ! CVC4_REGRESSION_ARGS="$CVC4_REGRESSION_ARGS$check_cmdline" "$0" $wrapper "$cvc4" "$benchmark_orig"; then
     exitcode=1
   fi
+fi
+
+if $check_synth_sols; then
+  check_cmdline="$check_cmdline --check-synth-sol"
 fi
 
 exit $exitcode
