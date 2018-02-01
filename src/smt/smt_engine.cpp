@@ -5509,10 +5509,11 @@ void SmtEngine::checkSynthSol()
     function_vars.push_back(pair.first);
     function_sols.push_back(pair.second);
   }
+  Trace("check-synth-sol") << "Starting new SMT Engine\n";
   /* Start new SMT engine to check solutions */
   SmtEngine solChecker(d_exprManager);
   solChecker.setLogic(getLogicInfo());
-
+  Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
   for (AssertionList::const_iterator i = d_assertionList->begin();
        i != d_assertionList->end();
