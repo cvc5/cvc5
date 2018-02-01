@@ -606,9 +606,11 @@ void CegConjecture::getSynthSolutions( std::map< Node, Node >& sol_map, bool sin
     TypeNode tn = d_embed_quant[0][i].getType();
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
     Node bvl = Node::fromExpr( dt.getSygusVarList() );
-    
-    bsol = nm->mkNode( LAMBDA, bvl, bsol );
-    
+    if( !bvl.isNull() )
+    {
+      bsol = nm->mkNode( LAMBDA, bvl, bsol );
+    }
+    // store in map
     Node fvar = d_quant[0][i];
     Assert( fvar.getType()==bsol.getType() );
     sol_map[fvar] = bsol;
