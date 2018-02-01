@@ -289,7 +289,9 @@ void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& mode
       // we have that the current candidate passed a sample test
       // since we trust sampling in this mode, we assert there is no
       // counterexample to the conjecture here.
-      lems.push_back( NodeManager::currentNM()->mkConst(false) );
+      Node nfalse = NodeManager::currentNM()->mkConst(false);
+      Node lem = getStreamGuardedLemma( nfalse );
+      lems.push_back( lem );
       recordInstantiation( c_model_values );
       return;
     }
@@ -338,12 +340,7 @@ void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& mode
       std::map< Node, Node > visited_n;
       lem = d_qe->getTermDatabaseSygus()->getEagerUnfold( lem, visited_n );
     }
-    if( options::sygusStream() ){
-      // if we are in streaming mode, we guard with the current stream guard
-      Node curr_stream_guard = getCurrentStreamGuard();
-      Assert( !curr_stream_guard.isNull() );
-      lem = NodeManager::currentNM()->mkNode( kind::OR, curr_stream_guard.negate(), lem );
-    }
+    lem = getStreamGuardedLemma( lem );
     lems.push_back( lem );
     recordInstantiation( c_model_values );
   }
@@ -482,6 +479,17 @@ Node CegConjecture::getCurrentStreamGuard() const {
   }
 }
 
+Node CegConjecture::getStreamGuardedLemma( Node n ) const
+{
+  if( options::sygusStream() ){
+    // if we are in streaming mode, we guard with the current stream guard
+    Node csg = getCurrentStreamGuard();
+    Assert( !csg.isNull() );
+    return NodeManager::currentNM()->mkNode( kind::OR, csg.negate(), n );
+  }
+  return n;
+}
+
 Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
   // first, must try the guard
   // which denotes "this conjecture is feasible"
@@ -601,13 +609,13 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
 
       if (status != 0 && options::sygusRewSynth())
       {
-        TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
         std::map<Node, SygusSampler>::iterator its = d_sampler.find(prog);
         if (its == d_sampler.end())
         {
-          d_sampler[prog].initialize(sygusDb, prog, options::sygusSamples());
+          d_sampler[prog].initializeSygus(prog, options::sygusSamples());
           its = d_sampler.find(prog);
         }
+        TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
         Node solb = sygusDb->sygusToBuiltin(sol, prog.getType());
         Node eq_sol = its->second.registerTerm(solb);
         // eq_sol is a candidate solution that is equivalent to sol
@@ -800,6 +808,20 @@ Node CegConjecture::getSymmetryBreakingPredicate(
   {
     return Node::null();
   }
+}
+
+
+bool CegConjecture::sampleAddRefinementLemma( std::vector< Node >& clist, std::vector< Node >& mvs )
+{
+  Trace("cegis-sample") << "Check sampling for candidate solution" << std::endl;
+  for( unsigned i=0,size=clist.size(); i<size; i++ )
+  {
+    Trace("cegis-sample") << "  " << clist[i] << " -> " << mvs[i] << std::endl;
+  }
+  
+  
+  // TODO
+  return false;
 }
 
 }/* namespace CVC4::theory::quantifiers */

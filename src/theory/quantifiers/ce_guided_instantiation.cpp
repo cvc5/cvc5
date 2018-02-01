@@ -244,7 +244,21 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
     TermDbSygus* tds = d_quantEngine->getTermDatabaseSygus();
     Node nfalse = d_quantEngine->getTermUtil()->d_false;
     Node neg_guard = conj->getGuard().negate();
-    for( unsigned i=0; i<conj->getNumRefinementLemmas(); i++ ){
+    unsigned nlemmas = conj->getNumRefinementLemmas();
+    for( unsigned i=0; i<=nlemmas; i++ ){
+      if( i==nlemmas )
+      {
+        bool addedSample = false;
+        // find a new one by sampling, if applicable
+        if( options::cegisSample()!=CEGIS_SAMPLE_NONE )
+        {
+          addedSample = conj->sampleAddRefinementLemma(vs,ms);
+        }
+        if( !addedSample )
+        {
+          return;
+        }
+      }
       Node lem;
       std::map< Node, Node > visited;
       std::map< Node, std::vector< Node > > exp;

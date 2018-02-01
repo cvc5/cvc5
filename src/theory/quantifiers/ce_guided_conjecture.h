@@ -75,9 +75,6 @@ public:
   * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
   */
   void doRefine(std::vector< Node >& lems);
-  /** Print the synthesis solution
-   * singleInvocation is whether the solution was found by single invocation techniques.
-   */
   //-------------------------------end for counterexample-guided check/refine
   /**
    * prints the synthesis solution to output stream out.
@@ -128,6 +125,14 @@ public:
   Node getRefinementLemma( unsigned i ) { return d_refinement_lemmas[i]; }
   /** get refinement lemma */
   Node getRefinementBaseLemma( unsigned i ) { return d_refinement_lemmas_base[i]; }
+  /** sample add refinement lemma 
+   * 
+   * This function will check if there is a sample point in d_sampler that
+   * refutes the candidate solution (clist -> mvs). If so, it adds a refinement
+   * lemma to the lists d_refinement_lemmas/d_refinement_lemmas_base that 
+   * corresponds to that sample point.
+   */
+  bool sampleAddRefinementLemma( std::vector< Node >& clist, std::vector< Node >& mvs );
   //-----------------------------------end refinement lemmas
 
   /** get program by examples utility */
@@ -227,6 +232,12 @@ private:
   std::vector< Node > d_stream_guards;
   /** get current stream guard */
   Node getCurrentStreamGuard() const;
+  /** get stream guarded lemma 
+   * 
+   * If sygusStream is enabled, this returns ( G V n ) where G is the guard
+   * returned by getCurrentStreamGuard, otherwise this returns n.
+   */
+  Node getStreamGuardedLemma( Node n) const;
   //-------------------------------- end sygus stream
   //-------------------------------- non-syntax guided (deprecated)
   /** Whether we are syntax-guided (e.g. was the input in SyGuS format).
