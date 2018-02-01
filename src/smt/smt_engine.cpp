@@ -5536,34 +5536,39 @@ void SmtEngine::checkSynthSol()
     Trace("check-synth-sol") << "Expanded assertion " << conj << "\n";
 
     // Apply solution map to conjecture body
-    Node conjBody = conj[1][1].substitute(function_vars.begin(),
-                                          function_vars.end(),
-                                          function_sols.begin(),
-                                          function_sols.end());
+    Node conjBody;
+    /* Whether property is quantifier free */
+    if (conj[1].getKind() != kind::EXISTS)
+    {
+      conjBody = conj[1].substitute(function_vars.begin(),
+                                    function_vars.end(),
+                                    function_sols.begin(),
+                                    function_sols.end());
+    }
+    else
+    {
+      conjBody = conj[1][1].substitute(function_vars.begin(),
+                                       function_vars.end(),
+                                       function_sols.begin(),
+                                       function_sols.end());
 
+      /* Skolemize property */
+      std::vector<Node> vars, skos;
+      for (unsigned j = 0, size = conj[1][0].getNumChildren(); j < size; ++j)
+      {
+        vars.push_back(conj[1][0][j]);
+        std::stringstream ss;
+        ss << "sk_" << j;
+        skos.push_back(nm->mkSkolem(ss.str(), conj[1][0][j].getType));
+        Trace("check-synth-sol") << "\tSkolemizing " << conj[1][0][j] << " to "
+                                 << skos.back() << "\n";
+      }
+      conjBody = conjBody.substitute(
+          vars.begin(), vars.end(), skos.begin(), skos.end());
+    }
     Notice() << "SmtEngine::checkSynthSol(): -- body substitutes to "
              << conjBody << endl;
     Trace("check-synth-sol") << "Substituted body of assertion to " << conjBody
-                             << "\n";
-    /* Skolemize conjecture */
-    std::vector<Node> vars, skos;
-    for (unsigned j = 0, size = conj[1][0].size(); j < size; ++j)
-    {
-      vars.push_back(conj[1][0][j]);
-      std::stringstream ss;
-      ss << "sk_" << j;
-      skos.push_back(
-          nm->mkSkolem(ss.str(), TypeNode::fromType(conj[1][0][j].getType())));
-      Trace("check-synth-sol") << "\tSkolemizing " << conj[1][0][j] << " to "
-                               << skos.back() << "\n";
-    }
-    conjBody =
-        conjBody.substitute(vars.begin(), vars.end(), skos.begin(), skos.end());
-
-    Notice()
-        << "SmtEngine::checkSynthSol(): asserting skomezied solved conjecture"
-        << conjBody << endl;
-    Trace("check-synth-sol") << "Skolemized negated conjecture " << conjBody
                              << "\n";
     solChecker.assertFormula(conjBody.toExpr());
     Result r = solChecker.checkSat();
