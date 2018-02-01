@@ -137,10 +137,11 @@ class SygusSampler : public LazyTrieEvaluator
   virtual ~SygusSampler() {}
   /** initialize
    * 
+   * tn : the return type of terms we will be testing with this class
    * vars : the variables we are testing substitutions for
    * nsamples : number of sample points this class will test.
    */
-  void initialize(std::vector<Node>& vars, unsigned nsamples);
+  void initialize(TypeNode tn, std::vector<Node>& vars, unsigned nsamples);
   /** initialize sygus
    *
    * f : a term of some SyGuS datatype type whose (builtin) values we will be
@@ -181,11 +182,11 @@ class SygusSampler : public LazyTrieEvaluator
   Node evaluate(Node n, unsigned index);
 
  private:
-  /** sygus term database of d_qe */
-  TermDbSygus* d_tds;
   /** samples */
   std::vector<std::vector<Node> > d_samples;
   /** type of nodes we will be registering with this class */
+  TypeNode d_tn;
+  /** the sygus type for this sampler (if applicable). */
   TypeNode d_ftn;
   /** all variables */
   std::vector< Node > d_vars;

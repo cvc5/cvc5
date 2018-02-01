@@ -65,9 +65,10 @@ Node LazyTrie::add(Node n,
 
 SygusSampler::SygusSampler() : d_is_valid(false) {}
 
-void SygusSampler::initialize(std::vector<Node>& vars, unsigned nsamples)
+void SygusSampler::initialize(TypeNode tn, std::vector<Node>& vars, unsigned nsamples)
 {
   d_is_valid = true;
+  d_tn = tn;
   d_ftn = TypeNode::null();
   d_vars.insert( d_vars.end(), vars.begin(), vars.end() );
   for (const Node& sv : vars)
@@ -86,6 +87,7 @@ void SygusSampler::initializeSygus(Node f, unsigned nsamples)
   Assert(d_ftn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(d_ftn.toType()).getDatatype();
   Assert(dt.isSygus());
+  d_tn = TypeNode::fromType( dt.getSygusType() );
 
   Trace("sygus-sample") << "Register sampler for " << f << std::endl;
 
@@ -143,6 +145,7 @@ Node SygusSampler::registerTerm(Node n, bool forceKeep)
 {
   if (d_is_valid)
   {
+    Assert( n.getType()==d_tn );
     return d_trie.add(n, this, 0, d_samples.size(), forceKeep);
   }
   return n;

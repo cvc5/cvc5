@@ -183,6 +183,13 @@ void CegConjecture::assign( Node q ) {
     d_qe->getOutputChannel().lemma( lem );
   }
   
+  // assign the cegis sampler if applicable
+  if( options::cegisSample()!=CEGIS_SAMPLE_NONE )
+  {
+    
+    Trace("cegis-sample") << "Initialize sampler for " << d_simp_quant << "..." << std::endl;
+  }
+  
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
 }
 
@@ -289,8 +296,9 @@ void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& mode
       // we have that the current candidate passed a sample test
       // since we trust sampling in this mode, we assert there is no
       // counterexample to the conjecture here.
-      Node nfalse = NodeManager::currentNM()->mkConst(false);
-      Node lem = getStreamGuardedLemma( nfalse );
+      NodeManager* nm = NodeManager::currentNM();
+      Node lem = nm->mkNode(OR, d_quant.negate(), nm->mkConst(false));
+      lem = getStreamGuardedLemma( lem );
       lems.push_back( lem );
       recordInstantiation( c_model_values );
       return;

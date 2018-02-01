@@ -253,6 +253,8 @@ private:
    * rewrite rules.
    */
   std::map<Node, SygusSampler> d_sampler;
+  /** sampler object for the option cegisSample() */
+  SygusSampler d_cegis_sampler;
 };
 
 } /* namespace CVC4::theory::quantifiers */
