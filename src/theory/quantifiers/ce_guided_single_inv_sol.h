@@ -27,11 +27,11 @@ namespace quantifiers {
 
 class CegConjectureSingleInv;
 
-/** CegConjectureSingleInvSol 
- * 
- * This function implements Figure 5 of "Counterexample-Guided Quantifier 
+/** CegConjectureSingleInvSol
+ *
+ * This function implements Figure 5 of "Counterexample-Guided Quantifier
  * Instantiation for Synthesis in SMT", Reynolds et al CAV 2015.
- * 
+ *
  */
 class CegConjectureSingleInvSol
 {
@@ -111,45 +111,53 @@ private:
   std::map<TypeNode, unsigned> d_const_list_pos;
   /** initialize the above two lists for sygus type tn */
   void initializeConstLists(TypeNode tn);
-  /** get generic base 
-   * 
-   * This returns the builtin term that is the analog of an application of the 
+  /** get generic base
+   *
+   * This returns the builtin term that is the analog of an application of the
    * c^th constructor of dt to fresh variables.
    */
-  Node getGenericBase( TypeNode tn, const Datatype& dt, int c );
+  Node getGenericBase(TypeNode tn, const Datatype& dt, int c);
   /** cache for the above function */
-  std::map< TypeNode, std::map< int, Node > > d_generic_base;
-  /** get match 
-   * 
-   * This function attempts to find a substitution for which p = n. If 
+  std::map<TypeNode, std::map<int, Node> > d_generic_base;
+  /** get match
+   *
+   * This function attempts to find a substitution for which p = n. If
    * successful, this function returns a substitution in the form of s/new_s,
    * where:
-   * s : substitution, where the domain are indices of terms in the sygus 
+   * s : substitution, where the domain are indices of terms in the sygus
    * term database, and
    * new_s : the members that were added to s on this call.
    * Otherwise, this function returns false and s and new_s are unmodified.
    */
-  bool getMatch( Node p, Node n, std::map< int, Node >& s, std::vector< int >& new_s );
-  /** get match 
-   * 
+  bool getMatch(Node p,
+                Node n,
+                std::map<int, Node>& s,
+                std::vector<int>& new_s);
+  /** get match
+   *
    * This function attempts to find a builtin term that is analog to a value
    * of the sygus datatype st that is equivalent to n. If this function returns
    * true, then it has found such a term. Then we set:
    *   index_found : updated to the constructor index of the sygus term whose
    *   analog to equivalent to n.
    *   args : builtin terms corresponding to the match, in order.
-   * Otherwise, this function returns false and index_found and args are 
+   * Otherwise, this function returns false and index_found and args are
    * unmodified.
    * For example, for grammar:
    *   A -> 0 | 1 | x | +( A, A )
    * Given input ( 5 + x ) and A we would return true, where:
    *   index_found is set to 3 and args is set to { 5, x }.
-   * 
+   *
    * index_exc : (if applicable) exclude a constructor index of st
    * index_start : start index of constructors of st to try
    */
-  bool getMatch( Node n, TypeNode st, int& index_found, std::vector< Node >& args, int index_exc = -1, int index_start = 0 );
-  
+  bool getMatch(Node n,
+                TypeNode st,
+                int& index_found,
+                std::vector<Node>& args,
+                int index_exc = -1,
+                int index_start = 0);
+
  public:
   Node reconstructSolution( Node sol, TypeNode stn, int& reconstructed );
   void preregisterConjecture( Node q );
