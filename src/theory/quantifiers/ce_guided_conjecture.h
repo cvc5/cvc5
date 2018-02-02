@@ -24,6 +24,7 @@
 #include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus_process_conj.h"
+#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -78,8 +79,25 @@ public:
    * singleInvocation is whether the solution was found by single invocation techniques.
    */
   //-------------------------------end for counterexample-guided check/refine
-
+  /**
+   * prints the synthesis solution to output stream out.
+   *
+   * singleInvocation : set to true if we should consult the single invocation
+   * module to get synthesis solutions.
+   */
   void printSynthSolution( std::ostream& out, bool singleInvocation );
+  /** get synth solutions
+   *
+   * This returns a map from function-to-synthesize variables to their
+   * builtin solution, which has the same type. For example, for synthesis
+   * conjecture exists f. forall x. f( x )>x, this function may return the map
+   * containing the entry:
+   *   f -> (lambda x. x+1)
+   *
+   * singleInvocation : set to true if we should consult the single invocation
+   * module to get synthesis solutions.
+   */
+  void getSynthSolutions(std::map<Node, Node>& sol_map, bool singleInvocation);
   /** get guard, this is "G" in Figure 3 of Reynolds et al CAV 2015 */
   Node getGuard();
   /** is ground */
@@ -183,6 +201,27 @@ private:
       d_cinfo[d_candidates[i]].d_inst.push_back( vs[i] );
     }
   }
+  /** get synth solutions internal
+   *
+   * This function constructs the body of solutions for all
+   * functions-to-synthesize in this conjecture and stores them in sols, in
+   * order. For each solution added to sols, we add an integer indicating what
+   * kind of solution n is, where if sols[i] = n, then
+   *   if status[i] = 0: n is the (builtin term) corresponding to the solution,
+   *   if status[i] = 1: n is the sygus representation of the solution.
+   * We store builtin versions under some conditions (such as when the sygus
+   * grammar is being ignored).
+   *
+   * singleInvocation : set to true if we should consult the single invocation
+   * module to get synthesis solutions.
+   *
+   * For example, for conjecture exists fg. forall x. f(x)>g(x), this function
+   * may set ( sols, status ) to ( { x+1, d_x() }, { 1, 0 } ), where d_x() is
+   * the sygus datatype constructor corresponding to variable x.
+   */
+  void getSynthSolutionsInternal(std::vector<Node>& sols,
+                                 std::vector<int>& status,
+                                 bool singleInvocation);
   //-------------------------------- sygus stream
   /** the streaming guards for sygus streaming mode */
   std::vector< Node > d_stream_guards;
@@ -197,6 +236,12 @@ private:
   /** the guard for non-syntax-guided synthesis */
   Node d_nsg_guard;
   //-------------------------------- end non-syntax guided (deprecated)
+  /** sygus sampler objects for each program variable
+   *
+   * This is used for the sygusRewSynth() option to synthesize new candidate
+   * rewrite rules.
+   */
+  std::map<Node, SygusSampler> d_sampler;
 };
 
 } /* namespace CVC4::theory::quantifiers */

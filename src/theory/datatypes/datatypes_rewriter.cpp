@@ -23,29 +23,30 @@ namespace datatypes {
 RewriteResponse DatatypesRewriter::postRewrite(TNode in)
 {
   Trace("datatypes-rewrite-debug") << "post-rewriting " << in << std::endl;
-  if (in.getKind() == kind::APPLY_CONSTRUCTOR)
+  Kind k = in.getKind();
+  NodeManager* nm = NodeManager::currentNM();
+  if (k == kind::APPLY_CONSTRUCTOR)
   {
     return rewriteConstructor(in);
   }
-  else if (in.getKind() == kind::APPLY_SELECTOR_TOTAL)
+  else if (k == kind::APPLY_SELECTOR_TOTAL)
   {
     return rewriteSelector(in);
   }
-  else if (in.getKind() == kind::APPLY_TESTER)
+  else if (k == kind::APPLY_TESTER)
   {
     return rewriteTester(in);
   }
-  else if (in.getKind() == kind::DT_SIZE)
+  else if (k == kind::DT_SIZE)
   {
     if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
     {
       std::vector<Node> children;
-      for (unsigned i = 0; i < in[0].getNumChildren(); i++)
+      for (unsigned i = 0, size = in [0].getNumChildren(); i < size; i++)
       {
         if (in[0][i].getType().isDatatype())
         {
-          children.push_back(
-              NodeManager::currentNM()->mkNode(kind::DT_SIZE, in[0][i]));
+          children.push_back(nm->mkNode(kind::DT_SIZE, in[0][i]));
         }
       }
       TNode constructor = in[0].getOperator();
@@ -53,17 +54,16 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       const Datatype& dt = Datatype::datatypeOf(constructor.toExpr());
       const DatatypeConstructor& c = dt[constructorIndex];
       unsigned weight = c.getWeight();
-      children.push_back(NodeManager::currentNM()->mkConst(Rational(weight)));
-      Node res = children.size() == 1
-                     ? children[0]
-                     : NodeManager::currentNM()->mkNode(kind::PLUS, children);
+      children.push_back(nm->mkConst(Rational(weight)));
+      Node res =
+          children.size() == 1 ? children[0] : nm->mkNode(kind::PLUS, children);
       Trace("datatypes-rewrite")
           << "DatatypesRewriter::postRewrite: rewrite size " << in << " to "
           << res << std::endl;
       return RewriteResponse(REWRITE_AGAIN_FULL, res);
     }
   }
-  else if (in.getKind() == kind::DT_HEIGHT_BOUND)
+  else if (k == kind::DT_HEIGHT_BOUND)
   {
     if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
     {
@@ -71,31 +71,25 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       Node res;
       Rational r = in[1].getConst<Rational>();
       Rational rmo = Rational(r - Rational(1));
-      for (unsigned i = 0; i < in[0].getNumChildren(); i++)
+      for (unsigned i = 0, size = in [0].getNumChildren(); i < size; i++)
       {
         if (in[0][i].getType().isDatatype())
         {
           if (r.isZero())
           {
-            res = NodeManager::currentNM()->mkConst(false);
+            res = nm->mkConst(false);
             break;
           }
-          else
-          {
-            children.push_back(NodeManager::currentNM()->mkNode(
-                kind::DT_HEIGHT_BOUND,
-                in[0][i],
-                NodeManager::currentNM()->mkConst(rmo)));
-          }
+          children.push_back(
+              nm->mkNode(kind::DT_HEIGHT_BOUND, in[0][i], nm->mkConst(rmo)));
         }
       }
       if (res.isNull())
       {
         res = children.size() == 0
-                  ? NodeManager::currentNM()->mkConst(true)
+                  ? nm->mkConst(true)
                   : (children.size() == 1 ? children[0]
-                                          : NodeManager::currentNM()->mkNode(
-                                                kind::AND, children));
+                                          : nm->mkNode(kind::AND, children));
       }
       Trace("datatypes-rewrite")
           << "DatatypesRewriter::postRewrite: rewrite height " << in << " to "
@@ -103,53 +97,42 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       return RewriteResponse(REWRITE_AGAIN_FULL, res);
     }
   }
-  else if (in.getKind() == kind::DT_SIZE_BOUND)
+  else if (k == kind::DT_SIZE_BOUND)
   {
     if (in[0].isConst())
     {
-      Node res = NodeManager::currentNM()->mkNode(
-          kind::LEQ,
-          NodeManager::currentNM()->mkNode(kind::DT_SIZE, in[0]),
-          in[1]);
+      Node res = nm->mkNode(kind::LEQ, nm->mkNode(kind::DT_SIZE, in[0]), in[1]);
       return RewriteResponse(REWRITE_AGAIN_FULL, res);
     }
   }
 
-  if (in.getKind() == kind::EQUAL)
+  if (k == kind::EQUAL)
   {
     if (in[0] == in[1])
     {
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(true));
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
     }
-    else
+    std::vector<Node> rew;
+    if (checkClash(in[0], in[1], rew))
     {
-      std::vector<Node> rew;
-      if (checkClash(in[0], in[1], rew))
-      {
-        Trace("datatypes-rewrite") << "Rewrite clashing equality " << in
-                                   << " to false" << std::endl;
-        return RewriteResponse(REWRITE_DONE,
-                               NodeManager::currentNM()->mkConst(false));
-        //}else if( rew.size()==1 && rew[0]!=in ){
-        //  Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " <<
-        //  rew[0] << std::endl;
-        //  return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
-      }
-      else if (in[1] < in[0])
-      {
-        Node ins = NodeManager::currentNM()->mkNode(in.getKind(), in[1], in[0]);
-        Trace("datatypes-rewrite") << "Swap equality " << in << " to " << ins
-                                   << std::endl;
-        return RewriteResponse(REWRITE_DONE, ins);
-      }
-      else
-      {
-        Trace("datatypes-rewrite-debug") << "Did not rewrite equality " << in
-                                         << " " << in[0].getKind() << " "
-                                         << in[1].getKind() << std::endl;
-      }
+      Trace("datatypes-rewrite")
+          << "Rewrite clashing equality " << in << " to false" << std::endl;
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
+      //}else if( rew.size()==1 && rew[0]!=in ){
+      //  Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " <<
+      //  rew[0] << std::endl;
+      //  return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
     }
+    else if (in[1] < in[0])
+    {
+      Node ins = nm->mkNode(in.getKind(), in[1], in[0]);
+      Trace("datatypes-rewrite")
+          << "Swap equality " << in << " to " << ins << std::endl;
+      return RewriteResponse(REWRITE_DONE, ins);
+    }
+    Trace("datatypes-rewrite-debug")
+        << "Did not rewrite equality " << in << " " << in[0].getKind() << " "
+        << in[1].getKind() << std::endl;
   }
 
   return RewriteResponse(REWRITE_DONE, in);
@@ -215,10 +198,7 @@ RewriteResponse DatatypesRewriter::rewriteConstructor(TNode in)
                                  << inn << std::endl;
       return RewriteResponse(REWRITE_DONE, inn);
     }
-    else
-    {
-      return RewriteResponse(REWRITE_DONE, in);
-    }
+    return RewriteResponse(REWRITE_DONE, in);
   }
   return RewriteResponse(REWRITE_DONE, in);
 }
@@ -322,33 +302,30 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
     return RewriteResponse(REWRITE_DONE,
                            NodeManager::currentNM()->mkConst(result));
   }
-  else
+  const Datatype& dt = static_cast<DatatypeType>(in[0].getType().toType()).getDatatype();
+  if (dt.getNumConstructors() == 1)
   {
-    const Datatype& dt = DatatypeType(in[0].getType().toType()).getDatatype();
-    if (dt.getNumConstructors() == 1)
-    {
-      // only one constructor, so it must be
-      Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
-                                 << "only one ctor for " << dt.getName()
-                                 << " and that is " << dt[0].getName()
-                                 << std::endl;
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(true));
-    }
-    // could try dt.getNumConstructors()==2 &&
-    // Datatype::indexOf(in.getOperator())==1 ?
-    else if (!options::dtUseTesters())
-    {
-      unsigned tindex = Datatype::indexOf(in.getOperator().toExpr());
-      Trace("datatypes-rewrite-debug") << "Convert " << in << " to equality "
-                                       << in[0] << " " << tindex << std::endl;
-      Node neq = mkTester(in[0], tindex, dt);
-      Assert(neq != in);
-      Trace("datatypes-rewrite")
-          << "DatatypesRewriter::postRewrite: Rewrite tester " << in << " to "
-          << neq << std::endl;
-      return RewriteResponse(REWRITE_AGAIN_FULL, neq);
-    }
+    // only one constructor, so it must be
+    Trace("datatypes-rewrite")
+        << "DatatypesRewriter::postRewrite: "
+        << "only one ctor for " << dt.getName() << " and that is "
+        << dt[0].getName() << std::endl;
+    return RewriteResponse(REWRITE_DONE,
+                           NodeManager::currentNM()->mkConst(true));
+  }
+  // could try dt.getNumConstructors()==2 &&
+  // Datatype::indexOf(in.getOperator())==1 ?
+  else if (!options::dtUseTesters())
+  {
+    unsigned tindex = Datatype::indexOf(in.getOperator().toExpr());
+    Trace("datatypes-rewrite-debug") << "Convert " << in << " to equality "
+                                     << in[0] << " " << tindex << std::endl;
+    Node neq = mkTester(in[0], tindex, dt);
+    Assert(neq != in);
+    Trace("datatypes-rewrite")
+        << "DatatypesRewriter::postRewrite: Rewrite tester " << in << " to "
+        << neq << std::endl;
+    return RewriteResponse(REWRITE_AGAIN_FULL, neq);
   }
   return RewriteResponse(REWRITE_DONE, in);
 }
@@ -368,7 +345,7 @@ bool DatatypesRewriter::checkClash(Node n1, Node n2, std::vector<Node>& rew)
       return true;
     }
     Assert(n1.getNumChildren() == n2.getNumChildren());
-    for (unsigned i = 0; i < n1.getNumChildren(); i++)
+    for (unsigned i = 0, size = n1.getNumChildren(); i < size; i++)
     {
       if (checkClash(n1[i], n2[i], rew))
       {
@@ -397,18 +374,17 @@ Node DatatypesRewriter::getInstCons(Node n, const Datatype& dt, int index)
 {
   Assert(index >= 0 && index < (int)dt.getNumConstructors());
   std::vector<Node> children;
+  NodeManager* nm = NodeManager::currentNM();
   children.push_back(Node::fromExpr(dt[index].getConstructor()));
   Type t = n.getType().toType();
-  for (unsigned i = 0; i < dt[index].getNumArgs(); i++)
+  for (unsigned i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
   {
-    Node nc = NodeManager::currentNM()->mkNode(
-        kind::APPLY_SELECTOR_TOTAL,
-        Node::fromExpr(dt[index].getSelectorInternal(t, i)),
-        n);
+    Node nc = nm->mkNode(kind::APPLY_SELECTOR_TOTAL,
+                         Node::fromExpr(dt[index].getSelectorInternal(t, i)),
+                         n);
     children.push_back(nc);
   }
-  Node n_ic =
-      NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, children);
+  Node n_ic = nm->mkNode(kind::APPLY_CONSTRUCTOR, children);
   if (dt.isParametric())
   {
     TypeNode tn = TypeNode::fromType(t);
@@ -424,12 +400,10 @@ Node DatatypesRewriter::getInstCons(Node n, const Datatype& dt, int index)
           dt[index].getSpecializedConstructorType(n.getType().toType());
       Debug("datatypes-parametric") << "Type specification is " << tspec
                                     << std::endl;
-      children[0] = NodeManager::currentNM()->mkNode(
-          kind::APPLY_TYPE_ASCRIPTION,
-          NodeManager::currentNM()->mkConst(AscriptionType(tspec)),
-          children[0]);
-      n_ic =
-          NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, children);
+      children[0] = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                               nm->mkConst(AscriptionType(tspec)),
+                               children[0]);
+      n_ic = nm->mkNode(kind::APPLY_CONSTRUCTOR, children);
       Assert(n_ic.getType() == tn);
     }
   }
@@ -445,7 +419,7 @@ int DatatypesRewriter::isInstCons(Node t, Node n, const Datatype& dt)
     int index = Datatype::indexOf(n.getOperator().toExpr());
     const DatatypeConstructor& c = dt[index];
     Type nt = n.getType().toType();
-    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
     {
       if (n[i].getKind() != kind::APPLY_SELECTOR_TOTAL
           || n[i].getOperator() != Node::fromExpr(c.getSelectorInternal(nt, i))
@@ -530,19 +504,16 @@ Node DatatypesRewriter::mkTester(Node n, int i, const Datatype& dt)
     return NodeManager::currentNM()->mkNode(
         kind::APPLY_TESTER, Node::fromExpr(dt[i].getTester()), n);
   }
-  else
-  {
 #ifdef CVC4_ASSERTIONS
-    Node ret = n.eqNode(DatatypesRewriter::getInstCons(n, dt, i));
-    Node a;
-    int ii = isTester(ret, a);
-    Assert(ii == i);
-    Assert(a == n);
-    return ret;
+  Node ret = n.eqNode(DatatypesRewriter::getInstCons(n, dt, i));
+  Node a;
+  int ii = isTester(ret, a);
+  Assert(ii == i);
+  Assert(a == n);
+  return ret;
 #else
-    return n.eqNode(DatatypesRewriter::getInstCons(n, dt, i));
+  return n.eqNode(DatatypesRewriter::getInstCons(n, dt, i));
 #endif
-  }
 }
 
 bool DatatypesRewriter::isNullaryApplyConstructor(Node n)
@@ -560,7 +531,7 @@ bool DatatypesRewriter::isNullaryApplyConstructor(Node n)
 
 bool DatatypesRewriter::isNullaryConstructor(const DatatypeConstructor& c)
 {
-  for (unsigned j = 0; j < c.getNumArgs(); j++)
+  for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
   {
     if (c[j].getType().getRangeType().isDatatype())
     {
@@ -595,7 +566,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstant(Node n)
     std::map<Node, int> eqc;
     std::map<int, std::vector<Node> > eqc_nodes;
     // partition based on top symbol
-    for (unsigned j = 0; j < terms.size(); j++)
+    for (unsigned j = 0, size = terms.size(); j < size; j++)
     {
       Node t = terms[j];
       Trace("dt-nconst") << "    " << t << ", cdt=" << cdts[t] << std::endl;
@@ -643,7 +614,8 @@ Node DatatypesRewriter::normalizeCodatatypeConstant(Node n)
             prt.clear();
             // partition based on children : for the first child that causes a
             // split, break
-            for (unsigned k = 0; k < eqc_nodes[eqc_curr].size(); k++)
+            for (unsigned k = 0, size = eqc_nodes[eqc_curr].size(); k < size;
+                 k++)
             {
               Node t = eqc_nodes[eqc_curr][k];
               Assert(t.getNumChildren() == nchildren);
@@ -664,14 +636,12 @@ Node DatatypesRewriter::normalizeCodatatypeConstant(Node n)
             }
           }
           // move into new eqc(s)
-          for (std::map<int, std::vector<Node> >::iterator it = prt.begin();
-               it != prt.end();
-               ++it)
+          for (const std::pair<const int, std::vector<Node> >& p : prt)
           {
             int e = eqc_count;
-            for (unsigned j = 0; j < it->second.size(); j++)
+            for (unsigned j = 0, size = p.second.size(); j < size; j++)
             {
-              Node t = it->second[j];
+              Node t = p.second[j];
               eqc[t] = e;
               eqc_nodes[e].push_back(t);
             }
@@ -701,11 +671,8 @@ Node DatatypesRewriter::normalizeCodatatypeConstant(Node n)
     std::map<int, int> eqc_stack;
     return normalizeCodatatypeConstantEqc(s, eqc_stack, eqc, 0);
   }
-  else
-  {
-    Trace("dt-nconst") << "...invalid." << std::endl;
-    return Node::null();
-  }
+  Trace("dt-nconst") << "...invalid." << std::endl;
+  return Node::null();
 }
 
 // normalize constant : apply to top-level codatatype constants
@@ -722,7 +689,7 @@ Node DatatypesRewriter::normalizeConstant(Node n)
     {
       std::vector<Node> children;
       bool childrenChanged = false;
-      for (unsigned i = 0; i < n.getNumChildren(); i++)
+      for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
       {
         Node nc = normalizeConstant(n[i]);
         children.push_back(nc);
@@ -732,16 +699,9 @@ Node DatatypesRewriter::normalizeConstant(Node n)
       {
         return NodeManager::currentNM()->mkNode(n.getKind(), children);
       }
-      else
-      {
-        return n;
-      }
     }
   }
-  else
-  {
-    return n;
-  }
+  return n;
 }
 
 Node DatatypesRewriter::collectRef(Node n,
@@ -773,7 +733,7 @@ Node DatatypesRewriter::collectRef(Node n,
         std::vector<Node> children;
         children.push_back(n.getOperator());
         bool childChanged = false;
-        for (unsigned i = 0; i < n.getNumChildren(); i++)
+        for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
         {
           Node nc = collectRef(n[i], sk, rf, rf_pending, terms, cdts);
           if (nc.isNull())
@@ -808,18 +768,15 @@ Node DatatypesRewriter::collectRef(Node n,
         {
           return Node::null();
         }
-        else
+        Assert(sk.size() == rf_pending.size());
+        Node r = rf_pending[rf_pending.size() - 1 - index];
+        if (r.isNull())
         {
-          Assert(sk.size() == rf_pending.size());
-          Node r = rf_pending[rf_pending.size() - 1 - index];
-          if (r.isNull())
-          {
-            r = NodeManager::currentNM()->mkBoundVar(
-                sk[rf_pending.size() - 1 - index].getType());
-            rf_pending[rf_pending.size() - 1 - index] = r;
-          }
-          return r;
+          r = NodeManager::currentNM()->mkBoundVar(
+              sk[rf_pending.size() - 1 - index].getType());
+          rf_pending[rf_pending.size() - 1 - index] = r;
         }
+        return r;
       }
     }
   }
@@ -839,11 +796,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
 {
   Trace("dt-nconst-debug") << "normalizeCodatatypeConstantEqc: " << n
                            << " depth=" << depth << std::endl;
-  if (eqc.find(n) == eqc.end())
-  {
-    return n;
-  }
-  else
+  if (eqc.find(n) != eqc.end())
   {
     int e = eqc[n];
     std::map<int, int>::iterator it = eqc_stack.find(e);
@@ -853,31 +806,24 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
       return NodeManager::currentNM()->mkConst(
           UninterpretedConstant(n.getType().toType(), debruijn));
     }
-    else
+    std::vector<Node> children;
+    bool childChanged = false;
+    eqc_stack[e] = depth;
+    for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
     {
-      std::vector<Node> children;
-      bool childChanged = false;
-      eqc_stack[e] = depth;
-      for (unsigned i = 0; i < n.getNumChildren(); i++)
-      {
-        Node nc =
-            normalizeCodatatypeConstantEqc(n[i], eqc_stack, eqc, depth + 1);
-        children.push_back(nc);
-        childChanged = childChanged || nc != n[i];
-      }
-      eqc_stack.erase(e);
-      if (childChanged)
-      {
-        Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
-        children.insert(children.begin(), n.getOperator());
-        return NodeManager::currentNM()->mkNode(n.getKind(), children);
-      }
-      else
-      {
-        return n;
-      }
+      Node nc = normalizeCodatatypeConstantEqc(n[i], eqc_stack, eqc, depth + 1);
+      children.push_back(nc);
+      childChanged = childChanged || nc != n[i];
+    }
+    eqc_stack.erase(e);
+    if (childChanged)
+    {
+      Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
+      children.insert(children.begin(), n.getOperator());
+      return NodeManager::currentNM()->mkNode(n.getKind(), children);
     }
   }
+  return n;
 }
 
 Node DatatypesRewriter::replaceDebruijn(Node n,
@@ -898,7 +844,7 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
   {
     std::vector<Node> children;
     bool childChanged = false;
-    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
     {
       Node nc = replaceDebruijn(n[i], orig, orig_tn, depth + 1);
       children.push_back(nc);
