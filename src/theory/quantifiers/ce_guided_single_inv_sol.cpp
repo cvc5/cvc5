@@ -26,13 +26,12 @@
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
 using namespace std;
 
 namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 bool doCompare( Node a, Node b, Kind k ) {
   Node com = NodeManager::currentNM()->mkNode( k, a, b );
@@ -1471,4 +1470,8 @@ Node CegConjectureSingleInvSol::getGenericBase( TypeNode tn, const Datatype& dt,
   Trace("sygus-db-debug") << "Sygus DB : Generic rewritten is " << gr << std::endl;
   d_generic_base[tn][c] = gr;
   return gr;
+}
+
+}
+}
 }
