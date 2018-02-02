@@ -95,6 +95,13 @@ class TermDbSygus {
   Node d_false;
 
  private:
+  /** fresh variables for each type 
+   * 
+   * We store two versions of this list:
+   *   index 0: mapping from builtin types to fresh variables of that type,
+   *   index 1: mapping from sygus types to fresh varaibles of the type they 
+   *            encode.
+   */
   std::map< TypeNode, std::vector< Node > > d_fv[2];
   std::map< Node, TypeNode > d_fv_stype;
   std::map< Node, int > d_fv_num;
@@ -180,8 +187,25 @@ private:
 
   TypeNode getSygusTypeForVar( Node v );
   Node getGenericBase( TypeNode tn, const Datatype& dt, int c );
+  /** make generic
+   * 
+   * This function returns a builtin term f( t1, ..., tn ) where f is the 
+   * builtin op of the sygus datatype constructor specified by arguments
+   * dt and c. For each i = 1,...,n:
+   *   If i is in the domain of pre, then ti = pre[i].
+   *   If i is not in the domain of pre, then ti = d_fv[1][ var_count[Ti ] ],
+   *     and var_count[Ti] is incremented.
+   */
   Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
-  Node sygusToBuiltin( Node n, TypeNode tn );
+  /** same as above, but with empty var_count */
+  Node mkGeneric( const Datatype& dt, int c, std::map< int, Node >& pre );
+  /** sygus to builtin 
+   * 
+   * Given a sygus datatype term n of type tn, this function returns its analog,
+   * that is, the term that n encodes.
+   */
+  Node sygusToBuiltin( Node n, TypeNode tn );  
+  /** same as above, but without tn */
   Node sygusToBuiltin( Node n ) { return sygusToBuiltin( n, n.getType() ); }
   Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );
   Node builtinToSygusConst( Node c, TypeNode tn, int rcons_depth = 0 );

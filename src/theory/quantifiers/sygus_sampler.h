@@ -233,6 +233,12 @@ class SygusSampler : public LazyTrieEvaluator
    * TODO
    */
   Node getSygusRandomValue(TypeNode tn, double rchance, double rinc);
+  /** */
+  std::map< TypeNode, std::vector< unsigned > > d_rvalue_cindices;
+  /** */
+  std::map< Node, std::vector< TypeNode > > d_var_sygus_types;
+  /** register sygus type */
+  void registerSygusType( TypeNode tn );
 };
 
 } /* CVC4::theory::quantifiers namespace */

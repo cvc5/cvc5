@@ -356,16 +356,75 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn, double rchance, double rinc)
   Assert( tn.isDatatype() );
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert( dt.isSygus() );
-  if(Random::getRandom().pickWithProb(rchance))
+  if(!Random::getRandom().pickWithProb(rchance))
   {
-    return getRandomValue( TypeNode::fromType( dt.getSygusType() ) );
+    unsigned ncons = d_rvalue_cindices[tn].size();
+    if( ncons>0 )
+    {
+      // more likely to terminate in recursive calls
+      double rchance_new = rchance + ( 1.0 - rchance )*rinc;
+      // select a random constructor
+      unsigned index = Random::getRandom().pick(0, ncons);
+      unsigned cindex = d_rvalue_cindices[tn][index];
+      const DatatypeConstructor& dtc = dt[cindex];
+      std::map< int, Node > pre;
+      bool success = true;
+      // generate random values for all arguments
+      for( unsigned i=0, nargs=dtc.getNumArgs(); i<nargs; i++ )
+      {
+        TypeNode tnc = d_tds->getArgType( dtc, i );
+        Node c = getSygusRandomValue( tnc, rchance_new, rinc );
+        if( c.isNull() )
+        {
+          success = false;
+          break;
+        }
+        pre[i] = c;
+      }
+      if( success )
+      {
+        Node ret = d_tds->mkGeneric( dt, cindex, pre );
+        ret = Rewriter::rewrite( ret );
+        Assert( ret.isConst() );
+        return ret;
+      }
+    }
   }
-  else
+  // if we did not generate based on the grammar, pick a random value
+  return getRandomValue( TypeNode::fromType( dt.getSygusType() ) );
+}
+
+void SygusSampler::registerSygusType( TypeNode tn )
+{
+  if( d_rvalue_cindices.find( tn )==d_rvalue_cindices.end() )
   {
-    unsigned ncons = dt.getNumConstructors();
-    unsigned cindex = 
+    d_rvalue_cindices[tn].clear();
+    Assert( tn.isDatatype() );
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    Assert( dt.isSygus() );
+    for( unsigned i=0,ncons=dt.getNumConstructors(); i<ncons; i++ )
+    {
+      const DatatypeConstructor& dtc = dt[i];
+      Node sop = Node::fromExpr( dtc.getSygusOp() );
+      bool isVar = false;
+      if( isVar )
+      {
+        // if it is a variable, add it to the list of sygus types for that var
+        d_var_sygus_types[sop].push_back(tn);
+      }
+      else
+      {
+        // otherwise, it is a constructor for sygus random value
+        d_rvalue_cindices[tn].push_back(i);
+      }
+      // recurse on all subfields
+      for( unsigned j=0, nargs=dtc.getNumArgs(); j<nargs; j++ )
+      {
+        TypeNode tnc = d_tds->getArgType( dtc, j );
+        registerSygusType( tnc );
+      }
+    }
   }
-  return Node::null();
 }
 
 } /* CVC4::theory::quantifiers namespace */
