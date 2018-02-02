@@ -1405,6 +1405,7 @@ prefixFormula[CVC4::Expr& f]
   Type t;
   Kind k;
   Expr ipl;
+  std::vector<Expr> flattenVars;
 }
     /* quantifiers */
   : ( FORALL_TOK { k = kind::FORALL; } | EXISTS_TOK { k = kind::EXISTS; } )
@@ -1453,12 +1454,31 @@ prefixFormula[CVC4::Expr& f]
       f = func;
     }
    /* recursive function */
-  | RECURSIVE_FUNCTION_TOK LPAREN boundVarDeclsReturn[terms,types] COLON formula[f]
+  | RECURSIVE_FUNCTION_TOK LPAREN boundVarDeclsReturn[terms,types] RPAREN COLON formula[f]
   {
-    std::cout<<"Let's see if this works.";
+    std::cout<<"Let's see if this works.\n";
+    func = PARSER_STATE->mkDefineFunRec(, terms, t, flattenVars);
+    PARSER_STATE->pushDefineFunRecScope(terms, func, flattenVars, bvs, true );
   }
   ;
-
+/*| DEFINE_FUN_REC_TOK
+    { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[fname,CHECK_NONE,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(fname); }
+    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+    sortSymbol[t,CHECK_DECLARED]
+    {
+      func = PARSER_STATE->mkDefineFunRec(fname, sortedVarNames, t, flattenVars);
+      PARSER_STATE->pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs, true );
+    }
+    term[expr, expr2]
+    { PARSER_STATE->popScope(); 
+      if( !flattenVars.empty() ){
+        expr = PARSER_STATE->mkHoApply( expr, flattenVars );
+      }
+      cmd->reset(new DefineFunctionRecCommand(func,bvs,expr));
+    }
+*/
 instantiationPatterns[ CVC4::Expr& expr ]
 @init {
   std::vector<Expr> args;
