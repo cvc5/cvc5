@@ -1451,11 +1451,11 @@ bool CegConjectureSingleInvSol::getMatch(Node t,
       Node g = getGenericBase(st, dt, i);
       gens.push_back(g);
       kgens[g.getKind()].push_back(g);
-      Trace("sygus-db-debug") << "Check generic base : " << g << " from "
+      Trace("csi-sol-debug") << "Check generic base : " << g << " from "
                               << dt[i].getName() << std::endl;
       if (g.getKind() == t.getKind())
       {
-        Trace("sygus-db-debug") << "Possible match ? " << g << " " << t
+        Trace("csi-sol-debug") << "Possible match ? " << g << " " << t
                                 << " for " << dt[i].getName() << std::endl;
         std::map<int, Node> sigma;
         std::vector<int> new_s;
@@ -1501,13 +1501,13 @@ Node CegConjectureSingleInvSol::getGenericBase(TypeNode tn,
   std::map<TypeNode, int> var_count;
   std::map<int, Node> pre;
   Node g = tds->mkGeneric(dt, c, var_count, pre);
-  Trace("sygus-db-debug") << "Sygus DB : Generic is " << g << std::endl;
+  Trace("csi-sol-debug") << "Generic is " << g << std::endl;
   Node gr = Rewriter::rewrite(g);
-  Trace("sygus-db-debug") << "Sygus DB : Generic rewritten is " << gr
-                          << std::endl;
+  Trace("csi-sol-debug") << "Generic rewritten is " << gr << std::endl;
   d_generic_base[tn][c] = gr;
   return gr;
 }
+
 }
 }
 }
