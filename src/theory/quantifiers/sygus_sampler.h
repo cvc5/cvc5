@@ -182,11 +182,11 @@ class SygusSampler : public LazyTrieEvaluator
   unsigned getNumSamplePoints() const { return d_samples.size(); }
   /** get sample point 
    * 
-   * Appends sample point #i to the vector pt.
+   * Appends sample point #index to the vector pt.
    */
-  void getSamplePoint( unsigned i, std::vector< Node >& pt ) const;
+  void getSamplePoint( unsigned index, std::vector< Node >& pt );
   /** evaluate n on sample point index */
-  Node evaluate(Node n, unsigned index) const;
+  Node evaluate(Node n, unsigned index);
 
  private:
   /** samples */
