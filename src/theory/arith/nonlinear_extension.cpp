@@ -1250,7 +1250,27 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
       return comp == d_true;
     }
   }
-
+  else if( atom.getKind()==EQUAL )
+  {
+    // x = a is ( x >= a ^ x <= a )
+    for( unsigned i=0; i<2; i++ )
+    {
+      Node lit = nm->mkNode( GEQ, atom[i], atom[1-i] );
+      if( !pol )
+      {
+        lit = lit.negate();
+      }
+      lit = Rewriter::rewrite( lit );
+      bool success = simpleCheckModelTfLit( lit );
+      if( success!=pol )
+      {
+        // false != true -> one conjunct of equality is false, we fail
+        // true != false -> one disjunct of disequality is true, we succeed
+        return success;
+      }
+    }
+  }
+  
   Trace("nl-ext-tf-check-model-simple") << "  failed due to unknown literal."
                                         << std::endl;
   return false;
