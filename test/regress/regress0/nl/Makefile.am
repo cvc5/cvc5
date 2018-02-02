@@ -79,7 +79,8 @@ TESTS =	\
   nta/exp-n0.5-lb.smt2 \
   nta/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2 \
   nta/NAVIGATION2.smt2 \
-  nta/sin1-sat.smt2
+  nta/sin1-sat.smt2 \
+  nta/sin1-deq-sat.smt2
 
 # unsolved : garbage_collect.cvc
 
