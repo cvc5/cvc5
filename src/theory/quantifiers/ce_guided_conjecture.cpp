@@ -629,7 +629,8 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         std::map<Node, SygusSampler>::iterator its = d_sampler.find(prog);
         if (its == d_sampler.end())
         {
-          d_sampler[prog].initializeSygus(sygusDb, prog, options::sygusSamples());
+          d_sampler[prog].initializeSygus(
+              sygusDb, prog, options::sygusSamples());
           its = d_sampler.find(prog);
         }
         Node solb = sygusDb->sygusToBuiltin(sol, prog.getType());
