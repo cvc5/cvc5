@@ -54,6 +54,9 @@ option dumpUnsatCores --dump-unsat-cores bool :default false :link --produce-uns
 option dumpUnsatCoresFull dump-unsat-cores-full --dump-unsat-cores-full bool :default false :link --dump-unsat-cores :link-smt dump-unsat-cores :notify notifyBeforeSearch
  dump the full unsat core, including unlabeled assertions
 
+option checkSynthSol --check-synth-sol bool :default false
+ checks whether produced solutions to functions-to-synthesize satisfy the conjecture
+
 option produceAssignments produce-assignments --produce-assignments bool :default false :notify notifyBeforeSearch
  support the get-assignment command
 
