@@ -192,7 +192,6 @@ private:
   /** get comparison kind */
   Kind getComparisonKind( TypeNode tn );
   Kind getPlusKind( TypeNode tn, bool is_neg = false );
-  bool doCompare( Node a, Node b, Kind k );
   // get semantic skolem for n (a sygus term whose builtin version is n)
   Node getSemanticSkolem( TypeNode tn, Node n, bool doMk = true );
   /** involves div-by-zero */

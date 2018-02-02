@@ -34,6 +34,13 @@ using namespace std;
 
 namespace CVC4 {
 
+bool doCompare( Node a, Node b, Kind k ) {
+  Node com = NodeManager::currentNM()->mkNode( k, a, b );
+  com = Rewriter::rewrite( com );
+  Assert( com.getType().isBoolean() );
+  return com.isConst() && com.getConst<bool>();
+}
+  
 CegConjectureSingleInvSol::CegConjectureSingleInvSol(QuantifiersEngine* qe)
     : d_qe(qe), d_id_count(0), d_root_id() {}
 
@@ -1273,7 +1280,7 @@ Node CegConjectureSingleInvSol::builtinToSygusConst(Node c,
               {
                 Node c1 = d_const_list[tn1][i];
                 // only consider if smaller than c, and
-                if (tds->doCompare(c1, c, ck))
+                if (doCompare(c1, c, ck))
                 {
                   Node c2 = nm->mkNode(pkm, c, c1);
                   c2 = Rewriter::rewrite(c2);
@@ -1306,13 +1313,12 @@ Node CegConjectureSingleInvSol::builtinToSygusConst(Node c,
 
 struct sortConstants
 {
-  TermDbSygus* d_tds;
   Kind d_comp_kind;
   bool operator()(Node i, Node j)
   {
     if (i != j)
     {
-      return d_tds->doCompare(i, j, d_comp_kind);
+      return doCompare(i, j, d_comp_kind);
     }
     else
     {
@@ -1344,7 +1350,7 @@ void CegConjectureSingleInvSol::initializeConstLists(TypeNode tn)
     if (n.getKind() != kind::BUILTIN && n.isConst())
     {
       d_const_list[tn].push_back(n);
-      if (ck != UNDEFINED_KIND && tds->doCompare(z, n, ck))
+      if (ck != UNDEFINED_KIND && doCompare(z, n, ck))
       {
         d_const_list_pos[tn]++;
       }
@@ -1357,7 +1363,6 @@ void CegConjectureSingleInvSol::initializeConstLists(TypeNode tn)
     {
       sortConstants sc;
       sc.d_comp_kind = ck;
-      sc.d_tds = tds;
       std::sort(d_const_list[tn].begin(), d_const_list[tn].end(), sc);
     }
     Trace("csi-rcons") << "Type has " << d_const_list[tn].size()
@@ -1372,4 +1377,5 @@ void CegConjectureSingleInvSol::initializeConstLists(TypeNode tn)
                        << " are marked as positive." << std::endl;
   }
 }
+
 }

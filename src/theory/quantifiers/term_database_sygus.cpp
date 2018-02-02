@@ -1377,12 +1377,6 @@ Kind TermDbSygus::getPlusKind( TypeNode tn, bool is_neg ) {
   }
 }
 
-bool TermDbSygus::doCompare( Node a, Node b, Kind k ) {
-  Node com = NodeManager::currentNM()->mkNode( k, a, b );
-  com = Rewriter::rewrite( com );
-  return com==d_true;
-}
-
 Node TermDbSygus::getSemanticSkolem( TypeNode tn, Node n, bool doMk ){
   std::map< Node, Node >::iterator its = d_semantic_skolem[tn].find( n );
   if( its!=d_semantic_skolem[tn].end() ){

@@ -105,7 +105,6 @@ private:
   std::map<TypeNode, unsigned> d_const_list_pos;
   /** initialize the above two lists for sygus type tn */
   void initializeConstLists(TypeNode tn);
-
  public:
   Node reconstructSolution( Node sol, TypeNode stn, int& reconstructed );
   void preregisterConjecture( Node q );
