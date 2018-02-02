@@ -1078,7 +1078,6 @@ void CegConjectureSingleInvSol::setReconstructed( int id, Node n ) {
 }
 
 void CegConjectureSingleInvSol::getEquivalentTerms( Kind k, Node n, std::vector< Node >& equiv ) {
-  Assert( n.getKind()!=k ); //?
   if( k==AND || k==OR ){
     equiv.push_back( NodeManager::currentNM()->mkNode( k, n, n ) );
     equiv.push_back( NodeManager::currentNM()->mkNode( k, n, NodeManager::currentNM()->mkConst( k==AND ) ) );

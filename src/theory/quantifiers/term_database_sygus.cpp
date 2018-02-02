@@ -170,6 +170,7 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
     }
     if (n.hasAttribute(SygusPrintProxyAttribute()))
     {
+      // this variable was associated by an attribute to a builtin node
       return n.getAttribute(SygusPrintProxyAttribute());
     }
     Assert(isFreeVar(n));
