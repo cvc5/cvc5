@@ -119,7 +119,6 @@ private:
   std::map<TypeNode, std::map<Node, int> > d_consts;
   std::map<TypeNode, std::map<Node, int> > d_ops;
   std::map<TypeNode, std::map<int, Node> > d_arg_ops;
-  std::map<TypeNode, std::vector<int> > d_id_funcs;
   std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
   // normalized map
   std::map<TypeNode, std::map<Node, Node> > d_normalized;
@@ -158,8 +157,6 @@ private:
   Kind getConsNumKind( TypeNode tn, int i );
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
-  unsigned getNumIdFuncs( TypeNode tn );
-  unsigned getIdFuncIndex( TypeNode tn, unsigned i );
   /** get arg type */
   TypeNode getArgType( const DatatypeConstructor& c, int i );
   /** get first occurrence */

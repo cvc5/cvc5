@@ -728,7 +728,8 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
     return d_rcons_to_id[stn][t];
   }else{
     status = 1;
-    d_qe->getTermDatabaseSygus()->registerSygusType( stn );
+    // register the type
+    registerType( stn );
     int id = allocate( t, stn );
     d_rcons_to_status[stn][t] = -1;
     TypeNode tn = t.getType();
@@ -794,8 +795,8 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
         }
         if( status!=0 ){
           //try identity functions
-          for( unsigned i=0; i<d_qe->getTermDatabaseSygus()->getNumIdFuncs( stn ); i++ ){
-            unsigned ii = d_qe->getTermDatabaseSygus()->getIdFuncIndex( stn, i );
+          for( unsigned ii : d_id_funcs[stn] )
+          {
             Assert( dt[ii].getNumArgs()==1 );
             //try to directly reconstruct from single argument
             std::vector< Node > tchildren;
@@ -1235,9 +1236,8 @@ Node CegConjectureSingleInvSol::builtinToSygusConst(Node c,
     else
     {
       // identity functions
-      for (unsigned i = 0; i < tds->getNumIdFuncs(tn); i++)
+      for( unsigned ii : d_id_funcs[tn] )
       {
-        unsigned ii = tds->getIdFuncIndex(tn, i);
         Assert(dt[ii].getNumArgs() == 1);
         // try to directly reconstruct from single argument
         TypeNode tnc = tds->getArgType(dt[ii], 0);
@@ -1273,7 +1273,7 @@ Node CegConjectureSingleInvSol::builtinToSygusConst(Node c,
               TypeNode tn1 = tds->getArgType(dt[arg], 0);
               TypeNode tn2 = tds->getArgType(dt[arg], 1);
               // initialize d_const_list for tn1
-              initializeConstLists(tn1);
+              registerType(tn1);
               // iterate over all positive constants, largest to smallest
               int start = d_const_list[tn1].size() - 1;
               int end = d_const_list[tn1].size() - d_const_list_pos[tn1];
@@ -1328,7 +1328,7 @@ struct sortConstants
   }
 };
 
-void CegConjectureSingleInvSol::initializeConstLists(TypeNode tn)
+void CegConjectureSingleInvSol::registerType(TypeNode tn)
 {
   if (d_const_list_pos.find(tn) != d_const_list_pos.end())
   {
@@ -1338,6 +1338,8 @@ void CegConjectureSingleInvSol::initializeConstLists(TypeNode tn)
   Assert(tn.isDatatype());
 
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
+  // ensure it is registered
+  tds->registerSygusType( tn );
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   TypeNode btn = TypeNode::fromType(dt.getSygusType());
   // for constant reconstruction
@@ -1355,6 +1357,9 @@ void CegConjectureSingleInvSol::initializeConstLists(TypeNode tn)
       {
         d_const_list_pos[tn]++;
       }
+    }
+    if( dt[i].isSygusIdFunc() ){
+      d_id_funcs[tn].push_back( i );
     }
   }
   // sort the constant list

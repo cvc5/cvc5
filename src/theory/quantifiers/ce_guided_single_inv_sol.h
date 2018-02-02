@@ -109,8 +109,10 @@ private:
   std::map<TypeNode, std::vector<Node> > d_const_list;
   /** number of positive constants, per type */
   std::map<TypeNode, unsigned> d_const_list_pos;
-  /** initialize the above two lists for sygus type tn */
-  void initializeConstLists(TypeNode tn);
+  /** list of constructor indices whose operators are identity functions */
+  std::map<TypeNode, std::vector<int> > d_id_funcs;
+  /** initialize the above information for sygus type tn */
+  void registerType(TypeNode tn);
   /** get generic base
    *
    * This returns the builtin term that is the analog of an application of the

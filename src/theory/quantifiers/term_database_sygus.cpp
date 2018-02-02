@@ -706,9 +706,6 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             d_consts[tn][n] = i;
             d_arg_const[tn][i] = n;
           }
-          if( dt[i].isSygusIdFunc() ){
-            d_id_funcs[tn].push_back( i );
-          }
           d_ops[tn][n] = i;
           d_arg_ops[tn][i] = n;
           Trace("sygus-db") << std::endl;
@@ -1134,14 +1131,6 @@ bool TermDbSygus::isConstArg( TypeNode tn, int i ) {
   }else{
     return false;
   }
-}
-
-unsigned TermDbSygus::getNumIdFuncs( TypeNode tn ) {
-  return d_id_funcs[tn].size();
-}
-
-unsigned TermDbSygus::getIdFuncIndex( TypeNode tn, unsigned i ) {
-  return d_id_funcs[tn][i];
 }
 
 TypeNode TermDbSygus::getArgType( const DatatypeConstructor& c, int i ) {
