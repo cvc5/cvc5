@@ -358,6 +358,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn, double rchance, double rinc)
   Assert( dt.isSygus() );
   if(!Random::getRandom().pickWithProb(rchance))
   {
+    Assert( d_rvalue_cindices.find(tn)!=d_rvalue_cindices.end() );
     unsigned ncons = d_rvalue_cindices[tn].size();
     if( ncons>0 )
     {
