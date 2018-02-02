@@ -228,6 +228,11 @@ class SygusSampler : public LazyTrieEvaluator
    * interesting sample points.
    */
   Node getRandomValue(TypeNode tn);
+  /** get sygus random value 
+   * 
+   * TODO
+   */
+  Node getSygusRandomValue(TypeNode tn, double rchance, double rinc);
 };
 
 } /* CVC4::theory::quantifiers namespace */

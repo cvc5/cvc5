@@ -350,6 +350,24 @@ Node SygusSampler::getRandomValue(TypeNode tn)
   return Node::null();
 }
 
+
+Node SygusSampler::getSygusRandomValue(TypeNode tn, double rchance, double rinc)
+{
+  Assert( tn.isDatatype() );
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  Assert( dt.isSygus() );
+  if(Random::getRandom().pickWithProb(rchance))
+  {
+    return getRandomValue( TypeNode::fromType( dt.getSygusType() ) );
+  }
+  else
+  {
+    unsigned ncons = dt.getNumConstructors();
+    unsigned cindex = 
+  }
+  return Node::null();
+}
+
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

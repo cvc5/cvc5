@@ -305,6 +305,8 @@ option sygusRewVerify --sygus-rr-verify bool :default false
   use sygus to verify the correctness of rewrite rules via sampling
 option sygusSamples --sygus-samples=N int :read-write :default 100 :read-write
   number of points to consider when doing sygus rewriter sample testing
+option sygusSampleGrammar --sygus-sample-grammar bool :default true
+  when applicable, use grammar for choosing sample points
 
 # CEGQI applied to general quantified formulas
 option cbqi --cbqi bool :read-write :default false
