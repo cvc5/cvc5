@@ -81,8 +81,8 @@ tokens {
   ARITH_VAR_ORDER_TOK = 'ARITH_VAR_ORDER';
   CONTINUE_TOK = 'CONTINUE';
   RESTART_TOK = 'RESTART';
-  RECURSIVE_FUNCTION_TOK = 'FUN';
-  RECURSIVE_FUNCTIONS_TOK = 'FUNS';
+  RECURSIVE_FUNCTION_TOK = 'REC-FUN';
+  RECURSIVE_FUNCTIONS_TOK = 'REC-FUNS';
   /* operators */
 
   AND_TOK = 'AND';
@@ -714,6 +714,8 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   Type& t1 = t;
   Expr& f1 = f;
   std::string& id1 = id;
+  std::vector<Expr> terms;
+  std::vector<Type> types;
 }
     /* our bread & butter */
   : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f)); }
@@ -887,6 +889,31 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | CONTINUE_TOK
     { UNSUPPORTED("CONTINUE command"); }
   | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
+  | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t, CHECK_DECLARED] EQUAL_TOK 
+    LAMBDA LPAREN boundVarDeclsReturn[terms,types] RPAREN COLON formula[f]
+  {
+    std::cout<<"Let's see if this works.\n";
+    /*func = PARSER_STATE->mkDefineFunRec(, terms, t, flattenVars);
+    PARSER_STATE->pushDefineFunRecScope(terms, func, flattenVars, bvs, true );*/
+  }
+/*| DEFINE_FUN_REC_TOK
+    { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[fname,CHECK_NONE,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(fname); }
+    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+    sortSymbol[t,CHECK_DECLARED]
+    {
+      func = PARSER_STATE->mkDefineFunRec(fname, sortedVarNames, t, flattenVars);
+      PARSER_STATE->pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs, true );
+    }
+    term[expr, expr2]
+    { PARSER_STATE->popScope(); 
+      if( !flattenVars.empty() ){
+        expr = PARSER_STATE->mkHoApply( expr, flattenVars );
+      }
+      cmd->reset(new DefineFunctionRecCommand(func,bvs,expr));
+    }
+*/
   | toplevelDeclaration[cmd]
   ;
 
@@ -1454,31 +1481,8 @@ prefixFormula[CVC4::Expr& f]
       f = func;
     }
    /* recursive function */
-  | RECURSIVE_FUNCTION_TOK LPAREN boundVarDeclsReturn[terms,types] RPAREN COLON formula[f]
-  {
-    std::cout<<"Let's see if this works.\n";
-    func = PARSER_STATE->mkDefineFunRec(, terms, t, flattenVars);
-    PARSER_STATE->pushDefineFunRecScope(terms, func, flattenVars, bvs, true );
-  }
   ;
-/*| DEFINE_FUN_REC_TOK
-    { PARSER_STATE->checkThatLogicIsSet(); }
-    symbol[fname,CHECK_NONE,SYM_VARIABLE]
-    { PARSER_STATE->checkUserSymbol(fname); }
-    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    sortSymbol[t,CHECK_DECLARED]
-    {
-      func = PARSER_STATE->mkDefineFunRec(fname, sortedVarNames, t, flattenVars);
-      PARSER_STATE->pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs, true );
-    }
-    term[expr, expr2]
-    { PARSER_STATE->popScope(); 
-      if( !flattenVars.empty() ){
-        expr = PARSER_STATE->mkHoApply( expr, flattenVars );
-      }
-      cmd->reset(new DefineFunctionRecCommand(func,bvs,expr));
-    }
-*/
+
 instantiationPatterns[ CVC4::Expr& expr ]
 @init {
   std::vector<Expr> args;
