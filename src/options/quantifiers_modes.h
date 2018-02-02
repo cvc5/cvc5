@@ -216,7 +216,8 @@ enum CegqiSingleInvMode {
   CEGQI_SI_MODE_ALL,
 };
 
-enum CegisSampleMode {
+enum CegisSampleMode
+{
   /** do not use samples for CEGIS */
   CEGIS_SAMPLE_NONE,
   /** use samples for CEGIS */

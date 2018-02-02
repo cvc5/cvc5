@@ -136,7 +136,7 @@ class SygusSampler : public LazyTrieEvaluator
   SygusSampler();
   virtual ~SygusSampler() {}
   /** initialize
-   * 
+   *
    * tn : the return type of terms we will be testing with this class
    * vars : the variables we are testing substitutions for
    * nsamples : number of sample points this class will test.
@@ -180,11 +180,11 @@ class SygusSampler : public LazyTrieEvaluator
   bool containsFreeVariables(Node a, Node b);
   /** get number of sample points */
   unsigned getNumSamplePoints() const { return d_samples.size(); }
-  /** get sample point 
-   * 
+  /** get sample point
+   *
    * Appends sample point #index to the vector pt.
    */
-  void getSamplePoint( unsigned index, std::vector< Node >& pt );
+  void getSamplePoint(unsigned index, std::vector<Node>& pt);
   /** evaluate n on sample point index */
   Node evaluate(Node n, unsigned index);
 
@@ -196,7 +196,7 @@ class SygusSampler : public LazyTrieEvaluator
   /** the sygus type for this sampler (if applicable). */
   TypeNode d_ftn;
   /** all variables */
-  std::vector< Node > d_vars;
+  std::vector<Node> d_vars;
   /** type variables
    *
    * For each type, a list of variables in the grammar we are considering, for
@@ -229,7 +229,7 @@ class SygusSampler : public LazyTrieEvaluator
    */
   void computeFreeVariables(Node n, std::vector<Node>& fvs);
   /** initialize samples
-   * 
+   *
    * Adds nsamples sample points to d_samples.
    */
   void initializeSamples(unsigned nsamples);

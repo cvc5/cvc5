@@ -65,12 +65,14 @@ Node LazyTrie::add(Node n,
 
 SygusSampler::SygusSampler() : d_is_valid(false) {}
 
-void SygusSampler::initialize(TypeNode tn, std::vector<Node>& vars, unsigned nsamples)
+void SygusSampler::initialize(TypeNode tn,
+                              std::vector<Node>& vars,
+                              unsigned nsamples)
 {
   d_is_valid = true;
   d_tn = tn;
   d_ftn = TypeNode::null();
-  d_vars.insert( d_vars.end(), vars.begin(), vars.end() );
+  d_vars.insert(d_vars.end(), vars.begin(), vars.end());
   for (const Node& sv : vars)
   {
     TypeNode svt = sv.getType();
@@ -87,7 +89,7 @@ void SygusSampler::initializeSygus(Node f, unsigned nsamples)
   Assert(d_ftn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(d_ftn.toType()).getDatatype();
   Assert(dt.isSygus());
-  d_tn = TypeNode::fromType( dt.getSygusType() );
+  d_tn = TypeNode::fromType(dt.getSygusType());
 
   Trace("sygus-sample") << "Register sampler for " << f << std::endl;
 
@@ -111,11 +113,11 @@ void SygusSampler::initializeSygus(Node f, unsigned nsamples)
 void SygusSampler::initializeSamples(unsigned nsamples)
 {
   d_samples.clear();
-  std::vector< TypeNode > types;
-  for( const Node& v : d_vars )
+  std::vector<TypeNode> types;
+  for (const Node& v : d_vars)
   {
     TypeNode vt = v.getType();
-    types.push_back( vt );
+    types.push_back(vt);
     Trace("sygus-sample") << "  var #" << types.size() << " : " << v << " : "
                           << vt << std::endl;
   }
@@ -145,7 +147,7 @@ Node SygusSampler::registerTerm(Node n, bool forceKeep)
 {
   if (d_is_valid)
   {
-    Assert( n.getType()==d_tn );
+    Assert(n.getType() == d_tn);
     return d_trie.add(n, this, 0, d_samples.size(), forceKeep);
   }
   return n;
@@ -279,22 +281,22 @@ bool SygusSampler::containsFreeVariables(Node a, Node b)
   return true;
 }
 
-void SygusSampler::getSamplePoint( unsigned index, std::vector< Node >& pt )
+void SygusSampler::getSamplePoint(unsigned index, std::vector<Node>& pt)
 {
   Assert(index < d_samples.size());
-  std::vector< Node >& spt = d_samples[index];
-  pt.insert(pt.end(), spt.begin(), spt.end() );
+  std::vector<Node>& spt = d_samples[index];
+  pt.insert(pt.end(), spt.begin(), spt.end());
 }
-  
+
 Node SygusSampler::evaluate(Node n, unsigned index)
 {
   Assert(index < d_samples.size());
   // just a substitution
-  std::vector< Node >& pt = d_samples[index];
-  Node ev = n.substitute( d_vars.begin(), d_vars.end(), pt.begin(), pt.end() );
+  std::vector<Node>& pt = d_samples[index];
+  Node ev = n.substitute(d_vars.begin(), d_vars.end(), pt.begin(), pt.end());
   ev = Rewriter::rewrite(ev);
   Trace("sygus-sample-ev") << "( " << n << ", " << index << " ) -> " << ev
-                          << std::endl;
+                           << std::endl;
   return ev;
 }
 

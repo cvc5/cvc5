@@ -492,7 +492,8 @@ all \n\
 \n\
 ";
 
-const std::string OptionsHandler::s_cegisSampleHelp = "\
+const std::string OptionsHandler::s_cegisSampleHelp =
+    "\
 Modes for sampling with counterexample-guided inductive synthesis (CEGIS),\
 supported by --cegis-sample:\n\
 \n\
@@ -898,21 +899,31 @@ OptionsHandler::stringToCegqiSingleInvMode(std::string option,
 theory::quantifiers::CegisSampleMode OptionsHandler::stringToCegisSampleMode(
     std::string option, std::string optarg)
 {
-  if(optarg == "none" ) {
+  if (optarg == "none")
+  {
     return theory::quantifiers::CEGIS_SAMPLE_NONE;
-  } else if(optarg == "use") {
+  }
+  else if (optarg == "use")
+  {
     return theory::quantifiers::CEGIS_SAMPLE_USE;
-  } else if(optarg == "trust") {
+  }
+  else if (optarg == "trust")
+  {
     return theory::quantifiers::CEGIS_SAMPLE_TRUST;
-  } else if(optarg == "help") {
+  }
+  else if (optarg == "help")
+  {
     puts(s_cegisSampleHelp.c_str());
     exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --cegis-sample: `") +
-                          optarg + "'.  Try --cegis-sample help.");
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --cegis-sample: `")
+                          + optarg
+                          + "'.  Try --cegis-sample help.");
   }
 }
-  
+
 theory::quantifiers::SygusInvTemplMode
 OptionsHandler::stringToSygusInvTemplMode(std::string option,
                                           std::string optarg)
