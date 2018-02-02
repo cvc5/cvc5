@@ -1353,7 +1353,7 @@ void SmtEngine::setDefaults() {
     */
   }
 
-  if ((options::checkModels() || options::checkSynthSol())
+  if ((options::checkModels() || options::checkSynthSolution())
       && !options::produceAssertions())
   {
       Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -4802,10 +4802,10 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
       }
     }
     // Check that synthesis solutions satisfy the conjecture
-    if (options::checkSynthSol()
+    if (options::checkSynthSolution()
         && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
-      checkSynthSol();
+      checkSynthSolution();
     }
 
     return r;
@@ -5494,10 +5494,10 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
 }
 
-void SmtEngine::checkSynthSol()
+void SmtEngine::checkSynthSolution()
 {
   NodeManager* nm = NodeManager::currentNM();
-  Notice() << "SmtEngine::checkSynthSol(): checking synthesis solution" << endl;
+  Notice() << "SmtEngine::checkSynthSolution(): checking synthesis solution" << endl;
   map<Node, Node> sol_map;
   /* Get solutions and build auxiliary vectors for substituting */
   d_theoryEngine->getSynthSolutions(sol_map);
@@ -5526,7 +5526,7 @@ void SmtEngine::checkSynthSol()
        i != d_assertionList->end();
        ++i)
   {
-    Notice() << "SmtEngine::checkSynthSol(): checking assertion " << *i << endl;
+    Notice() << "SmtEngine::checkSynthSolution(): checking assertion " << *i << endl;
     Trace("check-synth-sol") << "Retrieving assertion " << *i << "\n";
     Node conj = Node::fromExpr(*i);
     // Apply any define-funs from the problem.
@@ -5534,7 +5534,7 @@ void SmtEngine::checkSynthSol()
       unordered_map<Node, Node, NodeHashFunction> cache;
       conj = d_private->expandDefinitions(conj, cache);
     }
-    Notice() << "SmtEngine::checkSynthSol(): -- expands to " << conj << endl;
+    Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << conj << endl;
     Trace("check-synth-sol") << "Expanded assertion " << conj << "\n";
 
     // Apply solution map to conjecture body
@@ -5568,18 +5568,18 @@ void SmtEngine::checkSynthSol()
       conjBody = conjBody.substitute(
           vars.begin(), vars.end(), skos.begin(), skos.end());
     }
-    Notice() << "SmtEngine::checkSynthSol(): -- body substitutes to "
+    Notice() << "SmtEngine::checkSynthSolution(): -- body substitutes to "
              << conjBody << endl;
     Trace("check-synth-sol") << "Substituted body of assertion to " << conjBody
                              << "\n";
     solChecker.assertFormula(conjBody.toExpr());
     Result r = solChecker.checkSat();
-    Notice() << "SmtEngine::checkSynthSol(): result is " << r << endl;
+    Notice() << "SmtEngine::checkSynthSolution(): result is " << r << endl;
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
     if (r.asSatisfiabilityResult().isUnknown())
     {
       InternalError(
-          "SmtEngine::checkSynthSol(): could not check solution, result "
+          "SmtEngine::checkSynthSolution(): could not check solution, result "
           "unknown.");
     }
     else if (r.asSatisfiabilityResult().isSat())

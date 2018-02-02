@@ -294,7 +294,7 @@ class CVC4_PUBLIC SmtEngine {
    * synthesized solutions, which is a quantifier-free formula, is
    * unsatisfiable. If not, then the found solutions are wrong.
    */
-  void checkSynthSol();
+  void checkSynthSolution();
 
   /**
    * Postprocess a value for output to the user.  Involves doing things
