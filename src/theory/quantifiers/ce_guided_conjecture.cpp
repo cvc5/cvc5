@@ -438,7 +438,6 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
   
   lem = lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
   lem = Rewriter::rewrite( lem );
-  d_refinement_lemmas.push_back( lem );
   lems.push_back( lem );
 
   d_ce_sk.clear();
@@ -829,7 +828,7 @@ Node CegConjecture::getSymmetryBreakingPredicate(
 }
 
 
-bool CegConjecture::sampleAddRefinementLemma( std::vector< Node >& vals )
+bool CegConjecture::sampleAddRefinementLemma( std::vector< Node >& vals, std::vector< Node >& lems )
 {
   if( Trace.isOn("cegis-sample") )
   {
@@ -852,13 +851,43 @@ bool CegConjecture::sampleAddRefinementLemma( std::vector< Node >& vals )
     if( d_cegis_sample_refine.find(i)==d_cegis_sample_refine.end() )
     {
       Node ev = d_cegis_sampler.evaluate(sbody,i);
+      Trace("cegis-sample") << "...evaluate point #" << i << " to " << ev << std::endl;
       Assert( ev.isConst() );
       Assert( ev.getType().isBoolean() );
       if( !ev.getConst<bool>() )
       {
         Trace("cegis-sample") << "...false for point #" << i << std::endl;
+        // mark this as a CEGIS point (no longer sampled)
+        d_cegis_sample_refine.insert(i);
         std::vector< Node > pt;
         d_cegis_sampler.getSamplePoint( i, pt );
+        if( Trace.isOn("cegis-sample") )
+        {
+          Trace("cegis-sample") << "   point : ";
+          for( const Node& cn : pt )
+          {
+            Trace("cegis-sample") << cn << " ";
+          }
+          Trace("cegis-sample") << std::endl;
+        }
+        Assert( d_base_vars.size()==pt.size() );
+        Node rlem = d_base_body.substitute( d_base_vars.begin(), d_base_vars.end(), pt.begin(), pt.end() );
+        rlem = Rewriter::rewrite( rlem );
+        if( std::find( d_refinement_lemmas_base.begin(), d_refinement_lemmas_base.end(), rlem )==d_refinement_lemmas_base.end() )
+        {
+          d_refinement_lemmas_base.push_back( rlem );
+          // if trust, we are not interested in sending out refinement lemmas
+          if( options::cegisSample()!=CEGIS_SAMPLE_TRUST )
+          {
+            Node lem = NodeManager::currentNM()->mkNode( OR, getGuard().negate(), rlem );
+            lems.push_back( lem );
+          }
+          return true;
+        }
+        else
+        {
+          Trace("cegis-sample") << "...duplicate." << std::endl;
+        }
       }
     }
   }

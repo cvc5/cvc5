@@ -120,19 +120,17 @@ public:
 
   //-----------------------------------refinement lemmas
   /** get number of refinement lemmas we have added so far */
-  unsigned getNumRefinementLemmas() { return d_refinement_lemmas.size(); }
-  /** get refinement lemma */
-  Node getRefinementLemma( unsigned i ) { return d_refinement_lemmas[i]; }
+  unsigned getNumRefinementLemmas() { return d_refinement_lemmas_base.size(); }
   /** get refinement lemma */
   Node getRefinementBaseLemma( unsigned i ) { return d_refinement_lemmas_base[i]; }
   /** sample add refinement lemma 
    * 
    * This function will check if there is a sample point in d_sampler that
    * refutes the candidate solution (d_quant_vars->vals). If so, it adds a 
-   * refinement lemma to the lists d_refinement_lemmas/d_refinement_lemmas_base
-   * that corresponds to that sample point.
+   * refinement lemma to the lists d_refinement_lemmas_base
+   * that corresponds to that sample point, and adds a lemma to lems.
    */
-  bool sampleAddRefinementLemma( std::vector< Node >& vals );
+  bool sampleAddRefinementLemma( std::vector< Node >& vals, std::vector< Node >& lems );
   //-----------------------------------end refinement lemmas
 
   /** get program by examples utility */
