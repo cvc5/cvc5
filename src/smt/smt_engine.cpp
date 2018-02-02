@@ -1353,7 +1353,7 @@ void SmtEngine::setDefaults() {
     */
   }
 
-  if ((options::checkModels() || options::checkSynthSolution())
+  if ((options::checkModels() || options::checkSynthSol())
       && !options::produceAssertions())
   {
       Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -4802,7 +4802,7 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
       }
     }
     // Check that synthesis solutions satisfy the conjecture
-    if (options::checkSynthSolution()
+    if (options::checkSynthSol()
         && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
       checkSynthSolution();
