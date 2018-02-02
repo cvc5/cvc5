@@ -821,7 +821,7 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
               success = false;
               int index_found;
               std::vector< Node > args;
-              if( d_qe->getTermDatabaseSygus()->getMatch( min_t, stn, index_found, args, karg, c_index ) ){
+              if( getMatch( min_t, stn, index_found, args, karg, c_index ) ){
                 success = true;
                 status = 0;
                 Node cons = Node::fromExpr( dt[index_found].getConstructor() );
@@ -1378,4 +1378,97 @@ void CegConjectureSingleInvSol::initializeConstLists(TypeNode tn)
   }
 }
 
+bool CegConjectureSingleInvSol::getMatch( Node p, Node n, std::map< int, Node >& s, std::vector< int >& new_s ) {
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
+  if( tds->isFreeVar(p) ){
+    unsigned vnum = tds->getVarNum(p);
+    Node prev = s[vnum];
+    s[vnum] = n;
+    if( prev.isNull() ){
+      new_s.push_back( vnum );
+    }
+    return prev.isNull() || prev==n;
+  }
+  if( n.getNumChildren()==0 ){
+    return p==n;
+  }
+  if( n.getKind()==p.getKind() && n.getNumChildren()==p.getNumChildren() ){
+    //try both ways?
+    unsigned rmax = TermUtil::isComm( n.getKind() ) && n.getNumChildren()==2 ? 2 : 1;
+    std::vector< int > new_tmp;
+    for( unsigned r=0; r<rmax; r++ ){
+      bool success = true;
+      for( unsigned i=0, size = n.getNumChildren(); i<size; i++ ){
+        int io = r==0 ? i : ( i==0 ? 1 : 0 );
+        if( !getMatch( p[i], n[io], s, new_tmp ) ){
+          success = false;
+          for( unsigned j=0; j<new_tmp.size(); j++ ){
+            s.erase( new_tmp[j] );
+          }
+          new_tmp.clear();
+          break;
+        }
+      }
+      if( success ){
+        new_s.insert( new_s.end(), new_tmp.begin(), new_tmp.end() );
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool CegConjectureSingleInvSol::getMatch( Node t, TypeNode st, int& index_found, std::vector< Node >& args, int index_exc, int index_start ) {
+  Assert( st.isDatatype() );
+  const Datatype& dt = static_cast<DatatypeType>(st.toType()).getDatatype();
+  Assert( dt.isSygus() );
+  std::map< Kind, std::vector< Node > > kgens;
+  std::vector< Node > gens;
+  for( unsigned i=index_start, ncons = dt.getNumConstructors(); i<ncons; i++ ){
+    if( (int)i!=index_exc ){
+      Node g = getGenericBase( st, dt, i );
+      gens.push_back( g );
+      kgens[g.getKind()].push_back( g );
+      Trace("sygus-db-debug") << "Check generic base : " << g << " from " << dt[i].getName() << std::endl;
+      if( g.getKind()==t.getKind() ){
+        Trace("sygus-db-debug") << "Possible match ? " << g << " " << t << " for " << dt[i].getName() << std::endl;
+        std::map< int, Node > sigma;
+        std::vector< int > new_s;
+        if( getMatch( g, t, sigma, new_s ) ){
+          //we found an exact match
+          bool msuccess = true;
+          for( unsigned j=0, nargs = dt[i].getNumArgs(); j<nargs; j++ ){
+            if( sigma[j].isNull() ){
+              msuccess = false;
+              break;
+            }else{
+              args.push_back( sigma[j] );
+            }
+          }
+          if( msuccess ){
+            index_found = i;
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+Node CegConjectureSingleInvSol::getGenericBase( TypeNode tn, const Datatype& dt, int c ) {
+  std::map< int, Node >::iterator it = d_generic_base[tn].find( c );
+  if( it!=d_generic_base[tn].end() ){
+    return it->second;
+  }
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
+  Assert( tds->isRegistered( tn ) );
+  std::map< TypeNode, int > var_count;
+  std::map< int, Node > pre;
+  Node g = tds->mkGeneric( dt, c, var_count, pre );
+  Trace("sygus-db-debug") << "Sygus DB : Generic is " << g << std::endl;
+  Node gr = Rewriter::rewrite( g );
+  Trace("sygus-db-debug") << "Sygus DB : Generic rewritten is " << gr << std::endl;
+  d_generic_base[tn][c] = gr;
+  return gr;
 }

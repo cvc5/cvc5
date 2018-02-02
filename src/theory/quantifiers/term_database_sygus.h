@@ -106,13 +106,6 @@ public:
   int getVarNum( Node n ) { return d_fv_num[n]; }
   bool hasFreeVar( Node n );
 private:
-  std::map< TypeNode, std::map< int, Node > > d_generic_base;
-  std::map< TypeNode, std::vector< Node > > d_generic_templ;
-  bool getMatch( Node p, Node n, std::map< int, Node >& s );
-  bool getMatch2( Node p, Node n, std::map< int, Node >& s, std::vector< int >& new_s );
-public:
-  bool getMatch( Node n, TypeNode st, int& index_found, std::vector< Node >& args, int index_exc = -1, int index_start = 0 );
-private:
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 
@@ -175,7 +168,6 @@ private:
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
 
   TypeNode getSygusTypeForVar( Node v );
-  Node getGenericBase( TypeNode tn, const Datatype& dt, int c );
   Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
   Node sygusToBuiltin( Node n, TypeNode tn );
   Node sygusToBuiltin( Node n ) { return sygusToBuiltin( n, n.getType() ); }
