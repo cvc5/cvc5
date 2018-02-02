@@ -144,11 +144,12 @@ class SygusSampler : public LazyTrieEvaluator
   void initialize(TypeNode tn, std::vector<Node>& vars, unsigned nsamples);
   /** initialize sygus
    *
+   * tds : pointer to sygus database,
    * f : a term of some SyGuS datatype type whose (builtin) values we will be
    * testing under the free variables in the grammar of f,
    * nsamples : number of sample points this class will test.
    */
-  void initializeSygus(Node f, unsigned nsamples);
+  void initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples);
   /** register term n with this sampler database
    *
    * forceKeep is whether we wish to force that n is chosen as a representative
@@ -189,6 +190,8 @@ class SygusSampler : public LazyTrieEvaluator
   Node evaluate(Node n, unsigned index);
 
  private:
+  /** sygus term database of d_qe */
+  TermDbSygus* d_tds;
   /** samples */
   std::vector<std::vector<Node> > d_samples;
   /** type of nodes we will be registering with this class */

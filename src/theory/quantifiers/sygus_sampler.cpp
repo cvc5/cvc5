@@ -63,12 +63,13 @@ Node LazyTrie::add(Node n,
   return Node::null();
 }
 
-SygusSampler::SygusSampler() : d_is_valid(false) {}
+SygusSampler::SygusSampler() : d_tds(nullptr), d_is_valid(false) {}
 
 void SygusSampler::initialize(TypeNode tn,
                               std::vector<Node>& vars,
                               unsigned nsamples)
 {
+  d_tds = nullptr;
   d_is_valid = true;
   d_tn = tn;
   d_ftn = TypeNode::null();
@@ -82,8 +83,9 @@ void SygusSampler::initialize(TypeNode tn,
   initializeSamples(nsamples);
 }
 
-void SygusSampler::initializeSygus(Node f, unsigned nsamples)
+void SygusSampler::initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples)
 {
+  d_tds = tds;
   d_is_valid = true;
   d_ftn = f.getType();
   Assert(d_ftn.isDatatype());

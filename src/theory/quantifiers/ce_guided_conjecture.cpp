@@ -625,13 +625,13 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
 
       if (status != 0 && options::sygusRewSynth())
       {
+        TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
         std::map<Node, SygusSampler>::iterator its = d_sampler.find(prog);
         if (its == d_sampler.end())
         {
-          d_sampler[prog].initializeSygus(prog, options::sygusSamples());
+          d_sampler[prog].initializeSygus(sygusDb, prog, options::sygusSamples());
           its = d_sampler.find(prog);
         }
-        TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
         Node solb = sygusDb->sygusToBuiltin(sol, prog.getType());
         Node eq_sol = its->second.registerTerm(solb);
         // eq_sol is a candidate solution that is equivalent to sol

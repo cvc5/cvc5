@@ -816,7 +816,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
             d_sampler.find(a);
         if (its == d_sampler.end())
         {
-          d_sampler[a].initializeSygus(a, options::sygusSamples());
+          d_sampler[a].initializeSygus(d_tds, a, options::sygusSamples());
           its = d_sampler.find(a);
         }
         Node sample_ret = its->second.registerTerm(bv);
