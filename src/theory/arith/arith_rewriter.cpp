@@ -557,7 +557,8 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
                            nm->mkNode(kind::DIVISION,
                                       nm->mkNode(kind::COSINE, t[0]),
                                       nm->mkNode(kind::SINE, t[0])));
-  } break;
+  }
+  break;
   default:
     break;
   }

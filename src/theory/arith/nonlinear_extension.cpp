@@ -1293,9 +1293,9 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_tf_check_model_bounds.clear();
 
   int lemmas_proc = 0;
-  std::vector<Node> lemmas;  
-  NodeManager * nm = NodeManager::currentNM();
-  
+  std::vector<Node> lemmas;
+  NodeManager* nm = NodeManager::currentNM();
+
   Trace("nl-ext-mv") << "Extended terms : " << std::endl;
   // register the extended function terms
   std::map< Node, Node > mvarg_to_term;
@@ -1392,18 +1392,15 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   {
     if (d_trig_base.find(a) == d_trig_base.end())
     {
-      Node y = nm->mkSkolem(
-          "y",
-          nm->realType(),
-          "phase shifted trigonometric arg");
+      Node y =
+          nm->mkSkolem("y", nm->realType(), "phase shifted trigonometric arg");
       Node new_a = nm->mkNode(a.getKind(), y);
       d_trig_is_base[new_a] = true;
       d_trig_base[a] = new_a;
       Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a
                          << std::endl;
       Assert(!d_pi.isNull());
-      Node shift = nm->mkSkolem(
-          "s", nm->integerType(), "number of shifts");
+      Node shift = nm->mkSkolem("s", nm->integerType(), "number of shifts");
       // FIXME : do not introduce shift here, instead needs model-based
       // refinement for constant shifts (#1284)
       Node shift_lem = nm->mkNode(
@@ -1412,14 +1409,9 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
           a[0].eqNode(nm->mkNode(
               PLUS,
               y,
-              nm->mkNode(
-                  MULT,
-                  nm->mkConst(Rational(2)),
-                  shift,
-                  d_pi))),
+              nm->mkNode(MULT, nm->mkConst(Rational(2)), shift, d_pi))),
           // particular case of above for shift=0
-          nm->mkNode(
-              IMPLIES, mkValidPhase(a[0], d_pi), a[0].eqNode(y)),
+          nm->mkNode(IMPLIES, mkValidPhase(a[0], d_pi), a[0].eqNode(y)),
           new_a.eqNode(a));
       // must do preprocess on this one
       Trace("nl-ext-lemma")
