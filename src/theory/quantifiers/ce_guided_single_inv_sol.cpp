@@ -729,7 +729,7 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
   }else{
     status = 1;
     // register the type
-    registerType( stn );
+    registerType(stn);
     int id = allocate( t, stn );
     d_rcons_to_status[stn][t] = -1;
     TypeNode tn = t.getType();
@@ -795,7 +795,7 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
         }
         if( status!=0 ){
           //try identity functions
-          for( unsigned ii : d_id_funcs[stn] )
+          for (unsigned ii : d_id_funcs[stn])
           {
             Assert( dt[ii].getNumArgs()==1 );
             //try to directly reconstruct from single argument
@@ -1235,7 +1235,7 @@ Node CegConjectureSingleInvSol::builtinToSygusConst(Node c,
     else
     {
       // identity functions
-      for( unsigned ii : d_id_funcs[tn] )
+      for (unsigned ii : d_id_funcs[tn])
       {
         Assert(dt[ii].getNumArgs() == 1);
         // try to directly reconstruct from single argument
@@ -1316,7 +1316,7 @@ struct sortConstants
   Kind d_comp_kind;
   bool operator()(Node i, Node j)
   {
-    return i!=j && doCompare(i, j, d_comp_kind);
+    return i != j && doCompare(i, j, d_comp_kind);
   }
 };
 
@@ -1331,7 +1331,7 @@ void CegConjectureSingleInvSol::registerType(TypeNode tn)
 
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   // ensure it is registered
-  tds->registerSygusType( tn );
+  tds->registerSygusType(tn);
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   TypeNode btn = TypeNode::fromType(dt.getSygusType());
   // for constant reconstruction
@@ -1350,8 +1350,9 @@ void CegConjectureSingleInvSol::registerType(TypeNode tn)
         d_const_list_pos[tn]++;
       }
     }
-    if( dt[i].isSygusIdFunc() ){
-      d_id_funcs[tn].push_back( i );
+    if (dt[i].isSygusIdFunc())
+    {
+      d_id_funcs[tn].push_back(i);
     }
   }
   // sort the constant list
@@ -1451,11 +1452,11 @@ bool CegConjectureSingleInvSol::getMatch(Node t,
       gens.push_back(g);
       kgens[g.getKind()].push_back(g);
       Trace("csi-sol-debug") << "Check generic base : " << g << " from "
-                              << dt[i].getName() << std::endl;
+                             << dt[i].getName() << std::endl;
       if (g.getKind() == t.getKind())
       {
         Trace("csi-sol-debug") << "Possible match ? " << g << " " << t
-                                << " for " << dt[i].getName() << std::endl;
+                               << " for " << dt[i].getName() << std::endl;
         std::map<int, Node> sigma;
         std::vector<int> new_s;
         if (getMatch(g, t, sigma, new_s))
@@ -1506,7 +1507,6 @@ Node CegConjectureSingleInvSol::getGenericBase(TypeNode tn,
   d_generic_base[tn][c] = gr;
   return gr;
 }
-
 }
 }
 }
