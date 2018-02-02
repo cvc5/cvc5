@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status
+; COMMAND-LINE: --cegqi-si=all --sygus-out=status --no-check-synth-sol
 (set-logic LIA)
 
 (synth-fun max ((x Int) (y Int)) Int
