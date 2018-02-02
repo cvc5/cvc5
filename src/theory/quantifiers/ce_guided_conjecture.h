@@ -131,8 +131,8 @@ public:
    *
    * This function will check if there is a sample point in d_sampler that
    * refutes the candidate solution (d_quant_vars->vals). If so, it adds a
-   * refinement lemma to the lists d_refinement_lemmas_base
-   * that corresponds to that sample point, and adds a lemma to lems.
+   * refinement lemma to the lists d_refinement_lemmas that corresponds to that 
+   * sample point, and adds a lemma to lems if cegisSample mode is not trust.
    */
   bool sampleAddRefinementLemma(std::vector<Node>& vals,
                                 std::vector<Node>& lems);
