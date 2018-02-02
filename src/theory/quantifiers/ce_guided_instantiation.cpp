@@ -262,7 +262,7 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
       Node lem;
       std::map< Node, Node > visited;
       std::map< Node, std::vector< Node > > exp;
-      lem = conj->getRefinementBaseLemma( i );
+      lem = conj->getRefinementLemma( i );
       if( !lem.isNull() ){
         std::vector< Node > lem_conj;
         //break into conjunctions

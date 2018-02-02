@@ -428,16 +428,12 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
   
   Trace("cegqi-refine") << "doRefine : construct and finalize lemmas..." << std::endl;
   
-  Node lem = base_lem;
   
   base_lem = base_lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
   base_lem = Rewriter::rewrite( base_lem );
-  d_refinement_lemmas_base.push_back( base_lem );
+  d_refinement_lemmas.push_back( base_lem );
   
-  lem = NodeManager::currentNM()->mkNode( OR, getGuard().negate(), lem );
-  
-  lem = lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
-  lem = Rewriter::rewrite( lem );
+  Node lem = NodeManager::currentNM()->mkNode( OR, getGuard().negate(), base_lem );
   lems.push_back( lem );
 
   d_ce_sk.clear();
@@ -846,47 +842,49 @@ bool CegConjecture::sampleAddRefinementLemma( std::vector< Node >& vals, std::ve
   sbody = d_qe->getTermDatabaseSygus()->getEagerUnfold( sbody, visited_n );
   Trace("cegis-sample") << "Sample (after unfolding): " << sbody << std::endl;
   
+  NodeManager * nm = NodeManager::currentNM();
   for( unsigned i=0, size=d_cegis_sampler.getNumSamplePoints(); i<size; i++ )
   {
     if( d_cegis_sample_refine.find(i)==d_cegis_sample_refine.end() )
     {
       Node ev = d_cegis_sampler.evaluate(sbody,i);
-      Trace("cegis-sample") << "...evaluate point #" << i << " to " << ev << std::endl;
+      Trace("cegis-sample-debug") << "...evaluate point #" << i << " to " << ev << std::endl;
       Assert( ev.isConst() );
       Assert( ev.getType().isBoolean() );
       if( !ev.getConst<bool>() )
       {
-        Trace("cegis-sample") << "...false for point #" << i << std::endl;
+        Trace("cegis-sample-debug") << "...false for point #" << i << std::endl;
         // mark this as a CEGIS point (no longer sampled)
         d_cegis_sample_refine.insert(i);
         std::vector< Node > pt;
         d_cegis_sampler.getSamplePoint( i, pt );
-        if( Trace.isOn("cegis-sample") )
-        {
-          Trace("cegis-sample") << "   point : ";
-          for( const Node& cn : pt )
-          {
-            Trace("cegis-sample") << cn << " ";
-          }
-          Trace("cegis-sample") << std::endl;
-        }
         Assert( d_base_vars.size()==pt.size() );
         Node rlem = d_base_body.substitute( d_base_vars.begin(), d_base_vars.end(), pt.begin(), pt.end() );
         rlem = Rewriter::rewrite( rlem );
-        if( std::find( d_refinement_lemmas_base.begin(), d_refinement_lemmas_base.end(), rlem )==d_refinement_lemmas_base.end() )
+        if( std::find( d_refinement_lemmas.begin(), d_refinement_lemmas.end(), rlem )==d_refinement_lemmas.end() )
         {
-          d_refinement_lemmas_base.push_back( rlem );
+          if( Trace.isOn("cegis-sample") )
+          {
+            Trace("cegis-sample") << "   false for point #" << i << " : ";
+            for( const Node& cn : pt )
+            {
+              Trace("cegis-sample") << cn << " ";
+            }
+            Trace("cegis-sample") << std::endl;
+          }
+          Trace("cegqi-engine") << "  *** Refine by sampling" << std::endl;
+          d_refinement_lemmas.push_back( rlem );
           // if trust, we are not interested in sending out refinement lemmas
           if( options::cegisSample()!=CEGIS_SAMPLE_TRUST )
           {
-            Node lem = NodeManager::currentNM()->mkNode( OR, getGuard().negate(), rlem );
+            Node lem = nm->mkNode( OR, getGuard().negate(), rlem );
             lems.push_back( lem );
           }
           return true;
         }
         else
         {
-          Trace("cegis-sample") << "...duplicate." << std::endl;
+          Trace("cegis-sample-debug") << "...duplicate." << std::endl;
         }
       }
     }

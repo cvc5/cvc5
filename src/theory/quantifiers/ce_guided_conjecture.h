@@ -120,9 +120,13 @@ public:
 
   //-----------------------------------refinement lemmas
   /** get number of refinement lemmas we have added so far */
-  unsigned getNumRefinementLemmas() { return d_refinement_lemmas_base.size(); }
-  /** get refinement lemma */
-  Node getRefinementBaseLemma( unsigned i ) { return d_refinement_lemmas_base[i]; }
+  unsigned getNumRefinementLemmas() { return d_refinement_lemmas.size(); }
+  /** get refinement lemma 
+   * 
+   * If d_embed_quant is forall d. exists y. P( d, y ), then a refinement
+   * lemma is one of the form ~P( d_candidates, c ) for some c.
+   */
+  Node getRefinementLemma( unsigned i ) { return d_refinement_lemmas[i]; }
   /** sample add refinement lemma 
    * 
    * This function will check if there is a sample point in d_sampler that
@@ -159,14 +163,14 @@ private:
   std::vector< Node > d_candidates;
   /** base instantiation
   * If d_embed_quant is forall d. exists y. P( d, y ), then
-  * this is the formula  exists y. P( candidates, y ).
+  * this is the formula  exists y. P( d_candidates, y ).
   */
   Node d_base_inst;
-  /** If d_embed_quant is forall d. exists y. P( d, y ), then this is y. */
+  /** If d_base_inst is exists y. P( d, y ), then this is y. */
   std::vector< Node > d_base_vars;
   /** 
-   * If d_embed_quant is forall d. exists y. P( d, y ), then this is the formula
-   * P( candidates, y ).
+   * If d_base_inst is exists y. P( d, y ), then this is the formula
+   * P( d_candidates, y ).
    */
   Node d_base_body;
   /** expand base inst to disjuncts */
@@ -180,14 +184,13 @@ private:
   //-----------------------------------refinement lemmas
   /** refinement lemmas */
   std::vector< Node > d_refinement_lemmas;
-  std::vector< Node > d_refinement_lemmas_base;
   //-----------------------------------end refinement lemmas
 
-  /** quantified formula asserted */
+  /** the asserted (negated) conjecture */
   Node d_quant;
-  /** quantified formula (after simplification) */
+  /** (negated) conjecture after simplification */
   Node d_simp_quant;
-  /** quantified formula (after simplification, conversion to deep embedding) */
+  /** (negated) conjecture after simplification, conversion to deep embedding */
   Node d_embed_quant;
   /** candidate information */
   class CandidateInfo {
@@ -258,9 +261,17 @@ private:
    * rewrite rules.
    */
   std::map<Node, SygusSampler> d_sampler;
-  /** sampler object for the option cegisSample() */
+  /** sampler object for the option cegisSample()
+   * 
+   * This samples points of the type of the inner variables of the synthesis
+   * conjecture (d_base_vars).
+   */
   SygusSampler d_cegis_sampler;
-  /** the indices of sample points we have added as refinement lemmas */
+  /** cegis sample refine points
+   *
+   * Stores the list of indices of sample points in d_cegis_sampler we have 
+   * added as refinement lemmas.
+   */
   std::unordered_set< unsigned > d_cegis_sample_refine;
 };
 
