@@ -127,14 +127,10 @@ private:
   std::map<TypeNode, std::map<Node, int> > d_ops;
   std::map<TypeNode, std::map<int, Node> > d_arg_ops;
   std::map<TypeNode, std::vector<int> > d_id_funcs;
-  std::map<TypeNode, std::vector<Node> >
-      d_const_list;  // sorted list of constants for type
-  std::map<TypeNode, unsigned> d_const_list_pos;
   std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
   // normalized map
   std::map<TypeNode, std::map<Node, Node> > d_normalized;
   std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
-  std::map<TypeNode, std::map<Node, Node> > d_builtin_const_to_sygus;
   // grammar information
   // root -> type -> _
   std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
@@ -184,7 +180,6 @@ private:
   Node sygusToBuiltin( Node n, TypeNode tn );
   Node sygusToBuiltin( Node n ) { return sygusToBuiltin( n, n.getType() ); }
   Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );
-  Node builtinToSygusConst( Node c, TypeNode tn, int rcons_depth = 0 );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );

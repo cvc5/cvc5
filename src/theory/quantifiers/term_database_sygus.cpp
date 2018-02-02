@@ -308,89 +308,6 @@ Node TermDbSygus::sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& ar
   Assert( d_var_list[tn].size()==args.size() );
   return n.substitute( d_var_list[tn].begin(), d_var_list[tn].end(), args.begin(), args.end() );
 }
-  
-//rcons_depth limits the number of recursive calls when doing accelerated constant reconstruction (currently limited to 1000)
-//this is hacky : depending upon order of calls, constant rcons may succeed, e.g. 1001, 999 vs. 999, 1001
-Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn, int rcons_depth ) {
-  std::map< Node, Node >::iterator it = d_builtin_const_to_sygus[tn].find( c );
-  if( it==d_builtin_const_to_sygus[tn].end() ){
-    Node sc;
-    d_builtin_const_to_sygus[tn][c] = sc;
-    Assert( c.isConst() );
-    Assert( tn.isDatatype() );
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    Trace("csi-rcons-debug") << "Try to reconstruct " << c << " in " << dt.getName() << std::endl;
-    Assert( dt.isSygus() );
-    // if we are not interested in reconstructing constants, or the grammar allows them, return a proxy
-    if( !options::cegqiSingleInvReconstructConst() || dt.getSygusAllowConst() ){
-      Node k = NodeManager::currentNM()->mkSkolem( "sy", tn, "sygus proxy" );
-      SygusPrintProxyAttribute spa;
-      k.setAttribute(spa,c);
-      sc = k;
-    }else{
-      int carg = getOpConsNum( tn, c );
-      if( carg!=-1 ){
-        sc = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[carg].getConstructor() ) );
-      }else{
-        //identity functions
-        for( unsigned i=0; i<getNumIdFuncs( tn ); i++ ){
-          unsigned ii = getIdFuncIndex( tn, i );
-          Assert( dt[ii].getNumArgs()==1 );
-          //try to directly reconstruct from single argument
-          TypeNode tnc = getArgType( dt[ii], 0 );
-          Trace("csi-rcons-debug") << "Based on id function " << dt[ii].getSygusOp() << ", try reconstructing " << c << " instead in " << tnc << std::endl;
-          Node n = builtinToSygusConst( c, tnc, rcons_depth );
-          if( !n.isNull() ){
-            sc = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[ii].getConstructor() ), n );
-            break;
-          }
-        }
-        if( sc.isNull() ){
-          if( rcons_depth<1000 ){
-            //accelerated, recursive reconstruction of constants
-            Kind pk = getPlusKind( TypeNode::fromType( dt.getSygusType() ) );
-            if( pk!=UNDEFINED_KIND ){
-              int arg = getKindConsNum( tn, pk );
-              if( arg!=-1 ){
-                Kind ck = getComparisonKind( TypeNode::fromType( dt.getSygusType() ) );
-                Kind pkm = getPlusKind( TypeNode::fromType( dt.getSygusType() ), true );
-                //get types
-                Assert( dt[arg].getNumArgs()==2 );
-                TypeNode tn1 = getArgType( dt[arg], 0 );
-                TypeNode tn2 = getArgType( dt[arg], 1 );
-                //iterate over all positive constants, largest to smallest
-                int start = d_const_list[tn1].size()-1;
-                int end = d_const_list[tn1].size()-d_const_list_pos[tn1];
-                for( int i=start; i>=end; --i ){
-                  Node c1 = d_const_list[tn1][i];
-                  //only consider if smaller than c, and
-                  if( doCompare( c1, c, ck ) ){
-                    Node c2 = NodeManager::currentNM()->mkNode( pkm, c, c1 );
-                    c2 = Rewriter::rewrite( c2 );
-                    if( c2.isConst() ){
-                      //reconstruct constant on the other side
-                      Node sc2 = builtinToSygusConst( c2, tn2, rcons_depth+1 );
-                      if( !sc2.isNull() ){
-                        Node sc1 = builtinToSygusConst( c1, tn1, rcons_depth );
-                        Assert( !sc1.isNull() );
-                        sc = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[arg].getConstructor() ), sc1, sc2 );
-                        break;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    d_builtin_const_to_sygus[tn][c] = sc;
-    return sc;
-  }else{
-    return it->second;
-  }
-}
 
 Node TermDbSygus::getNormalized(TypeNode t, Node prog)
 {
@@ -828,18 +745,6 @@ int TermDbSygus::solveForArgument( TypeNode tn, unsigned cindex, unsigned arg ) 
   return -1;
 }
 
-struct sortConstants {
-  TermDbSygus * d_tds;
-  Kind d_comp_kind;
-  bool operator() (Node i, Node j) {
-    if( i!=j ){
-      return d_tds->doCompare( i, j, d_comp_kind );
-    }else{
-      return false;
-    }
-  }
-};
-
 class ReconstructTrie {
 public:
   std::map< Node, ReconstructTrie > d_children;
@@ -905,11 +810,6 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
         }else{
           // no arguments to synthesis functions
         }
-        //for constant reconstruction
-        Kind ck = getComparisonKind( TypeNode::fromType( dt.getSygusType() ) );
-        Node z = d_quantEngine->getTermUtil()->getTypeValue(
-            TypeNode::fromType(dt.getSygusType()), 0);
-        d_const_list_pos[tn] = 0;
         //iterate over constructors
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
           Expr sop = dt[i].getSygusOp();
@@ -925,10 +825,6 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             Trace("sygus-db") << ", constant";
             d_consts[tn][n] = i;
             d_arg_const[tn][i] = n;
-            d_const_list[tn].push_back( n );
-            if( ck!=UNDEFINED_KIND && doCompare( z, n, ck ) ){
-              d_const_list_pos[tn]++;
-            }
           }
           if( dt[i].isSygusIdFunc() ){
             d_id_funcs[tn].push_back( i );
@@ -936,21 +832,6 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
           d_ops[tn][n] = i;
           d_arg_ops[tn][i] = n;
           Trace("sygus-db") << std::endl;
-        }
-        //sort the constant list
-        if( !d_const_list[tn].empty() ){
-          if( ck!=UNDEFINED_KIND ){
-            sortConstants sc;
-            sc.d_comp_kind = ck;
-            sc.d_tds = this;
-            std::sort( d_const_list[tn].begin(), d_const_list[tn].end(), sc );
-          }
-          Trace("sygus-db") << "Type has " << d_const_list[tn].size() << " constants..." << std::endl << "  ";
-          for( unsigned i=0; i<d_const_list[tn].size(); i++ ){
-            Trace("sygus-db") << d_const_list[tn][i] << " ";
-          }
-          Trace("sygus-db") << std::endl;
-          Trace("sygus-db") << "Of these, " << d_const_list_pos[tn] << " are marked as positive." << std::endl;
         }
         //register connected types
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){

@@ -85,6 +85,26 @@ private:
   void getEquivalentTerms( Kind k, Node n, std::vector< Node >& equiv );
   //register equivalent terms
   void registerEquivalentTerms( Node n );
+  /** builtin to sygus const
+   *
+   * Returns a sygus term of type tn that encodes the builtin constant c.
+   * If the sygus datatype tn allows any constant, this may return a variable
+   * with the attribute SygusPrintProxyAttribute that associates it with c.
+   * 
+   * rcons_depth limits the number of recursive calls when doing accelerated 
+   * constant reconstruction (currently limited to 1000). Notice this is hacky: 
+   * depending upon order of calls, constant rcons may succeed, e.g. 1001, 999 
+   * vs. 999, 1001.
+   */
+  Node builtinToSygusConst( Node c, TypeNode tn, int rcons_depth = 0 );
+  /** cache for the above function */
+  std::map<TypeNode, std::map<Node, Node> > d_builtin_const_to_sygus;
+  /** sorted list of constants, per type */
+  std::map<TypeNode, std::vector<Node> > d_const_list;  
+  /** number of positive constants, per type */
+  std::map<TypeNode, unsigned> d_const_list_pos;
+  /** initialize the above two lists for sygus type tn */
+  void initializeConstLists( TypeNode tn );
 public:
   Node reconstructSolution( Node sol, TypeNode stn, int& reconstructed );
   void preregisterConjecture( Node q );
