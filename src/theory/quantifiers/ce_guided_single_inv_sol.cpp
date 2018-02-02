@@ -1317,14 +1317,7 @@ struct sortConstants
   Kind d_comp_kind;
   bool operator()(Node i, Node j)
   {
-    if (i != j)
-    {
-      return doCompare(i, j, d_comp_kind);
-    }
-    else
-    {
-      return false;
-    }
+    return i!=j && doCompare(i, j, d_comp_kind);
   }
 };
 

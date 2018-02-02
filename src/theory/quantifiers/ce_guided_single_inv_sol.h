@@ -147,8 +147,8 @@ private:
    * unmodified.
    * For example, for grammar:
    *   A -> 0 | 1 | x | +( A, A )
-   * Given input ( 5 + x ) and A we would return true, where:
-   *   index_found is set to 3 and args is set to { 5, x }.
+   * Given input ( 5 + (x+1) ) and A we would return true, where:
+   *   index_found is set to 3 and args is set to { 5, x+1 }.
    *
    * index_exc : (if applicable) exclude a constructor index of st
    * index_start : start index of constructors of st to try
