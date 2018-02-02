@@ -53,10 +53,30 @@ private:
   bool getAssignEquality( Node eq, std::vector< Node >& vars, std::vector< Node >& new_vars, std::vector< Node >& new_subs );
   Node simplifySolutionNode( Node sol, TypeNode stn, std::map< Node, bool >& assign,
                              std::vector< Node >& vars, std::vector< Node >& subs, int status );
-public:
+ public:
+  CegConjectureSingleInvSol( QuantifiersEngine * qe );
+  /** simplify solution 
+   * 
+   * Returns the simplified version of node sol whose syntax is restricted by
+   * the grammar corresponding to sygus datatype stn.
+   */
   Node simplifySolution( Node sol, TypeNode stn );
-//solution reconstruction
-private:
+  /** reconstruct solution 
+   * 
+   * Returns (if possible) a node that is equivalent to sol those syntax
+   * matches the grammar corresponding to sygus datatype stn. 
+   * The value reconstructed is set to 1 if we successfully return a node,
+   * otherwise it is set to -1.
+   */
+  Node reconstructSolution( Node sol, TypeNode stn, int& reconstructed );
+  /** preregister conjecture 
+   * 
+   * q : the synthesis conjecture this class is for.
+   * This is used as a heuristic to find terms in the original conjecture which
+   * may be helpful for using during reconstruction.
+   */
+  void preregisterConjecture( Node q );
+ private:
   int d_id_count;
   int d_root_id;
   std::map< int, Node > d_id_node;
@@ -159,12 +179,6 @@ private:
                 std::vector<Node>& args,
                 int index_exc = -1,
                 int index_start = 0);
-
- public:
-  Node reconstructSolution( Node sol, TypeNode stn, int& reconstructed );
-  void preregisterConjecture( Node q );
-public:
-  CegConjectureSingleInvSol( QuantifiersEngine * qe );
 };
 
 
