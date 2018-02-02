@@ -27,6 +27,12 @@ namespace quantifiers {
 
 class CegConjectureSingleInv;
 
+/** CegConjectureSingleInvSol 
+ * 
+ * This function implements Figure 5 of "Counterexample-Guided Quantifier 
+ * Instantiation for Synthesis in SMT", Reynolds et al CAV 2015.
+ * 
+ */
 class CegConjectureSingleInvSol
 {
   friend class CegConjectureSingleInv;
