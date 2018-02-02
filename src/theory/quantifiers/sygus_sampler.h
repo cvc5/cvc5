@@ -178,8 +178,15 @@ class SygusSampler : public LazyTrieEvaluator
    * are those that occur in the range d_type_vars.
    */
   bool containsFreeVariables(Node a, Node b);
+  /** get number of sample points */
+  unsigned getNumSamplePoints() const { return d_samples.size(); }
+  /** get sample point 
+   * 
+   * Appends sample point #i to the vector pt.
+   */
+  void getSamplePoint( unsigned i, std::vector< Node >& pt ) const;
   /** evaluate n on sample point index */
-  Node evaluate(Node n, unsigned index);
+  Node evaluate(Node n, unsigned index) const;
 
  private:
   /** samples */

@@ -155,24 +155,22 @@ private:
   std::unique_ptr<CegConjectureProcess> d_ceg_proc;
   /** grammar utility */
   std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
-  /** 
-   * If d_simp_quant is forall f. exists y. P( f, y ), then this is the list f.
-   */
-  std::vector< Node > d_quant_vars;
-  /** 
-   * If d_simp_quant is forall f. exists y. P( f, y ), then this is the formula
-   * P( f, y ).
-   */
-  Node d_quant_body;
   /** list of constants for quantified formula
-  * The Skolems for the negation of d_embed_quant.
+  * The outer Skolems for the negation of d_embed_quant.
   */
   std::vector< Node > d_candidates;
   /** base instantiation
   * If d_embed_quant is forall d. exists y. P( d, y ), then
-  * this is the formula  P( candidates, y ).
+  * this is the formula  exists y. P( candidates, y ).
   */
   Node d_base_inst;
+  /** If d_embed_quant is forall d. exists y. P( d, y ), then this is y. */
+  std::vector< Node > d_base_vars;
+  /** 
+   * If d_embed_quant is forall d. exists y. P( d, y ), then this is the formula
+   * P( candidates, y ).
+   */
+  Node d_base_body;
   /** expand base inst to disjuncts */
   std::vector< Node > d_base_disj;
   /** list of variables on inner quantification */
@@ -264,6 +262,8 @@ private:
   std::map<Node, SygusSampler> d_sampler;
   /** sampler object for the option cegisSample() */
   SygusSampler d_cegis_sampler;
+  /** the indices of sample points we have added as refinement lemmas */
+  std::unordered_set< unsigned > d_cegis_sample_refine;
 };
 
 } /* namespace CVC4::theory::quantifiers */

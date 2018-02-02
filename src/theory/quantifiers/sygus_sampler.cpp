@@ -279,6 +279,13 @@ bool SygusSampler::containsFreeVariables(Node a, Node b)
   return true;
 }
 
+void SygusSampler::getSamplePoint( unsigned i, std::vector< Node >& pt ) const
+{
+  Assert(index < d_samples.size());
+  std::vector< Node >& spt = d_samples[i];
+  pt.insert(pt.end(), spt.begin(), spt.end() );
+}
+  
 Node SygusSampler::evaluate(Node n, unsigned index)
 {
   Assert(index < d_samples.size());

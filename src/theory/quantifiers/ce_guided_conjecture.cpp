@@ -90,17 +90,6 @@ void CegConjecture::assign( Node q ) {
 
   // finished simplifying the quantified formula at this point
 
-  Assert( d_simp_quant.getKind()==FORALL );
-  d_quant_body = d_simp_quant[1];
-  if (d_quant_body.getKind() == NOT && d_quant_body[0].getKind() == FORALL)
-  {      
-    for( const Node& v : d_quant_body[0][0] )
-    {
-      d_quant_vars.push_back( v );
-    }
-    d_quant_body = d_quant_body[0][1];
-  }
-  
   // convert to deep embedding and finalize single invocation here
   d_embed_quant = d_ceg_gc->process(d_simp_quant, templates, templates_arg);
   Trace("cegqi") << "CegConjecture : converted to embedding : " << d_embed_quant << std::endl;
@@ -123,6 +112,15 @@ void CegConjecture::assign( Node q ) {
   d_base_inst = Rewriter::rewrite(d_qe->getInstantiate()->getInstantiation(
       d_embed_quant, vars, d_candidates));
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
+  d_base_body = d_base_inst;
+  if (d_base_body.getKind() == NOT && d_base_body[0].getKind() == FORALL)
+  {      
+    for( const Node& v : d_base_body[0][0] )
+    {
+      d_base_vars.push_back( v );
+    }
+    d_base_body = d_base_body[0][1];
+  }
 
   // register this term with sygus database and other utilities that impact
   // the enumerative sygus search
@@ -197,20 +195,9 @@ void CegConjecture::assign( Node q ) {
   // assign the cegis sampler if applicable
   if( options::cegisSample()!=CEGIS_SAMPLE_NONE )
   {
-    Trace("cegis-sample") << "Initialize sampler for " << d_simp_quant << "..." << std::endl;
-    Node base = d_simp_quant[1];
-    d_quant_body = base;
-    std::vector< Node > vars;
-    if (base.getKind() == NOT && base[0].getKind() == FORALL)
-    {
-      for( const Node& v : base[0][0] )
-      {
-        vars.push_back( v );
-      }
-      d_quant_body = base[0][1];
-    }
-    TypeNode bt = d_quant_body.getType();
-    d_cegis_sampler.initialize(bt,vars,options::sygusSamples());
+    Trace("cegis-sample") << "Initialize sampler for " << d_base_body << "..." << std::endl;
+    TypeNode bt = d_base_body.getType();
+    d_cegis_sampler.initialize(bt,d_base_vars,options::sygusSamples());
   }
   
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
@@ -844,16 +831,37 @@ Node CegConjecture::getSymmetryBreakingPredicate(
 
 bool CegConjecture::sampleAddRefinementLemma( std::vector< Node >& vals )
 {
-  Trace("cegis-sample") << "Check sampling for candidate solution" << std::endl;
-  std::vector< Node > subs;
-  Assert( vals.size() == d_quant_vars.size() );
-  for( unsigned i=0,size=vals.size(); i<size; i++ )
+  if( Trace.isOn("cegis-sample") )
   {
-    Trace("cegis-sample") << "  " << d_quant_vars[i] << " -> " << vals[i] << std::endl;
+    Trace("cegis-sample") << "Check sampling for candidate solution" << std::endl;
+    for( unsigned i=0,size=vals.size(); i<size; i++ )
+    {
+      Trace("cegis-sample") << "  " << d_candidates[i] << " -> " << vals[i] << std::endl;
+    }
   }
+  Assert( vals.size()==d_candidates.size() );
+  Node sbody = d_base_body.substitute( d_candidates.begin(), d_candidates.end(), vals.begin(), vals.end() );
+  Trace("cegis-sample-debug") << "Sample " << sbody << std::endl;
+  // do eager unfolding
+  std::map< Node, Node > visited_n;
+  sbody = d_qe->getTermDatabaseSygus()->getEagerUnfold( sbody, visited_n );
+  Trace("cegis-sample") << "Sample (after unfolding): " << sbody << std::endl;
   
-  
-  // TODO
+  for( unsigned i=0, size=d_cegis_sampler.getNumSamplePoints(); i<size; i++ )
+  {
+    if( d_cegis_sample_refine.find(i)==d_cegis_sample_refine.end() )
+    {
+      Node ev = d_cegis_sampler.evaluate(sbody,i);
+      Assert( ev.isConst() );
+      Assert( ev.getType().isBoolean() );
+      if( !ev.getConst<bool>() )
+      {
+        Trace("cegis-sample") << "...false for point #" << i << std::endl;
+        std::vector< Node > pt;
+        d_cegis_sampler.getSamplePoint( i, pt );
+      }
+    }
+  }
   return false;
 }
 
