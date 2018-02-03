@@ -200,6 +200,7 @@ class SygusSampler : public LazyTrieEvaluator
    public:
     /** add pt to this trie, returns true if pt is not a duplicate. */
     bool add(std::vector<Node>& pt);
+
    private:
     /** the children of this node */
     std::map<Node, PtTrie> d_children;
@@ -267,8 +268,8 @@ class SygusSampler : public LazyTrieEvaluator
    * return a random value, or otherwise will construct a constant based on
    * a random constructor of tn whose builtin operator is not a variable.
    *
-   * rchance: the chance that the call to this function is will be forbidden 
-   * from making recursive calls and instead must return a value based on 
+   * rchance: the chance that the call to this function is will be forbidden
+   * from making recursive calls and instead must return a value based on
    * a nullary constructor of tn or based on getRandomValue above.
    * rinc: the percentage to increment rchance on recursive calls.
    */
