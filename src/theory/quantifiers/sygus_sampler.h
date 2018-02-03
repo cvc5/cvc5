@@ -194,6 +194,18 @@ class SygusSampler : public LazyTrieEvaluator
   TermDbSygus* d_tds;
   /** samples */
   std::vector<std::vector<Node> > d_samples;
+  /** data structure to check duplication of sample points */
+  class PtTrie
+  {
+  public:
+    /** add pt to this trie, returns true if pt is not a duplicate. */
+    bool add( std::vector< Node >& pt );
+  private:
+    /** the children of this node */
+    std::map< Node, PtTrie > d_children;
+  };
+  /** a trie for samples */
+  PtTrie d_samples_trie;
   /** type of nodes we will be registering with this class */
   TypeNode d_tn;
   /** the sygus type for this sampler (if applicable). */
@@ -259,9 +271,11 @@ class SygusSampler : public LazyTrieEvaluator
    * getRandomValue,
    * rinc: the percentage to increment rchance on recursive calls.
    */
-  Node getSygusRandomValue(TypeNode tn, double rchance, double rinc);
+  Node getSygusRandomValue(TypeNode tn, double rchance, double rinc, unsigned depth=0);
   /** map from sygus types to non-variable constructors */
   std::map< TypeNode, std::vector< unsigned > > d_rvalue_cindices;
+  /** map from sygus types to non-variable nullary constructors */
+  std::map< TypeNode, std::vector< unsigned > > d_rvalue_null_cindices;
   /** map from variables to sygus types that include them */
   std::map< Node, std::vector< TypeNode > > d_var_sygus_types;
   /** register sygus type, intializes the above two data structures */

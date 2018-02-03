@@ -129,10 +129,19 @@ void SygusSampler::initializeSamples(unsigned nsamples)
     Trace("sygus-sample") << "  var #" << types.size() << " : " << v << " : "
                           << vt << std::endl;
   }
+  std::map< unsigned, std::map< Node, std::vector< TypeNode > >::iterator > sts;
+  if( options::sygusSampleGrammar() )
+  {
+    for (unsigned j = 0, size = types.size(); j < size; j++)
+    {
+      sts[j] = d_var_sygus_types.find(d_vars[j]);
+    }
+  }
+  
+  unsigned nduplicates = 0;
   for (unsigned i = 0; i < nsamples; i++)
   {
     std::vector<Node> sample_pt;
-    Trace("sygus-sample") << "Sample point #" << i << " : ";
     for (unsigned j = 0, size = types.size(); j < size; j++)
     {
       Node v = d_vars[j];
@@ -140,35 +149,66 @@ void SygusSampler::initializeSamples(unsigned nsamples)
       if( options::sygusSampleGrammar() )
       {
         // choose a random start sygus type, if possible
-        std::map< Node, std::vector< TypeNode > >::iterator itt = d_var_sygus_types.find(v);
-        if( itt!=d_var_sygus_types.end() )
+        if( sts[j]!=d_var_sygus_types.end() )
         {
-          unsigned ntypes = itt->second.size();
-          unsigned index = Random::getRandom().pick(0, ntypes);
+          unsigned ntypes = sts[j]->second.size();
+          Assert( ntypes>0 );
+          unsigned index = Random::getRandom().pick(0, ntypes-1);
           if( index<ntypes )
           {
             // currently hard coded to 0.0, 0.5
-            r = getSygusRandomValue( itt->second[index], 0.0, 0.5 );
+            r = getSygusRandomValue( sts[j]->second[index], 0.0, 0.5 );
           }
         }
       }
       if( r.isNull() )
       {
-        r = getRandomValue(types[j]);
+        r = getRandomValue(types[j]);      
+        if (r.isNull())
+        {
+          d_is_valid = false;
+        }
       }
-      if (r.isNull())
-      {
-        Trace("sygus-sample") << "INVALID";
-        d_is_valid = false;
-      }
-      Trace("sygus-sample") << r << " ";
       sample_pt.push_back(r);
     }
-    Trace("sygus-sample") << std::endl;
-    d_samples.push_back(sample_pt);
+    if( d_samples_trie.add( sample_pt ) )
+    {
+      if( Trace.isOn("sygus-sample") )
+      {
+        Trace("sygus-sample") << "Sample point #" << i << " : ";
+        for( const Node& r : sample_pt )
+        {
+          Trace("sygus-sample") << r << " ";
+        }
+        Trace("sygus-sample") << std::endl;
+      }
+      d_samples.push_back(sample_pt);
+    }
+    else
+    {
+      i--;
+      nduplicates++;
+      if( nduplicates==nsamples*10 )
+      {
+        Trace("sygus-sample") << "...WARNING: excessive duplicates, cut off sampling at " << i << "/" << nsamples << " points." << std::endl;
+        break;
+      }
+    }
   }
 
   d_trie.clear();
+}
+
+bool SygusSampler::PtTrie::add( std::vector< Node >& pt )
+{
+  PtTrie * curr = this;
+  for( unsigned i=0, size = pt.size(); i<size; i++ )
+  {
+    curr = &(curr->d_children[pt[i]]);
+  }
+  bool retVal = curr->d_children.empty();
+  curr = &(curr->d_children[Node::null()]);
+  return retVal;
 }
 
 Node SygusSampler::registerTerm(Node n, bool forceKeep)
@@ -416,49 +456,58 @@ Node SygusSampler::getRandomValue(TypeNode tn)
 }
 
 
-Node SygusSampler::getSygusRandomValue(TypeNode tn, double rchance, double rinc)
+Node SygusSampler::getSygusRandomValue(TypeNode tn, double rchance, double rinc, unsigned depth)
 {
   Assert( tn.isDatatype() );
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert( dt.isSygus() );
-  if(!Random::getRandom().pickWithProb(rchance))
+  Assert( d_rvalue_cindices.find(tn)!=d_rvalue_cindices.end() );
+  Trace("sygus-sample-grammar") << "Sygus random value " << tn << ", depth = " << depth << ", rchance = " << rchance << std::endl;
+  // check if we terminate on this call
+  // we refuse to enumerate terms of 10+ depth as a hard limit
+  bool terminate = Random::getRandom().pickWithProb(rchance) || depth>=10;
+  // if we terminate, only nullary constructors can be chosen
+  std::vector< unsigned >& cindices = terminate ? d_rvalue_null_cindices[tn] : d_rvalue_cindices[tn];
+  unsigned ncons = cindices.size();
+  // select a random constructor, or random value when index=ncons.
+  unsigned index = Random::getRandom().pick(0, ncons);
+  Trace("sygus-sample-grammar") << "Random index 0..." << ncons << " was : "<< index << std::endl;
+  if( index<ncons )
   {
-    Assert( d_rvalue_cindices.find(tn)!=d_rvalue_cindices.end() );
-    unsigned ncons = d_rvalue_cindices[tn].size();
-    if( ncons>0 )
+    Trace("sygus-sample-grammar") << "Recurse constructor index #" << index << std::endl;
+    unsigned cindex = cindices[index];
+    Assert( cindex<dt.getNumConstructors() );
+    const DatatypeConstructor& dtc = dt[cindex];
+    // more likely to terminate in recursive calls
+    double rchance_new = rchance + ( 1.0 - rchance )*rinc;
+    std::map< int, Node > pre;
+    bool success = true;
+    // generate random values for all arguments
+    for( unsigned i=0, nargs=dtc.getNumArgs(); i<nargs; i++ )
     {
-      // more likely to terminate in recursive calls
-      double rchance_new = rchance + ( 1.0 - rchance )*rinc;
-      // select a random constructor, adding one for random fallback 
-      unsigned index = Random::getRandom().pick(0, ncons+1);
-      if( index<ncons )
+      TypeNode tnc = d_tds->getArgType( dtc, i );
+      Node c = getSygusRandomValue( tnc, rchance_new, rinc, depth+1 );
+      if( c.isNull() )
       {
-        unsigned cindex = d_rvalue_cindices[tn][index];
-        const DatatypeConstructor& dtc = dt[cindex];
-        std::map< int, Node > pre;
-        bool success = true;
-        // generate random values for all arguments
-        for( unsigned i=0, nargs=dtc.getNumArgs(); i<nargs; i++ )
-        {
-          TypeNode tnc = d_tds->getArgType( dtc, i );
-          Node c = getSygusRandomValue( tnc, rchance_new, rinc );
-          if( c.isNull() )
-          {
-            success = false;
-            break;
-          }
-          pre[i] = c;
-        }
-        if( success )
-        {
-          Node ret = d_tds->mkGeneric( dt, cindex, pre );
-          ret = Rewriter::rewrite( ret );
-          Assert( ret.isConst() );
-          return ret;
-        }
+        success = false;
+        Trace("sygus-sample-grammar") << "...fail." << std::endl;
+        break;
       }
+      Trace("sygus-sample-grammar") << "  child #" << i << " : " << c << std::endl;
+      pre[i] = c;
+    }
+    if( success )
+    {
+      Trace("sygus-sample-grammar") << "mkGeneric" << std::endl;
+      Node ret = d_tds->mkGeneric( dt, cindex, pre );
+      Trace("sygus-sample-grammar") << "...returned " << ret << std::endl;
+      ret = Rewriter::rewrite( ret );
+      Trace("sygus-sample-grammar") << "...after rewrite " << ret << std::endl;
+      Assert( ret.isConst() );
+      return ret;
     }
   }
+  Trace("sygus-sample-grammar") << "...resort to random value" << std::endl;
   // if we did not generate based on the grammar, pick a random value
   return getRandomValue( TypeNode::fromType( dt.getSygusType() ) );
 }
@@ -486,6 +535,10 @@ void SygusSampler::registerSygusType( TypeNode tn )
       {
         // otherwise, it is a constructor for sygus random value
         d_rvalue_cindices[tn].push_back(i);
+        if( dtc.getNumArgs()==0 )
+        {
+          d_rvalue_null_cindices[tn].push_back(i);
+        }
       }
       // recurse on all subfields
       for( unsigned j=0, nargs=dtc.getNumArgs(); j<nargs; j++ )
