@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include "options/quantifiers_options.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
@@ -80,6 +81,8 @@ void SygusSampler::initialize(TypeNode tn,
     d_var_index[sv] = d_type_vars[svt].size();
     d_type_vars[svt].push_back(sv);
   }
+  d_rvalue_cindices.clear();
+  d_var_sygus_types.clear();
   initializeSamples(nsamples);
 }
 
@@ -109,6 +112,9 @@ void SygusSampler::initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples)
       d_type_vars[svt].push_back(sv);
     }
   }
+  d_rvalue_cindices.clear();
+  d_var_sygus_types.clear();
+  registerSygusType(d_ftn);
   initializeSamples(nsamples);
 }
 
@@ -129,7 +135,27 @@ void SygusSampler::initializeSamples(unsigned nsamples)
     Trace("sygus-sample") << "Sample point #" << i << " : ";
     for (unsigned j = 0, size = types.size(); j < size; j++)
     {
-      Node r = getRandomValue(types[j]);
+      Node v = d_vars[j];
+      Node r;
+      if( options::sygusSampleGrammar() )
+      {
+        // choose a random start sygus type, if possible
+        std::map< Node, std::vector< TypeNode > >::iterator itt = d_var_sygus_types.find(v);
+        if( itt!=d_var_sygus_types.end() )
+        {
+          unsigned ntypes = itt->second.size();
+          unsigned index = Random::getRandom().pick(0, ntypes);
+          if( index<ntypes )
+          {
+            // currently hard coded to 0.0, 0.5
+            r = getSygusRandomValue( itt->second[index], 0.0, 0.5 );
+          }
+        }
+      }
+      if( r.isNull() )
+      {
+        r = getRandomValue(types[j]);
+      }
       if (r.isNull())
       {
         Trace("sygus-sample") << "INVALID";
@@ -403,30 +429,33 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn, double rchance, double rinc)
     {
       // more likely to terminate in recursive calls
       double rchance_new = rchance + ( 1.0 - rchance )*rinc;
-      // select a random constructor
-      unsigned index = Random::getRandom().pick(0, ncons);
-      unsigned cindex = d_rvalue_cindices[tn][index];
-      const DatatypeConstructor& dtc = dt[cindex];
-      std::map< int, Node > pre;
-      bool success = true;
-      // generate random values for all arguments
-      for( unsigned i=0, nargs=dtc.getNumArgs(); i<nargs; i++ )
+      // select a random constructor, adding one for random fallback 
+      unsigned index = Random::getRandom().pick(0, ncons+1);
+      if( index<ncons )
       {
-        TypeNode tnc = d_tds->getArgType( dtc, i );
-        Node c = getSygusRandomValue( tnc, rchance_new, rinc );
-        if( c.isNull() )
+        unsigned cindex = d_rvalue_cindices[tn][index];
+        const DatatypeConstructor& dtc = dt[cindex];
+        std::map< int, Node > pre;
+        bool success = true;
+        // generate random values for all arguments
+        for( unsigned i=0, nargs=dtc.getNumArgs(); i<nargs; i++ )
         {
-          success = false;
-          break;
+          TypeNode tnc = d_tds->getArgType( dtc, i );
+          Node c = getSygusRandomValue( tnc, rchance_new, rinc );
+          if( c.isNull() )
+          {
+            success = false;
+            break;
+          }
+          pre[i] = c;
         }
-        pre[i] = c;
-      }
-      if( success )
-      {
-        Node ret = d_tds->mkGeneric( dt, cindex, pre );
-        ret = Rewriter::rewrite( ret );
-        Assert( ret.isConst() );
-        return ret;
+        if( success )
+        {
+          Node ret = d_tds->mkGeneric( dt, cindex, pre );
+          ret = Rewriter::rewrite( ret );
+          Assert( ret.isConst() );
+          return ret;
+        }
       }
     }
   }
@@ -434,6 +463,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn, double rchance, double rinc)
   return getRandomValue( TypeNode::fromType( dt.getSygusType() ) );
 }
 
+// recursion depth bounded by number of types in grammar (small)
 void SygusSampler::registerSygusType( TypeNode tn )
 {
   if( d_rvalue_cindices.find( tn )==d_rvalue_cindices.end() )
@@ -446,7 +476,7 @@ void SygusSampler::registerSygusType( TypeNode tn )
     {
       const DatatypeConstructor& dtc = dt[i];
       Node sop = Node::fromExpr( dtc.getSygusOp() );
-      bool isVar = false;
+      bool isVar = std::find( d_vars.begin(), d_vars.end(), sop )!=d_vars.end();
       if( isVar )
       {
         // if it is a variable, add it to the list of sygus types for that var

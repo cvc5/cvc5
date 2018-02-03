@@ -246,21 +246,25 @@ class SygusSampler : public LazyTrieEvaluator
    * length, currently by a repeated coin flip.
    * Real : returns the division of two random integers, where the denominator
    * is omitted if it is zero.
-   *
-   * TODO (#1549): improve this function. Can use the grammar to generate
-   * interesting sample points.
    */
   Node getRandomValue(TypeNode tn);
   /** get sygus random value 
    * 
-   * TODO
+   * Returns a random value based on the sygus type tn. The return value is
+   * a constant in the analog type of tn. This function chooses either to
+   * return a random value, or otherwise will construct a constant based on
+   * a random constructor of tn whose builtin operator is not a variable.
+   * 
+   * rchance: the chance that this function returns a random value based on
+   * getRandomValue,
+   * rinc: the percentage to increment rchance on recursive calls.
    */
   Node getSygusRandomValue(TypeNode tn, double rchance, double rinc);
-  /** */
+  /** map from sygus types to non-variable constructors */
   std::map< TypeNode, std::vector< unsigned > > d_rvalue_cindices;
-  /** */
+  /** map from variables to sygus types that include them */
   std::map< Node, std::vector< TypeNode > > d_var_sygus_types;
-  /** register sygus type */
+  /** register sygus type, intializes the above two data structures */
   void registerSygusType( TypeNode tn );
 };
 
