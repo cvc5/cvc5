@@ -82,6 +82,7 @@ void SygusSampler::initialize(TypeNode tn,
     d_type_vars[svt].push_back(sv);
   }
   d_rvalue_cindices.clear();
+  d_rvalue_null_cindices.clear();
   d_var_sygus_types.clear();
   initializeSamples(nsamples);
 }
@@ -113,6 +114,7 @@ void SygusSampler::initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples)
     }
   }
   d_rvalue_cindices.clear();
+  d_rvalue_null_cindices.clear();
   d_var_sygus_types.clear();
   registerSygusType(d_ftn);
   initializeSamples(nsamples);
