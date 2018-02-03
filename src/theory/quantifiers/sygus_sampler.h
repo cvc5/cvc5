@@ -137,12 +137,19 @@ class SygusSampler : public LazyTrieEvaluator
   virtual ~SygusSampler() {}
   /** initialize
    *
-   * tds : reference to a sygus database,
-   * f : a term of some SyGuS datatype type whose (builtin) values we will be
-   * testing,
+   * tn : the return type of terms we will be testing with this class
+   * vars : the variables we are testing substitutions for
    * nsamples : number of sample points this class will test.
    */
-  void initialize(TermDbSygus* tds, Node f, unsigned nsamples);
+  void initialize(TypeNode tn, std::vector<Node>& vars, unsigned nsamples);
+  /** initialize sygus
+   *
+   * tds : pointer to sygus database,
+   * f : a term of some SyGuS datatype type whose (builtin) values we will be
+   * testing under the free variables in the grammar of f,
+   * nsamples : number of sample points this class will test.
+   */
+  void initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples);
   /** register term n with this sampler database
    *
    * forceKeep is whether we wish to force that n is chosen as a representative
@@ -172,6 +179,13 @@ class SygusSampler : public LazyTrieEvaluator
    * are those that occur in the range d_type_vars.
    */
   bool containsFreeVariables(Node a, Node b);
+  /** get number of sample points */
+  unsigned getNumSamplePoints() const { return d_samples.size(); }
+  /** get sample point
+   *
+   * Appends sample point #index to the vector pt.
+   */
+  void getSamplePoint(unsigned index, std::vector<Node>& pt);
   /** evaluate n on sample point index */
   Node evaluate(Node n, unsigned index);
 
@@ -181,7 +195,11 @@ class SygusSampler : public LazyTrieEvaluator
   /** samples */
   std::vector<std::vector<Node> > d_samples;
   /** type of nodes we will be registering with this class */
+  TypeNode d_tn;
+  /** the sygus type for this sampler (if applicable). */
   TypeNode d_ftn;
+  /** all variables */
+  std::vector<Node> d_vars;
   /** type variables
    *
    * For each type, a list of variables in the grammar we are considering, for
@@ -213,6 +231,11 @@ class SygusSampler : public LazyTrieEvaluator
    * store these in the vector fvs.
    */
   void computeFreeVariables(Node n, std::vector<Node>& fvs);
+  /** initialize samples
+   *
+   * Adds nsamples sample points to d_samples.
+   */
+  void initializeSamples(unsigned nsamples);
   /** get random value for a type
    *
    * Returns a random value for the given type based on the random number

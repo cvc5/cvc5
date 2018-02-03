@@ -113,13 +113,6 @@ public:
   int getVarNum( Node n ) { return d_fv_num[n]; }
   bool hasFreeVar( Node n );
 private:
-  std::map< TypeNode, std::map< int, Node > > d_generic_base;
-  std::map< TypeNode, std::vector< Node > > d_generic_templ;
-  bool getMatch( Node p, Node n, std::map< int, Node >& s );
-  bool getMatch2( Node p, Node n, std::map< int, Node >& s, std::vector< int >& new_s );
-public:
-  bool getMatch( Node n, TypeNode st, int& index_found, std::vector< Node >& args, int index_exc = -1, int index_start = 0 );
-private:
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 
@@ -133,15 +126,10 @@ private:
   std::map<TypeNode, std::map<Node, int> > d_consts;
   std::map<TypeNode, std::map<Node, int> > d_ops;
   std::map<TypeNode, std::map<int, Node> > d_arg_ops;
-  std::map<TypeNode, std::vector<int> > d_id_funcs;
-  std::map<TypeNode, std::vector<Node> >
-      d_const_list;  // sorted list of constants for type
-  std::map<TypeNode, unsigned> d_const_list_pos;
   std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
   // normalized map
   std::map<TypeNode, std::map<Node, Node> > d_normalized;
   std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
-  std::map<TypeNode, std::map<Node, Node> > d_builtin_const_to_sygus;
   // grammar information
   // root -> type -> _
   std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
@@ -176,8 +164,6 @@ private:
   Kind getConsNumKind( TypeNode tn, int i );
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
-  unsigned getNumIdFuncs( TypeNode tn );
-  unsigned getIdFuncIndex( TypeNode tn, unsigned i );
   /** get arg type */
   TypeNode getArgType( const DatatypeConstructor& c, int i );
   /** get first occurrence */
@@ -186,7 +172,6 @@ private:
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
 
   TypeNode getSygusTypeForVar( Node v );
-  Node getGenericBase( TypeNode tn, const Datatype& dt, int c );
   /** make generic
    * 
    * This function returns a builtin term f( t1, ..., tn ) where f is the 
@@ -208,7 +193,6 @@ private:
   /** same as above, but without tn */
   Node sygusToBuiltin( Node n ) { return sygusToBuiltin( n, n.getType() ); }
   Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );
-  Node builtinToSygusConst( Node c, TypeNode tn, int rcons_depth = 0 );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );
@@ -221,7 +205,6 @@ private:
   /** get comparison kind */
   Kind getComparisonKind( TypeNode tn );
   Kind getPlusKind( TypeNode tn, bool is_neg = false );
-  bool doCompare( Node a, Node b, Kind k );
   // get semantic skolem for n (a sygus term whose builtin version is n)
   Node getSemanticSkolem( TypeNode tn, Node n, bool doMk = true );
   /** involves div-by-zero */

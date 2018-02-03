@@ -109,127 +109,6 @@ TypeNode TermDbSygus::getSygusTypeForVar( Node v ) {
   return d_fv_stype[v];
 }
 
-bool TermDbSygus::getMatch( Node p, Node n, std::map< int, Node >& s ) {
-  std::vector< int > new_s;
-  return getMatch2( p, n, s, new_s );
-}
-
-bool TermDbSygus::getMatch2( Node p, Node n, std::map< int, Node >& s, std::vector< int >& new_s ) {
-  std::map< Node, int >::iterator it = d_fv_num.find( p );
-  if( it!=d_fv_num.end() ){
-    Node prev = s[it->second];
-    s[it->second] = n;
-    if( prev.isNull() ){
-      new_s.push_back( it->second );
-    }
-    return prev.isNull() || prev==n;
-  }else if( n.getNumChildren()==0 ){
-    return p==n;
-  }else if( n.getKind()==p.getKind() && n.getNumChildren()==p.getNumChildren() ){
-    //try both ways?
-    unsigned rmax = TermUtil::isComm( n.getKind() ) && n.getNumChildren()==2 ? 2 : 1;
-    std::vector< int > new_tmp;
-    for( unsigned r=0; r<rmax; r++ ){
-      bool success = true;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        int io = r==0 ? i : ( i==0 ? 1 : 0 );
-        if( !getMatch2( p[i], n[io], s, new_tmp ) ){
-          success = false;
-          for( unsigned j=0; j<new_tmp.size(); j++ ){
-            s.erase( new_tmp[j] );
-          }
-          new_tmp.clear();
-          break;
-        }
-      }
-      if( success ){
-        new_s.insert( new_s.end(), new_tmp.begin(), new_tmp.end() );
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermDbSygus::getMatch( Node t, TypeNode st, int& index_found, std::vector< Node >& args, int index_exc, int index_start ) {
-  Assert( st.isDatatype() );
-  const Datatype& dt = ((DatatypeType)(st).toType()).getDatatype();
-  Assert( dt.isSygus() );
-  std::map< Kind, std::vector< Node > > kgens;
-  std::vector< Node > gens;
-  for( unsigned i=index_start; i<dt.getNumConstructors(); i++ ){
-    if( (int)i!=index_exc ){
-      Node g = getGenericBase( st, dt, i );
-      gens.push_back( g );
-      kgens[g.getKind()].push_back( g );
-      Trace("sygus-db-debug") << "Check generic base : " << g << " from " << dt[i].getName() << std::endl;
-      if( g.getKind()==t.getKind() ){
-        Trace("sygus-db-debug") << "Possible match ? " << g << " " << t << " for " << dt[i].getName() << std::endl;
-        std::map< int, Node > sigma;
-        if( getMatch( g, t, sigma ) ){
-          //we found an exact match
-          bool msuccess = true;
-          for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-            if( sigma[j].isNull() ){
-              msuccess = false;
-              break;
-            }else{
-              args.push_back( sigma[j] );
-            }
-          }
-          if( msuccess ){
-            index_found = i;
-            return true;
-          }
-          //we found an exact match
-          //std::map< TypeNode, int > var_count;
-          //Node new_t = mkGeneric( dt, i, var_count, args );
-          //Trace("sygus-db-debug") << "Rewrote to : " << new_t << std::endl;
-          //return new_t;
-        }
-      }
-    }
-  }
-  /*
-  //otherwise, try to modulate based on kinds
-  for( std::map< Kind, std::vector< Node > >::iterator it = kgens.begin(); it != kgens.end(); ++it ){
-    if( it->second.size()>1 ){
-      for( unsigned i=0; i<it->second.size(); i++ ){
-        for( unsigned j=0; j<it->second.size(); j++ ){
-          if( i!=j ){
-            std::map< int, Node > sigma;
-            if( getMatch( it->second[i], it->second[j], sigma ) ){
-              if( sigma.size()==1 ){
-                //Node mod_pat = sigma.begin().second;
-                //Trace("cegqi-si-rcons-debug") << "Modulated pattern " << mod_pat << " from " << it->second[i] << " and " << it->second[j] << std::endl;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  */
-  return false;
-}
-
-Node TermDbSygus::getGenericBase( TypeNode tn, const Datatype& dt, int c ) {
-  std::map< int, Node >::iterator it = d_generic_base[tn].find( c );
-  if( it==d_generic_base[tn].end() ){
-    Assert( isRegistered( tn ) );
-    std::map< TypeNode, int > var_count;
-    std::map< int, Node > pre;
-    Node g = mkGeneric( dt, c, var_count, pre );
-    Trace("sygus-db-debug") << "Sygus DB : Generic is " << g << std::endl;
-    Node gr = Rewriter::rewrite( g );
-    Trace("sygus-db-debug") << "Sygus DB : Generic rewritten is " << gr << std::endl;
-    d_generic_base[tn][c] = gr;
-    return gr;
-  }else{
-    return it->second;
-  }
-}
-
 Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre ) {
   Assert( c>=0 && c<(int)dt.getNumConstructors() );
   Assert( dt.isSygus() );
@@ -280,27 +159,32 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
   std::map< Node, Node >::iterator it = d_sygus_to_builtin[tn].find( n );
   if( it==d_sygus_to_builtin[tn].end() ){
     Trace("sygus-db-debug") << "SygusToBuiltin : compute for " << n << ", type = " << tn << std::endl;
-    Node ret;
     const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
     if( n.getKind()==APPLY_CONSTRUCTOR ){
       unsigned i = Datatype::indexOf( n.getOperator().toExpr() );
       Assert( n.getNumChildren()==dt[i].getNumArgs() );
       std::map< TypeNode, int > var_count;
       std::map< int, Node > pre;
-      for( unsigned j=0; j<n.getNumChildren(); j++ ){
+      for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
+      {
         pre[j] = sygusToBuiltin( n[j], getArgType( dt[i], j ) );
       }
-      ret = mkGeneric( dt, i, var_count, pre );
+      Node ret = mkGeneric(dt, i, var_count, pre);
       Trace("sygus-db-debug") << "SygusToBuiltin : Generic is " << ret << std::endl;
       d_sygus_to_builtin[tn][n] = ret;
-    }else{
-      Assert( isFreeVar( n ) );
-      //map to builtin variable type
-      int fv_num = getVarNum( n );
-      Assert( !dt.getSygusType().isNull() );
-      TypeNode vtn = TypeNode::fromType( dt.getSygusType() );
-      ret = getFreeVar( vtn, fv_num );
+      return ret;
     }
+    if (n.hasAttribute(SygusPrintProxyAttribute()))
+    {
+      // this variable was associated by an attribute to a builtin node
+      return n.getAttribute(SygusPrintProxyAttribute());
+    }
+    Assert(isFreeVar(n));
+    // map to builtin variable type
+    int fv_num = getVarNum(n);
+    Assert(!dt.getSygusType().isNull());
+    TypeNode vtn = TypeNode::fromType(dt.getSygusType());
+    Node ret = getFreeVar(vtn, fv_num);
     return ret;
   }else{
     return it->second;
@@ -310,89 +194,6 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
 Node TermDbSygus::sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args ) {
   Assert( d_var_list[tn].size()==args.size() );
   return n.substitute( d_var_list[tn].begin(), d_var_list[tn].end(), args.begin(), args.end() );
-}
-  
-//rcons_depth limits the number of recursive calls when doing accelerated constant reconstruction (currently limited to 1000)
-//this is hacky : depending upon order of calls, constant rcons may succeed, e.g. 1001, 999 vs. 999, 1001
-Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn, int rcons_depth ) {
-  std::map< Node, Node >::iterator it = d_builtin_const_to_sygus[tn].find( c );
-  if( it==d_builtin_const_to_sygus[tn].end() ){
-    Node sc;
-    d_builtin_const_to_sygus[tn][c] = sc;
-    Assert( c.isConst() );
-    Assert( tn.isDatatype() );
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    Trace("csi-rcons-debug") << "Try to reconstruct " << c << " in " << dt.getName() << std::endl;
-    Assert( dt.isSygus() );
-    // if we are not interested in reconstructing constants, or the grammar allows them, return a proxy
-    if( !options::cegqiSingleInvReconstructConst() || dt.getSygusAllowConst() ){
-      Node k = NodeManager::currentNM()->mkSkolem( "sy", tn, "sygus proxy" );
-      SygusPrintProxyAttribute spa;
-      k.setAttribute(spa,c);
-      sc = k;
-    }else{
-      int carg = getOpConsNum( tn, c );
-      if( carg!=-1 ){
-        sc = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[carg].getConstructor() ) );
-      }else{
-        //identity functions
-        for( unsigned i=0; i<getNumIdFuncs( tn ); i++ ){
-          unsigned ii = getIdFuncIndex( tn, i );
-          Assert( dt[ii].getNumArgs()==1 );
-          //try to directly reconstruct from single argument
-          TypeNode tnc = getArgType( dt[ii], 0 );
-          Trace("csi-rcons-debug") << "Based on id function " << dt[ii].getSygusOp() << ", try reconstructing " << c << " instead in " << tnc << std::endl;
-          Node n = builtinToSygusConst( c, tnc, rcons_depth );
-          if( !n.isNull() ){
-            sc = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[ii].getConstructor() ), n );
-            break;
-          }
-        }
-        if( sc.isNull() ){
-          if( rcons_depth<1000 ){
-            //accelerated, recursive reconstruction of constants
-            Kind pk = getPlusKind( TypeNode::fromType( dt.getSygusType() ) );
-            if( pk!=UNDEFINED_KIND ){
-              int arg = getKindConsNum( tn, pk );
-              if( arg!=-1 ){
-                Kind ck = getComparisonKind( TypeNode::fromType( dt.getSygusType() ) );
-                Kind pkm = getPlusKind( TypeNode::fromType( dt.getSygusType() ), true );
-                //get types
-                Assert( dt[arg].getNumArgs()==2 );
-                TypeNode tn1 = getArgType( dt[arg], 0 );
-                TypeNode tn2 = getArgType( dt[arg], 1 );
-                //iterate over all positive constants, largest to smallest
-                int start = d_const_list[tn1].size()-1;
-                int end = d_const_list[tn1].size()-d_const_list_pos[tn1];
-                for( int i=start; i>=end; --i ){
-                  Node c1 = d_const_list[tn1][i];
-                  //only consider if smaller than c, and
-                  if( doCompare( c1, c, ck ) ){
-                    Node c2 = NodeManager::currentNM()->mkNode( pkm, c, c1 );
-                    c2 = Rewriter::rewrite( c2 );
-                    if( c2.isConst() ){
-                      //reconstruct constant on the other side
-                      Node sc2 = builtinToSygusConst( c2, tn2, rcons_depth+1 );
-                      if( !sc2.isNull() ){
-                        Node sc1 = builtinToSygusConst( c1, tn1, rcons_depth );
-                        Assert( !sc1.isNull() );
-                        sc = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[arg].getConstructor() ), sc1, sc2 );
-                        break;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    d_builtin_const_to_sygus[tn][c] = sc;
-    return sc;
-  }else{
-    return it->second;
-  }
 }
 
 Node TermDbSygus::getNormalized(TypeNode t, Node prog)
@@ -831,18 +632,6 @@ int TermDbSygus::solveForArgument( TypeNode tn, unsigned cindex, unsigned arg ) 
   return -1;
 }
 
-struct sortConstants {
-  TermDbSygus * d_tds;
-  Kind d_comp_kind;
-  bool operator() (Node i, Node j) {
-    if( i!=j ){
-      return d_tds->doCompare( i, j, d_comp_kind );
-    }else{
-      return false;
-    }
-  }
-};
-
 class ReconstructTrie {
 public:
   std::map< Node, ReconstructTrie > d_children;
@@ -908,11 +697,6 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
         }else{
           // no arguments to synthesis functions
         }
-        //for constant reconstruction
-        Kind ck = getComparisonKind( TypeNode::fromType( dt.getSygusType() ) );
-        Node z = d_quantEngine->getTermUtil()->getTypeValue(
-            TypeNode::fromType(dt.getSygusType()), 0);
-        d_const_list_pos[tn] = 0;
         //iterate over constructors
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
           Expr sop = dt[i].getSygusOp();
@@ -928,32 +712,10 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             Trace("sygus-db") << ", constant";
             d_consts[tn][n] = i;
             d_arg_const[tn][i] = n;
-            d_const_list[tn].push_back( n );
-            if( ck!=UNDEFINED_KIND && doCompare( z, n, ck ) ){
-              d_const_list_pos[tn]++;
-            }
-          }
-          if( dt[i].isSygusIdFunc() ){
-            d_id_funcs[tn].push_back( i );
           }
           d_ops[tn][n] = i;
           d_arg_ops[tn][i] = n;
           Trace("sygus-db") << std::endl;
-        }
-        //sort the constant list
-        if( !d_const_list[tn].empty() ){
-          if( ck!=UNDEFINED_KIND ){
-            sortConstants sc;
-            sc.d_comp_kind = ck;
-            sc.d_tds = this;
-            std::sort( d_const_list[tn].begin(), d_const_list[tn].end(), sc );
-          }
-          Trace("sygus-db") << "Type has " << d_const_list[tn].size() << " constants..." << std::endl << "  ";
-          for( unsigned i=0; i<d_const_list[tn].size(); i++ ){
-            Trace("sygus-db") << d_const_list[tn][i] << " ";
-          }
-          Trace("sygus-db") << std::endl;
-          Trace("sygus-db") << "Of these, " << d_const_list_pos[tn] << " are marked as positive." << std::endl;
         }
         //register connected types
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
@@ -1378,14 +1140,6 @@ bool TermDbSygus::isConstArg( TypeNode tn, int i ) {
   }
 }
 
-unsigned TermDbSygus::getNumIdFuncs( TypeNode tn ) {
-  return d_id_funcs[tn].size();
-}
-
-unsigned TermDbSygus::getIdFuncIndex( TypeNode tn, unsigned i ) {
-  return d_id_funcs[tn][i];
-}
-
 TypeNode TermDbSygus::getArgType( const DatatypeConstructor& c, int i ) {
   Assert( i>=0 && i<(int)c.getNumArgs() );
   return TypeNode::fromType( ((SelectorType)c[i].getType()).getRangeType() );
@@ -1496,12 +1250,6 @@ Kind TermDbSygus::getPlusKind( TypeNode tn, bool is_neg ) {
   }else{
     return UNDEFINED_KIND;
   }
-}
-
-bool TermDbSygus::doCompare( Node a, Node b, Kind k ) {
-  Node com = NodeManager::currentNM()->mkNode( k, a, b );
-  com = Rewriter::rewrite( com );
-  return com==d_true;
 }
 
 Node TermDbSygus::getSemanticSkolem( TypeNode tn, Node n, bool doMk ){
