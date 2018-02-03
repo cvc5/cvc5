@@ -147,10 +147,10 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int 
   return ret;
 }
 
-Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< int, Node >& pre )
+Node TermDbSygus::mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre)
 {
- std::map< TypeNode, int > var_count;
- return mkGeneric( dt, c, var_count, pre );
+  std::map<TypeNode, int> var_count;
+  return mkGeneric(dt, c, var_count, pre);
 }
 
 Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {

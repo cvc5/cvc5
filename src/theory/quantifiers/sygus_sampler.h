@@ -197,12 +197,13 @@ class SygusSampler : public LazyTrieEvaluator
   /** data structure to check duplication of sample points */
   class PtTrie
   {
-  public:
+   public:
     /** add pt to this trie, returns true if pt is not a duplicate. */
-    bool add( std::vector< Node >& pt );
-  private:
+    bool add(std::vector<Node>& pt);
+
+   private:
     /** the children of this node */
-    std::map< Node, PtTrie > d_children;
+    std::map<Node, PtTrie> d_children;
   };
   /** a trie for samples */
   PtTrie d_samples_trie;
@@ -260,26 +261,29 @@ class SygusSampler : public LazyTrieEvaluator
    * is omitted if it is zero.
    */
   Node getRandomValue(TypeNode tn);
-  /** get sygus random value 
-   * 
+  /** get sygus random value
+   *
    * Returns a random value based on the sygus type tn. The return value is
    * a constant in the analog type of tn. This function chooses either to
    * return a random value, or otherwise will construct a constant based on
    * a random constructor of tn whose builtin operator is not a variable.
-   * 
+   *
    * rchance: the chance that this function returns a random value based on
    * getRandomValue,
    * rinc: the percentage to increment rchance on recursive calls.
    */
-  Node getSygusRandomValue(TypeNode tn, double rchance, double rinc, unsigned depth=0);
+  Node getSygusRandomValue(TypeNode tn,
+                           double rchance,
+                           double rinc,
+                           unsigned depth = 0);
   /** map from sygus types to non-variable constructors */
-  std::map< TypeNode, std::vector< unsigned > > d_rvalue_cindices;
+  std::map<TypeNode, std::vector<unsigned> > d_rvalue_cindices;
   /** map from sygus types to non-variable nullary constructors */
-  std::map< TypeNode, std::vector< unsigned > > d_rvalue_null_cindices;
+  std::map<TypeNode, std::vector<unsigned> > d_rvalue_null_cindices;
   /** map from variables to sygus types that include them */
-  std::map< Node, std::vector< TypeNode > > d_var_sygus_types;
+  std::map<Node, std::vector<TypeNode> > d_var_sygus_types;
   /** register sygus type, intializes the above two data structures */
-  void registerSygusType( TypeNode tn );
+  void registerSygusType(TypeNode tn);
 };
 
 } /* CVC4::theory::quantifiers namespace */
