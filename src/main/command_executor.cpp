@@ -193,7 +193,10 @@ bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
   return !cmd->fail();
 }
 
-void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString) {
+void printStatsIncremental(std::ostream& out,
+                           const std::string& prvsStatsString,
+                           const std::string& curStatsString)
+{
   if(prvsStatsString == "") {
     out << curStatsString;
     return;
@@ -229,9 +232,11 @@ void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString
         (std::istringstream(curStatValue) >> curFloat);
 
       if(isFloat) {
+        const std::streamsize old_precision = out.precision();
         out << curStatName << ", " << curStatValue << " "
             << "(" << std::setprecision(8) << (curFloat-prvsFloat) << ")"
             << std::endl;
+        out.precision(old_precision);
       } else {
         out << curStatName << ", " << curStatValue << std::endl;
       }
