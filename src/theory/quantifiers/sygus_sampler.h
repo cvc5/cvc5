@@ -272,7 +272,7 @@ class SygusSampler : public LazyTrieEvaluator
    * from making recursive calls and instead must return a value based on
    * a nullary constructor of tn or based on getRandomValue above.
    * rinc: the percentage to increment rchance on recursive calls.
-   * 
+   *
    * For example, consider the grammar:
    *   A -> x | y | 0 | 1 | +( A, A ) | ite( B, A, A )
    *   B -> A = A
@@ -281,9 +281,9 @@ class SygusSampler : public LazyTrieEvaluator
    * above, or we choose one of the four non-variable constructors of A.
    * Say we choose ite, then we recursively call this function for
    * B, A, and A, which return constants c1, c2, and c3. Then, this function
-   * returns the rewritten form of ite( c1, c2, c3 ). 
-   * If on the other hand, rchance was 0.5 and rand() < 0.5. Then, we force 
-   * this call to terminate by either selecting a random value via 
+   * returns the rewritten form of ite( c1, c2, c3 ).
+   * If on the other hand, rchance was 0.5 and rand() < 0.5. Then, we force
+   * this call to terminate by either selecting a random value via
    * getRandomValue, 0 or 1.
    */
   Node getSygusRandomValue(TypeNode tn,
