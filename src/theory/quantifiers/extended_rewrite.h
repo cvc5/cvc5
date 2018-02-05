@@ -62,6 +62,19 @@ class ExtendedRewriter
    * where ---->^E denotes extended rewriting.
    */
   Node extendedRewritePullIte(Node n);
+  /** bitvector subsume 
+   * 
+   * Returns true if a's 1 bits are a superset of b's 1 bits.
+   * That is, if this function returns true, then 
+   *   (bvand (bvnot a) b) = 0
+   */
+  bool bitVectorSubsume( Node a, Node b );
+  /** bitvector compare 
+   * 
+   * Returns true if bvugt( a, b ) is entailed, or bvuge( a, b ) if strict is
+   * false.
+   */
+  bool bitVectorArithComp( Node a, Node b, bool strict=true );
 };
 
 } /* CVC4::theory::quantifiers namespace */

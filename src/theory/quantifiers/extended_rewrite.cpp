@@ -205,7 +205,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         new_ret = NodeManager::currentNM()->mkNode(new_k, children);
         Trace("q-ext-rewrite") << "sygus-extr : " << ret << " rewrites to "
                                << new_ret << " due to total interpretation."
-                               << std::endl;
+                      ExtendedRewriter::         << std::endl;
       }
     }
     // more expensive rewrites
@@ -286,6 +286,39 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   {
     return it->second;
   }
+}  
+
+
+bool ExtendedRewriter::bitVectorSubsume( Node a, Node b )
+{
+  if( a==b )
+  {
+    return true;
+  }
+  
+  if( a.getKind()==OR || b.getKind()==AND )
+  {
+    bool a_or = a.getKind()==OR;
+    Node c = a_or ? a : b;
+    Node oc = a_or ? b : a;
+    for( const Node& cc : c )
+    {
+      
+    }
+  }
+  
+  return false;
+}
+
+bool ExtendedRewriter::bitVectorArithComp( Node a, Node b, bool strict )
+{
+  if( a==b )
+  {
+    return !strict;
+  }
+  
+  
+  return false;
 }
 
 } /* CVC4::theory::quantifiers namespace */
