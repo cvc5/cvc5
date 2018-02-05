@@ -23,16 +23,6 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-namespace {
-
-void AppendNodesTo(const std::vector<Node>& source, std::vector<Node>* dest)
-{
-  AlwaysAssert(dest != nullptr);
-  dest->insert(dest->end(), source.begin(), source.end());
-}
-
-}  // namespace
-
 void RepSet::clear(){
   d_type_reps.clear();
   d_type_complete.clear();
@@ -278,7 +268,9 @@ bool RepSetIterator::initialize()
         d_enum_type.push_back( ENUM_DEFAULT );
         if (const auto* type_reps = d_rs->getTypeRepsOrNull(tn))
         {
-          AppendNodesTo(*type_reps, &d_domain_elements[v]);
+          std::vector<Node>& v_domain_elements = d_domain_elements[v];
+          v_domain_elements.insert(v_domain_elements.end(),
+                                   type_reps->begin(), type_reps->end());
         }
       }else{
         Assert( d_incomplete );
