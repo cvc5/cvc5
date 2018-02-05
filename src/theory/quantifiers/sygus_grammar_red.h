@@ -91,23 +91,23 @@ class SygusRedundantCons
   std::map<Node, unsigned> d_gen_cons;
   /** get generic list
    *
-   * This function constructs all well-typed variants of a term of the form 
+   * This function constructs all well-typed variants of a term of the form
    *    op( x1, ..., xn )
    * where op is the builtin operator for dt[c], and xi = pre[i] for i=1,...,n.
-   * 
-   * It constructs a list of terms of the form g * sigma, where sigma 
+   *
+   * It constructs a list of terms of the form g * sigma, where sigma
    * is an automorphism on { x1...xn } such that for all xi -> xj in sigma,
    * the sygus for arguments i and j of dt[c] are the same. We store this
    * list of terms in terms.
    *
    * This function recurses on the arguments of g, index is the current argument
-   * we are processing, and pre stores the current arguments of 
-   * 
-   * For example, for a sygus grammar 
+   * we are processing, and pre stores the current arguments of
+   *
+   * For example, for a sygus grammar
    *   A -> and( A, A, B )
    *   B -> false
    * passing arguments such that g=and( x1, x2, x3 ) to this function will add:
-   *   and( x1, x2, x3 ) and and( x2, x1, x3 ) 
+   *   and( x1, x2, x3 ) and and( x2, x1, x3 )
    * to terms.
    */
   void getGenericList(TermDbSygus* tds,
