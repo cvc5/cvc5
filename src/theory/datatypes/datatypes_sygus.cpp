@@ -175,15 +175,16 @@ void SygusSymBreakNew::assertIsConst( Node n, bool polarity, std::vector< Node >
 }
 
 Node SygusSymBreakNew::getTermOrderPredicate( Node n1, Node n2 ) {
+  NodeManager * nm = NodeManager::currentNM();
   std::vector< Node > comm_disj;
   // (1) size of left is greater than size of right
-  Node sz_less = NodeManager::currentNM()->mkNode( GT, NodeManager::currentNM()->mkNode( DT_SIZE, n1 ), 
-                                                       NodeManager::currentNM()->mkNode( DT_SIZE, n2 ) );
+  Node sz_less = nm->mkNode( GT, nm->mkNode( DT_SIZE, n1 ), 
+                                                       nm->mkNode( DT_SIZE, n2 ) );
   comm_disj.push_back( sz_less );
   // (2) ...or sizes are equal and first child is less by term order
   std::vector< Node > sz_eq_cases; 
-  Node sz_eq = NodeManager::currentNM()->mkNode( EQUAL, NodeManager::currentNM()->mkNode( DT_SIZE, n1 ), 
-                                                        NodeManager::currentNM()->mkNode( DT_SIZE, n2 ) );
+  Node sz_eq = nm->mkNode( EQUAL, nm->mkNode( DT_SIZE, n1 ), 
+                                                        nm->mkNode( DT_SIZE, n2 ) );
   sz_eq_cases.push_back( sz_eq );
   if( options::sygusOpt1() ){
     TypeNode tnc = n1.getType();
@@ -196,20 +197,20 @@ Node SygusSymBreakNew::getTermOrderPredicate( Node n1, Node n2 ) {
       }
       if (!case_conj.empty())
       {
-        Node corder = NodeManager::currentNM()->mkNode(
+        Node corder = nm->mkNode(
             kind::OR,
             DatatypesRewriter::mkTester(n1, j, cdt).negate(),
             case_conj.size() == 1
                 ? case_conj[0]
-                : NodeManager::currentNM()->mkNode(kind::AND, case_conj));
+                : nm->mkNode(kind::AND, case_conj));
         sz_eq_cases.push_back(corder);
       }
     }
   }
-  Node sz_eqc = sz_eq_cases.size()==1 ? sz_eq_cases[0] : NodeManager::currentNM()->mkNode( kind::AND, sz_eq_cases );
+  Node sz_eqc = sz_eq_cases.size()==1 ? sz_eq_cases[0] : nm->mkNode( kind::AND, sz_eq_cases );
   comm_disj.push_back( sz_eqc );
   
-  return NodeManager::currentNM()->mkNode( kind::OR, comm_disj );
+  return nm->mkNode( kind::OR, comm_disj );
 }
   
 void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
