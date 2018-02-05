@@ -210,6 +210,12 @@ Node ExtendedRewriter::extendedRewrite(Node n)
           break;
         }
       }
+      if( k == BITVECTOR_AND && bitvectorDisjoint( ret[0], ret[1] ) )
+      {
+        unsigned size = bv::utils::getSize(ret[0]);
+        new_ret = bv::utils::mkZero(size);
+        debugExtendedRewrite( ret, new_ret, "AND-disjoint" );
+      }
     }
     else if( k == BITVECTOR_ULT )
     {
@@ -230,6 +236,15 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         unsigned size = bv::utils::getSize(ret[0]);
         new_ret = bv::utils::mkZero(size);
         debugExtendedRewrite( ret, new_ret, "LSHR-arith" );
+      }
+    }
+    else if( k == BITVECTOR_PLUS )
+    {
+      if( bitvectorDisjoint( ret[0], ret[1] ) )
+      {
+        // if we prove disjointness, PLUS turns into OR
+        new_ret = nm->mkNode( BITVECTOR_OR, ret[0], ret[1] );
+        debugExtendedRewrite( ret, new_ret, "PLUS-disjoint" );
       }
     }
     
@@ -352,6 +367,44 @@ bool ExtendedRewriter::bitVectorArithComp( Node a, Node b, bool strict )
   if( bitVectorSubsume(a,b,strict) )
   {
     return true;
+  }
+  // shifting right always shrinks
+  if( b.getKind() == BITVECTOR_LSHR )
+  {
+    if( bitVectorArithComp( a, b[0], strict ) )
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool ExtendedRewriter::bitvectorDisjoint( Node a, Node b )
+{
+  for( unsigned r=0; r<2; r++ )
+  {
+    Node x = r==0 ? a : b;
+    Node y = r==0 ? b : a;
+    
+    if( x.getKind()==BITVECTOR_NOT && x[0]==y )
+    {
+      return true;
+    }
+    if( x.getKind()==BITVECTOR_SHL && bitVectorArithComp( x[1], y ) )
+    {
+      return true;
+    }
+    if( x.getKind()==BITVECTOR_AND )
+    {
+      for( const Node& xc : x ) 
+      {
+        if( bitvectorDisjoint( xc, y ) )
+        {
+          return true;
+        }
+      }
+    }
   }
   
   return false;

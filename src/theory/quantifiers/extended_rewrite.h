@@ -78,6 +78,13 @@ class ExtendedRewriter
    * false.
    */
   bool bitVectorArithComp( Node a, Node b, bool strict=false );
+  /** bitvector disjoint
+   * 
+   * Returns true if there are no bits where a and b are both 1.
+   * That is, if this function returns true, then
+   *   (bvand a b) = 0.
+   */
+  bool bitvectorDisjoint( Node a, Node b );
   /** extended rewrite 
    * 
    * Prints debug information about the rewrite n ---> ret, returns ret.
