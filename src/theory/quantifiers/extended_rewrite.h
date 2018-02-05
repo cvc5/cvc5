@@ -66,15 +66,23 @@ class ExtendedRewriter
    * 
    * Returns true if a's 1 bits are a superset of b's 1 bits.
    * That is, if this function returns true, then 
-   *   (bvand (bvnot a) b) = 0
+   *   (bvand (bvnot a) b) = 0.
+   * If strict is true, then it must be the case that at least one bit of a
+   * is 1 that is 0 in bit, that is:
+   *   (bvand a (bvnot b)) != 0.
    */
-  bool bitVectorSubsume( Node a, Node b );
+  bool bitVectorSubsume( Node a, Node b, bool strict=false );
   /** bitvector compare 
    * 
    * Returns true if bvugt( a, b ) is entailed, or bvuge( a, b ) if strict is
    * false.
    */
-  bool bitVectorArithComp( Node a, Node b, bool strict=true );
+  bool bitVectorArithComp( Node a, Node b, bool strict=false );
+  /** extended rewrite 
+   * 
+   * Prints debug information about the rewrite n ---> ret, returns ret.
+   */
+  void debugExtendedRewrite( Node n, Node ret, const char * c );
 };
 
 } /* CVC4::theory::quantifiers namespace */

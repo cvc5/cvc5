@@ -18,6 +18,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "theory/bv/theory_bv_utils.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -87,6 +88,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
 
 Node ExtendedRewriter::extendedRewrite(Node n)
 {
+  NodeManager * nm = NodeManager::currentNM();
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
       d_ext_rewrite_cache.find(n);
   if (it == d_ext_rewrite_cache.end())
@@ -115,7 +117,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
       if (childChanged)
       {
-        ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
+        ret = nm->mkNode(n.getKind(), children);
       }
     }
     ret = Rewriter::rewrite(ret);
@@ -123,21 +125,18 @@ Node ExtendedRewriter::extendedRewrite(Node n)
                                  << " (from " << n << ")" << std::endl;
 
     Node new_ret;
-    if (ret.getKind() == kind::EQUAL)
+    Kind k = ret.getKind();
+    if (k == kind::EQUAL)
     {
-      if (new_ret.isNull())
-      {
-        // simple ITE pulling
-        new_ret = extendedRewritePullIte(ret);
-      }
+      // simple ITE pulling
+      new_ret = extendedRewritePullIte(ret);
     }
-    else if (ret.getKind() == kind::ITE)
+    else if (k == kind::ITE)
     {
       Assert(ret[1] != ret[2]);
       if (ret[0].getKind() == NOT)
       {
-        ret = NodeManager::currentNM()->mkNode(
-            kind::ITE, ret[0][0], ret[2], ret[1]);
+        ret = nm->mkNode( kind::ITE, ret[0][0], ret[2], ret[1]);
       }
       if (ret[0].getKind() == kind::EQUAL)
       {
@@ -146,10 +145,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         {
           if (ret[1] == ret[0][i] && ret[2] == ret[0][1 - i])
           {
-            Trace("q-ext-rewrite") << "sygus-extr : " << ret << " rewrites to "
-                                   << ret[2] << " due to simple invariant ITE."
-                                   << std::endl;
             new_ret = ret[2];
+            debugExtendedRewrite(ret,new_ret,"subs-ITE");
             break;
           }
         }
@@ -166,19 +163,15 @@ Node ExtendedRewriter::extendedRewrite(Node n)
               Node retn = ret[1].substitute(r1, r2);
               if (retn != ret[1])
               {
-                new_ret = NodeManager::currentNM()->mkNode(
-                    kind::ITE, ret[0], retn, ret[2]);
-                Trace("q-ext-rewrite")
-                    << "sygus-extr : " << ret << " rewrites to " << new_ret
-                    << " due to simple ITE substitution." << std::endl;
+                new_ret = nm->mkNode(ITE, ret[0], retn, ret[2]);
+                debugExtendedRewrite(ret,new_ret,"subs-ITE");
               }
             }
           }
         }
       }
     }
-    else if (ret.getKind() == DIVISION || ret.getKind() == INTS_DIVISION
-             || ret.getKind() == INTS_MODULUS)
+    else if (k == DIVISION || k == INTS_DIVISION || k == INTS_MODULUS)
     {
       // rewrite as though total
       std::vector<Node> children;
@@ -202,12 +195,45 @@ Node ExtendedRewriter::extendedRewrite(Node n)
                  ? DIVISION_TOTAL
                  : (ret.getKind() == INTS_DIVISION ? INTS_DIVISION_TOTAL
                                                    : INTS_MODULUS_TOTAL));
-        new_ret = NodeManager::currentNM()->mkNode(new_k, children);
-        Trace("q-ext-rewrite") << "sygus-extr : " << ret << " rewrites to "
-                               << new_ret << " due to total interpretation."
-                      ExtendedRewriter::         << std::endl;
+        new_ret = nm->mkNode(new_k, children);
+        debugExtendedRewrite(ret,new_ret,"total-interpretation");
       }
     }
+    else if( k == BITVECTOR_AND || k == BITVECTOR_OR )
+    {
+      for( unsigned r=0; r<2; r++ )
+      {
+        if( bitVectorSubsume( ret[r], ret[1-r] ) )
+        {
+          new_ret = k == BITVECTOR_AND ? ret[1-r] : ret[r];
+          debugExtendedRewrite( ret, new_ret, "AND/OR-subsume" );
+          break;
+        }
+      }
+    }
+    else if( k == BITVECTOR_ULT )
+    {
+      if( bitVectorArithComp( ret[0], ret[1] ) )
+      {
+        new_ret = nm->mkConst(false);
+        debugExtendedRewrite( ret, new_ret, "ULT" );
+      }
+    }
+    else if( k == BITVECTOR_SLT )
+    {
+      
+    }
+    else if( k == BITVECTOR_LSHR )
+    {
+      if( bitVectorArithComp( ret[1], ret[0] ) )
+      {
+        unsigned size = bv::utils::getSize(ret[0]);
+        new_ret = bv::utils::mkZero(size);
+        debugExtendedRewrite( ret, new_ret, "LSHR-arith" );
+      }
+    }
+    
+    
     // more expensive rewrites
     if (new_ret.isNull())
     {
@@ -248,6 +274,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
                   {
                     new_ret = new_ret.negate();
                   }
+                  debugExtendedRewrite(ret,new_ret,"solve-ITE");
                   break;
                 }
               }
@@ -289,21 +316,31 @@ Node ExtendedRewriter::extendedRewrite(Node n)
 }  
 
 
-bool ExtendedRewriter::bitVectorSubsume( Node a, Node b )
+bool ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
 {
+  Trace("q-ext-rewrite-debug2") << "Subsume " << a << " " << b << "?" << std::endl;
   if( a==b )
   {
-    return true;
+    return !strict;
   }
-  
-  if( a.getKind()==OR || b.getKind()==AND )
+  if( a.getKind()==BITVECTOR_OR )
   {
-    bool a_or = a.getKind()==OR;
-    Node c = a_or ? a : b;
-    Node oc = a_or ? b : a;
-    for( const Node& cc : c )
+    for( const Node& ac : a )
     {
-      
+      if( bitVectorSubsume( ac, b, strict ) )
+      {
+        return true;
+      }
+    }
+  }
+  else if( b.getKind()==BITVECTOR_AND )
+  {
+    for( const Node& bc : b )
+    {
+      if( bitVectorSubsume( a, bc, strict ) )
+      {
+        return true;
+      }
     }
   }
   
@@ -312,13 +349,18 @@ bool ExtendedRewriter::bitVectorSubsume( Node a, Node b )
 
 bool ExtendedRewriter::bitVectorArithComp( Node a, Node b, bool strict )
 {
-  if( a==b )
+  if( bitVectorSubsume(a,b,strict) )
   {
-    return !strict;
+    return true;
   }
   
-  
   return false;
+}
+
+void ExtendedRewriter::debugExtendedRewrite( Node n, Node ret, const char * c )
+{
+  Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
+                          << ret << " due to " <<  c << "." << std::endl;
 }
 
 } /* CVC4::theory::quantifiers namespace */
