@@ -91,7 +91,7 @@ class SygusRedundantCons
    *
    * It constructs a list of terms of the form g * sigma, where sigma
    * is an automorphism on { x1...xn } such that for all xi -> xj in sigma,
-   * the sygus for arguments i and j of dt[c] are the same. We store this
+   * the sygus type for arguments i and j of dt[c] are the same. We store this
    * list of terms in terms.
    *
    * This function recurses on the arguments of g, index is the current argument
