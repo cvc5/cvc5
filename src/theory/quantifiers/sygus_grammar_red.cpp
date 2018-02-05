@@ -79,7 +79,7 @@ void SygusRedundantCons::initialize( QuantifiersEngine * qe, TypeNode tn )
   TypeNode btn = TypeNode::fromType( dt.getSygusType() );
   for( unsigned i=0, ncons = dt.getNumConstructors(); i<ncons; i++ ){
     bool nred = true;
-    Trace("sygus-split-debug") << "Is " << dt[i].getName() << " a redundant operator?" << std::endl;
+    Trace("sygus-static-red") << "Is " << dt[i].getName() << " a redundant operator?" << std::endl;
     Kind ck = tds->getConsNumKind( tn, i );
     if( ck!=UNDEFINED_KIND ){
       Kind dk;
@@ -87,7 +87,7 @@ void SygusRedundantCons::initialize( QuantifiersEngine * qe, TypeNode tn )
       {
         int j = tds->getKindConsNum( tn, dk );
         if( j!=-1 ){
-          Trace("sygus-split-debug") << "Possible redundant operator : " << ck << " with " << dk << std::endl;
+          Trace("sygus-static-red") << "Possible redundant operator : " << ck << " with " << dk << std::endl;
           //check for type mismatches
           bool success = true;
           for( unsigned k=0; k<2; k++ ){
@@ -95,7 +95,7 @@ void SygusRedundantCons::initialize( QuantifiersEngine * qe, TypeNode tn )
             TypeNode tni = tds->getArgType( dt[i], k );
             TypeNode tnj = tds->getArgType( dt[j], ko );
             if( tni!=tnj ){
-              Trace("sygus-split-debug") << "Argument types " << tni << " and " << tnj << " are not equal." << std::endl;
+              Trace("sygus-static-red") << "Argument types " << tni << " and " << tnj << " are not equal." << std::endl;
               success = false;
               break;
             }
@@ -108,11 +108,11 @@ void SygusRedundantCons::initialize( QuantifiersEngine * qe, TypeNode tn )
       }
     }
     if( nred ){
-      Trace("sygus-split-debug") << "Check " << dt[i].getName() << " based on generic rewriting" << std::endl;
+      Trace("sygus-static-red") << "Check " << dt[i].getName() << " based on generic rewriting" << std::endl;
       std::map< int, Node > pre;
       Node g = tds->mkGeneric( dt, i, pre );
       nred = !computeRedundant( tn, g );
-      Trace("sygus-split-debug") << "...done check " << dt[i].getName() << " based on generic rewriting" << std::endl;
+      Trace("sygus-static-red") << "...done check " << dt[i].getName() << " based on generic rewriting" << std::endl;
     }
     d_sygus_red_status.push_back( nred ? 0 : 1 );
   }

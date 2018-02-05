@@ -178,7 +178,6 @@ private:
   std::map<TypeNode, std::map<Node, int> > d_ops;
   std::map<TypeNode, std::map<int, Node> > d_arg_ops;
   std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
-  std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
   // grammar information
   // root -> type -> _
   std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
