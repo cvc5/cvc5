@@ -61,21 +61,15 @@ class SygusRedundantCons
    * 0 : not redundant,
    * 1 : redundant since another constructor can be used to construct values for
    * this constructor.
-   * 2 : redundant since there exists a term in the enumerator of the registered
-   * type that is equivalent to terms of this constructor.
    *
    * For example, for grammar:
    *   A -> C > B | B < C | not D
    *   B -> x | y
    *   C -> 0 | 1 | C+C
    *   D -> B >= C
-   * If A is register with this class, then we store may store { 0, 1, 2 },
+   * If A is register with this class, then we store may store { 0, 1, 0 },
    * noting that the second constructor of A can be simulated with the first.
-   * The third constructor has a values not ( B >= C ) which are equivalent to
-   * the first constructor.
-   *
-   * If the option sygusMinGrammarAgg() is not used, then we never compute the
-   * value 2 in this vector.
+   * Notice that the third constructor is not considered redundant.
    */
   std::vector<int> d_sygus_red_status;
   /**

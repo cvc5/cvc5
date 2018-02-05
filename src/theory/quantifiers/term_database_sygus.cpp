@@ -221,23 +221,6 @@ unsigned TermDbSygus::getSygusTermSize( Node n ){
   }
 }
 
-unsigned TermDbSygus::getSygusConstructors( Node n, std::vector< Node >& cons ) {
-  Assert( n.getKind()==APPLY_CONSTRUCTOR );
-  Node op = n.getOperator();
-  if( std::find( cons.begin(), cons.end(), op )==cons.end() ){
-    cons.push_back( op );
-  }
-  if( n.getNumChildren()==0 ){
-    return 0;
-  }else{
-    unsigned sum = 0;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      sum += getSygusConstructors( n[i], cons );
-    }
-    return 1+sum;
-  }
-}
-
 class ReqTrie {
 public:
   ReqTrie() : d_req_kind( UNDEFINED_KIND ){}
