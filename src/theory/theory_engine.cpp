@@ -902,6 +902,11 @@ TheoryModel* TheoryEngine::getModel() {
   return d_curr_model;
 }
 
+void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
+{
+  d_quantEngine->getSynthSolutions(sol_map);
+}
+
 bool TheoryEngine::presolve() {
   // Reset the interrupt flag
   d_interrupted = false;
