@@ -323,6 +323,7 @@ private:
 private:
  /** sygus symmetry breaking utility */
  SygusSymBreakNew* d_sygus_sym_break;
+
 public:
   Node getNextDecisionRequest( unsigned& priority );
 };/* class TheoryDatatypes */
