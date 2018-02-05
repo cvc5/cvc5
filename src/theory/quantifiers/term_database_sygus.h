@@ -213,7 +213,7 @@ private:
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
   /** get arg type */
-  TypeNode getArgType( const DatatypeConstructor& c, unsigned i );
+  TypeNode getArgType(const DatatypeConstructor& c, unsigned i);
   /** get first occurrence */
   int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */
@@ -224,8 +224,8 @@ private:
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );
-  /** get sygus constructors 
-   * 
+  /** get sygus constructors
+   *
    * Adds the set of sygus constructors of datatype term n to cons, returns
    * and the sygus term size of n.
    */

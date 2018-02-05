@@ -109,8 +109,12 @@ TypeNode TermDbSygus::getSygusTypeForVar( Node v ) {
   return d_fv_stype[v];
 }
 
-Node TermDbSygus::mkGeneric( const Datatype& dt, unsigned c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre ) {
-  Assert( c<dt.getNumConstructors() );
+Node TermDbSygus::mkGeneric(const Datatype& dt,
+                            unsigned c,
+                            std::map<TypeNode, int>& var_count,
+                            std::map<int, Node>& pre)
+{
+  Assert(c < dt.getNumConstructors());
   Assert( dt.isSygus() );
   Assert( !dt[c].getSygusOp().isNull() );
   std::vector< Node > children;
@@ -119,7 +123,8 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, unsigned c, std::map< TypeNode,
     children.push_back( op );
   }
   Trace("sygus-db-debug") << "mkGeneric " << dt.getName() << " " << op << " " << op.getKind() << "..." << std::endl;
-  for( unsigned i=0, nargs = dt[c].getNumArgs(); i<nargs; i++ ){
+  for (unsigned i = 0, nargs = dt[c].getNumArgs(); i < nargs; i++)
+  {
     TypeNode tna = getArgType( dt[c], i );
     Node a;
     std::map< int, Node >::iterator it = pre.find( i );
@@ -128,7 +133,8 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, unsigned c, std::map< TypeNode,
     }else{
       a = getFreeVarInc( tna, var_count, true );
     }
-    Trace("sygus-db-debug") << "  child " << i << " : " << a << " : " << a.getType() << std::endl;
+    Trace("sygus-db-debug")
+        << "  child " << i << " : " << a << " : " << a.getType() << std::endl;
     Assert( !a.isNull() );
     children.push_back( a );
   }
@@ -785,7 +791,8 @@ unsigned TermDbSygus::getMinTermSize( TypeNode tn ) {
   if( it==d_min_term_size.end() ){
     const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
     for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-      if( dt[i].getNumArgs()==0 ){
+      if (dt[i].getNumArgs() == 0)
+      {
         d_min_term_size[tn] = 0;
         return 0;
       }
@@ -942,8 +949,9 @@ bool TermDbSygus::isConstArg( TypeNode tn, int i ) {
   }
 }
 
-TypeNode TermDbSygus::getArgType( const DatatypeConstructor& c, unsigned i ) {
-  Assert( i<c.getNumArgs() );
+TypeNode TermDbSygus::getArgType(const DatatypeConstructor& c, unsigned i)
+{
+  Assert(i < c.getNumArgs());
   return TypeNode::fromType( ((SelectorType)c[i].getType()).getRangeType() );
 }
 
@@ -1489,9 +1497,6 @@ Node TermDbSygus::evaluateWithUnfolding( Node n ) {
   std::unordered_map<Node, Node, NodeHashFunction> visited;
   return evaluateWithUnfolding( n, visited );
 }
-
-
-
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

@@ -120,9 +120,9 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
 }
 
 void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
-                           TypeObject& to,
-                           const Datatype& dt,
-                           std::vector<unsigned>& op_pos)
+                                             TypeObject& to,
+                                             const Datatype& dt,
+                                             std::vector<unsigned>& op_pos)
 {
   std::vector<unsigned> difference;
   std::set_difference(op_pos.begin(),
@@ -132,7 +132,7 @@ void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
                       std::back_inserter(difference));
   op_pos = difference;
 }
-    
+
 /* TODO #1304: have more operators and types. Moreover, have more general ways
    of finding kind of operator, e.g. if op is (\lambda xy. x + y) this
    function should realize that it is chainable for integers */
@@ -279,30 +279,33 @@ SygusGrammarNorm::Transf* SygusGrammarNorm::inferTransf(
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
-  Trace("sygus-gnorm") << "Infer transf for " << dt.getName() << "..." << std::endl;
-  Trace("sygus-gnorm") << "  #cons = " << op_pos.size() << " / " << dt.getNumConstructors() << std::endl;
+  Trace("sygus-gnorm") << "Infer transf for " << dt.getName() << "..."
+                       << std::endl;
+  Trace("sygus-gnorm") << "  #cons = " << op_pos.size() << " / "
+                       << dt.getNumConstructors() << std::endl;
   // look for redundant constructors to drop
-  if( options::sygusMinGrammar() && dt.getNumConstructors()==op_pos.size() )
+  if (options::sygusMinGrammar() && dt.getNumConstructors() == op_pos.size())
   {
     SygusRedundantCons src;
     src.initialize(d_qe, tn);
     std::vector<unsigned> rindices;
     src.getRedundant(rindices);
-    if(!rindices.empty() )
+    if (!rindices.empty())
     {
-      Trace("sygus-gnorm") << "...drop transf, " << rindices.size() << "/" << op_pos.size() << " constructors." << std::endl;
-      Assert( rindices.size()<op_pos.size() );
+      Trace("sygus-gnorm") << "...drop transf, " << rindices.size() << "/"
+                           << op_pos.size() << " constructors." << std::endl;
+      Assert(rindices.size() < op_pos.size());
       return new TransfDrop(rindices);
     }
-  }  
-  
+  }
+
   /* If normalization option enabled, infer transformations to be applied in the
    * type */
   if (!options::sygusGrammarNorm())
   {
     return nullptr;
   }
-    
+
   /* TODO #1304: step 1: look for singleton */
   /* step 2: look for chain */
   unsigned chain_op_pos = dt.getNumConstructors();

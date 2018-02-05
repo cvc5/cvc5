@@ -189,14 +189,20 @@ Node SygusSymBreakNew::getTermOrderPredicate( Node n1, Node n2 ) {
     TypeNode tnc = n1.getType();
     const Datatype& cdt = ((DatatypeType)(tnc).toType()).getDatatype();
     for( unsigned j=0; j<cdt.getNumConstructors(); j++ ){
-      std::vector< Node > case_conj;
-      for( unsigned k=0; k<j; k++ ){
-        case_conj.push_back( DatatypesRewriter::mkTester( n2, k, cdt ).negate() );
+      std::vector<Node> case_conj;
+      for (unsigned k = 0; k < j; k++)
+      {
+        case_conj.push_back(DatatypesRewriter::mkTester(n2, k, cdt).negate());
       }
-      if( !case_conj.empty() ){
-        Node corder = NodeManager::currentNM()->mkNode( kind::OR, DatatypesRewriter::mkTester( n1, j, cdt ).negate(),
-                                                        case_conj.size()==1 ? case_conj[0] : NodeManager::currentNM()->mkNode( kind::AND, case_conj ) );
-        sz_eq_cases.push_back( corder );
+      if (!case_conj.empty())
+      {
+        Node corder = NodeManager::currentNM()->mkNode(
+            kind::OR,
+            DatatypesRewriter::mkTester(n1, j, cdt).negate(),
+            case_conj.size() == 1
+                ? case_conj[0]
+                : NodeManager::currentNM()->mkNode(kind::AND, case_conj));
+        sz_eq_cases.push_back(corder);
       }
     }
   }
@@ -403,10 +409,13 @@ Node SygusSymBreakNew::getRelevancyCondition( Node n ) {
         std::vector< Node > disj;
         bool excl = false;
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-          int sindexi = dt[i].getSelectorIndexInternal( selExpr );
-          if( sindexi!=-1 ){
-            disj.push_back( DatatypesRewriter::mkTester( n[0], i, dt ) );
-          }else{
+          int sindexi = dt[i].getSelectorIndexInternal(selExpr);
+          if (sindexi != -1)
+          {
+            disj.push_back(DatatypesRewriter::mkTester(n[0], i, dt));
+          }
+          else
+          {
             excl = true;
           }
         }
@@ -584,24 +593,35 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
                 TypeNode tnc = nc.getType();
                 const Datatype& cdt = ((DatatypeType)(tnc).toType()).getDatatype();
                 for( unsigned k=0; k<cdt.getNumConstructors(); k++ ){
-                  Kind nck = d_tds->getConsNumKind( tnc, k );
+                  Kind nck = d_tds->getConsNumKind(tnc, k);
                   bool red = false;
-                  //check if the argument is redundant
-                  if( nck!=UNDEFINED_KIND ){
-                    Trace("sygus-sb-simple-debug") << "  argument " << j << " " << k << " is : " << nck << std::endl;
-                    red = !d_tds->considerArgKind( tnc, tn, nck, nk, j );
-                  }else{
-                    Node cc = d_tds->getConsNumConst( tnc, k  );
-                    if( !cc.isNull() ){
-                      Trace("sygus-sb-simple-debug") << "  argument " << j << " " << k << " is constant : " << cc << std::endl;
-                      red = !d_tds->considerConst( tnc, tn, cc, nk, j );
+                  // check if the argument is redundant
+                  if (nck != UNDEFINED_KIND)
+                  {
+                    Trace("sygus-sb-simple-debug")
+                        << "  argument " << j << " " << k << " is : " << nck
+                        << std::endl;
+                    red = !d_tds->considerArgKind(tnc, tn, nck, nk, j);
+                  }
+                  else
+                  {
+                    Node cc = d_tds->getConsNumConst(tnc, k);
+                    if (!cc.isNull())
+                    {
+                      Trace("sygus-sb-simple-debug")
+                          << "  argument " << j << " " << k
+                          << " is constant : " << cc << std::endl;
+                      red = !d_tds->considerConst(tnc, tn, cc, nk, j);
                     }else{
-                      //defined function?
+                      // defined function?
                     }
                   }
-                  if( red ){
-                    Trace("sygus-sb-simple-debug") << "  ...redundant." << std::endl;
-                    sbp_conj.push_back( DatatypesRewriter::mkTester( nc, k, cdt ).negate() );
+                  if (red)
+                  {
+                    Trace("sygus-sb-simple-debug")
+                        << "  ...redundant." << std::endl;
+                    sbp_conj.push_back(
+                        DatatypesRewriter::mkTester(nc, k, cdt).negate());
                   }
                 }
               }
@@ -1148,9 +1168,6 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
     }
   }
 }
-
-
-
 
 bool SygusSymBreakNew::debugTesters( Node n, Node vn, int ind, std::vector< Node >& lemmas ) {
   Assert( vn.getKind()==kind::APPLY_CONSTRUCTOR );

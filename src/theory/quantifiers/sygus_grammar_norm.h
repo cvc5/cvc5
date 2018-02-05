@@ -254,24 +254,25 @@ class SygusGrammarNorm
                            std::vector<unsigned>& op_pos) = 0;
   }; /* class Transf */
 
-  /** Drop transformation class 
-   * 
+  /** Drop transformation class
+   *
    * This class builds a type by dropping a set of redundant constructors,
    * whose indices are given as input to the constructor of this class.
    */
   class TransfDrop : public Transf
   {
-  public:
-    TransfDrop( std::vector<unsigned>& indices ) : d_drop_indices(indices){}
+   public:
+    TransfDrop(std::vector<unsigned>& indices) : d_drop_indices(indices) {}
     /** build type */
     virtual void buildType(SygusGrammarNorm* sygus_norm,
                            TypeObject& to,
                            const Datatype& dt,
                            std::vector<unsigned>& op_pos);
-  private:
+
+   private:
     std::vector<unsigned> d_drop_indices;
   };
-  
+
   /** Chain transformation class
    *
    * Determines how to build normalized types by chaining the application of one

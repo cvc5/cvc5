@@ -62,7 +62,7 @@ public:
  /** make tester is-C( n ), where C is the i^{th} constructor of dt */
  static Node mkTester(Node n, int i, const Datatype& dt);
  /** make tester split
-  * 
+  *
   * Returns the formula (OR is-C1( n ) ... is-Ck( n ) ), where C1...Ck
   * are the constructors of n's type (dt).
   */
