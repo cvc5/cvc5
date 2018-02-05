@@ -38,6 +38,8 @@ libutil_la_SOURCES = \
 	index.h \
 	maybe.h \
 	ntuple.h \
+	ostream_util.cpp \
+	ostream_util.h \
 	proof.h \
 	regexp.cpp \
 	regexp.h \

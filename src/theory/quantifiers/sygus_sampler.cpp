@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include "options/quantifiers_options.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
@@ -65,7 +66,28 @@ Node LazyTrie::add(Node n,
 
 SygusSampler::SygusSampler() : d_tds(nullptr), d_is_valid(false) {}
 
-void SygusSampler::initialize(TermDbSygus* tds, Node f, unsigned nsamples)
+void SygusSampler::initialize(TypeNode tn,
+                              std::vector<Node>& vars,
+                              unsigned nsamples)
+{
+  d_tds = nullptr;
+  d_is_valid = true;
+  d_tn = tn;
+  d_ftn = TypeNode::null();
+  d_vars.insert(d_vars.end(), vars.begin(), vars.end());
+  for (const Node& sv : vars)
+  {
+    TypeNode svt = sv.getType();
+    d_var_index[sv] = d_type_vars[svt].size();
+    d_type_vars[svt].push_back(sv);
+  }
+  d_rvalue_cindices.clear();
+  d_rvalue_null_cindices.clear();
+  d_var_sygus_types.clear();
+  initializeSamples(nsamples);
+}
+
+void SygusSampler::initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples)
 {
   d_tds = tds;
   d_is_valid = true;
@@ -73,12 +95,12 @@ void SygusSampler::initialize(TermDbSygus* tds, Node f, unsigned nsamples)
   Assert(d_ftn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(d_ftn.toType()).getDatatype();
   Assert(dt.isSygus());
+  d_tn = TypeNode::fromType(dt.getSygusType());
 
   Trace("sygus-sample") << "Register sampler for " << f << std::endl;
 
   d_var_index.clear();
   d_type_vars.clear();
-  std::vector<TypeNode> types;
   // get the sygus variable list
   Node var_list = Node::fromExpr(dt.getSygusVarList());
   if (!var_list.isNull())
@@ -87,40 +109,117 @@ void SygusSampler::initialize(TermDbSygus* tds, Node f, unsigned nsamples)
     {
       TypeNode svt = sv.getType();
       d_var_index[sv] = d_type_vars[svt].size();
+      d_vars.push_back(sv);
       d_type_vars[svt].push_back(sv);
-      types.push_back(svt);
-      Trace("sygus-sample") << "  var #" << types.size() << " : " << sv << " : "
-                            << svt << std::endl;
+    }
+  }
+  d_rvalue_cindices.clear();
+  d_rvalue_null_cindices.clear();
+  d_var_sygus_types.clear();
+  registerSygusType(d_ftn);
+  initializeSamples(nsamples);
+}
+
+void SygusSampler::initializeSamples(unsigned nsamples)
+{
+  d_samples.clear();
+  std::vector<TypeNode> types;
+  for (const Node& v : d_vars)
+  {
+    TypeNode vt = v.getType();
+    types.push_back(vt);
+    Trace("sygus-sample") << "  var #" << types.size() << " : " << v << " : "
+                          << vt << std::endl;
+  }
+  std::map<unsigned, std::map<Node, std::vector<TypeNode> >::iterator> sts;
+  if (options::sygusSampleGrammar())
+  {
+    for (unsigned j = 0, size = types.size(); j < size; j++)
+    {
+      sts[j] = d_var_sygus_types.find(d_vars[j]);
     }
   }
 
-  d_samples.clear();
+  unsigned nduplicates = 0;
   for (unsigned i = 0; i < nsamples; i++)
   {
     std::vector<Node> sample_pt;
-    Trace("sygus-sample") << "Sample point #" << i << " : ";
     for (unsigned j = 0, size = types.size(); j < size; j++)
     {
-      Node r = getRandomValue(types[j]);
+      Node v = d_vars[j];
+      Node r;
+      if (options::sygusSampleGrammar())
+      {
+        // choose a random start sygus type, if possible
+        if (sts[j] != d_var_sygus_types.end())
+        {
+          unsigned ntypes = sts[j]->second.size();
+          Assert(ntypes > 0);
+          unsigned index = Random::getRandom().pick(0, ntypes - 1);
+          if (index < ntypes)
+          {
+            // currently hard coded to 0.0, 0.5
+            r = getSygusRandomValue(sts[j]->second[index], 0.0, 0.5);
+          }
+        }
+      }
       if (r.isNull())
       {
-        Trace("sygus-sample") << "INVALID";
-        d_is_valid = false;
+        r = getRandomValue(types[j]);
+        if (r.isNull())
+        {
+          d_is_valid = false;
+        }
       }
-      Trace("sygus-sample") << r << " ";
       sample_pt.push_back(r);
     }
-    Trace("sygus-sample") << std::endl;
-    d_samples.push_back(sample_pt);
+    if (d_samples_trie.add(sample_pt))
+    {
+      if (Trace.isOn("sygus-sample"))
+      {
+        Trace("sygus-sample") << "Sample point #" << i << " : ";
+        for (const Node& r : sample_pt)
+        {
+          Trace("sygus-sample") << r << " ";
+        }
+        Trace("sygus-sample") << std::endl;
+      }
+      d_samples.push_back(sample_pt);
+    }
+    else
+    {
+      i--;
+      nduplicates++;
+      if (nduplicates == nsamples * 10)
+      {
+        Trace("sygus-sample")
+            << "...WARNING: excessive duplicates, cut off sampling at " << i
+            << "/" << nsamples << " points." << std::endl;
+        break;
+      }
+    }
   }
 
   d_trie.clear();
+}
+
+bool SygusSampler::PtTrie::add(std::vector<Node>& pt)
+{
+  PtTrie* curr = this;
+  for (unsigned i = 0, size = pt.size(); i < size; i++)
+  {
+    curr = &(curr->d_children[pt[i]]);
+  }
+  bool retVal = curr->d_children.empty();
+  curr = &(curr->d_children[Node::null()]);
+  return retVal;
 }
 
 Node SygusSampler::registerTerm(Node n, bool forceKeep)
 {
   if (d_is_valid)
   {
+    Assert(n.getType() == d_tn);
     return d_trie.add(n, this, 0, d_samples.size(), forceKeep);
   }
   return n;
@@ -254,10 +353,20 @@ bool SygusSampler::containsFreeVariables(Node a, Node b)
   return true;
 }
 
+void SygusSampler::getSamplePoint(unsigned index, std::vector<Node>& pt)
+{
+  Assert(index < d_samples.size());
+  std::vector<Node>& spt = d_samples[index];
+  pt.insert(pt.end(), spt.begin(), spt.end());
+}
+
 Node SygusSampler::evaluate(Node n, unsigned index)
 {
   Assert(index < d_samples.size());
-  Node ev = d_tds->evaluateBuiltin(d_ftn, n, d_samples[index]);
+  // just a substitution
+  std::vector<Node>& pt = d_samples[index];
+  Node ev = n.substitute(d_vars.begin(), d_vars.end(), pt.begin(), pt.end());
+  ev = Rewriter::rewrite(ev);
   Trace("sygus-sample-ev") << "( " << n << ", " << index << " ) -> " << ev
                            << std::endl;
   return ev;
@@ -348,6 +457,109 @@ Node SygusSampler::getRandomValue(TypeNode tn)
     }
   }
   return Node::null();
+}
+
+Node SygusSampler::getSygusRandomValue(TypeNode tn,
+                                       double rchance,
+                                       double rinc,
+                                       unsigned depth)
+{
+  Assert(tn.isDatatype());
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  Assert(dt.isSygus());
+  Assert(d_rvalue_cindices.find(tn) != d_rvalue_cindices.end());
+  Trace("sygus-sample-grammar") << "Sygus random value " << tn
+                                << ", depth = " << depth
+                                << ", rchance = " << rchance << std::endl;
+  // check if we terminate on this call
+  // we refuse to enumerate terms of 10+ depth as a hard limit
+  bool terminate = Random::getRandom().pickWithProb(rchance) || depth >= 10;
+  // if we terminate, only nullary constructors can be chosen
+  std::vector<unsigned>& cindices =
+      terminate ? d_rvalue_null_cindices[tn] : d_rvalue_cindices[tn];
+  unsigned ncons = cindices.size();
+  // select a random constructor, or random value when index=ncons.
+  unsigned index = Random::getRandom().pick(0, ncons);
+  Trace("sygus-sample-grammar") << "Random index 0..." << ncons
+                                << " was : " << index << std::endl;
+  if (index < ncons)
+  {
+    Trace("sygus-sample-grammar") << "Recurse constructor index #" << index
+                                  << std::endl;
+    unsigned cindex = cindices[index];
+    Assert(cindex < dt.getNumConstructors());
+    const DatatypeConstructor& dtc = dt[cindex];
+    // more likely to terminate in recursive calls
+    double rchance_new = rchance + (1.0 - rchance) * rinc;
+    std::map<int, Node> pre;
+    bool success = true;
+    // generate random values for all arguments
+    for (unsigned i = 0, nargs = dtc.getNumArgs(); i < nargs; i++)
+    {
+      TypeNode tnc = d_tds->getArgType(dtc, i);
+      Node c = getSygusRandomValue(tnc, rchance_new, rinc, depth + 1);
+      if (c.isNull())
+      {
+        success = false;
+        Trace("sygus-sample-grammar") << "...fail." << std::endl;
+        break;
+      }
+      Trace("sygus-sample-grammar") << "  child #" << i << " : " << c
+                                    << std::endl;
+      pre[i] = c;
+    }
+    if (success)
+    {
+      Trace("sygus-sample-grammar") << "mkGeneric" << std::endl;
+      Node ret = d_tds->mkGeneric(dt, cindex, pre);
+      Trace("sygus-sample-grammar") << "...returned " << ret << std::endl;
+      ret = Rewriter::rewrite(ret);
+      Trace("sygus-sample-grammar") << "...after rewrite " << ret << std::endl;
+      Assert(ret.isConst());
+      return ret;
+    }
+  }
+  Trace("sygus-sample-grammar") << "...resort to random value" << std::endl;
+  // if we did not generate based on the grammar, pick a random value
+  return getRandomValue(TypeNode::fromType(dt.getSygusType()));
+}
+
+// recursion depth bounded by number of types in grammar (small)
+void SygusSampler::registerSygusType(TypeNode tn)
+{
+  if (d_rvalue_cindices.find(tn) == d_rvalue_cindices.end())
+  {
+    d_rvalue_cindices[tn].clear();
+    Assert(tn.isDatatype());
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    Assert(dt.isSygus());
+    for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+    {
+      const DatatypeConstructor& dtc = dt[i];
+      Node sop = Node::fromExpr(dtc.getSygusOp());
+      bool isVar = std::find(d_vars.begin(), d_vars.end(), sop) != d_vars.end();
+      if (isVar)
+      {
+        // if it is a variable, add it to the list of sygus types for that var
+        d_var_sygus_types[sop].push_back(tn);
+      }
+      else
+      {
+        // otherwise, it is a constructor for sygus random value
+        d_rvalue_cindices[tn].push_back(i);
+        if (dtc.getNumArgs() == 0)
+        {
+          d_rvalue_null_cindices[tn].push_back(i);
+        }
+      }
+      // recurse on all subfields
+      for (unsigned j = 0, nargs = dtc.getNumArgs(); j < nargs; j++)
+      {
+        TypeNode tnc = d_tds->getArgType(dtc, j);
+        registerSygusType(tnc);
+      }
+    }
+  }
 }
 
 } /* CVC4::theory::quantifiers namespace */

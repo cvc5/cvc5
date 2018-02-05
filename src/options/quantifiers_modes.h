@@ -216,6 +216,16 @@ enum CegqiSingleInvMode {
   CEGQI_SI_MODE_ALL,
 };
 
+enum CegisSampleMode
+{
+  /** do not use samples for CEGIS */
+  CEGIS_SAMPLE_NONE,
+  /** use samples for CEGIS */
+  CEGIS_SAMPLE_USE,
+  /** trust samples for CEGQI */
+  CEGIS_SAMPLE_TRUST,
+};
+
 enum SygusInvTemplMode {
   /** synthesize I( x ) */
   SYGUS_INV_TEMPL_MODE_NONE,
