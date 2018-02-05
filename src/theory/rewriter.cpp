@@ -251,7 +251,6 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
   }
 
   Unreachable();
-  return Node::null();
 }/* Rewriter::rewriteTo() */
 
 void Rewriter::clearCaches() {
