@@ -91,7 +91,7 @@ class ReconstructTrie
 void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
 {
   Assert(qe != nullptr);
-  Trace("sygus-red") << "Initialize for " << tn << std::endl;
+  Trace("sygus-red") << "Compute redundant cons for " << tn << std::endl;
   d_type = tn;
   Assert(tn.isDatatype());
   TermDbSygus* tds = qe->getTermDatabaseSygus();
@@ -101,57 +101,39 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
   TypeNode btn = TypeNode::fromType(dt.getSygusType());
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
-    bool nred = true;
-    Trace("sygus-red-debug")
-        << "Is " << dt[i].getName() << " a redundant operator?" << std::endl;
-    Kind ck = tds->getConsNumKind(tn, i);
-    if (ck != UNDEFINED_KIND)
+    Trace("sygus-red") << "  Is " << dt[i].getName() << " a redundant operator?" << std::endl;
+    std::map<int, Node> pre;
+    Node g = tds->mkGeneric(dt, i, pre);
+    Trace("sygus-red-debug") << "  ...pre-rewrite : " << g << std::endl;
+    Assert( g.getNumChildren()==dt[i].getNumArgs() );
+    d_gen_terms[i] = g;
+    for( unsigned j=0, nargs = dt[i].getNumArgs(); j<nargs; j++ )
     {
-      Kind dk;
-      if (TermUtil::isAntisymmetric(ck, dk))
+      pre[j] = g[j];
+    }
+    std::vector< Node > glist;
+    getGenericList( tds, dt, i, 0, pre, glist );
+    // call the extended rewriter
+    bool red = false;
+    for( const Node& gr : glist )
+    {
+      Trace("sygus-red-debug") << "  ...variant : " << gr << std::endl;
+      std::map<Node, unsigned>::iterator itg = d_gen_cons.find(gr);
+      if (itg != d_gen_cons.end() && itg->second!=i)
       {
-        int j = tds->getKindConsNum(tn, dk);
-        if (j != -1)
-        {
-          Trace("sygus-red-debug") << "Possible redundant operator : " << ck
-                                   << " with " << dk << std::endl;
-          // check for type mismatches
-          bool success = true;
-          for (unsigned k = 0; k < 2; k++)
-          {
-            unsigned ko = k == 0 ? 1 : 0;
-            TypeNode tni = tds->getArgType(dt[i], k);
-            TypeNode tnj = tds->getArgType(dt[j], ko);
-            if (tni != tnj)
-            {
-              Trace("sygus-red-debug") << "Argument types " << tni << " and "
-                                       << tnj << " are not equal." << std::endl;
-              success = false;
-              break;
-            }
-          }
-          if (success)
-          {
-            Trace("sygus-red")
-                << "* Sygus norm " << dt.getName() << " : do not consider any "
-                << ck << " terms." << std::endl;
-            nred = false;
-          }
-        }
+        red = true;
+        Trace("sygus-red") << "  ......redundant, since a variant of " << g
+                            << " and " << d_gen_terms[itg->second] << " both rewrite to " << gr
+                            << std::endl;
+        break;
+      }
+      else
+      {
+        d_gen_cons[gr] = i;
+        Trace("sygus-red") << "  ......not redundant." << std::endl;
       }
     }
-    if (nred)
-    {
-      Trace("sygus-red-debug") << "Check " << dt[i].getName()
-                               << " based on generic rewriting" << std::endl;
-      std::map<int, Node> pre;
-      Node g = tds->mkGeneric(dt, i, pre);
-      Trace("sygus-red-debug") << "...generic term is " << g << std::endl;
-      nred = !computeRedundant(tn, g);
-      Trace("sygus-red-debug") << "...done check " << dt[i].getName()
-                               << " based on generic rewriting" << std::endl;
-    }
-    d_sygus_red_status.push_back(nred ? 0 : 1);
+    d_sygus_red_status.push_back(red ? 1 : 0);
   }
   // run an enumerator for this type
   if (options::sygusMinGrammarAgg())
@@ -270,41 +252,6 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
   }
 }
 
-bool SygusRedundantCons::computeRedundant(TypeNode tn, Node g)
-{
-  // everything added to this cache should be mutually exclusive cases
-  std::map<Node, bool>::iterator it = d_gen_redundant.find(g);
-  if (it != d_gen_redundant.end())
-  {
-    return it->second;
-  }
-  Trace("sygus-red-debug") << "Register generic for " << tn << " : " << g
-                           << std::endl;
-  Node gr = Rewriter::rewrite(g);
-  Trace("sygus-red-debug") << "Generic " << g << " rewrites to " << gr
-                           << std::endl;
-  std::map<Node, Node>::iterator itg = d_gen_terms.find(gr);
-  bool red = true;
-  if (itg == d_gen_terms.end())
-  {
-    red = false;
-    d_gen_terms[gr] = g;
-    Trace("sygus-red-debug") << "...not redundant." << std::endl;
-    Trace("sygus-red-debug")
-        << "*** Sygus (generic) normal form : normal form of " << g << " is "
-        << gr << std::endl;
-  }
-  else
-  {
-    Trace("sygus-red-debug") << "...redundant." << std::endl;
-    Trace("sygus-red") << "* Sygus normal form : simplify since " << g
-                       << " and " << itg->second << " both rewrite to " << gr
-                       << std::endl;
-  }
-  d_gen_redundant[g] = red;
-  return red;
-}
-
 void SygusRedundantCons::getRedundant(std::vector<unsigned>& indices)
 {
   const Datatype& dt = static_cast<DatatypeType>(d_type.toType()).getDatatype();
@@ -325,6 +272,38 @@ bool SygusRedundantCons::isRedundant(unsigned i)
     return d_sygus_red_status[i] != 0;
   }
   return d_sygus_red_status[i] == 1;
+}
+
+void SygusRedundantCons::getGenericList( TermDbSygus* tds, const Datatype& dt,
+                                        unsigned c, unsigned index, 
+                                        std::map< int, Node >& pre, std::vector< Node >& terms )
+{
+  if( index==dt[c].getNumArgs() )
+  {
+    Node gt = tds->mkGeneric(dt,c,pre);
+    gt = tds->getExtRewriter()->extendedRewrite(gt);
+    terms.push_back(gt);
+    return;
+  }
+  // with no swap
+  getGenericList( tds, dt, c, index+1, pre, terms );
+  TypeNode atype = tds->getArgType(dt[c], index);
+  for( unsigned s=index+1, nargs = dt[c].getNumArgs(); s<nargs; s++ )
+  {
+    if( tds->getArgType(dt[c], s )==atype )
+    {
+      // swap s and index
+      Node tmp = pre[s];
+      pre[s] = pre[index];
+      pre[index] = tmp;
+      getGenericList( tds, dt, c, index+1, pre, terms );
+      // revert
+      tmp = pre[s];
+      pre[s] = pre[index];
+      pre[index] = tmp;
+    }
+  }
+  
 }
 
 } /* CVC4::theory::quantifiers namespace */

@@ -299,8 +299,8 @@ SygusGrammarNorm::Transf* SygusGrammarNorm::inferTransf(
     }
   }
 
-  /* If normalization option enabled, infer transformations to be applied in the
-   * type */
+  // if normalization option is not enabled, we do not infer the transformations
+  // below
   if (!options::sygusGrammarNorm())
   {
     return nullptr;

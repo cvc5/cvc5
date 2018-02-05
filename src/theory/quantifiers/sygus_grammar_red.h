@@ -27,8 +27,7 @@ namespace quantifiers {
 /** SygusRedundantCons
  *
  * This class computes the subset of indices of the constructors of a sygus type
- * that are redundant. To use this class, first call:
- *   initialize( qe, tn );
+ * that are redundant. To use this class, first call initialize( qe, tn ),
  * where tn is a sygus tn. Then, use getRedundant and/or isRedundant to get the
  * indicies of the constructors of tn that are redundant.
  */
@@ -79,12 +78,31 @@ class SygusRedundantCons
    * value 2 in this vector.
    */
   std::vector<int> d_sygus_red_status;
-  /** generic terms */
-  std::map<Node, Node> d_gen_terms;
-  /** generic redundant */
-  std::map<Node, bool> d_gen_redundant;
-  /** compute whether term g */
-  bool computeRedundant(TypeNode tn, Node g);
+  /** 
+   * Map from constructor indices to the generic term for that constructor, 
+   * where the generic term for a constructor is the (canonical) term returned
+   * by a call to TermDbSygus::mkGeneric.
+   */
+  std::map<unsigned, Node > d_gen_terms;
+  /** 
+   * Map from the rewritten form of generic terms for constructors of the 
+   * registered type to their corresponding constructor index.
+   */
+  std::map<Node, unsigned> d_gen_cons;
+  /** get generic list 
+   * 
+   * Given a term g of the form op( x1, ..., xn ), this function
+   * constructs a list of terms of the form g * sigma, where sigma is
+   * an automorphism on { x1...xn } such that for all xi -> xj in sigma,
+   * the sygus for arguments i and j of dt[c] are the same. We store this
+   * list of terms in terms.  
+   * 
+   * This function recurses on the arguments of g, index is the current argument
+   * we are processing.
+   */
+  void getGenericList( TermDbSygus* tds, const Datatype& dt,
+                      unsigned c, unsigned index, 
+                      std::map< int, Node >& pre, std::vector< Node >& terms );
 };
 
 } /* CVC4::theory::quantifiers namespace */
