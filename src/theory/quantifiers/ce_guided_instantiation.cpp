@@ -238,17 +238,33 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
 
 void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vector< Node >& vs, std::vector< Node >& ms, std::vector< Node >& lems ) {
   Trace("sygus-cref-eval") << "Cref eval : conjecture has " << conj->getNumRefinementLemmas() << " refinement lemmas." << std::endl;
-  if( conj->getNumRefinementLemmas()>0 ){
+  unsigned nlemmas = conj->getNumRefinementLemmas();
+  if (nlemmas > 0 || options::cegisSample() != CEGIS_SAMPLE_NONE)
+  {
     Assert( vs.size()==ms.size() );
 
     TermDbSygus* tds = d_quantEngine->getTermDatabaseSygus();
     Node nfalse = d_quantEngine->getTermUtil()->d_false;
     Node neg_guard = conj->getGuard().negate();
-    for( unsigned i=0; i<conj->getNumRefinementLemmas(); i++ ){
+    for (unsigned i = 0; i <= nlemmas; i++)
+    {
+      if (i == nlemmas)
+      {
+        bool addedSample = false;
+        // find a new one by sampling, if applicable
+        if (options::cegisSample() != CEGIS_SAMPLE_NONE)
+        {
+          addedSample = conj->sampleAddRefinementLemma(ms, lems);
+        }
+        if (!addedSample)
+        {
+          return;
+        }
+      }
       Node lem;
       std::map< Node, Node > visited;
       std::map< Node, std::vector< Node > > exp;
-      lem = conj->getRefinementBaseLemma( i );
+      lem = conj->getRefinementLemma(i);
       if( !lem.isNull() ){
         std::vector< Node > lem_conj;
         //break into conjunctions
@@ -310,11 +326,25 @@ void CegInstantiation::getCRefEvaluationLemmas( CegConjecture * conj, std::vecto
 }
 
 void CegInstantiation::printSynthSolution( std::ostream& out ) {
-  if( d_conj->isAssigned() ){
-    // print the conjecture
+  if( d_conj->isAssigned() )
+  {
     d_conj->printSynthSolution( out, d_last_inst_si );
-  }else{
+  }
+  else
+  {
     Assert( false );
+  }
+}
+
+void CegInstantiation::getSynthSolutions(std::map<Node, Node>& sol_map)
+{
+  if (d_conj->isAssigned())
+  {
+    d_conj->getSynthSolutions(sol_map, d_last_inst_si);
+  }
+  else
+  {
+    Assert(false);
   }
 }
 
