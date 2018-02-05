@@ -103,7 +103,7 @@ class TermDbSygus {
    *     and var_count[Ti] is incremented.
    */
   Node mkGeneric(const Datatype& dt,
-                 int c,
+                 unsigned c,
                  std::map<TypeNode, int>& var_count,
                  std::map<int, Node>& pre);
   /** same as above, but with empty var_count */
@@ -213,7 +213,7 @@ private:
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
   /** get arg type */
-  TypeNode getArgType( const DatatypeConstructor& c, int i );
+  TypeNode getArgType( const DatatypeConstructor& c, unsigned i );
   /** get first occurrence */
   int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */
