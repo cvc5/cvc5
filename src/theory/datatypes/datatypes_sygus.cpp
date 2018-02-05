@@ -182,7 +182,7 @@ Node SygusSymBreakNew::getTermOrderPredicate( Node n1, Node n2 ) {
       nm->mkNode(GT, nm->mkNode(DT_SIZE, n1), nm->mkNode(DT_SIZE, n2));
   comm_disj.push_back( sz_less );
   // (2) ...or sizes are equal and first child is less by term order
-  std::vector< Node > sz_eq_cases;
+  std::vector<Node> sz_eq_cases;
   Node sz_eq =
       nm->mkNode(EQUAL, nm->mkNode(DT_SIZE, n1), nm->mkNode(DT_SIZE, n2));
   sz_eq_cases.push_back( sz_eq );
