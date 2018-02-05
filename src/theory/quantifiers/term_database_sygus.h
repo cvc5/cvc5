@@ -120,8 +120,6 @@ private:
   std::map<TypeNode, std::map<Node, int> > d_ops;
   std::map<TypeNode, std::map<int, Node> > d_arg_ops;
   std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
-  // normalized map
-  std::map<TypeNode, std::map<Node, Node> > d_normalized;
   std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
   // grammar information
   // root -> type -> _
@@ -172,7 +170,11 @@ private:
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );
-  // returns size
+  /** get sygus constructors 
+   * 
+   * Adds the set of sygus constructors of datatype term n to cons, returns
+   * and the sygus term size of n.
+   */
   unsigned getSygusConstructors( Node n, std::vector< Node >& cons );
   /** given a term, construct an equivalent smaller one that respects syntax */
   Node minimizeBuiltinTerm( Node n );
@@ -227,18 +229,8 @@ public:
   Node evaluateWithUnfolding(
       Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
   Node evaluateWithUnfolding( Node n );
-//for calculating redundant operators
-private:
-  //whether each constructor is redundant
-  // 0 : not redundant, 1 : redundant, 2 : partially redundant
-  std::map< TypeNode, std::vector< int > > d_sygus_red_status;
-  // type to (rewritten) to original
-  std::map< TypeNode, std::map< Node, Node > > d_gen_terms;
-  std::map< TypeNode, std::map< Node, bool > > d_gen_redundant;
-  //compute generic redundant
-  bool computeGenericRedundant( TypeNode tn, Node g );
-public:
-  bool isGenericRedundant( TypeNode tn, unsigned i );
+  
+  bool isGenericRedundant( TypeNode tn, unsigned i ) { return false; }
 };
 
 }/* CVC4::theory::quantifiers namespace */

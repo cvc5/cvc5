@@ -21,6 +21,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus_grammar_red.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -118,6 +119,20 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
   Trace("sygus-grammar-normalize") << "---------------------------------\n";
 }
 
+void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
+                           TypeObject& to,
+                           const Datatype& dt,
+                           std::vector<unsigned>& op_pos)
+{
+  std::vector<unsigned> difference;
+  std::set_difference(op_pos.begin(),
+                      op_pos.end(),
+                      d_drop_indices.begin(),
+                      d_drop_indices.end(),
+                      std::back_inserter(difference));
+  op_pos = difference;
+}
+    
 /* TODO #1304: have more operators and types. Moreover, have more general ways
    of finding kind of operator, e.g. if op is (\lambda xy. x + y) this
    function should realize that it is chainable for integers */
@@ -264,7 +279,21 @@ SygusGrammarNorm::Transf* SygusGrammarNorm::inferTransf(
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
-  /* TODO #1304: step 0: look for redundant constructors to drop */
+  // look for redundant constructors to drop
+  if( options::sygusMinGrammar() && dt.getNumConstructors()==op_pos.size() )
+  {
+    SygusRedundantCons src;
+    src.initialize(d_qe, tn);
+    std::vector<unsigned> rindices;
+    src.getRedundant(rindices);
+    if(!rindices.empty() )
+    {
+      Trace("sygus-grammar-normalize-infer") << "Drop " << rindices.size() << "/" << op_pos.size() << " constructors." << std::endl;
+      Assert( rindices.size()<op_pos.size() );
+      return new TransfDrop(rindices);
+    }
+  }  
+  
   /* TODO #1304: step 1: look for singleton */
   /* step 2: look for chain */
   unsigned chain_op_pos = dt.getNumConstructors();
