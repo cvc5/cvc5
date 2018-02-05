@@ -291,20 +291,24 @@ void SygusRedundantCons::getGenericList(TermDbSygus* tds,
   }
   // with no swap
   getGenericList(tds, dt, c, index + 1, pre, terms);
-  TypeNode atype = tds->getArgType(dt[c], index);
-  for (unsigned s = index + 1, nargs = dt[c].getNumArgs(); s < nargs; s++)
+  // swapping is exponential, only use for operators with small # args.
+  if( dt[c].getNumArgs()<=5 )
   {
-    if (tds->getArgType(dt[c], s) == atype)
+    TypeNode atype = tds->getArgType(dt[c], index);
+    for (unsigned s = index + 1, nargs = dt[c].getNumArgs(); s < nargs; s++)
     {
-      // swap s and index
-      Node tmp = pre[s];
-      pre[s] = pre[index];
-      pre[index] = tmp;
-      getGenericList(tds, dt, c, index + 1, pre, terms);
-      // revert
-      tmp = pre[s];
-      pre[s] = pre[index];
-      pre[index] = tmp;
+      if (tds->getArgType(dt[c], s) == atype)
+      {
+        // swap s and index
+        Node tmp = pre[s];
+        pre[s] = pre[index];
+        pre[index] = tmp;
+        getGenericList(tds, dt, c, index + 1, pre, terms);
+        // revert
+        tmp = pre[s];
+        pre[s] = pre[index];
+        pre[index] = tmp;
+      }
     }
   }
 }
