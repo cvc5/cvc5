@@ -283,8 +283,6 @@ public:
   Node evaluateWithUnfolding(
       Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
   Node evaluateWithUnfolding( Node n );
-  
-  bool isGenericRedundant( TypeNode tn, unsigned i ) { return false; }
 };
 
 }/* CVC4::theory::quantifiers namespace */

@@ -321,8 +321,7 @@ private:
   bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
 private:
-  /** sygus utilities */
-  SygusSplitNew * d_sygus_split;
+  /** sygus symmetry breaking utility */
   SygusSymBreakNew * d_sygus_sym_break;
 public:
   Node getNextDecisionRequest( unsigned& priority );

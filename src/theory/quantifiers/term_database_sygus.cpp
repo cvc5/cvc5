@@ -785,11 +785,9 @@ unsigned TermDbSygus::getMinTermSize( TypeNode tn ) {
   if( it==d_min_term_size.end() ){
     const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
     for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-      if( !isGenericRedundant( tn, i ) ){
-        if( dt[i].getNumArgs()==0 ){
-          d_min_term_size[tn] = 0;
-          return 0;
-        }
+      if( dt[i].getNumArgs()==0 ){
+        d_min_term_size[tn] = 0;
+        return 0;
       }
     }
     // TODO : improve
@@ -802,7 +800,6 @@ unsigned TermDbSygus::getMinTermSize( TypeNode tn ) {
 
 unsigned TermDbSygus::getMinConsTermSize( TypeNode tn, unsigned cindex ) {
   Assert( isRegistered( tn ) );
-  Assert( !isGenericRedundant( tn, cindex ) );
   std::map< unsigned, unsigned >::iterator it = d_min_cons_term_size[tn].find( cindex );
   if( it==d_min_cons_term_size[tn].end() ){
     const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
