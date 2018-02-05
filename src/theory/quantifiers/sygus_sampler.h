@@ -194,6 +194,19 @@ class SygusSampler : public LazyTrieEvaluator
   TermDbSygus* d_tds;
   /** samples */
   std::vector<std::vector<Node> > d_samples;
+  /** data structure to check duplication of sample points */
+  class PtTrie
+  {
+   public:
+    /** add pt to this trie, returns true if pt is not a duplicate. */
+    bool add(std::vector<Node>& pt);
+
+   private:
+    /** the children of this node */
+    std::map<Node, PtTrie> d_children;
+  };
+  /** a trie for samples */
+  PtTrie d_samples_trie;
   /** type of nodes we will be registering with this class */
   TypeNode d_tn;
   /** the sygus type for this sampler (if applicable). */
@@ -246,11 +259,45 @@ class SygusSampler : public LazyTrieEvaluator
    * length, currently by a repeated coin flip.
    * Real : returns the division of two random integers, where the denominator
    * is omitted if it is zero.
-   *
-   * TODO (#1549): improve this function. Can use the grammar to generate
-   * interesting sample points.
    */
   Node getRandomValue(TypeNode tn);
+  /** get sygus random value
+   *
+   * Returns a random value based on the sygus type tn. The return value is
+   * a constant in the analog type of tn. This function chooses either to
+   * return a random value, or otherwise will construct a constant based on
+   * a random constructor of tn whose builtin operator is not a variable.
+   *
+   * rchance: the chance that the call to this function will be forbidden
+   * from making recursive calls and instead must return a value based on
+   * a nullary constructor of tn or based on getRandomValue above.
+   * rinc: the percentage to increment rchance on recursive calls.
+   *
+   * For example, consider the grammar:
+   *   A -> x | y | 0 | 1 | +( A, A ) | ite( B, A, A )
+   *   B -> A = A
+   * If we call this function on A and rchance is 0.0, there are five evenly
+   * chosen possibilities, either we return a random value via getRandomValue
+   * above, or we choose one of the four non-variable constructors of A.
+   * Say we choose ite, then we recursively call this function for
+   * B, A, and A, which return constants c1, c2, and c3. Then, this function
+   * returns the rewritten form of ite( c1, c2, c3 ).
+   * If on the other hand, rchance was 0.5 and rand() < 0.5. Then, we force
+   * this call to terminate by either selecting a random value via
+   * getRandomValue, 0 or 1.
+   */
+  Node getSygusRandomValue(TypeNode tn,
+                           double rchance,
+                           double rinc,
+                           unsigned depth = 0);
+  /** map from sygus types to non-variable constructors */
+  std::map<TypeNode, std::vector<unsigned> > d_rvalue_cindices;
+  /** map from sygus types to non-variable nullary constructors */
+  std::map<TypeNode, std::vector<unsigned> > d_rvalue_null_cindices;
+  /** map from variables to sygus types that include them */
+  std::map<Node, std::vector<TypeNode> > d_var_sygus_types;
+  /** register sygus type, intializes the above two data structures */
+  void registerSygusType(TypeNode tn);
 };
 
 } /* CVC4::theory::quantifiers namespace */
