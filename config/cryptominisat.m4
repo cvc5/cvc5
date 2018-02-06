@@ -20,12 +20,21 @@ elif test -n "$with_cryptominisat"; then
       [--with-cryptominisat-dir=PATH],
       [path to top level of cryptominisat source tree]
     ),
-    [CRYPTOMINISAT_HOME="$withval"],
-    [ if test -z "$CRYPTOMINISAT_HOME"; then
+    CRYPTOMINISAT_HOME="$withval",
+    [ if test -z "$CRYPTOMINISAT_HOME" && ! test -e "$ac_abs_confdir/cryptominisat4/install/bin/cryptominisat"; then
         AC_MSG_FAILURE([must give --with-cryptominisat-dir=PATH or define environment variable CRYPTOMINISAT_HOME!])
       fi
     ]
   )
+
+  # Check if cryptominisat4 was installed via contrib/get-cryptominisat4
+  AC_MSG_CHECKING([whether Cryptominisat4 was already installed via contrib/get-cryptominisat4])
+  if test -z "$CRYPTOMINISAT_HOME" && test -e "$ac_abs_confdir/cryptominisat4/install/bin/cryptominisat"; then
+    CRYPTOMINISAT_HOME="$ac_abs_confdir/cryptominisat4"
+    AC_MSG_RESULT([yes, $CRYPTOMINISAT_HOME])
+  else
+    AC_MSG_RESULT([no])
+  fi
 
   if ! test -d "$CRYPTOMINISAT_HOME" || ! test -x "$CRYPTOMINISAT_HOME/install/bin/cryptominisat" ; then
     AC_MSG_FAILURE([either $CRYPTOMINISAT_HOME is not an cryptominisat install tree or it's not yet built])
