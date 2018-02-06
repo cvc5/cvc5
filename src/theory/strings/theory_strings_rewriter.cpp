@@ -1945,26 +1945,22 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     std::size_t p = s.find(t);
     if (p == std::string::npos)
     {
-      if (node[0].isConst())
+      if (children0.size()==1)
       {
         return returnRewrite(node, node[0], "rpl-const-nfind");
       }
-      else
+      if (s.overlap(t) == 0)
       {
-        if (s.overlap(t) == 0)
-        {
-          std::vector<Node> spl;
-          spl.insert(spl.end(), children0.begin() + 1, children0.end());
-          Node ret = NodeManager::currentNM()->mkNode(
-              kind::STRING_CONCAT,
-              children0[0],
-              NodeManager::currentNM()->mkNode(
-                  kind::STRING_STRREPL,
-                  mkConcat(kind::STRING_CONCAT, spl),
-                  node[1],
-                  node[2]));
-          return returnRewrite(node, ret, "rpl-prefix-nfind");
-        }
+        std::vector<Node> spl(children0.begin() + 1, children0.end());
+        Node ret = NodeManager::currentNM()->mkNode(
+            kind::STRING_CONCAT,
+            children0[0],
+            NodeManager::currentNM()->mkNode(
+                kind::STRING_STRREPL,
+                mkConcat(kind::STRING_CONCAT, spl),
+                node[1],
+                node[2]));
+        return returnRewrite(node, ret, "rpl-prefix-nfind");
       }
     }
     else
