@@ -235,10 +235,43 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
     else if( k == BITVECTOR_LSHR )
     {
-      if( bitVectorArithComp( ret[1], ret[0] ) )
+      if( ret[0].getKind()==BITVECTOR_LSHR )
       {
-        unsigned size = bv::utils::getSize(ret[0]);
-        new_ret = bv::utils::mkZero(size);
+        // combine TODO
+      }
+      
+      // contributing children of OR can be removed
+      std::vector< Node > children;
+      bool doRewrite = false;
+      if( ret[0].getKind()==BITVECTOR_OR )
+      {
+        for( const Node& cr : ret[0] ) 
+        {
+          if( !bitVectorArithComp( ret[1], cr ) )
+          {
+            children.push_back( cr );
+          }
+          else
+          {
+            doRewrite = true;
+          }
+        }
+      }
+      else if( bitVectorArithComp( ret[1], ret[0] ) )
+      {
+        doRewrite = true;
+      }
+      if( doRewrite )
+      {
+        if( children.empty() )
+        {
+          unsigned size = bv::utils::getSize(ret[0]);
+          new_ret = bv::utils::mkZero(size);
+        }
+        else
+        {
+          new_ret = children.size()==1 ? children[0] : nm->mkNode( BITVECTOR_OR, children );
+        }
         debugExtendedRewrite( ret, new_ret, "LSHR-arith" );
       }
     }
@@ -249,6 +282,16 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         // if we prove disjointness, PLUS turns into OR
         new_ret = nm->mkNode( BITVECTOR_OR, ret[0], ret[1] );
         debugExtendedRewrite( ret, new_ret, "PLUS-disjoint" );
+      }
+    }
+    else if( k == BITVECTOR_NEG )
+    {
+      // miniscope
+      if( ret[0].getKind()==BITVECTOR_SHL )
+      {
+        new_ret = nm->mkNode( BITVECTOR_SHL, nm->mkNode( BITVECTOR_NEG, ret[0][0] ), ret[0][1] );
+        debugExtendedRewrite( ret, new_ret, "NEG-SHL-miniscope" );
+        new_ret = extendedRewrite( new_ret );
       }
     }
     
