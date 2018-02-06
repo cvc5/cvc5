@@ -1945,7 +1945,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     std::size_t p = s.find(t);
     if (p == std::string::npos)
     {
-      if (children0.size()==1)
+      if (children0.size() == 1)
       {
         return returnRewrite(node, node[0], "rpl-const-nfind");
       }
@@ -1955,11 +1955,10 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
         Node ret = NodeManager::currentNM()->mkNode(
             kind::STRING_CONCAT,
             children0[0],
-            NodeManager::currentNM()->mkNode(
-                kind::STRING_STRREPL,
-                mkConcat(kind::STRING_CONCAT, spl),
-                node[1],
-                node[2]));
+            NodeManager::currentNM()->mkNode(kind::STRING_STRREPL,
+                                             mkConcat(kind::STRING_CONCAT, spl),
+                                             node[1],
+                                             node[2]));
         return returnRewrite(node, ret, "rpl-prefix-nfind");
       }
     }
@@ -1969,12 +1968,12 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       CVC4::String s3 = s.substr((int)p + (int)t.size());
       Node ns1 = NodeManager::currentNM()->mkConst(::CVC4::String(s1));
       Node ns3 = NodeManager::currentNM()->mkConst(::CVC4::String(s3));
-      std::vector< Node > children;
-      children.push_back( ns1 );
-      children.push_back( node[2] );
-      children.push_back( ns3 );
-      children.insert( children.end(), children0.begin()+1, children0.end() );
-      Node ret = mkConcat( kind::STRING_CONCAT, children );
+      std::vector<Node> children;
+      children.push_back(ns1);
+      children.push_back(node[2]);
+      children.push_back(ns3);
+      children.insert(children.end(), children0.begin() + 1, children0.end());
+      Node ret = mkConcat(kind::STRING_CONCAT, children);
       return returnRewrite(node, ret, "rpl-const-find");
     }
   }
@@ -1993,12 +1992,12 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       // currently by the semantics of replace, if the second argument is
       // empty, then we return the first argument.
       // hence, we test whether the second argument must be non-empty here.
-      // if it definitely non-empty, we can use rules that successfully replace 
+      // if it definitely non-empty, we can use rules that successfully replace
       // node[1]->node[2] among those below.
       Node l1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
       Node zero = NodeManager::currentNM()->mkConst(CVC4::Rational(0));
       bool is_non_empty = checkEntailArith(l1, zero, true);
-      
+
       if (node[0] == node[1] && is_non_empty)
       {
         return returnRewrite(node, node[2], "rpl-replace");
