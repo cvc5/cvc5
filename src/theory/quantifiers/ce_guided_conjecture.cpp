@@ -664,6 +664,10 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             // rewrite.
             out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
                 << std::endl;
+            Node solbr = Rewriter::rewrite( solb );
+            Node eq_solr = Rewriter::rewrite( eq_sol );
+            out << "; candidate #1 rewrites to: " << solbr << std::endl;
+            out << "; candidate #2 rewrites to: " << eq_solr << std::endl;
             // if the previous value stored was unordered, but this is
             // ordered, we prefer this one. Thus, we force its addition to the
             // sampler database.

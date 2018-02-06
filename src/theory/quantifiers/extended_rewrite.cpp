@@ -222,12 +222,16 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       if( bitVectorArithComp( ret[0], ret[1] ) )
       {
         new_ret = nm->mkConst(false);
-        debugExtendedRewrite( ret, new_ret, "ULT" );
+        debugExtendedRewrite( ret, new_ret, "ULT-arith" );
       }
     }
     else if( k == BITVECTOR_SLT )
     {
-      
+      if( ret[0]==ret[1] )
+      {
+        new_ret = nm->mkConst(false);
+        debugExtendedRewrite( ret, new_ret, "SLT-id" );
+      }
     }
     else if( k == BITVECTOR_LSHR )
     {
@@ -387,10 +391,14 @@ bool ExtendedRewriter::bitvectorDisjoint( Node a, Node b )
     Node x = r==0 ? a : b;
     Node y = r==0 ? b : a;
     
-    if( x.getKind()==BITVECTOR_NOT && x[0]==y )
+    if( x.getKind()==BITVECTOR_NOT  )
     {
-      return true;
+      if( x[0]==y )
+      {
+        return true;
+      }
     }
+    // bvshl( x1, x2 ) is disjoint from y if x2>y.
     if( x.getKind()==BITVECTOR_SHL && bitVectorArithComp( x[1], y ) )
     {
       return true;

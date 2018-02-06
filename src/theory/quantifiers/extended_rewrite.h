@@ -72,7 +72,7 @@ class ExtendedRewriter
    *   (bvand a (bvnot b)) != 0.
    */
   bool bitVectorSubsume( Node a, Node b, bool strict=false );
-  /** bitvector compare 
+  /** bitvector arithmetic compare 
    * 
    * Returns true if bvugt( a, b ) is entailed, or bvuge( a, b ) if strict is
    * false.
@@ -87,7 +87,7 @@ class ExtendedRewriter
   bool bitvectorDisjoint( Node a, Node b );
   /** extended rewrite 
    * 
-   * Prints debug information about the rewrite n ---> ret, returns ret.
+   * Prints debug information, indicating the rewrite n ---> ret was found.
    */
   void debugExtendedRewrite( Node n, Node ret, const char * c );
 };
