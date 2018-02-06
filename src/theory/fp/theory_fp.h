@@ -38,21 +38,21 @@ class TheoryFp : public Theory {
   TheoryFp(context::Context* c, context::UserContext* u, OutputChannel& out,
            Valuation valuation, const LogicInfo& logicInfo);
 
-  Node expandDefinition(LogicRequest& lr, Node node);
+  Node expandDefinition(LogicRequest& lr, Node node) override;
 
-  void preRegisterTerm(TNode node);
-  void addSharedTerm(TNode node);
+  void preRegisterTerm(TNode node) override;
+  void addSharedTerm(TNode node) override;
 
-  void check(Effort);
+  void check(Effort) override;
 
-  Node getModelValue(TNode var);
+  Node getModelValue(TNode var) override;
   bool collectModelInfo(TheoryModel* m) override;
 
-  std::string identify() const { return "THEORY_FP"; }
+  std::string identify() const override { return "THEORY_FP"; }
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  Node explain(TNode n);
+  Node explain(TNode n) override;
 
  protected:
   /** Equality engine */
