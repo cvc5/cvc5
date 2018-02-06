@@ -97,70 +97,6 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     Trace("q-ext-rewrite-debug") << "Do extended pre-rewrite on : " << n << std::endl;
     Node orig_n = n;
     
-    // pre-rewrite
-    Kind k = n.getKind();
-    if( k == BITVECTOR_LSHR || k == BITVECTOR_SHL )
-    {
-      std::vector< Node > cchildren;
-      Node base = decomposeChain( k, n, cchildren );
-      
-      std::vector< Node > bchildren;
-      if( k == BITVECTOR_LSHR )
-      {
-        if( base.getKind()==BITVECTOR_OR )
-        {
-          for( const Node& cr : base ) 
-          {
-            bchildren.push_back(cr);
-          }
-        }
-        else
-        {
-          bchildren.push_back(base);
-        }
-        std::vector< Node > bctemp;
-        bctemp.insert(bctemp.end(),bchildren.begin(),bchildren.end());
-        bchildren.clear();
-        for( const Node& bc : bctemp )
-        {
-          bool shifted = false;
-          for( const Node& cc : cchildren )
-          {
-            if( bitVectorArithComp( cc, bc ) )
-            {
-              shifted = true;
-              break;
-            }
-          }
-          // for each child of an OR, if we shift more than this component,
-          // it can be removed.
-          if( !shifted )
-          {
-            bchildren.push_back( bc );
-          }
-        }
-      }
-      else
-      {
-        bchildren.push_back( base );
-      }
-      if( bchildren.empty() )
-      {
-        unsigned size = bv::utils::getSize(base);
-        n = bv::utils::mkZero(size);
-      }
-      else
-      {
-        base = bchildren.size()==1 ? bchildren[0] : nm->mkNode( BITVECTOR_OR, bchildren );
-        std::sort( cchildren.begin(), cchildren.end() );
-        n = mkChain( k, base, cchildren );
-      }
-      if( n!=orig_n )
-      {
-        debugExtendedRewrite( orig_n, n, "shift-sort-arith" );
-      }
-    }
-    
     Node ret = n;
     if (n.getNumChildren() > 0)
     {
@@ -193,7 +129,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
                                  << " (from " << n << ")" << std::endl;
 
     Node new_ret;
-    k = ret.getKind();
+    Kind k = ret.getKind();
     if (k == kind::EQUAL)
     {
       // simple ITE pulling
@@ -301,21 +237,102 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         debugExtendedRewrite( ret, new_ret, "SLT-id" );
       }
     }
-    else if( k == BITVECTOR_LSHR )
+    else if( k == BITVECTOR_LSHR || k == BITVECTOR_SHL )
     {
-
-    }
-    else if( k == BITVECTOR_SHL )
-    {
-
+      std::vector< Node > cchildren;
+      Node base = decomposeChain( k, ret, cchildren );
+      
+      std::vector< Node > bchildren;
+      if( k == BITVECTOR_LSHR )
+      {
+        if( base.getKind()==BITVECTOR_OR )
+        {
+          for( const Node& cr : base ) 
+          {
+            bchildren.push_back(cr);
+          }
+        }
+        else
+        {
+          bchildren.push_back(base);
+        }
+        std::vector< Node > bctemp;
+        bctemp.insert(bctemp.end(),bchildren.begin(),bchildren.end());
+        bchildren.clear();
+        for( const Node& bc : bctemp )
+        {
+          bool shifted = false;
+          for( const Node& cc : cchildren )
+          {
+            if( bitVectorArithComp( cc, bc ) )
+            {
+              shifted = true;
+              break;
+            }
+          }
+          // for each child of an OR, if we shift more than this component,
+          // it can be removed.
+          if( !shifted )
+          {
+            bchildren.push_back( bc );
+          }
+        }
+      }
+      else
+      {
+        bchildren.push_back( base );
+      }
+      if( bchildren.empty() )
+      {
+        unsigned size = bv::utils::getSize(base);
+        new_ret = bv::utils::mkZero(size);
+      }
+      else
+      {
+        base = bchildren.size()==1 ? bchildren[0] : nm->mkNode( BITVECTOR_OR, bchildren );
+        std::sort( cchildren.begin(), cchildren.end() );
+        new_ret = mkChain( k, base, cchildren );
+        if( new_ret==ret )
+        {
+          new_ret = Node::null();
+        }
+      }
+      if( !new_ret.isNull() )
+      {
+        debugExtendedRewrite( orig_n, n, "shift-sort-arith" );
+      }
     }
     else if( k == BITVECTOR_PLUS )
     {
-      if( bitvectorDisjoint( ret[0], ret[1] ) )
+      std::vector< Node > rchildren;
+      bool rchildrenChanged = false;
+      for( const Node& rc : ret )
       {
-        // if we prove disjointness, PLUS turns into OR
-        new_ret = nm->mkNode( BITVECTOR_OR, ret[0], ret[1] );
-        debugExtendedRewrite( ret, new_ret, "PLUS-disjoint" );
+        Node rcc = rc;
+        if( rcc.getKind()==BITVECTOR_NOT )
+        {
+          // ~x + y ----> -(x+1)+y
+          unsigned size = bv::utils::getSize(rc[0]);
+          rcc = nm->mkNode( BITVECTOR_NEG, nm->mkNode( BITVECTOR_PLUS, rc[0], bv::utils::mkOne(size) ) );
+          rchildrenChanged = true;
+        }
+        rchildren.push_back( rcc );
+      }
+      if( rchildrenChanged )
+      {
+        new_ret = nm->mkNode( BITVECTOR_PLUS, rchildren );
+        debugExtendedRewrite( ret, new_ret, "PLUS-not-child" );
+        new_ret = extendedRewrite( new_ret );
+      }
+      else
+      {
+        if( bitvectorDisjoint( ret[0], ret[1] ) )
+        {
+          // if we prove disjointness, PLUS turns into OR
+          // ( ( x ^ y ) ---> 0 ) => ( x+y ----> x V y )
+          new_ret = nm->mkNode( BITVECTOR_OR, ret[0], ret[1] );
+          debugExtendedRewrite( ret, new_ret, "PLUS-disjoint" );
+        }
       }
     }
     else if( k == BITVECTOR_NEG )
@@ -337,8 +354,9 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
     else if( k == BITVECTOR_NOT )
     {
+      // ~( -( x ) ) ----> x+1
+      // ~( x+y ) ----> -(x+y)+1
       Kind ck = ret[0].getKind();
-      // ~( -( c ) ) ----> c+1
       if( ck==BITVECTOR_NEG || ck==BITVECTOR_PLUS )
       {
         Node c = ck==BITVECTOR_NEG ? ret[0][0] : nm->mkNode( BITVECTOR_NEG, ret[0] );
