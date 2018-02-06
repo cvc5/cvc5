@@ -1926,11 +1926,20 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   if( node[1]==node[2] ){
     return returnRewrite(node, node[0], "rpl-id");
   }
-  else if (node[0].isConst() && node[0].getConst<String>().isEmptyString())
+  if (node[0].isConst())
   {
-    return returnRewrite(node, node[0], "rpl-empty");
+    CVC4::String s = node[0].getConst<String>();
+    if( s.isEmptyString() )
+    {
+      return returnRewrite(node, node[0], "rpl-empty");
+    }
+    if( node[0]==node[2] && s.size()==1 )
+    {
+      // str.replace( "A", x, "A" ) -> "A"
+      return returnRewrite(node, node[0], "rpl-char-id");
+    }
   }
-  else if (node[1].isConst() && node[1].getConst<String>().isEmptyString())
+  if (node[1].isConst() && node[1].getConst<String>().isEmptyString())
   {
     return returnRewrite(node, node[0], "rpl-rpl-empty");
   }
