@@ -233,7 +233,7 @@ public:
    */
   inline Node getOperator() const {
     Assert(getMetaKind() == kind::metakind::PARAMETERIZED);
-    return Node(d_nv->getChild(-1));
+    return Node(d_nv->getOperator());
   }
 
   /**
