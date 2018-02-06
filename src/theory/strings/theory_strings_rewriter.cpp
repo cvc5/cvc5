@@ -1139,42 +1139,8 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     retNode = rewriteIndexof( node );
   }else if( node.getKind() == kind::STRING_STRREPL ){
     retNode = rewriteReplace( node );
-  }else if( node.getKind() == kind::STRING_PREFIX ){
-    if( node[0].isConst() && node[1].isConst() ){
-      CVC4::String s = node[1].getConst<String>();
-      CVC4::String t = node[0].getConst<String>();
-      retNode = NodeManager::currentNM()->mkConst( false );
-      if(s.size() >= t.size()) {
-        if(t == s.substr(0, t.size())) {
-          retNode = NodeManager::currentNM()->mkConst( true );
-        }
-      }
-    } else {
-      Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[0]);
-      Node lent = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
-      retNode = NodeManager::currentNM()->mkNode(kind::AND,
-            NodeManager::currentNM()->mkNode(kind::GEQ, lent, lens),
-            node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[1],
-                    NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) ), lens)));
-    }
-  }else if( node.getKind() == kind::STRING_SUFFIX ){
-    if(node[0].isConst() && node[1].isConst()) {
-      CVC4::String s = node[1].getConst<String>();
-      CVC4::String t = node[0].getConst<String>();
-      retNode = NodeManager::currentNM()->mkConst( false );
-      if(s.size() >= t.size()) {
-        if(t == s.substr(s.size() - t.size(), t.size())) {
-          retNode = NodeManager::currentNM()->mkConst( true );
-        }
-      }
-    } else {
-      Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[0]);
-      Node lent = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
-      retNode = NodeManager::currentNM()->mkNode(kind::AND,
-            NodeManager::currentNM()->mkNode(kind::GEQ, lent, lens),
-            node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[1],
-                    NodeManager::currentNM()->mkNode(kind::MINUS, lent, lens), lens)));
-    }
+  }else if( node.getKind() == kind::STRING_PREFIX || node.getKind() == kind::STRING_SUFFIX ){
+    retNode = rewritePrefixSuffix( node );
   }else if(node.getKind() == kind::STRING_ITOS) {
     if(node[0].isConst()) {
       if( node[0].getConst<Rational>().sgn()==-1 ){
@@ -1620,7 +1586,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     Node ret = NodeManager::currentNM()->mkConst(true);
     return returnRewrite(node, ret, "ctn-eq");
   }
-  else if (node[0].isConst())
+  if (node[0].isConst())
   {
     CVC4::String s = node[0].getConst<String>();
     if (node[1].isConst())
@@ -1634,7 +1600,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       {
         Node ret =
             NodeManager::currentNM()->mkNode(kind::EQUAL, node[0], node[1]);
-        return returnRewrite(node, ret, "ctn-emptystr");
+        return returnRewrite(node, ret, "ctn-lhs-emptystr");
       }
       else if (node[1].getKind() == kind::STRING_CONCAT)
       {
@@ -1645,6 +1611,15 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
           return returnRewrite(node, ret, "ctn-nconst-ctn-concat");
         }
       }
+    }
+  }
+  if( node[1].isConst() )
+  {
+    CVC4::String t = node[1].getConst<String>();
+    if( t.size()==0 )
+    {
+      Node ret = NodeManager::currentNM()->mkConst(true);
+      return returnRewrite(node, ret, "ctn-rhs-emptystr");
     }
   }
   std::vector<Node> nc1;
@@ -2087,6 +2062,70 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
 
   Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
+}
+
+Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
+{
+  Assert( n.getKind() == kind::STRING_PREFIX || n.getKind() == kind::STRING_SUFFIX );
+  bool isPrefix = n.getKind() == kind::STRING_PREFIX;
+  if( n[0]==n[1] )
+  {
+    return NodeManager::currentNM()->mkConst( true );
+  }
+  if( n[0].isConst() )
+  {
+    CVC4::String t = n[0].getConst<String>();
+    if( t.isEmptyString() )
+    {
+      return NodeManager::currentNM()->mkConst( true );
+    }
+  }
+  if( n[1].isConst() )
+  {
+    CVC4::String s = n[1].getConst<String>();
+    if( s.isEmptyString() )
+    {
+      return n[0].eqNode( n[1] );
+    }
+    else if( n[0].isConst() )
+    {
+      CVC4::String t = n[0].getConst<String>();
+      if(s.size() >= t.size()) {
+        if((isPrefix && t == s.substr(0, t.size())) ||
+            (!isPrefix && t == s.substr(s.size() - t.size(), t.size())) )
+        {
+          return NodeManager::currentNM()->mkConst( true );
+        }
+      }
+      return NodeManager::currentNM()->mkConst( false );
+    }
+    else if( s.size()==1 )
+    {
+      // (str.prefix x "A") and (str.suffix x "A") are equivalent to 
+      // (str.contains "A" x )
+      return NodeManager::currentNM()->mkNode(kind::STRING_STRCTN,n[1],n[0]);
+    }
+  }
+  Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, n[0]);
+  Node lent = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, n[1]);
+  Node val;
+  if( isPrefix )
+  {
+    val = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
+  }
+  else
+  {
+    val = NodeManager::currentNM()->mkNode(kind::MINUS, lent, lens);
+  }
+  Node retNode = n[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, n[1],
+                val, lens));
+  // add length constraint if it cannot be shown by simple entailment check 
+  if( !checkEntailArith( lent, lens ) )
+  {
+    retNode = NodeManager::currentNM()->mkNode(kind::AND, retNode,
+        NodeManager::currentNM()->mkNode(kind::GEQ, lent, lens)); 
+  }
+  return retNode;
 }
 
 void TheoryStringsRewriter::getConcat( Node n, std::vector< Node >& c ) {
