@@ -90,6 +90,10 @@ class ExtendedRewriter
    * Prints debug information, indicating the rewrite n ---> ret was found.
    */
   void debugExtendedRewrite( Node n, Node ret, const char * c );
+  /** decompose chain */
+  Node decomposeChain( Kind k, Node n, std::vector< Node >& children );
+  /** chain */
+  Node mkChain( Kind k, Node base, std::vector< Node >& children );
 };
 
 } /* CVC4::theory::quantifiers namespace */
