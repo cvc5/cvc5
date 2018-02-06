@@ -235,9 +235,6 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
     else if( k == BITVECTOR_LSHR )
     {
-      // contributing children of OR can be removed
-      std::vector< Node > children;
-      bool doRewrite = false;
       if( ret[0].getKind()==BITVECTOR_LSHR )
       {
         // can order
@@ -245,37 +242,43 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         //debugExtendedRewrite( ret, new_ret, "LSHR-combine" );
         //new_ret = extendedRewrite( new_ret );
       }
-      if( ret[0].getKind()==BITVECTOR_OR )
+      else
       {
-        for( const Node& cr : ret[0] ) 
+        // contributing children of OR can be removed
+        std::vector< Node > children;
+        bool doRewrite = false;
+        if( ret[0].getKind()==BITVECTOR_OR )
         {
-          if( !bitVectorArithComp( ret[1], cr ) )
+          for( const Node& cr : ret[0] ) 
           {
-            children.push_back( cr );
+            if( !bitVectorArithComp( ret[1], cr ) )
+            {
+              children.push_back( cr );
+            }
+            else
+            {
+              doRewrite = true;
+            }
+          }
+        }
+        else if( bitVectorArithComp( ret[1], ret[0] ) )
+        {
+          doRewrite = true;
+        }
+        if( doRewrite )
+        {
+          if( children.empty() )
+          {
+            unsigned size = bv::utils::getSize(ret[0]);
+            new_ret = bv::utils::mkZero(size);
           }
           else
           {
-            doRewrite = true;
+            new_ret = children.size()==1 ? children[0] : nm->mkNode( BITVECTOR_OR, children );
+            new_ret = nm->mkNode( BITVECTOR_LSHR, new_ret, ret[1] );
           }
+          debugExtendedRewrite( ret, new_ret, "LSHR-arith" );
         }
-      }
-      else if( bitVectorArithComp( ret[1], ret[0] ) )
-      {
-        doRewrite = true;
-      }
-      if( doRewrite )
-      {
-        if( children.empty() )
-        {
-          unsigned size = bv::utils::getSize(ret[0]);
-          new_ret = bv::utils::mkZero(size);
-        }
-        else
-        {
-          new_ret = children.size()==1 ? children[0] : nm->mkNode( BITVECTOR_OR, children );
-          new_ret = nm->mkNode( BITVECTOR_LSHR, new_ret, ret[1] );
-        }
-        debugExtendedRewrite( ret, new_ret, "LSHR-arith" );
       }
     }
     else if( k == BITVECTOR_SHL )
@@ -420,6 +423,28 @@ bool ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
       }
     }
   }
+  else if( b.getKind()==BITVECTOR_SHL )
+  {
+    if( b[0].getKind()==BITVECTOR_LSHR )
+    {
+      if( b[0][0]==a && b[0][1]==b[1] )
+      {
+        // or strict and geq zero
+        return !strict;
+      }
+    }
+  }
+  else if( b.getKind()==BITVECTOR_LSHR )
+  {
+    if( b[0].getKind()==BITVECTOR_LSHR )
+    {
+      if( b[0][0]==a && b[0][1]==b[1] )
+      {
+        // or strict and geq zero
+        return !strict;
+      }
+    }
+  }
   
   return false;
 }
@@ -456,12 +481,15 @@ bool ExtendedRewriter::bitvectorDisjoint( Node a, Node b )
         return true;
       }
     }
-    // bvshl( x1, x2 ) is disjoint from y if x2>y.
-    if( x.getKind()==BITVECTOR_SHL && bitVectorArithComp( x[1], y ) )
+    if( x.getKind()==BITVECTOR_SHL )
     {
-      return true;
+      // bvshl( x1, x2 ) is disjoint from y if x2>y.
+      if( bitVectorArithComp( x[1], y ) )
+      {
+        return true;
+      }
     }
-    if( x.getKind()==BITVECTOR_AND )
+    else if( x.getKind()==BITVECTOR_AND )
     {
       for( const Node& xc : x ) 
       {
