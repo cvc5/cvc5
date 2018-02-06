@@ -64,40 +64,43 @@ public:
 
   ~TheoryBV();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  Node expandDefinition(LogicRequest &logicRequest, Node node);
+  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
 
   void mkAckermanizationAssertions(std::vector<Node>& assertions);
 
-  void preRegisterTerm(TNode n);
+  void preRegisterTerm(TNode n) override;
 
-  void check(Effort e);
-  
-  bool needsCheckLastEffort();
+  void check(Effort e) override;
 
-  void propagate(Effort e);
+  bool needsCheckLastEffort() override;
 
-  Node explain(TNode n);
+  void propagate(Effort e) override;
+
+  Node explain(TNode n) override;
 
   bool collectModelInfo(TheoryModel* m) override;
 
-  std::string identify() const { return std::string("TheoryBV"); }
+  std::string identify() const override { return std::string("TheoryBV"); }
 
   /** equality engine */
-  eq::EqualityEngine * getEqualityEngine();
-  bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
-  int getReduction( int effort, Node n, Node& nr );
-  
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+  eq::EqualityEngine* getEqualityEngine() override;
+  bool getCurrentSubstitution(int effort,
+                              std::vector<Node>& vars,
+                              std::vector<Node>& subs,
+                              std::map<Node, std::vector<Node> >& exp) override;
+  int getReduction(int effort, Node n, Node& nr) override;
+
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
   void enableCoreTheorySlicer();
 
-  Node ppRewrite(TNode t);
+  Node ppRewrite(TNode t) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
+  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
-  void presolve();
+  void presolve() override;
 
   bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
 
@@ -206,13 +209,13 @@ private:
    */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
-  void addSharedTerm(TNode t);
+  void addSharedTerm(TNode t) override;
 
   bool isSharedTerm(TNode t) { return d_sharedTermsSet.contains(t); }
 
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
-  Node getModelValue(TNode var);
+  Node getModelValue(TNode var) override;
 
   inline std::string indent()
   {
