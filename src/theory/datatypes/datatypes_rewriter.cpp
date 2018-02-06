@@ -516,6 +516,18 @@ Node DatatypesRewriter::mkTester(Node n, int i, const Datatype& dt)
 #endif
 }
 
+Node DatatypesRewriter::mkSplit(Node n, const Datatype& dt)
+{
+  std::vector<Node> splits;
+  for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+  {
+    Node test = mkTester(n, i, dt);
+    splits.push_back(test);
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  return splits.size() == 1 ? splits[0] : nm->mkNode(kind::OR, splits);
+}
+
 bool DatatypesRewriter::isNullaryApplyConstructor(Node n)
 {
   Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);

@@ -61,6 +61,12 @@ public:
  static int isTester(Node n);
  /** make tester is-C( n ), where C is the i^{th} constructor of dt */
  static Node mkTester(Node n, int i, const Datatype& dt);
+ /** make tester split
+  *
+  * Returns the formula (OR is-C1( n ) ... is-Ck( n ) ), where C1...Ck
+  * are the constructors of n's type (dt).
+  */
+ static Node mkSplit(Node n, const Datatype& dt);
  /** returns true iff n is a constructor term with no datatype children */
  static bool isNullaryApplyConstructor(Node n);
  /** returns true iff c is a constructor with no datatype children */

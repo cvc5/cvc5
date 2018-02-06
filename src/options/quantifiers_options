@@ -270,8 +270,6 @@ option sygusQePreproc --sygus-qe-preproc bool :default false
   
 option sygusMinGrammar --sygus-min-grammar bool :default true
   statically minimize sygus grammars
-option sygusMinGrammarAgg --sygus-min-grammar-agg bool :default false
-  aggressively minimize sygus grammars
 option sygusAddConstGrammar --sygus-add-const-grammar bool :default true
   statically add constants appearing in conjecture to grammars
 option sygusGrammarNorm --sygus-grammar-norm bool :default false
