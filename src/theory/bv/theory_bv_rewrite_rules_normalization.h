@@ -400,15 +400,16 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
       isNeg = !isNeg;
       c = c[0];
     }
-    
-    if (c.getKind() == kind::CONST_BITVECTOR) {
+
+    if (c.getKind() == kind::CONST_BITVECTOR)
+    {
       BitVector value = c.getConst<BitVector>();
       constant = constant * value;
       if(constant == BitVector(size, (unsigned) 0)) {
         return utils::mkConst(size, 0); 
       }
     } else {
-      children.push_back(c); 
+      children.push_back(c);
     }
   }
   BitVector oValue = BitVector(size, static_cast<unsigned>(1));
