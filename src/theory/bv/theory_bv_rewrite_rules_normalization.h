@@ -394,19 +394,22 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
   std::vector<Node> children;
   for (const TNode& current : node)
   {
-    if (current.getKind() == kind::CONST_BITVECTOR) {
-      BitVector value = current.getConst<BitVector>();
+    Node c = current;
+    if (c.getKind() == kind::BITVECTOR_NEG)
+    {
+      isNeg = !isNeg;
+      c = c[0];
+    }
+
+    if (c.getKind() == kind::CONST_BITVECTOR)
+    {
+      BitVector value = c.getConst<BitVector>();
       constant = constant * value;
       if(constant == BitVector(size, (unsigned) 0)) {
         return utils::mkConst(size, 0); 
       }
-    }
-    else if (current.getKind() == kind::BITVECTOR_NEG)
-    {
-      isNeg = !isNeg;
-      children.push_back(current[0]);
     } else {
-      children.push_back(current); 
+      children.push_back(c);
     }
   }
   BitVector oValue = BitVector(size, static_cast<unsigned>(1));
@@ -414,8 +417,7 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
 
   if (children.empty())
   {
-    Assert(!isNeg);
-    return utils::mkConst(constant);
+    return utils::mkConst(isNeg ? -constant : constant);
   }
 
   std::sort(children.begin(), children.end());
