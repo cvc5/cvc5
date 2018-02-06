@@ -791,7 +791,7 @@ inline Node RewriteRule<MultPow2>::apply(TNode node)
   }
 
   Node a;
-  if( children.empty() )
+  if (children.empty())
   {
     a = utils::mkOne(size);
   }
