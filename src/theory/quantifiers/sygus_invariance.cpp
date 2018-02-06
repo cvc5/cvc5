@@ -191,6 +191,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
       Node out = d_exo[ii];
       Node cont =
           NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, out, nbvre);
+      Trace("sygus-pbe-cterm-debug") << "Check: " << cont << std::endl;
       Node contr = Rewriter::rewrite(cont);
       if (contr == tds->d_false)
       {
@@ -216,6 +217,8 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
         }
         return true;
       }
+      Trace("sygus-pbe-cterm-debug2")
+          << "...check failed, rewrites to : " << contr << std::endl;
     }
   }
   return false;

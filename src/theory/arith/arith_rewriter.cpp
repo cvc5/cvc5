@@ -592,7 +592,6 @@ RewriteResponse ArithRewriter::postRewrite(TNode t){
     return response;
   }else{
     Unreachable();
-    return RewriteResponse(REWRITE_DONE, Node::null());
   }
 }
 
@@ -603,7 +602,6 @@ RewriteResponse ArithRewriter::preRewrite(TNode t){
     return preRewriteAtom(t);
   }else{
     Unreachable();
-    return RewriteResponse(REWRITE_DONE, Node::null());
   }
 }
 

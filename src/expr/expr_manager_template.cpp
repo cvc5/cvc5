@@ -372,18 +372,11 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1,
 }
 
 Expr ExprManager::mkExpr(Expr opExpr) {
-  const unsigned n = 0;
-  Kind kind = NodeManager::operatorToKind(opExpr.getNode());
+  const Kind kind = NodeManager::operatorToKind(opExpr.getNode());
   PrettyCheckArgument(
       opExpr.getKind() == kind::BUILTIN ||
       kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
       "This Expr constructor is for parameterized kinds only");
-  PrettyCheckArgument(
-      n >= minArity(kind) && n <= maxArity(kind), kind,
-      "Exprs with kind %s must have at least %u children and "
-      "at most %u children (the one under construction has %u)",
-      kind::kindToString(kind).c_str(),
-      minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
     INC_STAT(kind);

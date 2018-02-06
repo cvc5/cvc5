@@ -57,9 +57,9 @@ class QuantifiersEngine;
  * finite types.
  */
 class RepSet {
-public:
+ public:
   RepSet(){}
-  ~RepSet(){}
+
   /** map from types to the list of representatives
    * TODO : as part of #1199, encapsulate this
    */
@@ -67,15 +67,19 @@ public:
   /** clear the set */
   void clear();
   /** does this set have representatives of type tn? */
-  bool hasType( TypeNode tn ) const { return d_type_reps.find( tn )!=d_type_reps.end(); }
+  bool hasType(TypeNode tn) const { return d_type_reps.count(tn) > 0; }
   /** does this set have representative n of type tn? */
   bool hasRep(TypeNode tn, Node n) const;
   /** get the number of representatives for type */
   unsigned getNumRepresentatives(TypeNode tn) const;
   /** get representative at index */
   Node getRepresentative(TypeNode tn, unsigned i) const;
-  /** get representatives of type tn, appends them to reps */
-  void getRepresentatives(TypeNode tn, std::vector<Node>& reps) const;
+  /**
+   * Returns the representatives of a type for a `type_node` if one exists.
+   * Otherwise, returns nullptr.
+   */
+  const std::vector<Node>* getTypeRepsOrNull(TypeNode type_node) const;
+
   /** add representative n for type tn, where n has type tn */
   void add( TypeNode tn, Node n );
   /** returns index in d_type_reps for node n */
