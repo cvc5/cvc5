@@ -222,7 +222,7 @@ class InstMatchGenerator : public IMGenerator {
    *
    * See Trigger::getActiveScore for details.
    */
-  int getActiveScore(QuantifiersEngine* qe);
+  int getActiveScore(QuantifiersEngine* qe) override;
   /** exclude match
    *
    * Exclude matching d_match_pattern with Node n on subsequent calls to

@@ -162,13 +162,13 @@ public:
    */
   Node getValue(TNode n, bool useDontCares = false) const;
   /** get comments */
-  void getComments(std::ostream& out) const;
+  void getComments(std::ostream& out) const override;
 
   //---------------------------- separation logic
   /** set the heap and value sep.nil is equal to */
   void setHeapModel(Node h, Node neq);
   /** get the heap and value sep.nil is equal to */
-  bool getHeapModel(Expr& h, Expr& neq) const;
+  bool getHeapModel(Expr& h, Expr& neq) const override;
   //---------------------------- end separation logic
 
   /** get the representative set object */
@@ -176,11 +176,11 @@ public:
   /** get the representative set object (FIXME: remove this, see #1199) */
   RepSet* getRepSetPtr() { return &d_rep_set; }
   /** return whether this node is a don't-care */
-  bool isDontCare(Expr expr) const;
+  bool isDontCare(Expr expr) const override;
   /** get value function for Exprs. */
-  Expr getValue( Expr expr ) const;
+  Expr getValue(Expr expr) const override;
   /** get cardinality for sort */
-  Cardinality getCardinality( Type t ) const;
+  Cardinality getCardinality(Type t) const override;
   /** print representative debug function */
   void printRepresentativeDebug( const char* c, Node r );
   /** print representative function */
