@@ -103,7 +103,7 @@ class TermDbSygus {
    *     and var_count[Ti] is incremented.
    */
   Node mkGeneric(const Datatype& dt,
-                 int c,
+                 unsigned c,
                  std::map<TypeNode, int>& var_count,
                  std::map<int, Node>& pre);
   /** same as above, but with empty var_count */
@@ -178,8 +178,6 @@ private:
   std::map<TypeNode, std::map<Node, int> > d_ops;
   std::map<TypeNode, std::map<int, Node> > d_arg_ops;
   std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
-  // normalized map
-  std::map<TypeNode, std::map<Node, Node> > d_normalized;
   // grammar information
   // root -> type -> _
   std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
@@ -215,7 +213,7 @@ private:
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
   /** get arg type */
-  TypeNode getArgType( const DatatypeConstructor& c, int i );
+  TypeNode getArgType(const DatatypeConstructor& c, unsigned i);
   /** get first occurrence */
   int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */
@@ -226,8 +224,6 @@ private:
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );
-  // returns size
-  unsigned getSygusConstructors( Node n, std::vector< Node >& cons );
   /** given a term, construct an equivalent smaller one that respects syntax */
   Node minimizeBuiltinTerm( Node n );
   /** given a term, expand it into more basic components */
@@ -281,18 +277,6 @@ public:
   Node evaluateWithUnfolding(
       Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
   Node evaluateWithUnfolding( Node n );
-//for calculating redundant operators
-private:
-  //whether each constructor is redundant
-  // 0 : not redundant, 1 : redundant, 2 : partially redundant
-  std::map< TypeNode, std::vector< int > > d_sygus_red_status;
-  // type to (rewritten) to original
-  std::map< TypeNode, std::map< Node, Node > > d_gen_terms;
-  std::map< TypeNode, std::map< Node, bool > > d_gen_redundant;
-  //compute generic redundant
-  bool computeGenericRedundant( TypeNode tn, Node g );
-public:
-  bool isGenericRedundant( TypeNode tn, unsigned i );
 };
 
 }/* CVC4::theory::quantifiers namespace */

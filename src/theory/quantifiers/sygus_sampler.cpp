@@ -468,9 +468,9 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert(dt.isSygus());
   Assert(d_rvalue_cindices.find(tn) != d_rvalue_cindices.end());
-  Trace("sygus-sample-grammar") << "Sygus random value " << tn
-                                << ", depth = " << depth
-                                << ", rchance = " << rchance << std::endl;
+  Trace("sygus-sample-grammar")
+      << "Sygus random value " << tn << ", depth = " << depth
+      << ", rchance = " << rchance << std::endl;
   // check if we terminate on this call
   // we refuse to enumerate terms of 10+ depth as a hard limit
   bool terminate = Random::getRandom().pickWithProb(rchance) || depth >= 10;
@@ -480,12 +480,12 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
   unsigned ncons = cindices.size();
   // select a random constructor, or random value when index=ncons.
   unsigned index = Random::getRandom().pick(0, ncons);
-  Trace("sygus-sample-grammar") << "Random index 0..." << ncons
-                                << " was : " << index << std::endl;
+  Trace("sygus-sample-grammar")
+      << "Random index 0..." << ncons << " was : " << index << std::endl;
   if (index < ncons)
   {
-    Trace("sygus-sample-grammar") << "Recurse constructor index #" << index
-                                  << std::endl;
+    Trace("sygus-sample-grammar")
+        << "Recurse constructor index #" << index << std::endl;
     unsigned cindex = cindices[index];
     Assert(cindex < dt.getNumConstructors());
     const DatatypeConstructor& dtc = dt[cindex];
@@ -504,8 +504,8 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
         Trace("sygus-sample-grammar") << "...fail." << std::endl;
         break;
       }
-      Trace("sygus-sample-grammar") << "  child #" << i << " : " << c
-                                    << std::endl;
+      Trace("sygus-sample-grammar")
+          << "  child #" << i << " : " << c << std::endl;
       pre[i] = c;
     }
     if (success)
