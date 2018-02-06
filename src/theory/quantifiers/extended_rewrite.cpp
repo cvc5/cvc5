@@ -235,14 +235,16 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
     else if( k == BITVECTOR_LSHR )
     {
-      if( ret[0].getKind()==BITVECTOR_LSHR )
-      {
-        // combine TODO
-      }
-      
       // contributing children of OR can be removed
       std::vector< Node > children;
       bool doRewrite = false;
+      if( ret[0].getKind()==BITVECTOR_LSHR )
+      {
+        // can order
+        //new_ret = nm->mkNode(BITVECTOR_LSHR, ret[0][0], nm->mkNode(BITVECTOR_LSHR, ret[1], ret[0][1] ) );
+        //debugExtendedRewrite( ret, new_ret, "LSHR-combine" );
+        //new_ret = extendedRewrite( new_ret );
+      }
       if( ret[0].getKind()==BITVECTOR_OR )
       {
         for( const Node& cr : ret[0] ) 
@@ -271,8 +273,21 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         else
         {
           new_ret = children.size()==1 ? children[0] : nm->mkNode( BITVECTOR_OR, children );
+          new_ret = nm->mkNode( BITVECTOR_LSHR, new_ret, ret[1] );
         }
         debugExtendedRewrite( ret, new_ret, "LSHR-arith" );
+      }
+    }
+    else if( k == BITVECTOR_SHL )
+    {
+      if( ret[0].getKind()==BITVECTOR_SHL )
+      {
+        // can order
+        /*
+        new_ret = nm->mkNode(BITVECTOR_SHL, ret[0][0], nm->mkNode(BITVECTOR_PLUS, ret[1], ret[0][1] ) );
+        debugExtendedRewrite( ret, new_ret, "SHL-combine" );
+        new_ret = extendedRewrite( new_ret );
+        */
       }
     }
     else if( k == BITVECTOR_PLUS )
