@@ -74,7 +74,7 @@ inline timespec& operator-=(timespec& a, const timespec& b) {
     nsec -= nsec_per_sec;
     ++a.tv_sec;
   }
-  Assert(nsec >= 0 && nsec < nsec_per_sec);
+  DCHECK(nsec >= 0 && nsec < nsec_per_sec);
   a.tv_nsec = nsec;
   return a;
 }

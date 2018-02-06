@@ -34,11 +34,12 @@ class CheckWhite : public CxxTest::TestSuite
   // This test just checks that this statement compiles.
   std::string TerminalCvc4Fatal() const
   {
-    CVC4_FATAL() << "This test that CVC4 fatal can be terminal.";
+    CVC4_FATAL() << "This is a test that confirms that CVC4_FATAL can be a "
+                    "terminal statement in a function that has a non-void "
+                    "return type.";
   }
 
   void testCheck() { CHECK(kOne >= 0) << kOne << " must be positive"; }
-
   void testDCheck()
   {
     DCHECK(kOne == 1) << "always passes";
