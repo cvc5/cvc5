@@ -19,19 +19,27 @@
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
 using namespace std;
 
 namespace CVC4 {
+namespace theory {
+namespace quantifiers {
+
+bool doCompare(Node a, Node b, Kind k)
+{
+  Node com = NodeManager::currentNM()->mkNode(k, a, b);
+  com = Rewriter::rewrite(com);
+  Assert(com.getType().isBoolean());
+  return com.isConst() && com.getConst<bool>();
+}
 
 CegConjectureSingleInvSol::CegConjectureSingleInvSol(QuantifiersEngine* qe)
     : d_qe(qe), d_id_count(0), d_root_id() {}
@@ -720,7 +728,8 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
     return d_rcons_to_id[stn][t];
   }else{
     status = 1;
-    d_qe->getTermDatabaseSygus()->registerSygusType( stn );
+    // register the type
+    registerType(stn);
     int id = allocate( t, stn );
     d_rcons_to_status[stn][t] = -1;
     TypeNode tn = t.getType();
@@ -777,7 +786,7 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
         //try constant reconstruction
         if( min_t.isConst() ){
           Trace("csi-rcons-debug") << "...try constant reconstruction." << std::endl;
-          Node min_t_c = d_qe->getTermDatabaseSygus()->builtinToSygusConst( min_t, stn );
+          Node min_t_c = builtinToSygusConst(min_t, stn);
           if( !min_t_c.isNull() ){
             Trace("csi-rcons-debug") << "   constant reconstruction success for " << id << ", result = " << min_t_c << std::endl;
             d_reconstruct[id] = min_t_c;
@@ -786,8 +795,8 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
         }
         if( status!=0 ){
           //try identity functions
-          for( unsigned i=0; i<d_qe->getTermDatabaseSygus()->getNumIdFuncs( stn ); i++ ){
-            unsigned ii = d_qe->getTermDatabaseSygus()->getIdFuncIndex( stn, i );
+          for (unsigned ii : d_id_funcs[stn])
+          {
             Assert( dt[ii].getNumArgs()==1 );
             //try to directly reconstruct from single argument
             std::vector< Node > tchildren;
@@ -813,7 +822,8 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
               success = false;
               int index_found;
               std::vector< Node > args;
-              if( d_qe->getTermDatabaseSygus()->getMatch( min_t, stn, index_found, args, karg, c_index ) ){
+              if (getMatch(min_t, stn, index_found, args, karg, c_index))
+              {
                 success = true;
                 status = 0;
                 Node cons = Node::fromExpr( dt[index_found].getConstructor() );
@@ -1068,7 +1078,6 @@ void CegConjectureSingleInvSol::setReconstructed( int id, Node n ) {
 }
 
 void CegConjectureSingleInvSol::getEquivalentTerms( Kind k, Node n, std::vector< Node >& equiv ) {
-  Assert( n.getKind()!=k ); //?
   if( k==AND || k==OR ){
     equiv.push_back( NodeManager::currentNM()->mkNode( k, n, n ) );
     equiv.push_back( NodeManager::currentNM()->mkNode( k, n, NodeManager::currentNM()->mkConst( k==AND ) ) );
@@ -1187,4 +1196,317 @@ void CegConjectureSingleInvSol::registerEquivalentTerms( Node n ) {
   }
 }
 
+Node CegConjectureSingleInvSol::builtinToSygusConst(Node c,
+                                                    TypeNode tn,
+                                                    int rcons_depth)
+{
+  std::map<Node, Node>::iterator it = d_builtin_const_to_sygus[tn].find(c);
+  if (it != d_builtin_const_to_sygus[tn].end())
+  {
+    return it->second;
+  }
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
+  NodeManager* nm = NodeManager::currentNM();
+  Node sc;
+  d_builtin_const_to_sygus[tn][c] = sc;
+  Assert(c.isConst());
+  Assert(tn.isDatatype());
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  Trace("csi-rcons-debug") << "Try to reconstruct " << c << " in "
+                           << dt.getName() << std::endl;
+  Assert(dt.isSygus());
+  // if we are not interested in reconstructing constants, or the grammar allows
+  // them, return a proxy
+  if (!options::cegqiSingleInvReconstructConst() || dt.getSygusAllowConst())
+  {
+    Node k = nm->mkSkolem("sy", tn, "sygus proxy");
+    SygusPrintProxyAttribute spa;
+    k.setAttribute(spa, c);
+    sc = k;
+  }
+  else
+  {
+    int carg = tds->getOpConsNum(tn, c);
+    if (carg != -1)
+    {
+      sc = nm->mkNode(APPLY_CONSTRUCTOR,
+                      Node::fromExpr(dt[carg].getConstructor()));
+    }
+    else
+    {
+      // identity functions
+      for (unsigned ii : d_id_funcs[tn])
+      {
+        Assert(dt[ii].getNumArgs() == 1);
+        // try to directly reconstruct from single argument
+        TypeNode tnc = tds->getArgType(dt[ii], 0);
+        Trace("csi-rcons-debug")
+            << "Based on id function " << dt[ii].getSygusOp()
+            << ", try reconstructing " << c << " instead in " << tnc
+            << std::endl;
+        Node n = builtinToSygusConst(c, tnc, rcons_depth);
+        if (!n.isNull())
+        {
+          sc = nm->mkNode(
+              APPLY_CONSTRUCTOR, Node::fromExpr(dt[ii].getConstructor()), n);
+          break;
+        }
+      }
+      if (sc.isNull())
+      {
+        if (rcons_depth < 1000)
+        {
+          // accelerated, recursive reconstruction of constants
+          Kind pk = tds->getPlusKind(TypeNode::fromType(dt.getSygusType()));
+          if (pk != UNDEFINED_KIND)
+          {
+            int arg = tds->getKindConsNum(tn, pk);
+            if (arg != -1)
+            {
+              Kind ck =
+                  tds->getComparisonKind(TypeNode::fromType(dt.getSygusType()));
+              Kind pkm =
+                  tds->getPlusKind(TypeNode::fromType(dt.getSygusType()), true);
+              // get types
+              Assert(dt[arg].getNumArgs() == 2);
+              TypeNode tn1 = tds->getArgType(dt[arg], 0);
+              TypeNode tn2 = tds->getArgType(dt[arg], 1);
+              // initialize d_const_list for tn1
+              registerType(tn1);
+              // iterate over all positive constants, largest to smallest
+              int start = d_const_list[tn1].size() - 1;
+              int end = d_const_list[tn1].size() - d_const_list_pos[tn1];
+              for (int i = start; i >= end; --i)
+              {
+                Node c1 = d_const_list[tn1][i];
+                // only consider if smaller than c, and
+                if (doCompare(c1, c, ck))
+                {
+                  Node c2 = nm->mkNode(pkm, c, c1);
+                  c2 = Rewriter::rewrite(c2);
+                  if (c2.isConst())
+                  {
+                    // reconstruct constant on the other side
+                    Node sc2 = builtinToSygusConst(c2, tn2, rcons_depth + 1);
+                    if (!sc2.isNull())
+                    {
+                      Node sc1 = builtinToSygusConst(c1, tn1, rcons_depth);
+                      Assert(!sc1.isNull());
+                      sc = nm->mkNode(APPLY_CONSTRUCTOR,
+                                      Node::fromExpr(dt[arg].getConstructor()),
+                                      sc1,
+                                      sc2);
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  d_builtin_const_to_sygus[tn][c] = sc;
+  return sc;
+}
+
+struct sortConstants
+{
+  Kind d_comp_kind;
+  bool operator()(Node i, Node j)
+  {
+    return i != j && doCompare(i, j, d_comp_kind);
+  }
+};
+
+void CegConjectureSingleInvSol::registerType(TypeNode tn)
+{
+  if (d_const_list_pos.find(tn) != d_const_list_pos.end())
+  {
+    return;
+  }
+  d_const_list_pos[tn] = 0;
+  Assert(tn.isDatatype());
+
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
+  // ensure it is registered
+  tds->registerSygusType(tn);
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  TypeNode btn = TypeNode::fromType(dt.getSygusType());
+  // for constant reconstruction
+  Kind ck = tds->getComparisonKind(btn);
+  Node z = d_qe->getTermUtil()->getTypeValue(btn, 0);
+
+  // iterate over constructors
+  for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+  {
+    Node n = Node::fromExpr(dt[i].getSygusOp());
+    if (n.getKind() != kind::BUILTIN && n.isConst())
+    {
+      d_const_list[tn].push_back(n);
+      if (ck != UNDEFINED_KIND && doCompare(z, n, ck))
+      {
+        d_const_list_pos[tn]++;
+      }
+    }
+    if (dt[i].isSygusIdFunc())
+    {
+      d_id_funcs[tn].push_back(i);
+    }
+  }
+  // sort the constant list
+  if (!d_const_list[tn].empty())
+  {
+    if (ck != UNDEFINED_KIND)
+    {
+      sortConstants sc;
+      sc.d_comp_kind = ck;
+      std::sort(d_const_list[tn].begin(), d_const_list[tn].end(), sc);
+    }
+    Trace("csi-rcons") << "Type has " << d_const_list[tn].size()
+                       << " constants..." << std::endl
+                       << "  ";
+    for (unsigned i = 0; i < d_const_list[tn].size(); i++)
+    {
+      Trace("csi-rcons") << d_const_list[tn][i] << " ";
+    }
+    Trace("csi-rcons") << std::endl;
+    Trace("csi-rcons") << "Of these, " << d_const_list_pos[tn]
+                       << " are marked as positive." << std::endl;
+  }
+}
+
+bool CegConjectureSingleInvSol::getMatch(Node p,
+                                         Node n,
+                                         std::map<int, Node>& s,
+                                         std::vector<int>& new_s)
+{
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
+  if (tds->isFreeVar(p))
+  {
+    unsigned vnum = tds->getVarNum(p);
+    Node prev = s[vnum];
+    s[vnum] = n;
+    if (prev.isNull())
+    {
+      new_s.push_back(vnum);
+    }
+    return prev.isNull() || prev == n;
+  }
+  if (n.getNumChildren() == 0)
+  {
+    return p == n;
+  }
+  if (n.getKind() == p.getKind() && n.getNumChildren() == p.getNumChildren())
+  {
+    // try both ways?
+    unsigned rmax =
+        TermUtil::isComm(n.getKind()) && n.getNumChildren() == 2 ? 2 : 1;
+    std::vector<int> new_tmp;
+    for (unsigned r = 0; r < rmax; r++)
+    {
+      bool success = true;
+      for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
+      {
+        int io = r == 0 ? i : (i == 0 ? 1 : 0);
+        if (!getMatch(p[i], n[io], s, new_tmp))
+        {
+          success = false;
+          for (unsigned j = 0; j < new_tmp.size(); j++)
+          {
+            s.erase(new_tmp[j]);
+          }
+          new_tmp.clear();
+          break;
+        }
+      }
+      if (success)
+      {
+        new_s.insert(new_s.end(), new_tmp.begin(), new_tmp.end());
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool CegConjectureSingleInvSol::getMatch(Node t,
+                                         TypeNode st,
+                                         int& index_found,
+                                         std::vector<Node>& args,
+                                         int index_exc,
+                                         int index_start)
+{
+  Assert(st.isDatatype());
+  const Datatype& dt = static_cast<DatatypeType>(st.toType()).getDatatype();
+  Assert(dt.isSygus());
+  std::map<Kind, std::vector<Node> > kgens;
+  std::vector<Node> gens;
+  for (unsigned i = index_start, ncons = dt.getNumConstructors(); i < ncons;
+       i++)
+  {
+    if ((int)i != index_exc)
+    {
+      Node g = getGenericBase(st, dt, i);
+      gens.push_back(g);
+      kgens[g.getKind()].push_back(g);
+      Trace("csi-sol-debug") << "Check generic base : " << g << " from "
+                             << dt[i].getName() << std::endl;
+      if (g.getKind() == t.getKind())
+      {
+        Trace("csi-sol-debug") << "Possible match ? " << g << " " << t
+                               << " for " << dt[i].getName() << std::endl;
+        std::map<int, Node> sigma;
+        std::vector<int> new_s;
+        if (getMatch(g, t, sigma, new_s))
+        {
+          // we found an exact match
+          bool msuccess = true;
+          for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+          {
+            if (sigma[j].isNull())
+            {
+              msuccess = false;
+              break;
+            }
+            else
+            {
+              args.push_back(sigma[j]);
+            }
+          }
+          if (msuccess)
+          {
+            index_found = i;
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+Node CegConjectureSingleInvSol::getGenericBase(TypeNode tn,
+                                               const Datatype& dt,
+                                               int c)
+{
+  std::map<int, Node>::iterator it = d_generic_base[tn].find(c);
+  if (it != d_generic_base[tn].end())
+  {
+    return it->second;
+  }
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
+  Assert(tds->isRegistered(tn));
+  std::map<TypeNode, int> var_count;
+  std::map<int, Node> pre;
+  Node g = tds->mkGeneric(dt, c, var_count, pre);
+  Trace("csi-sol-debug") << "Generic is " << g << std::endl;
+  Node gr = Rewriter::rewrite(g);
+  Trace("csi-sol-debug") << "Generic rewritten is " << gr << std::endl;
+  d_generic_base[tn][c] = gr;
+  return gr;
+}
+}
+}
 }

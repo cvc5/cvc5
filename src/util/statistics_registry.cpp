@@ -22,7 +22,7 @@
 
 #include "base/cvc4_assert.h"
 #include "lib/clock_gettime.h"
-
+#include "util/ostream_util.h"
 
 #ifdef CVC4_STATISTICS_ON
 #  define __CVC4_USE_STATISTICS true
@@ -137,6 +137,7 @@ inline bool operator>=(const timespec& a, const timespec& b) {
 /** Output a timespec on an output stream. */
 std::ostream& operator<<(std::ostream& os, const timespec& t) {
   // assumes t.tv_nsec is in range
+  StreamFormatScope format_scope(os);
   return os << t.tv_sec << "."
             << std::setfill('0') << std::setw(9) << std::right << t.tv_nsec;
 }

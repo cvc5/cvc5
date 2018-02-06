@@ -77,7 +77,9 @@ TESTS = commutative.sy \
         strings-double-rec.sy \
         hd-19-d1-prog-dup-op.sy \
         real-grammar-neg.sy \
-        real-si-all.sy
+        real-si-all.sy  \
+        c100.sy \
+        check-generic-red.sy
 
 # disabled, takes too long with and without CBQI BV
 # Base16_1.sy

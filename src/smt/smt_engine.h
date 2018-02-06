@@ -287,6 +287,16 @@ class CVC4_PUBLIC SmtEngine {
   void checkModel(bool hardFailure = true);
 
   /**
+   * Check that a solution to a synthesis conjecture is indeed a solution.
+   *
+   * The check is made by determining if the negation of the synthesis
+   * conjecture in which the functions-to-synthesize have been replaced by the
+   * synthesized solutions, which is a quantifier-free formula, is
+   * unsatisfiable. If not, then the found solutions are wrong.
+   */
+  void checkSynthSolution();
+
+  /**
    * Postprocess a value for output to the user.  Involves doing things
    * like turning datatypes back into tuples, length-1-bitvectors back
    * into booleans, etc.
