@@ -491,7 +491,6 @@ Node mkConjunction(const std::vector<TNode>& nodes)
       Assert(isBVPredicate(n));
       conjunction << n;
     }
-    ++it;
   }
   unsigned nchildren = conjunction.getNumChildren();
   if (nchildren == 0) { return btrue; }
