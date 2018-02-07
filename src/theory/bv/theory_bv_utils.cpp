@@ -117,7 +117,7 @@ unsigned isPow2Const(TNode node, bool& isNeg)
   return false;
 }
 
-bool isBVGroundTerm(TNode node)
+bool isBvConstTerm(TNode node)
 {
   if (node.getNumChildren() == 0)
   {

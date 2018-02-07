@@ -81,9 +81,8 @@ bool isZero(TNode node);
  * c+1. Otherwise, this function returns 0. The flag isNeg is updated to
  * indicate whether node is negative.  */
 unsigned isPow2Const(TNode node, bool& isNeg);
-// TODO: need a better name, this is not technically a ground term
 /* Returns true if node or all of its children is const. */
-bool isBVGroundTerm(TNode node);
+bool isBvConstTerm(TNode node);
 /* Returns true if node is a predicate over bit-vector nodes. */
 bool isBVPredicate(TNode node);
 /* Returns true if given term is a THEORY_BV term.  */
