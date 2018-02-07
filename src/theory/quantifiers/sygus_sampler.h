@@ -224,7 +224,7 @@ class SygusSampler : public LazyTrieEvaluator
    * For instance, we assign x and y different type ids in this grammar:
    *   A -> B + C
    *   B -> x | 0 | 1
-   *   C -> y | 0 | 1
+   *   C -> y
    *
    * For each type id, a list of variables in the grammar we are considering,
    * for that type. These typically correspond to the arguments of the
