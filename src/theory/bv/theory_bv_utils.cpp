@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Util functions for theory BV:
+ ** \brief Util functions for theory BV.
  **
  ** Util functions for theory BV.
  **/
