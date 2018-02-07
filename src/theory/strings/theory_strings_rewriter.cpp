@@ -1614,9 +1614,13 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
         Node len1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
         if( checkEntailArith( len1, true ) )
         {
+          // we handle the false case here since the rewrite for equality
+          // uses this function, hence we want to conclude false if possible.
+          // len(x)>0 => contains( "", x ) ---> false
           Node ret = NodeManager::currentNM()->mkConst(false);
           return returnRewrite(node, ret, "ctn-lhs-emptystr");
         }
+        // contains( "", x ) ---> ( "" = x )
         Node ret = node[0].eqNode(node[1]);
         return returnRewrite(node, ret, "ctn-lhs-emptystr-eq");
       }
@@ -1636,6 +1640,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     CVC4::String t = node[1].getConst<String>();
     if( t.size()==0 )
     {
+      // contains( x, "" ) ---> true
       Node ret = NodeManager::currentNM()->mkConst(true);
       return returnRewrite(node, ret, "ctn-rhs-emptystr");
     }
@@ -2146,6 +2151,7 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
   {
     val = NodeManager::currentNM()->mkNode(kind::MINUS, lent, lens);
   }
+  // general reduction to equality + substr
   Node retNode = n[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, n[1],
                 val, lens));
   // add length constraint if it cannot be shown by simple entailment check 
