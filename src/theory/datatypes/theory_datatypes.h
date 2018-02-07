@@ -220,21 +220,21 @@ private:
   /** get eqc constructor */
   TNode getEqcConstructor( TNode r );
 
-protected:
+ protected:
   void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs );
   /** compute care graph */
-  void computeCareGraph();
+  void computeCareGraph() override;
 
-public:
+ public:
   TheoryDatatypes(context::Context* c, context::UserContext* u,
                   OutputChannel& out, Valuation valuation,
                   const LogicInfo& logicInfo);
   ~TheoryDatatypes();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   /** propagate */
-  void propagate(Effort effort);
+  void propagate(Effort effort) override;
   /** propagate */
   bool propagate(TNode literal);
   /** explain */
@@ -242,7 +242,7 @@ public:
   void explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions );
   void explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions );
   void explain( TNode literal, std::vector<TNode>& assumptions );
-  Node explain( TNode literal );
+  Node explain(TNode literal) override;
   Node explain( std::vector< Node >& lits );
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
@@ -255,26 +255,36 @@ public:
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
-  void check(Effort e);
-  bool needsCheckLastEffort();
-  void preRegisterTerm(TNode n);
-  void finishInit();
-  Node expandDefinition(LogicRequest &logicRequest, Node n);
-  Node ppRewrite(TNode n);
-  void presolve();
-  void addSharedTerm(TNode t);
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
+  void check(Effort e) override;
+  bool needsCheckLastEffort() override;
+  void preRegisterTerm(TNode n) override;
+  void finishInit() override;
+  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
+  Node ppRewrite(TNode n) override;
+  void presolve() override;
+  void addSharedTerm(TNode t) override;
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   bool collectModelInfo(TheoryModel* m) override;
-  void shutdown() { }
-  std::string identify() const { return std::string("TheoryDatatypes"); }
+  void shutdown() override {}
+  std::string identify() const override
+  {
+    return std::string("TheoryDatatypes");
+  }
   /** equality engine */
-  eq::EqualityEngine * getEqualityEngine() { return &d_equalityEngine; }
-  bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
+  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
+  bool getCurrentSubstitution(int effort,
+                              std::vector<Node>& vars,
+                              std::vector<Node>& subs,
+                              std::map<Node, std::vector<Node> >& exp) override;
   /** debug print */
   void printModelDebug( const char* c );
   /** entailment check */
-  virtual std::pair<bool, Node> entailmentCheck(TNode lit, const EntailmentCheckParameters* params = NULL, EntailmentCheckSideEffects* out = NULL);
-private:
+  std::pair<bool, Node> entailmentCheck(
+      TNode lit,
+      const EntailmentCheckParameters* params = NULL,
+      EntailmentCheckSideEffects* out = NULL) override;
+
+ private:
   /** add tester to equivalence class info */
   void addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg );
   /** add selector to equivalence class info */
@@ -321,11 +331,11 @@ private:
   bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
 private:
-  /** sygus utilities */
-  SygusSplitNew * d_sygus_split;
-  SygusSymBreakNew * d_sygus_sym_break;
+ /** sygus symmetry breaking utility */
+ SygusSymBreakNew* d_sygus_sym_break;
+
 public:
-  Node getNextDecisionRequest( unsigned& priority );
+ Node getNextDecisionRequest(unsigned& priority) override;
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */

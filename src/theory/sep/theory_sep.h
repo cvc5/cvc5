@@ -43,7 +43,7 @@ class TheorySep : public Theory {
   // MISC
   /////////////////////////////////////////////////////////////////////////////
 
-  private:
+ private:
   /** all lemmas sent */
   NodeSet d_lemmas_produced_c;
 
@@ -62,119 +62,137 @@ class TheorySep : public Theory {
                         std::map< int, std::map< Node, std::vector< Node > > >& references, std::map< int, std::map< Node, bool > >& references_strict,
                         bool pol, bool hasPol, bool underSpatial );
 
-  public:
-
+ public:
   TheorySep(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheorySep();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  std::string identify() const { return std::string("TheorySep"); }
+  std::string identify() const override { return std::string("TheorySep"); }
 
   /////////////////////////////////////////////////////////////////////////////
   // PREPROCESSING
   /////////////////////////////////////////////////////////////////////////////
 
-  public:
+ public:
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+  Node ppRewrite(TNode atom) override;
 
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  Node ppRewrite(TNode atom);
-
-  void ppNotifyAssertions(const std::vector<Node>& assertions);
+  void ppNotifyAssertions(const std::vector<Node>& assertions) override;
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION
   /////////////////////////////////////////////////////////////////////////////
 
-  private:
-
+ private:
   /** Should be called to propagate the literal.  */
   bool propagate(TNode literal);
 
   /** Explain why this literal is true by adding assumptions */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
-  public:
+ public:
+  void propagate(Effort e) override;
+  Node explain(TNode n) override;
 
-  void propagate(Effort e);
-  Node explain(TNode n);
-
-  public:
-
-  void addSharedTerm(TNode t);
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
-  void computeCareGraph();
+ public:
+  void addSharedTerm(TNode t) override;
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+  void computeCareGraph() override;
 
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
   /////////////////////////////////////////////////////////////////////////////
 
-  public:
-   bool collectModelInfo(TheoryModel* m) override;
-   void postProcessModel(TheoryModel* m);
+ public:
+  bool collectModelInfo(TheoryModel* m) override;
+  void postProcessModel(TheoryModel* m) override;
 
-   /////////////////////////////////////////////////////////////////////////////
-   // NOTIFICATIONS
-   /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  // NOTIFICATIONS
+  /////////////////////////////////////////////////////////////////////////////
 
-  private:
-  public:
+ public:
+  Node getNextDecisionRequest(unsigned& priority) override;
 
-  Node getNextDecisionRequest( unsigned& priority );
-
-  void presolve();
-  void shutdown() { }
+  void presolve() override;
+  void shutdown() override {}
 
   /////////////////////////////////////////////////////////////////////////////
   // MAIN SOLVER
   /////////////////////////////////////////////////////////////////////////////
-  public:
+ public:
+  void check(Effort e) override;
 
-  void check(Effort e);
+  bool needsCheckLastEffort() override;
 
-  bool needsCheckLastEffort();
-
-  private:
-
-  // NotifyClass: template helper class for d_equalityEngine - handles call-back from congruence closure module
-  class NotifyClass : public eq::EqualityEngineNotify {
+ private:
+  // NotifyClass: template helper class for d_equalityEngine - handles
+  // call-back from congruence closure module
+  class NotifyClass : public eq::EqualityEngineNotify
+  {
     TheorySep& d_sep;
-  public:
-    NotifyClass(TheorySep& sep): d_sep(sep) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) {
-      Debug("sep::propagate") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false") << ")" << std::endl;
+   public:
+    NotifyClass(TheorySep& sep) : d_sep(sep) {}
+
+    bool eqNotifyTriggerEquality(TNode equality, bool value)
+    {
+      Debug("sep::propagate")
+          << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", "
+          << (value ? "true" : "false") << ")" << std::endl;
       // Just forward to sep
-      if (value) {
+      if (value)
+      {
         return d_sep.propagate(equality);
-      } else {
+      }
+      else
+      {
         return d_sep.propagate(equality.notNode());
       }
     }
 
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value)
+    {
       Unreachable();
     }
 
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
-      Debug("sep::propagate") << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
-      if (value) {
+    bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                     TNode t1,
+                                     TNode t2,
+                                     bool value)
+    {
+      Debug("sep::propagate")
+          << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2
+          << ", " << (value ? "true" : "false") << ")" << std::endl;
+      if (value)
+      {
         // Propagate equality between shared terms
         return d_sep.propagate(t1.eqNode(t2));
-      } else {
+      }
+      else
+      {
         return d_sep.propagate(t1.eqNode(t2).notNode());
       }
       return true;
     }
 
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) {
-      Debug("sep::propagate") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2)
+    {
+      Debug("sep::propagate") << "NotifyClass::eqNotifyConstantTermMerge(" << t1
+                              << ", " << t2 << ")" << std::endl;
       d_sep.conflict(t1, t2);
     }
 
-    void eqNotifyNewClass(TNode t) { }
-    void eqNotifyPreMerge(TNode t1, TNode t2) { d_sep.eqNotifyPreMerge( t1, t2 ); }
-    void eqNotifyPostMerge(TNode t1, TNode t2) { d_sep.eqNotifyPostMerge( t1, t2 ); }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
+    void eqNotifyNewClass(TNode t) {}
+    void eqNotifyPreMerge(TNode t1, TNode t2)
+    {
+      d_sep.eqNotifyPreMerge(t1, t2);
+    }
+    void eqNotifyPostMerge(TNode t1, TNode t2)
+    {
+      d_sep.eqNotifyPostMerge(t1, t2);
+    }
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {}
   };
 
   /** The notify class for d_equalityEngine */
@@ -289,7 +307,8 @@ class TheorySep : public Theory {
   void setInactiveAssertionRec( Node fact, std::map< Node, std::vector< Node > >& lbl_to_assertions, std::map< Node, bool >& assert_active );
 
   Node mkUnion( TypeNode tn, std::vector< Node >& locs );
-private:
+
+ private:
   Node getRepresentative( Node t );
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
@@ -299,10 +318,9 @@ private:
 
   void sendLemma( std::vector< Node >& ant, Node conc, const char * c, bool infer = false );
   void doPendingFacts();
-public:
-  eq::EqualityEngine* getEqualityEngine() {
-    return &d_equalityEngine;
-  }
+
+ public:
+  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
   void initializeBounds();
 };/* class TheorySep */

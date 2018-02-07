@@ -17,6 +17,9 @@
 
 #include "util/statistics_registry.h"
 
+#include <cstdlib>
+#include <iostream>
+
 #include "base/cvc4_assert.h"
 #include "lib/clock_gettime.h"
 #include "util/ostream_util.h"
@@ -164,9 +167,19 @@ void StatisticsRegistry::registerStat(Stat* s)
 void StatisticsRegistry::unregisterStat(Stat* s)
 {
 #ifdef CVC4_STATISTICS_ON
-  PrettyCheckArgument(d_stats.find(s) != d_stats.end(), s,
-                "Statistic `%s' was not registered with this registry.",
-                s->getName().c_str());
+  try
+  {
+    PrettyCheckArgument(d_stats.find(s) != d_stats.end(),
+                        s,
+                        "Statistic `%s' was not registered with this registry.",
+                        s->getName().c_str());
+  }
+  catch (Exception& e)
+  {
+    std::cerr << "Failure in StatisticsRegistry::unregisterStat():" << e.what()
+              << std::endl;
+    abort();
+  }
   d_stats.erase(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::unregisterStat_() */
@@ -199,7 +212,16 @@ void TimerStat::start() {
 
 void TimerStat::stop() {
   if(__CVC4_USE_STATISTICS) {
-    PrettyCheckArgument(d_running, *this, "timer not running");
+    try
+    {
+      PrettyCheckArgument(d_running, *this, "timer not running");
+    }
+    catch (Exception& e)
+    {
+      std::cerr << "Fatal failure in TimerStat::stop(): " << e.what()
+                << std::endl;
+      abort();
+    }
     ::timespec end;
     clock_gettime(CLOCK_MONOTONIC, &end);
     d_data += end - d_start;

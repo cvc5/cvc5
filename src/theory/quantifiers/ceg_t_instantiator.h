@@ -187,43 +187,44 @@ class EprInstantiator : public Instantiator {
 class BvInstantiator : public Instantiator {
  public:
   BvInstantiator(QuantifiersEngine* qe, TypeNode tn);
-  virtual ~BvInstantiator();
-  virtual void reset(CegInstantiator* ci,
-                     SolvedForm& sf,
-                     Node pv,
-                     CegInstEffort effort) override;
-  virtual bool hasProcessAssertion(CegInstantiator* ci,
-                                   SolvedForm& sf,
-                                   Node pv,
-                                   CegInstEffort effort) override
+  ~BvInstantiator() override;
+  void reset(CegInstantiator* ci,
+             SolvedForm& sf,
+             Node pv,
+             CegInstEffort effort) override;
+  bool hasProcessAssertion(CegInstantiator* ci,
+                           SolvedForm& sf,
+                           Node pv,
+                           CegInstEffort effort) override
   {
     return true;
   }
-  virtual Node hasProcessAssertion(CegInstantiator* ci,
-                                   SolvedForm& sf,
-                                   Node pv,
-                                   Node lit,
-                                   CegInstEffort effort) override;
-  virtual bool processAssertion(CegInstantiator* ci,
-                                SolvedForm& sf,
-                                Node pv,
-                                Node lit,
-                                Node alit,
-                                CegInstEffort effort) override;
-  virtual bool processAssertions(CegInstantiator* ci,
-                                 SolvedForm& sf,
-                                 Node pv,
-                                 CegInstEffort effort) override;
+  Node hasProcessAssertion(CegInstantiator* ci,
+                           SolvedForm& sf,
+                           Node pv,
+                           Node lit,
+                           CegInstEffort effort) override;
+  bool processAssertion(CegInstantiator* ci,
+                        SolvedForm& sf,
+                        Node pv,
+                        Node lit,
+                        Node alit,
+                        CegInstEffort effort) override;
+  bool processAssertions(CegInstantiator* ci,
+                         SolvedForm& sf,
+                         Node pv,
+                         CegInstEffort effort) override;
   /** use model value
    *
    * We allow model values if we have not already tried an assertion,
    * and only at levels below full if cbqiFullEffort is false.
    */
-  virtual bool useModelValue(CegInstantiator* ci,
-                             SolvedForm& sf,
-                             Node pv,
-                             CegInstEffort effort) override;
-  virtual std::string identify() const { return "Bv"; }
+  bool useModelValue(CegInstantiator* ci,
+                     SolvedForm& sf,
+                     Node pv,
+                     CegInstEffort effort) override;
+  std::string identify() const override { return "Bv"; }
+
  private:
   // point to the bv inverter class
   BvInverter * d_inverter;
@@ -281,7 +282,7 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
 {
  public:
   BvInstantiatorPreprocess() {}
-  virtual ~BvInstantiatorPreprocess() {}
+  ~BvInstantiatorPreprocess() override {}
   /** register counterexample lemma
    *
    * This method modifies the contents of lems based on the extract terms
@@ -308,8 +309,8 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
    * since the added equalities ensure we are able to construct the proper
    * solved forms for variables in t and for the intermediate variables above.
    */
-  virtual void registerCounterexampleLemma(std::vector<Node>& lems,
-                                           std::vector<Node>& ce_vars) override;
+  void registerCounterexampleLemma(std::vector<Node>& lems,
+                                   std::vector<Node>& ce_vars) override;
 
  private:
   /** collect extracts
