@@ -207,6 +207,7 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
   {
     return NodeManager::currentNM()->mkConst(false);
   }
+  
   // ( ~contains( s, t ) V ~contains( t, s ) ) => ( s == t ---> false )
   for (unsigned r = 0; r < 2; r++)
   {
@@ -235,6 +236,18 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
       }
     }
   }
+  
+  // ( len( s ) != len( t ) ) => ( s == t ---> false )
+  // This covers cases like str.++( x, x ) == "a" ---> false
+  Node len0 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0] );
+  Node len1 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[1] );
+  Node len_eq = len0.eqNode( len1 );
+  len_eq = Rewriter::rewrite( len_eq );
+  if( len_eq.isConst() && !len_eq.getConst<bool>() )
+  {
+    return returnRewrite(node, len_eq, "eq-len-deq");
+  }
+  
 
   std::vector<Node> c[2];
   for (unsigned i = 0; i < 2; i++)
@@ -1598,9 +1611,14 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     }else{
       if (s.size() == 0)
       {
-        Node ret =
-            NodeManager::currentNM()->mkNode(kind::EQUAL, node[0], node[1]);
-        return returnRewrite(node, ret, "ctn-lhs-emptystr");
+        Node len1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
+        if( checkEntailArith( len1, true ) )
+        {
+          Node ret = NodeManager::currentNM()->mkConst(false);
+          return returnRewrite(node, ret, "ctn-lhs-emptystr");
+        }
+        Node ret = node[0].eqNode(node[1]);
+        return returnRewrite(node, ret, "ctn-lhs-emptystr-eq");
       }
       else if (node[1].getKind() == kind::STRING_CONCAT)
       {
