@@ -2769,172 +2769,169 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
   if( options::stringAbortLoop() ){
     Message() << "Looping word equation encountered." << std::endl;
     exit( 1 );
-  }else{
-    Node conc;
-    Trace("strings-loop") << "Detected possible loop for " << normal_forms[loop_n_index][loop_index] << std::endl;
-    Trace("strings-loop") << " ... (X)= " << normal_forms[other_n_index][index] << std::endl;
+  }
+  NodeManager * nm = NodeManager::currentNM();
+  Node conc;
+  Trace("strings-loop") << "Detected possible loop for " << normal_forms[loop_n_index][loop_index] << std::endl;
+  Trace("strings-loop") << " ... (X)= " << normal_forms[other_n_index][index] << std::endl;
 
-    Trace("strings-loop") << " ... T(Y.Z)= ";
-    std::vector< Node > vec_t;
-    for(int lp=index; lp<loop_index; ++lp) {
-      if(lp != index) Trace("strings-loop") << " ++ ";
-      Trace("strings-loop") << normal_forms[loop_n_index][lp];
-      vec_t.push_back( normal_forms[loop_n_index][lp] );
-    }
-    Node t_yz = mkConcat( vec_t );
-    Trace("strings-loop") << " (" << t_yz << ")" << std::endl;
-    Trace("strings-loop") << " ... S(Z.Y)= ";
-    std::vector< Node > vec_s;
-    for(int lp=index+1; lp<(int)normal_forms[other_n_index].size(); ++lp) {
-      if(lp != index+1) Trace("strings-loop") << " ++ ";
-      Trace("strings-loop") << normal_forms[other_n_index][lp];
-      vec_s.push_back( normal_forms[other_n_index][lp] );
-    }
-    Node s_zy = mkConcat( vec_s );
-    Trace("strings-loop") << " (" << s_zy << ")" << std::endl;
-    Trace("strings-loop") << " ... R= ";
-    std::vector< Node > vec_r;
-    for(int lp=loop_index+1; lp<(int)normal_forms[loop_n_index].size(); ++lp) {
-      if(lp != loop_index+1) Trace("strings-loop") << " ++ ";
-      Trace("strings-loop") << normal_forms[loop_n_index][lp];
-      vec_r.push_back( normal_forms[loop_n_index][lp] );
-    }
-    Node r = mkConcat( vec_r );
-    Trace("strings-loop") << " (" << r << ")" << std::endl;
+  Trace("strings-loop") << " ... T(Y.Z)= ";
+  std::vector< Node > vec_t;
+  for(int lp=index; lp<loop_index; ++lp) {
+    if(lp != index) Trace("strings-loop") << " ++ ";
+    Trace("strings-loop") << normal_forms[loop_n_index][lp];
+    vec_t.push_back( normal_forms[loop_n_index][lp] );
+  }
+  Node t_yz = mkConcat( vec_t );
+  Trace("strings-loop") << " (" << t_yz << ")" << std::endl;
+  Trace("strings-loop") << " ... S(Z.Y)= ";
+  std::vector< Node > vec_s;
+  for(unsigned lp=index+1, size = normal_forms[other_n_index].size(); lp<size; ++lp) {
+    if(lp != index+1) Trace("strings-loop") << " ++ ";
+    Trace("strings-loop") << normal_forms[other_n_index][lp];
+    vec_s.push_back( normal_forms[other_n_index][lp] );
+  }
+  Node s_zy = mkConcat( vec_s );
+  Trace("strings-loop") << " (" << s_zy << ")" << std::endl;
+  Trace("strings-loop") << " ... R= ";
+  std::vector< Node > vec_r;
+  for(unsigned lp=loop_index+1, size = normal_forms[loop_n_index].size(); lp<size; ++lp) {
+    if(lp != loop_index+1) Trace("strings-loop") << " ++ ";
+    Trace("strings-loop") << normal_forms[loop_n_index][lp];
+    vec_r.push_back( normal_forms[loop_n_index][lp] );
+  }
+  Node r = mkConcat( vec_r );
+  Trace("strings-loop") << " (" << r << ")" << std::endl;
 
-    //Trace("strings-loop") << "Lemma Cache: " << normal_form_src[i] << " vs " << normal_form_src[j] << std::endl;
-    //TODO: can be more general
-    if( s_zy.isConst() && r.isConst() && r!=d_emptyString) {
-      int c;
-      bool flag = true;
-      if(s_zy.getConst<String>().tailcmp( r.getConst<String>(), c ) ) {
-        if( c>=0) {
-          s_zy = NodeManager::currentNM()->mkConst( s_zy.getConst<String>().substr(0, c) );
-          r = d_emptyString;
-          vec_r.clear();
-          Trace("strings-loop") << "Strings::Loop: Refactor S(Z.Y)= " << s_zy << ", c=" << c << std::endl;
-          flag = false;
-        }
-      }
-      if( flag ){
-        Trace("strings-loop") << "Strings::Loop: tails are different." << std::endl;
-        sendInference( info.d_ant, conc, "Loop Conflict", true );
-        return false;
+  if( s_zy.isConst() && r.isConst() && r!=d_emptyString) {
+    int c;
+    bool flag = true;
+    if(s_zy.getConst<String>().tailcmp( r.getConst<String>(), c ) ) {
+      if( c>=0) {
+        s_zy = nm->mkConst( s_zy.getConst<String>().substr(0, c) );
+        r = d_emptyString;
+        vec_r.clear();
+        Trace("strings-loop") << "Strings::Loop: Refactor S(Z.Y)= " << s_zy << ", c=" << c << std::endl;
+        flag = false;
       }
     }
-
-    Node split_eq;
-    for( unsigned r=0; r<2; r++ )
-    {
-      Node t = r==0 ? normal_forms[loop_n_index][loop_index] : t_yz;
-      split_eq = t.eqNode( d_emptyString );
-      Node split_eqr = Rewriter::rewrite( split_eq );
-      // the equality could rewrite to false
-      if( !split_eqr.isConst() )
-      {
-        if( !areDisequal( t, d_emptyString ) ){
-          //try to make t equal to empty to avoid loop
-          info.d_conc = NodeManager::currentNM()->mkNode( kind::OR, split_eq, split_eq.negate() );
-          info.d_id = 4;
-          return true;
-        }
-        else
-        {
-          info.d_ant.push_back( split_eq.negate() );
-        }
-      }
-    }
-
-    Node ant = mkExplain( info.d_ant );
-    info.d_ant.clear();
-    info.d_antn.push_back( ant );
-
-    Node str_in_re;
-    if( s_zy == t_yz &&
-      r == d_emptyString &&
-      s_zy.isConst() &&
-      s_zy.getConst<String>().isRepeated()
-      ) {
-      Node rep_c = NodeManager::currentNM()->mkConst( s_zy.getConst<String>().substr(0, 1) );
-      Trace("strings-loop") << "Special case (X)=" << normal_forms[other_n_index][index] << " " << std::endl;
-      Trace("strings-loop") << "... (C)=" << rep_c << " " << std::endl;
-      //special case
-      str_in_re = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, normal_forms[other_n_index][index],
-                  NodeManager::currentNM()->mkNode( kind::REGEXP_STAR,
-                  NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, rep_c ) ) );
-      conc = str_in_re;
-    } else if(t_yz.isConst()) {
-      Trace("strings-loop") << "Strings::Loop: Const Normal Breaking." << std::endl;
-      CVC4::String s = t_yz.getConst< CVC4::String >();
-      unsigned size = s.size();
-      std::vector< Node > vconc;
-      for(unsigned len=1; len<=size; len++) {
-        Node y = NodeManager::currentNM()->mkConst(s.substr(0, len));
-        Node z = NodeManager::currentNM()->mkConst(s.substr(len, size - len));
-        Node restr = s_zy;
-        Node cc;
-        if(r != d_emptyString) {
-          std::vector< Node > v2(vec_r);
-          v2.insert(v2.begin(), y);
-          v2.insert(v2.begin(), z);
-          restr = mkConcat( z, y );
-          cc = Rewriter::rewrite(s_zy.eqNode( mkConcat( v2 ) ));
-        } else {
-          cc = Rewriter::rewrite(s_zy.eqNode( mkConcat( z, y) ));
-        }
-        if(cc == d_false) {
-          continue;
-        }
-        Node conc2 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, normal_forms[other_n_index][index],
-                NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT,
-                  NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, y),
-                  NodeManager::currentNM()->mkNode(kind::REGEXP_STAR,
-                    NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, restr))));
-        cc = cc==d_true ? conc2 : NodeManager::currentNM()->mkNode( kind::AND, cc, conc2 );
-        d_regexp_ant[conc2] = ant;
-        vconc.push_back(cc);
-      }
-      conc = vconc.size()==0 ? Node::null() : vconc.size()==1 ? vconc[0] : NodeManager::currentNM()->mkNode(kind::OR, vconc);
-    } else {
-      Trace("strings-loop") << "Strings::Loop: Normal Loop Breaking." << std::endl;
-      //right
-      Node sk_w= mkSkolemS( "w_loop" );
-      Node sk_y= mkSkolemS( "y_loop", 1 );
-      Node sk_z= mkSkolemS( "z_loop" );
-      //t1 * ... * tn = y * z
-      Node conc1 = t_yz.eqNode( mkConcat( sk_y, sk_z ) );
-      // s1 * ... * sk = z * y * r
-      vec_r.insert(vec_r.begin(), sk_y);
-      vec_r.insert(vec_r.begin(), sk_z);
-      Node conc2 = s_zy.eqNode( mkConcat( vec_r ) );
-      Node conc3 = normal_forms[other_n_index][index].eqNode( mkConcat( sk_y, sk_w ) );
-      Node restr = r == d_emptyString ? s_zy : mkConcat( sk_z, sk_y );
-      str_in_re = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, sk_w,
-              NodeManager::currentNM()->mkNode( kind::REGEXP_STAR,
-                NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, restr ) ) );
-
-      std::vector< Node > vec_conc;
-      vec_conc.push_back(conc1); vec_conc.push_back(conc2); vec_conc.push_back(conc3);
-      vec_conc.push_back(str_in_re);
-      //vec_conc.push_back(sk_y.eqNode(d_emptyString).negate());//by mkskolems
-      conc = NodeManager::currentNM()->mkNode( kind::AND, vec_conc );
-    } // normal case
-
-    //set its antecedant to ant, to say when it is relevant
-    if(!str_in_re.isNull()) {
-      d_regexp_ant[str_in_re] = ant;
-    }
-    //we will be done
-    if( options::stringProcessLoop() ){
-      info.d_conc = conc;
-      info.d_id = 8;
-      info.d_nf_pair[0] = normal_form_src[i];
-      info.d_nf_pair[1] = normal_form_src[j];
-      return true;
-    }else{
-      d_out->setIncomplete();
+    if( flag ){
+      Trace("strings-loop") << "Strings::Loop: tails are different." << std::endl;
+      sendInference( info.d_ant, conc, "Loop Conflict", true );
+      return false;
     }
   }
+
+  Node split_eq;
+  for( unsigned r=0; r<2; r++ )
+  {
+    Node t = r==0 ? normal_forms[loop_n_index][loop_index] : t_yz;
+    split_eq = t.eqNode( d_emptyString );
+    Node split_eqr = Rewriter::rewrite( split_eq );
+    // the equality could rewrite to false
+    if( !split_eqr.isConst() )
+    {
+      if( !areDisequal( t, d_emptyString ) ){
+        //try to make t equal to empty to avoid loop
+        info.d_conc = nm->mkNode( kind::OR, split_eq, split_eq.negate() );
+        info.d_id = 4;
+        return true;
+      }
+      else
+      {
+        info.d_ant.push_back( split_eq.negate() );
+      }
+    }
+  }
+
+  Node ant = mkExplain( info.d_ant );
+  info.d_ant.clear();
+  info.d_antn.push_back( ant );
+
+  Node str_in_re;
+  if( s_zy == t_yz &&
+    r == d_emptyString &&
+    s_zy.isConst() &&
+    s_zy.getConst<String>().isRepeated()
+    ) {
+    Node rep_c = nm->mkConst( s_zy.getConst<String>().substr(0, 1) );
+    Trace("strings-loop") << "Special case (X)=" << normal_forms[other_n_index][index] << " " << std::endl;
+    Trace("strings-loop") << "... (C)=" << rep_c << " " << std::endl;
+    //special case
+    str_in_re = nm->mkNode( kind::STRING_IN_REGEXP, normal_forms[other_n_index][index],
+                nm->mkNode( kind::REGEXP_STAR,
+                nm->mkNode( kind::STRING_TO_REGEXP, rep_c ) ) );
+    conc = str_in_re;
+  } else if(t_yz.isConst()) {
+    Trace("strings-loop") << "Strings::Loop: Const Normal Breaking." << std::endl;
+    CVC4::String s = t_yz.getConst< CVC4::String >();
+    unsigned size = s.size();
+    std::vector< Node > vconc;
+    for(unsigned len=1; len<=size; len++) {
+      Node y = nm->mkConst(s.substr(0, len));
+      Node z = nm->mkConst(s.substr(len, size - len));
+      Node restr = s_zy;
+      Node cc;
+      if(r != d_emptyString) {
+        std::vector< Node > v2(vec_r);
+        v2.insert(v2.begin(), y);
+        v2.insert(v2.begin(), z);
+        restr = mkConcat( z, y );
+        cc = Rewriter::rewrite(s_zy.eqNode( mkConcat( v2 ) ));
+      } else {
+        cc = Rewriter::rewrite(s_zy.eqNode( mkConcat( z, y) ));
+      }
+      if(cc == d_false) {
+        continue;
+      }
+      Node conc2 = nm->mkNode(kind::STRING_IN_REGEXP, normal_forms[other_n_index][index],
+              nm->mkNode(kind::REGEXP_CONCAT,
+                nm->mkNode(kind::STRING_TO_REGEXP, y),
+                nm->mkNode(kind::REGEXP_STAR,
+                  nm->mkNode(kind::STRING_TO_REGEXP, restr))));
+      cc = cc==d_true ? conc2 : nm->mkNode( kind::AND, cc, conc2 );
+      d_regexp_ant[conc2] = ant;
+      vconc.push_back(cc);
+    }
+    conc = vconc.size()==0 ? Node::null() : vconc.size()==1 ? vconc[0] : nm->mkNode(kind::OR, vconc);
+  } else {
+    Trace("strings-loop") << "Strings::Loop: Normal Loop Breaking." << std::endl;
+    //right
+    Node sk_w= mkSkolemS( "w_loop" );
+    Node sk_y= mkSkolemS( "y_loop", 1 );
+    Node sk_z= mkSkolemS( "z_loop" );
+    //t1 * ... * tn = y * z
+    Node conc1 = t_yz.eqNode( mkConcat( sk_y, sk_z ) );
+    // s1 * ... * sk = z * y * r
+    vec_r.insert(vec_r.begin(), sk_y);
+    vec_r.insert(vec_r.begin(), sk_z);
+    Node conc2 = s_zy.eqNode( mkConcat( vec_r ) );
+    Node conc3 = normal_forms[other_n_index][index].eqNode( mkConcat( sk_y, sk_w ) );
+    Node restr = r == d_emptyString ? s_zy : mkConcat( sk_z, sk_y );
+    str_in_re = nm->mkNode( kind::STRING_IN_REGEXP, sk_w,
+            nm->mkNode( kind::REGEXP_STAR,
+              nm->mkNode( kind::STRING_TO_REGEXP, restr ) ) );
+
+    std::vector< Node > vec_conc;
+    vec_conc.push_back(conc1); vec_conc.push_back(conc2); vec_conc.push_back(conc3);
+    vec_conc.push_back(str_in_re);
+    //vec_conc.push_back(sk_y.eqNode(d_emptyString).negate());//by mkskolems
+    conc = nm->mkNode( kind::AND, vec_conc );
+  } // normal case
+
+  //set its antecedant to ant, to say when it is relevant
+  if(!str_in_re.isNull()) {
+    d_regexp_ant[str_in_re] = ant;
+  }
+  //we will be done
+  if( options::stringProcessLoop() ){
+    info.d_conc = conc;
+    info.d_id = 8;
+    info.d_nf_pair[0] = normal_form_src[i];
+    info.d_nf_pair[1] = normal_form_src[j];
+    return true;
+  }
+  d_out->setIncomplete();
   return false;
 }
 
