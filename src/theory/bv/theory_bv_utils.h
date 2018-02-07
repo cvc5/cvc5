@@ -132,8 +132,7 @@ Node mkAnd(TNode node1, TNode node2);
 template<bool ref_count>
 Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
 {
-  std::set<TNode> all;
-  all.insert(conjunctions.begin(), conjunctions.end());
+  std::set<TNode> all(conjunctions.begin(), conjunctions.end());
 
   if (all.size() == 0) { return mkTrue(); }
 
