@@ -65,7 +65,7 @@ bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
   switch(n.getKind()) {
 ${construles}
 
-#line 70 "${template}"
+#line 69 "${template}"
 
   default:;
   }
@@ -81,7 +81,7 @@ bool TypeChecker::neverIsConst(NodeManager* nodeManager, TNode n)
   switch(n.getKind()) {
 ${neverconstrules}
 
-#line 87 "${template}"
+#line 85 "${template}"
 
   default:;
   }
