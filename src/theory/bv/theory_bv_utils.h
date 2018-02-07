@@ -127,8 +127,21 @@ Node mkSortedNode(Kind kind, std::vector<Node>& children);
 Node mkNot(Node child);
 /* Create node of kind AND. */
 Node mkAnd(TNode node1, TNode node2);
-Node mkAnd(const std::vector<TNode>& conjunctions);
-Node mkAnd(const std::vector<Node>& conjunctions);
+/* Create n-ary node of kind AND. */
+template<bool ref_count>
+Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
+{
+  std::set<TNode> all(conjunctions.begin(), conjunctions.end());
+
+  if (all.size() == 0) { return mkTrue(); }
+
+  /* All the same, or just one  */
+  if (all.size() == 1) { return conjunctions[0]; }
+
+  NodeBuilder<> conjunction(kind::AND);
+  for (const Node& n : all) { conjunction << n; }
+  return conjunction;
+}
 /* Create node of kind OR. */
 Node mkOr(TNode node1, TNode node2);
 Node mkOr(const std::vector<Node>& nodes);

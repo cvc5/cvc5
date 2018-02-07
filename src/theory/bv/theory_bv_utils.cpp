@@ -370,62 +370,6 @@ Node mkAnd(TNode node1, TNode node2)
   return NodeManager::currentNM()->mkNode(kind::AND, node1, node2);
 }
 
-Node mkAnd(const std::vector<TNode>& conjunctions)
-{
-  std::set<TNode> all;
-  all.insert(conjunctions.begin(), conjunctions.end());
-
-  if (all.size() == 0)
-  {
-    return mkTrue();
-  }
-
-  if (all.size() == 1)
-  {
-    // All the same, or just one
-    return conjunctions[0];
-  }
-
-  NodeBuilder<> conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end)
-  {
-    conjunction << *it;
-    ++it;
-  }
-
-  return conjunction;
-}
-
-Node mkAnd(const std::vector<Node>& conjunctions)
-{
-  std::set<TNode> all;
-  all.insert(conjunctions.begin(), conjunctions.end());
-
-  if (all.size() == 0)
-  {
-    return mkTrue();
-  }
-
-  if (all.size() == 1)
-  {
-    // All the same, or just one
-    return conjunctions[0];
-  }
-
-  NodeBuilder<> conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end)
-  {
-    conjunction << *it;
-    ++it;
-  }
-
-  return conjunction;
-}
-
 Node mkOr(TNode node1, TNode node2)
 {
   return NodeManager::currentNM()->mkNode(kind::OR, node1, node2);
