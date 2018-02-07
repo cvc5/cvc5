@@ -80,14 +80,14 @@ void SygusSampler::initialize(TypeNode tn,
   d_rvalue_null_cindices.clear();
   d_var_sygus_types.clear();
   d_vars.insert(d_vars.end(), vars.begin(), vars.end());
-  std::map< TypeNode, unsigned > type_to_type_id;
+  std::map<TypeNode, unsigned> type_to_type_id;
   unsigned type_id_counter = 0;
   for (const Node& sv : d_vars)
   {
     TypeNode svt = sv.getType();
     unsigned tnid;
-    std::map< TypeNode, unsigned >::iterator itt = type_to_type_id.find(svt);
-    if( itt==type_to_type_id.end() )
+    std::map<TypeNode, unsigned>::iterator itt = type_to_type_id.find(svt);
+    if (itt == type_to_type_id.end())
     {
       type_to_type_id[svt] = type_id_counter;
       type_id_counter++;
@@ -96,7 +96,8 @@ void SygusSampler::initialize(TypeNode tn,
     {
       tnid = itt->second;
     }
-    Trace("sygus-sample-debug") << "Type id for " << sv << " is " << tnid << std::endl;
+    Trace("sygus-sample-debug")
+        << "Type id for " << sv << " is " << tnid << std::endl;
     d_var_index[sv] = d_type_vars[tnid].size();
     d_type_vars[tnid].push_back(sv);
   }
@@ -135,46 +136,48 @@ void SygusSampler::initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples)
   registerSygusType(d_ftn);
   // Variables are associated with type ids based on the set of sygus types they
   // appear in.
-  std::map< Node, unsigned > var_to_type_id;
+  std::map<Node, unsigned> var_to_type_id;
   unsigned type_id_counter = 0;
   for (const Node& sv : d_vars)
   {
     TypeNode svt = sv.getType();
     // is it equivalent to a previous variable?
-    for( const std::pair< Node, unsigned >& v : var_to_type_id )
+    for (const std::pair<Node, unsigned>& v : var_to_type_id)
     {
       Node svc = v.first;
-      if( svc.getType()==svt )
+      if (svc.getType() == svt)
       {
-        if( d_var_sygus_types[sv].size()==d_var_sygus_types[svc].size() )
+        if (d_var_sygus_types[sv].size() == d_var_sygus_types[svc].size())
         {
           bool success = true;
-          for( unsigned t=0, size = d_var_sygus_types[sv].size(); t<size; t++ )
+          for (unsigned t = 0, size = d_var_sygus_types[sv].size(); t < size;
+               t++)
           {
-            if( d_var_sygus_types[sv][t]!=d_var_sygus_types[svc][t] )
+            if (d_var_sygus_types[sv][t] != d_var_sygus_types[svc][t])
             {
               success = false;
               break;
             }
           }
-          if( success )
+          if (success)
           {
             var_to_type_id[sv] = var_to_type_id[svc];
           }
         }
       }
     }
-    if( var_to_type_id.find( sv )==var_to_type_id.end() )
+    if (var_to_type_id.find(sv) == var_to_type_id.end())
     {
       var_to_type_id[sv] = type_id_counter;
       type_id_counter++;
     }
     unsigned tnid = var_to_type_id[sv];
-    Trace("sygus-sample-debug") << "Type id for " << sv << " is " << tnid << std::endl;
+    Trace("sygus-sample-debug")
+        << "Type id for " << sv << " is " << tnid << std::endl;
     d_var_index[sv] = d_type_vars[tnid].size();
     d_type_vars[tnid].push_back(sv);
   }
-  
+
   initializeSamples(nsamples);
 }
 
@@ -620,10 +623,10 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
-Node SygusSamplerExt::registerTerm( Node n, bool forceKeep )
+Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
 {
   Node eq_n = SygusSampler::registerTerm(n, forceKeep);
-  if( eq_n==n )
+  if (eq_n == n)
   {
     return n;
   }
@@ -659,9 +662,8 @@ Node SygusSamplerExt::registerTerm( Node n, bool forceKeep )
   }
   else
   {
-    Trace("sygus-synth-rr")
-        << "Alpha equivalent candidate rewrite : " << eq_n << " "
-        << n << std::endl;
+    Trace("sygus-synth-rr") << "Alpha equivalent candidate rewrite : " << eq_n
+                            << " " << n << std::endl;
   }
   return n;
 }

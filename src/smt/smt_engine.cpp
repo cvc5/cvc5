@@ -1885,7 +1885,7 @@ void SmtEngine::setDefaults() {
     if( !options::instNoEntail.wasSetByUser() ){
       options::instNoEntail.set( false );
     }
-    if( options::sygusRew() )
+    if (options::sygusRew())
     {
       options::sygusRewSynth.set(true);
       options::sygusRewVerify.set(true);

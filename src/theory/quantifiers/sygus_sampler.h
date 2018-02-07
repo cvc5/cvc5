@@ -165,6 +165,7 @@ class SygusSampler : public LazyTrieEvaluator
   void getSamplePoint(unsigned index, std::vector<Node>& pt);
   /** evaluate n on sample point index */
   Node evaluate(Node n, unsigned index);
+
  protected:
   /** is contiguous
    *
@@ -224,8 +225,8 @@ class SygusSampler : public LazyTrieEvaluator
    *   A -> B + C
    *   B -> x | 0 | 1
    *   C -> y | 0 | 1
-   * 
-   * For each type id, a list of variables in the grammar we are considering, 
+   *
+   * For each type id, a list of variables in the grammar we are considering,
    * for that type. These typically correspond to the arguments of the
    * function-to-synthesize whose grammar we are considering.
    */
@@ -315,12 +316,18 @@ class SygusSampler : public LazyTrieEvaluator
 /** Version of the above class with some additional features */
 class SygusSamplerExt : public SygusSampler
 {
-public:
+ public:
   /** register term n with this sampler database
    *
-   * Returns a term that is different from n only if:
+   * This returns a term ret with the same guarantees as
+   * SygusSampler::registerTerm, with the additional guarantee
+   * that for all ret' returned by a previous call to registerTerm( n' ),
+   * we have that ret = n is not alpha-equivalent to ret' = n,
+   * modulo symmetry of equality. For example,
+   *   (t+0), t and (s+0), s 
+   * will not be input/output pairs of this function.
    */
-  virtual Node registerTerm( Node n, bool forceKeep=false ) override;
+  virtual Node registerTerm(Node n, bool forceKeep = false) override;
 };
 
 } /* CVC4::theory::quantifiers namespace */
