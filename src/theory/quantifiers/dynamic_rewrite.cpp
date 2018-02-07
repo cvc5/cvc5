@@ -23,22 +23,22 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
   
-DynamicRewriter::DynamicRewriter( QuantifiersEngine * qe ) {
-
+DynamicRewriter::DynamicRewriter( const std::string& name, QuantifiersEngine * qe ) : 
+d_qe(qe),
+d_equalityEngine(qe->getUserContext(), "DynamicRewriter::" + name,true){
+  d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 }
 
 bool DynamicRewriter::addRewrite( Node a, Node b )
 {
-  Assert( a==Rewriter::rewrite(a));
-  Assert( b==Rewriter::rewrite(b));
-  Node ar = rewrite( a );
-  Node br = rewrite( b );
-  if( ar==br )
+  if( a==b )
   {
     return false;
   }
-  
-  // orient
+  Assert( a==Rewriter::rewrite(a));
+  Assert( b==Rewriter::rewrite(b));
+  Node ar = toInternal( a );
+  Node br = toInternal( b );
   
   
   
@@ -49,8 +49,33 @@ bool DynamicRewriter::addRewrite( Node a, Node b )
   return true;
 }
 
-Node DynamicRewriter::rewrite( Node a )
+Node DynamicRewriter::toInternal( Node a )
 {
+  std::map< Node, Node >::iterator it = d_term_to_internal.find( a );
+  if( it != d_term_to_internal.end() )
+  {
+    return it->second; 
+  }
+  std::vector< Node > children;
+  if( a.hasOperator() )
+  {
+    Node op = a.getOperator();
+    if( a.getKind()!=APPLY_UF )
+    {
+      std::map< Node, Node >::iterator ito = d_term_to_internal.find( op );
+      if( ito!=d_term_to_internal.end() )
+      {
+        op = ito->second;
+      }
+      else
+      {
+        
+      }
+    }
+  }
+  
+  
+  
   return a;
 }
   

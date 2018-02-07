@@ -19,6 +19,9 @@
 
 #include <map>
 
+#include "theory/quantifiers_engine.h"
+#include "theory/uf/equality_engine.h"
+
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
@@ -29,13 +32,15 @@ namespace quantifiers {
 class DynamicRewriter 
 {
 public:
-  DynamicRewriter( QuantifiersEngine * qe );
+  DynamicRewriter( const std::string& name, QuantifiersEngine * qe );
   ~DynamicRewriter(){}
   
   bool addRewrite( Node a, Node b );
-  Node rewrite( Node a );
 private:
-  std::map< Node, Node > d_union_find;
+  Node toInternal( Node a );
+  std::map< Node, Node > d_term_to_internal;
+  QuantifiersEngine* d_qe;
+  eq::EqualityEngine d_equalityEngine;
 };
 
 
