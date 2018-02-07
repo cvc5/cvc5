@@ -35,7 +35,7 @@ namespace quantifiers {
 
 bool OpPosTrie::getOrMakeType(TypeNode tn,
                               TypeNode& unres_tn,
-                              std::vector<unsigned> op_pos,
+                              const std::vector<unsigned>& op_pos,
                               unsigned ind)
 {
   if (ind == op_pos.size())
@@ -274,7 +274,7 @@ std::map<TypeNode, Node> SygusGrammarNorm::d_tn_to_id = {};
  *
  * returns true if collected anything
  */
-SygusGrammarNorm::Transf* SygusGrammarNorm::inferTransf(
+std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
     TypeNode tn, const Datatype& dt, const std::vector<unsigned>& op_pos)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -295,7 +295,7 @@ SygusGrammarNorm::Transf* SygusGrammarNorm::inferTransf(
       Trace("sygus-gnorm") << "...drop transf, " << rindices.size() << "/"
                            << op_pos.size() << " constructors." << std::endl;
       Assert(rindices.size() < op_pos.size());
-      return new TransfDrop(rindices);
+      return std::unique_ptr<Transf>(new TransfDrop(rindices));
     }
   }
 
@@ -363,7 +363,7 @@ SygusGrammarNorm::Transf* SygusGrammarNorm::inferTransf(
     Trace("sygus-gnorm") << "...chain transf." << std::endl;
     Trace("sygus-grammar-normalize-infer")
         << "\tInfering chain transformation\n";
-    return new TransfChain(chain_op_pos, elem_pos);
+    return std::unique_ptr<Transf>(new TransfChain(chain_op_pos, elem_pos));
   }
   return nullptr;
 }
@@ -417,7 +417,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
 
   /* Determine normalization transformation based on sygus type and given
     * operators */
-  Transf* transformation = inferTransf(tn, dt, op_pos);
+  std::unique_ptr<Transf> transformation = inferTransf(tn, dt, op_pos);
   /* If a transformation was selected, apply it */
   if (transformation != nullptr)
   {
