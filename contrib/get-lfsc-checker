@@ -1,22 +1,9 @@
 #!/bin/bash
 #
-set -e
+source "$(dirname "$0")/get-script-header.sh"
 
 lfscrepo="https://github.com/CVC4/LFSC.git"
 dirname="lfsc-checker"
-
-
-cd "$(dirname "$0")/.."
-
-if ! [ -e src/parser/cvc/Cvc.g ]; then
-  echo "$(basename $0): I expect to be in the contrib/ of a CVC4 source tree," >&2
-  echo "but apparently:" >&2
-  echo >&2
-  echo "  $(pwd)" >&2
-  echo >&2
-  echo "is not a CVC4 source tree ?!" >&2
-  exit 1
-fi
 
 function gitclone {
   if which git &> /dev/null
