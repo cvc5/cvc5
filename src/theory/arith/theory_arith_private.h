@@ -848,16 +848,17 @@ private:
    * semantics.  Needed to deal with partial function "mod".
    */
   Node d_modZero;
-  
-  /** 
-   *  Maps for Skolems for to-integer, real/integer div-by-k.
-   *  Introduced during ppRewriteTerms.
+
+  /**
+   *  Maps for Skolems for to-integer, real/integer div-by-k, and inverse
+   *  non-linear operators that are introduced during ppRewriteTerms.
    */
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
   NodeMap d_to_int_skolem;
   NodeMap d_div_skolem;
   NodeMap d_int_div_skolem;
-  
+  NodeMap d_nlin_inverse_skolem;
+
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */

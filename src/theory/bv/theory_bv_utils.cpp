@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Util functions for theory BV:
+ ** \brief Util functions for theory BV.
  **
  ** Util functions for theory BV.
  **/
@@ -491,6 +491,7 @@ Node mkConjunction(const std::vector<TNode>& nodes)
       Assert(isBVPredicate(n));
       conjunction << n;
     }
+    ++it;
   }
   unsigned nchildren = conjunction.getNumChildren();
   if (nchildren == 0) { return mkTrue(); }

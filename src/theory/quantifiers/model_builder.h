@@ -178,7 +178,7 @@ class QModelBuilderDefault : public QModelBuilderIG
   //do InstGen techniques for quantifier, return number of lemmas produced
   int doInstGen(FirstOrderModel* fm, Node f) override;
   //theory-specific build models
-  void constructModelUf( FirstOrderModel* fm, Node op );
+  void constructModelUf(FirstOrderModel* fm, Node op) override;
 
  protected:
   std::map< Node, QuantPhaseReq > d_phase_reqs;
@@ -189,7 +189,10 @@ class QModelBuilderDefault : public QModelBuilderIG
   //options
   bool optReconsiderFuncConstants() { return true; }
   //has inst gen
-  bool hasInstGen( Node f ) { return !d_quant_selection_lit[f].isNull(); }
+  bool hasInstGen(Node f) override
+  {
+    return !d_quant_selection_lit[f].isNull();
+  }
 };
 
 }/* CVC4::theory::quantifiers namespace */
