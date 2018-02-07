@@ -620,6 +620,52 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
+Node SygusSamplerExt::registerTermUnique( Node n )
+{
+  Node eq_n = registerTerm(n);
+  if( eq_n==n )
+  {
+    return n;
+  }
+  // one of eq_n or n must be ordered
+  bool eqor = isOrdered(eq_n);
+  bool nor = isOrdered(n);
+  bool isUnique = false;
+  if (eqor || nor)
+  {
+    isUnique = true;
+    // if only one is ordered, then the ordered one must contain the
+    // free variables of the other
+    if (!eqor)
+    {
+      isUnique = containsFreeVariables(n, eq_n);
+    }
+    else if (!nor)
+    {
+      isUnique = containsFreeVariables(eq_n, n);
+    }
+  }
+
+  if (isUnique)
+  {
+    // if the previous value stored was unordered, but this is
+    // ordered, we prefer this one. Thus, we force its addition to the
+    // sampler database.
+    if (!eqor)
+    {
+      registerTerm(n, true);
+    }
+    return eq_n;
+  }
+  else
+  {
+    Trace("sygus-synth-rr")
+        << "Alpha equivalent candidate rewrite : " << eq_n << " "
+        << n << std::endl;
+  }
+  return n;
+}
+
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

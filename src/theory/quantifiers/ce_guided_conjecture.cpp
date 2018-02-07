@@ -626,7 +626,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       if (status != 0 && options::sygusRewSynth())
       {
         TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
-        std::map<Node, SygusSampler>::iterator its = d_sampler.find(prog);
+        std::map<Node, SygusSamplerExt>::iterator its = d_sampler.find(prog);
         if (its == d_sampler.end())
         {
           d_sampler[prog].initializeSygus(
@@ -634,50 +634,15 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
           its = d_sampler.find(prog);
         }
         Node solb = sygusDb->sygusToBuiltin(sol, prog.getType());
-        Node eq_sol = its->second.registerTerm(solb);
+        Node eq_sol = its->second.registerTermUnique(solb);
         // eq_sol is a candidate solution that is equivalent to sol
         if (eq_sol != solb)
         {
-          // one of eq_sol or solb must be ordered
-          bool eqor = its->second.isOrdered(eq_sol);
-          bool sor = its->second.isOrdered(solb);
-          bool outputRewrite = false;
-          if (eqor || sor)
-          {
-            outputRewrite = true;
-            // if only one is ordered, then the ordered one must contain the
-            // free variables of the other
-            if (!eqor)
-            {
-              outputRewrite = its->second.containsFreeVariables(solb, eq_sol);
-            }
-            else if (!sor)
-            {
-              outputRewrite = its->second.containsFreeVariables(eq_sol, solb);
-            }
-          }
-
-          if (outputRewrite)
-          {
-            // Terms solb and eq_sol are equivalent under sample points but do
-            // not rewrite to the same term. Hence, this indicates a candidate
-            // rewrite.
-            out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
-                << std::endl;
-            // if the previous value stored was unordered, but this is
-            // ordered, we prefer this one. Thus, we force its addition to the
-            // sampler database.
-            if (!eqor)
-            {
-              its->second.registerTerm(solb, true);
-            }
-          }
-          else
-          {
-            Trace("sygus-synth-rr")
-                << "Alpha equivalent candidate rewrite : " << eq_sol << " "
-                << solb << std::endl;
-          }
+          // Terms solb and eq_sol are equivalent under sample points but do
+          // not rewrite to the same term. Hence, this indicates a candidate
+          // rewrite.
+          out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
+              << std::endl;
         }
       }
     }

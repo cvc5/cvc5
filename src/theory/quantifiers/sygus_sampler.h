@@ -156,6 +156,16 @@ class SygusSampler : public LazyTrieEvaluator
    * value in the trie.
    */
   Node registerTerm(Node n, bool forceKeep = false);
+  /** get number of sample points */
+  unsigned getNumSamplePoints() const { return d_samples.size(); }
+  /** get sample point
+   *
+   * Appends sample point #index to the vector pt.
+   */
+  void getSamplePoint(unsigned index, std::vector<Node>& pt);
+  /** evaluate n on sample point index */
+  Node evaluate(Node n, unsigned index);
+ protected:
   /** is contiguous
    *
    * This returns whether n's free variables (terms occurring in the range of
@@ -179,16 +189,6 @@ class SygusSampler : public LazyTrieEvaluator
    * are those that occur in the range d_type_vars.
    */
   bool containsFreeVariables(Node a, Node b);
-  /** get number of sample points */
-  unsigned getNumSamplePoints() const { return d_samples.size(); }
-  /** get sample point
-   *
-   * Appends sample point #index to the vector pt.
-   */
-  void getSamplePoint(unsigned index, std::vector<Node>& pt);
-  /** evaluate n on sample point index */
-  Node evaluate(Node n, unsigned index);
-
  private:
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
@@ -310,6 +310,17 @@ class SygusSampler : public LazyTrieEvaluator
   std::map<Node, std::vector<TypeNode> > d_var_sygus_types;
   /** register sygus type, intializes the above two data structures */
   void registerSygusType(TypeNode tn);
+};
+
+/** Version of the above class with some additional features */
+class SygusSamplerExt : public SygusSampler
+{
+public:
+  /** register term n with this sampler database
+   *
+   * Returns a term that is different from n only if:
+   */
+  Node registerTermUnique( Node n );
 };
 
 } /* CVC4::theory::quantifiers namespace */
