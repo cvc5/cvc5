@@ -12,7 +12,7 @@
  ** \brief Implementation of dynamic_rewriter
  **/
 
-#include "theory/quantifiers/dynamic_rewriter.h"
+#include "theory/quantifiers/dynamic_rewrite.h"
 
 using namespace std;
 using namespace CVC4::kind;
