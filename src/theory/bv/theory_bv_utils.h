@@ -150,8 +150,7 @@ Node mkOr(TNode node1, TNode node2);
 template<bool ref_count>
 Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
 {
-  std::set<TNode> all;
-  all.insert(nodes.begin(), nodes.end());
+  std::set<TNode> all(conjunctions.begin(), conjunctions.end());
 
   if (all.size() == 0) { return mkTrue(); }
 
