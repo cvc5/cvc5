@@ -324,7 +324,7 @@ class SygusSamplerExt : public SygusSampler
    * that for all ret' returned by a previous call to registerTerm( n' ),
    * we have that ret = n is not alpha-equivalent to ret' = n,
    * modulo symmetry of equality. For example,
-   *   (t+0), t and (s+0), s 
+   *   (t+0), t and (s+0), s
    * will not be input/output pairs of this function.
    */
   virtual Node registerTerm(Node n, bool forceKeep = false) override;
