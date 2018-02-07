@@ -33,6 +33,9 @@ public:
   ~DynamicRewriter(){}
   
   bool addRewrite( Node a, Node b );
+  Node rewrite( Node a );
+private:
+  std::map< Node, Node > d_union_find;
 };
 
 

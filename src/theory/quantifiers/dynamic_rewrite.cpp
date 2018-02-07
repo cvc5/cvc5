@@ -14,9 +14,10 @@
 
 #include "theory/quantifiers/dynamic_rewrite.h"
 
+#include "theory/rewriter.h"
+
 using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {
@@ -28,7 +29,29 @@ DynamicRewriter::DynamicRewriter( QuantifiersEngine * qe ) {
 
 bool DynamicRewriter::addRewrite( Node a, Node b )
 {
+  Assert( a==Rewriter::rewrite(a));
+  Assert( b==Rewriter::rewrite(b));
+  Node ar = rewrite( a );
+  Node br = rewrite( b );
+  if( ar==br )
+  {
+    return false;
+  }
+  
+  // orient
+  
+  
+  
+  
+  
+  
+  
   return true;
+}
+
+Node DynamicRewriter::rewrite( Node a )
+{
+  return a;
 }
   
 } /* CVC4::theory::quantifiers namespace */
