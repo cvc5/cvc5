@@ -145,7 +145,7 @@ matrix:
     - env:
       - MATRIX_EVAL='CC=gcc && CXX=g++'
       - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --with-lfsc'
-    -env:
+    - env:
       - MATRIX_EVAL='CC=gcc && CXX=g++'
       - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-lfsc --disable-debug-symbols'
     #
