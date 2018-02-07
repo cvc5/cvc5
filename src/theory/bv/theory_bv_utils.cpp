@@ -375,34 +375,6 @@ Node mkOr(TNode node1, TNode node2)
   return NodeManager::currentNM()->mkNode(kind::OR, node1, node2);
 }
 
-Node mkOr(const std::vector<Node>& nodes)
-{
-  std::set<TNode> all;
-  all.insert(nodes.begin(), nodes.end());
-
-  if (all.size() == 0)
-  {
-    return mkTrue();
-  }
-
-  if (all.size() == 1)
-  {
-    // All the same, or just one
-    return nodes[0];
-  }
-
-  NodeBuilder<> disjunction(kind::OR);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end)
-  {
-    disjunction << *it;
-    ++it;
-  }
-
-  return disjunction;
-}
-
 Node mkXor(TNode node1, TNode node2)
 {
   return NodeManager::currentNM()->mkNode(kind::XOR, node1, node2);
