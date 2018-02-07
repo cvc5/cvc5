@@ -46,36 +46,36 @@ public:
 
   ~TheorySets();
 
-  void addSharedTerm(TNode);
+  void addSharedTerm(TNode) override;
 
-  void check(Effort);
-  
-  bool needsCheckLastEffort();
+  void check(Effort) override;
+
+  bool needsCheckLastEffort() override;
 
   bool collectModelInfo(TheoryModel* m) override;
 
-  void computeCareGraph();
+  void computeCareGraph() override;
 
-  Node explain(TNode);
+  Node explain(TNode) override;
 
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
-  Node getModelValue(TNode);
+  Node getModelValue(TNode) override;
 
-  std::string identify() const { return "THEORY_SETS"; }
+  std::string identify() const override { return "THEORY_SETS"; }
 
-  void preRegisterTerm(TNode node);
+  void preRegisterTerm(TNode node) override;
 
-  Node expandDefinition(LogicRequest &logicRequest, Node n);
+  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
 
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
-  void presolve();
+  void presolve() override;
 
-  void propagate(Effort);
+  void propagate(Effort) override;
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
-  
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+
   bool isEntailed( Node n, bool pol );
 
 };/* class TheorySets */

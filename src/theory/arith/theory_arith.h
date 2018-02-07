@@ -48,41 +48,47 @@ public:
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
-  void preRegisterTerm(TNode n);
+  void preRegisterTerm(TNode n) override;
 
-  Node expandDefinition(LogicRequest &logicRequest, Node node);
+  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  void check(Effort e);
-  bool needsCheckLastEffort();
-  void propagate(Effort e);
-  Node explain(TNode n);
-  bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
-  bool isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp );
+  void check(Effort e) override;
+  bool needsCheckLastEffort() override;
+  void propagate(Effort e) override;
+  Node explain(TNode n) override;
+  bool getCurrentSubstitution(int effort,
+                              std::vector<Node>& vars,
+                              std::vector<Node>& subs,
+                              std::map<Node, std::vector<Node> >& exp) override;
+  bool isExtfReduced(int effort,
+                     Node n,
+                     Node on,
+                     std::vector<Node>& exp) override;
 
   bool collectModelInfo(TheoryModel* m) override;
 
-  void shutdown(){ }
+  void shutdown() override {}
 
-  void presolve();
-  void notifyRestart();
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  Node ppRewrite(TNode atom);
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
+  void presolve() override;
+  void notifyRestart() override;
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+  Node ppRewrite(TNode atom) override;
+  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
-  std::string identify() const { return std::string("TheoryArith"); }
+  std::string identify() const override { return std::string("TheoryArith"); }
 
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
-  void addSharedTerm(TNode n);
+  void addSharedTerm(TNode n) override;
 
-  Node getModelValue(TNode var);
+  Node getModelValue(TNode var) override;
 
-
-  std::pair<bool, Node> entailmentCheck(TNode lit,
-                                        const EntailmentCheckParameters* params,
-                                        EntailmentCheckSideEffects* out);
+  std::pair<bool, Node> entailmentCheck(
+      TNode lit,
+      const EntailmentCheckParameters* params,
+      EntailmentCheckSideEffects* out) override;
 
 };/* class TheoryArith */
 
