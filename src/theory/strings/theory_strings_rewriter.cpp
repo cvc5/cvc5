@@ -1980,6 +1980,17 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       return returnRewrite(node, ret, "rpl-const-find");
     }
   }
+  
+  if( node[0]==node[2] )
+  {
+    // ( len( y )>=len(x) ) => str.replace( x, y, x ) ---> x
+    Node l0 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[0]);
+    Node l1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
+    if( checkEntailArith(l1,l0) )
+    {
+      return returnRewrite(node, node[0], "rpl-rpl-len-id");
+    }
+  }
 
   std::vector<Node> children1;
   getConcat(node[1], children1);
