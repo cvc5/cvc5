@@ -634,7 +634,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
           its = d_sampler.find(prog);
         }
         Node solb = sygusDb->sygusToBuiltin(sol, prog.getType());
-        Node eq_sol = its->second.registerTermUnique(solb);
+        Node eq_sol = its->second.registerTerm(solb);
         // eq_sol is a candidate solution that is equivalent to sol
         if (eq_sol != solb)
         {

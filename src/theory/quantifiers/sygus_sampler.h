@@ -155,7 +155,7 @@ class SygusSampler : public LazyTrieEvaluator
    * forceKeep is whether we wish to force that n is chosen as a representative
    * value in the trie.
    */
-  Node registerTerm(Node n, bool forceKeep = false);
+  virtual Node registerTerm(Node n, bool forceKeep = false);
   /** get number of sample points */
   unsigned getNumSamplePoints() const { return d_samples.size(); }
   /** get sample point
@@ -320,7 +320,7 @@ public:
    *
    * Returns a term that is different from n only if:
    */
-  Node registerTermUnique( Node n );
+  virtual Node registerTerm( Node n, bool forceKeep=false ) override;
 };
 
 } /* CVC4::theory::quantifiers namespace */

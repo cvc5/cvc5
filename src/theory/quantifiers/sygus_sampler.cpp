@@ -620,9 +620,9 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
-Node SygusSamplerExt::registerTermUnique( Node n )
+Node SygusSamplerExt::registerTerm( Node n, bool forceKeep )
 {
-  Node eq_n = registerTerm(n);
+  Node eq_n = SygusSampler::registerTerm(n, forceKeep);
   if( eq_n==n )
   {
     return n;
