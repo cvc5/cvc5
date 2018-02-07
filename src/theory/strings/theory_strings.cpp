@@ -2787,21 +2787,17 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
   Trace("strings-loop") << " ... S(Z.Y)= ";
   std::vector< Node > vec_s;
   for(unsigned lp=index+1, size = normal_forms[other_n_index].size(); lp<size; ++lp) {
-    if(lp != index+1) Trace("strings-loop") << " ++ ";
-    Trace("strings-loop") << normal_forms[other_n_index][lp];
     vec_s.push_back( normal_forms[other_n_index][lp] );
   }
   Node s_zy = mkConcat( vec_s );
-  Trace("strings-loop") << " (" << s_zy << ")" << std::endl;
+  Trace("strings-loop") << s_zy << std::endl;
   Trace("strings-loop") << " ... R= ";
   std::vector< Node > vec_r;
   for(unsigned lp=loop_index+1, size = normal_forms[loop_n_index].size(); lp<size; ++lp) {
-    if(lp != loop_index+1) Trace("strings-loop") << " ++ ";
-    Trace("strings-loop") << normal_forms[loop_n_index][lp];
     vec_r.push_back( normal_forms[loop_n_index][lp] );
   }
   Node r = mkConcat( vec_r );
-  Trace("strings-loop") << " (" << r << ")" << std::endl;
+  Trace("strings-loop") << r << std::endl;
 
   if( s_zy.isConst() && r.isConst() && r!=d_emptyString) {
     int c;
@@ -2913,7 +2909,9 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
               nm->mkNode( kind::STRING_TO_REGEXP, restr ) ) );
 
     std::vector< Node > vec_conc;
-    vec_conc.push_back(conc1); vec_conc.push_back(conc2); vec_conc.push_back(conc3);
+    vec_conc.push_back(conc1); 
+    vec_conc.push_back(conc2); 
+    vec_conc.push_back(conc3);
     vec_conc.push_back(str_in_re);
     //vec_conc.push_back(sk_y.eqNode(d_emptyString).negate());//by mkskolems
     conc = nm->mkNode( kind::AND, vec_conc );
