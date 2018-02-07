@@ -143,9 +143,9 @@ class TheoryArrays : public Theory {
                std::string name = "");
   ~TheoryArrays();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  std::string identify() const { return std::string("TheoryArrays"); }
+  std::string identify() const override { return std::string("TheoryArrays"); }
 
   /////////////////////////////////////////////////////////////////////////////
   // PREPROCESSING
@@ -174,17 +174,15 @@ class TheoryArrays : public Theory {
   bool ppDisequal(TNode a, TNode b);
   Node solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck);
 
-  public:
-
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  Node ppRewrite(TNode atom);
+ public:
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+  Node ppRewrite(TNode atom) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION
   /////////////////////////////////////////////////////////////////////////////
 
-  private:
-
+ private:
   /** Literals to propagate */
   context::CDList<Node> d_literalsToPropagate;
 
@@ -204,19 +202,17 @@ class TheoryArrays : public Theory {
   /** Helper for preRegisterTerm, also used internally */
   void preRegisterTermInternal(TNode n);
 
-  public:
-
-  void preRegisterTerm(TNode n);
-  void propagate(Effort e);
+ public:
+  void preRegisterTerm(TNode n) override;
+  void propagate(Effort e) override;
   Node explain(TNode n, eq::EqProof* proof);
-  Node explain(TNode n);
+  Node explain(TNode n) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // SHARING
   /////////////////////////////////////////////////////////////////////////////
 
-  private:
-
+ private:
   class MayEqualNotifyClass {
   public:
     bool notify(TNode propagation) { return true; }
@@ -232,46 +228,40 @@ class TheoryArrays : public Theory {
   // Helper for computeCareGraph
   void checkPair(TNode r1, TNode r2);
 
-  public:
-
-  void addSharedTerm(TNode t);
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
-  void computeCareGraph();
+ public:
+  void addSharedTerm(TNode t) override;
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+  void computeCareGraph() override;
   bool isShared(TNode t)
-    { return (d_sharedArrays.find(t) != d_sharedArrays.end()); }
-
+  {
+    return (d_sharedArrays.find(t) != d_sharedArrays.end());
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
   /////////////////////////////////////////////////////////////////////////////
 
-  private:
+ public:
+  bool collectModelInfo(TheoryModel* m) override;
 
-  public:
-   bool collectModelInfo(TheoryModel* m) override;
+  /////////////////////////////////////////////////////////////////////////////
+  // NOTIFICATIONS
+  /////////////////////////////////////////////////////////////////////////////
 
-   /////////////////////////////////////////////////////////////////////////////
-   // NOTIFICATIONS
-   /////////////////////////////////////////////////////////////////////////////
+ public:
+  Node getNextDecisionRequest(unsigned& priority) override;
 
-  private:
-  public:
-
-  Node getNextDecisionRequest( unsigned& priority );
-
-  void presolve();
-  void shutdown() { }
+  void presolve() override;
+  void shutdown() override {}
 
   /////////////////////////////////////////////////////////////////////////////
   // MAIN SOLVER
   /////////////////////////////////////////////////////////////////////////////
 
-  public:
+ public:
+  void check(Effort e) override;
 
-  void check(Effort e);
-
-  private:
-
+ private:
   TNode weakEquivGetRep(TNode node);
   TNode weakEquivGetRepIndex(TNode node, TNode index);
   void visitAllLeaves(TNode reason, std::vector<TNode>& conjunctions);
@@ -454,11 +444,8 @@ class TheoryArrays : public Theory {
   /** An equality-engine callback for proof reconstruction */
   ArrayProofReconstruction d_proofReconstruction;
 
-  public:
-
-  eq::EqualityEngine* getEqualityEngine() {
-    return &d_equalityEngine;
-  }
+ public:
+  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
 };/* class TheoryArrays */
 

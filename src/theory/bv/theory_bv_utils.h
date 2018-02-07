@@ -92,9 +92,9 @@ bool isEqualityTerm(TNode term, TNodeBoolMap& cache);
 /* Returns true if given node is an atom that is bit-blasted.  */
 bool isBitblastAtom(Node lit);
 
-/* Create bit-vector node representing true. */
+/* Create Boolean node representing true. */
 Node mkTrue();
-/* Create bit-vector node representing false. */
+/* Create Boolean node representing false. */
 Node mkFalse();
 /* Create bit-vector node representing a bit-vector of ones of given size. */
 Node mkOnes(unsigned size);
@@ -112,7 +112,7 @@ Node mkConst(const BitVector& value);
 /* Create bit-vector variable. */
 Node mkVar(unsigned size);
 
-/* Create n-ary bit-vector node of given kind.  */
+/* Create n-ary node of given kind.  */
 Node mkNode(Kind kind, TNode child);
 Node mkNode(Kind kind, TNode child1, TNode child2);
 Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
@@ -125,7 +125,6 @@ Node mkSortedNode(Kind kind, std::vector<Node>& children);
 
 /* Create node of kind NOT. */
 Node mkNot(Node child);
-
 /* Create node of kind AND. */
 Node mkAnd(TNode node1, TNode node2);
 /* Create n-ary node of kind AND. */
@@ -143,7 +142,6 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
   for (const Node& n : all) { conjunction << n; }
   return conjunction;
 }
-
 /* Create node of kind OR. */
 Node mkOr(TNode node1, TNode node2);
 /* Create n-ary node of kind OR.  */
@@ -161,7 +159,6 @@ Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
   for (const Node& n : all) { disjunction << n; }
   return disjunction;
 }
-
 /* Create node of kind XOR. */
 Node mkXor(TNode node1, TNode node2);
 
@@ -209,7 +206,7 @@ std::string setToString(const std::set<TNode>& nodeSet);
 /* Create a string representing a vector of nodes.  */
 std::string vectorToString(const std::vector<Node>& nodes);
 
-/* Create the intersection of two sets of uint32_t. */
+/* Create the intersection of two vectors of uint32_t. */
 void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
                std::vector<uint32_t>& intersection);
