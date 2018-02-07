@@ -215,16 +215,28 @@ class SygusSampler : public LazyTrieEvaluator
   std::vector<Node> d_vars;
   /** type variables
    *
-   * For each type, a list of variables in the grammar we are considering, for
-   * that type. These typically correspond to the arguments of the
+   * We group variables according to "type ids". Two variables have the same
+   * type id if the have indistinguishable status according to this sampler.
+   * This is a finer-grained grouping than types. For example, two variables
+   * of the same type may have different type ids if they occur as constructors
+   * of a different set of sygus types in the grammar we are considering.
+   * For instance, we assign x and y different type ids in this grammar:
+   *   A -> B + C
+   *   B -> x | 0 | 1
+   *   C -> y | 0 | 1
+   * 
+   * For each type id, a list of variables in the grammar we are considering, 
+   * for that type. These typically correspond to the arguments of the
    * function-to-synthesize whose grammar we are considering.
    */
-  std::map<TypeNode, std::vector<Node> > d_type_vars;
+  std::map<unsigned, std::vector<Node> > d_type_vars;
   /**
    * A map all variables in the grammar we are considering to their index in
    * d_type_vars.
    */
   std::map<Node, unsigned> d_var_index;
+  /**  Map from variables to the id (the domain of d_type_vars). */
+  std::map<Node, unsigned> d_type_ids;
   /** constants
    *
    * For each type, a list of constants in the grammar we are considering, for
