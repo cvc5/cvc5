@@ -494,7 +494,7 @@ Node mkConjunction(const std::vector<TNode>& nodes)
     ++it;
   }
   unsigned nchildren = conjunction.getNumChildren();
-  if (nchildren == 0) { return mkTrue(); }
+  if (nchildren == 0) { return bvtrue; }
   if (nchildren == 1) { return conjunction[0]; }
   return conjunction;
 }
