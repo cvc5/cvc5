@@ -7,7 +7,7 @@ AC_MSG_CHECKING([whether user requested cryptominisat support])
 have_libcryptominisat=0
 CRYPTOMINISAT_LIBS=
 CRYPTOMINISAT_LDFLAGS=
-     
+
 have_libcryptominisat=0
 if test "$with_cryptominisat" = no; then
   AC_MSG_RESULT([no, cryptominisat disabled by user])
@@ -22,7 +22,7 @@ elif test -n "$with_cryptominisat"; then
     ),
     CRYPTOMINISAT_HOME="$withval",
     [ if test -z "$CRYPTOMINISAT_HOME" && ! test -e "$ac_abs_confdir/cryptominisat4/install/bin/cryptominisat"; then
-        AC_MSG_FAILURE([must give --with-cryptominisat-dir=PATH or define environment variable CRYPTOMINISAT_HOME!])
+        AC_MSG_FAILURE([must give --with-cryptominisat-dir=PATH, define environment variable CRYPTOMINISAT_HOME, or use contrib/get-cryptominisat4 to setup Cryptominisat4 for CVC4!])
       fi
     ]
   )
@@ -41,7 +41,7 @@ elif test -n "$with_cryptominisat"; then
   fi
 
   CPPFLAGS="$CPPFLAGS -I$CRYPTOMINISAT_HOME/install/include"
-  
+
   AC_MSG_CHECKING([how to link cryptominisat])
 
   dnl TODO FIXME:
