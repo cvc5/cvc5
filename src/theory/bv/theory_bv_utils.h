@@ -196,7 +196,6 @@ Node mkDec(TNode t);
 Node mkUmulo(TNode t1, TNode t2);
 
 /* Create conjunction over a set of (dis)equalities.  */
-Node mkConjunction(const std::set<TNode> nodes);
 Node mkConjunction(const std::vector<TNode>& nodes);
 
 /* Get a set of all operands of nested and nodes.  */
