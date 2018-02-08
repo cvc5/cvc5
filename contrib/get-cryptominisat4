@@ -25,7 +25,7 @@ mkdir ../build
 cd ../build
 
 cmake -DCMAKE_INSTALL_PREFIX:PATH=$CRYPTOMINISAT_PATH/install -DSTATICCOMPILE="ON" -DNOM4RI="ON"  ../cryptominisat-$version
-make install -j2
+make install -j$(nproc)
 
 cd ../
 
