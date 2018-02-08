@@ -644,7 +644,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
           out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
               << std::endl;
           // debugging information
-          if( Trace.isOn("sygus-rr-debug") )
+          if (Trace.isOn("sygus-rr-debug"))
           {
             ExtendedRewriter* er = sygusDb->getExtRewriter();
             Node solbr = er->extendedRewrite(solb);

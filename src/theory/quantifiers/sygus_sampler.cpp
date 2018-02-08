@@ -414,10 +414,12 @@ bool SygusSampler::containsFreeVariables(Node a, Node b)
   return true;
 }
 
-void SygusSampler::getSamplePoint(unsigned index, std::vector< Node >& vars, std::vector<Node>& pt)
+void SygusSampler::getSamplePoint(unsigned index,
+                                  std::vector<Node>& vars,
+                                  std::vector<Node>& pt)
 {
   Assert(index < d_samples.size());
-  vars.insert(vars.end(),d_vars.begin(),d_vars.end());
+  vars.insert(vars.end(), d_vars.begin(), d_vars.end());
   std::vector<Node>& spt = d_samples[index];
   pt.insert(pt.end(), spt.begin(), spt.end());
 }
@@ -434,13 +436,13 @@ Node SygusSampler::evaluate(Node n, unsigned index)
   return ev;
 }
 
-int SygusSampler::getDiffSamplePointIndex( Node a, Node b )
+int SygusSampler::getDiffSamplePointIndex(Node a, Node b)
 {
-  for( unsigned i=0, nsamp = d_samples.size(); i<nsamp; i++ )
+  for (unsigned i = 0, nsamp = d_samples.size(); i < nsamp; i++)
   {
-    Node ae = evaluate( a, i );
-    Node be = evaluate( b, i );
-    if( ae!=be )
+    Node ae = evaluate(a, i);
+    Node be = evaluate(b, i);
+    if (ae != be)
     {
       return i;
     }
