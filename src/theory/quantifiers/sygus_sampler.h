@@ -179,7 +179,7 @@ class SygusSampler : public LazyTrieEvaluator
    * This returns whether n's free variables (terms occurring in the range of
    * d_type_vars) are a prefix of the list of variables in d_type_vars for each
    * type id. For instance, if d_type_vars[id] = { x, y } for some id, then
-   * 0, x, x+y, y+x are contiguous but y is not. This is useful for excluding 
+   * 0, x, x+y, y+x are contiguous but y is not. This is useful for excluding
    * terms from consideration that are alpha-equivalent to others.
    */
   bool isContiguous(Node n);
@@ -187,7 +187,7 @@ class SygusSampler : public LazyTrieEvaluator
    *
    * This returns whether n's free variables are in order with respect to
    * variables in d_type_vars for each type. For instance, if
-   * d_type_vars[id] = { x, y } for some id, then 0, x, x+y are ordered but 
+   * d_type_vars[id] = { x, y } for some id, then 0, x, x+y are ordered but
    * y and y+x are not.
    */
   bool isOrdered(Node n);
