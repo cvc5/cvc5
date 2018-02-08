@@ -46,7 +46,7 @@ TESTS = \
 	tl-type.sy \
 	tl-type-4x.sy \
 	twolets2-orig.sy \
-	unbdd_inv_gen_winf1.sy \
+	unbdd_inv_gen_winf1.sy
 
 
 EXTRA_DIST = $(TESTS)
