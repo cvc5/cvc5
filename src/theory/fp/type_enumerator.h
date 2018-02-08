@@ -48,7 +48,7 @@ class FloatingPointEnumerator
     return NodeManager::currentNM()->mkConst(createFP());
   }
 
-  FloatingPointEnumerator& operator++() {
+  FloatingPointEnumerator& operator++() override {
     const FloatingPoint current(createFP());
     if (current.isNaN()) {
       d_enumerationComplete = true;
@@ -92,7 +92,7 @@ class RoundingModeEnumerator
     return NodeManager::currentNM()->mkConst(d_rm);
   }
 
-  RoundingModeEnumerator& operator++() {
+  RoundingModeEnumerator& operator++() override {
     switch (d_rm) {
       case roundNearestTiesToEven:
         d_rm = roundTowardPositive;

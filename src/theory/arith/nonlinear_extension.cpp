@@ -3274,8 +3274,6 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
     // Figure 3: P_l, P_u
     // mapped to for signs of c
     std::map<int, Node> poly_approx_bounds[2];
-    std::map<int, Node>
-        poly_approx_bounds_neg[2];  // the negative case is different for exp
     // n is the Taylor degree we are currently considering
     unsigned n = 2 * d_taylor_degree;
     // n must be even

@@ -234,7 +234,7 @@ protected:
   void setAntlr3Parser(pANTLR3_PARSER pParser);
 
   /** Set the Parser object for this input. */
-  virtual void setParser(Parser& parser);
+  void setParser(Parser& parser) override;
 };/* class AntlrInput */
 
 inline std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
