@@ -206,22 +206,24 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     else if( k == BITVECTOR_AND || k == BITVECTOR_OR )
     {
       bool isAnd = ( k == BITVECTOR_AND );
+      std::unordered_set< unsigned > drops;
       std::vector< Node > children;
       unsigned size=ret.getNumChildren();
       for( unsigned i=0; i<size; i++ )
       {
-        Node cmpi = isAnd ? ret[i] : bv::utils::mkNot( ret[i] );
+        Node cmpi = isAnd ? ret[i] : nm->mkNode( BITVECTOR_NOT, ret[i] );
         bool success = true;
         for( unsigned j=0; j<size; j++ )
         {
-          if( i!=j )
+          if( i!=j && drops.find(j)==drops.end() )
           {
             bool cond = isAnd ? bitVectorSubsume( ret[i], ret[j] ) : bitVectorSubsume( ret[j], ret[i] );
             if( cond )
             {
+              drops.insert(i);
               success = false;
             }
-            Node cmpj = isAnd ? ret[i] : bv::utils::mkNot( ret[i] );
+            Node cmpj = isAnd ? ret[i] : nm->mkNode( BITVECTOR_NOT, ret[i] );
             if( bitvectorDisjoint( cmpi, cmpj ) )
             {
               unsigned size = bv::utils::getSize(ret);
