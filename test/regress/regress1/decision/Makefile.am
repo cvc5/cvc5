@@ -17,7 +17,8 @@ endif
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	error3.smt
+	error3.smt \
+	quant-symmetric_unsat_7.smt2
 
 EXTRA_DIST = $(TESTS)
 

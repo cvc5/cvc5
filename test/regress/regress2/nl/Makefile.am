@@ -16,8 +16,11 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	\
-	$$$.smt2
+TESTS = \
+	dumortier-050317.smt2 \
+	nt-lemmas-bad.smt2 \
+	siegel-nl-bases.smt2
+
 
 EXTRA_DIST = $(TESTS)
 

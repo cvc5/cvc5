@@ -16,22 +16,15 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = \
-	ForElimination-scala-9.smt2 \
-	javafe.ast.ArrayInit.35.smt2 \
-	javafe.ast.StandardPrettyPrint.319.smt2 \
-	javafe.ast.WhileStmt.447.smt2 \
-	javafe.tc.CheckCompilationUnit.001.smt2 \
-	javafe.tc.FlowInsensitiveChecks.682.smt2 \
-	nunchaku2309663.nun.min.smt2 \
-	small-bug1-fixpoint-3.smt2
+TESTS =	\
+	$$$.smt2
 
 EXTRA_DIST = $(TESTS)
 
 # synonyms for "check" in this directory
-.PHONY: regress regress2 test
-regress regress2 test: check
+.PHONY: regress regress1 test
+regress regress1 test: check
 
 # do nothing in this subdir
-.PHONY: regress0 regress1 regress3 regress4
-regress0 regress1 regress3 regress4:
+.PHONY: regress0 regress2 regress3 regress4
+regress0 regress2 regress3 regress4:

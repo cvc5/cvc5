@@ -18,7 +18,26 @@ endif
 # put it below in "TESTS +="
 TESTS =	\
 	ForElimination-scala-9.smt2 \
-	nunchaku2309663.nun.min.smt2
+	nunchaku2309663.nun.min.smt2 \
+	agree466.smt2	\
+	ALG008-1.smt2	\
+	bug0909.smt2	\
+	bug764.smt2	\
+	datatypes-ufinite.smt2	\
+	datatypes-ufinite-nested.smt2	\
+	fc-pigeonhole19.smt2	\
+	fib-core.smt2	\
+	fmf-bound-2dim.smt2	\
+	fmf-fun-no-elim-ext-arith2.smt2	\
+	fmf-strange-bounds.smt2	\
+	issue916-fmf-or.smt2	\
+	jasmin-cdt-crash.smt2	\
+	LeftistHeap.scala-8-ncm.smt2	\
+	lst-no-self-rev-exp.smt2	\
+	nun-0208-to.smt2	\
+	pow2-bool.smt2	\
+	with-ind-104-core.smt2	
+
 
 EXTRA_DIST = $(TESTS)
 

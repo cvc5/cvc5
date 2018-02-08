@@ -16,7 +16,7 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	\
+TESTS = \
 	hd-sdiv.sy \
 	stopwatch-bt.sy \
 	array_sum_dd.sy \
@@ -30,7 +30,30 @@ TESTS =	\
 	MPwL_d1s3.sy \
 	process-arg-invariance.sy \
 	real-grammar.sy \
-        lustre-real.sy
+        lustre-real.sy \
+	Base16_1.sy \
+	cegar1.sy \
+	cggmp.sy \
+	clock-inc-tuple.sy \
+	dup-op.sy \
+	fg_polynomial3.sy \
+	hd-01-d1-prog.sy \
+	hd-01-d1-prog-dd.sy \
+	icfp_14.12.sy \
+	icfp_14.12-flip-args.sy \
+	icfp_28_10.sy \
+	icfp_easy-ite.sy \
+	inv-example.sy \
+	inv-unused.sy \
+	max2-univ.sy \
+	multi-fun-polynomial2.sy \
+	no-flat-simp.sy \
+	process-10-vars.sy \
+	tl-type.sy \
+	tl-type-4x.sy \
+	twolets2-orig.sy \
+	unbdd_inv_gen_winf1.sy \
+
 
 EXTRA_DIST = $(TESTS)
 

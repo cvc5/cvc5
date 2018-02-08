@@ -16,9 +16,14 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	\
+TESTS = \
 	sets-disequal.smt2 \
-	card-vc6-minimized.smt2
+	card-vc6-minimized.smt2 \
+	card-4.smt2 \
+	fuzz15201.smt2 \
+	insert_invariant_37_2.smt2 \
+	remove_check_free_31_6.smt2 \
+	TalkingAboutSets.hs.fqout.cvc4.3577.smt2
 
 EXTRA_DIST = $(TESTS)
 

@@ -21,9 +21,16 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	\
+TESTS = \
 	reachability_back_to_the_future.smt2 \
-	read5.smt2
+	read5.smt2 \
+	length_gen.smt2 \
+	length_gen_020.smt2 \
+	length_gen_020_sat.smt2 \
+	length_gen_040.smt2 \
+	length_gen_040_lemma.smt2 \
+	length_gen_040_lemma_trigger.smt2
+
 
 EXTRA_DIST = $(TESTS)
 

@@ -16,8 +16,16 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	\
-	$$$.smt2
+TESTS = \
+	array_sum_dd.sy \
+	icfp_easy_mt_ite.sy \
+	inv_gen_n_c11.sy \
+	MPwL_d1s3.sy \
+	nia-max-square.sy \
+	no-syntax-test-no-si.sy \
+	process-10-vars-2fun.sy \
+	process-arg-invariance.sy \
+	real-grammar-neg.sy
 
 EXTRA_DIST = $(TESTS)
 

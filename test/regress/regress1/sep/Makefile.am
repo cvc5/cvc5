@@ -16,11 +16,18 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	\
+TESTS = \
 	loop-1220.smt2 \
 	sep-simp-unc.smt2 \
 	split-find-unsat.smt2 \
-	split-find-unsat-w-emp.smt2
+	split-find-unsat-w-emp.smt2 \
+	dispose-list-4-init.smt2 \
+	finite-witness-sat.smt2 \
+	sep-find2.smt2 \
+	sep-fmf-priority.smt2 \
+	sep-neg-1refine.smt2 \
+	sep-nterm-again.smt2	
+
 
 EXTRA_DIST = $(TESTS)
 
