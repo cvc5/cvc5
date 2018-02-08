@@ -16,15 +16,15 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	\
+TESTS = \
 	bv-proof00.smt \
 	fuzz34.smt \
 	fuzz38.smt \
-	bug_extract_mult_leading_bit.smt2	\
-	bug787.smt2	\
-	bv-int-collapse2-sat.smt2	\
-	cmu-rdk-3.smt2	\
-	decision-weight00.smt2	\
+	bug_extract_mult_leading_bit.smt2 \
+	bug787.smt2 \
+	bv-int-collapse2-sat.smt2 \
+	cmu-rdk-3.smt2 \
+	decision-weight00.smt2 \
 	divtest.smt2	
 
 

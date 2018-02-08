@@ -24,7 +24,7 @@ TESTS = \
 	unbdd_inv_gen_ex7.sy \
 	three.sy \
 	real-grammar.sy \
-        lustre-real.sy \
+	lustre-real.sy \
 	Base16_1.sy \
 	cegar1.sy \
 	cggmp.sy \
