@@ -20,7 +20,8 @@ TESTS =	\
 	error3.smt \
 	quant-symmetric_unsat_7.smt2
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	quant-symmetric_unsat_7.smt2.expect
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test
