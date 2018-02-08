@@ -546,24 +546,6 @@ Node flattenAnd(std::vector<TNode>& queue)
 
 /* ------------------------------------------------------------------------- */
 
-std::string setToString(const std::set<TNode>& nodeSet) {
-  std::stringstream out;
-  out << "[";
-  std::set<TNode>::const_iterator it = nodeSet.begin();
-  std::set<TNode>::const_iterator it_end = nodeSet.end();
-  bool first = true;
-  while (it != it_end) {
-    if (!first) {
-      out << ",";
-    }
-    first = false;
-    out << *it;
-    ++ it;
-  }
-  out << "]";
-  return out.str();
-}
-
 std::string vectorToString(const std::vector<Node>& nodes)
 {
   std::stringstream out;
