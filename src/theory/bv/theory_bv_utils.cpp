@@ -375,34 +375,6 @@ Node mkOr(TNode node1, TNode node2)
   return NodeManager::currentNM()->mkNode(kind::OR, node1, node2);
 }
 
-Node mkOr(const std::vector<Node>& nodes)
-{
-  std::set<TNode> all;
-  all.insert(nodes.begin(), nodes.end());
-
-  if (all.size() == 0)
-  {
-    return mkTrue();
-  }
-
-  if (all.size() == 1)
-  {
-    // All the same, or just one
-    return nodes[0];
-  }
-
-  NodeBuilder<> disjunction(kind::OR);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end)
-  {
-    disjunction << *it;
-    ++it;
-  }
-
-  return disjunction;
-}
-
 Node mkXor(TNode node1, TNode node2)
 {
   return NodeManager::currentNM()->mkNode(kind::XOR, node1, node2);
@@ -508,82 +480,21 @@ Node mkUmulo(TNode t1, TNode t2)
 
 /* ------------------------------------------------------------------------- */
 
-Node mkConjunction(const std::set<TNode> nodes)
-{
-  std::set<TNode> expandedNodes;
-
-  std::set<TNode>::const_iterator it = nodes.begin();
-  std::set<TNode>::const_iterator it_end = nodes.end();
-  while (it != it_end)
-  {
-    TNode current = *it;
-    if (current != mkTrue())
-    {
-      Assert(current.getKind() == kind::EQUAL
-             || (current.getKind() == kind::NOT
-                 && current[0].getKind() == kind::EQUAL));
-      expandedNodes.insert(current);
-    }
-    ++it;
-  }
-
-  Assert(expandedNodes.size() > 0);
-  if (expandedNodes.size() == 1)
-  {
-    return *expandedNodes.begin();
-  }
-
-  NodeBuilder<> conjunction(kind::AND);
-
-  it = expandedNodes.begin();
-  it_end = expandedNodes.end();
-  while (it != it_end)
-  {
-    conjunction << *it;
-    ++it;
-  }
-
-  return conjunction;
-}
-
 Node mkConjunction(const std::vector<TNode>& nodes)
 {
-  std::vector<TNode> expandedNodes;
-
-  std::vector<TNode>::const_iterator it = nodes.begin();
-  std::vector<TNode>::const_iterator it_end = nodes.end();
-  while (it != it_end)
-  {
-    TNode current = *it;
-
-    if (current != mkTrue())
-    {
-      Assert(isBVPredicate(current));
-      expandedNodes.push_back(current);
-    }
-    ++it;
-  }
-
-  if (expandedNodes.size() == 0)
-  {
-    return mkTrue();
-  }
-
-  if (expandedNodes.size() == 1)
-  {
-    return *expandedNodes.begin();
-  }
-
   NodeBuilder<> conjunction(kind::AND);
-
-  it = expandedNodes.begin();
-  it_end = expandedNodes.end();
-  while (it != it_end)
+  Node btrue = mkTrue();
+  for (const Node& n : nodes)
   {
-    conjunction << *it;
-    ++it;
+    if (n != btrue)
+    {
+      Assert(isBVPredicate(n));
+      conjunction << n;
+    }
   }
-
+  unsigned nchildren = conjunction.getNumChildren();
+  if (nchildren == 0) { return btrue; }
+  if (nchildren == 1) { return conjunction[0]; }
   return conjunction;
 }
 

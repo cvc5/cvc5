@@ -300,9 +300,11 @@ option cegisSample --cegis-sample=MODE CVC4::theory::quantifiers::CegisSampleMod
   mode for using samples in the counterexample-guided inductive synthesis loop
 
 # internal uses of sygus
-option sygusRewSynth --sygus-rr-synth bool :default false
+option sygusRew --sygus-rr bool :default false
+  use sygus to enumerate and verify correctness of rewrite rules via sampling
+option sygusRewSynth --sygus-rr-synth bool :read-write :default false
   use sygus to enumerate candidate rewrite rules via sampling
-option sygusRewVerify --sygus-rr-verify bool :default false
+option sygusRewVerify --sygus-rr-verify bool :read-write :default false
   use sygus to verify the correctness of rewrite rules via sampling
 option sygusSamples --sygus-samples=N int :read-write :default 100 :read-write
   number of points to consider when doing sygus rewriter sample testing

@@ -52,6 +52,8 @@ class InstantiatorPreprocess;
 class TermProperties {
 public:
   TermProperties() : d_type(0) {}
+  virtual ~TermProperties() {}
+
   // type of property for a term
   //  for arithmetic this corresponds to bound type (0:equal, 1:upper bound, -1:lower bound)
   int d_type;

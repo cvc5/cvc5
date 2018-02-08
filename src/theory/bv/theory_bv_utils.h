@@ -144,7 +144,21 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
 }
 /* Create node of kind OR. */
 Node mkOr(TNode node1, TNode node2);
-Node mkOr(const std::vector<Node>& nodes);
+/* Create n-ary node of kind OR.  */
+template<bool ref_count>
+Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
+{
+  std::set<TNode> all(nodes.begin(), nodes.end());
+
+  if (all.size() == 0) { return mkTrue(); }
+
+  /* All the same, or just one  */
+  if (all.size() == 1) { return nodes[0]; }
+
+  NodeBuilder<> disjunction(kind::OR);
+  for (const Node& n : all) { disjunction << n; }
+  return disjunction;
+}
 /* Create node of kind XOR. */
 Node mkXor(TNode node1, TNode node2);
 
@@ -176,8 +190,7 @@ Node mkDec(TNode t);
  * http://ieeexplore.ieee.org/document/987767 */
 Node mkUmulo(TNode t1, TNode t2);
 
-/* Create conjunction over a set of (dis)equalities.  */
-Node mkConjunction(const std::set<TNode> nodes);
+/* Create conjunction.  */
 Node mkConjunction(const std::vector<TNode>& nodes);
 
 /* Get a set of all operands of nested and nodes.  */

@@ -31,6 +31,7 @@ namespace quantifiers {
 class LazyTrieEvaluator
 {
  public:
+  virtual ~LazyTrieEvaluator() {}
   virtual Node evaluate(Node n, unsigned index) = 0;
 };
 
@@ -134,7 +135,8 @@ class SygusSampler : public LazyTrieEvaluator
 {
  public:
   SygusSampler();
-  virtual ~SygusSampler() {}
+  ~SygusSampler() override {}
+
   /** initialize
    *
    * tn : the return type of terms we will be testing with this class
@@ -155,22 +157,40 @@ class SygusSampler : public LazyTrieEvaluator
    * forceKeep is whether we wish to force that n is chosen as a representative
    * value in the trie.
    */
-  Node registerTerm(Node n, bool forceKeep = false);
+  virtual Node registerTerm(Node n, bool forceKeep = false);
+  /** get number of sample points */
+  unsigned getNumSamplePoints() const { return d_samples.size(); }
+  /** get sample point
+   *
+   * Appends sample point #index to the vector pt, d_vars to vars.
+   */
+  void getSamplePoint(unsigned index,
+                      std::vector<Node>& vars,
+                      std::vector<Node>& pt);
+  /** evaluate n on sample point index */
+  Node evaluate(Node n, unsigned index);
+  /**
+   * Returns the index of a sample point such that the evaluation of a and b
+   * diverge, or -1 if no such sample point exists.
+   */
+  int getDiffSamplePointIndex(Node a, Node b);
+
+ protected:
   /** is contiguous
    *
    * This returns whether n's free variables (terms occurring in the range of
    * d_type_vars) are a prefix of the list of variables in d_type_vars for each
-   * type. For instance, if d_type_vars[Int] = { x, y }, then 0, x, x+y, y+x are
-   * contiguous but y is not. This is useful for excluding terms from
-   * consideration that are alpha-equivalent to others.
+   * type id. For instance, if d_type_vars[id] = { x, y } for some id, then
+   * 0, x, x+y, y+x are contiguous but y is not. This is useful for excluding
+   * terms from consideration that are alpha-equivalent to others.
    */
   bool isContiguous(Node n);
   /** is ordered
    *
    * This returns whether n's free variables are in order with respect to
    * variables in d_type_vars for each type. For instance, if
-   * d_type_vars[Int] = { x, y }, then 0, x, x+y are ordered but y and y+x
-   * are not.
+   * d_type_vars[id] = { x, y } for some id, then 0, x, x+y are ordered but
+   * y and y+x are not.
    */
   bool isOrdered(Node n);
   /** contains free variables
@@ -179,16 +199,6 @@ class SygusSampler : public LazyTrieEvaluator
    * are those that occur in the range d_type_vars.
    */
   bool containsFreeVariables(Node a, Node b);
-  /** get number of sample points */
-  unsigned getNumSamplePoints() const { return d_samples.size(); }
-  /** get sample point
-   *
-   * Appends sample point #index to the vector pt.
-   */
-  void getSamplePoint(unsigned index, std::vector<Node>& pt);
-  /** evaluate n on sample point index */
-  Node evaluate(Node n, unsigned index);
-
  private:
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
@@ -211,20 +221,33 @@ class SygusSampler : public LazyTrieEvaluator
   TypeNode d_tn;
   /** the sygus type for this sampler (if applicable). */
   TypeNode d_ftn;
-  /** all variables */
+  /** all variables we are sampling values for */
   std::vector<Node> d_vars;
   /** type variables
    *
-   * For each type, a list of variables in the grammar we are considering, for
-   * that type. These typically correspond to the arguments of the
+   * We group variables according to "type ids". Two variables have the same
+   * type id if they have indistinguishable status according to this sampler.
+   * This is a finer-grained grouping than types. For example, two variables
+   * of the same type may have different type ids if they occur as constructors
+   * of a different set of sygus types in the grammar we are considering.
+   * For instance, we assign x and y different type ids in this grammar:
+   *   A -> B + C
+   *   B -> x | 0 | 1
+   *   C -> y
+   * Type ids are computed for each variable in d_vars during initialize(...).
+   *
+   * For each type id, a list of variables in the grammar we are considering,
+   * for that type. These typically correspond to the arguments of the
    * function-to-synthesize whose grammar we are considering.
    */
-  std::map<TypeNode, std::vector<Node> > d_type_vars;
+  std::map<unsigned, std::vector<Node> > d_type_vars;
   /**
    * A map all variables in the grammar we are considering to their index in
    * d_type_vars.
    */
   std::map<Node, unsigned> d_var_index;
+  /**  Map from variables to the id (the domain of d_type_vars). */
+  std::map<Node, unsigned> d_type_ids;
   /** constants
    *
    * For each type, a list of constants in the grammar we are considering, for
@@ -298,6 +321,23 @@ class SygusSampler : public LazyTrieEvaluator
   std::map<Node, std::vector<TypeNode> > d_var_sygus_types;
   /** register sygus type, intializes the above two data structures */
   void registerSygusType(TypeNode tn);
+};
+
+/** Version of the above class with some additional features */
+class SygusSamplerExt : public SygusSampler
+{
+ public:
+  /** register term n with this sampler database
+   *
+   * This returns a term ret with the same guarantees as
+   * SygusSampler::registerTerm, with the additional guarantee
+   * that for all ret' returned by a previous call to registerTerm( n' ),
+   * we have that ret = n is not alpha-equivalent to ret' = n,
+   * modulo symmetry of equality. For example,
+   *   (t+0), t and (s+0), s
+   * will not be input/output pairs of this function.
+   */
+  virtual Node registerTerm(Node n, bool forceKeep = false) override;
 };
 
 } /* CVC4::theory::quantifiers namespace */

@@ -74,16 +74,33 @@ void SygusSampler::initialize(TypeNode tn,
   d_is_valid = true;
   d_tn = tn;
   d_ftn = TypeNode::null();
-  d_vars.insert(d_vars.end(), vars.begin(), vars.end());
-  for (const Node& sv : vars)
-  {
-    TypeNode svt = sv.getType();
-    d_var_index[sv] = d_type_vars[svt].size();
-    d_type_vars[svt].push_back(sv);
-  }
+  d_type_vars.clear();
+  d_vars.clear();
   d_rvalue_cindices.clear();
   d_rvalue_null_cindices.clear();
   d_var_sygus_types.clear();
+  d_vars.insert(d_vars.end(), vars.begin(), vars.end());
+  std::map<TypeNode, unsigned> type_to_type_id;
+  unsigned type_id_counter = 0;
+  for (const Node& sv : d_vars)
+  {
+    TypeNode svt = sv.getType();
+    unsigned tnid;
+    std::map<TypeNode, unsigned>::iterator itt = type_to_type_id.find(svt);
+    if (itt == type_to_type_id.end())
+    {
+      type_to_type_id[svt] = type_id_counter;
+      type_id_counter++;
+    }
+    else
+    {
+      tnid = itt->second;
+    }
+    Trace("sygus-sample-debug")
+        << "Type id for " << sv << " is " << tnid << std::endl;
+    d_var_index[sv] = d_type_vars[tnid].size();
+    d_type_vars[tnid].push_back(sv);
+  }
   initializeSamples(nsamples);
 }
 
@@ -99,24 +116,68 @@ void SygusSampler::initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples)
 
   Trace("sygus-sample") << "Register sampler for " << f << std::endl;
 
+  d_vars.clear();
+  d_type_vars.clear();
   d_var_index.clear();
   d_type_vars.clear();
+  d_rvalue_cindices.clear();
+  d_rvalue_null_cindices.clear();
+  d_var_sygus_types.clear();
   // get the sygus variable list
   Node var_list = Node::fromExpr(dt.getSygusVarList());
   if (!var_list.isNull())
   {
     for (const Node& sv : var_list)
     {
-      TypeNode svt = sv.getType();
-      d_var_index[sv] = d_type_vars[svt].size();
       d_vars.push_back(sv);
-      d_type_vars[svt].push_back(sv);
     }
   }
-  d_rvalue_cindices.clear();
-  d_rvalue_null_cindices.clear();
-  d_var_sygus_types.clear();
+  // register sygus type
   registerSygusType(d_ftn);
+  // Variables are associated with type ids based on the set of sygus types they
+  // appear in.
+  std::map<Node, unsigned> var_to_type_id;
+  unsigned type_id_counter = 0;
+  for (const Node& sv : d_vars)
+  {
+    TypeNode svt = sv.getType();
+    // is it equivalent to a previous variable?
+    for (const std::pair<Node, unsigned>& v : var_to_type_id)
+    {
+      Node svc = v.first;
+      if (svc.getType() == svt)
+      {
+        if (d_var_sygus_types[sv].size() == d_var_sygus_types[svc].size())
+        {
+          bool success = true;
+          for (unsigned t = 0, size = d_var_sygus_types[sv].size(); t < size;
+               t++)
+          {
+            if (d_var_sygus_types[sv][t] != d_var_sygus_types[svc][t])
+            {
+              success = false;
+              break;
+            }
+          }
+          if (success)
+          {
+            var_to_type_id[sv] = var_to_type_id[svc];
+          }
+        }
+      }
+    }
+    if (var_to_type_id.find(sv) == var_to_type_id.end())
+    {
+      var_to_type_id[sv] = type_id_counter;
+      type_id_counter++;
+    }
+    unsigned tnid = var_to_type_id[sv];
+    Trace("sygus-sample-debug")
+        << "Type id for " << sv << " is " << tnid << std::endl;
+    d_var_index[sv] = d_type_vars[tnid].size();
+    d_type_vars[tnid].push_back(sv);
+  }
+
   initializeSamples(nsamples);
 }
 
@@ -231,7 +292,7 @@ bool SygusSampler::isContiguous(Node n)
   std::vector<Node> fvs;
   computeFreeVariables(n, fvs);
   // compute contiguous condition
-  for (const std::pair<const TypeNode, std::vector<Node> >& p : d_type_vars)
+  for (const std::pair<const unsigned, std::vector<Node> >& p : d_type_vars)
   {
     bool foundNotFv = false;
     for (const Node& v : p.second)
@@ -282,7 +343,7 @@ void SygusSampler::computeFreeVariables(Node n, std::vector<Node>& fvs)
 bool SygusSampler::isOrdered(Node n)
 {
   // compute free variables in n for each type
-  std::map<TypeNode, std::vector<Node> > fvs;
+  std::map<unsigned, std::vector<Node> > fvs;
 
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
@@ -301,13 +362,13 @@ bool SygusSampler::isOrdered(Node n)
         std::map<Node, unsigned>::iterator itv = d_var_index.find(cur);
         if (itv != d_var_index.end())
         {
-          TypeNode tn = cur.getType();
+          unsigned tnid = d_type_ids[cur];
           // if this variable is out of order
-          if (itv->second != fvs[tn].size())
+          if (itv->second != fvs[tnid].size())
           {
             return false;
           }
-          fvs[tn].push_back(cur);
+          fvs[tnid].push_back(cur);
         }
       }
       for (unsigned j = 0, nchildren = cur.getNumChildren(); j < nchildren; j++)
@@ -353,9 +414,12 @@ bool SygusSampler::containsFreeVariables(Node a, Node b)
   return true;
 }
 
-void SygusSampler::getSamplePoint(unsigned index, std::vector<Node>& pt)
+void SygusSampler::getSamplePoint(unsigned index,
+                                  std::vector<Node>& vars,
+                                  std::vector<Node>& pt)
 {
   Assert(index < d_samples.size());
+  vars.insert(vars.end(), d_vars.begin(), d_vars.end());
   std::vector<Node>& spt = d_samples[index];
   pt.insert(pt.end(), spt.begin(), spt.end());
 }
@@ -370,6 +434,20 @@ Node SygusSampler::evaluate(Node n, unsigned index)
   Trace("sygus-sample-ev") << "( " << n << ", " << index << " ) -> " << ev
                            << std::endl;
   return ev;
+}
+
+int SygusSampler::getDiffSamplePointIndex(Node a, Node b)
+{
+  for (unsigned i = 0, nsamp = d_samples.size(); i < nsamp; i++)
+  {
+    Node ae = evaluate(a, i);
+    Node be = evaluate(b, i);
+    if (ae != be)
+    {
+      return i;
+    }
+  }
+  return -1;
 }
 
 Node SygusSampler::getRandomValue(TypeNode tn)
@@ -560,6 +638,51 @@ void SygusSampler::registerSygusType(TypeNode tn)
       }
     }
   }
+}
+
+Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
+{
+  Node eq_n = SygusSampler::registerTerm(n, forceKeep);
+  if (eq_n == n)
+  {
+    return n;
+  }
+  // one of eq_n or n must be ordered
+  bool eqor = isOrdered(eq_n);
+  bool nor = isOrdered(n);
+  bool isUnique = false;
+  if (eqor || nor)
+  {
+    isUnique = true;
+    // if only one is ordered, then the ordered one must contain the
+    // free variables of the other
+    if (!eqor)
+    {
+      isUnique = containsFreeVariables(n, eq_n);
+    }
+    else if (!nor)
+    {
+      isUnique = containsFreeVariables(eq_n, n);
+    }
+  }
+
+  if (isUnique)
+  {
+    // if the previous value stored was unordered, but this is
+    // ordered, we prefer this one. Thus, we force its addition to the
+    // sampler database.
+    if (!eqor)
+    {
+      registerTerm(n, true);
+    }
+    return eq_n;
+  }
+  else
+  {
+    Trace("sygus-synth-rr") << "Alpha equivalent candidate rewrite : " << eq_n
+                            << " " << n << std::endl;
+  }
+  return n;
 }
 
 } /* CVC4::theory::quantifiers namespace */
