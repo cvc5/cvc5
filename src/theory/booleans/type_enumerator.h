@@ -38,7 +38,7 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
            type.getConst<TypeConstant>() == BOOLEAN_TYPE);
   }
 
-  Node operator*() {
+  Node operator*() override {
     switch(d_value) {
     case FALSE:
       return NodeManager::currentNM()->mkConst(false);
