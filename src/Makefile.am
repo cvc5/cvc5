@@ -463,8 +463,12 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus_grammar_cons.h \
 	theory/quantifiers/sygus_grammar_norm.cpp \
 	theory/quantifiers/sygus_grammar_norm.h \
+	theory/quantifiers/sygus_grammar_red.cpp \
+	theory/quantifiers/sygus_grammar_red.h \
 	theory/quantifiers/sygus_process_conj.cpp \
 	theory/quantifiers/sygus_process_conj.h \
+	theory/quantifiers/sygus_sampler.cpp \
+	theory/quantifiers/sygus_sampler.h \
 	theory/quantifiers/symmetry_breaking.cpp \
 	theory/quantifiers/symmetry_breaking.h \
 	theory/quantifiers/term_database.cpp \

@@ -399,6 +399,18 @@ public:
   void getExplanationForInstLemmas(const std::vector<Node>& lems,
                                    std::map<Node, Node>& quant,
                                    std::map<Node, std::vector<Node> >& tvec);
+
+  /** get synth solutions
+   *
+   * This function adds entries to sol_map that map functions-to-synthesize with
+   * their solutions, for all active conjectures. This should be called
+   * immediately after the solver answers unsat for sygus input.
+   *
+   * For details on what is added to sol_map, see
+   * CegConjecture::getSynthSolutions.
+   */
+  void getSynthSolutions(std::map<Node, Node>& sol_map);
+
   //----------end user interface for instantiations
 
   /** statistics class */

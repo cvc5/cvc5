@@ -7,6 +7,7 @@ the copyright and licensing of CVC4.
 The core designers and authors of CVC4 are:
 
   Kshitij Bansal, New York University, Google
+  Haniel Barbosa, The University of Iowa
   Clark Barrett, New York University, Google, Stanford University
   Francois Bobot, The University of Iowa, Commissariat a l'Energie Atomique
   Martin Brain, University of Oxford
@@ -18,7 +19,9 @@ The core designers and authors of CVC4 are:
   Tim King, New York University, Universite Joseph Fourier, Google
   Tianyi Liang, The University of Iowa
   Paul Meng, The University of Iowa
+  Aina Niemetz, Stanford University
   Andres Noetzli, Stanford University
+  Mathias Preiner, Stanford University
   Andrew Reynolds, The University of Iowa, EPFL
   Cesare Tinelli, The University of Iowa
 

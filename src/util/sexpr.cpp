@@ -30,6 +30,7 @@
 
 #include "base/cvc4_assert.h"
 #include "options/set_language.h"
+#include "util/ostream_util.h"
 #include "util/smt2_quote_string.h"
 
 namespace CVC4 {
@@ -219,6 +220,8 @@ void SExpr::toStream(std::ostream& out, const SExpr& sexpr,
 
 void SExpr::toStreamRec(std::ostream& out, const SExpr& sexpr,
                         OutputLanguage language, int indent) {
+  StreamFormatScope scope(out);
+
   if (sexpr.isInteger()) {
     out << sexpr.getIntegerValue();
   } else if (sexpr.isRational()) {

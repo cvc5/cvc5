@@ -21,6 +21,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus_grammar_red.h"
 #include "theory/quantifiers/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -34,7 +35,7 @@ namespace quantifiers {
 
 bool OpPosTrie::getOrMakeType(TypeNode tn,
                               TypeNode& unres_tn,
-                              std::vector<unsigned> op_pos,
+                              const std::vector<unsigned>& op_pos,
                               unsigned ind)
 {
   if (ind == op_pos.size())
@@ -116,6 +117,20 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
   sygus_norm->d_dt_all.push_back(d_dt);
   sygus_norm->d_unres_t_all.insert(d_unres_tn.toType());
   Trace("sygus-grammar-normalize") << "---------------------------------\n";
+}
+
+void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
+                                             TypeObject& to,
+                                             const Datatype& dt,
+                                             std::vector<unsigned>& op_pos)
+{
+  std::vector<unsigned> difference;
+  std::set_difference(op_pos.begin(),
+                      op_pos.end(),
+                      d_drop_indices.begin(),
+                      d_drop_indices.end(),
+                      std::back_inserter(difference));
+  op_pos = difference;
 }
 
 /* TODO #1304: have more operators and types. Moreover, have more general ways
@@ -259,12 +274,38 @@ std::map<TypeNode, Node> SygusGrammarNorm::d_tn_to_id = {};
  *
  * returns true if collected anything
  */
-SygusGrammarNorm::Transf* SygusGrammarNorm::inferTransf(
+std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
     TypeNode tn, const Datatype& dt, const std::vector<unsigned>& op_pos)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
-  /* TODO #1304: step 0: look for redundant constructors to drop */
+  Trace("sygus-gnorm") << "Infer transf for " << dt.getName() << "..."
+                       << std::endl;
+  Trace("sygus-gnorm") << "  #cons = " << op_pos.size() << " / "
+                       << dt.getNumConstructors() << std::endl;
+  // look for redundant constructors to drop
+  if (options::sygusMinGrammar() && dt.getNumConstructors() == op_pos.size())
+  {
+    SygusRedundantCons src;
+    src.initialize(d_qe, tn);
+    std::vector<unsigned> rindices;
+    src.getRedundant(rindices);
+    if (!rindices.empty())
+    {
+      Trace("sygus-gnorm") << "...drop transf, " << rindices.size() << "/"
+                           << op_pos.size() << " constructors." << std::endl;
+      Assert(rindices.size() < op_pos.size());
+      return std::unique_ptr<Transf>(new TransfDrop(rindices));
+    }
+  }
+
+  // if normalization option is not enabled, we do not infer the transformations
+  // below
+  if (!options::sygusGrammarNorm())
+  {
+    return nullptr;
+  }
+
   /* TODO #1304: step 1: look for singleton */
   /* step 2: look for chain */
   unsigned chain_op_pos = dt.getNumConstructors();
@@ -319,9 +360,10 @@ SygusGrammarNorm::Transf* SygusGrammarNorm::inferTransf(
   /* Typenode admits a chain transformation for normalization */
   if (chain_op_pos != dt.getNumConstructors() && !elem_pos.empty())
   {
+    Trace("sygus-gnorm") << "...chain transf." << std::endl;
     Trace("sygus-grammar-normalize-infer")
         << "\tInfering chain transformation\n";
-    return new TransfChain(chain_op_pos, elem_pos);
+    return std::unique_ptr<Transf>(new TransfChain(chain_op_pos, elem_pos));
   }
   return nullptr;
 }
@@ -372,19 +414,16 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   }
   /* Creates type object for normalization */
   TypeObject to(tn, unres_tn);
-  /* If normalization option enabled, infer transformations to be applied in the
-   * type */
-  if (options::sygusGrammarNorm())
+
+  /* Determine normalization transformation based on sygus type and given
+    * operators */
+  std::unique_ptr<Transf> transformation = inferTransf(tn, dt, op_pos);
+  /* If a transformation was selected, apply it */
+  if (transformation != nullptr)
   {
-    /* Determine normalization transformation based on sygus type and given
-     * operators */
-    Transf* transformation = inferTransf(tn, dt, op_pos);
-    /* If a transformation was selected, apply it */
-    if (transformation != nullptr)
-    {
-      transformation->buildType(this, to, dt, op_pos);
-    }
+    transformation->buildType(this, to, dt, op_pos);
   }
+
   /* Remaining operators are rebuilt as they are */
   for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
   {

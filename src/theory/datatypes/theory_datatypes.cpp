@@ -74,7 +74,6 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
   d_dtfCounter = 0;
 
-  d_sygus_split = NULL;
   d_sygus_sym_break = NULL;
 }
 
@@ -85,7 +84,6 @@ TheoryDatatypes::~TheoryDatatypes() {
     Assert(current != NULL);
     delete current;
   }
-  delete d_sygus_split;
   delete d_sygus_sym_break;
 }
 
@@ -309,27 +307,7 @@ void TheoryDatatypes::check(Effort e) {
                     d_out->requirePhase( test, true );
                   }else{
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
-                    std::vector< Node > children;
-                    if( dt.isSygus() && d_sygus_split ){
-                      Trace("dt-split") << "DtSygus : split on " << n
-                                        << std::endl;
-                      std::vector< Node > lemmas;
-                      d_sygus_split->getSygusSplits( n, dt, children, lemmas );
-                      Trace("dt-split") << "Finished compute split, returned "
-                                        << lemmas.size() << " lemmas."
-                                        << std::endl;
-                      for( unsigned i=0; i<lemmas.size(); i++ ){
-                        Trace("dt-lemma-sygus") << "Dt sygus lemma : " << lemmas[i] << std::endl;
-                        doSendLemma( lemmas[i] );
-                      }
-                    }else{
-                      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-                        Node test = DatatypesRewriter::mkTester( n, i, dt );
-                        children.push_back( test );
-                      }
-                    }
-                    Assert( !children.empty() );
-                    Node lemma = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::OR, children );
+                    Node lemma = DatatypesRewriter::mkSplit(n, dt);
                     Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
                     //doSendLemma( lemma );
                     d_out->lemma( lemma, false, false, true );
@@ -551,7 +529,6 @@ void TheoryDatatypes::finishInit() {
   if( getQuantifiersEngine() && options::ceGuidedInst() ){
     quantifiers::TermDbSygus * tds = getQuantifiersEngine()->getTermDatabaseSygus();
     Assert( tds!=NULL );
-    d_sygus_split = new SygusSplitNew( tds );
     d_sygus_sym_break = new SygusSymBreakNew( this, tds, getSatContext() );
   }
 }
@@ -1026,10 +1003,6 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
         Assert( tindex!=-1 );
         pcons[ tindex ] = false;
       }
-      //further limit the possibilities based on grammar minimization
-      if( d_sygus_sym_break && dt.isSygus() ){
-        d_sygus_sym_break->getPossibleCons( dt, tn, pcons );
-      }
     }
   }
 }
@@ -1157,7 +1130,7 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
               break;
             }
           }
-          Assert( dt.isSygus() || testerIndex!=-1 );
+          Assert(testerIndex != -1);
           //we must explain why each term in the set of testers for this equivalence class is equal
           std::vector< Node > eq_terms;
           NodeBuilder<> nb(kind::AND);

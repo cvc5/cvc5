@@ -54,25 +54,28 @@ class TheoryStrings : public Theory {
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
-public:
+ public:
   TheoryStrings(context::Context* c, context::UserContext* u,
                 OutputChannel& out, Valuation valuation,
                 const LogicInfo& logicInfo);
   ~TheoryStrings();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  std::string identify() const { return std::string("TheoryStrings"); }
+  std::string identify() const override { return std::string("TheoryStrings"); }
 
-public:
-  void propagate(Effort e);
+ public:
+  void propagate(Effort e) override;
   bool propagate(TNode literal);
   void explain( TNode literal, std::vector<TNode>& assumptions );
-  Node explain( TNode literal );
-  eq::EqualityEngine * getEqualityEngine() { return &d_equalityEngine; }
-  bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
-  int getReduction( int effort, Node n, Node& nr );
- 
+  Node explain(TNode literal) override;
+  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
+  bool getCurrentSubstitution(int effort,
+                              std::vector<Node>& vars,
+                              std::vector<Node>& subs,
+                              std::map<Node, std::vector<Node> >& exp) override;
+  int getReduction(int effort, Node n, Node& nr) override;
+
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
     TheoryStrings& d_str;
@@ -213,24 +216,24 @@ private:
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
   /////////////////////////////////////////////////////////////////////////////
-public:
- bool collectModelInfo(TheoryModel* m) override;
+ public:
+  bool collectModelInfo(TheoryModel* m) override;
 
- /////////////////////////////////////////////////////////////////////////////
- // NOTIFICATIONS
- /////////////////////////////////////////////////////////////////////////////
-public:
-  void presolve();
-  void shutdown() { }
+  /////////////////////////////////////////////////////////////////////////////
+  // NOTIFICATIONS
+  /////////////////////////////////////////////////////////////////////////////
+ public:
+  void presolve() override;
+  void shutdown() override {}
 
   /////////////////////////////////////////////////////////////////////////////
   // MAIN SOLVER
   /////////////////////////////////////////////////////////////////////////////
-private:
-  void addSharedTerm(TNode n);
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
+ private:
+  void addSharedTerm(TNode n) override;
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
-private:
+ private:
   class EqcInfo {
   public:
     EqcInfo( context::Context* c );
@@ -367,17 +370,18 @@ private:
   //cardinality check
   void checkCardinality();
 
-private:
+ private:
   void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth );
-public:
+
+ public:
   /** preregister term */
-  void preRegisterTerm(TNode n);
+  void preRegisterTerm(TNode n) override;
   /** Expand definition */
-  Node expandDefinition(LogicRequest &logicRequest, Node n);
+  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
   /** Check at effort e */
-  void check(Effort e);
+  void check(Effort e) override;
   /** needs check last effort */
-  bool needsCheckLastEffort();
+  bool needsCheckLastEffort() override;
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
   /** called when a new equivalence class is created */
@@ -389,39 +393,48 @@ public:
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** get preprocess */
-  StringsPreprocess * getPreprocess() { return &d_preproc; }
-protected:
-  /** compute care graph */
-  void computeCareGraph();
+  StringsPreprocess* getPreprocess() { return &d_preproc; }
 
-  //do pending merges
+ protected:
+  /** compute care graph */
+  void computeCareGraph() override;
+
+  // do pending merges
   void assertPendingFact(Node atom, bool polarity, Node exp);
   void doPendingFacts();
   void doPendingLemmas();
   bool hasProcessed();
-  void addToExplanation( Node a, Node b, std::vector< Node >& exp );
-  void addToExplanation( Node lit, std::vector< Node >& exp );
+  void addToExplanation(Node a, Node b, std::vector<Node>& exp);
+  void addToExplanation(Node lit, std::vector<Node>& exp);
 
-  //register term
-  void registerTerm( Node n, int effort );
-  //send lemma
-  void sendInference( std::vector< Node >& exp, std::vector< Node >& exp_n, Node eq, const char * c, bool asLemma = false );
-  void sendInference( std::vector< Node >& exp, Node eq, const char * c, bool asLemma = false );
-  void sendLemma( Node ant, Node conc, const char * c );
-  void sendInfer( Node eq_exp, Node eq, const char * c );
+  // register term
+  void registerTerm(Node n, int effort);
+  // send lemma
+  void sendInference(std::vector<Node>& exp,
+                     std::vector<Node>& exp_n,
+                     Node eq,
+                     const char* c,
+                     bool asLemma = false);
+  void sendInference(std::vector<Node>& exp,
+                     Node eq,
+                     const char* c,
+                     bool asLemma = false);
+  void sendLemma(Node ant, Node conc, const char* c);
+  void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
-  void sendLengthLemma( Node n );
+  void sendLengthLemma(Node n);
   /** mkConcat **/
-  inline Node mkConcat( Node n1, Node n2 );
-  inline Node mkConcat( Node n1, Node n2, Node n3 );
-  inline Node mkConcat( const std::vector< Node >& c );
-  inline Node mkLength( Node n );
-  //mkSkolem
-  enum {
+  inline Node mkConcat(Node n1, Node n2);
+  inline Node mkConcat(Node n1, Node n2, Node n3);
+  inline Node mkConcat(const std::vector<Node>& c);
+  inline Node mkLength(Node n);
+  // mkSkolem
+  enum
+  {
     sk_id_c_spt,
     sk_id_vc_spt,
     sk_id_vc_bin_spt,
-    sk_id_v_spt,    
+    sk_id_v_spt,
     sk_id_c_spt_rev,
     sk_id_vc_spt_rev,
     sk_id_vc_bin_spt_rev,
@@ -434,30 +447,36 @@ protected:
     sk_id_deq_y,
     sk_id_deq_z,
   };
-  std::map< Node, std::map< Node, std::map< int, Node > > > d_skolem_cache;
-  Node mkSkolemCached( Node a, Node b, int id, const char * c, int isLenSplit = 0 );
-  inline Node mkSkolemS(const char * c, int isLenSplit = 0);
-  void registerNonEmptySkolem( Node sk );
-  //inline Node mkSkolemI(const char * c);
+  std::map<Node, std::map<Node, std::map<int, Node> > > d_skolem_cache;
+  Node mkSkolemCached(
+      Node a, Node b, int id, const char* c, int isLenSplit = 0);
+  inline Node mkSkolemS(const char* c, int isLenSplit = 0);
+  void registerNonEmptySkolem(Node sk);
+  // inline Node mkSkolemI(const char * c);
   /** mkExplain **/
-  Node mkExplain( std::vector< Node >& a );
-  Node mkExplain( std::vector< Node >& a, std::vector< Node >& an );
+  Node mkExplain(std::vector<Node>& a);
+  Node mkExplain(std::vector<Node>& a, std::vector<Node>& an);
   /** mkAnd **/
-  Node mkAnd( std::vector< Node >& a );
+  Node mkAnd(std::vector<Node>& a);
   /** get concat vector */
-  void getConcatVec( Node n, std::vector< Node >& c );
+  void getConcatVec(Node n, std::vector<Node>& c);
 
-  //get equivalence classes
-  void getEquivalenceClasses( std::vector< Node >& eqcs );
+  // get equivalence classes
+  void getEquivalenceClasses(std::vector<Node>& eqcs);
 
-  //separate into collections with equal length
-  void separateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
-  void printConcat( std::vector< Node >& n, const char * c );
+  // separate into collections with equal length
+  void separateByLength(std::vector<Node>& n,
+                        std::vector<std::vector<Node> >& col,
+                        std::vector<Node>& lts);
+  void printConcat(std::vector<Node>& n, const char* c);
 
-  void inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc );
+  void inferSubstitutionProxyVars(Node n,
+                                  std::vector<Node>& vars,
+                                  std::vector<Node>& subs,
+                                  std::vector<Node>& unproc);
 
   // Symbolic Regular Expression
-private:
+ private:
   // regular expression memberships
   NodeList d_regexp_memberships;
   NodeSet d_regexp_ucached;
@@ -492,18 +511,20 @@ private:
 
 
   // Finite Model Finding
-private:
+ private:
   NodeSet d_input_vars;
   context::CDO< Node > d_input_var_lsum;
   context::CDHashMap< int, Node > d_cardinality_lits;
   context::CDO< int > d_curr_cardinality;
-public:
+
+ public:
   //for finite model finding
-  Node getNextDecisionRequest( unsigned& priority );
-  //ppRewrite
-  Node ppRewrite(TNode atom);
-public:
-/** statistics class */
+  Node getNextDecisionRequest(unsigned& priority) override;
+  // ppRewrite
+  Node ppRewrite(TNode atom) override;
+
+ public:
+  /** statistics class */
   class Statistics {
   public:
     IntStat d_splits;

@@ -17,7 +17,16 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
 
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "expr/datatype.h"
+#include "expr/node.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
+#include "expr/type.h"
+#include "expr/type_node.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
@@ -78,7 +87,7 @@ class OpPosTrie
    */
   bool getOrMakeType(TypeNode tn,
                      TypeNode& unres_tn,
-                     std::vector<unsigned> op_pos,
+                     const std::vector<unsigned>& op_pos,
                      unsigned ind = 0);
   /** clear all data from this trie */
   void clear() { d_children.clear(); }
@@ -241,6 +250,8 @@ class SygusGrammarNorm
   class Transf
   {
    public:
+    virtual ~Transf() {}
+
     /** abstract function for building normalized types
      *
      * Builds normalized types for the operators specifed by the positions in
@@ -253,6 +264,27 @@ class SygusGrammarNorm
                            const Datatype& dt,
                            std::vector<unsigned>& op_pos) = 0;
   }; /* class Transf */
+
+  /** Drop transformation class
+   *
+   * This class builds a type by dropping a set of redundant constructors,
+   * whose indices are given as input to the constructor of this class.
+   */
+  class TransfDrop : public Transf
+  {
+   public:
+    TransfDrop(const std::vector<unsigned>& indices) : d_drop_indices(indices)
+    {
+    }
+    /** build type */
+    void buildType(SygusGrammarNorm* sygus_norm,
+                   TypeObject& to,
+                   const Datatype& dt,
+                   std::vector<unsigned>& op_pos) override;
+
+   private:
+    std::vector<unsigned> d_drop_indices;
+  };
 
   /** Chain transformation class
    *
@@ -275,7 +307,7 @@ class SygusGrammarNorm
   class TransfChain : public Transf
   {
    public:
-    TransfChain(unsigned chain_op_pos, std::vector<unsigned> elem_pos)
+    TransfChain(unsigned chain_op_pos, const std::vector<unsigned>& elem_pos)
         : d_chain_op_pos(chain_op_pos), d_elem_pos(elem_pos){};
 
     /** builds types encoding a chain in which each link contains a repetition
@@ -303,10 +335,10 @@ class SygusGrammarNorm
      * transformation and so on until all operators originally given are
      * considered.
      */
-    virtual void buildType(SygusGrammarNorm* sygus_norm,
-                           TypeObject& to,
-                           const Datatype& dt,
-                           std::vector<unsigned>& op_pos) override;
+    void buildType(SygusGrammarNorm* sygus_norm,
+                   TypeObject& to,
+                   const Datatype& dt,
+                   std::vector<unsigned>& op_pos) override;
 
     /** Whether operator is chainable for the type (e.g. PLUS for Int)
      *
@@ -411,9 +443,9 @@ class SygusGrammarNorm
    *
    * TODO: #1304: Infer more complex transformations
    */
-  Transf* inferTransf(TypeNode tn,
-                      const Datatype& dt,
-                      const std::vector<unsigned>& op_pos);
+  std::unique_ptr<Transf> inferTransf(TypeNode tn,
+                                      const Datatype& dt,
+                                      const std::vector<unsigned>& op_pos);
 }; /* class SygusGrammarNorm */
 
 }  // namespace quantifiers
