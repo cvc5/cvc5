@@ -19,13 +19,6 @@ endif
 TESTS =	\
 	arith-int-004.cvc \
 	arith-int-011.cvc \
-	arith-int-012.cvc \
-	arith-int-013.cvc \
-	arith-int-022.cvc \
-	arith-int-024.cvc \
-	arith-int-042.cvc \
-	arith-int-042.min.cvc \
-	arith-int-047.cvc \
 	arith-int-048.cvc \
 	arith-int-050.cvc \
 	arith-int-084.cvc \

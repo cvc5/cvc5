@@ -25,14 +25,12 @@ TESTS = \
 	three.sy \
 	real-grammar.sy \
 	lustre-real.sy \
-	Base16_1.sy \
 	cegar1.sy \
 	cggmp.sy \
 	clock-inc-tuple.sy \
 	dup-op.sy \
 	fg_polynomial3.sy \
 	hd-01-d1-prog.sy \
-	hd-01-d1-prog-dd.sy \
 	icfp_14.12.sy \
 	icfp_14.12-flip-args.sy \
 	icfp_28_10.sy \
@@ -50,6 +48,8 @@ TESTS = \
 
 
 EXTRA_DIST = $(TESTS)
+
+# Base16_1.sy
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test

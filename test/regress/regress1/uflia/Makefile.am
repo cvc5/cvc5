@@ -18,14 +18,14 @@ endif
 # put it below in "TESTS +="
 TESTS = \
 	FIREFLY_luke_1b_e2_3049_e7_1173.ec.minimized.smt2 \
-	javafe.ast.StandardPrettyPrint.319_no_forall.smt2 \
-	javafe.ast.WhileStmt.447_no_forall.smt2 \
 	microwave21.ec.minimized.smt2 \
 	simple_cyclic2.smt2 \
 	simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
 
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	javafe.ast.StandardPrettyPrint.319_no_forall.smt2 \
+	javafe.ast.WhileStmt.447_no_forall.smt2
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test

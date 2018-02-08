@@ -17,12 +17,12 @@ endif
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	dumortier-050317.smt2 \
-	nt-lemmas-bad.smt2 \
 	siegel-nl-bases.smt2
 
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	dumortier-050317.smt2 \
+	nt-lemmas-bad.smt2
 
 # synonyms for "check" in this directory
 .PHONY: regress regress2 test
