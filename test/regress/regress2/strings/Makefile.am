@@ -19,11 +19,11 @@ endif
 TESTS = \
 	cmu-dis-0707-3.smt2 \
 	cmu-prereg-fmf.smt2 \
-	cmu-repl-len-nterm.smt2 \
+	cmu-repl-len-nterm.smt2
+
+
+EXTRA_DIST = $(TESTS) \
 	norn-dis-0707-3.smt2
-
-
-EXTRA_DIST = $(TESTS)
 
 # synonyms for "check" in this directory
 .PHONY: regress regress2 test

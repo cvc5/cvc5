@@ -58,9 +58,6 @@ TESTS = commutative.sy \
         c100.sy \
         check-generic-red.sy
 
-# disabled, takes too long with and without CBQI BV
-# REM
-
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \
   max.smt2 \

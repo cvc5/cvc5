@@ -18,11 +18,11 @@ endif
 # put it below in "TESTS +="
 TESTS = \
 	auth0068.smt2 \
-	fta0409.smt2 \
-	hoa0102.smt2	
+	fta0409.smt2
 
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	hoa0102.smt2
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test

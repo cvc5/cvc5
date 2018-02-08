@@ -58,6 +58,11 @@ EXTRA_DIST = $(TESTS) \
 	arith-int-096.cvc \
 	arith-int-098.cvc
 
+FAILING_TESTS = \
+	arith-int-007.cvc \
+	arith-int-082.cvc \
+	arith-int-098.cvc
+
 EXTRA_DIST = $(TESTS)
 
 # synonyms for "check" in this directory

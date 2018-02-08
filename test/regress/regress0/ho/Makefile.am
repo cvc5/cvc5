@@ -44,20 +44,6 @@ TESTS = \
   
 EXTRA_DIST = $(TESTS)
 
-# REM
-
-
-#if CVC4_BUILD_PROFILE_COMPETITION
-#else
-#TESTS += \
-#	error.cvc
-#endif
-# 
-# and make sure to distribute it
-#EXTRA_DIST += \
-#	error.cvc
-
-
 # synonyms for "check" in this directory
 .PHONY: regress regress0 test
 regress regress0 test: check

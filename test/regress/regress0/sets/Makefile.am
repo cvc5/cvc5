@@ -96,7 +96,6 @@ EXTRA_DIST = $(TESTS)
 
 # disabled tests, yet distribute
 EXTRA_DIST += \
-	jan28/REM \
 	setofsets-disequal.smt2
 
 # synonyms for "check"

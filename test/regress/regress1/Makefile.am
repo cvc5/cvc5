@@ -21,10 +21,21 @@ MAKEFLAGS = -k
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	bug425.cvc \
-  bug519.smt2 \
-  bug521.smt2
+	bug519.smt2 \
+	bug521.smt2 \
+	bug674.smt2 \
+	bug694-Unapply1.scala-0.smt2 \
+	fmf-fun-dbu.smt2 \
+	bug296.smt2 \
+	bug507.smt2 \
+	gensys_brn001.smt2 \
+	simplification_bug4.smt2 \
+	trim.cvc
   
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	simplification_bug4.smt2.expect \
+	bug590.smt2.expect \
+	bug590.smt2
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test
