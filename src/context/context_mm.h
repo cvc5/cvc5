@@ -150,6 +150,9 @@ class ContextMemoryManager {
 
 #else /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
 
+#warning \
+    "Using the debug version of ContextMemoryManager, expect performance degradation"
+
 /**
  * Dummy implementation of the ContextMemoryManager for debugging purposes. Use
  * the configure flag "--enable-debug-context-memory-manager" to use this
