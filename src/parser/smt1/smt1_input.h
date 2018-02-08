@@ -74,7 +74,7 @@ public:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr();
+  Expr parseExpr() override;
 
  private:
   /**
