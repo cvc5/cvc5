@@ -87,46 +87,7 @@ public:
 
   Statistics d_statistics;
 };
-} // CVC4::prop
-} // CVC4
 
-#else // CVC4_USE_CRYPTOMINISAT
-
-namespace CVC4 {
-namespace prop {
-
-class CryptoMinisatSolver : public SatSolver {
-
-public:
-  CryptoMinisatSolver(StatisticsRegistry* registry,
-                      const std::string& name = "") { Unreachable(); }
-  /** Assert a clause in the solver. */
-  ClauseId addClause(SatClause& clause, bool removable) {
-    Unreachable();
-  }
-
-  /** Return true if the solver supports native xor resoning */
-  bool nativeXor() { Unreachable(); }
-
-  /** Add a clause corresponding to rhs = l1 xor .. xor ln  */
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) {
-    Unreachable();
-  }
-  
-  SatVariable newVar(bool isTheoryAtom, bool preRegister, bool canErase) { Unreachable(); }
-  SatVariable trueVar() { Unreachable(); }
-  SatVariable falseVar() { Unreachable(); }
-  SatValue solve() { Unreachable(); }
-  SatValue solve(long unsigned int&) { Unreachable(); }
-  void interrupt() { Unreachable(); }
-  SatValue value(SatLiteral l) { Unreachable(); }
-  SatValue modelValue(SatLiteral l) { Unreachable(); }
-  unsigned getAssertionLevel() const { Unreachable(); }
-  bool ok() const { return false;};
-  
-
-};/* class CryptoMinisatSolver */
-} // CVC4::prop
-} // CVC4
-
-#endif // CVC4_USE_CRYPTOMINISAT
+}  // namespace prop
+}  // namespace CVC4
+#endif  // CVC4_USE_CRYPTOMINISAT
