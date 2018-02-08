@@ -31,6 +31,7 @@ namespace quantifiers {
 class LazyTrieEvaluator
 {
  public:
+  virtual ~LazyTrieEvaluator() {}
   virtual Node evaluate(Node n, unsigned index) = 0;
 };
 
@@ -134,7 +135,8 @@ class SygusSampler : public LazyTrieEvaluator
 {
  public:
   SygusSampler();
-  virtual ~SygusSampler() {}
+  ~SygusSampler() override {}
+
   /** initialize
    *
    * tn : the return type of terms we will be testing with this class
