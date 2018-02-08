@@ -1,4 +1,4 @@
-SUBDIRS = . arith bv aufbv auflia datatypes rewriterules lemmas decision fmf ho nl rels strings sets sygus sep quantifiers
+SUBDIRS = . arith bv aufbv auflia datatypes rewriterules lemmas decision fmf ho nl quantifiers rels strings sets sygus sep uflia
 
 # don't override a BINARY imported from a personal.mk
 @mk_if@eq ($(BINARY),)
