@@ -193,9 +193,6 @@ Node mkUmulo(TNode t1, TNode t2);
 /* Create conjunction.  */
 Node mkConjunction(const std::vector<TNode>& nodes);
 
-/* Get a set of all operands of nested and nodes.  */
-void getConjuncts(TNode node, std::set<TNode>& conjuncts);
-void getConjuncts(std::vector<TNode>& nodes, std::set<TNode>& conjuncts);
 /* Create a flattened and node.  */
 Node flattenAnd(std::vector<TNode>& queue);
 

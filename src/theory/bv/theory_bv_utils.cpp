@@ -491,29 +491,6 @@ Node mkConjunction(const std::vector<TNode>& nodes)
 
 /* ------------------------------------------------------------------------- */
 
-void getConjuncts(TNode node, std::set<TNode>& conjuncts)
-{
-  if (node.getKind() != kind::AND)
-  {
-    conjuncts.insert(node);
-  }
-  else
-  {
-    for (unsigned i = 0; i < node.getNumChildren(); ++i)
-    {
-      getConjuncts(node[i], conjuncts);
-    }
-  }
-}
-
-void getConjuncts(std::vector<TNode>& nodes, std::set<TNode>& conjuncts)
-{
-  for (unsigned i = 0, i_end = nodes.size(); i < i_end; ++i)
-  {
-    getConjuncts(nodes[i], conjuncts);
-  }
-}
-
 Node flattenAnd(std::vector<TNode>& queue)
 {
   TNodeSet nodes;
