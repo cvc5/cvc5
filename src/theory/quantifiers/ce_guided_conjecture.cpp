@@ -643,6 +643,17 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
           // rewrite.
           out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
               << std::endl;
+          // debugging information
+          if( Trace.isOn("sygus-rr-debug") )
+          {
+            ExtendedRewriter* er = sygusDb->getExtRewriter();
+            Node solbr = er->extendedRewrite(solb);
+            Node eq_solr = er->extendedRewrite(eq_sol);
+            Trace("sygus-rr-debug")
+                << "; candidate #1 ext-rewrites to: " << solbr << std::endl;
+            Trace("sygus-rr-debug")
+                << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
+          }
         }
       }
     }
@@ -830,8 +841,9 @@ bool CegConjecture::sampleAddRefinementLemma(std::vector<Node>& vals,
         Trace("cegis-sample-debug") << "...false for point #" << i << std::endl;
         // mark this as a CEGIS point (no longer sampled)
         d_cegis_sample_refine.insert(i);
+        std::vector<Node> vars;
         std::vector<Node> pt;
-        d_cegis_sampler.getSamplePoint(i, pt);
+        d_cegis_sampler.getSamplePoint(i, vars, pt);
         Assert(d_base_vars.size() == pt.size());
         Node rlem = d_base_body.substitute(
             d_base_vars.begin(), d_base_vars.end(), pt.begin(), pt.end());
