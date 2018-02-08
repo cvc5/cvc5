@@ -185,7 +185,6 @@ BUG_TESTS = \
 	bt-test-00.smt2 \
 	bt-test-01.smt2 \
 	bug1247.smt2
-#REM
 
 TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 

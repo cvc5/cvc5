@@ -1,4 +1,4 @@
-SUBDIRS = . arith
+SUBDIRS = . arith nl quantifiers strings sygus
 
 # don't override a BINARY imported from a personal.mk
 @mk_if@eq ($(BINARY),)
