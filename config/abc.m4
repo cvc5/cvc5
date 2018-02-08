@@ -28,7 +28,7 @@ elif test -n "$with_abc"; then
   )
   # Check if ABC was installed via contrib/get-abc
   AC_MSG_CHECKING([whether ABC was already installed via contrib/get-abc])
-  if test -z "$CRYPTOMINISAT_HOME" && test -e "$ac_abs_confdir/abc/alanmi-abc-53f39c11b58d/arch_flags"; then
+  if test -z "$ABC_HOME" && test -e "$ac_abs_confdir/abc/alanmi-abc-53f39c11b58d/arch_flags"; then
     ABC_HOME="$ac_abs_confdir/abc/alanmi-abc-53f39c11b58d"
     AC_MSG_RESULT([yes, $ABC_HOME])
   else
