@@ -29,23 +29,33 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-static bool is_bv_const(Node n)
+namespace {
+
+bool is_bv_const(Node n)
 {
   if (n.isConst()) { return true; }
   return Rewriter::rewrite(n).getKind() == kind::CONST_BITVECTOR;
 }
 
-static Node get_bv_const(Node n)
+Node get_bv_const(Node n)
 {
   Assert(is_bv_const(n));
   return Rewriter::rewrite(n);
 }
 
-static Integer get_bv_const_value(Node n)
+Integer get_bv_const_value(Node n)
 {
   Assert(is_bv_const(n));
   return get_bv_const(n).getConst<BitVector>().getValue();
 }
+
+// Returns x - y if the result would be non-negative. Otherwise, returns 0.
+unsigned SubtractIfNonNegative(const unsigned x, const unsigned y)
+{
+  return x >= y ? x - y : 0u;
+}
+
+}  // namespace
 
 /* Note: getMinBwExpr assumes that 'expr' is rewritten.
  *
@@ -88,9 +98,9 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
       {
         case kind::BITVECTOR_EXTRACT:
         {
-          unsigned w = utils::getSize(n);
+          const unsigned w = utils::getSize(n);
           visited[n] = std::min(
-              w, std::max(visited[n[0]] - utils::getExtractLow(n), 0u));
+              w, SubtractIfNonNegative(visited[n[0]], utils::getExtractLow(n)));
           Assert(visited[n] <= visited[n[0]]);
           break;
         }
