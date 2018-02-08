@@ -127,28 +127,23 @@ bool isBvConstTerm(TNode node)
 
 bool isBVPredicate(TNode node)
 {
-  return node.getKind() == kind::EQUAL || node.getKind() == kind::BITVECTOR_ULT
-         || node.getKind() == kind::BITVECTOR_SLT
-         || node.getKind() == kind::BITVECTOR_UGT
-         || node.getKind() == kind::BITVECTOR_UGE
-         || node.getKind() == kind::BITVECTOR_SGT
-         || node.getKind() == kind::BITVECTOR_SGE
-         || node.getKind() == kind::BITVECTOR_ULE
-         || node.getKind() == kind::BITVECTOR_SLE
-         || node.getKind() == kind::BITVECTOR_REDOR
-         || node.getKind() == kind::BITVECTOR_REDAND
-         || (node.getKind() == kind::NOT
-             && (node[0].getKind() == kind::EQUAL
-                 || node[0].getKind() == kind::BITVECTOR_ULT
-                 || node[0].getKind() == kind::BITVECTOR_SLT
-                 || node[0].getKind() == kind::BITVECTOR_UGT
-                 || node[0].getKind() == kind::BITVECTOR_UGE
-                 || node[0].getKind() == kind::BITVECTOR_SGT
-                 || node[0].getKind() == kind::BITVECTOR_SGE
-                 || node[0].getKind() == kind::BITVECTOR_ULE
-                 || node[0].getKind() == kind::BITVECTOR_SLE
-                 || node[0].getKind() == kind::BITVECTOR_REDOR
-                 || node[0].getKind() == kind::BITVECTOR_REDAND));
+  Kind k = node.getKind();
+  if (k == kind::NOT)
+  {
+    node = node[0];
+    k = node.getKind();
+  }
+  return k == kind::EQUAL
+         || k == kind::BITVECTOR_ULT
+         || k == kind::BITVECTOR_SLT
+         || k == kind::BITVECTOR_UGT
+         || k == kind::BITVECTOR_UGE
+         || k == kind::BITVECTOR_SGT
+         || k == kind::BITVECTOR_SGE
+         || k == kind::BITVECTOR_ULE
+         || k == kind::BITVECTOR_SLE
+         || k == kind::BITVECTOR_REDOR
+         || k == kind::BITVECTOR_REDAND;
 }
 
 bool isCoreTerm(TNode term, TNodeBoolMap& cache)
