@@ -546,24 +546,6 @@ Node flattenAnd(std::vector<TNode>& queue)
 
 /* ------------------------------------------------------------------------- */
 
-std::string vectorToString(const std::vector<Node>& nodes)
-{
-  std::stringstream out;
-  out << "[";
-  for (unsigned i = 0; i < nodes.size(); ++i)
-  {
-    if (i > 0)
-    {
-      out << ",";
-    }
-    out << nodes[i];
-  }
-  out << "]";
-  return out.str();
-}
-
-/* ------------------------------------------------------------------------- */
-
 // FIXME: dumb code
 void intersect(const std::vector<uint32_t>& v1,
                       const std::vector<uint32_t>& v2,

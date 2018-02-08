@@ -199,9 +199,6 @@ void getConjuncts(std::vector<TNode>& nodes, std::set<TNode>& conjuncts);
 /* Create a flattened and node.  */
 Node flattenAnd(std::vector<TNode>& queue);
 
-/* Create a string representing a vector of nodes.  */
-std::string vectorToString(const std::vector<Node>& nodes);
-
 /* Create the intersection of two vectors of uint32_t. */
 void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
