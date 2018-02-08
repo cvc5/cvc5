@@ -340,9 +340,9 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       // miniscope
       if( ret[0].getKind()==BITVECTOR_SHL )
       {
-        new_ret = nm->mkNode( BITVECTOR_SHL, nm->mkNode( BITVECTOR_NEG, ret[0][0] ), ret[0][1] );
-        debugExtendedRewrite( ret, new_ret, "NEG-SHL-miniscope" );
-        new_ret = extendedRewrite( new_ret );
+        //new_ret = nm->mkNode( BITVECTOR_SHL, nm->mkNode( BITVECTOR_NEG, ret[0][0] ), ret[0][1] );
+        //debugExtendedRewrite( ret, new_ret, "NEG-SHL-miniscope" );
+        //new_ret = extendedRewrite( new_ret );
       }
       else if( ret[0].getKind()==BITVECTOR_NOT )
       {
@@ -490,7 +490,7 @@ bool ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
   }
   else if( b.getKind()==BITVECTOR_LSHR )
   {
-    if( b[0].getKind()==BITVECTOR_LSHR )
+    if( b[0].getKind()==BITVECTOR_SHL )
     {
       if( b[0][0]==a && b[0][1]==b[1] )
       {
