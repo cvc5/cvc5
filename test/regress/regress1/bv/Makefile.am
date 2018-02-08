@@ -25,7 +25,7 @@ TESTS =	\
 	bv-int-collapse2-sat.smt2 \
 	cmu-rdk-3.smt2 \
 	decision-weight00.smt2 \
-	divtest.smt2	
+	divtest.smt2
 
 
 EXTRA_DIST = $(TESTS)

@@ -34,7 +34,7 @@ TESTS =	\
 	lst-no-self-rev-exp.smt2 \
 	nun-0208-to.smt2 \
 	pow2-bool.smt2 \
-	with-ind-104-core.smt2	
+	with-ind-104-core.smt2
 
 
 EXTRA_DIST = $(TESTS)

@@ -37,7 +37,7 @@ TESTS =	\
 	sqrt-problem-1.smt2 \
 	sugar-ident-2.smt2 \
 	sugar-ident-3.smt2 \
-	tan-rewrite2.smt2	
+	tan-rewrite2.smt2
 
 
 EXTRA_DIST = $(TESTS)
