@@ -261,7 +261,7 @@ private:
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
-  std::map<Node, SygusSampler> d_sampler;
+  std::map<Node, SygusSamplerExt> d_sampler;
   /** sampler object for the option cegisSample()
    *
    * This samples points of the type of the inner variables of the synthesis

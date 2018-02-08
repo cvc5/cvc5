@@ -31,6 +31,17 @@ operator EXPONENTIAL 1 "exponential"
 operator SINE 1 "sine"
 operator COSINE 1 "consine"
 operator TANGENT 1 "tangent"
+operator COSECANT 1 "cosecant"
+operator SECANT 1 "secant"
+operator COTANGENT 1 "cotangent"
+operator ARCSINE 1 "arc sine"
+operator ARCCOSINE 1 "arc consine"
+operator ARCTANGENT 1 "arc tangent"
+operator ARCCOSECANT 1 "arc cosecant"
+operator ARCSECANT 1 "arc secant"
+operator ARCCOTANGENT 1 "arc cotangent"
+
+operator SQRT 1 "square root"
 
 constant DIVISIBLE_OP \
         ::CVC4::Divisible \
@@ -105,6 +116,17 @@ typerule EXPONENTIAL ::CVC4::theory::arith::RealOperatorTypeRule
 typerule SINE ::CVC4::theory::arith::RealOperatorTypeRule
 typerule COSINE ::CVC4::theory::arith::RealOperatorTypeRule
 typerule TANGENT ::CVC4::theory::arith::RealOperatorTypeRule
+typerule COSECANT ::CVC4::theory::arith::RealOperatorTypeRule
+typerule SECANT ::CVC4::theory::arith::RealOperatorTypeRule
+typerule COTANGENT ::CVC4::theory::arith::RealOperatorTypeRule
+typerule ARCSINE ::CVC4::theory::arith::RealOperatorTypeRule
+typerule ARCCOSINE ::CVC4::theory::arith::RealOperatorTypeRule
+typerule ARCTANGENT ::CVC4::theory::arith::RealOperatorTypeRule
+typerule ARCCOSECANT ::CVC4::theory::arith::RealOperatorTypeRule
+typerule ARCSECANT ::CVC4::theory::arith::RealOperatorTypeRule
+typerule ARCCOTANGENT ::CVC4::theory::arith::RealOperatorTypeRule
+
+typerule SQRT ::CVC4::theory::arith::RealOperatorTypeRule
 
 nullaryoperator PI "pi"
 

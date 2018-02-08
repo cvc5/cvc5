@@ -302,7 +302,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         debugExtendedRewrite( orig_n, n, "shift-sort-arith" );
       }
     }
-    else if( k == BITVECTOR_PLUS )
+    else if( k == BITVECTOR_PLUS || k == BITVECTOR_MULT )
     {
       std::vector< Node > rchildren;
       bool rchildrenChanged = false;
@@ -320,11 +320,11 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
       if( rchildrenChanged )
       {
-        new_ret = nm->mkNode( BITVECTOR_PLUS, rchildren );
+        new_ret = nm->mkNode( k, rchildren );
         debugExtendedRewrite( ret, new_ret, "PLUS-not-child" );
         new_ret = extendedRewrite( new_ret );
       }
-      else
+      else if( k == BITVECTOR_PLUS )
       {
         if( bitvectorDisjoint( ret[0], ret[1] ) )
         {
