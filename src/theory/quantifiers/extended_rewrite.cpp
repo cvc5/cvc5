@@ -205,20 +205,41 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
     else if( k == BITVECTOR_AND || k == BITVECTOR_OR )
     {
-      for( unsigned r=0; r<2; r++ )
+      bool isAnd = ( k == BITVECTOR_AND );
+      std::vector< Node > children;
+      unsigned size=ret.getNumChildren();
+      for( unsigned i=0; i<size; i++ )
       {
-        if( bitVectorSubsume( ret[r], ret[1-r] ) )
+        Node cmpi = isAnd ? ret[i] : bv::utils::mkNot( ret[i] );
+        bool success = true;
+        for( unsigned j=0; j<size; j++ )
         {
-          new_ret = k == BITVECTOR_AND ? ret[1-r] : ret[r];
-          debugExtendedRewrite( ret, new_ret, "AND/OR-subsume" );
-          break;
+          if( i!=j )
+          {
+            bool cond = isAnd ? bitVectorSubsume( ret[i], ret[j] ) : bitVectorSubsume( ret[j], ret[i] );
+            if( cond )
+            {
+              success = false;
+            }
+            Node cmpj = isAnd ? ret[i] : bv::utils::mkNot( ret[i] );
+            if( bitvectorDisjoint( cmpi, cmpj ) )
+            {
+              unsigned size = bv::utils::getSize(ret);
+              new_ret = isAnd ? bv::utils::mkZero(size) : bv::utils::mkOnes(size);
+              debugExtendedRewrite( ret, new_ret, "AND/OR-disjoint" );
+            }
+          }
+        }
+        if( success )
+        {
+          children.push_back(ret[i]);
         }
       }
-      if( k == BITVECTOR_AND && bitvectorDisjoint( ret[0], ret[1] ) )
+      Assert( !children.empty() );
+      if( children.size()<size )
       {
-        unsigned size = bv::utils::getSize(ret[0]);
-        new_ret = bv::utils::mkZero(size);
-        debugExtendedRewrite( ret, new_ret, "AND-disjoint" );
+        new_ret = children.size()==1 ? children[0] : nm->mkNode( k, children );
+        debugExtendedRewrite( ret, new_ret, "AND/OR subsume" );
       }
     }
     else if( k == BITVECTOR_ULT )
@@ -326,7 +347,24 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
       else if( k == BITVECTOR_PLUS )
       {
-        if( bitvectorDisjoint( ret[0], ret[1] ) )
+        bool success = true;
+        unsigned size=ret.getNumChildren();
+        for( unsigned i=0; i<size; i++ )
+        {
+          for( unsigned j=(i+1); j<size; j++ )
+          {
+            if( !bitvectorDisjoint( ret[i], ret[j] ) )
+            {
+              success = false;
+              break;
+            }
+          }
+          if( !success )
+          {
+            break;
+          }
+        }
+        if( success )
         {
           // if we prove disjointness, PLUS turns into OR
           // ( ( x ^ y ) ---> 0 ) => ( x+y ----> x V y )
@@ -340,9 +378,9 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       // miniscope
       if( ret[0].getKind()==BITVECTOR_SHL )
       {
-        //new_ret = nm->mkNode( BITVECTOR_SHL, nm->mkNode( BITVECTOR_NEG, ret[0][0] ), ret[0][1] );
-        //debugExtendedRewrite( ret, new_ret, "NEG-SHL-miniscope" );
-        //new_ret = extendedRewrite( new_ret );
+        new_ret = nm->mkNode( BITVECTOR_SHL, nm->mkNode( BITVECTOR_NEG, ret[0][0] ), ret[0][1] );
+        debugExtendedRewrite( ret, new_ret, "NEG-SHL-miniscope" );
+        new_ret = extendedRewrite( new_ret );
       }
       else if( ret[0].getKind()==BITVECTOR_NOT )
       {
@@ -537,7 +575,7 @@ bool ExtendedRewriter::bitvectorDisjoint( Node a, Node b )
     }
     if( x.getKind()==BITVECTOR_SHL )
     {
-      // bvshl( x1, x2 ) is disjoint from y if x2>y.
+      // bvshl( x, y ) is disjoint from z if y>z.
       if( bitVectorArithComp( x[1], y ) )
       {
         return true;
