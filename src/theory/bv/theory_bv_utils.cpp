@@ -27,15 +27,6 @@ namespace utils {
 
 /* ------------------------------------------------------------------------- */
 
-uint32_t pow2(uint32_t n)
-{
-  Assert(n < 32);
-  uint32_t one = 1;
-  return one << n;
-}
-
-/* ------------------------------------------------------------------------- */
-
 BitVector mkBitVectorOnes(unsigned size)
 {
   Assert(size > 0);

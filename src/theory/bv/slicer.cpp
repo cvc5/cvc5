@@ -2,9 +2,9 @@
 /*! \file slicer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Paul Meng
+ **   Liana Hadarean, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -39,15 +39,15 @@ Base::Base(uint32_t size)
   Assert (d_size > 0); 
 }
 
-  
-void Base::sliceAt(Index index) {
+void Base::sliceAt(Index index)
+{
   Index vector_index = index / 32;
   if (vector_index == d_repr.size())
     return;
-  
+
   Index int_index = index % 32;
-  uint32_t bit_mask = utils::pow2(int_index); 
-  d_repr[vector_index] = d_repr[vector_index] | bit_mask; 
+  uint32_t bit_mask = 1u << int_index;
+  d_repr[vector_index] = d_repr[vector_index] | bit_mask;
 }
 
 void Base::sliceWith(const Base& other) {
@@ -57,17 +57,18 @@ void Base::sliceWith(const Base& other) {
   }
 }
 
-bool Base::isCutPoint (Index index) const {
+bool Base::isCutPoint (Index index) const
+{
   // there is an implicit cut point at the end and begining of the bv
   if (index == d_size || index == 0)
     return true;
-    
-  Index vector_index = index / 32;
-  Assert (vector_index < d_size); 
-  Index int_index = index % 32;
-  uint32_t bit_mask = utils::pow2(int_index); 
 
-  return (bit_mask & d_repr[vector_index]) != 0; 
+  Index vector_index = index / 32;
+  Assert (vector_index < d_size);
+  Index int_index = index % 32;
+  uint32_t bit_mask = 1u << int_index;
+
+  return (bit_mask & d_repr[vector_index]) != 0;
 }
 
 void Base::diffCutPoints(const Base& other, Base& res) const {

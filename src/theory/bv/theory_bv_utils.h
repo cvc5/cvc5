@@ -38,9 +38,6 @@ namespace utils {
 typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
 typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
-/* Compute 2^n. */
-uint32_t pow2(uint32_t n);
-
 /* Compute the greatest common divisor for two objects of Type T.  */
 template <class T>
 T gcd(T a, T b)
