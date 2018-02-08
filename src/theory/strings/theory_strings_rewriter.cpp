@@ -1817,114 +1817,118 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
 
 Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   Assert(node.getKind() == kind::STRING_STRIDOF);
-  NodeManager * nm = NodeManager::currentNM();
-  
-  std::vector< Node > children0;
-  getConcat( node[0], children0 );
-  if( children0[0].isConst() && node[1].isConst() && node[2].isConst() )
+  NodeManager* nm = NodeManager::currentNM();
+
+  std::vector<Node> children0;
+  getConcat(node[0], children0);
+  if (children0[0].isConst() && node[1].isConst() && node[2].isConst())
   {
     CVC4::String t = node[1].getConst<String>();
-    if( t.size()==0 )
+    if (t.size() == 0)
     {
-      Node negone = nm->mkConst(Rational(-1) );
+      Node negone = nm->mkConst(Rational(-1));
       return returnRewrite(node, negone, "idof-empty");
     }
     CVC4::Rational RMAXINT(LONG_MAX);
-    if( node[2].getConst<Rational>()>RMAXINT )
+    if (node[2].getConst<Rational>() > RMAXINT)
     {
       Assert(node[2].getConst<Rational>() <= RMAXINT, "Number exceeds LONG_MAX in string index_of");
-      Node negone = nm->mkConst(Rational(-1) );
+      Node negone = nm->mkConst(Rational(-1));
       return returnRewrite(node, negone, "idof-max");
     }
-    else if( node[2].getConst<Rational>().sgn()<0 )
+    else if (node[2].getConst<Rational>().sgn() < 0)
     {
-      Node negone = nm->mkConst(Rational(-1) );
+      Node negone = nm->mkConst(Rational(-1));
       return returnRewrite(node, negone, "idof-neg");
     }
-    unsigned start = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+    unsigned start =
+        node[2].getConst<Rational>().getNumerator().toUnsignedInt();
     CVC4::String s = children0[0].getConst<String>();
-    std::size_t ret = s.find( t, start );
-    if( ret!=std::string::npos ) {
-      Node retv = nm->mkConst( Rational(static_cast<unsigned>(ret)) );
+    std::size_t ret = s.find(t, start);
+    if (ret != std::string::npos)
+    {
+      Node retv = nm->mkConst(Rational(static_cast<unsigned>(ret)));
       return returnRewrite(node, retv, "idof-find");
     }
-    else if( children0.size()==1 )
+    else if (children0.size() == 1)
     {
-      Node negone = nm->mkConst(Rational(-1) );
+      Node negone = nm->mkConst(Rational(-1));
       return returnRewrite(node, negone, "idof-nfind");
     }
   }
-  
+
   // len(x)-z < len(y) => indexof( x, y, z ) ----> -1
-  Node len0 = nm->mkNode( kind::STRING_LENGTH, node[0] );
-  Node len1 = nm->mkNode( kind::STRING_LENGTH, node[1] );
-  Node len0m2 = nm->mkNode( kind::MINUS, len0, node[2] );
-  if( checkEntailArith( len1, len0m2, true ) )
+  Node len0 = nm->mkNode(kind::STRING_LENGTH, node[0]);
+  Node len1 = nm->mkNode(kind::STRING_LENGTH, node[1]);
+  Node len0m2 = nm->mkNode(kind::MINUS, len0, node[2]);
+  if (checkEntailArith(len1, len0m2, true))
   {
-    Node negone = nm->mkConst(Rational(-1) );
+    Node negone = nm->mkConst(Rational(-1));
     return returnRewrite(node, negone, "idof-len");
   }
-  
+
   Node fstr = node[0];
-  if( !node[2].isConst() || node[2].getConst<Rational>().sgn()!=0 )
+  if (!node[2].isConst() || node[2].getConst<Rational>().sgn() != 0)
   {
-    fstr = nm->mkNode( kind::STRING_SUBSTR,node[0], node[2], len0 );
-    fstr = Rewriter::rewrite( fstr );
-    if( fstr.isConst() )
+    fstr = nm->mkNode(kind::STRING_SUBSTR, node[0], node[2], len0);
+    fstr = Rewriter::rewrite(fstr);
+    if (fstr.isConst())
     {
       CVC4::String fs = fstr.getConst<String>();
-      if( fs.size()==0 )
+      if (fs.size() == 0)
       {
-        Node negone = nm->mkConst(Rational(-1) );
+        Node negone = nm->mkConst(Rational(-1));
         return returnRewrite(node, negone, "idof-base-len");
       }
-    }    
+    }
   }
-  
+
   Node cmp_con = nm->mkNode(kind::STRING_STRCTN, fstr, node[1]);
   Node cmp_conr = Rewriter::rewrite(cmp_con);
   if (cmp_conr.isConst())
   {
-    if( cmp_conr.getConst<bool>() )
+    if (cmp_conr.getConst<bool>())
     {
-      if( node[2].isConst() && node[2].getConst<Rational>().sgn()==0 )
+      if (node[2].isConst() && node[2].getConst<Rational>().sgn() == 0)
       {
         // pass first definite contain, we can drop
-        std::vector< Node > children1;
-        getConcat( node[1], children1 );
-        std::vector< Node > nb;
-        std::vector< Node > ne;
+        std::vector<Node> children1;
+        getConcat(node[1], children1);
+        std::vector<Node> nb;
+        std::vector<Node> ne;
         int cc = componentContains(children0, children1, nb, ne, true, 1);
         if (cc != -1 && !ne.empty())
         {
-          Node nn = mkConcat( kind::STRING_CONCAT, children0 );
-          Node ret = nm->mkNode( kind::STRING_STRIDOF, nn, node[1], node[2] );
+          Node nn = mkConcat(kind::STRING_CONCAT, children0);
+          Node ret = nm->mkNode(kind::STRING_STRIDOF, nn, node[1], node[2]);
           return returnRewrite(node, ret, "idof-def-ctn");
         }
       }
-      
+
       // these rewrites are only possible if we will not return -1
-      Node l1 = nm->mkNode( kind::STRING_LENGTH, node[1] );
+      Node l1 = nm->mkNode(kind::STRING_LENGTH, node[1]);
       Node zero = NodeManager::currentNM()->mkConst(CVC4::Rational(0));
       bool is_non_empty = checkEntailArith(l1, zero, true);
-      
-      if( is_non_empty )
+
+      if (is_non_empty)
       {
         // strip symbolic length
         Node new_len = node[2];
-        std::vector< Node > nr;
-        if( stripSymbolicLength(children0,nr,1,new_len) )
+        std::vector<Node> nr;
+        if (stripSymbolicLength(children0, nr, 1, new_len))
         {
-          Node nn = mkConcat( kind::STRING_CONCAT, children0 );
-          Node ret = nm->mkNode( kind::PLUS, nm->mkNode( kind::MINUS, node[2], new_len ),
-                                nm->mkNode( kind::STRING_STRIDOF, nn, node[1], new_len ) );
+          Node nn = mkConcat(kind::STRING_CONCAT, children0);
+          Node ret = nm->mkNode(
+              kind::PLUS,
+              nm->mkNode(kind::MINUS, node[2], new_len),
+              nm->mkNode(kind::STRING_STRIDOF, nn, node[1], new_len));
           return returnRewrite(node, ret, "idof-strip-sym-len");
         }
       }
     }
     else
     {
-      Node negone = nm->mkConst(Rational(-1) );
+      Node negone = nm->mkConst(Rational(-1));
       return returnRewrite(node, negone, "idof-nctn");
     }
   }
