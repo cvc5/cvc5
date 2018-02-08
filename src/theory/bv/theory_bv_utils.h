@@ -38,19 +38,6 @@ namespace utils {
 typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
 typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
-/* Compute the greatest common divisor for two objects of Type T.  */
-template <class T>
-T gcd(T a, T b)
-{
-  while (b != 0)
-  {
-    T t = b;
-    b = a % t;
-    a = t;
-  }
-  return a;
-}
-
 /* Create bit-vector of ones of given size. */
 BitVector mkBitVectorOnes(unsigned size);
 /* Create bit-vector representing the minimum signed value of given size. */

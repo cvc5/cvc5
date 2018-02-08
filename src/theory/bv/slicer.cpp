@@ -312,6 +312,19 @@ void UnionFind::getDecomposition(const ExtractTerm& term, Decomposition& decomp)
     getDecomposition(high_child, decomp); 
   }
 }
+
+/* Compute the greatest common divisor of two indices.  */
+static Index gcd(Index a, Index b)
+{
+  while (b != 0)
+  {
+    Index t = b;
+    b = a % t;
+    a = t;
+  }
+  return a;
+}
+
 /** 
  * May cause reslicings of the decompositions. Must not assume the decompositons
  * are the current normal form. 
@@ -348,7 +361,7 @@ void UnionFind::handleCommonSlice(const Decomposition& decomp1, const Decomposit
     Assert (overlap > 0);
     Index diff = common_size - overlap;
     Assert (diff >= 0);
-    Index granularity = utils::gcd(diff, overlap);
+    Index granularity = gcd(diff, overlap);
     // split the common part 
     for (unsigned i = 0; i < common_size; i+= granularity) {
       split(common, i); 
