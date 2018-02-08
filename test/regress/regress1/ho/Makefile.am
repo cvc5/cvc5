@@ -20,7 +20,6 @@ TESTS =	\
 	auth0068.smt2 \
 	fta0409.smt2
 
-
 EXTRA_DIST = $(TESTS) \
 	hoa0102.smt2
 

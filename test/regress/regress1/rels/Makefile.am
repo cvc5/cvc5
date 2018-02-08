@@ -20,7 +20,7 @@ TESTS =	\
 	bv1p.cvc \
 	rel_pressure_0.cvc \
 	rel_tc_5_1.cvc \
-	set-strat.cvc	
+	set-strat.cvc
 
 
 EXTRA_DIST = $(TESTS)

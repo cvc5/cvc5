@@ -51,7 +51,7 @@ TESTS =	\
 	substr001.smt2 \
 	type002.smt2 \
 	type003.smt2 \
-	username_checker_min.smt2	
+	username_checker_min.smt2
 
 
 EXTRA_DIST = $(TESTS)

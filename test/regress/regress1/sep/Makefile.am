@@ -26,7 +26,7 @@ TESTS =	\
 	sep-find2.smt2 \
 	sep-fmf-priority.smt2 \
 	sep-neg-1refine.smt2 \
-	sep-nterm-again.smt2	
+	sep-nterm-again.smt2
 
 
 EXTRA_DIST = $(TESTS)

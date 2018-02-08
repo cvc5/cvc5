@@ -53,7 +53,7 @@ TESTS =	\
 	smtlib46f14a.smt2 \
 	smtlibf957ea.smt2 \
 	stream-x2014-09-18-unsat.smt2 \
-	symmetric_unsat_7.smt2	
+	symmetric_unsat_7.smt2
 
 
 EXTRA_DIST = $(TESTS)
