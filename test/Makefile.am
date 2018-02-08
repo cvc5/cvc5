@@ -71,6 +71,7 @@ subdirs_to_check = \
 	regress/regress1/fmf \
 	regress/regress1/ho \
 	regress/regress1/lemmas \
+	regress/regress1/nl \
 	regress/regress1/rels \
 	regress/regress1/rewriterules \
 	regress/regress1/sep \
