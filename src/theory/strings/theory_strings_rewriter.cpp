@@ -1817,107 +1817,119 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
 
 Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   Assert(node.getKind() == kind::STRING_STRIDOF);
-  std::vector< Node > children;
-  getConcat( node[0], children );
-  //std::vector< Node > children1;
-  //getConcat( node[1], children1 );  TODO
-  std::size_t start = 0;
-  std::size_t val2 = 0;
-  if( node[2].isConst() ){
+  NodeManager * nm = NodeManager::currentNM();
+  
+  std::vector< Node > children0;
+  getConcat( node[0], children0 );
+  if( children0[0].isConst() && node[1].isConst() && node[2].isConst() )
+  {
+    CVC4::String t = node[1].getConst<String>();
+    if( t.size()==0 )
+    {
+      Node negone = nm->mkConst(Rational(-1) );
+      return returnRewrite(node, negone, "idof-empty");
+    }
     CVC4::Rational RMAXINT(LONG_MAX);
-    if( node[2].getConst<Rational>()>RMAXINT ){
+    if( node[2].getConst<Rational>()>RMAXINT )
+    {
       Assert(node[2].getConst<Rational>() <= RMAXINT, "Number exceeds LONG_MAX in string index_of");
-      return NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
-    }else if( node[2].getConst<Rational>().sgn()==-1 ){
-      //constant negative
-      return NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
-    }else{
-      val2 = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
-      start = val2;
+      Node negone = nm->mkConst(Rational(-1) );
+      return returnRewrite(node, negone, "idof-max");
+    }
+    else if( node[2].getConst<Rational>().sgn()<0 )
+    {
+      Node negone = nm->mkConst(Rational(-1) );
+      return returnRewrite(node, negone, "idof-neg");
+    }
+    unsigned start = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+    CVC4::String s = children0[0].getConst<String>();
+    std::size_t ret = s.find( t, start );
+    if( ret!=std::string::npos ) {
+      Node retv = nm->mkConst( Rational(static_cast<unsigned>(ret)) );
+      return returnRewrite(node, retv, "idof-find");
+    }
+    else if( children0.size()==1 )
+    {
+      Node negone = nm->mkConst(Rational(-1) );
+      return returnRewrite(node, negone, "idof-nfind");
     }
   }
-  bool prefixNoOverlap = false;
-  CVC4::String t;
-  if( node[1].isConst() ){
-    t = node[1].getConst<String>();
+  
+  // len(x)-z < len(y) => indexof( x, y, z ) ----> -1
+  Node len0 = nm->mkNode( kind::STRING_LENGTH, node[0] );
+  Node len1 = nm->mkNode( kind::STRING_LENGTH, node[1] );
+  Node len0m2 = nm->mkNode( kind::MINUS, len0, node[2] );
+  if( checkEntailArith( len1, len0m2, true ) )
+  {
+    Node negone = nm->mkConst(Rational(-1) );
+    return returnRewrite(node, negone, "idof-len");
   }
-  //unsigned ch1_index = 0;
-  for( unsigned i=0; i<children.size(); i++ ){
-    bool do_splice = false;
-    if( children[i].isConst() ){
-      CVC4::String s = children[i].getConst<String>();
-      if( node[1].isConst() ){
-        if( i==0 ){
-          std::size_t ret = s.find( t, start );
-          if( ret!=std::string::npos ) {
-            //exact if start value was constant
-            if( node[2].isConst() ){
-              return NodeManager::currentNM()->mkConst( ::CVC4::Rational((unsigned) ret) );
-            }
-          }else{
-            //exact if we scanned the entire string
-            if( node[0].isConst() ){
-              return NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
-            }else{
-              prefixNoOverlap = (s.overlap(t)==0);
-              Trace("strings-rewrite-debug") << "Prefix no overlap : " << s << " " << t << " " << prefixNoOverlap << std::endl;
-            }
-          }
-        }else if( !node[2].isConst() ){
-          break;
-        }else{
-          std::size_t ret = s.find(t, start);
-          //remove remaining children after finding the string
-          if( ret!=std::string::npos ){
-            Assert( ret+t.size()<=s.size() );
-            children[i] = NodeManager::currentNM()->mkConst( ::CVC4::String( s.substr(0,ret+t.size()) ) );
-            do_splice = true;
-          }else{
-            //if no overlap on last child, can remove
-            if( t.overlap( s )==0 && i==children.size()-1 ){
-              std::vector< Node > spl;
-              spl.insert( spl.end(), children.begin(), children.begin()+i );
-              return NodeManager::currentNM()->mkNode( kind::STRING_STRIDOF, mkConcat( kind::STRING_CONCAT, spl ), node[1], node[2] );
-            }
-          }
+  
+  Node fstr = node[0];
+  if( !node[2].isConst() || node[2].getConst<Rational>().sgn()!=0 )
+  {
+    fstr = nm->mkNode( kind::STRING_SUBSTR,node[0], node[2], len0 );
+    fstr = Rewriter::rewrite( fstr );
+    if( fstr.isConst() )
+    {
+      CVC4::String fs = fstr.getConst<String>();
+      if( fs.size()==0 )
+      {
+        Node negone = nm->mkConst(Rational(-1) );
+        return returnRewrite(node, negone, "idof-base-len");
+      }
+    }    
+  }
+  
+  Node cmp_con = nm->mkNode(kind::STRING_STRCTN, fstr, node[1]);
+  Node cmp_conr = Rewriter::rewrite(cmp_con);
+  if (cmp_conr.isConst())
+  {
+    if( cmp_conr.getConst<bool>() )
+    {
+      if( node[2].isConst() && node[2].getConst<Rational>().sgn()==0 )
+      {
+        // pass first definite contain, we can drop
+        std::vector< Node > children1;
+        getConcat( node[1], children1 );
+        std::vector< Node > nb;
+        std::vector< Node > ne;
+        int cc = componentContains(children0, children1, nb, ne, true, 1);
+        if (cc != -1 && !ne.empty())
+        {
+          Node nn = mkConcat( kind::STRING_CONCAT, children0 );
+          Node ret = nm->mkNode( kind::STRING_STRIDOF, nn, node[1], node[2] );
+          return returnRewrite(node, ret, "idof-def-ctn");
         }
       }
-      //decrement the start index
-      if( start>0 ){
-        if( s.size()>start ){
-          start = 0;
-        }else{
-          start = start - s.size();
+      
+      // these rewrites are only possible if we will not return -1
+      Node l1 = nm->mkNode( kind::STRING_LENGTH, node[1] );
+      Node zero = NodeManager::currentNM()->mkConst(CVC4::Rational(0));
+      bool is_non_empty = checkEntailArith(l1, zero, true);
+      
+      if( is_non_empty )
+      {
+        // strip symbolic length
+        Node new_len = node[2];
+        std::vector< Node > nr;
+        if( stripSymbolicLength(children0,nr,1,new_len) )
+        {
+          Node nn = mkConcat( kind::STRING_CONCAT, children0 );
+          Node ret = nm->mkNode( kind::PLUS, nm->mkNode( kind::MINUS, node[2], new_len ),
+                                nm->mkNode( kind::STRING_STRIDOF, nn, node[1], new_len ) );
+          return returnRewrite(node, ret, "idof-strip-sym-len");
         }
-      }
-    }else if( !node[2].isConst() ){
-      break;
-    }else{
-      if( children[i]==node[1] && start==0 ){
-        //can remove beyond this
-        do_splice = true;
       }
     }
-    if( do_splice ){
-      std::vector< Node > spl;
-      //since we definitely will find the string, we can safely add the length of the constant non-overlapping prefix
-      if( prefixNoOverlap ){
-        Node pl = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, children[0] ) );
-        Assert( pl.isConst() );
-        Assert( node[2].isConst() );
-        int new_start = val2 - pl.getConst<Rational>().getNumerator().toUnsignedInt();
-        if( new_start<0 ){
-          new_start = 0;
-        }
-        spl.insert( spl.end(), children.begin()+1, children.begin()+i+1 );
-        return NodeManager::currentNM()->mkNode( kind::PLUS, pl,
-                 NodeManager::currentNM()->mkNode( kind::STRING_STRIDOF, mkConcat( kind::STRING_CONCAT, spl ), node[1], NodeManager::currentNM()->mkConst( Rational(new_start) ) ) );
-      }else{
-        spl.insert( spl.end(), children.begin(), children.begin()+i+1 );
-        return NodeManager::currentNM()->mkNode( kind::STRING_STRIDOF, mkConcat( kind::STRING_CONCAT, spl ), node[1], node[2] );
-      }
+    else
+    {
+      Node negone = nm->mkConst(Rational(-1) );
+      return returnRewrite(node, negone, "idof-nctn");
     }
   }
+
+  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
 }
 
