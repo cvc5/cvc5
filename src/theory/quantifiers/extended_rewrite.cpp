@@ -223,25 +223,33 @@ Node ExtendedRewriter::extendedRewrite(Node n)
               drops.insert(i);
               success = false;
             }
-            Node cmpj = isAnd ? ret[i] : nm->mkNode( BITVECTOR_NOT, ret[i] );
-            if( bitvectorDisjoint( cmpi, cmpj ) )
+            Node cmpj = isAnd ? ret[j] : nm->mkNode( BITVECTOR_NOT, ret[j] );
+            if( i<j && bitvectorDisjoint( cmpi, cmpj ) )
             {
               unsigned size = bv::utils::getSize(ret);
               new_ret = isAnd ? bv::utils::mkZero(size) : bv::utils::mkOnes(size);
               debugExtendedRewrite( ret, new_ret, "AND/OR-disjoint" );
+              break;
             }
           }
+        }
+        if( !new_ret.isNull() )
+        {
+          break;
         }
         if( success )
         {
           children.push_back(ret[i]);
         }
       }
-      Assert( !children.empty() );
-      if( children.size()<size )
+      if( new_ret.isNull() )
       {
-        new_ret = children.size()==1 ? children[0] : nm->mkNode( k, children );
-        debugExtendedRewrite( ret, new_ret, "AND/OR subsume" );
+        Assert( !children.empty() );
+        if( children.size()<size )
+        {
+          new_ret = children.size()==1 ? children[0] : nm->mkNode( k, children );
+          debugExtendedRewrite( ret, new_ret, "AND/OR subsume" );
+        }
       }
     }
     else if( k == BITVECTOR_ULT )
