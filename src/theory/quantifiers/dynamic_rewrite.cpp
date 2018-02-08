@@ -31,21 +31,34 @@ d_equalityEngine(qe->getUserContext(), "DynamicRewriter::" + name,true){
 
 bool DynamicRewriter::addRewrite( Node a, Node b )
 {
+  Trace("dyn-rewrite") << "Dyn-rewriter : " << a << " == " << b << std::endl;
   if( a==b )
   {
+    Trace("dyn-rewrite") << "...fail, equal." << std::endl;
     return false;
   }
-  Assert( a==Rewriter::rewrite(a));
-  Assert( b==Rewriter::rewrite(b));
-  Node ar = toInternal( a );
-  Node br = toInternal( b );
+  
+  // add to the equality engine
+  Node ai = toInternal( a );
+  Node bi = toInternal( b );
+  d_equalityEngine.addTerm(ai);
+  d_equalityEngine.addTerm(bi);
+  
+  // may already be equal by congruence
+  Node air = d_equalityEngine.getRepresentative(ai);
+  Node bir = d_equalityEngine.getRepresentative(bi);
+  if( air==bir )
+  {
+    Trace("dyn-rewrite") << "...fail, congruent." << std::endl;
+    return false;
+  }
   
   
   
   
   
-  
-  
+  Node eq = ai.eqNode(bi);
+  d_equalityEngine.assertEquality(eq,true,eq);
   return true;
 }
 
@@ -56,27 +69,72 @@ Node DynamicRewriter::toInternal( Node a )
   {
     return it->second; 
   }
-  std::vector< Node > children;
-  if( a.hasOperator() )
+  Node ret = a;
+  
+  if( !a.isVar() )
   {
-    Node op = a.getOperator();
-    if( a.getKind()!=APPLY_UF )
+    std::vector< Node > children;
+    if( a.hasOperator() )
     {
-      std::map< Node, Node >::iterator ito = d_term_to_internal.find( op );
-      if( ito!=d_term_to_internal.end() )
+      Node op = a.getOperator();
+      if( a.getKind()!=APPLY_UF )
       {
-        op = ito->second;
+        op = d_ois_trie[op].getSymbol( a );
+      }
+      children.push_back( op );
+    }
+    for( const Node& ca : a )
+    {
+      Node cai = toInternal( ca );
+      children.push_back( cai );
+    }
+    if( !children.empty() )
+    {
+      if( children.size()==1 )
+      {
+        ret = children[0];
       }
       else
       {
-        
+        ret = NodeManager::currentNM()->mkNode( APPLY_UF, children );
       }
     }
   }
+  d_term_to_internal[a] = ret;
+  return ret;
+}
+
+Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
+{
+  std::vector< TypeNode > ctypes;
+  for( const Node& cn : n )
+  {
+    ctypes.push_back( cn.getType() );
+  }
+  ctypes.push_back( n.getType() );
   
-  
-  
-  return a;
+  OpInternalSymTrie * curr = this;
+  for( unsigned i=0,size=ctypes.size(); i<size; i++ )
+  {
+    curr = &( curr->d_children[ctypes[i]] );
+  }
+  if( !curr->d_sym.isNull() )
+  {
+    return curr->d_sym;
+  }
+  // make UF operator
+  TypeNode utype;
+  if( ctypes.size()==1 )
+  {
+    utype = ctypes[0];
+  }
+  else
+  {
+    utype = NodeManager::currentNM()->mkFunctionType(ctypes);
+  }
+  Node f = NodeManager::currentNM()->mkSkolem("uf",utype,"internal op for dynamic_rewriter");
+  curr->d_sym = f;
+  return f;
 }
   
 } /* CVC4::theory::quantifiers namespace */

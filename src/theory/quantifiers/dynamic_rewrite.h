@@ -37,6 +37,15 @@ public:
   
   bool addRewrite( Node a, Node b );
 private:
+  class OpInternalSymTrie
+  {
+  public:
+    Node d_sym;
+    std::map<TypeNode,OpInternalSymTrie> d_children;
+    Node getSymbol(Node n);
+  };
+  std::map< Node, OpInternalSymTrie > d_ois_trie;
+  
   Node toInternal( Node a );
   std::map< Node, Node > d_term_to_internal;
   QuantifiersEngine* d_qe;
