@@ -16,7 +16,7 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = \
+TESTS =	\
 	bv1p.cvc \
 	rel_pressure_0.cvc \
 	rel_tc_5_1.cvc \

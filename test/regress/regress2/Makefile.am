@@ -20,7 +20,8 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	bug136.smt \
+TESTS =	\
+	bug136.smt \
 	bug148.smt \
 	bug394.smt2 \
 	DTP_k2_n35_c175_s15.smt2 \

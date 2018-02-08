@@ -16,7 +16,7 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = \
+TESTS =	\
 	cmu-5042-0707-2.smt2 \
 	artemis-0512-nonterm.smt2 \
 	bug615.smt2 \

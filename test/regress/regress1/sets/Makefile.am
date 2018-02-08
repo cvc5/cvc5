@@ -16,7 +16,7 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = \
+TESTS =	\
 	sets-disequal.smt2 \
 	card-vc6-minimized.smt2 \
 	card-4.smt2 \

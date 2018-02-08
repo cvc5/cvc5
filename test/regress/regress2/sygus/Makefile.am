@@ -16,7 +16,7 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = \
+TESTS =	\
 	array_sum_dd.sy \
 	icfp_easy_mt_ite.sy \
 	inv_gen_n_c11.sy \

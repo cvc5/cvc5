@@ -16,7 +16,7 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = \
+TESTS =	\
 	abz5_1400.smt \
 	pursuit-safety-11.smt \
 	pursuit-safety-12.smt \

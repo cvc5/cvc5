@@ -16,7 +16,7 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = \
+TESTS =	\
 	loop-1220.smt2 \
 	sep-simp-unc.smt2 \
 	split-find-unsat.smt2 \

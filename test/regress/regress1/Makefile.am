@@ -20,7 +20,8 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	bug425.cvc \
+TESTS =	\
+	bug425.cvc \
 	bug519.smt2 \
 	bug521.smt2 \
 	bug674.smt2 \

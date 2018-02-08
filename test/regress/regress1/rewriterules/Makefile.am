@@ -21,7 +21,7 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = \
+TESTS =	\
 	reachability_back_to_the_future.smt2 \
 	read5.smt2 \
 	length_gen.smt2 \

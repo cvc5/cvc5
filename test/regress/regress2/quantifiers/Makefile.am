@@ -16,7 +16,7 @@ endif
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = \
+TESTS =	\
 	ForElimination-scala-9.smt2 \
 	javafe.ast.ArrayInit.35.smt2 \
 	javafe.ast.StandardPrettyPrint.319.smt2 \
