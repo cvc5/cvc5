@@ -63,7 +63,7 @@ unsigned getSize(TNode node)
 
 const bool getBit(TNode node, unsigned i)
 {
-  Assert(i < utils::getSize(node) && node.getKind() == kind::CONST_BITVECTOR);
+  Assert(i < getSize(node) && node.getKind() == kind::CONST_BITVECTOR);
   Integer bit = node.getConst<BitVector>().extract(i, i).getValue();
   return (bit == 1u);
 }
@@ -90,7 +90,7 @@ unsigned getSignExtendAmount(TNode node)
 bool isZero(TNode node)
 {
   if (!node.isConst()) return false;
-  return node == utils::mkConst(utils::getSize(node), 0u);
+  return node == mkZero(getSize(node));
 }
 
 unsigned isPow2Const(TNode node, bool& isNeg)
@@ -136,35 +136,28 @@ bool isBvConstTerm(TNode node)
 
 bool isBVPredicate(TNode node)
 {
-  if (node.getKind() == kind::EQUAL || node.getKind() == kind::BITVECTOR_ULT
-      || node.getKind() == kind::BITVECTOR_SLT
-      || node.getKind() == kind::BITVECTOR_UGT
-      || node.getKind() == kind::BITVECTOR_UGE
-      || node.getKind() == kind::BITVECTOR_SGT
-      || node.getKind() == kind::BITVECTOR_SGE
-      || node.getKind() == kind::BITVECTOR_ULE
-      || node.getKind() == kind::BITVECTOR_SLE
-      || node.getKind() == kind::BITVECTOR_REDOR
-      || node.getKind() == kind::BITVECTOR_REDAND
-      || (node.getKind() == kind::NOT
-          && (node[0].getKind() == kind::EQUAL
-              || node[0].getKind() == kind::BITVECTOR_ULT
-              || node[0].getKind() == kind::BITVECTOR_SLT
-              || node[0].getKind() == kind::BITVECTOR_UGT
-              || node[0].getKind() == kind::BITVECTOR_UGE
-              || node[0].getKind() == kind::BITVECTOR_SGT
-              || node[0].getKind() == kind::BITVECTOR_SGE
-              || node[0].getKind() == kind::BITVECTOR_ULE
-              || node[0].getKind() == kind::BITVECTOR_SLE
-              || node[0].getKind() == kind::BITVECTOR_REDOR
-              || node[0].getKind() == kind::BITVECTOR_REDAND)))
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  return node.getKind() == kind::EQUAL || node.getKind() == kind::BITVECTOR_ULT
+         || node.getKind() == kind::BITVECTOR_SLT
+         || node.getKind() == kind::BITVECTOR_UGT
+         || node.getKind() == kind::BITVECTOR_UGE
+         || node.getKind() == kind::BITVECTOR_SGT
+         || node.getKind() == kind::BITVECTOR_SGE
+         || node.getKind() == kind::BITVECTOR_ULE
+         || node.getKind() == kind::BITVECTOR_SLE
+         || node.getKind() == kind::BITVECTOR_REDOR
+         || node.getKind() == kind::BITVECTOR_REDAND
+         || (node.getKind() == kind::NOT
+             && (node[0].getKind() == kind::EQUAL
+                 || node[0].getKind() == kind::BITVECTOR_ULT
+                 || node[0].getKind() == kind::BITVECTOR_SLT
+                 || node[0].getKind() == kind::BITVECTOR_UGT
+                 || node[0].getKind() == kind::BITVECTOR_UGE
+                 || node[0].getKind() == kind::BITVECTOR_SGT
+                 || node[0].getKind() == kind::BITVECTOR_SGE
+                 || node[0].getKind() == kind::BITVECTOR_ULE
+                 || node[0].getKind() == kind::BITVECTOR_SLE
+                 || node[0].getKind() == kind::BITVECTOR_REDOR
+                 || node[0].getKind() == kind::BITVECTOR_REDAND));
 }
 
 bool isCoreTerm(TNode term, TNodeBoolMap& cache)
@@ -394,18 +387,16 @@ Node mkSignExtend(TNode node, unsigned amount)
 
 Node mkExtract(TNode node, unsigned high, unsigned low)
 {
-  Node extractOp = NodeManager::currentNM()->mkConst<BitVectorExtract>(
-      BitVectorExtract(high, low));
-  std::vector<Node> children;
-  children.push_back(node);
-  return NodeManager::currentNM()->mkNode(extractOp, children);
+  NodeManager *nm = NodeManager::currentNM();
+  Node extractOp = nm->mkConst<BitVectorExtract>(BitVectorExtract(high, low));
+  return nm->mkNode(extractOp, node);
 }
 
 Node mkBitOf(TNode node, unsigned index)
 {
-  Node bitOfOp =
-      NodeManager::currentNM()->mkConst<BitVectorBitOf>(BitVectorBitOf(index));
-  return NodeManager::currentNM()->mkNode(bitOfOp, node);
+  NodeManager *nm = NodeManager::currentNM();
+  Node bitOfOp = nm->mkConst<BitVectorBitOf>(BitVectorBitOf(index));
+  return nm->mkNode(bitOfOp, node);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -444,13 +435,13 @@ Node mkConcat(TNode node, unsigned repeat)
 Node mkInc(TNode t)
 {
   return NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_PLUS, t, bv::utils::mkOne(bv::utils::getSize(t)));
+      kind::BITVECTOR_PLUS, t, mkOne(getSize(t)));
 }
 
 Node mkDec(TNode t)
 {
   return NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_SUB, t, bv::utils::mkOne(bv::utils::getSize(t)));
+      kind::BITVECTOR_SUB, t, mkOne(getSize(t)));
 }
 
 /* ------------------------------------------------------------------------- */
