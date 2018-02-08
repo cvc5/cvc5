@@ -23,7 +23,6 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 TESTS =	\
 	length_trick.smt2 \
-	length_gen_020.smt2 \
 	datatypes.smt2 \
 	datatypes_sat.smt2 \
 	relation.smt2 \

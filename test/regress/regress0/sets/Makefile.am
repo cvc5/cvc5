@@ -19,10 +19,8 @@ MAKEFLAGS = -k
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	jan24/insert_invariant_37_2.smt2 \
 	jan24/deepmeas0.hs.fqout.cvc4.47.smt2 \
 	jan24/deepmeas0.hs.fqout.small.smt2 \
-	jan24/remove_check_free_31_6.smt2 \
 	jan27/deepmeas0.hs.fqout.cvc4.41.smt2 \
 	jan27/ListConcat.hs.fqout.cvc4.177.smt2 \
 	jan27/ListConcat.hs.fqout.177minimized.smt2 \
@@ -47,7 +45,6 @@ TESTS =	\
 	eqtest.smt2 \
 	insert.smt2 \
 	fuzz14418.smt2 \
-	fuzz15201.smt2 \
 	fuzz31811.smt2 \
 	rec_copy_loop_check_heap_access_43_4.smt2 \
 	sets-equal.smt2 \
@@ -68,7 +65,6 @@ TESTS =	\
 	card.smt2 \
 	card-2.smt2 \
 	card-3.smt2 \
-	card-4.smt2 \
 	card-5.smt2 \
 	card-6.smt2 \
 	card-7.smt2 \
@@ -100,7 +96,7 @@ EXTRA_DIST = $(TESTS)
 
 # disabled tests, yet distribute
 EXTRA_DIST += \
-	jan28/TalkingAboutSets.hs.fqout.cvc4.3577.smt2 \
+	jan28/REM \
 	setofsets-disequal.smt2
 
 # synonyms for "check"

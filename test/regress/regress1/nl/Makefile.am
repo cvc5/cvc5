@@ -17,7 +17,6 @@ endif
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS = \
-	siegel-nl-bases.smt2 \
 	mirko-050417.smt2 \
 	arrowsmith-050317.smt2 \
 	bug698.smt2 \

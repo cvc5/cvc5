@@ -55,8 +55,7 @@ EXTRA_DIST = $(TESTS) \
 	wchains010ue.smt.expect \
 	just_sat.expect \
 	quant-ex1.smt2.expect \
-	just_unsat.expect \
-	quant-symmetric_unsat_7.smt2.expect
+	just_unsat.expect
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

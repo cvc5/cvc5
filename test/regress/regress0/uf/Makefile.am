@@ -40,7 +40,6 @@ TESTS =	\
 	ccredesign-fuzz.smt \
 	dead_dnd002.smt \
 	iso_brn001.smt \
-	gensys_brn001.smt2 \
 	simple.01.cvc \
 	simple.02.cvc \
 	simple.03.cvc \

@@ -17,8 +17,6 @@ endif
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	ForElimination-scala-9.smt2 \
-	nunchaku2309663.nun.min.smt2 \
 	agree466.smt2	\
 	ALG008-1.smt2	\
 	bug0909.smt2	\

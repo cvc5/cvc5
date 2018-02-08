@@ -82,7 +82,7 @@ TESTS =	\
 	dt-match-pat-param-2.6.smt2 \
 	tuple-no-clash.cvc \
 	jsat-2.6.smt2 \
-	acyclicity-sr-ground096.smt2 \
+	REM\
 	model-subterms-min.smt2 \
 	issue1433.smt2 \
         tuples-empty.smt2 \

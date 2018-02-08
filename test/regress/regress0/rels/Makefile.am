@@ -61,7 +61,6 @@ TESTS =	\
   rel_tc_9_1.cvc \
   rel_tp_join_eq_0.cvc \
   rel_transpose_4.cvc \
-  bv1p.cvc \
   join-eq-structure.cvc \
   rel_complex_0.cvc \
   rel_join_1_1.cvc \
@@ -94,12 +93,9 @@ TESTS =	\
   bv1-unit.cvc \
   rel_complex_4.cvc \
   rel_join_2.cvc \
-  rel_pressure_0.cvc \
   rel_symbolic_3_1.cvc \
-  rel_tc_5_1.cvc \
   rel_tp_join_1.cvc \
   rel_transpose_0.cvc \
-  set-strat.cvc \
   rel_tc_8.cvc \
   atom_univ2.cvc \
   rels-sharing-simp.cvc \

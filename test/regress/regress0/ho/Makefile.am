@@ -18,7 +18,7 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = \	
+TESTS = \
   cong.smt2 \
   ext-ho-nested-lambda-model.smt2 \
   declare-fun-variants.smt2 \
@@ -35,8 +35,6 @@ TESTS = \
   ho-exponential-model.smt2 \
   ext-sat-partial-eval.smt2 \
   ho-std-fmf.smt2 \
-  fta0409.smt2 \
-  auth0068.smt2 \
   modulo-func-equality.smt2 \
   ho-matching-enum.smt2 \
   ho-matching-enum-2.smt2 \
@@ -46,7 +44,7 @@ TESTS = \
   
 EXTRA_DIST = $(TESTS)
 
-# hoa0102.smt2
+# REM
 
 
 #if CVC4_BUILD_PROFILE_COMPETITION
