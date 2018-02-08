@@ -32,6 +32,7 @@ using namespace CVC4::theory::bv::utils;
 bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   Debug("bv-abstraction") << "AbstractionModule::applyAbstraction\n";
 
+  NodeManager *nm = NodeManager::currentNM();
   TimerStat::CodeTimer abstractionTimer(d_statistics.d_abstractionTime);
 
   for (unsigned i = 0; i < assertions.size(); ++i) {
@@ -60,7 +61,7 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, st
           new_children.push_back(assertions[i][j]);
         }
       }
-      new_assertions.push_back(utils::mkNode(kind::OR, new_children));
+      new_assertions.push_back(nm->mkNode(kind::OR, new_children));
     } else {
       // assertions that are not changed
       new_assertions.push_back(assertions[i]);
@@ -147,6 +148,7 @@ Node AbstractionModule::reverseAbstraction(Node assertion, NodeNodeMap& seen) {
 }
 
 void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions) {
+  NodeManager *nm = NodeManager::currentNM();
   for (unsigned i = 0; i < assertions.size(); ++i) {
     TNode assertion = assertions[i];
     if (assertion.getKind() != kind::OR)
@@ -204,7 +206,7 @@ void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions) {
       }
 
 
-      Node skolem_func_eq1 = utils::mkNode(kind::EQUAL, (Node)skolem_func, utils::mkConst(1, 1u));
+      Node skolem_func_eq1 = nm->mkNode(kind::EQUAL, (Node)skolem_func, utils::mkConst(1, 1u));
 
       // enumerate arguments assignments
       std::vector<Node> or_assignments;
@@ -212,13 +214,13 @@ void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions) {
         NodeBuilder<> arg_assignment(kind::AND);
         ArgsVec& args =  *it;
         for (unsigned k = 0; k < args.size(); ++k) {
-          Node eq = utils::mkNode(kind::EQUAL, args[k], skolem_args[k]);
+          Node eq = nm->mkNode(kind::EQUAL, args[k], skolem_args[k]);
           arg_assignment << eq;
         }
         or_assignments.push_back(arg_assignment);
       }
 
-      Node new_func_def = utils::mkNode(kind::AND, skolem_func_eq1, utils::mkNode(kind::OR, or_assignments));
+      Node new_func_def = nm->mkNode(kind::AND, skolem_func_eq1, nm->mkNode(kind::OR, or_assignments));
       assertion_builder << new_func_def;
     }
     Node new_assertion = assertion_builder;
@@ -245,6 +247,7 @@ Node AbstractionModule::computeSignature(TNode node) {
 
 Node AbstractionModule::getSignatureSkolem(TNode node) {
   Assert (node.getKind() == kind::VARIABLE);
+  NodeManager* nm = NodeManager::currentNM();
   unsigned bitwidth = utils::getSize(node);
   if (d_signatureSkolems.find(bitwidth) == d_signatureSkolems.end()) {
     d_signatureSkolems[bitwidth] = vector<Node>();
@@ -257,7 +260,6 @@ Node AbstractionModule::getSignatureSkolem(TNode node) {
   if (skolems.size() == index) {
     ostringstream os;
     os << "sig_" <<bitwidth <<"_" << index;
-    NodeManager* nm = NodeManager::currentNM();
     skolems.push_back(nm->mkSkolem(os.str(), nm->mkBitVectorType(bitwidth), "skolem for computing signatures"));
   }
   ++(d_signatureIndices[bitwidth]);
@@ -451,8 +453,8 @@ void AbstractionModule::finalizeSignatures() {
     collectArgumentTypes(signature, arg_types, seen);
     Assert (signature.getType().isBoolean());
     // make function return a bitvector of size 1
-    //Node bv_function = utils::mkNode(kind::ITE, signature, utils::mkConst(1, 1u), utils::mkConst(1, 0u));
-    TypeNode range = NodeManager::currentNM()->mkBitVectorType(1);
+    //Node bv_function = nm->mkNode(kind::ITE, signature, utils::mkConst(1, 1u), utils::mkConst(1, 0u));
+    TypeNode range = nm->mkBitVectorType(1);
 
     TypeNode abs_type = nm->mkFunctionType(arg_types, range);
     Node abs_func = nm->mkSkolem("abs_$$", abs_type, "abstraction function for bv theory");
@@ -513,6 +515,7 @@ void AbstractionModule::collectArguments(TNode node, TNode signature, std::vecto
 
 Node AbstractionModule::abstractSignatures(TNode assertion) {
   Debug("bv-abstraction") << "AbstractionModule::abstractSignatures "<< assertion <<"\n";
+  NodeManager *nm = NodeManager::currentNM();
   // assume the assertion has been fully abstracted
   Node signature = getGeneralizedSignature(assertion);
 
@@ -530,7 +533,7 @@ Node AbstractionModule::abstractSignatures(TNode assertion) {
       real_args.push_back(args[i]);
     }
     d_argsTable.addEntry(func, real_args);
-    Node result = utils::mkNode(kind::EQUAL, utils::mkNode(kind::APPLY_UF, args),
+    Node result = nm->mkNode(kind::EQUAL, nm->mkNode(kind::APPLY_UF, args),
                                 utils::mkConst(1, 1u));
     Debug("bv-abstraction") << "=>   "<< result << "\n";
     Assert (result.getType() == assertion.getType());

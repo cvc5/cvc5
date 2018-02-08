@@ -417,12 +417,13 @@ void InequalityGraph::backtrack() {
 
 Node InequalityGraph::makeDiseqSplitLemma(TNode diseq) {
   Assert (diseq.getKind() == kind::NOT && diseq[0].getKind() == kind::EQUAL);
+  NodeManager *nm = NodeManager::currentNM();
   TNode a = diseq[0][0];
   TNode b = diseq[0][1];
-  Node a_lt_b = utils::mkNode(kind::BITVECTOR_ULT, a, b);
-  Node b_lt_a = utils::mkNode(kind::BITVECTOR_ULT, b, a);
+  Node a_lt_b = nm->mkNode(kind::BITVECTOR_ULT, a, b);
+  Node b_lt_a = nm->mkNode(kind::BITVECTOR_ULT, b, a);
   Node eq = diseq[0]; 
-  Node lemma = utils::mkNode(kind::OR, a_lt_b, b_lt_a, eq);
+  Node lemma = nm->mkNode(kind::OR, a_lt_b, b_lt_a, eq);
   return lemma; 
 }
 
@@ -461,12 +462,13 @@ BitVector InequalityGraph::getValueInModel(TNode node) const {
 }
 
 void InequalityGraph::getAllValuesInModel(std::vector<Node>& assignments) {
+  NodeManager *nm = NodeManager::currentNM();
   for (ModelValues::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
     TermId id = (*it).first;
     BitVector value = (*it).second.value;
     TNode var = getTermNode(id);
     Node constant = utils::mkConst(value);
-    Node assignment = utils::mkNode(kind::EQUAL, var, constant);
+    Node assignment = nm->mkNode(kind::EQUAL, var, constant);
     assignments.push_back(assignment); 
     Debug("bitvector-model") << "   " << var <<" => " << constant << "\n"; 
   }

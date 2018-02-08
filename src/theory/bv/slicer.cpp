@@ -530,6 +530,7 @@ unsigned Slicer::d_numAddedEqualities = 0;
 
 void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
   Assert (node.getKind() == kind::EQUAL);
+  NodeManager *nm = NodeManager::currentNM();
   TNode t1 = node[0];
   TNode t2 = node[1];
 
@@ -564,7 +565,7 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
         Node extract2 = utils::mkExtract(t2, i-1, last);
         last = i;
         Assert (utils::getSize(extract1) == utils::getSize(extract2)); 
-        equalities.push_back(utils::mkNode(kind::EQUAL, extract1, extract2)); 
+        equalities.push_back(nm->mkNode(kind::EQUAL, extract1, extract2)); 
       }
     }
   } else {

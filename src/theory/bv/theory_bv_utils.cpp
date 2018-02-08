@@ -303,33 +303,6 @@ Node mkVar(unsigned size)
 
 /* ------------------------------------------------------------------------- */
 
-Node mkNode(Kind kind, TNode child)
-{
-  return NodeManager::currentNM()->mkNode(kind, child);
-}
-
-Node mkNode(Kind kind, TNode child1, TNode child2)
-{
-  return NodeManager::currentNM()->mkNode(kind, child1, child2);
-}
-
-Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3)
-{
-  return NodeManager::currentNM()->mkNode(kind, child1, child2, child3);
-}
-
-Node mkNode(Kind kind, std::vector<Node>& children)
-{
-  Assert(children.size() > 0);
-  if (children.size() == 1)
-  {
-    return children[0];
-  }
-  return NodeManager::currentNM()->mkNode(kind, children);
-}
-
-/* ------------------------------------------------------------------------- */
-
 Node mkSortedNode(Kind kind, TNode child1, TNode child2)
 {
   Assert(kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR

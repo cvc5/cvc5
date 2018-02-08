@@ -213,6 +213,7 @@ bool CoreSolver::check(Theory::Effort e) {
 
 void CoreSolver::buildModel() {
   Debug("bv-core") << "CoreSolver::buildModel() \n";
+  NodeManager *nm = NodeManager::currentNM();
   d_modelValues.clear();
   TNodeSet constants;
   TNodeSet constants_in_eq_engine;
@@ -285,7 +286,7 @@ void CoreSolver::buildModel() {
               continue;
             }
             if (utils::getSize(a) == utils::getSize(b)) {
-              equalities.push_back(utils::mkNode(kind::EQUAL, a, b));
+              equalities.push_back(nm->mkNode(kind::EQUAL, a, b));
             }
           }
         }

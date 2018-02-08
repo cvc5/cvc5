@@ -101,7 +101,7 @@ Node BvToBoolPreprocessor::convertBvAtom(TNode node) {
   Assert (utils::getSize(node[1]) == 1);
   Node a = convertBvTerm(node[0]);
   Node b = convertBvTerm(node[1]);
-  Node result = utils::mkNode(kind::EQUAL, a, b); 
+  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, b); 
   Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvAtom " << node <<" => " << result << "\n";
 
   ++(d_statistics.d_numAtomsLifted);
@@ -115,9 +115,11 @@ Node BvToBoolPreprocessor::convertBvTerm(TNode node) {
   if (hasBoolCache(node))
     return getBoolCache(node);
   
+  NodeManager *nm = NodeManager::currentNM();
+
   if (!isConvertibleBvTerm(node)) {
     ++(d_statistics.d_numTermsForcedLifted);
-    Node result = utils::mkNode(kind::EQUAL, node, d_one);
+    Node result = nm->mkNode(kind::EQUAL, node, d_one);
     addToBoolCache(node, result);
     Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
     return result;
@@ -138,7 +140,7 @@ Node BvToBoolPreprocessor::convertBvTerm(TNode node) {
     Node cond = liftNode(node[0]);
     Node true_branch = convertBvTerm(node[1]);
     Node false_branch = convertBvTerm(node[2]);
-    Node result = utils::mkNode(kind::ITE, cond, true_branch, false_branch);
+    Node result = nm->mkNode(kind::ITE, cond, true_branch, false_branch);
     addToBoolCache(node, result);
     Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
     return result; 
@@ -152,14 +154,14 @@ Node BvToBoolPreprocessor::convertBvTerm(TNode node) {
     Node result = convertBvTerm(node[0]);
     for (unsigned i = 1; i < node.getNumChildren(); ++i) {
       Node converted = convertBvTerm(node[i]);
-      result = utils::mkNode(kind::XOR, result, converted); 
+      result = nm->mkNode(kind::XOR, result, converted); 
     }
     Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
     return result; 
   }
 
   if (kind == kind::BITVECTOR_COMP) {
-    Node result = utils::mkNode(kind::EQUAL, node[0], node[1]);
+    Node result = nm->mkNode(kind::EQUAL, node[0], node[1]);
     addToBoolCache(node, result);
     Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
     return result; 
@@ -276,6 +278,7 @@ bool BvToBoolPreprocessor::hasLowerCache(TNode term) const {
 
 Node BvToBoolPreprocessor::lowerNode(TNode current, bool topLevel) {
   Node result;
+  NodeManager *nm = NodeManager::currentNM();
   if (hasLowerCache(current)) {
     result = getLowerCache(current); 
   } else {
@@ -352,12 +355,12 @@ Node BvToBoolPreprocessor::lowerNode(TNode current, bool topLevel) {
     }
     if (result.getType().isBoolean()) {
       ++(d_statistics.d_numTermsForcedLowered);
-      result = utils::mkNode(kind::ITE, result, d_one, d_zero);
+      result = nm->mkNode(kind::ITE, result, d_one, d_zero);
     }
     addToLowerCache(current, result);
   }
   if (topLevel) {
-    result = utils::mkNode(kind::EQUAL, result, d_one);
+    result = nm->mkNode(kind::EQUAL, result, d_one);
   }
   Assert (result != Node());
   Debug("bool-to-bv") << "BvToBoolPreprocessor::lowerNode " << current << " => \n" << result << "\n"; 

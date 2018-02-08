@@ -327,6 +327,7 @@ bool RewriteRule<XorOne>::applies(TNode node) {
 template<> inline
 Node RewriteRule<XorOne>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<XorOne>(" << node << ")" << std::endl;
+  NodeManager *nm = NodeManager::currentNM();
   Node ones = utils::mkOnes(utils::getSize(node)); 
   std::vector<Node> children;
   bool found_ones = false;
@@ -340,9 +341,9 @@ Node RewriteRule<XorOne>::apply(TNode node) {
     }
   }
 
-  Node result = utils::mkNode(kind::BITVECTOR_XOR, children);
+  Node result = nm->mkNode(kind::BITVECTOR_XOR, children);
   if (found_ones) {
-    result = utils::mkNode(kind::BITVECTOR_NOT, result);
+    result = nm->mkNode(kind::BITVECTOR_NOT, result);
   }
   return result;
 }
@@ -380,7 +381,7 @@ Node RewriteRule<XorZero>::apply(TNode node) {
       children.push_back(node[i]); 
     }
   }
-  Node res = utils::mkNode(kind::BITVECTOR_XOR, children); 
+  Node res = NodeManager::currentNM()->mkNode(kind::BITVECTOR_XOR, children); 
   return res;
 }
 
@@ -447,7 +448,7 @@ Node RewriteRule<XorNot>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<XorNot>(" << node << ")" << std::endl;
   Node a = node[0][0];
   Node b = node[1][0]; 
-  return utils::mkNode(kind::BITVECTOR_XOR, a, b); 
+  return NodeManager::currentNM()->mkNode(kind::BITVECTOR_XOR, a, b); 
 }
 
 /**
@@ -467,7 +468,8 @@ Node RewriteRule<NotXor>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<NotXor>(" << node << ")" << std::endl;
   std::vector<Node> children;
   TNode::iterator child_it = node[0].begin();
-  children.push_back(utils::mkNode(kind::BITVECTOR_NOT, *child_it));
+  children.push_back(
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_NOT, *child_it));
   for(++child_it; child_it != node[0].end(); ++child_it) {
     children.push_back(*child_it);
   }
@@ -547,7 +549,8 @@ bool RewriteRule<ZeroUlt>::applies(TNode node) {
 template<> inline
 Node RewriteRule<ZeroUlt>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<ZeroUlt>(" << node << ")" << std::endl;
-  return utils::mkNode(kind::NOT, utils::mkNode(kind::EQUAL, node[0], node[1])); 
+  NodeManager *nm = NodeManager::currentNM();
+  return nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, node[0], node[1])); 
 }
 
 
@@ -582,7 +585,7 @@ bool RewriteRule<UltOne>::applies(TNode node) {
 template<> inline
 Node RewriteRule<UltOne>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<UltOne>(" << node << ")" << std::endl;
-  return utils::mkNode(
+  return NodeManager::currentNM()->mkNode(
       kind::EQUAL, node[0], utils::mkZero(utils::getSize(node[0])));
 }
 
@@ -600,7 +603,8 @@ Node RewriteRule<SltZero>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<UltZero>(" << node << ")" << std::endl;
   unsigned size = utils::getSize(node[0]); 
   Node most_significant_bit = utils::mkExtract(node[0], size - 1, size - 1);
-  return utils::mkNode(kind::EQUAL, most_significant_bit, utils::mkOne(1));
+  return NodeManager::currentNM()->mkNode(
+      kind::EQUAL, most_significant_bit, utils::mkOne(1));
 }
 
 
@@ -638,7 +642,7 @@ bool RewriteRule<UleZero>::applies(TNode node) {
 template<> inline
 Node RewriteRule<UleZero>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<UleZero>(" << node << ")" << std::endl;
-  return utils::mkNode(kind::EQUAL, node[0], node[1]); 
+  return NodeManager::currentNM()->mkNode(kind::EQUAL, node[0], node[1]); 
 }
 
 /**
@@ -718,7 +722,7 @@ Node RewriteRule<NotUlt>::apply(TNode node) {
   Node ult = node[0];
   Node a = ult[0];
   Node b = ult[1]; 
-  return utils::mkNode(kind::BITVECTOR_ULE, b, a); 
+  return NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULE, b, a); 
 }
 
 /**
@@ -739,7 +743,7 @@ Node RewriteRule<NotUle>::apply(TNode node) {
   Node ult = node[0];
   Node a = ult[0];
   Node b = ult[1]; 
-  return utils::mkNode(kind::BITVECTOR_ULT, b, a); 
+  return NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, b, a); 
 }
 
 /**
@@ -769,7 +773,7 @@ template <>
 inline Node RewriteRule<MultPow2>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<MultPow2>(" << node << ")" << std::endl;
-
+  NodeManager *nm = NodeManager::currentNM();
   unsigned size = utils::getSize(node);
   std::vector<Node>  children;
   unsigned exponent = 0;
@@ -797,12 +801,12 @@ inline Node RewriteRule<MultPow2>::apply(TNode node)
   }
   else
   {
-    a = utils::mkNode(kind::BITVECTOR_MULT, children);
+    a = nm->mkNode(kind::BITVECTOR_MULT, children);
   }
 
   if (isNeg && size > 1)
   {
-    a = utils::mkNode(kind::BITVECTOR_NEG, a);
+    a = nm->mkNode(kind::BITVECTOR_NEG, a);
   }
 
   Node extract = utils::mkExtract(a, size - exponent - 1, 0);
@@ -877,8 +881,9 @@ Node RewriteRule<ExtractMultLeadingBit>::apply(TNode node) {
   // Node extract2 = utils::mkExtract(node[1], k - 1, 0);
   // Node k_zeroes = utils::mkConst(n - k, 0u);
 
-  // Node new_mult = utils::mkNode(kind::BITVECTOR_MULT, extract1, extract2);
-  // Node result = utils::mkExtract(utils::mkNode(kind::BITVECTOR_CONCAT, k_zeroes, new_mult),
+  // NodeManager *nm = NodeManager::currentNM();
+  // Node new_mult = nm->mkNode(kind::BITVECTOR_MULT, extract1, extract2);
+  // Node result = utils::mkExtract(nm->mkNode(kind::BITVECTOR_CONCAT, k_zeroes, new_mult),
   //                                high, low); 
  
   // since the extract is over multiplier bits that have to be 0, return 0
@@ -927,6 +932,7 @@ template <>
 inline Node RewriteRule<UdivPow2>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<UdivPow2>(" << node << ")" << std::endl;
+  NodeManager *nm = NodeManager::currentNM();
   unsigned size = utils::getSize(node);
   Node a = node[0];
   bool isNeg = false;
@@ -941,11 +947,11 @@ inline Node RewriteRule<UdivPow2>::apply(TNode node)
     Node extract = utils::mkExtract(a, size - 1, power);
     Node zeros = utils::mkConst(power, 0);
 
-    ret = utils::mkNode(kind::BITVECTOR_CONCAT, zeros, extract);
+    ret = nm->mkNode(kind::BITVECTOR_CONCAT, zeros, extract);
   }
   if (isNeg && size > 1)
   {
-    ret = utils::mkNode(kind::BITVECTOR_NEG, ret);
+    ret = nm->mkNode(kind::BITVECTOR_NEG, ret);
   }
   return ret;
 }
@@ -1020,7 +1026,8 @@ inline Node RewriteRule<UremPow2>::apply(TNode node)
   {
     Node extract = utils::mkExtract(a, power - 1, 0);
     Node zeros = utils::mkZero(utils::getSize(node) - power);
-    ret = utils::mkNode(kind::BITVECTOR_CONCAT, zeros, extract);
+    ret = NodeManager::currentNM()->mkNode(
+        kind::BITVECTOR_CONCAT, zeros, extract);
   }
   return ret;
 }
@@ -1106,13 +1113,13 @@ bool RewriteRule<BBPlusNeg>::applies(TNode node) {
 template<> inline
 Node RewriteRule<BBPlusNeg>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<BBPlusNeg>(" << node << ")" << std::endl;
-
+  NodeManager *nm = NodeManager::currentNM();
   std::vector<Node> children;
   unsigned neg_count = 0; 
   for(unsigned i = 0; i < node.getNumChildren(); ++i) {
     if (node[i].getKind() == kind::BITVECTOR_NEG) {
       ++neg_count; 
-      children.push_back(utils::mkNode(kind::BITVECTOR_NOT, node[i][0]));
+      children.push_back(nm->mkNode(kind::BITVECTOR_NOT, node[i][0]));
     } else {
       children.push_back(node[i]); 
     }
@@ -1120,7 +1127,7 @@ Node RewriteRule<BBPlusNeg>::apply(TNode node) {
   Assert(neg_count!= 0); 
   children.push_back(utils::mkConst(utils::getSize(node), neg_count)); 
 
-  return utils::mkNode(kind::BITVECTOR_PLUS, children); 
+  return nm->mkNode(kind::BITVECTOR_PLUS, children); 
 }
 
 template<> inline
@@ -1379,6 +1386,7 @@ bool RewriteRule<MultSlice>::applies(TNode node) {
 template<> inline
 Node RewriteRule<MultSlice>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<MultSlice>(" << node << ")" << std::endl;
+  NodeManager *nm = NodeManager::currentNM();
   unsigned bitwidth = utils::getSize(node[0]);
   Node zeros = utils::mkConst(bitwidth/2, 0);
   TNode a = node[0];
@@ -1386,19 +1394,19 @@ Node RewriteRule<MultSlice>::apply(TNode node) {
   Node top_a = utils::mkExtract(a, bitwidth -1, bitwidth/2); 
   TNode b = node[1];
   Node bottom_b = utils::mkExtract(b, bitwidth/2 - 1, 0);
-  Node top_b = utils::mkExtract(b, bitwidth -1, bitwidth/2); 
+  Node top_b = utils::mkExtract(b, bitwidth -1, bitwidth/2);
 
-  Node term1 = utils::mkNode(kind::BITVECTOR_MULT,
-                             utils::mkNode(kind::BITVECTOR_CONCAT, zeros, bottom_a),
-                             utils::mkNode(kind::BITVECTOR_CONCAT, zeros, bottom_b));
+  Node term1 = nm->mkNode(kind::BITVECTOR_MULT,
+                          nm->mkNode(kind::BITVECTOR_CONCAT, zeros, bottom_a),
+                          nm->mkNode(kind::BITVECTOR_CONCAT, zeros, bottom_b));
 
-  Node term2 = utils::mkNode(kind::BITVECTOR_CONCAT,
-                             utils::mkNode(kind::BITVECTOR_MULT, top_b, bottom_a),
-                             zeros);
-  Node term3 = utils::mkNode(kind::BITVECTOR_CONCAT,
-                             utils::mkNode(kind::BITVECTOR_MULT, top_a, bottom_b),
-                             zeros);
-  return utils::mkNode(kind::BITVECTOR_PLUS, term1, term2, term3); 
+  Node term2 = nm->mkNode(kind::BITVECTOR_CONCAT,
+                          nm->mkNode(kind::BITVECTOR_MULT, top_b, bottom_a),
+                          zeros);
+  Node term3 = nm->mkNode(kind::BITVECTOR_CONCAT,
+                          nm->mkNode(kind::BITVECTOR_MULT, top_a, bottom_b),
+                          zeros);
+  return nm->mkNode(kind::BITVECTOR_PLUS, term1, term2, term3);
 }
 
 /** 
@@ -1433,13 +1441,16 @@ bool RewriteRule<UltPlusOne>::applies(TNode node) {
 template<> inline
 Node RewriteRule<UltPlusOne>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<UltPlusOne>(" << node << ")" << std::endl;
+  NodeManager *nm = NodeManager::currentNM();
   TNode x = node[0];
   TNode y1 = node[1];
   TNode y = y1[0].getKind() != kind::CONST_BITVECTOR ? y1[0] : y1[1];
-  unsigned size = utils::getSize(x); 
-  Node not_y_eq_1 = utils::mkNode(kind::NOT, utils::mkNode(kind::EQUAL, y, utils::mkOnes(size)));
-  Node not_y_lt_x = utils::mkNode(kind::NOT, utils::mkNode(kind::BITVECTOR_ULT, y, x));
-  return utils::mkNode(kind::AND, not_y_eq_1, not_y_lt_x);
+  unsigned size = utils::getSize(x);
+  Node not_y_eq_1 =
+      nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, y, utils::mkOnes(size)));
+  Node not_y_lt_x =
+      nm->mkNode(kind::NOT, nm->mkNode(kind::BITVECTOR_ULT, y, x));
+  return nm->mkNode(kind::AND, not_y_eq_1, not_y_lt_x);
 }
 
 /** 
@@ -1467,24 +1478,26 @@ bool RewriteRule<IsPowerOfTwo>::applies(TNode node) {
   TNode b = t[1];
   unsigned size = utils::getSize(t);
   if(size < 2) return false;
-  Node diff = Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_SUB, a, b));
+  Node diff = Rewriter::rewrite(
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_SUB, a, b));
   return (diff.isConst() && (diff == utils::mkConst(size, 1u) || diff == utils::mkOnes(size)));
 }
 
 template<> inline
 Node RewriteRule<IsPowerOfTwo>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<IsPowerOfTwo>(" << node << ")" << std::endl;
+  NodeManager *nm = NodeManager::currentNM();
   TNode term = utils::isZero(node[0])? node[1] : node[0];
   TNode a = term[0];
   TNode b = term[1];
   unsigned size = utils::getSize(term); 
-  Node diff = Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_SUB, a, b));
+  Node diff = Rewriter::rewrite(nm->mkNode(kind::BITVECTOR_SUB, a, b));
   Assert (diff.isConst());
   TNode x = diff == utils::mkConst(size, 1u) ? a : b;
   Node one = utils::mkConst(size, 1u);
   Node sk = utils::mkVar(size);
-  Node sh = utils::mkNode(kind::BITVECTOR_SHL, one, sk);
-  Node x_eq_sh = utils::mkNode(kind::EQUAL, x, sh);
+  Node sh = nm->mkNode(kind::BITVECTOR_SHL, one, sk);
+  Node x_eq_sh = nm->mkNode(kind::EQUAL, x, sh);
   return x_eq_sh;
 }
 

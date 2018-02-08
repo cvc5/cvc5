@@ -58,8 +58,9 @@ bool InequalitySolver::check(Theory::Effort e) {
       TNode b = fact[0][0];
       ok = addInequality(a, b, true, fact);
       // propagate
+      // NodeManager *nm = NodeManager::currentNM();
       // if (d_bv->isSharedTerm(a) && d_bv->isSharedTerm(b)) {
-      //   Node neq = utils::mkNode(kind::NOT, utils::mkNode(kind::EQUAL, a, b));
+      //   Node neq = nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, a, b));
       //   d_bv->storePropagation(neq, SUB_INEQUALITY);
       //   d_explanations[neq] = fact;
       // }
@@ -73,7 +74,7 @@ bool InequalitySolver::check(Theory::Effort e) {
       ok = addInequality(a, b, true, fact);
       // propagate
       // if (d_bv->isSharedTerm(a) && d_bv->isSharedTerm(b)) {
-      //   Node neq = utils::mkNode(kind::NOT, utils::mkNode(kind::EQUAL, a, b));
+      //   Node neq = nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, a, b));
       //   d_bv->storePropagation(neq, SUB_INEQUALITY);
       //   d_explanations[neq] = fact;
       // }
@@ -110,8 +111,9 @@ EqualityStatus InequalitySolver::getEqualityStatus(TNode a, TNode b) {
   if (!isComplete())
     return EQUALITY_UNKNOWN;
 
-  Node a_lt_b = utils::mkNode(kind::BITVECTOR_ULT, a, b);
-  Node b_lt_a = utils::mkNode(kind::BITVECTOR_ULT, b, a);
+  NodeManager *nm = NodeManager::currentNM();
+  Node a_lt_b = nm->mkNode(kind::BITVECTOR_ULT, a, b);
+  Node b_lt_a = nm->mkNode(kind::BITVECTOR_ULT, b, a);
 
   // if an inequality containing the terms has been asserted then we know
   // the equality is false
@@ -227,7 +229,7 @@ bool InequalitySolver::addInequality(TNode a, TNode b, bool strict, TNode fact) 
   if (!ok || !strict) return ok;
 
   Node one = utils::mkConst(utils::getSize(a), 1);
-  Node a_plus_one = Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_PLUS, a, one));
+  Node a_plus_one = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::BITVECTOR_PLUS, a, one));
   if (d_ineqTerms.find(a_plus_one) != d_ineqTerms.end()) {
     ok = d_inequalityGraph.addInequality(a_plus_one, b, false, fact);
   }

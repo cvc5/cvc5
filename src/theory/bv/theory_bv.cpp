@@ -365,26 +365,27 @@ void TheoryBV::sendConflict() {
 
 void TheoryBV::checkForLemma(TNode fact) {
   if (fact.getKind() == kind::EQUAL) {
+    NodeManager *nm = NodeManager::currentNM();
     if (fact[0].getKind() == kind::BITVECTOR_UREM_TOTAL) {
       TNode urem = fact[0];
       TNode result = fact[1];
       TNode divisor = urem[1];
-      Node result_ult_div = mkNode(kind::BITVECTOR_ULT, result, divisor);
-      Node divisor_eq_0 = mkNode(
+      Node result_ult_div = nm->mkNode(kind::BITVECTOR_ULT, result, divisor);
+      Node divisor_eq_0 = nm->mkNode(
           kind::EQUAL, divisor, mkZero(getSize(divisor)));
-      Node split = utils::mkNode(
-          kind::OR, divisor_eq_0, mkNode(kind::NOT, fact), result_ult_div);
+      Node split = nm->mkNode(
+          kind::OR, divisor_eq_0, nm->mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
     if (fact[1].getKind() == kind::BITVECTOR_UREM_TOTAL) {
       TNode urem = fact[1];
       TNode result = fact[0];
       TNode divisor = urem[1];
-      Node result_ult_div = mkNode(kind::BITVECTOR_ULT, result, divisor);
-      Node divisor_eq_0 = mkNode(
+      Node result_ult_div = nm->mkNode(kind::BITVECTOR_ULT, result, divisor);
+      Node divisor_eq_0 = nm->mkNode(
           kind::EQUAL, divisor, mkZero(getSize(divisor)));
-      Node split = utils::mkNode(
-          kind::OR, divisor_eq_0, mkNode(kind::NOT, fact), result_ult_div);
+      Node split = nm->mkNode(
+          kind::OR, divisor_eq_0, nm->mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
   }
@@ -506,6 +507,7 @@ void TheoryBV::check(Effort e)
 }
 
 bool TheoryBV::doExtfInferences( std::vector< Node >& terms ) {
+  NodeManager* nm = NodeManager::currentNM();
   bool sentLemma = false;
   eq::EqualityEngine * ee = getEqualityEngine();    
   std::map< Node, Node > op_map;
@@ -518,9 +520,9 @@ bool TheoryBV::doExtfInferences( std::vector< Node >& terms ) {
       if( d_extf_range_infer.find( n )==d_extf_range_infer.end() ){
         d_extf_range_infer.insert( n );
         unsigned bvs = n[0].getType().getBitVectorSize();
-        Node min = NodeManager::currentNM()->mkConst( Rational( 0 ) );
-        Node max = NodeManager::currentNM()->mkConst( Rational( Integer(1).multiplyByPow2(bvs) ) );
-        Node lem = NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, n, min ), NodeManager::currentNM()->mkNode( kind::LT, n, max ) );
+        Node min = nm->mkConst( Rational( 0 ) );
+        Node max = nm->mkConst( Rational( Integer(1).multiplyByPow2(bvs) ) );
+        Node lem = nm->mkNode( kind::AND, nm->mkNode( kind::GEQ, n, min ), nm->mkNode( kind::LT, n, max ) );
         Trace("bv-extf-lemma") << "BV extf lemma (range) : " << lem << std::endl;
         d_out->lemma( lem );
         sentLemma = true;
@@ -535,7 +537,7 @@ bool TheoryBV::doExtfInferences( std::vector< Node >& terms ) {
     std::map< Node, Node >::iterator it = op_map.find( r );
     if( it!=op_map.end() ){
       Node parent = it->second;
-      //Node cterm = parent[0]==n ? parent : NodeManager::currentNM()->mkNode( parent.getOperator(), n );
+      //Node cterm = parent[0]==n ? parent : nm->mkNode( parent.getOperator(), n );
       Node cterm = parent[0].eqNode( n );
       Trace("bv-extf-lemma-debug") << "BV extf collapse based on : " << cterm << std::endl;
       if( d_extf_collapse_infer.find( cterm )==d_extf_collapse_infer.end() ){
@@ -546,15 +548,15 @@ bool TheoryBV::doExtfInferences( std::vector< Node >& terms ) {
           Assert( t.getType().isInteger() );
           //congruent modulo 2^( bv width )
           unsigned bvs = n.getType().getBitVectorSize();
-          Node coeff = NodeManager::currentNM()->mkConst( Rational( Integer(1).multiplyByPow2(bvs) ) );
-          Node k = NodeManager::currentNM()->mkSkolem( "int_bv_cong", t.getType(), "for int2bv/bv2nat congruence" );
-          t = NodeManager::currentNM()->mkNode( kind::PLUS, t, NodeManager::currentNM()->mkNode( kind::MULT, coeff, k ) );
+          Node coeff = nm->mkConst( Rational( Integer(1).multiplyByPow2(bvs) ) );
+          Node k = nm->mkSkolem( "int_bv_cong", t.getType(), "for int2bv/bv2nat congruence" );
+          t = nm->mkNode( kind::PLUS, t, nm->mkNode( kind::MULT, coeff, k ) );
         }
         Node lem = parent.eqNode( t );
         
         if( parent[0]!=n ){
           Assert( ee->areEqual( parent[0], n ) );
-          lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, parent[0].eqNode( n ), lem );
+          lem = nm->mkNode( kind::IMPLIES, parent[0].eqNode( n ), lem );
         }
         Trace("bv-extf-lemma") << "BV extf lemma (collapse) : " << lem << std::endl;
         d_out->lemma( lem );
@@ -669,10 +671,10 @@ bool TheoryBV::getCurrentSubstitution( int effort, std::vector< Node >& vars, st
 
 int TheoryBV::getReduction( int effort, Node n, Node& nr ) {
   Trace("bv-ext") << "TheoryBV::checkExt : non-reduced : " << n << std::endl;
+  NodeManager* const nm = NodeManager::currentNM();
   if( n.getKind()==kind::BITVECTOR_TO_NAT ){
     //taken from rewrite code
     const unsigned size = utils::getSize(n[0]);
-    NodeManager* const nm = NodeManager::currentNM();
     const Node z = nm->mkConst(Rational(0));
     const Node bvone = utils::mkOne(1);
     NodeBuilder<> result(kind::PLUS);
@@ -686,7 +688,6 @@ int TheoryBV::getReduction( int effort, Node n, Node& nr ) {
   }else if( n.getKind()==kind::INT_TO_BITVECTOR ){
     //taken from rewrite code
     const unsigned size = n.getOperator().getConst<IntToBitVector>().size;
-    NodeManager* const nm = NodeManager::currentNM();
     const Node bvzero = utils::mkZero(1);
     const Node bvone = utils::mkOne(1);
     std::vector<Node> v;
@@ -751,7 +752,8 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in, SubstitutionMap& outSubstitu
             children.push_back(c);
             children.push_back(skolem1);
           }
-          Node concat = utils::mkNode(kind::BITVECTOR_CONCAT, children);
+          Node concat = NodeManager::currentNM()->mkNode(
+              kind::BITVECTOR_CONCAT, children);
           Assert (utils::getSize(concat) == utils::getSize(extract[0]));
           outSubstitutions.addSubstitution(extract[0], concat);
           return PP_ASSERT_STATUS_SOLVED;
@@ -795,7 +797,7 @@ Node TheoryBV::ppRewrite(TNode t)
       RewriteRule<ConcatToMult>::run<true>(res[1]);
     Node factor = mult[0];
     Node sum =  RewriteRule<ConcatToMult>::applies(res[0])? res[1] : res[0];
-    Node new_eq =utils::mkNode(kind::EQUAL, sum, mult);
+    Node new_eq = NodeManager::currentNM()->mkNode(kind::EQUAL, sum, mult);
     Node rewr_eq = RewriteRule<SolveEq>::run<true>(new_eq);
     if (rewr_eq[0].isVar() || rewr_eq[1].isVar()){
       res = Rewriter::rewrite(rewr_eq);
@@ -818,7 +820,7 @@ Node TheoryBV::ppRewrite(TNode t)
   //   Node add = t[0].getKind() == kind::BITVECTOR_PLUS? t[0] : t[1];
   //   if (RewriteRule<MultSlice>::applies(mult)) {
   //     Node new_mult = RewriteRule<MultSlice>::run<false>(mult);
-  //     Node new_eq = Rewriter::rewrite(utils::mkNode(kind::EQUAL, new_mult, add));
+  //     Node new_eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, new_mult, add));
 
   //     // the simplification can cause the formula to blow up
   //     // only apply if formula reduced
@@ -985,7 +987,8 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
           Node c_eq_0 = c.eqNode(zero);
           Node b_eq_c = b.eqNode(c);
 
-          Node dis = utils::mkNode(kind::OR, b_eq_0, c_eq_0, b_eq_c);
+          Node dis = NodeManager::currentNM()->mkNode(
+              kind::OR, b_eq_0, c_eq_0, b_eq_c);
           Node imp = in.impNode(dis);
           learned << imp;
         }
@@ -1023,13 +1026,14 @@ void TheoryBV::setProofLog( BitVectorProof * bvp ) {
 
 void TheoryBV::setConflict(Node conflict) {
   if (options::bvAbstraction()) {
+    NodeManager* const nm = NodeManager::currentNM();
     Node new_conflict = d_abstractionModule->simplifyConflict(conflict);
 
     std::vector<Node> lemmas;
     lemmas.push_back(new_conflict);
     d_abstractionModule->generalizeConflict(new_conflict, lemmas);
     for (unsigned i = 0; i < lemmas.size(); ++i) {
-      lemma(utils::mkNode(kind::NOT, lemmas[i]));
+      lemma(nm->mkNode(kind::NOT, lemmas[i]));
     }
   }
   d_conflict = true;

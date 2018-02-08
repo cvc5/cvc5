@@ -90,6 +90,7 @@ TLazyBitblaster::~TLazyBitblaster()
  *
  */
 void TLazyBitblaster::bbAtom(TNode node) {
+  NodeManager *nm = NodeManager::currentNM();
   node = node.getKind() == kind::NOT?  node[0] : node;
 
   if (hasBBAtom(node)) {
@@ -126,7 +127,7 @@ void TLazyBitblaster::bbAtom(TNode node) {
       atom_bb = utils::mkAnd(atoms);
     }
     Assert (!atom_bb.isNull());
-    Node atom_definition = utils::mkNode(kind::EQUAL, node, atom_bb);
+    Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
     storeBBAtom(node, atom_bb);
     d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID, TNode::null());
     return;
@@ -142,7 +143,7 @@ void TLazyBitblaster::bbAtom(TNode node) {
   }
 
   // asserting that the atom is true iff the definition holds
-  Node atom_definition = utils::mkNode(kind::EQUAL, node, atom_bb);
+  Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
   storeBBAtom(node, atom_bb);
   d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID, TNode::null());
 }
@@ -309,6 +310,7 @@ prop::SatValue TLazyBitblaster::solveWithBudget(unsigned long budget) {
 
 
 void TLazyBitblaster::getConflict(std::vector<TNode>& conflict) {
+  NodeManager *nm = NodeManager::currentNM();
   prop::SatClause conflictClause;
   d_satSolver->getUnsatCore(conflictClause);
 
@@ -319,7 +321,7 @@ void TLazyBitblaster::getConflict(std::vector<TNode>& conflict) {
     if (atom.getKind() == kind::NOT) {
       not_atom = atom[0];
     } else {
-      not_atom = NodeManager::currentNM()->mkNode(kind::NOT, atom);
+      not_atom = nm->mkNode(kind::NOT, atom);
     }
     conflict.push_back(not_atom);
   }
@@ -401,7 +403,7 @@ EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b) {
   Debug("bv-equality-status")<< "BVSatSolver has full model? " << (d_fullModelAssertionLevel.get() == numAssertions) <<"\n";
 
   // First check if it trivially rewrites to false/true
-  Node a_eq_b = Rewriter::rewrite(utils::mkNode(kind::EQUAL, a, b));
+  Node a_eq_b = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, a, b));
 
   if (a_eq_b == utils::mkFalse()) return theory::EQUALITY_FALSE;
   if (a_eq_b == utils::mkTrue()) return theory::EQUALITY_TRUE;

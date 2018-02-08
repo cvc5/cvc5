@@ -542,7 +542,7 @@ void DefaultUdivBB (TNode node, std::vector<T>& q, TBitblaster<T>* bb) {
 
   // cache the remainder in case we need it later
   Node remainder = Rewriter::rewrite(
-      utils::mkNode(kind::BITVECTOR_UREM_TOTAL, node[0], node[1]));
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_UREM_TOTAL, node[0], node[1]));
   bb->storeBBTerm(remainder, r);
 }
 
@@ -571,7 +571,7 @@ void DefaultUremBB (TNode node, std::vector<T>& rem, TBitblaster<T>* bb) {
 
   // cache the quotient in case we need it later
   Node quotient = Rewriter::rewrite(
-      utils::mkNode(kind::BITVECTOR_UDIV_TOTAL, node[0], node[1]));
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_UDIV_TOTAL, node[0], node[1]));
   bb->storeBBTerm(quotient, q);
 }
 
@@ -609,7 +609,7 @@ void DefaultShlBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   unsigned log2_size = std::ceil(log2((double)size));
   Node a_size = utils::mkConst(size, size);
   Node b_ult_a_size_node =
-      Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size));
+      Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, node[1], a_size));
   // ensure that the inequality is bit-blasted
   bb->bbAtom(b_ult_a_size_node); 
   T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);
@@ -658,7 +658,7 @@ void DefaultLshrBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   unsigned log2_size = std::ceil(log2((double)size));
   Node a_size = utils::mkConst(size, size);
   Node b_ult_a_size_node =
-      Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size));
+      Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, node[1], a_size));
   // ensure that the inequality is bit-blasted
   bb->bbAtom(b_ult_a_size_node); 
   T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node); 
@@ -709,7 +709,7 @@ void DefaultAshrBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   unsigned log2_size = std::ceil(log2((double)size));
   Node a_size = utils::mkConst(size, size);
   Node b_ult_a_size_node =
-      Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size));
+      Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, node[1], a_size));
   // ensure that the inequality is bit-blasted
   bb->bbAtom(b_ult_a_size_node); 
   T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);
