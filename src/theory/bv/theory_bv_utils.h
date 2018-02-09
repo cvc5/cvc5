@@ -38,22 +38,6 @@ namespace utils {
 typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
 typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
-/* Compute 2^n. */
-uint32_t pow2(uint32_t n);
-
-/* Compute the greatest common divisor for two objects of Type T.  */
-template <class T>
-T gcd(T a, T b)
-{
-  while (b != 0)
-  {
-    T t = b;
-    b = a % t;
-    a = t;
-  }
-  return a;
-}
-
 /* Create bit-vector of ones of given size. */
 BitVector mkBitVectorOnes(unsigned size);
 /* Create bit-vector representing the minimum signed value of given size. */
@@ -144,7 +128,21 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
 }
 /* Create node of kind OR. */
 Node mkOr(TNode node1, TNode node2);
-Node mkOr(const std::vector<Node>& nodes);
+/* Create n-ary node of kind OR.  */
+template<bool ref_count>
+Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
+{
+  std::set<TNode> all(nodes.begin(), nodes.end());
+
+  if (all.size() == 0) { return mkTrue(); }
+
+  /* All the same, or just one  */
+  if (all.size() == 1) { return nodes[0]; }
+
+  NodeBuilder<> disjunction(kind::OR);
+  for (const Node& n : all) { disjunction << n; }
+  return disjunction;
+}
 /* Create node of kind XOR. */
 Node mkXor(TNode node1, TNode node2);
 
@@ -176,21 +174,11 @@ Node mkDec(TNode t);
  * http://ieeexplore.ieee.org/document/987767 */
 Node mkUmulo(TNode t1, TNode t2);
 
-/* Create conjunction over a set of (dis)equalities.  */
-Node mkConjunction(const std::set<TNode> nodes);
+/* Create conjunction.  */
 Node mkConjunction(const std::vector<TNode>& nodes);
 
-/* Get a set of all operands of nested and nodes.  */
-void getConjuncts(TNode node, std::set<TNode>& conjuncts);
-void getConjuncts(std::vector<TNode>& nodes, std::set<TNode>& conjuncts);
 /* Create a flattened and node.  */
 Node flattenAnd(std::vector<TNode>& queue);
-
-/* Create a string representing a set of nodes.  */
-std::string setToString(const std::set<TNode>& nodeSet);
-
-/* Create a string representing a vector of nodes.  */
-std::string vectorToString(const std::vector<Node>& nodes);
 
 /* Create the intersection of two vectors of uint32_t. */
 void intersect(const std::vector<uint32_t>& v1,

@@ -167,7 +167,7 @@ class HigherOrderTrigger : public Trigger
   * matching ground terms to function applications with variable heads.
   * See examples (EX1)-(EX3) above.
   */
-  virtual bool sendInstantiation(InstMatch& m);
+  bool sendInstantiation(InstMatch& m) override;
 
  private:
   //-------------------- current information about the match

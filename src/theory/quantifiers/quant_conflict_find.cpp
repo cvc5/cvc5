@@ -34,7 +34,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QuantInfo::QuantInfo() : d_unassigned_nvar(0), d_mg(NULL), d_una_index(0) {}
+QuantInfo::QuantInfo() : d_unassigned_nvar(0), d_una_index(0), d_mg(nullptr) {}
 
 QuantInfo::~QuantInfo() {
   delete d_mg;
