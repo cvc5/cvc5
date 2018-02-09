@@ -301,7 +301,7 @@ class TSatProof {
   void addToCnfProof(ClauseId id);
 
   // Internal data.
-  typename Solver::Solver* d_solver;
+  Solver* d_solver;
   context::Context* d_context;
   CnfProof* d_cnfProof;
 
