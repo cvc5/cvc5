@@ -674,20 +674,20 @@ if test "$enable_valgrind" != no; then
                   ])
 fi
 
-AC_MSG_CHECKING([whether to use the context memory manager])
+AC_MSG_CHECKING([whether to use the debug context memory manager])
 
-AC_ARG_ENABLE([context-memory-manager],
-  [AS_HELP_STRING([--disable-context-memory-manager],
-     [do not use the context memory manager])])
+AC_ARG_ENABLE([debug-context-memory-manager],
+  [AS_HELP_STRING([--enable-debug-context-memory-manager],
+     [use the debug context memory manager])])
 
-if test -z "${enable_context_memory_manager+set}"; then
-  enable_context_memory_manager=yes
+if test -z "${enable_debug_context_memory_manager+set}"; then
+  enable_debug_context_memory_manager=no
 fi
 
-AC_MSG_RESULT([$enable_context_memory_manager])
+AC_MSG_RESULT([$enable_debug_context_memory_manager])
 
-if test "$enable_context_memory_manager" = yes; then
-  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_CONTEXT_MEMORY_MANAGER"
+if test "$enable_debug_context_memory_manager" = yes; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_DEBUG_CONTEXT_MEMORY_MANAGER"
 fi
 
 AC_MSG_CHECKING([whether to include statistics are turned on in libcvc4])
