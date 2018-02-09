@@ -17,9 +17,6 @@ cache:
 sudo: required
 dist: trusty
 
-compiler:
- - gcc
- - clang
 env:
  global:
   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
@@ -27,11 +24,6 @@ env:
   - secure: "fRfdzYwV10VeW5tVSvy5qpR8ZlkXepR7XWzCulzlHs9SRI2YY20BpzWRjyMBiGu2t7IeJKT7qdjq/CJOQEM8WS76ON7QJ1iymKaRDewDs3OhyPJ71fsFKEGgLky9blk7I9qZh23hnRVECj1oJAVry9IK04bc2zyIEjUYpjRkUAQ="
   - TEST_GROUPS=2
   - CCACHE_COMPRESS=1
- matrix:
-  - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --with-lfsc'
-  - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-lfsc --disable-debug-symbols'
-  - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-cln --enable-gpl --disable-debug-symbols --disable-proof'
-  - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_CVC4_CONFIG='--enable-proof'
 addons:
  apt:
   sources:
@@ -119,27 +111,21 @@ script:
 matrix:
   fast_finish: true
   include:
-    # Test with GCC7
-    - addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - *common_deps
-            - g++-7
+    # Test with GCC
+    - compiler: gcc
       env:
-        - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
-        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-lfsc --disable-debug-symbols' TEST_GROUP=0
-    - addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - *common_deps
-            - g++-7
+        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --with-lfsc'
+    - compiler: gcc
       env:
-        - MATRIX_EVAL='CC=gcc-7 && CXX=g++-7'
-        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-lfsc --disable-debug-symbols' TEST_GROUP=1
+        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-lfsc --disable-debug-symbols'
+    #
+    # Test with Clang
+    - compiler: clang
+      env:
+        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-cln --enable-gpl --disable-debug-symbols --disable-proof'
+    - compiler: clang
+      env:
+        - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_CVC4_CONFIG='--enable-proof'
     # Rule for running Coverity Scan.
     - os: linux
       compiler: gcc

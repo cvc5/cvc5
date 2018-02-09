@@ -790,7 +790,15 @@ inline Node RewriteRule<MultPow2>::apply(TNode node)
     }
   }
 
-  Node a = utils::mkNode(kind::BITVECTOR_MULT, children);
+  Node a;
+  if (children.empty())
+  {
+    a = utils::mkOne(size);
+  }
+  else
+  {
+    a = utils::mkNode(kind::BITVECTOR_MULT, children);
+  }
 
   if (isNeg && size > 1)
   {

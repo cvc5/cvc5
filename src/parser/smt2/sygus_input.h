@@ -82,7 +82,7 @@ class SygusInput : public AntlrInput {
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr();
+  Expr parseExpr() override;
 
 };/* class SygusInput */
 

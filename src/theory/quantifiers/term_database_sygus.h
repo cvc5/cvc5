@@ -68,6 +68,56 @@ class TermDbSygus {
   SygusExplain* getExplain() { return d_syexp.get(); }
   /** get the extended rewrite utility */
   ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
+  //-----------------------------conversion from sygus to builtin
+  /** get free variable
+   *
+   * This class caches a list of free variables for each type, which are
+   * used, for instance, for constructing canonical forms of terms with free
+   * variables. This function returns the i^th free variable for type tn.
+   * If useSygusType is true, then this function returns a variable of the
+   * analog type for sygus type tn (see d_fv for details).
+   */
+  TNode getFreeVar(TypeNode tn, int i, bool useSygusType = false);
+  /** get free variable and increment
+   *
+   * This function returns the next free variable for type tn, and increments
+   * the counter in var_count for that type.
+   */
+  TNode getFreeVarInc(TypeNode tn,
+                      std::map<TypeNode, int>& var_count,
+                      bool useSygusType = false);
+  /** returns true if n is a cached free variable (in d_fv). */
+  bool isFreeVar(Node n) { return d_fv_stype.find(n) != d_fv_stype.end(); }
+  /** returns the index of n in the free variable cache (d_fv). */
+  int getVarNum(Node n) { return d_fv_num[n]; }
+  /** returns true if n has a cached free variable (in d_fv). */
+  bool hasFreeVar(Node n);
+  /** make generic
+   *
+   * This function returns a builtin term f( t1, ..., tn ) where f is the
+   * builtin op of the sygus datatype constructor specified by arguments
+   * dt and c. The mapping pre maps child indices to the term for that index
+   * in the term we are constructing. That is, for each i = 1,...,n:
+   *   If i is in the domain of pre, then ti = pre[i].
+   *   If i is not in the domain of pre, then ti = d_fv[1][ var_count[Ti ] ],
+   *     and var_count[Ti] is incremented.
+   */
+  Node mkGeneric(const Datatype& dt,
+                 unsigned c,
+                 std::map<TypeNode, int>& var_count,
+                 std::map<int, Node>& pre);
+  /** same as above, but with empty var_count */
+  Node mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre);
+  /** sygus to builtin
+   *
+   * Given a sygus datatype term n of type tn, this function returns its analog,
+   * that is, the term that n encodes.
+   */
+  Node sygusToBuiltin(Node n, TypeNode tn);
+  /** same as above, but without tn */
+  Node sygusToBuiltin(Node n) { return sygusToBuiltin(n, n.getType()); }
+  //-----------------------------end conversion from sygus to builtin
+
  private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
@@ -88,30 +138,31 @@ class TermDbSygus {
    */
   std::map<Node, Node> d_enum_to_active_guard;
 
+  //-----------------------------conversion from sygus to builtin
+  /** cache for sygusToBuiltin */
+  std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
+  /** a cache of fresh variables for each type
+   *
+   * We store two versions of this list:
+   *   index 0: mapping from builtin types to fresh variables of that type,
+   *   index 1: mapping from sygus types to fresh varaibles of the type they
+   *            encode.
+   */
+  std::map<TypeNode, std::vector<Node> > d_fv[2];
+  /** Maps free variables to the domain type they are associated with in d_fv */
+  std::map<Node, TypeNode> d_fv_stype;
+  /** Maps free variables to their index in d_fv. */
+  std::map<Node, int> d_fv_num;
+  /** recursive helper for hasFreeVar, visited stores nodes we have visited. */
+  bool hasFreeVar(Node n, std::map<Node, bool>& visited);
+  //-----------------------------end conversion from sygus to builtin
+
   // TODO :issue #1235 : below here needs refactor
 
  public:
   Node d_true;
   Node d_false;
 
- private:
-  std::map< TypeNode, std::vector< Node > > d_fv[2];
-  std::map< Node, TypeNode > d_fv_stype;
-  std::map< Node, int > d_fv_num;
-  bool hasFreeVar( Node n, std::map< Node, bool >& visited );
-public:
-  TNode getFreeVar( TypeNode tn, int i, bool useSygusType = false );
-  TNode getFreeVarInc( TypeNode tn, std::map< TypeNode, int >& var_count, bool useSygusType = false );
-  bool isFreeVar( Node n ) { return d_fv_stype.find( n )!=d_fv_stype.end(); }
-  int getVarNum( Node n ) { return d_fv_num[n]; }
-  bool hasFreeVar( Node n );
-private:
-  std::map< TypeNode, std::map< int, Node > > d_generic_base;
-  std::map< TypeNode, std::vector< Node > > d_generic_templ;
-  bool getMatch( Node p, Node n, std::map< int, Node >& s );
-  bool getMatch2( Node p, Node n, std::map< int, Node >& s, std::vector< int >& new_s );
-public:
-  bool getMatch( Node n, TypeNode st, int& index_found, std::vector< Node >& args, int index_exc = -1, int index_start = 0 );
 private:
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
@@ -126,15 +177,7 @@ private:
   std::map<TypeNode, std::map<Node, int> > d_consts;
   std::map<TypeNode, std::map<Node, int> > d_ops;
   std::map<TypeNode, std::map<int, Node> > d_arg_ops;
-  std::map<TypeNode, std::vector<int> > d_id_funcs;
-  std::map<TypeNode, std::vector<Node> >
-      d_const_list;  // sorted list of constants for type
-  std::map<TypeNode, unsigned> d_const_list_pos;
   std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
-  // normalized map
-  std::map<TypeNode, std::map<Node, Node> > d_normalized;
-  std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
-  std::map<TypeNode, std::map<Node, Node> > d_builtin_const_to_sygus;
   // grammar information
   // root -> type -> _
   std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
@@ -169,27 +212,18 @@ private:
   Kind getConsNumKind( TypeNode tn, int i );
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
-  unsigned getNumIdFuncs( TypeNode tn );
-  unsigned getIdFuncIndex( TypeNode tn, unsigned i );
   /** get arg type */
-  TypeNode getArgType( const DatatypeConstructor& c, int i );
+  TypeNode getArgType(const DatatypeConstructor& c, unsigned i);
   /** get first occurrence */
   int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
 
   TypeNode getSygusTypeForVar( Node v );
-  Node getGenericBase( TypeNode tn, const Datatype& dt, int c );
-  Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
-  Node sygusToBuiltin( Node n, TypeNode tn );
-  Node sygusToBuiltin( Node n ) { return sygusToBuiltin( n, n.getType() ); }
   Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );
-  Node builtinToSygusConst( Node c, TypeNode tn, int rcons_depth = 0 );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );
-  // returns size
-  unsigned getSygusConstructors( Node n, std::vector< Node >& cons );
   /** given a term, construct an equivalent smaller one that respects syntax */
   Node minimizeBuiltinTerm( Node n );
   /** given a term, expand it into more basic components */
@@ -197,7 +231,6 @@ private:
   /** get comparison kind */
   Kind getComparisonKind( TypeNode tn );
   Kind getPlusKind( TypeNode tn, bool is_neg = false );
-  bool doCompare( Node a, Node b, Kind k );
   // get semantic skolem for n (a sygus term whose builtin version is n)
   Node getSemanticSkolem( TypeNode tn, Node n, bool doMk = true );
   /** involves div-by-zero */
@@ -244,18 +277,6 @@ public:
   Node evaluateWithUnfolding(
       Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
   Node evaluateWithUnfolding( Node n );
-//for calculating redundant operators
-private:
-  //whether each constructor is redundant
-  // 0 : not redundant, 1 : redundant, 2 : partially redundant
-  std::map< TypeNode, std::vector< int > > d_sygus_red_status;
-  // type to (rewritten) to original
-  std::map< TypeNode, std::map< Node, Node > > d_gen_terms;
-  std::map< TypeNode, std::map< Node, bool > > d_gen_redundant;
-  //compute generic redundant
-  bool computeGenericRedundant( TypeNode tn, Node g );
-public:
-  bool isGenericRedundant( TypeNode tn, unsigned i );
 };
 
 }/* CVC4::theory::quantifiers namespace */

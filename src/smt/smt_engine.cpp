@@ -647,10 +647,9 @@ public:
    *
    * Returns false if the formula simplifies to "false"
    */
-  bool simplifyAssertions() throw(TypeCheckingException, LogicException,
-                                  UnsafeInterruptException);
+  bool simplifyAssertions();
 
-public:
+ public:
 
   SmtEnginePrivate(SmtEngine& smt) :
     d_smt(smt),
@@ -732,7 +731,8 @@ public:
             new SetToDefaultSourceListener(&d_managedReplayLog), true));
   }
 
-  ~SmtEnginePrivate() throw() {
+  ~SmtEnginePrivate()
+  {
     delete d_listenerRegistrations;
 
     if(d_propagatorNeedsFinish) {
@@ -743,7 +743,8 @@ public:
   }
 
   ResourceManager* getResourceManager() { return d_resourceManager; }
-  void spendResource(unsigned amount) throw(UnsafeInterruptException) {
+  void spendResource(unsigned amount)
+  {
     d_resourceManager->spendResource(amount);
   }
 
@@ -840,13 +841,12 @@ public:
    * even be simplified.
    * the 2nd and 3rd arguments added for bookkeeping for proofs
    */
-  void addFormula(TNode n, bool inUnsatCore, bool inInput = true)
-    throw(TypeCheckingException, LogicException);
+  void addFormula(TNode n, bool inUnsatCore, bool inInput = true);
 
   /** Expand definitions in n. */
-  Node expandDefinitions(TNode n, NodeToNodeHashMap& cache,
-                         bool expandOnly = false)
-      throw(TypeCheckingException, LogicException, UnsafeInterruptException);
+  Node expandDefinitions(TNode n,
+                         NodeToNodeHashMap& cache,
+                         bool expandOnly = false);
 
   /**
    * Simplify node "in" by expanding definitions and applying any
@@ -983,7 +983,7 @@ public:
 
 }/* namespace CVC4::smt */
 
-SmtEngine::SmtEngine(ExprManager* em) throw()
+SmtEngine::SmtEngine(ExprManager* em)
     : d_context(new Context()),
       d_userLevels(),
       d_userContext(new UserContext()),
@@ -1176,7 +1176,8 @@ void SmtEngine::shutdown() {
   }
 }
 
-SmtEngine::~SmtEngine() throw() {
+SmtEngine::~SmtEngine()
+{
   SmtScope smts(this);
 
   try {
@@ -1248,7 +1249,8 @@ SmtEngine::~SmtEngine() throw() {
   }
 }
 
-void SmtEngine::setLogic(const LogicInfo& logic) throw(ModalException) {
+void SmtEngine::setLogic(const LogicInfo& logic)
+{
   SmtScope smts(this);
   if(d_fullyInited) {
     throw ModalException("Cannot set logic in SmtEngine after the engine has "
@@ -1259,7 +1261,7 @@ void SmtEngine::setLogic(const LogicInfo& logic) throw(ModalException) {
 }
 
 void SmtEngine::setLogic(const std::string& s)
-    throw(ModalException, LogicException) {
+{
   SmtScope smts(this);
   try {
     setLogic(LogicInfo(s));
@@ -1268,16 +1270,12 @@ void SmtEngine::setLogic(const std::string& s)
   }
 }
 
-void SmtEngine::setLogic(const char* logic)
-    throw(ModalException, LogicException) {
-  setLogic(string(logic));
-}
-
+void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
 LogicInfo SmtEngine::getLogicInfo() const {
   return d_logic;
 }
-
-void SmtEngine::setLogicInternal() throw() {
+void SmtEngine::setLogicInternal()
+{
   Assert(!d_fullyInited, "setting logic in SmtEngine but the engine has already"
          " finished initializing for this run");
   d_logic.lock();
@@ -1355,13 +1353,13 @@ void SmtEngine::setDefaults() {
     */
   }
 
-  if(options::checkModels()) {
-    if(! options::produceAssertions()) {
+  if ((options::checkModels() || options::checkSynthSol())
+      && !options::produceAssertions())
+  {
       Notice() << "SmtEngine: turning on produce-assertions to support "
-               << "check-models." << endl;
+               << "check-models or check-synth-sol." << endl;
       setOption("produce-assertions", SExpr("true"));
     }
-  }
 
   if(options::unsatCores()) {
     if(options::simplificationMode() != SIMPLIFICATION_MODE_NONE) {
@@ -1887,6 +1885,16 @@ void SmtEngine::setDefaults() {
     if( !options::instNoEntail.wasSetByUser() ){
       options::instNoEntail.set( false );
     }
+    if (options::sygusRew())
+    {
+      options::sygusRewSynth.set(true);
+      options::sygusRewVerify.set(true);
+    }
+    if (options::sygusRewSynth() || options::sygusRewVerify())
+    {
+      // rewrite rule synthesis implies that sygus stream must be true
+      options::sygusStream.set(true);
+    }
     if (options::sygusStream())
     {
       // PBE and streaming modes are incompatible
@@ -2124,8 +2132,7 @@ void SmtEngine::setDefaults() {
 }
 
 void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
-  throw(OptionException, ModalException) {
-
+{
   SmtScope smts(this);
 
   Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
@@ -2494,8 +2501,7 @@ void SmtEnginePrivate::finishInit() {
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
-  throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
-
+{
   stack< triple<Node, Node, bool> > worklist;
   stack<Node> result;
   worklist.push(make_triple(Node(n), Node(n), false));
@@ -3877,7 +3883,7 @@ void SmtEnginePrivate::doMiplibTrick() {
 
 // returns false if simplification led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
-  throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
+{
   spendResource(options::preprocessStep());
   Assert(d_smt.d_pendingPops == 0);
   try {
@@ -4618,8 +4624,7 @@ void SmtEnginePrivate::processAssertions() {
 }
 
 void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
-  throw(TypeCheckingException, LogicException) {
-
+{
   if (n == d_true) {
     // nothing to do
     return;
@@ -4652,7 +4657,8 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   //d_assertions.push_back(Rewriter::rewrite(n));
 }
 
-void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
+void SmtEngine::ensureBoolean(const Expr& e)
+{
   Type type = e.getType(options::typeChecking());
   Type boolType = d_exprManager->booleanType();
   if(type != boolType) {
@@ -4664,11 +4670,13 @@ void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
   }
 }
 
-Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore) throw(Exception) {
+Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore)
+{
   return checkSatisfiability(ex, inUnsatCore, false);
 } /* SmtEngine::checkSat() */
 
-Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(Exception) {
+Result SmtEngine::query(const Expr& ex, bool inUnsatCore)
+{
   Assert(!ex.isNull());
   return checkSatisfiability(ex, inUnsatCore, true);
 } /* SmtEngine::query() */
@@ -4702,17 +4710,19 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
       d_needPostsolve = false;
     }
 
-    // Push the context
-    internalPush();
-
     // Note that a query has been made
     d_queryMade = true;
 
     // reset global negation
     d_globalNegation = false;
 
+    bool didInternalPush = false;
     // Add the formula
     if(!e.isNull()) {
+      // Push the context
+      internalPush();
+      didInternalPush = true;
+
       d_problemExtended = true;
       Expr ea = isQuery ? e.notExpr() : e;
       if(d_assertionList != NULL) {
@@ -4763,7 +4773,10 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
     }
 
     // Pop the context
-    internalPop();
+    if (didInternalPush)
+    {
+      internalPop();
+    }
 
     // Remember the status
     d_status = r;
@@ -4793,6 +4806,12 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
         checkUnsatCore();
       }
     }
+    // Check that synthesis solutions satisfy the conjecture
+    if (options::checkSynthSol()
+        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      checkSynthSolution();
+    }
 
     return r;
   } catch (UnsafeInterruptException& e) {
@@ -4803,7 +4822,8 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
   }
 }
 
-Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
+Result SmtEngine::checkSynth(const Expr& e)
+{
   SmtScope smts(this);
   Trace("smt") << "Check synth: " << e << std::endl;
   Trace("smt-synth") << "Check synthesis conjecture: " << e << std::endl;
@@ -4928,7 +4948,8 @@ Result SmtEngine::checkSynth(const Expr& e) throw(Exception) {
   return checkSatisfiability( e_check, true, false );
 }
 
-Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore) throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
+Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
+{
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -4955,7 +4976,8 @@ Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
   return node;
 }
 
-Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
+Expr SmtEngine::simplify(const Expr& ex)
+{
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -4978,7 +5000,8 @@ Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicExcep
   return n.toExpr();
 }
 
-Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
+Expr SmtEngine::expandDefinitions(const Expr& ex)
+{
   d_private->spendResource(options::preprocessStep());
 
   Assert(ex.getExprManager() == d_exprManager);
@@ -5004,7 +5027,8 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException) {
+Expr SmtEngine::getValue(const Expr& ex) const
+{
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
 
@@ -5475,6 +5499,104 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
 }
 
+void SmtEngine::checkSynthSolution()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Notice() << "SmtEngine::checkSynthSolution(): checking synthesis solution" << endl;
+  map<Node, Node> sol_map;
+  /* Get solutions and build auxiliary vectors for substituting */
+  d_theoryEngine->getSynthSolutions(sol_map);
+  Trace("check-synth-sol") << "Got solution map:\n";
+  std::vector<Node> function_vars, function_sols;
+  for (const auto& pair : sol_map)
+  {
+    Trace("check-synth-sol") << pair.first << " --> " << pair.second << "\n";
+    function_vars.push_back(pair.first);
+    function_sols.push_back(pair.second);
+  }
+  Trace("check-synth-sol") << "Starting new SMT Engine\n";
+  /* Start new SMT engine to check solutions */
+  SmtEngine solChecker(d_exprManager);
+  solChecker.setLogic(getLogicInfo());
+  setOption("check-synth-sol", SExpr("false"));
+
+  Trace("check-synth-sol") << "Retrieving assertions\n";
+  // Build conjecture from original assertions
+  if (d_assertionList == NULL)
+  {
+    Trace("check-synth-sol") << "No assertions to check\n";
+    return;
+  }
+  for (AssertionList::const_iterator i = d_assertionList->begin();
+       i != d_assertionList->end();
+       ++i)
+  {
+    Notice() << "SmtEngine::checkSynthSolution(): checking assertion " << *i << endl;
+    Trace("check-synth-sol") << "Retrieving assertion " << *i << "\n";
+    Node conj = Node::fromExpr(*i);
+    // Apply any define-funs from the problem.
+    {
+      unordered_map<Node, Node, NodeHashFunction> cache;
+      conj = d_private->expandDefinitions(conj, cache);
+    }
+    Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << conj << endl;
+    Trace("check-synth-sol") << "Expanded assertion " << conj << "\n";
+
+    // Apply solution map to conjecture body
+    Node conjBody;
+    /* Whether property is quantifier free */
+    if (conj[1].getKind() != kind::EXISTS)
+    {
+      conjBody = conj[1].substitute(function_vars.begin(),
+                                    function_vars.end(),
+                                    function_sols.begin(),
+                                    function_sols.end());
+    }
+    else
+    {
+      conjBody = conj[1][1].substitute(function_vars.begin(),
+                                       function_vars.end(),
+                                       function_sols.begin(),
+                                       function_sols.end());
+
+      /* Skolemize property */
+      std::vector<Node> vars, skos;
+      for (unsigned j = 0, size = conj[1][0].getNumChildren(); j < size; ++j)
+      {
+        vars.push_back(conj[1][0][j]);
+        std::stringstream ss;
+        ss << "sk_" << j;
+        skos.push_back(nm->mkSkolem(ss.str(), conj[1][0][j].getType()));
+        Trace("check-synth-sol") << "\tSkolemizing " << conj[1][0][j] << " to "
+                                 << skos.back() << "\n";
+      }
+      conjBody = conjBody.substitute(
+          vars.begin(), vars.end(), skos.begin(), skos.end());
+    }
+    Notice() << "SmtEngine::checkSynthSolution(): -- body substitutes to "
+             << conjBody << endl;
+    Trace("check-synth-sol") << "Substituted body of assertion to " << conjBody
+                             << "\n";
+    solChecker.assertFormula(conjBody.toExpr());
+    Result r = solChecker.checkSat();
+    Notice() << "SmtEngine::checkSynthSolution(): result is " << r << endl;
+    Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
+    if (r.asSatisfiabilityResult().isUnknown())
+    {
+      InternalError(
+          "SmtEngine::checkSynthSolution(): could not check solution, result "
+          "unknown.");
+    }
+    else if (r.asSatisfiabilityResult().isSat())
+    {
+      InternalError(
+          "SmtEngine::checkSynhtSol(): produced solution allows satisfiable "
+          "negated conjecture.");
+    }
+    solChecker.resetAssertions();
+  }
+}
+
 // TODO(#1108): Simplify the error reporting of this method.
 UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
@@ -5553,8 +5675,8 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
   }
 }
 
-Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull,
-                                        bool strict) throw(Exception) {
+Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
+{
   SmtScope smts(this);
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
@@ -5677,7 +5799,8 @@ vector<Expr> SmtEngine::getAssertions() {
   return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
 }
 
-void SmtEngine::push() throw(ModalException, LogicException, UnsafeInterruptException) {
+void SmtEngine::push()
+{
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
@@ -5787,7 +5910,8 @@ void SmtEngine::doPendingPops() {
   }
 }
 
-void SmtEngine::reset() throw() {
+void SmtEngine::reset()
+{
   SmtScope smts(this);
   ExprManager *em = d_exprManager;
   Trace("smt") << "SMT reset()" << endl;
@@ -5801,7 +5925,8 @@ void SmtEngine::reset() throw() {
   new(this) SmtEngine(em);
 }
 
-void SmtEngine::resetAssertions() throw() {
+void SmtEngine::resetAssertions()
+{
   SmtScope smts(this);
   doPendingPops();
 
@@ -5823,7 +5948,8 @@ void SmtEngine::resetAssertions() throw() {
   d_context->push();
 }
 
-void SmtEngine::interrupt() throw(ModalException) {
+void SmtEngine::interrupt()
+{
   if(!d_fullyInited) {
     return;
   }
@@ -5846,19 +5972,23 @@ unsigned long SmtEngine::getTimeUsage() const {
   return d_private->getResourceManager()->getTimeUsage();
 }
 
-unsigned long SmtEngine::getResourceRemaining() const throw(ModalException) {
+unsigned long SmtEngine::getResourceRemaining() const
+{
   return d_private->getResourceManager()->getResourceRemaining();
 }
 
-unsigned long SmtEngine::getTimeRemaining() const throw(ModalException) {
+unsigned long SmtEngine::getTimeRemaining() const
+{
   return d_private->getResourceManager()->getTimeRemaining();
 }
 
-Statistics SmtEngine::getStatistics() const throw() {
+Statistics SmtEngine::getStatistics() const
+{
   return Statistics(*d_statisticsRegistry);
 }
 
-SExpr SmtEngine::getStatistic(std::string name) const throw() {
+SExpr SmtEngine::getStatistic(std::string name) const
+{
   return d_statisticsRegistry->getStatistic(name);
 }
 
@@ -5901,9 +6031,8 @@ void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
   }
 }
 
-
-
-void SmtEngine::beforeSearch() throw(ModalException) {
+void SmtEngine::beforeSearch()
+{
   if(d_fullyInited) {
     throw ModalException(
         "SmtEngine::beforeSearch called after initialization.");
@@ -5912,8 +6041,7 @@ void SmtEngine::beforeSearch() throw(ModalException) {
 
 
 void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
-  throw(OptionException, ModalException) {
-
+{
   NodeManagerScope nms(d_nodeManager);
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
@@ -5949,8 +6077,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
 }
 
 CVC4::SExpr SmtEngine::getOption(const std::string& key) const
-  throw(OptionException) {
-
+{
   NodeManagerScope nms(d_nodeManager);
 
   Trace("smt") << "SMT getOption(" << key << ")" << endl;

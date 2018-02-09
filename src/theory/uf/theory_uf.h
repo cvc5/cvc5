@@ -234,34 +234,30 @@ public:
 
   ~TheoryUF();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
-  void finishInit();
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  void finishInit() override;
 
-  void check(Effort);  
-  Node expandDefinition(LogicRequest &logicRequest, Node node);
-  void preRegisterTerm(TNode term);
-  Node explain(TNode n);
+  void check(Effort) override;
+  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
+  void preRegisterTerm(TNode term) override;
+  Node explain(TNode n) override;
 
   bool collectModelInfo(TheoryModel* m) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
-  void presolve();
+  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+  void presolve() override;
 
-  void addSharedTerm(TNode n);
-  void computeCareGraph();
+  void addSharedTerm(TNode n) override;
+  void computeCareGraph() override;
 
-  void propagate(Effort effort);
-  Node getNextDecisionRequest( unsigned& priority );
+  void propagate(Effort effort) override;
+  Node getNextDecisionRequest(unsigned& priority) override;
 
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
-  std::string identify() const {
-    return "THEORY_UF";
-  }
+  std::string identify() const override { return "THEORY_UF"; }
 
-  eq::EqualityEngine* getEqualityEngine() {
-    return &d_equalityEngine;
-  }
+  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
   StrongSolverTheoryUF* getStrongSolver() {
     return d_thss;
