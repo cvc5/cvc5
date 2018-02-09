@@ -31,7 +31,7 @@
 namespace CVC4 {
 namespace context {
 
-#ifdef CVC4_CONTEXT_MEMORY_MANAGER
+#ifndef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
 
 void ContextMemoryManager::newChunk() {
 
@@ -168,7 +168,7 @@ void ContextMemoryManager::pop() {
   }
 }
 
-#endif /* CVC4_CONTEXT_MEMORY_MANAGER */
+#endif /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
 
 } /* CVC4::context namespace */
 } /* CVC4 namespace */
