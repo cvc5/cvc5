@@ -77,7 +77,7 @@ inline timespec& operator-=(timespec& a, const timespec& b) {
     nsec -= nsec_per_sec;
     ++a.tv_sec;
   }
-  DCHECK(nsec >= 0 && nsec < nsec_per_sec);
+  CVC4_DCHECK(nsec >= 0 && nsec < nsec_per_sec);
   a.tv_nsec = nsec;
   return a;
 }
@@ -168,9 +168,10 @@ void StatisticsRegistry::registerStat(Stat* s)
 void StatisticsRegistry::unregisterStat(Stat* s)
 {
 #ifdef CVC4_STATISTICS_ON
-  CHECK(s != nullptr);
-  CHECK(d_stats.erase(s) > 0) << "Statistic `" << s->getName()
-                              << "' was not registered with this registry.";
+  CVC4_CHECK(s != nullptr);
+  CVC4_CHECK(d_stats.erase(s) > 0)
+      << "Statistic `" << s->getName()
+      << "' was not registered with this registry.";
 #endif /* CVC4_STATISTICS_ON */
 } /* StatisticsRegistry::unregisterStat() */
 
@@ -202,7 +203,7 @@ void TimerStat::start() {
 
 void TimerStat::stop() {
   if(__CVC4_USE_STATISTICS) {
-    CHECK(d_running) << "timer not running";
+    CVC4_CHECK(d_running) << "timer not running";
     ::timespec end;
     clock_gettime(CLOCK_MONOTONIC, &end);
     d_data += end - d_start;
