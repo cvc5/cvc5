@@ -77,9 +77,18 @@ class DynamicRewriter
   class OpInternalSymTrie
   {
    public:
-    Node d_sym;
-    std::map<TypeNode, OpInternalSymTrie> d_children;
+    /** 
+     * Get the uninterpreted function corresponding to the top-most symbol 
+     * of the internal representation of term n. This will return a skolem 
+     * of the same type as n.getOperator() if it has one, or of the same type
+     * as n itself otherwise.
+     */ 
     Node getSymbol(Node n);
+   private:
+    /** the symbol at this node in the trie */
+    Node d_sym;
+    /** the children of this node in the trie */
+    std::map<TypeNode, OpInternalSymTrie> d_children;
   };
   /** the internal operator symbol trie for this class */
   std::map<Node, OpInternalSymTrie> d_ois_trie;
