@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -112,7 +112,7 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
             }
             else
             {
-              maxval *= utils::mkBitVectorOnes(visited[nn]).getValue();
+              maxval *= BitVector::mkOnes(visited[nn]).getValue();
             }
           }
           unsigned w = maxval.length();
@@ -179,7 +179,7 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
             }
             else
             {
-              maxval += utils::mkBitVectorOnes(visited[nn]).getValue();
+              maxval += BitVector::mkOnes(visited[nn]).getValue();
             }
           }
           unsigned w = maxval.length();
