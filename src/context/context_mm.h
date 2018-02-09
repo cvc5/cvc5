@@ -27,7 +27,7 @@
 namespace CVC4 {
 namespace context {
 
-#ifdef CVC4_CONTEXT_MEMORY_MANAGER
+#ifndef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
 
 /**
  * Region-based memory manager for contexts.  Calls to newData provide memory
@@ -148,11 +148,14 @@ class ContextMemoryManager {
 
 };/* class ContextMemoryManager */
 
-#else /* CVC4_CONTEXT_MEMORY_MANAGER */
+#else /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
+
+#warning \
+    "Using the debug version of ContextMemoryManager, expect performance degradation"
 
 /**
  * Dummy implementation of the ContextMemoryManager for debugging purposes. Use
- * the configure flag "--disable-context-memory-manager" to use this
+ * the configure flag "--enable-debug-context-memory-manager" to use this
  * implementation.
  */
 class ContextMemoryManager
@@ -164,6 +167,16 @@ class ContextMemoryManager
   }
 
   ContextMemoryManager() { d_allocations.push_back(std::vector<char*>()); }
+  ~ContextMemoryManager()
+  {
+    for (const auto& levelAllocs : d_allocations)
+    {
+      for (auto alloc : levelAllocs)
+      {
+        free(alloc);
+      }
+    }
+  }
 
   void* newData(size_t size)
   {
@@ -187,7 +200,7 @@ class ContextMemoryManager
   std::vector<std::vector<char*>> d_allocations;
 }; /* ContextMemoryManager */
 
-#endif /* CVC4_CONTEXT_MEMORY_MANAGER */
+#endif /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
 
 /**
  * An STL-like allocator class for allocating from context memory.
