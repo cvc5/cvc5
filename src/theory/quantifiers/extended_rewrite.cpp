@@ -226,8 +226,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
             Node cmpj = isAnd ? ret[j] : nm->mkNode( BITVECTOR_NOT, ret[j] );
             if( i<j && bitvectorDisjoint( cmpi, cmpj ) )
             {
-              unsigned size = bv::utils::getSize(ret);
-              new_ret = isAnd ? bv::utils::mkZero(size) : bv::utils::mkOnes(size);
+              new_ret = mkConstBv( ret, !isAnd );
               debugExtendedRewrite( ret, new_ret, "AND/OR-disjoint" );
               break;
             }
@@ -273,10 +272,11 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       std::vector< Node > cchildren;
       Node base = decomposeChain( k, ret, cchildren );
       
-      std::vector< Node > bchildren;
       if( k == BITVECTOR_LSHR )
       {
-        if( base.getKind()==BITVECTOR_OR )
+        std::vector< Node > bchildren;
+        Kind bk = base.getKind();
+        if( bk==BITVECTOR_OR || bk==BITVECTOR_XOR )
         {
           for( const Node& cr : base ) 
           {
@@ -290,6 +290,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         std::vector< Node > bctemp;
         bctemp.insert(bctemp.end(),bchildren.begin(),bchildren.end());
         bchildren.clear();
+        bool childChanged = false;
         for( const Node& bc : bctemp )
         {
           // take into account NOT
@@ -304,43 +305,33 @@ Node ExtendedRewriter::extendedRewrite(Node n)
             }
           }
           // we are not able to shift away its 1-bits
-          if( !shifted )
+          if( shifted )
+          {
+            // rewrite rule #20
+            // if we shifted it away, then it might has well have been all 0's.
+            Node const_bv = mkConstBv( bc, bc.getKind()==BITVECTOR_NOT );
+            bchildren.push_back( const_bv );
+            childChanged = true;
+          }
+          else
           {
             bchildren.push_back( bc );
           }
-          else if( bc.getKind()==BITVECTOR_NOT )
-          {
-            // rewrite rule #20
-            // if we shifted it away its bits and it was negated,
-            // then it might has well have been all 1's.
-            unsigned size = bv::utils::getSize(bc);
-            Node max = bv::utils::mkOnes(size);
-            bchildren.push_back( max );
-          }
         }
-      }
-      else
-      {
-        bchildren.push_back( base );
-      }
-      if( bchildren.empty() )
-      {
-        unsigned size = bv::utils::getSize(base);
-        new_ret = bv::utils::mkZero(size);
-      }
-      else
-      {
-        base = bchildren.size()==1 ? bchildren[0] : nm->mkNode( BITVECTOR_OR, bchildren );
-        std::sort( cchildren.begin(), cchildren.end() );
-        new_ret = mkChain( k, base, cchildren );
-        if( new_ret==ret )
+        if( childChanged )
         {
-          new_ret = Node::null();
+          base = bchildren.size()==1 ? bchildren[0] : nm->mkNode( bk, bchildren );
         }
       }
-      if( !new_ret.isNull() )
+      std::sort( cchildren.begin(), cchildren.end() );
+      new_ret = mkChain( k, base, cchildren );
+      if( new_ret==ret )
       {
-        debugExtendedRewrite( orig_n, n, "shift-sort-arith" );
+        new_ret = Node::null();
+      }
+      else
+      {
+        debugExtendedRewrite( ret, new_ret, "shift-sort-arith" );
       }
     }
     else if( k == BITVECTOR_PLUS || k == BITVECTOR_MULT )
@@ -510,6 +501,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
 
 bool ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
 {
+  Assert( a.getType()==b.getType() );
   Trace("q-ext-rewrite-debug2") << "Subsume " << a << " " << b << "?" << std::endl;
   if( a==b )
   {
@@ -567,6 +559,7 @@ bool ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
 
 bool ExtendedRewriter::bitVectorArithComp( Node a, Node b, bool strict )
 {
+  Assert( a.getType()==b.getType() );
   if( bitVectorSubsume(a,b,strict) )
   {
     return true;
@@ -589,6 +582,7 @@ bool ExtendedRewriter::bitVectorArithComp( Node a, Node b, bool strict )
 
 bool ExtendedRewriter::bitvectorDisjoint( Node a, Node b )
 {
+  Assert( a.getType()==b.getType() );
   if( a.isConst() && b.isConst() )
   {
     // TODO
@@ -648,6 +642,12 @@ Node ExtendedRewriter::mkChain( Kind k, Node base, std::vector< Node >& children
     curr = nm->mkNode( k, curr, c );
   }
   return curr;
+}
+
+Node ExtendedRewriter::mkConstBv( Node n, bool isNot )
+{
+  unsigned size = bv::utils::getSize(n);
+  return isNot ? bv::utils::mkOnes(size) : bv::utils::mkZero(size);
 }
 
 void ExtendedRewriter::debugExtendedRewrite( Node n, Node ret, const char * c )
