@@ -112,14 +112,11 @@ Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
           || k == kind::BITVECTOR_SUB
           || k == kind::BITVECTOR_MULT);
 
-  std::set<TNode> all(nodes.begin(), nodes.end());
-  Assert(all.size() > 0);
-
   /* All the same, or just one  */
-  if (all.size() == 1) { return nodes[0]; }
+  if (nodes.size() == 1) { return nodes[0]; }
 
-  NodeBuilder<> nb(kind::OR);
-  for (const Node& n : all) { nb << n; }
+  NodeBuilder<> nb(k);
+  for (const Node& n : nodes) { nb << n; }
   return nb.constructNode();
 }
 
