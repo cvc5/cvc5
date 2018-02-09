@@ -292,20 +292,30 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         bchildren.clear();
         for( const Node& bc : bctemp )
         {
+          // take into account NOT
+          Node bca = bc.getKind()==BITVECTOR_NOT ? bc[0] : bc;
           bool shifted = false;
           for( const Node& cc : cchildren )
           {
-            if( bitVectorArithComp( cc, bc ) )
+            if( bitVectorArithComp( cc, bca ) )
             {
               shifted = true;
               break;
             }
           }
-          // for each child of an OR, if we shift more than this component,
-          // it can be removed.
+          // we are not able to shift away its 1-bits
           if( !shifted )
           {
             bchildren.push_back( bc );
+          }
+          else if( bc.getKind()==BITVECTOR_NOT )
+          {
+            // rewrite rule #20
+            // if we shifted it away its bits and it was negated,
+            // then it might has well have been all 1's.
+            unsigned size = bv::utils::getSize(bc);
+            Node max = bv::utils::mkOnes(size);
+            bchildren.push_back( max );
           }
         }
       }
@@ -505,6 +515,10 @@ bool ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
   {
     return !strict;
   }
+  if( a.isConst() && b.isConst() )
+  {
+    // TODO
+  }
   if( a.getKind()==BITVECTOR_OR )
   {
     for( const Node& ac : a )
@@ -557,6 +571,10 @@ bool ExtendedRewriter::bitVectorArithComp( Node a, Node b, bool strict )
   {
     return true;
   }
+  if( a.isConst() && b.isConst() )
+  {
+    // TODO
+  }
   // shifting right always shrinks
   if( b.getKind() == BITVECTOR_LSHR )
   {
@@ -571,6 +589,10 @@ bool ExtendedRewriter::bitVectorArithComp( Node a, Node b, bool strict )
 
 bool ExtendedRewriter::bitvectorDisjoint( Node a, Node b )
 {
+  if( a.isConst() && b.isConst() )
+  {
+    // TODO
+  }
   for( unsigned r=0; r<2; r++ )
   {
     Node x = r==0 ? a : b;
