@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H
-#define __CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
+#define __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
 
 #include <map>
 #include "theory/quantifiers_engine.h"
@@ -116,4 +116,4 @@ class SygusRedundantCons
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H */
+#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H */
