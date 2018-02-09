@@ -22,77 +22,78 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
-DynamicRewriter::DynamicRewriter( const std::string& name, QuantifiersEngine * qe ) : 
-d_qe(qe),
-d_equalityEngine(qe->getUserContext(), "DynamicRewriter::" + name,true){
+
+DynamicRewriter::DynamicRewriter(const std::string& name, QuantifiersEngine* qe)
+    : d_qe(qe),
+      d_equalityEngine(qe->getUserContext(), "DynamicRewriter::" + name, true)
+{
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 }
 
-bool DynamicRewriter::addRewrite( Node a, Node b )
+bool DynamicRewriter::addRewrite(Node a, Node b)
 {
   Trace("dyn-rewrite") << "Dyn-Rewriter : " << a << " == " << b << std::endl;
-  if( a==b )
+  if (a == b)
   {
     Trace("dyn-rewrite") << "...fail, equal." << std::endl;
     return false;
   }
-  
+
   // add to the equality engine
-  Node ai = toInternal( a );
-  Node bi = toInternal( b );
+  Node ai = toInternal(a);
+  Node bi = toInternal(b);
   d_equalityEngine.addTerm(ai);
   d_equalityEngine.addTerm(bi);
-  
+
   // may already be equal by congruence
   Node air = d_equalityEngine.getRepresentative(ai);
   Node bir = d_equalityEngine.getRepresentative(bi);
-  if( air==bir )
+  if (air == bir)
   {
     Trace("dyn-rewrite") << "...fail, congruent." << std::endl;
     return false;
   }
-  
+
   Node eq = ai.eqNode(bi);
-  d_equalityEngine.assertEquality(eq,true,eq);
+  d_equalityEngine.assertEquality(eq, true, eq);
   return true;
 }
 
-Node DynamicRewriter::toInternal( Node a )
+Node DynamicRewriter::toInternal(Node a)
 {
-  std::map< Node, Node >::iterator it = d_term_to_internal.find( a );
-  if( it != d_term_to_internal.end() )
+  std::map<Node, Node>::iterator it = d_term_to_internal.find(a);
+  if (it != d_term_to_internal.end())
   {
-    return it->second; 
+    return it->second;
   }
   Node ret = a;
-  
-  if( !a.isVar() )
+
+  if (!a.isVar())
   {
-    std::vector< Node > children;
-    if( a.hasOperator() )
+    std::vector<Node> children;
+    if (a.hasOperator())
     {
       Node op = a.getOperator();
-      if( a.getKind()!=APPLY_UF )
+      if (a.getKind() != APPLY_UF)
       {
-        op = d_ois_trie[op].getSymbol( a );
+        op = d_ois_trie[op].getSymbol(a);
       }
-      children.push_back( op );
+      children.push_back(op);
     }
-    for( const Node& ca : a )
+    for (const Node& ca : a)
     {
-      Node cai = toInternal( ca );
-      children.push_back( cai );
+      Node cai = toInternal(ca);
+      children.push_back(cai);
     }
-    if( !children.empty() )
+    if (!children.empty())
     {
-      if( children.size()==1 )
+      if (children.size() == 1)
       {
         ret = children[0];
       }
       else
       {
-        ret = NodeManager::currentNM()->mkNode( APPLY_UF, children );
+        ret = NodeManager::currentNM()->mkNode(APPLY_UF, children);
       }
     }
   }
@@ -102,25 +103,25 @@ Node DynamicRewriter::toInternal( Node a )
 
 Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
 {
-  std::vector< TypeNode > ctypes;
-  for( const Node& cn : n )
+  std::vector<TypeNode> ctypes;
+  for (const Node& cn : n)
   {
-    ctypes.push_back( cn.getType() );
+    ctypes.push_back(cn.getType());
   }
-  ctypes.push_back( n.getType() );
-  
-  OpInternalSymTrie * curr = this;
-  for( unsigned i=0,size=ctypes.size(); i<size; i++ )
+  ctypes.push_back(n.getType());
+
+  OpInternalSymTrie* curr = this;
+  for (unsigned i = 0, size = ctypes.size(); i < size; i++)
   {
-    curr = &( curr->d_children[ctypes[i]] );
+    curr = &(curr->d_children[ctypes[i]]);
   }
-  if( !curr->d_sym.isNull() )
+  if (!curr->d_sym.isNull())
   {
     return curr->d_sym;
   }
   // make UF operator
   TypeNode utype;
-  if( ctypes.size()==1 )
+  if (ctypes.size() == 1)
   {
     utype = ctypes[0];
   }
@@ -128,11 +129,12 @@ Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
   {
     utype = NodeManager::currentNM()->mkFunctionType(ctypes);
   }
-  Node f = NodeManager::currentNM()->mkSkolem("ufd",utype,"internal op for dynamic_rewriter");
+  Node f = NodeManager::currentNM()->mkSkolem(
+      "ufd", utype, "internal op for dynamic_rewriter");
   curr->d_sym = f;
   return f;
 }
-  
+
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
