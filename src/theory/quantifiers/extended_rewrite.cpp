@@ -269,120 +269,11 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
     else if( k == BITVECTOR_LSHR || k == BITVECTOR_SHL )
     {
-      std::vector< Node > cchildren;
-      Node base = decomposeChain( k, ret, cchildren );
-      
-      if( k == BITVECTOR_LSHR )
-      {
-        std::vector< Node > bchildren;
-        Kind bk = base.getKind();
-        if( bk==BITVECTOR_OR || bk==BITVECTOR_XOR )
-        {
-          for( const Node& cr : base ) 
-          {
-            bchildren.push_back(cr);
-          }
-        }
-        else
-        {
-          bchildren.push_back(base);
-        }
-        std::vector< Node > bctemp;
-        bctemp.insert(bctemp.end(),bchildren.begin(),bchildren.end());
-        bchildren.clear();
-        bool childChanged = false;
-        for( const Node& bc : bctemp )
-        {
-          // take into account NOT
-          Node bca = bc.getKind()==BITVECTOR_NOT ? bc[0] : bc;
-          bool shifted = false;
-          for( const Node& cc : cchildren )
-          {
-            if( bitVectorArithComp( cc, bca ) )
-            {
-              shifted = true;
-              break;
-            }
-          }
-          // we are not able to shift away its 1-bits
-          if( shifted )
-          {
-            // rewrite rule #20
-            // if we shifted it away, then it might has well have been all 0's.
-            Node const_bv = mkConstBv( bc, bc.getKind()==BITVECTOR_NOT );
-            bchildren.push_back( const_bv );
-            childChanged = true;
-          }
-          else
-          {
-            bchildren.push_back( bc );
-          }
-        }
-        if( childChanged )
-        {
-          base = bchildren.size()==1 ? bchildren[0] : nm->mkNode( bk, bchildren );
-        }
-      }
-      std::sort( cchildren.begin(), cchildren.end() );
-      new_ret = mkChain( k, base, cchildren );
-      if( new_ret==ret )
-      {
-        new_ret = Node::null();
-      }
-      else
-      {
-        debugExtendedRewrite( ret, new_ret, "shift-sort-arith" );
-      }
+      new_ret = rewriteBvShift( ret );
     }
     else if( k == BITVECTOR_PLUS || k == BITVECTOR_MULT )
     {
-      std::vector< Node > rchildren;
-      bool rchildrenChanged = false;
-      for( const Node& rc : ret )
-      {
-        Node rcc = rc;
-        if( rcc.getKind()==BITVECTOR_NOT )
-        {
-          // ~x + y ----> -(x+1)+y
-          unsigned size = bv::utils::getSize(rc[0]);
-          rcc = nm->mkNode( BITVECTOR_NEG, nm->mkNode( BITVECTOR_PLUS, rc[0], bv::utils::mkOne(size) ) );
-          rchildrenChanged = true;
-        }
-        rchildren.push_back( rcc );
-      }
-      if( rchildrenChanged )
-      {
-        new_ret = nm->mkNode( k, rchildren );
-        debugExtendedRewrite( ret, new_ret, "PLUS-not-child" );
-        new_ret = extendedRewrite( new_ret );
-      }
-      else if( k == BITVECTOR_PLUS )
-      {
-        bool success = true;
-        unsigned size=ret.getNumChildren();
-        for( unsigned i=0; i<size; i++ )
-        {
-          for( unsigned j=(i+1); j<size; j++ )
-          {
-            if( !bitvectorDisjoint( ret[i], ret[j] ) )
-            {
-              success = false;
-              break;
-            }
-          }
-          if( !success )
-          {
-            break;
-          }
-        }
-        if( success )
-        {
-          // if we prove disjointness, PLUS turns into OR
-          // ( ( x ^ y ) ---> 0 ) => ( x+y ----> x V y )
-          new_ret = nm->mkNode( BITVECTOR_OR, ret[0], ret[1] );
-          debugExtendedRewrite( ret, new_ret, "PLUS-disjoint" );
-        }
-      }
+      new_ret = rewriteBvArith( ret );
     }
     else if( k == BITVECTOR_NEG )
     {
@@ -395,23 +286,25 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
       else if( ret[0].getKind()==BITVECTOR_NOT )
       {
-        unsigned size = bv::utils::getSize(ret[0][0]);
-        new_ret = nm->mkNode( BITVECTOR_PLUS, ret[0][0], bv::utils::mkOne(size) );
-        debugExtendedRewrite( ret, new_ret, "NEG-NOT-miniscope" );
-        new_ret = extendedRewrite( new_ret );
+        if( ret[0][0].getKind()==BITVECTOR_PLUS && hasConstBvChild( ret[0][0] ) )
+        {
+          unsigned size = bv::utils::getSize(ret[0][0]);
+          new_ret = nm->mkNode( BITVECTOR_PLUS, ret[0][0], bv::utils::mkOne(size) );
+          debugExtendedRewrite( ret, new_ret, "NEG-NOT-plus-miniscope" );
+          new_ret = extendedRewrite( new_ret );
+        }
       }
     }
     else if( k == BITVECTOR_NOT )
     {
-      // ~( -( x ) ) ----> x+1
-      // ~( x+y ) ----> -(x+y)+1
+      // ~( x+y ) ----> -(x+y)-1
       Kind ck = ret[0].getKind();
-      if( ck==BITVECTOR_NEG || ck==BITVECTOR_PLUS )
+      if( ck==BITVECTOR_PLUS && hasConstBvChild( ret[0] ) )
       {
-        Node c = ck==BITVECTOR_NEG ? ret[0][0] : nm->mkNode( BITVECTOR_NEG, ret[0] );
-        unsigned size = bv::utils::getSize(c);
-        new_ret = nm->mkNode( BITVECTOR_PLUS, c, bv::utils::mkOnes(size) );
-        debugExtendedRewrite( ret, new_ret, "NOT-arith-miniscope" );
+        Node max_bv = mkConstBv(ret[0],true);
+        Node c = nm->mkNode( BITVECTOR_NEG, ret[0] );
+        new_ret = nm->mkNode( BITVECTOR_PLUS, c, max_bv );
+        debugExtendedRewrite( ret, new_ret, "NOT-plus-miniscope" );
         new_ret = extendedRewrite( new_ret );
       }
     }
@@ -498,6 +391,173 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   }
 }  
 
+Node ExtendedRewriter::rewriteBvArith( Node ret )
+{
+  Kind k = ret.getKind();
+  Assert( k == BITVECTOR_PLUS || k == BITVECTOR_MULT );
+  NodeManager * nm = NodeManager::currentNM();
+  Node new_ret;
+  unsigned size = bv::utils::getSize(ret);
+  Node bv_one = bv::utils::mkOne(size);
+  Node bv_neg_one = bv::utils::mkOnes(size);
+  if( k == BITVECTOR_PLUS )
+  {
+    std::vector< Node > nconst;
+    Node cc = getConstBvChild(ret, nconst);
+    if( !cc.isNull() && ( cc==bv_one || cc==bv_neg_one ) )
+    {
+      Node rem = nconst.size()==1 ? nconst[0] : nm->mkNode( k, nconst );
+      if( cc==bv_one )
+      {
+        // x+1 ---> -( ~x )
+        new_ret = nm->mkNode( BITVECTOR_NEG, nm->mkNode( BITVECTOR_NOT, rem ) );
+      }
+      else if( cc==bv_neg_one )
+      {
+        // x-1 ---> ~( -x )
+        new_ret = nm->mkNode( BITVECTOR_NOT, nm->mkNode( BITVECTOR_NEG, rem ) );
+      }
+    }
+    if( !new_ret.isNull() )
+    {
+      debugExtendedRewrite( ret, new_ret, "arith-plus-elim" );
+      return new_ret;
+    }
+  }
+  
+  std::vector< Node > rchildren;
+  bool rchildrenChanged = false;
+  for( const Node& rc : ret )
+  {
+    bool isNeg = rc.getKind()==BITVECTOR_NEG;
+    Node rcc = isNeg ? rc[0] : rc;
+    if( rcc.getKind()==BITVECTOR_NOT )
+    {
+      // ~x----> -(x+1)
+      rcc = nm->mkNode( BITVECTOR_NEG, nm->mkNode( BITVECTOR_PLUS, rcc[0], bv_one ) );
+      rchildrenChanged = true;
+    }
+    if( isNeg )
+    {
+      // negate it
+      if( rcc.getKind()==BITVECTOR_NEG )
+      {
+        rcc = rcc[0];
+      }
+      else
+      {
+        rcc = nm->mkNode( BITVECTOR_NEG, rcc );
+      }
+    }
+    rchildren.push_back( rcc );
+  }
+  if( rchildrenChanged )
+  {
+    new_ret = nm->mkNode( k, rchildren );
+    debugExtendedRewrite( ret, new_ret, "arith-not-child" );
+    return new_ret;
+  }
+  else if( k == BITVECTOR_PLUS )
+  {
+    bool success = true;
+    unsigned size=ret.getNumChildren();
+    for( unsigned i=0; i<size; i++ )
+    {
+      for( unsigned j=(i+1); j<size; j++ )
+      {
+        if( !bitvectorDisjoint( ret[i], ret[j] ) )
+        {
+          success = false;
+          break;
+        }
+      }
+      if( !success )
+      {
+        break;
+      }
+    }
+    if( success )
+    {
+      // if we prove disjointness, PLUS turns into OR
+      // ( ( x ^ y ) ---> 0 ) => ( x+y ----> x V y )
+      new_ret = nm->mkNode( BITVECTOR_OR, ret[0], ret[1] );
+      debugExtendedRewrite( ret, new_ret, "PLUS-disjoint" );
+      return new_ret;
+    }
+  }
+  return Node::null();
+}
+
+Node ExtendedRewriter::rewriteBvShift( Node ret )
+{
+  Kind k = ret.getKind();
+  Assert( k == BITVECTOR_LSHR || k == BITVECTOR_SHL );
+  NodeManager * nm = NodeManager::currentNM();
+  Node new_ret;
+  
+  std::vector< Node > cchildren;
+  Node base = decomposeChain( k, ret, cchildren );
+  
+  if( k == BITVECTOR_LSHR )
+  {
+    std::vector< Node > bchildren;
+    Kind bk = base.getKind();
+    if( bk==BITVECTOR_OR || bk==BITVECTOR_XOR )
+    {
+      for( const Node& cr : base ) 
+      {
+        bchildren.push_back(cr);
+      }
+    }
+    else
+    {
+      bchildren.push_back(base);
+    }
+    std::vector< Node > bctemp;
+    bctemp.insert(bctemp.end(),bchildren.begin(),bchildren.end());
+    bchildren.clear();
+    bool childChanged = false;
+    for( const Node& bc : bctemp )
+    {
+      // take into account NOT
+      Node bca = bc.getKind()==BITVECTOR_NOT ? bc[0] : bc;
+      bool shifted = false;
+      for( const Node& cc : cchildren )
+      {
+        if( bitVectorArithComp( cc, bca ) )
+        {
+          shifted = true;
+          break;
+        }
+      }
+      // we are not able to shift away its 1-bits
+      if( shifted )
+      {
+        // rewrite rule #20
+        // if we shifted it away, then it might has well have been all 0's.
+        Node const_bv = mkConstBv( bc, bc.getKind()==BITVECTOR_NOT );
+        bchildren.push_back( const_bv );
+        childChanged = true;
+      }
+      else
+      {
+        bchildren.push_back( bc );
+      }
+    }
+    if( childChanged )
+    {
+      base = bchildren.size()==1 ? bchildren[0] : nm->mkNode( bk, bchildren );
+    }
+  }
+  std::sort( cchildren.begin(), cchildren.end() );
+  new_ret = mkChain( k, base, cchildren );
+  if( new_ret!=ret )
+  {
+    debugExtendedRewrite( ret, new_ret, "shift-sort-arith" );
+    return new_ret;
+  }
+  return Node::null();
+}
 
 bool ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
 {
@@ -648,6 +708,36 @@ Node ExtendedRewriter::mkConstBv( Node n, bool isNot )
 {
   unsigned size = bv::utils::getSize(n);
   return isNot ? bv::utils::mkOnes(size) : bv::utils::mkZero(size);
+}
+
+Node ExtendedRewriter::getConstBvChild( Node n, std::vector< Node >& nconst )
+{
+  Node ret;
+  for( const Node& cn : n )
+  {
+    if( cn.isConst() )
+    {
+      Assert( ret.isNull() );
+      ret = cn;
+    }
+    else
+    {
+      nconst.push_back( cn );
+    }
+  }
+  return ret;
+}
+
+bool ExtendedRewriter::hasConstBvChild( Node n )
+{
+  for( const Node& cn : n )
+  {
+    if( cn.isConst() )
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 void ExtendedRewriter::debugExtendedRewrite( Node n, Node ret, const char * c )

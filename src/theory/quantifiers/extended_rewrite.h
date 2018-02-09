@@ -96,6 +96,14 @@ class ExtendedRewriter
   Node mkChain( Kind k, Node base, std::vector< Node >& children );
   /** mk const as the same type as n, 0 if !isNot, 1s if isNot */
   Node mkConstBv( Node n, bool isNot );
+  /** get const child */
+  Node getConstBvChild( Node n, std::vector< Node >& nconst );
+  /** */
+  Node rewriteBvArith( Node ret );
+  /** */
+  Node rewriteBvShift( Node ret );
+  /** has const child */
+  bool hasConstBvChild( Node n );
 };
 
 } /* CVC4::theory::quantifiers namespace */
