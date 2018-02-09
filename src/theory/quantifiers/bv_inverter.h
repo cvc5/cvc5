@@ -37,7 +37,7 @@ class BvInverterQuery
 {
  public:
   BvInverterQuery() {}
-  ~BvInverterQuery() {}
+  virtual ~BvInverterQuery() {}
   /** returns the current model value of n */
   virtual Node getModelValue(Node n) = 0;
   /** returns a bound variable of type tn */
