@@ -2,9 +2,9 @@
 /*! \file bv_subtheory_algebraic.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Morgan Deters
+ **   Liana Hadarean, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -244,7 +244,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
 
   uint64_t original_bb_cost = 0;
 
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   NodeSet seen_assertions;
   // Processing assertions from scratch
   for (AssertionQueue::const_iterator it = assertionsBegin(); it != assertionsEnd(); ++it) {
@@ -458,7 +458,7 @@ void AlgebraicSolver::setConflict(TNode conflict) {
 bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
   if (fact.getKind() != kind::EQUAL) return false;
 
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   TNode left = fact[0];
   TNode right = fact[1];
 
@@ -486,14 +486,16 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
           right_children.push_back(right[i]);
       }
       Assert (right_children.size());
-      Node new_right = right_children.size() > 1 ? nm->mkNode(kind::BITVECTOR_XOR, right_children)
-                                                 : right_children[0];
+      Node new_right = right_children.size() > 1
+                           ? nm->mkNode(kind::BITVECTOR_XOR, right_children)
+                           : right_children[0];
       std::vector<Node> left_children;
       for (unsigned i = 1; i < left.getNumChildren(); ++i) {
         left_children.push_back(left[i]);
       }
-      Node new_left = left_children.size() > 1 ? nm->mkNode(kind::BITVECTOR_XOR, left_children)
-                                               : left_children[0];
+      Node new_left = left_children.size() > 1
+                          ? nm->mkNode(kind::BITVECTOR_XOR, left_children)
+                          : left_children[0];
       Node new_fact = nm->mkNode(kind::EQUAL, new_left, new_right);
       bool changed = subst.addSubstitution(fact, new_fact, reason);
       return changed;
@@ -508,7 +510,8 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
     bool changed = subst.addSubstitution(var, new_right, reason);
 
     if (Dump.isOn("bv-algebraic")) {
-      Node query = utils::mkNot(nm->mkNode(kind::EQUAL, fact, nm->mkNode(kind::EQUAL, var, new_right)));
+      Node query = utils::mkNot(nm->mkNode(
+          kind::EQUAL, fact, nm->mkNode(kind::EQUAL, var, new_right)));
       Dump("bv-algebraic") << EchoCommand("ThoeryBV::AlgebraicSolver::substitution explanation");
       Dump("bv-algebraic") << PushCommand();
       Dump("bv-algebraic") << AssertCommand(query.toExpr());
@@ -565,7 +568,7 @@ bool AlgebraicSolver::isSubstitutableIn(TNode node, TNode in) {
 }
 
 void AlgebraicSolver::processAssertions(std::vector<WorklistElement>& worklist, SubstitutionEx& subst) {
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   bool changed = true;
   while(changed) {
     // d_bv->spendResource();

@@ -2,9 +2,9 @@
 /*! \file slicer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Paul Meng
+ **   Liana Hadarean, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -526,54 +526,64 @@ bool Slicer::isCoreTerm(TNode node) {
   }
   return d_coreTermCache[node]; 
 }
-unsigned Slicer::d_numAddedEqualities = 0; 
+unsigned Slicer::d_numAddedEqualities = 0;
 
-void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
-  Assert (node.getKind() == kind::EQUAL);
-  NodeManager *nm = NodeManager::currentNM();
+void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities)
+{
+  Assert(node.getKind() == kind::EQUAL);
+  NodeManager* nm = NodeManager::currentNM();
   TNode t1 = node[0];
   TNode t2 = node[1];
 
-  uint32_t width = utils::getSize(t1); 
-  
-  Base base1(width); 
-  if (t1.getKind() == kind::BITVECTOR_CONCAT) {
+  uint32_t width = utils::getSize(t1);
+
+  Base base1(width);
+  if (t1.getKind() == kind::BITVECTOR_CONCAT)
+  {
     int size = 0;
-    // no need to count the last child since the end cut point is implicit 
-    for (int i = t1.getNumChildren() - 1; i >= 1 ; --i) {
+    // no need to count the last child since the end cut point is implicit
+    for (int i = t1.getNumChildren() - 1; i >= 1; --i)
+    {
       size = size + utils::getSize(t1[i]);
-      base1.sliceAt(size); 
+      base1.sliceAt(size);
     }
   }
 
-  Base base2(width); 
-  if (t2.getKind() == kind::BITVECTOR_CONCAT) {
-    unsigned size = 0; 
-    for (int i = t2.getNumChildren() - 1; i >= 1; --i) {
+  Base base2(width);
+  if (t2.getKind() == kind::BITVECTOR_CONCAT)
+  {
+    unsigned size = 0;
+    for (int i = t2.getNumChildren() - 1; i >= 1; --i)
+    {
       size = size + utils::getSize(t2[i]);
-      base2.sliceAt(size); 
+      base2.sliceAt(size);
     }
   }
 
-  base1.sliceWith(base2); 
-  if (!base1.isEmpty()) {
+  base1.sliceWith(base2);
+  if (!base1.isEmpty())
+  {
     // we split the equalities according to the base
-    int last = 0; 
-    for (unsigned i = 1; i <= utils::getSize(t1); ++i) {
-      if (base1.isCutPoint(i)) {
-        Node extract1 = utils::mkExtract(t1, i-1, last);
-        Node extract2 = utils::mkExtract(t2, i-1, last);
+    int last = 0;
+    for (unsigned i = 1; i <= utils::getSize(t1); ++i)
+    {
+      if (base1.isCutPoint(i))
+      {
+        Node extract1 = utils::mkExtract(t1, i - 1, last);
+        Node extract2 = utils::mkExtract(t2, i - 1, last);
         last = i;
-        Assert (utils::getSize(extract1) == utils::getSize(extract2)); 
-        equalities.push_back(nm->mkNode(kind::EQUAL, extract1, extract2)); 
+        Assert(utils::getSize(extract1) == utils::getSize(extract2));
+        equalities.push_back(nm->mkNode(kind::EQUAL, extract1, extract2));
       }
     }
-  } else {
+  }
+  else
+  {
     // just return same equality
     equalities.push_back(node);
   }
-  d_numAddedEqualities += equalities.size() - 1; 
-} 
+  d_numAddedEqualities += equalities.size() - 1;
+}
 
 std::string UnionFind::debugPrint(TermId id) {
   ostringstream os; 
