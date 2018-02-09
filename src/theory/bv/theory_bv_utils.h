@@ -108,6 +108,9 @@ Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
   Assert (k == kind::AND
           || k == kind::OR
           || k == kind::XOR
+          || k == kind::BITVECTOR_AND
+          || k == kind::BITVECTOR_OR
+          || k == kind::BITVECTOR_XOR
           || k == kind::BITVECTOR_PLUS
           || k == kind::BITVECTOR_SUB
           || k == kind::BITVECTOR_MULT);

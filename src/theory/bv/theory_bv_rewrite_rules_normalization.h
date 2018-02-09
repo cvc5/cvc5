@@ -618,7 +618,6 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<SolveEq>(" << node << ")" << std::endl;
 
-  NodeManager *nm = NodeManager::currentNM();
   TNode left = node[0];
   TNode right = node[1];
 
