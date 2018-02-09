@@ -40,7 +40,7 @@ namespace quantifiers {
  *
  * This class can be used to filter out redundant candidate rewrite rules
  * when using the option sygusRewSynth().
- * 
+ *
  * Currently, this class infers that an equality is redundant using
  * an instance of the equality engine that does congruence over all
  * operators by mapping all operators to uninterpreted ones and doing
@@ -77,13 +77,14 @@ class DynamicRewriter
   class OpInternalSymTrie
   {
    public:
-    /** 
-     * Get the uninterpreted function corresponding to the top-most symbol 
-     * of the internal representation of term n. This will return a skolem 
+    /**
+     * Get the uninterpreted function corresponding to the top-most symbol
+     * of the internal representation of term n. This will return a skolem
      * of the same type as n.getOperator() if it has one, or of the same type
      * as n itself otherwise.
-     */ 
+     */
     Node getSymbol(Node n);
+
    private:
     /** the symbol at this node in the trie */
     Node d_sym;
