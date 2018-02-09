@@ -39,19 +39,19 @@ class CheckWhite : public CxxTest::TestSuite
                     "return type.";
   }
 
-  void testCheck() { CHECK(kOne >= 0) << kOne << " must be positive"; }
+  void testCheck() { CVC4_CHECK(kOne >= 0) << kOne << " must be positive"; }
   void testDCheck()
   {
-    DCHECK(kOne == 1) << "always passes";
+    CVC4_DCHECK(kOne == 1) << "always passes";
 #ifndef CVC4_ASSERTIONS
-    DCHECK(false) << "Will not be compiled in when CVC4_ASSERTIONS off.";
+    CVC4_DCHECK(false) << "Will not be compiled in when CVC4_ASSERTIONS off.";
 #endif /* CVC4_ASSERTIONS */
   }
 
   void testPointerTypeCanBeTheCondition()
   {
     const int* one_pointer = &kOne;
-    CHECK(one_pointer);
+    CVC4_CHECK(one_pointer);
   }
 };
 

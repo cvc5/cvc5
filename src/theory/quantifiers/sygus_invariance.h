@@ -43,7 +43,7 @@ class CegConjecture;
 class SygusInvarianceTest
 {
  public:
-  virtual ~SygusInvarianceTest(){}
+  virtual ~SygusInvarianceTest() {}
 
   /** Is nvn invariant with respect to this test ?
    *

@@ -640,6 +640,19 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
+void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
+                                         Node f,
+                                         unsigned nsamples)
+{
+  SygusSampler::initializeSygus(qe->getTermDatabaseSygus(), f, nsamples);
+
+  // initialize the dynamic rewriter
+  std::stringstream ss;
+  ss << f;
+  d_drewrite =
+      std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), qe));
+}
+
 Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
 {
   Node eq_n = SygusSampler::registerTerm(n, forceKeep);
@@ -665,6 +678,16 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       isUnique = containsFreeVariables(eq_n, n);
     }
   }
+  bool rewRedundant = false;
+  if (d_drewrite != nullptr)
+  {
+    if (!d_drewrite->addRewrite(n, eq_n))
+    {
+      rewRedundant = isUnique;
+      // must be unique according to the dynamic rewriter
+      isUnique = false;
+    }
+  }
 
   if (isUnique)
   {
@@ -677,10 +700,14 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     }
     return eq_n;
   }
-  else
+  else if (Trace.isOn("sygus-synth-rr"))
   {
-    Trace("sygus-synth-rr") << "Alpha equivalent candidate rewrite : " << eq_n
-                            << " " << n << std::endl;
+    Trace("sygus-synth-rr") << "Redundant rewrite : " << eq_n << " " << n;
+    if (rewRedundant)
+    {
+      Trace("sygus-synth-rr") << " (by rewriting)";
+    }
+    Trace("sygus-synth-rr") << std::endl;
   }
   return n;
 }
