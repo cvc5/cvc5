@@ -45,6 +45,9 @@ namespace quantifiers {
  * an instance of the equality engine that does congruence over all
  * operators by mapping all operators to uninterpreted ones and doing
  * congruence on APPLY_UF.
+ *
+ * TODO (#1591): Add more advanced technique, e.g. by theory rewriting
+ * to show when terms can already be inferred equal.
  */
 class DynamicRewriter
 {
