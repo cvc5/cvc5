@@ -486,16 +486,12 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
           right_children.push_back(right[i]);
       }
       Assert (right_children.size());
-      Node new_right = right_children.size() > 1
-                           ? nm->mkNode(kind::BITVECTOR_XOR, right_children)
-                           : right_children[0];
+      Node new_right = utils::mkNaryNode(kind::BITVECTOR_XOR, right_children);
       std::vector<Node> left_children;
       for (unsigned i = 1; i < left.getNumChildren(); ++i) {
         left_children.push_back(left[i]);
       }
-      Node new_left = left_children.size() > 1
-                          ? nm->mkNode(kind::BITVECTOR_XOR, left_children)
-                          : left_children[0];
+      Node new_left = utils::mkNaryNode(kind::BITVECTOR_XOR, left_children);
       Node new_fact = nm->mkNode(kind::EQUAL, new_left, new_right);
       bool changed = subst.addSubstitution(fact, new_fact, reason);
       return changed;

@@ -252,7 +252,7 @@ void TheoryBV::mkAckermanizationAssertions(std::vector<Node>& assertions) {
           for (unsigned i = 0; i < args1.getNumChildren(); ++i) {
             eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
           }
-          args_eq = eqs.size() == 1 ? eqs[0] : nm->mkNode(kind::AND, eqs);
+          args_eq = eqs.size() == 1 ? eqs[0] : utils::mkAnd(eqs);
         } else {
           AlwaysAssert (args1.getKind() == kind::SELECT &&
                         args1[0] == func);
@@ -436,7 +436,7 @@ void TheoryBV::check(Effort e)
         d_out->conflict(assertions[0]);
         return;
       }
-      Node conflict = NodeManager::currentNM()->mkNode(kind::AND, assertions);
+      Node conflict = utils::mkAnd(assertions);
       d_out->conflict(conflict);
       return;
     }
@@ -797,8 +797,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
             children.push_back(c);
             children.push_back(skolem1);
           }
-          Node concat = NodeManager::currentNM()->mkNode(kind::BITVECTOR_CONCAT,
-                                                         children);
+          Node concat = utils::mkConcat(children);
           Assert(utils::getSize(concat) == utils::getSize(extract[0]));
           outSubstitutions.addSubstitution(extract[0], concat);
           return PP_ASSERT_STATUS_SOLVED;

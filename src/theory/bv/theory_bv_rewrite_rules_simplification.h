@@ -346,7 +346,7 @@ inline Node RewriteRule<XorOne>::apply(TNode node)
     }
   }
 
-  Node result = nm->mkNode(kind::BITVECTOR_XOR, children);
+  Node result = utils::mkNaryNode(kind::BITVECTOR_XOR, children);
   if (found_ones)
   {
     result = nm->mkNode(kind::BITVECTOR_NOT, result);
@@ -389,7 +389,7 @@ inline Node RewriteRule<XorZero>::apply(TNode node)
       children.push_back(node[i]);
     }
   }
-  Node res = NodeManager::currentNM()->mkNode(kind::BITVECTOR_XOR, children);
+  Node res = utils::mkNaryNode(kind::BITVECTOR_XOR, children);
   return res;
 }
 
@@ -816,7 +816,7 @@ inline Node RewriteRule<MultPow2>::apply(TNode node)
   }
   else
   {
-    a = nm->mkNode(kind::BITVECTOR_MULT, children);
+    a = utils::mkNaryNode(kind::BITVECTOR_MULT, children);
   }
 
   if (isNeg && size > 1)
@@ -1146,7 +1146,7 @@ inline Node RewriteRule<BBPlusNeg>::apply(TNode node)
   Assert(neg_count != 0);
   children.push_back(utils::mkConst(utils::getSize(node), neg_count));
 
-  return nm->mkNode(kind::BITVECTOR_PLUS, children);
+  return utils::mkNaryNode(kind::BITVECTOR_PLUS, children);
 }
 
 template<> inline

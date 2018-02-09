@@ -34,7 +34,6 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions,
 {
   Debug("bv-abstraction") << "AbstractionModule::applyAbstraction\n";
 
-  NodeManager* nm = NodeManager::currentNM();
   TimerStat::CodeTimer abstractionTimer(d_statistics.d_abstractionTime);
 
   for (unsigned i = 0; i < assertions.size(); ++i)
@@ -73,7 +72,7 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions,
           new_children.push_back(assertions[i][j]);
         }
       }
-      new_assertions.push_back(nm->mkNode(kind::OR, new_children));
+      new_assertions.push_back(utils::mkOr(new_children));
     }
     else
     {
@@ -248,8 +247,8 @@ void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions)
         or_assignments.push_back(arg_assignment);
       }
 
-      Node new_func_def = nm->mkNode(
-          kind::AND, skolem_func_eq1, nm->mkNode(kind::OR, or_assignments));
+      Node new_func_def =
+        utils::mkAnd(skolem_func_eq1, utils::mkOr(or_assignments));
       assertion_builder << new_func_def;
     }
     Node new_assertion = assertion_builder;
@@ -598,7 +597,8 @@ Node AbstractionModule::abstractSignatures(TNode assertion)
     }
     d_argsTable.addEntry(func, real_args);
     Node result = nm->mkNode(
-        kind::EQUAL, nm->mkNode(kind::APPLY_UF, args), utils::mkConst(1, 1u));
+        kind::EQUAL,
+        nm->mkNode(kind::APPLY_UF, args), utils::mkConst(1, 1u));
     Debug("bv-abstraction") << "=>   " << result << "\n";
     Assert(result.getType() == assertion.getType());
     return result;

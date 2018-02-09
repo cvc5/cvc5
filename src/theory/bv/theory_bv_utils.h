@@ -101,6 +101,28 @@ Node mkVar(unsigned size);
 Node mkSortedNode(Kind kind, TNode child1, TNode child2);
 Node mkSortedNode(Kind kind, std::vector<Node>& children);
 
+/* Create n-ary node of associative/commutative kind.  */
+template<bool ref_count>
+Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
+{
+  Assert (k == kind::AND
+          || k == kind::OR
+          || k == kind::XOR
+          || k == kind::BITVECTOR_PLUS
+          || k == kind::BITVECTOR_SUB
+          || k == kind::BITVECTOR_MULT);
+
+  std::set<TNode> all(nodes.begin(), nodes.end());
+  Assert(all.size() > 0);
+
+  /* All the same, or just one  */
+  if (all.size() == 1) { return nodes[0]; }
+
+  NodeBuilder<> nb(kind::OR);
+  for (const Node& n : all) { nb << n; }
+  return nb.constructNode();
+}
+
 /* Create node of kind NOT. */
 Node mkNot(Node child);
 /* Create node of kind AND. */
