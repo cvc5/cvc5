@@ -19,6 +19,7 @@
 
 #include <map>
 #include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/dynamic_rewrite.h"
 
 namespace CVC4 {
 namespace theory {
@@ -326,7 +327,9 @@ class SygusSampler : public LazyTrieEvaluator
 /** Version of the above class with some additional features */
 class SygusSamplerExt : public SygusSampler
 {
- public:
+ public:  
+   /** initialize extended */
+  void initializeSygusExt(QuantifiersEngine * qe, Node f, unsigned nsamples);
   /** register term n with this sampler database
    *
    * This returns a term ret with the same guarantees as
@@ -338,6 +341,9 @@ class SygusSamplerExt : public SygusSampler
    * will not be input/output pairs of this function.
    */
   virtual Node registerTerm(Node n, bool forceKeep = false) override;
+private:
+  /** dynamic rewriter class */
+  std::unique_ptr<DynamicRewriter> d_drewrite;
 };
 
 } /* CVC4::theory::quantifiers namespace */

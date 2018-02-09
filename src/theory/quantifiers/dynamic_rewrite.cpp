@@ -31,7 +31,7 @@ d_equalityEngine(qe->getUserContext(), "DynamicRewriter::" + name,true){
 
 bool DynamicRewriter::addRewrite( Node a, Node b )
 {
-  Trace("dyn-rewrite") << "Dyn-rewriter : " << a << " == " << b << std::endl;
+  Trace("dyn-rewrite") << "Dyn-Rewriter : " << a << " == " << b << std::endl;
   if( a==b )
   {
     Trace("dyn-rewrite") << "...fail, equal." << std::endl;
@@ -52,10 +52,6 @@ bool DynamicRewriter::addRewrite( Node a, Node b )
     Trace("dyn-rewrite") << "...fail, congruent." << std::endl;
     return false;
   }
-  
-  
-  
-  
   
   Node eq = ai.eqNode(bi);
   d_equalityEngine.assertEquality(eq,true,eq);
