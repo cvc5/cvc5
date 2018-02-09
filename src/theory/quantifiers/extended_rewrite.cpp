@@ -95,7 +95,6 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   if (it == d_ext_rewrite_cache.end())
   {
     Trace("q-ext-rewrite-debug") << "Do extended pre-rewrite on : " << n << std::endl;
-    Node orig_n = n;
     
     Node ret = n;
     if (n.getNumChildren() > 0)
@@ -282,7 +281,6 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       {
         new_ret = nm->mkNode( BITVECTOR_SHL, nm->mkNode( BITVECTOR_NEG, ret[0][0] ), ret[0][1] );
         debugExtendedRewrite( ret, new_ret, "NEG-SHL-miniscope" );
-        new_ret = extendedRewrite( new_ret );
       }
       else if( ret[0].getKind()==BITVECTOR_NOT )
       {
@@ -300,7 +298,6 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         Node c = nm->mkNode( BITVECTOR_NEG, ret[0] );
         new_ret = nm->mkNode( BITVECTOR_PLUS, c, max_bv );
         debugExtendedRewrite( ret, new_ret, "NOT-plus-miniscope" );
-        new_ret = extendedRewrite( new_ret );
       }
     }
     
@@ -373,11 +370,12 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
     }
 
+    d_ext_rewrite_cache[n] = ret;
     if (!new_ret.isNull())
     {
-      ret = Rewriter::rewrite(new_ret);
+      ret = extendedRewrite(new_ret);
     }
-    d_ext_rewrite_cache[orig_n] = ret;
+    d_ext_rewrite_cache[n] = ret;
     return ret;
   }
   else
