@@ -388,7 +388,7 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/conjecture_generator.cpp \
 	theory/quantifiers/conjecture_generator.h \
 	theory/quantifiers/dynamic_rewrite.cpp \
-	theory/quantifiers/dynamic_rewrite.cpp \
+	theory/quantifiers/dynamic_rewrite.h \
 	theory/quantifiers/equality_query.cpp \
 	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
