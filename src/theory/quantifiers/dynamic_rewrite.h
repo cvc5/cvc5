@@ -40,6 +40,11 @@ namespace quantifiers {
  *
  * This class can be used to filter out redundant candidate rewrite rules
  * when using the option sygusRewSynth().
+ * 
+ * Currently, this class infers that an equality is redundant using
+ * an instance of the equality engine that does congruence over all
+ * operators by mapping all operators to uninterpreted ones and doing
+ * congruence on APPLY_UF.
  */
 class DynamicRewriter
 {
