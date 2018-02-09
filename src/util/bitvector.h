@@ -400,8 +400,7 @@ public:
     return ~BitVector::mkMinSigned(size);
   }
 
-
-private:
+ private:
 
   /**
    * Class invariants:

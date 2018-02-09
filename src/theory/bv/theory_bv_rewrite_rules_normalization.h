@@ -961,8 +961,8 @@ Node RewriteRule<AndSimplify>::apply(TNode node) {
   // this will remove duplicates
   std::unordered_map<TNode, Count, TNodeHashFunction> subterms;
   unsigned size = utils::getSize(node);
-  BitVector constant = BitVector::mkOnes(size); 
-  
+  BitVector constant = BitVector::mkOnes(size);
+
   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
     TNode current = node[i];
     // simplify constants
@@ -984,7 +984,8 @@ Node RewriteRule<AndSimplify>::apply(TNode node) {
     return utils::mkZero(size); 
   }
 
-  if (constant != BitVector::mkOnes(size)) {
+  if (constant != BitVector::mkOnes(size))
+  {
     children.push_back(utils::mkConst(constant)); 
   }
   
@@ -1087,8 +1088,9 @@ Node RewriteRule<OrSimplify>::apply(TNode node) {
   }
 
   std::vector<Node> children;
-  
-  if (constant == BitVector::mkOnes(size)) {
+
+  if (constant == BitVector::mkOnes(size))
+  {
     return utils::mkOnes(size); 
   }
 
