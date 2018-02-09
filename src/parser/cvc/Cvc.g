@@ -716,6 +716,10 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   std::string& id1 = id;
   std::vector<Expr> terms;
   std::vector<Type> types;
+  Expr func;
+  std::vector<Expr> flattenVars;
+  std::vector<Expr> bvs;
+
 }
     /* our bread & butter */
   : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f)); }
@@ -892,9 +896,19 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t, CHECK_DECLARED] EQUAL_TOK 
     LAMBDA LPAREN boundVarDeclsReturn[terms,types] RPAREN COLON formula[f]
   {
-    std::cout<<"Let's see if this works.\n";
-    /*func = PARSER_STATE->mkDefineFunRec(, terms, t, flattenVars);
-    PARSER_STATE->pushDefineFunRecScope(terms, func, flattenVars, bvs, true );*/
+    size_t size = terms.size();
+    std::vector<std::pair<std::string, Type>> sortedVarNames(size);
+
+    //Create sortedVarNames from types and terms
+    for(unsigned int i = 0; i < size;i++){
+      sortedVarNames[i].first = terms[i].toString();
+      sortedVarNames[i].second = types[i];
+    }
+    
+    func = PARSER_STATE->mkDefineFunRec(id, sortedVarNames, t, flattenVars);
+    PARSER_STATE->pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs, true );
+    PARSER_STATE->popScope();
+    cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
   }
 /*| DEFINE_FUN_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1480,7 +1494,6 @@ prefixFormula[CVC4::Expr& f]
       PARSER_STATE->preemptCommand(cmd);
       f = func;
     }
-   /* recursive function */
   ;
 
 instantiationPatterns[ CVC4::Expr& expr ]
