@@ -286,13 +286,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
       else if( ret[0].getKind()==BITVECTOR_NOT )
       {
-        if( ret[0][0].getKind()==BITVECTOR_PLUS && hasConstBvChild( ret[0][0] ) )
-        {
-          unsigned size = bv::utils::getSize(ret[0][0]);
-          new_ret = nm->mkNode( BITVECTOR_PLUS, ret[0][0], bv::utils::mkOne(size) );
-          debugExtendedRewrite( ret, new_ret, "NEG-NOT-plus-miniscope" );
-          new_ret = extendedRewrite( new_ret );
-        }
+        // this should be handled by NOT-plus-miniscope below
+        Assert( ret[0][0].getKind()!=BITVECTOR_PLUS || !hasConstBvChild( ret[0][0] ) );
       }
     }
     else if( k == BITVECTOR_NOT )
