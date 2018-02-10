@@ -73,6 +73,8 @@ option doITESimpOnRepeat --on-repeat-ite-simp bool :read-write :default false
  
 option extRewPrep --ext-rew-prep bool :read-write :default false
  use extended rewriter as a preprocessing pass
+option extRewPrepAgg --ext-rew-prep-agg bool :read-write :default false
+ use aggressive extended rewriter as a preprocessing pass
 
 option simplifyWithCareEnabled --simp-with-care bool :default false :read-write
  enables simplifyWithCare in ite simplificiation

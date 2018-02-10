@@ -27,7 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-ExtendedRewriter::ExtendedRewriter()
+ExtendedRewriter::ExtendedRewriter( bool aggr ) : d_aggr(aggr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -113,7 +113,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
       // Some commutative operators have rewriters that are agnostic to order,
       // thus, we sort here.
-      if (TermUtil::isComm(n.getKind()))
+      if (TermUtil::isComm(n.getKind()) && d_aggr)
       {
         childChanged = true;
         std::sort(children.begin(), children.end());

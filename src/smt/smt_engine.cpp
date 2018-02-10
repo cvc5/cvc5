@@ -4295,7 +4295,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if(options::extRewPrep())
   {
-    theory::quantifiers::ExtendedRewriter extr;
+    theory::quantifiers::ExtendedRewriter extr(options::extRewPrepAgg());
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {
       Node a = d_assertions[i];
       d_assertions.replace(i, extr.extendedRewrite(a));

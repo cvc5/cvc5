@@ -43,12 +43,14 @@ namespace quantifiers {
 class ExtendedRewriter
 {
  public:
-  ExtendedRewriter();
+  ExtendedRewriter( bool aggr = true );
   ~ExtendedRewriter() {}
   /** return the extended rewritten form of n */
   Node extendedRewrite(Node n);
 
  private:
+  /** whether this extended rewriter is aggressive */
+  bool d_aggr;
   /** true and false nodes */
   Node d_true;
   Node d_false;
