@@ -88,9 +88,11 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
       {
         case kind::BITVECTOR_EXTRACT:
         {
-          unsigned w = utils::getSize(n);
+          const unsigned size = utils::getSize(n);
+          const unsigned low = utils::getExtractLow(n);
+          const unsigned child_min_width = visited[n[0]];
           visited[n] = std::min(
-              w, std::max(visited[n[0]] - utils::getExtractLow(n), 0u));
+              size, child_min_width >= low ? child_min_width - low : 0u);
           Assert(visited[n] <= visited[n[0]]);
           break;
         }
