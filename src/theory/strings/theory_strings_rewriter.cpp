@@ -2108,14 +2108,16 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
   bool isPrefix = n.getKind() == kind::STRING_PREFIX;
   if (n[0] == n[1])
   {
-    return NodeManager::currentNM()->mkConst(true);
+    Node ret = NodeManager::currentNM()->mkConst(true);
+    return returnRewrite(node, ret, "suf/prefix-eq");
   }
   if (n[0].isConst())
   {
     CVC4::String t = n[0].getConst<String>();
     if (t.isEmptyString())
     {
-      return NodeManager::currentNM()->mkConst(true);
+      Node ret = NodeManager::currentNM()->mkConst(true);
+      return returnRewrite(node, ret, "suf/prefix-empty-const");
     }
   }
   if (n[1].isConst())
@@ -2123,26 +2125,30 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
     CVC4::String s = n[1].getConst<String>();
     if (s.isEmptyString())
     {
-      return n[0].eqNode(n[1]);
+      Assert( !n[0].isConst();
+      Node ret = n[0].eqNode(n[1]);
+      return returnRewrite(node, ret, "suf/prefix-empty");
     }
     else if (n[0].isConst())
     {
+      Node ret = NodeManager::currentNM()->mkConst(false);
       CVC4::String t = n[0].getConst<String>();
       if (s.size() >= t.size())
       {
         if ((isPrefix && t == s.substr(0, t.size()))
             || (!isPrefix && t == s.substr(s.size() - t.size(), t.size())))
         {
-          return NodeManager::currentNM()->mkConst(true);
+          ret = NodeManager::currentNM()->mkConst(true);
         }
       }
-      return NodeManager::currentNM()->mkConst(false);
+      return returnRewrite(node, ret, "suf/prefix-const");
     }
     else if (s.size() == 1)
     {
       // (str.prefix x "A") and (str.suffix x "A") are equivalent to
       // (str.contains "A" x )
-      return NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, n[1], n[0]);
+      Node ret = NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, n[1], n[0]);
+      return returnRewrite(node, ret, "suf/prefix-ctn");
     }
   }
   Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, n[0]);

@@ -2788,23 +2788,13 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
   Node t_yz = mkConcat(vec_t);
   Trace("strings-loop") << " (" << t_yz << ")" << std::endl;
   Trace("strings-loop") << " ... S(Z.Y)= ";
-  std::vector<Node> vec_s;
-  for (unsigned lp = index + 1, size = normal_forms[other_n_index].size();
-       lp < size;
-       ++lp)
-  {
-    vec_s.push_back(normal_forms[other_n_index][lp]);
-  }
+  std::vector<Node>& vecoi = normal_forms[other_n_index];
+  std::vector<Node> vec_s(vecoi.begin() + index + 1, vecoi.end());
   Node s_zy = mkConcat(vec_s);
   Trace("strings-loop") << s_zy << std::endl;
   Trace("strings-loop") << " ... R= ";
-  std::vector<Node> vec_r;
-  for (unsigned lp = loop_index + 1, size = normal_forms[loop_n_index].size();
-       lp < size;
-       ++lp)
-  {
-    vec_r.push_back(normal_forms[loop_n_index][lp]);
-  }
+  std::vector<Node>& veci = normal_forms[loop_n_index];
+  std::vector<Node> vec_r(veci.begin() + loop_index + 1, veci.end());
   Node r = mkConcat(vec_r);
   Trace("strings-loop") << r << std::endl;
 
@@ -2853,6 +2843,10 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
       {
         info.d_ant.push_back(split_eq.negate());
       }
+    }
+    else
+    {
+      Assert( !split_eqr.getConst<bool>() );
     }
   }
 
