@@ -451,7 +451,7 @@ inline Node RewriteRule<MultSimplify>::apply(TNode node)
     }
   }
   BitVector oValue = BitVector(size, static_cast<unsigned>(1));
-  BitVector noValue = utils::mkBitVectorOnes(size);
+  BitVector noValue = BitVector::mkOnes(size);
 
   if (children.empty())
   {
@@ -1046,8 +1046,7 @@ inline Node RewriteRule<AndSimplify>::apply(TNode node)
   // this will remove duplicates
   std::unordered_map<TNode, Count, TNodeHashFunction> subterms;
   unsigned size = utils::getSize(node);
-  BitVector constant = utils::mkBitVectorOnes(size);
-
+  BitVector constant = BitVector::mkOnes(size);
   for (unsigned i = 0; i < node.getNumChildren(); ++i)
   {
     TNode current = node[i];
@@ -1077,9 +1076,9 @@ inline Node RewriteRule<AndSimplify>::apply(TNode node)
     return utils::mkZero(size);
   }
 
-  if (constant != utils::mkBitVectorOnes(size))
+  if (constant != BitVector::mkOnes(size))
   {
-    children.push_back(utils::mkConst(constant));
+    children.push_back(utils::mkConst(constant)); 
   }
 
   std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it =
@@ -1200,9 +1199,9 @@ inline Node RewriteRule<OrSimplify>::apply(TNode node)
 
   std::vector<Node> children;
 
-  if (constant == utils::mkBitVectorOnes(size))
+  if (constant == BitVector::mkOnes(size))
   {
-    return utils::mkOnes(size);
+    return utils::mkOnes(size); 
   }
 
   if (constant != BitVector(size, (unsigned)0))
@@ -1326,7 +1325,7 @@ inline Node RewriteRule<XorSimplify>::apply(TNode node)
   }
 
   std::vector<BitVector> xorConst;
-  BitVector true_bv = utils::mkBitVectorOnes(size);
+  BitVector true_bv = BitVector::mkOnes(size);
   BitVector false_bv(size, (unsigned)0);
 
   if (true_count)
