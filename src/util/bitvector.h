@@ -2,9 +2,9 @@
 /*! \file bitvector.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
+ **   Aina Niemetz, Liana Hadarean, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -375,8 +375,32 @@ public:
     return BitVector(d_size, res);
   }
 
+  /* -----------------------------------------------------------------------
+   ** Static helpers.
+   * ----------------------------------------------------------------------- */
 
-private:
+  /* Create bit-vector of ones of given size. */
+  static BitVector mkOnes(unsigned size)
+  {
+    CheckArgument(size > 0, size);
+    return BitVector(1, Integer(1)).signExtend(size - 1);
+  }
+
+  /* Create bit-vector representing the minimum signed value of given size. */
+  static BitVector mkMinSigned(unsigned size)
+  {
+    CheckArgument(size > 0, size);
+    return BitVector(size).setBit(size - 1);
+  }
+
+  /* Create bit-vector representing the maximum signed value of given size. */
+  static BitVector mkMaxSigned(unsigned size)
+  {
+    CheckArgument(size > 0, size);
+    return ~BitVector::mkMinSigned(size);
+  }
+
+ private:
 
   /**
    * Class invariants:
