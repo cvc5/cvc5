@@ -33,6 +33,34 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+namespace {
+
+uint64_t numNodes(TNode node, utils::NodeSet& seen)
+{
+  utils::NodeSet::iterator it;
+  std::vector<TNode> stack;
+  uint64_t res = 0;
+
+  stack.push_back(node);
+  while (!stack.empty())
+  {
+    Node n = stack.back();
+    stack.pop_back();
+    it = seen.find(n);
+
+    if (it != seen.end()) continue;
+
+    res += 1;
+    seen.insert(n);
+    for (size_t i = 0, nc = n.getNumChildren(); i < nc; ++i)
+    {
+      stack.push_back(n[i]);
+    }
+  }
+  return res;
+}
+}
+
 
 TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv,
                                  const std::string name, bool emptyNotify)
@@ -194,7 +222,7 @@ uint64_t TLazyBitblaster::computeAtomWeight(TNode node, NodeSet& seen) {
     return 0;
   }
   Node atom_bb = Rewriter::rewrite(d_atomBBStrategies[node.getKind()](node, this));
-  uint64_t size = utils::numNodes(atom_bb, seen);
+  uint64_t size = numNodes(atom_bb, seen);
   return size;
 }
 
