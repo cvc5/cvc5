@@ -43,6 +43,8 @@ class CegConjecture;
 class SygusInvarianceTest
 {
  public:
+  virtual ~SygusInvarianceTest() {}
+
   /** Is nvn invariant with respect to this test ?
    *
    * - nvn is the term to check whether it is invariant.
@@ -96,7 +98,7 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
   EvalSygusInvarianceTest() {}
-  ~EvalSygusInvarianceTest() {}
+
   /** initialize this invariance test
     * This sets d_conj/d_var/d_result, where
     * we are checking whether:
@@ -156,7 +158,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
   EquivSygusInvarianceTest() : d_conj(nullptr) {}
-  ~EquivSygusInvarianceTest() {}
+
   /** initialize this invariance test
    * tn is the sygus type for e
    * aconj/e are used for conjecture-specific symmetry breaking
@@ -197,7 +199,7 @@ class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
   DivByZeroSygusInvarianceTest() {}
-  ~DivByZeroSygusInvarianceTest() {}
+
  protected:
   /** checks whether nvn involves division by zero. */
   bool invariant(TermDbSygus* tds, Node nvn, Node x);
@@ -233,7 +235,7 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
   NegContainsSygusInvarianceTest() : d_conj(nullptr) {}
-  ~NegContainsSygusInvarianceTest() {}
+
   /** initialize this invariance test
    *  cpbe is the conjecture utility.
    *  e is the enumerator which we are reasoning about (associated with a synth

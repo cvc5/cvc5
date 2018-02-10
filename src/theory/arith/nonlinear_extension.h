@@ -121,6 +121,23 @@ class NonlinearExtension {
   void check(Theory::Effort e);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
+  /** add definition
+   *
+   * This function notifies this class that lem is a formula that defines or
+   * constrains an auxiliary variable. For example, during
+   * TheoryArith::expandDefinitions, we replace a term like arcsin( x ) with an
+   * auxiliary variable k. The lemmas 0 <= k < pi and sin( x ) = k are added as
+   * definitions to this class.
+   */
+  void addDefinition(Node lem);
+  /** presolve
+   *
+   * This function is called during TheoryArith's presolve command.
+   * In this function, we send lemmas we accumulated during preprocessing,
+   * for instance, definitional lemmas from expandDefinitions are sent out
+   * on the output channel of TheoryArith in this function.
+   */
+  void presolve();
   /** Compare arithmetic terms i and j based an ordering.
    *
    * orderType = 0 : compare concrete model values
@@ -387,8 +404,11 @@ class NonlinearExtension {
   // ( x*y, x*z, y ) for each pair of monomials ( x*y, x*z ) with common factors
   std::map<Node, std::map<Node, Node> > d_mono_diff;
 
-  // cache of all lemmas sent
+  /** cache of definition lemmas (user-context-dependent) */
+  NodeSet d_def_lemmas;
+  /** cache of all lemmas sent on the output channel (user-context-dependent) */
   NodeSet d_lemmas;
+  /** cache of terms t for which we have added the lemma ( t = 0 V t != 0 ). */
   NodeSet d_zero_split;
   
   // literals with Skolems (need not be satisfied by model)

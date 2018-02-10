@@ -2,9 +2,9 @@
 /*! \file bv_to_bool.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Clark Barrett, Tim King
+ **   Liana Hadarean, Aina Niemetz, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -94,106 +94,112 @@ bool BvToBoolPreprocessor::isConvertibleBvTerm(TNode node) {
   return false; 
 }
 
-Node BvToBoolPreprocessor::convertBvAtom(TNode node) {
-  Assert (node.getType().isBoolean() &&
-          node.getKind() == kind::EQUAL);
-  Assert (utils::getSize(node[0]) == 1);
-  Assert (utils::getSize(node[1]) == 1);
+Node BvToBoolPreprocessor::convertBvAtom(TNode node)
+{
+  Assert(node.getType().isBoolean() && node.getKind() == kind::EQUAL);
+  Assert(utils::getSize(node[0]) == 1);
+  Assert(utils::getSize(node[1]) == 1);
   Node a = convertBvTerm(node[0]);
   Node b = convertBvTerm(node[1]);
-  Node result = utils::mkNode(kind::EQUAL, a, b); 
-  Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvAtom " << node <<" => " << result << "\n";
+  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, b);
+  Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvAtom " << node
+                      << " => " << result << "\n";
 
   ++(d_statistics.d_numAtomsLifted);
   return result;
 }
 
-Node BvToBoolPreprocessor::convertBvTerm(TNode node) {
-  Assert (node.getType().isBitVector() &&
-          node.getType().getBitVectorSize() == 1);
+Node BvToBoolPreprocessor::convertBvTerm(TNode node)
+{
+  Assert(node.getType().isBitVector()
+         && node.getType().getBitVectorSize() == 1);
 
-  if (hasBoolCache(node))
-    return getBoolCache(node);
-  
-  if (!isConvertibleBvTerm(node)) {
+  if (hasBoolCache(node)) return getBoolCache(node);
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  if (!isConvertibleBvTerm(node))
+  {
     ++(d_statistics.d_numTermsForcedLifted);
-    Node result = utils::mkNode(kind::EQUAL, node, d_one);
+    Node result = nm->mkNode(kind::EQUAL, node, d_one);
     addToBoolCache(node, result);
-    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
+    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node
+                        << " => " << result << "\n";
     return result;
   }
 
-  if (node.getNumChildren() == 0) {
-    Assert (node.getKind() == kind::CONST_BITVECTOR);
+  if (node.getNumChildren() == 0)
+  {
+    Assert(node.getKind() == kind::CONST_BITVECTOR);
     Node result = node == d_one ? utils::mkTrue() : utils::mkFalse();
     // addToCache(node, result);
-    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
-    return result; 
+    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node
+                        << " => " << result << "\n";
+    return result;
   }
 
   ++(d_statistics.d_numTermsLifted);
-  
+
   Kind kind = node.getKind();
-  if (kind == kind::ITE) {
+  if (kind == kind::ITE)
+  {
     Node cond = liftNode(node[0]);
     Node true_branch = convertBvTerm(node[1]);
     Node false_branch = convertBvTerm(node[2]);
-    Node result = utils::mkNode(kind::ITE, cond, true_branch, false_branch);
+    Node result = nm->mkNode(kind::ITE, cond, true_branch, false_branch);
     addToBoolCache(node, result);
-    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
-    return result; 
+    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node
+                        << " => " << result << "\n";
+    return result;
   }
 
   Kind new_kind;
   // special case for XOR as it has to be binary
   // while BITVECTOR_XOR can be n-ary
-  if (kind == kind::BITVECTOR_XOR) {
+  if (kind == kind::BITVECTOR_XOR)
+  {
     new_kind = kind::XOR;
     Node result = convertBvTerm(node[0]);
-    for (unsigned i = 1; i < node.getNumChildren(); ++i) {
+    for (unsigned i = 1; i < node.getNumChildren(); ++i)
+    {
       Node converted = convertBvTerm(node[i]);
-      result = utils::mkNode(kind::XOR, result, converted); 
+      result = nm->mkNode(kind::XOR, result, converted);
     }
-    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
-    return result; 
+    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node
+                        << " => " << result << "\n";
+    return result;
   }
 
-  if (kind == kind::BITVECTOR_COMP) {
-    Node result = utils::mkNode(kind::EQUAL, node[0], node[1]);
+  if (kind == kind::BITVECTOR_COMP)
+  {
+    Node result = nm->mkNode(kind::EQUAL, node[0], node[1]);
     addToBoolCache(node, result);
-    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
-    return result; 
+    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node
+                        << " => " << result << "\n";
+    return result;
   }
 
-  switch(kind) {
-  case kind::BITVECTOR_OR:
-    new_kind = kind::OR;
-    break;
-  case kind::BITVECTOR_AND:
-    new_kind = kind::AND;
-    break;
-  case kind::BITVECTOR_XOR:
-    new_kind = kind::XOR;
-    break;
-  case kind::BITVECTOR_NOT:
-    new_kind = kind::NOT;
-    break;
-  default:
-    Unhandled(); 
+  switch (kind)
+  {
+    case kind::BITVECTOR_OR: new_kind = kind::OR; break;
+    case kind::BITVECTOR_AND: new_kind = kind::AND; break;
+    case kind::BITVECTOR_XOR: new_kind = kind::XOR; break;
+    case kind::BITVECTOR_NOT: new_kind = kind::NOT; break;
+    default: Unhandled();
   }
 
   NodeBuilder<> builder(new_kind);
-  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-    builder << convertBvTerm(node[i]); 
+  for (unsigned i = 0; i < node.getNumChildren(); ++i)
+  {
+    builder << convertBvTerm(node[i]);
   }
-  
+
   Node result = builder;
   addToBoolCache(node, result);
-  Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
-  return result; 
+  Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node
+                      << " => " << result << "\n";
+  return result;
 }
-
-
 
 Node BvToBoolPreprocessor::liftNode(TNode current) {
   Node result;
@@ -274,47 +280,46 @@ bool BvToBoolPreprocessor::hasLowerCache(TNode term) const {
   return d_lowerCache.find(term) != d_lowerCache.end(); 
 }
 
-Node BvToBoolPreprocessor::lowerNode(TNode current, bool topLevel) {
+Node BvToBoolPreprocessor::lowerNode(TNode current, bool topLevel)
+{
   Node result;
-  if (hasLowerCache(current)) {
-    result = getLowerCache(current); 
-  } else {
-    if (current.getNumChildren() == 0) {
-      if (current.getKind() == kind::CONST_BOOLEAN) {
+  NodeManager* nm = NodeManager::currentNM();
+  if (hasLowerCache(current))
+  {
+    result = getLowerCache(current);
+  }
+  else
+  {
+    if (current.getNumChildren() == 0)
+    {
+      if (current.getKind() == kind::CONST_BOOLEAN)
+      {
         result = (current == utils::mkTrue()) ? d_one : d_zero;
-      } else {
+      }
+      else
+      {
         result = current;
       }
-    } else {
+    }
+    else
+    {
       Kind kind = current.getKind();
       Kind new_kind = kind;
-      switch(kind) {
-        case kind::EQUAL:
-          new_kind = kind::BITVECTOR_COMP;
-          break;
-        case kind::AND:
-          new_kind = kind::BITVECTOR_AND;
-          break;
-        case kind::OR:
-          new_kind = kind::BITVECTOR_OR;
-          break;
-        case kind::NOT:
-          new_kind = kind::BITVECTOR_NOT;
-          break;
-        case kind::XOR:
-          new_kind = kind::BITVECTOR_XOR;
-          break;
+      switch (kind)
+      {
+        case kind::EQUAL: new_kind = kind::BITVECTOR_COMP; break;
+        case kind::AND: new_kind = kind::BITVECTOR_AND; break;
+        case kind::OR: new_kind = kind::BITVECTOR_OR; break;
+        case kind::NOT: new_kind = kind::BITVECTOR_NOT; break;
+        case kind::XOR: new_kind = kind::BITVECTOR_XOR; break;
         case kind::ITE:
-          if (current.getType().isBitVector() || current.getType().isBoolean()) {
+          if (current.getType().isBitVector() || current.getType().isBoolean())
+          {
             new_kind = kind::BITVECTOR_ITE;
           }
           break;
-        case kind::BITVECTOR_ULT:
-          new_kind = kind::BITVECTOR_ULTBV;
-          break;
-        case kind::BITVECTOR_SLT:
-          new_kind = kind::BITVECTOR_SLTBV;
-          break;
+        case kind::BITVECTOR_ULT: new_kind = kind::BITVECTOR_ULTBV; break;
+        case kind::BITVECTOR_SLT: new_kind = kind::BITVECTOR_SLTBV; break;
         case kind::BITVECTOR_ULE:
         case kind::BITVECTOR_UGT:
         case kind::BITVECTOR_UGE:
@@ -323,18 +328,20 @@ Node BvToBoolPreprocessor::lowerNode(TNode current, bool topLevel) {
         case kind::BITVECTOR_SGE:
           // Should have been removed by rewriting.
           Unreachable();
-        default:
-          break;
+        default: break;
       }
       NodeBuilder<> builder(new_kind);
-      if (kind != new_kind) {
+      if (kind != new_kind)
+      {
         ++(d_statistics.d_numTermsLowered);
       }
-      if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         builder << current.getOperator();
       }
       Node converted;
-      if (new_kind == kind::ITE) {
+      if (new_kind == kind::ITE)
+      {
         // Special-case ITE because need condition to be Boolean.
         converted = lowerNode(current[0], true);
         builder << converted;
@@ -342,26 +349,33 @@ Node BvToBoolPreprocessor::lowerNode(TNode current, bool topLevel) {
         builder << converted;
         converted = lowerNode(current[2]);
         builder << converted;
-      } else {
-        for (unsigned i = 0; i < current.getNumChildren(); ++i) {
+      }
+      else
+      {
+        for (unsigned i = 0; i < current.getNumChildren(); ++i)
+        {
           converted = lowerNode(current[i]);
-          builder << converted; 
+          builder << converted;
         }
       }
       result = builder;
     }
-    if (result.getType().isBoolean()) {
+    if (result.getType().isBoolean())
+    {
       ++(d_statistics.d_numTermsForcedLowered);
-      result = utils::mkNode(kind::ITE, result, d_one, d_zero);
+      result = nm->mkNode(kind::ITE, result, d_one, d_zero);
     }
     addToLowerCache(current, result);
   }
-  if (topLevel) {
-    result = utils::mkNode(kind::EQUAL, result, d_one);
+  if (topLevel)
+  {
+    result = nm->mkNode(kind::EQUAL, result, d_one);
   }
-  Assert (result != Node());
-  Debug("bool-to-bv") << "BvToBoolPreprocessor::lowerNode " << current << " => \n" << result << "\n"; 
-  return result; 
+  Assert(result != Node());
+  Debug("bool-to-bv") << "BvToBoolPreprocessor::lowerNode " << current
+                      << " => \n"
+                      << result << "\n";
+  return result;
 }
 
 void BvToBoolPreprocessor::lowerBoolToBv(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {

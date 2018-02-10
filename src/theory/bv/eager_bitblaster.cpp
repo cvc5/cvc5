@@ -2,9 +2,9 @@
 /*! \file eager_bitblaster.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Guy Katz
+ **   Liana Hadarean, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -88,10 +88,12 @@ void EagerBitblaster::bbFormula(TNode node) {
  * @param node the atom to be bitblasted
  *
  */
-void EagerBitblaster::bbAtom(TNode node) {
+void EagerBitblaster::bbAtom(TNode node)
+{
   node = node.getKind() == kind::NOT ? node[0] : node;
   if (node.getKind() == kind::BITVECTOR_BITOF) return;
-  if (hasBBAtom(node)) {
+  if (hasBBAtom(node))
+  {
     return;
   }
 
@@ -104,17 +106,19 @@ void EagerBitblaster::bbAtom(TNode node) {
           ? d_atomBBStrategies[normalized.getKind()](normalized, this)
           : normalized;
 
-  if (!options::proof()) {
+  if (!options::proof())
+  {
     atom_bb = Rewriter::rewrite(atom_bb);
   }
 
   // asserting that the atom is true iff the definition holds
-  Node atom_definition = utils::mkNode(kind::EQUAL, node, atom_bb);
+  Node atom_definition =
+      NodeManager::currentNM()->mkNode(kind::EQUAL, node, atom_bb);
 
   AlwaysAssert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
   storeBBAtom(node, atom_bb);
-  d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID,
-                                TNode::null());
+  d_cnfStream->convertAndAssert(
+      atom_definition, false, false, RULE_INVALID, TNode::null());
 }
 
 void EagerBitblaster::storeBBAtom(TNode atom, Node atom_bb) {

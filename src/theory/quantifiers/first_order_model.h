@@ -248,19 +248,21 @@ class Def;
 class FirstOrderModelFmc : public FirstOrderModel
 {
   friend class FullModelChecker;
-private:
+
+ private:
   /** models for UF */
   std::map<Node, Def * > d_models;
   std::map<TypeNode, Node > d_type_star;
   Node intervalOp;
   /** get current model value */
-  void processInitializeModelForTerm(Node n);
-public:
+  void processInitializeModelForTerm(Node n) override;
+
+ public:
   FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
   ~FirstOrderModelFmc() override;
-  FirstOrderModelFmc * asFirstOrderModelFmc() { return this; }
+  FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }
   // initialize the model
-  void processInitialize( bool ispre );
+  void processInitialize(bool ispre) override;
   Node getFunctionValue(Node op, const char* argPrefix );
 
   bool isStar(Node n);

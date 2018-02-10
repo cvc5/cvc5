@@ -129,18 +129,19 @@ public:
 };
 
 class InstStrategyCegqi : public InstStrategyCbqi {
-protected:
+ protected:
   CegqiOutputInstStrategy * d_out;
   std::map< Node, CegInstantiator * > d_cinst;
   Node d_small_const;
   Node d_curr_quant;
   bool d_check_vts_lemma_lc;
   /** process functions */
-  void processResetInstantiationRound( Theory::Effort effort );
-  void process( Node f, Theory::Effort effort, int e );
+  void processResetInstantiationRound(Theory::Effort effort) override;
+  void process(Node f, Theory::Effort effort, int e) override;
   /** register ce lemma */
-  void registerCounterexampleLemma( Node q, Node lem );
-public:
+  void registerCounterexampleLemma(Node q, Node lem) override;
+
+ public:
   InstStrategyCegqi( QuantifiersEngine * qe );
   ~InstStrategyCegqi() override;
 
@@ -148,14 +149,14 @@ public:
   bool isEligibleForInstantiation( Node n );
   bool addLemma( Node lem );
   /** identify */
-  std::string identify() const { return std::string("Cegqi"); }
+  std::string identify() const override { return std::string("Cegqi"); }
 
   //get instantiator for quantifier
   CegInstantiator * getInstantiator( Node q );
   //register quantifier
-  void registerQuantifier( Node q );
+  void registerQuantifier(Node q) override;
   //presolve
-  void presolve();
+  void presolve() override;
 };
 
 }
