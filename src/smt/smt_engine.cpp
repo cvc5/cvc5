@@ -4293,6 +4293,15 @@ void SmtEnginePrivate::processAssertions() {
 
   bool noConflict = true;
 
+  if(options::extRewPrep())
+  {
+    theory::quantifiers::ExtendedRewriter extr;
+    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+      Node a = d_assertions[i];
+      d_assertions.replace(i, extr.extendedRewrite(a));
+    }
+  }
+  
   // Unconstrained simplification
   if(options::unconstrainedSimp()) {
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-unconstrained-simp" << endl;
