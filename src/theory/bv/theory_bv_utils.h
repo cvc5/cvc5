@@ -96,16 +96,28 @@ Node mkConst(const BitVector& value);
 /* Create bit-vector variable. */
 Node mkVar(unsigned size);
 
-/* Create n-ary node of given kind.  */
-Node mkNode(Kind kind, TNode child);
-Node mkNode(Kind kind, TNode child1, TNode child2);
-Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
-Node mkNode(Kind kind, std::vector<Node>& children);
-
 /* Create n-ary bit-vector node of kind BITVECTOR_AND, BITVECTOR_OR or
  * BITVECTOR_XOR where its children are sorted  */
 Node mkSortedNode(Kind kind, TNode child1, TNode child2);
 Node mkSortedNode(Kind kind, std::vector<Node>& children);
+
+/* Create n-ary node of associative/commutative kind.  */
+template<bool ref_count>
+Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
+{
+  Assert (k == kind::AND
+          || k == kind::OR
+          || k == kind::XOR
+          || k == kind::BITVECTOR_AND
+          || k == kind::BITVECTOR_OR
+          || k == kind::BITVECTOR_XOR
+          || k == kind::BITVECTOR_PLUS
+          || k == kind::BITVECTOR_SUB
+          || k == kind::BITVECTOR_MULT);
+
+  if (nodes.size() == 1) { return nodes[0]; }
+  return NodeManager::currentNM()->mkNode(k, nodes);
+}
 
 /* Create node of kind NOT. */
 Node mkNot(Node child);
