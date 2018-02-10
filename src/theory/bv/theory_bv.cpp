@@ -2,7 +2,7 @@
 /*! \file theory_bv.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
+ **   Liana Hadarean, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -252,7 +252,7 @@ void TheoryBV::mkAckermanizationAssertions(std::vector<Node>& assertions) {
           for (unsigned i = 0; i < args1.getNumChildren(); ++i) {
             eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
           }
-          args_eq = eqs.size() == 1 ? eqs[0] : utils::mkAnd(eqs);
+          args_eq = utils::mkAnd(eqs);
         } else {
           AlwaysAssert (args1.getKind() == kind::SELECT &&
                         args1[0] == func);

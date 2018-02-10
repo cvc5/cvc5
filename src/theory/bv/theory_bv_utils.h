@@ -115,12 +115,8 @@ Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
           || k == kind::BITVECTOR_SUB
           || k == kind::BITVECTOR_MULT);
 
-  /* All the same, or just one  */
   if (nodes.size() == 1) { return nodes[0]; }
-
-  NodeBuilder<> nb(k);
-  for (const Node& n : nodes) { nb << n; }
-  return nb.constructNode();
+  return NodeManager::currentNM()->mkNode(k, nodes);
 }
 
 /* Create node of kind NOT. */
