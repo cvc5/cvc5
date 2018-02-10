@@ -51,10 +51,7 @@ uint64_t numNodes(TNode node, utils::NodeSet& seen)
 
     res += 1;
     seen.insert(n);
-    for (size_t i = 0, nc = n.getNumChildren(); i < nc; ++i)
-    {
-      stack.push_back(n[i]);
-    }
+    stack.insert(stack.end(), n.begin(), n.end());
   }
   return res;
 }
