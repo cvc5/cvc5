@@ -113,7 +113,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
       // Some commutative operators have rewriters that are agnostic to order,
       // thus, we sort here.
-      if (TermUtil::isComm(n.getKind()) && d_aggr)
+      if (TermUtil::isComm(n.getKind()) && ( d_aggr || children.size()<=5 ) )
       {
         childChanged = true;
         std::sort(children.begin(), children.end());
