@@ -2125,7 +2125,7 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
     CVC4::String s = n[1].getConst<String>();
     if (s.isEmptyString())
     {
-      Assert( !n[0].isConst();
+      Assert( !n[0].isConst() );
       Node ret = n[0].eqNode(n[1]);
       return returnRewrite(n, ret, "suf/prefix-empty");
     }
