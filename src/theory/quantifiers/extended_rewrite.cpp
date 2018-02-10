@@ -450,7 +450,39 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
     debugExtendedRewrite( ret, new_ret, "arith-not-child" );
     return new_ret;
   }
-  else if( k == BITVECTOR_PLUS )
+  
+  // general monomial normalization
+  std::map< Node, Node > msum;
+  std::map< Node, Node > shl;
+  getBvMonomialSum( ret, msum, shl );
+  
+  Trace("q-ext-rewrite-bvarith") << "Monomial representation of " << ret << " : " << std::endl;
+  for( const std::pair< Node, Node >& m : msum )
+  {
+    Trace("q-ext-rewrite-bvarith") << "  " << m.first << " * " << m.second;
+    if( !shl[m.first].isNull() )
+    {
+      Trace("q-ext-rewrite-bvarith") << " >> " << shl[m.first];
+    }
+    Trace("q-ext-rewrite-bvarith") << std::endl;
+  }
+  
+  new_ret = mkNodeFromBvMonomial( ret, msum, shl );
+  Trace("q-ext-rewrite-bvarith") << "...got (pre-rewrite) : " << new_ret << std::endl;
+  new_ret = Rewriter::rewrite( new_ret );
+  if( new_ret!=ret )
+  {
+    debugExtendedRewrite( ret, new_ret, "arith-normalize" );
+    return new_ret;
+  }
+  else
+  {
+    Trace("q-ext-rewrite-bvarith") << "Monomial " << ret << " did not normalize." << std::endl;
+  }
+  
+  
+  
+  if( k == BITVECTOR_PLUS )
   {
     bool success = true;
     unsigned size=ret.getNumChildren();
@@ -703,6 +735,16 @@ Node ExtendedRewriter::mkConstBv( Node n, bool isNot )
   return isNot ? bv::utils::mkOnes(size) : bv::utils::mkZero(size);
 }
 
+bool ExtendedRewriter::isConstBv( Node n, bool isNot )
+{
+  if( n.isConst() )
+  {
+    Node const_n = mkConstBv( n, isNot );
+    return n==const_n;
+  }
+  return false;
+}
+
 Node ExtendedRewriter::getConstBvChild( Node n, std::vector< Node >& nconst )
 {
   Node ret;
@@ -731,6 +773,197 @@ bool ExtendedRewriter::hasConstBvChild( Node n )
     }
   }
   return false;
+}
+
+void ExtendedRewriter::getBvMonomialSum( Node n, 
+                                         std::map< Node, Node >& msum,
+                                         std::map< Node, Node >& shl
+                                       )
+{
+  NodeManager * nm = NodeManager::currentNM();
+  std::vector< Node > sum;
+  if( n.getKind() == BITVECTOR_PLUS )
+  {
+    for( const Node& cn : n )
+    {
+      sum.push_back( cn );
+    }
+  }
+  else
+  {
+    sum.push_back( n );
+  }
+  std::map< Node, std::vector< Node > > msums;
+  std::map< Node, std::vector< Node > > shls;
+  unsigned size = bv::utils::getSize(n);
+  Node bv_one = bv::utils::mkOne(size);
+  for( const Node& cn : sum )
+  {
+    Node cmul;
+    Node cshl;
+    Node v = getBvMonomial( cn, cmul, cshl );
+    Assert( v.isNull() || !v.isConst() );
+    v = v.isNull() ? bv_one : v;
+    cmul = cmul.isNull() ? bv_one : cmul;
+    msums[v].push_back( cmul );
+    if( !cshl.isNull() )
+    {
+      msums[v].push_back( cshl );
+    }
+  }
+  for( const std::pair< Node, std::vector< Node > >& m : msums )
+  {
+    Node v = m.first;
+    const std::vector< Node >& cs = m.second;
+    Node mv = cs.size()==1 ? cs[0] : nm->mkNode( BITVECTOR_PLUS, cs );
+    mv = Rewriter::rewrite( mv );
+    Assert( mv.isConst() );
+    msum[v] = mv;
+    if( !shls[v].empty() )
+    {
+      Node sv = shls[v].size()==1 ? shls[v][0] : nm->mkNode( BITVECTOR_PLUS, shls[v] );
+      sv = Rewriter::rewrite( sv );
+      shl[v] = sv;
+    }
+  }
+}
+
+Node ExtendedRewriter::getBvMonomial( Node n, Node& cmul, Node& shl )
+{
+  Node ret;
+  if( n.isConst() )
+  {
+    cmul = n;
+    return ret;
+  }
+  NodeManager * nm = NodeManager::currentNM();
+  Kind k = n.getKind();
+  if( k==BITVECTOR_MULT )
+  {
+    std::vector< Node > nconst;
+    std::vector< Node > cmuls;
+    std::vector< Node > cshls;
+    cmul = getConstBvChild( n, nconst );
+    if( !cmul.isNull() )
+    {
+      cmuls.push_back( cmul );
+    }
+    // now extract product values from children
+    std::vector< Node > cnconsts;
+    for( unsigned i=0, size=nconst.size(); i<size; i++ )
+    {
+      Node cmulc;
+      Node shlc;
+      Node nc = getBvMonomial( nconst[i], cmulc, shlc );
+      if( !nc.isNull() )
+      {
+        cnconsts.push_back( nc );
+      }
+      if( !cmulc.isNull() )
+      {
+        cmuls.push_back( cmulc );
+      }
+      if( !shlc.isNull() )
+      {
+        cshls.push_back( shlc );
+      }
+    }
+    // sort monomial list
+    std::sort( cnconsts.begin(), cnconsts.end() );
+    if( !cnconsts.empty() )
+    {
+      ret = nm->mkNode( BITVECTOR_MULT, cnconsts );
+    }
+    if( !cmuls.empty() )
+    {
+      cmul = cmuls.size()==1 ? cmuls[0] : nm->mkNode( BITVECTOR_MULT, cmuls );
+    }
+    if( !cshls.empty() )
+    {
+      shl = cshls.size()==1 ? cshls[0] : nm->mkNode( BITVECTOR_MULT, cshls );
+    }
+  }
+  else if( k==BITVECTOR_CONCAT && n.getNumChildren()==2 )
+  {
+    if( n[0].getKind()==BITVECTOR_EXTRACT && bv::utils::getExtractLow(n[0])==0 && isConstBv(n[1],false) )
+    {
+      ret = getBvMonomial( n[0][0], cmul, shl );
+      unsigned size = bv::utils::getSize(n);
+      // multiply by power of two
+      unsigned sizez = bv::utils::getSize(n[1]);
+      Integer powsizez = Integer(1).multiplyByPow2(sizez);
+      Node coeff = bv::utils::mkConst(size,powsizez);
+      if( cmul.isNull() )
+      {
+        cmul = coeff;
+      }
+      else
+      {
+        cmul = nm->mkNode( BITVECTOR_MULT, cmul, coeff );
+      }
+    }
+    else
+    {
+      ret = n;
+    }
+  }
+  else if( k==BITVECTOR_SHL )
+  {
+    ret = getBvMonomial( n[0], cmul, shl );
+    // carry factor, equivalent to multiply by factor of 2^n[1]
+    if( !shl.isNull() )
+    {
+      shl = n[1];
+    }
+    else
+    {
+      shl = nm->mkNode( BITVECTOR_PLUS, shl, n[1] );
+    }
+  }
+  else if( k==BITVECTOR_NEG )
+  {
+    ret = getBvMonomial( n[0], cmul, shl );
+    if( cmul.isNull() )
+    {
+      unsigned size = bv::utils::getSize(n);
+      cmul = bv::utils::mkOne(size);
+    }
+    cmul = nm->mkNode( BITVECTOR_NEG, cmul );
+  }
+  else
+  {
+    ret = n;
+  }
+  return ret;
+}  
+
+Node ExtendedRewriter::mkNodeFromBvMonomial( Node n, std::map< Node, Node >& msum,
+                          std::map< Node, Node >& shl )
+{
+  NodeManager * nm = NodeManager::currentNM();
+  std::vector< Node > sum;
+  for( const std::pair< Node, Node >& m : msum )
+  {
+    Node v = m.first;
+    Node c = m.second;
+    Node s = shl[v];
+    Node mm = nm->mkNode( BITVECTOR_MULT, c, v );
+    mm = Rewriter::rewrite( mm );
+    if( !s.isNull() )
+    {
+      mm = nm->mkNode( BITVECTOR_SHL, mm, s );
+    }
+    sum.push_back( mm );
+  }
+  if( sum.empty() )
+  {
+    return mkConstBv( n, false );
+  }
+  else if( sum.size()==1 )
+  {
+    return sum[0];
+  }
+  return nm->mkNode( BITVECTOR_PLUS, sum );
 }
 
 void ExtendedRewriter::debugExtendedRewrite( Node n, Node ret, const char * c )

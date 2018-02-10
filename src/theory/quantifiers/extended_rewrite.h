@@ -96,12 +96,27 @@ class ExtendedRewriter
   Node mkChain( Kind k, Node base, std::vector< Node >& children );
   /** mk const as the same type as n, 0 if !isNot, 1s if isNot */
   Node mkConstBv( Node n, bool isNot );
+  /** is const bv zero */
+  bool isConstBv( Node n, bool isNot );
   /** get const child */
   Node getConstBvChild( Node n, std::vector< Node >& nconst );
   /** */
   Node rewriteBvArith( Node ret );
   /** */
   Node rewriteBvShift( Node ret );
+  
+  
+  /** get monomial sum */
+  void getBvMonomialSum( Node n, 
+                         std::map< Node, Node >& msum,
+                         std::map< Node, Node >& shl );
+  /** get monomial */
+  Node getBvMonomial( Node n, Node& cmul, Node& shl );
+  
+  /** mkNode */
+  Node mkNodeFromBvMonomial( Node n, std::map< Node, Node >& msum,
+                              std::map< Node, Node >& shl );
+  
   /** has const child */
   bool hasConstBvChild( Node n );
 };
