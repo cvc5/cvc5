@@ -2778,13 +2778,8 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
                         << std::endl;
 
   Trace("strings-loop") << " ... T(Y.Z)= ";
-  std::vector<Node> vec_t;
-  for (int lp = index; lp < loop_index; ++lp)
-  {
-    if (lp != index) Trace("strings-loop") << " ++ ";
-    Trace("strings-loop") << normal_forms[loop_n_index][lp];
-    vec_t.push_back(normal_forms[loop_n_index][lp]);
-  }
+  std::vector<Node>& veci = normal_forms[loop_n_index];
+  std::vector<Node> vec_t(veci.begin()+index, veci.begin()+loop_index);
   Node t_yz = mkConcat(vec_t);
   Trace("strings-loop") << " (" << t_yz << ")" << std::endl;
   Trace("strings-loop") << " ... S(Z.Y)= ";
@@ -2793,7 +2788,6 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
   Node s_zy = mkConcat(vec_s);
   Trace("strings-loop") << s_zy << std::endl;
   Trace("strings-loop") << " ... R= ";
-  std::vector<Node>& veci = normal_forms[loop_n_index];
   std::vector<Node> vec_r(veci.begin() + loop_index + 1, veci.end());
   Node r = mkConcat(vec_r);
   Trace("strings-loop") << r << std::endl;

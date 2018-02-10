@@ -2109,7 +2109,7 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
   if (n[0] == n[1])
   {
     Node ret = NodeManager::currentNM()->mkConst(true);
-    return returnRewrite(node, ret, "suf/prefix-eq");
+    return returnRewrite(n, ret, "suf/prefix-eq");
   }
   if (n[0].isConst())
   {
@@ -2117,7 +2117,7 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
     if (t.isEmptyString())
     {
       Node ret = NodeManager::currentNM()->mkConst(true);
-      return returnRewrite(node, ret, "suf/prefix-empty-const");
+      return returnRewrite(n, ret, "suf/prefix-empty-const");
     }
   }
   if (n[1].isConst())
@@ -2127,7 +2127,7 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
     {
       Assert( !n[0].isConst();
       Node ret = n[0].eqNode(n[1]);
-      return returnRewrite(node, ret, "suf/prefix-empty");
+      return returnRewrite(n, ret, "suf/prefix-empty");
     }
     else if (n[0].isConst())
     {
@@ -2141,7 +2141,7 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
           ret = NodeManager::currentNM()->mkConst(true);
         }
       }
-      return returnRewrite(node, ret, "suf/prefix-const");
+      return returnRewrite(n, ret, "suf/prefix-const");
     }
     else if (s.size() == 1)
     {
@@ -2149,7 +2149,7 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
       // (str.contains "A" x )
       Node ret =
           NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, n[1], n[0]);
-      return returnRewrite(node, ret, "suf/prefix-ctn");
+      return returnRewrite(n, ret, "suf/prefix-ctn");
     }
   }
   Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, n[0]);
