@@ -2846,7 +2846,7 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
     }
     else
     {
-      Assert( !split_eqr.getConst<bool>() );
+      Assert(!split_eqr.getConst<bool>());
     }
   }
 
@@ -2891,7 +2891,9 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
         v2.insert(v2.begin(), z);
         restr = mkConcat(z, y);
         cc = Rewriter::rewrite(s_zy.eqNode(mkConcat(v2)));
-      } else {
+      }
+      else
+      {
         cc = Rewriter::rewrite(s_zy.eqNode(mkConcat(z, y)));
       }
       if (cc == d_false)

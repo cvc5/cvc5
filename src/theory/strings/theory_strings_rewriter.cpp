@@ -2147,7 +2147,8 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
     {
       // (str.prefix x "A") and (str.suffix x "A") are equivalent to
       // (str.contains "A" x )
-      Node ret = NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, n[1], n[0]);
+      Node ret =
+          NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, n[1], n[0]);
       return returnRewrite(node, ret, "suf/prefix-ctn");
     }
   }
