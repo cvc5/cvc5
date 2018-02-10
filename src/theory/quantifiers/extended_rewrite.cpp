@@ -282,6 +282,15 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         new_ret = nm->mkNode( BITVECTOR_SHL, nm->mkNode( BITVECTOR_NEG, ret[0][0] ), ret[0][1] );
         debugExtendedRewrite( ret, new_ret, "NEG-SHL-miniscope" );
       }
+      else if( ret[0].getKind()==BITVECTOR_CONCAT )
+      {
+        if( ret[0][0].getKind()==BITVECTOR_EXTRACT && bv::utils::getExtractLow(ret[0][0])==0 && isConstBv(ret[0][1],false) )
+        {
+          new_ret = nm->mkNode( BITVECTOR_CONCAT, 
+                      nm->mkNode( BITVECTOR_EXTRACT, ret[0][0].getOperator(), nm->mkNode( BITVECTOR_NEG, ret[0][0][0] ) ), ret[0][1] );
+          debugExtendedRewrite( ret, new_ret, "NEG-conext-miniscope" );
+        }
+      }
       else if( ret[0].getKind()==BITVECTOR_NOT )
       {
         // this should be handled by NOT-plus-miniscope below
