@@ -35,9 +35,9 @@ namespace bv {
 
 namespace {
 
+/* Determine the number of uncached nodes that a given node consists of.  */
 uint64_t numNodes(TNode node, utils::NodeSet& seen)
 {
-  utils::NodeSet::iterator it;
   std::vector<TNode> stack;
   uint64_t res = 0;
 
@@ -46,9 +46,8 @@ uint64_t numNodes(TNode node, utils::NodeSet& seen)
   {
     Node n = stack.back();
     stack.pop_back();
-    it = seen.find(n);
 
-    if (it != seen.end()) continue;
+    if (seen.find(n) != seen.end()) continue;
 
     res += 1;
     seen.insert(n);
