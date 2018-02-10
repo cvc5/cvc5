@@ -94,7 +94,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       d_ext_rewrite_cache.find(n);
   if (it == d_ext_rewrite_cache.end())
   {
-    Trace("q-ext-rewrite-debug") << "Do extended pre-rewrite on : " << n << std::endl;
+    Trace("q-ext-rewrite-debug") << "Do extended rewrite on : " << n << std::endl;
     
     Node ret = n;
     if (n.getNumChildren() > 0)
@@ -858,7 +858,7 @@ Node ExtendedRewriter::getBvMonomial( Node n, Node& cmul, std::vector< Node >& s
     std::sort( cnconsts.begin(), cnconsts.end() );
     if( !cnconsts.empty() )
     {
-      ret = nm->mkNode( BITVECTOR_MULT, cnconsts );
+      ret = cnconsts.size()==1 ? cnconsts[0] : nm->mkNode( BITVECTOR_MULT, cnconsts );
     }
     if( !cmuls.empty() )
     {
