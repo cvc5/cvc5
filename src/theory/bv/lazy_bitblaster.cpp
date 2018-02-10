@@ -215,12 +215,12 @@ void TLazyBitblaster::makeVariable(TNode var, Bits& bits) {
   d_variables.insert(var);
 }
 
-uint64_t TLazyBitblaster::computeAtomWeight(TNode node, NodeSet& seen) {
-  node = node.getKind() == kind::NOT?  node[0] : node;
-  if( !utils::isBitblastAtom( node ) ){
-    return 0;
-  }
-  Node atom_bb = Rewriter::rewrite(d_atomBBStrategies[node.getKind()](node, this));
+uint64_t TLazyBitblaster::computeAtomWeight(TNode node, NodeSet& seen)
+{
+  node = node.getKind() == kind::NOT ? node[0] : node;
+  if (!utils::isBitblastAtom(node)) { return 0; }
+  Node atom_bb =
+      Rewriter::rewrite(d_atomBBStrategies[node.getKind()](node, this));
   uint64_t size = numNodes(atom_bb, seen);
   return size;
 }
