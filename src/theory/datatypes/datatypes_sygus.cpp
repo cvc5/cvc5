@@ -830,14 +830,15 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
                 Assert(vars.size() == pt.size());
                 for (unsigned i = 0, size = pt.size(); i < size; i++)
                 {
-                  Trace("sygus-rr-debug")
-                      << "; unsound:    " << vars[i] << " -> " << pt[i] << std::endl;
+                  Trace("sygus-rr-debug") << "; unsound:    " << vars[i]
+                                          << " -> " << pt[i] << std::endl;
                 }
                 Node bv_e = its->second.evaluate(bv, pt_index);
                 Node pbv_e = its->second.evaluate(prev_bv, pt_index);
                 Assert(bv_e != pbv_e);
-                Trace("sygus-rr-debug") << "; unsound: where they evaluate to " << pbv_e
-                                        << " and " << bv_e << std::endl;
+                Trace("sygus-rr-debug") << "; unsound: where they evaluate to "
+                                        << pbv_e << " and " << bv_e
+                                        << std::endl;
               }
               else
               {
