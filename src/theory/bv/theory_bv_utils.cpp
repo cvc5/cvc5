@@ -27,26 +27,6 @@ namespace utils {
 
 /* ------------------------------------------------------------------------- */
 
-BitVector mkBitVectorOnes(unsigned size)
-{
-  Assert(size > 0);
-  return BitVector(1, Integer(1)).signExtend(size - 1);
-}
-
-BitVector mkBitVectorMinSigned(unsigned size)
-{
-  Assert(size > 0);
-  return BitVector(size).setBit(size - 1);
-}
-
-BitVector mkBitVectorMaxSigned(unsigned size)
-{
-  Assert(size > 0);
-  return ~mkBitVectorMinSigned(size);
-}
-
-/* ------------------------------------------------------------------------- */
-
 unsigned getSize(TNode node)
 {
   return node.getType().getBitVectorSize();
@@ -235,20 +215,34 @@ Node mkFalse()
   return NodeManager::currentNM()->mkConst<bool>(false);
 }
 
-Node mkOnes(unsigned size)
-{
-  BitVector val = mkBitVectorOnes(size);
-  return NodeManager::currentNM()->mkConst<BitVector>(val);
-}
-
 Node mkZero(unsigned size)
 {
+  Assert(size > 0);
   return mkConst(size, 0u);
 }
 
 Node mkOne(unsigned size)
 {
+  Assert(size > 0);
   return mkConst(size, 1u);
+}
+
+Node mkOnes(unsigned size)
+{
+  Assert(size > 0);
+  return mkConst(BitVector::mkOnes(size));
+}
+
+Node mkMinSigned(unsigned size)
+{
+  Assert(size > 0);
+  return mkConst(BitVector::mkMinSigned(size));
+}
+
+Node mkMaxSigned(unsigned size)
+{
+  Assert(size > 0);
+  return mkConst(BitVector::mkMaxSigned(size));
 }
 
 /* ------------------------------------------------------------------------- */

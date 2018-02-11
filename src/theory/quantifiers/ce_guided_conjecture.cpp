@@ -20,6 +20,7 @@
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -622,6 +623,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
       }
       out << ")" << std::endl;
+      ++(d_qe->getCegInstantiation()->d_statistics.d_solutions);
 
       if (status != 0 && options::sygusRewSynth())
       {
@@ -643,6 +645,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
           // rewrite.
           out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
               << std::endl;
+          ++(d_qe->getCegInstantiation()->d_statistics.d_candidate_rewrites);
           // debugging information
           if (Trace.isOn("sygus-rr-debug"))
           {
