@@ -20,6 +20,7 @@
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"

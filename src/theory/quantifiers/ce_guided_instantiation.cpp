@@ -357,13 +357,12 @@ void CegInstantiation::preregisterAssertion( Node n ) {
   }
 }
 
-CegInstantiation::Statistics::Statistics():
-  d_cegqi_lemmas_ce("CegInstantiation::cegqi_lemmas_ce", 0),
-  d_cegqi_lemmas_refine("CegInstantiation::cegqi_lemmas_refine", 0),
-  d_cegqi_si_lemmas("CegInstantiation::cegqi_lemmas_si", 0),
-  d_solutions("CegConjecture::solutions", 0),
-  d_candidate_rewrites("CegConjecture::candidate_rewrites", 0)
-  
+CegInstantiation::Statistics::Statistics()
+    : d_cegqi_lemmas_ce("CegInstantiation::cegqi_lemmas_ce", 0),
+      d_cegqi_lemmas_refine("CegInstantiation::cegqi_lemmas_refine", 0),
+      d_cegqi_si_lemmas("CegInstantiation::cegqi_lemmas_si", 0),
+      d_solutions("CegConjecture::solutions", 0),
+      d_candidate_rewrites("CegConjecture::candidate_rewrites", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_ce);
   smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_refine);
