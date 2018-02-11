@@ -869,8 +869,23 @@ Node ExtendedRewriter::getBvMonomial( Node n, Node& cmul, std::vector< Node >& s
   {
     if( n[0].getKind()==BITVECTOR_EXTRACT && bv::utils::getExtractLow(n[0])==0 && isConstBv(n[1],false) )
     {
-      ret = getBvMonomial( n[0][0], cmul, shls );
       unsigned size = bv::utils::getSize(n);
+      Node rec = n[0][0];
+      unsigned size_rec = bv::utils::getSize(rec);
+      // must ensure the same type
+      if( size_rec>size )
+      {
+        rec = bv::utils::mkExtract(rec,size,0);
+      }
+      else if( size_rec<size )
+      {
+        unsigned diff = size-size_rec;
+        Node bzero = bv::utils::mkZero(diff);
+        rec = nm->mkNode(BITVECTOR_CONCAT,bzero,rec);
+      }
+      Assert( rec.getType()==n.getType() );
+      
+      ret = getBvMonomial( rec, cmul, shls );
       // multiply by power of two
       unsigned sizez = bv::utils::getSize(n[1]);
       Integer powsizez = Integer(1).multiplyByPow2(sizez);
