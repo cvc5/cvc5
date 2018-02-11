@@ -865,29 +865,47 @@ Node ExtendedRewriter::getBvMonomial( Node n, Node& cmul, std::vector< Node >& s
       cmul = cmuls.size()==1 ? cmuls[0] : nm->mkNode( BITVECTOR_MULT, cmuls );
     }
   }
-  else if( k==BITVECTOR_CONCAT && n.getNumChildren()==2 )
+  else if( k==BITVECTOR_CONCAT )
   {
-    if( n[0].getKind()==BITVECTOR_EXTRACT && bv::utils::getExtractLow(n[0])==0 && isConstBv(n[1],false) )
+    unsigned nchildren = n.getNumChildren();
+    // if the last child is zero
+    if( isConstBv(n[nchildren-1],false) )
     {
       unsigned size = bv::utils::getSize(n);
-      Node rec = n[0][0];
+      Node rec;
+      if( nchildren==2 && n[0].getKind()==BITVECTOR_EXTRACT && bv::utils::getExtractLow(n[0])==0 )
+      {
+        rec = n[0][0];
+      }
+      else
+      {
+        std::vector< Node > rchildren;
+        for( unsigned j=0; j<nchildren-1; j++ )
+        {
+          rchildren.push_back(n[j]);
+        }
+        rec = nm->mkNode(BITVECTOR_CONCAT,rchildren);
+      }
+      
       unsigned size_rec = bv::utils::getSize(rec);
       // must ensure the same type
       if( size_rec>size )
       {
         rec = bv::utils::mkExtract(rec,size,0);
+        rec = Rewriter::rewrite( rec );
       }
       else if( size_rec<size )
       {
         unsigned diff = size-size_rec;
         Node bzero = bv::utils::mkZero(diff);
         rec = nm->mkNode(BITVECTOR_CONCAT,bzero,rec);
+        rec = Rewriter::rewrite( rec );
       }
       Assert( rec.getType()==n.getType() );
       
       ret = getBvMonomial( rec, cmul, shls );
       // multiply by power of two
-      unsigned sizez = bv::utils::getSize(n[1]);
+      unsigned sizez = bv::utils::getSize(n[nchildren-1]);
       Integer powsizez = Integer(1).multiplyByPow2(sizez);
       Node coeff = bv::utils::mkConst(size,powsizez);
       if( cmul.isNull() )
