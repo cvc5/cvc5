@@ -808,7 +808,7 @@ inline Node RewriteRule<MultPow2>::apply(TNode node)
       children.push_back(cn);
     }
   }
-  if( exponent>=size )
+  if (exponent >= size)
   {
     return utils::mkZero(size);
   }
@@ -827,7 +827,7 @@ inline Node RewriteRule<MultPow2>::apply(TNode node)
   {
     a = nm->mkNode(kind::BITVECTOR_NEG, a);
   }
-  if( exponent==0 )
+  if (exponent == 0)
   {
     return a;
   }
