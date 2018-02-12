@@ -110,8 +110,6 @@ class ExtendedRewriter
   
   /** get monomial sum */
   void getBvMonomialSum( Node n, std::map< Node, Node >& msum );
-  /** get monomial */
-  Node getBvMonomial( Node n, Node& cmul, std::vector< Node >& shls );
   
   /** mkNode */
   Node mkNodeFromBvMonomial( Node n, std::map< Node, Node >& msum );
