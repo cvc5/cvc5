@@ -657,7 +657,8 @@ void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
 Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
 {
   Node eq_n = SygusSampler::registerTerm(n, forceKeep);
-  Trace("sygus-synth-rr") << "sygusSampleExt : " << n << "..." << eq_n << std::endl;
+  Trace("sygus-synth-rr") << "sygusSampleExt : " << n << "..." << eq_n
+                          << std::endl;
   if (eq_n == n)
   {
     return n;

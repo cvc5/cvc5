@@ -53,6 +53,7 @@ namespace quantifiers {
 class DynamicRewriter
 {
   typedef context::CDList<Node> NodeList;
+
  public:
   DynamicRewriter(const std::string& name, QuantifiersEngine* qe);
   ~DynamicRewriter() {}

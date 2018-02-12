@@ -623,7 +623,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
       }
       out << ")" << std::endl;
-      CegInstantiation * cei = d_qe->getCegInstantiation();
+      CegInstantiation* cei = d_qe->getCegInstantiation();
       ++(cei->d_statistics.d_solutions);
 
       if (status != 0 && options::sygusRewSynth())
@@ -642,7 +642,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         if (eq_sol != solb)
         {
           ++(cei->d_statistics.d_candidate_rewrites);
-          if( !eq_sol.isNull() )
+          if (!eq_sol.isNull())
           {
             // Terms solb and eq_sol are equivalent under sample points but do
             // not rewrite to the same term. Hence, this indicates a candidate
