@@ -847,7 +847,7 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
           {
             rchildren.push_back(n[j]);
           }
-          rec = nm->mkNode(BITVECTOR_CONCAT,rchildren);
+          rec = rchildren.size()==1 ? rchildren[0] : nm->mkNode(BITVECTOR_CONCAT,rchildren);
         }
         unsigned size_rec = bv::utils::getSize(rec);
         // must ensure the same type
