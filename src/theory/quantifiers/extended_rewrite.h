@@ -50,7 +50,12 @@ class ExtendedRewriter
 
  private:
   /**
-   * Whether this extended rewriter applies aggressive rewriting techniques.
+   * Whether this extended rewriter applies aggressive rewriting techniques,
+   * which are more expensive. Examples of aggressive rewriting include:
+   * - conditional rewriting,
+   * - condition merging,
+   * - sorting childing of commutative operators with more than 5 children.
+   *
    * Aggressive rewriting is applied for SyGuS, whereas non-aggressive rewriting
    * may be applied as a preprocessing step.
    */
