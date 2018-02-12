@@ -496,21 +496,6 @@ void intersect(const std::vector<uint32_t>& v1,
 
 /* ------------------------------------------------------------------------- */
 
-uint64_t numNodes(TNode node, NodeSet& seen)
-{
-  if (seen.find(node) != seen.end()) return 0;
-
-  uint64_t size = 1;
-  for (unsigned i = 0; i < node.getNumChildren(); ++i)
-  {
-    size += numNodes(node[i], seen);
-  }
-  seen.insert(node);
-  return size;
-}
-
-/* ------------------------------------------------------------------------- */
-
 void collectVariables(TNode node, NodeSet& vars)
 {
   if (vars.find(node) != vars.end()) return;

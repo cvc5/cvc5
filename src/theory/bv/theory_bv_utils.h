@@ -194,9 +194,6 @@ void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
                std::vector<uint32_t>& intersection);
 
-/* Determine the total number of nodes that a given node consists of.  */
-uint64_t numNodes(TNode node, NodeSet& seen);
-
 /* Collect all variables under a given a node.  */
 void collectVariables(TNode node, NodeSet& vars);
 
