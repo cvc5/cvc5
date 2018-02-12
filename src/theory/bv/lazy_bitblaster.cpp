@@ -33,6 +33,30 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+namespace {
+
+/* Determine the number of uncached nodes that a given node consists of.  */
+uint64_t numNodes(TNode node, utils::NodeSet& seen)
+{
+  std::vector<TNode> stack;
+  uint64_t res = 0;
+
+  stack.push_back(node);
+  while (!stack.empty())
+  {
+    Node n = stack.back();
+    stack.pop_back();
+
+    if (seen.find(n) != seen.end()) continue;
+
+    res += 1;
+    seen.insert(n);
+    stack.insert(stack.end(), n.begin(), n.end());
+  }
+  return res;
+}
+}
+
 
 TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv,
                                  const std::string name, bool emptyNotify)
@@ -188,13 +212,13 @@ void TLazyBitblaster::makeVariable(TNode var, Bits& bits) {
   d_variables.insert(var);
 }
 
-uint64_t TLazyBitblaster::computeAtomWeight(TNode node, NodeSet& seen) {
-  node = node.getKind() == kind::NOT?  node[0] : node;
-  if( !utils::isBitblastAtom( node ) ){
-    return 0;
-  }
-  Node atom_bb = Rewriter::rewrite(d_atomBBStrategies[node.getKind()](node, this));
-  uint64_t size = utils::numNodes(atom_bb, seen);
+uint64_t TLazyBitblaster::computeAtomWeight(TNode node, NodeSet& seen)
+{
+  node = node.getKind() == kind::NOT ? node[0] : node;
+  if (!utils::isBitblastAtom(node)) { return 0; }
+  Node atom_bb =
+      Rewriter::rewrite(d_atomBBStrategies[node.getKind()](node, this));
+  uint64_t size = numNodes(atom_bb, seen);
   return size;
 }
 
