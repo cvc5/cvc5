@@ -464,11 +464,15 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
   std::map< Node, Node > msum;
   getBvMonomialSum( ret, msum );
   
-  Trace("q-ext-rewrite-bvarith") << "Monomial representation of " << ret << " : " << std::endl;
-  for( const std::pair< Node, Node >& m : msum )
+  if( Trace.isOn("q-ext-rewrite-bvarith") )
   {
-    Trace("q-ext-rewrite-bvarith") << "  " << m.first << " * " << m.second;
-    Trace("q-ext-rewrite-bvarith") << std::endl;
+    Trace("q-ext-rewrite-bvarith") << "Monomial representation of " << ret << " : " << std::endl;
+    for( const std::pair< Node, Node >& m : msum )
+    {
+      Node c = Rewriter::rewrite( m.second );
+      Trace("q-ext-rewrite-bvarith") << "  " << m.first << " * " << c;
+      Trace("q-ext-rewrite-bvarith") << std::endl;
+    }
   }
   
   new_ret = mkNodeFromBvMonomial( ret, msum );
@@ -878,7 +882,7 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
         getBvMonomialSum( cnb, cn_msum );
         if( cn_msum.size()==1 )
         {
-          for( const std::pair< Node, Node >& mc : n_msum )
+          for( const std::pair< Node, Node >& mc : cn_msum )
           {
             if( !mc.first.isConst() )
             {
