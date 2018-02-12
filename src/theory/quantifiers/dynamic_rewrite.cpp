@@ -25,7 +25,8 @@ namespace quantifiers {
 
 DynamicRewriter::DynamicRewriter(const std::string& name, QuantifiersEngine* qe)
     : d_qe(qe),
-      d_equalityEngine(qe->getUserContext(), "DynamicRewriter::" + name, true)
+      d_equalityEngine(qe->getUserContext(), "DynamicRewriter::" + name, true),
+      d_rewrites(qe->getUserContext())
 {
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 }
@@ -42,20 +43,26 @@ bool DynamicRewriter::addRewrite(Node a, Node b)
   // add to the equality engine
   Node ai = toInternal(a);
   Node bi = toInternal(b);
+  Trace("dyn-rewrite-debug") << "Internal : " << ai << " " << bi << std::endl;
   d_equalityEngine.addTerm(ai);
   d_equalityEngine.addTerm(bi);
 
+  Trace("dyn-rewrite-debug") << "get reps..." << std::endl;
   // may already be equal by congruence
   Node air = d_equalityEngine.getRepresentative(ai);
   Node bir = d_equalityEngine.getRepresentative(bi);
+  Trace("dyn-rewrite-debug") << "Reps : " << air << " " << bir << std::endl;
   if (air == bir)
   {
     Trace("dyn-rewrite") << "...fail, congruent." << std::endl;
     return false;
   }
 
+  Trace("dyn-rewrite-debug") << "assert eq..." << std::endl;
   Node eq = ai.eqNode(bi);
+  d_rewrites.push_back(eq);
   d_equalityEngine.assertEquality(eq, true, eq);
+  Trace("dyn-rewrite-debug") << "Finished" << std::endl;
   return true;
 }
 
