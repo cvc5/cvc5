@@ -51,7 +51,8 @@ class ExtendedRewriter
  private:
   /**
    * Whether this extended rewriter applies aggressive rewriting techniques.
-   * Aaggressive rewriting is applied for SyGuS.
+   * Aggressive rewriting is applied for SyGuS, whereas non-aggressive rewriting
+   * may be applied as a preprocessing step.
    */
   bool d_aggr;
   /** true and false nodes */
