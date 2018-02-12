@@ -19,7 +19,6 @@
 
 #include <map>
 
-#include "context/cdlist.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/uf/equality_engine.h"
 
@@ -52,7 +51,6 @@ namespace quantifiers {
  */
 class DynamicRewriter
 {
-  typedef context::CDList<Node> NodeList;
  public:
   DynamicRewriter(const std::string& name, QuantifiersEngine* qe);
   ~DynamicRewriter() {}
@@ -107,8 +105,6 @@ class DynamicRewriter
   std::map<Node, Node> d_term_to_internal;
   /** stores congruence closure over terms given to this class. */
   eq::EqualityEngine d_equalityEngine;
-  /** list of all equalities asserted to equality engine */
-  NodeList d_rewrites;
 };
 
 } /* CVC4::theory::quantifiers namespace */
