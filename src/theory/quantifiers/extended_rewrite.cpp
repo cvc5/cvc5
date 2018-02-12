@@ -385,12 +385,13 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         // TODO condition merging
       }
     }
-
     d_ext_rewrite_cache[n] = ret;
     if (!new_ret.isNull())
     {
+      Trace("q-ext-rewrite-debug") << "...returned " << new_ret << " for " << n << ", repeat ext-rewrite" << std::endl;
       ret = extendedRewrite(new_ret);
     }
+    Trace("q-ext-rewrite-debug") << "...returned " << ret << " for " << n << std::endl;
     d_ext_rewrite_cache[n] = ret;
     return ret;
   }
@@ -402,6 +403,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
 
 Node ExtendedRewriter::rewriteBvArith( Node ret )
 {
+  Trace("q-ext-rewrite-debug") << "Rewrite bv arith " << ret << std::endl;
   Kind k = ret.getKind();
   Assert( k == BITVECTOR_PLUS || k == BITVECTOR_MULT );
   NodeManager * nm = NodeManager::currentNM();
@@ -778,10 +780,13 @@ Node ExtendedRewriter::normalizeBvMonomial( Node n )
     Trace("q-ext-rewrite-bvarith") << "Monomial representation of " << n << " : " << std::endl;
     for( const std::pair< Node, Node >& m : msum )
     {
+      Assert( !m.second.isNull() );
       Node c = Rewriter::rewrite( m.second );
+      Assert( c.getType()==m.first.getType() );
       Trace("q-ext-rewrite-bvarith") << "  " << m.first << " * " << c;
       Trace("q-ext-rewrite-bvarith") << std::endl;
     }
+    Trace("q-ext-rewrite-bvarith") << "...finish print." << std::endl;
   }
   
   Node new_ret = mkNodeFromBvMonomial( n, msum );
@@ -797,6 +802,7 @@ Node ExtendedRewriter::normalizeBvMonomial( Node n )
 
 void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
 {
+  Trace("q-ext-rewrite-debug2") << "get bv monomial sum " << n << std::endl;
   NodeManager * nm = NodeManager::currentNM();
   unsigned size = bv::utils::getSize(n);
   Node bv_one = bv::utils::mkOne(size);
