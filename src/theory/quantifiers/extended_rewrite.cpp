@@ -122,7 +122,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   }
   ret = Rewriter::rewrite(ret);
   Trace("q-ext-rewrite-debug") << "Do extended rewrite on : " << ret
-                                << " (from " << n << ")" << std::endl;
+                               << " (from " << n << ")" << std::endl;
 
   Node new_ret;
   if (ret.getKind() == kind::EQUAL)
@@ -148,9 +148,9 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       {
         if (ret[1] == ret[0][i] && ret[2] == ret[0][1 - i])
         {
-          Trace("q-ext-rewrite") << "sygus-extr : " << ret << " rewrites to "
-                                  << ret[2] << " due to simple invariant ITE."
-                                  << std::endl;
+          Trace("q-ext-rewrite")
+              << "sygus-extr : " << ret << " rewrites to " << ret[2]
+              << " due to simple invariant ITE." << std::endl;
           new_ret = ret[2];
           break;
         }
@@ -160,7 +160,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       {
         // simple substitution
         for (unsigned i = 0; i < 2; i++)
-        {              
+        {
           TNode r1 = ret[0][i];
           TNode r2 = ret[0][1 - i];
           if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
@@ -180,7 +180,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
   }
   else if (ret.getKind() == DIVISION || ret.getKind() == INTS_DIVISION
-            || ret.getKind() == INTS_MODULUS)
+           || ret.getKind() == INTS_MODULUS)
   {
     // rewrite as though total
     std::vector<Node> children;
@@ -199,15 +199,14 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
     if (all_const)
     {
-      Kind new_k =
-          (ret.getKind() == DIVISION
-                ? DIVISION_TOTAL
-                : (ret.getKind() == INTS_DIVISION ? INTS_DIVISION_TOTAL
-                                                  : INTS_MODULUS_TOTAL));
+      Kind new_k = (ret.getKind() == DIVISION ? DIVISION_TOTAL
+                                              : (ret.getKind() == INTS_DIVISION
+                                                     ? INTS_DIVISION_TOTAL
+                                                     : INTS_MODULUS_TOTAL));
       new_ret = NodeManager::currentNM()->mkNode(new_k, children);
-      Trace("q-ext-rewrite") << "sygus-extr : " << ret << " rewrites to "
-                              << new_ret << " due to total interpretation."
-                              << std::endl;
+      Trace("q-ext-rewrite")
+          << "sygus-extr : " << ret << " rewrites to " << new_ret
+          << " due to total interpretation." << std::endl;
     }
   }
   // more expensive rewrites
