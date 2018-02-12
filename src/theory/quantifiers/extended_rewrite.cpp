@@ -781,12 +781,11 @@ Node ExtendedRewriter::normalizeBvMonomial( Node n )
     for( const std::pair< Node, Node >& m : msum )
     {
       Assert( !m.second.isNull() );
+      Assert( m.second.getType()==m.first.getType() );
       Node c = Rewriter::rewrite( m.second );
-      Assert( c.getType()==m.first.getType() );
       Trace("q-ext-rewrite-bvarith") << "  " << m.first << " * " << c;
       Trace("q-ext-rewrite-bvarith") << std::endl;
     }
-    Trace("q-ext-rewrite-bvarith") << "...finish print." << std::endl;
   }
   
   Node new_ret = mkNodeFromBvMonomial( n, msum );
@@ -859,7 +858,7 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
         // must ensure the same type
         if( size_rec>size )
         {
-          rec = bv::utils::mkExtract(rec,size,0);
+          rec = bv::utils::mkExtract(rec,size-1,0);
           rec = Rewriter::rewrite( rec );
         }
         else if( size_rec<size )
@@ -879,6 +878,7 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
         for( std::map< Node, Node >::iterator it = n_msum.begin(); it != n_msum.end(); ++it )
         {
           Node coeff = it->second;
+          Assert( coeff.getType()==ccoeff.getType() );
           n_msum[it->first] = nm->mkNode( BITVECTOR_MULT, coeff, ccoeff );
         }
       }
@@ -905,17 +905,24 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
         {
           for( const std::pair< Node, Node >& mc : cn_msum )
           {
+            Trace("q-ext-rewrite-debug2") << ".....factor : ";
             if( !mc.first.isConst() )
             {
+              Trace("q-ext-rewrite-debug2") << mc.first << " * ";
               children.push_back( mc.first );
             }
-            coeff = nm->mkNode( BITVECTOR_MULT, coeff, mc.second );
+            Trace("q-ext-rewrite-debug2") << mc.second << std::endl;
+            if( mc.second!=bv_one )
+            {
+              coeff = nm->mkNode( BITVECTOR_MULT, coeff, mc.second );
+            }
           }
         }
         else
         {
           // don't distribute
           children.push_back( cnb );
+          Trace("q-ext-rewrite-debug2") << ".....factor : " << cnb << std::endl;
         }
       }
       Node v = bv_one;
@@ -931,6 +938,7 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
       {
         v = mkChain( BITVECTOR_SHL, v, shls );
       }
+      Trace("q-ext-rewrite-debug2") << "...got " << v << " * " << coeff << std::endl;
       n_msum[v] = coeff;
     }
     else 
