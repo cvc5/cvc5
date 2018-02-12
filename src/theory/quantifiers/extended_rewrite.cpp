@@ -782,168 +782,156 @@ bool ExtendedRewriter::hasConstBvChild( Node n )
 void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
 {
   NodeManager * nm = NodeManager::currentNM();
-  std::vector< Node > sum;
-  if( n.getKind() == BITVECTOR_PLUS )
-  {
-    for( const Node& cn : n )
-    {
-      sum.push_back( cn );
-    }
-  }
-  else
-  {
-    sum.push_back( n );
-  }
-  std::map< Node, std::vector< Node > > msums;
   unsigned size = bv::utils::getSize(n);
   Node bv_one = bv::utils::mkOne(size);
-  for( const Node& cn : sum )
-  {
-    Node cmul;
-    std::vector< Node > shls;
-    Node v = getBvMonomial( cn, cmul, shls );
-    Assert( v.isNull() || !v.isConst() );
-    v = v.isNull() ? bv_one : v;
-    cmul = cmul.isNull() ? bv_one : cmul;
-    v = mkChain( BITVECTOR_SHL, v, shls );
-    msums[v].push_back( cmul );
-  }
-  for( const std::pair< Node, std::vector< Node > >& m : msums )
-  {
-    Node v = m.first;
-    const std::vector< Node >& cs = m.second;
-    Node mv = cs.size()==1 ? cs[0] : nm->mkNode( BITVECTOR_PLUS, cs );
-    mv = Rewriter::rewrite( mv );
-    Assert( mv.isConst() );
-    msum[v] = mv;
-  }
-}
-
-Node ExtendedRewriter::getBvMonomial( Node n, Node& cmul, std::vector< Node >& shls )
-{
-  Node ret;
+  
+  std::map< Node, Node > n_msum;
   if( n.isConst() )
   {
-    cmul = n;
-    return ret;
-  }
-  NodeManager * nm = NodeManager::currentNM();
-  Kind k = n.getKind();
-  if( k==BITVECTOR_MULT )
-  {
-    std::vector< Node > nconst;
-    std::vector< Node > cmuls;
-    std::vector< Node > cshls;
-    cmul = getConstBvChild( n, nconst );
-    if( !cmul.isNull() )
-    {
-      cmuls.push_back( cmul );
-    }
-    // now extract product values from children
-    std::vector< Node > cnconsts;
-    for( unsigned i=0, size=nconst.size(); i<size; i++ )
-    {
-      Node cmulc;
-      Node nc = getBvMonomial( nconst[i], cmulc, shls );
-      if( !nc.isNull() )
-      {
-        cnconsts.push_back( nc );
-      }
-      if( !cmulc.isNull() )
-      {
-        cmuls.push_back( cmulc );
-      }
-    }
-    // sort monomial list
-    std::sort( cnconsts.begin(), cnconsts.end() );
-    if( !cnconsts.empty() )
-    {
-      ret = cnconsts.size()==1 ? cnconsts[0] : nm->mkNode( BITVECTOR_MULT, cnconsts );
-    }
-    if( !cmuls.empty() )
-    {
-      cmul = cmuls.size()==1 ? cmuls[0] : nm->mkNode( BITVECTOR_MULT, cmuls );
-    }
-  }
-  else if( k==BITVECTOR_CONCAT )
-  {
-    unsigned nchildren = n.getNumChildren();
-    // if the last child is zero
-    if( isConstBv(n[nchildren-1],false) )
-    {
-      unsigned size = bv::utils::getSize(n);
-      Node rec;
-      if( nchildren==2 && n[0].getKind()==BITVECTOR_EXTRACT && bv::utils::getExtractLow(n[0])==0 )
-      {
-        rec = n[0][0];
-      }
-      else
-      {
-        std::vector< Node > rchildren;
-        for( unsigned j=0; j<nchildren-1; j++ )
-        {
-          rchildren.push_back(n[j]);
-        }
-        rec = nm->mkNode(BITVECTOR_CONCAT,rchildren);
-      }
-      
-      unsigned size_rec = bv::utils::getSize(rec);
-      // must ensure the same type
-      if( size_rec>size )
-      {
-        rec = bv::utils::mkExtract(rec,size,0);
-        rec = Rewriter::rewrite( rec );
-      }
-      else if( size_rec<size )
-      {
-        unsigned diff = size-size_rec;
-        Node bzero = bv::utils::mkZero(diff);
-        rec = nm->mkNode(BITVECTOR_CONCAT,bzero,rec);
-        rec = Rewriter::rewrite( rec );
-      }
-      Assert( rec.getType()==n.getType() );
-      
-      ret = getBvMonomial( rec, cmul, shls );
-      // multiply by power of two
-      unsigned sizez = bv::utils::getSize(n[nchildren-1]);
-      Integer powsizez = Integer(1).multiplyByPow2(sizez);
-      Node coeff = bv::utils::mkConst(size,powsizez);
-      if( cmul.isNull() )
-      {
-        cmul = coeff;
-      }
-      else
-      {
-        cmul = nm->mkNode( BITVECTOR_MULT, cmul, coeff );
-      }
-    }
-    else
-    {
-      ret = n;
-    }
-  }
-  else if( k==BITVECTOR_SHL )
-  {
-    ret = getBvMonomial( n[0], cmul, shls );
-    // carry factor, equivalent to multiply by factor of 2^n[1]
-    shls.push_back( n[1] );
-  }
-  else if( k==BITVECTOR_NEG )
-  {
-    ret = getBvMonomial( n[0], cmul, shls );
-    if( cmul.isNull() )
-    {
-      unsigned size = bv::utils::getSize(n);
-      cmul = bv::utils::mkOne(size);
-    }
-    cmul = nm->mkNode( BITVECTOR_NEG, cmul );
+    n_msum[bv_one] = n;
   }
   else
   {
-    ret = n;
+    Kind k = n.getKind();
+    if( k==BITVECTOR_PLUS )
+    {
+      for( const Node& cn : n )
+      {
+        getBvMonomialSum( cn, msum );
+      }
+    }
+    else if( k == BITVECTOR_NEG )
+    {
+      getBvMonomialSum( n[0], n_msum );
+      for( std::map< Node, Node >::iterator it = n_msum.begin(); it != n_msum.end(); ++it )
+      {
+        Node coeff = it->second;
+        n_msum[it->first] = nm->mkNode( BITVECTOR_NEG, coeff );
+      }
+    }
+    else if( k == BITVECTOR_NOT )
+    {
+      Node rec = nm->mkNode( BITVECTOR_NEG, nm->mkNode( n[0], bv_one ) );
+      getBvMonomialSum( rec, msum );
+    }
+    else if( k == BITVECTOR_CONCAT )
+    {
+      unsigned nchildren = n.getNumChildren();
+      // if the last child is zero
+      if( isConstBv(n[nchildren-1],false) )
+      {
+        Node rec;
+        if( nchildren==2 && n[0].getKind()==BITVECTOR_EXTRACT && bv::utils::getExtractLow(n[0])==0 )
+        {
+          rec = n[0][0];
+        }
+        else
+        {
+          std::vector< Node > rchildren;
+          for( unsigned j=0; j<nchildren-1; j++ )
+          {
+            rchildren.push_back(n[j]);
+          }
+          rec = nm->mkNode(BITVECTOR_CONCAT,rchildren);
+        }
+        unsigned size_rec = bv::utils::getSize(rec);
+        // must ensure the same type
+        if( size_rec>size )
+        {
+          rec = bv::utils::mkExtract(rec,size,0);
+          rec = Rewriter::rewrite( rec );
+        }
+        else if( size_rec<size )
+        {
+          unsigned diff = size-size_rec;
+          Node bzero = bv::utils::mkZero(diff);
+          rec = nm->mkNode(BITVECTOR_CONCAT,bzero,rec);
+          rec = Rewriter::rewrite( rec );
+        }
+        Assert( rec.getType()==n.getType() );
+        
+        unsigned sizez = bv::utils::getSize(n[nchildren-1]);
+        Integer powsizez = Integer(1).multiplyByPow2(sizez);
+        Node coeff = bv::utils::mkConst(size,powsizez);
+        
+        rec = nm->mkNode( BITVECTOR_MULT, coeff, rec );
+        getBvMonomialSum( rec, msum );
+      }
+      else
+      {
+        n_msum[n] = bv_one;
+      }
+    }
+    else if( k == BITVECTOR_MULT )
+    {
+      std::vector< Node > shls;
+      std::vector< Node > children;
+      Node coeff = bv_one;
+      for( const Node& cn : n )
+      {
+        Node cnb = cn;
+        if( cnb.getKind()==BITVECTOR_SHL )
+        {
+          cnb = decomposeChain( BITVECTOR_SHL, cnb, shls );
+        }
+        std::map< Node, Node > cn_msum;
+        getBvMonomialSum( cnb, cn_msum );
+        if( cn_msum.size()==1 )
+        {
+          for( const std::pair< Node, Node >& mc : n_msum )
+          {
+            if( !mc.first.isConst() )
+            {
+              children.push_back( mc.first );
+            }
+            coeff = nm->mkNode( BITVECTOR_MULT, coeff, mc.second );
+          }
+        }
+        else
+        {
+          // don't distribute
+          children.push_back( cnb );
+        }
+      }
+      Node v = bv_one;
+      if( children.size()==1 )
+      {
+        v = children[0];
+      }
+      else if( children.size()>1 )
+      {
+        v = nm->mkNode( BITVECTOR_MULT, children );
+      }
+      if( !shls.empty() )
+      {
+        v = mkChain( BITVECTOR_SHL, v, shls );
+      }
+      n_msum[v] = coeff;
+    }
+    else 
+    {
+      n_msum[n] = bv_one;
+    }
   }
-  return ret;
-}  
+  // add the monomial sum for this node if we generated one
+  if( !n_msum.empty() )
+  {
+    for( const std::pair< Node, Node >& m : n_msum )
+    {
+      Node v = m.first;
+      Node coeff = m.second;
+      std::map< Node, Node >::iterator itm = msum.find( v );
+      if( itm==msum.end() )
+      {
+        msum[v] = coeff;
+      }
+      else
+      {
+        msum[v] = nm->mkNode( BITVECTOR_PLUS, coeff, itm->second );
+      }
+    }
+  }
+}
 
 Node ExtendedRewriter::mkNodeFromBvMonomial( Node n, std::map< Node, Node >& msum )
 {

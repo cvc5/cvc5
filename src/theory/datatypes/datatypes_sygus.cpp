@@ -1279,9 +1279,10 @@ Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDat
     if( it==d_lits.end() ){
       if (options::sygusAbortSize() != -1 &&
           static_cast<int>(s) > options::sygusAbortSize()) {
-        Message() << "Maximum term size (" << options::sygusAbortSize()
-                  << ") for enumerative SyGuS exceeded." << std::endl;
-        exit(1);
+        std::stringstream ss;
+        ss << "Maximum term size (" << options::sygusAbortSize()
+           << ") for enumerative SyGuS exceeded." << std::endl;
+        throw LogicException(ss.str());
       }
       Assert( !d_this.isNull() );
       Node c = NodeManager::currentNM()->mkConst( Rational( s ) );
