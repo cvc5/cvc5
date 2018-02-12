@@ -76,8 +76,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
           Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
                                  << nc << " by simple ITE pulling."
                                  << std::endl;
-          // recurse
-          return extendedRewrite(nc);
+          return nc;
         }
       }
     }
