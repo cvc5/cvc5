@@ -709,7 +709,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     }
     Trace("sygus-synth-rr") << std::endl;
   }
-  return n;
+  return Node::null();
 }
 
 } /* CVC4::theory::quantifiers namespace */
