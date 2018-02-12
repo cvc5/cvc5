@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-ExtendedRewriter::ExtendedRewriter()
+ExtendedRewriter::ExtendedRewriter(bool aggr) : d_aggr(aggr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -87,6 +87,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
 
 Node ExtendedRewriter::extendedRewrite(Node n)
 {
+  n = Rewriter::rewrite( n );
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
       d_ext_rewrite_cache.find(n);
   if (it == d_ext_rewrite_cache.end())
@@ -108,7 +109,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
       // Some commutative operators have rewriters that are agnostic to order,
       // thus, we sort here.
-      if (TermUtil::isComm(n.getKind()))
+      if (TermUtil::isComm(n.getKind()) && ( d_aggr || children.size()<=5 ))
       {
         childChanged = true;
         std::sort(children.begin(), children.end());
@@ -209,75 +210,15 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
     }
     // more expensive rewrites
-    if (new_ret.isNull())
+    if( new_ret.isNull() && d_aggr )
     {
-      Trace("q-ext-rewrite-debug2") << "Do expensive rewrites on " << ret
-                                    << std::endl;
-      bool polarity = ret.getKind() != NOT;
-      Node ret_atom = ret.getKind() == NOT ? ret[0] : ret;
-      if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isReal())
-          || ret_atom.getKind() == GEQ)
-      {
-        Trace("q-ext-rewrite-debug2") << "Compute monomial sum " << ret_atom
-                                      << std::endl;
-        // compute monomial sum
-        std::map<Node, Node> msum;
-        if (ArithMSum::getMonomialSumLit(ret_atom, msum))
-        {
-          for (std::map<Node, Node>::iterator itm = msum.begin();
-               itm != msum.end();
-               ++itm)
-          {
-            Node v = itm->first;
-            Trace("q-ext-rewrite-debug2") << itm->first << " * " << itm->second
-                                          << std::endl;
-            if (v.getKind() == ITE)
-            {
-              Node veq;
-              int res = ArithMSum::isolate(v, msum, veq, ret_atom.getKind());
-              if (res != 0)
-              {
-                Trace("q-ext-rewrite-debug")
-                    << "  have ITE relation, solved form : " << veq
-                    << std::endl;
-                // try pulling ITE
-                new_ret = extendedRewritePullIte(veq);
-                if (!new_ret.isNull())
-                {
-                  if (!polarity)
-                  {
-                    new_ret = new_ret.negate();
-                  }
-                  break;
-                }
-              }
-              else
-              {
-                Trace("q-ext-rewrite-debug") << "  failed to isolate " << v
-                                             << " in " << ret << std::endl;
-              }
-            }
-          }
-        }
-        else
-        {
-          Trace("q-ext-rewrite-debug") << "  failed to get monomial sum of "
-                                       << ret << std::endl;
-        }
-      }
-      else if (ret_atom.getKind() == ITE)
-      {
-        // TODO : conditional rewriting
-      }
-      else if (ret.getKind() == kind::AND || ret.getKind() == kind::OR)
-      {
-        // TODO condition merging
-      }
+      new_ret = extendedRewriteAggr( ret );
     }
 
+    d_ext_rewrite_cache[n] = ret;
     if (!new_ret.isNull())
     {
-      ret = Rewriter::rewrite(new_ret);
+      ret = extendedRewrite(new_ret);
     }
     d_ext_rewrite_cache[n] = ret;
     return ret;
@@ -286,6 +227,67 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   {
     return it->second;
   }
+}
+
+
+Node ExtendedRewriter::extendedRewriteAggr( Node n )
+{
+  Node new_ret;
+  Trace("q-ext-rewrite-debug2") << "Do aggressive rewrites on " << n << std::endl;
+  bool polarity = n.getKind() != NOT;
+  Node ret_atom = n.getKind() == NOT ? n[0] : n;
+  if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isReal())
+      || ret_atom.getKind() == GEQ)
+  {
+    Trace("q-ext-rewrite-debug2") << "Compute monomial sum " << ret_atom
+                                  << std::endl;
+    // compute monomial sum
+    std::map<Node, Node> msum;
+    if (ArithMSum::getMonomialSumLit(ret_atom, msum))
+    {
+      for (std::map<Node, Node>::iterator itm = msum.begin();
+            itm != msum.end();
+            ++itm)
+      {
+        Node v = itm->first;
+        Trace("q-ext-rewrite-debug2") << itm->first << " * " << itm->second
+                                      << std::endl;
+        if (v.getKind() == ITE)
+        {
+          Node veq;
+          int res = ArithMSum::isolate(v, msum, veq, ret_atom.getKind());
+          if (res != 0)
+          {
+            Trace("q-ext-rewrite-debug")
+                << "  have ITE relation, solved form : " << veq
+                << std::endl;
+            // try pulling ITE
+            new_ret = extendedRewritePullIte(veq);
+            if (!new_ret.isNull())
+            {
+              if (!polarity)
+              {
+                new_ret = new_ret.negate();
+              }
+              break;
+            }
+          }
+          else
+          {
+            Trace("q-ext-rewrite-debug") << "  failed to isolate " << v
+                                          << " in " << n << std::endl;
+          }
+        }
+      }
+    }
+    else
+    {
+      Trace("q-ext-rewrite-debug") << "  failed to get monomial sum of "
+                                    << n << std::endl;
+    }
+  }
+  // TODO (#1599) : conditional rewriting, condition merging
+  return new_ret;
 }
 
 } /* CVC4::theory::quantifiers namespace */
