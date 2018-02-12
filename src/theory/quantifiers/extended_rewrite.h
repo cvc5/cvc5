@@ -43,13 +43,13 @@ namespace quantifiers {
 class ExtendedRewriter
 {
  public:
-  ExtendedRewriter( bool aggr = true );
+  ExtendedRewriter(bool aggr = true);
   ~ExtendedRewriter() {}
   /** return the extended rewritten form of n */
   Node extendedRewrite(Node n);
 
  private:
-  /** 
+  /**
    * Whether this extended rewriter applies aggressive rewriting techniques.
    * Aaggressive rewriting is applied for SyGuS.
    */
@@ -68,7 +68,7 @@ class ExtendedRewriter
    */
   Node extendedRewritePullIte(Node n);
   /** extended rewrite aggressive */
-  Node extendedRewriteAggr( Node n );
+  Node extendedRewriteAggr(Node n);
 };
 
 } /* CVC4::theory::quantifiers namespace */

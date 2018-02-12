@@ -87,7 +87,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
 
 Node ExtendedRewriter::extendedRewrite(Node n)
 {
-  n = Rewriter::rewrite( n );
+  n = Rewriter::rewrite(n);
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
       d_ext_rewrite_cache.find(n);
   if (it == d_ext_rewrite_cache.end())
@@ -109,7 +109,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
       // Some commutative operators have rewriters that are agnostic to order,
       // thus, we sort here.
-      if (TermUtil::isComm(n.getKind()) && ( d_aggr || children.size()<=5 ))
+      if (TermUtil::isComm(n.getKind()) && (d_aggr || children.size() <= 5))
       {
         childChanged = true;
         std::sort(children.begin(), children.end());
@@ -210,9 +210,9 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
     }
     // more expensive rewrites
-    if( new_ret.isNull() && d_aggr )
+    if (new_ret.isNull() && d_aggr)
     {
-      new_ret = extendedRewriteAggr( ret );
+      new_ret = extendedRewriteAggr(ret);
     }
 
     d_ext_rewrite_cache[n] = ret;
@@ -229,29 +229,28 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   }
 }
 
-
-Node ExtendedRewriter::extendedRewriteAggr( Node n )
+Node ExtendedRewriter::extendedRewriteAggr(Node n)
 {
   Node new_ret;
-  Trace("q-ext-rewrite-debug2") << "Do aggressive rewrites on " << n << std::endl;
+  Trace("q-ext-rewrite-debug2")
+      << "Do aggressive rewrites on " << n << std::endl;
   bool polarity = n.getKind() != NOT;
   Node ret_atom = n.getKind() == NOT ? n[0] : n;
   if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isReal())
       || ret_atom.getKind() == GEQ)
   {
-    Trace("q-ext-rewrite-debug2") << "Compute monomial sum " << ret_atom
-                                  << std::endl;
+    Trace("q-ext-rewrite-debug2")
+        << "Compute monomial sum " << ret_atom << std::endl;
     // compute monomial sum
     std::map<Node, Node> msum;
     if (ArithMSum::getMonomialSumLit(ret_atom, msum))
     {
-      for (std::map<Node, Node>::iterator itm = msum.begin();
-            itm != msum.end();
-            ++itm)
+      for (std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end();
+           ++itm)
       {
         Node v = itm->first;
-        Trace("q-ext-rewrite-debug2") << itm->first << " * " << itm->second
-                                      << std::endl;
+        Trace("q-ext-rewrite-debug2")
+            << itm->first << " * " << itm->second << std::endl;
         if (v.getKind() == ITE)
         {
           Node veq;
@@ -259,8 +258,7 @@ Node ExtendedRewriter::extendedRewriteAggr( Node n )
           if (res != 0)
           {
             Trace("q-ext-rewrite-debug")
-                << "  have ITE relation, solved form : " << veq
-                << std::endl;
+                << "  have ITE relation, solved form : " << veq << std::endl;
             // try pulling ITE
             new_ret = extendedRewritePullIte(veq);
             if (!new_ret.isNull())
@@ -274,16 +272,16 @@ Node ExtendedRewriter::extendedRewriteAggr( Node n )
           }
           else
           {
-            Trace("q-ext-rewrite-debug") << "  failed to isolate " << v
-                                          << " in " << n << std::endl;
+            Trace("q-ext-rewrite-debug")
+                << "  failed to isolate " << v << " in " << n << std::endl;
           }
         }
       }
     }
     else
     {
-      Trace("q-ext-rewrite-debug") << "  failed to get monomial sum of "
-                                    << n << std::endl;
+      Trace("q-ext-rewrite-debug")
+          << "  failed to get monomial sum of " << n << std::endl;
     }
   }
   // TODO (#1599) : conditional rewriting, condition merging
