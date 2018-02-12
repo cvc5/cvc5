@@ -108,6 +108,9 @@ class ExtendedRewriter
   Node rewriteBvShift( Node ret );
   
   
+  /** */
+  Node normalizeBvMonomial( Node n );
+  
   /** get monomial sum */
   void getBvMonomialSum( Node n, std::map< Node, Node >& msum );
   
