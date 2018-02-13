@@ -332,13 +332,25 @@ class SygusSamplerExt : public SygusSampler
   void initializeSygusExt(QuantifiersEngine* qe, Node f, unsigned nsamples);
   /** register term n with this sampler database
    *
-   * This returns a term ret with the same guarantees as
-   * SygusSampler::registerTerm, with the additional guarantee
+   * This returns either null, or a term ret with the same guarantees as
+   * SygusSampler::registerTerm with the additional guarantee
    * that for all ret' returned by a previous call to registerTerm( n' ),
-   * we have that ret = n is not alpha-equivalent to ret' = n,
-   * modulo symmetry of equality. For example,
+   * we have that n = ret is not alpha-equivalent to n' = ret'
+   * modulo symmetry of equality, nor is n = ret derivable from the set of
+   * all previous input/output pairs based on the d_drewrite utility.
+   * For example,
    *   (t+0), t and (s+0), s
-   * will not be input/output pairs of this function.
+   * will not both be input/output pairs of this function since t+0=t is
+   * alpha-equivalent to s+0=s.
+   *   s, t and s+0, t+0
+   * will not both be input/output pairs of this function since s+0=t+0 is
+   * derivable from s=t.
+   *
+   * If this function returns null, then n is equivalent to a previously
+   * registered term ret, and the equality n = ret is either alpha-equivalent
+   * to a previous input/output pair n' = ret', or n = ret is derivable
+   * from the set of all previous input/output pairs based on the
+   * d_drewrite utility.
    */
   virtual Node registerTerm(Node n, bool forceKeep = false) override;
 
