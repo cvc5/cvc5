@@ -23,6 +23,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
+#include <unordered_set>
 
 using namespace CVC4::context;
 using namespace CVC4::prop;
@@ -41,6 +42,7 @@ namespace {
 void collectVariables(TNode node, utils::NodeSet& vars)
 {
   std::vector<TNode> stack;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
 
   stack.push_back(node);
   while (!stack.empty())
@@ -49,6 +51,8 @@ void collectVariables(TNode node, utils::NodeSet& vars)
     stack.pop_back();
 
     if (vars.find(n) != vars.end()) continue;
+    if (visited.find(n) != visited.end()) continue;
+    visited.insert(n);
 
     if (Theory::isLeafOf(n, THEORY_BV) && n.getKind() != kind::CONST_BITVECTOR)
     {
