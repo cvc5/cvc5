@@ -108,9 +108,9 @@ class ExtendedRewriter
   
   
   /** extended rewrite arith */
-  Node extendedRewriteArith( Node ret );
+  Node extendedRewriteArith( Node ret, bool& pol );
   /** extended rewrite bv */
-  Node extendedRewriteBv( Node ret );
+  Node extendedRewriteBv( Node ret, bool& pol );
   
   
   /** mk const as the same type as n, 0 if !isNot, 1s if isNot */

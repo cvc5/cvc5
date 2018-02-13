@@ -100,6 +100,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     return it->second;
   }
   Node ret = n;
+  NodeManager * nm = NodeManager::currentNM();
   if (n.getNumChildren() > 0)
   {
     std::vector<Node> children;
@@ -130,6 +131,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   Trace("q-ext-rewrite-debug") << "Do extended rewrite on : " << ret
                                << " (from " << n << ")" << std::endl;
   Node new_ret;
+  
+  // theory-independent simple rewriting
   if (ret.getKind() == kind::EQUAL)
   {
     if (new_ret.isNull())
@@ -173,8 +176,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
             Node retn = ret[1].substitute(r1, r2);
             if (retn != ret[1])
             {
-              new_ret = NodeManager::currentNM()->mkNode(
-                  kind::ITE, ret[0], retn, ret[2]);
+              new_ret = nm->mkNode( kind::ITE, ret[0], retn, ret[2]);
               Trace("q-ext-rewrite")
                   << "sygus-extr : " << ret << " rewrites to " << new_ret
                   << " due to simple ITE substitution." << std::endl;
@@ -184,16 +186,24 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
     }
   }
-  else
+  
+  if( new_ret.isNull() )
   {
-    TheoryId tid = Theory::theoryOf(ret);
+    Node atom = ret.getKind()==NOT ? ret[0] : ret;
+    bool pol = ret.getKind()!=NOT;
+    TheoryId tid = Theory::theoryOf(atom);
     if( tid == THEORY_ARITH )
     {
-      new_ret = extendedRewriteArith( ret );
+      new_ret = extendedRewriteArith( atom, pol );
     }
     else if( tid == THEORY_BV )
     {
-      new_ret = extendedRewriteBv( ret );
+      new_ret = extendedRewriteBv( atom, pol );
+    }
+    // add back negation if not processed
+    if( !pol && !new_ret.isNull() )
+    {
+      new_ret = new_ret.negate();
     }
   }
 
@@ -271,7 +281,7 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n)
   return new_ret;
 }  
 
-Node ExtendedRewriter::extendedRewriteArith( Node ret )
+Node ExtendedRewriter::extendedRewriteArith( Node ret, bool& pol )
 {
   Kind k = ret.getKind(); 
   NodeManager * nm = NodeManager::currentNM();
@@ -307,12 +317,41 @@ Node ExtendedRewriter::extendedRewriteArith( Node ret )
   return new_ret;
 }
 
-Node ExtendedRewriter::extendedRewriteBv( Node ret )
+Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
 {
+  if( Trace.isOn("q-ext-rewrite-bv") )
+  {
+    Trace("q-ext-rewrite-bv") << "Extended rewrite bv : ";
+    if( !pol )
+    {
+      Trace("q-ext-rewrite-bv") << "(not) ";
+    }
+    Trace("q-ext-rewrite-bv") << ret << std::endl;
+  }
   Kind k = ret.getKind(); 
   NodeManager * nm = NodeManager::currentNM();
   Node new_ret;
-  if( k == BITVECTOR_AND || k == BITVECTOR_OR )
+  if( k==EQUAL )
+  {
+    Assert( ret[0].getType().isBitVector() );
+    bool isZero = false;
+    for( unsigned i=0; i<2; i++ )
+    {
+      if( isConstBv( ret[0], false ) )
+      {
+        isZero = true;
+        break;
+      }
+    }
+    if( !isZero )
+    {
+      new_ret = nm->mkNode( BITVECTOR_PLUS, ret[0], nm->mkNode( BITVECTOR_NEG, ret[1] ) );
+      Node bv_zero = mkConstBv(ret[0],false);
+      new_ret = new_ret.eqNode(bv_zero);
+      debugExtendedRewrite( ret, new_ret, "BV-eq-solve" );
+    }
+  }
+  else if( k == BITVECTOR_AND || k == BITVECTOR_OR )
   {
     bool isAnd = ( k == BITVECTOR_AND );
     std::unordered_set< unsigned > drops;
@@ -366,6 +405,12 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret )
     {
       new_ret = nm->mkConst(false);
       debugExtendedRewrite( ret, new_ret, "ULT-arith" );
+    }
+    else if( isConstBv( ret[0], false ) || isConstBv( ret[1], true ) )
+    {
+      new_ret = ret[0].eqNode( ret[1] );
+      new_ret = new_ret.negate();
+      debugExtendedRewrite( ret, new_ret, "ULT-neq" );
     }
   }
   else if( k == BITVECTOR_SLT )
