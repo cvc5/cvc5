@@ -174,149 +174,18 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         }
       }
     }
-    else if (k == DIVISION || k == INTS_DIVISION || k == INTS_MODULUS)
+    else
     {
-      // rewrite as though total
-      std::vector<Node> children;
-      bool all_const = true;
-      for (unsigned i = 0; i < ret.getNumChildren(); i++)
+      TheoryId tid = Theory::theoryOf(ret);
+      if( tid == THEORY_ARITH )
       {
-        if (ret[i].isConst())
-        {
-          children.push_back(ret[i]);
-        }
-        else
-        {
-          all_const = false;
-          break;
-        }
+        new_ret = extendedRewriteArith( ret );
       }
-      if (all_const)
+      else if( tid == THEORY_BV )
       {
-        Kind new_k =
-            (ret.getKind() == DIVISION
-                 ? DIVISION_TOTAL
-                 : (ret.getKind() == INTS_DIVISION ? INTS_DIVISION_TOTAL
-                                                   : INTS_MODULUS_TOTAL));
-        new_ret = nm->mkNode(new_k, children);
-        debugExtendedRewrite(ret,new_ret,"total-interpretation");
+        new_ret = extendedRewriteBv( ret );
       }
     }
-    else if( k == BITVECTOR_AND || k == BITVECTOR_OR )
-    {
-      bool isAnd = ( k == BITVECTOR_AND );
-      std::unordered_set< unsigned > drops;
-      std::vector< Node > children;
-      unsigned size=ret.getNumChildren();
-      for( unsigned i=0; i<size; i++ )
-      {
-        Node cmpi = isAnd ? ret[i] : nm->mkNode( BITVECTOR_NOT, ret[i] );
-        bool success = true;
-        for( unsigned j=0; j<size; j++ )
-        {
-          if( i!=j && drops.find(j)==drops.end() )
-          {
-            bool cond = isAnd ? bitVectorSubsume( ret[i], ret[j] ) : bitVectorSubsume( ret[j], ret[i] );
-            if( cond )
-            {
-              drops.insert(i);
-              success = false;
-            }
-            Node cmpj = isAnd ? ret[j] : nm->mkNode( BITVECTOR_NOT, ret[j] );
-            if( i<j && bitvectorDisjoint( cmpi, cmpj ) )
-            {
-              new_ret = mkConstBv( ret, !isAnd );
-              debugExtendedRewrite( ret, new_ret, "AND/OR-disjoint" );
-              break;
-            }
-          }
-        }
-        if( !new_ret.isNull() )
-        {
-          break;
-        }
-        if( success )
-        {
-          children.push_back(ret[i]);
-        }
-      }
-      if( new_ret.isNull() )
-      {
-        Assert( !children.empty() );
-        if( children.size()<size )
-        {
-          new_ret = children.size()==1 ? children[0] : nm->mkNode( k, children );
-          debugExtendedRewrite( ret, new_ret, "AND/OR subsume" );
-        }
-      }
-    }
-    else if( k == BITVECTOR_ULT )
-    {
-      if( bitVectorArithComp( ret[0], ret[1] ) )
-      {
-        new_ret = nm->mkConst(false);
-        debugExtendedRewrite( ret, new_ret, "ULT-arith" );
-      }
-    }
-    else if( k == BITVECTOR_SLT )
-    {
-      if( ret[0]==ret[1] )
-      {
-        new_ret = nm->mkConst(false);
-        debugExtendedRewrite( ret, new_ret, "SLT-id" );
-      }
-    }
-    else if( k == BITVECTOR_LSHR || k == BITVECTOR_SHL )
-    {
-      new_ret = rewriteBvShift( ret );
-    }
-    else if( k == BITVECTOR_PLUS || k == BITVECTOR_MULT )
-    {
-      new_ret = rewriteBvArith( ret );
-    }
-    else if( k == BITVECTOR_NEG )
-    {
-      // miniscope
-      if( ret[0].getKind()==BITVECTOR_SHL )
-      {
-        new_ret = nm->mkNode( BITVECTOR_SHL, nm->mkNode( BITVECTOR_NEG, ret[0][0] ), ret[0][1] );
-        debugExtendedRewrite( ret, new_ret, "NEG-SHL-miniscope" );
-      }
-      else if( ret[0].getKind()==BITVECTOR_NOT )
-      {
-        // this should be handled by NOT-plus-miniscope below
-        Assert( ret[0][0].getKind()!=BITVECTOR_PLUS || !hasConstBvChild( ret[0][0] ) );
-      }
-      else 
-      {
-        new_ret = normalizeBvMonomial( ret );
-        if( !new_ret.isNull() )
-        {
-          debugExtendedRewrite( ret, new_ret, "NEG-normalize" );
-        }
-      }
-    }
-    else if( k == BITVECTOR_NOT )
-    {
-      // ~( x+y ) ----> -(x+y)-1
-      Kind ck = ret[0].getKind();
-      if( ck==BITVECTOR_PLUS && hasConstBvChild( ret[0] ) )
-      {
-        Node max_bv = mkConstBv(ret[0],true);
-        Node c = nm->mkNode( BITVECTOR_NEG, ret[0] );
-        new_ret = nm->mkNode( BITVECTOR_PLUS, c, max_bv );
-        debugExtendedRewrite( ret, new_ret, "NOT-plus-miniscope" );
-      }
-    }
-    else if( k == BITVECTOR_CONCAT )
-    {
-      new_ret = normalizeBvMonomial( ret );
-      if( !new_ret.isNull() )
-      {
-        debugExtendedRewrite( ret, new_ret, "CONCAT-normalize" );
-      }
-    }
-    
     
     // more expensive rewrites
     if (new_ret.isNull())
@@ -400,6 +269,165 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     return it->second;
   }
 }  
+
+Node ExtendedRewriter::extendedRewriteArith( Node ret )
+{
+  Kind k = ret.getKind(); 
+  NodeManager * nm = NodeManager::currentNM();
+  Node new_ret;
+  if (k == DIVISION || k == INTS_DIVISION || k == INTS_MODULUS)
+  {
+    // rewrite as though total
+    std::vector<Node> children;
+    bool all_const = true;
+    for (unsigned i = 0; i < ret.getNumChildren(); i++)
+    {
+      if (ret[i].isConst())
+      {
+        children.push_back(ret[i]);
+      }
+      else
+      {
+        all_const = false;
+        break;
+      }
+    }
+    if (all_const)
+    {
+      Kind new_k =
+          (ret.getKind() == DIVISION
+                ? DIVISION_TOTAL
+                : (ret.getKind() == INTS_DIVISION ? INTS_DIVISION_TOTAL
+                                                  : INTS_MODULUS_TOTAL));
+      new_ret = nm->mkNode(new_k, children);
+      debugExtendedRewrite(ret,new_ret,"total-interpretation");
+    }
+  }
+  return new_ret;
+}
+
+Node ExtendedRewriter::extendedRewriteBv( Node ret )
+{
+  Kind k = ret.getKind(); 
+  NodeManager * nm = NodeManager::currentNM();
+  Node new_ret;
+  if( k == BITVECTOR_AND || k == BITVECTOR_OR )
+  {
+    bool isAnd = ( k == BITVECTOR_AND );
+    std::unordered_set< unsigned > drops;
+    std::vector< Node > children;
+    unsigned size=ret.getNumChildren();
+    for( unsigned i=0; i<size; i++ )
+    {
+      Node cmpi = isAnd ? ret[i] : nm->mkNode( BITVECTOR_NOT, ret[i] );
+      bool success = true;
+      for( unsigned j=0; j<size; j++ )
+      {
+        if( i!=j && drops.find(j)==drops.end() )
+        {
+          bool cond = isAnd ? bitVectorSubsume( ret[i], ret[j] ) : bitVectorSubsume( ret[j], ret[i] );
+          if( cond )
+          {
+            drops.insert(i);
+            success = false;
+          }
+          Node cmpj = isAnd ? ret[j] : nm->mkNode( BITVECTOR_NOT, ret[j] );
+          if( i<j && bitvectorDisjoint( cmpi, cmpj ) )
+          {
+            new_ret = mkConstBv( ret, !isAnd );
+            debugExtendedRewrite( ret, new_ret, "AND/OR-disjoint" );
+            break;
+          }
+        }
+      }
+      if( !new_ret.isNull() )
+      {
+        break;
+      }
+      if( success )
+      {
+        children.push_back(ret[i]);
+      }
+    }
+    if( new_ret.isNull() )
+    {
+      Assert( !children.empty() );
+      if( children.size()<size )
+      {
+        new_ret = children.size()==1 ? children[0] : nm->mkNode( k, children );
+        debugExtendedRewrite( ret, new_ret, "AND/OR subsume" );
+      }
+    }
+  }
+  else if( k == BITVECTOR_ULT )
+  {
+    if( bitVectorArithComp( ret[0], ret[1] ) )
+    {
+      new_ret = nm->mkConst(false);
+      debugExtendedRewrite( ret, new_ret, "ULT-arith" );
+    }
+  }
+  else if( k == BITVECTOR_SLT )
+  {
+    if( ret[0]==ret[1] )
+    {
+      new_ret = nm->mkConst(false);
+      debugExtendedRewrite( ret, new_ret, "SLT-id" );
+    }
+  }
+  else if( k == BITVECTOR_LSHR || k == BITVECTOR_SHL )
+  {
+    new_ret = rewriteBvShift( ret );
+  }
+  else if( k == BITVECTOR_PLUS || k == BITVECTOR_MULT )
+  {
+    new_ret = rewriteBvArith( ret );
+  }
+  else if( k == BITVECTOR_NEG )
+  {
+    // miniscope
+    if( ret[0].getKind()==BITVECTOR_SHL )
+    {
+      new_ret = nm->mkNode( BITVECTOR_SHL, nm->mkNode( BITVECTOR_NEG, ret[0][0] ), ret[0][1] );
+      debugExtendedRewrite( ret, new_ret, "NEG-SHL-miniscope" );
+    }
+    else if( ret[0].getKind()==BITVECTOR_NOT )
+    {
+      // this should be handled by NOT-plus-miniscope below
+      Assert( ret[0][0].getKind()!=BITVECTOR_PLUS || !hasConstBvChild( ret[0][0] ) );
+    }
+    else 
+    {
+      new_ret = normalizeBvMonomial( ret );
+      if( !new_ret.isNull() )
+      {
+        debugExtendedRewrite( ret, new_ret, "NEG-normalize" );
+      }
+    }
+  }
+  else if( k == BITVECTOR_NOT )
+  {
+    // ~( x+y ) ----> -(x+y)-1
+    Kind ck = ret[0].getKind();
+    if( ck==BITVECTOR_PLUS && hasConstBvChild( ret[0] ) )
+    {
+      Node max_bv = mkConstBv(ret[0],true);
+      Node c = nm->mkNode( BITVECTOR_NEG, ret[0] );
+      new_ret = nm->mkNode( BITVECTOR_PLUS, c, max_bv );
+      debugExtendedRewrite( ret, new_ret, "NOT-plus-miniscope" );
+    }
+  }
+  else if( k == BITVECTOR_CONCAT )
+  {
+    new_ret = normalizeBvMonomial( ret );
+    if( !new_ret.isNull() )
+    {
+      debugExtendedRewrite( ret, new_ret, "CONCAT-normalize" );
+    }
+  }
+  return new_ret;
+}
+
 
 Node ExtendedRewriter::rewriteBvArith( Node ret )
 {

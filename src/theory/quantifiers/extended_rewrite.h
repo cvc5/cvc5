@@ -96,6 +96,14 @@ class ExtendedRewriter
   Node decomposeChain( Kind k, Node n, std::vector< Node >& children );
   /** chain */
   Node mkChain( Kind k, Node base, std::vector< Node >& children );
+  
+  
+  /** extended rewrite arith */
+  Node extendedRewriteArith( Node ret );
+  /** extended rewrite bv */
+  Node extendedRewriteBv( Node ret );
+  
+  
   /** mk const as the same type as n, 0 if !isNot, 1s if isNot */
   Node mkConstBv( Node n, bool isNot );
   /** is const bv zero */
