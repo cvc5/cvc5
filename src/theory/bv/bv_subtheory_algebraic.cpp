@@ -33,6 +33,35 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+/* ------------------------------------------------------------------------- */
+
+namespace {
+
+/* Collect all variables under a given a node.  */
+void collectVariables(TNode node, utils::NodeSet& vars)
+{
+  std::vector<TNode> stack;
+
+  stack.push_back(node);
+  while (!stack.empty())
+  {
+    Node n = stack.back();
+    stack.pop_back();
+
+    if (vars.find(n) != vars.end()) continue;
+
+    if (Theory::isLeafOf(n, THEORY_BV) && n.getKind() != kind::CONST_BITVECTOR)
+    {
+      vars.insert(n);
+      continue;
+    }
+    stack.insert(stack.end(), n.begin(), n.end());
+  }
+}
+
+};
+
+/* ------------------------------------------------------------------------- */
 
 bool hasExpensiveBVOperators(TNode fact);
 Node mergeExplanations(const std::vector<Node>& expls);
@@ -677,6 +706,7 @@ void AlgebraicSolver::assertFact(TNode fact) {
 EqualityStatus AlgebraicSolver::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_UNKNOWN;
 }
+
 bool AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel)
 {
   Debug("bitvector-model") << "AlgebraicSolver::collectModelInfo\n";
@@ -705,7 +735,7 @@ bool AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel)
     TNode subst = Rewriter::rewrite(d_modelMap->apply(current));
     Debug("bitvector-model") << "   " << current << " => " << subst << "\n";
     values[i] = subst;
-    utils::collectVariables(subst, leaf_vars);
+    collectVariables(subst, leaf_vars);
   }
 
   Debug("bitvector-model") << "Model:\n";
