@@ -19,6 +19,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "options/quantifiers_options.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -188,7 +189,10 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
     else if( tid == THEORY_BV )
     {
-      new_ret = extendedRewriteBv( ret );
+      if( options::sygusExtRew() )
+      {
+        new_ret = extendedRewriteBv( ret );
+      }
     }
   }
 

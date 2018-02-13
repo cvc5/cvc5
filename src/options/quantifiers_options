@@ -296,6 +296,12 @@ option sygusCRefEvalMinExp --sygus-cref-eval-min-exp bool :default true
 option sygusStream --sygus-stream bool :read-write :default false
   enumerate a stream of solutions instead of terminating after the first one
   
+option sygusExtRew --sygus-ext-rew bool :read-write :default true
+  experimental use of extended rewriter for sygus
+  
+option sygusSilent --sygus-silent bool :read-write :default false
+  do not print sygus
+  
 option cegisSample --cegis-sample=MODE CVC4::theory::quantifiers::CegisSampleMode :read-write :default CVC4::theory::quantifiers::CEGIS_SAMPLE_NONE :include "options/quantifiers_modes.h" :handler stringToCegisSampleMode
   mode for using samples in the counterexample-guided inductive synthesis loop
 
