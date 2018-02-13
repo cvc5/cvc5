@@ -89,6 +89,10 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
 Node ExtendedRewriter::extendedRewrite(Node n)
 {
   n = Rewriter::rewrite(n);
+  if( !options::sygusExtRew() )
+  {
+    return n;
+  }
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
       d_ext_rewrite_cache.find(n);
   if (it != d_ext_rewrite_cache.end())
@@ -189,10 +193,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
     else if( tid == THEORY_BV )
     {
-      if( options::sygusExtRew() )
-      {
-        new_ret = extendedRewriteBv( ret );
-      }
+      new_ret = extendedRewriteBv( ret );
     }
   }
 
