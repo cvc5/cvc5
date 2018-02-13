@@ -128,38 +128,40 @@ bool isBVPredicate(TNode node)
 
 bool isCoreTerm(TNode term, TNodeBoolMap& cache)
 {
-  term = term.getKind() == kind::NOT ? term[0] : term;
-  TNodeBoolMap::const_iterator it = cache.find(term);
-  if (it != cache.end())
-  {
-    return it->second;
-  }
+  TNode t = term.getKind() == kind::NOT ? term[0] : term;
 
-  if (term.getNumChildren() == 0) return true;
+  std::vector<TNode> stack;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  stack.push_back(t);
 
-  if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, term) == THEORY_BV)
+  while (!stack.empty())
   {
-    Kind k = term.getKind();
-    if (k != kind::CONST_BITVECTOR && k != kind::BITVECTOR_CONCAT
-        && k != kind::BITVECTOR_EXTRACT && k != kind::EQUAL
-        && term.getMetaKind() != kind::metakind::VARIABLE)
+    if (cache.find(t) != cache.end()) continue;
+    if (visited.find(t) != visited.end()) continue;
+    visited.insert(t);
+
+    if (t.getNumChildren() == 0)
     {
-      cache[term] = false;
-      return false;
+      cache[t] = true;
+      continue;
     }
-  }
-
-  for (unsigned i = 0; i < term.getNumChildren(); ++i)
-  {
-    if (!isCoreTerm(term[i], cache))
+    else if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, t)
+             == theory::THEORY_BV)
     {
-      cache[term] = false;
-      return false;
+      Kind k = t.getKind();
+      if (k != kind::CONST_BITVECTOR
+          && k != kind::BITVECTOR_CONCAT
+          && k != kind::BITVECTOR_EXTRACT
+          && k != kind::EQUAL
+          && term.getMetaKind() != kind::metakind::VARIABLE)
+      {
+        cache[t] = false;
+      }
     }
+    stack.insert(stack.end(), t.begin(), t.end());
   }
-
-  cache[term] = true;
-  return true;
+  Assert(cache.find(t) != cache.end());
+  return cache[t];
 }
 
 bool isEqualityTerm(TNode term, TNodeBoolMap& cache)
