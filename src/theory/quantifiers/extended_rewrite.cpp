@@ -27,7 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-ExtendedRewriter::ExtendedRewriter( bool aggr ) : d_aggr(aggr)
+ExtendedRewriter::ExtendedRewriter(bool aggr) : d_aggr(aggr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -77,8 +77,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
           Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
                                  << nc << " by simple ITE pulling."
                                  << std::endl;
-          // recurse
-          return extendedRewrite(nc);
+          return nc;
         }
       }
     }
@@ -88,186 +87,183 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
 
 Node ExtendedRewriter::extendedRewrite(Node n)
 {
-  n = Rewriter::rewrite( n );
-  NodeManager * nm = NodeManager::currentNM();
+  n = Rewriter::rewrite(n);
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
       d_ext_rewrite_cache.find(n);
-  if (it == d_ext_rewrite_cache.end())
+  if (it != d_ext_rewrite_cache.end())
   {
-    Trace("q-ext-rewrite-debug") << "Do extended rewrite on : " << n << std::endl;
-    
-    Node ret = n;
-    if (n.getNumChildren() > 0)
+    return it->second;
+  }
+  Node ret = n;
+  if (n.getNumChildren() > 0)
+  {
+    std::vector<Node> children;
+    if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
-      std::vector<Node> children;
-      if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        children.push_back(n.getOperator());
-      }
-      bool childChanged = false;
-      for (unsigned i = 0; i < n.getNumChildren(); i++)
-      {
-        Node nc = extendedRewrite(n[i]);
-        childChanged = nc != n[i] || childChanged;
-        children.push_back(nc);
-      }
-      // Some commutative operators have rewriters that are agnostic to order,
-      // thus, we sort here.
-      if (TermUtil::isComm(n.getKind()) && ( d_aggr || children.size()<=5 ) )
-      {
-        childChanged = true;
-        std::sort(children.begin(), children.end());
-      }
-      if (childChanged)
-      {
-        ret = nm->mkNode(n.getKind(), children);
-      }
+      children.push_back(n.getOperator());
     }
-    ret = Rewriter::rewrite(ret);
-    Trace("q-ext-rewrite-debug") << "Do extended rewrite on : " << ret
-                                 << " (from " << n << ")" << std::endl;
-
-    Node new_ret;
-    Kind k = ret.getKind();
-    if (k == kind::EQUAL)
+    bool childChanged = false;
+    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    {
+      Node nc = extendedRewrite(n[i]);
+      childChanged = nc != n[i] || childChanged;
+      children.push_back(nc);
+    }
+    // Some commutative operators have rewriters that are agnostic to order,
+    // thus, we sort here.
+    if (TermUtil::isComm(n.getKind()) && (d_aggr || children.size() <= 5))
+    {
+      childChanged = true;
+      std::sort(children.begin(), children.end());
+    }
+    if (childChanged)
+    {
+      ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
+    }
+  }
+  ret = Rewriter::rewrite(ret);
+  Trace("q-ext-rewrite-debug") << "Do extended rewrite on : " << ret
+                               << " (from " << n << ")" << std::endl;
+  Node new_ret;
+  if (ret.getKind() == kind::EQUAL)
+  {
+    if (new_ret.isNull())
     {
       // simple ITE pulling
       new_ret = extendedRewritePullIte(ret);
     }
-    else if (k == kind::ITE)
+  }
+  else if (ret.getKind() == kind::ITE)
+  {
+    Assert(ret[1] != ret[2]);
+    if (ret[0].getKind() == NOT)
     {
-      Assert(ret[1] != ret[2]);
-      if (ret[0].getKind() == NOT)
+      ret = NodeManager::currentNM()->mkNode(
+          kind::ITE, ret[0][0], ret[2], ret[1]);
+    }
+    if (ret[0].getKind() == kind::EQUAL)
+    {
+      // simple invariant ITE
+      for (unsigned i = 0; i < 2; i++)
       {
-        ret = nm->mkNode( kind::ITE, ret[0][0], ret[2], ret[1]);
+        if (ret[1] == ret[0][i] && ret[2] == ret[0][1 - i])
+        {
+          Trace("q-ext-rewrite")
+              << "sygus-extr : " << ret << " rewrites to " << ret[2]
+              << " due to simple invariant ITE." << std::endl;
+          new_ret = ret[2];
+          break;
+        }
       }
-      if (ret[0].getKind() == kind::EQUAL)
+      // notice this is strictly more general than the above
+      if (new_ret.isNull())
       {
-        // simple invariant ITE
+        // simple substitution
         for (unsigned i = 0; i < 2; i++)
         {
-          if (ret[1] == ret[0][i] && ret[2] == ret[0][1 - i])
+          TNode r1 = ret[0][i];
+          TNode r2 = ret[0][1 - i];
+          if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
           {
-            new_ret = ret[2];
-            debugExtendedRewrite(ret,new_ret,"subs-ITE");
-            break;
+            Node retn = ret[1].substitute(r1, r2);
+            if (retn != ret[1])
+            {
+              new_ret = NodeManager::currentNM()->mkNode(
+                  kind::ITE, ret[0], retn, ret[2]);
+              Trace("q-ext-rewrite")
+                  << "sygus-extr : " << ret << " rewrites to " << new_ret
+                  << " due to simple ITE substitution." << std::endl;
+            }
           }
         }
-        // notice this is strictly more general than the above
-        if (new_ret.isNull())
+      }
+    }
+  }
+  else
+  {
+    TheoryId tid = Theory::theoryOf(ret);
+    if( tid == THEORY_ARITH )
+    {
+      new_ret = extendedRewriteArith( ret );
+    }
+    else if( tid == THEORY_BV )
+    {
+      new_ret = extendedRewriteBv( ret );
+    }
+  }
+
+  // more expensive rewrites
+  if (new_ret.isNull() && d_aggr)
+  {
+    new_ret = extendedRewriteAggr(ret);
+  }
+
+  d_ext_rewrite_cache[n] = ret;
+  if (!new_ret.isNull())
+  {
+    ret = extendedRewrite(new_ret);
+  }
+  d_ext_rewrite_cache[n] = ret;
+  return ret;
+}
+
+Node ExtendedRewriter::extendedRewriteAggr(Node n)
+{
+  Node new_ret;
+  Trace("q-ext-rewrite-debug2")
+      << "Do aggressive rewrites on " << n << std::endl;
+  bool polarity = n.getKind() != NOT;
+  Node ret_atom = n.getKind() == NOT ? n[0] : n;
+  if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isReal())
+      || ret_atom.getKind() == GEQ)
+  {
+    Trace("q-ext-rewrite-debug2")
+        << "Compute monomial sum " << ret_atom << std::endl;
+    // compute monomial sum
+    std::map<Node, Node> msum;
+    if (ArithMSum::getMonomialSumLit(ret_atom, msum))
+    {
+      for (std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end();
+           ++itm)
+      {
+        Node v = itm->first;
+        Trace("q-ext-rewrite-debug2")
+            << itm->first << " * " << itm->second << std::endl;
+        if (v.getKind() == ITE)
         {
-          // simple substitution
-          for (unsigned i = 0; i < 2; i++)
-          {              
-            TNode r1 = ret[0][i];
-            TNode r2 = ret[0][1 - i];
-            if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
+          Node veq;
+          int res = ArithMSum::isolate(v, msum, veq, ret_atom.getKind());
+          if (res != 0)
+          {
+            Trace("q-ext-rewrite-debug")
+                << "  have ITE relation, solved form : " << veq << std::endl;
+            // try pulling ITE
+            new_ret = extendedRewritePullIte(veq);
+            if (!new_ret.isNull())
             {
-              Node retn = ret[1].substitute(r1, r2);
-              if (retn != ret[1])
+              if (!polarity)
               {
-                new_ret = nm->mkNode(ITE, ret[0], retn, ret[2]);
-                debugExtendedRewrite(ret,new_ret,"subs-ITE");
+                new_ret = new_ret.negate();
               }
+              break;
             }
+          }
+          else
+          {
+            Trace("q-ext-rewrite-debug")
+                << "  failed to isolate " << v << " in " << n << std::endl;
           }
         }
       }
     }
     else
     {
-      TheoryId tid = Theory::theoryOf(ret);
-      if( tid == THEORY_ARITH )
-      {
-        new_ret = extendedRewriteArith( ret );
-      }
-      else if( tid == THEORY_BV )
-      {
-        new_ret = extendedRewriteBv( ret );
-      }
+      Trace("q-ext-rewrite-debug")
+          << "  failed to get monomial sum of " << n << std::endl;
     }
-    
-    // more expensive rewrites
-    if (new_ret.isNull())
-    {
-      Trace("q-ext-rewrite-debug2") << "Do expensive rewrites on " << ret
-                                    << std::endl;
-      bool polarity = ret.getKind() != NOT;
-      Node ret_atom = ret.getKind() == NOT ? ret[0] : ret;
-      if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isReal())
-          || ret_atom.getKind() == GEQ)
-      {
-        Trace("q-ext-rewrite-debug2") << "Compute monomial sum " << ret_atom
-                                      << std::endl;
-        // compute monomial sum
-        std::map<Node, Node> msum;
-        if (ArithMSum::getMonomialSumLit(ret_atom, msum))
-        {
-          for (std::map<Node, Node>::iterator itm = msum.begin();
-               itm != msum.end();
-               ++itm)
-          {
-            Node v = itm->first;
-            Trace("q-ext-rewrite-debug2") << itm->first << " * " << itm->second
-                                          << std::endl;
-            if (v.getKind() == ITE)
-            {
-              Node veq;
-              int res = ArithMSum::isolate(v, msum, veq, ret_atom.getKind());
-              if (res != 0)
-              {
-                Trace("q-ext-rewrite-debug")
-                    << "  have ITE relation, solved form : " << veq
-                    << std::endl;
-                // try pulling ITE
-                new_ret = extendedRewritePullIte(veq);
-                if (!new_ret.isNull())
-                {
-                  if (!polarity)
-                  {
-                    new_ret = new_ret.negate();
-                  }
-                  debugExtendedRewrite(ret,new_ret,"solve-ITE");
-                  break;
-                }
-              }
-              else
-              {
-                Trace("q-ext-rewrite-debug") << "  failed to isolate " << v
-                                             << " in " << ret << std::endl;
-              }
-            }
-          }
-        }
-        else
-        {
-          Trace("q-ext-rewrite-debug") << "  failed to get monomial sum of "
-                                       << ret << std::endl;
-        }
-      }
-      else if (ret_atom.getKind() == ITE)
-      {
-        // TODO : conditional rewriting
-      }
-      else if (ret.getKind() == kind::AND || ret.getKind() == kind::OR)
-      {
-        // TODO condition merging
-      }
-    }
-    d_ext_rewrite_cache[n] = ret;
-    if (!new_ret.isNull())
-    {
-      Trace("q-ext-rewrite-debug") << "...returned " << new_ret << " for " << n << ", repeat ext-rewrite" << std::endl;
-      ret = extendedRewrite(new_ret);
-    }
-    Trace("q-ext-rewrite-debug") << "...returned " << ret << " for " << n << std::endl;
-    d_ext_rewrite_cache[n] = ret;
-    return ret;
   }
-  else
-  {
-    return it->second;
-  }
+  // TODO (#1599) : conditional rewriting, condition merging
+  return new_ret;
 }  
 
 Node ExtendedRewriter::extendedRewriteArith( Node ret )

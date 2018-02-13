@@ -33,7 +33,7 @@ namespace quantifiers {
 TermDbSygus::TermDbSygus(context::Context* c, QuantifiersEngine* qe)
     : d_quantEngine(qe),
       d_syexp(new SygusExplain(this)),
-      d_ext_rw(new ExtendedRewriter)
+      d_ext_rw(new ExtendedRewriter(true))
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
