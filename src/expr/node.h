@@ -930,7 +930,7 @@ void nodeContainerToOut(std::ostream& out, const T& container)
 {
   out << "[";
   bool is_first = true;
-  for (auto item : container)
+  for (const auto& item : container)
   {
     out << (!is_first ? ", " : "") << item;
     is_first = false;
@@ -944,7 +944,7 @@ void nodeContainerToOut(std::ostream& out, const T& container)
  * Serialize a vector of nodes to given stream.
  *
  * @param out the output stream to use
- * @param the node vector to output to the stream
+ * @param container the vector of nodes to output to the stream
  * @return the stream
  */
 template <bool RC>
@@ -959,7 +959,7 @@ std::ostream& operator<<(std::ostream& out,
  * Serialize a set of nodes to the given stream.
  *
  * @param out the output stream to use
- * @param the node set to output to the stream
+ * @param container the set of nodes to output to the stream
  * @return the stream
  */
 template <bool RC>
@@ -974,7 +974,7 @@ std::ostream& operator<<(std::ostream& out,
  * Serialize an unordered_set of nodes to the given stream.
  *
  * @param out the output stream to use
- * @param the node unordered_set to output to the stream
+ * @param container the unordered_set of nodes to output to the stream
  * @return the stream
  */
 template <bool RC, typename hash_function>
@@ -990,7 +990,7 @@ std::ostream& operator<<(
  * Serialize a map of nodes to the given stream.
  *
  * @param out the output stream to use
- * @param the node map to output to the stream
+ * @param container the map of nodes to output to the stream
  * @return the stream
  */
 template <bool RC, typename V>
@@ -1006,7 +1006,7 @@ std::ostream& operator<<(
  * Serialize an unordered_map of nodes to the given stream.
  *
  * @param out the output stream to use
- * @param the node unordered_map to output to the stream
+ * @param container the unordered_map of nodes to output to the stream
  * @return the stream
  */
 template <bool RC, typename V, typename HF>
