@@ -485,6 +485,7 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
   unsigned size = bv::utils::getSize(ret);
   Node bv_one = bv::utils::mkOne(size);
   Node bv_neg_one = bv::utils::mkOnes(size);
+  /*
   if( k == BITVECTOR_PLUS )
   {
     std::vector< Node > nconst;
@@ -509,6 +510,7 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
       return new_ret;
     }
   }
+  */
   
   std::vector< Node > rchildren;
   bool rchildrenChanged = false;
