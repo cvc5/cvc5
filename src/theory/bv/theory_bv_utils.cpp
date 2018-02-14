@@ -126,7 +126,7 @@ bool isBVPredicate(TNode node)
          || k == kind::BITVECTOR_REDAND;
 }
 
-bool isCoreTermNew(TNode term, TNodeBoolMap& cache)
+bool isCoreTerm(TNode term, TNodeBoolMap& cache)
 {
   TNode t = term.getKind() == kind::NOT ? term[0] : term;
 
@@ -192,51 +192,6 @@ bool isCoreTermNew(TNode term, TNodeBoolMap& cache)
   }
   Assert(cache.find(t) != cache.end());
   return cache[t];
-}
-
-bool isCoreTermOld(TNode term, TNodeBoolMap& cache)
-{
-  term = term.getKind() == kind::NOT ? term[0] : term;
-  TNodeBoolMap::const_iterator it = cache.find(term);
-  if (it != cache.end())
-  {
-    return it->second;
-  }
-
-  if (term.getNumChildren() == 0) return true;
-
-  if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, term) == THEORY_BV)
-  {
-    Kind k = term.getKind();
-    if (k != kind::CONST_BITVECTOR && k != kind::BITVECTOR_CONCAT
-        && k != kind::BITVECTOR_EXTRACT && k != kind::EQUAL
-        && term.getMetaKind() != kind::metakind::VARIABLE)
-    {
-      cache[term] = false;
-      return false;
-    }
-  }
-
-  for (unsigned i = 0; i < term.getNumChildren(); ++i)
-  {
-    if (!isCoreTerm(term[i], cache))
-    {
-      cache[term] = false;
-      return false;
-    }
-  }
-
-  cache[term] = true;
-  return true;
-}
-
-bool isCoreTerm (TNode term, TNodeBoolMap& cache)
-{
-  TNodeBoolMap cachecopy(cache);
-  bool resold = isCoreTermOld(term, cache);
-  bool resnew = isCoreTermNew(term, cachecopy);
-  Assert(resold == resnew);
-  return resold;
 }
 
 bool isEqualityTerm(TNode term, TNodeBoolMap& cache)
