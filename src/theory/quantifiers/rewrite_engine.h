@@ -20,7 +20,7 @@
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers_engine.h"
 

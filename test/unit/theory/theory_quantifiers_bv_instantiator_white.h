@@ -22,7 +22,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-#include "theory/quantifiers/ceg_t_instantiator.cpp"
+#include "theory/quantifiers/cegqi/ceg_t_instantiator.cpp"
 
 #include <cxxtest/TestSuite.h>
 #include <iostream>
