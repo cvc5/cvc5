@@ -70,7 +70,7 @@ TESTS =	\
 	conqueue-dt-enum-iloop.smt2 \
 	coda_simp_model.smt2 \
 	Test1-tup-mp.cvc \
-	dt-param-card4-unsat.smt2 \
+	REM \
 	dt-param-card4-bool-sat.smt2 \
 	bug604.smt2 \
 	bug597-rbt.smt2 \
@@ -78,7 +78,7 @@ TESTS =	\
 	dt-2.6.smt2  \
 	dt-sel-2.6.smt2 \
 	dt-param-2.6.smt2 \
-	dt-color-2.6.smt2 \
+	REM \
 	dt-match-pat-param-2.6.smt2 \
 	tuple-no-clash.cvc \
 	jsat-2.6.smt2 \
@@ -90,19 +90,19 @@ TESTS =	\
 # rec5 -- no longer support subrange types
 FAILING_TESTS = \
 	datatype-dump.cvc \
-	rec5.cvc
+	REM
 
 EXTRA_DIST = $(TESTS)
 
 if CVC4_BUILD_PROFILE_COMPETITION
 else
 TESTS += \
-	error.cvc
+	REM
 endif
 
 # and make sure to distribute it
 EXTRA_DIST += \
-	error.cvc \
+	REM \
 	$(FAILING_TESTS)
 
 # synonyms for "check"

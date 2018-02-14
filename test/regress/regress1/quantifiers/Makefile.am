@@ -19,7 +19,7 @@ endif
 TESTS =	\
 	bug802.smt2 \
 	006-cbqi-ite.smt2 \
-	AdditiveMethods_AdditiveMethods..ctor.smt2 \
+	REM \
 	AdditiveMethods_OwnedResults.Mz.smt2 \
 	ari118-bv-2occ-x.smt2 \
 	array-unsat-simp3.smt2 \

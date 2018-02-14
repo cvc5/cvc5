@@ -48,13 +48,13 @@ SMT_TESTS = \
 SMT2_TESTS = \
 	arrayinuf_declare.smt2 \
 	boolean-terms-kernel1.smt2 \
-	boolean-terms-kernel2.smt2 \
+	REM \
 	boolean-terms-bug-array.smt2 \
 	chained-equality.smt2 \
 	ite2.smt2 \
 	ite3.smt2 \
 	ite4.smt2 \
-	ite5.smt2 \
+	REM \
 	simple-lra.smt2 \
 	simple-rdl.smt2 \
 	simple-uf.smt2 \
@@ -72,17 +72,17 @@ SMT2_TESTS = \
 	issue1063-overloading-dt-cons.smt2 \
 	issue1063-overloading-dt-sel.smt2 \
 	issue1063-overloading-dt-fun.smt2 \
-	non-fatal-errors.smt2 \
+	REM \
 	reset-assertions.smt2 \
-	sqrt2-sort-inf-unk.smt2 \
+	REM \
 	rec-fun-const-parse-bug.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = \
-	boolean.cvc \
+	REM \
 	boolean-prec.cvc \
 	boolean-terms.cvc \
-	hole6.cvc \
+	REM \
 	ite.cvc \
 	let.cvc \
 	logops.01.cvc \
@@ -138,7 +138,7 @@ BUG_TESTS = \
 	bug167.smt \
 	bug168.smt \
 	bug187.smt2 \
-	bug216.smt2 \
+	REM \
 	bug217.smt2 \
 	bug220.smt2 \
 	bug239.smt \
@@ -162,21 +162,21 @@ BUG_TESTS = \
 	bug484.smt2 \
 	bug486.cvc \
 	bug512.minimized.smt2 \
-	bug516.smt2 \
-	bug520.smt2 \
+	REM \
+	REM \
 	bug521.minimized.smt2 \
 	bug522.smt2 \
 	bug528a.smt2 \
 	bug541.smt2 \
-	bug543.smt2 \
+	REM \
 	bug544.smt2 \
 	bug548a.smt2 \
-	bug567.smt2 \
+	REM \
 	bug576.smt2 \
 	bug576a.smt2 \
 	bug578.smt2 \
 	bug586.cvc \
-	bug593.smt2 \
+	REM \
 	bug595.cvc \
 	bug596.cvc \
 	bug596b.cvc \
@@ -192,29 +192,29 @@ TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 # we have a minimized version still getting tested
 # bug639 -- still fails, reopened bug
 # bug585 -- contains subrange type (not supported)
-# issue1048-arrays-int-real.smt2 -- different errors on debug and production
+# REM -- different errors on debug and production
 DISABLED_TESTS = \
-	bug512.smt2 \
-	bug585.cvc
+	REM \
+	REM
 
 EXTRA_DIST = $(TESTS) \
-	bug216.smt2.expect
+	REM.expect
 
 if CVC4_BUILD_PROFILE_COMPETITION
 else
 TESTS += \
-	bug681.smt2 \
-	error.cvc \
-	errorcrash.smt2 \
-	arrayinuf_error.smt2
+	REM \
+	REM \
+	REM \
+	REM
 endif
 
 # and make sure to distribute it
 EXTRA_DIST += $(DISABLED_TESTS) \
-	subranges.cvc \
-	arrayinuf_error.smt2 \
-	errorcrash.smt2 \
-	error.cvc
+	REM \
+	REM \
+	REM \
+	REM
 
 # synonyms for "check" in this directory
 .PHONY: regress regress0 test

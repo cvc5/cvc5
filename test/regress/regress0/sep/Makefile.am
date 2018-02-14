@@ -21,35 +21,35 @@ MAKEFLAGS = -k
 TESTS =	\
   pto-01.smt2 \
   pto-02.smt2 \
-  pto-04.smt2 \
+  REM \
   sep-01.smt2 \
-  sep-02.smt2 \
-  sep-03.smt2 \
-  sep-neg-nstrict.smt2 \
+  REM \
+  REM \
+  REM \
   sep-plus1.smt2 \
-  sep-nterm-val-model.smt2 \
-  crash1220.smt2 \
+  REM \
+  REM \
   nspatial-simp.smt2 \
-  sep-neg-simple.smt2 \
+  REM \
   sep-simp-unsat-emp.smt2 \
-  simple-neg-sat.smt2 \
-  wand-simp-sat.smt2 \
-  wand-simp-sat2.smt2 \
-  wand-simp-unsat.smt2 \
+  REM \
+  REM \
+  REM \
+  REM \
   nemp.smt2 \
   wand-crash.smt2 \
-  wand-nterm-simp.smt2 \
-  wand-nterm-simp2.smt2 \
-  chain-int.smt2 \
-  sep-neg-swap.smt2 \
-  sep-neg-nstrict2.smt2 \
-  wand-0526-sat.smt2 \
-  quant_wand.smt2 \
-  fmf-nemp-2.smt2 \
+  REM \
+  REM \
+  REM \
+  REM \
+  REM \
+  REM \
+  REM \
+  REM \
   trees-1.smt2 \
-  wand-false.smt2 \
+  REM \
   dup-nemp.smt2 \
-  emp2-quant-unsat.smt2 \
+  REM \
   dispose-1.smt2 \
   nil-no-elim.smt2
 

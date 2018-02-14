@@ -24,7 +24,7 @@ TESTS =	\
 	bug425.cvc \
 	bug519.smt2 \
 	bug521.smt2 \
-	bug674.smt2 \
+	REM \
 	bug694-Unapply1.scala-0.smt2 \
 	fmf-fun-dbu.smt2 \
 	bug296.smt2 \

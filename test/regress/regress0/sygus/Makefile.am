@@ -18,53 +18,53 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = commutative.sy \
-        constant.sy \
-        max.sy \
-        array_sum_2_5.sy \
+TESTS = REM \
+        REM \
+        REM \
+        REM \
         parity-AIG-d0.sy \
-        twolets1.sy \
-        array_search_2.sy \
+        REM \
+        REM \
         const-var-test.sy \
         no-syntax-test.sy \
         let-ringer.sy \
         let-simp.sy \
-        nflat-fwd.sy \
-        nflat-fwd-3.sy \
+        REM \
+        REM \
         no-syntax-test-bool.sy \
         uminus_one.sy \
-        sygus-dt.sy \
+        REM \
         dt-no-syntax.sy \
-        list-head-x.sy \
-        dt-test-ns.sy \
-        no-mention.sy \
-        strings-small.sy \
+        REM \
+        REM \
+        REM \
+        REM \
         strings-unconstrained.sy \
-        tl-type-0.sy \
-        strings-trivial-simp.sy \
-        strings-template-infer.sy \
-        strings-trivial.sy \
+        REM \
+        REM \
+        REM \
+        REM \
         General_plus10.sy \
-        qe.sy \
+        REM \
         parse-bv-let.sy \
-        triv-type-mismatch-si.sy \
-        nia-max-square-ns.sy \
-        strings-concat-3-args.sy \
+        REM \
+        REM \
+        REM \
         ccp16.lus.sy \
-        strings-template-infer-unused.sy \
-        strings-trivial-two-type.sy \
-        strings-double-rec.sy \
+        REM \
+        REM \
+        REM \
         real-si-all.sy  \
         c100.sy \
         check-generic-red.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \
-  max.smt2 \
+  REM \
   sygus-uf.sl \
-  enum-test.sy 
+  REM 
   
-# strings-concat-3-args.sy
+# REM
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

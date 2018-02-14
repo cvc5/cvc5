@@ -44,7 +44,7 @@ TESTS =	\
 	simple.02.cvc \
 	simple.03.cvc \
 	simple.04.cvc \
-	proof00.smt2 \
+	REM \
 	cnf-iff.smt2 \
 	cnf-iff-base.smt2 \
 	cnf-ite.smt2 \

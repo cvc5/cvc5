@@ -22,46 +22,46 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 TESTS =	\
   coeff-sat.smt2 \
-  combine.smt2 \
+  REM \
   magnitude-wrong-1020-m.smt2 \
-  nl-unk-quant.smt2 \
+  REM \
   mult-po.smt2 \
   very-simple-unsat.smt2 \
   subs0-unsat-confirm.smt2 \
-  simple-mono-unsat.smt2 \
-  ones.smt2 \
-  metitarski-1025.smt2 \
+  REM \
+  REM \
+  REM \
   very-easy-sat.smt2 \
-  coeff-unsat.smt2 \
-  coeff-unsat-base.smt2 \
-  zero-subset.smt2 \
+  REM \
+  REM \
+  REM \
   nia-wrong-tl.smt2 \
-  disj-eval.smt2 \
+  REM \
   real-div-ufnra.smt2 \
-  div-mod-partial.smt2 \
+  REM \
   real-as-int.smt2 \
-  nta/bad-050217.smt2 \
-  nta/cos-bound.smt2 \
+  nta/REM \
+  nta/REM \
   nta/cos-sig-value.smt2 \
-  nta/exp_monotone.smt2 \
-  nta/shifting2.smt2 \
-  nta/shifting.smt2 \
-  nta/sin-sign.smt2 \
-  nta/sin-sym2.smt2 \
+  nta/REM \
+  nta/REM \
+  nta/REM \
+  nta/REM \
+  nta/REM \
   nta/sin-sym.smt2 \
   nta/tan-rewrite.smt2 \
-  nta/sin-init-tangents.smt2 \
-  nta/cos1-tc.smt2 \
-  nta/sin1-ub.smt2 \
-  nta/sin1-lb.smt2 \
-  nta/sin2-ub.smt2 \
-  nta/sin2-lb.smt2 \
+  nta/REM \
+  nta/REM \
+  nta/REM \
+  nta/REM \
+  nta/REM \
+  nta/REM \
   nta/exp1-ub.smt2 \
-  nta/exp1-lb.smt2 \
+  nta/REM \
   nta/exp-n0.5-ub.smt2 \
   nta/exp-n0.5-lb.smt2 \
-  nta/NAVIGATION2.smt2 \
-  nta/sugar-ident.smt2
+  nta/REM \
+  nta/REM
 
 # unsolved : garbage_collect.cvc
 

@@ -28,29 +28,29 @@ TESTS =	\
 	fuzz_3-eq.smt \
 	leq.01.smt \
 	mod.01.smt2 \
-	mod.02.smt2 \
-	mod.03.smt2 \
+	REM \
+	REM \
 	div.01.smt2 \
 	div.02.smt2 \
-	div.03.smt2 \
+	REM \
 	div.04.smt2 \
 	div.05.smt2 \
-	div.06.smt2 \
+	REM \
 	div.07.smt2 \
-	div.08.smt2 \
+	REM \
 	mult.01.smt2 \
-	mult.02.smt2 \
+	REM \
 	bug443.delta01.smt \
 	miplib.cvc \
 	miplib2.cvc \
-	miplib3.cvc \
+	REM \
 	miplib4.cvc \
 	miplibtrick.smt \
-	bug547.1.smt2 \
+	REM \
 	bug547.2.smt2 \
 	bug569.smt2 \
-	div.09.smt2 \
-	bug716.1.cvc \
+	REM \
+	REM \
 	mod-simp.smt2
 
 EXTRA_DIST = $(TESTS) \

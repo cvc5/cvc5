@@ -43,7 +43,7 @@ SMT_TESTS = \
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS = \
-	bug800.smt2
+	REM
 
 # Regression tests for PL inputs
 CVC_TESTS = 

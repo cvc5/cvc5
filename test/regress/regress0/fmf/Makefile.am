@@ -20,45 +20,45 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 TESTS =	\
 	array_card.smt2 \
-	german169.smt2 \
+	REM \
 	QEpres-uf.855035.smt \
-	agree467.smt2 \
+	REM \
 	Arrow_Order-smtlib.778341.smt \
-	german73.smt2 \
-	PUZ001+1.smt2 \
-	refcount24.cvc.smt2 \
-	fmf-bound-int.smt2 \
+	REM \
+	REM \
+	REM \
+	REM \
 	fc-simple.smt2 \
 	fc-unsat-tot-2.smt2 \
 	fc-unsat-pent.smt2 \
 	Hoare-z3.931718.smt \
-	fore19-exp2-core.smt2 \
+	REM \
 	syn002-si-real-int.smt2 \
 	krs-sat.smt2 \
 	forall_unit_data2.smt2 \
 	sc_bad_model_1221.smt2 \
- 	dt-proper-model.smt2 \
+ 	REM \
 	fd-false.smt2 \
 	tail_rec.smt2 \
-	loopy_coda.smt2 \
+	REM \
 	fmc_unsound_model.smt2 \
-	am-bad-model.cvc \
-	sc-crash-052316.smt2 \
-	bound-int-alt.smt2 \
-	bug723-irrelevant-funs.smt2 \
+	REM \
+	REM \
+	REM \
+	REM \
 	bounded_sets.smt2 \
 	fmf-strange-bounds-2.smt2 \
-	memory_model-R_cpp-dd.cvc \
-	ko-bound-set.cvc \
-	cons-sets-bounds.smt2 \
-	bug651.smt2 \
+	REM \
+	REM \
+	REM \
+	REM \
 	bug652.smt2 \
 	bug782.smt2 \
 	quant_real_univ.cvc \
-	constr-ground-to.smt2 \
+	REM \
 	bug-041417-set-options.cvc \
-	alg202+1.smt2 \
-	fmf-fun-no-elim-ext-arith.smt2 \
+	REM \
+	REM \
 	cruanes-no-minimal-unk.smt2 \
 	no-minimal-sat.smt2 \
 	sat-logic.smt2 

@@ -20,12 +20,12 @@ TESTS = \
 	FIREFLY_luke_1b_e2_3049_e7_1173.ec.minimized.smt2 \
 	microwave21.ec.minimized.smt2 \
 	simple_cyclic2.smt2 \
-	simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
+	REM
 
 
 EXTRA_DIST = $(TESTS) \
-	javafe.ast.StandardPrettyPrint.319_no_forall.smt2 \
-	javafe.ast.WhileStmt.447_no_forall.smt2
+	REM \
+	REM
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test

@@ -32,12 +32,12 @@ TESTS = \
   ite-apply-eq.smt2 \
   apply-collapse-unsat.smt2 \
   apply-collapse-sat.smt2 \
-  ho-exponential-model.smt2 \
+  REM \
   ext-sat-partial-eval.smt2 \
-  ho-std-fmf.smt2 \
+  REM \
   modulo-func-equality.smt2 \
   ho-matching-enum.smt2 \
-  ho-matching-enum-2.smt2 \
+  REM \
   ho-matching-nested-app.smt2 \
   simple-matching.smt2 \
   simple-matching-partial.smt2

@@ -19,12 +19,12 @@ endif
 TESTS = \
 	hd-sdiv.sy \
 	stopwatch-bt.sy \
-	mpg_guard1-dd.sy \
+	REM \
 	VC22_a.sy \
 	unbdd_inv_gen_ex7.sy \
-	three.sy \
+	REM \
 	real-grammar.sy \
-	lustre-real.sy \
+	REM \
 	cegar1.sy \
 	cggmp.sy \
 	clock-inc-tuple.sy \
@@ -37,7 +37,7 @@ TESTS = \
 	icfp_easy-ite.sy \
 	inv-example.sy \
 	inv-unused.sy \
-	max2-univ.sy \
+	REM \
 	multi-fun-polynomial2.sy \
 	no-flat-simp.sy \
 	process-10-vars.sy \
